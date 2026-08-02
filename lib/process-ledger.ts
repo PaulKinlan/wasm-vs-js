@@ -78,13 +78,18 @@ export async function executableSnapshot(path: string): Promise<FileIdentity> {
   }
   return { path: resolved, ...identity, sha256: await sha256Hex(bytes) };
 }
-export async function prepareProfile(profileRoot: string): Promise<ProfileIdentity> {
-  if (!new RegExp(`^${OWNERSHIP_ROOT}/[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$`).test(profileRoot)) {
-    throw new Error("profile root outside ownership root");
-  }
+export async function attestAndRestrictTemporaryRoot(): Promise<void> {
   const tmp = await Deno.lstat("/tmp");
   if (tmp.isSymlink || !tmp.isDirectory || await Deno.realPath("/tmp") !== "/tmp") {
     throw new Error("unsafe temporary root");
+  }
+  await Deno.permissions.revoke({ name: "read", path: "/tmp" });
+  const status = await Deno.permissions.query({ name: "read", path: "/tmp" });
+  if (status.state === "granted") throw new Error("temporary root read permission was not revoked");
+}
+export async function prepareProfile(profileRoot: string): Promise<ProfileIdentity> {
+  if (!new RegExp(`^${OWNERSHIP_ROOT}/[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$`).test(profileRoot)) {
+    throw new Error("profile root outside ownership root");
   }
   await Deno.mkdir(OWNERSHIP_ROOT, { recursive: false, mode: 0o700 }).catch(async (e) => {
     if (!(e instanceof Deno.errors.AlreadyExists)) throw e;

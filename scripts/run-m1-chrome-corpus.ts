@@ -8,7 +8,7 @@ import {
   StagedChrome,
   verifyStagedChrome,
 } from "../lib/chrome-stage.ts";
-import { refreshLedger } from "../lib/process-ledger.ts";
+import { attestAndRestrictTemporaryRoot, refreshLedger } from "../lib/process-ledger.ts";
 import { commitPairedBlock, LaunchManifest, writeImmutableArtifact } from "../lib/corpus-store.ts";
 import { attestNetwork, NetworkRecord } from "../lib/chrome-evidence.ts";
 import { collectChromeProvenance } from "../lib/chrome-provenance.ts";
@@ -1590,6 +1590,7 @@ if (import.meta.main) {
     );
   } else if (args.has("--collect-all")) {
     if (!permitPath) throw new Error("--permit required");
+    await attestAndRestrictTemporaryRoot();
     const permit = validatePermit(JSON.parse(await Deno.readTextFile(permitPath)), {
       sourceCommit,
       operation: "collect-uninstrumented-headline-paired-corpus",
@@ -1622,6 +1623,7 @@ if (import.meta.main) {
     }
   } else if (args.has("--collect-one")) {
     if (!permitPath || !manifestPath) throw new Error("--permit and --manifest required");
+    await attestAndRestrictTemporaryRoot();
     const permit = validatePermit(JSON.parse(await Deno.readTextFile(permitPath)), {
       sourceCommit,
       operation: "pilot-m1-corpus",

@@ -17,3 +17,29 @@ Deno.test("production corpus tasks authorize only the current user app-slice for
     );
   }
 });
+
+Deno.test("collector revokes broad temporary reads while retaining owned-path access", async () => {
+  const id = crypto.randomUUID();
+  const unrelated = `/tmp/wasm-vs-js-unrelated-${id}`;
+  const ownedRoot = `/tmp/wasm-vs-js-revocation-${id}`;
+  const owned = `${ownedRoot}/owned.txt`;
+  await Deno.writeTextFile(unrelated, "private");
+  await Deno.mkdir(ownedRoot, { mode: 0o700 });
+  await Deno.writeTextFile(owned, "owned");
+  try {
+    const result = await new Deno.Command(Deno.execPath(), {
+      args: [
+        "run",
+        "--no-lock",
+        `--allow-read=/tmp,${ownedRoot}`,
+        "tests/tmp-read-revocation-probe.ts",
+        unrelated,
+        owned,
+      ],
+    }).output();
+    assert(result.success, new TextDecoder().decode(result.stderr));
+  } finally {
+    await Deno.remove(unrelated).catch(() => {});
+    await Deno.remove(ownedRoot, { recursive: true }).catch(() => {});
+  }
+});
