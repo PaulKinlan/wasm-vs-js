@@ -1,4 +1,5 @@
 import { LocalRunStore } from "../lib/run-store.ts";
+import { CorpusCoordinator } from "../lib/corpus-store.ts";
 import { createHandler } from "../server.ts";
 import { assert, assertEquals } from "./assert.ts";
 import { validRun } from "./fixture.ts";
@@ -115,6 +116,53 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
   const summary = await (await handler(new Request("http://127.0.0.1/api/summary"))).json();
   assertEquals(summary.runCount, 0);
   assertEquals(summary.claimStatus, "no-runs");
+});
+
+Deno.test("corpus collector is token-bound locally and completely hidden publicly", async () => {
+  const root = await Deno.makeTempDir();
+  try {
+    const store = new LocalRunStore(`${root}/runs`);
+    await store.initialize();
+    const corpus = new CorpusCoordinator(`${root}/corpora`);
+    const local = createHandler(store, "local", corpus);
+    const manifest = {
+      experimentId: "m1-chrome-sum-u32-v1",
+      corpusId: "corpus-1",
+      blockId: "block-1",
+      scheduleIndex: 0,
+      stratum: "cold",
+      order: ["js-controlled", "wasm-linear-controlled"],
+      expiresAt: new Date(Date.now() + 60_000).toISOString(),
+    };
+    const issued = await local(
+      new Request("http://127.0.0.1/api/corpus/launch", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(manifest),
+      }),
+    );
+    assertEquals(issued.status, 201);
+    const token = (await issued.json()).token;
+    assertEquals(
+      (await local(new Request(`http://127.0.0.1/api/corpus/manifest?token=${token}`))).status,
+      200,
+    );
+    assertEquals((await local(new Request("http://127.0.0.1/corpus-run"))).status, 200);
+    const publicHandler = createHandler(null, "public");
+    assertEquals((await publicHandler(new Request("http://127.0.0.1/corpus-run"))).status, 404);
+    assertEquals((await publicHandler(new Request("http://127.0.0.1/corpus-run.js"))).status, 404);
+    assertEquals(
+      (await publicHandler(new Request("http://127.0.0.1/api/corpus/manifest?token=x"))).status,
+      403,
+    );
+    assertEquals(
+      (await publicHandler(new Request("http://127.0.0.1/api/corpus/launch", { method: "POST" })))
+        .status,
+      403,
+    );
+  } finally {
+    await Deno.remove(root, { recursive: true });
+  }
 });
 
 Deno.test("local server bounds writes and serves exact Wasm MIME", async () => {

@@ -1,4 +1,17 @@
 import { validateBenchmark, validateRun } from "../lib/contracts.ts";
+const foundationSchemas = [
+  "browser-permit.schema.json",
+  "corpus.schema.json",
+  "launch-evidence.schema.json",
+  "paired-block.schema.json",
+  "network-attestation.schema.json",
+];
+for (const name of foundationSchemas) {
+  const schema = JSON.parse(await Deno.readTextFile(`schemas/${name}`));
+  if (schema.type !== "object" || schema.additionalProperties !== false) {
+    throw new Error(`${name} must be a closed object schema`);
+  }
+}
 const hash = "a".repeat(64);
 const expectedCommit = Deno.env.get("WASM_VS_JS_COMMIT") ?? "";
 const manifest = JSON.parse(
@@ -256,4 +269,6 @@ expect(
   false,
 );
 
-console.log("contract-check: positive fixtures and 15 negative invariants passed");
+console.log(
+  `contract-check: positive fixtures, 15 negative invariants, and ${foundationSchemas.length} corpus schemas passed`,
+);

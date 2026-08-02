@@ -62,6 +62,9 @@ deno task build    # reproducible WAT → Wasm plus build/footprint manifest
 deno task catalog  # closed-schema, rights, denominator, and public-copy validation
 deno run --allow-read=. scripts/check-preregistration.ts # exact M1 experiment contract
 deno task check    # build, format, lint, typecheck, contracts, and tests
+# Corpus source preflight and fake-only block commit (never launches Chrome):
+deno task --config deno.corpus.json corpus:preflight
+deno task --config deno.corpus.json corpus:dry-fake
 deno task local    # writable local pilot at http://127.0.0.1:8787
 deno task summary  # versioned summary from immutable local runs
 deno task public   # read-only host and exploratory browser-runner smoke

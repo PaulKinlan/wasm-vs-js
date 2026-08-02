@@ -144,6 +144,19 @@ Deno.test("versioned public acceptance package is explicit and contains no inven
   assert(!validate(poisoned), "closed schema accepted an additional evidence field");
 });
 
+Deno.test("local corpus collector is absent from the deployable public tree", async () => {
+  for (const path of ["public/corpus-run.html", "public/corpus-run.js"]) {
+    let exists = true;
+    try {
+      await Deno.stat(path);
+    } catch (error) {
+      if (error instanceof Deno.errors.NotFound) exists = false;
+      else throw error;
+    }
+    assert(!exists, `${path} would leak through static hosting`);
+  }
+});
+
 Deno.test("public pages contain no inline script, inline style, or remote asset", async () => {
   for (
     const path of [

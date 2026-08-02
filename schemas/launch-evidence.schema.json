@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "launchId",
+    "blockId",
+    "sourceCommit",
+    "browser",
+    "profile",
+    "host",
+    "page",
+    "network",
+    "artifacts",
+    "cleanup"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "launchId": { "type": "string" },
+    "blockId": { "type": "string" },
+    "sourceCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "browser": { "$ref": "#/$defs/evidenceMap" },
+    "host": { "$ref": "#/$defs/evidenceMap" },
+    "page": { "$ref": "#/$defs/evidenceMap" },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rootSha256", "fresh", "removed"],
+      "properties": {
+        "rootSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "fresh": { "const": true },
+        "removed": { "type": "boolean" }
+      }
+    },
+    "network": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["attestationSha256", "stratum"],
+      "properties": {
+        "attestationSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "stratum": { "enum": ["cold", "warm"] }
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9]+$": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["complete", "ownedPids", "remainingPids", "profileRemoved"],
+      "properties": {
+        "complete": { "type": "boolean" },
+        "ownedPids": {
+          "type": "array",
+          "maxItems": 256,
+          "items": { "type": "integer", "minimum": 2 }
+        },
+        "remainingPids": {
+          "type": "array",
+          "maxItems": 256,
+          "items": { "type": "integer", "minimum": 2 }
+        },
+        "profileRemoved": { "type": "boolean" }
+      }
+    }
+  },
+  "$defs": {
+    "evidenceMap": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "patternProperties": { "^[a-zA-Z][a-zA-Z0-9]*$": { "$ref": "#/$defs/evidenceValue" } }
+    },
+    "evidenceValue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "source", "scope", "collectedAt"],
+      "properties": {
+        "status": { "enum": ["supported-value", "unavailable", "blocked", "not-observed"] },
+        "value": {},
+        "reason": { "type": "string" },
+        "source": { "type": "string" },
+        "scope": { "type": "string" },
+        "collectedAt": { "type": "string", "format": "date-time" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "supported-value" } } },
+          "then": { "required": ["value"], "not": { "required": ["reason"] } }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": { "enum": ["unavailable", "blocked", "not-observed"] }
+            }
+          },
+          "then": { "required": ["reason"], "not": { "required": ["value"] } }
+        }
+      ]
+    }
+  }
+}

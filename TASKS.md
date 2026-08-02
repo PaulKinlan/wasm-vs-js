@@ -33,6 +33,7 @@ Tasks are ordered by dependency. A checked box means the exact acceptance criter
 ### Orchestration
 
 - [x] Freeze the exact M1 Chrome source/build/input/browser/cache/statistics/stopping contract and single-use bounded permit envelope; this does not instantiate browser authorization.
+- [x] Implement reviewed-source foundations for atomic single-use permits, manifest-bound local-only collection, exact Chrome/profile ownership, CDP connection, cache attestation, host/Chrome provenance, immutable artifact hashing, atomic pair commitment, and fail-closed public isolation; no real browser launch is implied.
 - [ ] Launch exact owned Chrome process/profile for cold runs.
 - [x] Implement explicit validation/cold/warm protocol states and retain resource timing; owned-launch cache verification remains below.
 - [x] Alternate paired order with retained seed/block identity.

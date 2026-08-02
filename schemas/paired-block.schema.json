@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "corpusId",
+    "blockId",
+    "experimentId",
+    "scheduleIndex",
+    "stratum",
+    "order",
+    "records",
+    "launchEvidenceSha256",
+    "cleanup",
+    "committed"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "corpusId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$" },
+    "blockId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$" },
+    "experimentId": { "const": "m1-chrome-sum-u32-v1" },
+    "scheduleIndex": { "type": "integer", "minimum": 0, "maximum": 119 },
+    "stratum": { "enum": ["cold", "warm"] },
+    "order": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "uniqueItems": true,
+      "items": { "enum": ["js-controlled", "wasm-linear-controlled"] }
+    },
+    "records": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "$ref": "#/$defs/record" }
+    },
+    "launchEvidenceSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "cleanup": { "$ref": "#/$defs/cleanup" },
+    "committed": { "const": true }
+  },
+  "$defs": {
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["variantId", "payloadSha256", "medianMs", "samples"],
+      "properties": {
+        "variantId": { "enum": ["js-controlled", "wasm-linear-controlled"] },
+        "payloadSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "medianMs": { "type": "number", "exclusiveMinimum": 0 },
+        "samples": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 200,
+          "items": { "type": "number", "exclusiveMinimum": 0 }
+        }
+      }
+    },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["complete", "remainingPids", "profileRemoved"],
+      "properties": {
+        "complete": { "const": true },
+        "remainingPids": { "const": [] },
+        "profileRemoved": { "const": true }
+      }
+    }
+  }
+}

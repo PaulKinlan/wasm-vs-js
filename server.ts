@@ -1,5 +1,6 @@
 import { LocalRunStore } from "./lib/run-store.ts";
 import { generateSummary } from "./lib/summary.ts";
+import { CorpusCoordinator } from "./lib/corpus-store.ts";
 
 type ServerMode = "local" | "public";
 
@@ -18,6 +19,9 @@ const defaultStore = mode === "local"
   ? new LocalRunStore(new URL("raw/runs/", root).pathname)
   : null;
 if (defaultStore) await defaultStore.initialize();
+const defaultCorpus = mode === "local"
+  ? new CorpusCoordinator(new URL("raw/corpora/", root).pathname)
+  : null;
 const port = Number(Deno.env.get("PORT") ?? "8787");
 const host = Deno.env.get("HOST") ?? (mode === "public" ? "0.0.0.0" : "127.0.0.1");
 const MAX_BODY = 512 * 1024;
@@ -92,6 +96,8 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/favicon.svg", ["public/favicon.svg", "image/svg+xml"]],
   ["/app.js", ["public/app.js", "text/javascript; charset=utf-8"]],
   ["/runner.js", ["public/runner.js", "text/javascript; charset=utf-8", true]],
+  ["/corpus-run", ["local/corpus-run.html", "text/html; charset=utf-8", true]],
+  ["/corpus-run.js", ["local/corpus-run.js", "text/javascript; charset=utf-8", true]],
   ["/hosted-runner.js", ["public/hosted-runner.js", "text/javascript; charset=utf-8"]],
   ["/provenance-probes.js", ["public/provenance-probes.js", "text/javascript; charset=utf-8"]],
   ["/hosted-runner-core.js", [
@@ -137,7 +143,11 @@ const routes = new Map<string, [string, string, boolean?]>([
   ]],
 ]);
 
-function createHandler(store: LocalRunStore | null, serverMode: ServerMode = "local") {
+function createHandler(
+  store: LocalRunStore | null,
+  serverMode: ServerMode = "local",
+  corpus: CorpusCoordinator | null = null,
+) {
   if (serverMode === "local" && !store) throw new Error("local store required");
   return async function handler(request: Request): Promise<Response> {
     const url = new URL(request.url);
@@ -154,6 +164,30 @@ function createHandler(store: LocalRunStore | null, serverMode: ServerMode = "lo
           ...(serverMode === "local" ? { localCheckoutCommit } : {}),
         })
         : json({ error: "method denied" }, 405);
+    }
+    if (url.pathname.startsWith("/api/corpus/")) {
+      if (serverMode === "public" || !corpus) {
+        return json(
+          { error: "corpus collector is local-only" },
+          serverMode === "public" ? 403 : 404,
+        );
+      }
+      try {
+        if (url.pathname === "/api/corpus/launch") {
+          if (request.method !== "POST") return json({ error: "method denied" }, 405);
+          return json({ token: corpus.issue(await boundedJson(request) as never) }, 201);
+        }
+        if (url.pathname === "/api/corpus/manifest") {
+          if (request.method !== "GET") return json({ error: "method denied" }, 405);
+          return json(corpus.lookup(url.searchParams.get("token") ?? ""));
+        }
+      } catch (error) {
+        return json(
+          { error: error instanceof Error ? error.message : "corpus request denied" },
+          400,
+        );
+      }
+      return json({ error: "not found" }, 404);
     }
     if (url.pathname === "/api/summary") {
       if (request.method !== "GET") return json({ error: "method denied" }, 405);
@@ -207,7 +241,7 @@ function createHandler(store: LocalRunStore | null, serverMode: ServerMode = "lo
   };
 }
 
-const handler = createHandler(defaultStore, mode);
+const handler = createHandler(defaultStore, mode, defaultCorpus);
 
 if (import.meta.main) {
   console.log(
