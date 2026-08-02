@@ -37,6 +37,6 @@
     "issuedAt": { "type": "string", "format": "date-time" },
     "expiresAt": { "type": "string", "format": "date-time" },
     "authorizationReference": { "type": "string", "minLength": 1, "maxLength": 256 },
-    "retryOf": { "type": ["string", "null"] }
+    "retryOf": { "const": null }
   }
 }

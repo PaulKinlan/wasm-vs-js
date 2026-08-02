@@ -40,8 +40,12 @@ export async function collectProcessMemory(
     const pssKiB = Number(smaps?.match(/^Pss:\s+(\d+)\s+kB$/m)?.[1]);
     processes.push({
       pid,
-      rssBytes: Number.isFinite(rssKiB) ? rssKiB * 1024 : null,
-      pssBytes: Number.isFinite(pssKiB) ? pssKiB * 1024 : null,
+      rssBytes: Number.isFinite(rssKiB)
+        ? { status: "supported-value", value: rssKiB * 1024 }
+        : { status: "unavailable", reason: `/proc/${pid}/status did not expose VmRSS` },
+      pssBytes: Number.isFinite(pssKiB)
+        ? { status: "supported-value", value: pssKiB * 1024 }
+        : { status: "unavailable", reason: `/proc/${pid}/smaps_rollup did not expose Pss` },
     });
   }
   return ok(processes, "/proc/<owned-pid>/status+smaps_rollup", "owned-chrome-process-rss-pss");

@@ -12,6 +12,7 @@
     "order",
     "records",
     "launchEvidenceSha256",
+    "workerResultSha256",
     "cleanup",
     "committed"
   ],
@@ -36,6 +37,7 @@
       "items": { "$ref": "#/$defs/record" }
     },
     "launchEvidenceSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "workerResultSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "cleanup": { "$ref": "#/$defs/cleanup" },
     "committed": { "const": true }
   },

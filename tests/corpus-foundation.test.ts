@@ -9,7 +9,7 @@ import { attestNetwork } from "../lib/chrome-evidence.ts";
 const rec = (id: "js-controlled" | "wasm-linear-controlled") => ({
   variantId: id,
   payloadSha256: (id === "js-controlled" ? "a" : "b").repeat(64),
-  medianMs: 1,
+  medianMs: 1.05,
   samples: [1, 1.1],
 });
 const pair = (overrides: Partial<PairInput> = {}): PairInput => ({
@@ -22,6 +22,7 @@ const pair = (overrides: Partial<PairInput> = {}): PairInput => ({
   order: ["js-controlled", "wasm-linear-controlled"],
   records: [rec("js-controlled"), rec("wasm-linear-controlled")],
   launchEvidenceSha256: "c".repeat(64),
+  workerResultSha256: "d".repeat(64),
   cleanup: { complete: true, remainingPids: [], profileRemoved: true },
   ...overrides,
 });
@@ -38,6 +39,10 @@ Deno.test("paired blocks commit atomically only with two valid records and exact
           cleanup: { complete: false, remainingPids: [], profileRemoved: true },
         }),
         pair({ blockId: "wrong-order", order: ["wasm-linear-controlled", "js-controlled"] }),
+        pair({
+          blockId: "wrong-median",
+          records: [{ ...rec("js-controlled"), medianMs: 99 }, rec("wasm-linear-controlled")],
+        }),
       ]
     ) await assertRejects(() => commitPairedBlock(root, bad), "");
   } finally {

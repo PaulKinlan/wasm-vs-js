@@ -1,4 +1,5 @@
 import { validateBenchmark, validateRun } from "../lib/contracts.ts";
+import { validateCorpusSemantics } from "../lib/corpus-validation.ts";
 const foundationSchemas = [
   "browser-permit.schema.json",
   "corpus.schema.json",
@@ -269,6 +270,41 @@ expect(
   false,
 );
 
+const attempt = {
+  blockId: "block-0",
+  scheduleIndex: 0,
+  stratum: "cold",
+  order: ["js-controlled", "wasm-linear-controlled"],
+  status: "committed",
+  category: "committed",
+  reason: null,
+  sha256: hash,
+};
+const corpus = {
+  schemaVersion: 1,
+  corpusId: "corpus-1",
+  experimentId: "m1-chrome-sum-u32-v1",
+  permitDigest: hash,
+  sourceManifestSha256: hash,
+  preregistrationSha256: "d13aed9404ec289046f885f79a1d7b9f04923d2264de22b1fee60a4e7a8d6f61",
+  planned: 120,
+  attempted: 1,
+  committed: 1,
+  failed: 0,
+  blocked: 0,
+  unstarted: 119,
+  blocks: [attempt],
+  status: "cap-inconclusive",
+};
+validateCorpusSemantics(corpus);
+let semanticRejected = false;
+try {
+  validateCorpusSemantics({ ...corpus, attempted: 0 });
+} catch {
+  semanticRejected = true;
+}
+expect("corpus accounting semantic validator", semanticRejected, true);
+
 console.log(
-  `contract-check: positive fixtures, 15 negative invariants, and ${foundationSchemas.length} corpus schemas passed`,
+  `contract-check: positive fixtures, 16 negative invariants, and ${foundationSchemas.length} corpus schemas passed`,
 );

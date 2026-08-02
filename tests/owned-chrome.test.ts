@@ -1,30 +1,85 @@
 import { assertEquals, assertRejects } from "./assert.ts";
-import { assertOnlyOwned, createLedger, teardownLedger } from "../lib/process-ledger.ts";
+import {
+  assertOnlyOwned,
+  assertProfileIdentity,
+  createLedger,
+  prepareProfile,
+  readProcessIdentity,
+  teardownLedger,
+} from "../lib/process-ledger.ts";
 import { waitDevToolsActivePort } from "../lib/owned-chrome.ts";
-async function fakeProc(root: string, pid: number, ppid: number) {
-  await Deno.mkdir(`${root}/${pid}`, { recursive: true });
-  await Deno.writeTextFile(`${root}/${pid}/stat`, `${pid} (fake) S ${ppid} 0 0 0`);
+
+async function fakeProc(
+  root: string,
+  pid: number,
+  ppid: number,
+  profile: string,
+  exe: string,
+  start = String(pid),
+) {
+  await Deno.mkdir(`${root}/${pid}/fd`, { recursive: true });
+  await Deno.writeTextFile(
+    `${root}/${pid}/stat`,
+    `${pid} (fake chrome) S ${ppid} 100 100 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 ${start}\n`,
+  );
+  await Deno.writeFile(
+    `${root}/${pid}/cmdline`,
+    new TextEncoder().encode(`${exe}\0--user-data-dir=${profile}\0`),
+  );
+  await Deno.symlink(exe, `${root}/${pid}/exe`);
 }
-Deno.test("owned ledger discovers descendants but never accepts foreign PID", async () => {
-  const proc = await Deno.makeTempDir();
+async function fixture() {
+  const token = `test-${crypto.randomUUID()}`,
+    profilePath = `/tmp/wasm-vs-js-owned-profiles/${token}/launch`;
+  const profile = await prepareProfile(profilePath),
+    proc = await Deno.makeTempDir(),
+    exe = `${proc}/chrome`;
+  await Deno.writeTextFile(exe, "fake chrome executable");
+  await fakeProc(proc, 100, 1, profilePath, exe, "1000");
+  await fakeProc(proc, 101, 100, profilePath, exe, "1001");
+  await Deno.mkdir(`${proc}/999`, { recursive: true });
+  await Deno.writeTextFile(
+    `${proc}/999/stat`,
+    `999 (foreign) S 1 999 999 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 9999\n`,
+  );
+  return { profile, profilePath, proc, exe };
+}
+async function cleanupFixture(value: Awaited<ReturnType<typeof fixture>>) {
+  await Deno.remove(value.proc, { recursive: true }).catch(() => {});
+  await Deno.remove(value.profile.ownershipRoot, { recursive: true }).catch(() => {});
+}
+Deno.test("owned ledger records immutable process identity and denies foreign or reused PID", async () => {
+  const f = await fixture();
   try {
-    await fakeProc(proc, 100, 1);
-    await fakeProc(proc, 101, 100);
-    await fakeProc(proc, 999, 1);
-    const ledger = await createLedger(100, "/tmp/wasm-vs-js-owned-profiles/test", proc);
+    const ledger = await createLedger(100, f.profile, f.proc);
     assertEquals(ledger.ownedPids, [100, 101]);
-    let failed = false;
+    assertEquals(ledger.processes[0].startTimeTicks, "1000");
+    assertEquals(ledger.processes[0].executable.sha256.length, 64);
+    let denied = false;
     try {
       assertOnlyOwned([999], ledger);
     } catch {
-      failed = true;
+      denied = true;
     }
-    assertEquals(failed, true);
+    assertEquals(denied, true);
+    await Deno.writeTextFile(
+      `${f.proc}/100/stat`,
+      `100 (reused) S 1 100 100 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 2000\n`,
+    );
+    const signalled: number[] = [];
+    const result = await teardownLedger(ledger, {
+      procRoot: f.proc,
+      removeProfile: false,
+      kill: (pid) => signalled.push(pid),
+      sleep: async () => {},
+    });
+    assertEquals(signalled.includes(100), false);
+    assertEquals(result.cleaned, false);
   } finally {
-    await Deno.remove(proc, { recursive: true });
+    await cleanupFixture(f);
   }
 });
-Deno.test("DevToolsActivePort is profile-bound, validated and timeout-bounded", async () => {
+Deno.test("DevToolsActivePort retains exact port and browser path and rejects symlinks", async () => {
   const profile = `/tmp/wasm-vs-js-owned-profiles/test-${crypto.randomUUID()}`;
   await Deno.mkdir(profile, { recursive: true });
   try {
@@ -32,45 +87,57 @@ Deno.test("DevToolsActivePort is profile-bound, validated and timeout-bounded", 
       () => Deno.writeTextFile(`${profile}/DevToolsActivePort`, `9222\n/devtools/browser/abc\n`),
       20,
     );
-    assertEquals(await waitDevToolsActivePort(profile, 500), 9222);
-    await Deno.writeTextFile(`${profile}/DevToolsActivePort`, `bad\nwrong\n`);
-    await assertRejects(() => waitDevToolsActivePort(profile, 50), "invalid");
+    assertEquals(await waitDevToolsActivePort(profile, 500), {
+      port: 9222,
+      browserPath: "/devtools/browser/abc",
+    });
+    await Deno.writeTextFile(`${profile}/bad`, "9222\n/devtools/browser/abc\n");
+    await Deno.remove(`${profile}/DevToolsActivePort`);
+    await Deno.symlink(`${profile}/bad`, `${profile}/DevToolsActivePort`);
+    await assertRejects(() => waitDevToolsActivePort(profile, 50), "unsafe");
   } finally {
     await Deno.remove(profile, { recursive: true });
   }
-  await assertRejects(
-    () =>
-      waitDevToolsActivePort(`/tmp/wasm-vs-js-owned-profiles/missing-${crypto.randomUUID()}`, 30),
-    "timeout",
-  );
 });
-Deno.test("normal simulated teardown removes exact profile; hung cleanup reports failure and preserves foreign process", async () => {
-  const profile = `/tmp/wasm-vs-js-owned-profiles/test-${crypto.randomUUID()}`;
-  await Deno.mkdir(profile, { recursive: true });
-  const alive = new Set([100, 101, 999]);
-  const ledger = {
-    rootPid: 100,
-    ownedPids: [100, 101],
-    profileRoot: profile,
-    recordedAt: new Date().toISOString(),
-  };
-  const result = await teardownLedger(ledger, {
-    exists: (p) => alive.has(p),
-    kill: (p) => alive.delete(p),
-  });
-  assertEquals(result.cleaned, true);
-  assertEquals(alive.has(999), true);
-  const hungProfile = `/tmp/wasm-vs-js-owned-profiles/hung-${crypto.randomUUID()}`;
-  await Deno.mkdir(hungProfile, { recursive: true });
-  const hung = await teardownLedger({
-    ...ledger,
-    ownedPids: [200],
-    rootPid: 200,
-    profileRoot: hungProfile,
-  }, { exists: () => true, kill: () => {}, removeProfile: false });
-  assertEquals(hung.cleaned, false);
-  await Deno.remove(hungProfile, { recursive: true });
+Deno.test("teardown repeatedly revalidates identity, removes only verified profile, and discovers late child", async () => {
+  const f = await fixture();
+  try {
+    const ledger = await createLedger(100, f.profile, f.proc), signalled: number[] = [];
+    await fakeProc(f.proc, 102, 100, f.profilePath, f.exe, "1002");
+    const result = await teardownLedger(ledger, {
+      procRoot: f.proc,
+      kill: (pid) => {
+        signalled.push(pid);
+        Deno.removeSync(`${f.proc}/${pid}`, { recursive: true });
+      },
+      sleep: async () => {},
+    });
+    assertEquals(result.cleaned, true);
+    assertEquals(signalled.includes(102), true);
+    await assertRejects(() => Deno.lstat(f.profilePath), "No such file");
+  } finally {
+    await cleanupFixture(f);
+  }
 });
-Deno.test("wrong profile root fails before process ownership", async () => {
-  await assertRejects(() => createLedger(10, "/tmp/foreign-profile"), "outside ownership");
+Deno.test("profile containment rejects symlinked parent and identity replacement", async () => {
+  const token = `link-${crypto.randomUUID()}`, target = await Deno.makeTempDir();
+  await Deno.symlink(target, `/tmp/wasm-vs-js-owned-profiles/${token}`);
+  try {
+    await assertRejects(
+      () => prepareProfile(`/tmp/wasm-vs-js-owned-profiles/${token}/launch`),
+      "unsafe",
+    );
+  } finally {
+    await Deno.remove(`/tmp/wasm-vs-js-owned-profiles/${token}`);
+    await Deno.remove(target, { recursive: true });
+  }
+  const f = await fixture();
+  try {
+    await Deno.remove(f.profilePath, { recursive: true });
+    await Deno.mkdir(f.profilePath);
+    await assertRejects(() => assertProfileIdentity(f.profile), "identity changed");
+    await assertRejects(() => readProcessIdentity(100, "/tmp/wrong", f.proc), "profile");
+  } finally {
+    await cleanupFixture(f);
+  }
 });

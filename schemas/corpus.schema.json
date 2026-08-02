@@ -7,6 +7,8 @@
     "corpusId",
     "experimentId",
     "permitDigest",
+    "sourceManifestSha256",
+    "preregistrationSha256",
     "planned",
     "attempted",
     "committed",
@@ -21,26 +23,58 @@
     "corpusId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$" },
     "experimentId": { "const": "m1-chrome-sum-u32-v1" },
     "permitDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "sourceManifestSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "preregistrationSha256": {
+      "const": "d13aed9404ec289046f885f79a1d7b9f04923d2264de22b1fee60a4e7a8d6f61"
+    },
     "planned": { "const": 120 },
     "attempted": { "type": "integer", "minimum": 0, "maximum": 120 },
     "committed": { "type": "integer", "minimum": 0, "maximum": 120 },
     "failed": { "type": "integer", "minimum": 0, "maximum": 120 },
     "blocked": { "type": "integer", "minimum": 0, "maximum": 120 },
     "unstarted": { "type": "integer", "minimum": 0, "maximum": 120 },
-    "blocks": {
-      "type": "array",
-      "maxItems": 120,
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["blockId", "status", "sha256"],
-        "properties": {
-          "blockId": { "type": "string" },
-          "status": { "enum": ["committed", "failed", "blocked"] },
-          "sha256": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" }
-        }
+    "blocks": { "type": "array", "maxItems": 120, "items": { "$ref": "#/$defs/attempt" } },
+    "status": { "enum": ["precision-met", "cap-inconclusive", "containment-blocked"] }
+  },
+  "$defs": {
+    "attempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "blockId",
+        "scheduleIndex",
+        "stratum",
+        "order",
+        "status",
+        "category",
+        "reason",
+        "sha256"
+      ],
+      "properties": {
+        "blockId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$" },
+        "scheduleIndex": { "type": "integer", "minimum": 0, "maximum": 119 },
+        "stratum": { "enum": ["cold", "warm"] },
+        "order": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": { "enum": ["js-controlled", "wasm-linear-controlled"] }
+        },
+        "status": { "enum": ["committed", "failed", "blocked"] },
+        "category": {
+          "enum": [
+            "committed",
+            "failed-correctness",
+            "failed-measurement",
+            "blocked-containment",
+            "blocked-cache",
+            "blocked-provenance"
+          ]
+        },
+        "reason": { "type": ["string", "null"], "maxLength": 1024 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
       }
-    },
-    "status": { "enum": ["collecting", "precision-met", "cap-inconclusive", "containment-blocked"] }
+    }
   }
 }

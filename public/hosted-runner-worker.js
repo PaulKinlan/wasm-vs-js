@@ -1,5 +1,6 @@
 import {
   calibrateBatch,
+  expectedBatchDigest,
   fixedWorkCounters,
   ORACLE,
   runScoredPair,
@@ -9,6 +10,7 @@ import {
 const INPUT_LENGTH = 65_536;
 const INPUT_BYTES = INPUT_LENGTH * Uint32Array.BYTES_PER_ELEMENT;
 const INPUT_SHA256 = "4f0516549fc9d6952c8d42d642927dd5c43a8c01d03c286e0c80da919bfaf9d7";
+const MANIFEST_SHA256 = "38136e96462c5b98e3057e4ea18ae339150918aa50f1270eb3db88586185cf98";
 const WASM_SHA256 = "9c4ce5f0d9e32cdd364b73b2697566e7396368d9867d9bc3d939bb2063583a6d";
 let started = false;
 
@@ -209,6 +211,21 @@ async function executeRun(iterations, order, serviceWorkerControlled) {
     resourceTiming: resources,
     batchSize: calibration.batchSize,
     work,
+    correctness: {
+      passed: true,
+      oracle: ORACLE,
+      jsFirstOutput: jsFirst.output,
+      wasmFirstOutput: wasmFirst.output,
+      everyScoredInvocationValidated: true,
+      expectedBatchDigest: expectedBatchDigest(calibration.batchSize),
+      scoredInvocationsPerVariant: calibration.batchSize * iterations,
+    },
+    identities: {
+      inputSha256,
+      manifestSha256: MANIFEST_SHA256,
+      javascriptSha256: jsSha256,
+      wasmSha256,
+    },
     manifest,
     jsSha256,
     wasmSha256,

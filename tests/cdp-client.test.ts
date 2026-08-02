@@ -1,5 +1,6 @@
 import { assertEquals } from "./assert.ts";
-import { CdpClient } from "../lib/cdp-client.ts";
+import { browserWebSocketUrl, CdpClient } from "../lib/cdp-client.ts";
+import { assertRejects } from "./assert.ts";
 class FakeSocket extends EventTarget {
   static OPEN = 1;
   readyState = 1;
@@ -43,4 +44,22 @@ Deno.test("CDP client correlates bounded commands and isolates session events", 
   });
   assertEquals(seen, true);
   client.close();
+});
+Deno.test("CDP discovery binds loopback host, exact port, and browser path", async () => {
+  let advertised = "";
+  const server = Deno.serve(
+    { hostname: "127.0.0.1", port: 0, onListen: () => {} },
+    () => Response.json({ webSocketDebuggerUrl: advertised }),
+  );
+  const port = (server.addr as Deno.NetAddr).port;
+  try {
+    advertised = `ws://127.0.0.1:${port}/devtools/browser/exact`;
+    assertEquals(await browserWebSocketUrl(port, "/devtools/browser/exact"), advertised);
+    advertised = `ws://localhost:${port}/devtools/browser/exact`;
+    await assertRejects(() => browserWebSocketUrl(port, "/devtools/browser/exact"), "identity");
+    advertised = `ws://127.0.0.1:${port}/devtools/browser/foreign`;
+    await assertRejects(() => browserWebSocketUrl(port, "/devtools/browser/exact"), "identity");
+  } finally {
+    await server.shutdown();
+  }
 });

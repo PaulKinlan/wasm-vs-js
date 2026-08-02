@@ -39,6 +39,7 @@ const KEYS = [
 export function validatePermit(
   value: unknown,
   expected: Partial<BrowserPermit> = {},
+  now = new Date(),
 ): BrowserPermit {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new Error("permit object required");
@@ -78,10 +79,12 @@ export function validatePermit(
     !Number.isFinite(issued) ||
     !Number.isFinite(expires) ||
     expires <= issued ||
-    expires - issued > 24 * 60 * 60 * 1000
+    expires - issued > 24 * 60 * 60 * 1000 ||
+    issued > now.getTime() + 5 * 60 * 1000
   ) {
     throw new Error("permit time denied");
   }
+  if (permit.retryOf !== null) throw new Error("retry substitution denied");
   if (!permit.authorizationReference || permit.authorizationReference.length > 256) {
     throw new Error("authorization reference denied");
   }
@@ -101,8 +104,8 @@ export async function consumePermit(
   now = new Date(),
 ): Promise<{ permit: BrowserPermit; digest: string; receiptPath: string }> {
   const bytes = await Deno.readFile(path);
-  const permit = validatePermit(JSON.parse(new TextDecoder().decode(bytes)), expected);
-  if (now.getTime() > Date.parse(permit.expiresAt)) throw new Error("permit expired");
+  const permit = validatePermit(JSON.parse(new TextDecoder().decode(bytes)), expected, now);
+  assertPermitActive(permit, now);
   await Deno.mkdir(consumptionDir, { recursive: true, mode: 0o700 });
   const receiptPath = `${consumptionDir}/${permit.permitId}.consumed.json`;
   const digest = await sha256Hex(bytes);
@@ -123,4 +126,11 @@ export async function consumePermit(
     handle.close();
   }
   return { permit, digest, receiptPath };
+}
+
+export function assertPermitActive(permit: BrowserPermit, now = new Date()): void {
+  if (now.getTime() < Date.parse(permit.issuedAt) - 5 * 60 * 1000) {
+    throw new Error("permit not yet active");
+  }
+  if (now.getTime() > Date.parse(permit.expiresAt)) throw new Error("permit expired");
 }

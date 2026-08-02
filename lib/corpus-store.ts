@@ -15,6 +15,7 @@ export type PairInput = {
   order: ["js-controlled" | "wasm-linear-controlled", "js-controlled" | "wasm-linear-controlled"];
   records: VariantRecord[];
   launchEvidenceSha256: string;
+  workerResultSha256: string;
   cleanup: { complete: boolean; remainingPids: number[]; profileRemoved: boolean };
 };
 export async function commitPairedBlock(
@@ -35,9 +36,11 @@ export async function commitPairedBlock(
   ) throw new Error("cleanup incomplete");
   if (
     !/^[a-f0-9]{64}$/.test(input.launchEvidenceSha256) ||
+    !/^[a-f0-9]{64}$/.test(input.workerResultSha256) ||
     input.records.some((x) =>
       !/^[a-f0-9]{64}$/.test(x.payloadSha256) || !Number.isFinite(x.medianMs) || x.medianMs <= 0 ||
-      !x.samples.length || x.samples.some((v) => !Number.isFinite(v) || v <= 0)
+      !x.samples.length || x.samples.some((v) => !Number.isFinite(v) || v <= 0) ||
+      x.medianMs !== median(x.samples)
     )
   ) throw new Error("pair evidence invalid");
   const dir = `${root}/blocks`;
@@ -54,6 +57,11 @@ export async function commitPairedBlock(
   }
   return { path, sha256 };
 }
+function median(values: number[]): number {
+  const sorted = [...values].sort((a, b) => a - b), middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+}
+
 export async function writeImmutableArtifact(
   path: string,
   value: Uint8Array | string,

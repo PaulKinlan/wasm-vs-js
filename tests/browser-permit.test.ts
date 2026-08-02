@@ -56,6 +56,7 @@ Deno.test("permit rejects widening, changed origin/binary, invalid profile and r
       permit({ profileRoot: "/tmp/foreign" }),
       permit({ profileRoot: "/tmp/wasm-vs-js-owned-profiles/a/../foreign" }),
       permit({ strata: ["warm", "cold"] }),
+      permit({ retryOf: "permit-old-0001" }),
     ]
   ) {
     let failed = false;
@@ -73,4 +74,15 @@ Deno.test("permit rejects widening, changed origin/binary, invalid profile and r
     failed = true;
   }
   assertEquals(failed, true);
+  let futureFailed = false;
+  try {
+    validatePermit(
+      permit({ issuedAt: "2026-08-03T01:00:00Z", expiresAt: "2026-08-03T02:00:00Z" }),
+      {},
+      new Date("2026-08-02T01:00:00Z"),
+    );
+  } catch {
+    futureFailed = true;
+  }
+  assertEquals(futureFailed, true);
 });

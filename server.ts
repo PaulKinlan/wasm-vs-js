@@ -1,6 +1,7 @@
 import { LocalRunStore } from "./lib/run-store.ts";
 import { generateSummary } from "./lib/summary.ts";
 import { CorpusCoordinator } from "./lib/corpus-store.ts";
+import { collectorRouteHashes } from "./lib/source-identity.ts";
 
 type ServerMode = "local" | "public";
 
@@ -25,6 +26,7 @@ const defaultCorpus = mode === "local"
 const port = Number(Deno.env.get("PORT") ?? "8787");
 const host = Deno.env.get("HOST") ?? (mode === "public" ? "0.0.0.0" : "127.0.0.1");
 const MAX_BODY = 512 * 1024;
+const collectorAssets = await collectorRouteHashes();
 
 const securityHeaders = {
   "cross-origin-opener-policy": "same-origin",
@@ -161,7 +163,7 @@ function createHandler(
           mode: serverMode === "public" ? "public-read-only" : "local-m1-pilot",
           schemaVersion: 1,
           acceptedImplementationCommit,
-          ...(serverMode === "local" ? { localCheckoutCommit } : {}),
+          ...(serverMode === "local" ? { localCheckoutCommit, collectorAssets } : {}),
         })
         : json({ error: "method denied" }, 405);
     }

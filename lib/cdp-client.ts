@@ -18,7 +18,9 @@ export class CdpClient {
           for (const listener of this.#listeners.get(value.method) ?? []) {
             try {
               listener(value.params ?? {}, value.sessionId);
-            } catch { /* evidence listener isolation */ }
+            } catch {
+              /* listener isolation */
+            }
           }
         }
         return;
@@ -83,11 +85,20 @@ export class CdpClient {
     this.#socket.close();
   }
 }
-
-export async function browserWebSocketUrl(port: number): Promise<string> {
-  const response = await fetch(`http://127.0.0.1:${port}/json/version`);
+export async function browserWebSocketUrl(
+  port: number,
+  expectedBrowserPath: string,
+): Promise<string> {
+  const response = await fetch(`http://127.0.0.1:${port}/json/version`, { redirect: "error" });
   if (!response.ok) throw new Error("CDP version endpoint denied");
   const value = await response.json();
   if (typeof value.webSocketDebuggerUrl !== "string") throw new Error("CDP websocket missing");
-  return value.webSocketDebuggerUrl;
+  const url = new URL(value.webSocketDebuggerUrl);
+  if (
+    url.protocol !== "ws:" || url.hostname !== "127.0.0.1" || Number(url.port) !== port ||
+    url.pathname !== expectedBrowserPath || url.search || url.hash
+  ) {
+    throw new Error("CDP websocket identity mismatch");
+  }
+  return url.href;
 }

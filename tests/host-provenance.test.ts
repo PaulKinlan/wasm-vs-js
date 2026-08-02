@@ -26,5 +26,14 @@ Deno.test("host provenance is source/scope/time labelled and never substitutes u
   const process = await collectProcessMemory([Deno.pid]);
   assert(process.status === "supported-value", "owned process memory status");
   const row = (process.value as Array<Record<string, unknown>>)[0];
-  assert(row.pid === Deno.pid && (row.rssBytes === null || Number(row.rssBytes) > 0));
+  assert(row.pid === Deno.pid);
+  for (const key of ["rssBytes", "pssBytes"]) {
+    const metric = row[key] as Record<string, unknown>;
+    assert(metric.status === "supported-value" || metric.status === "unavailable");
+    assert(
+      metric.status === "supported-value"
+        ? Number(metric.value) > 0
+        : typeof metric.reason === "string",
+    );
+  }
 });

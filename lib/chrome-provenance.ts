@@ -13,6 +13,7 @@ const typed = async (source: string, scope: string, fn: () => Promise<unknown>) 
     };
   }
 };
+/** Headline-safe provenance only. No Performance, Memory, Heap, process CPU/RSS/PSS, tracing, or forced GC. */
 export async function collectChromeProvenance(
   browser: CdpClient,
   page: CdpClient,
@@ -31,28 +32,8 @@ export async function collectChromeProvenance(
     ),
     systemInfo: await typed(
       "cdp-browser",
-      "gpu-and-platform",
+      "static-gpu-and-platform",
       () => browser.send("SystemInfo.getInfo"),
-    ),
-    processInfo: await typed(
-      "cdp-browser",
-      "chrome-process-cpu-time",
-      () => browser.send("SystemInfo.getProcessInfo"),
-    ),
-    performance: await typed(
-      "cdp-target",
-      "renderer-cumulative-metrics",
-      () => page.send("Performance.getMetrics", {}, sessionId),
-    ),
-    heap: await typed(
-      "cdp-target",
-      "v8-heap-not-rss",
-      () => page.send("Runtime.getHeapUsage", {}, sessionId),
-    ),
-    dom: await typed(
-      "cdp-target",
-      "dom-counters-not-bytes",
-      () => page.send("Memory.getDOMCounters", {}, sessionId),
     ),
     pageHints: await typed(
       "page",
@@ -62,8 +43,21 @@ export async function collectChromeProvenance(
           returnByValue: true,
           awaitPromise: true,
           expression:
-            `(async()=>({hardwareConcurrency:navigator.hardwareConcurrency??null,deviceMemory:('deviceMemory'in navigator)?navigator.deviceMemory:null,userAgent:navigator.userAgent,platform:navigator.platform,uaCH:navigator.userAgentData?.getHighEntropyValues?await navigator.userAgentData.getHighEntropyValues(['architecture','bitness','model','platformVersion','wow64','fullVersionList']):null,viewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio},secureContext:isSecureContext,crossOriginIsolated,serviceWorkerControlled:Boolean(navigator.serviceWorker?.controller),legacyHeap:performance.memory?{jsHeapSizeLimit:performance.memory.jsHeapSizeLimit,totalJSHeapSize:performance.memory.totalJSHeapSize,usedJSHeapSize:performance.memory.usedJSHeapSize}:null}))()`,
+            `(async()=>({hardwareConcurrency:navigator.hardwareConcurrency??null,deviceMemory:('deviceMemory'in navigator)?navigator.deviceMemory:null,userAgent:navigator.userAgent,platform:navigator.platform,uaCH:navigator.userAgentData?.getHighEntropyValues?await navigator.userAgentData.getHighEntropyValues(['architecture','bitness','model','platformVersion','wow64','fullVersionList']):null,viewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio},secureContext:isSecureContext,crossOriginIsolated,serviceWorkerControlled:Boolean(navigator.serviceWorker?.controller)}))()`,
         }, sessionId),
     ),
+    excludedDiagnostics: {
+      status: "unavailable",
+      reason:
+        "Headline permit forbids CDP Performance/Memory/Heap/DOM/process metrics, process RSS/PSS/CPU, tracing, profiling, forced GC, and perturbing probes; use a separate diagnostic permit.",
+      source: "frozen-preregistration",
+      scope: "headline-launch",
+      collectedAt: new Date().toISOString(),
+    },
   };
+}
+export function diagnosticCollectionStub(): never {
+  throw new Error(
+    "diagnostic collection requires a separate unimplemented permit and launch family",
+  );
 }
