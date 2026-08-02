@@ -1,5 +1,8 @@
 import { validateBenchmark, validateRun } from "../lib/contracts.ts";
 const hash = "a".repeat(64);
+const manifest = JSON.parse(
+  await Deno.readTextFile("public/artifacts/sum-u32/build-manifest.json"),
+);
 
 const benchmark = {
   schemaVersion: 1,
@@ -43,18 +46,31 @@ const run = {
   runId: "run_0000000000000001",
   capturedAt: "2026-08-02T10:00:00Z",
   suite: { version: "0.1.0", commit: hash, collectorVersion: "0.1.0" },
-  benchmark: { id: "sum-u32", version: 1, tier: "T2", inputManifestSha256: hash },
-  variant: { id: "js-controlled", target: "javascript", track: "controlled", cacheState: "cold" },
+  benchmark: {
+    id: "sum-u32",
+    version: 1,
+    tier: "T2",
+    inputManifestSha256: manifest.input.sha256,
+  },
+  variant: {
+    id: "js-controlled",
+    target: "javascript",
+    track: "controlled",
+    cacheState: "validation",
+  },
   build: {
-    sourceRepository: "https://github.com/PaulKinlan/wasm-vs-js",
+    sourceRepository: manifest.sourceRepository,
     sourceCommit: hash,
-    sourceSha256: hash,
-    artifacts: [{ name: "sum.js", sha256: hash }],
-    lockfiles: [{ name: "deno.lock", sha256: hash }],
-    command: "deno task build",
-    toolchains: ["Deno 2.9.0"],
-    flags: [],
-    footprint: { rawBytes: 1, gzipBytes: 1, brotliBytes: 1, requestCount: 1 },
+    sourceSha256: manifest.sourceSha256,
+    artifacts: [{
+      name: "benchmarks/sum-u32/workload.js",
+      sha256: manifest.variants["js-controlled"].sha256,
+    }],
+    lockfiles: manifest.lockfiles,
+    command: manifest.build.command,
+    toolchains: manifest.build.toolchains,
+    flags: manifest.build.flags,
+    footprint: manifest.variants["js-controlled"].footprint,
   },
   environment: {
     browser: {
@@ -89,7 +105,23 @@ const run = {
     randomSeed: "seed-1",
     orderIndex: 0,
   },
-  correctness: { status: "passed", outputSha256: hash, workCounters: { items: 1024 } },
+  capabilities: {
+    pilot: true,
+    measurementBatchSize: 1,
+    coldProfileAttested: false,
+    assetsPrimed: false,
+  },
+  correctness: {
+    status: "passed",
+    outputSha256: manifest.oracle.outputSha256,
+    workCounters: {
+      items: 65_536,
+      "input-bytes": 262_144,
+      additions: 65_536,
+      loads: 65_536,
+      "boundary-crossings": 1,
+    },
+  },
   samples: [{ iteration: 0, phase: "execute", durationMs: 1, valid: true }],
   metrics: [{
     id: "metric-1",
@@ -187,7 +219,7 @@ expect(
   "failed correctness cannot carry valid timing",
   validRun({
     ...run,
-    correctness: { status: "failed", workCounters: { items: 1024 } },
+    correctness: { status: "failed", workCounters: run.correctness.workCounters },
     failures: [{ stage: "correctness", category: "output-mismatch", detail: "Digest differed." }],
   }),
   false,
@@ -196,10 +228,10 @@ expect(
   "failed correctness does not fabricate output hash",
   validRun({
     ...run,
-    correctness: { status: "failed", workCounters: { items: 1024 } },
+    correctness: { status: "failed", workCounters: run.correctness.workCounters },
     samples: [{
       iteration: 0,
-      phase: "execute",
+      phase: "correctness",
       durationMs: 1,
       valid: false,
       exclusionReason: "Correctness failed.",

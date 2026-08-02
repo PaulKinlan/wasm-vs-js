@@ -216,7 +216,9 @@ async function memoryMetric(runId) {
   }
 }
 
-function baseRun({ env, manifest, variant, cacheState, batchSize, outputSha256, iterations }) {
+function baseRun(
+  { env, manifest, variant, cacheState, batchSize, outputSha256, iterations, assetsPrimed },
+) {
   const runId = randomId(variant === "js-controlled" ? "js" : "wasm");
   const target = variant === "js-controlled" ? "javascript" : "wasm-linear";
   const variantBuild = manifest.variants[variant];
@@ -282,6 +284,8 @@ function baseRun({ env, manifest, variant, cacheState, batchSize, outputSha256, 
       logicalWasmMemoryBytes: target === "wasm-linear" ? INPUT_BYTES : null,
       measurementBatchSize: batchSize,
       requestedIterations: iterations,
+      coldProfileAttested: env.coldProfileAttested === true,
+      assetsPrimed,
       pilot: true,
     },
     correctness: {
@@ -350,7 +354,59 @@ async function recordPair({ env, cacheState, order, iterations }) {
   const wasmOutput = wasmRun();
   performance.mark("wasm:first-output:end");
   if (jsOutput !== ORACLE || wasmOutput !== ORACLE || jsOutput !== wasmOutput) {
-    throw new Error(`correctness gate failed: JS ${jsOutput}, Wasm ${wasmOutput}`);
+    const capturedAt = new Date().toISOString();
+    const failed = ["js-controlled", "wasm-linear-controlled"].map((variant) => {
+      const run = baseRun({
+        env,
+        manifest,
+        variant,
+        cacheState,
+        batchSize: 1,
+        outputSha256: manifest.oracle.outputSha256,
+        iterations,
+        assetsPrimed: primed,
+      });
+      run.correctness = {
+        status: "failed",
+        detail: "Complete output did not match the frozen oracle.",
+        workCounters: {
+          items: INPUT_LENGTH,
+          "input-bytes": INPUT_BYTES,
+          additions: INPUT_LENGTH,
+          loads: INPUT_LENGTH,
+          "boundary-crossings": 1,
+        },
+      };
+      run.samples.push({
+        iteration: 0,
+        phase: "correctness",
+        durationMs: performance.measure(
+          `${variant}:failed-output`,
+          variant === "js-controlled" ? "js:first-output:start" : "wasm:first-output:start",
+          variant === "js-controlled" ? "js:first-output:end" : "wasm:first-output:end",
+        ).duration,
+        valid: false,
+        exclusionReason: "Complete output mismatch.",
+      });
+      run.metrics.push({
+        id: `${run.runId}-correctness-failure`,
+        metric: "correctness-gate",
+        availability: { state: "supported" },
+        value: false,
+        unit: "boolean",
+        scope: "window",
+        comparability: "cross-browser-standardized",
+        provenance: { source: "page-api", capturedAt },
+      });
+      run.failures.push({
+        stage: "correctness",
+        category: "output-mismatch",
+        detail: "Complete output did not match the frozen oracle.",
+      });
+      return run;
+    });
+    for (const run of failed) run.payloadSha256 = await sha256Hex(canonicalize(run));
+    return order === "wasm-first" ? failed.reverse() : failed;
   }
   const outputSha256 = await outputHash(ORACLE);
   if (outputSha256 !== manifest.oracle.outputSha256) throw new Error("oracle hash mismatch");
@@ -365,6 +421,7 @@ async function recordPair({ env, cacheState, order, iterations }) {
       batchSize,
       outputSha256,
       iterations,
+      assetsPrimed: primed,
     }),
     "wasm-linear-controlled": baseRun({
       env,
@@ -374,6 +431,7 @@ async function recordPair({ env, cacheState, order, iterations }) {
       batchSize,
       outputSha256,
       iterations,
+      assetsPrimed: primed,
     }),
   };
   const runners = { "js-controlled": jsRun, "wasm-linear-controlled": wasmRun };
@@ -382,7 +440,9 @@ async function recordPair({ env, cacheState, order, iterations }) {
     : ["js-controlled", "wasm-linear-controlled"];
 
   for (const variant of sequence) {
-    phase(`Recording ${variant} first iteration and full trajectory…`);
+    phase(
+      `Recording ${variant} first scored post-calibration iteration and full scored trajectory…`,
+    );
     const run = runByVariant[variant];
     const execute = runners[variant];
     for (let iteration = 0; iteration < iterations; iteration += 1) {
@@ -394,8 +454,27 @@ async function recordPair({ env, cacheState, order, iterations }) {
         `${variant}:${iteration}:start`,
         `${variant}:${iteration}:end`,
       );
-      if (sample.output !== ORACLE) throw new Error(`${variant} output changed during timing`);
-      run.samples.push({ iteration, phase: "execute", durationMs: sample.durationMs, valid: true });
+      if (sample.output !== ORACLE) {
+        run.samples.push({
+          iteration,
+          phase: "scored-execute",
+          durationMs: sample.durationMs,
+          valid: false,
+          exclusionReason: "Timed output changed from the frozen oracle.",
+        });
+        run.failures.push({
+          stage: "timing",
+          category: "output-mismatch",
+          detail: "Timed output changed from the frozen oracle; later iterations were not run.",
+        });
+        break;
+      }
+      run.samples.push({
+        iteration,
+        phase: "scored-execute",
+        durationMs: sample.durationMs,
+        valid: true,
+      });
     }
   }
 

@@ -2,9 +2,7 @@ import { LocalRunStore } from "./lib/run-store.ts";
 import { generateSummary } from "./lib/summary.ts";
 
 const root = new URL("./", import.meta.url);
-const defaultStore = new LocalRunStore(
-  Deno.env.get("RUN_STORE") ?? new URL("raw/runs/", root).pathname,
-);
+const defaultStore = new LocalRunStore(new URL("raw/runs/", root).pathname);
 await defaultStore.initialize();
 const port = Number(Deno.env.get("PORT") ?? "8787");
 const MAX_BODY = 512 * 1024;
@@ -16,7 +14,7 @@ const securityHeaders = {
   "referrer-policy": "no-referrer",
   "permissions-policy": "camera=(), microphone=(), geolocation=()",
   "content-security-policy":
-    "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
+    "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
 };
 
 function response(body: BodyInit | null, init: ResponseInit = {}): Response {
@@ -66,6 +64,8 @@ const routes = new Map([
   ["/run", ["public/run.html", "text/html; charset=utf-8"]],
   ["/run.html", ["public/run.html", "text/html; charset=utf-8"]],
   ["/styles.css", ["public/styles.css", "text/css; charset=utf-8"]],
+  ["/favicon.ico", ["public/favicon.svg", "image/svg+xml"]],
+  ["/favicon.svg", ["public/favicon.svg", "image/svg+xml"]],
   ["/app.js", ["public/app.js", "text/javascript; charset=utf-8"]],
   ["/runner.js", ["public/runner.js", "text/javascript; charset=utf-8"]],
   ["/benchmarks/sum-u32/workload.js", [
@@ -92,7 +92,7 @@ function createHandler(store: LocalRunStore) {
     }
     if (url.pathname === "/api/summary") {
       return request.method === "GET"
-        ? json(generateSummary(await store.list()))
+        ? json(generateSummary(await store.list(20)))
         : json({ error: "method denied" }, 405);
     }
     if (url.pathname === "/api/runs") {

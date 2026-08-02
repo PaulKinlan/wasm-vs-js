@@ -8,6 +8,29 @@ Deno.test("published sum-u32 benchmark passes schema and semantic validation", a
   assert(result.ok, result.errors.join("; "));
 });
 
+Deno.test("runtime run validator rejects semantic identity and work mismatches", async () => {
+  const run = await validRun();
+  type MutableRun = {
+    benchmark: Record<string, unknown>;
+    variant: Record<string, unknown>;
+    correctness: { workCounters: Record<string, unknown> };
+    build: { artifacts: Array<Record<string, unknown>> };
+  };
+  const mutations: Array<(value: MutableRun) => void> = [
+    (value) => value.benchmark.version = 99,
+    (value) => value.variant.target = "wasm-linear",
+    (value) => value.benchmark.inputManifestSha256 = "b".repeat(64),
+    (value) => value.correctness.workCounters.items = 1,
+    (value) => value.build.artifacts[0].sha256 = "b".repeat(64),
+    (value) => value.variant.cacheState = "cold",
+  ];
+  for (const mutate of mutations) {
+    const invalid = structuredClone(run) as unknown as MutableRun;
+    mutate(invalid);
+    assertEquals(validateRun(invalid).ok, false);
+  }
+});
+
 Deno.test("runtime run validator preserves typed unavailable metrics", async () => {
   const run = await validRun({
     metrics: [{

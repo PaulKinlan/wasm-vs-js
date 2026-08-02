@@ -61,6 +61,13 @@ Deno.test("local server bounds writes and serves exact Wasm MIME", async () => {
     assertEquals(wasm.status, 200);
     assertEquals(wasm.headers.get("content-type"), "application/wasm");
     assert(wasm.headers.get("cache-control")?.includes("immutable"));
+    const csp = wasm.headers.get("content-security-policy") ?? "";
+    assert(csp.includes("script-src 'self' 'wasm-unsafe-eval'"));
+    assert(!csp.includes("'unsafe-eval'"));
+    assert(!csp.includes("'unsafe-inline'"));
+    const favicon = await handler(new Request("http://127.0.0.1/favicon.ico"));
+    assertEquals(favicon.status, 200);
+    assertEquals(favicon.headers.get("content-type"), "image/svg+xml");
     const denied = await handler(new Request("http://127.0.0.1/runner.js", { method: "POST" }));
     assertEquals(denied.status, 405);
   } finally {

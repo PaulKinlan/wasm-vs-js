@@ -19,7 +19,7 @@ Tasks are ordered by dependency. A checked box means the exact acceptance criter
 - [x] Implement capability probes and typed metric availability.
 - [x] Implement portable phase marks and raw-sample collection.
 - [x] Calibrate clock quantum, harness overhead, and one shared fixed batch size.
-- [x] Preserve first iteration, full trajectory, validation, and failure reasons.
+- [x] Preserve first-use lifecycle metrics, the first scored post-calibration iteration, the full scored trajectory, validation, and failure reasons.
 
 ### First workload
 

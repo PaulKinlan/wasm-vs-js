@@ -74,7 +74,10 @@ function renderTrajectories(data) {
     const title = document.createElement("h3");
     title.textContent = `${trajectory.variantId} · ${trajectory.runId}`;
     const list = document.createElement("ol");
-    list.setAttribute("aria-label", "Complete iteration durations; first iteration is crimson");
+    list.setAttribute(
+      "aria-label",
+      "Complete scored post-calibration iteration durations; first scored iteration is crimson",
+    );
     const max = Math.max(...trajectory.samples.map((sample) => sample.durationMs), 0.001);
     for (const sample of trajectory.samples) {
       const item = document.createElement("li");

@@ -27,7 +27,7 @@ The runner requires a complete environment manifest. It refuses to infer a fresh
 - **Cold:** requires `coldProfileAttested: true` from an exact owned fresh-profile launcher. The page alone cannot make that assertion.
 - **Warm:** requires the operator to press **Prime exact assets** before running. JavaScript and Wasm use the same requested state, but remain separate result cells.
 
-Choose alternating variant order and a fixed iteration count. Before timing, the runner regenerates the immutable input, verifies its SHA-256, instantiates the exact Wasm artifact, compares both complete outputs with the frozen unsigned-32-bit oracle, calibrates the timer, and chooses one shared fixed batch size. It then retains iteration zero and every later sample.
+Choose alternating variant order and a fixed iteration count. Before timing, the runner regenerates the immutable input, verifies its SHA-256, instantiates the exact Wasm artifact, compares both complete outputs with the frozen unsigned-32-bit oracle, calibrates the timer, and chooses one shared fixed batch size. It records first-use lifecycle metrics separately, then retains the first scored post-calibration iteration and every later scored sample.
 
 Uploads happen after measurement. `POST /api/runs` validates the published schema and RFC 8785 payload hash, then uses create-new file semantics under `raw/runs/`. A duplicate run ID returns 409. The public explorer shows every local sample and provenance field, but labels all records `pilot only`.
 

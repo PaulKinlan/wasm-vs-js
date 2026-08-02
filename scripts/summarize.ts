@@ -2,8 +2,8 @@ import { canonicalize, sha256Hex } from "../lib/canonical.ts";
 import { LocalRunStore } from "../lib/run-store.ts";
 import { generateSummary } from "../lib/summary.ts";
 
-const root = Deno.env.get("RUN_STORE") ?? "raw/runs";
-const output = Deno.env.get("SUMMARY_OUT") ?? "raw/summaries/m1-pilot-1.json";
+const root = "raw/runs";
+const output = "raw/summaries/m1-pilot-1.json";
 const store = new LocalRunStore(root);
 await store.initialize();
 const runs = await store.list();

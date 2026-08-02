@@ -1,6 +1,8 @@
 import { hashCanonicalEnvelope } from "../lib/canonical.ts";
 
-const hash = "a".repeat(64);
+const manifest = JSON.parse(
+  await Deno.readTextFile("public/artifacts/sum-u32/build-manifest.json"),
+);
 
 export async function validRun(overrides: Record<string, unknown> = {}) {
   const value: Record<string, unknown> = {
@@ -8,7 +10,12 @@ export async function validRun(overrides: Record<string, unknown> = {}) {
     runId: "run_0000000000000001",
     capturedAt: "2026-08-02T10:00:00Z",
     suite: { version: "0.1.0-m1-pilot", commit: "a".repeat(40), collectorVersion: "0.1.0" },
-    benchmark: { id: "sum-u32", version: 1, tier: "T2", inputManifestSha256: hash },
+    benchmark: {
+      id: "sum-u32",
+      version: 1,
+      tier: "T2",
+      inputManifestSha256: manifest.input.sha256,
+    },
     variant: {
       id: "js-controlled",
       target: "javascript",
@@ -16,22 +23,18 @@ export async function validRun(overrides: Record<string, unknown> = {}) {
       cacheState: "validation",
     },
     build: {
-      sourceRepository: "https://github.com/PaulKinlan/wasm-vs-js",
+      sourceRepository: manifest.sourceRepository,
       sourceCommit: "a".repeat(40),
-      sourceSha256: hash,
-      artifacts: [{ name: "workload.js", sha256: hash }],
-      lockfiles: [{ name: "deno.lock", sha256: hash }],
-      command: "deno task build",
-      toolchains: ["Deno 2.9.0", "wabt 1.0.37"],
-      flags: ["canonicalize_lebs=true"],
-      footprint: {
-        sourceBytes: 10,
-        glueBytes: 0,
-        rawBytes: 10,
-        gzipBytes: 10,
-        brotliBytes: 10,
-        requestCount: 1,
-      },
+      sourceSha256: manifest.sourceSha256,
+      artifacts: [{
+        name: "benchmarks/sum-u32/workload.js",
+        sha256: manifest.variants["js-controlled"].sha256,
+      }],
+      lockfiles: manifest.lockfiles,
+      command: manifest.build.command,
+      toolchains: manifest.build.toolchains,
+      flags: manifest.build.flags,
+      footprint: manifest.variants["js-controlled"].footprint,
     },
     environment: {
       browser: {
@@ -66,8 +69,23 @@ export async function validRun(overrides: Record<string, unknown> = {}) {
       randomSeed: "seed",
       orderIndex: 0,
     },
-    capabilities: { pilot: true, measurementBatchSize: 1 },
-    correctness: { status: "passed", outputSha256: hash, workCounters: { items: 65_536 } },
+    capabilities: {
+      pilot: true,
+      measurementBatchSize: 1,
+      coldProfileAttested: false,
+      assetsPrimed: false,
+    },
+    correctness: {
+      status: "passed",
+      outputSha256: manifest.oracle.outputSha256,
+      workCounters: {
+        items: 65_536,
+        "input-bytes": 262_144,
+        additions: 65_536,
+        loads: 65_536,
+        "boundary-crossings": 1,
+      },
+    },
     samples: [
       { iteration: 0, phase: "execute", durationMs: 2, valid: true },
       { iteration: 1, phase: "execute", durationMs: 1, valid: true },

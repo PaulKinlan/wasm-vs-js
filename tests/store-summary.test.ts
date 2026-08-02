@@ -31,6 +31,26 @@ Deno.test("local run records are immutable and summaries retain first/full traje
   }
 });
 
+Deno.test("store listing is bounded before summary generation", async () => {
+  const root = await Deno.makeTempDir();
+  try {
+    const store = new LocalRunStore(root);
+    await store.initialize();
+    for (let index = 0; index < 21; index += 1) {
+      await store.put(
+        await validRun({
+          runId: `run_${String(index).padStart(16, "0")}`,
+          capturedAt: `2026-08-02T10:${String(index).padStart(2, "0")}:00Z`,
+        }),
+      );
+    }
+    assertEquals((await store.list()).length, 20);
+    await assertRejects(() => store.list(101), "run limit denied");
+  } finally {
+    await Deno.remove(root, { recursive: true });
+  }
+});
+
 Deno.test("store rejects schema-invalid or hash-mismatched records", async () => {
   const root = await Deno.makeTempDir();
   try {
@@ -38,6 +58,12 @@ Deno.test("store rejects schema-invalid or hash-mismatched records", async () =>
     await store.initialize();
     const run = await validRun();
     await assertRejects(() => store.put({ ...run, metrics: [] }), "schema denied");
+    const poisoned = structuredClone(run) as unknown as {
+      benchmark: Record<string, unknown>;
+      payloadSha256: string;
+    };
+    poisoned.benchmark.version = 99;
+    await assertRejects(() => store.put(poisoned), "semantic run invariant denied");
     await assertRejects(() => store.put({ ...run, payloadSha256: "b".repeat(64) }), "payload hash");
   } finally {
     await Deno.remove(root, { recursive: true });

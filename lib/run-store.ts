@@ -11,6 +11,8 @@ export type RunRecord = Record<string, unknown> & {
   capabilities?: Record<string, unknown>;
 };
 
+const MAX_RUN_BYTES = 256 * 1024;
+
 export class LocalRunStore {
   constructor(readonly root: string) {}
 
@@ -24,6 +26,8 @@ export class LocalRunStore {
     const run = value as RunRecord;
     const expected = await hashCanonicalEnvelope(run);
     if (run.payloadSha256 !== expected) throw new Error("run payload hash denied");
+    const encoded = new TextEncoder().encode(`${canonicalize(run)}\n`);
+    if (encoded.byteLength > MAX_RUN_BYTES) throw new Error("run record too large");
     const path = `${this.root}/${run.runId}.json`;
     let file: Deno.FsFile;
     try {
@@ -33,7 +37,7 @@ export class LocalRunStore {
       throw error;
     }
     try {
-      await file.write(new TextEncoder().encode(`${canonicalize(run)}\n`));
+      await file.write(encoded);
     } finally {
       file.close();
     }
@@ -43,19 +47,29 @@ export class LocalRunStore {
   async get(runId: string): Promise<RunRecord | null> {
     if (!/^[A-Za-z0-9_-]{16,96}$/.test(runId)) return null;
     try {
-      return JSON.parse(await Deno.readTextFile(`${this.root}/${runId}.json`));
+      const path = `${this.root}/${runId}.json`;
+      if ((await Deno.stat(path)).size > MAX_RUN_BYTES) throw new Error("stored run too large");
+      return JSON.parse(await Deno.readTextFile(path));
     } catch (error) {
       if (error instanceof Deno.errors.NotFound) return null;
       throw error;
     }
   }
 
-  async list(): Promise<RunRecord[]> {
+  async list(limit = 20): Promise<RunRecord[]> {
+    if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100) {
+      throw new Error("run limit denied");
+    }
     const runs: RunRecord[] = [];
     try {
+      const names: string[] = [];
       for await (const entry of Deno.readDir(this.root)) {
-        if (!entry.isFile || !entry.name.endsWith(".json")) continue;
-        runs.push(JSON.parse(await Deno.readTextFile(`${this.root}/${entry.name}`)));
+        if (entry.isFile && entry.name.endsWith(".json")) names.push(entry.name);
+      }
+      for (const name of names.sort().slice(-limit)) {
+        const path = `${this.root}/${name}`;
+        if ((await Deno.stat(path)).size > MAX_RUN_BYTES) throw new Error("stored run too large");
+        runs.push(JSON.parse(await Deno.readTextFile(path)));
       }
     } catch (error) {
       if (error instanceof Deno.errors.NotFound) return [];
