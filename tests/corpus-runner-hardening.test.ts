@@ -64,15 +64,23 @@ Deno.test("worker evidence gate requires exact manifest, correctness, fixed work
   assertEquals(valid.records.map((r) => r.medianMs), [10, 5]);
   const wrongWork = workerEnvelope();
   wrongWork.result.work.items = 1;
-  await assertRejects(async () => validateWorkerResult(wrongWork, manifest), "fixed work");
+  await assertRejects(
+    () => Promise.resolve().then(() => validateWorkerResult(wrongWork, manifest)),
+    "fixed work",
+  );
   const wrongSample = workerEnvelope();
   wrongSample.result.js.samples[0] = -1;
-  await assertRejects(async () => validateWorkerResult(wrongSample, manifest), "trajectory");
   await assertRejects(
-    async () =>
-      validateWorkerResult(
-        { ...workerEnvelope(), manifest: { ...manifest, blockId: "other" } },
-        manifest,
+    () => Promise.resolve().then(() => validateWorkerResult(wrongSample, manifest)),
+    "trajectory",
+  );
+  await assertRejects(
+    () =>
+      Promise.resolve().then(() =>
+        validateWorkerResult(
+          { ...workerEnvelope(), manifest: { ...manifest, blockId: "other" } },
+          manifest,
+        )
       ),
     "manifest identity",
   );
