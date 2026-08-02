@@ -570,24 +570,26 @@ export async function collectOwnedBlock(
     `${String(manifest.scheduleIndex).padStart(3, "0")}-${manifest.blockId}`,
     onLaunchBegan,
   );
-  const corpusRoot = dependencies.rawBase ?? "raw/corpora",
-    rawRoot = `${corpusRoot}/${manifest.corpusId}/launches/${manifest.blockId}`,
-    events: Array<Record<string, unknown>> = [],
-    consoleEvents: Array<Record<string, unknown>> = [];
-  const chromePackageManifest = {
-    schemaVersion: 1,
-    binaryRelativePath: stagedChrome.binary.slice(stagedChrome.root.length + 1),
-    binarySha256: stagedChrome.binarySha256,
-    manifestSha256: stagedChrome.manifestSha256,
-    files: stagedChrome.files,
-  };
-  assertChromePackageManifestSchema(chromePackageManifest);
-  const chromePackageArtifact = await writeImmutableArtifact(
-    `${rawRoot}/chrome-package-manifest.json`,
-    canonicalize(chromePackageManifest) + "\n",
-  );
   let cleanupComplete = false;
+  let cleanupAttempted = false;
   try {
+    // Cleanup coverage begins immediately after launch, before any evidence path can be authored.
+    const corpusRoot = dependencies.rawBase ?? "raw/corpora",
+      rawRoot = `${corpusRoot}/${manifest.corpusId}/launches/${manifest.blockId}`,
+      events: Array<Record<string, unknown>> = [],
+      consoleEvents: Array<Record<string, unknown>> = [];
+    const chromePackageManifest = {
+      schemaVersion: 1,
+      binaryRelativePath: stagedChrome.binary.slice(stagedChrome.root.length + 1),
+      binarySha256: stagedChrome.binarySha256,
+      manifestSha256: stagedChrome.manifestSha256,
+      files: stagedChrome.files,
+    };
+    assertChromePackageManifestSchema(chromePackageManifest);
+    const chromePackageArtifact = await writeImmutableArtifact(
+      `${rawRoot}/chrome-package-manifest.json`,
+      canonicalize(chromePackageManifest) + "\n",
+    );
     if (!String(owned.version.product ?? "").includes("150.0.7871.24")) {
       throw new Error("exact Chrome version mismatch");
     }
@@ -802,7 +804,15 @@ export async function collectOwnedBlock(
       expectedMeasurement,
       "measurement",
     );
-    // Bodies are collected while the worker target and its Network session are still alive.
+    // Bodies must have been collected while a worker target was still observable.
+    const targetsBeforeRelease = (await browser.send("Target.getTargets")).targetInfos;
+    if (
+      !Array.isArray(targetsBeforeRelease) ||
+      !targetsBeforeRelease.some((target) =>
+        ["worker", "shared_worker"].includes(String((target as Record<string, unknown>).type)) &&
+        String((target as Record<string, unknown>).url).startsWith(permit.origin)
+      )
+    ) throw new Error("collector worker target detached before evidence capture");
     await browser.send("Runtime.evaluate", {
       returnByValue: true,
       expression: "globalThis.__releaseCorpusWorker()",
@@ -847,6 +857,7 @@ export async function collectOwnedBlock(
         ),
       })),
     );
+    cleanupAttempted = true;
     const closed = await (dependencies.close ?? closeOwnedChrome)(owned);
     cleanupComplete = closed.cleaned;
     const typed = (value: unknown, source: string, scope: string) => ({
@@ -964,7 +975,9 @@ export async function collectOwnedBlock(
       wasmMedianMs: wasm.medianMs,
     };
   } finally {
-    if (!cleanupComplete) await (dependencies.close ?? closeOwnedChrome)(owned);
+    if (!cleanupComplete && !cleanupAttempted) {
+      await (dependencies.close ?? closeOwnedChrome)(owned);
+    }
   }
 }
 async function collectAll(
@@ -1272,7 +1285,14 @@ async function fakeCdpBrowser(manifest: LaunchManifest, origin: string) {
   type Listener = (params: Record<string, unknown>, sessionId?: string) => void;
   const listeners = new Map<string, Set<Listener>>(), bodies = new Map<string, Uint8Array>();
   for (const route of BENCHMARK_ASSETS) bodies.set(route, await Deno.readFile(`public${route}`));
-  let currentUrl = "about:blank", result: Record<string, unknown> | undefined, released = false;
+  let currentUrl = "about:blank", result: Record<string, unknown> | undefined;
+  let workerAlive = false;
+  const lifecycle = {
+    workerSeenBeforeRelease: false,
+    bodyReadsWhileAlive: 0,
+    explicitReleaseCalls: 0,
+    workerAbsentAfterRelease: false,
+  };
   const emit = (method: string, params: Record<string, unknown>, sessionId?: string) =>
     listeners.get(method)?.forEach((listener) => listener(params, sessionId));
   const emitAssets = (sessionId: string, cached: boolean) => {
@@ -1327,6 +1347,7 @@ async function fakeCdpBrowser(manifest: LaunchManifest, origin: string) {
         }
         if (expression === "location.href") return { result: { value: currentUrl } };
         if (expression.includes("#run-corpus")) {
+          workerAlive = true;
           emit("Target.attachedToTarget", {
             sessionId: "fake-worker-session",
             targetInfo: {
@@ -1341,17 +1362,37 @@ async function fakeCdpBrowser(manifest: LaunchManifest, origin: string) {
         }
         if (expression.includes("__corpusError")) return { result: { value: result } };
         if (expression.includes("__releaseCorpusWorker")) {
-          released = true;
+          lifecycle.explicitReleaseCalls += 1;
+          workerAlive = false;
           return { result: { value: true } };
         }
         return { result: { value: {} } };
       }
       if (method === "Network.getResponseBody") {
+        if (!workerAlive && sessionId === "fake-worker-session") {
+          throw new Error("fake worker response body unavailable after release");
+        }
+        if (workerAlive && sessionId === "fake-worker-session") {
+          lifecycle.bodyReadsWhileAlive += 1;
+        }
         const id = String(params.requestId), index = Number(id.slice(id.lastIndexOf("-") + 1));
         const bytes = bodies.get(BENCHMARK_ASSETS[index])!;
         return { body: Uint8Array.from(bytes).toBase64(), base64Encoded: true };
       }
-      if (method === "Target.getTargets") return { targetInfos: released ? [] : [] };
+      if (method === "Target.getTargets") {
+        if (workerAlive) {
+          lifecycle.workerSeenBeforeRelease = true;
+          return {
+            targetInfos: [{
+              targetId: "fake-worker",
+              type: "worker",
+              url: `${origin}/hosted-runner-worker.js`,
+            }],
+          };
+        }
+        if (lifecycle.explicitReleaseCalls > 0) lifecycle.workerAbsentAfterRelease = true;
+        return { targetInfos: [] };
+      }
       if (method === "Page.captureScreenshot") {
         return { data: new TextEncoder().encode("fake-png").toBase64() };
       }
@@ -1360,7 +1401,7 @@ async function fakeCdpBrowser(manifest: LaunchManifest, origin: string) {
       return {};
     },
   };
-  return browser;
+  return Object.assign(browser, { lifecycle });
 }
 export async function dryFake() {
   const root = "/tmp/wasm-vs-js-dry-fake";
@@ -1396,7 +1437,7 @@ export async function dryFake() {
       rootDev: 1,
       rootIno: 1,
     };
-    let productionBlocks = 0;
+    let productionBlocks = 0, lifecycleValidatedBlocks = 0;
     const fakeCollector: typeof collectOwnedBlock = async (
       p,
       manifest,
@@ -1406,7 +1447,7 @@ export async function dryFake() {
       staged,
     ) => {
       const browser = await fakeCdpBrowser(manifest, p.origin);
-      return await collectOwnedBlock(p, manifest, hashes, source, onLaunch, staged, {
+      const block = await collectOwnedBlock(p, manifest, hashes, source, onLaunch, staged, {
         sourceManifest: () =>
           Promise.resolve({
             sourceCommit,
@@ -1466,6 +1507,14 @@ export async function dryFake() {
           }),
         rawBase: `${root}/corpora`,
       });
+      if (
+        browser.lifecycle.workerSeenBeforeRelease &&
+        browser.lifecycle.bodyReadsWhileAlive === BENCHMARK_ASSETS.length &&
+        browser.lifecycle.explicitReleaseCalls === 1 &&
+        browser.lifecycle.workerAbsentAfterRelease
+      ) lifecycleValidatedBlocks += 1;
+      else throw new Error("production-path fake did not prove worker evidence lifecycle");
+      return block;
     };
     const checked = {
       sourceCommit,
@@ -1486,9 +1535,11 @@ export async function dryFake() {
     return {
       dependencyInjectedProductionCollectAll: true,
       collectOwnedBlockEntrypointExercised: true,
-      browserCdpPathExercised: true,
-      workerAutoAttachBodiesAndReleaseExercised: true,
+      browserCdpPathExercised: productionBlocks > 0,
+      workerAutoAttachBodiesAndReleaseExercised: productionBlocks > 0 &&
+        lifecycleValidatedBlocks === productionBlocks,
       productionBlocks,
+      lifecycleValidatedBlocks,
       status: result.status,
       attempted: result.attempted,
       committed: result.committed,

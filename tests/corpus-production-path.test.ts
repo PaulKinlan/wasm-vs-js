@@ -6,6 +6,7 @@ Deno.test("dependency-injected dry corpus traverses production CDP worker eviden
   assertEquals(result.collectOwnedBlockEntrypointExercised, true);
   assertEquals(result.browserCdpPathExercised, true);
   assertEquals(result.workerAutoAttachBodiesAndReleaseExercised, true);
+  assertEquals(result.lifecycleValidatedBlocks, result.productionBlocks);
   assertEquals(result.committed, 40);
   assertEquals(result.attempted, 40);
   assertEquals(result.noBrowserOrSystemdLaunched, true);

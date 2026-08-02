@@ -8,6 +8,7 @@ import {
   setProfileRemovalRaceHookForTest,
 } from "../lib/process-ledger.ts";
 import {
+  acquireCgroupHandles,
   assertRunningExecutable,
   closeOwnedChrome,
   launchOwnedChrome,
@@ -149,6 +150,105 @@ Deno.test("DevToolsActivePort retains exact port/path and rejects symlinks", asy
   }
 });
 
+Deno.test("cgroup handle acquisition rejects a remapped systemd invocation", async () => {
+  const root = await Deno.makeTempDir();
+  try {
+    await Deno.writeTextFile(`${root}/cgroup.kill`, "");
+    await Deno.writeTextFile(`${root}/cgroup.procs`, "700\n");
+    const identity = ids(await Deno.lstat(root));
+    await assertRejects(
+      () =>
+        acquireCgroupHandles(
+          () =>
+            Promise.resolve({
+              success: true,
+              code: 0,
+              stderr: "",
+              stdout:
+                "MainPID=701\nControlGroup=/replacement\nActiveState=active\nSubState=running\nLoadState=loaded\nInvocationID=ffffffffffffffffffffffffffffffff\n",
+            }),
+          "wasm-vs-js-0123456789abcdef.service",
+          {
+            controlGroup: "/owned",
+            invocationId: "0123456789abcdef0123456789abcdef",
+          },
+          root,
+          identity,
+        ),
+      "descriptor acquisition identity changed",
+    );
+  } finally {
+    await Deno.remove(root, { recursive: true });
+  }
+});
+
+Deno.test("repeated cleanup preserves the original executable containment failure", async () => {
+  const cgroup = await Deno.makeTempDir(), binaryRoot = await Deno.makeTempDir();
+  const profile = await prepareProfile(
+    `/tmp/wasm-vs-js-owned-profiles/cleanup-failure-${crypto.randomUUID()}/launch`,
+  );
+  const binary = `${binaryRoot}/chrome`;
+  await Deno.writeTextFile(binary, "reviewed");
+  const executableInfo = ids(await Deno.lstat(binary));
+  const executable = {
+    path: binary,
+    ...executableInfo,
+    sha256: await sha256Hex(await Deno.readFile(binary)),
+  };
+  await Deno.writeTextFile(`${cgroup}/cgroup.kill`, "");
+  await Deno.writeTextFile(`${cgroup}/cgroup.procs`, "");
+  const cgroupInfo = ids(await Deno.lstat(cgroup));
+  const directory = await Deno.open(cgroup, { read: true });
+  const kill = await Deno.open(`${cgroup}/cgroup.kill`, { write: true });
+  const procs = await Deno.open(`${cgroup}/cgroup.procs`, { read: true });
+  let browserCloseCalls = 0;
+  const command = () =>
+    Promise.resolve({
+      success: true,
+      code: 0,
+      stderr: "",
+      stdout:
+        "MainPID=700\nControlGroup=/owned\nActiveState=active\nSubState=running\nLoadState=loaded\nInvocationID=0123456789abcdef0123456789abcdef\n",
+    });
+  const owned = {
+    browser: {
+      close: () => browserCloseCalls++,
+      send: () => Promise.resolve({}),
+      on: () => () => {},
+    },
+    command,
+    ledger: {
+      unit: "wasm-vs-js-0123456789abcdef.service",
+      controlGroup: "/owned",
+      cgroupPath: cgroup,
+      ...{ cgroupDev: cgroupInfo.dev, cgroupIno: cgroupInfo.ino },
+      invocationId: "0123456789abcdef0123456789abcdef",
+      cgroupDirectoryHandle: directory,
+      cgroupKillHandle: kill,
+      cgroupProcsHandle: procs,
+      mainPid: 700,
+      members: [700],
+      membershipSnapshots: [],
+      executable,
+      commandLine: [binary],
+      profile,
+      profileRoot: profile.profileRoot,
+      launchedAt: new Date().toISOString(),
+      recordedAt: new Date().toISOString(),
+    },
+  } as never;
+  try {
+    await Deno.writeTextFile(binary, "changed");
+    await assertRejects(() => closeOwnedChrome(owned), "executable changed across launch");
+    await assertRejects(() => closeOwnedChrome(owned), "executable changed across launch");
+    assertEquals(browserCloseCalls, 1);
+  } finally {
+    await Deno.remove(profile.ownershipRoot, { recursive: true }).catch(() => {});
+    await Deno.remove(cgroup, { recursive: true });
+    await Deno.remove(binaryRoot, { recursive: true });
+  }
+});
+
 Deno.test("production systemd launch/teardown uses only an injected exact-unit adapter", async () => {
   const root = await Deno.makeTempDir(),
     proc = `${root}/proc`,
@@ -255,7 +355,14 @@ Deno.test("production systemd launch/teardown uses only an injected exact-unit a
     assertEquals(owned.arguments, expectedArguments);
     assertEquals(lifecycle.slice(0, 4), ["show", "systemd-run", "launch-attempted", "show"]);
     await Deno.writeTextFile(`${cgroups}/test.slice/${unit}/cgroup.procs`, "");
-    await closeOwnedChrome(owned);
+    const firstCleanup = await closeOwnedChrome(owned);
+    const stopCallsAfterFirstCleanup = calls.filter((call) => call.args.includes("stop")).length;
+    const repeatedCleanup = await closeOwnedChrome(owned);
+    assertEquals(repeatedCleanup, firstCleanup);
+    assertEquals(
+      calls.filter((call) => call.args.includes("stop")).length,
+      stopCallsAfterFirstCleanup,
+    );
     assertEquals(calls.some((call) => call.command === "/usr/bin/systemd-run"), true);
     assertEquals(calls.some((call) => call.args.includes("kill")), false);
     assertEquals(calls.some((call) => call.args.includes("stop")), true);

@@ -16,6 +16,7 @@ export type CgroupLedger = {
   cgroupDev: number;
   cgroupIno: number;
   invocationId: string;
+  cgroupDirectoryHandle: Deno.FsFile;
   cgroupKillHandle: Deno.FsFile;
   cgroupProcsHandle: Deno.FsFile;
   mainPid: number;
