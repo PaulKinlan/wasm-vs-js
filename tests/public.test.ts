@@ -5,6 +5,8 @@ Deno.test("results and runner pages expose evidence limits and accessible contro
   const runner = await Deno.readTextFile("public/run.html");
   const css = await Deno.readTextFile("public/styles.css");
   assert(index.includes("No accepted result"));
+  assert(index.includes("Inspect implementation evidence"));
+  assert(index.includes("Those two validation records were removed"));
   assert(index.includes("Raw run inspector"));
   assert(index.includes("Complete trajectories"));
   assert(index.includes("<caption>"));
@@ -17,8 +19,25 @@ Deno.test("results and runner pages expose evidence limits and accessible contro
   assert(!index.includes("Wasm wins"));
 });
 
+Deno.test("versioned public acceptance package is explicit and contains no invented run evidence", async () => {
+  const evidencePage = await Deno.readTextFile("public/evidence/index.html");
+  const acceptance = JSON.parse(
+    await Deno.readTextFile("public/evidence/v1/acceptance.json"),
+  );
+  assert(evidencePage.includes("Accepted code, not a performance result"));
+  assert(evidencePage.includes("does not fabricate either"));
+  assert(acceptance.acceptedSource.commit === "9c309c4941d1b8550c15f8549f95a5636a634ef6");
+  assert(acceptance.artifact.bytes === 96);
+  assert(acceptance.claims.performanceClaimAccepted === false);
+  assert(acceptance.claims.pairedFreshLaunchCorpusExists === false);
+  assert(acceptance.runtimeValidation.retainedBrowserArtifacts === false);
+  assert(acceptance.limitations.some((item: string) => item.includes("intentionally removed")));
+  assert(!("runs" in acceptance));
+  assert(!("samples" in acceptance));
+});
+
 Deno.test("public pages contain no inline script, inline style, or remote asset", async () => {
-  for (const path of ["public/index.html", "public/run.html"]) {
+  for (const path of ["public/index.html", "public/run.html", "public/evidence/index.html"]) {
     const html = await Deno.readTextFile(path);
     assert(!/<script(?![^>]*\bsrc=)/i.test(html), `${path} has inline script`);
     assert(!/\sstyle=/i.test(html), `${path} has inline style`);

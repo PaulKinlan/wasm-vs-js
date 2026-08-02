@@ -1,10 +1,24 @@
 import { LocalRunStore } from "./lib/run-store.ts";
 import { generateSummary } from "./lib/summary.ts";
 
+type ServerMode = "local" | "public";
+
 const root = new URL("./", import.meta.url);
-const defaultStore = new LocalRunStore(new URL("raw/runs/", root).pathname);
-await defaultStore.initialize();
+const configuredMode = Deno.env.get("SERVER_MODE") ?? "local";
+if (configuredMode !== "local" && configuredMode !== "public") {
+  throw new Error("SERVER_MODE must be local or public");
+}
+const mode: ServerMode = configuredMode;
+const reviewedCommit = Deno.env.get("WASM_VS_JS_COMMIT") ?? "";
+if (!/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(reviewedCommit)) {
+  throw new Error("WASM_VS_JS_COMMIT must be an explicit reviewed Git commit");
+}
+const defaultStore = mode === "local"
+  ? new LocalRunStore(new URL("raw/runs/", root).pathname)
+  : null;
+if (defaultStore) await defaultStore.initialize();
 const port = Number(Deno.env.get("PORT") ?? "8787");
+const host = Deno.env.get("HOST") ?? (mode === "public" ? "0.0.0.0" : "127.0.0.1");
 const MAX_BODY = 512 * 1024;
 
 const securityHeaders = {
@@ -59,18 +73,31 @@ async function boundedJson(request: Request): Promise<unknown> {
   return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
 }
 
-const routes = new Map([
+const routes = new Map<string, [string, string, boolean?]>([
   ["/", ["public/index.html", "text/html; charset=utf-8"]],
-  ["/run", ["public/run.html", "text/html; charset=utf-8"]],
-  ["/run.html", ["public/run.html", "text/html; charset=utf-8"]],
+  ["/run", ["public/run.html", "text/html; charset=utf-8", true]],
+  ["/run.html", ["public/run.html", "text/html; charset=utf-8", true]],
+  ["/evidence", ["public/evidence/index.html", "text/html; charset=utf-8"]],
+  ["/evidence/", ["public/evidence/index.html", "text/html; charset=utf-8"]],
+  ["/evidence/v1", ["public/evidence/index.html", "text/html; charset=utf-8"]],
+  ["/evidence/v1/", ["public/evidence/index.html", "text/html; charset=utf-8"]],
+  ["/evidence/v1/acceptance.json", [
+    "public/evidence/v1/acceptance.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/styles.css", ["public/styles.css", "text/css; charset=utf-8"]],
   ["/favicon.ico", ["public/favicon.svg", "image/svg+xml"]],
   ["/favicon.svg", ["public/favicon.svg", "image/svg+xml"]],
   ["/app.js", ["public/app.js", "text/javascript; charset=utf-8"]],
-  ["/runner.js", ["public/runner.js", "text/javascript; charset=utf-8"]],
+  ["/runner.js", ["public/runner.js", "text/javascript; charset=utf-8", true]],
+  ["/benchmarks/sum-u32/benchmark.json", [
+    "benchmarks/sum-u32/benchmark.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/benchmarks/sum-u32/workload.js", [
     "benchmarks/sum-u32/workload.js",
     "text/javascript; charset=utf-8",
+    true,
   ]],
   ["/artifacts/sum-u32/sum-u32.wasm", [
     "public/artifacts/sum-u32/sum-u32.wasm",
@@ -82,36 +109,58 @@ const routes = new Map([
   ]],
 ]);
 
-function createHandler(store: LocalRunStore) {
+function createHandler(
+  store: LocalRunStore | null,
+  serverMode: ServerMode = "local",
+  commit = reviewedCommit,
+) {
+  if (!/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(commit)) {
+    throw new Error("reviewed commit required");
+  }
+  if (serverMode === "local" && !store) throw new Error("local store required");
   return async function handler(request: Request): Promise<Response> {
     const url = new URL(request.url);
+    if (serverMode === "public" && request.method !== "GET" && request.method !== "HEAD") {
+      return json({ error: "public service is permanently read-only" }, 403);
+    }
     if (url.pathname === "/healthz") {
       return request.method === "GET"
-        ? json({ status: "ok", mode: "local-m1-pilot", schemaVersion: 1 })
+        ? json({
+          status: "ok",
+          mode: serverMode === "public" ? "public-read-only" : "local-m1-pilot",
+          schemaVersion: 1,
+          reviewedCommit: commit,
+        })
         : json({ error: "method denied" }, 405);
     }
     if (url.pathname === "/api/summary") {
       if (request.method !== "GET") return json({ error: "method denied" }, 405);
-      const page = await store.listPage(50);
+      if (serverMode === "public") return json(generateSummary([]));
+      const page = await store!.listPage(50);
       return json(generateSummary(page.runs, page.total, page.truncated));
     }
-    if (url.pathname === "/api/runs") {
-      if (request.method !== "POST") return json({ error: "method denied" }, 405);
-      try {
-        const stored = await store.put(await boundedJson(request));
-        return json({ stored: true, ...stored }, 201);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "run denied";
-        return json({ error: message }, message.includes("already exists") ? 409 : 400);
+    if (url.pathname === "/api/runs" || url.pathname.startsWith("/api/runs/")) {
+      if (serverMode === "public") {
+        return json({ error: "run records are not exposed by the public service" }, 403);
       }
-    }
-    if (url.pathname.startsWith("/api/runs/")) {
+      if (url.pathname === "/api/runs") {
+        if (request.method !== "POST") return json({ error: "method denied" }, 405);
+        try {
+          const stored = await store!.put(await boundedJson(request));
+          return json({ stored: true, ...stored }, 201);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "run denied";
+          return json({ error: message }, message.includes("already exists") ? 409 : 400);
+        }
+      }
       if (request.method !== "GET") return json({ error: "method denied" }, 405);
-      const run = await store.get(url.pathname.slice("/api/runs/".length));
+      const run = await store!.get(url.pathname.slice("/api/runs/".length));
       return run ? json(run) : json({ error: "not found" }, 404);
     }
     const route = routes.get(url.pathname);
-    if (!route) return json({ error: "not found" }, 404);
+    if (!route || (serverMode === "public" && route[2])) {
+      return json({ error: "not found" }, 404);
+    }
     if (request.method !== "GET" && request.method !== "HEAD") {
       return json({ error: "method denied" }, 405);
     }
@@ -121,10 +170,11 @@ function createHandler(store: LocalRunStore) {
       return response(request.method === "HEAD" ? null : bytes, {
         headers: {
           "content-type": contentType,
-          "cache-control":
-            url.pathname.startsWith("/artifacts/") || url.pathname.startsWith("/benchmarks/")
-              ? "public, max-age=31536000, immutable"
-              : "no-store",
+          "cache-control": url.pathname.startsWith("/artifacts/") ||
+              url.pathname.startsWith("/benchmarks/") ||
+              url.pathname.startsWith("/evidence/v1/")
+            ? "public, max-age=31536000, immutable"
+            : "no-store",
         },
       });
     } catch {
@@ -133,11 +183,13 @@ function createHandler(store: LocalRunStore) {
   };
 }
 
-const handler = createHandler(defaultStore);
+const handler = createHandler(defaultStore, mode, reviewedCommit);
 
 if (import.meta.main) {
-  console.log(`M1 local pilot: http://127.0.0.1:${port}/`);
-  Deno.serve({ hostname: "127.0.0.1", port }, handler);
+  console.log(
+    `${mode === "public" ? "Public evidence" : "M1 local pilot"}: http://${host}:${port}/`,
+  );
+  Deno.serve({ hostname: host, port }, handler);
 }
 
 export { createHandler, handler };

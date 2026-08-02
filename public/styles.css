@@ -172,6 +172,31 @@ button:disabled {
   font: 1.3rem ui-monospace, monospace;
   overflow-wrap: anywhere;
 }
+.evidence-facts {
+  display: grid;
+  gap: 1px;
+  padding: 1px;
+  background: var(--rule);
+}
+.evidence-facts div {
+  display: grid;
+  grid-template-columns: minmax(9rem, 1fr) minmax(0, 3fr);
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--raised);
+}
+.evidence-facts dt {
+  font-weight: 700;
+}
+.evidence-facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 36rem) {
+  .evidence-facts div {
+    grid-template-columns: 1fr;
+  }
+}
 .section-heading {
   display: flex;
   justify-content: space-between;

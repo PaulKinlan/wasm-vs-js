@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="description"
+      content="Inspectable implementation acceptance and runtime validation evidence for Wasm vs JavaScript.">
+    <title>Implementation evidence · Wasm vs JavaScript</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to evidence</a>
+    <header class="masthead">
+      <a class="brand" href="/">AI Focus</a>
+      <span>Wasm vs JavaScript benchmark</span>
+      <strong>evidence v1</strong>
+    </header>
+    <main id="main" class="dashboard">
+      <section class="intro narrative">
+        <p class="eyebrow">M1 implementation evidence</p>
+        <h1>Accepted code, not a performance result</h1>
+        <p>The controlled <code>sum-u32</code> JavaScript and linear-Wasm slice passed its reproducible build, correctness, work-equivalence, evidence-contract, storage, summary, and user-interface gates.</p>
+        <p
+          class="notice"><strong>No JavaScript-versus-Wasm winner is claimed.</strong> The required corpus of at least 20 paired fresh launches has not been collected. The two manual validation records were deliberately removed after verification and are not presented as benchmark evidence.</p>
+        <p><a class="button-link" href="/evidence/v1/acceptance.json">Inspect acceptance JSON</a> <a href="/artifacts/sum-u32/build-manifest.json">Build manifest</a> <a href="/artifacts/sum-u32/sum-u32.wasm">96-byte Wasm</a></p>
+      </section>
+
+      <section aria-labelledby="accepted-title">
+        <h2 id="accepted-title">What was accepted</h2>
+        <dl class="evidence-facts">
+          <div>
+            <dt>Source commit</dt>
+            <dd><code>9c309c4941d1b8550c15f8549f95a5636a634ef6</code></dd>
+          </div>
+          <div>
+            <dt>Full gate</dt>
+            <dd><code>deno task check</code>: 16 passed, 0 failed, 0 skipped; 15 negative contract invariants</dd>
+          </div>
+          <div>
+            <dt>Wasm artifact</dt>
+            <dd>96 bytes · SHA-256 <code>9c4ce5f0d9e32cdd364b73b2697566e7396368d9867d9bc3d939bb2063583a6d</code></dd>
+          </div>
+          <div>
+            <dt>Independent review</dt>
+            <dd>ACCEPT · run <code>f2f58de5</code> · no blocker, high, or medium finding</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section aria-labelledby="runtime-title">
+        <h2 id="runtime-title">Manual Chrome 150 runtime validation</h2>
+        <ul>
+          <li>The visible “Validate and run pair” control completed for JavaScript and linear Wasm.</li>
+          <li>WebAssembly compiled under the narrow <code>wasm-unsafe-eval</code> CSP allowance; no general eval or inline execution was enabled.</li>
+          <li>Both variants passed correctness and fixed-work validation, and two run uploads returned HTTP 201.</li>
+          <li>The owned loopback server was stopped, its two generated validation records were removed, and the MCP page was closed.</li>
+        </ul>
+        <p>The validation did not retain a screenshot or replayable MCP log. This page does not fabricate either. Exact structured assertions and cleanup accounting are in the acceptance JSON.</p>
+      </section>
+
+      <section aria-labelledby="missing-title">
+        <h2 id="missing-title">What is still missing</h2>
+        <ul>
+          <li>No raw validation record or timing sample is published because those records were intentionally removed.</li>
+          <li>No cold/warm fresh-profile corpus, ratio, interval, stopping decision, or performance conclusion exists.</li>
+          <li>M1 performance acceptance remains pending at least 20 paired fresh launches through the preregistered precision target or cap.</li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>

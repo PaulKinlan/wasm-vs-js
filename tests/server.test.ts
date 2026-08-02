@@ -45,6 +45,54 @@ Deno.test("local server stores an immutable run and exposes an inspectable summa
   }
 });
 
+Deno.test("public server is fail-closed read-only and exposes only sanitized evidence", async () => {
+  const commit = Deno.env.get("WASM_VS_JS_COMMIT") ?? "";
+  const handler = createHandler(null, "public", commit);
+
+  const home = await handler(new Request("http://127.0.0.1/"));
+  assertEquals(home.status, 200);
+  const evidence = await handler(new Request("http://127.0.0.1/evidence/v1/acceptance.json"));
+  assertEquals(evidence.status, 200);
+  assert(evidence.headers.get("cache-control")?.includes("immutable"));
+  const packageBody = await evidence.json();
+  assertEquals(packageBody.claims.performanceClaimAccepted, false);
+  assertEquals(packageBody.runtimeValidation.retainedBrowserArtifacts, false);
+
+  const health = await handler(new Request("http://127.0.0.1/healthz"));
+  const healthBody = await health.json();
+  assertEquals(healthBody.mode, "public-read-only");
+  assertEquals(healthBody.reviewedCommit, commit);
+
+  for (const path of ["/api/runs", "/api/runs/example", "/styles.css", "/unknown"]) {
+    const denied = await handler(
+      new Request(`http://127.0.0.1${path}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: "{}",
+      }),
+    );
+    assertEquals(denied.status, 403);
+  }
+  for (const path of ["/run", "/run.html", "/runner.js", "/raw/runs/example.json"]) {
+    assertEquals((await handler(new Request(`http://127.0.0.1${path}`))).status, 404);
+  }
+  assertEquals((await handler(new Request("http://127.0.0.1/api/runs"))).status, 403);
+  assertEquals((await handler(new Request("http://127.0.0.1/api/runs/example"))).status, 403);
+  const summary = await (await handler(new Request("http://127.0.0.1/api/summary"))).json();
+  assertEquals(summary.runCount, 0);
+  assertEquals(summary.claimStatus, "no-runs");
+});
+
+Deno.test("public handler rejects missing reviewed commit", () => {
+  let rejected = false;
+  try {
+    createHandler(null, "public", "");
+  } catch {
+    rejected = true;
+  }
+  assert(rejected);
+});
+
 Deno.test("local server bounds writes and serves exact Wasm MIME", async () => {
   const root = await Deno.makeTempDir();
   try {

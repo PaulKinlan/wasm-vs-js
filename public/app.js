@@ -5,7 +5,9 @@ const metrics = document.querySelector("#metrics");
 const cacheFilter = document.querySelector("#cache-filter");
 const loadStatus = document.querySelector("#load-status");
 const claimStatus = document.querySelector("#claim-status");
+const localRunnerLink = document.querySelector("#local-runner-link");
 let summary;
+let serverMode = "local-m1-pilot";
 
 function ms(value) {
   return typeof value === "number" ? `${value.toFixed(3)} ms` : "unavailable";
@@ -21,7 +23,9 @@ function renderMetrics(data) {
   const values = [data.runCount, data.pairedBlockCount, "sum-u32", "Controlled"];
   [...metrics.querySelectorAll("dd")].forEach((item, index) => item.textContent = values[index]);
   claimStatus.textContent = data.claimStatus === "no-runs"
-    ? "No local run records exist."
+    ? serverMode === "public-read-only"
+      ? "No performance corpus has been published."
+      : "No local run records exist."
     : data.truncated
     ? `Showing the newest ${data.runCount} of ${data.sourceRunCount} local pilot records; no accepted performance claim.`
     : "Local pilot records only; no accepted performance claim.";
@@ -175,6 +179,10 @@ async function load() {
   try {
     const requested = new URL(location.href).searchParams.get("cache");
     if (["validation", "cold", "warm"].includes(requested)) cacheFilter.value = requested;
+    const healthResponse = await fetch("/healthz", { cache: "no-store" });
+    if (!healthResponse.ok) throw new Error(`health returned ${healthResponse.status}`);
+    serverMode = (await healthResponse.json()).mode;
+    if (serverMode === "public-read-only") localRunnerLink.hidden = true;
     const response = await fetch("/api/summary", { cache: "no-store" });
     if (!response.ok) throw new Error(`summary returned ${response.status}`);
     summary = await response.json();
@@ -182,7 +190,9 @@ async function load() {
     renderCells(summary);
     renderTrajectories(summary);
     renderRuns(summary);
-    loadStatus.textContent = `Loaded ${summary.runCount} immutable local run records.`;
+    loadStatus.textContent = serverMode === "public-read-only"
+      ? "Loaded the public read-only evidence view; no performance run records are published."
+      : `Loaded ${summary.runCount} immutable local run records.`;
   } catch (error) {
     cellsBody.innerHTML = '<tr><td colspan="8">Local evidence could not be loaded.</td></tr>';
     loadStatus.textContent = `Load failed: ${error.message}`;

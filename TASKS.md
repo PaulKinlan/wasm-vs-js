@@ -43,6 +43,8 @@ Tasks are ordered by dependency. A checked box means the exact acceptance criter
 - [x] Store schema- and hash-validated immutable local raw runs.
 - [x] Generate versioned pilot summaries with absolute distributions and full trajectories; paired effects/CI wait for the launch corpus.
 - [x] Build an inspectable static page with lifecycle, samples, sizes, provenance, correctness, and unavailable states.
+- [x] Add a fail-closed public read-only evidence mode with stable acceptance routes, no raw records, no runner, and permanent mutation denial.
+- [ ] Deploy the exact reviewed read-only evidence source and bind the approved stable domain without provisioning a database.
 - [ ] Validate keyboard, mobile/desktop layout, dark/reduced-motion/forced-colour states.
 - [ ] Independently review and accept the exact M1 commit.
 

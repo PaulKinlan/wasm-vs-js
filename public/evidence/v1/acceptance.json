@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "packageId": "m1-implementation-validation-v1",
+  "publishedAt": "2026-08-02",
+  "status": "implementation-accepted",
+  "acceptedSource": {
+    "repository": "https://github.com/PaulKinlan/wasm-vs-js",
+    "commit": "9c309c4941d1b8550c15f8549f95a5636a634ef6",
+    "scope": "M1 controlled sum-u32 implementation and local evidence path"
+  },
+  "claims": {
+    "implementationAccepted": true,
+    "performanceClaimAccepted": false,
+    "pairedFreshLaunchCorpusExists": false,
+    "minimumRequiredPairs": 20,
+    "statement": "This package proves an accepted implementation and one manual runtime validation. It contains no benchmark result or JavaScript-versus-Wasm performance conclusion."
+  },
+  "verification": {
+    "command": "deno task check",
+    "result": "passed",
+    "tests": {
+      "passed": 16,
+      "failed": 0,
+      "skipped": 0
+    },
+    "gates": [
+      "reproducible build",
+      "format",
+      "lint",
+      "typecheck",
+      "planning invariants",
+      "schema and semantic contract invariants",
+      "Deno tests"
+    ],
+    "negativeContractInvariants": 15
+  },
+  "artifact": {
+    "route": "/artifacts/sum-u32/sum-u32.wasm",
+    "buildManifestRoute": "/artifacts/sum-u32/build-manifest.json",
+    "bytes": 96,
+    "sha256": "9c4ce5f0d9e32cdd364b73b2697566e7396368d9867d9bc3d939bb2063583a6d",
+    "gzipBytes": 113,
+    "brotliBytes": 88,
+    "acceptedBuildSourceSha256": "f33ca41e3504236c48ddaef1ec345ca9084ef3d1a1b6b01160921744e9dbb2ac",
+    "reproductionCommand": "deno task build"
+  },
+  "runtimeValidation": {
+    "status": "passed-manual-validation",
+    "browser": "HeadlessChrome 150.0.0.0 (Blink/V8)",
+    "route": "http://127.0.0.1:19000/run",
+    "observedAssertions": [
+      "The visible Validate and run pair control completed.",
+      "WebAssembly compiled under script-src self plus wasm-unsafe-eval; no CSP compile denial occurred.",
+      "The controlled JavaScript and linear-Wasm variants both completed correctness and fixed-work validation.",
+      "Two POST /api/runs requests returned HTTP 201.",
+      "The visible status reported that the pair was stored."
+    ],
+    "retainedBrowserArtifacts": false,
+    "retainedBrowserArtifactReason": "No screenshot or replayable MCP log was retained for this manual validation; this package does not imply otherwise.",
+    "cleanup": {
+      "ownedServerPid": 2894285,
+      "ownedServerStopped": true,
+      "generatedValidationRecordsRemoved": 2,
+      "mcpPageClosed": true,
+      "browserProcessAction": "not-applicable-reused-existing-mcp-browser"
+    }
+  },
+  "independentReview": {
+    "verdict": "ACCEPT",
+    "reviewRun": "f2f58de5",
+    "blockers": 0,
+    "highFindings": 0,
+    "mediumFindings": 0,
+    "scope": "Exact commit implementation review; browser and performance claims were not independently assessed."
+  },
+  "limitations": [
+    "The two manual validation records were intentionally removed after runtime verification and are not published as raw evidence.",
+    "No screenshot, raw MCP transcript, raw run payload, timing sample, ratio, confidence interval, or winner claim is published.",
+    "The required corpus of at least 20 paired fresh launches has not been collected.",
+    "M1 performance acceptance remains pending the preregistered precision target or cap and independent evidence review."
+  ]
+}
