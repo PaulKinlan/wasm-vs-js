@@ -14,6 +14,10 @@ Read `PLAN.md` before planning or changing the project. It is canonical. Every c
 - Raw runs are immutable. Summary algorithms are versioned and reproducible from retained runs.
 - No exclusion is silent. Keep the sample and a machine-readable reason unless integrity failed before a valid sample existed.
 
+## Public writing
+
+Load and apply the `anti-slop-writing` skill before creating or revising any public page, README, evidence explanation, benchmark description, result summary, or launch copy. Prefer concrete counts, routes, hashes, mechanisms, limits, and observed results. Cut repeated warnings, generic importance claims, formulaic contrasts, marketing language, and prose that implies evidence the project has not collected.
+
 ## Working rules
 
 Use one writer per worktree. Workers do not self-review or push. Run `deno task check` before committing. Independently review milestone commits before claiming acceptance.
