@@ -12,8 +12,9 @@ Deno.test("vdom-diff-patch: deterministic fixture and oracle correctness", async
   assertEquals(fixture1.flatA, fixture2.flatA);
   assertEquals(fixture1.flatB, fixture2.flatB);
 
-  const jsResult = runVdomJS(fixture1);
+  const jsResult = await runVdomJS(fixture1);
   assert(jsResult.patchesGenerated > 0);
+  assertEquals(jsResult.patchDigestSha256.length, 64);
   assert(jsResult.canonicalHtml.length > 0);
   assert(jsResult.phases.computeMs >= 0);
   assert(jsResult.phases.renderMs >= 0);
@@ -29,7 +30,7 @@ Deno.test("vdom-diff-patch: deterministic fixture and oracle correctness", async
   const wasmModule = await WebAssembly.compile(wasmBytes);
   const wasmInstance = await WebAssembly.instantiate(wasmModule, {});
 
-  const wasmResult = runVdomWasm(fixture1, wasmInstance);
+  const wasmResult = await runVdomWasm(fixture1, wasmInstance);
   assertEquals(wasmResult.canonicalHtml, jsResult.canonicalHtml);
   assertEquals(wasmResult.nodesVisited, jsResult.nodesVisited);
 });

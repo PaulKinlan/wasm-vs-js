@@ -1,21 +1,36 @@
 import { generateVDOMFixture } from "./input.ts";
-import { diffVDOMTrees, serializeVDOMToCanonicalHTML } from "./js.ts";
+import {
+  applyPatchesToVDOMTree,
+  diffVDOMTrees,
+  HostDOMAdapter,
+  serializeVDOMToCanonicalHTML,
+} from "./js.ts";
 
-export { diffVDOMTrees, generateVDOMFixture, serializeVDOMToCanonicalHTML };
+export {
+  applyPatchesToVDOMTree,
+  diffVDOMTrees,
+  generateVDOMFixture,
+  HostDOMAdapter,
+  serializeVDOMToCanonicalHTML,
+};
 
-export function runVdomJS(fixture) {
+export async function runVdomJS(fixture) {
   const startCompute = performance.now();
-  const res = diffVDOMTrees(fixture.treeA, fixture.treeB);
+  const res = await diffVDOMTrees(fixture.treeA, fixture.treeB);
   const endCompute = performance.now();
 
   const startRender = performance.now();
-  const html = serializeVDOMToCanonicalHTML(fixture.treeB);
+  const hostAdapter = new HostDOMAdapter();
+  hostAdapter.createTree(fixture.treeA);
+  hostAdapter.applyPatches(res.patches, fixture.treeB);
+  const html = hostAdapter.serializeHTML();
   const endRender = performance.now();
 
   return {
     patches: res.patches,
     nodesVisited: res.nodesVisited,
     patchesGenerated: res.patchesGenerated,
+    patchDigestSha256: res.patchDigestSha256,
     canonicalHtml: html,
     phases: {
       computeMs: endCompute - startCompute,
@@ -38,7 +53,11 @@ export function runVdomWasm(fixture, wasmInstance) {
   memoryView.set(fixture.flatB, treeBPtr);
 
   const startCompute = performance.now();
-  const patchCount = wasmInstance.exports.diff_vdom_flat(treeAPtr, treeBPtr, outPtr);
+  const patchCount = wasmInstance.exports.diff_vdom_flat(
+    treeAPtr,
+    treeBPtr,
+    outPtr,
+  );
   const endCompute = performance.now();
 
   // Parse patch ops from Wasm memory outPtr
@@ -49,11 +68,21 @@ export function runVdomWasm(fixture, wasmInstance) {
     const nodeId = outView.getUint16(i * 8 + 2, true);
     const attrKey = outView.getInt16(i * 8 + 4, true);
     const attrVal = outView.getInt16(i * 8 + 6, true);
-    patches.push({ op, nodeId, targetId: attrKey, attrKey, attrVal, index: -1 });
+    patches.push({
+      op,
+      nodeId,
+      targetId: attrKey,
+      attrKey,
+      attrVal,
+      index: -1,
+    });
   }
 
   const startRender = performance.now();
-  const html = serializeVDOMToCanonicalHTML(fixture.treeB);
+  const hostAdapter = new HostDOMAdapter();
+  hostAdapter.createTree(fixture.treeA);
+  hostAdapter.applyPatches(patches, fixture.treeB);
+  const html = hostAdapter.serializeHTML();
   const endRender = performance.now();
 
   return {

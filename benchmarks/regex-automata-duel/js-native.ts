@@ -1,6 +1,7 @@
 // Native JS RegExp Search Engine
 
 import { RegexFixture, RegexMatchResult } from "./input.ts";
+import { computeRegexSHA256OracleHash } from "./js-automata.ts";
 
 export interface RegexScanResult {
   matches: RegexMatchResult[];
@@ -15,7 +16,7 @@ export interface RegexScanResult {
   };
 }
 
-export function scanNativeRegExp(fixture: RegexFixture): RegexScanResult {
+export async function scanNativeRegExp(fixture: RegexFixture): Promise<RegexScanResult> {
   const matches: RegexMatchResult[] = [];
   let capturesExtracted = 0;
 
@@ -56,7 +57,7 @@ export function scanNativeRegExp(fixture: RegexFixture): RegexScanResult {
   }
   const endScan = performance.now();
 
-  const oracleHash = computeRegexOracleHash(matches);
+  const oracleHash = await computeRegexSHA256OracleHash(matches);
 
   return {
     matches,
@@ -70,21 +71,4 @@ export function scanNativeRegExp(fixture: RegexFixture): RegexScanResult {
       scanMs: endScan - startScan,
     },
   };
-}
-
-export function computeRegexOracleHash(matches: RegexMatchResult[]): string {
-  // Compute deterministic string digest over ordered (patternId, startCP, endCP, matchText)
-  let str = "";
-  for (let i = 0; i < matches.length; i++) {
-    const m = matches[i];
-    str += `${m.patternId}:${m.startCP}:${m.endCP}:${m.matchText.length};`;
-  }
-
-  // Simple fast hash algorithm (FNV-1a 32-bit hex string)
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < str.length; i++) {
-    hash ^= str.charCodeAt(i);
-    hash = Math.imul(hash, 0x01000193);
-  }
-  return (hash >>> 0).toString(16).padStart(8, "0");
 }

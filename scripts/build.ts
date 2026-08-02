@@ -167,6 +167,22 @@ async function compileWat(watPath: string) {
   const jsArtifact = await Deno.readFile(new URL("benchmarks/vdom-diff-patch/workload.js", root));
   const lockfile = await Deno.readFile(new URL("deno.lock", root));
 
+  const jsGzip = gzipSync(jsArtifact, { level: 9 });
+  const jsBrotli = brotliCompressSync(jsArtifact, {
+    params: {
+      [constants.BROTLI_PARAM_QUALITY]: 11,
+      [constants.BROTLI_PARAM_MODE]: constants.BROTLI_MODE_TEXT,
+    },
+  });
+
+  const wasmGzip = gzipSync(wasm, { level: 9 });
+  const wasmBrotli = brotliCompressSync(wasm, {
+    params: {
+      [constants.BROTLI_PARAM_QUALITY]: 11,
+      [constants.BROTLI_PARAM_MODE]: constants.BROTLI_MODE_GENERIC,
+    },
+  });
+
   const watSha256 = await sha256Hex(new TextEncoder().encode(wat));
   const wasmSha256 = await sha256Hex(wasm);
   const jsSha256 = await sha256Hex(jsArtifact);
@@ -224,8 +240,8 @@ async function compileWat(watPath: string) {
           sourceBytes: jsArtifact.byteLength,
           glueBytes: 0,
           rawBytes: jsArtifact.byteLength,
-          gzipBytes: jsArtifact.byteLength,
-          brotliBytes: jsArtifact.byteLength,
+          gzipBytes: jsGzip.byteLength,
+          brotliBytes: jsBrotli.byteLength,
           requestCount: 1,
         },
       },
@@ -239,8 +255,8 @@ async function compileWat(watPath: string) {
           sourceBytes: wat.length,
           glueBytes: 0,
           rawBytes: wasm.byteLength,
-          gzipBytes: wasm.byteLength,
-          brotliBytes: wasm.byteLength,
+          gzipBytes: wasmGzip.byteLength,
+          brotliBytes: wasmBrotli.byteLength,
           requestCount: 1,
         },
       },
@@ -254,8 +270,8 @@ async function compileWat(watPath: string) {
           sourceBytes: jsArtifact.byteLength,
           glueBytes: 0,
           rawBytes: wasm.byteLength,
-          gzipBytes: wasm.byteLength,
-          brotliBytes: wasm.byteLength,
+          gzipBytes: wasmGzip.byteLength,
+          brotliBytes: wasmBrotli.byteLength,
           requestCount: 1,
         },
       },
@@ -296,6 +312,22 @@ async function compileWat(watPath: string) {
     new URL("benchmarks/regex-automata-duel/workload.js", root),
   );
   const lockfile = await Deno.readFile(new URL("deno.lock", root));
+
+  const jsGzip = gzipSync(jsArtifact, { level: 9 });
+  const jsBrotli = brotliCompressSync(jsArtifact, {
+    params: {
+      [constants.BROTLI_PARAM_QUALITY]: 11,
+      [constants.BROTLI_PARAM_MODE]: constants.BROTLI_MODE_TEXT,
+    },
+  });
+
+  const wasmGzip = gzipSync(wasm, { level: 9 });
+  const wasmBrotli = brotliCompressSync(wasm, {
+    params: {
+      [constants.BROTLI_PARAM_QUALITY]: 11,
+      [constants.BROTLI_PARAM_MODE]: constants.BROTLI_MODE_GENERIC,
+    },
+  });
 
   const watSha256 = await sha256Hex(new TextEncoder().encode(wat));
   const wasmSha256 = await sha256Hex(wasm);
@@ -355,8 +387,8 @@ async function compileWat(watPath: string) {
           sourceBytes: jsArtifact.byteLength,
           glueBytes: 0,
           rawBytes: jsArtifact.byteLength,
-          gzipBytes: jsArtifact.byteLength,
-          brotliBytes: jsArtifact.byteLength,
+          gzipBytes: jsGzip.byteLength,
+          brotliBytes: jsBrotli.byteLength,
           requestCount: 1,
         },
       },
@@ -368,8 +400,8 @@ async function compileWat(watPath: string) {
           sourceBytes: jsArtifact.byteLength,
           glueBytes: 0,
           rawBytes: jsArtifact.byteLength,
-          gzipBytes: jsArtifact.byteLength,
-          brotliBytes: jsArtifact.byteLength,
+          gzipBytes: jsGzip.byteLength,
+          brotliBytes: jsBrotli.byteLength,
           requestCount: 1,
         },
       },
@@ -383,8 +415,8 @@ async function compileWat(watPath: string) {
           sourceBytes: wat.length,
           glueBytes: 0,
           rawBytes: wasm.byteLength,
-          gzipBytes: wasm.byteLength,
-          brotliBytes: wasm.byteLength,
+          gzipBytes: wasmGzip.byteLength,
+          brotliBytes: wasmBrotli.byteLength,
           requestCount: 1,
         },
       },

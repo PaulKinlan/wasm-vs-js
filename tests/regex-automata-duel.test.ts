@@ -15,13 +15,13 @@ Deno.test("regex-automata-duel: corpus generation and engine duel correctness", 
   assertEquals(fixture1.patterns.length, 20);
   assertEquals(fixture1.textBuffer, fixture2.textBuffer);
 
-  const nativeResult = scanNativeRegExp(fixture1);
+  const nativeResult = await scanNativeRegExp(fixture1);
   assert(nativeResult.matchesFound > 0);
-  assert(nativeResult.oracleHash.length === 8);
+  assertEquals(nativeResult.oracleHash.length, 64); // Real 64-char SHA-256 hex string
   assert(nativeResult.phases.compileMs >= 0);
   assert(nativeResult.phases.scanMs >= 0);
 
-  const jsAutomataResult = scanJSAutomata(fixture1);
+  const jsAutomataResult = await scanJSAutomata(fixture1);
   assertEquals(jsAutomataResult.codePointsSearched, nativeResult.codePointsSearched);
   assertEquals(jsAutomataResult.patternsExecuted, nativeResult.patternsExecuted);
   assertEquals(jsAutomataResult.matchesFound, nativeResult.matchesFound);
@@ -38,7 +38,7 @@ Deno.test("regex-automata-duel: corpus generation and engine duel correctness", 
   const wasmModule = await WebAssembly.compile(wasmBytes);
   const wasmInstance = await WebAssembly.instantiate(wasmModule, {});
 
-  const wasmResult = scanWasmAutomata(fixture1, wasmInstance);
+  const wasmResult = await scanWasmAutomata(fixture1, wasmInstance);
   assertEquals(wasmResult.codePointsSearched, nativeResult.codePointsSearched);
   assertEquals(wasmResult.patternsExecuted, nativeResult.patternsExecuted);
   assert(wasmResult.matchesFound > 0);

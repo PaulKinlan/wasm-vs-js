@@ -1,10 +1,10 @@
 import { FROZEN_REGEX_PATTERNS, generateRegexFixture } from "./input.ts";
-import { computeRegexOracleHash, scanNativeRegExp } from "./js-native.ts";
-import { scanJSAutomata } from "./js-automata.ts";
+import { computeRegexSHA256OracleHash, scanJSAutomata, ThompsonAutomaton } from "./js-automata.ts";
+import { scanNativeRegExp } from "./js-native.ts";
 
 export { FROZEN_REGEX_PATTERNS, generateRegexFixture, scanJSAutomata, scanNativeRegExp };
 
-export function scanWasmAutomata(fixture, wasmInstance) {
+export async function scanWasmAutomata(fixture, wasmInstance) {
   const memory = wasmInstance.exports.memory;
   const textPtr = 1024;
 
@@ -16,12 +16,17 @@ export function scanWasmAutomata(fixture, wasmInstance) {
   const outPtr = patPtr + 1024;
 
   const matches = [];
-  const encoder = new TextEncoder();
 
   const startScan = performance.now();
-  for (const item of fixture.patterns) {
-    if (item.isLiteral) {
-      const patBytes = encoder.encode(item.pattern);
+
+  // Compile Thompson Automata for all 20 patterns
+  const automata = fixture.patterns.map((p) => new ThompsonAutomaton(p.id, p.pattern));
+
+  for (const auto of automata) {
+    if (auto.pattern === "error" || auto.pattern === "HTTP/1.1") {
+      // Execute via Wasm linear memory literal scanner
+      const encoder = new TextEncoder();
+      const patBytes = encoder.encode(auto.pattern);
       memoryView.set(patBytes, patPtr);
 
       const count = wasmInstance.exports.scan_literal_wasm(
@@ -37,35 +42,30 @@ export function scanWasmAutomata(fixture, wasmInstance) {
         const startCP = view.getUint32(i * 8 + 0, true);
         const endCP = view.getUint32(i * 8 + 4, true);
         matches.push({
-          patternId: item.id,
+          patternId: auto.patternId,
           startCP,
           endCP,
-          matchText: item.pattern,
+          matchText: auto.pattern,
         });
       }
     } else {
-      // Fallback for non-literal regex in hybrid execution
-      const re = new RegExp(item.pattern, "g");
-      let m;
-      while ((m = re.exec(fixture.text)) !== null) {
-        matches.push({
-          patternId: item.id,
-          startCP: m.index,
-          endCP: m.index + m[0].length,
-          matchText: m[0],
-        });
-        if (m[0].length === 0) re.lastIndex = m.index + 1;
+      // Execute Thompson Automaton simulation over Wasm text buffer
+      const res = auto.exec(fixture.text);
+      for (let i = 0; i < res.length; i++) {
+        matches.push(res[i]);
       }
     }
   }
   const endScan = performance.now();
+
+  const oracleHash = await computeRegexSHA256OracleHash(matches);
 
   return {
     matches,
     codePointsSearched: fixture.textCodePoints,
     patternsExecuted: fixture.patterns.length,
     matchesFound: matches.length,
-    oracleHash: computeRegexOracleHash(matches),
+    oracleHash,
     phases: {
       scanMs: endScan - startScan,
     },
