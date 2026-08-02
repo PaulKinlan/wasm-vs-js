@@ -230,7 +230,7 @@ Deno.test("hosted runner labels page hints as coarse and reserves exact hardware
   const source = await Deno.readTextFile("public/hosted-runner.js");
   assert(source.includes("browser-exposed concurrency, not a physical CPU inventory"));
   assert(source.includes("coarse Chromium hint, not exact installed or available RAM"));
-  assert(source.includes("Separate diagnostic launches collect those fields"));
+  assert(source.includes("separate diagnostic collector, which is not implemented yet"));
   assert(!source.includes("Exact RAM"));
   assert(!source.includes("Exact CPU"));
 });

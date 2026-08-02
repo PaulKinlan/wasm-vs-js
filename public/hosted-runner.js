@@ -307,7 +307,7 @@ function renderResult(data) {
     ],
     [
       "Heavy diagnostics",
-      "This page cannot observe CPU model, physical cores, host RAM, Chrome RSS/PSS, CDP metrics, heap profiles, or Wasm tier traces. Separate diagnostic launches collect those fields.",
+      "This page cannot observe exact CPU model, physical cores, host RAM, Chrome RSS/PSS, CDP metrics, heap profiles, or Wasm tier traces. The controlled collector records CPU, core, and RAM facts from the host. RSS/PSS, CDP metrics, profiles, and tier traces require a separate diagnostic collector, which is not implemented yet.",
     ],
   ]);
   const raw = document.createElement("details");

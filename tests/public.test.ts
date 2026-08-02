@@ -121,7 +121,7 @@ Deno.test("versioned public acceptance package is explicit and contains no inven
   const acceptance = JSON.parse(
     await Deno.readTextFile("public/evidence/v1/acceptance.json"),
   );
-  assert(evidencePage.includes("The code passed; performance remains unmeasured"));
+  assert(evidencePage.includes("The code passed; no accepted performance corpus exists yet"));
   assert(evidencePage.includes("Independent review therefore cannot verify these observations"));
   const schema = JSON.parse(await Deno.readTextFile("schemas/public-acceptance.schema.json"));
   const ajv = new (Ajv2020 as unknown as new (options: Record<string, unknown>) => {
