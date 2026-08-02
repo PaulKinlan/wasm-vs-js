@@ -1,0 +1,326 @@
+# Wasm vs JavaScript benchmark plan
+
+`PLAN.md` is the source of truth for this repository. Scope or acceptance changes update this file in the same commit.
+
+## Product question
+
+When does WebAssembly improve a web application after every user-paid cost is counted?
+
+The suite compares JavaScript, linear-memory WebAssembly, WasmGC, and mixed implementations from transfer through complete browser tasks. It exists to test claims such as “this workload is twice as fast in Wasm” against loading, compilation, initialization, warm-up, boundaries, memory, rendering, workers, and application outcomes.
+
+The result is a matrix, not one score.
+
+## Users
+
+- **Web developers** deciding whether a workload should remain JavaScript, move to Wasm, use WasmGC, or use a hybrid.
+- **Compiler/runtime engineers** inspecting where time, size, memory, and boundary costs arise.
+- **Tool builders and coding agents** choosing a target from evidence rather than a language default.
+- **Editors and researchers** tracing every published claim to raw runs and exact provenance.
+
+## Product surfaces
+
+1. **Benchmark definitions:** versioned workloads, variants, inputs, oracles, work counters, and build recipes.
+2. **Runner:** browser page/worker collectors using portable Performance Timeline evidence.
+3. **Orchestrator:** fresh-profile cold runs, warm runs, randomized paired blocks, browser/device control, and exact cleanup.
+4. **Reporting service:** bounded authorized ingestion, immutable Deno KV records, indexes, summaries, retention, export, and restore.
+5. **Results explorer:** AI Focus visual language with matrices, distributions, provenance, caveats, and raw-run inspection.
+6. **Article evidence:** a generated, version-pinned claim ledger for an eventual AI Focus article.
+
+## Non-goals
+
+- A universal JavaScript-versus-Wasm winner.
+- Ranking browsers by proprietary memory, GC, trace, or throttling metrics.
+- Ranking frameworks using unmatched implementations.
+- Server-runtime or standalone-engine results presented as browser results.
+- Anonymous executable benchmark submissions.
+- Hidden browser flags, reduced work, cached expected output, or benchmark-specific special casing.
+- Performance conclusions from authored JSON, mocks, screenshots, prose, or a few best runs.
+
+## Fairness contract
+
+### Track A — controlled
+
+A pair shares:
+
+- algorithm and asymptotic complexity;
+- byte-identical immutable inputs;
+- data representation where both targets support it;
+- output contract and floating-point policy;
+- operation, allocation, byte, and boundary counters;
+- call topology and concurrency;
+- production-equivalent build mode.
+
+Target-specific algorithm substitution is prohibited. Track A estimates runtime and representation effects, subject to declared toolchain limits.
+
+### Track B — independently optimized
+
+Each target may use production-plausible techniques: typed arrays, JS objects/Maps, SIMD, WasmGC layouts, crossing batches, workers, or other reviewed changes. Every change requires an optimization log. Results show absolute performance and improvement over that target's Track A baseline.
+
+Track A and Track B never share a headline aggregate.
+
+## Benchmark taxonomy
+
+| Tier           | Question                              | Initial examples                                            | Required evidence                                   |
+| -------------- | ------------------------------------- | ----------------------------------------------------------- | --------------------------------------------------- |
+| T0 correctness | Is the comparison valid?              | oracle corpus, FP edges, fixed-work audit                   | complete output/digest, invariants, work counters   |
+| T1 primitives  | What is a narrow runtime or ABI cost? | arithmetic, memory access, allocation, calls, strings, refs | calibrated duration, operations, bytes              |
+| T2 kernels     | How do compute/data patterns behave?  | matrix, hash, compression, parsing, image kernels, graph    | first, warm trajectory, steady, tails, total        |
+| T3 components  | What does a production library cost?  | codec, SQLite/query, parser/compiler, ML inference          | lifecycle phases, throughput, footprint             |
+| T4 boundaries  | What does composition cost?           | fine/batched calls, copy, string, refs, callbacks           | crossings, copied bytes, end-to-end duration        |
+| T5 parallel    | Does concurrency help?                | worker start, clone/transfer/shared memory, 1/2/4/N         | startup, speedup, efficiency, UI interference       |
+| T6 application | Does a user benefit?                  | load, edit, filter, sort, chart, render, sustained UI       | first useful output, interaction/render latency     |
+| T7 delivery    | What reaches the browser?             | cold/warm cache, buffered/streaming Wasm, network profiles  | request graph, transfer, compile/instantiate, sizes |
+
+The suite uses a preregistered sparse matrix. Every workload does not need every variant, but every missing cell has a reason.
+
+## Lifecycle and cache protocol
+
+Each run records separately:
+
+1. navigation and resource fetch;
+2. transfer and decoded size;
+3. JS parse/evaluation or Wasm compile;
+4. Wasm instantiate;
+5. application initialization;
+6. first useful output;
+7. warm-up iterations;
+8. steady execution;
+9. rendering or interaction completion;
+10. validation and result upload outside the timed region.
+
+Cold trials use a fresh browser process/profile, empty relevant storage, no Service Worker, and verified cache policy. Warm trials intentionally prime exact versioned resources. Cold and warm results are never averaged together.
+
+Both buffered `fetch → arrayBuffer → instantiate` and `instantiateStreaming(fetch(...))` are named Wasm variants when relevant.
+
+## Correctness and work gate
+
+No performance cell runs until:
+
+- inputs match the benchmark manifest hash;
+- both variants produce equivalent complete output or a canonical digest plus declared structural checks;
+- integer overflow, Unicode, exception, ordering, NaN, signed-zero, and f32/f64 policy is explicit;
+- work, allocation, bytes, and crossing counters are within the benchmark's declared tolerance;
+- result validation prevents dead-code elimination;
+- output validation passes on every target browser in scope.
+
+A wrong output rejects the trial and is published as a correctness failure, never as timing data.
+
+## Build and footprint provenance
+
+Every variant records:
+
+- source repository URL plus commit and content hash;
+- named generated artifact hashes;
+- lockfile hashes and reproducible command;
+- compiler, linker, Binaryen/Emscripten, bundler, minifier, and compressor versions;
+- full compile and link flags;
+- speed/size optimization, LTO, SIMD, threads, exceptions, memory growth, initial/max memory, i64 ABI, debug/name stripping, and Wasm feature set;
+- authored source, generated glue, raw payload, gzip, Brotli, request count, transferred bytes, and decoded bytes.
+
+`-O3`, `-Oz`, SIMD, scalar, threads, single-thread, linear Wasm, and WasmGC are distinct variants.
+
+## Sampling and statistics
+
+- Use `performance.now()` and calibrate clock quantum and harness overhead per browser/context.
+- Batch fixed work so intervals are at least 100× observed timer quantum and timer overhead is below 1%.
+- Preserve the first iteration and every fixed-work iteration.
+- Use balanced randomized paired blocks and alternate variant order.
+- Collect independent fresh-browser launches, not only nested iterations in one realm.
+- Initial floor: 20 paired launches per headline cell. After that floor, stop when the paired median-ratio 95% confidence-interval half-width is at most 3%, or continue to a preregistered fixed cap. Label the cell inconclusive only when the cap is reached without the precision target. The estimator, bootstrap, stopping cap, and sequential-stopping adjustment or coverage simulation freeze before the run.
+- Publish paired speed ratio and absolute difference with hierarchical/block bootstrap 95% CI, plus median, mean, p5/p25/p75/p95/p99, MAD/IQR, count, failures, and raw samples.
+- Never remove slow samples merely because they are outliers. Integrity exclusions remain machine-readable and visible, with sensitivity summaries where relevant.
+
+A composite, if later provided, is secondary, equal-weight, geometric, versioned, and cannot hide subtest regressions.
+
+## Measurement model
+
+### Portable core
+
+- User Timing marks/measures;
+- Navigation and Resource Timing;
+- runtime-detected `PerformanceObserver` entries and dropped-entry counts;
+- standardized interaction timing only where supported;
+- logical Wasm memory size and application-owned counters.
+
+### Browser-specific diagnostics
+
+- Chromium: CDP Performance, Memory, Tracing, HeapProfiler, Network, and Emulation.
+- Firefox: WebDriver BiDi plus Gecko Profiler artifacts.
+- Safari: WebDriver Classic plus in-page collectors and separately labelled Web Inspector artifacts.
+
+Memory, GC, trace categories, process bytes, engine heap, profiler samples, energy estimates, and browser throttling remain within-browser or diagnostic-only. They do not enter a cross-browser score.
+
+### Availability invariant
+
+A numeric zero is valid only when the metric is supported and zero is its measured semantic value. API absence, redaction, isolation failure, dropped buffers, quota, tool failure, or skipped collection is `unavailable` or `blocked` with a reason.
+
+## Environment matrix
+
+Every run records exact browser product/version/build/engine, OS/kernel/architecture, CPU, core count, RAM, device model, power/thermal state where available, viewport, DPR, refresh rate, headless/headful, launch arguments, automation protocol/version, secure/isolation state, profile/cache identity, Service Worker state, network profile, throttling layer, and collector/profiler state.
+
+Required strata grow by milestone:
+
+- one pinned x86-64 desktop Chrome for the first slice;
+- Chrome, Firefox, and Safari on available desktop hosts;
+- ARM64 desktop;
+- real high/mid/low Android devices and real iOS Safari where available.
+
+Desktop emulation is not mobile hardware evidence. iOS browser labels do not imply independent engines.
+
+## Raw evidence and schemas
+
+`schemas/benchmark.schema.json` defines workload identity and fairness requirements. `schemas/run.schema.json` defines immutable run evidence.
+
+Raw evidence includes:
+
+- run, benchmark, workload, variant, track, build, and environment identities;
+- capability probes;
+- complete samples and phase marks;
+- correctness/work verdicts;
+- metric availability, scope, comparability, and provenance;
+- exclusions/failures;
+- immutable references to larger traces/profiles;
+- canonical payload hash.
+
+Canonical hashes use SHA-256 over UTF-8 JSON with recursively sorted object keys, preserved array order, finite JSON numbers, and no insignificant whitespace. `payloadSha256` is omitted while hashing the run envelope and then inserted. Schema version 1 cannot change this algorithm.
+
+Published IDs, schema versions, routes, slugs, and result links are compatibility contracts.
+
+## Reporting architecture
+
+The proposed service is one dynamic Deno Deploy application with one attached managed Deno KV database.
+
+### API
+
+- `POST /v1/runs` — authenticated, idempotent, closed-schema result ingestion; never code execution.
+- `GET /v1/runs/:id` — immutable run and evidence metadata.
+- `GET /v1/runs` — bounded cursor listing.
+- `GET /v1/summaries` — versioned derived summaries.
+- `GET /healthz` — bounded service/schema readiness.
+- authenticated deletion/export/operator routes defined before deployment.
+
+### KV layout
+
+- `['run', runId]` immutable canonical envelope;
+- `['run-part', runId, partNo]` bounded sample chunks when required;
+- `['dedupe', reporterId, idempotencyKey]` retry identity;
+- explicit by-time, by-suite, by-commit indexes;
+- small day/workload/variant/version summary buckets;
+- deletion tombstones and reconciliation watermarks.
+
+The run, dedupe marker, indexes, and summary mutations commit atomically. Values remain below 64 KiB with measured headroom. Request bodies are stream-capped before parsing. Writes require signed authorization and durable rate limits; CORS is not authorization.
+
+### Retention and recovery
+
+Initial proposal: detailed raw runs remain in the service for 90 days, but every run used by a published summary or claim must also exist in a checksummed immutable public export for as long as that summary or claim is published. A summary expires or is withdrawn if its complete raw denominator is no longer recoverable. Compact public metadata may remain for one year where useful; aggregate buckets follow a published policy. Final policy is a pre-provisioning decision.
+
+Deno's current managed-KV backup documentation is not sufficient to claim proven restore. Before production data, implement an independent checksummed logical export and perform isolated restore drills. Hosted KV data is documented as stored in and transiting through the US. Preview revisions share one preview database and must never receive production data.
+
+Provisioning, credentials, private data, destructive actions, and material cost require explicit approval.
+
+## Results explorer
+
+The interface uses AI Focus's warm editorial palette and typography, with a wider dashboard canvas. It must include:
+
+- a plain-language claim/provenance strip;
+- URL-backed browser/workload/variant/cache/build filters;
+- workload × environment evidence matrix;
+- absolute units, ratios, confidence intervals, distributions, sample counts, and footprint;
+- chart/table pairs with non-colour status encoding;
+- expandable raw-run, build, correctness, capability, and exclusion inspectors;
+- explicit unavailable/blocked states;
+- responsive, keyboard, screen-reader, dark-mode, reduced-motion, and forced-colour support.
+
+No default view may reduce the project to “Wasm won.”
+
+## Anti-gaming rules
+
+Forbidden:
+
+- UA or browser-specific benchmark paths;
+- benchmark-name/input special cases;
+- reduced work or cached expected outputs;
+- benchmark-only compiler patches;
+- hidden flags unavailable to users;
+- timing manipulation;
+- unpublished failed runs or selected minima;
+- changing the workload after seeing headline results without versioning it.
+
+Workloads, scoring, input hashes, and exclusion rules freeze before measurement. Public and rotating holdout inputs protect against tuning; rotated holdouts are later published with provenance.
+
+## Milestones
+
+### M0 — public plan and contracts
+
+**Deliverable:** public README, canonical plan, task graph, repository rules, benchmark/run schemas, and explicit acceptance gates.
+
+**Acceptance:** files are committed and visible on GitHub; schemas parse; repository validation passes; independent review finds no methodology blocker.
+
+### M1 — one complete vertical slice
+
+**Deliverable:** one Track A workload with equivalent JS and linear-Wasm outputs, reproducible builds, cold/warm runner, portable timing, raw local run records, summary generation, and inspectable static results.
+
+**Journey:** build → correctness/work gate → fresh cold paired runs → warm paired runs → inspect lifecycle, samples, sizes, provenance, and unavailable metrics.
+
+**Acceptance:** at least 20 paired fresh launches or an explicit pilot/inconclusive label; no database or deployment required.
+
+### M2 — benchmark family and boundaries
+
+Add T1/T2 kernels plus T4 crossing/copy/string/batching workloads, Track B variants, workers where justified, and reproducible size/speed builds.
+
+### M3 — durable reporting service
+
+Implement bounded authenticated ingestion, immutable KV storage, indexes, summaries, export, deletion, abuse controls, and isolated restore. Provision only after review and approval.
+
+### M4 — public explorer
+
+Deploy the AI Focus-styled accessible results explorer, raw-run inspection, filters, distributions, provenance, and stable routes. Validate desktop/mobile with browser evidence and exact cleanup.
+
+### M5 — cross-browser/device matrix
+
+Add Firefox/Safari orchestration, ARM64 desktop, and real mobile evidence. Browser-specific diagnostics stay separate.
+
+### M6 — components and applications
+
+Add T3 libraries and T6 complete journeys with first-use, interaction, rendering, and total-task outcomes.
+
+### M7 — corpus scale and article evidence
+
+Grow toward hundreds of versioned workloads through reviewed families, run the preregistered matrix, publish all valid results/failures, and generate a claim ledger for an AI Focus draft. Article conclusions follow the retained evidence.
+
+## Definition of done
+
+1. Every published timing cell has passing correctness and work equivalence.
+2. Track A and Track B are never mixed.
+3. Cold, warm, lifecycle, runtime, boundary, rendering, size, and application outcomes remain distinct.
+4. Raw runs and exact provenance reproduce every summary.
+5. Headline effects include uncertainty and independent-launch counts; inconclusive remains literal.
+6. Unsupported metrics are typed unavailable/blocked states.
+7. Cross-browser claims use only comparable evidence; diagnostics retain browser scope.
+8. Public routes expose tests, outputs, samples, failures, exclusions, builds, environments, and evidence.
+9. Ingestion cannot execute submissions and is authenticated, bounded, idempotent, and rate-limited.
+10. Export/restore, deletion, retention, preview isolation, and cost are tested before production data.
+11. Desktop/mobile accessibility and browser validation retain exact evidence and owned-process cleanup.
+12. The AI Focus article claim ledger points to exact suite version, runs, cells, and residual uncertainty.
+
+## Current status
+
+M0 is active. Initial research briefs are complete across methodology, browser measurement, Deno reporting, and AI Focus integration; their decisions still require implementation evidence and milestone review. No benchmark code, run, result, Deno resource, database, deployment, or performance claim exists yet.
+
+The next commit after M0 starts M1 with one small complete workload rather than many unconnected kernels.
+
+## Primary references
+
+- WebAssembly Web API: https://webassembly.github.io/spec/web-api/
+- Performance Timeline: https://www.w3.org/TR/performance-timeline/
+- User Timing: https://www.w3.org/TR/user-timing/
+- Navigation Timing: https://www.w3.org/TR/navigation-timing-2/
+- Resource Timing: https://www.w3.org/TR/resource-timing/
+- High Resolution Time: https://www.w3.org/TR/hr-time-2/
+- WebDriver BiDi: https://www.w3.org/TR/webdriver-bidi/
+- JetStream 3: https://browserbench.org/JetStream/in-depth.html
+- Speedometer 3.1: https://browserbench.org/Speedometer3.1/about.html
+- Emscripten build guidance: https://emscripten.org/docs/compiling/Building-Projects.html
+- Deno Deploy CLI: https://docs.deno.com/runtime/reference/cli/deploy/
+- Deno KV transactions: https://docs.deno.com/deploy/kv/transactions/
+- Deno KV operations: https://docs.deno.com/deploy/kv/operations/

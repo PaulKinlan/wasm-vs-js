@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/benchmark.schema.json",
+  "title": "Wasm vs JavaScript benchmark definition",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "version",
+    "tier",
+    "title",
+    "tracks",
+    "variants",
+    "inputs",
+    "oracle",
+    "work"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 96 },
+    "version": { "type": "integer", "minimum": 1 },
+    "tier": { "enum": ["T0", "T1", "T2", "T3", "T4", "T5", "T6", "T7"] },
+    "title": { "type": "string", "minLength": 1, "maxLength": 160 },
+    "description": { "type": "string", "maxLength": 2000 },
+    "tracks": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "enum": ["controlled", "optimized"] }
+    },
+    "variants": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "target", "track", "buildManifest"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+          "target": { "enum": ["javascript", "wasm-linear", "wasmgc", "hybrid"] },
+          "track": { "enum": ["controlled", "optimized"] },
+          "buildManifest": { "type": "string", "minLength": 1 },
+          "optimizationLog": { "type": "string", "minLength": 1 }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "track": { "const": "optimized" } }, "required": ["track"] },
+            "then": { "required": ["optimizationLog"] }
+          }
+        ]
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["manifestSha256", "immutable", "generation"],
+      "properties": {
+        "manifestSha256": { "$ref": "#/$defs/sha256" },
+        "immutable": { "const": true },
+        "generation": { "type": "string", "minLength": 1, "maxLength": 500 }
+      }
+    },
+    "oracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "policy", "deadCodeDefense"],
+      "properties": {
+        "kind": { "enum": ["complete-output", "canonical-digest-and-invariants"] },
+        "policy": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "floatingPointPolicy": { "type": "string", "maxLength": 1000 },
+        "deadCodeDefense": { "type": "string", "minLength": 1, "maxLength": 1000 }
+      }
+    },
+    "work": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fixed", "complexity", "counters", "tolerance"],
+      "properties": {
+        "fixed": { "const": true },
+        "complexity": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "counters": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z][a-z0-9_-]*$" }
+        },
+        "tolerance": { "type": "string", "minLength": 1, "maxLength": 500 }
+      }
+    },
+    "missingCells": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["cell", "reason"],
+        "properties": {
+          "cell": { "type": "string", "minLength": 1 },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

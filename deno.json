@@ -1,0 +1,15 @@
+{
+  "imports": {
+    "ajv2020": "npm:ajv@8.17.1/dist/2020.js"
+  },
+  "tasks": {
+    "check": "deno fmt --check && deno lint && deno run --allow-read=. scripts/check-planning.mjs && deno run --allow-read=. scripts/check-contracts.mjs"
+  },
+  "fmt": {
+    "lineWidth": 100,
+    "proseWrap": "preserve"
+  },
+  "lint": {
+    "include": ["scripts/"]
+  }
+}
