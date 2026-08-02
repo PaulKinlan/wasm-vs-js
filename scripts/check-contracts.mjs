@@ -1,11 +1,14 @@
 import { validateBenchmark, validateRun } from "../lib/contracts.ts";
 import { validateCorpusSemantics } from "../lib/corpus-validation.ts";
 const foundationSchemas = [
+  "attempt-record.schema.json",
   "browser-permit.schema.json",
+  "collection-stop.schema.json",
   "corpus.schema.json",
   "launch-evidence.schema.json",
   "paired-block.schema.json",
   "network-attestation.schema.json",
+  "source-manifest.schema.json",
 ];
 for (const name of foundationSchemas) {
   const schema = JSON.parse(await Deno.readTextFile(`schemas/${name}`));

@@ -33,12 +33,34 @@ function numeric(value: number | bigint | null | undefined, label: string): numb
   if (!Number.isSafeInteger(n) || n < 0) throw new Error(`${label} unavailable`);
   return n;
 }
+async function currentUid(): Promise<number> {
+  const uid = (await Deno.lstat(new URL(".", import.meta.url))).uid;
+  if (uid === null || !Number.isSafeInteger(uid) || uid < 0) {
+    throw new Error("current uid unavailable");
+  }
+  return uid;
+}
 async function directoryIdentity(path: string): Promise<{ dev: number; ino: number }> {
   const info = await Deno.lstat(path);
   if (info.isSymlink || !info.isDirectory) throw new Error(`unsafe directory: ${path}`);
   if (await Deno.realPath(path) !== path) {
     throw new Error(`directory containment mismatch: ${path}`);
   }
+  return { dev: numeric(info.dev, "directory dev"), ino: numeric(info.ino, "directory inode") };
+}
+async function privateDirectoryIdentity(path: string): Promise<{ dev: number; ino: number }> {
+  const identity = await directoryIdentity(path), info = await Deno.lstat(path);
+  if (
+    numeric(info.uid, "directory uid") !== await currentUid() ||
+    ((info.mode ?? 0) & 0o777) !== 0o700
+  ) {
+    throw new Error(`directory ownership/mode mismatch: ${path}`);
+  }
+  return identity;
+}
+async function basicDirectoryIdentity(path: string): Promise<{ dev: number; ino: number }> {
+  const info = await Deno.lstat(path);
+  if (info.isSymlink || !info.isDirectory) throw new Error(`unsafe directory: ${path}`);
   return { dev: numeric(info.dev, "directory dev"), ino: numeric(info.ino, "directory inode") };
 }
 export async function executableSnapshot(path: string): Promise<FileIdentity> {
@@ -61,16 +83,24 @@ export async function prepareProfile(profileRoot: string): Promise<ProfileIdenti
   if (!new RegExp(`^${OWNERSHIP_ROOT}/[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$`).test(profileRoot)) {
     throw new Error("profile root outside ownership root");
   }
-  await directoryIdentity("/tmp");
-  await Deno.mkdir(OWNERSHIP_ROOT, { recursive: false, mode: 0o700 }).catch((e) => {
+  const tmp = await Deno.lstat("/tmp");
+  if (tmp.isSymlink || !tmp.isDirectory || await Deno.realPath("/tmp") !== "/tmp") {
+    throw new Error("unsafe temporary root");
+  }
+  await Deno.mkdir(OWNERSHIP_ROOT, { recursive: false, mode: 0o700 }).catch(async (e) => {
     if (!(e instanceof Deno.errors.AlreadyExists)) throw e;
+    const info = await Deno.lstat(OWNERSHIP_ROOT);
+    if (numeric(info.uid, "ownership uid") !== await currentUid()) {
+      throw new Error("foreign ownership root");
+    }
+    await Deno.chmod(OWNERSHIP_ROOT, 0o700);
   });
-  await directoryIdentity(OWNERSHIP_ROOT);
+  await privateDirectoryIdentity(OWNERSHIP_ROOT);
   const ownershipRoot = profileRoot.slice(0, profileRoot.lastIndexOf("/"));
   await Deno.mkdir(ownershipRoot, { recursive: false, mode: 0o700 }).catch((e) => {
     if (!(e instanceof Deno.errors.AlreadyExists)) throw e;
   });
-  const ownership = await directoryIdentity(ownershipRoot);
+  const ownership = await privateDirectoryIdentity(ownershipRoot);
   try {
     await Deno.lstat(profileRoot);
     throw new Error("profile root already exists");
@@ -78,7 +108,7 @@ export async function prepareProfile(profileRoot: string): Promise<ProfileIdenti
     if (!(e instanceof Deno.errors.NotFound)) throw e;
   }
   await Deno.mkdir(profileRoot, { mode: 0o700 });
-  const profile = await directoryIdentity(profileRoot);
+  const profile = await privateDirectoryIdentity(profileRoot);
   return {
     ownershipRoot,
     ownershipDev: ownership.dev,
@@ -89,8 +119,8 @@ export async function prepareProfile(profileRoot: string): Promise<ProfileIdenti
   };
 }
 export async function assertProfileIdentity(value: ProfileIdentity): Promise<void> {
-  const parent = await directoryIdentity(value.ownershipRoot),
-    profile = await directoryIdentity(value.profileRoot);
+  const parent = await privateDirectoryIdentity(value.ownershipRoot),
+    profile = await privateDirectoryIdentity(value.profileRoot);
   if (
     parent.dev !== value.ownershipDev || parent.ino !== value.ownershipIno ||
     profile.dev !== value.profileDev || profile.ino !== value.profileIno
@@ -98,13 +128,65 @@ export async function assertProfileIdentity(value: ProfileIdentity): Promise<voi
     throw new Error("profile directory identity changed");
   }
 }
-async function removeTreeNoFollow(path: string): Promise<void> {
+export let profileRemovalRaceHook: ((path: string) => void | Promise<void>) | undefined;
+export function setProfileRemovalRaceHookForTest(hook?: (path: string) => void | Promise<void>) {
+  profileRemovalRaceHook = hook;
+}
+async function removeTreeNoFollow(
+  path: string,
+  parent?: { path: string; dev: number; ino: number },
+  expected?: { dev: number; ino: number; isDirectory: boolean; isSymlink: boolean },
+): Promise<void> {
+  if (parent) {
+    const parentNow = await basicDirectoryIdentity(parent.path);
+    if (parentNow.dev !== parent.dev || parentNow.ino !== parent.ino) {
+      throw new Error("profile parent replaced");
+    }
+  }
   const info = await Deno.lstat(path);
+  if (
+    expected && (
+      numeric(info.dev, "entry dev") !== expected.dev ||
+      numeric(info.ino, "entry inode") !== expected.ino ||
+      info.isDirectory !== expected.isDirectory || info.isSymlink !== expected.isSymlink
+    )
+  ) throw new Error("profile entry replaced before descent");
   if (info.isSymlink || !info.isDirectory) {
+    await profileRemovalRaceHook?.(path);
+    const again = await Deno.lstat(path);
+    if (
+      again.dev !== info.dev || again.ino !== info.ino || again.isDirectory !== info.isDirectory ||
+      again.isSymlink !== info.isSymlink
+    ) {
+      throw new Error("profile entry replaced before unlink");
+    }
     await Deno.remove(path);
     return;
   }
-  for await (const entry of Deno.readDir(path)) await removeTreeNoFollow(`${path}/${entry.name}`);
+  const identity = {
+    path,
+    dev: numeric(info.dev, "remove dev"),
+    ino: numeric(info.ino, "remove inode"),
+  };
+  const entries: Array<
+    { name: string; dev: number; ino: number; isDirectory: boolean; isSymlink: boolean }
+  > = [];
+  for await (const entry of Deno.readDir(path)) {
+    const child = await Deno.lstat(`${path}/${entry.name}`);
+    entries.push({
+      name: entry.name,
+      dev: numeric(child.dev, "entry dev"),
+      ino: numeric(child.ino, "entry inode"),
+      isDirectory: child.isDirectory,
+      isSymlink: child.isSymlink,
+    });
+  }
+  await profileRemovalRaceHook?.(path);
+  const beforeDescent = await basicDirectoryIdentity(path);
+  if (beforeDescent.dev !== identity.dev || beforeDescent.ino !== identity.ino) {
+    throw new Error("profile directory replaced before descent");
+  }
+  for (const entry of entries) await removeTreeNoFollow(`${path}/${entry.name}`, identity, entry);
   const again = await Deno.lstat(path);
   if (
     again.isSymlink || numeric(again.dev, "remove dev") !== numeric(info.dev, "remove dev") ||
@@ -116,18 +198,22 @@ async function removeTreeNoFollow(path: string): Promise<void> {
 }
 export async function removeOwnedProfile(value: ProfileIdentity): Promise<void> {
   await assertProfileIdentity(value);
-  const parent = await directoryIdentity(value.ownershipRoot);
+  const parent = await privateDirectoryIdentity(value.ownershipRoot);
   const tombstone = `${value.ownershipRoot}/.removed-${crypto.randomUUID()}`;
   await Deno.rename(value.profileRoot, tombstone);
-  const parentAfter = await directoryIdentity(value.ownershipRoot),
-    tomb = await directoryIdentity(tombstone);
+  const parentAfter = await privateDirectoryIdentity(value.ownershipRoot),
+    tomb = await privateDirectoryIdentity(tombstone);
   if (
     parent.dev !== parentAfter.dev || parent.ino !== parentAfter.ino ||
     tomb.dev !== value.profileDev || tomb.ino !== value.profileIno
   ) {
     throw new Error("profile tombstone identity changed");
   }
-  await removeTreeNoFollow(tombstone);
+  await removeTreeNoFollow(tombstone, {
+    path: value.ownershipRoot,
+    dev: parent.dev,
+    ino: parent.ino,
+  });
   await Deno.remove(value.ownershipRoot);
   for (const removed of [value.profileRoot, value.ownershipRoot]) {
     try {

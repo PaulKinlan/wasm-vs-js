@@ -220,14 +220,13 @@ export function validateCorpusSemantics(
   ) throw new Error("cap terminal contradiction");
   const stop = corpus.stop as Record<string, unknown> | null;
   if (corpus.status === "containment-blocked") {
-    const hasBlockedContainment = blocks.some((block) => block.category === "blocked-containment");
     const validStop = stop !== null &&
       Number.isSafeInteger(stop.scheduleIndex) && Number(stop.scheduleIndex) >= 0 &&
       Number(stop.scheduleIndex) < 120 &&
       stop.blockId === schedule[Number(stop.scheduleIndex)]?.blockId &&
       stop.category === "blocked-containment" && typeof stop.reason === "string" &&
       stop.reason.length > 0 && /^[a-f0-9]{64}$/.test(String(stop.artifactSha256));
-    if (!hasBlockedContainment && !validStop) throw new Error("containment terminal contradiction");
+    if (!validStop) throw new Error("containment terminal contradiction");
   } else if (stop !== null) {
     throw new Error("non-containment corpus cannot reference stop evidence");
   }

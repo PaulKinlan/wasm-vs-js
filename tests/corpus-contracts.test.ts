@@ -1,5 +1,45 @@
 import { assertEquals, assertRejects } from "./assert.ts";
-import { assertCorpusSchema, assertLaunchEvidenceSchema } from "../lib/corpus-contracts.ts";
+import {
+  assertAttemptRecordSchema,
+  assertCollectionStopSchema,
+  assertCorpusSchema,
+  assertLaunchEvidenceSchema,
+  assertSourceManifestSchema,
+} from "../lib/corpus-contracts.ts";
+
+Deno.test("source, attempt, and stop artifacts are closed and pair hashes are mandatory", async () => {
+  assertSourceManifestSchema({
+    sourceCommit: "a".repeat(40),
+    files: { "server.ts": "b".repeat(64) },
+    sha256: "c".repeat(64),
+  });
+  assertCollectionStopSchema({
+    scheduleIndex: 0,
+    blockId: "cold-01",
+    attempted: true,
+    category: "blocked-containment",
+    reason: "cleanup failed",
+  });
+  const committed = {
+    blockId: "cold-01",
+    scheduleIndex: 0,
+    stratum: "cold",
+    order: ["js-controlled", "wasm-linear-controlled"],
+    status: "committed",
+    category: "committed",
+    reason: null,
+    jsMedianMs: 10,
+    wasmMedianMs: 8,
+    pairSha256: "d".repeat(64),
+  };
+  assertAttemptRecordSchema(committed);
+  const missingPair = structuredClone(committed) as Record<string, unknown>;
+  delete missingPair.pairSha256;
+  await assertRejects(
+    () => Promise.resolve().then(() => assertAttemptRecordSchema(missingPair)),
+    "schema invalid",
+  );
+});
 
 const evidence = (value: unknown) => ({
   status: "supported-value",

@@ -5,13 +5,14 @@ import {
   prepareProfile,
   readCgroupMembers,
   removeOwnedProfile,
+  setProfileRemovalRaceHookForTest,
 } from "../lib/process-ledger.ts";
 import {
   closeOwnedChrome,
   launchOwnedChrome,
   waitDevToolsActivePort,
 } from "../lib/owned-chrome.ts";
-import { sha256Hex } from "../lib/canonical.ts";
+import { canonicalize, sha256Hex } from "../lib/canonical.ts";
 
 function ids(info: Deno.FileInfo) {
   return { dev: Number(info.dev), ino: Number(info.ino) };
@@ -62,6 +63,30 @@ Deno.test("private profile cleanup never follows symlink entries", async () => {
   }
 });
 
+Deno.test("profile deletion rejects an intermediate replacement race without following it", async () => {
+  const root = `/tmp/wasm-vs-js-owned-profiles/race-${crypto.randomUUID()}/launch`,
+    outside = await Deno.makeTempDir(),
+    profile = await prepareProfile(root);
+  await Deno.mkdir(`${root}/nested`, { mode: 0o700 });
+  await Deno.writeTextFile(`${root}/nested/owned`, "owned");
+  await Deno.writeTextFile(`${outside}/keep`, "foreign");
+  let raced = false;
+  setProfileRemovalRaceHookForTest(async (path) => {
+    if (raced || !path.includes("/.removed-")) return;
+    raced = true;
+    await Deno.rename(`${path}/nested`, `${profile.ownershipRoot}/held`);
+    await Deno.symlink(outside, `${path}/nested`);
+  });
+  try {
+    await assertRejects(() => removeOwnedProfile(profile), "replaced before descent");
+    assertEquals(await Deno.readTextFile(`${outside}/keep`), "foreign");
+  } finally {
+    setProfileRemovalRaceHookForTest();
+    await Deno.remove(profile.ownershipRoot, { recursive: true }).catch(() => {});
+    await Deno.remove(outside, { recursive: true });
+  }
+});
+
 Deno.test("profile containment rejects symlink parent and inode replacement", async () => {
   const token = `link-${crypto.randomUUID()}`, target = await Deno.makeTempDir();
   await Deno.symlink(target, `/tmp/wasm-vs-js-owned-profiles/${token}`);
@@ -79,8 +104,8 @@ Deno.test("profile containment rejects symlink parent and inode replacement", as
   try {
     await Deno.remove(root, { recursive: true });
     await Deno.mkdir(root);
-    await assertRejects(() => assertProfileIdentity(profile), "identity changed");
-    await assertRejects(() => removeOwnedProfile(profile), "identity changed");
+    await assertRejects(() => assertProfileIdentity(profile), "mismatch");
+    await assertRejects(() => removeOwnedProfile(profile), "mismatch");
   } finally {
     await Deno.remove(profile.ownershipRoot, { recursive: true }).catch(() => {});
   }
@@ -110,17 +135,36 @@ Deno.test("production systemd launch/teardown uses only an injected exact-unit a
   const root = await Deno.makeTempDir(),
     proc = `${root}/proc`,
     cgroups = `${root}/cgroup`,
-    binary = `${root}/chrome`,
+    stageRoot = `${root}/stage`,
+    binary = `${stageRoot}/chrome`,
     unit = "wasm-vs-js-0123456789abcdef.service",
     mainPid = 700;
   const profileRoot = `/tmp/wasm-vs-js-owned-profiles/fake-${crypto.randomUUID()}/launch`;
+  await Deno.mkdir(stageRoot);
   await Deno.writeTextFile(binary, "fake chrome");
   const expectedSha256 = await sha256Hex(await Deno.readFile(binary));
+  await Deno.chmod(binary, 0o500);
+  await Deno.chmod(stageRoot, 0o500);
+  const stageIdentity = ids(await Deno.lstat(stageRoot));
+  const stagedChrome = {
+    root: stageRoot,
+    binary,
+    binarySha256: expectedSha256,
+    files: { chrome: expectedSha256 },
+    manifestSha256: await sha256Hex(canonicalize({ chrome: expectedSha256 })),
+    rootDev: stageIdentity.dev,
+    rootIno: stageIdentity.ino,
+  };
   const calls: Array<{ command: string; args: string[] }> = [];
-  let active = true;
+  const lifecycle: string[] = [];
+  let active = true, started = false;
   const fakeCommand = async (command: string, args: string[]) => {
     calls.push({ command, args });
+    lifecycle.push(
+      command.endsWith("systemd-run") ? "systemd-run" : args.includes("show") ? "show" : "other",
+    );
     if (command.endsWith("systemd-run")) {
+      started = true;
       const launchArgs = args.slice(args.indexOf("--") + 1);
       await Deno.mkdir(`${proc}/${mainPid}`, { recursive: true });
       await Deno.writeFile(
@@ -136,9 +180,11 @@ Deno.test("production systemd launch/teardown uses only an injected exact-unit a
       return {
         success: true,
         code: 0,
-        stdout: `MainPID=${mainPid}\nControlGroup=/test.slice/${unit}\nActiveState=${
-          active ? "active" : "inactive"
-        }\nSubState=${active ? "running" : "dead"}\n`,
+        stdout: started
+          ? `MainPID=${mainPid}\nControlGroup=/test.slice/${unit}\nActiveState=${
+            active ? "active" : "inactive"
+          }\nSubState=${active ? "running" : "dead"}\nLoadState=loaded\n`
+          : "MainPID=0\nControlGroup=\nActiveState=inactive\nSubState=dead\nLoadState=not-found\n",
         stderr: "",
       };
     }
@@ -173,11 +219,11 @@ Deno.test("production systemd launch/teardown uses only an injected exact-unit a
   };
   try {
     const owned = await launchOwnedChrome({
-      binary,
-      expectedSha256,
+      stagedChrome,
       profileRoot,
       unitName: unit,
       command: fakeCommand,
+      onSpawn: () => lifecycle.push("launch-attempted"),
       procRoot: proc,
       cgroupRoot: cgroups,
       endpoint: () => Promise.resolve({ port: 9222, browserPath: "/devtools/browser/fake" }),
@@ -186,6 +232,7 @@ Deno.test("production systemd launch/teardown uses only an injected exact-unit a
       connect: () => browser,
     });
     assertEquals(owned.arguments, expectedArguments);
+    assertEquals(lifecycle.slice(0, 4), ["show", "systemd-run", "launch-attempted", "show"]);
     await closeOwnedChrome(owned);
     assertEquals(calls.some((call) => call.command === "/usr/bin/systemd-run"), true);
     assertEquals(
@@ -196,6 +243,32 @@ Deno.test("production systemd launch/teardown uses only an injected exact-unit a
       true,
     );
     assertEquals(calls.some((call) => call.args.includes("--kill-whom=all")), true);
+
+    const deniedCalls: string[][] = [];
+    const deniedProfile = `/tmp/wasm-vs-js-owned-profiles/denied-${crypto.randomUUID()}/launch`;
+    await assertRejects(
+      () =>
+        launchOwnedChrome({
+          stagedChrome,
+          profileRoot: deniedProfile,
+          command: async (command, args) => {
+            await Promise.resolve();
+            deniedCalls.push([command, ...args]);
+            if (args.includes("show")) {
+              return {
+                success: true,
+                code: 0,
+                stderr: "",
+                stdout:
+                  "MainPID=0\nControlGroup=\nActiveState=inactive\nSubState=dead\nLoadState=not-found\n",
+              };
+            }
+            return { success: false, code: 1, stdout: "", stderr: "launch denied" };
+          },
+        }),
+      "launch failed",
+    );
+    assertEquals(deniedCalls.some((call) => call.includes("kill") || call.includes("stop")), false);
   } finally {
     await Deno.remove(root, { recursive: true }).catch(() => {});
     await Deno.remove(profileRoot.slice(0, profileRoot.lastIndexOf("/")), { recursive: true })

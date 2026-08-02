@@ -288,7 +288,5 @@ globalThis.onmessage = async (event) => {
       type: "error",
       message: error instanceof Error ? error.message : "Unknown worker error.",
     });
-  } finally {
-    globalThis.close();
   }
 };

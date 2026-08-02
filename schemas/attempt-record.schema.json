@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "blockId",
+    "scheduleIndex",
+    "stratum",
+    "order",
+    "status",
+    "category",
+    "reason",
+    "jsMedianMs",
+    "wasmMedianMs"
+  ],
+  "properties": {
+    "blockId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$" },
+    "scheduleIndex": { "type": "integer", "minimum": 0, "maximum": 119 },
+    "stratum": { "enum": ["cold", "warm"] },
+    "order": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "uniqueItems": true,
+      "items": { "enum": ["js-controlled", "wasm-linear-controlled"] }
+    },
+    "status": { "enum": ["committed", "failed", "blocked"] },
+    "category": {
+      "enum": [
+        "committed",
+        "failed-correctness",
+        "failed-measurement",
+        "blocked-containment",
+        "blocked-cache",
+        "blocked-provenance"
+      ]
+    },
+    "reason": { "type": ["string", "null"], "maxLength": 1024 },
+    "jsMedianMs": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+    "wasmMedianMs": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+    "pairSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "committed" } } },
+      "then": {
+        "required": ["pairSha256"],
+        "properties": {
+          "category": { "const": "committed" },
+          "reason": { "type": "null" },
+          "jsMedianMs": { "type": "number", "exclusiveMinimum": 0 },
+          "wasmMedianMs": { "type": "number", "exclusiveMinimum": 0 }
+        }
+      },
+      "else": { "not": { "required": ["pairSha256"] } }
+    }
+  ]
+}

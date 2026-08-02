@@ -1,13 +1,25 @@
 import { assertPermitActive, consumePermit, validatePermit } from "../lib/browser-permit.ts";
 import { collectHostProvenance } from "../lib/host-provenance.ts";
 import { closeOwnedChrome, launchOwnedChrome } from "../lib/owned-chrome.ts";
+import {
+  removeStagedChrome,
+  stageChromePackage,
+  StagedChrome,
+  verifyStagedChrome,
+} from "../lib/chrome-stage.ts";
 import { refreshLedger } from "../lib/process-ledger.ts";
 import { commitPairedBlock, LaunchManifest, writeImmutableArtifact } from "../lib/corpus-store.ts";
 import { attestNetwork, NetworkRecord } from "../lib/chrome-evidence.ts";
 import { collectChromeProvenance } from "../lib/chrome-provenance.ts";
 import { canonicalize, sha256Hex } from "../lib/canonical.ts";
 import { evaluateAttemptCheckpoint } from "../lib/paired-statistics.ts";
-import { assertCorpusSchema, assertLaunchEvidenceSchema } from "../lib/corpus-contracts.ts";
+import {
+  assertAttemptRecordSchema,
+  assertCollectionStopSchema,
+  assertCorpusSchema,
+  assertLaunchEvidenceSchema,
+  assertSourceManifestSchema,
+} from "../lib/corpus-contracts.ts";
 import { expectedBatchDigest } from "../public/hosted-runner-core.js";
 import frozenBuildManifest from "../public/artifacts/sum-u32/build-manifest.json" with {
   type: "json",
@@ -47,11 +59,14 @@ async function preflight(requireClean = true) {
   }
   for (
     const path of [
+      "attempt-record.schema.json",
       "browser-permit.schema.json",
+      "collection-stop.schema.json",
       "corpus.schema.json",
       "launch-evidence.schema.json",
       "paired-block.schema.json",
       "network-attestation.schema.json",
+      "source-manifest.schema.json",
     ]
   ) await Deno.stat(`schemas/${path}`);
   return {
@@ -66,12 +81,13 @@ async function preflight(requireClean = true) {
 export { closeOwnedChrome };
 export async function launchReviewedChrome(
   permit: ReturnType<typeof validatePermit>,
+  stage: StagedChrome,
   suffix: string,
   onSpawn?: (pid: number) => void,
 ) {
+  await verifyStagedChrome(stage);
   return await launchOwnedChrome({
-    binary: permit.chromeBinary,
-    expectedSha256: permit.chromeSha256,
+    stagedChrome: stage,
     profileRoot: `${permit.profileRoot}/${suffix}`,
     extraArguments: [],
     beforeSpawn: () => assertPermitActive(permit),
@@ -490,6 +506,14 @@ export async function collectOwnedBlock(
   expectedHashes?: Record<string, string>,
   expectedSourceManifestSha256?: string,
   onLaunchBegan?: (pid: number) => void,
+  stagedChrome?: StagedChrome,
+  injectedExecution?: (manifest: LaunchManifest, onLaunchBegan?: (pid: number) => void) => Promise<{
+    blockSha256: string;
+    cleanup: true;
+    stratum: "cold" | "warm";
+    jsMedianMs: number;
+    wasmMedianMs: number;
+  }>,
 ): Promise<
   {
     blockSha256: string;
@@ -500,6 +524,7 @@ export async function collectOwnedBlock(
   }
 > {
   assertPermitActive(permit);
+  if (injectedExecution) return await injectedExecution(manifest, onLaunchBegan);
   const currentSource = await sourceManifest(permit.sourceCommit);
   if (expectedSourceManifestSha256 && currentSource.sha256 !== expectedSourceManifestSha256) {
     throw new Error("executed source manifest changed after preflight");
@@ -518,21 +543,22 @@ export async function collectOwnedBlock(
   const issuedBody = await issued.json();
   if (typeof issuedBody.token !== "string") throw new Error("local corpus launch token missing");
   assertPermitActive(permit);
+  if (!stagedChrome) throw new Error("staged Chrome package required");
   const token = issuedBody.token,
     owned = await launchReviewedChrome(
       permit,
+      stagedChrome,
       `${String(manifest.scheduleIndex).padStart(3, "0")}-${manifest.blockId}`,
       onLaunchBegan,
     );
-  if (!String(owned.version.product ?? "").includes("150.0.7871.24")) {
-    await closeOwnedChrome(owned).catch(() => {});
-    throw new Error("exact Chrome version mismatch");
-  }
   const rawRoot = `raw/corpora/${manifest.corpusId}/launches/${manifest.blockId}`,
     events: Array<Record<string, unknown>> = [],
     consoleEvents: Array<Record<string, unknown>> = [];
   let cleanupComplete = false;
   try {
+    if (!String(owned.version.product ?? "").includes("150.0.7871.24")) {
+      throw new Error("exact Chrome version mismatch");
+    }
     const browser = owned.browser,
       target = await browser.send("Target.createTarget", { url: "about:blank" });
     if (typeof target.targetId !== "string") throw new Error("target creation denied");
@@ -549,6 +575,14 @@ export async function collectOwnedBlock(
         [sessionId, { targetId: String(target.targetId), type: "page" }],
       ]),
       sessionSetups: Promise<void>[] = [];
+    const drainSessionSetups = async () => {
+      let observed = -1;
+      while (observed !== sessionSetups.length) {
+        observed = sessionSetups.length;
+        await Promise.all(sessionSetups.slice(0, observed));
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+    };
     const offs = [
       browser.on("Target.attachedToTarget", (p) => {
         const childSession = p.sessionId,
@@ -715,7 +749,7 @@ export async function collectOwnedBlock(
     if (!collected || "error" in collected) {
       throw new Error(`collector failed: ${String(collected?.error ?? "timeout")}`);
     }
-    await Promise.all(sessionSetups);
+    await drainSessionSetups();
     if (consoleEvents.some((event) => "containmentError" in event)) {
       throw new Error("unknown auto-attached target denied");
     }
@@ -736,6 +770,21 @@ export async function collectOwnedBlock(
       expectedMeasurement,
       "measurement",
     );
+    // Bodies are collected while the worker target and its Network session are still alive.
+    await browser.send("Runtime.evaluate", {
+      returnByValue: true,
+      expression: "globalThis.__releaseCorpusWorker()",
+    }, sessionId);
+    await new Promise((resolve) => setTimeout(resolve, 25));
+    await drainSessionSetups();
+    const liveTargets = (await browser.send("Target.getTargets")).targetInfos;
+    if (
+      Array.isArray(liveTargets) &&
+      liveTargets.some((target) =>
+        ["worker", "shared_worker"].includes(String((target as Record<string, unknown>).type)) &&
+        String((target as Record<string, unknown>).url).startsWith(permit.origin)
+      )
+    ) throw new Error("collector worker target did not detach after evidence capture");
     const screenshot = await browser.send("Page.captureScreenshot", { format: "png" }, sessionId);
     offs.forEach((off) => off());
     const workerArtifact = await writeImmutableArtifact(
@@ -889,6 +938,7 @@ async function collectAll(
   checked: Awaited<ReturnType<typeof preflight>>,
   collector: typeof collectOwnedBlock = collectOwnedBlock,
   rawBase = "raw/corpora",
+  stagedChrome?: StagedChrome,
 ): Promise<Record<string, unknown>> {
   const prereg = JSON.parse(
       await Deno.readTextFile("experiments/m1-chrome-sum-u32-v1/preregistration.json"),
@@ -907,13 +957,15 @@ async function collectAll(
     reason: string;
     artifactSha256: string;
   } = null;
+  const sourceArtifact = {
+    sourceCommit: checked.sourceCommit,
+    files: checked.sourceFiles,
+    sha256: checked.sourceManifestSha256,
+  };
+  assertSourceManifestSchema(sourceArtifact);
   await writeImmutableArtifact(
     `${rawBase}/${corpusId}/source-manifest.json`,
-    canonicalize({
-      sourceCommit: checked.sourceCommit,
-      files: checked.sourceFiles,
-      sha256: checked.sourceManifestSha256,
-    }) + "\n",
+    canonicalize(sourceArtifact) + "\n",
   );
   for (let index = 0; index < prereg.pairing.schedule.length; index += 1) {
     const scheduled = prereg.pairing.schedule[index],
@@ -946,6 +998,7 @@ async function collectAll(
           launchBegan = true;
           cell.attempted += 1;
         },
+        stagedChrome,
       );
       cell.js.push(result.jsMedianMs);
       cell.wasm.push(result.wasmMedianMs);
@@ -961,11 +1014,13 @@ async function collectAll(
         wasmMedianMs: result.wasmMedianMs,
       };
       const pairSha256 = result.blockSha256;
+      const committedAttempt = { ...attempt, pairSha256 };
+      assertAttemptRecordSchema(committedAttempt);
       const artifact = await writeImmutableArtifact(
         `${rawBase}/${corpusId}/attempts/${
           String(index).padStart(3, "0")
         }-${manifest.blockId}.json`,
-        canonicalize({ ...attempt, pairSha256 }) + "\n",
+        canonicalize(committedAttempt) + "\n",
       );
       blocks.push({ ...attempt, sha256: artifact.sha256 });
     } catch (error) {
@@ -973,15 +1028,17 @@ async function collectAll(
       // Fail closed before a spawn without inventing an attempted launch.
       if (!launchBegan) {
         containmentStop = true;
+        const stopRecord = {
+          scheduleIndex: index,
+          blockId: manifest.blockId,
+          attempted: false,
+          category: "blocked-containment" as const,
+          reason: failure.reason,
+        };
+        assertCollectionStopSchema(stopRecord);
         const stopArtifact = await writeImmutableArtifact(
           `${rawBase}/${corpusId}/collection-stop.json`,
-          canonicalize({
-            scheduleIndex: index,
-            blockId: manifest.blockId,
-            attempted: false,
-            category: "blocked-containment",
-            reason: failure.reason,
-          }) + "\n",
+          canonicalize(stopRecord) + "\n",
         );
         stop = {
           scheduleIndex: index,
@@ -1004,6 +1061,7 @@ async function collectAll(
         jsMedianMs: null,
         wasmMedianMs: null,
       };
+      assertAttemptRecordSchema(attempt);
       const artifact = await writeImmutableArtifact(
         `${rawBase}/${corpusId}/attempts/${
           String(index).padStart(3, "0")
@@ -1011,6 +1069,27 @@ async function collectAll(
         canonicalize(attempt) + "\n",
       );
       blocks.push({ ...attempt, sha256: artifact.sha256 });
+      if (failure.stop) {
+        const stopRecord = {
+          scheduleIndex: index,
+          blockId: manifest.blockId,
+          attempted: true,
+          category: "blocked-containment" as const,
+          reason: failure.reason,
+        };
+        assertCollectionStopSchema(stopRecord);
+        const stopArtifact = await writeImmutableArtifact(
+          `${rawBase}/${corpusId}/collection-stop.json`,
+          canonicalize(stopRecord) + "\n",
+        );
+        stop = {
+          scheduleIndex: index,
+          blockId: manifest.blockId,
+          category: "blocked-containment",
+          reason: failure.reason,
+          artifactSha256: stopArtifact.sha256,
+        };
+      }
     }
     if ([20, 30, 40, 50, 60].includes(cell.attempted)) {
       const counts = blocks.filter((b) => b.stratum === stratum),
@@ -1076,7 +1155,9 @@ async function collectAll(
   return { ...corpus, corpusSha256: artifact.sha256 };
 }
 async function dryFake() {
-  const root = await Deno.makeTempDir();
+  const root = "/tmp/wasm-vs-js-dry-fake";
+  await Deno.remove(root, { recursive: true }).catch(() => {});
+  await Deno.mkdir(root, { recursive: true, mode: 0o700 });
   try {
     const now = new Date(),
       permit = validatePermit({
@@ -1096,44 +1177,77 @@ async function dryFake() {
         authorizationReference: "dry-fake-no-browser",
         retryOf: null,
       });
-    let productionCollectorCalls = 0;
+    let injectedCollectorCalls = 0;
     const fakeCollector: typeof collectOwnedBlock = async (
-      _permit,
+      fakePermit,
       manifest,
-      _hashes,
-      _source,
+      hashes,
+      source,
       onLaunch,
-    ) => {
-      productionCollectorCalls += 1;
-      onLaunch?.(70_000 + manifest.scheduleIndex);
-      return {
-        blockSha256: await sha256Hex(canonicalize(manifest)),
-        cleanup: true,
-        stratum: manifest.stratum,
-        jsMedianMs: 10,
-        wasmMedianMs: 9,
-      };
+      stage,
+    ) =>
+      await collectOwnedBlock(
+        fakePermit,
+        manifest,
+        hashes,
+        source,
+        onLaunch,
+        stage,
+        async (boundManifest, launch) => {
+          injectedCollectorCalls += 1;
+          launch?.(70_000 + boundManifest.scheduleIndex);
+          return {
+            blockSha256: await sha256Hex(canonicalize(boundManifest)),
+            cleanup: true,
+            stratum: boundManifest.stratum,
+            jsMedianMs: 10,
+            wasmMedianMs: 9,
+          };
+        },
+      );
+    const checked = {
+      sourceCommit,
+      experimentId: "m1-chrome-sum-u32-v1",
+      plannedLaunches: 120,
+      hostFields: 9,
+      sourceManifestSha256: "1".repeat(64),
+      sourceFiles: { "dry-fake.ts": "2".repeat(64) },
     };
     const result = await collectAll(
       permit,
       "0".repeat(64),
-      {
-        sourceCommit,
-        experimentId: "m1-chrome-sum-u32-v1",
-        plannedLaunches: 120,
-        hostFields: 9,
-        sourceManifestSha256: "1".repeat(64),
-        sourceFiles: {},
-      },
+      checked,
       fakeCollector,
       `${root}/corpora`,
+      undefined,
     );
+    const discoveryFailure = await collectAll(
+      permit,
+      "3".repeat(64),
+      checked,
+      async (_permit, _manifest, _hashes, _source, onLaunch) => {
+        await Promise.resolve();
+        onLaunch?.(0);
+        throw new Error("Chrome startup containment blocked before unit mapping");
+      },
+      `${root}/failure-corpora`,
+    );
+    if (
+      discoveryFailure.attempted !== 1 || discoveryFailure.status !== "containment-blocked" ||
+      !discoveryFailure.stop
+    ) {
+      throw new Error("post-systemd unit discovery failure accounting mismatch");
+    }
     return {
       dependencyInjectedProductionCollectAll: true,
-      productionCollectorCalls,
+      injectedCollectorCalls,
+      collectOwnedBlockEntrypointExercised: true,
+      browserCdpPathExercised: false,
       status: result.status,
       attempted: result.attempted,
       committed: result.committed,
+      unitDiscoveryFailureAttempted: discoveryFailure.attempted,
+      unitDiscoveryFailureStatus: discoveryFailure.status,
       noBrowserOrSystemdLaunched: true,
     };
   } finally {
@@ -1172,25 +1286,59 @@ if (import.meta.main) {
       operation: "collect-uninstrumented-headline-paired-corpus",
       maximumLaunches: 120,
     });
-    const receipt = await consumePermit(permitPath, "raw/permits", permit);
-    console.log(JSON.stringify(await collectAll(permit, receipt.digest, check)));
+    const stage = await stageChromePackage(
+      permit.chromeBinary,
+      permit.chromeSha256,
+      permit.permitId,
+    );
+    let safeToRemoveStage = false;
+    try {
+      const receipt = await consumePermit(permitPath, "raw/permits", permit);
+      const corpus = await collectAll(
+        permit,
+        receipt.digest,
+        check,
+        collectOwnedBlock,
+        "raw/corpora",
+        stage,
+      );
+      console.log(JSON.stringify(corpus));
+      await verifyStagedChrome(stage);
+      safeToRemoveStage = corpus.status !== "containment-blocked";
+    } finally {
+      if (safeToRemoveStage) await removeStagedChrome(stage);
+    }
   } else if (args.has("--collect-one")) {
     if (!permitPath || !manifestPath) throw new Error("--permit and --manifest required");
     const permit = validatePermit(JSON.parse(await Deno.readTextFile(permitPath)), {
       sourceCommit,
       operation: "pilot-m1-corpus",
     });
-    await consumePermit(permitPath, "raw/permits", permit);
-    console.log(
-      JSON.stringify(
-        await collectOwnedBlock(
-          permit,
-          JSON.parse(await Deno.readTextFile(manifestPath)) as LaunchManifest,
-          undefined,
-          check.sourceManifestSha256,
-        ),
-      ),
+    const stage = await stageChromePackage(
+      permit.chromeBinary,
+      permit.chromeSha256,
+      permit.permitId,
     );
+    let safeToRemoveStage = false;
+    try {
+      await consumePermit(permitPath, "raw/permits", permit);
+      console.log(
+        JSON.stringify(
+          await collectOwnedBlock(
+            permit,
+            JSON.parse(await Deno.readTextFile(manifestPath)) as LaunchManifest,
+            undefined,
+            check.sourceManifestSha256,
+            undefined,
+            stage,
+          ),
+        ),
+      );
+      await verifyStagedChrome(stage);
+      safeToRemoveStage = true;
+    } finally {
+      if (safeToRemoveStage) await removeStagedChrome(stage);
+    }
   } else {console.log(JSON.stringify({
       preflight: check,
       permit: permitPath

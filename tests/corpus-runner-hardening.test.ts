@@ -128,6 +128,21 @@ Deno.test("worker evidence gate requires exact manifest, correctness, fixed work
     "manifest identity",
   );
 });
+Deno.test("local worker remains attached until response bodies are captured and explicitly released", async () => {
+  const page = await Deno.readTextFile("local/corpus-run.js");
+  const worker = await Deno.readTextFile("public/hosted-runner-worker.js");
+  const collector = await Deno.readTextFile("scripts/run-m1-chrome-corpus.ts");
+  assertEquals(page.includes("__releaseCorpusWorker"), true);
+  assertEquals(page.includes("finally {\n    worker.terminate()"), false);
+  assertEquals(worker.includes("globalThis.close()"), false);
+  assertEquals(
+    collector.indexOf("networkRecords(\n      events") <
+      collector.indexOf("__releaseCorpusWorker()"),
+    true,
+  );
+  assertEquals(collector.includes("drainSessionSetups"), true);
+});
+
 Deno.test("attempt failures are typed and only containment failures stop the schedule", () => {
   assertEquals(
     classifyAttemptError(new Error("correctness oracle mismatch")).category,

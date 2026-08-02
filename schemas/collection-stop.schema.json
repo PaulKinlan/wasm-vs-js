@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["scheduleIndex", "blockId", "attempted", "category", "reason"],
+  "properties": {
+    "scheduleIndex": { "type": "integer", "minimum": 0, "maximum": 119 },
+    "blockId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$" },
+    "attempted": { "type": "boolean" },
+    "category": { "const": "blocked-containment" },
+    "reason": { "type": "string", "minLength": 1, "maxLength": 1024 }
+  }
+}

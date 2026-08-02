@@ -2,6 +2,12 @@ const status = document.querySelector("#corpus-status"),
   button = document.querySelector("#run-corpus");
 const token = new URL(location.href).searchParams.get("token");
 let manifest;
+let activeWorker;
+globalThis.__releaseCorpusWorker = () => {
+  activeWorker?.terminate();
+  activeWorker = undefined;
+  globalThis.__corpusWorkerReleased = true;
+};
 try {
   if (!token) throw new Error("launch token missing");
   const response = await fetch(`/api/corpus/manifest?token=${encodeURIComponent(token)}`, {
@@ -21,6 +27,7 @@ button.addEventListener("click", async () => {
   button.disabled = true;
   status.textContent = "Running immutable pair…";
   const worker = new Worker("/hosted-runner-worker.js", { type: "module" });
+  activeWorker = worker;
   try {
     const result = await new Promise((resolve, reject) => {
       const timeout = setTimeout(() => reject(new Error("collector timeout")), 120000);
@@ -45,7 +52,5 @@ button.addEventListener("click", async () => {
   } catch (error) {
     globalThis.__corpusError = String(error);
     status.textContent = `Blocked: ${error instanceof Error ? error.message : "collector error"}`;
-  } finally {
-    worker.terminate();
   }
 });

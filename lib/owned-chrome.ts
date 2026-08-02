@@ -1,4 +1,5 @@
 import { browserWebSocketUrl, CdpClient } from "./cdp-client.ts";
+import { StagedChrome, verifyStagedChrome } from "./chrome-stage.ts";
 import {
   assertProfileIdentity,
   CgroupLedger,
@@ -82,7 +83,7 @@ async function showUnit(command: CommandAdapter, unit: string) {
     "--user",
     "show",
     unit,
-    "--property=MainPID,ControlGroup,ActiveState,SubState",
+    "--property=MainPID,ControlGroup,ActiveState,SubState,LoadState",
   ]);
   if (!result.success) throw new Error(`systemd unit unavailable: ${result.stderr.trim()}`);
   return parseShow(result.stdout);
@@ -140,14 +141,24 @@ async function commandLine(pid: number, procRoot = "/proc"): Promise<string[]> {
     .filter(Boolean);
 }
 async function cleanupUnit(command: CommandAdapter, ledger: CgroupLedger, removeProfile = true) {
-  await command("/usr/bin/systemctl", [
+  const mapped = await showUnit(command, ledger.unit);
+  if (mapped.LoadState === "not-found" || mapped.ControlGroup !== ledger.controlGroup) {
+    throw new Error("owned Chrome unit mapping unavailable during cleanup");
+  }
+  const cgroup = await cgroupIdentity(ledger.cgroupPath);
+  if (cgroup.dev !== ledger.cgroupDev || cgroup.ino !== ledger.cgroupIno) {
+    throw new Error("owned Chrome cgroup identity changed before cleanup");
+  }
+  const killed = await command("/usr/bin/systemctl", [
     "--user",
     "kill",
     "--kill-whom=all",
     "--signal=KILL",
     ledger.unit,
   ]);
-  await command("/usr/bin/systemctl", ["--user", "stop", ledger.unit]);
+  if (!killed.success) throw new Error(`owned Chrome unit kill failed: ${killed.stderr.trim()}`);
+  const stopped = await command("/usr/bin/systemctl", ["--user", "stop", ledger.unit]);
+  if (!stopped.success) throw new Error(`owned Chrome unit stop failed: ${stopped.stderr.trim()}`);
   const deadline = Date.now() + 5_000;
   let remaining: number[] = [], state: Record<string, string> = {};
   while (Date.now() < deadline) {
@@ -155,11 +166,16 @@ async function cleanupUnit(command: CommandAdapter, ledger: CgroupLedger, remove
       if (e instanceof Deno.errors.NotFound) return [];
       throw e;
     });
-    state = await showUnit(command, ledger.unit).catch(() => ({ ActiveState: "inactive" }));
-    if (!remaining.length && ["inactive", "failed"].includes(state.ActiveState)) break;
+    state = await showUnit(command, ledger.unit);
+    const inactive = ["inactive", "failed"].includes(state.ActiveState) ||
+      state.LoadState === "not-found";
+    if (!remaining.length && inactive) break;
     await new Promise((resolve) => setTimeout(resolve, 25));
   }
-  if (remaining.length || !["inactive", "failed"].includes(state.ActiveState ?? "")) {
+  if (
+    remaining.length ||
+    (!(["inactive", "failed"].includes(state.ActiveState ?? "")) && state.LoadState !== "not-found")
+  ) {
     throw new Error("owned Chrome cgroup cleanup failed");
   }
   const after = await executableSnapshot(ledger.executable.path);
@@ -176,8 +192,7 @@ async function cleanupUnit(command: CommandAdapter, ledger: CgroupLedger, remove
   };
 }
 export async function launchOwnedChrome(options: {
-  binary: string;
-  expectedSha256: string;
+  stagedChrome: StagedChrome;
   profileRoot: string;
   extraArguments?: string[];
   timeoutMs?: number;
@@ -194,13 +209,17 @@ export async function launchOwnedChrome(options: {
 }): Promise<OwnedChrome> {
   const command = options.command ?? realCommand,
     profile = await prepareProfile(options.profileRoot);
-  const binary = await executableSnapshot(options.binary).catch(async (error) => {
+  await verifyStagedChrome(options.stagedChrome).catch(async (error) => {
     await removeOwnedProfile(profile);
     throw error;
   });
-  if (binary.sha256 !== options.expectedSha256) {
+  const binary = await executableSnapshot(options.stagedChrome.binary).catch(async (error) => {
     await removeOwnedProfile(profile);
-    throw new Error("Chrome binary hash mismatch");
+    throw error;
+  });
+  if (binary.sha256 !== options.stagedChrome.binarySha256) {
+    await removeOwnedProfile(profile);
+    throw new Error("staged Chrome binary hash mismatch");
   }
   const unit = options.unitName ?? `wasm-vs-js-${crypto.randomUUID().replaceAll("-", "")}.service`;
   if (!/^wasm-vs-js-[a-z0-9]{16,64}\.service$/.test(unit)) {
@@ -219,7 +238,10 @@ export async function launchOwnedChrome(options: {
     "about:blank",
   ];
   let ledger: CgroupLedger | undefined;
+  let systemdRunSucceeded = false;
   try {
+    const absent = await showUnit(command, unit);
+    if (absent.LoadState !== "not-found") throw new Error("systemd unit name already exists");
     options.beforeSpawn?.();
     const started = await command("/usr/bin/systemd-run", [
       "--user",
@@ -234,8 +256,9 @@ export async function launchOwnedChrome(options: {
       ...launchArguments,
     ]);
     if (!started.success) throw new Error(`systemd Chrome launch failed: ${started.stderr.trim()}`);
+    systemdRunSucceeded = true;
+    options.onSpawn?.(0);
     const running = await waitUnit(command, unit, options.timeoutMs ?? 10_000);
-    options.onSpawn?.(running.mainPid);
     const cgroupPath = `${options.cgroupRoot ?? "/sys/fs/cgroup"}${running.controlGroup}`,
       cgroup = await cgroupIdentity(cgroupPath);
     const procRoot = options.procRoot ?? "/proc",
@@ -302,33 +325,14 @@ export async function launchOwnedChrome(options: {
       await cleanupUnit(command, ledger).catch((cleanup) => {
         throw new Error(`Chrome startup containment cleanup failed: ${cleanup}`);
       });
+    } else if (systemdRunSucceeded) {
+      // The launch is counted, but without a positively mapped cgroup it is unsafe to target the
+      // unit name or remove the live profile. Retain both as immutable containment evidence.
+      throw new Error(`Chrome startup containment blocked before unit mapping: ${error}`);
     } else {
-      await command("/usr/bin/systemctl", [
-        "--user",
-        "kill",
-        "--kill-whom=all",
-        "--signal=KILL",
-        unit,
-      ]).catch(() => ({ success: false, code: 1, stdout: "", stderr: "" }));
-      await command("/usr/bin/systemctl", ["--user", "stop", unit]).catch(() => ({
-        success: false,
-        code: 1,
-        stdout: "",
-        stderr: "",
-      }));
-      const deadline = Date.now() + 5_000;
-      let inactive = false;
-      while (Date.now() < deadline) {
-        const state = await showUnit(command, unit).catch(() => ({ ActiveState: "inactive" }));
-        if (["inactive", "failed"].includes(state.ActiveState ?? "")) {
-          inactive = true;
-          break;
-        }
-        await new Promise((resolve) => setTimeout(resolve, 25));
-      }
-      if (!inactive) throw new Error("Chrome startup unit cleanup failed");
+      // systemd-run did not create an owned unit, so no process may be targeted.
       await removeOwnedProfile(profile).catch((cleanup) => {
-        throw new Error(`Chrome startup profile cleanup failed: ${cleanup}`);
+        throw new Error(`Chrome pre-launch profile cleanup failed: ${cleanup}`);
       });
     }
     throw error;
