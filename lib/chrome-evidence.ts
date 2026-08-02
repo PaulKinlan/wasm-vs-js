@@ -1,4 +1,5 @@
 import { sha256Hex } from "./canonical.ts";
+import { assertNetworkAttestationSchema } from "./corpus-contracts.ts";
 export type NetworkRecord = {
   url: string;
   method: string;
@@ -53,13 +54,15 @@ export async function attestNetwork(
       sha256,
     });
   }
-  return {
-    schemaVersion: 1,
+  const attestation = {
+    schemaVersion: 1 as const,
     phase,
     stratum,
     origin,
     assets,
-    unexpectedRequests: 0,
-    attested: true,
+    unexpectedRequests: 0 as const,
+    attested: true as const,
   };
+  assertNetworkAttestationSchema(attestation);
+  return attestation;
 }

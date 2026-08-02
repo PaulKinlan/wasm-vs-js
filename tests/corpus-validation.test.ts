@@ -1,11 +1,15 @@
 import { assertEquals } from "./assert.ts";
 import { validateCorpusSemantics } from "../lib/corpus-validation.ts";
 import { COLLECTOR_ROUTES, collectorRouteHashes } from "../lib/source-identity.ts";
+const preregistration = JSON.parse(
+  await Deno.readTextFile("experiments/m1-chrome-sum-u32-v1/preregistration.json"),
+);
+const schedule = preregistration.pairing.schedule;
 const attempt = (status: "committed" | "failed" | "blocked", index: number) => ({
-  blockId: `block-${index}`,
+  blockId: schedule[index].blockId,
   scheduleIndex: index,
-  stratum: index % 2 ? "warm" : "cold",
-  order: ["js-controlled", "wasm-linear-controlled"],
+  stratum: schedule[index].stratum as "cold" | "warm",
+  order: schedule[index].order,
   status,
   category: status === "committed"
     ? "committed"
@@ -13,6 +17,8 @@ const attempt = (status: "committed" | "failed" | "blocked", index: number) => (
     ? "failed-measurement"
     : "blocked-provenance",
   reason: status === "committed" ? null : "typed reason",
+  jsMedianMs: status === "committed" ? 10 : null,
+  wasmMedianMs: status === "committed" ? 5 : null,
   sha256: "a".repeat(64),
 });
 function corpus(blocks = [attempt("committed", 0)]) {
@@ -30,12 +36,23 @@ function corpus(blocks = [attempt("committed", 0)]) {
     blocked: blocks.filter((b) => b.status === "blocked").length,
     unstarted: 120 - blocks.length,
     blocks,
-    status: "cap-inconclusive",
+    strata: {
+      cold: {
+        attempted: blocks.filter((b) => b.stratum === "cold").length,
+        committed: blocks.filter((b) => b.stratum === "cold" && b.status === "committed").length,
+        failed: blocks.filter((b) => b.stratum === "cold" && b.status === "failed").length,
+        blocked: blocks.filter((b) => b.stratum === "cold" && b.status === "blocked").length,
+        terminal: "continue",
+      },
+      warm: { attempted: 0, committed: 0, failed: 0, blocked: 0, terminal: "continue" },
+    },
+    status: "containment-blocked",
   };
 }
 Deno.test("corpus accounting semantically reconciles attempts and rejects invented totals", () => {
   validateCorpusSemantics(
     corpus([attempt("committed", 0), attempt("failed", 1), attempt("blocked", 2)]),
+    schedule,
   );
   for (
     const broken of [{ attempted: 0 }, { committed: 2 }, { unstarted: 0 }, {
@@ -45,15 +62,27 @@ Deno.test("corpus accounting semantically reconciles attempts and rejects invent
     const value = { ...corpus(), ...broken };
     let denied = false;
     try {
-      validateCorpusSemantics(value);
+      validateCorpusSemantics(value, schedule);
     } catch {
       denied = true;
     }
     assertEquals(denied, true);
   }
 });
-Deno.test("source collector hash denominator includes local UI, worker, core, and benchmark bytes", async () => {
+Deno.test("only private permit and corpus raw roots are ignored", async () => {
+  for (const path of ["raw/permits/example.json", "raw/corpora/example/corpus.json"]) {
+    const output = await new Deno.Command("git", { args: ["check-ignore", "-q", path] }).output();
+    assertEquals(output.success, true);
+  }
+  const visible = await new Deno.Command("git", {
+    args: ["check-ignore", "-q", "raw/other/evidence.json"],
+  }).output();
+  assertEquals(visible.success, false);
+});
+
+Deno.test("source collector hash denominator includes local UI, worker, core, styles, and benchmark bytes", async () => {
   const hashes = await collectorRouteHashes();
   assertEquals(Object.keys(hashes).sort(), Object.keys(COLLECTOR_ROUTES).sort());
+  assertEquals("/styles.css" in hashes, true);
   for (const hash of Object.values(hashes)) assertEquals(/^[a-f0-9]{64}$/.test(hash), true);
 });

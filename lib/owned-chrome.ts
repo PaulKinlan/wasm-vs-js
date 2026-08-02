@@ -1,5 +1,6 @@
 import { browserWebSocketUrl, CdpClient } from "./cdp-client.ts";
 import {
+  assertLedgerProcessesCurrent,
   assertProfileIdentity,
   createLedger,
   prepareProfile,
@@ -7,6 +8,8 @@ import {
   ProfileIdentity,
   readProcessIdentity,
   recoverLedger,
+  refreshLedger,
+  removeOwnedProfile,
   teardownLedger,
 } from "./process-ledger.ts";
 import { sha256Hex } from "./canonical.ts";
@@ -83,12 +86,17 @@ export async function assertListenerOwned(
   ledger: ProcessLedger,
   procRoot = "/proc",
 ): Promise<void> {
+  ledger = await refreshLedger(ledger, procRoot);
+  await assertLedgerProcessesCurrent(ledger, procRoot);
   const inode = await listenerInode(port, procRoot), wanted = `socket:[${inode}]`;
   for (const process of ledger.processes) {
     try {
       for await (const fd of Deno.readDir(`${procRoot}/${process.pid}/fd`)) {
         try {
-          if (await Deno.readLink(`${procRoot}/${process.pid}/fd/${fd.name}`) === wanted) return;
+          if (await Deno.readLink(`${procRoot}/${process.pid}/fd/${fd.name}`) === wanted) {
+            await assertLedgerProcessesCurrent(ledger, procRoot);
+            return;
+          }
         } catch { /* raced */ }
       }
     } catch { /* raced */ }
@@ -116,26 +124,32 @@ export async function launchOwnedChrome(options: {
   profileRoot: string;
   extraArguments?: string[];
   timeoutMs?: number;
+  beforeSpawn?: () => void;
+  onSpawn?: (pid: number) => void;
 }): Promise<OwnedChrome> {
-  const before = await executableSnapshot(options.binary);
   const profile = await prepareProfile(options.profileRoot);
-  if (before.sha256 !== options.expectedSha256) throw new Error("Chrome binary hash mismatch");
-  const launchArguments = [
-    `--user-data-dir=${options.profileRoot}`,
-    "--remote-debugging-port=0",
-    "--no-first-run",
-    "--no-default-browser-check",
-    "--disable-sync",
-    ...(options.extraArguments ?? []),
-    "about:blank",
-  ];
-  const child = new Deno.Command(before.resolved, {
-    args: launchArguments,
-    stdout: "null",
-    stderr: "null",
-  }).spawn();
-  let ledger: ProcessLedger | undefined;
+  let child: Deno.ChildProcess | undefined, ledger: ProcessLedger | undefined;
   try {
+    const before = await executableSnapshot(options.binary);
+    if (before.sha256 !== options.expectedSha256) throw new Error("Chrome binary hash mismatch");
+    const launchArguments = [
+      `--user-data-dir=${options.profileRoot}`,
+      "--remote-debugging-port=0",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-sync",
+      "--disable-crash-reporter",
+      "--disable-breakpad",
+      ...(options.extraArguments ?? []),
+      "about:blank",
+    ];
+    options.beforeSpawn?.();
+    child = new Deno.Command(before.resolved, {
+      args: launchArguments,
+      stdout: "null",
+      stderr: "null",
+    }).spawn();
+    options.onSpawn?.(child.pid);
     const after = await executableSnapshot(before.resolved);
     if (after.dev !== before.dev || after.ino !== before.ino || after.sha256 !== before.sha256) {
       throw new Error("Chrome executable changed around spawn");
@@ -147,10 +161,14 @@ export async function launchOwnedChrome(options: {
       root.executable.sha256 !== before.sha256 || root.executable.path !== before.resolved
     ) throw new Error("spawned Chrome executable identity mismatch");
     const endpoint = await waitDevToolsActivePort(options.profileRoot, options.timeoutMs);
-    ledger = await createLedger(child.pid, profile);
+    ledger = await refreshLedger(await createLedger(child.pid, profile));
     await assertListenerOwned(endpoint.port, ledger);
-    const browser = new CdpClient(await browserWebSocketUrl(endpoint.port, endpoint.browserPath));
+    const webSocketUrl = await browserWebSocketUrl(endpoint.port, endpoint.browserPath);
+    await assertListenerOwned(endpoint.port, ledger);
+    const browser = new CdpClient(webSocketUrl);
+    await assertListenerOwned(endpoint.port, ledger);
     const version = await browser.send("Browser.getVersion");
+    await assertListenerOwned(endpoint.port, ledger);
     const command = await browser.send("Browser.getBrowserCommandLine").catch(() => ({
       arguments: [],
     }));
@@ -165,6 +183,7 @@ export async function launchOwnedChrome(options: {
       throw new Error("headless Chrome denied by preregistration");
     }
     await assertProfileIdentity(profile);
+    ledger = await refreshLedger(ledger);
     return {
       child,
       ledger,
@@ -177,22 +196,44 @@ export async function launchOwnedChrome(options: {
       resolvedBinary: before.resolved,
     };
   } catch (error) {
-    ledger ??= await recoverLedger(profile, child.pid).catch(() => undefined);
-    if (ledger) {
-      const cleanup = await teardownLedger(ledger).catch(() => ({ cleaned: false }));
-      if (!cleanup.cleaned) {
-        throw new Error(
-          `Chrome startup containment cleanup failed after: ${
-            error instanceof Error ? error.message : String(error)
-          }`,
-        );
+    if (child) {
+      ledger ??= await recoverLedger(profile, child.pid).catch(() => undefined);
+      if (ledger) {
+        const cleanup = await teardownLedger(ledger).catch(() => ({ cleaned: false }));
+        if (!cleanup.cleaned) {
+          throw new Error(
+            `Chrome startup containment cleanup failed after: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          );
+        }
+      } else {
+        // The ChildProcess handle is exact even before /proc identity becomes available.
+        try {
+          child.kill("SIGKILL");
+        } catch { /* already exited */ }
+        await Promise.race([
+          child.status,
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("spawned child wait timeout")), 2_000)
+          ),
+        ]);
+        await removeOwnedProfile(profile).catch((cleanupError) => {
+          throw new Error(
+            `Chrome startup profile cleanup failed: ${
+              cleanupError instanceof Error ? cleanupError.message : String(cleanupError)
+            }`,
+          );
+        });
       }
     } else {
-      throw new Error(
-        `Chrome startup identity unavailable; profile preserved for containment review: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      );
+      await removeOwnedProfile(profile).catch((cleanupError) => {
+        throw new Error(
+          `Chrome pre-spawn profile cleanup failed: ${
+            cleanupError instanceof Error ? cleanupError.message : String(cleanupError)
+          }`,
+        );
+      });
     }
     throw error;
   }
@@ -202,6 +243,7 @@ export async function closeOwnedChrome(
 ): Promise<{ cleaned: boolean; remaining: number[]; identityMismatches: number[] }> {
   await owned.browser.send("Browser.close", {}, undefined, 2_000).catch(() => {});
   owned.browser.close();
+  owned.ledger = await refreshLedger(owned.ledger);
   const result = await teardownLedger(owned.ledger);
   if (!result.cleaned) throw new Error("owned Chrome cleanup failed");
   return result;

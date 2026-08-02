@@ -1,4 +1,5 @@
 import { sha256Hex } from "./canonical.ts";
+import { assertBrowserPermitSchema } from "./corpus-contracts.ts";
 
 export type BrowserPermit = {
   schemaVersion: 1;
@@ -44,6 +45,7 @@ export function validatePermit(
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new Error("permit object required");
   }
+  assertBrowserPermitSchema(value);
   const permit = value as BrowserPermit;
   if (JSON.stringify(Object.keys(permit).sort()) !== JSON.stringify(KEYS)) {
     throw new Error("permit shape denied");
@@ -80,7 +82,7 @@ export function validatePermit(
     !Number.isFinite(expires) ||
     expires <= issued ||
     expires - issued > 24 * 60 * 60 * 1000 ||
-    issued > now.getTime() + 5 * 60 * 1000
+    issued > now.getTime()
   ) {
     throw new Error("permit time denied");
   }
@@ -129,7 +131,7 @@ export async function consumePermit(
 }
 
 export function assertPermitActive(permit: BrowserPermit, now = new Date()): void {
-  if (now.getTime() < Date.parse(permit.issuedAt) - 5 * 60 * 1000) {
+  if (now.getTime() < Date.parse(permit.issuedAt)) {
     throw new Error("permit not yet active");
   }
   if (now.getTime() > Date.parse(permit.expiresAt)) throw new Error("permit expired");

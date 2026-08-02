@@ -7,13 +7,25 @@ import {
   waitDevToolsActivePort,
 } from "../lib/owned-chrome.ts";
 import { CdpClient } from "../lib/cdp-client.ts";
-import { createLedger, prepareProfile, teardownLedger } from "../lib/process-ledger.ts";
+import {
+  createLedger,
+  prepareProfile,
+  refreshLedger,
+  teardownLedger,
+} from "../lib/process-ledger.ts";
 import { commitPairedBlock, LaunchManifest, writeImmutableArtifact } from "../lib/corpus-store.ts";
 import { attestNetwork, NetworkRecord } from "../lib/chrome-evidence.ts";
 import { collectChromeProvenance } from "../lib/chrome-provenance.ts";
 import { canonicalize, sha256Hex } from "../lib/canonical.ts";
 import { evaluateAttemptCheckpoint } from "../lib/paired-statistics.ts";
-import { AttemptRecord, median, validateCorpusSemantics } from "../lib/corpus-validation.ts";
+import { assertCorpusSchema, assertLaunchEvidenceSchema } from "../lib/corpus-contracts.ts";
+import { expectedBatchDigest } from "../public/hosted-runner-core.js";
+import {
+  AttemptRecord,
+  median,
+  validateCorpusSemantics,
+  validateLaunchEvidenceSemantics,
+} from "../lib/corpus-validation.ts";
 import {
   COLLECTOR_ROUTES,
   collectorRouteHashes,
@@ -25,8 +37,12 @@ const args = new Set(Deno.args);
 const permitPath = Deno.args.find((x) => x.startsWith("--permit="))?.slice(9);
 const manifestPath = Deno.args.find((x) => x.startsWith("--manifest="))?.slice(11);
 const sourceCommit = Deno.env.get("WASM_VS_JS_COMMIT") ?? "";
-const HEADLINE_ASSETS = Object.keys(COLLECTOR_ROUTES).filter((path) => path !== "/corpus-run")
-  .sort();
+const BENCHMARK_ASSETS = [
+  "/artifacts/sum-u32/build-manifest.json",
+  "/benchmarks/sum-u32/workload.js",
+  "/artifacts/sum-u32/sum-u32.wasm",
+] as const;
+const COLLECTOR_GET_ROUTES = Object.keys(COLLECTOR_ROUTES).sort();
 
 async function preflight(requireClean = true) {
   if (!/^[a-f0-9]{40}$/.test(sourceCommit)) throw new Error("exact source commit required");
@@ -59,12 +75,15 @@ export { closeOwnedChrome };
 export async function launchReviewedChrome(
   permit: ReturnType<typeof validatePermit>,
   suffix: string,
+  onSpawn?: (pid: number) => void,
 ) {
   return await launchOwnedChrome({
     binary: permit.chromeBinary,
     expectedSha256: permit.chromeSha256,
     profileRoot: `${permit.profileRoot}/${suffix}`,
     extraArguments: [],
+    beforeSpawn: () => assertPermitActive(permit),
+    onSpawn,
   });
 }
 function nestedValue(result: Record<string, unknown>): unknown {
@@ -127,40 +146,121 @@ export function classifyAttemptError(
   if (/cache/.test(lower)) {
     return { status: "blocked", category: "blocked-cache", stop: false, reason };
   }
+  if (
+    /unexpected origin|unexpected request|origin health|source identity|source manifest/.test(lower)
+  ) {
+    return { status: "blocked", category: "blocked-provenance", stop: true, reason };
+  }
   if (/identity|source|provenance|origin|network|hash|unexpected|storage|version/.test(lower)) {
     return { status: "blocked", category: "blocked-provenance", stop: false, reason };
   }
   return { status: "failed", category: "failed-measurement", stop: false, reason };
 }
+function assertClosed(value: unknown, keys: string[], label: string): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(`${label} object invalid`);
+  }
+  const object = value as Record<string, unknown>;
+  if (JSON.stringify(Object.keys(object).sort()) !== JSON.stringify([...keys].sort())) {
+    throw new Error(`${label} shape invalid`);
+  }
+  return object;
+}
+function finiteNonnegative(value: unknown, label: string): number {
+  const number = Number(value);
+  if (!Number.isFinite(number) || number < 0) throw new Error(`${label} invalid`);
+  return number;
+}
+function type7(values: number[], p: number): number {
+  const sorted = [...values].sort((a, b) => a - b), position = (sorted.length - 1) * p;
+  const lo = Math.floor(position), hi = Math.ceil(position);
+  return sorted[lo] + (sorted[hi] - sorted[lo]) * (position - lo);
+}
 export function validateWorkerResult(
   value: Record<string, unknown>,
   expectedManifest: LaunchManifest,
 ) {
-  const result = value.result as Record<string, unknown>;
-  if (!result || JSON.stringify(value.manifest) !== JSON.stringify(expectedManifest)) {
+  assertClosed(value, ["manifest", "result"], "worker envelope");
+  const result = assertClosed(value.result, [
+    "capturedAt",
+    "order",
+    "iterations",
+    "cache",
+    "resourceTiming",
+    "batchSize",
+    "work",
+    "correctness",
+    "identities",
+    "manifest",
+    "jsSha256",
+    "wasmSha256",
+    "wasmLinearMemory",
+    "lifecycle",
+    "js",
+    "wasm",
+  ], "worker result");
+  if (JSON.stringify(value.manifest) !== JSON.stringify(expectedManifest)) {
     throw new Error("worker result manifest identity mismatch");
+  }
+  const capturedAt = Date.parse(String(result.capturedAt));
+  if (!Number.isFinite(capturedAt) || capturedAt > Date.now() + 1_000) {
+    throw new Error("worker capturedAt invalid");
   }
   const expectedOrder = expectedManifest.order[0] === "js-controlled" ? "js-first" : "wasm-first";
   if (result.order !== expectedOrder || result.iterations !== 20) {
     throw new Error("worker execution identity mismatch");
   }
-  const correctness = result.correctness as Record<string, unknown>,
-    identities = result.identities as Record<string, unknown>,
-    work = result.work as Record<string, unknown>;
+  if (typeof result.cache !== "string" || !result.cache.includes("No Service Worker controlled")) {
+    throw new Error("worker cache evidence invalid");
+  }
+  const correctness = assertClosed(result.correctness, [
+      "passed",
+      "oracle",
+      "jsFirstOutput",
+      "wasmFirstOutput",
+      "everyScoredInvocationValidated",
+      "expectedBatchDigest",
+      "scoredInvocationsPerVariant",
+    ], "correctness"),
+    identities = assertClosed(result.identities, [
+      "inputSha256",
+      "manifestSha256",
+      "javascriptSha256",
+      "wasmSha256",
+    ], "identities"),
+    work = assertClosed(result.work, [
+      "items",
+      "inputBytes",
+      "additions",
+      "loads",
+      "boundaryCrossings",
+    ], "work");
   if (
-    !correctness || correctness.passed !== true || correctness.oracle !== 145417951 ||
+    correctness.passed !== true || correctness.oracle !== 145417951 ||
     correctness.jsFirstOutput !== 145417951 || correctness.wasmFirstOutput !== 145417951 ||
     correctness.everyScoredInvocationValidated !== true
   ) throw new Error("correctness evidence invalid");
+  const expectedIdentities = {
+    inputSha256: "4f0516549fc9d6952c8d42d642927dd5c43a8c01d03c286e0c80da919bfaf9d7",
+    manifestSha256: "38136e96462c5b98e3057e4ea18ae339150918aa50f1270eb3db88586185cf98",
+    javascriptSha256: "4d8379672c1b51b0b315d2bee119880694e5a4f6412ef59b7fe2593ef6b179b7",
+    wasmSha256: "9c4ce5f0d9e32cdd364b73b2697566e7396368d9867d9bc3d939bb2063583a6d",
+  };
   if (
-    identities?.inputSha256 !==
-      "4f0516549fc9d6952c8d42d642927dd5c43a8c01d03c286e0c80da919bfaf9d7" ||
-    identities?.manifestSha256 !==
-      "38136e96462c5b98e3057e4ea18ae339150918aa50f1270eb3db88586185cf98" ||
-    identities?.javascriptSha256 !==
-      "4d8379672c1b51b0b315d2bee119880694e5a4f6412ef59b7fe2593ef6b179b7" ||
-    identities?.wasmSha256 !== "9c4ce5f0d9e32cdd364b73b2697566e7396368d9867d9bc3d939bb2063583a6d"
-  ) throw new Error("worker artifact identity mismatch");
+    JSON.stringify(identities) !== JSON.stringify(expectedIdentities) ||
+    result.jsSha256 !== expectedIdentities.javascriptSha256 ||
+    result.wasmSha256 !== expectedIdentities.wasmSha256
+  ) {
+    throw new Error("worker artifact identity mismatch");
+  }
+  const buildManifest = result.manifest as Record<string, unknown>;
+  const variants = buildManifest?.variants as Record<string, Record<string, unknown>>;
+  if (
+    !buildManifest || variants?.["js-controlled"]?.sha256 !== expectedIdentities.javascriptSha256 ||
+    variants?.["wasm-linear-controlled"]?.sha256 !== expectedIdentities.wasmSha256
+  ) {
+    throw new Error("worker build manifest invalid");
+  }
   const batchSize = Number(result.batchSize);
   const exactWork = {
     items: 65_536 * batchSize,
@@ -172,35 +272,141 @@ export function validateWorkerResult(
   if (
     !Number.isSafeInteger(batchSize) || batchSize < 1 || batchSize > 4096 ||
     JSON.stringify(work) !== JSON.stringify(exactWork) ||
+    correctness.expectedBatchDigest !== expectedBatchDigest(batchSize) ||
     correctness.scoredInvocationsPerVariant !== batchSize * 20
   ) throw new Error("fixed work evidence invalid");
-  const lifecycle = result.lifecycle as Record<string, unknown>;
-  if (
-    !lifecycle ||
-    [
-      "manifestTransferMs",
-      "jsTransferMs",
-      "wasmTransferMs",
-      "wasmCompileMs",
-      "wasmInstantiateMs",
-      "jsFirstExecuteMs",
-      "wasmFirstExecuteMs",
-    ].some((key) => !Number.isFinite(lifecycle[key]) || Number(lifecycle[key]) < 0)
-  ) throw new Error("complete lifecycle evidence invalid");
-  if (!(result.wasmLinearMemory as Record<string, unknown>)?.value) {
-    throw new Error("Wasm memory evidence missing");
+
+  const lifecycle = assertClosed(result.lifecycle, [
+    "manifestTransferMs",
+    "manifestBytes",
+    "manifestDecodeParseMs",
+    "jsTransferMs",
+    "jsBytes",
+    "jsHashVerifyMs",
+    "jsVerifiedModuleImportMs",
+    "jsModuleParseMs",
+    "jsModuleEvaluationMs",
+    "wasmTransferMs",
+    "wasmBytes",
+    "wasmHashVerifyMs",
+    "wasmCompileMs",
+    "wasmInstantiateMs",
+    "inputGenerateMs",
+    "inputCopyMs",
+    "jsFirstExecuteMs",
+    "wasmFirstExecuteMs",
+  ], "lifecycle");
+  for (const key of Object.keys(lifecycle).filter((key) => !key.startsWith("jsModule"))) {
+    finiteNonnegative(lifecycle[key], `lifecycle ${key}`);
   }
+  for (const key of ["jsModuleParseMs", "jsModuleEvaluationMs"]) {
+    const unavailable = assertClosed(lifecycle[key], ["status", "reason"], key);
+    if (
+      unavailable.status !== "unavailable" || typeof unavailable.reason !== "string" ||
+      !unavailable.reason
+    ) {
+      throw new Error(`${key} availability invalid`);
+    }
+  }
+  const memory = assertClosed(
+    result.wasmLinearMemory,
+    ["status", "scope", "caveat", "value"],
+    "Wasm memory",
+  );
+  const memoryValue = assertClosed(
+    memory.value,
+    ["beforeScoredBytes", "afterScoredBytes"],
+    "Wasm memory value",
+  );
+  if (
+    memory.status !== "supported-value" ||
+    memory.scope !== "webassembly-linear-memory-buffer-length" ||
+    typeof memory.caveat !== "string" || !memory.caveat.includes("not committed or resident") ||
+    !Number.isSafeInteger(memoryValue.beforeScoredBytes) ||
+    Number(memoryValue.beforeScoredBytes) <= 0 ||
+    !Number.isSafeInteger(memoryValue.afterScoredBytes) || Number(memoryValue.afterScoredBytes) <= 0
+  ) {
+    throw new Error("Wasm memory evidence invalid");
+  }
+  const resourceTiming = result.resourceTiming;
+  if (!Array.isArray(resourceTiming) || resourceTiming.length !== BENCHMARK_ASSETS.length) {
+    throw new Error("resource evidence denominator invalid");
+  }
+  const routes = new Set<string>();
+  for (const item of resourceTiming) {
+    const evidence = item as Record<string, unknown>;
+    if (
+      typeof evidence.route !== "string" ||
+      !BENCHMARK_ASSETS.includes(evidence.route as typeof BENCHMARK_ASSETS[number])
+    ) {
+      throw new Error("resource evidence route invalid");
+    }
+    routes.add(evidence.route);
+    if (evidence.status === "supported-value") {
+      const timing = evidence.value as Record<string, unknown>;
+      for (
+        const key of [
+          "startTime",
+          "duration",
+          "fetchStart",
+          "requestStart",
+          "responseStart",
+          "responseEnd",
+          "transferSize",
+          "encodedBodySize",
+          "decodedBodySize",
+        ]
+      ) {
+        finiteNonnegative(timing?.[key], `resource ${key}`);
+      }
+      if (evidence.scope !== "same-origin-resource-timing" || typeof evidence.caveat !== "string") {
+        throw new Error("resource evidence scope invalid");
+      }
+    } else if (evidence.status !== "not-observed" || typeof evidence.reason !== "string") {
+      throw new Error("resource evidence availability invalid");
+    }
+  }
+  if (routes.size !== BENCHMARK_ASSETS.length) throw new Error("duplicate resource evidence");
+
   const records = [];
   for (const [key, id] of [["js", "js-controlled"], ["wasm", "wasm-linear-controlled"]] as const) {
-    const variant = result[key] as Record<string, unknown>, samples = variant?.samples as number[];
+    const variant = assertClosed(result[key], [
+        "count",
+        "medianMs",
+        "p95Ms",
+        "firstScoredMs",
+        "samples",
+      ], `${key} trajectory`),
+      samples = variant.samples as number[];
     if (
       !Array.isArray(samples) || samples.length !== 20 || variant.count !== 20 ||
-      samples.some((v) => !Number.isFinite(v) || v <= 0) || variant.medianMs !== median(samples)
-    ) throw new Error("complete scored trajectory invalid");
+      samples.some((v) => !Number.isFinite(v) || v <= 0) ||
+      variant.medianMs !== median(samples) || variant.p95Ms !== type7(samples, .95) ||
+      variant.firstScoredMs !== samples[0]
+    ) {
+      throw new Error("complete scored trajectory invalid");
+    }
     records.push({ variantId: id, payloadSha256: "", medianMs: Number(variant.medianMs), samples });
   }
   return { result, records };
 }
+
+export function assertContainedRequests(
+  events: Array<Record<string, unknown>>,
+  origin: string,
+): void {
+  for (const event of events.filter((entry) => entry.type === "request")) {
+    const request = event.request as Record<string, unknown>,
+      url = new URL(String(request?.url ?? ""));
+    if (url.origin !== origin || request?.method !== "GET") {
+      throw new Error("unexpected origin or method");
+    }
+    if (![...COLLECTOR_GET_ROUTES, "/api/corpus/manifest"].includes(url.pathname)) {
+      throw new Error(`unexpected request: ${url.pathname}`);
+    }
+  }
+}
+
 function networkRecords(
   events: Array<Record<string, unknown>>,
   expectedPaths: string[],
@@ -268,6 +474,7 @@ export async function collectOwnedBlock(
   manifest: LaunchManifest,
   expectedHashes?: Record<string, string>,
   expectedSourceManifestSha256?: string,
+  onLaunchBegan?: (pid: number) => void,
 ): Promise<
   {
     blockSha256: string;
@@ -295,10 +502,12 @@ export async function collectOwnedBlock(
   }
   const issuedBody = await issued.json();
   if (typeof issuedBody.token !== "string") throw new Error("local corpus launch token missing");
+  assertPermitActive(permit);
   const token = issuedBody.token,
     owned = await launchReviewedChrome(
       permit,
       `${String(manifest.scheduleIndex).padStart(3, "0")}-${manifest.blockId}`,
+      onLaunchBegan,
     );
   if (!String(owned.version.product ?? "").includes("150.0.7871.24")) {
     await closeOwnedChrome(owned).catch(() => {});
@@ -353,21 +562,22 @@ export async function collectOwnedBlock(
       throw new Error("fresh-profile storage contradiction");
     }
     events.length = 0;
-    let primeArtifact: { sha256: string } | undefined;
+    let primeAttestationArtifact: { sha256: string } | undefined;
+    let primeEventsArtifact: { sha256: string } | undefined;
     const expectedMeasurement = Object.fromEntries(
-      HEADLINE_ASSETS.map((path) => [path, expectedHashes[path]]),
+      BENCHMARK_ASSETS.map((path) => [path, expectedHashes[path]]),
     );
     if (manifest.stratum === "warm") {
       await browser.send("Runtime.evaluate", {
         awaitPromise: true,
         returnByValue: true,
         expression: `Promise.all(${
-          JSON.stringify(HEADLINE_ASSETS)
+          JSON.stringify(BENCHMARK_ASSETS)
         }.map(async p=>{const r=await fetch(p,{cache:'reload'});if(!r.ok)throw new Error('prime failed');await r.arrayBuffer();return p}))`,
       }, sessionId);
       await new Promise((r) => setTimeout(r, 100));
       const primeEvents = structuredClone(events),
-        primeRecords = await networkRecords(primeEvents, HEADLINE_ASSETS, browser, sessionId);
+        primeRecords = await networkRecords(primeEvents, [...BENCHMARK_ASSETS], browser, sessionId);
       const prime = await attestNetwork(
         primeRecords,
         "warm",
@@ -375,9 +585,13 @@ export async function collectOwnedBlock(
         expectedMeasurement,
         "prime",
       );
-      primeArtifact = await writeImmutableArtifact(
-        `${rawRoot}/network-prime.json`,
-        canonicalize({ events: primeEvents, attestation: prime }) + "\n",
+      primeAttestationArtifact = await writeImmutableArtifact(
+        `${rawRoot}/network-prime-attestation.json`,
+        canonicalize(prime) + "\n",
+      );
+      primeEventsArtifact = await writeImmutableArtifact(
+        `${rawRoot}/network-prime-events.json`,
+        canonicalize(primeEvents) + "\n",
       );
       events.length = 0;
     }
@@ -397,7 +611,12 @@ export async function collectOwnedBlock(
     }, sessionId);
     let collected: Record<string, unknown> | undefined;
     const deadline = Date.now() + 120_000;
+    let nextLedgerRefresh = Date.now();
     while (Date.now() < deadline) {
+      if (Date.now() >= nextLedgerRefresh) {
+        owned.ledger = await refreshLedger(owned.ledger);
+        nextLedgerRefresh = Date.now() + 1_000;
+      }
       const value = nestedValue(
         await browser.send("Runtime.evaluate", {
           returnByValue: true,
@@ -414,19 +633,16 @@ export async function collectOwnedBlock(
     if (!collected || "error" in collected) {
       throw new Error(`collector failed: ${String(collected?.error ?? "timeout")}`);
     }
+    owned.ledger = await refreshLedger(owned.ledger);
     const validated = validateWorkerResult(collected, manifest),
       after = await collectChromeProvenance(browser, browser, sessionId);
-    for (const event of events.filter((e) => e.type === "request")) {
-      const request = event.request as Record<string, unknown>,
-        url = new URL(String(request?.url ?? ""));
-      if (url.origin !== permit.origin || request?.method !== "GET") {
-        throw new Error("unexpected origin or method");
-      }
-      if (![...HEADLINE_ASSETS, "/corpus-run", "/api/corpus/manifest"].includes(url.pathname)) {
-        throw new Error(`unexpected request: ${url.pathname}`);
-      }
-    }
-    const measurementRecords = await networkRecords(events, HEADLINE_ASSETS, browser, sessionId);
+    assertContainedRequests(events, permit.origin);
+    const measurementRecords = await networkRecords(
+      events,
+      [...BENCHMARK_ASSETS],
+      browser,
+      sessionId,
+    );
     const measurement = await attestNetwork(
       measurementRecords,
       manifest.stratum,
@@ -440,9 +656,13 @@ export async function collectOwnedBlock(
       `${rawRoot}/worker-result.json`,
       canonicalize(collected) + "\n",
     );
-    const networkArtifact = await writeImmutableArtifact(
-      `${rawRoot}/network-measurement.json`,
-      canonicalize({ events, attestation: measurement }) + "\n",
+    const networkAttestationArtifact = await writeImmutableArtifact(
+      `${rawRoot}/network-measurement-attestation.json`,
+      canonicalize(measurement) + "\n",
+    );
+    const networkEventsArtifact = await writeImmutableArtifact(
+      `${rawRoot}/network-measurement-events.json`,
+      canonicalize(events) + "\n",
     );
     const consoleArtifact = await writeImmutableArtifact(
       `${rawRoot}/console.json`,
@@ -504,10 +724,17 @@ export async function collectOwnedBlock(
           "post-run-assertions",
         ),
       },
-      network: { attestationSha256: networkArtifact.sha256, stratum: manifest.stratum },
+      network: {
+        attestationSha256: networkAttestationArtifact.sha256,
+        stratum: manifest.stratum,
+      },
       artifacts: {
-        networkMeasurementJson: networkArtifact.sha256,
-        ...(primeArtifact ? { networkPrimeJson: primeArtifact.sha256 } : {}),
+        networkMeasurementAttestationJson: networkAttestationArtifact.sha256,
+        networkMeasurementEventsJson: networkEventsArtifact.sha256,
+        ...(primeAttestationArtifact
+          ? { networkPrimeAttestationJson: primeAttestationArtifact.sha256 }
+          : {}),
+        ...(primeEventsArtifact ? { networkPrimeEventsJson: primeEventsArtifact.sha256 } : {}),
         consoleJson: consoleArtifact.sha256,
         screenshotPng: screenshotArtifact.sha256,
         workerResultJson: workerArtifact.sha256,
@@ -519,6 +746,8 @@ export async function collectOwnedBlock(
         profileRemoved: true,
       },
     };
+    assertLaunchEvidenceSchema(launchEvidence);
+    validateLaunchEvidenceSemantics(launchEvidence);
     const launchArtifact = await writeImmutableArtifact(
       `${rawRoot}/launch-evidence.json`,
       canonicalize(launchEvidence) + "\n",
@@ -580,7 +809,7 @@ async function collectAll(
     if (
       containmentStop || cell.terminal !== "continue" || blocks.length >= permit.maximumLaunches
     ) continue;
-    cell.attempted += 1;
+    assertPermitActive(permit);
     const manifest: LaunchManifest = {
       experimentId: "m1-chrome-sum-u32-v1",
       corpusId,
@@ -592,12 +821,18 @@ async function collectAll(
         .toISOString(),
     };
     let attempt: Omit<AttemptRecord, "sha256">;
+    let launchBegan = false;
     try {
       const result = await collectOwnedBlock(
         permit,
         manifest,
         undefined,
         checked.sourceManifestSha256,
+        () => {
+          if (launchBegan) throw new Error("duplicate launch begin signal");
+          launchBegan = true;
+          cell.attempted += 1;
+        },
       );
       cell.js.push(result.jsMedianMs);
       cell.wasm.push(result.wasmMedianMs);
@@ -609,6 +844,8 @@ async function collectAll(
         status: "committed",
         category: "committed",
         reason: null,
+        jsMedianMs: result.jsMedianMs,
+        wasmMedianMs: result.wasmMedianMs,
       };
       const pairSha256 = result.blockSha256;
       const artifact = await writeImmutableArtifact(
@@ -620,6 +857,21 @@ async function collectAll(
       blocks.push({ ...attempt, sha256: artifact.sha256 });
     } catch (error) {
       const failure = classifyAttemptError(error);
+      // Fail closed before a spawn without inventing an attempted launch.
+      if (!launchBegan) {
+        containmentStop = true;
+        await writeImmutableArtifact(
+          `raw/corpora/${corpusId}/collection-stop.json`,
+          canonicalize({
+            scheduleIndex: index,
+            blockId: manifest.blockId,
+            attempted: false,
+            category: "blocked-containment",
+            reason: failure.reason,
+          }) + "\n",
+        );
+        break;
+      }
       containmentStop ||= failure.stop;
       attempt = {
         blockId: manifest.blockId,
@@ -629,6 +881,8 @@ async function collectAll(
         status: failure.status,
         category: failure.category,
         reason: failure.reason,
+        jsMedianMs: null,
+        wasmMedianMs: null,
       };
       const artifact = await writeImmutableArtifact(
         `raw/corpora/${corpusId}/attempts/${
@@ -665,6 +919,16 @@ async function collectAll(
     : state.cold.terminal === "precision-met" && state.warm.terminal === "precision-met"
     ? "precision-met"
     : "cap-inconclusive";
+  const strata = Object.fromEntries((["cold", "warm"] as const).map((name) => {
+    const attempts = blocks.filter((block) => block.stratum === name);
+    return [name, {
+      attempted: state[name].attempted,
+      committed: attempts.filter((block) => block.status === "committed").length,
+      failed: attempts.filter((block) => block.status === "failed").length,
+      blocked: attempts.filter((block) => block.status === "blocked").length,
+      terminal: state[name].terminal,
+    }];
+  }));
   const corpus = {
     schemaVersion: 1,
     corpusId,
@@ -679,9 +943,11 @@ async function collectAll(
     blocked,
     unstarted: 120 - attempted,
     blocks,
+    strata,
     status,
   };
-  validateCorpusSemantics(corpus);
+  assertCorpusSchema(corpus);
+  validateCorpusSemantics(corpus, prereg.pairing.schedule);
   const artifact = await writeImmutableArtifact(
     `raw/corpora/${corpusId}/corpus.json`,
     canonicalize(corpus) + "\n",
@@ -689,9 +955,33 @@ async function collectAll(
   return { ...corpus, corpusSha256: artifact.sha256 };
 }
 async function dryFake() {
+  const { handler: localServerHandler } = await import("../server.ts");
   const root = await Deno.makeTempDir();
   const token = `dry-${crypto.randomUUID()}`;
-  const profilePath = `/tmp/wasm-vs-js-owned-profiles/${token}/launch`;
+  const permitValue = {
+    schemaVersion: 1 as const,
+    permitId: token,
+    experimentId: "m1-chrome-sum-u32-v1",
+    operation: "pilot-m1-corpus" as const,
+    sourceCommit,
+    chromeBinary: "/home/paulkinlan/.local/bin/google-chrome-stable",
+    chromeSha256: "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355",
+    origin: "http://127.0.0.1:8787",
+    strata: ["cold", "warm"] as ["cold", "warm"],
+    maximumLaunches: 1,
+    profileRoot: `/tmp/wasm-vs-js-owned-profiles/${token}`,
+    issuedAt: new Date(Date.now() - 60_000).toISOString(),
+    expiresAt: new Date(Date.now() + 60 * 60_000).toISOString(),
+    authorizationReference: "dry-fake-integration-only",
+    retryOf: null,
+  };
+  const permitFile = `${root}/permit.json`;
+  await Deno.writeTextFile(permitFile, JSON.stringify(permitValue));
+  const consumed = await consumePermit(permitFile, `${root}/receipts`, {
+    sourceCommit,
+    operation: "pilot-m1-corpus",
+  });
+  const profilePath = `${consumed.permit.profileRoot}/launch`;
   const profile = await prepareProfile(profilePath);
   const proc = `${root}/proc`, exe = `${root}/fake-chrome`;
   await Deno.mkdir(`${proc}/700/fd`, { recursive: true });
@@ -758,6 +1048,171 @@ async function dryFake() {
     if (!cleanup.cleaned || fakeVersion.product !== "FakeChrome/150") {
       throw new Error("fake Chrome/CDP containment integration failed");
     }
+    const routeHashes = await collectorRouteHashes();
+    const health = await localServerHandler(new Request(`${consumed.permit.origin}/healthz`));
+    const healthBody = await health.json();
+    if (
+      health.status !== 200 || healthBody.localCheckoutCommit !== sourceCommit ||
+      JSON.stringify(healthBody.collectorAssets) !== JSON.stringify(routeHashes)
+    ) {
+      throw new Error("dry fake local server source identity failed");
+    }
+    assertContainedRequests([{
+      type: "request",
+      request: { url: `${consumed.permit.origin}/styles.css`, method: "GET" },
+    }], consumed.permit.origin);
+    const styles = await localServerHandler(new Request(`${consumed.permit.origin}/styles.css`));
+    if (
+      !styles.ok ||
+      await sha256Hex(new Uint8Array(await styles.arrayBuffer())) !== routeHashes["/styles.css"]
+    ) {
+      throw new Error("dry fake styles route/hash failed");
+    }
+    const launchManifest: LaunchManifest = {
+      experimentId: "m1-chrome-sum-u32-v1",
+      corpusId: "dry-fake",
+      blockId: "cold-01",
+      scheduleIndex: 0,
+      stratum: "cold",
+      order: ["js-controlled", "wasm-linear-controlled"],
+      expiresAt: new Date(Date.now() + 60_000).toISOString(),
+    };
+    const issue = await localServerHandler(
+      new Request(`${consumed.permit.origin}/api/corpus/launch`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(launchManifest),
+      }),
+    );
+    const launchToken = (await issue.json()).token;
+    if (issue.status !== 201 || typeof launchToken !== "string") {
+      throw new Error("dry fake token issue failed");
+    }
+    const page = await localServerHandler(
+      new Request(`${consumed.permit.origin}/corpus-run?token=${launchToken}`),
+    );
+    const manifestResponse = await localServerHandler(
+      new Request(`${consumed.permit.origin}/api/corpus/manifest?token=${launchToken}`),
+    );
+    if (
+      !page.ok || page.url && new URL(page.url).pathname !== "/corpus-run" ||
+      JSON.stringify(await manifestResponse.json()) !== JSON.stringify(launchManifest)
+    ) {
+      throw new Error("dry fake navigation/manifest binding failed");
+    }
+    const benchmarkHashes = Object.fromEntries(
+      BENCHMARK_ASSETS.map((path) => [path, routeHashes[path]]),
+    );
+    const networkFixture = async (cached: boolean) =>
+      await Promise.all(BENCHMARK_ASSETS.map(async (path) => ({
+        url: `${consumed.permit.origin}${path}`,
+        method: "GET",
+        status: 200,
+        fromDiskCache: cached,
+        fromServiceWorker: false,
+        body: await Deno.readFile(COLLECTOR_ROUTES[path]),
+      })));
+    await attestNetwork(
+      await networkFixture(false),
+      "cold",
+      consumed.permit.origin,
+      benchmarkHashes,
+      "measurement",
+    );
+    await attestNetwork(
+      await networkFixture(false),
+      "warm",
+      consumed.permit.origin,
+      benchmarkHashes,
+      "prime",
+    );
+    await attestNetwork(
+      await networkFixture(true),
+      "warm",
+      consumed.permit.origin,
+      benchmarkHashes,
+      "measurement",
+    );
+    const buildManifest = JSON.parse(
+      await Deno.readTextFile("public/artifacts/sum-u32/build-manifest.json"),
+    );
+    const variant = (medianMs: number) => ({
+      count: 20,
+      medianMs,
+      p95Ms: medianMs,
+      firstScoredMs: medianMs,
+      samples: Array(20).fill(medianMs),
+    });
+    const dryWorker = {
+      manifest: launchManifest,
+      result: {
+        capturedAt: new Date().toISOString(),
+        order: "js-first",
+        iterations: 20,
+        cache:
+          "No Service Worker controlled this page. Dry fake external cache attestation passed.",
+        resourceTiming: BENCHMARK_ASSETS.map((route) => ({
+          route,
+          status: "not-observed",
+          reason: "dependency-injected dry fake",
+        })),
+        batchSize: 1,
+        work: {
+          items: 65536,
+          inputBytes: 262144,
+          additions: 65536,
+          loads: 65536,
+          boundaryCrossings: 1,
+        },
+        correctness: {
+          passed: true,
+          oracle: 145417951,
+          jsFirstOutput: 145417951,
+          wasmFirstOutput: 145417951,
+          everyScoredInvocationValidated: true,
+          expectedBatchDigest: expectedBatchDigest(1),
+          scoredInvocationsPerVariant: 20,
+        },
+        identities: {
+          inputSha256: "4f0516549fc9d6952c8d42d642927dd5c43a8c01d03c286e0c80da919bfaf9d7",
+          manifestSha256: "38136e96462c5b98e3057e4ea18ae339150918aa50f1270eb3db88586185cf98",
+          javascriptSha256: "4d8379672c1b51b0b315d2bee119880694e5a4f6412ef59b7fe2593ef6b179b7",
+          wasmSha256: "9c4ce5f0d9e32cdd364b73b2697566e7396368d9867d9bc3d939bb2063583a6d",
+        },
+        manifest: buildManifest,
+        jsSha256: "4d8379672c1b51b0b315d2bee119880694e5a4f6412ef59b7fe2593ef6b179b7",
+        wasmSha256: "9c4ce5f0d9e32cdd364b73b2697566e7396368d9867d9bc3d939bb2063583a6d",
+        wasmLinearMemory: {
+          status: "supported-value",
+          scope: "webassembly-linear-memory-buffer-length",
+          caveat: "JavaScript-visible buffer length, not committed or resident physical memory.",
+          value: { beforeScoredBytes: 65536, afterScoredBytes: 65536 },
+        },
+        lifecycle: {
+          manifestTransferMs: 1,
+          manifestBytes: 1,
+          manifestDecodeParseMs: 1,
+          jsTransferMs: 1,
+          jsBytes: 1,
+          jsHashVerifyMs: 1,
+          jsVerifiedModuleImportMs: 1,
+          jsModuleParseMs: { status: "unavailable", reason: "not isolated" },
+          jsModuleEvaluationMs: { status: "unavailable", reason: "not isolated" },
+          wasmTransferMs: 1,
+          wasmBytes: 1,
+          wasmHashVerifyMs: 1,
+          wasmCompileMs: 1,
+          wasmInstantiateMs: 1,
+          inputGenerateMs: 1,
+          inputCopyMs: 1,
+          jsFirstExecuteMs: 1,
+          wasmFirstExecuteMs: 1,
+        },
+        js: variant(10),
+        wasm: variant(5),
+      },
+    };
+    validateWorkerResult(dryWorker, launchManifest);
     const samples = [10, 11],
       records = [{
         variantId: "js-controlled" as const,
@@ -784,6 +1239,9 @@ async function dryFake() {
       cleanup: { complete: true, remainingPids: [], profileRemoved: true },
     });
     return {
+      dependencyInjectedCollectOwnedBlock: true,
+      permitConsumed: consumed.digest,
+      localServerNavigationStylesWarmWorkerValidated: true,
       fakeChromeProfileCdpTeardown: true,
       devToolsEndpoint: endpoint,
       committed: true,

@@ -23,6 +23,9 @@ Deno.test("host provenance is source/scope/time labelled and never substitutes u
       assert(typeof field.value === "number" && field.value > 0, `${key} positive`);
     }
   }
+  const missingProcess = await collectProcessMemory([]);
+  assert(missingProcess.status === "unavailable" && typeof missingProcess.reason === "string");
+  assert(!("value" in missingProcess));
   const process = await collectProcessMemory([Deno.pid]);
   assert(process.status === "supported-value", "owned process memory status");
   const row = (process.value as Array<Record<string, unknown>>)[0];

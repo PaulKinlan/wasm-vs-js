@@ -32,7 +32,6 @@ export type ProcessLedger = {
 };
 
 const OWNERSHIP_ROOT = "/tmp/wasm-vs-js-owned-profiles";
-const hashCache = new Map<string, string>();
 function validPid(pid: number): boolean {
   return Number.isSafeInteger(pid) && pid > 1;
 }
@@ -53,26 +52,25 @@ function statFields(text: string) {
     startTimeTicks: fields[19],
   };
 }
-async function hashFile(path: string, dev: number, ino: number): Promise<string> {
-  const key = `${dev}:${ino}`;
-  let hash = hashCache.get(key);
-  if (!hash) {
-    hash = await sha256Hex(await Deno.readFile(path));
-    hashCache.set(key, hash);
-  }
-  return hash;
-}
 async function fileIdentity(path: string): Promise<FileIdentity> {
   const resolved = await Deno.realPath(path);
-  const info = await Deno.stat(resolved);
-  if (!info.isFile) throw new Error("executable is not a file");
-  const dev = numeric(info.dev, "executable dev"), ino = numeric(info.ino, "executable inode");
-  return { path: resolved, dev, ino, sha256: await hashFile(resolved, dev, ino) };
+  const before = await Deno.stat(resolved);
+  if (!before.isFile) throw new Error("executable is not a file");
+  const bytes = await Deno.readFile(resolved);
+  const after = await Deno.stat(resolved);
+  const dev = numeric(after.dev, "executable dev"), ino = numeric(after.ino, "executable inode");
+  if (
+    numeric(before.dev, "executable dev") !== dev || numeric(before.ino, "executable inode") !== ino
+  ) {
+    throw new Error("executable changed while hashing");
+  }
+  return { path: resolved, dev, ino, sha256: await sha256Hex(bytes) };
 }
 export async function readProcessIdentity(
   pid: number,
   profileRoot: string,
   procRoot = "/proc",
+  requireProfile = true,
 ): Promise<ProcessIdentity> {
   if (!validPid(pid)) throw new Error("invalid pid");
   const base = `${procRoot}/${pid}`;
@@ -80,7 +78,7 @@ export async function readProcessIdentity(
   const commandLine = (await Deno.readFile(`${base}/cmdline`)).length
     ? new TextDecoder().decode(await Deno.readFile(`${base}/cmdline`)).split("\0").filter(Boolean)
     : [];
-  if (!commandLine.includes(`--user-data-dir=${profileRoot}`)) {
+  if (requireProfile && !commandLine.includes(`--user-data-dir=${profileRoot}`)) {
     throw new Error("process profile identity mismatch");
   }
   const exeLink = await Deno.readLink(`${base}/exe`);
@@ -161,7 +159,9 @@ async function scanProc(procRoot: string): Promise<Map<number, { ppid: number }>
 }
 export async function descendants(rootPid: number, procRoot = "/proc"): Promise<number[]> {
   if (!validPid(rootPid)) throw new Error("invalid root pid");
-  const parent = await scanProc(procRoot), result = new Set<number>([rootPid]);
+  const parent = await scanProc(procRoot);
+  if (!parent.has(rootPid)) return [];
+  const result = new Set<number>([rootPid]);
   let changed = true;
   while (changed) {
     changed = false;
@@ -187,13 +187,13 @@ export async function createLedger(
   const processes: ProcessIdentity[] = [];
   for (const pid of await descendants(rootPid, procRoot)) {
     try {
-      const process = await readProcessIdentity(pid, identity.profileRoot, procRoot);
-      if (process.session !== root.session || process.processGroup !== root.processGroup) {
-        throw new Error("descendant process group/session mismatch");
-      }
-      processes.push(process);
+      // Proven ancestry, not inherited flags/groups, establishes ownership for descendants.
+      processes.push(
+        await readProcessIdentity(pid, identity.profileRoot, procRoot, pid === rootPid),
+      );
     } catch (error) {
       if (pid === rootPid) throw error;
+      throw new Error(`owned descendant identity unavailable: ${pid}`, { cause: error });
     }
   }
   return {
@@ -239,9 +239,12 @@ export async function recoverLedger(
   }
   if (!candidates.length) throw new Error("no recoverable profile-bound Chrome process");
   const root = candidates.find((p) => p.pid === preferredRootPid) ?? candidates[0];
-  const processes = candidates.filter((p) =>
-    p.session === root.session && p.processGroup === root.processGroup
-  );
+  const all = new Map<number, ProcessIdentity>();
+  for (const candidate of candidates) all.set(candidate.pid, candidate);
+  for (const pid of await descendants(root.pid, procRoot)) {
+    all.set(pid, await readProcessIdentity(pid, profile.profileRoot, procRoot, pid === root.pid));
+  }
+  const processes = [...all.values()];
   return {
     rootPid: root.pid,
     rootStartTimeTicks: root.startTimeTicks,
@@ -261,20 +264,31 @@ export function assertOnlyOwned(targets: number[], ledger: ProcessLedger): void 
     throw new Error("foreign pid denied");
   }
 }
-async function refreshLedger(ledger: ProcessLedger, procRoot = "/proc"): Promise<ProcessLedger> {
+export async function refreshLedger(
+  ledger: ProcessLedger,
+  procRoot = "/proc",
+): Promise<ProcessLedger> {
   await assertProfileIdentity(ledger.profile);
   const known = new Map(ledger.processes.map((p) => [p.pid, p]));
-  for await (const entry of Deno.readDir(procRoot)) {
-    if (!entry.isDirectory || !/^\d+$/.test(entry.name)) continue;
-    const pid = Number(entry.name);
-    try {
-      const current = await readProcessIdentity(pid, ledger.profileRoot, procRoot);
-      const prior = known.get(pid);
-      if (prior && !sameProcess(prior, current)) throw new Error("PID reuse detected");
-      if (current.session === ledger.session && current.processGroup === ledger.processGroup) {
-        known.set(pid, current);
-      }
-    } catch { /* non-owned, exited, or raced */ }
+  const ancestry = await descendants(ledger.rootPid, procRoot).catch(() => []);
+  for (const pid of ancestry) {
+    const current = await readProcessIdentity(
+      pid,
+      ledger.profileRoot,
+      procRoot,
+      pid === ledger.rootPid,
+    );
+    const prior = known.get(pid);
+    if (prior && !sameProcess(prior, current)) {
+      throw new Error(`owned PID identity changed: ${pid}`);
+    }
+    known.set(pid, current);
+  }
+  // Preserve detached/reparented descendants only while their full identity still matches.
+  for (const [pid, prior] of [...known]) {
+    const state = await identityState(prior, procRoot);
+    if (state === "absent") continue;
+    if (state === "mismatch") throw new Error(`owned PID identity changed: ${pid}`);
   }
   const processes = [...known.values()];
   return {
@@ -284,6 +298,17 @@ async function refreshLedger(ledger: ProcessLedger, procRoot = "/proc"): Promise
     recordedAt: new Date().toISOString(),
   };
 }
+export async function assertLedgerProcessesCurrent(
+  ledger: ProcessLedger,
+  procRoot = "/proc",
+): Promise<void> {
+  for (const identity of ledger.processes) {
+    if (await identityState(identity, procRoot) !== "match") {
+      throw new Error(`owned process identity is not current: ${identity.pid}`);
+    }
+  }
+}
+
 async function identityState(
   identity: ProcessIdentity,
   procRoot = "/proc",
@@ -291,7 +316,12 @@ async function identityState(
   try {
     return sameProcess(
         identity,
-        await readProcessIdentity(identity.pid, identity.profileRoot, procRoot),
+        await readProcessIdentity(
+          identity.pid,
+          identity.profileRoot,
+          procRoot,
+          identity.commandLine.includes(`--user-data-dir=${identity.profileRoot}`),
+        ),
       )
       ? "match"
       : "mismatch";
@@ -304,6 +334,24 @@ async function identityState(
     }
   }
 }
+export async function removeOwnedProfile(identity: ProfileIdentity): Promise<void> {
+  await assertProfileIdentity(identity);
+  const parentBefore = await verifiedDirectory(identity.ownershipRoot);
+  const tombstone = `${identity.ownershipRoot}/.removed-${crypto.randomUUID()}`;
+  await Deno.rename(identity.profileRoot, tombstone);
+  const parentAfter = await verifiedDirectory(identity.ownershipRoot);
+  if (
+    parentBefore.dev !== parentAfter.dev || parentBefore.ino !== parentAfter.ino ||
+    parentAfter.dev !== identity.ownershipDev || parentAfter.ino !== identity.ownershipIno
+  ) throw new Error("profile ownership parent changed during removal");
+  const tomb = await verifiedDirectory(tombstone);
+  if (
+    tomb.dev !== identity.profileDev || tomb.ino !== identity.profileIno ||
+    await Deno.realPath(tombstone) !== tombstone
+  ) throw new Error("profile tombstone identity changed");
+  await Deno.remove(tombstone, { recursive: true });
+}
+
 export async function teardownLedger(
   initial: ProcessLedger,
   options: {
@@ -318,8 +366,19 @@ export async function teardownLedger(
   const sleep = options.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
   let ledger = initial;
   const mismatches = new Set<number>();
+  const safeRefresh = async () => {
+    try {
+      ledger = await refreshLedger(ledger, procRoot);
+      return true;
+    } catch {
+      for (const process of ledger.processes) {
+        if (await identityState(process, procRoot) === "mismatch") mismatches.add(process.pid);
+      }
+      return false;
+    }
+  };
   const signalPass = async (signal: Deno.Signal) => {
-    ledger = await refreshLedger(ledger, procRoot);
+    if (!await safeRefresh()) return;
     for (const process of [...ledger.processes].sort((a, b) => b.pid - a.pid)) {
       const state = await identityState(process, procRoot);
       if (state === "mismatch") mismatches.add(process.pid);
@@ -334,7 +393,7 @@ export async function teardownLedger(
   let remaining: number[] = [];
   while (Date.now() < deadline) {
     await sleep(25);
-    ledger = await refreshLedger(ledger, procRoot);
+    await safeRefresh();
     remaining = [];
     for (const process of ledger.processes) {
       if (await identityState(process, procRoot) === "match") remaining.push(process.pid);
@@ -342,14 +401,13 @@ export async function teardownLedger(
     if (!remaining.length) break;
   }
   if (remaining.length) await signalPass("SIGKILL");
-  ledger = await refreshLedger(ledger, procRoot);
+  await safeRefresh();
   remaining = [];
   for (const process of ledger.processes) {
     if (await identityState(process, procRoot) === "match") remaining.push(process.pid);
   }
   if (options.removeProfile !== false && !remaining.length && !mismatches.size) {
-    await assertProfileIdentity(ledger.profile);
-    await Deno.remove(ledger.profileRoot, { recursive: true });
+    await removeOwnedProfile(ledger.profile);
   }
   let profileExists = true;
   try {

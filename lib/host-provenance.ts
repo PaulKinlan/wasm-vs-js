@@ -31,6 +31,13 @@ async function text(path: string): Promise<string | undefined> {
 export async function collectProcessMemory(
   pids: number[],
 ): Promise<EvidenceValue> {
+  if (!pids.length) {
+    return no(
+      "no owned Chrome process IDs were available",
+      "/proc/<owned-pid>",
+      "owned-chrome-process-rss-pss",
+    );
+  }
   const processes = [];
   for (const pid of [...new Set(pids)].sort((a, b) => a - b)) {
     if (!Number.isSafeInteger(pid) || pid < 2) throw new Error("invalid owned PID");

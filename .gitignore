@@ -8,3 +8,6 @@ node_modules/
 !.env.example
 raw/runs/*.json
 raw/summaries/*.json
+# Private, immutable corpus authorization receipts and evidence. Keep other raw paths visible.
+raw/permits/
+raw/corpora/

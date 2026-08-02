@@ -85,4 +85,15 @@ Deno.test("permit rejects widening, changed origin/binary, invalid profile and r
     futureFailed = true;
   }
   assertEquals(futureFailed, true);
+  let oneMillisecondFutureFailed = false;
+  try {
+    validatePermit(
+      permit({ issuedAt: "2026-08-02T01:00:00.001Z", expiresAt: "2026-08-02T02:00:00Z" }),
+      {},
+      new Date("2026-08-02T01:00:00.000Z"),
+    );
+  } catch {
+    oneMillisecondFutureFailed = true;
+  }
+  assertEquals(oneMillisecondFutureFailed, true);
 });

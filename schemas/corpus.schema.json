@@ -16,6 +16,7 @@
     "blocked",
     "unstarted",
     "blocks",
+    "strata",
     "status"
   ],
   "properties": {
@@ -34,6 +35,15 @@
     "blocked": { "type": "integer", "minimum": 0, "maximum": 120 },
     "unstarted": { "type": "integer", "minimum": 0, "maximum": 120 },
     "blocks": { "type": "array", "maxItems": 120, "items": { "$ref": "#/$defs/attempt" } },
+    "strata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cold", "warm"],
+      "properties": {
+        "cold": { "$ref": "#/$defs/stratum" },
+        "warm": { "$ref": "#/$defs/stratum" }
+      }
+    },
     "status": { "enum": ["precision-met", "cap-inconclusive", "containment-blocked"] }
   },
   "$defs": {
@@ -48,6 +58,8 @@
         "status",
         "category",
         "reason",
+        "jsMedianMs",
+        "wasmMedianMs",
         "sha256"
       ],
       "properties": {
@@ -73,7 +85,21 @@
           ]
         },
         "reason": { "type": ["string", "null"], "maxLength": 1024 },
+        "jsMedianMs": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+        "wasmMedianMs": { "type": ["number", "null"], "exclusiveMinimum": 0 },
         "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "stratum": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["attempted", "committed", "failed", "blocked", "terminal"],
+      "properties": {
+        "attempted": { "type": "integer", "minimum": 0, "maximum": 60 },
+        "committed": { "type": "integer", "minimum": 0, "maximum": 60 },
+        "failed": { "type": "integer", "minimum": 0, "maximum": 60 },
+        "blocked": { "type": "integer", "minimum": 0, "maximum": 60 },
+        "terminal": { "enum": ["continue", "precision-met", "cap-inconclusive"] }
       }
     }
   }

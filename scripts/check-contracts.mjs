@@ -271,13 +271,15 @@ expect(
 );
 
 const attempt = {
-  blockId: "block-0",
+  blockId: "cold-01",
   scheduleIndex: 0,
   stratum: "cold",
   order: ["js-controlled", "wasm-linear-controlled"],
   status: "committed",
   category: "committed",
   reason: null,
+  jsMedianMs: 10,
+  wasmMedianMs: 5,
   sha256: hash,
 };
 const corpus = {
@@ -294,12 +296,19 @@ const corpus = {
   blocked: 0,
   unstarted: 119,
   blocks: [attempt],
-  status: "cap-inconclusive",
+  strata: {
+    cold: { attempted: 1, committed: 1, failed: 0, blocked: 0, terminal: "continue" },
+    warm: { attempted: 0, committed: 0, failed: 0, blocked: 0, terminal: "continue" },
+  },
+  status: "containment-blocked",
 };
-validateCorpusSemantics(corpus);
+const frozenSchedule = JSON.parse(
+  await Deno.readTextFile("experiments/m1-chrome-sum-u32-v1/preregistration.json"),
+).pairing.schedule;
+validateCorpusSemantics(corpus, frozenSchedule);
 let semanticRejected = false;
 try {
-  validateCorpusSemantics({ ...corpus, attempted: 0 });
+  validateCorpusSemantics({ ...corpus, attempted: 0 }, frozenSchedule);
 } catch {
   semanticRejected = true;
 }

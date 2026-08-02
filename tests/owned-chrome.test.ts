@@ -1,10 +1,12 @@
 import { assertEquals, assertRejects } from "./assert.ts";
 import {
+  assertLedgerProcessesCurrent,
   assertOnlyOwned,
   assertProfileIdentity,
   createLedger,
   prepareProfile,
   readProcessIdentity,
+  removeOwnedProfile,
   teardownLedger,
 } from "../lib/process-ledger.ts";
 import { waitDevToolsActivePort } from "../lib/owned-chrome.ts";
@@ -79,6 +81,37 @@ Deno.test("owned ledger records immutable process identity and denies foreign or
     await cleanupFixture(f);
   }
 });
+Deno.test("owned descendant ancestry survives missing profile/group flags and executable rewrites deny signalling", async () => {
+  const f = await fixture();
+  try {
+    await Deno.writeTextFile(
+      `${f.proc}/101/stat`,
+      `101 (detached child) S 100 900 901 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1001\n`,
+    );
+    await Deno.writeFile(
+      `${f.proc}/101/cmdline`,
+      new TextEncoder().encode(`${f.exe}\0--type=renderer\0`),
+    );
+    const ledger = await createLedger(100, f.profile, f.proc);
+    assertEquals(ledger.ownedPids, [100, 101]);
+    await assertLedgerProcessesCurrent(ledger, f.proc);
+    // In-place replacement preserves dev/inode but must change the freshly recomputed digest.
+    await Deno.writeTextFile(f.exe, "rewritten executable bytes");
+    const signalled: number[] = [];
+    const result = await teardownLedger(ledger, {
+      procRoot: f.proc,
+      removeProfile: false,
+      kill: (pid) => signalled.push(pid),
+      sleep: async () => {},
+    });
+    assertEquals(signalled, []);
+    assertEquals(result.cleaned, false);
+    assertEquals(result.identityMismatches.length > 0, true);
+  } finally {
+    await cleanupFixture(f);
+  }
+});
+
 Deno.test("DevToolsActivePort retains exact port and browser path and rejects symlinks", async () => {
   const profile = `/tmp/wasm-vs-js-owned-profiles/test-${crypto.randomUUID()}`;
   await Deno.mkdir(profile, { recursive: true });
@@ -136,6 +169,7 @@ Deno.test("profile containment rejects symlinked parent and identity replacement
     await Deno.remove(f.profilePath, { recursive: true });
     await Deno.mkdir(f.profilePath);
     await assertRejects(() => assertProfileIdentity(f.profile), "identity changed");
+    await assertRejects(() => removeOwnedProfile(f.profile), "identity changed");
     await assertRejects(() => readProcessIdentity(100, "/tmp/wrong", f.proc), "profile");
   } finally {
     await cleanupFixture(f);

@@ -10,6 +10,7 @@ export const EXECUTED_SOURCE_PATHS = [
   "lib/cdp-client.ts",
   "lib/chrome-evidence.ts",
   "lib/chrome-provenance.ts",
+  "lib/corpus-contracts.ts",
   "lib/corpus-store.ts",
   "lib/corpus-validation.ts",
   "lib/host-provenance.ts",
@@ -19,6 +20,7 @@ export const EXECUTED_SOURCE_PATHS = [
   "lib/source-identity.ts",
   "local/corpus-run.html",
   "local/corpus-run.js",
+  "public/styles.css",
   "public/hosted-runner-core.js",
   "public/hosted-runner-worker.js",
   "benchmarks/sum-u32/benchmark.json",
@@ -31,6 +33,7 @@ export const EXECUTED_SOURCE_PATHS = [
 export const COLLECTOR_ROUTES: Record<string, string> = {
   "/corpus-run": "local/corpus-run.html",
   "/corpus-run.js": "local/corpus-run.js",
+  "/styles.css": "public/styles.css",
   "/hosted-runner-core.js": "public/hosted-runner-core.js",
   "/hosted-runner-worker.js": "public/hosted-runner-worker.js",
   "/benchmarks/sum-u32/workload.js": "benchmarks/sum-u32/workload.js",

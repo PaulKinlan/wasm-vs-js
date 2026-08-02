@@ -1,4 +1,5 @@
 import { canonicalize, sha256Hex } from "./canonical.ts";
+import { assertPairedBlockSchema } from "./corpus-contracts.ts";
 export type VariantRecord = {
   variantId: "js-controlled" | "wasm-linear-controlled";
   payloadSha256: string;
@@ -46,7 +47,9 @@ export async function commitPairedBlock(
   const dir = `${root}/blocks`;
   await Deno.mkdir(dir, { recursive: true, mode: 0o700 });
   const path = `${dir}/${input.blockId}.json`;
-  const body = canonicalize({ ...input, committed: true });
+  const committed = { ...input, committed: true as const };
+  assertPairedBlockSchema(committed);
+  const body = canonicalize(committed);
   const sha256 = await sha256Hex(body);
   const handle = await Deno.open(path, { write: true, createNew: true, mode: 0o600 });
   try {

@@ -1,6 +1,10 @@
 import { assertEquals, assertRejects } from "./assert.ts";
 import { classifyAttemptError, validateWorkerResult } from "../scripts/run-m1-chrome-corpus.ts";
 import { LaunchManifest } from "../lib/corpus-store.ts";
+import { expectedBatchDigest } from "../public/hosted-runner-core.js";
+const buildManifest = JSON.parse(
+  await Deno.readTextFile("public/artifacts/sum-u32/build-manifest.json"),
+);
 const manifest: LaunchManifest = {
   experimentId: "m1-chrome-sum-u32-v1",
   corpusId: "corpus-1",
@@ -20,8 +24,16 @@ const variant = (value: number) => ({
 const workerEnvelope = () => ({
   manifest,
   result: {
+    capturedAt: new Date().toISOString(),
     order: "js-first",
     iterations: 20,
+    cache:
+      "No Service Worker controlled this page. Exact controlled cache state is attested externally.",
+    resourceTiming: [
+      "/artifacts/sum-u32/build-manifest.json",
+      "/benchmarks/sum-u32/workload.js",
+      "/artifacts/sum-u32/sum-u32.wasm",
+    ].map((route) => ({ route, status: "not-observed", reason: "fixture" })),
     batchSize: 1,
     correctness: {
       passed: true,
@@ -29,7 +41,7 @@ const workerEnvelope = () => ({
       jsFirstOutput: 145417951,
       wasmFirstOutput: 145417951,
       everyScoredInvocationValidated: true,
-      expectedBatchDigest: 1,
+      expectedBatchDigest: expectedBatchDigest(1),
       scoredInvocationsPerVariant: 20,
     },
     identities: {
@@ -45,16 +57,35 @@ const workerEnvelope = () => ({
       loads: 65536,
       boundaryCrossings: 1,
     },
+    manifest: buildManifest,
+    jsSha256: "4d8379672c1b51b0b315d2bee119880694e5a4f6412ef59b7fe2593ef6b179b7",
+    wasmSha256: "9c4ce5f0d9e32cdd364b73b2697566e7396368d9867d9bc3d939bb2063583a6d",
     lifecycle: {
       manifestTransferMs: 1,
+      manifestBytes: 1,
+      manifestDecodeParseMs: 1,
       jsTransferMs: 1,
+      jsBytes: 1,
+      jsHashVerifyMs: 1,
+      jsVerifiedModuleImportMs: 1,
+      jsModuleParseMs: { status: "unavailable", reason: "not isolated" },
+      jsModuleEvaluationMs: { status: "unavailable", reason: "not isolated" },
       wasmTransferMs: 1,
+      wasmBytes: 1,
+      wasmHashVerifyMs: 1,
       wasmCompileMs: 1,
       wasmInstantiateMs: 1,
+      inputGenerateMs: 1,
+      inputCopyMs: 1,
       jsFirstExecuteMs: 1,
       wasmFirstExecuteMs: 1,
     },
-    wasmLinearMemory: { value: { beforeScoredBytes: 1, afterScoredBytes: 1 } },
+    wasmLinearMemory: {
+      status: "supported-value",
+      scope: "webassembly-linear-memory-buffer-length",
+      caveat: "JavaScript-visible buffer length, not committed or resident physical memory.",
+      value: { beforeScoredBytes: 65536, afterScoredBytes: 65536 },
+    },
     js: variant(10),
     wasm: variant(5),
   },
@@ -94,10 +125,10 @@ Deno.test("attempt failures are typed and only containment failures stop the sch
     classifyAttemptError(new Error("warm cache contradiction")).category,
     "blocked-cache",
   );
-  assertEquals(
-    classifyAttemptError(new Error("source identity mismatch")).category,
-    "blocked-provenance",
-  );
+  const sourceIdentity = classifyAttemptError(new Error("source identity mismatch"));
+  assertEquals([sourceIdentity.category, sourceIdentity.stop], ["blocked-provenance", true]);
+  const originEscape = classifyAttemptError(new Error("unexpected origin or method"));
+  assertEquals([originEscape.category, originEscape.stop], ["blocked-provenance", true]);
   const containment = classifyAttemptError(new Error("owned Chrome cleanup failed"));
   assertEquals([containment.category, containment.stop], ["blocked-containment", true]);
   assertEquals(classifyAttemptError(new Error("timer failure")).stop, false);
@@ -118,7 +149,8 @@ Deno.test("headline collector statically excludes heavy diagnostics and retains 
   }
   for (
     const required of [
-      "network-prime.json",
+      "network-prime-attestation.json",
+      "network-prime-events.json",
       "worker-result.json",
       "source-manifest.json",
       "assertPermitActive",
