@@ -105,12 +105,16 @@ Deno.test("cold/warm network evidence rejects cache, service worker, origin and 
 });
 Deno.test("private artifact writes are immutable and hashed", async () => {
   const root = await Deno.makeTempDir();
+  const relativeRoot = `raw/permits/test-${crypto.randomUUID()}`;
   try {
     const p = `${root}/a/x.json`;
     const v = await writeImmutableArtifact(p, "{}\n");
     assertEquals(v.bytes, 3);
     await assertRejects(() => writeImmutableArtifact(p, "bad"), "File exists");
+    const relative = await writeImmutableArtifact(`${relativeRoot}/relative.json`, "{}\n");
+    assertEquals(relative.bytes, 3);
   } finally {
     await Deno.remove(root, { recursive: true });
+    await Deno.remove(relativeRoot, { recursive: true }).catch(() => {});
   }
 });

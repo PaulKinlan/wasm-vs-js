@@ -107,10 +107,12 @@ export async function writeImmutableArtifact(
   value: Uint8Array | string,
 ): Promise<{ sha256: string; bytes: number }> {
   const bytes = typeof value === "string" ? new TextEncoder().encode(value) : value;
-  const directory = path.slice(0, path.lastIndexOf("/"));
+  const cwd = await Deno.realPath(Deno.cwd());
+  const absolutePath = path.startsWith("/") ? path : `${cwd}/${path}`;
+  const directory = absolutePath.slice(0, absolutePath.lastIndexOf("/"));
   await ensurePrivateTree(directory);
   await assertPrivateDirectory(directory);
-  const h = await Deno.open(path, { write: true, createNew: true, mode: 0o600 });
+  const h = await Deno.open(absolutePath, { write: true, createNew: true, mode: 0o600 });
   try {
     await h.write(bytes);
     h.sync();
