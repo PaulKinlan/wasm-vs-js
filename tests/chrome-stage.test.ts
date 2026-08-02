@@ -1,6 +1,7 @@
 import { assertEquals, assertRejects } from "./assert.ts";
 import {
   inspectChromePackage,
+  removeStagedChrome,
   stageChromePackage,
   verifyStagedChrome,
 } from "../lib/chrome-stage.ts";
@@ -31,6 +32,11 @@ Deno.test("staged Chrome package is immutable and independent from original byte
     await Deno.writeTextFile(stage.binary, "mutated-stage");
     await Deno.chmod(stage.binary, 0o500);
     await assertRejects(() => verifyStagedChrome(stage), "manifest changed");
+    await Deno.chmod(stage.binary, 0o700);
+    await Deno.writeTextFile(stage.binary, "original-binary");
+    await Deno.chmod(stage.binary, 0o500);
+    await removeStagedChrome(stage);
+    await assertRejects(() => Deno.lstat(stage.root), "No such file");
   } finally {
     await Deno.chmod(stage.binary, 0o500).catch(() => {});
     await Deno.chmod(stage.root, 0o700).catch(() => {});

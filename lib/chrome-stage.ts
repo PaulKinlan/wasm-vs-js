@@ -88,7 +88,7 @@ export async function removeStagedChrome(stage: StagedChrome): Promise<void> {
     let at = rel.includes("/") ? rel.slice(0, rel.lastIndexOf("/")) : "";
     while (at) {
       dirs.add(`${stage.root}/${at}`);
-      at = at.slice(0, at.lastIndexOf("/"));
+      at = at.includes("/") ? at.slice(0, at.lastIndexOf("/")) : "";
     }
   }
   for (const dir of dirs) await Deno.chmod(dir, 0o700);
