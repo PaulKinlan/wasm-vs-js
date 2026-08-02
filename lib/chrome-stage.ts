@@ -167,7 +167,7 @@ export async function stageChromePackage(
       let at = rel.includes("/") ? rel.slice(0, rel.lastIndexOf("/")) : "";
       while (at) {
         dirs.add(`${root}/${at}`);
-        at = at.slice(0, at.lastIndexOf("/"));
+        at = at.includes("/") ? at.slice(0, at.lastIndexOf("/")) : "";
       }
     }
     for (const dir of [...dirs].sort((a, b) => b.length - a.length)) await Deno.chmod(dir, 0o500);
