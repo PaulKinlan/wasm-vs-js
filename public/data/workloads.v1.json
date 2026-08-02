@@ -111,16 +111,16 @@
     },
     {
       "id": "audio.opus-stream.v1",
-      "title": "Opus decode/encode stream",
+      "title": "Opus decoder conformance stream",
       "status": "proposed",
       "stage": "proposal",
       "priority": "P0",
       "class": "complete-task",
       "domain": "audio",
-      "story": "Decode official packets or encode 60 s PCM at fixed bitrate.",
+      "story": "Decode the complete frozen official Opus packet-vector set to PCM.",
       "inputs": [
         {
-          "description": "Official vector download recipe plus project-generated PCM.",
+          "description": "Official Opus decoder vectors retrieved by a pinned download recipe.",
           "fixtureState": "proposed",
           "rightsStatus": "download-recipe",
           "provenanceStatus": "source-identified",
@@ -133,11 +133,11 @@
       "oracle": {
         "kind": "conformance",
         "equivalenceClass": "conformance-equivalent",
-        "algorithmFamily": "opus-fixed-version-settings",
-        "description": "Observable output and structural checks are frozen before implementation measurement."
+        "algorithmFamily": "libopus-compatible-decoder-conformance",
+        "description": "Decoded PCM must satisfy the official fixed-point or floating-point vector comparison rules for the pinned libopus version."
       },
       "fixedWork": {
-        "description": "Fixed frames, rate, bitrate and complexity over 60 s.",
+        "description": "Decode every packet in the frozen vector manifest exactly once at its declared sample rate and channel count.",
         "iterationBased": true,
         "timeLimited": false
       },
@@ -188,8 +188,7 @@
         }
       ],
       "blockers": [
-        "Encoder bytes may vary",
-        "Real-time throttling",
+        "Real-time scheduling is excluded from this offline decode workload",
         "Vector redistribution review"
       ]
     },
