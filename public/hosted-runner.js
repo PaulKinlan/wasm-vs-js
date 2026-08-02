@@ -175,7 +175,7 @@ function appendTable(parent, captionText, headers, rows) {
 function renderResult(data) {
   resultContent.replaceChildren();
   resultDisclaimer.textContent =
-    "Exploratory single-tab run only. Do not use these values as an accepted JavaScript-versus-Wasm performance claim; independent fresh-launch pairs and the preregistered precision gate are absent.";
+    "Status: exploratory. This tab supplies no independent fresh-launch pairs, so its values stay outside the accepted corpus and paired interval.";
 
   const disclosure = document.createElement("section");
   const disclosureTitle = document.createElement("h3");
@@ -236,7 +236,7 @@ function renderResult(data) {
 
   const machine = document.createElement("section");
   const machineTitle = document.createElement("h3");
-  machineTitle.textContent = "Machine, runtime, memory and responsiveness evidence";
+  machineTitle.textContent = "Browser hints, memory and responsiveness";
   machine.append(machineTitle);
   const hints = data.pageEvidence.before.machineHints;
   const memory = data.pageEvidence.before.memory;
@@ -307,7 +307,7 @@ function renderResult(data) {
     ],
     [
       "Heavy diagnostics",
-      "CPU model/class, physical cores, host RAM, Chrome process RSS/PSS, CDP metrics, heap profiles and Wasm tier traces are unavailable to this page and belong to separately labelled controlled corpus diagnostic launches.",
+      "This page cannot observe CPU model, physical cores, host RAM, Chrome RSS/PSS, CDP metrics, heap profiles, or Wasm tier traces. Separate diagnostic launches collect those fields.",
     ],
   ]);
   const raw = document.createElement("details");
@@ -331,7 +331,7 @@ function renderResult(data) {
 
   const lifecycle = document.createElement("section");
   const lifecycleTitle = document.createElement("h3");
-  lifecycleTitle.textContent = "First-use lifecycle (not scored samples)";
+  lifecycleTitle.textContent = "First-use lifecycle · excluded from scored samples";
   lifecycle.append(lifecycleTitle);
   appendTable(lifecycle, "First-use lifecycle durations", ["Phase", "Duration / availability"], [
     [
@@ -375,28 +375,33 @@ function renderResult(data) {
   const timingTitle = document.createElement("h3");
   timingTitle.textContent = "Scored post-calibration samples";
   timing.append(timingTitle);
-  appendTable(timing, "Absolute scored durations; no winner or ratio is inferred", [
-    "Variant",
-    "First scored",
-    "Median",
-    "p95",
-    "Samples",
-  ], [
+  appendTable(
+    timing,
+    "Absolute durations from this tab; the accepted corpus computes paired ratios",
     [
-      "JavaScript controlled",
-      ms(data.js.firstScoredMs),
-      ms(data.js.medianMs),
-      ms(data.js.p95Ms),
-      data.js.count,
+      "Variant",
+      "First scored",
+      "Median",
+      "p95",
+      "Samples",
     ],
     [
-      "Linear Wasm controlled",
-      ms(data.wasm.firstScoredMs),
-      ms(data.wasm.medianMs),
-      ms(data.wasm.p95Ms),
-      data.wasm.count,
+      [
+        "JavaScript controlled",
+        ms(data.js.firstScoredMs),
+        ms(data.js.medianMs),
+        ms(data.js.p95Ms),
+        data.js.count,
+      ],
+      [
+        "Linear Wasm controlled",
+        ms(data.wasm.firstScoredMs),
+        ms(data.wasm.medianMs),
+        ms(data.wasm.p95Ms),
+        data.wasm.count,
+      ],
     ],
-  ]);
+  );
   appendTable(
     timing,
     "Complete scored trajectory",
@@ -461,7 +466,7 @@ form.addEventListener("submit", async (event) => {
     const data = new FormData(form);
     const iterations = boundedIterations(data.get("iterations"));
     const order = String(data.get("order"));
-    addPhase("Collecting privacy-limited page provenance in memory…");
+    addPhase("Reading browser-exposed fields into memory…");
     const before = await capturePageBefore();
     responsiveness = startResponsivenessObservation(globalThis);
     const serviceWorkerControlled = navigator.serviceWorker?.controller != null;
@@ -476,7 +481,7 @@ form.addEventListener("submit", async (event) => {
       },
     };
     renderResult(result);
-    addPhase("Exploratory pair complete. Nothing was uploaded or saved.");
+    addPhase("Pair complete. The result remains in this tab and was not uploaded or saved.");
   } catch (error) {
     status.textContent = `Run blocked: ${
       error instanceof Error ? error.message : "Unknown error."

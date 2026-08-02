@@ -103,11 +103,11 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
     assertEquals((await handler(new Request(`http://127.0.0.1${path}`))).status, 200);
   }
   const livePage = await (await handler(new Request("http://127.0.0.1/run"))).text();
-  assert(livePage.includes("Exploratory single-tab run"));
-  assert(livePage.includes("dedicated same-origin module worker"));
+  assert(livePage.includes("Status: exploratory"));
+  assert(livePage.includes("worker fetches the build manifest"));
   const catalogPage = await (await handler(new Request("http://127.0.0.1/benchmarks/"))).text();
   assert(catalogPage.includes("38-WORKLOAD DENOMINATOR"));
-  assert(catalogPage.includes("zero of these 38 catalog entries"));
+  assert(catalogPage.includes("Coverage is 0/38"));
   for (const path of ["/run.html", "/runner.js", "/raw/runs/example.json"]) {
     assertEquals((await handler(new Request(`http://127.0.0.1${path}`))).status, 404);
   }

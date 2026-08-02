@@ -146,9 +146,9 @@ try {
   });
   list.replaceChildren(...visible.map(renderEntry));
   statusLine.textContent =
-    `Showing ${visible.length} of ${catalog.entries.length} frozen denominator rows. Status totals: proposed ${
+    `Showing ${visible.length} of ${catalog.entries.length} workloads. Proposed: ${
       catalog.entries.filter((entry) => entry.status === "proposed").length
-    }; implemented catalog entries ${catalog.implementationCoverage.implementedCatalogEntries}.`;
+    }. Implemented catalog entries: ${catalog.implementationCoverage.implementedCatalogEntries}.`;
 } catch (error) {
   statusLine.textContent = `Catalog unavailable: ${
     error instanceof Error ? error.message : "unknown error"

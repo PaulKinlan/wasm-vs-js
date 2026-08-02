@@ -18,12 +18,12 @@
     </header>
     <main id="main" class="dashboard">
       <section class="intro narrative">
-        <p class="eyebrow">M1 implementation evidence</p>
-        <h1>Accepted code, not a performance result</h1>
-        <p>The controlled <code>sum-u32</code> JavaScript and linear-Wasm slice passed its reproducible build, correctness, work-equivalence, evidence-contract, storage, summary, and user-interface gates.</p>
+        <p class="eyebrow">M1 · implementation evidence</p>
+        <h1>The code passed; performance remains unmeasured</h1>
+        <p>The controlled <code>sum-u32</code> pair passed reproducible-build, correctness, fixed-work, evidence-contract, storage, summary, and interface checks.</p>
         <p
-          class="notice"><strong>No JavaScript-versus-Wasm winner is claimed.</strong> The required corpus of at least 20 paired fresh launches has not been collected. The two manual validation records were deliberately removed after verification and are not presented as benchmark evidence.</p>
-        <p><a class="button-link" href="/evidence/v1/acceptance.json">Inspect acceptance JSON</a> <a href="/artifacts/sum-u32/build-manifest.json">Build manifest</a> <a href="/artifacts/sum-u32/sum-u32.wasm">96-byte Wasm</a></p>
+          class="notice"><strong>Accepted performance corpus: none.</strong> M1 requires at least 20 committed fresh-launch pairs in each cold and warm stratum. The removed manual validation records cannot supply those pairs.</p>
+        <p><a class="button-link" href="/evidence/v1/acceptance.json">Open acceptance JSON</a> <a href="/artifacts/sum-u32/build-manifest.json">Open the build manifest</a> <a href="/artifacts/sum-u32/sum-u32.wasm">Download the 96-byte Wasm artifact</a></p>
       </section>
 
       <section aria-labelledby="accepted-title">
@@ -49,23 +49,20 @@
       </section>
 
       <section aria-labelledby="runtime-title">
-        <h2 id="runtime-title">Unverified Chrome 150 runtime attestation</h2>
+        <h2 id="runtime-title">Chrome 150 attestation: unverified</h2>
+        <p>A parent attestation records four observations:</p>
         <ul>
           <li>The visible “Validate and run pair” control completed for JavaScript and linear Wasm.</li>
-          <li>WebAssembly compiled under the narrow <code>wasm-unsafe-eval</code> CSP allowance; no general eval or inline execution was enabled.</li>
-          <li>Both variants passed correctness and fixed-work validation, and two run uploads returned HTTP 201.</li>
-          <li>The owned loopback server was stopped, its two generated validation records were removed, and the MCP page was closed.</li>
+          <li>WebAssembly compiled under the narrow <code>wasm-unsafe-eval</code> CSP allowance; general eval and inline execution stayed disabled.</li>
+          <li>Both variants passed correctness and fixed-work validation, and two uploads returned HTTP 201.</li>
+          <li>The owned loopback server stopped, the two validation records were removed, and the MCP page closed.</li>
         </ul>
-        <p>These observations are parent-reported and were not independently assessed. No screenshot or replayable MCP log was retained, so this page does not present the attestation as proof or fabricate missing artifacts. Exact structured assertions and cleanup accounting are in the acceptance JSON.</p>
+        <p>No screenshot, run record, or replayable MCP log was retained. Independent review therefore cannot verify these observations. The acceptance JSON records that limit and the reported cleanup steps.</p>
       </section>
 
       <section aria-labelledby="missing-title">
-        <h2 id="missing-title">What is still missing</h2>
-        <ul>
-          <li>No raw validation record or timing sample is published because those records were intentionally removed.</li>
-          <li>No cold/warm fresh-profile corpus, ratio, interval, stopping decision, or performance conclusion exists.</li>
-          <li>M1 performance acceptance remains pending at least 20 paired fresh launches through the preregistered precision target or cap.</li>
-        </ul>
+        <h2 id="missing-title">Evidence still required</h2>
+        <p>The project has no published raw validation sample, cold/warm fresh-profile corpus, paired ratio, exact interval, stopping decision, or performance conclusion. M1 performance acceptance requires the preregistered fresh launches through the precision target or attempt cap.</p>
       </section>
     </main>
   </body>

@@ -23,11 +23,11 @@ function renderMetrics(data) {
   [...metrics.querySelectorAll("dd")].forEach((item, index) => item.textContent = values[index]);
   claimStatus.textContent = data.claimStatus === "no-runs"
     ? serverMode === "public-read-only"
-      ? "No performance corpus has been published."
-      : "No local run records exist."
+      ? "Accepted performance corpus: none."
+      : "Local run records: none."
     : data.truncated
-    ? `Showing the newest ${data.runCount} of ${data.sourceRunCount} local pilot records; no accepted performance claim.`
-    : "Local pilot records only; no accepted performance claim.";
+    ? `Local pilots: newest ${data.runCount} of ${data.sourceRunCount}. Accepted corpus: none.`
+    : `Local pilot records: ${data.runCount}. Accepted corpus: none.`;
 }
 
 function renderCells(data) {
@@ -189,7 +189,7 @@ async function load() {
     renderTrajectories(summary);
     renderRuns(summary);
     loadStatus.textContent = serverMode === "public-read-only"
-      ? "Loaded the public read-only evidence view; no performance run records are published."
+      ? "Public read-only view loaded. Published performance run records: 0."
       : `Loaded ${summary.runCount} immutable local run records.`;
   } catch (error) {
     cellsBody.innerHTML = '<tr><td colspan="8">Local evidence could not be loaded.</td></tr>';

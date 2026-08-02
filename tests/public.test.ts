@@ -11,9 +11,9 @@ Deno.test("results and runner pages expose evidence limits and accessible contro
   const index = await Deno.readTextFile("public/index.html");
   const runner = await Deno.readTextFile("public/run.html");
   const css = await Deno.readTextFile("public/styles.css");
-  assert(index.includes("No accepted result"));
-  assert(index.includes("Inspect implementation evidence"));
-  assert(index.includes("Those two validation records were removed"));
+  assert(index.includes("Accepted performance corpus: none"));
+  assert(index.includes("Check implementation evidence"));
+  assert(index.includes("unverified and supplies no timing evidence"));
   assert(index.includes("Raw run inspector"));
   assert(index.includes("Complete trajectories"));
   assert(index.includes("<caption>"));
@@ -34,13 +34,13 @@ Deno.test("hosted runner is accessible, bounded, and has no mutation or persiste
   const worker = await Deno.readTextFile("public/hosted-runner-worker.js");
   const hostedWorkload = await Deno.readTextFile("public/benchmarks/sum-u32/workload.js");
   const sourceWorkload = await Deno.readTextFile("benchmarks/sum-u32/workload.js");
-  assert(page.includes("Exploratory single-tab run—not accepted corpus or a performance claim"));
+  assert(page.includes("Status: exploratory"));
   assert(page.includes('id="start-live-run"'));
   assert(page.includes('role="status"'));
   assert(page.includes('aria-live="polite"'));
   assert(page.includes('min="5" max="50"'));
-  assert(page.includes("No result is uploaded or saved"));
-  assert(page.includes("exist only in the displayed in-memory result"));
+  assert(page.includes("The page does not upload or save the result"));
+  assert(page.includes("stay in memory and disappear when the tab closes"));
   assert(page.includes("worker-src 'self'"));
   assert(script.includes("new Worker"));
   assert(script.includes("worker.terminate"));
@@ -92,7 +92,7 @@ Deno.test("workload catalog exposes exact totals, filters, and honest implementa
   assert(page.includes("P0 harness/calibration"));
   assert(page.includes("P1 representative applications"));
   assert(page.includes("P2 breadth/stress"));
-  assert(page.includes("one harness slice, zero of these 38 catalog entries"));
+  assert(page.includes("Coverage is 0/38"));
   assert(page.includes('role="search"'));
   assert(page.includes('aria-live="polite"'));
   assert(script.includes("Showing ${visible.length} of ${catalog.entries.length}"));
@@ -107,11 +107,11 @@ Deno.test("public M1 experiment is inspectable without claiming authorization or
   );
   const published = await Deno.readTextFile("public/experiments/m1-chrome-sum-u32-v1.json");
   assertEquals(published, canonical);
-  assert(page.includes("Preregistered, not authorized or collected"));
+  assert(page.includes("Corpus status: not collected"));
   assert(page.includes("20 committed pairs before analysis"));
   assert(page.includes("60 attempted launches per stratum"));
-  assert(page.includes("exact distribution-free sign/order-statistic intervals"));
-  assert(page.includes("descriptive sensitivity only—not confidence or stopping"));
+  assert(page.includes("exact distribution-free sign/order-statistic interval"));
+  assert(page.includes("supplies descriptive sensitivity"));
   assert(page.includes("template-only-not-consumed"));
   assert(!page.includes("benchmark winner"));
 });
@@ -121,8 +121,8 @@ Deno.test("versioned public acceptance package is explicit and contains no inven
   const acceptance = JSON.parse(
     await Deno.readTextFile("public/evidence/v1/acceptance.json"),
   );
-  assert(evidencePage.includes("Accepted code, not a performance result"));
-  assert(evidencePage.includes("does not present the attestation as proof"));
+  assert(evidencePage.includes("The code passed; performance remains unmeasured"));
+  assert(evidencePage.includes("Independent review therefore cannot verify these observations"));
   const schema = JSON.parse(await Deno.readTextFile("schemas/public-acceptance.schema.json"));
   const ajv = new (Ajv2020 as unknown as new (options: Record<string, unknown>) => {
     compile: (schema: unknown) => ((value: unknown) => boolean) & { errors?: unknown };

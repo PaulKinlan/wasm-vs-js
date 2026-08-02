@@ -1,20 +1,22 @@
 # Wasm vs JavaScript
 
-A browser benchmark for a practical question: when does WebAssembly make a web application faster after loading, compilation, JavaScript↔Wasm crossings, memory, rendering, and complete user tasks are counted?
+When does WebAssembly speed up a web application after the browser has paid for transfer, compilation, initialization, JavaScript↔Wasm crossings, memory, rendering, and the complete user task?
 
-The suite compares JavaScript, linear-memory WebAssembly, WasmGC, and mixed implementations. It does not publish one universal winner. Results are grouped by workload, implementation track, lifecycle phase, browser, device, build, and cache state.
+The suite tests JavaScript, linear-memory WebAssembly, WasmGC, and mixed implementations. Results stay grouped by workload, implementation track, lifecycle phase, browser, device, build, and cache state because those conditions can change the answer.
 
-## What will be measured
+## Measurements
+
+Each workload can record:
 
 - cold transfer, compile, instantiate, initialize, and first useful output;
 - warm-up trajectories, steady runtime, tail latency, and total elapsed time;
-- JavaScript↔Wasm calls, copies, strings, references, callbacks, and batching;
-- workers, message transfer, shared memory, and scaling;
-- DOM and complete application journeys;
+- calls, copied bytes, strings, references, callbacks, and boundary batching;
+- worker startup, message transfer, shared memory, and scaling;
+- DOM updates and complete application journeys;
 - source, generated glue, raw, gzip, and Brotli sizes;
-- memory and browser diagnostics where supported, labelled by scope and browser.
+- memory and browser diagnostics with an explicit browser and scope.
 
-Every timed comparison must first pass output and work-equivalence checks. Unsupported measurements are `unavailable` or `blocked`, never zero.
+Timing begins only after output and fixed-work checks pass. An unsupported measurement is `unavailable` or `blocked`; numeric zero means the instrument measured zero.
 
 ## Fairness tracks
 
@@ -24,9 +26,9 @@ Every timed comparison must first pass output and work-equivalence checks. Unsup
 
 The tracks are reported separately.
 
-## Repository state
+## Current state
 
-The project began on **2026-08-02**. M0 publishes the accepted product plan, methodology, task graph, and evidence contracts. M1 now has its first implementation slice: `sum-u32`, a controlled JavaScript/linear-Wasm pair with an exact oracle, reproducible build, local runner/store, versioned summaries, and inspectable results.
+M1 has one accepted implementation slice: `sum-u32`, a controlled JavaScript/linear-Wasm pair with an exact oracle, reproducible build, local runner/store, and versioned summaries.
 
 - [Canonical plan](PLAN.md)
 - [Task graph](TASKS.md)
@@ -38,20 +40,18 @@ The project began on **2026-08-02**. M0 publishes the accepted product plan, met
 - [Hosted exploratory runner](public/run/index.html)
 - [Public read-only deployment procedure](docs/public-deployment.md)
 
-The public Deno application is available at [wasm-vs-js.paulkinlan-ea.deno.net](https://wasm-vs-js.paulkinlan-ea.deno.net/). The frozen denominator is published at `/benchmarks/`: 38 proposed workloads split P0=12, P1=12, and P2=14 across kernels, components, applications, browser journeys, and server tasks. Implementation coverage is explicit: one accepted harness slice (`sum-u32`), but zero of the 38 catalog entries implemented. Its `/run/` journey verifies the exact JavaScript and Wasm bytes, executes in a dedicated same-origin module worker, keeps the page responsive, and never uploads or stores results. No accepted benchmark result, database, custom domain, or performance claim exists yet. M1 remains incomplete until owned-browser paired launches meet the frozen experiment's precision target or cap. The public `/experiments/` page is inspectable preregistration only: its single-use 120-launch permit envelope is not an instantiated or consumed browser authorization.
+The public application is [wasm-vs-js.paulkinlan-ea.deno.net](https://wasm-vs-js.paulkinlan-ea.deno.net/).
 
-## Planned public product
+- `/benchmarks/` contains 38 proposed workloads: P0=12, P1=12, and P2=14. Catalog implementation coverage is **0/38** because `sum-u32` is a separate harness slice.
+- `/run/` hash-verifies the JavaScript and 96-byte Wasm artifacts, runs them in a same-origin module worker, and displays the result in memory. The page uploads and stores nothing.
+- `/evidence/` records the accepted implementation and the limits of an unverified Chrome 150 attestation whose browser artifacts were not retained.
+- `/experiments/` publishes the repeated cold/warm protocol. Its 120-launch permit envelope is a template and authorizes no browser launch.
 
-The public Deno application will provide:
+The project has no accepted performance corpus or performance conclusion. M1 remains open until the owned-browser collection reaches its registered precision target or attempt cap.
 
-- an AI Focus-styled results explorer;
-- workload × browser × variant matrices without a single-winner default;
-- inspectable raw runs, samples, correctness, build provenance, and exclusions;
-- immutable run ingestion through an authorized, bounded API;
-- versioned summaries derived from raw runs;
-- health, export, retention, deletion, and recovery controls.
+## Planned reporting service
 
-The proposed reporting store is managed Deno KV. Provisioning and any material cost require a separate reviewed step.
+Later milestones add workload × browser × variant matrices, immutable authenticated result ingestion, raw-run inspection, versioned summaries, export, retention, deletion, and recovery. The proposed store is managed Deno KV; provisioning requires a separately reviewed step.
 
 ## Development
 
@@ -70,11 +70,11 @@ deno task summary  # versioned summary from immutable local runs
 deno task public   # read-only host and exploratory browser-runner smoke
 ```
 
-Read the [M1 local pilot protocol](docs/m1-local-pilot.md) before recording a run. It explains the exact environment manifest, cold/warm states, correctness gate, immutable storage, and why manual pilots are not acceptance evidence.
+Read the [M1 local pilot protocol](docs/m1-local-pilot.md) before recording a run. It defines the environment manifest, cold/warm states, correctness gate, immutable storage, permit consumption, and cleanup checks.
 
-## Research basis
+## Sources
 
-The plan draws on current WebAssembly Web API, Performance Timeline, User/Navigation/Resource Timing, JetStream 3, Speedometer 3.1, Emscripten, WebDriver BiDi, CDP, Firefox Profiler, Safari WebDriver/Web Inspector, and Deno Deploy/KV documentation. Primary links and the decisions derived from them are recorded in [PLAN.md](PLAN.md).
+[PLAN.md](PLAN.md) links the WebAssembly Web API, Performance Timeline, User/Navigation/Resource Timing, JetStream 3, Speedometer 3.1, Emscripten, WebDriver BiDi, CDP, Firefox Profiler, Safari WebDriver/Web Inspector, and Deno Deploy/KV sources used for the methodology.
 
 ## License
 

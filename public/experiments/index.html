@@ -18,10 +18,10 @@
     <main id="main">
       <section class="hero compact">
         <p class="eyebrow">M1 · frozen before collection</p>
-        <h1>Chrome sum-u32 paired-launch experiment</h1>
+        <h1>Repeated cold and warm Chrome launches</h1>
         <p
-          class="notice"><strong>Preregistered, not authorized or collected.</strong> This page freezes the experiment and single-use permit envelope. It is not a browser permit, corpus, result, or performance claim.</p>
-        <p><a class="button-link" href="/experiments/m1-chrome-sum-u32-v1.json">Inspect the complete machine-readable contract</a></p>
+          class="notice"><strong>Corpus status: not collected.</strong> This preregistration fixes the schedule, stopping rule, Chrome build, cache strata, source hashes, failure accounting, and permit envelope. The published envelope grants no browser authorization.</p>
+        <p><a class="button-link" href="/experiments/m1-chrome-sum-u32-v1.json">Open the machine-readable experiment</a></p>
       </section>
 
       <section>
@@ -44,13 +44,13 @@
             <dd>120 owned Chrome launches</dd>
           </div>
         </dl>
-        <p>Each fresh launch measures both exact variants in the frozen balanced order. A pair enters timing summaries only after both records pass output, fixed-work, source/artifact, cache, provenance, and exact cleanup checks. Partial pairs, failures, and blocked launches remain denominator rows but never become timing data. There are no substitutions or automatic retries.</p>
+        <p>Each fresh launch measures both exact variants in a balanced order. A pair enters timing summaries only when both records pass output, fixed-work, source/artifact, cache, provenance, and cleanup checks. Partial pairs, failed launches, and blocked launches stay in the denominator; they supply no timing pair and receive no substitute or automatic retry.</p>
       </section>
 
       <section>
         <h2>Stopping and uncertainty</h2>
-        <p>Precision is checked only after 20, 30, 40, 50, and 60 attempted launches in each stratum, and only when at least 20 pairs have committed. Five frozen looks use two-sided exact distribution-free sign/order-statistic intervals for the median paired log ratio at per-look alpha 0.01 (99% or greater coverage); Bonferroni allocates family-wise alpha 0.05 across the five looks. The even-sample median is the arithmetic mean of the two central values.</p>
-        <p>A stratum stops when its finite exact interval has multiplicative half-width at most 3%. After 60 attempts it terminates as <strong>precision-met</strong> or <strong>cap-inconclusive</strong>, including when failures leave fewer than 20 committed pairs. Failed and blocked launches remain in accounting and are never retried or substituted. A fully specified deterministic 10,000-resample bootstrap of per-launch paired log ratios is descriptive sensitivity only—not confidence or stopping; absolute differences and target medians are not valid bootstrap inputs.</p>
+        <p>Precision is checked after 20, 30, 40, 50, and 60 attempts in each stratum, provided at least 20 pairs have committed. Every checkpoint uses a two-sided exact distribution-free sign/order-statistic interval for the median paired log ratio at alpha 0.01. Bonferroni assigns the family-wise alpha of 0.05 across the five checks. For an even sample count, the point estimate averages the two central values.</p>
+        <p>The stratum stops once the finite interval has multiplicative half-width at most 3%. At 60 attempts, its state becomes <strong>precision-met</strong> or <strong>cap-inconclusive</strong>; the latter also applies when failures leave fewer than 20 committed pairs. A deterministic 10,000-resample bootstrap of per-launch paired log ratios supplies descriptive sensitivity. It does not control confidence or stopping, and it rejects absolute differences and target medians as inputs.</p>
       </section>
 
       <section>
@@ -67,7 +67,7 @@
 
       <section>
         <h2>Authorization boundary</h2>
-        <p>The JSON defines a single-use envelope requiring the exact experiment, origin, binary/version/hash, deadline, operation, and no more than 60 launches per stratum. The envelope is explicitly <code>template-only-not-consumed</code>. Collection code must instantiate and atomically consume a separately recorded permit from Paul’s explicit request; this publication does not claim that has happened.</p>
+        <p>The JSON contains a <code>template-only-not-consumed</code> envelope bound to the experiment, origin, Chrome version and hash, deadline, operation, and 60-launch cap per stratum. Collection requires a separate permit tied to Paul’s explicit request, and the collector consumes that permit atomically. Publishing this page consumes nothing and starts no browser.</p>
       </section>
     </main>
   </body>
