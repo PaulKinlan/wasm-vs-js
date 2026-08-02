@@ -1,5 +1,42 @@
 import { canonicalize, sha256Hex } from "./canonical.ts";
 import { assertPairedBlockSchema } from "./corpus-contracts.ts";
+
+async function assertPrivateDirectory(path: string): Promise<void> {
+  const info = await Deno.lstat(path);
+  if (info.isSymlink || !info.isDirectory || await Deno.realPath(path) !== path) {
+    throw new Error(`unsafe immutable artifact directory: ${path}`);
+  }
+  if (info.mode !== null && (info.mode & 0o077) !== 0) {
+    throw new Error(`artifact directory is not private: ${path}`);
+  }
+}
+async function ensurePrivateTree(directory: string): Promise<void> {
+  const cwd = await Deno.realPath(Deno.cwd());
+  const absolute = directory.startsWith("/") ? directory : `${cwd}/${directory}`;
+  const anchor = absolute.startsWith(`${cwd}/raw/permits/`) || absolute === `${cwd}/raw/permits`
+    ? `${cwd}/raw/permits`
+    : absolute.startsWith(`${cwd}/raw/corpora/`) || absolute === `${cwd}/raw/corpora`
+    ? `${cwd}/raw/corpora`
+    : absolute.startsWith("/tmp/")
+    ? `/tmp/${absolute.slice(5).split("/")[0]}`
+    : (() => {
+      throw new Error("immutable artifact root denied");
+    })();
+  const suffix = absolute.slice(anchor.length).split("/").filter(Boolean);
+  await Deno.mkdir(anchor, { mode: 0o700 }).catch((error) => {
+    if (!(error instanceof Deno.errors.AlreadyExists)) throw error;
+  });
+  await assertPrivateDirectory(anchor);
+  let current = anchor;
+  for (const part of suffix) {
+    if (!/^[A-Za-z0-9._-]+$/.test(part)) throw new Error("unsafe artifact path component");
+    current += `/${part}`;
+    await Deno.mkdir(current, { mode: 0o700 }).catch((error) => {
+      if (!(error instanceof Deno.errors.AlreadyExists)) throw error;
+    });
+    await assertPrivateDirectory(current);
+  }
+}
 export type VariantRecord = {
   variantId: "js-controlled" | "wasm-linear-controlled";
   payloadSha256: string;
@@ -45,7 +82,7 @@ export async function commitPairedBlock(
     )
   ) throw new Error("pair evidence invalid");
   const dir = `${root}/blocks`;
-  await Deno.mkdir(dir, { recursive: true, mode: 0o700 });
+  await ensurePrivateTree(dir);
   const path = `${dir}/${input.blockId}.json`;
   const committed = { ...input, committed: true as const };
   assertPairedBlockSchema(committed);
@@ -70,7 +107,9 @@ export async function writeImmutableArtifact(
   value: Uint8Array | string,
 ): Promise<{ sha256: string; bytes: number }> {
   const bytes = typeof value === "string" ? new TextEncoder().encode(value) : value;
-  await Deno.mkdir(path.slice(0, path.lastIndexOf("/")), { recursive: true, mode: 0o700 });
+  const directory = path.slice(0, path.lastIndexOf("/"));
+  await ensurePrivateTree(directory);
+  await assertPrivateDirectory(directory);
   const h = await Deno.open(path, { write: true, createNew: true, mode: 0o600 });
   try {
     await h.write(bytes);

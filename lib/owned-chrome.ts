@@ -1,30 +1,37 @@
 import { browserWebSocketUrl, CdpClient } from "./cdp-client.ts";
 import {
-  assertLedgerProcessesCurrent,
   assertProfileIdentity,
-  createLedger,
+  CgroupLedger,
+  executableSnapshot,
   prepareProfile,
-  ProcessLedger,
-  ProfileIdentity,
-  readProcessIdentity,
-  recoverLedger,
+  readCgroupMembers,
   refreshLedger,
   removeOwnedProfile,
-  teardownLedger,
 } from "./process-ledger.ts";
-import { sha256Hex } from "./canonical.ts";
 
 export type DevToolsEndpoint = { port: number; browserPath: string };
+export type CommandResult = { success: boolean; code: number; stdout: string; stderr: string };
+export type CommandAdapter = (command: string, args: string[]) => Promise<CommandResult>;
+const realCommand: CommandAdapter = async (command, args) => {
+  const out = await new Deno.Command(command, { args, stdout: "piped", stderr: "piped" }).output();
+  return {
+    success: out.success,
+    code: out.code,
+    stdout: new TextDecoder().decode(out.stdout),
+    stderr: new TextDecoder().decode(out.stderr),
+  };
+};
+export type BrowserClient = Pick<CdpClient, "send" | "on" | "close">;
 export type OwnedChrome = {
-  child: Deno.ChildProcess;
-  ledger: ProcessLedger;
+  ledger: CgroupLedger;
   port: number;
   browserPath: string;
-  browser: CdpClient;
+  browser: BrowserClient;
   version: Record<string, unknown>;
   arguments: string[];
   binarySha256: string;
   resolvedBinary: string;
+  command: CommandAdapter;
 };
 export async function waitDevToolsActivePort(
   profileRoot: string,
@@ -35,88 +42,138 @@ export async function waitDevToolsActivePort(
     try {
       const info = await Deno.lstat(path);
       if (info.isSymlink || !info.isFile) throw new Error("unsafe DevToolsActivePort");
-      const lines = (await Deno.readTextFile(path)).trim().split(/\r?\n/);
-      const port = Number(lines[0]), browserPath = lines[1] ?? "";
+      const lines = (await Deno.readTextFile(path)).trim().split(/\r?\n/),
+        port = Number(lines[0]),
+        browserPath = lines[1] ?? "";
       if (
         Number.isSafeInteger(port) && port > 0 && port <= 65535 &&
         /^\/devtools\/browser\/[A-Za-z0-9-]+$/.test(browserPath) && lines.length === 2
       ) return { port, browserPath };
       throw new Error("invalid DevToolsActivePort");
-    } catch (error) {
-      if (!(error instanceof Deno.errors.NotFound)) throw error;
+    } catch (e) {
+      if (!(e instanceof Deno.errors.NotFound)) throw e;
     }
-    await new Promise((r) => setTimeout(r, 25));
+    await new Promise((resolve) => setTimeout(resolve, 25));
   }
   throw new Error("Chrome startup timeout");
 }
-function numberIdentity(value: number | bigint | null | undefined, label: string): number {
+function numeric(value: number | bigint | null | undefined, label: string): number {
   const n = Number(value);
   if (!Number.isSafeInteger(n) || n < 0) throw new Error(`${label} unavailable`);
   return n;
 }
-async function executableSnapshot(path: string) {
-  const resolved = await Deno.realPath(path), info = await Deno.stat(resolved);
-  if (!info.isFile) throw new Error("Chrome binary is not a file");
-  return {
-    resolved,
-    dev: numberIdentity(info.dev, "Chrome dev"),
-    ino: numberIdentity(info.ino, "Chrome inode"),
-    sha256: await sha256Hex(await Deno.readFile(resolved)),
-  };
+async function cgroupIdentity(path: string) {
+  const info = await Deno.lstat(path);
+  if (info.isSymlink || !info.isDirectory || await Deno.realPath(path) !== path) {
+    throw new Error("unsafe cgroup identity");
+  }
+  return { dev: numeric(info.dev, "cgroup dev"), ino: numeric(info.ino, "cgroup inode") };
+}
+function parseShow(text: string): Record<string, string> {
+  return Object.fromEntries(
+    text.trim().split("\n").filter(Boolean).map((line) => {
+      const at = line.indexOf("=");
+      return [line.slice(0, at), line.slice(at + 1)];
+    }),
+  );
+}
+async function showUnit(command: CommandAdapter, unit: string) {
+  const result = await command("/usr/bin/systemctl", [
+    "--user",
+    "show",
+    unit,
+    "--property=MainPID,ControlGroup,ActiveState,SubState",
+  ]);
+  if (!result.success) throw new Error(`systemd unit unavailable: ${result.stderr.trim()}`);
+  return parseShow(result.stdout);
+}
+async function waitUnit(command: CommandAdapter, unit: string, timeoutMs: number) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const state = await showUnit(command, unit),
+      mainPid = Number(state.MainPID),
+      controlGroup = state.ControlGroup ?? "";
+    if (
+      Number.isSafeInteger(mainPid) && mainPid > 1 && /^\/[^\s]+$/.test(controlGroup) &&
+      state.ActiveState === "active"
+    ) return { mainPid, controlGroup };
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  }
+  throw new Error("systemd Chrome service startup timeout");
 }
 async function listenerInode(port: number, procRoot = "/proc"): Promise<string> {
-  const hexPort = port.toString(16).toUpperCase().padStart(4, "0");
+  const wanted = port.toString(16).toUpperCase().padStart(4, "0");
   for (const file of [`${procRoot}/net/tcp`, `${procRoot}/net/tcp6`]) {
     try {
       for (const line of (await Deno.readTextFile(file)).trim().split("\n").slice(1)) {
         const fields = line.trim().split(/\s+/),
-          local = fields[1] ?? "",
+          [address, p] = (fields[1] ?? "").split(":"),
           state = fields[3],
           inode = fields[9];
-        const [address, p] = local.split(":");
         const loopback = address === "0100007F" || address === "00000000000000000000000001000000";
-        if (p === hexPort && state === "0A" && loopback && /^\d+$/.test(inode)) return inode;
+        if (p === wanted && state === "0A" && loopback && /^\d+$/.test(inode)) return inode;
       }
-    } catch { /* file unavailable */ }
+    } catch { /* unavailable */ }
   }
   throw new Error("DevTools listener socket not found on loopback");
 }
 export async function assertListenerOwned(
   port: number,
-  ledger: ProcessLedger,
+  ledger: CgroupLedger,
   procRoot = "/proc",
 ): Promise<void> {
-  ledger = await refreshLedger(ledger, procRoot);
-  await assertLedgerProcessesCurrent(ledger, procRoot);
-  const inode = await listenerInode(port, procRoot), wanted = `socket:[${inode}]`;
-  for (const process of ledger.processes) {
+  const members = await readCgroupMembers(ledger),
+    wanted = `socket:[${await listenerInode(port, procRoot)}]`;
+  for (const pid of members) {
     try {
-      for await (const fd of Deno.readDir(`${procRoot}/${process.pid}/fd`)) {
+      for await (const fd of Deno.readDir(`${procRoot}/${pid}/fd`)) {
         try {
-          if (await Deno.readLink(`${procRoot}/${process.pid}/fd/${fd.name}`) === wanted) {
-            await assertLedgerProcessesCurrent(ledger, procRoot);
-            return;
-          }
+          if (await Deno.readLink(`${procRoot}/${pid}/fd/${fd.name}`) === wanted) return;
         } catch { /* raced */ }
       }
     } catch { /* raced */ }
   }
-  throw new Error("DevTools listener is not owned by the Chrome ledger");
+  throw new Error("DevTools listener is not owned by exact Chrome cgroup");
 }
-async function initialLedger(
-  child: Deno.ChildProcess,
-  profile: ProfileIdentity,
-  timeoutMs: number,
-): Promise<ProcessLedger> {
-  const deadline = Date.now() + timeoutMs;
+async function commandLine(pid: number, procRoot = "/proc"): Promise<string[]> {
+  return new TextDecoder().decode(await Deno.readFile(`${procRoot}/${pid}/cmdline`)).split("\0")
+    .filter(Boolean);
+}
+async function cleanupUnit(command: CommandAdapter, ledger: CgroupLedger, removeProfile = true) {
+  await command("/usr/bin/systemctl", [
+    "--user",
+    "kill",
+    "--kill-whom=all",
+    "--signal=KILL",
+    ledger.unit,
+  ]);
+  await command("/usr/bin/systemctl", ["--user", "stop", ledger.unit]);
+  const deadline = Date.now() + 5_000;
+  let remaining: number[] = [], state: Record<string, string> = {};
   while (Date.now() < deadline) {
-    try {
-      return await createLedger(child.pid, profile);
-    } catch {
-      await new Promise((r) => setTimeout(r, 10));
-    }
+    remaining = await readCgroupMembers(ledger).catch((e) => {
+      if (e instanceof Deno.errors.NotFound) return [];
+      throw e;
+    });
+    state = await showUnit(command, ledger.unit).catch(() => ({ ActiveState: "inactive" }));
+    if (!remaining.length && ["inactive", "failed"].includes(state.ActiveState)) break;
+    await new Promise((resolve) => setTimeout(resolve, 25));
   }
-  throw new Error("Chrome root identity unavailable");
+  if (remaining.length || !["inactive", "failed"].includes(state.ActiveState ?? "")) {
+    throw new Error("owned Chrome cgroup cleanup failed");
+  }
+  const after = await executableSnapshot(ledger.executable.path);
+  if (
+    after.path !== ledger.executable.path || after.dev !== ledger.executable.dev ||
+    after.ino !== ledger.executable.ino || after.sha256 !== ledger.executable.sha256
+  ) throw new Error("Chrome executable changed across launch");
+  if (removeProfile) await removeOwnedProfile(ledger.profile);
+  return {
+    cleaned: true,
+    remaining: [],
+    identityMismatches: [] as number[],
+    stoppedAt: new Date().toISOString(),
+  };
 }
 export async function launchOwnedChrome(options: {
   binary: string;
@@ -126,125 +183,159 @@ export async function launchOwnedChrome(options: {
   timeoutMs?: number;
   beforeSpawn?: () => void;
   onSpawn?: (pid: number) => void;
+  command?: CommandAdapter;
+  unitName?: string;
+  connect?: (url: string) => BrowserClient;
+  procRoot?: string;
+  cgroupRoot?: string;
+  endpoint?: (profileRoot: string, timeoutMs: number) => Promise<DevToolsEndpoint>;
+  listenerAssertion?: (port: number, ledger: CgroupLedger, procRoot: string) => Promise<void>;
+  discoverWebSocket?: (port: number, browserPath: string) => Promise<string>;
 }): Promise<OwnedChrome> {
-  const profile = await prepareProfile(options.profileRoot);
-  let child: Deno.ChildProcess | undefined, ledger: ProcessLedger | undefined;
+  const command = options.command ?? realCommand,
+    profile = await prepareProfile(options.profileRoot);
+  const binary = await executableSnapshot(options.binary).catch(async (error) => {
+    await removeOwnedProfile(profile);
+    throw error;
+  });
+  if (binary.sha256 !== options.expectedSha256) {
+    await removeOwnedProfile(profile);
+    throw new Error("Chrome binary hash mismatch");
+  }
+  const unit = options.unitName ?? `wasm-vs-js-${crypto.randomUUID().replaceAll("-", "")}.service`;
+  if (!/^wasm-vs-js-[a-z0-9]{16,64}\.service$/.test(unit)) {
+    await removeOwnedProfile(profile);
+    throw new Error("unsafe systemd unit name");
+  }
+  const launchArguments = [
+    `--user-data-dir=${options.profileRoot}`,
+    "--remote-debugging-port=0",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-sync",
+    "--disable-crash-reporter",
+    "--disable-breakpad",
+    ...(options.extraArguments ?? []),
+    "about:blank",
+  ];
+  let ledger: CgroupLedger | undefined;
   try {
-    const before = await executableSnapshot(options.binary);
-    if (before.sha256 !== options.expectedSha256) throw new Error("Chrome binary hash mismatch");
-    const launchArguments = [
-      `--user-data-dir=${options.profileRoot}`,
-      "--remote-debugging-port=0",
-      "--no-first-run",
-      "--no-default-browser-check",
-      "--disable-sync",
-      "--disable-crash-reporter",
-      "--disable-breakpad",
-      ...(options.extraArguments ?? []),
-      "about:blank",
-    ];
     options.beforeSpawn?.();
-    child = new Deno.Command(before.resolved, {
-      args: launchArguments,
-      stdout: "null",
-      stderr: "null",
-    }).spawn();
-    options.onSpawn?.(child.pid);
-    const after = await executableSnapshot(before.resolved);
-    if (after.dev !== before.dev || after.ino !== before.ino || after.sha256 !== before.sha256) {
-      throw new Error("Chrome executable changed around spawn");
-    }
-    ledger = await initialLedger(child, profile, options.timeoutMs ?? 10_000);
-    const root = await readProcessIdentity(child.pid, options.profileRoot);
+    const started = await command("/usr/bin/systemd-run", [
+      "--user",
+      `--unit=${unit}`,
+      "--collect",
+      "--quiet",
+      "--property=Type=exec",
+      "--property=KillMode=control-group",
+      "--property=CollectMode=inactive-or-failed",
+      "--",
+      binary.path,
+      ...launchArguments,
+    ]);
+    if (!started.success) throw new Error(`systemd Chrome launch failed: ${started.stderr.trim()}`);
+    const running = await waitUnit(command, unit, options.timeoutMs ?? 10_000);
+    options.onSpawn?.(running.mainPid);
+    const cgroupPath = `${options.cgroupRoot ?? "/sys/fs/cgroup"}${running.controlGroup}`,
+      cgroup = await cgroupIdentity(cgroupPath);
+    const procRoot = options.procRoot ?? "/proc",
+      argv = await commandLine(running.mainPid, procRoot),
+      procExe = await Deno.realPath(`${procRoot}/${running.mainPid}/exe`);
     if (
-      root.executable.dev !== before.dev || root.executable.ino !== before.ino ||
-      root.executable.sha256 !== before.sha256 || root.executable.path !== before.resolved
-    ) throw new Error("spawned Chrome executable identity mismatch");
-    const endpoint = await waitDevToolsActivePort(options.profileRoot, options.timeoutMs);
-    ledger = await refreshLedger(await createLedger(child.pid, profile));
-    await assertListenerOwned(endpoint.port, ledger);
-    const webSocketUrl = await browserWebSocketUrl(endpoint.port, endpoint.browserPath);
-    await assertListenerOwned(endpoint.port, ledger);
-    const browser = new CdpClient(webSocketUrl);
-    await assertListenerOwned(endpoint.port, ledger);
-    const version = await browser.send("Browser.getVersion");
-    await assertListenerOwned(endpoint.port, ledger);
-    const command = await browser.send("Browser.getBrowserCommandLine").catch(() => ({
-      arguments: [],
-    }));
-    if (!Array.isArray(command.arguments)) throw new Error("Chrome command line unavailable");
-    const effective = command.arguments.map(String);
-    for (const required of launchArguments.filter((arg) => arg.startsWith("--"))) {
-      if (!effective.includes(required)) {
-        throw new Error(`Chrome command line mismatch: ${required}`);
-      }
-    }
-    if (effective.some((arg) => arg.startsWith("--headless"))) {
-      throw new Error("headless Chrome denied by preregistration");
-    }
-    await assertProfileIdentity(profile);
+      procExe !== binary.path || argv[0] !== binary.path ||
+      !launchArguments.every((arg) => argv.includes(arg))
+    ) throw new Error("systemd Chrome argv/executable mismatch");
+    ledger = {
+      unit,
+      controlGroup: running.controlGroup,
+      cgroupPath,
+      cgroupDev: cgroup.dev,
+      cgroupIno: cgroup.ino,
+      mainPid: running.mainPid,
+      members: [],
+      membershipSnapshots: [],
+      executable: binary,
+      commandLine: argv,
+      profile,
+      profileRoot: profile.profileRoot,
+      launchedAt: new Date().toISOString(),
+      recordedAt: new Date().toISOString(),
+    };
     ledger = await refreshLedger(ledger);
+    if (!ledger.members.includes(running.mainPid)) {
+      throw new Error("Chrome main PID absent from exact cgroup");
+    }
+    const endpoint = await (options.endpoint ?? waitDevToolsActivePort)(
+        profile.profileRoot,
+        options.timeoutMs ?? 10_000,
+      ),
+      check = () =>
+        (options.listenerAssertion ?? assertListenerOwned)(endpoint.port, ledger!, procRoot);
+    await check();
+    const ws = await (options.discoverWebSocket ?? browserWebSocketUrl)(
+      endpoint.port,
+      endpoint.browserPath,
+    );
+    await check();
+    const browser = options.connect?.(ws) ?? new CdpClient(ws);
+    const version = await browser.send("Browser.getVersion");
+    await check();
+    const effective = (await browser.send("Browser.getBrowserCommandLine")).arguments;
+    if (
+      !Array.isArray(effective) ||
+      !launchArguments.filter((x) => x.startsWith("--")).every((x) => effective.includes(x))
+    ) throw new Error("Chrome command line mismatch");
+    await assertProfileIdentity(profile);
     return {
-      child,
       ledger,
       port: endpoint.port,
       browserPath: endpoint.browserPath,
       browser,
       version,
       arguments: launchArguments,
-      binarySha256: before.sha256,
-      resolvedBinary: before.resolved,
+      binarySha256: binary.sha256,
+      resolvedBinary: binary.path,
+      command,
     };
   } catch (error) {
-    if (child) {
-      ledger ??= await recoverLedger(profile, child.pid).catch(() => undefined);
-      if (ledger) {
-        const cleanup = await teardownLedger(ledger).catch(() => ({ cleaned: false }));
-        if (!cleanup.cleaned) {
-          throw new Error(
-            `Chrome startup containment cleanup failed after: ${
-              error instanceof Error ? error.message : String(error)
-            }`,
-          );
-        }
-      } else {
-        // The ChildProcess handle is exact even before /proc identity becomes available.
-        try {
-          child.kill("SIGKILL");
-        } catch { /* already exited */ }
-        await Promise.race([
-          child.status,
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("spawned child wait timeout")), 2_000)
-          ),
-        ]);
-        await removeOwnedProfile(profile).catch((cleanupError) => {
-          throw new Error(
-            `Chrome startup profile cleanup failed: ${
-              cleanupError instanceof Error ? cleanupError.message : String(cleanupError)
-            }`,
-          );
-        });
-      }
+    if (ledger) {
+      await cleanupUnit(command, ledger).catch((cleanup) => {
+        throw new Error(`Chrome startup containment cleanup failed: ${cleanup}`);
+      });
     } else {
-      await removeOwnedProfile(profile).catch((cleanupError) => {
-        throw new Error(
-          `Chrome pre-spawn profile cleanup failed: ${
-            cleanupError instanceof Error ? cleanupError.message : String(cleanupError)
-          }`,
-        );
+      await command("/usr/bin/systemctl", [
+        "--user",
+        "kill",
+        "--kill-whom=all",
+        "--signal=KILL",
+        unit,
+      ]).catch(() => ({ success: false, code: 1, stdout: "", stderr: "" }));
+      await command("/usr/bin/systemctl", ["--user", "stop", unit]).catch(() => ({
+        success: false,
+        code: 1,
+        stdout: "",
+        stderr: "",
+      }));
+      const deadline = Date.now() + 5_000;
+      let inactive = false;
+      while (Date.now() < deadline) {
+        const state = await showUnit(command, unit).catch(() => ({ ActiveState: "inactive" }));
+        if (["inactive", "failed"].includes(state.ActiveState ?? "")) {
+          inactive = true;
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 25));
+      }
+      if (!inactive) throw new Error("Chrome startup unit cleanup failed");
+      await removeOwnedProfile(profile).catch((cleanup) => {
+        throw new Error(`Chrome startup profile cleanup failed: ${cleanup}`);
       });
     }
     throw error;
   }
 }
-export async function closeOwnedChrome(
-  owned: OwnedChrome,
-): Promise<{ cleaned: boolean; remaining: number[]; identityMismatches: number[] }> {
+export async function closeOwnedChrome(owned: OwnedChrome) {
   await owned.browser.send("Browser.close", {}, undefined, 2_000).catch(() => {});
   owned.browser.close();
-  owned.ledger = await refreshLedger(owned.ledger);
-  const result = await teardownLedger(owned.ledger);
-  if (!result.cleaned) throw new Error("owned Chrome cleanup failed");
-  return result;
+  return await cleanupUnit(owned.command, owned.ledger);
 }

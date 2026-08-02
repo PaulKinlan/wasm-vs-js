@@ -1,5 +1,6 @@
 import { sha256Hex } from "./canonical.ts";
 import { assertBrowserPermitSchema } from "./corpus-contracts.ts";
+import { writeImmutableArtifact } from "./corpus-store.ts";
 
 export type BrowserPermit = {
   schemaVersion: 1;
@@ -108,25 +109,17 @@ export async function consumePermit(
   const bytes = await Deno.readFile(path);
   const permit = validatePermit(JSON.parse(new TextDecoder().decode(bytes)), expected, now);
   assertPermitActive(permit, now);
-  await Deno.mkdir(consumptionDir, { recursive: true, mode: 0o700 });
   const receiptPath = `${consumptionDir}/${permit.permitId}.consumed.json`;
   const digest = await sha256Hex(bytes);
-  const handle = await Deno.open(receiptPath, { write: true, createNew: true, mode: 0o600 });
-  try {
-    await handle.write(
-      new TextEncoder().encode(
-        JSON.stringify({
-          permitId: permit.permitId,
-          digest,
-          consumedAt: now.toISOString(),
-          operation: permit.operation,
-        }) + "\n",
-      ),
-    );
-    handle.sync();
-  } finally {
-    handle.close();
-  }
+  await writeImmutableArtifact(
+    receiptPath,
+    JSON.stringify({
+      permitId: permit.permitId,
+      digest,
+      consumedAt: now.toISOString(),
+      operation: permit.operation,
+    }) + "\n",
+  );
   return { permit, digest, receiptPath };
 }
 

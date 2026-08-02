@@ -46,6 +46,13 @@ function corpus(blocks = [attempt("committed", 0)]) {
       },
       warm: { attempted: 0, committed: 0, failed: 0, blocked: 0, terminal: "continue" },
     },
+    stop: {
+      scheduleIndex: blocks.length,
+      blockId: schedule[blocks.length].blockId,
+      category: "blocked-containment",
+      reason: "pre-spawn containment stop",
+      artifactSha256: "d".repeat(64),
+    },
     status: "containment-blocked",
   };
 }
@@ -55,8 +62,14 @@ Deno.test("corpus accounting semantically reconciles attempts and rejects invent
     schedule,
   );
   for (
-    const broken of [{ attempted: 0 }, { committed: 2 }, { unstarted: 0 }, {
+    const broken of [{ attempted: 0 }, { committed: 2 }, { unstarted: 0 }, { stop: null }, {
       blocks: [attempt("committed", 0), attempt("committed", 0)],
+    }, {
+      blocks: [{ ...attempt("failed", 0), category: "blocked-provenance" }],
+      attempted: 1,
+      committed: 0,
+      failed: 1,
+      blocked: 0,
     }]
   ) {
     const value = { ...corpus(), ...broken };

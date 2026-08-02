@@ -4,6 +4,7 @@ export const FROZEN_PREREGISTRATION_SHA256 =
   "d13aed9404ec289046f885f79a1d7b9f04923d2264de22b1fee60a4e7a8d6f61";
 export const EXECUTED_SOURCE_PATHS = [
   "server.ts",
+  "deno.corpus.json",
   "scripts/run-m1-chrome-corpus.ts",
   "lib/browser-permit.ts",
   "lib/canonical.ts",
@@ -27,6 +28,11 @@ export const EXECUTED_SOURCE_PATHS = [
   "benchmarks/sum-u32/workload.js",
   "public/artifacts/sum-u32/build-manifest.json",
   "public/artifacts/sum-u32/sum-u32.wasm",
+  "schemas/browser-permit.schema.json",
+  "schemas/corpus.schema.json",
+  "schemas/launch-evidence.schema.json",
+  "schemas/network-attestation.schema.json",
+  "schemas/paired-block.schema.json",
   "experiments/m1-chrome-sum-u32-v1/preregistration.json",
   "public/experiments/m1-chrome-sum-u32-v1.json",
 ] as const;

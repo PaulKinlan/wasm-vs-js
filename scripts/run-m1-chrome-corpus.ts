@@ -1,18 +1,7 @@
 import { assertPermitActive, consumePermit, validatePermit } from "../lib/browser-permit.ts";
 import { collectHostProvenance } from "../lib/host-provenance.ts";
-import {
-  assertListenerOwned,
-  closeOwnedChrome,
-  launchOwnedChrome,
-  waitDevToolsActivePort,
-} from "../lib/owned-chrome.ts";
-import { CdpClient } from "../lib/cdp-client.ts";
-import {
-  createLedger,
-  prepareProfile,
-  refreshLedger,
-  teardownLedger,
-} from "../lib/process-ledger.ts";
+import { closeOwnedChrome, launchOwnedChrome } from "../lib/owned-chrome.ts";
+import { refreshLedger } from "../lib/process-ledger.ts";
 import { commitPairedBlock, LaunchManifest, writeImmutableArtifact } from "../lib/corpus-store.ts";
 import { attestNetwork, NetworkRecord } from "../lib/chrome-evidence.ts";
 import { collectChromeProvenance } from "../lib/chrome-provenance.ts";
@@ -20,6 +9,9 @@ import { canonicalize, sha256Hex } from "../lib/canonical.ts";
 import { evaluateAttemptCheckpoint } from "../lib/paired-statistics.ts";
 import { assertCorpusSchema, assertLaunchEvidenceSchema } from "../lib/corpus-contracts.ts";
 import { expectedBatchDigest } from "../public/hosted-runner-core.js";
+import frozenBuildManifest from "../public/artifacts/sum-u32/build-manifest.json" with {
+  type: "json",
+};
 import {
   AttemptRecord,
   median,
@@ -254,11 +246,7 @@ export function validateWorkerResult(
     throw new Error("worker artifact identity mismatch");
   }
   const buildManifest = result.manifest as Record<string, unknown>;
-  const variants = buildManifest?.variants as Record<string, Record<string, unknown>>;
-  if (
-    !buildManifest || variants?.["js-controlled"]?.sha256 !== expectedIdentities.javascriptSha256 ||
-    variants?.["wasm-linear-controlled"]?.sha256 !== expectedIdentities.wasmSha256
-  ) {
+  if (JSON.stringify(buildManifest) !== JSON.stringify(frozenBuildManifest)) {
     throw new Error("worker build manifest invalid");
   }
   const batchSize = Number(result.batchSize);
@@ -338,12 +326,25 @@ export function validateWorkerResult(
     if (
       typeof evidence.route !== "string" ||
       !BENCHMARK_ASSETS.includes(evidence.route as typeof BENCHMARK_ASSETS[number])
-    ) {
-      throw new Error("resource evidence route invalid");
-    }
+    ) throw new Error("resource evidence route invalid");
     routes.add(evidence.route);
     if (evidence.status === "supported-value") {
-      const timing = evidence.value as Record<string, unknown>;
+      assertClosed(evidence, ["route", "status", "scope", "value", "caveat"], "resource evidence");
+      const timing = assertClosed(evidence.value, [
+        "initiatorType",
+        "startTime",
+        "duration",
+        "fetchStart",
+        "requestStart",
+        "responseStart",
+        "responseEnd",
+        "nextHopProtocol",
+        "deliveryType",
+        "responseStatus",
+        "transferSize",
+        "encodedBodySize",
+        "decodedBodySize",
+      ], "resource timing value");
       for (
         const key of [
           "startTime",
@@ -357,13 +358,24 @@ export function validateWorkerResult(
           "decodedBodySize",
         ]
       ) {
-        finiteNonnegative(timing?.[key], `resource ${key}`);
+        finiteNonnegative(timing[key], `resource ${key}`);
       }
-      if (evidence.scope !== "same-origin-resource-timing" || typeof evidence.caveat !== "string") {
+      if (
+        typeof timing.initiatorType !== "string" || typeof timing.nextHopProtocol !== "string" ||
+        !(timing.deliveryType === null || typeof timing.deliveryType === "string") ||
+        !(timing.responseStatus === null || Number.isFinite(timing.responseStatus)) ||
+        evidence.scope !== "same-origin-resource-timing" || typeof evidence.caveat !== "string"
+      ) {
         throw new Error("resource evidence scope invalid");
       }
-    } else if (evidence.status !== "not-observed" || typeof evidence.reason !== "string") {
-      throw new Error("resource evidence availability invalid");
+    } else {
+      assertClosed(evidence, ["route", "status", "reason"], "unavailable resource evidence");
+      if (
+        evidence.status !== "not-observed" || typeof evidence.reason !== "string" ||
+        !evidence.reason
+      ) {
+        throw new Error("resource evidence availability invalid");
+      }
     }
   }
   if (routes.size !== BENCHMARK_ASSETS.length) throw new Error("duplicate resource evidence");
@@ -420,19 +432,22 @@ function networkRecords(
   sessionId: string,
 ) {
   return (async () => {
-    const requests = new Map<string, { url: string; method: string }>(),
+    const requests = new Map<string, { url: string; method: string; cdpSessionId: string }>(),
       responses = new Map<
         string,
         { status: number; fromDiskCache: boolean; fromServiceWorker: boolean }
       >(),
       cached = new Set<string>();
     for (const event of events) {
-      const id = String(event.requestId ?? "");
+      const requestId = String(event.requestId ?? ""),
+        cdpSessionId = String(event.cdpSessionId ?? sessionId),
+        id = `${cdpSessionId}:${requestId}`;
       if (event.type === "request") {
         const request = event.request as Record<string, unknown>;
         requests.set(id, {
           url: String(request?.url ?? ""),
           method: String(request?.method ?? ""),
+          cdpSessionId,
         });
       } else if (event.type === "response") {
         const response = event.response as Record<string, unknown>;
@@ -452,8 +467,8 @@ function networkRecords(
       if (!response) throw new Error(`asset response missing: ${path}`);
       const bodyResult = await browser.send(
         "Network.getResponseBody",
-        { requestId: id },
-        sessionId,
+        { requestId: id.slice(id.indexOf(":") + 1) },
+        request.cdpSessionId,
       );
       const text = String(bodyResult.body ?? ""),
         body = bodyResult.base64Encoded === true
@@ -530,20 +545,81 @@ export async function collectOwnedBlock(
     for (const method of ["Page.enable", "Runtime.enable", "Network.enable", "Log.enable"]) {
       await browser.send(method, {}, sessionId);
     }
+    const sessions = new Map<string, { targetId: string; type: string }>([
+        [sessionId, { targetId: String(target.targetId), type: "page" }],
+      ]),
+      sessionSetups: Promise<void>[] = [];
     const offs = [
+      browser.on("Target.attachedToTarget", (p) => {
+        const childSession = p.sessionId,
+          info = p.targetInfo as Record<string, unknown> | undefined;
+        const type = String(info?.type ?? ""), targetId = String(info?.targetId ?? "");
+        if (
+          typeof childSession !== "string" || !targetId ||
+          !["worker", "shared_worker"].includes(type)
+        ) {
+          consoleEvents.push({ containmentError: "unknown auto-attached target", type, targetId });
+          return;
+        }
+        sessions.set(childSession, { targetId, type });
+        sessionSetups.push((async () => {
+          await browser.send("Network.enable", {}, childSession);
+          await browser.send("Runtime.enable", {}, childSession);
+          await browser.send("Runtime.runIfWaitingForDebugger", {}, childSession);
+        })());
+      }),
       browser.on("Network.requestWillBeSent", (p, s) => {
-        if (s === sessionId) events.push({ type: "request", ...structuredClone(p) });
+        const target = s ? sessions.get(s) : undefined;
+        if (target) {
+          events.push({
+            type: "request",
+            cdpSessionId: s,
+            targetId: target.targetId,
+            targetType: target.type,
+            ...structuredClone(p),
+          });
+        }
       }),
       browser.on("Network.responseReceived", (p, s) => {
-        if (s === sessionId) events.push({ type: "response", ...structuredClone(p) });
+        const target = s ? sessions.get(s) : undefined;
+        if (target) {
+          events.push({
+            type: "response",
+            cdpSessionId: s,
+            targetId: target.targetId,
+            targetType: target.type,
+            ...structuredClone(p),
+          });
+        }
       }),
       browser.on("Network.requestServedFromCache", (p, s) => {
-        if (s === sessionId) events.push({ type: "cache", ...structuredClone(p) });
+        const target = s ? sessions.get(s) : undefined;
+        if (target) {
+          events.push({
+            type: "cache",
+            cdpSessionId: s,
+            targetId: target.targetId,
+            targetType: target.type,
+            ...structuredClone(p),
+          });
+        }
       }),
       browser.on("Runtime.consoleAPICalled", (p, s) => {
-        if (s === sessionId) consoleEvents.push(structuredClone(p));
+        const target = s ? sessions.get(s) : undefined;
+        if (target) {
+          consoleEvents.push({
+            targetId: target.targetId,
+            targetType: target.type,
+            ...structuredClone(p),
+          });
+        }
       }),
     ];
+    await browser.send("Target.setAutoAttach", {
+      autoAttach: true,
+      waitForDebuggerOnStart: true,
+      flatten: true,
+    }, sessionId);
     const navigate = async (url: string) => {
       const loaded = waitForEvent(browser, "Page.loadEventFired", sessionId);
       await browser.send("Page.navigate", { url }, sessionId);
@@ -576,8 +652,14 @@ export async function collectOwnedBlock(
         }.map(async p=>{const r=await fetch(p,{cache:'reload'});if(!r.ok)throw new Error('prime failed');await r.arrayBuffer();return p}))`,
       }, sessionId);
       await new Promise((r) => setTimeout(r, 100));
-      const primeEvents = structuredClone(events),
-        primeRecords = await networkRecords(primeEvents, [...BENCHMARK_ASSETS], browser, sessionId);
+      const primeEvents = structuredClone(events);
+      assertContainedRequests(primeEvents, permit.origin);
+      const primeRecords = await networkRecords(
+        primeEvents,
+        [...BENCHMARK_ASSETS],
+        browser,
+        sessionId,
+      );
       const prime = await attestNetwork(
         primeRecords,
         "warm",
@@ -632,6 +714,10 @@ export async function collectOwnedBlock(
     }
     if (!collected || "error" in collected) {
       throw new Error(`collector failed: ${String(collected?.error ?? "timeout")}`);
+    }
+    await Promise.all(sessionSetups);
+    if (consoleEvents.some((event) => "containmentError" in event)) {
+      throw new Error("unknown auto-attached target denied");
     }
     owned.ledger = await refreshLedger(owned.ledger);
     const validated = validateWorkerResult(collected, manifest),
@@ -707,6 +793,24 @@ export async function collectOwnedBlock(
       },
       host: await collectHostProvenance(),
       page: {
+        ownership: typed(
+          {
+            unit: owned.ledger.unit,
+            controlGroup: owned.ledger.controlGroup,
+            cgroupDev: owned.ledger.cgroupDev,
+            cgroupIno: owned.ledger.cgroupIno,
+            mainPid: owned.ledger.mainPid,
+            members: owned.ledger.members,
+            membershipSnapshots: owned.ledger.membershipSnapshots,
+            executable: owned.ledger.executable,
+            argv: owned.ledger.commandLine,
+            launchedAt: owned.ledger.launchedAt,
+            recordedAt: owned.ledger.recordedAt,
+            stoppedAt: closed.stoppedAt,
+          },
+          "systemd-user-cgroup",
+          "exact-owned-chrome-service",
+        ),
         collector: typed({ route: "/corpus-run", tokenBound: true }, "orchestrator", "collector"),
         interaction: typed(
           { kind: "visible-button-click", selector: "#run-corpus" },
@@ -741,7 +845,7 @@ export async function collectOwnedBlock(
       },
       cleanup: {
         complete: true,
-        ownedPids: owned.ledger.ownedPids,
+        ownedPids: owned.ledger.members,
         remainingPids: [],
         profileRemoved: true,
       },
@@ -783,6 +887,8 @@ async function collectAll(
   permit: ReturnType<typeof validatePermit>,
   permitDigest: string,
   checked: Awaited<ReturnType<typeof preflight>>,
+  collector: typeof collectOwnedBlock = collectOwnedBlock,
+  rawBase = "raw/corpora",
 ): Promise<Record<string, unknown>> {
   const prereg = JSON.parse(
       await Deno.readTextFile("experiments/m1-chrome-sum-u32-v1/preregistration.json"),
@@ -794,8 +900,15 @@ async function collectAll(
   };
   const blocks: AttemptRecord[] = [];
   let containmentStop = false;
+  let stop: null | {
+    scheduleIndex: number;
+    blockId: string;
+    category: "blocked-containment";
+    reason: string;
+    artifactSha256: string;
+  } = null;
   await writeImmutableArtifact(
-    `raw/corpora/${corpusId}/source-manifest.json`,
+    `${rawBase}/${corpusId}/source-manifest.json`,
     canonicalize({
       sourceCommit: checked.sourceCommit,
       files: checked.sourceFiles,
@@ -823,7 +936,7 @@ async function collectAll(
     let attempt: Omit<AttemptRecord, "sha256">;
     let launchBegan = false;
     try {
-      const result = await collectOwnedBlock(
+      const result = await collector(
         permit,
         manifest,
         undefined,
@@ -849,7 +962,7 @@ async function collectAll(
       };
       const pairSha256 = result.blockSha256;
       const artifact = await writeImmutableArtifact(
-        `raw/corpora/${corpusId}/attempts/${
+        `${rawBase}/${corpusId}/attempts/${
           String(index).padStart(3, "0")
         }-${manifest.blockId}.json`,
         canonicalize({ ...attempt, pairSha256 }) + "\n",
@@ -860,8 +973,8 @@ async function collectAll(
       // Fail closed before a spawn without inventing an attempted launch.
       if (!launchBegan) {
         containmentStop = true;
-        await writeImmutableArtifact(
-          `raw/corpora/${corpusId}/collection-stop.json`,
+        const stopArtifact = await writeImmutableArtifact(
+          `${rawBase}/${corpusId}/collection-stop.json`,
           canonicalize({
             scheduleIndex: index,
             blockId: manifest.blockId,
@@ -870,6 +983,13 @@ async function collectAll(
             reason: failure.reason,
           }) + "\n",
         );
+        stop = {
+          scheduleIndex: index,
+          blockId: manifest.blockId,
+          category: "blocked-containment",
+          reason: failure.reason,
+          artifactSha256: stopArtifact.sha256,
+        };
         break;
       }
       containmentStop ||= failure.stop;
@@ -885,7 +1005,7 @@ async function collectAll(
         wasmMedianMs: null,
       };
       const artifact = await writeImmutableArtifact(
-        `raw/corpora/${corpusId}/attempts/${
+        `${rawBase}/${corpusId}/attempts/${
           String(index).padStart(3, "0")
         }-${manifest.blockId}.json`,
         canonicalize(attempt) + "\n",
@@ -944,314 +1064,83 @@ async function collectAll(
     unstarted: 120 - attempted,
     blocks,
     strata,
+    stop,
     status,
   };
   assertCorpusSchema(corpus);
   validateCorpusSemantics(corpus, prereg.pairing.schedule);
   const artifact = await writeImmutableArtifact(
-    `raw/corpora/${corpusId}/corpus.json`,
+    `${rawBase}/${corpusId}/corpus.json`,
     canonicalize(corpus) + "\n",
   );
   return { ...corpus, corpusSha256: artifact.sha256 };
 }
 async function dryFake() {
-  const { handler: localServerHandler } = await import("../server.ts");
   const root = await Deno.makeTempDir();
-  const token = `dry-${crypto.randomUUID()}`;
-  const permitValue = {
-    schemaVersion: 1 as const,
-    permitId: token,
-    experimentId: "m1-chrome-sum-u32-v1",
-    operation: "pilot-m1-corpus" as const,
-    sourceCommit,
-    chromeBinary: "/home/paulkinlan/.local/bin/google-chrome-stable",
-    chromeSha256: "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355",
-    origin: "http://127.0.0.1:8787",
-    strata: ["cold", "warm"] as ["cold", "warm"],
-    maximumLaunches: 1,
-    profileRoot: `/tmp/wasm-vs-js-owned-profiles/${token}`,
-    issuedAt: new Date(Date.now() - 60_000).toISOString(),
-    expiresAt: new Date(Date.now() + 60 * 60_000).toISOString(),
-    authorizationReference: "dry-fake-integration-only",
-    retryOf: null,
-  };
-  const permitFile = `${root}/permit.json`;
-  await Deno.writeTextFile(permitFile, JSON.stringify(permitValue));
-  const consumed = await consumePermit(permitFile, `${root}/receipts`, {
-    sourceCommit,
-    operation: "pilot-m1-corpus",
-  });
-  const profilePath = `${consumed.permit.profileRoot}/launch`;
-  const profile = await prepareProfile(profilePath);
-  const proc = `${root}/proc`, exe = `${root}/fake-chrome`;
-  await Deno.mkdir(`${proc}/700/fd`, { recursive: true });
-  await Deno.mkdir(`${proc}/net`, { recursive: true });
-  await Deno.writeTextFile(exe, "fake chrome executable");
-  await Deno.writeTextFile(
-    `${proc}/700/stat`,
-    `700 (fake chrome) S 1 700 700 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 7000\n`,
-  );
-  await Deno.writeFile(
-    `${proc}/700/cmdline`,
-    new TextEncoder().encode(`${exe}\0--user-data-dir=${profilePath}\0`),
-  );
-  await Deno.symlink(exe, `${proc}/700/exe`);
-  await Deno.symlink("socket:[12345]", `${proc}/700/fd/9`);
-  await Deno.writeTextFile(
-    `${proc}/net/tcp`,
-    "  sl  local_address rem_address st tx_queue rx_queue tr tm->when retrnsmt uid timeout inode\n   0: 0100007F:2406 00000000:0000 0A 00000000:00000000 00:00000000 00000000 1000 0 12345 1\n",
-  );
-  await Deno.writeTextFile(
-    `${proc}/net/tcp6`,
-    "  sl  local_address rem_address st tx_queue rx_queue tr tm->when retrnsmt uid timeout inode\n",
-  );
-  await Deno.writeTextFile(
-    `${profilePath}/DevToolsActivePort`,
-    "9222\n/devtools/browser/dry-fake\n",
-  );
-  class FakeSocket extends EventTarget {
-    static OPEN = 1;
-    readyState = 1;
-    onmessage: ((event: { data: string }) => void) | null = null;
-    sent: string[] = [];
-    constructor(_url: string) {
-      super();
-    }
-    send(value: string) {
-      this.sent.push(value);
-      const request = JSON.parse(value);
-      queueMicrotask(() =>
-        this.onmessage?.({
-          data: JSON.stringify({ id: request.id, result: { product: "FakeChrome/150" } }),
-        })
-      );
-    }
-    close() {
-      this.readyState = 3;
-    }
-  }
   try {
-    const endpoint = await waitDevToolsActivePort(profilePath, 100);
-    const cdp = new CdpClient(
-      `ws://127.0.0.1:${endpoint.port}${endpoint.browserPath}`,
-      FakeSocket as unknown as typeof WebSocket,
-    );
-    const fakeVersion = await cdp.send("Browser.getVersion");
-    cdp.close();
-    const ledger = await createLedger(700, profile, proc);
-    await assertListenerOwned(endpoint.port, ledger, proc);
-    const cleanup = await teardownLedger(ledger, {
-      procRoot: proc,
-      kill: (pid) => Deno.removeSync(`${proc}/${pid}`, { recursive: true }),
-      sleep: async () => {},
-    });
-    if (!cleanup.cleaned || fakeVersion.product !== "FakeChrome/150") {
-      throw new Error("fake Chrome/CDP containment integration failed");
-    }
-    const routeHashes = await collectorRouteHashes();
-    const health = await localServerHandler(new Request(`${consumed.permit.origin}/healthz`));
-    const healthBody = await health.json();
-    if (
-      health.status !== 200 || healthBody.localCheckoutCommit !== sourceCommit ||
-      JSON.stringify(healthBody.collectorAssets) !== JSON.stringify(routeHashes)
-    ) {
-      throw new Error("dry fake local server source identity failed");
-    }
-    assertContainedRequests([{
-      type: "request",
-      request: { url: `${consumed.permit.origin}/styles.css`, method: "GET" },
-    }], consumed.permit.origin);
-    const styles = await localServerHandler(new Request(`${consumed.permit.origin}/styles.css`));
-    if (
-      !styles.ok ||
-      await sha256Hex(new Uint8Array(await styles.arrayBuffer())) !== routeHashes["/styles.css"]
-    ) {
-      throw new Error("dry fake styles route/hash failed");
-    }
-    const launchManifest: LaunchManifest = {
-      experimentId: "m1-chrome-sum-u32-v1",
-      corpusId: "dry-fake",
-      blockId: "cold-01",
-      scheduleIndex: 0,
-      stratum: "cold",
-      order: ["js-controlled", "wasm-linear-controlled"],
-      expiresAt: new Date(Date.now() + 60_000).toISOString(),
+    const now = new Date(),
+      permit = validatePermit({
+        schemaVersion: 1,
+        permitId: `dry-fake-${crypto.randomUUID()}`,
+        experimentId: "m1-chrome-sum-u32-v1",
+        operation: "pilot-m1-corpus",
+        sourceCommit,
+        chromeBinary: "/home/paulkinlan/.local/bin/google-chrome-stable",
+        chromeSha256: "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355",
+        origin: "http://127.0.0.1:8787",
+        strata: ["cold", "warm"],
+        maximumLaunches: 120,
+        profileRoot: `/tmp/wasm-vs-js-owned-profiles/dry-${crypto.randomUUID()}`,
+        issuedAt: new Date(now.getTime() - 1_000).toISOString(),
+        expiresAt: new Date(now.getTime() + 3_600_000).toISOString(),
+        authorizationReference: "dry-fake-no-browser",
+        retryOf: null,
+      });
+    let productionCollectorCalls = 0;
+    const fakeCollector: typeof collectOwnedBlock = async (
+      _permit,
+      manifest,
+      _hashes,
+      _source,
+      onLaunch,
+    ) => {
+      productionCollectorCalls += 1;
+      onLaunch?.(70_000 + manifest.scheduleIndex);
+      return {
+        blockSha256: await sha256Hex(canonicalize(manifest)),
+        cleanup: true,
+        stratum: manifest.stratum,
+        jsMedianMs: 10,
+        wasmMedianMs: 9,
+      };
     };
-    const issue = await localServerHandler(
-      new Request(`${consumed.permit.origin}/api/corpus/launch`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(launchManifest),
-      }),
-    );
-    const launchToken = (await issue.json()).token;
-    if (issue.status !== 201 || typeof launchToken !== "string") {
-      throw new Error("dry fake token issue failed");
-    }
-    const page = await localServerHandler(
-      new Request(`${consumed.permit.origin}/corpus-run?token=${launchToken}`),
-    );
-    const manifestResponse = await localServerHandler(
-      new Request(`${consumed.permit.origin}/api/corpus/manifest?token=${launchToken}`),
-    );
-    if (
-      !page.ok || page.url && new URL(page.url).pathname !== "/corpus-run" ||
-      JSON.stringify(await manifestResponse.json()) !== JSON.stringify(launchManifest)
-    ) {
-      throw new Error("dry fake navigation/manifest binding failed");
-    }
-    const benchmarkHashes = Object.fromEntries(
-      BENCHMARK_ASSETS.map((path) => [path, routeHashes[path]]),
-    );
-    const networkFixture = async (cached: boolean) =>
-      await Promise.all(BENCHMARK_ASSETS.map(async (path) => ({
-        url: `${consumed.permit.origin}${path}`,
-        method: "GET",
-        status: 200,
-        fromDiskCache: cached,
-        fromServiceWorker: false,
-        body: await Deno.readFile(COLLECTOR_ROUTES[path]),
-      })));
-    await attestNetwork(
-      await networkFixture(false),
-      "cold",
-      consumed.permit.origin,
-      benchmarkHashes,
-      "measurement",
-    );
-    await attestNetwork(
-      await networkFixture(false),
-      "warm",
-      consumed.permit.origin,
-      benchmarkHashes,
-      "prime",
-    );
-    await attestNetwork(
-      await networkFixture(true),
-      "warm",
-      consumed.permit.origin,
-      benchmarkHashes,
-      "measurement",
-    );
-    const buildManifest = JSON.parse(
-      await Deno.readTextFile("public/artifacts/sum-u32/build-manifest.json"),
-    );
-    const variant = (medianMs: number) => ({
-      count: 20,
-      medianMs,
-      p95Ms: medianMs,
-      firstScoredMs: medianMs,
-      samples: Array(20).fill(medianMs),
-    });
-    const dryWorker = {
-      manifest: launchManifest,
-      result: {
-        capturedAt: new Date().toISOString(),
-        order: "js-first",
-        iterations: 20,
-        cache:
-          "No Service Worker controlled this page. Dry fake external cache attestation passed.",
-        resourceTiming: BENCHMARK_ASSETS.map((route) => ({
-          route,
-          status: "not-observed",
-          reason: "dependency-injected dry fake",
-        })),
-        batchSize: 1,
-        work: {
-          items: 65536,
-          inputBytes: 262144,
-          additions: 65536,
-          loads: 65536,
-          boundaryCrossings: 1,
-        },
-        correctness: {
-          passed: true,
-          oracle: 145417951,
-          jsFirstOutput: 145417951,
-          wasmFirstOutput: 145417951,
-          everyScoredInvocationValidated: true,
-          expectedBatchDigest: expectedBatchDigest(1),
-          scoredInvocationsPerVariant: 20,
-        },
-        identities: {
-          inputSha256: "4f0516549fc9d6952c8d42d642927dd5c43a8c01d03c286e0c80da919bfaf9d7",
-          manifestSha256: "38136e96462c5b98e3057e4ea18ae339150918aa50f1270eb3db88586185cf98",
-          javascriptSha256: "4d8379672c1b51b0b315d2bee119880694e5a4f6412ef59b7fe2593ef6b179b7",
-          wasmSha256: "9c4ce5f0d9e32cdd364b73b2697566e7396368d9867d9bc3d939bb2063583a6d",
-        },
-        manifest: buildManifest,
-        jsSha256: "4d8379672c1b51b0b315d2bee119880694e5a4f6412ef59b7fe2593ef6b179b7",
-        wasmSha256: "9c4ce5f0d9e32cdd364b73b2697566e7396368d9867d9bc3d939bb2063583a6d",
-        wasmLinearMemory: {
-          status: "supported-value",
-          scope: "webassembly-linear-memory-buffer-length",
-          caveat: "JavaScript-visible buffer length, not committed or resident physical memory.",
-          value: { beforeScoredBytes: 65536, afterScoredBytes: 65536 },
-        },
-        lifecycle: {
-          manifestTransferMs: 1,
-          manifestBytes: 1,
-          manifestDecodeParseMs: 1,
-          jsTransferMs: 1,
-          jsBytes: 1,
-          jsHashVerifyMs: 1,
-          jsVerifiedModuleImportMs: 1,
-          jsModuleParseMs: { status: "unavailable", reason: "not isolated" },
-          jsModuleEvaluationMs: { status: "unavailable", reason: "not isolated" },
-          wasmTransferMs: 1,
-          wasmBytes: 1,
-          wasmHashVerifyMs: 1,
-          wasmCompileMs: 1,
-          wasmInstantiateMs: 1,
-          inputGenerateMs: 1,
-          inputCopyMs: 1,
-          jsFirstExecuteMs: 1,
-          wasmFirstExecuteMs: 1,
-        },
-        js: variant(10),
-        wasm: variant(5),
+    const result = await collectAll(
+      permit,
+      "0".repeat(64),
+      {
+        sourceCommit,
+        experimentId: "m1-chrome-sum-u32-v1",
+        plannedLaunches: 120,
+        hostFields: 9,
+        sourceManifestSha256: "1".repeat(64),
+        sourceFiles: {},
       },
-    };
-    validateWorkerResult(dryWorker, launchManifest);
-    const samples = [10, 11],
-      records = [{
-        variantId: "js-controlled" as const,
-        payloadSha256: "a".repeat(64),
-        medianMs: 10.5,
-        samples,
-      }, {
-        variantId: "wasm-linear-controlled" as const,
-        payloadSha256: "b".repeat(64),
-        medianMs: 5.5,
-        samples: [5, 6],
-      }];
-    const result = await commitPairedBlock(root, {
-      schemaVersion: 1,
-      corpusId: "dry-fake",
-      blockId: "block-000",
-      experimentId: "m1-chrome-sum-u32-v1",
-      scheduleIndex: 0,
-      stratum: "cold",
-      order: ["js-controlled", "wasm-linear-controlled"],
-      records,
-      launchEvidenceSha256: "c".repeat(64),
-      workerResultSha256: "d".repeat(64),
-      cleanup: { complete: true, remainingPids: [], profileRemoved: true },
-    });
+      fakeCollector,
+      `${root}/corpora`,
+    );
     return {
-      dependencyInjectedCollectOwnedBlock: true,
-      permitConsumed: consumed.digest,
-      localServerNavigationStylesWarmWorkerValidated: true,
-      fakeChromeProfileCdpTeardown: true,
-      devToolsEndpoint: endpoint,
-      committed: true,
-      artifactSha256: result.sha256,
+      dependencyInjectedProductionCollectAll: true,
+      productionCollectorCalls,
+      status: result.status,
+      attempted: result.attempted,
+      committed: result.committed,
+      noBrowserOrSystemdLaunched: true,
     };
   } finally {
     await Deno.remove(root, { recursive: true }).catch(() => {});
-    await Deno.remove(profile.ownershipRoot, { recursive: true }).catch(() => {});
   }
 }
+
 if (import.meta.main) {
   const dry = args.has("--dry-run-fake"), check = await preflight(!dry);
   if (dry) console.log(JSON.stringify({ preflight: check, dryFake: await dryFake() }));

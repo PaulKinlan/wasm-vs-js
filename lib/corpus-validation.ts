@@ -145,6 +145,14 @@ export function validateCorpusSemantics(
         !block.category || !block.reason || block.jsMedianMs !== null || block.wasmMedianMs !== null
       )
     ) throw new Error("failure classification missing");
+    if (
+      block.status === "failed" &&
+      !["failed-correctness", "failed-measurement"].includes(block.category)
+    ) throw new Error("failed attempt category mismatch");
+    if (
+      block.status === "blocked" &&
+      !["blocked-containment", "blocked-cache", "blocked-provenance"].includes(block.category)
+    ) throw new Error("blocked attempt category mismatch");
   }
   if (counts.committed !== committed || counts.failed !== failed || counts.blocked !== blocked) {
     throw new Error("corpus status counts mismatch");
@@ -210,7 +218,17 @@ export function validateCorpusSemantics(
       terminals.includes("continue") || !terminals.includes("cap-inconclusive")
     )
   ) throw new Error("cap terminal contradiction");
-  if (corpus.status === "containment-blocked" && blocked < 1 && attempted === planned) {
-    throw new Error("containment terminal contradiction");
+  const stop = corpus.stop as Record<string, unknown> | null;
+  if (corpus.status === "containment-blocked") {
+    const hasBlockedContainment = blocks.some((block) => block.category === "blocked-containment");
+    const validStop = stop !== null &&
+      Number.isSafeInteger(stop.scheduleIndex) && Number(stop.scheduleIndex) >= 0 &&
+      Number(stop.scheduleIndex) < 120 &&
+      stop.blockId === schedule[Number(stop.scheduleIndex)]?.blockId &&
+      stop.category === "blocked-containment" && typeof stop.reason === "string" &&
+      stop.reason.length > 0 && /^[a-f0-9]{64}$/.test(String(stop.artifactSha256));
+    if (!hasBlockedContainment && !validStop) throw new Error("containment terminal contradiction");
+  } else if (stop !== null) {
+    throw new Error("non-containment corpus cannot reference stop evidence");
   }
 }

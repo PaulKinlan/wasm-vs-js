@@ -60,6 +60,7 @@ Deno.test("corpus schema accepts typed per-stratum accounting and rejects omitte
       cold: { attempted: 1, committed: 1, failed: 0, blocked: 0, terminal: "continue" },
       warm: { attempted: 0, committed: 0, failed: 0, blocked: 0, terminal: "continue" },
     },
+    stop: null,
     status: "containment-blocked",
   };
   assertCorpusSchema(fixture);

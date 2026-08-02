@@ -1,4 +1,10 @@
-import { CdpClient } from "./cdp-client.ts";
+type CdpSender = {
+  send(
+    method: string,
+    params?: Record<string, unknown>,
+    sessionId?: string,
+  ): Promise<Record<string, unknown>>;
+};
 const typed = async (source: string, scope: string, fn: () => Promise<unknown>) => {
   const collectedAt = new Date().toISOString();
   try {
@@ -15,8 +21,8 @@ const typed = async (source: string, scope: string, fn: () => Promise<unknown>) 
 };
 /** Headline-safe provenance only. No Performance, Memory, Heap, process CPU/RSS/PSS, tracing, or forced GC. */
 export async function collectChromeProvenance(
-  browser: CdpClient,
-  page: CdpClient,
+  browser: CdpSender,
+  page: CdpSender,
   sessionId?: string,
 ): Promise<Record<string, unknown>> {
   return {

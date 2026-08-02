@@ -300,6 +300,13 @@ const corpus = {
     cold: { attempted: 1, committed: 1, failed: 0, blocked: 0, terminal: "continue" },
     warm: { attempted: 0, committed: 0, failed: 0, blocked: 0, terminal: "continue" },
   },
+  stop: {
+    scheduleIndex: 1,
+    blockId: "cold-02",
+    category: "blocked-containment",
+    reason: "pre-spawn containment stop fixture",
+    artifactSha256: hash,
+  },
   status: "containment-blocked",
 };
 const frozenSchedule = JSON.parse(

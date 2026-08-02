@@ -57,7 +57,7 @@ const workerEnvelope = () => ({
       loads: 65536,
       boundaryCrossings: 1,
     },
-    manifest: buildManifest,
+    manifest: structuredClone(buildManifest),
     jsSha256: "4d8379672c1b51b0b315d2bee119880694e5a4f6412ef59b7fe2593ef6b179b7",
     wasmSha256: "9c4ce5f0d9e32cdd364b73b2697566e7396368d9867d9bc3d939bb2063583a6d",
     lifecycle: {
@@ -104,6 +104,18 @@ Deno.test("worker evidence gate requires exact manifest, correctness, fixed work
   await assertRejects(
     () => Promise.resolve().then(() => validateWorkerResult(wrongSample, manifest)),
     "trajectory",
+  );
+  const changedManifest = workerEnvelope();
+  changedManifest.result.manifest.build.command = "unreviewed build";
+  await assertRejects(
+    () => Promise.resolve().then(() => validateWorkerResult(changedManifest, manifest)),
+    "build manifest",
+  );
+  const openResource = workerEnvelope();
+  (openResource.result.resourceTiming[0] as Record<string, unknown>).invented = true;
+  await assertRejects(
+    () => Promise.resolve().then(() => validateWorkerResult(openResource, manifest)),
+    "resource evidence shape",
   );
   await assertRejects(
     () =>
