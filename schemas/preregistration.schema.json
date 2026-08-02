@@ -1,0 +1,447 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.paulkinlan-ea.deno.net/schemas/preregistration.schema.json",
+  "title": "M1 Chrome preregistration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "experimentId",
+    "status",
+    "frozenAt",
+    "scope",
+    "source",
+    "browserPolicy",
+    "originPolicy",
+    "strata",
+    "pairing",
+    "statistics",
+    "accounting",
+    "instrumentation",
+    "permitEnvelope",
+    "publication"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "experimentId": { "type": "string", "pattern": "^[a-z0-9-]+-v[0-9]+$" },
+    "status": { "const": "preregistered-not-authorized" },
+    "frozenAt": { "type": "string", "format": "date-time" },
+    "scope": { "$ref": "#/$defs/nonempty" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository",
+        "measurementSourceCommit",
+        "benchmark",
+        "buildManifest",
+        "input",
+        "oracle",
+        "variants"
+      ],
+      "properties": {
+        "repository": { "type": "string", "format": "uri" },
+        "measurementSourceCommit": { "$ref": "#/$defs/gitHash" },
+        "benchmark": { "$ref": "#/$defs/benchmark" },
+        "buildManifest": { "$ref": "#/$defs/fileHash" },
+        "input": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["sha256", "bytes", "items", "seed"],
+          "properties": {
+            "sha256": { "$ref": "#/$defs/sha256" },
+            "bytes": { "type": "integer", "minimum": 1 },
+            "items": { "type": "integer", "minimum": 1 },
+            "seed": { "type": "string", "pattern": "^0x[a-f0-9]{8}$" }
+          }
+        },
+        "oracle": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "value", "sha256"],
+          "properties": {
+            "kind": { "const": "exact-u32" },
+            "value": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+            "sha256": { "$ref": "#/$defs/sha256" }
+          }
+        },
+        "variants": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": { "$ref": "#/$defs/variant" }
+        }
+      }
+    },
+    "browserPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "channel",
+        "product",
+        "version",
+        "majorVersion",
+        "executablePath",
+        "executableSha256",
+        "headless",
+        "oneOwnedProcessAndProfilePerBlock",
+        "ordinaryCacheEnabled",
+        "requiredLaunchArguments",
+        "forbiddenLaunchArguments",
+        "versionMismatchPolicy"
+      ],
+      "properties": {
+        "channel": { "const": "chrome-for-testing" },
+        "product": { "$ref": "#/$defs/nonempty" },
+        "version": { "type": "string", "pattern": "^[0-9]+(?:\\.[0-9]+){3}$" },
+        "majorVersion": { "type": "integer", "minimum": 1 },
+        "executablePath": { "$ref": "#/$defs/nonempty" },
+        "executableSha256": { "$ref": "#/$defs/sha256" },
+        "headless": { "type": "boolean" },
+        "oneOwnedProcessAndProfilePerBlock": { "const": true },
+        "ordinaryCacheEnabled": { "const": true },
+        "requiredLaunchArguments": { "$ref": "#/$defs/stringList" },
+        "forbiddenLaunchArguments": { "$ref": "#/$defs/stringList" },
+        "versionMismatchPolicy": { "const": "block" }
+      }
+    },
+    "originPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["exactOrigin", "allowedMethods", "unexpectedOriginOrMethod"],
+      "properties": {
+        "exactOrigin": { "type": "string", "format": "uri" },
+        "allowedMethods": {
+          "type": "array",
+          "items": { "const": "GET" },
+          "minItems": 1,
+          "maxItems": 1
+        },
+        "unexpectedOriginOrMethod": { "const": "block-entire-collection" }
+      }
+    },
+    "strata": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "$ref": "#/$defs/stratum" }
+    },
+    "pairing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "orderSeed",
+        "scheduleAlgorithm",
+        "schedule",
+        "commitRule",
+        "partialPairPolicy",
+        "substitutionsAllowed",
+        "retriesAllowed",
+        "slowValidSamplePolicy",
+        "strataPoolingAllowed"
+      ],
+      "properties": {
+        "orderSeed": { "$ref": "#/$defs/nonempty" },
+        "scheduleAlgorithm": { "const": "frozen-explicit-balanced-alternation-v1" },
+        "schedule": {
+          "type": "array",
+          "minItems": 120,
+          "maxItems": 120,
+          "items": { "$ref": "#/$defs/scheduleRow" }
+        },
+        "commitRule": { "$ref": "#/$defs/nonempty" },
+        "partialPairPolicy": { "const": "retain-as-failed-or-blocked-never-summarize" },
+        "substitutionsAllowed": { "const": false },
+        "retriesAllowed": { "const": false },
+        "slowValidSamplePolicy": { "const": "retain" },
+        "strataPoolingAllowed": { "const": false }
+      }
+    },
+    "statistics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "headlineInput",
+        "withinLaunchVariantStatistic",
+        "pairedEstimator",
+        "absoluteDistributions",
+        "bootstrap",
+        "sequentialProtection",
+        "precision",
+        "stopRules",
+        "sensitivity"
+      ],
+      "properties": {
+        "headlineInput": { "const": "committed-pairs-only" },
+        "withinLaunchVariantStatistic": { "$ref": "#/$defs/nonempty" },
+        "pairedEstimator": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["transform", "point", "reportedRatio", "absoluteEffect"],
+          "properties": {
+            "transform": { "const": "log(wasm-linear-controlled median / js-controlled median)" },
+            "point": { "$ref": "#/$defs/nonempty" },
+            "reportedRatio": { "const": "exp(point)" },
+            "absoluteEffect": { "$ref": "#/$defs/nonempty" }
+          }
+        },
+        "absoluteDistributions": { "$ref": "#/$defs/stringList" },
+        "bootstrap": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["algorithm", "resamples", "prng", "seed", "resampleUnit", "stratified"],
+          "properties": {
+            "algorithm": { "$ref": "#/$defs/nonempty" },
+            "resamples": { "const": 10000 },
+            "prng": { "const": "xorshift32-v1" },
+            "seed": { "type": "string", "pattern": "^0x[a-f0-9]{8}$" },
+            "resampleUnit": { "const": "paired fresh launch" },
+            "stratified": { "const": true }
+          }
+        },
+        "sequentialProtection": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "familyWiseAlpha",
+            "looksPerStratum",
+            "method",
+            "twoSidedConfidenceLevelPerLook",
+            "checkpoints"
+          ],
+          "properties": {
+            "familyWiseAlpha": { "const": 0.05 },
+            "looksPerStratum": { "const": 5 },
+            "method": { "const": "Bonferroni" },
+            "twoSidedConfidenceLevelPerLook": { "const": 0.99 },
+            "checkpoints": { "$ref": "#/$defs/checkpoints" }
+          }
+        },
+        "precision": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["metric", "formula", "targetMaximum"],
+          "properties": {
+            "metric": { "const": "multiplicative CI half-width" },
+            "formula": { "const": "exp((upperLogCi-lowerLogCi)/2)-1" },
+            "targetMaximum": { "const": 0.03 }
+          }
+        },
+        "stopRules": { "$ref": "#/$defs/stringList" },
+        "sensitivity": { "$ref": "#/$defs/stringList" }
+      }
+    },
+    "accounting": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "statuses",
+        "attemptedDefinition",
+        "committedDenominatorOnly",
+        "noRetryOrSubstitution",
+        "everyPlannedBlockReconciled",
+        "unavailableMetricPolicy"
+      ],
+      "properties": {
+        "statuses": { "$ref": "#/$defs/stringList" },
+        "attemptedDefinition": { "$ref": "#/$defs/nonempty" },
+        "committedDenominatorOnly": { "const": true },
+        "noRetryOrSubstitution": { "const": true },
+        "everyPlannedBlockReconciled": { "const": true },
+        "unavailableMetricPolicy": { "const": "typed-unavailable-with-reason-never-zero" }
+      }
+    },
+    "instrumentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["headline", "diagnostics"],
+      "properties": {
+        "headline": { "$ref": "#/$defs/headlineInstrumentation" },
+        "diagnostics": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "separateLaunchesAndPermitRequired",
+            "neverEnterHeadlineCells",
+            "allowed",
+            "unavailableMetricPolicy"
+          ],
+          "properties": {
+            "separateLaunchesAndPermitRequired": { "const": true },
+            "neverEnterHeadlineCells": { "const": true },
+            "allowed": { "$ref": "#/$defs/stringList" },
+            "unavailableMetricPolicy": {
+              "const": "typed-unavailable-with-source-scope-timestamp-never-zero"
+            }
+          }
+        }
+      }
+    },
+    "permitEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "singleUse",
+        "experimentId",
+        "exactOrigin",
+        "exactBrowserVersion",
+        "exactBinarySha256",
+        "maximumOwnedBrowserLaunches",
+        "maximumPerStratum",
+        "deadlineRequired",
+        "maximumValidityHours",
+        "allowedOperation",
+        "retryAfterFailureRequiresNewPermit",
+        "authorizationStatement"
+      ],
+      "properties": {
+        "state": { "const": "template-only-not-consumed" },
+        "singleUse": { "const": true },
+        "experimentId": { "type": "string" },
+        "exactOrigin": { "type": "string", "format": "uri" },
+        "exactBrowserVersion": { "type": "string" },
+        "exactBinarySha256": { "$ref": "#/$defs/sha256" },
+        "maximumOwnedBrowserLaunches": { "const": 120 },
+        "maximumPerStratum": { "const": 60 },
+        "deadlineRequired": { "const": true },
+        "maximumValidityHours": { "const": 24 },
+        "allowedOperation": { "const": "collect-uninstrumented-headline-paired-corpus" },
+        "retryAfterFailureRequiresNewPermit": { "const": true },
+        "authorizationStatement": { "$ref": "#/$defs/nonempty" }
+      }
+    },
+    "publication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "publishAllDenominatorRows",
+        "publishRawSamples",
+        "privateOnly",
+        "missingEvidenceNeverPasses"
+      ],
+      "properties": {
+        "publishAllDenominatorRows": { "const": true },
+        "publishRawSamples": { "const": true },
+        "privateOnly": { "$ref": "#/$defs/stringList" },
+        "missingEvidenceNeverPasses": { "const": true }
+      }
+    }
+  },
+  "$defs": {
+    "nonempty": { "type": "string", "minLength": 1, "maxLength": 1000 },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "gitHash": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "stringList": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/nonempty" }
+    },
+    "checkpoints": {
+      "type": "array",
+      "prefixItems": [
+        { "const": 20 },
+        { "const": 30 },
+        { "const": 40 },
+        { "const": 50 },
+        { "const": 60 }
+      ],
+      "items": false,
+      "minItems": 5,
+      "maxItems": 5
+    },
+    "fileHash": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "$ref": "#/$defs/nonempty" },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "benchmark": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "id", "version", "track"],
+      "properties": {
+        "path": { "$ref": "#/$defs/nonempty" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "id": { "const": "sum-u32" },
+        "version": { "const": 1 },
+        "track": { "const": "controlled" }
+      }
+    },
+    "variant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "target", "artifact", "sha256"],
+      "properties": {
+        "id": { "enum": ["js-controlled", "wasm-linear-controlled"] },
+        "target": { "enum": ["javascript", "wasm-linear"] },
+        "artifact": { "$ref": "#/$defs/nonempty" },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "stratum": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "cacheState",
+        "minimumPairedLaunches",
+        "fixedCapPairedLaunches",
+        "checkpoints",
+        "evidenceRequirements",
+        "contradictionPolicy"
+      ],
+      "properties": {
+        "id": { "enum": ["cold", "warm"] },
+        "cacheState": { "enum": ["cold", "warm"] },
+        "minimumPairedLaunches": { "const": 20 },
+        "fixedCapPairedLaunches": { "const": 60 },
+        "checkpoints": { "$ref": "#/$defs/checkpoints" },
+        "evidenceRequirements": { "$ref": "#/$defs/stringList" },
+        "contradictionPolicy": { "const": "block-launch-no-timing" }
+      }
+    },
+    "scheduleRow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stratum", "blockIndex", "blockId", "order"],
+      "properties": {
+        "stratum": { "enum": ["cold", "warm"] },
+        "blockIndex": { "type": "integer", "minimum": 1, "maximum": 60 },
+        "blockId": { "type": "string", "pattern": "^(cold|warm)-[0-9]{2}$" },
+        "order": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": { "enum": ["js-controlled", "wasm-linear-controlled"] }
+        }
+      }
+    },
+    "headlineInstrumentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profilerEnabled",
+        "tracingEnabled",
+        "heapSnapshotEnabled",
+        "forcedGc",
+        "memoryPolling",
+        "claimScope"
+      ],
+      "properties": {
+        "profilerEnabled": { "const": false },
+        "tracingEnabled": { "const": false },
+        "heapSnapshotEnabled": { "const": false },
+        "forcedGc": { "const": false },
+        "memoryPolling": { "const": false },
+        "claimScope": { "const": "uninstrumented-headline" }
+      }
+    }
+  }
+}

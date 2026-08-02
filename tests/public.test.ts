@@ -100,6 +100,20 @@ Deno.test("workload catalog exposes exact totals, filters, and honest implementa
   assert(!script.includes("innerHTML"));
 });
 
+Deno.test("public M1 experiment is inspectable without claiming authorization or results", async () => {
+  const page = await Deno.readTextFile("public/experiments/index.html");
+  const canonical = await Deno.readTextFile(
+    "experiments/m1-chrome-sum-u32-v1/preregistration.json",
+  );
+  const published = await Deno.readTextFile("public/experiments/m1-chrome-sum-u32-v1.json");
+  assertEquals(published, canonical);
+  assert(page.includes("Preregistered, not authorized or collected"));
+  assert(page.includes("20 committed fresh pairs per stratum"));
+  assert(page.includes("60 committed pairs per stratum"));
+  assert(page.includes("template-only-not-consumed"));
+  assert(!page.includes("benchmark winner"));
+});
+
 Deno.test("versioned public acceptance package is explicit and contains no invented run evidence", async () => {
   const evidencePage = await Deno.readTextFile("public/evidence/index.html");
   const acceptance = JSON.parse(
@@ -136,6 +150,7 @@ Deno.test("public pages contain no inline script, inline style, or remote asset"
       "public/run/index.html",
       "public/benchmarks/index.html",
       "public/evidence/index.html",
+      "public/experiments/index.html",
     ]
   ) {
     const html = await Deno.readTextFile(path);

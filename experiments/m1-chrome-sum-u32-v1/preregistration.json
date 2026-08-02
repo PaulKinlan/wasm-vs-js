@@ -1,0 +1,1345 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "m1-chrome-sum-u32-v1",
+  "status": "preregistered-not-authorized",
+  "frozenAt": "2026-08-02T16:44:55Z",
+  "scope": "Chrome 150 controlled Track A sum-u32 JavaScript versus scalar linear-memory Wasm; cold and warm headline cells remain separate.",
+  "source": {
+    "repository": "https://github.com/PaulKinlan/wasm-vs-js",
+    "measurementSourceCommit": "3aea1939e6b17c9c1a1deebebfa69cd2c35bb633",
+    "benchmark": {
+      "path": "benchmarks/sum-u32/benchmark.json",
+      "sha256": "d5a7c9459e5bbed3a64d521af393d30d572b1034184a249f14265e2a0a99ff0a",
+      "id": "sum-u32",
+      "version": 1,
+      "track": "controlled"
+    },
+    "buildManifest": {
+      "path": "public/artifacts/sum-u32/build-manifest.json",
+      "sha256": "38136e96462c5b98e3057e4ea18ae339150918aa50f1270eb3db88586185cf98"
+    },
+    "input": {
+      "sha256": "4f0516549fc9d6952c8d42d642927dd5c43a8c01d03c286e0c80da919bfaf9d7",
+      "bytes": 262144,
+      "items": 65536,
+      "seed": "0x6d2b79f5"
+    },
+    "oracle": {
+      "kind": "exact-u32",
+      "value": 145417951,
+      "sha256": "09adca901429c6dc0d823e8b44e63d20d32ae497a04b42047d52c62224b23f9f"
+    },
+    "variants": [
+      {
+        "id": "js-controlled",
+        "target": "javascript",
+        "artifact": "benchmarks/sum-u32/workload.js",
+        "sha256": "4d8379672c1b51b0b315d2bee119880694e5a4f6412ef59b7fe2593ef6b179b7"
+      },
+      {
+        "id": "wasm-linear-controlled",
+        "target": "wasm-linear",
+        "artifact": "public/artifacts/sum-u32/sum-u32.wasm",
+        "sha256": "9c4ce5f0d9e32cdd364b73b2697566e7396368d9867d9bc3d939bb2063583a6d"
+      }
+    ]
+  },
+  "browserPolicy": {
+    "channel": "chrome-for-testing",
+    "product": "Google Chrome for Testing",
+    "version": "150.0.7871.24",
+    "majorVersion": 150,
+    "executablePath": "/home/paulkinlan/.local/bin/google-chrome-stable",
+    "executableSha256": "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355",
+    "headless": false,
+    "oneOwnedProcessAndProfilePerBlock": true,
+    "ordinaryCacheEnabled": true,
+    "requiredLaunchArguments": [
+      "--remote-debugging-port=0",
+      "--user-data-dir=<owned-unique-profile>",
+      "--no-first-run",
+      "--no-default-browser-check"
+    ],
+    "forbiddenLaunchArguments": [
+      "--disable-cache",
+      "--js-flags",
+      "--enable-blink-features=ForceEagerMeasureMemory",
+      "--disable-background-timer-throttling"
+    ],
+    "versionMismatchPolicy": "block"
+  },
+  "originPolicy": {
+    "exactOrigin": "http://127.0.0.1:8787",
+    "allowedMethods": [
+      "GET"
+    ],
+    "unexpectedOriginOrMethod": "block-entire-collection"
+  },
+  "strata": [
+    {
+      "id": "cold",
+      "cacheState": "cold",
+      "minimumPairedLaunches": 20,
+      "fixedCapPairedLaunches": 60,
+      "checkpoints": [
+        20,
+        30,
+        40,
+        50,
+        60
+      ],
+      "evidenceRequirements": [
+        "fresh owned browser process and unique empty profile",
+        "no Service Worker or pre-existing origin storage",
+        "no benchmark asset priming",
+        "ordinary HTTP cache enabled",
+        "CDP network evidence for exact manifest, JavaScript and Wasm responses",
+        "exact response hashes"
+      ],
+      "contradictionPolicy": "block-launch-no-timing"
+    },
+    {
+      "id": "warm",
+      "cacheState": "warm",
+      "minimumPairedLaunches": 20,
+      "fixedCapPairedLaunches": 60,
+      "checkpoints": [
+        20,
+        30,
+        40,
+        50,
+        60
+      ],
+      "evidenceRequirements": [
+        "fresh owned browser process and unique empty profile",
+        "no Service Worker or pre-existing origin storage",
+        "prime only exact manifest, JavaScript and Wasm assets once before measurement",
+        "verify primed response hashes and successful cache reuse evidence",
+        "ordinary HTTP cache enabled",
+        "CDP network evidence for priming and measurement"
+      ],
+      "contradictionPolicy": "block-launch-no-timing"
+    }
+  ],
+  "pairing": {
+    "orderSeed": "m1-chrome-sum-u32-v1-order-2026-08-02",
+    "scheduleAlgorithm": "frozen-explicit-balanced-alternation-v1",
+    "schedule": [
+      {
+        "stratum": "cold",
+        "blockIndex": 1,
+        "blockId": "cold-01",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 2,
+        "blockId": "cold-02",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 3,
+        "blockId": "cold-03",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 4,
+        "blockId": "cold-04",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 5,
+        "blockId": "cold-05",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 6,
+        "blockId": "cold-06",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 7,
+        "blockId": "cold-07",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 8,
+        "blockId": "cold-08",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 9,
+        "blockId": "cold-09",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 10,
+        "blockId": "cold-10",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 11,
+        "blockId": "cold-11",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 12,
+        "blockId": "cold-12",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 13,
+        "blockId": "cold-13",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 14,
+        "blockId": "cold-14",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 15,
+        "blockId": "cold-15",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 16,
+        "blockId": "cold-16",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 17,
+        "blockId": "cold-17",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 18,
+        "blockId": "cold-18",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 19,
+        "blockId": "cold-19",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 20,
+        "blockId": "cold-20",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 21,
+        "blockId": "cold-21",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 22,
+        "blockId": "cold-22",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 23,
+        "blockId": "cold-23",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 24,
+        "blockId": "cold-24",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 25,
+        "blockId": "cold-25",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 26,
+        "blockId": "cold-26",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 27,
+        "blockId": "cold-27",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 28,
+        "blockId": "cold-28",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 29,
+        "blockId": "cold-29",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 30,
+        "blockId": "cold-30",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 31,
+        "blockId": "cold-31",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 32,
+        "blockId": "cold-32",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 33,
+        "blockId": "cold-33",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 34,
+        "blockId": "cold-34",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 35,
+        "blockId": "cold-35",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 36,
+        "blockId": "cold-36",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 37,
+        "blockId": "cold-37",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 38,
+        "blockId": "cold-38",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 39,
+        "blockId": "cold-39",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 40,
+        "blockId": "cold-40",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 41,
+        "blockId": "cold-41",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 42,
+        "blockId": "cold-42",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 43,
+        "blockId": "cold-43",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 44,
+        "blockId": "cold-44",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 45,
+        "blockId": "cold-45",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 46,
+        "blockId": "cold-46",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 47,
+        "blockId": "cold-47",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 48,
+        "blockId": "cold-48",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 49,
+        "blockId": "cold-49",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 50,
+        "blockId": "cold-50",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 51,
+        "blockId": "cold-51",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 52,
+        "blockId": "cold-52",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 53,
+        "blockId": "cold-53",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 54,
+        "blockId": "cold-54",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 55,
+        "blockId": "cold-55",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 56,
+        "blockId": "cold-56",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 57,
+        "blockId": "cold-57",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 58,
+        "blockId": "cold-58",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 59,
+        "blockId": "cold-59",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "cold",
+        "blockIndex": 60,
+        "blockId": "cold-60",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 1,
+        "blockId": "warm-01",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 2,
+        "blockId": "warm-02",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 3,
+        "blockId": "warm-03",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 4,
+        "blockId": "warm-04",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 5,
+        "blockId": "warm-05",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 6,
+        "blockId": "warm-06",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 7,
+        "blockId": "warm-07",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 8,
+        "blockId": "warm-08",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 9,
+        "blockId": "warm-09",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 10,
+        "blockId": "warm-10",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 11,
+        "blockId": "warm-11",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 12,
+        "blockId": "warm-12",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 13,
+        "blockId": "warm-13",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 14,
+        "blockId": "warm-14",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 15,
+        "blockId": "warm-15",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 16,
+        "blockId": "warm-16",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 17,
+        "blockId": "warm-17",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 18,
+        "blockId": "warm-18",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 19,
+        "blockId": "warm-19",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 20,
+        "blockId": "warm-20",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 21,
+        "blockId": "warm-21",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 22,
+        "blockId": "warm-22",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 23,
+        "blockId": "warm-23",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 24,
+        "blockId": "warm-24",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 25,
+        "blockId": "warm-25",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 26,
+        "blockId": "warm-26",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 27,
+        "blockId": "warm-27",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 28,
+        "blockId": "warm-28",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 29,
+        "blockId": "warm-29",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 30,
+        "blockId": "warm-30",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 31,
+        "blockId": "warm-31",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 32,
+        "blockId": "warm-32",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 33,
+        "blockId": "warm-33",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 34,
+        "blockId": "warm-34",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 35,
+        "blockId": "warm-35",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 36,
+        "blockId": "warm-36",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 37,
+        "blockId": "warm-37",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 38,
+        "blockId": "warm-38",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 39,
+        "blockId": "warm-39",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 40,
+        "blockId": "warm-40",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 41,
+        "blockId": "warm-41",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 42,
+        "blockId": "warm-42",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 43,
+        "blockId": "warm-43",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 44,
+        "blockId": "warm-44",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 45,
+        "blockId": "warm-45",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 46,
+        "blockId": "warm-46",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 47,
+        "blockId": "warm-47",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 48,
+        "blockId": "warm-48",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 49,
+        "blockId": "warm-49",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 50,
+        "blockId": "warm-50",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 51,
+        "blockId": "warm-51",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 52,
+        "blockId": "warm-52",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 53,
+        "blockId": "warm-53",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 54,
+        "blockId": "warm-54",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 55,
+        "blockId": "warm-55",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 56,
+        "blockId": "warm-56",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 57,
+        "blockId": "warm-57",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 58,
+        "blockId": "warm-58",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 59,
+        "blockId": "warm-59",
+        "order": [
+          "wasm-linear-controlled",
+          "js-controlled"
+        ]
+      },
+      {
+        "stratum": "warm",
+        "blockIndex": 60,
+        "blockId": "warm-60",
+        "order": [
+          "js-controlled",
+          "wasm-linear-controlled"
+        ]
+      }
+    ],
+    "commitRule": "A block is committed only when both variant records pass correctness/work/hash validation and exact owned-process/profile cleanup passes.",
+    "partialPairPolicy": "retain-as-failed-or-blocked-never-summarize",
+    "substitutionsAllowed": false,
+    "retriesAllowed": false,
+    "slowValidSamplePolicy": "retain",
+    "strataPoolingAllowed": false
+  },
+  "statistics": {
+    "headlineInput": "committed-pairs-only",
+    "withinLaunchVariantStatistic": "median of all valid scored post-calibration fixed-work samples",
+    "pairedEstimator": {
+      "transform": "log(wasm-linear-controlled median / js-controlled median)",
+      "point": "median of per-launch paired log ratios",
+      "reportedRatio": "exp(point)",
+      "absoluteEffect": "paired wasm median minus js median per launch"
+    },
+    "absoluteDistributions": [
+      "count",
+      "median",
+      "mean",
+      "p5",
+      "p25",
+      "p75",
+      "p95",
+      "p99",
+      "MAD",
+      "IQR",
+      "all raw samples"
+    ],
+    "bootstrap": {
+      "algorithm": "paired nonparametric percentile bootstrap of committed launch pairs",
+      "resamples": 10000,
+      "prng": "xorshift32-v1",
+      "seed": "0x7a31c9e5",
+      "resampleUnit": "paired fresh launch",
+      "stratified": true
+    },
+    "sequentialProtection": {
+      "familyWiseAlpha": 0.05,
+      "looksPerStratum": 5,
+      "method": "Bonferroni",
+      "twoSidedConfidenceLevelPerLook": 0.99,
+      "checkpoints": [
+        20,
+        30,
+        40,
+        50,
+        60
+      ]
+    },
+    "precision": {
+      "metric": "multiplicative CI half-width",
+      "formula": "exp((upperLogCi-lowerLogCi)/2)-1",
+      "targetMaximum": 0.03
+    },
+    "stopRules": [
+      "Do not inspect precision before 20 committed pairs in a stratum.",
+      "At a frozen checkpoint, stop that stratum only when its 99% paired-log bootstrap CI multiplicative half-width is at most 3%.",
+      "If a stratum reaches 60 committed pairs without precision, stop it and label it inconclusive.",
+      "The experiment completes only after both strata stop by precision or cap; strata are never pooled."
+    ],
+    "sensitivity": [
+      "all committed pairs",
+      "order-separated effects",
+      "failures and blocked denominator accounting",
+      "absolute distributions without outlier removal"
+    ]
+  },
+  "accounting": {
+    "statuses": [
+      "planned",
+      "attempted",
+      "committed",
+      "failed-correctness",
+      "failed-measurement",
+      "blocked-containment",
+      "blocked-cache",
+      "blocked-provenance",
+      "unstarted"
+    ],
+    "attemptedDefinition": "owned Chrome launch began after permit consumption",
+    "committedDenominatorOnly": true,
+    "noRetryOrSubstitution": true,
+    "everyPlannedBlockReconciled": true,
+    "unavailableMetricPolicy": "typed-unavailable-with-reason-never-zero"
+  },
+  "instrumentation": {
+    "headline": {
+      "profilerEnabled": false,
+      "tracingEnabled": false,
+      "heapSnapshotEnabled": false,
+      "forcedGc": false,
+      "memoryPolling": false,
+      "claimScope": "uninstrumented-headline"
+    },
+    "diagnostics": {
+      "separateLaunchesAndPermitRequired": true,
+      "neverEnterHeadlineCells": true,
+      "allowed": [
+        "CDP Performance metrics",
+        "Runtime heap usage",
+        "DOM counters",
+        "owned-process RSS/PSS",
+        "v8.wasm trace",
+        "heap/allocation profile"
+      ],
+      "unavailableMetricPolicy": "typed-unavailable-with-source-scope-timestamp-never-zero"
+    }
+  },
+  "permitEnvelope": {
+    "state": "template-only-not-consumed",
+    "singleUse": true,
+    "experimentId": "m1-chrome-sum-u32-v1",
+    "exactOrigin": "http://127.0.0.1:8787",
+    "exactBrowserVersion": "150.0.7871.24",
+    "exactBinarySha256": "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355",
+    "maximumOwnedBrowserLaunches": 120,
+    "maximumPerStratum": 60,
+    "deadlineRequired": true,
+    "maximumValidityHours": 24,
+    "allowedOperation": "collect-uninstrumented-headline-paired-corpus",
+    "retryAfterFailureRequiresNewPermit": true,
+    "authorizationStatement": "This preregistration defines the envelope only. It does not instantiate, consume, or claim browser authorization."
+  },
+  "publication": {
+    "publishAllDenominatorRows": true,
+    "publishRawSamples": true,
+    "privateOnly": [
+      "profile paths",
+      "DevTools endpoints",
+      "raw headers and bodies",
+      "local filesystem paths",
+      "process command lines containing private paths"
+    ],
+    "missingEvidenceNeverPasses": true
+  }
+}

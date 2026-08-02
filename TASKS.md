@@ -32,10 +32,11 @@ Tasks are ordered by dependency. A checked box means the exact acceptance criter
 
 ### Orchestration
 
+- [x] Freeze the exact M1 Chrome source/build/input/browser/cache/statistics/stopping contract and single-use bounded permit envelope; this does not instantiate browser authorization.
 - [ ] Launch exact owned Chrome process/profile for cold runs.
 - [x] Implement explicit validation/cold/warm protocol states and retain resource timing; owned-launch cache verification remains below.
 - [x] Alternate paired order with retained seed/block identity.
-- [ ] Run a separately labelled pilot, freeze the launch floor/precision target/cap, then collect at least 20 paired fresh launches and continue to target or cap; label inconclusive only at the cap.
+- [ ] Run a separately labelled pilot, then collect at least 20 committed paired fresh launches per cold/warm stratum at frozen checkpoints 20/30/40/50/60; stop at 3% Bonferroni-protected precision or label only the stratum reaching the fixed 60-pair cap inconclusive.
 - [ ] Retain browser version, flags, console/network, assertions, screenshots, and exact cleanup.
 
 ### Results

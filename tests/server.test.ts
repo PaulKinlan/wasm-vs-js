@@ -52,6 +52,13 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
   assertEquals(home.status, 200);
   const evidence = await handler(new Request("http://127.0.0.1/evidence/v1/acceptance.json"));
   assertEquals(evidence.status, 200);
+  const experiment = await handler(
+    new Request("http://127.0.0.1/experiments/m1-chrome-sum-u32-v1.json"),
+  );
+  assertEquals(experiment.status, 200);
+  const experimentBody = await experiment.json();
+  assertEquals(experimentBody.status, "preregistered-not-authorized");
+  assertEquals(experimentBody.permitEnvelope.state, "template-only-not-consumed");
   assert(evidence.headers.get("cache-control")?.includes("immutable"));
   const packageBody = await evidence.json();
   assertEquals(packageBody.claims.performanceClaimAccepted, false);

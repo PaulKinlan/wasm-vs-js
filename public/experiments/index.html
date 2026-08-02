@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="description" content="Frozen M1 Chrome sum-u32 experiment and stopping contract.">
+    <title>M1 Chrome preregistration · Wasm vs JavaScript</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to experiment</a>
+    <header class="masthead">
+      <a class="brand" href="/">AI Focus</a>
+      <span>WASM VS JAVASCRIPT</span>
+      <strong>PREREGISTRATION</strong>
+    </header>
+    <main id="main">
+      <section class="hero compact">
+        <p class="eyebrow">M1 · frozen before collection</p>
+        <h1>Chrome sum-u32 paired-launch experiment</h1>
+        <p
+          class="notice"><strong>Preregistered, not authorized or collected.</strong> This page freezes the experiment and single-use permit envelope. It is not a browser permit, corpus, result, or performance claim.</p>
+        <p><a class="button-link" href="/experiments/m1-chrome-sum-u32-v1.json">Inspect the complete machine-readable contract</a></p>
+      </section>
+
+      <section>
+        <h2>Fixed denominator</h2>
+        <dl class="metric-grid">
+          <div>
+            <dt>Cache strata</dt>
+            <dd>Cold and warm, never pooled</dd>
+          </div>
+          <div>
+            <dt>Minimum</dt>
+            <dd>20 committed fresh pairs per stratum</dd>
+          </div>
+          <div>
+            <dt>Fixed cap</dt>
+            <dd>60 committed pairs per stratum</dd>
+          </div>
+          <div>
+            <dt>Maximum envelope</dt>
+            <dd>120 owned Chrome launches</dd>
+          </div>
+        </dl>
+        <p>Each fresh launch measures both exact variants in the frozen balanced order. A pair enters timing summaries only after both records pass output, fixed-work, source/artifact, cache, provenance, and exact cleanup checks. Partial pairs, failures, and blocked launches remain denominator rows but never become timing data. There are no substitutions or automatic retries.</p>
+      </section>
+
+      <section>
+        <h2>Stopping and uncertainty</h2>
+        <p>Precision is checked only at 20, 30, 40, 50, and 60 committed pairs in each stratum. Five sequential looks use conservative Bonferroni-protected two-sided 99% bootstrap intervals. The paired estimator is the median per-launch log ratio of the Wasm median to the JavaScript median, using 10,000 deterministic paired resamples.</p>
+        <p>A stratum stops when its multiplicative confidence-interval half-width is at most 3%. Reaching 60 pairs without that precision is <strong>inconclusive</strong>, never a win, loss, pass, or zero.</p>
+      </section>
+
+      <section>
+        <h2>Exact scope</h2>
+        <ul>
+          <li>Google Chrome for Testing 150.0.7871.24 with exact binary SHA-256 and ordinary cache enabled.</li>
+          <li>Exact local origin, source commit, benchmark, build manifest, input, oracle, JavaScript, and Wasm hashes.</li>
+          <li>Cold profiles have no priming, Service Worker, or origin storage; warm profiles prime only the three exact assets.</li>
+          <li>Headline launches are uninstrumented: no profiler, trace, heap snapshot, forced GC, or memory polling.</li>
+          <li>CDP, process-memory, tiering, and heap diagnostics require separate launches and a separate permit; they cannot enter headline cells.</li>
+          <li>Unavailable evidence remains typed with a reason and is never changed to numeric zero.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Authorization boundary</h2>
+        <p>The JSON defines a single-use envelope requiring the exact experiment, origin, binary/version/hash, deadline, operation, and no more than 60 launches per stratum. The envelope is explicitly <code>template-only-not-consumed</code>. Collection code must instantiate and atomically consume a separately recorded permit from Paul’s explicit request; this publication does not claim that has happened.</p>
+      </section>
+    </main>
+  </body>
+</html>
