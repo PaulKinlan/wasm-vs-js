@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "id": "vdom-diff-patch",
+  "version": 1,
+  "tier": "T1",
+  "title": "Virtual DOM diff and host DOM patch/hydration",
+  "description": "Virtual DOM tree reconciliation (1,000 nodes, 250 edit ops) generating a canonical patch script and applying controlled host DOM mutations.",
+  "tracks": ["controlled"],
+  "variants": [
+    {
+      "id": "js-controlled",
+      "target": "javascript",
+      "track": "controlled",
+      "buildManifest": "public/artifacts/vdom-diff-patch/build-manifest.json"
+    },
+    {
+      "id": "wasm-linear-controlled",
+      "target": "wasm-linear",
+      "track": "controlled",
+      "buildManifest": "public/artifacts/vdom-diff-patch/build-manifest.json"
+    },
+    {
+      "id": "hybrid-controlled",
+      "target": "hybrid",
+      "track": "controlled",
+      "buildManifest": "public/artifacts/vdom-diff-patch/build-manifest.json"
+    }
+  ],
+  "inputs": {
+    "manifestSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "immutable": true,
+    "generation": "SplitMix64 seed 0xVDOM2026, 1,000 nodes depth <= 8, 250 edit operations"
+  },
+  "oracle": {
+    "kind": "canonical-digest-and-invariants",
+    "policy": "Exact patch array hash and resulting DOM tree HTML canonical serialization hash",
+    "deadCodeDefense": "Patch operations and HTML serialization hash are verified against the frozen oracle."
+  },
+  "work": {
+    "fixed": true,
+    "complexity": "O(N)",
+    "counters": ["nodes-visited", "patches-generated", "boundary-crossings", "dom-mutations"],
+    "tolerance": "All counters must match exactly."
+  }
+}
