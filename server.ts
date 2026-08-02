@@ -77,6 +77,7 @@ async function boundedJson(request: Request): Promise<unknown> {
 const routes = new Map<string, [string, string, boolean?]>([
   ["/", ["public/index.html", "text/html; charset=utf-8"]],
   ["/run", ["public/run.html", "text/html; charset=utf-8", true]],
+  ["/run/", ["public/run/index.html", "text/html; charset=utf-8"]],
   ["/run.html", ["public/run.html", "text/html; charset=utf-8", true]],
   ["/evidence", ["public/evidence/index.html", "text/html; charset=utf-8"]],
   ["/evidence/", ["public/evidence/index.html", "text/html; charset=utf-8"]],
@@ -91,6 +92,11 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/favicon.svg", ["public/favicon.svg", "image/svg+xml"]],
   ["/app.js", ["public/app.js", "text/javascript; charset=utf-8"]],
   ["/runner.js", ["public/runner.js", "text/javascript; charset=utf-8", true]],
+  ["/hosted-runner.js", ["public/hosted-runner.js", "text/javascript; charset=utf-8"]],
+  ["/hosted-runner-core.js", [
+    "public/hosted-runner-core.js",
+    "text/javascript; charset=utf-8",
+  ]],
   ["/benchmarks/sum-u32/benchmark.json", [
     "benchmarks/sum-u32/benchmark.json",
     "application/json; charset=utf-8",
@@ -98,7 +104,6 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/benchmarks/sum-u32/workload.js", [
     "benchmarks/sum-u32/workload.js",
     "text/javascript; charset=utf-8",
-    true,
   ]],
   ["/artifacts/sum-u32/sum-u32.wasm", [
     "public/artifacts/sum-u32/sum-u32.wasm",
@@ -152,7 +157,9 @@ function createHandler(store: LocalRunStore | null, serverMode: ServerMode = "lo
       const run = await store!.get(url.pathname.slice("/api/runs/".length));
       return run ? json(run) : json({ error: "not found" }, 404);
     }
-    const route = routes.get(url.pathname);
+    const route = serverMode === "public" && url.pathname === "/run"
+      ? ["public/run/index.html", "text/html; charset=utf-8"] as [string, string, boolean?]
+      : routes.get(url.pathname);
     if (!route || (serverMode === "public" && route[2])) {
       return json({ error: "not found" }, 404);
     }

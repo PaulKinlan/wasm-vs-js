@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="description"
+      content="Run the controlled JavaScript and linear-WebAssembly sum-u32 pair locally in this browser tab.">
+    <title>Live browser run · Wasm vs JavaScript</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to live runner</a>
+    <header class="masthead">
+      <a href="/" class="brand">AI Focus</a>
+      <span>Wasm vs JavaScript</span>
+      <strong>Live browser runner</strong>
+    </header>
+    <main id="main" class="narrative hosted-runner">
+      <h1>Run the controlled sum workload in this tab</h1>
+      <p
+        class="notice"><strong>Exploratory single-tab run—not accepted corpus or a performance claim.</strong> This page compares equivalent fixed work locally. It does not control a fresh browser profile, cache, power, thermals, scheduling, or independent launches.</p>
+      <p>No result is uploaded or saved. The browser makes only same-origin GET requests for the published workload, build manifest, and 96-byte Wasm artifact.</p>
+
+      <form id="hosted-runner-form">
+        <fieldset>
+          <legend>Exploratory protocol</legend>
+          <label>Variant order
+            <select name="order">
+              <option value="js-first">JavaScript, then Wasm</option>
+              <option value="wasm-first">Wasm, then JavaScript</option>
+            </select>
+          </label>
+          <label>Scored iterations per variant
+            <input name="iterations" type="number" min="5" max="50" value="20" inputmode="numeric" required>
+          </label>
+        </fieldset>
+        <p
+          class="hint">Iterations are bounded from 5 to 50. Calibration and first-use lifecycle work are separate from scored samples.</p>
+        <button id="start-live-run" type="submit">Run JavaScript and Wasm locally</button>
+      </form>
+
+      <section aria-labelledby="progress-title" class="run-progress">
+        <h2 id="progress-title">Progress</h2>
+        <label for="run-progress">Pair progress</label>
+        <progress id="run-progress" value="0" max="1"></progress>
+        <p id="live-status" role="status" aria-live="polite">Ready for an exploratory run.</p>
+        <ol id="live-phases" class="phase-list"></ol>
+      </section>
+
+      <section id="live-results" aria-labelledby="results-title" hidden>
+        <h2 id="results-title">This tab’s exploratory result</h2>
+        <p id="result-disclaimer" class="notice"></p>
+        <div id="result-content"></div>
+      </section>
+
+      <p><a href="/evidence/">Inspect accepted implementation evidence</a> · <a href="/artifacts/sum-u32/build-manifest.json">Inspect the exact build manifest</a></p>
+    </main>
+    <script type="module" src="/hosted-runner.js"></script>
+  </body>
+</html>

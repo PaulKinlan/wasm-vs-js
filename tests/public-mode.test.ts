@@ -34,6 +34,18 @@ Deno.test("actual public task starts without commit env permission and ignores s
       "9c309c4941d1b8550c15f8549f95a5636a634ef6",
     );
     assertEquals("localCheckoutCommit" in health, false);
+    for (
+      const path of [
+        "/run",
+        "/run/",
+        "/hosted-runner.js",
+        "/hosted-runner-core.js",
+        "/benchmarks/sum-u32/workload.js",
+        "/artifacts/sum-u32/sum-u32.wasm",
+      ]
+    ) {
+      assertEquals((await fetch(`http://127.0.0.1:${port}${path}`)).status, 200);
+    }
     const denied = await fetch(`http://127.0.0.1:${port}/api/runs`, {
       method: "POST",
       headers: { "content-type": "application/json" },

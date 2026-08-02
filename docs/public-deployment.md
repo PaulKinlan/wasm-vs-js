@@ -1,6 +1,6 @@
 # Public read-only evidence deployment
 
-The current deployable surface publishes the UI, benchmark definition, build manifest, 96-byte Wasm artifact, and the versioned M1 implementation acceptance package. It does **not** publish raw runs, enable the local runner, accept writes, provision Deno KV, or make a performance claim.
+The current deployable surface publishes the UI, benchmark definition, build manifest, 96-byte Wasm artifact, versioned M1 implementation acceptance package, and a non-persistent hosted `/run` journey. The hosted journey executes the fixed pair only in the current tab. It does **not** publish raw runs, enable the writable local collector, accept writes, provision Deno KV, or make a performance claim.
 
 ## Candidate identity
 
@@ -30,7 +30,8 @@ Expected surface:
 - `GET /`, `/evidence`, `/evidence/v1/acceptance.json`, `/benchmarks/sum-u32/benchmark.json`, the build manifest, and Wasm artifact: `200`;
 - `GET /healthz`: `200`, `mode=public-read-only`, and exact `acceptedImplementationCommit`;
 - `GET /api/summary`: `200` with zero published runs and `claimStatus=no-runs`;
-- `GET /run`, `/runner.js`, and any `/raw/...` path: `404`;
+- `GET /run`, `/run/`, the dedicated hosted runner modules, copied exact workload module, build manifest, and Wasm artifact: `200`;
+- `GET /run.html`, `/runner.js`, and any `/raw/...` path: `404`;
 - every non-GET/HEAD request: `403` before route handling;
 - every `/api/runs` read: `403`.
 

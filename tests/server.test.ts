@@ -76,7 +76,20 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
     );
     assertEquals(denied.status, 403);
   }
-  for (const path of ["/run", "/run.html", "/runner.js", "/raw/runs/example.json"]) {
+  for (
+    const path of [
+      "/run",
+      "/run/",
+      "/hosted-runner.js",
+      "/hosted-runner-core.js",
+      "/benchmarks/sum-u32/workload.js",
+    ]
+  ) {
+    assertEquals((await handler(new Request(`http://127.0.0.1${path}`))).status, 200);
+  }
+  const livePage = await (await handler(new Request("http://127.0.0.1/run"))).text();
+  assert(livePage.includes("Exploratory single-tab run"));
+  for (const path of ["/run.html", "/runner.js", "/raw/runs/example.json"]) {
     assertEquals((await handler(new Request(`http://127.0.0.1${path}`))).status, 404);
   }
   assertEquals((await handler(new Request("http://127.0.0.1/api/runs"))).status, 403);

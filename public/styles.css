@@ -374,6 +374,52 @@ pre {
 .sr-status {
   min-height: 1.5em;
 }
+.hosted-runner {
+  max-width: min(100%, 78rem);
+}
+.run-progress progress {
+  display: block;
+  width: min(100%, 36rem);
+  min-height: 1rem;
+  margin: .4rem 0 1rem;
+  accent-color: var(--accent);
+}
+#live-results > h2 {
+  scroll-margin-top: 1rem;
+}
+#result-content > section {
+  margin-block: 2rem;
+}
+.result-facts {
+  display: grid;
+  grid-template-columns: minmax(10rem, 1fr) minmax(0, 3fr);
+  gap: 1px;
+  padding: 1px;
+  background: var(--rule);
+}
+.result-facts dt,
+.result-facts dd {
+  padding: .75rem;
+  background: var(--raised);
+  overflow-wrap: anywhere;
+}
+.result-facts dt {
+  font-weight: 700;
+}
+.result-facts dd {
+  margin: 0;
+}
+.hosted-runner table {
+  min-width: 42rem;
+}
+@media (max-width: 36rem) {
+  .result-facts {
+    grid-template-columns: 1fr;
+  }
+  .result-facts dd {
+    padding-top: 0;
+  }
+}
 @media (max-width: 45rem) {
   .masthead .brand {
     width: 100%;

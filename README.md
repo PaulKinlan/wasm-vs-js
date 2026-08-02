@@ -33,9 +33,10 @@ The project began on **2026-08-02**. M0 publishes the accepted product plan, met
 - [Run evidence schema](schemas/run.schema.json)
 - [Benchmark definition schema](schemas/benchmark.schema.json)
 - [M1 implementation evidence](public/evidence/v1/acceptance.json)
+- [Hosted exploratory runner](public/run/index.html)
 - [Public read-only deployment procedure](docs/public-deployment.md)
 
-The implementation evidence surface is ready for a reviewed read-only deployment, but no Deno application or stable domain has been provisioned. No accepted benchmark result, database, or performance claim exists yet. The local UI labels every manually recorded run as a pilot; M1 remains incomplete until owned-browser paired launches meet the plan's precision target or cap.
+The public Deno application is available at [wasm-vs-js.paulkinlan-ea.deno.net](https://wasm-vs-js.paulkinlan-ea.deno.net/). Its `/run/` journey executes only in the current browser tab and never uploads or stores results. No accepted benchmark result, database, custom domain, or performance claim exists yet. M1 remains incomplete until owned-browser paired launches meet the plan's precision target or cap.
 
 ## Planned public product
 
@@ -59,7 +60,7 @@ deno task build    # reproducible WAT → Wasm plus build/footprint manifest
 deno task check    # build, format, lint, typecheck, contracts, and tests
 deno task local    # writable local pilot at http://127.0.0.1:8787
 deno task summary  # versioned summary from immutable local runs
-deno task public # read-only host smoke
+deno task public   # read-only host and exploratory browser-runner smoke
 ```
 
 Read the [M1 local pilot protocol](docs/m1-local-pilot.md) before recording a run. It explains the exact environment manifest, cold/warm states, correctness gate, immutable storage, and why manual pilots are not acceptance evidence.

@@ -1,6 +1,6 @@
 import Ajv2020Module from "ajv2020";
 import addFormatsModule from "ajv-formats";
-import { assert } from "./assert.ts";
+import { assert, assertEquals } from "./assert.ts";
 
 const Ajv2020 = (Ajv2020Module as unknown as { default?: typeof Ajv2020Module }).default ??
   Ajv2020Module;
@@ -24,6 +24,43 @@ Deno.test("results and runner pages expose evidence limits and accessible contro
   assert(css.includes("forced-colors"));
   assert(css.includes("overflow-x: auto"));
   assert(!index.includes("Wasm wins"));
+});
+
+Deno.test("hosted runner is accessible, bounded, and has no mutation or persistence surface", async () => {
+  const page = await Deno.readTextFile("public/run/index.html");
+  const script = await Deno.readTextFile("public/hosted-runner.js");
+  const core = await Deno.readTextFile("public/hosted-runner-core.js");
+  const hostedWorkload = await Deno.readTextFile("public/benchmarks/sum-u32/workload.js");
+  const sourceWorkload = await Deno.readTextFile("benchmarks/sum-u32/workload.js");
+  assert(page.includes("Exploratory single-tab run—not accepted corpus or a performance claim"));
+  assert(page.includes('id="start-live-run"'));
+  assert(page.includes('role="status"'));
+  assert(page.includes('aria-live="polite"'));
+  assert(page.includes('min="5" max="50"'));
+  assert(page.includes("No result is uploaded or saved"));
+  assert(script.includes("Correctness and fixed work"));
+  assert(script.includes("First-use lifecycle"));
+  assert(script.includes("Scored post-calibration samples"));
+  assert(core.includes("scheduler.yield"));
+  assertEquals(hostedWorkload, sourceWorkload);
+  for (
+    const forbidden of [
+      "/api/runs",
+      'method: "POST"',
+      "sendBeacon",
+      "XMLHttpRequest",
+      "WebSocket",
+      "localStorage",
+      "sessionStorage",
+      "indexedDB",
+      "document.cookie",
+      "serviceWorker.register",
+    ]
+  ) {
+    assert(!script.includes(forbidden), `hosted runner contains forbidden surface: ${forbidden}`);
+  }
+  assert(!script.includes("innerHTML"));
+  assert(!script.includes("insertAdjacentHTML"));
 });
 
 Deno.test("versioned public acceptance package is explicit and contains no invented run evidence", async () => {
@@ -55,7 +92,14 @@ Deno.test("versioned public acceptance package is explicit and contains no inven
 });
 
 Deno.test("public pages contain no inline script, inline style, or remote asset", async () => {
-  for (const path of ["public/index.html", "public/run.html", "public/evidence/index.html"]) {
+  for (
+    const path of [
+      "public/index.html",
+      "public/run.html",
+      "public/run/index.html",
+      "public/evidence/index.html",
+    ]
+  ) {
     const html = await Deno.readTextFile(path);
     assert(!/<script(?![^>]*\bsrc=)/i.test(html), `${path} has inline script`);
     assert(!/\sstyle=/i.test(html), `${path} has inline style`);

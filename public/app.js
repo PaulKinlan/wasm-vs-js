@@ -5,7 +5,6 @@ const metrics = document.querySelector("#metrics");
 const cacheFilter = document.querySelector("#cache-filter");
 const loadStatus = document.querySelector("#load-status");
 const claimStatus = document.querySelector("#claim-status");
-const localRunnerLink = document.querySelector("#local-runner-link");
 let summary;
 let serverMode = "local-m1-pilot";
 
@@ -182,7 +181,6 @@ async function load() {
     const healthResponse = await fetch("/healthz", { cache: "no-store" });
     if (!healthResponse.ok) throw new Error(`health returned ${healthResponse.status}`);
     serverMode = (await healthResponse.json()).mode;
-    if (serverMode === "public-read-only") localRunnerLink.hidden = true;
     const response = await fetch("/api/summary", { cache: "no-store" });
     if (!response.ok) throw new Error(`summary returned ${response.status}`);
     summary = await response.json();
