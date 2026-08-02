@@ -108,8 +108,10 @@ Deno.test("public M1 experiment is inspectable without claiming authorization or
   const published = await Deno.readTextFile("public/experiments/m1-chrome-sum-u32-v1.json");
   assertEquals(published, canonical);
   assert(page.includes("Preregistered, not authorized or collected"));
-  assert(page.includes("20 committed fresh pairs per stratum"));
-  assert(page.includes("60 committed pairs per stratum"));
+  assert(page.includes("20 committed pairs before analysis"));
+  assert(page.includes("60 attempted launches per stratum"));
+  assert(page.includes("exact distribution-free sign/order-statistic intervals"));
+  assert(page.includes("descriptive sensitivity only—not confidence or stopping"));
   assert(page.includes("template-only-not-consumed"));
   assert(!page.includes("benchmark winner"));
 });

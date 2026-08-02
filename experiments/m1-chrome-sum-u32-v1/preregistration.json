@@ -79,15 +79,6 @@
     {
       "id": "cold",
       "cacheState": "cold",
-      "minimumPairedLaunches": 20,
-      "fixedCapPairedLaunches": 60,
-      "checkpoints": [
-        20,
-        30,
-        40,
-        50,
-        60
-      ],
       "evidenceRequirements": [
         "fresh owned browser process and unique empty profile",
         "no Service Worker or pre-existing origin storage",
@@ -96,20 +87,20 @@
         "CDP network evidence for exact manifest, JavaScript and Wasm responses",
         "exact response hashes"
       ],
-      "contradictionPolicy": "block-launch-no-timing"
-    },
-    {
-      "id": "warm",
-      "cacheState": "warm",
-      "minimumPairedLaunches": 20,
-      "fixedCapPairedLaunches": 60,
-      "checkpoints": [
+      "contradictionPolicy": "block-launch-no-timing",
+      "minimumCommittedPairsForAnalysis": 20,
+      "fixedCapAttemptedLaunches": 60,
+      "attemptCheckpoints": [
         20,
         30,
         40,
         50,
         60
-      ],
+      ]
+    },
+    {
+      "id": "warm",
+      "cacheState": "warm",
       "evidenceRequirements": [
         "fresh owned browser process and unique empty profile",
         "no Service Worker or pre-existing origin storage",
@@ -118,7 +109,16 @@
         "ordinary HTTP cache enabled",
         "CDP network evidence for priming and measurement"
       ],
-      "contradictionPolicy": "block-launch-no-timing"
+      "contradictionPolicy": "block-launch-no-timing",
+      "minimumCommittedPairsForAnalysis": 20,
+      "fixedCapAttemptedLaunches": 60,
+      "attemptCheckpoints": [
+        20,
+        30,
+        40,
+        50,
+        60
+      ]
     }
   ],
   "pairing": {
@@ -1215,62 +1215,93 @@
   },
   "statistics": {
     "headlineInput": "committed-pairs-only",
-    "withinLaunchVariantStatistic": "median of all valid scored post-calibration fixed-work samples",
+    "withinLaunchVariantStatistic": "median-even-average-v1 of every finite valid scored post-calibration fixed-work sample",
     "pairedEstimator": {
-      "transform": "log(wasm-linear-controlled median / js-controlled median)",
-      "point": "median of per-launch paired log ratios",
+      "transform": "natural-log of (wasm-linear-controlled within-launch median / js-controlled within-launch median)",
+      "point": "median-even-average-v1 of finite per-launch paired log ratios",
       "reportedRatio": "exp(point)",
-      "absoluteEffect": "paired wasm median minus js median per launch"
+      "absoluteEffect": {
+        "perLaunch": "wasm-linear-controlled within-launch median minus js-controlled within-launch median in milliseconds",
+        "point": "median-even-average-v1 of finite per-launch absolute differences",
+        "interval": "exact-distribution-free-sign-order-statistic-v1 using the same per-look alpha as the log-ratio interval"
+      }
     },
     "absoluteDistributions": [
       "count",
-      "median",
+      "median-even-average-v1",
       "mean",
-      "p5",
-      "p25",
-      "p75",
-      "p95",
-      "p99",
-      "MAD",
-      "IQR",
+      "p5-type7",
+      "p25-type7",
+      "p75-type7",
+      "p95-type7",
+      "p99-type7",
+      "MAD-median-even-average-v1",
+      "IQR-type7",
       "all raw samples"
     ],
-    "bootstrap": {
-      "algorithm": "paired nonparametric percentile bootstrap of committed launch pairs",
+    "confidenceInterval": {
+      "algorithm": "exact-distribution-free-sign-order-statistic-v1",
+      "parameter": "population median of finite committed paired values",
+      "twoSidedAlphaPerAttemptLook": 0.01,
+      "boundRule": "Sort n finite values ascending. Let k be the largest integer >=0 with 2*P(Binomial(n,0.5)<=k)<=0.01. Return one-based order statistics [X_(k+1), X_(n-k)]. If no such k exists, return [-Infinity,+Infinity]. Ties are retained.",
+      "binomialArithmetic": "exact integer binomial coefficients divided by 2^n; no normal approximation",
+      "nonfinitePolicy": "reject paired value before commitment; never coerce or remove after commitment",
+      "tiePolicy": "retain every tied committed value",
+      "medianEvenConvention": "arithmetic mean of the two central sorted finite values",
+      "implementationId": "paired-statistics-v1"
+    },
+    "descriptiveBootstrap": {
+      "role": "descriptive-sensitivity-only-never-confidence-or-stopping",
+      "algorithm": "paired-percentile-bootstrap-type7-v1",
       "resamples": 10000,
       "prng": "xorshift32-v1",
-      "seed": "0x7a31c9e5",
-      "resampleUnit": "paired fresh launch",
-      "stratified": true
+      "baseSeed": "0x7a31c9e5",
+      "zeroStateReplacement": "0x6d2b79f5",
+      "stateTransition": "uint32 x ^= x << 13; x ^= x >>> 17; x ^= x << 5; output uint32 x",
+      "wordToIndex": "multiply-high: floor(uint32_word * sample_count / 2^32)",
+      "streamDerivation": "FNV-1a-32 UTF-8 of baseSeed + colon + stratum + colon + attempted-checkpoint, xor baseSeed uint32; replace zero state before first draw",
+      "resampleUnit": "committed paired fresh launch",
+      "pointPerResample": "median-even-average-v1",
+      "percentiles": [
+        0.005,
+        0.5,
+        0.995
+      ],
+      "percentileInterpolation": "type-7 linear interpolation: h=(N-1)*p, interpolate sorted[floor(h)] to sorted[ceil(h)]",
+      "strataSeparate": true
     },
     "sequentialProtection": {
       "familyWiseAlpha": 0.05,
-      "looksPerStratum": 5,
-      "method": "Bonferroni",
-      "twoSidedConfidenceLevelPerLook": 0.99,
-      "checkpoints": [
+      "attemptLooksPerStratum": 5,
+      "method": "Bonferroni over frozen attempted-launch checkpoints",
+      "twoSidedAlphaPerAttemptLook": 0.01,
+      "twoSidedConfidenceLevelPerAttemptLook": 0.99,
+      "attemptCheckpoints": [
         20,
         30,
         40,
         50,
         60
-      ]
+      ],
+      "analysisAtCheckpoint": "Use every committed pair available after that many attempted launches only when at least 20 committed pairs exist."
     },
     "precision": {
-      "metric": "multiplicative CI half-width",
+      "metric": "multiplicative exact-CI half-width",
       "formula": "exp((upperLogCi-lowerLogCi)/2)-1",
-      "targetMaximum": 0.03
+      "targetMaximum": 0.03,
+      "finiteBoundsRequired": true
     },
     "stopRules": [
-      "Do not inspect precision before 20 committed pairs in a stratum.",
-      "At a frozen checkpoint, stop that stratum only when its 99% paired-log bootstrap CI multiplicative half-width is at most 3%.",
-      "If a stratum reaches 60 committed pairs without precision, stop it and label it inconclusive.",
-      "The experiment completes only after both strata stop by precision or cap; strata are never pooled."
+      "Never inspect precision except after attempted-launch checkpoints 20, 30, 40, 50, and 60 in a stratum.",
+      "At a checkpoint with at least 20 committed pairs, stop that stratum only when the exact 99% paired-log order-statistic interval has finite bounds and multiplicative half-width at most 3%.",
+      "After 60 attempted launches, stop the stratum. Label precision-met if the criterion is met; otherwise label cap-inconclusive, including when fewer than 20 pairs committed.",
+      "The experiment completes only after both strata terminate; strata are never pooled; failed or blocked planned launches are not retried or substituted."
     ],
     "sensitivity": [
+      "descriptive paired bootstrap never used for confidence or stopping",
       "all committed pairs",
       "order-separated effects",
-      "failures and blocked denominator accounting",
+      "failed and blocked denominator accounting",
       "absolute distributions without outlier removal"
     ]
   },
@@ -1287,6 +1318,19 @@
       "unstarted"
     ],
     "attemptedDefinition": "owned Chrome launch began after permit consumption",
+    "attemptCheckpoints": [
+      20,
+      30,
+      40,
+      50,
+      60
+    ],
+    "fixedCapAttemptedPerStratum": 60,
+    "terminalLabels": [
+      "precision-met",
+      "cap-inconclusive"
+    ],
+    "checkpointAccounting": "At every attempted checkpoint reconcile attempted = committed + failed-correctness + failed-measurement + blocked-containment + blocked-cache + blocked-provenance; unstarted = 60 - attempted.",
     "committedDenominatorOnly": true,
     "noRetryOrSubstitution": true,
     "everyPlannedBlockReconciled": true,
@@ -1328,7 +1372,7 @@
     "maximumValidityHours": 24,
     "allowedOperation": "collect-uninstrumented-headline-paired-corpus",
     "retryAfterFailureRequiresNewPermit": true,
-    "authorizationStatement": "This preregistration defines the envelope only. It does not instantiate, consume, or claim browser authorization."
+    "authorizationStatement": "This preregistration is a frozen, unconsumed permit template only. It does not authorize, instantiate, consume, retry, or claim any browser launch."
   },
   "publication": {
     "publishAllDenominatorRows": true,

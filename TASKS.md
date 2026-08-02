@@ -36,7 +36,7 @@ Tasks are ordered by dependency. A checked box means the exact acceptance criter
 - [ ] Launch exact owned Chrome process/profile for cold runs.
 - [x] Implement explicit validation/cold/warm protocol states and retain resource timing; owned-launch cache verification remains below.
 - [x] Alternate paired order with retained seed/block identity.
-- [ ] Run a separately labelled pilot, then collect at least 20 committed paired fresh launches per cold/warm stratum at frozen checkpoints 20/30/40/50/60; stop at 3% Bonferroni-protected precision or label only the stratum reaching the fixed 60-pair cap inconclusive.
+- [ ] Run a separately labelled pilot, then collect the cold/warm schedules at frozen attempted-launch checkpoints 20/30/40/50/60; analyze committed pairs only when at least 20 exist, stop at 3% Bonferroni-protected exact order-statistic precision, or terminate each stratum after its fixed 60-attempt cap as inconclusive when precision is absent (including fewer than 20 committed pairs).
 - [ ] Retain browser version, flags, console/network, assertions, screenshots, and exact cleanup.
 
 ### Results
