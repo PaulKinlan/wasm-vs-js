@@ -1,6 +1,6 @@
 import {
   deriveBootstrapSeed,
-  descriptivePairedBootstrap,
+  descriptivePairedLogRatioBootstrap,
   evaluateAttemptCheckpoint,
   exactMedianInterval,
   medianEvenAverage,
@@ -47,30 +47,56 @@ Deno.test("xorshift32 transition, zero handling, and multiply-high indices are g
   assertEquals(zero.nextWord(), 1085196063);
   const indexed = new XorShift32(0x12345678);
   assertEquals([indexed.index(7), indexed.index(7), indexed.index(7)], [3, 0, 1]);
-  assertEquals(deriveBootstrapSeed(0x7a31c9e5, "cold", 20), 1431462358);
-  assertEquals(deriveBootstrapSeed(0x7a31c9e5, "warm", 60), 522785499);
+  assertEquals(deriveBootstrapSeed(0x7a31c9e5, "cold", 20), 3796127030);
+  assertEquals(deriveBootstrapSeed(0x7a31c9e5, "warm", 60), 2741682123);
 });
 
-Deno.test("descriptive bootstrap is deterministic and never labelled confidence", () => {
-  const values = Array.from({ length: 20 }, (_, index) => index + 1);
-  const first = descriptivePairedBootstrap(values, {
+Deno.test("descriptive paired log-ratio bootstrap is deterministic and unambiguous", async () => {
+  const javascriptMedians = Array(20).fill(10);
+  const wasmMedians = Array.from({ length: 20 }, (_, index) => 5 + index / 10);
+  const first = descriptivePairedLogRatioBootstrap(javascriptMedians, wasmMedians, {
     stratum: "cold",
     attemptedCheckpoint: 20,
   });
-  const second = descriptivePairedBootstrap(values, {
+  const second = descriptivePairedLogRatioBootstrap(javascriptMedians, wasmMedians, {
     stratum: "cold",
     attemptedCheckpoint: 20,
   });
   assertEquals(first, second);
   assertEquals(first.role, "descriptive-sensitivity-only-never-confidence-or-stopping");
-  assertEquals(first.derivedSeed, 1431462358);
+  assertEquals(first.estimand, "median-even-average-v1-of-paired-log-ratios");
+  assertEquals(first.derivedSeed, 3796127030);
   assertEquals(first.resamples, 10_000);
-  assertEquals(first.p005, 5);
-  assertEquals(first.p50, 10.5);
-  assertEquals(first.p995, 15.5);
+  assertEquals(first.p005, -0.6070115700897187);
+  assertEquals(first.p50, -0.5192291829241813);
+  assertEquals(first.p995, -0.4385350093604369);
+  const absoluteDifferences = wasmMedians.map((value, index) => value - javascriptMedians[index]);
+  await assertRejects(
+    () =>
+      Promise.resolve(descriptivePairedLogRatioBootstrap(
+        absoluteDifferences,
+        [1],
+        { stratum: "cold", attemptedCheckpoint: 20 },
+      )),
+    "equal length",
+  );
 });
 
 Deno.test("attempt checkpoints reconcile failures and always reach a frozen terminal state", async () => {
+  const zeroCommitted = evaluateAttemptCheckpoint(
+    {
+      attempted: 20,
+      committed: 0,
+      failedCorrectness: 20,
+      failedMeasurement: 0,
+      blockedContainment: 0,
+      blockedCache: 0,
+      blockedProvenance: 0,
+    },
+    [],
+    [],
+  );
+  assertEquals(zeroCommitted.terminal, "continue");
   const underFloor = evaluateAttemptCheckpoint(
     {
       attempted: 20,
@@ -100,6 +126,38 @@ Deno.test("attempt checkpoints reconcile failures and always reach a frozen term
     Array(19).fill(5),
   );
   assertEquals(capUnderFloor.terminal, "cap-inconclusive");
+  for (const attempted of [20, 60] as const) {
+    const committed = attempted === 20 ? 2 : 2;
+    const accounting = {
+      attempted,
+      committed,
+      failedCorrectness: attempted - committed,
+      failedMeasurement: 0,
+      blockedContainment: 0,
+      blockedCache: 0,
+      blockedProvenance: 0,
+    };
+    for (const invalid of [Number.NaN, Number.POSITIVE_INFINITY, 0, -1]) {
+      await assertRejects(
+        () =>
+          Promise.resolve(evaluateAttemptCheckpoint(
+            accounting,
+            [10, invalid],
+            [5, 5],
+          )),
+        invalid <= 0 ? "positive" : "finite",
+      );
+      await assertRejects(
+        () =>
+          Promise.resolve(evaluateAttemptCheckpoint(
+            accounting,
+            [10, 10],
+            [5, invalid],
+          )),
+        invalid <= 0 ? "positive" : "finite",
+      );
+    }
+  }
   const precise = evaluateAttemptCheckpoint(
     {
       attempted: 20,

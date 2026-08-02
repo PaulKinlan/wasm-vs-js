@@ -88,6 +88,14 @@ Deno.test("estimators, exact interval, descriptive bootstrap, precision and stop
     ],
     ["bootstrap role", (value) => value.statistics.descriptiveBootstrap.role = "confidence"],
     [
+      "bootstrap estimand",
+      (value) => value.statistics.descriptiveBootstrap.estimand = "absolute difference",
+    ],
+    [
+      "bootstrap input contract",
+      (value) => value.statistics.descriptiveBootstrap.inputContract = "arbitrary scalar values",
+    ],
+    [
       "checkpoint rule",
       (value) => value.statistics.sequentialProtection.analysisAtCheckpoint = "peek anytime",
     ],

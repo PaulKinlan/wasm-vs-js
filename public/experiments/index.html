@@ -50,7 +50,7 @@
       <section>
         <h2>Stopping and uncertainty</h2>
         <p>Precision is checked only after 20, 30, 40, 50, and 60 attempted launches in each stratum, and only when at least 20 pairs have committed. Five frozen looks use two-sided exact distribution-free sign/order-statistic intervals for the median paired log ratio at per-look alpha 0.01 (99% or greater coverage); Bonferroni allocates family-wise alpha 0.05 across the five looks. The even-sample median is the arithmetic mean of the two central values.</p>
-        <p>A stratum stops when its finite exact interval has multiplicative half-width at most 3%. After 60 attempts it terminates as <strong>precision-met</strong> or <strong>cap-inconclusive</strong>, including when failures leave fewer than 20 committed pairs. Failed and blocked launches remain in accounting and are never retried or substituted. A fully specified deterministic 10,000-resample paired bootstrap is descriptive sensitivity only—not confidence or stopping.</p>
+        <p>A stratum stops when its finite exact interval has multiplicative half-width at most 3%. After 60 attempts it terminates as <strong>precision-met</strong> or <strong>cap-inconclusive</strong>, including when failures leave fewer than 20 committed pairs. Failed and blocked launches remain in accounting and are never retried or substituted. A fully specified deterministic 10,000-resample bootstrap of per-launch paired log ratios is descriptive sensitivity only—not confidence or stopping; absolute differences and target medians are not valid bootstrap inputs.</p>
       </section>
 
       <section>

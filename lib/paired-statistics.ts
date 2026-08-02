@@ -151,7 +151,9 @@ export function deriveBootstrapSeed(
   if (!Number.isSafeInteger(baseSeed) || baseSeed < 0 || baseSeed > 0xffff_ffff) {
     throw new Error("base seed must be uint32");
   }
-  const seedLabel = `0x${baseSeed.toString(16).padStart(8, "0")}:${stratum}:${attemptedCheckpoint}`;
+  const seedLabel = `0x${
+    baseSeed.toString(16).padStart(8, "0")
+  }:${stratum}:${attemptedCheckpoint}:paired-log-ratio-v1`;
   const derived = (fnv1a32(seedLabel) ^ baseSeed) >>> 0;
   return derived === 0 ? DEFAULT_ZERO_REPLACEMENT : derived;
 }
@@ -159,6 +161,7 @@ export function deriveBootstrapSeed(
 export type DescriptiveBootstrap = {
   role: "descriptive-sensitivity-only-never-confidence-or-stopping";
   algorithm: "paired-percentile-bootstrap-type7-v1";
+  estimand: "median-even-average-v1-of-paired-log-ratios";
   resamples: number;
   derivedSeed: number;
   p005: number;
@@ -166,8 +169,9 @@ export type DescriptiveBootstrap = {
   p995: number;
 };
 
-export function descriptivePairedBootstrap(
-  values: number[],
+export function descriptivePairedLogRatioBootstrap(
+  javascriptMedians: number[],
+  wasmMedians: number[],
   options: {
     baseSeed?: number;
     stratum: "cold" | "warm";
@@ -175,7 +179,8 @@ export function descriptivePairedBootstrap(
     resamples?: number;
   },
 ): DescriptiveBootstrap {
-  const source = finiteValues(values, "bootstrap");
+  const { js, wasm } = validatePairedMedians(javascriptMedians, wasmMedians);
+  const source = wasm.map((value, index) => Math.log(value / js[index]));
   const resamples = options.resamples ?? 10_000;
   if (!Number.isSafeInteger(resamples) || resamples < 1 || resamples > 100_000) {
     throw new Error("resamples must be an integer in [1,100000]");
@@ -197,12 +202,30 @@ export function descriptivePairedBootstrap(
   return {
     role: "descriptive-sensitivity-only-never-confidence-or-stopping",
     algorithm: "paired-percentile-bootstrap-type7-v1",
+    estimand: "median-even-average-v1-of-paired-log-ratios",
     resamples,
     derivedSeed: seed,
     p005: percentileType7(estimates, 0.005),
     p50: percentileType7(estimates, 0.5),
     p995: percentileType7(estimates, 0.995),
   };
+}
+
+function validatePairedMedians(
+  javascriptMedians: number[],
+  wasmMedians: number[],
+  allowEmpty = false,
+): { js: number[]; wasm: number[] } {
+  if (allowEmpty && javascriptMedians.length === 0 && wasmMedians.length === 0) {
+    return { js: [], wasm: [] };
+  }
+  const js = finiteValues(javascriptMedians, "JavaScript medians");
+  const wasm = finiteValues(wasmMedians, "Wasm medians");
+  if (js.length !== wasm.length) throw new Error("paired arrays must have equal length");
+  if (js.some((value) => value <= 0) || wasm.some((value) => value <= 0)) {
+    throw new Error("paired medians must be positive");
+  }
+  return { js, wasm };
 }
 
 export type AttemptAccounting = {
@@ -240,6 +263,7 @@ export function evaluateAttemptCheckpoint(
     javascriptMedians.length !== accounting.committed ||
     wasmMedians.length !== accounting.committed
   ) throw new Error("committed pair arrays do not reconcile");
+  validatePairedMedians(javascriptMedians, wasmMedians, true);
   if (accounting.committed < 20) {
     return accounting.attempted === 60
       ? {
@@ -280,12 +304,7 @@ export function pairedEffects(
   };
   absoluteDifferenceMs: { values: number[]; point: number; interval: ExactMedianInterval };
 } {
-  const js = finiteValues(javascriptMedians, "JavaScript medians");
-  const wasm = finiteValues(wasmMedians, "Wasm medians");
-  if (js.length !== wasm.length) throw new Error("paired arrays must have equal length");
-  if (js.some((value) => value <= 0) || wasm.some((value) => value <= 0)) {
-    throw new Error("paired medians must be positive");
-  }
+  const { js, wasm } = validatePairedMedians(javascriptMedians, wasmMedians);
   const logValues = wasm.map((value, index) => Math.log(value / js[index]));
   const differenceValues = wasm.map((value, index) => value - js[index]);
   const logInterval = exactMedianInterval(logValues, alpha);

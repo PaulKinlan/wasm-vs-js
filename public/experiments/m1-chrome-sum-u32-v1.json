@@ -1259,16 +1259,18 @@
       "zeroStateReplacement": "0x6d2b79f5",
       "stateTransition": "uint32 x ^= x << 13; x ^= x >>> 17; x ^= x << 5; output uint32 x",
       "wordToIndex": "multiply-high: floor(uint32_word * sample_count / 2^32)",
-      "streamDerivation": "FNV-1a-32 UTF-8 of baseSeed + colon + stratum + colon + attempted-checkpoint, xor baseSeed uint32; replace zero state before first draw",
-      "resampleUnit": "committed paired fresh launch",
-      "pointPerResample": "median-even-average-v1",
+      "streamDerivation": "FNV-1a-32 UTF-8 of 0x + eight-lowercase-hex-baseSeed + colon + stratum + colon + attempted-checkpoint + colon + paired-log-ratio-v1, xor baseSeed uint32; replace zero state before first draw",
+      "resampleUnit": "one derived per-launch paired log ratio; absolute differences and target medians are not bootstrap inputs",
+      "pointPerResample": "median-even-average-v1 of the resampled per-launch paired log ratios",
       "percentiles": [
         0.005,
         0.5,
         0.995
       ],
       "percentileInterpolation": "type-7 linear interpolation: h=(N-1)*p, interpolate sorted[floor(h)] to sorted[ceil(h)]",
-      "strataSeparate": true
+      "strataSeparate": true,
+      "estimand": "median-even-average-v1 of per-launch natural-log(wasm-linear-controlled within-launch median / js-controlled within-launch median)",
+      "inputContract": "Two equal-length arrays of finite positive committed within-launch medians, JavaScript first and Wasm second; derive exactly one natural-log ratio per paired launch internally."
     },
     "sequentialProtection": {
       "familyWiseAlpha": 0.05,
