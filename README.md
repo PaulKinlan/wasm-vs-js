@@ -36,7 +36,7 @@ The project began on **2026-08-02**. M0 publishes the accepted product plan, met
 - [Hosted exploratory runner](public/run/index.html)
 - [Public read-only deployment procedure](docs/public-deployment.md)
 
-The public Deno application is available at [wasm-vs-js.paulkinlan-ea.deno.net](https://wasm-vs-js.paulkinlan-ea.deno.net/). Its `/run/` journey executes only in the current browser tab and never uploads or stores results. No accepted benchmark result, database, custom domain, or performance claim exists yet. M1 remains incomplete until owned-browser paired launches meet the plan's precision target or cap.
+The public Deno application is available at [wasm-vs-js.paulkinlan-ea.deno.net](https://wasm-vs-js.paulkinlan-ea.deno.net/). Its `/run/` journey verifies the exact JavaScript and Wasm bytes, executes in a dedicated same-origin module worker, keeps the page responsive, and never uploads or stores results. No accepted benchmark result, database, custom domain, or performance claim exists yet. M1 remains incomplete until owned-browser paired launches meet the plan's precision target or cap.
 
 ## Planned public product
 

@@ -30,6 +30,7 @@ Deno.test("hosted runner is accessible, bounded, and has no mutation or persiste
   const page = await Deno.readTextFile("public/run/index.html");
   const script = await Deno.readTextFile("public/hosted-runner.js");
   const core = await Deno.readTextFile("public/hosted-runner-core.js");
+  const worker = await Deno.readTextFile("public/hosted-runner-worker.js");
   const hostedWorkload = await Deno.readTextFile("public/benchmarks/sum-u32/workload.js");
   const sourceWorkload = await Deno.readTextFile("benchmarks/sum-u32/workload.js");
   assert(page.includes("Exploratory single-tab run—not accepted corpus or a performance claim"));
@@ -38,10 +39,19 @@ Deno.test("hosted runner is accessible, bounded, and has no mutation or persiste
   assert(page.includes('aria-live="polite"'));
   assert(page.includes('min="5" max="50"'));
   assert(page.includes("No result is uploaded or saved"));
+  assert(page.includes("worker-src 'self'"));
+  assert(script.includes("new Worker"));
+  assert(script.includes("worker.terminate"));
   assert(script.includes("Correctness and fixed work"));
   assert(script.includes("First-use lifecycle"));
   assert(script.includes("Scored post-calibration samples"));
   assert(core.includes("scheduler.yield"));
+  assert(core.includes("digest = foldOutput"));
+  assert(core.includes("allCorrect = allCorrect && output === ORACLE"));
+  assert(worker.includes("await sha256Hex(jsFetch.value)"));
+  assert(worker.includes("await import(jsBlobUrl)"));
+  assert(worker.includes("URL.revokeObjectURL(jsBlobUrl)"));
+  assert(worker.includes('status: "unavailable"'));
   assertEquals(hostedWorkload, sourceWorkload);
   for (
     const forbidden of [
@@ -57,10 +67,14 @@ Deno.test("hosted runner is accessible, bounded, and has no mutation or persiste
       "serviceWorker.register",
     ]
   ) {
-    assert(!script.includes(forbidden), `hosted runner contains forbidden surface: ${forbidden}`);
+    assert(
+      !script.includes(forbidden) && !worker.includes(forbidden),
+      `hosted runner contains forbidden surface: ${forbidden}`,
+    );
   }
   assert(!script.includes("innerHTML"));
   assert(!script.includes("insertAdjacentHTML"));
+  assert(!worker.includes("innerHTML"));
 });
 
 Deno.test("versioned public acceptance package is explicit and contains no invented run evidence", async () => {

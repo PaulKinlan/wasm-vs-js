@@ -1,17 +1,9 @@
-import { generateInput, INPUT_LENGTH, sumU32 } from "./benchmarks/sum-u32/workload.js";
-import {
-  boundedIterations,
-  calibrateBatch,
-  fixedWorkCounters,
-  ORACLE,
-  runScoredPair,
-  summarizeSamples,
-  yieldToMain,
-} from "./hosted-runner-core.js";
+import { boundedIterations, ORACLE } from "./hosted-runner-core.js";
 
+const INPUT_LENGTH = 65_536;
 const INPUT_BYTES = INPUT_LENGTH * Uint32Array.BYTES_PER_ELEMENT;
 const INPUT_SHA256 = "4f0516549fc9d6952c8d42d642927dd5c43a8c01d03c286e0c80da919bfaf9d7";
-const WASM_SHA256 = "9c4ce5f0d9e32cdd364b73b2697566e7396368d9867d9bc3d939bb2063583a6d";
+const WORKER_TIMEOUT_MS = 120_000;
 const form = document.querySelector("#hosted-runner-form");
 const button = document.querySelector("#start-live-run");
 const status = document.querySelector("#live-status");
@@ -26,38 +18,6 @@ function addPhase(message) {
   item.textContent = message;
   phases.append(item);
   status.textContent = message;
-}
-
-function timerQuantum() {
-  let quantum = Infinity;
-  let previous = performance.now();
-  for (let index = 0; index < 20_000; index += 1) {
-    const current = performance.now();
-    const delta = current - previous;
-    if (delta > 0 && delta < quantum) quantum = delta;
-    previous = current;
-  }
-  if (!Number.isFinite(quantum)) throw new Error("Timer quantum is unavailable.");
-  return quantum;
-}
-
-async function sha256Hex(bytes) {
-  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
-  return [...digest].map((byte) => byte.toString(16).padStart(2, "0")).join("");
-}
-
-async function timedGet(url, kind) {
-  const start = performance.now();
-  const response = await fetch(url, { cache: "default", credentials: "omit" });
-  if (!response.ok) throw new Error(`${url} returned HTTP ${response.status}.`);
-  const value = kind === "json" ? await response.json() : await response.arrayBuffer();
-  return { value, durationMs: performance.now() - start };
-}
-
-function duration(execute) {
-  const start = performance.now();
-  const output = execute();
-  return { output, durationMs: performance.now() - start };
 }
 
 function ms(value) {
@@ -105,19 +65,6 @@ function appendTable(parent, captionText, headers, rows) {
   table.append(caption, head, body);
   wrapper.append(table);
   parent.append(wrapper);
-}
-
-function cacheDisclosure() {
-  const entries = performance.getEntriesByName(
-    `${location.origin}/artifacts/sum-u32/sum-u32.wasm`,
-    "resource",
-  );
-  const entry = entries.at(-1);
-  if (!entry) return "Browser-managed HTTP cache; no Resource Timing entry was available.";
-  if (entry.transferSize === 0) {
-    return "Browser-managed HTTP cache; Resource Timing reported zero transfer bytes, but cache state is not attested.";
-  }
-  return `Browser-managed HTTP cache; Resource Timing reported ${entry.transferSize} transfer bytes. Cold/warm state is not attested.`;
 }
 
 function renderResult(data) {
@@ -168,7 +115,7 @@ function renderResult(data) {
   appendDefinition(provenance, [
     ["Track", "Controlled Track A · scalar O(n) modulo-2³² sum"],
     ["Build source SHA-256", data.manifest.sourceSha256],
-    ["JavaScript SHA-256", data.manifest.variants["js-controlled"].sha256],
+    ["JavaScript SHA-256", `${data.jsSha256} · fetched bytes verified before execution`],
     ["Wasm SHA-256", data.wasmSha256],
     [
       "Wasm footprint",
@@ -186,9 +133,36 @@ function renderResult(data) {
   const lifecycleTitle = document.createElement("h3");
   lifecycleTitle.textContent = "First-use lifecycle (not scored samples)";
   lifecycle.append(lifecycleTitle);
-  appendTable(lifecycle, "First-use lifecycle durations", ["Phase", "Duration"], [
-    ["Build manifest GET + decode", ms(data.lifecycle.manifestFetchMs)],
-    ["96-byte Wasm GET + body", ms(data.lifecycle.wasmFetchMs)],
+  appendTable(lifecycle, "First-use lifecycle durations", ["Phase", "Duration / availability"], [
+    [
+      `Build manifest transfer (${data.lifecycle.manifestBytes} bytes)`,
+      ms(data.lifecycle.manifestTransferMs),
+    ],
+    ["Build manifest decode + JSON parse", ms(data.lifecycle.manifestDecodeParseMs)],
+    [
+      `JavaScript workload transfer (${data.lifecycle.jsBytes} bytes)`,
+      ms(data.lifecycle.jsTransferMs),
+    ],
+    ["JavaScript SHA-256 verification", ms(data.lifecycle.jsHashVerifyMs)],
+    [
+      "Verified JavaScript module import (combined)",
+      `${
+        ms(data.lifecycle.jsVerifiedModuleImportMs)
+      } · resolution, parse, and evaluation not separable`,
+    ],
+    [
+      "JavaScript module parse",
+      `${data.lifecycle.jsModuleParseMs.status}: ${data.lifecycle.jsModuleParseMs.reason}`,
+    ],
+    [
+      "JavaScript module evaluation",
+      `${data.lifecycle.jsModuleEvaluationMs.status}: ${data.lifecycle.jsModuleEvaluationMs.reason}`,
+    ],
+    [
+      `Wasm transfer (${data.lifecycle.wasmBytes} bytes)`,
+      ms(data.lifecycle.wasmTransferMs),
+    ],
+    ["Wasm SHA-256 verification", ms(data.lifecycle.wasmHashVerifyMs)],
     ["Wasm compile", ms(data.lifecycle.wasmCompileMs)],
     ["Wasm instantiate", ms(data.lifecycle.wasmInstantiateMs)],
     ["Input generation", ms(data.lifecycle.inputGenerateMs)],
@@ -235,99 +209,44 @@ function renderResult(data) {
   results.focus?.();
 }
 
-async function executeRun(iterations, order) {
-  addPhase("Fetching and verifying the published build manifest and Wasm artifact…");
-  const manifestFetch = await timedGet("/artifacts/sum-u32/build-manifest.json", "json");
-  const wasmFetch = await timedGet("/artifacts/sum-u32/sum-u32.wasm", "arrayBuffer");
-  const manifest = manifestFetch.value;
-  const wasmBytes = wasmFetch.value;
-  if (manifest.input.sha256 !== INPUT_SHA256) {
-    throw new Error("Published input hash does not match the frozen workload.");
-  }
-  const wasmSha256 = await sha256Hex(wasmBytes);
-  if (
-    wasmSha256 !== WASM_SHA256 || wasmSha256 !== manifest.variants["wasm-linear-controlled"].sha256
-  ) {
-    throw new Error("Published Wasm hash does not match the build manifest.");
-  }
-
-  addPhase("Compiling and instantiating the 96-byte linear-Wasm module…");
-  let start = performance.now();
-  const module = await WebAssembly.compile(wasmBytes);
-  const wasmCompileMs = performance.now() - start;
-  start = performance.now();
-  const instance = await WebAssembly.instantiate(module);
-  const wasmInstantiateMs = performance.now() - start;
-
-  start = performance.now();
-  const input = generateInput();
-  const inputGenerateMs = performance.now() - start;
-  const inputSha256 = await sha256Hex(new Uint8Array(input.buffer));
-  if (inputSha256 !== INPUT_SHA256) {
-    throw new Error("Generated input hash does not match the frozen workload.");
-  }
-  if (instance.exports.memory.buffer.byteLength < input.byteLength) {
-    throw new Error("Wasm linear memory is too small.");
-  }
-  start = performance.now();
-  new Uint32Array(instance.exports.memory.buffer, 0, input.length).set(input);
-  const inputCopyMs = performance.now() - start;
-
-  const jsRun = () => sumU32(input);
-  const wasmRun = () => instance.exports.sum_u32(0, input.length) >>> 0;
-  addPhase("Checking complete outputs before any scored timing…");
-  const jsFirst = duration(jsRun);
-  const wasmFirst = duration(wasmRun);
-  if (
-    jsFirst.output !== ORACLE || wasmFirst.output !== ORACLE || jsFirst.output !== wasmFirst.output
-  ) {
-    throw new Error("Correctness gate failed; no scored timing was collected.");
-  }
-
-  addPhase("Calibrating a bounded fixed-work batch outside the scored samples…");
-  const timerQuantumMs = timerQuantum();
-  const calibration = await calibrateBatch(jsRun, wasmRun, timerQuantumMs);
-  const work = fixedWorkCounters(INPUT_LENGTH, INPUT_BYTES, calibration.batchSize);
-
-  addPhase("Recording complete scored post-calibration trajectories…");
+function executeRun(iterations, order) {
   progress.max = iterations * 2;
   progress.value = 0;
-  const samples = await runScoredPair({
-    jsRun,
-    wasmRun,
-    batchSize: calibration.batchSize,
-    iterations,
-    order,
-    onProgress: ({ variant, iteration, completed }) => {
-      progress.value = completed;
-      status.textContent = `Scoring ${variant}, iteration ${iteration + 1} of ${iterations}…`;
-    },
-    yieldTask: yieldToMain,
+  return new Promise((resolve, reject) => {
+    const worker = new Worker("/hosted-runner-worker.js", { type: "module" });
+    let settled = false;
+    const finish = (callback, value) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      worker.terminate();
+      callback(value);
+    };
+    const timeout = setTimeout(
+      () => finish(reject, new Error("The bounded live run exceeded 120 seconds.")),
+      WORKER_TIMEOUT_MS,
+    );
+    worker.addEventListener("message", (event) => {
+      const message = event.data;
+      if (message?.type === "phase") {
+        addPhase(message.message);
+      } else if (message?.type === "progress") {
+        progress.value = Math.min(iterations * 2, message.completed);
+        status.textContent = `Scoring ${message.variant}, iteration ${
+          message.iteration + 1
+        } of ${iterations} in the worker…`;
+      } else if (message?.type === "complete") {
+        progress.value = iterations * 2;
+        finish(resolve, message.result);
+      } else if (message?.type === "error") {
+        finish(reject, new Error(message.message));
+      }
+    });
+    worker.addEventListener("error", (event) => {
+      finish(reject, new Error(event.message || "The measurement worker failed."));
+    });
+    worker.postMessage({ iterations, order });
   });
-  progress.value = iterations * 2;
-
-  return {
-    capturedAt: new Date().toISOString(),
-    order,
-    iterations,
-    cache: cacheDisclosure(),
-    batchSize: calibration.batchSize,
-    work,
-    manifest,
-    wasmSha256,
-    lifecycle: {
-      manifestFetchMs: manifestFetch.durationMs,
-      wasmFetchMs: wasmFetch.durationMs,
-      wasmCompileMs,
-      wasmInstantiateMs,
-      inputGenerateMs,
-      inputCopyMs,
-      jsFirstExecuteMs: jsFirst.durationMs,
-      wasmFirstExecuteMs: wasmFirst.durationMs,
-    },
-    js: summarizeSamples(samples.javascript),
-    wasm: summarizeSamples(samples.wasm),
-  };
 }
 
 form.addEventListener("submit", async (event) => {

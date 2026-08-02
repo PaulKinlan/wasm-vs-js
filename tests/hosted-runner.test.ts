@@ -41,6 +41,24 @@ Deno.test("hosted runner core preserves exact JS/Wasm output and bounded scored 
   assert(samples.wasm.every((value) => value >= 0));
 });
 
+Deno.test("scored batch rejects an earlier wrong output even when its final output is correct", async () => {
+  let invocation = 0;
+  const earlierWrongFinalCorrect = () => (++invocation % 2 === 0 ? ORACLE : 0);
+  await assertRejects(
+    () =>
+      runScoredPair({
+        jsRun: earlierWrongFinalCorrect,
+        wasmRun: () => ORACLE,
+        batchSize: 2,
+        iterations: 5,
+        order: "js-first",
+        yieldTask: () => Promise.resolve(),
+      }),
+    "javascript output changed during scored iteration 1",
+  );
+  assertEquals(invocation, 2);
+});
+
 Deno.test("hosted statistics and fixed-work counters are exact and iteration controls are bounded", async () => {
   assertEquals(boundedIterations("5"), 5);
   assertEquals(boundedIterations("50"), 50);

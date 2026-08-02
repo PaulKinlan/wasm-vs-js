@@ -29,7 +29,7 @@ const securityHeaders = {
   "referrer-policy": "no-referrer",
   "permissions-policy": "camera=(), microphone=(), geolocation=()",
   "content-security-policy":
-    "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
+    "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob:; worker-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
 };
 
 function response(body: BodyInit | null, init: ResponseInit = {}): Response {
@@ -95,6 +95,10 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/hosted-runner.js", ["public/hosted-runner.js", "text/javascript; charset=utf-8"]],
   ["/hosted-runner-core.js", [
     "public/hosted-runner-core.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/hosted-runner-worker.js", [
+    "public/hosted-runner-worker.js",
     "text/javascript; charset=utf-8",
   ]],
   ["/benchmarks/sum-u32/benchmark.json", [

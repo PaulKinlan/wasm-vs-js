@@ -82,6 +82,7 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
       "/run/",
       "/hosted-runner.js",
       "/hosted-runner-core.js",
+      "/hosted-runner-worker.js",
       "/benchmarks/sum-u32/workload.js",
     ]
   ) {
@@ -89,6 +90,7 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
   }
   const livePage = await (await handler(new Request("http://127.0.0.1/run"))).text();
   assert(livePage.includes("Exploratory single-tab run"));
+  assert(livePage.includes("dedicated same-origin module worker"));
   for (const path of ["/run.html", "/runner.js", "/raw/runs/example.json"]) {
     assertEquals((await handler(new Request(`http://127.0.0.1${path}`))).status, 404);
   }
@@ -118,7 +120,8 @@ Deno.test("local server bounds writes and serves exact Wasm MIME", async () => {
     assertEquals(wasm.headers.get("content-type"), "application/wasm");
     assert(wasm.headers.get("cache-control")?.includes("immutable"));
     const csp = wasm.headers.get("content-security-policy") ?? "";
-    assert(csp.includes("script-src 'self' 'wasm-unsafe-eval'"));
+    assert(csp.includes("script-src 'self' 'wasm-unsafe-eval' blob:"));
+    assert(csp.includes("worker-src 'self'"));
     assert(!csp.includes("'unsafe-eval'"));
     assert(!csp.includes("'unsafe-inline'"));
     const favicon = await handler(new Request("http://127.0.0.1/favicon.ico"));

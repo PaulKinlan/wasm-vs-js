@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
+    <meta http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob:; worker-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
     <meta name="description"
       content="Run the controlled JavaScript and linear-WebAssembly sum-u32 pair locally in this browser tab.">
     <title>Live browser run · Wasm vs JavaScript</title>
@@ -18,10 +20,10 @@
       <strong>Live browser runner</strong>
     </header>
     <main id="main" class="narrative hosted-runner">
-      <h1>Run the controlled sum workload in this tab</h1>
+      <h1>Run the controlled sum workload in this browser</h1>
       <p
         class="notice"><strong>Exploratory single-tab run—not accepted corpus or a performance claim.</strong> This page compares equivalent fixed work locally. It does not control a fresh browser profile, cache, power, thermals, scheduling, or independent launches.</p>
-      <p>No result is uploaded or saved. The browser makes only same-origin GET requests for the published workload, build manifest, and 96-byte Wasm artifact.</p>
+      <p>No result is uploaded or saved. A dedicated same-origin module worker performs the heavy measurement so the page remains responsive. It makes only same-origin GET requests for the exact JavaScript workload, build manifest, and 96-byte Wasm artifact, verifies both executable hashes, then terminates.</p>
 
       <form id="hosted-runner-form">
         <fieldset>
@@ -37,7 +39,7 @@
           </label>
         </fieldset>
         <p
-          class="hint">Iterations are bounded from 5 to 50. Calibration and first-use lifecycle work are separate from scored samples.</p>
+          class="hint">Iterations are bounded from 5 to 50. Calibration and first-use lifecycle work are separate from scored samples. Every invocation contributes to an output digest and exact-oracle check.</p>
         <button id="start-live-run" type="submit">Run JavaScript and Wasm locally</button>
       </form>
 
