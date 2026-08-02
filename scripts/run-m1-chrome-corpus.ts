@@ -59,6 +59,15 @@ export function selectCorpusOperation(argv: readonly string[]): CorpusOperation 
   const selected = argv.filter((argument): argument is CorpusOperation =>
     CORPUS_OPERATION_FLAGS.includes(argument as CorpusOperation)
   );
+  const unknown = argv.filter((argument) =>
+    !CORPUS_OPERATION_FLAGS.includes(argument as CorpusOperation) &&
+    !["--permit=", "--manifest="].some((prefix) =>
+      argument.startsWith(prefix) && argument.length > prefix.length
+    )
+  );
+  if (unknown.length > 0) {
+    throw new Error(`unknown corpus argument denied: ${unknown.join(", ")}`);
+  }
   if (selected.length !== 1) {
     throw new Error(
       `exactly one corpus operation flag required; received ${selected.length}: ${
