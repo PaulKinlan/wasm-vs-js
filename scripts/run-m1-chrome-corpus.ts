@@ -112,7 +112,7 @@ async function verifyOrigin(
     JSON.stringify(health.collectorAssets) !== JSON.stringify(expectedHashes)
   ) throw new Error("local origin source identity mismatch");
 }
-function classify(
+export function classifyAttemptError(
   error: unknown,
 ): { status: "failed" | "blocked"; category: string; stop: boolean; reason: string } {
   const reason = error instanceof Error ? error.message : String(error),
@@ -132,7 +132,10 @@ function classify(
   }
   return { status: "failed", category: "failed-measurement", stop: false, reason };
 }
-function validateWorkerResult(value: Record<string, unknown>, expectedManifest: LaunchManifest) {
+export function validateWorkerResult(
+  value: Record<string, unknown>,
+  expectedManifest: LaunchManifest,
+) {
   const result = value.result as Record<string, unknown>;
   if (!result || JSON.stringify(value.manifest) !== JSON.stringify(expectedManifest)) {
     throw new Error("worker result manifest identity mismatch");
@@ -616,7 +619,7 @@ async function collectAll(
       );
       blocks.push({ ...attempt, sha256: artifact.sha256 });
     } catch (error) {
-      const failure = classify(error);
+      const failure = classifyAttemptError(error);
       containmentStop ||= failure.stop;
       attempt = {
         blockId: manifest.blockId,
