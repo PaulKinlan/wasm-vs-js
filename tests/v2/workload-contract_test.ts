@@ -131,6 +131,22 @@ Deno.test("proposal variants bind target and algorithm identity without orphan a
   }
 });
 
+Deno.test("optimized Track B rejects duplicate JavaScript targets", () => {
+  const poisoned = structuredClone(catalog);
+  const optimized = poisoned.entries[0].tracks.find((track: { track: string }) =>
+    track.track === "optimized"
+  );
+  assert(optimized, "optimized track missing from test fixture");
+  optimized.variants[1].target = "javascript";
+  assert(validateSchema(poisoned), JSON.stringify(validateSchema.errors));
+  const result = validateProposalCatalogSemantics(poisoned, v1Catalog.entries);
+  assert(!result.ok, "two optimized JavaScript targets were accepted");
+  assert(
+    result.errors.some((error) => error.includes("separately reported optimized track")),
+    result.errors.join("; "),
+  );
+});
+
 Deno.test("proposal semantic validation rejects duplicate IDs, algorithm reuse, unknown v1 links, and variable work", () => {
   const mutations: Array<[string, (value: typeof catalog) => void]> = [
     ["duplicate id", (value) => value.entries[1].id = value.entries[0].id],

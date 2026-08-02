@@ -127,12 +127,16 @@ export function validateProposalCatalogSemantics(catalog, v1Entries) {
     ) {
       errors.push(`${entry.id} lacks the controlled JS/linear-Wasm equivalence track`);
     }
+    const optimizedVariants = optimized?.variants ?? [];
+    const optimizedTargets = new Set(optimizedVariants.map((variant) => variant.target));
     const optimizedFamilies = new Set(
-      (optimized?.variants ?? []).map((variant) => variant.algorithmFamilyId),
+      optimizedVariants.map((variant) => variant.algorithmFamilyId),
     );
     if (
       optimized?.track !== "optimized" || optimized?.algorithmEquivalence !== "separate-family" ||
-      optimized?.variants?.length !== 2 || optimizedFamilies.size !== optimized?.variants?.length
+      optimizedVariants.length !== 2 || optimizedTargets.size !== 2 ||
+      !optimizedTargets.has("javascript") || !optimizedTargets.has("wasm-linear") ||
+      optimizedFamilies.size !== optimizedVariants.length
     ) {
       errors.push(`${entry.id} lacks the separately reported optimized track`);
     }
