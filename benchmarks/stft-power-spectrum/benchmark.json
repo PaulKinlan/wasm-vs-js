@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "id": "stft-power-spectrum",
+  "version": 1,
+  "tier": "T4",
+  "title": "STFT power spectrum (Track B optimized)",
+  "description": "Short-Time Fourier Transform power spectrum (re\u00b2+im\u00b2, no sqrt). Hann window, 1024-point frames, 75% overlap. Track B: JS uses Math trig; Wasm uses Taylor/Newton approximations. Peak-bin oracle, not per-cell magnitude equality.",
+  "tracks": [
+    "optimized"
+  ],
+  "variants": [
+    {
+      "id": "js-optimized",
+      "target": "javascript",
+      "track": "optimized",
+      "buildManifest": "public/artifacts/stft-power-spectrum/build-manifest.json"
+    },
+    {
+      "id": "wasm-linear-optimized",
+      "target": "wasm-linear",
+      "track": "optimized",
+      "buildManifest": "public/artifacts/stft-power-spectrum/build-manifest.json"
+    }
+  ],
+  "inputs": {
+    "manifestSha256": "",
+    "immutable": true,
+    "generation": "Linear chirp 20Hz to 20kHz over 2s at 48kHz, 96000 Float32 samples"
+  },
+  "oracle": {
+    "kind": "complete-output",
+    "policy": "Per-frame peak bin matches chirp instantaneous frequency \u00b12 bins. Power values must be finite (no NaN/Inf). Not a per-cell magnitude equality contract.",
+    "floatingPointPolicy": "Track B optimized: JS uses f64 Math.sin/cos; Wasm uses f32 Taylor series + Newton sqrt. Algorithmic divergence expected. Peak-bin matching is the correctness gate.",
+    "deadCodeDefense": "Peak bin per frame verified against chirp formula. All values checked for finiteness."
+  },
+  "work": {
+    "fixed": true,
+    "complexity": "O(n_frames * N * log N)",
+    "counters": [
+      "frames",
+      "items",
+      "input-bytes",
+      "output-bytes",
+      "window-multiplies",
+      "butterflies",
+      "boundary-crossings"
+    ],
+    "tolerance": "Frames, items, bytes, multiplies, butterflies must match exactly."
+  }
+}

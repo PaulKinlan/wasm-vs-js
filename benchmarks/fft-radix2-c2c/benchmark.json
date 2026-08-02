@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "id": "fft-radix2-c2c",
+  "version": 1,
+  "tier": "T3",
+  "title": "Radix-2 FFT with frozen twiddle table",
+  "description": "Iterative Cooley-Tukey radix-2 FFT using a precomputed frozen twiddle table. Both variants read the identical f32 twiddle data \u2014 no trig calls in the butterfly loop. Magnitude-only output (N/2 values).",
+  "tracks": [
+    "controlled"
+  ],
+  "variants": [
+    {
+      "id": "js-controlled",
+      "target": "javascript",
+      "track": "controlled",
+      "buildManifest": "public/artifacts/fft-radix2-c2c/build-manifest.json"
+    },
+    {
+      "id": "wasm-linear-controlled",
+      "target": "wasm-linear",
+      "track": "controlled",
+      "buildManifest": "public/artifacts/fft-radix2-c2c/build-manifest.json"
+    }
+  ],
+  "inputs": {
+    "manifestSha256": "",
+    "immutable": true,
+    "generation": "12 inharmonic partials + 10% xorshift32 noise, 1024 Float32 samples + frozen twiddle table"
+  },
+  "oracle": {
+    "kind": "complete-output",
+    "policy": "N/2 magnitude f32 values. JS and Wasm read identical frozen twiddle table. Max relative error \u2264 1e-4 per non-zero bin. NaN/Inf fails.",
+    "floatingPointPolicy": "JS uses f64 intermediates; Wasm uses native f32. Twiddle table is precomputed f32 for both. Tolerance accounts for f64 vs f32 representation in butterfly arithmetic.",
+    "deadCodeDefense": "Complete magnitude array hashed and compared per-bin."
+  },
+  "work": {
+    "fixed": true,
+    "complexity": "O(n log n)",
+    "counters": [
+      "items",
+      "input-bytes",
+      "output-bytes",
+      "butterflies",
+      "bit-reversals",
+      "loads",
+      "stores",
+      "boundary-crossings"
+    ],
+    "tolerance": "Items, bytes, butterflies, bit-reversals, loads, stores must match exactly."
+  }
+}

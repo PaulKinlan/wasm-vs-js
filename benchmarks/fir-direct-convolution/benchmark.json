@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "id": "fir-direct-convolution",
+  "version": 1,
+  "tier": "T3",
+  "title": "FIR direct-form convolution",
+  "description": "O(n*k) direct-form nested multiply-accumulate convolution. NOT overlap-add. 256-tap windowed-sinc lowpass against 8192 Float32 noise samples. Both variants use identical f32 MAC loops.",
+  "tracks": [
+    "controlled"
+  ],
+  "variants": [
+    {
+      "id": "js-controlled",
+      "target": "javascript",
+      "track": "controlled",
+      "buildManifest": "public/artifacts/fir-direct-convolution/build-manifest.json"
+    },
+    {
+      "id": "wasm-linear-controlled",
+      "target": "wasm-linear",
+      "track": "controlled",
+      "buildManifest": "public/artifacts/fir-direct-convolution/build-manifest.json"
+    }
+  ],
+  "inputs": {
+    "manifestSha256": "",
+    "immutable": true,
+    "generation": "xorshift32 noise 8192 Float32 + 256-tap Hann-windowed sinc lowpass fc=0.25 sample-rate"
+  },
+  "oracle": {
+    "kind": "complete-output",
+    "policy": "N+K-1 f32 output samples. Max relative error \u2264 1e-3 on non-zero samples. NaN/Inf fails.",
+    "floatingPointPolicy": "JS uses f64 intermediates; Wasm uses native f32. Accumulated MAC divergence within tolerance.",
+    "deadCodeDefense": "Complete output array hashed and compared sample-by-sample."
+  },
+  "work": {
+    "fixed": true,
+    "complexity": "O(n*k)",
+    "counters": [
+      "items",
+      "input-bytes",
+      "tap-bytes",
+      "output-bytes",
+      "multiply-accumulates",
+      "loads",
+      "stores",
+      "boundary-crossings"
+    ],
+    "tolerance": "Items, bytes, MACs, loads, stores must match exactly."
+  }
+}
