@@ -83,23 +83,26 @@ function resourceTimingEvidence() {
         decodedBodySize: entry.decodedBodySize,
       },
       caveat:
-        "transferSize uses Resource Timing semantics (including synthetic accounting); zero can indicate local cache only because this asset is same-origin, but this exploratory run does not attest a cold/warm cache state.",
+        "transferSize uses Resource Timing semantics (including synthetic accounting). Zero can mean local cache, and a controlling Service Worker can also affect delivery; this run does not attest a cold/warm cache state.",
     };
   });
 }
 
-function cacheDisclosure(resources) {
+function cacheDisclosure(resources, serviceWorkerControlled) {
+  const serviceWorkerPrefix = serviceWorkerControlled
+    ? "A Service Worker controlled this page and may have intercepted these requests. "
+    : "No Service Worker controlled this page. ";
   const observed = resources.filter((entry) => entry.status === "supported-value");
   if (observed.length !== resources.length) {
-    return "Browser-managed HTTP cache; one or more same-origin Resource Timing entries were not observed.";
+    return `${serviceWorkerPrefix}One or more same-origin Resource Timing entries were not observed; delivery and cache state are unknown.`;
   }
   const transferBytes = observed.reduce((total, entry) => total + entry.value.transferSize, 0);
   return transferBytes === 0
-    ? "Browser-managed HTTP cache; same-origin Resource Timing reported zero transfer bytes. This suggests local cache delivery but does not attest a controlled warm state."
-    : `Browser-managed HTTP cache; same-origin Resource Timing reported ${transferBytes} synthetic transfer bytes across manifest, JS, and Wasm. Cold/warm state is not attested.`;
+    ? `${serviceWorkerPrefix}Same-origin Resource Timing reported zero transfer bytes; delivery may be local cache or Service Worker interception, and no controlled warm state is attested.`
+    : `${serviceWorkerPrefix}Same-origin Resource Timing reported ${transferBytes} synthetic transfer bytes across manifest, JS, and Wasm. Cold/warm state is not attested.`;
 }
 
-async function executeRun(iterations, order) {
+async function executeRun(iterations, order, serviceWorkerControlled) {
   phase("Fetching the build manifest as exact bytes…");
   const manifestFetch = await timedBytes("/artifacts/sum-u32/build-manifest.json");
   let start = performance.now();
@@ -202,7 +205,7 @@ async function executeRun(iterations, order) {
     capturedAt: new Date().toISOString(),
     order,
     iterations,
-    cache: cacheDisclosure(resources),
+    cache: cacheDisclosure(resources, serviceWorkerControlled),
     resourceTiming: resources,
     batchSize: calibration.batchSize,
     work,
@@ -252,12 +255,16 @@ async function executeRun(iterations, order) {
   };
 }
 
-/** @param {MessageEvent<{ iterations: number, order: string }>} event */
+/** @param {MessageEvent<{ iterations: number, order: string, serviceWorkerControlled: boolean }>} event */
 globalThis.onmessage = async (event) => {
   if (started) return;
   started = true;
   try {
-    const result = await executeRun(event.data.iterations, event.data.order);
+    const result = await executeRun(
+      event.data.iterations,
+      event.data.order,
+      event.data.serviceWorkerControlled === true,
+    );
     globalThis.postMessage({ type: "complete", result });
   } catch (error) {
     globalThis.postMessage({

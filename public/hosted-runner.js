@@ -300,7 +300,7 @@ function renderResult(data) {
       typedText(
         responsiveness,
         (value) =>
-          `${value.count} observed · max ${
+          `${value.observedCount} observed · ${value.retainedCount} retained (cap ${value.maximumRetainedEntries}) · ${value.droppedEntries} dropped · max ${
             value.maxDurationMs === null ? "not observed" : `${value.maxDurationMs.toFixed(1)} ms`
           }`,
       ),
@@ -409,7 +409,7 @@ function renderResult(data) {
   results.focus?.();
 }
 
-function executeRun(iterations, order) {
+function executeRun(iterations, order, serviceWorkerControlled) {
   progress.max = iterations * 2;
   progress.value = 0;
   return new Promise((resolve, reject) => {
@@ -445,7 +445,7 @@ function executeRun(iterations, order) {
     worker.addEventListener("error", (event) => {
       finish(reject, new Error(event.message || "The measurement worker failed."));
     });
-    worker.postMessage({ iterations, order });
+    worker.postMessage({ iterations, order, serviceWorkerControlled });
   });
 }
 
@@ -464,7 +464,8 @@ form.addEventListener("submit", async (event) => {
     addPhase("Collecting privacy-limited page provenance in memory…");
     const before = await capturePageBefore();
     responsiveness = startResponsivenessObservation(globalThis);
-    const result = await executeRun(iterations, order);
+    const serviceWorkerControlled = navigator.serviceWorker?.controller != null;
+    const result = await executeRun(iterations, order, serviceWorkerControlled);
     responsiveness.stop();
     result.pageEvidence = {
       before,

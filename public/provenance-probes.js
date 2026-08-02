@@ -6,6 +6,26 @@ export function supported(value, extra = {}) {
   return { status: "supported-value", value, ...extra };
 }
 
+export const MAX_LONG_ANIMATION_FRAME_ENTRIES = 200;
+const OPTIONAL_PROBE_TIMEOUT_MS = 5_000;
+
+async function boundedOptionalProbe(promise, label, timeoutMs = OPTIONAL_PROBE_TIMEOUT_MS) {
+  let timeout;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise((_, reject) => {
+        timeout = setTimeout(
+          () => reject(new Error(`${label} timed out after ${timeoutMs} ms.`)),
+          timeoutMs,
+        );
+      }),
+    ]);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 export function positiveNumberHint(owner, key, unavailableReason) {
   if (!owner || !(key in owner)) return unavailable("unsupported", unavailableReason);
   const value = owner[key];
@@ -37,13 +57,18 @@ export function captureLegacyChromiumHeap(performanceLike) {
   });
 }
 
-export async function captureUaClientHints(navigatorLike) {
+export async function captureUaClientHints(
+  navigatorLike,
+  timeoutMs = OPTIONAL_PROBE_TIMEOUT_MS,
+) {
   const uaData = navigatorLike?.userAgentData;
   if (!uaData) {
     return unavailable("unsupported", "User-Agent Client Hints are not exposed by this browser.");
   }
   const lowEntropy = {
-    brands: supported(Array.isArray(uaData.brands) ? structuredClone(uaData.brands) : []),
+    brands: Array.isArray(uaData.brands)
+      ? supported(structuredClone(uaData.brands))
+      : unavailable("unsupported", "UA-CH brands were absent."),
     mobile: typeof uaData.mobile === "boolean"
       ? supported(uaData.mobile)
       : unavailable("unsupported", "UA-CH mobile was absent."),
@@ -66,7 +91,11 @@ export async function captureUaClientHints(navigatorLike) {
     "fullVersionList",
   ];
   try {
-    const response = await uaData.getHighEntropyValues(requested);
+    const response = await boundedOptionalProbe(
+      Promise.resolve().then(() => uaData.getHighEntropyValues(requested)),
+      "UA-CH high-entropy request",
+      timeoutMs,
+    );
     const fields = {};
     for (const key of requested) {
       if (!Object.hasOwn(response, key)) {
@@ -83,17 +112,24 @@ export async function captureUaClientHints(navigatorLike) {
     }
     return supported({ lowEntropy, highEntropy: supported(fields, { requested }) });
   } catch (error) {
+    const reason = error instanceof Error
+      ? `${error.name}: ${error.message}`
+      : "UA-CH request rejected.";
     return supported({
       lowEntropy,
       highEntropy: unavailable(
-        "api-rejected",
-        error instanceof Error ? `${error.name}: ${error.message}` : "UA-CH request rejected.",
+        reason.includes("timed out") ? "api-timeout" : "api-rejected",
+        reason,
       ),
     });
   }
 }
 
-export async function captureUaSpecificMemory(performanceLike, environment) {
+export async function captureUaSpecificMemory(
+  performanceLike,
+  environment,
+  timeoutMs = OPTIONAL_PROBE_TIMEOUT_MS,
+) {
   if (typeof performanceLike?.measureUserAgentSpecificMemory !== "function") {
     return unavailable("unsupported", "measureUserAgentSpecificMemory is not exposed.");
   }
@@ -107,7 +143,11 @@ export async function captureUaSpecificMemory(performanceLike, environment) {
     );
   }
   try {
-    const result = await performanceLike.measureUserAgentSpecificMemory();
+    const result = await boundedOptionalProbe(
+      Promise.resolve().then(() => performanceLike.measureUserAgentSpecificMemory()),
+      "UA-specific memory measurement",
+      timeoutMs,
+    );
     if (!Number.isFinite(result?.bytes) || result.bytes < 0 || !Array.isArray(result.breakdown)) {
       return unavailable("failed", "The memory API returned an invalid result shape.");
     }
@@ -117,10 +157,10 @@ export async function captureUaSpecificMemory(performanceLike, environment) {
         "Experimental estimate with implementation-defined attribution; it may trigger GC and is not exact RSS or machine memory.",
     });
   } catch (error) {
-    return unavailable(
-      "api-rejected",
-      error instanceof Error ? `${error.name}: ${error.message}` : "Memory measurement rejected.",
-    );
+    const reason = error instanceof Error
+      ? `${error.name}: ${error.message}`
+      : "Memory measurement rejected.";
+    return unavailable(reason.includes("timed out") ? "api-timeout" : "api-rejected", reason);
   }
 }
 
@@ -171,47 +211,107 @@ export async function measureRefreshEstimate(requestFrame, cancelFrame, sampleCo
 }
 
 export function startResponsivenessObservation(globalLike) {
-  const supportedTypes = Array.isArray(globalLike?.PerformanceObserver?.supportedEntryTypes)
-    ? [...globalLike.PerformanceObserver.supportedEntryTypes]
-    : [];
-  if (!supportedTypes.includes("long-animation-frame")) {
+  const advertised = globalLike?.PerformanceObserver?.supportedEntryTypes;
+  const supportedEntryTypes = Array.isArray(advertised) ? supported([...advertised]) : unavailable(
+    "unsupported",
+    "PerformanceObserver.supportedEntryTypes is absent; no empty support list is inferred.",
+  );
+  if (!Array.isArray(advertised) || !advertised.includes("long-animation-frame")) {
+    const evidence = unavailable(
+      "unsupported",
+      "PerformanceObserver does not advertise long-animation-frame entries.",
+    );
     return {
-      supportedEntryTypes: supported(supportedTypes),
-      longAnimationFrames: unavailable(
-        "unsupported",
-        "PerformanceObserver does not advertise long-animation-frame entries.",
-      ),
+      supportedEntryTypes,
       stop() {},
       snapshot() {
-        return this.longAnimationFrames;
+        return evidence;
       },
     };
   }
+
+  const now = () => Number(globalLike?.performance?.now?.() ?? 0);
+  const collectionStart = now();
+  let collectionEnd = null;
+  let observer;
+  let stopped = false;
+  let failure = null;
+  let observedCount = 0;
+  let maxDurationMs = null;
   const entries = [];
-  const observer = new globalLike.PerformanceObserver((list) => {
-    for (const entry of list.getEntries()) {
-      entries.push({
-        startTime: entry.startTime,
-        duration: entry.duration,
-        blockingDuration: Number.isFinite(entry.blockingDuration) ? entry.blockingDuration : null,
-      });
+
+  const fail = (stage, error) => {
+    if (failure) return;
+    const detail = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+    failure = unavailable("failed", `Long-animation-frame ${stage} failed: ${detail}`);
+  };
+  const ingest = (candidateEntries) => {
+    for (const entry of candidateEntries) {
+      if (!Number.isFinite(entry?.startTime) || !Number.isFinite(entry?.duration)) continue;
+      const end = collectionEnd ?? Number.POSITIVE_INFINITY;
+      if (entry.startTime < collectionStart || entry.startTime > end) continue;
+      observedCount += 1;
+      maxDurationMs = maxDurationMs === null
+        ? entry.duration
+        : Math.max(maxDurationMs, entry.duration);
+      if (entries.length < MAX_LONG_ANIMATION_FRAME_ENTRIES) {
+        entries.push({
+          startTime: entry.startTime,
+          duration: entry.duration,
+          blockingDuration: Number.isFinite(entry.blockingDuration) ? entry.blockingDuration : null,
+        });
+      }
     }
-  });
-  observer.observe({ type: "long-animation-frame", buffered: true });
+  };
+
+  try {
+    observer = new globalLike.PerformanceObserver((list) => {
+      try {
+        ingest(list.getEntries());
+      } catch (error) {
+        fail("callback", error);
+      }
+    });
+    observer.observe({ type: "long-animation-frame", buffered: true });
+  } catch (error) {
+    fail("setup", error);
+  }
+
   return {
-    supportedEntryTypes: supported(supportedTypes),
+    supportedEntryTypes,
     stop() {
-      observer.disconnect();
+      if (stopped) return;
+      stopped = true;
+      collectionEnd = now();
+      if (!observer) return;
+      try {
+        ingest(observer.takeRecords());
+      } catch (error) {
+        fail("takeRecords", error);
+      }
+      try {
+        observer.disconnect();
+      } catch (error) {
+        fail("disconnect", error);
+      }
     },
     snapshot() {
+      if (failure) return failure;
+      const droppedEntries = Math.max(0, observedCount - entries.length);
       return supported({
-        count: entries.length,
-        maxDurationMs: entries.length ? Math.max(...entries.map((entry) => entry.duration)) : null,
+        collectionStart,
+        collectionEnd,
+        observedCount,
+        retainedCount: entries.length,
+        maximumRetainedEntries: MAX_LONG_ANIMATION_FRAME_ENTRIES,
+        droppedEntries,
+        truncated: droppedEntries > 0,
+        maxDurationMs,
         entries: structuredClone(entries),
       }, {
         scope: "page-main-thread-long-animation-frames",
         caveat:
-          "Page responsiveness diagnostic; worker execution time is not attributed as page jank.",
+          "Only entries starting inside the exact run window are counted; raw entries are capped and worker execution time is not attributed as page jank.",
       });
     },
   };
