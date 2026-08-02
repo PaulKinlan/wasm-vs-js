@@ -1,0 +1,323 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/workload-catalog-v2-proposal.schema.json",
+  "title": "Wasm versus JavaScript workload catalog v2 proposal shard",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "catalogId",
+    "status",
+    "composition",
+    "inheritedV1",
+    "proposalCount",
+    "prospectiveEntryCount",
+    "performanceClaims",
+    "entries"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 2 },
+    "catalogId": { "const": "workload-catalog-v2-proposal" },
+    "status": { "const": "proposal-only" },
+    "composition": { "const": "additive-proposals-over-byte-identical-v1" },
+    "inheritedV1": { "$ref": "#/$defs/inheritedV1" },
+    "proposalCount": { "const": 20 },
+    "prospectiveEntryCount": { "const": 58 },
+    "performanceClaims": { "type": "array", "maxItems": 0 },
+    "entries": {
+      "type": "array",
+      "minItems": 20,
+      "maxItems": 20,
+      "items": { "$ref": "#/$defs/entry" }
+    }
+  },
+  "$defs": {
+    "text": { "type": "string", "minLength": 1, "maxLength": 1200 },
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*\\.v[0-9]+$" },
+    "slug": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 96 },
+    "inheritedV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "catalogId",
+        "schemaVersion",
+        "catalogPath",
+        "catalogSha256",
+        "schemaPath",
+        "schemaSha256",
+        "entryCount",
+        "immutability"
+      ],
+      "properties": {
+        "catalogId": { "const": "workload-catalog-v1" },
+        "schemaVersion": { "const": 1 },
+        "catalogPath": { "const": "catalog/workloads.v1.json" },
+        "catalogSha256": { "$ref": "#/$defs/sha256" },
+        "schemaPath": { "const": "schemas/workload-catalog.schema.json" },
+        "schemaSha256": { "$ref": "#/$defs/sha256" },
+        "entryCount": { "const": 38 },
+        "immutability": { "const": "byte-for-byte" }
+      }
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "benchmarkSlug",
+        "title",
+        "status",
+        "stage",
+        "family",
+        "tier",
+        "class",
+        "v1CoverageReferences",
+        "input",
+        "oracle",
+        "work",
+        "phases",
+        "tracks",
+        "missingCells",
+        "performanceClaims"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "benchmarkSlug": { "$ref": "#/$defs/slug" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "status": { "const": "proposed" },
+        "stage": { "const": "contract-draft" },
+        "family": {
+          "enum": ["games", "dom", "dsp", "neural", "image", "traditional-web"]
+        },
+        "tier": { "enum": ["T2", "T3", "T4", "T6"] },
+        "class": { "enum": ["kernel", "component", "complete-task"] },
+        "v1CoverageReferences": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "input": { "$ref": "#/$defs/input" },
+        "oracle": { "$ref": "#/$defs/oracle" },
+        "work": { "$ref": "#/$defs/work" },
+        "phases": { "$ref": "#/$defs/phases" },
+        "tracks": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": { "$ref": "#/$defs/track" }
+        },
+        "missingCells": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": { "$ref": "#/$defs/missingCell" }
+        },
+        "performanceClaims": { "type": "array", "maxItems": 0 }
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fixtureState",
+        "immutable",
+        "rightsStatus",
+        "licenseSpdx",
+        "generator",
+        "format",
+        "parameters",
+        "manifestSha256"
+      ],
+      "properties": {
+        "fixtureState": { "const": "proposed" },
+        "immutable": { "const": true },
+        "rightsStatus": { "const": "proposed-generated" },
+        "licenseSpdx": { "const": "CC0-1.0" },
+        "generator": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["algorithm", "seed", "revision", "serialization"],
+          "properties": {
+            "algorithm": {
+              "enum": ["xorshift32", "splitmix64-xorshift128plus", "integer-closed-form"]
+            },
+            "seed": { "type": "string", "pattern": "^0x[a-f0-9]{8}(?:[a-f0-9]{8})?$" },
+            "revision": { "const": "proposal-generator-v1" },
+            "serialization": { "$ref": "#/$defs/text" }
+          }
+        },
+        "format": { "$ref": "#/$defs/text" },
+        "parameters": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 24,
+          "items": { "$ref": "#/$defs/parameter" }
+        },
+        "manifestSha256": { "type": "null" }
+      }
+    },
+    "parameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "value"],
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "value": { "type": ["string", "number", "integer", "boolean"] }
+      }
+    },
+    "oracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "reference",
+        "checks",
+        "floatingPointPolicy",
+        "nanPolicy",
+        "signedZeroPolicy",
+        "tolerance"
+      ],
+      "properties": {
+        "kind": {
+          "enum": ["exact-output", "canonical-digest-and-invariants", "numeric-tolerance"]
+        },
+        "reference": { "$ref": "#/$defs/text" },
+        "checks": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/text" }
+        },
+        "floatingPointPolicy": {
+          "enum": ["no-floating-point", "strict-f32-frozen-order", "strict-f64-frozen-order"]
+        },
+        "nanPolicy": { "enum": ["not-generated", "reject", "canonicalize"] },
+        "signedZeroPolicy": { "enum": ["not-applicable", "preserve", "normalize-positive"] },
+        "tolerance": { "$ref": "#/$defs/tolerance" }
+      }
+    },
+    "tolerance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "absolute", "relative"],
+      "properties": {
+        "mode": { "enum": ["exact", "absolute-and-relative"] },
+        "absolute": { "type": ["number", "null"], "minimum": 0 },
+        "relative": { "type": ["number", "null"], "minimum": 0 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "mode": { "const": "exact" } }, "required": ["mode"] },
+          "then": {
+            "properties": {
+              "absolute": { "type": "null" },
+              "relative": { "type": "null" }
+            }
+          },
+          "else": {
+            "properties": {
+              "absolute": { "type": "number", "exclusiveMinimum": 0 },
+              "relative": { "type": "number", "exclusiveMinimum": 0 }
+            }
+          }
+        }
+      ]
+    },
+    "work": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fixed",
+        "timeLimited",
+        "unit",
+        "repetitions",
+        "complexity",
+        "counters",
+        "counterTolerance"
+      ],
+      "properties": {
+        "fixed": { "const": true },
+        "timeLimited": { "const": false },
+        "unit": { "$ref": "#/$defs/text" },
+        "repetitions": { "type": "integer", "minimum": 1, "maximum": 1000000 },
+        "complexity": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "counters": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 24,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" }
+        },
+        "counterTolerance": { "const": "exact" }
+      }
+    },
+    "phases": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "load",
+        "initialize",
+        "transfer",
+        "compute",
+        "validation",
+        "render",
+        "end-to-end"
+      ],
+      "properties": {
+        "load": { "$ref": "#/$defs/phaseDisposition" },
+        "initialize": { "$ref": "#/$defs/phaseDisposition" },
+        "transfer": { "$ref": "#/$defs/phaseDisposition" },
+        "compute": { "const": "measured" },
+        "validation": { "const": "separate" },
+        "render": { "$ref": "#/$defs/phaseDisposition" },
+        "end-to-end": { "$ref": "#/$defs/phaseDisposition" }
+      }
+    },
+    "phaseDisposition": { "enum": ["measured", "separate", "not-applicable"] },
+    "track": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "track",
+        "algorithmEquivalence",
+        "targets",
+        "variantIds",
+        "contract"
+      ],
+      "properties": {
+        "id": { "enum": ["track-a-controlled", "track-b-optimized"] },
+        "track": { "enum": ["controlled", "optimized"] },
+        "algorithmEquivalence": { "enum": ["required", "separate-family"] },
+        "targets": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": { "enum": ["javascript", "wasm-linear", "wasmgc", "hybrid"] }
+        },
+        "variantIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/slug" }
+        },
+        "contract": { "$ref": "#/$defs/text" }
+      }
+    },
+    "missingCell": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cell", "reason"],
+      "properties": {
+        "cell": { "$ref": "#/$defs/slug" },
+        "reason": { "$ref": "#/$defs/text" }
+      }
+    },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

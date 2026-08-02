@@ -1,0 +1,2717 @@
+{
+  "schemaVersion": 2,
+  "catalogId": "workload-catalog-v2-proposal",
+  "status": "proposal-only",
+  "composition": "additive-proposals-over-byte-identical-v1",
+  "inheritedV1": {
+    "catalogId": "workload-catalog-v1",
+    "schemaVersion": 1,
+    "catalogPath": "catalog/workloads.v1.json",
+    "catalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+    "schemaPath": "schemas/workload-catalog.schema.json",
+    "schemaSha256": "7597aad1acd62c1f9a5e9343e8521d1c7906d59fddeec689eec19b50643c4b42",
+    "entryCount": 38,
+    "immutability": "byte-for-byte"
+  },
+  "proposalCount": 20,
+  "prospectiveEntryCount": 58,
+  "performanceClaims": [],
+  "entries": [
+    {
+      "id": "audio.fft.v1",
+      "benchmarkSlug": "audio-fft",
+      "title": "Radix-2 complex FFT",
+      "status": "proposed",
+      "stage": "contract-draft",
+      "family": "dsp",
+      "tier": "T2",
+      "class": "kernel",
+      "v1CoverageReferences": [
+        "audio.webaudio-effects.v1",
+        "numeric.fft-spectral-filter.v1"
+      ],
+      "input": {
+        "fixtureState": "proposed",
+        "immutable": true,
+        "rightsStatus": "proposed-generated",
+        "licenseSpdx": "CC0-1.0",
+        "generator": {
+          "algorithm": "xorshift32",
+          "seed": "0x9e3779b9",
+          "revision": "proposal-generator-v1",
+          "serialization": "Canonical little-endian binary fields in declared parameter order; UTF-8 text uses Unicode 15.1 scalar values where present."
+        },
+        "format": "Interleaved little-endian f32 complex samples plus frozen little-endian f32 twiddle table.",
+        "parameters": [
+          {
+            "name": "fft-size",
+            "value": 4096
+          },
+          {
+            "name": "transforms",
+            "value": 32
+          },
+          {
+            "name": "direction",
+            "value": "forward"
+          },
+          {
+            "name": "normalization",
+            "value": "none"
+          },
+          {
+            "name": "layout",
+            "value": "interleaved-complex"
+          }
+        ],
+        "manifestSha256": null
+      },
+      "oracle": {
+        "kind": "numeric-tolerance",
+        "reference": "Pinned f64 scalar DFT oracle rounded to f32 plus forward/inverse reconstruction invariants.",
+        "checks": [
+          "Complete complex output satisfies the hybrid bound.",
+          "Inverse reconstruction satisfies the hybrid bound.",
+          "DC, Nyquist, conjugate-symmetry, finite-value, and output-length invariants hold."
+        ],
+        "floatingPointPolicy": "strict-f32-frozen-order",
+        "nanPolicy": "reject",
+        "signedZeroPolicy": "normalize-positive",
+        "tolerance": {
+          "mode": "absolute-and-relative",
+          "absolute": 1e-06,
+          "relative": 1e-05
+        }
+      },
+      "work": {
+        "fixed": true,
+        "timeLimited": false,
+        "unit": "32 forward transforms of 4,096 complex samples.",
+        "repetitions": 1,
+        "complexity": "O(transforms × n log n)",
+        "counters": [
+          "transforms",
+          "samples",
+          "stages",
+          "butterflies",
+          "complex-multiplies",
+          "input-bytes",
+          "output-bytes",
+          "boundary-crossings"
+        ],
+        "counterTolerance": "exact"
+      },
+      "phases": {
+        "load": "measured",
+        "initialize": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "validation": "separate",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "tracks": [
+        {
+          "id": "track-a-controlled",
+          "track": "controlled",
+          "algorithmEquivalence": "required",
+          "targets": [
+            "javascript",
+            "wasm-linear"
+          ],
+          "variantIds": [
+            "js-controlled",
+            "wasm-linear-controlled"
+          ],
+          "contract": "Both targets use radix-2 decimation-in-time, the frozen stage order, f32 storage and intermediates, the frozen twiddle bytes, and one call per transform."
+        },
+        {
+          "id": "track-b-optimized",
+          "track": "optimized",
+          "algorithmEquivalence": "separate-family",
+          "targets": [
+            "javascript",
+            "wasm-linear",
+            "hybrid"
+          ],
+          "variantIds": [
+            "js-optimized",
+            "wasm-linear-optimized"
+          ],
+          "contract": "Scalar, fixed-SIMD, changed radix, runtime twiddle generation, and host DSP variants are separate families with optimization logs."
+        }
+      ],
+      "missingCells": [
+        {
+          "cell": "implementation-and-results",
+          "reason": "Implementation and measurement remain outside this proposal shard."
+        }
+      ],
+      "performanceClaims": []
+    },
+    {
+      "id": "audio.fir.v1",
+      "benchmarkSlug": "audio-fir",
+      "title": "Finite impulse response convolution",
+      "status": "proposed",
+      "stage": "contract-draft",
+      "family": "dsp",
+      "tier": "T2",
+      "class": "kernel",
+      "v1CoverageReferences": [
+        "audio.webaudio-effects.v1",
+        "numeric.fft-spectral-filter.v1"
+      ],
+      "input": {
+        "fixtureState": "proposed",
+        "immutable": true,
+        "rightsStatus": "proposed-generated",
+        "licenseSpdx": "CC0-1.0",
+        "generator": {
+          "algorithm": "xorshift32",
+          "seed": "0xa1b2c3d4",
+          "revision": "proposal-generator-v1",
+          "serialization": "Canonical little-endian binary fields in declared parameter order; UTF-8 text uses Unicode 15.1 scalar values where present."
+        },
+        "format": "Little-endian f32 seeded-noise PCM followed by a frozen 256-tap little-endian f32 impulse response.",
+        "parameters": [
+          {
+            "name": "samples",
+            "value": 131072
+          },
+          {
+            "name": "taps",
+            "value": 256
+          },
+          {
+            "name": "channels",
+            "value": 1
+          },
+          {
+            "name": "boundary",
+            "value": "zero-extend"
+          },
+          {
+            "name": "convolution",
+            "value": "direct"
+          }
+        ],
+        "manifestSha256": null
+      },
+      "oracle": {
+        "kind": "numeric-tolerance",
+        "reference": "Pinned f64 direct-convolution reference rounded to f32.",
+        "checks": [
+          "Every output sample satisfies the hybrid bound.",
+          "Impulse latency, output length, finite-value, and DC-gain invariants hold."
+        ],
+        "floatingPointPolicy": "strict-f32-frozen-order",
+        "nanPolicy": "reject",
+        "signedZeroPolicy": "normalize-positive",
+        "tolerance": {
+          "mode": "absolute-and-relative",
+          "absolute": 1e-06,
+          "relative": 1e-05
+        }
+      },
+      "work": {
+        "fixed": true,
+        "timeLimited": false,
+        "unit": "One direct 256-tap convolution over 131,072 mono samples.",
+        "repetitions": 1,
+        "complexity": "O(samples × taps)",
+        "counters": [
+          "samples",
+          "taps",
+          "multiply-accumulates",
+          "input-bytes",
+          "coefficient-bytes",
+          "output-bytes",
+          "allocations",
+          "boundary-crossings"
+        ],
+        "counterTolerance": "exact"
+      },
+      "phases": {
+        "load": "measured",
+        "initialize": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "validation": "separate",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "tracks": [
+        {
+          "id": "track-a-controlled",
+          "track": "controlled",
+          "algorithmEquivalence": "required",
+          "targets": [
+            "javascript",
+            "wasm-linear"
+          ],
+          "variantIds": [
+            "js-controlled",
+            "wasm-linear-controlled"
+          ],
+          "contract": "Both targets use direct convolution, increasing tap order, strict f32 multiply then add, zero extension, preallocated output, and one resident call."
+        },
+        {
+          "id": "track-b-optimized",
+          "track": "optimized",
+          "algorithmEquivalence": "separate-family",
+          "targets": [
+            "javascript",
+            "wasm-linear",
+            "hybrid"
+          ],
+          "variantIds": [
+            "js-optimized",
+            "wasm-linear-optimized"
+          ],
+          "contract": "Blocking, SIMD, overlap-add, partitioned convolution, and native Web Audio are separate families with optimization logs."
+        }
+      ],
+      "missingCells": [
+        {
+          "cell": "implementation-and-results",
+          "reason": "Implementation and measurement remain outside this proposal shard."
+        }
+      ],
+      "performanceClaims": []
+    },
+    {
+      "id": "audio.stft.v1",
+      "benchmarkSlug": "audio-stft",
+      "title": "Short-time Fourier transform spectrogram",
+      "status": "proposed",
+      "stage": "contract-draft",
+      "family": "dsp",
+      "tier": "T3",
+      "class": "component",
+      "v1CoverageReferences": [
+        "audio.webaudio-effects.v1",
+        "numeric.fft-spectral-filter.v1"
+      ],
+      "input": {
+        "fixtureState": "proposed",
+        "immutable": true,
+        "rightsStatus": "proposed-generated",
+        "licenseSpdx": "CC0-1.0",
+        "generator": {
+          "algorithm": "xorshift32",
+          "seed": "0x13579bdf",
+          "revision": "proposal-generator-v1",
+          "serialization": "Canonical little-endian binary fields in declared parameter order; UTF-8 text uses Unicode 15.1 scalar values where present."
+        },
+        "format": "Little-endian f32 chirp and seeded-noise PCM plus frozen little-endian f32 Hann coefficients and FFT twiddles.",
+        "parameters": [
+          {
+            "name": "samples",
+            "value": 96000
+          },
+          {
+            "name": "sample-rate",
+            "value": 48000
+          },
+          {
+            "name": "frame-size",
+            "value": 1024
+          },
+          {
+            "name": "hop-size",
+            "value": 256
+          },
+          {
+            "name": "frames",
+            "value": 372
+          },
+          {
+            "name": "padding",
+            "value": "none"
+          }
+        ],
+        "manifestSha256": null
+      },
+      "oracle": {
+        "kind": "numeric-tolerance",
+        "reference": "Pinned f64 window-and-DFT reference rounded to f32.",
+        "checks": [
+          "Every retained complex bin satisfies the hybrid bound.",
+          "Frame count, conjugate symmetry, finite-value, chirp-bin, and reconstruction invariants hold."
+        ],
+        "floatingPointPolicy": "strict-f32-frozen-order",
+        "nanPolicy": "reject",
+        "signedZeroPolicy": "normalize-positive",
+        "tolerance": {
+          "mode": "absolute-and-relative",
+          "absolute": 5e-06,
+          "relative": 1e-05
+        }
+      },
+      "work": {
+        "fixed": true,
+        "timeLimited": false,
+        "unit": "Window and transform 372 overlapping 1,024-sample frames with a 256-sample hop.",
+        "repetitions": 1,
+        "complexity": "O(frames × frame-size log frame-size)",
+        "counters": [
+          "frames",
+          "samples",
+          "window-multiplies",
+          "butterflies",
+          "complex-multiplies",
+          "input-bytes",
+          "output-bytes",
+          "boundary-crossings"
+        ],
+        "counterTolerance": "exact"
+      },
+      "phases": {
+        "load": "measured",
+        "initialize": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "validation": "separate",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "tracks": [
+        {
+          "id": "track-a-controlled",
+          "track": "controlled",
+          "algorithmEquivalence": "required",
+          "targets": [
+            "javascript",
+            "wasm-linear"
+          ],
+          "variantIds": [
+            "js-controlled",
+            "wasm-linear-controlled"
+          ],
+          "contract": "Both targets use the frozen Hann bytes, frame order, radix-2 schedule, strict f32 intermediates, no padding, reusable scratch, and one call for the full spectrogram."
+        },
+        {
+          "id": "track-b-optimized",
+          "track": "optimized",
+          "algorithmEquivalence": "separate-family",
+          "targets": [
+            "javascript",
+            "wasm-linear",
+            "hybrid"
+          ],
+          "variantIds": [
+            "js-optimized",
+            "wasm-linear-optimized"
+          ],
+          "contract": "Alternate windows, FFT plans, SIMD, streaming blocks, AudioWorklet, and native Web Audio are separate families with optimization logs."
+        }
+      ],
+      "missingCells": [
+        {
+          "cell": "implementation-and-results",
+          "reason": "Implementation and measurement remain outside this proposal shard."
+        }
+      ],
+      "performanceClaims": []
+    },
+    {
+      "id": "dom.dependent-form-validation.v1",
+      "benchmarkSlug": "dom-dependent-form-validation",
+      "title": "Dependent form validation workflow",
+      "status": "proposed",
+      "stage": "contract-draft",
+      "family": "dom",
+      "tier": "T6",
+      "class": "complete-task",
+      "v1CoverageReferences": [
+        "dom.todomvc-journey.v1"
+      ],
+      "input": {
+        "fixtureState": "proposed",
+        "immutable": true,
+        "rightsStatus": "proposed-generated",
+        "licenseSpdx": "CC0-1.0",
+        "generator": {
+          "algorithm": "xorshift32",
+          "seed": "0x2468ace0",
+          "revision": "proposal-generator-v1",
+          "serialization": "Canonical little-endian binary fields in declared parameter order; UTF-8 text uses Unicode 15.1 scalar values where present."
+        },
+        "format": "UTF-8 field schema, dependency graph, initial values, and 240 canonical input, blur, and submit actions.",
+        "parameters": [
+          {
+            "name": "fields",
+            "value": 96
+          },
+          {
+            "name": "dependency-edges",
+            "value": 180
+          },
+          {
+            "name": "actions",
+            "value": 240
+          },
+          {
+            "name": "locale",
+            "value": "en-GB"
+          },
+          {
+            "name": "unicode-version",
+            "value": "15.1"
+          }
+        ],
+        "manifestSha256": null
+      },
+      "oracle": {
+        "kind": "canonical-digest-and-invariants",
+        "reference": "Project reference reducer and canonical DOM serializer.",
+        "checks": [
+          "Final values, validity states, error strings, focus, and selection match.",
+          "Canonical DOM and accessibility-attribute digests match.",
+          "Validation, mutation, allocation, byte, and crossing counters match."
+        ],
+        "floatingPointPolicy": "no-floating-point",
+        "nanPolicy": "not-generated",
+        "signedZeroPolicy": "not-applicable",
+        "tolerance": {
+          "mode": "exact",
+          "absolute": null,
+          "relative": null
+        }
+      },
+      "work": {
+        "fixed": true,
+        "timeLimited": false,
+        "unit": "Apply 240 actions to one 96-field dependency graph.",
+        "repetitions": 1,
+        "complexity": "O(actions × affected dependency closure)",
+        "counters": [
+          "actions",
+          "fields",
+          "dependency-edges",
+          "validations",
+          "dom-mutations",
+          "allocations",
+          "transferred-bytes",
+          "boundary-crossings"
+        ],
+        "counterTolerance": "exact"
+      },
+      "phases": {
+        "load": "measured",
+        "initialize": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "validation": "separate",
+        "render": "separate",
+        "end-to-end": "measured"
+      },
+      "tracks": [
+        {
+          "id": "track-a-controlled",
+          "track": "controlled",
+          "algorithmEquivalence": "required",
+          "targets": [
+            "javascript",
+            "wasm-linear"
+          ],
+          "variantIds": [
+            "js-controlled",
+            "wasm-linear-controlled"
+          ],
+          "contract": "Both targets use the same flat schema, topological dependency order, Unicode scalar validation rules, error ordering, action trace, and host DOM commit adapter."
+        },
+        {
+          "id": "track-b-optimized",
+          "track": "optimized",
+          "algorithmEquivalence": "separate-family",
+          "targets": [
+            "javascript",
+            "wasm-linear",
+            "hybrid"
+          ],
+          "variantIds": [
+            "js-optimized",
+            "wasm-linear-optimized"
+          ],
+          "contract": "Alternative validation scheduling, object layouts, batching, and host framework integrations are separate families with optimization logs."
+        }
+      ],
+      "missingCells": [
+        {
+          "cell": "implementation-and-results",
+          "reason": "Implementation and measurement remain outside this proposal shard."
+        }
+      ],
+      "performanceClaims": []
+    },
+    {
+      "id": "dom.grid-movement.v1",
+      "benchmarkSlug": "dom-grid-movement",
+      "title": "DOM grid movement",
+      "status": "proposed",
+      "stage": "contract-draft",
+      "family": "dom",
+      "tier": "T6",
+      "class": "complete-task",
+      "v1CoverageReferences": [
+        "dom.virtualized-grid.v1",
+        "game.ecs-frame-update.v1"
+      ],
+      "input": {
+        "fixtureState": "proposed",
+        "immutable": true,
+        "rightsStatus": "proposed-generated",
+        "licenseSpdx": "CC0-1.0",
+        "generator": {
+          "algorithm": "xorshift32",
+          "seed": "0xc001d00d",
+          "revision": "proposal-generator-v1",
+          "serialization": "Canonical little-endian binary fields in declared parameter order; UTF-8 text uses Unicode 15.1 scalar values where present."
+        },
+        "format": "Little-endian grid cells, entity records, and 3,600 fixed-step directional input records.",
+        "parameters": [
+          {
+            "name": "columns",
+            "value": 128
+          },
+          {
+            "name": "rows",
+            "value": 128
+          },
+          {
+            "name": "entities",
+            "value": 256
+          },
+          {
+            "name": "steps",
+            "value": 3600
+          },
+          {
+            "name": "step-hz",
+            "value": 60
+          },
+          {
+            "name": "connectivity",
+            "value": 4
+          }
+        ],
+        "manifestSha256": null
+      },
+      "oracle": {
+        "kind": "canonical-digest-and-invariants",
+        "reference": "Project integer grid reducer and canonical DOM serializer.",
+        "checks": [
+          "Per-checkpoint and final entity positions match.",
+          "Collision outcomes, occupied-cell digest, canonical DOM digest, and node identity match.",
+          "Movement, collision, mutation, byte, and crossing counters match."
+        ],
+        "floatingPointPolicy": "no-floating-point",
+        "nanPolicy": "not-generated",
+        "signedZeroPolicy": "not-applicable",
+        "tolerance": {
+          "mode": "exact",
+          "absolute": null,
+          "relative": null
+        }
+      },
+      "work": {
+        "fixed": true,
+        "timeLimited": false,
+        "unit": "Advance 256 entities through 3,600 fixed grid steps.",
+        "repetitions": 1,
+        "complexity": "O(steps × entities)",
+        "counters": [
+          "steps",
+          "entities",
+          "movement-attempts",
+          "collision-tests",
+          "dom-mutations",
+          "input-bytes",
+          "output-bytes",
+          "boundary-crossings"
+        ],
+        "counterTolerance": "exact"
+      },
+      "phases": {
+        "load": "measured",
+        "initialize": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "validation": "separate",
+        "render": "separate",
+        "end-to-end": "measured"
+      },
+      "tracks": [
+        {
+          "id": "track-a-controlled",
+          "track": "controlled",
+          "algorithmEquivalence": "required",
+          "targets": [
+            "javascript",
+            "wasm-linear"
+          ],
+          "variantIds": [
+            "js-controlled",
+            "wasm-linear-controlled"
+          ],
+          "contract": "Both targets use integer cells, identical entity order, four-way collision rules, fixed-step trace, command-buffer layout, and one host DOM commit per step."
+        },
+        {
+          "id": "track-b-optimized",
+          "track": "optimized",
+          "algorithmEquivalence": "separate-family",
+          "targets": [
+            "javascript",
+            "wasm-linear",
+            "hybrid"
+          ],
+          "variantIds": [
+            "js-optimized",
+            "wasm-linear-optimized"
+          ],
+          "contract": "Spatial indexing, batched commits, transformed rendering, and alternate collision systems are separate families with optimization logs."
+        }
+      ],
+      "missingCells": [
+        {
+          "cell": "implementation-and-results",
+          "reason": "Implementation and measurement remain outside this proposal shard."
+        }
+      ],
+      "performanceClaims": []
+    },
+    {
+      "id": "dom.keyed-list-mutation.v1",
+      "benchmarkSlug": "dom-keyed-list-mutation",
+      "title": "Keyed list mutation",
+      "status": "proposed",
+      "stage": "contract-draft",
+      "family": "dom",
+      "tier": "T4",
+      "class": "component",
+      "v1CoverageReferences": [
+        "dom.todomvc-journey.v1",
+        "dom.virtualized-grid.v1"
+      ],
+      "input": {
+        "fixtureState": "proposed",
+        "immutable": true,
+        "rightsStatus": "proposed-generated",
+        "licenseSpdx": "CC0-1.0",
+        "generator": {
+          "algorithm": "xorshift32",
+          "seed": "0x1a2b3c4d",
+          "revision": "proposal-generator-v1",
+          "serialization": "Canonical little-endian binary fields in declared parameter order; UTF-8 text uses Unicode 15.1 scalar values where present."
+        },
+        "format": "UTF-8 interned item records and 2,000 keyed insert, remove, move, reorder, and text-update operations.",
+        "parameters": [
+          {
+            "name": "initial-items",
+            "value": 10000
+          },
+          {
+            "name": "operations",
+            "value": 2000
+          },
+          {
+            "name": "key-bits",
+            "value": 32
+          },
+          {
+            "name": "unicode-version",
+            "value": "15.1"
+          },
+          {
+            "name": "commit-batch",
+            "value": 1
+          }
+        ],
+        "manifestSha256": null
+      },
+      "oracle": {
+        "kind": "canonical-digest-and-invariants",
+        "reference": "Project keyed reducer and canonical DOM serializer with key-identity tracing.",
+        "checks": [
+          "Final ordered keys and text match.",
+          "Canonical DOM, node identity, focus, and selection digests match.",
+          "Insert, remove, move, update, mutation, byte, and crossing counters match."
+        ],
+        "floatingPointPolicy": "no-floating-point",
+        "nanPolicy": "not-generated",
+        "signedZeroPolicy": "not-applicable",
+        "tolerance": {
+          "mode": "exact",
+          "absolute": null,
+          "relative": null
+        }
+      },
+      "work": {
+        "fixed": true,
+        "timeLimited": false,
+        "unit": "Apply one 2,000-operation trace to a 10,000-item keyed list.",
+        "repetitions": 1,
+        "complexity": "O(operations + affected list ranges)",
+        "counters": [
+          "operations",
+          "inserts",
+          "removes",
+          "moves",
+          "updates",
+          "dom-mutations",
+          "transferred-bytes",
+          "boundary-crossings"
+        ],
+        "counterTolerance": "exact"
+      },
+      "phases": {
+        "load": "measured",
+        "initialize": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "validation": "separate",
+        "render": "separate",
+        "end-to-end": "measured"
+      },
+      "tracks": [
+        {
+          "id": "track-a-controlled",
+          "track": "controlled",
+          "algorithmEquivalence": "required",
+          "targets": [
+            "javascript",
+            "wasm-linear"
+          ],
+          "variantIds": [
+            "js-controlled",
+            "wasm-linear-controlled"
+          ],
+          "contract": "Both targets use the same flat keyed records, stable operation order, move tie-break, command buffer, and host DOM commit adapter."
+        },
+        {
+          "id": "track-b-optimized",
+          "track": "optimized",
+          "algorithmEquivalence": "separate-family",
+          "targets": [
+            "javascript",
+            "wasm-linear",
+            "hybrid"
+          ],
+          "variantIds": [
+            "js-optimized",
+            "wasm-linear-optimized"
+          ],
+          "contract": "Alternate list-diff algorithms, object graphs, commit batching, and framework baselines are separate families with optimization logs."
+        }
+      ],
+      "missingCells": [
+        {
+          "cell": "implementation-and-results",
+          "reason": "Implementation and measurement remain outside this proposal shard."
+        }
+      ],
+      "performanceClaims": []
+    },
+    {
+      "id": "dom.nested-tree-mutation.v1",
+      "benchmarkSlug": "dom-nested-tree-mutation",
+      "title": "Nested DOM tree mutation",
+      "status": "proposed",
+      "stage": "contract-draft",
+      "family": "dom",
+      "tier": "T4",
+      "class": "component",
+      "v1CoverageReferences": [
+        "dom.todomvc-journey.v1",
+        "text.gc-document-edit.v1"
+      ],
+      "input": {
+        "fixtureState": "proposed",
+        "immutable": true,
+        "rightsStatus": "proposed-generated",
+        "licenseSpdx": "CC0-1.0",
+        "generator": {
+          "algorithm": "xorshift32",
+          "seed": "0x5e6f7788",
+          "revision": "proposal-generator-v1",
+          "serialization": "Canonical little-endian binary fields in declared parameter order; UTF-8 text uses Unicode 15.1 scalar values where present."
+        },
+        "format": "Flat UTF-8 tree records and 1,200 seeded subtree insert, remove, move, replace, attribute, and text operations.",
+        "parameters": [
+          {
+            "name": "nodes",
+            "value": 10000
+          },
+          {
+            "name": "max-depth",
+            "value": 8
+          },
+          {
+            "name": "operations",
+            "value": 1200
+          },
+          {
+            "name": "keyed-fraction",
+            "value": "3/10"
+          },
+          {
+            "name": "unicode-version",
+            "value": "15.1"
+          }
+        ],
+        "manifestSha256": null
+      },
+      "oracle": {
+        "kind": "canonical-digest-and-invariants",
+        "reference": "Project flat-tree reducer and canonical DOM serializer.",
+        "checks": [
+          "Final parent, child-order, attribute, and text arrays match.",
+          "Canonical DOM, key identity, focus, and selection digests match.",
+          "Tree, mutation, allocation, byte, and crossing counters match."
+        ],
+        "floatingPointPolicy": "no-floating-point",
+        "nanPolicy": "not-generated",
+        "signedZeroPolicy": "not-applicable",
+        "tolerance": {
+          "mode": "exact",
+          "absolute": null,
+          "relative": null
+        }
+      },
+      "work": {
+        "fixed": true,
+        "timeLimited": false,
+        "unit": "Apply one 1,200-operation trace to a 10,000-node tree.",
+        "repetitions": 1,
+        "complexity": "O(operations × affected subtree size)",
+        "counters": [
+          "operations",
+          "nodes-visited",
+          "subtrees-inserted",
+          "subtrees-removed",
+          "subtrees-moved",
+          "dom-mutations",
+          "transferred-bytes",
+          "boundary-crossings"
+        ],
+        "counterTolerance": "exact"
+      },
+      "phases": {
+        "load": "measured",
+        "initialize": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "validation": "separate",
+        "render": "separate",
+        "end-to-end": "measured"
+      },
+      "tracks": [
+        {
+          "id": "track-a-controlled",
+          "track": "controlled",
+          "algorithmEquivalence": "required",
+          "targets": [
+            "javascript",
+            "wasm-linear"
+          ],
+          "variantIds": [
+            "js-controlled",
+            "wasm-linear-controlled"
+          ],
+          "contract": "Both targets use flat adjacency arrays, interned UTF-8 strings, frozen traversal and sibling tie-breaks, one command format, and the same host DOM commit adapter."
+        },
+        {
+          "id": "track-b-optimized",
+          "track": "optimized",
+          "algorithmEquivalence": "separate-family",
+          "targets": [
+            "javascript",
+            "wasm-linear",
+            "hybrid"
+          ],
+          "variantIds": [
+            "js-optimized",
+            "wasm-linear-optimized"
+          ],
+          "contract": "Natural object graphs, alternate tree-diff algorithms, batched commits, and framework baselines are separate families with optimization logs."
+        }
+      ],
+      "missingCells": [
+        {
+          "cell": "implementation-and-results",
+          "reason": "Implementation and measurement remain outside this proposal shard."
+        }
+      ],
+      "performanceClaims": []
+    },
+    {
+      "id": "dom.table-sort-filter-pagination.v1",
+      "benchmarkSlug": "dom-table-sort-filter-pagination",
+      "title": "Table sort, filter, and pagination workflow",
+      "status": "proposed",
+      "stage": "contract-draft",
+      "family": "dom",
+      "tier": "T6",
+      "class": "complete-task",
+      "v1CoverageReferences": [
+        "dom.virtualized-grid.v1",
+        "serialization.json-telemetry.v1"
+      ],
+      "input": {
+        "fixtureState": "proposed",
+        "immutable": true,
+        "rightsStatus": "proposed-generated",
+        "licenseSpdx": "CC0-1.0",
+        "generator": {
+          "algorithm": "xorshift32",
+          "seed": "0x31415926",
+          "revision": "proposal-generator-v1",
+          "serialization": "Canonical little-endian binary fields in declared parameter order; UTF-8 text uses Unicode 15.1 scalar values where present."
+        },
+        "format": "Little-endian typed columns with UTF-8 strings and 120 sort, filter, page, and edit actions.",
+        "parameters": [
+          {
+            "name": "rows",
+            "value": 100000
+          },
+          {
+            "name": "columns",
+            "value": 12
+          },
+          {
+            "name": "page-size",
+            "value": 100
+          },
+          {
+            "name": "actions",
+            "value": 120
+          },
+          {
+            "name": "sort",
+            "value": "stable"
+          },
+          {
+            "name": "unicode-version",
+            "value": "15.1"
+          }
+        ],
+        "manifestSha256": null
+      },
+      "oracle": {
+        "kind": "canonical-digest-and-invariants",
+        "reference": "Project stable table reducer and canonical visible-table serializer.",
+        "checks": [
+          "Visible row IDs, cell values, page index, sort keys, and filter state match at every checkpoint.",
+          "Canonical DOM and focus digests match.",
+          "Comparison, predicate, mutation, byte, and crossing counters match."
+        ],
+        "floatingPointPolicy": "no-floating-point",
+        "nanPolicy": "not-generated",
+        "signedZeroPolicy": "not-applicable",
+        "tolerance": {
+          "mode": "exact",
+          "absolute": null,
+          "relative": null
+        }
+      },
+      "work": {
+        "fixed": true,
+        "timeLimited": false,
+        "unit": "Apply 120 actions to a fixed 100,000-row, 12-column table.",
+        "repetitions": 1,
+        "complexity": "O(actions × rows log rows) for sort actions and O(actions × rows) otherwise",
+        "counters": [
+          "actions",
+          "rows",
+          "comparisons",
+          "filter-predicates",
+          "visible-rows",
+          "dom-mutations",
+          "transferred-bytes",
+          "boundary-crossings"
+        ],
+        "counterTolerance": "exact"
+      },
+      "phases": {
+        "load": "measured",
+        "initialize": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "validation": "separate",
+        "render": "separate",
+        "end-to-end": "measured"
+      },
+      "tracks": [
+        {
+          "id": "track-a-controlled",
+          "track": "controlled",
+          "algorithmEquivalence": "required",
+          "targets": [
+            "javascript",
+            "wasm-linear"
+          ],
+          "variantIds": [
+            "js-controlled",
+            "wasm-linear-controlled"
+          ],
+          "contract": "Both targets use identical column bytes, stable multi-key comparison, Unicode scalar filters, page rules, action order, and host DOM commit adapter."
+        },
+        {
+          "id": "track-b-optimized",
+          "track": "optimized",
+          "algorithmEquivalence": "separate-family",
+          "targets": [
+            "javascript",
+            "wasm-linear",
+            "hybrid"
+          ],
+          "variantIds": [
+            "js-optimized",
+            "wasm-linear-optimized"
+          ],
+          "contract": "Indexing, incremental filtering, alternate layouts, commit batching, and host grid libraries are separate families with optimization logs."
+        }
+      ],
+      "missingCells": [
+        {
+          "cell": "implementation-and-results",
+          "reason": "Implementation and measurement remain outside this proposal shard."
+        }
+      ],
+      "performanceClaims": []
+    },
+    {
+      "id": "dom.vdom-diff-patch.v1",
+      "benchmarkSlug": "tooling-vdom-diff-patch",
+      "title": "Virtual DOM diff and patch planning",
+      "status": "proposed",
+      "stage": "contract-draft",
+      "family": "traditional-web",
+      "tier": "T2",
+      "class": "kernel",
+      "v1CoverageReferences": [
+        "dom.todomvc-journey.v1",
+        "text.gc-document-edit.v1"
+      ],
+      "input": {
+        "fixtureState": "proposed",
+        "immutable": true,
+        "rightsStatus": "proposed-generated",
+        "licenseSpdx": "CC0-1.0",
+        "generator": {
+          "algorithm": "xorshift32",
+          "seed": "0xabcddcba",
+          "revision": "proposal-generator-v1",
+          "serialization": "Canonical little-endian binary fields in declared parameter order; UTF-8 text uses Unicode 15.1 scalar values where present."
+        },
+        "format": "Flat UTF-8 interned component trees and a 2,000-operation seeded edit trace producing target tree B.",
+        "parameters": [
+          {
+            "name": "nodes",
+            "value": 10000
+          },
+          {
+            "name": "max-depth",
+            "value": 8
+          },
+          {
+            "name": "edits",
+            "value": 2000
+          },
+          {
+            "name": "keyed-fraction",
+            "value": "3/10"
+          },
+          {
+            "name": "tie-break",
+            "value": "remove-before-insert"
+          }
+        ],
+        "manifestSha256": null
+      },
+      "oracle": {
+        "kind": "canonical-digest-and-invariants",
+        "reference": "Pinned flat-tree differ, canonical patch encoder, patch applier, and tree serializer.",
+        "checks": [
+          "Exact controlled patch-sequence digest matches.",
+          "Applying the patch to A produces canonical tree B exactly.",
+          "Node, comparison, patch, allocation, byte, and crossing counters match."
+        ],
+        "floatingPointPolicy": "no-floating-point",
+        "nanPolicy": "not-generated",
+        "signedZeroPolicy": "not-applicable",
+        "tolerance": {
+          "mode": "exact",
+          "absolute": null,
+          "relative": null
+        }
+      },
+      "work": {
+        "fixed": true,
+        "timeLimited": false,
+        "unit": "Diff one 10,000-node tree pair and verify one 2,000-operation patch.",
+        "repetitions": 1,
+        "complexity": "O(nodes + keyed-list reconciliation work)",
+        "counters": [
+          "nodes",
+          "keys",
+          "comparisons",
+          "patch-operations",
+          "apply-operations",
+          "input-bytes",
+          "output-bytes",
+          "boundary-crossings"
+        ],
+        "counterTolerance": "exact"
+      },
+      "phases": {
+        "load": "measured",
+        "initialize": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "validation": "separate",
+        "render": "separate",
+        "end-to-end": "measured"
+      },
+      "tracks": [
+        {
+          "id": "track-a-controlled",
+          "track": "controlled",
+          "algorithmEquivalence": "required",
+          "targets": [
+            "javascript",
+            "wasm-linear"
+          ],
+          "variantIds": [
+            "js-controlled",
+            "wasm-linear-controlled"
+          ],
+          "contract": "Both targets use flat adjacency arrays, interned UTF-8 strings, identical traversal, keyed-list algorithm, remove-before-insert and index-order tie-breaks, patch format, and call topology."
+        },
+        {
+          "id": "track-b-optimized",
+          "track": "optimized",
+          "algorithmEquivalence": "separate-family",
+          "targets": [
+            "javascript",
+            "wasm-linear",
+            "hybrid"
+          ],
+          "variantIds": [
+            "js-optimized",
+            "wasm-linear-optimized"
+          ],
+          "contract": "Natural object graphs, alternate list differs, persistent intern tables, DOM application, WasmGC, and framework baselines are separate families with optimization logs."
+        }
+      ],
+      "missingCells": [
+        {
+          "cell": "implementation-and-results",
+          "reason": "Implementation and measurement remain outside this proposal shard."
+        }
+      ],
+      "performanceClaims": []
+    },
+    {
+      "id": "dom.virtualized-scrolling.v1",
+      "benchmarkSlug": "dom-virtualized-scrolling",
+      "title": "Virtualized DOM scrolling",
+      "status": "proposed",
+      "stage": "contract-draft",
+      "family": "dom",
+      "tier": "T6",
+      "class": "complete-task",
+      "v1CoverageReferences": [
+        "dom.virtualized-grid.v1"
+      ],
+      "input": {
+        "fixtureState": "proposed",
+        "immutable": true,
+        "rightsStatus": "proposed-generated",
+        "licenseSpdx": "CC0-1.0",
+        "generator": {
+          "algorithm": "xorshift32",
+          "seed": "0x0badf00d",
+          "revision": "proposal-generator-v1",
+          "serialization": "Canonical little-endian binary fields in declared parameter order; UTF-8 text uses Unicode 15.1 scalar values where present."
+        },
+        "format": "Little-endian row heights and records plus 1,800 integer scroll offsets and viewport resize checkpoints.",
+        "parameters": [
+          {
+            "name": "rows",
+            "value": 100000
+          },
+          {
+            "name": "viewport-height",
+            "value": 720
+          },
+          {
+            "name": "row-height",
+            "value": 24
+          },
+          {
+            "name": "overscan-rows",
+            "value": 8
+          },
+          {
+            "name": "actions",
+            "value": 1800
+          },
+          {
+            "name": "dpr",
+            "value": 1
+          }
+        ],
+        "manifestSha256": null
+      },
+      "oracle": {
+        "kind": "canonical-digest-and-invariants",
+        "reference": "Project integer range calculator and canonical visible-DOM serializer.",
+        "checks": [
+          "Visible and overscan ranges match at every checkpoint.",
+          "Node reuse mapping, node-count bound, scroll anchor, and canonical DOM digest match.",
+          "Range, reuse, mutation, byte, and crossing counters match."
+        ],
+        "floatingPointPolicy": "no-floating-point",
+        "nanPolicy": "not-generated",
+        "signedZeroPolicy": "not-applicable",
+        "tolerance": {
+          "mode": "exact",
+          "absolute": null,
+          "relative": null
+        }
+      },
+      "work": {
+        "fixed": true,
+        "timeLimited": false,
+        "unit": "Resolve and commit 1,800 scroll or resize actions over 100,000 rows.",
+        "repetitions": 1,
+        "complexity": "O(actions × visible rows)",
+        "counters": [
+          "actions",
+          "range-calculations",
+          "visible-rows",
+          "nodes-created",
+          "nodes-reused",
+          "dom-mutations",
+          "transferred-bytes",
+          "boundary-crossings"
+        ],
+        "counterTolerance": "exact"
+      },
+      "phases": {
+        "load": "measured",
+        "initialize": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "validation": "separate",
+        "render": "separate",
+        "end-to-end": "measured"
+      },
+      "tracks": [
+        {
+          "id": "track-a-controlled",
+          "track": "controlled",
+          "algorithmEquivalence": "required",
+          "targets": [
+            "javascript",
+            "wasm-linear"
+          ],
+          "variantIds": [
+            "js-controlled",
+            "wasm-linear-controlled"
+          ],
+          "contract": "Both targets use integer offsets, fixed row height and overscan, identical range equations, node-reuse keys, action order, and host DOM commit adapter."
+        },
+        {
+          "id": "track-b-optimized",
+          "track": "optimized",
+          "algorithmEquivalence": "separate-family",
+          "targets": [
+            "javascript",
+            "wasm-linear",
+            "hybrid"
+          ],
+          "variantIds": [
+            "js-optimized",
+            "wasm-linear-optimized"
+          ],
+          "contract": "Variable-height indexing, adaptive overscan, alternate node pools, and host grid libraries are separate families with optimization logs."
+        }
+      ],
+      "missingCells": [
+        {
+          "cell": "implementation-and-results",
+          "reason": "Implementation and measurement remain outside this proposal shard."
+        }
+      ],
+      "performanceClaims": []
+    },
+    {
+      "id": "game.canvas-arcade.v1",
+      "benchmarkSlug": "game-canvas-arcade",
+      "title": "Canvas arcade game trace",
+      "status": "proposed",
+      "stage": "contract-draft",
+      "family": "games",
+      "tier": "T6",
+      "class": "complete-task",
+      "v1CoverageReferences": [
+        "game.ecs-frame-update.v1",
+        "simulation.rigid-body-2d.v1"
+      ],
+      "input": {
+        "fixtureState": "proposed",
+        "immutable": true,
+        "rightsStatus": "proposed-generated",
+        "licenseSpdx": "CC0-1.0",
+        "generator": {
+          "algorithm": "xorshift32",
+          "seed": "0x6d2b79f5",
+          "revision": "proposal-generator-v1",
+          "serialization": "Canonical little-endian binary fields in declared parameter order; UTF-8 text uses Unicode 15.1 scalar values where present."
+        },
+        "format": "Little-endian integer game state and 3,600 fixed-step button-mask records with a seeded event stream.",
+        "parameters": [
+          {
+            "name": "frames",
+            "value": 3600
+          },
+          {
+            "name": "step-hz",
+            "value": 60
+          },
+          {
+            "name": "viewport-width",
+            "value": 1280
+          },
+          {
+            "name": "viewport-height",
+            "value": 720
+          },
+          {
+            "name": "dpr",
+            "value": 1
+          },
+          {
+            "name": "lives",
+            "value": 3
+          }
+        ],
+        "manifestSha256": null
+      },
+      "oracle": {
+        "kind": "canonical-digest-and-invariants",
+        "reference": "Project integer state reducer plus canonical draw-command and audio-event encoders.",
+        "checks": [
+          "Per-checkpoint and final state digests match.",
+          "Draw-command and audio-event stream digests match.",
+          "Frame, entity, collision, draw, audio, byte, and crossing counters match."
+        ],
+        "floatingPointPolicy": "no-floating-point",
+        "nanPolicy": "not-generated",
+        "signedZeroPolicy": "not-applicable",
+        "tolerance": {
+          "mode": "exact",
+          "absolute": null,
+          "relative": null
+        }
+      },
+      "work": {
+        "fixed": true,
+        "timeLimited": false,
+        "unit": "Advance one fixed arcade session for 3,600 simulation frames.",
+        "repetitions": 1,
+        "complexity": "O(frames × active entities)",
+        "counters": [
+          "frames",
+          "entity-updates",
+          "collision-tests",
+          "draw-commands",
+          "audio-events",
+          "input-bytes",
+          "output-bytes",
+          "boundary-crossings"
+        ],
+        "counterTolerance": "exact"
+      },
+      "phases": {
+        "load": "measured",
+        "initialize": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "validation": "separate",
+        "render": "separate",
+        "end-to-end": "measured"
+      },
+      "tracks": [
+        {
+          "id": "track-a-controlled",
+          "track": "controlled",
+          "algorithmEquivalence": "required",
+          "targets": [
+            "javascript",
+            "wasm-linear"
+          ],
+          "variantIds": [
+            "js-controlled",
+            "wasm-linear-controlled"
+          ],
+          "contract": "Both targets use integer fixed-point state, identical entity and collision order, frozen input and RNG streams, and the same Canvas and audio host adapters."
+        },
+        {
+          "id": "track-b-optimized",
+          "track": "optimized",
+          "algorithmEquivalence": "separate-family",
+          "targets": [
+            "javascript",
+            "wasm-linear",
+            "hybrid"
+          ],
+          "variantIds": [
+            "js-optimized",
+            "wasm-linear-optimized"
+          ],
+          "contract": "Alternate broad phases, spatial indices, draw batching, native Canvas choices, and WebAudio scheduling are separate families with optimization logs."
+        }
+      ],
+      "missingCells": [
+        {
+          "cell": "implementation-and-results",
+          "reason": "Implementation and measurement remain outside this proposal shard."
+        }
+      ],
+      "performanceClaims": []
+    },
+    {
+      "id": "game.canvas-entity-pathfinding.v1",
+      "benchmarkSlug": "game-canvas-entity-pathfinding",
+      "title": "Canvas entity, pathfinding, animation, and audio trace",
+      "status": "proposed",
+      "stage": "contract-draft",
+      "family": "games",
+      "tier": "T6",
+      "class": "complete-task",
+      "v1CoverageReferences": [
+        "game.ecs-frame-update.v1",
+        "simulation.rigid-body-2d.v1"
+      ],
+      "input": {
+        "fixtureState": "proposed",
+        "immutable": true,
+        "rightsStatus": "proposed-generated",
+        "licenseSpdx": "CC0-1.0",
+        "generator": {
+          "algorithm": "xorshift32",
+          "seed": "0x8f4c21a7",
+          "revision": "proposal-generator-v1",
+          "serialization": "Canonical little-endian binary fields in declared parameter order; UTF-8 text uses Unicode 15.1 scalar values where present."
+        },
+        "format": "Little-endian tile map, entity/component arrays, 128 path requests, and 1,800 fixed-step control records.",
+        "parameters": [
+          {
+            "name": "map-columns",
+            "value": 256
+          },
+          {
+            "name": "map-rows",
+            "value": 256
+          },
+          {
+            "name": "entities",
+            "value": 4096
+          },
+          {
+            "name": "path-requests",
+            "value": 128
+          },
+          {
+            "name": "frames",
+            "value": 1800
+          },
+          {
+            "name": "connectivity",
+            "value": 4
+          }
+        ],
+        "manifestSha256": null
+      },
+      "oracle": {
+        "kind": "canonical-digest-and-invariants",
+        "reference": "Project fixed-point ECS and A-star reference with canonical host-command encoders.",
+        "checks": [
+          "Path node sequences and tie-break choices match.",
+          "Per-checkpoint ECS, animation, draw-command, and audio-event digests match.",
+          "System, node, frame, byte, and crossing counters match."
+        ],
+        "floatingPointPolicy": "no-floating-point",
+        "nanPolicy": "not-generated",
+        "signedZeroPolicy": "not-applicable",
+        "tolerance": {
+          "mode": "exact",
+          "absolute": null,
+          "relative": null
+        }
+      },
+      "work": {
+        "fixed": true,
+        "timeLimited": false,
+        "unit": "Process 128 paths and 1,800 frames for 4,096 entities.",
+        "repetitions": 1,
+        "complexity": "O(path requests × explored nodes log frontier + frames × entities)",
+        "counters": [
+          "frames",
+          "entities",
+          "system-updates",
+          "path-nodes-expanded",
+          "frontier-operations",
+          "draw-commands",
+          "audio-events",
+          "boundary-crossings"
+        ],
+        "counterTolerance": "exact"
+      },
+      "phases": {
+        "load": "measured",
+        "initialize": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "validation": "separate",
+        "render": "separate",
+        "end-to-end": "measured"
+      },
+      "tracks": [
+        {
+          "id": "track-a-controlled",
+          "track": "controlled",
+          "algorithmEquivalence": "required",
+          "targets": [
+            "javascript",
+            "wasm-linear"
+          ],
+          "variantIds": [
+            "js-controlled",
+            "wasm-linear-controlled"
+          ],
+          "contract": "Both targets use the same ECS arrays and system order, integer A-star costs, neighbour order, node-ID tie-break, animation steps, RNG stream, and host adapters."
+        },
+        {
+          "id": "track-b-optimized",
+          "track": "optimized",
+          "algorithmEquivalence": "separate-family",
+          "targets": [
+            "javascript",
+            "wasm-linear",
+            "hybrid"
+          ],
+          "variantIds": [
+            "js-optimized",
+            "wasm-linear-optimized"
+          ],
+          "contract": "Alternate pathfinding, spatial indices, SIMD, worker splits, Canvas batching, and audio scheduling are separate families with optimization logs."
+        }
+      ],
+      "missingCells": [
+        {
+          "cell": "implementation-and-results",
+          "reason": "Implementation and measurement remain outside this proposal shard."
+        }
+      ],
+      "performanceClaims": []
+    },
+    {
+      "id": "game.dom-tactics-grid.v1",
+      "benchmarkSlug": "game-dom-tactics-grid",
+      "title": "DOM tactics grid game trace",
+      "status": "proposed",
+      "stage": "contract-draft",
+      "family": "games",
+      "tier": "T6",
+      "class": "complete-task",
+      "v1CoverageReferences": [
+        "game.ecs-frame-update.v1",
+        "dom.virtualized-grid.v1"
+      ],
+      "input": {
+        "fixtureState": "proposed",
+        "immutable": true,
+        "rightsStatus": "proposed-generated",
+        "licenseSpdx": "CC0-1.0",
+        "generator": {
+          "algorithm": "xorshift32",
+          "seed": "0x7c3a19e5",
+          "revision": "proposal-generator-v1",
+          "serialization": "Canonical little-endian binary fields in declared parameter order; UTF-8 text uses Unicode 15.1 scalar values where present."
+        },
+        "format": "Little-endian map and unit records plus 240 select, move, attack, end-turn, and ability actions.",
+        "parameters": [
+          {
+            "name": "columns",
+            "value": 64
+          },
+          {
+            "name": "rows",
+            "value": 64
+          },
+          {
+            "name": "units",
+            "value": 128
+          },
+          {
+            "name": "actions",
+            "value": 240
+          },
+          {
+            "name": "turns",
+            "value": 60
+          },
+          {
+            "name": "connectivity",
+            "value": 4
+          }
+        ],
+        "manifestSha256": null
+      },
+      "oracle": {
+        "kind": "canonical-digest-and-invariants",
+        "reference": "Project integer tactics reducer and canonical grid-DOM serializer.",
+        "checks": [
+          "Per-turn and final unit, occupancy, initiative, and objective digests match.",
+          "Canonical DOM, focus, selected cell, and accessibility-state digests match.",
+          "Action, path, mutation, byte, and crossing counters match."
+        ],
+        "floatingPointPolicy": "no-floating-point",
+        "nanPolicy": "not-generated",
+        "signedZeroPolicy": "not-applicable",
+        "tolerance": {
+          "mode": "exact",
+          "absolute": null,
+          "relative": null
+        }
+      },
+      "work": {
+        "fixed": true,
+        "timeLimited": false,
+        "unit": "Apply 240 actions across 60 turns on a 64 × 64 tactics grid.",
+        "repetitions": 1,
+        "complexity": "O(actions × grid cells)",
+        "counters": [
+          "actions",
+          "turns",
+          "path-nodes-expanded",
+          "line-of-sight-tests",
+          "state-updates",
+          "dom-mutations",
+          "transferred-bytes",
+          "boundary-crossings"
+        ],
+        "counterTolerance": "exact"
+      },
+      "phases": {
+        "load": "measured",
+        "initialize": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "validation": "separate",
+        "render": "separate",
+        "end-to-end": "measured"
+      },
+      "tracks": [
+        {
+          "id": "track-a-controlled",
+          "track": "controlled",
+          "algorithmEquivalence": "required",
+          "targets": [
+            "javascript",
+            "wasm-linear"
+          ],
+          "variantIds": [
+            "js-controlled",
+            "wasm-linear-controlled"
+          ],
+          "contract": "Both targets use integer state, fixed initiative and action order, four-way path neighbours, node-ID tie-breaks, one command buffer, and the same host DOM adapter."
+        },
+        {
+          "id": "track-b-optimized",
+          "track": "optimized",
+          "algorithmEquivalence": "separate-family",
+          "targets": [
+            "javascript",
+            "wasm-linear",
+            "hybrid"
+          ],
+          "variantIds": [
+            "js-optimized",
+            "wasm-linear-optimized"
+          ],
+          "contract": "Alternate AI, pathfinding, batching, CSS animation, and framework integrations are separate families with optimization logs."
+        }
+      ],
+      "missingCells": [
+        {
+          "cell": "implementation-and-results",
+          "reason": "Implementation and measurement remain outside this proposal shard."
+        }
+      ],
+      "performanceClaims": []
+    },
+    {
+      "id": "image.editing-pipeline.v1",
+      "benchmarkSlug": "image-editing-pipeline",
+      "title": "Deterministic image editing pipeline",
+      "status": "proposed",
+      "stage": "contract-draft",
+      "family": "image",
+      "tier": "T3",
+      "class": "component",
+      "v1CoverageReferences": [
+        "media.image-decode-batch.v1",
+        "media.photo-thumbnail.v1"
+      ],
+      "input": {
+        "fixtureState": "proposed",
+        "immutable": true,
+        "rightsStatus": "proposed-generated",
+        "licenseSpdx": "CC0-1.0",
+        "generator": {
+          "algorithm": "xorshift32",
+          "seed": "0x44aa7711",
+          "revision": "proposal-generator-v1",
+          "serialization": "Canonical little-endian binary fields in declared parameter order; UTF-8 text uses Unicode 15.1 scalar values where present."
+        },
+        "format": "Row-major straight-alpha rgba-unorm8 generated image and generated overlay layers, top-to-bottom, sRGB-tagged.",
+        "parameters": [
+          {
+            "name": "width",
+            "value": 2048
+          },
+          {
+            "name": "height",
+            "value": 1536
+          },
+          {
+            "name": "stride",
+            "value": 8192
+          },
+          {
+            "name": "blur",
+            "value": "fixed-point-gaussian-5x5"
+          },
+          {
+            "name": "equalize",
+            "value": "integer-luma"
+          },
+          {
+            "name": "composite",
+            "value": "premultiplied-source-over"
+          },
+          {
+            "name": "edge",
+            "value": "sobel-l1"
+          }
+        ],
+        "manifestSha256": null
+      },
+      "oracle": {
+        "kind": "canonical-digest-and-invariants",
+        "reference": "Pinned integer reference pipeline with complete intermediate and final RGBA digests.",
+        "checks": [
+          "Blur, histogram, LUT, composite, edge, and final RGBA digests match.",
+          "Dimensions, alpha normalization, histogram sum, monotonic LUT, and guard-region invariants hold.",
+          "Pixel, tap, blend, byte, allocation, and crossing counters match."
+        ],
+        "floatingPointPolicy": "no-floating-point",
+        "nanPolicy": "not-generated",
+        "signedZeroPolicy": "not-applicable",
+        "tolerance": {
+          "mode": "exact",
+          "absolute": null,
+          "relative": null
+        }
+      },
+      "work": {
+        "fixed": true,
+        "timeLimited": false,
+        "unit": "Run blur, luma equalization, source-over compositing, and Sobel over one 2,048 × 1,536 image.",
+        "repetitions": 1,
+        "complexity": "O(pixels × fixed taps and layers)",
+        "counters": [
+          "pixels",
+          "filter-taps",
+          "histogram-updates",
+          "layer-pixels",
+          "edge-taps",
+          "input-bytes",
+          "scratch-bytes",
+          "boundary-crossings"
+        ],
+        "counterTolerance": "exact"
+      },
+      "phases": {
+        "load": "measured",
+        "initialize": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "validation": "separate",
+        "render": "separate",
+        "end-to-end": "measured"
+      },
+      "tracks": [
+        {
+          "id": "track-a-controlled",
+          "track": "controlled",
+          "algorithmEquivalence": "required",
+          "targets": [
+            "javascript",
+            "wasm-linear"
+          ],
+          "variantIds": [
+            "js-controlled",
+            "wasm-linear-controlled"
+          ],
+          "contract": "Both targets use identical raw RGBA bytes, integer coefficients, pass order, border replication, alpha convention, rounding, preallocated scratch, and one resident pipeline call."
+        },
+        {
+          "id": "track-b-optimized",
+          "track": "optimized",
+          "algorithmEquivalence": "separate-family",
+          "targets": [
+            "javascript",
+            "wasm-linear",
+            "hybrid"
+          ],
+          "variantIds": [
+            "js-optimized",
+            "wasm-linear-optimized"
+          ],
+          "contract": "Tiling, fusion, SIMD, threads, native Canvas, GPU, codecs, and alternate image operators are separate families with optimization logs."
+        }
+      ],
+      "missingCells": [
+        {
+          "cell": "implementation-and-results",
+          "reason": "Implementation and measurement remain outside this proposal shard."
+        }
+      ],
+      "performanceClaims": []
+    },
+    {
+      "id": "image.flood-fill.v1",
+      "benchmarkSlug": "image-flood-fill",
+      "title": "Span-stack image flood fill",
+      "status": "proposed",
+      "stage": "contract-draft",
+      "family": "image",
+      "tier": "T2",
+      "class": "kernel",
+      "v1CoverageReferences": [
+        "media.photo-thumbnail.v1"
+      ],
+      "input": {
+        "fixtureState": "proposed",
+        "immutable": true,
+        "rightsStatus": "proposed-generated",
+        "licenseSpdx": "CC0-1.0",
+        "generator": {
+          "algorithm": "xorshift32",
+          "seed": "0xf10df11e",
+          "revision": "proposal-generator-v1",
+          "serialization": "Canonical little-endian binary fields in declared parameter order; UTF-8 text uses Unicode 15.1 scalar values where present."
+        },
+        "format": "Row-major straight-alpha rgba-unorm8 generated region map and 32 seed-coordinate records.",
+        "parameters": [
+          {
+            "name": "width",
+            "value": 2048
+          },
+          {
+            "name": "height",
+            "value": 1536
+          },
+          {
+            "name": "stride",
+            "value": 8192
+          },
+          {
+            "name": "fills",
+            "value": 32
+          },
+          {
+            "name": "connectivity",
+            "value": 4
+          },
+          {
+            "name": "channel-tolerance",
+            "value": 12
+          },
+          {
+            "name": "replacement-rgba",
+            "value": "34,139,230,191"
+          }
+        ],
+        "manifestSha256": null
+      },
+      "oracle": {
+        "kind": "canonical-digest-and-invariants",
+        "reference": "Pinned iterative scanline span-stack reference over immutable membership source bytes.",
+        "checks": [
+          "Complete final RGBA digest matches for every independently reset fill.",
+          "Changed-pixel count, bounding box, span count, maximum stack, seed outcome, and guard regions match.",
+          "Candidate, comparison, copy, byte, allocation, and crossing counters match."
+        ],
+        "floatingPointPolicy": "no-floating-point",
+        "nanPolicy": "not-generated",
+        "signedZeroPolicy": "not-applicable",
+        "tolerance": {
+          "mode": "exact",
+          "absolute": null,
+          "relative": null
+        }
+      },
+      "work": {
+        "fixed": true,
+        "timeLimited": false,
+        "unit": "Reset and execute 32 independent fills on one 2,048 × 1,536 image.",
+        "repetitions": 1,
+        "complexity": "O(fills × pixels)",
+        "counters": [
+          "fills",
+          "candidate-pixels",
+          "channel-comparisons",
+          "changed-pixels",
+          "spans-pushed",
+          "reset-bytes",
+          "output-bytes",
+          "boundary-crossings"
+        ],
+        "counterTolerance": "exact"
+      },
+      "phases": {
+        "load": "measured",
+        "initialize": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "validation": "separate",
+        "render": "separate",
+        "end-to-end": "measured"
+      },
+      "tracks": [
+        {
+          "id": "track-a-controlled",
+          "track": "controlled",
+          "algorithmEquivalence": "required",
+          "targets": [
+            "javascript",
+            "wasm-linear"
+          ],
+          "variantIds": [
+            "js-controlled",
+            "wasm-linear-controlled"
+          ],
+          "contract": "Both targets use immutable-source max-channel membership, four-connectivity, iterative scanline spans, frozen neighbour order, explicit stack layout, identical reset bytes, and one call per fill."
+        },
+        {
+          "id": "track-b-optimized",
+          "track": "optimized",
+          "algorithmEquivalence": "separate-family",
+          "targets": [
+            "javascript",
+            "wasm-linear",
+            "hybrid"
+          ],
+          "variantIds": [
+            "js-optimized",
+            "wasm-linear-optimized"
+          ],
+          "contract": "BFS, recursive, alternate colour distance, SIMD span tests, dirty-region presentation, and Canvas baselines are separate families with optimization logs."
+        }
+      ],
+      "missingCells": [
+        {
+          "cell": "implementation-and-results",
+          "reason": "Implementation and measurement remain outside this proposal shard."
+        }
+      ],
+      "performanceClaims": []
+    },
+    {
+      "id": "ml.dense-mlp.v1",
+      "benchmarkSlug": "ml-dense-mlp",
+      "title": "Dense multilayer perceptron inference",
+      "status": "proposed",
+      "stage": "contract-draft",
+      "family": "neural",
+      "tier": "T3",
+      "class": "component",
+      "v1CoverageReferences": [
+        "ml.numeric-kernels.v1",
+        "ml.quantized-image-inference.v1"
+      ],
+      "input": {
+        "fixtureState": "proposed",
+        "immutable": true,
+        "rightsStatus": "proposed-generated",
+        "licenseSpdx": "CC0-1.0",
+        "generator": {
+          "algorithm": "xorshift32",
+          "seed": "0x5a17c0de",
+          "revision": "proposal-generator-v1",
+          "serialization": "Canonical little-endian binary fields in declared parameter order; UTF-8 text uses Unicode 15.1 scalar values where present."
+        },
+        "format": "Row-major little-endian f32 input, weights, and biases generated independently per tensor.",
+        "parameters": [
+          {
+            "name": "batch",
+            "value": 32
+          },
+          {
+            "name": "width",
+            "value": 512
+          },
+          {
+            "name": "hidden-layers",
+            "value": 8
+          },
+          {
+            "name": "activation",
+            "value": "gelu-tanh-frozen"
+          },
+          {
+            "name": "layout",
+            "value": "row-major"
+          },
+          {
+            "name": "accumulation",
+            "value": "f32-left-to-right"
+          }
+        ],
+        "manifestSha256": null
+      },
+      "oracle": {
+        "kind": "numeric-tolerance",
+        "reference": "Pinned f64 layer-by-layer scalar reference with stored per-layer bounds.",
+        "checks": [
+          "Every layer output satisfies its hybrid bound.",
+          "Final logits, ranking, tensor shapes, finite values, and GELU formula invariants hold.",
+          "Layer, MAC, tensor-byte, allocation, and crossing counters match."
+        ],
+        "floatingPointPolicy": "strict-f32-frozen-order",
+        "nanPolicy": "reject",
+        "signedZeroPolicy": "normalize-positive",
+        "tolerance": {
+          "mode": "absolute-and-relative",
+          "absolute": 1e-05,
+          "relative": 0.0001
+        }
+      },
+      "work": {
+        "fixed": true,
+        "timeLimited": false,
+        "unit": "Run one batch of 32 through eight 512-wide hidden layers and a final projection.",
+        "repetitions": 1,
+        "complexity": "O(batch × layers × width²)",
+        "counters": [
+          "layers",
+          "output-elements",
+          "multiply-accumulates",
+          "activation-evaluations",
+          "tensor-bytes",
+          "scratch-bytes",
+          "allocations",
+          "boundary-crossings"
+        ],
+        "counterTolerance": "exact"
+      },
+      "phases": {
+        "load": "measured",
+        "initialize": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "validation": "separate",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "tracks": [
+        {
+          "id": "track-a-controlled",
+          "track": "controlled",
+          "algorithmEquivalence": "required",
+          "targets": [
+            "javascript",
+            "wasm-linear"
+          ],
+          "variantIds": [
+            "js-controlled",
+            "wasm-linear-controlled"
+          ],
+          "contract": "Both targets use row-major tensors, identical layer topology, left-to-right f32 accumulation, frozen GELU formula, unfused operators, reusable scratch, and one call per operator."
+        },
+        {
+          "id": "track-b-optimized",
+          "track": "optimized",
+          "algorithmEquivalence": "separate-family",
+          "targets": [
+            "javascript",
+            "wasm-linear",
+            "hybrid"
+          ],
+          "variantIds": [
+            "js-optimized",
+            "wasm-linear-optimized"
+          ],
+          "contract": "Blocking, packing, fusion, SIMD, quantization, changed layouts, whole-network calls, and host ML APIs are separate families with optimization logs."
+        }
+      ],
+      "missingCells": [
+        {
+          "cell": "implementation-and-results",
+          "reason": "Implementation and measurement remain outside this proposal shard."
+        }
+      ],
+      "performanceClaims": []
+    },
+    {
+      "id": "ml.gemm.v1",
+      "benchmarkSlug": "ml-gemm",
+      "title": "Batched general matrix multiplication",
+      "status": "proposed",
+      "stage": "contract-draft",
+      "family": "neural",
+      "tier": "T2",
+      "class": "kernel",
+      "v1CoverageReferences": [
+        "ml.numeric-kernels.v1",
+        "numeric.polybench-panel.v1"
+      ],
+      "input": {
+        "fixtureState": "proposed",
+        "immutable": true,
+        "rightsStatus": "proposed-generated",
+        "licenseSpdx": "CC0-1.0",
+        "generator": {
+          "algorithm": "xorshift32",
+          "seed": "0x91e10da5",
+          "revision": "proposal-generator-v1",
+          "serialization": "Canonical little-endian binary fields in declared parameter order; UTF-8 text uses Unicode 15.1 scalar values where present."
+        },
+        "format": "Row-major little-endian f32 A, B, and initial C tensors generated independently per batch.",
+        "parameters": [
+          {
+            "name": "batch",
+            "value": 4
+          },
+          {
+            "name": "m",
+            "value": 512
+          },
+          {
+            "name": "n",
+            "value": 512
+          },
+          {
+            "name": "k",
+            "value": 512
+          },
+          {
+            "name": "transpose-a",
+            "value": false
+          },
+          {
+            "name": "transpose-b",
+            "value": false
+          },
+          {
+            "name": "accumulation",
+            "value": "f32-left-to-right"
+          }
+        ],
+        "manifestSha256": null
+      },
+      "oracle": {
+        "kind": "numeric-tolerance",
+        "reference": "Pinned f64 scalar matrix product reference with stored element bounds.",
+        "checks": [
+          "Every C element satisfies the hybrid bound.",
+          "Tensor shape, finite-value, row checksum, and corner-element invariants hold.",
+          "MAC, load, store, tensor-byte, allocation, and crossing counters match."
+        ],
+        "floatingPointPolicy": "strict-f32-frozen-order",
+        "nanPolicy": "reject",
+        "signedZeroPolicy": "normalize-positive",
+        "tolerance": {
+          "mode": "absolute-and-relative",
+          "absolute": 1e-05,
+          "relative": 0.0001
+        }
+      },
+      "work": {
+        "fixed": true,
+        "timeLimited": false,
+        "unit": "Compute four 512 × 512 row-major products with K=512.",
+        "repetitions": 1,
+        "complexity": "O(batch × m × n × k)",
+        "counters": [
+          "batch",
+          "output-elements",
+          "multiply-accumulates",
+          "loads",
+          "stores",
+          "tensor-bytes",
+          "allocations",
+          "boundary-crossings"
+        ],
+        "counterTolerance": "exact"
+      },
+      "phases": {
+        "load": "measured",
+        "initialize": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "validation": "separate",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "tracks": [
+        {
+          "id": "track-a-controlled",
+          "track": "controlled",
+          "algorithmEquivalence": "required",
+          "targets": [
+            "javascript",
+            "wasm-linear"
+          ],
+          "variantIds": [
+            "js-controlled",
+            "wasm-linear-controlled"
+          ],
+          "contract": "Both targets use ijk loop order, row-major NN layout, left-to-right f32 accumulation, no packing, preallocated C, and one call per matrix product."
+        },
+        {
+          "id": "track-b-optimized",
+          "track": "optimized",
+          "algorithmEquivalence": "separate-family",
+          "targets": [
+            "javascript",
+            "wasm-linear",
+            "hybrid"
+          ],
+          "variantIds": [
+            "js-optimized",
+            "wasm-linear-optimized"
+          ],
+          "contract": "Loop reordering, blocking, packing, SIMD, threads, alternate dtypes, changed layouts, and host ML APIs are separate families with optimization logs."
+        }
+      ],
+      "missingCells": [
+        {
+          "cell": "implementation-and-results",
+          "reason": "Implementation and measurement remain outside this proposal shard."
+        }
+      ],
+      "performanceClaims": []
+    },
+    {
+      "id": "text.diff-patch.v1",
+      "benchmarkSlug": "text-diff-patch",
+      "title": "Unicode line diff and patch",
+      "status": "proposed",
+      "stage": "contract-draft",
+      "family": "traditional-web",
+      "tier": "T2",
+      "class": "kernel",
+      "v1CoverageReferences": [
+        "text.gc-document-edit.v1",
+        "text.unicode-editor.v1"
+      ],
+      "input": {
+        "fixtureState": "proposed",
+        "immutable": true,
+        "rightsStatus": "proposed-generated",
+        "licenseSpdx": "CC0-1.0",
+        "generator": {
+          "algorithm": "xorshift32",
+          "seed": "0xd1ff2026",
+          "revision": "proposal-generator-v1",
+          "serialization": "Canonical little-endian binary fields in declared parameter order; UTF-8 text uses Unicode 15.1 scalar values where present."
+        },
+        "format": "UTF-8 generated base document, three derived targets, and canonical line-intern tables using Unicode 15.1 scalar values.",
+        "parameters": [
+          {
+            "name": "base-lines",
+            "value": 100000
+          },
+          {
+            "name": "target-pairs",
+            "value": 3
+          },
+          {
+            "name": "edit-classes",
+            "value": "1/1000,1/100,1/10"
+          },
+          {
+            "name": "algorithm",
+            "value": "myers-ond"
+          },
+          {
+            "name": "tie-break",
+            "value": "delete-before-insert"
+          }
+        ],
+        "manifestSha256": null
+      },
+      "oracle": {
+        "kind": "canonical-digest-and-invariants",
+        "reference": "Pinned Myers reference with canonical edit-script encoder and apply check.",
+        "checks": [
+          "Exact edit-script digest matches for every pair.",
+          "Applying each script reproduces the target bytes exactly.",
+          "Edit, frontier, line, allocation, byte, and crossing counters match."
+        ],
+        "floatingPointPolicy": "no-floating-point",
+        "nanPolicy": "not-generated",
+        "signedZeroPolicy": "not-applicable",
+        "tolerance": {
+          "mode": "exact",
+          "absolute": null,
+          "relative": null
+        }
+      },
+      "work": {
+        "fixed": true,
+        "timeLimited": false,
+        "unit": "Diff and apply three fixed 100,000-line document pairs.",
+        "repetitions": 1,
+        "complexity": "O(ND) time and O(N + D²) retained frontier storage",
+        "counters": [
+          "document-pairs",
+          "input-lines",
+          "edit-distance",
+          "frontier-steps",
+          "script-operations",
+          "input-bytes",
+          "output-bytes",
+          "boundary-crossings"
+        ],
+        "counterTolerance": "exact"
+      },
+      "phases": {
+        "load": "measured",
+        "initialize": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "validation": "separate",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "tracks": [
+        {
+          "id": "track-a-controlled",
+          "track": "controlled",
+          "algorithmEquivalence": "required",
+          "targets": [
+            "javascript",
+            "wasm-linear"
+          ],
+          "variantIds": [
+            "js-controlled",
+            "wasm-linear-controlled"
+          ],
+          "contract": "Both targets use UTF-8 scalar lines, identical interning, Myers frontier order, delete-before-insert and earliest-position tie-breaks, and one call per document pair."
+        },
+        {
+          "id": "track-b-optimized",
+          "track": "optimized",
+          "algorithmEquivalence": "separate-family",
+          "targets": [
+            "javascript",
+            "wasm-linear",
+            "hybrid"
+          ],
+          "variantIds": [
+            "js-optimized",
+            "wasm-linear-optimized"
+          ],
+          "contract": "Patience diff, histogram diff, char-level diff, alternate tie-breaks, incremental caches, and object-graph layouts are separate families with optimization logs."
+        }
+      ],
+      "missingCells": [
+        {
+          "cell": "implementation-and-results",
+          "reason": "Implementation and measurement remain outside this proposal shard."
+        }
+      ],
+      "performanceClaims": []
+    },
+    {
+      "id": "text.markdown-cms.v1",
+      "benchmarkSlug": "text-markdown-cms",
+      "title": "Markdown CMS render pipeline",
+      "status": "proposed",
+      "stage": "contract-draft",
+      "family": "traditional-web",
+      "tier": "T3",
+      "class": "component",
+      "v1CoverageReferences": [
+        "server.ssr-template.v1",
+        "text.gc-document-edit.v1",
+        "tooling.minify-format.v1"
+      ],
+      "input": {
+        "fixtureState": "proposed",
+        "immutable": true,
+        "rightsStatus": "proposed-generated",
+        "licenseSpdx": "CC0-1.0",
+        "generator": {
+          "algorithm": "xorshift32",
+          "seed": "0xc05c0de1",
+          "revision": "proposal-generator-v1",
+          "serialization": "Canonical little-endian binary fields in declared parameter order; UTF-8 text uses Unicode 15.1 scalar values where present."
+        },
+        "format": "UTF-8 generated Markdown documents and generated sanitizer vectors using Unicode 15.1 scalar values.",
+        "parameters": [
+          {
+            "name": "documents",
+            "value": 500
+          },
+          {
+            "name": "minimum-bytes",
+            "value": 2048
+          },
+          {
+            "name": "maximum-bytes",
+            "value": 40960
+          },
+          {
+            "name": "transforms",
+            "value": "toc,anchors,links,figures"
+          },
+          {
+            "name": "sanitize",
+            "value": "frozen-allowlist"
+          }
+        ],
+        "manifestSha256": null
+      },
+      "oracle": {
+        "kind": "canonical-digest-and-invariants",
+        "reference": "Pinned project parser, transform, renderer, sanitizer, and canonical HTML serializer.",
+        "checks": [
+          "Per-document AST, transformed AST, sanitized canonical HTML, and corpus digests match.",
+          "Heading, link, figure, rejected-node, and output-validity invariants hold.",
+          "Token, node, string-byte, allocation, and crossing counters match."
+        ],
+        "floatingPointPolicy": "no-floating-point",
+        "nanPolicy": "not-generated",
+        "signedZeroPolicy": "not-applicable",
+        "tolerance": {
+          "mode": "exact",
+          "absolute": null,
+          "relative": null
+        }
+      },
+      "work": {
+        "fixed": true,
+        "timeLimited": false,
+        "unit": "Parse, transform, sanitize, and render 500 fixed Markdown documents.",
+        "repetitions": 1,
+        "complexity": "O(input bytes + AST nodes + output bytes)",
+        "counters": [
+          "documents",
+          "input-bytes",
+          "tokens",
+          "ast-nodes",
+          "transforms",
+          "sanitizer-checks",
+          "output-bytes",
+          "boundary-crossings"
+        ],
+        "counterTolerance": "exact"
+      },
+      "phases": {
+        "load": "measured",
+        "initialize": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "validation": "separate",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "tracks": [
+        {
+          "id": "track-a-controlled",
+          "track": "controlled",
+          "algorithmEquivalence": "required",
+          "targets": [
+            "javascript",
+            "wasm-linear"
+          ],
+          "variantIds": [
+            "js-controlled",
+            "wasm-linear-controlled"
+          ],
+          "contract": "Both targets use the project grammar, UTF-8 scalar semantics, identical AST layout, transform order, escaping, allowlist, canonical serializer, and one call per pipeline stage."
+        },
+        {
+          "id": "track-b-optimized",
+          "track": "optimized",
+          "algorithmEquivalence": "separate-family",
+          "targets": [
+            "javascript",
+            "wasm-linear",
+            "hybrid"
+          ],
+          "variantIds": [
+            "js-optimized",
+            "wasm-linear-optimized"
+          ],
+          "contract": "CommonMark extensions, alternate parsers, fused stages, native HTML parsing, code generation, and host CMS integrations are separate families with optimization logs."
+        }
+      ],
+      "missingCells": [
+        {
+          "cell": "implementation-and-results",
+          "reason": "Implementation and measurement remain outside this proposal shard."
+        }
+      ],
+      "performanceClaims": []
+    },
+    {
+      "id": "text.regex-engine-duel.v1",
+      "benchmarkSlug": "text-regex-engine-duel",
+      "title": "Regular-expression engine common-subset scan",
+      "status": "proposed",
+      "stage": "contract-draft",
+      "family": "traditional-web",
+      "tier": "T2",
+      "class": "kernel",
+      "v1CoverageReferences": [
+        "text.regex-log-scan.v1",
+        "text.unicode-editor.v1"
+      ],
+      "input": {
+        "fixtureState": "proposed",
+        "immutable": true,
+        "rightsStatus": "proposed-generated",
+        "licenseSpdx": "CC0-1.0",
+        "generator": {
+          "algorithm": "xorshift32",
+          "seed": "0x0f3e2d1c",
+          "revision": "proposal-generator-v1",
+          "serialization": "Canonical little-endian binary fields in declared parameter order; UTF-8 text uses Unicode 15.1 scalar values where present."
+        },
+        "format": "UTF-8 BMP-constrained generated log corpus and 40 generated common-subset pattern records.",
+        "parameters": [
+          {
+            "name": "corpus-bytes",
+            "value": 33554432
+          },
+          {
+            "name": "patterns",
+            "value": 40
+          },
+          {
+            "name": "encoding",
+            "value": "bmp-code-points"
+          },
+          {
+            "name": "flags",
+            "value": "i,m"
+          },
+          {
+            "name": "match-policy",
+            "value": "leftmost-first"
+          },
+          {
+            "name": "empty-match",
+            "value": "advance-one-code-point"
+          }
+        ],
+        "manifestSha256": null
+      },
+      "oracle": {
+        "kind": "canonical-digest-and-invariants",
+        "reference": "Pinned common-subset automata reference with canonical ordered match and capture tuples.",
+        "checks": [
+          "Pattern, start, end, and capture tuples match exactly.",
+          "Empty-match advancement, code-point offsets, compile outcome, and match ordering invariants hold.",
+          "Code-point, transition, match, capture, byte, allocation, and crossing counters match."
+        ],
+        "floatingPointPolicy": "no-floating-point",
+        "nanPolicy": "not-generated",
+        "signedZeroPolicy": "not-applicable",
+        "tolerance": {
+          "mode": "exact",
+          "absolute": null,
+          "relative": null
+        }
+      },
+      "work": {
+        "fixed": true,
+        "timeLimited": false,
+        "unit": "Compile once and scan one 32 MiB corpus with 40 fixed patterns.",
+        "repetitions": 1,
+        "complexity": "O(patterns × corpus code points × automaton states)",
+        "counters": [
+          "patterns",
+          "corpus-code-points",
+          "automaton-transitions",
+          "matches",
+          "captures",
+          "input-bytes",
+          "allocations",
+          "boundary-crossings"
+        ],
+        "counterTolerance": "exact"
+      },
+      "phases": {
+        "load": "measured",
+        "initialize": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "validation": "separate",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "tracks": [
+        {
+          "id": "track-a-controlled",
+          "track": "controlled",
+          "algorithmEquivalence": "required",
+          "targets": [
+            "javascript",
+            "wasm-linear"
+          ],
+          "variantIds": [
+            "js-controlled",
+            "wasm-linear-controlled"
+          ],
+          "contract": "Controlled JS and linear-Wasm variants use the same project DFA recipe, BMP code-point model, subset grammar, leftmost-first semantics, empty-match rule, pattern order, and compile-once topology."
+        },
+        {
+          "id": "track-b-optimized",
+          "track": "optimized",
+          "algorithmEquivalence": "separate-family",
+          "targets": [
+            "javascript",
+            "wasm-linear",
+            "hybrid"
+          ],
+          "variantIds": [
+            "js-optimized",
+            "wasm-linear-optimized"
+          ],
+          "contract": "Native RegExp, alternate automata, compile-per-scan, Unicode-property, backreference, lookaround, and host regex engines are separate families with optimization logs."
+        }
+      ],
+      "missingCells": [
+        {
+          "cell": "implementation-and-results",
+          "reason": "Implementation and measurement remain outside this proposal shard."
+        }
+      ],
+      "performanceClaims": []
+    }
+  ]
+}
