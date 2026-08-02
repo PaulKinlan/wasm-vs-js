@@ -83,6 +83,11 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
       "/hosted-runner.js",
       "/hosted-runner-core.js",
       "/hosted-runner-worker.js",
+      "/benchmarks",
+      "/benchmarks/",
+      "/workload-catalog.js",
+      "/data/workloads.v1.json",
+      "/data/workload-catalog.schema.json",
       "/benchmarks/sum-u32/workload.js",
     ]
   ) {
@@ -91,6 +96,9 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
   const livePage = await (await handler(new Request("http://127.0.0.1/run"))).text();
   assert(livePage.includes("Exploratory single-tab run"));
   assert(livePage.includes("dedicated same-origin module worker"));
+  const catalogPage = await (await handler(new Request("http://127.0.0.1/benchmarks/"))).text();
+  assert(catalogPage.includes("38-WORKLOAD DENOMINATOR"));
+  assert(catalogPage.includes("zero of these 38 catalog entries"));
   for (const path of ["/run.html", "/runner.js", "/raw/runs/example.json"]) {
     assertEquals((await handler(new Request(`http://127.0.0.1${path}`))).status, 404);
   }

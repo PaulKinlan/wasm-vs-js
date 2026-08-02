@@ -30,13 +30,14 @@ The project began on **2026-08-02**. M0 publishes the accepted product plan, met
 
 - [Canonical plan](PLAN.md)
 - [Task graph](TASKS.md)
+- [Frozen 38-workload catalog](catalog/workloads.v1.json) and [closed catalog schema](schemas/workload-catalog.schema.json)
 - [Run evidence schema](schemas/run.schema.json)
 - [Benchmark definition schema](schemas/benchmark.schema.json)
 - [M1 implementation evidence](public/evidence/v1/acceptance.json)
 - [Hosted exploratory runner](public/run/index.html)
 - [Public read-only deployment procedure](docs/public-deployment.md)
 
-The public Deno application is available at [wasm-vs-js.paulkinlan-ea.deno.net](https://wasm-vs-js.paulkinlan-ea.deno.net/). Its `/run/` journey verifies the exact JavaScript and Wasm bytes, executes in a dedicated same-origin module worker, keeps the page responsive, and never uploads or stores results. No accepted benchmark result, database, custom domain, or performance claim exists yet. M1 remains incomplete until owned-browser paired launches meet the plan's precision target or cap.
+The public Deno application is available at [wasm-vs-js.paulkinlan-ea.deno.net](https://wasm-vs-js.paulkinlan-ea.deno.net/). The frozen denominator is published at `/benchmarks/`: 38 proposed workloads split P0=12, P1=12, and P2=14 across kernels, components, applications, browser journeys, and server tasks. Implementation coverage is explicit: one accepted harness slice (`sum-u32`), but zero of the 38 catalog entries implemented. Its `/run/` journey verifies the exact JavaScript and Wasm bytes, executes in a dedicated same-origin module worker, keeps the page responsive, and never uploads or stores results. No accepted benchmark result, database, custom domain, or performance claim exists yet. M1 remains incomplete until owned-browser paired launches meet the plan's precision target or cap.
 
 ## Planned public product
 
@@ -57,6 +58,7 @@ Requires Deno 2.9.0.
 
 ```sh
 deno task build    # reproducible WAT → Wasm plus build/footprint manifest
+deno task catalog  # closed-schema, rights, denominator, and public-copy validation
 deno task check    # build, format, lint, typecheck, contracts, and tests
 deno task local    # writable local pilot at http://127.0.0.1:8787
 deno task summary  # versioned summary from immutable local runs

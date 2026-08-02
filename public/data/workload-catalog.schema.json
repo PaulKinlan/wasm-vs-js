@@ -1,0 +1,265 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.paulkinlan-ea.deno.net/schemas/workload-catalog.schema.json",
+  "title": "Wasm versus JavaScript workload catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "catalogId",
+    "status",
+    "publishedCount",
+    "implementationCoverage",
+    "aggregationRules",
+    "entries"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "catalogId": { "const": "workload-catalog-v1" },
+    "status": { "const": "frozen-denominator" },
+    "publishedCount": { "const": 38 },
+    "implementationCoverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["implementedSlices", "implementedCatalogEntries", "slices"],
+      "properties": {
+        "implementedSlices": { "type": "integer", "minimum": 0 },
+        "implementedCatalogEntries": { "type": "integer", "minimum": 0, "maximum": 38 },
+        "slices": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "title", "status", "catalogEntry", "targets", "note"],
+            "properties": {
+              "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*-v[0-9]+$" },
+              "title": { "$ref": "#/$defs/text" },
+              "status": {
+                "enum": ["proposed", "implemented", "implementation-accepted", "blocked", "retired"]
+              },
+              "catalogEntry": { "type": ["string", "null"] },
+              "targets": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": { "enum": ["javascript", "linear-wasm", "wasmgc", "hybrid"] }
+              },
+              "note": { "$ref": "#/$defs/text" }
+            }
+          }
+        }
+      }
+    },
+    "aggregationRules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithmFamilyMustMatch",
+        "semanticProductChoiceSeparated",
+        "crossDomainComposite",
+        "statement"
+      ],
+      "properties": {
+        "algorithmFamilyMustMatch": { "const": true },
+        "semanticProductChoiceSeparated": { "const": true },
+        "crossDomainComposite": { "const": false },
+        "statement": { "$ref": "#/$defs/text" }
+      }
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 38,
+      "maxItems": 38,
+      "items": { "$ref": "#/$defs/entry" }
+    }
+  },
+  "$defs": {
+    "text": { "type": "string", "minLength": 1, "maxLength": 1000 },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "status",
+        "stage",
+        "priority",
+        "class",
+        "domain",
+        "story",
+        "inputs",
+        "oracle",
+        "fixedWork",
+        "applicability",
+        "phases",
+        "memoryConcerns",
+        "boundaryConcerns",
+        "priorArt",
+        "blockers"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*\\.v[0-9]+$" },
+        "title": { "$ref": "#/$defs/text" },
+        "status": { "enum": ["proposed", "frozen", "implemented", "blocked", "retired"] },
+        "stage": {
+          "enum": [
+            "proposal",
+            "rights-review",
+            "oracle-review",
+            "implementation",
+            "measurement",
+            "accepted"
+          ]
+        },
+        "priority": { "enum": ["P0", "P1", "P2"] },
+        "class": { "enum": ["micro", "kernel", "component", "complete-task"] },
+        "domain": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "story": { "$ref": "#/$defs/text" },
+        "inputs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/input" }
+        },
+        "oracle": { "$ref": "#/$defs/oracle" },
+        "fixedWork": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["description", "iterationBased", "timeLimited"],
+          "properties": {
+            "description": { "$ref": "#/$defs/text" },
+            "iterationBased": { "const": true },
+            "timeLimited": { "const": false }
+          }
+        },
+        "applicability": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["javascript", "linear-wasm", "wasmgc", "hybrid"],
+          "properties": {
+            "javascript": { "$ref": "#/$defs/applicability" },
+            "linear-wasm": { "$ref": "#/$defs/applicability" },
+            "wasmgc": { "$ref": "#/$defs/applicability" },
+            "hybrid": { "$ref": "#/$defs/applicability" }
+          }
+        },
+        "phases": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["load", "transfer", "compute", "io", "render", "end-to-end"],
+          "properties": {
+            "load": { "$ref": "#/$defs/phase" },
+            "transfer": { "$ref": "#/$defs/phase" },
+            "compute": { "$ref": "#/$defs/phase" },
+            "io": { "$ref": "#/$defs/phase" },
+            "render": { "$ref": "#/$defs/phase" },
+            "end-to-end": { "$ref": "#/$defs/phase" }
+          }
+        },
+        "memoryConcerns": { "$ref": "#/$defs/textList" },
+        "boundaryConcerns": { "$ref": "#/$defs/textList" },
+        "priorArt": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/priorArt" }
+        },
+        "blockers": { "$ref": "#/$defs/textList" }
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "description",
+        "fixtureState",
+        "rightsStatus",
+        "provenanceStatus",
+        "licenseSpdx",
+        "redistribution",
+        "sha256",
+        "recipe"
+      ],
+      "properties": {
+        "description": { "$ref": "#/$defs/text" },
+        "fixtureState": { "enum": ["proposed", "frozen"] },
+        "rightsStatus": {
+          "enum": [
+            "proposed-generated",
+            "license-identified",
+            "download-recipe",
+            "requires-audit",
+            "audited"
+          ]
+        },
+        "provenanceStatus": { "enum": ["project-proposed", "source-identified", "verified"] },
+        "licenseSpdx": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "redistribution": {
+          "enum": [
+            "generated-proposed",
+            "allowed",
+            "allowed-after-attribution",
+            "recipe-only",
+            "not-reviewed"
+          ]
+        },
+        "sha256": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+        "recipe": { "$ref": "#/$defs/text" }
+      }
+    },
+    "oracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "equivalenceClass", "algorithmFamily", "description"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "exact-hash",
+            "canonical-semantic",
+            "numeric-tolerance",
+            "perceptual",
+            "conformance"
+          ]
+        },
+        "equivalenceClass": {
+          "enum": [
+            "algorithm-equivalent",
+            "tolerance-equivalent",
+            "conformance-equivalent",
+            "semantic-product-choice"
+          ]
+        },
+        "algorithmFamily": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+        "description": { "$ref": "#/$defs/text" }
+      }
+    },
+    "applicability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["applicability", "notes"],
+      "properties": {
+        "applicability": { "enum": ["primary", "strong", "feasible", "poor-fit"] },
+        "notes": { "$ref": "#/$defs/text" }
+      }
+    },
+    "phase": { "enum": ["measured", "separate", "not-applicable"] },
+    "textList": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 30,
+      "items": { "$ref": "#/$defs/text" }
+    },
+    "priorArt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "source", "toolchain", "licenseSpdx"],
+      "properties": {
+        "name": { "$ref": "#/$defs/text" },
+        "source": { "type": "string", "format": "uri", "pattern": "^https?://" },
+        "toolchain": { "$ref": "#/$defs/text" },
+        "licenseSpdx": { "type": "string", "minLength": 1, "maxLength": 120 }
+      }
+    }
+  }
+}

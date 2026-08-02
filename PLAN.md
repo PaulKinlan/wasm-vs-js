@@ -19,7 +19,7 @@ The result is a matrix, not one score.
 
 ## Product surfaces
 
-1. **Benchmark definitions:** versioned workloads, variants, inputs, oracles, work counters, and build recipes.
+1. **Benchmark catalog and definitions:** a frozen versioned denominator plus workload variants, inputs, rights/provenance, oracles, work counters, and build recipes.
 2. **Runner:** browser page/worker collectors using portable Performance Timeline evidence.
 3. **Orchestrator:** fresh-profile cold runs, warm runs, randomized paired blocks, browser/device control, and exact cleanup.
 4. **Reporting service:** bounded authorized ingestion, immutable Deno KV records, indexes, summaries, retention, export, and restore.
@@ -73,6 +73,14 @@ Track A and Track B never share a headline aggregate.
 | T7 delivery    | What reaches the browser?             | cold/warm cache, buffered/streaming Wasm, network profiles  | request graph, transfer, compile/instantiate, sizes |
 
 The suite uses a preregistered sparse matrix. Every workload does not need every variant, but every missing cell has a reason.
+
+### Frozen workload catalog v1
+
+`catalog/workloads.v1.json` freezes the first public denominator at exactly **38** proposed workloads: P0=12 harness/calibration workloads, P1=12 representative applications, and P2=14 breadth/stress workloads. The stable public route is `/benchmarks/`; the byte-identical machine-readable derivative is `/data/workloads.v1.json`.
+
+Every row retains status, stage, class, domain, story, input rights/provenance state, oracle and equivalence class, algorithm family, fixed work, JavaScript/linear-Wasm/WasmGC/hybrid applicability, lifecycle phases, memory/boundary concerns, prior-art toolchains/licenses, and blockers. The catalog denominator is frozen even though its rows remain proposals. A fixture cannot become frozen without audited rights, verified provenance, permitted redistribution, and an exact SHA-256.
+
+Implementation coverage is separately reconciled. The accepted `sum-u32` controlled slice exercises the harness but is not one of the 38 catalog rows, so current catalog implementation coverage is **0/38**, not 1/38. Results from different algorithm families cannot enter one algorithm-equivalent aggregate; semantic product-choice comparisons remain separate.
 
 ## Lifecycle and cache protocol
 
@@ -328,7 +336,7 @@ Run the accepted workload contracts in Node.js first, then in relevant version-p
 
 ## Current status
 
-M0 is accepted. M1 implementation is active: the first controlled `sum-u32` JavaScript/linear-Wasm slice provides an exact input/oracle/work contract, reproducible pinned build, local pilot runner, immutable schema-validated records, versioned summaries, and an inspectable AI Focus-styled results page. A separately bounded public read-only mode can expose the UI, artifacts, manifests, and versioned implementation acceptance package while hiding the runner/raw paths and denying every mutation; this does not advance the result denominator. M1 is not accepted until exact owned-browser paired launches meet the precision target or cap and independent review accepts that evidence. Initial research briefs are complete across methodology, browser measurement, Deno reporting, and AI Focus integration; their decisions still require implementation evidence and milestone review. No accepted browser run or result, Deno resource, database, deployment, or performance claim exists yet.
+M0 is accepted. The versioned workload denominator is now frozen at 38 proposed rows (P0=12, P1=12, P2=14), while implementation coverage remains explicitly 0/38 plus one out-of-catalog controlled harness slice. M1 implementation is active: the first controlled `sum-u32` JavaScript/linear-Wasm slice provides an exact input/oracle/work contract, reproducible pinned build, local pilot runner, immutable schema-validated records, versioned summaries, and an inspectable AI Focus-styled results page. A separately bounded public read-only mode can expose the UI, artifacts, manifests, and versioned implementation acceptance package while hiding the runner/raw paths and denying every mutation; this does not advance the result denominator. M1 is not accepted until exact owned-browser paired launches meet the precision target or cap and independent review accepts that evidence. Initial research briefs are complete across methodology, browser measurement, Deno reporting, and AI Focus integration; their decisions still require implementation evidence and milestone review. The read-only Deno application and exploratory browser runner are deployed, but no accepted performance corpus, database, custom domain, or performance claim exists yet.
 
 The next M1 increment adds exact owned-Chrome orchestration and the required paired launch corpus; it does not broaden into more kernels first.
 

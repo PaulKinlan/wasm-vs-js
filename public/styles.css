@@ -428,6 +428,115 @@ pre {
     grid-template-columns: 1fr;
   }
 }
+.catalog-hero,
+.catalog-list,
+.catalog-filters,
+.domain-totals {
+  max-width: var(--dashboard);
+}
+.catalog-metrics {
+  max-width: var(--dashboard);
+}
+.domain-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin: 1rem 0;
+}
+.domain-counts div,
+.catalog-badges span {
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  padding: .25rem .5rem;
+}
+.domain-counts div {
+  display: flex;
+  gap: .45rem;
+}
+.domain-counts dt {
+  font-weight: 650;
+}
+.domain-counts dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.catalog-filters fieldset {
+  display: block;
+}
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.catalog-filters a {
+  margin-left: 1rem;
+}
+.catalog-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 29rem), 1fr));
+  gap: 1rem;
+}
+.catalog-card {
+  border-top: 4px solid var(--accent);
+  background: var(--raised);
+  padding: 1rem;
+  container-type: inline-size;
+}
+.catalog-card h3 {
+  font-size: 1.45rem;
+  margin: 0;
+}
+.catalog-card code {
+  display: block;
+  margin-top: .5rem;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.catalog-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+  margin: .65rem 0;
+  font-size: .78rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.catalog-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: 1rem;
+  padding: 0 1rem 1rem;
+}
+.catalog-detail-grid section {
+  min-width: 0;
+}
+.catalog-detail-grid h4 {
+  margin-bottom: .4rem;
+}
+.compact-definitions {
+  margin: 0;
+}
+.compact-definitions div {
+  display: grid;
+  grid-template-columns: minmax(7rem, 1fr) minmax(0, 2fr);
+  gap: .6rem;
+  padding: .3rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.compact-definitions dt {
+  font-weight: 650;
+}
+.compact-definitions dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+@container (max-width: 25rem) {
+  .compact-definitions div {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

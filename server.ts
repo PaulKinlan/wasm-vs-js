@@ -101,6 +101,17 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/hosted-runner-worker.js",
     "text/javascript; charset=utf-8",
   ]],
+  ["/benchmarks", ["public/benchmarks/index.html", "text/html; charset=utf-8"]],
+  ["/benchmarks/", ["public/benchmarks/index.html", "text/html; charset=utf-8"]],
+  ["/workload-catalog.js", ["public/workload-catalog.js", "text/javascript; charset=utf-8"]],
+  ["/data/workloads.v1.json", [
+    "public/data/workloads.v1.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/data/workload-catalog.schema.json", [
+    "public/data/workload-catalog.schema.json",
+    "application/schema+json; charset=utf-8",
+  ]],
   ["/benchmarks/sum-u32/benchmark.json", [
     "benchmarks/sum-u32/benchmark.json",
     "application/json; charset=utf-8",

@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="description"
+      content="The frozen 38-workload denominator for the Wasm versus JavaScript benchmark suite.">
+    <meta http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'">
+    <title>Workload catalog · Wasm vs JavaScript</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <script type="module" src="/workload-catalog.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to workload catalog</a>
+    <header class="masthead">
+      <a class="brand" href="/">AI Focus</a>
+      <span>WASM VS JAVASCRIPT</span>
+      <strong>38-WORKLOAD DENOMINATOR</strong>
+    </header>
+    <main id="main">
+      <section class="hero catalog-hero" aria-labelledby="catalog-title">
+        <p class="eyebrow">Frozen catalog v1</p>
+        <h1 id="catalog-title">A benchmark program, not one microbenchmark</h1>
+        <p
+          class="lede">Thirty-eight proposed workloads span kernels, components, complete applications, browser journeys, and server tasks. The denominator is frozen; inputs, rights, oracles, and implementations still have to pass their own gates.</p>
+        <p
+          class="notice"><strong>Implementation coverage: one harness slice, zero of these 38 catalog entries.</strong> The existing controlled <code>sum-u32</code> JavaScript/linear-Wasm slice proves the first measurement path. It does not count as implementation coverage for this catalog.</p>
+      </section>
+
+      <section aria-labelledby="totals-title">
+        <h2 id="totals-title">Exact denominator</h2>
+        <dl class="metrics catalog-metrics" id="catalog-totals">
+          <div>
+            <dt>Total workloads</dt>
+            <dd>38</dd>
+          </div>
+          <div>
+            <dt>P0 harness/calibration</dt>
+            <dd>12</dd>
+          </div>
+          <div>
+            <dt>P1 representative applications</dt>
+            <dd>12</dd>
+          </div>
+          <div>
+            <dt>P2 breadth/stress</dt>
+            <dd>14</dd>
+          </div>
+          <div>
+            <dt>Implemented catalog entries</dt>
+            <dd>0</dd>
+          </div>
+        </dl>
+        <div id="domain-totals" class="domain-totals" aria-label="Workload totals by domain"></div>
+      </section>
+
+      <section aria-labelledby="filter-title">
+        <h2 id="filter-title">Inspect every workload</h2>
+        <form class="catalog-filters" action="/benchmarks/" method="get" role="search">
+          <fieldset>
+            <legend>Filter the frozen denominator</legend>
+            <div class="filter-grid">
+              <label for="catalog-query">Search title, story, domain, or ID
+                <input id="catalog-query" name="q" type="search" autocomplete="off">
+              </label>
+              <label for="catalog-priority">Priority
+                <select id="catalog-priority" name="priority">
+                  <option value="all">All priorities</option>
+                  <option value="P0">P0</option>
+                  <option value="P1">P1</option>
+                  <option value="P2">P2</option>
+                </select>
+              </label>
+              <label for="catalog-domain">Domain
+                <select id="catalog-domain" name="domain"><option value="all">All domains</option></select>
+              </label>
+              <label for="catalog-status">Status
+                <select id="catalog-status" name="status">
+                  <option value="all">All statuses</option>
+                  <option value="proposed">Proposed</option>
+                  <option value="frozen">Frozen</option>
+                  <option value="implemented">Implemented</option>
+                  <option value="blocked">Blocked</option>
+                  <option value="retired">Retired</option>
+                </select>
+              </label>
+            </div>
+            <button type="submit">Apply filters</button>
+            <a href="/benchmarks/">Clear</a>
+          </fieldset>
+        </form>
+        <p id="catalog-status-line" role="status"
+          aria-live="polite">Loading 38 workload definitions…</p>
+        <div id="catalog-list" class="catalog-list"></div>
+        <noscript><p>JavaScript is required for the filterable view. <a href="/data/workloads.v1.json">Inspect all 38 machine-readable workload records</a>.</p></noscript>
+      </section>
+
+      <section aria-labelledby="rules-title">
+        <h2 id="rules-title">Denominator rules</h2>
+        <ul>
+          <li>No fixture becomes frozen without audited rights, verified provenance, and an exact hash.</li>
+          <li>Results from different algorithm families never enter one algorithm-equivalent aggregate.</li>
+          <li>Semantic product-choice comparisons stay separate from controlled algorithm comparisons.</li>
+          <li>Load, transfer, compute, IO, rendering, memory, boundaries, and end-to-end costs remain visible.</li>
+          <li>Missing JavaScript, linear-Wasm, WasmGC, or hybrid cells stay visible with a reason.</li>
+        </ul>
+        <p><a href="/data/workloads.v1.json">Download the canonical public JSON</a> · <a href="/run/">Try the exploratory live runner</a> · <a href="/evidence/">Inspect implementation evidence</a></p>
+      </section>
+    </main>
+  </body>
+</html>

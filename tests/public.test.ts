@@ -77,6 +77,21 @@ Deno.test("hosted runner is accessible, bounded, and has no mutation or persiste
   assert(!worker.includes("innerHTML"));
 });
 
+Deno.test("workload catalog exposes exact totals, filters, and honest implementation coverage", async () => {
+  const page = await Deno.readTextFile("public/benchmarks/index.html");
+  const script = await Deno.readTextFile("public/workload-catalog.js");
+  assert(page.includes("38-WORKLOAD DENOMINATOR"));
+  assert(page.includes("P0 harness/calibration"));
+  assert(page.includes("P1 representative applications"));
+  assert(page.includes("P2 breadth/stress"));
+  assert(page.includes("one harness slice, zero of these 38 catalog entries"));
+  assert(page.includes('role="search"'));
+  assert(page.includes('aria-live="polite"'));
+  assert(script.includes("Showing ${visible.length} of ${catalog.entries.length}"));
+  assert(script.includes("entry.oracle.algorithmFamily"));
+  assert(!script.includes("innerHTML"));
+});
+
 Deno.test("versioned public acceptance package is explicit and contains no invented run evidence", async () => {
   const evidencePage = await Deno.readTextFile("public/evidence/index.html");
   const acceptance = JSON.parse(
@@ -111,6 +126,7 @@ Deno.test("public pages contain no inline script, inline style, or remote asset"
       "public/index.html",
       "public/run.html",
       "public/run/index.html",
+      "public/benchmarks/index.html",
       "public/evidence/index.html",
     ]
   ) {

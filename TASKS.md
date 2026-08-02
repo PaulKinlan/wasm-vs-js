@@ -51,6 +51,7 @@ Tasks are ordered by dependency. A checked box means the exact acceptance criter
 
 ## M2 — families, optimized tracks, and boundaries
 
+- [x] Freeze and publish workload-catalog v1 as an exact 38-row denominator (P0=12/P1=12/P2=14) with closed rights/oracle/equivalence/mode/phase contracts and explicit 0/38 catalog implementation coverage.
 - [ ] Add T1 primitive family without presenting tiny intervals before calibration.
 - [ ] Add representative T2 numeric, parsing, compression, image, and graph kernels.
 - [ ] Add T4 JS→Wasm, Wasm→JS, round-trip, copy, string, refs, callbacks, and batching tests.

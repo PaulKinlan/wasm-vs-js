@@ -1,0 +1,3106 @@
+{
+  "schemaVersion": 1,
+  "catalogId": "workload-catalog-v1",
+  "status": "frozen-denominator",
+  "publishedCount": 38,
+  "implementationCoverage": {
+    "implementedSlices": 1,
+    "implementedCatalogEntries": 0,
+    "slices": [
+      {
+        "id": "sum-u32-controlled-v1",
+        "title": "Controlled modulo-2^32 sum",
+        "status": "implementation-accepted",
+        "catalogEntry": null,
+        "targets": [
+          "javascript",
+          "linear-wasm"
+        ],
+        "note": "The current implementation slice validates harness mechanics; it is not one of the 38 catalog workloads and does not imply catalog coverage."
+      }
+    ]
+  },
+  "aggregationRules": {
+    "algorithmFamilyMustMatch": true,
+    "semanticProductChoiceSeparated": true,
+    "crossDomainComposite": false,
+    "statement": "Results are vectors. Only entries with the same algorithm family and a non-product-choice equivalence class may enter an algorithm-equivalent aggregate."
+  },
+  "entries": [
+    {
+      "id": "archive.zip-workspace.v1",
+      "title": "ZIP archive workspace",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P1",
+      "class": "complete-task",
+      "domain": "archive",
+      "story": "Zip 10k mixed files, list entries and extract selected paths.",
+      "inputs": [
+        {
+          "description": "Generated tree using public-domain Canterbury bytes by recipe.",
+          "fixtureState": "proposed",
+          "rightsStatus": "license-identified",
+          "provenanceStatus": "source-identified",
+          "licenseSpdx": "CC0-1.0",
+          "redistribution": "allowed-after-attribution",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "exact-hash",
+        "equivalenceClass": "algorithm-equivalent",
+        "algorithmFamily": "zip-fixed-deflate-metadata",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "10,000 paths with frozen order, timestamps and compression level.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "measured",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Archive, output buffers, path tables and VFS memory."
+      ],
+      "boundaryConcerns": [
+        "Streaming and whole-buffer are separate variants."
+      ],
+      "priorArt": [
+        {
+          "name": "fflate",
+          "source": "https://github.com/101arrowz/fflate",
+          "toolchain": "JavaScript",
+          "licenseSpdx": "MIT"
+        },
+        {
+          "name": "libarchive",
+          "source": "https://github.com/libarchive/libarchive",
+          "toolchain": "C/Wasm",
+          "licenseSpdx": "BSD-2-Clause"
+        }
+      ],
+      "blockers": [
+        "Zip64 and platform metadata normalization"
+      ]
+    },
+    {
+      "id": "audio.opus-stream.v1",
+      "title": "Opus decode/encode stream",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P0",
+      "class": "complete-task",
+      "domain": "audio",
+      "story": "Decode official packets or encode 60 s PCM at fixed bitrate.",
+      "inputs": [
+        {
+          "description": "Official vector download recipe plus project-generated PCM.",
+          "fixtureState": "proposed",
+          "rightsStatus": "download-recipe",
+          "provenanceStatus": "source-identified",
+          "licenseSpdx": "LicenseRef-Download-Only",
+          "redistribution": "recipe-only",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "conformance",
+        "equivalenceClass": "conformance-equivalent",
+        "algorithmFamily": "opus-fixed-version-settings",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "Fixed frames, rate, bitrate and complexity over 60 s.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "feasible",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "separate",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Codec state, PCM/packet buffers and AudioWorklet memory."
+      ],
+      "boundaryConcerns": [
+        "Audio scheduling and WebCodecs stay separate variants."
+      ],
+      "priorArt": [
+        {
+          "name": "Opus vectors",
+          "source": "http://opus-codec.org/testvectors/",
+          "toolchain": "libopus",
+          "licenseSpdx": "BSD-3-Clause"
+        },
+        {
+          "name": "official runner",
+          "source": "https://github.com/xiph/opus/blob/3da9f7a6/tests/run_vectors.sh",
+          "toolchain": "test harness",
+          "licenseSpdx": "BSD-3-Clause"
+        }
+      ],
+      "blockers": [
+        "Encoder bytes may vary",
+        "Real-time throttling",
+        "Vector redistribution review"
+      ]
+    },
+    {
+      "id": "audio.webaudio-effects.v1",
+      "title": "WebAudio effects rack",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P2",
+      "class": "complete-task",
+      "domain": "audio",
+      "story": "Process stereo audio through biquad, compressor and convolution reverb.",
+      "inputs": [
+        {
+          "description": "Generated impulses, sweeps, noise and impulse response.",
+          "fixtureState": "proposed",
+          "rightsStatus": "proposed-generated",
+          "provenanceStatus": "project-proposed",
+          "licenseSpdx": "CC0-1.0",
+          "redistribution": "generated-proposed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "numeric-tolerance",
+        "equivalenceClass": "semantic-product-choice",
+        "algorithmFamily": "dsp-fixed-block-effects-chain",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "60 s stereo in fixed 128-sample blocks.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "not-applicable",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "separate",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Audio ring buffers, impulse response and worklet heaps."
+      ],
+      "boundaryConcerns": [
+        "Native WebAudio nodes are host product baselines."
+      ],
+      "priorArt": [
+        {
+          "name": "Web Audio Modules",
+          "source": "https://github.com/webaudiomodules",
+          "toolchain": "AudioWorklet/Wasm",
+          "licenseSpdx": "LicenseRef-Per-Project"
+        }
+      ],
+      "blockers": [
+        "Sample-rate differences",
+        "Real-time scheduling noise",
+        "Per-project license audit"
+      ]
+    },
+    {
+      "id": "cad.mesh-repair.v1",
+      "title": "Mesh repair and simplification",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P2",
+      "class": "complete-task",
+      "domain": "cad",
+      "story": "Weld, orient, remove degenerate faces and simplify dirty STL to 50%.",
+      "inputs": [
+        {
+          "description": "Project-generated corrupted meshes; any converted glTF source requires attribution audit.",
+          "fixtureState": "proposed",
+          "rightsStatus": "requires-audit",
+          "provenanceStatus": "source-identified",
+          "licenseSpdx": "LicenseRef-Requires-Audit",
+          "redistribution": "not-reviewed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "numeric-tolerance",
+        "equivalenceClass": "semantic-product-choice",
+        "algorithmFamily": "mesh-repair-fixed-policy",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "Frozen tolerances, corruption seed and exact target face count.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "separate",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Mesh adjacency, remap buffers and large transfers."
+      ],
+      "boundaryConcerns": [
+        "Algorithm inequivalence and transfer policy are explicit."
+      ],
+      "priorArt": [
+        {
+          "name": "meshoptimizer",
+          "source": "https://github.com/zeux/meshoptimizer",
+          "toolchain": "C++/Wasm",
+          "licenseSpdx": "MIT"
+        }
+      ],
+      "blockers": [
+        "Source model attribution audit",
+        "Float robustness",
+        "Avoid CGAL GPL"
+      ]
+    },
+    {
+      "id": "cad.parametric-bracket.v1",
+      "title": "Parametric bracket build",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P1",
+      "class": "complete-task",
+      "domain": "cad",
+      "story": "Build box/cylinders, boolean holes, fillets and tessellate a bracket.",
+      "inputs": [
+        {
+          "description": "Project-owned dimensions and operation graph.",
+          "fixtureState": "proposed",
+          "rightsStatus": "proposed-generated",
+          "provenanceStatus": "project-proposed",
+          "licenseSpdx": "CC0-1.0",
+          "redistribution": "generated-proposed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "numeric-tolerance",
+        "equivalenceClass": "semantic-product-choice",
+        "algorithmFamily": "brep-fixed-feature-tree",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "One frozen feature tree and tessellation parameters.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "feasible",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "feasible",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "separate",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Large CAD module, BREP topology and mesh buffers."
+      ],
+      "boundaryConcerns": [
+        "Worker-local handles, tessellation transfer and rendering explicit."
+      ],
+      "priorArt": [
+        {
+          "name": "occt-wasm",
+          "source": "https://github.com/ehtick/occt-wasm",
+          "toolchain": "OCCT/C++/Wasm",
+          "licenseSpdx": "LGPL-2.1-only WITH OCCT-exception-1.0"
+        }
+      ],
+      "blockers": [
+        "Tail-call/EH/SIMD support",
+        "Boolean numeric fragility",
+        "Large cold load"
+      ]
+    },
+    {
+      "id": "compression.zstd-gzip-roundtrip.v1",
+      "title": "zstd/gzip round trip",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P0",
+      "class": "component",
+      "domain": "compression",
+      "story": "Compress and restore a web IDE project snapshot.",
+      "inputs": [
+        {
+          "description": "Canterbury public-domain corpus plus deterministic generated JSON/source/binary.",
+          "fixtureState": "proposed",
+          "rightsStatus": "license-identified",
+          "provenanceStatus": "source-identified",
+          "licenseSpdx": "CC0-1.0",
+          "redistribution": "allowed-after-attribution",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "exact-hash",
+        "equivalenceClass": "algorithm-equivalent",
+        "algorithmFamily": "deflate-or-zstd-fixed-level",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "One encode and decode at fixed level for 1, 10 and 100 MiB inputs.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "feasible",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Input/output buffers, dictionary and linear-memory growth."
+      ],
+      "boundaryConcerns": [
+        "Whole-buffer and streaming boundaries are separate variants."
+      ],
+      "priorArt": [
+        {
+          "name": "Canterbury Corpus",
+          "source": "https://corpus.canterbury.ac.nz/descriptions/",
+          "toolchain": "fixtures",
+          "licenseSpdx": "LicenseRef-Public-Domain"
+        },
+        {
+          "name": "pako",
+          "source": "https://github.com/nodeca/pako",
+          "toolchain": "JavaScript DEFLATE",
+          "licenseSpdx": "MIT"
+        }
+      ],
+      "blockers": [
+        "zstd and gzip are separate families",
+        "Version/dictionary can alter bytes"
+      ]
+    },
+    {
+      "id": "crypto.authenticated-stream.v1",
+      "title": "Authenticated message stream",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P2",
+      "class": "complete-task",
+      "domain": "crypto",
+      "story": "Encrypt and decrypt 10,000 deterministic chat frames.",
+      "inputs": [
+        {
+          "description": "Generated payloads plus RFC vectors referenced by pinned download recipe.",
+          "fixtureState": "proposed",
+          "rightsStatus": "download-recipe",
+          "provenanceStatus": "source-identified",
+          "licenseSpdx": "LicenseRef-Download-Only",
+          "redistribution": "recipe-only",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "exact-hash",
+        "equivalenceClass": "conformance-equivalent",
+        "algorithmFamily": "aead-fixed-algorithm-nonce-schedule",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "10,000 frames with frozen sizes, keys and nonce schedule.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Frame buffers, key schedule and transient ciphertext."
+      ],
+      "boundaryConcerns": [
+        "WebCrypto/native host calls and random generation are excluded and labelled."
+      ],
+      "priorArt": [
+        {
+          "name": "libsodium",
+          "source": "https://github.com/jedisct1/libsodium",
+          "toolchain": "C/Wasm",
+          "licenseSpdx": "ISC"
+        },
+        {
+          "name": "noble-ciphers",
+          "source": "https://github.com/paulmillr/noble-ciphers",
+          "toolchain": "JavaScript",
+          "licenseSpdx": "MIT"
+        }
+      ],
+      "blockers": [
+        "Standards vector reuse audit",
+        "No constant-time claim from timings"
+      ]
+    },
+    {
+      "id": "crypto.file-integrity.v1",
+      "title": "SHA-256/BLAKE3 file integrity",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P0",
+      "class": "kernel",
+      "domain": "crypto",
+      "story": "Verify downloaded assets in fixed chunks.",
+      "inputs": [
+        {
+          "description": "Seeded pseudorandom and all-zero bytes generated by the project.",
+          "fixtureState": "proposed",
+          "rightsStatus": "proposed-generated",
+          "provenanceStatus": "project-proposed",
+          "licenseSpdx": "CC0-1.0",
+          "redistribution": "generated-proposed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "exact-hash",
+        "equivalenceClass": "algorithm-equivalent",
+        "algorithmFamily": "hash-fixed-algorithm-chunks",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "Hash 1, 16 and 256 MiB with 1 KiB, 64 KiB and whole-buffer schedules.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Input buffers, hash state and Wasm linear memory."
+      ],
+      "boundaryConcerns": [
+        "Copy/view cost and WebCrypto async host boundary stay separate."
+      ],
+      "priorArt": [
+        {
+          "name": "BLAKE3",
+          "source": "https://github.com/BLAKE3-team/BLAKE3",
+          "toolchain": "Rust/C/Wasm",
+          "licenseSpdx": "CC0-1.0 OR Apache-2.0"
+        },
+        {
+          "name": "noble-hashes",
+          "source": "https://github.com/paulmillr/noble-hashes",
+          "toolchain": "JavaScript",
+          "licenseSpdx": "MIT"
+        }
+      ],
+      "blockers": [
+        "SHA-256 and BLAKE3 are distinct families",
+        "SIMD is a distinct variant"
+      ]
+    },
+    {
+      "id": "database.olap-chart.v1",
+      "title": "Interactive OLAP column scan",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P1",
+      "class": "complete-task",
+      "domain": "database",
+      "story": "Filter, sort and aggregate columns while a chart user changes controls.",
+      "inputs": [
+        {
+          "description": "Deterministic project generator for 1m and 10m rows.",
+          "fixtureState": "proposed",
+          "rightsStatus": "proposed-generated",
+          "provenanceStatus": "project-proposed",
+          "licenseSpdx": "CC0-1.0",
+          "redistribution": "generated-proposed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "canonical-semantic",
+        "equivalenceClass": "semantic-product-choice",
+        "algorithmFamily": "columnar-five-query-trace",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "A frozen trace of five queries and chart updates.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "separate",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Column buffers, query engine heap and chart allocations."
+      ],
+      "boundaryConcerns": [
+        "Worker transfers and chart presentation are separate phases."
+      ],
+      "priorArt": [
+        {
+          "name": "DuckDB-Wasm",
+          "source": "https://github.com/duckdb/duckdb-wasm",
+          "toolchain": "C++/Wasm",
+          "licenseSpdx": "MIT"
+        },
+        {
+          "name": "Arquero",
+          "source": "https://github.com/uwdata/arquero",
+          "toolchain": "JavaScript",
+          "licenseSpdx": "BSD-3-Clause"
+        }
+      ],
+      "blockers": [
+        "Different planners are product-choice comparison",
+        "Threads/SIMD distinct"
+      ]
+    },
+    {
+      "id": "database.sqlite-notebook.v1",
+      "title": "SQLite analytical notebook",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P0",
+      "class": "complete-task",
+      "domain": "database",
+      "story": "Import sales CSV, create indexes and run eight joins/group-bys/window queries.",
+      "inputs": [
+        {
+          "description": "Project-owned seeded analytical schema; explicitly not TPC-H.",
+          "fixtureState": "proposed",
+          "rightsStatus": "proposed-generated",
+          "provenanceStatus": "project-proposed",
+          "licenseSpdx": "CC0-1.0",
+          "redistribution": "generated-proposed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "canonical-semantic",
+        "equivalenceClass": "semantic-product-choice",
+        "algorithmFamily": "sql-analytics-frozen-schema-queries",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "Fresh database, frozen SQL/schema/PRAGMAs and eight ordered queries.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "separate",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Database pages, query heap, OPFS cache and linear memory."
+      ],
+      "boundaryConcerns": [
+        "CSV/string conversion and OPFS worker/SAB boundaries are counted."
+      ],
+      "priorArt": [
+        {
+          "name": "SQLite Wasm",
+          "source": "https://github.com/sqlite/sqlite/tree/master/ext/wasm",
+          "toolchain": "C/Wasm",
+          "licenseSpdx": "blessing"
+        },
+        {
+          "name": "TPC restrictions",
+          "source": "https://tpc.org/TPC_Documents_Current_Versions/txt/eula.txt",
+          "toolchain": "methodology warning",
+          "licenseSpdx": "LicenseRef-TPC-EULA"
+        }
+      ],
+      "blockers": [
+        "Never brand as TPC-H",
+        "Planner/version drift",
+        "OPFS isolation requirements"
+      ]
+    },
+    {
+      "id": "document.pdf-viewer.v1",
+      "title": "PDF open, search and render",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P1",
+      "class": "complete-task",
+      "domain": "document",
+      "story": "Open a 100-page report, search a term and rasterize five pages.",
+      "inputs": [
+        {
+          "description": "Project-generated PDF from owned text/vector/images; external fonts/resources require audit.",
+          "fixtureState": "proposed",
+          "rightsStatus": "requires-audit",
+          "provenanceStatus": "source-identified",
+          "licenseSpdx": "LicenseRef-Requires-Audit",
+          "redistribution": "not-reviewed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "perceptual",
+        "equivalenceClass": "semantic-product-choice",
+        "algorithmFamily": "pdf-fixed-document-pages-dpi",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "One 100-page document, fixed search and five pages at 144 dpi.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "feasible",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "measured",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Document objects, font caches, page bitmaps and module heap."
+      ],
+      "boundaryConcerns": [
+        "Canvas rendering and font loading are counted."
+      ],
+      "priorArt": [
+        {
+          "name": "PDF.js",
+          "source": "https://github.com/mozilla/pdf.js",
+          "toolchain": "JavaScript",
+          "licenseSpdx": "Apache-2.0"
+        },
+        {
+          "name": "PDFium",
+          "source": "https://github.com/chromium/pdfium",
+          "toolchain": "C++/Wasm candidate",
+          "licenseSpdx": "Apache-2.0"
+        }
+      ],
+      "blockers": [
+        "Font/resource rights audit",
+        "Rendering tolerance",
+        "Avoid MuPDF AGPL default"
+      ]
+    },
+    {
+      "id": "dom.todomvc-journey.v1",
+      "title": "TodoMVC user journey",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P0",
+      "class": "complete-task",
+      "domain": "dom",
+      "story": "Add, complete, filter, edit and remove 100 todos.",
+      "inputs": [
+        {
+          "description": "Generated labels and frozen action trace; framework sources require component license inventory.",
+          "fixtureState": "proposed",
+          "rightsStatus": "requires-audit",
+          "provenanceStatus": "source-identified",
+          "licenseSpdx": "LicenseRef-Requires-Audit",
+          "redistribution": "not-reviewed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "canonical-semantic",
+        "equivalenceClass": "semantic-product-choice",
+        "algorithmFamily": "todomvc-fixed-action-dom-a11y",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "100 todos and a frozen user-action sequence to final DOM/accessibility state.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "feasible",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "measured",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Framework object graph, DOM nodes and renderer memory."
+      ],
+      "boundaryConcerns": [
+        "Wasm cannot directly own DOM; JS boundary and layout/paint included."
+      ],
+      "priorArt": [
+        {
+          "name": "Speedometer 3",
+          "source": "https://browserbench.org/Speedometer3.0/about.html",
+          "toolchain": "browser journey",
+          "licenseSpdx": "BSD-2-Clause"
+        },
+        {
+          "name": "workloads",
+          "source": "https://github.com/GoogleChromeLabs/speedometer-workloads",
+          "toolchain": "framework fixtures",
+          "licenseSpdx": "LicenseRef-Per-Component"
+        }
+      ],
+      "blockers": [
+        "Component license audit",
+        "Framework semantics and RAF timing"
+      ]
+    },
+    {
+      "id": "dom.virtualized-grid.v1",
+      "title": "Virtualized data grid",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P2",
+      "class": "complete-task",
+      "domain": "dom",
+      "story": "Scroll, filter, sort and edit 100k rows over a recorded trace.",
+      "inputs": [
+        {
+          "description": "Seeded generated rows and actions.",
+          "fixtureState": "proposed",
+          "rightsStatus": "proposed-generated",
+          "provenanceStatus": "project-proposed",
+          "licenseSpdx": "CC0-1.0",
+          "redistribution": "generated-proposed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "canonical-semantic",
+        "equivalenceClass": "semantic-product-choice",
+        "algorithmFamily": "grid-fixed-trace-viewport",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "100k rows, frozen 30 s trace, viewport, DPR and scroll offsets.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "feasible",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "measured",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Row model, virtualized DOM, framework heap and render memory."
+      ],
+      "boundaryConcerns": [
+        "DOM/layout/event coalescing are part of complete-task cell."
+      ],
+      "priorArt": [
+        {
+          "name": "Speedometer workloads",
+          "source": "https://github.com/GoogleChromeLabs/speedometer-workloads",
+          "toolchain": "JS frameworks",
+          "licenseSpdx": "LicenseRef-Per-Component"
+        }
+      ],
+      "blockers": [
+        "Rendering architecture differs",
+        "Accessibility equivalence"
+      ]
+    },
+    {
+      "id": "game.ecs-frame-update.v1",
+      "title": "Game-frame ECS update",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P2",
+      "class": "complete-task",
+      "domain": "games",
+      "story": "Update movement, collision broadphase and animation state for 10k entities.",
+      "inputs": [
+        {
+          "description": "Seeded generated world and input trace.",
+          "fixtureState": "proposed",
+          "rightsStatus": "proposed-generated",
+          "provenanceStatus": "project-proposed",
+          "licenseSpdx": "CC0-1.0",
+          "redistribution": "generated-proposed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "canonical-semantic",
+        "equivalenceClass": "tolerance-equivalent",
+        "algorithmFamily": "ecs-fixed-system-order",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "10,000 entities over 1,000 frames with frozen system order.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "not-applicable",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "separate",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Entity layouts, GC, arenas and frame scratch memory."
+      ],
+      "boundaryConcerns": [
+        "Host input and rendering are separately measured."
+      ],
+      "priorArt": [
+        {
+          "name": "bitECS",
+          "source": "https://github.com/NateTheGreatt/bitECS",
+          "toolchain": "JavaScript",
+          "licenseSpdx": "MIT"
+        },
+        {
+          "name": "Bevy",
+          "source": "https://github.com/bevyengine/bevy",
+          "toolchain": "Rust/Wasm",
+          "licenseSpdx": "MIT OR Apache-2.0"
+        }
+      ],
+      "blockers": [
+        "Data-layout differences require Track B label",
+        "GC pauses"
+      ]
+    },
+    {
+      "id": "graphics.cpu-path-tracer.v1",
+      "title": "CPU path tracer tile",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P1",
+      "class": "complete-task",
+      "domain": "graphics",
+      "story": "Render a deterministic 512×512 product preview at 64 samples per pixel.",
+      "inputs": [
+        {
+          "description": "Project-generated Cornell-box scene; optional Blender assets require recipe review.",
+          "fixtureState": "proposed",
+          "rightsStatus": "proposed-generated",
+          "provenanceStatus": "project-proposed",
+          "licenseSpdx": "CC0-1.0",
+          "redistribution": "generated-proposed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "perceptual",
+        "equivalenceClass": "tolerance-equivalent",
+        "algorithmFamily": "cpu-bvh-pathtrace-fixed-rng",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "512×512, 64 spp, fixed BVH, camera and RNG seed.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "feasible",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "separate",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "BVH, framebuffer, ray scratch and optional thread memory."
+      ],
+      "boundaryConcerns": [
+        "Canvas display excluded from compute score."
+      ],
+      "priorArt": [
+        {
+          "name": "Blender benchmark rights",
+          "source": "https://www.blender.org/news/introducing-blender-benchmark/",
+          "toolchain": "fixture reference",
+          "licenseSpdx": "CC0-1.0"
+        }
+      ],
+      "blockers": [
+        "FP/RNG tolerance",
+        "Threads/SAB are separate variants"
+      ]
+    },
+    {
+      "id": "graphics.gltf-viewer.v1",
+      "title": "glTF load, animate and render",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P1",
+      "class": "complete-task",
+      "domain": "graphics",
+      "story": "Load a product model, decode Draco, animate 600 frames and pick objects.",
+      "inputs": [
+        {
+          "description": "Selected Khronos sample assets only after per-model attribution audit.",
+          "fixtureState": "proposed",
+          "rightsStatus": "requires-audit",
+          "provenanceStatus": "source-identified",
+          "licenseSpdx": "LicenseRef-Requires-Audit",
+          "redistribution": "not-reviewed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "perceptual",
+        "equivalenceClass": "semantic-product-choice",
+        "algorithmFamily": "gltf-fixed-scene-camera",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "One fixed model, camera, viewport, 600 frames and pick trace.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "measured",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Scene graph, decoded mesh, textures and GPU allocations."
+      ],
+      "boundaryConcerns": [
+        "Draco and GPU upload boundaries are explicit."
+      ],
+      "priorArt": [
+        {
+          "name": "glTF Sample Assets",
+          "source": "https://github.com/KhronosGroup/glTF-Sample-Assets",
+          "toolchain": "fixtures",
+          "licenseSpdx": "LicenseRef-Per-Model"
+        },
+        {
+          "name": "Draco",
+          "source": "https://github.com/google/draco",
+          "toolchain": "C++/Wasm",
+          "licenseSpdx": "Apache-2.0"
+        }
+      ],
+      "blockers": [
+        "Per-model rights audit",
+        "GPU/driver and shader compilation noise"
+      ]
+    },
+    {
+      "id": "media.image-decode-batch.v1",
+      "title": "Modern image decode batch",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P1",
+      "class": "component",
+      "domain": "media",
+      "story": "Decode JPEG, PNG, WebP, AVIF and JXL gallery assets to RGBA.",
+      "inputs": [
+        {
+          "description": "Individually cleared PNGSuite, JXL and GB82 cases; no mixed-rights HEIC corpus.",
+          "fixtureState": "proposed",
+          "rightsStatus": "requires-audit",
+          "provenanceStatus": "source-identified",
+          "licenseSpdx": "LicenseRef-Requires-Audit",
+          "redistribution": "not-reviewed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "numeric-tolerance",
+        "equivalenceClass": "tolerance-equivalent",
+        "algorithmFamily": "rgba-decode-color-managed",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "Exactly 25 pinned images per frozen format set.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "feasible",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "separate",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Decoded pixel buffers and codec heap peaks."
+      ],
+      "boundaryConcerns": [
+        "RGBA transfer and browser native decode are separately labelled."
+      ],
+      "priorArt": [
+        {
+          "name": "icodec",
+          "source": "https://github.com/kaciras/icodec/",
+          "toolchain": "C codecs/Wasm",
+          "licenseSpdx": "MIT"
+        }
+      ],
+      "blockers": [
+        "Per-file rights and color-profile audit",
+        "Native decoder is a product-choice baseline"
+      ]
+    },
+    {
+      "id": "media.photo-thumbnail.v1",
+      "title": "Photo thumbnail pipeline",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P0",
+      "class": "complete-task",
+      "domain": "media",
+      "story": "Upload a phone photo; decode, auto-orient, Lanczos resize to 1280 px, sharpen, and encode WebP q=80.",
+      "inputs": [
+        {
+          "description": "GB82 and GB82-SC selected images via a per-file rights manifest.",
+          "fixtureState": "proposed",
+          "rightsStatus": "requires-audit",
+          "provenanceStatus": "source-identified",
+          "licenseSpdx": "LicenseRef-Requires-Audit",
+          "redistribution": "not-reviewed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "perceptual",
+        "equivalenceClass": "tolerance-equivalent",
+        "algorithmFamily": "lanczos3-thumbnail-pipeline",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "Exactly one decode, orient, resize, sharpen and encode per image.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "feasible",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "separate",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Peak decoded RGBA, encoder working set, Wasm linear-memory growth."
+      ],
+      "boundaryConcerns": [
+        "ImageData copies and Canvas/codec host boundaries must be counted."
+      ],
+      "priorArt": [
+        {
+          "name": "wasm-vips",
+          "source": "https://github.com/kleisauke/wasm-vips/",
+          "toolchain": "Emscripten/libvips",
+          "licenseSpdx": "MIT"
+        },
+        {
+          "name": "codec-corpus",
+          "source": "https://github.com/imazen/codec-corpus",
+          "toolchain": "fixture inventory",
+          "licenseSpdx": "LicenseRef-Per-Subset"
+        }
+      ],
+      "blockers": [
+        "Per-file image rights audit",
+        "Codec output is not byte-identical",
+        "SIMD/SAB isolation and Embind ownership"
+      ]
+    },
+    {
+      "id": "media.video-transcode.v1",
+      "title": "Video transcode clip",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P1",
+      "class": "complete-task",
+      "domain": "media",
+      "story": "Transcode a deterministic 10 s 720p clip to VP9/WebM and extract thumbnails.",
+      "inputs": [
+        {
+          "description": "Project-generated Y4M patterns plus a license-reviewed Blender render download recipe.",
+          "fixtureState": "proposed",
+          "rightsStatus": "requires-audit",
+          "provenanceStatus": "source-identified",
+          "licenseSpdx": "LicenseRef-Requires-Audit",
+          "redistribution": "not-reviewed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "perceptual",
+        "equivalenceClass": "tolerance-equivalent",
+        "algorithmFamily": "vp9-fixed-preset-transcode",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "One 10 s clip at frozen fps, bitrate and preset plus fixed thumbnail timestamps.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "feasible",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "feasible",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "measured",
+        "render": "separate",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Large codec module, frame buffers, worker and linear memory."
+      ],
+      "boundaryConcerns": [
+        "Frame transfer, VFS IO and WebCodecs hardware path stay distinct."
+      ],
+      "priorArt": [
+        {
+          "name": "FFmpeg",
+          "source": "https://ffmpeg.org/ffmpeg-codecs.html",
+          "toolchain": "FFmpeg/Emscripten",
+          "licenseSpdx": "LGPL-2.1-or-later"
+        }
+      ],
+      "blockers": [
+        "20–30 MB module",
+        "Threads require isolation",
+        "Patent/configuration and Blender asset review"
+      ]
+    },
+    {
+      "id": "ml.keyword-spotting.v1",
+      "title": "Keyword spotting stream",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P1",
+      "class": "complete-task",
+      "domain": "ml",
+      "story": "Process 60 s audio in 20 ms hops and detect commands.",
+      "inputs": [
+        {
+          "description": "Speech Commands v2 prescribed subset by download recipe with attribution.",
+          "fixtureState": "proposed",
+          "rightsStatus": "download-recipe",
+          "provenanceStatus": "source-identified",
+          "licenseSpdx": "LicenseRef-Download-Only",
+          "redistribution": "recipe-only",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "numeric-tolerance",
+        "equivalenceClass": "conformance-equivalent",
+        "algorithmFamily": "dscnn-fixed-preprocess-model",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "Exactly 3,000 hops with frozen preprocessing and model.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "separate",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Model weights, feature buffers and tensor arena."
+      ],
+      "boundaryConcerns": [
+        "Audio scheduling is excluded/included as named variants."
+      ],
+      "priorArt": [
+        {
+          "name": "MLPerf Tiny paper",
+          "source": "https://arxiv.org/pdf/2106.07597",
+          "toolchain": "DS-CNN/TFLM",
+          "licenseSpdx": "Apache-2.0"
+        }
+      ],
+      "blockers": [
+        "Dataset attribution and subset hashes",
+        "Preprocessing equivalence"
+      ]
+    },
+    {
+      "id": "ml.numeric-kernels.v1",
+      "title": "GEMM, convolution and softmax kernels",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P2",
+      "class": "kernel",
+      "domain": "ml",
+      "story": "Exercise inference-runtime inner loops over frozen tensors.",
+      "inputs": [
+        {
+          "description": "Seeded project-generated FP32 and INT8 tensors.",
+          "fixtureState": "proposed",
+          "rightsStatus": "proposed-generated",
+          "provenanceStatus": "project-proposed",
+          "licenseSpdx": "CC0-1.0",
+          "redistribution": "generated-proposed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "numeric-tolerance",
+        "equivalenceClass": "algorithm-equivalent",
+        "algorithmFamily": "fixed-layout-gemm-conv-softmax",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "Frozen shapes, dtype, layout and operation count.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "feasible",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "not-applicable",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Tensor/scratch buffers and SIMD alignment."
+      ],
+      "boundaryConcerns": [
+        "Scalar/SIMD and layout choices are separate families or tracks."
+      ],
+      "priorArt": [
+        {
+          "name": "XNNPACK",
+          "source": "https://github.com/google/XNNPACK",
+          "toolchain": "C/Wasm",
+          "licenseSpdx": "BSD-3-Clause"
+        }
+      ],
+      "blockers": [
+        "Compiler auto-vectorization",
+        "NaN/rounding policy"
+      ]
+    },
+    {
+      "id": "ml.quantized-image-inference.v1",
+      "title": "Quantized image inference",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P1",
+      "class": "complete-task",
+      "domain": "ml",
+      "story": "Classify 200 images with a pinned MLPerf Tiny-style ResNet.",
+      "inputs": [
+        {
+          "description": "MLPerf scripts/model recipe; CIFAR-10 bytes are download-only until rights review.",
+          "fixtureState": "proposed",
+          "rightsStatus": "download-recipe",
+          "provenanceStatus": "source-identified",
+          "licenseSpdx": "LicenseRef-Download-Only",
+          "redistribution": "recipe-only",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "numeric-tolerance",
+        "equivalenceClass": "conformance-equivalent",
+        "algorithmFamily": "int8-resnet-fixed-operators",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "200 images, batch 1, frozen quantized model and preprocessing.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Runtime/model weights, tensor arena and intermediate tensors."
+      ],
+      "boundaryConcerns": [
+        "WebNN/WebGPU are separate host-accelerated product cells."
+      ],
+      "priorArt": [
+        {
+          "name": "MLPerf Tiny",
+          "source": "https://github.com/mlcommons/tiny",
+          "toolchain": "TFLite Micro",
+          "licenseSpdx": "Apache-2.0"
+        },
+        {
+          "name": "ONNX Runtime Web",
+          "source": "https://github.com/microsoft/onnxruntime",
+          "toolchain": "C++/Wasm",
+          "licenseSpdx": "MIT"
+        }
+      ],
+      "blockers": [
+        "CIFAR-10 redistribution audit",
+        "Operator/version and quantization drift"
+      ]
+    },
+    {
+      "id": "network.http2-quic-state.v1",
+      "title": "HTTP/2 and QUIC frame state machine",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P2",
+      "class": "kernel",
+      "domain": "networking",
+      "story": "Consume deterministic frames and update stream/compression state.",
+      "inputs": [
+        {
+          "description": "Generated trace based on cited RFC examples and project fuzz recipe.",
+          "fixtureState": "proposed",
+          "rightsStatus": "requires-audit",
+          "provenanceStatus": "source-identified",
+          "licenseSpdx": "LicenseRef-Requires-Audit",
+          "redistribution": "not-reviewed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "canonical-semantic",
+        "equivalenceClass": "conformance-equivalent",
+        "algorithmFamily": "protocol-fixed-frame-trace",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "Frozen frames, chunk boundaries, events and final table state.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "not-applicable",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Dynamic tables, stream states and frame buffers."
+      ],
+      "boundaryConcerns": [
+        "Real sockets excluded from core and separate end-to-end cell."
+      ],
+      "priorArt": [
+        {
+          "name": "nghttp2",
+          "source": "https://github.com/nghttp2/nghttp2",
+          "toolchain": "C/Wasm",
+          "licenseSpdx": "MIT"
+        },
+        {
+          "name": "quiche",
+          "source": "https://github.com/cloudflare/quiche",
+          "toolchain": "Rust/Wasm candidate",
+          "licenseSpdx": "BSD-2-Clause"
+        }
+      ],
+      "blockers": [
+        "RFC example provenance audit",
+        "No raw QUIC browser API",
+        "Implementation scope"
+      ]
+    },
+    {
+      "id": "network.pcap-decode.v1",
+      "title": "PCAP protocol decode",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P2",
+      "class": "complete-task",
+      "domain": "networking",
+      "story": "Parse Ethernet, IP, TCP, DNS and HTTP records into a flow table.",
+      "inputs": [
+        {
+          "description": "Project-generated Scapy/tcpdump captures only.",
+          "fixtureState": "proposed",
+          "rightsStatus": "proposed-generated",
+          "provenanceStatus": "project-proposed",
+          "licenseSpdx": "CC0-1.0",
+          "redistribution": "generated-proposed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "canonical-semantic",
+        "equivalenceClass": "algorithm-equivalent",
+        "algorithmFamily": "pcap-fixed-protocol-subset",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "Frozen packet count, malformed cases and protocol subset.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Packet bytes, flow table and parser allocations."
+      ],
+      "boundaryConcerns": [
+        "Unaligned/endian reads and malformed semantics explicit."
+      ],
+      "priorArt": [
+        {
+          "name": "PcapPlusPlus",
+          "source": "https://github.com/seladb/PcapPlusPlus",
+          "toolchain": "C++/Wasm candidate",
+          "licenseSpdx": "Unlicense"
+        }
+      ],
+      "blockers": [
+        "Do not use mixed-rights/sensitive wiki captures",
+        "GPL linkage risk"
+      ]
+    },
+    {
+      "id": "numeric.fft-spectral-filter.v1",
+      "title": "FFT and spectral filter",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P2",
+      "class": "complete-task",
+      "domain": "numeric",
+      "story": "Window, transform, filter and inverse-transform a sensor trace.",
+      "inputs": [
+        {
+          "description": "Seeded generated 2^20-sample signal.",
+          "fixtureState": "proposed",
+          "rightsStatus": "proposed-generated",
+          "provenanceStatus": "project-proposed",
+          "licenseSpdx": "CC0-1.0",
+          "redistribution": "generated-proposed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "numeric-tolerance",
+        "equivalenceClass": "algorithm-equivalent",
+        "algorithmFamily": "fft-fixed-radix-window-filter",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "One 2^20 forward/filter/inverse pipeline with frozen window.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "not-applicable",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Complex buffers, twiddle tables and scratch memory."
+      ],
+      "boundaryConcerns": [
+        "Planner/radix and SIMD choices are separate families or tracks."
+      ],
+      "priorArt": [
+        {
+          "name": "fft.js",
+          "source": "https://github.com/indutny/fft.js",
+          "toolchain": "JavaScript",
+          "licenseSpdx": "MIT"
+        },
+        {
+          "name": "RustFFT",
+          "source": "https://github.com/ejmahler/RustFFT",
+          "toolchain": "Rust/Wasm",
+          "licenseSpdx": "MIT OR Apache-2.0"
+        }
+      ],
+      "blockers": [
+        "Avoid FFTW GPL default",
+        "FP/trig tolerance"
+      ]
+    },
+    {
+      "id": "numeric.polybench-panel.v1",
+      "title": "PolyBench numeric panel",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P0",
+      "class": "kernel",
+      "domain": "numeric",
+      "story": "Run GEMM, Cholesky, stencil and Jacobi-2D notebook kernels.",
+      "inputs": [
+        {
+          "description": "Official generated datasets by pinned recipe with OSU notices.",
+          "fixtureState": "proposed",
+          "rightsStatus": "download-recipe",
+          "provenanceStatus": "source-identified",
+          "licenseSpdx": "LicenseRef-Download-Only",
+          "redistribution": "recipe-only",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "numeric-tolerance",
+        "equivalenceClass": "algorithm-equivalent",
+        "algorithmFamily": "polybench-fixed-kernel-size",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "Frozen kernel dimensions and iteration counts per dataset size.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "feasible",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Large typed/linear arrays and scratch buffers."
+      ],
+      "boundaryConcerns": [
+        "C and JS layouts must match in Track A."
+      ],
+      "priorArt": [
+        {
+          "name": "PolyBench/C",
+          "source": "https://www.cs.colostate.edu/~pouchet/software/polybench/",
+          "toolchain": "C/Wasm",
+          "licenseSpdx": "LicenseRef-PolyBench"
+        }
+      ],
+      "blockers": [
+        "Redistribution notice",
+        "FP reduction policy",
+        "Layout fairness"
+      ]
+    },
+    {
+      "id": "serialization.json-telemetry.v1",
+      "title": "JSON telemetry parse/aggregate/stringify",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P0",
+      "class": "component",
+      "domain": "serialization",
+      "story": "Parse nested multilingual events, run fixed aggregates, and serialize a canonical summary.",
+      "inputs": [
+        {
+          "description": "Seeded project generator for 1k, 100k and 1m records.",
+          "fixtureState": "proposed",
+          "rightsStatus": "proposed-generated",
+          "provenanceStatus": "project-proposed",
+          "licenseSpdx": "CC0-1.0",
+          "redistribution": "generated-proposed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "canonical-semantic",
+        "equivalenceClass": "algorithm-equivalent",
+        "algorithmFamily": "json-parse-fixed-query-canonicalize",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "Exactly N records and a frozen query set, followed by canonical serialization.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "UTF-16/UTF-8 conversion, object allocation, GC and linear memory."
+      ],
+      "boundaryConcerns": [
+        "Native JSON is a labelled host intrinsic; string crossings are counted."
+      ],
+      "priorArt": [
+        {
+          "name": "simdjson",
+          "source": "https://github.com/simdjson/simdjson",
+          "toolchain": "C++/Wasm",
+          "licenseSpdx": "Apache-2.0"
+        },
+        {
+          "name": "serde_json",
+          "source": "https://github.com/serde-rs/json",
+          "toolchain": "Rust/Wasm",
+          "licenseSpdx": "MIT OR Apache-2.0"
+        }
+      ],
+      "blockers": [
+        "Intrinsic-vs-library equivalence grouping",
+        "GC/string representation divergence"
+      ]
+    },
+    {
+      "id": "serialization.protobuf-gateway.v1",
+      "title": "Protobuf binary and ProtoJSON gateway",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P0",
+      "class": "component",
+      "domain": "serialization",
+      "story": "Decode messages, filter records, and emit ProtoJSON responses.",
+      "inputs": [
+        {
+          "description": "Official conformance schemas via download recipe plus generated production-shaped messages.",
+          "fixtureState": "proposed",
+          "rightsStatus": "download-recipe",
+          "provenanceStatus": "source-identified",
+          "licenseSpdx": "LicenseRef-Download-Only",
+          "redistribution": "recipe-only",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "conformance",
+        "equivalenceClass": "conformance-equivalent",
+        "algorithmFamily": "protobuf-semantic-message-v1",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "Decode, filter and serialize exactly 10,000 frozen messages.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Generated schema code, message allocation and string conversion."
+      ],
+      "boundaryConcerns": [
+        "Unknown fields and int64/BigInt crossings are explicit."
+      ],
+      "priorArt": [
+        {
+          "name": "protobuf conformance",
+          "source": "https://github.com/protocolbuffers/protobuf/blob/master/conformance/binary_json_conformance_suite.cc",
+          "toolchain": "C++/Java/JS",
+          "licenseSpdx": "BSD-3-Clause"
+        }
+      ],
+      "blockers": [
+        "Pin conformance revision",
+        "Unknown-field and ProtoJSON canonical subtleties"
+      ]
+    },
+    {
+      "id": "server.ssr-template.v1",
+      "title": "Template and SSR endpoint",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P2",
+      "class": "complete-task",
+      "domain": "server",
+      "story": "Render 1,000 personalized catalog HTML responses.",
+      "inputs": [
+        {
+          "description": "Generated products, users and templates.",
+          "fixtureState": "proposed",
+          "rightsStatus": "proposed-generated",
+          "provenanceStatus": "project-proposed",
+          "licenseSpdx": "CC0-1.0",
+          "redistribution": "generated-proposed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "canonical-semantic",
+        "equivalenceClass": "semantic-product-choice",
+        "algorithmFamily": "ssr-fixed-template-escaping",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "1,000 responses with frozen escaping and i18n rules.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "measured",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Template AST, strings, response buffers and GC/RSS."
+      ],
+      "boundaryConcerns": [
+        "UTF conversion and host IO are separately counted."
+      ],
+      "priorArt": [
+        {
+          "name": "Handlebars",
+          "source": "https://github.com/handlebars-lang/handlebars.js",
+          "toolchain": "JavaScript",
+          "licenseSpdx": "MIT"
+        },
+        {
+          "name": "Askama",
+          "source": "https://github.com/askama-rs/askama",
+          "toolchain": "Rust/Wasm candidate",
+          "licenseSpdx": "MIT OR Apache-2.0"
+        }
+      ],
+      "blockers": [
+        "Escaping/output differs across engines",
+        "Startup/allocation dominates"
+      ]
+    },
+    {
+      "id": "server.wasi-request-handler.v1",
+      "title": "WASI request handler",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P1",
+      "class": "complete-task",
+      "domain": "server",
+      "story": "Parse JSON, validate HMAC, query in-memory SQLite and render 10k responses.",
+      "inputs": [
+        {
+          "description": "Generated non-secret requests, keys and database.",
+          "fixtureState": "proposed",
+          "rightsStatus": "proposed-generated",
+          "provenanceStatus": "project-proposed",
+          "licenseSpdx": "CC0-1.0",
+          "redistribution": "generated-proposed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "canonical-semantic",
+        "equivalenceClass": "algorithm-equivalent",
+        "algorithmFamily": "wasi-handler-fixed-request-trace",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "10,000 frozen requests at concurrency 1 and 32 in separate cells.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "measured",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Runtime instance, database pages, request buffers and RSS diagnostics."
+      ],
+      "boundaryConcerns": [
+        "Host calls and component bindings counted."
+      ],
+      "priorArt": [
+        {
+          "name": "wasi-sdk",
+          "source": "https://github.com/WebAssembly/wasi-sdk",
+          "toolchain": "C/Rust WASI",
+          "licenseSpdx": "Apache-2.0 WITH LLVM-exception"
+        }
+      ],
+      "blockers": [
+        "Browser/server conclusions separate",
+        "WasmGC server support",
+        "Clock/randomness"
+      ]
+    },
+    {
+      "id": "simulation.nbody-cloth.v1",
+      "title": "N-body or cloth simulation",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P2",
+      "class": "kernel",
+      "domain": "simulation",
+      "story": "Advance 8k bodies or a 128×128 cloth for fixed steps.",
+      "inputs": [
+        {
+          "description": "Seeded generated initial state.",
+          "fixtureState": "proposed",
+          "rightsStatus": "proposed-generated",
+          "provenanceStatus": "project-proposed",
+          "licenseSpdx": "CC0-1.0",
+          "redistribution": "generated-proposed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "numeric-tolerance",
+        "equivalenceClass": "tolerance-equivalent",
+        "algorithmFamily": "fixed-n2-or-cloth-solver",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "600 steps with frozen algorithm, interactions and seed.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "not-applicable",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "separate",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "State vectors, scratch arrays and GPU presentation buffers."
+      ],
+      "boundaryConcerns": [
+        "O(N²) and Barnes–Hut can never aggregate."
+      ],
+      "priorArt": [
+        {
+          "name": "PolyBench",
+          "source": "https://www.cs.colostate.edu/~pouchet/software/polybench/",
+          "toolchain": "C kernels",
+          "licenseSpdx": "LicenseRef-PolyBench"
+        }
+      ],
+      "blockers": [
+        "Algorithm family split",
+        "Relaxed SIMD and FP non-determinism"
+      ]
+    },
+    {
+      "id": "simulation.rigid-body-2d.v1",
+      "title": "2D rigid-body scene",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P0",
+      "class": "complete-task",
+      "domain": "simulation",
+      "story": "Settle 500 stacked boxes and joints over fixed timesteps.",
+      "inputs": [
+        {
+          "description": "Seeded generated scene owned by the project.",
+          "fixtureState": "proposed",
+          "rightsStatus": "proposed-generated",
+          "provenanceStatus": "project-proposed",
+          "licenseSpdx": "CC0-1.0",
+          "redistribution": "generated-proposed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "numeric-tolerance",
+        "equivalenceClass": "tolerance-equivalent",
+        "algorithmFamily": "box2d-style-fixed-solver",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "1,800 fixed timesteps with frozen dt, solver iterations and seed.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "separate",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Body/contact objects, GC and linear-memory scene storage."
+      ],
+      "boundaryConcerns": [
+        "Rendering disabled for compute cell; canvas is separate."
+      ],
+      "priorArt": [
+        {
+          "name": "Box2D/J2Wasm",
+          "source": "https://v8.dev/blog/wasm-gc-porting",
+          "toolchain": "C++/Java/WasmGC",
+          "licenseSpdx": "MIT"
+        },
+        {
+          "name": "planck.js",
+          "source": "https://github.com/piqnt/planck.js",
+          "toolchain": "JavaScript",
+          "licenseSpdx": "MIT"
+        }
+      ],
+      "blockers": [
+        "Solver/FP divergence",
+        "Quantized state oracle needed"
+      ]
+    },
+    {
+      "id": "text.gc-document-edit.v1",
+      "title": "GC-rich document model edit",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P2",
+      "class": "complete-task",
+      "domain": "text",
+      "story": "Parse a tree and execute 10k insert, delete and reparent operations.",
+      "inputs": [
+        {
+          "description": "Generated tree and edit trace.",
+          "fixtureState": "proposed",
+          "rightsStatus": "proposed-generated",
+          "provenanceStatus": "project-proposed",
+          "licenseSpdx": "CC0-1.0",
+          "redistribution": "generated-proposed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "canonical-semantic",
+        "equivalenceClass": "semantic-product-choice",
+        "algorithmFamily": "document-tree-fixed-edit-trace",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "Exactly 10,000 frozen edits and canonical final serialization.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "feasible",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Object graph, GC, arenas and string tables."
+      ],
+      "boundaryConcerns": [
+        "Memory models differ intentionally and require Track B labels."
+      ],
+      "priorArt": [
+        {
+          "name": "Kotlin Wasm benchmarks",
+          "source": "https://github.com/Kotlin/kotlin-wasm-benchmarks",
+          "toolchain": "Kotlin/WasmGC",
+          "licenseSpdx": "Apache-2.0"
+        }
+      ],
+      "blockers": [
+        "GC observability",
+        "Exception/string imports"
+      ]
+    },
+    {
+      "id": "text.regex-log-scan.v1",
+      "title": "Regex log scan",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P0",
+      "class": "complete-task",
+      "domain": "text",
+      "story": "Extract URLs, IPs and status codes from multilingual logs.",
+      "inputs": [
+        {
+          "description": "Seeded synthetic 100 MiB logs and 20 project-owned patterns.",
+          "fixtureState": "proposed",
+          "rightsStatus": "proposed-generated",
+          "provenanceStatus": "project-proposed",
+          "licenseSpdx": "CC0-1.0",
+          "redistribution": "generated-proposed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "exact-hash",
+        "equivalenceClass": "semantic-product-choice",
+        "algorithmFamily": "safe-regex-fixed-pattern-set",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "Scan 100 MiB with 20 frozen safe patterns and hash ordered captures.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "UTF strings, automata, capture arrays and GC."
+      ],
+      "boundaryConcerns": [
+        "Native RegExp, RE2 and RE2J semantics cannot silently aggregate."
+      ],
+      "priorArt": [
+        {
+          "name": "RE2",
+          "source": "https://github.com/google/re2",
+          "toolchain": "C++/Wasm",
+          "licenseSpdx": "BSD-3-Clause"
+        },
+        {
+          "name": "Sheets WasmGC",
+          "source": "https://web.dev/case-studies/google-sheets-wasmgc",
+          "toolchain": "Java/WasmGC case study",
+          "licenseSpdx": "LicenseRef-Documentation"
+        }
+      ],
+      "blockers": [
+        "Regex syntax/semantics split",
+        "UTF-16/UTF-8 conversion"
+      ]
+    },
+    {
+      "id": "text.unicode-editor.v1",
+      "title": "Unicode normalization, grapheme and search",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P1",
+      "class": "component",
+      "domain": "text",
+      "story": "Normalize, segment, case-fold and search multilingual editor text.",
+      "inputs": [
+        {
+          "description": "Pinned Unicode conformance downloads plus generated long corpus.",
+          "fixtureState": "proposed",
+          "rightsStatus": "download-recipe",
+          "provenanceStatus": "source-identified",
+          "licenseSpdx": "LicenseRef-Download-Only",
+          "redistribution": "recipe-only",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "conformance",
+        "equivalenceClass": "conformance-equivalent",
+        "algorithmFamily": "unicode-version-pinned-operations",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "Frozen Unicode version and code-point count across normalization, segmentation and search.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "String encodings, normalization buffers and GC."
+      ],
+      "boundaryConcerns": [
+        "Intl host intrinsic and ICU/rust tables are labelled."
+      ],
+      "priorArt": [
+        {
+          "name": "Unicode data",
+          "source": "https://www.unicode.org/Public/UCD/latest/",
+          "toolchain": "conformance fixtures",
+          "licenseSpdx": "Unicode-DFS-2016"
+        }
+      ],
+      "blockers": [
+        "Pin Unicode version, not latest",
+        "Locale/version skew"
+      ]
+    },
+    {
+      "id": "tooling.c-to-wasm-compile.v1",
+      "title": "Compile C to Wasm",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P2",
+      "class": "complete-task",
+      "domain": "tooling",
+      "story": "Compile and link 20 small C programs in browser or server.",
+      "inputs": [
+        {
+          "description": "Project-owned C programs plus audited permissive examples.",
+          "fixtureState": "proposed",
+          "rightsStatus": "requires-audit",
+          "provenanceStatus": "source-identified",
+          "licenseSpdx": "LicenseRef-Requires-Audit",
+          "redistribution": "not-reviewed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "conformance",
+        "equivalenceClass": "semantic-product-choice",
+        "algorithmFamily": "c-toolchain-fixed-revision-flags",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "20 frozen sources with pinned toolchain and exported test oracle.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "feasible",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "feasible",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "measured",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "Large compiler module, VFS, object files and linker peak."
+      ],
+      "boundaryConcerns": [
+        "VFS and subprocess assumptions counted."
+      ],
+      "priorArt": [
+        {
+          "name": "LLVM",
+          "source": "https://github.com/llvm/llvm-project",
+          "toolchain": "clang/LLVM/Wasm",
+          "licenseSpdx": "Apache-2.0 WITH LLVM-exception"
+        }
+      ],
+      "blockers": [
+        "Huge cold load/memory",
+        "Self-hosting complexity",
+        "Fixture audit"
+      ]
+    },
+    {
+      "id": "tooling.minify-format.v1",
+      "title": "Minify and format source",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P2",
+      "class": "complete-task",
+      "domain": "tooling",
+      "story": "Format or minify 5 MiB of JS, CSS and HTML.",
+      "inputs": [
+        {
+          "description": "Generated source plus audited permissive fixtures.",
+          "fixtureState": "proposed",
+          "rightsStatus": "requires-audit",
+          "provenanceStatus": "source-identified",
+          "licenseSpdx": "LicenseRef-Requires-Audit",
+          "redistribution": "not-reviewed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "canonical-semantic",
+        "equivalenceClass": "semantic-product-choice",
+        "algorithmFamily": "source-tool-fixed-version-options",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "Frozen files, options and parser round-trip checks.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "not-applicable",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "ASTs, strings and source-map buffers."
+      ],
+      "boundaryConcerns": [
+        "Exact output only comparable within same tool/version."
+      ],
+      "priorArt": [
+        {
+          "name": "Prettier",
+          "source": "https://github.com/prettier/prettier",
+          "toolchain": "JavaScript",
+          "licenseSpdx": "MIT"
+        },
+        {
+          "name": "terser",
+          "source": "https://github.com/terser/terser",
+          "toolchain": "JavaScript",
+          "licenseSpdx": "BSD-2-Clause"
+        },
+        {
+          "name": "swc",
+          "source": "https://github.com/swc-project/swc",
+          "toolchain": "Rust/Wasm",
+          "licenseSpdx": "Apache-2.0"
+        }
+      ],
+      "blockers": [
+        "Fixture rights audit",
+        "Different outputs and language coverage"
+      ]
+    },
+    {
+      "id": "tooling.typescript-rebuild.v1",
+      "title": "TypeScript parse, typecheck and bundle",
+      "status": "proposed",
+      "stage": "proposal",
+      "priority": "P0",
+      "class": "complete-task",
+      "domain": "tooling",
+      "story": "Rebuild a 1,000-module generated project after one edit.",
+      "inputs": [
+        {
+          "description": "Generated modules and dependency graph.",
+          "fixtureState": "proposed",
+          "rightsStatus": "proposed-generated",
+          "provenanceStatus": "project-proposed",
+          "licenseSpdx": "CC0-1.0",
+          "redistribution": "generated-proposed",
+          "sha256": null,
+          "recipe": "Required before freeze; generated or download recipe must pin bytes and revision."
+        }
+      ],
+      "oracle": {
+        "kind": "canonical-semantic",
+        "equivalenceClass": "semantic-product-choice",
+        "algorithmFamily": "typescript-project-fixed-edit",
+        "description": "Observable output and structural checks are frozen before implementation measurement."
+      },
+      "fixedWork": {
+        "description": "One fixed edit, compiler options and normalized diagnostics/bundle checks.",
+        "iterationBased": true,
+        "timeLimited": false
+      },
+      "applicability": {
+        "javascript": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "linear-wasm": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "wasmgc": {
+          "applicability": "strong",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        },
+        "hybrid": {
+          "applicability": "primary",
+          "notes": "Candidate coverage only; implementation and equivalence review pending."
+        }
+      },
+      "phases": {
+        "load": "measured",
+        "transfer": "measured",
+        "compute": "measured",
+        "io": "separate",
+        "render": "not-applicable",
+        "end-to-end": "measured"
+      },
+      "memoryConcerns": [
+        "AST/type graph, module cache and source-map buffers."
+      ],
+      "boundaryConcerns": [
+        "Different tools compare as product choices, same tool across targets as equivalent."
+      ],
+      "priorArt": [
+        {
+          "name": "TypeScript",
+          "source": "https://github.com/microsoft/TypeScript",
+          "toolchain": "JavaScript",
+          "licenseSpdx": "Apache-2.0"
+        },
+        {
+          "name": "esbuild",
+          "source": "https://github.com/evanw/esbuild",
+          "toolchain": "Go/Wasm",
+          "licenseSpdx": "MIT"
+        },
+        {
+          "name": "swc",
+          "source": "https://github.com/swc-project/swc",
+          "toolchain": "Rust/Wasm",
+          "licenseSpdx": "Apache-2.0"
+        }
+      ],
+      "blockers": [
+        "Transform outputs differ",
+        "Startup and VFS assumptions"
+      ]
+    }
+  ]
+}
