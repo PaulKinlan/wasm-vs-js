@@ -6,9 +6,10 @@ const root = "raw/runs";
 const output = "raw/summaries/m1-pilot-1.json";
 const store = new LocalRunStore(root);
 await store.initialize();
-const runs = await store.list();
+const page = await store.listPage(50);
+const runs = page.runs;
 const body = {
-  ...generateSummary(runs),
+  ...generateSummary(runs, page.total, page.truncated),
   sourcePayloads: runs.map((run) => run.payloadSha256).sort(),
 };
 const summarySha256 = await sha256Hex(canonicalize(body));

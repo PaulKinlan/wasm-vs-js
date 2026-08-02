@@ -30,6 +30,7 @@ const buildManifest = JSON.parse(
   ),
 ) as Record<string, unknown>;
 const variants = buildManifest.variants as Record<string, Record<string, unknown>>;
+const expectedCommit = Deno.env.get("WASM_VS_JS_COMMIT") ?? "";
 const expectedVariants = new Map([
   ["js-controlled", { target: "javascript", artifact: "benchmarks/sum-u32/workload.js" }],
   [
@@ -58,6 +59,9 @@ function semanticRun(value: Record<string, unknown>): boolean {
   const batch = capabilities.measurementBatchSize;
   if (!expected || !variantBuild || !Number.isSafeInteger(batch) || Number(batch) < 1) return false;
   if (
+    !/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(expectedCommit) ||
+    (value.suite as Record<string, unknown>).commit !== expectedCommit ||
+    build.sourceCommit !== expectedCommit ||
     benchmark.id !== benchmarkDefinition.id || benchmark.version !== benchmarkDefinition.version ||
     benchmark.tier !== benchmarkDefinition.tier ||
     benchmark.inputManifestSha256 !==

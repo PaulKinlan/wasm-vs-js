@@ -33,6 +33,8 @@ Deno.test("local server stores an immutable run and exposes an inspectable summa
     const summaryResponse = await handler(new Request("http://127.0.0.1/api/summary"));
     const summary = await summaryResponse.json();
     assertEquals(summary.claimStatus, "pilot-only");
+    assertEquals(summary.sourceRunCount, 1);
+    assertEquals(summary.truncated, false);
     assertEquals(summary.cells[0].trajectories[0].samples[0].iteration, 0);
 
     const detail = await handler(new Request(`http://127.0.0.1/api/runs/${run.runId}`));

@@ -1,5 +1,6 @@
 import { hashCanonicalEnvelope } from "../lib/canonical.ts";
 
+const expectedCommit = Deno.env.get("WASM_VS_JS_COMMIT") ?? "";
 const manifest = JSON.parse(
   await Deno.readTextFile("public/artifacts/sum-u32/build-manifest.json"),
 );
@@ -9,7 +10,7 @@ export async function validRun(overrides: Record<string, unknown> = {}) {
     schemaVersion: 1,
     runId: "run_0000000000000001",
     capturedAt: "2026-08-02T10:00:00Z",
-    suite: { version: "0.1.0-m1-pilot", commit: "a".repeat(40), collectorVersion: "0.1.0" },
+    suite: { version: "0.1.0-m1-pilot", commit: expectedCommit, collectorVersion: "0.1.0" },
     benchmark: {
       id: "sum-u32",
       version: 1,
@@ -24,7 +25,7 @@ export async function validRun(overrides: Record<string, unknown> = {}) {
     },
     build: {
       sourceRepository: manifest.sourceRepository,
-      sourceCommit: "a".repeat(40),
+      sourceCommit: expectedCommit,
       sourceSha256: manifest.sourceSha256,
       artifacts: [{
         name: "benchmarks/sum-u32/workload.js",

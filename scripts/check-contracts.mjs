@@ -1,5 +1,6 @@
 import { validateBenchmark, validateRun } from "../lib/contracts.ts";
 const hash = "a".repeat(64);
+const expectedCommit = Deno.env.get("WASM_VS_JS_COMMIT") ?? "";
 const manifest = JSON.parse(
   await Deno.readTextFile("public/artifacts/sum-u32/build-manifest.json"),
 );
@@ -45,7 +46,7 @@ const run = {
   schemaVersion: 1,
   runId: "run_0000000000000001",
   capturedAt: "2026-08-02T10:00:00Z",
-  suite: { version: "0.1.0", commit: hash, collectorVersion: "0.1.0" },
+  suite: { version: "0.1.0", commit: expectedCommit, collectorVersion: "0.1.0" },
   benchmark: {
     id: "sum-u32",
     version: 1,
@@ -60,7 +61,7 @@ const run = {
   },
   build: {
     sourceRepository: manifest.sourceRepository,
-    sourceCommit: hash,
+    sourceCommit: expectedCommit,
     sourceSha256: manifest.sourceSha256,
     artifacts: [{
       name: "benchmarks/sum-u32/workload.js",

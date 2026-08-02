@@ -56,25 +56,33 @@ export class LocalRunStore {
     }
   }
 
-  async list(limit = 20): Promise<RunRecord[]> {
+  async listPage(limit = 50): Promise<{ runs: RunRecord[]; total: number; truncated: boolean }> {
     if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100) {
       throw new Error("run limit denied");
     }
     const runs: RunRecord[] = [];
     try {
-      const names: string[] = [];
+      const entries: Array<{ name: string; modified: number }> = [];
       for await (const entry of Deno.readDir(this.root)) {
-        if (entry.isFile && entry.name.endsWith(".json")) names.push(entry.name);
+        if (!entry.isFile || !entry.name.endsWith(".json")) continue;
+        const stat = await Deno.stat(`${this.root}/${entry.name}`);
+        entries.push({ name: entry.name, modified: stat.mtime?.getTime() ?? 0 });
       }
-      for (const name of names.sort().slice(-limit)) {
+      entries.sort((a, b) => a.modified - b.modified || a.name.localeCompare(b.name));
+      for (const { name } of entries.slice(-limit)) {
         const path = `${this.root}/${name}`;
         if ((await Deno.stat(path)).size > MAX_RUN_BYTES) throw new Error("stored run too large");
         runs.push(JSON.parse(await Deno.readTextFile(path)));
       }
+      runs.sort((a, b) => String(a.capturedAt).localeCompare(String(b.capturedAt)));
+      return { runs, total: entries.length, truncated: entries.length > runs.length };
     } catch (error) {
-      if (error instanceof Deno.errors.NotFound) return [];
+      if (error instanceof Deno.errors.NotFound) return { runs: [], total: 0, truncated: false };
       throw error;
     }
-    return runs.sort((a, b) => String(a.capturedAt).localeCompare(String(b.capturedAt)));
+  }
+
+  async list(limit = 50): Promise<RunRecord[]> {
+    return (await this.listPage(limit)).runs;
   }
 }

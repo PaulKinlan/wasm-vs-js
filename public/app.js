@@ -22,6 +22,8 @@ function renderMetrics(data) {
   [...metrics.querySelectorAll("dd")].forEach((item, index) => item.textContent = values[index]);
   claimStatus.textContent = data.claimStatus === "no-runs"
     ? "No local run records exist."
+    : data.truncated
+    ? `Showing the newest ${data.runCount} of ${data.sourceRunCount} local pilot records; no accepted performance claim.`
     : "Local pilot records only; no accepted performance claim.";
 }
 

@@ -455,6 +455,10 @@ async function recordPair({ env, cacheState, order, iterations }) {
         `${variant}:${iteration}:end`,
       );
       if (sample.output !== ORACLE) {
+        for (const previous of run.samples) {
+          previous.valid = false;
+          previous.exclusionReason = "Trial rejected after a timed output mismatch.";
+        }
         run.samples.push({
           iteration,
           phase: "scored-execute",
@@ -462,10 +466,16 @@ async function recordPair({ env, cacheState, order, iterations }) {
           valid: false,
           exclusionReason: "Timed output changed from the frozen oracle.",
         });
+        run.correctness = {
+          status: "failed",
+          detail:
+            "A timed output changed from the frozen oracle, so the entire trial was rejected.",
+          workCounters: run.correctness.workCounters,
+        };
         run.failures.push({
           stage: "timing",
           category: "output-mismatch",
-          detail: "Timed output changed from the frozen oracle; later iterations were not run.",
+          detail: "The entire trial was rejected and later iterations were not run.",
         });
         break;
       }

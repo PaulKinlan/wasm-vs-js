@@ -44,8 +44,11 @@ Deno.test("store listing is bounded before summary generation", async () => {
         }),
       );
     }
-    assertEquals((await store.list()).length, 20);
-    await assertRejects(() => store.list(101), "run limit denied");
+    const page = await store.listPage(20);
+    assertEquals(page.runs.length, 20);
+    assertEquals(page.total, 21);
+    assertEquals(page.truncated, true);
+    await assertRejects(() => store.listPage(101), "run limit denied");
   } finally {
     await Deno.remove(root, { recursive: true });
   }

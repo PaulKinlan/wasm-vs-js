@@ -15,12 +15,18 @@ export type Summary = {
   algorithmVersion: "m1-pilot-1";
   claimStatus: "no-runs" | "pilot-only";
   runCount: number;
+  sourceRunCount: number;
+  truncated: boolean;
   pairedBlockCount: number;
   cells: Array<Record<string, unknown>>;
   runs: Array<Record<string, unknown>>;
 };
 
-export function generateSummary(runs: RunRecord[]): Summary {
+export function generateSummary(
+  runs: RunRecord[],
+  sourceRunCount = runs.length,
+  truncated = sourceRunCount > runs.length,
+): Summary {
   const groups = new Map<string, RunRecord[]>();
   for (const run of runs) {
     const key = [run.benchmark.id, run.variant.id, run.variant.cacheState].join("|");
@@ -66,6 +72,8 @@ export function generateSummary(runs: RunRecord[]): Summary {
     algorithmVersion: "m1-pilot-1",
     claimStatus: runs.length === 0 ? "no-runs" : "pilot-only",
     runCount: runs.length,
+    sourceRunCount,
+    truncated,
     pairedBlockCount: new Set(runs.map((run) => run.environment.pairedBlockId)).size,
     cells,
     runs: runs.map((run) => ({

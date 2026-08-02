@@ -37,7 +37,7 @@ Uploads happen after measurement. `POST /api/runs` validates the published schem
 deno task summary
 ```
 
-This writes `raw/summaries/m1-pilot-1.json` from immutable source payloads. The summary retains first-iteration medians, full trajectories, absolute durations, cache state, launch/block counts, and its own canonical hash. It deliberately emits no ratio, confidence interval, or winner.
+This writes `raw/summaries/m1-pilot-1.json` from immutable source payloads. The summary retains first scored post-calibration medians, full scored trajectories, separate first-use lifecycle metrics, absolute durations, cache state, launch/block counts, and its own canonical hash. It deliberately emits no ratio, confidence interval, or winner.
 
 ## What remains before M1 acceptance
 

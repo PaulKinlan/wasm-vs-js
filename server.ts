@@ -91,9 +91,9 @@ function createHandler(store: LocalRunStore) {
         : json({ error: "method denied" }, 405);
     }
     if (url.pathname === "/api/summary") {
-      return request.method === "GET"
-        ? json(generateSummary(await store.list(20)))
-        : json({ error: "method denied" }, 405);
+      if (request.method !== "GET") return json({ error: "method denied" }, 405);
+      const page = await store.listPage(50);
+      return json(generateSummary(page.runs, page.total, page.truncated));
     }
     if (url.pathname === "/api/runs") {
       if (request.method !== "POST") return json({ error: "method denied" }, 405);
