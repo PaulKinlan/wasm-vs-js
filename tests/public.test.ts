@@ -1,4 +1,11 @@
+import Ajv2020Module from "ajv2020";
+import addFormatsModule from "ajv-formats";
 import { assert } from "./assert.ts";
+
+const Ajv2020 = (Ajv2020Module as unknown as { default?: typeof Ajv2020Module }).default ??
+  Ajv2020Module;
+const addFormats = (addFormatsModule as unknown as { default?: typeof addFormatsModule }).default ??
+  addFormatsModule;
 
 Deno.test("results and runner pages expose evidence limits and accessible controls", async () => {
   const index = await Deno.readTextFile("public/index.html");
@@ -25,7 +32,14 @@ Deno.test("versioned public acceptance package is explicit and contains no inven
     await Deno.readTextFile("public/evidence/v1/acceptance.json"),
   );
   assert(evidencePage.includes("Accepted code, not a performance result"));
-  assert(evidencePage.includes("does not fabricate either"));
+  assert(evidencePage.includes("does not present the attestation as proof"));
+  const schema = JSON.parse(await Deno.readTextFile("schemas/public-acceptance.schema.json"));
+  const ajv = new (Ajv2020 as unknown as new (options: Record<string, unknown>) => {
+    compile: (schema: unknown) => ((value: unknown) => boolean) & { errors?: unknown };
+  })({ allErrors: true, strict: false });
+  (addFormats as unknown as (instance: unknown) => void)(ajv);
+  const validate = ajv.compile(schema);
+  assert(validate(acceptance), JSON.stringify(validate.errors));
   assert(acceptance.acceptedSource.commit === "9c309c4941d1b8550c15f8549f95a5636a634ef6");
   assert(acceptance.artifact.bytes === 96);
   assert(acceptance.claims.performanceClaimAccepted === false);
@@ -34,6 +48,10 @@ Deno.test("versioned public acceptance package is explicit and contains no inven
   assert(acceptance.limitations.some((item: string) => item.includes("intentionally removed")));
   assert(!("runs" in acceptance));
   assert(!("samples" in acceptance));
+  assert(acceptance.runtimeValidation.status === "parent-attested-unverified");
+  const poisoned = structuredClone(acceptance);
+  poisoned.runtimeValidation.secret = "must be rejected";
+  assert(!validate(poisoned), "closed schema accepted an additional evidence field");
 });
 
 Deno.test("public pages contain no inline script, inline style, or remote asset", async () => {
@@ -43,7 +61,10 @@ Deno.test("public pages contain no inline script, inline style, or remote asset"
     assert(!/\sstyle=/i.test(html), `${path} has inline style`);
     assert(
       !/https?:\/\//i.test(
-        html.replaceAll("https://github.com/PaulKinlan/wasm-vs-js/blob/main/PLAN.md", ""),
+        html.replaceAll(
+          "https://github.com/PaulKinlan/wasm-vs-js/blob/9c309c4941d1b8550c15f8549f95a5636a634ef6/PLAN.md",
+          "",
+        ),
       ),
       `${path} has unexpected remote asset`,
     );

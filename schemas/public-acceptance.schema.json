@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.aifoc.us/schemas/public-acceptance.schema.json",
+  "title": "Public implementation acceptance package",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "packageId",
+    "publishedAt",
+    "status",
+    "acceptedSource",
+    "claims",
+    "verification",
+    "artifact",
+    "runtimeValidation",
+    "independentReview",
+    "limitations"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "packageId": { "const": "m1-implementation-validation-v1" },
+    "publishedAt": { "type": "string", "format": "date" },
+    "status": { "const": "implementation-accepted" },
+    "acceptedSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "commit", "scope"],
+      "properties": {
+        "repository": { "const": "https://github.com/PaulKinlan/wasm-vs-js" },
+        "commit": { "const": "9c309c4941d1b8550c15f8549f95a5636a634ef6" },
+        "scope": { "type": "string", "minLength": 1, "maxLength": 200 }
+      }
+    },
+    "claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "implementationAccepted",
+        "performanceClaimAccepted",
+        "pairedFreshLaunchCorpusExists",
+        "minimumRequiredPairs",
+        "statement"
+      ],
+      "properties": {
+        "implementationAccepted": { "const": true },
+        "performanceClaimAccepted": { "const": false },
+        "pairedFreshLaunchCorpusExists": { "const": false },
+        "minimumRequiredPairs": { "const": 20 },
+        "statement": { "type": "string", "minLength": 1, "maxLength": 500 }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command", "result", "tests", "gates", "negativeContractInvariants"],
+      "properties": {
+        "command": { "const": "deno task check" },
+        "result": { "const": "passed" },
+        "tests": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["passed", "failed", "skipped"],
+          "properties": {
+            "passed": { "const": 16 },
+            "failed": { "const": 0 },
+            "skipped": { "const": 0 }
+          }
+        },
+        "gates": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 100 }
+        },
+        "negativeContractInvariants": { "const": 15 }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "route",
+        "buildManifestRoute",
+        "bytes",
+        "sha256",
+        "gzipBytes",
+        "brotliBytes",
+        "acceptedBuildSourceSha256",
+        "reproductionCommand"
+      ],
+      "properties": {
+        "route": { "const": "/artifacts/sum-u32/sum-u32.wasm" },
+        "buildManifestRoute": { "const": "/artifacts/sum-u32/build-manifest.json" },
+        "bytes": { "const": 96 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "gzipBytes": { "type": "integer", "minimum": 1, "maximum": 10000 },
+        "brotliBytes": { "type": "integer", "minimum": 1, "maximum": 10000 },
+        "acceptedBuildSourceSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "reproductionCommand": { "const": "deno task build" }
+      }
+    },
+    "runtimeValidation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "browser",
+        "route",
+        "observedAssertions",
+        "retainedBrowserArtifacts",
+        "retainedBrowserArtifactReason",
+        "cleanup"
+      ],
+      "properties": {
+        "status": { "const": "parent-attested-unverified" },
+        "browser": { "type": "string", "minLength": 1, "maxLength": 150 },
+        "route": { "const": "http://127.0.0.1:19000/run" },
+        "observedAssertions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 300 }
+        },
+        "retainedBrowserArtifacts": { "const": false },
+        "retainedBrowserArtifactReason": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "cleanup": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ownedServerPid",
+            "ownedServerStopped",
+            "generatedValidationRecordsRemoved",
+            "mcpPageClosed",
+            "browserProcessAction"
+          ],
+          "properties": {
+            "ownedServerPid": { "type": "integer", "minimum": 1 },
+            "ownedServerStopped": { "const": true },
+            "generatedValidationRecordsRemoved": { "const": 2 },
+            "mcpPageClosed": { "const": true },
+            "browserProcessAction": { "const": "not-applicable-reused-existing-mcp-browser" }
+          }
+        }
+      }
+    },
+    "independentReview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["verdict", "reviewRun", "blockers", "highFindings", "mediumFindings", "scope"],
+      "properties": {
+        "verdict": { "const": "ACCEPT" },
+        "reviewRun": { "const": "f2f58de5" },
+        "blockers": { "const": 0 },
+        "highFindings": { "const": 0 },
+        "mediumFindings": { "const": 0 },
+        "scope": { "type": "string", "minLength": 1, "maxLength": 400 }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1, "maxLength": 500 }
+    }
+  }
+}

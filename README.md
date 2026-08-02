@@ -59,7 +59,7 @@ deno task build    # reproducible WAT → Wasm plus build/footprint manifest
 deno task check    # build, format, lint, typecheck, contracts, and tests
 deno task local    # writable local pilot at http://127.0.0.1:8787
 deno task summary  # versioned summary from immutable local runs
-WASM_VS_JS_COMMIT="$(git rev-parse HEAD)" deno task public # read-only host smoke
+deno task public # read-only host smoke
 ```
 
 Read the [M1 local pilot protocol](docs/m1-local-pilot.md) before recording a run. It explains the exact environment manifest, cold/warm states, correctness gate, immutable storage, and why manual pilots are not acceptance evidence.

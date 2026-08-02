@@ -9,9 +9,10 @@ if (configuredMode !== "local" && configuredMode !== "public") {
   throw new Error("SERVER_MODE must be local or public");
 }
 const mode: ServerMode = configuredMode;
-const reviewedCommit = Deno.env.get("WASM_VS_JS_COMMIT") ?? "";
-if (!/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(reviewedCommit)) {
-  throw new Error("WASM_VS_JS_COMMIT must be an explicit reviewed Git commit");
+const acceptedImplementationCommit = "9c309c4941d1b8550c15f8549f95a5636a634ef6";
+const localCheckoutCommit = Deno.env.get("WASM_VS_JS_COMMIT") ?? "";
+if (mode === "local" && !/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(localCheckoutCommit)) {
+  throw new Error("WASM_VS_JS_COMMIT must identify the local Git checkout");
 }
 const defaultStore = mode === "local"
   ? new LocalRunStore(new URL("raw/runs/", root).pathname)
@@ -109,14 +110,7 @@ const routes = new Map<string, [string, string, boolean?]>([
   ]],
 ]);
 
-function createHandler(
-  store: LocalRunStore | null,
-  serverMode: ServerMode = "local",
-  commit = reviewedCommit,
-) {
-  if (!/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(commit)) {
-    throw new Error("reviewed commit required");
-  }
+function createHandler(store: LocalRunStore | null, serverMode: ServerMode = "local") {
   if (serverMode === "local" && !store) throw new Error("local store required");
   return async function handler(request: Request): Promise<Response> {
     const url = new URL(request.url);
@@ -129,7 +123,8 @@ function createHandler(
           status: "ok",
           mode: serverMode === "public" ? "public-read-only" : "local-m1-pilot",
           schemaVersion: 1,
-          reviewedCommit: commit,
+          acceptedImplementationCommit,
+          ...(serverMode === "local" ? { localCheckoutCommit } : {}),
         })
         : json({ error: "method denied" }, 405);
     }
@@ -183,7 +178,7 @@ function createHandler(
   };
 }
 
-const handler = createHandler(defaultStore, mode, reviewedCommit);
+const handler = createHandler(defaultStore, mode);
 
 if (import.meta.main) {
   console.log(

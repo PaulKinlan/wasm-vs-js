@@ -46,8 +46,7 @@ Deno.test("local server stores an immutable run and exposes an inspectable summa
 });
 
 Deno.test("public server is fail-closed read-only and exposes only sanitized evidence", async () => {
-  const commit = Deno.env.get("WASM_VS_JS_COMMIT") ?? "";
-  const handler = createHandler(null, "public", commit);
+  const handler = createHandler(null, "public");
 
   const home = await handler(new Request("http://127.0.0.1/"));
   assertEquals(home.status, 200);
@@ -61,7 +60,11 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
   const health = await handler(new Request("http://127.0.0.1/healthz"));
   const healthBody = await health.json();
   assertEquals(healthBody.mode, "public-read-only");
-  assertEquals(healthBody.reviewedCommit, commit);
+  assertEquals(
+    healthBody.acceptedImplementationCommit,
+    "9c309c4941d1b8550c15f8549f95a5636a634ef6",
+  );
+  assertEquals("localCheckoutCommit" in healthBody, false);
 
   for (const path of ["/api/runs", "/api/runs/example", "/styles.css", "/unknown"]) {
     const denied = await handler(
@@ -81,16 +84,6 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
   const summary = await (await handler(new Request("http://127.0.0.1/api/summary"))).json();
   assertEquals(summary.runCount, 0);
   assertEquals(summary.claimStatus, "no-runs");
-});
-
-Deno.test("public handler rejects missing reviewed commit", () => {
-  let rejected = false;
-  try {
-    createHandler(null, "public", "");
-  } catch {
-    rejected = true;
-  }
-  assert(rejected);
 });
 
 Deno.test("local server bounds writes and serves exact Wasm MIME", async () => {

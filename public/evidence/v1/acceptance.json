@@ -13,7 +13,7 @@
     "performanceClaimAccepted": false,
     "pairedFreshLaunchCorpusExists": false,
     "minimumRequiredPairs": 20,
-    "statement": "This package proves an accepted implementation and one manual runtime validation. It contains no benchmark result or JavaScript-versus-Wasm performance conclusion."
+    "statement": "This package records an independently accepted implementation and a parent-reported, unverified manual runtime attestation. It contains no benchmark result or JavaScript-versus-Wasm performance conclusion."
   },
   "verification": {
     "command": "deno task check",
@@ -45,7 +45,7 @@
     "reproductionCommand": "deno task build"
   },
   "runtimeValidation": {
-    "status": "passed-manual-validation",
+    "status": "parent-attested-unverified",
     "browser": "HeadlessChrome 150.0.0.0 (Blink/V8)",
     "route": "http://127.0.0.1:19000/run",
     "observedAssertions": [
@@ -71,7 +71,7 @@
     "blockers": 0,
     "highFindings": 0,
     "mediumFindings": 0,
-    "scope": "Exact commit implementation review; browser and performance claims were not independently assessed."
+    "scope": "Exact commit implementation review; the runtime attestation and all browser and performance claims were not independently assessed."
   },
   "limitations": [
     "The two manual validation records were intentionally removed after runtime verification and are not published as raw evidence.",
