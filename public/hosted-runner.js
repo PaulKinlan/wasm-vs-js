@@ -7,6 +7,7 @@ import {
   positiveNumberHint,
   startResponsivenessObservation,
   supported,
+  unavailable,
 } from "./provenance-probes.js";
 
 const INPUT_LENGTH = 65_536;
@@ -122,10 +123,10 @@ async function capturePageBefore() {
     },
     memory: {
       legacyChromiumHeapBefore: captureLegacyChromiumHeap(performance),
-      userAgentSpecificBefore: await captureUaSpecificMemory(performance, {
-        isSecureContext,
-        crossOriginIsolated,
-      }),
+      userAgentSpecificBefore: unavailable(
+        "not-observed",
+        "Not launched before scored work because this non-cancellable API may coordinate garbage collection and outlive a timeout.",
+      ),
     },
   };
 }
