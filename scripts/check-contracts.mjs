@@ -1,6 +1,8 @@
 import Ajv2020 from "ajv2020";
+import addFormats from "ajv-formats";
 
-const ajv = new Ajv2020({ allErrors: true, strict: false, validateFormats: false });
+const ajv = new Ajv2020({ allErrors: true, strict: false });
+addFormats(ajv);
 const benchmarkSchema = JSON.parse(await Deno.readTextFile("schemas/benchmark.schema.json"));
 const runSchema = JSON.parse(await Deno.readTextFile("schemas/run.schema.json"));
 const validateBenchmarkSchema = ajv.compile(benchmarkSchema);
@@ -115,8 +117,18 @@ function semanticBenchmark(value) {
   const ids = value.variants.map((variant) => variant.id);
   if (new Set(ids).size !== ids.length) return false;
   const usedTracks = new Set(value.variants.map((variant) => variant.track));
-  return value.tracks.length === usedTracks.size &&
-    value.tracks.every((track) => usedTracks.has(track));
+  if (
+    value.tracks.length !== usedTracks.size ||
+    !value.tracks.every((track) => usedTracks.has(track))
+  ) return false;
+  const controlledTargets = new Set(
+    value.variants.filter((variant) => variant.track === "controlled").map((variant) =>
+      variant.target
+    ),
+  );
+  return value.variants.every(
+    (variant) => variant.track !== "optimized" || controlledTargets.has(variant.target),
+  );
 }
 
 function validBenchmark(value) {
@@ -143,6 +155,14 @@ expect(
   false,
 );
 expect(
+  "optimized variant requires same-target controlled baseline",
+  validBenchmark({
+    ...benchmark,
+    variants: benchmark.variants.filter((variant) => variant.id !== "js-controlled"),
+  }),
+  false,
+);
+expect(
   "optimized variant requires log",
   validBenchmark({
     ...benchmark,
@@ -161,6 +181,16 @@ expect(
 );
 
 expect("positive run", validateRunSchema(run), true);
+expect(
+  "source repository format is validated",
+  validateRunSchema({ ...run, build: { ...run.build, sourceRepository: "not a URI" } }),
+  false,
+);
+expect(
+  "capture date format is validated",
+  validateRunSchema({ ...run, capturedAt: "not a date" }),
+  false,
+);
 expect("passed run requires samples", validateRunSchema({ ...run, samples: [] }), false);
 expect(
   "work counters are non-empty",
@@ -215,4 +245,4 @@ expect(
   false,
 );
 
-console.log("contract-check: positive fixtures and 12 negative invariants passed");
+console.log("contract-check: positive fixtures and 15 negative invariants passed");

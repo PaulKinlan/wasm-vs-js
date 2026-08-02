@@ -30,7 +30,7 @@
       "required": ["version", "commit"],
       "properties": {
         "version": { "type": "string", "minLength": 1 },
-        "commit": { "$ref": "#/$defs/sha256" },
+        "commit": { "$ref": "#/$defs/gitOid" },
         "collectorVersion": { "type": "string", "minLength": 1 }
       }
     },
@@ -72,7 +72,7 @@
       ],
       "properties": {
         "sourceRepository": { "type": "string", "format": "uri", "maxLength": 1000 },
-        "sourceCommit": { "$ref": "#/$defs/sha256" },
+        "sourceCommit": { "$ref": "#/$defs/gitOid" },
         "sourceSha256": { "$ref": "#/$defs/sha256" },
         "artifacts": {
           "type": "array",
@@ -294,6 +294,7 @@
   ],
   "$defs": {
     "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "gitOid": { "type": "string", "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$" },
     "nonNegativeInteger": { "type": "integer", "minimum": 0 },
     "availability": {
       "oneOf": [

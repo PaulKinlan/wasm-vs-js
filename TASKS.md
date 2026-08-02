@@ -35,7 +35,7 @@ Tasks are ordered by dependency. A checked box means the exact acceptance criter
 - [ ] Launch exact owned Chrome process/profile for cold runs.
 - [ ] Implement warm-cache protocol and verify resource/cache state.
 - [ ] Randomize paired order with retained seed.
-- [ ] Run a pilot, then at least 20 paired fresh launches or label it inconclusive.
+- [ ] Run a separately labelled pilot, freeze the launch floor/precision target/cap, then collect at least 20 paired fresh launches and continue to target or cap; label inconclusive only at the cap.
 - [ ] Retain browser version, flags, console/network, assertions, screenshots, and exact cleanup.
 
 ### Results

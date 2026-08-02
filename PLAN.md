@@ -182,7 +182,7 @@ Raw evidence includes:
 - immutable references to larger traces/profiles;
 - canonical payload hash.
 
-Canonical hashes use SHA-256 over UTF-8 JSON with recursively sorted object keys, preserved array order, finite JSON numbers, and no insignificant whitespace. `payloadSha256` is omitted while hashing the run envelope and then inserted. Schema version 1 cannot change this algorithm.
+Canonical hashes use SHA-256 over the UTF-8 bytes of RFC 8785 JSON Canonicalization Scheme output. `payloadSha256` is omitted while canonicalizing and hashing the run envelope, then inserted. Schema version 1 cannot change this algorithm.
 
 Published IDs, schema versions, routes, slugs, and result links are compatibility contracts.
 
@@ -262,7 +262,7 @@ Workloads, scoring, input hashes, and exclusion rules freeze before measurement.
 
 **Journey:** build → correctness/work gate → fresh cold paired runs → warm paired runs → inspect lifecycle, samples, sizes, provenance, and unavailable metrics.
 
-**Acceptance:** at least 20 paired fresh launches or an explicit pilot/inconclusive label; no database or deployment required.
+**Acceptance:** after at least 20 paired fresh launches, either the preregistered precision target is met or collection continues to the preregistered cap; only a cell that reaches the cap without the target is labelled inconclusive. A separately labelled pilot cannot satisfy M1. No database or deployment is required.
 
 ### M2 — benchmark family and boundaries
 
@@ -317,6 +317,7 @@ The next commit after M0 starts M1 with one small complete workload rather than 
 - Navigation Timing: https://www.w3.org/TR/navigation-timing-2/
 - Resource Timing: https://www.w3.org/TR/resource-timing/
 - High Resolution Time: https://www.w3.org/TR/hr-time-2/
+- JSON Canonicalization Scheme (RFC 8785): https://www.rfc-editor.org/rfc/rfc8785
 - WebDriver BiDi: https://www.w3.org/TR/webdriver-bidi/
 - JetStream 3: https://browserbench.org/JetStream/in-depth.html
 - Speedometer 3.1: https://browserbench.org/Speedometer3.1/about.html
