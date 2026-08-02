@@ -252,6 +252,8 @@ Workloads, scoring, input hashes, and exclusion rules freeze before measurement.
 
 ### M0 — public plan and contracts
 
+**Status:** Accepted at `b07694a7473f14a0b217b603a51d8c3d2b9cfa22`; independent exact-commit review returned ACCEPT with no blocker or high finding.
+
 **Deliverable:** public README, canonical plan, task graph, repository rules, benchmark/run schemas, and explicit acceptance gates.
 
 **Acceptance:** files are committed and visible on GitHub; schemas parse; repository validation passes; independent review finds no methodology blocker.

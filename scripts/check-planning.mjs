@@ -4,6 +4,7 @@ const requiredFiles = [
   "PLAN.md",
   "README.md",
   "TASKS.md",
+  "docs/acceptance/m0.md",
   "schemas/benchmark.schema.json",
   "schemas/run.schema.json",
 ];

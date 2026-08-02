@@ -4,12 +4,12 @@ Tasks are ordered by dependency. A checked box means the exact acceptance criter
 
 ## M0 — public plan and contracts
 
-- [ ] Publish direct README and repository rules.
-- [ ] Publish canonical methodology/product plan.
-- [ ] Publish milestone and implementation task graph.
-- [ ] Define benchmark and immutable run schemas plus positive/negative contract fixtures.
-- [ ] Independently review the exact M0 commit and correct blockers.
-- [ ] Record M0 acceptance with exact commit and review verdict.
+- [x] Publish direct README and repository rules.
+- [x] Publish canonical methodology/product plan.
+- [x] Publish milestone and implementation task graph.
+- [x] Define benchmark and immutable run schemas plus positive/negative contract fixtures.
+- [x] Independently review the exact M0 commit and correct blockers.
+- [x] Record M0 acceptance with exact commit and review verdict.
 
 ## M1 — first complete vertical slice
 
