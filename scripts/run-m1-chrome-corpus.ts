@@ -39,7 +39,40 @@ import {
   sourceManifest,
 } from "../lib/source-identity.ts";
 
-const args = new Set(Deno.args);
+export const CORPUS_OPERATION_FLAGS = [
+  "--preflight",
+  "--dry-run-fake",
+  "--inspect-chrome-package",
+  "--diagnostic-stub",
+  "--consume-permit",
+  "--collect-all",
+  "--collect-one",
+] as const;
+export type CorpusOperation = (typeof CORPUS_OPERATION_FLAGS)[number];
+const PERMIT_CONSUMING_OPERATIONS: ReadonlySet<CorpusOperation> = new Set([
+  "--consume-permit",
+  "--collect-all",
+  "--collect-one",
+]);
+
+export function selectCorpusOperation(argv: readonly string[]): CorpusOperation {
+  const selected = argv.filter((argument): argument is CorpusOperation =>
+    CORPUS_OPERATION_FLAGS.includes(argument as CorpusOperation)
+  );
+  if (selected.length !== 1) {
+    throw new Error(
+      `exactly one corpus operation flag required; received ${selected.length}: ${
+        selected.join(", ") || "none"
+      }`,
+    );
+  }
+  return selected[0];
+}
+
+export function isPermitConsumingOperation(operation: CorpusOperation): boolean {
+  return PERMIT_CONSUMING_OPERATIONS.has(operation);
+}
+
 const permitPath = Deno.args.find((x) => x.startsWith("--permit="))?.slice(9);
 const manifestPath = Deno.args.find((x) => x.startsWith("--manifest="))?.slice(11);
 const sourceCommit = Deno.env.get("WASM_VS_JS_COMMIT") ?? "";
@@ -1562,115 +1595,133 @@ export async function dryFake() {
 }
 
 if (import.meta.main) {
-  const dry = args.has("--dry-run-fake"), check = await preflight(!dry);
-  if (dry) console.log(JSON.stringify({ preflight: check, dryFake: await dryFake() }));
-  else if (args.has("--inspect-chrome-package")) {
-    const inspected = await inspectChromePackage(
-      "/home/paulkinlan/.local/bin/google-chrome-stable",
-      "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355",
-    );
-    console.log(JSON.stringify({
-      ...check,
-      chromePackageManifestSha256: inspected.manifestSha256,
-      chromeBinarySha256: inspected.binarySha256,
-      fileCount: Object.keys(inspected.files).length,
-      permitField: { chromePackageManifestSha256: inspected.manifestSha256 },
-      browserLaunched: false,
-    }));
-  } else if (args.has("--diagnostic-stub")) {
-    console.log(
-      JSON.stringify({
+  // Resolve the operation before preflight or any operation-specific side effect. Filtering a Set
+  // would hide duplicate operation flags, so selection intentionally uses the original argv.
+  const operation = selectCorpusOperation(Deno.args);
+  if (isPermitConsumingOperation(operation)) await attestAndRestrictTemporaryRoot();
+  const check = await preflight(operation !== "--dry-run-fake");
+
+  switch (operation) {
+    case "--preflight":
+      console.log(JSON.stringify({
         preflight: check,
-        implemented: false,
+        permit: permitPath
+          ? validatePermit(JSON.parse(await Deno.readTextFile(permitPath)), { sourceCommit })
+          : "not supplied",
+        noBrowserLaunched: true,
+      }));
+      break;
+    case "--dry-run-fake":
+      console.log(JSON.stringify({ preflight: check, dryFake: await dryFake() }));
+      break;
+    case "--inspect-chrome-package": {
+      const inspected = await inspectChromePackage(
+        "/home/paulkinlan/.local/bin/google-chrome-stable",
+        "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355",
+      );
+      console.log(JSON.stringify({
+        ...check,
+        chromePackageManifestSha256: inspected.manifestSha256,
+        chromeBinarySha256: inspected.binarySha256,
+        fileCount: Object.keys(inspected.files).length,
+        permitField: { chromePackageManifestSha256: inspected.manifestSha256 },
         browserLaunched: false,
-        reason:
-          "Diagnostics require a future separate permit, launch family, schema, and review; headline collection cannot invoke them.",
-      }),
-    );
-  } else if (args.has("--consume-permit")) {
-    if (!permitPath) throw new Error("--permit required");
-    const receipt = await consumePermit(permitPath, "raw/permits", { sourceCommit });
-    console.log(
-      JSON.stringify({
-        preflight: check,
-        consumed: receipt.digest,
-        permitId: receipt.permit.permitId,
-        next: "permit consumed; no retry or second invocation is permitted",
-      }),
-    );
-  } else if (args.has("--collect-all")) {
-    if (!permitPath) throw new Error("--permit required");
-    await attestAndRestrictTemporaryRoot();
-    const permit = validatePermit(JSON.parse(await Deno.readTextFile(permitPath)), {
-      sourceCommit,
-      operation: "collect-uninstrumented-headline-paired-corpus",
-      maximumLaunches: 120,
-    });
-    const stage = await stageChromePackage(
-      permit.chromeBinary,
-      permit.chromeSha256,
-      permit.permitId,
-    );
-    let safeToRemoveStage = false;
-    try {
-      if (stage.manifestSha256 !== permit.chromePackageManifestSha256) {
-        throw new Error("Chrome package manifest differs from authorized permit");
-      }
-      const receipt = await consumePermit(permitPath, "raw/permits", permit);
-      const corpus = await collectAll(
-        permit,
-        receipt.digest,
-        check,
-        collectOwnedBlock,
-        "raw/corpora",
-        stage,
-      );
-      console.log(JSON.stringify(corpus));
-      await verifyStagedChrome(stage);
-      safeToRemoveStage = corpus.status !== "containment-blocked";
-    } finally {
-      if (safeToRemoveStage) await removeStagedChrome(stage);
+      }));
+      break;
     }
-  } else if (args.has("--collect-one")) {
-    if (!permitPath || !manifestPath) throw new Error("--permit and --manifest required");
-    await attestAndRestrictTemporaryRoot();
-    const permit = validatePermit(JSON.parse(await Deno.readTextFile(permitPath)), {
-      sourceCommit,
-      operation: "pilot-m1-corpus",
-    });
-    const stage = await stageChromePackage(
-      permit.chromeBinary,
-      permit.chromeSha256,
-      permit.permitId,
-    );
-    let safeToRemoveStage = false;
-    try {
-      if (stage.manifestSha256 !== permit.chromePackageManifestSha256) {
-        throw new Error("Chrome package manifest differs from authorized permit");
-      }
-      await consumePermit(permitPath, "raw/permits", permit);
+    case "--diagnostic-stub":
       console.log(
-        JSON.stringify(
-          await collectOwnedBlock(
-            permit,
-            JSON.parse(await Deno.readTextFile(manifestPath)) as LaunchManifest,
-            undefined,
-            check.sourceManifestSha256,
-            undefined,
-            stage,
-          ),
-        ),
+        JSON.stringify({
+          preflight: check,
+          implemented: false,
+          browserLaunched: false,
+          reason:
+            "Diagnostics require a future separate permit, launch family, schema, and review; headline collection cannot invoke them.",
+        }),
       );
-      await verifyStagedChrome(stage);
-      safeToRemoveStage = true;
-    } finally {
-      if (safeToRemoveStage) await removeStagedChrome(stage);
+      break;
+    case "--consume-permit": {
+      if (!permitPath) throw new Error("--permit required");
+      const receipt = await consumePermit(permitPath, "raw/permits", { sourceCommit });
+      console.log(
+        JSON.stringify({
+          preflight: check,
+          consumed: receipt.digest,
+          permitId: receipt.permit.permitId,
+          next: "permit consumed; no retry or second invocation is permitted",
+        }),
+      );
+      break;
     }
-  } else {console.log(JSON.stringify({
-      preflight: check,
-      permit: permitPath
-        ? validatePermit(JSON.parse(await Deno.readTextFile(permitPath)), { sourceCommit })
-        : "not supplied",
-      noBrowserLaunched: true,
-    }));}
+    case "--collect-all": {
+      if (!permitPath) throw new Error("--permit required");
+      const permit = validatePermit(JSON.parse(await Deno.readTextFile(permitPath)), {
+        sourceCommit,
+        operation: "collect-uninstrumented-headline-paired-corpus",
+        maximumLaunches: 120,
+      });
+      const stage = await stageChromePackage(
+        permit.chromeBinary,
+        permit.chromeSha256,
+        permit.permitId,
+      );
+      let safeToRemoveStage = false;
+      try {
+        if (stage.manifestSha256 !== permit.chromePackageManifestSha256) {
+          throw new Error("Chrome package manifest differs from authorized permit");
+        }
+        const receipt = await consumePermit(permitPath, "raw/permits", permit);
+        const corpus = await collectAll(
+          permit,
+          receipt.digest,
+          check,
+          collectOwnedBlock,
+          "raw/corpora",
+          stage,
+        );
+        console.log(JSON.stringify(corpus));
+        await verifyStagedChrome(stage);
+        safeToRemoveStage = corpus.status !== "containment-blocked";
+      } finally {
+        if (safeToRemoveStage) await removeStagedChrome(stage);
+      }
+      break;
+    }
+    case "--collect-one": {
+      if (!permitPath || !manifestPath) throw new Error("--permit and --manifest required");
+      const permit = validatePermit(JSON.parse(await Deno.readTextFile(permitPath)), {
+        sourceCommit,
+        operation: "pilot-m1-corpus",
+      });
+      const stage = await stageChromePackage(
+        permit.chromeBinary,
+        permit.chromeSha256,
+        permit.permitId,
+      );
+      let safeToRemoveStage = false;
+      try {
+        if (stage.manifestSha256 !== permit.chromePackageManifestSha256) {
+          throw new Error("Chrome package manifest differs from authorized permit");
+        }
+        await consumePermit(permitPath, "raw/permits", permit);
+        console.log(
+          JSON.stringify(
+            await collectOwnedBlock(
+              permit,
+              JSON.parse(await Deno.readTextFile(manifestPath)) as LaunchManifest,
+              undefined,
+              check.sourceManifestSha256,
+              undefined,
+              stage,
+            ),
+          ),
+        );
+        await verifyStagedChrome(stage);
+        safeToRemoveStage = true;
+      } finally {
+        if (safeToRemoveStage) await removeStagedChrome(stage);
+      }
+      break;
+    }
+  }
 }

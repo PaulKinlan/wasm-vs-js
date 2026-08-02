@@ -11,6 +11,7 @@ Deno.test("production corpus tasks authorize only the current user app-slice for
       `${task} must authorize its authenticated cgroup.kill descriptor`,
     );
     assert(!command.includes("--allow-write=/sys/fs/cgroup"), `${task} cgroup write is too broad`);
+    assert(command.includes("deno run --no-lock --no-prompt"), `${task} must disable prompts`);
     assert(
       command.includes("--allow-read=.,/proc,/etc/os-release,/sys/fs/cgroup,/tmp,"),
       `${task} must be able to attest the /tmp parent before creating an owned profile`,
