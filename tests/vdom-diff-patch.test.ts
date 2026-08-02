@@ -33,3 +33,32 @@ Deno.test("vdom-diff-patch: deterministic fixture and oracle correctness", async
   assertEquals(wasmResult.canonicalHtml, jsResult.canonicalHtml);
   assertEquals(wasmResult.nodesVisited, jsResult.nodesVisited);
 });
+
+Deno.test("vdom-diff-patch: source inspectability contract metadata", async () => {
+  const manifestText = await Deno.readTextFile(
+    "public/artifacts/vdom-diff-patch/build-manifest.json",
+  );
+  const manifest = JSON.parse(manifestText);
+
+  assert(manifest.inspectability !== undefined);
+  assertEquals(
+    manifest.inspectability.commitPermalinkTemplate,
+    "https://github.com/PaulKinlan/wasm-vs-js/tree/{commit}",
+  );
+  assertEquals(
+    manifest.inspectability.executedJsSource.path,
+    "benchmarks/vdom-diff-patch/workload.js",
+  );
+  assert(manifest.inspectability.executedJsSource.sha256.length === 64);
+  assertEquals(
+    manifest.inspectability.authoredWasmSource.path,
+    "benchmarks/vdom-diff-patch/vdom-diff-patch.wat",
+  );
+  assertEquals(manifest.inspectability.authoredWasmSource.language, "wat");
+  assert(manifest.inspectability.authoredWasmSource.sha256.length === 64);
+  assertEquals(
+    manifest.inspectability.compiledArtifact.downloadRoute,
+    "/artifacts/vdom-diff-patch/vdom-diff-patch.wasm",
+  );
+  assert(manifest.inspectability.buildRecipe.command === "deno task build");
+});

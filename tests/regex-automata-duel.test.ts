@@ -43,3 +43,32 @@ Deno.test("regex-automata-duel: corpus generation and engine duel correctness", 
   assertEquals(wasmResult.patternsExecuted, nativeResult.patternsExecuted);
   assert(wasmResult.matchesFound > 0);
 });
+
+Deno.test("regex-automata-duel: source inspectability contract metadata", async () => {
+  const manifestText = await Deno.readTextFile(
+    "public/artifacts/regex-automata-duel/build-manifest.json",
+  );
+  const manifest = JSON.parse(manifestText);
+
+  assert(manifest.inspectability !== undefined);
+  assertEquals(
+    manifest.inspectability.commitPermalinkTemplate,
+    "https://github.com/PaulKinlan/wasm-vs-js/tree/{commit}",
+  );
+  assertEquals(
+    manifest.inspectability.executedJsSource.path,
+    "benchmarks/regex-automata-duel/workload.js",
+  );
+  assert(manifest.inspectability.executedJsSource.sha256.length === 64);
+  assertEquals(
+    manifest.inspectability.authoredWasmSource.path,
+    "benchmarks/regex-automata-duel/regex-automata.wat",
+  );
+  assertEquals(manifest.inspectability.authoredWasmSource.language, "wat");
+  assert(manifest.inspectability.authoredWasmSource.sha256.length === 64);
+  assertEquals(
+    manifest.inspectability.compiledArtifact.downloadRoute,
+    "/artifacts/regex-automata-duel/regex-automata-duel.wasm",
+  );
+  assert(manifest.inspectability.buildRecipe.command === "deno task build");
+});

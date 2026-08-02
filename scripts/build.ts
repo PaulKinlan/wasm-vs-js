@@ -167,6 +167,11 @@ async function compileWat(watPath: string) {
   const jsArtifact = await Deno.readFile(new URL("benchmarks/vdom-diff-patch/workload.js", root));
   const lockfile = await Deno.readFile(new URL("deno.lock", root));
 
+  const watSha256 = await sha256Hex(new TextEncoder().encode(wat));
+  const wasmSha256 = await sha256Hex(wasm);
+  const jsSha256 = await sha256Hex(jsArtifact);
+  const lockfileSha256 = await sha256Hex(lockfile);
+
   const manifest = {
     schemaVersion: 1,
     benchmarkId: "vdom-diff-patch",
@@ -181,6 +186,35 @@ async function compileWat(watPath: string) {
       sha256: inputSha256,
     },
     oracle: { kind: "canonical-digest-and-invariants", outputSha256: inputSha256 },
+    inspectability: {
+      commitPermalinkTemplate: "https://github.com/PaulKinlan/wasm-vs-js/tree/{commit}",
+      executedJsSource: {
+        path: "benchmarks/vdom-diff-patch/workload.js",
+        sha256: jsSha256,
+        permalinkTemplate:
+          "https://github.com/PaulKinlan/wasm-vs-js/blob/{commit}/benchmarks/vdom-diff-patch/workload.js",
+      },
+      authoredWasmSource: {
+        path: "benchmarks/vdom-diff-patch/vdom-diff-patch.wat",
+        language: "wat",
+        sha256: watSha256,
+        permalinkTemplate:
+          "https://github.com/PaulKinlan/wasm-vs-js/blob/{commit}/benchmarks/vdom-diff-patch/vdom-diff-patch.wat",
+      },
+      compiledArtifact: {
+        path: "public/artifacts/vdom-diff-patch/vdom-diff-patch.wasm",
+        sha256: wasmSha256,
+        downloadRoute: "/artifacts/vdom-diff-patch/vdom-diff-patch.wasm",
+        permalinkTemplate:
+          "https://github.com/PaulKinlan/wasm-vs-js/raw/{commit}/public/artifacts/vdom-diff-patch/vdom-diff-patch.wasm",
+      },
+      buildRecipe: {
+        command: "deno task build",
+        toolchains: [`Deno ${Deno.version.deno}`, "wabt 1.0.37"],
+        flags: ["wabt canonicalize_lebs=true"],
+        lockfileSha256,
+      },
+    },
     variants: {
       "js-controlled": {
         source: "benchmarks/vdom-diff-patch/workload.js",
@@ -263,6 +297,11 @@ async function compileWat(watPath: string) {
   );
   const lockfile = await Deno.readFile(new URL("deno.lock", root));
 
+  const watSha256 = await sha256Hex(new TextEncoder().encode(wat));
+  const wasmSha256 = await sha256Hex(wasm);
+  const jsSha256 = await sha256Hex(jsArtifact);
+  const lockfileSha256 = await sha256Hex(lockfile);
+
   const manifest = {
     schemaVersion: 1,
     benchmarkId: "regex-automata-duel",
@@ -278,6 +317,35 @@ async function compileWat(watPath: string) {
       sha256: inputSha256,
     },
     oracle: { kind: "canonical-digest-and-invariants", outputSha256: inputSha256 },
+    inspectability: {
+      commitPermalinkTemplate: "https://github.com/PaulKinlan/wasm-vs-js/tree/{commit}",
+      executedJsSource: {
+        path: "benchmarks/regex-automata-duel/workload.js",
+        sha256: jsSha256,
+        permalinkTemplate:
+          "https://github.com/PaulKinlan/wasm-vs-js/blob/{commit}/benchmarks/regex-automata-duel/workload.js",
+      },
+      authoredWasmSource: {
+        path: "benchmarks/regex-automata-duel/regex-automata.wat",
+        language: "wat",
+        sha256: watSha256,
+        permalinkTemplate:
+          "https://github.com/PaulKinlan/wasm-vs-js/blob/{commit}/benchmarks/regex-automata-duel/regex-automata.wat",
+      },
+      compiledArtifact: {
+        path: "public/artifacts/regex-automata-duel/regex-automata-duel.wasm",
+        sha256: wasmSha256,
+        downloadRoute: "/artifacts/regex-automata-duel/regex-automata-duel.wasm",
+        permalinkTemplate:
+          "https://github.com/PaulKinlan/wasm-vs-js/raw/{commit}/public/artifacts/regex-automata-duel/regex-automata-duel.wasm",
+      },
+      buildRecipe: {
+        command: "deno task build",
+        toolchains: [`Deno ${Deno.version.deno}`, "wabt 1.0.37"],
+        flags: ["wabt canonicalize_lebs=true"],
+        lockfileSha256,
+      },
+    },
     variants: {
       "js-native-controlled": {
         source: "benchmarks/regex-automata-duel/workload.js",
