@@ -31,7 +31,8 @@ export function generateSignal(length = SAMPLE_COUNT): Float32Array {
 // Both JS and Wasm read this identical f32 table — no trig in the butterfly loop.
 export function generateTwiddleTable(n: number): Float32Array {
   const stages = Math.log2(n);
-  const table = new Float32Array(n); // n/2 complex pairs = n f32 values
+  const totalPairs = n - 1; // 1+2+4+...+n/2 = n-1
+  const table = new Float32Array(totalPairs * 2); // each pair = 2 f32 values
   let idx = 0;
   for (let stage = 0; stage < stages; stage++) {
     const halfLen = 1 << stage;
