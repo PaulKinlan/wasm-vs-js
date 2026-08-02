@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "id": "image-editing-proposal-v1",
+  "status": "proposal-out-of-catalog",
+  "authoritativePerformanceEvidence": false,
+  "pixelFormat": {
+    "layout": "row-major-top-to-bottom",
+    "channels": "RGBA",
+    "storage": "uint8",
+    "alpha": "straight",
+    "colorTag": "sRGB-bytes-no-conversion",
+    "stride": "width*4",
+    "transparentPixelRule": "generated transparent pixels have RGB=0"
+  },
+  "floodFill": {
+    "algorithm": "iterative-depth-first-pixel-stack",
+    "membershipSource": "immutable-source",
+    "connectivity": 4,
+    "pushOrder": ["north", "east", "south", "west"],
+    "eligibility": "max(abs(candidate.rgba[i]-seed.rgba[i])) <= 12",
+    "replacement": [34, 139, 230, 191],
+    "visitedRule": "mark on push; an in-bounds neighbour is tested only after a member pixel is popped",
+    "noOpRule": "if the seed equals the replacement, return before the first push",
+    "oracle": "exact-rgba-and-visited-mask",
+    "counterRules": {
+      "operations": "4 seed replacement comparisons; then 8 integer membership operations per popped pixel and 1 visited predicate per in-bounds neighbour test",
+      "readBytes": "4 seed bytes; then 4 stack bytes and 4 source bytes per pop plus 1 mask byte per neighbour test",
+      "writeBytes": "5 bytes per push (mask plus u32 stack entry) and 4 output bytes per member pixel",
+      "visitedPixels": "stack pops",
+      "changedPixels": "member pixels written to the replacement",
+      "allocations": "application-owned buffer allocations during materialization; resident algorithm is zero",
+      "boundaryCrossings": "one resident algorithm call; ingress and egress are copy-phase crossings"
+    }
+  },
+  "lumaGaussianPipeline": {
+    "passes": [
+      "luma=(77R+150G+29B+128)>>8 into uint8 scratch",
+      "horizontal [1,2,1] into uint16 scratch with replicate borders",
+      "vertical [1,2,1], add 8 then >>4, write gray RGB and copy source alpha"
+    ],
+    "oracle": "exact-rgba",
+    "counterRules": {
+      "operationsPerPixel": 19,
+      "readBytesPerPixel": 13,
+      "writeBytesPerPixel": 7,
+      "visitedPixelsPerPixel": 1,
+      "allocations": "application-owned buffer allocations during materialization; resident algorithm is zero",
+      "boundaryCrossings": "one resident pipeline call; ingress and egress are copy-phase crossings"
+    }
+  },
+  "phases": [
+    {
+      "id": "fixture-materialization",
+      "timed": false,
+      "contract": "verify fixture manifest and allocate target-owned buffers"
+    },
+    {
+      "id": "ingress-and-reset-copy",
+      "timed": "separate-future-cell",
+      "contract": "copy immutable RGBA to target ownership; reset flood output and visited mask"
+    },
+    {
+      "id": "resident-algorithm",
+      "timed": "separate-future-cell",
+      "contract": "one batched target call with zero application-owned allocation and no validation"
+    },
+    {
+      "id": "egress-copy",
+      "timed": "separate-future-cell",
+      "contract": "copy complete RGBA and, for flood fill, the visited mask to validation ownership"
+    },
+    {
+      "id": "validation",
+      "timed": false,
+      "contract": "hash complete outputs and assert invariants outside resident compute"
+    },
+    {
+      "id": "canvas-upload",
+      "timed": "separate-future-browser-cell",
+      "contract": "one ImageData/putImageData upload of width*height*4 bytes"
+    },
+    {
+      "id": "presentation-proxy",
+      "timed": "separate-future-browser-cell",
+      "contract": "requestAnimationFrame followed by one queued task; label as a proxy rather than display scanout"
+    }
+  ],
+  "tolerance": {
+    "controlledPixels": "exact",
+    "controlledMasks": "exact",
+    "controlledAlgorithmCounters": "exact",
+    "controlledCopyBytesAndCrossings": "exact",
+    "materializationAllocations": "reported-per-target-not-pooled",
+    "optimizedOrHostVariants": "not-defined"
+  }
+}

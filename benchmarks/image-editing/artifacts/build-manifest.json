@@ -1,0 +1,195 @@
+{
+  "authoritativePerformanceEvidence": false,
+  "benchmarkId": "image-editing-proposal",
+  "benchmarkVersion": 1,
+  "build": {
+    "command": "deno run --allow-read=. --allow-write=benchmarks/image-editing/artifacts,benchmarks/image-editing/fixtures --allow-run scripts/build-image-editing.ts",
+    "flags": [
+      "wabt exceptions=false threads=false simd=false bulk_memory=false memory64=false",
+      "canonicalize_lebs=true relocatable=false write_debug_names=false",
+      "fixed WebAssembly memory initial=1 page maximum=1 page",
+      "gzip level=9 (Node zlib deterministic header)",
+      "brotli quality=11",
+      "Deno formatter for generated JSON manifests"
+    ],
+    "toolchains": ["Deno 2.9.0", "wabt 1.0.37", "node:zlib via Deno"]
+  },
+  "fixtures": {
+    "entries": [
+      {
+        "bytes": 12288,
+        "file": "benchmarks/image-editing/fixtures/generated-map-64x48.rgba",
+        "height": 48,
+        "id": "generated-map-64x48",
+        "purpose": "flood fill with barriers, concavities, a one-pixel opening, and transparent pixels",
+        "seed": "0x34c2a91d",
+        "sha256": "e73223a6982e72ffa4eedbc74c5e2d8622773ab66d67a7fef96188e39d299554",
+        "stride": 256,
+        "width": 64
+      },
+      {
+        "bytes": 4800,
+        "file": "benchmarks/image-editing/fixtures/generated-photo-40x30.rgba",
+        "height": 30,
+        "id": "generated-photo-40x30",
+        "purpose": "opaque multichannel gradient and deterministic noise for luma plus Gaussian filtering",
+        "seed": "0x8f31d4c7",
+        "sha256": "f57f8734dac54c95405d08b4121a1ccea15c0de9dd9adcef6624de1cc408a550",
+        "stride": 160,
+        "width": 40
+      }
+    ],
+    "manifest": "benchmarks/image-editing/fixtures/fixture-manifest.json",
+    "manifestSha256": "581b0fcad4a032751d7f6b2aed2aa865ff9034bb90962c3ea00b7ac07e660549"
+  },
+  "lockfiles": [
+    {
+      "name": "deno.lock",
+      "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2"
+    }
+  ],
+  "oracle": {
+    "floodFill": {
+      "algorithmCounters": {
+        "allocationBytes": 0,
+        "allocations": 0,
+        "boundaryCrossings": 1,
+        "changedPixels": 2795,
+        "maxFrontier": 1050,
+        "neighborTests": 10956,
+        "operations": 35536,
+        "readBytes": 35536,
+        "stackPops": 3072,
+        "stackPushes": 3072,
+        "visitedPixels": 3072,
+        "writeBytes": 26540
+      },
+      "changedBounds": { "maxX": 63, "maxY": 47, "minX": 0, "minY": 0 },
+      "changedPixels": 2795,
+      "fixture": "generated-map-64x48",
+      "outputSha256": "898507f255796bd6c3edfa4d938d369ceb3cf1c744f0554f8118949182e4f559",
+      "seed": [10, 12],
+      "visitedMaskSha256": "f40ae0b5c3ef9b289d6ae6643c8432e77994ad72118031aa7a28aa1357efd88c"
+    },
+    "lumaGaussianPipeline": {
+      "algorithmCounters": {
+        "allocationBytes": 0,
+        "allocations": 0,
+        "boundaryCrossings": 1,
+        "changedPixels": 0,
+        "maxFrontier": 0,
+        "neighborTests": 0,
+        "operations": 22800,
+        "readBytes": 15600,
+        "stackPops": 0,
+        "stackPushes": 0,
+        "visitedPixels": 1200,
+        "writeBytes": 8400
+      },
+      "fixture": "generated-photo-40x30",
+      "outputSha256": "286f9422579da9052de00c67ced53dd547fed6be27b21e608d286674dbb4006c"
+    }
+  },
+  "schemaVersion": 1,
+  "sourceCommit": "supplied by a future runner from the exact checked-out commit",
+  "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
+  "sourceSha256": "074a976772e0a0f6c3d57b90b4e37327c5318c6fa3fd2494fb611627d077839b",
+  "sources": [
+    {
+      "bytes": 3095,
+      "path": "benchmarks/image-editing/benchmark.json",
+      "sha256": "fc00c57e0f224b0997eef223918a1e0baed0e021693cb04e56044859028e3609"
+    },
+    {
+      "bytes": 3893,
+      "path": "benchmarks/image-editing/measurement-contract.json",
+      "sha256": "5948e1c3b5aa6c57269fcb44a64f7a89d4edcb680c17817d85ecfaca5fbb7816"
+    },
+    {
+      "bytes": 4658,
+      "path": "benchmarks/image-editing/contract.ts",
+      "sha256": "ac7adfb77257789984a6d22e3b7caf349b6381c1dc9d596ac5c30cabdcc6516a"
+    },
+    {
+      "bytes": 4428,
+      "path": "benchmarks/image-editing/fixtures.ts",
+      "sha256": "73b3f5fcfbcb7e07a8661b468a447fa75de7bd84aba6944823c111e3be814d55"
+    },
+    {
+      "bytes": 6675,
+      "path": "benchmarks/image-editing/js.ts",
+      "sha256": "87ec3764c91fc11a91831eddb460d12faa3fac48e24978747dae20b74f653bbc"
+    },
+    {
+      "bytes": 4852,
+      "path": "benchmarks/image-editing/wasm.ts",
+      "sha256": "3caebe851b7c9f63d1d0fc3cb93c2c57682e7aa5a8b55491597779e28ae0a326"
+    },
+    {
+      "bytes": 10453,
+      "path": "benchmarks/image-editing/image-editing.wat",
+      "sha256": "8805b60d279bb136c61b8dcb96c2e8ed5acaa61bdd0fe9ae4cff7855d6d637eb"
+    },
+    {
+      "bytes": 625,
+      "path": "benchmarks/image-editing/fixtures/RIGHTS.md",
+      "sha256": "cfad07015f4f008e87f525e02de75a58597bbcd354bfcd85a91916105c1e960c"
+    },
+    {
+      "bytes": 8955,
+      "path": "scripts/build-image-editing.ts",
+      "sha256": "dfd64dd29110bb99c7ed8027018975585223497cc452df32ab6b68f52f30c924"
+    },
+    {
+      "bytes": 1831,
+      "path": "deno.json",
+      "sha256": "17e6674c81fdaee7dfc52ed1bd28baeec70fb0715f839b92defe1e84545b08eb"
+    }
+  ],
+  "status": "proposal-out-of-catalog",
+  "track": "controlled",
+  "variants": {
+    "js-controlled": {
+      "algorithm": "immutable-source iterative DFS flood fill and integer luma plus separable [1,2,1] Gaussian passes",
+      "footprint": {
+        "brotliBytes": 3480,
+        "glueBytes": 0,
+        "gzipBytes": 3966,
+        "rawBytes": 15761,
+        "requestCount": 3,
+        "sourceBytes": 15761
+      },
+      "sha256": "6f8d4efb7e7138bc7c86adde0f4187ff13b08ff021630ad358bece29065c3605",
+      "sources": [
+        "benchmarks/image-editing/contract.ts",
+        "benchmarks/image-editing/fixtures.ts",
+        "benchmarks/image-editing/js.ts"
+      ]
+    },
+    "wasm-linear-controlled": {
+      "algorithm": "the controlled algorithms in one scalar module with a fixed one-page linear-memory layout",
+      "artifact": "benchmarks/image-editing/artifacts/image-editing.wasm",
+      "features": {
+        "bulkMemory": false,
+        "exceptions": false,
+        "initialPages": 1,
+        "maximumPages": 1,
+        "memory64": false,
+        "memoryGrowth": false,
+        "simd": false,
+        "threads": false
+      },
+      "footprint": {
+        "brotliBytes": 653,
+        "glueBytes": 4852,
+        "gzipBytes": 715,
+        "rawBytes": 1285,
+        "requestCount": 2,
+        "sourceBytes": 10453
+      },
+      "glue": "benchmarks/image-editing/wasm.ts",
+      "sha256": "8c4a6bcf5fa9eb362fb1a02cb245a958da78433846114166591eeea78f2381ba",
+      "source": "benchmarks/image-editing/image-editing.wat"
+    }
+  }
+}

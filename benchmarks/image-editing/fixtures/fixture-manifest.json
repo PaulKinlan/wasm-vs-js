@@ -1,0 +1,48 @@
+{
+  "family": "image-editing-proposal-v1",
+  "fixtures": [
+    {
+      "bytes": 12288,
+      "file": "benchmarks/image-editing/fixtures/generated-map-64x48.rgba",
+      "height": 48,
+      "id": "generated-map-64x48",
+      "purpose": "flood fill with barriers, concavities, a one-pixel opening, and transparent pixels",
+      "seed": "0x34c2a91d",
+      "sha256": "e73223a6982e72ffa4eedbc74c5e2d8622773ab66d67a7fef96188e39d299554",
+      "stride": 256,
+      "width": 64
+    },
+    {
+      "bytes": 4800,
+      "file": "benchmarks/image-editing/fixtures/generated-photo-40x30.rgba",
+      "height": 30,
+      "id": "generated-photo-40x30",
+      "purpose": "opaque multichannel gradient and deterministic noise for luma plus Gaussian filtering",
+      "seed": "0x8f31d4c7",
+      "sha256": "f57f8734dac54c95405d08b4121a1ccea15c0de9dd9adcef6624de1cc408a550",
+      "stride": 160,
+      "width": 40
+    }
+  ],
+  "format": {
+    "alpha": "straight",
+    "channels": "RGBA",
+    "colorTag": "sRGB-bytes-no-conversion",
+    "layout": "row-major-top-to-bottom",
+    "storage": "uint8",
+    "transparentPixelRule": "RGB=0 when A=0"
+  },
+  "generator": {
+    "arithmetic": "integer-only xorshift32, gradients, and pixel primitives",
+    "path": "benchmarks/image-editing/fixtures.ts",
+    "sha256": "73b3f5fcfbcb7e07a8661b468a447fa75de7bd84aba6944823c111e3be814d55"
+  },
+  "rights": {
+    "declaration": "benchmarks/image-editing/fixtures/RIGHTS.md",
+    "license": "CC0-1.0",
+    "redistribution": "permitted",
+    "source": "generated solely by benchmarks/image-editing/fixtures.ts without third-party media"
+  },
+  "schemaVersion": 1,
+  "status": "proposal-out-of-catalog"
+}
