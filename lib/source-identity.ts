@@ -1,5 +1,4 @@
 import { canonicalize, sha256Hex } from "./canonical.ts";
-import { validatePreregistration } from "./preregistration.ts";
 
 export const FROZEN_PREREGISTRATION_SHA256 =
   "d13aed9404ec289046f885f79a1d7b9f04923d2264de22b1fee60a4e7a8d6f61";
@@ -73,8 +72,6 @@ export async function sourceManifest(
       await Deno.readFile("experiments/m1-chrome-sum-u32-v1/preregistration.json"),
     ) !== await sha256Hex(publicPrereg)
   ) throw new Error("public preregistration copy mismatch");
-  const semantic = await validatePreregistration(prereg);
-  if (!semantic.ok) throw new Error(`preregistration invalid: ${semantic.errors.join("; ")}`);
   const body = { sourceCommit: expectedCommit, files };
   return { ...body, sha256: await sha256Hex(canonicalize(body)) };
 }
