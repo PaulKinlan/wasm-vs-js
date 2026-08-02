@@ -48,6 +48,8 @@ Deno.test("hosted runner is accessible, bounded, and has no mutation or persiste
   assert(script.includes("First-use lifecycle"));
   assert(script.includes("Scored post-calibration samples"));
   assert(script.includes("Not launched before scored work because this non-cancellable API"));
+  assert(script.includes("Not launched in the repeatable live runner"));
+  assert(!script.includes("captureUaSpecificMemory("));
   assert(core.includes("scheduler.yield"));
   assert(core.includes("digest = foldOutput"));
   assert(core.includes("allCorrect = allCorrect && output === ORACLE"));

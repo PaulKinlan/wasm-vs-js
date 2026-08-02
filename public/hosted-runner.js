@@ -2,7 +2,6 @@ import { boundedIterations, ORACLE } from "./hosted-runner-core.js";
 import {
   captureLegacyChromiumHeap,
   captureUaClientHints,
-  captureUaSpecificMemory,
   measureRefreshEstimate,
   positiveNumberHint,
   startResponsivenessObservation,
@@ -131,15 +130,15 @@ async function capturePageBefore() {
   };
 }
 
-async function capturePageAfter() {
+function capturePageAfter() {
   return {
     collectedNow: supported(performance.now(), { scope: "page-monotonic-milliseconds" }),
     visibilityState: supported(document.visibilityState),
     legacyChromiumHeapAfter: captureLegacyChromiumHeap(performance),
-    userAgentSpecificAfter: await captureUaSpecificMemory(performance, {
-      isSecureContext,
-      crossOriginIsolated,
-    }),
+    userAgentSpecificAfter: unavailable(
+      "not-observed",
+      "Not launched in the repeatable live runner because this non-cancellable API may coordinate garbage collection and overlap a later scored run.",
+    ),
   };
 }
 
