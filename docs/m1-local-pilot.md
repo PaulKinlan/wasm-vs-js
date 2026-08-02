@@ -39,6 +39,12 @@ deno task summary
 
 This writes `raw/summaries/m1-pilot-1.json` from immutable source payloads. The summary retains first scored post-calibration medians, full scored trajectories, separate first-use lifecycle metrics, absolute durations, cache state, launch/block counts, and its own canonical hash. It deliberately emits no ratio, confidence interval, or winner.
 
+## Chrome package immutability boundary
+
+Run `deno task --config deno.corpus.json corpus:inspect-chrome-package` before permit issuance; it launches no browser and prints the exact `chromePackageManifestSha256` field to freeze into the permit. The corpus collector then copies the complete reviewed Chrome package before permit consumption, hashes every file, requires that digest to equal the permit, and verifies it immediately before each launch. After systemd reports `MainPID`, it hashes `/proc/<MainPID>/exe` and requires device, inode, and SHA-256 equality before navigation or timed work. It performs no package hashing during scored work.
+
+Mode bits are not claimed as kernel-enforced immutability: portable unprivileged Deno cannot create a sealed executable while preserving Chromium's adjacent resource lookup on every supported filesystem. A malicious same-UID process could theoretically rewrite and restore one inode between the final package check and the post-exec `/proc` hash. Collection therefore requires a dedicated user session without untrusted same-UID processes. A kernel-sealed package design would require separate review.
+
 ## What remains before M1 acceptance
 
 An independently reviewed orchestrator must launch exact owned Chrome processes and profiles, gather at least 20 paired fresh launches, continue to the preregistered precision target or cap, retain console/network/screenshots/assertions, and prove exact process/profile cleanup. A manual pilot cannot satisfy that gate.

@@ -3,11 +3,13 @@ import { validateCorpusSemantics } from "../lib/corpus-validation.ts";
 const foundationSchemas = [
   "attempt-record.schema.json",
   "browser-permit.schema.json",
+  "chrome-package-manifest.schema.json",
   "collection-stop.schema.json",
   "corpus.schema.json",
   "launch-evidence.schema.json",
   "paired-block.schema.json",
   "network-attestation.schema.json",
+  "permit-receipt.schema.json",
   "source-manifest.schema.json",
 ];
 for (const name of foundationSchemas) {

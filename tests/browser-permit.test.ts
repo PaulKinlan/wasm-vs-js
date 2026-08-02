@@ -8,6 +8,7 @@ const permit = (overrides = {}) => ({
   sourceCommit: "a".repeat(40),
   chromeBinary: "/home/paulkinlan/.local/bin/google-chrome-stable",
   chromeSha256: "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355",
+  chromePackageManifestSha256: "c".repeat(64),
   origin: "http://127.0.0.1:8787",
   strata: ["cold", "warm"],
   maximumLaunches: 2,

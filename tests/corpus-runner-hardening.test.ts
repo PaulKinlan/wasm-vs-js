@@ -181,7 +181,7 @@ Deno.test("headline collector statically excludes heavy diagnostics and retains 
       "worker-result.json",
       "source-manifest.json",
       "assertPermitActive",
-      "sourceManifest(permit.sourceCommit)",
+      "dependencies.sourceManifest ?? sourceManifest",
     ]
   ) {
     assertEquals(source.includes(required), true);

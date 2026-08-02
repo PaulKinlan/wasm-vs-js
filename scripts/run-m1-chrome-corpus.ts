@@ -2,6 +2,7 @@ import { assertPermitActive, consumePermit, validatePermit } from "../lib/browse
 import { collectHostProvenance } from "../lib/host-provenance.ts";
 import { closeOwnedChrome, launchOwnedChrome } from "../lib/owned-chrome.ts";
 import {
+  inspectChromePackage,
   removeStagedChrome,
   stageChromePackage,
   StagedChrome,
@@ -15,6 +16,7 @@ import { canonicalize, sha256Hex } from "../lib/canonical.ts";
 import { evaluateAttemptCheckpoint } from "../lib/paired-statistics.ts";
 import {
   assertAttemptRecordSchema,
+  assertChromePackageManifestSchema,
   assertCollectionStopSchema,
   assertCorpusSchema,
   assertLaunchEvidenceSchema,
@@ -61,11 +63,13 @@ async function preflight(requireClean = true) {
     const path of [
       "attempt-record.schema.json",
       "browser-permit.schema.json",
+      "chrome-package-manifest.schema.json",
       "collection-stop.schema.json",
       "corpus.schema.json",
       "launch-evidence.schema.json",
       "paired-block.schema.json",
       "network-attestation.schema.json",
+      "permit-receipt.schema.json",
       "source-manifest.schema.json",
     ]
   ) await Deno.stat(`schemas/${path}`);
@@ -500,6 +504,19 @@ function networkRecords(
     return records;
   })();
 }
+type CollectionDependencies = {
+  sourceManifest?: (commit: string) => ReturnType<typeof sourceManifest>;
+  verifyOrigin?: typeof verifyOrigin;
+  verifyStage?: typeof verifyStagedChrome;
+  issueToken?: (
+    permit: ReturnType<typeof validatePermit>,
+    manifest: LaunchManifest,
+  ) => Promise<string>;
+  launch?: typeof launchReviewedChrome;
+  close?: typeof closeOwnedChrome;
+  refreshLedger?: typeof refreshLedger;
+  rawBase?: string;
+};
 export async function collectOwnedBlock(
   permit: ReturnType<typeof validatePermit>,
   manifest: LaunchManifest,
@@ -507,13 +524,7 @@ export async function collectOwnedBlock(
   expectedSourceManifestSha256?: string,
   onLaunchBegan?: (pid: number) => void,
   stagedChrome?: StagedChrome,
-  injectedExecution?: (manifest: LaunchManifest, onLaunchBegan?: (pid: number) => void) => Promise<{
-    blockSha256: string;
-    cleanup: true;
-    stratum: "cold" | "warm";
-    jsMedianMs: number;
-    wasmMedianMs: number;
-  }>,
+  dependencies: CollectionDependencies = {},
 ): Promise<
   {
     blockSha256: string;
@@ -524,36 +535,57 @@ export async function collectOwnedBlock(
   }
 > {
   assertPermitActive(permit);
-  if (injectedExecution) return await injectedExecution(manifest, onLaunchBegan);
-  const currentSource = await sourceManifest(permit.sourceCommit);
+  const currentSource = await (dependencies.sourceManifest ?? sourceManifest)(permit.sourceCommit);
   if (expectedSourceManifestSha256 && currentSource.sha256 !== expectedSourceManifestSha256) {
     throw new Error("executed source manifest changed after preflight");
   }
   expectedHashes ??= await collectorRouteHashes();
-  await verifyOrigin(permit, expectedHashes);
-  const issued = await fetch(`${permit.origin}/api/corpus/launch`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(manifest),
-    redirect: "error",
-  });
-  if (issued.status !== 201 || new URL(issued.url).origin !== permit.origin) {
-    throw new Error("local corpus launch token issue failed");
+  await (dependencies.verifyOrigin ?? verifyOrigin)(permit, expectedHashes);
+  let token: string;
+  if (dependencies.issueToken) token = await dependencies.issueToken(permit, manifest);
+  else {
+    const issued = await fetch(`${permit.origin}/api/corpus/launch`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(manifest),
+      redirect: "error",
+    });
+    if (issued.status !== 201 || new URL(issued.url).origin !== permit.origin) {
+      throw new Error("local corpus launch token issue failed");
+    }
+    const issuedBody = await issued.json();
+    if (typeof issuedBody.token !== "string") throw new Error("local corpus launch token missing");
+    token = issuedBody.token;
   }
-  const issuedBody = await issued.json();
-  if (typeof issuedBody.token !== "string") throw new Error("local corpus launch token missing");
   assertPermitActive(permit);
   if (!stagedChrome) throw new Error("staged Chrome package required");
-  const token = issuedBody.token,
-    owned = await launchReviewedChrome(
-      permit,
-      stagedChrome,
-      `${String(manifest.scheduleIndex).padStart(3, "0")}-${manifest.blockId}`,
-      onLaunchBegan,
-    );
-  const rawRoot = `raw/corpora/${manifest.corpusId}/launches/${manifest.blockId}`,
+  if (
+    stagedChrome.binarySha256 !== permit.chromeSha256 ||
+    stagedChrome.manifestSha256 !== permit.chromePackageManifestSha256
+  ) throw new Error("staged Chrome package not bound by permit");
+  await (dependencies.verifyStage ?? verifyStagedChrome)(stagedChrome);
+  const owned = await (dependencies.launch ?? launchReviewedChrome)(
+    permit,
+    stagedChrome,
+    `${String(manifest.scheduleIndex).padStart(3, "0")}-${manifest.blockId}`,
+    onLaunchBegan,
+  );
+  const corpusRoot = dependencies.rawBase ?? "raw/corpora",
+    rawRoot = `${corpusRoot}/${manifest.corpusId}/launches/${manifest.blockId}`,
     events: Array<Record<string, unknown>> = [],
     consoleEvents: Array<Record<string, unknown>> = [];
+  const chromePackageManifest = {
+    schemaVersion: 1,
+    binaryRelativePath: stagedChrome.binary.slice(stagedChrome.root.length + 1),
+    binarySha256: stagedChrome.binarySha256,
+    manifestSha256: stagedChrome.manifestSha256,
+    files: stagedChrome.files,
+  };
+  assertChromePackageManifestSchema(chromePackageManifest);
+  const chromePackageArtifact = await writeImmutableArtifact(
+    `${rawRoot}/chrome-package-manifest.json`,
+    canonicalize(chromePackageManifest) + "\n",
+  );
   let cleanupComplete = false;
   try {
     if (!String(owned.version.product ?? "").includes("150.0.7871.24")) {
@@ -730,7 +762,7 @@ export async function collectOwnedBlock(
     let nextLedgerRefresh = Date.now();
     while (Date.now() < deadline) {
       if (Date.now() >= nextLedgerRefresh) {
-        owned.ledger = await refreshLedger(owned.ledger);
+        owned.ledger = await (dependencies.refreshLedger ?? refreshLedger)(owned.ledger);
         nextLedgerRefresh = Date.now() + 1_000;
       }
       const value = nestedValue(
@@ -753,7 +785,7 @@ export async function collectOwnedBlock(
     if (consoleEvents.some((event) => "containmentError" in event)) {
       throw new Error("unknown auto-attached target denied");
     }
-    owned.ledger = await refreshLedger(owned.ledger);
+    owned.ledger = await (dependencies.refreshLedger ?? refreshLedger)(owned.ledger);
     const validated = validateWorkerResult(collected, manifest),
       after = await collectChromeProvenance(browser, browser, sessionId);
     assertContainedRequests(events, permit.origin);
@@ -815,7 +847,7 @@ export async function collectOwnedBlock(
         ),
       })),
     );
-    const closed = await closeOwnedChrome(owned);
+    const closed = await (dependencies.close ?? closeOwnedChrome)(owned);
     cleanupComplete = closed.cleaned;
     const typed = (value: unknown, source: string, scope: string) => ({
       status: "supported-value",
@@ -848,6 +880,8 @@ export async function collectOwnedBlock(
             controlGroup: owned.ledger.controlGroup,
             cgroupDev: owned.ledger.cgroupDev,
             cgroupIno: owned.ledger.cgroupIno,
+            invocationId: owned.ledger.invocationId,
+            chromePackageManifestSha256: stagedChrome.manifestSha256,
             mainPid: owned.ledger.mainPid,
             members: owned.ledger.members,
             membershipSnapshots: owned.ledger.membershipSnapshots,
@@ -888,6 +922,7 @@ export async function collectOwnedBlock(
           ? { networkPrimeAttestationJson: primeAttestationArtifact.sha256 }
           : {}),
         ...(primeEventsArtifact ? { networkPrimeEventsJson: primeEventsArtifact.sha256 } : {}),
+        chromePackageManifestJson: chromePackageArtifact.sha256,
         consoleJson: consoleArtifact.sha256,
         screenshotPng: screenshotArtifact.sha256,
         workerResultJson: workerArtifact.sha256,
@@ -906,7 +941,7 @@ export async function collectOwnedBlock(
       canonicalize(launchEvidence) + "\n",
     );
     const ordered = manifest.order.map((id) => records.find((r) => r.variantId === id)!);
-    const committed = await commitPairedBlock(`raw/corpora/${manifest.corpusId}`, {
+    const committed = await commitPairedBlock(`${corpusRoot}/${manifest.corpusId}`, {
       schemaVersion: 1,
       corpusId: manifest.corpusId,
       blockId: manifest.blockId,
@@ -929,7 +964,7 @@ export async function collectOwnedBlock(
       wasmMedianMs: wasm.medianMs,
     };
   } finally {
-    if (!cleanupComplete) await closeOwnedChrome(owned);
+    if (!cleanupComplete) await (dependencies.close ?? closeOwnedChrome)(owned);
   }
 }
 async function collectAll(
@@ -1134,6 +1169,7 @@ async function collectAll(
     experimentId: "m1-chrome-sum-u32-v1",
     permitDigest,
     sourceManifestSha256: checked.sourceManifestSha256,
+    chromePackageManifestSha256: permit.chromePackageManifestSha256,
     preregistrationSha256: FROZEN_PREREGISTRATION_SHA256,
     planned: 120,
     attempted,
@@ -1154,12 +1190,185 @@ async function collectAll(
   );
   return { ...corpus, corpusSha256: artifact.sha256 };
 }
-async function dryFake() {
+function fakeWorkerEnvelope(manifest: LaunchManifest) {
+  const variant = (value: number) => ({
+    count: 20,
+    medianMs: value,
+    p95Ms: value,
+    firstScoredMs: value,
+    samples: Array(20).fill(value),
+  });
+  return {
+    manifest,
+    result: {
+      capturedAt: new Date().toISOString(),
+      order: manifest.order[0] === "js-controlled" ? "js-first" : "wasm-first",
+      iterations: 20,
+      cache:
+        "No Service Worker controlled this page. Fake CDP cache evidence is attested externally.",
+      resourceTiming: BENCHMARK_ASSETS.map((route) => ({
+        route,
+        status: "not-observed",
+        reason: "dependency-injected CDP fixture",
+      })),
+      batchSize: 1,
+      correctness: {
+        passed: true,
+        oracle: 145417951,
+        jsFirstOutput: 145417951,
+        wasmFirstOutput: 145417951,
+        everyScoredInvocationValidated: true,
+        expectedBatchDigest: expectedBatchDigest(1),
+        scoredInvocationsPerVariant: 20,
+      },
+      identities: {
+        inputSha256: "4f0516549fc9d6952c8d42d642927dd5c43a8c01d03c286e0c80da919bfaf9d7",
+        manifestSha256: "38136e96462c5b98e3057e4ea18ae339150918aa50f1270eb3db88586185cf98",
+        javascriptSha256: "4d8379672c1b51b0b315d2bee119880694e5a4f6412ef59b7fe2593ef6b179b7",
+        wasmSha256: "9c4ce5f0d9e32cdd364b73b2697566e7396368d9867d9bc3d939bb2063583a6d",
+      },
+      work: {
+        items: 65536,
+        inputBytes: 262144,
+        additions: 65536,
+        loads: 65536,
+        boundaryCrossings: 1,
+      },
+      manifest: structuredClone(frozenBuildManifest),
+      jsSha256: "4d8379672c1b51b0b315d2bee119880694e5a4f6412ef59b7fe2593ef6b179b7",
+      wasmSha256: "9c4ce5f0d9e32cdd364b73b2697566e7396368d9867d9bc3d939bb2063583a6d",
+      lifecycle: {
+        manifestTransferMs: 1,
+        manifestBytes: 1,
+        manifestDecodeParseMs: 1,
+        jsTransferMs: 1,
+        jsBytes: 1,
+        jsHashVerifyMs: 1,
+        jsVerifiedModuleImportMs: 1,
+        jsModuleParseMs: { status: "unavailable", reason: "not isolated" },
+        jsModuleEvaluationMs: { status: "unavailable", reason: "not isolated" },
+        wasmTransferMs: 1,
+        wasmBytes: 1,
+        wasmHashVerifyMs: 1,
+        wasmCompileMs: 1,
+        wasmInstantiateMs: 1,
+        inputGenerateMs: 1,
+        inputCopyMs: 1,
+        jsFirstExecuteMs: 1,
+        wasmFirstExecuteMs: 1,
+      },
+      wasmLinearMemory: {
+        status: "supported-value",
+        scope: "webassembly-linear-memory-buffer-length",
+        caveat: "JavaScript-visible buffer length, not committed or resident physical memory.",
+        value: { beforeScoredBytes: 65536, afterScoredBytes: 65536 },
+      },
+      js: variant(10),
+      wasm: variant(9),
+    },
+  };
+}
+async function fakeCdpBrowser(manifest: LaunchManifest, origin: string) {
+  type Listener = (params: Record<string, unknown>, sessionId?: string) => void;
+  const listeners = new Map<string, Set<Listener>>(), bodies = new Map<string, Uint8Array>();
+  for (const route of BENCHMARK_ASSETS) bodies.set(route, await Deno.readFile(`public${route}`));
+  let currentUrl = "about:blank", result: Record<string, unknown> | undefined, released = false;
+  const emit = (method: string, params: Record<string, unknown>, sessionId?: string) =>
+    listeners.get(method)?.forEach((listener) => listener(params, sessionId));
+  const emitAssets = (sessionId: string, cached: boolean) => {
+    BENCHMARK_ASSETS.forEach((route, index) => {
+      const requestId = `${sessionId}-${index}`;
+      emit("Network.requestWillBeSent", {
+        requestId,
+        request: { url: `${origin}${route}`, method: "GET" },
+      }, sessionId);
+      emit("Network.responseReceived", {
+        requestId,
+        response: { status: 200, fromDiskCache: cached, fromServiceWorker: false },
+      }, sessionId);
+      if (cached) emit("Network.requestServedFromCache", { requestId }, sessionId);
+    });
+  };
+  const browser = {
+    on(method: string, listener: Listener) {
+      const set = listeners.get(method) ?? new Set<Listener>();
+      set.add(listener);
+      listeners.set(method, set);
+      return () => set.delete(listener);
+    },
+    close() {},
+    async send(method: string, params: Record<string, unknown> = {}, sessionId?: string) {
+      await Promise.resolve();
+      if (method === "Target.createTarget") return { targetId: "fake-page" };
+      if (method === "Target.attachToTarget") return { sessionId: "fake-page-session" };
+      if (method === "Page.navigate") {
+        currentUrl = String(params.url);
+        queueMicrotask(() => emit("Page.loadEventFired", {}, sessionId));
+        return { frameId: "fake-frame" };
+      }
+      if (method === "Runtime.evaluate") {
+        const expression = String(params.expression ?? "");
+        if (expression.includes("indexedDB.databases")) {
+          return {
+            result: {
+              value: {
+                localStorage: 0,
+                sessionStorage: 0,
+                indexedDB: 0,
+                serviceWorkers: 0,
+                controlled: false,
+              },
+            },
+          };
+        }
+        if (expression.startsWith("Promise.all(")) {
+          emitAssets(String(sessionId), false);
+          return { result: { value: [...BENCHMARK_ASSETS] } };
+        }
+        if (expression === "location.href") return { result: { value: currentUrl } };
+        if (expression.includes("#run-corpus")) {
+          emit("Target.attachedToTarget", {
+            sessionId: "fake-worker-session",
+            targetInfo: {
+              targetId: "fake-worker",
+              type: "worker",
+              url: `${origin}/hosted-runner-worker.js`,
+            },
+          });
+          emitAssets("fake-worker-session", manifest.stratum === "warm");
+          result = fakeWorkerEnvelope(manifest);
+          return { result: { value: true } };
+        }
+        if (expression.includes("__corpusError")) return { result: { value: result } };
+        if (expression.includes("__releaseCorpusWorker")) {
+          released = true;
+          return { result: { value: true } };
+        }
+        return { result: { value: {} } };
+      }
+      if (method === "Network.getResponseBody") {
+        const id = String(params.requestId), index = Number(id.slice(id.lastIndexOf("-") + 1));
+        const bytes = bodies.get(BENCHMARK_ASSETS[index])!;
+        return { body: Uint8Array.from(bytes).toBase64(), base64Encoded: true };
+      }
+      if (method === "Target.getTargets") return { targetInfos: released ? [] : [] };
+      if (method === "Page.captureScreenshot") {
+        return { data: new TextEncoder().encode("fake-png").toBase64() };
+      }
+      if (method === "Browser.getVersion") return { product: "Chrome/150.0.7871.24" };
+      if (method === "Browser.getBrowserCommandLine") return { arguments: ["fake-reviewed"] };
+      return {};
+    },
+  };
+  return browser;
+}
+export async function dryFake() {
   const root = "/tmp/wasm-vs-js-dry-fake";
   await Deno.remove(root, { recursive: true }).catch(() => {});
   await Deno.mkdir(root, { recursive: true, mode: 0o700 });
   try {
-    const now = new Date(),
+    const packageManifestSha256 = "c".repeat(64),
+      now = new Date(),
       permit = validatePermit({
         schemaVersion: 1,
         permitId: `dry-fake-${crypto.randomUUID()}`,
@@ -1168,6 +1377,7 @@ async function dryFake() {
         sourceCommit,
         chromeBinary: "/home/paulkinlan/.local/bin/google-chrome-stable",
         chromeSha256: "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355",
+        chromePackageManifestSha256: packageManifestSha256,
         origin: "http://127.0.0.1:8787",
         strata: ["cold", "warm"],
         maximumLaunches: 120,
@@ -1177,34 +1387,86 @@ async function dryFake() {
         authorizationReference: "dry-fake-no-browser",
         retryOf: null,
       });
-    let injectedCollectorCalls = 0;
+    const stage = {
+      root: `${root}/stage`,
+      binary: `${root}/stage/chrome`,
+      binarySha256: permit.chromeSha256,
+      manifestSha256: packageManifestSha256,
+      files: { chrome: permit.chromeSha256 },
+      rootDev: 1,
+      rootIno: 1,
+    };
+    let productionBlocks = 0;
     const fakeCollector: typeof collectOwnedBlock = async (
-      fakePermit,
+      p,
       manifest,
       hashes,
       source,
       onLaunch,
-      stage,
-    ) =>
-      await collectOwnedBlock(
-        fakePermit,
-        manifest,
-        hashes,
-        source,
-        onLaunch,
-        stage,
-        async (boundManifest, launch) => {
-          injectedCollectorCalls += 1;
-          launch?.(70_000 + boundManifest.scheduleIndex);
+      staged,
+    ) => {
+      const browser = await fakeCdpBrowser(manifest, p.origin);
+      return await collectOwnedBlock(p, manifest, hashes, source, onLaunch, staged, {
+        sourceManifest: () =>
+          Promise.resolve({
+            sourceCommit,
+            files: { "dry-fake.ts": "2".repeat(64) },
+            sha256: "1".repeat(64),
+          }),
+        verifyOrigin: () => Promise.resolve(),
+        verifyStage: () => Promise.resolve(),
+        issueToken: () => Promise.resolve("fake-token"),
+        launch: async (_p, _s, _suffix, began) => {
+          await Promise.resolve();
+          productionBlocks += 1;
+          began?.(70_000 + manifest.scheduleIndex);
           return {
-            blockSha256: await sha256Hex(canonicalize(boundManifest)),
-            cleanup: true,
-            stratum: boundManifest.stratum,
-            jsMedianMs: 10,
-            wasmMedianMs: 9,
-          };
+            browser,
+            version: { product: "Chrome/150.0.7871.24" },
+            ledger: {
+              unit: "fake.service",
+              controlGroup: "/fake",
+              cgroupPath: "/fake",
+              cgroupDev: 1,
+              cgroupIno: 1,
+              invocationId: "0".repeat(32),
+              mainPid: 70_000 + manifest.scheduleIndex,
+              members: [70_000 + manifest.scheduleIndex],
+              membershipSnapshots: [],
+              executable: { path: "/fake/chrome", dev: 1, ino: 1, sha256: permit.chromeSha256 },
+              commandLine: ["/fake/chrome"],
+              profileRoot: "/fake/profile",
+              profile: {
+                ownershipRoot: "/fake",
+                ownershipDev: 1,
+                ownershipIno: 1,
+                profileRoot: "/fake/profile",
+                profileDev: 1,
+                profileIno: 2,
+              },
+              launchedAt: new Date().toISOString(),
+              recordedAt: new Date().toISOString(),
+            },
+          } as never;
         },
-      );
+        refreshLedger: (ledger) =>
+          Promise.resolve({
+            ...ledger,
+            membershipSnapshots: [...ledger.membershipSnapshots, {
+              collectedAt: new Date().toISOString(),
+              members: [...ledger.members],
+            }],
+          }),
+        close: () =>
+          Promise.resolve({
+            cleaned: true,
+            remaining: [],
+            identityMismatches: [],
+            stoppedAt: new Date().toISOString(),
+          }),
+        rawBase: `${root}/corpora`,
+      });
+    };
     const checked = {
       sourceCommit,
       experimentId: "m1-chrome-sum-u32-v1",
@@ -1219,35 +1481,18 @@ async function dryFake() {
       checked,
       fakeCollector,
       `${root}/corpora`,
-      undefined,
+      stage,
     );
-    const discoveryFailure = await collectAll(
-      permit,
-      "3".repeat(64),
-      checked,
-      async (_permit, _manifest, _hashes, _source, onLaunch) => {
-        await Promise.resolve();
-        onLaunch?.(0);
-        throw new Error("Chrome startup containment blocked before unit mapping");
-      },
-      `${root}/failure-corpora`,
-    );
-    if (
-      discoveryFailure.attempted !== 1 || discoveryFailure.status !== "containment-blocked" ||
-      !discoveryFailure.stop
-    ) {
-      throw new Error("post-systemd unit discovery failure accounting mismatch");
-    }
     return {
       dependencyInjectedProductionCollectAll: true,
-      injectedCollectorCalls,
       collectOwnedBlockEntrypointExercised: true,
-      browserCdpPathExercised: false,
+      browserCdpPathExercised: true,
+      workerAutoAttachBodiesAndReleaseExercised: true,
+      productionBlocks,
       status: result.status,
       attempted: result.attempted,
       committed: result.committed,
-      unitDiscoveryFailureAttempted: discoveryFailure.attempted,
-      unitDiscoveryFailureStatus: discoveryFailure.status,
+      firstAttempt: Array.isArray(result.blocks) ? result.blocks[0] : null,
       noBrowserOrSystemdLaunched: true,
     };
   } finally {
@@ -1258,7 +1503,20 @@ async function dryFake() {
 if (import.meta.main) {
   const dry = args.has("--dry-run-fake"), check = await preflight(!dry);
   if (dry) console.log(JSON.stringify({ preflight: check, dryFake: await dryFake() }));
-  else if (args.has("--diagnostic-stub")) {
+  else if (args.has("--inspect-chrome-package")) {
+    const inspected = await inspectChromePackage(
+      "/home/paulkinlan/.local/bin/google-chrome-stable",
+      "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355",
+    );
+    console.log(JSON.stringify({
+      ...check,
+      chromePackageManifestSha256: inspected.manifestSha256,
+      chromeBinarySha256: inspected.binarySha256,
+      fileCount: Object.keys(inspected.files).length,
+      permitField: { chromePackageManifestSha256: inspected.manifestSha256 },
+      browserLaunched: false,
+    }));
+  } else if (args.has("--diagnostic-stub")) {
     console.log(
       JSON.stringify({
         preflight: check,
@@ -1293,6 +1551,9 @@ if (import.meta.main) {
     );
     let safeToRemoveStage = false;
     try {
+      if (stage.manifestSha256 !== permit.chromePackageManifestSha256) {
+        throw new Error("Chrome package manifest differs from authorized permit");
+      }
       const receipt = await consumePermit(permitPath, "raw/permits", permit);
       const corpus = await collectAll(
         permit,
@@ -1321,6 +1582,9 @@ if (import.meta.main) {
     );
     let safeToRemoveStage = false;
     try {
+      if (stage.manifestSha256 !== permit.chromePackageManifestSha256) {
+        throw new Error("Chrome package manifest differs from authorized permit");
+      }
       await consumePermit(permitPath, "raw/permits", permit);
       console.log(
         JSON.stringify(

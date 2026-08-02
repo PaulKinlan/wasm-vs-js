@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.example/schemas/permit-receipt.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["permitId", "digest", "consumedAt", "operation"],
+  "properties": {
+    "permitId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{7,127}$" },
+    "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "consumedAt": { "type": "string", "format": "date-time" },
+    "operation": { "enum": ["collect-uninstrumented-headline-paired-corpus", "pilot-m1-corpus"] }
+  }
+}

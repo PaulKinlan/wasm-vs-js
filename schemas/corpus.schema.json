@@ -8,6 +8,7 @@
     "experimentId",
     "permitDigest",
     "sourceManifestSha256",
+    "chromePackageManifestSha256",
     "preregistrationSha256",
     "planned",
     "attempted",
@@ -26,6 +27,7 @@
     "experimentId": { "const": "m1-chrome-sum-u32-v1" },
     "permitDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "sourceManifestSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "chromePackageManifestSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "preregistrationSha256": {
       "const": "d13aed9404ec289046f885f79a1d7b9f04923d2264de22b1fee60a4e7a8d6f61"
     },

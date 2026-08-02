@@ -28,6 +28,7 @@ function corpus(blocks = [attempt("committed", 0)]) {
     experimentId: "m1-chrome-sum-u32-v1",
     permitDigest: "b".repeat(64),
     sourceManifestSha256: "c".repeat(64),
+    chromePackageManifestSha256: "d".repeat(64),
     preregistrationSha256: "d13aed9404ec289046f885f79a1d7b9f04923d2264de22b1fee60a4e7a8d6f61",
     planned: 120,
     attempted: blocks.length,

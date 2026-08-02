@@ -1,11 +1,33 @@
 import { assertEquals, assertRejects } from "./assert.ts";
 import {
   assertAttemptRecordSchema,
+  assertChromePackageManifestSchema,
   assertCollectionStopSchema,
   assertCorpusSchema,
   assertLaunchEvidenceSchema,
+  assertPermitReceiptSchema,
   assertSourceManifestSchema,
 } from "../lib/corpus-contracts.ts";
+
+Deno.test("permit receipt and Chrome package manifests are closed", async () => {
+  assertPermitReceiptSchema({
+    permitId: "permit-1234",
+    digest: "a".repeat(64),
+    consumedAt: new Date().toISOString(),
+    operation: "pilot-m1-corpus",
+  });
+  assertChromePackageManifestSchema({
+    schemaVersion: 1,
+    binaryRelativePath: "chrome",
+    binarySha256: "b".repeat(64),
+    manifestSha256: "c".repeat(64),
+    files: { chrome: "b".repeat(64) },
+  });
+  await assertRejects(
+    () => Promise.resolve().then(() => assertPermitReceiptSchema({ invented: true })),
+    "schema invalid",
+  );
+});
 
 Deno.test("source, attempt, and stop artifacts are closed and pair hashes are mandatory", async () => {
   assertSourceManifestSchema({
@@ -77,6 +99,7 @@ Deno.test("corpus schema accepts typed per-stratum accounting and rejects omitte
     experimentId: "m1-chrome-sum-u32-v1",
     permitDigest: "a".repeat(64),
     sourceManifestSha256: "b".repeat(64),
+    chromePackageManifestSha256: "c".repeat(64),
     preregistrationSha256: "d13aed9404ec289046f885f79a1d7b9f04923d2264de22b1fee60a4e7a8d6f61",
     planned: 120,
     attempted: 1,

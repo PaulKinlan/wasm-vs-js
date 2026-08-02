@@ -17,11 +17,13 @@ addFormats(ajv);
 const names = [
   "attempt-record",
   "browser-permit",
+  "chrome-package-manifest",
   "collection-stop",
   "corpus",
   "launch-evidence",
   "network-attestation",
   "paired-block",
+  "permit-receipt",
   "source-manifest",
 ] as const;
 const validators = Object.fromEntries(
@@ -45,6 +47,8 @@ function assertSchema(name: typeof names[number], value: unknown): void {
 
 export const assertAttemptRecordSchema = (value: unknown) => assertSchema("attempt-record", value);
 export const assertBrowserPermitSchema = (value: unknown) => assertSchema("browser-permit", value);
+export const assertChromePackageManifestSchema = (value: unknown) =>
+  assertSchema("chrome-package-manifest", value);
 export const assertCollectionStopSchema = (value: unknown) =>
   assertSchema("collection-stop", value);
 export const assertCorpusSchema = (value: unknown) => assertSchema("corpus", value);
@@ -53,5 +57,6 @@ export const assertLaunchEvidenceSchema = (value: unknown) =>
 export const assertNetworkAttestationSchema = (value: unknown) =>
   assertSchema("network-attestation", value);
 export const assertPairedBlockSchema = (value: unknown) => assertSchema("paired-block", value);
+export const assertPermitReceiptSchema = (value: unknown) => assertSchema("permit-receipt", value);
 export const assertSourceManifestSchema = (value: unknown) =>
   assertSchema("source-manifest", value);

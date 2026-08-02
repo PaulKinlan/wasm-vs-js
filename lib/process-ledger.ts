@@ -15,6 +15,9 @@ export type CgroupLedger = {
   cgroupPath: string;
   cgroupDev: number;
   cgroupIno: number;
+  invocationId: string;
+  cgroupKillHandle: Deno.FsFile;
+  cgroupProcsHandle: Deno.FsFile;
   mainPid: number;
   members: number[];
   membershipSnapshots: Array<{ collectedAt: string; members: number[] }>;
@@ -57,11 +60,6 @@ async function privateDirectoryIdentity(path: string): Promise<{ dev: number; in
     throw new Error(`directory ownership/mode mismatch: ${path}`);
   }
   return identity;
-}
-async function basicDirectoryIdentity(path: string): Promise<{ dev: number; ino: number }> {
-  const info = await Deno.lstat(path);
-  if (info.isSymlink || !info.isDirectory) throw new Error(`unsafe directory: ${path}`);
-  return { dev: numeric(info.dev, "directory dev"), ino: numeric(info.ino, "directory inode") };
 }
 export async function executableSnapshot(path: string): Promise<FileIdentity> {
   const resolved = await Deno.realPath(path), before = await Deno.stat(resolved);
@@ -132,88 +130,35 @@ export let profileRemovalRaceHook: ((path: string) => void | Promise<void>) | un
 export function setProfileRemovalRaceHookForTest(hook?: (path: string) => void | Promise<void>) {
   profileRemovalRaceHook = hook;
 }
-async function removeTreeNoFollow(
-  path: string,
-  parent?: { path: string; dev: number; ino: number },
-  expected?: { dev: number; ino: number; isDirectory: boolean; isSymlink: boolean },
-): Promise<void> {
-  if (parent) {
-    const parentNow = await basicDirectoryIdentity(parent.path);
-    if (parentNow.dev !== parent.dev || parentNow.ino !== parent.ino) {
-      throw new Error("profile parent replaced");
-    }
-  }
-  const info = await Deno.lstat(path);
-  if (
-    expected && (
-      numeric(info.dev, "entry dev") !== expected.dev ||
-      numeric(info.ino, "entry inode") !== expected.ino ||
-      info.isDirectory !== expected.isDirectory || info.isSymlink !== expected.isSymlink
-    )
-  ) throw new Error("profile entry replaced before descent");
-  if (info.isSymlink || !info.isDirectory) {
-    await profileRemovalRaceHook?.(path);
-    const again = await Deno.lstat(path);
-    if (
-      again.dev !== info.dev || again.ino !== info.ino || again.isDirectory !== info.isDirectory ||
-      again.isSymlink !== info.isSymlink
-    ) {
-      throw new Error("profile entry replaced before unlink");
-    }
-    await Deno.remove(path);
-    return;
-  }
-  const identity = {
-    path,
-    dev: numeric(info.dev, "remove dev"),
-    ino: numeric(info.ino, "remove inode"),
-  };
-  const entries: Array<
-    { name: string; dev: number; ino: number; isDirectory: boolean; isSymlink: boolean }
-  > = [];
-  for await (const entry of Deno.readDir(path)) {
-    const child = await Deno.lstat(`${path}/${entry.name}`);
-    entries.push({
-      name: entry.name,
-      dev: numeric(child.dev, "entry dev"),
-      ino: numeric(child.ino, "entry inode"),
-      isDirectory: child.isDirectory,
-      isSymlink: child.isSymlink,
-    });
-  }
-  await profileRemovalRaceHook?.(path);
-  const beforeDescent = await basicDirectoryIdentity(path);
-  if (beforeDescent.dev !== identity.dev || beforeDescent.ino !== identity.ino) {
-    throw new Error("profile directory replaced before descent");
-  }
-  for (const entry of entries) await removeTreeNoFollow(`${path}/${entry.name}`, identity, entry);
-  const again = await Deno.lstat(path);
-  if (
-    again.isSymlink || numeric(again.dev, "remove dev") !== numeric(info.dev, "remove dev") ||
-    numeric(again.ino, "remove inode") !== numeric(info.ino, "remove inode")
-  ) {
-    throw new Error("profile entry replaced during removal");
-  }
-  await Deno.remove(path);
-}
 export async function removeOwnedProfile(value: ProfileIdentity): Promise<void> {
   await assertProfileIdentity(value);
-  const parent = await privateDirectoryIdentity(value.ownershipRoot);
-  const tombstone = `${value.ownershipRoot}/.removed-${crypto.randomUUID()}`;
-  await Deno.rename(value.profileRoot, tombstone);
-  const parentAfter = await privateDirectoryIdentity(value.ownershipRoot),
-    tomb = await privateDirectoryIdentity(tombstone);
-  if (
-    parent.dev !== parentAfter.dev || parent.ino !== parentAfter.ino ||
-    tomb.dev !== value.profileDev || tomb.ino !== value.profileIno
-  ) {
-    throw new Error("profile tombstone identity changed");
+  await profileRemovalRaceHook?.(value.profileRoot);
+  // The helper opens parent and child with O_DIRECTORY|O_NOFOLLOW, renames with dir_fd,
+  // walks by retained directory descriptors, and uses unlinkat/rmdirat only.
+  const helper = await Deno.realPath(new URL("../scripts/remove-owned-tree.py", import.meta.url));
+  const childName = value.profileRoot.slice(value.ownershipRoot.length + 1);
+  const result = await new Deno.Command("/usr/bin/python3", {
+    args: [
+      helper,
+      value.ownershipRoot,
+      String(value.ownershipDev),
+      String(value.ownershipIno),
+      childName,
+      String(value.profileDev),
+      String(value.profileIno),
+    ],
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  if (!result.success) {
+    throw new Error(
+      `fd-relative profile removal failed: ${new TextDecoder().decode(result.stderr).trim()}`,
+    );
   }
-  await removeTreeNoFollow(tombstone, {
-    path: value.ownershipRoot,
-    dev: parent.dev,
-    ino: parent.ino,
-  });
+  const proof = JSON.parse(new TextDecoder().decode(result.stdout));
+  if (proof.removed !== true || proof.dev !== value.profileDev || proof.ino !== value.profileIno) {
+    throw new Error("fd-relative profile removal proof mismatch");
+  }
   await Deno.remove(value.ownershipRoot);
   for (const removed of [value.profileRoot, value.ownershipRoot]) {
     try {
@@ -226,13 +171,25 @@ export async function removeOwnedProfile(value: ProfileIdentity): Promise<void> 
 }
 
 export async function readCgroupMembers(
-  ledger: Pick<CgroupLedger, "cgroupPath" | "cgroupDev" | "cgroupIno">,
+  ledger:
+    & Pick<CgroupLedger, "cgroupPath" | "cgroupDev" | "cgroupIno">
+    & Partial<Pick<CgroupLedger, "cgroupProcsHandle">>,
 ): Promise<number[]> {
-  const identity = await directoryIdentity(ledger.cgroupPath);
-  if (identity.dev !== ledger.cgroupDev || identity.ino !== ledger.cgroupIno) {
-    throw new Error("cgroup identity changed");
+  let text: string;
+  if (ledger.cgroupProcsHandle) {
+    // The descriptor was opened only after cgroup dev/inode authentication. Continue using the
+    // retained kernel object even if systemd unlinks or recycles the pathname during teardown.
+    await ledger.cgroupProcsHandle.seek(0, Deno.SeekMode.Start);
+    const bytes = new Uint8Array(64 * 1024);
+    const count = await ledger.cgroupProcsHandle.read(bytes);
+    text = new TextDecoder().decode(bytes.subarray(0, count ?? 0));
+  } else {
+    const identity = await directoryIdentity(ledger.cgroupPath);
+    if (identity.dev !== ledger.cgroupDev || identity.ino !== ledger.cgroupIno) {
+      throw new Error("cgroup identity changed");
+    }
+    text = await Deno.readTextFile(`${ledger.cgroupPath}/cgroup.procs`);
   }
-  const text = await Deno.readTextFile(`${ledger.cgroupPath}/cgroup.procs`);
   return text.split(/\s+/).filter(Boolean).map(Number).filter((pid) =>
     Number.isSafeInteger(pid) && pid > 1
   ).sort((a, b) => a - b);

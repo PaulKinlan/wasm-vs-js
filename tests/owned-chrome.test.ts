@@ -8,6 +8,7 @@ import {
   setProfileRemovalRaceHookForTest,
 } from "../lib/process-ledger.ts";
 import {
+  assertRunningExecutable,
   closeOwnedChrome,
   launchOwnedChrome,
   waitDevToolsActivePort,
@@ -63,7 +64,7 @@ Deno.test("private profile cleanup never follows symlink entries", async () => {
   }
 });
 
-Deno.test("profile deletion rejects an intermediate replacement race without following it", async () => {
+Deno.test("fd-relative profile deletion rejects final-window root replacement", async () => {
   const root = `/tmp/wasm-vs-js-owned-profiles/race-${crypto.randomUUID()}/launch`,
     outside = await Deno.makeTempDir(),
     profile = await prepareProfile(root);
@@ -72,13 +73,13 @@ Deno.test("profile deletion rejects an intermediate replacement race without fol
   await Deno.writeTextFile(`${outside}/keep`, "foreign");
   let raced = false;
   setProfileRemovalRaceHookForTest(async (path) => {
-    if (raced || !path.includes("/.removed-")) return;
+    if (raced || path !== root) return;
     raced = true;
-    await Deno.rename(`${path}/nested`, `${profile.ownershipRoot}/held`);
-    await Deno.symlink(outside, `${path}/nested`);
+    await Deno.rename(root, `${profile.ownershipRoot}/held`);
+    await Deno.symlink(outside, root);
   });
   try {
-    await assertRejects(() => removeOwnedProfile(profile), "replaced before descent");
+    await assertRejects(() => removeOwnedProfile(profile), "fd-relative profile removal failed");
     assertEquals(await Deno.readTextFile(`${outside}/keep`), "foreign");
   } finally {
     setProfileRemovalRaceHookForTest();
@@ -109,6 +110,23 @@ Deno.test("profile containment rejects symlink parent and inode replacement", as
   } finally {
     await Deno.remove(profile.ownershipRoot, { recursive: true }).catch(() => {});
   }
+});
+
+Deno.test("running executable swap is rejected before navigation", () => {
+  assertRunningExecutable(
+    { dev: 1, ino: 2, sha256: "a".repeat(64) },
+    { dev: 1, ino: 2, sha256: "a".repeat(64) },
+  );
+  let denied = false;
+  try {
+    assertRunningExecutable(
+      { dev: 1, ino: 2, sha256: "a".repeat(64) },
+      { dev: 1, ino: 2, sha256: "b".repeat(64) },
+    );
+  } catch {
+    denied = true;
+  }
+  assertEquals(denied, true);
 });
 
 Deno.test("DevToolsActivePort retains exact port/path and rejects symlinks", async () => {
@@ -174,6 +192,7 @@ Deno.test("production systemd launch/teardown uses only an injected exact-unit a
       await Deno.symlink(binary, `${proc}/${mainPid}/exe`);
       await Deno.mkdir(`${cgroups}/test.slice/${unit}`, { recursive: true });
       await Deno.writeTextFile(`${cgroups}/test.slice/${unit}/cgroup.procs`, `${mainPid}\n701\n`);
+      await Deno.writeTextFile(`${cgroups}/test.slice/${unit}/cgroup.kill`, "");
       return { success: true, code: 0, stdout: "", stderr: "" };
     }
     if (args.includes("show")) {
@@ -183,8 +202,10 @@ Deno.test("production systemd launch/teardown uses only an injected exact-unit a
         stdout: started
           ? `MainPID=${mainPid}\nControlGroup=/test.slice/${unit}\nActiveState=${
             active ? "active" : "inactive"
-          }\nSubState=${active ? "running" : "dead"}\nLoadState=loaded\n`
-          : "MainPID=0\nControlGroup=\nActiveState=inactive\nSubState=dead\nLoadState=not-found\n",
+          }\nSubState=${
+            active ? "running" : "dead"
+          }\nLoadState=loaded\nInvocationID=0123456789abcdef0123456789abcdef\n`
+          : "MainPID=0\nControlGroup=\nActiveState=inactive\nSubState=dead\nLoadState=not-found\nInvocationID=\n",
         stderr: "",
       };
     }
@@ -233,16 +254,11 @@ Deno.test("production systemd launch/teardown uses only an injected exact-unit a
     });
     assertEquals(owned.arguments, expectedArguments);
     assertEquals(lifecycle.slice(0, 4), ["show", "systemd-run", "launch-attempted", "show"]);
+    await Deno.writeTextFile(`${cgroups}/test.slice/${unit}/cgroup.procs`, "");
     await closeOwnedChrome(owned);
     assertEquals(calls.some((call) => call.command === "/usr/bin/systemd-run"), true);
-    assertEquals(
-      calls.some((call) =>
-        call.command === "/usr/bin/systemctl" && call.args.includes("kill") &&
-        call.args.includes(unit)
-      ),
-      true,
-    );
-    assertEquals(calls.some((call) => call.args.includes("--kill-whom=all")), true);
+    assertEquals(calls.some((call) => call.args.includes("kill")), false);
+    assertEquals(calls.some((call) => call.args.includes("stop")), true);
 
     const deniedCalls: string[][] = [];
     const deniedProfile = `/tmp/wasm-vs-js-owned-profiles/denied-${crypto.randomUUID()}/launch`;
@@ -260,7 +276,7 @@ Deno.test("production systemd launch/teardown uses only an injected exact-unit a
                 code: 0,
                 stderr: "",
                 stdout:
-                  "MainPID=0\nControlGroup=\nActiveState=inactive\nSubState=dead\nLoadState=not-found\n",
+                  "MainPID=0\nControlGroup=\nActiveState=inactive\nSubState=dead\nLoadState=not-found\nInvocationID=\n",
               };
             }
             return { success: false, code: 1, stdout: "", stderr: "launch denied" };

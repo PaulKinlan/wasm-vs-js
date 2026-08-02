@@ -95,6 +95,34 @@ export async function removeStagedChrome(stage: StagedChrome): Promise<void> {
   await Deno.remove(stage.root, { recursive: true });
 }
 
+export async function inspectChromePackage(
+  sourceBinary: string,
+  expectedBinarySha256: string,
+): Promise<
+  {
+    binaryRelativePath: string;
+    binarySha256: string;
+    manifestSha256: string;
+    files: Record<string, string>;
+  }
+> {
+  const resolved = await Deno.realPath(sourceBinary),
+    sourceRoot = resolved.slice(0, resolved.lastIndexOf("/")),
+    binaryRelativePath = resolved.slice(sourceRoot.length + 1),
+    paths = await walkFiles(sourceRoot),
+    files: Record<string, string> = {};
+  for (const rel of paths) files[rel] = await hashFile(`${sourceRoot}/${rel}`);
+  if (files[binaryRelativePath] !== expectedBinarySha256) {
+    throw new Error("Chrome source binary hash mismatch");
+  }
+  return {
+    binaryRelativePath,
+    binarySha256: expectedBinarySha256,
+    manifestSha256: await sha256Hex(canonicalize(files)),
+    files,
+  };
+}
+
 export async function stageChromePackage(
   sourceBinary: string,
   expectedBinarySha256: string,

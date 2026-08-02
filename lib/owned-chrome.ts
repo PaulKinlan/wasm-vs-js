@@ -83,7 +83,7 @@ async function showUnit(command: CommandAdapter, unit: string) {
     "--user",
     "show",
     unit,
-    "--property=MainPID,ControlGroup,ActiveState,SubState,LoadState",
+    "--property=MainPID,ControlGroup,ActiveState,SubState,LoadState,InvocationID",
   ]);
   if (!result.success) throw new Error(`systemd unit unavailable: ${result.stderr.trim()}`);
   return parseShow(result.stdout);
@@ -94,10 +94,11 @@ async function waitUnit(command: CommandAdapter, unit: string, timeoutMs: number
     const state = await showUnit(command, unit),
       mainPid = Number(state.MainPID),
       controlGroup = state.ControlGroup ?? "";
+    const invocationId = state.InvocationID ?? "";
     if (
       Number.isSafeInteger(mainPid) && mainPid > 1 && /^\/[^\s]+$/.test(controlGroup) &&
-      state.ActiveState === "active"
-    ) return { mainPid, controlGroup };
+      /^[a-f0-9]{32}$/.test(invocationId) && state.ActiveState === "active"
+    ) return { mainPid, controlGroup, invocationId };
     await new Promise((resolve) => setTimeout(resolve, 25));
   }
   throw new Error("systemd Chrome service startup timeout");
@@ -136,48 +137,58 @@ export async function assertListenerOwned(
   }
   throw new Error("DevTools listener is not owned by exact Chrome cgroup");
 }
+export function assertRunningExecutable(
+  reviewed: { dev: number; ino: number; sha256: string },
+  running: { dev: number; ino: number; sha256: string },
+): void {
+  if (
+    running.dev !== reviewed.dev || running.ino !== reviewed.ino ||
+    running.sha256 !== reviewed.sha256
+  ) throw new Error("running Chrome executable differs from reviewed staged binary");
+}
 async function commandLine(pid: number, procRoot = "/proc"): Promise<string[]> {
   return new TextDecoder().decode(await Deno.readFile(`${procRoot}/${pid}/cmdline`)).split("\0")
     .filter(Boolean);
 }
 async function cleanupUnit(command: CommandAdapter, ledger: CgroupLedger, removeProfile = true) {
-  const mapped = await showUnit(command, ledger.unit);
-  if (mapped.LoadState === "not-found" || mapped.ControlGroup !== ledger.controlGroup) {
-    throw new Error("owned Chrome unit mapping unavailable during cleanup");
-  }
+  const mapped = await showUnit(command, ledger.unit).catch(() => ({} as Record<string, string>));
+  const exactUnit = mapped.LoadState !== "not-found" &&
+    mapped.ControlGroup === ledger.controlGroup && mapped.InvocationID === ledger.invocationId;
   const cgroup = await cgroupIdentity(ledger.cgroupPath);
   if (cgroup.dev !== ledger.cgroupDev || cgroup.ino !== ledger.cgroupIno) {
     throw new Error("owned Chrome cgroup identity changed before cleanup");
   }
-  const killed = await command("/usr/bin/systemctl", [
-    "--user",
-    "kill",
-    "--kill-whom=all",
-    "--signal=KILL",
-    ledger.unit,
-  ]);
-  if (!killed.success) throw new Error(`owned Chrome unit kill failed: ${killed.stderr.trim()}`);
-  const stopped = await command("/usr/bin/systemctl", ["--user", "stop", ledger.unit]);
-  if (!stopped.success) throw new Error(`owned Chrome unit stop failed: ${stopped.stderr.trim()}`);
+  // This descriptor was opened from the authenticated cgroup before collection. Writing it cannot
+  // be redirected by recycling the systemd unit name or cgroup pathname.
+  await ledger.cgroupKillHandle.write(new TextEncoder().encode("1"));
   const deadline = Date.now() + 5_000;
-  let remaining: number[] = [], state: Record<string, string> = {};
+  let remaining: number[] = [];
   while (Date.now() < deadline) {
-    remaining = await readCgroupMembers(ledger).catch((e) => {
-      if (e instanceof Deno.errors.NotFound) return [];
-      throw e;
-    });
-    state = await showUnit(command, ledger.unit);
-    const inactive = ["inactive", "failed"].includes(state.ActiveState) ||
-      state.LoadState === "not-found";
-    if (!remaining.length && inactive) break;
+    remaining = await readCgroupMembers(ledger);
+    if (!remaining.length) break;
     await new Promise((resolve) => setTimeout(resolve, 25));
   }
-  if (
-    remaining.length ||
-    (!(["inactive", "failed"].includes(state.ActiveState ?? "")) && state.LoadState !== "not-found")
-  ) {
-    throw new Error("owned Chrome cgroup cleanup failed");
+  if (remaining.length) throw new Error("owned Chrome cgroup cleanup failed");
+  // systemctl is never used to signal. It is only allowed to retire the same invocation after the
+  // retained cgroup descriptor proves empty; a recycled name is deliberately left untouched.
+  if (exactUnit) {
+    const recheck = await showUnit(command, ledger.unit).catch(() => null);
+    if (
+      recheck?.ControlGroup === ledger.controlGroup &&
+      recheck.InvocationID === ledger.invocationId
+    ) {
+      const stopped = await command("/usr/bin/systemctl", ["--user", "stop", ledger.unit]);
+      if (!stopped.success) {
+        const afterStop = await showUnit(command, ledger.unit).catch(() => null);
+        if (
+          afterStop?.ControlGroup === ledger.controlGroup &&
+          afterStop.InvocationID === ledger.invocationId
+        ) throw new Error(`owned Chrome unit stop failed: ${stopped.stderr.trim()}`);
+      }
+    }
   }
+  ledger.cgroupKillHandle.close();
+  ledger.cgroupProcsHandle.close();
   const after = await executableSnapshot(ledger.executable.path);
   if (
     after.path !== ledger.executable.path || after.dev !== ledger.executable.dev ||
@@ -206,6 +217,9 @@ export async function launchOwnedChrome(options: {
   endpoint?: (profileRoot: string, timeoutMs: number) => Promise<DevToolsEndpoint>;
   listenerAssertion?: (port: number, ledger: CgroupLedger, procRoot: string) => Promise<void>;
   discoverWebSocket?: (port: number, browserPath: string) => Promise<string>;
+  runningExecutableSnapshot?: (
+    path: string,
+  ) => Promise<ReturnType<typeof executableSnapshot> extends Promise<infer T> ? T : never>;
 }): Promise<OwnedChrome> {
   const command = options.command ?? realCommand,
     profile = await prepareProfile(options.profileRoot);
@@ -263,17 +277,23 @@ export async function launchOwnedChrome(options: {
       cgroup = await cgroupIdentity(cgroupPath);
     const procRoot = options.procRoot ?? "/proc",
       argv = await commandLine(running.mainPid, procRoot),
-      procExe = await Deno.realPath(`${procRoot}/${running.mainPid}/exe`);
+      procExePath = `${procRoot}/${running.mainPid}/exe`,
+      procExe = await Deno.realPath(procExePath);
     if (
       procExe !== binary.path || argv[0] !== binary.path ||
       !launchArguments.every((arg) => argv.includes(arg))
     ) throw new Error("systemd Chrome argv/executable mismatch");
+    const cgroupKillHandle = await Deno.open(`${cgroupPath}/cgroup.kill`, { write: true }),
+      cgroupProcsHandle = await Deno.open(`${cgroupPath}/cgroup.procs`, { read: true });
     ledger = {
       unit,
       controlGroup: running.controlGroup,
       cgroupPath,
       cgroupDev: cgroup.dev,
       cgroupIno: cgroup.ino,
+      invocationId: running.invocationId,
+      cgroupKillHandle,
+      cgroupProcsHandle,
       mainPid: running.mainPid,
       members: [],
       membershipSnapshots: [],
@@ -288,6 +308,12 @@ export async function launchOwnedChrome(options: {
     if (!ledger.members.includes(running.mainPid)) {
       throw new Error("Chrome main PID absent from exact cgroup");
     }
+    // Hash the image actually mapped as MainPID before navigation or any scored work. This is the
+    // last executable hash in a headline launch; no package hashing occurs during measurement.
+    const runningBinary = await (options.runningExecutableSnapshot ?? executableSnapshot)(
+      procExePath,
+    );
+    assertRunningExecutable(binary, runningBinary);
     const endpoint = await (options.endpoint ?? waitDevToolsActivePort)(
         profile.profileRoot,
         options.timeoutMs ?? 10_000,
@@ -339,7 +365,8 @@ export async function launchOwnedChrome(options: {
   }
 }
 export async function closeOwnedChrome(owned: OwnedChrome) {
-  await owned.browser.send("Browser.close", {}, undefined, 2_000).catch(() => {});
+  // Do not ask Chrome to exit before cgroup teardown: --collect could unlink the cgroup pathname.
+  // Close only the client socket, then signal the retained authenticated cgroup.kill descriptor.
   owned.browser.close();
   return await cleanupUnit(owned.command, owned.ledger);
 }

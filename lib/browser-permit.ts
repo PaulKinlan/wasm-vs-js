@@ -1,5 +1,5 @@
 import { sha256Hex } from "./canonical.ts";
-import { assertBrowserPermitSchema } from "./corpus-contracts.ts";
+import { assertBrowserPermitSchema, assertPermitReceiptSchema } from "./corpus-contracts.ts";
 import { writeImmutableArtifact } from "./corpus-store.ts";
 
 export type BrowserPermit = {
@@ -10,6 +10,7 @@ export type BrowserPermit = {
   sourceCommit: string;
   chromeBinary: string;
   chromeSha256: string;
+  chromePackageManifestSha256: string;
   origin: string;
   strata: Array<"cold" | "warm">;
   maximumLaunches: number;
@@ -28,6 +29,7 @@ const KEYS = [
   "sourceCommit",
   "chromeBinary",
   "chromeSha256",
+  "chromePackageManifestSha256",
   "origin",
   "strata",
   "maximumLaunches",
@@ -64,7 +66,8 @@ export function validatePermit(
     !/^[a-f0-9]{40}$/.test(permit.sourceCommit) ||
     permit.chromeBinary !== "/home/paulkinlan/.local/bin/google-chrome-stable" ||
     permit.chromeSha256 !==
-      "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355"
+      "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355" ||
+    !/^[a-f0-9]{64}$/.test(permit.chromePackageManifestSha256)
   ) throw new Error("exact Chrome identity denied");
   if (permit.origin !== "http://127.0.0.1:8787") throw new Error("origin denied");
   if (JSON.stringify(permit.strata) !== JSON.stringify(["cold", "warm"])) {
@@ -111,15 +114,14 @@ export async function consumePermit(
   assertPermitActive(permit, now);
   const receiptPath = `${consumptionDir}/${permit.permitId}.consumed.json`;
   const digest = await sha256Hex(bytes);
-  await writeImmutableArtifact(
-    receiptPath,
-    JSON.stringify({
-      permitId: permit.permitId,
-      digest,
-      consumedAt: now.toISOString(),
-      operation: permit.operation,
-    }) + "\n",
-  );
+  const receipt = {
+    permitId: permit.permitId,
+    digest,
+    consumedAt: now.toISOString(),
+    operation: permit.operation,
+  };
+  assertPermitReceiptSchema(receipt);
+  await writeImmutableArtifact(receiptPath, JSON.stringify(receipt) + "\n");
   return { permit, digest, receiptPath };
 }
 
