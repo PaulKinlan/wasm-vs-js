@@ -1,5 +1,6 @@
 {
   "extends": "./deno.json",
+  "lock": false,
   "tasks": {
     "corpus:typecheck": "deno check local/*.js scripts/run-m1-chrome-corpus.ts lib/browser-permit.ts lib/cdp-client.ts lib/chrome-evidence.ts lib/chrome-provenance.ts lib/corpus-store.ts lib/corpus-validation.ts lib/host-provenance.ts lib/owned-chrome.ts lib/process-ledger.ts lib/source-identity.ts",
     "corpus:preflight": "WASM_VS_JS_COMMIT=$(git rev-parse HEAD) deno run --no-lock --allow-env=WASM_VS_JS_COMMIT --allow-read=. --allow-run=/usr/bin/git,/usr/bin/uname scripts/run-m1-chrome-corpus.ts --preflight",
