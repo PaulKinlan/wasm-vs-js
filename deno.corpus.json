@@ -4,7 +4,7 @@
     "corpus:typecheck": "deno check local/*.js scripts/run-m1-chrome-corpus.ts lib/browser-permit.ts lib/cdp-client.ts lib/chrome-evidence.ts lib/chrome-provenance.ts lib/corpus-store.ts lib/host-provenance.ts lib/owned-chrome.ts lib/process-ledger.ts",
     "corpus:preflight": "WASM_VS_JS_COMMIT=$(git rev-parse HEAD) deno run --allow-env=WASM_VS_JS_COMMIT --allow-read=. --allow-run=uname scripts/run-m1-chrome-corpus.ts --preflight",
     "corpus:dry-fake": "WASM_VS_JS_COMMIT=$(git rev-parse HEAD) deno run --allow-env=WASM_VS_JS_COMMIT --allow-read=. --allow-write --allow-run=uname scripts/run-m1-chrome-corpus.ts --dry-run-fake",
-    "corpus:collect-one": "WASM_VS_JS_COMMIT=$(git rev-parse HEAD) deno run --allow-env=WASM_VS_JS_COMMIT --allow-read=. --allow-write=raw,/tmp/wasm-vs-js-owned-profiles --allow-net=127.0.0.1 --allow-run scripts/run-m1-chrome-corpus.ts --collect-one",
-    "corpus:collect-all": "WASM_VS_JS_COMMIT=$(git rev-parse HEAD) deno run --allow-env=WASM_VS_JS_COMMIT --allow-read=. --allow-write=raw,/tmp/wasm-vs-js-owned-profiles --allow-net=127.0.0.1 --allow-run scripts/run-m1-chrome-corpus.ts --collect-all"
+    "corpus:collect-one": "WASM_VS_JS_COMMIT=$(git rev-parse HEAD) deno run --allow-env=WASM_VS_JS_COMMIT --allow-read=. --allow-write=raw,/tmp/wasm-vs-js-owned-profiles --allow-net=127.0.0.1 --allow-run=/home/paulkinlan/.local/bin/google-chrome-stable,uname scripts/run-m1-chrome-corpus.ts --collect-one",
+    "corpus:collect-all": "WASM_VS_JS_COMMIT=$(git rev-parse HEAD) deno run --allow-env=WASM_VS_JS_COMMIT --allow-read=. --allow-write=raw,/tmp/wasm-vs-js-owned-profiles --allow-net=127.0.0.1 --allow-run=/home/paulkinlan/.local/bin/google-chrome-stable,uname scripts/run-m1-chrome-corpus.ts --collect-all"
   }
 }
