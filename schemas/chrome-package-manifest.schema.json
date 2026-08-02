@@ -4,7 +4,7 @@
   "additionalProperties": false,
   "required": ["schemaVersion", "binaryRelativePath", "binarySha256", "manifestSha256", "files"],
   "properties": {
-    "schemaVersion": { "const": 1 },
+    "schemaVersion": { "enum": [1, 2] },
     "binaryRelativePath": { "type": "string", "pattern": "^[^/].+$" },
     "binarySha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "manifestSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
@@ -12,6 +12,49 @@
       "type": "object",
       "minProperties": 1,
       "additionalProperties": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+    },
+    "sourceFileModes": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "type": "integer", "minimum": 0, "maximum": 511 }
+    },
+    "stagedFileModes": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "enum": [256, 320] }
+    },
+    "sourceDirectoryModes": {
+      "type": "object",
+      "minProperties": 1,
+      "required": ["."],
+      "additionalProperties": { "type": "integer", "minimum": 0, "maximum": 511 }
+    },
+    "stagedDirectoryModes": {
+      "type": "object",
+      "minProperties": 1,
+      "required": ["."],
+      "additionalProperties": { "const": 320 }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "schemaVersion": { "const": 1 } }, "required": ["schemaVersion"] },
+      "then": {
+        "properties": {
+          "sourceFileModes": false,
+          "stagedFileModes": false,
+          "sourceDirectoryModes": false,
+          "stagedDirectoryModes": false
+        }
+      },
+      "else": {
+        "required": [
+          "sourceFileModes",
+          "stagedFileModes",
+          "sourceDirectoryModes",
+          "stagedDirectoryModes"
+        ]
+      }
+    }
+  ]
 }

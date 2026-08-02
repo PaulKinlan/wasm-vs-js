@@ -264,12 +264,21 @@ Deno.test("production systemd launch/teardown uses only an injected exact-unit a
   await Deno.chmod(binary, 0o500);
   await Deno.chmod(stageRoot, 0o500);
   const stageIdentity = ids(await Deno.lstat(stageRoot));
-  const stagedChrome = {
-    root: stageRoot,
-    binary,
+  const packageIdentity = {
+    schemaVersion: 2 as const,
+    binaryRelativePath: "chrome",
     binarySha256: expectedSha256,
     files: { chrome: expectedSha256 },
-    manifestSha256: await sha256Hex(canonicalize({ chrome: expectedSha256 })),
+    sourceFileModes: { chrome: 0o755 },
+    stagedFileModes: { chrome: 0o500 },
+    sourceDirectoryModes: { ".": 0o700 },
+    stagedDirectoryModes: { ".": 0o500 },
+  };
+  const stagedChrome = {
+    ...packageIdentity,
+    root: stageRoot,
+    binary,
+    manifestSha256: await sha256Hex(canonicalize(packageIdentity)),
     rootDev: stageIdentity.dev,
     rootIno: stageIdentity.ino,
   };

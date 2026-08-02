@@ -1,47 +1,146 @@
-import { assertEquals, assertRejects } from "./assert.ts";
+import { assert, assertEquals, assertRejects } from "./assert.ts";
 import {
   inspectChromePackage,
   removeStagedChrome,
   stageChromePackage,
+  StagedChrome,
   verifyStagedChrome,
 } from "../lib/chrome-stage.ts";
 import { sha256Hex } from "../lib/canonical.ts";
 
-Deno.test("staged Chrome package is immutable and independent from original bytes", async () => {
+function mode(info: Deno.FileInfo): number {
+  if (info.mode === null) throw new Error("fixture mode unavailable");
+  return info.mode & 0o7777;
+}
+
+async function fixturePackage() {
   const source = await Deno.makeTempDir(), binary = `${source}/chrome`;
+  await Deno.mkdir(`${source}/helpers/nested`, { recursive: true });
+  await Deno.mkdir(`${source}/empty`);
   await Deno.writeTextFile(binary, "original-binary");
+  await Deno.writeTextFile(`${source}/chrome_crashpad_handler`, "crashpad");
+  await Deno.writeTextFile(`${source}/helpers/nested/chrome_sandbox`, "sandbox");
   await Deno.writeTextFile(`${source}/resource.pak`, "resource");
-  await Deno.mkdir(`${source}/PrivacySandboxAttestationsPreloaded`);
-  await Deno.writeTextFile(
-    `${source}/PrivacySandboxAttestationsPreloaded/manifest.json`,
-    "nested-resource",
-  );
-  const hash = await sha256Hex(await Deno.readFile(binary));
-  const inspected = await inspectChromePackage(binary, hash);
-  const stage = await stageChromePackage(binary, hash, `test-${crypto.randomUUID()}`);
-  assertEquals(stage.manifestSha256, inspected.manifestSha256);
+  await Deno.chmod(binary, 0o755);
+  await Deno.chmod(`${source}/chrome_crashpad_handler`, 0o755);
+  await Deno.chmod(`${source}/helpers/nested/chrome_sandbox`, 0o711);
+  await Deno.chmod(`${source}/resource.pak`, 0o640);
+  return { source, binary, hash: await sha256Hex(await Deno.readFile(binary)) };
+}
+
+async function forceRemove(path: string): Promise<void> {
+  const info = await Deno.lstat(path).catch(() => null);
+  if (!info) return;
+  if (info.isDirectory && !info.isSymlink) {
+    await Deno.chmod(path, 0o700).catch(() => {});
+    for await (const entry of Deno.readDir(path)) await forceRemove(`${path}/${entry.name}`);
+  } else if (info.isFile && !info.isSymlink) await Deno.chmod(path, 0o600).catch(() => {});
+  await Deno.remove(path).catch(() => {});
+}
+
+Deno.test("staging preserves executable classification, exact directory modes, and cleanup", async () => {
+  const fixture = await fixturePackage();
+  let stage: StagedChrome | undefined;
   try {
-    await Deno.writeTextFile(binary, "mutated-original");
+    const inspected = await inspectChromePackage(fixture.binary, fixture.hash);
+    stage = await stageChromePackage(
+      fixture.binary,
+      fixture.hash,
+      `test-${crypto.randomUUID()}`,
+    );
+    assertEquals(stage.schemaVersion, 2);
+    assertEquals(stage.manifestSha256, inspected.manifestSha256);
+    assertEquals(stage.sourceFileModes, inspected.sourceFileModes);
+    assertEquals(stage.stagedFileModes, {
+      chrome: 0o500,
+      chrome_crashpad_handler: 0o500,
+      "helpers/nested/chrome_sandbox": 0o500,
+      "resource.pak": 0o400,
+    });
+    assertEquals(mode(await Deno.lstat(stage.binary)), 0o500);
+    assertEquals(mode(await Deno.lstat(`${stage.root}/chrome_crashpad_handler`)), 0o500);
+    assertEquals(mode(await Deno.lstat(`${stage.root}/helpers/nested/chrome_sandbox`)), 0o500);
+    assertEquals(mode(await Deno.lstat(`${stage.root}/resource.pak`)), 0o400);
+    for (const rel of [".", "empty", "helpers", "helpers/nested"]) {
+      assertEquals(
+        mode(await Deno.lstat(rel === "." ? stage.root : `${stage.root}/${rel}`)),
+        0o500,
+      );
+    }
+
+    await Deno.writeTextFile(fixture.binary, "mutated-original");
+    await Deno.chmod(`${fixture.source}/chrome_crashpad_handler`, 0o644);
     await verifyStagedChrome(stage);
     assertEquals(await Deno.readTextFile(stage.binary), "original-binary");
-    assertEquals(
-      await Deno.readTextFile(`${stage.root}/PrivacySandboxAttestationsPreloaded/manifest.json`),
-      "nested-resource",
-    );
-    await Deno.chmod(stage.binary, 0o700);
-    await Deno.writeTextFile(stage.binary, "mutated-stage");
-    await Deno.chmod(stage.binary, 0o500);
-    await assertRejects(() => verifyStagedChrome(stage), "manifest changed");
-    await Deno.chmod(stage.binary, 0o700);
-    await Deno.writeTextFile(stage.binary, "original-binary");
-    await Deno.chmod(stage.binary, 0o500);
+
     await removeStagedChrome(stage);
-    await assertRejects(() => Deno.lstat(stage.root), "No such file");
+    await assertRejects(() => Deno.lstat(stage!.root), "No such file");
+    stage = undefined;
   } finally {
-    await Deno.chmod(stage.binary, 0o500).catch(() => {});
-    await Deno.chmod(stage.root, 0o700).catch(() => {});
-    await Deno.chmod(`${stage.root}/PrivacySandboxAttestationsPreloaded`, 0o700).catch(() => {});
-    await Deno.remove(stage.root, { recursive: true }).catch(() => {});
-    await Deno.remove(source, { recursive: true });
+    if (stage) await forceRemove(stage.root);
+    await forceRemove(fixture.source);
+  }
+});
+
+Deno.test("mode metadata changes the package digest and staged mode-only mutations fail closed", async () => {
+  const fixture = await fixturePackage();
+  let stage: StagedChrome | undefined;
+  try {
+    const executable = await inspectChromePackage(fixture.binary, fixture.hash);
+    await Deno.chmod(`${fixture.source}/chrome_crashpad_handler`, 0o644);
+    const nonExecutable = await inspectChromePackage(fixture.binary, fixture.hash);
+    assert(executable.manifestSha256 !== nonExecutable.manifestSha256);
+    assertEquals(nonExecutable.stagedFileModes.chrome_crashpad_handler, 0o400);
+    await Deno.chmod(`${fixture.source}/chrome_crashpad_handler`, 0o755);
+
+    stage = await stageChromePackage(
+      fixture.binary,
+      fixture.hash,
+      `test-${crypto.randomUUID()}`,
+    );
+    await Deno.chmod(`${stage.root}/chrome_crashpad_handler`, 0o400);
+    await assertRejects(() => verifyStagedChrome(stage!), "file mode changed");
+    await Deno.chmod(`${stage.root}/chrome_crashpad_handler`, 0o500);
+
+    await Deno.chmod(`${stage.root}/resource.pak`, 0o500);
+    await assertRejects(() => verifyStagedChrome(stage!), "file mode changed");
+    await Deno.chmod(`${stage.root}/resource.pak`, 0o400);
+
+    await Deno.chmod(`${stage.root}/helpers/nested`, 0o700);
+    await assertRejects(() => verifyStagedChrome(stage!), "directory mode changed");
+    await Deno.chmod(`${stage.root}/helpers/nested`, 0o500);
+    await verifyStagedChrome(stage);
+    await removeStagedChrome(stage);
+    stage = undefined;
+  } finally {
+    if (stage) await forceRemove(stage.root);
+    await forceRemove(fixture.source);
+  }
+});
+
+Deno.test("source special bits and a nonexecutable main binary are rejected before staging", async () => {
+  const fixture = await fixturePackage();
+  try {
+    await Deno.chmod(fixture.binary, 0o644);
+    await assertRejects(
+      () => inspectChromePackage(fixture.binary, fixture.hash),
+      "main binary is not executable",
+    );
+    await Deno.chmod(fixture.binary, 0o755);
+
+    await Deno.chmod(`${fixture.source}/chrome_crashpad_handler`, 0o4755);
+    await assertRejects(
+      () => inspectChromePackage(fixture.binary, fixture.hash),
+      "special permission bits",
+    );
+    await Deno.chmod(`${fixture.source}/chrome_crashpad_handler`, 0o755);
+
+    await Deno.chmod(`${fixture.source}/helpers`, 0o2755);
+    await assertRejects(
+      () => inspectChromePackage(fixture.binary, fixture.hash),
+      "special permission bits",
+    );
+  } finally {
+    await forceRemove(fixture.source);
   }
 });

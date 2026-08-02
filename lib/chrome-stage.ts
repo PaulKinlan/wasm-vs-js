@@ -1,126 +1,283 @@
 import { canonicalize, sha256Hex } from "./canonical.ts";
 
-export type StagedChrome = {
-  root: string;
-  binary: string;
+export type ChromePackageInspection = {
+  schemaVersion: 2;
+  binaryRelativePath: string;
   binarySha256: string;
   manifestSha256: string;
   files: Record<string, string>;
+  sourceFileModes: Record<string, number>;
+  stagedFileModes: Record<string, number>;
+  sourceDirectoryModes: Record<string, number>;
+  stagedDirectoryModes: Record<string, number>;
+};
+
+export type StagedChrome = ChromePackageInspection & {
+  root: string;
+  binary: string;
   rootDev: number;
   rootIno: number;
 };
 
 const STAGE_ROOT = "/tmp/wasm-vs-js-staged-chrome";
+const DIRECTORY_MODE = 0o500;
+const EXECUTABLE_MODE = 0o500;
+const NON_EXECUTABLE_MODE = 0o400;
+
 function safeId(value: string): string {
   if (!/^[A-Za-z0-9._-]{8,128}$/.test(value)) throw new Error("unsafe Chrome stage id");
   return value;
 }
-async function walkFiles(root: string, relative = ""): Promise<string[]> {
-  const output: string[] = [];
-  for await (const entry of Deno.readDir(relative ? `${root}/${relative}` : root)) {
-    const rel = relative ? `${relative}/${entry.name}` : entry.name;
-    const path = `${root}/${rel}`;
-    const info = await Deno.lstat(path);
-    if (info.isSymlink) throw new Error(`Chrome package symlink denied: ${rel}`);
-    if (info.isDirectory) output.push(...await walkFiles(root, rel));
-    else if (info.isFile) output.push(rel);
-    else throw new Error(`unsupported Chrome package entry: ${rel}`);
+
+type PackagePaths = { files: string[]; directories: string[] };
+
+async function walkPackage(root: string): Promise<PackagePaths> {
+  const files: string[] = [], directories = ["."];
+  async function visit(relative: string): Promise<void> {
+    for await (const entry of Deno.readDir(relative ? `${root}/${relative}` : root)) {
+      const rel = relative ? `${relative}/${entry.name}` : entry.name;
+      const info = await Deno.lstat(`${root}/${rel}`);
+      if (info.isSymlink) throw new Error(`Chrome package symlink denied: ${rel}`);
+      if (info.isDirectory) {
+        directories.push(rel);
+        await visit(rel);
+      } else if (info.isFile) files.push(rel);
+      else throw new Error(`unsupported Chrome package entry: ${rel}`);
+    }
   }
-  return output.sort();
+  await visit("");
+  return { files: files.sort(), directories: directories.sort() };
 }
-async function hashFile(path: string): Promise<string> {
-  const before = await Deno.lstat(path);
-  if (before.isSymlink || !before.isFile) throw new Error("unsafe staged Chrome file");
-  const hash = await sha256Hex(await Deno.readFile(path));
-  const after = await Deno.lstat(path);
-  if (after.dev !== before.dev || after.ino !== before.ino || after.size !== before.size) {
-    throw new Error("staged Chrome file changed while hashing");
-  }
-  return hash;
-}
+
 function numberIdentity(value: number | bigint | null | undefined, label: string): number {
   const number = Number(value);
   if (!Number.isSafeInteger(number) || number < 0) throw new Error(`${label} unavailable`);
   return number;
 }
+
+function permissionMode(info: Deno.FileInfo, label: string): number {
+  return numberIdentity(info.mode, `${label} mode`) & 0o7777;
+}
+
+function assertOrdinaryMode(mode: number, label: string): void {
+  if ((mode & 0o7000) !== 0) throw new Error(`${label} has special permission bits`);
+}
+
+function stagedFileMode(sourceMode: number): number {
+  return (sourceMode & 0o111) !== 0 ? EXECUTABLE_MODE : NON_EXECUTABLE_MODE;
+}
+
+async function hashFile(path: string): Promise<{ sha256: string; mode: number }> {
+  const before = await Deno.lstat(path);
+  if (before.isSymlink || !before.isFile) throw new Error("unsafe staged Chrome file");
+  const beforeMode = permissionMode(before, "Chrome package file");
+  const sha256 = await sha256Hex(await Deno.readFile(path));
+  const after = await Deno.lstat(path);
+  if (
+    after.isSymlink || !after.isFile || after.dev !== before.dev || after.ino !== before.ino ||
+    after.size !== before.size || permissionMode(after, "Chrome package file") !== beforeMode
+  ) throw new Error("staged Chrome file changed while hashing");
+  return { sha256, mode: beforeMode };
+}
+
 async function expectedUid(): Promise<number> {
   return numberIdentity((await Deno.lstat(new URL(".", import.meta.url))).uid, "stage uid");
 }
-async function assertStageDirectory(path: string, writable: boolean) {
+
+async function assertStageDirectory(path: string, expectedMode: number) {
   const info = await Deno.lstat(path);
   if (
     info.isSymlink || !info.isDirectory || await Deno.realPath(path) !== path ||
     numberIdentity(info.uid, "stage uid") !== await expectedUid() ||
-    (writable ? ((info.mode ?? 0) & 0o777) !== 0o700 : Boolean((info.mode ?? 0) & 0o222))
+    permissionMode(info, "staged Chrome directory") !== expectedMode
   ) throw new Error("unsafe staged Chrome directory");
   return {
     dev: numberIdentity(info.dev, "stage dev"),
     ino: numberIdentity(info.ino, "stage inode"),
   };
 }
+
+function sameKeys(actual: Record<string, unknown>, expected: string[]): boolean {
+  return JSON.stringify(Object.keys(actual).sort()) === JSON.stringify([...expected].sort());
+}
+
+function manifestIdentity(
+  inspection: Omit<ChromePackageInspection, "manifestSha256">,
+): Omit<ChromePackageInspection, "manifestSha256"> {
+  return inspection;
+}
+
+async function manifestDigest(
+  inspection: Omit<ChromePackageInspection, "manifestSha256">,
+): Promise<string> {
+  return await sha256Hex(canonicalize(manifestIdentity(inspection)));
+}
+
+function validateModeMetadata(inspection: ChromePackageInspection): void {
+  if (inspection.schemaVersion !== 2) {
+    throw new Error("unsupported Chrome package manifest version");
+  }
+  const filePaths = Object.keys(inspection.files).sort();
+  const directoryPaths = Object.keys(inspection.sourceDirectoryModes).sort();
+  if (
+    !filePaths.length || !sameKeys(inspection.sourceFileModes, filePaths) ||
+    !sameKeys(inspection.stagedFileModes, filePaths) ||
+    !sameKeys(inspection.stagedDirectoryModes, directoryPaths) ||
+    !directoryPaths.includes(".")
+  ) throw new Error("Chrome package mode metadata file set mismatch");
+  if (!filePaths.includes(inspection.binaryRelativePath)) {
+    throw new Error("Chrome package main binary missing");
+  }
+  for (const rel of filePaths) {
+    const sourceMode = inspection.sourceFileModes[rel];
+    assertOrdinaryMode(sourceMode, `Chrome source file ${rel}`);
+    if (inspection.stagedFileModes[rel] !== stagedFileMode(sourceMode)) {
+      throw new Error(`staged Chrome file mode classification changed: ${rel}`);
+    }
+  }
+  if ((inspection.sourceFileModes[inspection.binaryRelativePath] & 0o111) === 0) {
+    throw new Error("Chrome source main binary is not executable");
+  }
+  for (const rel of directoryPaths) {
+    assertOrdinaryMode(inspection.sourceDirectoryModes[rel], `Chrome source directory ${rel}`);
+    if (inspection.stagedDirectoryModes[rel] !== DIRECTORY_MODE) {
+      throw new Error(`staged Chrome directory mode classification changed: ${rel}`);
+    }
+  }
+}
+
+async function inspectResolvedChromePackage(
+  resolvedBinary: string,
+  expectedBinarySha256: string,
+): Promise<ChromePackageInspection> {
+  const sourceRoot = resolvedBinary.slice(0, resolvedBinary.lastIndexOf("/"));
+  const sourceInfo = await Deno.lstat(resolvedBinary);
+  if (sourceInfo.isSymlink || !sourceInfo.isFile) throw new Error("unsafe Chrome source binary");
+  const binaryRelativePath = resolvedBinary.slice(sourceRoot.length + 1);
+  const paths = await walkPackage(sourceRoot);
+  const files: Record<string, string> = {}, sourceFileModes: Record<string, number> = {};
+  const sourceDirectoryModes: Record<string, number> = {};
+  for (const rel of paths.files) {
+    const snapshot = await hashFile(`${sourceRoot}/${rel}`);
+    assertOrdinaryMode(snapshot.mode, `Chrome source file ${rel}`);
+    files[rel] = snapshot.sha256;
+    sourceFileModes[rel] = snapshot.mode;
+  }
+  for (const rel of paths.directories) {
+    const info = await Deno.lstat(rel === "." ? sourceRoot : `${sourceRoot}/${rel}`);
+    if (info.isSymlink || !info.isDirectory) {
+      throw new Error(`unsafe Chrome source directory: ${rel}`);
+    }
+    const mode = permissionMode(info, `Chrome source directory ${rel}`);
+    assertOrdinaryMode(mode, `Chrome source directory ${rel}`);
+    sourceDirectoryModes[rel] = mode;
+  }
+  if (files[binaryRelativePath] !== expectedBinarySha256) {
+    throw new Error("Chrome source binary hash mismatch");
+  }
+  const stagedFileModes = Object.fromEntries(
+    paths.files.map((rel) => [rel, stagedFileMode(sourceFileModes[rel])]),
+  );
+  const stagedDirectoryModes = Object.fromEntries(
+    paths.directories.map((rel) => [rel, DIRECTORY_MODE]),
+  );
+  const identity = {
+    schemaVersion: 2 as const,
+    binaryRelativePath,
+    binarySha256: expectedBinarySha256,
+    files,
+    sourceFileModes,
+    stagedFileModes,
+    sourceDirectoryModes,
+    stagedDirectoryModes,
+  };
+  const inspection = { ...identity, manifestSha256: await manifestDigest(identity) };
+  validateModeMetadata(inspection);
+  return inspection;
+}
+
 export async function verifyStagedChrome(stage: StagedChrome): Promise<void> {
-  const root = await assertStageDirectory(stage.root, false);
+  validateModeMetadata(stage);
+  if (stage.binary !== `${stage.root}/${stage.binaryRelativePath}`) {
+    throw new Error("staged Chrome binary path changed");
+  }
+  const root = await assertStageDirectory(stage.root, DIRECTORY_MODE);
   if (root.dev !== stage.rootDev || root.ino !== stage.rootIno) {
     throw new Error("staged Chrome root identity changed");
   }
-  const paths = await walkFiles(stage.root);
-  if (JSON.stringify(paths) !== JSON.stringify(Object.keys(stage.files).sort())) {
-    throw new Error("staged Chrome package file set changed");
+  const paths = await walkPackage(stage.root);
+  if (
+    !sameKeys(stage.files, paths.files) || !sameKeys(stage.sourceFileModes, paths.files) ||
+    !sameKeys(stage.stagedFileModes, paths.files) ||
+    !sameKeys(stage.sourceDirectoryModes, paths.directories) ||
+    !sameKeys(stage.stagedDirectoryModes, paths.directories)
+  ) throw new Error("staged Chrome package file set changed");
+
+  const files: Record<string, string> = {}, stagedFileModes: Record<string, number> = {};
+  const stagedDirectoryModes: Record<string, number> = {};
+  for (const rel of paths.files) {
+    const snapshot = await hashFile(`${stage.root}/${rel}`);
+    if (snapshot.mode !== stage.stagedFileModes[rel]) {
+      throw new Error(`staged Chrome file mode changed: ${rel}`);
+    }
+    files[rel] = snapshot.sha256;
+    stagedFileModes[rel] = snapshot.mode;
   }
-  const files: Record<string, string> = {};
-  for (const rel of paths) files[rel] = await hashFile(`${stage.root}/${rel}`);
-  const digest = await sha256Hex(canonicalize(files));
-  const rootAfter = await assertStageDirectory(stage.root, false);
+  for (const rel of paths.directories) {
+    const path = rel === "." ? stage.root : `${stage.root}/${rel}`;
+    const info = await Deno.lstat(path);
+    if (info.isSymlink || !info.isDirectory) {
+      throw new Error(`unsafe staged Chrome directory: ${rel}`);
+    }
+    const mode = permissionMode(info, `staged Chrome directory ${rel}`);
+    if (mode !== stage.stagedDirectoryModes[rel]) {
+      throw new Error(`staged Chrome directory mode changed: ${rel}`);
+    }
+    stagedDirectoryModes[rel] = mode;
+  }
+  const digest = await manifestDigest({
+    schemaVersion: 2,
+    binaryRelativePath: stage.binaryRelativePath,
+    binarySha256: stage.binarySha256,
+    files,
+    sourceFileModes: stage.sourceFileModes,
+    stagedFileModes,
+    sourceDirectoryModes: stage.sourceDirectoryModes,
+    stagedDirectoryModes,
+  });
+  const rootAfter = await assertStageDirectory(stage.root, DIRECTORY_MODE);
   if (
     rootAfter.dev !== stage.rootDev || rootAfter.ino !== stage.rootIno ||
-    digest !== stage.manifestSha256 ||
-    files[stage.binary.slice(stage.root.length + 1)] !== stage.binarySha256
-  ) {
-    throw new Error("staged Chrome package manifest changed");
+    digest !== stage.manifestSha256 || files[stage.binaryRelativePath] !== stage.binarySha256
+  ) throw new Error("staged Chrome package manifest changed");
+}
+
+async function makeTreeRemovable(root: string): Promise<void> {
+  const info = await Deno.lstat(root);
+  if (info.isSymlink || !info.isDirectory) throw new Error("unsafe Chrome stage cleanup root");
+  await Deno.chmod(root, 0o700);
+  for await (const entry of Deno.readDir(root)) {
+    const path = `${root}/${entry.name}`;
+    const child = await Deno.lstat(path);
+    if (child.isDirectory && !child.isSymlink) await makeTreeRemovable(path);
+    else if (child.isFile && !child.isSymlink) await Deno.chmod(path, 0o600);
   }
 }
+
 export async function removeStagedChrome(stage: StagedChrome): Promise<void> {
   await verifyStagedChrome(stage);
-  const paths = await walkFiles(stage.root);
-  const dirs = new Set([stage.root]);
-  for (const rel of paths) {
-    await Deno.chmod(`${stage.root}/${rel}`, 0o600);
-    let at = rel.includes("/") ? rel.slice(0, rel.lastIndexOf("/")) : "";
-    while (at) {
-      dirs.add(`${stage.root}/${at}`);
-      at = at.includes("/") ? at.slice(0, at.lastIndexOf("/")) : "";
-    }
-  }
-  for (const dir of dirs) await Deno.chmod(dir, 0o700);
+  await makeTreeRemovable(stage.root);
   await Deno.remove(stage.root, { recursive: true });
 }
 
 export async function inspectChromePackage(
   sourceBinary: string,
   expectedBinarySha256: string,
-): Promise<
-  {
-    binaryRelativePath: string;
-    binarySha256: string;
-    manifestSha256: string;
-    files: Record<string, string>;
-  }
-> {
-  const resolved = await Deno.realPath(sourceBinary),
-    sourceRoot = resolved.slice(0, resolved.lastIndexOf("/")),
-    binaryRelativePath = resolved.slice(sourceRoot.length + 1),
-    paths = await walkFiles(sourceRoot),
-    files: Record<string, string> = {};
-  for (const rel of paths) files[rel] = await hashFile(`${sourceRoot}/${rel}`);
-  if (files[binaryRelativePath] !== expectedBinarySha256) {
-    throw new Error("Chrome source binary hash mismatch");
-  }
-  return {
-    binaryRelativePath,
-    binarySha256: expectedBinarySha256,
-    manifestSha256: await sha256Hex(canonicalize(files)),
-    files,
-  };
+): Promise<ChromePackageInspection> {
+  return await inspectResolvedChromePackage(
+    await Deno.realPath(sourceBinary),
+    expectedBinarySha256,
+  );
 }
 
 export async function stageChromePackage(
@@ -128,18 +285,13 @@ export async function stageChromePackage(
   expectedBinarySha256: string,
   stageId: string,
 ): Promise<StagedChrome> {
-  const resolved = await Deno.realPath(sourceBinary),
-    sourceRoot = resolved.slice(0, resolved.lastIndexOf("/"));
-  const sourceInfo = await Deno.lstat(resolved);
-  if (sourceInfo.isSymlink || !sourceInfo.isFile) throw new Error("unsafe Chrome source binary");
-  const relBinary = resolved.slice(sourceRoot.length + 1);
-  const sourceFiles = await walkFiles(sourceRoot);
-  const originalHash = await hashFile(resolved);
-  if (originalHash !== expectedBinarySha256) throw new Error("Chrome source binary hash mismatch");
+  const resolved = await Deno.realPath(sourceBinary);
+  const inspected = await inspectResolvedChromePackage(resolved, expectedBinarySha256);
+  const sourceRoot = resolved.slice(0, resolved.lastIndexOf("/"));
   await Deno.mkdir(STAGE_ROOT, { mode: 0o700 }).catch((error) => {
     if (!(error instanceof Deno.errors.AlreadyExists)) throw error;
   });
-  const stageParent = await assertStageDirectory(STAGE_ROOT, true);
+  const stageParent = await assertStageDirectory(STAGE_ROOT, 0o700);
   const root = `${STAGE_ROOT}/${safeId(stageId)}`;
   try {
     await Deno.lstat(root);
@@ -149,46 +301,46 @@ export async function stageChromePackage(
   }
   await Deno.mkdir(root, { mode: 0o700 });
   try {
-    for (const rel of sourceFiles) {
-      const from = `${sourceRoot}/${rel}`,
-        to = `${root}/${rel}`,
-        parent = rel.includes("/") ? `${root}/${rel.slice(0, rel.lastIndexOf("/"))}` : root;
-      await Deno.mkdir(parent, { recursive: true, mode: 0o700 });
-      await Deno.copyFile(from, to);
+    const directories = Object.keys(inspected.sourceDirectoryModes).filter((rel) => rel !== ".")
+      .sort((a, b) => a.split("/").length - b.split("/").length || a.localeCompare(b));
+    for (const rel of directories) await Deno.mkdir(`${root}/${rel}`, { mode: 0o700 });
+    for (const rel of Object.keys(inspected.files).sort()) {
+      await Deno.copyFile(`${sourceRoot}/${rel}`, `${root}/${rel}`);
     }
-    const files: Record<string, string> = {};
-    for (const rel of sourceFiles) files[rel] = await hashFile(`${root}/${rel}`);
-    if (files[relBinary] !== expectedBinarySha256) throw new Error("staged Chrome binary mismatch");
-    for (const rel of [...sourceFiles].sort((a, b) => b.split("/").length - a.split("/").length)) {
-      await Deno.chmod(`${root}/${rel}`, rel === relBinary ? 0o500 : 0o400);
+    const sourceAfter = await inspectResolvedChromePackage(resolved, expectedBinarySha256);
+    if (sourceAfter.manifestSha256 !== inspected.manifestSha256) {
+      throw new Error("Chrome source package changed while staging");
     }
-    const dirs = new Set([root]);
-    for (const rel of sourceFiles) {
-      let at = rel.includes("/") ? rel.slice(0, rel.lastIndexOf("/")) : "";
-      while (at) {
-        dirs.add(`${root}/${at}`);
-        at = at.includes("/") ? at.slice(0, at.lastIndexOf("/")) : "";
+    for (const rel of Object.keys(inspected.files)) {
+      const copied = await hashFile(`${root}/${rel}`);
+      if (copied.sha256 !== inspected.files[rel]) {
+        throw new Error("staged Chrome package copy mismatch");
       }
+      await Deno.chmod(`${root}/${rel}`, inspected.stagedFileModes[rel]);
     }
-    for (const dir of [...dirs].sort((a, b) => b.length - a.length)) await Deno.chmod(dir, 0o500);
-    const rootIdentity = await assertStageDirectory(root, false);
-    const parentAfter = await assertStageDirectory(STAGE_ROOT, true);
+    for (
+      const rel of Object.keys(inspected.stagedDirectoryModes).sort((a, b) =>
+        b.split("/").length - a.split("/").length || b.localeCompare(a)
+      )
+    ) {
+      await Deno.chmod(rel === "." ? root : `${root}/${rel}`, inspected.stagedDirectoryModes[rel]);
+    }
+    const rootIdentity = await assertStageDirectory(root, DIRECTORY_MODE);
+    const parentAfter = await assertStageDirectory(STAGE_ROOT, 0o700);
     if (parentAfter.dev !== stageParent.dev || parentAfter.ino !== stageParent.ino) {
       throw new Error("staged Chrome parent identity changed");
     }
     const stage: StagedChrome = {
+      ...inspected,
       root,
-      binary: `${root}/${relBinary}`,
-      binarySha256: expectedBinarySha256,
-      manifestSha256: await sha256Hex(canonicalize(files)),
-      files,
+      binary: `${root}/${inspected.binaryRelativePath}`,
       rootDev: rootIdentity.dev,
       rootIno: rootIdentity.ino,
     };
     await verifyStagedChrome(stage);
     return stage;
   } catch (error) {
-    await Deno.chmod(root, 0o700).catch(() => {});
+    await makeTreeRemovable(root).catch(() => {});
     await Deno.remove(root, { recursive: true }).catch(() => {});
     throw error;
   }

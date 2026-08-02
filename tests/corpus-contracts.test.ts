@@ -16,13 +16,32 @@ Deno.test("permit receipt and Chrome package manifests are closed", async () => 
     consumedAt: new Date().toISOString(),
     operation: "pilot-m1-corpus",
   });
-  assertChromePackageManifestSchema({
+  const legacyManifest = {
     schemaVersion: 1,
     binaryRelativePath: "chrome",
     binarySha256: "b".repeat(64),
     manifestSha256: "c".repeat(64),
     files: { chrome: "b".repeat(64) },
+  };
+  assertChromePackageManifestSchema(legacyManifest);
+  assertChromePackageManifestSchema({
+    ...legacyManifest,
+    schemaVersion: 2,
+    sourceFileModes: { chrome: 493 },
+    stagedFileModes: { chrome: 320 },
+    sourceDirectoryModes: { ".": 448, helpers: 493 },
+    stagedDirectoryModes: { ".": 320, helpers: 320 },
   });
+  await assertRejects(
+    () =>
+      Promise.resolve().then(() =>
+        assertChromePackageManifestSchema({
+          ...legacyManifest,
+          sourceFileModes: { chrome: 493 },
+        })
+      ),
+    "schema invalid",
+  );
   await assertRejects(
     () => Promise.resolve().then(() => assertPermitReceiptSchema({ invented: true })),
     "schema invalid",

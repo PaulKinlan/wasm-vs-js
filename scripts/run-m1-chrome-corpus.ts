@@ -579,11 +579,15 @@ export async function collectOwnedBlock(
       events: Array<Record<string, unknown>> = [],
       consoleEvents: Array<Record<string, unknown>> = [];
     const chromePackageManifest = {
-      schemaVersion: 1,
-      binaryRelativePath: stagedChrome.binary.slice(stagedChrome.root.length + 1),
+      schemaVersion: stagedChrome.schemaVersion,
+      binaryRelativePath: stagedChrome.binaryRelativePath,
       binarySha256: stagedChrome.binarySha256,
       manifestSha256: stagedChrome.manifestSha256,
       files: stagedChrome.files,
+      sourceFileModes: stagedChrome.sourceFileModes,
+      stagedFileModes: stagedChrome.stagedFileModes,
+      sourceDirectoryModes: stagedChrome.sourceDirectoryModes,
+      stagedDirectoryModes: stagedChrome.stagedDirectoryModes,
     };
     assertChromePackageManifestSchema(chromePackageManifest);
     const chromePackageArtifact = await writeImmutableArtifact(
@@ -1428,12 +1432,18 @@ export async function dryFake() {
         authorizationReference: "dry-fake-no-browser",
         retryOf: null,
       });
-    const stage = {
+    const stage: StagedChrome = {
+      schemaVersion: 2,
       root: `${root}/stage`,
       binary: `${root}/stage/chrome`,
+      binaryRelativePath: "chrome",
       binarySha256: permit.chromeSha256,
       manifestSha256: packageManifestSha256,
       files: { chrome: permit.chromeSha256 },
+      sourceFileModes: { chrome: 0o755 },
+      stagedFileModes: { chrome: 0o500 },
+      sourceDirectoryModes: { ".": 0o700 },
+      stagedDirectoryModes: { ".": 0o500 },
       rootDev: 1,
       rootIno: 1,
     };
