@@ -31,9 +31,10 @@ The result is a matrix, not one score.
 - A universal JavaScript-versus-Wasm winner.
 - Ranking browsers by proprietary memory, GC, trace, or throttling metrics.
 - Ranking frameworks using unmatched implementations.
-- Server-runtime or standalone-engine results presented as browser results.
+- Collapsing browser, server-runtime, or standalone-engine evidence into one conclusion.
 - Anonymous executable benchmark submissions.
-- Hidden browser flags, reduced work, cached expected output, or benchmark-specific special casing.
+- Unreported runtime/feature/compiler flags, reduced work, cached expected output, or benchmark-specific special casing.
+- Presenting non-default engine modes, optimization hints, or parallel harness throughput as default-user behavior.
 - Performance conclusions from authored JSON, mocks, screenshots, prose, or a few best runs.
 
 ## Fairness contract
@@ -113,8 +114,9 @@ Every variant records:
 - named generated artifact hashes;
 - lockfile hashes and reproducible command;
 - compiler, linker, Binaryen/Emscripten, bundler, minifier, and compressor versions;
-- full compile and link flags;
-- speed/size optimization, LTO, SIMD, threads, exceptions, memory growth, initial/max memory, i64 ABI, debug/name stripping, and Wasm feature set;
+- full compile, link, browser/runtime launch, engine tiering, and feature flags;
+- speed/size optimization, LTO, SIMD, threads, exceptions, memory growth, initial/max memory, i64 ABI, debug/name stripping, Wasm feature set, and baseline/optimizing/tiering mode;
+- JavaScript platform optimization hints or attributes, exact values, support probes, and dated ChromeStatus plus browser/engine source provenance where relevant;
 - authored source, generated glue, raw payload, gzip, Brotli, request count, transferred bytes, and decoded bytes.
 
 `-O3`, `-Oz`, SIMD, scalar, threads, single-thread, linear Wasm, and WasmGC are distinct variants.
@@ -125,6 +127,7 @@ Every variant records:
 - Batch fixed work so intervals are at least 100× observed timer quantum and timer overhead is below 1%.
 - Preserve the first iteration and every fixed-work iteration.
 - Use balanced randomized paired blocks and alternate variant order.
+- Tests may run variants concurrently only when preregistered isolation prevents CPU, memory, network, cache, thermal, and scheduler interference and fair ordering remains auditable. Concurrent and sequential modes are separate cells; their samples are never pooled by default.
 - Collect independent fresh-browser launches, not only nested iterations in one realm.
 - Initial floor: 20 paired launches per headline cell. After that floor, stop when the paired median-ratio 95% confidence-interval half-width is at most 3%, or continue to a preregistered fixed cap. Label the cell inconclusive only when the cap is reached without the precision target. The estimator, bootstrap, stopping cap, and sequential-stopping adjustment or coverage simulation freeze before the run.
 - Publish paired speed ratio and absolute difference with hierarchical/block bootstrap 95% CI, plus median, mean, p5/p25/p75/p95/p99, MAD/IQR, count, failures, and raw samples.
@@ -166,6 +169,20 @@ Required strata grow by milestone:
 - real high/mid/low Android devices and real iOS Safari where available.
 
 Desktop emulation is not mobile hardware evidence. iOS browser labels do not imply independent engines.
+
+### Browser, engine, and runtime modes
+
+The browser matrix identifies both product and engine family/version; products sharing an engine do not count as independent engine evidence. Later matrix milestones cover Chromium/V8, Firefox/Gecko/SpiderMonkey, Safari/WebKit/JavaScriptCore, and other available engines without inventing missing cells.
+
+Each environment is an exact, separately versioned mode:
+
+- **Default-user mode** uses the released product/runtime defaults with no benchmark-only engine, tiering, Wasm feature, or JavaScript optimization override.
+- **Non-default diagnostic mode** records every launch/runtime flag, Wasm baseline/optimizing/tiering configuration, enabled/disabled feature, compiler/linker flag, and support probe. These cells explain mechanisms but never stand in for default-user results.
+- **Platform-hint mode** records every JavaScript loading/scheduling/optimization hint or attribute, its exact value, runtime support, and dated ChromeStatus plus browser/engine source provenance where relevant. A hint is a named variant, not an invisible advantage.
+
+Engine tier identity or transitions are reported only when authoritative runtime evidence exposes them; otherwise they are typed `unavailable` or `blocked`. Results from different products, engines, default/non-default modes, or sequential/concurrent execution are not pooled into a default-user claim.
+
+A later server/runtime family begins with Node.js and adds relevant version-pinned runtimes or standalone engines only when the same correctness, work, provenance, isolation, and stopping contracts can run. Server/runtime conclusions remain separate from browser conclusions and from one another unless a preregistered comparable stratum justifies aggregation.
 
 ## Raw evidence and schemas
 
@@ -241,7 +258,7 @@ Forbidden:
 - benchmark-name/input special cases;
 - reduced work or cached expected outputs;
 - benchmark-only compiler patches;
-- hidden flags unavailable to users;
+- unreported flags or optimization modes; non-default modes are allowed only as exact, separately labelled diagnostic cells;
 - timing manipulation;
 - unpublished failed runs or selected minima;
 - changing the workload after seeing headline results without versioning it.
@@ -278,9 +295,9 @@ Implement bounded authenticated ingestion, immutable KV storage, indexes, summar
 
 Deploy the AI Focus-styled accessible results explorer, raw-run inspection, filters, distributions, provenance, and stable routes. Validate desktop/mobile with browser evidence and exact cleanup.
 
-### M5 — cross-browser/device matrix
+### M5 — browser/engine/device matrix
 
-Add Firefox/Safari orchestration, ARM64 desktop, and real mobile evidence. Browser-specific diagnostics stay separate.
+Add a product × engine matrix for Chromium/V8, Firefox/Gecko/SpiderMonkey, Safari/WebKit/JavaScriptCore, and available additional engines; add ARM64 desktop and real mobile evidence. Establish released default-user cells first. Add separately labelled non-default Wasm baseline/optimizing/tiering and feature/compiler-flag diagnostics only with exact flags, authoritative provenance, and typed unsupported states. Browser-specific diagnostics and products sharing one engine stay distinct.
 
 ### M6 — components and applications
 
@@ -290,6 +307,10 @@ Add T3 libraries and T6 complete journeys with first-use, interaction, rendering
 
 Grow toward hundreds of versioned workloads through reviewed families, run the preregistered matrix, publish all valid results/failures, and generate a claim ledger for an AI Focus draft. Article conclusions follow the retained evidence.
 
+### M8 — server and standalone runtime family
+
+Run the accepted workload contracts in Node.js first, then in relevant version-pinned server runtimes or standalone engines where a reproducible harness exists. Compare default modes separately from exact non-default tiering/feature/compiler modes, retain isolation and fair-order evidence for any concurrent execution, and publish runtime-specific conclusions without pooling them into browser or generic default-user claims.
+
 ## Definition of done
 
 1. Every published timing cell has passing correctness and work equivalence.
@@ -298,7 +319,7 @@ Grow toward hundreds of versioned workloads through reviewed families, run the p
 4. Raw runs and exact provenance reproduce every summary.
 5. Headline effects include uncertainty and independent-launch counts; inconclusive remains literal.
 6. Unsupported metrics are typed unavailable/blocked states.
-7. Cross-browser claims use only comparable evidence; diagnostics retain browser scope.
+7. Cross-browser, cross-engine, and later cross-runtime claims use only comparable evidence; product, engine, default/non-default, sequential/concurrent, and server/browser scopes remain explicit.
 8. Public routes expose tests, outputs, samples, failures, exclusions, builds, environments, and evidence.
 9. Ingestion cannot execute submissions and is authenticated, bounded, idempotent, and rate-limited.
 10. Export/restore, deletion, retention, preview isolation, and cost are tested before production data.
@@ -307,9 +328,9 @@ Grow toward hundreds of versioned workloads through reviewed families, run the p
 
 ## Current status
 
-M0 is active. Initial research briefs are complete across methodology, browser measurement, Deno reporting, and AI Focus integration; their decisions still require implementation evidence and milestone review. No benchmark code, run, result, Deno resource, database, deployment, or performance claim exists yet.
+M0 is accepted. M1 implementation is active: the first controlled `sum-u32` JavaScript/linear-Wasm slice provides an exact input/oracle/work contract, reproducible pinned build, local pilot runner, immutable schema-validated records, versioned summaries, and an inspectable AI Focus-styled results page. M1 is not accepted until exact owned-browser paired launches meet the precision target or cap and independent review accepts that evidence. Initial research briefs are complete across methodology, browser measurement, Deno reporting, and AI Focus integration; their decisions still require implementation evidence and milestone review. No accepted browser run or result, Deno resource, database, deployment, or performance claim exists yet.
 
-The next commit after M0 starts M1 with one small complete workload rather than many unconnected kernels.
+The next M1 increment adds exact owned-Chrome orchestration and the required paired launch corpus; it does not broaden into more kernels first.
 
 ## Primary references
 

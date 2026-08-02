@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "id": "sum-u32",
+  "version": 1,
+  "tier": "T2",
+  "title": "Sum unsigned 32-bit integers",
+  "description": "One O(n) scalar loop over an immutable Uint32Array. Addition wraps modulo 2^32.",
+  "tracks": ["controlled"],
+  "variants": [
+    {
+      "id": "js-controlled",
+      "target": "javascript",
+      "track": "controlled",
+      "buildManifest": "public/artifacts/sum-u32/build-manifest.json"
+    },
+    {
+      "id": "wasm-linear-controlled",
+      "target": "wasm-linear",
+      "track": "controlled",
+      "buildManifest": "public/artifacts/sum-u32/build-manifest.json"
+    }
+  ],
+  "inputs": {
+    "manifestSha256": "4f0516549fc9d6952c8d42d642927dd5c43a8c01d03c286e0c80da919bfaf9d7",
+    "immutable": true,
+    "generation": "xorshift32 seed 0x6d2b79f5, 65,536 Uint32 values, little-endian bytes"
+  },
+  "oracle": {
+    "kind": "complete-output",
+    "policy": "Exact unsigned 32-bit sum modulo 2^32. Both variants must return 145417951.",
+    "floatingPointPolicy": "No floating-point operations.",
+    "deadCodeDefense": "The complete returned sum is compared with the frozen oracle and hashed into the run correctness record."
+  },
+  "work": {
+    "fixed": true,
+    "complexity": "O(n)",
+    "counters": ["items", "input-bytes", "additions", "loads", "boundary-crossings"],
+    "tolerance": "Items, bytes, additions, and loads must match exactly. Each measured batch has one boundary crossing."
+  }
+}

@@ -1,12 +1,4 @@
-import Ajv2020 from "ajv2020";
-import addFormats from "ajv-formats";
-
-const ajv = new Ajv2020({ allErrors: true, strict: false });
-addFormats(ajv);
-const benchmarkSchema = JSON.parse(await Deno.readTextFile("schemas/benchmark.schema.json"));
-const runSchema = JSON.parse(await Deno.readTextFile("schemas/run.schema.json"));
-const validateBenchmarkSchema = ajv.compile(benchmarkSchema);
-const validateRunSchema = ajv.compile(runSchema);
+import { validateBenchmark, validateRun } from "../lib/contracts.ts";
 const hash = "a".repeat(64);
 
 const benchmark = {
@@ -113,26 +105,12 @@ const run = {
   payloadSha256: hash,
 };
 
-function semanticBenchmark(value) {
-  const ids = value.variants.map((variant) => variant.id);
-  if (new Set(ids).size !== ids.length) return false;
-  const usedTracks = new Set(value.variants.map((variant) => variant.track));
-  if (
-    value.tracks.length !== usedTracks.size ||
-    !value.tracks.every((track) => usedTracks.has(track))
-  ) return false;
-  const controlledTargets = new Set(
-    value.variants.filter((variant) => variant.track === "controlled").map((variant) =>
-      variant.target
-    ),
-  );
-  return value.variants.every(
-    (variant) => variant.track !== "optimized" || controlledTargets.has(variant.target),
-  );
+function validBenchmark(value) {
+  return validateBenchmark(value).ok;
 }
 
-function validBenchmark(value) {
-  return validateBenchmarkSchema(value) && semanticBenchmark(value);
+function validRun(value) {
+  return validateRun(value).ok;
 }
 
 function expect(label, actual, expected) {
@@ -180,26 +158,26 @@ expect(
   false,
 );
 
-expect("positive run", validateRunSchema(run), true);
+expect("positive run", validRun(run), true);
 expect(
   "source repository format is validated",
-  validateRunSchema({ ...run, build: { ...run.build, sourceRepository: "not a URI" } }),
+  validRun({ ...run, build: { ...run.build, sourceRepository: "not a URI" } }),
   false,
 );
 expect(
   "capture date format is validated",
-  validateRunSchema({ ...run, capturedAt: "not a date" }),
+  validRun({ ...run, capturedAt: "not a date" }),
   false,
 );
-expect("passed run requires samples", validateRunSchema({ ...run, samples: [] }), false);
+expect("passed run requires samples", validRun({ ...run, samples: [] }), false);
 expect(
   "work counters are non-empty",
-  validateRunSchema({ ...run, correctness: { ...run.correctness, workCounters: {} } }),
+  validRun({ ...run, correctness: { ...run.correctness, workCounters: {} } }),
   false,
 );
 expect(
   "invalid sample needs reason",
-  validateRunSchema({
+  validRun({
     ...run,
     samples: [{ iteration: 0, phase: "execute", durationMs: 1, valid: false }],
   }),
@@ -207,7 +185,7 @@ expect(
 );
 expect(
   "failed correctness cannot carry valid timing",
-  validateRunSchema({
+  validRun({
     ...run,
     correctness: { status: "failed", workCounters: { items: 1024 } },
     failures: [{ stage: "correctness", category: "output-mismatch", detail: "Digest differed." }],
@@ -216,7 +194,7 @@ expect(
 );
 expect(
   "failed correctness does not fabricate output hash",
-  validateRunSchema({
+  validRun({
     ...run,
     correctness: { status: "failed", workCounters: { items: 1024 } },
     samples: [{
@@ -230,15 +208,15 @@ expect(
   }),
   true,
 );
-expect("metrics are non-empty", validateRunSchema({ ...run, metrics: [] }), false);
+expect("metrics are non-empty", validRun({ ...run, metrics: [] }), false);
 expect(
   "supported metric cannot be null",
-  validateRunSchema({ ...run, metrics: [{ ...run.metrics[0], value: null }] }),
+  validRun({ ...run, metrics: [{ ...run.metrics[0], value: null }] }),
   false,
 );
 expect(
   "unavailable metric cannot have value",
-  validateRunSchema({
+  validRun({
     ...run,
     metrics: [{ ...run.metrics[0], availability: { state: "unavailable", reason: "api-absent" } }],
   }),

@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="description"
+      content="Inspectable local evidence for the Wasm vs JavaScript benchmark suite.">
+    <title>Wasm vs JavaScript benchmark</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to evidence</a>
+    <header class="masthead">
+      <span class="brand">AI Focus</span>
+      <span>Wasm vs JavaScript benchmark</span>
+      <strong>data v1</strong>
+    </header>
+    <main id="main" class="dashboard">
+      <section class="intro narrative">
+        <p class="eyebrow">M1 vertical slice</p>
+        <h1>Count the whole browser task</h1>
+        <p>This explorer keeps JavaScript and linear-memory Wasm beside their lifecycle, correctness, build, cache, and environment evidence. It does not choose a universal winner.</p>
+        <p
+          class="notice"><strong id="claim-status">No accepted result.</strong> Manual records are local pilots. M1 remains incomplete until independently launched paired runs meet the preregistered precision target or cap.</p>
+        <p><a class="button-link" href="/run">Open the local runner</a> <a href="https://github.com/PaulKinlan/wasm-vs-js/blob/main/PLAN.md">Read the methodology</a></p>
+      </section>
+
+      <section aria-labelledby="summary-title">
+        <h2 id="summary-title">Evidence summary</h2>
+        <dl class="metrics" id="metrics">
+          <div>
+            <dt>Runs</dt>
+            <dd>—</dd>
+          </div>
+          <div>
+            <dt>Paired blocks</dt>
+            <dd>—</dd>
+          </div>
+          <div>
+            <dt>Benchmark</dt>
+            <dd>sum-u32</dd>
+          </div>
+          <div>
+            <dt>Track</dt>
+            <dd>Controlled</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section aria-labelledby="matrix-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="matrix-title">Workload matrix</h2>
+            <p>Absolute durations remain separate by target and cache state.</p>
+          </div>
+          <div class="filters">
+            <label>Cache <select id="cache-filter"><option value="all">All</option><option value="validation">Validation</option><option value="cold">Cold</option><option value="warm">Warm</option></select></label>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <caption>Local pilot cells. No cell is accepted headline evidence.</caption>
+            <thead>
+              <tr>
+                <th>Variant</th>
+                <th>Cache</th>
+                <th>Fresh launches</th>
+                <th>Samples</th>
+                <th>First median</th>
+                <th>All-sample median</th>
+                <th>p95</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="cells">
+              <tr>
+                <td colspan="8">Loading local evidence…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section aria-labelledby="trajectory-title">
+        <h2 id="trajectory-title">Complete trajectories</h2>
+        <p>Iteration zero is retained. Slow samples are not silently removed.</p>
+        <div id="trajectories" class="trajectory-grid">
+          <p>No trajectories loaded.</p>
+        </div>
+      </section>
+
+      <section aria-labelledby="runs-title">
+        <h2 id="runs-title">Raw run inspector</h2>
+        <p>Each record exposes correctness, work counters, build footprint, environment, metric availability, failures, and every sample.</p>
+        <div id="runs">
+          <p>No local records.</p>
+        </div>
+      </section>
+
+      <section class="method" aria-labelledby="method-title">
+        <h2 id="method-title">What this page cannot claim</h2>
+        <ul>
+          <li>A manual pilot is not a fresh-profile launch corpus.</li>
+          <li>Memory values are within-browser diagnostics; absence is unavailable or blocked, never zero.</li>
+          <li>Cold and warm records are not averaged together.</li>
+          <li>No ratio or confidence interval is shown before the paired launch gate is implemented.</li>
+        </ul>
+      </section>
+      <p id="load-status" class="sr-status" role="status" aria-live="polite"></p>
+    </main>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

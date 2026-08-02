@@ -26,14 +26,14 @@ The tracks are reported separately.
 
 ## Repository state
 
-The project began on **2026-08-02**. The initial commit publishes the product plan, methodology, task graph, evidence contract, and milestone gates before benchmark implementation.
+The project began on **2026-08-02**. M0 publishes the accepted product plan, methodology, task graph, and evidence contracts. M1 now has its first implementation slice: `sum-u32`, a controlled JavaScript/linear-Wasm pair with an exact oracle, reproducible build, local runner/store, versioned summaries, and inspectable results.
 
 - [Canonical plan](PLAN.md)
 - [Task graph](TASKS.md)
 - [Run evidence schema](schemas/run.schema.json)
 - [Benchmark definition schema](schemas/benchmark.schema.json)
 
-No benchmark result, public service, database, or performance claim exists yet.
+No accepted benchmark result, public service, database, or performance claim exists yet. The local UI labels every manually recorded run as a pilot; M1 remains incomplete until owned-browser paired launches meet the plan's precision target or cap.
 
 ## Planned public product
 
@@ -50,11 +50,16 @@ The proposed reporting store is managed Deno KV. Provisioning and any material c
 
 ## Development
 
-Implementation commands will be added with the first vertical slice. Until then, validate the planning artifacts with:
+Requires Deno 2.9.0.
 
 ```sh
-deno task check
+deno task build    # reproducible WAT → Wasm plus build/footprint manifest
+deno task check    # build, format, lint, typecheck, contracts, and tests
+deno task local    # http://127.0.0.1:8787
+deno task summary  # versioned summary from immutable local runs
 ```
+
+Read the [M1 local pilot protocol](docs/m1-local-pilot.md) before recording a run. It explains the exact environment manifest, cold/warm states, correctness gate, immutable storage, and why manual pilots are not acceptance evidence.
 
 ## Research basis
 

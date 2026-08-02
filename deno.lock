@@ -2,7 +2,8 @@
   "version": "5",
   "specifiers": {
     "npm:ajv-formats@3.0.1": "3.0.1_ajv@8.17.1",
-    "npm:ajv@8.17.1": "8.17.1"
+    "npm:ajv@8.17.1": "8.17.1",
+    "npm:wabt@1.0.37": "1.0.37"
   },
   "npm": {
     "ajv-formats@3.0.1_ajv@8.17.1": {
@@ -34,12 +35,17 @@
     },
     "require-from-string@2.0.2": {
       "integrity": "sha512-Xf0nWe6RseziFMu+Ap9biiUbmplq6S9/p+7w7YXP/JBHhrUDDUhwa+vANyubuqfZWTveU//DYVGsDG7RKL/vEw=="
+    },
+    "wabt@1.0.37": {
+      "integrity": "sha512-2B/TH4ppwtlkUosLtuIimKsTVnqM8aoXxYHnu/WOxiSqa+CGoZXmG+pQyfDQjEKIAc7GqFlJsuCKuK8rIPL1sg==",
+      "bin": true
     }
   },
   "workspace": {
     "dependencies": [
       "npm:ajv-formats@3.0.1",
-      "npm:ajv@8.17.1"
+      "npm:ajv@8.17.1",
+      "npm:wabt@1.0.37"
     ]
   }
 }

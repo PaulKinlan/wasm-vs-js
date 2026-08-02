@@ -6,3 +6,5 @@ node_modules/
 .env
 .env.*
 !.env.example
+raw/runs/*.json
+raw/summaries/*.json

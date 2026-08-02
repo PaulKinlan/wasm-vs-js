@@ -15,34 +15,34 @@ Tasks are ordered by dependency. A checked box means the exact acceptance criter
 
 ### Runner and evidence
 
-- [ ] Implement schema validation and canonical hashing.
-- [ ] Implement capability probes and typed metric availability.
-- [ ] Implement portable phase marks and raw-sample collection.
-- [ ] Calibrate clock quantum, harness overhead, and fixed batch size.
-- [ ] Preserve first iteration, warm-up trajectory, steady samples, validation, and failure reasons.
+- [x] Implement schema validation and RFC 8785 canonical hashing.
+- [x] Implement capability probes and typed metric availability.
+- [x] Implement portable phase marks and raw-sample collection.
+- [x] Calibrate clock quantum, harness overhead, and one shared fixed batch size.
+- [x] Preserve first iteration, full trajectory, validation, and failure reasons.
 
 ### First workload
 
-- [ ] Select one deterministic compute/data kernel suitable for JS and linear Wasm.
-- [ ] Freeze input corpus, oracle, FP/integer policy, operation count, and output digest.
-- [ ] Implement literal Track A JavaScript.
-- [ ] Implement equivalent Track A Wasm source and reproducible build.
-- [ ] Record source/artifact/compiler/flags and raw/gzip/Brotli footprint.
-- [ ] Reject timing when output or work equivalence fails.
+- [x] Select one deterministic compute/data kernel suitable for JS and linear Wasm.
+- [x] Freeze input corpus, oracle, integer policy, operation count, and output digest.
+- [x] Implement literal Track A JavaScript.
+- [x] Implement equivalent Track A Wasm source and reproducible pinned build.
+- [x] Record source/artifact/compiler/flags and raw/gzip/Brotli footprint.
+- [x] Reject timing when output or work equivalence fails.
 
 ### Orchestration
 
 - [ ] Launch exact owned Chrome process/profile for cold runs.
-- [ ] Implement warm-cache protocol and verify resource/cache state.
-- [ ] Randomize paired order with retained seed.
+- [x] Implement explicit validation/cold/warm protocol states and retain resource timing; owned-launch cache verification remains below.
+- [x] Alternate paired order with retained seed/block identity.
 - [ ] Run a separately labelled pilot, freeze the launch floor/precision target/cap, then collect at least 20 paired fresh launches and continue to target or cap; label inconclusive only at the cap.
 - [ ] Retain browser version, flags, console/network, assertions, screenshots, and exact cleanup.
 
 ### Results
 
-- [ ] Store immutable local raw runs.
-- [ ] Generate versioned summaries with paired effects and bootstrap CI.
-- [ ] Build an inspectable static page with lifecycle, samples, sizes, provenance, correctness, and unavailable states.
+- [x] Store schema- and hash-validated immutable local raw runs.
+- [x] Generate versioned pilot summaries with absolute distributions and full trajectories; paired effects/CI wait for the launch corpus.
+- [x] Build an inspectable static page with lifecycle, samples, sizes, provenance, correctness, and unavailable states.
 - [ ] Validate keyboard, mobile/desktop layout, dark/reduced-motion/forced-colour states.
 - [ ] Independently review and accept the exact M1 commit.
 
@@ -53,8 +53,10 @@ Tasks are ordered by dependency. A checked box means the exact acceptance criter
 - [ ] Add T4 JS→Wasm, Wasm→JS, round-trip, copy, string, refs, callbacks, and batching tests.
 - [ ] Add Track B optimization logs and independent JS/Wasm improvements.
 - [ ] Add reviewed WasmGC and hybrid implementations where the workload has a meaningful equivalent; otherwise publish the missing-cell reason.
-- [ ] Add `-O3`/`-Oz`, scalar/SIMD, and other named build variants where supported.
+- [ ] Add `-O3`/`-Oz`, scalar/SIMD, Wasm feature/compiler flags, and other named build variants where supported; retain exact defaults and never silently substitute a non-default mode.
+- [ ] Add named JavaScript platform optimization-hint/attribute variants with support probes and dated ChromeStatus plus browser/engine source provenance.
 - [ ] Add worker creation, clone/transfer/shared-memory, and 1/2/4/N scaling workloads.
+- [ ] Permit concurrent variant execution only with preregistered isolation and fair ordering; keep sequential/concurrent cells separate and do not pool them into default-user claims.
 - [ ] Review workload balance so microbenchmarks do not dominate.
 
 ## M3 — Deno reporting service
@@ -89,14 +91,18 @@ Tasks are ordered by dependency. A checked box means the exact acceptance criter
 - [ ] Deploy exact reviewed source.
 - [ ] Validate live routes, headers, ingestion denial, desktop/mobile controls, console/network, and cleanup.
 
-## M5 — browsers and devices
+## M5 — browsers, engines, and devices
 
 - [ ] Add WebDriver BiDi Chrome/Firefox orchestration around the same in-page collector.
 - [ ] Add Safari WebDriver Classic orchestration and separately labelled Web Inspector artifacts.
+- [ ] Build a browser-product × engine-family/version matrix; do not count products sharing one engine as independent engine evidence.
+- [ ] Establish released default-user cells without benchmark-only runtime, tiering, Wasm feature, compiler, or JavaScript optimization overrides.
+- [ ] Add separately labelled non-default Wasm baseline/optimizing/tiering, feature, and compiler-flag diagnostic cells with exact launch/runtime flags and authoritative source provenance.
+- [ ] Record engine tier identity/transitions only when authoritative evidence exposes them; otherwise publish typed unavailable/blocked states.
 - [ ] Add ARM64 desktop host.
 - [ ] Add real high/mid/low Android and real iOS Safari evidence as available.
 - [ ] Publish capability coverage and unsupported cells without substituting zero.
-- [ ] Prevent proprietary diagnostic fields entering cross-browser summaries.
+- [ ] Prevent proprietary diagnostic fields or differently scoped modes entering cross-browser/default-user summaries.
 
 ## M6 — components and complete applications
 
@@ -116,11 +122,19 @@ Tasks are ordered by dependency. A checked box means the exact acceptance criter
 - [ ] Draft the AI Focus article from the ledger, including counterexamples and uncertainty.
 - [ ] Independently review statistical claims, editorial framing, and reproducibility.
 
+## M8 — server and standalone runtime family
+
+- [ ] Add a Node.js harness for accepted workload contracts with exact runtime/version/build/default-mode provenance.
+- [ ] Add relevant version-pinned server runtimes or standalone engines only where the same correctness, work, isolation, and stopping contracts apply.
+- [ ] Add separately labelled default and non-default Wasm baseline/optimizing/tiering, feature, compiler, and JavaScript optimization modes with exact flags and sources.
+- [ ] Validate fair ordering and resource isolation for concurrent tests; retain sequential/concurrent cells separately.
+- [ ] Publish per-runtime conclusions separately from browser conclusions and never pool them into a generic default-user claim.
+
 ## Standing gates
 
 - [ ] Preserve published IDs, routes, schema versions, and inbound links.
 - [ ] Keep raw runs immutable and summaries reproducible.
-- [ ] Keep Track A/Track B and cold/warm results separate.
+- [ ] Keep Track A/Track B, cold/warm, browser/server, product/engine, default/non-default, and sequential/concurrent results separate.
 - [ ] Never encode unsupported evidence as zero.
 - [ ] Never silently exclude a run.
 - [ ] Never provision, deploy, spend, use credentials, or mutate production resources without the required approval.

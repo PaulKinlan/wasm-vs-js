@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>Local runner · Wasm vs JavaScript</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to runner</a>
+    <header class="masthead">
+      <a href="/" class="brand">AI Focus</a>
+      <span>Wasm vs JavaScript</span>
+      <strong>M1 local runner</strong>
+    </header>
+    <main id="main" class="narrative">
+      <h1>Run the controlled sum workload</h1>
+      <p
+        class="notice"><strong>Pilot tool, not accepted evidence.</strong> A manual page run is not a fresh-launch corpus and cannot satisfy the 20-pair precision gate. It exists to exercise the complete record path before authorized browser orchestration.</p>
+
+      <form id="runner-form">
+        <fieldset>
+          <legend>Protocol</legend>
+          <label>Cache state
+          <select name="cacheState">
+            <option value="validation">Validation</option>
+            <option value="cold">Cold — requires a genuinely fresh profile</option>
+            <option value="warm">Warm — prime exact assets first</option>
+          </select>
+        </label>
+          <label>Variant order
+          <select name="order">
+            <option value="js-first">JavaScript, then Wasm</option>
+            <option value="wasm-first">Wasm, then JavaScript</option>
+          </select>
+        </label>
+          <label>Fixed iterations
+          <input name="iterations" type="number" min="5" max="200" value="30" required>
+        </label>
+        </fieldset>
+
+        <label for="environment">Exact environment JSON</label>
+        <textarea id="environment" name="environment" rows="18" spellcheck="false"
+          placeholder='{"suiteCommit":"40 or 64 hex Git OID","sourceCommit":"40 or 64 hex Git OID","browser":{"name":"Chrome","version":"...","build":"...","engine":"Blink/V8","headless":false,"launchArguments":[]},"os":"...","kernel":"...","architecture":"x86_64","hardware":"...","physicalCores":8,"logicalCores":16,"ramBytes":... ,"automation":"manual pilot","automationProtocol":"none","profileId":"...","freshLaunchId":"...","pairedBlockId":"...","refreshHz":60,"powerThermal":"..."}'
+          required></textarea>
+        <p
+          class="hint">The runner refuses to invent missing provenance. Paste the exact browser launch and host manifest supplied by the orchestrator.</p>
+        <div class="actions">
+          <button id="prime" type="button">Prime exact assets</button>
+          <button id="run" type="submit">Validate and run pair</button>
+        </div>
+      </form>
+
+      <section aria-labelledby="status-title">
+        <h2 id="status-title">Run status</h2>
+        <p id="status" role="status" aria-live="polite">Waiting for an environment manifest.</p>
+        <ol id="phases" class="phase-list"></ol>
+      </section>
+    </main>
+    <script type="module" src="/runner.js"></script>
+  </body>
+</html>
