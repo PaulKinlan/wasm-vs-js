@@ -36,9 +36,14 @@
               "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*-v[0-9]+$" },
               "title": { "$ref": "#/$defs/text" },
               "status": {
-                "enum": ["proposed", "implemented", "implementation-accepted", "blocked", "retired"]
+                "enum": ["implemented", "implementation-accepted"]
               },
-              "catalogEntry": { "type": ["string", "null"] },
+              "catalogEntry": {
+                "oneOf": [
+                  { "type": "null" },
+                  { "type": "string", "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*\\.v[0-9]+$" }
+                ]
+              },
               "targets": {
                 "type": "array",
                 "minItems": 1,

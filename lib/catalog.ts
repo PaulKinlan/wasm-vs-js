@@ -21,6 +21,7 @@ const validateSchema = ajv.compile(catalogSchema);
 export type CatalogEntry = {
   id: string;
   status: string;
+  stage: string;
   priority: string;
   domain: string;
   oracle: { equivalenceClass: string; algorithmFamily: string };
@@ -35,7 +36,16 @@ export type CatalogEntry = {
 
 export type WorkloadCatalog = {
   publishedCount: number;
-  implementationCoverage: { implementedCatalogEntries: number };
+  implementationCoverage: {
+    implementedSlices: number;
+    implementedCatalogEntries: number;
+    slices: Array<{
+      id: string;
+      status: string;
+      catalogEntry: string | null;
+      note: string;
+    }>;
+  };
   entries: CatalogEntry[];
 };
 
@@ -66,11 +76,54 @@ export function validateCatalog(value: unknown): { ok: boolean; errors: string[]
   if (priorityCounts.P0 !== 12 || priorityCounts.P1 !== 12 || priorityCounts.P2 !== 14) {
     semanticErrors.push("priority denominator must remain P0=12, P1=12, P2=14");
   }
-  const implemented = catalog.entries.filter((entry) => entry.status === "implemented").length;
-  if (implemented !== catalog.implementationCoverage.implementedCatalogEntries) {
+  const { slices } = catalog.implementationCoverage;
+  if (catalog.implementationCoverage.implementedSlices !== slices.length) {
+    semanticErrors.push("implemented slice count does not reconcile");
+  }
+  const sliceIds = slices.map((slice) => slice.id);
+  if (new Set(sliceIds).size !== sliceIds.length) semanticErrors.push("duplicate slice id");
+  const idSet = new Set(ids);
+  const implementedSliceStatuses = new Set(["implemented", "implementation-accepted"]);
+  const referencedEntries = new Set<string>();
+  for (const slice of slices) {
+    if (!implementedSliceStatuses.has(slice.status)) {
+      semanticErrors.push(`${slice.id} is listed as implemented with status ${slice.status}`);
+    }
+    if (slice.catalogEntry === null) {
+      if (!slice.note.toLowerCase().includes("not one of the 38 catalog workloads")) {
+        semanticErrors.push(`${slice.id} null catalog entry is not explicitly out of catalog`);
+      }
+    } else {
+      if (!idSet.has(slice.catalogEntry)) {
+        semanticErrors.push(`${slice.id} references unknown catalog entry ${slice.catalogEntry}`);
+      } else {
+        referencedEntries.add(slice.catalogEntry);
+      }
+    }
+  }
+  const implementedEntries = catalog.entries.filter((entry) => entry.status === "implemented");
+  if (
+    implementedEntries.length !== catalog.implementationCoverage.implementedCatalogEntries ||
+    referencedEntries.size !== catalog.implementationCoverage.implementedCatalogEntries
+  ) {
     semanticErrors.push("implemented catalog coverage does not reconcile");
   }
   for (const entry of catalog.entries) {
+    const referenced = referencedEntries.has(entry.id);
+    if (entry.status === "implemented") {
+      if (!referenced || !["implementation", "measurement", "accepted"].includes(entry.stage)) {
+        semanticErrors.push(
+          `${entry.id} implemented status does not reconcile with stage and slice`,
+        );
+      }
+    } else if (referenced) {
+      semanticErrors.push(
+        `${entry.id} has an implemented slice but catalog status is ${entry.status}`,
+      );
+    }
+    if (entry.status === "proposed" && entry.stage !== "proposal") {
+      semanticErrors.push(`${entry.id} proposed status must remain at proposal stage`);
+    }
     for (const input of entry.inputs) {
       if (
         input.fixtureState === "frozen" &&

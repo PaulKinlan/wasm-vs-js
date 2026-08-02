@@ -54,6 +54,81 @@ Deno.test("algorithm aggregates reject family mismatch and product-choice compar
   );
 });
 
+Deno.test("catalog algorithm families and rights remain explicit and single-choice", () => {
+  type Entry = {
+    id: string;
+    oracle: { algorithmFamily: string };
+    fixedWork: { description: string };
+    priorArt: Array<{ name: string; licenseSpdx: string }>;
+  };
+  const byId = new Map<string, Entry>(
+    catalog.entries.map((entry: Entry) => [entry.id, entry]),
+  );
+  const compression = byId.get("compression.zstd-gzip-roundtrip.v1");
+  const hashing = byId.get("crypto.file-integrity.v1");
+  const nbody = byId.get("simulation.nbody-cloth.v1");
+  const pdf = byId.get("document.pdf-viewer.v1");
+  const keyword = byId.get("ml.keyword-spotting.v1");
+  assert(compression && hashing && nbody && pdf && keyword, "required workload missing");
+  assertEquals(compression.oracle.algorithmFamily, "zstd-fixed-level-roundtrip");
+  assert(!JSON.stringify(compression.fixedWork).toLowerCase().includes("gzip"));
+  assertEquals(hashing.oracle.algorithmFamily, "sha256-fixed-chunk-schedule");
+  assert(!JSON.stringify(hashing.fixedWork).toLowerCase().includes("blake3"));
+  assertEquals(nbody.oracle.algorithmFamily, "nbody-direct-n2-leapfrog");
+  assert(!JSON.stringify(nbody.fixedWork).toLowerCase().includes("cloth"));
+  assert(
+    !JSON.stringify(catalog).includes('"licenseSpdx": "LicenseRef-Public-Domain"'),
+    "catalog asserts unsupported public-domain rights",
+  );
+  assert(
+    pdf.priorArt.some((item) =>
+      item.name === "PDFium" && item.licenseSpdx === "LicenseRef-PDFium-Mixed-Per-File"
+    ),
+  );
+  assert(
+    keyword.priorArt.some((item) =>
+      item.name === "MLPerf Tiny paper" &&
+      item.licenseSpdx === "LicenseRef-ArXiv-Nonexclusive-Distribution"
+    ),
+  );
+});
+
+Deno.test("coverage rejects count, status, reference, and stage contradictions", () => {
+  const mutations: Array<[string, (value: typeof catalog) => void]> = [
+    ["slice count", (value) => value.implementationCoverage.implementedSlices = 2],
+    ["slice status", (value) => value.implementationCoverage.slices[0].status = "proposed"],
+    [
+      "unknown entry",
+      (value) => value.implementationCoverage.slices[0].catalogEntry = "missing.workload.v1",
+    ],
+    [
+      "implemented coverage without entry status",
+      (value) => {
+        value.implementationCoverage.slices[0].catalogEntry = value.entries[0].id;
+        value.implementationCoverage.implementedCatalogEntries = 1;
+      },
+    ],
+    [
+      "implemented entry at proposal stage",
+      (value) => {
+        value.entries[0].status = "implemented";
+        value.implementationCoverage.slices[0].catalogEntry = value.entries[0].id;
+        value.implementationCoverage.implementedCatalogEntries = 1;
+      },
+    ],
+    [
+      "unexplained null catalog entry",
+      (value) => value.implementationCoverage.slices[0].note = "outside",
+    ],
+  ];
+  for (const [name, mutate] of mutations) {
+    const poisoned = structuredClone(catalog);
+    mutate(poisoned);
+    const result = validateCatalog(poisoned);
+    assert(!result.ok, `${name} mutation was accepted`);
+  }
+});
+
 Deno.test("closed catalog schema rejects undeclared evidence fields", () => {
   const poisoned = structuredClone(catalog);
   poisoned.entries[0].inputs[0].secret = "must fail";
