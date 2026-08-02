@@ -7,8 +7,7 @@ The current deployable surface publishes the UI, benchmark definition, build man
 - Deno organization: `paulkinlan-ea`
 - Application candidate: `wasm-vs-js`
 - Stable domain candidate: `wasm-vs-js.aifoc.us`
-- Entrypoint: `server.ts`
-- Mode: `SERVER_MODE=public`
+- Entrypoint: `deploy.ts` (sets public mode before dynamically importing the shared server)
 
 The application, domain, DNS, and any Deno resource are not provisioned by this commit.
 
@@ -44,7 +43,7 @@ This procedure intentionally stops before credentials or production mutation:
 1. Independently review the exact commit and record its full object ID.
 2. Run `deno task check` and the public-mode loopback smoke from that exact clean checkout.
 3. Obtain explicit approval for Deno application creation/deployment and DNS mutation.
-4. Configure production environment names only: `SERVER_MODE=public` and `HOST=0.0.0.0`.
+4. Do not configure a mode override: the reviewed `deploy.ts` entrypoint fixes the service to public mode before importing the shared server.
 5. Deploy non-interactively to the approved `paulkinlan-ea/wasm-vs-js` application using the credential intake path; never print or persist the token in this repository.
 6. Record the platform deployment identifier and source commit, then verify the revision URL, `/healthz`, acceptance JSON, build manifest, and Wasm hash before assigning the stable domain.
 7. Bind `wasm-vs-js.aifoc.us` only after the hostname is confirmed, then verify TLS, routes, response headers, mutation denial, and live content hashes.
