@@ -30,6 +30,7 @@ Deno.test("hosted runner is accessible, bounded, and has no mutation or persiste
   const page = await Deno.readTextFile("public/run/index.html");
   const script = await Deno.readTextFile("public/hosted-runner.js");
   const core = await Deno.readTextFile("public/hosted-runner-core.js");
+  const probes = await Deno.readTextFile("public/provenance-probes.js");
   const worker = await Deno.readTextFile("public/hosted-runner-worker.js");
   const hostedWorkload = await Deno.readTextFile("public/benchmarks/sum-u32/workload.js");
   const sourceWorkload = await Deno.readTextFile("benchmarks/sum-u32/workload.js");
@@ -39,6 +40,7 @@ Deno.test("hosted runner is accessible, bounded, and has no mutation or persiste
   assert(page.includes('aria-live="polite"'));
   assert(page.includes('min="5" max="50"'));
   assert(page.includes("No result is uploaded or saved"));
+  assert(page.includes("exist only in the displayed in-memory result"));
   assert(page.includes("worker-src 'self'"));
   assert(script.includes("new Worker"));
   assert(script.includes("worker.terminate"));
@@ -52,6 +54,9 @@ Deno.test("hosted runner is accessible, bounded, and has no mutation or persiste
   assert(worker.includes("await import(jsBlobUrl)"));
   assert(worker.includes("URL.revokeObjectURL(jsBlobUrl)"));
   assert(worker.includes('status: "unavailable"'));
+  assert(worker.includes('scope: "webassembly-linear-memory-buffer-length"'));
+  assert(probes.includes('status: "supported-value"'));
+  assert(probes.includes("status, reason"));
   assertEquals(hostedWorkload, sourceWorkload);
   for (
     const forbidden of [

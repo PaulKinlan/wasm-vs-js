@@ -81,6 +81,7 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
       "/run",
       "/run/",
       "/hosted-runner.js",
+      "/provenance-probes.js",
       "/hosted-runner-core.js",
       "/hosted-runner-worker.js",
       "/benchmarks",

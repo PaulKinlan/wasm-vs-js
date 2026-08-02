@@ -537,6 +537,20 @@ pre {
     gap: 0;
   }
 }
+.raw-provenance {
+  max-height: 32rem;
+  overflow: auto;
+  padding: 1rem;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  font-size: .8rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+details > summary {
+  cursor: pointer;
+  font-weight: 650;
+}
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -48,21 +48,55 @@ function duration(execute) {
   return { output, durationMs: performance.now() - start };
 }
 
-function cacheDisclosure() {
+function resourceTimingEvidence() {
   const routes = [
+    "/artifacts/sum-u32/build-manifest.json",
     "/benchmarks/sum-u32/workload.js",
     "/artifacts/sum-u32/sum-u32.wasm",
   ];
-  const entries = routes.map((route) =>
-    performance.getEntriesByName(`${location.origin}${route}`, "resource").at(-1)
-  );
-  if (entries.some((entry) => !entry)) {
-    return "Browser-managed HTTP cache; complete Resource Timing entries were unavailable.";
+  return routes.map((route) => {
+    const entry = performance.getEntriesByName(`${location.origin}${route}`, "resource").at(-1);
+    if (!entry) {
+      return {
+        route,
+        status: "not-observed",
+        reason: "No Resource Timing entry was retained for this same-origin asset.",
+      };
+    }
+    return {
+      route,
+      status: "supported-value",
+      scope: "same-origin-resource-timing",
+      value: {
+        initiatorType: entry.initiatorType,
+        startTime: entry.startTime,
+        duration: entry.duration,
+        fetchStart: entry.fetchStart,
+        requestStart: entry.requestStart,
+        responseStart: entry.responseStart,
+        responseEnd: entry.responseEnd,
+        nextHopProtocol: entry.nextHopProtocol,
+        deliveryType: "deliveryType" in entry ? entry.deliveryType : null,
+        responseStatus: "responseStatus" in entry ? entry.responseStatus : null,
+        transferSize: entry.transferSize,
+        encodedBodySize: entry.encodedBodySize,
+        decodedBodySize: entry.decodedBodySize,
+      },
+      caveat:
+        "transferSize uses Resource Timing semantics (including synthetic accounting); zero can indicate local cache only because this asset is same-origin, but this exploratory run does not attest a cold/warm cache state.",
+    };
+  });
+}
+
+function cacheDisclosure(resources) {
+  const observed = resources.filter((entry) => entry.status === "supported-value");
+  if (observed.length !== resources.length) {
+    return "Browser-managed HTTP cache; one or more same-origin Resource Timing entries were not observed.";
   }
-  const transferBytes = entries.reduce((total, entry) => total + entry.transferSize, 0);
+  const transferBytes = observed.reduce((total, entry) => total + entry.value.transferSize, 0);
   return transferBytes === 0
-    ? "Browser-managed HTTP cache; Resource Timing reported zero transfer bytes, but cache state is not attested."
-    : `Browser-managed HTTP cache; Resource Timing reported ${transferBytes} transfer bytes for JS and Wasm. Cold/warm state is not attested.`;
+    ? "Browser-managed HTTP cache; same-origin Resource Timing reported zero transfer bytes. This suggests local cache delivery but does not attest a controlled warm state."
+    : `Browser-managed HTTP cache; same-origin Resource Timing reported ${transferBytes} synthetic transfer bytes across manifest, JS, and Wasm. Cold/warm state is not attested.`;
 }
 
 async function executeRun(iterations, order) {
@@ -120,6 +154,7 @@ async function executeRun(iterations, order) {
   start = performance.now();
   const instance = await WebAssembly.instantiate(module);
   const wasmInstantiateMs = performance.now() - start;
+  const wasmLinearMemoryBeforeBytes = instance.exports.memory.buffer.byteLength;
 
   start = performance.now();
   const input = workload.generateInput();
@@ -162,16 +197,28 @@ async function executeRun(iterations, order) {
     },
   });
 
+  const resources = resourceTimingEvidence();
   return {
     capturedAt: new Date().toISOString(),
     order,
     iterations,
-    cache: cacheDisclosure(),
+    cache: cacheDisclosure(resources),
+    resourceTiming: resources,
     batchSize: calibration.batchSize,
     work,
     manifest,
     jsSha256,
     wasmSha256,
+    wasmLinearMemory: {
+      status: "supported-value",
+      scope: "webassembly-linear-memory-buffer-length",
+      caveat:
+        "JavaScript-visible buffer length, not committed or resident physical memory and not Wasm code or engine metadata memory.",
+      value: {
+        beforeScoredBytes: wasmLinearMemoryBeforeBytes,
+        afterScoredBytes: instance.exports.memory.buffer.byteLength,
+      },
+    },
     lifecycle: {
       manifestTransferMs: manifestFetch.durationMs,
       manifestBytes: manifestFetch.bytes,

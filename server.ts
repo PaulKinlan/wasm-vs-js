@@ -93,6 +93,7 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/app.js", ["public/app.js", "text/javascript; charset=utf-8"]],
   ["/runner.js", ["public/runner.js", "text/javascript; charset=utf-8", true]],
   ["/hosted-runner.js", ["public/hosted-runner.js", "text/javascript; charset=utf-8"]],
+  ["/provenance-probes.js", ["public/provenance-probes.js", "text/javascript; charset=utf-8"]],
   ["/hosted-runner-core.js", [
     "public/hosted-runner-core.js",
     "text/javascript; charset=utf-8",

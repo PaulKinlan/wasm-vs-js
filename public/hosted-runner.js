@@ -1,4 +1,13 @@
 import { boundedIterations, ORACLE } from "./hosted-runner-core.js";
+import {
+  captureLegacyChromiumHeap,
+  captureUaClientHints,
+  captureUaSpecificMemory,
+  measureRefreshEstimate,
+  positiveNumberHint,
+  startResponsivenessObservation,
+  supported,
+} from "./provenance-probes.js";
 
 const INPUT_LENGTH = 65_536;
 const INPUT_BYTES = INPUT_LENGTH * Uint32Array.BYTES_PER_ELEMENT;
@@ -35,6 +44,102 @@ function appendDefinition(parent, rows) {
     list.append(dt, dd);
   }
   parent.append(list);
+}
+
+function typedText(metric, format = (value) => JSON.stringify(value)) {
+  if (!metric || metric.status !== "supported-value") {
+    return `${metric?.status ?? "unavailable"}: ${metric?.reason ?? "No evidence."}`;
+  }
+  return format(metric.value);
+}
+
+function heapText(metric) {
+  return typedText(
+    metric,
+    (value) =>
+      `${value.usedJSHeapSize.toLocaleString()} used / ${value.totalJSHeapSize.toLocaleString()} total JS heap bytes (${metric.scope})`,
+  );
+}
+
+function uaChText(metric) {
+  if (!metric || metric.status !== "supported-value") return typedText(metric);
+  const high = metric.value.highEntropy;
+  if (high.status !== "supported-value") return `${high.status}: ${high.reason}`;
+  const field = (name) =>
+    typedText(
+      high.value[name],
+      (value) =>
+        value === ""
+          ? "empty-valid"
+          : typeof value === "string" || typeof value === "boolean"
+          ? String(value)
+          : JSON.stringify(value),
+    );
+  return `architecture ${field("architecture")} · bitness ${field("bitness")} · model ${
+    field("model")
+  } · platform ${field("platformVersion")} · wow64 ${field("wow64")}`;
+}
+
+async function capturePageBefore() {
+  const environment = {
+    secureContext: supported(isSecureContext),
+    crossOriginIsolated: supported(crossOriginIsolated),
+    visibilityState: supported(document.visibilityState),
+    timeOrigin: supported(performance.timeOrigin, { scope: "page-monotonic-time-origin" }),
+    collectedNow: supported(performance.now(), { scope: "page-monotonic-milliseconds" }),
+  };
+  const uaClientHints = await captureUaClientHints(navigator);
+  return {
+    retention: "In-memory for this displayed result only; never uploaded or stored by this page.",
+    compatibility: {
+      userAgent: supported(navigator.userAgent, {
+        caveat: "Raw compatibility string; not exact hardware identity.",
+      }),
+      platform: supported(navigator.platform, {
+        caveat: "Legacy compatibility hint; may be reduced or spoofed.",
+      }),
+    },
+    environment,
+    machineHints: {
+      uaExposedLogicalProcessors: positiveNumberHint(
+        navigator,
+        "hardwareConcurrency",
+        "navigator.hardwareConcurrency is not exposed.",
+      ),
+      approximateDeviceMemoryGiB: positiveNumberHint(
+        navigator,
+        "deviceMemory",
+        "navigator.deviceMemory is not exposed; no RAM value is inferred.",
+      ),
+      uaClientHints,
+    },
+    display: {
+      viewport: supported({ width: innerWidth, height: innerHeight, dpr: devicePixelRatio }),
+      refreshEstimate: await measureRefreshEstimate(
+        requestAnimationFrame.bind(globalThis),
+        cancelAnimationFrame.bind(globalThis),
+      ),
+    },
+    memory: {
+      legacyChromiumHeapBefore: captureLegacyChromiumHeap(performance),
+      userAgentSpecificBefore: await captureUaSpecificMemory(performance, {
+        isSecureContext,
+        crossOriginIsolated,
+      }),
+    },
+  };
+}
+
+async function capturePageAfter() {
+  return {
+    collectedNow: supported(performance.now(), { scope: "page-monotonic-milliseconds" }),
+    visibilityState: supported(document.visibilityState),
+    legacyChromiumHeapAfter: captureLegacyChromiumHeap(performance),
+    userAgentSpecificAfter: await captureUaSpecificMemory(performance, {
+      isSecureContext,
+      crossOriginIsolated,
+    }),
+  };
 }
 
 function appendTable(parent, captionText, headers, rows) {
@@ -129,6 +234,101 @@ function renderResult(data) {
     ["Build flags", data.manifest.build.flags.join(" · ")],
   ]);
 
+  const machine = document.createElement("section");
+  const machineTitle = document.createElement("h3");
+  machineTitle.textContent = "Machine, runtime, memory and responsiveness evidence";
+  machine.append(machineTitle);
+  const hints = data.pageEvidence.before.machineHints;
+  const memory = data.pageEvidence.before.memory;
+  const after = data.pageEvidence.after;
+  const refresh = data.pageEvidence.before.display.refreshEstimate;
+  const responsiveness = data.pageEvidence.responsiveness.longAnimationFrames;
+  appendDefinition(machine, [
+    [
+      "UA-exposed logical processors",
+      typedText(
+        hints.uaExposedLogicalProcessors,
+        (value) => `${value} · browser-exposed concurrency, not a physical CPU inventory`,
+      ),
+    ],
+    [
+      "Approximate device memory",
+      typedText(
+        hints.approximateDeviceMemoryGiB,
+        (value) =>
+          `${value} GiB bucket · coarse Chromium hint, not exact installed or available RAM`,
+      ),
+    ],
+    ["UA Client Hints", uaChText(hints.uaClientHints)],
+    ["Raw compatibility platform", typedText(data.pageEvidence.before.compatibility.platform)],
+    [
+      "Observed refresh",
+      typedText(
+        refresh,
+        (value) =>
+          `${
+            value.estimatedHz.toFixed(2)
+          } Hz estimate from ${value.observedIntervals} animation-frame intervals`,
+      ),
+    ],
+    ["Legacy Chromium JS heap before", heapText(memory.legacyChromiumHeapBefore)],
+    ["Legacy Chromium JS heap after", heapText(after.legacyChromiumHeapAfter)],
+    [
+      "UA-specific memory before",
+      typedText(
+        memory.userAgentSpecificBefore,
+        (value) => `${value.bytes.toLocaleString()} estimated bytes`,
+      ),
+    ],
+    [
+      "UA-specific memory after",
+      typedText(
+        after.userAgentSpecificAfter,
+        (value) => `${value.bytes.toLocaleString()} estimated bytes`,
+      ),
+    ],
+    [
+      "Wasm linear memory buffer",
+      typedText(
+        data.wasmLinearMemory,
+        (value) =>
+          `${value.beforeScoredBytes.toLocaleString()} before / ${value.afterScoredBytes.toLocaleString()} after scored work`,
+      ),
+    ],
+    [
+      "Long animation frames",
+      typedText(
+        responsiveness,
+        (value) =>
+          `${value.count} observed · max ${
+            value.maxDurationMs === null ? "not observed" : `${value.maxDurationMs.toFixed(1)} ms`
+          }`,
+      ),
+    ],
+    [
+      "Heavy diagnostics",
+      "CPU model/class, physical cores, host RAM, Chrome process RSS/PSS, CDP metrics, heap profiles and Wasm tier traces are unavailable to this page and belong to separately labelled controlled corpus diagnostic launches.",
+    ],
+  ]);
+  const raw = document.createElement("details");
+  const rawSummary = document.createElement("summary");
+  rawSummary.textContent = "Raw in-memory provenance JSON";
+  const rawPre = document.createElement("pre");
+  rawPre.className = "raw-provenance";
+  rawPre.textContent = JSON.stringify(
+    {
+      pageEvidence: data.pageEvidence,
+      workerEvidence: {
+        resourceTiming: data.resourceTiming,
+        wasmLinearMemory: data.wasmLinearMemory,
+      },
+    },
+    null,
+    2,
+  );
+  raw.append(rawSummary, rawPre);
+  machine.append(raw);
+
   const lifecycle = document.createElement("section");
   const lifecycleTitle = document.createElement("h3");
   lifecycleTitle.textContent = "First-use lifecycle (not scored samples)";
@@ -204,7 +404,7 @@ function renderResult(data) {
     data.js.samples.map((value, index) => [index + 1, ms(value), ms(data.wasm.samples[index])]),
   );
 
-  resultContent.append(disclosure, correctness, provenance, lifecycle, timing);
+  resultContent.append(disclosure, correctness, provenance, machine, lifecycle, timing);
   results.hidden = false;
   results.focus?.();
 }
@@ -256,11 +456,24 @@ form.addEventListener("submit", async (event) => {
   resultContent.replaceChildren();
   phases.replaceChildren();
   progress.value = 0;
+  let responsiveness;
   try {
     const data = new FormData(form);
     const iterations = boundedIterations(data.get("iterations"));
     const order = String(data.get("order"));
+    addPhase("Collecting privacy-limited page provenance in memory…");
+    const before = await capturePageBefore();
+    responsiveness = startResponsivenessObservation(globalThis);
     const result = await executeRun(iterations, order);
+    responsiveness.stop();
+    result.pageEvidence = {
+      before,
+      after: await capturePageAfter(),
+      responsiveness: {
+        supportedEntryTypes: responsiveness.supportedEntryTypes,
+        longAnimationFrames: responsiveness.snapshot(),
+      },
+    };
     renderResult(result);
     addPhase("Exploratory pair complete. Nothing was uploaded or saved.");
   } catch (error) {
@@ -268,6 +481,7 @@ form.addEventListener("submit", async (event) => {
       error instanceof Error ? error.message : "Unknown error."
     }`;
   } finally {
+    responsiveness?.stop();
     button.disabled = false;
   }
 });
