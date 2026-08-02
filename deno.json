@@ -10,7 +10,7 @@
     "public": "SERVER_MODE=public deno run --allow-env=PORT,HOST,SERVER_MODE --allow-net=0.0.0.0,127.0.0.1 --allow-read=. server.ts",
     "summary": "WASM_VS_JS_COMMIT=$(git rev-parse HEAD) deno run --allow-env=WASM_VS_JS_COMMIT --allow-read=. --allow-write=raw/summaries scripts/summarize.ts",
     "contract": "WASM_VS_JS_COMMIT=$(git rev-parse HEAD) deno run --allow-env=WASM_VS_JS_COMMIT --allow-read=. scripts/check-contracts.mjs",
-    "test": "WASM_VS_JS_COMMIT=$(git rev-parse HEAD) deno test --allow-env=PORT,HOST,SERVER_MODE,WASM_VS_JS_COMMIT --allow-read --allow-write --allow-run",
+    "test": "WASM_VS_JS_COMMIT=$(git rev-parse HEAD) deno test --allow-env=PORT,HOST,SERVER_MODE,WASM_VS_JS_COMMIT --allow-net=127.0.0.1 --allow-read --allow-write --allow-run",
     "typecheck": "deno check server.ts lib/*.ts scripts/*.ts tests/*.ts public/*.js benchmarks/sum-u32/workload.js",
     "check": "deno task build && deno fmt --check && deno lint && deno task typecheck && deno run --allow-read=. scripts/check-planning.mjs && deno task contract && deno task test"
   },

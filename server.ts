@@ -10,7 +10,7 @@ if (configuredMode !== "local" && configuredMode !== "public") {
 }
 const mode: ServerMode = configuredMode;
 const acceptedImplementationCommit = "9c309c4941d1b8550c15f8549f95a5636a634ef6";
-const localCheckoutCommit = Deno.env.get("WASM_VS_JS_COMMIT") ?? "";
+const localCheckoutCommit = mode === "local" ? Deno.env.get("WASM_VS_JS_COMMIT") ?? "" : "";
 if (mode === "local" && !/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(localCheckoutCommit)) {
   throw new Error("WASM_VS_JS_COMMIT must identify the local Git checkout");
 }
