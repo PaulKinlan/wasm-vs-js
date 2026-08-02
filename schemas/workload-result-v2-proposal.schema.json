@@ -1,0 +1,531 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/workload-result-v2-proposal.schema.json",
+  "title": "Wasm versus JavaScript v2 proposal result and build provenance",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contractId",
+    "status",
+    "workloadCatalog",
+    "workloadContract",
+    "resultContract",
+    "source",
+    "workload",
+    "provenance",
+    "semanticCoverage",
+    "collisionGuards",
+    "correctness",
+    "performanceClaims"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "contractId": {
+      "const": "workload-result-v2-proposal-v1"
+    },
+    "status": {
+      "const": "proposal-validation-only"
+    },
+    "workloadCatalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "catalogId",
+        "file"
+      ],
+      "properties": {
+        "catalogId": {
+          "const": "workload-catalog-v2-proposal"
+        },
+        "file": {
+          "$ref": "#/$defs/fileReference"
+        }
+      }
+    },
+    "workloadContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractId",
+        "file"
+      ],
+      "properties": {
+        "contractId": {
+          "const": "v2-workload-contract-v1"
+        },
+        "file": {
+          "$ref": "#/$defs/fileReference"
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository",
+        "commit"
+      ],
+      "properties": {
+        "repository": {
+          "const": "https://github.com/PaulKinlan/wasm-vs-js"
+        },
+        "commit": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$"
+        }
+      }
+    },
+    "workload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entryId",
+        "benchmarkSlug",
+        "variant"
+      ],
+      "properties": {
+        "entryId": {
+          "$ref": "#/$defs/workloadId"
+        },
+        "benchmarkSlug": {
+          "$ref": "#/$defs/slug"
+        },
+        "variant": {
+          "$ref": "#/$defs/variantIdentity"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sources",
+        "generator",
+        "reference",
+        "oracle",
+        "manifests",
+        "build",
+        "artifacts"
+      ],
+      "properties": {
+        "sources": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 32,
+          "items": {
+            "$ref": "#/$defs/sourceReference"
+          }
+        },
+        "generator": {
+          "$ref": "#/$defs/fileReference"
+        },
+        "reference": {
+          "$ref": "#/$defs/fileReference"
+        },
+        "oracle": {
+          "$ref": "#/$defs/fileReference"
+        },
+        "manifests": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "fixture",
+            "input",
+            "output"
+          ],
+          "properties": {
+            "fixture": {
+              "$ref": "#/$defs/fileReference"
+            },
+            "input": {
+              "$ref": "#/$defs/fileReference"
+            },
+            "output": {
+              "$ref": "#/$defs/fileReference"
+            }
+          }
+        },
+        "build": {
+          "$ref": "#/$defs/build"
+        },
+        "artifacts": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {
+            "$ref": "#/$defs/artifactReference"
+          }
+        }
+      }
+    },
+    "semanticCoverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inputParameterIds",
+        "oracleCheckIds",
+        "workCounterIds",
+        "phaseIds",
+        "missingCellIds"
+      ],
+      "properties": {
+        "inputParameterIds": {
+          "$ref": "#/$defs/slugList"
+        },
+        "oracleCheckIds": {
+          "$ref": "#/$defs/slugList"
+        },
+        "workCounterIds": {
+          "$ref": "#/$defs/slugList"
+        },
+        "phaseIds": {
+          "$ref": "#/$defs/slugList"
+        },
+        "missingCellIds": {
+          "$ref": "#/$defs/slugList"
+        }
+      }
+    },
+    "collisionGuards": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workloadVariantKey",
+        "algorithmIdentityKey",
+        "resourcePaths",
+        "artifactIds"
+      ],
+      "properties": {
+        "workloadVariantKey": {
+          "type": "string",
+          "pattern": "^[a-z0-9.-]+\\.v[0-9]+/[a-z0-9-]+$"
+        },
+        "algorithmIdentityKey": {
+          "$ref": "#/$defs/slug"
+        },
+        "resourcePaths": {
+          "type": "array",
+          "minItems": 10,
+          "maxItems": 128,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/repoPath"
+          }
+        },
+        "artifactIds": {
+          "$ref": "#/$defs/slugList"
+        }
+      }
+    },
+    "correctness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "oracleCheckIds",
+        "outputManifestSha256"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "passed",
+            "failed"
+          ]
+        },
+        "oracleCheckIds": {
+          "$ref": "#/$defs/slugList"
+        },
+        "outputManifestSha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "performanceClaims": {
+      "type": "array",
+      "maxItems": 0
+    },
+    "resultContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractId",
+        "file"
+      ],
+      "properties": {
+        "contractId": {
+          "const": "workload-result-v2-proposal-v1"
+        },
+        "file": {
+          "$ref": "#/$defs/fileReference"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "maxLength": 120
+    },
+    "workloadId": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*\\.v[0-9]+$"
+    },
+    "repoPath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$"
+    },
+    "immutableUrl": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://github\\.com/PaulKinlan/wasm-vs-js/blob/[a-f0-9]{40}/[A-Za-z0-9._/-]+$"
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    },
+    "fileReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256",
+        "immutableUrl"
+      ],
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/repoPath"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "immutableUrl": {
+          "$ref": "#/$defs/immutableUrl"
+        }
+      }
+    },
+    "sourceReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "path",
+        "sha256",
+        "immutableUrl"
+      ],
+      "properties": {
+        "role": {
+          "enum": [
+            "javascript-authored",
+            "wasm-authored",
+            "shared-support"
+          ]
+        },
+        "path": {
+          "$ref": "#/$defs/repoPath"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "immutableUrl": {
+          "$ref": "#/$defs/immutableUrl"
+        }
+      }
+    },
+    "variantIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "target",
+        "track",
+        "algorithmFamilyId"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/slug"
+        },
+        "target": {
+          "enum": [
+            "javascript",
+            "wasm-linear",
+            "wasmgc",
+            "hybrid"
+          ]
+        },
+        "track": {
+          "enum": [
+            "controlled",
+            "optimized"
+          ]
+        },
+        "algorithmFamilyId": {
+          "$ref": "#/$defs/slug"
+        }
+      }
+    },
+    "build": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "recipe",
+        "cwd",
+        "command",
+        "locks",
+        "toolchain",
+        "flags",
+        "environment"
+      ],
+      "properties": {
+        "recipe": {
+          "$ref": "#/$defs/fileReference"
+        },
+        "cwd": {
+          "$ref": "#/$defs/repoPath"
+        },
+        "command": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "items": {
+            "$ref": "#/$defs/text"
+          }
+        },
+        "locks": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": {
+            "$ref": "#/$defs/fileReference"
+          }
+        },
+        "toolchain": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {
+            "$ref": "#/$defs/tool"
+          }
+        },
+        "flags": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "compiler",
+            "linker",
+            "runtime"
+          ],
+          "properties": {
+            "compiler": {
+              "$ref": "#/$defs/textList"
+            },
+            "linker": {
+              "$ref": "#/$defs/textList"
+            },
+            "runtime": {
+              "$ref": "#/$defs/textList"
+            }
+          }
+        },
+        "environment": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/environmentValue"
+          }
+        }
+      }
+    },
+    "tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/slug"
+        },
+        "version": {
+          "$ref": "#/$defs/text"
+        }
+      }
+    },
+    "environmentValue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "value"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*$"
+        },
+        "value": {
+          "type": "string",
+          "maxLength": 1000
+        }
+      }
+    },
+    "artifactReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "path",
+        "sha256",
+        "mediaType",
+        "immutableUrl"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/slug"
+        },
+        "path": {
+          "$ref": "#/$defs/repoPath"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "mediaType": {
+          "type": "string",
+          "pattern": "^[a-z0-9!#$&^_.+-]+/[a-z0-9!#$&^_.+-]+$",
+          "maxLength": 120
+        },
+        "immutableUrl": {
+          "$ref": "#/$defs/immutableUrl"
+        }
+      }
+    },
+    "slugList": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/slug"
+      }
+    },
+    "textList": {
+      "type": "array",
+      "maxItems": 128,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/text"
+      }
+    }
+  }
+}

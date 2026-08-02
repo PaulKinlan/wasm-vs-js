@@ -118,7 +118,20 @@ Deno.test("proposal schema closes input, oracle, work, phase, and track contract
   }
 });
 
-Deno.test("proposal semantic validation rejects duplicate IDs, unknown v1 links, and variable work", () => {
+Deno.test("proposal variants bind target and algorithm identity without orphan arrays", () => {
+  for (const entry of catalog.entries) {
+    for (const track of entry.tracks) {
+      assert(!("targets" in track), `${entry.id} retains an orphan target array`);
+      assert(!("variantIds" in track), `${entry.id} retains an orphan variant-id array`);
+      assert(track.variants.length === 2, `${entry.id} track does not bind two variants`);
+      for (const variant of track.variants) {
+        assert(variant.id && variant.target && variant.algorithmFamilyId);
+      }
+    }
+  }
+});
+
+Deno.test("proposal semantic validation rejects duplicate IDs, algorithm reuse, unknown v1 links, and variable work", () => {
   const mutations: Array<[string, (value: typeof catalog) => void]> = [
     ["duplicate id", (value) => value.entries[1].id = value.entries[0].id],
     ["duplicate slug", (value) => value.entries[1].benchmarkSlug = value.entries[0].benchmarkSlug],
@@ -127,6 +140,13 @@ Deno.test("proposal semantic validation rejects duplicate IDs, unknown v1 links,
     [
       "track equivalence",
       (value) => value.entries[0].tracks[0].algorithmEquivalence = "separate-family",
+    ],
+    [
+      "algorithm identity reuse",
+      (value) => {
+        value.entries[1].tracks[0].variants[0].algorithmFamilyId =
+          value.entries[0].tracks[0].variants[0].algorithmFamilyId;
+      },
     ],
   ];
   for (const [name, mutate] of mutations) {

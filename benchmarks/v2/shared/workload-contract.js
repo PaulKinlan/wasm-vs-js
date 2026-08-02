@@ -56,6 +56,8 @@ export function validateProposalCatalogSemantics(catalog, v1Entries) {
     errors.push("proposal catalog contains performance-claim language");
   }
 
+  const algorithmIdentities = new Map();
+  const workloadVariantKeys = new Set();
   for (const entry of entries) {
     if (entry.status !== "proposed" || entry.stage !== "contract-draft") {
       errors.push(`${entry.id} is not proposal-only`);
@@ -78,7 +80,10 @@ export function validateProposalCatalogSemantics(catalog, v1Entries) {
     }
 
     const checks = entry.oracle?.checks ?? [];
-    if (duplicateValues(checks).length > 0) errors.push(`${entry.id} has duplicate oracle checks`);
+    const checkIds = checks.map((check) => check.id);
+    if (duplicateValues(checkIds).length > 0) {
+      errors.push(`${entry.id} has duplicate oracle check ids`);
+    }
     const tolerance = entry.oracle?.tolerance;
     if (
       entry.oracle?.kind === "numeric-tolerance" &&
@@ -108,19 +113,52 @@ export function validateProposalCatalogSemantics(catalog, v1Entries) {
     const tracks = new Map((entry.tracks ?? []).map((track) => [track.id, track]));
     const controlled = tracks.get("track-a-controlled");
     const optimized = tracks.get("track-b-optimized");
+    const controlledTargets = new Set(
+      (controlled?.variants ?? []).map((variant) => variant.target),
+    );
+    const controlledFamilies = new Set(
+      (controlled?.variants ?? []).map((variant) => variant.algorithmFamilyId),
+    );
     if (
       tracks.size !== 2 || controlled?.track !== "controlled" ||
-      controlled?.algorithmEquivalence !== "required" ||
-      !controlled?.targets.includes("javascript") || !controlled?.targets.includes("wasm-linear")
+      controlled?.algorithmEquivalence !== "required" || controlled?.variants?.length !== 2 ||
+      !controlledTargets.has("javascript") || !controlledTargets.has("wasm-linear") ||
+      controlledFamilies.size !== 1
     ) {
       errors.push(`${entry.id} lacks the controlled JS/linear-Wasm equivalence track`);
     }
-    if (optimized?.track !== "optimized" || optimized?.algorithmEquivalence !== "separate-family") {
+    const optimizedFamilies = new Set(
+      (optimized?.variants ?? []).map((variant) => variant.algorithmFamilyId),
+    );
+    if (
+      optimized?.track !== "optimized" || optimized?.algorithmEquivalence !== "separate-family" ||
+      optimized?.variants?.length !== 2 || optimizedFamilies.size !== optimized?.variants?.length
+    ) {
       errors.push(`${entry.id} lacks the separately reported optimized track`);
     }
-    const variantIds = (entry.tracks ?? []).flatMap((track) => track.variantIds ?? []);
+    const variants = (entry.tracks ?? []).flatMap((track) =>
+      (track.variants ?? []).map((variant) => ({ track, variant }))
+    );
+    const variantIds = variants.map(({ variant }) => variant.id);
     if (duplicateValues(variantIds).length > 0) {
       errors.push(`${entry.id} reuses a variant id across tracks`);
+    }
+    for (const { track, variant } of variants) {
+      const variantKey = `${entry.id}/${variant.id}`;
+      if (workloadVariantKeys.has(variantKey)) {
+        errors.push(`duplicate workload variant identity ${variantKey}`);
+      }
+      workloadVariantKeys.add(variantKey);
+      if (!variant.algorithmFamilyId.startsWith(`${entry.benchmarkSlug}-`)) {
+        errors.push(`${variantKey} algorithm identity is not scoped to its benchmark slug`);
+      }
+      const trackKey = `${entry.id}/${track.id}`;
+      const priorTrack = algorithmIdentities.get(variant.algorithmFamilyId);
+      if (priorTrack !== undefined && priorTrack !== trackKey) {
+        errors.push(`algorithm identity reused across contracts: ${variant.algorithmFamilyId}`);
+      } else {
+        algorithmIdentities.set(variant.algorithmFamilyId, trackKey);
+      }
     }
   }
 

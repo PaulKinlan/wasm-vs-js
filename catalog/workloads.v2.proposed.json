@@ -15,6 +15,15 @@
   },
   "proposalCount": 20,
   "prospectiveEntryCount": 58,
+  "workloadContract": {
+    "contractId": "v2-workload-contract-v1",
+    "contractPath": "benchmarks/v2/shared/workload-contract.js"
+  },
+  "resultContract": {
+    "contractId": "workload-result-v2-proposal-v1",
+    "schemaVersion": 1,
+    "schemaPath": "schemas/workload-result-v2-proposal.schema.json"
+  },
   "performanceClaims": [],
   "entries": [
     {
@@ -70,9 +79,18 @@
         "kind": "numeric-tolerance",
         "reference": "Pinned f64 scalar DFT oracle rounded to f32 plus forward/inverse reconstruction invariants.",
         "checks": [
-          "Complete complex output satisfies the hybrid bound.",
-          "Inverse reconstruction satisfies the hybrid bound.",
-          "DC, Nyquist, conjugate-symmetry, finite-value, and output-length invariants hold."
+          {
+            "id": "complete-output-bound",
+            "description": "Complete complex output satisfies the hybrid bound."
+          },
+          {
+            "id": "structural-invariants",
+            "description": "Inverse reconstruction satisfies the hybrid bound."
+          },
+          {
+            "id": "work-counters",
+            "description": "DC, Nyquist, conjugate-symmetry, finite-value, and output-length invariants hold."
+          }
         ],
         "floatingPointPolicy": "strict-f32-frozen-order",
         "nanPolicy": "reject",
@@ -115,30 +133,37 @@
           "id": "track-a-controlled",
           "track": "controlled",
           "algorithmEquivalence": "required",
-          "targets": [
-            "javascript",
-            "wasm-linear"
-          ],
-          "variantIds": [
-            "js-controlled",
-            "wasm-linear-controlled"
-          ],
-          "contract": "Both targets use radix-2 decimation-in-time, the frozen stage order, f32 storage and intermediates, the frozen twiddle bytes, and one call per transform."
+          "contract": "Both targets use radix-2 decimation-in-time, the frozen stage order, f32 storage and intermediates, the frozen twiddle bytes, and one call per transform.",
+          "variants": [
+            {
+              "id": "js-controlled",
+              "target": "javascript",
+              "algorithmFamilyId": "audio-fft-controlled-v1"
+            },
+            {
+              "id": "wasm-linear-controlled",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "audio-fft-controlled-v1"
+            }
+          ]
         },
         {
           "id": "track-b-optimized",
           "track": "optimized",
           "algorithmEquivalence": "separate-family",
-          "targets": [
-            "javascript",
-            "wasm-linear",
-            "hybrid"
-          ],
-          "variantIds": [
-            "js-optimized",
-            "wasm-linear-optimized"
-          ],
-          "contract": "Scalar, fixed-SIMD, changed radix, runtime twiddle generation, and host DSP variants are separate families with optimization logs."
+          "contract": "Scalar, fixed-SIMD, changed radix, runtime twiddle generation, and host DSP variants are separate families with optimization logs.",
+          "variants": [
+            {
+              "id": "js-optimized",
+              "target": "javascript",
+              "algorithmFamilyId": "audio-fft-js-optimized-v1"
+            },
+            {
+              "id": "wasm-linear-optimized",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "audio-fft-wasm-linear-optimized-v1"
+            }
+          ]
         }
       ],
       "missingCells": [
@@ -202,8 +227,14 @@
         "kind": "numeric-tolerance",
         "reference": "Pinned f64 direct-convolution reference rounded to f32.",
         "checks": [
-          "Every output sample satisfies the hybrid bound.",
-          "Impulse latency, output length, finite-value, and DC-gain invariants hold."
+          {
+            "id": "complete-output-bound",
+            "description": "Every output sample satisfies the hybrid bound."
+          },
+          {
+            "id": "structural-invariants",
+            "description": "Impulse latency, output length, finite-value, and DC-gain invariants hold."
+          }
         ],
         "floatingPointPolicy": "strict-f32-frozen-order",
         "nanPolicy": "reject",
@@ -246,30 +277,37 @@
           "id": "track-a-controlled",
           "track": "controlled",
           "algorithmEquivalence": "required",
-          "targets": [
-            "javascript",
-            "wasm-linear"
-          ],
-          "variantIds": [
-            "js-controlled",
-            "wasm-linear-controlled"
-          ],
-          "contract": "Both targets use direct convolution, increasing tap order, strict f32 multiply then add, zero extension, preallocated output, and one resident call."
+          "contract": "Both targets use direct convolution, increasing tap order, strict f32 multiply then add, zero extension, preallocated output, and one resident call.",
+          "variants": [
+            {
+              "id": "js-controlled",
+              "target": "javascript",
+              "algorithmFamilyId": "audio-fir-controlled-v1"
+            },
+            {
+              "id": "wasm-linear-controlled",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "audio-fir-controlled-v1"
+            }
+          ]
         },
         {
           "id": "track-b-optimized",
           "track": "optimized",
           "algorithmEquivalence": "separate-family",
-          "targets": [
-            "javascript",
-            "wasm-linear",
-            "hybrid"
-          ],
-          "variantIds": [
-            "js-optimized",
-            "wasm-linear-optimized"
-          ],
-          "contract": "Blocking, SIMD, overlap-add, partitioned convolution, and native Web Audio are separate families with optimization logs."
+          "contract": "Blocking, SIMD, overlap-add, partitioned convolution, and native Web Audio are separate families with optimization logs.",
+          "variants": [
+            {
+              "id": "js-optimized",
+              "target": "javascript",
+              "algorithmFamilyId": "audio-fir-js-optimized-v1"
+            },
+            {
+              "id": "wasm-linear-optimized",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "audio-fir-wasm-linear-optimized-v1"
+            }
+          ]
         }
       ],
       "missingCells": [
@@ -337,8 +375,14 @@
         "kind": "numeric-tolerance",
         "reference": "Pinned f64 window-and-DFT reference rounded to f32.",
         "checks": [
-          "Every retained complex bin satisfies the hybrid bound.",
-          "Frame count, conjugate symmetry, finite-value, chirp-bin, and reconstruction invariants hold."
+          {
+            "id": "complete-output-bound",
+            "description": "Every retained complex bin satisfies the hybrid bound."
+          },
+          {
+            "id": "structural-invariants",
+            "description": "Frame count, conjugate symmetry, finite-value, chirp-bin, and reconstruction invariants hold."
+          }
         ],
         "floatingPointPolicy": "strict-f32-frozen-order",
         "nanPolicy": "reject",
@@ -381,30 +425,37 @@
           "id": "track-a-controlled",
           "track": "controlled",
           "algorithmEquivalence": "required",
-          "targets": [
-            "javascript",
-            "wasm-linear"
-          ],
-          "variantIds": [
-            "js-controlled",
-            "wasm-linear-controlled"
-          ],
-          "contract": "Both targets use the frozen Hann bytes, frame order, radix-2 schedule, strict f32 intermediates, no padding, reusable scratch, and one call for the full spectrogram."
+          "contract": "Both targets use the frozen Hann bytes, frame order, radix-2 schedule, strict f32 intermediates, no padding, reusable scratch, and one call for the full spectrogram.",
+          "variants": [
+            {
+              "id": "js-controlled",
+              "target": "javascript",
+              "algorithmFamilyId": "audio-stft-controlled-v1"
+            },
+            {
+              "id": "wasm-linear-controlled",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "audio-stft-controlled-v1"
+            }
+          ]
         },
         {
           "id": "track-b-optimized",
           "track": "optimized",
           "algorithmEquivalence": "separate-family",
-          "targets": [
-            "javascript",
-            "wasm-linear",
-            "hybrid"
-          ],
-          "variantIds": [
-            "js-optimized",
-            "wasm-linear-optimized"
-          ],
-          "contract": "Alternate windows, FFT plans, SIMD, streaming blocks, AudioWorklet, and native Web Audio are separate families with optimization logs."
+          "contract": "Alternate windows, FFT plans, SIMD, streaming blocks, AudioWorklet, and native Web Audio are separate families with optimization logs.",
+          "variants": [
+            {
+              "id": "js-optimized",
+              "target": "javascript",
+              "algorithmFamilyId": "audio-stft-js-optimized-v1"
+            },
+            {
+              "id": "wasm-linear-optimized",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "audio-stft-wasm-linear-optimized-v1"
+            }
+          ]
         }
       ],
       "missingCells": [
@@ -467,9 +518,18 @@
         "kind": "canonical-digest-and-invariants",
         "reference": "Project reference reducer and canonical DOM serializer.",
         "checks": [
-          "Final values, validity states, error strings, focus, and selection match.",
-          "Canonical DOM and accessibility-attribute digests match.",
-          "Validation, mutation, allocation, byte, and crossing counters match."
+          {
+            "id": "complete-output",
+            "description": "Final values, validity states, error strings, focus, and selection match."
+          },
+          {
+            "id": "structural-invariants",
+            "description": "Canonical DOM and accessibility-attribute digests match."
+          },
+          {
+            "id": "work-counters",
+            "description": "Validation, mutation, allocation, byte, and crossing counters match."
+          }
         ],
         "floatingPointPolicy": "no-floating-point",
         "nanPolicy": "not-generated",
@@ -512,30 +572,37 @@
           "id": "track-a-controlled",
           "track": "controlled",
           "algorithmEquivalence": "required",
-          "targets": [
-            "javascript",
-            "wasm-linear"
-          ],
-          "variantIds": [
-            "js-controlled",
-            "wasm-linear-controlled"
-          ],
-          "contract": "Both targets use the same flat schema, topological dependency order, Unicode scalar validation rules, error ordering, action trace, and host DOM commit adapter."
+          "contract": "Both targets use the same flat schema, topological dependency order, Unicode scalar validation rules, error ordering, action trace, and host DOM commit adapter.",
+          "variants": [
+            {
+              "id": "js-controlled",
+              "target": "javascript",
+              "algorithmFamilyId": "dom-dependent-form-validation-controlled-v1"
+            },
+            {
+              "id": "wasm-linear-controlled",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "dom-dependent-form-validation-controlled-v1"
+            }
+          ]
         },
         {
           "id": "track-b-optimized",
           "track": "optimized",
           "algorithmEquivalence": "separate-family",
-          "targets": [
-            "javascript",
-            "wasm-linear",
-            "hybrid"
-          ],
-          "variantIds": [
-            "js-optimized",
-            "wasm-linear-optimized"
-          ],
-          "contract": "Alternative validation scheduling, object layouts, batching, and host framework integrations are separate families with optimization logs."
+          "contract": "Alternative validation scheduling, object layouts, batching, and host framework integrations are separate families with optimization logs.",
+          "variants": [
+            {
+              "id": "js-optimized",
+              "target": "javascript",
+              "algorithmFamilyId": "dom-dependent-form-validation-js-optimized-v1"
+            },
+            {
+              "id": "wasm-linear-optimized",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "dom-dependent-form-validation-wasm-linear-optimized-v1"
+            }
+          ]
         }
       ],
       "missingCells": [
@@ -603,9 +670,18 @@
         "kind": "canonical-digest-and-invariants",
         "reference": "Project integer grid reducer and canonical DOM serializer.",
         "checks": [
-          "Per-checkpoint and final entity positions match.",
-          "Collision outcomes, occupied-cell digest, canonical DOM digest, and node identity match.",
-          "Movement, collision, mutation, byte, and crossing counters match."
+          {
+            "id": "complete-output",
+            "description": "Per-checkpoint and final entity positions match."
+          },
+          {
+            "id": "structural-invariants",
+            "description": "Collision outcomes, occupied-cell digest, canonical DOM digest, and node identity match."
+          },
+          {
+            "id": "work-counters",
+            "description": "Movement, collision, mutation, byte, and crossing counters match."
+          }
         ],
         "floatingPointPolicy": "no-floating-point",
         "nanPolicy": "not-generated",
@@ -648,30 +724,37 @@
           "id": "track-a-controlled",
           "track": "controlled",
           "algorithmEquivalence": "required",
-          "targets": [
-            "javascript",
-            "wasm-linear"
-          ],
-          "variantIds": [
-            "js-controlled",
-            "wasm-linear-controlled"
-          ],
-          "contract": "Both targets use integer cells, identical entity order, four-way collision rules, fixed-step trace, command-buffer layout, and one host DOM commit per step."
+          "contract": "Both targets use integer cells, identical entity order, four-way collision rules, fixed-step trace, command-buffer layout, and one host DOM commit per step.",
+          "variants": [
+            {
+              "id": "js-controlled",
+              "target": "javascript",
+              "algorithmFamilyId": "dom-grid-movement-controlled-v1"
+            },
+            {
+              "id": "wasm-linear-controlled",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "dom-grid-movement-controlled-v1"
+            }
+          ]
         },
         {
           "id": "track-b-optimized",
           "track": "optimized",
           "algorithmEquivalence": "separate-family",
-          "targets": [
-            "javascript",
-            "wasm-linear",
-            "hybrid"
-          ],
-          "variantIds": [
-            "js-optimized",
-            "wasm-linear-optimized"
-          ],
-          "contract": "Spatial indexing, batched commits, transformed rendering, and alternate collision systems are separate families with optimization logs."
+          "contract": "Spatial indexing, batched commits, transformed rendering, and alternate collision systems are separate families with optimization logs.",
+          "variants": [
+            {
+              "id": "js-optimized",
+              "target": "javascript",
+              "algorithmFamilyId": "dom-grid-movement-js-optimized-v1"
+            },
+            {
+              "id": "wasm-linear-optimized",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "dom-grid-movement-wasm-linear-optimized-v1"
+            }
+          ]
         }
       ],
       "missingCells": [
@@ -735,9 +818,18 @@
         "kind": "canonical-digest-and-invariants",
         "reference": "Project keyed reducer and canonical DOM serializer with key-identity tracing.",
         "checks": [
-          "Final ordered keys and text match.",
-          "Canonical DOM, node identity, focus, and selection digests match.",
-          "Insert, remove, move, update, mutation, byte, and crossing counters match."
+          {
+            "id": "complete-output",
+            "description": "Final ordered keys and text match."
+          },
+          {
+            "id": "structural-invariants",
+            "description": "Canonical DOM, node identity, focus, and selection digests match."
+          },
+          {
+            "id": "work-counters",
+            "description": "Insert, remove, move, update, mutation, byte, and crossing counters match."
+          }
         ],
         "floatingPointPolicy": "no-floating-point",
         "nanPolicy": "not-generated",
@@ -780,30 +872,37 @@
           "id": "track-a-controlled",
           "track": "controlled",
           "algorithmEquivalence": "required",
-          "targets": [
-            "javascript",
-            "wasm-linear"
-          ],
-          "variantIds": [
-            "js-controlled",
-            "wasm-linear-controlled"
-          ],
-          "contract": "Both targets use the same flat keyed records, stable operation order, move tie-break, command buffer, and host DOM commit adapter."
+          "contract": "Both targets use the same flat keyed records, stable operation order, move tie-break, command buffer, and host DOM commit adapter.",
+          "variants": [
+            {
+              "id": "js-controlled",
+              "target": "javascript",
+              "algorithmFamilyId": "dom-keyed-list-mutation-controlled-v1"
+            },
+            {
+              "id": "wasm-linear-controlled",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "dom-keyed-list-mutation-controlled-v1"
+            }
+          ]
         },
         {
           "id": "track-b-optimized",
           "track": "optimized",
           "algorithmEquivalence": "separate-family",
-          "targets": [
-            "javascript",
-            "wasm-linear",
-            "hybrid"
-          ],
-          "variantIds": [
-            "js-optimized",
-            "wasm-linear-optimized"
-          ],
-          "contract": "Alternate list-diff algorithms, object graphs, commit batching, and framework baselines are separate families with optimization logs."
+          "contract": "Alternate list-diff algorithms, object graphs, commit batching, and framework baselines are separate families with optimization logs.",
+          "variants": [
+            {
+              "id": "js-optimized",
+              "target": "javascript",
+              "algorithmFamilyId": "dom-keyed-list-mutation-js-optimized-v1"
+            },
+            {
+              "id": "wasm-linear-optimized",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "dom-keyed-list-mutation-wasm-linear-optimized-v1"
+            }
+          ]
         }
       ],
       "missingCells": [
@@ -867,9 +966,18 @@
         "kind": "canonical-digest-and-invariants",
         "reference": "Project flat-tree reducer and canonical DOM serializer.",
         "checks": [
-          "Final parent, child-order, attribute, and text arrays match.",
-          "Canonical DOM, key identity, focus, and selection digests match.",
-          "Tree, mutation, allocation, byte, and crossing counters match."
+          {
+            "id": "complete-output",
+            "description": "Final parent, child-order, attribute, and text arrays match."
+          },
+          {
+            "id": "structural-invariants",
+            "description": "Canonical DOM, key identity, focus, and selection digests match."
+          },
+          {
+            "id": "work-counters",
+            "description": "Tree, mutation, allocation, byte, and crossing counters match."
+          }
         ],
         "floatingPointPolicy": "no-floating-point",
         "nanPolicy": "not-generated",
@@ -912,30 +1020,37 @@
           "id": "track-a-controlled",
           "track": "controlled",
           "algorithmEquivalence": "required",
-          "targets": [
-            "javascript",
-            "wasm-linear"
-          ],
-          "variantIds": [
-            "js-controlled",
-            "wasm-linear-controlled"
-          ],
-          "contract": "Both targets use flat adjacency arrays, interned UTF-8 strings, frozen traversal and sibling tie-breaks, one command format, and the same host DOM commit adapter."
+          "contract": "Both targets use flat adjacency arrays, interned UTF-8 strings, frozen traversal and sibling tie-breaks, one command format, and the same host DOM commit adapter.",
+          "variants": [
+            {
+              "id": "js-controlled",
+              "target": "javascript",
+              "algorithmFamilyId": "dom-nested-tree-mutation-controlled-v1"
+            },
+            {
+              "id": "wasm-linear-controlled",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "dom-nested-tree-mutation-controlled-v1"
+            }
+          ]
         },
         {
           "id": "track-b-optimized",
           "track": "optimized",
           "algorithmEquivalence": "separate-family",
-          "targets": [
-            "javascript",
-            "wasm-linear",
-            "hybrid"
-          ],
-          "variantIds": [
-            "js-optimized",
-            "wasm-linear-optimized"
-          ],
-          "contract": "Natural object graphs, alternate tree-diff algorithms, batched commits, and framework baselines are separate families with optimization logs."
+          "contract": "Natural object graphs, alternate tree-diff algorithms, batched commits, and framework baselines are separate families with optimization logs.",
+          "variants": [
+            {
+              "id": "js-optimized",
+              "target": "javascript",
+              "algorithmFamilyId": "dom-nested-tree-mutation-js-optimized-v1"
+            },
+            {
+              "id": "wasm-linear-optimized",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "dom-nested-tree-mutation-wasm-linear-optimized-v1"
+            }
+          ]
         }
       ],
       "missingCells": [
@@ -1003,9 +1118,18 @@
         "kind": "canonical-digest-and-invariants",
         "reference": "Project stable table reducer and canonical visible-table serializer.",
         "checks": [
-          "Visible row IDs, cell values, page index, sort keys, and filter state match at every checkpoint.",
-          "Canonical DOM and focus digests match.",
-          "Comparison, predicate, mutation, byte, and crossing counters match."
+          {
+            "id": "complete-output",
+            "description": "Visible row IDs, cell values, page index, sort keys, and filter state match at every checkpoint."
+          },
+          {
+            "id": "structural-invariants",
+            "description": "Canonical DOM and focus digests match."
+          },
+          {
+            "id": "work-counters",
+            "description": "Comparison, predicate, mutation, byte, and crossing counters match."
+          }
         ],
         "floatingPointPolicy": "no-floating-point",
         "nanPolicy": "not-generated",
@@ -1048,30 +1172,37 @@
           "id": "track-a-controlled",
           "track": "controlled",
           "algorithmEquivalence": "required",
-          "targets": [
-            "javascript",
-            "wasm-linear"
-          ],
-          "variantIds": [
-            "js-controlled",
-            "wasm-linear-controlled"
-          ],
-          "contract": "Both targets use identical column bytes, stable multi-key comparison, Unicode scalar filters, page rules, action order, and host DOM commit adapter."
+          "contract": "Both targets use identical column bytes, stable multi-key comparison, Unicode scalar filters, page rules, action order, and host DOM commit adapter.",
+          "variants": [
+            {
+              "id": "js-controlled",
+              "target": "javascript",
+              "algorithmFamilyId": "dom-table-sort-filter-pagination-controlled-v1"
+            },
+            {
+              "id": "wasm-linear-controlled",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "dom-table-sort-filter-pagination-controlled-v1"
+            }
+          ]
         },
         {
           "id": "track-b-optimized",
           "track": "optimized",
           "algorithmEquivalence": "separate-family",
-          "targets": [
-            "javascript",
-            "wasm-linear",
-            "hybrid"
-          ],
-          "variantIds": [
-            "js-optimized",
-            "wasm-linear-optimized"
-          ],
-          "contract": "Indexing, incremental filtering, alternate layouts, commit batching, and host grid libraries are separate families with optimization logs."
+          "contract": "Indexing, incremental filtering, alternate layouts, commit batching, and host grid libraries are separate families with optimization logs.",
+          "variants": [
+            {
+              "id": "js-optimized",
+              "target": "javascript",
+              "algorithmFamilyId": "dom-table-sort-filter-pagination-js-optimized-v1"
+            },
+            {
+              "id": "wasm-linear-optimized",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "dom-table-sort-filter-pagination-wasm-linear-optimized-v1"
+            }
+          ]
         }
       ],
       "missingCells": [
@@ -1135,9 +1266,18 @@
         "kind": "canonical-digest-and-invariants",
         "reference": "Pinned flat-tree differ, canonical patch encoder, patch applier, and tree serializer.",
         "checks": [
-          "Exact controlled patch-sequence digest matches.",
-          "Applying the patch to A produces canonical tree B exactly.",
-          "Node, comparison, patch, allocation, byte, and crossing counters match."
+          {
+            "id": "complete-output",
+            "description": "Exact controlled patch-sequence digest matches."
+          },
+          {
+            "id": "structural-invariants",
+            "description": "Applying the patch to A produces canonical tree B exactly."
+          },
+          {
+            "id": "work-counters",
+            "description": "Node, comparison, patch, allocation, byte, and crossing counters match."
+          }
         ],
         "floatingPointPolicy": "no-floating-point",
         "nanPolicy": "not-generated",
@@ -1180,30 +1320,37 @@
           "id": "track-a-controlled",
           "track": "controlled",
           "algorithmEquivalence": "required",
-          "targets": [
-            "javascript",
-            "wasm-linear"
-          ],
-          "variantIds": [
-            "js-controlled",
-            "wasm-linear-controlled"
-          ],
-          "contract": "Both targets use flat adjacency arrays, interned UTF-8 strings, identical traversal, keyed-list algorithm, remove-before-insert and index-order tie-breaks, patch format, and call topology."
+          "contract": "Both targets use flat adjacency arrays, interned UTF-8 strings, identical traversal, keyed-list algorithm, remove-before-insert and index-order tie-breaks, patch format, and call topology.",
+          "variants": [
+            {
+              "id": "js-controlled",
+              "target": "javascript",
+              "algorithmFamilyId": "tooling-vdom-diff-patch-controlled-v1"
+            },
+            {
+              "id": "wasm-linear-controlled",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "tooling-vdom-diff-patch-controlled-v1"
+            }
+          ]
         },
         {
           "id": "track-b-optimized",
           "track": "optimized",
           "algorithmEquivalence": "separate-family",
-          "targets": [
-            "javascript",
-            "wasm-linear",
-            "hybrid"
-          ],
-          "variantIds": [
-            "js-optimized",
-            "wasm-linear-optimized"
-          ],
-          "contract": "Natural object graphs, alternate list differs, persistent intern tables, DOM application, WasmGC, and framework baselines are separate families with optimization logs."
+          "contract": "Natural object graphs, alternate list differs, persistent intern tables, DOM application, WasmGC, and framework baselines are separate families with optimization logs.",
+          "variants": [
+            {
+              "id": "js-optimized",
+              "target": "javascript",
+              "algorithmFamilyId": "tooling-vdom-diff-patch-js-optimized-v1"
+            },
+            {
+              "id": "wasm-linear-optimized",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "tooling-vdom-diff-patch-wasm-linear-optimized-v1"
+            }
+          ]
         }
       ],
       "missingCells": [
@@ -1270,9 +1417,18 @@
         "kind": "canonical-digest-and-invariants",
         "reference": "Project integer range calculator and canonical visible-DOM serializer.",
         "checks": [
-          "Visible and overscan ranges match at every checkpoint.",
-          "Node reuse mapping, node-count bound, scroll anchor, and canonical DOM digest match.",
-          "Range, reuse, mutation, byte, and crossing counters match."
+          {
+            "id": "complete-output",
+            "description": "Visible and overscan ranges match at every checkpoint."
+          },
+          {
+            "id": "structural-invariants",
+            "description": "Node reuse mapping, node-count bound, scroll anchor, and canonical DOM digest match."
+          },
+          {
+            "id": "work-counters",
+            "description": "Range, reuse, mutation, byte, and crossing counters match."
+          }
         ],
         "floatingPointPolicy": "no-floating-point",
         "nanPolicy": "not-generated",
@@ -1315,30 +1471,37 @@
           "id": "track-a-controlled",
           "track": "controlled",
           "algorithmEquivalence": "required",
-          "targets": [
-            "javascript",
-            "wasm-linear"
-          ],
-          "variantIds": [
-            "js-controlled",
-            "wasm-linear-controlled"
-          ],
-          "contract": "Both targets use integer offsets, fixed row height and overscan, identical range equations, node-reuse keys, action order, and host DOM commit adapter."
+          "contract": "Both targets use integer offsets, fixed row height and overscan, identical range equations, node-reuse keys, action order, and host DOM commit adapter.",
+          "variants": [
+            {
+              "id": "js-controlled",
+              "target": "javascript",
+              "algorithmFamilyId": "dom-virtualized-scrolling-controlled-v1"
+            },
+            {
+              "id": "wasm-linear-controlled",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "dom-virtualized-scrolling-controlled-v1"
+            }
+          ]
         },
         {
           "id": "track-b-optimized",
           "track": "optimized",
           "algorithmEquivalence": "separate-family",
-          "targets": [
-            "javascript",
-            "wasm-linear",
-            "hybrid"
-          ],
-          "variantIds": [
-            "js-optimized",
-            "wasm-linear-optimized"
-          ],
-          "contract": "Variable-height indexing, adaptive overscan, alternate node pools, and host grid libraries are separate families with optimization logs."
+          "contract": "Variable-height indexing, adaptive overscan, alternate node pools, and host grid libraries are separate families with optimization logs.",
+          "variants": [
+            {
+              "id": "js-optimized",
+              "target": "javascript",
+              "algorithmFamilyId": "dom-virtualized-scrolling-js-optimized-v1"
+            },
+            {
+              "id": "wasm-linear-optimized",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "dom-virtualized-scrolling-wasm-linear-optimized-v1"
+            }
+          ]
         }
       ],
       "missingCells": [
@@ -1406,9 +1569,18 @@
         "kind": "canonical-digest-and-invariants",
         "reference": "Project integer state reducer plus canonical draw-command and audio-event encoders.",
         "checks": [
-          "Per-checkpoint and final state digests match.",
-          "Draw-command and audio-event stream digests match.",
-          "Frame, entity, collision, draw, audio, byte, and crossing counters match."
+          {
+            "id": "complete-output",
+            "description": "Per-checkpoint and final state digests match."
+          },
+          {
+            "id": "structural-invariants",
+            "description": "Draw-command and audio-event stream digests match."
+          },
+          {
+            "id": "work-counters",
+            "description": "Frame, entity, collision, draw, audio, byte, and crossing counters match."
+          }
         ],
         "floatingPointPolicy": "no-floating-point",
         "nanPolicy": "not-generated",
@@ -1451,30 +1623,37 @@
           "id": "track-a-controlled",
           "track": "controlled",
           "algorithmEquivalence": "required",
-          "targets": [
-            "javascript",
-            "wasm-linear"
-          ],
-          "variantIds": [
-            "js-controlled",
-            "wasm-linear-controlled"
-          ],
-          "contract": "Both targets use integer fixed-point state, identical entity and collision order, frozen input and RNG streams, and the same Canvas and audio host adapters."
+          "contract": "Both targets use integer fixed-point state, identical entity and collision order, frozen input and RNG streams, and the same Canvas and audio host adapters.",
+          "variants": [
+            {
+              "id": "js-controlled",
+              "target": "javascript",
+              "algorithmFamilyId": "game-canvas-arcade-controlled-v1"
+            },
+            {
+              "id": "wasm-linear-controlled",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "game-canvas-arcade-controlled-v1"
+            }
+          ]
         },
         {
           "id": "track-b-optimized",
           "track": "optimized",
           "algorithmEquivalence": "separate-family",
-          "targets": [
-            "javascript",
-            "wasm-linear",
-            "hybrid"
-          ],
-          "variantIds": [
-            "js-optimized",
-            "wasm-linear-optimized"
-          ],
-          "contract": "Alternate broad phases, spatial indices, draw batching, native Canvas choices, and WebAudio scheduling are separate families with optimization logs."
+          "contract": "Alternate broad phases, spatial indices, draw batching, native Canvas choices, and WebAudio scheduling are separate families with optimization logs.",
+          "variants": [
+            {
+              "id": "js-optimized",
+              "target": "javascript",
+              "algorithmFamilyId": "game-canvas-arcade-js-optimized-v1"
+            },
+            {
+              "id": "wasm-linear-optimized",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "game-canvas-arcade-wasm-linear-optimized-v1"
+            }
+          ]
         }
       ],
       "missingCells": [
@@ -1542,9 +1721,18 @@
         "kind": "canonical-digest-and-invariants",
         "reference": "Project fixed-point ECS and A-star reference with canonical host-command encoders.",
         "checks": [
-          "Path node sequences and tie-break choices match.",
-          "Per-checkpoint ECS, animation, draw-command, and audio-event digests match.",
-          "System, node, frame, byte, and crossing counters match."
+          {
+            "id": "complete-output",
+            "description": "Path node sequences and tie-break choices match."
+          },
+          {
+            "id": "structural-invariants",
+            "description": "Per-checkpoint ECS, animation, draw-command, and audio-event digests match."
+          },
+          {
+            "id": "work-counters",
+            "description": "System, node, frame, byte, and crossing counters match."
+          }
         ],
         "floatingPointPolicy": "no-floating-point",
         "nanPolicy": "not-generated",
@@ -1587,30 +1775,37 @@
           "id": "track-a-controlled",
           "track": "controlled",
           "algorithmEquivalence": "required",
-          "targets": [
-            "javascript",
-            "wasm-linear"
-          ],
-          "variantIds": [
-            "js-controlled",
-            "wasm-linear-controlled"
-          ],
-          "contract": "Both targets use the same ECS arrays and system order, integer A-star costs, neighbour order, node-ID tie-break, animation steps, RNG stream, and host adapters."
+          "contract": "Both targets use the same ECS arrays and system order, integer A-star costs, neighbour order, node-ID tie-break, animation steps, RNG stream, and host adapters.",
+          "variants": [
+            {
+              "id": "js-controlled",
+              "target": "javascript",
+              "algorithmFamilyId": "game-canvas-entity-pathfinding-controlled-v1"
+            },
+            {
+              "id": "wasm-linear-controlled",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "game-canvas-entity-pathfinding-controlled-v1"
+            }
+          ]
         },
         {
           "id": "track-b-optimized",
           "track": "optimized",
           "algorithmEquivalence": "separate-family",
-          "targets": [
-            "javascript",
-            "wasm-linear",
-            "hybrid"
-          ],
-          "variantIds": [
-            "js-optimized",
-            "wasm-linear-optimized"
-          ],
-          "contract": "Alternate pathfinding, spatial indices, SIMD, worker splits, Canvas batching, and audio scheduling are separate families with optimization logs."
+          "contract": "Alternate pathfinding, spatial indices, SIMD, worker splits, Canvas batching, and audio scheduling are separate families with optimization logs.",
+          "variants": [
+            {
+              "id": "js-optimized",
+              "target": "javascript",
+              "algorithmFamilyId": "game-canvas-entity-pathfinding-js-optimized-v1"
+            },
+            {
+              "id": "wasm-linear-optimized",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "game-canvas-entity-pathfinding-wasm-linear-optimized-v1"
+            }
+          ]
         }
       ],
       "missingCells": [
@@ -1678,9 +1873,18 @@
         "kind": "canonical-digest-and-invariants",
         "reference": "Project integer tactics reducer and canonical grid-DOM serializer.",
         "checks": [
-          "Per-turn and final unit, occupancy, initiative, and objective digests match.",
-          "Canonical DOM, focus, selected cell, and accessibility-state digests match.",
-          "Action, path, mutation, byte, and crossing counters match."
+          {
+            "id": "complete-output",
+            "description": "Per-turn and final unit, occupancy, initiative, and objective digests match."
+          },
+          {
+            "id": "structural-invariants",
+            "description": "Canonical DOM, focus, selected cell, and accessibility-state digests match."
+          },
+          {
+            "id": "work-counters",
+            "description": "Action, path, mutation, byte, and crossing counters match."
+          }
         ],
         "floatingPointPolicy": "no-floating-point",
         "nanPolicy": "not-generated",
@@ -1723,30 +1927,37 @@
           "id": "track-a-controlled",
           "track": "controlled",
           "algorithmEquivalence": "required",
-          "targets": [
-            "javascript",
-            "wasm-linear"
-          ],
-          "variantIds": [
-            "js-controlled",
-            "wasm-linear-controlled"
-          ],
-          "contract": "Both targets use integer state, fixed initiative and action order, four-way path neighbours, node-ID tie-breaks, one command buffer, and the same host DOM adapter."
+          "contract": "Both targets use integer state, fixed initiative and action order, four-way path neighbours, node-ID tie-breaks, one command buffer, and the same host DOM adapter.",
+          "variants": [
+            {
+              "id": "js-controlled",
+              "target": "javascript",
+              "algorithmFamilyId": "game-dom-tactics-grid-controlled-v1"
+            },
+            {
+              "id": "wasm-linear-controlled",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "game-dom-tactics-grid-controlled-v1"
+            }
+          ]
         },
         {
           "id": "track-b-optimized",
           "track": "optimized",
           "algorithmEquivalence": "separate-family",
-          "targets": [
-            "javascript",
-            "wasm-linear",
-            "hybrid"
-          ],
-          "variantIds": [
-            "js-optimized",
-            "wasm-linear-optimized"
-          ],
-          "contract": "Alternate AI, pathfinding, batching, CSS animation, and framework integrations are separate families with optimization logs."
+          "contract": "Alternate AI, pathfinding, batching, CSS animation, and framework integrations are separate families with optimization logs.",
+          "variants": [
+            {
+              "id": "js-optimized",
+              "target": "javascript",
+              "algorithmFamilyId": "game-dom-tactics-grid-js-optimized-v1"
+            },
+            {
+              "id": "wasm-linear-optimized",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "game-dom-tactics-grid-wasm-linear-optimized-v1"
+            }
+          ]
         }
       ],
       "missingCells": [
@@ -1818,9 +2029,18 @@
         "kind": "canonical-digest-and-invariants",
         "reference": "Pinned integer reference pipeline with complete intermediate and final RGBA digests.",
         "checks": [
-          "Blur, histogram, LUT, composite, edge, and final RGBA digests match.",
-          "Dimensions, alpha normalization, histogram sum, monotonic LUT, and guard-region invariants hold.",
-          "Pixel, tap, blend, byte, allocation, and crossing counters match."
+          {
+            "id": "complete-output",
+            "description": "Blur, histogram, LUT, composite, edge, and final RGBA digests match."
+          },
+          {
+            "id": "structural-invariants",
+            "description": "Dimensions, alpha normalization, histogram sum, monotonic LUT, and guard-region invariants hold."
+          },
+          {
+            "id": "work-counters",
+            "description": "Pixel, tap, blend, byte, allocation, and crossing counters match."
+          }
         ],
         "floatingPointPolicy": "no-floating-point",
         "nanPolicy": "not-generated",
@@ -1863,30 +2083,37 @@
           "id": "track-a-controlled",
           "track": "controlled",
           "algorithmEquivalence": "required",
-          "targets": [
-            "javascript",
-            "wasm-linear"
-          ],
-          "variantIds": [
-            "js-controlled",
-            "wasm-linear-controlled"
-          ],
-          "contract": "Both targets use identical raw RGBA bytes, integer coefficients, pass order, border replication, alpha convention, rounding, preallocated scratch, and one resident pipeline call."
+          "contract": "Both targets use identical raw RGBA bytes, integer coefficients, pass order, border replication, alpha convention, rounding, preallocated scratch, and one resident pipeline call.",
+          "variants": [
+            {
+              "id": "js-controlled",
+              "target": "javascript",
+              "algorithmFamilyId": "image-editing-pipeline-controlled-v1"
+            },
+            {
+              "id": "wasm-linear-controlled",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "image-editing-pipeline-controlled-v1"
+            }
+          ]
         },
         {
           "id": "track-b-optimized",
           "track": "optimized",
           "algorithmEquivalence": "separate-family",
-          "targets": [
-            "javascript",
-            "wasm-linear",
-            "hybrid"
-          ],
-          "variantIds": [
-            "js-optimized",
-            "wasm-linear-optimized"
-          ],
-          "contract": "Tiling, fusion, SIMD, threads, native Canvas, GPU, codecs, and alternate image operators are separate families with optimization logs."
+          "contract": "Tiling, fusion, SIMD, threads, native Canvas, GPU, codecs, and alternate image operators are separate families with optimization logs.",
+          "variants": [
+            {
+              "id": "js-optimized",
+              "target": "javascript",
+              "algorithmFamilyId": "image-editing-pipeline-js-optimized-v1"
+            },
+            {
+              "id": "wasm-linear-optimized",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "image-editing-pipeline-wasm-linear-optimized-v1"
+            }
+          ]
         }
       ],
       "missingCells": [
@@ -1957,9 +2184,18 @@
         "kind": "canonical-digest-and-invariants",
         "reference": "Pinned iterative scanline span-stack reference over immutable membership source bytes.",
         "checks": [
-          "Complete final RGBA digest matches for every independently reset fill.",
-          "Changed-pixel count, bounding box, span count, maximum stack, seed outcome, and guard regions match.",
-          "Candidate, comparison, copy, byte, allocation, and crossing counters match."
+          {
+            "id": "complete-output",
+            "description": "Complete final RGBA digest matches for every independently reset fill."
+          },
+          {
+            "id": "structural-invariants",
+            "description": "Changed-pixel count, bounding box, span count, maximum stack, seed outcome, and guard regions match."
+          },
+          {
+            "id": "work-counters",
+            "description": "Candidate, comparison, copy, byte, allocation, and crossing counters match."
+          }
         ],
         "floatingPointPolicy": "no-floating-point",
         "nanPolicy": "not-generated",
@@ -2002,30 +2238,37 @@
           "id": "track-a-controlled",
           "track": "controlled",
           "algorithmEquivalence": "required",
-          "targets": [
-            "javascript",
-            "wasm-linear"
-          ],
-          "variantIds": [
-            "js-controlled",
-            "wasm-linear-controlled"
-          ],
-          "contract": "Both targets use immutable-source max-channel membership, four-connectivity, iterative scanline spans, frozen neighbour order, explicit stack layout, identical reset bytes, and one call per fill."
+          "contract": "Both targets use immutable-source max-channel membership, four-connectivity, iterative scanline spans, frozen neighbour order, explicit stack layout, identical reset bytes, and one call per fill.",
+          "variants": [
+            {
+              "id": "js-controlled",
+              "target": "javascript",
+              "algorithmFamilyId": "image-flood-fill-controlled-v1"
+            },
+            {
+              "id": "wasm-linear-controlled",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "image-flood-fill-controlled-v1"
+            }
+          ]
         },
         {
           "id": "track-b-optimized",
           "track": "optimized",
           "algorithmEquivalence": "separate-family",
-          "targets": [
-            "javascript",
-            "wasm-linear",
-            "hybrid"
-          ],
-          "variantIds": [
-            "js-optimized",
-            "wasm-linear-optimized"
-          ],
-          "contract": "BFS, recursive, alternate colour distance, SIMD span tests, dirty-region presentation, and Canvas baselines are separate families with optimization logs."
+          "contract": "BFS, recursive, alternate colour distance, SIMD span tests, dirty-region presentation, and Canvas baselines are separate families with optimization logs.",
+          "variants": [
+            {
+              "id": "js-optimized",
+              "target": "javascript",
+              "algorithmFamilyId": "image-flood-fill-js-optimized-v1"
+            },
+            {
+              "id": "wasm-linear-optimized",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "image-flood-fill-wasm-linear-optimized-v1"
+            }
+          ]
         }
       ],
       "missingCells": [
@@ -2093,9 +2336,18 @@
         "kind": "numeric-tolerance",
         "reference": "Pinned f64 layer-by-layer scalar reference with stored per-layer bounds.",
         "checks": [
-          "Every layer output satisfies its hybrid bound.",
-          "Final logits, ranking, tensor shapes, finite values, and GELU formula invariants hold.",
-          "Layer, MAC, tensor-byte, allocation, and crossing counters match."
+          {
+            "id": "complete-output-bound",
+            "description": "Every layer output satisfies its hybrid bound."
+          },
+          {
+            "id": "structural-invariants",
+            "description": "Final logits, ranking, tensor shapes, finite values, and GELU formula invariants hold."
+          },
+          {
+            "id": "work-counters",
+            "description": "Layer, MAC, tensor-byte, allocation, and crossing counters match."
+          }
         ],
         "floatingPointPolicy": "strict-f32-frozen-order",
         "nanPolicy": "reject",
@@ -2138,30 +2390,37 @@
           "id": "track-a-controlled",
           "track": "controlled",
           "algorithmEquivalence": "required",
-          "targets": [
-            "javascript",
-            "wasm-linear"
-          ],
-          "variantIds": [
-            "js-controlled",
-            "wasm-linear-controlled"
-          ],
-          "contract": "Both targets use row-major tensors, identical layer topology, left-to-right f32 accumulation, frozen GELU formula, unfused operators, reusable scratch, and one call per operator."
+          "contract": "Both targets use row-major tensors, identical layer topology, left-to-right f32 accumulation, frozen GELU formula, unfused operators, reusable scratch, and one call per operator.",
+          "variants": [
+            {
+              "id": "js-controlled",
+              "target": "javascript",
+              "algorithmFamilyId": "ml-dense-mlp-controlled-v1"
+            },
+            {
+              "id": "wasm-linear-controlled",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "ml-dense-mlp-controlled-v1"
+            }
+          ]
         },
         {
           "id": "track-b-optimized",
           "track": "optimized",
           "algorithmEquivalence": "separate-family",
-          "targets": [
-            "javascript",
-            "wasm-linear",
-            "hybrid"
-          ],
-          "variantIds": [
-            "js-optimized",
-            "wasm-linear-optimized"
-          ],
-          "contract": "Blocking, packing, fusion, SIMD, quantization, changed layouts, whole-network calls, and host ML APIs are separate families with optimization logs."
+          "contract": "Blocking, packing, fusion, SIMD, quantization, changed layouts, whole-network calls, and host ML APIs are separate families with optimization logs.",
+          "variants": [
+            {
+              "id": "js-optimized",
+              "target": "javascript",
+              "algorithmFamilyId": "ml-dense-mlp-js-optimized-v1"
+            },
+            {
+              "id": "wasm-linear-optimized",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "ml-dense-mlp-wasm-linear-optimized-v1"
+            }
+          ]
         }
       ],
       "missingCells": [
@@ -2233,9 +2492,18 @@
         "kind": "numeric-tolerance",
         "reference": "Pinned f64 scalar matrix product reference with stored element bounds.",
         "checks": [
-          "Every C element satisfies the hybrid bound.",
-          "Tensor shape, finite-value, row checksum, and corner-element invariants hold.",
-          "MAC, load, store, tensor-byte, allocation, and crossing counters match."
+          {
+            "id": "complete-output-bound",
+            "description": "Every C element satisfies the hybrid bound."
+          },
+          {
+            "id": "structural-invariants",
+            "description": "Tensor shape, finite-value, row checksum, and corner-element invariants hold."
+          },
+          {
+            "id": "work-counters",
+            "description": "MAC, load, store, tensor-byte, allocation, and crossing counters match."
+          }
         ],
         "floatingPointPolicy": "strict-f32-frozen-order",
         "nanPolicy": "reject",
@@ -2278,30 +2546,37 @@
           "id": "track-a-controlled",
           "track": "controlled",
           "algorithmEquivalence": "required",
-          "targets": [
-            "javascript",
-            "wasm-linear"
-          ],
-          "variantIds": [
-            "js-controlled",
-            "wasm-linear-controlled"
-          ],
-          "contract": "Both targets use ijk loop order, row-major NN layout, left-to-right f32 accumulation, no packing, preallocated C, and one call per matrix product."
+          "contract": "Both targets use ijk loop order, row-major NN layout, left-to-right f32 accumulation, no packing, preallocated C, and one call per matrix product.",
+          "variants": [
+            {
+              "id": "js-controlled",
+              "target": "javascript",
+              "algorithmFamilyId": "ml-gemm-controlled-v1"
+            },
+            {
+              "id": "wasm-linear-controlled",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "ml-gemm-controlled-v1"
+            }
+          ]
         },
         {
           "id": "track-b-optimized",
           "track": "optimized",
           "algorithmEquivalence": "separate-family",
-          "targets": [
-            "javascript",
-            "wasm-linear",
-            "hybrid"
-          ],
-          "variantIds": [
-            "js-optimized",
-            "wasm-linear-optimized"
-          ],
-          "contract": "Loop reordering, blocking, packing, SIMD, threads, alternate dtypes, changed layouts, and host ML APIs are separate families with optimization logs."
+          "contract": "Loop reordering, blocking, packing, SIMD, threads, alternate dtypes, changed layouts, and host ML APIs are separate families with optimization logs.",
+          "variants": [
+            {
+              "id": "js-optimized",
+              "target": "javascript",
+              "algorithmFamilyId": "ml-gemm-js-optimized-v1"
+            },
+            {
+              "id": "wasm-linear-optimized",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "ml-gemm-wasm-linear-optimized-v1"
+            }
+          ]
         }
       ],
       "missingCells": [
@@ -2365,9 +2640,18 @@
         "kind": "canonical-digest-and-invariants",
         "reference": "Pinned Myers reference with canonical edit-script encoder and apply check.",
         "checks": [
-          "Exact edit-script digest matches for every pair.",
-          "Applying each script reproduces the target bytes exactly.",
-          "Edit, frontier, line, allocation, byte, and crossing counters match."
+          {
+            "id": "complete-output",
+            "description": "Exact edit-script digest matches for every pair."
+          },
+          {
+            "id": "structural-invariants",
+            "description": "Applying each script reproduces the target bytes exactly."
+          },
+          {
+            "id": "work-counters",
+            "description": "Edit, frontier, line, allocation, byte, and crossing counters match."
+          }
         ],
         "floatingPointPolicy": "no-floating-point",
         "nanPolicy": "not-generated",
@@ -2410,30 +2694,37 @@
           "id": "track-a-controlled",
           "track": "controlled",
           "algorithmEquivalence": "required",
-          "targets": [
-            "javascript",
-            "wasm-linear"
-          ],
-          "variantIds": [
-            "js-controlled",
-            "wasm-linear-controlled"
-          ],
-          "contract": "Both targets use UTF-8 scalar lines, identical interning, Myers frontier order, delete-before-insert and earliest-position tie-breaks, and one call per document pair."
+          "contract": "Both targets use UTF-8 scalar lines, identical interning, Myers frontier order, delete-before-insert and earliest-position tie-breaks, and one call per document pair.",
+          "variants": [
+            {
+              "id": "js-controlled",
+              "target": "javascript",
+              "algorithmFamilyId": "text-diff-patch-controlled-v1"
+            },
+            {
+              "id": "wasm-linear-controlled",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "text-diff-patch-controlled-v1"
+            }
+          ]
         },
         {
           "id": "track-b-optimized",
           "track": "optimized",
           "algorithmEquivalence": "separate-family",
-          "targets": [
-            "javascript",
-            "wasm-linear",
-            "hybrid"
-          ],
-          "variantIds": [
-            "js-optimized",
-            "wasm-linear-optimized"
-          ],
-          "contract": "Patience diff, histogram diff, char-level diff, alternate tie-breaks, incremental caches, and object-graph layouts are separate families with optimization logs."
+          "contract": "Patience diff, histogram diff, char-level diff, alternate tie-breaks, incremental caches, and object-graph layouts are separate families with optimization logs.",
+          "variants": [
+            {
+              "id": "js-optimized",
+              "target": "javascript",
+              "algorithmFamilyId": "text-diff-patch-js-optimized-v1"
+            },
+            {
+              "id": "wasm-linear-optimized",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "text-diff-patch-wasm-linear-optimized-v1"
+            }
+          ]
         }
       ],
       "missingCells": [
@@ -2498,9 +2789,18 @@
         "kind": "canonical-digest-and-invariants",
         "reference": "Pinned project parser, transform, renderer, sanitizer, and canonical HTML serializer.",
         "checks": [
-          "Per-document AST, transformed AST, sanitized canonical HTML, and corpus digests match.",
-          "Heading, link, figure, rejected-node, and output-validity invariants hold.",
-          "Token, node, string-byte, allocation, and crossing counters match."
+          {
+            "id": "complete-output",
+            "description": "Per-document AST, transformed AST, sanitized canonical HTML, and corpus digests match."
+          },
+          {
+            "id": "structural-invariants",
+            "description": "Heading, link, figure, rejected-node, and output-validity invariants hold."
+          },
+          {
+            "id": "work-counters",
+            "description": "Token, node, string-byte, allocation, and crossing counters match."
+          }
         ],
         "floatingPointPolicy": "no-floating-point",
         "nanPolicy": "not-generated",
@@ -2543,30 +2843,37 @@
           "id": "track-a-controlled",
           "track": "controlled",
           "algorithmEquivalence": "required",
-          "targets": [
-            "javascript",
-            "wasm-linear"
-          ],
-          "variantIds": [
-            "js-controlled",
-            "wasm-linear-controlled"
-          ],
-          "contract": "Both targets use the project grammar, UTF-8 scalar semantics, identical AST layout, transform order, escaping, allowlist, canonical serializer, and one call per pipeline stage."
+          "contract": "Both targets use the project grammar, UTF-8 scalar semantics, identical AST layout, transform order, escaping, allowlist, canonical serializer, and one call per pipeline stage.",
+          "variants": [
+            {
+              "id": "js-controlled",
+              "target": "javascript",
+              "algorithmFamilyId": "text-markdown-cms-controlled-v1"
+            },
+            {
+              "id": "wasm-linear-controlled",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "text-markdown-cms-controlled-v1"
+            }
+          ]
         },
         {
           "id": "track-b-optimized",
           "track": "optimized",
           "algorithmEquivalence": "separate-family",
-          "targets": [
-            "javascript",
-            "wasm-linear",
-            "hybrid"
-          ],
-          "variantIds": [
-            "js-optimized",
-            "wasm-linear-optimized"
-          ],
-          "contract": "CommonMark extensions, alternate parsers, fused stages, native HTML parsing, code generation, and host CMS integrations are separate families with optimization logs."
+          "contract": "CommonMark extensions, alternate parsers, fused stages, native HTML parsing, code generation, and host CMS integrations are separate families with optimization logs.",
+          "variants": [
+            {
+              "id": "js-optimized",
+              "target": "javascript",
+              "algorithmFamilyId": "text-markdown-cms-js-optimized-v1"
+            },
+            {
+              "id": "wasm-linear-optimized",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "text-markdown-cms-wasm-linear-optimized-v1"
+            }
+          ]
         }
       ],
       "missingCells": [
@@ -2634,9 +2941,18 @@
         "kind": "canonical-digest-and-invariants",
         "reference": "Pinned common-subset automata reference with canonical ordered match and capture tuples.",
         "checks": [
-          "Pattern, start, end, and capture tuples match exactly.",
-          "Empty-match advancement, code-point offsets, compile outcome, and match ordering invariants hold.",
-          "Code-point, transition, match, capture, byte, allocation, and crossing counters match."
+          {
+            "id": "complete-output",
+            "description": "Pattern, start, end, and capture tuples match exactly."
+          },
+          {
+            "id": "structural-invariants",
+            "description": "Empty-match advancement, code-point offsets, compile outcome, and match ordering invariants hold."
+          },
+          {
+            "id": "work-counters",
+            "description": "Code-point, transition, match, capture, byte, allocation, and crossing counters match."
+          }
         ],
         "floatingPointPolicy": "no-floating-point",
         "nanPolicy": "not-generated",
@@ -2679,30 +2995,37 @@
           "id": "track-a-controlled",
           "track": "controlled",
           "algorithmEquivalence": "required",
-          "targets": [
-            "javascript",
-            "wasm-linear"
-          ],
-          "variantIds": [
-            "js-controlled",
-            "wasm-linear-controlled"
-          ],
-          "contract": "Controlled JS and linear-Wasm variants use the same project DFA recipe, BMP code-point model, subset grammar, leftmost-first semantics, empty-match rule, pattern order, and compile-once topology."
+          "contract": "Controlled JS and linear-Wasm variants use the same project DFA recipe, BMP code-point model, subset grammar, leftmost-first semantics, empty-match rule, pattern order, and compile-once topology.",
+          "variants": [
+            {
+              "id": "js-controlled",
+              "target": "javascript",
+              "algorithmFamilyId": "text-regex-engine-duel-controlled-v1"
+            },
+            {
+              "id": "wasm-linear-controlled",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "text-regex-engine-duel-controlled-v1"
+            }
+          ]
         },
         {
           "id": "track-b-optimized",
           "track": "optimized",
           "algorithmEquivalence": "separate-family",
-          "targets": [
-            "javascript",
-            "wasm-linear",
-            "hybrid"
-          ],
-          "variantIds": [
-            "js-optimized",
-            "wasm-linear-optimized"
-          ],
-          "contract": "Native RegExp, alternate automata, compile-per-scan, Unicode-property, backreference, lookaround, and host regex engines are separate families with optimization logs."
+          "contract": "Native RegExp, alternate automata, compile-per-scan, Unicode-property, backreference, lookaround, and host regex engines are separate families with optimization logs.",
+          "variants": [
+            {
+              "id": "js-optimized",
+              "target": "javascript",
+              "algorithmFamilyId": "text-regex-engine-duel-js-optimized-v1"
+            },
+            {
+              "id": "wasm-linear-optimized",
+              "target": "wasm-linear",
+              "algorithmFamilyId": "text-regex-engine-duel-wasm-linear-optimized-v1"
+            }
+          ]
         }
       ],
       "missingCells": [
