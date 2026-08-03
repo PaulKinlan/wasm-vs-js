@@ -201,6 +201,10 @@ Deno.test("pinned source graph and builder reproduce every public artifact byte"
     stderr: "piped",
   }).output();
   assert(result.success, new TextDecoder().decode(result.stderr));
+  await Deno.chmod(
+    new URL("public/artifacts/crypto-authenticated-stream/crypto-authenticated-stream.wasm", root),
+    0o644,
+  );
   const after = await Promise.all(
     paths.map(async (path) => sha256Hex(await Deno.readFile(new URL(path, root)))),
   );
