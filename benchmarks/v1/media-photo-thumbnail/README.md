@@ -29,6 +29,6 @@ All selected PNGs lack EXIF orientation, so the benchmark corpus executes the or
 
 ## Why implementation is blocked
 
-The audited pure-JavaScript WebP candidate uses a different, smaller VP8 encoder policy and cannot express the frozen libwebp settings. Its source tag and npm package also omit the declared MIT license text. The audited wasm-vips artifact uses WebAssembly SIMD and `SharedArrayBuffer`; those are separate variants, not the scalar controlled baseline. No reproducible scalar single-thread artifact is available in the current repository toolchain.
+The audited pure-JavaScript WebP candidate uses a different, smaller VP8 encoder policy and cannot express the frozen libwebp settings. Its source tag and npm package also omit the declared MIT license text. The inspected wasm-vips 0.0.18 release artifact uses WebAssembly SIMD and `SharedArrayBuffer`; those are separate variants, not the scalar controlled baseline. That release publishes no scalar single-thread artifact, and this repository does not pin its Emscripten 6.0.0 toolchain for a reproducible build.
 
 Consequently, complete output checks, physical counters, worker lifecycle evidence, and timing are unavailable. `implementation-status.json` keeps coverage false and lists every prohibited claim. A host `createImageBitmap`, Canvas, or WebCodecs pipeline would be a product-choice baseline and cannot close this controlled workload.

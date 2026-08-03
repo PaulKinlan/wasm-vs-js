@@ -24,7 +24,7 @@
   "engineAudit": {
     "status": "blocked",
     "path": "benchmarks/v1/media-photo-thumbnail/engine-candidate-audit.json",
-    "sha256": "2402c1c8043b5d3a4eab24728bf36e3be819e0f2d6a35a2c50a818a2c6531a2e"
+    "sha256": "f8acf6a282931f0c3ce6889173ca1b24f49ed896c55f95a78daef6435b79f59f"
   },
   "targets": {
     "javascriptControlled": {
@@ -33,7 +33,7 @@
     },
     "linearWasmControlled": {
       "status": "unavailable",
-      "reason": "The examined wasm-vips artifact requires SIMD, SharedArrayBuffer and cross-origin isolation; no reproducible scalar single-thread artifact exists for the controlled baseline."
+      "reason": "The inspected wasm-vips 0.0.18 release artifact requires SIMD, SharedArrayBuffer and cross-origin isolation. That release publishes no scalar single-thread artifact, and this repository does not pin its Emscripten 6.0.0 toolchain for a reproducible build."
     }
   },
   "validation": {
