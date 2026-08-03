@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "ml.keyword-spotting.v1",
+  "fixtureSha256": "1643258d45167c2a1b3795b2c4f2fb11a885b08806fde7f4d235e55be61482ae",
+  "outputs": {
+    "features": {
+      "elements": 39000,
+      "bytes": 78000,
+      "sha256": "8a9a24ba49d14cc3bc6d6c071609cac9af23c62c97957b5e6aacea800a05b40f"
+    },
+    "scores": {
+      "elements": 12000,
+      "bytes": 48000,
+      "sha256": "51fd84f30fca19274538b1cd001b5213b06fafb82ebb2210b7e09b93973858de"
+    },
+    "detections": {
+      "elements": 2337,
+      "bytes": 9348,
+      "sha256": "12ec3e9274171c3170328f989ee7d2a5b76377b70ace95e2f474db0951b62cb1"
+    }
+  },
+  "variants": {
+    "js-controlled": {
+      "status": "passed",
+      "counters": {
+        "hops": 3000,
+        "windows": 3000,
+        "windowSamples": 960000,
+        "fftTransforms": 3000,
+        "fftButterflies": 6912000,
+        "spectralBins": 768000,
+        "mfccCoefficients": 39000,
+        "depthwiseMacs": 117000,
+        "pointwiseMacs": 312000,
+        "outputMacs": 96000,
+        "scoreElements": 12000,
+        "featureElements": 39000,
+        "inputBytes": 1920000,
+        "outputBytes": 135348,
+        "allocations": 10,
+        "boundaryCrossings": 0,
+        "detectionElements": 2337
+      }
+    },
+    "wasm-linear-controlled": {
+      "status": "passed",
+      "counters": {
+        "hops": 3000,
+        "windows": 3000,
+        "windowSamples": 960000,
+        "fftTransforms": 3000,
+        "fftButterflies": 6912000,
+        "spectralBins": 768000,
+        "mfccCoefficients": 39000,
+        "depthwiseMacs": 117000,
+        "pointwiseMacs": 312000,
+        "outputMacs": 96000,
+        "scoreElements": 12000,
+        "featureElements": 39000,
+        "inputBytes": 1920000,
+        "outputBytes": 135348,
+        "allocations": 0,
+        "boundaryCrossings": 2,
+        "detectionElements": 2337
+      }
+    }
+  },
+  "performanceClaims": []
+}

@@ -1,0 +1,227 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "ml.keyword-spotting.v1",
+  "status": "proposal-validation-complete",
+  "frozenCatalog": {
+    "path": "catalog/workloads.v1.json",
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+    "immutability": "byte-for-byte"
+  },
+  "fixture": {
+    "manifestPath": "benchmarks/base/ml-keyword-spotting/speech-commands-subset.v1.json",
+    "redistribution": "recipe-only",
+    "normalizedPcmSha256": "1643258d45167c2a1b3795b2c4f2fb11a885b08806fde7f4d235e55be61482ae"
+  },
+  "contract": {
+    "workloadId": "ml.keyword-spotting.v1",
+    "sampleRate": 16000,
+    "seconds": 60,
+    "samples": 960000,
+    "hopSamples": 320,
+    "hops": 3000,
+    "fftSize": 512,
+    "features": 13,
+    "contextFrames": 3,
+    "hiddenChannels": 8,
+    "classes": 4,
+    "algorithmFamily": "dscnn-fixed-preprocess-model",
+    "preprocessing": "PCM16LE -> Hann Q15 -> radix-2 FFT Q15 -> 13 log bands -> DCT Q15",
+    "model": "owned fixed INT8 depthwise-separable convolution, 3-frame context, 13 depthwise channels, 8 pointwise channels, 4 logits"
+  },
+  "variants": [
+    {
+      "id": "js-controlled",
+      "target": "javascript",
+      "implementation": "independent authored integer preprocessing and DS-CNN"
+    },
+    {
+      "id": "wasm-linear-controlled",
+      "target": "wasm-linear",
+      "implementation": "authored C compiled to linear Wasm; full preprocessing and DS-CNN execute in module"
+    }
+  ],
+  "sourceCommit": "b4a8201dc09d830fab83931b71c44cdb8b847a03",
+  "sourceGraph": [
+    {
+      "path": "benchmarks/base/ml-keyword-spotting/engine.js",
+      "sha256": "ba500bedbbf6355e615022b51a00b097e351e6445f2ecbd244fb08b4297656cc",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/b4a8201dc09d830fab83931b71c44cdb8b847a03/benchmarks/base/ml-keyword-spotting/engine.js"
+    },
+    {
+      "path": "benchmarks/base/ml-keyword-spotting/constants.v1.js",
+      "sha256": "923cda3110974e60f75dd847bc20ce2aa786ea467714660a0acd0bb24b9a6943",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/b4a8201dc09d830fab83931b71c44cdb8b847a03/benchmarks/base/ml-keyword-spotting/constants.v1.js"
+    },
+    {
+      "path": "benchmarks/base/ml-keyword-spotting/constants.v1.json",
+      "sha256": "b7b5a9df555d9f54b04e0fc6ba0e978a2d84b54ba712e090b6581b9eeb94af39",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/b4a8201dc09d830fab83931b71c44cdb8b847a03/benchmarks/base/ml-keyword-spotting/constants.v1.json"
+    },
+    {
+      "path": "benchmarks/base/ml-keyword-spotting/constants.v1.h",
+      "sha256": "4c321ca14ecb52142960cf55bedd5b45b090b64d4353df346d1e0e3ae28b25bc",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/b4a8201dc09d830fab83931b71c44cdb8b847a03/benchmarks/base/ml-keyword-spotting/constants.v1.h"
+    },
+    {
+      "path": "benchmarks/base/ml-keyword-spotting/keyword-spotting.c",
+      "sha256": "9c6db8aba644be88a815cc6b305e641b9fa9c64bf2eec38cb0680bc8353360ed",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/b4a8201dc09d830fab83931b71c44cdb8b847a03/benchmarks/base/ml-keyword-spotting/keyword-spotting.c"
+    },
+    {
+      "path": "benchmarks/base/ml-keyword-spotting/speech-commands-subset.v1.json",
+      "sha256": "f9dbc8c6679f24d811f7781ef0db32f7902a36c6c0db98fa86e9e4dff05f0f0a",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/b4a8201dc09d830fab83931b71c44cdb8b847a03/benchmarks/base/ml-keyword-spotting/speech-commands-subset.v1.json"
+    },
+    {
+      "path": "benchmarks/base/ml-keyword-spotting/implementation-contract.v1.json",
+      "sha256": "1b8ba30003d16a66473fdbb9ebdff8a1b050cf7ec77660a7286fbc29bf54a681",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/b4a8201dc09d830fab83931b71c44cdb8b847a03/benchmarks/base/ml-keyword-spotting/implementation-contract.v1.json"
+    },
+    {
+      "path": "benchmarks/base/ml-keyword-spotting/RIGHTS.md",
+      "sha256": "d41abd25e7c7f7485cfb185d21a94b445e42890076dec13b82d6c5522c8c3719",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/b4a8201dc09d830fab83931b71c44cdb8b847a03/benchmarks/base/ml-keyword-spotting/RIGHTS.md"
+    },
+    {
+      "path": "scripts/acquire-base-ml-keyword-spotting.ts",
+      "sha256": "95a226ecdd3a004d12d1d5e99b141d0984ed63dba842dfa522c218263b579201",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/b4a8201dc09d830fab83931b71c44cdb8b847a03/scripts/acquire-base-ml-keyword-spotting.ts"
+    },
+    {
+      "path": "scripts/build-base-ml-keyword-spotting.ts",
+      "sha256": "ae80e7a5151a8aa0eb0a1626d613fca6a9350cbf84306936eece9bafe65d3758",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/b4a8201dc09d830fab83931b71c44cdb8b847a03/scripts/build-base-ml-keyword-spotting.ts"
+    },
+    {
+      "path": "public/benchmarks/ml-keyword-spotting-v1/index.html",
+      "sha256": "c72a5a940dd3005b72ebd35de7441916d3eca55053b3735573d812453a4b80fe",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/b4a8201dc09d830fab83931b71c44cdb8b847a03/public/benchmarks/ml-keyword-spotting-v1/index.html"
+    },
+    {
+      "path": "public/base-ml-keyword-spotting-demo.js",
+      "sha256": "7a5e224da312ddecb0f00b6fac040efabc03957f8539516dca55d8e8218f0bf4",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/b4a8201dc09d830fab83931b71c44cdb8b847a03/public/base-ml-keyword-spotting-demo.js"
+    },
+    {
+      "path": "public/base-ml-keyword-spotting-worker.js",
+      "sha256": "6523ec0e66af2db790a32a8be14f2a1a1d6cbe5b03b0899520ecdb487621766e",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/b4a8201dc09d830fab83931b71c44cdb8b847a03/public/base-ml-keyword-spotting-worker.js"
+    },
+    {
+      "path": "tests/base/ml-keyword-spotting.test.ts",
+      "sha256": "d9f7c115dcee6baf2a9b7d7d8cec8be066d6792d14598f2f42db9a59ecd37a91",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/b4a8201dc09d830fab83931b71c44cdb8b847a03/tests/base/ml-keyword-spotting.test.ts"
+    },
+    {
+      "path": "server.ts",
+      "sha256": "9935531c3204b983c1031edf0bbe22448bb3242d3e488121d126ed368fe5bb8c",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/b4a8201dc09d830fab83931b71c44cdb8b847a03/server.ts"
+    },
+    {
+      "path": "catalog/workloads.v1.json",
+      "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/b4a8201dc09d830fab83931b71c44cdb8b847a03/catalog/workloads.v1.json"
+    },
+    {
+      "path": "public/data/workloads.v1.json",
+      "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/b4a8201dc09d830fab83931b71c44cdb8b847a03/public/data/workloads.v1.json"
+    },
+    {
+      "path": "deno.json",
+      "sha256": "17e6674c81fdaee7dfc52ed1bd28baeec70fb0715f839b92defe1e84545b08eb",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/b4a8201dc09d830fab83931b71c44cdb8b847a03/deno.json"
+    },
+    {
+      "path": "deno.lock",
+      "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/b4a8201dc09d830fab83931b71c44cdb8b847a03/deno.lock"
+    }
+  ],
+  "toolchain": {
+    "deno": "2.9.0",
+    "clang": "clang version 22.1.8",
+    "linker": "LLD 22.1.8",
+    "compilerFlags": [
+      "--target=wasm32-unknown-unknown",
+      "-O3",
+      "-nostdlib",
+      "-ffreestanding",
+      "-fno-builtin",
+      "-fwrapv"
+    ],
+    "linkerFlags": [
+      "--no-entry",
+      "--initial-memory=4194304",
+      "--max-memory=4194304",
+      "--stack-first"
+    ]
+  },
+  "artifact": {
+    "path": "public/artifacts/base-ml-keyword-spotting/keyword-spotting.wasm",
+    "bytes": 6186,
+    "sha256": "489c78525511b8cb7217b5e7954e0a70b4296fccdedafd23769e18bc13d13829",
+    "initialMemoryBytes": 4194304,
+    "maximumMemoryBytes": 4194304
+  },
+  "oracle": {
+    "kind": "complete exact integer output plus frozen Speech Commands recipe",
+    "outputs": {
+      "features": {
+        "elements": 39000,
+        "bytes": 78000,
+        "sha256": "8a9a24ba49d14cc3bc6d6c071609cac9af23c62c97957b5e6aacea800a05b40f"
+      },
+      "scores": {
+        "elements": 12000,
+        "bytes": 48000,
+        "sha256": "51fd84f30fca19274538b1cd001b5213b06fafb82ebb2210b7e09b93973858de"
+      },
+      "detections": {
+        "elements": 2337,
+        "bytes": 9348,
+        "sha256": "12ec3e9274171c3170328f989ee7d2a5b76377b70ace95e2f474db0951b62cb1"
+      }
+    },
+    "jsCounters": {
+      "hops": 3000,
+      "windows": 3000,
+      "windowSamples": 960000,
+      "fftTransforms": 3000,
+      "fftButterflies": 6912000,
+      "spectralBins": 768000,
+      "mfccCoefficients": 39000,
+      "depthwiseMacs": 117000,
+      "pointwiseMacs": 312000,
+      "outputMacs": 96000,
+      "scoreElements": 12000,
+      "featureElements": 39000,
+      "inputBytes": 1920000,
+      "outputBytes": 135348,
+      "allocations": 10,
+      "boundaryCrossings": 0,
+      "detectionElements": 2337
+    },
+    "wasmCounters": {
+      "hops": 3000,
+      "windows": 3000,
+      "windowSamples": 960000,
+      "fftTransforms": 3000,
+      "fftButterflies": 6912000,
+      "spectralBins": 768000,
+      "mfccCoefficients": 39000,
+      "depthwiseMacs": 117000,
+      "pointwiseMacs": 312000,
+      "outputMacs": 96000,
+      "scoreElements": 12000,
+      "featureElements": 39000,
+      "inputBytes": 1920000,
+      "outputBytes": 135348,
+      "allocations": 0,
+      "boundaryCrossings": 2,
+      "detectionElements": 2337
+    },
+    "crossTargetExact": true
+  },
+  "performanceClaims": []
+}
