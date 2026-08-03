@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
   "workloadId": "document.pdf-viewer.v1",
-  "sourceCommit": "48086e1318dab1bcfd55ea29abb2b4901d62848a",
+  "sourceCommit": "2fe558272e3f33ca25c3e9c9453d00baf1b2b336",
   "status": "passed-static",
   "fixture": {
     "path": "public/artifacts/document-pdf-viewer/report-100-pages.pdf",
-    "bytes": 41296,
-    "sha256": "12a4038a70e2d0d0757f7d104aacbac0af94b670fb46b3f16daa073c816ee675"
+    "bytes": 39196,
+    "sha256": "2386b4ae40ea64903c16517e796546f2bfca7b7e8d8746f1cf1622bf25cd25c4"
   },
   "artifact": {
     "path": "public/artifacts/document-pdf-viewer/pdf-engine.wasm",
-    "bytes": 17978,
-    "sha256": "6694ec348c69a102ed1f44561c958aad809ffffd07ef1ee81078455fa2da82a3"
+    "bytes": 19656,
+    "sha256": "31a7dc7cc68d0a1d58a10e06fb0c3216a62f5ab864f6f175b0bf88dc19239f78"
   },
   "checks": {
     "catalogUnchanged": true,

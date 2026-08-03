@@ -4,8 +4,8 @@
   "immutable": true,
   "fixture": {
     "path": "public/artifacts/document-pdf-viewer/report-100-pages.pdf",
-    "bytes": 41296,
-    "sha256": "12a4038a70e2d0d0757f7d104aacbac0af94b670fb46b3f16daa073c816ee675"
+    "bytes": 39196,
+    "sha256": "2386b4ae40ea64903c16517e796546f2bfca7b7e8d8746f1cf1622bf25cd25c4"
   },
   "pdfSubset": {
     "version": "PDF-1.7-pdfbase-report-v1",
@@ -20,6 +20,6 @@
   },
   "generator": {
     "path": "scripts/build-document-pdf-viewer.ts",
-    "sourceCommit": "48086e1318dab1bcfd55ea29abb2b4901d62848a"
+    "sourceCommit": "2fe558272e3f33ca25c3e9c9453d00baf1b2b336"
   }
 }
