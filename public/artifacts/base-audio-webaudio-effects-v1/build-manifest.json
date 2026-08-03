@@ -3,8 +3,8 @@
   "entryId": "audio.webaudio-effects.v1",
   "implementationId": "audio-webaudio-effects-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "5a16d44cf197d9aede450bb4ac781d82e72ede55",
-  "sourceSha256": "7c2ed6507ac519290dacdc9d8f2c8a5bbcdc139d2ea70017601112ea3e5f89ee",
+  "sourceCommit": "e30143d426adef0a0ccaf9d8516ab54e6953bd00",
+  "sourceSha256": "7ed1c96a22d6b466ddaf6022e49320fe670bf327f4dc9366be86429dbb0caa2c",
   "frozenCatalog": {
     "path": "catalog/workloads.v1.json",
     "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
@@ -27,7 +27,7 @@
     }
   },
   "build": {
-    "command": "deno task build:base-audio-effects",
+    "command": "deno run --allow-read=. --allow-write=public/artifacts,public/evidence,catalog/base-implementations --allow-run=git scripts/build-base-audio-webaudio-effects.ts",
     "toolchains": [
       "Deno 2.9.0",
       "wabt 1.0.37"
@@ -72,8 +72,8 @@
     },
     {
       "path": "scripts/build-base-audio-webaudio-effects.ts",
-      "bytes": 10370,
-      "sha256": "5f78e90ee33e3e8cc4a1d539802a1537cfa9b7e5be77c6ab367d94524219edfe"
+      "bytes": 10502,
+      "sha256": "5c9c186521a3702d5cd7d4956148873588f7e4cdbd5d28c7b65a12d4e7c46066"
     },
     {
       "path": "public/benchmarks/base/audio-webaudio-effects-v1/index.html",
@@ -97,8 +97,8 @@
     },
     {
       "path": "deno.json",
-      "bytes": 2071,
-      "sha256": "03f68e08e95cb609440ee46d813f19a40c076c96338e8680e2cd2ef63a919cbb"
+      "bytes": 1831,
+      "sha256": "17e6674c81fdaee7dfc52ed1bd28baeec70fb0715f839b92defe1e84545b08eb"
     },
     {
       "path": "deno.lock",
