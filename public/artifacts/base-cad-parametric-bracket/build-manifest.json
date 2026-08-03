@@ -4,7 +4,7 @@
   "source": {
     "repository": "https://github.com/PaulKinlan/wasm-vs-js",
     "commit": "source-tree-not-yet-committed",
-    "sourceBundleSha256": "9ef37d5a383afed099d1c705b34e51bc64b4ea701c6f38878cfb45a4f693df77",
+    "sourceBundleSha256": "747846343f5377c3cfa98365d7693a472bae8bbe26ef6dfa9a1a19b6338d075b",
     "files": [
       {
         "path": "benchmarks/base/cad-parametric-bracket/contract.js",
@@ -33,13 +33,13 @@
       },
       {
         "path": "schemas/cad-parametric-bracket-validation.schema.json",
-        "bytes": 2064,
-        "sha256": "32a341eb920d34cdd1a56b89510e56611e02bd99cb3f2fee7b27b6c3d159bba7"
+        "bytes": 2203,
+        "sha256": "b76c47c5b5e9407ed08a236f963317927c0dc136a4d69ea687e63d118ea3e743"
       },
       {
         "path": "scripts/build-base-cad-parametric-bracket.ts",
-        "bytes": 8665,
-        "sha256": "974e7aba0e30bdc86f96c29f3fdee85ef51690669512a6cbf07ab2d7d14cfd6a"
+        "bytes": 8689,
+        "sha256": "c286a057182dbe1298ab9db127f55b7053cc75f3987a38c377521d320421023e"
       },
       {
         "path": "public/demos/cad-parametric-bracket/index.html",
@@ -58,8 +58,8 @@
       },
       {
         "path": "tests/base/cad-parametric-bracket.test.ts",
-        "bytes": 9427,
-        "sha256": "b9e41ec06c89f5f9e7f5c977dd9dd44a62b8602e06f882c242a97a84a50c5ff0"
+        "bytes": 9617,
+        "sha256": "3c71c9aa7987aa79623248e12916e5c44592253c3aed2fb24efd6ddb55215309"
       },
       {
         "path": "server.ts",

@@ -10,6 +10,7 @@
     "status",
     "variantId",
     "executionTarget",
+    "sourceCommit",
     "source",
     "fixture",
     "artifact",
@@ -24,6 +25,10 @@
     "status": { "const": "implementation-candidate" },
     "variantId": { "enum": ["js-controlled", "wasm-linear-controlled"] },
     "executionTarget": { "enum": ["javascript", "wasm-linear"] },
+    "sourceCommit": {
+      "type": "string",
+      "pattern": "^(source-tree-not-yet-committed|[a-f0-9]{40})$"
+    },
     "source": { "$ref": "#/$defs/ref" },
     "fixture": { "$ref": "#/$defs/ref" },
     "artifact": { "$ref": "#/$defs/ref" },

@@ -210,6 +210,9 @@ Deno.test("bracket records satisfy closed schema and retain exact bytes", async 
   })({ allErrors: true, strict: false });
   (addFormats as unknown as (instance: unknown) => void)(ajv);
   const validate = ajv.compile(schema);
+  const build = JSON.parse(
+    await Deno.readTextFile("public/artifacts/base-cad-parametric-bracket/build-manifest.json"),
+  );
   for (const variant of ["js-controlled", "wasm-linear-controlled"]) {
     const record = JSON.parse(
       await Deno.readTextFile(
@@ -217,6 +220,7 @@ Deno.test("bracket records satisfy closed schema and retain exact bytes", async 
       ),
     );
     assert(validate(record), JSON.stringify(validate.errors));
+    assertEquals(record.sourceCommit, build.source.commit);
     assertEquals(record.fixture.sha256, await sha256Hex(await Deno.readFile(record.fixture.path)));
     assertEquals(
       record.oracle.completeOutputSha256,

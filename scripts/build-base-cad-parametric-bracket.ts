@@ -224,6 +224,7 @@ for (
           status: "implementation-candidate",
           variantId,
           executionTarget,
+          sourceCommit,
           source: {
             path: "source-bundle",
             bytes: sourceBundle.byteLength,

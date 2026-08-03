@@ -5,10 +5,11 @@
   "status": "implementation-candidate",
   "variantId": "js-controlled",
   "executionTarget": "javascript",
+  "sourceCommit": "source-tree-not-yet-committed",
   "source": {
     "path": "source-bundle",
     "bytes": 1480,
-    "sha256": "9ef37d5a383afed099d1c705b34e51bc64b4ea701c6f38878cfb45a4f693df77"
+    "sha256": "747846343f5377c3cfa98365d7693a472bae8bbe26ef6dfa9a1a19b6338d075b"
   },
   "fixture": {
     "path": "public/artifacts/base-cad-parametric-bracket/fixture.bin",
