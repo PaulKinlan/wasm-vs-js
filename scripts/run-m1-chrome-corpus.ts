@@ -21,6 +21,7 @@ import {
 } from "../lib/chrome-stage.ts";
 import { StageCleanupLifecycle } from "../lib/stage-lifecycle.ts";
 import {
+  assertProfileReservation,
   attestAndRestrictTemporaryRoot,
   ProfileReservation,
   refreshLedger,
@@ -28,6 +29,7 @@ import {
   reserveProfileNamespace,
 } from "../lib/process-ledger.ts";
 import {
+  assertCorpusNamespaceReservation,
   commitPairedBlock,
   CorpusNamespaceReservation,
   LaunchManifest,
@@ -241,6 +243,8 @@ export async function prepareCollectionInvocation(
     releaseCorpus?: typeof releaseCorpusNamespace;
     reserveProfiles?: typeof reserveProfileNamespace;
     releaseProfiles?: typeof releaseProfileReservation;
+    verifyCorpusReservation?: typeof assertCorpusNamespaceReservation;
+    verifyProfileReservation?: typeof assertProfileReservation;
     checkReceipt?: typeof assertPermitReceiptAvailable;
     consume?: typeof consumePermit;
     rawBase?: string;
@@ -284,6 +288,14 @@ export async function prepareCollectionInvocation(
       stageAuthorization(permit),
     );
     await (dependencies.verifyStage ?? verifyStagedChrome)(stage);
+    // Reauthenticate both create-new reservations after staging and immediately before the
+    // irreversible receipt write. A replacement at either namespace must leave the permit unused.
+    await (dependencies.verifyCorpusReservation ?? assertCorpusNamespaceReservation)(
+      corpusReservation,
+    );
+    await (dependencies.verifyProfileReservation ?? assertProfileReservation)(
+      profileReservation,
+    );
     const receipt = await (dependencies.consume ?? consumePermit)(
       permitPath,
       "raw/permits",

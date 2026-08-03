@@ -260,22 +260,26 @@ Deno.test("descriptor-bound lifecycle writes and stage cleanup reject pathname r
     chromePackageManifestSha256: inspected.manifestSha256,
   };
   let stage: StagedChrome | undefined;
-  const foreignFile = `${outside}/foreign-owner`, foreignTree = `${outside}/foreign-tree`;
-  await Deno.writeTextFile(foreignFile, "do-not-truncate");
+  const foreignTree = `${outside}/foreign-tree`;
   await Deno.mkdir(foreignTree);
   await Deno.writeTextFile(`${foreignTree}/keep`, "keep");
   try {
     stage = await stageChromePackage(fixture.binary, fixture.hash, authorization);
-    const savedOwner = `${stage.ownerManifestPath}.saved`;
+    const savedOwner = `${stage.ownerManifestPath}.saved`,
+      originalOwner = await Deno.readTextFile(stage.ownerManifestPath),
+      originalHash = stage.ownerManifestSha256;
     setStageOwnerOpenRaceHookForTest((current) => {
       Deno.renameSync(current.ownerManifestPath, savedOwner);
-      Deno.symlinkSync(foreignFile, current.ownerManifestPath);
+      // The symlink resolves back to the exact expected inode. Only true O_NOFOLLOW rejects it.
+      Deno.symlinkSync(savedOwner, current.ownerManifestPath);
     });
     await assertRejects(
       () => Promise.resolve().then(() => recordStageCleanupLifecycle(stage!, "cleanup-unresolved")),
-      "unsafe Chrome stage lifecycle owner",
+      "fd-relative stage lifecycle update failed",
     );
-    assertEquals(await Deno.readTextFile(foreignFile), "do-not-truncate");
+    assertEquals(await Deno.readTextFile(savedOwner), originalOwner);
+    assertEquals(stage.cleanupLifecycle, "ready-no-owned-launch");
+    assertEquals(stage.ownerManifestSha256, originalHash);
     setStageOwnerOpenRaceHookForTest();
     await Deno.remove(stage.ownerManifestPath);
     await Deno.rename(savedOwner, stage.ownerManifestPath);

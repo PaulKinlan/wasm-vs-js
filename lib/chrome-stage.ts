@@ -309,51 +309,43 @@ export function recordStageCleanupLifecycle(
   stage: StagedChrome,
   cleanupLifecycle: CleanupLifecycleState,
 ): void {
-  const before = Deno.lstatSync(stage.ownerManifestPath);
-  if (before.isSymlink || !before.isFile) {
-    throw new Error("unsafe Chrome stage lifecycle owner");
+  if (!/^[a-f0-9]{64}$/.test(stage.ownerManifestSha256)) {
+    throw new Error("stage owner digest unavailable for lifecycle update");
   }
   stageOwnerOpenRaceHook?.(stage);
-  // Open without truncate, authenticate the retained descriptor, and mutate only that descriptor.
-  // A pathname replacement can make the operation fail, but cannot redirect truncation.
-  const handle = Deno.openSync(stage.ownerManifestPath, { read: true, write: true });
-  try {
-    const opened = handle.statSync();
-    if (
-      !opened.isFile || opened.dev !== before.dev || opened.ino !== before.ino ||
-      numberIdentity(opened.dev, "stage owner dev") !== stage.ownerDev ||
-      numberIdentity(opened.ino, "stage owner inode") !== stage.ownerIno ||
-      permissionMode(opened, "stage owner") !== OWNER_MODE
-    ) throw new Error("unsafe Chrome stage lifecycle owner");
-    const bytes = new Uint8Array(numberIdentity(opened.size, "stage owner size"));
-    let offset = 0;
-    while (offset < bytes.length) {
-      const count = handle.readSync(bytes.subarray(offset));
-      if (count === null) throw new Error("short Chrome stage lifecycle owner");
-      offset += count;
-    }
-    const current = JSON.parse(new TextDecoder().decode(bytes));
-    assertStageOwnerSchema(current);
-    if (canonicalize(current) !== canonicalize(ownerManifest(stage))) {
-      throw new Error("Chrome stage lifecycle identity changed");
-    }
-    const next = { ...current, cleanupLifecycle };
-    assertStageOwnerSchema(next);
-    const encoded = new TextEncoder().encode(canonicalize(next) + "\n");
-    handle.truncateSync(0);
-    handle.seekSync(0, Deno.SeekMode.Start);
-    offset = 0;
-    while (offset < encoded.length) offset += handle.writeSync(encoded.subarray(offset));
-    handle.syncSync();
-  } finally {
-    handle.close();
+  // Python supplies O_NOFOLLOW, dir_fd lookup, descriptor identity checks, and descriptor-only
+  // truncation. Deno.open has no no-follow option and must not be used for this mutation.
+  const helper = Deno.realPathSync(new URL("../scripts/write-stage-owner.py", import.meta.url));
+  const result = new Deno.Command("/usr/bin/python3", {
+    args: [
+      helper,
+      STAGE_ROOT,
+      String(stage.stageParentDev),
+      String(stage.stageParentIno),
+      `${safeId(stage.stageId)}.owner.json`,
+      String(stage.ownerDev),
+      String(stage.ownerIno),
+      stage.ownerManifestSha256,
+      stage.cleanupLifecycle,
+      cleanupLifecycle,
+    ],
+    stdout: "piped",
+    stderr: "piped",
+  }).outputSync();
+  if (!result.success) {
+    throw new Error(
+      `fd-relative stage lifecycle update failed: ${
+        new TextDecoder().decode(result.stderr).trim()
+      }`,
+    );
   }
-  const after = Deno.lstatSync(stage.ownerManifestPath);
-  if (after.isSymlink || after.dev !== before.dev || after.ino !== before.ino) {
-    throw new Error("Chrome stage lifecycle owner replaced while recording");
-  }
+  const proof = JSON.parse(new TextDecoder().decode(result.stdout));
+  if (
+    proof.updated !== true || proof.dev !== stage.ownerDev || proof.ino !== stage.ownerIno ||
+    proof.cleanupLifecycle !== cleanupLifecycle || !/^[a-f0-9]{64}$/.test(proof.sha256)
+  ) throw new Error("fd-relative stage lifecycle update proof mismatch");
   stage.cleanupLifecycle = cleanupLifecycle;
-  stage.ownerManifestSha256 = "";
+  stage.ownerManifestSha256 = proof.sha256;
 }
 
 export async function verifyStageOwnership(stage: StagedChrome): Promise<void> {

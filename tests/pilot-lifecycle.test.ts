@@ -128,6 +128,14 @@ Deno.test("permit consumption is last after source/server/asset, launch-manifest
       calls.push("release-profiles");
       return Promise.resolve();
     },
+    verifyCorpusReservation: () => {
+      calls.push("verify-corpus-reservation");
+      return Promise.resolve();
+    },
+    verifyProfileReservation: () => {
+      calls.push("verify-profile-reservation");
+      return Promise.resolve();
+    },
     stage: () => {
       calls.push("stage");
       return Promise.resolve(stage);
@@ -153,6 +161,8 @@ Deno.test("permit consumption is last after source/server/asset, launch-manifest
     "reserve-profiles",
     "stage",
     "stage-manifest",
+    "verify-corpus-reservation",
+    "verify-profile-reservation",
     "consume",
   ]);
 
@@ -504,5 +514,48 @@ Deno.test("a second-launch preflight cleanup failure retains the shared stage", 
     assertEquals(lifecycle.disposition, "retain-stage-unresolved-cleanup");
   } finally {
     await Deno.remove(root, { recursive: true });
+  }
+});
+
+Deno.test("reservation replacement after staging rejects before permit consumption", async () => {
+  for (const replaced of ["corpus", "profile"] as const) {
+    const root = await Deno.makeTempDir(), p = permit(), f = frozen();
+    const corpusPath = `${root}/m1-${p.permitId}`,
+      savedCorpus = `${corpusPath}.saved`,
+      savedProfile = `${p.profileRoot}.saved`;
+    let consumed = false;
+    try {
+      await assertRejects(
+        () =>
+          prepareCollectionInvocation("unused", p, f, undefined, {
+            verifyEnvironment: () => Promise.resolve(),
+            rawBase: root,
+            stage: async () => {
+              if (replaced === "corpus") {
+                await Deno.rename(corpusPath, savedCorpus);
+                await Deno.mkdir(corpusPath, { mode: 0o700 });
+              } else {
+                await Deno.rename(p.profileRoot, savedProfile);
+                await Deno.mkdir(p.profileRoot, { mode: 0o700 });
+              }
+              return fakeStage(p);
+            },
+            verifyStage: () => Promise.resolve(),
+            removeStage: () => Promise.resolve(),
+            releaseCorpus: () => Promise.resolve(),
+            releaseProfiles: () => Promise.resolve(),
+            consume: () => {
+              consumed = true;
+              return Promise.reject(new Error("must not consume"));
+            },
+          }),
+        "reservation identity changed",
+      );
+      assertEquals(consumed, false);
+    } finally {
+      await Deno.remove(root, { recursive: true }).catch(() => {});
+      await Deno.remove(p.profileRoot, { recursive: true }).catch(() => {});
+      await Deno.remove(savedProfile, { recursive: true }).catch(() => {});
+    }
   }
 });

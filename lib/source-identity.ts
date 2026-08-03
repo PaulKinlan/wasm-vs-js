@@ -8,6 +8,7 @@ export const EXECUTED_SOURCE_PATHS = [
   "scripts/run-m1-chrome-corpus.ts",
   "scripts/remove-owned-file.py",
   "scripts/remove-owned-tree.py",
+  "scripts/write-stage-owner.py",
   "lib/browser-permit.ts",
   "lib/canonical.ts",
   "lib/cdp-client.ts",
