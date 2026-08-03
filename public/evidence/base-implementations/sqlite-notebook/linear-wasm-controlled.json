@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "database.sqlite-notebook.v1",
+  "implementationId": "database.sqlite-notebook.controlled.v1",
+  "status": "static-validation-package",
+  "sourceCommit": "36bb39fd5b03c7b990fbd578ae3db27fb9ffb7ef",
+  "sourceTreeSha256": "a2465a69de9c4baba15f1cf712c9553448c108ca4b2728932c0543360d92b66b",
+  "buildManifest": "public/artifacts/sqlite-notebook/build-manifest.json",
+  "fixtureManifest": "public/artifacts/sqlite-notebook/fixtures/fixture-manifest.json",
+  "reference": "public/artifacts/sqlite-notebook/reference.json",
+  "completeOutputSha256": "fae41d80865456365118c98ee8dd74a502fb359ace69878190edca22e4f6572d",
+  "correctness": {
+    "queryCount": 8,
+    "resultRows": 744,
+    "allCellsMatched": true,
+    "independentReferenceMatched": true
+  },
+  "performanceResult": null,
+  "browserEvidence": "not-collected",
+  "recordId": "database-sqlite-notebook-v1-linear-wasm-controlled",
+  "variant": "linear-wasm-controlled",
+  "target": "linear-wasm",
+  "counters": {
+    "imports": 3,
+    "importedRows": 4192,
+    "queries": 8,
+    "joins": 6,
+    "groups": 6,
+    "windows": 2,
+    "sorts": 8,
+    "allocations": 11,
+    "boundaryCrossings": 2
+  }
+}
