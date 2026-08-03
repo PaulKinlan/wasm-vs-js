@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "contractId": "v1-base-implementation-registration-v1",
+  "status": "candidate-pending-independent-review",
+  "frozenCatalog": {
+    "catalogId": "workload-catalog-v1",
+    "path": "catalog/workloads.v1.json",
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+    "entryId": "serialization.json-telemetry.v1",
+    "mutated": false
+  },
+  "workload": {
+    "id": "serialization.json-telemetry.v1",
+    "algorithmFamily": "json-parse-fixed-query-canonicalize",
+    "track": "controlled",
+    "fixtureState": "frozen-in-supplemental-registration",
+    "rightsStatus": "verified-project-generated",
+    "licenseSpdx": "CC0-1.0",
+    "variants": [
+      {
+        "id": "js-controlled",
+        "target": "javascript",
+        "parser": "authored byte-state-machine",
+        "hostJsonIntrinsic": false,
+        "boundaryCrossings": 0
+      },
+      {
+        "id": "wasm-linear-controlled",
+        "target": "linear-wasm",
+        "parser": "authored byte-state-machine",
+        "hostJsonIntrinsic": false,
+        "boundaryCrossings": 2
+      }
+    ]
+  },
+  "input": {
+    "generator": "benchmarks/v1/serialization-json-telemetry/workload.js",
+    "generatorRevision": "telemetry-generator-v1",
+    "seed": "0x7e1e2026",
+    "manifest": "public/artifacts/serialization-json-telemetry/input-manifest.json",
+    "recordCounts": [1000, 100000, 1000000],
+    "maximumBytes": 201326592,
+    "committedFixtureBlobs": false
+  },
+  "oracle": {
+    "kind": "canonical-semantic",
+    "manifest": "public/artifacts/serialization-json-telemetry/output-manifest.json",
+    "checks": [
+      "complete canonical summary bytes match",
+      "all 11 frozen aggregates match",
+      "structural counters match exactly",
+      "every input byte is consumed",
+      "malformed and out-of-vocabulary records are rejected"
+    ]
+  },
+  "work": {
+    "fixed": "exactly 1k, 100k, and 1m records followed by the frozen query set and canonical serialization",
+    "counters": [
+      "records",
+      "input-bytes",
+      "numeric-values",
+      "string-values",
+      "booleans",
+      "query-aggregates",
+      "output-bytes",
+      "allocations",
+      "boundary-crossings"
+    ]
+  },
+  "provenance": {
+    "buildManifest": "public/artifacts/serialization-json-telemetry/build-manifest.json",
+    "fixtureManifest": "public/artifacts/serialization-json-telemetry/fixture-manifest.json",
+    "inputManifest": "public/artifacts/serialization-json-telemetry/input-manifest.json",
+    "outputManifest": "public/artifacts/serialization-json-telemetry/output-manifest.json",
+    "wasmArtifact": "public/artifacts/serialization-json-telemetry/telemetry.wasm",
+    "authoredWasmSource": "benchmarks/v1/serialization-json-telemetry/telemetry.c",
+    "authoredJavaScriptSource": "benchmarks/v1/serialization-json-telemetry/workload.js",
+    "buildRecipe": "scripts/build-v1-json-telemetry.ts",
+    "toolchain": ["Deno 2.9.0", "Clang 22.1.8", "LLD 22.1.8"]
+  },
+  "performanceClaims": [],
+  "coverage": {
+    "catalogNumeratorBeforeReview": 0,
+    "catalogDenominator": 38,
+    "countAfterIndependentAcceptance": 1
+  }
+}

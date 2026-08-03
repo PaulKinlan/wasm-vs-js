@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 1,
+  "workload": "serialization.json-telemetry.v1",
+  "oracle": "byte-exact canonical summary and exact structural counters",
+  "canonicalization": "fixed UTF-8 key order; unsigned base-10 integers without leading zeros; no whitespace",
+  "querySet": [
+    "record count",
+    "false ok count",
+    "kind counts for click/purchase/view",
+    "true ok count",
+    "region counts for ap/eu/na/sa",
+    "sum of value"
+  ],
+  "tiers": [
+    {
+      "records": 1000,
+      "bytes": 158,
+      "sha256": "b748d5a006f9ca3d3570318cd5bd9c290408eaa243af53470282e7721a302ce8",
+      "canonicalSummary": "{\"count\":1000,\"errorCount\":108,\"kind\":{\"click\":345,\"purchase\":335,\"view\":320},\"okCount\":892,\"region\":{\"ap\":234,\"eu\":261,\"na\":247,\"sa\":258},\"valueSum\":4868080}",
+      "variants": {
+        "js-controlled": {
+          "counters": {
+            "records": 1000,
+            "input-bytes": 119397,
+            "numeric-values": 3000,
+            "string-values": 4000,
+            "booleans": 1000,
+            "query-aggregates": 11,
+            "output-bytes": 158,
+            "allocations": 6,
+            "boundary-crossings": 0
+          }
+        },
+        "wasm-linear-controlled": {
+          "counters": {
+            "records": 1000,
+            "input-bytes": 119397,
+            "numeric-values": 3000,
+            "string-values": 4000,
+            "booleans": 1000,
+            "query-aggregates": 11,
+            "output-bytes": 158,
+            "allocations": 6,
+            "boundary-crossings": 2
+          }
+        }
+      }
+    },
+    {
+      "records": 100000,
+      "bytes": 180,
+      "sha256": "cc09fa912c6451f8ab1180c8740ff104355d8b53f6547f329556b19296426200",
+      "canonicalSummary": "{\"count\":100000,\"errorCount\":12440,\"kind\":{\"click\":33560,\"purchase\":33362,\"view\":33078},\"okCount\":87560,\"region\":{\"ap\":25201,\"eu\":24820,\"na\":24979,\"sa\":25000},\"valueSum\":501085712}",
+      "variants": {
+        "js-controlled": {
+          "counters": {
+            "records": 100000,
+            "input-bytes": 12158074,
+            "numeric-values": 300000,
+            "string-values": 400000,
+            "booleans": 100000,
+            "query-aggregates": 11,
+            "output-bytes": 180,
+            "allocations": 6,
+            "boundary-crossings": 0
+          }
+        },
+        "wasm-linear-controlled": {
+          "counters": {
+            "records": 100000,
+            "input-bytes": 12158074,
+            "numeric-values": 300000,
+            "string-values": 400000,
+            "booleans": 100000,
+            "query-aggregates": 11,
+            "output-bytes": 180,
+            "allocations": 6,
+            "boundary-crossings": 2
+          }
+        }
+      }
+    },
+    {
+      "records": 1000000,
+      "bytes": 191,
+      "sha256": "a044c371a80a71380b97baf1ec449e9c5ab336ec4b38e8b84c0dc2f2c064ab84",
+      "canonicalSummary": "{\"count\":1000000,\"errorCount\":125088,\"kind\":{\"click\":333432,\"purchase\":333432,\"view\":333136},\"okCount\":874912,\"region\":{\"ap\":249947,\"eu\":250215,\"na\":249910,\"sa\":249928},\"valueSum\":5000648615}",
+      "variants": {
+        "js-controlled": {
+          "counters": {
+            "records": 1000000,
+            "input-bytes": 122573271,
+            "numeric-values": 3000000,
+            "string-values": 4000000,
+            "booleans": 1000000,
+            "query-aggregates": 11,
+            "output-bytes": 191,
+            "allocations": 6,
+            "boundary-crossings": 0
+          }
+        },
+        "wasm-linear-controlled": {
+          "counters": {
+            "records": 1000000,
+            "input-bytes": 122573271,
+            "numeric-values": 3000000,
+            "string-values": 4000000,
+            "booleans": 1000000,
+            "query-aggregates": 11,
+            "output-bytes": 191,
+            "allocations": 6,
+            "boundary-crossings": 2
+          }
+        }
+      }
+    }
+  ],
+  "performanceClaims": []
+}

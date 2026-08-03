@@ -167,6 +167,20 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/demos/text.markdown-cms.v1/index.html",
     "text/html; charset=utf-8",
   ]],
+  ["/demos/serialization.json-telemetry.v1", [
+    "public/demos/serialization.json-telemetry.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/demos/serialization.json-telemetry.v1/", [
+    "public/demos/serialization.json-telemetry.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/telemetry-demo.js", ["public/telemetry-demo.js", "text/javascript; charset=utf-8"]],
+  ["/telemetry-worker.js", ["public/telemetry-worker.js", "text/javascript; charset=utf-8"]],
+  ["/benchmarks/v1/serialization-json-telemetry/workload.js", [
+    "benchmarks/v1/serialization-json-telemetry/workload.js",
+    "text/javascript; charset=utf-8",
+  ]],
   ["/text-demo.js", ["public/text-demo.js", "text/javascript; charset=utf-8"]],
   ["/text-diff-patch-worker.js", [
     "public/text-diff-patch-worker.js",
@@ -222,6 +236,26 @@ const routes = new Map<string, [string, string, boolean?]>([
   ]],
   ["/artifacts/text-markdown-cms/output-manifest.json", [
     "public/artifacts/text-markdown-cms/output-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/serialization-json-telemetry/telemetry.wasm", [
+    "public/artifacts/serialization-json-telemetry/telemetry.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/serialization-json-telemetry/build-manifest.json", [
+    "public/artifacts/serialization-json-telemetry/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/serialization-json-telemetry/fixture-manifest.json", [
+    "public/artifacts/serialization-json-telemetry/fixture-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/serialization-json-telemetry/input-manifest.json", [
+    "public/artifacts/serialization-json-telemetry/input-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/serialization-json-telemetry/output-manifest.json", [
+    "public/artifacts/serialization-json-telemetry/output-manifest.json",
     "application/json; charset=utf-8",
   ]],
   ["/data/workloads.v1.json", [

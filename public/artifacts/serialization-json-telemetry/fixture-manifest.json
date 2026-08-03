@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "workload": "serialization.json-telemetry.v1",
+  "registration": "v1-base-implementation-registration-v1",
+  "generator": {
+    "algorithm": "xorshift32",
+    "seed": "0x7e1e2026",
+    "revision": "telemetry-generator-v1",
+    "source": "benchmarks/v1/serialization-json-telemetry/workload.js",
+    "licenseSpdx": "CC0-1.0"
+  },
+  "grammar": {
+    "encoding": "UTF-8 without BOM",
+    "document": "one compact JSON array",
+    "recordOrder": [
+      "id",
+      "ts",
+      "region",
+      "kind",
+      "ok",
+      "value",
+      "meta"
+    ],
+    "metaOrder": [
+      "label",
+      "tag"
+    ],
+    "unsignedInteger": "ASCII decimal, no sign, fraction, exponent, whitespace, or leading zero except zero",
+    "strings": "no escape sequences; exact frozen UTF-8 vocabulary",
+    "region": [
+      "ap",
+      "eu",
+      "na",
+      "sa"
+    ],
+    "kind": [
+      "click",
+      "purchase",
+      "view"
+    ],
+    "label": [
+      "Café",
+      "東京",
+      "مرحبا",
+      "🚀"
+    ],
+    "tag": [
+      "α",
+      "数据",
+      "mañana",
+      "🧪"
+    ],
+    "nesting": "meta is the only nested object"
+  },
+  "tiers": [
+    {
+      "records": 1000,
+      "bytes": 119397,
+      "sha256": "1cb2368099252795ffc85d23ea057c93a266d9cdb026e041d0ec1aa563be92f9"
+    },
+    {
+      "records": 100000,
+      "bytes": 12158074,
+      "sha256": "2877f5db28082998bfcb88efc20a95c6660d71284dad996cbc74f8d1b77ce48c"
+    },
+    {
+      "records": 1000000,
+      "bytes": 122573271,
+      "sha256": "640fb03b957a693cd9d5356e38d24bdda38ce727ca0fc0e235f501b56851a702"
+    }
+  ],
+  "giantBlobsCommitted": false,
+  "counterDefinitions": {
+    "allocations": "six parser-owned logical values after fixture generation: parser/linear-memory state, summary object, kind vector, region vector, canonical summary text, output byte buffer",
+    "boundaryCrossings": "zero for JavaScript; two for linear Wasm: one input copy into linear memory and one output copy back"
+  }
+}
