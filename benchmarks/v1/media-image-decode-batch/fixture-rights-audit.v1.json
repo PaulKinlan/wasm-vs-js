@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "auditId": "media-image-decode-batch-fixture-rights-v1",
+  "workloadId": "media.image-decode-batch.v1",
+  "catalogRevision": "e836bf78313074da3a055621fb0c0291b8632b6c",
+  "catalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+  "status": "blocked-no-freeze",
+  "requiredTotalImages": 125,
+  "pinnedTotalImages": 0,
+  "redistributableTotalImages": 0,
+  "rawSha256Count": 0,
+  "selectionPolicy": {
+    "imagesPerFormat": 25,
+    "formats": [
+      "jpeg",
+      "png",
+      "webp",
+      "avif",
+      "jxl"
+    ],
+    "mixedRightsHeicExcluded": true,
+    "substitutionsAllowed": false,
+    "rawBytesRequired": true,
+    "perFileRightsRequired": true,
+    "downloadRecipeRequired": true
+  },
+  "formatSets": [
+    {
+      "format": "jpeg",
+      "expectedCount": 25,
+      "pinnedCount": 0,
+      "rightsClearedCount": 0,
+      "rawSha256": [],
+      "candidateFamiliesNamedByCatalog": [
+        "GB82"
+      ],
+      "status": "blocked",
+      "blockingFields": [
+        "exact upstream repository and revision",
+        "exact 25-file selection",
+        "per-file license and redistribution grant",
+        "download URLs",
+        "raw-byte SHA-256"
+      ]
+    },
+    {
+      "format": "png",
+      "expectedCount": 25,
+      "pinnedCount": 0,
+      "rightsClearedCount": 0,
+      "rawSha256": [],
+      "candidateFamiliesNamedByCatalog": [
+        "PNGSuite"
+      ],
+      "status": "blocked",
+      "blockingFields": [
+        "exact upstream repository and revision",
+        "exact 25-file selection",
+        "per-file license and redistribution grant",
+        "download URLs",
+        "raw-byte SHA-256"
+      ]
+    },
+    {
+      "format": "webp",
+      "expectedCount": 25,
+      "pinnedCount": 0,
+      "rightsClearedCount": 0,
+      "rawSha256": [],
+      "candidateFamiliesNamedByCatalog": [
+        "GB82"
+      ],
+      "status": "blocked",
+      "blockingFields": [
+        "exact upstream repository and revision",
+        "exact 25-file selection",
+        "per-file license and redistribution grant",
+        "download URLs",
+        "raw-byte SHA-256"
+      ]
+    },
+    {
+      "format": "avif",
+      "expectedCount": 25,
+      "pinnedCount": 0,
+      "rightsClearedCount": 0,
+      "rawSha256": [],
+      "candidateFamiliesNamedByCatalog": [
+        "GB82"
+      ],
+      "status": "blocked",
+      "blockingFields": [
+        "exact upstream repository and revision",
+        "exact 25-file selection",
+        "per-file license and redistribution grant",
+        "download URLs",
+        "raw-byte SHA-256"
+      ]
+    },
+    {
+      "format": "jxl",
+      "expectedCount": 25,
+      "pinnedCount": 0,
+      "rightsClearedCount": 0,
+      "rawSha256": [],
+      "candidateFamiliesNamedByCatalog": [
+        "JPEG XL test cases"
+      ],
+      "status": "blocked",
+      "blockingFields": [
+        "exact upstream repository and revision",
+        "exact 25-file selection",
+        "per-file license and redistribution grant",
+        "download URLs",
+        "raw-byte SHA-256"
+      ]
+    }
+  ],
+  "catalogEvidence": {
+    "path": "catalog/workloads.v1.json",
+    "fixtureState": "proposed",
+    "rightsStatus": "requires-audit",
+    "provenanceStatus": "source-identified",
+    "licenseSpdx": "LicenseRef-Requires-Audit",
+    "redistribution": "not-reviewed",
+    "sha256": null,
+    "detail": "The frozen row names corpus families but does not select 125 files or grant redistribution. No file can be downloaded, vendored, or hashed without inventing the missing selection and rights decision."
+  }
+}
