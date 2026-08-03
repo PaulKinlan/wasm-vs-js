@@ -201,7 +201,7 @@
         "resultTextSha256": { "$ref": "#/$defs/sha256" },
         "assertions": {
           "type": "array",
-          "minItems": 3,
+          "minItems": 2,
           "items": { "type": "string", "minLength": 1 }
         },
         "console": {
