@@ -4,7 +4,7 @@
   "catalogId": "graphics.cpu-path-tracer.v1",
   "registrationId": "base-v1.graphics.cpu-path-tracer.v1.controlled.v1",
   "variant": "js-controlled",
-  "sourceCommit": "7d238cb4e504050dfe3777c1934b88872be04c2d",
+  "sourceCommit": "457c1f09b1a2ee8f0655bb0c626a8fbe566b8c01",
   "input": {
     "width": 512,
     "height": 512,
@@ -13,28 +13,29 @@
   },
   "completeOutput": {
     "bytes": 1048576,
-    "sha256": "dc6475d73f11006b3e899c45eeb1f8d4427ef0aede568cfc689a947ae815dbb3"
+    "sha256": "53684263aed5a49195bce1d4af22d3d0b514a4a8e1df96c4856bb0928a37d70f"
   },
   "oracle": {
     "maxChannelDelta": 85,
-    "meanChannelDelta": 0.002197265625,
+    "meanChannelDelta": 0.002323150634765625,
     "outlierChannels": 99,
     "outlierChannelRatio": 0.000125885009765625,
     "passed": true
   },
   "counters": {
-    "rays": 54994963,
-    "bounces": 52788585,
-    "nodeTests": 585004402,
-    "intersections": 106653664,
+    "rays": 54994960,
+    "bounces": 52788587,
+    "nodeTests": 585004375,
+    "intersections": 106653769,
     "samples": 16777216,
-    "rngDraws": 167218324,
-    "allocations": 1,
+    "rngDraws": 167218317,
+    "allocations": 737883014,
+    "outputBytes": 1048576,
     "boundaryCrossings": 0
   },
   "buildManifest": {
     "path": "public/artifacts/graphics-cpu-path-tracer-v1/build-manifest.json",
-    "sha256": "c51a0dbad1af6fd604582615adef1cef492737684e5c3bef641353e88d722582"
+    "sha256": "267e327be98ff4d0aa4d7e56c8808994a4aa831d3d4c00761061a6579973885c"
   },
   "performanceClaims": []
 }
