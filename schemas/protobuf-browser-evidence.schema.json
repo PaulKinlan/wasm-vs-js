@@ -1,0 +1,487 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.ai-focus.dev/schemas/protobuf-browser-evidence.v1.json",
+  "title": "Authoritative parent-run Protobuf gateway browser evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "evidenceId",
+    "collectedAt",
+    "collectionCommand",
+    "source",
+    "browser",
+    "server",
+    "parentOracle",
+    "scenarios",
+    "ownership",
+    "cleanup"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "evidenceId": { "type": "string", "pattern": "^protobuf-gateway-ae8e0c9-[a-f0-9]{32}$" },
+    "collectedAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T" },
+    "collectionCommand": {
+      "const": "deno task --config deno.corpus.json protobuf:collect-browser-evidence"
+    },
+    "source": {
+      "const": {
+        "commit": "ae8e0c9f96052d302a4470299695ce996580080a",
+        "tree": "b44fd9f301954789fc572a2006f7cf968622967f",
+        "workload": "serialization.protobuf-gateway.v1",
+        "routeHashes": {
+          "/benchmarks/serialization-protobuf-gateway/": "ec3d9f3196d2a8df78adf9df492ef35cac63bd949a82a79529d46a5a110a7609",
+          "/benchmarks/serialization-protobuf-gateway/protobuf-runner.js": "84dff9ccdf4f71b4fcbc1652236e75e00cea7f5a9780e4384ba35e3b38cb38df",
+          "/benchmarks/serialization-protobuf-gateway/protobuf-worker.js": "e145533fffcebfc59a2589680f3142d0449e414c1ac86f6a7b8b8fb6abf56705",
+          "/benchmarks/base/serialization-protobuf-gateway/workload.js": "f344d7a5e084b792a5354f8edd805893377dd65814ba14528f63b10b153b9214",
+          "/benchmarks/base/serialization-protobuf-gateway/implementation-contract.v1.json": "705729301e84f4aefb0f9f76081c7f20e15ecbb291fe58f7da6d72b646e44cfc",
+          "/artifacts/serialization-protobuf-gateway/serialization-protobuf-gateway.wasm": "fc1aadc10019f26472b9f0d98d51103cdb86941ed32767189d959a244e6fd938",
+          "/artifacts/serialization-protobuf-gateway/fixture-manifest.json": "4b71993a213860b1972696a7dbc3d8d51a5984e436c06495acd0952682eee421",
+          "/artifacts/serialization-protobuf-gateway/output-manifest.json": "cc0a8e47fdac91129fa228ee6a87b38aab61a03ecadbc0d82e7e3563bda01adc",
+          "/artifacts/serialization-protobuf-gateway/build-manifest.json": "7a477ceec803b3792768bcf0bad10b2bf3a19c8602ea12f671a81ec723c1d440",
+          "/styles.css": "70e73af276a14dc39b7863f586ee6aca89c2e986dffed32e71cf799ef35e3a6b",
+          "/favicon.ico": "ee6c407626f2432b805e7c07252226f0b7852a591f1562fbbb0f31e0f786dffc"
+        }
+      }
+    },
+    "browser": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "channel",
+        "product",
+        "version",
+        "revision",
+        "userAgent",
+        "jsVersion",
+        "sourceExecutable",
+        "resolvedExecutable",
+        "binarySha256",
+        "packageManifestSha256",
+        "launchArguments",
+        "effectiveArguments",
+        "protocol"
+      ],
+      "properties": {
+        "channel": { "const": "chrome-for-testing" },
+        "product": { "const": "Chrome/150.0.7871.24" },
+        "version": { "const": "150.0.7871.24" },
+        "revision": { "type": "string", "minLength": 1 },
+        "userAgent": { "type": "string", "minLength": 1 },
+        "jsVersion": { "type": "string", "minLength": 1 },
+        "sourceExecutable": { "const": "/home/paulkinlan/.local/bin/google-chrome-stable" },
+        "resolvedExecutable": {
+          "type": "string",
+          "pattern": "^/tmp/wasm-vs-js-staged-chrome/protobuf-[a-f0-9]{32}/chrome$"
+        },
+        "binarySha256": {
+          "const": "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355"
+        },
+        "packageManifestSha256": {
+          "const": "e3d5088a5244a494b206819630d4eb2d7e3ee999d1a04cab9d2d95d0daf292db"
+        },
+        "launchArguments": {
+          "type": "array",
+          "minItems": 13,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "effectiveArguments": {
+          "type": "array",
+          "minItems": 13,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "protocol": { "const": "Chrome DevTools Protocol" }
+      }
+    },
+    "server": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin", "mode", "sourceCheckout", "sessionOwnedByCollector"],
+      "properties": {
+        "origin": { "type": "string", "pattern": "^http://127\\.0\\.0\\.1:[0-9]+$" },
+        "mode": { "const": "public" },
+        "sourceCheckout": {
+          "type": "string",
+          "pattern": "^/tmp/wasm-vs-js-protobuf-source/protobuf-source-[^/]+/source$"
+        },
+        "sessionOwnedByCollector": { "const": true }
+      }
+    },
+    "parentOracle": { "$ref": "#/$defs/parentOracle" },
+    "scenarios": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "prefixItems": [
+        {
+          "allOf": [
+            { "$ref": "#/$defs/scenario" },
+            {
+              "type": "object",
+              "properties": {
+                "id": { "const": "javascript-exact" },
+                "target": { "const": "javascript" }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/$defs/scenario" },
+            {
+              "type": "object",
+              "properties": { "id": { "const": "wasm-exact" }, "target": { "const": "wasm" } }
+            }
+          ]
+        }
+      ],
+      "items": false
+    },
+    "ownership": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit",
+        "controlGroup",
+        "invocationId",
+        "cgroupDev",
+        "cgroupIno",
+        "mainPid",
+        "members",
+        "membershipSnapshots"
+      ],
+      "properties": {
+        "unit": { "type": "string", "pattern": "^wasm-vs-js-[a-z0-9]{16,64}\\.service$" },
+        "controlGroup": { "type": "string", "pattern": "^/" },
+        "invocationId": { "type": "string", "pattern": "^[a-f0-9]{32}$" },
+        "cgroupDev": { "type": "integer", "minimum": 1 },
+        "cgroupIno": { "type": "integer", "minimum": 1 },
+        "mainPid": { "type": "integer", "minimum": 2 },
+        "members": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "integer", "minimum": 2 }
+        },
+        "membershipSnapshots": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["collectedAt", "members"],
+            "properties": {
+              "collectedAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T" },
+              "members": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": { "type": "integer", "minimum": 2 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "browserCgroupEmpty",
+        "remainingPids",
+        "profileAbsent",
+        "chromeStageAbsent",
+        "serverStopped",
+        "sourceCheckoutAbsent",
+        "stoppedAt"
+      ],
+      "properties": {
+        "browserCgroupEmpty": { "const": true },
+        "remainingPids": { "const": [] },
+        "profileAbsent": { "const": true },
+        "chromeStageAbsent": { "const": true },
+        "serverStopped": { "const": true },
+        "sourceCheckoutAbsent": { "const": true },
+        "stoppedAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T" }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "parentOracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fixture",
+        "output",
+        "enumWireCounts",
+        "negativeUnknownEnum",
+        "counters",
+        "targetBoundaryCrossings",
+        "targetAllocations",
+        "checks"
+      ],
+      "properties": {
+        "fixture": {
+          "const": {
+            "messages": 10000,
+            "bytes": 1534122,
+            "sha256": "624f17efb27799018a020cec7337c2d365d48a9d2995bf39a2c5bcff325a883a"
+          }
+        },
+        "output": {
+          "const": {
+            "bytes": 354976,
+            "sha256": "4539813029587b58d20441ef6b95174dc86c2546b0becbf23ca1b48a6f0c8c9a"
+          }
+        },
+        "enumWireCounts": {
+          "const": { "-1": 20, "0": 2486, "1": 2485, "2": 2485, "3": 2486, "99": 38 }
+        },
+        "negativeUnknownEnum": {
+          "const": { "value": -1, "occurrences": 20, "varintBytesEach": 10 }
+        },
+        "counters": {
+          "const": {
+            "messages": 10000,
+            "fields": 170294,
+            "varintBytes": 474984,
+            "unknownFields": 40000,
+            "filteredMessages": 1703,
+            "wireBytes": 1534122,
+            "protoJsonBytes": 354976
+          }
+        },
+        "targetBoundaryCrossings": { "const": { "javascript": 0, "wasm": 1 } },
+        "targetAllocations": { "const": { "javascript": 41705, "wasm": 0 } },
+        "checks": {
+          "const": [
+            "complete-10000-message-framing",
+            "ten-byte-negative-int32-unknown-enum",
+            "known-positive-enum",
+            "unknown-positive-enum",
+            "signed-zero-double",
+            "signed-zero-float",
+            "fractional-double",
+            "fractional-float",
+            "utf8-map-key-order",
+            "json-quote-backslash-newline-escaping",
+            "complete-cross-target-byte-identity",
+            "exact-counter-and-output-oracle"
+          ]
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "target",
+        "mode",
+        "targetId",
+        "sessionId",
+        "workerSessionIds",
+        "finalStatus",
+        "lifecycle",
+        "result",
+        "assertions",
+        "network",
+        "console",
+        "exceptions",
+        "logs",
+        "accessibility",
+        "screenshot"
+      ],
+      "properties": {
+        "id": { "enum": ["javascript-exact", "wasm-exact"] },
+        "target": { "enum": ["javascript", "wasm"] },
+        "mode": { "const": "exact" },
+        "targetId": { "type": "string", "minLength": 1 },
+        "sessionId": { "type": "string", "minLength": 1 },
+        "workerSessionIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "finalStatus": { "const": "complete" },
+        "lifecycle": { "const": ["ready", "running", "complete", "worker-absent"] },
+        "result": { "$ref": "#/$defs/result" },
+        "assertions": {
+          "type": "array",
+          "minItems": 8,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "network": { "type": "array", "minItems": 10, "items": { "$ref": "#/$defs/network" } },
+        "console": { "type": "array", "items": { "$ref": "#/$defs/console" } },
+        "exceptions": { "type": "array", "items": { "$ref": "#/$defs/exception" } },
+        "logs": { "type": "array", "items": { "$ref": "#/$defs/log" } },
+        "accessibility": {
+          "type": "object",
+          "$ref": "#/$defs/artifact",
+          "properties": { "nodeCount": { "type": "integer", "minimum": 1 } },
+          "required": ["nodeCount"]
+        },
+        "screenshot": { "$ref": "#/$defs/artifact" }
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target", "mode", "digest", "outputBytes", "counters", "exact"],
+      "properties": {
+        "target": { "enum": ["javascript", "wasm"] },
+        "mode": { "const": "exact" },
+        "digest": { "const": "4539813029587b58d20441ef6b95174dc86c2546b0becbf23ca1b48a6f0c8c9a" },
+        "outputBytes": { "const": 354976 },
+        "counters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["javascript", "wasm"],
+          "properties": {
+            "javascript": { "anyOf": [{ "$ref": "#/$defs/targetCounters" }, { "type": "null" }] },
+            "wasm": { "anyOf": [{ "$ref": "#/$defs/targetCounters" }, { "type": "null" }] }
+          }
+        },
+        "exact": {
+          "const": {
+            "verifiedRawBytes": 6,
+            "catalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4"
+          }
+        }
+      }
+    },
+    "targetCounters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "messages",
+        "fields",
+        "varintBytes",
+        "unknownFields",
+        "filteredMessages",
+        "wireBytes",
+        "protoJsonBytes",
+        "allocations",
+        "boundaryCrossings"
+      ],
+      "properties": {
+        "messages": { "const": 10000 },
+        "fields": { "const": 170294 },
+        "varintBytes": { "const": 474984 },
+        "unknownFields": { "const": 40000 },
+        "filteredMessages": { "const": 1703 },
+        "wireBytes": { "const": 1534122 },
+        "protoJsonBytes": { "const": 354976 },
+        "allocations": { "type": "integer", "minimum": 0 },
+        "boundaryCrossings": { "enum": [0, 1] }
+      }
+    },
+    "network": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requestId",
+        "sessionId",
+        "targetType",
+        "url",
+        "path",
+        "method",
+        "status",
+        "mimeType",
+        "encodedDataLength",
+        "fromDiskCache",
+        "fromServiceWorker",
+        "failed",
+        "errorText",
+        "responseBodyBytes",
+        "responseBodySha256"
+      ],
+      "properties": {
+        "requestId": { "type": "string", "minLength": 1 },
+        "sessionId": { "type": "string", "minLength": 1 },
+        "targetType": { "enum": ["page", "worker"] },
+        "url": { "type": "string", "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/" },
+        "path": {
+          "enum": [
+            "/benchmarks/serialization-protobuf-gateway/",
+            "/benchmarks/serialization-protobuf-gateway/protobuf-runner.js",
+            "/benchmarks/serialization-protobuf-gateway/protobuf-worker.js",
+            "/benchmarks/base/serialization-protobuf-gateway/workload.js",
+            "/benchmarks/base/serialization-protobuf-gateway/implementation-contract.v1.json",
+            "/artifacts/serialization-protobuf-gateway/serialization-protobuf-gateway.wasm",
+            "/artifacts/serialization-protobuf-gateway/fixture-manifest.json",
+            "/artifacts/serialization-protobuf-gateway/output-manifest.json",
+            "/artifacts/serialization-protobuf-gateway/build-manifest.json",
+            "/styles.css",
+            "/favicon.ico"
+          ]
+        },
+        "method": { "const": "GET" },
+        "status": { "const": 200 },
+        "mimeType": { "type": "string", "minLength": 1 },
+        "encodedDataLength": { "type": "number", "minimum": 0 },
+        "fromDiskCache": { "type": "boolean" },
+        "fromServiceWorker": { "const": false },
+        "failed": { "const": false },
+        "errorText": { "type": "null" },
+        "responseBodyBytes": { "type": "integer", "minimum": 1 },
+        "responseBodySha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "console": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessionId", "targetType", "type", "arguments"],
+      "properties": {
+        "sessionId": { "type": "string" },
+        "targetType": { "enum": ["page", "worker"] },
+        "type": { "type": "string" },
+        "arguments": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "exception": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessionId", "targetType", "text", "lineNumber", "columnNumber", "url"],
+      "properties": {
+        "sessionId": { "type": "string" },
+        "targetType": { "enum": ["page", "worker"] },
+        "text": { "type": "string" },
+        "lineNumber": { "type": "integer", "minimum": 0 },
+        "columnNumber": { "type": "integer", "minimum": 0 },
+        "url": { "type": "string" }
+      }
+    },
+    "log": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessionId", "targetType", "source", "level", "text", "url", "lineNumber"],
+      "properties": {
+        "sessionId": { "type": "string" },
+        "targetType": { "enum": ["page", "worker"] },
+        "source": { "type": "string" },
+        "level": { "type": "string" },
+        "text": { "type": "string" },
+        "url": { "type": "string" },
+        "lineNumber": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^raw/protobuf-browser-evidence/protobuf-gateway-ae8e0c9-[a-f0-9]{32}/(accessibility|screenshots)/[a-z-]+\\.(json|png)$"
+        },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "nodeCount": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}
