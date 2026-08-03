@@ -1,5 +1,5 @@
 import Ajv2020Module from "ajv2020";
-import { sha256Hex } from "../lib/canonical.ts";
+import { canonicalize, sha256Hex } from "../lib/canonical.ts";
 import { createHandler } from "../server.ts";
 import { assert, assertEquals } from "./assert.ts";
 import {
@@ -140,10 +140,13 @@ Deno.test("fixture RNG and full controlled output are deterministic", async () =
       "benchmarks/base-v1/graphics-cpu-path-tracer/implementation-contract.v1.json",
     ),
   );
-  assertEquals(manifest.oracle.jsCounters, contract.counters.fixedWorkExpected["js-controlled"]);
   assertEquals(
-    manifest.oracle.wasmCounters,
-    contract.counters.fixedWorkExpected["wasm-linear-controlled"],
+    canonicalize(manifest.oracle.jsCounters),
+    canonicalize(contract.counters.fixedWorkExpected["js-controlled"]),
+  );
+  assertEquals(
+    canonicalize(manifest.oracle.wasmCounters),
+    canonicalize(contract.counters.fixedWorkExpected["wasm-linear-controlled"]),
   );
   assertEquals(manifest.oracle.crossTarget.differingBytes, 0);
   assertEquals(manifest.oracle.crossTarget.acceptedMaxChannelDelta, 0);

@@ -17,6 +17,18 @@ async function fetchBytes(path) {
   if (!response.ok) throw new Error(`${path} returned ${response.status}`);
   return new Uint8Array(await response.arrayBuffer());
 }
+function stableValue(value) {
+  if (Array.isArray(value)) return value.map(stableValue);
+  if (value !== null && typeof value === "object") {
+    const result = {};
+    for (const key of Object.keys(value).sort()) result[key] = stableValue(value[key]);
+    return result;
+  }
+  return value;
+}
+function evidenceEquals(left, right) {
+  return JSON.stringify(stableValue(left)) === JSON.stringify(stableValue(right));
+}
 self.onmessage = async (event) => {
   const { token, target, mode, trust } = event.data ?? {};
   try {
@@ -105,7 +117,7 @@ self.onmessage = async (event) => {
       const expectedCounter = target === "javascript"
         ? manifest.oracle.jsCounters
         : manifest.oracle.wasmCounters;
-      if (JSON.stringify(result.counters) !== JSON.stringify(expectedCounter)) {
+      if (!evidenceEquals(result.counters, expectedCounter)) {
         throw new Error("complete counter mismatch");
       }
       const variantKey = target === "javascript" ? "js" : "wasm";
@@ -118,7 +130,7 @@ self.onmessage = async (event) => {
       }
       if (
         target === "javascript" &&
-        JSON.stringify(result.checkpoints) !== JSON.stringify(manifest.oracle.pathCheckpoints)
+        !evidenceEquals(result.checkpoints, manifest.oracle.pathCheckpoints)
       ) {
         throw new Error("path checkpoint mismatch");
       }
