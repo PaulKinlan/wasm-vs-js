@@ -8,10 +8,15 @@
     "immutability": "byte-for-byte"
   },
   "status": "blocked-not-counted",
+  "countsAsImplementation": false,
+  "countsAsDemo": false,
+  "publicRoutes": [],
+  "publicArtifacts": [],
+  "performanceClaims": [],
   "blockers": [
     {
       "code": "unicode-data-redistribution-audit-required",
-      "detail": "The frozen catalog marks Unicode conformance inputs recipe-only and LicenseRef-Download-Only. Raw data, generated tables, a table-bearing Wasm artifact, and a public runnable route remain unpublished until an independent redistribution audit permits them."
+      "detail": "The frozen catalog marks Unicode conformance inputs recipe-only and LicenseRef-Download-Only. Raw Unicode data, generated Unicode tables, a table-bearing Wasm artifact, and a public runnable route remain unpublished until an independent redistribution audit permits them."
     },
     {
       "code": "material-wasm-validation-unavailable",
@@ -22,7 +27,8 @@
     "unicodeVersion": "15.1.0",
     "rights": {
       "status": "requires-independent-audit",
-      "redistribution": "recipe-only-no-vendored-unicode-data"
+      "redistribution": "recipe-only-no-vendored-unicode-data",
+      "committedUnicodeSourceExcerpts": false
     },
     "downloads": [
       {
@@ -95,12 +101,13 @@
     "caseFoldPolicies": ["default-full", "default-simple", "turkic-full", "turkic-simple"],
     "searchPipeline": "NFC document, selected case fold, NFKC; query uses selected case fold then NFKC",
     "searchIndexUnits": "zero-based code-point offsets in the normalized-and-folded searchable string",
-    "serialization": "canonical UTF-8 plus little-endian u32 grapheme-boundary and match-offset arrays",
-    "malformedInput": "reject lone UTF-16 surrogates and malformed UTF-8"
+    "inputRepresentation": "Unicode-scalar JavaScript strings; lone UTF-16 surrogates are rejected",
+    "outputRepresentation": "JavaScript strings plus code-point boundary and match arrays; no UTF-8 framing implementation is claimed",
+    "malformedUtf8": "unavailable-not-implemented"
   },
   "targets": {
     "javascriptControlled": {
-      "status": "source-present-local-conformance-required",
+      "status": "source-present-local-conformance-passed",
       "path": "benchmarks/base/text-unicode-editor/workload.ts",
       "hostIntrinsicsExcluded": ["String.prototype.normalize", "Intl.Segmenter", "locale casing"]
     },
@@ -116,7 +123,7 @@
   "evidence": {
     "sourceAuditCommand": "deno run --allow-net=www.unicode.org --allow-read=. --allow-write=evidence/base/text-unicode-editor scripts/audit-base-unicode-editor.ts",
     "conformanceCommand": "same as sourceAuditCommand; validates the repository-owned JavaScript engine against complete NormalizationTest, GraphemeBreakTest, CaseFolding mappings, adversarial cases, and the complete generated corpus",
-    "browserEvidence": "unavailable-no-public-artifact",
-    "performanceClaims": []
+    "sourceAuditPath": "evidence/base/text-unicode-editor/source-audit.json",
+    "browserEvidence": "unavailable-no-public-artifact"
   }
 }

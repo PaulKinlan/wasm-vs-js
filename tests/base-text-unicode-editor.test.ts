@@ -5,8 +5,8 @@ import {
   caseFold,
   graphemeBoundaries,
   normalize,
-  parseUnicodeTables,
   runUnicodeEditor,
+  type UnicodeTables,
 } from "../benchmarks/base/text-unicode-editor/workload.ts";
 import {
   codePointCount,
@@ -21,11 +21,17 @@ const schema = JSON.parse(
 );
 const Ajv2020 = (Ajv2020Module as unknown as { default?: typeof Ajv2020Module }).default ??
   Ajv2020Module;
+const validate = new (Ajv2020 as unknown as new (options: Record<string, unknown>) => {
+  compile: (schema: unknown) => ((value: unknown) => boolean) & { errors?: unknown };
+})({ allErrors: true, strict: false }).compile(schema);
+function cloneRegistration(): Record<string, unknown> {
+  return structuredClone(registration);
+}
+function assertInvalid(value: unknown): void {
+  assert(!validate(value), "mutated registration unexpectedly validated");
+}
 
 Deno.test("unicode editor supplemental registration is closed and does not mutate frozen coverage", async () => {
-  const validate = new (Ajv2020 as unknown as new (options: Record<string, unknown>) => {
-    compile: (schema: unknown) => ((value: unknown) => boolean) & { errors?: unknown };
-  })({ allErrors: true, strict: false }).compile(schema);
   assert(validate(registration), JSON.stringify(validate.errors));
   assertEquals(registration.status, "blocked-not-counted");
   assertEquals(
@@ -37,12 +43,55 @@ Deno.test("unicode editor supplemental registration is closed and does not mutat
     await Deno.readFile("public/data/workloads.v1.json"),
   );
   assertEquals(registration.targets.linearWasmControlled.status, "blocked-unavailable");
-  assertEquals(registration.evidence.performanceClaims, []);
+  assertEquals(registration.countsAsImplementation, false);
+  assertEquals(registration.countsAsDemo, false);
+  assertEquals(registration.performanceClaims, []);
+  assertEquals(registration.publicRoutes, []);
+  assertEquals(registration.publicArtifacts, []);
+  assertEquals(registration.fixture.rights.committedUnicodeSourceExcerpts, false);
   assertEquals(registration.fixture.downloads.length, 9);
   assertEquals(
     new Set(registration.fixture.downloads.map((source: { sha256: string }) => source.sha256)).size,
     9,
   );
+});
+
+Deno.test("unicode editor registration rejects recipe, counting, claim, route, artifact, and field mutations", () => {
+  const duplicate = cloneRegistration();
+  const duplicateFixture = duplicate.fixture as { downloads: unknown[] };
+  duplicateFixture.downloads[1] = structuredClone(duplicateFixture.downloads[0]);
+  assertInvalid(duplicate);
+
+  const wrongRecipe = cloneRegistration();
+  const wrongDownloads =
+    (wrongRecipe.fixture as { downloads: Array<{ url: string; sha256: string }> }).downloads;
+  wrongDownloads[0].url = "https://www.unicode.org/Public/15.1.0/ucd/CaseFolding.txt";
+  assertInvalid(wrongRecipe);
+  const wrongHash = cloneRegistration();
+  (wrongHash.fixture as { downloads: Array<{ sha256: string }> }).downloads[8].sha256 = "0".repeat(
+    64,
+  );
+  assertInvalid(wrongHash);
+
+  for (const key of ["countsAsImplementation", "countsAsDemo"] as const) {
+    const counted = cloneRegistration();
+    counted[key] = true;
+    assertInvalid(counted);
+  }
+  const winner = cloneRegistration();
+  winner.performanceClaims = ["Wasm wins"];
+  assertInvalid(winner);
+  const route = cloneRegistration();
+  route.publicRoutes = ["/demos/text.unicode-editor.v1/"];
+  assertInvalid(route);
+  const artifact = cloneRegistration();
+  artifact.publicArtifacts = ["public/unicode.wasm"];
+  assertInvalid(artifact);
+  for (const key of ["semantics", "targets", "evidence"] as const) {
+    const missing = cloneRegistration();
+    delete missing[key];
+    assertInvalid(missing);
+  }
 });
 
 Deno.test("unicode editor owned corpus has frozen complete size and hash", async () => {
@@ -53,47 +102,52 @@ Deno.test("unicode editor owned corpus has frozen complete size and hash", async
   assertEquals(await sha256Hex(bytes), registration.fixture.generatedCorpus.sha256);
 });
 
-const syntheticTables = parseUnicodeTables({
-  UnicodeData: [
-    "0041;LATIN CAPITAL LETTER A;Lu;0;L;;;;;N;;;;0061;",
-    "0049;LATIN CAPITAL LETTER I;Lu;0;L;;;;;N;;;;0069;",
-    "0061;LATIN SMALL LETTER A;Ll;0;L;;;;;N;;;0041;;0041",
-    "0069;LATIN SMALL LETTER I;Ll;0;L;;;;;N;;;0049;;0049",
-    "00C5;LATIN CAPITAL LETTER A WITH RING ABOVE;Lu;0;L;0041 030A;;;;N;LATIN CAPITAL LETTER A RING;;;00E5;",
-    "0130;LATIN CAPITAL LETTER I WITH DOT ABOVE;Lu;0;L;0049 0307;;;;N;LATIN CAPITAL LETTER I DOT;;;0069;",
-    "0307;COMBINING DOT ABOVE;Mn;230;NSM;;;;;N;;;;;",
-    "030A;COMBINING RING ABOVE;Mn;230;NSM;;;;;N;;;;;",
-    "212B;ANGSTROM SIGN;Lu;0;L;00C5;;;;N;ANGSTROM UNIT;;;;",
-  ].join("\n"),
-  DerivedNormalizationProps: "",
-  GraphemeBreakProperty: [
-    "000D ; CR",
-    "000A ; LF",
-    "0300..036F ; Extend",
-    "200D ; ZWJ",
-    "1F1E6..1F1FF ; Regional_Indicator",
-  ].join("\n"),
-  emojiData: "1F469 ; Extended_Pictographic\n1F680 ; Extended_Pictographic",
-  DerivedCoreProperties:
-    "094D ; InCB; Linker\n0915..0939 ; InCB; Consonant\n0300..036F ; InCB; Extend",
-  CaseFolding: [
-    "0041; C; 0061;",
-    "0049; C; 0069;",
-    "0049; T; 0131;",
-    "0130; F; 0069 0307;",
-    "0130; T; 0069;",
-  ].join("\n"),
-});
+// Project-authored private-use values exercise the algorithms without reproducing Unicode source rows.
+const starter = 0xe000, mark = 0xe001, composite = 0xe002, folded = 0xe003;
+const turkicFolded = 0xe004, pictographA = 0xe100, joiner = 0xe101, pictographB = 0xe102;
+const regionalA = 0xe110, regionalB = 0xe111, regionalC = 0xe112;
+const syntheticTables: UnicodeTables = {
+  unicodeVersion: "15.1.0",
+  canonicalDecomposition: new Map([[composite, [starter, mark]]]),
+  compatibilityDecomposition: new Map([[composite, [starter, mark]]]),
+  combiningClass: new Map([[mark, 230]]),
+  composition: new Map([[`${starter},${mark}`, composite]]),
+  graphemeRanges: [
+    [mark, mark, "Extend"],
+    [joiner, joiner, "ZWJ"],
+    [regionalA, regionalC, "Regional_Indicator"],
+  ],
+  extendedPictographicRanges: [
+    [pictographA, pictographA, "Extended_Pictographic"],
+    [pictographB, pictographB, "Extended_Pictographic"],
+  ],
+  indicConjunctRanges: [],
+  folds: {
+    "default-full": new Map([[starter, [folded]]]),
+    "default-simple": new Map([[starter, [folded]]]),
+    "turkic-full": new Map([[starter, [turkicFolded]]]),
+    "turkic-simple": new Map([[starter, [turkicFolded]]]),
+  },
+};
+const text = (...values: number[]) => String.fromCodePoint(...values);
 
 Deno.test("repository-owned table engine normalizes, segments, folds and searches without host intrinsics", () => {
-  assertEquals(normalize("A\u030A", "NFC", syntheticTables), "Å");
-  assertEquals(normalize("\u212B", "NFD", syntheticTables), "A\u030A");
-  assertEquals(caseFold("AI", "default-full", syntheticTables), "ai");
-  assertEquals(caseFold("Iİ", "turkic-full", syntheticTables), "ıi");
-  assertEquals(graphemeBoundaries("👩\u200d🚀", syntheticTables), [0, 3]);
-  assertEquals(graphemeBoundaries("🇬🇧🇯", syntheticTables), [0, 2, 3]);
-  const result = runUnicodeEditor("A\u030A AI", "ai", syntheticTables);
-  assertEquals(result.normalized, "Å AI");
+  assertEquals(normalize(text(starter, mark), "NFC", syntheticTables), text(composite));
+  assertEquals(normalize(text(composite), "NFD", syntheticTables), text(starter, mark));
+  assertEquals(caseFold(text(starter), "default-full", syntheticTables), text(folded));
+  assertEquals(caseFold(text(starter), "turkic-full", syntheticTables), text(turkicFolded));
+  assertEquals(graphemeBoundaries(text(pictographA, joiner, pictographB), syntheticTables), [0, 3]);
+  assertEquals(graphemeBoundaries(text(regionalA, regionalB, regionalC), syntheticTables), [
+    0,
+    2,
+    3,
+  ]);
+  const result = runUnicodeEditor(
+    text(starter, mark, 0x20, starter),
+    text(starter),
+    syntheticTables,
+  );
+  assertEquals(result.normalized, text(composite, 0x20, starter));
   assertEquals(result.matches, [2]);
   assert(result.counters["normalization-compositions"] > 0);
   assert(result.counters["search-comparisons"] > 0);

@@ -4,7 +4,7 @@
   "status": "javascript-controlled-conformance-passed-linear-wasm-blocked-not-counted",
   "deno": "2.9.0",
   "unicodeVersion": "15.1.0",
-  "registrationSha256": "dc3a3c6c7334d6aedd81626453989f5d3521068a7d480fdd49c2f5b091e870cc",
+  "registrationSha256": "9d697af299c0fc552e03f562ca0cd8e733c1df4d1d81e7490bd089584054f69a",
   "frozenCatalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
   "downloads": [
     {
