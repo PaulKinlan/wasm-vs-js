@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "catalogId": "dom.todomvc-journey.v1",
+  "implementationId": "dom.todomvc-journey.v1.controlled-v1",
+  "status": "implementation-candidate",
+  "sourceCommit": "060613325f4750ef2d08c6e63a5162908b5a0428",
+  "frozenCatalog": {
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+    "immutable": true,
+    "entryCount": 38
+  },
+  "route": "/benchmarks/base-dom-todomvc-journey/",
+  "variants": [
+    "js-controlled",
+    "wasm-linear-controlled"
+  ],
+  "fixture": {
+    "path": "public/artifacts/base-dom-todomvc-journey/fixture.json",
+    "route": "/artifacts/base-dom-todomvc-journey/fixture.json",
+    "bytes": 9175,
+    "sha256": "3685e7c3f03ad7589aaf04073fba1af461847daa9c5d7339a98025e0e24e1208"
+  },
+  "oracle": {
+    "path": "public/artifacts/base-dom-todomvc-journey/output-manifest.json",
+    "route": "/artifacts/base-dom-todomvc-journey/output-manifest.json",
+    "bytes": 1683,
+    "sha256": "6ea94be3282264244e0992930d43e5182ec602d527e68160c6c5bda035aa401e"
+  },
+  "artifacts": [
+    {
+      "path": "catalog/workloads.v1.json",
+      "route": "/data/workloads.v1.json",
+      "bytes": 110208,
+      "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4"
+    },
+    {
+      "path": "benchmarks/base/dom-todomvc-journey/benchmark.json",
+      "route": "/benchmarks/base/dom-todomvc-journey/benchmark.json",
+      "bytes": 2027,
+      "sha256": "269d6e70127cfbd2014f5fe673e990f4e945391b4f2d1c2dd0b3089b14d2fafd"
+    },
+    {
+      "path": "benchmarks/base/dom-todomvc-journey/fixture.js",
+      "route": "/benchmarks/base/dom-todomvc-journey/fixture.js",
+      "bytes": 2982,
+      "sha256": "4a0c91a3018f5f0bfa2473d92d3e995001ca57d014e7d65afc5fd644eae2b5ca"
+    },
+    {
+      "path": "benchmarks/base/dom-todomvc-journey/engine.js",
+      "route": "/benchmarks/base/dom-todomvc-journey/engine.js",
+      "bytes": 6107,
+      "sha256": "ff131927970547ba69350a8aaf84172ad2c2c6f03edc25f762127d31e8db42d9"
+    },
+    {
+      "path": "benchmarks/base/dom-todomvc-journey/todomvc.wat",
+      "route": "/benchmarks/base/dom-todomvc-journey/todomvc.wat",
+      "bytes": 4034,
+      "sha256": "cb2eb8eaa2dc3e9905a425c430bdd0826039cd659b4024f7e06a33b31e708350"
+    },
+    {
+      "path": "public/benchmarks/base-dom-todomvc-journey/index.html",
+      "route": "/benchmarks/base-dom-todomvc-journey/",
+      "bytes": 3811,
+      "sha256": "06d7b9efc8e1b3dd7520443119b4e34acac8c8a638b2b317045f9b57d53552b1"
+    },
+    {
+      "path": "public/benchmarks/base-dom-todomvc-journey/controller.js",
+      "route": "/benchmarks/base-dom-todomvc-journey/controller.js",
+      "bytes": 10643,
+      "sha256": "337e29d545efb3774bd367d7572f6e06a7218fe38431f5d1a4bfb3d8942daa30"
+    },
+    {
+      "path": "public/benchmarks/base-dom-todomvc-journey/worker.js",
+      "route": "/benchmarks/base-dom-todomvc-journey/worker.js",
+      "bytes": 3589,
+      "sha256": "15c65a2679db8715bbb5d7343f605e8b52410a47f23c770381647e37246e3749"
+    },
+    {
+      "path": "public/benchmarks/base-dom-todomvc-journey/styles.css",
+      "route": "/benchmarks/base-dom-todomvc-journey/styles.css",
+      "bytes": 2983,
+      "sha256": "6fd1ae6e510421f82be5642bd6ff7f20209f678a16062d061999d56ce88309ca"
+    },
+    {
+      "path": "schemas/base-workload-implementation.schema.json",
+      "route": "/data/base-workload-implementation.schema.json",
+      "bytes": 2164,
+      "sha256": "f9942015e0258174e436b6d89ef6799c34881dfe9fe8917676e60a85088a9fd3"
+    },
+    {
+      "path": "public/artifacts/base-dom-todomvc-journey/runtime.js",
+      "route": "/artifacts/base-dom-todomvc-journey/runtime.js",
+      "bytes": 8452,
+      "sha256": "5fc0f7b8e54703c9a8019b651a0c2d5450aad45ce1fb33fb94cd386acbc86ec8"
+    },
+    {
+      "path": "public/artifacts/base-dom-todomvc-journey/todomvc.wasm",
+      "route": "/artifacts/base-dom-todomvc-journey/todomvc.wasm",
+      "bytes": 543,
+      "sha256": "631c4769c10638d06dc3c85a65c50a3c130e19bb74328d8355d3c7b784b946c1"
+    },
+    {
+      "path": "public/artifacts/base-dom-todomvc-journey/fixture.json",
+      "route": "/artifacts/base-dom-todomvc-journey/fixture.json",
+      "bytes": 9175,
+      "sha256": "3685e7c3f03ad7589aaf04073fba1af461847daa9c5d7339a98025e0e24e1208"
+    },
+    {
+      "path": "public/artifacts/base-dom-todomvc-journey/output-manifest.json",
+      "route": "/artifacts/base-dom-todomvc-journey/output-manifest.json",
+      "bytes": 1683,
+      "sha256": "6ea94be3282264244e0992930d43e5182ec602d527e68160c6c5bda035aa401e"
+    },
+    {
+      "path": "public/artifacts/base-dom-todomvc-journey/build-manifest.json",
+      "route": "/artifacts/base-dom-todomvc-journey/build-manifest.json",
+      "bytes": 6025,
+      "sha256": "cc516b64372e0d0c3bcce185a55cc91e04e1e417ef771d6ca3c782910dfb8fac"
+    }
+  ],
+  "limitations": [
+    "Frozen-v1 remains byte-for-byte unchanged; this supplemental candidate does not count as accepted 1/38 coverage before independent review and retained browser evidence.",
+    "The controlled implementations are framework-free and therefore do not generalize to framework product-choice performance.",
+    "The route publishes correctness and work evidence only; it records no timing, persistence, upload, or ranking."
+  ]
+}
