@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.paulkinlan-ea.deno.net/schemas/game-ecs-frame-update-implementation.v1.schema.json",
+  "title": "game.ecs-frame-update.v1 supplemental implementation registration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "workloadId",
+    "catalogBinding",
+    "status",
+    "source",
+    "fixture",
+    "oracle",
+    "build",
+    "variants",
+    "demo",
+    "performanceClaims"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "workloadId": { "const": "game.ecs-frame-update.v1" },
+    "catalogBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["catalogId", "path", "catalogSha256", "mutationPolicy"],
+      "properties": {
+        "catalogId": { "const": "workload-catalog-v1" },
+        "path": { "const": "catalog/workloads.v1.json" },
+        "catalogSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "mutationPolicy": { "const": "byte-for-byte-frozen" }
+      }
+    },
+    "status": { "enum": ["implementation-candidate", "implementation-accepted"] },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "commit", "references"],
+      "properties": {
+        "repository": { "const": "https://github.com/PaulKinlan/wasm-vs-js" },
+        "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+        "references": {
+          "type": "array",
+          "minItems": 5,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "sha256", "immutableUrl"],
+            "properties": {
+              "path": { "type": "string", "minLength": 1 },
+              "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+              "immutableUrl": {
+                "type": "string",
+                "pattern": "^https://github\\.com/PaulKinlan/wasm-vs-js/blob/[a-f0-9]{40}/"
+              }
+            }
+          }
+        }
+      }
+    },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "bytes",
+        "sha256",
+        "licenseSpdx",
+        "redistribution",
+        "entities",
+        "frames",
+        "seed"
+      ],
+      "properties": {
+        "path": { "type": "string" },
+        "bytes": { "const": 81016 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "licenseSpdx": { "const": "CC0-1.0" },
+        "redistribution": { "const": "permitted" },
+        "entities": { "const": 10000 },
+        "frames": { "const": 1000 },
+        "seed": { "const": 1858462077 }
+      }
+    },
+    "oracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "algorithmFamily",
+        "integerTolerance",
+        "finalStateWords",
+        "finalStateDigest",
+        "checkpointDigest",
+        "semanticDigest",
+        "counters"
+      ],
+      "properties": {
+        "kind": { "const": "canonical-semantic" },
+        "algorithmFamily": { "const": "ecs-fixed-system-order" },
+        "integerTolerance": { "const": 0 },
+        "finalStateWords": { "const": 60000 },
+        "finalStateDigest": { "type": "string", "pattern": "^[a-f0-9]{8}$" },
+        "checkpointDigest": { "type": "string", "pattern": "^[a-f0-9]{8}$" },
+        "semanticDigest": { "type": "string", "pattern": "^[a-f0-9]{8}$" },
+        "counters": { "type": "object" }
+      }
+    },
+    "build": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact",
+        "artifactSha256",
+        "recipe",
+        "deno",
+        "clang",
+        "wasmLd",
+        "compilerFlags",
+        "linkerFlags",
+        "memoryBytes"
+      ],
+      "properties": {
+        "artifact": { "type": "string" },
+        "artifactSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "recipe": { "type": "string" },
+        "deno": { "const": "2.9.0" },
+        "clang": { "type": "string", "minLength": 1 },
+        "wasmLd": { "type": "string", "minLength": 1 },
+        "compilerFlags": { "type": "array", "items": { "type": "string" } },
+        "linkerFlags": { "type": "array", "items": { "type": "string" } },
+        "memoryBytes": { "const": 1048576 }
+      }
+    },
+    "variants": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "target", "status", "evidence"],
+        "properties": {
+          "id": { "enum": ["js-controlled", "wasm-linear-controlled"] },
+          "target": { "enum": ["javascript", "wasm-linear"] },
+          "status": { "const": "passed" },
+          "evidence": { "type": "string" }
+        }
+      }
+    },
+    "demo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["route", "status", "timeoutMs", "persistence", "upload", "ranking"],
+      "properties": {
+        "route": { "const": "/demos/game-ecs-frame-update/" },
+        "status": { "const": "runnable-correctness" },
+        "timeoutMs": { "const": 120000 },
+        "persistence": { "const": false },
+        "upload": { "const": false },
+        "ranking": { "const": false }
+      }
+    },
+    "performanceClaims": { "type": "array", "maxItems": 0 }
+  }
+}

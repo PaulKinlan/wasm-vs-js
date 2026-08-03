@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "game.ecs-frame-update.v1",
+  "catalog": {
+    "id": "workload-catalog-v1",
+    "path": "catalog/workloads.v1.json",
+    "mutationPolicy": "byte-for-byte-frozen"
+  },
+  "status": "implementation-candidate",
+  "track": "controlled",
+  "algorithmFamily": "ecs-fixed-system-order",
+  "fixture": {
+    "licenseSpdx": "CC0-1.0",
+    "redistribution": "permitted",
+    "generator": "benchmarks/v1/game-ecs-frame-update/fixture.js",
+    "generatorRevision": 1,
+    "seed": 1858462077,
+    "serialization": "16-byte little-endian header, 10000 8-byte entity records, 1000 one-byte control records",
+    "entities": 10000,
+    "frames": 1000,
+    "bytes": 81016
+  },
+  "systems": [
+    {
+      "order": 1,
+      "id": "movement",
+      "work": "update every entity; apply the frame control to entity indexes congruent to frame modulo 257; reflect at 0 and 65535"
+    },
+    {
+      "order": 2,
+      "id": "collision-broadphase",
+      "work": "rebuild a 128 by 128 linked-list grid; test same-cell and east, southwest, south, southeast cells; swap both velocity components for inclusive radius overlap"
+    },
+    {
+      "order": 3,
+      "id": "animation",
+      "work": "update every entity from current velocity class and the frame control"
+    }
+  ],
+  "layout": {
+    "entity": "structure of arrays: uint16 x/y, int8 vx/vy, uint8 animation/radius",
+    "grid": "16384 signed head indexes plus one signed next index per entity",
+    "state": "entity-index order; x,y,vx-as-u8,vy-as-u8,animation,radius"
+  },
+  "oracle": {
+    "kind": "canonical-semantic",
+    "equivalenceClass": "tolerance-equivalent",
+    "integerTolerance": 0,
+    "completeStateWords": 60000,
+    "checkpointFrames": [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000],
+    "digest": "FNV-1a-style uint32 multiply/xor over canonical fields; structural equality also checks all 60000 state words"
+  },
+  "counters": [
+    "frames",
+    "entities",
+    "systemPasses",
+    "movementUpdates",
+    "broadphaseCellClears",
+    "broadphaseCellScans",
+    "broadphaseInsertions",
+    "pairTests",
+    "collisions",
+    "animationUpdates",
+    "controlMutations",
+    "stateMutations",
+    "checkpointCount",
+    "ownedBufferAllocations",
+    "boundaryCrossings",
+    "inputBytes",
+    "outputBytes"
+  ],
+  "variants": [
+    {
+      "id": "js-controlled",
+      "target": "javascript",
+      "semantics": "all three systems and the complete state oracle execute in authored JavaScript"
+    },
+    {
+      "id": "wasm-linear-controlled",
+      "target": "wasm-linear",
+      "semantics": "all three systems and the complete state oracle execute in authored C compiled to fixed-memory linear Wasm; JavaScript only copies input and decodes output"
+    }
+  ],
+  "rendering": "not part of compute; the demo renders textual correctness output after the worker completes",
+  "performanceClaims": []
+}
