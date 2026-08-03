@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.paulkinlan.net/schemas/base-workload-blocker.schema.json",
+  "title": "Frozen base workload implementation blocker",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "catalogWorkloadId",
+    "catalogSha256",
+    "status",
+    "implementationCoverage",
+    "reasonCode",
+    "requirement",
+    "candidates",
+    "reproduction",
+    "nextAction"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "catalogWorkloadId": { "type": "string", "minLength": 1 },
+    "catalogSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "status": { "const": "blocked" },
+    "implementationCoverage": { "const": false },
+    "reasonCode": { "type": "string", "minLength": 1 },
+    "requirement": { "type": "string", "minLength": 1 },
+    "candidates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "version", "licenseSpdx", "source", "disposition", "evidence"],
+        "properties": {
+          "name": { "type": "string" },
+          "version": { "type": "string" },
+          "licenseSpdx": { "type": "string" },
+          "source": { "type": "string", "format": "uri" },
+          "packageTarballSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "disposition": {
+            "enum": ["decode-only", "wasm-backed", "native-process", "interop-failure"]
+          },
+          "evidence": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+        }
+      }
+    },
+    "reproduction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "script",
+        "denoVersion",
+        "independentDecoder",
+        "probeInputSha256",
+        "candidateFrameSha256",
+        "candidateSelfRoundtrip",
+        "independentDecoderExitCode",
+        "independentDecoderObservation"
+      ],
+      "properties": {
+        "script": { "type": "string" },
+        "denoVersion": { "type": "string" },
+        "independentDecoder": { "type": "string" },
+        "probeInputSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "candidateFrameSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "candidateSelfRoundtrip": { "const": true },
+        "independentDecoderExitCode": { "const": 1 },
+        "independentDecoderObservation": { "type": "string", "minLength": 1 }
+      }
+    },
+    "nextAction": { "type": "string", "minLength": 1 }
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "catalogWorkloadId": "compression.zstd-gzip-roundtrip.v1",
+  "catalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+  "status": "blocked",
+  "implementationCoverage": false,
+  "reasonCode": "controlled-javascript-zstd-encoder-unavailable",
+  "requirement": "The controlled JavaScript target must perform a real zstd level-3 encode and decode in JavaScript, without calling WebAssembly, a native process, or a host compression intrinsic; the result must interoperate with an independent zstd 1.5.7 decoder before the workload can claim implementation coverage.",
+  "candidates": [
+    {
+      "name": "fzstd",
+      "version": "0.1.1",
+      "licenseSpdx": "MIT",
+      "source": "https://github.com/101arrowz/fzstd",
+      "packageTarballSha256": "5ed2ee2d3439067be211d0093292c708a831045372342c897437e5a4997c45c5",
+      "disposition": "decode-only",
+      "evidence": [
+        "The published API exports decompression and streaming decompression only.",
+        "Its README identifies the package as pure-JavaScript Zstandard decompression; it cannot execute the catalog-required encode step."
+      ]
+    },
+    {
+      "name": "zstdify",
+      "version": "1.4.0",
+      "licenseSpdx": "MIT",
+      "source": "https://github.com/bhouston/zstdify",
+      "packageTarballSha256": "0f464bccc23409fa64b738e12898cb97de4d23dafc37caa9837acb3a2936e973",
+      "disposition": "interop-failure",
+      "evidence": [
+        "On a deterministic 32 KiB binary probe, zstdify level 3 compressed and self-decompressed successfully, but the independent zstd 1.5.7 CLI rejected the emitted frame with exit 1 and 'Data corruption detected'.",
+        "On a deterministic 1 MiB valid JSON probe, zstdify level 3 threw 'FSE readNCount: truncated input' during compression and produced no frame.",
+        "A codec that self-roundtrips a frame rejected by the reference implementation is not a trustworthy controlled encoder for the frozen workload."
+      ]
+    },
+    {
+      "name": "@foxglove/wasm-zstd and equivalent browser packages",
+      "version": "1.0.1",
+      "licenseSpdx": "MIT",
+      "source": "https://github.com/foxglove/wasm-zstd",
+      "disposition": "wasm-backed",
+      "evidence": [
+        "These packages expose the official C codec compiled to WebAssembly.",
+        "Using one for the JavaScript target would make both variants Wasm and violate the controlled target contract."
+      ]
+    },
+    {
+      "name": "zstd.ts and native Node bindings",
+      "version": "1.1.3",
+      "licenseSpdx": "BSD-2-Clause",
+      "source": "https://github.com/beenotung/zstd.ts",
+      "disposition": "native-process",
+      "evidence": [
+        "The package shells out to system-installed zstd and unzstd programs.",
+        "A native subprocess is neither browser-runnable JavaScript nor equivalent to the declared controlled pair."
+      ]
+    }
+  ],
+  "reproduction": {
+    "script": "scripts/reproduce-base-zstd-js-blocker.sh",
+    "denoVersion": "2.9.0",
+    "independentDecoder": "Zstandard CLI 1.5.7",
+    "probeInputSha256": "baa8f91d750a704eb922e69271e776eefb9f6497ea586d7dda2ea158f62db497",
+    "candidateFrameSha256": "6027a209cdcdafbcb87bb962f45a953f9c1e8f3feb789d7d5ad407193dff35bb",
+    "candidateSelfRoundtrip": true,
+    "independentDecoderExitCode": 1,
+    "independentDecoderObservation": "Decoding error (36): Data corruption detected"
+  },
+  "nextAction": "Keep the workload at 0 coverage. Re-evaluate only when a pinned, license-compatible pure-JavaScript zstd encoder and decoder passes official zstd vectors, all 1/10/100 MiB registered fixtures, independent zstd 1.5.7 interoperability, and the controlled algorithm/fixed-level review."
+}
