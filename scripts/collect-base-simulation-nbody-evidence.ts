@@ -10,6 +10,24 @@ import {
 const root = new URL("../", import.meta.url);
 const workloadRoute = "/demos/simulation-nbody-cloth/";
 const expectedProduct = /^Chrome\/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/;
+export const FIXED_CHROME_ARGUMENTS = Object.freeze(
+  [
+    "--headless=new",
+    "--no-sandbox",
+    "--disable-gpu",
+    "--disable-background-networking",
+    "--disable-component-update",
+    "--disable-default-apps",
+    "--disable-extensions",
+    "--disable-sync",
+    "--metrics-recording-only",
+    "--no-first-run",
+    "--enable-automation",
+    "--disable-cache",
+    "--window-size=1440,1200",
+    "--remote-debugging-address=127.0.0.1",
+  ] as const,
+);
 const expectedDigests = {
   completeOutputDigest: "00136c5b760c3794",
   quantizedStateDigest: "5c5c1eca3fffb709",
@@ -62,6 +80,15 @@ type ProcessIdentity = {
   startTimeTicks: string;
   executable: string;
 };
+type FrozenSource = {
+  evidence: {
+    commit: string;
+    tree: string;
+    files: Array<{ path: string; bytes: number; sha256: string }>;
+    cleanHeadVerifiedBeforeAndAfter: true;
+  };
+  records: ReadonlyMap<string, { bytes: number; sha256: string }>;
+};
 type NetworkRecord = {
   requestId: string;
   sessionId: string;
@@ -102,9 +129,7 @@ async function fileRecord(path: string) {
   return { path, bytes: bytes.byteLength, sha256: await sha256Hex(bytes) };
 }
 
-async function assertCleanHead(sourceCommit: string) {
-  const head = await commandText("git", ["rev-parse", "HEAD"]);
-  if (sourceCommit !== head) throw new Error("--source-commit does not match HEAD");
+async function cleanStatus(): Promise<void> {
   const status = await new Deno.Command("git", {
     cwd: root,
     args: ["status", "--porcelain=v1", "-z", "--untracked-files=all"],
@@ -113,7 +138,14 @@ async function assertCleanHead(sourceCommit: string) {
   }).output();
   if (!status.success) throw new Error("git status failed");
   assertCleanStatus(new TextDecoder().decode(status.stdout));
-  const files = [];
+}
+
+async function assertCleanHead(sourceCommit: string): Promise<FrozenSource> {
+  const head = await commandText("git", ["rev-parse", "HEAD"]);
+  if (sourceCommit !== head) throw new Error("--source-commit does not match HEAD");
+  await cleanStatus();
+  const files: Array<{ path: string; bytes: number; sha256: string }> = [];
+  const records = new Map<string, { bytes: number; sha256: string }>();
   for (const path of COLLECTOR_SOURCE_PATHS) {
     const disk = await Deno.readFile(new URL(path, root));
     const committed = await new Deno.Command("git", {
@@ -122,16 +154,39 @@ async function assertCleanHead(sourceCommit: string) {
       stdout: "piped",
       stderr: "piped",
     }).output();
-    if (!committed.success || await sha256Hex(committed.stdout) !== await sha256Hex(disk)) {
+    const diskHash = await sha256Hex(disk);
+    if (!committed.success || await sha256Hex(committed.stdout) !== diskHash) {
       throw new Error(`committed source bytes differ from checkout: ${path}`);
     }
-    files.push(await fileRecord(path));
+    const record = { path, bytes: committed.stdout.byteLength, sha256: diskHash };
+    files.push(record);
+    records.set(path, { bytes: record.bytes, sha256: record.sha256 });
   }
   return {
-    commit: sourceCommit,
-    tree: await commandText("git", ["rev-parse", `${sourceCommit}^{tree}`]),
-    files,
+    evidence: {
+      commit: sourceCommit,
+      tree: await commandText("git", ["rev-parse", `${sourceCommit}^{tree}`]),
+      files,
+      cleanHeadVerifiedBeforeAndAfter: true,
+    },
+    records,
   };
+}
+
+async function assertFrozenSourceUnchanged(source: FrozenSource): Promise<void> {
+  const final = await assertCleanHead(source.evidence.commit);
+  if (canonicalize(final.evidence) !== canonicalize(source.evidence)) {
+    throw new Error("clean HEAD source identity changed during collection");
+  }
+}
+
+function chromeLaunchArguments(debuggerPort: number, profilePath: string): string[] {
+  return [
+    ...FIXED_CHROME_ARGUMENTS,
+    `--remote-debugging-port=${debuggerPort}`,
+    `--user-data-dir=${profilePath}`,
+    "about:blank",
+  ];
 }
 
 export function parseTextOracle(text: string, variant: string) {
@@ -216,43 +271,85 @@ async function processIdentity(pid: number): Promise<ProcessIdentity | null> {
   }
 }
 
-async function ownedProcesses(rootPid: number): Promise<ProcessIdentity[]> {
-  const identities: ProcessIdentity[] = [];
-  for await (const entry of Deno.readDir("/proc")) {
-    if (!entry.isDirectory || !/^\d+$/.test(entry.name)) continue;
-    const identity = await processIdentity(Number(entry.name));
-    if (identity) identities.push(identity);
-  }
-  const owned = new Set([rootPid]);
-  let changed = true;
-  while (changed) {
-    changed = false;
-    for (const identity of identities) {
-      if (owned.has(identity.parentPid) && !owned.has(identity.pid)) {
-        owned.add(identity.pid);
-        changed = true;
-      }
+async function cgroupPath(unit: string): Promise<string> {
+  const deadline = Date.now() + 5_000;
+  let path = "";
+  while (Date.now() < deadline) {
+    try {
+      path = await commandText("systemctl", [
+        "--user",
+        "show",
+        `${unit}.scope`,
+        "--property=ControlGroup",
+        "--value",
+      ]);
+      if (path) break;
+    } catch {
+      // The systemd scope registration can briefly lag the spawned command.
     }
+    await new Promise((resolve) => setTimeout(resolve, 25));
   }
-  return identities.filter((identity) => owned.has(identity.pid)).sort((a, b) => a.pid - b.pid);
+  if (!/^\/user\.slice\/[^\0\r\n]+\/wasm-nbody-[a-z]+-[a-f0-9-]+\.scope$/.test(path)) {
+    throw new Error(`owned cgroup path was not exact: ${path}`);
+  }
+  return path;
 }
 
-async function identityStillRunning(identity: ProcessIdentity): Promise<boolean> {
-  const current = await processIdentity(identity.pid);
-  return current?.startTimeTicks === identity.startTimeTicks &&
-    current.executable === identity.executable;
+async function cgroupProcesses(path: string): Promise<ProcessIdentity[]> {
+  const pids = (await Deno.readTextFile(`/sys/fs/cgroup${path}/cgroup.procs`))
+    .trim().split("\n").filter(Boolean).map(Number);
+  const identities = (await Promise.all(pids.map(processIdentity))).filter(
+    (identity): identity is ProcessIdentity => identity !== null,
+  );
+  return identities.sort((a, b) => a.pid - b.pid);
 }
 
-async function waitForOwnedExit(
-  identities: ProcessIdentity[],
-  timeoutMs: number,
-): Promise<boolean> {
+async function cgroupAbsent(path: string, timeoutMs: number): Promise<boolean> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
-    if (!(await Promise.all(identities.map(identityStillRunning))).some(Boolean)) return true;
+    try {
+      await Deno.lstat(`/sys/fs/cgroup${path}`);
+    } catch (error) {
+      if (error instanceof Deno.errors.NotFound) return true;
+      throw error;
+    }
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
   return false;
+}
+
+async function killScope(unit: string, signal: "SIGTERM" | "SIGKILL"): Promise<void> {
+  const output = await new Deno.Command("systemctl", {
+    args: ["--user", "kill", "--kill-whom=all", `--signal=${signal}`, `${unit}.scope`],
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  const stderr = new TextDecoder().decode(output.stderr);
+  if (!output.success && !stderr.includes("not loaded")) {
+    throw new Error(`failed to kill owned cgroup ${unit}.scope: ${stderr.trim()}`);
+  }
+}
+
+function scopedCommand(unit: string, executable: string, args: string[], options: {
+  cwd?: string | URL;
+  env?: Record<string, string>;
+}) {
+  return new Deno.Command("systemd-run", {
+    cwd: options.cwd,
+    env: options.env,
+    args: [
+      "--user",
+      "--scope",
+      "--quiet",
+      `--unit=${unit}`,
+      "--property=KillMode=control-group",
+      "--",
+      executable,
+      ...args,
+    ],
+    stdout: "null",
+    stderr: "null",
+  }).spawn();
 }
 
 async function click(client: CdpClient, sessionId: string, selector: string): Promise<void> {
@@ -348,6 +445,7 @@ async function collectScenario(
   origin: string,
   scenario: Scenario,
   output: string,
+  frozenRecords: ReadonlyMap<string, { bytes: number; sha256: string }>,
 ) {
   const created = await client.send("Target.createTarget", { url: "about:blank" });
   const targetId = String(created.targetId);
@@ -450,10 +548,10 @@ async function collectScenario(
         const bytes = response.base64Encoded
           ? Uint8Array.from(atob(body), (character) => character.charCodeAt(0))
           : new TextEncoder().encode(body);
-        const disk = await Deno.readFile(new URL(sourcePath, root));
+        const frozen = frozenRecords.get(sourcePath);
         const digest = await sha256Hex(bytes);
-        if (bytes.byteLength !== disk.byteLength || digest !== await sha256Hex(disk)) {
-          throw new Error(`served response bytes differ from clean HEAD: ${route}`);
+        if (!frozen || bytes.byteLength !== frozen.bytes || digest !== frozen.sha256) {
+          throw new Error(`served response bytes differ from frozen commit: ${route}`);
         }
         executedAssets.set(route, {
           route,
@@ -586,11 +684,17 @@ async function collectScenario(
       { requestId: _requestId, sessionId: _sessionId, ...r },
     ) => r);
     if (
-      network.some((request) =>
-        request.failed || request.status !== 200 || request.fromServiceWorker ||
-        new URL(request.url).origin !== origin
-      )
-    ) throw new Error(`${scenario.id} had foreign, failed, non-200, or Service Worker traffic`);
+      network.some((request) => {
+        const url = new URL(request.url);
+        return request.failed || request.status !== 200 || request.fromServiceWorker ||
+          request.fromDiskCache || request.method !== "GET" || url.origin !== origin ||
+          !(url.pathname in EXECUTED_ROUTE_PATHS);
+      })
+    ) {
+      throw new Error(
+        `${scenario.id} had foreign, unknown, cached, failed, non-GET, non-200, or Service Worker traffic`,
+      );
+    }
 
     let oracle = null;
     if (scenario.action === "complete") {
@@ -663,6 +767,10 @@ async function runCollector() {
     );
   }
   const output = options.output;
+  const outputUrl = new URL(output, new URL(`file://${Deno.cwd()}/`));
+  if (outputUrl.href.startsWith(root.href)) {
+    throw new Error("output must be outside the frozen source checkout");
+  }
   const generatedPaths = outputPaths(output, "unused");
   for (const path of [output, generatedPaths.screenshotDirectory]) {
     try {
@@ -688,51 +796,45 @@ async function runCollector() {
 
   const serverPort = unusedPort(), debuggerPort = unusedPort();
   const origin = `http://127.0.0.1:${serverPort}`;
-  const server = new Deno.Command(Deno.execPath(), {
-    cwd: root,
-    args: [
-      "run",
-      "--allow-env=PORT,HOST,SERVER_MODE",
-      "--allow-net=127.0.0.1",
-      "--allow-read=.",
-      "deploy.ts",
-    ],
-    env: { PORT: String(serverPort), HOST: "127.0.0.1", SERVER_MODE: "public" },
-    stdout: "null",
-    stderr: "null",
-  }).spawn();
-  const serverStatus = server.status;
-  await waitFor(`${origin}/healthz`);
-
-  const profilePath = await Deno.makeTempDir({ prefix: "wasm-nbody-chrome-" });
-  const launchArguments = [
-    "--headless=new",
-    "--no-sandbox",
-    "--disable-gpu",
-    "--disable-background-networking",
-    "--disable-component-update",
-    "--disable-default-apps",
-    "--disable-extensions",
-    "--disable-sync",
-    "--metrics-recording-only",
-    "--no-first-run",
-    "--enable-automation",
-    "--disable-cache",
-    "--window-size=1440,1200",
-    "--remote-debugging-address=127.0.0.1",
-    `--remote-debugging-port=${debuggerPort}`,
-    `--user-data-dir=${profilePath}`,
-    "about:blank",
-  ];
-  const browserProcess = new Deno.Command(chromeExecutable, {
-    args: launchArguments,
-    stdout: "null",
-    stderr: "null",
-  }).spawn();
-  const browserStatus = browserProcess.status;
+  const nonce = crypto.randomUUID();
+  const serverUnit = `wasm-nbody-server-${nonce}`;
+  const browserUnit = `wasm-nbody-browser-${nonce}`;
+  let server: Deno.ChildProcess | null = null;
+  let serverStatus: Promise<Deno.CommandStatus> | null = null;
+  let serverCgroup: string | null = null;
+  let browserProcess: Deno.ChildProcess | null = null;
+  let browserStatus: Promise<Deno.CommandStatus> | null = null;
+  let browserCgroup: string | null = null;
+  let profilePath: string | null = null;
   let client: CdpClient | null = null;
   let completed = false;
   try {
+    server = scopedCommand(
+      serverUnit,
+      Deno.execPath(),
+      [
+        "run",
+        "--allow-env=PORT,HOST,SERVER_MODE",
+        "--allow-net=127.0.0.1",
+        "--allow-read=.",
+        "deploy.ts",
+      ],
+      {
+        cwd: root,
+        env: { PORT: String(serverPort), HOST: "127.0.0.1", SERVER_MODE: "public" },
+      },
+    );
+    serverStatus = server.status;
+    const serverPid = server.pid;
+    await waitFor(`${origin}/healthz`);
+    serverCgroup = await cgroupPath(serverUnit);
+
+    profilePath = await Deno.makeTempDir({ prefix: "wasm-nbody-chrome-" });
+    const launchArguments = chromeLaunchArguments(debuggerPort, profilePath);
+    browserProcess = scopedCommand(browserUnit, chromeExecutable, launchArguments, {});
+    browserStatus = browserProcess.status;
+    const browserPid = browserProcess.pid;
+    browserCgroup = await cgroupPath(browserUnit);
     const discovery = await (await waitFor(`http://127.0.0.1:${debuggerPort}/json/version`)).json();
     const websocket = new URL(String(discovery.webSocketDebuggerUrl));
     if (
@@ -748,44 +850,36 @@ async function runCollector() {
     }
     const commandLine = await client.send("Browser.getBrowserCommandLine");
     if (!Array.isArray(commandLine.arguments)) throw new Error("Chrome effective argv unavailable");
-    for (const argument of launchArguments.filter((value) => value.startsWith("--"))) {
-      if (!(commandLine.arguments as unknown[]).includes(argument)) {
-        throw new Error(`Chrome effective argv omitted ${argument}`);
+    for (const argument of launchArguments) {
+      if ((commandLine.arguments as unknown[]).filter((value) => value === argument).length !== 1) {
+        throw new Error(`Chrome effective argv did not contain exactly one ${argument}`);
       }
     }
 
     const records = [];
     for (const scenario of SCENARIOS) {
-      records.push(await collectScenario(client, origin, scenario, output));
+      records.push(await collectScenario(client, origin, scenario, output, source.records));
     }
-    const observedProcesses = await ownedProcesses(browserProcess.pid);
-    const launcher = observedProcesses.find((identity) => identity.pid === browserProcess.pid);
+    const observedProcesses = await cgroupProcesses(browserCgroup);
+    const launcher = observedProcesses.find((identity) => identity.pid === browserPid);
     if (!launcher || launcher.executable !== chromeExecutable) {
       throw new Error("owned Chrome launcher identity changed before cleanup");
     }
     await client.send("Browser.close");
     client.close();
     client = null;
-    const signals: Array<{ pid: number; signal: string }> = [];
-    if (!(await waitForOwnedExit(observedProcesses, 10_000))) {
-      for (const identity of [...observedProcesses].reverse()) {
-        if (await identityStillRunning(identity)) {
-          Deno.kill(identity.pid, "SIGTERM");
-          signals.push({ pid: identity.pid, signal: "SIGTERM" });
-        }
-      }
+    const signals: Array<{ signal: string }> = [];
+    if (!(await cgroupAbsent(browserCgroup, 10_000))) {
+      await killScope(browserUnit, "SIGTERM");
+      signals.push({ signal: "SIGTERM" });
     }
-    if (!(await waitForOwnedExit(observedProcesses, 5_000))) {
-      for (const identity of [...observedProcesses].reverse()) {
-        if (await identityStillRunning(identity)) {
-          Deno.kill(identity.pid, "SIGKILL");
-          signals.push({ pid: identity.pid, signal: "SIGKILL" });
-        }
-      }
+    if (!(await cgroupAbsent(browserCgroup, 5_000))) {
+      await killScope(browserUnit, "SIGKILL");
+      signals.push({ signal: "SIGKILL" });
     }
-    const processesAbsent = await waitForOwnedExit(observedProcesses, 5_000);
+    const processesAbsent = await cgroupAbsent(browserCgroup, 5_000);
     const browserExit = await browserStatus;
-    if (!processesAbsent) throw new Error("owned Chrome processes survived exact cleanup");
+    if (!processesAbsent) throw new Error("owned Chrome cgroup survived exact cleanup");
     const chromeAfter = await fileRecord(chromeExecutable);
     if (
       chromeAfter.bytes !== chromeIdentity.bytes || chromeAfter.sha256 !== chromeIdentity.sha256
@@ -800,13 +894,16 @@ async function runCollector() {
     }
     if (!profileAbsent) throw new Error("owned Chrome profile survived cleanup");
 
-    const serverIdentity = await processIdentity(server.pid);
-    if (serverIdentity && await identityStillRunning(serverIdentity)) {
-      Deno.kill(server.pid, "SIGTERM");
+    const serverProcesses = await cgroupProcesses(serverCgroup);
+    const serverIdentity = serverProcesses.find((identity) => identity.pid === serverPid);
+    if (!serverIdentity || serverIdentity.executable !== Deno.execPath()) {
+      throw new Error("owned evidence server launcher identity changed before cleanup");
     }
+    await killScope(serverUnit, "SIGTERM");
     const serverExit = await serverStatus;
-    const serverAbsent = serverIdentity ? !(await identityStillRunning(serverIdentity)) : true;
-    if (!serverAbsent) throw new Error("owned evidence server survived exact cleanup");
+    const serverAbsent = await cgroupAbsent(serverCgroup, 5_000);
+    if (!serverAbsent) throw new Error("owned evidence server cgroup survived exact cleanup");
+    await assertFrozenSourceUnchanged(source);
 
     const evidence = {
       schemaVersion: 1,
@@ -815,11 +912,11 @@ async function runCollector() {
       workloadId: "simulation.nbody-cloth.v1",
       performanceClaims: [],
       source: {
-        ...source,
+        ...source.evidence,
         acceptedStaticSourceCommit: buildManifest.source.commit,
       },
       collectionCommand:
-        `deno run -A scripts/collect-base-simulation-nbody-evidence.ts --source-commit=${source.commit} --chrome=${options.chrome} --output=${output}`,
+        `deno run -A scripts/collect-base-simulation-nbody-evidence.ts --source-commit=${source.evidence.commit} --chrome=${options.chrome} --output=${output}`,
       browser: {
         product: String(version.product),
         revision: String(version.revision),
@@ -837,7 +934,7 @@ async function runCollector() {
         headless: true,
         protocol: "Chrome DevTools Protocol",
       },
-      server: { origin, mode: "public", launcherPid: server.pid },
+      server: { origin, mode: "public", launcherPid: serverPid },
       contract: {
         targets: [...VARIANTS],
         timesteps: TIMESTEPS,
@@ -862,6 +959,12 @@ async function runCollector() {
           launcher,
           observedProcesses,
           requested: "Browser.close",
+          cgroup: {
+            unit: `${browserUnit}.scope`,
+            path: browserCgroup,
+            membership: "all processes in the dedicated systemd scope",
+            absent: processesAbsent,
+          },
           signals,
           exit: browserExit,
           processesAbsent,
@@ -869,7 +972,14 @@ async function runCollector() {
         profile: { path: profilePath, removed: true, absent: profileAbsent },
         server: {
           launcher: serverIdentity,
-          signal: serverIdentity ? "SIGTERM" : null,
+          observedProcesses: serverProcesses,
+          cgroup: {
+            unit: `${serverUnit}.scope`,
+            path: serverCgroup,
+            membership: "all processes in the dedicated systemd scope",
+            absent: serverAbsent,
+          },
+          signal: "SIGTERM",
           exit: serverExit,
           processAbsent: serverAbsent,
         },
@@ -888,24 +998,20 @@ async function runCollector() {
         // Continue with exact identity-bound cleanup below.
       }
       client?.close();
-      const failedProcesses = await ownedProcesses(browserProcess.pid);
-      if (!(await waitForOwnedExit(failedProcesses, 2_000))) {
-        for (const identity of [...failedProcesses].reverse()) {
-          if (await identityStillRunning(identity)) Deno.kill(identity.pid, "SIGTERM");
-        }
+      await killScope(browserUnit, "SIGTERM").catch(() => {});
+      if (browserCgroup && !(await cgroupAbsent(browserCgroup, 2_000).catch(() => false))) {
+        await killScope(browserUnit, "SIGKILL").catch(() => {});
+        await cgroupAbsent(browserCgroup, 2_000).catch(() => false);
       }
-      if (!(await waitForOwnedExit(failedProcesses, 2_000))) {
-        for (const identity of [...failedProcesses].reverse()) {
-          if (await identityStillRunning(identity)) Deno.kill(identity.pid, "SIGKILL");
-        }
+      await browserStatus?.catch(() => {});
+      await killScope(serverUnit, "SIGTERM").catch(() => {});
+      if (serverCgroup && !(await cgroupAbsent(serverCgroup, 2_000).catch(() => false))) {
+        await killScope(serverUnit, "SIGKILL").catch(() => {});
+        await cgroupAbsent(serverCgroup, 2_000).catch(() => false);
       }
-      await browserStatus.catch(() => {});
-      const failedServer = await processIdentity(server.pid);
-      if (failedServer && await identityStillRunning(failedServer)) {
-        Deno.kill(server.pid, "SIGTERM");
-      }
-      await serverStatus.catch(() => {});
-      await Deno.remove(profilePath, { recursive: true }).catch(() => {});
+      await serverStatus?.catch(() => {});
+      if (profilePath) await Deno.remove(profilePath, { recursive: true }).catch(() => {});
+      await Deno.remove(output).catch(() => {});
       await Deno.remove(generatedPaths.screenshotDirectory, { recursive: true }).catch(() => {});
     }
   }

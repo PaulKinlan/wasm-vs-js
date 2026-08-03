@@ -43,7 +43,8 @@
         "commit",
         "tree",
         "files",
-        "acceptedStaticSourceCommit"
+        "acceptedStaticSourceCommit",
+        "cleanHeadVerifiedBeforeAndAfter"
       ],
       "properties": {
         "commit": {
@@ -59,10 +60,97 @@
           "type": "array",
           "minItems": 15,
           "maxItems": 15,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/sourceFile"
-          }
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/sourceFile",
+              "type": "object",
+              "properties": {
+                "path": { "const": "scripts/collect-base-simulation-nbody-evidence.ts" }
+              }
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "type": "object",
+              "properties": { "path": { "const": "lib/canonical.ts" } }
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "type": "object",
+              "properties": { "path": { "const": "lib/cdp-client.ts" } }
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "type": "object",
+              "properties": { "path": { "const": "deploy.ts" } }
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "type": "object",
+              "properties": { "path": { "const": "server.ts" } }
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "type": "object",
+              "properties": { "path": { "const": "benchmarks/base/simulation-nbody/contract.js" } }
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "type": "object",
+              "properties": { "path": { "const": "benchmarks/base/simulation-nbody/fixture.js" } }
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "type": "object",
+              "properties": { "path": { "const": "benchmarks/base/simulation-nbody/engine.js" } }
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "type": "object",
+              "properties": {
+                "path": { "const": "public/demos/simulation-nbody-cloth/index.html" }
+              }
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "type": "object",
+              "properties": { "path": { "const": "public/demos/simulation-nbody-cloth/demo.js" } }
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "type": "object",
+              "properties": { "path": { "const": "public/demos/simulation-nbody-cloth/worker.js" } }
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "type": "object",
+              "properties": { "path": { "const": "public/styles.css" } }
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "type": "object",
+              "properties": {
+                "path": { "const": "public/artifacts/base-simulation-nbody/nbody.wasm" }
+              }
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "type": "object",
+              "properties": {
+                "path": { "const": "public/artifacts/base-simulation-nbody/build-manifest.json" }
+              }
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "type": "object",
+              "properties": {
+                "path": { "const": "schemas/base-simulation-nbody-browser-evidence.schema.json" }
+              }
+            }
+          ],
+          "items": false
+        },
+        "cleanHeadVerifiedBeforeAndAfter": {
+          "const": true
         }
       }
     },
@@ -137,19 +225,59 @@
           "type": "array",
           "minItems": 17,
           "maxItems": 17,
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
+          "prefixItems": [
+            { "const": "--headless=new" },
+            { "const": "--no-sandbox" },
+            { "const": "--disable-gpu" },
+            { "const": "--disable-background-networking" },
+            { "const": "--disable-component-update" },
+            { "const": "--disable-default-apps" },
+            { "const": "--disable-extensions" },
+            { "const": "--disable-sync" },
+            { "const": "--metrics-recording-only" },
+            { "const": "--no-first-run" },
+            { "const": "--enable-automation" },
+            { "const": "--disable-cache" },
+            { "const": "--window-size=1440,1200" },
+            { "const": "--remote-debugging-address=127.0.0.1" },
+            { "type": "string", "pattern": "^--remote-debugging-port=[0-9]+$" },
+            { "type": "string", "pattern": "^--user-data-dir=/tmp/wasm-nbody-chrome-[^/]+$" },
+            { "const": "about:blank" }
+          ],
+          "items": false
         },
         "effectiveCommandLine": {
           "type": "array",
           "minItems": 17,
+          "uniqueItems": true,
           "items": {
             "type": "string",
             "minLength": 1
-          }
+          },
+          "allOf": [
+            { "contains": { "const": "--headless=new" } },
+            { "contains": { "const": "--no-sandbox" } },
+            { "contains": { "const": "--disable-gpu" } },
+            { "contains": { "const": "--disable-background-networking" } },
+            { "contains": { "const": "--disable-component-update" } },
+            { "contains": { "const": "--disable-default-apps" } },
+            { "contains": { "const": "--disable-extensions" } },
+            { "contains": { "const": "--disable-sync" } },
+            { "contains": { "const": "--metrics-recording-only" } },
+            { "contains": { "const": "--no-first-run" } },
+            { "contains": { "const": "--enable-automation" } },
+            { "contains": { "const": "--disable-cache" } },
+            { "contains": { "const": "--window-size=1440,1200" } },
+            { "contains": { "const": "--remote-debugging-address=127.0.0.1" } },
+            { "contains": { "type": "string", "pattern": "^--remote-debugging-port=[0-9]+$" } },
+            {
+              "contains": {
+                "type": "string",
+                "pattern": "^--user-data-dir=/tmp/wasm-nbody-chrome-[^/]+$"
+              }
+            },
+            { "contains": { "const": "about:blank" } }
+          ]
         },
         "headless": {
           "const": true
@@ -570,10 +698,34 @@
         "executedAssets": {
           "type": "array",
           "minItems": 3,
+          "maxItems": 8,
           "uniqueItems": true,
           "items": {
             "$ref": "#/$defs/executedAsset"
-          }
+          },
+          "allOf": [
+            {
+              "contains": {
+                "type": "object",
+                "properties": { "route": { "const": "/demos/simulation-nbody-cloth/" } },
+                "required": ["route"]
+              }
+            },
+            {
+              "contains": {
+                "type": "object",
+                "properties": { "route": { "const": "/styles.css" } },
+                "required": ["route"]
+              }
+            },
+            {
+              "contains": {
+                "type": "object",
+                "properties": { "route": { "const": "/demos/simulation-nbody-cloth/demo.js" } },
+                "required": ["route"]
+              }
+            }
+          ]
         },
         "accessibility": {
           "type": "object",
@@ -667,15 +819,66 @@
                 "$ref": "#/$defs/textOracle"
               },
               "lifecycleInjection": {
+                "const": {
+                  "kind": "none",
+                  "expression": null
+                }
+              },
+              "finalState": {
+                "type": "object",
                 "properties": {
-                  "kind": {
-                    "const": "none"
+                  "status": {
+                    "const": "Complete. Correctness output only; no duration was collected."
                   },
-                  "expression": {
-                    "type": "null"
+                  "startDisabled": {
+                    "const": false
+                  },
+                  "cancelDisabled": {
+                    "const": true
                   }
-                },
-                "type": "object"
+                }
+              },
+              "executedAssets": {
+                "type": "array",
+                "minItems": 7,
+                "allOf": [
+                  {
+                    "contains": {
+                      "type": "object",
+                      "properties": {
+                        "route": { "const": "/demos/simulation-nbody-cloth/worker.js" }
+                      },
+                      "required": ["route"]
+                    }
+                  },
+                  {
+                    "contains": {
+                      "type": "object",
+                      "properties": {
+                        "route": { "const": "/benchmarks/base/simulation-nbody/contract.js" }
+                      },
+                      "required": ["route"]
+                    }
+                  },
+                  {
+                    "contains": {
+                      "type": "object",
+                      "properties": {
+                        "route": { "const": "/benchmarks/base/simulation-nbody/fixture.js" }
+                      },
+                      "required": ["route"]
+                    }
+                  },
+                  {
+                    "contains": {
+                      "type": "object",
+                      "properties": {
+                        "route": { "const": "/benchmarks/base/simulation-nbody/engine.js" }
+                      },
+                      "required": ["route"]
+                    }
+                  }
+                ]
               }
             },
             "type": "object"
@@ -687,6 +890,102 @@
               }
             },
             "type": "object"
+          }
+        },
+        {
+          "if": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "const": "cancel"
+              }
+            },
+            "required": [
+              "action"
+            ]
+          },
+          "then": {
+            "type": "object",
+            "properties": {
+              "lifecycleInjection": {
+                "const": {
+                  "kind": "visible-cancel-control",
+                  "expression": null
+                }
+              },
+              "finalState": {
+                "const": {
+                  "status": "Cancelled. The worker was terminated.",
+                  "result": "No completed result.",
+                  "startDisabled": false,
+                  "cancelDisabled": true
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "const": "timeout"
+              }
+            },
+            "required": [
+              "action"
+            ]
+          },
+          "then": {
+            "type": "object",
+            "properties": {
+              "lifecycleInjection": {
+                "const": {
+                  "kind": "timeout-shortening",
+                  "expression": "(() => { const native=globalThis.setTimeout; globalThis.setTimeout=(callback,delay,...args)=>native(callback,delay===30000?1:delay,...args); })()"
+                }
+              },
+              "finalState": {
+                "const": {
+                  "status": "Stopped after the 30-second correctness timeout.",
+                  "result": "No completed result.",
+                  "startDisabled": false,
+                  "cancelDisabled": true
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "const": "pagehide"
+              }
+            },
+            "required": [
+              "action"
+            ]
+          },
+          "then": {
+            "type": "object",
+            "properties": {
+              "lifecycleInjection": {
+                "const": {
+                  "kind": "pagehide-dispatch",
+                  "expression": "dispatchEvent(new PageTransitionEvent('pagehide'))"
+                }
+              },
+              "finalState": {
+                "const": {
+                  "status": "Running 1,024 bodies for exactly 120 leapfrog timesteps in a fresh worker…",
+                  "result": "No completed result.",
+                  "startDisabled": false,
+                  "cancelDisabled": true
+                }
+              }
+            }
           }
         },
         {
@@ -773,6 +1072,22 @@
                     }
                   }
                 ]
+              },
+              "executedAssets": {
+                "type": "array",
+                "minItems": 8,
+                "maxItems": 8,
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "route": {
+                      "const": "/artifacts/base-simulation-nbody/nbody.wasm"
+                    }
+                  },
+                  "required": [
+                    "route"
+                  ]
+                }
               }
             }
           }
@@ -939,7 +1254,7 @@
       "properties": {
         "url": {
           "type": "string",
-          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/"
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/(?:demos/simulation-nbody-cloth/(?:|demo\\.js|worker\\.js)|benchmarks/base/simulation-nbody/(?:contract|fixture|engine)\\.js|artifacts/base-simulation-nbody/nbody\\.wasm|styles\\.css)$"
         },
         "method": {
           "const": "GET"
@@ -993,8 +1308,16 @@
           ]
         },
         "sourcePath": {
-          "type": "string",
-          "minLength": 1
+          "enum": [
+            "public/demos/simulation-nbody-cloth/index.html",
+            "public/demos/simulation-nbody-cloth/demo.js",
+            "public/demos/simulation-nbody-cloth/worker.js",
+            "benchmarks/base/simulation-nbody/contract.js",
+            "benchmarks/base/simulation-nbody/fixture.js",
+            "benchmarks/base/simulation-nbody/engine.js",
+            "public/artifacts/base-simulation-nbody/nbody.wasm",
+            "public/styles.css"
+          ]
         },
         "bytes": {
           "type": "integer",
@@ -1009,7 +1332,73 @@
             "base64"
           ]
         }
-      }
+      },
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "route": { "const": "/demos/simulation-nbody-cloth/" },
+            "sourcePath": { "const": "public/demos/simulation-nbody-cloth/index.html" },
+            "cdpBodyEncoding": { "const": "utf8" }
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "route": { "const": "/demos/simulation-nbody-cloth/demo.js" },
+            "sourcePath": { "const": "public/demos/simulation-nbody-cloth/demo.js" },
+            "cdpBodyEncoding": { "const": "utf8" }
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "route": { "const": "/demos/simulation-nbody-cloth/worker.js" },
+            "sourcePath": { "const": "public/demos/simulation-nbody-cloth/worker.js" },
+            "cdpBodyEncoding": { "const": "utf8" }
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "route": { "const": "/benchmarks/base/simulation-nbody/contract.js" },
+            "sourcePath": { "const": "benchmarks/base/simulation-nbody/contract.js" },
+            "cdpBodyEncoding": { "const": "utf8" }
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "route": { "const": "/benchmarks/base/simulation-nbody/fixture.js" },
+            "sourcePath": { "const": "benchmarks/base/simulation-nbody/fixture.js" },
+            "cdpBodyEncoding": { "const": "utf8" }
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "route": { "const": "/benchmarks/base/simulation-nbody/engine.js" },
+            "sourcePath": { "const": "benchmarks/base/simulation-nbody/engine.js" },
+            "cdpBodyEncoding": { "const": "utf8" }
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "route": { "const": "/artifacts/base-simulation-nbody/nbody.wasm" },
+            "sourcePath": { "const": "public/artifacts/base-simulation-nbody/nbody.wasm" },
+            "cdpBodyEncoding": { "const": "base64" }
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "route": { "const": "/styles.css" },
+            "sourcePath": { "const": "public/styles.css" },
+            "cdpBodyEncoding": { "const": "utf8" }
+          }
+        }
+      ]
     },
     "processIdentity": {
       "type": "object",
@@ -1062,6 +1451,32 @@
         }
       }
     },
+    "ownedCgroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit",
+        "path",
+        "membership",
+        "absent"
+      ],
+      "properties": {
+        "unit": {
+          "type": "string",
+          "pattern": "^wasm-nbody-(?:browser|server)-[a-f0-9-]+\\.scope$"
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^/user\\.slice/[^/]+/[^/]+/(?:app\\.slice/)?wasm-nbody-(?:browser|server)-[a-f0-9-]+\\.scope$"
+        },
+        "membership": {
+          "const": "all processes in the dedicated systemd scope"
+        },
+        "absent": {
+          "const": true
+        }
+      }
+    },
     "cleanup": {
       "type": "object",
       "additionalProperties": false,
@@ -1078,6 +1493,7 @@
             "launcher",
             "observedProcesses",
             "requested",
+            "cgroup",
             "signals",
             "exit",
             "processesAbsent"
@@ -1096,20 +1512,29 @@
             "requested": {
               "const": "Browser.close"
             },
+            "cgroup": {
+              "$ref": "#/$defs/ownedCgroup",
+              "type": "object",
+              "properties": {
+                "unit": {
+                  "type": "string",
+                  "pattern": "^wasm-nbody-browser-[a-f0-9-]+\\.scope$"
+                },
+                "path": {
+                  "type": "string",
+                  "pattern": "/wasm-nbody-browser-[a-f0-9-]+\\.scope$"
+                }
+              }
+            },
             "signals": {
               "type": "array",
               "items": {
                 "type": "object",
                 "additionalProperties": false,
                 "required": [
-                  "pid",
                   "signal"
                 ],
                 "properties": {
-                  "pid": {
-                    "type": "integer",
-                    "minimum": 1
-                  },
                   "signal": {
                     "enum": [
                       "SIGTERM",
@@ -1153,26 +1578,39 @@
           "additionalProperties": false,
           "required": [
             "launcher",
+            "observedProcesses",
+            "cgroup",
             "signal",
             "exit",
             "processAbsent"
           ],
           "properties": {
             "launcher": {
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/processIdentity"
+              "$ref": "#/$defs/processIdentity"
+            },
+            "observedProcesses": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/processIdentity"
+              }
+            },
+            "cgroup": {
+              "$ref": "#/$defs/ownedCgroup",
+              "type": "object",
+              "properties": {
+                "unit": {
+                  "type": "string",
+                  "pattern": "^wasm-nbody-server-[a-f0-9-]+\\.scope$"
                 },
-                {
-                  "type": "null"
+                "path": {
+                  "type": "string",
+                  "pattern": "/wasm-nbody-server-[a-f0-9-]+\\.scope$"
                 }
-              ]
+              }
             },
             "signal": {
-              "enum": [
-                "SIGTERM",
-                null
-              ]
+              "const": "SIGTERM"
             },
             "exit": {
               "$ref": "#/$defs/exitStatus"

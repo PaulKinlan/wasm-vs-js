@@ -4,6 +4,7 @@ import { assert, assertEquals, assertRejects } from "../assert.ts";
 import {
   COLLECTOR_SOURCE_PATHS,
   EXECUTED_ROUTE_PATHS,
+  FIXED_CHROME_ARGUMENTS,
   parseTextOracle,
   SCENARIOS,
 } from "../../scripts/collect-base-simulation-nbody-evidence.ts";
@@ -42,19 +43,40 @@ function scenario(id: string, target: string, action: string) {
     : action === "timeout"
     ? "timeout-shortening"
     : "pagehide-dispatch";
+  const shellRoutes = [
+    "/demos/simulation-nbody-cloth/",
+    "/styles.css",
+    "/demos/simulation-nbody-cloth/demo.js",
+  ];
+  const completeRoutes = [
+    ...shellRoutes,
+    "/demos/simulation-nbody-cloth/worker.js",
+    "/benchmarks/base/simulation-nbody/contract.js",
+    "/benchmarks/base/simulation-nbody/fixture.js",
+    "/benchmarks/base/simulation-nbody/engine.js",
+    ...(target === "wasm-linear-controlled" ? ["/artifacts/base-simulation-nbody/nbody.wasm"] : []),
+  ];
+  const assetRoutes = complete ? completeRoutes : shellRoutes;
+  const injectionExpression = action === "timeout"
+    ? "(() => { const native=globalThis.setTimeout; globalThis.setTimeout=(callback,delay,...args)=>native(callback,delay===30000?1:delay,...args); })()"
+    : action === "pagehide"
+    ? "dispatchEvent(new PageTransitionEvent('pagehide'))"
+    : null;
+  const status = complete
+    ? "Complete. Correctness output only; no duration was collected."
+    : action === "cancel"
+    ? "Cancelled. The worker was terminated."
+    : action === "timeout"
+    ? "Stopped after the 30-second correctness timeout."
+    : "Running 1,024 bodies for exactly 120 leapfrog timesteps in a fresh worker…";
   return {
     id,
     target,
     action,
     route: "/demos/simulation-nbody-cloth/",
-    lifecycleInjection: {
-      kind,
-      expression: kind === "none" || kind === "visible-cancel-control" ? null : "injection",
-    },
+    lifecycleInjection: { kind, expression: injectionExpression },
     finalState: {
-      status: complete
-        ? "Complete. Correctness output only; no duration was collected."
-        : "terminated",
+      status,
       result: text,
       startDisabled: false,
       cancelDisabled: true,
@@ -62,24 +84,24 @@ function scenario(id: string, target: string, action: string) {
     oracle,
     console: [],
     exceptions: [],
-    network: Array.from({ length: 3 }, (_, index) => ({
-      url: `http://127.0.0.1:1234/asset-${index}`,
+    network: assetRoutes.map((route) => ({
+      url: `http://127.0.0.1:1234${route}`,
       method: "GET",
-      type: "Script",
+      type: route === "/demos/simulation-nbody-cloth/" ? "Document" : "Script",
       status: 200,
-      mimeType: "text/javascript",
+      mimeType: route.endsWith(".wasm") ? "application/wasm" : "text/javascript",
       fromDiskCache: false,
       fromServiceWorker: false,
       failed: false,
       errorText: null,
     })),
-    executedAssets: Object.entries(EXECUTED_ROUTE_PATHS).slice(0, 3).map(([route, sourcePath]) => ({
+    executedAssets: assetRoutes.map((route) => ({
       route,
-      sourcePath,
+      sourcePath: EXECUTED_ROUTE_PATHS[route],
       bytes: 1,
       sha256: sha,
-      cdpBodyEncoding: "utf8",
-    })),
+      cdpBodyEncoding: route.endsWith(".wasm") ? "base64" : "utf8",
+    })).sort((a, b) => a.route.localeCompare(b.route)),
     accessibility: {
       inspectedAxNodes: 10,
       assertions: {
@@ -108,6 +130,7 @@ function validEvidence() {
       tree: git,
       acceptedStaticSourceCommit: git,
       files: COLLECTOR_SOURCE_PATHS.map((path) => ({ path, bytes: 1, sha256: sha })),
+      cleanHeadVerifiedBeforeAndAfter: true,
     },
     collectionCommand:
       `deno run -A scripts/collect-base-simulation-nbody-evidence.ts --source-commit=${git} --chrome=/chrome --output=/evidence.json`,
@@ -117,8 +140,19 @@ function validEvidence() {
       userAgent: "Chrome",
       jsVersion: "15.0",
       executable: { path: "/chrome", bytes: 1, sha256: sha, dev: 1, ino: 1 },
-      requestedLaunchArguments: Array.from({ length: 17 }, (_, index) => `--arg-${index}`),
-      effectiveCommandLine: Array.from({ length: 17 }, (_, index) => `--arg-${index}`),
+      requestedLaunchArguments: [
+        ...FIXED_CHROME_ARGUMENTS,
+        "--remote-debugging-port=9222",
+        "--user-data-dir=/tmp/wasm-nbody-chrome-owned",
+        "about:blank",
+      ],
+      effectiveCommandLine: [
+        "/chrome",
+        ...FIXED_CHROME_ARGUMENTS,
+        "--remote-debugging-port=9222",
+        "--user-data-dir=/tmp/wasm-nbody-chrome-owned",
+        "about:blank",
+      ],
       headless: true,
       protocol: "Chrome DevTools Protocol",
     },
@@ -155,6 +189,13 @@ function validEvidence() {
           { pid: 2, parentPid: 1, startTimeTicks: "1", executable: "/chrome" },
         ],
         requested: "Browser.close",
+        cgroup: {
+          unit: "wasm-nbody-browser-00000000-0000-4000-8000-000000000000.scope",
+          path:
+            "/user.slice/user-1000.slice/user@1000.service/app.slice/wasm-nbody-browser-00000000-0000-4000-8000-000000000000.scope",
+          membership: "all processes in the dedicated systemd scope",
+          absent: true,
+        },
         signals: [],
         exit: { success: true, code: 0, signal: null },
         processesAbsent: true,
@@ -162,6 +203,16 @@ function validEvidence() {
       profile: { path: "/tmp/wasm-nbody-chrome-owned", removed: true, absent: true },
       server: {
         launcher: { pid: 3, parentPid: 1, startTimeTicks: "1", executable: "/deno" },
+        observedProcesses: [
+          { pid: 3, parentPid: 1, startTimeTicks: "1", executable: "/deno" },
+        ],
+        cgroup: {
+          unit: "wasm-nbody-server-00000000-0000-4000-8000-000000000000.scope",
+          path:
+            "/user.slice/user-1000.slice/user@1000.service/app.slice/wasm-nbody-server-00000000-0000-4000-8000-000000000000.scope",
+          membership: "all processes in the dedicated systemd scope",
+          absent: true,
+        },
         signal: "SIGTERM",
         exit: { success: false, code: 143, signal: "SIGTERM" },
         processAbsent: true,
@@ -228,8 +279,32 @@ Deno.test("N-body browser evidence schema is closed over source, raw responses, 
   rejected((value) => value.scenarios[1].target = "js-controlled");
   rejected((value) => value.scenarios.pop());
   rejected((value) => value.cleanup.browser.processesAbsent = false);
+  rejected((value) => value.cleanup.browser.cgroup.absent = false);
+  rejected((value) =>
+    value.cleanup.browser.cgroup.unit =
+      "wasm-nbody-server-00000000-0000-4000-8000-000000000000.scope"
+  );
+  rejected((value) => value.cleanup.server.cgroup.membership = "descendants only");
+  rejected((value) => value.source.cleanHeadVerifiedBeforeAndAfter = false);
   rejected((value) =>
     value.source.files[0].path = "uncommitted.js" as typeof value.source.files[0]["path"]
+  );
+  rejected((value) => value.source.files[1].path = value.source.files[0].path);
+  rejected((value) => value.browser.product = "Chromium/150.0.7871.24");
+  rejected((value) => value.browser.executable.sha256 = "not-a-hash");
+  rejected((value) => value.browser.requestedLaunchArguments[10] = "--disable-automation");
+  rejected((value) =>
+    value.browser.effectiveCommandLine = value.browser.effectiveCommandLine.filter((argument) =>
+      argument !== "--enable-automation"
+    )
+  );
+  rejected((value) => value.scenarios[2].finalState.status = "terminated");
+  rejected((value) => value.scenarios[3].lifecycleInjection.expression = "setTimeout = fake");
+  rejected((value) => value.scenarios[4].finalState.result = "partial result");
+  rejected((value) => value.scenarios[0].network[0].url = "http://127.0.0.1:1234/arbitrary.js");
+  rejected((value) => value.scenarios[0].executedAssets.pop());
+  rejected((value) =>
+    value.scenarios[0].executedAssets[0].sourcePath = "public/demos/simulation-nbody-cloth/demo.js"
   );
   rejected((value) => (value as Record<string, unknown>).invented = true);
 });
@@ -249,12 +324,13 @@ Deno.test("N-body collector binds every served executable body and contains no r
   for (
     const token of [
       "Network.getResponseBody",
-      "served response bytes differ from clean HEAD",
+      "served response bytes differ from frozen commit",
       "Browser.getBrowserCommandLine",
       "Page.captureScreenshot",
       "Accessibility.getFullAXTree",
       "Browser.close",
-      "identityStillRunning",
+      "cgroupProcesses",
+      "KillMode=control-group",
       "output already exists; browser evidence is immutable",
     ]
   ) assert(source.includes(token), `collector omitted ${token}`);
