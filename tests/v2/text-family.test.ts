@@ -50,6 +50,11 @@ Deno.test("text diff frozen Unicode fixture has exact full-contract shape and fr
   assert(fixture.targets[0].lines.at(-1)?.endsWith("edited-🚧"));
   const framed = serializeDiffPair(fixture.base.slice(0, 2), fixture.targets[0].lines.slice(0, 2));
   assertEquals(new DataView(framed.buffer).getUint32(0, true), 0x31464454);
+  assert(
+    JSON.stringify([...serializeDiffPair(["ab", "c"], [])]) !==
+      JSON.stringify([...serializeDiffPair(["a", "bc"], [])]),
+    "diff framing permits a concatenation collision",
+  );
 });
 
 Deno.test("text diff authored Wasm and JavaScript agree on adversarial Myers ties", async () => {
@@ -89,6 +94,11 @@ Deno.test("Markdown fixture is exact, deterministic, Unicode, and spans all 500 
   const framed = serializeMarkdownCorpus(first.documents.slice(0, 2));
   assertEquals(new DataView(framed.buffer).getUint32(0, true), 0x3146434d);
   assertEquals(new DataView(framed.buffer).getUint32(4, true), 2);
+  assert(
+    JSON.stringify([...serializeMarkdownCorpus(["ab", "c"])]) !==
+      JSON.stringify([...serializeMarkdownCorpus(["a", "bc"])]),
+    "Markdown framing permits a concatenation collision",
+  );
 });
 
 Deno.test("Markdown authored Wasm matches canonical output and rejects adversarial raw HTML", async () => {
@@ -99,6 +109,8 @@ Deno.test("Markdown authored Wasm matches canonical output and rejects adversari
     "[x](https://docs.example.test/ok)\n",
     "# heading\n[x](https://docs.example.test/path)\n![a](https://images.example.test/x)\n",
     "[nbsp](https://docs.example.test/a b)\n",
+    "[emspace](https://docs.example.test/a b)\n",
+    "[linesep](https://docs.example.test/a b)\n",
     "[bad](javascript:alert(1))\n",
     "<em onclick=x>not allowed</em>\n",
     "<strong>nested <em>x</em></strong>\n",
@@ -113,6 +125,7 @@ Deno.test("Markdown authored Wasm matches canonical output and rejects adversari
     assertEquals([...linear.transformedAst], [...js.transformedAst]);
     assert(!linear.html.includes("<script"));
     assert(!linear.html.includes("onerror"));
+    if (/^\[(?:nbsp|emspace|linesep)\]/u.test(source)) assertEquals(linear.html, "");
   }
   const tooManyLines = "x\n".repeat(MAX_NON_EMPTY_LINES + 1);
   for (
