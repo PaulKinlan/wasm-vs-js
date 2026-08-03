@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "server.ssr-template.v1",
+  "immutable": true,
+  "generator": {
+    "source": "benchmarks/v1/server-ssr-template/workload.js",
+    "revision": "0000000000000000000000000000000000000000",
+    "seed": "0x53535231",
+    "records": 1000
+  },
+  "rights": {
+    "owner": "Wasm versus JavaScript project",
+    "source": "project-generated; no external text, user data, templates, or media",
+    "licenseSpdx": "CC0-1.0",
+    "redistribution": "permitted"
+  },
+  "fixture": {
+    "path": "public/artifacts/base-server-ssr-template/fixture.bin",
+    "bytes": 91442,
+    "sha256": "f94cbcc0af8ab5b1b292c5d48c2b8ea319d5078e020374fb4e2beceb191ae524"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.example/schemas/v1-implementation-registration.schema.json",
+  "title": "Frozen catalog v1 supplemental implementation registration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "workloadId",
+    "frozenCatalog",
+    "status",
+    "equivalence",
+    "fixture",
+    "fixedWork",
+    "variants",
+    "oracle",
+    "counters",
+    "artifacts",
+    "limitations"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "workloadId": { "type": "string", "minLength": 1 },
+    "frozenCatalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "immutability"],
+      "properties": {
+        "path": { "const": "catalog/workloads.v1.json" },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "immutability": { "const": "byte-for-byte" }
+      }
+    },
+    "status": { "enum": ["candidate-pending-independent-review", "accepted"] },
+    "equivalence": {
+      "type": "object",
+      "required": ["class", "algorithmFamily", "aggregation"],
+      "properties": {
+        "class": { "const": "semantic-product-choice" },
+        "algorithmFamily": { "const": "ssr-fixed-template-escaping" },
+        "aggregation": { "const": "excluded-from-algorithm-equivalent-aggregate" }
+      },
+      "additionalProperties": false
+    },
+    "fixture": { "type": "object" },
+    "fixedWork": { "type": "object" },
+    "variants": { "type": "object" },
+    "oracle": { "type": "object" },
+    "counters": { "type": "object" },
+    "artifacts": { "type": "object" },
+    "limitations": { "type": "array", "items": { "type": "string" } }
+  }
+}
