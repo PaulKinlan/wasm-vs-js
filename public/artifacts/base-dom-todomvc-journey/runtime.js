@@ -126,6 +126,7 @@ const TodoJsEngine = class {
     this.flags = new Uint8Array(TODO_COUNT);
     this.versions = new Uint8Array(TODO_COUNT);
     this.filter = FILTER.ALL;
+    this.allocations = 2;
     this.counters = {
       actions: 0,
       adds: 0,
@@ -186,6 +187,7 @@ const TodoJsEngine = class {
       throw new Error("encoded trace must contain four i32 fields per action");
     }
     const commands = new Int32Array(encoded.length);
+    this.allocations += 1;
     for (let offset = 0; offset < encoded.length; offset += COMMAND_FIELDS) {
       commands.set(this.apply(encoded[offset], encoded[offset + 1], encoded[offset + 2], encoded[offset + 3]), offset);
     }
@@ -215,7 +217,7 @@ function summarizeState(flags, versions, filter) {
     }
   };
 }
-const EXPECTED_OPERATIVE_COUNTERS = Object.freeze({
+const EXPECTED_CORE_COUNTERS = Object.freeze({
   actions: 150,
   adds: 100,
   toggles: 34,
@@ -225,19 +227,24 @@ const EXPECTED_OPERATIVE_COUNTERS = Object.freeze({
   stateWrites: 250,
   commandsEmitted: 150
 });
-function completeCounters(operative, target) {
-  if (JSON.stringify(operative) !== JSON.stringify(EXPECTED_OPERATIVE_COUNTERS)) {
-    throw new Error(`operative counter mismatch: ${JSON.stringify(operative)}`);
-  }
-  return {
-    ...operative,
-    commandFields: operative.commandsEmitted * COMMAND_FIELDS,
-    outputElements: operative.commandsEmitted * COMMAND_FIELDS + TODO_COUNT * 2 + 1,
+function completeCounters(operative, observed, target) {
+  const expected = {
+    ...EXPECTED_CORE_COUNTERS,
+    commandFields: 600,
+    outputElements: 801,
     allocations: target === "javascript" ? 4 : 0,
     boundaryCrossings: target === "wasm-linear" ? 1 : 0
   };
+  const counters = {
+    ...operative,
+    ...observed
+  };
+  if (JSON.stringify(counters) !== JSON.stringify(expected)) {
+    throw new Error(`operative counter mismatch: ${JSON.stringify(counters)}`);
+  }
+  return counters;
 }
-function result(variantId, target, commands, flags, versions, filter, operativeCounters) {
+function result(variantId, target, commands, flags, versions, filter, operativeCounters, observedCounters) {
   const summary = summarizeState(flags, versions, filter);
   if (JSON.stringify(summary) !== JSON.stringify({
     alive: 90,
@@ -257,13 +264,19 @@ function result(variantId, target, commands, flags, versions, filter, operativeC
     flags: Array.from(flags),
     versions: Array.from(versions),
     summary,
-    counters: completeCounters(operativeCounters, target)
+    counters: completeCounters(operativeCounters, observedCounters, target)
   };
 }
 function runJavaScript(encoded = encodeActionTrace()) {
   const engine = new TodoJsEngine();
   const commands = engine.run(encoded);
-  return result("js-controlled", "javascript", commands, engine.flags, engine.versions, engine.filter, engine.counters);
+  engine.allocations += 1;
+  return result("js-controlled", "javascript", commands, engine.flags, engine.versions, engine.filter, engine.counters, {
+    commandFields: commands.length,
+    outputElements: commands.length + engine.flags.length + engine.versions.length + 1,
+    allocations: engine.allocations,
+    boundaryCrossings: 0
+  });
 }
 async function instantiateTodoWasm(bytes) {
   const module = await WebAssembly.compile(bytes);
@@ -282,7 +295,9 @@ async function instantiateTodoWasm(bytes) {
     "counter_removes",
     "counter_edits",
     "counter_state_writes",
-    "counter_commands_emitted"
+    "counter_commands_emitted",
+    "counter_output_elements",
+    "counter_allocations"
   ]) {
     if (!(name in exports)) throw new Error(`Wasm export missing: ${name}`);
   }
@@ -298,6 +313,9 @@ function runWasm(exports, encoded = encodeActionTrace()) {
   const memory = exports.memory;
   new Int32Array(memory.buffer, inputPtr, encoded.length).set(encoded);
   const count = encoded.length / COMMAND_FIELDS;
+  const memoryPagesBefore = memory.buffer.byteLength / 65536;
+  let boundaryCrossings = 0;
+  boundaryCrossings += 1;
   const status = Number(exports.run(count));
   if (status !== count) throw new Error(`Wasm processed ${status}/${count} actions`);
   const commands = new Int32Array(new Int32Array(memory.buffer, commandPtr, encoded.length));
@@ -314,7 +332,14 @@ function runWasm(exports, encoded = encodeActionTrace()) {
     stateWrites: Number(exports.counter_state_writes()),
     commandsEmitted: Number(exports.counter_commands_emitted())
   };
-  return result("wasm-linear-controlled", "wasm-linear", commands, flags, versions, filter, operativeCounters);
+  const memoryPagesAfter = memory.buffer.byteLength / 65536;
+  if (memoryPagesAfter !== memoryPagesBefore) throw new Error("Wasm memory allocation drift");
+  return result("wasm-linear-controlled", "wasm-linear", commands, flags, versions, filter, operativeCounters, {
+    commandFields: commands.length,
+    outputElements: Number(exports.counter_output_elements()),
+    allocations: Number(exports.counter_allocations()),
+    boundaryCrossings
+  });
 }
 function assertEquivalent(js, wasm) {
   for (const field of [
