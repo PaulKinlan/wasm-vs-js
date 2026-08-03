@@ -11,7 +11,7 @@
   "fixture": {
     "path": "public/artifacts/database-olap-chart/fixture.bin",
     "bytes": 240152,
-    "sha256": "2da4d645e991adfd736bfdc00ab6dc3396cd2b4f8c456fcc83136be673bb1a3a"
+    "sha256": "5cf987b48dffafc4d11f11f23d25c2064e631a8ac8070ef89fdb2090751b9e8c"
   },
   "rights": {
     "licenseSpdx": "CC0-1.0",

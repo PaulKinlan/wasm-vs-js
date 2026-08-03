@@ -41,7 +41,6 @@ export function generateOlapFixture() {
     OLAP.queryWords,
   ]);
   let state = OLAP.seed;
-  let offset = headerWords;
   for (let row = 0; row < OLAP.rows; row += 1) {
     state = next(state);
     const region = state & 7;
@@ -51,9 +50,12 @@ export function generateOlapFixture() {
     const units = 1 + (state % 250);
     state = next(state);
     const revenueCents = (500 + (state % 50_000)) * units;
-    words.set([row, region, category, year, units, revenueCents >>> 0], offset);
-    offset += OLAP.rowWords;
+    const values = [row, region, category, year, units, revenueCents >>> 0];
+    for (let column = 0; column < OLAP.rowWords; column += 1) {
+      words[headerWords + column * OLAP.rows + row] = values[column];
+    }
   }
+  let offset = headerWords + OLAP.rows * OLAP.rowWords;
   for (const query of QUERY_TRACE) {
     words.set(query, offset);
     offset += OLAP.queryWords;

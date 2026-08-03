@@ -22,23 +22,23 @@
   "sources": [
     {
       "path": "benchmarks/base/database-olap-chart/implementation-contract.v1.json",
-      "bytes": 1652,
-      "sha256": "5d558b925f0d14d0834b0998161c4be0a619b52e62880b4fad1e0cd8faf0a9dc"
+      "bytes": 1773,
+      "sha256": "acfe82bc52aee4bba890bc70329fff82c368ee445a7e179df4b6909fc89485eb"
     },
     {
       "path": "benchmarks/base/database-olap-chart/fixture.js",
-      "bytes": 2234,
-      "sha256": "4b8b042e33afbe6c9f05298200328d220cf67b749634803612d149ec70e47391"
+      "bytes": 2369,
+      "sha256": "f35f1314f7f575d45477fe85342b5d5d05ed87642ef7672400c1eaf7ab1d3c45"
     },
     {
       "path": "benchmarks/base/database-olap-chart/engine.js",
-      "bytes": 7375,
-      "sha256": "6ad8a7f27f0e39a3545f0f6643eadae1b64508c04527539955d039570501714c"
+      "bytes": 7398,
+      "sha256": "ca6aec3c120a06e953b3a2235b716efb693126eac6777c96a67b87f054e61d55"
     },
     {
       "path": "benchmarks/base/database-olap-chart/olap.c",
-      "bytes": 4647,
-      "sha256": "e8541de6fb2e620e071e1d62140547462b36d6fcff07122d72ff6508b8f93f01"
+      "bytes": 4653,
+      "sha256": "a5a40cb0c8e60b7b662862c149bc02874bc4c039d2b583a88bd65b3864537799"
     },
     {
       "path": "scripts/build-base-olap.ts",
@@ -60,12 +60,12 @@
     {
       "path": "public/artifacts/database-olap-chart/database-olap-chart.wasm",
       "bytes": 4092,
-      "sha256": "437bd0e8dac4d93963e30ed79ee1daebbe252a1be0ba197c3ac2c072be972f67"
+      "sha256": "d8961ca2376da7f5fc571b89235d3986fa80e27d557c832ba86d025d8077acd8"
     },
     {
       "path": "public/artifacts/database-olap-chart/fixture.bin",
       "bytes": 240152,
-      "sha256": "2da4d645e991adfd736bfdc00ab6dc3396cd2b4f8c456fcc83136be673bb1a3a"
+      "sha256": "5cf987b48dffafc4d11f11f23d25c2064e631a8ac8070ef89fdb2090751b9e8c"
     }
   ]
 }

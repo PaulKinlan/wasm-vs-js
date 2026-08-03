@@ -28,8 +28,11 @@ function queryTrace(words) {
     (_, i) => words.slice(start + i * OLAP.queryWords, start + (i + 1) * OLAP.queryWords),
   );
 }
+function column(words, columnIndex, row) {
+  return words[HEADER_WORDS + columnIndex * OLAP.rows + row];
+}
 function key(words, row, sortColumn) {
-  return words[HEADER_WORDS + row * OLAP.rowWords + (sortColumn === 0 ? 5 : 4)];
+  return column(words, sortColumn === 0 ? 5 : 4, row);
 }
 function before(words, left, right, sortColumn, descending) {
   const a = key(words, left, sortColumn), b = key(words, right, sortColumn);
@@ -83,10 +86,11 @@ export function runOlapJavaScript(bytes = generateOlapFixture()) {
       revenueHi = new Uint32Array(OLAP.categories);
     let filterDigest = 0x811c9dc5;
     for (let row = 0; row < OLAP.rows; row += 1) {
-      const base = HEADER_WORDS + row * OLAP.rowWords;
       counters.rowsVisited += 1;
       counters.predicateChecks += 3;
-      const region = words[base + 1], category = words[base + 2], units = words[base + 4];
+      const region = column(words, 1, row),
+        category = column(words, 2, row),
+        units = column(words, 4, row);
       if (
         ((regionMask >>> region) & 1) === 0 || ((categoryMask >>> category) & 1) === 0 ||
         units < minUnits
@@ -100,7 +104,7 @@ export function runOlapJavaScript(bytes = generateOlapFixture()) {
       [revenueLo[category], revenueHi[category]] = add64(
         revenueLo[category],
         revenueHi[category],
-        words[base + 5],
+        column(words, 5, row),
       );
     }
     const selected = indexes.subarray(0, matched);
@@ -119,8 +123,7 @@ export function runOlapJavaScript(bytes = generateOlapFixture()) {
     out += 8;
     for (let i = 0; i < OLAP.topRows; i += 1) {
       const row = selected[i];
-      const base = HEADER_WORDS + row * OLAP.rowWords;
-      output.set([row, words[base + 4], words[base + 5]], out);
+      output.set([row, column(words, 4, row), column(words, 5, row)], out);
       out += 3;
     }
     for (let bin = 0; bin < OLAP.categories; bin += 1) {

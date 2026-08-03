@@ -28,7 +28,7 @@ const Ajv2020 =
     options: { strict: boolean },
   ) => { compile: (schema: unknown) => ((value: unknown) => boolean) & { errors?: unknown } };
 const expectedCatalogSha = "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4";
-const expectedFixtureSha = "2da4d645e991adfd736bfdc00ab6dc3396cd2b4f8c456fcc83136be673bb1a3a";
+const expectedFixtureSha = "5cf987b48dffafc4d11f11f23d25c2064e631a8ac8070ef89fdb2090751b9e8c";
 const expectedDigest = "e26a152f";
 
 async function runtime() {
@@ -166,11 +166,11 @@ Deno.test("every retained chart model satisfies predicates, stable ordering, and
     let previousKey: number | undefined;
     let previousId = 0;
     for (const row of model.topRows) {
-      const base = 8 + row.stableRowId * 6;
-      assert(((regionMask >>> words[base + 1]) & 1) === 1);
-      assert(((categoryMask >>> words[base + 2]) & 1) === 1);
-      assert(words[base + 4] >= minUnits);
-      const key = words[base + (sortColumn === 0 ? 5 : 4)];
+      const value = (column: number) => words[8 + column * OLAP.rows + row.stableRowId];
+      assert(((regionMask >>> value(1)) & 1) === 1);
+      assert(((categoryMask >>> value(2)) & 1) === 1);
+      assert(value(4) >= minUnits);
+      const key = value(sortColumn === 0 ? 5 : 4);
       if (previousKey !== undefined) {
         assert(descending ? previousKey >= key : previousKey <= key);
         if (previousKey === key) assert(previousId < row.stableRowId);

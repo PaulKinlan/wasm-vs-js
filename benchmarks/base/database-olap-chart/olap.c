@@ -24,8 +24,11 @@ uint32_t counter(uint32_t index) { return index < 9u ? counters[index] : 0u; }
 static uint32_t mix(uint32_t hash, uint32_t value) {
   return (hash ^ value) * 0x01000193u;
 }
+static uint32_t column_value(uint32_t column, uint32_t row) {
+  return input_words[HEADER + column * ROWS + row];
+}
 static uint32_t row_key(uint32_t row, uint32_t column) {
-  return input_words[HEADER + row * ROW_WORDS + (column == 0u ? 5u : 4u)];
+  return column_value(column == 0u ? 5u : 4u, row);
 }
 static uint32_t before(uint32_t left, uint32_t right, uint32_t column, uint32_t descending) {
   uint32_t a = row_key(left, column), b = row_key(right, column);
@@ -71,8 +74,7 @@ uint32_t run(uint32_t byte_length) {
     for (uint32_t b = 0; b < CATEGORIES; b++) { count[b] = 0u; units[b] = 0u; revenue[b] = 0u; }
     uint32_t matched = 0u, filter_digest = 0x811c9dc5u;
     for (uint32_t row = 0u; row < ROWS; row++) {
-      uint32_t base = HEADER + row * ROW_WORDS;
-      uint32_t region = input_words[base + 1u], category = input_words[base + 2u], amount = input_words[base + 4u];
+      uint32_t region = column_value(1u, row), category = column_value(2u, row), amount = column_value(4u, row);
       counters[1]++; counters[2] += 3u;
       if (((region_mask >> region) & 1u) == 0u || ((category_mask >> category) & 1u) == 0u || amount < min_units) continue;
       indexes[matched++] = row;
@@ -80,7 +82,7 @@ uint32_t run(uint32_t byte_length) {
       filter_digest = mix(filter_digest, row);
       count[category]++;
       units[category] += amount;
-      revenue[category] += input_words[base + 5u];
+      revenue[category] += column_value(5u, row);
     }
     stable_sort(matched, sort_column, descending);
     uint32_t out = q * OUT_PER_QUERY;
@@ -88,8 +90,8 @@ uint32_t run(uint32_t byte_length) {
     result_words[out++] = descending; result_words[out++] = filter_digest; result_words[out++] = TOP;
     result_words[out++] = CATEGORIES; result_words[out++] = revision;
     for (uint32_t i = 0u; i < TOP; i++) {
-      uint32_t row = indexes[i], base = HEADER + row * ROW_WORDS;
-      result_words[out++] = row; result_words[out++] = input_words[base + 4u]; result_words[out++] = input_words[base + 5u];
+      uint32_t row = indexes[i];
+      result_words[out++] = row; result_words[out++] = column_value(4u, row); result_words[out++] = column_value(5u, row);
     }
     for (uint32_t b = 0u; b < CATEGORIES; b++) {
       result_words[out++] = count[b];
