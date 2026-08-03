@@ -1,4 +1,5 @@
 import Ajv2020Module from "ajv2020";
+import { createCadMeshSemanticValidator } from "../lib/cad-mesh-semantics.ts";
 import { assert, assertEquals } from "./assert.ts";
 
 type Validator = ((value: unknown) => boolean) & { errors?: unknown };
@@ -83,7 +84,7 @@ Deno.test("cad mesh JS and material Wasm return identical complete repaired byte
     assert(jsValue === wasmValue, `${name}: ${jsValue} !== ${wasmValue}`);
   }
   assertEquals(js.counters.boundaryCrossings, 0);
-  assertEquals(wasm.counters.boundaryCrossings, 1);
+  assertEquals(wasm.counters.boundaryCrossings, 3);
   assertEquals(js.counters.operativeAllocations, 9);
   assertEquals(wasm.counters.operativeAllocations, 0);
   assertEquals(js.invariants, wasm.invariants);
@@ -224,6 +225,71 @@ Deno.test("cad mesh contract, build manifest, and evidence have closed schemas",
       !validate({ ...value, [entry.nested]: { ...value[entry.nested], undeclared: true } }),
       `${entry.label} accepted nested extra`,
     );
+  }
+});
+
+Deno.test("cad mesh semantic validator rejects poisoned identities, hashes, graph, oracle, and every counter", async () => {
+  const records = {
+    contract: JSON.parse(
+      await Deno.readTextFile(
+        new URL("benchmarks/base/cad-mesh-repair/implementation-contract.v1.json", root),
+      ),
+    ),
+    buildManifest: JSON.parse(
+      await Deno.readTextFile(
+        new URL("public/artifacts/cad-mesh-repair-v1/build-manifest.json", root),
+      ),
+    ),
+    evidence: JSON.parse(
+      await Deno.readTextFile(
+        new URL("public/artifacts/cad-mesh-repair-v1/validation-evidence.json", root),
+      ),
+    ),
+  };
+  const validate = await createCadMeshSemanticValidator(root);
+  validate(records);
+
+  const poisonedHash = "0".repeat(64);
+  const reject = (label: string, mutate: (copy: typeof records) => void) => {
+    const copy = structuredClone(records);
+    mutate(copy);
+    assertThrows(() => validate(copy), label);
+  };
+
+  reject("contract catalog identity", (copy) => copy.contract.catalogId = "poisoned.mesh");
+  reject("contract frozen catalog hash", (copy) => {
+    copy.contract.frozenCatalogSha256 = poisonedHash;
+  });
+  reject("build source repository", (copy) => {
+    copy.buildManifest.source.repository = "https://example.invalid/poisoned";
+  });
+  reject("build source commit", (copy) => copy.buildManifest.source.commit = "0".repeat(40));
+  reject("build source graph nodes", (copy) => {
+    copy.buildManifest.sourceGraph.nodes[0].sha256 = poisonedHash;
+  });
+  reject("build source graph edges", (copy) => copy.buildManifest.sourceGraph.edges.reverse());
+  reject("build.artifact.bytes", (copy) => copy.buildManifest.artifact.bytes++);
+  reject("build.artifact.sha256", (copy) => copy.buildManifest.artifact.sha256 = poisonedHash);
+  reject("evidence identity", (copy) => copy.evidence.evidenceId = "poisoned-evidence");
+  for (const link of ["buildManifest", "contract", "fixture", "artifact"] as const) {
+    reject(`evidence.${link}.sha256`, (copy) => copy.evidence[link].sha256 = poisonedHash);
+  }
+  reject("evidence complete output hash", (copy) => {
+    copy.evidence.oracle.completeOutputSha256 = poisonedHash;
+  });
+  reject("evidence complete output bytes", (copy) => copy.evidence.oracle.bytes++);
+  reject("evidence invariants", (copy) => {
+    copy.evidence.oracle.invariants.exactTarget = false;
+  });
+  reject("evidence equivalent counter names", (copy) => {
+    copy.evidence.oracle.equivalentCounterNames.reverse();
+  });
+  for (const target of ["jsCounters", "wasmCounters"] as const) {
+    for (const counter of Object.keys(records.evidence.oracle[target])) {
+      reject(`evidence ${target === "jsCounters" ? "JavaScript" : "Wasm"} counters`, (copy) => {
+        copy.evidence.oracle[target][counter]++;
+      });
+    }
   }
 });
 

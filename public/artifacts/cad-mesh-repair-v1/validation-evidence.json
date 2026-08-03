@@ -4,11 +4,11 @@
   "status": "proposal-validation-only",
   "buildManifest": {
     "path": "public/artifacts/cad-mesh-repair-v1/build-manifest.json",
-    "sha256": "7b88ed785480acf5ae938517a2598c8ac54702fd07457025e250aa624044ed65"
+    "sha256": "94cb7290fcbee7ef761c8ca0810cc259eca4a1126bd6e9a67956b3f45c8a1de1"
   },
   "contract": {
     "path": "benchmarks/base/cad-mesh-repair/implementation-contract.v1.json",
-    "sha256": "336ff1a2dd3568d9de14ae05f1e16c717812e662e09f4c924ce531b500e8e06a"
+    "sha256": "e41a850bd1dc1805fec344f1b38d3345c486281c6925071f69013b0924fd7f6d"
   },
   "fixture": {
     "path": "public/artifacts/cad-mesh-repair-v1/dirty-grid.stl",
@@ -69,7 +69,7 @@
       "collapsedVertices": 528,
       "volumeTerms": 1024,
       "targetFaces": 1024,
-      "boundaryCrossings": 1,
+      "boundaryCrossings": 3,
       "operativeAllocations": 0
     },
     "equivalentCounterNames": [
