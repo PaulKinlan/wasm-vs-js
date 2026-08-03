@@ -32,11 +32,11 @@
       "required": ["command", "toolchains", "reproducible"],
       "properties": {
         "command": {
-          "const": "deno run --allow-read=. --allow-write=public/artifacts/image-editing-demo scripts/build-image-demos.ts"
+          "const": "deno run --allow-read=. --allow-write=public/artifacts/image-editing-demo,public/benchmarks/image-demo-js-engine.js --allow-run scripts/build-image-demos.ts"
         },
         "toolchains": {
           "type": "array",
-          "prefixItems": [{ "const": "Deno 2.9.0" }],
+          "prefixItems": [{ "const": "Deno 2.9.0 bundle --platform browser" }],
           "items": false,
           "minItems": 1,
           "maxItems": 1
@@ -52,8 +52,8 @@
     },
     "assets": {
       "type": "array",
-      "minItems": 7,
-      "maxItems": 7,
+      "minItems": 10,
+      "maxItems": 10,
       "items": { "$ref": "#/$defs/fileRecord" }
     },
     "sources": {
@@ -179,6 +179,9 @@
             "/benchmarks/image-demo.css",
             "/benchmarks/image-demo.js",
             "/benchmarks/image-demo-worker.js",
+            "/benchmarks/image-demo-worker-core.js",
+            "/benchmarks/image-demo-controller.js",
+            "/benchmarks/image-demo-js-engine.js",
             "/benchmarks/image-demo-engine.js",
             "/artifacts/image-editing-demo/image-editing.wasm",
             "/artifacts/image-editing-demo/generated-map-64x48.rgba",

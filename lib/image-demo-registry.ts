@@ -41,6 +41,21 @@ export const IMAGE_DEMO_ROUTES: readonly ImageDemoRoute[] = Object.freeze([
     contentType: "text/javascript; charset=utf-8",
   },
   {
+    path: "/benchmarks/image-demo-worker-core.js",
+    file: "public/benchmarks/image-demo-worker-core.js",
+    contentType: "text/javascript; charset=utf-8",
+  },
+  {
+    path: "/benchmarks/image-demo-controller.js",
+    file: "public/benchmarks/image-demo-controller.js",
+    contentType: "text/javascript; charset=utf-8",
+  },
+  {
+    path: "/benchmarks/image-demo-js-engine.js",
+    file: "public/benchmarks/image-demo-js-engine.js",
+    contentType: "text/javascript; charset=utf-8",
+  },
+  {
     path: "/benchmarks/image-demo-engine.js",
     file: "public/benchmarks/image-demo-engine.js",
     contentType: "text/javascript; charset=utf-8",
@@ -96,6 +111,9 @@ export const IMAGE_DEMO_ASSET_PATHS = Object.freeze([
   "/benchmarks/image-demo.css",
   "/benchmarks/image-demo.js",
   "/benchmarks/image-demo-worker.js",
+  "/benchmarks/image-demo-worker-core.js",
+  "/benchmarks/image-demo-controller.js",
+  "/benchmarks/image-demo-js-engine.js",
   "/benchmarks/image-demo-engine.js",
   "/artifacts/image-editing-demo/image-editing.wasm",
   "/artifacts/image-editing-demo/generated-map-64x48.rgba",
