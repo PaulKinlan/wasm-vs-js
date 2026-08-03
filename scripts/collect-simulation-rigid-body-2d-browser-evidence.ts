@@ -753,7 +753,12 @@ async function collectScenario(
         );
         await delay(50);
         const after = await pageState(client, pageSessionId);
-        if (before.status !== after.status || String(after.status).startsWith("Worker failed.")) {
+        // Only a handler effect of the stale error (finish("Worker failed."))
+        // proves mutation; live progress updates legitimately change status.
+        const newStatuses = (after.statusHistory as string[]).slice(
+          (before.statusHistory as string[]).length,
+        );
+        if (newStatuses.some((value) => value.startsWith("Worker failed."))) {
           throw new Error("stale prior-worker error mutated restarted generation");
         }
         lifecycleChecks.push("stale prior-worker error was ignored after a fresh restart");
