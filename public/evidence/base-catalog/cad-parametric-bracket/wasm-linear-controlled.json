@@ -5,7 +5,7 @@
   "status": "implementation-candidate",
   "variantId": "wasm-linear-controlled",
   "executionTarget": "wasm-linear",
-  "sourceCommit": "source-tree-not-yet-committed",
+  "sourceCommit": "6820526573bdcfb6b585c449f0ed20141c59e87e",
   "source": {
     "path": "source-bundle",
     "bytes": 1480,
