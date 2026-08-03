@@ -37,6 +37,7 @@ Deno.test("server SSR supplemental registration preserves frozen catalog and val
   const validate = new Ajv2020({ strict: true }).compile(schema);
   assert(validate(registration), JSON.stringify(validate.errors));
   assertEquals(registration.workloadId, "server.ssr-template.v1");
+  assert(/^[a-f0-9]{40}$/.test(registration.sourceCommit));
   assertEquals(registration.status, "candidate-pending-independent-review");
   assertEquals(
     registration.equivalence.aggregation,

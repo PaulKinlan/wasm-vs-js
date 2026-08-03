@@ -211,6 +211,7 @@ const buildManifest = {
 const registration = {
   schemaVersion: 1,
   workloadId: WORKLOAD_ID,
+  sourceCommit,
   frozenCatalog: {
     path: "catalog/workloads.v1.json",
     sha256: catalogHash,
