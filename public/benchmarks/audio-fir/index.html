@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="description"
+      content="Runnable demo of the audio.fir.v1 v2 proposal workload: exact JavaScript and linear-Wasm engines, frozen fixture, pinned f64 reference oracle.">
+    <meta http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob:; worker-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'">
+    <title>Direct 256-tap FIR convolution demo · Wasm vs JavaScript</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <script type="module" src="/demo-runner.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to demo</a>
+    <header class="masthead">
+      <a class="brand" href="/">AI Focus</a>
+      <span>WASM VS JAVASCRIPT</span>
+      <strong>RUNNABLE v2 PROPOSAL DEMO</strong>
+    </header>
+    <main id="main">
+      <section class="hero" aria-labelledby="demo-title">
+        <p class="eyebrow">Runnable demo · v2 proposal · audio.fir.v1</p>
+        <h1 id="demo-title">Direct 256-tap FIR convolution</h1>
+        <p
+          class="lede">Direct convolution of 131,072 mono samples with a 256-tap windowed-sinc lowpass (cutoff 0.25 sample-rate, Hann window, DC gain normalized to 1), in strict-f32 frozen order.</p>
+        <p class="notice"><strong>Scope.</strong> This page runs one contract iteration in a fresh
+          worker and reports correctness, oracle, and work-counter evidence. It collects no
+          performance claims, uploads nothing, and stores nothing. The authoritative validation
+          records live under <a href="/evidence/v2-proposals/">v2 proposal evidence</a>.</p>
+      </section>
+
+      <section aria-labelledby="identity-title">
+        <h2 id="identity-title">Workload identity</h2>
+        <dl class="metrics">
+          <div>
+            <dt>Entry ID</dt>
+            <dd><code>audio.fir.v1</code></dd>
+          </div>
+          <div>
+            <dt>Slug</dt>
+            <dd><code>audio-fir</code></dd>
+          </div>
+          <div>
+            <dt>Tier / class</dt>
+            <dd>T2 · kernel</dd>
+          </div>
+          <div>
+            <dt>Variants</dt>
+            <dd><code>js-controlled</code> · <code>wasm-linear-controlled</code></dd>
+          </div>
+          <div>
+            <dt>Floating-point policy</dt>
+            <dd>strict-f32-frozen-order</dd>
+          </div>
+          <div>
+            <dt>Status</dt>
+            <dd>proposal-validation-only</dd>
+          </div>
+        </dl>
+        <h3>Fixed dimensions</h3>
+        <dl class="metrics">
+          <div>
+            <dt>samples</dt>
+            <dd>131072</dd>
+          </div>
+          <div>
+            <dt>taps</dt>
+            <dd>256</dd>
+          </div>
+          <div>
+            <dt>channels</dt>
+            <dd>1</dd>
+          </div>
+          <div>
+            <dt>boundary</dt>
+            <dd>zero-extend</dd>
+          </div>
+          <div>
+            <dt>convolution</dt>
+            <dd>direct</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section aria-labelledby="run-title">
+        <h2 id="run-title">Run the contract</h2>
+        <p class="no-js-note">JavaScript is off. The identity, dimensions, evidence, and source
+          links on this page are complete without it; running the engines requires JavaScript and
+          WebAssembly.</p>
+        <div class="actions demo-controls js-only">
+          <label>Engine
+            <select id="demo-target">
+              <option value="javascript">JavaScript (strict-f32)</option>
+              <option value="wasm-linear">WebAssembly (linear memory, 226 bytes)</option>
+            </select>
+          </label>
+          <label>Mode
+            <select id="demo-mode">
+              <option value="bounded">Bounded (one contract iteration, tolerance oracle)</option>
+              <option value="exact-contract">Exact contract (also verify every artifact hash)</option>
+            </select>
+          </label>
+          <button id="demo-start" type="button">Start</button>
+          <button id="demo-cancel" type="button" disabled>Cancel</button>
+        </div>
+        <p id="demo-status" class="hint js-only" role="status">Loading…</p>
+        <p class="hint">Each Start spawns a fresh module worker with a unique run token. Cancel
+          terminates the worker; messages from older tokens are discarded. The run times out and
+          is terminated after 120 seconds.</p>
+      </section>
+
+      <section id="demo-results" class="js-only" hidden aria-labelledby="results-title">
+        <h2 id="results-title">Run evidence</h2>
+        <p id="demo-summary"></p>
+        <h3>Hashes</h3>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Artifact</th>
+              <th scope="col">SHA-256</th>
+              <th scope="col">Verdict</th>
+            </tr>
+          </thead>
+          <tbody id="demo-hashes"></tbody>
+        </table>
+        <h3>Oracle checks</h3>
+        <ul id="demo-oracle" class="demo-oracle"></ul>
+        <h3>Exact work counters</h3>
+        <table>
+          <tbody id="demo-counters"></tbody>
+        </table>
+        <section aria-labelledby="contract-title">
+          <h3 id="contract-title">Exact-contract verification</h3>
+          <ul id="demo-contract"></ul>
+        </section>
+      </section>
+
+      <section aria-labelledby="evidence-title">
+        <h2 id="evidence-title">Frozen evidence</h2>
+        <dl class="metrics">
+          <div>
+            <dt>Input SHA-256</dt>
+            <dd><code>b90d5d472e7f58e18d544f32dbc7449143608939f4a8c18641d6e7eae1752b56</code></dd>
+          </div>
+          <div>
+            <dt>Output SHA-256</dt>
+            <dd><code>e4b89ba6d65fa9ac3aa5f1b30da32343e54cc81a9ee9d6f84eaf8b38e823fb5f</code></dd>
+          </div>
+          <div>
+            <dt>Reference SHA-256</dt>
+            <dd><code>3146faf58d2eecd43b74d4297fcc575b0a688cb2e2b2d9ab1b1c9f3d1e21a564</code></dd>
+          </div>
+          <div>
+            <dt>Oracle tolerances</dt>
+            <dd>absolute 1e-06 · relative 1e-05</dd>
+          </div>
+        </dl>
+        <h3>Artifacts and records</h3>
+        <ul class="demo-links">
+          <li><a href="/artifacts/audio-fir/audio-fir.wasm">Wasm artifact (226 bytes)</a></li>
+          <li><a href="/artifacts/audio-fir/reference-output.f32le">Pinned f64 reference output</a></li>
+          <li><a href="/artifacts/audio-fir/build-manifest.json">Build manifest</a> ·
+            <a href="/artifacts/audio-fir/fixture-manifest.json">fixture</a> ·
+            <a href="/artifacts/audio-fir/input-manifest.json">input</a> ·
+            <a href="/artifacts/audio-fir/output-manifest.json">output</a> ·
+            <a href="/artifacts/audio-fir/reference-manifest.json">reference</a></li>
+          <li><a href="/evidence/v2-proposals/audio-fir/js-controlled.json">JavaScript validation record</a> ·
+            <a href="/evidence/v2-proposals/audio-fir/wasm-linear-controlled.json">Wasm validation record</a></li>
+        </ul>
+        <h3>Sources (pinned commit)</h3>
+        <ul class="demo-links">
+          <li><a href="https://github.com/PaulKinlan/wasm-vs-js/blob/6f507efc2961983ed087bab0bf18fd845aebd100/benchmarks/audio-fir/workload.ts">Engine source (JavaScript)</a></li>
+          <li><a href="https://github.com/PaulKinlan/wasm-vs-js/blob/6f507efc2961983ed087bab0bf18fd845aebd100/benchmarks/audio-fir/audio-fir.wat">Kernel source (WAT)</a></li>
+          <li><a href="https://github.com/PaulKinlan/wasm-vs-js/blob/6f507efc2961983ed087bab0bf18fd845aebd100/benchmarks/audio-fir/benchmark.json">Workload contract</a></li>
+          <li><a href="https://github.com/PaulKinlan/wasm-vs-js/blob/6f507efc2961983ed087bab0bf18fd845aebd100/benchmarks/audio-shared/oracle.ts">Oracle implementation</a></li>
+        </ul>
+        <h3>How the run works</h3>
+        <ul class="demo-links">
+          <li>The JavaScript engine and the 226-byte linear-Wasm engine accumulate the same 33,554,432 multiply-accumulates in the same order with the same f32 rounding.</li>
+          <li>The oracle compares all 131,327 output components against the pinned f64 reference (absolute 1e-6, relative 1e-5) and checks finiteness, DC gain 1 within 1e-6, impulse latency, and eight exact work counters.</li>
+        </ul>
+      </section>
+    </main>
+    <script type="application/json" id="workload-identity">
+    {
+      "slug": "audio-fir",
+      "entryId": "audio.fir.v1",
+      "title": "Finite impulse response convolution",
+      "timeoutMs": 120000,
+      "frozenHashes": {
+        "inputSha256": "b90d5d472e7f58e18d544f32dbc7449143608939f4a8c18641d6e7eae1752b56",
+        "outputSha256": "e4b89ba6d65fa9ac3aa5f1b30da32343e54cc81a9ee9d6f84eaf8b38e823fb5f",
+        "referenceSha256": "3146faf58d2eecd43b74d4297fcc575b0a688cb2e2b2d9ab1b1c9f3d1e21a564"
+      }
+    }
+    </script>
+  </body>
+</html>

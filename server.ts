@@ -128,6 +128,13 @@ const routes = new Map<string, [string, string, boolean?]>([
   ]],
   ["/benchmarks", ["public/benchmarks/index.html", "text/html; charset=utf-8"]],
   ["/benchmarks/", ["public/benchmarks/index.html", "text/html; charset=utf-8"]],
+  ["/demo-runner.js", ["public/demo-runner.js", "text/javascript; charset=utf-8"]],
+  ["/demo-worker.js", ["public/demo-worker.js", "text/javascript; charset=utf-8"]],
+  ["/demo-registry.json", ["public/demo-registry.json", "application/json; charset=utf-8"]],
+  ["/demo-assets/audio/manifest.json", [
+    "public/demo-assets/audio/manifest.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/workload-catalog.js", ["public/workload-catalog.js", "text/javascript; charset=utf-8"]],
   ["/data/workloads.v1.json", [
     "public/data/workloads.v1.json",
@@ -188,6 +195,14 @@ const routes = new Map<string, [string, string, boolean?]>([
 ]);
 
 for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
+  routes.set(`/benchmarks/${slug}`, [
+    `public/benchmarks/${slug}/index.html`,
+    "text/html; charset=utf-8",
+  ]);
+  routes.set(`/benchmarks/${slug}/`, [
+    `public/benchmarks/${slug}/index.html`,
+    "text/html; charset=utf-8",
+  ]);
   routes.set(`/artifacts/${slug}/${slug}.wasm`, [
     `public/artifacts/${slug}/${slug}.wasm`,
     "application/wasm",
@@ -216,6 +231,25 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "application/json; charset=utf-8",
     ]);
   }
+}
+
+// Transpiled demo engine modules: a closed, explicitly listed set. Anything
+// else under /demo-assets/ falls through to 404.
+for (
+  const modulePath of [
+    "benchmarks/audio-fft/workload.js",
+    "benchmarks/audio-fir/workload.js",
+    "benchmarks/audio-stft/workload.js",
+    "benchmarks/audio-shared/canonical.js",
+    "benchmarks/audio-shared/constants.js",
+    "benchmarks/audio-shared/oracle.js",
+    "lib/audio-workloads.js",
+  ]
+) {
+  routes.set(`/demo-assets/audio/${modulePath}`, [
+    `public/demo-assets/audio/${modulePath}`,
+    "text/javascript; charset=utf-8",
+  ]);
 }
 
 function createHandler(

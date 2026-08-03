@@ -1,0 +1,226 @@
+import { assert, assertEquals } from "./assert.ts";
+import { AUDIO_FROZEN_HASHES } from "../benchmarks/audio-shared/constants.ts";
+
+const ROOT = new URL("../", import.meta.url);
+const SLUGS = ["audio-fft", "audio-fir", "audio-stft"] as const;
+const DEMO_MODULE_OUTPUTS = [
+  "benchmarks/audio-fft/workload.js",
+  "benchmarks/audio-fir/workload.js",
+  "benchmarks/audio-stft/workload.js",
+  "benchmarks/audio-shared/canonical.js",
+  "benchmarks/audio-shared/constants.js",
+  "benchmarks/audio-shared/oracle.js",
+  "lib/audio-workloads.js",
+] as const;
+
+async function sha256Hex(bytes: Uint8Array): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", bytes.buffer as ArrayBuffer);
+  return [...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, "0")).join("");
+}
+
+async function readBytes(path: string): Promise<Uint8Array> {
+  return await Deno.readFile(new URL(path, ROOT));
+}
+
+async function readJson(path: string): Promise<Record<string, unknown>> {
+  return JSON.parse(new TextDecoder().decode(await readBytes(path)));
+}
+
+Deno.test("audio demo registry is closed and truthful", async () => {
+  const registry = await readJson("public/demo-registry.json");
+  assertEquals(registry.schemaVersion, 1);
+  assertEquals(registry.contractId, "audio-demo-registry-v1");
+  assertEquals(registry.authoritativePerformanceEvidence, false);
+  const demos = registry.demos as Record<string, unknown>[];
+  assertEquals(demos.length, 3);
+  assertEquals(
+    JSON.stringify([...demos.map((demo) => demo.slug)].sort()),
+    JSON.stringify([...SLUGS].sort()),
+  );
+  const expectedKeys = [
+    "entryId",
+    "frozenHashes",
+    "manifestPaths",
+    "memoryPages",
+    "modes",
+    "referencePath",
+    "route",
+    "slug",
+    "targets",
+    "timeoutMs",
+    "title",
+    "wasmPath",
+  ];
+  for (const demo of demos) {
+    assertEquals(
+      JSON.stringify(Object.keys(demo).sort()),
+      JSON.stringify(expectedKeys),
+    );
+    const slug = demo.slug as keyof typeof AUDIO_FROZEN_HASHES;
+    const hashes = demo.frozenHashes as Record<string, string>;
+    assertEquals(hashes.inputSha256, AUDIO_FROZEN_HASHES[slug].inputSha256);
+    assertEquals(hashes.outputSha256, AUDIO_FROZEN_HASHES[slug].outputSha256);
+    assertEquals(hashes.referenceSha256, AUDIO_FROZEN_HASHES[slug].referenceSha256);
+    // Referenced artifacts exist and hash exactly.
+    const wasmPath = `public${demo.wasmPath}`;
+    const referencePath = `public${demo.referencePath}`;
+    assertEquals(await sha256Hex(await readBytes(referencePath)), hashes.referenceSha256);
+    const buildManifest = await readJson(`public${(demo.manifestPaths as string[])[0]}`);
+    const variants = buildManifest.variants as Record<string, Record<string, string>>;
+    assertEquals(
+      await sha256Hex(await readBytes(wasmPath)),
+      variants["wasm-linear-controlled"].artifactSha256,
+    );
+    assertEquals((demo.modes as string[]).join(","), "bounded,exact-contract");
+    assertEquals((demo.targets as string[]).join(","), "javascript,wasm-linear");
+    assert(typeof demo.timeoutMs === "number" && demo.timeoutMs >= 60_000, "bounded timeout");
+  }
+});
+
+Deno.test("audio demo assets are reproducible from the exact engine sources", async () => {
+  const before = new Map<string, string>();
+  for (const output of DEMO_MODULE_OUTPUTS) {
+    before.set(output, await sha256Hex(await readBytes(`public/demo-assets/audio/${output}`)));
+  }
+  const build = new Deno.Command(Deno.execPath(), {
+    args: [
+      "run",
+      "--allow-read=.",
+      "--allow-write=public/demo-assets",
+      "--allow-env",
+      "--allow-run",
+      "--no-lock",
+      "scripts/build-audio-demo-assets.ts",
+    ],
+    cwd: new URL(".", ROOT).pathname,
+    stdout: "piped",
+    stderr: "piped",
+  }).outputSync();
+  assert(build.success, `demo asset build failed: ${new TextDecoder().decode(build.stderr)}`);
+  for (const output of DEMO_MODULE_OUTPUTS) {
+    assertEquals(
+      await sha256Hex(await readBytes(`public/demo-assets/audio/${output}`)),
+      before.get(output),
+    );
+  }
+  const manifest = await readJson("public/demo-assets/audio/manifest.json");
+  assertEquals(manifest.contractId, "audio-demo-assets-manifest-v1");
+  const files = manifest.files as Record<string, string>[];
+  assertEquals(files.length, DEMO_MODULE_OUTPUTS.length);
+  for (const file of files) {
+    assertEquals(await sha256Hex(await readBytes(file.source)), file.sourceSha256);
+    assertEquals(await sha256Hex(await readBytes(file.output)), file.outputSha256);
+  }
+});
+
+Deno.test("audio demo pages embed truthful workload identity", async () => {
+  const registry = await readJson("public/demo-registry.json");
+  const demos = registry.demos as Record<string, unknown>[];
+  for (const demo of demos) {
+    const slug = demo.slug as string;
+    const html = new TextDecoder().decode(await readBytes(`public/benchmarks/${slug}/index.html`));
+    const match = html.match(
+      /<script type="application\/json" id="workload-identity">([\s\S]*?)<\/script>/,
+    );
+    assert(match, `${slug} page has no embedded workload identity`);
+    const identity = JSON.parse(match[1]);
+    const bench = await readJson(`benchmarks/${slug}/benchmark.json`);
+    assertEquals(identity.slug, slug);
+    assertEquals(identity.entryId, bench.entryId);
+    assertEquals(identity.entryId, demo.entryId);
+    assertEquals(identity.title, bench.title);
+    assertEquals(identity.timeoutMs, demo.timeoutMs);
+    assertEquals(identity.frozenHashes, demo.frozenHashes);
+    // The static page carries the frozen evidence and pinned source links.
+    const oracle = bench.oracle as Record<string, unknown>;
+    assert(html.includes(oracle.outputSha256 as string), `${slug} output hash on page`);
+    assert(html.includes("/evidence/v2-proposals/"), `${slug} links the evidence records`);
+    assert(
+      html.includes("/blob/6f507efc2961983ed087bab0bf18fd845aebd100/"),
+      `${slug} pinned source links`,
+    );
+    assert(html.includes(`benchmarks/${slug}/workload.ts`), `${slug} links the engine source`);
+  }
+});
+
+Deno.test("audio demo pages avoid stock AI-writing phrases", async () => {
+  const stockPhrases = [
+    "in today's rapidly evolving landscape",
+    "in the realm of",
+    "when it comes to",
+    "at its core",
+    "let's dive into",
+    "it's worth noting that",
+    "it's important to note that",
+    "a testament to",
+    "not just ",
+    "not only ",
+    "this is where ",
+    "whether you're ",
+    "despite ongoing challenges",
+    "looking ahead",
+    "in conclusion",
+    "overall",
+    "ultimately",
+    "i hope this helps",
+  ];
+  for (const slug of SLUGS) {
+    const html = new TextDecoder()
+      .decode(await readBytes(`public/benchmarks/${slug}/index.html`))
+      .toLowerCase();
+    for (const phrase of stockPhrases) {
+      assert(!html.includes(phrase), `${slug} contains stock phrase: ${phrase}`);
+    }
+  }
+});
+
+Deno.test("public server serves the audio demo routes and nothing else under /demo-assets", async () => {
+  const probe = Deno.listen({ hostname: "127.0.0.1", port: 0 });
+  const port = (probe.addr as Deno.NetAddr).port;
+  probe.close();
+  const child = new Deno.Command(Deno.execPath(), {
+    args: ["task", "public"],
+    cwd: new URL(".", ROOT).pathname,
+    env: { PORT: String(port), HOST: "127.0.0.1" },
+    stdout: "piped",
+    stderr: "piped",
+  }).spawn();
+  try {
+    let ready = false;
+    for (let attempt = 0; attempt < 50 && !ready; attempt += 1) {
+      try {
+        ready = (await fetch(`http://127.0.0.1:${port}/healthz`)).status === 200;
+      } catch {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+    }
+    assert(ready, "public task did not start");
+    const get = async (path: string) =>
+      await fetch(`http://127.0.0.1:${port}${path}`).then((response) => {
+        void response.body?.cancel();
+        return response;
+      });
+    for (const slug of SLUGS) {
+      const page = await get(`/benchmarks/${slug}/`);
+      assertEquals(page.status, 200);
+      assertEquals(page.headers.get("content-type"), "text/html; charset=utf-8");
+      assertEquals((await get(`/benchmarks/${slug}`)).status, 200);
+    }
+    assertEquals((await get("/demo-runner.js")).status, 200);
+    assertEquals((await get("/demo-worker.js")).status, 200);
+    assertEquals((await get("/demo-registry.json")).status, 200);
+    assertEquals((await get("/demo-assets/audio/manifest.json")).status, 200);
+    for (const output of DEMO_MODULE_OUTPUTS) {
+      const response = await get(`/demo-assets/audio/${output}`);
+      assertEquals(response.status, 200);
+      assertEquals(response.headers.get("content-type"), "text/javascript; charset=utf-8");
+    }
+    // The allowlist is closed: anything not explicitly listed is 404.
+    assertEquals((await get("/demo-assets/audio/lib/other.js")).status, 404);
+    assertEquals((await get("/demo-assets/audio/")).status, 404);
+    assertEquals((await get("/demo-assets/")).status, 404);
+  } finally {
+    child.kill("SIGTERM");
+    await child.status;
+  }
+});
