@@ -98,8 +98,13 @@ export async function validateProposalProvenanceSemantics(record, catalog, optio
     if (!record.provenance?.manifests?.build) {
       errors.push("audio provenance requires the immutable build manifest");
     }
-    const expectedReferencePath = `public/artifacts/${record.workload?.benchmarkSlug}/reference-output.f32le`;
-    if (!(record.provenance?.artifacts ?? []).some((artifact) => artifact.path === expectedReferencePath)) {
+    const expectedReferencePath =
+      `public/artifacts/${record.workload?.benchmarkSlug}/reference-output.f32le`;
+    if (
+      !(record.provenance?.artifacts ?? []).some((artifact) =>
+        artifact.path === expectedReferencePath
+      )
+    ) {
       errors.push("audio provenance requires the pinned reference artifact");
     }
   }
