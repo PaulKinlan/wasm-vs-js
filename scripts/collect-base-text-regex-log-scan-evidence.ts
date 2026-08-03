@@ -21,7 +21,8 @@ interface ExpectedAsset {
   route: string;
   sourcePath: string;
   role: "document" | "style" | "script" | "manifest" | "wasm" | "oracle";
-  executed: boolean;
+  requestCount: number;
+  executedIn: readonly ("page" | "worker")[];
 }
 
 export const EXPECTED_ASSETS: readonly ExpectedAsset[] = [
@@ -29,74 +30,92 @@ export const EXPECTED_ASSETS: readonly ExpectedAsset[] = [
     route: WORKLOAD_ROUTE,
     sourcePath: "public/demos/base/text.regex-log-scan.v1/index.html",
     role: "document",
-    executed: false,
+    requestCount: 1,
+    executedIn: [],
   },
-  { route: "/styles.css", sourcePath: "public/styles.css", role: "style", executed: false },
+  {
+    route: "/styles.css",
+    sourcePath: "public/styles.css",
+    role: "style",
+    requestCount: 1,
+    executedIn: [],
+  },
   {
     route: "/demos/base/text.regex-log-scan.v1/demo.js",
     sourcePath: "public/demos/base/text.regex-log-scan.v1/demo.js",
     role: "script",
-    executed: true,
+    requestCount: 1,
+    executedIn: ["page"],
   },
   {
     route: "/demos/base/text.regex-log-scan.v1/worker.js",
     sourcePath: "public/demos/base/text.regex-log-scan.v1/worker.js",
     role: "script",
-    executed: true,
+    requestCount: 2,
+    executedIn: ["worker"],
   },
   {
     route: "/demos/base/text.regex-log-scan.v1/identity.js",
     sourcePath: "public/demos/base/text.regex-log-scan.v1/identity.js",
     role: "script",
-    executed: true,
+    requestCount: 1,
+    executedIn: ["worker"],
   },
   {
     route: "/benchmarks/text-regex-log-scan/input.js",
     sourcePath: "benchmarks/text-regex-log-scan/input.js",
     role: "script",
-    executed: true,
+    requestCount: 2,
+    executedIn: ["worker"],
   },
   {
     route: "/benchmarks/text-regex-log-scan/workload.js",
     sourcePath: "benchmarks/text-regex-log-scan/workload.js",
     role: "script",
-    executed: true,
+    requestCount: 2,
+    executedIn: ["worker"],
   },
   {
     route: "/data/base-implementations/text.regex-log-scan.v1.json",
     sourcePath: "public/data/base-implementations/text.regex-log-scan.v1.json",
     role: "manifest",
-    executed: false,
+    requestCount: 1,
+    executedIn: [],
   },
   {
     route: "/artifacts/text-regex-log-scan/build-manifest.json",
     sourcePath: "public/artifacts/text-regex-log-scan/build-manifest.json",
     role: "manifest",
-    executed: false,
+    requestCount: 1,
+    executedIn: [],
   },
   {
     route: "/artifacts/text-regex-log-scan/input-manifest.json",
     sourcePath: "public/artifacts/text-regex-log-scan/input-manifest.json",
     role: "manifest",
-    executed: false,
+    requestCount: 1,
+    executedIn: [],
   },
   {
     route: "/artifacts/text-regex-log-scan/output-manifest.json",
     sourcePath: "public/artifacts/text-regex-log-scan/output-manifest.json",
     role: "manifest",
-    executed: false,
+    requestCount: 1,
+    executedIn: [],
   },
   {
     route: "/artifacts/text-regex-log-scan/text-regex-log-scan.wasm",
     sourcePath: "public/artifacts/text-regex-log-scan/text-regex-log-scan.wasm",
     role: "wasm",
-    executed: false,
+    requestCount: 1,
+    executedIn: [],
   },
   {
     route: "/artifacts/text-regex-log-scan/ordered-captures.bin",
     sourcePath: "public/artifacts/text-regex-log-scan/ordered-captures.bin",
     role: "oracle",
-    executed: false,
+    requestCount: 1,
+    executedIn: [],
   },
 ] as const;
 
@@ -105,6 +124,43 @@ const textDecoder = new TextDecoder();
 const SCRIPT_PATH = "scripts/collect-base-text-regex-log-scan-evidence.ts";
 const OUTPUT_PATH = "artifacts/base/text-regex-log-scan/browser-evidence/evidence.v1.json";
 const SCREENSHOT_ROOT = "artifacts/base/text-regex-log-scan/browser-evidence/screenshots";
+
+export const STATIC_LAUNCH_ARGUMENTS = [
+  "--headless=new",
+  "--no-sandbox",
+  "--disable-gpu",
+  "--disable-background-networking",
+  "--disable-component-update",
+  "--disable-default-apps",
+  "--disable-extensions",
+  "--disable-sync",
+  "--disable-crash-reporter",
+  "--disable-breakpad",
+  "--metrics-recording-only",
+  "--no-first-run",
+  "--no-default-browser-check",
+  "--hide-scrollbars",
+  "--window-size=1440,1200",
+  "--enable-automation",
+  "--remote-debugging-address=127.0.0.1",
+] as const;
+
+export const EXPECTED_LIFECYCLE = {
+  "wrong-token": {
+    finalStatus: "Cancelled. The worker was terminated.",
+    workers: 1,
+    terminated: 1,
+  },
+  "stale-error": {
+    finalStatus: "Cancelled. The worker was terminated.",
+    workers: 1,
+    terminated: 1,
+  },
+  restart: { finalStatus: "Cancelled. The worker was terminated.", workers: 2, terminated: 2 },
+  cancel: { finalStatus: "Cancelled. The worker was terminated.", workers: 1, terminated: 1 },
+  timeout: { finalStatus: "Failed: 120 second worker timeout", workers: 1, terminated: 1 },
+  pagehide: { finalStatus: "Starting fresh worker…", workers: 1, terminated: 1 },
+} as const;
 
 export function validateFullResult(mode: string, result: Record<string, unknown>): void {
   if (result.workloadId !== "text.regex-log-scan.v1" || result.variant !== mode) {
@@ -230,6 +286,106 @@ async function ownedProcesses(rootPid: number): Promise<ProcessIdentity[]> {
   return identities.filter((identity) => owned.has(identity.pid)).sort((a, b) => a.pid - b.pid);
 }
 
+interface CgroupIdentity {
+  path: string;
+  dev: number;
+  ino: number;
+}
+
+async function processCgroupPath(pid: number): Promise<string | null> {
+  try {
+    const unified = (await Deno.readTextFile(`/proc/${pid}/cgroup`)).split("\n").find((line) =>
+      line.startsWith("0::")
+    );
+    return unified?.slice(3) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function cgroupIdentity(path: string): Promise<CgroupIdentity> {
+  if (!path.startsWith("/user.slice/")) throw new Error(`unexpected browser cgroup: ${path}`);
+  const info = await Deno.lstat(`/sys/fs/cgroup${path}`);
+  if (!info.isDirectory || info.isSymlink) throw new Error(`invalid browser cgroup: ${path}`);
+  return { path, dev: Number(info.dev), ino: Number(info.ino) };
+}
+
+async function cgroupProcesses(path: string): Promise<ProcessIdentity[]> {
+  const text = await Deno.readTextFile(`/sys/fs/cgroup${path}/cgroup.procs`).catch(() => "");
+  const identities = await Promise.all(
+    text.trim().split("\n").filter(Boolean).map((pid) => processIdentity(Number(pid))),
+  );
+  return identities.filter((identity): identity is ProcessIdentity => identity !== null).sort((
+    a,
+    b,
+  ) => a.pid - b.pid);
+}
+
+async function waitForScopeCgroup(pid: number, unit: string): Promise<CgroupIdentity> {
+  const suffix = `/${unit}.scope`;
+  const deadline = Date.now() + 5_000;
+  while (Date.now() < deadline) {
+    const path = await processCgroupPath(pid);
+    if (path?.endsWith(suffix)) return await cgroupIdentity(path);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
+  throw new Error(`owned browser scope ${unit}.scope was not established`);
+}
+
+function startCgroupTracker(path: string) {
+  const retained = new Map<string, ProcessIdentity>();
+  let stopped = false;
+  const running = (async () => {
+    while (!stopped) {
+      for (const identity of await cgroupProcesses(path)) {
+        retained.set(`${identity.pid}:${identity.startTimeTicks}:${identity.executable}`, identity);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+    for (const identity of await cgroupProcesses(path)) {
+      retained.set(`${identity.pid}:${identity.startTimeTicks}:${identity.executable}`, identity);
+    }
+  })();
+  return {
+    async stop() {
+      stopped = true;
+      await running;
+      return [...retained.values()].sort((a, b) => a.pid - b.pid);
+    },
+  };
+}
+
+async function listenerOwnership(port: number, cgroupPath: string) {
+  const local = `0100007F:${port.toString(16).toUpperCase().padStart(4, "0")}`;
+  const rows = (await Deno.readTextFile("/proc/net/tcp")).trim().split("\n").slice(1).map((line) =>
+    line.trim().split(/\s+/)
+  );
+  const listeners = rows.filter((fields) => fields[1] === local && fields[3] === "0A");
+  if (listeners.length !== 1) {
+    throw new Error(`CDP listener was not unique on owned loopback port ${port}`);
+  }
+  const inode = listeners[0][9];
+  const owners = new Map<string, ProcessIdentity>();
+  for (const identity of await cgroupProcesses(cgroupPath)) {
+    try {
+      for await (const entry of Deno.readDir(`/proc/${identity.pid}/fd`)) {
+        const target = await Deno.readLink(`/proc/${identity.pid}/fd/${entry.name}`).catch(() =>
+          ""
+        );
+        if (target === `socket:[${inode}]`) {
+          owners.set(`${identity.pid}:${identity.startTimeTicks}:${identity.executable}`, identity);
+        }
+      }
+    } catch {
+      // A short-lived scoped process is retained by the tracker but cannot own the live listener.
+    }
+  }
+  if (owners.size !== 1) {
+    throw new Error(`CDP listener inode ${inode} is not owned by exactly one scoped process`);
+  }
+  return { address: "127.0.0.1", port, inode, owner: [...owners.values()][0] };
+}
+
 async function identityStillRunning(identity: ProcessIdentity): Promise<boolean> {
   const current = await processIdentity(identity.pid);
   return current?.startTimeTicks === identity.startTimeTicks &&
@@ -243,6 +399,47 @@ async function waitForOwnedExit(
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     if (!(await Promise.all(identities.map(identityStillRunning))).some(Boolean)) return true;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  return false;
+}
+
+async function waitForCgroupEmpty(path: string, timeoutMs: number): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if ((await cgroupProcesses(path)).length === 0) return true;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  return false;
+}
+
+async function signalCgroup(
+  path: string,
+  signal: "SIGTERM" | "SIGKILL",
+  signals: Array<{ pid: number; signal: "SIGTERM" | "SIGKILL" }>,
+) {
+  const identities = (await cgroupProcesses(path)).reverse();
+  if (signal === "SIGKILL") {
+    for (const identity of identities) signals.push({ pid: identity.pid, signal });
+    await Deno.writeTextFile(`/sys/fs/cgroup${path}/cgroup.kill`, "1");
+    return;
+  }
+  for (const identity of identities) {
+    if (await identityStillRunning(identity) && await processCgroupPath(identity.pid) === path) {
+      Deno.kill(identity.pid, signal);
+      signals.push({ pid: identity.pid, signal });
+    }
+  }
+}
+
+async function waitForPathAbsent(path: string, timeoutMs: number): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      await Deno.lstat(path);
+    } catch (error) {
+      if (error instanceof Deno.errors.NotFound) return true;
+    }
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
   return false;
@@ -319,7 +516,7 @@ async function waitForState(
   throw new Error(`browser state timeout: ${JSON.stringify(state)}`);
 }
 
-const probeSource = (shortTimeout: boolean) =>
+const probeSource = (shortTimeout: boolean, blockWorkerMessages: boolean) =>
   `(() => {
   const NativeWorker=globalThis.Worker;
   const nativeSetTimeout=globalThis.setTimeout.bind(globalThis);
@@ -331,6 +528,7 @@ const probeSource = (shortTimeout: boolean) =>
     probe.workers.push(entry);
     const terminate=worker.terminate.bind(worker);
     worker.terminate=()=>{ entry.terminated=true; return terminate(); };
+    ${blockWorkerMessages ? "worker.postMessage=()=>{};" : ""}
     worker.addEventListener('message',(event)=>{
       try { probe.messages.push(structuredClone(event.data)); }
       catch { probe.messages.push({type:'uncloneable'}); }
@@ -354,7 +552,7 @@ interface SessionCapture {
 async function createInstrumentedTarget(
   client: CdpClient,
   origin: string,
-  shortTimeout = false,
+  options: { shortTimeout?: boolean; blockWorkerMessages?: boolean } = {},
 ) {
   const created = await client.send("Target.createTarget", { url: "about:blank" });
   const targetId = String(created.targetId);
@@ -369,10 +567,8 @@ async function createInstrumentedTarget(
   const consoleMessages: Array<Record<string, unknown>> = [];
   const exceptions: Array<Record<string, unknown>> = [];
   const requests = new Map<string, Record<string, unknown>>();
-  const scripts = new Map<
-    string,
-    { route: string; context: "page" | "worker"; bytes: Uint8Array }
-  >();
+  const scripts: Array<{ route: string; context: "page" | "worker"; bytes: Uint8Array }> = [];
+  const captureViolations: string[] = [];
   const tasks: Promise<void>[] = [];
 
   const enableSession = async (workerSession: string, context: "page" | "worker") => {
@@ -472,9 +668,12 @@ async function createInstrumentedTarget(
       }
       if (parsed.origin !== origin) return;
       const expected = EXPECTED_ASSETS.find((asset) =>
-        asset.executed && asset.route === parsed.pathname
+        asset.executedIn.length > 0 && asset.route === parsed.pathname
       );
-      if (!expected) return;
+      if (!expected) {
+        captureViolations.push(`unexpected same-origin executed script: ${parsed.pathname}`);
+        return;
+      }
       const context = sessions.get(eventSession)?.context ?? "page";
       tasks.push((async () => {
         const source = await client.send(
@@ -486,7 +685,7 @@ async function createInstrumentedTarget(
           10_000,
         );
         const bytes = textEncoder.encode(String(source.scriptSource));
-        scripts.set(`${context}:${parsed.pathname}`, { route: parsed.pathname, context, bytes });
+        scripts.push({ route: parsed.pathname, context, bytes });
       })());
     }),
   ];
@@ -502,7 +701,7 @@ async function createInstrumentedTarget(
     }, sessionId),
   ]);
   await client.send("Page.addScriptToEvaluateOnNewDocument", {
-    source: probeSource(shortTimeout),
+    source: probeSource(Boolean(options.shortTimeout), Boolean(options.blockWorkerMessages)),
   }, sessionId);
   const loaded = new Promise<void>((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error("page load timeout")), 10_000);
@@ -524,6 +723,7 @@ async function createInstrumentedTarget(
     exceptions,
     requests,
     scripts,
+    captureViolations,
     tasks,
     removers,
   };
@@ -558,11 +758,21 @@ async function collectAssets(
   expectedFiles: Awaited<ReturnType<typeof expectedFileRecords>>,
 ) {
   await settleCapture(capture);
+  if (capture.captureViolations.length > 0) {
+    throw new Error(capture.captureViolations.join("\n"));
+  }
+  const expectedRoutes = new Set(EXPECTED_ASSETS.map((asset) => asset.route));
   for (const request of capture.requests.values()) {
     const url = new URL(String(request.url));
     if (url.origin !== origin) throw new Error(`network escaped owned origin: ${url.href}`);
-    if (request.failed || request.status !== 200) {
-      throw new Error(`failed/non-200 request: ${JSON.stringify(request)}`);
+    if (!expectedRoutes.has(url.pathname) || url.search !== "" || url.hash !== "") {
+      throw new Error(`unexpected owned-origin request: ${url.href}`);
+    }
+    if (request.method !== "GET") {
+      throw new Error(`unexpected request method: ${request.method} ${url.href}`);
+    }
+    if (request.failed || request.status !== 200 || !(request.body instanceof Uint8Array)) {
+      throw new Error(`failed, incomplete, or non-200 request: ${JSON.stringify(request)}`);
     }
   }
   const fetchedAssets = [];
@@ -570,7 +780,11 @@ async function collectAssets(
     const matches = [...capture.requests.values()].filter((request) =>
       new URL(String(request.url)).pathname === asset.route
     );
-    if (matches.length === 0) throw new Error(`required asset was not fetched: ${asset.route}`);
+    if (matches.length !== asset.requestCount) {
+      throw new Error(
+        `asset request count mismatch for ${asset.route}: ${matches.length} != ${asset.requestCount}`,
+      );
+    }
     const expected = expectedFiles.get(asset.route)!;
     for (const match of matches) {
       const body = match.body as Uint8Array | null;
@@ -588,7 +802,7 @@ async function collectAssets(
       route: asset.route,
       sourcePath: asset.sourcePath,
       role: asset.role,
-      requestCount: matches.length,
+      requestCount: asset.requestCount,
       status: 200,
       mimeType: String(matches[0].mimeType),
       fromDiskCache: false,
@@ -599,12 +813,16 @@ async function collectAssets(
   }
 
   const executedScripts = [];
-  for (const asset of EXPECTED_ASSETS.filter((candidate) => candidate.executed)) {
-    const observations = [...capture.scripts.values()].filter((script) =>
-      script.route === asset.route
-    );
-    if (observations.length === 0) {
-      throw new Error(`required script was not executed: ${asset.route}`);
+  for (const asset of EXPECTED_ASSETS.filter((candidate) => candidate.executedIn.length > 0)) {
+    const observations = capture.scripts.filter((script) => script.route === asset.route);
+    if (observations.length !== asset.executedIn.length) {
+      throw new Error(
+        `executed script count mismatch for ${asset.route}: ${observations.length} != ${asset.executedIn.length}`,
+      );
+    }
+    const contexts = observations.map((observation) => observation.context).sort();
+    if (JSON.stringify(contexts) !== JSON.stringify([...asset.executedIn].sort())) {
+      throw new Error(`executed script context mismatch for ${asset.route}`);
     }
     const expected = expectedFiles.get(asset.route)!;
     for (const observation of observations) {
@@ -618,7 +836,7 @@ async function collectAssets(
     executedScripts.push({
       route: asset.route,
       sourcePath: asset.sourcePath,
-      contexts: [...new Set(observations.map((observation) => observation.context))].sort(),
+      contexts,
       bytes: expected.bytes.byteLength,
       sha256: expected.sha256,
     });
@@ -672,7 +890,6 @@ async function collectAccessibility(client: CdpClient, sessionId: string) {
 async function collectModeRun(
   client: CdpClient,
   origin: string,
-  rootPath: string,
   mode: "js-controlled" | "wasm-linear-controlled",
   expectedFiles: Awaited<ReturnType<typeof expectedFileRecords>>,
 ) {
@@ -710,11 +927,8 @@ async function collectModeRun(
       throw new Error(`${mode}: visible full-contract result is incomplete`);
     }
     const assets = await collectAssets(origin, capture, expectedFiles);
-    if (
-      capture.exceptions.length > 0 ||
-      capture.consoleMessages.some((entry) => entry.type === "error")
-    ) {
-      throw new Error(`${mode}: console or exception failure`);
+    if (capture.exceptions.length > 0 || capture.consoleMessages.length > 0) {
+      throw new Error(`${mode}: console and exceptions must both be empty`);
     }
     const accessibility = await collectAccessibility(client, capture.sessionId);
     const screenshot = await client.send(
@@ -735,8 +949,6 @@ async function collectModeRun(
       throw new Error(`${mode}: screenshot is not PNG`);
     }
     const screenshotPath = `${SCREENSHOT_ROOT}/${mode}.png`;
-    await Deno.mkdir(`${rootPath}/${SCREENSHOT_ROOT}`, { recursive: true });
-    await Deno.writeFile(`${rootPath}/${screenshotPath}`, screenshotBytes);
     return {
       mode,
       action: "visible-control-complete",
@@ -754,6 +966,7 @@ async function collectModeRun(
         bytes: screenshotBytes.byteLength,
         sha256: await sha256Hex(screenshotBytes),
       },
+      screenshotBytes,
     };
   } finally {
     await closeCapture(client, capture);
@@ -779,9 +992,12 @@ async function waitForWorkerCount(client: CdpClient, sessionId: string, count: n
 async function collectLifecycle(
   client: CdpClient,
   origin: string,
-  id: "wrong-token" | "stale-error" | "restart" | "cancel" | "timeout" | "pagehide",
+  id: keyof typeof EXPECTED_LIFECYCLE,
 ) {
-  const capture = await createInstrumentedTarget(client, origin, id === "timeout");
+  const capture = await createInstrumentedTarget(client, origin, {
+    shortTimeout: id === "timeout",
+    blockWorkerMessages: true,
+  });
   let wrongTokenIgnored = false;
   let staleErrorIgnored = false;
   let restartReplacedWorker = false;
@@ -792,26 +1008,23 @@ async function collectLifecycle(
     await click(client, capture.sessionId, "#start");
     await waitForWorkerCount(client, capture.sessionId, 1);
     if (id === "wrong-token") {
-      await evaluateValue(
-        client,
-        capture.sessionId,
-        `(() => { const p=globalThis.__baseRegexCollector; p.workers[0].worker.dispatchEvent(new MessageEvent('message',{data:{type:'complete',token:999999,result:{}}})); })()`,
+      wrongTokenIgnored = Boolean(
+        await evaluateValue(
+          client,
+          capture.sessionId,
+          `(() => { const state=()=>({status:document.querySelector('#status').textContent.trim(),result:document.querySelector('#result').textContent.trim(),progress:document.querySelector('#progress').value,startDisabled:document.querySelector('#start').disabled,cancelDisabled:document.querySelector('#cancel').disabled}); const before=state(); const p=globalThis.__baseRegexCollector; p.workers[0].worker.dispatchEvent(new MessageEvent('message',{data:{type:'complete',token:999999,result:{}}})); return JSON.stringify(before)===JSON.stringify(state()); })()`,
+        ),
       );
-      const after = await pageState(client, capture.sessionId);
-      wrongTokenIgnored = !String(after.status).startsWith("Complete") &&
-        !String(after.status).startsWith("Failed");
       await click(client, capture.sessionId, "#cancel");
     } else if (id === "stale-error") {
       await click(client, capture.sessionId, "#cancel");
-      const before = await pageState(client, capture.sessionId);
-      await evaluateValue(
-        client,
-        capture.sessionId,
-        `(() => { const event=new Event('error'); Object.defineProperty(event,'message',{value:'stale collector error'}); globalThis.__baseRegexCollector.workers[0].worker.dispatchEvent(event); })()`,
+      staleErrorIgnored = Boolean(
+        await evaluateValue(
+          client,
+          capture.sessionId,
+          `(() => { const state=()=>({status:document.querySelector('#status').textContent.trim(),result:document.querySelector('#result').textContent.trim(),progress:document.querySelector('#progress').value,startDisabled:document.querySelector('#start').disabled,cancelDisabled:document.querySelector('#cancel').disabled}); const before=state(); const event=new Event('error'); Object.defineProperty(event,'message',{value:'stale collector error'}); globalThis.__baseRegexCollector.workers[0].worker.dispatchEvent(event); return JSON.stringify(before)===JSON.stringify(state()); })()`,
+        ),
       );
-      const after = await pageState(client, capture.sessionId);
-      staleErrorIgnored = before.status === after.status &&
-        String(after.status).startsWith("Cancelled.");
     } else if (id === "restart") {
       await evaluateValue(
         client,
@@ -864,18 +1077,14 @@ async function collectLifecycle(
         ),
       );
     }
-    await new Promise((resolve) => setTimeout(resolve, 50));
     const state = await pageState(client, capture.sessionId);
     const workerState = await evaluateValue(
       client,
       capture.sessionId,
       `(() => { const workers=globalThis.__baseRegexCollector.workers; return {count:workers.length,terminated:workers.filter((entry)=>entry.terminated).length}; })()`,
     ) as { count: number; terminated: number };
-    if (
-      capture.exceptions.length > 0 ||
-      capture.consoleMessages.some((entry) => entry.type === "error")
-    ) {
-      throw new Error(`${id}: lifecycle probe raised a browser error`);
+    if (capture.exceptions.length > 0 || capture.consoleMessages.length > 0) {
+      throw new Error(`${id}: lifecycle console and exceptions must both be empty`);
     }
     const booleans = {
       wrongTokenIgnored,
@@ -896,15 +1105,20 @@ async function collectLifecycle(
       : id === "timeout"
       ? timeoutTerminatedWorker
       : pagehideTerminatedWorker;
-    if (!required || workerState.terminated < 1) {
-      throw new Error(`${id}: lifecycle assertion failed`);
+    const expected = EXPECTED_LIFECYCLE[id];
+    if (
+      !required || state.status !== expected.finalStatus ||
+      workerState.count !== expected.workers ||
+      workerState.terminated !== expected.terminated
+    ) {
+      throw new Error(`${id}: exact lifecycle assertion failed`);
     }
     return {
       id,
       action: "visible-controller-lifecycle-probe",
-      finalStatus: String(state.status),
-      workerCount: workerState.count,
-      terminatedWorkers: workerState.terminated,
+      finalStatus: expected.finalStatus,
+      workerCount: expected.workers,
+      terminatedWorkers: expected.terminated,
       ...booleans,
       console: capture.consoleMessages,
       exceptions: capture.exceptions,
@@ -921,7 +1135,7 @@ async function main() {
       "usage: deno run -A scripts/collect-base-text-regex-log-scan-evidence.ts --chrome=<path>",
     );
   }
-  if (Deno.build.os !== "linux") throw new Error("exact /proc-owned cleanup requires Linux");
+  if (Deno.build.os !== "linux") throw new Error("exact cgroup-owned cleanup requires Linux");
   const rootPath = await Deno.realPath(new URL("../", import.meta.url));
   const gitRoot = await Deno.realPath(
     await commandText(rootPath, "git", ["rev-parse", "--show-toplevel"]),
@@ -938,6 +1152,7 @@ async function main() {
   const head = await commandText(rootPath, "git", ["rev-parse", "HEAD"]);
   const tree = await commandText(rootPath, "git", ["rev-parse", "HEAD^{tree}"]);
   const scriptBytes = await Deno.readFile(`${rootPath}/${SCRIPT_PATH}`);
+  const scriptSha256 = await sha256Hex(scriptBytes);
   const executableAtLaunch = await fileIdentity(chromeArg.slice("--chrome=".length));
   const expectedFiles = await expectedFileRecords(rootPath);
   const registration = JSON.parse(
@@ -946,63 +1161,87 @@ async function main() {
     ),
   );
 
-  const serverPort = unusedPort();
-  const debuggerPort = unusedPort();
-  const origin = `http://127.0.0.1:${serverPort}`;
-  const server = new Deno.Command(Deno.execPath(), {
-    cwd: rootPath,
-    args: [
-      "run",
-      "--allow-env=PORT,HOST,SERVER_MODE",
-      "--allow-net=127.0.0.1",
-      "--allow-read=.",
-      "deploy.ts",
-    ],
-    env: { PORT: String(serverPort), HOST: "127.0.0.1", SERVER_MODE: "public" },
-    stdout: "null",
-    stderr: "null",
-  }).spawn();
-  const serverStatusPromise = server.status;
-  await waitFor(`${origin}/healthz`);
-  const serverIdentity = await processIdentity(server.pid);
-  if (!serverIdentity) throw new Error("evidence server identity disappeared");
-
-  const profilePath = await Deno.makeTempDir({ prefix: "wasm-base-regex-chrome-" });
-  const profileInfo = await Deno.lstat(profilePath);
-  if ([...Deno.readDirSync(profilePath)].length !== 0) {
-    throw new Error("new Chrome profile is not empty");
-  }
-  const profileIdentity = { dev: Number(profileInfo.dev), ino: Number(profileInfo.ino) };
-  const launchArguments = [
-    "--headless=new",
-    "--no-sandbox",
-    "--disable-gpu",
-    "--disable-background-networking",
-    "--disable-component-update",
-    "--disable-default-apps",
-    "--disable-extensions",
-    "--disable-sync",
-    "--disable-crash-reporter",
-    "--disable-breakpad",
-    "--metrics-recording-only",
-    "--no-first-run",
-    "--no-default-browser-check",
-    "--hide-scrollbars",
-    "--window-size=1440,1200",
-    "--remote-debugging-address=127.0.0.1",
-    `--remote-debugging-port=${debuggerPort}`,
-    `--user-data-dir=${profilePath}`,
-    "about:blank",
-  ];
-  const browserProcess = new Deno.Command(executableAtLaunch.path, {
-    args: launchArguments,
-    stdout: "null",
-    stderr: "null",
-  }).spawn();
-  const browserStatusPromise = browserProcess.status;
+  let server: Deno.ChildProcess | null = null;
+  let serverStatusPromise: Promise<Deno.CommandStatus> | null = null;
+  let serverIdentity: ProcessIdentity | null = null;
+  let profilePath: string | null = null;
+  let profileIdentity: { dev: number; ino: number } | null = null;
+  let browserProcess: Deno.ChildProcess | null = null;
+  let browserStatusPromise: Promise<Deno.CommandStatus> | null = null;
+  let browserCgroup: CgroupIdentity | null = null;
+  let tracker: ReturnType<typeof startCgroupTracker> | null = null;
   let client: CdpClient | null = null;
   let completed = false;
+  let collectionError: unknown = null;
+  let failureCleanupError: Error | null = null;
   try {
+    const serverPort = unusedPort();
+    const debuggerPort = unusedPort();
+    const origin = `http://127.0.0.1:${serverPort}`;
+    server = new Deno.Command(Deno.execPath(), {
+      cwd: rootPath,
+      args: [
+        "run",
+        "--allow-env=PORT,HOST,SERVER_MODE",
+        "--allow-net=127.0.0.1",
+        "--allow-read=.",
+        "deploy.ts",
+      ],
+      env: { PORT: String(serverPort), HOST: "127.0.0.1", SERVER_MODE: "public" },
+      stdout: "null",
+      stderr: "null",
+    }).spawn();
+    serverStatusPromise = server.status;
+    serverIdentity = await processIdentity(server.pid);
+    if (!serverIdentity) throw new Error("evidence server identity disappeared at launch");
+    await waitFor(`${origin}/healthz`);
+    if (!(await identityStillRunning(serverIdentity))) {
+      throw new Error("evidence server identity changed during startup");
+    }
+
+    profilePath = await Deno.makeTempDir({ prefix: "wasm-base-regex-chrome-" });
+    const profileInfo = await Deno.lstat(profilePath);
+    if ([...Deno.readDirSync(profilePath)].length !== 0) {
+      throw new Error("new Chrome profile is not empty");
+    }
+    profileIdentity = { dev: Number(profileInfo.dev), ino: Number(profileInfo.ino) };
+    const launchArguments = [
+      ...STATIC_LAUNCH_ARGUMENTS,
+      `--remote-debugging-port=${debuggerPort}`,
+      `--user-data-dir=${profilePath}`,
+      "about:blank",
+    ];
+    const scopeUnit = `wasm-base-regex-${crypto.randomUUID().replaceAll("-", "")}`;
+    browserProcess = new Deno.Command("systemd-run", {
+      args: [
+        "--user",
+        "--scope",
+        `--unit=${scopeUnit}`,
+        "--quiet",
+        executableAtLaunch.path,
+        ...launchArguments,
+      ],
+      stdout: "null",
+      stderr: "null",
+    }).spawn();
+    browserStatusPromise = browserProcess.status;
+    browserCgroup = await waitForScopeCgroup(browserProcess.pid, scopeUnit);
+    tracker = startCgroupTracker(browserCgroup.path);
+
+    let cdpListener: Awaited<ReturnType<typeof listenerOwnership>> | null = null;
+    const listenerDeadline = Date.now() + 10_000;
+    while (!cdpListener && Date.now() < listenerDeadline) {
+      try {
+        cdpListener = await listenerOwnership(debuggerPort, browserCgroup.path);
+      } catch {
+        await new Promise((resolve) => setTimeout(resolve, 25));
+      }
+    }
+    if (!cdpListener) throw new Error("owned Chrome CDP listener did not appear");
+    if (cdpListener.owner.executable !== executableAtLaunch.path) {
+      throw new Error("CDP listener owner is not the inspected Chrome executable");
+    }
+
     const versionResponse = await waitFor(`http://127.0.0.1:${debuggerPort}/json/version`);
     const discovery = await versionResponse.json();
     const socketUrl = new URL(discovery.webSocketDebuggerUrl);
@@ -1010,7 +1249,7 @@ async function main() {
       socketUrl.protocol !== "ws:" || socketUrl.hostname !== "127.0.0.1" ||
       Number(socketUrl.port) !== debuggerPort
     ) {
-      throw new Error("Chrome CDP endpoint escaped the exact owned loopback port");
+      throw new Error("Chrome CDP endpoint escaped the exact owned loopback listener");
     }
     client = new CdpClient(socketUrl.href);
     await client.ready();
@@ -1020,14 +1259,21 @@ async function main() {
         `collector requires exact Google Chrome provenance, got ${browserVersion.product}`,
       );
     }
-    const launcherAtRuntime = await processIdentity(browserProcess.pid);
-    if (!launcherAtRuntime || launcherAtRuntime.executable !== executableAtLaunch.path) {
-      throw new Error("running Chrome executable differs from inspected executable");
+    const commandLine = await client.send("Browser.getBrowserCommandLine");
+    const actualLaunchArguments = (commandLine.arguments as string[]).slice(1);
+    if (JSON.stringify(actualLaunchArguments) !== JSON.stringify(launchArguments)) {
+      throw new Error("running Chrome command line differs from pinned launch arguments");
+    }
+    if (
+      !(await identityStillRunning(cdpListener.owner)) ||
+      await processCgroupPath(cdpListener.owner.pid) !== browserCgroup.path
+    ) {
+      throw new Error("connected CDP listener left its retained process/cgroup identity");
     }
 
-    const modeRuns = [];
+    const capturedModeRuns = [];
     for (const mode of ["js-controlled", "wasm-linear-controlled"] as const) {
-      modeRuns.push(await collectModeRun(client, origin, rootPath, mode, expectedFiles));
+      capturedModeRuns.push(await collectModeRun(client, origin, mode, expectedFiles));
     }
     const lifecycle = [];
     for (
@@ -1041,50 +1287,47 @@ async function main() {
       ] as const
     ) lifecycle.push(await collectLifecycle(client, origin, id));
 
-    const observedProcesses = await ownedProcesses(browserProcess.pid);
-    const launcherIdentity = observedProcesses.find((identity) =>
-      identity.pid === browserProcess.pid
-    );
-    if (!launcherIdentity) throw new Error("owned Chrome launcher disappeared before cleanup");
     const executableBeforeCleanup = await fileIdentity(executableAtLaunch.path);
     if (!sameFileIdentity(executableAtLaunch, executableBeforeCleanup)) {
       throw new Error("Chrome executable identity changed during collection");
     }
+    const cgroupBeforeCleanup = await cgroupIdentity(browserCgroup.path);
+    const cgroupIdentityMatched = cgroupBeforeCleanup.dev === browserCgroup.dev &&
+      cgroupBeforeCleanup.ino === browserCgroup.ino;
+    if (!cgroupIdentityMatched) throw new Error("owned Chrome cgroup identity changed");
+
+    const signals: Array<{ pid: number; signal: "SIGTERM" | "SIGKILL" }> = [];
     await client.send("Browser.close");
     client.close();
     client = null;
-    const signals: Array<{ pid: number; signal: "SIGTERM" | "SIGKILL" }> = [];
-    if (!(await waitForOwnedExit(observedProcesses, 10_000))) {
-      for (const identity of [...observedProcesses].reverse()) {
-        if (await identityStillRunning(identity)) {
-          Deno.kill(identity.pid, "SIGTERM");
-          signals.push({ pid: identity.pid, signal: "SIGTERM" });
-        }
-      }
+    if (!(await waitForCgroupEmpty(browserCgroup.path, 10_000))) {
+      await signalCgroup(browserCgroup.path, "SIGTERM", signals);
     }
-    if (!(await waitForOwnedExit(observedProcesses, 5_000))) {
-      for (const identity of [...observedProcesses].reverse()) {
-        if (await identityStillRunning(identity)) {
-          Deno.kill(identity.pid, "SIGKILL");
-          signals.push({ pid: identity.pid, signal: "SIGKILL" });
-        }
-      }
+    if (!(await waitForCgroupEmpty(browserCgroup.path, 5_000))) {
+      await signalCgroup(browserCgroup.path, "SIGKILL", signals);
     }
-    const processesAbsent = await waitForOwnedExit(observedProcesses, 5_000);
+    const processesAbsent = await waitForCgroupEmpty(browserCgroup.path, 5_000);
+    if (!processesAbsent) throw new Error("owned Chrome cgroup retained live processes");
+    const observedProcesses = await tracker.stop();
+    tracker = null;
+    const launcherIdentity = observedProcesses.find((identity) =>
+      identity.pid === cdpListener.owner.pid &&
+      identity.startTimeTicks === cdpListener.owner.startTimeTicks
+    );
+    if (!launcherIdentity) throw new Error("CDP listener owner was not retained by cgroup tracker");
     const browserExit = await browserStatusPromise;
-    if (!processesAbsent) throw new Error("owned Chrome processes survived exact cleanup");
+    const cgroupRemoved = await waitForPathAbsent(
+      `/sys/fs/cgroup${browserCgroup.path}`,
+      5_000,
+    );
+    if (!cgroupRemoved) throw new Error("owned Chrome cgroup survived cleanup");
 
     const currentProfileInfo = await Deno.lstat(profilePath);
     const profileMatched = Number(currentProfileInfo.dev) === profileIdentity.dev &&
       Number(currentProfileInfo.ino) === profileIdentity.ino && !currentProfileInfo.isSymlink;
     if (!profileMatched) throw new Error("Chrome profile identity changed before removal");
     await Deno.remove(profilePath, { recursive: true });
-    let profileAbsent = false;
-    try {
-      await Deno.lstat(profilePath);
-    } catch (error) {
-      if (error instanceof Deno.errors.NotFound) profileAbsent = true;
-    }
+    const profileAbsent = await waitForPathAbsent(profilePath, 2_000);
     if (!profileAbsent) throw new Error("owned Chrome profile survived cleanup");
 
     if (await identityStillRunning(serverIdentity)) Deno.kill(server.pid, "SIGTERM");
@@ -1092,17 +1335,51 @@ async function main() {
     const serverAbsent = !(await identityStillRunning(serverIdentity));
     if (!serverAbsent) throw new Error("owned evidence server survived cleanup");
 
+    const endDirty = await commandText(rootPath, "git", [
+      "status",
+      "--porcelain=v1",
+      "--untracked-files=all",
+    ]);
+    const endHead = await commandText(rootPath, "git", ["rev-parse", "HEAD"]);
+    const endTree = await commandText(rootPath, "git", ["rev-parse", "HEAD^{tree}"]);
+    const endScriptBytes = await Deno.readFile(`${rootPath}/${SCRIPT_PATH}`);
+    if (
+      endDirty !== "" || endHead !== head || endTree !== tree ||
+      endScriptBytes.byteLength !== scriptBytes.byteLength ||
+      await sha256Hex(endScriptBytes) !== scriptSha256
+    ) {
+      throw new Error("collector source identity changed before evidence write");
+    }
+    for (const asset of EXPECTED_ASSETS) {
+      const endBytes = await Deno.readFile(`${rootPath}/${asset.sourcePath}`);
+      const expected = expectedFiles.get(asset.route)!;
+      if (
+        endBytes.byteLength !== expected.bytes.byteLength ||
+        await sha256Hex(endBytes) !== expected.sha256
+      ) {
+        throw new Error(`end source check changed: ${asset.sourcePath}`);
+      }
+    }
+    if (!sameFileIdentity(executableAtLaunch, await fileIdentity(executableAtLaunch.path))) {
+      throw new Error("Chrome executable identity changed at end source check");
+    }
+
+    const screenshotOutputs = capturedModeRuns.map((run) => ({
+      path: run.screenshot.path,
+      bytes: run.screenshotBytes,
+    }));
+    const modeRuns = capturedModeRuns.map(({ screenshotBytes: _screenshotBytes, ...run }) => run);
     const regressionReason =
       "The accepted UI exposes only the exact registered 100 MiB fixture; static target-equivalence tests retain this regression.";
     const evidence = {
       schemaVersion: 1,
       evidenceId: "base-text-regex-log-scan-chrome-v1",
       collectedAt: new Date().toISOString(),
-      source: { head, tree, root: rootPath, clean: true },
+      source: { head, tree, root: rootPath, clean: true, endCheck: true },
       collection: {
         script: SCRIPT_PATH,
         scriptBytes: scriptBytes.byteLength,
-        scriptSha256: await sha256Hex(scriptBytes),
+        scriptSha256,
         command: `deno run -A ${SCRIPT_PATH} --chrome=${executableAtLaunch.path}`,
       },
       workload: {
@@ -1124,9 +1401,14 @@ async function main() {
         jsVersion: String(browserVersion.jsVersion),
         protocol: "Chrome DevTools Protocol",
         executable: executableAtLaunch,
-        launchArguments,
+        launchArguments: actualLaunchArguments,
         headless: true,
         profile: { path: profilePath, ...profileIdentity, createdEmpty: true },
+        ownership: {
+          unit: `${scopeUnit}.scope`,
+          cgroup: browserCgroup,
+          cdpListener,
+        },
       },
       server: { origin, mode: "public", launcher: serverIdentity },
       modeRuns,
@@ -1145,6 +1427,9 @@ async function main() {
           exit: browserExit,
           processesAbsent,
           executableUnchanged: true,
+          cgroupIdentityMatched,
+          cgroupEmpty: true,
+          cgroupRemoved,
         },
         profile: {
           path: profilePath,
@@ -1160,48 +1445,97 @@ async function main() {
         },
       },
     };
-    await Deno.mkdir(`${rootPath}/artifacts/base/text-regex-log-scan/browser-evidence`, {
-      recursive: true,
-    });
+    await Deno.mkdir(`${rootPath}/${SCREENSHOT_ROOT}`, { recursive: true });
+    for (const screenshot of screenshotOutputs) {
+      await Deno.writeFile(`${rootPath}/${screenshot.path}`, screenshot.bytes);
+    }
     await Deno.writeTextFile(`${rootPath}/${OUTPUT_PATH}`, `${canonicalize(evidence)}\n`);
     completed = true;
     console.log(
-      "base-text-regex-log-scan evidence: 2 full modes + 6 lifecycle probes; cleanup exact",
+      "base-text-regex-log-scan evidence: 2 full modes + 6 exact lifecycle probes; cgroup cleanup exact",
     );
+  } catch (error) {
+    collectionError = error;
   } finally {
     if (!completed) {
+      const cleanupFailures: string[] = [];
+      const fallbackProcesses = browserCgroup
+        ? await cgroupProcesses(browserCgroup.path)
+        : browserProcess
+        ? await ownedProcesses(browserProcess.pid)
+        : [];
       try {
         await client?.send("Browser.close");
       } catch {
-        // Continue with PID/start-time/executable-bound fallback cleanup.
+        // Continue with the identities retained before requesting browser close.
       }
       client?.close();
-      const processes = await ownedProcesses(browserProcess.pid);
-      if (!(await waitForOwnedExit(processes, 2_000))) {
-        for (const identity of [...processes].reverse()) {
+      let browserAbsent = true;
+      if (browserCgroup) {
+        const ignoredSignals: Array<{ pid: number; signal: "SIGTERM" | "SIGKILL" }> = [];
+        if (!(await waitForCgroupEmpty(browserCgroup.path, 2_000))) {
+          await signalCgroup(browserCgroup.path, "SIGTERM", ignoredSignals).catch(() => {});
+        }
+        if (!(await waitForCgroupEmpty(browserCgroup.path, 2_000))) {
+          await signalCgroup(browserCgroup.path, "SIGKILL", ignoredSignals).catch(() => {});
+        }
+        browserAbsent = await waitForCgroupEmpty(browserCgroup.path, 2_000);
+      } else if (!(await waitForOwnedExit(fallbackProcesses, 2_000))) {
+        for (const identity of [...fallbackProcesses].reverse()) {
           if (await identityStillRunning(identity)) Deno.kill(identity.pid, "SIGTERM");
         }
+        if (!(await waitForOwnedExit(fallbackProcesses, 2_000))) {
+          for (const identity of [...fallbackProcesses].reverse()) {
+            if (await identityStillRunning(identity)) Deno.kill(identity.pid, "SIGKILL");
+          }
+        }
+        browserAbsent = await waitForOwnedExit(fallbackProcesses, 2_000);
       }
-      if (!(await waitForOwnedExit(processes, 2_000))) {
-        for (const identity of [...processes].reverse()) {
-          if (await identityStillRunning(identity)) Deno.kill(identity.pid, "SIGKILL");
+      if (!browserAbsent) cleanupFailures.push("owned browser processes survived failure cleanup");
+      if (browserAbsent) await browserStatusPromise?.catch(() => {});
+      await tracker?.stop().catch(() => []);
+
+      if (server && serverIdentity && await identityStillRunning(serverIdentity)) {
+        Deno.kill(server.pid, "SIGTERM");
+      }
+      await serverStatusPromise?.catch(() => {});
+      if (serverIdentity && await identityStillRunning(serverIdentity)) {
+        cleanupFailures.push("owned evidence server survived failure cleanup");
+      }
+
+      if (profilePath && profileIdentity) {
+        const current = await Deno.lstat(profilePath).catch(() => null);
+        if (
+          current && Number(current.dev) === profileIdentity.dev &&
+          Number(current.ino) === profileIdentity.ino && !current.isSymlink
+        ) {
+          await Deno.remove(profilePath, { recursive: true }).catch(() => {});
+        } else if (current) {
+          cleanupFailures.push("profile identity changed during failure cleanup");
+        }
+        if (!(await waitForPathAbsent(profilePath, 2_000))) {
+          cleanupFailures.push("owned profile survived failure cleanup");
         }
       }
-      await browserStatusPromise.catch(() => {});
-      if (await identityStillRunning(serverIdentity)) Deno.kill(server.pid, "SIGTERM");
-      await serverStatusPromise.catch(() => {});
-      const current = await Deno.lstat(profilePath).catch(() => null);
-      if (
-        current && Number(current.dev) === profileIdentity.dev &&
-        Number(current.ino) === profileIdentity.ino && !current.isSymlink
-      ) {
-        await Deno.remove(profilePath, { recursive: true }).catch(() => {});
+      const outputRoot = `${rootPath}/artifacts/base/text-regex-log-scan/browser-evidence`;
+      await Deno.remove(outputRoot, { recursive: true }).catch(() => {});
+      if (!(await waitForPathAbsent(outputRoot, 2_000))) {
+        cleanupFailures.push("partial evidence output survived failure cleanup");
       }
-      await Deno.remove(`${rootPath}/artifacts/base/text-regex-log-scan/browser-evidence`, {
-        recursive: true,
-      }).catch(() => {});
+      if (cleanupFailures.length > 0) {
+        failureCleanupError = new Error(
+          `collector failure cleanup was not exact: ${cleanupFailures.join("; ")}`,
+        );
+      }
     }
   }
+  if (failureCleanupError) {
+    throw new AggregateError(
+      collectionError ? [collectionError, failureCleanupError] : [failureCleanupError],
+      "collector failed and failure cleanup was not exact",
+    );
+  }
+  if (collectionError) throw collectionError;
 }
 
 if (import.meta.main) await main();

@@ -3,8 +3,10 @@ import addFormatsModule from "ajv-formats";
 import {
   EXPECTED_ASSETS,
   EXPECTED_COUNTERS,
+  EXPECTED_LIFECYCLE,
   INPUT_SHA256,
   OUTPUT_SHA256,
+  STATIC_LAUNCH_ARGUMENTS,
   validateFullResult,
 } from "../scripts/collect-base-text-regex-log-scan-evidence.ts";
 import { assert, assertEquals } from "./assert.ts";
@@ -38,7 +40,7 @@ function fetchedAssets() {
     route: asset.route,
     sourcePath: asset.sourcePath,
     role: asset.role,
-    requestCount: 1,
+    requestCount: asset.requestCount,
     status: 200,
     mimeType: asset.role === "wasm" ? "application/wasm" : "text/plain",
     fromDiskCache: false,
@@ -49,10 +51,10 @@ function fetchedAssets() {
 }
 
 function executedScripts() {
-  return EXPECTED_ASSETS.filter((asset) => asset.executed).map((asset) => ({
+  return EXPECTED_ASSETS.filter((asset) => asset.executedIn.length > 0).map((asset) => ({
     route: asset.route,
     sourcePath: asset.sourcePath,
-    contexts: asset.route.endsWith("demo.js") ? ["page"] : ["worker"],
+    contexts: [...asset.executedIn],
     bytes: 100,
     sha256: H64,
   }));
@@ -100,13 +102,14 @@ function modeRun(mode: "js-controlled" | "wasm-linear-controlled") {
   };
 }
 
-function lifecycle(id: string) {
+function lifecycle(id: keyof typeof EXPECTED_LIFECYCLE) {
+  const expected = EXPECTED_LIFECYCLE[id];
   return {
     id,
     action: "visible-controller-lifecycle-probe",
-    finalStatus: "Cancelled. The worker was terminated.",
-    workerCount: id === "restart" ? 2 : 1,
-    terminatedWorkers: id === "restart" ? 2 : 1,
+    finalStatus: expected.finalStatus,
+    workerCount: expected.workers,
+    terminatedWorkers: expected.terminated,
     wrongTokenIgnored: id === "wrong-token",
     staleErrorIgnored: id === "stale-error",
     restartReplacedWorker: id === "restart",
@@ -123,7 +126,7 @@ function validEvidence() {
     schemaVersion: 1,
     evidenceId: "base-text-regex-log-scan-chrome-v1",
     collectedAt: "2026-04-01T12:00:00.000Z",
-    source: { head: H40, tree: H40, root: "/src/wasm-vs-js", clean: true },
+    source: { head: H40, tree: H40, root: "/src/wasm-vs-js", clean: true, endCheck: true },
     collection: {
       script: "scripts/collect-base-text-regex-log-scan-evidence.ts",
       scriptBytes: 40_000,
@@ -156,13 +159,33 @@ function validEvidence() {
         dev: 1,
         ino: 2,
       },
-      launchArguments: new Array(16).fill(0).map((_, index) => `--flag-${index}`),
+      launchArguments: [
+        ...STATIC_LAUNCH_ARGUMENTS,
+        "--remote-debugging-port=9222",
+        "--user-data-dir=/tmp/wasm-base-regex-chrome-fixture",
+        "about:blank",
+      ],
       headless: true,
       profile: {
         path: "/tmp/wasm-base-regex-chrome-fixture",
         dev: 3,
         ino: 4,
         createdEmpty: true,
+      },
+      ownership: {
+        unit: "wasm-base-regex-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.scope",
+        cgroup: {
+          path:
+            "/user.slice/user-1000.slice/user@1000.service/app.slice/wasm-base-regex-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.scope",
+          dev: 5,
+          ino: 6,
+        },
+        cdpListener: {
+          address: "127.0.0.1",
+          port: 9222,
+          inode: "123456",
+          owner: processIdentity(800),
+        },
       },
     },
     server: { origin: "http://127.0.0.1:8123", mode: "public", launcher: processIdentity(700) },
@@ -172,9 +195,9 @@ function validEvidence() {
       uiStatus: "not-exposed-by-demo-ui",
       reason: regressionReason,
     })),
-    lifecycle: ["wrong-token", "stale-error", "restart", "cancel", "timeout", "pagehide"].map(
-      lifecycle,
-    ),
+    lifecycle: (
+      ["wrong-token", "stale-error", "restart", "cancel", "timeout", "pagehide"] as const
+    ).map(lifecycle),
     cleanup: {
       browser: {
         launcher: processIdentity(800),
@@ -184,6 +207,9 @@ function validEvidence() {
         exit: { success: true, code: 0, signal: null },
         processesAbsent: true,
         executableUnchanged: true,
+        cgroupIdentityMatched: true,
+        cgroupEmpty: true,
+        cgroupRemoved: true,
       },
       profile: {
         path: "/tmp/wasm-base-regex-chrome-fixture",
@@ -239,6 +265,20 @@ Deno.test("base regex Chrome evidence schema accepts only the complete two-mode 
     validate,
     (value) => ((value.browser as Record<string, unknown>).product = "Chromium/150.0.7871.24"),
   );
+  assertInvalid(validate, (value) => {
+    const source = value.source as Record<string, unknown>;
+    source.endCheck = false;
+  });
+  assertInvalid(validate, (value) => {
+    const browser = value.browser as Record<string, unknown>;
+    const args = browser.launchArguments as string[];
+    args[15] = "--disable-automation";
+  });
+  assertInvalid(validate, (value) => {
+    const browser = value.browser as Record<string, unknown>;
+    const ownership = browser.ownership as Record<string, Record<string, unknown>>;
+    ownership.cdpListener.inode = "not-an-inode";
+  });
   assertInvalid(validate, (value) => (value.modeRuns as unknown[]).pop());
   assertInvalid(validate, (value) => {
     const modes = value.modeRuns as Array<Record<string, unknown>>;
@@ -263,11 +303,21 @@ Deno.test("base regex Chrome evidence schema accepts only the complete two-mode 
   assertInvalid(validate, (value) => {
     const run = (value.modeRuns as Array<Record<string, unknown>>)[0];
     const assets = run.fetchedAssets as Array<Record<string, unknown>>;
+    assets[3].requestCount = 1;
+  });
+  assertInvalid(validate, (value) => {
+    const run = (value.modeRuns as Array<Record<string, unknown>>)[0];
+    const assets = run.fetchedAssets as Array<Record<string, unknown>>;
     assets[0].route = "/substituted-document";
   });
   assertInvalid(validate, (value) => {
     const run = (value.modeRuns as Array<Record<string, unknown>>)[0];
     (run.executedScripts as Array<Record<string, unknown>>)[0].extra = true;
+  });
+  assertInvalid(validate, (value) => {
+    const run = (value.modeRuns as Array<Record<string, unknown>>)[0];
+    const scripts = run.executedScripts as Array<Record<string, unknown>>;
+    scripts[0].contexts = ["worker"];
   });
   assertInvalid(validate, (value) => {
     const run = (value.modeRuns as Array<Record<string, unknown>>)[0];
@@ -291,8 +341,24 @@ Deno.test("base regex Chrome evidence schema accepts only the complete two-mode 
     lifecycleRecords[0].staleErrorIgnored = true;
   });
   assertInvalid(validate, (value) => {
+    const lifecycleRecords = value.lifecycle as Array<Record<string, unknown>>;
+    lifecycleRecords[2].workerCount = 1;
+  });
+  assertInvalid(validate, (value) => {
+    const lifecycleRecords = value.lifecycle as Array<Record<string, unknown>>;
+    lifecycleRecords[4].finalStatus = "Failed: approximately timed out";
+  });
+  assertInvalid(validate, (value) => {
+    const lifecycleRecords = value.lifecycle as Array<Record<string, unknown>>;
+    lifecycleRecords[0].console = [{ type: "log", arguments: ["unexpected"] }];
+  });
+  assertInvalid(validate, (value) => {
     const cleanup = value.cleanup as Record<string, Record<string, unknown>>;
     cleanup.browser.processesAbsent = false;
+  });
+  assertInvalid(validate, (value) => {
+    const cleanup = value.cleanup as Record<string, Record<string, unknown>>;
+    cleanup.browser.cgroupRemoved = false;
   });
 });
 
@@ -310,7 +376,7 @@ Deno.test("base regex collector validates the full exact output and every struct
   };
   validateFullResult("js-controlled", result);
   assertEquals(EXPECTED_ASSETS.length, 13);
-  assertEquals(EXPECTED_ASSETS.filter((asset) => asset.executed).length, 5);
+  assertEquals(EXPECTED_ASSETS.filter((asset) => asset.executedIn.length > 0).length, 5);
   assertEquals(EXPECTED_COUNTERS.perPattern, new Array(20).fill(2048));
   assertThrows(
     () =>
@@ -346,6 +412,9 @@ Deno.test("base regex collector source freezes provenance, lifecycle, diagnostic
       "raw fetched bytes differ from clean HEAD",
       "executed source differs from raw clean-HEAD bytes",
       "Debugger.getScriptSource",
+      "unexpected same-origin executed script",
+      "unexpected owned-origin request",
+      "asset request count mismatch",
       "Network.getResponseBody",
       "Accessibility.getFullAXTree",
       "Page.captureScreenshot",
@@ -356,7 +425,17 @@ Deno.test("base regex collector source freezes provenance, lifecycle, diagnostic
       '"timeout"',
       '"pagehide"',
       '"Browser.close"',
+      '"--enable-automation"',
+      "listenerOwnership",
+      '"Browser.getBrowserCommandLine"',
+      "pinned launch arguments",
+      "waitForScopeCgroup",
+      "startCgroupTracker",
+      "cgroup.kill",
+      "processCgroupPath",
       "identityStillRunning",
+      "end source check",
+      "collector failure cleanup was not exact",
       "profile identity changed before removal",
       "NO_MATCH_SENTINEL_DO_NOT_FIND",
     ]

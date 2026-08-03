@@ -36,7 +36,8 @@
         "head",
         "tree",
         "root",
-        "clean"
+        "clean",
+        "endCheck"
       ],
       "properties": {
         "head": {
@@ -50,6 +51,9 @@
           "pattern": "^/"
         },
         "clean": {
+          "const": true
+        },
+        "endCheck": {
           "const": true
         }
       }
@@ -143,7 +147,8 @@
         "executable",
         "launchArguments",
         "headless",
-        "profile"
+        "profile",
+        "ownership"
       ],
       "properties": {
         "product": {
@@ -170,12 +175,74 @@
         },
         "launchArguments": {
           "type": "array",
-          "minItems": 16,
+          "minItems": 20,
+          "maxItems": 20,
           "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
+          "prefixItems": [
+            {
+              "const": "--headless=new"
+            },
+            {
+              "const": "--no-sandbox"
+            },
+            {
+              "const": "--disable-gpu"
+            },
+            {
+              "const": "--disable-background-networking"
+            },
+            {
+              "const": "--disable-component-update"
+            },
+            {
+              "const": "--disable-default-apps"
+            },
+            {
+              "const": "--disable-extensions"
+            },
+            {
+              "const": "--disable-sync"
+            },
+            {
+              "const": "--disable-crash-reporter"
+            },
+            {
+              "const": "--disable-breakpad"
+            },
+            {
+              "const": "--metrics-recording-only"
+            },
+            {
+              "const": "--no-first-run"
+            },
+            {
+              "const": "--no-default-browser-check"
+            },
+            {
+              "const": "--hide-scrollbars"
+            },
+            {
+              "const": "--window-size=1440,1200"
+            },
+            {
+              "const": "--enable-automation"
+            },
+            {
+              "const": "--remote-debugging-address=127.0.0.1"
+            },
+            {
+              "type": "string",
+              "pattern": "^--remote-debugging-port=[0-9]+$"
+            },
+            {
+              "type": "string",
+              "pattern": "^--user-data-dir=/tmp/wasm-base-regex-chrome-"
+            },
+            {
+              "const": "about:blank"
+            }
+          ],
+          "items": false
         },
         "headless": {
           "const": true
@@ -204,6 +271,51 @@
             },
             "createdEmpty": {
               "const": true
+            }
+          }
+        },
+        "ownership": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "unit",
+            "cgroup",
+            "cdpListener"
+          ],
+          "properties": {
+            "unit": {
+              "type": "string",
+              "pattern": "^wasm-base-regex-[a-f0-9]{32}\\.scope$"
+            },
+            "cgroup": {
+              "$ref": "#/$defs/cgroupIdentity"
+            },
+            "cdpListener": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "address",
+                "port",
+                "inode",
+                "owner"
+              ],
+              "properties": {
+                "address": {
+                  "const": "127.0.0.1"
+                },
+                "port": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 65535
+                },
+                "inode": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "owner": {
+                  "$ref": "#/$defs/processIdentity"
+                }
+              }
             }
           }
         }
@@ -306,7 +418,10 @@
             "signals",
             "exit",
             "processesAbsent",
-            "executableUnchanged"
+            "executableUnchanged",
+            "cgroupIdentityMatched",
+            "cgroupEmpty",
+            "cgroupRemoved"
           ],
           "properties": {
             "launcher": {
@@ -352,6 +467,15 @@
               "const": true
             },
             "executableUnchanged": {
+              "const": true
+            },
+            "cgroupIdentityMatched": {
+              "const": true
+            },
+            "cgroupEmpty": {
+              "const": true
+            },
+            "cgroupRemoved": {
               "const": true
             }
           }
@@ -838,6 +962,9 @@
                     },
                     "role": {
                       "const": "document"
+                    },
+                    "requestCount": {
+                      "const": 1
                     }
                   }
                 }
@@ -859,6 +986,9 @@
                     },
                     "role": {
                       "const": "style"
+                    },
+                    "requestCount": {
+                      "const": 1
                     }
                   }
                 }
@@ -880,6 +1010,9 @@
                     },
                     "role": {
                       "const": "script"
+                    },
+                    "requestCount": {
+                      "const": 1
                     }
                   }
                 }
@@ -901,6 +1034,9 @@
                     },
                     "role": {
                       "const": "script"
+                    },
+                    "requestCount": {
+                      "const": 2
                     }
                   }
                 }
@@ -922,6 +1058,9 @@
                     },
                     "role": {
                       "const": "script"
+                    },
+                    "requestCount": {
+                      "const": 1
                     }
                   }
                 }
@@ -943,6 +1082,9 @@
                     },
                     "role": {
                       "const": "script"
+                    },
+                    "requestCount": {
+                      "const": 2
                     }
                   }
                 }
@@ -964,6 +1106,9 @@
                     },
                     "role": {
                       "const": "script"
+                    },
+                    "requestCount": {
+                      "const": 2
                     }
                   }
                 }
@@ -985,6 +1130,9 @@
                     },
                     "role": {
                       "const": "manifest"
+                    },
+                    "requestCount": {
+                      "const": 1
                     }
                   }
                 }
@@ -1006,6 +1154,9 @@
                     },
                     "role": {
                       "const": "manifest"
+                    },
+                    "requestCount": {
+                      "const": 1
                     }
                   }
                 }
@@ -1027,6 +1178,9 @@
                     },
                     "role": {
                       "const": "manifest"
+                    },
+                    "requestCount": {
+                      "const": 1
                     }
                   }
                 }
@@ -1048,6 +1202,9 @@
                     },
                     "role": {
                       "const": "manifest"
+                    },
+                    "requestCount": {
+                      "const": 1
                     }
                   }
                 }
@@ -1069,6 +1226,9 @@
                     },
                     "role": {
                       "const": "wasm"
+                    },
+                    "requestCount": {
+                      "const": 1
                     }
                   }
                 }
@@ -1090,6 +1250,9 @@
                     },
                     "role": {
                       "const": "oracle"
+                    },
+                    "requestCount": {
+                      "const": 1
                     }
                   }
                 }
@@ -1116,6 +1279,11 @@
                     },
                     "sourcePath": {
                       "const": "public/demos/base/text.regex-log-scan.v1/demo.js"
+                    },
+                    "contexts": {
+                      "const": [
+                        "page"
+                      ]
                     }
                   }
                 }
@@ -1134,6 +1302,11 @@
                     },
                     "sourcePath": {
                       "const": "public/demos/base/text.regex-log-scan.v1/worker.js"
+                    },
+                    "contexts": {
+                      "const": [
+                        "worker"
+                      ]
                     }
                   }
                 }
@@ -1152,6 +1325,11 @@
                     },
                     "sourcePath": {
                       "const": "public/demos/base/text.regex-log-scan.v1/identity.js"
+                    },
+                    "contexts": {
+                      "const": [
+                        "worker"
+                      ]
                     }
                   }
                 }
@@ -1170,6 +1348,11 @@
                     },
                     "sourcePath": {
                       "const": "benchmarks/text-regex-log-scan/input.js"
+                    },
+                    "contexts": {
+                      "const": [
+                        "worker"
+                      ]
                     }
                   }
                 }
@@ -1188,6 +1371,11 @@
                     },
                     "sourcePath": {
                       "const": "benchmarks/text-regex-log-scan/workload.js"
+                    },
+                    "contexts": {
+                      "const": [
+                        "worker"
+                      ]
                     }
                   }
                 }
@@ -1200,7 +1388,8 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/consoleEntry"
-          }
+          },
+          "maxItems": 0
         },
         "exceptions": {
           "type": "array",
@@ -1395,7 +1584,8 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/consoleEntry"
-          }
+          },
+          "maxItems": 0
         },
         "exceptions": {
           "type": "array",
@@ -1431,6 +1621,15 @@
             },
             "pagehideTerminatedWorker": {
               "const": false
+            },
+            "finalStatus": {
+              "const": "Cancelled. The worker was terminated."
+            },
+            "workerCount": {
+              "const": 1
+            },
+            "terminatedWorkers": {
+              "const": 1
             }
           }
         }
@@ -1464,6 +1663,15 @@
             },
             "pagehideTerminatedWorker": {
               "const": false
+            },
+            "finalStatus": {
+              "const": "Cancelled. The worker was terminated."
+            },
+            "workerCount": {
+              "const": 1
+            },
+            "terminatedWorkers": {
+              "const": 1
             }
           }
         }
@@ -1497,6 +1705,15 @@
             },
             "pagehideTerminatedWorker": {
               "const": false
+            },
+            "finalStatus": {
+              "const": "Cancelled. The worker was terminated."
+            },
+            "workerCount": {
+              "const": 2
+            },
+            "terminatedWorkers": {
+              "const": 2
             }
           }
         }
@@ -1530,6 +1747,15 @@
             },
             "pagehideTerminatedWorker": {
               "const": false
+            },
+            "finalStatus": {
+              "const": "Cancelled. The worker was terminated."
+            },
+            "workerCount": {
+              "const": 1
+            },
+            "terminatedWorkers": {
+              "const": 1
             }
           }
         }
@@ -1563,6 +1789,15 @@
             },
             "pagehideTerminatedWorker": {
               "const": false
+            },
+            "finalStatus": {
+              "const": "Failed: 120 second worker timeout"
+            },
+            "workerCount": {
+              "const": 1
+            },
+            "terminatedWorkers": {
+              "const": 1
             }
           }
         }
@@ -1596,10 +1831,42 @@
             },
             "pagehideTerminatedWorker": {
               "const": true
+            },
+            "finalStatus": {
+              "const": "Starting fresh worker…"
+            },
+            "workerCount": {
+              "const": 1
+            },
+            "terminatedWorkers": {
+              "const": 1
             }
           }
         }
       ]
+    },
+    "cgroupIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "dev",
+        "ino"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^/user\\.slice/.*/wasm-base-regex-[a-f0-9]{32}\\.scope$"
+        },
+        "dev": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ino": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
     }
   }
 }
