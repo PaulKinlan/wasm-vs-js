@@ -1,4 +1,5 @@
 export const ENTRY_COUNT = 10_000;
+export const BOUNDED_ENTRY_COUNT = 1_000;
 export const SELECTED_INDICES = Object.freeze([0, 1, 17, 997, 2048, 4096, 7001, 8191, 9998, 9999]);
 export const ZIP_POLICY = Object.freeze({
   algorithmFamily: "zip-fixed-deflate-metadata",
@@ -406,12 +407,16 @@ function safePath(name) {
   invariant(name.normalize("NFC") === name, "ZIP path is not NFC");
 }
 
-export function buildArchive() {
+export function buildArchive(entryCount = ENTRY_COUNT) {
+  invariant(
+    Number.isInteger(entryCount) && entryCount > 0 && entryCount <= ENTRY_COUNT,
+    "entry count outside demo bounds",
+  );
   const archive = new Writer(2 * 1024 * 1024);
   const entries = [];
   let inputBytes = 0;
   const counters = { deflateLiterals: 0, deflateMatches: 0, deflateMatchedBytes: 0 };
-  for (let index = 0; index < ENTRY_COUNT; index++) {
+  for (let index = 0; index < entryCount; index++) {
     const nameText = pathFor(index);
     safePath(nameText);
     const name = encoder.encode(nameText);
@@ -482,15 +487,15 @@ export function buildArchive() {
   return {
     archive: archive.finish(),
     counters: {
-      entries: ENTRY_COUNT,
+      entries: entryCount,
       inputBytes,
       crcBytes: inputBytes,
       deflateLiterals: counters.deflateLiterals,
       deflateMatches: counters.deflateMatches,
       deflateMatchedBytes: counters.deflateMatchedBytes,
-      deflateEndSymbols: ENTRY_COUNT,
-      localHeaders: ENTRY_COUNT,
-      centralHeaders: ENTRY_COUNT,
+      deflateEndSymbols: entryCount,
+      localHeaders: entryCount,
+      centralHeaders: entryCount,
       zip64Records: 0,
       boundaryCrossings: 0,
     },
@@ -506,12 +511,28 @@ function locateEocd(bytes) {
   throw new Error("EOCD not found");
 }
 
-export function inspectArchive(bytes, selected = SELECTED_INDICES) {
+export function inspectArchive(
+  bytes,
+  selected = SELECTED_INDICES,
+  expectedEntryCount = ENTRY_COUNT,
+) {
+  invariant(
+    Number.isInteger(expectedEntryCount) && expectedEntryCount > 0 &&
+      expectedEntryCount <= ENTRY_COUNT,
+    "entry count outside demo bounds",
+  );
+  const expectedSelected = SELECTED_INDICES.filter((index) => index < expectedEntryCount);
+  invariant(
+    selected.length === expectedSelected.length &&
+      selected.every((index, position) => index === expectedSelected[position]),
+    "selected path contract mismatch",
+  );
   const eocd = locateEocd(bytes);
+  invariant(eocd + 22 === bytes.length && u16(bytes, eocd + 20) === 0, "EOCD metadata mismatch");
   invariant(u16(bytes, eocd + 4) === 0 && u16(bytes, eocd + 6) === 0, "multi-disk ZIP forbidden");
   const count = u16(bytes, eocd + 10);
   invariant(count === u16(bytes, eocd + 8), "entry count mismatch");
-  invariant(count === ENTRY_COUNT, "frozen entry count mismatch");
+  invariant(count === expectedEntryCount, "entry count mismatch");
   const centralSize = u32(bytes, eocd + 12);
   const centralOffset = u32(bytes, eocd + 16);
   invariant(
@@ -526,18 +547,28 @@ export function inspectArchive(bytes, selected = SELECTED_INDICES) {
   let extractedBytes = 0;
   for (let index = 0; index < count; index++) {
     invariant(cursor + 46 <= eocd && u32(bytes, cursor) === 0x02014b50, "invalid central header");
+    const creatorVersion = u16(bytes, cursor + 4);
+    const extractVersion = u16(bytes, cursor + 6);
     const flags = u16(bytes, cursor + 8);
     const method = u16(bytes, cursor + 10);
+    const dosTime = u16(bytes, cursor + 12);
+    const dosDate = u16(bytes, cursor + 14);
     const crc = u32(bytes, cursor + 16);
     const compressedSize = u32(bytes, cursor + 20);
     const size = u32(bytes, cursor + 24);
     const nameLength = u16(bytes, cursor + 28);
     const extraLength = u16(bytes, cursor + 30);
     const commentLength = u16(bytes, cursor + 32);
+    const diskStart = u16(bytes, cursor + 34);
+    const internal = u16(bytes, cursor + 36);
     const external = u32(bytes, cursor + 38);
     const localOffset = u32(bytes, cursor + 42);
     invariant(
-      flags === ZIP_POLICY.utf8Flag && method === 8 && extraLength === 0 && commentLength === 0,
+      creatorVersion === ZIP_POLICY.creatorVersion &&
+        extractVersion === ZIP_POLICY.extractVersion &&
+        flags === ZIP_POLICY.utf8Flag && method === ZIP_POLICY.compressionMethod &&
+        dosTime === ZIP_POLICY.dosTime && dosDate === ZIP_POLICY.dosDate &&
+        extraLength === 0 && commentLength === 0 && diskStart === 0 && internal === 0,
       "metadata policy mismatch",
     );
     invariant(external === ((ZIP_POLICY.unixMode << 16) >>> 0), "platform attributes mismatch");
@@ -556,7 +587,9 @@ export function inspectArchive(bytes, selected = SELECTED_INDICES) {
       "invalid local header",
     );
     invariant(
-      u16(bytes, localOffset + 6) === flags && u16(bytes, localOffset + 8) === method,
+      u16(bytes, localOffset + 4) === ZIP_POLICY.extractVersion &&
+        u16(bytes, localOffset + 6) === flags && u16(bytes, localOffset + 8) === method &&
+        u16(bytes, localOffset + 10) === dosTime && u16(bytes, localOffset + 12) === dosDate,
       "local metadata mismatch",
     );
     invariant(
@@ -572,6 +605,13 @@ export function inspectArchive(bytes, selected = SELECTED_INDICES) {
     );
     const dataOffset = localOffset + 30 + localNameLength;
     invariant(dataOffset + compressedSize <= centralOffset, "compressed data overflow");
+    const localNameBytes = bytes.slice(localOffset + 30, dataOffset);
+    invariant(
+      localNameBytes.every((value, position) => value === nameBytes[position]),
+      "local and central names differ",
+    );
+    const localName = new TextDecoder("utf-8", { fatal: true }).decode(localNameBytes);
+    safePath(localName);
     if (selectedSet.has(index)) {
       const plain = inflateFixedLiterals(
         bytes.subarray(dataOffset, dataOffset + compressedSize),
@@ -591,10 +631,7 @@ export function inspectArchive(bytes, selected = SELECTED_INDICES) {
     cursor += 46 + nameLength;
   }
   invariant(cursor === eocd, "central directory trailing bytes");
-  invariant(
-    selectedSet.size === selected.length && selected.length === SELECTED_INDICES.length,
-    "selected path contract mismatch",
-  );
+  invariant(selectedSet.size === selected.length, "selected path contract mismatch");
   return {
     listing: listing.finish(),
     extracted: extracted.finish(),
@@ -607,9 +644,10 @@ export function inspectArchive(bytes, selected = SELECTED_INDICES) {
   };
 }
 
-export function runJavaScript() {
-  const built = buildArchive();
-  const inspected = inspectArchive(built.archive);
+export function runJavaScript(entryCount = ENTRY_COUNT) {
+  const selected = SELECTED_INDICES.filter((index) => index < entryCount);
+  const built = buildArchive(entryCount);
+  const inspected = inspectArchive(built.archive, selected, entryCount);
   return {
     variant: "js-controlled",
     archive: built.archive,

@@ -2,6 +2,7 @@ import Ajv2020Module from "ajv2020";
 import { inflateRawSync } from "node:zlib";
 import { sha256Hex } from "../lib/canonical.ts";
 import {
+  BOUNDED_ENTRY_COUNT,
   contentFor,
   ENTRY_COUNT,
   inspectArchive,
@@ -137,6 +138,28 @@ Deno.test("archive v1 JavaScript and material Wasm produce identical complete ou
   assertEquals(await sha256Hex(js.extracted), output.outputs.extractedSha256);
 });
 
+Deno.test("archive v1 bounded JavaScript and Wasm demos produce identical 1,000-entry outputs", async () => {
+  const js = runJavaScript(BOUNDED_ENTRY_COUNT);
+  assertEquals(js.counters.entries, 1_000);
+  assertEquals(js.counters.listedEntries, 1_000);
+  assertEquals(js.counters.extractedEntries, 4);
+
+  const wasmBytes = await Deno.readFile(
+    "public/artifacts/archive-zip-workspace-v1/archive-zip-workspace.wasm",
+  );
+  const { instance } = await WebAssembly.instantiate(wasmBytes);
+  const exports = instance.exports as Record<string, WebAssembly.ExportValue>;
+  assertEquals((exports.archive_run_bounded as () => number)(), 0);
+  const memory = new Uint8Array((exports.memory as WebAssembly.Memory).buffer);
+  const read = (pointer: string, length: string) => {
+    const start = (exports[pointer] as () => number)();
+    return memory.slice(start, start + (exports[length] as () => number)());
+  };
+  assert(equalBytes(js.archive, read("archive_ptr", "archive_length")));
+  assert(equalBytes(js.listing, read("listing_ptr", "listing_length")));
+  assert(equalBytes(js.extracted, read("extracted_ptr", "extracted_length")));
+});
+
 Deno.test("archive v1 selected entries interoperate with independent zlib inflate", () => {
   const { archive } = runJavaScript();
   const eocd = locateEocd(archive);
@@ -164,30 +187,50 @@ Deno.test("archive v1 selected entries interoperate with independent zlib inflat
   assertEquals(checked, 10);
 });
 
-Deno.test("archive v1 rejects traversal, truncation, metadata changes and Zip64 markers in both engines", async () => {
+Deno.test("archive v1 rejects unsafe names and changed ZIP metadata in both engines", async () => {
   const { archive } = runJavaScript();
   const eocd = locateEocd(archive);
   const centralOffset = u32(archive, eocd + 16);
-  const cases: Uint8Array[] = [];
-  cases.push(archive.slice(0, archive.length - 1));
-  const traversal = archive.slice();
-  traversal.set(new TextEncoder().encode("../"), centralOffset + 46);
-  cases.push(traversal);
-  const metadata = archive.slice();
-  metadata[centralOffset + 10] = 0;
-  cases.push(metadata);
+  const localOffset = u32(archive, centralOffset + 42);
+  const malformed: Array<{ name: string; bytes: Uint8Array }> = [];
+  const mutate = (name: string, offset: number, value: number) => {
+    const bytes = archive.slice();
+    bytes[offset] = value;
+    malformed.push({ name, bytes });
+  };
+
+  malformed.push({ name: "truncated EOCD", bytes: archive.slice(0, archive.length - 1) });
+  const centralTraversal = archive.slice();
+  centralTraversal.set(new TextEncoder().encode("../"), centralOffset + 46);
+  malformed.push({ name: "central traversal path", bytes: centralTraversal });
+  const localTraversal = archive.slice();
+  localTraversal.set(new TextEncoder().encode("../"), centralOffset + 46);
+  localTraversal.set(new TextEncoder().encode("../"), localOffset + 30);
+  malformed.push({ name: "matching local and central traversal paths", bytes: localTraversal });
+  mutate("local and central name mismatch", localOffset + 30, "x".charCodeAt(0));
+  mutate("central creator version", centralOffset + 4, 0);
+  mutate("central extract version", centralOffset + 6, 0);
+  mutate("central compression method", centralOffset + 10, 0);
+  mutate("central DOS time", centralOffset + 12, 1);
+  mutate("central DOS date", centralOffset + 14, 0);
+  mutate("central disk start", centralOffset + 34, 1);
+  mutate("central internal attributes", centralOffset + 36, 1);
+  mutate("local extract version", localOffset + 4, 0);
+  mutate("local DOS time", localOffset + 10, 1);
+  mutate("local DOS date", localOffset + 12, 0);
   const zip64 = archive.slice();
   set16(zip64, eocd + 8, 0xffff);
   set16(zip64, eocd + 10, 0xffff);
-  cases.push(zip64);
-  for (const bytes of cases) {
+  malformed.push({ name: "Zip64 marker", bytes: zip64 });
+
+  for (const { name, bytes } of malformed) {
     let rejected = false;
     try {
       inspectArchive(bytes);
     } catch {
       rejected = true;
     }
-    assert(rejected, "JavaScript parser accepted malformed ZIP");
+    assert(rejected, `JavaScript parser accepted malformed ZIP: ${name}`);
   }
 
   const wasmBytes = await Deno.readFile(
@@ -197,10 +240,13 @@ Deno.test("archive v1 rejects traversal, truncation, metadata changes and Zip64 
   const exports = instance.exports as Record<string, WebAssembly.ExportValue>;
   const memory = new Uint8Array((exports.memory as WebAssembly.Memory).buffer);
   const pointer = (exports.archive_ptr as () => number)();
-  for (const bytes of cases) {
+  for (const { name, bytes } of malformed) {
     assertEquals((exports.archive_run as () => number)(), 0);
     memory.set(bytes, pointer);
-    assertEquals((exports.archive_validate as (length: number) => number)(bytes.length), 0);
+    assert(
+      (exports.archive_validate as (length: number) => number)(bytes.length) === 0,
+      `Wasm parser accepted malformed ZIP: ${name}`,
+    );
   }
 });
 
@@ -261,5 +307,15 @@ Deno.test("archive v1 public routes are explicit, readable and mutation-closed",
       .text();
   assert(html.includes("10,000-file ZIP"));
   assert(html.includes("No performance claim"));
+  assert(html.includes("Bounded: 1,000 entries"));
+  assert(html.includes("Full contract: exactly 10,000 entries"));
   assert(html.includes("does not count"));
+  assert(!/<script(?![^>]*\bsrc=)[^>]*>/i.test(html), "page must not contain inline scripts");
+  const worker = await Deno.readTextFile("public/archive-zip-worker.js");
+  assert(worker.includes('mode !== "bounded" && mode !== "full"'));
+  assert(worker.includes('mode === "full" ? ENTRY_COUNT : BOUNDED_ENTRY_COUNT'));
+  const response = await handler(
+    new Request("http://127.0.0.1/benchmarks/archive-zip-workspace-v1/"),
+  );
+  assert(response.headers.get("content-security-policy")?.includes("script-src 'self'"));
 });

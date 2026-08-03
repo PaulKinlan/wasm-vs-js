@@ -1,6 +1,12 @@
 // Browser-served absolute module route.
 // @ts-ignore Deno checks this file from disk, while browsers resolve it from the site root.
-import { inspectArchive, runJavaScript } from "/benchmarks/v1/archive-zip-workspace/engine.js";
+import {
+  BOUNDED_ENTRY_COUNT,
+  ENTRY_COUNT,
+  inspectArchive,
+  runJavaScript,
+  SELECTED_INDICES,
+} from "/benchmarks/v1/archive-zip-workspace/engine.js";
 
 const ARTIFACT_BASE = "/artifacts/archive-zip-workspace-v1/";
 
@@ -49,10 +55,11 @@ async function verifyExactGraph() {
   return { build, fixture, output, wasm };
 }
 
-async function runWasm(wasm) {
+async function runWasm(wasm, mode) {
   const { instance } = await WebAssembly.instantiate(wasm);
   const exports = instance.exports;
-  if (exports.archive_run() !== 0) throw new Error("Wasm archive workload failed");
+  const run = mode === "full" ? exports.archive_run : exports.archive_run_bounded;
+  if (run() !== 0) throw new Error("Wasm archive workload failed");
   const memory = new Uint8Array(exports.memory.buffer);
   const copy = (pointer, length) => memory.slice(pointer(), pointer() + length());
   const archive = copy(exports.archive_ptr, exports.archive_length);
@@ -84,20 +91,28 @@ async function runWasm(wasm) {
 }
 
 self.onmessage = async (event) => {
-  const { token, target } = event.data ?? {};
+  const { token, target, mode } = event.data ?? {};
   try {
+    if (target !== "javascript" && target !== "wasm") throw new Error("unknown target");
+    if (mode !== "bounded" && mode !== "full") throw new Error("unknown demo mode");
     const graph = await verifyExactGraph();
-    const result = target === "javascript" ? runJavaScript() : await runWasm(graph.wasm);
+    const entryCount = mode === "full" ? ENTRY_COUNT : BOUNDED_ENTRY_COUNT;
+    const result = target === "javascript"
+      ? runJavaScript(entryCount)
+      : await runWasm(graph.wasm, mode);
     const hashes = {
       archiveSha256: await sha256(result.archive),
       listingSha256: await sha256(result.listing),
       extractedSha256: await sha256(result.extracted),
     };
-    for (const [key, value] of Object.entries(hashes)) {
-      if (value !== graph.output.json.outputs[key]) throw new Error(`${key} oracle mismatch`);
+    if (mode === "full") {
+      for (const [key, value] of Object.entries(hashes)) {
+        if (value !== graph.output.json.outputs[key]) throw new Error(`${key} oracle mismatch`);
+      }
     }
     if (target === "wasm") {
-      const replay = inspectArchive(result.archive);
+      const selected = SELECTED_INDICES.filter((index) => index < entryCount);
+      const replay = inspectArchive(result.archive, selected, entryCount);
       if (
         !equalBytes(replay.listing, result.listing) ||
         !equalBytes(replay.extracted, result.extracted)
@@ -105,7 +120,15 @@ self.onmessage = async (event) => {
         throw new Error("independent JavaScript ZIP inspection mismatch");
       }
     }
-    self.postMessage({ token, type: "complete", target, hashes, counters: result.counters });
+    self.postMessage({
+      token,
+      type: "complete",
+      target,
+      mode,
+      entryCount,
+      hashes,
+      counters: result.counters,
+    });
   } catch (error) {
     self.postMessage({
       token,

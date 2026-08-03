@@ -6,9 +6,6 @@
     <meta name="color-scheme" content="light dark">
     <title>10,000-file ZIP workspace | Wasm versus JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
-    <script>
-    document.documentElement.classList.add("js");
-    </script>
     <script type="module" src="/archive-zip-demo.js"></script>
   </head>
   <body>
@@ -25,8 +22,13 @@
           <option value="javascript">JavaScript controlled</option>
           <option value="wasm">Linear Wasm controlled</option>
         </select>
-        <p>The full contract runs once. It is stopped after 30 seconds. Zip64 is forbidden because this fixture has 10,000 entries and all sizes and offsets remain below 2³².</p>
-        <button id="start" type="submit">Start full validation</button>
+        <label for="mode">Demo mode</label>
+        <select id="mode">
+          <option value="bounded">Bounded: 1,000 entries</option>
+          <option value="full">Full contract: exactly 10,000 entries</option>
+        </select>
+        <p>The bounded mode runs the first 1,000 generated entries and stops after 10 seconds. It checks structure and selected contents but has no frozen output oracle. The full mode runs all 10,000 entries, checks the three frozen SHA-256 outputs, and stops after 30 seconds. Zip64 is forbidden because the full fixture has fewer than 65,535 entries and every size and offset is below 2³².</p>
+        <button id="start" type="submit">Start validation</button>
         <button id="cancel" type="button" disabled>Cancel</button>
       </form>
       <section aria-labelledby="result-heading">
