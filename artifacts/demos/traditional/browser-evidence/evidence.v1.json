@@ -17,8 +17,8 @@
       "--hide-scrollbars",
       "--window-size=1440,1200",
       "--remote-debugging-address=127.0.0.1",
-      "--remote-debugging-port=39757",
-      "--user-data-dir=/tmp/wasm-traditional-chrome-1c2ea21d9ff7ee7f",
+      "--remote-debugging-port=39449",
+      "--user-data-dir=/tmp/wasm-traditional-chrome-7f8d8225f6f7576d",
       "about:blank"
     ],
     "product": "Chrome/150.0.7871.24",
@@ -31,76 +31,76 @@
       "exit": { "code": 0, "signal": null, "success": true },
       "launcher": {
         "executable": "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome",
-        "parentPid": 799462,
-        "pid": 799479,
-        "startTimeTicks": "145525117"
+        "parentPid": 877508,
+        "pid": 877525,
+        "startTimeTicks": "145763832"
       },
       "observedProcesses": [
         {
           "executable": "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome",
-          "parentPid": 799462,
-          "pid": 799479,
-          "startTimeTicks": "145525117"
+          "parentPid": 877508,
+          "pid": 877525,
+          "startTimeTicks": "145763832"
         },
         {
           "executable": "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome",
-          "parentPid": 799479,
-          "pid": 799486,
-          "startTimeTicks": "145525119"
+          "parentPid": 877525,
+          "pid": 877532,
+          "startTimeTicks": "145763834"
         },
         {
           "executable": "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome",
-          "parentPid": 799479,
-          "pid": 799487,
-          "startTimeTicks": "145525119"
+          "parentPid": 877525,
+          "pid": 877533,
+          "startTimeTicks": "145763834"
         },
         {
           "executable": "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome",
-          "parentPid": 799486,
-          "pid": 799514,
-          "startTimeTicks": "145525122"
+          "parentPid": 877532,
+          "pid": 877558,
+          "startTimeTicks": "145763836"
         },
         {
           "executable": "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome",
-          "parentPid": 799479,
-          "pid": 799529,
-          "startTimeTicks": "145525122"
+          "parentPid": 877525,
+          "pid": 877570,
+          "startTimeTicks": "145763837"
         },
         {
           "executable": "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome",
-          "parentPid": 799487,
-          "pid": 799588,
-          "startTimeTicks": "145525125"
+          "parentPid": 877533,
+          "pid": 877633,
+          "startTimeTicks": "145763840"
         },
         {
           "executable": "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome",
-          "parentPid": 799487,
-          "pid": 799615,
-          "startTimeTicks": "145525130"
+          "parentPid": 877533,
+          "pid": 877660,
+          "startTimeTicks": "145763843"
         },
         {
           "executable": "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome",
-          "parentPid": 799487,
-          "pid": 799640,
-          "startTimeTicks": "145525133"
+          "parentPid": 877533,
+          "pid": 877675,
+          "startTimeTicks": "145763847"
         },
         {
           "executable": "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome",
-          "parentPid": 799487,
-          "pid": 799668,
-          "startTimeTicks": "145525138"
+          "parentPid": 877533,
+          "pid": 877712,
+          "startTimeTicks": "145763851"
         },
         {
           "executable": "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome",
-          "parentPid": 799487,
-          "pid": 799669,
-          "startTimeTicks": "145525138"
+          "parentPid": 877533,
+          "pid": 877713,
+          "startTimeTicks": "145763851"
         },
         {
           "executable": "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome",
-          "parentPid": 799487,
-          "pid": 799908,
-          "startTimeTicks": "145525425"
+          "parentPid": 877533,
+          "pid": 878008,
+          "startTimeTicks": "145764127"
         }
       ],
       "processesAbsent": true,
@@ -109,23 +109,23 @@
     },
     "profile": {
       "absent": true,
-      "path": "/tmp/wasm-traditional-chrome-1c2ea21d9ff7ee7f",
+      "path": "/tmp/wasm-traditional-chrome-7f8d8225f6f7576d",
       "removed": true
     },
     "server": {
       "exit": { "code": 143, "signal": "SIGTERM", "success": false },
       "launcher": {
         "executable": "/home/paulkinlan/.local/share/mise/installs/deno/2.9.0/bin/deno",
-        "parentPid": 799462,
-        "pid": 799471,
-        "startTimeTicks": "145525101"
+        "parentPid": 877508,
+        "pid": 877517,
+        "startTimeTicks": "145763816"
       },
       "processAbsent": true,
       "signal": "SIGTERM"
     }
   },
-  "collectedAt": "2026-08-03T10:59:56.825Z",
-  "collectionCommand": "deno run -A scripts/collect-traditional-demo-evidence.ts --source-commit=ad9f7bf5fa9973f10a2f21d6b7770fcbffb367b1 --chrome=/home/paulkinlan/.local/bin/google-chrome-stable",
+  "collectedAt": "2026-08-03T11:39:43.847Z",
+  "collectionCommand": "deno run -A scripts/collect-traditional-demo-evidence.ts --source-commit=4a48f3fe1fcbfa2de71925f9ad89d04dd057218b --chrome=/home/paulkinlan/.local/bin/google-chrome-stable",
   "evidenceId": "reduced-traditional-demos-chrome-150-v1",
   "scenarios": [
     {
@@ -145,7 +145,7 @@
           "mimeType": "text/html",
           "status": 200,
           "type": "Document",
-          "url": "http://127.0.0.1:33875/benchmarks/regex-automata-duel-demo/"
+          "url": "http://127.0.0.1:38089/benchmarks/regex-automata-duel-demo/"
         },
         {
           "errorText": null,
@@ -156,7 +156,7 @@
           "mimeType": "text/css",
           "status": 200,
           "type": "Stylesheet",
-          "url": "http://127.0.0.1:33875/benchmarks/traditional-demo.css"
+          "url": "http://127.0.0.1:38089/benchmarks/traditional-demo.css"
         },
         {
           "errorText": null,
@@ -167,7 +167,7 @@
           "mimeType": "text/javascript",
           "status": 200,
           "type": "Script",
-          "url": "http://127.0.0.1:33875/benchmarks/traditional-demo.js"
+          "url": "http://127.0.0.1:38089/benchmarks/traditional-demo.js"
         },
         {
           "errorText": null,
@@ -178,7 +178,7 @@
           "mimeType": "image/svg+xml",
           "status": 200,
           "type": "Other",
-          "url": "http://127.0.0.1:33875/favicon.ico"
+          "url": "http://127.0.0.1:38089/favicon.ico"
         },
         {
           "errorText": null,
@@ -189,7 +189,7 @@
           "mimeType": "text/javascript",
           "status": 200,
           "type": "Script",
-          "url": "http://127.0.0.1:33875/benchmarks/regex-automata-duel-demo/worker.js"
+          "url": "http://127.0.0.1:38089/benchmarks/regex-automata-duel-demo/worker.js"
         },
         {
           "errorText": null,
@@ -200,15 +200,15 @@
           "mimeType": "text/javascript",
           "status": 200,
           "type": "Script",
-          "url": "http://127.0.0.1:33875/benchmarks/regex-automata-duel-demo/engine.js"
+          "url": "http://127.0.0.1:38089/benchmarks/regex-automata-duel-demo/engine.js"
         }
       ],
       "resultTextSha256": "f4815a02cac381844ade314d180055f7d0214cb8c4073686e61b76d75da2907a",
       "route": "/benchmarks/regex-automata-duel-demo/",
       "screenshot": {
-        "bytes": 281395,
+        "bytes": 281411,
         "path": "artifacts/demos/traditional/browser-evidence/screenshots/regex-js-native.png",
-        "sha256": "a853e447699d8745333291fe0707c5428e0e191123bb5ffd00bf3b6d9c834bbf"
+        "sha256": "fd08c7ba1fd8d1acb934a2821827c718b817d1ece25d4bd514259552a8d6ff90"
       },
       "target": "js-native-controlled"
     },
@@ -229,7 +229,7 @@
           "mimeType": "text/html",
           "status": 200,
           "type": "Document",
-          "url": "http://127.0.0.1:33875/benchmarks/regex-automata-duel-demo/"
+          "url": "http://127.0.0.1:38089/benchmarks/regex-automata-duel-demo/"
         },
         {
           "errorText": null,
@@ -240,7 +240,7 @@
           "mimeType": "text/css",
           "status": 200,
           "type": "Stylesheet",
-          "url": "http://127.0.0.1:33875/benchmarks/traditional-demo.css"
+          "url": "http://127.0.0.1:38089/benchmarks/traditional-demo.css"
         },
         {
           "errorText": null,
@@ -251,7 +251,7 @@
           "mimeType": "text/javascript",
           "status": 200,
           "type": "Script",
-          "url": "http://127.0.0.1:33875/benchmarks/traditional-demo.js"
+          "url": "http://127.0.0.1:38089/benchmarks/traditional-demo.js"
         },
         {
           "errorText": null,
@@ -262,7 +262,7 @@
           "mimeType": "text/javascript",
           "status": 200,
           "type": "Script",
-          "url": "http://127.0.0.1:33875/benchmarks/regex-automata-duel-demo/worker.js"
+          "url": "http://127.0.0.1:38089/benchmarks/regex-automata-duel-demo/worker.js"
         },
         {
           "errorText": null,
@@ -273,15 +273,15 @@
           "mimeType": "text/javascript",
           "status": 200,
           "type": "Script",
-          "url": "http://127.0.0.1:33875/benchmarks/regex-automata-duel-demo/engine.js"
+          "url": "http://127.0.0.1:38089/benchmarks/regex-automata-duel-demo/engine.js"
         }
       ],
       "resultTextSha256": "7ed20c429133b291b5571412d130884274d5aa35364db660626dc726fbe0407b",
       "route": "/benchmarks/regex-automata-duel-demo/",
       "screenshot": {
-        "bytes": 281750,
+        "bytes": 281726,
         "path": "artifacts/demos/traditional/browser-evidence/screenshots/regex-js-automata.png",
-        "sha256": "3dcc0f642962569e71e980196b280c89e7212f5f7b9ad9795ffe29e777ad7e84"
+        "sha256": "0f82e103b1a0bdf441342104493a8ded2d275d3db2f77b570a746cdeecba9ae3"
       },
       "target": "js-automata-controlled"
     },
@@ -302,7 +302,7 @@
           "mimeType": "text/html",
           "status": 200,
           "type": "Document",
-          "url": "http://127.0.0.1:33875/benchmarks/regex-automata-duel-demo/"
+          "url": "http://127.0.0.1:38089/benchmarks/regex-automata-duel-demo/"
         },
         {
           "errorText": null,
@@ -313,7 +313,7 @@
           "mimeType": "text/css",
           "status": 200,
           "type": "Stylesheet",
-          "url": "http://127.0.0.1:33875/benchmarks/traditional-demo.css"
+          "url": "http://127.0.0.1:38089/benchmarks/traditional-demo.css"
         },
         {
           "errorText": null,
@@ -324,7 +324,7 @@
           "mimeType": "text/javascript",
           "status": 200,
           "type": "Script",
-          "url": "http://127.0.0.1:33875/benchmarks/traditional-demo.js"
+          "url": "http://127.0.0.1:38089/benchmarks/traditional-demo.js"
         },
         {
           "errorText": null,
@@ -335,7 +335,7 @@
           "mimeType": "text/javascript",
           "status": 200,
           "type": "Script",
-          "url": "http://127.0.0.1:33875/benchmarks/regex-automata-duel-demo/worker.js"
+          "url": "http://127.0.0.1:38089/benchmarks/regex-automata-duel-demo/worker.js"
         },
         {
           "errorText": null,
@@ -346,7 +346,7 @@
           "mimeType": "text/javascript",
           "status": 200,
           "type": "Script",
-          "url": "http://127.0.0.1:33875/benchmarks/regex-automata-duel-demo/engine.js"
+          "url": "http://127.0.0.1:38089/benchmarks/regex-automata-duel-demo/engine.js"
         },
         {
           "errorText": null,
@@ -357,15 +357,15 @@
           "mimeType": "application/wasm",
           "status": 200,
           "type": "Fetch",
-          "url": "http://127.0.0.1:33875/artifacts/regex-automata-duel/regex-automata-duel.wasm"
+          "url": "http://127.0.0.1:38089/artifacts/regex-automata-duel/regex-automata-duel.wasm"
         }
       ],
       "resultTextSha256": "a0c655d97bda07abb0089790de81e73dcd1630550b7535dce523daac4a6b36bb",
       "route": "/benchmarks/regex-automata-duel-demo/",
       "screenshot": {
-        "bytes": 283161,
+        "bytes": 283153,
         "path": "artifacts/demos/traditional/browser-evidence/screenshots/regex-wasm-automata.png",
-        "sha256": "2ee3676b043a19aedcb8bbe0fc63b00b756ce29d1881c949e125a7443cc62389"
+        "sha256": "63d73dd9a6e1ec7e8c1b127afaf4367c311d074bd24a28431beafa4e038aa1e2"
       },
       "target": "wasm-automata-controlled"
     },
@@ -391,7 +391,7 @@
           "mimeType": "text/html",
           "status": 200,
           "type": "Document",
-          "url": "http://127.0.0.1:33875/benchmarks/vdom-diff-patch-demo/"
+          "url": "http://127.0.0.1:38089/benchmarks/vdom-diff-patch-demo/"
         },
         {
           "errorText": null,
@@ -402,7 +402,7 @@
           "mimeType": "text/css",
           "status": 200,
           "type": "Stylesheet",
-          "url": "http://127.0.0.1:33875/benchmarks/traditional-demo.css"
+          "url": "http://127.0.0.1:38089/benchmarks/traditional-demo.css"
         },
         {
           "errorText": null,
@@ -413,7 +413,7 @@
           "mimeType": "text/javascript",
           "status": 200,
           "type": "Script",
-          "url": "http://127.0.0.1:33875/benchmarks/traditional-demo.js"
+          "url": "http://127.0.0.1:38089/benchmarks/traditional-demo.js"
         },
         {
           "errorText": null,
@@ -424,7 +424,7 @@
           "mimeType": "text/javascript",
           "status": 200,
           "type": "Script",
-          "url": "http://127.0.0.1:33875/benchmarks/vdom-diff-patch-demo/worker.js"
+          "url": "http://127.0.0.1:38089/benchmarks/vdom-diff-patch-demo/worker.js"
         },
         {
           "errorText": null,
@@ -435,7 +435,7 @@
           "mimeType": "text/javascript",
           "status": 200,
           "type": "Script",
-          "url": "http://127.0.0.1:33875/benchmarks/vdom-diff-patch-demo/engine.js"
+          "url": "http://127.0.0.1:38089/benchmarks/vdom-diff-patch-demo/engine.js"
         },
         {
           "errorText": null,
@@ -446,15 +446,15 @@
           "mimeType": "text/javascript",
           "status": 200,
           "type": "Script",
-          "url": "http://127.0.0.1:33875/benchmarks/vdom-diff-patch-demo/engine.js"
+          "url": "http://127.0.0.1:38089/benchmarks/vdom-diff-patch-demo/engine.js"
         }
       ],
       "resultTextSha256": "ad74757e013e75192481bf13f9413f3d4f152d9a644d0d7285f0563514e7631f",
       "route": "/benchmarks/vdom-diff-patch-demo/",
       "screenshot": {
-        "bytes": 328572,
+        "bytes": 328584,
         "path": "artifacts/demos/traditional/browser-evidence/screenshots/vdom-js-browser-dom.png",
-        "sha256": "e5c0556f247587af92a574ed4cecf2028ed09dab7ba038003c6e7e7d73a4a059"
+        "sha256": "f9bb5d4ff6da7d2f10197672bfe3c73f5892177490efb14d0a5308abaeac2a98"
       },
       "target": "js-controlled"
     },
@@ -480,7 +480,7 @@
           "mimeType": "text/html",
           "status": 200,
           "type": "Document",
-          "url": "http://127.0.0.1:33875/benchmarks/vdom-diff-patch-demo/"
+          "url": "http://127.0.0.1:38089/benchmarks/vdom-diff-patch-demo/"
         },
         {
           "errorText": null,
@@ -491,7 +491,7 @@
           "mimeType": "text/css",
           "status": 200,
           "type": "Stylesheet",
-          "url": "http://127.0.0.1:33875/benchmarks/traditional-demo.css"
+          "url": "http://127.0.0.1:38089/benchmarks/traditional-demo.css"
         },
         {
           "errorText": null,
@@ -502,7 +502,7 @@
           "mimeType": "text/javascript",
           "status": 200,
           "type": "Script",
-          "url": "http://127.0.0.1:33875/benchmarks/traditional-demo.js"
+          "url": "http://127.0.0.1:38089/benchmarks/traditional-demo.js"
         },
         {
           "errorText": null,
@@ -513,7 +513,7 @@
           "mimeType": "text/javascript",
           "status": 200,
           "type": "Script",
-          "url": "http://127.0.0.1:33875/benchmarks/vdom-diff-patch-demo/worker.js"
+          "url": "http://127.0.0.1:38089/benchmarks/vdom-diff-patch-demo/worker.js"
         },
         {
           "errorText": null,
@@ -524,7 +524,7 @@
           "mimeType": "text/javascript",
           "status": 200,
           "type": "Script",
-          "url": "http://127.0.0.1:33875/benchmarks/vdom-diff-patch-demo/engine.js"
+          "url": "http://127.0.0.1:38089/benchmarks/vdom-diff-patch-demo/engine.js"
         },
         {
           "errorText": null,
@@ -535,7 +535,7 @@
           "mimeType": "application/wasm",
           "status": 200,
           "type": "Fetch",
-          "url": "http://127.0.0.1:33875/artifacts/vdom-diff-patch/vdom-diff-patch.wasm"
+          "url": "http://127.0.0.1:38089/artifacts/vdom-diff-patch/vdom-diff-patch.wasm"
         },
         {
           "errorText": null,
@@ -546,15 +546,15 @@
           "mimeType": "text/javascript",
           "status": 200,
           "type": "Script",
-          "url": "http://127.0.0.1:33875/benchmarks/vdom-diff-patch-demo/engine.js"
+          "url": "http://127.0.0.1:38089/benchmarks/vdom-diff-patch-demo/engine.js"
         }
       ],
       "resultTextSha256": "08a0e0f8d9c05a449f8521256f1aca24e8ffe8a2c33a8c9b8ec95dfdfba01a17",
       "route": "/benchmarks/vdom-diff-patch-demo/",
       "screenshot": {
-        "bytes": 326888,
+        "bytes": 326896,
         "path": "artifacts/demos/traditional/browser-evidence/screenshots/vdom-wasm-browser-dom.png",
-        "sha256": "dc2ab8fe6d3f05e23174f0021137578765e24c6d7c6e811932bb20511539b0a2"
+        "sha256": "38c88a4ab12fab4c796263c1193f09fa0b1ed9ac2f48121e73dff3f3c3936485"
       },
       "target": "wasm-linear-controlled"
     },
@@ -579,7 +579,7 @@
           "mimeType": "text/html",
           "status": 200,
           "type": "Document",
-          "url": "http://127.0.0.1:33875/benchmarks/regex-automata-duel-demo/"
+          "url": "http://127.0.0.1:38089/benchmarks/regex-automata-duel-demo/"
         },
         {
           "errorText": null,
@@ -590,7 +590,7 @@
           "mimeType": "text/css",
           "status": 200,
           "type": "Stylesheet",
-          "url": "http://127.0.0.1:33875/benchmarks/traditional-demo.css"
+          "url": "http://127.0.0.1:38089/benchmarks/traditional-demo.css"
         },
         {
           "errorText": null,
@@ -601,7 +601,7 @@
           "mimeType": "text/javascript",
           "status": 200,
           "type": "Script",
-          "url": "http://127.0.0.1:33875/benchmarks/traditional-demo.js"
+          "url": "http://127.0.0.1:38089/benchmarks/traditional-demo.js"
         },
         {
           "errorText": null,
@@ -612,7 +612,7 @@
           "mimeType": "text/javascript",
           "status": 200,
           "type": "Script",
-          "url": "http://127.0.0.1:33875/benchmarks/regex-automata-duel-demo/worker.js"
+          "url": "http://127.0.0.1:38089/benchmarks/regex-automata-duel-demo/worker.js"
         },
         {
           "errorText": null,
@@ -623,7 +623,7 @@
           "mimeType": "text/javascript",
           "status": 200,
           "type": "Script",
-          "url": "http://127.0.0.1:33875/benchmarks/regex-automata-duel-demo/engine.js"
+          "url": "http://127.0.0.1:38089/benchmarks/regex-automata-duel-demo/engine.js"
         }
       ],
       "resultTextSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -637,9 +637,9 @@
     }
   ],
   "schemaVersion": 1,
-  "server": { "launcherPid": 799471, "mode": "public", "origin": "http://127.0.0.1:33875" },
+  "server": { "launcherPid": 877517, "mode": "public", "origin": "http://127.0.0.1:38089" },
   "source": {
-    "commit": "ad9f7bf5fa9973f10a2f21d6b7770fcbffb367b1",
-    "tree": "dbea468a46bf688015517be9af49c7f9c4cfaed2"
+    "commit": "4a48f3fe1fcbfa2de71925f9ad89d04dd057218b",
+    "tree": "dc243f13c18f677b9abe09f37030543d3ce5bce0"
   }
 }

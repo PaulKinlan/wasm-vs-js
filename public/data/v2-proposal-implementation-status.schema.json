@@ -25,7 +25,8 @@
       "const": "descriptive-proposal-status-not-accepted-catalog"
     },
     "sourceRevision": {
-      "$ref": "#/$defs/commit"
+      "$ref": "#/$defs/commit",
+      "const": "4a48f3fe1fcbfa2de71925f9ad89d04dd057218b"
     },
     "catalog": {
       "type": "object",
