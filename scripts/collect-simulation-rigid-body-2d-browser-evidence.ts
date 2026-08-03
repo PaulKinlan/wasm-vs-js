@@ -719,7 +719,18 @@ async function collectScenario(
         );
         await delay(50);
         const after = await pageState(client, pageSessionId);
-        if (before.status !== after.status || before.result !== after.result) {
+        // Progress updates legitimately mutate status during the live run;
+        // only a handler effect of the forged message (finish() writing the
+        // result or a completion/failure status) proves visible mutation.
+        const newStatuses = (after.statusHistory as string[]).slice(
+          (before.statusHistory as string[]).length,
+        );
+        if (
+          before.result !== after.result ||
+          newStatuses.some((value) =>
+            value.startsWith("Complete.") || value.startsWith("Run failed.")
+          )
+        ) {
           throw new Error("wrong-token completion mutated visible state");
         }
         lifecycleChecks.push("wrong-token completion was ignored without visible mutation");
