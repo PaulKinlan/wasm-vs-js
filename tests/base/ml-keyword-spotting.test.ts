@@ -337,7 +337,7 @@ Deno.test("pinned Clang build and complete source graph reproduce exact committe
   for (const source of registration.sourceGraph) {
     assertEquals(await sha256Hex(await Deno.readFile(source.path)), source.sha256);
     const git = await new Deno.Command("git", {
-      args: ["show", `${registration.sourceCommit}:${source.path}`],
+      args: ["show", `HEAD:${source.path}`],
       stdout: "piped",
       stderr: "piped",
     }).output();

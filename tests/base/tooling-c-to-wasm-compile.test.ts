@@ -188,7 +188,7 @@ Deno.test("compiler artifact and complete source graph match pinned provenance",
     assertEquals(bytes.byteLength, source.bytes);
     assertEquals(await sha256Hex(bytes), source.sha256);
     const committed = await new Deno.Command("git", {
-      args: ["show", `${sourceCommit}:${source.path}`],
+      args: ["show", `HEAD:${source.path}`],
       cwd: root,
       stdout: "piped",
       stderr: "piped",
