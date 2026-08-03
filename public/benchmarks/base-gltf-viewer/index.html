@@ -6,41 +6,41 @@
     <title>glTF viewer base workload | Wasm versus JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
     <style>
+    .viewer-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 12rem;
+      gap: 1rem;
+      align-items: start;
+    }
+    .preview {
+      width: 192px;
+      height: 192px;
+      image-rendering: pixelated;
+      border: 1px solid var(--border, #666);
+      background: #111;
+    }
+    .controls {
+      display: grid;
+      gap: 0.75rem;
+      max-width: 42rem;
+    }
+    .controls label {
+      display: grid;
+      gap: 0.25rem;
+    }
+    .actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    pre {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    @media (max-width: 40rem) {
       .viewer-grid {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) 12rem;
-        gap: 1rem;
-        align-items: start;
+        grid-template-columns: 1fr;
       }
-      .preview {
-        width: 192px;
-        height: 192px;
-        image-rendering: pixelated;
-        border: 1px solid var(--border, #666);
-        background: #111;
-      }
-      .controls {
-        display: grid;
-        gap: 0.75rem;
-        max-width: 42rem;
-      }
-      .controls label {
-        display: grid;
-        gap: 0.25rem;
-      }
-      .actions {
-        display: flex;
-        gap: 0.5rem;
-      }
-      pre {
-        white-space: pre-wrap;
-        overflow-wrap: anywhere;
-      }
-      @media (max-width: 40rem) {
-        .viewer-grid {
-          grid-template-columns: 1fr;
-        }
-      }
+    }
     </style>
   </head>
   <body>
