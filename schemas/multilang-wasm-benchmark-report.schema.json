@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.paulkinlan-ea.deno.net/schemas/multilang-wasm-benchmark-report.schema.json",
+  "title": "MultiLanguageWasmBenchmarkReport",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "generatedAt",
+    "workloads",
+    "summary"
+  ],
+  "properties": {
+    "schemaVersion": { "type": "string", "const": "1.0.0" },
+    "generatedAt": { "type": "string" },
+    "workloads": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "variants"
+        ],
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "variants": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "language",
+                "toolchain",
+                "binarySizeBytes",
+                "coldInstantiateMs",
+                "warmExecutionMs",
+                "memoryPageCount",
+                "importsCount",
+                "exportsCount"
+              ],
+              "properties": {
+                "language": { "type": "string" },
+                "toolchain": { "type": "string" },
+                "binarySizeBytes": { "type": "number" },
+                "coldInstantiateMs": { "type": "number" },
+                "warmExecutionMs": { "type": "number" },
+                "memoryPageCount": { "type": "number" },
+                "importsCount": { "type": "number" },
+                "exportsCount": { "type": "number" },
+                "notes": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "totalVariantsTested",
+        "keyInsights"
+      ],
+      "properties": {
+        "totalVariantsTested": { "type": "number" },
+        "keyInsights": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

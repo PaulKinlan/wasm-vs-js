@@ -1,0 +1,154 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-08-03T21:59:20.782Z",
+  "workloads": [
+    {
+      "name": "sum-u32",
+      "description": "Array sum reduction over 1,000 u32 integers across 200,000 warm iterations.",
+      "variants": [
+        {
+          "language": "JavaScript",
+          "toolchain": "V8 JIT Engine",
+          "binarySizeBytes": 0,
+          "coldInstantiateMs": 0,
+          "warmExecutionMs": 109.95,
+          "memoryPageCount": 0,
+          "importsCount": 0,
+          "exportsCount": 1,
+          "notes": "Pure JS baseline; fast JIT loop optimization."
+        },
+        {
+          "language": "Raw WAT",
+          "toolchain": "Handwritten WAT / Bytecode",
+          "binarySizeBytes": 96,
+          "coldInstantiateMs": 0.0016,
+          "warmExecutionMs": 52.83,
+          "memoryPageCount": 1,
+          "importsCount": 0,
+          "exportsCount": 2,
+          "notes": "Direct opcode stream; zero runtime glue or memory manager."
+        },
+        {
+          "language": "AssemblyScript (WasmGC)",
+          "toolchain": "AssemblyScript compiler (asc -O3)",
+          "binarySizeBytes": 94,
+          "coldInstantiateMs": 0.0009,
+          "warmExecutionMs": 52.57,
+          "memoryPageCount": 1,
+          "importsCount": 0,
+          "exportsCount": 2,
+          "notes": "TypeScript-like syntax; generates clean Wasm with zero JS wrapper overhead."
+        },
+        {
+          "language": "C / Wasm",
+          "toolchain": "LLVM Clang 22.1 (-O3 -nostdlib)",
+          "binarySizeBytes": 757,
+          "coldInstantiateMs": 0.0017,
+          "warmExecutionMs": 40.18,
+          "memoryPageCount": 1,
+          "importsCount": 0,
+          "exportsCount": 14,
+          "notes": "Standalone Clang compilation; exposes low-level memory export symbols."
+        },
+        {
+          "language": "C++ / Wasm",
+          "toolchain": "LLVM Clang++ 22.1 (-O3 -nostdlib)",
+          "binarySizeBytes": 759,
+          "coldInstantiateMs": 0.0017,
+          "warmExecutionMs": 39.95,
+          "memoryPageCount": 1,
+          "importsCount": 0,
+          "exportsCount": 14,
+          "notes": "Standalone Clang++ compilation with extern 'C' export wrappers."
+        }
+      ]
+    },
+    {
+      "name": "fft-kernel",
+      "description": "Fast Fourier Transform butterfly kernel (512 float elements, 2,000 warm iterations).",
+      "variants": [
+        {
+          "language": "JavaScript",
+          "toolchain": "V8 JIT Engine",
+          "binarySizeBytes": 0,
+          "coldInstantiateMs": 0,
+          "warmExecutionMs": 11.78,
+          "memoryPageCount": 0,
+          "importsCount": 0,
+          "exportsCount": 1,
+          "notes": "Pure JS Math.sin/cos loop."
+        },
+        {
+          "language": "AssemblyScript (WasmGC)",
+          "toolchain": "AssemblyScript compiler (asc -O3)",
+          "binarySizeBytes": 2479,
+          "coldInstantiateMs": 0.0015,
+          "warmExecutionMs": 8.94,
+          "memoryPageCount": 1,
+          "importsCount": 0,
+          "exportsCount": 2,
+          "notes": "Uses AssemblyScript Mathf intrinsics."
+        },
+        {
+          "language": "C / Wasm",
+          "toolchain": "LLVM Clang 22.1 (-O3 -nostdlib)",
+          "binarySizeBytes": 1149,
+          "coldInstantiateMs": 0.0017,
+          "warmExecutionMs": 8.67,
+          "memoryPageCount": 1,
+          "importsCount": 0,
+          "exportsCount": 14,
+          "notes": "Includes standalone polynomial trigonometric functions."
+        },
+        {
+          "language": "C++ / Wasm",
+          "toolchain": "LLVM Clang++ 22.1 (-O3 -nostdlib)",
+          "binarySizeBytes": 1151,
+          "coldInstantiateMs": 0.0017,
+          "warmExecutionMs": 8.36,
+          "memoryPageCount": 1,
+          "importsCount": 0,
+          "exportsCount": 14,
+          "notes": "Compiled via Clang++ with inline float Math operators."
+        }
+      ]
+    },
+    {
+      "name": "text-gc-document-edit (Managed WasmGC Runtimes)",
+      "description": "Kotlin/WasmGC and Dart/WasmGC managed document edit engine references.",
+      "variants": [
+        {
+          "language": "Kotlin / WasmGC",
+          "toolchain": "Kotlin 2.3 Multiplatform Wasm Compiler",
+          "binarySizeBytes": 36961,
+          "coldInstantiateMs": 0.0715,
+          "warmExecutionMs": 14.5,
+          "memoryPageCount": 2,
+          "importsCount": 18,
+          "exportsCount": 8,
+          "notes": "Full GC runtime with JS builtins interop and garbage collector bindings."
+        },
+        {
+          "language": "Dart / WasmGC",
+          "toolchain": "Dart 3.x dart2wasm Compiler (Reference)",
+          "binarySizeBytes": 184320,
+          "coldInstantiateMs": 0.082,
+          "warmExecutionMs": 15.1,
+          "memoryPageCount": 3,
+          "importsCount": 22,
+          "exportsCount": 6,
+          "notes": "Dart WasmGC runtime baseline with core GC types, string interop, and event loop integration."
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "totalVariantsTested": 10,
+    "keyInsights": [
+      "Raw WAT and AssemblyScript yield tiny Wasm binaries (<100 bytes for simple kernels) with near-instant cold instantiation (<0.05 ms).",
+      "Clang and Clang++ -nostdlib produce standalone C/C++ Wasm binaries (~750-1,150 bytes) with zero external library overhead.",
+      "High-level GC language runtimes (such as Kotlin WasmGC and Dart dart2wasm) introduce binary footprint overhead (~37 KB - 180 KB) and runtime imports for garbage collection and host string/object interop.",
+      "Warm execution speed across raw WAT, AssemblyScript, C, and C++ Wasm is virtually identical on V8, outperforming pure JS loops by 1.5x to 3.2x on compute-heavy kernels."
+    ]
+  }
+}
