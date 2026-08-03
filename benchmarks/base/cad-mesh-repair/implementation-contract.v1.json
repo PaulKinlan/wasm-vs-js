@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "catalogId": "cad.mesh-repair.v1",
+  "status": "supplemental-controlled-implementation",
+  "frozenCatalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+  "fixture": {
+    "kind": "project-generated-binary-stl",
+    "license": "CC0-1.0",
+    "seed": "0x4d455348",
+    "grid": 32,
+    "sourceFaces": 2112,
+    "validFaces": 2048,
+    "degenerateFaces": 64
+  },
+  "policy": {
+    "coordinate": "finite f32 quantized to signed i32 at 1e-4, round halves away from zero",
+    "weld": "first occurrence by exact quantized xyz",
+    "degenerate": "duplicate vertex or zero projected XY signed area",
+    "orientation": "positive Z; swap vertices 1 and 2 when negative",
+    "manifold": "reject any undirected edge incidence above two before and after collapse",
+    "volume": "sum the signed six-times-volume determinant over every simplified face in canonical order; the generated planar open fixture must equal exactly zero and makes no watertight-volume claim",
+    "simplification": "collapse each odd quantized X column onto the preceding even X column, remap every face in source order, then remove collapsed faces; ties resolve to the first simplified vertex",
+    "targetFaces": 1024,
+    "serialization": "16 little-endian i32 header words, simplified quantized xyz, then selected face indices"
+  },
+  "targets": ["js-controlled", "wasm-linear-controlled"],
+  "performanceClaims": []
+}

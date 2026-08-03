@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "catalogId": "cad.mesh-repair.v1",
+  "status": "supplemental-validation-package",
+  "frozenCatalog": {
+    "path": "catalog/workloads.v1.json",
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+    "immutability": "byte-for-byte"
+  },
+  "fixture": {
+    "path": "public/artifacts/cad-mesh-repair-v1/dirty-grid.stl",
+    "bytes": 105684,
+    "sha256": "46fa97b0518e96edd1a2bb01d362955f5fae7f9d3e1371c0056ff17ba7d95a91",
+    "parameters": {
+      "seed": "0x4d455348",
+      "grid": 32,
+      "sourceFaces": 2112,
+      "validFaces": 2048,
+      "degenerateFaces": 64,
+      "weldedVertices": 1089,
+      "targetFaces": 1024,
+      "quantizationScale": 10000,
+      "simplificationPolicy": "collapse every odd quantized X column onto its preceding even X column, then remove collapsed faces"
+    },
+    "rights": {
+      "license": "CC0-1.0",
+      "redistribution": "permitted",
+      "origin": "generated solely by fixture.js"
+    }
+  },
+  "artifact": {
+    "path": "public/artifacts/cad-mesh-repair-v1/mesh-repair.wasm",
+    "bytes": 5212,
+    "sha256": "b0067130175374850480fba3bed5a6e90f5cc7b9ba2403937023f4f4dced5b48",
+    "memory": {
+      "initialPages": 16,
+      "maximumPages": 16
+    }
+  },
+  "contract": {
+    "path": "benchmarks/base/cad-mesh-repair/implementation-contract.v1.json",
+    "bytes": 1443,
+    "sha256": "e0bd3663a3596312a52f582a6931ba8f45a41e97e993b4652c7bd0969dd34722"
+  },
+  "build": {
+    "deno": "2.9.0",
+    "clang": "clang version 22.1.8",
+    "linker": "LLD 22.1.8",
+    "command": "deno run --allow-read=. --allow-write=public/artifacts --allow-run=clang,wasm-ld scripts/build-cad-mesh-repair.ts",
+    "flags": [
+      "--target=wasm32-unknown-unknown",
+      "-O3",
+      "-nostdlib",
+      "-ffreestanding",
+      "-fno-builtin",
+      "-fno-fast-math",
+      "fixed memory 16 pages"
+    ]
+  },
+  "sources": [
+    {
+      "path": "benchmarks/base/cad-mesh-repair/fixture.js",
+      "bytes": 1739,
+      "sha256": "4c906699d48b22087ae0f0185fc3d7f342174797f949e41fd089681aad834bec"
+    },
+    {
+      "path": "benchmarks/base/cad-mesh-repair/engine.js",
+      "bytes": 7595,
+      "sha256": "6c15749d585caa701a6568161a5f5f17e6db6e8a3f82281c99fdc7b333dc9cc6"
+    },
+    {
+      "path": "benchmarks/base/cad-mesh-repair/mesh-repair.c",
+      "bytes": 3913,
+      "sha256": "73cb8547b8fb09f964ded8b9e065d65dc4c31175ba4694bf0694942fbaba24d0"
+    },
+    {
+      "path": "benchmarks/base/cad-mesh-repair/implementation-contract.v1.json",
+      "bytes": 1443,
+      "sha256": "e0bd3663a3596312a52f582a6931ba8f45a41e97e993b4652c7bd0969dd34722"
+    },
+    {
+      "path": "scripts/build-cad-mesh-repair.ts",
+      "bytes": 4546,
+      "sha256": "c5e2b59347f49c8baf18e65257b9e3fd4580fecc201b1a42c197f9031402ab16"
+    },
+    {
+      "path": "deno.json",
+      "bytes": 1831,
+      "sha256": "17e6674c81fdaee7dfc52ed1bd28baeec70fb0715f839b92defe1e84545b08eb"
+    },
+    {
+      "path": "deno.lock",
+      "bytes": 1630,
+      "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2"
+    }
+  ],
+  "oracle": {
+    "completeOutputSha256": "8e5abc003ef884f807630e4cbc0afaa555ef0aa7eacb9a3012ebd3c78590566b",
+    "bytes": 19084,
+    "invariants": {
+      "finiteCoordinates": true,
+      "quantizationScale": 10000,
+      "manifoldEdgeMaximum": 2,
+      "consistentPositiveZ": true,
+      "exactTarget": true,
+      "canonicalLittleEndian": true,
+      "signedVolumeSixQuantized": 0,
+      "volumePolicy": "planar open mesh has exact zero signed volume; no watertight-volume claim"
+    },
+    "jsCounters": {
+      "sourceFaces": 2112,
+      "vertexReferences": 6336,
+      "weldLookups": 6336,
+      "weldedVertices": 1089,
+      "removedDegenerates": 64,
+      "orientedFaces": 2048,
+      "flippedFaces": 352,
+      "edgeChecks": 6144,
+      "uniqueEdges": 1584,
+      "simplifiedFaces": 1024,
+      "simplifiedVertices": 561,
+      "collapsedVertices": 528,
+      "volumeTerms": 1024,
+      "targetFaces": 1024,
+      "boundaryCrossings": 0,
+      "allocations": 5
+    },
+    "wasmCounters": {
+      "sourceFaces": 2112,
+      "vertexReferences": 6336,
+      "weldLookups": 6336,
+      "weldedVertices": 1089,
+      "removedDegenerates": 64,
+      "orientedFaces": 2048,
+      "flippedFaces": 352,
+      "edgeChecks": 6144,
+      "uniqueEdges": 1584,
+      "simplifiedFaces": 1024,
+      "simplifiedVertices": 561,
+      "collapsedVertices": 528,
+      "volumeTerms": 1024,
+      "targetFaces": 1024,
+      "boundaryCrossings": 1,
+      "allocations": 0
+    },
+    "crossTargetCompleteBytesEqual": true
+  },
+  "performanceClaims": []
+}
