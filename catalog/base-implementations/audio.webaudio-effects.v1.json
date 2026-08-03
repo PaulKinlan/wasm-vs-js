@@ -22,8 +22,9 @@
       "channels": 2,
       "frames": 2880000,
       "blockFrames": 128,
-      "blocks": 22500,
-      "tailFlushFrames": 15
+      "blocksPerChannel": 22500,
+      "blockInvocations": 45000,
+      "tailFlushFramesPerChannel": 15
     },
     "fpPolicy": "strict-f32-frozen-operation-order",
     "nativeWebAudio": "separate-host-product-baseline-not-executed"

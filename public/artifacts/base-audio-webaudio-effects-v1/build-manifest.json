@@ -3,8 +3,8 @@
   "entryId": "audio.webaudio-effects.v1",
   "implementationId": "audio-webaudio-effects-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "c7d08b2339e37a14a1096d5f303b3fe3a6229e2c",
-  "sourceSha256": "28af767cb97513f6c8681d00b9dc86586e6510cd49137200578ab35a76aa7f92",
+  "sourceCommit": "d2cc45cd9080a03afb6fb1964c9e4b6333a50b0f",
+  "sourceSha256": "4f3de2b66b9f9d0b4c18a6a80a4f18f9478fd1ebdda6c017cd360bb50cb94149",
   "frozenCatalog": {
     "path": "catalog/workloads.v1.json",
     "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
@@ -12,8 +12,8 @@
   },
   "artifact": {
     "path": "public/artifacts/base-audio-webaudio-effects-v1/audio-webaudio-effects.wasm",
-    "bytes": 570,
-    "sha256": "b5797c710b9598d31fba23107f5b77b0bb2b6d9e4d7b6192c430076a103305ea",
+    "bytes": 784,
+    "sha256": "495d214fd2b8970cd212de10346ba97a6f50813aa9735e85cc51f6e202935328",
     "memory": {
       "initialPages": 1024,
       "maximumPages": 1024,
@@ -27,7 +27,7 @@
     }
   },
   "build": {
-    "command": "deno run --allow-read=. --allow-write=public/artifacts,public/evidence,catalog/base-implementations --allow-run=git scripts/build-base-audio-webaudio-effects.ts",
+    "command": "deno task check",
     "toolchains": [
       "Deno 2.9.0",
       "wabt 1.0.37"
@@ -42,8 +42,8 @@
   "sources": [
     {
       "path": "benchmarks/base/audio-webaudio-effects/workload.js",
-      "bytes": 7422,
-      "sha256": "2be8757afeba3fae9c17284373ee0c3bb7e791b162a6b07b441e2d9178b849ee"
+      "bytes": 10477,
+      "sha256": "61d09e66febd9fa65916472219198306aa43e4d7a9095c8d94aa1daa6f6b4174"
     },
     {
       "path": "benchmarks/base/audio-webaudio-effects/reference.js",
@@ -52,13 +52,13 @@
     },
     {
       "path": "benchmarks/base/audio-webaudio-effects/wasm.js",
-      "bytes": 2035,
-      "sha256": "a5f84e714f59650100d48db133eddcb432e46a12704524460140f520e001a7bf"
+      "bytes": 3665,
+      "sha256": "00b1cf16ae12d826c5c55ce4b7346733b2e854d9ad02042de92a7cffa3ddbb4c"
     },
     {
       "path": "benchmarks/base/audio-webaudio-effects/audio-webaudio-effects.wat",
-      "bytes": 5945,
-      "sha256": "203221e26802e5ea78592cabc2bf18cbc1325b6c6c205b92be254d2b5f0dadd8"
+      "bytes": 7709,
+      "sha256": "0ae2a0d6dc3cc926cbeb58dd85fdd7713f4bd75a56b907468006fcbf1fc835ee"
     },
     {
       "path": "benchmarks/base/audio-webaudio-effects/RIGHTS.md",
@@ -67,13 +67,18 @@
     },
     {
       "path": "schemas/audio-webaudio-effects-base.schema.json",
-      "bytes": 2852,
-      "sha256": "5fbf31e4af2a6686af931bbd66dd2a54fa9d070c7cdd0af6d1a4f0a847a47643"
+      "bytes": 16966,
+      "sha256": "bab461498858beef66157424869e589c57ce8c25ef1990726590e17326e84798"
     },
     {
       "path": "scripts/build-base-audio-webaudio-effects.ts",
-      "bytes": 10502,
-      "sha256": "5c9c186521a3702d5cd7d4956148873588f7e4cdbd5d28c7b65a12d4e7c46066"
+      "bytes": 11483,
+      "sha256": "5468a40e6f868bb76cf840787bf5a90b543062cff4db8c69ea81a917ec0dcb25"
+    },
+    {
+      "path": "scripts/check-planning.mjs",
+      "bytes": 2262,
+      "sha256": "f30b2525a573c094565807aadce8dd1963e9d1ce5f136b78f1eb987a6dafc5e6"
     },
     {
       "path": "public/benchmarks/base/audio-webaudio-effects-v1/index.html",
@@ -87,13 +92,13 @@
     },
     {
       "path": "public/base-audio-effects-worker.js",
-      "bytes": 5285,
-      "sha256": "9285654faf522c13326252cfb3716c376be2b65b8ea2ab4871cda060528bf43f"
+      "bytes": 6901,
+      "sha256": "e976e9132b0e1a6f886eaa5d7b8173db2ff34430243c0aeb45531c6981db4db1"
     },
     {
       "path": "tests/base-audio-webaudio-effects.test.ts",
-      "bytes": 8063,
-      "sha256": "d4b3167a732be126715da2d7c04ab96951507cea56c8cfc7d4dffd6b76eb6fa7"
+      "bytes": 12459,
+      "sha256": "51a77dde3b0e02ecfa47688e54586f72482c715c3e9887fccee1df6edff1de2c"
     },
     {
       "path": "deno.json",
