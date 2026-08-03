@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "recordId": "media-photo-thumbnail-v1-implementation-status",
+  "catalogWorkloadId": "media.photo-thumbnail.v1",
+  "maturity": "blocked-before-implementation",
+  "coverageCounted": false,
+  "catalog": {
+    "path": "catalog/workloads.v1.json",
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+    "immutable": "byte-for-byte"
+  },
+  "fixture": {
+    "status": "frozen-download-recipe",
+    "manifestPath": "benchmarks/v1/media-photo-thumbnail/fixture-rights-manifest.json",
+    "manifestSha256": "2ad06bac34dd2c773f0625685eb8d1ad3ca8c3b1a79ae76458525d5b9400e14e",
+    "selectedFiles": 6,
+    "redistributedByThisRepository": false
+  },
+  "contract": {
+    "status": "frozen-preimplementation-contract",
+    "path": "benchmarks/v1/media-photo-thumbnail/pipeline-contract.json",
+    "sha256": "35d9c049d729d4f4fa5ea810e78e9e19e012d229071a063d40391372314a28ab"
+  },
+  "engineAudit": {
+    "status": "blocked",
+    "path": "benchmarks/v1/media-photo-thumbnail/engine-candidate-audit.json",
+    "sha256": "2402c1c8043b5d3a4eab24728bf36e3be819e0f2d6a35a2c50a818a2c6531a2e"
+  },
+  "targets": {
+    "javascriptControlled": {
+      "status": "unavailable",
+      "reason": "No audited JavaScript codec/pipeline matches the frozen WebP settings and complete pixel/counter contract. The examined pure-TypeScript encoder exposes a materially different VP8 policy and omits distributable license text."
+    },
+    "linearWasmControlled": {
+      "status": "unavailable",
+      "reason": "The examined wasm-vips artifact requires SIMD, SharedArrayBuffer and cross-origin isolation; no reproducible scalar single-thread artifact exists for the controlled baseline."
+    }
+  },
+  "validation": {
+    "fixtureBytes": "verified-from-pinned-upstream",
+    "completeOutputOracle": "unavailable",
+    "counterEvidence": "unavailable",
+    "browserEvidence": "uncollected",
+    "performanceEvidence": "not-permitted"
+  },
+  "unimplementedRequirements": [
+    "controlled JavaScript PNG decode, EXIF orient, linear-light Lanczos3, sharpen and WebP q=80 encode",
+    "material scalar single-thread linear-Wasm implementation of the same complete pipeline",
+    "complete decoded pixel, metadata and checkpoint validation for both targets",
+    "operative copy, allocation, boundary and peak-owned-memory counters",
+    "malformed, alpha, orientation, color and codec-independent oracle corpus",
+    "bounded worker demo and retained browser lifecycle evidence"
+  ],
+  "prohibitedClaims": [
+    "implemented frozen-v1 workload",
+    "accepted validation package",
+    "interactive demo",
+    "performance comparison",
+    "nonzero frozen-v1 coverage"
+  ]
+}

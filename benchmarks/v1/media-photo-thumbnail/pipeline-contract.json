@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "contractId": "media-photo-thumbnail-controlled-v1",
+  "catalogWorkloadId": "media.photo-thumbnail.v1",
+  "status": "frozen-preimplementation-contract",
+  "algorithmFamily": "lanczos3-thumbnail-pipeline",
+  "fixtureManifest": "benchmarks/v1/media-photo-thumbnail/fixture-rights-manifest.json",
+  "fixedWork": {
+    "images": 6,
+    "passesPerImage": [
+      "png-decode-to-rgba8",
+      "exif-orientation-inspection-and-application",
+      "srgb-to-linear-premultiplied",
+      "separable-lanczos3-resize",
+      "fixed-unsharp-mask",
+      "linear-premultiplied-to-srgb-straight-rgba8",
+      "webp-vp8-lossy-encode-quality-80",
+      "independent-webp-decode-for-oracle"
+    ],
+    "outputDimensions": {
+      "gb82-baby": [1280, 1280],
+      "gb82-night": [1280, 1280],
+      "gb82-grass": [1280, 1280],
+      "gb82-pixel": [1280, 1280],
+      "gb82-sc-graph": [1280, 773],
+      "gb82-sc-terminal": [1280, 826]
+    }
+  },
+  "decode": {
+    "container": "PNG",
+    "acceptedBitDepth": 8,
+    "acceptedColorTypes": ["truecolor", "indexed"],
+    "output": "straight-rgba8",
+    "paletteExpansion": "PNG-ordered palette to RGBA8",
+    "malformedPolicy": "reject before timing with typed reason",
+    "hostDecoderControlledTarget": false
+  },
+  "orientation": {
+    "policy": "read EXIF orientation before pixel transforms; apply values 1 through 8; missing orientation is 1; reject malformed or duplicate conflicting orientation metadata",
+    "selectedFixtureObservation": "all six selected PNG files contain no EXIF orientation and therefore execute the identity orientation branch",
+    "testRequirement": "all eight orientations and malformed metadata require synthetic unit fixtures outside the timed corpus"
+  },
+  "color": {
+    "input": "8-bit sRGB, D65",
+    "transfer": "IEC-61966-2-1 exact piecewise sRGB transfer",
+    "working": "linear-light float32 straight RGBA converted to premultiplied RGBA before filtering",
+    "alpha": "filter premultiplied color and alpha; unpremultiply after sharpen; RGB is zero when alpha is zero",
+    "output": "straight RGBA8 sRGB",
+    "rounding": "clamp to [0,255], then floor(value + 0.5)",
+    "metadata": "strip EXIF, GPS and XMP; output declares sRGB; no source ICC profile is retained"
+  },
+  "resize": {
+    "target": "long edge exactly 1280 pixels, including upscaling",
+    "otherDimension": "floor(sourceOther * 1280 / sourceLong + 0.5)",
+    "mapping": "pixel centers: source = (destination + 0.5) / scale - 0.5",
+    "kernel": "sinc(pi*x) * sinc(pi*x/3) for |x| < 3; 1 at x=0; 0 otherwise",
+    "downsampleSupport": "kernel argument and amplitude scaled by min(scale,1); support radius 3/min(scale,1)",
+    "edge": "clamp source coordinates",
+    "normalization": "normalize weights per destination sample in float64, then convert each weight to float32",
+    "accumulation": "left-to-right float32 multiply-add without contraction; horizontal pass then vertical pass"
+  },
+  "sharpen": {
+    "name": "fixed 3x3 unsharp mask",
+    "blurKernel": [1, 2, 1],
+    "blurDivisorPerAxis": 4,
+    "amount": 0.35,
+    "edge": "clamp",
+    "operation": "output = clamp(input + 0.35 * (input - separableBlur(input)), 0, 1)",
+    "channels": "premultiplied linear RGB only; alpha passes through unchanged"
+  },
+  "webp": {
+    "format": "lossy VP8 in WebP RIFF container",
+    "quality": 80,
+    "referenceCodec": "libwebp 1.6.0",
+    "settings": {
+      "lossless": 0,
+      "method": 4,
+      "alphaQuality": 100,
+      "exact": 1,
+      "segments": 4,
+      "snsStrength": 50,
+      "filterStrength": 60,
+      "filterSharpness": 0,
+      "autofilter": 0,
+      "pass": 1,
+      "preprocessing": 0,
+      "partitions": 0,
+      "partitionLimit": 0,
+      "threadLevel": 0,
+      "useSharpYuv": 1
+    },
+    "byteIdentityRequired": false,
+    "simd": "separate named variant only",
+    "threadsAndSab": "separate named variant only"
+  },
+  "oracle": {
+    "scope": "decode every produced WebP and compare every output pixel; no sampling",
+    "structural": [
+      "RIFF and VP8 chunks parse without trailing or overlapping chunks",
+      "dimensions equal fixedWork.outputDimensions",
+      "decoded alpha is 255 for every selected opaque fixture pixel",
+      "EXIF, GPS and XMP are absent",
+      "one WebP output is present for every input"
+    ],
+    "perTargetAgainstPreEncodeReference": {
+      "rgbPsnrMinimumDb": 30,
+      "globalLumaSsimMinimum": 0.95,
+      "ssimConstants": { "k1": 0.01, "k2": 0.03, "l": 255 },
+      "luma": "BT.709 coefficients over decoded sRGB bytes",
+      "nonFinitePolicy": "reject"
+    },
+    "crossTargetDecodedOutput": {
+      "rgbPsnrMinimumDb": 32,
+      "globalLumaSsimMinimum": 0.97,
+      "dimensionsAndAlpha": "exact"
+    },
+    "acceptanceState": "thresholds are frozen but unvalidated because no controlled engine pair exists; do not time or count coverage"
+  },
+  "counters": {
+    "availability": "unavailable-until-controlled-engine-pair",
+    "required": [
+      "images",
+      "input-bytes",
+      "decoded-pixels",
+      "orientation-pixels-moved",
+      "srgb-transfer-evaluations",
+      "horizontal-resize-taps",
+      "vertical-resize-taps",
+      "sharpen-taps",
+      "encoded-input-pixels",
+      "encoded-output-bytes",
+      "copies-in-bytes",
+      "copies-out-bytes",
+      "allocations",
+      "boundary-crossings",
+      "peak-owned-bytes"
+    ],
+    "rule": "Every counter is incremented at the physical operation in both targets and is checked against a separately derived reference before timing. Missing counters remain unavailable, never zero."
+  },
+  "lifecycle": {
+    "workerPerRun": true,
+    "cancel": "terminate exact worker and reject its token",
+    "timeoutMilliseconds": 120000,
+    "staleToken": "ignored and observed in retained browser evidence",
+    "pagehide": "terminate active worker",
+    "persistence": false,
+    "upload": false,
+    "performanceRanking": false
+  }
+}
