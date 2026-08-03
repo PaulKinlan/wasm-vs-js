@@ -3,12 +3,13 @@
   "workloadId": "database.sqlite-notebook.v1",
   "implementationId": "database.sqlite-notebook.controlled.v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "2b83abb4ceb49c62e0454bc7c3a008978985cc3f",
-  "sourceTreeSha256": "0339a63bf118321c3e5ca9ff490f75aad7897b9d84610d06d430406b2d7b655b",
+  "sourceCommit": "8029757195cc8c1878c3eea0c3a8af5df09e0d64",
+  "sourceTreeSha256": "6ea8900e034de646466557bd8c77a62e8261c6c2053471070564ce8fbecee157",
   "frozenCatalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
   "toolchain": {
     "deno": "2.9.0",
-    "javascriptEngine": "alasql@4.17.3",
+    "javascriptPackage": "alasql@4.17.3",
+    "javascriptRuntime": "AlaSQL 4.17.2 (develop-f960d23a)",
     "wasmEngine": "@sqlite.org/sqlite-wasm@3.53.0-build1",
     "sqlite": "3.53.0",
     "sqliteSourceId": "2026-04-09 11:41:38 4525003a53a7fc63ca75c59b22c79608659ca12f0131f52c18637f829977f20b",
@@ -19,11 +20,12 @@
     "deno run --allow-write=public/artifacts/sqlite-notebook/fixtures scripts/generate-sqlite-notebook-fixture.ts",
     "deno run --allow-read --allow-write=public/artifacts/sqlite-notebook/reference.json --allow-run=sqlite3 scripts/generate-sqlite-notebook-reference.ts",
     "deno run --allow-read --allow-write=public/artifacts/sqlite-notebook/runtime-manifest.json,public/sqlite-notebook-worker.js scripts/build-sqlite-notebook-runtime-manifest.ts",
-    "deno run --allow-read --allow-write=public/artifacts/sqlite-notebook,public/evidence/base-implementations/sqlite-notebook --allow-run=git scripts/build-sqlite-notebook-evidence.ts 2b83abb4ceb49c62e0454bc7c3a008978985cc3f"
+    "deno run --allow-read --allow-write=public/artifacts/sqlite-notebook,public/evidence/base-implementations/sqlite-notebook --allow-run=git scripts/build-sqlite-notebook-evidence.ts 8029757195cc8c1878c3eea0c3a8af5df09e0d64"
   ],
   "productConfiguration": {
     "javascript": [
-      "AlaSQL 4.17.3",
+      "AlaSQL npm package 4.17.3",
+      "embedded runtime 4.17.2 (develop-f960d23a)",
       "in-memory",
       "single worker"
     ],
@@ -131,8 +133,8 @@
   },
   "runtimeManifest": {
     "path": "public/artifacts/sqlite-notebook/runtime-manifest.json",
-    "bytes": 3744,
-    "sha256": "ceba42bf50089808e5e5dab6713c74fefb8193c2a3d256f597f4d20507060620"
+    "bytes": 4045,
+    "sha256": "2ce28bfc0925ccb9881858fe8e6fcd9c39d6b7d41ec25e01b22e7abe15c82c4e"
   },
   "sources": [
     {
@@ -147,8 +149,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 21442,
-      "sha256": "7637ee3fce93ae14cd08a1a4e9150596bc98232cd6b7617d0bcc25776f7b7757"
+      "bytes": 24427,
+      "sha256": "41ef37b03455615dda8ac8f29df117dbcd14dc9adb1121d6ff613aa665676e7c"
     },
     {
       "path": "benchmarks/base/sqlite-notebook/benchmark.json",
@@ -157,18 +159,18 @@
     },
     {
       "path": "benchmarks/base/sqlite-notebook/contract.js",
-      "bytes": 5038,
-      "sha256": "2ca221627a4d3e54526b3ceda08ba3a2bb0b40ec578b1f2b61d61c43de22e820"
+      "bytes": 5099,
+      "sha256": "137cbba4f5f825f7dd8cb6e3442be6d5f2bffd3a9fc5c5f9ed8a23f3b51ef48f"
     },
     {
       "path": "benchmarks/base/sqlite-notebook/engine.js",
-      "bytes": 7722,
-      "sha256": "c8fea7c7b526fd0fcff5413b6af5041550a88cc1762fd51e3ec0dae5d6dac883"
+      "bytes": 8389,
+      "sha256": "ee413b0095633ef9218c37ed8ff0e803bc3ecc8dff8aa282574f442b0a1b5851"
     },
     {
       "path": "catalog/base-database-sqlite-notebook-implementation.v1.json",
-      "bytes": 1296,
-      "sha256": "96cfa524a575b7b3955d9f8b5fbacfb78bec81f308a5352ddcdcab456dff2855"
+      "bytes": 1352,
+      "sha256": "617782d88d4373bfb5105724df48567fdf0b43b25d356659c3fa9a06e5b70dc0"
     },
     {
       "path": "schemas/base-sqlite-notebook-record.schema.json",
@@ -177,18 +179,18 @@
     },
     {
       "path": "scripts/build-sqlite-notebook-evidence.ts",
-      "bytes": 7557,
-      "sha256": "0c89b39b06d873d9dba0daa74a58b85ffe76da8320c15ed0146660ff2fa7604f"
+      "bytes": 7706,
+      "sha256": "20b1fc84aec0c4ed6449d3c7fe24778b905d56a5fd865c152ddfa30ae672828d"
     },
     {
       "path": "scripts/build-sqlite-notebook-runtime-manifest.ts",
-      "bytes": 3210,
-      "sha256": "60e260307a39d9fb1b8a32c2400e2f25975a313f1e25f11887ecea6f5327dd72"
+      "bytes": 4262,
+      "sha256": "a60d6b6a8535359b1bffac63a23f00f0d8bcb311ef80fcc5f076c2825ca0cbf1"
     },
     {
       "path": "scripts/check-sqlite-notebook-engines.ts",
-      "bytes": 1462,
-      "sha256": "c9de447f5b41a6f576df4bcc214da6259d3d59c427beb1ea9bc106e6b0be1038"
+      "bytes": 1598,
+      "sha256": "c6564526ea0a93eaf863263d527b651f1aad086f374d4c11c470c17bd8bd0dcc"
     },
     {
       "path": "scripts/generate-sqlite-notebook-fixture.ts",
@@ -207,23 +209,23 @@
     },
     {
       "path": "public/benchmarks/database-sqlite-notebook-v1/index.html",
-      "bytes": 4221,
-      "sha256": "760a84efb37d1a0c66b6acaee22bb1899e5e1e42ec87ae1337952f9a65660979"
+      "bytes": 4289,
+      "sha256": "13099fe088503c322fc85d54c1ad85ca47691dc7fb40b45c004d169991db1c10"
     },
     {
       "path": "public/sqlite-notebook-runner.js",
-      "bytes": 3334,
-      "sha256": "72452e098ebc0d727eeb6d6edee03a3971f21a39ae464ce1288e8d7b429da1e0"
+      "bytes": 6083,
+      "sha256": "7c08a7884c2f28039a29c8de14f6b5b63c298883780032a56136ad52c397ae48"
     },
     {
       "path": "public/sqlite-notebook-worker.js",
-      "bytes": 4280,
-      "sha256": "93b6eb4edcdbf651bbce427db0ea5cc0574608b2f85433af272b28afadfd10da"
+      "bytes": 4828,
+      "sha256": "b92b7507bbd5ffa6d69328f0dd8b58a10a80423fe08b16b7f63dbb2465d91bdb"
     },
     {
       "path": "tests/base-sqlite-notebook.test.ts",
-      "bytes": 10303,
-      "sha256": "1422a8610a3fa57b24e791f0be1a4b09adff2028ba6581e0f8a50a94fa3f9b0e"
+      "bytes": 12421,
+      "sha256": "f8f6f5e2d066a8de3b4eeba591aa17373d03ba0ce22fc934ab422f70ecdf3b7e"
     }
   ],
   "artifacts": [
@@ -254,8 +256,8 @@
     },
     {
       "path": "public/artifacts/sqlite-notebook/runtime-manifest.json",
-      "bytes": 3744,
-      "sha256": "ceba42bf50089808e5e5dab6713c74fefb8193c2a3d256f597f4d20507060620"
+      "bytes": 4045,
+      "sha256": "2ce28bfc0925ccb9881858fe8e6fcd9c39d6b7d41ec25e01b22e7abe15c82c4e"
     },
     {
       "path": "public/artifacts/sqlite-notebook/fixtures/fixture-manifest.json",
