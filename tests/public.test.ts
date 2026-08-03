@@ -103,7 +103,7 @@ Deno.test("workload catalog exposes exact totals, filters, and honest implementa
   assert(page.includes("P2 breadth/stress"));
   assert(page.includes("Coverage is 0/38"));
   assert(page.includes("v2 proposal implementation inventory"));
-  assert(page.includes("Interactive reduced-fixture demos: 2"));
+  assert(page.includes("Interactive reduced-fixture demos: 4"));
   assertEquals(page.match(/data-v2-id=/g)?.length, 20);
   assert(page.includes('role="search"'));
   assert(page.includes('aria-live="polite"'));
@@ -191,6 +191,8 @@ Deno.test("public pages contain no inline script, inline style, or remote asset"
       "public/run.html",
       "public/run/index.html",
       "public/benchmarks/index.html",
+      "public/benchmarks/regex-automata-duel-demo/index.html",
+      "public/benchmarks/vdom-diff-patch-demo/index.html",
       "public/evidence/index.html",
       "public/experiments/index.html",
       "public/evidence/v2-proposals/index.html",

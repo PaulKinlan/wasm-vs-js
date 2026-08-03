@@ -56,6 +56,10 @@ Deno.test("actual public task starts without commit env permission and ignores s
         "/benchmarks/sum-u32/workload.js",
         "/artifacts/sum-u32/build-manifest.9c309c49.json",
         "/artifacts/sum-u32/sum-u32.wasm",
+        "/benchmarks/regex-automata-duel-demo/",
+        "/benchmarks/vdom-diff-patch-demo/",
+        "/artifacts/traditional-demos/demo-manifest.v1.json",
+        "/data/traditional-demo-manifest.schema.json",
       ]
     ) {
       assertEquals((await fetch(`http://127.0.0.1:${port}${path}`)).status, 200);
@@ -78,8 +82,8 @@ Deno.test("actual public task starts without commit env permission and ignores s
       const path of [
         "/artifacts/audio-fft/unknown.json",
         "/artifacts/audio-fft/../audio-fir/not-allowlisted.wasm",
-        "/artifacts/vdom-diff-patch/build-manifest.json",
-        "/artifacts/regex-automata-duel/build-manifest.json",
+        "/artifacts/vdom-diff-patch/unknown.wasm",
+        "/artifacts/regex-automata-duel/unknown.json",
       ]
     ) {
       assertEquals((await fetch(`http://127.0.0.1:${port}${path}`)).status, 404);

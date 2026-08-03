@@ -3,6 +3,7 @@ import { generateSummary } from "./lib/summary.ts";
 import { CorpusCoordinator } from "./lib/corpus-store.ts";
 import { collectorRouteHashes } from "./lib/source-identity.ts";
 import { IMAGE_DEMO_ROUTES } from "./lib/image-demo-registry.ts";
+import { TRADITIONAL_DEMO_ROUTES } from "./lib/traditional-demo-registry.ts";
 
 type ServerMode = "local" | "public";
 
@@ -188,8 +189,8 @@ const routes = new Map<string, [string, string, boolean?]>([
   ]],
 ]);
 
-for (const route of IMAGE_DEMO_ROUTES) {
-  if (routes.has(route.path)) throw new Error(`duplicate image demo route: ${route.path}`);
+for (const route of [...IMAGE_DEMO_ROUTES, ...TRADITIONAL_DEMO_ROUTES]) {
+  if (routes.has(route.path)) throw new Error(`duplicate demo route: ${route.path}`);
   routes.set(route.path, [route.file, route.contentType]);
 }
 

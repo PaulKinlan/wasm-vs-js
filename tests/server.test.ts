@@ -122,7 +122,7 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
   assert(catalogPage.includes("38-WORKLOAD DENOMINATOR"));
   assert(catalogPage.includes("Coverage is 0/38"));
   assert(catalogPage.includes("v2 proposal implementation inventory"));
-  assert(catalogPage.includes("Interactive reduced-fixture demos: 2"));
+  assert(catalogPage.includes("Interactive reduced-fixture demos: 4"));
   for (
     const path of [
       "/run.html",
@@ -172,10 +172,9 @@ Deno.test("every ledger public link resolves through the exact read-only public 
     const path of [
       "/artifacts/audio-fft/unknown.json",
       "/artifacts/audio-fft/../audio-fir/not-allowlisted.wasm",
-      "/artifacts/vdom-diff-patch/build-manifest.json",
-      "/artifacts/vdom-diff-patch/vdom-diff-patch.wasm",
-      "/artifacts/regex-automata-duel/build-manifest.json",
-      "/artifacts/regex-automata-duel/regex-automata-duel.wasm",
+      "/artifacts/vdom-diff-patch/unknown.wasm",
+      "/artifacts/regex-automata-duel/unknown.json",
+      "/artifacts/traditional-demos/unknown.json",
     ]
   ) {
     assertEquals((await publicHandler(new Request(`http://127.0.0.1${path}`))).status, 404);

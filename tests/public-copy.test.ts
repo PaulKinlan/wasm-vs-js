@@ -7,6 +7,8 @@ const publicCopyFiles = [
   "public/evidence/index.html",
   "public/evidence/v2-proposals/index.html",
   "public/benchmarks/index.html",
+  "public/benchmarks/regex-automata-duel-demo/index.html",
+  "public/benchmarks/vdom-diff-patch-demo/index.html",
   "public/experiments/index.html",
   "public/benchmarks/image-flood-fill-demo/index.html",
   "public/benchmarks/image-editing-demo/index.html",
@@ -67,7 +69,7 @@ Deno.test("public prose retains the benchmark's current evidence limits", async 
   assert(catalog.includes("38 proposed workloads; 0 implemented"));
   assert(catalog.includes("Coverage is 0/38"));
   assert(catalog.includes("v2 proposal implementation inventory"));
-  assert(catalog.includes("Interactive reduced-fixture demos: 2"));
+  assert(catalog.includes("Interactive reduced-fixture demos: 4"));
   assert(catalog.includes("No v2 package contains authoritative performance results"));
   assert(catalog.includes("not the full proposal contract"));
   assert(experiment.includes("Corpus status: not collected"));

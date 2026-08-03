@@ -1,0 +1,303 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.ai-focus.dev/schemas/traditional-demo-manifest.v1.json",
+  "title": "Reduced traditional-web demo manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "manifestId",
+    "status",
+    "catalogV1Coverage",
+    "authoritativePerformanceEvidence",
+    "sourceRepository",
+    "sourceCommit",
+    "sourceTree",
+    "build",
+    "demos",
+    "assets",
+    "sources",
+    "limitations"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "manifestId": { "const": "reduced-traditional-web-demos-v1" },
+    "status": { "const": "reduced-out-of-catalog-fixtures" },
+    "catalogV1Coverage": { "const": "0/38" },
+    "authoritativePerformanceEvidence": { "const": false },
+    "sourceRepository": { "const": "https://github.com/PaulKinlan/wasm-vs-js" },
+    "sourceCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "sourceTree": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "build": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command", "toolchains", "reproducible"],
+      "properties": {
+        "command": {
+          "type": "string",
+          "pattern": "^deno run --allow-read=\\. --allow-write=public/benchmarks/regex-automata-duel-demo,public/benchmarks/vdom-diff-patch-demo,public/artifacts/traditional-demos --allow-run scripts/build-traditional-demos\\.ts --source-commit=[a-f0-9]{40}$"
+        },
+        "toolchains": {
+          "type": "array",
+          "prefixItems": [{ "const": "Deno 2.9.0" }],
+          "items": false,
+          "minItems": 1,
+          "maxItems": 1
+        },
+        "reproducible": { "const": true }
+      }
+    },
+    "demos": {
+      "type": "array",
+      "prefixItems": [
+        { "$ref": "#/$defs/regexDemo" },
+        { "$ref": "#/$defs/vdomDemo" }
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "assets": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": { "$ref": "#/$defs/fileRecord" }
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 19,
+      "items": { "$ref": "#/$defs/sourceRecord" }
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "type": "string", "minLength": 1 }
+    }
+  },
+  "$defs": {
+    "regexDemo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["demoId", "route", "fixture", "targets", "oracle", "fullContract"],
+      "properties": {
+        "demoId": { "const": "regex-automata-duel-demo" },
+        "route": { "const": "/benchmarks/regex-automata-duel-demo/" },
+        "fixture": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["corpusBytes", "patterns", "inputSha256"],
+          "properties": {
+            "corpusBytes": { "const": 1048576 },
+            "patterns": { "const": 20 },
+            "inputSha256": {
+              "const": "511c892cd731b740afae39f7c053be4455a6c1cd4a7dd7ac4fc09f92859d072e"
+            }
+          }
+        },
+        "targets": {
+          "type": "array",
+          "prefixItems": [
+            { "const": "js-native-controlled" },
+            { "const": "js-automata-controlled" },
+            { "const": "wasm-automata-controlled" }
+          ],
+          "items": false,
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "oracle": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["orderedMatchTupleSha256", "countersByTarget"],
+          "properties": {
+            "orderedMatchTupleSha256": {
+              "const": "09034692437c8a59f1c82015c0b4e3483de7124ced5d56f1de44eac989b4b3c0"
+            },
+            "countersByTarget": { "$ref": "#/$defs/regexCountersByTarget" }
+          }
+        },
+        "fullContract": { "$ref": "#/$defs/regexFullContract" }
+      }
+    },
+    "regexCountersByTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["js-native-controlled", "js-automata-controlled", "wasm-automata-controlled"],
+      "properties": {
+        "js-native-controlled": { "$ref": "#/$defs/regexJsCounters" },
+        "js-automata-controlled": { "$ref": "#/$defs/regexJsCounters" },
+        "wasm-automata-controlled": { "$ref": "#/$defs/regexWasmCounters" }
+      }
+    },
+    "regexJsCounters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "codePointsSearched",
+        "patternsExecuted",
+        "matchesFound",
+        "capturesExtracted",
+        "boundaryCrossings"
+      ],
+      "properties": {
+        "codePointsSearched": { "const": 20971520 },
+        "patternsExecuted": { "const": 20 },
+        "matchesFound": { "const": 141605 },
+        "capturesExtracted": { "const": 1623 },
+        "boundaryCrossings": { "const": 0 }
+      }
+    },
+    "regexWasmCounters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "codePointsSearched",
+        "patternsExecuted",
+        "matchesFound",
+        "capturesExtracted",
+        "boundaryCrossings"
+      ],
+      "properties": {
+        "codePointsSearched": { "const": 20971520 },
+        "patternsExecuted": { "const": 20 },
+        "matchesFound": { "const": 141605 },
+        "capturesExtracted": { "const": 1623 },
+        "boundaryCrossings": { "const": 20 }
+      }
+    },
+    "regexFullContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "status", "reasonCode", "requiredCorpusBytes", "requiredPatterns"],
+      "properties": {
+        "id": { "const": "text.regex-engine-duel.v1" },
+        "status": { "const": "unavailable" },
+        "reasonCode": { "const": "full-contract-not-implemented" },
+        "requiredCorpusBytes": { "const": 33554432 },
+        "requiredPatterns": { "const": 40 }
+      }
+    },
+    "vdomDemo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["demoId", "route", "fixture", "targets", "oracle", "fullContract"],
+      "properties": {
+        "demoId": { "const": "vdom-diff-patch-demo" },
+        "route": { "const": "/benchmarks/vdom-diff-patch-demo/" },
+        "fixture": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["nodes", "edits", "inputSha256"],
+          "properties": {
+            "nodes": { "const": 1000 },
+            "edits": { "const": 250 },
+            "inputSha256": {
+              "const": "e0cd8896cbcac384c7ca9d2c0bb97d0d15685c5c19038a1f5010159f77a08563"
+            }
+          }
+        },
+        "targets": {
+          "type": "array",
+          "prefixItems": [
+            { "const": "js-controlled" },
+            { "const": "wasm-linear-controlled" }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "oracle": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["patchDigestSha256", "canonicalHtmlSha256", "countersByTarget"],
+          "properties": {
+            "patchDigestSha256": {
+              "const": "d56d2533821727e9b23af28622fb25b3e26011e2858eb7ab98232e81fafb3afd"
+            },
+            "canonicalHtmlSha256": {
+              "const": "172478394b1ba6762f0b8804fe00d5d3b1a1bf52df1c56f5efefa7523e9d1d1c"
+            },
+            "countersByTarget": { "$ref": "#/$defs/vdomCountersByTarget" }
+          }
+        },
+        "fullContract": { "$ref": "#/$defs/vdomFullContract" }
+      }
+    },
+    "vdomCountersByTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["js-controlled", "wasm-linear-controlled"],
+      "properties": {
+        "js-controlled": { "$ref": "#/$defs/vdomJsCounters" },
+        "wasm-linear-controlled": { "$ref": "#/$defs/vdomWasmCounters" }
+      }
+    },
+    "vdomJsCounters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodesVisited", "patchesGenerated", "domMutations", "boundaryCrossings"],
+      "properties": {
+        "nodesVisited": { "const": 4000 },
+        "patchesGenerated": { "const": 250 },
+        "domMutations": { "const": 250 },
+        "boundaryCrossings": { "const": 0 }
+      }
+    },
+    "vdomWasmCounters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodesVisited", "patchesGenerated", "domMutations", "boundaryCrossings"],
+      "properties": {
+        "nodesVisited": { "const": 4000 },
+        "patchesGenerated": { "const": 250 },
+        "domMutations": { "const": 250 },
+        "boundaryCrossings": { "const": 1 }
+      }
+    },
+    "vdomFullContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "status", "reasonCode", "requiredNodes", "requiredEdits"],
+      "properties": {
+        "id": { "const": "dom.vdom-diff-patch.v1" },
+        "status": { "const": "unavailable" },
+        "reasonCode": { "const": "full-contract-not-implemented" },
+        "requiredNodes": { "const": 10000 },
+        "requiredEdits": { "const": 2000 }
+      }
+    },
+    "fileRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "route", "bytes", "sha256"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^public/" },
+        "route": {
+          "enum": [
+            "/benchmarks/traditional-demo.css",
+            "/benchmarks/traditional-demo.js",
+            "/benchmarks/regex-automata-duel-demo/worker.js",
+            "/benchmarks/regex-automata-duel-demo/engine.js",
+            "/benchmarks/vdom-diff-patch-demo/worker.js",
+            "/benchmarks/vdom-diff-patch-demo/engine.js",
+            "/artifacts/regex-automata-duel/regex-automata-duel.wasm",
+            "/artifacts/vdom-diff-patch/vdom-diff-patch.wasm"
+          ]
+        },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "sourceRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}
