@@ -355,6 +355,8 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
+        "sessionId",
+        "requestId",
         "url",
         "method",
         "status",
@@ -366,6 +368,8 @@
         "errorText"
       ],
       "properties": {
+        "sessionId": { "type": "string", "minLength": 1 },
+        "requestId": { "type": "string", "minLength": 1 },
         "url": { "type": "string", "pattern": "^http://127\\.0\\.0\\.1:" },
         "method": { "const": "GET" },
         "status": { "const": 200 },

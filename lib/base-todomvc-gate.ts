@@ -23,6 +23,8 @@ function equal(left: unknown, right: unknown): boolean {
 }
 
 export type NetworkRecord = {
+  sessionId: string;
+  requestId: string;
   url: string;
   method: string;
   status: number | null;
@@ -55,6 +57,7 @@ export function assertCompleteNetwork(records: NetworkRecord[]): void {
   if (records.length === 0) throw new Error("network evidence absent");
   for (const record of records) {
     if (
+      !record.sessionId || !record.requestId ||
       !record.url.startsWith("http://127.0.0.1:") || record.method !== "GET" ||
       record.status !== 200 || record.failed || !record.completed
     ) throw new Error(`network request incomplete or failed: ${record.url}`);

@@ -9,6 +9,7 @@ import {
 } from "../lib/base-todomvc-gate.ts";
 import { canonicalize, sha256Hex } from "../lib/canonical.ts";
 import { CdpClient } from "../lib/cdp-client.ts";
+import { TodoNetworkLedger, waitForTodoNetworkClosure } from "../lib/base-todomvc-network.ts";
 
 const rootUrl = new URL("../", import.meta.url);
 const root = await Deno.realPath(rootUrl);
@@ -372,8 +373,12 @@ try {
     const targetId = String(created.targetId);
     const attached = await client.send("Target.attachToTarget", { targetId, flatten: true });
     const sessionId = String(attached.sessionId);
+    const scenarioClient = client;
     const console: unknown[] = [];
-    const requests = new Map<string, Record<string, unknown>>();
+    const requests = new TodoNetworkLedger();
+    const networkSessions = new Set([sessionId]);
+    const workerSetups: Promise<void>[] = [];
+    const workerSetupErrors: string[] = [];
     const offs = [
       client.on("Runtime.consoleAPICalled", (params, eventSession) => {
         if (eventSession === sessionId) console.push(params);
@@ -382,50 +387,37 @@ try {
         if (eventSession === sessionId) console.push(params);
       }),
       client.on("Network.requestWillBeSent", (params, eventSession) => {
-        if (eventSession !== sessionId) return;
-        const request = params.request as Record<string, unknown>;
-        requests.set(String(params.requestId), {
-          url: request.url,
-          method: request.method,
-          status: null,
-          mimeType: "",
-          fromDiskCache: false,
-          fromServiceWorker: false,
-          failed: false,
-          completed: false,
-          errorText: null,
-        });
+        const eventSessionId = String(eventSession ?? "browser");
+        if (networkSessions.has(eventSessionId)) requests.request(eventSessionId, params);
       }),
       client.on("Network.responseReceived", (params, eventSession) => {
-        if (eventSession !== sessionId) return;
-        const record = requests.get(String(params.requestId));
-        const response = params.response as Record<string, unknown>;
-        if (record) {
-          Object.assign(record, {
-            status: Number(response.status),
-            mimeType: response.mimeType,
-            fromDiskCache: Boolean(response.fromDiskCache),
-            fromServiceWorker: Boolean(response.fromServiceWorker),
-          });
-        }
+        const eventSessionId = String(eventSession ?? "browser");
+        if (networkSessions.has(eventSessionId)) requests.response(eventSessionId, params);
       }),
       client.on("Network.loadingFinished", (params, eventSession) => {
-        if (eventSession === sessionId) {
-          const record = requests.get(String(params.requestId));
-          if (record) record.completed = true;
-        }
+        const eventSessionId = String(eventSession ?? "browser");
+        if (networkSessions.has(eventSessionId)) requests.finished(eventSessionId, params);
       }),
       client.on("Network.loadingFailed", (params, eventSession) => {
-        if (eventSession === sessionId) {
-          const record = requests.get(String(params.requestId));
-          if (record) {
-            Object.assign(record, {
-              failed: true,
-              completed: true,
-              errorText: String(params.errorText),
-            });
-          }
-        }
+        const eventSessionId = String(eventSession ?? "browser");
+        if (networkSessions.has(eventSessionId)) requests.failed(eventSessionId, params);
+      }),
+      client.on("Target.attachedToTarget", (params, eventSession) => {
+        if (eventSession !== sessionId) return;
+        const childSessionId = String(params.sessionId);
+        networkSessions.add(childSessionId);
+        const setup = (async () => {
+          await Promise.all([
+            scenarioClient.send("Network.enable", {}, childSessionId),
+            scenarioClient.send("Runtime.enable", {}, childSessionId),
+          ]);
+          await scenarioClient.send("Runtime.runIfWaitingForDebugger", {}, childSessionId);
+        })().catch((error) => {
+          workerSetupErrors.push(
+            `${childSessionId}:${error instanceof Error ? error.message : "worker setup failed"}`,
+          );
+        });
+        workerSetups.push(setup);
       }),
     ];
     await Promise.all([
@@ -434,7 +426,19 @@ try {
       client.send("Network.enable", {}, sessionId),
       client.send("DOM.enable", {}, sessionId),
       client.send("Accessibility.enable", {}, sessionId),
+      client.send("Target.setAutoAttach", {
+        autoAttach: true,
+        waitForDebuggerOnStart: true,
+        flatten: true,
+      }, sessionId),
     ]);
+    const closedNetwork = async (workerRuns: number) => {
+      await Promise.all(workerSetups);
+      if (workerSetupErrors.length) {
+        throw new Error(`worker Network setup failed: ${workerSetupErrors.join(", ")}`);
+      }
+      return await waitForTodoNetworkClosure(requests, origin, workerRuns);
+    };
     await client.send("Page.navigate", {
       url: `${origin}/benchmarks/base-dom-todomvc-journey/?demo-test=1`,
     }, sessionId);
@@ -463,6 +467,7 @@ try {
       workerAbsentAfterPagehide: false,
     };
     let finalStatus: string;
+    if (scenario.action !== "complete") await closedNetwork(1);
     if (scenario.action === "complete") {
       const completed = await waitControls(client, sessionId, {
         selected: scenario.target,
@@ -551,10 +556,7 @@ try {
       }
     }
     assertLifecycleEvidence(scenario.action, lifecycle);
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    const network = [...requests.values()] as unknown as Parameters<
-      typeof assertCompleteNetwork
-    >[0];
+    const network = await closedNetwork(scenario.action === "lifecycle" ? 2 : 1);
     assertCompleteNetwork(network);
     if (console.length) throw new Error(`${scenario.id} console/exception output`);
     const screenshot = await client.send(

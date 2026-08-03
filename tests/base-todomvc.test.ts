@@ -340,6 +340,8 @@ Deno.test("TodoMVC semantic, lifecycle, network, DOM, and AX gates use structura
     "CDP AX-tree mismatch",
   );
   assertCompleteNetwork([{
+    sessionId: "page-session",
+    requestId: "request-1",
     url: "http://127.0.0.1:8000/",
     method: "GET",
     status: 200,
@@ -349,6 +351,8 @@ Deno.test("TodoMVC semantic, lifecycle, network, DOM, and AX gates use structura
   assertThrows(
     () =>
       assertCompleteNetwork([{
+        sessionId: "page-session",
+        requestId: "request-1",
         url: "http://127.0.0.1:8000/",
         method: "GET",
         status: null,
@@ -426,6 +430,10 @@ Deno.test("browser collector has closed schema, exact trust roots, CDP AX hooks,
       "select.dispatchEvent(new Event('input', { bubbles: true, composed: true }))",
       "select.dispatchEvent(new Event('change', { bubbles: true, composed: true }))",
       "control-state timeout",
+      "Target.setAutoAttach",
+      "waitForDebuggerOnStart: true",
+      "waitForTodoNetworkClosure",
+      "worker Network setup failed",
       "canonicalDomSha256",
       "assertCompleteNetwork(network)",
       "collector HEAD is not clean",
@@ -437,6 +445,10 @@ Deno.test("browser collector has closed schema, exact trust roots, CDP AX hooks,
     ]
   ) assert(script.includes(required), required);
   assert(!script.includes("document.querySelector('#target').value="));
+  assertEquals(
+    schema.$defs.network.required.slice(0, 2),
+    ["sessionId", "requestId"],
+  );
   const selectTargetAt = script.indexOf("await selectTarget(client, sessionId, scenario.target)");
   const startClickAt = script.indexOf('await click(client, sessionId, "#start")', selectTargetAt);
   assert(selectTargetAt >= 0 && startClickAt > selectTargetAt);
