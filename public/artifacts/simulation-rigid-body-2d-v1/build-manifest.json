@@ -65,7 +65,7 @@
     },
     {
       "path": "public/benchmarks/simulation-rigid-body-2d-v1/index.html",
-      "sha256": "e088e712f85f1db0d9f4e45bef42673f5fb35c46707922acf4736adbf109dfbf"
+      "sha256": "cf30358d215547523c09f539029eb38aeda3dc0029f8613c03f1b27b40aab6fb"
     },
     {
       "path": "public/benchmarks/simulation-rigid-body-2d-v1/runner.js",
@@ -77,7 +77,7 @@
     },
     {
       "path": "server.ts",
-      "sha256": "edc30e071db7fd7a61b1c3979d5f3ee981c22584260aec996520af30a23dfd95"
+      "sha256": "13ee07c130f7a5eff03e000fb13c90fc0736240a19770fc970028d1410a52b07"
     },
     {
       "path": "deno.json",

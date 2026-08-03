@@ -60,8 +60,8 @@
     {
       "path": "public/benchmarks/base-dom-todomvc-journey/index.html",
       "route": "/benchmarks/base-dom-todomvc-journey/",
-      "bytes": 3945,
-      "sha256": "74e0a11f1187f6c44635644fe4a3f88efe26391997679c6483c808f002d42fc1"
+      "bytes": 4973,
+      "sha256": "e8ce3f44c0be752966c6ec7ec303a77fa6380e4fe8e57f4b84b73e7ba71be41b"
     },
     {
       "path": "public/benchmarks/base-dom-todomvc-journey/controller.js",

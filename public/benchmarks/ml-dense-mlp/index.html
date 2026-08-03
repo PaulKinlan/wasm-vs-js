@@ -21,6 +21,7 @@
       <strong>data v1</strong>
     </header>
     <main id="main" class="narrative hosted-runner">
+      <p class="eyebrow">Runnable v2 proposal demo · ml.dense-mlp.v1</p>
       <h1>Dense MLP: 32 inputs × 512 width × 9 layers</h1>
       <p class="notice">
         <strong>Status: exploratory.</strong> This tab runs the controlled JS and linear-Wasm
@@ -56,6 +57,29 @@
       <section id="result-section" hidden aria-labelledby="result-title">
         <h2 id="result-title">Result</h2>
         <div id="result-content"></div>
+      </section>
+
+      <section class="detail-grid" aria-label="Workload details">
+        <div class="detail-card">
+          <h2>What it does</h2>
+          <p>Evaluates a 9-layer neural network (147,456 weights) with GELU activation.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Why compare</h2>
+          <p>Used in on-device AI inference and deep learning models.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Algorithm &amp; engine</h2>
+          <p>Category: Neural & AI. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Source &amp; build provenance</h2>
+          <ul>
+            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+            <li><a href="/evidence/">Check implementation evidence</a></li>
+            <li><a href="/experiments/">Read the frozen experiment</a></li>
+          </ul>
+        </div>
       </section>
     </main>
     <script type="module" src="/benchmarks/ml-dense-mlp/neural-mlp-runner.js"></script>

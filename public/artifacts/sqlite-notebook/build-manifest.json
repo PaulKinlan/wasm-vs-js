@@ -150,7 +150,7 @@
     {
       "path": "server.ts",
       "bytes": 93078,
-      "sha256": "edc30e071db7fd7a61b1c3979d5f3ee981c22584260aec996520af30a23dfd95"
+      "sha256": "13ee07c130f7a5eff03e000fb13c90fc0736240a19770fc970028d1410a52b07"
     },
     {
       "path": "benchmarks/base/sqlite-notebook/benchmark.json",
@@ -209,8 +209,8 @@
     },
     {
       "path": "public/benchmarks/database-sqlite-notebook-v1/index.html",
-      "bytes": 4436,
-      "sha256": "8d2b95d7493c3c9087c1eadc0d8a84a417f6a2e166d6e38bd8d99e941e40d4e9"
+      "bytes": 5460,
+      "sha256": "99f30cd2f12fd4f72e2d1b97f52a8682132bf16ebba1ed927839214985c4235b"
     },
     {
       "path": "public/sqlite-notebook-runner.js",

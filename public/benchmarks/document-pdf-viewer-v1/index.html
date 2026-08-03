@@ -44,6 +44,29 @@
         <li>Stale worker messages are rejected by run identity; a sixty-second hard timeout terminates the owned worker.</li>
       </ul>
       <p><a href="/artifacts/document-pdf-viewer/implementation-contract.v1.json">Implementation contract</a> · <a href="/artifacts/document-pdf-viewer/build-manifest.json">Build manifest</a> · <a href="/evidence/base/document-pdf-viewer/validation.json">Static validation</a></p>
+
+      <section class="detail-grid" aria-label="Workload details">
+        <div class="detail-card">
+          <h2>What it does</h2>
+          <p>Opens a 100-page report, searches for a term, and rasterizes five pages to bitmaps.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Why compare</h2>
+          <p>Cross-reference table traversal, content stream decoding, and pixel rasterization.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Algorithm &amp; engine</h2>
+          <p>Category: Document Processing. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Source &amp; build provenance</h2>
+          <ul>
+            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+            <li><a href="/evidence/">Check implementation evidence</a></li>
+            <li><a href="/experiments/">Read the frozen experiment</a></li>
+          </ul>
+        </div>
+      </section>
     </main>
     <script type="module" src="/benchmarks/document-pdf-viewer-v1/runner.js"></script>
   </body>

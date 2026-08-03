@@ -49,6 +49,29 @@
         <p>100,000 seeded rows; 300 events at 100 ms trace cadence; 960×480 CSS-pixel viewport; DPR 2; 24 px rows; 20 visible rows; four-row overscan; at most 28 mounted row nodes.</p>
         <p><a href="/artifacts/dom-virtualized-grid-v1/implementation-contract.v1.json">Implementation contract</a> · <a href="/artifacts/dom-virtualized-grid-v1/build-manifest.json">Build manifest</a> · <a href="/artifacts/dom-virtualized-grid-v1/output-manifest.json">Oracle manifest</a></p>
       </section>
+
+      <section class="detail-grid" aria-label="Workload details">
+        <div class="detail-card">
+          <h2>What it does</h2>
+          <p>Scrolls, filters, sorts, and edits 100,000 rows over a recorded interaction trace.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Why compare</h2>
+          <p>Windowed DOM rendering, sort-index maintenance, and efficient recycle-pool management.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Algorithm &amp; engine</h2>
+          <p>Category: DOM & Web UI. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Source &amp; build provenance</h2>
+          <ul>
+            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+            <li><a href="/evidence/">Check implementation evidence</a></li>
+            <li><a href="/experiments/">Read the frozen experiment</a></li>
+          </ul>
+        </div>
+      </section>
     </main>
     <noscript><p class="shell notice"><strong>JavaScript is required to run this local correctness demo.</strong> The exact contract above remains readable.</p></noscript>
   </body>

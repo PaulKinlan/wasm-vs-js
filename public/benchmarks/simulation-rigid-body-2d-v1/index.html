@@ -38,6 +38,29 @@
       <h2>Frozen work</h2>
       <p>The generated CC0 fixture contains 500 independently rotated boxes and 19 anchored distance joints. Both targets run the same rotated-AABB sweep broadphase, four-axis oriented-box SAT manifolds, normal and friction impulses with angular lever arms, torque and inertia integration, anchored joint impulses, 6 velocity iterations, 64 position iterations, strict-f32 updates, and 1e-3 iteration quantization. Rendering is separate.</p>
       <p><a href="/artifacts/simulation-rigid-body-2d-v1/build-manifest.json">Build manifest</a> · <a href="/artifacts/simulation-rigid-body-2d-v1/output-manifest.json">Oracle and counters</a> · <a href="/evidence/v1-base/simulation-rigid-body-2d-v1/js-controlled.json">JavaScript record</a> · <a href="/evidence/v1-base/simulation-rigid-body-2d-v1/wasm-linear-controlled.json">Wasm record</a> · <a href="/data/simulation-rigid-body-2d-result.schema.json">Closed result schema</a> · <a href="https://github.com/PaulKinlan/wasm-vs-js/tree/main/benchmarks/v1/simulation-rigid-body-2d">Authored sources</a></p>
+
+      <section class="detail-grid" aria-label="Workload details">
+        <div class="detail-card">
+          <h2>What it does</h2>
+          <p>Settles 500 stacked boxes and joints over fixed timesteps with constraint solving.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Why compare</h2>
+          <p>Broad-phase collision detection, contact resolution, and sequential impulse solving.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Algorithm &amp; engine</h2>
+          <p>Category: Physics Simulation. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Source &amp; build provenance</h2>
+          <ul>
+            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+            <li><a href="/evidence/">Check implementation evidence</a></li>
+            <li><a href="/experiments/">Read the frozen experiment</a></li>
+          </ul>
+        </div>
+      </section>
     </main>
     <script type="module" src="/benchmarks/simulation-rigid-body-2d-v1/runner.js"></script>
   </body>

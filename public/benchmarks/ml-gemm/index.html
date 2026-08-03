@@ -21,6 +21,7 @@
       <strong>data v1</strong>
     </header>
     <main id="main" class="narrative hosted-runner">
+      <p class="eyebrow">Runnable v2 proposal demo · ml.gemm.v1</p>
       <h1>GEMM: 4 × 512×512 matrix products</h1>
       <p class="notice">
         <strong>Status: exploratory.</strong> This tab runs the controlled JS and linear-Wasm
@@ -57,6 +58,29 @@
       <section id="result-section" hidden aria-labelledby="result-title">
         <h2 id="result-title">Result</h2>
         <div id="result-content"></div>
+      </section>
+
+      <section class="detail-grid" aria-label="Workload details">
+        <div class="detail-card">
+          <h2>What it does</h2>
+          <p>Multiplies large 512×512 floating-point matrices in f32.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Why compare</h2>
+          <p>Essential for machine learning models, 3D graphics, and physics.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Algorithm &amp; engine</h2>
+          <p>Category: Neural & AI. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Source &amp; build provenance</h2>
+          <ul>
+            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+            <li><a href="/evidence/">Check implementation evidence</a></li>
+            <li><a href="/experiments/">Read the frozen experiment</a></li>
+          </ul>
+        </div>
       </section>
     </main>
     <script type="module" src="/benchmarks/ml-gemm/neural-gemm-runner.js"></script>

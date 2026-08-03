@@ -40,6 +40,29 @@
         <p>The solver uses 121 force evaluations and 126,753,792 ordered body interactions. Both targets use scalar IEEE-754 f64 operations in the same source order. Cloth, Barnes–Hut, SIMD, rendering, persistence, upload, and timing are outside this route.</p>
         <p><a href="/artifacts/base-simulation-nbody/build-manifest.json">Build and source manifest</a> · <a href="/evidence/base-catalog/simulation-nbody-cloth/js-controlled.json">JavaScript validation record</a> · <a href="/evidence/base-catalog/simulation-nbody-cloth/wasm-linear-controlled.json">Wasm validation record</a></p>
       </section>
+
+      <section class="detail-grid" aria-label="Workload details">
+        <div class="detail-card">
+          <h2>What it does</h2>
+          <p>Advances 1,024 seeded bodies with a direct all-pairs gravitational solver for fixed timesteps.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Why compare</h2>
+          <p>O(n²) force computation and velocity integration with strict-f32 arithmetic.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Algorithm &amp; engine</h2>
+          <p>Category: Physics Simulation. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Source &amp; build provenance</h2>
+          <ul>
+            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+            <li><a href="/evidence/">Check implementation evidence</a></li>
+            <li><a href="/experiments/">Read the frozen experiment</a></li>
+          </ul>
+        </div>
+      </section>
     </main>
     <noscript><p>JavaScript is required to run the worker demo. The contract and evidence links remain available.</p></noscript>
   </body>

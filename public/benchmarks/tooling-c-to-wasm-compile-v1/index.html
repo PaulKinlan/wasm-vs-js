@@ -37,6 +37,29 @@
       <h2>Exact scope</h2>
       <p>The admitted compiler revision preprocesses one <code>fixture.h</code> include, parses and typechecks a frozen signed-i32 expression grammar, emits and links a complete Wasm module, and runs its export. It is not presented as a general ISO C compiler.</p>
       <p><a href="/artifacts/base/tooling-c-to-wasm-compile/build-manifest.json">Build manifest</a> · <a href="/evidence/base/tooling-c-to-wasm-compile/validation.json">Static validation</a> · <a href="/benchmarks/base/tooling-c-to-wasm-compile/contract.v1.json">Supplemental contract</a></p>
+
+      <section class="detail-grid" aria-label="Workload details">
+        <div class="detail-card">
+          <h2>What it does</h2>
+          <p>Compiles and links 20 small C programs to WebAssembly modules in the browser.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Why compare</h2>
+          <p>Lexing, parsing, type checking, code generation, and binary module emission.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Algorithm &amp; engine</h2>
+          <p>Category: Developer Tooling. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Source &amp; build provenance</h2>
+          <ul>
+            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+            <li><a href="/evidence/">Check implementation evidence</a></li>
+            <li><a href="/experiments/">Read the frozen experiment</a></li>
+          </ul>
+        </div>
+      </section>
     </main>
     <script type="module" src="/benchmarks/tooling-c-to-wasm-compile-v1/demo.js"></script>
   </body>

@@ -69,6 +69,29 @@
           <li><a href="/evidence/base-implementations/sqlite-notebook/linear-wasm-controlled.json">Linear Wasm static validation record</a></li>
         </ul>
       </section>
+
+      <section class="detail-grid" aria-label="Workload details">
+        <div class="detail-card">
+          <h2>What it does</h2>
+          <p>Imports a sales CSV, creates indexes, and runs eight joins, group-bys, and window queries.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Why compare</h2>
+          <p>Heavy SQL parsing, query planning, and B-tree traversal in both JS (AlaSQL) and Wasm (SQLite).</p>
+        </div>
+        <div class="detail-card">
+          <h2>Algorithm &amp; engine</h2>
+          <p>Category: Database. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Source &amp; build provenance</h2>
+          <ul>
+            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+            <li><a href="/evidence/">Check implementation evidence</a></li>
+            <li><a href="/experiments/">Read the frozen experiment</a></li>
+          </ul>
+        </div>
+      </section>
     </main>
   </body>
 </html>

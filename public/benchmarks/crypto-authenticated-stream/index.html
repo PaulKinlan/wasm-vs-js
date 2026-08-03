@@ -43,6 +43,29 @@
       <h2>Exact contract</h2>
       <p>The two targets use the same fixed key, unique 96-bit nonce schedule, associated data, payload generator, frame sizes, seal/open order, transcript oracle, and work counters. Changed tags are rejected before plaintext is returned. WebCrypto, native crypto, random payloads, SIMD, threads, uploads, persistence, and performance ranking are excluded.</p>
       <p><a href="/artifacts/crypto-authenticated-stream/build-manifest.json">Build manifest</a> · <a href="/artifacts/crypto-authenticated-stream/output-manifest.json">Complete oracle</a> · <a href="/benchmarks/base/crypto-authenticated-stream/registration.v1.json">Supplemental registration</a></p>
+
+      <section class="detail-grid" aria-label="Workload details">
+        <div class="detail-card">
+          <h2>What it does</h2>
+          <p>Encrypts, verifies, and decrypts 10,000 deterministic message frames with AEAD.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Why compare</h2>
+          <p>ChaCha20 keystream generation and Poly1305 MAC computation over structured frames.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Algorithm &amp; engine</h2>
+          <p>Category: Cryptography. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Source &amp; build provenance</h2>
+          <ul>
+            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+            <li><a href="/evidence/">Check implementation evidence</a></li>
+            <li><a href="/experiments/">Read the frozen experiment</a></li>
+          </ul>
+        </div>
+      </section>
     </main>
   </body>
 </html>

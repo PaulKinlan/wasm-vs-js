@@ -29,6 +29,29 @@
       <p>The frozen schema covers uint64, strings, booleans, double, enum, repeated strings, map&lt;string,sint64&gt;, bytes, oneof, int32, and float. The corpus exercises duplicate singular, map, and oneof fields; unknown wire types 0, 1, 2, and 5; defaults; values above JavaScript’s safe integer range; non-finite numbers; multilingual UTF-8; base64; and JSON escaping. Unknown fields are counted and omitted from ProtoJSON.</p>
       <p>The Wasm target performs wire decoding, filtering, duplicate and oneof resolution, map sorting, UTF-8 output construction, number formatting, JSON escaping, and base64 inside fixed 32 MiB linear memory. It does not call a JavaScript reducer or host JSON serializer.</p>
       <p><a href="/benchmarks/base/serialization-protobuf-gateway/implementation-contract.v1.json">Exact supplemental contract</a> · <a href="/artifacts/serialization-protobuf-gateway/build-manifest.json">Build manifest</a> · <a href="/artifacts/serialization-protobuf-gateway/output-manifest.json">Output oracle</a></p>
+
+      <section class="detail-grid" aria-label="Workload details">
+        <div class="detail-card">
+          <h2>What it does</h2>
+          <p>Decodes Protocol Buffer messages, filters records, and emits ProtoJSON responses.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Why compare</h2>
+          <p>Varint decoding, field-tag dispatch, and JSON serialization of nested message types.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Algorithm &amp; engine</h2>
+          <p>Category: Serialization. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Source &amp; build provenance</h2>
+          <ul>
+            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+            <li><a href="/evidence/">Check implementation evidence</a></li>
+            <li><a href="/experiments/">Read the frozen experiment</a></li>
+          </ul>
+        </div>
+      </section>
     </main>
     <script type="module"
       src="/benchmarks/serialization-protobuf-gateway/protobuf-runner.js"></script>

@@ -8,8 +8,8 @@
       "id": "page",
       "source": "public/benchmarks/database-sqlite-notebook-v1/index.html",
       "path": "/benchmarks/database-sqlite-notebook-v1/",
-      "bytes": 4436,
-      "sha256": "8d2b95d7493c3c9087c1eadc0d8a84a417f6a2e166d6e38bd8d99e941e40d4e9"
+      "bytes": 5460,
+      "sha256": "99f30cd2f12fd4f72e2d1b97f52a8682132bf16ebba1ed927839214985c4235b"
     },
     {
       "id": "runner",

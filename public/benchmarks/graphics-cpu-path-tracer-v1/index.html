@@ -35,6 +35,29 @@
         aria-label="Rendered path tracer framebuffer; exact pixel checkpoints are listed in the text result"></canvas>
       <h2>Fixed contract</h2>
       <p>One thread performs complete ray generation, fixed-order BVH traversal, Lambert integration and framebuffer quantization. Canvas presentation happens after validation. The page does not upload, store or rank results. Threads, SharedArrayBuffer and SIMD are separate unavailable variants.</p>
+
+      <section class="detail-grid" aria-label="Workload details">
+        <div class="detail-card">
+          <h2>What it does</h2>
+          <p>Renders a deterministic 512×512 product preview at 64 samples per pixel.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Why compare</h2>
+          <p>Ray-scene intersection, BSDF sampling, and Monte Carlo integration on the CPU.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Algorithm &amp; engine</h2>
+          <p>Category: Graphics & Rendering. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Source &amp; build provenance</h2>
+          <ul>
+            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+            <li><a href="/evidence/">Check implementation evidence</a></li>
+            <li><a href="/experiments/">Read the frozen experiment</a></li>
+          </ul>
+        </div>
+      </section>
     </main>
   </body>
 </html>

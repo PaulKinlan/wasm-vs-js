@@ -44,6 +44,29 @@
         <p>The pair shares one generated signal, 1,048,576 Hann coefficients, stage-major f32 twiddles, fixed radix-2 bit reversal, mirrored gains of 1, 0.5 and 0.25, and f32 inverse scaling. Each target performs 20,971,520 butterflies.</p>
         <p><a href="/artifacts/numeric-fft-spectral-filter/build-manifest.json">Build and source manifest</a> · <a href="/artifacts/numeric-fft-spectral-filter/fixture-manifest.json">Fixture hashes</a> · <a href="/artifacts/numeric-fft-spectral-filter/output-manifest.json">Oracle and complete-output hashes</a></p>
       </section>
+
+      <section class="detail-grid" aria-label="Workload details">
+        <div class="detail-card">
+          <h2>What it does</h2>
+          <p>Windows, transforms, filters, and inverse-transforms a multi-channel sensor trace.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Why compare</h2>
+          <p>Overlap-add FFT convolution and frequency-domain mask application for signal conditioning.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Algorithm &amp; engine</h2>
+          <p>Category: Numeric & Scientific. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Source &amp; build provenance</h2>
+          <ul>
+            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+            <li><a href="/evidence/">Check implementation evidence</a></li>
+            <li><a href="/experiments/">Read the frozen experiment</a></li>
+          </ul>
+        </div>
+      </section>
     </main>
   </body>
 </html>

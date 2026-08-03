@@ -43,6 +43,29 @@
         <p>Both targets update every entity in each frame. The collision system rebuilds a 128 × 128 linked-list grid and tests the same five cell relationships in the same order. The Wasm target performs the systems and complete-state oracle inside a fixed 1 MiB linear memory; JavaScript only copies the fixture and decodes the result.</p>
         <p><a href="/artifacts/game-ecs-frame-update-v1/output-manifest.json">Exact output manifest</a> · <a href="/artifacts/game-ecs-frame-update-v1/build-manifest.json">Build manifest</a></p>
       </section>
+
+      <section class="detail-grid" aria-label="Workload details">
+        <div class="detail-card">
+          <h2>What it does</h2>
+          <p>Updates movement, collision broadphase, and animation state for 10,000 entities per frame.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Why compare</h2>
+          <p>Entity-component-system archetype iteration, AABB broadphase, and skeletal animation.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Algorithm &amp; engine</h2>
+          <p>Category: Game Simulation. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Source &amp; build provenance</h2>
+          <ul>
+            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+            <li><a href="/evidence/">Check implementation evidence</a></li>
+            <li><a href="/experiments/">Read the frozen experiment</a></li>
+          </ul>
+        </div>
+      </section>
     </main>
   </body>
 </html>

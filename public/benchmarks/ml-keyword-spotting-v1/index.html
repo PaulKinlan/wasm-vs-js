@@ -41,6 +41,29 @@
       <pre id="result" tabindex="0">No result yet.</pre>
       <h2>What runs</h2>
       <p>Both targets perform the complete fixed-point Hann, 512-point FFT, ten-coefficient feature pipeline, trained 49×10 DS-CNN, and stable detection policy for all 3,000 hops. Every run verifies the raw manifest, checkpoint, source, artifact, complete tensors, detections, and target-specific work counters.</p>
+
+      <section class="detail-grid" aria-label="Workload details">
+        <div class="detail-card">
+          <h2>What it does</h2>
+          <p>Processes 60 seconds of audio in 20 ms hops and detects spoken commands.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Why compare</h2>
+          <p>Convolutional and dense-layer inference over streaming mel-spectrogram features.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Algorithm &amp; engine</h2>
+          <p>Category: Neural & AI. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Source &amp; build provenance</h2>
+          <ul>
+            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+            <li><a href="/evidence/">Check implementation evidence</a></li>
+            <li><a href="/experiments/">Read the frozen experiment</a></li>
+          </ul>
+        </div>
+      </section>
     </main>
     <script type="module" src="/base-ml-keyword-spotting-demo.js"></script>
   </body>

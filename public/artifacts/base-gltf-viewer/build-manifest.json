@@ -60,8 +60,8 @@
     },
     {
       "path": "public/benchmarks/base-gltf-viewer/index.html",
-      "bytes": 3956,
-      "sha256": "1b2ddbf323a122104f535d03b51256acd41ca5a5ff1420f2ec2f52a99769fd79",
+      "bytes": 4976,
+      "sha256": "b766b65d9d19b8d60feb35457e3f6dfdd6d2083a527d0141239265a85246d9ea",
       "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/955b845f46c882b0897df352c29dd76dbb340005/public/benchmarks/base-gltf-viewer/index.html"
     },
     {
@@ -103,7 +103,7 @@
     {
       "path": "server.ts",
       "bytes": 93078,
-      "sha256": "edc30e071db7fd7a61b1c3979d5f3ee981c22584260aec996520af30a23dfd95",
+      "sha256": "13ee07c130f7a5eff03e000fb13c90fc0736240a19770fc970028d1410a52b07",
       "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/955b845f46c882b0897df352c29dd76dbb340005/server.ts"
     },
     {

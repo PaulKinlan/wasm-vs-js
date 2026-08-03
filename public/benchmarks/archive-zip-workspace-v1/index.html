@@ -46,6 +46,29 @@
         <p>Both targets use the same owned greedy nearest-match fixed-Huffman DEFLATE policy, local and central header layout, UTF-8 flag, NFC path generator, timestamps, Unix mode, entry order and extraction set. This candidate does not change the frozen 38-row catalog and does not count toward its denominator until independent acceptance.</p>
         <p><a href="/artifacts/archive-zip-workspace-v1/build-manifest.json">Build manifest</a> · <a href="/artifacts/archive-zip-workspace-v1/fixture-manifest.json">Fixture manifest</a> · <a href="/artifacts/archive-zip-workspace-v1/output-manifest.json">Output manifest</a></p>
       </section>
+
+      <section class="detail-grid" aria-label="Workload details">
+        <div class="detail-card">
+          <h2>What it does</h2>
+          <p>Zips 10,000 mixed files, lists entries, and extracts selected paths with SHA-256 verification.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Why compare</h2>
+          <p>DEFLATE compression, central-directory parsing, and CRC-32 checksum validation.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Algorithm &amp; engine</h2>
+          <p>Category: Compression & Archival. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Source &amp; build provenance</h2>
+          <ul>
+            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+            <li><a href="/evidence/">Check implementation evidence</a></li>
+            <li><a href="/experiments/">Read the frozen experiment</a></li>
+          </ul>
+        </div>
+      </section>
     </main>
   </body>
 </html>

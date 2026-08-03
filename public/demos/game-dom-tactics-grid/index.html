@@ -20,6 +20,7 @@
     <noscript><p class="shell notice"><strong>JavaScript is required to run this local worker validation demo.</strong> No computation, storage, or upload occurs while scripting is disabled.</p></noscript>
     <main id="main" class="shell" data-workload-id="game.dom-tactics-grid.v1">
       <p><a href="/benchmarks/">← Benchmark inventory</a></p>
+      <p class="eyebrow">Proposal-validation demo · game.dom-tactics-grid.v1</p>
       <h1>DOM tactics grid deterministic trace</h1>
       <p
         class="notice"><strong>Proposal-validation demo, not a performance result.</strong> It collects no duration, stores nothing, and uploads nothing. The visual is an enhancement; the complete accepted output appears as text.</p>
@@ -37,6 +38,29 @@
       <section class="panel">
         <h2>Accessible result</h2>
         <pre id="result" tabindex="0">No run yet.</pre>
+      </section>
+
+      <section class="detail-grid" aria-label="Workload details">
+        <div class="detail-card">
+          <h2>What it does</h2>
+          <p>Runs turn-based movement, range calculation, and AI pathfinding on a tactics grid.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Why compare</h2>
+          <p>Grid traversal, BFS flood-fill, and heuristic-based decision trees for game AI.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Algorithm &amp; engine</h2>
+          <p>Category: Game Simulation. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Source &amp; build provenance</h2>
+          <ul>
+            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+            <li><a href="/evidence/">Check implementation evidence</a></li>
+            <li><a href="/experiments/">Read the frozen experiment</a></li>
+          </ul>
+        </div>
       </section>
     </main>
   </body>

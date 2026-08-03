@@ -30,6 +30,29 @@
       <pre id="output">No result yet.</pre>
       <h2>Registered work</h2>
       <p>FP32 and INT8 use frozen row-major/NHWC tensors. SIMD, compiler auto-vectorization, alternative layouts and host ML APIs are excluded from this scalar controlled pair. The Wasm artifact performs every multiply-accumulate, exponential approximation and normalization.</p>
+
+      <section class="detail-grid" aria-label="Workload details">
+        <div class="detail-card">
+          <h2>What it does</h2>
+          <p>Exercises inference-runtime inner loops (GEMM, convolution, softmax) over frozen tensors.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Why compare</h2>
+          <p>Core tensor operations that dominate latency in on-device neural network inference.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Algorithm &amp; engine</h2>
+          <p>Category: Neural & AI. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Source &amp; build provenance</h2>
+          <ul>
+            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+            <li><a href="/evidence/">Check implementation evidence</a></li>
+            <li><a href="/experiments/">Read the frozen experiment</a></li>
+          </ul>
+        </div>
+      </section>
     </main>
   </body>
 </html>
