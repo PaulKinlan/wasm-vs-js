@@ -30,6 +30,16 @@ type AjvConstructor = new (options?: Record<string, unknown>) => {
 const Ajv2020 = ((Ajv2020Module as unknown as { default?: AjvConstructor }).default ??
   Ajv2020Module) as unknown as AjvConstructor;
 
+function assertThrows(fn: () => unknown, includes: string): void {
+  try {
+    fn();
+  } catch (error) {
+    if (error instanceof Error && error.message.includes(includes)) return;
+    throw error;
+  }
+  throw new Error("expected exception");
+}
+
 async function compileWasm() {
   const wat = await Deno.readTextFile("benchmarks/base/dom-todomvc-journey/todomvc.wat");
   const wabt = await wabtFactory();
@@ -102,8 +112,8 @@ Deno.test("JavaScript and material Wasm own identical state and typed command se
 
   const exports = await instantiateTodoWasm(wasm) as Record<string, unknown>;
   const falsified = { ...exports, counter_state_writes: () => 249 };
-  await assertRejects(
-    async () => runWasm(falsified, encodeActionTrace()),
+  assertThrows(
+    () => runWasm(falsified, encodeActionTrace()),
     "operative counter mismatch",
   );
 });
@@ -281,8 +291,8 @@ Deno.test("TodoMVC semantic, lifecycle, network, DOM, and AX gates reject incomp
     variants: { "js-controlled": { counters: js.counters } },
   };
   assertCompleteTodoEvidence(result, finalAxOracle(), oracle, "js-controlled");
-  assertRejects(
-    async () =>
+  assertThrows(
+    () =>
       assertCompleteTodoEvidence(
         { ...result, canonicalDom: result.canonicalDom.slice(1) },
         finalAxOracle(),
@@ -291,9 +301,8 @@ Deno.test("TodoMVC semantic, lifecycle, network, DOM, and AX gates reject incomp
       ),
     "canonical DOM mismatch",
   );
-  assertRejects(
-    async () =>
-      assertCompleteTodoEvidence(result, finalAxOracle().slice(1), oracle, "js-controlled"),
+  assertThrows(
+    () => assertCompleteTodoEvidence(result, finalAxOracle().slice(1), oracle, "js-controlled"),
     "CDP AX-tree mismatch",
   );
   assertCompleteNetwork([{
@@ -303,8 +312,8 @@ Deno.test("TodoMVC semantic, lifecycle, network, DOM, and AX gates reject incomp
     failed: false,
     completed: true,
   }]);
-  assertRejects(
-    async () =>
+  assertThrows(
+    () =>
       assertCompleteNetwork([{
         url: "http://127.0.0.1:8000/",
         method: "GET",
@@ -321,8 +330,8 @@ Deno.test("TodoMVC semantic, lifecycle, network, DOM, and AX gates reject incomp
     restartCompleted: false,
     workerAbsentAfterPagehide: true,
   });
-  assertRejects(
-    async () =>
+  assertThrows(
+    () =>
       assertLifecycleEvidence("pagehide", {
         cancelled: false,
         staleIgnored: false,
