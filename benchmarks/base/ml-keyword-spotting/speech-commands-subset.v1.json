@@ -1,0 +1,571 @@
+{
+  "schemaVersion": 1,
+  "fixtureId": "speech-commands-v2-test-60s-v1",
+  "status": "frozen-recipe-only",
+  "redistribution": "recipe-only",
+  "license": "CC-BY-4.0",
+  "attribution": "Warden, P. (2018), Speech Commands: A Dataset for Limited-Vocabulary Speech Recognition, TensorFlow test set v0.02.",
+  "archive": {
+    "url": "http://download.tensorflow.org/data/speech_commands_test_set_v0.02.tar.gz",
+    "bytes": 112563277,
+    "sha256": "cc2a00c1147c2254e9be3fa0f779d8c17421dc349b86366567a8edfa9acd51df",
+    "upstreamChecksumSource": "https://github.com/tensorflow/datasets/blob/master/tensorflow_datasets/datasets/speech_commands/checksums.tsv"
+  },
+  "selection": {
+    "algorithm": "lexicographically first 15 WAV paths for each label",
+    "labels": [
+      "yes",
+      "no",
+      "up",
+      "down"
+    ],
+    "filesPerLabel": 15,
+    "normalization": "mono signed PCM16 little-endian at 16000 Hz; truncate or zero-pad each file to exactly 16000 samples; concatenate manifest order",
+    "sampleRate": 16000,
+    "seconds": 60,
+    "samples": 960000
+  },
+  "files": [
+    {
+      "label": "yes",
+      "path": "yes/022cd682_nohash_0.wav",
+      "wavSha256": "b2a08b7b932afa26b95002c80ed940cc348f4a604162fa4553a35397c2983c9d",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "4c919ec8c085c1ba33672567064a1ebdd2444fcac6f360109f2a721472862e30"
+    },
+    {
+      "label": "yes",
+      "path": "yes/03401e93_nohash_0.wav",
+      "wavSha256": "5f805478d7cc5099b45d9e86ee278b6537d65ce124abf31ffc6e61944a711b2b",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "22a85fc37b20c9fd076b5cd09a37722a5ed95968d3454a21c7d3d2c2f4221bfe"
+    },
+    {
+      "label": "yes",
+      "path": "yes/0bac8a71_nohash_0.wav",
+      "wavSha256": "b256c643cdb96a8193b9403ce5e3682ec20f54be4d798d79658fa1922e56fcc5",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "81515b5c79b14508012dab83711302a8b1613ebbf6f1f721f2308f7e434892e3"
+    },
+    {
+      "label": "yes",
+      "path": "yes/0cb74144_nohash_0.wav",
+      "wavSha256": "4392de990dd083d016aa45d80027fab85998a5e647173dd7326d66963396c2d9",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "d06b295cd9140c99e3d1e426242926e7677711ccc0e9345035f3780a0e14d237"
+    },
+    {
+      "label": "yes",
+      "path": "yes/0cb74144_nohash_1.wav",
+      "wavSha256": "d3a5275b4206d75c141b9c6a9c241d1ed9999cd9c80dbc91ff48948024d333e8",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "8f66eed833d39e7b8365c8bd41253a1ba71d0268c050c70359455b3d3dc7787c"
+    },
+    {
+      "label": "yes",
+      "path": "yes/0cb74144_nohash_2.wav",
+      "wavSha256": "116e0d860390cf139fe8ea845e93e8bfdae6169be4fdf1f6fb7797300aa3e10b",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "35468b9f7d0ac2e29e33ed092418f10137b594d0444568c7ff68114412c4fb3f"
+    },
+    {
+      "label": "yes",
+      "path": "yes/0cb74144_nohash_3.wav",
+      "wavSha256": "6c9a75a2d2930f8de090b2f4ab634a277ba616b9ffea0620bb9347e4aa474c97",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "b365cf4b59d6b7ee2efa580c5396407599e1798c52a01c9b8c31e360c9e93967"
+    },
+    {
+      "label": "yes",
+      "path": "yes/0ea0e2f4_nohash_0.wav",
+      "wavSha256": "a1b074417eb73028ad8cf7608fbc0ccfdb09dce14c6cdbdd42289fd9d8c4e540",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "f265284ea21e4b6465f1fdfe828ee46791b857d6a8f0a5345d146cb0d2dd4203"
+    },
+    {
+      "label": "yes",
+      "path": "yes/0fa1e7a9_nohash_0.wav",
+      "wavSha256": "1f8e3a9c8e7b803b03bc8063678f81df0aceef3c97eef696fa3a6ec8df078059",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "94919b7c9bfca0e89808cade720d57f5dab6afe0b46044a67fce7671837541d5"
+    },
+    {
+      "label": "yes",
+      "path": "yes/105a0eea_nohash_0.wav",
+      "wavSha256": "6ea7cf4c38cae3410e5284a4cc4bad96d7bc1bb8fd283f7c9be5ed3d09e36c49",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "17dd92c57f3edb63073d1efe4a8671aa7bbefa3106089412b2c9223d771be4d6"
+    },
+    {
+      "label": "yes",
+      "path": "yes/105a0eea_nohash_1.wav",
+      "wavSha256": "b3617b0b24720db2f62e21b90cc641877885f2da67a72d2173e2e7c767e08a23",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "9ac0d10c957e2a63c016a98c648534328242aade3fa259b32341e3360631d452"
+    },
+    {
+      "label": "yes",
+      "path": "yes/105a0eea_nohash_2.wav",
+      "wavSha256": "6f7b0da0a74cf507d64a45ccecd343630f0fd28340185681f37eec9235d77598",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "6e292cd679f932d77e24a357bdeac8c59375607f91039a9eb4f4b010f08bd265"
+    },
+    {
+      "label": "yes",
+      "path": "yes/1093c8e7_nohash_0.wav",
+      "wavSha256": "06e91017e9b3c2e22e689cf6ca49e2db9fa7260271fd6dcf32379f21a10e4ce9",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "25ee9f9ac45a1d491167e1bc18694eb4245f157f3ab843fc3395c6eba2a0b51a"
+    },
+    {
+      "label": "yes",
+      "path": "yes/1538beb7_nohash_0.wav",
+      "wavSha256": "d37d76ee5155aaec2b459951ffb2f4091f77daf7c215077c3e4368b87af1a3d0",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "a61e16c98b3ed9be30698e22cea3a4884ac8fd2a871889f507065fffe59fbb2a"
+    },
+    {
+      "label": "yes",
+      "path": "yes/189cbabe_nohash_0.wav",
+      "wavSha256": "72f210badafdbdd0e9d689fac5d6be4b108218aa284cb4f873ff98982b20c146",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "3963a94bae73d28290194a4152fe07ea2ca580e3ef870c879a6a81cee42fc636"
+    },
+    {
+      "label": "no",
+      "path": "no/03401e93_nohash_0.wav",
+      "wavSha256": "b3da9ec4a4b6f28e08ac5720fa56066a06a5acb1daf61a9b99c8abc5c8ce4629",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "b5ea1dd459f1b2a1d8515df69e051980321a626d2092e0037a338a1cbe1bb64c"
+    },
+    {
+      "label": "no",
+      "path": "no/03401e93_nohash_1.wav",
+      "wavSha256": "bbcf3954aabdc5f8ef52c3d172a7528e40fba264068e03cf8b5df8dde68c0c4f",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "8e1b33427b233fc4d3fc8c087ce24f52e9ef7a7a58706b1000cc9c3fe8724747"
+    },
+    {
+      "label": "no",
+      "path": "no/03401e93_nohash_2.wav",
+      "wavSha256": "d62322ee57a10f32e553c3559f03a2c12f4216d6453c7ca2d092da0689ff37a8",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "73d7ba7d00241c0050d7b69562a679623950ce213bb824d51e22df956e1641d3"
+    },
+    {
+      "label": "no",
+      "path": "no/03401e93_nohash_3.wav",
+      "wavSha256": "dfaad0e21b3f6cb6fa59641b84c5b1647efad9333709e16da512fe386f172734",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "23fc0a6d1795db57152bca21016f4e6f77cf0ad9ebb8e45f9cbb2b7cec15f8f5"
+    },
+    {
+      "label": "no",
+      "path": "no/0c40e715_nohash_0.wav",
+      "wavSha256": "994a3b5a11a2b8c4f2fdbe59468b840dabcddc653116f555ed9ff39388269bad",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "5311cca9c36fcd7e435b3947c6daadf3a27521abbecd20e1dab49e51e9da7c85"
+    },
+    {
+      "label": "no",
+      "path": "no/0c540988_nohash_0.wav",
+      "wavSha256": "a3a507ab136556c09a40bfbeafb9bdd0f68f49074fc83b88b570a9f6f9388763",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "d97cc4de2ab2b65a7219cbb53aeec014fa4af35b1c3f30aee73f57a2d5f865d4"
+    },
+    {
+      "label": "no",
+      "path": "no/0cb74144_nohash_0.wav",
+      "wavSha256": "ded1c0fd417dd68b61b1f27ed2a4c03a349507e730b257b2381aeb90c59b5083",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "2b61bada9f2983cca2f25639b67f2b70c42f911cae1c185e49381a136eec9e8d"
+    },
+    {
+      "label": "no",
+      "path": "no/0cb74144_nohash_1.wav",
+      "wavSha256": "423d1ec562b4187a3b99bf54e06bb83fa91fca0b92a7ba176654bbff728f0161",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "f0231bd30794c06bfa16fa77e5e42d77d2ca7184ecc178a8e23b1634353a443f"
+    },
+    {
+      "label": "no",
+      "path": "no/0cb74144_nohash_2.wav",
+      "wavSha256": "095236c30e40b0a1976860e2cb371cbe22a69e0d1e22c6607270f59e1529e531",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "bde9cd385076e221530b2b595513552ab5eace5def66bedf09439cf147db6088"
+    },
+    {
+      "label": "no",
+      "path": "no/0cb74144_nohash_3.wav",
+      "wavSha256": "4677c1d6ada1615ffaea4c0267e7d668f737b6b2a4e51306b778317b78fafa01",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "52a02972e80dadfefe8a138982e9110fe4ee31cfc6f4188962251c5645e4cc69"
+    },
+    {
+      "label": "no",
+      "path": "no/0cb74144_nohash_4.wav",
+      "wavSha256": "08e0e60a4f5476f607c5363d43efb06960b9df6d135735e6b3853c0123ed9122",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "2a5748e4a71ea4399dbbda62dd38084f6c0b7ff21f2ce3660af486381a7ac919"
+    },
+    {
+      "label": "no",
+      "path": "no/0ea0e2f4_nohash_0.wav",
+      "wavSha256": "8b32ac6128039868b7f030850174f489cb220ced82ee9c155aca88f7ec7a667c",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "504a035cff1b39fb9246f21a9cbe034f18f410c7368469dc46c73e588091e145"
+    },
+    {
+      "label": "no",
+      "path": "no/1093c8e7_nohash_0.wav",
+      "wavSha256": "bdd05f73da9c74fd6ff21e5f07fc17fd7a99ba240c7d9b28b84dd06a078288cc",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "91ee622b573efff038243154ef7dbe5338289ec90855c59891ed1218ff700358"
+    },
+    {
+      "label": "no",
+      "path": "no/135c6841_nohash_0.wav",
+      "wavSha256": "7cb3053a01cf84e6d9a2acc74ab17d642e2d0c6d87ee5670c4c6f3a614a817c2",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "baf1444f173d034397e85014ba75cffb7a624ae326e52d08dfa57071e4814204"
+    },
+    {
+      "label": "no",
+      "path": "no/135c6841_nohash_1.wav",
+      "wavSha256": "403c22e5e592ba07c3cf4ad3a72b8ea84275e0d539ec60618f1049addbeaa18e",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "9e21baf48b899e339db62b26b46a582cb29783832691287a9afe87199477e6bf"
+    },
+    {
+      "label": "up",
+      "path": "up/03401e93_nohash_0.wav",
+      "wavSha256": "28859587207862f23d30b197faed381df8cd5952be5f919b4561fd0f5361bdd9",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "c5c00cb5764bc455b29551ea5835846f9808968fdc53faa6404251b8a63193dc"
+    },
+    {
+      "label": "up",
+      "path": "up/0c40e715_nohash_0.wav",
+      "wavSha256": "60ee249c569002900fa30de04a9aed7bb65d0183bad130940625bc10f4dc1096",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "e3c2977da1ae63ee2713edc0ef7c8ec59e1b68c0558d708732277085a01759a3"
+    },
+    {
+      "label": "up",
+      "path": "up/0cb74144_nohash_0.wav",
+      "wavSha256": "e5591140a4394515ed3d89cd308a02cfa620cefe34770f89d49aba2c57e9b934",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "469802653cf7a80dff8cb467b236b209de85d7e293ce8cc1c1aefd5cd7f27e77"
+    },
+    {
+      "label": "up",
+      "path": "up/0cb74144_nohash_1.wav",
+      "wavSha256": "ae1864c9872ab0cae21ecd2efa688a92b1d14628ec65472552f228415edccb52",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "58a04c93cbd4beb8d0f735d3bec0815e800337937c6ae6e107e8317b1856321d"
+    },
+    {
+      "label": "up",
+      "path": "up/0cb74144_nohash_2.wav",
+      "wavSha256": "881a2c08ed532f9b810dab817d8305c61c6be83e8df58b60e7b3f5452d664ad0",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "a4bd2bdfd0f3ce145f8dd8a7a2aa0df4051522472edf0dfc8719b21a541f6a93"
+    },
+    {
+      "label": "up",
+      "path": "up/0cb74144_nohash_3.wav",
+      "wavSha256": "950ceb66bac74ca2e4e0bd98cea81606cd27db34092283e639f2bea872d9c43f",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "195a91bc52a81b81b0cbca7aa428330815eea37e899309150491e352493183ef"
+    },
+    {
+      "label": "up",
+      "path": "up/0d53e045_nohash_0.wav",
+      "wavSha256": "f2ffe7e9e9abdfdc4ef6e17b44e838ca7ecc465a9dbfa6a6a04e406d84213ada",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "ad0bacbaedcf3a5b37864333f742a13ed4f89b1ad926c38cc0cf0200ba9cf2c0"
+    },
+    {
+      "label": "up",
+      "path": "up/0d53e045_nohash_1.wav",
+      "wavSha256": "0d80f55e94d7e3347f43c4b2955fa1adaea6715c4f530b1fe23c235666b167cb",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "a6e6a4c78eb699a51f9f5dea5f72033cd45309e55380b09fdd834f8f14ebc509"
+    },
+    {
+      "label": "up",
+      "path": "up/0f250098_nohash_0.wav",
+      "wavSha256": "bf2061a38264b7ded88f43d133fa96913f3f17b15935f573058f099dfffb40ae",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "2252f309f77504b01ddf1eedef5a75fdb5cf6d016c8d2becd0f266c0a95de018"
+    },
+    {
+      "label": "up",
+      "path": "up/0fa1e7a9_nohash_0.wav",
+      "wavSha256": "43dc5dcf610a1881eaa6745d652d8b10b703f6bc3a5067a6b460da4cab922721",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "02c11b66e1d4b241c9dae248d5d45f06c88e29beaa9f4a7c947a742f9362c615"
+    },
+    {
+      "label": "up",
+      "path": "up/135c6841_nohash_0.wav",
+      "wavSha256": "a5f12c88ad48289d79b8a027f5f496aaffe2fa50da126eff8a390ee3e4aa7c4f",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "aa42e3accf79f6a6c9933f197e654cbc8d361552bfc69e9f4f244d812fc9a95d"
+    },
+    {
+      "label": "up",
+      "path": "up/189cbabe_nohash_0.wav",
+      "wavSha256": "154fd5590ae717e2946c661260a457de928e9225553b43c54746319b56a6062b",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "97f623569a698deb1a66c2e32a2cbad714e433652578763120cf70c5854d507c"
+    },
+    {
+      "label": "up",
+      "path": "up/189cbabe_nohash_1.wav",
+      "wavSha256": "90698a8e9f0c8553e160c07e793a5519a7cb70134f4655ab65843bbe246b8697",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "14144bdc66906e904dbe78150828d824db821d8cd3a432f2cf9f695d4e3337ae"
+    },
+    {
+      "label": "up",
+      "path": "up/18f8afd5_nohash_0.wav",
+      "wavSha256": "97d4d945002f2c531e3a3c1fe897dfcaf9dcf18bd81e943b58c58e774a07f546",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "c823a22e07672fcae34ad597ba7b04d6060e3b07b2f94d9792bd7618601116b3"
+    },
+    {
+      "label": "up",
+      "path": "up/18f8afd5_nohash_1.wav",
+      "wavSha256": "e4d81d41ae82784fb1cd4d64a9fbd24407db50e43a3944d5de1a8769f607ddac",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "a48f7d747073d9065f468093e67f7b462ef9944af066adae2494d8a95a989bed"
+    },
+    {
+      "label": "down",
+      "path": "down/022cd682_nohash_0.wav",
+      "wavSha256": "c96897347fbb87c8246bb2fefb438f14dffad3ddca2c1228db4d531f5bf19d8f",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "1036b938a4689a3487ecd3f9bafc808ad5986c6dc09cf1a348f9189cc44f2e4b"
+    },
+    {
+      "label": "down",
+      "path": "down/0c40e715_nohash_0.wav",
+      "wavSha256": "7de857a33d535fdf49eb257aab656dcfdd44d9a9b462a7ad0994893158fbfac5",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "1944e6b508d46fb4382c05bda80c888801e476092e9147dd8da939537bbe0b83"
+    },
+    {
+      "label": "down",
+      "path": "down/0c540988_nohash_0.wav",
+      "wavSha256": "771639a6d72b8367680c277dceba59c3cc390c82c83031f1a54ef3b4010a7a38",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "2e33a6459507805504464d8ae76429d31eb2607b8a5522ebf3d8c7037ad4d3f4"
+    },
+    {
+      "label": "down",
+      "path": "down/0cb74144_nohash_0.wav",
+      "wavSha256": "9b2bbdb35c854829f47a06bca803e2e58dccf670912b785358f3e6ae96452c63",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "51f873a224b838786fa9d583452a375a66a354b91b633134cd9ba198ea63e57d"
+    },
+    {
+      "label": "down",
+      "path": "down/0cb74144_nohash_1.wav",
+      "wavSha256": "02a093b15b90031340ed8c1f3cf1b2ea95e18646dd6d2a90bf96e2b0cd1a56db",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "4b210cae6ea94bfd09bea441aff3113e4d3b66ee927077ff3d5e8b2f1e499938"
+    },
+    {
+      "label": "down",
+      "path": "down/0cb74144_nohash_2.wav",
+      "wavSha256": "0f597eeee7e041f56c03167bf76e6336588842ff00f20f5de824487a2b5e416b",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "4d60db87d3b580a67ccf4e549a706edd59cc8e6e04629d891ea757ab5d347f68"
+    },
+    {
+      "label": "down",
+      "path": "down/0cb74144_nohash_3.wav",
+      "wavSha256": "beff03f6ea240f75381a005a4cf40d98b126749b3d342272609ee0664e40ab09",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "5ee1c41d3b5ea555de32ea7867af445cc6ac8bf449ca6fd4e5e78592413fb133"
+    },
+    {
+      "label": "down",
+      "path": "down/0cb74144_nohash_4.wav",
+      "wavSha256": "0e137a042b5b52959c5aa1e8e4777b27515bc211844925af59a14340b8ccd234",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "09e87efd613e15e533c0588e6861a8060c2790d116d351e6376a1079f267abe8"
+    },
+    {
+      "label": "down",
+      "path": "down/0ea0e2f4_nohash_0.wav",
+      "wavSha256": "1eedf4786de289db1e288f1386936210b03848ccacfa7895f3297715d3049f8a",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "4d6486677ea2cccc45ca847c2388809242f4871184764fc73164343f7f1159e7"
+    },
+    {
+      "label": "down",
+      "path": "down/0f250098_nohash_0.wav",
+      "wavSha256": "bce1f9e74bf2e4c65e493d5c33b0b28fb9706916e87adb1f9ba548f3a14381dd",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "0108fc5130f3c6e004f5f161c849792d4b765bf44a35fbfabaf42c0f247cb098"
+    },
+    {
+      "label": "down",
+      "path": "down/0f250098_nohash_1.wav",
+      "wavSha256": "602043fd1184854b3201893db29b310074fa933a8ade5f7711c92b8f83a3ffea",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "e3909b5e8006a9beba817d527fcdd14e21562090a68e75377bea5be6d6d56e87"
+    },
+    {
+      "label": "down",
+      "path": "down/0fa1e7a9_nohash_0.wav",
+      "wavSha256": "a092b2bd4381f41ce36ec41f3600e3d7f03c1a5e0f327110c882234bf0748b4a",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "0d2df9fdd9646834ed719f8127903ecb41ed64772de8e768434a0da26f8962d2"
+    },
+    {
+      "label": "down",
+      "path": "down/189cbabe_nohash_0.wav",
+      "wavSha256": "83b09e3228924707c3ce1e591bd03a8766635fd9bfd30fd849e682f00e1ee2c5",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "b6ee989fe502be153b3452bc94dfdfcec6927c9fcac770676cfa04e7d5b7ec2f"
+    },
+    {
+      "label": "down",
+      "path": "down/189cbabe_nohash_1.wav",
+      "wavSha256": "3b4bfc1368b567154ffe5a4e898ebaf28bbe8567f3db95835a340234723f9184",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "d0acf4b00b02da0059b9969f7ee386bd5bcd06c648e46216aea0495edaf05573"
+    },
+    {
+      "label": "down",
+      "path": "down/189cbabe_nohash_2.wav",
+      "wavSha256": "446c4699846685a3c7ed2ad7243d3b6983ba086891ad868e9e2f940e403d17c6",
+      "wavBytes": 32044,
+      "sourceSamples": 16000,
+      "normalizedSamples": 16000,
+      "normalizedPcmSha256": "2ca41072c202fda73a2506ece0c914721576cc19d528aded98b5ab3afe61dc64"
+    }
+  ],
+  "normalizedPcmSha256": "1643258d45167c2a1b3795b2c4f2fb11a885b08806fde7f4d235e55be61482ae"
+}

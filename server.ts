@@ -130,6 +130,46 @@ const routes = new Map<string, [string, string, boolean?]>([
   ]],
   ["/benchmarks", ["public/benchmarks/index.html", "text/html; charset=utf-8"]],
   ["/benchmarks/", ["public/benchmarks/index.html", "text/html; charset=utf-8"]],
+  ["/benchmarks/ml-keyword-spotting-v1", [
+    "public/benchmarks/ml-keyword-spotting-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/ml-keyword-spotting-v1/", [
+    "public/benchmarks/ml-keyword-spotting-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/base-ml-keyword-spotting-demo.js", [
+    "public/base-ml-keyword-spotting-demo.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/base-ml-keyword-spotting-worker.js", [
+    "public/base-ml-keyword-spotting-worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/ml-keyword-spotting/engine.js", [
+    "benchmarks/base/ml-keyword-spotting/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/ml-keyword-spotting/constants.v1.js", [
+    "benchmarks/base/ml-keyword-spotting/constants.v1.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/artifacts/base-ml-keyword-spotting/keyword-spotting.wasm", [
+    "public/artifacts/base-ml-keyword-spotting/keyword-spotting.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/base-ml-keyword-spotting/registration.v1.json", [
+    "public/artifacts/base-ml-keyword-spotting/registration.v1.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/base-ml-keyword-spotting/output-manifest.v1.json", [
+    "public/artifacts/base-ml-keyword-spotting/output-manifest.v1.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/base-ml-keyword-spotting/fixture-manifest.json", [
+    "benchmarks/base/ml-keyword-spotting/speech-commands-subset.v1.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/demos/game-family/demo.js", [
     "public/demos/game-family/demo.js",
     "text/javascript; charset=utf-8",

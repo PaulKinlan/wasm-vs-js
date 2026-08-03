@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "ml.keyword-spotting.v1",
+  "catalogVersion": 1,
+  "status": "implementation-candidate",
+  "track": "controlled-a",
+  "fixture": {
+    "id": "speech-commands-v2-test-60s-v1",
+    "distribution": "recipe-only",
+    "sampleRate": 16000,
+    "samples": 960000,
+    "seconds": 60,
+    "manifest": "speech-commands-subset.v1.json"
+  },
+  "fixedWork": {
+    "hops": 3000,
+    "hopSamples": 320,
+    "fftSize": 512,
+    "mfccCoefficients": 13,
+    "model": "owned fixed INT8 DS-CNN v1",
+    "classes": ["silence", "yes", "no", "other"]
+  },
+  "preprocessing": {
+    "resample": "not required; every prescribed WAV must be mono PCM16 at exactly 16000 Hz or acquisition fails",
+    "normalization": "truncate or zero-pad each prescribed file to 16000 samples",
+    "window": "320-sample Hann Q15, committed integer coefficients",
+    "fft": "512-point radix-2 decimation-in-time Q15 with one-bit stage scaling",
+    "spectralFeatures": "13 contiguous positive-frequency log2 magnitude bands",
+    "mfcc": "13x13 committed DCT-II Q15 table"
+  },
+  "model": {
+    "family": "dscnn-fixed-preprocess-model",
+    "contextFrames": 3,
+    "depthwiseChannels": 13,
+    "pointwiseChannels": 8,
+    "classes": 4,
+    "weights": "committed signed INT8 generated once by xorshift32 seed 0x4b575331",
+    "operatorOrder": [
+      "depthwise-temporal-convolution",
+      "pointwise-convolution",
+      "relu",
+      "dense-logits",
+      "argmax-transition-detection"
+    ],
+    "referenceRelationship": "MLPerf Tiny DS-CNN is methodology prior art; no MLPerf code or weights are copied"
+  },
+  "numericPolicy": {
+    "crossTarget": "exact integer equality for every feature, every class score and every final detection",
+    "idealReference": "independent direct checks and boundary cases; no tolerance is needed for controlled integer targets",
+    "nonfinite": "not representable"
+  },
+  "variants": [
+    { "id": "js-controlled", "target": "javascript" },
+    { "id": "wasm-linear-controlled", "target": "wasm-linear" }
+  ],
+  "audioScheduling": "excluded from controlled compute; any AudioWorklet or real-time schedule is a separately named future variant",
+  "performanceClaims": []
+}
