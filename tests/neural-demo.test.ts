@@ -10,6 +10,9 @@ async function startServer() {
       "run",
       "--allow-net=127.0.0.1",
       "--allow-read=.",
+      // Local mode eagerly initializes its run store under raw/ at startup;
+      // grant exactly that directory, nothing broader.
+      "--allow-write=raw",
       "--allow-env=PORT,HOST,SERVER_MODE,WASM_VS_JS_COMMIT",
       "server.ts",
     ],
