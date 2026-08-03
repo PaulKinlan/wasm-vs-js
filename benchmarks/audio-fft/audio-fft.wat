@@ -3,7 +3,7 @@
 ;; twiddle: frozen f32 cos/sin pairs at twPtr
 ;; params: ptr (i32), n (i32), twPtr (i32)
 (module
-  (memory (export "memory") 2048)  ;; 128MB for 32×4096×2×4 = 1,048,576 bytes input
+  (memory (export "memory") 32 32)  ;; fixed 2 MiB; growth is disabled
   (func (export "fft_radix2") (param $ptr i32) (param $n i32) (param $twPtr i32)
     (local $i i32) (local $j i32) (local $bit i32)
     (local $len i32) (local $halfLen i32) (local $twIdx i32) (local $tw i32)

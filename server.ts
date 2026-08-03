@@ -136,17 +136,20 @@ const routes = new Map<string, [string, string, boolean?]>([
     "text/javascript; charset=utf-8",
   ]],
 
-  ["/benchmarks/fft-radix2-c2c/benchmark.json", [
-    "benchmarks/fft-radix2-c2c/benchmark.json",
+  ["/benchmarks/audio-fft/benchmark.json", [
+    "benchmarks/audio-fft/benchmark.json",
     "application/json; charset=utf-8",
+    true,
   ]],
-  ["/benchmarks/fir-direct-convolution/benchmark.json", [
-    "benchmarks/fir-direct-convolution/benchmark.json",
+  ["/benchmarks/audio-fir/benchmark.json", [
+    "benchmarks/audio-fir/benchmark.json",
     "application/json; charset=utf-8",
+    true,
   ]],
-  ["/benchmarks/stft-power-spectrum/benchmark.json", [
-    "benchmarks/stft-power-spectrum/benchmark.json",
+  ["/benchmarks/audio-stft/benchmark.json", [
+    "benchmarks/audio-stft/benchmark.json",
     "application/json; charset=utf-8",
+    true,
   ]],
   ["/artifacts/sum-u32/sum-u32.wasm", [
     "public/artifacts/sum-u32/sum-u32.wasm",
@@ -157,6 +160,35 @@ const routes = new Map<string, [string, string, boolean?]>([
     "application/json; charset=utf-8",
   ]],
 ]);
+
+for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
+  routes.set(`/artifacts/${slug}/${slug}.wasm`, [
+    `public/artifacts/${slug}/${slug}.wasm`,
+    "application/wasm",
+    true,
+  ]);
+  for (
+    const manifest of [
+      "fixture-manifest.json",
+      "input-manifest.json",
+      "output-manifest.json",
+      "build-manifest.json",
+    ]
+  ) {
+    routes.set(`/artifacts/${slug}/${manifest}`, [
+      `public/artifacts/${slug}/${manifest}`,
+      "application/json; charset=utf-8",
+      true,
+    ]);
+  }
+  for (const variant of ["js-controlled", "wasm-linear-controlled"]) {
+    routes.set(`/evidence/v2-proposals/${slug}/${variant}.json`, [
+      `public/evidence/v2-proposals/${slug}/${variant}.json`,
+      "application/json; charset=utf-8",
+      true,
+    ]);
+  }
+}
 
 function createHandler(
   store: LocalRunStore | null,

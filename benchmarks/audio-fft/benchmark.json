@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "status": "proposal-validation-only",
+  "entryId": "audio.fft.v1",
+  "benchmarkSlug": "audio-fft",
+  "title": "Radix-2 complex FFT",
+  "tier": "T2",
+  "class": "kernel",
+  "parameters": [
+    { "name": "fft-size", "value": 4096 },
+    { "name": "transforms", "value": 32 },
+    { "name": "direction", "value": "forward" },
+    { "name": "normalization", "value": "none" },
+    { "name": "layout", "value": "interleaved-complex" }
+  ],
+  "input": {
+    "serialization": "canonical-little-endian-f32",
+    "sha256": "56a844c73dbb33c2ac426ce012b0d953f54270c8acd1bc90a4b058147a810ee0"
+  },
+  "oracle": {
+    "floatingPointPolicy": "strict-f32-frozen-order",
+    "checks": ["complete-output-bound", "structural-invariants", "work-counters"],
+    "absoluteTolerance": 0.000001,
+    "relativeTolerance": 0.00001,
+    "outputSha256": "8394fb237d8e085dcee070c9c1835bdaa831f6f6cec5c84aff50e85180fa0cd9"
+  },
+  "workCounters": {
+    "transforms": 32,
+    "samples": 131072,
+    "stages": 384,
+    "butterflies": 786432,
+    "complex-multiplies": 786432,
+    "input-bytes": 1081336,
+    "output-bytes": 1048576,
+    "boundary-crossings": 32
+  },
+  "phases": {
+    "load": "measured",
+    "initialize": "measured",
+    "transfer": "measured",
+    "compute": "measured",
+    "validation": "separate",
+    "render": "not-applicable",
+    "end-to-end": "measured"
+  },
+  "variants": [
+    {
+      "id": "js-controlled",
+      "target": "javascript",
+      "track": "controlled",
+      "algorithmFamilyId": "audio-fft-controlled-v1",
+      "implemented": true
+    },
+    {
+      "id": "wasm-linear-controlled",
+      "target": "wasm-linear",
+      "track": "controlled",
+      "algorithmFamilyId": "audio-fft-controlled-v1",
+      "implemented": true
+    },
+    {
+      "id": "js-optimized",
+      "target": "javascript",
+      "track": "optimized",
+      "algorithmFamilyId": "audio-fft-js-optimized-v1",
+      "implemented": false
+    },
+    {
+      "id": "wasm-linear-optimized",
+      "target": "wasm-linear",
+      "track": "optimized",
+      "algorithmFamilyId": "audio-fft-wasm-linear-optimized-v1",
+      "implemented": false
+    }
+  ],
+  "wasmMemory": { "initialPages": 32, "maximumPages": 32, "growth": false },
+  "missingCells": ["implementation-and-results"],
+  "performanceClaims": []
+}

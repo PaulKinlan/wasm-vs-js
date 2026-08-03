@@ -22,10 +22,8 @@ export function generateSignal(length = SAMPLES, seed = SEED): Float32Array {
   for (let i = 0; i < length; i++) {
     const t = Math.fround(i / SAMPLE_RATE);
     const phase = Math.fround(
-      Math.fround(
-        Math.fround(Math.fround(2 * Math.PI) * Math.fround(f0 * t)) +
-          Math.fround(Math.fround(0.5 * k * t) * t),
-      ),
+      Math.fround(2 * Math.PI) *
+        Math.fround(Math.fround(f0 * t) + Math.fround(Math.fround(0.5 * k * t) * t)),
     );
     state ^= state << 13;
     state >>>= 0;
@@ -57,28 +55,51 @@ export function hannWindow(size: number): Float32Array {
   return w;
 }
 
-// STFT: window + FFT per frame, output complete complex interleaved per frame
+// STFT: window + FFT per frame, retaining every complex bin.
+// Window, twiddle, scratch and output are caller-owned so compute excludes initialization.
+export function stftInto(
+  input: Float32Array,
+  frameSize: number,
+  hopSize: number,
+  window: Float32Array,
+  twiddle: Float32Array,
+  scratch: Float32Array,
+  spectrogram: Float32Array,
+): void {
+  const numFrames = 1 + Math.floor((input.length - frameSize) / hopSize);
+  if (window.length !== frameSize || scratch.length !== frameSize * 2) {
+    throw new Error("STFT workspace length mismatch");
+  }
+  if (spectrogram.length !== numFrames * frameSize * 2) {
+    throw new Error("STFT output length mismatch");
+  }
+  spectrogram.fill(0);
+  for (let frame = 0; frame < numFrames; frame++) {
+    const offset = frame * hopSize;
+    scratch.fill(0);
+    for (let i = 0; i < frameSize; i++) {
+      scratch[i * 2] = Math.fround(input[offset + i] * window[i]);
+    }
+    fftRadix2(scratch, frameSize, twiddle);
+    spectrogram.set(scratch, frame * frameSize * 2);
+  }
+}
+
 export function stft(
   input: Float32Array,
   frameSize = FRAME_SIZE,
   hopSize = HOP_SIZE,
 ): Float32Array {
   const numFrames = 1 + Math.floor((input.length - frameSize) / hopSize);
-  const numBins = frameSize; // complete complex: frameSize complex pairs = frameSize*2 f32 per frame
   const spectrogram = new Float32Array(numFrames * frameSize * 2);
-  const window = hannWindow(frameSize);
-  const twiddle = generateTwiddleTable(frameSize);
-  const buf = new Float32Array(frameSize * 2);
-
-  for (let frame = 0; frame < numFrames; frame++) {
-    const offset = frame * hopSize;
-    buf.fill(0);
-    for (let i = 0; i < frameSize; i++) {
-      buf[i * 2] = Math.fround(input[offset + i] * window[i]);
-    }
-    fftRadix2(buf, frameSize, twiddle);
-    // Copy complete complex output
-    spectrogram.set(buf, frame * frameSize * 2);
-  }
+  stftInto(
+    input,
+    frameSize,
+    hopSize,
+    hannWindow(frameSize),
+    generateTwiddleTable(frameSize),
+    new Float32Array(frameSize * 2),
+    spectrogram,
+  );
   return spectrogram;
 }

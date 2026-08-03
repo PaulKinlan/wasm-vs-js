@@ -1,7 +1,7 @@
 ;; audio-fir: direct 256-tap convolution, increasing tap order
 ;; params: inPtr, inLen, tapPtr, tapLen, outPtr
 (module
-  (memory (export "memory") 1024)  ;; 64MB for 131072×4 + 256×4 + 131327×4 ≈ 1.05MB
+  (memory (export "memory") 32 32)  ;; fixed 2 MiB; growth is disabled
   (func (export "fir_direct") (param $inPtr i32) (param $inLen i32) (param $tapPtr i32) (param $tapLen i32) (param $outPtr i32)
     (local $i i32) (local $j i32) (local $sample f32) (local $off i32) (local $outLen i32)
     (local.set $outLen (i32.sub (i32.add (local.get $inLen) (local.get $tapLen)) (i32.const 1)))

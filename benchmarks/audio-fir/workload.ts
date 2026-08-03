@@ -53,16 +53,27 @@ export function generateTaps(taps = TAPS): Float32Array {
   return h;
 }
 
-// Direct convolution: output[i+j] += input[i] * taps[j], increasing tap order
-export function firDirectConvolution(input: Float32Array, taps: Float32Array): Float32Array {
-  const n = input.length;
-  const k = taps.length;
-  const output = new Float32Array(n + k - 1);
-  for (let i = 0; i < n; i++) {
+// Direct convolution: output[i+j] += input[i] * taps[j], increasing tap order.
+// The caller owns the output so allocation and reset stay outside the compute phase.
+export function firDirectConvolutionInto(
+  input: Float32Array,
+  taps: Float32Array,
+  output: Float32Array,
+): void {
+  if (output.length !== input.length + taps.length - 1) {
+    throw new Error("FIR output length mismatch");
+  }
+  output.fill(0);
+  for (let i = 0; i < input.length; i++) {
     const sample = input[i];
-    for (let j = 0; j < k; j++) {
+    for (let j = 0; j < taps.length; j++) {
       output[i + j] = Math.fround(output[i + j] + Math.fround(sample * taps[j]));
     }
   }
+}
+
+export function firDirectConvolution(input: Float32Array, taps: Float32Array): Float32Array {
+  const output = new Float32Array(input.length + taps.length - 1);
+  firDirectConvolutionInto(input, taps, output);
   return output;
 }

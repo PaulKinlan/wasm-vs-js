@@ -1,1 +1,1 @@
-export { hannWindow, stft } from "./workload.ts";
+export { hannWindow, stft, stftInto } from "./workload.ts";

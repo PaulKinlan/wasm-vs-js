@@ -1,1 +1,1 @@
-export { firDirectConvolution } from "./workload.ts";
+export { firDirectConvolution, firDirectConvolutionInto } from "./workload.ts";
