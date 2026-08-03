@@ -1,27 +1,39 @@
 {
   "schemaVersion": 1,
   "workloadId": "text.gc-document-edit.v1",
-  "collectedAt": "2026-08-03T12:21:08Z",
-  "command": "rm -rf <owned-clean-gradle-home> benchmarks/v1/text-gc-document-edit/kotlin/build && GRADLE_USER_HOME=<owned-clean-gradle-home> scripts/build-text-gc-document-edit-wasmgc.sh",
+  "collectedAt": "2026-08-03T13:07:48Z",
+  "sourceCommit": "b150ea5a666177eb938ecd941f806df730c67d14",
+  "command": "rm -rf <owned-xdg-cache> <owned-gradle-home> benchmarks/v1/text-gc-document-edit/kotlin/{build,.gradle,.kotlin} && XDG_CACHE_HOME=<owned-xdg-cache> GRADLE_USER_HOME=<owned-gradle-home> TEXT_GC_SOURCE_COMMIT=b150ea5a666177eb938ecd941f806df730c67d14 scripts/build-text-gc-document-edit-wasmgc.sh",
   "toolchain": {
     "deno": "2.9.0",
     "gradle": "9.6.1",
     "gradleDistributionSha256": "9c0f7faeeb306cb14e4279a3e084ca6b596894089a0638e68a07c945a32c9e14",
     "kotlinPlugin": "2.3.21",
-    "java": "OpenJDK 26.0.1"
+    "dependencyVerification": {
+      "mode": "strict",
+      "metadataSha256": "da5b2e07cfb15380b8d86e52e6f2440b78f9039f4e8e0cc37db630e37f586306"
+    },
+    "java": {
+      "version": "26.0.1",
+      "vendor": "Arch Linux",
+      "executableSha256": "0868c4200b2f78fc9e767841cc63200350303519eec74b9458031ee234e5bcb9",
+      "releaseFileSha256": "4b67a4f6526d3a2d82edca270da64ac3f560fb6a1340bfbc9ad72ae08666cd44"
+    }
   },
   "cleanState": {
-    "gradleUserHomeCreatedFresh": true,
-    "projectBuildDirectoryRemovedBeforeBuild": true,
-    "ownedTemporaryCacheRemovedAfterEvidence": true
+    "independentFreshRuns": 2,
+    "xdgCacheCreatedFreshEachRun": true,
+    "gradleUserHomeCreatedFreshEachRun": true,
+    "projectBuildDirectoriesRemovedBeforeEachRun": true,
+    "ownedTemporaryCachesRemovedAfterEvidence": true
   },
-  "result": "passed-byte-identical",
+  "result": "passed-two-clean-runs-byte-identical",
   "outputs": {
     "public/artifacts/text-gc-document-edit/text-gc-document-edit.wasm": "16453cdb8df8371e7c827a2e3f911c30d1aad204b510dcc5ac1358ee6fcc7683",
     "public/artifacts/text-gc-document-edit/text-gc-document-edit.mjs": "a4994be989542f4cc826fc2b782974b83ca81b55614eee22553cc064fc4bcb23",
-    "public/artifacts/text-gc-document-edit/text-gc-document-edit.import-object.mjs": "bab94c81c8a8ca0b2a8a134e036ac9999a4276b6ccd4164bc718d7316c1cf721",
+    "public/artifacts/text-gc-document-edit/text-gc-document-edit.import-object.mjs": "10be918973da81e5a576212ecae8c17a6b423e13015aeb92f899c7d781b5e111",
     "public/artifacts/text-gc-document-edit/text-gc-document-edit.js-builtins.mjs": "5265daba0f4204a469f87b09f6a63ebfc59555441e4fcc98f8b2006115048451",
-    "public/artifacts/text-gc-document-edit/build-manifest.json": "3b2bb94f8f34f0e5f163c14c003fed6b3a67f933b39324dffa94302527187dbe"
+    "public/artifacts/text-gc-document-edit/build-manifest.json": "fcab7f22b4132d2a40fe74f8f4e850017b0ccba9b901a7420cba235475a847e3"
   },
   "browserEvidence": {
     "status": "unavailable",

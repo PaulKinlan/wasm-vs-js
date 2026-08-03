@@ -34,7 +34,7 @@ const js_code = {
     'kotlin.wasm.internal.getJsEmptyString' : () => '',
     'kotlin.wasm.internal.externrefToString' : (ref) => String(ref),
     'kotlin.wasm.internal.externrefEquals' : (lhs, rhs) => lhs === rhs,
-    'kotlin.wasm.internal.externrefHashCode' : 
+    'kotlin.wasm.internal.externrefHashCode' :
     (() => {
     const dataView = new DataView(new ArrayBuffer(8));
     function numberHashCode(obj) {
@@ -80,7 +80,7 @@ const js_code = {
             case "boolean":
                 return obj ? 1231 : 1237;
             default:
-                return getStringHashCode(String(obj)); 
+                return getStringHashCode(String(obj));
         }
     }
     })(),
@@ -114,4 +114,3 @@ export const importObject = {
     "'": StringConstantsProxy,
     'wasm:js-string': d2FzbTpqcy1zdHJpbmc,
 };
-    
