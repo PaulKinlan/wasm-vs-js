@@ -93,13 +93,29 @@ const paths = [
   "benchmarks/v1/simulation-rigid-body-2d/engine.js",
   "benchmarks/v1/simulation-rigid-body-2d/rigid-body-2d.c",
   "scripts/build-rigid-body-2d.ts",
+  "public/benchmarks/simulation-rigid-body-2d-v1/index.html",
+  "public/benchmarks/simulation-rigid-body-2d-v1/runner.js",
+  "public/benchmarks/simulation-rigid-body-2d-v1/worker.js",
+  "server.ts",
   "deno.json",
   "deno.lock",
 ];
 const sourceGraph = [];
 for (const path of paths) {
   const bytes = await Deno.readFile(new URL(path, root));
-  sourceGraph.push({ path, sha256: await sha256Hex(bytes) });
+  const hash = await sha256Hex(bytes);
+  if (/^[a-f0-9]{40}$/.test(sourceCommit)) {
+    const committed = await new Deno.Command("git", {
+      args: ["show", `${sourceCommit}:${path}`],
+      cwd: root.pathname,
+      stdout: "piped",
+      stderr: "piped",
+    }).output();
+    if (!committed.success || await sha256Hex(committed.stdout) !== hash) {
+      throw new Error(`source tree mismatch at ${path}`);
+    }
+  }
+  sourceGraph.push({ path, sha256: hash });
 }
 const frozenCatalog = await Deno.readFile(new URL("catalog/workloads.v1.json", root));
 const publicCatalog = await Deno.readFile(new URL("public/data/workloads.v1.json", root));
