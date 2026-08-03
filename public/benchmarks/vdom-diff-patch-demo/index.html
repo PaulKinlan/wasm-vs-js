@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="description"
+      content="Runnable reduced 1,000-node and 250-edit virtual-DOM conformance fixture for wasm-vs-js.">
+    <title>Reduced virtual-DOM fixture · Wasm vs JavaScript</title>
+    <link rel="stylesheet" href="/benchmarks/traditional-demo.css">
+    <script type="module" src="/benchmarks/traditional-demo.js"></script>
+  </head>
+  <body data-demo="vdom-diff-patch-demo">
+    <a class="skip" href="#main">Skip to demo</a>
+    <main id="main">
+      <header>
+        <p class="eyebrow">Reduced out-of-catalog fixture · 1,000 nodes / 250 edits</p>
+        <h1>Virtual-DOM diff and patch</h1>
+        <p class="lede">
+          Run the existing controlled JavaScript tree diff or linear-Wasm flat-array diff. Both apply
+          the self-contained patch array to the existing in-memory host adapter and verify the exact
+          canonical patch and resulting-tree hashes.
+        </p>
+      </header>
+
+      <p class="notice">
+        This is not the full <code>dom.vdom-diff-patch.v1</code> contract. That unavailable contract
+        requires 10,000 nodes and 2,000 edits. This page stays fixed at 1,000 nodes and exactly 250
+        effective edits, leaves frozen-v1 coverage at 0/38, and provides no performance ranking,
+        corpus result, framework claim, or browser-DOM claim.
+      </p>
+
+      <section class="demo-panel" aria-labelledby="run-heading">
+        <h2 id="run-heading">Run in a fresh module worker</h2>
+        <form id="demo-form">
+          <div class="controls">
+            <label for="target">
+              <span>Target</span>
+              <select id="target" name="target">
+                <option value="js-controlled">Controlled JavaScript</option>
+                <option
+                  value="wasm-linear-controlled">Linear Wasm diff + JS in-memory apply</option>
+              </select>
+            </label>
+            <button id="start" type="submit">Start</button>
+            <button id="cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="status" role="status" aria-live="polite">Ready. No worker is running.</p>
+        <div id="result" aria-label="Exact textual result" hidden></div>
+      </section>
+
+      <div class="detail-grid">
+        <section>
+          <h2>Exact checks</h2>
+          <p>
+            Each run verifies the canonical patch-array SHA-256, resulting canonical HTML SHA-256,
+            and exact nodes-visited, patches-generated, in-memory host-mutation, and boundary-crossing
+            counters. Patch application must reproduce the target tree exactly.
+          </p>
+        </section>
+        <section>
+          <h2>Lifecycle</h2>
+          <p>
+            Start creates a fresh module worker, keeping fixture generation, diffing, and in-memory
+            patch application off the main thread. Cancel, completion, error, navigation, or the fixed
+            30-second timeout terminates it. Token checks ignore stale messages. Nothing is persisted.
+          </p>
+        </section>
+        <section>
+          <h2>Source and build</h2>
+          <ul>
+            <li><a href="/benchmarks/vdom-diff-patch/workload.js">Executed workload adapter</a></li>
+            <li><a href="/benchmarks/vdom-diff-patch/input.ts">Exact fixture generator</a></li>
+            <li><a href="/benchmarks/vdom-diff-patch/js.ts">Diff and in-memory host source</a></li>
+            <li><a href="/benchmarks/vdom-diff-patch/vdom-diff-patch.wat">Authored Wasm text</a></li>
+            <li><a href="/artifacts/vdom-diff-patch/build-manifest.json">Engine build manifest</a></li>
+            <li><a href="/artifacts/traditional-demos/demo-manifest.v1.json">Commit-bound demo manifest</a></li>
+            <li><a href="/data/traditional-demo-manifest.schema.json">Closed demo-manifest schema</a></li>
+          </ul>
+          <p>The controls, fixed scope, source routes, and limitations are in this raw HTML response.</p>
+        </section>
+        <section>
+          <h2>Limitations</h2>
+          <ul>
+            <li>One deterministic 1,000-node source/target pair and 250 effective edits only.</li>
+            <li>The full 10,000-node / 2,000-edit proposal contract is typed unavailable.</li>
+            <li>Patch application uses the in-memory oracle host, not visible browser DOM nodes.</li>
+            <li>No durations, rankings, accepted corpus evidence, persistence, or mutation route.</li>
+          </ul>
+          <p><a href="/benchmarks/regex-automata-duel-demo/">Open the reduced regex fixture</a>.</p>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>
