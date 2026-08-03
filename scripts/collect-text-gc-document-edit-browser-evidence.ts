@@ -812,9 +812,14 @@ async function runCollector(): Promise<void> {
         client.on("Network.requestWillBeSent", (params, eventSession) => {
           if (!eventSession || !observedSessions.has(eventSession)) return;
           const request = params.request as Record<string, unknown>;
+          // blob:/data: URLs are worker-local views of already hash-anchored
+          // bytes (the worker pins every served asset before constructing
+          // them), never fetches of additional served routes.
+          const url = String(request.url);
+          if (url.startsWith("blob:") || url.startsWith("data:")) return;
           requests.set(`${eventSession}:${params.requestId}`, {
             context: observedSessions.get(eventSession),
-            url: String(request.url),
+            url,
             method: String(request.method),
             resourceType: String(params.type),
             status: null,
