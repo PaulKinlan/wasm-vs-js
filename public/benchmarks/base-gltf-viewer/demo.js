@@ -49,7 +49,7 @@ form.addEventListener("submit", (event) => {
       const preview = new Uint8ClampedArray(r.preview);
       ctx.putImageData(new ImageData(preview, 96, 96), 0, 0);
       output.textContent =
-        `Target: ${r.target}\nMode: ${r.mode}\nComplete output SHA-256: ${r.digest}\nSource commit: ${r.sourceCommit}\nFrames: ${r.frames}\nDecoded vertices / indices: ${r.decodedVertices} / ${r.decodedIndices}\nVertex transforms: ${r.vertexTransforms}\nTriangles tested / visible: ${r.trianglesTested} / ${r.visibleTriangles}\nPick tests / hits: ${r.pickTests} / ${r.pickHits}\nRaster checkpoints / pixels: ${r.rasterCheckpoints} / ${r.rasterizedPixels}\nBoundary crossings: ${r.boundaryCrossings}\nAllocations: ${r.allocations}\nInput / output bytes: ${r.inputBytes} / ${r.outputBytes}`;
+        `Target: ${r.target}\nMode: ${r.mode}\nComplete output SHA-256: ${r.digest}\nSource commit: ${r.sourceCommit}\nFrames: ${r.frames}\nDecoded vertices / indices: ${r.decodedVertices} / ${r.decodedIndices}\nVertex transforms: ${r.vertexTransforms}\nTriangles tested / visible: ${r.trianglesTested} / ${r.visibleTriangles}\nPick tests / hits: ${r.pickTests} / ${r.pickHits}\nRetained raster frames / pixel writes: ${r.retainedRasterFrames} / ${r.rasterizedPixels}\nBoundary crossings: ${r.boundaryCrossings}\nAllocations: ${r.allocations}\nInput / output bytes: ${r.inputBytes} / ${r.outputBytes}`;
       progress.value = 100;
       finish("Complete. Output and fixed work matched the registered oracle.");
     }

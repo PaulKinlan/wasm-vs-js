@@ -16,8 +16,8 @@
       <h1>Avocado glTF decode, animation and picking</h1>
       <p>
         <strong>No performance claim.</strong> A fresh worker decodes the CC0 Avocado Draco mesh,
-        executes 600 fixed animation frames, culls every triangle, runs 12 picks, and checks six
-        96×96 CPU raster frames. The canvas displays the first checkpoint only after the complete
+        executes 600 fixed animation frames, culls every triangle, runs 12 picks, and checks all
+        600 96×96 CPU raster frames. The canvas displays the first frame only after the complete
         output matches the registered SHA-256.
       </p>
       <form class="controls">
@@ -46,7 +46,7 @@
             class="preview"
             width="96"
             height="96"
-            aria-label="First validated CPU raster checkpoint"
+            aria-label="First validated CPU raster frame"
           ></canvas>
         </section>
       </div>
@@ -54,7 +54,7 @@
         <h2>Fixed scope</h2>
         <p>
           The controlled renderer uses the model's base-color texture, opaque single-sided material,
-          fixed camera, integer transforms, triangle culling, picking, and CPU raster checkpoints.
+          fixed camera, integer transforms, triangle culling, picking, and 600 retained CPU rasters.
           Metallic/roughness, tangent-space normal mapping, GPU upload, shader compilation, and
           driver output remain a separately unavailable product baseline; they do not become zero
           and do not enter this output.

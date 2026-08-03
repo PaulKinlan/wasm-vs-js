@@ -13,8 +13,9 @@ export const CONTRACT = Object.freeze({
 
 export const OUTPUT_HEADER_WORDS = 28;
 export const FRAME_WORDS = 8;
+export const FRAME_PIXEL_BYTES = CONTRACT.viewportWidth * CONTRACT.viewportHeight * 4;
 export const OUTPUT_BYTES = OUTPUT_HEADER_WORDS * 4 + CONTRACT.frames * FRAME_WORDS * 4 +
-  CONTRACT.checkpoints.length * CONTRACT.viewportWidth * CONTRACT.viewportHeight * 4;
+  CONTRACT.frames * FRAME_PIXEL_BYTES;
 
 function assertFiniteArray(name, values, expectedMultiple) {
   if (!(values instanceof Float32Array) || values.length % expectedMultiple !== 0) {
@@ -115,6 +116,7 @@ export function normalizeControlledOutput(output) {
   words[14] = 0; // target-specific total JS/Wasm boundary crossings
   words[15] = 0; // target-specific explicit harness/engine allocations
   words[19] = 0; // target identity marker
+  words[20] = 0; // target-specific decoder allocations
   words[22] = 0; // target-specific Draco JS/Wasm crossings
   words[23] = 0; // target-specific engine JS/Wasm crossings
   words[24] = 0; // target-specific engine allocations
@@ -125,7 +127,7 @@ export function runJavaScript(
   mesh,
   texture,
   animation = makeAnimationTable(),
-  decoderMetrics = { allocations: 11, apiCalls: 6002, wasmBoundaryCrossings: 0 },
+  decoderMetrics = { allocations: 18, apiCalls: 6002, wasmBoundaryCrossings: 0 },
 ) {
   const { positions, normals, texcoords, indices, vertexCount } = mesh;
   if (!(texture instanceof Uint8Array) || texture.length !== 64 * 64 * 4) {
@@ -251,10 +253,7 @@ export function runJavaScript(
         }
       }
     }
-    const checkpoint = CONTRACT.checkpoints.indexOf(frame);
-    if (checkpoint >= 0) {
-      output.set(framePixels, pixelsOffset + checkpoint * framePixels.length);
-    }
+    output.set(framePixels, pixelsOffset + frame * FRAME_PIXEL_BYTES);
   }
   words[0] = 0x474c5446;
   words[1] = vertexCount;
@@ -268,10 +267,10 @@ export function runJavaScript(
   words[9] = vertexCount * CONTRACT.frames;
   words[10] = (indices.length / 3) * CONTRACT.frames * 2;
   words[11] = CONTRACT.frames;
-  words[12] = CONTRACT.checkpoints.length;
+  words[12] = CONTRACT.frames;
   words[13] = CONTRACT.pickFrames.length;
   words[14] = decoderMetrics.wasmBoundaryCrossings;
-  words[15] = decoderMetrics.allocations + 7;
+  words[15] = decoderMetrics.allocations + 9;
   words[16] = positions.byteLength + normals.byteLength + texcoords.byteLength +
     indices.byteLength + texture.byteLength;
   words[17] = output.byteLength;
@@ -281,7 +280,7 @@ export function runJavaScript(
   words[21] = decoderMetrics.apiCalls;
   words[22] = decoderMetrics.wasmBoundaryCrossings;
   words[23] = 0;
-  words[24] = 7;
+  words[24] = 9;
   words[25] = CONTRACT.frames;
   words[26] = CONTRACT.frames;
   words[27] = 0;

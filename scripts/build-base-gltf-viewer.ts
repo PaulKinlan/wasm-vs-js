@@ -46,8 +46,10 @@ async function decode(mode: "javascript" | "wasm") {
     indices: new Uint32Array(value.indices),
     metrics: value.metrics as {
       allocations: number;
+      allocationUnits: Record<string, number>;
       apiCalls: number;
       wasmBoundaryCrossings: number;
+      generatedExportCalls: number;
     },
   };
 }
@@ -119,7 +121,7 @@ try {
     "-c",
     "benchmarks/base/graphics-gltf-viewer/viewer.c",
     "-o",
-    `${buildDir.pathname}viewer.o`,
+    "public/artifacts/base-gltf-viewer/.build/viewer.o",
   ]);
   await command("wasm-ld", [
     "--no-entry",
@@ -129,11 +131,11 @@ try {
     "--export=validate_gltf",
     "--export=run",
     "--stack-first",
-    "--initial-memory=33554432",
-    "--max-memory=33554432",
-    `${buildDir.pathname}viewer.o`,
+    "--initial-memory=67108864",
+    "--max-memory=67108864",
+    "public/artifacts/base-gltf-viewer/.build/viewer.o",
     "-o",
-    `${buildDir.pathname}viewer.wasm`,
+    "public/artifacts/base-gltf-viewer/.build/viewer.wasm",
   ]);
   await Deno.writeFile(
     new URL("viewer.wasm", artifacts),
@@ -312,7 +314,8 @@ const implementationContract = {
     model: "Avocado glTF-Draco",
     frames: 600,
     viewport: [96, 96],
-    retainedPixelCheckpoints: CONTRACT.checkpoints,
+    previewPixelCheckpoints: CONTRACT.checkpoints,
+    retainedRasterFrames: 600,
     rasterizedFrames: 600,
     pickFrames: CONTRACT.pickFrames,
   },
@@ -338,7 +341,7 @@ const implementationContract = {
   },
   rendering: {
     controlled:
-      "CPU 96x96 rasterization on all 600 frames; six retained pixel checkpoints plus the complete frame/counter stream",
+      "CPU 96x96 rasterization with all 36,864 RGBA bytes retained for each of all 600 frames, plus the complete frame/counter stream",
     gpu: "separate unavailable product baseline; never enters controlled output",
   },
   counters: [
@@ -365,26 +368,60 @@ const outputManifest = {
     bytes: jsOutput.length,
     semanticSha256: await sha256Hex(jsSemantic),
     completeCrossTargetEqual: true,
+    measurementUnits: {
+      allocation:
+        "one counted creation listed in allocationUnits: a length-based typed-array construction together with its backing store is one unit, a view or wrapper construction is one unit, and each WebAssembly.Module, WebAssembly.Instance, or WebAssembly.Memory is one unit; generated decoder internal allocator activity is represented by its returned wrapper object",
+      boundaryCrossing:
+        "one invocation of an instrumented exported Wasm function from JavaScript; includes decoder initialization and generated exports",
+      copy:
+        "one explicit host-to-Wasm memory.set or Wasm-to-host memory.slice operation, with bytes equal to the copied byte range",
+    },
     variants: {
       javascript: {
         sha256: await sha256Hex(jsOutput),
-        allocations: jsDecoded.metrics.allocations + 7,
+        allocations: jsDecoded.metrics.allocations + 9,
         decoderAllocations: jsDecoded.metrics.allocations,
-        engineAllocations: 7,
+        engineAllocations: 9,
+        allocationUnits: {
+          decoder: jsDecoded.metrics.allocationUnits,
+          engine: {
+            outputTypedArrayAndBackingStore: 1,
+            outputViews: 2,
+            scratchTypedArraysAndBackingStores: 6,
+          },
+        },
         decoderApiCalls: jsDecoded.metrics.apiCalls,
+        decoderInitializationAndGeneratedExportCrossings: 0,
         decoderWasmBoundaryCrossings: 0,
         engineWasmBoundaryCrossings: 0,
         totalWasmBoundaryCrossings: 0,
+        wasmCopyOperations: 0,
+        wasmCopyBytes: 0,
       },
       wasm: {
         sha256: await sha256Hex(wasmOutput),
-        allocations: wasmDecoded.metrics.allocations,
+        allocations: wasmDecoded.metrics.allocations + 5,
         decoderAllocations: wasmDecoded.metrics.allocations,
-        engineAllocations: 0,
+        engineAllocations: 5,
+        allocationUnits: {
+          decoder: wasmDecoded.metrics.allocationUnits,
+          engine: {
+            wasmModules: 1,
+            wasmInstances: 1,
+            wasmMemories: 1,
+            wasmMemoryBytes: 67108864,
+            linearMemoryViews: 1,
+            outputCopyAllocations: 1,
+          },
+        },
         decoderApiCalls: wasmDecoded.metrics.apiCalls,
+        decoderInitializationAndGeneratedExportCrossings: wasmDecoded.metrics.generatedExportCalls -
+          wasmDecoded.metrics.apiCalls,
         decoderWasmBoundaryCrossings: wasmDecoded.metrics.wasmBoundaryCrossings,
         engineWasmBoundaryCrossings: 4,
         totalWasmBoundaryCrossings: wasmDecoded.metrics.wasmBoundaryCrossings + 4,
+        wasmCopyOperations: 8,
+        wasmCopyBytes: 47843 + wasmOutput.byteLength,
       },
     },
     header: Array.from(new Uint32Array(jsOutput.buffer, 0, 28)),
@@ -411,9 +448,10 @@ const buildManifest = {
     imageMagick: "7.1.2-27",
   },
   commands: [
-    "node scripts/decode-gltf-draco.cjs javascript|wasm ...",
-    "clang --target=wasm32-unknown-unknown -O3 -nostdlib -ffreestanding -fno-builtin -fno-vectorize -fno-slp-vectorize",
-    "wasm-ld --no-entry --export-memory ... --initial-memory=33554432 --max-memory=33554432",
+    "node scripts/decode-gltf-draco.cjs javascript public/artifacts/base-gltf-viewer/draco_decoder_gltf.js - fixtures/base/graphics-gltf-viewer/Avocado.bin",
+    "node scripts/decode-gltf-draco.cjs wasm public/artifacts/base-gltf-viewer/draco_wasm_wrapper_gltf.js public/artifacts/base-gltf-viewer/draco_decoder_gltf.wasm fixtures/base/graphics-gltf-viewer/Avocado.bin",
+    "clang --target=wasm32-unknown-unknown -O3 -nostdlib -ffreestanding -fno-builtin -fno-vectorize -fno-slp-vectorize -c benchmarks/base/graphics-gltf-viewer/viewer.c -o public/artifacts/base-gltf-viewer/.build/viewer.o",
+    "wasm-ld --no-entry --export-memory --export=heap_ptr --export=output_ptr --export=validate_gltf --export=run --stack-first --initial-memory=67108864 --max-memory=67108864 public/artifacts/base-gltf-viewer/.build/viewer.o -o public/artifacts/base-gltf-viewer/.build/viewer.wasm",
   ],
   sources: await Promise.all(sourcePaths.map(sourceRef)),
   artifacts: await Promise.all(artifactPaths.map(fileRef)),
@@ -437,7 +475,7 @@ const evidence = {
     all406Vertices: true,
     pickTraceComplete: true,
     cpuRasterizedFrames: 600,
-    retainedPixelCheckpoints: 6,
+    retainedRasterFrames: 600,
     countersReconciled: true,
     completeOutputEqual: true,
     routeLifecycle: "covered by static tests; parent-owned retained Chrome evidence pending",

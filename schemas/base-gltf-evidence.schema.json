@@ -31,7 +31,7 @@
         "all406Vertices",
         "pickTraceComplete",
         "cpuRasterizedFrames",
-        "retainedPixelCheckpoints",
+        "retainedRasterFrames",
         "countersReconciled",
         "completeOutputEqual",
         "routeLifecycle"
@@ -46,10 +46,12 @@
         "all406Vertices": { "const": true },
         "pickTraceComplete": { "const": true },
         "cpuRasterizedFrames": { "const": 600 },
-        "retainedPixelCheckpoints": { "const": 6 },
+        "retainedRasterFrames": { "const": 600 },
         "countersReconciled": { "const": true },
         "completeOutputEqual": { "const": true },
-        "routeLifecycle": { "type": "string", "minLength": 1 }
+        "routeLifecycle": {
+          "const": "covered by static tests; parent-owned retained Chrome evidence pending"
+        }
       }
     },
     "semanticOutputSha256": { "$ref": "#/$defs/sha256" },

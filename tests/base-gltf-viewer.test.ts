@@ -20,10 +20,109 @@ function assertThrows(fn: () => unknown) {
   throw new Error("expected throw");
 }
 
+async function assertSemanticRejects(fn: () => Promise<unknown>) {
+  try {
+    await fn();
+  } catch {
+    return;
+  }
+  throw new Error("expected semantic corpus rejection");
+}
+
 const root = new URL("../", import.meta.url);
 async function readJson(path: string) {
   return JSON.parse(await Deno.readTextFile(new URL(path, root)));
 }
+async function assertClosedCorpus(
+  fixture: Record<string, unknown>,
+  build: Record<string, unknown>,
+  output: Record<string, unknown>,
+  evidence: Record<string, unknown>,
+) {
+  const fixtureFiles = fixture.files as Array<{ path: string; bytes: number; sha256: string }>;
+  const sources = build.sources as Array<{
+    path: string;
+    bytes: number;
+    sha256: string;
+    immutableUrl: string;
+  }>;
+  const artifacts = build.artifacts as Array<{ path: string; bytes: number; sha256: string }>;
+  const sourceCommit = build.sourceCommit as string;
+  assertEquals(
+    fixtureFiles.map((entry) => entry.path),
+    [
+      "fixtures/base/graphics-gltf-viewer/Avocado.gltf",
+      "fixtures/base/graphics-gltf-viewer/Avocado.bin",
+      "fixtures/base/graphics-gltf-viewer/base-color-64.rgba",
+      "fixtures/base/graphics-gltf-viewer/AVOCADO-LICENSE.md",
+    ],
+  );
+  assertEquals(
+    sources.map((entry) => entry.path),
+    [
+      "benchmarks/base/graphics-gltf-viewer/engine.js",
+      "benchmarks/base/graphics-gltf-viewer/viewer.c",
+      "scripts/decode-gltf-draco.cjs",
+      "scripts/build-base-gltf-viewer.ts",
+      "public/benchmarks/base-gltf-viewer/worker.js",
+      "public/benchmarks/base-gltf-viewer/decoder-worker.js",
+      "public/benchmarks/base-gltf-viewer/demo.js",
+      "public/benchmarks/base-gltf-viewer/index.html",
+      "public/benchmarks/base-gltf-viewer/style.css",
+      "schemas/base-gltf-fixture-manifest.schema.json",
+      "schemas/base-gltf-build-manifest.schema.json",
+      "schemas/base-gltf-output-manifest.schema.json",
+      "schemas/base-gltf-evidence.schema.json",
+      "tests/base-gltf-viewer.test.ts",
+      "server.ts",
+      "deno.json",
+      "deno.lock",
+    ],
+  );
+  assertEquals(
+    artifacts.map((entry) => entry.path),
+    [
+      "public/artifacts/base-gltf-viewer/draco_decoder_gltf.js",
+      "public/artifacts/base-gltf-viewer/draco_wasm_wrapper_gltf.js",
+      "public/artifacts/base-gltf-viewer/draco_decoder_gltf.wasm",
+      "public/artifacts/base-gltf-viewer/DRACO-LICENSE.txt",
+      "public/artifacts/base-gltf-viewer/viewer.wasm",
+      "public/artifacts/base-gltf-viewer/decoded-mesh.bin",
+      "public/artifacts/base-gltf-viewer/animation-table.i32",
+      "public/artifacts/base-gltf-viewer/reference-output.bin",
+      "public/artifacts/base-gltf-viewer/fixture-manifest.json",
+      "public/artifacts/base-gltf-viewer/implementation-contract.v1.json",
+      "public/artifacts/base-gltf-viewer/output-manifest.json",
+    ],
+  );
+  assertEquals(output.sourceCommit, sourceCommit);
+  assertEquals(evidence.sourceCommit, sourceCommit);
+  for (const entry of [...fixtureFiles, ...sources, ...artifacts]) {
+    const bytes = await Deno.readFile(new URL(entry.path, root));
+    assertEquals(bytes.length, entry.bytes);
+    assertEquals(await sha256Hex(bytes), entry.sha256);
+  }
+  for (const source of sources) {
+    assertEquals(
+      source.immutableUrl,
+      `https://github.com/PaulKinlan/wasm-vs-js/blob/${sourceCommit}/${source.path}`,
+    );
+  }
+  const outputValue = output.output as Record<string, unknown>;
+  const input = output.input as Record<string, unknown>;
+  const reference = await Deno.readFile(
+    new URL("public/artifacts/base-gltf-viewer/reference-output.bin", root),
+  );
+  assertEquals(
+    input.decodedMeshSha256,
+    await sha256Hex(
+      await Deno.readFile(new URL("public/artifacts/base-gltf-viewer/decoded-mesh.bin", root)),
+    ),
+  );
+  assertEquals(outputValue.semanticSha256, await sha256Hex(reference));
+  assertEquals(evidence.semanticOutputSha256, outputValue.semanticSha256);
+}
+
 async function decode(mode: "javascript" | "wasm") {
   const result = await new Deno.Command("node", {
     cwd: root.pathname,
@@ -48,8 +147,10 @@ async function decode(mode: "javascript" | "wasm") {
     indices: new Uint32Array(data.indices),
     metrics: data.metrics as {
       allocations: number;
+      allocationUnits: Record<string, number>;
       apiCalls: number;
       wasmBoundaryCrossings: number;
+      generatedExportCalls: number;
     },
   };
 }
@@ -159,14 +260,31 @@ Deno.test("complete 600-frame JS and material-Wasm outputs equal the retained or
     0,
   );
   const wasm = memory.slice(Number(ex.output_ptr()), Number(ex.output_ptr()) + OUTPUT_BYTES);
-  assertEquals(
-    await sha256Hex(normalizeControlledOutput(js)),
-    await sha256Hex(normalizeControlledOutput(wasm)),
+  const oracle = await Deno.readFile(
+    new URL("public/artifacts/base-gltf-viewer/reference-output.bin", root),
   );
+  const jsSemantic = normalizeControlledOutput(js);
+  const wasmSemantic = normalizeControlledOutput(wasm);
+  assertEquals(jsSemantic, oracle);
+  assertEquals(wasmSemantic, oracle);
+  const pixelOffset = (28 + 600 * 8) * 4;
+  const frameBytes = 96 * 96 * 4;
+  for (let frame = 0; frame < 600; frame++) {
+    const start = pixelOffset + frame * frameBytes;
+    assertEquals(
+      jsSemantic.slice(start, start + frameBytes),
+      oracle.slice(start, start + frameBytes),
+    );
+    assertEquals(
+      wasmSemantic.slice(start, start + frameBytes),
+      oracle.slice(start, start + frameBytes),
+    );
+  }
   const manifest = await readJson("public/artifacts/base-gltf-viewer/output-manifest.json");
   assertEquals(await sha256Hex(js), manifest.output.variants.javascript.sha256);
   assertEquals(await sha256Hex(wasm), manifest.output.variants.wasm.sha256);
-  assertEquals(await sha256Hex(normalizeControlledOutput(js)), manifest.output.semanticSha256);
+  assertEquals(await sha256Hex(jsSemantic), manifest.output.semanticSha256);
+  assertEquals(await sha256Hex(oracle), manifest.output.semanticSha256);
   assertEquals(js.length, manifest.output.bytes);
   const header = new Uint32Array(js.buffer, 0, 28);
   assertEquals(header[1], 406);
@@ -175,12 +293,21 @@ Deno.test("complete 600-frame JS and material-Wasm outputs equal the retained or
   assertEquals(header[9], 406 * 600);
   assertEquals(header[10], 682 * 600 * 2);
   assertEquals(header[11], 600);
-  assertEquals(header[12], 6);
+  assertEquals(header[12], 600);
   assertEquals(header[13], 12);
-  assertEquals(header[20], 11);
+  assertEquals(header[15], 27);
+  assertEquals(header[20], 18);
   assertEquals(header[21], 6002);
+  assertEquals(manifest.output.variants.javascript.allocations, 27);
+  assertEquals(manifest.output.variants.wasm.allocations, 25);
+  assertEquals(manifest.output.variants.wasm.decoderInitializationAndGeneratedExportCrossings, 35);
+  assertEquals(manifest.output.variants.wasm.decoderWasmBoundaryCrossings, 6037);
+  assertEquals(manifest.output.variants.wasm.totalWasmBoundaryCrossings, 6041);
+  assertEquals(manifest.output.variants.wasm.wasmCopyOperations, 8);
+  assertEquals(manifest.output.variants.wasm.wasmCopyBytes, 47843 + OUTPUT_BYTES);
   assertEquals(header[25], 600);
   assertEquals(header[26], 600);
+  assertEquals(js.length, pixelOffset + 600 * frameBytes);
   assert(header[8] > 6 * 96 * 96, `all-frame raster count ${header[8]}`);
   assert(header[5] > 0 && header[5] <= 12, `pick hits ${header[5]}`);
 });
@@ -229,7 +356,8 @@ Deno.test("base glTF route is read-only and all runtime assets are explicitly se
   assert(worker.includes("verify(`public/artifacts/base-gltf-viewer/${decoderPath}`"));
   assert(worker.includes("decoderScript: decoderScript.buffer"));
   assert(decoderWorker.includes("new Blob([decoderScript]"));
-  assert(decoderWorker.includes("wasmBinary: new Uint8Array(decoderWasm)"));
+  assert(decoderWorker.includes('const wasmBinary = mode === "wasm"'));
+  assert(decoderWorker.includes("WebAssembly.instantiate(wasmBinary, imports)"));
   assert(!decoderWorker.includes('importScripts("/artifacts/'));
 });
 
@@ -278,7 +406,7 @@ Deno.test("Wasm glTF validation parses JSON and rejects token-like or changed do
   assert(validate(exact.replace('"POSITION": 3', '"POSITION": 9')) !== 0);
 });
 
-Deno.test("base glTF fixture, build, output and evidence schemas fail closed", async () => {
+Deno.test("base glTF schemas and retained corpus reject identity, graph and hash contradictions", async () => {
   type Validator = ((value: unknown) => boolean) & { errors?: unknown };
   type AjvConstructor = new (options?: Record<string, unknown>) => {
     compile(schema: unknown): Validator;
@@ -333,6 +461,30 @@ Deno.test("base glTF fixture, build, output and evidence schemas fail closed", a
     contradict(contradictory);
     assert(!validate(contradictory), `${name} accepted contradictory semantics`);
   }
+
+  const fixture = await readJson("public/artifacts/base-gltf-viewer/fixture-manifest.json");
+  const build = await readJson("public/artifacts/base-gltf-viewer/build-manifest.json");
+  const output = await readJson("public/artifacts/base-gltf-viewer/output-manifest.json");
+  const evidence = await readJson(
+    "public/evidence/base-workloads/graphics-gltf-viewer/static-validation.json",
+  );
+  await assertClosedCorpus(fixture, build, output, evidence);
+
+  const duplicateFixture = structuredClone(fixture);
+  duplicateFixture.files[1] = duplicateFixture.files[0];
+  await assertSemanticRejects(() => assertClosedCorpus(duplicateFixture, build, output, evidence));
+  const duplicateSource = structuredClone(build);
+  duplicateSource.sources[1] = duplicateSource.sources[0];
+  await assertSemanticRejects(() => assertClosedCorpus(fixture, duplicateSource, output, evidence));
+  const falseCommit = structuredClone(build);
+  falseCommit.sourceCommit = "0".repeat(40);
+  await assertSemanticRejects(() => assertClosedCorpus(fixture, falseCommit, output, evidence));
+  const falseOutputHash = structuredClone(output);
+  falseOutputHash.output.semanticSha256 = "0".repeat(64);
+  await assertSemanticRejects(() => assertClosedCorpus(fixture, build, falseOutputHash, evidence));
+  const falseEvidenceHash = structuredClone(evidence);
+  falseEvidenceHash.semanticOutputSha256 = "0".repeat(64);
+  await assertSemanticRejects(() => assertClosedCorpus(fixture, build, output, falseEvidenceHash));
 });
 
 Deno.test("build fails closed when source commit is absent", async () => {

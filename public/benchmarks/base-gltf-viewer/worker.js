@@ -231,7 +231,7 @@ self.onmessage = async (event) => {
         vertexTransforms: header[9],
         trianglesTested: header[10],
         drawFrames: header[11],
-        rasterCheckpoints: header[12],
+        retainedRasterFrames: header[12],
         pickTests: header[13],
         boundaryCrossings: header[14],
         allocations: header[15],

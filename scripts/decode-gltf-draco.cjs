@@ -10,46 +10,68 @@ globalThis.__dirname = require("node:path").dirname(decoderPath);
 const source = fs.readFileSync(decoderPath, "utf8") +
   "\n;globalThis.__DracoDecoderModule=DracoDecoderModule;";
 vm.runInThisContext(source, { filename: decoderPath });
-const config = mode === "wasm" ? { wasmBinary: fs.readFileSync(wasmPath) } : {};
+const wasmBinary = mode === "wasm" ? fs.readFileSync(wasmPath) : null;
+let generatedExportCalls = 0;
+const config = mode === "wasm"
+  ? {
+    wasmBinary,
+    instantiateWasm(imports, receiveInstance) {
+      WebAssembly.instantiate(wasmBinary, imports).then(({ instance }) => {
+        const instrumentedExports = {};
+        for (const [name, value] of Object.entries(instance.exports)) {
+          instrumentedExports[name] = typeof value === "function"
+            ? (...args) => {
+              generatedExportCalls++;
+              return value(...args);
+            }
+            : value;
+        }
+        receiveInstance({ exports: instrumentedExports });
+      });
+      return {};
+    },
+  }
+  : {};
 (async () => {
   const module = await globalThis.__DracoDecoderModule(config);
   let apiCalls = 0;
-  let allocations = 0;
+  let wrapperObjects = 0;
   const call = (fn) => {
     apiCalls++;
     return fn();
   };
-  const allocate = (fn) => {
-    allocations++;
-    return call(fn);
+  const wrapper = (fn, countsAsApiCall = true) => {
+    wrapperObjects++;
+    return countsAsApiCall ? call(fn) : fn();
   };
   const bytes = new Int8Array(fs.readFileSync(binPath));
-  const buffer = allocate(() => new module.DecoderBuffer());
+  const buffer = wrapper(() => new module.DecoderBuffer());
   call(() => buffer.Init(bytes, bytes.length));
-  const decoder = allocate(() => new module.Decoder());
+  const decoder = wrapper(() => new module.Decoder());
   if (call(() => decoder.GetEncodedGeometryType(buffer)) !== module.TRIANGULAR_MESH) {
     throw new Error("not Draco mesh");
   }
-  const mesh = allocate(() => new module.Mesh());
-  const status = call(() => decoder.DecodeBufferToMesh(buffer, mesh));
+  const mesh = wrapper(() => new module.Mesh());
+  const status = wrapper(() => call(() => decoder.DecodeBufferToMesh(buffer, mesh)), false);
   if (!call(() => status.ok())) throw new Error(status.error_msg());
   const points = call(() => mesh.num_points());
   const faces = call(() => mesh.num_faces());
   const readAttribute = (id, components) => {
-    const attribute = call(() => decoder.GetAttributeByUniqueId(mesh, id));
+    const attribute = wrapper(
+      () => call(() => decoder.GetAttributeByUniqueId(mesh, id)),
+      false,
+    );
     if (!attribute || attribute.ptr === 0) throw new Error(`missing attribute ${id}`);
-    const values = allocate(() => new module.DracoFloat32Array());
+    const values = wrapper(() => new module.DracoFloat32Array());
     if (!call(() => decoder.GetAttributeFloatForAllPoints(mesh, attribute, values))) {
       throw new Error(`attribute ${id}`);
     }
-    allocations++;
     const output = new Array(points * components);
     for (let i = 0; i < output.length; i++) output[i] = call(() => values.GetValue(i));
     call(() => module.destroy(values));
     return output;
   };
-  const face = allocate(() => new module.DracoInt32Array());
-  allocations++;
+  const face = wrapper(() => new module.DracoInt32Array());
   const indices = new Array(faces * 3);
   for (let i = 0; i < faces; i++) {
     if (!call(() => decoder.GetFaceFromMesh(mesh, i, face))) throw new Error(`face ${i}`);
@@ -72,9 +94,21 @@ const config = mode === "wasm" ? { wasmBinary: fs.readFileSync(wasmPath) } : {};
     texcoords,
     indices,
     metrics: {
-      allocations,
+      allocations: 1 + wrapperObjects + 1 + 4 + (mode === "wasm" ? 3 : 1),
+      allocationUnits: {
+        moduleFactoryResults: 1,
+        generatedWrapperObjects: wrapperObjects,
+        inputTypedArrayViews: 1,
+        outputArrayAllocations: 4,
+        asmJsHeapBackingStores: mode === "javascript" ? 1 : 0,
+        wasmModules: mode === "wasm" ? 1 : 0,
+        wasmInstances: mode === "wasm" ? 1 : 0,
+        wasmMemories: mode === "wasm" ? 1 : 0,
+        wasmMemoryBytes: mode === "wasm" ? 16777216 : 0,
+      },
       apiCalls,
-      wasmBoundaryCrossings: mode === "wasm" ? apiCalls : 0,
+      wasmBoundaryCrossings: mode === "wasm" ? generatedExportCalls : 0,
+      generatedExportCalls: mode === "wasm" ? generatedExportCalls : 0,
     },
   };
   process.stdout.write(JSON.stringify(result));
