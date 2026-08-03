@@ -646,7 +646,7 @@
         "unavailableReason": null
       },
       "artifacts": {
-        "status": "reproducible-public",
+        "status": "reproducible-repository-only",
         "repositoryLinks": [
           {
             "label": "build manifest",
@@ -659,16 +659,7 @@
             "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/artifacts/vdom-diff-patch/vdom-diff-patch.wasm"
           }
         ],
-        "publicLinks": [
-          {
-            "label": "public build manifest",
-            "url": "/artifacts/vdom-diff-patch/build-manifest.json"
-          },
-          {
-            "label": "public Wasm artifact",
-            "url": "/artifacts/vdom-diff-patch/vdom-diff-patch.wasm"
-          }
-        ],
+        "publicLinks": [],
         "unavailableReason": null
       },
       "validationResults": {
@@ -1376,7 +1367,7 @@
         "unavailableReason": null
       },
       "artifacts": {
-        "status": "reproducible-public",
+        "status": "reproducible-repository-only",
         "repositoryLinks": [
           {
             "label": "build manifest",
@@ -1389,16 +1380,7 @@
             "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/artifacts/regex-automata-duel/regex-automata-duel.wasm"
           }
         ],
-        "publicLinks": [
-          {
-            "label": "public build manifest",
-            "url": "/artifacts/regex-automata-duel/build-manifest.json"
-          },
-          {
-            "label": "public Wasm artifact",
-            "url": "/artifacts/regex-automata-duel/regex-automata-duel.wasm"
-          }
-        ],
+        "publicLinks": [],
         "unavailableReason": null
       },
       "validationResults": {

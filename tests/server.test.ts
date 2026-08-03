@@ -149,6 +149,47 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
   assertEquals(summary.claimStatus, "no-runs");
 });
 
+Deno.test("every ledger public link resolves through the exact read-only public allowlist", async () => {
+  const ledger = JSON.parse(
+    await Deno.readTextFile("catalog/v2-proposal-implementation-status.v1.json"),
+  );
+  const paths = new Set<string>();
+  for (const entry of ledger.entries) {
+    for (const link of entry.artifacts.publicLinks) paths.add(link.url);
+    for (const link of entry.validationResults.publicEvidenceLinks) paths.add(link.url);
+  }
+  assertEquals(paths.size, 13);
+
+  const publicHandler = createHandler(null, "public");
+  for (const path of paths) {
+    assertEquals(
+      (await publicHandler(new Request(`http://127.0.0.1${path}`))).status,
+      200,
+    );
+  }
+
+  for (
+    const path of [
+      "/artifacts/audio-fft/unknown.json",
+      "/artifacts/audio-fft/../audio-fir/not-allowlisted.wasm",
+      "/artifacts/vdom-diff-patch/build-manifest.json",
+      "/artifacts/vdom-diff-patch/vdom-diff-patch.wasm",
+      "/artifacts/regex-automata-duel/build-manifest.json",
+      "/artifacts/regex-automata-duel/regex-automata-duel.wasm",
+    ]
+  ) {
+    assertEquals((await publicHandler(new Request(`http://127.0.0.1${path}`))).status, 404);
+  }
+
+  const publicPath = [...paths][0];
+  for (const method of ["POST", "PUT", "PATCH", "DELETE", "OPTIONS"]) {
+    assertEquals(
+      (await publicHandler(new Request(`http://127.0.0.1${publicPath}`, { method }))).status,
+      403,
+    );
+  }
+});
+
 Deno.test("corpus collector is token-bound locally and completely hidden publicly", async () => {
   const root = await Deno.makeTempDir();
   try {

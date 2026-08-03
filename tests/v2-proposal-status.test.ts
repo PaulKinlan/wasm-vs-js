@@ -170,6 +170,16 @@ Deno.test("v2 ledger counts reconcile to five validation packages, two engine-on
     assertEquals(entry.artifacts.unavailableReason?.code, "definition-only");
     assertEquals(entry.validationResults.unavailableReason?.code, "no-validation-record");
   }
+  for (const id of expectedMaturity["tested-reduced-conformance-slice"]) {
+    const entry = byId.get(id);
+    assert(entry, `${id} missing from ledger`);
+    assertEquals(entry.artifacts.status, "reproducible-repository-only");
+    assertEquals(entry.artifacts.publicLinks, []);
+  }
+  assertEquals(
+    entries.filter((entry) => entry.artifacts.publicLinks.length > 0).map((entry) => entry.id),
+    expectedMaturity["complete-public-proposal-validation-package"],
+  );
   for (const entry of entries) {
     assertEquals(entry.interactiveDemo.unavailableReason.code, "no-interactive-demo");
     assertEquals(

@@ -60,6 +60,38 @@ Deno.test("actual public task starts without commit env permission and ignores s
     ) {
       assertEquals((await fetch(`http://127.0.0.1:${port}${path}`)).status, 200);
     }
+    const ledger = JSON.parse(
+      await Deno.readTextFile("catalog/v2-proposal-implementation-status.v1.json"),
+    );
+    const publicPaths = new Set<string>();
+    for (const entry of ledger.entries) {
+      for (const link of entry.artifacts.publicLinks) publicPaths.add(link.url);
+      for (const link of entry.validationResults.publicEvidenceLinks) {
+        publicPaths.add(link.url);
+      }
+    }
+    assertEquals(publicPaths.size, 13);
+    for (const path of publicPaths) {
+      assertEquals((await fetch(`http://127.0.0.1:${port}${path}`)).status, 200);
+    }
+    for (
+      const path of [
+        "/artifacts/audio-fft/unknown.json",
+        "/artifacts/audio-fft/../audio-fir/not-allowlisted.wasm",
+        "/artifacts/vdom-diff-patch/build-manifest.json",
+        "/artifacts/regex-automata-duel/build-manifest.json",
+      ]
+    ) {
+      assertEquals((await fetch(`http://127.0.0.1:${port}${path}`)).status, 404);
+    }
+    const publicPath = [...publicPaths][0];
+    for (const method of ["POST", "PUT", "PATCH", "DELETE", "OPTIONS"]) {
+      assertEquals(
+        (await fetch(`http://127.0.0.1:${port}${publicPath}`, { method })).status,
+        403,
+      );
+    }
+
     const denied = await fetch(`http://127.0.0.1:${port}/api/runs`, {
       method: "POST",
       headers: { "content-type": "application/json" },
