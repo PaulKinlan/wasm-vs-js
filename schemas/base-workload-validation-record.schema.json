@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.paulkinlan-ea.deno.net/schemas/base-workload-validation-record.schema.json",
+  "title": "Frozen base workload implementation validation record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "catalogId",
+    "workloadId",
+    "status",
+    "variantId",
+    "executionTarget",
+    "source",
+    "fixture",
+    "artifact",
+    "oracle",
+    "counters",
+    "performanceClaims"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "catalogId": { "const": "workload-catalog-v1" },
+    "workloadId": { "const": "simulation.nbody-cloth.v1" },
+    "status": { "const": "implementation-candidate" },
+    "variantId": { "enum": ["js-controlled", "wasm-linear-controlled"] },
+    "executionTarget": { "enum": ["javascript", "wasm-linear"] },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "commit", "files"],
+      "properties": {
+        "repository": { "type": "string", "format": "uri" },
+        "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+        "files": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/file" } }
+      }
+    },
+    "fixture": { "$ref": "#/$defs/file" },
+    "artifact": { "$ref": "#/$defs/file" },
+    "oracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "completeOutputSha256",
+        "quantizedStateDigest",
+        "maxAbsoluteDifference",
+        "tolerance",
+        "energyRelativeDrift",
+        "energyTolerance",
+        "checkpoints"
+      ],
+      "properties": {
+        "completeOutputSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "quantizedStateDigest": { "type": "string", "pattern": "^[a-f0-9]{16}$" },
+        "maxAbsoluteDifference": { "type": "number", "minimum": 0 },
+        "tolerance": { "const": 1e-12 },
+        "energyRelativeDrift": { "type": "number", "minimum": 0 },
+        "energyTolerance": { "const": 0.0000012 },
+        "checkpoints": { "const": [1, 30, 60, 90, 120] }
+      }
+    },
+    "counters": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+    "performanceClaims": { "type": "array", "maxItems": 0 }
+  },
+  "$defs": {
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "immutableUrl": { "type": "string", "format": "uri" }
+      }
+    }
+  }
+}

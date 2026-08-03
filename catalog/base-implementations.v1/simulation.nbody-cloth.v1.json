@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "registrationId": "base-implementation-simulation-nbody-cloth-v1",
+  "catalogId": "workload-catalog-v1",
+  "catalogEntryId": "simulation.nbody-cloth.v1",
+  "catalogMutation": false,
+  "status": "implementation-candidate",
+  "contract": {
+    "bodies": 1024,
+    "timesteps": 120,
+    "seed": "0x31c0ffee",
+    "solver": "direct ordered all-pairs O(N^2) leapfrog kick-drift-kick with one retained acceleration field",
+    "forceEvaluations": 121,
+    "floatingPointPolicy": "IEEE-754 f64, source-order scalar operations, no fast-math, no SIMD, no fused multiply-add",
+    "constants": {
+      "dt": 0.01,
+      "gravity": 0.0001,
+      "softeningSquared": 0.0001
+    },
+    "stateLayout": "seven structure-of-arrays f64 vectors in order mass, x, y, z, vx, vy, vz",
+    "checkpoints": [1, 30, 60, 90, 120],
+    "quantization": 1e-9,
+    "crossTargetAbsoluteTolerance": 1e-12,
+    "energyRelativeTolerance": 0.0000012,
+    "excluded": ["cloth", "Barnes-Hut", "SIMD", "relaxed SIMD", "rendering"]
+  },
+  "targets": [
+    {
+      "id": "js-controlled",
+      "target": "javascript",
+      "semanticWork": "Authored JavaScript performs fixture decoding, all 126,753,792 ordered interactions as frozen by the exact counter, every leapfrog update, checkpoint capture and energy oracle."
+    },
+    {
+      "id": "wasm-linear-controlled",
+      "target": "wasm-linear",
+      "semanticWork": "Authored C compiled to fixed-memory linear Wasm independently performs all force and leapfrog work and writes the complete state/checkpoint result; JavaScript only copies input and decodes output."
+    }
+  ],
+  "performanceClaims": []
+}

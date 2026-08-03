@@ -224,6 +224,66 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/artifacts/text-markdown-cms/output-manifest.json",
     "application/json; charset=utf-8",
   ]],
+  ["/demos/simulation-nbody-cloth", [
+    "public/demos/simulation-nbody-cloth/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/demos/simulation-nbody-cloth/", [
+    "public/demos/simulation-nbody-cloth/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/demos/simulation-nbody-cloth/demo.js", [
+    "public/demos/simulation-nbody-cloth/demo.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/demos/simulation-nbody-cloth/worker.js", [
+    "public/demos/simulation-nbody-cloth/worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/simulation-nbody/contract.js", [
+    "benchmarks/base/simulation-nbody/contract.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/simulation-nbody/fixture.js", [
+    "benchmarks/base/simulation-nbody/fixture.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/simulation-nbody/engine.js", [
+    "benchmarks/base/simulation-nbody/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/artifacts/base-simulation-nbody/nbody.wasm", [
+    "public/artifacts/base-simulation-nbody/nbody.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/base-simulation-nbody/fixture.bin", [
+    "public/artifacts/base-simulation-nbody/fixture.bin",
+    "application/octet-stream",
+  ]],
+  ["/artifacts/base-simulation-nbody/reference-output.bin", [
+    "public/artifacts/base-simulation-nbody/reference-output.bin",
+    "application/octet-stream",
+  ]],
+  ["/artifacts/base-simulation-nbody/build-manifest.json", [
+    "public/artifacts/base-simulation-nbody/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/base-simulation-nbody/fixture-manifest.json", [
+    "public/artifacts/base-simulation-nbody/fixture-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/base-simulation-nbody/output-manifest.json", [
+    "public/artifacts/base-simulation-nbody/output-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base-catalog/simulation-nbody-cloth/js-controlled.json", [
+    "public/evidence/base-catalog/simulation-nbody-cloth/js-controlled.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base-catalog/simulation-nbody-cloth/wasm-linear-controlled.json", [
+    "public/evidence/base-catalog/simulation-nbody-cloth/wasm-linear-controlled.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/data/workloads.v1.json", [
     "public/data/workloads.v1.json",
     "application/json; charset=utf-8",
