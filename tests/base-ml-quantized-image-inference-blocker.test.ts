@@ -64,6 +64,17 @@ Deno.test("blocker package pins exact 200-image candidate without claiming fixtu
   assertEquals(record.implementation.fixture, "unfrozen");
   assertEquals(record.implementation.controlledJavaScript, "unavailable");
   assertEquals(record.implementation.materialLinearWasm, "unavailable");
+  const hashBlocker = record.blockers.find(
+    (blocker: { code: string }) => blocker.code === "cifar10-archive-sha256-unpinned",
+  );
+  const reproduction = hashBlocker.evidence.find(
+    (item: { kind: string }) => item.kind === "reproduction",
+  );
+  assert(
+    reproduction.finding.includes("requires archiveSha256 to remain null") &&
+      reproduction.finding.includes("does not verify unacquired fixture bytes"),
+    "blocker evidence must describe the audit's actual fail-closed behavior",
+  );
 });
 
 Deno.test("public server exposes immutable blocker evidence but no fake demo", async () => {
