@@ -151,6 +151,66 @@ const routes = new Map<string, [string, string, boolean?]>([
     "text/javascript; charset=utf-8",
   ]],
   ["/workload-catalog.js", ["public/workload-catalog.js", "text/javascript; charset=utf-8"]],
+  ["/demos/game-ecs-frame-update", [
+    "public/demos/game-ecs-frame-update/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/demos/game-ecs-frame-update/", [
+    "public/demos/game-ecs-frame-update/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/demos/game-ecs-frame-update/demo.js", [
+    "public/demos/game-ecs-frame-update/demo.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/demos/game-ecs-frame-update/worker.js", [
+    "public/demos/game-ecs-frame-update/worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/v1/game-ecs-frame-update/fixture.js", [
+    "benchmarks/v1/game-ecs-frame-update/fixture.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/v1/game-ecs-frame-update/engine.js", [
+    "benchmarks/v1/game-ecs-frame-update/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/artifacts/game-ecs-frame-update-v1/ecs-frame-update.wasm", [
+    "public/artifacts/game-ecs-frame-update-v1/ecs-frame-update.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/game-ecs-frame-update-v1/fixture.bin", [
+    "public/artifacts/game-ecs-frame-update-v1/fixture.bin",
+    "application/octet-stream",
+  ]],
+  ["/artifacts/game-ecs-frame-update-v1/fixture-manifest.json", [
+    "public/artifacts/game-ecs-frame-update-v1/fixture-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/game-ecs-frame-update-v1/output-manifest.json", [
+    "public/artifacts/game-ecs-frame-update-v1/output-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/game-ecs-frame-update-v1/build-manifest.json", [
+    "public/artifacts/game-ecs-frame-update-v1/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base-v1/game-ecs-frame-update-v1/js-controlled.json", [
+    "public/evidence/base-v1/game-ecs-frame-update-v1/js-controlled.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base-v1/game-ecs-frame-update-v1/wasm-linear-controlled.json", [
+    "public/evidence/base-v1/game-ecs-frame-update-v1/wasm-linear-controlled.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/data/implementations.v1/game.ecs-frame-update.v1.json", [
+    "catalog/implementations.v1/game.ecs-frame-update.v1.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/data/game-ecs-frame-update-implementation.v1.schema.json", [
+    "schemas/game-ecs-frame-update-implementation.v1.schema.json",
+    "application/schema+json; charset=utf-8",
+  ]],
   ["/demos/text.diff-patch.v1", [
     "public/demos/text.diff-patch.v1/index.html",
     "text/html; charset=utf-8",

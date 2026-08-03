@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "game.ecs-frame-update.v1",
+  "immutable": true,
+  "generator": "benchmarks/v1/game-ecs-frame-update/fixture.js",
+  "generatorRevision": 1,
+  "seed": 1858462077,
+  "entities": 10000,
+  "frames": 1000,
+  "bytes": 81016,
+  "sha256": "9ad7ed255f244425f3da0d281f7dffcaa8a8923e03907d5ac0bf0322968df769",
+  "path": "public/artifacts/game-ecs-frame-update-v1/fixture.bin",
+  "rights": {
+    "licenseSpdx": "CC0-1.0",
+    "redistribution": "permitted",
+    "provenance": "Generated entirely by the committed project generator from one fixed seed."
+  }
+}
