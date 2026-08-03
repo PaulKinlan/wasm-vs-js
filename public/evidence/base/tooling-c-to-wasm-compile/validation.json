@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "workloadId": "tooling.c-to-wasm-compile.v1",
   "status": "static-validation-complete-browser-uncollected",
-  "sourceCommit": "310a73098ca676789c6a59e1172abdf3c2527bcf",
+  "sourceCommit": "2aaad46a32904c702bc35210fdf02e0b6a677690",
   "coverageCredit": false,
   "programs": 20,
   "targets": [
@@ -21,27 +21,40 @@
     "retainedBrowserEvidence": false
   },
   "totals": {
-    "sourceBytes": 1258,
-    "headerBytes": 316,
     "preprocessPasses": 40,
     "parsePasses": 40,
     "typecheckPasses": 40,
     "codegenPasses": 40,
     "linkPasses": 40,
     "executedExports": 40,
-    "tokens": 594,
-    "astNodes": 262,
-    "instructions": 184,
-    "vfsReads": 80,
-    "allocations": {
-      "javascript": 80,
-      "wasmSelfHosted": 0
-    },
-    "boundaryCrossings": {
-      "javascript": 0,
-      "wasmSelfHosted": 40
-    },
-    "outputBytes": 1710
+    "counters": {
+      "javascript": {
+        "sourceBytes": 1258,
+        "headerBytes": 316,
+        "tokens": 297,
+        "astNodes": 131,
+        "functions": 20,
+        "instructions": 92,
+        "linkSections": 80,
+        "vfsReads": 40,
+        "allocations": 80,
+        "boundaryCrossings": 0,
+        "outputBytes": 855
+      },
+      "wasmSelfHosted": {
+        "sourceBytes": 1258,
+        "headerBytes": 316,
+        "tokens": 297,
+        "astNodes": 131,
+        "functions": 20,
+        "instructions": 92,
+        "linkSections": 80,
+        "vfsReads": 40,
+        "allocations": 0,
+        "boundaryCrossings": 40,
+        "outputBytes": 855
+      }
+    }
   },
   "outputSetSha256": "e59d3abcd9cc55e321420194ea04022e22793e9335b944d3b2ff9eeec1ba9907",
   "results": [
