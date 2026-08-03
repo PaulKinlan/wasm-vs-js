@@ -27,7 +27,7 @@
     "localOnlyValidationRecords": 8,
     "imageEngineOnly": 2,
     "reducedConformanceSlices": 2,
-    "interactiveDemos": 5,
+    "interactiveDemos": 8,
     "authoritativePerformanceResultPackages": 0
   },
   "entries": [
@@ -120,12 +120,9 @@
         "publicEvidenceUnavailableReason": null
       },
       "interactiveDemo": {
-        "status": "unavailable",
-        "unavailableReason": {
-          "code": "no-interactive-demo",
-          "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
-        },
-        "route": null
+        "status": "runnable-public",
+        "unavailableReason": null,
+        "route": "/benchmarks/audio-fft/"
       },
       "authoritativePerformanceResults": {
         "status": "unavailable",
@@ -224,12 +221,9 @@
         "publicEvidenceUnavailableReason": null
       },
       "interactiveDemo": {
-        "status": "unavailable",
-        "unavailableReason": {
-          "code": "no-interactive-demo",
-          "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
-        },
-        "route": null
+        "status": "runnable-public",
+        "unavailableReason": null,
+        "route": "/benchmarks/audio-fir/"
       },
       "authoritativePerformanceResults": {
         "status": "unavailable",
@@ -328,12 +322,9 @@
         "publicEvidenceUnavailableReason": null
       },
       "interactiveDemo": {
-        "status": "unavailable",
-        "unavailableReason": {
-          "code": "no-interactive-demo",
-          "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
-        },
-        "route": null
+        "status": "runnable-public",
+        "unavailableReason": null,
+        "route": "/benchmarks/audio-stft/"
       },
       "authoritativePerformanceResults": {
         "status": "unavailable",

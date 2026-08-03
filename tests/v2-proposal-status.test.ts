@@ -167,7 +167,7 @@ Deno.test("v2 ledger counts reconcile to ten validation packages, two engine-onl
   assertEquals(entries.reduce((sum, entry) => sum + entry.validationResults.recordCount, 0), 20);
   assertEquals(ledger.counts.publicValidationRecords, 12);
   assertEquals(ledger.counts.localOnlyValidationRecords, 8);
-  assertEquals(entries.filter((entry) => entry.interactiveDemo.status !== "unavailable").length, 5);
+  assertEquals(entries.filter((entry) => entry.interactiveDemo.status !== "unavailable").length, 8);
   assertEquals(
     entries.filter((entry) => entry.authoritativePerformanceResults.status !== "unavailable")
       .length,
@@ -198,7 +198,11 @@ Deno.test("v2 ledger counts reconcile to ten validation packages, two engine-onl
       assertEquals(entry.interactiveDemo.unavailableReason?.code, "no-interactive-demo");
       assertEquals(entry.interactiveDemo.route, null);
     } else {
-      assert(entry.interactiveDemo.route?.startsWith("/demos/"));
+      assert(
+        /^\/(?:demos\/[a-z0-9.-]+|benchmarks\/audio-(?:fft|fir|stft))\/$/.test(
+          entry.interactiveDemo.route ?? "",
+        ),
+      );
       assertEquals(entry.interactiveDemo.unavailableReason, null);
     }
     assertEquals(
@@ -321,8 +325,8 @@ Deno.test("benchmarks page exposes the complete v2 inventory in raw HTML", async
   assert(page.includes("38 proposed workloads; 0 implemented"));
   assert(page.includes("Coverage is 0/38"));
   assert(page.includes("v2 proposal implementation inventory"));
-  assert(page.includes("Runnable demos: 9"));
-  assert(page.includes("5 full proposal-validation routes and 4 reduced-fixture routes"));
+  assert(page.includes("Runnable demos: 12"));
+  assert(page.includes("8 full proposal-validation routes and 4 reduced-fixture routes"));
   assert(page.includes("No v2 package contains authoritative performance results"));
   assert(page.includes("not the full proposal contract"));
   assert(page.includes('href="/data/v2-proposal-implementation-status.v1.json"'));

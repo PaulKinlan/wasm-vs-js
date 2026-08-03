@@ -103,8 +103,8 @@ Deno.test("workload catalog exposes exact totals, filters, and honest implementa
   assert(page.includes("P2 breadth/stress"));
   assert(page.includes("Coverage is 0/38"));
   assert(page.includes("v2 proposal implementation inventory"));
-  assert(page.includes("Runnable demos: 9"));
-  assert(page.includes("5 full proposal-validation routes and 4 reduced-fixture routes"));
+  assert(page.includes("Runnable demos: 12"));
+  assert(page.includes("8 full proposal-validation routes and 4 reduced-fixture routes"));
   assertEquals(page.match(/data-v2-id=/g)?.length, 20);
   assert(page.includes('role="search"'));
   assert(page.includes('aria-live="polite"'));
