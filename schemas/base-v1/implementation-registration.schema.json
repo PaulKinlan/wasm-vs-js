@@ -28,7 +28,15 @@
     "fixture": { "type": "object" },
     "fixedWork": { "type": "object" },
     "variants": { "type": "array", "minItems": 2, "items": { "type": "string" } },
-    "artifactManifest": { "type": "object", "required": ["path", "sha256"] },
+    "artifactManifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
     "demoRoute": { "type": "string", "pattern": "^/" },
     "acceptedCoverage": { "type": "boolean" }
   }

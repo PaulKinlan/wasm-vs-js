@@ -210,11 +210,11 @@ function render(width, height, spp, strict) {
             throughput = [f(throughput[0] / p), f(throughput[1] / p), f(throughput[2] / p)];
           }
           state = xorshift(state);
-          let rx = f(unitFromU32(state, strict) * 2 - 1);
+          const rx = f(unitFromU32(state, strict) * 2 - 1);
           state = xorshift(state);
-          let ry = f(unitFromU32(state, strict) * 2 - 1);
+          const ry = f(unitFromU32(state, strict) * 2 - 1);
           state = xorshift(state);
-          let rz = f(unitFromU32(state, strict) * 2 - 1);
+          const rz = f(unitFromU32(state, strict) * 2 - 1);
           counters.rngDraws += 3;
           let hemisphere = normalize([rx, ry, rz], f);
           if (dot(hemisphere, hit.normal, f) < 0) hemisphere = mul(hemisphere, -1, f);

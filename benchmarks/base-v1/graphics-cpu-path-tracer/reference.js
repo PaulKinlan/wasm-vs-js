@@ -57,7 +57,7 @@ export function renderReference(width, height, spp) {
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const pixel = y * width + x;
-      let sum = [0, 0, 0];
+      const sum = [0, 0, 0];
       for (let sample = 0; sample < spp; sample++) {
         let state = seed(pixel, sample);
         state = rng(state);
@@ -65,10 +65,8 @@ export function renderReference(width, height, spp) {
         state = rng(state);
         const jy = unit(state);
         const sx = ((x + jx) / width * 2 - 1) * 1.7, sy = (1 - (y + jy) / height * 2) * 1.7;
-        let origin = [0, 0, 4.5],
-          direction = norm([sx, sy, -4.5]),
-          throughput = [1, 1, 1],
-          radiance = [0, 0, 0];
+        let origin = [0, 0, 4.5], direction = norm([sx, sy, -4.5]);
+        const throughput = [1, 1, 1], radiance = [0, 0, 0];
         for (let bounce = 0; bounce < 4; bounce++) {
           const h = hit(origin, direction);
           if (!h) break;

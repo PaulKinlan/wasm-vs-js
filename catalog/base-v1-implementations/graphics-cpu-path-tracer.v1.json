@@ -1,0 +1,24 @@
+{
+  "acceptedCoverage": false,
+  "artifactManifest": {
+    "path": "public/artifacts/graphics-cpu-path-tracer-v1/build-manifest.json",
+    "sha256": "e97b06f142acf6dd87b13d1c20503495839ab5354a36fa6c2350bd3b18129b49"
+  },
+  "catalogId": "graphics.cpu-path-tracer.v1",
+  "catalogMutation": false,
+  "catalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+  "demoRoute": "/benchmarks/graphics-cpu-path-tracer-v1/",
+  "fixedWork": { "height": 512, "maxBounces": 4, "samplesPerPixel": 64, "width": 512 },
+  "fixture": {
+    "externalAssets": false,
+    "kind": "project-generated",
+    "licenseSpdx": "CC0-1.0",
+    "redistribution": "permitted",
+    "scene": "fixed seven-sphere Cornell product scene",
+    "seed": 1831565813
+  },
+  "registrationId": "base-v1.graphics.cpu-path-tracer.v1.controlled.v1",
+  "schemaVersion": 1,
+  "status": "candidate-awaiting-independent-review",
+  "variants": ["js-controlled", "wasm-linear-controlled"]
+}

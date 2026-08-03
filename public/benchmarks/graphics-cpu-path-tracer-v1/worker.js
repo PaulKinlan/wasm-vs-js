@@ -4,7 +4,6 @@ import {
   renderJavaScript,
 } from "/benchmarks/base-v1/graphics-cpu-path-tracer/engine.js";
 import { renderReference } from "/benchmarks/base-v1/graphics-cpu-path-tracer/reference.js";
-const encoder = new TextEncoder();
 async function hash(bytes) {
   return Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", bytes))).map((v) =>
     v.toString(16).padStart(2, "0")

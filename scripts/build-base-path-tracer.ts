@@ -198,7 +198,10 @@ const template = await Deno.readTextFile(
 );
 await Deno.writeTextFile(
   new URL("public/benchmarks/graphics-cpu-path-tracer-v1/index.html", root),
-  template.replace("__BUILD_MANIFEST_SHA256__", manifestHash),
+  template.replace(
+    '    <meta name="build-manifest-sha256" content="__BUILD_MANIFEST_SHA256__">',
+    `    <meta name="build-manifest-sha256"\n      content="${manifestHash}">`,
+  ),
 );
 const registration = {
   schemaVersion: 1,
@@ -226,7 +229,7 @@ const registration = {
 };
 await Deno.writeTextFile(
   new URL("catalog/base-v1-implementations/graphics-cpu-path-tracer.v1.json", root),
-  `${canonicalize(registration)}\n`,
+  `${JSON.stringify(registration, null, 2)}\n`,
 );
 for (
   const [variant, result] of [["js-controlled", js], [
@@ -254,7 +257,10 @@ for (
     },
     performanceClaims: [],
   };
-  await Deno.writeTextFile(new URL(`${variant}.json`, evidence), `${canonicalize(record)}\n`);
+  await Deno.writeTextFile(
+    new URL(`${variant}.json`, evidence),
+    `${JSON.stringify(record, null, 2)}\n`,
+  );
 }
 console.log(
   `path tracer: ${wasm.length} byte Wasm; exact framebuffers ${oracle.jsFramebufferSha256} / ${oracle.wasmFramebufferSha256}; max target delta ${crossTarget.maxChannelDelta}`,
