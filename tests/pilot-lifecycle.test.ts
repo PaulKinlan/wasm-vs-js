@@ -306,8 +306,8 @@ Deno.test("prelaunch failures are persisted separately and do not increment atte
   }
 });
 
-Deno.test("clean-source status allows only generated permit/corpus roots and rejects symlinks", async () => {
-  assertCheckoutStatus("!! raw/permits/\0!! raw/corpora/\0");
+Deno.test("clean-source status allows only runtime agent and generated corpus roots and rejects symlinks", async () => {
+  assertCheckoutStatus("!! .pi-subagents/\0!! raw/permits/\0!! raw/corpora/\0");
   for (const status of ["?? other.txt\0", " M server.ts\0", "!! .env\0", "!! raw/runs/x.json\0"]) {
     await assertRejects(
       () => Promise.resolve().then(() => assertCheckoutStatus(status)),

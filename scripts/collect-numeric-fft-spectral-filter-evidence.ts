@@ -2,6 +2,7 @@ import Ajv2020Module from "ajv2020";
 import { canonicalize, sha256Hex } from "../lib/canonical.ts";
 import {
   BrowserClient,
+  ChromeLaunchLifecycleError,
   closeOwnedChrome,
   launchOwnedChrome,
   OwnedChrome,
@@ -14,6 +15,7 @@ import {
   StagedChrome,
 } from "../lib/chrome-stage.ts";
 import { refreshLedger } from "../lib/process-ledger.ts";
+import { assertCheckoutStatus } from "../lib/source-identity.ts";
 
 const root = new URL("../", import.meta.url);
 const ROUTE = "/benchmarks/numeric-fft-spectral-filter-v1/";
@@ -41,6 +43,19 @@ const EXPECTED_CHECKPOINTS = [
   { index: 1_048_574, real: 0.000009368173778057098, imaginary: -1.2371824453794034e-8 },
   { index: 1_048_575, real: -0.00003272015601396561, imaginary: -4.02133792931636e-9 },
 ] as const;
+export const REVIEWED_CHROME_EXTRA_ARGUMENTS = [
+  "--enable-automation",
+  "--headless=new",
+  "--no-sandbox",
+  "--disable-gpu",
+  "--disable-background-networking",
+  "--disable-component-update",
+  "--disable-default-apps",
+  "--disable-extensions",
+  "--metrics-recording-only",
+  "--hide-scrollbars",
+  "--window-size=1440,1200",
+] as const;
 const EXPECTED_SCENARIOS = [
   "complete-js",
   "complete-wasm",
@@ -64,6 +79,7 @@ export const NUMERIC_FFT_EXECUTED_SOURCE_PATHS = [
   "lib/corpus-contracts.ts",
   "lib/owned-chrome.ts",
   "lib/process-ledger.ts",
+  "lib/source-identity.ts",
   "lib/stage-lifecycle.ts",
   "deno.json",
   "deno.corpus.json",
@@ -108,6 +124,30 @@ export const NUMERIC_FFT_EXECUTABLE_ROUTES: Readonly<Record<string, string>> = {
   "/artifacts/numeric-fft-spectral-filter/numeric-fft-spectral-filter.wasm":
     "public/artifacts/numeric-fft-spectral-filter/numeric-fft-spectral-filter.wasm",
 };
+
+export function reviewedChromeArguments(profileRoot: string): string[] {
+  return [
+    `--user-data-dir=${profileRoot}`,
+    "--remote-debugging-port=0",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-sync",
+    "--disable-crash-reporter",
+    "--disable-breakpad",
+    ...REVIEWED_CHROME_EXTRA_ARGUMENTS,
+    "about:blank",
+  ];
+}
+
+export function numericFftServerArguments(port: number): string[] {
+  return [
+    "run",
+    "--allow-net=127.0.0.1",
+    "--allow-read=benchmarks/base/numeric-fft-spectral-filter,public/benchmarks/numeric-fft-spectral-filter-v1,public/artifacts/numeric-fft-spectral-filter,public/styles.css",
+    "scripts/serve-numeric-fft-spectral-filter-evidence.ts",
+    `--port=${port}`,
+  ];
+}
 
 export type CollectorArguments = {
   sourceCommit: string;
@@ -177,10 +217,16 @@ export async function attestCleanNumericFftSource(
     "--porcelain=v1",
     "-z",
     "--untracked-files=all",
+    "--ignored=matching",
   ]);
-  if (!status.success || status.stdout.byteLength !== 0) {
+  if (!status.success) throw new Error("git status unavailable");
+  try {
+    assertCheckoutStatus(new TextDecoder().decode(status.stdout));
+  } catch {
     throw new Error("numeric FFT browser collection requires a completely clean checkout");
   }
+  const statusText = new TextDecoder().decode(status.stdout);
+  const ignoredEntries = statusText.split("\0").filter(Boolean).map((entry) => entry.slice(3));
   const files = [];
   for (const path of NUMERIC_FFT_EXECUTED_SOURCE_PATHS) {
     const local = await Deno.readFile(new URL(path, root));
@@ -195,8 +241,16 @@ export async function attestCleanNumericFftSource(
     tree: new TextDecoder().decode(tree.stdout).trim(),
     clean: true,
     statusPorcelainSha256: await sha256Hex(status.stdout),
+    ignoredEntries,
     files,
   };
+}
+
+export function assertNumericFftSourceRecheck(
+  before: Record<string, unknown>,
+  after: Record<string, unknown>,
+): void {
+  if (!same(before, after)) throw new Error("source changed between start and end checks");
 }
 
 export type ExecutableAssetAttestation = {
@@ -262,15 +316,119 @@ function same(left: unknown, right: unknown): boolean {
   return canonicalize(left) === canonicalize(right);
 }
 
+export function assertLifecycleScenarioObservations(
+  id: string,
+  observations: LifecycleObservation[],
+): void {
+  const posted = (token: number) => [{ type: "start", token, target: "js-controlled" }];
+  const worker = (terminated: boolean, token: number) => ({ terminated, posts: posted(token) });
+  const view = (
+    label: string,
+    status: string,
+    result: string,
+    startDisabled: boolean,
+    cancelDisabled: boolean,
+    workers: LifecycleObservation["workers"],
+  ): LifecycleObservation => ({
+    label,
+    status,
+    result,
+    startDisabled,
+    cancelDisabled,
+    progress: 0,
+    workers,
+  });
+  const ready = view(
+    "ready",
+    "Ready. The worker timeout is 120 seconds.",
+    "No run yet.",
+    false,
+    true,
+    [],
+  );
+  const running = (label: string, workers: LifecycleObservation["workers"]) =>
+    view(
+      label,
+      "Generating the frozen 2^20-sample fixture.",
+      "No result accepted yet.",
+      true,
+      false,
+      workers,
+    );
+  const canceled = (label: string, workers: LifecycleObservation["workers"]) =>
+    view(
+      label,
+      "Cancelled. Late messages from the terminated worker are ignored.",
+      "No result accepted.",
+      false,
+      true,
+      workers,
+    );
+  const start = running("after-start", [worker(false, 1)]);
+  let expected: LifecycleObservation[];
+  if (id === "wrong-token") {
+    expected = [ready, start, running("after-wrong-token", [worker(false, 1)])];
+  } else if (id === "stale-error") {
+    expected = [
+      ready,
+      start,
+      canceled("after-cancel", [worker(true, 1)]),
+      running("after-restart", [worker(true, 1), worker(false, 3)]),
+      running("after-stale-error", [worker(true, 1), worker(false, 3)]),
+    ];
+  } else if (id === "restart") {
+    expected = [
+      ready,
+      start,
+      canceled("after-cancel", [worker(true, 1)]),
+      running("after-restart", [worker(true, 1), worker(false, 3)]),
+    ];
+  } else if (id === "cancel") {
+    expected = [
+      ready,
+      start,
+      canceled("after-cancel", [worker(true, 1)]),
+      canceled("after-late-message", [worker(true, 1)]),
+    ];
+  } else if (id === "timeout") {
+    expected = [
+      ready,
+      start,
+      view(
+        "after-timeout",
+        "Timed out after 120 seconds; the worker was terminated.",
+        "No result accepted.",
+        false,
+        true,
+        [worker(true, 1)],
+      ),
+    ];
+  } else if (id === "pagehide") {
+    expected = [
+      ready,
+      start,
+      running("after-pagehide", [worker(true, 1)]),
+      running("after-late-message", [worker(true, 1)]),
+    ];
+  } else throw new Error(`unknown lifecycle scenario: ${id}`);
+  if (!same(observations, expected)) throw new Error(`${id} lifecycle observation contradiction`);
+}
+
 export function assertNumericFftBrowserEvidenceSemantics(value: Record<string, unknown>): void {
   const source = value.source as Record<string, unknown>;
   if (
-    source?.clean !== true ||
-    source.statusPorcelainSha256 !==
-      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    source?.clean !== true || !/^[a-f0-9]{64}$/.test(String(source.statusPorcelainSha256)) ||
+    !same(source.verificationPasses, ["before-launch", "after-cleanup-before-publication"])
   ) {
     throw new Error("source clean attestation contradiction");
   }
+  const ignoredEntries = source.ignoredEntries as string[];
+  if (
+    !ignoredEntries.every((path) =>
+      path === ".pi-subagents/" || path === "raw/permits/" || path.startsWith("raw/permits/") ||
+      path === "raw/corpora/" || path.startsWith("raw/corpora/")
+    )
+  ) throw new Error("source ignored-entry contradiction");
   const sourceFiles = source.files as Array<Record<string, unknown>>;
   if (!same(sourceFiles.map((file) => file.path), NUMERIC_FFT_EXECUTED_SOURCE_PATHS)) {
     throw new Error("executed source file set/order contradiction");
@@ -286,11 +444,10 @@ export function assertNumericFftBrowserEvidenceSemantics(value: Record<string, u
   const effective = browser.effectiveArguments as string[];
   const browserProfile = browser.profile as Record<string, unknown>;
   if (
-    !configured.every((argument) => effective.includes(argument)) ||
-    !configured.includes("--remote-debugging-port=0") ||
-    !configured.includes(`--user-data-dir=${browserProfile.profileRoot}`)
+    !same(configured, reviewedChromeArguments(String(browserProfile.profileRoot))) ||
+    !configured.every((argument) => effective.includes(argument))
   ) {
-    throw new Error("Chrome effective/profile arguments omitted a configured identity");
+    throw new Error("Chrome reviewed argument contradiction");
   }
   const scenarios = value.scenarios as Array<Record<string, unknown>>;
   if (
@@ -298,41 +455,132 @@ export function assertNumericFftBrowserEvidenceSemantics(value: Record<string, u
   ) {
     throw new Error("scenario order/set contradiction");
   }
-  for (const [index, target] of ["js-controlled", "wasm-linear-controlled"].entries()) {
-    const scenario = scenarios[index];
-    const result = scenario.fullResult as Record<string, unknown>;
-    if (
-      scenario.mode !== "native-full" || scenario.target !== target ||
-      result?.executionMode !== "full-2^20-correctness" || result?.sampleCount !== 1_048_576 ||
-      result?.componentsValidated !== 2_097_152 ||
-      result?.completeOutputSha256 !== EXPECTED_OUTPUT_SHA256 ||
-      result?.quantizedOutputSha256 !== EXPECTED_QUANTIZED_SHA256 ||
-      !same(result?.checkpoints, EXPECTED_CHECKPOINTS) ||
-      !same(result?.registeredOracle, EXPECTED_ORACLE) ||
-      !same(
-        result?.counters,
-        expectedCounters(target as "js-controlled" | "wasm-linear-controlled"),
-      )
-    ) throw new Error(`${target} full result contradiction`);
-  }
-  const causalEvents: Record<string, string[]> = {
-    "wrong-token": ["start", "inject-wrong-token", "ignored"],
-    "stale-error": ["start", "cancel", "restart", "inject-stale-error", "ignored"],
-    restart: ["start", "cancel", "restart", "new-worker-active"],
-    cancel: ["start", "cancel", "late-message", "ignored"],
-    timeout: ["start", "timeout-fired", "worker-terminated"],
-    pagehide: ["start", "pagehide", "worker-terminated", "late-message", "ignored"],
+  const expectedCauses: Record<string, Array<[string, number | null, number | null]>> = {
+    "complete-js": [["start", 0, 1], ["complete", 0, 1]],
+    "complete-wasm": [["start", 0, 1], ["complete", 0, 1]],
+    "wrong-token": [["start", 0, 1], ["inject-wrong-token", 0, 999], ["ignored", 0, 999]],
+    "stale-error": [
+      ["start", 0, 1],
+      ["cancel", 0, null],
+      ["restart", 1, 3],
+      ["inject-stale-error", 0, 1],
+      ["ignored", 0, 1],
+    ],
+    restart: [
+      ["start", 0, 1],
+      ["cancel", 0, null],
+      ["restart", 1, 3],
+      ["new-worker-active", 1, 3],
+    ],
+    cancel: [
+      ["start", 0, 1],
+      ["cancel", 0, null],
+      ["late-message", 0, 1],
+      ["ignored", 0, 1],
+    ],
+    timeout: [["start", 0, 1], ["timeout-fired", 0, 1], ["worker-terminated", 0, 1]],
+    pagehide: [
+      ["start", 0, 1],
+      ["pagehide", 0, 1],
+      ["worker-terminated", 0, 1],
+      ["late-message", 0, 1],
+      ["ignored", 0, 1],
+    ],
   };
-  for (const scenario of scenarios.slice(2)) {
-    if (scenario.mode !== "instrumented-lifecycle" || scenario.fullResult !== null) {
-      throw new Error(`${scenario.id} incorrectly carries native evidence`);
+  for (const [index, scenario] of scenarios.entries()) {
+    const id = String(scenario.id), native = index < 2;
+    const expectedTarget = index === 0
+      ? "js-controlled"
+      : index === 1
+      ? "wasm-linear-controlled"
+      : null;
+    const expectedAction = native ? "complete" : id;
+    if (scenario.target !== expectedTarget || scenario.action !== expectedAction) {
+      throw new Error(`${id} target/action contradiction`);
     }
-    const events = (scenario.causes as Array<Record<string, unknown>>).map((cause) => cause.event);
-    if (!same(events, causalEvents[String(scenario.id)])) {
-      throw new Error(`${scenario.id} causal chain contradiction`);
+    const causes = (scenario.causes as Array<Record<string, unknown>>).map((cause, sequence) => [
+      cause.event,
+      cause.workerIndex,
+      cause.token,
+      cause.sequence === sequence,
+    ]);
+    const expected = expectedCauses[id].map(([event, workerIndex, token]) => [
+      event,
+      workerIndex,
+      token,
+      true,
+    ]);
+    if (!same(causes, expected)) throw new Error(`${id} causal sequence/token contradiction`);
+    const result = scenario.fullResult as Record<string, unknown> | null;
+    if (native) {
+      const target = expectedTarget as "js-controlled" | "wasm-linear-controlled";
+      if (
+        scenario.mode !== "native-full" || result?.target !== target ||
+        result?.executionMode !== "full-2^20-correctness" || result?.sampleCount !== 1_048_576 ||
+        result?.componentsValidated !== 2_097_152 ||
+        result?.completeOutputSha256 !== EXPECTED_OUTPUT_SHA256 ||
+        result?.quantizedOutputSha256 !== EXPECTED_QUANTIZED_SHA256 ||
+        !same(result?.checkpoints, EXPECTED_CHECKPOINTS) ||
+        !same(result?.registeredOracle, EXPECTED_ORACLE) ||
+        !same(result?.counters, expectedCounters(target)) || !same(scenario.observations, []) ||
+        !same(
+          {
+            status: (scenario.finalState as Record<string, unknown>).status,
+            startDisabled: (scenario.finalState as Record<string, unknown>).startDisabled,
+            cancelDisabled: (scenario.finalState as Record<string, unknown>).cancelDisabled,
+            progress: (scenario.finalState as Record<string, unknown>).progress,
+          },
+          {
+            status: "Complete output matched the registered SHA-256.",
+            startDisabled: false,
+            cancelDisabled: true,
+            progress: 4,
+          },
+        )
+      ) throw new Error(`${target} full result contradiction`);
+    } else {
+      if (scenario.mode !== "instrumented-lifecycle" || result !== null) {
+        throw new Error(`${id} incorrectly carries native evidence`);
+      }
+      const observations = scenario.observations as LifecycleObservation[];
+      assertLifecycleScenarioObservations(id, observations);
+      const last = observations.at(-1)!;
+      if (
+        !same(scenario.finalState, {
+          status: last.status,
+          result: last.result,
+          startDisabled: last.startDisabled,
+          cancelDisabled: last.cancelDisabled,
+          progress: last.progress,
+        })
+      ) throw new Error(`${id} final status/control contradiction`);
     }
+  }
+  const serverSetup = value.server as Record<string, unknown>;
+  const serverOrigin = String(serverSetup.origin);
+  const serverLauncher = serverSetup.launcher as Record<string, unknown>;
+  const serverArguments = serverSetup.arguments as string[];
+  const serverPort = Number(new URL(serverOrigin).port);
+  if (
+    !same(serverArguments, [serverLauncher.executable, ...numericFftServerArguments(serverPort)])
+  ) {
+    throw new Error("actual server argv contradiction");
   }
   for (const scenario of scenarios) {
+    const id = String(scenario.id);
+    const screenshot = scenario.screenshot as Record<string, unknown>;
+    if (screenshot.path !== `screenshots/${id}.png`) {
+      throw new Error(`${id} screenshot identity contradiction`);
+    }
+    for (const request of scenario.network as Array<Record<string, unknown>>) {
+      let requestOrigin: string;
+      try {
+        requestOrigin = new URL(String(request.url)).origin;
+      } catch {
+        throw new Error(`${id} network origin contradiction`);
+      }
+      if (requestOrigin !== serverOrigin) throw new Error(`${id} network origin contradiction`);
+    }
     const assets = scenario.assets as Array<Record<string, unknown>>;
     const expectedRoutes = scenario.target === "wasm-linear-controlled"
       ? Object.keys(NUMERIC_FFT_EXECUTABLE_ROUTES)
@@ -357,10 +605,51 @@ export function assertNumericFftBrowserEvidenceSemantics(value: Record<string, u
   const chrome = cleanup.browser as Record<string, unknown>;
   const profile = cleanup.profile as Record<string, unknown>;
   const server = cleanup.server as Record<string, unknown>;
+  const stage = cleanup.stage as Record<string, unknown>;
+  const containment = browser.containment as Record<string, unknown>;
+  const stagedPackage = browser.stagedPackage as Record<string, unknown>;
+  const profileSetup = browser.profile as Record<string, unknown>;
   if (
-    chrome.cgroupEmpty !== true || !same(chrome.remainingPids, []) || profile.absent !== true ||
-    server.processAbsent !== true || (cleanup.stage as Record<string, unknown>).absent !== true
-  ) throw new Error("exact owned cleanup is incomplete");
+    chrome.cgroupEmpty !== true || !same(chrome.remainingPids, []) ||
+    !same(chrome.observedPids as unknown[], [...new Set(chrome.observedPids as unknown[])]) ||
+    !(chrome.observedPids as unknown[]).includes(chrome.mainPid) || profile.absent !== true ||
+    server.processAbsent !== true || stage.absent !== true ||
+    !same(
+      Object.fromEntries(Object.keys(containment).map((key) => [key, chrome[key]])),
+      containment,
+    ) ||
+    !same(
+      { path: profile.path, dev: profile.dev, ino: profile.ino },
+      {
+        path: profileSetup.profileRoot,
+        dev: profileSetup.profileDev,
+        ino: profileSetup.profileIno,
+      },
+    ) ||
+    !same(server.launcher, serverSetup.launcher) ||
+    !same(
+      { root: stage.root, dev: stage.dev, ino: stage.ino },
+      stagedPackage,
+    )
+  ) throw new Error("exact owned cleanup identity contradiction");
+}
+
+export function chromeLaunchFailureContainment(error: unknown): {
+  lifecycle: "cleanup-verified" | "cleanup-unresolved";
+  retainStage: boolean;
+  retainProfile: boolean;
+} | null {
+  if (!(error instanceof ChromeLaunchLifecycleError)) return null;
+  return error.cleanupResolved
+    ? { lifecycle: "cleanup-verified", retainStage: false, retainProfile: false }
+    : { lifecycle: "cleanup-unresolved", retainStage: true, retainProfile: true };
+}
+
+export function mayRemoveChromeStage(
+  lifecycle: string,
+  retainUnresolvedContainment: boolean,
+): boolean {
+  return !retainUnresolvedContainment && lifecycle !== "cleanup-unresolved";
 }
 
 export async function runCleanupBoundCollection<T>(dependencies: {
@@ -421,6 +710,11 @@ async function processIdentity(pid: number): Promise<ProcessIdentity | null> {
   }
 }
 
+async function processCommandLine(pid: number): Promise<string[]> {
+  return new TextDecoder().decode(await Deno.readFile(`/proc/${pid}/cmdline`)).split("\0")
+    .filter(Boolean);
+}
+
 async function identityRunning(identity: ProcessIdentity): Promise<boolean> {
   const current = await processIdentity(identity.pid);
   return current?.startTimeTicks === identity.startTimeTicks &&
@@ -460,6 +754,37 @@ async function state(client: Sender, sessionId: string): Promise<Record<string, 
   return value(result) as Record<string, unknown>;
 }
 
+type LifecycleObservation = {
+  label: string;
+  status: string;
+  result: string;
+  startDisabled: boolean;
+  cancelDisabled: boolean;
+  progress: number;
+  workers: Array<{
+    terminated: boolean;
+    posts: Array<{ type: string; token: number; target: string }>;
+  }>;
+};
+
+async function lifecycleObservation(
+  client: Sender,
+  sessionId: string,
+  label: string,
+): Promise<LifecycleObservation> {
+  const page = await state(client, sessionId);
+  const workers = await evaluate(client, sessionId, `__fftCollectorControl.summary()`);
+  return {
+    label,
+    status: String(page.status),
+    result: String(page.result),
+    startDisabled: Boolean(page.startDisabled),
+    cancelDisabled: Boolean(page.cancelDisabled),
+    progress: Number(page.progress ?? 0),
+    workers: workers as LifecycleObservation["workers"],
+  };
+}
+
 async function waitState(
   client: Sender,
   sessionId: string,
@@ -497,7 +822,7 @@ const instrumentation = `(() => {
   });
   if (!location.search.includes('collector-lifecycle=')) return;
   const nativeSetTimeout=globalThis.setTimeout;
-  globalThis.setTimeout=(callback,delay,...args)=>nativeSetTimeout(callback,delay===120000?30:delay,...args);
+  globalThis.setTimeout=(callback,delay,...args)=>nativeSetTimeout(callback,delay===120000?1000:delay,...args);
   const workers=[];
   class ControlledWorker {
     constructor(url,options){this.url=String(url);this.options=options;this.onmessage=null;this.onerror=null;this.terminated=false;this.posts=[];workers.push(this);}
@@ -717,6 +1042,8 @@ async function captureScenario(
       `document.querySelector('#target').value=${JSON.stringify(target)}`,
     );
 
+    const observations: LifecycleObservation[] = [];
+    if (!native) observations.push(await lifecycleObservation(client, sessionId, "ready"));
     const causes: Record<string, unknown>[] = [];
     const cause = (
       event: string,
@@ -726,6 +1053,9 @@ async function captureScenario(
     ) => causes.push({ sequence: causes.length, event, workerIndex, token, detail });
     await click(client, sessionId, "#start");
     cause("start", 0, 1, "visible Start control invoked the first worker");
+    if (!native) {
+      observations.push(await lifecycleObservation(client, sessionId, "after-start"));
+    }
     let finalState: Record<string, unknown>;
     let fullResult: Record<string, unknown> | null = null;
     if (native) {
@@ -753,26 +1083,33 @@ async function captureScenario(
       );
       cause("inject-wrong-token", 0, 999, "collector injected a message with a non-current token");
       finalState = await state(client, sessionId);
+      observations.push(await lifecycleObservation(client, sessionId, "after-wrong-token"));
       cause("ignored", 0, 999, "status and accepted result did not change");
     } else if (id === "stale-error") {
       await click(client, sessionId, "#cancel");
       cause("cancel", 0, null, "first worker was cancelled");
+      observations.push(await lifecycleObservation(client, sessionId, "after-cancel"));
       await click(client, sessionId, "#start");
       cause("restart", 1, 3, "a new worker and token were created");
+      observations.push(await lifecycleObservation(client, sessionId, "after-restart"));
       await evaluate(client, sessionId, `__fftCollectorControl.error(0)`);
       cause("inject-stale-error", 0, 1, "collector invoked the first worker's stale error handler");
       finalState = await state(client, sessionId);
+      observations.push(await lifecycleObservation(client, sessionId, "after-stale-error"));
       cause("ignored", 0, 1, "second worker remained active");
     } else if (id === "restart") {
       await click(client, sessionId, "#cancel");
       cause("cancel", 0, null, "first worker was cancelled");
+      observations.push(await lifecycleObservation(client, sessionId, "after-cancel"));
       await click(client, sessionId, "#start");
       cause("restart", 1, 3, "visible Start created a replacement worker");
       finalState = await state(client, sessionId);
+      observations.push(await lifecycleObservation(client, sessionId, "after-restart"));
       cause("new-worker-active", 1, 3, "replacement worker owns the running state");
     } else if (id === "cancel") {
       await click(client, sessionId, "#cancel");
       cause("cancel", 0, null, "visible Cancel terminated the worker");
+      observations.push(await lifecycleObservation(client, sessionId, "after-cancel"));
       await evaluate(
         client,
         sessionId,
@@ -780,6 +1117,7 @@ async function captureScenario(
       );
       cause("late-message", 0, 1, "collector injected a result after cancellation");
       finalState = await state(client, sessionId);
+      observations.push(await lifecycleObservation(client, sessionId, "after-late-message"));
       cause("ignored", 0, 1, "cancel status and no-result state remained");
     } else if (id === "timeout") {
       finalState = await waitState(
@@ -795,10 +1133,12 @@ async function captureScenario(
         "the exact 120000 ms callback was accelerated by lifecycle instrumentation",
       );
       cause("worker-terminated", 0, 1, "timeout reset terminated the owned fake worker");
+      observations.push(await lifecycleObservation(client, sessionId, "after-timeout"));
     } else {
       await evaluate(client, sessionId, `dispatchEvent(new PageTransitionEvent('pagehide'))`);
       cause("pagehide", 0, 1, "collector dispatched pagehide");
       cause("worker-terminated", 0, 1, "pagehide terminated the worker");
+      observations.push(await lifecycleObservation(client, sessionId, "after-pagehide"));
       await evaluate(
         client,
         sessionId,
@@ -806,9 +1146,11 @@ async function captureScenario(
       );
       cause("late-message", 0, 1, "collector injected a result after pagehide");
       finalState = await state(client, sessionId);
+      observations.push(await lifecycleObservation(client, sessionId, "after-late-message"));
       cause("ignored", 0, 1, "late result was not accepted");
     }
     if (!native) {
+      assertLifecycleScenarioObservations(id, observations);
       if (id === "wrong-token") {
         await evaluate(client, sessionId, `dispatchEvent(new PageTransitionEvent('pagehide'))`);
       }
@@ -901,6 +1243,7 @@ async function captureScenario(
         target: native ? target : null,
         action: native ? "complete" : id,
         causes,
+        observations,
         states: (finalState.history as Array<Record<string, unknown>>) ?? [],
         finalState: {
           status: String(finalState.status),
@@ -935,6 +1278,58 @@ async function captureScenario(
   }
 }
 
+async function writeSyncedFile(path: string, bytes: Uint8Array): Promise<void> {
+  const file = await Deno.open(path, { createNew: true, write: true, mode: 0o600 });
+  try {
+    let offset = 0;
+    while (offset < bytes.length) offset += await file.write(bytes.subarray(offset));
+    await file.sync();
+  } finally {
+    file.close();
+  }
+}
+
+export async function publishNumericFftEvidenceAtomically(
+  output: string,
+  evidence: Record<string, unknown>,
+  screenshots: ReadonlyMap<string, Uint8Array>,
+  hooks: { beforeCommit?: (temporaryRoot: string) => void | Promise<void> } = {},
+): Promise<void> {
+  const outputRoot = output.replace(/\/$/, "");
+  if (!outputRoot.startsWith("/") || outputRoot === "/") throw new Error("unsafe output root");
+  const slash = outputRoot.lastIndexOf("/"), parent = outputRoot.slice(0, slash) || "/";
+  const basename = outputRoot.slice(slash + 1);
+  if (!/^[A-Za-z0-9._-]+$/.test(basename) || await Deno.realPath(parent) !== parent) {
+    throw new Error("unsafe output parent or basename");
+  }
+  try {
+    await Deno.lstat(outputRoot);
+    throw new Error("output root already exists");
+  } catch (error) {
+    if (!(error instanceof Deno.errors.NotFound)) throw error;
+  }
+  const temporaryRoot = await Deno.makeTempDir({ dir: parent, prefix: `.${basename}.tmp-` });
+  let committed = false;
+  try {
+    await Deno.mkdir(`${temporaryRoot}/screenshots`);
+    for (const [path, bytes] of screenshots) {
+      if (!/^screenshots\/[a-z0-9-]+\.png$/.test(path)) {
+        throw new Error(`unsafe screenshot publication path: ${path}`);
+      }
+      await writeSyncedFile(`${temporaryRoot}/${path}`, bytes);
+    }
+    await writeSyncedFile(
+      `${temporaryRoot}/evidence.v1.json`,
+      new TextEncoder().encode(`${canonicalize(evidence)}\n`),
+    );
+    await hooks.beforeCommit?.(temporaryRoot);
+    await Deno.rename(temporaryRoot, outputRoot);
+    committed = true;
+  } finally {
+    if (!committed) await Deno.remove(temporaryRoot, { recursive: true }).catch(() => {});
+  }
+}
+
 async function main(args: CollectorArguments): Promise<void> {
   if (Deno.version.deno !== "2.9.0") throw new Error("collector requires exact Deno 2.9.0");
   const source = await attestCleanNumericFftSource(args.sourceCommit);
@@ -955,23 +1350,21 @@ async function main(args: CollectorArguments): Promise<void> {
   let serverProcess: Deno.ChildProcess | undefined;
   let serverStatus: Promise<Deno.CommandStatus> | undefined;
   let serverIdentity: ProcessIdentity | null = null;
+  let serverArguments: string[] | undefined;
+  let profileRoot: string | undefined;
   let owned: OwnedChrome | undefined;
   let browserCleanup: Record<string, unknown> | undefined;
   let effectiveArguments: string[] | undefined;
   let serverCleanup: Record<string, unknown> | undefined;
+  let retainUnresolvedContainment = false;
   let stageRemoved = false;
   const payload = await runCleanupBoundCollection({
     collect: async () => {
       stage = await stageChromePackage(args.chrome, args.chromeSha256, stageAuthorization);
+      const spawnArguments = numericFftServerArguments(serverPort);
       serverProcess = new Deno.Command(Deno.execPath(), {
         cwd: root,
-        args: [
-          "run",
-          "--allow-net=127.0.0.1",
-          "--allow-read=benchmarks/base/numeric-fft-spectral-filter,public/benchmarks/numeric-fft-spectral-filter-v1,public/artifacts/numeric-fft-spectral-filter,public/styles.css",
-          "scripts/serve-numeric-fft-spectral-filter-evidence.ts",
-          `--port=${serverPort}`,
-        ],
+        args: spawnArguments,
         stdout: "null",
         stderr: "piped",
       }).spawn();
@@ -980,25 +1373,26 @@ async function main(args: CollectorArguments): Promise<void> {
       await waitFor(`${origin}/healthz`);
       serverIdentity = await processIdentity(serverProcess.pid);
       if (!serverIdentity) throw new Error("owned evidence server identity disappeared");
-      const profileRoot =
-        `/tmp/wasm-vs-js-owned-profiles/numeric-fft-${crypto.randomUUID()}/chrome`;
-      owned = await launchOwnedChrome({
-        stagedChrome: stage,
-        profileRoot,
-        extraArguments: [
-          "--headless=new",
-          "--no-sandbox",
-          "--disable-gpu",
-          "--disable-background-networking",
-          "--disable-component-update",
-          "--disable-default-apps",
-          "--disable-extensions",
-          "--metrics-recording-only",
-          "--hide-scrollbars",
-          "--window-size=1440,1200",
-        ],
-        beforeSpawn: () => recordStageCleanupLifecycle(stage!, "owned-launch-active"),
-      });
+      serverArguments = await processCommandLine(serverIdentity.pid);
+      if (!same(serverArguments, [serverIdentity.executable, ...spawnArguments])) {
+        throw new Error("spawned evidence server argv mismatch");
+      }
+      profileRoot = "/tmp/wasm-vs-js-owned-profiles/numeric-fft-browser-evidence-v1/chrome";
+      try {
+        owned = await launchOwnedChrome({
+          stagedChrome: stage,
+          profileRoot,
+          extraArguments: [...REVIEWED_CHROME_EXTRA_ARGUMENTS],
+          beforeSpawn: () => recordStageCleanupLifecycle(stage!, "owned-launch-active"),
+        });
+      } catch (error) {
+        const containment = chromeLaunchFailureContainment(error);
+        if (containment) {
+          retainUnresolvedContainment = containment.retainStage;
+          recordStageCleanupLifecycle(stage, containment.lifecycle);
+        }
+        throw error;
+      }
       if (
         owned.version.product !== args.chromeProduct || owned.binarySha256 !== args.chromeSha256
       ) {
@@ -1009,6 +1403,9 @@ async function main(args: CollectorArguments): Promise<void> {
         throw new Error("effective Chrome arguments unavailable");
       }
       effectiveArguments = effective.arguments.map(String);
+      if (!same(owned.arguments, reviewedChromeArguments(profileRoot))) {
+        throw new Error("configured Chrome arguments differ from reviewed set");
+      }
       const screenshots = new Map<string, Uint8Array>(), records = [];
       for (const id of EXPECTED_SCENARIOS) {
         const scenario = await captureScenario(owned, origin, id, outputManifest);
@@ -1042,6 +1439,7 @@ async function main(args: CollectorArguments): Promise<void> {
           stoppedAt: closed.stoppedAt,
         };
       } catch (error) {
+        retainUnresolvedContainment = true;
         recordStageCleanupLifecycle(stage!, "cleanup-unresolved");
         throw error;
       }
@@ -1066,23 +1464,29 @@ async function main(args: CollectorArguments): Promise<void> {
       if (!(serverCleanup.processAbsent as boolean)) throw new Error("server cleanup failed");
     },
     cleanupStage: async () => {
-      if (!stage || stage.cleanupLifecycle === "cleanup-unresolved") return;
+      if (!stage || !mayRemoveChromeStage(stage.cleanupLifecycle, retainUnresolvedContainment)) {
+        return;
+      }
       await removeStagedChrome(stage);
       stageRemoved = true;
     },
   });
   if (
-    !payload || !stage || !owned || !effectiveArguments || !browserCleanup || !serverCleanup ||
-    !stageRemoved
+    !payload || !stage || !owned || !profileRoot || !effectiveArguments || !browserCleanup ||
+    !serverCleanup || !serverArguments || !stageRemoved
   ) {
     throw new Error("collector did not reach exact-cleanup commit gate");
   }
+  const verifiedSource = {
+    ...source,
+    verificationPasses: ["before-launch", "after-cleanup-before-publication"],
+  };
   const denoExecutable = await Deno.realPath(Deno.execPath());
   const evidence: Record<string, unknown> = {
     schemaVersion: 1,
     evidenceId: "numeric-fft-spectral-filter-chrome-parent-v1",
     collectedAt: new Date().toISOString(),
-    source,
+    source: verifiedSource,
     collector: {
       denoVersion: Deno.version.deno,
       executable: {
@@ -1109,17 +1513,23 @@ async function main(args: CollectorArguments): Promise<void> {
       protocol: "Chrome DevTools Protocol",
       endpoint: { host: "127.0.0.1", port: owned.port, browserPath: owned.browserPath },
       profile: owned.ledger.profile,
+      containment: {
+        unit: owned.ledger.unit,
+        controlGroup: owned.ledger.controlGroup,
+        cgroupPath: owned.ledger.cgroupPath,
+        cgroupDev: owned.ledger.cgroupDev,
+        cgroupIno: owned.ledger.cgroupIno,
+        invocationId: owned.ledger.invocationId,
+        mainPid: owned.ledger.mainPid,
+      },
+      stagedPackage: { root: stage.root, dev: stage.rootDev, ino: stage.rootIno },
     },
     server: {
       origin,
       loopbackOnly: true,
       mode: "public",
       launcher: serverIdentity,
-      arguments: [
-        "scripts/serve-numeric-fft-spectral-filter-evidence.ts",
-        "HOST=127.0.0.1",
-        `PORT=${serverPort}`,
-      ],
+      arguments: serverArguments,
     },
     workload: {
       entryId: "numeric.fft-spectral-filter.v1",
@@ -1168,15 +1578,9 @@ async function main(args: CollectorArguments): Promise<void> {
     throw new Error(`browser evidence schema failed: ${JSON.stringify(validate.errors)}`);
   }
   assertNumericFftBrowserEvidenceSemantics(evidence);
-  const outputRoot = args.output.replace(/\/$/, "");
-  await Deno.mkdir(outputRoot, { recursive: false });
-  await Deno.mkdir(`${outputRoot}/screenshots`, { recursive: false });
-  for (const [path, bytes] of payload.screenshots) {
-    await Deno.writeFile(`${outputRoot}/${path}`, bytes, { createNew: true });
-  }
-  await Deno.writeTextFile(`${outputRoot}/evidence.v1.json`, `${canonicalize(evidence)}\n`, {
-    createNew: true,
-  });
+  const sourceAtEnd = await attestCleanNumericFftSource(args.sourceCommit);
+  assertNumericFftSourceRecheck(source, sourceAtEnd);
+  await publishNumericFftEvidenceAtomically(args.output, evidence, payload.screenshots);
 }
 
 if (import.meta.main) {

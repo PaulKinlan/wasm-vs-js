@@ -3,14 +3,19 @@ import { assert, assertEquals, assertRejects } from "./assert.ts";
 import { sha256Hex } from "../lib/canonical.ts";
 import {
   assertNumericFftBrowserEvidenceSemantics,
+  assertNumericFftSourceRecheck,
   attestCleanNumericFftSource,
   attestFetchedExecutedAssets,
+  chromeLaunchFailureContainment,
+  mayRemoveChromeStage,
   NUMERIC_FFT_EXECUTABLE_ROUTES,
   NUMERIC_FFT_EXECUTED_SOURCE_PATHS,
   parseNumericFftCollectorArguments,
+  publishNumericFftEvidenceAtomically,
   runCleanupBoundCollection,
 } from "../scripts/collect-numeric-fft-spectral-filter-evidence.ts";
 import { numericFftEvidenceResponse } from "../scripts/serve-numeric-fft-spectral-filter-evidence.ts";
+import { ChromeLaunchLifecycleError } from "../lib/owned-chrome.ts";
 
 type Validator = ((value: unknown) => boolean) & { errors?: unknown };
 type AjvConstructor = new (
@@ -22,7 +27,7 @@ const hash = "a".repeat(64);
 const chromeHash = "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355";
 const outputHash = "56674b58154a2272f25bd2cd8c950cea04cf30be7211e9f51f13a183f31ff1a5";
 const quantizedHash = "513b24c63d27d9e84c41b7e0c65c95b687973f209420dd13dbb5fe3b3076ded3";
-const profileRoot = "/tmp/wasm-vs-js-owned-profiles/numeric-fft-01234567/chrome";
+const profileRoot = "/tmp/wasm-vs-js-owned-profiles/numeric-fft-browser-evidence-v1/chrome";
 const oracle = {
   passed: true,
   violations: 0,
@@ -92,33 +97,150 @@ const accessibility = {
     resultFocusable: true,
   },
 };
-const causes: Record<string, string[]> = {
-  "wrong-token": ["start", "inject-wrong-token", "ignored"],
-  "stale-error": ["start", "cancel", "restart", "inject-stale-error", "ignored"],
-  restart: ["start", "cancel", "restart", "new-worker-active"],
-  cancel: ["start", "cancel", "late-message", "ignored"],
-  timeout: ["start", "timeout-fired", "worker-terminated"],
-  pagehide: ["start", "pagehide", "worker-terminated", "late-message", "ignored"],
+const causes: Record<string, Array<[string, number | null, number | null]>> = {
+  "wrong-token": [["start", 0, 1], ["inject-wrong-token", 0, 999], ["ignored", 0, 999]],
+  "stale-error": [
+    ["start", 0, 1],
+    ["cancel", 0, null],
+    ["restart", 1, 3],
+    ["inject-stale-error", 0, 1],
+    ["ignored", 0, 1],
+  ],
+  restart: [
+    ["start", 0, 1],
+    ["cancel", 0, null],
+    ["restart", 1, 3],
+    ["new-worker-active", 1, 3],
+  ],
+  cancel: [
+    ["start", 0, 1],
+    ["cancel", 0, null],
+    ["late-message", 0, 1],
+    ["ignored", 0, 1],
+  ],
+  timeout: [["start", 0, 1], ["timeout-fired", 0, 1], ["worker-terminated", 0, 1]],
+  pagehide: [
+    ["start", 0, 1],
+    ["pagehide", 0, 1],
+    ["worker-terminated", 0, 1],
+    ["late-message", 0, 1],
+    ["ignored", 0, 1],
+  ],
 };
 const assetPaths = NUMERIC_FFT_EXECUTABLE_ROUTES;
+const worker = (terminated: boolean, token: number) => ({
+  terminated,
+  posts: [{ type: "start", token, target: "js-controlled" }],
+});
+const observed = (
+  label: string,
+  status: string,
+  result: string,
+  startDisabled: boolean,
+  cancelDisabled: boolean,
+  workers: unknown[],
+) => ({ label, status, result, startDisabled, cancelDisabled, progress: 0, workers });
+const readyObservation = observed(
+  "ready",
+  "Ready. The worker timeout is 120 seconds.",
+  "No run yet.",
+  false,
+  true,
+  [],
+);
+const runningObservation = (label: string, workers: unknown[]) =>
+  observed(
+    label,
+    "Generating the frozen 2^20-sample fixture.",
+    "No result accepted yet.",
+    true,
+    false,
+    workers,
+  );
+const canceledObservation = (label: string, workers: unknown[]) =>
+  observed(
+    label,
+    "Cancelled. Late messages from the terminated worker are ignored.",
+    "No result accepted.",
+    false,
+    true,
+    workers,
+  );
+function observationsFor(id: string, native: boolean) {
+  if (native) return [];
+  const start = runningObservation("after-start", [worker(false, 1)]);
+  if (id === "wrong-token") {
+    return [readyObservation, start, runningObservation("after-wrong-token", [worker(false, 1)])];
+  }
+  if (id === "stale-error") {
+    return [
+      readyObservation,
+      start,
+      canceledObservation("after-cancel", [worker(true, 1)]),
+      runningObservation("after-restart", [worker(true, 1), worker(false, 3)]),
+      runningObservation("after-stale-error", [worker(true, 1), worker(false, 3)]),
+    ];
+  }
+  if (id === "restart") {
+    return [
+      readyObservation,
+      start,
+      canceledObservation("after-cancel", [worker(true, 1)]),
+      runningObservation("after-restart", [worker(true, 1), worker(false, 3)]),
+    ];
+  }
+  if (id === "cancel") {
+    return [
+      readyObservation,
+      start,
+      canceledObservation("after-cancel", [worker(true, 1)]),
+      canceledObservation("after-late-message", [worker(true, 1)]),
+    ];
+  }
+  if (id === "timeout") {
+    return [
+      readyObservation,
+      start,
+      observed(
+        "after-timeout",
+        "Timed out after 120 seconds; the worker was terminated.",
+        "No result accepted.",
+        false,
+        true,
+        [worker(true, 1)],
+      ),
+    ];
+  }
+  return [
+    readyObservation,
+    start,
+    runningObservation("after-pagehide", [worker(true, 1)]),
+    runningObservation("after-late-message", [worker(true, 1)]),
+  ];
+}
 
 function scenario(id: string, index: number) {
   const native = index < 2;
   const target = index === 1 ? "wasm-linear-controlled" : "js-controlled";
-  const scenarioCauses = native ? ["start", "complete"] : causes[id];
+  const scenarioCauses: Array<[string, number | null, number | null]> = native
+    ? [["start", 0, 1], ["complete", 0, 1]]
+    : causes[id];
+  const observations = observationsFor(id, native);
+  const lastObservation = observations.at(-1);
   return {
     id,
     route: "/benchmarks/numeric-fft-spectral-filter-v1/",
     mode: native ? "native-full" : "instrumented-lifecycle",
     target: native ? target : null,
     action: native ? "complete" : id,
-    causes: scenarioCauses.map((event, sequence) => ({
+    causes: scenarioCauses.map(([event, workerIndex, token], sequence) => ({
       sequence,
       event,
-      workerIndex: 0,
-      token: 1,
+      workerIndex,
+      token,
       detail: `${id}:${event}`,
     })),
+    observations,
     states: [{
       sequence: 0,
       status: native ? "Complete output matched the registered SHA-256." : "Running.",
@@ -126,13 +248,21 @@ function scenario(id: string, index: number) {
       startDisabled: !native,
       cancelDisabled: native,
     }],
-    finalState: {
-      status: native ? "Complete output matched the registered SHA-256." : "Running.",
-      result: native ? "accepted" : "No result accepted.",
-      startDisabled: !native,
-      cancelDisabled: native,
-      progress: native ? 4 : 0,
-    },
+    finalState: native
+      ? {
+        status: "Complete output matched the registered SHA-256.",
+        result: "accepted",
+        startDisabled: false,
+        cancelDisabled: true,
+        progress: 4,
+      }
+      : {
+        status: lastObservation!.status,
+        result: lastObservation!.result,
+        startDisabled: lastObservation!.startDisabled,
+        cancelDisabled: lastObservation!.cancelDisabled,
+        progress: lastObservation!.progress,
+      },
     fullResult: native
       ? {
         target,
@@ -183,6 +313,7 @@ function evidenceFixture(): Record<string, unknown> {
     "--disable-sync",
     "--disable-crash-reporter",
     "--disable-breakpad",
+    "--enable-automation",
     "--headless=new",
     "--no-sandbox",
     "--disable-gpu",
@@ -191,10 +322,12 @@ function evidenceFixture(): Record<string, unknown> {
     "--disable-default-apps",
     "--disable-extensions",
     "--metrics-recording-only",
+    "--hide-scrollbars",
+    "--window-size=1440,1200",
     "about:blank",
   ];
   const profile = {
-    ownershipRoot: "/tmp/wasm-vs-js-owned-profiles/numeric-fft-01234567",
+    ownershipRoot: "/tmp/wasm-vs-js-owned-profiles/numeric-fft-browser-evidence-v1",
     ownershipParentDev: 1,
     ownershipParentIno: 2,
     ownershipDev: 3,
@@ -213,7 +346,9 @@ function evidenceFixture(): Record<string, unknown> {
       tree: "b".repeat(40),
       clean: true,
       statusPorcelainSha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      ignoredEntries: [],
       files: NUMERIC_FFT_EXECUTED_SOURCE_PATHS.map((path) => ({ path, bytes: 1, sha256: hash })),
+      verificationPasses: ["before-launch", "after-cleanup-before-publication"],
     },
     collector: {
       denoVersion: "2.9.0",
@@ -250,6 +385,20 @@ function evidenceFixture(): Record<string, unknown> {
       protocol: "Chrome DevTools Protocol",
       endpoint: { host: "127.0.0.1", port: 9222, browserPath: "/devtools/browser/abc" },
       profile,
+      containment: {
+        unit: "wasm-vs-js-0123456789abcdef.service",
+        controlGroup: "/owned",
+        cgroupPath: "/sys/fs/cgroup/owned",
+        cgroupDev: 1,
+        cgroupIno: 2,
+        invocationId: "a".repeat(32),
+        mainPid: 102,
+      },
+      stagedPackage: {
+        root: "/tmp/wasm-vs-js-staged-chrome/numeric-fft-browser-evidence-v1",
+        dev: 7,
+        ino: 8,
+      },
     },
     server: {
       origin: "http://127.0.0.1:8787",
@@ -257,9 +406,12 @@ function evidenceFixture(): Record<string, unknown> {
       mode: "public",
       launcher: processIdentity,
       arguments: [
+        "/usr/bin/deno",
+        "run",
+        "--allow-net=127.0.0.1",
+        "--allow-read=benchmarks/base/numeric-fft-spectral-filter,public/benchmarks/numeric-fft-spectral-filter-v1,public/artifacts/numeric-fft-spectral-filter,public/styles.css",
         "scripts/serve-numeric-fft-spectral-filter-evidence.ts",
-        "HOST=127.0.0.1",
-        "PORT=8787",
+        "--port=8787",
       ],
     },
     workload: {
@@ -402,6 +554,73 @@ Deno.test("numeric FFT collector rejects fetched bytes that differ from executed
   );
 });
 
+Deno.test("end-of-run source recheck rejects changed HEAD, status, or executed bytes", async () => {
+  const before = evidenceFixture().source as Record<string, unknown>;
+  for (
+    const mutate of [
+      (value: Record<string, unknown>) => value.commit = "b".repeat(40),
+      (value: Record<string, unknown>) => value.statusPorcelainSha256 = hash,
+      (value: Record<string, unknown>) => {
+        const files = value.files as Array<Record<string, unknown>>;
+        files[0].sha256 = "b".repeat(64);
+      },
+    ]
+  ) {
+    const after = structuredClone(before);
+    mutate(after);
+    await assertRejects(
+      () => Promise.resolve().then(() => assertNumericFftSourceRecheck(before, after)),
+      "source changed",
+    );
+  }
+});
+
+Deno.test("unmapped owned launch retains stage and profile as cleanup-unresolved", () => {
+  const unresolved = chromeLaunchFailureContainment(
+    new ChromeLaunchLifecycleError("mapping failed", true, false, new Error("cause")),
+  );
+  assertEquals(unresolved, {
+    lifecycle: "cleanup-unresolved",
+    retainStage: true,
+    retainProfile: true,
+  });
+  assertEquals(mayRemoveChromeStage(unresolved!.lifecycle, unresolved!.retainStage), false);
+  const resolved = chromeLaunchFailureContainment(
+    new ChromeLaunchLifecycleError("prelaunch failed", false, true, new Error("cause")),
+  );
+  assertEquals(resolved, {
+    lifecycle: "cleanup-verified",
+    retainStage: false,
+    retainProfile: false,
+  });
+});
+
+Deno.test("atomic output publication removes every temporary byte after precommit failure", async () => {
+  const parent = await Deno.makeTempDir();
+  const output = `${parent}/browser-evidence`;
+  try {
+    await assertRejects(
+      () =>
+        publishNumericFftEvidenceAtomically(
+          output,
+          { schemaVersion: 1 },
+          new Map([["screenshots/failure.png", new Uint8Array([1, 2, 3])]]),
+          {
+            beforeCommit: async (temporaryRoot) => {
+              assert((await Deno.lstat(`${temporaryRoot}/evidence.v1.json`)).isFile);
+              throw new Error("publication fault");
+            },
+          },
+        ),
+      "publication fault",
+    );
+    await assertRejects(() => Deno.lstat(output), "No such file");
+    assertEquals([...Deno.readDirSync(parent)].map((entry) => entry.name), []);
+  } finally {
+    await Deno.remove(parent, { recursive: true });
+  }
+});
+
 Deno.test("closed browser-evidence contract rejects identity, workload, lifecycle, and cleanup mutations", async () => {
   const schema = JSON.parse(
     await Deno.readTextFile("schemas/numeric-fft-spectral-filter-browser-evidence.schema.json"),
@@ -437,6 +656,10 @@ Deno.test("closed browser-evidence contract rejects identity, workload, lifecycl
     (value) => {
       (value.scenarios as Array<unknown>).pop();
     },
+    (value) => {
+      const browser = value.browser as Record<string, unknown>;
+      (browser.configuredArguments as string[]).splice(7, 1);
+    },
   ];
   for (const mutate of schemaMutations) {
     const poisoned = structuredClone(fixture);
@@ -447,6 +670,10 @@ Deno.test("closed browser-evidence contract rejects identity, workload, lifecycl
   const semanticMutations: Array<(value: Record<string, unknown>) => void> = [
     (value) => {
       (value.browser as Record<string, unknown>).expectedProduct = "Chrome/151.0.0.0";
+    },
+    (value) => {
+      const arguments_ = (value.browser as Record<string, unknown>).configuredArguments as string[];
+      [arguments_[8], arguments_[9]] = [arguments_[9], arguments_[8]];
     },
     (value) => {
       const full = (value.scenarios as Array<Record<string, unknown>>)[0]
@@ -463,6 +690,31 @@ Deno.test("closed browser-evidence contract rejects identity, workload, lifecycl
       (lifecycle.causes as Array<Record<string, unknown>>)[1].event = "complete";
     },
     (value) => {
+      const full = (value.scenarios as Array<Record<string, unknown>>)[0];
+      (full.fullResult as Record<string, unknown>).target = "wasm-linear-controlled";
+    },
+    (value) => {
+      (value.scenarios as Array<Record<string, unknown>>)[2].action = "cancel";
+    },
+    (value) => {
+      const lifecycle = (value.scenarios as Array<Record<string, unknown>>)[3];
+      (lifecycle.causes as Array<Record<string, unknown>>)[2].token = 1;
+    },
+    (value) => {
+      const lifecycle = (value.scenarios as Array<Record<string, unknown>>)[5];
+      (lifecycle.observations as Array<Record<string, unknown>>)[3].status = "authored success";
+    },
+    (value) => {
+      const request = ((value.scenarios as Array<Record<string, unknown>>)[0]
+        .network as Array<Record<string, unknown>>)[0];
+      request.url = "http://127.0.0.1:9999/";
+    },
+    (value) => {
+      const shot = (value.scenarios as Array<Record<string, unknown>>)[0]
+        .screenshot as Record<string, unknown>;
+      shot.path = "screenshots/complete-wasm.png";
+    },
+    (value) => {
       const native = (value.scenarios as Array<Record<string, unknown>>)[0];
       (native.assets as Array<Record<string, unknown>>)[0].byteIdentical = false;
     },
@@ -472,14 +724,35 @@ Deno.test("closed browser-evidence contract rejects identity, workload, lifecycl
       >;
       files[0].path = "unreviewed.ts";
     },
+    (value) => {
+      (value.server as Record<string, unknown>).arguments = ["invented"];
+    },
+    (value) => {
+      (value.cleanup as Record<string, Record<string, unknown>>).profile.dev = 99;
+    },
+    (value) => {
+      const browser = value.browser as Record<string, Record<string, unknown>>;
+      browser.containment.invocationId = "b".repeat(32);
+    },
+    (value) => {
+      const server = (value.cleanup as Record<string, Record<string, unknown>>).server;
+      server.launcher = { ...(server.launcher as Record<string, unknown>), startTimeTicks: "100" };
+    },
+    (value) => {
+      (value.cleanup as Record<string, Record<string, unknown>>).stage.ino = 99;
+    },
   ];
-  for (const mutate of semanticMutations) {
+  for (const [index, mutate] of semanticMutations.entries()) {
     const poisoned = structuredClone(fixture);
     mutate(poisoned);
-    await assertRejects(
-      () => Promise.resolve().then(() => assertNumericFftBrowserEvidenceSemantics(poisoned)),
-      "contradiction",
-    );
+    try {
+      await assertRejects(
+        () => Promise.resolve().then(() => assertNumericFftBrowserEvidenceSemantics(poisoned)),
+        "contradiction",
+      );
+    } catch (error) {
+      throw new Error(`semantic mutation ${index} was not rejected`, { cause: error });
+    }
   }
 });
 

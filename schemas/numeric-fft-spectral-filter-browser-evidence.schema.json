@@ -23,20 +23,37 @@
     "source": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["commit", "tree", "clean", "statusPorcelainSha256", "files"],
+      "required": [
+        "commit",
+        "tree",
+        "clean",
+        "statusPorcelainSha256",
+        "ignoredEntries",
+        "files",
+        "verificationPasses"
+      ],
       "properties": {
         "commit": { "$ref": "#/$defs/gitIdentity" },
         "tree": { "$ref": "#/$defs/gitIdentity" },
         "clean": { "const": true },
-        "statusPorcelainSha256": {
-          "const": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        "statusPorcelainSha256": { "$ref": "#/$defs/sha256" },
+        "ignoredEntries": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^(\\.pi-subagents/|raw/(permits|corpora)/.*)$"
+          }
         },
         "files": {
           "type": "array",
-          "minItems": 43,
-          "maxItems": 43,
+          "minItems": 44,
+          "maxItems": 44,
           "uniqueItems": true,
           "items": { "$ref": "#/$defs/sourceFile" }
+        },
+        "verificationPasses": {
+          "const": ["before-launch", "after-cleanup-before-publication"]
         }
       }
     },
@@ -94,7 +111,9 @@
         "headless",
         "protocol",
         "endpoint",
-        "profile"
+        "profile",
+        "containment",
+        "stagedPackage"
       ],
       "properties": {
         "product": { "const": "Chrome/150.0.7871.24" },
@@ -108,13 +127,37 @@
         },
         "configuredArguments": {
           "type": "array",
-          "minItems": 16,
+          "minItems": 19,
+          "maxItems": 19,
           "uniqueItems": true,
-          "items": { "type": "string", "minLength": 1 }
+          "prefixItems": [
+            {
+              "const": "--user-data-dir=/tmp/wasm-vs-js-owned-profiles/numeric-fft-browser-evidence-v1/chrome"
+            },
+            { "const": "--remote-debugging-port=0" },
+            { "const": "--no-first-run" },
+            { "const": "--no-default-browser-check" },
+            { "const": "--disable-sync" },
+            { "const": "--disable-crash-reporter" },
+            { "const": "--disable-breakpad" },
+            { "const": "--enable-automation" },
+            { "const": "--headless=new" },
+            { "const": "--no-sandbox" },
+            { "const": "--disable-gpu" },
+            { "const": "--disable-background-networking" },
+            { "const": "--disable-component-update" },
+            { "const": "--disable-default-apps" },
+            { "const": "--disable-extensions" },
+            { "const": "--metrics-recording-only" },
+            { "const": "--hide-scrollbars" },
+            { "const": "--window-size=1440,1200" },
+            { "const": "about:blank" }
+          ],
+          "items": false
         },
         "effectiveArguments": {
           "type": "array",
-          "minItems": 16,
+          "minItems": 19,
           "uniqueItems": true,
           "items": { "type": "string", "minLength": 1 }
         },
@@ -133,7 +176,9 @@
             }
           }
         },
-        "profile": { "$ref": "#/$defs/profileIdentity" }
+        "profile": { "$ref": "#/$defs/profileIdentity" },
+        "containment": { "$ref": "#/$defs/containmentIdentity" },
+        "stagedPackage": { "$ref": "#/$defs/stagedPackageIdentity" }
       }
     },
     "server": {
@@ -147,8 +192,8 @@
         "launcher": { "$ref": "#/$defs/processIdentity" },
         "arguments": {
           "type": "array",
-          "minItems": 3,
-          "maxItems": 3,
+          "minItems": 6,
+          "maxItems": 6,
           "items": { "type": "string", "minLength": 1 }
         }
       }
@@ -250,7 +295,9 @@
           "additionalProperties": false,
           "required": ["path", "dev", "ino", "removed", "absent"],
           "properties": {
-            "path": { "type": "string", "pattern": "^/tmp/wasm-vs-js-owned-profiles/numeric-fft-" },
+            "path": {
+              "const": "/tmp/wasm-vs-js-owned-profiles/numeric-fft-browser-evidence-v1/chrome"
+            },
             "dev": { "$ref": "#/$defs/nonnegativeInteger" },
             "ino": { "$ref": "#/$defs/nonnegativeInteger" },
             "removed": { "const": true },
@@ -331,8 +378,7 @@
       ],
       "properties": {
         "ownershipRoot": {
-          "type": "string",
-          "pattern": "^/tmp/wasm-vs-js-owned-profiles/numeric-fft-"
+          "const": "/tmp/wasm-vs-js-owned-profiles/numeric-fft-browser-evidence-v1"
         },
         "ownershipParentDev": { "$ref": "#/$defs/nonnegativeInteger" },
         "ownershipParentIno": { "$ref": "#/$defs/nonnegativeInteger" },
@@ -340,11 +386,42 @@
         "ownershipIno": { "$ref": "#/$defs/nonnegativeInteger" },
         "removeOwnershipRoot": { "const": true },
         "profileRoot": {
-          "type": "string",
-          "pattern": "^/tmp/wasm-vs-js-owned-profiles/numeric-fft-.+/chrome$"
+          "const": "/tmp/wasm-vs-js-owned-profiles/numeric-fft-browser-evidence-v1/chrome"
         },
         "profileDev": { "$ref": "#/$defs/nonnegativeInteger" },
         "profileIno": { "$ref": "#/$defs/nonnegativeInteger" }
+      }
+    },
+    "containmentIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit",
+        "controlGroup",
+        "cgroupPath",
+        "cgroupDev",
+        "cgroupIno",
+        "invocationId",
+        "mainPid"
+      ],
+      "properties": {
+        "unit": { "type": "string", "pattern": "^wasm-vs-js-[a-z0-9]{16,64}\\.service$" },
+        "controlGroup": { "type": "string", "pattern": "^/" },
+        "cgroupPath": { "type": "string", "pattern": "^/sys/fs/cgroup/" },
+        "cgroupDev": { "$ref": "#/$defs/nonnegativeInteger" },
+        "cgroupIno": { "$ref": "#/$defs/nonnegativeInteger" },
+        "invocationId": { "type": "string", "pattern": "^[a-f0-9]{32}$" },
+        "mainPid": { "$ref": "#/$defs/pid" }
+      }
+    },
+    "stagedPackageIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["root", "dev", "ino"],
+      "properties": {
+        "root": { "const": "/tmp/wasm-vs-js-staged-chrome/numeric-fft-browser-evidence-v1" },
+        "dev": { "$ref": "#/$defs/nonnegativeInteger" },
+        "ino": { "$ref": "#/$defs/nonnegativeInteger" }
       }
     },
     "processIdentity": {
@@ -435,6 +512,68 @@
         "startDisabled": { "type": "boolean" },
         "cancelDisabled": { "type": "boolean" },
         "progress": { "type": "number", "minimum": 0, "maximum": 4 }
+      }
+    },
+    "workerPost": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "token", "target"],
+      "properties": {
+        "type": { "const": "start" },
+        "token": { "enum": [1, 3] },
+        "target": { "const": "js-controlled" }
+      }
+    },
+    "workerObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["terminated", "posts"],
+      "properties": {
+        "terminated": { "type": "boolean" },
+        "posts": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "items": { "$ref": "#/$defs/workerPost" }
+        }
+      }
+    },
+    "lifecycleObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "label",
+        "status",
+        "result",
+        "startDisabled",
+        "cancelDisabled",
+        "progress",
+        "workers"
+      ],
+      "properties": {
+        "label": {
+          "enum": [
+            "ready",
+            "after-start",
+            "after-wrong-token",
+            "after-cancel",
+            "after-restart",
+            "after-stale-error",
+            "after-late-message",
+            "after-timeout",
+            "after-pagehide"
+          ]
+        },
+        "status": { "type": "string", "minLength": 1 },
+        "result": { "type": "string", "minLength": 1 },
+        "startDisabled": { "type": "boolean" },
+        "cancelDisabled": { "type": "boolean" },
+        "progress": { "type": "number", "minimum": 0, "maximum": 4 },
+        "workers": {
+          "type": "array",
+          "maxItems": 2,
+          "items": { "$ref": "#/$defs/workerObservation" }
+        }
       }
     },
     "consoleEntry": {
@@ -692,6 +831,7 @@
         "target",
         "action",
         "causes",
+        "observations",
         "states",
         "finalState",
         "fullResult",
@@ -736,6 +876,11 @@
           "type": "array",
           "minItems": 2,
           "items": { "$ref": "#/$defs/cause" }
+        },
+        "observations": {
+          "type": "array",
+          "maxItems": 5,
+          "items": { "$ref": "#/$defs/lifecycleObservation" }
         },
         "states": {
           "type": "array",
