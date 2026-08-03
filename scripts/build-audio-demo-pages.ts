@@ -260,3 +260,29 @@ const fmt = new Deno.Command(Deno.execPath(), {
 if (!fmt.success) {
   throw new Error(`deno fmt on demo pages failed: ${new TextDecoder().decode(fmt.stderr)}`);
 }
+
+// Non-self-referential trust root: pin the page and registry BYTE hashes in
+// a committed, non-served, reviewed file. The served graph can verify itself
+// against the page-embedded registry hash, but the page bytes themselves are
+// anchored here — outside the replaceable serving graph. The retained
+// browser evidence must record served page hashes equal to these pins, and a
+// test requires byte-identical regeneration.
+const pins: Record<string, unknown> = {
+  schemaVersion: 1,
+  purpose:
+    "Non-served trust root for the audio demo serving graph: page and registry byte hashes, reviewed at the accepted commit.",
+  registrySha256: await sha256Hex(
+    await Deno.readFile(new URL("public/demo-registry.json", ROOT).pathname),
+  ),
+  pages: {} as Record<string, string>,
+};
+for (const slug of Object.keys(DATA)) {
+  (pins.pages as Record<string, string>)[slug] = await sha256Hex(
+    await Deno.readFile(new URL(`public/benchmarks/${slug}/index.html`, ROOT).pathname),
+  );
+}
+await Deno.writeTextFile(
+  new URL("tests/audio-demo-page-pins.json", ROOT).pathname,
+  JSON.stringify(pins, null, 2) + "\n",
+);
+console.log("demo page pins: tests/audio-demo-page-pins.json");

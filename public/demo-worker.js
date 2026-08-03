@@ -16,12 +16,6 @@ async function fetchBytes(path) {
   return new Uint8Array(await response.arrayBuffer());
 }
 
-async function fetchJson(path) {
-  const response = await fetch(path);
-  if (!response.ok) throw new Error(`fetch ${path}: HTTP ${response.status}`);
-  return await response.json();
-}
-
 async function fetchJsonWithBytes(path) {
   const bytes = await fetchBytes(path);
   return { bytes, json: JSON.parse(new TextDecoder().decode(bytes)) };
@@ -41,7 +35,11 @@ self.addEventListener("message", (event) => {
 
 async function run(token, slug, target, mode, progress) {
   progress("Fetching the demo registry…");
-  const registry = await fetchJson("/demo-registry.json");
+  // Fetched exactly once: these bytes both drive execution and are hashed in
+  // exact-contract mode, so the response trusted operationally IS the
+  // response hashed (no fetch/re-hash split).
+  const registryFetch = await fetchJsonWithBytes("/demo-registry.json");
+  const registry = registryFetch.json;
   const entry = registry.demos.find((demo) => demo.slug === slug);
   if (!entry) throw new Error(`slug ${slug} is not in the closed demo registry`);
   if (!entry.targets.includes(target)) throw new Error(`target ${target} denied for ${slug}`);
@@ -93,8 +91,7 @@ async function run(token, slug, target, mode, progress) {
     // served page's workload identity.
     const assetsManifestResult = await fetchJsonWithBytes("/demo-assets/audio/manifest.json");
     const assetsManifest = assetsManifestResult.json;
-    const registryResult = await fetchJsonWithBytes("/demo-registry.json");
-    const registryBytes = registryResult.bytes;
+    const registryBytes = registryFetch.bytes;
     const registryHash = await sha256Hex(registryBytes);
     const manifestResults = await Promise.all(
       entry.manifestPaths.map((path) => fetchJsonWithBytes(path)),
@@ -102,6 +99,16 @@ async function run(token, slug, target, mode, progress) {
     const [buildResult, fixtureResult, inputResult, outputResult, referenceResult] =
       manifestResults;
     const buildManifest = buildResult.json;
+    // Anchor the build manifest BYTES before trusting anything it redefines
+    // (subordinate hashes, source graph, artifact hashes, source commit).
+    // The registry pin is copied from the accepted run record's
+    // provenance.manifests.build.sha256 at registry build time.
+    const buildManifestHash = await sha256Hex(buildResult.bytes);
+    check(
+      "build manifest bytes match accepted-record pin",
+      buildManifestHash === entry.buildManifestSha256,
+      buildManifestHash,
+    );
     const fixtureManifest = fixtureResult.json;
     const inputManifest = inputResult.json;
     const outputManifest = outputResult.json;

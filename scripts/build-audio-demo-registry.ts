@@ -5,6 +5,27 @@
 
 const ROOT = new URL("../", import.meta.url);
 
+// The independent anchor for each build manifest: the accepted run record's
+// provenance.manifests.build.sha256 (committed, reviewed, outside the
+// replaceable demo serving graph). Regeneration verifies the served bytes
+// still match the record.
+async function acceptedBuildManifestHash(slug: string): Promise<string> {
+  const recordPath = `public/evidence/v2-proposals/${slug}/js-controlled.json`;
+  const record = JSON.parse(await Deno.readTextFile(new URL(recordPath, ROOT).pathname));
+  const pinned = record?.provenance?.manifests?.build?.sha256;
+  if (typeof pinned !== "string" || !/^[a-f0-9]{64}$/.test(pinned)) {
+    throw new Error(`accepted record ${recordPath} lacks provenance.manifests.build.sha256`);
+  }
+  const served = await Deno.readFile(
+    new URL(`public/artifacts/${slug}/build-manifest.json`, ROOT).pathname,
+  );
+  const servedHash = await sha256Hex(served);
+  if (servedHash !== pinned) {
+    throw new Error(`served build manifest for ${slug} no longer matches the accepted record pin`);
+  }
+  return pinned;
+}
+
 async function sha256Hex(bytes: Uint8Array): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", bytes.buffer as ArrayBuffer);
   return [...new Uint8Array(digest)].map((v) => v.toString(16).padStart(2, "0")).join("");
@@ -23,8 +44,25 @@ const registry = {
   runnerSha256: await hashFile("public/demo-runner.js"),
   workerSha256: await hashFile("public/demo-worker.js"),
   assetsManifestSha256: await hashFile("public/demo-assets/audio/manifest.json"),
-  // Key order is fixed for byte-stable output.
-  demos: existing.demos,
+  // Key order is fixed for byte-stable output. Each demo gains the
+  // build-manifest byte pin copied from its accepted run record.
+  demos: await Promise.all(
+    existing.demos.map(async (demo: Record<string, unknown>) => ({
+      slug: demo.slug,
+      entryId: demo.entryId,
+      route: demo.route,
+      title: demo.title,
+      wasmPath: demo.wasmPath,
+      referencePath: demo.referencePath,
+      manifestPaths: demo.manifestPaths,
+      buildManifestSha256: await acceptedBuildManifestHash(demo.slug as string),
+      frozenHashes: demo.frozenHashes,
+      memoryPages: demo.memoryPages,
+      timeoutMs: demo.timeoutMs,
+      modes: demo.modes,
+      targets: demo.targets,
+    })),
+  ),
 };
 const ordered = {
   schemaVersion: registry.schemaVersion,

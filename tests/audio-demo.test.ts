@@ -47,6 +47,7 @@ Deno.test("audio demo registry is closed and truthful", async () => {
     JSON.stringify([...SLUGS].sort()),
   );
   const expectedKeys = [
+    "buildManifestSha256",
     "entryId",
     "frozenHashes",
     "manifestPaths",
@@ -75,6 +76,18 @@ Deno.test("audio demo registry is closed and truthful", async () => {
     const referencePath = `public${demo.referencePath}`;
     assertEquals(await sha256Hex(await readBytes(referencePath)), hashes.referenceSha256);
     const buildManifest = await readJson(`public${(demo.manifestPaths as string[])[0]}`);
+    // The registry pin equals both the accepted record's pin and the served
+    // build-manifest bytes.
+    const acceptedRecord = await readJson(
+      `public/evidence/v2-proposals/${demo.slug}/js-controlled.json`,
+    ) as Record<string, unknown>;
+    const acceptedManifests = (acceptedRecord.provenance as Record<string, unknown>)
+      .manifests as Record<string, Record<string, unknown>>;
+    assertEquals(demo.buildManifestSha256, acceptedManifests.build.sha256);
+    assertEquals(
+      demo.buildManifestSha256,
+      await sha256Hex(await readBytes(`public/artifacts/${demo.slug}/build-manifest.json`)),
+    );
     const variants = buildManifest.variants as Record<string, Record<string, string>>;
     assertEquals(
       await sha256Hex(await readBytes(wasmPath)),
@@ -264,6 +277,33 @@ Deno.test("retained browser validation evidence is complete and passing", async 
     }
   }
   assertEquals(runs.filter((run) => run.mode === "lifecycle").length, 1);
+  // The lifecycle-injection record is REQUIRED, not validated-if-present.
+  const injectionRuns = runs.filter((run) => run.mode === "lifecycle-injection");
+  assertEquals(injectionRuns.length, 1);
+  for (
+    const required of [
+      "wrongTokenMessageIgnored",
+      "staleErrorIgnored",
+      "runCompletedDespiteInjections",
+      "workerActiveBeforePagehide",
+      "pagehideTerminatesWorker",
+    ]
+  ) {
+    assert(
+      (injectionRuns[0].checks as Record<string, boolean>)[required] === true,
+      `lifecycle-injection check ${required}`,
+    );
+  }
+  // The served page bytes are anchored to the non-served reviewed trust root.
+  const pins = await readJson("tests/audio-demo-page-pins.json");
+  const pageHashes = validation.pageHashes as Record<string, string>;
+  for (const slug of SLUGS) {
+    assertEquals(pageHashes[slug], (pins.pages as Record<string, string>)[slug]);
+  }
+  assertEquals(
+    pins.registrySha256,
+    await sha256Hex(await readBytes("public/demo-registry.json")),
+  );
   const consoleLog = new TextDecoder().decode(await readBytes(`${base}/console.jsonl`));
   for (const line of consoleLog.trim().split("\n")) {
     if (!line) continue;
@@ -312,7 +352,7 @@ Deno.test("audio demo registry and pages regenerate byte-identically", async () 
     args: [
       "run",
       "--allow-read=.",
-      "--allow-write=public/benchmarks",
+      "--allow-write=public/benchmarks,tests/audio-demo-page-pins.json",
       "--allow-run",
       "scripts/build-audio-demo-pages.ts",
     ],

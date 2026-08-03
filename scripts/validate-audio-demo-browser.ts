@@ -22,6 +22,7 @@ const ENGINES = ["javascript", "wasm-linear"] as const;
 const consoleLog: string[] = [];
 const networkLog: string[] = [];
 const runRecords: Record<string, unknown>[] = [];
+const pageHashes: Record<string, string> = {};
 
 function fail(message: string): never {
   throw new Error(message);
@@ -242,6 +243,16 @@ try {
 
   // Cancel + stale-token lifecycle on the STFT route (the longest run)
   // with trusted input: cancel as soon as the run is observably active.
+  for (const slug of ROUTES) {
+    // Record the served page byte hash for the non-served trust root.
+    const pageResponse = await fetch(`${BASE}/benchmarks/${slug}/`);
+    const pageBytes = new Uint8Array(await pageResponse.arrayBuffer());
+    const pageDigest = await crypto.subtle.digest("SHA-256", pageBytes.buffer as ArrayBuffer);
+    pageHashes[slug] = [...new Uint8Array(pageDigest)]
+      .map((v) => v.toString(16).padStart(2, "0"))
+      .join("");
+  }
+
   const route = `${BASE}/benchmarks/audio-stft/`;
   await send("Page.navigate", { url: route });
   await waitFor(async () => (await evaluate(`document.readyState`)) === "complete", 15_000, "load");
@@ -365,9 +376,10 @@ try {
           launchArguments,
         },
         server: { task: "public", base: BASE, mode: "public-read-only" },
+        pageHashes,
         runs: runRecords,
         networkScope:
-          "page and worker-script requests; worker-internal fetches are proven byte-exactly by the per-run exact-contract assertions, which hash the raw served bytes of all five manifests, all seven engine modules, the registry, the runner, the worker, the Wasm artifact, and the reference artifact",
+          "page and worker-script requests; worker-internal fetches are proven byte-exactly by the per-run exact-contract assertions, which hash the raw served bytes of all five manifests (the build manifest anchored to its accepted-record pin via the registry), all seven engine modules, the registry (the same response that drives execution), the runner, the worker, the Wasm artifact, and the reference artifact; page bytes are anchored to the non-served reviewed pins in tests/audio-demo-page-pins.json",
         consoleEvents: consoleLog.length,
         networkEvents: networkLog.length,
       },

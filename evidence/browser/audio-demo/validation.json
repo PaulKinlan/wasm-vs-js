@@ -9,7 +9,7 @@
     "launchArguments": [
       "--headless=new",
       "--remote-debugging-port=0",
-      "--user-data-dir=/tmp/audio-demo-browser-da540aeca5eccdf7",
+      "--user-data-dir=/tmp/audio-demo-browser-dc02d9cff4e5ecb6",
       "--no-first-run",
       "--no-default-browser-check",
       "--disable-sync",
@@ -21,12 +21,17 @@
   },
   "server": {
     "task": "public",
-    "base": "http://127.0.0.1:45335",
+    "base": "http://127.0.0.1:46645",
     "mode": "public-read-only"
+  },
+  "pageHashes": {
+    "audio-fft": "dc8fc4ed932c80d72540b344f3a277117c4e685ca005baba3b8340c33dc5b1fb",
+    "audio-fir": "35880c5eaf34fa6b8b90640e8f9c25fdeef96fe248b1e424f4141897ee109339",
+    "audio-stft": "5c26edba3defb3638c2fc6a73e3c805078184df9fdd14b294ba5b9493fd21d76"
   },
   "runs": [
     {
-      "route": "http://127.0.0.1:45335/benchmarks/audio-fft/",
+      "route": "http://127.0.0.1:46645/benchmarks/audio-fft/",
       "engine": "javascript",
       "mode": "exact-contract",
       "assertions": {
@@ -41,6 +46,7 @@
           "work-counters: passed"
         ],
         "contractItems": [
+          "build manifest bytes match accepted-record pin: verified — 6e160e3888e87b078e7ef701e4cbdcc97073685069188f542c8f7e6c6df2c454",
           "subordinate manifest bytes: verified — 4/4 raw manifest byte hashes equal the build-manifest recorded hashes",
           "served engine modules: verified — 7/7 modules hash-verified and anchored to the accepted-commit source graph",
           "reference artifact hash: verified — 0432b81e06b48343… hashed from served bytes; agreement across reference-manifest, build-manifest, registry, and served constants",
@@ -52,9 +58,9 @@
           "fixed memory relationship: verified — registry 32 pages == served AUDIO_MEMORY_PAGES 32",
           "fixture manifest identity: verified — all manifests name the same entry ID and slug as the registry",
           "runner served bytes: verified — a17aca4b853ff44f… hashed from served bytes against the registry pin",
-          "worker served bytes: verified — 4df1be812f674484… hashed from served bytes against the registry pin",
+          "worker served bytes: verified — 4bd92df0c250ede2… hashed from served bytes against the registry pin",
           "assets manifest bytes: verified — 373e98f859c59af6… hashed from served bytes against the registry pin",
-          "registry byte hash anchored in page: verified — registry 759ecccbd8237cab… hashed from served bytes equals the page-embedded pin",
+          "registry byte hash anchored in page: verified — registry 55a59f4812c0733f… hashed from served bytes equals the page-embedded pin",
           "registry frozen hashes: verified — registry frozen hashes equal the served constants module values for all three demos"
         ],
         "counterRows": 8,
@@ -70,7 +76,7 @@
       }
     },
     {
-      "route": "http://127.0.0.1:45335/benchmarks/audio-fft/",
+      "route": "http://127.0.0.1:46645/benchmarks/audio-fft/",
       "engine": "wasm-linear",
       "mode": "exact-contract",
       "assertions": {
@@ -85,6 +91,7 @@
           "work-counters: passed"
         ],
         "contractItems": [
+          "build manifest bytes match accepted-record pin: verified — 6e160e3888e87b078e7ef701e4cbdcc97073685069188f542c8f7e6c6df2c454",
           "subordinate manifest bytes: verified — 4/4 raw manifest byte hashes equal the build-manifest recorded hashes",
           "served engine modules: verified — 7/7 modules hash-verified and anchored to the accepted-commit source graph",
           "reference artifact hash: verified — 0432b81e06b48343… hashed from served bytes; agreement across reference-manifest, build-manifest, registry, and served constants",
@@ -96,9 +103,9 @@
           "fixed memory relationship: verified — registry 32 pages == served AUDIO_MEMORY_PAGES 32",
           "fixture manifest identity: verified — all manifests name the same entry ID and slug as the registry",
           "runner served bytes: verified — a17aca4b853ff44f… hashed from served bytes against the registry pin",
-          "worker served bytes: verified — 4df1be812f674484… hashed from served bytes against the registry pin",
+          "worker served bytes: verified — 4bd92df0c250ede2… hashed from served bytes against the registry pin",
           "assets manifest bytes: verified — 373e98f859c59af6… hashed from served bytes against the registry pin",
-          "registry byte hash anchored in page: verified — registry 759ecccbd8237cab… hashed from served bytes equals the page-embedded pin",
+          "registry byte hash anchored in page: verified — registry 55a59f4812c0733f… hashed from served bytes equals the page-embedded pin",
           "registry frozen hashes: verified — registry frozen hashes equal the served constants module values for all three demos"
         ],
         "counterRows": 8,
@@ -114,7 +121,7 @@
       }
     },
     {
-      "route": "http://127.0.0.1:45335/benchmarks/audio-fir/",
+      "route": "http://127.0.0.1:46645/benchmarks/audio-fir/",
       "engine": "javascript",
       "mode": "exact-contract",
       "assertions": {
@@ -128,6 +135,7 @@
           "structural-invariants: passed"
         ],
         "contractItems": [
+          "build manifest bytes match accepted-record pin: verified — f5a848a63248a5f3055c0fff4415e9442ca1184268e2301a553c98b211b7f0e8",
           "subordinate manifest bytes: verified — 4/4 raw manifest byte hashes equal the build-manifest recorded hashes",
           "served engine modules: verified — 7/7 modules hash-verified and anchored to the accepted-commit source graph",
           "reference artifact hash: verified — 3146faf58d2eecd4… hashed from served bytes; agreement across reference-manifest, build-manifest, registry, and served constants",
@@ -139,9 +147,9 @@
           "fixed memory relationship: verified — registry 32 pages == served AUDIO_MEMORY_PAGES 32",
           "fixture manifest identity: verified — all manifests name the same entry ID and slug as the registry",
           "runner served bytes: verified — a17aca4b853ff44f… hashed from served bytes against the registry pin",
-          "worker served bytes: verified — 4df1be812f674484… hashed from served bytes against the registry pin",
+          "worker served bytes: verified — 4bd92df0c250ede2… hashed from served bytes against the registry pin",
           "assets manifest bytes: verified — 373e98f859c59af6… hashed from served bytes against the registry pin",
-          "registry byte hash anchored in page: verified — registry 759ecccbd8237cab… hashed from served bytes equals the page-embedded pin",
+          "registry byte hash anchored in page: verified — registry 55a59f4812c0733f… hashed from served bytes equals the page-embedded pin",
           "registry frozen hashes: verified — registry frozen hashes equal the served constants module values for all three demos"
         ],
         "counterRows": 8,
@@ -157,7 +165,7 @@
       }
     },
     {
-      "route": "http://127.0.0.1:45335/benchmarks/audio-fir/",
+      "route": "http://127.0.0.1:46645/benchmarks/audio-fir/",
       "engine": "wasm-linear",
       "mode": "exact-contract",
       "assertions": {
@@ -171,6 +179,7 @@
           "structural-invariants: passed"
         ],
         "contractItems": [
+          "build manifest bytes match accepted-record pin: verified — f5a848a63248a5f3055c0fff4415e9442ca1184268e2301a553c98b211b7f0e8",
           "subordinate manifest bytes: verified — 4/4 raw manifest byte hashes equal the build-manifest recorded hashes",
           "served engine modules: verified — 7/7 modules hash-verified and anchored to the accepted-commit source graph",
           "reference artifact hash: verified — 3146faf58d2eecd4… hashed from served bytes; agreement across reference-manifest, build-manifest, registry, and served constants",
@@ -182,9 +191,9 @@
           "fixed memory relationship: verified — registry 32 pages == served AUDIO_MEMORY_PAGES 32",
           "fixture manifest identity: verified — all manifests name the same entry ID and slug as the registry",
           "runner served bytes: verified — a17aca4b853ff44f… hashed from served bytes against the registry pin",
-          "worker served bytes: verified — 4df1be812f674484… hashed from served bytes against the registry pin",
+          "worker served bytes: verified — 4bd92df0c250ede2… hashed from served bytes against the registry pin",
           "assets manifest bytes: verified — 373e98f859c59af6… hashed from served bytes against the registry pin",
-          "registry byte hash anchored in page: verified — registry 759ecccbd8237cab… hashed from served bytes equals the page-embedded pin",
+          "registry byte hash anchored in page: verified — registry 55a59f4812c0733f… hashed from served bytes equals the page-embedded pin",
           "registry frozen hashes: verified — registry frozen hashes equal the served constants module values for all three demos"
         ],
         "counterRows": 8,
@@ -200,7 +209,7 @@
       }
     },
     {
-      "route": "http://127.0.0.1:45335/benchmarks/audio-stft/",
+      "route": "http://127.0.0.1:46645/benchmarks/audio-stft/",
       "engine": "javascript",
       "mode": "exact-contract",
       "assertions": {
@@ -214,6 +223,7 @@
           "structural-invariants: passed"
         ],
         "contractItems": [
+          "build manifest bytes match accepted-record pin: verified — 0ae1be1bfa87492b1b3c3dc9cfe0f946bdc421a547825685e4ee014976ebc108",
           "subordinate manifest bytes: verified — 4/4 raw manifest byte hashes equal the build-manifest recorded hashes",
           "served engine modules: verified — 7/7 modules hash-verified and anchored to the accepted-commit source graph",
           "reference artifact hash: verified — 3bae7479e79489d8… hashed from served bytes; agreement across reference-manifest, build-manifest, registry, and served constants",
@@ -225,9 +235,9 @@
           "fixed memory relationship: verified — registry 64 pages == served AUDIO_MEMORY_PAGES 64",
           "fixture manifest identity: verified — all manifests name the same entry ID and slug as the registry",
           "runner served bytes: verified — a17aca4b853ff44f… hashed from served bytes against the registry pin",
-          "worker served bytes: verified — 4df1be812f674484… hashed from served bytes against the registry pin",
+          "worker served bytes: verified — 4bd92df0c250ede2… hashed from served bytes against the registry pin",
           "assets manifest bytes: verified — 373e98f859c59af6… hashed from served bytes against the registry pin",
-          "registry byte hash anchored in page: verified — registry 759ecccbd8237cab… hashed from served bytes equals the page-embedded pin",
+          "registry byte hash anchored in page: verified — registry 55a59f4812c0733f… hashed from served bytes equals the page-embedded pin",
           "registry frozen hashes: verified — registry frozen hashes equal the served constants module values for all three demos"
         ],
         "counterRows": 8,
@@ -243,7 +253,7 @@
       }
     },
     {
-      "route": "http://127.0.0.1:45335/benchmarks/audio-stft/",
+      "route": "http://127.0.0.1:46645/benchmarks/audio-stft/",
       "engine": "wasm-linear",
       "mode": "exact-contract",
       "assertions": {
@@ -257,6 +267,7 @@
           "structural-invariants: passed"
         ],
         "contractItems": [
+          "build manifest bytes match accepted-record pin: verified — 0ae1be1bfa87492b1b3c3dc9cfe0f946bdc421a547825685e4ee014976ebc108",
           "subordinate manifest bytes: verified — 4/4 raw manifest byte hashes equal the build-manifest recorded hashes",
           "served engine modules: verified — 7/7 modules hash-verified and anchored to the accepted-commit source graph",
           "reference artifact hash: verified — 3bae7479e79489d8… hashed from served bytes; agreement across reference-manifest, build-manifest, registry, and served constants",
@@ -268,9 +279,9 @@
           "fixed memory relationship: verified — registry 64 pages == served AUDIO_MEMORY_PAGES 64",
           "fixture manifest identity: verified — all manifests name the same entry ID and slug as the registry",
           "runner served bytes: verified — a17aca4b853ff44f… hashed from served bytes against the registry pin",
-          "worker served bytes: verified — 4df1be812f674484… hashed from served bytes against the registry pin",
+          "worker served bytes: verified — 4bd92df0c250ede2… hashed from served bytes against the registry pin",
           "assets manifest bytes: verified — 373e98f859c59af6… hashed from served bytes against the registry pin",
-          "registry byte hash anchored in page: verified — registry 759ecccbd8237cab… hashed from served bytes equals the page-embedded pin",
+          "registry byte hash anchored in page: verified — registry 55a59f4812c0733f… hashed from served bytes equals the page-embedded pin",
           "registry frozen hashes: verified — registry frozen hashes equal the served constants module values for all three demos"
         ],
         "counterRows": 8,
@@ -286,7 +297,7 @@
       }
     },
     {
-      "route": "http://127.0.0.1:45335/benchmarks/audio-stft/",
+      "route": "http://127.0.0.1:46645/benchmarks/audio-stft/",
       "engine": "javascript",
       "mode": "lifecycle",
       "checks": {
@@ -298,7 +309,7 @@
       }
     },
     {
-      "route": "http://127.0.0.1:45335/benchmarks/audio-stft/",
+      "route": "http://127.0.0.1:46645/benchmarks/audio-stft/",
       "engine": "javascript",
       "mode": "lifecycle-injection",
       "checks": {
@@ -310,7 +321,7 @@
       }
     }
   ],
-  "networkScope": "page and worker-script requests; worker-internal fetches are proven byte-exactly by the per-run exact-contract assertions, which hash the raw served bytes of all five manifests, all seven engine modules, the registry, the runner, the worker, the Wasm artifact, and the reference artifact",
+  "networkScope": "page and worker-script requests; worker-internal fetches are proven byte-exactly by the per-run exact-contract assertions, which hash the raw served bytes of all five manifests (the build manifest anchored to its accepted-record pin via the registry), all seven engine modules, the registry (the same response that drives execution), the runner, the worker, the Wasm artifact, and the reference artifact; page bytes are anchored to the non-served reviewed pins in tests/audio-demo-page-pins.json",
   "consoleEvents": 16,
   "networkEvents": 61
 }
