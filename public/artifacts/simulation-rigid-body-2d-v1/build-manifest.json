@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "registrationId": "simulation-rigid-body-2d-v1-controlled",
-  "sourceCommit": "uncommitted-candidate",
+  "sourceCommit": "0e21aa575cf21aa21395fa531eb97c74e2c58027",
   "toolchain": {
     "deno": "2.9.0",
     "clang": "clang version 22.1.8",
@@ -57,6 +57,6 @@
     "bytes": 5356,
     "sha256": "29759e3438a541edf6432412438efdcdee7488b73bb83578eb4657b25d442975"
   },
-  "fixtureManifestSha256": "2d2346d6a3539b3c97522dc01a4d7f4605b9f0a0524dd4da5bc1833a79a29210",
+  "fixtureManifestSha256": "c38ec24b9f0f6fcb94d57d9b509bf53765fefeb05033b790dedf994cb58f57ed",
   "outputManifestSha256": "10ec6b8d06aa53c4a30007726653dd10c6aa501507efd411882eab24db665642"
 }
