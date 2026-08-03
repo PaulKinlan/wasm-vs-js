@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "status": "proposal-validation-only",
+  "workload": {
+    "entryId": "game.canvas-arcade.v1",
+    "familyId": "game-v2-controlled-family"
+  },
+  "variant": {
+    "id": "js-controlled",
+    "executionTarget": "javascript"
+  },
+  "input": {
+    "bytes": 14424,
+    "sha256": "fd58ad78008171e86ee187483661e929a693b6c8f5e9bf6ca01430f4ed09054c"
+  },
+  "oracle": {
+    "policy": "exact",
+    "digest": "2731e61d",
+    "fixtureDigest": "b06b53ef",
+    "semanticDigest": "87695460",
+    "checkpoints": [
+      {
+        "frame": 600,
+        "digest": "6ee05dbb"
+      },
+      {
+        "frame": 1200,
+        "digest": "e4be579a"
+      },
+      {
+        "frame": 1800,
+        "digest": "8c92dd5c"
+      },
+      {
+        "frame": 2400,
+        "digest": "76624fbe"
+      },
+      {
+        "frame": 3000,
+        "digest": "20f69b7e"
+      },
+      {
+        "frame": 3600,
+        "digest": "87695460"
+      }
+    ],
+    "visual": {
+      "x": 409,
+      "y": 694,
+      "score": 880,
+      "lives": 0,
+      "entities": 32
+    }
+  },
+  "counters": {
+    "frames": 3600,
+    "entityUpdates": 169501,
+    "collisionTests": 169501,
+    "drawCommands": 176701,
+    "audioEvents": 91,
+    "inputBytes": 14424,
+    "outputBytes": 68,
+    "boundaryCrossings": 2
+  },
+  "validation": {
+    "completeOutput": "pass",
+    "structuralInvariants": "pass",
+    "workCounters": "pass",
+    "crossTargetEquivalence": "pass"
+  },
+  "timing": {
+    "status": "not-collected",
+    "reason": "This deterministic proposal-validation record does not collect durations."
+  },
+  "performanceClaims": []
+}
