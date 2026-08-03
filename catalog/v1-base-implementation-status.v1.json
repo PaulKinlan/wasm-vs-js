@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "ledgerId": "frozen-v1-supplemental-implementation-status",
+  "status": "descriptive-candidate-status-not-accepted-catalog",
+  "frozenCatalog": {
+    "path": "catalog/workloads.v1.json",
+    "publicPath": "public/data/workloads.v1.json",
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+    "immutable": "byte-for-byte",
+    "entryCount": 38
+  },
+  "coverage": {
+    "acceptedImplementedEntries": 0,
+    "denominator": 38,
+    "candidatePackages": 1,
+    "statement": "This candidate does not change 0/38 until exact-commit independent review and retained browser acceptance pass."
+  },
+  "entries": [
+    {
+      "id": "text.gc-document-edit.v1",
+      "registrationId": "text.gc-document-edit.v1-supplemental-registration-v1",
+      "maturity": "complete-local-correctness-candidate-awaiting-browser-and-independent-review",
+      "targets": [
+        "javascript",
+        "wasmgc"
+      ],
+      "fixedWork": {
+        "initialNodes": 256,
+        "operations": 10000,
+        "inserts": 3334,
+        "deletes": 3333,
+        "reparents": 3333
+      },
+      "fixture": {
+        "path": "public/artifacts/text-gc-document-edit/fixture.v1.txt",
+        "manifest": "public/artifacts/text-gc-document-edit/fixture-manifest.json",
+        "sha256": "45b117b798a6b35f42a3b5a541f5112bb7100510735e17650fee11ee6c8d6075"
+      },
+      "buildManifest": {
+        "path": "public/artifacts/text-gc-document-edit/build-manifest.json",
+        "sha256": "3b2bb94f8f34f0e5f163c14c003fed6b3a67f933b39324dffa94302527187dbe"
+      },
+      "records": [
+        "public/evidence/v1-base/text-gc-document-edit/js-controlled.json",
+        "public/evidence/v1-base/text-gc-document-edit/wasmgc-controlled.json"
+      ],
+      "interactiveDemo": {
+        "route": "/demos/text.gc-document-edit.v1/",
+        "status": "implemented-awaiting-browser-evidence"
+      },
+      "browserEvidence": {
+        "status": "unavailable",
+        "reason": "Delegated implementation scope explicitly prohibited Chrome; browser evidence must be collected by the authoritative controller."
+      }
+    }
+  ]
+}

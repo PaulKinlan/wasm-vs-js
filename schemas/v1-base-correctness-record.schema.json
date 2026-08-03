@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.example/schemas/v1-base-correctness-record.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "registrationId",
+    "workloadId",
+    "status",
+    "fixedWork",
+    "oracle",
+    "anchors",
+    "gcDiagnostics",
+    "performanceClaim",
+    "variant",
+    "target",
+    "passed",
+    "counters",
+    "identity",
+    "wasmGcFeatureProof"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "registrationId": { "type": "string", "minLength": 1 },
+    "workloadId": { "const": "text.gc-document-edit.v1" },
+    "status": { "const": "correctness-validation-candidate-not-performance-result" },
+    "variant": { "enum": ["js-controlled", "wasmgc-controlled"] },
+    "target": { "enum": ["javascript", "wasmgc"] },
+    "passed": { "const": true },
+    "performanceClaim": { "type": "null" },
+    "fixedWork": { "$ref": "#/$defs/fixedWork" },
+    "oracle": { "$ref": "#/$defs/oracle" },
+    "anchors": { "$ref": "#/$defs/anchors" },
+    "gcDiagnostics": { "$ref": "#/$defs/unavailable" },
+    "counters": { "$ref": "#/$defs/counters" },
+    "identity": { "$ref": "#/$defs/identity" },
+    "wasmGcFeatureProof": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["executed", "result", "export", "compilerTarget"],
+          "properties": {
+            "executed": { "const": true },
+            "result": { "const": "0:array-backed child:1" },
+            "export": { "const": "wasmGcFeatureProof" },
+            "compilerTarget": { "type": "string", "minLength": 1 }
+          }
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "nonNegative": { "type": "integer", "minimum": 0 },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "fixedWork": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["initialNodes", "operations", "inserts", "deletes", "reparents"],
+      "properties": {
+        "initialNodes": { "const": 256 },
+        "operations": { "const": 10000 },
+        "inserts": { "const": 3334 },
+        "deletes": { "const": 3333 },
+        "reparents": { "const": 3333 }
+      }
+    },
+    "oracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "equivalenceClass",
+        "algorithmFamily",
+        "canonicalSha256",
+        "canonicalBytes",
+        "fullOutputCompared",
+        "allNodeIdsAndParentChildLinksChecked"
+      ],
+      "properties": {
+        "kind": { "const": "canonical-semantic" },
+        "equivalenceClass": { "const": "semantic-product-choice" },
+        "algorithmFamily": { "const": "document-tree-fixed-edit-trace" },
+        "canonicalSha256": { "$ref": "#/$defs/sha256" },
+        "canonicalBytes": { "const": 7775 },
+        "fullOutputCompared": { "const": true },
+        "allNodeIdsAndParentChildLinksChecked": { "const": true }
+      }
+    },
+    "anchors": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fixtureSha256",
+        "fixtureManifestSha256",
+        "buildManifestSha256",
+        "referenceSha256"
+      ],
+      "properties": {
+        "fixtureSha256": { "$ref": "#/$defs/sha256" },
+        "fixtureManifestSha256": { "$ref": "#/$defs/sha256" },
+        "buildManifestSha256": { "$ref": "#/$defs/sha256" },
+        "referenceSha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "unavailable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reason"],
+      "properties": {
+        "status": { "const": "unavailable" },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "initial-nodes",
+        "operations",
+        "inserts",
+        "deletes",
+        "reparents",
+        "final-nodes",
+        "child-insertions",
+        "child-removals",
+        "parent-writes",
+        "node-object-allocations",
+        "child-list-allocations",
+        "label-values",
+        "traversal-nodes",
+        "boundary-crossings"
+      ],
+      "properties": {
+        "initial-nodes": { "const": 256 },
+        "operations": { "const": 10000 },
+        "inserts": { "const": 3334 },
+        "deletes": { "const": 3333 },
+        "reparents": { "const": 3333 },
+        "final-nodes": { "const": 257 },
+        "child-insertions": { "const": 6922 },
+        "child-removals": { "const": 6666 },
+        "parent-writes": { "const": 10255 },
+        "node-object-allocations": { "const": 3590 },
+        "child-list-allocations": { "const": 3590 },
+        "label-values": { "const": 3590 },
+        "traversal-nodes": { "const": 257 },
+        "boundary-crossings": { "enum": [0, 2] }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rootId",
+        "reachableNodes",
+        "uniqueNodeIds",
+        "parentChildLinksValid",
+        "orderedChildrenRetained"
+      ],
+      "properties": {
+        "rootId": { "const": 0 },
+        "reachableNodes": { "const": 257 },
+        "uniqueNodeIds": { "const": 257 },
+        "parentChildLinksValid": { "const": true },
+        "orderedChildrenRetained": { "const": true }
+      }
+    }
+  }
+}

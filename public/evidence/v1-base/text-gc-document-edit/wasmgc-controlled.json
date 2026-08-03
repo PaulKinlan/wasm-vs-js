@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "registrationId": "text.gc-document-edit.v1-supplemental-registration-v1",
+  "workloadId": "text.gc-document-edit.v1",
+  "status": "correctness-validation-candidate-not-performance-result",
+  "fixedWork": {
+    "initialNodes": 256,
+    "operations": 10000,
+    "inserts": 3334,
+    "deletes": 3333,
+    "reparents": 3333
+  },
+  "oracle": {
+    "kind": "canonical-semantic",
+    "equivalenceClass": "semantic-product-choice",
+    "algorithmFamily": "document-tree-fixed-edit-trace",
+    "canonicalSha256": "40e55287bfd9486ef258602766e7c839e2ad77ba7f52b843117607132a6fd0c4",
+    "canonicalBytes": 7775,
+    "fullOutputCompared": true,
+    "allNodeIdsAndParentChildLinksChecked": true
+  },
+  "anchors": {
+    "fixtureSha256": "45b117b798a6b35f42a3b5a541f5112bb7100510735e17650fee11ee6c8d6075",
+    "fixtureManifestSha256": "8b4145b0d91f6eb086e7c3cabe1bf1bb9a647c9e7771ad0f824005141ebe5681",
+    "buildManifestSha256": "3b2bb94f8f34f0e5f163c14c003fed6b3a67f933b39324dffa94302527187dbe",
+    "referenceSha256": "4b38bffbe6c4f9787a4d629ccbd363ebc52318195f5141dde55011333582b695"
+  },
+  "gcDiagnostics": {
+    "status": "unavailable",
+    "reason": "Portable GC events and runtime-internal allocation counts are not exposed by the Web platform."
+  },
+  "performanceClaim": null,
+  "variant": "wasmgc-controlled",
+  "target": "wasmgc",
+  "passed": true,
+  "counters": {
+    "initial-nodes": 256,
+    "operations": 10000,
+    "inserts": 3334,
+    "deletes": 3333,
+    "reparents": 3333,
+    "final-nodes": 257,
+    "child-insertions": 6922,
+    "child-removals": 6666,
+    "parent-writes": 10255,
+    "node-object-allocations": 3590,
+    "child-list-allocations": 3590,
+    "label-values": 3590,
+    "traversal-nodes": 257,
+    "boundary-crossings": 2
+  },
+  "identity": {
+    "rootId": 0,
+    "reachableNodes": 257,
+    "uniqueNodeIds": 257,
+    "parentChildLinksValid": true,
+    "orderedChildrenRetained": true
+  },
+  "wasmGcFeatureProof": {
+    "executed": true,
+    "result": "0:array-backed child:1",
+    "export": "wasmGcFeatureProof",
+    "compilerTarget": "Kotlin 2.3.21 wasmJs production executable"
+  }
+}
