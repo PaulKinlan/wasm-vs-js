@@ -9,6 +9,7 @@ export interface RegexScanResult {
   patternsExecuted: number;
   matchesFound: number;
   capturesExtracted: number;
+  boundaryCrossings: number;
   oracleHash: string;
   phases: {
     compileMs: number;
@@ -65,6 +66,7 @@ export async function scanNativeRegExp(fixture: RegexFixture): Promise<RegexScan
     patternsExecuted: fixture.patterns.length,
     matchesFound: matches.length,
     capturesExtracted,
+    boundaryCrossings: 0,
     oracleHash,
     phases: {
       compileMs: endCompile - startCompile,

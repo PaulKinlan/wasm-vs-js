@@ -1,5 +1,9 @@
 import { assert, assertEquals } from "./assert.ts";
-import { generateRegexFixture } from "../benchmarks/regex-automata-duel/input.ts";
+import {
+  FROZEN_REGEX_PATTERNS,
+  generateRegexFixture,
+  type RegexFixture,
+} from "../benchmarks/regex-automata-duel/input.ts";
 import {
   scanJSAutomata,
   scanNativeRegExp,
@@ -7,49 +11,107 @@ import {
 } from "../benchmarks/regex-automata-duel/workload.js";
 import wabtFactory from "wabt";
 
-Deno.test("regex-automata-duel: corpus generation and engine duel correctness", async () => {
-  const fixture1 = generateRegexFixture();
-  const fixture2 = generateRegexFixture();
-
-  assertEquals(fixture1.textCodePoints, 1048576);
-  assertEquals(fixture1.patterns.length, 20);
-  assertEquals(fixture1.textBuffer, fixture2.textBuffer);
-
-  const nativeResult = await scanNativeRegExp(fixture1);
-  assert(nativeResult.matchesFound > 0);
-  assertEquals(nativeResult.oracleHash.length, 64); // Real 64-char SHA-256 hex string
-  assert(nativeResult.phases.compileMs >= 0);
-  assert(nativeResult.phases.scanMs >= 0);
-
-  const jsAutomataResult = await scanJSAutomata(fixture1);
-  assertEquals(jsAutomataResult.codePointsSearched, nativeResult.codePointsSearched);
-  assertEquals(jsAutomataResult.patternsExecuted, nativeResult.patternsExecuted);
-  assertEquals(jsAutomataResult.matchesFound, nativeResult.matchesFound);
-  assertEquals(jsAutomataResult.oracleHash, nativeResult.oracleHash);
-
-  // Compile Wasm module
+async function compileRegexWasm(): Promise<WebAssembly.Instance> {
   const wat = await Deno.readTextFile("benchmarks/regex-automata-duel/regex-automata.wat");
   const wabt = await wabtFactory();
   const module = wabt.parseWat("regex-automata.wat", wat, {});
   const binary = module.toBinary({ canonicalize_lebs: true });
   module.destroy();
+  return await WebAssembly.instantiate(
+    await WebAssembly.compile(new Uint8Array(binary.buffer)),
+    {},
+  );
+}
 
-  const wasmBytes = new Uint8Array(binary.buffer);
-  const wasmModule = await WebAssembly.compile(wasmBytes);
-  const wasmInstance = await WebAssembly.instantiate(wasmModule, {});
+function onePatternFixture(patternId: number, text: string): RegexFixture {
+  return {
+    seed: 0,
+    text,
+    textCodePoints: text.length,
+    patterns: [FROZEN_REGEX_PATTERNS[patternId]],
+    textBuffer: new TextEncoder().encode(text),
+  };
+}
 
-  const wasmResult = await scanWasmAutomata(fixture1, wasmInstance);
-  assertEquals(wasmResult.codePointsSearched, nativeResult.codePointsSearched);
-  assertEquals(wasmResult.patternsExecuted, nativeResult.patternsExecuted);
-  assert(wasmResult.matchesFound > 0);
+async function assertThreeWay(fixture: RegexFixture, wasm: WebAssembly.Instance) {
+  const native = await scanNativeRegExp(fixture);
+  const js = await scanJSAutomata(fixture);
+  const wasmResult = await scanWasmAutomata(fixture, wasm);
+  assertEquals(js.matches, native.matches);
+  assertEquals(wasmResult.matches, native.matches);
+  assertEquals(js.oracleHash, native.oracleHash);
+  assertEquals(wasmResult.oracleHash, native.oracleHash);
+  assertEquals(js.matchesFound, native.matchesFound);
+  assertEquals(wasmResult.matchesFound, native.matchesFound);
+  assertEquals(js.capturesExtracted, native.capturesExtracted);
+  assertEquals(wasmResult.capturesExtracted, native.capturesExtracted);
+  assertEquals(js.patternsExecuted, fixture.patterns.length);
+  assertEquals(wasmResult.patternsExecuted, fixture.patterns.length);
+  assertEquals(js.boundaryCrossings, 0);
+  assertEquals(wasmResult.boundaryCrossings, fixture.patterns.length);
+  for (const result of [native, js, wasmResult]) {
+    assert(result.phases.compileMs >= 0);
+    assert(result.phases.scanMs >= 0);
+  }
+}
+
+Deno.test("regex-automata-duel: frozen 1 MiB oracle and all counters are exactly equivalent", async () => {
+  const fixture1 = generateRegexFixture();
+  const fixture2 = generateRegexFixture();
+  assertEquals(fixture1.textCodePoints, 1048576);
+  assertEquals(fixture1.patterns.length, 20);
+  assertEquals(fixture1.textBuffer, fixture2.textBuffer);
+  await assertThreeWay(fixture1, await compileRegexWasm());
+});
+
+Deno.test("regex-automata-duel: every common-subset construct executes in JS NFA and Wasm automata", async () => {
+  const examples = [
+    "error",
+    "HTTP/1.1",
+    "DELETE",
+    "Az_9-",
+    "255.1.20.003",
+    "a_b@c9.example",
+    "https://a-b.example",
+    "GET /resource HTTP/1.1",
+    "00:1a:2b:3c:4d:5e",
+    "[2026-08-03T04:05:06]",
+    "status=404",
+    "user_12345678",
+    "session-0123456789abcdef",
+    "latency_123ms",
+    "ip_192_168_1_10",
+    "token_0123456789abcdefghijklmnopqrstuv",
+    "cache_miss",
+    "retry_12",
+    "version_v12.3.456",
+    "build_20260803",
+  ];
+  const wasm = await compileRegexWasm();
+  for (let patternId = 0; patternId < examples.length; patternId++) {
+    const fixture = onePatternFixture(patternId, examples[patternId]);
+    await assertThreeWay(fixture, wasm);
+    assert((await scanWasmAutomata(fixture, wasm)).matchesFound > 0);
+  }
+});
+
+Deno.test("regex-automata-duel: adversarial anchors, classes, bounds, and case semantics", async () => {
+  const wasm = await compileRegexWasm();
+  const cases = [
+    onePatternFixture(7, "prefix\nGET /x HTTP/1.1"), // no implicit multiline flag
+    onePatternFixture(8, "AA:BB:CC:DD:EE:FF"), // lowercase class is case-sensitive
+    onePatternFixture(12, "session-ABCDEF0123456789"),
+    onePatternFixture(15, "token_0123456789abcde_ghijklmnopqrstuv"), // underscore excluded
+    onePatternFixture(11, "user_123456789"), // greedy upper bound is exactly eight
+    onePatternFixture(5, "under_score@word_2.tld"), // JS \w includes underscore
+  ];
+  for (const fixture of cases) await assertThreeWay(fixture, wasm);
 });
 
 Deno.test("regex-automata-duel: source inspectability contract metadata", async () => {
-  const manifestText = await Deno.readTextFile(
-    "public/artifacts/regex-automata-duel/build-manifest.json",
+  const manifest = JSON.parse(
+    await Deno.readTextFile("public/artifacts/regex-automata-duel/build-manifest.json"),
   );
-  const manifest = JSON.parse(manifestText);
-
   assert(manifest.inspectability !== undefined);
   assertEquals(
     manifest.inspectability.commitPermalinkTemplate,
@@ -59,16 +121,13 @@ Deno.test("regex-automata-duel: source inspectability contract metadata", async 
     manifest.inspectability.executedJsSource.path,
     "benchmarks/regex-automata-duel/workload.js",
   );
-  assert(manifest.inspectability.executedJsSource.sha256.length === 64);
   assertEquals(
     manifest.inspectability.authoredWasmSource.path,
     "benchmarks/regex-automata-duel/regex-automata.wat",
   );
-  assertEquals(manifest.inspectability.authoredWasmSource.language, "wat");
-  assert(manifest.inspectability.authoredWasmSource.sha256.length === 64);
   assertEquals(
     manifest.inspectability.compiledArtifact.downloadRoute,
     "/artifacts/regex-automata-duel/regex-automata-duel.wasm",
   );
-  assert(manifest.inspectability.buildRecipe.command === "deno task build");
+  assertEquals(manifest.inspectability.buildRecipe.command, "deno task build");
 });

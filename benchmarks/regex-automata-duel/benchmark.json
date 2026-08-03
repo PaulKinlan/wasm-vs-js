@@ -5,7 +5,9 @@
   "tier": "T1",
   "title": "JS native RegExp vs Wasm automata engine duel",
   "description": "Head-to-head evaluation of V8 Irregexp native engine vs. Thompson NFA/DFA automata search across 20 frozen safe regular expressions over a 1 MiB text corpus.",
-  "tracks": ["controlled"],
+  "tracks": [
+    "controlled"
+  ],
   "variants": [
     {
       "id": "js-native-controlled",
@@ -27,7 +29,7 @@
     }
   ],
   "inputs": {
-    "manifestSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "manifestSha256": "511c892cd731b740afae39f7c053be4455a6c1cd4a7dd7ac4fc09f92859d072e",
     "immutable": true,
     "generation": "SplitMix64 seed 0xREGEX2026, 1,048,576 BMP code points, 20 frozen safe regex patterns"
   },

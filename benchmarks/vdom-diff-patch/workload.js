@@ -1,111 +1,147 @@
 import { generateVDOMFixture } from "./input.ts";
 import {
   applyPatchesToVDOMTree,
+  canonicalizePatches,
+  createVDOMPatches,
   diffVDOMTrees,
+  digestPatches,
+  DOMHostAdapter,
   HostDOMAdapter,
+  MemoryHostAdapter,
   serializeVDOMToCanonicalHTML,
 } from "./js.ts";
+import { sha256Hex } from "../../lib/canonical.ts";
 
 export {
   applyPatchesToVDOMTree,
   diffVDOMTrees,
+  DOMHostAdapter,
   generateVDOMFixture,
   HostDOMAdapter,
+  MemoryHostAdapter,
   serializeVDOMToCanonicalHTML,
 };
 
+const hashText = (text) => sha256Hex(new TextEncoder().encode(text));
+
 export async function runVdomJS(fixture) {
   const startCompute = performance.now();
-  const res = await diffVDOMTrees(fixture.treeA, fixture.treeB);
+  const { patches, nodesVisited } = createVDOMPatches(fixture.treeA, fixture.treeB);
   const endCompute = performance.now();
 
   const startRender = performance.now();
-  const hostAdapter = new HostDOMAdapter();
-  hostAdapter.createTree(fixture.treeA);
-  hostAdapter.applyPatches(res.patches);
-  const html = hostAdapter.serializeHTML();
+  const host = new MemoryHostAdapter();
+  host.createTree(fixture.treeA);
+  host.applyPatches(patches);
+  const canonicalHtml = host.serializeHTML();
   const endRender = performance.now();
 
+  const targetHtml = serializeVDOMToCanonicalHTML(fixture.treeB);
   return {
-    patches: res.patches,
-    nodesVisited: res.nodesVisited,
-    patchesGenerated: res.patchesGenerated,
-    patchDigestSha256: res.patchDigestSha256,
-    canonicalHtml: html,
+    patches,
+    nodesVisited,
+    patchesGenerated: patches.length,
+    patchDigestSha256: await digestPatches(patches),
+    canonicalHtml,
+    canonicalHtmlHash: await hashText(canonicalHtml),
+    targetHtmlHash: await hashText(targetHtml),
+    domMutations: host.domMutations,
+    boundaryCrossings: 0,
     phases: {
       computeMs: endCompute - startCompute,
+      boundaryMs: 0,
       renderMs: endRender - startRender,
     },
   };
 }
 
-export function runVdomWasm(fixture, wasmInstance) {
+function decodeNode(view, nodePtr, childPtr) {
+  const childCount = view.getUint16(nodePtr + 12, true);
+  const children = [];
+  for (let index = 0; index < childCount; index++) {
+    children.push(view.getUint16(childPtr + index * 2, true));
+  }
+  return {
+    id: view.getUint16(nodePtr, true),
+    tag: view.getInt16(nodePtr + 2, true),
+    key: view.getInt16(nodePtr + 4, true),
+    attrKey: view.getInt16(nodePtr + 6, true),
+    attrVal: view.getInt16(nodePtr + 8, true),
+    textId: view.getInt16(nodePtr + 10, true),
+    children,
+  };
+}
+
+export async function runVdomWasm(fixture, wasmInstance) {
   const memory = wasmInstance.exports.memory;
-  const memoryView = new Uint8Array(memory.buffer);
-
-  // Allocate offsets in Wasm memory
+  const diff = wasmInstance.exports.diff_vdom_flat;
+  if (!(memory instanceof WebAssembly.Memory) || typeof diff !== "function") {
+    throw new Error("VDOM Wasm exports are incomplete");
+  }
+  const bytes = new Uint8Array(memory.buffer);
   const treeAPtr = 1024;
-  const treeBPtr = treeAPtr + fixture.flatA.byteLength + 1024;
-  const outPtr = treeBPtr + fixture.flatB.byteLength + 1024;
-
-  // Copy flat arrays into Wasm memory
-  memoryView.set(fixture.flatA, treeAPtr);
-  memoryView.set(fixture.flatB, treeBPtr);
+  const treeBPtr = (treeAPtr + fixture.flatA.byteLength + 7) & ~7;
+  const outPtr = (treeBPtr + fixture.flatB.byteLength + 7) & ~7;
+  bytes.set(fixture.flatA, treeAPtr);
+  bytes.set(fixture.flatB, treeBPtr);
 
   const startCompute = performance.now();
-  const patchCount = wasmInstance.exports.diff_vdom_flat(
-    treeAPtr,
-    treeBPtr,
-    outPtr,
-  );
+  const patchCount = diff(treeAPtr, treeBPtr, outPtr);
   const endCompute = performance.now();
-
-  // Parse patch ops from Wasm memory outPtr (16 bytes per patch)
-  const outView = new DataView(memory.buffer, outPtr, patchCount * 16);
-  const patches = [];
-  for (let i = 0; i < patchCount; i++) {
-    const op = outView.getUint16(i * 16 + 0, true);
-    const nodeId = outView.getUint16(i * 16 + 2, true);
-    const attrKey = outView.getInt16(i * 16 + 4, true);
-    const attrVal = outView.getInt16(i * 16 + 6, true);
-    const childPtr = outView.getUint32(i * 16 + 8, true);
-
-    const patch = {
-      op,
-      nodeId,
-      targetId: attrKey,
-      attrKey,
-      attrVal,
-      index: -1,
-    };
-
-    if (op === 6 && childPtr > 0) {
-      const childCount = attrKey;
-      const childView = new DataView(memory.buffer, childPtr, childCount * 2);
-      const childIds = [];
-      for (let c = 0; c < childCount; c++) {
-        childIds.push(childView.getUint16(c * 2, true));
-      }
-      patch.childIds = childIds;
-    }
-
-    patches.push(patch);
+  if (outPtr + patchCount * 24 > memory.buffer.byteLength) {
+    throw new Error("VDOM Wasm patch output exceeded memory");
   }
 
+  const startBoundary = performance.now();
+  const view = new DataView(memory.buffer);
+  const patches = [];
+  for (let index = 0; index < patchCount; index++) {
+    const offset = outPtr + index * 24;
+    const op = view.getUint16(offset, true);
+    const nodeId = view.getUint16(offset + 2, true);
+    const targetId = view.getInt16(offset + 4, true);
+    const attrKey = view.getInt16(offset + 6, true);
+    const attrVal = view.getInt16(offset + 8, true);
+    const patchIndex = view.getInt16(offset + 10, true);
+    const childPtr = view.getUint32(offset + 12, true);
+    const nodePtr = view.getUint32(offset + 16, true);
+    const patch = { op, nodeId, targetId, attrKey, attrVal, index: patchIndex };
+    if (op === 6) {
+      patch.childIds = [];
+      for (let child = 0; child < targetId; child++) {
+        patch.childIds.push(view.getUint16(childPtr + child * 2, true));
+      }
+    } else if (op === 7) {
+      const node = decodeNode(view, nodePtr, childPtr);
+      patch.childIds = [...node.children];
+      patch.node = node;
+    }
+    patches.push(patch);
+  }
+  canonicalizePatches(patches);
+  const endBoundary = performance.now();
+
   const startRender = performance.now();
-  const hostAdapter = new HostDOMAdapter();
-  hostAdapter.createTree(fixture.treeA);
-  hostAdapter.applyPatches(patches);
-  const html = hostAdapter.serializeHTML();
+  const host = new MemoryHostAdapter();
+  host.createTree(fixture.treeA);
+  host.applyPatches(patches);
+  const canonicalHtml = host.serializeHTML();
   const endRender = performance.now();
+  const targetHtml = serializeVDOMToCanonicalHTML(fixture.treeB);
 
   return {
     patches,
-    nodesVisited: fixture.nodeCountB,
+    nodesVisited: fixture.nodeCountA + fixture.nodeCountB,
     patchesGenerated: patchCount,
-    canonicalHtml: html,
+    patchDigestSha256: await digestPatches(patches),
+    canonicalHtml,
+    canonicalHtmlHash: await hashText(canonicalHtml),
+    targetHtmlHash: await hashText(targetHtml),
+    domMutations: host.domMutations,
+    boundaryCrossings: 1,
     phases: {
       computeMs: endCompute - startCompute,
+      boundaryMs: endBoundary - startBoundary,
       renderMs: endRender - startRender,
     },
   };

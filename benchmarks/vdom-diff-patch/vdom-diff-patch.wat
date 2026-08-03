@@ -1,174 +1,175 @@
 (module
-  (memory (export "memory") 8) ;; 8 pages = 512 KB memory
+  (memory (export "memory") 8)
 
-  ;; Function: diff_vdom_flat
-  ;; Parameters:
-  ;;   $treeA_ptr (i32) - byte offset of flat Tree A
-  ;;   $treeB_ptr (i32) - byte offset of flat Tree B
-  ;;   $out_ptr   (i32) - byte offset for output patch buffer
-  ;; Returns:
-  ;;   (i32) total patches generated
+  ;; Produce self-contained 24-byte patch records from two flat VDOM arrays.
+  ;; Record: op,nodeId,targetId,attrKey,attrVal,index (i16), childPtr (u32),
+  ;; nodePtr (u32), reserved (u32). Pointers identify data captured from tree B;
+  ;; the JS boundary decoder copies that data into the independent patch value.
   (func (export "diff_vdom_flat")
-    (param $treeA_ptr i32)
-    (param $treeB_ptr i32)
-    (param $out_ptr i32)
-    (result i32)
-    (local $countB i32)
-    (local $i i32)
-    (local $c i32)
-    (local $nodeB_offset i32)
-    (local $nodeA_offset i32)
-    (local $nodeId i32)
-    (local $tagA i32)
-    (local $tagB i32)
-    (local $attrKeyA i32)
-    (local $attrValA i32)
-    (local $attrKeyB i32)
-    (local $attrValB i32)
-    (local $textA i32)
-    (local $textB i32)
-    (local $childCountA i32)
-    (local $childCountB i32)
-    (local $childOffA i32)
-    (local $childOffB i32)
-    (local $childrenMatch i32)
-    (local $childA i32)
-    (local $childB i32)
-    (local $childBaseA i32)
-    (local $childBaseB i32)
-    (local $patch_count i32)
-    (local $cur_out i32)
-    (local $nodesA_count i32)
-    (local $childPtrB i32)
+    (param $a i32) (param $b i32) (param $out i32) (result i32)
+    (local $countA i32) (local $countB i32) (local $baseA i32) (local $baseB i32)
+    (local $childrenA i32) (local $childrenB i32)
+    (local $i i32) (local $j i32) (local $nodeA i32) (local $nodeB i32)
+    (local $idA i32) (local $idB i32) (local $tagA i32) (local $tagB i32)
+    (local $keyA i32) (local $keyB i32) (local $attrA i32) (local $attrB i32)
+    (local $valA i32) (local $valB i32) (local $textA i32) (local $textB i32)
+    (local $lenA i32) (local $lenB i32) (local $offA i32) (local $offB i32)
+    (local $same i32) (local $records i32) (local $record i32) (local $replace i32)
+    (local $k i32) (local $found i32)
 
-    (local.set $nodesA_count (i32.load (local.get $treeA_ptr)))
-    (local.set $countB (i32.load (local.get $treeB_ptr)))
-    (local.set $patch_count (i32.const 0))
-    (local.set $cur_out (local.get $out_ptr))
+    (local.set $countA (i32.load (local.get $a)))
+    (local.set $countB (i32.load (local.get $b)))
+    (local.set $baseA (i32.add (local.get $a) (i32.const 4)))
+    (local.set $baseB (i32.add (local.get $b) (i32.const 4)))
+    (local.set $childrenA (i32.add (local.get $baseA) (i32.shl (local.get $countA) (i32.const 4))))
+    (local.set $childrenB (i32.add (local.get $baseB) (i32.shl (local.get $countB) (i32.const 4))))
 
-    ;; Compute base offsets for child array buffers
-    (local.set $childBaseA (i32.add (local.get $treeA_ptr) (i32.add (i32.const 4) (i32.shl (local.get $nodesA_count) (i32.const 4)))))
-    (local.set $childBaseB (i32.add (local.get $treeB_ptr) (i32.add (i32.const 4) (i32.shl (local.get $countB) (i32.const 4)))))
-
+    ;; Visit every target node.
     (local.set $i (i32.const 0))
-    (block $break_loop
-      (loop $top_loop
-        (br_if $break_loop (i32.ge_u (local.get $i) (local.get $countB)))
-
-        ;; Compute byte offset of node B: treeB_ptr + 4 + i * 16
-        (local.set $nodeB_offset 
-          (i32.add 
-            (i32.add (local.get $treeB_ptr) (i32.const 4))
-            (i32.shl (local.get $i) (i32.const 4))
-          )
-        )
-
-        ;; Compute corresponding node A offset
-        (local.set $nodeA_offset 
-          (i32.add 
-            (i32.add (local.get $treeA_ptr) (i32.const 4))
-            (i32.shl (local.get $i) (i32.const 4))
-          )
-        )
-
-        ;; Read tags and node ID
-        (local.set $nodeId (i32.load16_u (i32.add (local.get $nodeB_offset) (i32.const 0))))
-        (local.set $tagA (i32.load16_s (i32.add (local.get $nodeA_offset) (i32.const 2))))
-        (local.set $tagB (i32.load16_s (i32.add (local.get $nodeB_offset) (i32.const 2))))
-
-        ;; Check text node change
-        (if (i32.and (i32.eq (local.get $tagA) (i32.const -1)) (i32.eq (local.get $tagB) (i32.const -1)))
+    (block $target_done
+      (loop $target
+        (br_if $target_done (i32.ge_u (local.get $i) (local.get $countB)))
+        (local.set $nodeB (i32.add (local.get $baseB) (i32.shl (local.get $i) (i32.const 4))))
+        (local.set $idB (i32.load16_u (local.get $nodeB)))
+        ;; Locate the source node by stable ID; array positions may differ after
+        ;; insertion/removal probes.
+        (local.set $found (i32.const 0))
+        (local.set $k (i32.const 0))
+        (block $source_search_done
+          (loop $source_search
+            (br_if $source_search_done (i32.ge_u (local.get $k) (local.get $countA)))
+            (local.set $nodeA (i32.add (local.get $baseA) (i32.shl (local.get $k) (i32.const 4))))
+            (if (i32.eq (i32.load16_u (local.get $nodeA)) (local.get $idB))
+              (then (local.set $found (i32.const 1)) (br $source_search_done)))
+            (local.set $k (i32.add (local.get $k) (i32.const 1)))
+            (br $source_search)))
+        (local.set $replace (i32.eqz (local.get $found)))
+        (if (local.get $found)
           (then
-            (local.set $textA (i32.load16_s (i32.add (local.get $nodeA_offset) (i32.const 10))))
-            (local.set $textB (i32.load16_s (i32.add (local.get $nodeB_offset) (i32.const 10))))
-            (if (i32.ne (local.get $textA) (local.get $textB))
-              (then
-                ;; Write SET_TEXT patch (op: 1, nodeId, textB, 0, 0)
-                (i32.store16 (i32.add (local.get $cur_out) (i32.const 0)) (i32.const 1))
-                (i32.store16 (i32.add (local.get $cur_out) (i32.const 2)) (local.get $nodeId))
-                (i32.store16 (i32.add (local.get $cur_out) (i32.const 4)) (local.get $textB))
-                (i32.store16 (i32.add (local.get $cur_out) (i32.const 6)) (i32.const -1))
-                (i32.store (i32.add (local.get $cur_out) (i32.const 8)) (i32.const 0))
-                (local.set $cur_out (i32.add (local.get $cur_out) (i32.const 16)))
-                (local.set $patch_count (i32.add (local.get $patch_count) (i32.const 1)))
-              )
-            )
-          )
+            (local.set $tagA (i32.load16_s (i32.add (local.get $nodeA) (i32.const 2))))
+            (local.set $tagB (i32.load16_s (i32.add (local.get $nodeB) (i32.const 2))))
+            (local.set $keyA (i32.load16_s (i32.add (local.get $nodeA) (i32.const 4))))
+            (local.set $keyB (i32.load16_s (i32.add (local.get $nodeB) (i32.const 4))))
+            (if (i32.or (i32.ne (local.get $tagA) (local.get $tagB))
+                        (i32.ne (local.get $keyA) (local.get $keyB)))
+              (then (local.set $replace (i32.const 1))))))
+
+        (if (local.get $replace)
+          (then
+            (local.set $lenB (i32.load16_u (i32.add (local.get $nodeB) (i32.const 12))))
+            (local.set $offB (i32.load16_u (i32.add (local.get $nodeB) (i32.const 14))))
+            (local.set $record (i32.add (local.get $out) (i32.mul (local.get $records) (i32.const 24))))
+            (i32.store16 (local.get $record) (i32.const 7))
+            (i32.store16 (i32.add (local.get $record) (i32.const 2)) (local.get $idB))
+            (i32.store16 (i32.add (local.get $record) (i32.const 4)) (local.get $idB))
+            (i32.store16 (i32.add (local.get $record) (i32.const 6))
+              (i32.load16_s (i32.add (local.get $nodeB) (i32.const 6))))
+            (i32.store16 (i32.add (local.get $record) (i32.const 8))
+              (i32.load16_s (i32.add (local.get $nodeB) (i32.const 8))))
+            (i32.store16 (i32.add (local.get $record) (i32.const 10)) (i32.const -1))
+            (i32.store (i32.add (local.get $record) (i32.const 12))
+              (i32.add (local.get $childrenB) (i32.shl (local.get $offB) (i32.const 1))))
+            (i32.store (i32.add (local.get $record) (i32.const 16)) (local.get $nodeB))
+            (local.set $records (i32.add (local.get $records) (i32.const 1))))
           (else
-            ;; Check attribute change
-            (local.set $attrKeyA (i32.load16_s (i32.add (local.get $nodeA_offset) (i32.const 6))))
-            (local.set $attrValA (i32.load16_s (i32.add (local.get $nodeA_offset) (i32.const 8))))
-            (local.set $attrKeyB (i32.load16_s (i32.add (local.get $nodeB_offset) (i32.const 6))))
-            (local.set $attrValB (i32.load16_s (i32.add (local.get $nodeB_offset) (i32.const 8))))
-
-            (if (i32.or (i32.ne (local.get $attrKeyA) (local.get $attrKeyB)) (i32.ne (local.get $attrValA) (local.get $attrValB)))
+            (if (i32.eq (local.get $tagB) (i32.const -1))
               (then
-                ;; Write SET_ATTR patch (op: 2, nodeId, keyB, valB, 0)
-                (i32.store16 (i32.add (local.get $cur_out) (i32.const 0)) (i32.const 2))
-                (i32.store16 (i32.add (local.get $cur_out) (i32.const 2)) (local.get $nodeId))
-                (i32.store16 (i32.add (local.get $cur_out) (i32.const 4)) (local.get $attrKeyB))
-                (i32.store16 (i32.add (local.get $cur_out) (i32.const 6)) (local.get $attrValB))
-                (i32.store (i32.add (local.get $cur_out) (i32.const 8)) (i32.const 0))
-                (local.set $cur_out (i32.add (local.get $cur_out) (i32.const 16)))
-                (local.set $patch_count (i32.add (local.get $patch_count) (i32.const 1)))
-              )
-            )
-
-            ;; Check child list reorder / change
-            (local.set $childCountA (i32.load16_u (i32.add (local.get $nodeA_offset) (i32.const 12))))
-            (local.set $childCountB (i32.load16_u (i32.add (local.get $nodeB_offset) (i32.const 12))))
-            (local.set $childOffA (i32.load16_u (i32.add (local.get $nodeA_offset) (i32.const 14))))
-            (local.set $childOffB (i32.load16_u (i32.add (local.get $nodeB_offset) (i32.const 14))))
-
-            (local.set $childrenMatch (i32.const 1))
-            (if (i32.ne (local.get $childCountA) (local.get $childCountB))
-              (then (local.set $childrenMatch (i32.const 0)))
+                (local.set $textA (i32.load16_s (i32.add (local.get $nodeA) (i32.const 10))))
+                (local.set $textB (i32.load16_s (i32.add (local.get $nodeB) (i32.const 10))))
+                (if (i32.ne (local.get $textA) (local.get $textB))
+                  (then
+                    (local.set $record (i32.add (local.get $out) (i32.mul (local.get $records) (i32.const 24))))
+                    (i32.store16 (local.get $record) (i32.const 1))
+                    (i32.store16 (i32.add (local.get $record) (i32.const 2)) (local.get $idB))
+                    (i32.store16 (i32.add (local.get $record) (i32.const 4)) (local.get $textB))
+                    (i32.store16 (i32.add (local.get $record) (i32.const 6)) (i32.const -1))
+                    (i32.store16 (i32.add (local.get $record) (i32.const 8)) (i32.const -1))
+                    (i32.store16 (i32.add (local.get $record) (i32.const 10)) (i32.const -1))
+                    (local.set $records (i32.add (local.get $records) (i32.const 1))))))
               (else
-                (local.set $c (i32.const 0))
-                (block $break_children
-                  (loop $child_loop
-                    (br_if $break_children (i32.ge_u (local.get $c) (local.get $childCountA)))
-
-                    (local.set $childA (i32.load16_u (i32.add (local.get $childBaseA) (i32.shl (i32.add (local.get $childOffA) (local.get $c)) (i32.const 1)))))
-                    (local.set $childB (i32.load16_u (i32.add (local.get $childBaseB) (i32.shl (i32.add (local.get $childOffB) (local.get $c)) (i32.const 1)))))
-
-                    (if (i32.ne (local.get $childA) (local.get $childB))
+                (local.set $attrA (i32.load16_s (i32.add (local.get $nodeA) (i32.const 6))))
+                (local.set $attrB (i32.load16_s (i32.add (local.get $nodeB) (i32.const 6))))
+                (local.set $valA (i32.load16_s (i32.add (local.get $nodeA) (i32.const 8))))
+                (local.set $valB (i32.load16_s (i32.add (local.get $nodeB) (i32.const 8))))
+                (if (i32.or (i32.ne (local.get $attrA) (local.get $attrB))
+                            (i32.ne (local.get $valA) (local.get $valB)))
+                  (then
+                    (local.set $record (i32.add (local.get $out) (i32.mul (local.get $records) (i32.const 24))))
+                    (if (i32.lt_s (local.get $attrB) (i32.const 0))
                       (then
-                        (local.set $childrenMatch (i32.const 0))
-                        (br $break_children)
-                      )
-                    )
+                        (i32.store16 (local.get $record) (i32.const 3))
+                        (i32.store16 (i32.add (local.get $record) (i32.const 6)) (local.get $attrA))
+                        (i32.store16 (i32.add (local.get $record) (i32.const 8)) (i32.const -1)))
+                      (else
+                        (i32.store16 (local.get $record) (i32.const 2))
+                        (i32.store16 (i32.add (local.get $record) (i32.const 6)) (local.get $attrB))
+                        (i32.store16 (i32.add (local.get $record) (i32.const 8)) (local.get $valB))))
+                    (i32.store16 (i32.add (local.get $record) (i32.const 2)) (local.get $idB))
+                    (i32.store16 (i32.add (local.get $record) (i32.const 4)) (i32.const -1))
+                    (i32.store16 (i32.add (local.get $record) (i32.const 10)) (i32.const -1))
+                    (local.set $records (i32.add (local.get $records) (i32.const 1)))))
 
-                    (local.set $c (i32.add (local.get $c) (i32.const 1)))
-                    (br $child_loop)
-                  )
-                )
-              )
-            )
-
-            (if (i32.eq (local.get $childrenMatch) (i32.const 0))
-              (then
-                ;; Compute childPtrB = childBaseB + childOffB * 2
-                (local.set $childPtrB (i32.add (local.get $childBaseB) (i32.shl (local.get $childOffB) (i32.const 1))))
-
-                ;; Write REORDER_CHILDREN patch (op: 6, nodeId, childCountB, 0, childPtrB)
-                (i32.store16 (i32.add (local.get $cur_out) (i32.const 0)) (i32.const 6))
-                (i32.store16 (i32.add (local.get $cur_out) (i32.const 2)) (local.get $nodeId))
-                (i32.store16 (i32.add (local.get $cur_out) (i32.const 4)) (local.get $childCountB))
-                (i32.store16 (i32.add (local.get $cur_out) (i32.const 6)) (i32.const -1))
-                (i32.store (i32.add (local.get $cur_out) (i32.const 8)) (local.get $childPtrB))
-                (local.set $cur_out (i32.add (local.get $cur_out) (i32.const 16)))
-                (local.set $patch_count (i32.add (local.get $patch_count) (i32.const 1)))
-              )
-            )
-          )
-        )
-
+                (local.set $lenA (i32.load16_u (i32.add (local.get $nodeA) (i32.const 12))))
+                (local.set $lenB (i32.load16_u (i32.add (local.get $nodeB) (i32.const 12))))
+                (local.set $offA (i32.load16_u (i32.add (local.get $nodeA) (i32.const 14))))
+                (local.set $offB (i32.load16_u (i32.add (local.get $nodeB) (i32.const 14))))
+                (local.set $same (i32.eq (local.get $lenA) (local.get $lenB)))
+                (local.set $j (i32.const 0))
+                (block $children_done
+                  (loop $children
+                    (br_if $children_done (i32.or (i32.eqz (local.get $same))
+                                                  (i32.ge_u (local.get $j) (local.get $lenA))))
+                    (if (i32.ne
+                      (i32.load16_u (i32.add (local.get $childrenA)
+                        (i32.shl (i32.add (local.get $offA) (local.get $j)) (i32.const 1))))
+                      (i32.load16_u (i32.add (local.get $childrenB)
+                        (i32.shl (i32.add (local.get $offB) (local.get $j)) (i32.const 1)))))
+                      (then (local.set $same (i32.const 0))))
+                    (local.set $j (i32.add (local.get $j) (i32.const 1)))
+                    (br $children)))
+                (if (i32.eqz (local.get $same))
+                  (then
+                    (local.set $record (i32.add (local.get $out) (i32.mul (local.get $records) (i32.const 24))))
+                    (i32.store16 (local.get $record) (i32.const 6))
+                    (i32.store16 (i32.add (local.get $record) (i32.const 2)) (local.get $idB))
+                    (i32.store16 (i32.add (local.get $record) (i32.const 4)) (local.get $lenB))
+                    (i32.store16 (i32.add (local.get $record) (i32.const 6)) (i32.const -1))
+                    (i32.store16 (i32.add (local.get $record) (i32.const 8)) (i32.const -1))
+                    (i32.store16 (i32.add (local.get $record) (i32.const 10)) (local.get $lenB))
+                    (i32.store (i32.add (local.get $record) (i32.const 12))
+                      (i32.add (local.get $childrenB) (i32.shl (local.get $offB) (i32.const 1))))
+                    (local.set $records (i32.add (local.get $records) (i32.const 1)))))))))
         (local.set $i (i32.add (local.get $i) (i32.const 1)))
-        (br $top_loop)
-      )
-    )
+        (br $target)))
 
-    (local.get $patch_count)
-  )
+    ;; Emit explicit removals for every source ID absent from the target.
+    (local.set $i (i32.const 0))
+    (block $remove_done
+      (loop $remove
+        (br_if $remove_done (i32.ge_u (local.get $i) (local.get $countA)))
+        (local.set $nodeA (i32.add (local.get $baseA) (i32.shl (local.get $i) (i32.const 4))))
+        (local.set $idA (i32.load16_u (local.get $nodeA)))
+        (local.set $found (i32.const 0))
+        (local.set $k (i32.const 0))
+        (block $target_search_done
+          (loop $target_search
+            (br_if $target_search_done (i32.ge_u (local.get $k) (local.get $countB)))
+            (local.set $nodeB (i32.add (local.get $baseB) (i32.shl (local.get $k) (i32.const 4))))
+            (if (i32.eq (i32.load16_u (local.get $nodeB)) (local.get $idA))
+              (then (local.set $found (i32.const 1)) (br $target_search_done)))
+            (local.set $k (i32.add (local.get $k) (i32.const 1)))
+            (br $target_search)))
+        (if (i32.eqz (local.get $found))
+          (then
+            (local.set $record (i32.add (local.get $out) (i32.mul (local.get $records) (i32.const 24))))
+            (i32.store16 (local.get $record) (i32.const 5))
+            (i32.store16 (i32.add (local.get $record) (i32.const 2)) (local.get $idA))
+            (i32.store16 (i32.add (local.get $record) (i32.const 4)) (local.get $idA))
+            (i32.store16 (i32.add (local.get $record) (i32.const 6)) (i32.const -1))
+            (i32.store16 (i32.add (local.get $record) (i32.const 8)) (i32.const -1))
+            (i32.store16 (i32.add (local.get $record) (i32.const 10)) (i32.const -1))
+            (local.set $records (i32.add (local.get $records) (i32.const 1)))))
+        (local.set $i (i32.add (local.get $i) (i32.const 1)))
+        (br $remove)))
+    (local.get $records))
 )

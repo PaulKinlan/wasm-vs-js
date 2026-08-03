@@ -1,18 +1,47 @@
-import { assertEquals } from "./assert.ts";
+import { assert, assertEquals } from "./assert.ts";
+import { sha256Hex } from "../lib/canonical.ts";
 
-Deno.test("pinned build reproduces byte-identical Wasm and manifest", async () => {
-  const beforeWasm = await Deno.readFile("public/artifacts/sum-u32/sum-u32.wasm");
-  const beforeManifest = await Deno.readTextFile("public/artifacts/sum-u32/build-manifest.json");
-  const command = new Deno.Command(Deno.execPath(), {
+const ARTIFACTS = ["sum-u32", "vdom-diff-patch", "regex-automata-duel"];
+
+Deno.test("pinned build reproduces every Wasm artifact and manifest byte-for-byte", async () => {
+  const before = new Map<string, Uint8Array>();
+  for (const id of ARTIFACTS) {
+    for (const name of [`${id}.wasm`, "build-manifest.json"]) {
+      const path = `public/artifacts/${id}/${name}`;
+      before.set(path, await Deno.readFile(path));
+    }
+  }
+  const result = await new Deno.Command(Deno.execPath(), {
     args: ["task", "build"],
     stdout: "piped",
     stderr: "piped",
-  });
-  const result = await command.output();
+  }).output();
   if (!result.success) throw new Error(new TextDecoder().decode(result.stderr));
-  assertEquals([...await Deno.readFile("public/artifacts/sum-u32/sum-u32.wasm")], [...beforeWasm]);
-  assertEquals(
-    await Deno.readTextFile("public/artifacts/sum-u32/build-manifest.json"),
-    beforeManifest,
-  );
+  for (const [path, expected] of before) assertEquals(await Deno.readFile(path), expected);
+});
+
+Deno.test("build manifests bind real source graphs, inputs, outputs, and artifacts", async () => {
+  for (const id of ARTIFACTS) {
+    const manifest = JSON.parse(
+      await Deno.readTextFile(`public/artifacts/${id}/build-manifest.json`),
+    );
+    assert(!/^0+$/.test(manifest.sourceSha256));
+    assert(!/^0+$/.test(manifest.input.sha256));
+    assert(!/^0+$/.test(manifest.oracle.outputSha256));
+    const lines: string[] = [];
+    for (const source of manifest.sources) {
+      const bytes = await Deno.readFile(source.path);
+      assertEquals(source.bytes, bytes.byteLength);
+      assertEquals(source.sha256, await sha256Hex(bytes));
+      lines.push(`${source.path}\0${source.sha256}\n`);
+    }
+    assertEquals(manifest.sourceSha256, await sha256Hex(lines.join("")));
+    for (const variant of Object.values(manifest.variants) as Array<Record<string, unknown>>) {
+      const footprint = variant.footprint as Record<string, number>;
+      assert(footprint.rawBytes > 0);
+      assert(footprint.requestCount > 0);
+      assert(footprint.gzipBytes > 0);
+      assert(footprint.brotliBytes > 0);
+    }
+  }
 });

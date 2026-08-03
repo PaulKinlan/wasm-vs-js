@@ -5,7 +5,9 @@
   "tier": "T1",
   "title": "Virtual DOM diff and host DOM patch/hydration",
   "description": "Virtual DOM tree reconciliation (1,000 nodes, 250 edit ops) generating a canonical patch script and applying controlled host DOM mutations.",
-  "tracks": ["controlled"],
+  "tracks": [
+    "controlled"
+  ],
   "variants": [
     {
       "id": "js-controlled",
@@ -27,7 +29,7 @@
     }
   ],
   "inputs": {
-    "manifestSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "manifestSha256": "e0cd8896cbcac384c7ca9d2c0bb97d0d15685c5c19038a1f5010159f77a08563",
     "immutable": true,
     "generation": "SplitMix64 seed 0xVDOM2026, 1,000 nodes depth <= 8, 250 edit operations"
   },
@@ -39,7 +41,12 @@
   "work": {
     "fixed": true,
     "complexity": "O(N)",
-    "counters": ["nodes-visited", "patches-generated", "boundary-crossings", "dom-mutations"],
+    "counters": [
+      "nodes-visited",
+      "patches-generated",
+      "boundary-crossings",
+      "dom-mutations"
+    ],
     "tolerance": "All counters must match exactly."
   }
 }

@@ -1,319 +1,485 @@
-// Generic Thompson NFA Regex Parser, Compiler and Simulator
-// Evaluates regex patterns by compiling them to NFA state graphs with zero RegExp fallback
+// Common-subset regular-expression parser, Thompson compiler, and NFA simulator.
+// This module deliberately does not call RegExp; native RegExp is a separate variant.
 
-import { RegexFixture, RegexMatchResult } from "./input.ts";
+import type { RegexFixture, RegexMatchResult } from "./input.ts";
 import { sha256Hex } from "../../lib/canonical.ts";
 
-export interface NFAState {
-  id: number;
-  isAccept: boolean;
-  epsilon: number[];
-  transitions: Array<{ charMin: number; charMax: number; target: number }>;
+interface CharRange {
+  min: number;
+  max: number;
 }
 
-export class ThompsonCompiler {
-  public states: NFAState[] = [];
+type Ast =
+  | { kind: "empty" }
+  | { kind: "chars"; ranges: CharRange[] }
+  | { kind: "concat"; parts: Ast[] }
+  | { kind: "alt"; parts: Ast[] }
+  | { kind: "repeat"; child: Ast; min: number; max: number | null };
 
-  public createState(isAccept = false): number {
-    const id = this.states.length;
-    this.states.push({
-      id,
-      isAccept,
-      epsilon: [],
-      transitions: [],
-    });
-    return id;
+export interface NFAState {
+  epsilon: number[];
+  transitions: Array<{ ranges: CharRange[]; target: number }>;
+  accept: boolean;
+}
+
+export interface CompiledDFA {
+  stateCount: number;
+  startState: number;
+  transitions: Int16Array;
+  accepting: Uint8Array;
+}
+
+const ASCII_WORD: CharRange[] = [
+  { min: 48, max: 57 },
+  { min: 65, max: 90 },
+  { min: 95, max: 95 },
+  { min: 97, max: 122 },
+];
+const JS_WHITESPACE: CharRange[] = [
+  { min: 9, max: 13 },
+  { min: 32, max: 32 },
+  { min: 160, max: 160 },
+  { min: 5760, max: 5760 },
+  { min: 8192, max: 8202 },
+  { min: 8232, max: 8233 },
+  { min: 8239, max: 8239 },
+  { min: 8287, max: 8287 },
+  { min: 12288, max: 12288 },
+  { min: 65279, max: 65279 },
+];
+
+class Parser {
+  private position = 0;
+  public captureGroups = 0;
+
+  constructor(private readonly source: string) {}
+
+  parse(): Ast {
+    const ast = this.parseAlternation();
+    if (this.position !== this.source.length) {
+      throw new Error(`unsupported regex token at ${this.position}: ${this.source}`);
+    }
+    return ast;
   }
 
-  public addEpsilon(from: number, to: number) {
-    this.states[from].epsilon.push(to);
+  private parseAlternation(): Ast {
+    const parts = [this.parseConcatenation()];
+    while (this.peek() === "|") {
+      this.position++;
+      parts.push(this.parseConcatenation());
+    }
+    return parts.length === 1 ? parts[0] : { kind: "alt", parts };
   }
 
-  public addTransition(from: number, to: number, min: number, max: number) {
-    this.states[from].transitions.push({ charMin: min, charMax: max, target: to });
+  private parseConcatenation(): Ast {
+    const parts: Ast[] = [];
+    while (this.position < this.source.length && this.peek() !== ")" && this.peek() !== "|") {
+      parts.push(this.parseQuantified());
+    }
+    if (parts.length === 0) return { kind: "empty" };
+    return parts.length === 1 ? parts[0] : { kind: "concat", parts };
   }
+
+  private parseQuantified(): Ast {
+    let child = this.parseAtom();
+    const token = this.peek();
+    if (token === "*" || token === "+" || token === "?") {
+      this.position++;
+      child = {
+        kind: "repeat",
+        child,
+        min: token === "+" ? 1 : 0,
+        max: token === "?" ? 1 : null,
+      };
+    } else if (token === "{") {
+      const close = this.source.indexOf("}", this.position);
+      if (close < 0) throw new Error(`unterminated quantifier: ${this.source}`);
+      const spec = this.source.slice(this.position + 1, close);
+      const comma = spec.indexOf(",");
+      const minimumText = comma < 0 ? spec : spec.slice(0, comma);
+      const maximumText = comma < 0 ? undefined : spec.slice(comma + 1);
+      const decimal = (value: string) =>
+        value.length > 0 && [...value].every((character) => character >= "0" && character <= "9");
+      if (
+        !decimal(minimumText) ||
+        (maximumText !== undefined && maximumText !== "" && !decimal(maximumText)) ||
+        (comma >= 0 && spec.indexOf(",", comma + 1) >= 0)
+      ) {
+        throw new Error(`unsupported quantifier {${spec}}`);
+      }
+      const min = Number(minimumText);
+      const max = maximumText === undefined ? min : maximumText === "" ? null : Number(maximumText);
+      if (max !== null && max < min) throw new Error(`invalid quantifier {${spec}}`);
+      this.position = close + 1;
+      child = { kind: "repeat", child, min, max };
+    }
+    // The frozen common subset contains greedy quantifiers only.
+    if (this.peek() === "?") throw new Error(`lazy quantifiers are outside the common subset`);
+    return child;
+  }
+
+  private parseAtom(): Ast {
+    const token = this.peek();
+    if (token === "(") {
+      this.position++;
+      if (this.source.startsWith("?:", this.position)) {
+        this.position += 2;
+      } else {
+        this.captureGroups++;
+      }
+      const child = this.parseAlternation();
+      if (this.peek() !== ")") throw new Error(`unterminated group: ${this.source}`);
+      this.position++;
+      return child;
+    }
+    if (token === "[") return { kind: "chars", ranges: this.parseClass() };
+    if (token === "\\") {
+      this.position++;
+      return { kind: "chars", ranges: this.parseEscape(false) };
+    }
+    if (token === ".") {
+      this.position++;
+      return { kind: "chars", ranges: complement([{ min: 10, max: 10 }, { min: 13, max: 13 }]) };
+    }
+    if (token === "^" || token === "$") {
+      throw new Error(`anchors are supported only at pattern boundaries: ${this.source}`);
+    }
+    if (token === undefined || token === ")" || token === "|") {
+      throw new Error(`expected regex atom at ${this.position}: ${this.source}`);
+    }
+    this.position++;
+    return { kind: "chars", ranges: [{ min: token.charCodeAt(0), max: token.charCodeAt(0) }] };
+  }
+
+  private parseClass(): CharRange[] {
+    this.position++; // [
+    const negate = this.peek() === "^";
+    if (negate) this.position++;
+    const ranges: CharRange[] = [];
+    while (this.position < this.source.length && this.peek() !== "]") {
+      let first: CharRange[];
+      if (this.peek() === "\\") {
+        this.position++;
+        first = this.parseEscape(true);
+      } else {
+        const code = this.source.charCodeAt(this.position++);
+        first = [{ min: code, max: code }];
+      }
+      if (
+        first.length === 1 && this.peek() === "-" &&
+        this.position + 1 < this.source.length && this.source[this.position + 1] !== "]"
+      ) {
+        this.position++;
+        let last: CharRange[];
+        if (this.peek() === "\\") {
+          this.position++;
+          last = this.parseEscape(true);
+        } else {
+          const code = this.source.charCodeAt(this.position++);
+          last = [{ min: code, max: code }];
+        }
+        if (last.length !== 1 || first[0].min > last[0].min) {
+          throw new Error(`unsupported character-class range: ${this.source}`);
+        }
+        ranges.push({ min: first[0].min, max: last[0].min });
+      } else {
+        ranges.push(...first);
+      }
+    }
+    if (this.peek() !== "]") throw new Error(`unterminated character class: ${this.source}`);
+    this.position++;
+    const normalized = normalizeRanges(ranges);
+    return negate ? complement(normalized) : normalized;
+  }
+
+  private parseEscape(_insideClass: boolean): CharRange[] {
+    const escaped = this.source[this.position++];
+    if (escaped === undefined) throw new Error(`trailing escape: ${this.source}`);
+    if (escaped === "d") return [{ min: 48, max: 57 }];
+    if (escaped === "D") return complement([{ min: 48, max: 57 }]);
+    if (escaped === "w") return ASCII_WORD.map((range) => ({ ...range }));
+    if (escaped === "W") return complement(ASCII_WORD);
+    if (escaped === "s") return JS_WHITESPACE.map((range) => ({ ...range }));
+    if (escaped === "S") return complement(JS_WHITESPACE);
+    if (escaped === "t") return [{ min: 9, max: 9 }];
+    if (escaped === "n") return [{ min: 10, max: 10 }];
+    if (escaped === "v") return [{ min: 11, max: 11 }];
+    if (escaped === "f") return [{ min: 12, max: 12 }];
+    if (escaped === "r") return [{ min: 13, max: 13 }];
+    return [{ min: escaped.charCodeAt(0), max: escaped.charCodeAt(0) }];
+  }
+
+  private peek(): string | undefined {
+    return this.source[this.position];
+  }
+}
+
+function normalizeRanges(input: CharRange[]): CharRange[] {
+  const sorted = input.map((range) => ({ ...range })).sort((a, b) =>
+    a.min - b.min || a.max - b.max
+  );
+  const output: CharRange[] = [];
+  for (const range of sorted) {
+    const last = output.at(-1);
+    if (last && range.min <= last.max + 1) last.max = Math.max(last.max, range.max);
+    else output.push(range);
+  }
+  return output;
+}
+
+function complement(input: CharRange[]): CharRange[] {
+  const output: CharRange[] = [];
+  let cursor = 0;
+  for (const range of normalizeRanges(input)) {
+    if (cursor < range.min) output.push({ min: cursor, max: range.min - 1 });
+    cursor = range.max + 1;
+  }
+  if (cursor <= 0xffff) output.push({ min: cursor, max: 0xffff });
+  return output;
 }
 
 export class CompiledNFA {
+  public readonly states: NFAState[] = [];
+  public readonly startState: number;
+  public readonly acceptState: number;
+
   constructor(
-    public patternId: number,
-    public pattern: string,
-    public compiler: ThompsonCompiler,
-    public startState: number,
-    public acceptState: number,
-    public isAnchorStart = false,
-  ) {}
+    public readonly patternId: number,
+    public readonly pattern: string,
+    ast: Ast,
+    public readonly captureGroups: number,
+    public readonly anchorStart: boolean,
+    public readonly anchorEnd: boolean,
+  ) {
+    const fragment = this.compile(ast);
+    this.startState = fragment.start;
+    this.acceptState = fragment.end;
+    this.states[this.acceptState].accept = true;
+  }
 
-  public exec(text: string): RegexMatchResult[] {
-    const results: RegexMatchResult[] = [];
-    const n = text.length;
-    let startCP = 0;
+  exec(text: string): RegexMatchResult[] {
+    const matches: RegexMatchResult[] = [];
+    const stateCount = this.states.length;
+    const marks = new Int32Array(stateCount);
+    let generation = 0;
 
-    while (startCP < n) {
-      if (this.isAnchorStart && startCP > 0 && text.charCodeAt(startCP - 1) !== 10) {
-        startCP += 1;
-        continue;
+    const closure = (seeds: number[]): number[] => {
+      generation++;
+      if (generation === 0x7fffffff) {
+        marks.fill(0);
+        generation = 1;
       }
+      const list: number[] = [];
+      const stack = seeds.slice();
+      while (stack.length > 0) {
+        const state = stack.pop()!;
+        if (marks[state] === generation) continue;
+        marks[state] = generation;
+        list.push(state);
+        stack.push(...this.states[state].epsilon);
+      }
+      return list;
+    };
 
-      let activeStates = new Set<number>();
-      this.addEpsilonClosure(this.startState, activeStates);
+    const accepts = (states: number[]) => states.some((state) => state === this.acceptState);
+    const validEnd = (end: number) =>
+      !this.anchorEnd || end === text.length ||
+      (end === text.length - 1 && (text.charCodeAt(end) === 10 || text.charCodeAt(end) === 13)) ||
+      (end === text.length - 2 && text.charCodeAt(end) === 13 && text.charCodeAt(end + 1) === 10);
 
-      let bestMatchEnd = -1;
-      let currCP = startCP;
-
-      while (currCP <= n) {
-        if (this.hasAcceptState(activeStates)) {
-          bestMatchEnd = currCP;
-        }
-
-        if (currCP === n || activeStates.size === 0) break;
-
-        const charCode = text.charCodeAt(currCP);
-        const nextStates = new Set<number>();
-
-        for (const stateId of activeStates) {
-          const state = this.compiler.states[stateId];
-          if (!state) continue;
-          for (const tr of state.transitions) {
-            if (charCode >= tr.charMin && charCode <= tr.charMax) {
-              this.addEpsilonClosure(tr.target, nextStates);
+    let searchStart = 0;
+    const finalStart = this.anchorStart ? 0 : text.length;
+    while (searchStart <= finalStart) {
+      let active = closure([this.startState]);
+      let cursor = searchStart;
+      let bestEnd = accepts(active) && validEnd(cursor) ? cursor : -1;
+      while (cursor < text.length && active.length > 0) {
+        const code = text.charCodeAt(cursor);
+        const targets: number[] = [];
+        for (const stateId of active) {
+          for (const transition of this.states[stateId].transitions) {
+            if (transition.ranges.some((range) => code >= range.min && code <= range.max)) {
+              targets.push(transition.target);
             }
           }
         }
-
-        activeStates = nextStates;
-        currCP += 1;
+        if (targets.length === 0) break;
+        active = closure(targets);
+        cursor++;
+        if (accepts(active) && validEnd(cursor)) bestEnd = cursor;
       }
-
-      if (bestMatchEnd > startCP) {
-        results.push({
+      if (bestEnd >= searchStart) {
+        const matchText = text.slice(searchStart, bestEnd);
+        matches.push({
           patternId: this.patternId,
-          startCP,
-          endCP: bestMatchEnd,
-          matchText: text.slice(startCP, bestMatchEnd),
+          startCP: searchStart,
+          endCP: bestEnd,
+          matchText,
         });
-        startCP = bestMatchEnd;
+        searchStart = bestEnd > searchStart ? bestEnd : searchStart + 1;
+      } else if (this.anchorStart) {
+        break;
       } else {
-        startCP += 1;
+        searchStart++;
       }
     }
-
-    return results;
+    return matches;
   }
 
-  private addEpsilonClosure(stateId: number, set: Set<number>) {
-    if (set.has(stateId)) return;
-    set.add(stateId);
-    const state = this.compiler.states[stateId];
-    if (state) {
-      for (const eps of state.epsilon) {
-        this.addEpsilonClosure(eps, set);
+  toAsciiDFA(): CompiledDFA {
+    const closure = (seed: number[]): number[] => {
+      const seen = new Set<number>(seed);
+      const stack = [...seed];
+      while (stack.length) {
+        for (const target of this.states[stack.pop()!].epsilon) {
+          if (!seen.has(target)) {
+            seen.add(target);
+            stack.push(target);
+          }
+        }
       }
+      return [...seen].sort((a, b) => a - b);
+    };
+    const key = (states: number[]) => states.join(",");
+    const start = closure([this.startState]);
+    const dfaStates: number[][] = [start];
+    const indexes = new Map([[key(start), 0]]);
+    const rows: number[][] = [];
+    for (let index = 0; index < dfaStates.length; index++) {
+      const row = new Array<number>(128).fill(-1);
+      for (let code = 0; code < 128; code++) {
+        const targets: number[] = [];
+        for (const stateId of dfaStates[index]) {
+          for (const transition of this.states[stateId].transitions) {
+            if (transition.ranges.some((range) => code >= range.min && code <= range.max)) {
+              targets.push(transition.target);
+            }
+          }
+        }
+        if (targets.length === 0) continue;
+        const next = closure(targets);
+        const nextKey = key(next);
+        let target = indexes.get(nextKey);
+        if (target === undefined) {
+          target = dfaStates.length;
+          indexes.set(nextKey, target);
+          dfaStates.push(next);
+        }
+        row[code] = target;
+      }
+      rows.push(row);
     }
+    const transitions = new Int16Array(dfaStates.length * 128);
+    transitions.fill(-1);
+    rows.forEach((row, index) => transitions.set(row, index * 128));
+    const accepting = new Uint8Array(dfaStates.length);
+    dfaStates.forEach((states, index) =>
+      accepting[index] = states.includes(this.acceptState) ? 1 : 0
+    );
+    return { stateCount: dfaStates.length, startState: 0, transitions, accepting };
   }
 
-  private hasAcceptState(set: Set<number>): boolean {
-    for (const id of set) {
-      if (this.compiler.states[id]?.isAccept) return true;
+  private createState(): number {
+    this.states.push({ epsilon: [], transitions: [], accept: false });
+    return this.states.length - 1;
+  }
+
+  private compile(ast: Ast): { start: number; end: number } {
+    if (ast.kind === "empty") {
+      const start = this.createState();
+      const end = this.createState();
+      this.states[start].epsilon.push(end);
+      return { start, end };
     }
-    return false;
+    if (ast.kind === "chars") {
+      const start = this.createState();
+      const end = this.createState();
+      this.states[start].transitions.push({ ranges: ast.ranges, target: end });
+      return { start, end };
+    }
+    if (ast.kind === "concat") {
+      const fragments = ast.parts.map((part) => this.compile(part));
+      for (let i = 0; i + 1 < fragments.length; i++) {
+        this.states[fragments[i].end].epsilon.push(fragments[i + 1].start);
+      }
+      return { start: fragments[0].start, end: fragments.at(-1)!.end };
+    }
+    if (ast.kind === "alt") {
+      const start = this.createState();
+      const end = this.createState();
+      for (const part of ast.parts) {
+        const fragment = this.compile(part);
+        this.states[start].epsilon.push(fragment.start);
+        this.states[fragment.end].epsilon.push(end);
+      }
+      return { start, end };
+    }
+    const start = this.createState();
+    let cursor = start;
+    for (let i = 0; i < ast.min; i++) {
+      const fragment = this.compile(ast.child);
+      this.states[cursor].epsilon.push(fragment.start);
+      cursor = fragment.end;
+    }
+    const end = this.createState();
+    if (ast.max === null) {
+      const fragment = this.compile(ast.child);
+      this.states[cursor].epsilon.push(end, fragment.start);
+      this.states[fragment.end].epsilon.push(cursor);
+    } else {
+      for (let i = ast.min; i < ast.max; i++) {
+        const fragment = this.compile(ast.child);
+        this.states[cursor].epsilon.push(end, fragment.start);
+        cursor = fragment.end;
+      }
+      this.states[cursor].epsilon.push(end);
+    }
+    return { start, end };
   }
 }
 
 export function compileRegexToNFA(patternId: number, pattern: string): CompiledNFA {
-  const compiler = new ThompsonCompiler();
-  const isAnchorStart = pattern.startsWith("^");
-  const rawPat = isAnchorStart ? pattern.slice(1) : pattern;
-  const cleanPat = rawPat.endsWith("$") ? rawPat.slice(0, -1) : rawPat;
-
-  const start = compiler.createState(false);
-  const accept = compiler.createState(true);
-
-  // Compile tokens
-  let curr = start;
-  let idx = 0;
-
-  while (idx < cleanPat.length) {
-    if (cleanPat.startsWith("GET|POST|PUT|DELETE", idx)) {
-      const altEnd = compiler.createState(false);
-      for (const word of ["GET", "POST", "PUT", "DELETE"]) {
-        let wCurr = curr;
-        for (let i = 0; i < word.length; i++) {
-          const next = i === word.length - 1 ? altEnd : compiler.createState(false);
-          compiler.addTransition(wCurr, next, word.charCodeAt(i), word.charCodeAt(i));
-          wCurr = next;
-        }
-      }
-      curr = altEnd;
-      idx += "GET|POST|PUT|DELETE".length;
-      continue;
-    }
-
-    if (cleanPat.startsWith("cache_(hit|miss)", idx)) {
-      curr = addLiteralSequence(compiler, curr, "cache_");
-      const altEnd = compiler.createState(false);
-      for (const word of ["hit", "miss"]) {
-        let wCurr = curr;
-        for (let i = 0; i < word.length; i++) {
-          const next = i === word.length - 1 ? altEnd : compiler.createState(false);
-          compiler.addTransition(wCurr, next, word.charCodeAt(i), word.charCodeAt(i));
-          wCurr = next;
-        }
-      }
-      curr = altEnd;
-      idx += "cache_(hit|miss)".length;
-      continue;
-    }
-
-    // Handle character class ranges
-    let charMin = cleanPat.charCodeAt(idx);
-    let charMax = charMin;
-    let advance = 1;
-
-    if (cleanPat.startsWith("\\d", idx)) {
-      charMin = 48;
-      charMax = 57;
-      advance = 2;
-    } else if (cleanPat.startsWith("\\w", idx)) {
-      // \w char class
-      charMin = 0;
-      charMax = 65535;
-      advance = 2;
-    } else if (cleanPat.startsWith("\\s", idx)) {
-      charMin = 32;
-      charMax = 32;
-      advance = 2;
-    } else if (cleanPat.startsWith("[a-zA-Z0-9_-]+", idx)) {
-      const loopNode = compiler.createState(false);
-      compiler.addEpsilon(curr, loopNode);
-      // a-z, A-Z, 0-9, _, -
-      compiler.addTransition(loopNode, loopNode, 97, 122);
-      compiler.addTransition(loopNode, loopNode, 65, 90);
-      compiler.addTransition(loopNode, loopNode, 48, 57);
-      compiler.addTransition(loopNode, loopNode, 95, 95);
-      compiler.addTransition(loopNode, loopNode, 45, 45);
-      const next = compiler.createState(false);
-      compiler.addEpsilon(loopNode, next);
-      curr = next;
-      idx += "[a-zA-Z0-9_-]+".length;
-      continue;
-    } else if (cleanPat[idx] === "\\") {
-      const esc = cleanPat.charCodeAt(idx + 1);
-      charMin = esc;
-      charMax = esc;
-      advance = 2;
-    }
-
-    // Check quantifier
-    let minRep = 1;
-    let maxRep = 1;
-    const nextIdx = idx + advance;
-
-    if (nextIdx < cleanPat.length) {
-      if (cleanPat[nextIdx] === "+") {
-        minRep = 1;
-        maxRep = Infinity;
-        advance += 1;
-      } else if (cleanPat[nextIdx] === "*") {
-        minRep = 0;
-        maxRep = Infinity;
-        advance += 1;
-      } else if (cleanPat[nextIdx] === "?") {
-        minRep = 0;
-        maxRep = 1;
-        advance += 1;
-      } else if (cleanPat[nextIdx] === "{") {
-        const close = cleanPat.indexOf("}", nextIdx);
-        if (close !== -1) {
-          const spec = cleanPat.slice(nextIdx + 1, close);
-          const parts = spec.split(",");
-          minRep = parseInt(parts[0], 10);
-          maxRep = parts.length > 1 ? parseInt(parts[1], 10) : minRep;
-          advance += close - nextIdx + 1;
-        }
-      }
-    }
-
-    for (let r = 0; r < minRep; r++) {
-      const next = compiler.createState(false);
-      compiler.addTransition(curr, next, charMin, charMax);
-      curr = next;
-    }
-
-    if (maxRep === Infinity) {
-      const loopNode = compiler.createState(false);
-      compiler.addEpsilon(curr, loopNode);
-      compiler.addTransition(loopNode, loopNode, charMin, charMax);
-      const next = compiler.createState(false);
-      compiler.addEpsilon(loopNode, next);
-      curr = next;
-    }
-
-    idx += advance;
-  }
-
-  compiler.addEpsilon(curr, accept);
-
-  return new CompiledNFA(patternId, pattern, compiler, start, accept, isAnchorStart);
+  const anchorStart = pattern.startsWith("^");
+  const anchorEnd = pattern.endsWith("$") && !pattern.endsWith("\\$");
+  const source = pattern.slice(anchorStart ? 1 : 0, anchorEnd ? -1 : undefined);
+  const parser = new Parser(source);
+  const ast = parser.parse();
+  return new CompiledNFA(patternId, pattern, ast, parser.captureGroups, anchorStart, anchorEnd);
 }
 
-function addLiteralSequence(compiler: ThompsonCompiler, start: number, text: string): number {
-  let curr = start;
-  for (let i = 0; i < text.length; i++) {
-    const next = compiler.createState(false);
-    const code = text.charCodeAt(i);
-    compiler.addTransition(curr, next, code, code);
-    curr = next;
-  }
-  return curr;
-}
-
-export async function scanJSAutomata(fixture: RegexFixture): Promise<{
-  matches: RegexMatchResult[];
-  codePointsSearched: number;
-  patternsExecuted: number;
-  matchesFound: number;
-  oracleHash: string;
-  phases: { compileMs: number; scanMs: number };
-}> {
-  const matches: RegexMatchResult[] = [];
-
+export async function scanJSAutomata(fixture: RegexFixture) {
   const startCompile = performance.now();
-  const nfas = fixture.patterns.map((p) => compileRegexToNFA(p.id, p.pattern));
+  const automata = fixture.patterns.map((pattern) =>
+    compileRegexToNFA(pattern.id, pattern.pattern)
+  );
   const endCompile = performance.now();
-
+  const matches: RegexMatchResult[] = [];
+  let capturesExtracted = 0;
   const startScan = performance.now();
-  for (const nfa of nfas) {
-    const res = nfa.exec(fixture.text);
-    for (let i = 0; i < res.length; i++) {
-      matches.push(res[i]);
-    }
+  for (const automaton of automata) {
+    const found = automaton.exec(fixture.text);
+    matches.push(...found);
+    capturesExtracted += found.length * automaton.captureGroups;
   }
   const endScan = performance.now();
-
-  const oracleHash = await computeRegexSHA256OracleHash(matches);
-
   return {
     matches,
     codePointsSearched: fixture.textCodePoints,
-    patternsExecuted: fixture.patterns.length,
+    patternsExecuted: automata.length,
     matchesFound: matches.length,
-    oracleHash,
-    phases: {
-      compileMs: endCompile - startCompile,
-      scanMs: endScan - startScan,
-    },
+    capturesExtracted,
+    boundaryCrossings: 0,
+    oracleHash: await computeRegexSHA256OracleHash(matches),
+    phases: { compileMs: endCompile - startCompile, scanMs: endScan - startScan },
   };
 }
 
-export async function computeRegexSHA256OracleHash(
-  matches: RegexMatchResult[],
-): Promise<string> {
-  let str = "";
-  for (let i = 0; i < matches.length; i++) {
-    const m = matches[i];
-    str += `${m.patternId}:${m.startCP}:${m.endCP}:${m.matchText.length};`;
-  }
-  const encoder = new TextEncoder();
-  return await sha256Hex(encoder.encode(str));
+export async function computeRegexSHA256OracleHash(matches: RegexMatchResult[]): Promise<string> {
+  const tuples = matches.map((match) => [
+    match.patternId,
+    match.startCP,
+    match.endCP,
+    match.endCP - match.startCP,
+  ]);
+  return await sha256Hex(new TextEncoder().encode(JSON.stringify(tuples)));
 }

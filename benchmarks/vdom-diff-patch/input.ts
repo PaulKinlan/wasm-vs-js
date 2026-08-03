@@ -19,6 +19,7 @@ export interface PatchOp {
   attrVal: number;
   index: number;
   childIds?: number[];
+  node?: VDOMNode;
 }
 
 export interface VDOMFixture {
@@ -75,11 +76,14 @@ export function generateVDOMFixture(
   });
 
   let currentId = 1;
-  const parentStack = [0];
+  const depths = [0];
 
   while (currentId < targetNodeCount) {
-    const parentId = parentStack[prng.nextIntRange(0, parentStack.length - 1)];
-    const isText = prng.nextIntRange(0, 9) === 0; // 10% text nodes
+    // A deterministic ternary breadth-first shape guarantees depth <= 6 for
+    // the frozen 1,000-node fixture while leaving node content seed-driven.
+    const parentId = Math.floor((currentId - 1) / 3);
+    const isText = currentId > Math.ceil((targetNodeCount - 1) / 3) &&
+      prng.nextIntRange(0, 4) === 0; // leaf-only text nodes; enough for 50 distinct edits
     const tag = isText ? -1 : prng.nextIntRange(0, 6);
     const key = prng.nextIntRange(0, 4) === 0 ? prng.nextIntRange(100, 999) : -1; // 25% keyed
     const attrKey = isText ? -1 : prng.nextIntRange(0, 15);
@@ -99,51 +103,36 @@ export function generateVDOMFixture(
     treeA.push(node);
     treeA[parentId].children.push(currentId);
 
-    if (!isText && treeA[parentId].children.length < 12) {
-      parentStack.push(currentId);
-    }
+    depths[currentId] = depths[parentId] + 1;
     currentId += 1;
   }
 
   // Deep clone treeA to create treeB
   const treeB: VDOMNode[] = JSON.parse(JSON.stringify(treeA));
 
-  // Apply deterministic mutations to treeB
-  let patchCount = 0;
-
-  // 1. 100 Keyed child reorders/moves
-  for (let i = 0; i < 100; i++) {
-    const pId = prng.nextIntRange(0, treeB.length - 1);
-    const parent = treeB[pId];
-    if (parent.children.length > 2) {
-      const idx1 = prng.nextIntRange(0, parent.children.length - 1);
-      const idx2 = prng.nextIntRange(0, parent.children.length - 1);
-      const temp = parent.children[idx1];
-      parent.children[idx1] = parent.children[idx2];
-      parent.children[idx2] = temp;
-      patchCount++;
+  const shuffle = <T>(items: T[]): T[] => {
+    for (let i = items.length - 1; i > 0; i--) {
+      const j = prng.nextIntRange(0, i);
+      [items[i], items[j]] = [items[j], items[i]];
     }
-  }
+    return items;
+  };
 
-  // 2. 75 Attribute edits
-  for (let i = 0; i < 75; i++) {
-    const nId = prng.nextIntRange(1, treeB.length - 1);
-    const node = treeB[nId];
-    if (node.tag !== -1) {
-      node.attrVal = (node.attrVal + 17) % 100;
-      patchCount++;
-    }
+  // Apply exactly 250 effective, non-collapsing edits: 100 distinct reorders,
+  // 100 distinct attribute changes, and 50 distinct text changes.
+  const reorderNodes = shuffle(treeB.filter((node) => node.children.length >= 2)).slice(0, 100);
+  const attributeNodes = shuffle(treeB.filter((node) => node.tag !== -1)).slice(0, 100);
+  const textNodes = shuffle(treeB.filter((node) => node.tag === -1)).slice(0, 50);
+  if (reorderNodes.length !== 100 || attributeNodes.length !== 100 || textNodes.length !== 50) {
+    throw new Error("VDOM fixture cannot satisfy the frozen 250-edit contract");
   }
-
-  // 3. 50 Text edits / replaces
-  for (let i = 0; i < 50; i++) {
-    const nId = prng.nextIntRange(1, treeB.length - 1);
-    const node = treeB[nId];
-    if (node.tag === -1) {
-      node.textId = (node.textId + 31) % 100;
-      patchCount++;
-    }
+  for (const node of reorderNodes) {
+    const first = node.children.shift()!;
+    node.children.push(first);
   }
+  for (const node of attributeNodes) node.attrVal = (node.attrVal + 17) % 100;
+  for (const node of textNodes) node.textId = (node.textId + 31) % 100;
+  const patchCount = 250;
 
   // Serialize to Flat Array representation for Wasm
   const flatA = flattenVDOMTree(treeA);
