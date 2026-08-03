@@ -5,11 +5,11 @@
   "status": "implementation-candidate",
   "variantId": "wasm-linear-controlled",
   "executionTarget": "wasm-linear",
-  "sourceCommit": "0674058a99534ec26cef52d1963dbb5fe3e0523e",
+  "sourceCommit": "67c89354b4e41a36b6fc6ef9ed29a201d02238fe",
   "source": {
     "path": "public/artifacts/base-cad-parametric-bracket/source-bundle.txt",
-    "bytes": 133612,
-    "sha256": "0ab8e7c91152d4b02e8447b8bda74b576bedfb4828a53fffc006d74b7c5c7d56"
+    "bytes": 70561,
+    "sha256": "e8178bc38fb99936e74bb92aea2a4486acc9863c3b738fea3611cd14aea32eb6"
   },
   "fixture": {
     "path": "public/artifacts/base-cad-parametric-bracket/fixture.bin",

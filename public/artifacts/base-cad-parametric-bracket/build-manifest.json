@@ -3,14 +3,19 @@
   "workloadId": "cad.parametric-bracket.v1",
   "source": {
     "repository": "https://github.com/PaulKinlan/wasm-vs-js",
-    "commit": "0674058a99534ec26cef52d1963dbb5fe3e0523e",
+    "commit": "67c89354b4e41a36b6fc6ef9ed29a201d02238fe",
     "sourceBundle": {
       "path": "public/artifacts/base-cad-parametric-bracket/source-bundle.txt",
-      "bytes": 133612,
-      "sha256": "0ab8e7c91152d4b02e8447b8bda74b576bedfb4828a53fffc006d74b7c5c7d56"
+      "bytes": 70561,
+      "sha256": "e8178bc38fb99936e74bb92aea2a4486acc9863c3b738fea3611cd14aea32eb6"
     },
-    "sourceBundleSha256": "0ab8e7c91152d4b02e8447b8bda74b576bedfb4828a53fffc006d74b7c5c7d56",
+    "sourceBundleSha256": "e8178bc38fb99936e74bb92aea2a4486acc9863c3b738fea3611cd14aea32eb6",
     "files": [
+      {
+        "path": "lib/canonical.ts",
+        "bytes": 2378,
+        "sha256": "5e268c346bbf8d977448077ab1170e745ef120424590e87197648e14bc05d16f"
+      },
       {
         "path": "benchmarks/base/cad-parametric-bracket/contract.js",
         "bytes": 1150,
@@ -32,59 +37,15 @@
         "sha256": "2fda2ecca37c99febacdc5b8c4790cdca51dd190953202d20d45e15137c0f6c9"
       },
       {
-        "path": "catalog/base-implementations.v1/cad.parametric-bracket.v1.json",
-        "bytes": 3199,
-        "sha256": "5f6ac2fbfcdf7d22491898dd5d5d94c6ebf3f8303e41f748721def64521abac0"
-      },
-      {
-        "path": "schemas/cad-parametric-bracket-validation.schema.json",
-        "bytes": 4958,
-        "sha256": "c7aeb15d8b7dd0cc896e9316b622e8692f7ba4000632b975376b3a6582adb497"
-      },
-      {
-        "path": "scripts/build-base-cad-parametric-bracket.ts",
-        "bytes": 9067,
-        "sha256": "1bdb57e0c75c4461b890a623b0927f8989bb70c4cd0e2f53b6ea9a084576cfb3"
-      },
-      {
-        "path": "public/demos/cad-parametric-bracket/index.html",
-        "bytes": 2085,
-        "sha256": "c3dba1ee090e1326261551eea90210f51a9890b543c3844780d1270db266d922"
-      },
-      {
-        "path": "public/demos/cad-parametric-bracket/demo.js",
-        "bytes": 2472,
-        "sha256": "f61c66a8dcaeab95a7bb034ed8d0643bc21e3d130389811d68f538dddb039a13"
-      },
-      {
-        "path": "public/demos/cad-parametric-bracket/worker.js",
-        "bytes": 2346,
-        "sha256": "9711f3b9feb97467dc678ac5e251bed36e6af52d33fd3a83e852266634acd947"
-      },
-      {
-        "path": "tests/base/cad-parametric-bracket.test.ts",
-        "bytes": 19658,
-        "sha256": "f97fcc09e7bbc09373c6294c402a0ee2ac956217f248bace1ba190423b52f3d6"
-      },
-      {
-        "path": "server.ts",
-        "bytes": 20501,
-        "sha256": "c80b79b77849083e4530873035b74a6072b77f359bb46a0188d29934614c0ef5"
-      },
-      {
-        "path": "deno.json",
-        "bytes": 1831,
-        "sha256": "17e6674c81fdaee7dfc52ed1bd28baeec70fb0715f839b92defe1e84545b08eb"
-      },
-      {
-        "path": "deno.lock",
-        "bytes": 1630,
-        "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2"
+        "path": "scripts/reproduce-base-cad-parametric-bracket.ts",
+        "bytes": 3776,
+        "sha256": "5f7c69ceb116957b42e77624f9956321f0de4fb895b436abdaa4e77397af69e9"
       }
     ]
   },
   "build": {
     "command": "deno run --allow-read=. --allow-write=public/artifacts/base-cad-parametric-bracket,public/evidence/base-catalog/cad-parametric-bracket --allow-run=git,clang,wasm-ld scripts/build-base-cad-parametric-bracket.ts --source-commit=<commit>",
+    "reproductionCommand": "deno run --cached-only --no-config --allow-read=. --allow-write=reproduced --allow-run=clang,wasm-ld scripts/reproduce-base-cad-parametric-bracket.ts",
     "toolchain": {
       "deno": "2.9.0",
       "clang": "clang version 22.1.8",
