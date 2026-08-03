@@ -63,12 +63,12 @@ Deno.test("complete JavaScript and material Wasm B-rep/tessellation outputs matc
   const wasm = runWasm(await runtime(), fixture);
   assertEquals(assertEquivalent(js, wasm), {
     exactBytes: true,
-    completeOutputDigest: "50670daa6b950c62",
+    completeOutputDigest: "d60fbade9eff2ffb",
   });
   assertEquals(js.output, wasm.output);
   assertEquals(
     await sha256Hex(js.output),
-    "47244801c8cc678e2e71aa53606b53b32939a65aa30700133b1fbf048e516433",
+    "a1b9fe34b51782221b30aadd54b36aa6a45ba38846d6b44cca2669b75993b39f",
   );
   assertEquals(js.triangleCount, 5804);
   assertEquals(js.topology, {
@@ -88,20 +88,53 @@ Deno.test("complete JavaScript and material Wasm B-rep/tessellation outputs matc
   assertEquals(jsCounters.intersectionTests, 3400);
   assertEquals(jsCounters.surfaceTriangles, 5804);
   assertEquals(jsCounters.tessellationVertices, 17412);
-  assertEquals(jsCounters.allocations, 8);
+  assertEquals(jsCounters.allocations, 1);
   assertEquals(jsCounters.boundaryCrossings, 0);
-  assertEquals(wasmCounters.allocations, 0);
+  assertEquals(wasmCounters.allocations, 1);
   assertEquals(wasmCounters.boundaryCrossings, 2);
-  const tree = buildFeatureTree(fixture).solid;
+  const tree = buildFeatureTree(fixture).solid as unknown as {
+    vertices: unknown[];
+    edges: { coedges: number[] }[];
+    faces: { id: number; surface: { kind: string }; loops: number[] }[];
+    loops: { id: number; face: number; coedges: number[] }[];
+    coedges: { id: number; loop: number; orientation: number; next: number; previous: number }[];
+  };
   assertEquals(tree.vertices.length, 20);
   assertEquals(tree.edges.length, 30);
   assertEquals(tree.faces.length, 12);
+  assertEquals(tree.loops.length, 16);
+  assertEquals(tree.coedges.length, 60);
   assertEquals(
     tree.faces.filter((face: { surface: { kind: string } }) => face.surface.kind === "cylinder")
       .length,
     6,
   );
-  assert(tree.edges.every((edge: { faces: number[] }) => edge.faces.length === 2));
+  assert(
+    tree.edges.every((edge: { coedges: number[] }) =>
+      edge.coedges.length === 2 &&
+      edge.coedges.reduce(
+          (sum: number, id: number) => sum + tree.coedges[id].orientation,
+          0,
+        ) === 0
+    ),
+  );
+  assert(
+    tree.faces.every((face: { id: number; loops: number[] }) =>
+      face.loops.length > 0 &&
+      tree.loops.every((loop: { id: number; face: number }) =>
+        !face.loops.includes(loop.id) || loop.face === face.id
+      )
+    ),
+  );
+  assert(
+    tree.coedges.every((coedge: { id: number; loop: number; next: number; previous: number }) => {
+      const loop = tree.loops[coedge.loop];
+      const index = loop.coedges.indexOf(coedge.id);
+      return index >= 0 &&
+        coedge.next === loop.coedges[(index + 1) % loop.coedges.length] &&
+        coedge.previous === loop.coedges[(index + loop.coedges.length - 1) % loop.coedges.length];
+    }),
+  );
   const c = await Deno.readTextFile("benchmarks/base/cad-parametric-bracket/bracket.c");
   for (
     const token of [
@@ -109,7 +142,9 @@ Deno.test("complete JavaScript and material Wasm B-rep/tessellation outputs matc
       "make_cylinder_solid",
       "boolean_cut",
       "fillet_vertical_edges",
-      "finish_brep",
+      "add_loop",
+      "validate_brep",
+      "construct_face_loops_from_brep",
       "tessellate_faces",
       "SURFACE_CYLINDER",
     ]
@@ -145,6 +180,76 @@ Deno.test("simple solids, one cut and a fragile near-fillet cut differentially m
   }
 });
 
+Deno.test("deterministic parameter corpus preserves exact JS/Wasm B-rep results", async () => {
+  const cases = [
+    { width: 20, height: 20, depth: 1, filletRadius: 0, holeRadius: 1, holeCenters: [] },
+    { width: 20, height: 20, depth: 2, filletRadius: 0, holeRadius: 1, holeCenters: [[5, 5]] },
+    {
+      width: 20,
+      height: 20,
+      depth: 3,
+      filletRadius: 0,
+      holeRadius: 1,
+      holeCenters: [[5, 5], [15, 15]],
+    },
+    { width: 24, height: 18, depth: 4, filletRadius: 2, holeRadius: 1, holeCenters: [] },
+    {
+      width: 24,
+      height: 18,
+      depth: 5,
+      filletRadius: 2,
+      holeRadius: 1,
+      holeCenters: [[12, 9]],
+    },
+    {
+      width: 24,
+      height: 18,
+      depth: 6,
+      filletRadius: 2,
+      holeRadius: 1,
+      holeCenters: [[6, 9], [18, 9]],
+    },
+    {
+      width: 48,
+      height: 32,
+      depth: 7,
+      filletRadius: 3,
+      holeRadius: 2,
+      holeCenters: [[12, 16], [36, 16]],
+    },
+    {
+      width: 64,
+      height: 48,
+      depth: 8,
+      filletRadius: 6,
+      holeRadius: 3,
+      holeCenters: [[16, 13], [48, 35]],
+    },
+    {
+      width: 80,
+      height: 40,
+      depth: 12,
+      filletRadius: 5,
+      holeRadius: 4,
+      holeCenters: [[9, 9], [60, 20]],
+    },
+  ];
+  const wasm = await runtime();
+  for (const parameters of cases) {
+    const fixture = generateFixture(parameters);
+    const js = runJavaScript(fixture);
+    const linear = runWasm(wasm, fixture);
+    assertEquivalent(js, linear);
+    const profileEdges = parameters.filletRadius > 0 ? 8 : 4;
+    const holes = parameters.holeCenters.length;
+    assertEquals(js.topology.faces, 2 + profileEdges + holes);
+    assertEquals(js.topology.edges, 3 * profileEdges + 3 * holes);
+    assertEquals(js.topology.vertices, 2 * profileEdges + 2 * holes);
+    assertEquals(js.topology.eulerCharacteristic, 2 - 2 * holes);
+    assertEquals(js.topology.genus, holes);
+  }
+});
+
 Deno.test("independent oracle rejects forged topology and feature counters", () => {
   const fixture = generateFixture({ holeCenters: [[20, 20]] });
   const valid = runJavaScript(fixture).output;
@@ -170,11 +275,81 @@ Deno.test("independent oracle rejects forged topology and feature counters", () 
     faces: 6,
     edges: 12,
     vertices: 8,
+    loops: 6,
+    coedges: 24,
+    eulerCharacteristic: 2,
     watertight: true,
     oriented: true,
     tessellationEdges: 18,
   });
   assertEquals((sharp.counters as Record<string, number>).featureNodes, 2);
+
+  let missingOperativeCounters = false;
+  try {
+    decodeResult(valid, "js-controlled", fixture);
+  } catch (error) {
+    missingOperativeCounters = error instanceof Error &&
+      error.message.includes("operative execution counters");
+  }
+  assert(missingOperativeCounters, "variant identity injected execution counters");
+
+  const corruptedMesh = valid.slice();
+  const corruptView = new DataView(corruptedMesh.buffer);
+  const triangleOffset = 256 + (36 + 32) * 16;
+  corruptView.setFloat64(
+    triangleOffset,
+    corruptView.getFloat64(triangleOffset, true) + 0.125,
+    true,
+  );
+  let meshRejected = false;
+  try {
+    decodeResult(corruptedMesh, "js-controlled", fixture, {
+      allocations: 1,
+      boundaryCrossings: 0,
+    });
+  } catch (error) {
+    meshRejected = error instanceof Error &&
+      (error.message.includes("2-manifold") || error.message.includes("Euler"));
+  }
+  assert(meshRejected, "independent mesh topology oracle accepted a forged mesh");
+});
+
+Deno.test("overlapping and tangent holes are rejected by both input contracts", async () => {
+  for (const secondX of [21, 28]) {
+    let generatorRejected = false;
+    try {
+      generateFixture({ holeCenters: [[20, 20], [secondX, 20]] });
+    } catch (error) {
+      generatorRejected = error instanceof Error && error.message.includes("through-holes");
+    }
+    assert(generatorRejected, `fixture generator accepted second center ${secondX}`);
+  }
+
+  const overlapping = generateFixture();
+  new DataView(overlapping.buffer).setFloat64(80, 21, true);
+  let jsRejected = false;
+  try {
+    runJavaScript(overlapping);
+  } catch (error) {
+    jsRejected = error instanceof Error && error.message.includes("through-holes");
+  }
+  assert(jsRejected, "JavaScript accepted overlapping holes");
+
+  const wasm = await runtime();
+  const raw = wasm as unknown as {
+    memory: WebAssembly.Memory;
+    input_ptr: () => number;
+    run: () => number;
+  };
+  new Uint8Array(raw.memory.buffer, raw.input_ptr(), INPUT_BYTES).set(overlapping);
+  assertEquals(raw.run(), 0);
+  let wrapperRejected = false;
+  try {
+    runWasm(wasm, overlapping);
+  } catch (error) {
+    wrapperRejected = error instanceof Error && error.message.includes("through-holes");
+  }
+  assert(wrapperRejected, "Wasm wrapper accepted overlapping holes");
 });
 
 Deno.test("Wasm memory is fixed and repeat runs clear complete output state", async () => {
@@ -269,6 +444,19 @@ Deno.test("pinned bracket builder reproduces artifacts and records byte-identica
     paths.map(async (path) => await sha256Hex(await Deno.readFile(path))),
   );
   assertEquals(after, before);
+
+  const bundle = await Deno.readTextFile(
+    "public/artifacts/base-cad-parametric-bracket/source-bundle.txt",
+  );
+  for (const file of build.source.files) {
+    const start = `===== BEGIN ${file.path} sha256=${file.sha256} =====\n`;
+    const end = `===== END ${file.path} =====\n`;
+    const startIndex = bundle.indexOf(start);
+    const endIndex = bundle.indexOf(end, startIndex + start.length);
+    assert(startIndex >= 0 && endIndex > startIndex, `missing bundled content for ${file.path}`);
+    const content = bundle.slice(startIndex + start.length, endIndex);
+    assertEquals(await sha256Hex(new TextEncoder().encode(content)), file.sha256);
+  }
 });
 
 Deno.test("bracket records satisfy closed schema and retain exact bytes", async () => {
@@ -298,7 +486,7 @@ Deno.test("bracket records satisfy closed schema and retain exact bytes", async 
     assertEquals(record.fixture.sha256, await sha256Hex(await Deno.readFile(record.fixture.path)));
     assertEquals(
       record.oracle.completeOutputSha256,
-      "47244801c8cc678e2e71aa53606b53b32939a65aa30700133b1fbf048e516433",
+      "a1b9fe34b51782221b30aadd54b36aa6a45ba38846d6b44cca2669b75993b39f",
     );
     assertEquals(record.oracle.exactCrossTargetBytes, true);
 

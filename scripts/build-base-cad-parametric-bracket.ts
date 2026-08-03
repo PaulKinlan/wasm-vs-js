@@ -89,9 +89,16 @@ const sourcePaths = [
   "deno.lock",
 ];
 const sourceFiles = await Promise.all(sourcePaths.map(ref));
-const sourceBundle = new TextEncoder().encode(
-  sourceFiles.map(({ path, sha256 }) => `${path}\0${sha256}\n`).join(""),
-);
+const sourceBundleParts: string[] = [];
+for (const file of sourceFiles) {
+  const content = await Deno.readTextFile(new URL(file.path, root));
+  sourceBundleParts.push(
+    `===== BEGIN ${file.path} sha256=${file.sha256} =====\n${content}${
+      content.endsWith("\n") ? "" : "\n"
+    }===== END ${file.path} =====\n`,
+  );
+}
+const sourceBundle = new TextEncoder().encode(sourceBundleParts.join(""));
 const sourceCommit = Deno.args.find((arg) => arg.startsWith("--source-commit="))?.slice(16) ??
   "source-tree-not-yet-committed";
 if (sourceCommit !== "source-tree-not-yet-committed" && !/^[a-f0-9]{40}$/.test(sourceCommit)) {

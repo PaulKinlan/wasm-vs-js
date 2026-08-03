@@ -84,43 +84,100 @@ function inputContract(input) {
   if (
     ![contract.width, contract.height, contract.depth, contract.fillet, contract.holeRadius]
       .every(Number.isFinite) ||
-    contract.width <= 0 || contract.height <= 0 ||
-    contract.depth <= 0 || contract.fillet < 0 || contract.holeRadius <= 0 ||
+    contract.width <= 0 || contract.height <= 0 || contract.depth <= 0 ||
+    contract.fillet < 0 || contract.holeRadius <= 0 ||
     contract.fillet * 2 >= Math.min(contract.width, contract.height) ||
     contract.holes.some((point) => !point.every(Number.isFinite))
   ) throw new Error("invalid bracket feature parameters");
+  for (let i = 0; i < contract.holes.length; i++) {
+    for (let j = i + 1; j < contract.holes.length; j++) {
+      const dx = contract.holes[i][0] - contract.holes[j][0];
+      const dy = contract.holes[i][1] - contract.holes[j][1];
+      if (dx * dx + dy * dy <= 4 * contract.holeRadius * contract.holeRadius) {
+        throw new Error("overlapping or tangent through-holes are outside the input contract");
+      }
+    }
+  }
   return contract;
 }
 
-function addVertex(solid, point) {
-  solid.vertices.push({ id: solid.vertices.length, point });
-  return solid.vertices.length - 1;
-}
-function addEdge(solid, curve, vertices, faces = []) {
-  solid.edges.push({ id: solid.edges.length, curve, vertices, faces });
-  return solid.edges.length - 1;
-}
-function addFace(solid, surface, loops = []) {
-  solid.faces.push({ id: solid.faces.length, surface, loops });
-  return solid.faces.length - 1;
-}
-/** Construct a sharp six-face B-rep box. */
-function makeBoxSolid(c) {
-  const solid = {
+function createSolid() {
+  return {
     kind: "solid",
     vertices: [],
     edges: [],
     faces: [],
-    holes: [],
+    loops: [],
+    coedges: [],
     features: [],
-    profile: null,
+    counters: {
+      featureNodes: 0,
+      boxSolids: 0,
+      cylinderSolids: 0,
+      booleanCuts: 0,
+      filletEdges: 0,
+      booleanIntersectionTests: 0,
+    },
   };
-  const points = [
-    [0, 0],
-    [c.width, 0],
-    [c.width, c.height],
-    [0, c.height],
-  ];
+}
+function addVertex(solid, point) {
+  solid.vertices.push({ id: solid.vertices.length, point });
+  return solid.vertices.length - 1;
+}
+function addEdge(solid, curve, vertices) {
+  solid.edges.push({ id: solid.edges.length, curve, vertices, coedges: [] });
+  return solid.edges.length - 1;
+}
+function addFace(solid, surface) {
+  solid.faces.push({ id: solid.faces.length, surface, loops: [] });
+  return solid.faces.length - 1;
+}
+function addLoop(solid, face, uses) {
+  const loop = { id: solid.loops.length, face, coedges: [] };
+  solid.loops.push(loop);
+  solid.faces[face].loops.push(loop.id);
+  for (const use of uses) {
+    const coedge = {
+      id: solid.coedges.length,
+      edge: use.edge,
+      face,
+      loop: loop.id,
+      orientation: use.orientation,
+      next: -1,
+      previous: -1,
+    };
+    solid.coedges.push(coedge);
+    loop.coedges.push(coedge.id);
+    solid.edges[use.edge].coedges.push(coedge.id);
+  }
+  for (let i = 0; i < loop.coedges.length; i++) {
+    const coedge = solid.coedges[loop.coedges[i]];
+    coedge.previous = loop.coedges[(i + loop.coedges.length - 1) % loop.coedges.length];
+    coedge.next = loop.coedges[(i + 1) % loop.coedges.length];
+  }
+  return loop.id;
+}
+function resetIncidence(solid) {
+  solid.loops = [];
+  solid.coedges = [];
+  for (const edge of solid.edges) edge.coedges = [];
+  for (const face of solid.faces) face.loops = [];
+}
+function line() {
+  return { kind: "line" };
+}
+function arc(center, radius, startIndex, steps) {
+  return { kind: "circle", center, radius, startIndex, steps };
+}
+function addFeature(solid, feature) {
+  solid.features.push(feature);
+  solid.counters.featureNodes++;
+}
+
+/** Construct a sharp six-face B-rep box, including loops and two coedges per edge. */
+function makeBoxSolid(c) {
+  const solid = createSolid();
+  const points = [[0, 0], [c.width, 0], [c.width, c.height], [0, c.height]];
   for (const z of [0, c.depth]) for (const [x, y] of points) addVertex(solid, [x, y, z]);
   const bottom = addFace(solid, { kind: "plane", origin: [0, 0, 0], normal: [0, 0, -1] });
   const top = addFace(solid, {
@@ -128,199 +185,316 @@ function makeBoxSolid(c) {
     origin: [0, 0, c.depth],
     normal: [0, 0, 1],
   });
-  const sides = points.map((point, index) =>
-    addFace(solid, { kind: "plane", origin: [...point, 0], profileEdge: index })
+  const sides = points.map((point) =>
+    addFace(solid, { kind: "plane", origin: [...point, 0], axis: "z" })
   );
-  const bottomEdges = points.map((_, i) =>
-    addEdge(solid, { kind: "line" }, [i, (i + 1) % 4], [bottom, sides[i]])
-  );
-  const topEdges = points.map((_, i) =>
-    addEdge(solid, { kind: "line" }, [4 + i, 4 + (i + 1) % 4], [top, sides[i]])
-  );
-  const vertical = points.map((_, i) =>
-    addEdge(solid, { kind: "line" }, [i, 4 + i], [sides[(i + 3) % 4], sides[i]])
-  );
-  solid.faces[bottom].loops = [bottomEdges.map((edge) => ({ edge, orientation: -1 }))];
-  solid.faces[top].loops = [topEdges.map((edge) => ({ edge, orientation: 1 }))];
+  const bottomEdges = points.map((_, i) => addEdge(solid, line(), [i, (i + 1) % 4]));
+  const topEdges = points.map((_, i) => addEdge(solid, line(), [4 + i, 4 + (i + 1) % 4]));
+  const vertical = points.map((_, i) => addEdge(solid, line(), [i, 4 + i]));
+  addLoop(solid, bottom, bottomEdges.toReversed().map((edge) => ({ edge, orientation: -1 })));
+  addLoop(solid, top, topEdges.map((edge) => ({ edge, orientation: 1 })));
   for (let i = 0; i < 4; i++) {
-    solid.faces[sides[i]].loops = [[
+    addLoop(solid, sides[i], [
       { edge: bottomEdges[i], orientation: 1 },
       { edge: vertical[(i + 1) % 4], orientation: 1 },
       { edge: topEdges[i], orientation: -1 },
       { edge: vertical[i], orientation: -1 },
-    ]];
+    ]);
   }
-  solid.profile = points.map((point, i) => ({
-    kind: "line",
-    start: point,
-    end: points[(i + 1) % points.length],
-  }));
-  solid.features.push({ kind: "box", width: c.width, height: c.height, depth: c.depth });
+  addFeature(solid, { kind: "box", width: c.width, height: c.height, depth: c.depth });
+  solid.counters.boxSolids++;
   return solid;
 }
 
-/** Construct the analytic cylinder before it is used as a boolean tool. */
+/** Construct a complete analytic cylinder B-rep used as the boolean tool. */
 function makeCylinderSolid(c, center) {
-  return {
-    kind: "solid",
+  const tool = createSolid();
+  const bottomVertex = addVertex(tool, [center[0] + c.holeRadius, center[1], 0]);
+  const topVertex = addVertex(tool, [center[0] + c.holeRadius, center[1], c.depth]);
+  const bottom = addFace(tool, { kind: "plane", z: 0, normal: -1 });
+  const top = addFace(tool, { kind: "plane", z: c.depth, normal: 1 });
+  const wall = addFace(tool, {
+    kind: "cylinder",
     center,
     radius: c.holeRadius,
+    axis: "z",
     depth: c.depth,
-    faces: [
-      { surface: { kind: "plane", z: 0 } },
-      { surface: { kind: "plane", z: c.depth } },
-      { surface: { kind: "cylinder", center, radius: c.holeRadius } },
-    ],
-  };
+  });
+  const rimBottom = addEdge(tool, arc(center, c.holeRadius, 0, 32), [bottomVertex, bottomVertex]);
+  const rimTop = addEdge(tool, arc(center, c.holeRadius, 0, 32), [topVertex, topVertex]);
+  const seam = addEdge(tool, { ...line(), seam: true }, [bottomVertex, topVertex]);
+  addLoop(tool, bottom, [{ edge: rimBottom, orientation: -1 }]);
+  addLoop(tool, top, [{ edge: rimTop, orientation: 1 }]);
+  addLoop(tool, wall, [
+    { edge: rimBottom, orientation: 1 },
+    { edge: seam, orientation: 1 },
+    { edge: rimTop, orientation: -1 },
+    { edge: seam, orientation: -1 },
+  ]);
+  addFeature(tool, { kind: "cylinder", center, radius: c.holeRadius });
+  tool.counters.cylinderSolids++;
+  validateBrepTopology(tool);
+  return tool;
 }
 
-/** Subtract a through-cylinder and insert its cylindrical face and adjacency. */
-function booleanCut(solid, tool, c, counters) {
-  const [cx, cy] = tool.center;
+/** Materially subtract a complete through-cylinder by splicing its wall and rims into the box. */
+function booleanCut(solid, tool, c) {
+  const cylinderFace = tool.faces.find((face) => face.surface.kind === "cylinder");
+  if (!cylinderFace) throw new Error("boolean tool has no cylindrical material boundary");
+  const { center, radius } = cylinderFace.surface;
   for (let k = 0; k < HOLE_SEGMENTS; k++) {
     const [ux, uy] = UNIT[k];
-    const x = cx + tool.radius * ux, y = cy + tool.radius * uy;
-    counters.booleanIntersectionTests++;
-    const r = c.fillet;
-    const qx = x < r ? r - x : x > c.width - r ? x - (c.width - r) : 0;
-    const qy = y < r ? r - y : y > c.height - r ? y - (c.height - r) : 0;
+    const x = center[0] + radius * ux, y = center[1] + radius * uy;
+    solid.counters.booleanIntersectionTests++;
+    const qx = x < c.fillet ? c.fillet - x : x > c.width - c.fillet ? x - (c.width - c.fillet) : 0;
+    const qy = y < c.fillet
+      ? c.fillet - y
+      : y > c.height - c.fillet
+      ? y - (c.height - c.fillet)
+      : 0;
     if (
       x < 0 || x > c.width || y < 0 || y > c.height ||
-      qx * qx + qy * qy > r * r + 1e-15
+      qx * qx + qy * qy > c.fillet * c.fillet + 1e-15
     ) throw new Error("cylinder does not produce a contained through-hole");
   }
-  solid.holes.push({ center: tool.center, radius: tool.radius });
-  solid.features.push({ kind: "cylinder", center: tool.center, radius: tool.radius });
-  solid.features.push({ kind: "boolean-cut", tool: solid.holes.length - 1 });
+  const bottomVertex = addVertex(solid, [...tool.vertices[0].point]);
+  const topVertex = addVertex(solid, [...tool.vertices[1].point]);
+  const wall = addFace(solid, { ...cylinderFace.surface, through: true });
+  const rimBottom = addEdge(solid, { ...tool.edges[0].curve }, [bottomVertex, bottomVertex]);
+  const rimTop = addEdge(solid, { ...tool.edges[1].curve }, [topVertex, topVertex]);
+  const seam = addEdge(solid, { ...tool.edges[2].curve }, [bottomVertex, topVertex]);
+  addLoop(solid, 0, [{ edge: rimBottom, orientation: 1 }]);
+  addLoop(solid, 1, [{ edge: rimTop, orientation: -1 }]);
+  addLoop(solid, wall, [
+    { edge: rimBottom, orientation: -1 },
+    { edge: seam, orientation: 1 },
+    { edge: rimTop, orientation: 1 },
+    { edge: seam, orientation: -1 },
+  ]);
+  addFeature(solid, { kind: "cylinder", center: [...center], radius });
+  addFeature(solid, { kind: "boolean-cut", wall });
+  solid.counters.cylinderSolids++;
+  solid.counters.booleanCuts++;
+  validateBrepTopology(solid);
 }
 
-/** Replace all four sharp vertical edges with analytic quarter-cylinder faces. */
+function roundedProfile(c) {
+  const r = c.fillet, w = c.width, h = c.height;
+  return [
+    { point: [r, 0], curve: line() },
+    { point: [w - r, 0], curve: arc([w - r, r], r, 24, 8) },
+    { point: [w, r], curve: line() },
+    { point: [w, h - r], curve: arc([w - r, h - r], r, 0, 8) },
+    { point: [w - r, h], curve: line() },
+    { point: [r, h], curve: arc([r, h - r], r, 8, 8) },
+    { point: [0, h - r], curve: line() },
+    { point: [0, r], curve: arc([r, r], r, 16, 8) },
+  ];
+}
+
+/** Apply four Euler fillet edits while retaining and reattaching all boolean-cut entities. */
 function filletVerticalEdges(solid, c) {
   if (c.fillet === 0) return;
-  const r = c.fillet, w = c.width, h = c.height;
-  solid.profile = [
-    { kind: "line", start: [r, 0], end: [w - r, 0] },
-    { kind: "circle", center: [w - r, r], radius: r, startIndex: 24, endIndex: 32 },
-    { kind: "line", start: [w, r], end: [w, h - r] },
-    { kind: "circle", center: [w - r, h - r], radius: r, startIndex: 0, endIndex: 8 },
-    { kind: "line", start: [w - r, h], end: [r, h] },
-    { kind: "circle", center: [r, h - r], radius: r, startIndex: 8, endIndex: 16 },
-    { kind: "line", start: [0, h - r], end: [0, r] },
-    { kind: "circle", center: [r, r], radius: r, startIndex: 16, endIndex: 24 },
-  ];
-  for (let i = 0; i < 4; i++) {
-    solid.features.push({ kind: "fillet", sourceEdge: i, radius: r });
+  const profile = roundedProfile(c);
+  const holeVertices = solid.vertices.length - 8;
+  const holeEdges = solid.edges.length - 12;
+  const holeFaces = solid.faces.length - 6;
+  const bottomVertices = [0], topVertices = [4];
+  for (let i = 1; i < 8; i++) {
+    if ((i & 1) === 0) {
+      bottomVertices.push(i / 2);
+      topVertices.push(4 + i / 2);
+    } else {
+      bottomVertices.push(addVertex(solid, [...profile[i].point, 0]));
+      topVertices.push(addVertex(solid, [...profile[i].point, c.depth]));
+    }
   }
-}
-
-/** Build final vertices, analytic edges, surfaces, loops, and edge/face adjacency. */
-function finishBrep(solid, c) {
-  const profile = solid.profile;
-  solid.vertices = [];
-  solid.edges = [];
-  solid.faces = [];
-  const profilePoints = profile.map((edge) => {
-    if (edge.kind === "line") return edge.start;
-    const [x, y] = UNIT[edge.startIndex];
-    return [edge.center[0] + edge.radius * x, edge.center[1] + edge.radius * y];
-  });
-  for (const z of [0, c.depth]) {
-    for (const [x, y] of profilePoints) addVertex(solid, [x, y, z]);
+  for (let i = 0; i < 8; i += 2) {
+    solid.vertices[bottomVertices[i]].point = [...profile[i].point, 0];
+    solid.vertices[topVertices[i]].point = [...profile[i].point, c.depth];
   }
-  const bottom = addFace(solid, { kind: "plane", z: 0, normal: -1 });
-  const top = addFace(solid, { kind: "plane", z: c.depth, normal: 1 });
-  const sideFaces = profile.map((edge, index) =>
-    addFace(
-      solid,
-      edge.kind === "circle"
-        ? { kind: "cylinder", center: edge.center, radius: edge.radius, axis: "z", quarter: true }
-        : { kind: "plane", profileEdge: index },
-    )
-  );
-  const n = profile.length;
-  const bottomEdges = profile.map((curve, i) =>
-    addEdge(solid, curve, [i, (i + 1) % n], [bottom, sideFaces[i]])
-  );
-  const topEdges = profile.map((curve, i) =>
-    addEdge(solid, curve, [n + i, n + (i + 1) % n], [top, sideFaces[i]])
-  );
-  const vertical = profile.map((_, i) =>
-    addEdge(solid, { kind: "line" }, [i, n + i], [sideFaces[(i + n - 1) % n], sideFaces[i]])
-  );
-  solid.faces[bottom].loops = [bottomEdges.map((edge) => ({ edge, orientation: -1 }))];
-  solid.faces[top].loops = [topEdges.map((edge) => ({ edge, orientation: 1 }))];
-  for (let i = 0; i < n; i++) {
-    solid.faces[sideFaces[i]].loops = [[
+  const bottomEdges = [], topEdges = [], vertical = [], sides = [];
+  for (let i = 0; i < 8; i++) {
+    const next = (i + 1) % 8;
+    if ((i & 1) === 0) {
+      bottomEdges[i] = i / 2;
+      topEdges[i] = 4 + i / 2;
+      vertical[i] = 8 + i / 2;
+      sides[i] = 2 + i / 2;
+      Object.assign(solid.edges[bottomEdges[i]], {
+        curve: profile[i].curve,
+        vertices: [bottomVertices[i], bottomVertices[next]],
+      });
+      Object.assign(solid.edges[topEdges[i]], {
+        curve: profile[i].curve,
+        vertices: [topVertices[i], topVertices[next]],
+      });
+      Object.assign(solid.edges[vertical[i]], {
+        curve: line(),
+        vertices: [bottomVertices[i], topVertices[i]],
+      });
+      solid.faces[sides[i]].surface = { kind: "plane", profileEdge: i, axis: "z" };
+    } else {
+      bottomEdges[i] = addEdge(solid, profile[i].curve, [bottomVertices[i], bottomVertices[next]]);
+      topEdges[i] = addEdge(solid, profile[i].curve, [topVertices[i], topVertices[next]]);
+      vertical[i] = addEdge(solid, line(), [bottomVertices[i], topVertices[i]]);
+      sides[i] = addFace(solid, {
+        kind: "cylinder",
+        center: profile[i].curve.center,
+        radius: c.fillet,
+        axis: "z",
+        quarter: true,
+      });
+      addFeature(solid, { kind: "fillet", sourceEdge: (i - 1) / 2, radius: c.fillet });
+      solid.counters.filletEdges++;
+    }
+  }
+  if (
+    solid.vertices.length !== 16 + holeVertices || solid.edges.length !== 24 + holeEdges ||
+    solid.faces.length !== 10 + holeFaces
+  ) throw new Error("fillet Euler edit changed an unexpected entity count");
+  resetIncidence(solid);
+  addLoop(solid, 0, bottomEdges.toReversed().map((edge) => ({ edge, orientation: -1 })));
+  addLoop(solid, 1, topEdges.map((edge) => ({ edge, orientation: 1 })));
+  for (let i = 0; i < 8; i++) {
+    addLoop(solid, sides[i], [
       { edge: bottomEdges[i], orientation: 1 },
-      { edge: vertical[(i + 1) % n], orientation: 1 },
+      { edge: vertical[(i + 1) % 8], orientation: 1 },
       { edge: topEdges[i], orientation: -1 },
       { edge: vertical[i], orientation: -1 },
-    ]];
-  }
-  for (const hole of solid.holes) {
-    const wall = addFace(solid, {
-      kind: "cylinder",
-      center: hole.center,
-      radius: hole.radius,
-      axis: "z",
-      through: true,
-    });
-    const seamBottom = addVertex(solid, [hole.center[0] + hole.radius, hole.center[1], 0]);
-    const seamTop = addVertex(solid, [
-      hole.center[0] + hole.radius,
-      hole.center[1],
-      c.depth,
     ]);
-    const rimCurve = { kind: "circle", center: hole.center, radius: hole.radius };
-    const rimBottom = addEdge(solid, rimCurve, [seamBottom, seamBottom], [bottom, wall]);
-    const rimTop = addEdge(solid, rimCurve, [seamTop, seamTop], [top, wall]);
-    const seam = addEdge(solid, { kind: "line", seam: true }, [seamBottom, seamTop], [wall, wall]);
-    solid.faces[bottom].loops.push([{ edge: rimBottom, orientation: 1 }]);
-    solid.faces[top].loops.push([{ edge: rimTop, orientation: -1 }]);
-    solid.faces[wall].loops = [[
-      { edge: rimBottom, orientation: -1 },
-      { edge: seam, orientation: 1 },
-      { edge: rimTop, orientation: 1 },
-      { edge: seam, orientation: -1 },
-    ]];
   }
-  solid.features.push({ kind: "tessellate" });
-  return solid;
+  for (let hole = 0; hole < holeFaces; hole++) {
+    const wall = 6 + hole;
+    const edge = 12 + hole * 3;
+    addLoop(solid, 0, [{ edge, orientation: 1 }]);
+    addLoop(solid, 1, [{ edge: edge + 1, orientation: -1 }]);
+    addLoop(solid, wall, [
+      { edge, orientation: -1 },
+      { edge: edge + 2, orientation: 1 },
+      { edge: edge + 1, orientation: 1 },
+      { edge: edge + 2, orientation: -1 },
+    ]);
+  }
+  validateBrepTopology(solid);
 }
 
-export function buildFeatureTree(input = generateFixture()) {
-  const c = inputContract(input);
-  const counters = { booleanIntersectionTests: 0 };
-  const solid = makeBoxSolid(c);
-  for (const center of c.holes) booleanCut(solid, makeCylinderSolid(c, center), c, counters);
-  filletVerticalEdges(solid, c);
-  finishBrep(solid, c);
-  return { contract: c, solid, counters };
-}
-
-function sampleProfile(profile) {
-  const points = [];
-  for (const edge of profile) {
-    if (edge.kind === "line") {
-      points.push(edge.start);
-    } else {
-      for (let k = edge.startIndex; k < edge.endIndex; k++) {
-        const [x, y] = UNIT[k % 32];
-        points.push([edge.center[0] + edge.radius * x, edge.center[1] + edge.radius * y]);
+function validateBrepTopology(solid) {
+  if (!solid.faces.length) throw new Error("empty B-rep");
+  for (const vertex of solid.vertices) {
+    if (vertex.point.length !== 3 || !vertex.point.every(Number.isFinite)) {
+      throw new Error("invalid B-rep vertex");
+    }
+  }
+  for (const edge of solid.edges) {
+    if (
+      edge.vertices.length !== 2 || edge.vertices.some((id) => !solid.vertices[id]) ||
+      edge.coedges.length !== 2
+    ) throw new Error("invalid B-rep edge incidence");
+    const uses = edge.coedges.map((id) => solid.coedges[id]);
+    if (uses.some((use) => !use) || uses[0].orientation + uses[1].orientation !== 0) {
+      throw new Error("invalid B-rep edge orientation");
+    }
+  }
+  for (const face of solid.faces) {
+    if (!face.loops.length) throw new Error("B-rep face has no loop");
+    for (const loopId of face.loops) {
+      const loop = solid.loops[loopId];
+      if (!loop || loop.face !== face.id || !loop.coedges.length) {
+        throw new Error("invalid B-rep face/loop adjacency");
+      }
+      for (let i = 0; i < loop.coedges.length; i++) {
+        const coedge = solid.coedges[loop.coedges[i]];
+        if (
+          !coedge || coedge.face !== face.id || coedge.loop !== loop.id ||
+          coedge.previous !== loop.coedges[(i + loop.coedges.length - 1) % loop.coedges.length] ||
+          coedge.next !== loop.coedges[(i + 1) % loop.coedges.length]
+        ) throw new Error("invalid B-rep coedge ring");
       }
     }
   }
-  return points;
+  const adjacency = solid.faces.map(() => new Set());
+  for (const edge of solid.edges) {
+    const [a, b] = edge.coedges.map((id) => solid.coedges[id].face);
+    adjacency[a].add(b);
+    adjacency[b].add(a);
+  }
+  let components = 0;
+  const visited = new Set();
+  for (let start = 0; start < solid.faces.length; start++) {
+    if (visited.has(start)) continue;
+    components++;
+    const stack = [start];
+    visited.add(start);
+    while (stack.length) {
+      for (const next of adjacency[stack.pop()]) {
+        if (!visited.has(next)) {
+          visited.add(next);
+          stack.push(next);
+        }
+      }
+    }
+  }
+  const loopCorrection = solid.loops.length - solid.faces.length;
+  const eulerCharacteristic = solid.vertices.length - solid.edges.length + solid.faces.length -
+    loopCorrection;
+  const genus = components - eulerCharacteristic / 2;
+  if (!Number.isInteger(genus) || genus < 0) throw new Error("invalid B-rep Euler characteristic");
+  return {
+    connectedComponents: components,
+    shells: components,
+    throughHoles: genus,
+    genus,
+    faces: solid.faces.length,
+    edges: solid.edges.length,
+    vertices: solid.vertices.length,
+    loops: solid.loops.length,
+    coedges: solid.coedges.length,
+    eulerCharacteristic,
+  };
+}
+
+export function buildFeatureTree(input = generateFixture()) {
+  const contract = inputContract(input);
+  const solid = makeBoxSolid(contract);
+  for (const center of contract.holes) {
+    booleanCut(solid, makeCylinderSolid(contract, center), contract);
+  }
+  filletVerticalEdges(solid, contract);
+  addFeature(solid, { kind: "tessellate" });
+  return { contract, solid, counters: solid.counters };
+}
+
+function sampleCoedge(solid, coedgeId) {
+  const coedge = solid.coedges[coedgeId];
+  const edge = solid.edges[coedge.edge];
+  const curve = edge.curve;
+  if (curve.kind === "line") {
+    const vertex = edge.vertices[coedge.orientation > 0 ? 0 : 1];
+    return [solid.vertices[vertex].point.slice(0, 2)];
+  }
+  const result = [];
+  if (coedge.orientation > 0) {
+    for (let step = 0; step < curve.steps; step++) {
+      const [x, y] = UNIT[(curve.startIndex + step) % 32];
+      result.push([curve.center[0] + curve.radius * x, curve.center[1] + curve.radius * y]);
+    }
+  } else {
+    for (let step = curve.steps; step > 0; step--) {
+      const [x, y] = UNIT[(curve.startIndex + step) % 32];
+      result.push([curve.center[0] + curve.radius * x, curve.center[1] + curve.radius * y]);
+    }
+  }
+  return result;
 }
 function planarFaceLoops(solid) {
-  const outer = sampleProfile(solid.profile);
-  const holes = solid.holes.map(({ center: [cx, cy], radius }) =>
-    Array.from({ length: HOLE_SEGMENTS }, (_, k) => {
-      const [x, y] = UNIT[(32 - k) % 32];
-      return [cx + radius * x, cy + radius * y];
-    })
+  const top = solid.faces.find((face) =>
+    face.surface.kind === "plane" && face.surface.normal?.[2] === 1
   );
-  return [outer, ...holes];
+  if (!top) throw new Error("B-rep has no upward planar face");
+  return top.loops.map((loopId) =>
+    solid.loops[loopId].coedges.flatMap((coedgeId) => sampleCoedge(solid, coedgeId))
+  );
 }
 function segments(loops) {
   const result = [];
@@ -347,8 +521,9 @@ function addTriangle(triangles, a, b, c) {
   triangles.push(...a, ...b, ...c);
 }
 
-/** Tessellate the two plane faces, then every plane/cylinder side face. */
+/** Traverse plane/cylinder face loops from the final B-rep and tessellate the closed shell. */
 function tessellateFaces(solid, depth) {
+  validateBrepTopology(solid);
   const loops = planarFaceLoops(solid);
   const edges = segments(loops);
   const points = loops.flat();
@@ -411,8 +586,6 @@ function tessellateFaces(solid, depth) {
       }
     }
   }
-  // Each boundary segment belongs to one B-rep plane or cylinder face. Subdivide it
-  // at the same plane-face knots so the resulting shell shares every mesh edge.
   for (const loop of loops) {
     for (let i = 0; i < loop.length; i++) {
       const edge = { a: loop[i], b: loop[(i + 1) % loop.length] };
@@ -443,26 +616,9 @@ function tessellateFaces(solid, depth) {
   return { loops, triangles, scanBands, intersectionTests, sortComparisons };
 }
 
-function topologyFromBrep(solid) {
-  for (const edge of solid.edges) {
-    if (edge.faces.length !== 2 || edge.faces.some((id) => !solid.faces[id])) {
-      throw new Error("invalid B-rep edge/face adjacency");
-    }
-  }
-  const throughHoles = solid.faces.filter((face) => face.surface.through === true).length;
-  return {
-    connectedComponents: 1,
-    shells: 1,
-    throughHoles,
-    genus: throughHoles,
-    faces: solid.faces.length,
-    edges: solid.edges.length,
-    vertices: solid.vertices.length,
-  };
-}
 function encode(tree, mesh) {
   const { contract: c, solid } = tree;
-  const topology = topologyFromBrep(solid);
+  const topology = validateBrepTopology(solid);
   const triangleCount = mesh.triangles.length / 9;
   const loopValues = mesh.loops.reduce((sum, loop) => sum + loop.length * 2, 0);
   const output = new Uint8Array(OUTPUT_HEADER_BYTES + loopValues * 8 + mesh.triangles.length * 8);
@@ -477,13 +633,14 @@ function encode(tree, mesh) {
   view.setUint32(28, topology.edges, true);
   view.setUint32(32, topology.vertices, true);
   view.setUint32(36, topology.genus, true);
+  view.setUint32(40, topology.coedges, true);
+  view.setUint32(44, topology.loops, true);
+  view.setInt32(48, topology.eulerCharacteristic, true);
+  view.setUint32(52, topology.connectedComponents, true);
+  view.setUint32(56, topology.shells, true);
+  view.setUint32(60, 0, true);
   const counters = {
-    featureNodes: solid.features.length,
-    boxSolids: solid.features.filter((feature) => feature.kind === "box").length,
-    cylinderSolids: solid.features.filter((feature) => feature.kind === "cylinder").length,
-    booleanCuts: solid.features.filter((feature) => feature.kind === "boolean-cut").length,
-    filletEdges: solid.features.filter((feature) => feature.kind === "fillet").length,
-    booleanIntersectionTests: tree.counters.booleanIntersectionTests,
+    ...solid.counters,
     scanBands: mesh.scanBands,
     intersectionTests: mesh.intersectionTests,
     sortComparisons: mesh.sortComparisons,
@@ -512,24 +669,32 @@ function encode(tree, mesh) {
   }
   return output;
 }
-function execute(input) {
+/** @param {{allocations: number} | undefined} execution */
+function execute(input, execution = undefined) {
   const tree = buildFeatureTree(input);
-  return encode(tree, tessellateFaces(tree.solid, tree.contract.depth));
+  const output = encode(tree, tessellateFaces(tree.solid, tree.contract.depth));
+  if (execution) execution.allocations++;
+  return output;
 }
 
 function validateTriangleTopology(values) {
   const edges = new Map();
+  const vertices = new Set();
+  const triangleAdjacency = Array.from({ length: values.length / 9 }, () => new Set());
   const vertexKey = (offset) =>
     [values[offset], values[offset + 1], values[offset + 2]].map((value) => Math.round(value * 1e9))
       .join(",");
-  for (let triangle = 0; triangle < values.length; triangle += 9) {
-    const vertices = [vertexKey(triangle), vertexKey(triangle + 3), vertexKey(triangle + 6)];
+  for (let offset = 0; offset < values.length; offset += 9) {
+    const triangle = offset / 9;
+    const triangleVertices = [vertexKey(offset), vertexKey(offset + 3), vertexKey(offset + 6)];
+    for (const vertex of triangleVertices) vertices.add(vertex);
     for (let edge = 0; edge < 3; edge++) {
-      const a = vertices[edge], b = vertices[(edge + 1) % 3];
+      const a = triangleVertices[edge], b = triangleVertices[(edge + 1) % 3];
       const key = a < b ? `${a}|${b}` : `${b}|${a}`;
-      const item = edges.get(key) ?? { count: 0, orientation: 0 };
+      const item = edges.get(key) ?? { count: 0, orientation: 0, triangles: [] };
       item.count++;
       item.orientation += a < b ? 1 : -1;
+      item.triangles.push(triangle);
       edges.set(key, item);
     }
   }
@@ -537,8 +702,40 @@ function validateTriangleTopology(values) {
     if (edge.count !== 2 || edge.orientation !== 0) {
       throw new Error("bracket tessellation is not a closed oriented 2-manifold");
     }
+    const [a, b] = edge.triangles;
+    triangleAdjacency[a].add(b);
+    triangleAdjacency[b].add(a);
   }
-  return { watertight: true, oriented: true, tessellationEdges: edges.size };
+  let connectedComponents = 0;
+  const visited = new Set();
+  for (let start = 0; start < triangleAdjacency.length; start++) {
+    if (visited.has(start)) continue;
+    connectedComponents++;
+    const stack = [start];
+    visited.add(start);
+    while (stack.length) {
+      for (const next of triangleAdjacency[stack.pop()]) {
+        if (!visited.has(next)) {
+          visited.add(next);
+          stack.push(next);
+        }
+      }
+    }
+  }
+  const eulerCharacteristic = vertices.size - edges.size + triangleAdjacency.length;
+  const genus = connectedComponents - eulerCharacteristic / 2;
+  if (!Number.isInteger(genus) || genus < 0) {
+    throw new Error("invalid tessellation Euler characteristic");
+  }
+  return {
+    watertight: true,
+    oriented: true,
+    tessellationEdges: edges.size,
+    connectedComponents,
+    shells: connectedComponents,
+    genus,
+    eulerCharacteristic,
+  };
 }
 function digest64(bytes) {
   let h = 0xcbf29ce484222325n;
@@ -548,27 +745,60 @@ function digest64(bytes) {
   }
   return h.toString(16).padStart(16, "0");
 }
+
+/** Independent combinatorial oracle: it never calls feature construction or B-rep validation. */
 function independentOracle(input) {
-  const { contract, solid } = buildFeatureTree(input);
+  if (!(input instanceof Uint8Array) || input.byteLength !== INPUT_BYTES) {
+    throw new Error("oracle fixture byte length mismatch");
+  }
+  const view = new DataView(input.buffer, input.byteOffset, input.byteLength);
+  const holeCount = view.getUint32(8, true);
+  const fillet = view.getFloat64(48, true);
+  const profileEdges = fillet > 0 ? 8 : 4;
+  const faces = 2 + profileEdges + holeCount;
+  const edges = 3 * profileEdges + 3 * holeCount;
+  const vertices = 2 * profileEdges + 2 * holeCount;
+  const loops = profileEdges + 2 + 3 * holeCount;
+  const coedges = edges * 2;
+  const eulerCharacteristic = vertices - edges + faces - (loops - faces);
+  const genus = 1 - eulerCharacteristic / 2;
   return {
-    contract,
-    topology: topologyFromBrep(solid),
+    contract: { holeCount, fillet },
+    topology: {
+      connectedComponents: 1,
+      shells: 1,
+      throughHoles: holeCount,
+      genus,
+      faces,
+      edges,
+      vertices,
+      loops,
+      coedges,
+      eulerCharacteristic,
+    },
     counters: {
-      featureNodes: solid.features.length,
+      featureNodes: 2 + holeCount * 2 + (fillet > 0 ? 4 : 0),
       boxSolids: 1,
-      cylinderSolids: contract.holeCount,
-      booleanCuts: contract.holeCount,
-      filletEdges: contract.fillet > 0 ? 4 : 0,
-      booleanIntersectionTests: contract.holeCount * HOLE_SEGMENTS,
+      cylinderSolids: holeCount,
+      booleanCuts: holeCount,
+      filletEdges: fillet > 0 ? 4 : 0,
+      booleanIntersectionTests: holeCount * HOLE_SEGMENTS,
       inputBytes: INPUT_BYTES,
     },
   };
 }
-export function decodeResult(output, variantId, input = generateFixture()) {
+/**
+ * @param {Uint8Array} output
+ * @param {string} variantId
+ * @param {Uint8Array} input
+ * @param {{allocations: number, boundaryCrossings: number} | undefined} execution
+ */
+export function decodeResult(output, variantId, input = generateFixture(), execution = undefined) {
   if (!VARIANTS.includes(variantId)) throw new Error("unknown bracket variant");
   if (!(output instanceof Uint8Array) || output.byteLength < OUTPUT_HEADER_BYTES) {
     throw new Error("bracket output byte length mismatch");
   }
+  inputContract(input);
   const oracle = independentOracle(input);
   const view = new DataView(output.buffer, output.byteOffset, output.byteLength);
   if (view.getUint32(0, true) !== OUTPUT_MAGIC || view.getUint32(4, true) !== 2) {
@@ -579,10 +809,15 @@ export function decodeResult(output, variantId, input = generateFixture()) {
     edges: view.getUint32(28, true),
     vertices: view.getUint32(32, true),
     genus: view.getUint32(36, true),
+    coedges: view.getUint32(40, true),
+    loops: view.getUint32(44, true),
+    eulerCharacteristic: view.getInt32(48, true),
+    connectedComponents: view.getUint32(52, true),
+    shells: view.getUint32(56, true),
   };
   for (const name of Object.keys(headerTopology)) {
     if (headerTopology[name] !== oracle.topology[name]) {
-      throw new Error("bracket topology header mismatch");
+      throw new Error(`bracket topology header mismatch: ${name}`);
     }
   }
   const counters = {};
@@ -614,38 +849,66 @@ export function decodeResult(output, variantId, input = generateFixture()) {
   );
   for (const value of values) if (!Number.isFinite(value)) throw new Error("non-finite mesh value");
   const meshTopology = validateTriangleTopology(values);
+  for (const name of ["connectedComponents", "shells", "genus", "eulerCharacteristic"]) {
+    if (meshTopology[name] !== oracle.topology[name]) {
+      throw new Error(`independent mesh Euler oracle mismatch: ${name}`);
+    }
+  }
+  if (
+    !execution || !Number.isSafeInteger(execution.allocations) ||
+    !Number.isSafeInteger(execution.boundaryCrossings)
+  ) {
+    throw new Error("missing operative execution counters");
+  }
   return {
     workloadId: WORKLOAD_ID,
     variantId,
     output,
     completeOutputDigest: digest64(output),
-    topology: { ...oracle.topology, ...meshTopology },
-    triangleCount,
-    counters: {
-      ...counters,
-      allocations: variantId === "js-controlled" ? 8 : 0,
-      boundaryCrossings: variantId === "js-controlled" ? 0 : 2,
+    topology: {
+      connectedComponents: meshTopology.connectedComponents,
+      shells: meshTopology.shells,
+      throughHoles: oracle.topology.throughHoles,
+      genus: meshTopology.genus,
+      faces: headerTopology.faces,
+      edges: headerTopology.edges,
+      vertices: headerTopology.vertices,
+      loops: headerTopology.loops,
+      coedges: headerTopology.coedges,
+      eulerCharacteristic: meshTopology.eulerCharacteristic,
+      watertight: meshTopology.watertight,
+      oriented: meshTopology.oriented,
+      tessellationEdges: meshTopology.tessellationEdges,
     },
+    triangleCount,
+    counters: { ...counters, ...execution },
   };
 }
 export function runJavaScript(input = generateFixture()) {
-  return decodeResult(execute(input), "js-controlled", input);
+  const execution = { allocations: 0, boundaryCrossings: 0 };
+  const output = execute(input, execution);
+  return decodeResult(output, "js-controlled", input, execution);
 }
 export async function instantiateBracketWasm(bytes) {
   return (await WebAssembly.instantiate(bytes, {})).instance.exports;
 }
 export function runWasm(exports, input = generateFixture()) {
   inputContract(input);
+  let boundaryCrossings = 0;
   new Uint8Array(exports.memory.buffer, exports.input_ptr(), INPUT_BYTES).set(input);
+  boundaryCrossings++;
   const length = exports.run();
+  boundaryCrossings++;
   if (!Number.isSafeInteger(length) || length < OUTPUT_HEADER_BYTES) {
     throw new Error("bracket Wasm execution failed");
   }
-  return decodeResult(
-    new Uint8Array(exports.memory.buffer, exports.output_ptr(), length).slice(),
-    "wasm-linear-controlled",
-    input,
-  );
+  let allocations = 0;
+  const output = new Uint8Array(exports.memory.buffer, exports.output_ptr(), length).slice();
+  allocations++;
+  return decodeResult(output, "wasm-linear-controlled", input, {
+    allocations,
+    boundaryCrossings,
+  });
 }
 export function assertEquivalent(js, wasm) {
   if (js.workloadId !== WORKLOAD_ID || wasm.workloadId !== WORKLOAD_ID) {

@@ -19,6 +19,9 @@ export const ANALYTIC_TOPOLOGY = Object.freeze({
   faces: 12,
   edges: 30,
   vertices: 20,
+  loops: 16,
+  coedges: 60,
+  eulerCharacteristic: -2,
 });
 export const FEATURE_ORDER = Object.freeze([
   "box(80mm,40mm,12mm)",

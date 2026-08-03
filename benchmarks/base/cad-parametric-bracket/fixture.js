@@ -20,9 +20,21 @@ export function generateFixture(overrides = {}) {
   const holeCenters = overrides.holeCenters ?? HOLE_CENTERS;
   if (
     ![width, height, depth, filletRadius, holeRadius].every(Number.isFinite) ||
-    width <= 0 || height <= 0 || depth <= 0 || filletRadius < 0 ||
-    filletRadius * 2 >= Math.min(width, height) || holeCenters.length > 2
+    width <= 0 || height <= 0 || depth <= 0 || filletRadius < 0 || holeRadius <= 0 ||
+    filletRadius * 2 >= Math.min(width, height) || holeCenters.length > 2 ||
+    holeCenters.some((point) =>
+      !Array.isArray(point) || point.length !== 2 || !point.every(Number.isFinite)
+    )
   ) throw new Error("invalid bracket fixture dimensions");
+  for (let i = 0; i < holeCenters.length; i++) {
+    for (let j = i + 1; j < holeCenters.length; j++) {
+      const dx = holeCenters[i][0] - holeCenters[j][0];
+      const dy = holeCenters[i][1] - holeCenters[j][1];
+      if (dx * dx + dy * dy <= 4 * holeRadius * holeRadius) {
+        throw new Error("overlapping or tangent through-holes are outside the input contract");
+      }
+    }
+  }
   const bytes = new Uint8Array(INPUT_BYTES);
   const view = new DataView(bytes.buffer);
   view.setUint32(0, INPUT_MAGIC, true);

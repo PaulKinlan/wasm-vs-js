@@ -60,7 +60,7 @@
         "executionTarget": { "const": "javascript" },
         "counters": {
           "properties": {
-            "allocations": { "const": 8 },
+            "allocations": { "const": 1 },
             "boundaryCrossings": { "const": 0 }
           }
         }
@@ -72,7 +72,7 @@
         "executionTarget": { "const": "wasm-linear" },
         "counters": {
           "properties": {
-            "allocations": { "const": 0 },
+            "allocations": { "const": 1 },
             "boundaryCrossings": { "const": 2 }
           }
         }
@@ -101,6 +101,9 @@
         "faces",
         "edges",
         "vertices",
+        "loops",
+        "coedges",
+        "eulerCharacteristic",
         "watertight",
         "oriented",
         "tessellationEdges"
@@ -113,6 +116,9 @@
         "faces": { "const": 12 },
         "edges": { "const": 30 },
         "vertices": { "const": 20 },
+        "loops": { "const": 16 },
+        "coedges": { "const": 60 },
+        "eulerCharacteristic": { "const": -2 },
         "watertight": { "const": true },
         "oriented": { "const": true },
         "tessellationEdges": { "const": 8706 }
