@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "workloadId": "graphics.gltf-viewer.v1",
-  "sourceCommit": "d3bc11f6ce799b0baacd339c21b5e001784c020e",
+  "sourceCommit": "9b5057c5324dd8f08db2f8af68efe1ca941cb93f",
   "toolchain": {
     "deno": "2.9.0",
     "clang": "22.1.8",
@@ -19,67 +19,67 @@
       "path": "benchmarks/base/graphics-gltf-viewer/engine.js",
       "bytes": 11380,
       "sha256": "5865dc6001a3cd958c0bf8ea22f41c0deb1940cc1eadb47b4b46c509cb8b7bf7",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/d3bc11f6ce799b0baacd339c21b5e001784c020e/benchmarks/base/graphics-gltf-viewer/engine.js"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/9b5057c5324dd8f08db2f8af68efe1ca941cb93f/benchmarks/base/graphics-gltf-viewer/engine.js"
     },
     {
       "path": "benchmarks/base/graphics-gltf-viewer/viewer.c",
       "bytes": 6079,
       "sha256": "53cad084d491087477d9079c6762acdf01609cbbea3daef0e2114fd7ec94e3ee",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/d3bc11f6ce799b0baacd339c21b5e001784c020e/benchmarks/base/graphics-gltf-viewer/viewer.c"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/9b5057c5324dd8f08db2f8af68efe1ca941cb93f/benchmarks/base/graphics-gltf-viewer/viewer.c"
     },
     {
       "path": "scripts/decode-gltf-draco.cjs",
       "bytes": 2546,
       "sha256": "49c618d13f5708e8f645ec271dd999349a2e0cc87d34c23d48d29fc69776939b",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/d3bc11f6ce799b0baacd339c21b5e001784c020e/scripts/decode-gltf-draco.cjs"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/9b5057c5324dd8f08db2f8af68efe1ca941cb93f/scripts/decode-gltf-draco.cjs"
     },
     {
       "path": "scripts/build-base-gltf-viewer.ts",
-      "bytes": 14645,
-      "sha256": "771bd9d1fd19dfa0d3455c521e20041d075e750e9084a07e91c277e1495f641f",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/d3bc11f6ce799b0baacd339c21b5e001784c020e/scripts/build-base-gltf-viewer.ts"
+      "bytes": 14907,
+      "sha256": "9106c18cbe301a4ac796bbddf2a25da623b16e128289c56a2221ec9422832268",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/9b5057c5324dd8f08db2f8af68efe1ca941cb93f/scripts/build-base-gltf-viewer.ts"
     },
     {
       "path": "public/benchmarks/base-gltf-viewer/worker.js",
       "bytes": 8717,
       "sha256": "e6101c687cef398610486f30705239f505e3c8dbea15783277af9461acd992cd",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/d3bc11f6ce799b0baacd339c21b5e001784c020e/public/benchmarks/base-gltf-viewer/worker.js"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/9b5057c5324dd8f08db2f8af68efe1ca941cb93f/public/benchmarks/base-gltf-viewer/worker.js"
     },
     {
       "path": "public/benchmarks/base-gltf-viewer/demo.js",
       "bytes": 3108,
       "sha256": "2d914d51d41efb5722d48ac926bc0e19e75f1788ddffdca5e38f76c86e04890e",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/d3bc11f6ce799b0baacd339c21b5e001784c020e/public/benchmarks/base-gltf-viewer/demo.js"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/9b5057c5324dd8f08db2f8af68efe1ca941cb93f/public/benchmarks/base-gltf-viewer/demo.js"
     },
     {
       "path": "public/benchmarks/base-gltf-viewer/index.html",
       "bytes": 3784,
       "sha256": "f2f974d6c361728b97074a66c8e3a93b3f1f35ac90c0605ccf4d43fd7cb09d26",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/d3bc11f6ce799b0baacd339c21b5e001784c020e/public/benchmarks/base-gltf-viewer/index.html"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/9b5057c5324dd8f08db2f8af68efe1ca941cb93f/public/benchmarks/base-gltf-viewer/index.html"
     },
     {
       "path": "public/benchmarks/base-gltf-viewer/style.css",
       "bytes": 561,
       "sha256": "161863c4f2180037e4f983ba1c211e899e7d1876452c0719133636f5366945f9",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/d3bc11f6ce799b0baacd339c21b5e001784c020e/public/benchmarks/base-gltf-viewer/style.css"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/9b5057c5324dd8f08db2f8af68efe1ca941cb93f/public/benchmarks/base-gltf-viewer/style.css"
     },
     {
       "path": "server.ts",
       "bytes": 20321,
       "sha256": "28efd42d5e87be9822f07aa27046ea35acc9f63479f6224cf70b0ec720d9d9b3",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/d3bc11f6ce799b0baacd339c21b5e001784c020e/server.ts"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/9b5057c5324dd8f08db2f8af68efe1ca941cb93f/server.ts"
     },
     {
       "path": "deno.json",
       "bytes": 1831,
       "sha256": "17e6674c81fdaee7dfc52ed1bd28baeec70fb0715f839b92defe1e84545b08eb",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/d3bc11f6ce799b0baacd339c21b5e001784c020e/deno.json"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/9b5057c5324dd8f08db2f8af68efe1ca941cb93f/deno.json"
     },
     {
       "path": "deno.lock",
       "bytes": 1630,
       "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/d3bc11f6ce799b0baacd339c21b5e001784c020e/deno.lock"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/9b5057c5324dd8f08db2f8af68efe1ca941cb93f/deno.lock"
     }
   ],
   "artifacts": [
@@ -125,8 +125,8 @@
     },
     {
       "path": "public/artifacts/base-gltf-viewer/fixture-manifest.json",
-      "bytes": 2059,
-      "sha256": "294cf14a566a6b295b0fa700c85f6b0a1b9f9b1300719a561fed1d4007214419"
+      "bytes": 2330,
+      "sha256": "add8fa0d4e7b9ce84812a7b93cf71c1391b19ce737ead31d4673104dc3e5fc63"
     },
     {
       "path": "public/artifacts/base-gltf-viewer/implementation-contract.v1.json",
@@ -136,7 +136,7 @@
     {
       "path": "public/artifacts/base-gltf-viewer/output-manifest.json",
       "bytes": 1075,
-      "sha256": "d91fcb8f35c8914a02de259bd58d2204c0bbe575387de3b0fdaa6f3094e03422"
+      "sha256": "00052865e6eb4b8c2f427676011bfd845e8f47c11f2aa975a18ffbac6e48c7a7"
     }
   ]
 }
