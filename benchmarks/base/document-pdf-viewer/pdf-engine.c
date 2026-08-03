@@ -87,6 +87,74 @@ static uint32_t find_key(uint32_t start, uint32_t end, const char *key, uint32_t
   for (uint32_t at = start; at + length <= end; at++) if (key_at(at, end, key, length)) return at;
   return 0xffffffffu;
 }
+static uint32_t find_direct_key(uint32_t start, uint32_t end, const char *key, uint32_t length) {
+  skip_ws(&start, end);
+  if (!literal_at(start, end, "<<", 2u)) return 0xffffffffu;
+  uint32_t depth = 0;
+  for (uint32_t at = start; at < end;) {
+    if (input_bytes[at] == '%') {
+      while (at < end && input_bytes[at] != '\n' && input_bytes[at] != '\r') at++;
+      continue;
+    }
+    if (input_bytes[at] == '(') {
+      uint32_t string_depth = 1u; at++;
+      while (at < end && string_depth) {
+        if (input_bytes[at] == '\\') { at += at + 1u < end ? 2u : 1u; continue; }
+        if (input_bytes[at] == '(') string_depth++;
+        else if (input_bytes[at] == ')') string_depth--;
+        at++;
+      }
+      if (string_depth) return 0xffffffffu;
+      continue;
+    }
+    if (literal_at(at, end, "<<", 2u)) { depth++; at += 2u; continue; }
+    if (literal_at(at, end, ">>", 2u)) {
+      if (depth == 0u) return 0xffffffffu;
+      depth--; at += 2u;
+      if (depth == 0u) return 0xffffffffu;
+      continue;
+    }
+    if (depth == 1u && key_at(at, end, key, length)) return at;
+    at++;
+  }
+  return 0xffffffffu;
+}
+static int dictionary_after(uint32_t start, uint32_t end, const char *key, uint32_t length, uint32_t *dict_start, uint32_t *dict_end) {
+  uint32_t at = find_direct_key(start, end, key, length);
+  if (at == 0xffffffffu) return 0;
+  at += length; skip_ws(&at, end);
+  if (!literal_at(at, end, "<<", 2u)) return 0;
+  *dict_start = at;
+  uint32_t depth = 0;
+  for (; at < end;) {
+    if (input_bytes[at] == '(') {
+      uint32_t string_depth = 1u; at++;
+      while (at < end && string_depth) {
+        if (input_bytes[at] == '\\') { at += at + 1u < end ? 2u : 1u; continue; }
+        if (input_bytes[at] == '(') string_depth++;
+        else if (input_bytes[at] == ')') string_depth--;
+        at++;
+      }
+      if (string_depth) return 0;
+      continue;
+    }
+    if (literal_at(at, end, "<<", 2u)) { depth++; at += 2u; continue; }
+    if (literal_at(at, end, ">>", 2u)) {
+      if (depth == 0u) return 0;
+      depth--; at += 2u;
+      if (depth == 0u) { *dict_end = at; return 1; }
+      continue;
+    }
+    at++;
+  }
+  return 0;
+}
+static int direct_ref_after(uint32_t start, uint32_t end, const char *key, uint32_t length, uint32_t *id) {
+  uint32_t at = find_direct_key(start, end, key, length), generation;
+  if (at == 0xffffffffu) return 0;
+  at += length;
+  return read_uint(&at, end, id) && read_uint(&at, end, &generation) && generation == 0u && match_token(&at, end, "R", 1u);
+}
 static int ref_after(uint32_t start, uint32_t end, const char *key, uint32_t length, uint32_t *id) {
   uint32_t at = find_key(start, end, key, length), generation;
   if (at == 0xffffffffu) return 0;
@@ -313,11 +381,14 @@ __attribute__((export_name("parse"))) uint32_t parse(uint32_t length) {
   for (uint32_t page = 0; page < count; page++) {
     uint32_t page_id, generation;
     if (!read_uint(&kids, pages_end, &page_id) || !read_uint(&kids, pages_end, &generation) || generation != 0u || !match_token(&kids, pages_end, "R", 1u)) return last_error = 18;
-    uint32_t ps, pe, parent, contents, font;
+    uint32_t ps, pe, parent, contents, font, resources_start, resources_end, fonts_start, fonts_end;
     if (!object_range(page_id, &ps, &pe) || !object_has(page_id, "/Type", 5u, "/Page", 5u) ||
         !ref_after(ps, pe, "/Parent", 7u, &parent) || parent != pages_root ||
         find_range(ps, pe, "/MediaBox [0 0 612 792]", 23u) == 0xffffffffu ||
-        !ref_after(ps, pe, "/F1", 3u, &font) || !ref_after(ps, pe, "/Contents", 9u, &contents)) return last_error = 19;
+        !dictionary_after(ps, pe, "/Resources", 10u, &resources_start, &resources_end) ||
+        !dictionary_after(resources_start, resources_end, "/Font", 5u, &fonts_start, &fonts_end) ||
+        !direct_ref_after(fonts_start, fonts_end, "/F1", 3u, &font) ||
+        !ref_after(ps, pe, "/Contents", 9u, &contents)) return last_error = 19;
     if (page == 0u) { shared_font = font; if (!parse_font(font)) return last_error = 20; }
     else if (font != shared_font) return last_error = 21;
     if (!parse_content(contents, page)) return last_error = 22;

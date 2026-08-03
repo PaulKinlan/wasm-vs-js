@@ -174,7 +174,7 @@ for (let i = 1; i <= 100; i++) {
   objects.set(
     pageObject,
     ascii(
-      `<< /Type /Page /Parent 4 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> /PDFBaseBitmap 2 0 R >> /Contents ${contentObject} 0 R >>`,
+      `<< /Type /Page /Parent 4 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents ${contentObject} 0 R >>`,
     ),
   );
   const text = `REPORT PAGE ${String(i).padStart(3, "0")} DOCUMENT BENCHMARK${

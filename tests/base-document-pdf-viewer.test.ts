@@ -63,6 +63,7 @@ Deno.test("document PDF frozen catalog remains byte-identical and fixture bytes 
   );
   assertEquals(await sha256Hex(pdf), fixtureManifest.fixture.sha256);
   assertEquals(await sha256Hex(wasm), buildManifest.artifact.sha256);
+  assert(!new TextDecoder("latin1").decode(pdf).includes("/PDFBaseBitmap"));
   assertEquals(fixtureManifest.rights, {
     licenseSpdx: "CC0-1.0",
     redistribution: "permitted",
@@ -114,6 +115,31 @@ Deno.test("independent parsers fail closed on header, xref, trailer root, page t
   const root = replaceSameLength(pdf, "/Root 1 0 R", "/Root 9 0 R");
   const parent = replaceSameLength(pdf, "/Parent 4 0 R", "/Parent 9 0 R");
   for (const bytes of [header, xref, root, parent, pdf.slice(0, pdf.length - 100)]) {
+    await rejects(() => parseReport(bytes));
+    await rejects(() => runWasm(bytes, wasm));
+  }
+});
+
+Deno.test("page resource nesting mutations are rejected by both independent parsers", async () => {
+  const resourceDictionary = "/Resources << /Font << /F1 3 0 R >> >>";
+  const mutations = [
+    replaceSameLength(
+      pdf,
+      resourceDictionary,
+      "/Xesources << /Font << /F1 3 0 R >> >>",
+    ),
+    replaceSameLength(
+      pdf,
+      resourceDictionary,
+      "/Resources << /Xont << /F1 3 0 R >> >>",
+    ),
+    replaceSameLength(
+      pdf,
+      resourceDictionary,
+      "/Resources << /Font << >> /F1 3 0 R >>",
+    ),
+  ];
+  for (const bytes of mutations) {
     await rejects(() => parseReport(bytes));
     await rejects(() => runWasm(bytes, wasm));
   }
@@ -273,6 +299,24 @@ Deno.test("closed output and validation schemas reject omitted, null and extra e
           reference.rasters[1],
           reference.rasters[0],
         ];
+      },
+      (value: Record<string, unknown>) => {
+        const oracle = value.oracle as { textSha256: string };
+        const variants = value.variants as {
+          "js-controlled": { textSha256: string };
+          "wasm-linear-controlled": {
+            textSha256: string;
+            counters: { objects: number };
+          };
+        };
+        const reference = value.independentReference as {
+          rasters: Array<{ rgbaSha256: string }>;
+        };
+        oracle.textSha256 = "a".repeat(64);
+        variants["js-controlled"].textSha256 = "b".repeat(64);
+        variants["wasm-linear-controlled"].textSha256 = "c".repeat(64);
+        variants["wasm-linear-controlled"].counters.objects = 999;
+        reference.rasters[0].rgbaSha256 = "d".repeat(64);
       },
       (value: Record<string, unknown>) => value.undeclaredEvidence = true,
     ]
