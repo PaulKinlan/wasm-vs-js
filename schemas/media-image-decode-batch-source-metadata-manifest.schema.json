@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/media-image-decode-batch-source-metadata-manifest.schema.json",
+  "title": "Media image decode batch retained source metadata manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "minProperties": 6,
+  "maxProperties": 6,
+  "required": [
+    "schemaVersion",
+    "manifestId",
+    "workloadId",
+    "status",
+    "files",
+    "claimScope"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "manifestId": {
+      "const": "media-image-decode-batch-source-metadata-v1"
+    },
+    "workloadId": {
+      "const": "media.image-decode-batch.v1"
+    },
+    "status": {
+      "const": "retained-source-metadata-not-codec-implementation"
+    },
+    "files": {
+      "const": [
+        {
+          "path": "benchmarks/v1/media-image-decode-batch/source-metadata/icodec-9a81cb4-package.json.raw",
+          "sha256": "fda5b476067189f34f7db6c4c82c548b10c2fe4fde39202201be1f60b3b0ddac",
+          "sourceUrl": "https://github.com/kaciras/icodec/blob/9a81cb4136162f9ab7d2eadcc7a1a7573fc40f79/package.json",
+          "role": "icodec-declared-webassembly-metadata"
+        },
+        {
+          "path": "benchmarks/v1/media-image-decode-batch/source-metadata/icodec-9a81cb4-jxl.ts.raw",
+          "sha256": "acbcbfeacf7579f21b46350a40a0f5623c763ba2ed6fcff5ed77ba5fb1370cda",
+          "sourceUrl": "https://github.com/kaciras/icodec/blob/9a81cb4136162f9ab7d2eadcc7a1a7573fc40f79/lib/jxl.ts",
+          "role": "icodec-jxl-wasm-import-source"
+        },
+        {
+          "path": "benchmarks/v1/media-image-decode-batch/source-metadata/jxl.js-1.0.3-package.json.raw",
+          "sha256": "05adefa420f194ab21b41a4a5be3fb5c18ce4356b93da00a9dabe5d8fef8bf84",
+          "sourceUrl": "https://registry.npmjs.org/jxl.js/-/jxl.js-1.0.3.tgz#package/package.json",
+          "role": "jxl-js-declared-webassembly-metadata"
+        },
+        {
+          "path": "benchmarks/v1/media-image-decode-batch/source-metadata/jxl.js-1.0.3-README.md.raw",
+          "sha256": "1670ec9941456e8ec20b1b1b22a452d07050417ac348afd100e72677da9382bb",
+          "sourceUrl": "https://registry.npmjs.org/jxl.js/-/jxl.js-1.0.3.tgz#package/README.md",
+          "role": "jxl-js-usage-documentation"
+        }
+      ]
+    },
+    "claimScope": {
+      "const": "These retained bytes establish only that the two inspected JXL candidates declare or import WebAssembly. They do not establish ecosystem-wide absence of a genuine JavaScript JXL decoder."
+    }
+  }
+}

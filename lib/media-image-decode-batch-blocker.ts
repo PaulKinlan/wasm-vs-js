@@ -1,3 +1,5 @@
+import Ajv2020Module from "ajv2020";
+
 export const MEDIA_IMAGE_DECODE_BATCH_ID = "media.image-decode-batch.v1";
 export const FROZEN_V1_SHA256 = "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4";
 export const REQUIRED_FORMATS = ["jpeg", "png", "webp", "avif", "jxl"] as const;
@@ -12,6 +14,8 @@ export interface BlockerValidation {
   pinnedImages: number;
   rawSha256Count: number;
   blockerCodes: string[];
+  schemaCount: number;
+  sourceMetadataFileCount: number;
 }
 
 async function readJson(path: string): Promise<Record<string, unknown>> {
@@ -29,13 +33,19 @@ function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
 }
 
-function keysEqual(value: Record<string, unknown>, expected: string[], label: string): void {
-  const actual = Object.keys(value).sort();
-  const wanted = [...expected].sort();
-  assert(
-    JSON.stringify(actual) === JSON.stringify(wanted),
-    `${label} keys differ: ${actual.join(",")}`,
-  );
+const Ajv2020 = (Ajv2020Module as unknown as { default?: typeof Ajv2020Module }).default ??
+  Ajv2020Module;
+
+type JsonValidator = ((value: unknown) => boolean) & { errors?: unknown };
+
+async function validateSchema(recordPath: string, schemaPath: string): Promise<void> {
+  const record = await readJson(recordPath);
+  const schema = await readJson(schemaPath);
+  const ajv = new (Ajv2020 as unknown as new (options: Record<string, unknown>) => {
+    compile: (schema: unknown) => JsonValidator;
+  })({ allErrors: true, strict: false });
+  const validate = ajv.compile(schema);
+  assert(validate(record), `${recordPath} fails ${schemaPath}: ${JSON.stringify(validate.errors)}`);
 }
 
 export async function validateMediaImageDecodeBatchBlocker(): Promise<BlockerValidation> {
@@ -58,25 +68,27 @@ export async function validateMediaImageDecodeBatchBlocker(): Promise<BlockerVal
   assert(inputs[0].redistribution === "not-reviewed", "redistribution must remain unreviewed");
   assert(inputs[0].sha256 === null, "catalog must not gain a fabricated fixture hash");
 
-  const blocker = await readJson(`${PACKAGE_DIR}/blocker.v1.json`);
-  keysEqual(
-    blocker,
+  const schemaPairs = [
     [
-      "schemaVersion",
-      "recordId",
-      "workloadId",
-      "catalogRevision",
-      "catalogPath",
-      "catalogSha256",
-      "status",
-      "coverage",
-      "fixedContract",
-      "blockers",
-      "deliberatelyAbsent",
-      "resumeRequirements",
+      `${PACKAGE_DIR}/blocker.v1.json`,
+      "schemas/media-image-decode-batch-blocker.schema.json",
     ],
-    "blocker record",
-  );
+    [
+      `${PACKAGE_DIR}/fixture-rights-audit.v1.json`,
+      "schemas/media-image-decode-batch-fixture-rights-audit.schema.json",
+    ],
+    [
+      `${PACKAGE_DIR}/codec-feasibility-audit.v1.json`,
+      "schemas/media-image-decode-batch-codec-feasibility-audit.schema.json",
+    ],
+    [
+      `${PACKAGE_DIR}/source-metadata-manifest.v1.json`,
+      "schemas/media-image-decode-batch-source-metadata-manifest.schema.json",
+    ],
+  ] as const;
+  for (const [recordPath, schemaPath] of schemaPairs) await validateSchema(recordPath, schemaPath);
+
+  const blocker = await readJson(`${PACKAGE_DIR}/blocker.v1.json`);
   assert(blocker.workloadId === MEDIA_IMAGE_DECODE_BATCH_ID, "blocker workload ID differs");
   assert(blocker.catalogSha256 === FROZEN_V1_SHA256, "blocker catalog hash differs");
   assert(blocker.status === "blocked-before-implementation", "blocker status differs");
@@ -123,6 +135,10 @@ export async function validateMediaImageDecodeBatchBlocker(): Promise<BlockerVal
 
   const codec = await readJson(`${PACKAGE_DIR}/codec-feasibility-audit.v1.json`);
   assert(codec.status === "blocked-no-controlled-pair", "codec audit must remain blocked");
+  assert(
+    codec.sourceMetadataManifest === `${PACKAGE_DIR}/source-metadata-manifest.v1.json`,
+    "codec source metadata manifest differs",
+  );
   const targets = codec.controlledTargets as Record<string, Record<string, unknown>>;
   assert(targets.javascript.status === "blocked", "JavaScript target must remain blocked");
   assert(targets.javascript.blockingFormat === "jxl", "JXL blocker must be explicit");
@@ -133,6 +149,21 @@ export async function validateMediaImageDecodeBatchBlocker(): Promise<BlockerVal
   assert(jxl?.javascriptTargetEligible === false, "Wasm-backed JXL must not count as JavaScript");
   const hostBaseline = codec.hostBaseline as Record<string, unknown>;
   assert(hostBaseline.controlledJavaScriptEligible === false, "native decode must stay separate");
+
+  const sourceMetadata = await readJson(`${PACKAGE_DIR}/source-metadata-manifest.v1.json`);
+  assert(
+    sourceMetadata.status === "retained-source-metadata-not-codec-implementation",
+    "source metadata status differs",
+  );
+  const sourceFiles = sourceMetadata.files as Array<Record<string, unknown>>;
+  assert(sourceFiles.length === 4, "four retained source metadata files are required");
+  for (const file of sourceFiles) {
+    const bytes = await Deno.readFile(new URL(String(file.path), ROOT));
+    assert(
+      await sha256(bytes) === file.sha256,
+      `retained source metadata hash differs: ${file.path}`,
+    );
+  }
 
   const absentPaths = [
     "public/benchmarks/media-image-decode-batch-v1",
@@ -156,6 +187,8 @@ export async function validateMediaImageDecodeBatchBlocker(): Promise<BlockerVal
     pinnedImages: 0,
     rawSha256Count: 0,
     blockerCodes,
+    schemaCount: schemaPairs.length,
+    sourceMetadataFileCount: sourceFiles.length,
   };
 }
 
