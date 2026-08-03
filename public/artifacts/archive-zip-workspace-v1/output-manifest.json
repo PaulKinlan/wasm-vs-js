@@ -1,20 +1,39 @@
 {
   "algorithmFamily": "zip-fixed-deflate-metadata",
   "counters": {
-    "boundaryCrossings": 0,
-    "centralHeaders": 10000,
-    "crcBytes": 1038404,
-    "deflateEndSymbols": 10000,
-    "deflateLiterals": 427105,
-    "deflateMatchedBytes": 611299,
-    "deflateMatches": 7501,
-    "entries": 10000,
-    "extractedBytes": 905,
-    "extractedEntries": 10,
-    "inputBytes": 1038404,
-    "listedEntries": 10000,
-    "localHeaders": 10000,
-    "zip64Records": 0
+    "js-controlled": {
+      "boundaryCrossings": 0,
+      "centralHeaders": 10000,
+      "crcBytes": 1038404,
+      "deflateEndSymbols": 10000,
+      "deflateLiterals": 427105,
+      "deflateMatchedBytes": 611299,
+      "deflateMatches": 7501,
+      "entries": 10000,
+      "extractedBytes": 905,
+      "extractedEntries": 10,
+      "inputBytes": 1038404,
+      "listedEntries": 10000,
+      "localHeaders": 10000,
+      "zip64Records": 0
+    },
+    "wasm-linear-controlled": {
+      "boundaryCrossings": 3,
+      "centralHeaders": 10000,
+      "crcBytes": 1038404,
+      "deflateEndSymbols": 10000,
+      "deflateLiterals": 427105,
+      "deflateMatchedBytes": 611299,
+      "deflateMatches": 7501,
+      "entries": 10000,
+      "extractedBytes": 905,
+      "extractedEntries": 10,
+      "inputBytes": 1038404,
+      "listedEntries": 10000,
+      "localHeaders": 10000,
+      "zip64Records": 0,
+      "zipBytes": 1710792
+    }
   },
   "fixedWork": {
     "listPasses": 1,

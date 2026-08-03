@@ -10,7 +10,7 @@
     "sha256": "6e2513541f4d0e5d5b549ed1bba16e3e667161e035db94879ffe38c6f72804bc"
   },
   "build": {
-    "command": "deno run --allow-read=. --allow-write=public/artifacts,public/evidence,catalog/v1-implementations --allow-run=clang,wasm-ld scripts/build-v1-archive.ts --source-commit=<commit>",
+    "command": "deno run --allow-read=. --allow-write=public/artifacts,public/evidence,catalog/v1-implementations --allow-run=git,clang,wasm-ld scripts/build-v1-archive.ts --source-commit=<commit>",
     "flags": [
       "--target=wasm32-unknown-unknown",
       "-O3",
@@ -31,12 +31,12 @@
     "output": "public/artifacts/archive-zip-workspace-v1/output-manifest.json"
   },
   "schemaVersion": 1,
-  "sourceCommit": "d0c75d74c38b78d748d1d3450b0a091c64cdb09b",
+  "sourceCommit": "94822599f66ce71c0081706f277238cbf633c16c",
   "sourceGraph": [
     {
-      "bytes": 18908,
+      "bytes": 19539,
       "path": "benchmarks/v1/archive-zip-workspace/engine.js",
-      "sha256": "98bc8abd39eeebdba239a1ab2f55a7848afe7377063e38079d1cf758dbcf069a"
+      "sha256": "16aadf39ada86ee406e76a6657a9fd905f9f02813dcf5bd1caf781791e5c985a"
     },
     {
       "bytes": 14769,
@@ -44,14 +44,14 @@
       "sha256": "71dec165e6b2ddea84e15fc66c30d5d43769e4c47ccf16240393e07303e07bcc"
     },
     {
-      "bytes": 10527,
+      "bytes": 11083,
       "path": "scripts/build-v1-archive.ts",
-      "sha256": "5b7e6012dee25ddb8454fcb2afdfc8ada20e0d73bdffe7b6b7ef633f841254e0"
+      "sha256": "81cad4b4ddef4ed5060d68030217ae4c91b0aa7111255c35552cdfd6187507a0"
     },
     {
-      "bytes": 3063,
+      "bytes": 3104,
       "path": "public/benchmarks/archive-zip-workspace-v1/index.html",
-      "sha256": "4346936b0a3869ec08320c456329fa1dcf45aa9c00aa1c39eaacb21d3f0a72d5"
+      "sha256": "12f5a11fae3e3849a1d09d63f6e30b77132a76cd4ea4187c857337499c50bc84"
     },
     {
       "bytes": 2743,
@@ -59,9 +59,9 @@
       "sha256": "0a897fb48def7636196388c4ad8ad1332d35a5e38c21a357d89d388c0f8c1131"
     },
     {
-      "bytes": 5196,
+      "bytes": 5392,
       "path": "public/archive-zip-worker.js",
-      "sha256": "2efe9fb40acf09293c4c688cf235b399978190001f1aa91c6c8af6238d6957b4"
+      "sha256": "67e13259f2d7fcaf5be29c343526f48bcc9cee47e224f436896bd0a51b485e44"
     },
     {
       "bytes": 1831,
@@ -74,7 +74,7 @@
       "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2"
     }
   ],
-  "sourceGraphSha256": "6e102edd2bb512f23c20920490d991a35256c1143e2d5552bd4e15f9391cd0f4",
+  "sourceGraphSha256": "1b8637ab4a5ebca51999765e4d1b108ac491ed7c27914c82f35bb330aa8133d1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
   "workloadId": "archive.zip-workspace.v1"
 }
