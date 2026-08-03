@@ -3,7 +3,7 @@
   "catalogId": "dom.todomvc-journey.v1",
   "implementationId": "dom.todomvc-journey.v1.controlled-v1",
   "status": "implementation-candidate",
-  "sourceCommit": "abd982dc960810d1bcbdf0df258357d503573118",
+  "sourceCommit": "97f1ba38fee56b4a9f80721ebb685dcdd4fe43b4",
   "frozenCatalog": {
     "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
     "immutable": true,
@@ -60,8 +60,8 @@
     {
       "path": "public/benchmarks/base-dom-todomvc-journey/index.html",
       "route": "/benchmarks/base-dom-todomvc-journey/",
-      "bytes": 3951,
-      "sha256": "6edc393a63281e02277ab0aa3b48d712835785c63c725f47f699ce5df35e8437"
+      "bytes": 3945,
+      "sha256": "74e0a11f1187f6c44635644fe4a3f88efe26391997679c6483c808f002d42fc1"
     },
     {
       "path": "public/benchmarks/base-dom-todomvc-journey/controller.js",
@@ -121,7 +121,7 @@
       "path": "public/artifacts/base-dom-todomvc-journey/build-manifest.json",
       "route": "/artifacts/base-dom-todomvc-journey/build-manifest.json",
       "bytes": 7118,
-      "sha256": "4a6550aa3531d726c2a5930f8da8dbc2165053d577bf25c3c338c42bb39e9cbf"
+      "sha256": "4251313f52c6492a6dca4002b54e059f96889f9df82d7c659f20549b2e62b7f7"
     }
   ],
   "limitations": [
