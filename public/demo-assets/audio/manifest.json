@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "contractId": "audio-demo-assets-manifest-v1",
+  "generator": "scripts/build-audio-demo-assets.ts",
+  "typescript": "5.9.2",
+  "moduleCount": 7,
+  "files": [
+    {
+      "source": "benchmarks/audio-fft/workload.ts",
+      "sourceSha256": "c6e86d7647a29c859e27b0673327cb4ce1fb315786c6f8353f8e8502e011b96a",
+      "output": "public/demo-assets/audio/benchmarks/audio-fft/workload.js",
+      "outputSha256": "149f992d09aaaef7afdc685eec95d31d0f03214121f5b93c745cbb188655963d",
+      "bytes": 3929
+    },
+    {
+      "source": "benchmarks/audio-fir/workload.ts",
+      "sourceSha256": "5ef9a79c6365a757d4280d7f1192239e296cb82d0d881440acc2cacac82c751a",
+      "output": "public/demo-assets/audio/benchmarks/audio-fir/workload.js",
+      "outputSha256": "5c2a90fdc3e4051497c742cb8a675260d928e49382620816bbe5429685cfc8a2",
+      "bytes": 2359
+    },
+    {
+      "source": "benchmarks/audio-stft/workload.ts",
+      "sourceSha256": "25ea0fbed16894b4763df1c2d39061ee4cfbba06858b8609b150395687ce9ec2",
+      "output": "public/demo-assets/audio/benchmarks/audio-stft/workload.js",
+      "outputSha256": "fd8d6941ad090651d255135ab1551cab1418742381890cebe78a45da9b62725f",
+      "bytes": 3183
+    },
+    {
+      "source": "benchmarks/audio-shared/canonical.ts",
+      "sourceSha256": "19b9875883ab7cc33f280a8e9b39fceca024b7db29c9bf1e0f6c65a59aec0f07",
+      "output": "public/demo-assets/audio/benchmarks/audio-shared/canonical.js",
+      "outputSha256": "8f7e5c74e3ca2cbc9df251a4c9b9e3c9f52880fbdaacf059426538503e376c70",
+      "bytes": 1008
+    },
+    {
+      "source": "benchmarks/audio-shared/constants.ts",
+      "sourceSha256": "b46f162044830cdb50cb366e0021b8d23abccbb39447ef698cffd829ca11e1a0",
+      "output": "public/demo-assets/audio/benchmarks/audio-shared/constants.js",
+      "outputSha256": "25add1c20efef70e28296264a9d835f28e4371d17ce58188d29b50d708e9e639",
+      "bytes": 984
+    },
+    {
+      "source": "benchmarks/audio-shared/oracle.ts",
+      "sourceSha256": "9d6f99b0e1afd8c3594aff90aae61befd47f15d679e2ebce78a02851695c97bd",
+      "output": "public/demo-assets/audio/benchmarks/audio-shared/oracle.js",
+      "outputSha256": "302b3cb4ea132c73e16325b2ed324c0b4eedcce6af057d3cda968e90cd3fbeec",
+      "bytes": 9102
+    },
+    {
+      "source": "lib/audio-workloads.ts",
+      "sourceSha256": "a0018dfb3c415844c55a134c6cb7a8a7bc7d16ea7df885ee89d976bef08e062b",
+      "output": "public/demo-assets/audio/lib/audio-workloads.js",
+      "outputSha256": "55c5fc123f1073c91576fb375c451b33da49c5fbbe746c3225f22f728788a7d1",
+      "bytes": 11615
+    }
+  ]
+}
