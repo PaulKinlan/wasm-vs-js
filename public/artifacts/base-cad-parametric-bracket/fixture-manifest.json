@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "cad.parametric-bracket.v1",
+  "immutable": true,
+  "generator": {
+    "path": "benchmarks/base/cad-parametric-bracket/fixture.js",
+    "featureTree": "box + two through cylinders + ordered cuts + four r5 fillets + tessellation"
+  },
+  "rights": {
+    "license": "CC0-1.0",
+    "redistribution": "permitted",
+    "provenance": "Project-generated dimensions and feature tree; no external geometry or user data."
+  },
+  "fixture": {
+    "path": "public/artifacts/base-cad-parametric-bracket/fixture.bin",
+    "bytes": 128,
+    "sha256": "69db74cd284702632eb67d52fc6f00c18a101afc8c671badb6097a7921e74922"
+  }
+}

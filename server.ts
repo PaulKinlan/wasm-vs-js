@@ -141,35 +141,49 @@ const routes = new Map<string, [string, string, boolean?]>([
     "text/html; charset=utf-8",
   ]],
   ["/benchmarks/cad-mesh-repair-v1/", [
-    "public/benchmarks/cad-mesh-repair-v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
   ["/benchmarks/cad-mesh-repair-v1/demo.js", [
     "public/benchmarks/cad-mesh-repair-v1/demo.js",
     "text/javascript; charset=utf-8",
-  ]],
   ["/benchmarks/cad-mesh-repair-v1/worker.js", [
     "public/benchmarks/cad-mesh-repair-v1/worker.js",
-    "text/javascript; charset=utf-8",
-  ]],
   ["/benchmarks/base/cad-mesh-repair/engine.js", [
     "benchmarks/base/cad-mesh-repair/engine.js",
-    "text/javascript; charset=utf-8",
-  ]],
   ["/artifacts/cad-mesh-repair-v1/dirty-grid.stl", [
     "public/artifacts/cad-mesh-repair-v1/dirty-grid.stl",
     "model/stl",
-  ]],
   ["/artifacts/cad-mesh-repair-v1/mesh-repair.wasm", [
     "public/artifacts/cad-mesh-repair-v1/mesh-repair.wasm",
     "application/wasm",
-  ]],
   ["/artifacts/cad-mesh-repair-v1/build-manifest.json", [
     "public/artifacts/cad-mesh-repair-v1/build-manifest.json",
     "application/json; charset=utf-8",
-  ]],
   ["/artifacts/cad-mesh-repair-v1/validation-evidence.json", [
     "public/artifacts/cad-mesh-repair-v1/validation-evidence.json",
+  ["/demos/cad-parametric-bracket", [
+    "public/demos/cad-parametric-bracket/index.html",
+  ["/demos/cad-parametric-bracket/", [
+  ["/demos/cad-parametric-bracket/demo.js", [
+    "public/demos/cad-parametric-bracket/demo.js",
+  ["/demos/cad-parametric-bracket/worker.js", [
+    "public/demos/cad-parametric-bracket/worker.js",
+  ["/benchmarks/base/cad-parametric-bracket/contract.js", [
+    "benchmarks/base/cad-parametric-bracket/contract.js",
+  ["/benchmarks/base/cad-parametric-bracket/fixture.js", [
+    "benchmarks/base/cad-parametric-bracket/fixture.js",
+  ["/benchmarks/base/cad-parametric-bracket/engine.js", [
+    "benchmarks/base/cad-parametric-bracket/engine.js",
+  ["/artifacts/base-cad-parametric-bracket/bracket.wasm", [
+    "public/artifacts/base-cad-parametric-bracket/bracket.wasm",
+  ["/artifacts/base-cad-parametric-bracket/fixture-manifest.json", [
+    "public/artifacts/base-cad-parametric-bracket/fixture-manifest.json",
+  ["/artifacts/base-cad-parametric-bracket/build-manifest.json", [
+    "public/artifacts/base-cad-parametric-bracket/build-manifest.json",
+  ["/artifacts/base-cad-parametric-bracket/output-manifest.json", [
+    "public/artifacts/base-cad-parametric-bracket/output-manifest.json",
+  ["/evidence/base-catalog/cad-parametric-bracket/js-controlled.json", [
+    "public/evidence/base-catalog/cad-parametric-bracket/js-controlled.json",
+  ["/evidence/base-catalog/cad-parametric-bracket/wasm-linear-controlled.json", [
+    "public/evidence/base-catalog/cad-parametric-bracket/wasm-linear-controlled.json",
     "application/json; charset=utf-8",
   ]],
   ["/demos/game-family/demo.js", [

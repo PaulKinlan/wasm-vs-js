@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.paulkinlan-ea.deno.net/schemas/cad-parametric-bracket-validation.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "catalogId",
+    "workloadId",
+    "status",
+    "variantId",
+    "executionTarget",
+    "sourceCommit",
+    "source",
+    "fixture",
+    "artifact",
+    "oracle",
+    "counters",
+    "performanceClaims"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "catalogId": { "const": "workload-catalog-v1" },
+    "workloadId": { "const": "cad.parametric-bracket.v1" },
+    "status": { "const": "implementation-candidate" },
+    "variantId": { "enum": ["js-controlled", "wasm-linear-controlled"] },
+    "executionTarget": { "enum": ["javascript", "wasm-linear"] },
+    "sourceCommit": {
+      "type": "string",
+      "pattern": "^(source-tree-not-yet-committed|[a-f0-9]{40})$"
+    },
+    "source": { "$ref": "#/$defs/ref" },
+    "fixture": { "$ref": "#/$defs/ref" },
+    "artifact": { "$ref": "#/$defs/ref" },
+    "oracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "completeOutputSha256",
+        "completeOutputDigest",
+        "exactCrossTargetBytes",
+        "topology",
+        "triangleCount"
+      ],
+      "properties": {
+        "completeOutputSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "completeOutputDigest": { "type": "string", "pattern": "^[a-f0-9]{16}$" },
+        "exactCrossTargetBytes": { "const": true },
+        "topology": { "$ref": "#/$defs/topology" },
+        "triangleCount": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "counters": { "$ref": "#/$defs/counters" },
+    "performanceClaims": { "type": "array", "maxItems": 0 }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "variantId": { "const": "js-controlled" },
+        "executionTarget": { "const": "javascript" },
+        "counters": {
+          "properties": {
+            "allocations": { "const": 1 },
+            "boundaryCrossings": { "const": 0 }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "variantId": { "const": "wasm-linear-controlled" },
+        "executionTarget": { "const": "wasm-linear" },
+        "counters": {
+          "properties": {
+            "allocations": { "const": 1 },
+            "boundaryCrossings": { "const": 2 }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "topology": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "connectedComponents",
+        "shells",
+        "throughHoles",
+        "genus",
+        "faces",
+        "edges",
+        "vertices",
+        "loops",
+        "coedges",
+        "eulerCharacteristic",
+        "watertight",
+        "oriented",
+        "tessellationEdges"
+      ],
+      "properties": {
+        "connectedComponents": { "const": 1 },
+        "shells": { "const": 1 },
+        "throughHoles": { "const": 2 },
+        "genus": { "const": 2 },
+        "faces": { "const": 12 },
+        "edges": { "const": 30 },
+        "vertices": { "const": 20 },
+        "loops": { "const": 16 },
+        "coedges": { "const": 60 },
+        "eulerCharacteristic": { "const": -2 },
+        "watertight": { "const": true },
+        "oriented": { "const": true },
+        "tessellationEdges": { "const": 8706 }
+      }
+    },
+    "counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "featureNodes",
+        "boxSolids",
+        "cylinderSolids",
+        "booleanCuts",
+        "filletEdges",
+        "booleanIntersectionTests",
+        "scanBands",
+        "intersectionTests",
+        "sortComparisons",
+        "surfaceTriangles",
+        "tessellationVertices",
+        "inputBytes",
+        "outputBytes",
+        "allocations",
+        "boundaryCrossings"
+      ],
+      "properties": {
+        "featureNodes": { "const": 10 },
+        "boxSolids": { "const": 1 },
+        "cylinderSolids": { "const": 2 },
+        "booleanCuts": { "const": 2 },
+        "filletEdges": { "const": 4 },
+        "booleanIntersectionTests": { "const": 64 },
+        "scanBands": { "const": 34 },
+        "intersectionTests": { "const": 3400 },
+        "sortComparisons": { "const": 178 },
+        "surfaceTriangles": { "const": 5804 },
+        "tessellationVertices": { "const": 17412 },
+        "inputBytes": { "const": 128 },
+        "outputBytes": { "const": 419744 },
+        "allocations": { "type": "integer", "minimum": 0 },
+        "boundaryCrossings": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "catalogId": "workload-catalog-v1",
+  "workloadId": "cad.parametric-bracket.v1",
+  "status": "implementation-candidate",
+  "variantId": "wasm-linear-controlled",
+  "executionTarget": "wasm-linear",
+  "sourceCommit": "67c89354b4e41a36b6fc6ef9ed29a201d02238fe",
+  "source": {
+    "path": "public/artifacts/base-cad-parametric-bracket/source-bundle.txt",
+    "bytes": 70561,
+    "sha256": "e8178bc38fb99936e74bb92aea2a4486acc9863c3b738fea3611cd14aea32eb6"
+  },
+  "fixture": {
+    "path": "public/artifacts/base-cad-parametric-bracket/fixture.bin",
+    "bytes": 128,
+    "sha256": "69db74cd284702632eb67d52fc6f00c18a101afc8c671badb6097a7921e74922"
+  },
+  "artifact": {
+    "path": "public/artifacts/base-cad-parametric-bracket/bracket.wasm",
+    "bytes": 24837,
+    "sha256": "82166df411845eeb1014b3c42e0751276c2d77815383ea5ed55a572ed4ab2ff1"
+  },
+  "oracle": {
+    "completeOutputSha256": "a1b9fe34b51782221b30aadd54b36aa6a45ba38846d6b44cca2669b75993b39f",
+    "completeOutputDigest": "d60fbade9eff2ffb",
+    "exactCrossTargetBytes": true,
+    "topology": {
+      "connectedComponents": 1,
+      "shells": 1,
+      "throughHoles": 2,
+      "genus": 2,
+      "faces": 12,
+      "edges": 30,
+      "vertices": 20,
+      "loops": 16,
+      "coedges": 60,
+      "eulerCharacteristic": -2,
+      "watertight": true,
+      "oriented": true,
+      "tessellationEdges": 8706
+    },
+    "triangleCount": 5804
+  },
+  "counters": {
+    "featureNodes": 10,
+    "boxSolids": 1,
+    "cylinderSolids": 2,
+    "booleanCuts": 2,
+    "filletEdges": 4,
+    "booleanIntersectionTests": 64,
+    "scanBands": 34,
+    "intersectionTests": 3400,
+    "sortComparisons": 178,
+    "surfaceTriangles": 5804,
+    "tessellationVertices": 17412,
+    "inputBytes": 128,
+    "outputBytes": 419744,
+    "allocations": 1,
+    "boundaryCrossings": 2
+  },
+  "performanceClaims": []
+}

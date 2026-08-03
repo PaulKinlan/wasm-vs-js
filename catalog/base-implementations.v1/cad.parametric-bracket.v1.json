@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "registrationId": "base-implementation-cad-parametric-bracket-v1",
+  "catalogId": "workload-catalog-v1",
+  "catalogEntryId": "cad.parametric-bracket.v1",
+  "catalogMutation": false,
+  "status": "implementation-candidate",
+  "contract": {
+    "units": "millimetres",
+    "featureTree": [
+      "box(80,40,12)",
+      "cylinder(20,20,4,through)",
+      "boolean-cut(left-hole)",
+      "cylinder(60,20,4,through)",
+      "boolean-cut(right-hole)",
+      "fillet(four-outer-vertical-edges,5)",
+      "tessellate(outer-arcs=8,hole-circles=32,scan-band-policy-v1)"
+    ],
+    "booleanTiePolicy": "even-odd profile winding; horizontal bands use lower-inclusive upper-exclusive crossings; equal-x crossings preserve source edge order",
+    "inputContract": "Zero, one, or two contained through-holes are permitted. Distinct hole circles must have center distance strictly greater than the sum of their radii; overlapping or tangent tools are rejected before feature construction in both targets.",
+    "floatingPointPolicy": "IEEE-754 f64 scalar source order; no fast-math, contraction, SIMD, threads, exceptions or tail calls",
+    "allocationPolicy": "Counts output backing stores created by the invoked target path. JavaScript allocates its output Uint8Array; the Wasm wrapper allocates the returned output copy. Metadata used by untimed validation is excluded.",
+    "counterPolicy": "Feature, solid, cut, fillet, and boolean-intersection counters increment at their operative construction sites. Scan intersection, sort, triangle, and tessellation-vertex counters increment from traversing and emitting the final B-rep mesh. Boundary crossings increment around the actual Wasm run call.",
+    "tolerance": {
+      "crossTargetBytes": "exact",
+      "topology": "exact",
+      "geometryAbsolute": 0
+    },
+    "topology": {
+      "connectedComponents": 1,
+      "shells": 1,
+      "throughHoles": 2,
+      "genus": 2,
+      "faces": 12,
+      "edges": 30,
+      "vertices": 20,
+      "loops": 16,
+      "coedges": 60,
+      "eulerCharacteristic": -2,
+      "watertight": true,
+      "oriented": true
+    },
+    "excludedVariants": [
+      "OCCT",
+      "SIMD",
+      "threads",
+      "tail-calls",
+      "exception-handling",
+      "relaxed floating point"
+    ]
+  },
+  "targets": [
+    {
+      "id": "js-controlled",
+      "target": "javascript",
+      "semanticWork": "Authored JavaScript constructs complete box and cylinder B-reps, splices each material cylinder wall/rims into the cut solid, applies four Euler fillet edits, validates vertices/edges/coedges/loops/faces and Euler genus, then tessellates by traversing the final B-rep face loops."
+    },
+    {
+      "id": "wasm-linear-controlled",
+      "target": "wasm-linear",
+      "semanticWork": "Authored C compiled to fixed-memory linear Wasm independently constructs complete box and cylinder B-reps, performs material cut and Euler fillet edits, validates coedge/loop/face adjacency and Euler genus, then tessellates by traversing the final B-rep. JavaScript copies the 128-byte feature-tree fixture and validates the returned output with an independent mesh Euler oracle."
+    }
+  ],
+  "performanceClaims": []
+}
