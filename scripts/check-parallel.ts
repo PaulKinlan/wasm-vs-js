@@ -57,10 +57,10 @@ for (const stage of stages) {
   const status = await child.status;
   const elapsed = ((performance.now() - stageStart) / 1000).toFixed(1);
   if (!status.success) {
-    console.error(`check-parallel: ${stage} FAILED in ${elapsed}s (exit ${status.code})`);
+    console.error(`check-parallel: ${stage.name} FAILED in ${elapsed}s (exit ${status.code})`);
     Deno.exit(status.code);
   }
-  console.error(`check-parallel: ${stage} ok (${elapsed}s)`);
+  console.error(`check-parallel: ${stage.name} ok (${elapsed}s)`);
 }
 console.error(
   `check-parallel: all ${stages.length} stages ok in ${
