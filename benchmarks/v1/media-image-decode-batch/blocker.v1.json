@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "recordId": "media-image-decode-batch-v1-blocker",
+  "workloadId": "media.image-decode-batch.v1",
+  "catalogRevision": "e836bf78313074da3a055621fb0c0291b8632b6c",
+  "catalogPath": "catalog/workloads.v1.json",
+  "catalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+  "status": "blocked-before-implementation",
+  "coverage": {
+    "implementedCatalogEntry": false,
+    "countedInFrozenV1Numerator": false,
+    "testedEnginePair": false,
+    "validationPackage": false,
+    "interactiveDemo": false,
+    "authoritativePerformanceResults": false
+  },
+  "fixedContract": {
+    "formats": [
+      "jpeg",
+      "png",
+      "webp",
+      "avif",
+      "jxl"
+    ],
+    "imagesPerFormat": 25,
+    "totalImages": 125,
+    "output": "complete RGBA",
+    "nativeDecode": "separate-product-baseline-only"
+  },
+  "blockers": [
+    {
+      "code": "fixture-rights-and-selection-unresolved",
+      "severity": "blocker",
+      "evidencePath": "benchmarks/v1/media-image-decode-batch/fixture-rights-audit.v1.json",
+      "detail": "The immutable catalog row does not identify the exact 25 files for each format, their upstream revisions and URLs, per-file redistribution grants, or raw SHA-256 values. The required 125-image fixture cannot be frozen without inventing those decisions."
+    },
+    {
+      "code": "genuine-javascript-jxl-decoder-unavailable",
+      "severity": "blocker",
+      "evidencePath": "benchmarks/v1/media-image-decode-batch/codec-feasibility-audit.v1.json",
+      "detail": "No pinned genuine-JavaScript JPEG XL decoder was identified. Available JXL candidates execute WebAssembly. A Wasm-backed wrapper or browser-native decoder cannot be presented as the controlled JavaScript target."
+    },
+    {
+      "code": "five-format-source-build-not-pinned",
+      "severity": "blocker",
+      "evidencePath": "benchmarks/v1/media-image-decode-batch/codec-feasibility-audit.v1.json",
+      "detail": "No repository-pinned source graph and reproducible build covers JPEG, PNG, WebP, AVIF and JXL for both independent controlled targets, including transitive codec licenses, compiler flags and artifact hashes."
+    }
+  ],
+  "deliberatelyAbsent": {
+    "fixtureBytes": true,
+    "fixtureHashes": true,
+    "javascriptCodec": true,
+    "linearWasmArtifact": true,
+    "validationRecords": true,
+    "demoRoute": true,
+    "timingResults": true
+  },
+  "resumeRequirements": [
+    "Approve and pin exactly 25 named files for each of JPEG, PNG, WebP, AVIF and JXL, with an exact upstream revision, download URL, per-file license, redistribution decision and raw-byte SHA-256.",
+    "Identify and audit a genuine JavaScript decoder that materially decodes JXL to complete RGBA without WebAssembly or a native browser codec.",
+    "Pin independent JavaScript and linear-Wasm source graphs, codec versions, compiler and linker versions, build flags, ICC/color/alpha/orientation/chroma policy and per-format oracle tolerances.",
+    "Only after both blockers close, implement all 125 decodes, complete-output validation, operative counters, worker lifecycle and retained browser evidence."
+  ]
+}
