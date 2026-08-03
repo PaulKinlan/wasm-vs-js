@@ -1,1 +1,645 @@
-{"browser":{"executable":"/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome","headless":true,"jsVersion":"15.0.245.5","launchArguments":["--headless=new","--no-sandbox","--disable-gpu","--disable-background-networking","--disable-component-update","--disable-default-apps","--disable-extensions","--disable-sync","--metrics-recording-only","--no-first-run","--hide-scrollbars","--window-size=1440,1200","--remote-debugging-address=127.0.0.1","--remote-debugging-port=45201","--user-data-dir=/tmp/wasm-traditional-chrome-34f038adda0a3f1e","about:blank"],"product":"Chrome/150.0.7871.24","protocol":"Chrome DevTools Protocol","revision":"@791ba97058eb8c1e257ea50380b0d8c6bb9b8f64","userAgent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"},"cleanup":{"browser":{"exit":{"code":0,"signal":null,"success":true},"launcher":{"executable":"/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome","parentPid":741400,"pid":741417,"startTimeTicks":"145349068"},"observedProcesses":[{"executable":"/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome","parentPid":741400,"pid":741417,"startTimeTicks":"145349068"},{"executable":"/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome","parentPid":741417,"pid":741424,"startTimeTicks":"145349070"},{"executable":"/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome","parentPid":741417,"pid":741425,"startTimeTicks":"145349070"},{"executable":"/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome","parentPid":741424,"pid":741450,"startTimeTicks":"145349072"},{"executable":"/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome","parentPid":741417,"pid":741465,"startTimeTicks":"145349073"},{"executable":"/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome","parentPid":741425,"pid":741525,"startTimeTicks":"145349076"},{"executable":"/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome","parentPid":741425,"pid":741554,"startTimeTicks":"145349079"},{"executable":"/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome","parentPid":741425,"pid":741570,"startTimeTicks":"145349083"},{"executable":"/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome","parentPid":741425,"pid":741608,"startTimeTicks":"145349087"},{"executable":"/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome","parentPid":741425,"pid":741609,"startTimeTicks":"145349087"},{"executable":"/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome","parentPid":741425,"pid":741810,"startTimeTicks":"145349375"}],"processesAbsent":true,"requested":"Browser.close","signals":[]},"profile":{"absent":true,"path":"/tmp/wasm-traditional-chrome-34f038adda0a3f1e","removed":true},"server":{"exit":{"code":143,"signal":"SIGTERM","success":false},"launcher":{"executable":"/home/paulkinlan/.local/share/mise/installs/deno/2.9.0/bin/deno","parentPid":741400,"pid":741409,"startTimeTicks":"145349052"},"processAbsent":true,"signal":"SIGTERM"}},"collectedAt":"2026-08-03T10:30:36.327Z","collectionCommand":"deno run -A scripts/collect-traditional-demo-evidence.ts --source-commit=2172272474efeedf80ce4ab12adb31dcef99ba0b --chrome=/home/paulkinlan/.local/bin/google-chrome-stable","evidenceId":"reduced-traditional-demos-chrome-150-v1","scenarios":[{"action":"complete","assertions":["visible Start control completed","oracle and exact work counters matched"],"console":[],"exceptions":[],"finalStatus":"1 MiB / 20-pattern reduced regex fixture completed; oracle and work counters match exactly.","id":"regex-js-native","network":[{"errorText":null,"failed":false,"fromDiskCache":false,"fromServiceWorker":false,"method":"GET","mimeType":"text/html","status":200,"type":"Document","url":"http://127.0.0.1:44999/benchmarks/regex-automata-duel-demo/"},{"errorText":null,"failed":false,"fromDiskCache":false,"fromServiceWorker":false,"method":"GET","mimeType":"text/css","status":200,"type":"Stylesheet","url":"http://127.0.0.1:44999/benchmarks/traditional-demo.css"},{"errorText":null,"failed":false,"fromDiskCache":false,"fromServiceWorker":false,"method":"GET","mimeType":"text/javascript","status":200,"type":"Script","url":"http://127.0.0.1:44999/benchmarks/traditional-demo.js"},{"errorText":null,"failed":false,"fromDiskCache":false,"fromServiceWorker":false,"method":"GET","mimeType":"image/svg+xml","status":200,"type":"Other","url":"http://127.0.0.1:44999/favicon.ico"},{"errorText":null,"failed":false,"fromDiskCache":false,"fromServiceWorker":false,"method":"GET","mimeType":"text/javascript","status":200,"type":"Script","url":"http://127.0.0.1:44999/benchmarks/regex-automata-duel-demo/worker.js"},{"errorText":null,"failed":false,"fromDiskCache":false,"fromServiceWorker":false,"method":"GET","mimeType":"text/javascript","status":200,"type":"Script","url":"http://127.0.0.1:44999/benchmarks/regex-automata-duel-demo/engine.js"}],"resultTextSha256":"f4815a02cac381844ade314d180055f7d0214cb8c4073686e61b76d75da2907a","route":"/benchmarks/regex-automata-duel-demo/","screenshot":{"bytes":281395,"path":"artifacts/demos/traditional/browser-evidence/screenshots/regex-js-native.png","sha256":"a853e447699d8745333291fe0707c5428e0e191123bb5ffd00bf3b6d9c834bbf"},"target":"js-native-controlled"},{"action":"complete","assertions":["visible Start control completed","oracle and exact work counters matched"],"console":[],"exceptions":[],"finalStatus":"1 MiB / 20-pattern reduced regex fixture completed; oracle and work counters match exactly.","id":"regex-js-automata","network":[{"errorText":null,"failed":false,"fromDiskCache":true,"fromServiceWorker":false,"method":"GET","mimeType":"text/html","status":200,"type":"Document","url":"http://127.0.0.1:44999/benchmarks/regex-automata-duel-demo/"},{"errorText":null,"failed":false,"fromDiskCache":true,"fromServiceWorker":false,"method":"GET","mimeType":"text/css","status":200,"type":"Stylesheet","url":"http://127.0.0.1:44999/benchmarks/traditional-demo.css"},{"errorText":null,"failed":false,"fromDiskCache":true,"fromServiceWorker":false,"method":"GET","mimeType":"text/javascript","status":200,"type":"Script","url":"http://127.0.0.1:44999/benchmarks/traditional-demo.js"},{"errorText":null,"failed":false,"fromDiskCache":false,"fromServiceWorker":false,"method":"GET","mimeType":"text/javascript","status":200,"type":"Script","url":"http://127.0.0.1:44999/benchmarks/regex-automata-duel-demo/worker.js"},{"errorText":null,"failed":false,"fromDiskCache":true,"fromServiceWorker":false,"method":"GET","mimeType":"text/javascript","status":200,"type":"Script","url":"http://127.0.0.1:44999/benchmarks/regex-automata-duel-demo/engine.js"}],"resultTextSha256":"7ed20c429133b291b5571412d130884274d5aa35364db660626dc726fbe0407b","route":"/benchmarks/regex-automata-duel-demo/","screenshot":{"bytes":281750,"path":"artifacts/demos/traditional/browser-evidence/screenshots/regex-js-automata.png","sha256":"3dcc0f642962569e71e980196b280c89e7212f5f7b9ad9795ffe29e777ad7e84"},"target":"js-automata-controlled"},{"action":"complete","assertions":["visible Start control completed","oracle and exact work counters matched"],"console":[],"exceptions":[],"finalStatus":"1 MiB / 20-pattern reduced regex fixture completed; oracle and work counters match exactly.","id":"regex-wasm-automata","network":[{"errorText":null,"failed":false,"fromDiskCache":true,"fromServiceWorker":false,"method":"GET","mimeType":"text/html","status":200,"type":"Document","url":"http://127.0.0.1:44999/benchmarks/regex-automata-duel-demo/"},{"errorText":null,"failed":false,"fromDiskCache":true,"fromServiceWorker":false,"method":"GET","mimeType":"text/css","status":200,"type":"Stylesheet","url":"http://127.0.0.1:44999/benchmarks/traditional-demo.css"},{"errorText":null,"failed":false,"fromDiskCache":true,"fromServiceWorker":false,"method":"GET","mimeType":"text/javascript","status":200,"type":"Script","url":"http://127.0.0.1:44999/benchmarks/traditional-demo.js"},{"errorText":null,"failed":false,"fromDiskCache":false,"fromServiceWorker":false,"method":"GET","mimeType":"text/javascript","status":200,"type":"Script","url":"http://127.0.0.1:44999/benchmarks/regex-automata-duel-demo/worker.js"},{"errorText":null,"failed":false,"fromDiskCache":true,"fromServiceWorker":false,"method":"GET","mimeType":"text/javascript","status":200,"type":"Script","url":"http://127.0.0.1:44999/benchmarks/regex-automata-duel-demo/engine.js"},{"errorText":null,"failed":false,"fromDiskCache":false,"fromServiceWorker":false,"method":"GET","mimeType":"application/wasm","status":200,"type":"Fetch","url":"http://127.0.0.1:44999/artifacts/regex-automata-duel/regex-automata-duel.wasm"}],"resultTextSha256":"a0c655d97bda07abb0089790de81e73dcd1630550b7535dce523daac4a6b36bb","route":"/benchmarks/regex-automata-duel-demo/","screenshot":{"bytes":283161,"path":"artifacts/demos/traditional/browser-evidence/screenshots/regex-wasm-automata.png","sha256":"2ee3676b043a19aedcb8bbe0fc63b00b756ce29d1881c949e125a7443cc62389"},"target":"wasm-automata-controlled"},{"action":"complete","assertions":["visible Start control completed","oracle and exact work counters matched","DOMHostAdapter applied worker patches","canonical browser DOM SHA-256 matched"],"console":[],"exceptions":[],"finalStatus":"1,000-node / 250-edit reduced virtual-DOM fixture completed; oracle and work counters match exactly.","id":"vdom-js-browser-dom","network":[{"errorText":null,"failed":false,"fromDiskCache":false,"fromServiceWorker":false,"method":"GET","mimeType":"text/html","status":200,"type":"Document","url":"http://127.0.0.1:44999/benchmarks/vdom-diff-patch-demo/"},{"errorText":null,"failed":false,"fromDiskCache":true,"fromServiceWorker":false,"method":"GET","mimeType":"text/css","status":200,"type":"Stylesheet","url":"http://127.0.0.1:44999/benchmarks/traditional-demo.css"},{"errorText":null,"failed":false,"fromDiskCache":true,"fromServiceWorker":false,"method":"GET","mimeType":"text/javascript","status":200,"type":"Script","url":"http://127.0.0.1:44999/benchmarks/traditional-demo.js"},{"errorText":null,"failed":false,"fromDiskCache":false,"fromServiceWorker":false,"method":"GET","mimeType":"text/javascript","status":200,"type":"Script","url":"http://127.0.0.1:44999/benchmarks/vdom-diff-patch-demo/worker.js"},{"errorText":null,"failed":false,"fromDiskCache":false,"fromServiceWorker":false,"method":"GET","mimeType":"text/javascript","status":200,"type":"Script","url":"http://127.0.0.1:44999/benchmarks/vdom-diff-patch-demo/engine.js"},{"errorText":null,"failed":false,"fromDiskCache":true,"fromServiceWorker":false,"method":"GET","mimeType":"text/javascript","status":200,"type":"Script","url":"http://127.0.0.1:44999/benchmarks/vdom-diff-patch-demo/engine.js"}],"resultTextSha256":"ad74757e013e75192481bf13f9413f3d4f152d9a644d0d7285f0563514e7631f","route":"/benchmarks/vdom-diff-patch-demo/","screenshot":{"bytes":328572,"path":"artifacts/demos/traditional/browser-evidence/screenshots/vdom-js-browser-dom.png","sha256":"e5c0556f247587af92a574ed4cecf2028ed09dab7ba038003c6e7e7d73a4a059"},"target":"js-controlled"},{"action":"complete","assertions":["visible Start control completed","oracle and exact work counters matched","DOMHostAdapter applied worker patches","canonical browser DOM SHA-256 matched"],"console":[],"exceptions":[],"finalStatus":"1,000-node / 250-edit reduced virtual-DOM fixture completed; oracle and work counters match exactly.","id":"vdom-wasm-browser-dom","network":[{"errorText":null,"failed":false,"fromDiskCache":true,"fromServiceWorker":false,"method":"GET","mimeType":"text/html","status":200,"type":"Document","url":"http://127.0.0.1:44999/benchmarks/vdom-diff-patch-demo/"},{"errorText":null,"failed":false,"fromDiskCache":true,"fromServiceWorker":false,"method":"GET","mimeType":"text/css","status":200,"type":"Stylesheet","url":"http://127.0.0.1:44999/benchmarks/traditional-demo.css"},{"errorText":null,"failed":false,"fromDiskCache":true,"fromServiceWorker":false,"method":"GET","mimeType":"text/javascript","status":200,"type":"Script","url":"http://127.0.0.1:44999/benchmarks/traditional-demo.js"},{"errorText":null,"failed":false,"fromDiskCache":false,"fromServiceWorker":false,"method":"GET","mimeType":"text/javascript","status":200,"type":"Script","url":"http://127.0.0.1:44999/benchmarks/vdom-diff-patch-demo/worker.js"},{"errorText":null,"failed":false,"fromDiskCache":true,"fromServiceWorker":false,"method":"GET","mimeType":"text/javascript","status":200,"type":"Script","url":"http://127.0.0.1:44999/benchmarks/vdom-diff-patch-demo/engine.js"},{"errorText":null,"failed":false,"fromDiskCache":false,"fromServiceWorker":false,"method":"GET","mimeType":"application/wasm","status":200,"type":"Fetch","url":"http://127.0.0.1:44999/artifacts/vdom-diff-patch/vdom-diff-patch.wasm"},{"errorText":null,"failed":false,"fromDiskCache":true,"fromServiceWorker":false,"method":"GET","mimeType":"text/javascript","status":200,"type":"Script","url":"http://127.0.0.1:44999/benchmarks/vdom-diff-patch-demo/engine.js"}],"resultTextSha256":"08a0e0f8d9c05a449f8521256f1aca24e8ffe8a2c33a8c9b8ec95dfdfba01a17","route":"/benchmarks/vdom-diff-patch-demo/","screenshot":{"bytes":326888,"path":"artifacts/demos/traditional/browser-evidence/screenshots/vdom-wasm-browser-dom.png","sha256":"dc2ab8fe6d3f05e23174f0021137578765e24c6d7c6e811932bb20511539b0a2"},"target":"wasm-linear-controlled"},{"action":"cancel","assertions":["visible Start control entered running state","visible Cancel control terminated the worker","result remained hidden"],"console":[],"exceptions":[],"finalStatus":"Canceled. The worker was terminated and its in-memory fixture and result were discarded.","id":"regex-cancel-control","network":[{"errorText":null,"failed":false,"fromDiskCache":true,"fromServiceWorker":false,"method":"GET","mimeType":"text/html","status":200,"type":"Document","url":"http://127.0.0.1:44999/benchmarks/regex-automata-duel-demo/"},{"errorText":null,"failed":false,"fromDiskCache":true,"fromServiceWorker":false,"method":"GET","mimeType":"text/css","status":200,"type":"Stylesheet","url":"http://127.0.0.1:44999/benchmarks/traditional-demo.css"},{"errorText":null,"failed":false,"fromDiskCache":true,"fromServiceWorker":false,"method":"GET","mimeType":"text/javascript","status":200,"type":"Script","url":"http://127.0.0.1:44999/benchmarks/traditional-demo.js"},{"errorText":null,"failed":false,"fromDiskCache":false,"fromServiceWorker":false,"method":"GET","mimeType":"text/javascript","status":200,"type":"Script","url":"http://127.0.0.1:44999/benchmarks/regex-automata-duel-demo/worker.js"},{"errorText":null,"failed":false,"fromDiskCache":true,"fromServiceWorker":false,"method":"GET","mimeType":"text/javascript","status":200,"type":"Script","url":"http://127.0.0.1:44999/benchmarks/regex-automata-duel-demo/engine.js"}],"resultTextSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","route":"/benchmarks/regex-automata-duel-demo/","screenshot":{"bytes":203776,"path":"artifacts/demos/traditional/browser-evidence/screenshots/regex-cancel-control.png","sha256":"29e4ee2a5dbaa2680555c9b9db9f2a458d5baa774842ae620f289e53b5ee2eb9"},"target":"js-automata-controlled"}],"schemaVersion":1,"server":{"launcherPid":741409,"mode":"public","origin":"http://127.0.0.1:44999"},"source":{"commit":"2172272474efeedf80ce4ab12adb31dcef99ba0b","tree":"0d929328a4227347e879d3d7cc994efd0f5eeaf8"}}
+{
+  "browser": {
+    "executable": "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome",
+    "headless": true,
+    "jsVersion": "15.0.245.5",
+    "launchArguments": [
+      "--headless=new",
+      "--no-sandbox",
+      "--disable-gpu",
+      "--disable-background-networking",
+      "--disable-component-update",
+      "--disable-default-apps",
+      "--disable-extensions",
+      "--disable-sync",
+      "--metrics-recording-only",
+      "--no-first-run",
+      "--hide-scrollbars",
+      "--window-size=1440,1200",
+      "--remote-debugging-address=127.0.0.1",
+      "--remote-debugging-port=45201",
+      "--user-data-dir=/tmp/wasm-traditional-chrome-34f038adda0a3f1e",
+      "about:blank"
+    ],
+    "product": "Chrome/150.0.7871.24",
+    "protocol": "Chrome DevTools Protocol",
+    "revision": "@791ba97058eb8c1e257ea50380b0d8c6bb9b8f64",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36"
+  },
+  "cleanup": {
+    "browser": {
+      "exit": { "code": 0, "signal": null, "success": true },
+      "launcher": {
+        "executable": "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome",
+        "parentPid": 741400,
+        "pid": 741417,
+        "startTimeTicks": "145349068"
+      },
+      "observedProcesses": [
+        {
+          "executable": "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome",
+          "parentPid": 741400,
+          "pid": 741417,
+          "startTimeTicks": "145349068"
+        },
+        {
+          "executable": "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome",
+          "parentPid": 741417,
+          "pid": 741424,
+          "startTimeTicks": "145349070"
+        },
+        {
+          "executable": "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome",
+          "parentPid": 741417,
+          "pid": 741425,
+          "startTimeTicks": "145349070"
+        },
+        {
+          "executable": "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome",
+          "parentPid": 741424,
+          "pid": 741450,
+          "startTimeTicks": "145349072"
+        },
+        {
+          "executable": "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome",
+          "parentPid": 741417,
+          "pid": 741465,
+          "startTimeTicks": "145349073"
+        },
+        {
+          "executable": "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome",
+          "parentPid": 741425,
+          "pid": 741525,
+          "startTimeTicks": "145349076"
+        },
+        {
+          "executable": "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome",
+          "parentPid": 741425,
+          "pid": 741554,
+          "startTimeTicks": "145349079"
+        },
+        {
+          "executable": "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome",
+          "parentPid": 741425,
+          "pid": 741570,
+          "startTimeTicks": "145349083"
+        },
+        {
+          "executable": "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome",
+          "parentPid": 741425,
+          "pid": 741608,
+          "startTimeTicks": "145349087"
+        },
+        {
+          "executable": "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome",
+          "parentPid": 741425,
+          "pid": 741609,
+          "startTimeTicks": "145349087"
+        },
+        {
+          "executable": "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome",
+          "parentPid": 741425,
+          "pid": 741810,
+          "startTimeTicks": "145349375"
+        }
+      ],
+      "processesAbsent": true,
+      "requested": "Browser.close",
+      "signals": []
+    },
+    "profile": {
+      "absent": true,
+      "path": "/tmp/wasm-traditional-chrome-34f038adda0a3f1e",
+      "removed": true
+    },
+    "server": {
+      "exit": { "code": 143, "signal": "SIGTERM", "success": false },
+      "launcher": {
+        "executable": "/home/paulkinlan/.local/share/mise/installs/deno/2.9.0/bin/deno",
+        "parentPid": 741400,
+        "pid": 741409,
+        "startTimeTicks": "145349052"
+      },
+      "processAbsent": true,
+      "signal": "SIGTERM"
+    }
+  },
+  "collectedAt": "2026-08-03T10:30:36.327Z",
+  "collectionCommand": "deno run -A scripts/collect-traditional-demo-evidence.ts --source-commit=2172272474efeedf80ce4ab12adb31dcef99ba0b --chrome=/home/paulkinlan/.local/bin/google-chrome-stable",
+  "evidenceId": "reduced-traditional-demos-chrome-150-v1",
+  "scenarios": [
+    {
+      "action": "complete",
+      "assertions": ["visible Start control completed", "oracle and exact work counters matched"],
+      "console": [],
+      "exceptions": [],
+      "finalStatus": "1 MiB / 20-pattern reduced regex fixture completed; oracle and work counters match exactly.",
+      "id": "regex-js-native",
+      "network": [
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": false,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/html",
+          "status": 200,
+          "type": "Document",
+          "url": "http://127.0.0.1:44999/benchmarks/regex-automata-duel-demo/"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": false,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/css",
+          "status": 200,
+          "type": "Stylesheet",
+          "url": "http://127.0.0.1:44999/benchmarks/traditional-demo.css"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": false,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/javascript",
+          "status": 200,
+          "type": "Script",
+          "url": "http://127.0.0.1:44999/benchmarks/traditional-demo.js"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": false,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "image/svg+xml",
+          "status": 200,
+          "type": "Other",
+          "url": "http://127.0.0.1:44999/favicon.ico"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": false,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/javascript",
+          "status": 200,
+          "type": "Script",
+          "url": "http://127.0.0.1:44999/benchmarks/regex-automata-duel-demo/worker.js"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": false,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/javascript",
+          "status": 200,
+          "type": "Script",
+          "url": "http://127.0.0.1:44999/benchmarks/regex-automata-duel-demo/engine.js"
+        }
+      ],
+      "resultTextSha256": "f4815a02cac381844ade314d180055f7d0214cb8c4073686e61b76d75da2907a",
+      "route": "/benchmarks/regex-automata-duel-demo/",
+      "screenshot": {
+        "bytes": 281395,
+        "path": "artifacts/demos/traditional/browser-evidence/screenshots/regex-js-native.png",
+        "sha256": "a853e447699d8745333291fe0707c5428e0e191123bb5ffd00bf3b6d9c834bbf"
+      },
+      "target": "js-native-controlled"
+    },
+    {
+      "action": "complete",
+      "assertions": ["visible Start control completed", "oracle and exact work counters matched"],
+      "console": [],
+      "exceptions": [],
+      "finalStatus": "1 MiB / 20-pattern reduced regex fixture completed; oracle and work counters match exactly.",
+      "id": "regex-js-automata",
+      "network": [
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": true,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/html",
+          "status": 200,
+          "type": "Document",
+          "url": "http://127.0.0.1:44999/benchmarks/regex-automata-duel-demo/"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": true,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/css",
+          "status": 200,
+          "type": "Stylesheet",
+          "url": "http://127.0.0.1:44999/benchmarks/traditional-demo.css"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": true,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/javascript",
+          "status": 200,
+          "type": "Script",
+          "url": "http://127.0.0.1:44999/benchmarks/traditional-demo.js"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": false,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/javascript",
+          "status": 200,
+          "type": "Script",
+          "url": "http://127.0.0.1:44999/benchmarks/regex-automata-duel-demo/worker.js"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": true,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/javascript",
+          "status": 200,
+          "type": "Script",
+          "url": "http://127.0.0.1:44999/benchmarks/regex-automata-duel-demo/engine.js"
+        }
+      ],
+      "resultTextSha256": "7ed20c429133b291b5571412d130884274d5aa35364db660626dc726fbe0407b",
+      "route": "/benchmarks/regex-automata-duel-demo/",
+      "screenshot": {
+        "bytes": 281750,
+        "path": "artifacts/demos/traditional/browser-evidence/screenshots/regex-js-automata.png",
+        "sha256": "3dcc0f642962569e71e980196b280c89e7212f5f7b9ad9795ffe29e777ad7e84"
+      },
+      "target": "js-automata-controlled"
+    },
+    {
+      "action": "complete",
+      "assertions": ["visible Start control completed", "oracle and exact work counters matched"],
+      "console": [],
+      "exceptions": [],
+      "finalStatus": "1 MiB / 20-pattern reduced regex fixture completed; oracle and work counters match exactly.",
+      "id": "regex-wasm-automata",
+      "network": [
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": true,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/html",
+          "status": 200,
+          "type": "Document",
+          "url": "http://127.0.0.1:44999/benchmarks/regex-automata-duel-demo/"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": true,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/css",
+          "status": 200,
+          "type": "Stylesheet",
+          "url": "http://127.0.0.1:44999/benchmarks/traditional-demo.css"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": true,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/javascript",
+          "status": 200,
+          "type": "Script",
+          "url": "http://127.0.0.1:44999/benchmarks/traditional-demo.js"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": false,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/javascript",
+          "status": 200,
+          "type": "Script",
+          "url": "http://127.0.0.1:44999/benchmarks/regex-automata-duel-demo/worker.js"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": true,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/javascript",
+          "status": 200,
+          "type": "Script",
+          "url": "http://127.0.0.1:44999/benchmarks/regex-automata-duel-demo/engine.js"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": false,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "application/wasm",
+          "status": 200,
+          "type": "Fetch",
+          "url": "http://127.0.0.1:44999/artifacts/regex-automata-duel/regex-automata-duel.wasm"
+        }
+      ],
+      "resultTextSha256": "a0c655d97bda07abb0089790de81e73dcd1630550b7535dce523daac4a6b36bb",
+      "route": "/benchmarks/regex-automata-duel-demo/",
+      "screenshot": {
+        "bytes": 283161,
+        "path": "artifacts/demos/traditional/browser-evidence/screenshots/regex-wasm-automata.png",
+        "sha256": "2ee3676b043a19aedcb8bbe0fc63b00b756ce29d1881c949e125a7443cc62389"
+      },
+      "target": "wasm-automata-controlled"
+    },
+    {
+      "action": "complete",
+      "assertions": [
+        "visible Start control completed",
+        "oracle and exact work counters matched",
+        "DOMHostAdapter applied worker patches",
+        "canonical browser DOM SHA-256 matched"
+      ],
+      "console": [],
+      "exceptions": [],
+      "finalStatus": "1,000-node / 250-edit reduced virtual-DOM fixture completed; oracle and work counters match exactly.",
+      "id": "vdom-js-browser-dom",
+      "network": [
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": false,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/html",
+          "status": 200,
+          "type": "Document",
+          "url": "http://127.0.0.1:44999/benchmarks/vdom-diff-patch-demo/"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": true,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/css",
+          "status": 200,
+          "type": "Stylesheet",
+          "url": "http://127.0.0.1:44999/benchmarks/traditional-demo.css"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": true,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/javascript",
+          "status": 200,
+          "type": "Script",
+          "url": "http://127.0.0.1:44999/benchmarks/traditional-demo.js"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": false,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/javascript",
+          "status": 200,
+          "type": "Script",
+          "url": "http://127.0.0.1:44999/benchmarks/vdom-diff-patch-demo/worker.js"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": false,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/javascript",
+          "status": 200,
+          "type": "Script",
+          "url": "http://127.0.0.1:44999/benchmarks/vdom-diff-patch-demo/engine.js"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": true,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/javascript",
+          "status": 200,
+          "type": "Script",
+          "url": "http://127.0.0.1:44999/benchmarks/vdom-diff-patch-demo/engine.js"
+        }
+      ],
+      "resultTextSha256": "ad74757e013e75192481bf13f9413f3d4f152d9a644d0d7285f0563514e7631f",
+      "route": "/benchmarks/vdom-diff-patch-demo/",
+      "screenshot": {
+        "bytes": 328572,
+        "path": "artifacts/demos/traditional/browser-evidence/screenshots/vdom-js-browser-dom.png",
+        "sha256": "e5c0556f247587af92a574ed4cecf2028ed09dab7ba038003c6e7e7d73a4a059"
+      },
+      "target": "js-controlled"
+    },
+    {
+      "action": "complete",
+      "assertions": [
+        "visible Start control completed",
+        "oracle and exact work counters matched",
+        "DOMHostAdapter applied worker patches",
+        "canonical browser DOM SHA-256 matched"
+      ],
+      "console": [],
+      "exceptions": [],
+      "finalStatus": "1,000-node / 250-edit reduced virtual-DOM fixture completed; oracle and work counters match exactly.",
+      "id": "vdom-wasm-browser-dom",
+      "network": [
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": true,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/html",
+          "status": 200,
+          "type": "Document",
+          "url": "http://127.0.0.1:44999/benchmarks/vdom-diff-patch-demo/"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": true,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/css",
+          "status": 200,
+          "type": "Stylesheet",
+          "url": "http://127.0.0.1:44999/benchmarks/traditional-demo.css"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": true,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/javascript",
+          "status": 200,
+          "type": "Script",
+          "url": "http://127.0.0.1:44999/benchmarks/traditional-demo.js"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": false,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/javascript",
+          "status": 200,
+          "type": "Script",
+          "url": "http://127.0.0.1:44999/benchmarks/vdom-diff-patch-demo/worker.js"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": true,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/javascript",
+          "status": 200,
+          "type": "Script",
+          "url": "http://127.0.0.1:44999/benchmarks/vdom-diff-patch-demo/engine.js"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": false,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "application/wasm",
+          "status": 200,
+          "type": "Fetch",
+          "url": "http://127.0.0.1:44999/artifacts/vdom-diff-patch/vdom-diff-patch.wasm"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": true,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/javascript",
+          "status": 200,
+          "type": "Script",
+          "url": "http://127.0.0.1:44999/benchmarks/vdom-diff-patch-demo/engine.js"
+        }
+      ],
+      "resultTextSha256": "08a0e0f8d9c05a449f8521256f1aca24e8ffe8a2c33a8c9b8ec95dfdfba01a17",
+      "route": "/benchmarks/vdom-diff-patch-demo/",
+      "screenshot": {
+        "bytes": 326888,
+        "path": "artifacts/demos/traditional/browser-evidence/screenshots/vdom-wasm-browser-dom.png",
+        "sha256": "dc2ab8fe6d3f05e23174f0021137578765e24c6d7c6e811932bb20511539b0a2"
+      },
+      "target": "wasm-linear-controlled"
+    },
+    {
+      "action": "cancel",
+      "assertions": [
+        "visible Start control entered running state",
+        "visible Cancel control terminated the worker",
+        "result remained hidden"
+      ],
+      "console": [],
+      "exceptions": [],
+      "finalStatus": "Canceled. The worker was terminated and its in-memory fixture and result were discarded.",
+      "id": "regex-cancel-control",
+      "network": [
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": true,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/html",
+          "status": 200,
+          "type": "Document",
+          "url": "http://127.0.0.1:44999/benchmarks/regex-automata-duel-demo/"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": true,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/css",
+          "status": 200,
+          "type": "Stylesheet",
+          "url": "http://127.0.0.1:44999/benchmarks/traditional-demo.css"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": true,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/javascript",
+          "status": 200,
+          "type": "Script",
+          "url": "http://127.0.0.1:44999/benchmarks/traditional-demo.js"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": false,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/javascript",
+          "status": 200,
+          "type": "Script",
+          "url": "http://127.0.0.1:44999/benchmarks/regex-automata-duel-demo/worker.js"
+        },
+        {
+          "errorText": null,
+          "failed": false,
+          "fromDiskCache": true,
+          "fromServiceWorker": false,
+          "method": "GET",
+          "mimeType": "text/javascript",
+          "status": 200,
+          "type": "Script",
+          "url": "http://127.0.0.1:44999/benchmarks/regex-automata-duel-demo/engine.js"
+        }
+      ],
+      "resultTextSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "route": "/benchmarks/regex-automata-duel-demo/",
+      "screenshot": {
+        "bytes": 203776,
+        "path": "artifacts/demos/traditional/browser-evidence/screenshots/regex-cancel-control.png",
+        "sha256": "29e4ee2a5dbaa2680555c9b9db9f2a458d5baa774842ae620f289e53b5ee2eb9"
+      },
+      "target": "js-automata-controlled"
+    }
+  ],
+  "schemaVersion": 1,
+  "server": { "launcherPid": 741409, "mode": "public", "origin": "http://127.0.0.1:44999" },
+  "source": {
+    "commit": "2172272474efeedf80ce4ab12adb31dcef99ba0b",
+    "tree": "0d929328a4227347e879d3d7cc994efd0f5eeaf8"
+  }
+}
