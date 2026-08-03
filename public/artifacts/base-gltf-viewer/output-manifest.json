@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "graphics.gltf-viewer.v1",
+  "status": "passed",
+  "sourceCommit": "de12c87b001bbd9a47e0a004da469ca332d3d114",
+  "input": {
+    "decodedMeshSha256": "b4e03bea9c76a08a6cc8d62ad1320af25ef7e5c594015b6b8396b9efc8aa5f54",
+    "asmJsWasmDecodedMeshEqual": true
+  },
+  "output": {
+    "bytes": 240480,
+    "semanticSha256": "0efc779e728d0ee63875efc11a120c45179b5a679764d2f55f6e1b5d3e9856ec",
+    "completeCrossTargetEqual": true,
+    "variants": {
+      "javascript": {
+        "sha256": "0efc779e728d0ee63875efc11a120c45179b5a679764d2f55f6e1b5d3e9856ec",
+        "boundaryCrossings": 0
+      },
+      "wasm": {
+        "sha256": "f1a2528e0190cb64fc27a0b28a1ba3511afcc8f98c0a95a63c10ddeba37e92a1",
+        "boundaryCrossings": 1
+      }
+    },
+    "header": [
+      1196184646,
+      406,
+      2046,
+      600,
+      125842,
+      0,
+      3380910976,
+      685368050,
+      4110,
+      243600,
+      409200,
+      600,
+      6,
+      12,
+      0,
+      7,
+      37560,
+      240480,
+      1,
+      0
+    ]
+  },
+  "performanceClaims": []
+}

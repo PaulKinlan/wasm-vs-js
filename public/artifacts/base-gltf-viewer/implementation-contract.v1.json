@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "graphics.gltf-viewer.v1",
+  "status": "implemented-controlled-validation-package",
+  "frozenCatalog": {
+    "path": "catalog/workloads.v1.json",
+    "bytes": 110208,
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+    "immutability": "byte-for-byte"
+  },
+  "fixedWork": {
+    "model": "Avocado glTF-Draco",
+    "frames": 600,
+    "viewport": [
+      96,
+      96
+    ],
+    "checkpoints": [
+      0,
+      119,
+      239,
+      359,
+      479,
+      599
+    ],
+    "pickFrames": [
+      25,
+      75,
+      125,
+      175,
+      225,
+      275,
+      325,
+      375,
+      425,
+      475,
+      525,
+      575
+    ]
+  },
+  "algorithm": "Draco 1.5.7 decode; quantized fixed-point node animation, transforms, culling, picking and six-frame CPU texture raster reference",
+  "materialPolicy": {
+    "baseColorTexture": "64x64 Lanczos RGBA derivative",
+    "lighting": "fixed normal-Y Lambert",
+    "alpha": "OPAQUE",
+    "doubleSided": false,
+    "normalMap": "GPU product baseline only",
+    "metallicRoughness": "GPU product baseline only"
+  },
+  "rendering": {
+    "controlled": "CPU 96x96 raster reference at six checkpoints plus complete 600-frame draw/state stream",
+    "gpu": "separate unavailable product baseline; never enters controlled output"
+  },
+  "counters": [
+    "decoded-vertices",
+    "decoded-indices",
+    "frames",
+    "triangles-tested",
+    "visible-triangles",
+    "draws",
+    "pick-tests",
+    "pick-hits",
+    "rasterized-pixels",
+    "allocations",
+    "boundary-crossings"
+  ]
+}
