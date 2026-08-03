@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "registrationId": "base-tooling-minify-format-controlled-v1",
+  "baseWorkloadId": "tooling.minify-format.v1",
+  "status": "implementation-candidate",
+  "authoritativePerformanceEvidence": false,
+  "frozenCatalog": {
+    "path": "catalog/workloads.v1.json",
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+    "mutation": "none"
+  },
+  "fixedWork": {
+    "totalInputBytes": 5242880,
+    "languages": [
+      "javascript",
+      "css",
+      "html"
+    ],
+    "operations": [
+      "minify",
+      "format"
+    ],
+    "sourceMaps": false
+  },
+  "equivalence": {
+    "class": "semantic-product-choice",
+    "controlledFamily": "owned-three-language-token-policy-v1",
+    "rule": "Each target must pass its own canonical output and semantic round-trip; cross-product output identity is not generalized to unrelated tools."
+  },
+  "targets": [
+    "javascript-controlled",
+    "linear-wasm-controlled"
+  ],
+  "routes": {
+    "demo": "/benchmarks/tooling-minify-format-v1/",
+    "artifact": "/artifacts/base-tooling-minify-format/tooling-minify-format.wasm"
+  },
+  "manifests": {
+    "fixture": "/artifacts/base-tooling-minify-format/fixture-manifest.json",
+    "build": "/artifacts/base-tooling-minify-format/build-manifest.json"
+  }
+}
