@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "status": "supplemental-implementation-candidate",
+  "authoritativePerformanceEvidence": false,
+  "entryId": "numeric.fft-spectral-filter.v1",
+  "implementationId": "numeric-fft-spectral-filter-controlled-v1",
+  "completeOutput": {
+    "components": 2097152,
+    "bytes": 8388608,
+    "sha256": "56674b58154a2272f25bd2cd8c950cea04cf30be7211e9f51f13a183f31ff1a5",
+    "quantizationStep": 0.00001,
+    "quantizedSha256": "513b24c63d27d9e84c41b7e0c65c95b687973f209420dd13dbb5fe3b3076ded3",
+    "checkpoints": [
+      {
+        "index": 0,
+        "real": -0.00008689425885677338,
+        "imaginary": 0
+      },
+      {
+        "index": 1,
+        "real": -0.00013792701065540314,
+        "imaginary": -1.4925550573252622e-8
+      },
+      {
+        "index": 131072,
+        "real": 0.05455316603183746,
+        "imaginary": 2.026320565128541e-18
+      },
+      {
+        "index": 262144,
+        "real": 0.1626012623310089,
+        "imaginary": -1.135633119687724e-17
+      },
+      {
+        "index": 524288,
+        "real": 0.025741079822182655,
+        "imaginary": 0
+      },
+      {
+        "index": 1048574,
+        "real": 0.000009368173778057098,
+        "imaginary": -1.2371824453794034e-8
+      },
+      {
+        "index": 1048575,
+        "real": -0.00003272015601396561,
+        "imaginary": -4.02133792931636e-9
+      }
+    ]
+  },
+  "oracle": {
+    "method": "independent-scalar-f64-radix-2",
+    "tolerance": {
+      "absolute": 0.00025,
+      "relative": 0.0025,
+      "energyRelative": 0.0002
+    },
+    "js": {
+      "passed": true,
+      "violations": 0,
+      "maxAbsolute": 1.7113793338019434e-7,
+      "maxRelative": 45181.96588413063,
+      "outputEnergy": 26623.35842396255,
+      "referenceEnergy": 26623.358400572066,
+      "energyRelative": 8.785699615237633e-10,
+      "tolerance": {
+        "absolute": 0.00025,
+        "relative": 0.0025,
+        "energyRelative": 0.0002
+      }
+    },
+    "wasm": {
+      "passed": true,
+      "violations": 0,
+      "maxAbsolute": 1.7113793338019434e-7,
+      "maxRelative": 45181.96588413063,
+      "outputEnergy": 26623.35842396255,
+      "referenceEnergy": 26623.358400572066,
+      "energyRelative": 8.785699615237633e-10,
+      "tolerance": {
+        "absolute": 0.00025,
+        "relative": 0.0025,
+        "energyRelative": 0.0002
+      }
+    }
+  },
+  "variants": {
+    "js-controlled": {
+      "status": "passed",
+      "counters": {
+        "pipelines": 1,
+        "samples": 1048576,
+        "forward-ffts": 1,
+        "inverse-ffts": 1,
+        "butterflies": 20971520,
+        "twiddle-pair-loads": 20971520,
+        "window-multiplies": 1048576,
+        "filter-scalar-multiplies": 2097152,
+        "inverse-scale-multiplies": 2097152,
+        "input-bytes": 4194304,
+        "output-bytes": 8388608,
+        "allocations": 1,
+        "boundary-crossings": 0
+      }
+    },
+    "wasm-linear-controlled": {
+      "status": "passed",
+      "counters": {
+        "pipelines": 1,
+        "samples": 1048576,
+        "forward-ffts": 1,
+        "inverse-ffts": 1,
+        "butterflies": 20971520,
+        "twiddle-pair-loads": 20971520,
+        "window-multiplies": 1048576,
+        "filter-scalar-multiplies": 2097152,
+        "inverse-scale-multiplies": 2097152,
+        "input-bytes": 4194304,
+        "output-bytes": 8388608,
+        "allocations": 0,
+        "boundary-crossings": 2
+      }
+    }
+  },
+  "performanceClaims": [],
+  "sourceCommit": "c37f959bfe47bc627cbeb69a30639ffeb508fa34"
+}
