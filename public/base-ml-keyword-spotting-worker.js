@@ -1,3 +1,4 @@
+// @ts-ignore Browser same-origin route, mapped by server.ts.
 import {
   assertEquivalent,
   instantiateWasm,

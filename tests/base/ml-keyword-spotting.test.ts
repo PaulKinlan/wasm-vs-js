@@ -1,4 +1,4 @@
-import { assert, assertEquals, assertRejects, assertThrows } from "../assert.ts";
+import { assert, assertEquals, assertRejects } from "../assert.ts";
 import {
   assertEquivalent,
   CONTRACT,
@@ -120,22 +120,88 @@ Deno.test("complete work counters are exact and target-specific", () => {
 });
 
 Deno.test("wrong input and corrupted artifact fail closed", async () => {
-  assertThrows(() => runJavaScript(new Int16Array(959999)), RangeError);
+  let rejected = false;
+  try {
+    runJavaScript(new Int16Array(959999));
+  } catch (error) {
+    rejected = error instanceof RangeError;
+  }
+  assert(rejected, "wrong PCM length did not fail with RangeError");
   const truncated = wasmBytes.slice(0, wasmBytes.length - 1);
-  await assertRejects(() => WebAssembly.compile(truncated));
+  await assertRejects(() => WebAssembly.compile(truncated), "extends past end");
 });
 
 Deno.test("full output responds to boundary input changes", async () => {
   const zero = new Int16Array(CONTRACT.samples);
   const edge = new Int16Array(CONTRACT.samples);
-  edge[0] = 32767;
-  edge[319] = -32768;
-  edge[320] = 32767;
+  edge[100] = 32767;
+  edge[219] = -32768;
+  edge[420] = 32767;
   const zeroResult = runJavaScript(zero);
   const edgeResult = runJavaScript(edge);
   assert((await sha256Hex(zeroResult.features)) !== (await sha256Hex(edgeResult.features)));
   const wasm = await instantiateWasm(wasmBytes);
   assertEquivalent(edgeResult, runWasm(wasm, edge));
+});
+
+Deno.test("pinned Clang build and complete source graph reproduce exact committed bytes", async () => {
+  const temp = await Deno.makeTempDir();
+  try {
+    const object = `${temp}/keyword-spotting.o`;
+    const artifact = `${temp}/keyword-spotting.wasm`;
+    const compile = await new Deno.Command("clang", {
+      args: [
+        "--target=wasm32-unknown-unknown",
+        "-O3",
+        "-nostdlib",
+        "-ffreestanding",
+        "-fno-builtin",
+        "-fwrapv",
+        "-Ibenchmarks/base/ml-keyword-spotting",
+        "-c",
+        "benchmarks/base/ml-keyword-spotting/keyword-spotting.c",
+        "-o",
+        object,
+      ],
+    }).output();
+    assert(compile.success, new TextDecoder().decode(compile.stderr));
+    const link = await new Deno.Command("wasm-ld", {
+      args: [
+        "--no-entry",
+        "--export-memory",
+        "--export=pcm_ptr",
+        "--export=features_ptr",
+        "--export=scores_ptr",
+        "--export=detections_ptr",
+        "--export=detection_count",
+        "--export=hop_count",
+        "--export=feature_count",
+        "--export=class_count",
+        "--export=run",
+        "--initial-memory=4194304",
+        "--max-memory=4194304",
+        "--stack-first",
+        object,
+        "-o",
+        artifact,
+      ],
+    }).output();
+    assert(link.success, new TextDecoder().decode(link.stderr));
+    assertEquals(await sha256Hex(await Deno.readFile(artifact)), await sha256Hex(wasmBytes));
+  } finally {
+    await Deno.remove(temp, { recursive: true });
+  }
+  for (const source of registration.sourceGraph) {
+    const disk = await Deno.readFile(source.path);
+    assertEquals(await sha256Hex(disk), source.sha256);
+    const git = await new Deno.Command("git", {
+      args: ["show", `${registration.sourceCommit}:${source.path}`],
+      stdout: "piped",
+      stderr: "piped",
+    }).output();
+    assert(git.success, source.path);
+    assertEquals(await sha256Hex(git.stdout), source.sha256);
+  }
 });
 
 Deno.test("real Speech Commands result record binds every feature, score, detection and counter", async () => {
@@ -166,7 +232,7 @@ Deno.test("public routes are closed, readable and mutation-denied", async () => 
     ]
   ) {
     const response = await handler(new Request(`http://local.test${route}`));
-    assertEquals(response.status, 200, route);
+    assert(response.status === 200, `${route} returned ${response.status}`);
   }
   assertEquals(
     (await handler(
@@ -180,6 +246,6 @@ Deno.test("public routes are closed, readable and mutation-denied", async () => 
     (await handler(
       new Request("http://local.test/benchmarks/ml-keyword-spotting-v1/", { method: "POST" }),
     )).status,
-    405,
+    403,
   );
 });
