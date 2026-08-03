@@ -55,7 +55,7 @@ int run(uint32_t pos_off,uint32_t norm_off,uint32_t uv_off,uint32_t index_off,ui
       transform_hash=hash_word(transform_hash,sx[i]);transform_hash=hash_word(transform_hash,sy[i]);transform_hash=hash_word(transform_hash,depth);
     }
     uint32_t visible=0;int32_t picked=-1,best_depth=2147483647;int pick=is_pick(frame);
-    int32_t pickx=48+(((frame/50)%3)-1)*4,picky=48+((frame/50)%2)*5;
+    int32_t pickx=48+(((frame/50)%3)-1)*4,picky=70+((frame/50)%2)*6;
     for(uint32_t tri=0;tri<index_count/3;tri++){
       uint32_t a=ind[tri*3],b=ind[tri*3+1],c=ind[tri*3+2];int64_t area=edge(sx[a],sy[a],sx[b],sy[b],sx[c],sy[c]);if(area>=0)continue;
       visible++;draw_hash=hash_word(draw_hash,(int32_t)tri);draw_hash=hash_word(draw_hash,frame);

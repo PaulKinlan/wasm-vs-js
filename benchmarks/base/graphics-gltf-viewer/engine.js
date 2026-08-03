@@ -177,7 +177,7 @@ export function runJavaScript(mesh, texture, animation = makeAnimationTable()) {
     let picked = -1;
     let bestPickDepth = 2_147_483_647;
     const pickX = 48 + ((frame / 50 | 0) % 3 - 1) * 4;
-    const pickY = 48 + ((frame / 50 | 0) % 2) * 5;
+    const pickY = 70 + ((frame / 50 | 0) % 2) * 6;
     for (let tri = 0; tri < indices.length / 3; tri++) {
       const a = indices[tri * 3], b = indices[tri * 3 + 1], c = indices[tri * 3 + 2];
       const area = edge(sx[a], sy[a], sx[b], sy[b], sx[c], sy[c]);

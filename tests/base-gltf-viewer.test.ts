@@ -149,6 +149,7 @@ Deno.test("complete 600-frame JS and material-Wasm outputs equal the retained or
   assertEquals(header[11], 600);
   assertEquals(header[12], 6);
   assertEquals(header[13], 12);
+  assert(header[5] > 0 && header[5] <= 12, `pick hits ${header[5]}`);
 });
 
 Deno.test("base glTF route is read-only and all runtime assets are explicitly served", async () => {
