@@ -151,6 +151,58 @@ const routes = new Map<string, [string, string, boolean?]>([
     "text/javascript; charset=utf-8",
   ]],
   ["/workload-catalog.js", ["public/workload-catalog.js", "text/javascript; charset=utf-8"]],
+  ["/benchmarks/crypto-authenticated-stream", [
+    "public/benchmarks/crypto-authenticated-stream/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/crypto-authenticated-stream/", [
+    "public/benchmarks/crypto-authenticated-stream/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/crypto-authenticated-stream-demo.js", [
+    "public/crypto-authenticated-stream-demo.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/crypto-authenticated-stream-worker.js", [
+    "public/crypto-authenticated-stream-worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/crypto-authenticated-stream/engine.js", [
+    "benchmarks/base/crypto-authenticated-stream/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/crypto-authenticated-stream/workload.js", [
+    "benchmarks/base/crypto-authenticated-stream/workload.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/crypto-authenticated-stream/registration.v1.json", [
+    "benchmarks/base/crypto-authenticated-stream/registration.v1.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/crypto-authenticated-stream/crypto-authenticated-stream.wasm", [
+    "public/artifacts/crypto-authenticated-stream/crypto-authenticated-stream.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/crypto-authenticated-stream/build-manifest.json", [
+    "public/artifacts/crypto-authenticated-stream/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/crypto-authenticated-stream/fixture-manifest.json", [
+    "public/artifacts/crypto-authenticated-stream/fixture-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/crypto-authenticated-stream/output-manifest.json", [
+    "public/artifacts/crypto-authenticated-stream/output-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base/crypto-authenticated-stream/js-controlled.json", [
+    "public/evidence/base/crypto-authenticated-stream/js-controlled.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base/crypto-authenticated-stream/wasm-linear-controlled.json", [
+    "public/evidence/base/crypto-authenticated-stream/wasm-linear-controlled.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/demos/text.diff-patch.v1", [
     "public/demos/text.diff-patch.v1/index.html",
     "text/html; charset=utf-8",

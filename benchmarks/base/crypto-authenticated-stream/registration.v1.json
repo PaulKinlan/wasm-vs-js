@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "registrationId": "base-implementation.crypto.authenticated-stream.v1",
+  "catalogId": "workload-catalog-v1",
+  "catalogEntryId": "crypto.authenticated-stream.v1",
+  "catalogMutation": false,
+  "status": "implementation-candidate",
+  "track": "controlled",
+  "algorithm": {
+    "name": "ChaCha20-Poly1305",
+    "standard": "RFC 8439",
+    "family": "aead-fixed-algorithm-nonce-schedule",
+    "keyBits": 256,
+    "nonceBits": 96,
+    "tagBits": 128,
+    "constantTimeClaim": false
+  },
+  "fixedWork": {
+    "frames": 10000,
+    "sizesBytes": [0, 1, 15, 16, 17, 31, 32, 63, 64, 65, 127, 128, 255, 256, 511, 1024],
+    "sizeSchedule": "sizes[index mod 16]",
+    "payloadGenerator": "xorshift32 seeded by 0x6d2b79f5 xor imul(index+1,0x9e3779b1); high byte per step",
+    "keyHex": "808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9f",
+    "nonceSchedule": "43415331 || uint64le(frame-index)",
+    "associatedData": "uint32le(index) || uint32le(size) || uint32le(index mod 7) || ASCII WASM-VS-JS-1",
+    "operationsPerFrame": ["seal", "verify-tag", "open"],
+    "sampledTamperSchedule": "frame 0, frame 9999, and every frame whose index is divisible by 997"
+  },
+  "oracle": {
+    "kind": "exact-hash",
+    "cipherTranscriptSha256": "06b75286641e962d781a1c3e541fdf0b7c94d64cf928b8574c5045ca6c5a9ab3",
+    "plaintextTranscriptSha256": "8c22c94117cb9191cac679e502e65548a6e7f1eb6cf15a2e234702cacb2728ae",
+    "completeOutput": true,
+    "tagVerificationBeforeDecryption": true,
+    "tamperRejection": true,
+    "nonceReuse": 0
+  },
+  "expectedCounters": {
+    "frames": 10000,
+    "sealOperations": 10000,
+    "openOperations": 10000,
+    "payloadBytes": 1628125,
+    "associatedDataBytes": 480000,
+    "ciphertextBytes": 1628125,
+    "tagBytes": 160000,
+    "chacha20Blocks": 77500,
+    "poly1305Blocks": 267500,
+    "tamperRejections": 12,
+    "ownedTranscriptAllocations": 20002,
+    "javascriptBoundaryCrossings": 0,
+    "wasmBoundaryCrossings": 20012
+  },
+  "variants": [
+    {
+      "id": "js-controlled",
+      "target": "javascript",
+      "implementation": "authored scalar JavaScript ChaCha20 and BigInt Poly1305",
+      "hostCrypto": false
+    },
+    {
+      "id": "wasm-linear-controlled",
+      "target": "linear-wasm",
+      "implementation": "authored freestanding C ChaCha20 and 26-bit-limb Poly1305 compiled to linear Wasm",
+      "hostCrypto": false
+    }
+  ],
+  "fixtureRights": {
+    "generatedPayloads": {
+      "licenseSpdx": "CC0-1.0",
+      "redistribution": "permitted",
+      "provenance": "generated solely by workload.js from the committed recipe; no external bytes"
+    },
+    "standardsVectors": {
+      "bundled": false,
+      "redistribution": "download-recipe-only",
+      "sourceUrl": "https://www.rfc-editor.org/rfc/rfc8439.txt",
+      "sourceSha256": "25bef70fbf7a07ff45c2fe4cb7c6ce954eac687413d8610603268b4e4415324c",
+      "sections": ["2.3.2", "2.5.2", "2.8.2", "A.5"],
+      "audit": "RFC 8439 copyright notice identifies IETF Trust/BCP 78 terms. The repository does not redistribute the document or extracted vectors. A pinned recipe permits an independent reviewer to retrieve and verify the exact RFC bytes. Generated fixtures remain the only redistributed inputs."
+    }
+  },
+  "limitations": [
+    "No constant-time property is claimed or inferred from timings.",
+    "WebCrypto, native crypto, random generation, SIMD and threads are excluded from the controlled variants.",
+    "This registration supplements but does not alter frozen catalog/workloads.v1.json bytes.",
+    "The runnable demo is correctness evidence and does not rank performance."
+  ]
+}
