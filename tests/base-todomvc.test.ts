@@ -249,7 +249,7 @@ Deno.test("TodoMVC route is explicit, read-only, accessible, and lifecycle bound
     403,
   );
   const html = await Deno.readTextFile("public/benchmarks/base-dom-todomvc-journey/index.html");
-  assert(html.includes('href="#content"'));
+  assert(html.includes('href="#main"'));
   assert(html.includes('role="status"'));
   assert(html.includes('aria-label="Todo filters"'));
   assert(html.includes("No performance claim."));

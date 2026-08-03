@@ -3,7 +3,7 @@
   "recordType": "base-workload-correctness-validation",
   "workloadId": "text.regex-log-scan.v1",
   "registrationId": "text.regex-log-scan.v1-controlled-registration-v1",
-  "sourceCommit": "79ea50adec0c9a71a48f763978e442fab525ce85",
+  "sourceCommit": "955b845f46c882b0897df352c29dd76dbb340005",
   "variant": "js-controlled",
   "status": "passed",
   "input": {
