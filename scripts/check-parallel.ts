@@ -7,15 +7,19 @@
 // forces a transitive rebind of dozens of manifests. This file adds the fast
 // path without touching any pinned provenance.
 //
-// Test scheduling: most test files are read-only with respect to
-// public/artifacts and run under `deno test --parallel`. The files in
-// WRITER_TESTS rebuild artifacts in place (identical bytes, but non-atomic
-// writes), which can race with concurrent readers — they run sequentially in
-// a single `deno test` invocation, exactly matching house-gate semantics.
-// WRITER_TESTS was identified empirically (mtime snapshot per test file,
-// 2026-08-03); new test files default to the parallel phase. If a future
-// flake shows a truncated/empty artifact read, re-run the mtime scan and add
-// the writer here.
+// Test scheduling (race-free by construction):
+// - WRITER_TESTS rebuild artifacts in place (identical bytes, but non-atomic
+//   writes) and must never run concurrently with a test that reads the same
+//   artifact. Identified empirically via per-file mtime scan (2026-08-03).
+// - Phase A runs all read-only test files under `deno test --parallel`,
+//   concurrently with the rigid-body writer: its only reader is the
+//   rigid-body browser-collector test, which is held out for phase B.
+// - Phase B runs the audio writer concurrently with the small writers (each
+//   writes a disjoint per-lane artifact dir), the sum-u32 writer/reader pair
+//   (sequential, they share sum-u32), and the rigid-body reader.
+// - New test files default to the parallel reader phase. If a flake ever
+//   shows a truncated/empty artifact read, re-run the mtime scan and extend
+//   the writer lists.
 //
 // Usage: deno run --allow-run --allow-read --allow-write --allow-env --allow-net=127.0.0.1 scripts/check-parallel.ts
 
@@ -38,6 +42,17 @@ const WRITER_TESTS = [
   "tests/v1/simulation-rigid-body-2d.test.ts",
   "tests/v2/game-family.test.ts",
 ];
+
+const RIGID_WRITER = "tests/v1/simulation-rigid-body-2d.test.ts";
+const RIGID_READER = "tests/v1/simulation-rigid-body-2d-browser-collector.test.ts";
+const AUDIO_WRITER = "tests/audio-provenance.test.ts";
+const SUM_U32_PAIR = [
+  "tests/build.test.ts",
+  "tests/traditional-web-build.test.ts",
+];
+const SMALL_WRITERS = WRITER_TESTS.filter((f) =>
+  f !== RIGID_WRITER && f !== AUDIO_WRITER && !SUM_U32_PAIR.includes(f)
+);
 
 const commit = new TextDecoder().decode(
   (await new Deno.Command("git", { args: ["rev-parse", "HEAD"], stdout: "piped" }).output()).stdout,
@@ -71,59 +86,16 @@ interface Stage {
   env?: Record<string, string>;
 }
 
-// Writer scheduling: the two heavy writers run in their own parallel pair
-// (disjoint artifact dirs), the pair touching shared sum-u32 references runs
-// sequentially, and the remaining small writers (<=2s each) run in one
-// parallel batch.
-const BIG_WRITERS = [
-  "tests/v1/simulation-rigid-body-2d.test.ts",
-  "tests/audio-provenance.test.ts",
-];
-const SUM_U32_PAIR = [
-  "tests/build.test.ts",
-  "tests/traditional-web-build.test.ts",
-];
-const SMALL_WRITERS = WRITER_TESTS.filter((f) =>
-  !BIG_WRITERS.includes(f) && !SUM_U32_PAIR.includes(f)
-);
-
 const writers = new Set(WRITER_TESTS);
 const allTests = await testFiles();
-const parallelTests = allTests.filter((f) => !writers.has(f));
-const missing = WRITER_TESTS.filter((f) => !allTests.includes(f));
+const readerTests = allTests.filter((f) => !writers.has(f) && f !== RIGID_READER);
+const missing = [...WRITER_TESTS, RIGID_READER].filter((f) => !allTests.includes(f));
 if (missing.length > 0) {
-  console.error(`check-parallel: WRITER_TESTS entries not found on disk: ${missing.join(", ")}`);
+  console.error(`check-parallel: expected test files not found on disk: ${missing.join(", ")}`);
   Deno.exit(2);
 }
 
-const stages: Stage[] = [
-  { name: "build", args: ["task", "build"] },
-  { name: "fmt", args: ["fmt", "--check"] },
-  { name: "lint", args: ["lint"] },
-  { name: "typecheck", args: ["task", "typecheck"] },
-  { name: "planning", args: ["run", "--allow-read=.", "scripts/check-planning.mjs"] },
-  { name: "contract", args: ["task", "contract"], env: testEnv },
-  { name: "catalog", args: ["task", "catalog"] },
-  {
-    name: "test-parallel",
-    args: ["test", "--parallel", ...testArgs, ...parallelTests],
-    env: testEnv,
-  },
-  {
-    name: "test-writers-small",
-    args: ["test", "--parallel", ...testArgs, ...SMALL_WRITERS],
-    env: testEnv,
-  },
-  { name: "test-writers-pair", args: ["test", ...testArgs, ...SUM_U32_PAIR], env: testEnv },
-  {
-    name: "test-writers-big",
-    args: ["test", "--parallel", ...testArgs, ...BIG_WRITERS],
-    env: testEnv,
-  },
-];
-
-const started = performance.now();
-for (const stage of stages) {
+async function runStage(stage: Stage): Promise<void> {
   const stageStart = performance.now();
   const child = new Deno.Command(Deno.execPath(), {
     args: stage.args,
@@ -139,8 +111,46 @@ for (const stage of stages) {
   }
   console.error(`check-parallel: ${stage.name} ok (${elapsed}s)`);
 }
+
+const staticStages: Stage[] = [
+  { name: "build", args: ["task", "build"] },
+  { name: "fmt", args: ["fmt", "--check"] },
+  { name: "lint", args: ["lint"] },
+  { name: "typecheck", args: ["task", "typecheck"] },
+  { name: "planning", args: ["run", "--allow-read=.", "scripts/check-planning.mjs"] },
+  { name: "contract", args: ["task", "contract"], env: testEnv },
+  { name: "catalog", args: ["task", "catalog"] },
+];
+
+const started = performance.now();
+for (const stage of staticStages) await runStage(stage);
+
+// Phase A: parallel readers, concurrent with the rigid-body writer.
+await Promise.all([
+  runStage({
+    name: "test-readers",
+    args: ["test", "--parallel", ...testArgs, ...readerTests],
+    env: testEnv,
+  }),
+  runStage({ name: "test-rigid-writer", args: ["test", ...testArgs, RIGID_WRITER], env: testEnv }),
+]);
+
+// Phase B: audio writer, small writers + rigid reader, and the sum-u32 pair —
+// three disjoint groups, run concurrently.
+await Promise.all([
+  runStage({ name: "test-audio-writer", args: ["test", ...testArgs, AUDIO_WRITER], env: testEnv }),
+  runStage({
+    name: "test-writers-small",
+    args: ["test", "--parallel", ...testArgs, ...SMALL_WRITERS, RIGID_READER],
+    env: testEnv,
+  }),
+  runStage({
+    name: "test-sum-u32-pair",
+    args: ["test", ...testArgs, ...SUM_U32_PAIR],
+    env: testEnv,
+  }),
+]);
+
 console.error(
-  `check-parallel: all ${stages.length} stages ok in ${
-    ((performance.now() - started) / 1000).toFixed(1)
-  }s`,
+  `check-parallel: all stages ok in ${((performance.now() - started) / 1000).toFixed(1)}s`,
 );
