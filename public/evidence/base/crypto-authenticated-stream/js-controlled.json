@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "status": "implementation-validation",
+  "workloadId": "crypto.authenticated-stream.v1",
+  "variantId": "js-controlled",
+  "sourceCommit": "23c66c8697573ee94dcb15abd2142fddef06d93a",
+  "buildManifest": {
+    "path": "public/artifacts/crypto-authenticated-stream/build-manifest.json",
+    "sha256": "4a36d6b66b896fc5610ae11c28b84ad54d582ecf83098822851338ada722ef75"
+  },
+  "result": {
+    "workloadId": "crypto.authenticated-stream.v1",
+    "variant": "js-controlled",
+    "target": "javascript",
+    "algorithm": "RFC 8439 ChaCha20-Poly1305 with fixed 96-bit nonce schedule",
+    "frameCount": 10000,
+    "cipherTranscriptSha256": "06b75286641e962d781a1c3e541fdf0b7c94d64cf928b8574c5045ca6c5a9ab3",
+    "plaintextTranscriptSha256": "8c22c94117cb9191cac679e502e65548a6e7f1eb6cf15a2e234702cacb2728ae",
+    "counters": {
+      "frames": 10000,
+      "sealOperations": 10000,
+      "openOperations": 10000,
+      "payloadBytes": 1628125,
+      "associatedDataBytes": 480000,
+      "ciphertextBytes": 1628125,
+      "tagBytes": 160000,
+      "chacha20Blocks": 77500,
+      "poly1305Blocks": 267500,
+      "tamperRejections": 12,
+      "ownedTranscriptAllocations": 20002,
+      "boundaryCrossings": 0
+    },
+    "oracle": {
+      "allFramesOpened": true,
+      "allTagsVerifiedBeforeOpen": true,
+      "nonceCount": 10000,
+      "nonceReuse": 0,
+      "sampledTamperRejections": 12
+    }
+  },
+  "retainedEvidence": "static-and-test evidence only; owned browser evidence is required before acceptance",
+  "performanceClaims": []
+}
