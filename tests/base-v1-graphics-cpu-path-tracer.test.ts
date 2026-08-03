@@ -135,8 +135,18 @@ Deno.test("fixture RNG and full controlled output are deterministic", async () =
       await Deno.readFile("public/artifacts/graphics-cpu-path-tracer-v1/reference-f64.rgba"),
     ),
   );
-  assertEquals(manifest.oracle.jsCounters.samples, 16_777_216);
-  assertEquals(manifest.oracle.wasmCounters.samples, 16_777_216);
+  const contract = JSON.parse(
+    await Deno.readTextFile(
+      "benchmarks/base-v1/graphics-cpu-path-tracer/implementation-contract.v1.json",
+    ),
+  );
+  assertEquals(manifest.oracle.jsCounters, contract.counters.fixedWorkExpected["js-controlled"]);
+  assertEquals(
+    manifest.oracle.wasmCounters,
+    contract.counters.fixedWorkExpected["wasm-linear-controlled"],
+  );
+  assertEquals(manifest.oracle.crossTarget.differingBytes, 0);
+  assertEquals(manifest.oracle.crossTarget.acceptedMaxChannelDelta, 0);
   assert(manifest.oracle.crossTarget.passed);
   assertEquals(manifest.oracle.checkpoints.length, 5);
   assertEquals(

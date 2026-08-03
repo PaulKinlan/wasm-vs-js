@@ -164,7 +164,11 @@ if (
   js.counters.outputBytes !== expectedOutputBytes ||
   wasmResult.counters.outputBytes !== expectedOutputBytes || js.counters.allocations <= 1 ||
   wasmResult.counters.allocations !== 0 || js.counters.boundaryCrossings !== 0 ||
-  wasmResult.counters.boundaryCrossings !== 1
+  wasmResult.counters.boundaryCrossings !== 1 ||
+  canonicalize(js.counters) !==
+    canonicalize(contract.counters.fixedWorkExpected["js-controlled"]) ||
+  canonicalize(wasmResult.counters) !==
+    canonicalize(contract.counters.fixedWorkExpected["wasm-linear-controlled"])
 ) {
   throw new Error(
     `counter policy failure ${JSON.stringify({ js: js.counters, wasm: wasmResult.counters })}`,
@@ -205,7 +209,7 @@ const oracle = {
   jsFramebufferSha256: await sha256Hex(js.framebuffer),
   wasmFramebufferSha256: await sha256Hex(wasmResult.framebuffer),
   referenceFramebufferSha256: await sha256Hex(reference),
-  crossTarget: { differingBytes: differing, ...crossTarget, acceptedMaxChannelDelta: 64 },
+  crossTarget: { differingBytes: differing, ...crossTarget, acceptedMaxChannelDelta: 0 },
   jsReference,
   wasmReference,
   checkpoints,

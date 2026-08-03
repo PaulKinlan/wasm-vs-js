@@ -47,9 +47,9 @@
     "meanChannelDelta": 0.01,
     "outlierThresholdChannelDelta": 4,
     "maxOutlierChannelRatio": 0.0002,
-    "crossTargetMaxChannelDelta": 64,
-    "crossTargetMeanChannelDelta": 0.01,
-    "crossTargetMaxOutlierChannelRatio": 0.0002,
+    "crossTargetMaxChannelDelta": 0,
+    "crossTargetMeanChannelDelta": 0,
+    "crossTargetMaxOutlierChannelRatio": 0,
     "crossTargetIntersectionCountTolerance": 0,
     "samplePixelCheckpoints": [[0, 0], [256, 256], [511, 511], [128, 384], [384, 128]],
     "pathCheckpointPixels": [0, 131328, 262143]
@@ -66,7 +66,31 @@
     "allocations": "render-scope authored framebuffer, vector, traversal-stack and hit-record allocations; module fixtures and validation/checkpoint evidence envelopes are excluded; JavaScript is counted at each creation and linear Wasm performs zero dynamic allocations",
     "output-bytes": "incremented by four after each complete RGBA pixel write",
     "boundary-crossings": "zero inside the JavaScript target and one call into the resident linear-Wasm render",
-    "gate": "build and exact browser validation require exact operation and output-byte equality across targets plus exact target-specific allocation and boundary values"
+    "gate": "build and exact browser validation require exact operation and output-byte equality across targets plus exact target-specific allocation and boundary values",
+    "fixedWorkExpected": {
+      "js-controlled": {
+        "rays": 54994960,
+        "bounces": 52788587,
+        "nodeTests": 585004375,
+        "intersections": 106653769,
+        "samples": 16777216,
+        "rngDraws": 167218317,
+        "allocations": 737883014,
+        "outputBytes": 1048576,
+        "boundaryCrossings": 0
+      },
+      "wasm-linear-controlled": {
+        "rays": 54994960,
+        "bounces": 52788587,
+        "nodeTests": 585004375,
+        "intersections": 106653769,
+        "samples": 16777216,
+        "rngDraws": 167218317,
+        "allocations": 0,
+        "outputBytes": 1048576,
+        "boundaryCrossings": 1
+      }
+    }
   },
   "variants": [
     { "id": "js-controlled", "target": "javascript" },
