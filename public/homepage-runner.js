@@ -2,8 +2,6 @@
 // Runs proposal workloads in dedicated module workers, measuring JS vs Wasm timing,
 // validating exact oracles, and building a live interactive scorecard.
 
-const DEMO_REGISTRY_URL = "/demo-registry.json";
-
 const WORKLOAD_CONFIGS = [
   {
     slug: "audio-fft",
