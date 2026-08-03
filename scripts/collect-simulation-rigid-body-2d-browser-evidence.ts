@@ -408,7 +408,7 @@ const pageAuditSource = (shortTimeout: boolean) =>
   addEventListener('DOMContentLoaded',()=>{
     const node=document.querySelector('#status');
     const record=()=>{const value=node?.textContent?.trim();if(value&&audit.statusHistory.at(-1)!==value)audit.statusHistory.push(value);};
-    record();new MutationObserver(record).observe(node,{childList:true,characterData:true,subtree:true});
+    record();if(node)new MutationObserver(record).observe(node,{childList:true,characterData:true,subtree:true});
   });
 })()`;
 
