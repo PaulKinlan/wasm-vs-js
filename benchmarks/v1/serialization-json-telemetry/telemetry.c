@@ -144,3 +144,4 @@ __attribute__((export_name("get_numeric_values"))) u32 get_numeric_values(void) 
 __attribute__((export_name("get_string_values"))) u32 get_string_values(void) { return g_string_values; }
 __attribute__((export_name("get_booleans"))) u32 get_booleans(void) { return g_booleans; }
 __attribute__((export_name("get_query_aggregates"))) u32 get_query_aggregates(void) { return 11; }
+__attribute__((export_name("get_allocations"))) u32 get_allocations(void) { return 0; }

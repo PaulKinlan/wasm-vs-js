@@ -35,6 +35,7 @@ const flags = [
   "-Wl,--export=get_string_values",
   "-Wl,--export=get_booleans",
   "-Wl,--export=get_query_aggregates",
+  "-Wl,--export=get_allocations",
   "-o",
   artifact,
   source,
@@ -62,7 +63,7 @@ for (const records of REGISTERED_COUNTS) {
   const js = runTelemetryJS(input);
   const wasmResult = await runTelemetryWasm(input, wasm);
   if (js.text !== wasmResult.text) throw new Error(`${records}: JS/Wasm canonical output mismatch`);
-  const expectedWasmCounters = { ...js.counters, "boundary-crossings": 2 };
+  const expectedWasmCounters = { ...js.counters, allocations: 0, "boundary-crossings": 2 };
   if (JSON.stringify(wasmResult.counters) !== JSON.stringify(expectedWasmCounters)) {
     throw new Error(`${records}: JS/Wasm counter mismatch`);
   }
@@ -110,7 +111,7 @@ await writeJson(`${artifactDir}/fixture-manifest.json`, {
   giantBlobsCommitted: false,
   counterDefinitions: {
     allocations:
-      "six parser-owned logical values after fixture generation: parser/linear-memory state, summary object, kind vector, region vector, canonical summary text, output byte buffer",
+      "operative target-phase dynamic values after fixture generation: JavaScript records exactly six through the allocation probe (parser state, kind vector, region vector, summary aggregate, canonical summary text, canonical summary bytes); linear Wasm exports zero because its parser uses fixed linear memory and stack storage; module vocabulary initialization and post-target validation envelopes are outside this counter",
     boundaryCrossings:
       "zero for JavaScript; two for linear Wasm: one input copy into linear memory and one output copy back",
   },

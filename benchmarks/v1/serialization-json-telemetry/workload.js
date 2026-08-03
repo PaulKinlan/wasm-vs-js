@@ -10,6 +10,51 @@ const REGIONS = Object.freeze(["ap", "eu", "na", "sa"]);
 const KINDS = Object.freeze(["click", "purchase", "view"]);
 const LABELS = Object.freeze(["Café", "東京", "مرحبا", "🚀"]);
 const TAGS = Object.freeze(["α", "数据", "mañana", "🧪"]);
+// Vocabulary encoding is module initialization work, outside every registered parse/output run.
+const encodeVocabulary = (values) => Object.freeze(values.map((value) => ENCODER.encode(value)));
+const REGION_BYTES = encodeVocabulary(REGIONS);
+const KIND_BYTES = encodeVocabulary(KINDS);
+const LABEL_BYTES = encodeVocabulary(LABELS);
+const TAG_BYTES = encodeVocabulary(TAGS);
+export const CONTROLLED_JS_ALLOCATION_LABELS = Object.freeze([
+  "parser-state",
+  "kind-count-vector",
+  "region-count-vector",
+  "summary-aggregate",
+  "canonical-summary-text",
+  "canonical-summary-bytes",
+]);
+
+export function assertControlledJSAllocationTrace(labels) {
+  if (
+    !Array.isArray(labels) || labels.length !== CONTROLLED_JS_ALLOCATION_LABELS.length ||
+    labels.some((label, index) => label !== CONTROLLED_JS_ALLOCATION_LABELS[index])
+  ) {
+    throw new Error("controlled JavaScript allocation trace mismatch");
+  }
+}
+
+function allocationProbe(onAllocation) {
+  let count = 0;
+  return {
+    allocate(label, value) {
+      if (label !== CONTROLLED_JS_ALLOCATION_LABELS[count]) {
+        throw new Error(`allocation ${count} must be ${CONTROLLED_JS_ALLOCATION_LABELS[count]}`);
+      }
+      count++;
+      onAllocation?.(label);
+      return value;
+    },
+    finish() {
+      if (count !== CONTROLLED_JS_ALLOCATION_LABELS.length) {
+        throw new Error(
+          `expected ${CONTROLLED_JS_ALLOCATION_LABELS.length} allocations, observed ${count}`,
+        );
+      }
+      return count;
+    },
+  };
+}
 
 function xorshift32(state) {
   state ^= state << 13;
@@ -89,10 +134,10 @@ class Cursor {
     if (this.i === start) throw new SyntaxError("unsigned integer required");
     return value;
   }
-  oneOfUtf8(values) {
+  oneOfBytes(values) {
     this.byte(34);
     for (let index = 0; index < values.length; index++) {
-      const candidate = ENCODER.encode(values[index]);
+      const candidate = values[index];
       let matches = this.i + candidate.length < this.bytes.length;
       for (let j = 0; matches && j < candidate.length; j++) {
         matches = this.bytes[this.i + j] === candidate[j];
@@ -127,16 +172,19 @@ function canonicalSummary(summary) {
   },"na":${summary.region[2]},"sa":${summary.region[3]}},"valueSum":${summary.valueSum}}`;
 }
 
-export function runTelemetryJS(bytes) {
-  const c = new Cursor(bytes);
-  const summary = {
+export function runTelemetryJS(bytes, options = {}) {
+  const probe = allocationProbe(options.onAllocation);
+  const c = probe.allocate("parser-state", new Cursor(bytes));
+  const kind = probe.allocate("kind-count-vector", [0, 0, 0]);
+  const regionCounts = probe.allocate("region-count-vector", [0, 0, 0, 0]);
+  const summary = probe.allocate("summary-aggregate", {
     count: 0,
     errorCount: 0,
-    kind: [0, 0, 0],
+    kind,
     okCount: 0,
-    region: [0, 0, 0, 0],
+    region: regionCounts,
     valueSum: 0,
-  };
+  });
   c.byte(91);
   while (c.bytes[c.i] !== 93) {
     if (summary.count) c.byte(44);
@@ -149,18 +197,18 @@ export function runTelemetryJS(bytes) {
       throw new SyntaxError("timestamp does not match frozen sequence");
     }
     c.ascii(',"region":');
-    const region = c.oneOfUtf8(REGIONS);
+    const region = c.oneOfBytes(REGION_BYTES);
     c.ascii(',"kind":');
-    const kind = c.oneOfUtf8(KINDS);
+    const kind = c.oneOfBytes(KIND_BYTES);
     c.ascii(',"ok":');
     const ok = c.boolean();
     c.ascii(',"value":');
     const value = c.uint();
     if (value > 9_999) throw new RangeError("value exceeds frozen range");
     c.ascii(',"meta":{"label":');
-    c.oneOfUtf8(LABELS);
+    c.oneOfBytes(LABEL_BYTES);
     c.ascii(',"tag":');
-    c.oneOfUtf8(TAGS);
+    c.oneOfBytes(TAG_BYTES);
     c.ascii("}}");
     summary.count++;
     summary.region[region]++;
@@ -171,10 +219,12 @@ export function runTelemetryJS(bytes) {
   }
   c.byte(93);
   c.done();
-  const outputBytes = ENCODER.encode(canonicalSummary(summary));
+  const summaryText = probe.allocate("canonical-summary-text", canonicalSummary(summary));
+  const outputBytes = probe.allocate("canonical-summary-bytes", ENCODER.encode(summaryText));
+  const allocations = probe.finish();
   return {
     outputBytes,
-    text: DECODER.decode(outputBytes),
+    text: summaryText,
     summary,
     counters: Object.freeze({
       records: summary.count,
@@ -184,7 +234,7 @@ export function runTelemetryJS(bytes) {
       booleans: summary.count,
       "query-aggregates": 11,
       "output-bytes": outputBytes.length,
-      allocations: 6,
+      allocations,
       "boundary-crossings": 0,
     }),
   };
@@ -227,7 +277,7 @@ export async function runTelemetryWasm(bytes, wasmBytes) {
       booleans: Number(exports.get_booleans()),
       "query-aggregates": Number(exports.get_query_aggregates()),
       "output-bytes": outputLength,
-      allocations: 6,
+      allocations: Number(exports.get_allocations()),
       "boundary-crossings": 2,
     }),
   };

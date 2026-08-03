@@ -1,15 +1,13 @@
 // @ts-ignore Browser same-origin route, mapped by server.ts.
-import {
-  generateTelemetryFixture,
-  REGISTERED_COUNTS,
-  runTelemetryJS,
-  runTelemetryWasm,
-  sha256Hex,
-  VARIANTS,
-} from "/benchmarks/v1/serialization-json-telemetry/workload.js";
+import { loadVerifiedModule } from "/telemetry-module-loader.js";
 
-const ALLOWED_VARIANTS = new Set(VARIANTS);
+const WORKLOAD_SOURCE_SHA256 = "54e2ee54b225d8454664dc6a24f5fa178ee0652ccf0e7e01eea93b17f29530f8";
+const WORKLOAD_MODULE_ROUTE =
+  `/benchmarks/v1/serialization-json-telemetry/workload.${WORKLOAD_SOURCE_SHA256}.js`;
+const ALLOWED_VARIANTS = new Set(["js-controlled", "wasm-linear-controlled"]);
 const ALLOWED_MODES = new Set(["bounded", "exact-contract"]);
+const REGISTERED_COUNTS = Object.freeze([1_000, 100_000, 1_000_000]);
+
 async function fetchBytes(path) {
   const response = await fetch(path, { cache: "no-store" });
   if (!response.ok) throw new Error(`${path} returned ${response.status}`);
@@ -20,7 +18,9 @@ async function fetchJsonBytes(path) {
   return {
     bytes,
     value: JSON.parse(new TextDecoder().decode(bytes)),
-    sha256: await sha256Hex(bytes),
+    sha256: await crypto.subtle.digest("SHA-256", bytes).then((digest) =>
+      Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("")
+    ),
   };
 }
 
@@ -36,11 +36,27 @@ self.onmessage = async ({ data }) => {
     self.postMessage({
       token,
       type: "progress",
+      value: 0.05,
+      message: "Loading and verifying the content-addressed workload module.",
+    });
+    const loaded = await loadVerifiedModule({
+      route: WORKLOAD_MODULE_ROUTE,
+      expectedSha256: WORKLOAD_SOURCE_SHA256,
+    });
+    const workload = loaded.module;
+    if (
+      workload.WORKLOAD_ID !== "serialization.json-telemetry.v1" ||
+      !workload.REGISTERED_COUNTS.includes(records) ||
+      !workload.VARIANTS.includes(variant)
+    ) throw new Error("executed workload module contract mismatch");
+    self.postMessage({
+      token,
+      type: "progress",
       value: 0.15,
       message: `Generating exactly ${records.toLocaleString()} records.`,
     });
-    const input = generateTelemetryFixture(records);
-    const inputSha256 = await sha256Hex(input);
+    const input = workload.generateTelemetryFixture(records);
+    const inputSha256 = await workload.sha256Hex(input);
     self.postMessage({
       token,
       type: "progress",
@@ -52,25 +68,23 @@ self.onmessage = async ({ data }) => {
     if (variant === "wasm-linear-controlled" || mode === "exact-contract") {
       wasmBytes = await fetchBytes("/artifacts/serialization-json-telemetry/telemetry.wasm");
     }
-    if (variant === "js-controlled") result = runTelemetryJS(input);
-    else result = await runTelemetryWasm(input, wasmBytes);
-    const outputSha256 = await sha256Hex(result.outputBytes);
+    if (variant === "js-controlled") result = workload.runTelemetryJS(input);
+    else result = await workload.runTelemetryWasm(input, wasmBytes);
+    const outputSha256 = await workload.sha256Hex(result.outputBytes);
     const exact = {};
     if (mode === "exact-contract") {
       self.postMessage({
         token,
         type: "progress",
         value: 0.75,
-        message: "Checking served source, manifests, artifact, fixture, output, and counters.",
+        message: "Checking served module, manifests, artifact, fixture, output, and counters.",
       });
-      const [build, fixtureManifest, inputManifest, outputManifest, sourceBytes] = await Promise
-        .all([
-          fetchJsonBytes("/artifacts/serialization-json-telemetry/build-manifest.json"),
-          fetchJsonBytes("/artifacts/serialization-json-telemetry/fixture-manifest.json"),
-          fetchJsonBytes("/artifacts/serialization-json-telemetry/input-manifest.json"),
-          fetchJsonBytes("/artifacts/serialization-json-telemetry/output-manifest.json"),
-          fetchBytes("/benchmarks/v1/serialization-json-telemetry/workload.js"),
-        ]);
+      const [build, fixtureManifest, inputManifest, outputManifest] = await Promise.all([
+        fetchJsonBytes("/artifacts/serialization-json-telemetry/build-manifest.json"),
+        fetchJsonBytes("/artifacts/serialization-json-telemetry/fixture-manifest.json"),
+        fetchJsonBytes("/artifacts/serialization-json-telemetry/input-manifest.json"),
+        fetchJsonBytes("/artifacts/serialization-json-telemetry/output-manifest.json"),
+      ]);
       for (const item of [build, fixtureManifest, inputManifest, outputManifest]) {
         if (item.value.workload !== "serialization.json-telemetry.v1") {
           throw new Error("manifest workload mismatch");
@@ -89,21 +103,22 @@ self.onmessage = async ({ data }) => {
       if (JSON.stringify(expectedCounters) !== JSON.stringify(result.counters)) {
         throw new Error("counter contract mismatch");
       }
-      if (await sha256Hex(wasmBytes) !== build.value.artifact.sha256) {
+      if (await workload.sha256Hex(wasmBytes) !== build.value.artifact.sha256) {
         throw new Error("Wasm artifact identity mismatch");
       }
       const source = build.value.fullSourceGraph.find((entry) =>
         entry.path.endsWith("/workload.js")
       );
-      if (!source || await sha256Hex(sourceBytes) !== source.sha256) {
-        throw new Error("JavaScript source identity mismatch");
+      if (!source || loaded.sourceSha256 !== source.sha256) {
+        throw new Error("executed JavaScript source identity mismatch");
       }
       Object.assign(exact, {
+        executedModuleRoute: loaded.route,
+        executedModuleSha256: loaded.sourceSha256,
         buildManifestSha256: build.sha256,
         fixtureManifestSha256: fixtureManifest.sha256,
         inputManifestSha256: inputManifest.sha256,
         outputManifestSha256: outputManifest.sha256,
-        sourceSha256: source.sha256,
         wasmSha256: build.value.artifact.sha256,
       });
     }

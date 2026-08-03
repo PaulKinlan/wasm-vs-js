@@ -30,7 +30,7 @@
             for="mode">Validation mode<select id="mode" name="mode"><option value="bounded">Bounded correctness</option><option value="exact-contract">Exact served-byte contract</option></select></label>
         </fieldset>
         <p
-          class="hint">The exact mode checks the selected fixture and output plus the served JavaScript source, Wasm artifact, and four manifests. The 1,000,000-record tier may allocate up to 256 MiB of Wasm linear memory. The worker stops after 180 seconds.</p>
+          class="hint">The exact mode hashes and executes the same content-addressed JavaScript module bytes, then checks the selected fixture and output, Wasm artifact, and four manifests. The 1,000,000-record tier may allocate up to 256 MiB of Wasm linear memory. The worker stops after 180 seconds.</p>
         <label class="sr-only" for="progress">Run progress</label>
         <progress id="progress" max="1">Run progress</progress>
         <div

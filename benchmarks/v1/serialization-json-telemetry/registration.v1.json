@@ -22,6 +22,7 @@
         "target": "javascript",
         "parser": "authored byte-state-machine",
         "hostJsonIntrinsic": false,
+        "allocations": 6,
         "boundaryCrossings": 0
       },
       {
@@ -29,6 +30,7 @@
         "target": "linear-wasm",
         "parser": "authored byte-state-machine",
         "hostJsonIntrinsic": false,
+        "allocations": 0,
         "boundaryCrossings": 2
       }
     ]
@@ -55,6 +57,7 @@
   },
   "work": {
     "fixed": "exactly 1k, 100k, and 1m records followed by the frozen query set and canonical serialization",
+    "allocationCounter": "target-phase dynamic values only: the JavaScript allocation probe records six fixed labels independent of N; Wasm exports zero because parsing and serialization use fixed linear memory and stack storage; module initialization and validation envelopes are excluded",
     "counters": [
       "records",
       "input-bytes",
@@ -76,6 +79,9 @@
     "authoredWasmSource": "benchmarks/v1/serialization-json-telemetry/telemetry.c",
     "authoredJavaScriptSource": "benchmarks/v1/serialization-json-telemetry/workload.js",
     "buildRecipe": "scripts/build-v1-json-telemetry.ts",
+    "demoWorker": "public/telemetry-worker.js",
+    "moduleLoader": "public/telemetry-module-loader.js",
+    "routeServer": "server.ts",
     "toolchain": ["Deno 2.9.0", "Clang 22.1.8", "LLD 22.1.8"]
   },
   "performanceClaims": [],

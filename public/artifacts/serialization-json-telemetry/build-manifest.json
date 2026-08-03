@@ -36,6 +36,7 @@
     "-Wl,--export=get_string_values",
     "-Wl,--export=get_booleans",
     "-Wl,--export=get_query_aggregates",
+    "-Wl,--export=get_allocations",
     "-o",
     "public/artifacts/serialization-json-telemetry/telemetry.wasm",
     "benchmarks/v1/serialization-json-telemetry/telemetry.c"
@@ -49,24 +50,24 @@
   },
   "artifact": {
     "path": "public/artifacts/serialization-json-telemetry/telemetry.wasm",
-    "bytes": 7485,
-    "sha256": "e50373765a5be1e4edaaa15382e085b8bfc4d4c8a2b5061a0da9336ec37d2597"
+    "bytes": 7509,
+    "sha256": "8d03d4fedbbef99659d95e8930a3db6757eb460d73301c9e95c9eafbfe330c42"
   },
   "fullSourceGraph": [
     {
       "path": "benchmarks/v1/serialization-json-telemetry/telemetry.c",
-      "bytes": 6281,
-      "sha256": "5490bafb845efe4cf9b4e2a3601ba3f934af5d63de546e888cb14531730156c3"
+      "bytes": 6369,
+      "sha256": "8ce3f16fcdcd795689ac1c55b373880ca0bc20ab16f5719507bb19080e0dcf85"
     },
     {
       "path": "benchmarks/v1/serialization-json-telemetry/workload.js",
-      "bytes": 9211,
-      "sha256": "d39cce7d455eb09ade7ad9c01e6fad8c2bbef543919a7a697d9dbf1674805ec9"
+      "bytes": 11159,
+      "sha256": "54e2ee54b225d8454664dc6a24f5fa178ee0652ccf0e7e01eea93b17f29530f8"
     },
     {
       "path": "scripts/build-v1-json-telemetry.ts",
-      "bytes": 5597,
-      "sha256": "ed98ffd3d029e6743f2d291f302f278e1bfa8942d07c08d5003b9abb4159646c"
+      "bytes": 5893,
+      "sha256": "38d17c9c50a8e4b3f127608f2ae21f566137823fd7d301120f0c88b5f5750831"
     },
     {
       "path": "deno.json",

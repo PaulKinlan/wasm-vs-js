@@ -177,10 +177,21 @@ const routes = new Map<string, [string, string, boolean?]>([
   ]],
   ["/telemetry-demo.js", ["public/telemetry-demo.js", "text/javascript; charset=utf-8"]],
   ["/telemetry-worker.js", ["public/telemetry-worker.js", "text/javascript; charset=utf-8"]],
+  ["/telemetry-module-loader.js", [
+    "public/telemetry-module-loader.js",
+    "text/javascript; charset=utf-8",
+  ]],
   ["/benchmarks/v1/serialization-json-telemetry/workload.js", [
     "benchmarks/v1/serialization-json-telemetry/workload.js",
     "text/javascript; charset=utf-8",
   ]],
+  [
+    "/benchmarks/v1/serialization-json-telemetry/workload.54e2ee54b225d8454664dc6a24f5fa178ee0652ccf0e7e01eea93b17f29530f8.js",
+    [
+      "benchmarks/v1/serialization-json-telemetry/workload.js",
+      "text/javascript; charset=utf-8",
+    ],
+  ],
   ["/text-demo.js", ["public/text-demo.js", "text/javascript; charset=utf-8"]],
   ["/text-diff-patch-worker.js", [
     "public/text-diff-patch-worker.js",
@@ -482,7 +493,8 @@ function createHandler(
         headers: {
           "content-type": contentType,
           "cache-control": url.pathname.startsWith("/artifacts/") ||
-              url.pathname.startsWith("/benchmarks/") ||
+              (url.pathname.startsWith("/benchmarks/") &&
+                url.pathname !== "/benchmarks/v1/serialization-json-telemetry/workload.js") ||
               url.pathname.startsWith("/evidence/v1/")
             ? "public, max-age=31536000, immutable"
             : "no-store",

@@ -43,6 +43,8 @@ const demo = await Promise.all([
   ref("public/demos/serialization.json-telemetry.v1/index.html"),
   ref("public/telemetry-demo.js"),
   ref("public/telemetry-worker.js"),
+  ref("public/telemetry-module-loader.js"),
+  ref("server.ts"),
 ]);
 const counterIds = [
   "records",

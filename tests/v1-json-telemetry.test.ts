@@ -2,6 +2,7 @@ import Ajv2020Module from "ajv2020";
 import addFormatsModule from "ajv-formats";
 import { sha256Hex } from "../lib/canonical.ts";
 import { createHandler } from "../server.ts";
+import { loadVerifiedModule } from "../public/telemetry-module-loader.js";
 import { assert, assertEquals, assertRejects } from "./assert.ts";
 
 function assertThrows(fn: () => unknown): void {
@@ -13,6 +14,8 @@ function assertThrows(fn: () => unknown): void {
   throw new Error("expected throw");
 }
 import {
+  assertControlledJSAllocationTrace,
+  CONTROLLED_JS_ALLOCATION_LABELS,
   generateTelemetryFixture,
   REGISTERED_COUNTS,
   runTelemetryJS,
@@ -75,8 +78,48 @@ Deno.test("custom JS and material Wasm parsers agree over deterministic property
     const linear = await runTelemetryWasm(fixture, wasm);
     assertEquals(linear.text, js.text);
     assertEquals(linear.summary, js.summary);
-    assertEquals(linear.counters, { ...js.counters, "boundary-crossings": 2 });
+    assertEquals(linear.counters, {
+      ...js.counters,
+      allocations: 0,
+      "boundary-crossings": 2,
+    });
   }
+});
+
+Deno.test({
+  name: "operative allocation instrumentation is fixed across 1k, 100k, and 1m tiers",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  fn: async () => {
+    const wasm = await Deno.readFile(artifactPath);
+    const originalEncode = TextEncoder.prototype.encode;
+    for (const records of REGISTERED_COUNTS) {
+      const fixture = generateTelemetryFixture(records);
+      const trace: string[] = [];
+      let encodeCalls = 0;
+      TextEncoder.prototype.encode = function (...args) {
+        encodeCalls++;
+        return originalEncode.apply(this, args);
+      };
+      try {
+        const result = runTelemetryJS(fixture, {
+          onAllocation: (label: string) => trace.push(label),
+        });
+        assertControlledJSAllocationTrace(trace);
+        assertEquals(trace, [...CONTROLLED_JS_ALLOCATION_LABELS]);
+        assertEquals(result.counters.allocations, 6);
+        assertEquals(encodeCalls, 1);
+        const linear = await runTelemetryWasm(fixture, wasm);
+        assertEquals(linear.counters.allocations, 0);
+      } finally {
+        TextEncoder.prototype.encode = originalEncode;
+      }
+    }
+    assertThrows(() => assertControlledJSAllocationTrace(CONTROLLED_JS_ALLOCATION_LABELS.slice(1)));
+    assertThrows(() =>
+      assertControlledJSAllocationTrace([...CONTROLLED_JS_ALLOCATION_LABELS, "unexpected"])
+    );
+  },
 });
 
 Deno.test("both parsers reject malformed, escaped, non-canonical numeric, and vocabulary cases", async () => {
@@ -158,11 +201,15 @@ Deno.test("Wasm build is byte-reproducible with the pinned Clang and LLD flags",
 
 Deno.test("public mode exposes only the explicit demo, source, artifact, and manifest routes", async () => {
   const handler = createHandler(null, "public");
+  const contentAddressedModule =
+    "/benchmarks/v1/serialization-json-telemetry/workload.54e2ee54b225d8454664dc6a24f5fa178ee0652ccf0e7e01eea93b17f29530f8.js";
   const routes = [
     "/demos/serialization.json-telemetry.v1/",
     "/telemetry-demo.js",
     "/telemetry-worker.js",
+    "/telemetry-module-loader.js",
     "/benchmarks/v1/serialization-json-telemetry/workload.js",
+    contentAddressedModule,
     "/artifacts/serialization-json-telemetry/telemetry.wasm",
     "/artifacts/serialization-json-telemetry/build-manifest.json",
     "/artifacts/serialization-json-telemetry/fixture-manifest.json",
@@ -172,6 +219,16 @@ Deno.test("public mode exposes only the explicit demo, source, artifact, and man
   for (const route of routes) {
     const status = (await handler(new Request(`http://127.0.0.1${route}`))).status;
     assert(status === 200, `${route} returned ${status}`);
+  }
+  const stableModule = await handler(
+    new Request("http://127.0.0.1/benchmarks/v1/serialization-json-telemetry/workload.js"),
+  );
+  assertEquals(stableModule.headers.get("cache-control"), "no-store");
+  const addressedModule = await handler(new Request(`http://127.0.0.1${contentAddressedModule}`));
+  assertEquals(addressedModule.headers.get("cache-control"), "public, max-age=31536000, immutable");
+  for (const route of ["/telemetry-worker.js", "/telemetry-module-loader.js"]) {
+    const module = await handler(new Request(`http://127.0.0.1${route}`));
+    assertEquals(module.headers.get("cache-control"), "no-store");
   }
   assertEquals(
     (await handler(
@@ -185,6 +242,49 @@ Deno.test("public mode exposes only the explicit demo, source, artifact, and man
     )).status,
     403,
   );
+});
+
+Deno.test("verified loader hashes and executes one identical module byte array", async () => {
+  const sourceBytes = new TextEncoder().encode("export const identity = 'same-bytes';\n");
+  const expectedSha256 = await sha256Hex(sourceBytes);
+  let importedBytes: Uint8Array | null = null;
+  const loaded = await loadVerifiedModule({
+    route: "/module.test.js",
+    expectedSha256,
+    fetchImpl: (_route: URL | RequestInfo, init?: RequestInit) => {
+      assertEquals(init?.cache, "no-store");
+      return Promise.resolve(new Response(sourceBytes, { status: 200 }));
+    },
+    importImpl: async (url: string) => {
+      importedBytes = new Uint8Array(await (await fetch(url)).arrayBuffer());
+      return { identity: "same-bytes" };
+    },
+  });
+  assertEquals(importedBytes, sourceBytes);
+  assertEquals(loaded.sourceBytes, sourceBytes);
+  assertEquals(loaded.sourceSha256, expectedSha256);
+  await assertRejects(
+    () =>
+      loadVerifiedModule({
+        route: "/module.test.js",
+        expectedSha256: "0".repeat(64),
+        fetchImpl: () => Promise.resolve(new Response(sourceBytes, { status: 200 })),
+      }),
+    "executed workload module identity mismatch",
+  );
+});
+
+Deno.test("worker executes its content-addressed module bytes and never fetches a second source copy", async () => {
+  const workloadBytes = await Deno.readFile(
+    "benchmarks/v1/serialization-json-telemetry/workload.js",
+  );
+  const workloadSha256 = await sha256Hex(workloadBytes);
+  const worker = await Deno.readTextFile("public/telemetry-worker.js");
+  assert(worker.includes(`const WORKLOAD_SOURCE_SHA256 = "${workloadSha256}"`));
+  assert(worker.includes(`loaded.sourceSha256 !== source.sha256`));
+  assert(worker.includes("const workload = loaded.module"));
+  assert(!worker.includes('fetchBytes("/benchmarks/v1/serialization-json-telemetry/workload.js")'));
+  assert(!worker.includes('from "/benchmarks/v1/serialization-json-telemetry/workload.js"'));
 });
 
 Deno.test("closed result records bind every source, manifest, artifact, recipe, and demo byte to one exact commit", async () => {

@@ -40,7 +40,7 @@
             "booleans": 1000,
             "query-aggregates": 11,
             "output-bytes": 158,
-            "allocations": 6,
+            "allocations": 0,
             "boundary-crossings": 2
           }
         }
@@ -74,7 +74,7 @@
             "booleans": 100000,
             "query-aggregates": 11,
             "output-bytes": 180,
-            "allocations": 6,
+            "allocations": 0,
             "boundary-crossings": 2
           }
         }
@@ -108,7 +108,7 @@
             "booleans": 1000000,
             "query-aggregates": 11,
             "output-bytes": 191,
-            "allocations": 6,
+            "allocations": 0,
             "boundary-crossings": 2
           }
         }
