@@ -2,7 +2,11 @@ import Ajv2020Module from "ajv2020";
 import addFormatsModule from "ajv-formats";
 import { assert, assertEquals } from "./assert.ts";
 import { sha256Hex } from "../lib/canonical.ts";
-import { verifyRecordedQualification } from "../scripts/qualify-server-wasi.ts";
+import {
+  INDEPENDENT_JAVASCRIPT_SQLITE_CANDIDATES,
+  probeIndependentJavaScriptSqliteCandidates,
+  verifyRecordedQualification,
+} from "../scripts/qualify-server-wasi.ts";
 
 const Ajv2020 = (Ajv2020Module as unknown as { default?: typeof Ajv2020Module }).default ??
   Ajv2020Module;
@@ -92,11 +96,45 @@ Deno.test("server WASI machine qualification reproduces the recorded blockers", 
   const observed = await verifyRecordedQualification();
   assertEquals(observed.deno, "2.9.0");
   assertEquals(observed.hostSqliteCliObserved, "3.53.3");
-  assertEquals(observed.wasiSdkAvailable, false);
-  assertEquals(observed.wasiSysrootAvailable, false);
+  assertEquals(observed.wasiSdkClangAtOptPathAvailable, false);
+  assertEquals(observed.wasiSysrootAtUsrSharePathAvailable, false);
   assertEquals(observed.rustWasip1StandardLibraryAvailable, false);
   assertEquals(observed.repositoryPinnedSqliteSourceAvailable, false);
   assertEquals(observed.repositoryPinnedSqliteWasiArtifactAvailable, false);
+  assertEquals(
+    observed.independentJavaScriptSqliteCandidates,
+    contract.qualification.independentJavaScriptSqliteAudit.inspectedCandidates,
+  );
+  assertEquals(observed.independentJavaScriptSqliteAvailable, false);
+  assertEquals(
+    INDEPENDENT_JAVASCRIPT_SQLITE_CANDIDATES,
+    contract.qualification.independentJavaScriptSqliteAudit.inspectedCandidates.map(
+      ({ id, path }: { id: string; path: string }) => ({ id, path }),
+    ),
+  );
+});
+
+Deno.test("server WASI JavaScript SQLite candidate probe fails the blocked record closed", async () => {
+  const directory = await Deno.makeTempDir();
+  const presentPath = `${directory}/sqlite.ts`;
+  const missingPath = `${directory}/sqlite.js`;
+  try {
+    await Deno.writeTextFile(presentPath, "export {};\n");
+    const candidates = await probeIndependentJavaScriptSqliteCandidates([
+      { id: "missing", path: missingPath },
+      { id: "present", path: presentPath },
+    ]);
+    assertEquals(candidates, [
+      { id: "missing", path: missingPath, available: false },
+      { id: "present", path: presentPath, available: true },
+    ]);
+    assert(
+      candidates.some((candidate) => candidate.available),
+      "a present candidate must force requalification instead of preserving the blocked record",
+    );
+  } finally {
+    await Deno.remove(directory, { recursive: true });
+  }
 });
 
 Deno.test("server WASI blocked package exposes no fake implementation or artifact", async () => {
