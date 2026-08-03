@@ -65,85 +65,135 @@
               "$ref": "#/$defs/sourceFile",
               "type": "object",
               "properties": {
-                "path": { "const": "scripts/collect-base-simulation-nbody-evidence.ts" }
-              }
-            },
-            {
-              "$ref": "#/$defs/sourceFile",
-              "type": "object",
-              "properties": { "path": { "const": "lib/canonical.ts" } }
-            },
-            {
-              "$ref": "#/$defs/sourceFile",
-              "type": "object",
-              "properties": { "path": { "const": "lib/cdp-client.ts" } }
-            },
-            {
-              "$ref": "#/$defs/sourceFile",
-              "type": "object",
-              "properties": { "path": { "const": "deploy.ts" } }
-            },
-            {
-              "$ref": "#/$defs/sourceFile",
-              "type": "object",
-              "properties": { "path": { "const": "server.ts" } }
-            },
-            {
-              "$ref": "#/$defs/sourceFile",
-              "type": "object",
-              "properties": { "path": { "const": "benchmarks/base/simulation-nbody/contract.js" } }
-            },
-            {
-              "$ref": "#/$defs/sourceFile",
-              "type": "object",
-              "properties": { "path": { "const": "benchmarks/base/simulation-nbody/fixture.js" } }
-            },
-            {
-              "$ref": "#/$defs/sourceFile",
-              "type": "object",
-              "properties": { "path": { "const": "benchmarks/base/simulation-nbody/engine.js" } }
-            },
-            {
-              "$ref": "#/$defs/sourceFile",
-              "type": "object",
-              "properties": {
-                "path": { "const": "public/demos/simulation-nbody-cloth/index.html" }
-              }
-            },
-            {
-              "$ref": "#/$defs/sourceFile",
-              "type": "object",
-              "properties": { "path": { "const": "public/demos/simulation-nbody-cloth/demo.js" } }
-            },
-            {
-              "$ref": "#/$defs/sourceFile",
-              "type": "object",
-              "properties": { "path": { "const": "public/demos/simulation-nbody-cloth/worker.js" } }
-            },
-            {
-              "$ref": "#/$defs/sourceFile",
-              "type": "object",
-              "properties": { "path": { "const": "public/styles.css" } }
-            },
-            {
-              "$ref": "#/$defs/sourceFile",
-              "type": "object",
-              "properties": {
-                "path": { "const": "public/artifacts/base-simulation-nbody/nbody.wasm" }
+                "path": {
+                  "const": "scripts/collect-base-simulation-nbody-evidence.ts"
+                }
               }
             },
             {
               "$ref": "#/$defs/sourceFile",
               "type": "object",
               "properties": {
-                "path": { "const": "public/artifacts/base-simulation-nbody/build-manifest.json" }
+                "path": {
+                  "const": "lib/canonical.ts"
+                }
               }
             },
             {
               "$ref": "#/$defs/sourceFile",
               "type": "object",
               "properties": {
-                "path": { "const": "schemas/base-simulation-nbody-browser-evidence.schema.json" }
+                "path": {
+                  "const": "lib/cdp-client.ts"
+                }
+              }
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "type": "object",
+              "properties": {
+                "path": {
+                  "const": "deploy.ts"
+                }
+              }
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "type": "object",
+              "properties": {
+                "path": {
+                  "const": "server.ts"
+                }
+              }
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "type": "object",
+              "properties": {
+                "path": {
+                  "const": "benchmarks/base/simulation-nbody/contract.js"
+                }
+              }
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "type": "object",
+              "properties": {
+                "path": {
+                  "const": "benchmarks/base/simulation-nbody/fixture.js"
+                }
+              }
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "type": "object",
+              "properties": {
+                "path": {
+                  "const": "benchmarks/base/simulation-nbody/engine.js"
+                }
+              }
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "type": "object",
+              "properties": {
+                "path": {
+                  "const": "public/demos/simulation-nbody-cloth/index.html"
+                }
+              }
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "type": "object",
+              "properties": {
+                "path": {
+                  "const": "public/demos/simulation-nbody-cloth/demo.js"
+                }
+              }
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "type": "object",
+              "properties": {
+                "path": {
+                  "const": "public/demos/simulation-nbody-cloth/worker.js"
+                }
+              }
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "type": "object",
+              "properties": {
+                "path": {
+                  "const": "public/styles.css"
+                }
+              }
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "type": "object",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/base-simulation-nbody/nbody.wasm"
+                }
+              }
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "type": "object",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/base-simulation-nbody/build-manifest.json"
+                }
+              }
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "type": "object",
+              "properties": {
+                "path": {
+                  "const": "schemas/base-simulation-nbody-browser-evidence.schema.json"
+                }
               }
             }
           ],
@@ -162,20 +212,20 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
+        "channel",
         "product",
         "revision",
         "userAgent",
         "jsVersion",
         "executable",
-        "requestedLaunchArguments",
-        "effectiveCommandLine",
+        "effectiveLaunchArguments",
         "headless",
-        "protocol"
+        "protocol",
+        "ownership"
       ],
       "properties": {
         "product": {
-          "type": "string",
-          "pattern": "^Chrome/[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$"
+          "const": "Chrome/150.0.7871.24"
         },
         "revision": {
           "type": "string",
@@ -209,7 +259,7 @@
               "minimum": 1
             },
             "sha256": {
-              "$ref": "#/$defs/sha256"
+              "const": "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355"
             },
             "dev": {
               "type": "integer",
@@ -221,69 +271,142 @@
             }
           }
         },
-        "requestedLaunchArguments": {
-          "type": "array",
-          "minItems": 17,
-          "maxItems": 17,
-          "prefixItems": [
-            { "const": "--headless=new" },
-            { "const": "--no-sandbox" },
-            { "const": "--disable-gpu" },
-            { "const": "--disable-background-networking" },
-            { "const": "--disable-component-update" },
-            { "const": "--disable-default-apps" },
-            { "const": "--disable-extensions" },
-            { "const": "--disable-sync" },
-            { "const": "--metrics-recording-only" },
-            { "const": "--no-first-run" },
-            { "const": "--enable-automation" },
-            { "const": "--disable-cache" },
-            { "const": "--window-size=1440,1200" },
-            { "const": "--remote-debugging-address=127.0.0.1" },
-            { "type": "string", "pattern": "^--remote-debugging-port=[0-9]+$" },
-            { "type": "string", "pattern": "^--user-data-dir=/tmp/wasm-nbody-chrome-[^/]+$" },
-            { "const": "about:blank" }
-          ],
-          "items": false
-        },
-        "effectiveCommandLine": {
-          "type": "array",
-          "minItems": 17,
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "minLength": 1
-          },
-          "allOf": [
-            { "contains": { "const": "--headless=new" } },
-            { "contains": { "const": "--no-sandbox" } },
-            { "contains": { "const": "--disable-gpu" } },
-            { "contains": { "const": "--disable-background-networking" } },
-            { "contains": { "const": "--disable-component-update" } },
-            { "contains": { "const": "--disable-default-apps" } },
-            { "contains": { "const": "--disable-extensions" } },
-            { "contains": { "const": "--disable-sync" } },
-            { "contains": { "const": "--metrics-recording-only" } },
-            { "contains": { "const": "--no-first-run" } },
-            { "contains": { "const": "--enable-automation" } },
-            { "contains": { "const": "--disable-cache" } },
-            { "contains": { "const": "--window-size=1440,1200" } },
-            { "contains": { "const": "--remote-debugging-address=127.0.0.1" } },
-            { "contains": { "type": "string", "pattern": "^--remote-debugging-port=[0-9]+$" } },
-            {
-              "contains": {
-                "type": "string",
-                "pattern": "^--user-data-dir=/tmp/wasm-nbody-chrome-[^/]+$"
-              }
-            },
-            { "contains": { "const": "about:blank" } }
-          ]
-        },
         "headless": {
           "const": true
         },
         "protocol": {
           "const": "Chrome DevTools Protocol"
+        },
+        "channel": {
+          "const": "chrome-for-testing"
+        },
+        "effectiveLaunchArguments": {
+          "type": "array",
+          "minItems": 17,
+          "maxItems": 17,
+          "uniqueItems": true,
+          "prefixItems": [
+            {
+              "const": "--headless=new"
+            },
+            {
+              "const": "--no-sandbox"
+            },
+            {
+              "const": "--disable-gpu"
+            },
+            {
+              "const": "--disable-background-networking"
+            },
+            {
+              "const": "--disable-component-update"
+            },
+            {
+              "const": "--disable-default-apps"
+            },
+            {
+              "const": "--disable-extensions"
+            },
+            {
+              "const": "--disable-sync"
+            },
+            {
+              "const": "--metrics-recording-only"
+            },
+            {
+              "const": "--no-first-run"
+            },
+            {
+              "const": "--enable-automation"
+            },
+            {
+              "const": "--disable-cache"
+            },
+            {
+              "const": "--window-size=1440,1200"
+            },
+            {
+              "const": "--remote-debugging-address=127.0.0.1"
+            },
+            {
+              "type": "string",
+              "pattern": "^--remote-debugging-port=(?:[1-9][0-9]{0,4})$"
+            },
+            {
+              "type": "string",
+              "pattern": "^--user-data-dir=/tmp/wasm-nbody-chrome-[^/]+$"
+            },
+            {
+              "const": "about:blank"
+            }
+          ],
+          "items": false
+        },
+        "ownership": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "launcher",
+            "otherObservedProcesses",
+            "cgroup"
+          ],
+          "properties": {
+            "launcher": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "pid",
+                "parentPid",
+                "startTimeTicks",
+                "cdpListener"
+              ],
+              "properties": {
+                "pid": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "parentPid": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "startTimeTicks": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "cdpListener": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "inode",
+                    "boundBeforeConnection",
+                    "boundBeforeEveryNavigation"
+                  ],
+                  "properties": {
+                    "inode": {
+                      "type": "string",
+                      "pattern": "^[0-9]+$"
+                    },
+                    "boundBeforeConnection": {
+                      "const": true
+                    },
+                    "boundBeforeEveryNavigation": {
+                      "const": true
+                    }
+                  }
+                }
+              }
+            },
+            "cgroup": {
+              "$ref": "#/$defs/browserCgroup"
+            },
+            "otherObservedProcesses": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/processIdentity"
+              }
+            }
+          }
         }
       }
     },
@@ -293,7 +416,9 @@
       "required": [
         "origin",
         "mode",
-        "launcherPid"
+        "launcher",
+        "otherObservedProcesses",
+        "cgroup"
       ],
       "properties": {
         "origin": {
@@ -303,9 +428,18 @@
         "mode": {
           "const": "public"
         },
-        "launcherPid": {
-          "type": "integer",
-          "minimum": 1
+        "launcher": {
+          "$ref": "#/$defs/processIdentity"
+        },
+        "cgroup": {
+          "$ref": "#/$defs/serverCgroup"
+        },
+        "otherObservedProcesses": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/processIdentity"
+          }
         }
       }
     },
@@ -389,6 +523,258 @@
                 },
                 "action": {
                   "const": "complete"
+                },
+                "network": {
+                  "type": "array",
+                  "minItems": 7,
+                  "maxItems": 7,
+                  "uniqueItems": true,
+                  "allOf": [
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/demos/simulation-nbody-cloth/$"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/styles\\.css$"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/demos/simulation-nbody-cloth/demo\\.js$"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/demos/simulation-nbody-cloth/worker\\.js$"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/benchmarks/base/simulation-nbody/contract\\.js$"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/benchmarks/base/simulation-nbody/fixture\\.js$"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/benchmarks/base/simulation-nbody/engine\\.js$"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    }
+                  ]
+                },
+                "executedAssets": {
+                  "type": "array",
+                  "minItems": 7,
+                  "maxItems": 7,
+                  "uniqueItems": true,
+                  "allOf": [
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "route": {
+                            "const": "/demos/simulation-nbody-cloth/"
+                          }
+                        },
+                        "required": [
+                          "route"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "route": {
+                            "const": "/styles.css"
+                          }
+                        },
+                        "required": [
+                          "route"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "route": {
+                            "const": "/demos/simulation-nbody-cloth/demo.js"
+                          }
+                        },
+                        "required": [
+                          "route"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "route": {
+                            "const": "/demos/simulation-nbody-cloth/worker.js"
+                          }
+                        },
+                        "required": [
+                          "route"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "route": {
+                            "const": "/benchmarks/base/simulation-nbody/contract.js"
+                          }
+                        },
+                        "required": [
+                          "route"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "route": {
+                            "const": "/benchmarks/base/simulation-nbody/fixture.js"
+                          }
+                        },
+                        "required": [
+                          "route"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "route": {
+                            "const": "/benchmarks/base/simulation-nbody/engine.js"
+                          }
+                        },
+                        "required": [
+                          "route"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    }
+                  ]
+                },
+                "finalState": {
+                  "const": {
+                    "status": "Complete. Correctness output only; no duration was collected.",
+                    "result": "Target: js-controlled\nComplete output digest: 00136c5b760c3794\nQuantized state digest: 5c5c1eca3fffb709\nCheckpoints: 1, 30, 60, 90, 120\nEnergy relative drift: 0.0000011147386053059117 (limit 0.0000012)\nCounters:\n{\n  \"bodies\": 1024,\n  \"timesteps\": 120,\n  \"forceEvaluations\": 121,\n  \"pairInteractions\": 126753792,\n  \"halfKicks\": 245760,\n  \"positionUpdates\": 122880,\n  \"accelerationWrites\": 371712,\n  \"checkpointValues\": 30720,\n  \"energyPairChecks\": 1047552,\n  \"kineticEnergyTerms\": 2048,\n  \"inputBytes\": 57408,\n  \"outputBytes\": 295040,\n  \"allocations\": 5,\n  \"boundaryCrossings\": 0\n}",
+                    "startDisabled": false,
+                    "cancelDisabled": true
+                  }
+                },
+                "oracle": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "const": "Target: js-controlled\nComplete output digest: 00136c5b760c3794\nQuantized state digest: 5c5c1eca3fffb709\nCheckpoints: 1, 30, 60, 90, 120\nEnergy relative drift: 0.0000011147386053059117 (limit 0.0000012)\nCounters:\n{\n  \"bodies\": 1024,\n  \"timesteps\": 120,\n  \"forceEvaluations\": 121,\n  \"pairInteractions\": 126753792,\n  \"halfKicks\": 245760,\n  \"positionUpdates\": 122880,\n  \"accelerationWrites\": 371712,\n  \"checkpointValues\": 30720,\n  \"energyPairChecks\": 1047552,\n  \"kineticEnergyTerms\": 2048,\n  \"inputBytes\": 57408,\n  \"outputBytes\": 295040,\n  \"allocations\": 5,\n  \"boundaryCrossings\": 0\n}"
+                    }
+                  },
+                  "required": [
+                    "text"
+                  ]
                 }
               },
               "type": "object"
@@ -410,6 +796,289 @@
                 },
                 "action": {
                   "const": "complete"
+                },
+                "network": {
+                  "type": "array",
+                  "minItems": 8,
+                  "maxItems": 8,
+                  "uniqueItems": true,
+                  "allOf": [
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/demos/simulation-nbody-cloth/$"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/styles\\.css$"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/demos/simulation-nbody-cloth/demo\\.js$"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/demos/simulation-nbody-cloth/worker\\.js$"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/benchmarks/base/simulation-nbody/contract\\.js$"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/benchmarks/base/simulation-nbody/fixture\\.js$"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/benchmarks/base/simulation-nbody/engine\\.js$"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/artifacts/base-simulation-nbody/nbody\\.wasm$"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    }
+                  ]
+                },
+                "executedAssets": {
+                  "type": "array",
+                  "minItems": 8,
+                  "maxItems": 8,
+                  "uniqueItems": true,
+                  "allOf": [
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "route": {
+                            "const": "/demos/simulation-nbody-cloth/"
+                          }
+                        },
+                        "required": [
+                          "route"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "route": {
+                            "const": "/styles.css"
+                          }
+                        },
+                        "required": [
+                          "route"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "route": {
+                            "const": "/demos/simulation-nbody-cloth/demo.js"
+                          }
+                        },
+                        "required": [
+                          "route"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "route": {
+                            "const": "/demos/simulation-nbody-cloth/worker.js"
+                          }
+                        },
+                        "required": [
+                          "route"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "route": {
+                            "const": "/benchmarks/base/simulation-nbody/contract.js"
+                          }
+                        },
+                        "required": [
+                          "route"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "route": {
+                            "const": "/benchmarks/base/simulation-nbody/fixture.js"
+                          }
+                        },
+                        "required": [
+                          "route"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "route": {
+                            "const": "/benchmarks/base/simulation-nbody/engine.js"
+                          }
+                        },
+                        "required": [
+                          "route"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "route": {
+                            "const": "/artifacts/base-simulation-nbody/nbody.wasm"
+                          }
+                        },
+                        "required": [
+                          "route"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    }
+                  ]
+                },
+                "finalState": {
+                  "const": {
+                    "status": "Complete. Correctness output only; no duration was collected.",
+                    "result": "Target: wasm-linear-controlled\nComplete output digest: 00136c5b760c3794\nQuantized state digest: 5c5c1eca3fffb709\nCheckpoints: 1, 30, 60, 90, 120\nEnergy relative drift: 0.0000011147386053059117 (limit 0.0000012)\nCounters:\n{\n  \"bodies\": 1024,\n  \"timesteps\": 120,\n  \"forceEvaluations\": 121,\n  \"pairInteractions\": 126753792,\n  \"halfKicks\": 245760,\n  \"positionUpdates\": 122880,\n  \"accelerationWrites\": 371712,\n  \"checkpointValues\": 30720,\n  \"energyPairChecks\": 1047552,\n  \"kineticEnergyTerms\": 2048,\n  \"inputBytes\": 57408,\n  \"outputBytes\": 295040,\n  \"allocations\": 0,\n  \"boundaryCrossings\": 2\n}",
+                    "startDisabled": false,
+                    "cancelDisabled": true
+                  }
+                },
+                "oracle": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "const": "Target: wasm-linear-controlled\nComplete output digest: 00136c5b760c3794\nQuantized state digest: 5c5c1eca3fffb709\nCheckpoints: 1, 30, 60, 90, 120\nEnergy relative drift: 0.0000011147386053059117 (limit 0.0000012)\nCounters:\n{\n  \"bodies\": 1024,\n  \"timesteps\": 120,\n  \"forceEvaluations\": 121,\n  \"pairInteractions\": 126753792,\n  \"halfKicks\": 245760,\n  \"positionUpdates\": 122880,\n  \"accelerationWrites\": 371712,\n  \"checkpointValues\": 30720,\n  \"energyPairChecks\": 1047552,\n  \"kineticEnergyTerms\": 2048,\n  \"inputBytes\": 57408,\n  \"outputBytes\": 295040,\n  \"allocations\": 0,\n  \"boundaryCrossings\": 2\n}"
+                    }
+                  },
+                  "required": [
+                    "text"
+                  ]
                 }
               },
               "type": "object"
@@ -431,6 +1100,115 @@
                 },
                 "action": {
                   "const": "cancel"
+                },
+                "network": {
+                  "type": "array",
+                  "minItems": 3,
+                  "maxItems": 3,
+                  "uniqueItems": true,
+                  "allOf": [
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/demos/simulation-nbody-cloth/$"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/styles\\.css$"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/demos/simulation-nbody-cloth/demo\\.js$"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    }
+                  ]
+                },
+                "executedAssets": {
+                  "type": "array",
+                  "minItems": 3,
+                  "maxItems": 3,
+                  "uniqueItems": true,
+                  "allOf": [
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "route": {
+                            "const": "/demos/simulation-nbody-cloth/"
+                          }
+                        },
+                        "required": [
+                          "route"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "route": {
+                            "const": "/styles.css"
+                          }
+                        },
+                        "required": [
+                          "route"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "route": {
+                            "const": "/demos/simulation-nbody-cloth/demo.js"
+                          }
+                        },
+                        "required": [
+                          "route"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    }
+                  ]
                 }
               },
               "type": "object"
@@ -452,6 +1230,115 @@
                 },
                 "action": {
                   "const": "timeout"
+                },
+                "network": {
+                  "type": "array",
+                  "minItems": 3,
+                  "maxItems": 3,
+                  "uniqueItems": true,
+                  "allOf": [
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/demos/simulation-nbody-cloth/$"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/styles\\.css$"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/demos/simulation-nbody-cloth/demo\\.js$"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    }
+                  ]
+                },
+                "executedAssets": {
+                  "type": "array",
+                  "minItems": 3,
+                  "maxItems": 3,
+                  "uniqueItems": true,
+                  "allOf": [
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "route": {
+                            "const": "/demos/simulation-nbody-cloth/"
+                          }
+                        },
+                        "required": [
+                          "route"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "route": {
+                            "const": "/styles.css"
+                          }
+                        },
+                        "required": [
+                          "route"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "route": {
+                            "const": "/demos/simulation-nbody-cloth/demo.js"
+                          }
+                        },
+                        "required": [
+                          "route"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    }
+                  ]
                 }
               },
               "type": "object"
@@ -473,6 +1360,115 @@
                 },
                 "action": {
                   "const": "pagehide"
+                },
+                "network": {
+                  "type": "array",
+                  "minItems": 3,
+                  "maxItems": 3,
+                  "uniqueItems": true,
+                  "allOf": [
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/demos/simulation-nbody-cloth/$"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/styles\\.css$"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/demos/simulation-nbody-cloth/demo\\.js$"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    }
+                  ]
+                },
+                "executedAssets": {
+                  "type": "array",
+                  "minItems": 3,
+                  "maxItems": 3,
+                  "uniqueItems": true,
+                  "allOf": [
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "route": {
+                            "const": "/demos/simulation-nbody-cloth/"
+                          }
+                        },
+                        "required": [
+                          "route"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "route": {
+                            "const": "/styles.css"
+                          }
+                        },
+                        "required": [
+                          "route"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    },
+                    {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "route": {
+                            "const": "/demos/simulation-nbody-cloth/demo.js"
+                          }
+                        },
+                        "required": [
+                          "route"
+                        ]
+                      },
+                      "minContains": 1,
+                      "maxContains": 1
+                    }
+                  ]
                 }
               },
               "type": "object"
@@ -539,6 +1535,7 @@
         "target",
         "action",
         "route",
+        "cdpBoundBeforeNavigation",
         "lifecycleInjection",
         "finalState",
         "oracle",
@@ -693,7 +1690,8 @@
           "minItems": 3,
           "items": {
             "$ref": "#/$defs/networkRequest"
-          }
+          },
+          "uniqueItems": true
         },
         "executedAssets": {
           "type": "array",
@@ -707,22 +1705,40 @@
             {
               "contains": {
                 "type": "object",
-                "properties": { "route": { "const": "/demos/simulation-nbody-cloth/" } },
-                "required": ["route"]
+                "properties": {
+                  "route": {
+                    "const": "/demos/simulation-nbody-cloth/"
+                  }
+                },
+                "required": [
+                  "route"
+                ]
               }
             },
             {
               "contains": {
                 "type": "object",
-                "properties": { "route": { "const": "/styles.css" } },
-                "required": ["route"]
+                "properties": {
+                  "route": {
+                    "const": "/styles.css"
+                  }
+                },
+                "required": [
+                  "route"
+                ]
               }
             },
             {
               "contains": {
                 "type": "object",
-                "properties": { "route": { "const": "/demos/simulation-nbody-cloth/demo.js" } },
-                "required": ["route"]
+                "properties": {
+                  "route": {
+                    "const": "/demos/simulation-nbody-cloth/demo.js"
+                  }
+                },
+                "required": [
+                  "route"
+                ]
               }
             }
           ]
@@ -798,6 +1814,9 @@
               "$ref": "#/$defs/sha256"
             }
           }
+        },
+        "cdpBoundBeforeNavigation": {
+          "const": true
         }
       },
       "allOf": [
@@ -837,48 +1856,6 @@
                     "const": true
                   }
                 }
-              },
-              "executedAssets": {
-                "type": "array",
-                "minItems": 7,
-                "allOf": [
-                  {
-                    "contains": {
-                      "type": "object",
-                      "properties": {
-                        "route": { "const": "/demos/simulation-nbody-cloth/worker.js" }
-                      },
-                      "required": ["route"]
-                    }
-                  },
-                  {
-                    "contains": {
-                      "type": "object",
-                      "properties": {
-                        "route": { "const": "/benchmarks/base/simulation-nbody/contract.js" }
-                      },
-                      "required": ["route"]
-                    }
-                  },
-                  {
-                    "contains": {
-                      "type": "object",
-                      "properties": {
-                        "route": { "const": "/benchmarks/base/simulation-nbody/fixture.js" }
-                      },
-                      "required": ["route"]
-                    }
-                  },
-                  {
-                    "contains": {
-                      "type": "object",
-                      "properties": {
-                        "route": { "const": "/benchmarks/base/simulation-nbody/engine.js" }
-                      },
-                      "required": ["route"]
-                    }
-                  }
-                ]
               }
             },
             "type": "object"
@@ -979,7 +1956,7 @@
               },
               "finalState": {
                 "const": {
-                  "status": "Running 1,024 bodies for exactly 120 leapfrog timesteps in a fresh worker…",
+                  "status": "Running 1,024 bodies for exactly 120 leapfrog timesteps in a fresh worker\u2026",
                   "result": "No completed result.",
                   "startDisabled": false,
                   "cancelDisabled": true
@@ -1072,22 +2049,6 @@
                     }
                   }
                 ]
-              },
-              "executedAssets": {
-                "type": "array",
-                "minItems": 8,
-                "maxItems": 8,
-                "contains": {
-                  "type": "object",
-                  "properties": {
-                    "route": {
-                      "const": "/artifacts/base-simulation-nbody/nbody.wasm"
-                    }
-                  },
-                  "required": [
-                    "route"
-                  ]
-                }
               }
             }
           }
@@ -1337,65 +2298,113 @@
         {
           "type": "object",
           "properties": {
-            "route": { "const": "/demos/simulation-nbody-cloth/" },
-            "sourcePath": { "const": "public/demos/simulation-nbody-cloth/index.html" },
-            "cdpBodyEncoding": { "const": "utf8" }
+            "route": {
+              "const": "/demos/simulation-nbody-cloth/"
+            },
+            "sourcePath": {
+              "const": "public/demos/simulation-nbody-cloth/index.html"
+            },
+            "cdpBodyEncoding": {
+              "const": "utf8"
+            }
           }
         },
         {
           "type": "object",
           "properties": {
-            "route": { "const": "/demos/simulation-nbody-cloth/demo.js" },
-            "sourcePath": { "const": "public/demos/simulation-nbody-cloth/demo.js" },
-            "cdpBodyEncoding": { "const": "utf8" }
+            "route": {
+              "const": "/demos/simulation-nbody-cloth/demo.js"
+            },
+            "sourcePath": {
+              "const": "public/demos/simulation-nbody-cloth/demo.js"
+            },
+            "cdpBodyEncoding": {
+              "const": "utf8"
+            }
           }
         },
         {
           "type": "object",
           "properties": {
-            "route": { "const": "/demos/simulation-nbody-cloth/worker.js" },
-            "sourcePath": { "const": "public/demos/simulation-nbody-cloth/worker.js" },
-            "cdpBodyEncoding": { "const": "utf8" }
+            "route": {
+              "const": "/demos/simulation-nbody-cloth/worker.js"
+            },
+            "sourcePath": {
+              "const": "public/demos/simulation-nbody-cloth/worker.js"
+            },
+            "cdpBodyEncoding": {
+              "const": "utf8"
+            }
           }
         },
         {
           "type": "object",
           "properties": {
-            "route": { "const": "/benchmarks/base/simulation-nbody/contract.js" },
-            "sourcePath": { "const": "benchmarks/base/simulation-nbody/contract.js" },
-            "cdpBodyEncoding": { "const": "utf8" }
+            "route": {
+              "const": "/benchmarks/base/simulation-nbody/contract.js"
+            },
+            "sourcePath": {
+              "const": "benchmarks/base/simulation-nbody/contract.js"
+            },
+            "cdpBodyEncoding": {
+              "const": "utf8"
+            }
           }
         },
         {
           "type": "object",
           "properties": {
-            "route": { "const": "/benchmarks/base/simulation-nbody/fixture.js" },
-            "sourcePath": { "const": "benchmarks/base/simulation-nbody/fixture.js" },
-            "cdpBodyEncoding": { "const": "utf8" }
+            "route": {
+              "const": "/benchmarks/base/simulation-nbody/fixture.js"
+            },
+            "sourcePath": {
+              "const": "benchmarks/base/simulation-nbody/fixture.js"
+            },
+            "cdpBodyEncoding": {
+              "const": "utf8"
+            }
           }
         },
         {
           "type": "object",
           "properties": {
-            "route": { "const": "/benchmarks/base/simulation-nbody/engine.js" },
-            "sourcePath": { "const": "benchmarks/base/simulation-nbody/engine.js" },
-            "cdpBodyEncoding": { "const": "utf8" }
+            "route": {
+              "const": "/benchmarks/base/simulation-nbody/engine.js"
+            },
+            "sourcePath": {
+              "const": "benchmarks/base/simulation-nbody/engine.js"
+            },
+            "cdpBodyEncoding": {
+              "const": "utf8"
+            }
           }
         },
         {
           "type": "object",
           "properties": {
-            "route": { "const": "/artifacts/base-simulation-nbody/nbody.wasm" },
-            "sourcePath": { "const": "public/artifacts/base-simulation-nbody/nbody.wasm" },
-            "cdpBodyEncoding": { "const": "base64" }
+            "route": {
+              "const": "/artifacts/base-simulation-nbody/nbody.wasm"
+            },
+            "sourcePath": {
+              "const": "public/artifacts/base-simulation-nbody/nbody.wasm"
+            },
+            "cdpBodyEncoding": {
+              "const": "base64"
+            }
           }
         },
         {
           "type": "object",
           "properties": {
-            "route": { "const": "/styles.css" },
-            "sourcePath": { "const": "public/styles.css" },
-            "cdpBodyEncoding": { "const": "utf8" }
+            "route": {
+              "const": "/styles.css"
+            },
+            "sourcePath": {
+              "const": "public/styles.css"
+            },
+            "cdpBodyEncoding": {
+              "const": "utf8"
+            }
           }
         }
       ]
@@ -1451,32 +2460,6 @@
         }
       }
     },
-    "ownedCgroup": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "unit",
-        "path",
-        "membership",
-        "absent"
-      ],
-      "properties": {
-        "unit": {
-          "type": "string",
-          "pattern": "^wasm-nbody-(?:browser|server)-[a-f0-9-]+\\.scope$"
-        },
-        "path": {
-          "type": "string",
-          "pattern": "^/user\\.slice/[^/]+/[^/]+/(?:app\\.slice/)?wasm-nbody-(?:browser|server)-[a-f0-9-]+\\.scope$"
-        },
-        "membership": {
-          "const": "all processes in the dedicated systemd scope"
-        },
-        "absent": {
-          "const": true
-        }
-      }
-    },
     "cleanup": {
       "type": "object",
       "additionalProperties": false,
@@ -1490,41 +2473,15 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "launcher",
-            "observedProcesses",
             "requested",
-            "cgroup",
             "signals",
             "exit",
-            "processesAbsent"
+            "processesAbsent",
+            "cgroupAbsent"
           ],
           "properties": {
-            "launcher": {
-              "$ref": "#/$defs/processIdentity"
-            },
-            "observedProcesses": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "$ref": "#/$defs/processIdentity"
-              }
-            },
             "requested": {
               "const": "Browser.close"
-            },
-            "cgroup": {
-              "$ref": "#/$defs/ownedCgroup",
-              "type": "object",
-              "properties": {
-                "unit": {
-                  "type": "string",
-                  "pattern": "^wasm-nbody-browser-[a-f0-9-]+\\.scope$"
-                },
-                "path": {
-                  "type": "string",
-                  "pattern": "/wasm-nbody-browser-[a-f0-9-]+\\.scope$"
-                }
-              }
             },
             "signals": {
               "type": "array",
@@ -1549,66 +2506,28 @@
             },
             "processesAbsent": {
               "const": true
+            },
+            "cgroupAbsent": {
+              "const": true
             }
           }
         },
         "profile": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "path",
-            "removed",
-            "absent"
-          ],
-          "properties": {
-            "path": {
-              "type": "string",
-              "pattern": "^/tmp/wasm-nbody-chrome-"
-            },
-            "removed": {
-              "const": true
-            },
-            "absent": {
-              "const": true
-            }
+          "const": {
+            "removed": true,
+            "absent": true
           }
         },
         "server": {
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "launcher",
-            "observedProcesses",
-            "cgroup",
             "signal",
             "exit",
-            "processAbsent"
+            "processAbsent",
+            "cgroupAbsent"
           ],
           "properties": {
-            "launcher": {
-              "$ref": "#/$defs/processIdentity"
-            },
-            "observedProcesses": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "$ref": "#/$defs/processIdentity"
-              }
-            },
-            "cgroup": {
-              "$ref": "#/$defs/ownedCgroup",
-              "type": "object",
-              "properties": {
-                "unit": {
-                  "type": "string",
-                  "pattern": "^wasm-nbody-server-[a-f0-9-]+\\.scope$"
-                },
-                "path": {
-                  "type": "string",
-                  "pattern": "/wasm-nbody-server-[a-f0-9-]+\\.scope$"
-                }
-              }
-            },
             "signal": {
               "const": "SIGTERM"
             },
@@ -1617,8 +2536,65 @@
             },
             "processAbsent": {
               "const": true
+            },
+            "cgroupAbsent": {
+              "const": true
             }
           }
+        }
+      }
+    },
+    "browserCgroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "dev",
+        "ino",
+        "membership"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^/user\\.slice/[^/]+/[^/]+/(?:app\\.slice/)?wasm-nbody-browser-[a-f0-9-]+\\.scope$"
+        },
+        "dev": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ino": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "membership": {
+          "const": "all processes in the dedicated systemd scope"
+        }
+      }
+    },
+    "serverCgroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "dev",
+        "ino",
+        "membership"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^/user\\.slice/[^/]+/[^/]+/(?:app\\.slice/)?wasm-nbody-server-[a-f0-9-]+\\.scope$"
+        },
+        "dev": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ino": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "membership": {
+          "const": "all processes in the dedicated systemd scope"
         }
       }
     }

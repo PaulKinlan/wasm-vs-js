@@ -2,10 +2,13 @@ import Ajv2020Module from "ajv2020";
 import addFormatsModule from "ajv-formats";
 import { assert, assertEquals, assertRejects } from "../assert.ts";
 import {
+  CFT_EXECUTABLE_SHA256,
+  CFT_PRODUCT,
   COLLECTOR_SOURCE_PATHS,
   EXECUTED_ROUTE_PATHS,
   FIXED_CHROME_ARGUMENTS,
   parseTextOracle,
+  SCENARIO_ROUTE_PATHS,
   SCENARIOS,
 } from "../../scripts/collect-base-simulation-nbody-evidence.ts";
 import { COUNTERS } from "../../benchmarks/base/simulation-nbody/contract.js";
@@ -74,6 +77,7 @@ function scenario(id: string, target: string, action: string) {
     target,
     action,
     route: "/demos/simulation-nbody-cloth/",
+    cdpBoundBeforeNavigation: true,
     lifecycleInjection: { kind, expression: injectionExpression },
     finalState: {
       status,
@@ -135,19 +139,19 @@ function validEvidence() {
     collectionCommand:
       `deno run -A scripts/collect-base-simulation-nbody-evidence.ts --source-commit=${git} --chrome=/chrome --output=/evidence.json`,
     browser: {
-      product: "Chrome/150.0.7871.24",
+      channel: "chrome-for-testing",
+      product: CFT_PRODUCT,
       revision: "@revision",
       userAgent: "Chrome",
       jsVersion: "15.0",
-      executable: { path: "/chrome", bytes: 1, sha256: sha, dev: 1, ino: 1 },
-      requestedLaunchArguments: [
-        ...FIXED_CHROME_ARGUMENTS,
-        "--remote-debugging-port=9222",
-        "--user-data-dir=/tmp/wasm-nbody-chrome-owned",
-        "about:blank",
-      ],
-      effectiveCommandLine: [
-        "/chrome",
+      executable: {
+        path: "/chrome",
+        bytes: 1,
+        sha256: CFT_EXECUTABLE_SHA256,
+        dev: 1,
+        ino: 1,
+      },
+      effectiveLaunchArguments: [
         ...FIXED_CHROME_ARGUMENTS,
         "--remote-debugging-port=9222",
         "--user-data-dir=/tmp/wasm-nbody-chrome-owned",
@@ -155,8 +159,40 @@ function validEvidence() {
       ],
       headless: true,
       protocol: "Chrome DevTools Protocol",
+      ownership: {
+        launcher: {
+          pid: 2,
+          parentPid: 1,
+          startTimeTicks: "1",
+          cdpListener: {
+            inode: "42",
+            boundBeforeConnection: true,
+            boundBeforeEveryNavigation: true,
+          },
+        },
+        otherObservedProcesses: [],
+        cgroup: {
+          path:
+            "/user.slice/user-1000.slice/user@1000.service/app.slice/wasm-nbody-browser-00000000-0000-4000-8000-000000000000.scope",
+          dev: 1,
+          ino: 2,
+          membership: "all processes in the dedicated systemd scope",
+        },
+      },
     },
-    server: { origin: "http://127.0.0.1:1234", mode: "public", launcherPid: 1 },
+    server: {
+      origin: "http://127.0.0.1:1234",
+      mode: "public",
+      launcher: { pid: 3, parentPid: 1, startTimeTicks: "1", executable: "/deno" },
+      otherObservedProcesses: [],
+      cgroup: {
+        path:
+          "/user.slice/user-1000.slice/user@1000.service/app.slice/wasm-nbody-server-00000000-0000-4000-8000-000000000000.scope",
+        dev: 1,
+        ino: 3,
+        membership: "all processes in the dedicated systemd scope",
+      },
+    },
     contract: {
       targets: ["js-controlled", "wasm-linear-controlled"],
       timesteps: 120,
@@ -184,38 +220,18 @@ function validEvidence() {
     ],
     cleanup: {
       browser: {
-        launcher: { pid: 2, parentPid: 1, startTimeTicks: "1", executable: "/chrome" },
-        observedProcesses: [
-          { pid: 2, parentPid: 1, startTimeTicks: "1", executable: "/chrome" },
-        ],
         requested: "Browser.close",
-        cgroup: {
-          unit: "wasm-nbody-browser-00000000-0000-4000-8000-000000000000.scope",
-          path:
-            "/user.slice/user-1000.slice/user@1000.service/app.slice/wasm-nbody-browser-00000000-0000-4000-8000-000000000000.scope",
-          membership: "all processes in the dedicated systemd scope",
-          absent: true,
-        },
         signals: [],
         exit: { success: true, code: 0, signal: null },
         processesAbsent: true,
+        cgroupAbsent: true,
       },
-      profile: { path: "/tmp/wasm-nbody-chrome-owned", removed: true, absent: true },
+      profile: { removed: true, absent: true },
       server: {
-        launcher: { pid: 3, parentPid: 1, startTimeTicks: "1", executable: "/deno" },
-        observedProcesses: [
-          { pid: 3, parentPid: 1, startTimeTicks: "1", executable: "/deno" },
-        ],
-        cgroup: {
-          unit: "wasm-nbody-server-00000000-0000-4000-8000-000000000000.scope",
-          path:
-            "/user.slice/user-1000.slice/user@1000.service/app.slice/wasm-nbody-server-00000000-0000-4000-8000-000000000000.scope",
-          membership: "all processes in the dedicated systemd scope",
-          absent: true,
-        },
         signal: "SIGTERM",
         exit: { success: false, code: 143, signal: "SIGTERM" },
         processAbsent: true,
+        cgroupAbsent: true,
       },
     },
   };
@@ -229,6 +245,9 @@ Deno.test("N-body collector freezes accepted targets, full work, textual oracle 
     { id: "timeout-lifecycle", target: "js-controlled", action: "timeout" },
     { id: "pagehide-lifecycle", target: "js-controlled", action: "pagehide" },
   ]);
+  assertEquals(SCENARIO_ROUTE_PATHS["js-controlled-complete"].length, 7);
+  assertEquals(SCENARIO_ROUTE_PATHS["wasm-linear-controlled-complete"].length, 8);
+  assertEquals(SCENARIO_ROUTE_PATHS["cancel-lifecycle"].length, 3);
   const js = parseTextOracle(resultText("js-controlled"), "js-controlled");
   const wasm = parseTextOracle(resultText("wasm-linear-controlled"), "wasm-linear-controlled");
   assertEquals(js.checkpoints, [1, 30, 60, 90, 120]);
@@ -279,29 +298,54 @@ Deno.test("N-body browser evidence schema is closed over source, raw responses, 
   rejected((value) => value.scenarios[1].target = "js-controlled");
   rejected((value) => value.scenarios.pop());
   rejected((value) => value.cleanup.browser.processesAbsent = false);
-  rejected((value) => value.cleanup.browser.cgroup.absent = false);
+  rejected((value) => value.cleanup.browser.cgroupAbsent = false);
   rejected((value) =>
-    value.cleanup.browser.cgroup.unit =
-      "wasm-nbody-server-00000000-0000-4000-8000-000000000000.scope"
+    value.browser.ownership.cgroup.path =
+      "/user.slice/user-1000.slice/user@1000.service/app.slice/wasm-nbody-server-00000000-0000-4000-8000-000000000000.scope"
   );
-  rejected((value) => value.cleanup.server.cgroup.membership = "descendants only");
+  rejected((value) =>
+    value.server.cgroup.path =
+      "/user.slice/user-1000.slice/user@1000.service/app.slice/wasm-nbody-browser-00000000-0000-4000-8000-000000000000.scope"
+  );
+  rejected((value) => value.server.cgroup.membership = "descendants only");
   rejected((value) => value.source.cleanHeadVerifiedBeforeAndAfter = false);
   rejected((value) =>
     value.source.files[0].path = "uncommitted.js" as typeof value.source.files[0]["path"]
   );
   rejected((value) => value.source.files[1].path = value.source.files[0].path);
-  rejected((value) => value.browser.product = "Chromium/150.0.7871.24");
-  rejected((value) => value.browser.executable.sha256 = "not-a-hash");
-  rejected((value) => value.browser.requestedLaunchArguments[10] = "--disable-automation");
+  rejected((value) => value.browser.product = "Chrome/1.2.3.4");
+  rejected((value) => value.browser.executable.sha256 = sha);
+  rejected((value) => value.browser.effectiveLaunchArguments[10] = "--disable-automation");
+  rejected((value) => value.browser.effectiveLaunchArguments.push("--js-flags=--jitless"));
+  rejected((value) => value.browser.ownership.launcher.pid = 0);
+  rejected((value) => value.browser.ownership.launcher.cdpListener.inode = "not-an-inode");
   rejected((value) =>
-    value.browser.effectiveCommandLine = value.browser.effectiveCommandLine.filter((argument) =>
-      argument !== "--enable-automation"
-    )
+    value.browser.ownership.launcher.cdpListener.boundBeforeEveryNavigation = false
   );
+  rejected((value) =>
+    value.browser.effectiveLaunchArguments[15] = "--user-data-dir=/var/tmp/foreign"
+  );
+  rejected((value) => value.server.launcher.pid = 0);
   rejected((value) => value.scenarios[2].finalState.status = "terminated");
   rejected((value) => value.scenarios[3].lifecycleInjection.expression = "setTimeout = fake");
   rejected((value) => value.scenarios[4].finalState.result = "partial result");
+  rejected((value) => value.scenarios[0].cdpBoundBeforeNavigation = false);
+  rejected((value) => value.scenarios[0].finalState.result = resultText("wasm-linear-controlled"));
   rejected((value) => value.scenarios[0].network[0].url = "http://127.0.0.1:1234/arbitrary.js");
+  rejected((value) =>
+    value.scenarios[0].network = value.scenarios[0].network.map(() =>
+      structuredClone(value.scenarios[0].network[0])
+    )
+  );
+  rejected((value) => {
+    value.scenarios[0].network[6].url =
+      "http://127.0.0.1:1234/artifacts/base-simulation-nbody/nbody.wasm";
+    value.scenarios[0].executedAssets[6] = structuredClone(value.scenarios[1].executedAssets[0]);
+    value.scenarios[0].executedAssets[6].route = "/artifacts/base-simulation-nbody/nbody.wasm";
+    value.scenarios[0].executedAssets[6].sourcePath =
+      "public/artifacts/base-simulation-nbody/nbody.wasm";
+    value.scenarios[0].executedAssets[6].cdpBodyEncoding = "base64";
+  });
   rejected((value) => value.scenarios[0].executedAssets.pop());
   rejected((value) =>
     value.scenarios[0].executedAssets[0].sourcePath = "public/demos/simulation-nbody-cloth/demo.js"
@@ -330,11 +374,17 @@ Deno.test("N-body collector binds every served executable body and contains no r
       "Accessibility.getFullAXTree",
       "Browser.close",
       "cgroupProcesses",
+      "listenerOwnership",
+      "Chrome effective argv differs from the exact approved launch arguments",
+      "network/execution roster was not the exact unique scenario roster",
+      "collector failure cleanup was not exact",
       "KillMode=control-group",
       "output already exists; browser evidence is immutable",
     ]
   ) assert(source.includes(token), `collector omitted ${token}`);
   assert(source.includes("performanceClaims: []"));
+  const failureCleanup = source.slice(source.indexOf("const cleanupFailures: string[]"));
+  assert(!failureCleanup.includes(".catch(() => {})"));
   assert(!source.includes("10_000 leapfrog"));
   assert(!source.includes("canvas"));
 });

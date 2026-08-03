@@ -9,7 +9,9 @@ import {
 
 const root = new URL("../", import.meta.url);
 const workloadRoute = "/demos/simulation-nbody-cloth/";
-const expectedProduct = /^Chrome\/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/;
+export const CFT_PRODUCT = "Chrome/150.0.7871.24";
+export const CFT_EXECUTABLE_SHA256 =
+  "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355";
 export const FIXED_CHROME_ARGUMENTS = Object.freeze(
   [
     "--headless=new",
@@ -73,12 +75,49 @@ export const SCENARIOS = Object.freeze(
   ] as const,
 );
 
+const SHELL_ROUTE_PATHS = Object.freeze(
+  [
+    workloadRoute,
+    "/styles.css",
+    "/demos/simulation-nbody-cloth/demo.js",
+  ] as const,
+);
+const COMPLETE_ROUTE_PATHS = Object.freeze(
+  [
+    ...SHELL_ROUTE_PATHS,
+    "/demos/simulation-nbody-cloth/worker.js",
+    "/benchmarks/base/simulation-nbody/contract.js",
+    "/benchmarks/base/simulation-nbody/fixture.js",
+    "/benchmarks/base/simulation-nbody/engine.js",
+  ] as const,
+);
+export const SCENARIO_ROUTE_PATHS: Readonly<Record<string, readonly string[]>> = Object.freeze({
+  "js-controlled-complete": COMPLETE_ROUTE_PATHS,
+  "wasm-linear-controlled-complete": Object.freeze([
+    ...COMPLETE_ROUTE_PATHS,
+    "/artifacts/base-simulation-nbody/nbody.wasm",
+  ]),
+  "cancel-lifecycle": SHELL_ROUTE_PATHS,
+  "timeout-lifecycle": SHELL_ROUTE_PATHS,
+  "pagehide-lifecycle": SHELL_ROUTE_PATHS,
+});
+
 type Scenario = (typeof SCENARIOS)[number];
 type ProcessIdentity = {
   pid: number;
   parentPid: number;
   startTimeTicks: string;
   executable: string;
+};
+type CgroupIdentity = {
+  path: string;
+  dev: number;
+  ino: number;
+};
+type ListenerIdentity = {
+  address: "127.0.0.1";
+  inode: string;
+  owner: ProcessIdentity;
 };
 type FrozenSource = {
   evidence: {
@@ -295,6 +334,14 @@ async function cgroupPath(unit: string): Promise<string> {
   return path;
 }
 
+async function cgroupIdentity(path: string): Promise<CgroupIdentity> {
+  const info = await Deno.lstat(`/sys/fs/cgroup${path}`);
+  if (!info.isDirectory || info.isSymlink) {
+    throw new Error(`owned cgroup is not an exact directory: ${path}`);
+  }
+  return { path, dev: Number(info.dev), ino: Number(info.ino) };
+}
+
 async function cgroupProcesses(path: string): Promise<ProcessIdentity[]> {
   const pids = (await Deno.readTextFile(`/sys/fs/cgroup${path}/cgroup.procs`))
     .trim().split("\n").filter(Boolean).map(Number);
@@ -302,6 +349,63 @@ async function cgroupProcesses(path: string): Promise<ProcessIdentity[]> {
     (identity): identity is ProcessIdentity => identity !== null,
   );
   return identities.sort((a, b) => a.pid - b.pid);
+}
+
+async function processCgroupPath(pid: number): Promise<string | null> {
+  const rows = (await Deno.readTextFile(`/proc/${pid}/cgroup`)).trim().split("\n");
+  const unified = rows.find((row) => row.startsWith("0::"));
+  return unified ? unified.slice(3) : null;
+}
+
+async function listenerOwnership(
+  port: number,
+  cgroup: CgroupIdentity,
+): Promise<ListenerIdentity> {
+  const currentCgroup = await cgroupIdentity(cgroup.path);
+  if (currentCgroup.dev !== cgroup.dev || currentCgroup.ino !== cgroup.ino) {
+    throw new Error("owned browser cgroup identity changed before CDP use");
+  }
+  const local = `0100007F:${port.toString(16).toUpperCase().padStart(4, "0")}`;
+  const fields = (await Deno.readTextFile("/proc/net/tcp")).trim().split("\n").slice(1)
+    .map((line) => line.trim().split(/\s+/));
+  const listeners = fields.filter((row) => row[1] === local && row[3] === "0A");
+  if (listeners.length !== 1) {
+    throw new Error("Chrome CDP listener is not unique on owned loopback port");
+  }
+  const inode = listeners[0][9];
+  const owners: ProcessIdentity[] = [];
+  for (const identity of await cgroupProcesses(cgroup.path)) {
+    try {
+      for await (const entry of Deno.readDir(`/proc/${identity.pid}/fd`)) {
+        const target = await Deno.readLink(`/proc/${identity.pid}/fd/${entry.name}`).catch(() =>
+          ""
+        );
+        if (target === `socket:[${inode}]`) owners.push(identity);
+      }
+    } catch {
+      // A process that disappeared cannot own the still-live listener.
+    }
+  }
+  if (owners.length !== 1 || await processCgroupPath(owners[0].pid) !== cgroup.path) {
+    throw new Error("Chrome CDP listener is not owned by exactly one process in its frozen cgroup");
+  }
+  return { address: "127.0.0.1", inode, owner: owners[0] };
+}
+
+function sameProcess(left: ProcessIdentity, right: ProcessIdentity): boolean {
+  return left.pid === right.pid && left.parentPid === right.parentPid &&
+    left.startTimeTicks === right.startTimeTicks && left.executable === right.executable;
+}
+
+async function revalidateListener(
+  expected: ListenerIdentity,
+  port: number,
+  cgroup: CgroupIdentity,
+): Promise<void> {
+  const current = await listenerOwnership(port, cgroup);
+  if (current.inode !== expected.inode || !sameProcess(current.owner, expected.owner)) {
+    throw new Error("Chrome CDP listener owner changed before browser navigation");
+  }
 }
 
 async function cgroupAbsent(path: string, timeoutMs: number): Promise<boolean> {
@@ -327,6 +431,43 @@ async function killScope(unit: string, signal: "SIGTERM" | "SIGKILL"): Promise<v
   const stderr = new TextDecoder().decode(output.stderr);
   if (!output.success && !stderr.includes("not loaded")) {
     throw new Error(`failed to kill owned cgroup ${unit}.scope: ${stderr.trim()}`);
+  }
+}
+
+async function scopeInactive(unit: string): Promise<boolean> {
+  const output = await new Deno.Command("systemctl", {
+    args: ["--user", "is-active", `${unit}.scope`],
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  const state = new TextDecoder().decode(output.stdout).trim();
+  return !output.success && ["inactive", "failed", "unknown"].includes(state);
+}
+
+async function waitForScopeInactive(unit: string, timeoutMs: number): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (await scopeInactive(unit)) return true;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  return false;
+}
+
+async function waitForPromise<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  label: string,
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_resolve, reject) => {
+        timer = setTimeout(() => reject(new Error(`${label} status did not resolve`)), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timer !== undefined) clearTimeout(timer);
   }
 }
 
@@ -446,6 +587,9 @@ async function collectScenario(
   scenario: Scenario,
   output: string,
   frozenRecords: ReadonlyMap<string, { bytes: number; sha256: string }>,
+  debuggerPort: number,
+  listener: ListenerIdentity,
+  browserCgroup: CgroupIdentity,
 ) {
   const created = await client.send("Target.createTarget", { url: "about:blank" });
   const targetId = String(created.targetId);
@@ -455,6 +599,7 @@ async function collectScenario(
   const attachTasks: Promise<void>[] = [];
   const responseTasks: Promise<void>[] = [];
   const requests = new Map<string, NetworkRecord>();
+  const requestViolations: string[] = [];
   const executedAssets = new Map<string, Record<string, unknown>>();
   const consoleMessages: Array<Record<string, unknown>> = [];
   const exceptions: Array<Record<string, unknown>> = [];
@@ -497,8 +642,12 @@ async function collectScenario(
     }),
     client.on("Network.requestWillBeSent", (params, eventSession) => {
       if (!eventSession || !observedSessions.has(eventSession)) return;
+      const requestKey = key(eventSession, params.requestId);
+      if (requests.has(requestKey) || params.redirectResponse) {
+        requestViolations.push("redirect or duplicate request identity");
+      }
       const request = params.request as Record<string, unknown>;
-      requests.set(key(eventSession, params.requestId), {
+      requests.set(requestKey, {
         requestId: String(params.requestId),
         sessionId: eventSession,
         url: String(request.url),
@@ -585,6 +734,7 @@ async function collectScenario(
         resolve();
       });
     });
+    await revalidateListener(listener, debuggerPort, browserCgroup);
     await client.send("Page.navigate", { url: `${origin}${workloadRoute}` }, sessionId);
     await loaded;
     await waitForState(
@@ -655,20 +805,7 @@ async function collectScenario(
       );
     }
     await Promise.all(attachTasks);
-    const requiredAssets = scenario.action === "complete"
-      ? [
-        workloadRoute,
-        "/styles.css",
-        "/demos/simulation-nbody-cloth/demo.js",
-        "/demos/simulation-nbody-cloth/worker.js",
-        "/benchmarks/base/simulation-nbody/contract.js",
-        "/benchmarks/base/simulation-nbody/fixture.js",
-        "/benchmarks/base/simulation-nbody/engine.js",
-        ...(scenario.target === "wasm-linear-controlled"
-          ? ["/artifacts/base-simulation-nbody/nbody.wasm"]
-          : []),
-      ]
-      : [workloadRoute, "/styles.css", "/demos/simulation-nbody-cloth/demo.js"];
+    const requiredAssets = SCENARIO_ROUTE_PATHS[scenario.id];
     const networkDeadline = Date.now() + 2_000;
     while (
       Date.now() < networkDeadline &&
@@ -684,15 +821,26 @@ async function collectScenario(
       { requestId: _requestId, sessionId: _sessionId, ...r },
     ) => r);
     if (
-      network.some((request) => {
+      requestViolations.length > 0 || network.some((request) => {
         const url = new URL(request.url);
         return request.failed || request.status !== 200 || request.fromServiceWorker ||
           request.fromDiskCache || request.method !== "GET" || url.origin !== origin ||
-          !(url.pathname in EXECUTED_ROUTE_PATHS);
+          request.url !== `${origin}${url.pathname}` || !(url.pathname in EXECUTED_ROUTE_PATHS);
       })
     ) {
       throw new Error(
         `${scenario.id} had foreign, unknown, cached, failed, non-GET, non-200, or Service Worker traffic`,
+      );
+    }
+    const expectedRoster = [...requiredAssets].sort();
+    const networkRoster = network.map((request) => new URL(request.url).pathname).sort();
+    const executionRoster = [...executedAssets.keys()].sort();
+    if (
+      JSON.stringify(networkRoster) !== JSON.stringify(expectedRoster) ||
+      JSON.stringify(executionRoster) !== JSON.stringify(expectedRoster)
+    ) {
+      throw new Error(
+        `${scenario.id} network/execution roster was not the exact unique scenario roster`,
       );
     }
 
@@ -728,6 +876,7 @@ async function collectScenario(
     return {
       ...scenario,
       route: workloadRoute,
+      cdpBoundBeforeNavigation: true,
       lifecycleInjection,
       finalState,
       oracle,
@@ -746,7 +895,7 @@ async function collectScenario(
     };
   } finally {
     for (const remove of removers) remove();
-    await client.send("Target.closeTarget", { targetId }).catch(() => ({}));
+    await client.send("Target.closeTarget", { targetId });
   }
 }
 
@@ -793,6 +942,9 @@ async function runCollector() {
   const chromeIdentity = await fileRecord(chromeExecutable);
   const executableInfo = await Deno.stat(chromeExecutable);
   if (!executableInfo.isFile) throw new Error("Chrome executable is not a regular file");
+  if (chromeIdentity.sha256 !== CFT_EXECUTABLE_SHA256) {
+    throw new Error("collector requires the approved Chrome for Testing executable SHA-256");
+  }
 
   const serverPort = unusedPort(), debuggerPort = unusedPort();
   const origin = `http://127.0.0.1:${serverPort}`;
@@ -801,13 +953,16 @@ async function runCollector() {
   const browserUnit = `wasm-nbody-browser-${nonce}`;
   let server: Deno.ChildProcess | null = null;
   let serverStatus: Promise<Deno.CommandStatus> | null = null;
-  let serverCgroup: string | null = null;
+  let serverCgroup: CgroupIdentity | null = null;
   let browserProcess: Deno.ChildProcess | null = null;
   let browserStatus: Promise<Deno.CommandStatus> | null = null;
-  let browserCgroup: string | null = null;
+  let browserCgroup: CgroupIdentity | null = null;
   let profilePath: string | null = null;
+  let profileIdentity: { dev: number; ino: number } | null = null;
   let client: CdpClient | null = null;
   let completed = false;
+  let collectionError: unknown = null;
+  let failureCleanupError: Error | null = null;
   try {
     server = scopedCommand(
       serverUnit,
@@ -825,16 +980,31 @@ async function runCollector() {
       },
     );
     serverStatus = server.status;
-    const serverPid = server.pid;
     await waitFor(`${origin}/healthz`);
-    serverCgroup = await cgroupPath(serverUnit);
+    serverCgroup = await cgroupIdentity(await cgroupPath(serverUnit));
 
     profilePath = await Deno.makeTempDir({ prefix: "wasm-nbody-chrome-" });
+    const profileInfo = await Deno.lstat(profilePath);
+    if ([...Deno.readDirSync(profilePath)].length !== 0 || profileInfo.isSymlink) {
+      throw new Error("owned Chrome profile was not a new empty directory");
+    }
+    profileIdentity = { dev: Number(profileInfo.dev), ino: Number(profileInfo.ino) };
     const launchArguments = chromeLaunchArguments(debuggerPort, profilePath);
     browserProcess = scopedCommand(browserUnit, chromeExecutable, launchArguments, {});
     browserStatus = browserProcess.status;
-    const browserPid = browserProcess.pid;
-    browserCgroup = await cgroupPath(browserUnit);
+    browserCgroup = await cgroupIdentity(await cgroupPath(browserUnit));
+    let cdpListener: ListenerIdentity | null = null;
+    const listenerDeadline = Date.now() + 10_000;
+    while (!cdpListener && Date.now() < listenerDeadline) {
+      try {
+        cdpListener = await listenerOwnership(debuggerPort, browserCgroup);
+      } catch {
+        await new Promise((resolve) => setTimeout(resolve, 25));
+      }
+    }
+    if (!cdpListener || cdpListener.owner.executable !== chromeExecutable) {
+      throw new Error("owned Chrome CDP listener was not bound to the inspected executable/cgroup");
+    }
     const discovery = await (await waitFor(`http://127.0.0.1:${debuggerPort}/json/version`)).json();
     const websocket = new URL(String(discovery.webSocketDebuggerUrl));
     if (
@@ -844,46 +1014,66 @@ async function runCollector() {
     ) throw new Error("Chrome CDP endpoint escaped the exact owned loopback endpoint");
     client = new CdpClient(websocket.href);
     await client.ready();
+    await revalidateListener(cdpListener, debuggerPort, browserCgroup);
     const version = await client.send("Browser.getVersion");
-    if (!expectedProduct.test(String(version.product))) {
-      throw new Error(`expected released Chrome product, found ${String(version.product)}`);
+    if (version.product !== CFT_PRODUCT) {
+      throw new Error(`collector requires exact Chrome for Testing ${CFT_PRODUCT}`);
     }
     const commandLine = await client.send("Browser.getBrowserCommandLine");
     if (!Array.isArray(commandLine.arguments)) throw new Error("Chrome effective argv unavailable");
-    for (const argument of launchArguments) {
-      if ((commandLine.arguments as unknown[]).filter((value) => value === argument).length !== 1) {
-        throw new Error(`Chrome effective argv did not contain exactly one ${argument}`);
-      }
+    if (
+      JSON.stringify(commandLine.arguments) !==
+        JSON.stringify([chromeExecutable, ...launchArguments])
+    ) {
+      throw new Error("Chrome effective argv differs from the exact approved launch arguments");
     }
 
     const records = [];
     for (const scenario of SCENARIOS) {
-      records.push(await collectScenario(client, origin, scenario, output, source.records));
+      records.push(
+        await collectScenario(
+          client,
+          origin,
+          scenario,
+          output,
+          source.records,
+          debuggerPort,
+          cdpListener,
+          browserCgroup,
+        ),
+      );
     }
-    const observedProcesses = await cgroupProcesses(browserCgroup);
-    const launcher = observedProcesses.find((identity) => identity.pid === browserPid);
-    if (!launcher || launcher.executable !== chromeExecutable) {
-      throw new Error("owned Chrome launcher identity changed before cleanup");
+    await revalidateListener(cdpListener, debuggerPort, browserCgroup);
+    const observedProcesses = await cgroupProcesses(browserCgroup.path);
+    const launcher = observedProcesses.find((identity) => sameProcess(identity, cdpListener.owner));
+    if (!launcher) {
+      throw new Error("owned Chrome listener/launcher identity changed before cleanup");
     }
     await client.send("Browser.close");
     client.close();
     client = null;
     const signals: Array<{ signal: string }> = [];
-    if (!(await cgroupAbsent(browserCgroup, 10_000))) {
+    if (!(await cgroupAbsent(browserCgroup.path, 10_000))) {
       await killScope(browserUnit, "SIGTERM");
       signals.push({ signal: "SIGTERM" });
     }
-    if (!(await cgroupAbsent(browserCgroup, 5_000))) {
+    if (!(await cgroupAbsent(browserCgroup.path, 5_000))) {
       await killScope(browserUnit, "SIGKILL");
       signals.push({ signal: "SIGKILL" });
     }
-    const processesAbsent = await cgroupAbsent(browserCgroup, 5_000);
+    const processesAbsent = await cgroupAbsent(browserCgroup.path, 5_000);
     const browserExit = await browserStatus;
     if (!processesAbsent) throw new Error("owned Chrome cgroup survived exact cleanup");
     const chromeAfter = await fileRecord(chromeExecutable);
     if (
       chromeAfter.bytes !== chromeIdentity.bytes || chromeAfter.sha256 !== chromeIdentity.sha256
     ) throw new Error("Chrome executable bytes changed across collection");
+    const currentProfile = await Deno.lstat(profilePath);
+    if (
+      !profileIdentity || currentProfile.isSymlink ||
+      Number(currentProfile.dev) !== profileIdentity.dev ||
+      Number(currentProfile.ino) !== profileIdentity.ino
+    ) throw new Error("owned Chrome profile identity changed before cleanup");
     await Deno.remove(profilePath, { recursive: true });
     let profileAbsent = false;
     try {
@@ -894,14 +1084,17 @@ async function runCollector() {
     }
     if (!profileAbsent) throw new Error("owned Chrome profile survived cleanup");
 
-    const serverProcesses = await cgroupProcesses(serverCgroup);
-    const serverIdentity = serverProcesses.find((identity) => identity.pid === serverPid);
-    if (!serverIdentity || serverIdentity.executable !== Deno.execPath()) {
+    const serverProcesses = await cgroupProcesses(serverCgroup.path);
+    const serverLaunchers = serverProcesses.filter((identity) =>
+      identity.executable === Deno.execPath()
+    );
+    if (serverLaunchers.length !== 1) {
       throw new Error("owned evidence server launcher identity changed before cleanup");
     }
+    const serverIdentity = serverLaunchers[0];
     await killScope(serverUnit, "SIGTERM");
     const serverExit = await serverStatus;
-    const serverAbsent = await cgroupAbsent(serverCgroup, 5_000);
+    const serverAbsent = await cgroupAbsent(serverCgroup.path, 5_000);
     if (!serverAbsent) throw new Error("owned evidence server cgroup survived exact cleanup");
     await assertFrozenSourceUnchanged(source);
 
@@ -929,12 +1122,42 @@ async function runCollector() {
           dev: Number(executableInfo.dev),
           ino: Number(executableInfo.ino),
         },
-        requestedLaunchArguments: launchArguments,
-        effectiveCommandLine: commandLine.arguments,
+        channel: "chrome-for-testing",
+        effectiveLaunchArguments: launchArguments,
         headless: true,
         protocol: "Chrome DevTools Protocol",
+        ownership: {
+          launcher: {
+            pid: launcher.pid,
+            parentPid: launcher.parentPid,
+            startTimeTicks: launcher.startTimeTicks,
+            cdpListener: {
+              inode: cdpListener.inode,
+              boundBeforeConnection: true,
+              boundBeforeEveryNavigation: true,
+            },
+          },
+          otherObservedProcesses: observedProcesses.filter((identity) =>
+            !sameProcess(identity, launcher)
+          ),
+          cgroup: {
+            ...browserCgroup,
+            membership: "all processes in the dedicated systemd scope",
+          },
+        },
       },
-      server: { origin, mode: "public", launcherPid: serverPid },
+      server: {
+        origin,
+        mode: "public",
+        launcher: serverIdentity,
+        otherObservedProcesses: serverProcesses.filter((identity) =>
+          !sameProcess(identity, serverIdentity)
+        ),
+        cgroup: {
+          ...serverCgroup,
+          membership: "all processes in the dedicated systemd scope",
+        },
+      },
       contract: {
         targets: [...VARIANTS],
         timesteps: TIMESTEPS,
@@ -956,32 +1179,18 @@ async function runCollector() {
       scenarios: records,
       cleanup: {
         browser: {
-          launcher,
-          observedProcesses,
           requested: "Browser.close",
-          cgroup: {
-            unit: `${browserUnit}.scope`,
-            path: browserCgroup,
-            membership: "all processes in the dedicated systemd scope",
-            absent: processesAbsent,
-          },
           signals,
           exit: browserExit,
           processesAbsent,
+          cgroupAbsent: processesAbsent,
         },
-        profile: { path: profilePath, removed: true, absent: profileAbsent },
+        profile: { removed: true, absent: profileAbsent },
         server: {
-          launcher: serverIdentity,
-          observedProcesses: serverProcesses,
-          cgroup: {
-            unit: `${serverUnit}.scope`,
-            path: serverCgroup,
-            membership: "all processes in the dedicated systemd scope",
-            absent: serverAbsent,
-          },
           signal: "SIGTERM",
           exit: serverExit,
           processAbsent: serverAbsent,
+          cgroupAbsent: serverAbsent,
         },
       },
     };
@@ -990,31 +1199,131 @@ async function runCollector() {
     await Deno.writeTextFile(output, `${canonicalize(evidence)}\n`, { createNew: true });
     completed = true;
     console.log(`simulation N-body browser evidence: ${records.length} scenarios; exact cleanup`);
+  } catch (error) {
+    collectionError = error;
   } finally {
     if (!completed) {
-      try {
-        await client?.send("Browser.close");
-      } catch {
-        // Continue with exact identity-bound cleanup below.
+      const cleanupFailures: string[] = [];
+      const attempt = async (label: string, operation: () => Promise<void>) => {
+        try {
+          await operation();
+        } catch (error) {
+          cleanupFailures.push(
+            `${label}: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        }
+      };
+      if (client) {
+        await attempt("Browser.close", async () => {
+          await client!.send("Browser.close");
+        });
+        try {
+          client.close();
+        } catch (error) {
+          cleanupFailures.push(
+            `CDP socket close: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        }
+        client = null;
       }
-      client?.close();
-      await killScope(browserUnit, "SIGTERM").catch(() => {});
-      if (browserCgroup && !(await cgroupAbsent(browserCgroup, 2_000).catch(() => false))) {
-        await killScope(browserUnit, "SIGKILL").catch(() => {});
-        await cgroupAbsent(browserCgroup, 2_000).catch(() => false);
+
+      if (browserProcess) {
+        await attempt("browser SIGTERM", () => killScope(browserUnit, "SIGTERM"));
+        let absent = browserCgroup
+          ? await cgroupAbsent(browserCgroup.path, 2_000)
+          : await waitForScopeInactive(browserUnit, 2_000);
+        if (!absent) {
+          await attempt("browser SIGKILL", () => killScope(browserUnit, "SIGKILL"));
+          absent = browserCgroup
+            ? await cgroupAbsent(browserCgroup.path, 2_000)
+            : await waitForScopeInactive(browserUnit, 2_000);
+        }
+        if (!absent) cleanupFailures.push("owned browser scope/cgroup survived failure cleanup");
+        if (browserStatus) {
+          await attempt("browser status", async () => {
+            await waitForPromise(browserStatus!, 2_000, "browser");
+          });
+        }
       }
-      await browserStatus?.catch(() => {});
-      await killScope(serverUnit, "SIGTERM").catch(() => {});
-      if (serverCgroup && !(await cgroupAbsent(serverCgroup, 2_000).catch(() => false))) {
-        await killScope(serverUnit, "SIGKILL").catch(() => {});
-        await cgroupAbsent(serverCgroup, 2_000).catch(() => false);
+
+      if (server) {
+        await attempt("server SIGTERM", () => killScope(serverUnit, "SIGTERM"));
+        let absent = serverCgroup
+          ? await cgroupAbsent(serverCgroup.path, 2_000)
+          : await waitForScopeInactive(serverUnit, 2_000);
+        if (!absent) {
+          await attempt("server SIGKILL", () => killScope(serverUnit, "SIGKILL"));
+          absent = serverCgroup
+            ? await cgroupAbsent(serverCgroup.path, 2_000)
+            : await waitForScopeInactive(serverUnit, 2_000);
+        }
+        if (!absent) cleanupFailures.push("owned server scope/cgroup survived failure cleanup");
+        if (serverStatus) {
+          await attempt("server status", async () => {
+            await waitForPromise(serverStatus!, 2_000, "server");
+          });
+        }
       }
-      await serverStatus?.catch(() => {});
-      if (profilePath) await Deno.remove(profilePath, { recursive: true }).catch(() => {});
-      await Deno.remove(output).catch(() => {});
-      await Deno.remove(generatedPaths.screenshotDirectory, { recursive: true }).catch(() => {});
+
+      if (profilePath) {
+        await attempt("profile removal", async () => {
+          let current: Deno.FileInfo | null = null;
+          try {
+            current = await Deno.lstat(profilePath!);
+          } catch (error) {
+            if (!(error instanceof Deno.errors.NotFound)) throw error;
+          }
+          if (current) {
+            if (
+              !profileIdentity || current.isSymlink ||
+              Number(current.dev) !== profileIdentity.dev ||
+              Number(current.ino) !== profileIdentity.ino
+            ) throw new Error("owned profile identity changed; refusing unsafe removal");
+            await Deno.remove(profilePath!, { recursive: true });
+          }
+          try {
+            await Deno.lstat(profilePath!);
+            throw new Error("owned profile survived removal");
+          } catch (error) {
+            if (!(error instanceof Deno.errors.NotFound)) throw error;
+          }
+        });
+      }
+
+      for (
+        const [label, path, recursive] of [
+          ["partial evidence output", output, false],
+          ["partial screenshot output", generatedPaths.screenshotDirectory, true],
+        ] as const
+      ) {
+        await attempt(label, async () => {
+          try {
+            await Deno.remove(path, { recursive });
+          } catch (error) {
+            if (!(error instanceof Deno.errors.NotFound)) throw error;
+          }
+          try {
+            await Deno.lstat(path);
+            throw new Error(`${path} survived removal`);
+          } catch (error) {
+            if (!(error instanceof Deno.errors.NotFound)) throw error;
+          }
+        });
+      }
+      if (cleanupFailures.length) {
+        failureCleanupError = new Error(
+          `collector failure cleanup was not exact: ${cleanupFailures.join("; ")}`,
+        );
+      }
     }
   }
+  if (failureCleanupError) {
+    throw new AggregateError(
+      [collectionError, failureCleanupError].filter((error) => error !== null),
+      "collection failed and exact cleanup could not be established",
+    );
+  }
+  if (collectionError) throw collectionError;
 }
 
 if (import.meta.main) await runCollector();
