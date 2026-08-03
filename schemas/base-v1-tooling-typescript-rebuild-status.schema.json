@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/base-v1-tooling-typescript-rebuild-status.schema.json",
+  "title": "Frozen-v1 TypeScript rebuild implementation qualification",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "recordId",
+    "workloadId",
+    "status",
+    "frozenCatalog",
+    "coverage",
+    "requiredContract",
+    "qualification",
+    "blocker",
+    "nextAction"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "recordId": { "const": "base-v1-tooling-typescript-rebuild-qualification-v1" },
+    "workloadId": { "const": "tooling.typescript-rebuild.v1" },
+    "status": { "const": "blocked-missing-qualified-material-wasm-semantic-typechecker" },
+    "frozenCatalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "publicPath", "sha256", "entryIndex", "immutable"],
+      "properties": {
+        "path": { "const": "catalog/workloads.v1.json" },
+        "publicPath": { "const": "public/data/workloads.v1.json" },
+        "sha256": { "const": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4" },
+        "entryIndex": { "const": 37 },
+        "immutable": { "const": true }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "countsAsImplementedCatalogEntry",
+        "controlledPairAvailable",
+        "validationRecords",
+        "interactiveDemoRoute",
+        "performanceResults"
+      ],
+      "properties": {
+        "countsAsImplementedCatalogEntry": { "const": false },
+        "controlledPairAvailable": { "const": false },
+        "validationRecords": { "const": 0 },
+        "interactiveDemoRoute": { "type": "null" },
+        "performanceResults": { "const": "unavailable" }
+      }
+    },
+    "requiredContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "moduleCount",
+        "fixedEditCount",
+        "work",
+        "oracle",
+        "requiredTargetCapabilities",
+        "requiredCounters"
+      ],
+      "properties": {
+        "moduleCount": { "const": 1000 },
+        "fixedEditCount": { "const": 1 },
+        "work": {
+          "const": "parse, resolve, semantically typecheck, incrementally invalidate, emit and bundle the complete generated project after the fixed edit"
+        },
+        "oracle": {
+          "const": "normalized complete diagnostics, dependency graph, emitted modules, executable bundle behavior and complete output hashes"
+        },
+        "requiredTargetCapabilities": {
+          "type": "array",
+          "prefixItems": [
+            { "const": "typescript-parser" },
+            { "const": "typescript-module-resolution" },
+            { "const": "typescript-semantic-typechecker" },
+            { "const": "incremental-invalidation" },
+            { "const": "javascript-emission" },
+            { "const": "bundle-construction" }
+          ],
+          "items": false,
+          "minItems": 6,
+          "maxItems": 6
+        },
+        "requiredCounters": {
+          "type": "array",
+          "prefixItems": [
+            { "const": "modules-parsed" },
+            { "const": "modules-resolved" },
+            { "const": "modules-rechecked" },
+            { "const": "diagnostics" },
+            { "const": "modules-emitted" },
+            { "const": "bundle-bytes" },
+            { "const": "cache-hits" },
+            { "const": "cache-misses" },
+            { "const": "allocations" },
+            { "const": "boundary-crossings" }
+          ],
+          "items": false,
+          "minItems": 10,
+          "maxItems": 10
+        }
+      }
+    },
+    "qualification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["qualifiedTarget", "repositoryRequirements", "candidateDispositions"],
+      "properties": {
+        "qualifiedTarget": { "type": "null" },
+        "repositoryRequirements": {
+          "type": "array",
+          "minItems": 5,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "path", "present"],
+            "properties": {
+              "id": { "type": "string", "minLength": 1 },
+              "path": { "type": "string", "minLength": 1 },
+              "present": { "const": false }
+            }
+          }
+        },
+        "candidateDispositions": {
+          "type": "array",
+          "minItems": 4,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["candidate", "disposition", "reason"],
+            "properties": {
+              "candidate": { "type": "string", "minLength": 1 },
+              "disposition": { "const": "rejected-for-controlled-pair" },
+              "reason": { "type": "string", "minLength": 20 }
+            }
+          }
+        }
+      }
+    },
+    "blocker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "detail", "doesNotQualify"],
+      "properties": {
+        "code": { "const": "material-wasm-semantic-typechecker-unavailable" },
+        "detail": { "type": "string", "minLength": 40 },
+        "doesNotQualify": {
+          "type": "array",
+          "prefixItems": [
+            { "const": "syntax-only transform or bundle" },
+            { "const": "JavaScript TypeScript compiler hosted behind a Wasm runtime wrapper" },
+            {
+              "const": "JavaScript host performing semantic work for a Wasm checksum or dispatch stub"
+            },
+            { "const": "reduced module count or omitted typechecking" }
+          ],
+          "items": false,
+          "minItems": 4,
+          "maxItems": 4
+        }
+      }
+    },
+    "nextAction": { "type": "string", "minLength": 40 }
+  }
+}
