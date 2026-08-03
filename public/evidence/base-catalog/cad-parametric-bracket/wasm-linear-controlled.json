@@ -5,11 +5,11 @@
   "status": "implementation-candidate",
   "variantId": "wasm-linear-controlled",
   "executionTarget": "wasm-linear",
-  "sourceCommit": "12f25b2a0214cede402fdd5bfd5fc2894d084109",
+  "sourceCommit": "0674058a99534ec26cef52d1963dbb5fe3e0523e",
   "source": {
     "path": "public/artifacts/base-cad-parametric-bracket/source-bundle.txt",
-    "bytes": 1480,
-    "sha256": "48652e19a5b2abd18c0a1ef60c6930c9dd2588e9da2cf73fc60804bcb60afe69"
+    "bytes": 133612,
+    "sha256": "0ab8e7c91152d4b02e8447b8bda74b576bedfb4828a53fffc006d74b7c5c7d56"
   },
   "fixture": {
     "path": "public/artifacts/base-cad-parametric-bracket/fixture.bin",
@@ -18,12 +18,12 @@
   },
   "artifact": {
     "path": "public/artifacts/base-cad-parametric-bracket/bracket.wasm",
-    "bytes": 14457,
-    "sha256": "5ac287ff18d664ed5f7a877308dcdf77f2d05d8e767a839984fb9f1a864c4163"
+    "bytes": 24837,
+    "sha256": "82166df411845eeb1014b3c42e0751276c2d77815383ea5ed55a572ed4ab2ff1"
   },
   "oracle": {
-    "completeOutputSha256": "47244801c8cc678e2e71aa53606b53b32939a65aa30700133b1fbf048e516433",
-    "completeOutputDigest": "50670daa6b950c62",
+    "completeOutputSha256": "a1b9fe34b51782221b30aadd54b36aa6a45ba38846d6b44cca2669b75993b39f",
+    "completeOutputDigest": "d60fbade9eff2ffb",
     "exactCrossTargetBytes": true,
     "topology": {
       "connectedComponents": 1,
@@ -33,6 +33,9 @@
       "faces": 12,
       "edges": 30,
       "vertices": 20,
+      "loops": 16,
+      "coedges": 60,
+      "eulerCharacteristic": -2,
       "watertight": true,
       "oriented": true,
       "tessellationEdges": 8706
@@ -53,7 +56,7 @@
     "tessellationVertices": 17412,
     "inputBytes": 128,
     "outputBytes": 419744,
-    "allocations": 0,
+    "allocations": 1,
     "boundaryCrossings": 2
   },
   "performanceClaims": []

@@ -5,11 +5,11 @@
   "status": "implementation-candidate",
   "variantId": "js-controlled",
   "executionTarget": "javascript",
-  "sourceCommit": "12f25b2a0214cede402fdd5bfd5fc2894d084109",
+  "sourceCommit": "0674058a99534ec26cef52d1963dbb5fe3e0523e",
   "source": {
     "path": "public/artifacts/base-cad-parametric-bracket/source-bundle.txt",
-    "bytes": 1480,
-    "sha256": "48652e19a5b2abd18c0a1ef60c6930c9dd2588e9da2cf73fc60804bcb60afe69"
+    "bytes": 133612,
+    "sha256": "0ab8e7c91152d4b02e8447b8bda74b576bedfb4828a53fffc006d74b7c5c7d56"
   },
   "fixture": {
     "path": "public/artifacts/base-cad-parametric-bracket/fixture.bin",
@@ -18,12 +18,12 @@
   },
   "artifact": {
     "path": "benchmarks/base/cad-parametric-bracket/engine.js",
-    "bytes": 25483,
-    "sha256": "eda2ed090898efd6caf301f695322804d3fd32b9d9795afc509b9fbdcf28efcc"
+    "bytes": 35363,
+    "sha256": "8ddaf108920ba923ded72e83aeefdeda600621bf805ea48ffb3cd240dc355243"
   },
   "oracle": {
-    "completeOutputSha256": "47244801c8cc678e2e71aa53606b53b32939a65aa30700133b1fbf048e516433",
-    "completeOutputDigest": "50670daa6b950c62",
+    "completeOutputSha256": "a1b9fe34b51782221b30aadd54b36aa6a45ba38846d6b44cca2669b75993b39f",
+    "completeOutputDigest": "d60fbade9eff2ffb",
     "exactCrossTargetBytes": true,
     "topology": {
       "connectedComponents": 1,
@@ -33,6 +33,9 @@
       "faces": 12,
       "edges": 30,
       "vertices": 20,
+      "loops": 16,
+      "coedges": 60,
+      "eulerCharacteristic": -2,
       "watertight": true,
       "oriented": true,
       "tessellationEdges": 8706
@@ -53,7 +56,7 @@
     "tessellationVertices": 17412,
     "inputBytes": 128,
     "outputBytes": 419744,
-    "allocations": 8,
+    "allocations": 1,
     "boundaryCrossings": 0
   },
   "performanceClaims": []

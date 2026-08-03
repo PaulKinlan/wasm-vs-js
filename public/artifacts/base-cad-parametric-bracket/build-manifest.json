@@ -3,48 +3,48 @@
   "workloadId": "cad.parametric-bracket.v1",
   "source": {
     "repository": "https://github.com/PaulKinlan/wasm-vs-js",
-    "commit": "12f25b2a0214cede402fdd5bfd5fc2894d084109",
+    "commit": "0674058a99534ec26cef52d1963dbb5fe3e0523e",
     "sourceBundle": {
       "path": "public/artifacts/base-cad-parametric-bracket/source-bundle.txt",
-      "bytes": 1480,
-      "sha256": "48652e19a5b2abd18c0a1ef60c6930c9dd2588e9da2cf73fc60804bcb60afe69"
+      "bytes": 133612,
+      "sha256": "0ab8e7c91152d4b02e8447b8bda74b576bedfb4828a53fffc006d74b7c5c7d56"
     },
-    "sourceBundleSha256": "48652e19a5b2abd18c0a1ef60c6930c9dd2588e9da2cf73fc60804bcb60afe69",
+    "sourceBundleSha256": "0ab8e7c91152d4b02e8447b8bda74b576bedfb4828a53fffc006d74b7c5c7d56",
     "files": [
       {
         "path": "benchmarks/base/cad-parametric-bracket/contract.js",
-        "bytes": 1095,
-        "sha256": "b5c3c71e41a0f934faaff465ae4d417bd706fe7329ca20969aab3c16a161b3e5"
+        "bytes": 1150,
+        "sha256": "8106c433ef3fdb4fe0907633f43acad878af1e3aaf4b6352f4234385054591ec"
       },
       {
         "path": "benchmarks/base/cad-parametric-bracket/fixture.js",
-        "bytes": 1542,
-        "sha256": "8f658ed83234a433daf81e1fdb6fc1964b997056bf21d7bba43d827444d75cd9"
+        "bytes": 2077,
+        "sha256": "448c8624601d055fd7bbfdfc6204528ed9818b0314dc5560e4e796c5eefa9056"
       },
       {
         "path": "benchmarks/base/cad-parametric-bracket/engine.js",
-        "bytes": 25483,
-        "sha256": "eda2ed090898efd6caf301f695322804d3fd32b9d9795afc509b9fbdcf28efcc"
+        "bytes": 35363,
+        "sha256": "8ddaf108920ba923ded72e83aeefdeda600621bf805ea48ffb3cd240dc355243"
       },
       {
         "path": "benchmarks/base/cad-parametric-bracket/bracket.c",
-        "bytes": 16356,
-        "sha256": "d051c0ab2779a801e4671435cd0fd2787993cf73035715253172659a0bc338a7"
+        "bytes": 24651,
+        "sha256": "2fda2ecca37c99febacdc5b8c4790cdca51dd190953202d20d45e15137c0f6c9"
       },
       {
         "path": "catalog/base-implementations.v1/cad.parametric-bracket.v1.json",
-        "bytes": 2639,
-        "sha256": "638fd5e8ac60c910ea383b6f7448ec861d0857ec8dccb07ad1559bed484a1a25"
+        "bytes": 3199,
+        "sha256": "5f6ac2fbfcdf7d22491898dd5d5d94c6ebf3f8303e41f748721def64521abac0"
       },
       {
         "path": "schemas/cad-parametric-bracket-validation.schema.json",
-        "bytes": 4773,
-        "sha256": "383bc747425f0b599813b5b5be0934c6216cbe3a8865a9284840c21f089e2ff8"
+        "bytes": 4958,
+        "sha256": "c7aeb15d8b7dd0cc896e9316b622e8692f7ba4000632b975376b3a6582adb497"
       },
       {
         "path": "scripts/build-base-cad-parametric-bracket.ts",
-        "bytes": 8789,
-        "sha256": "650d36c33675daf8b8a91fb564503e5ea59d0fe1c48a131e09dfbfcd2b4a01d6"
+        "bytes": 9067,
+        "sha256": "1bdb57e0c75c4461b890a623b0927f8989bb70c4cd0e2f53b6ea9a084576cfb3"
       },
       {
         "path": "public/demos/cad-parametric-bracket/index.html",
@@ -63,8 +63,8 @@
       },
       {
         "path": "tests/base/cad-parametric-bracket.test.ts",
-        "bytes": 13422,
-        "sha256": "2d402525bc588b82e544d15a4f9ec1bf19c25db52467eeb90d2102d6efdb5fe4"
+        "bytes": 19658,
+        "sha256": "f97fcc09e7bbc09373c6294c402a0ee2ac956217f248bace1ba190423b52f3d6"
       },
       {
         "path": "server.ts",
@@ -125,13 +125,13 @@
     },
     "wasm": {
       "path": "public/artifacts/base-cad-parametric-bracket/bracket.wasm",
-      "bytes": 14457,
-      "sha256": "5ac287ff18d664ed5f7a877308dcdf77f2d05d8e767a839984fb9f1a864c4163"
+      "bytes": 24837,
+      "sha256": "82166df411845eeb1014b3c42e0751276c2d77815383ea5ed55a572ed4ab2ff1"
     },
     "referenceOutput": {
       "path": "public/artifacts/base-cad-parametric-bracket/reference-output.bin",
       "bytes": 419744,
-      "sha256": "47244801c8cc678e2e71aa53606b53b32939a65aa30700133b1fbf048e516433"
+      "sha256": "a1b9fe34b51782221b30aadd54b36aa6a45ba38846d6b44cca2669b75993b39f"
     }
   },
   "performanceClaims": []
