@@ -1,0 +1,513 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.ai-focus.dev/schemas/archive-zip-browser-evidence.v1.json",
+  "title": "archive.zip-workspace.v1 authoritative browser acceptance evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "evidenceId",
+    "collectedAt",
+    "source",
+    "collector",
+    "browser",
+    "server",
+    "scenarios",
+    "ownership",
+    "cleanup"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "evidenceId": {
+      "type": "string",
+      "pattern": "^archive-zip-workspace-browser-[a-f0-9]{40}-v1$"
+    },
+    "collectedAt": { "$ref": "#/$defs/dateTime" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commit", "tree", "graphSha256", "files"],
+      "properties": {
+        "commit": { "$ref": "#/$defs/git" },
+        "tree": { "$ref": "#/$defs/git" },
+        "graphSha256": { "$ref": "#/$defs/sha" },
+        "files": {
+          "type": "array",
+          "minItems": 17,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/sourceFile" }
+        }
+      }
+    },
+    "collector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command",
+        "startedAt",
+        "endedAt",
+        "setupCleanupProtected",
+        "performanceEvidence"
+      ],
+      "properties": {
+        "command": { "type": "string", "minLength": 1 },
+        "startedAt": { "$ref": "#/$defs/dateTime" },
+        "endedAt": { "$ref": "#/$defs/dateTime" },
+        "setupCleanupProtected": { "const": true },
+        "performanceEvidence": { "const": false }
+      }
+    },
+    "browser": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "channel",
+        "productName",
+        "version",
+        "cdpProduct",
+        "revision",
+        "userAgent",
+        "jsVersion",
+        "sourceBinary",
+        "resolvedStagedBinary",
+        "binarySha256",
+        "packageManifestSha256",
+        "packageFileCount",
+        "requestedArguments",
+        "effectiveArguments",
+        "headless",
+        "protocol"
+      ],
+      "properties": {
+        "channel": { "const": "chrome-for-testing" },
+        "productName": { "const": "Google Chrome for Testing" },
+        "version": { "const": "150.0.7871.24" },
+        "cdpProduct": { "const": "Chrome/150.0.7871.24" },
+        "revision": { "type": "string", "minLength": 1 },
+        "userAgent": { "type": "string", "minLength": 1 },
+        "jsVersion": { "type": "string", "minLength": 1 },
+        "sourceBinary": { "const": "/home/paulkinlan/.local/bin/google-chrome-stable" },
+        "resolvedStagedBinary": { "type": "string", "pattern": "^/tmp/wasm-vs-js-staged-chrome/" },
+        "binarySha256": {
+          "const": "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355"
+        },
+        "packageManifestSha256": {
+          "const": "e3d5088a5244a494b206819630d4eb2d7e3ee999d1a04cab9d2d95d0daf292db"
+        },
+        "packageFileCount": { "type": "integer", "minimum": 1 },
+        "requestedArguments": {
+          "type": "array",
+          "minItems": 19,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 },
+          "contains": { "const": "--enable-automation" }
+        },
+        "effectiveArguments": {
+          "type": "array",
+          "minItems": 19,
+          "items": { "type": "string", "minLength": 1 },
+          "contains": { "const": "--enable-automation" }
+        },
+        "headless": { "const": true },
+        "protocol": { "const": "Chrome DevTools Protocol" }
+      }
+    },
+    "server": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin", "mode", "process"],
+      "properties": {
+        "origin": { "type": "string", "pattern": "^http://127\\.0\\.0\\.1:[0-9]+$" },
+        "mode": { "const": "public" },
+        "process": { "$ref": "#/$defs/process" }
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "items": { "$ref": "#/$defs/scenario" }
+    },
+    "ownership": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "systemdUnit",
+        "controlGroup",
+        "cgroupPath",
+        "cgroupDev",
+        "cgroupIno",
+        "invocationId",
+        "mainPid",
+        "commandLine",
+        "membershipSnapshots",
+        "allTargetSessionsOwned"
+      ],
+      "properties": {
+        "systemdUnit": { "type": "string", "pattern": "^wasm-vs-js-[a-z0-9]{16,64}\\.service$" },
+        "controlGroup": { "type": "string", "pattern": "^/" },
+        "cgroupPath": { "type": "string", "pattern": "^/sys/fs/cgroup/" },
+        "cgroupDev": { "type": "integer", "minimum": 0 },
+        "cgroupIno": { "type": "integer", "minimum": 1 },
+        "invocationId": { "type": "string", "pattern": "^[a-f0-9]{32}$" },
+        "mainPid": { "type": "integer", "minimum": 2 },
+        "commandLine": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "type": "string", "minLength": 1 },
+          "contains": { "const": "--enable-automation" }
+        },
+        "membershipSnapshots": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/$defs/membership" }
+        },
+        "allTargetSessionsOwned": { "const": true }
+      }
+    },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["browser", "profile", "stage", "server", "candidatePublished"],
+      "properties": {
+        "browser": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["cgroupKilled", "remaining", "identityMismatches", "stoppedAt"],
+          "properties": {
+            "cgroupKilled": { "const": true },
+            "remaining": { "type": "array", "maxItems": 0 },
+            "identityMismatches": { "type": "array", "maxItems": 0 },
+            "stoppedAt": { "$ref": "#/$defs/dateTime" }
+          }
+        },
+        "profile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "absent"],
+          "properties": {
+            "path": { "type": "string", "pattern": "^/tmp/wasm-vs-js-owned-profiles/" },
+            "absent": { "const": true }
+          }
+        },
+        "stage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "lifecycle", "absent"],
+          "properties": {
+            "path": { "type": "string", "pattern": "^/tmp/wasm-vs-js-staged-chrome/" },
+            "lifecycle": { "const": "cleanup-verified" },
+            "absent": { "const": true }
+          }
+        },
+        "server": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["identityMatched", "signal", "processAbsent", "exit"],
+          "properties": {
+            "identityMatched": { "const": true },
+            "signal": { "const": "SIGTERM" },
+            "processAbsent": { "const": true },
+            "exit": { "$ref": "#/$defs/exit" }
+          }
+        },
+        "candidatePublished": { "const": true }
+      }
+    }
+  },
+  "$defs": {
+    "sha": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "git": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "dateTime": { "type": "string", "format": "date-time" },
+    "sourceFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha" }
+      }
+    },
+    "process": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pid", "parentPid", "startTimeTicks", "executable"],
+      "properties": {
+        "pid": { "type": "integer", "minimum": 2 },
+        "parentPid": { "type": "integer", "minimum": 0 },
+        "startTimeTicks": { "type": "string", "pattern": "^[0-9]+$" },
+        "executable": { "type": "string", "minLength": 1 }
+      }
+    },
+    "membership": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["collectedAt", "members"],
+      "properties": {
+        "collectedAt": { "$ref": "#/$defs/dateTime" },
+        "members": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "integer", "minimum": 2 }
+        }
+      }
+    },
+    "exit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["success", "code", "signal"],
+      "properties": {
+        "success": { "type": "boolean" },
+        "code": { "type": "integer" },
+        "signal": { "type": ["string", "null"] }
+      }
+    },
+    "byteArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^artifacts/archive-zip-browser-evidence/[a-f0-9]{40}/raw/"
+        },
+        "bytes": { "type": "integer", "minimum": 0 },
+        "sha256": { "$ref": "#/$defs/sha" }
+      }
+    },
+    "targetOwnership": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targetId", "pageSessionId", "childTargets"],
+      "properties": {
+        "targetId": { "type": "string", "minLength": 1 },
+        "pageSessionId": { "type": "string", "minLength": 1 },
+        "childTargets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["targetId", "sessionId", "type"],
+            "properties": {
+              "targetId": { "type": "string", "minLength": 1 },
+              "sessionId": { "type": "string", "minLength": 1 },
+              "type": { "const": "worker" }
+            }
+          }
+        }
+      }
+    },
+    "checkpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sequence",
+        "label",
+        "monotonicMs",
+        "status",
+        "output",
+        "workerCount",
+        "terminatedWorkers"
+      ],
+      "properties": {
+        "sequence": { "type": "integer", "minimum": 0 },
+        "label": { "type": "string", "minLength": 1 },
+        "monotonicMs": { "type": "number", "minimum": 0 },
+        "status": { "type": "string" },
+        "output": { "type": "string" },
+        "workerCount": { "type": "integer", "minimum": 0 },
+        "terminatedWorkers": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "target", "entryCount", "hashes", "counters"],
+      "properties": {
+        "mode": { "enum": ["full", "bounded"] },
+        "target": { "enum": ["javascript", "wasm"] },
+        "entryCount": { "enum": [1000, 10000] },
+        "hashes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["archiveSha256", "listingSha256", "extractedSha256"],
+          "properties": {
+            "archiveSha256": { "$ref": "#/$defs/sha" },
+            "listingSha256": { "$ref": "#/$defs/sha" },
+            "extractedSha256": { "$ref": "#/$defs/sha" }
+          }
+        },
+        "counters": {
+          "type": "object",
+          "minProperties": 14,
+          "maxProperties": 15,
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "network": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requestId",
+        "sessionId",
+        "source",
+        "url",
+        "method",
+        "type",
+        "initiator",
+        "response",
+        "end",
+        "raw"
+      ],
+      "properties": {
+        "requestId": { "type": "string", "minLength": 1 },
+        "sessionId": { "type": "string", "minLength": 1 },
+        "source": { "enum": ["page", "worker"] },
+        "url": { "type": "string", "pattern": "^http://127\\.0\\.0\\.1:" },
+        "method": { "const": "GET" },
+        "type": { "type": "string", "minLength": 1 },
+        "initiator": { "type": "string", "minLength": 1 },
+        "response": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "mimeType", "protocol", "fromDiskCache", "fromServiceWorker"],
+          "properties": {
+            "status": { "const": 200 },
+            "mimeType": { "type": "string", "minLength": 1 },
+            "protocol": { "type": "string", "minLength": 1 },
+            "fromDiskCache": { "type": "boolean" },
+            "fromServiceWorker": { "const": false }
+          }
+        },
+        "end": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["encodedDataLength", "failed", "errorText", "blockedReason"],
+          "properties": {
+            "encodedDataLength": { "type": "number", "minimum": 0 },
+            "failed": { "const": false },
+            "errorText": { "type": "null" },
+            "blockedReason": { "type": "null" }
+          }
+        },
+        "raw": { "$ref": "#/$defs/byteArtifact" }
+      }
+    },
+    "console": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessionId", "source", "type", "timestamp", "arguments", "stack"],
+      "properties": {
+        "sessionId": { "type": "string", "minLength": 1 },
+        "source": { "enum": ["page", "worker"] },
+        "type": { "type": "string", "minLength": 1 },
+        "timestamp": { "type": "number", "minimum": 0 },
+        "arguments": { "type": "array", "items": { "type": "string" } },
+        "stack": { "type": ["object", "null"] }
+      }
+    },
+    "exception": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sessionId",
+        "source",
+        "timestamp",
+        "text",
+        "lineNumber",
+        "columnNumber",
+        "url",
+        "stack"
+      ],
+      "properties": {
+        "sessionId": { "type": "string", "minLength": 1 },
+        "source": { "enum": ["page", "worker"] },
+        "timestamp": { "type": "number", "minimum": 0 },
+        "text": { "type": "string" },
+        "lineNumber": { "type": "number" },
+        "columnNumber": { "type": "number" },
+        "url": { "type": "string" },
+        "stack": { "type": ["object", "null"] }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "target",
+        "mode",
+        "route",
+        "targetOwnership",
+        "source",
+        "end",
+        "checkpoints",
+        "result",
+        "assertions",
+        "console",
+        "exceptions",
+        "network",
+        "accessibility",
+        "screenshots"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "kind": {
+          "enum": [
+            "complete",
+            "wrong-token",
+            "stale",
+            "restart",
+            "timeout",
+            "cancel",
+            "pagehide",
+            "closed-negative"
+          ]
+        },
+        "target": { "enum": ["javascript", "wasm", "unknown"] },
+        "mode": { "enum": ["full", "bounded", "unknown"] },
+        "route": { "const": "/benchmarks/archive-zip-workspace-v1/" },
+        "targetOwnership": { "$ref": "#/$defs/targetOwnership" },
+        "source": { "$ref": "#/$defs/byteArtifact" },
+        "end": { "$ref": "#/$defs/byteArtifact" },
+        "checkpoints": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/$defs/checkpoint" }
+        },
+        "result": { "oneOf": [{ "$ref": "#/$defs/result" }, { "type": "null" }] },
+        "assertions": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "console": { "type": "array", "items": { "$ref": "#/$defs/console" } },
+        "exceptions": { "type": "array", "items": { "$ref": "#/$defs/exception" } },
+        "network": { "type": "array", "minItems": 3, "items": { "$ref": "#/$defs/network" } },
+        "accessibility": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source", "end"],
+          "properties": {
+            "source": { "$ref": "#/$defs/byteArtifact" },
+            "end": { "$ref": "#/$defs/byteArtifact" }
+          }
+        },
+        "screenshots": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source", "end"],
+          "properties": {
+            "source": { "$ref": "#/$defs/byteArtifact" },
+            "end": { "$ref": "#/$defs/byteArtifact" }
+          }
+        }
+      }
+    }
+  }
+}

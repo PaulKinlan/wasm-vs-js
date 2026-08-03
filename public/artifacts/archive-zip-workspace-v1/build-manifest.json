@@ -1,0 +1,80 @@
+{
+  "artifact": {
+    "bytes": 11586,
+    "memory": {
+      "growth": false,
+      "initialPages": 128,
+      "maximumPages": 128
+    },
+    "path": "public/artifacts/archive-zip-workspace-v1/archive-zip-workspace.wasm",
+    "sha256": "6e2513541f4d0e5d5b549ed1bba16e3e667161e035db94879ffe38c6f72804bc"
+  },
+  "build": {
+    "command": "deno run --allow-read=. --allow-write=public/artifacts,public/evidence,catalog/v1-implementations --allow-run=git,clang,wasm-ld scripts/build-v1-archive.ts --source-commit=<commit>",
+    "flags": [
+      "--target=wasm32-unknown-unknown",
+      "-O3",
+      "-nostdlib",
+      "-ffreestanding",
+      "-fno-builtin",
+      "--strip-all",
+      "fixed memory 8 MiB"
+    ],
+    "toolchains": [
+      "Deno 2.9.0",
+      "Clang 22.1.8",
+      "LLD 22.1.8"
+    ]
+  },
+  "manifests": {
+    "fixture": "public/artifacts/archive-zip-workspace-v1/fixture-manifest.json",
+    "output": "public/artifacts/archive-zip-workspace-v1/output-manifest.json"
+  },
+  "schemaVersion": 1,
+  "sourceCommit": "94822599f66ce71c0081706f277238cbf633c16c",
+  "sourceGraph": [
+    {
+      "bytes": 19539,
+      "path": "benchmarks/v1/archive-zip-workspace/engine.js",
+      "sha256": "16aadf39ada86ee406e76a6657a9fd905f9f02813dcf5bd1caf781791e5c985a"
+    },
+    {
+      "bytes": 14769,
+      "path": "benchmarks/v1/archive-zip-workspace/archive_zip.c",
+      "sha256": "71dec165e6b2ddea84e15fc66c30d5d43769e4c47ccf16240393e07303e07bcc"
+    },
+    {
+      "bytes": 11083,
+      "path": "scripts/build-v1-archive.ts",
+      "sha256": "81cad4b4ddef4ed5060d68030217ae4c91b0aa7111255c35552cdfd6187507a0"
+    },
+    {
+      "bytes": 3104,
+      "path": "public/benchmarks/archive-zip-workspace-v1/index.html",
+      "sha256": "12f5a11fae3e3849a1d09d63f6e30b77132a76cd4ea4187c857337499c50bc84"
+    },
+    {
+      "bytes": 2743,
+      "path": "public/archive-zip-demo.js",
+      "sha256": "0a897fb48def7636196388c4ad8ad1332d35a5e38c21a357d89d388c0f8c1131"
+    },
+    {
+      "bytes": 5392,
+      "path": "public/archive-zip-worker.js",
+      "sha256": "67e13259f2d7fcaf5be29c343526f48bcc9cee47e224f436896bd0a51b485e44"
+    },
+    {
+      "bytes": 1831,
+      "path": "deno.json",
+      "sha256": "17e6674c81fdaee7dfc52ed1bd28baeec70fb0715f839b92defe1e84545b08eb"
+    },
+    {
+      "bytes": 1630,
+      "path": "deno.lock",
+      "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2"
+    }
+  ],
+  "sourceGraphSha256": "1b8637ab4a5ebca51999765e4d1b108ac491ed7c27914c82f35bb330aa8133d1",
+  "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
+  "workloadId": "archive.zip-workspace.v1"
+}

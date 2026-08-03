@@ -1,0 +1,43 @@
+{
+  "authoritativePerformanceResult": false,
+  "counters": {
+    "boundaryCrossings": 3,
+    "centralHeaders": 10000,
+    "crcBytes": 1038404,
+    "deflateEndSymbols": 10000,
+    "deflateLiterals": 427105,
+    "deflateMatchedBytes": 611299,
+    "deflateMatches": 7501,
+    "entries": 10000,
+    "extractedBytes": 905,
+    "extractedEntries": 10,
+    "inputBytes": 1038404,
+    "listedEntries": 10000,
+    "localHeaders": 10000,
+    "zip64Records": 0,
+    "zipBytes": 1710792
+  },
+  "input": {
+    "entries": 10000,
+    "sha256": "5c46e3da54c9b6d03499b7e2174d5ff86517763649993700869731e77a7455da"
+  },
+  "oracle": {
+    "archiveSha256": "5838f8e2ebe9db24e2c21131425d8bd7de517c1263b45090947d87c28b7afee8",
+    "extractedSha256": "d91c23bc264f65c087bc9b848b8becee1424decbcfb5c92fd26aa669328bfb4c",
+    "kind": "exact-hash",
+    "listingSha256": "0fe8c100fe59cef8c3120a200f57101cc9ea9a6a77672bd8e35cddd483424478"
+  },
+  "schemaVersion": 1,
+  "sourceCommit": "94822599f66ce71c0081706f277238cbf633c16c",
+  "status": "passed-proposal-validation",
+  "structuralChecks": {
+    "allEntriesListed": true,
+    "allSelectedExtracted": true,
+    "crcChecked": true,
+    "fixedMetadataChecked": true,
+    "pathSafetyChecked": true,
+    "zip64ForbiddenUnderFrozenBounds": true
+  },
+  "variant": "wasm-linear-controlled",
+  "workloadId": "archive.zip-workspace.v1"
+}
