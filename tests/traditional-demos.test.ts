@@ -39,6 +39,12 @@ Deno.test("traditional demo manifest is closed, reduced, reproducible, and engin
     "artifacts/demos/traditional/source-commit.txt",
   )).trim();
   assertEquals(manifest.sourceCommit, sourceCommit);
+  const treeResult = await new Deno.Command("git", {
+    args: ["rev-parse", `${sourceCommit}^{tree}`],
+    stdout: "piped",
+  }).output();
+  assert(treeResult.success);
+  assertEquals(manifest.sourceTree, new TextDecoder().decode(treeResult.stdout).trim());
   assertEquals(manifest.catalogV1Coverage, "0/38");
   assertEquals(manifest.authoritativePerformanceEvidence, false);
   assertEquals(
@@ -82,27 +88,49 @@ Deno.test("traditional demo manifest is closed, reduced, reproducible, and engin
     assertEquals(engineManifest.sourceCommit, ENGINE_COMMIT);
   }
 
-  const before = new Map<string, Uint8Array>();
+  const expectedOutputs = new Map<string, Uint8Array>();
   for (
     const path of [
       MANIFEST_PATH,
       "public/benchmarks/regex-automata-duel-demo/engine.js",
       "public/benchmarks/vdom-diff-patch-demo/engine.js",
     ]
-  ) before.set(path, await Deno.readFile(path));
-  const output = await new Deno.Command(Deno.execPath(), {
-    args: [
-      "run",
-      "--allow-read=.",
-      "--allow-write=public/benchmarks/regex-automata-duel-demo,public/benchmarks/vdom-diff-patch-demo,public/artifacts/traditional-demos",
-      "--allow-run",
-      "scripts/build-traditional-demos.ts",
-    ],
-    stdout: "piped",
-    stderr: "piped",
-  }).output();
-  assert(output.success, new TextDecoder().decode(output.stderr));
-  for (const [path, expected] of before) assertEquals(await Deno.readFile(path), expected);
+  ) expectedOutputs.set(path, await Deno.readFile(path));
+
+  const tempRoot = await Deno.makeTempDir({ prefix: "traditional-demo-source-checkout-" });
+  const checkout = `${tempRoot}/source`;
+  try {
+    const add = await new Deno.Command("git", {
+      args: ["worktree", "add", "--detach", checkout, sourceCommit],
+      stdout: "piped",
+      stderr: "piped",
+    }).output();
+    assert(add.success, new TextDecoder().decode(add.stderr));
+    const output = await new Deno.Command(Deno.execPath(), {
+      cwd: checkout,
+      args: [
+        "run",
+        "--allow-read=.",
+        "--allow-write=public/benchmarks/regex-automata-duel-demo,public/benchmarks/vdom-diff-patch-demo,public/artifacts/traditional-demos",
+        "--allow-run",
+        "scripts/build-traditional-demos.ts",
+        `--source-commit=${sourceCommit}`,
+      ],
+      stdout: "piped",
+      stderr: "piped",
+    }).output();
+    assert(output.success, new TextDecoder().decode(output.stderr));
+    for (const [path, expected] of expectedOutputs) {
+      assertEquals(await Deno.readFile(`${checkout}/${path}`), expected);
+    }
+  } finally {
+    await new Deno.Command("git", {
+      args: ["worktree", "remove", "--force", checkout],
+      stdout: "null",
+      stderr: "null",
+    }).output();
+    await Deno.remove(tempRoot, { recursive: true }).catch(() => {});
+  }
 });
 
 Deno.test("traditional browser engines retain exact regex and VDOM oracles and counters", async () => {
@@ -219,6 +247,88 @@ Deno.test("traditional demo routes are an exact read-only allowlist", async () =
   ) assertEquals((await handler(new Request(`http://127.0.0.1${denied}`))).status, 404);
 });
 
+Deno.test("retained Chrome 150 evidence covers controls, every target, network, screenshots, and exact cleanup", async () => {
+  const schema = JSON.parse(
+    await Deno.readTextFile("schemas/traditional-demo-browser-evidence.schema.json"),
+  );
+  const evidence = JSON.parse(
+    await Deno.readTextFile("artifacts/demos/traditional/browser-evidence/evidence.v1.json"),
+  );
+  const manifest = JSON.parse(await Deno.readTextFile(MANIFEST_PATH));
+  const validate = new Ajv2020({ strict: true, allErrors: true }).compile(schema);
+  assert(validate(evidence), JSON.stringify(validate.errors));
+  assertEquals(evidence.source, {
+    commit: manifest.sourceCommit,
+    tree: manifest.sourceTree,
+  });
+  assertEquals(evidence.browser.product, "Chrome/150.0.7871.24");
+  assert(evidence.browser.launchArguments.includes("--headless=new"));
+  assert(evidence.browser.launchArguments.includes("--remote-debugging-address=127.0.0.1"));
+  assert(
+    evidence.browser.launchArguments.some((arg: string) =>
+      arg.startsWith("--user-data-dir=/tmp/wasm-traditional-chrome-")
+    ),
+  );
+  assertEquals(
+    evidence.scenarios.map((scenario: { id: string }) => scenario.id),
+    [
+      "regex-js-native",
+      "regex-js-automata",
+      "regex-wasm-automata",
+      "vdom-js-browser-dom",
+      "vdom-wasm-browser-dom",
+      "regex-cancel-control",
+    ],
+  );
+  assertEquals(
+    evidence.scenarios
+      .filter((scenario: { action: string }) => scenario.action === "complete")
+      .map((scenario: { target: string }) => scenario.target)
+      .sort(),
+    [
+      "js-automata-controlled",
+      "js-controlled",
+      "js-native-controlled",
+      "wasm-automata-controlled",
+      "wasm-linear-controlled",
+    ],
+  );
+  const allowedNetworkPaths = new Set(TRADITIONAL_DEMO_ROUTES.map((route) => route.path));
+  for (const scenario of evidence.scenarios) {
+    assertEquals(scenario.exceptions, []);
+    assert(scenario.console.every((entry: { type: string }) => entry.type !== "error"));
+    assert(scenario.network.length >= 3);
+    for (const request of scenario.network) {
+      assertEquals(new URL(request.url).origin, evidence.server.origin);
+      assert(allowedNetworkPaths.has(new URL(request.url).pathname));
+      assertEquals(request.status, 200);
+      assertEquals(request.failed, false);
+      assertEquals(request.fromServiceWorker, false);
+    }
+    const screenshot = await Deno.readFile(scenario.screenshot.path);
+    assertEquals([...screenshot.slice(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
+    assertEquals(screenshot.byteLength, scenario.screenshot.bytes);
+    assertEquals(await sha256Hex(screenshot), scenario.screenshot.sha256);
+  }
+  assert(evidence.scenarios[3].assertions.includes("canonical browser DOM SHA-256 matched"));
+  assert(evidence.scenarios[4].assertions.includes("canonical browser DOM SHA-256 matched"));
+  assert(evidence.scenarios[5].finalStatus.startsWith("Canceled."));
+  assertEquals(evidence.cleanup.browser.requested, "Browser.close");
+  assertEquals(evidence.cleanup.browser.processesAbsent, true);
+  assertEquals(evidence.cleanup.profile.removed, true);
+  assertEquals(evidence.cleanup.profile.absent, true);
+  assertEquals(evidence.cleanup.server.processAbsent, true);
+  const observedPids = new Set(
+    evidence.cleanup.browser.observedProcesses.map((process: { pid: number }) => process.pid),
+  );
+  assert(observedPids.has(evidence.cleanup.browser.launcher.pid));
+  assert(
+    evidence.cleanup.browser.signals.every((signal: { pid: number }) =>
+      observedPids.has(signal.pid)
+    ),
+  );
+});
+
 Deno.test("raw traditional demo HTML and controller freeze scope, accessibility, and cleanup", async () => {
   const regex = await Deno.readTextFile(
     "public/benchmarks/regex-automata-duel-demo/index.html",
@@ -227,8 +337,10 @@ Deno.test("raw traditional demo HTML and controller freeze scope, accessibility,
   for (const html of [regex, vdom]) {
     assert(html.includes("Reduced out-of-catalog fixture"));
     assert(html.includes("fresh module worker"));
-    assert(html.includes('id="start"'));
+    assert(html.includes('id="start" type="submit" disabled'));
     assert(html.includes('id="cancel"'));
+    assert(html.includes("<noscript>"));
+    assert(html.includes("Unavailable: JavaScript and module workers are required"));
     assert(html.includes('aria-live="polite"'));
     assert(html.includes("raw HTML response"));
     assert(html.includes("frozen-v1 coverage at 0/38"));
@@ -238,6 +350,9 @@ Deno.test("raw traditional demo HTML and controller freeze scope, accessibility,
   assert(regex.includes("32 MiB and 40 patterns"));
   assert(vdom.includes("1,000 nodes / 250 edits"));
   assert(vdom.includes("10,000 nodes and 2,000 edits"));
+  assert(vdom.includes('id="vdom-mount"'));
+  assert(vdom.includes("real <code>DOMHostAdapter</code>"));
+  assert(!vdom.includes("not visible browser DOM"));
 
   const main = await Deno.readTextFile("public/benchmarks/traditional-demo.js");
   const workers = [
@@ -251,6 +366,11 @@ Deno.test("raw traditional demo HTML and controller freeze scope, accessibility,
   assert(main.includes("pagehide"));
   assert(main.includes("payload.fullContract.status"));
   assert(main.includes("status.textContent = `Unavailable:"));
+  assert(main.includes("new DOMHostAdapter(document, vdomMount)"));
+  assert(main.includes("adapter.applyPatches(payload.domApplication.patches)"));
+  assert(main.includes("real browser DOM oracle mismatch"));
+  assert(workers[1].includes("patches: result.patches"));
+  assert(workers[1].includes("treeA: fixture.treeA"));
   for (const worker of workers) {
     assert(worker.includes('status: "unavailable"'));
     assert(worker.includes('reasonCode: "full-contract-not-implemented"'));

@@ -1,0 +1,278 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.ai-focus.dev/schemas/traditional-demo-browser-evidence.v1.json",
+  "title": "Reduced traditional-web demo Chrome acceptance evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "evidenceId",
+    "collectedAt",
+    "source",
+    "collectionCommand",
+    "browser",
+    "server",
+    "scenarios",
+    "cleanup"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "evidenceId": { "const": "reduced-traditional-demos-chrome-150-v1" },
+    "collectedAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commit", "tree"],
+      "properties": {
+        "commit": { "$ref": "#/$defs/gitIdentity" },
+        "tree": { "$ref": "#/$defs/gitIdentity" }
+      }
+    },
+    "collectionCommand": { "type": "string", "minLength": 1 },
+    "browser": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "product",
+        "revision",
+        "userAgent",
+        "jsVersion",
+        "executable",
+        "launchArguments",
+        "headless",
+        "protocol"
+      ],
+      "properties": {
+        "product": { "const": "Chrome/150.0.7871.24" },
+        "revision": { "type": "string", "minLength": 1 },
+        "userAgent": { "type": "string", "minLength": 1 },
+        "jsVersion": { "type": "string", "minLength": 1 },
+        "executable": { "type": "string", "minLength": 1 },
+        "launchArguments": {
+          "type": "array",
+          "minItems": 16,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "headless": { "const": true },
+        "protocol": { "const": "Chrome DevTools Protocol" }
+      }
+    },
+    "server": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin", "mode", "launcherPid"],
+      "properties": {
+        "origin": { "type": "string", "pattern": "^http://127\\.0\\.0\\.1:[0-9]+$" },
+        "mode": { "const": "public" },
+        "launcherPid": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": { "$ref": "#/$defs/scenario" }
+    },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["browser", "profile", "server"],
+      "properties": {
+        "browser": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "launcher",
+            "observedProcesses",
+            "requested",
+            "signals",
+            "exit",
+            "processesAbsent"
+          ],
+          "properties": {
+            "launcher": { "$ref": "#/$defs/processIdentity" },
+            "observedProcesses": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "$ref": "#/$defs/processIdentity" }
+            },
+            "requested": { "const": "Browser.close" },
+            "signals": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["pid", "signal"],
+                "properties": {
+                  "pid": { "type": "integer", "minimum": 1 },
+                  "signal": { "enum": ["SIGTERM", "SIGKILL"] }
+                }
+              }
+            },
+            "exit": { "$ref": "#/$defs/exitStatus" },
+            "processesAbsent": { "const": true }
+          }
+        },
+        "profile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "removed", "absent"],
+          "properties": {
+            "path": { "type": "string", "pattern": "^/tmp/wasm-traditional-chrome-" },
+            "removed": { "const": true },
+            "absent": { "const": true }
+          }
+        },
+        "server": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["launcher", "signal", "exit", "processAbsent"],
+          "properties": {
+            "launcher": {
+              "anyOf": [{ "$ref": "#/$defs/processIdentity" }, { "type": "null" }]
+            },
+            "signal": { "enum": ["SIGTERM", null] },
+            "exit": { "$ref": "#/$defs/exitStatus" },
+            "processAbsent": { "const": true }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "gitIdentity": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "processIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pid", "parentPid", "startTimeTicks", "executable"],
+      "properties": {
+        "pid": { "type": "integer", "minimum": 1 },
+        "parentPid": { "type": "integer", "minimum": 0 },
+        "startTimeTicks": { "type": "string", "pattern": "^[0-9]+$" },
+        "executable": { "type": "string", "minLength": 1 }
+      }
+    },
+    "exitStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["success", "code", "signal"],
+      "properties": {
+        "success": { "type": "boolean" },
+        "code": { "type": "integer" },
+        "signal": { "type": ["string", "null"] }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "route",
+        "target",
+        "action",
+        "finalStatus",
+        "resultTextSha256",
+        "assertions",
+        "console",
+        "exceptions",
+        "network",
+        "screenshot"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "route": {
+          "enum": [
+            "/benchmarks/regex-automata-duel-demo/",
+            "/benchmarks/vdom-diff-patch-demo/"
+          ]
+        },
+        "target": {
+          "enum": [
+            "js-native-controlled",
+            "js-automata-controlled",
+            "wasm-automata-controlled",
+            "js-controlled",
+            "wasm-linear-controlled"
+          ]
+        },
+        "action": { "enum": ["complete", "cancel"] },
+        "finalStatus": { "type": "string", "minLength": 1 },
+        "resultTextSha256": { "$ref": "#/$defs/sha256" },
+        "assertions": {
+          "type": "array",
+          "minItems": 3,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "console": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "arguments"],
+            "properties": {
+              "type": { "type": "string" },
+              "arguments": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        },
+        "exceptions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["text", "lineNumber"],
+            "properties": {
+              "text": { "type": "string" },
+              "lineNumber": { "type": "number" }
+            }
+          }
+        },
+        "network": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "url",
+              "method",
+              "type",
+              "status",
+              "mimeType",
+              "fromDiskCache",
+              "fromServiceWorker",
+              "failed",
+              "errorText"
+            ],
+            "properties": {
+              "url": { "type": "string", "pattern": "^http://127\\.0\\.0\\.1:" },
+              "method": { "const": "GET" },
+              "type": { "type": "string", "minLength": 1 },
+              "status": { "const": 200 },
+              "mimeType": { "type": "string", "minLength": 1 },
+              "fromDiskCache": { "type": "boolean" },
+              "fromServiceWorker": { "const": false },
+              "failed": { "const": false },
+              "errorText": { "type": "null" }
+            }
+          }
+        },
+        "screenshot": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "bytes", "sha256"],
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "^artifacts/demos/traditional/browser-evidence/screenshots/[a-z0-9-]+\\.png$"
+            },
+            "bytes": { "type": "integer", "minimum": 1 },
+            "sha256": { "$ref": "#/$defs/sha256" }
+          }
+        }
+      }
+    },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

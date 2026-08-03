@@ -12,6 +12,7 @@
     "authoritativePerformanceEvidence",
     "sourceRepository",
     "sourceCommit",
+    "sourceTree",
     "build",
     "demos",
     "assets",
@@ -26,13 +27,15 @@
     "authoritativePerformanceEvidence": { "const": false },
     "sourceRepository": { "const": "https://github.com/PaulKinlan/wasm-vs-js" },
     "sourceCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "sourceTree": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
     "build": {
       "type": "object",
       "additionalProperties": false,
       "required": ["command", "toolchains", "reproducible"],
       "properties": {
         "command": {
-          "const": "deno run --allow-read=. --allow-write=public/benchmarks/regex-automata-duel-demo,public/benchmarks/vdom-diff-patch-demo,public/artifacts/traditional-demos --allow-run scripts/build-traditional-demos.ts"
+          "type": "string",
+          "pattern": "^deno run --allow-read=\\. --allow-write=public/benchmarks/regex-automata-duel-demo,public/benchmarks/vdom-diff-patch-demo,public/artifacts/traditional-demos --allow-run scripts/build-traditional-demos\\.ts --source-commit=[a-f0-9]{40}$"
         },
         "toolchains": {
           "type": "array",

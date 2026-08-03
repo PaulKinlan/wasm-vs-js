@@ -4,10 +4,27 @@ import { TRADITIONAL_DEMO_ASSET_PATHS } from "../lib/traditional-demo-registry.t
 const root = new URL("../", import.meta.url);
 const manifestPath = new URL("public/artifacts/traditional-demos/demo-manifest.v1.json", root);
 await Deno.mkdir(new URL("public/artifacts/traditional-demos/", root), { recursive: true });
-const sourceCommit = (await Deno.readTextFile(
-  new URL("artifacts/demos/traditional/source-commit.txt", root),
-)).trim();
-if (!/^[a-f0-9]{40}$/.test(sourceCommit)) throw new Error("invalid demo source commit");
+const sourceArgument = Deno.args.length === 1 && Deno.args[0].startsWith("--source-commit=")
+  ? Deno.args[0].slice("--source-commit=".length)
+  : "";
+if (!/^[a-f0-9]{40}$/.test(sourceArgument)) {
+  throw new Error("exactly one --source-commit=<40 lowercase hex> argument is required");
+}
+const sourceCommit = sourceArgument;
+async function gitText(args: string[]): Promise<string> {
+  const result = await new Deno.Command("git", {
+    cwd: new URL(".", root),
+    args,
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  if (!result.success) {
+    throw new Error(new TextDecoder().decode(result.stderr) || `git ${args.join(" ")} failed`);
+  }
+  return new TextDecoder().decode(result.stdout).trim();
+}
+const sourceTree = await gitText(["rev-parse", `${sourceCommit}^{tree}`]);
+if (!/^[a-f0-9]{40}$/.test(sourceTree)) throw new Error("invalid demo source tree");
 
 const bundles = [
   {
@@ -123,13 +140,25 @@ const sourcePaths = [
   "public/artifacts/vdom-diff-patch/build-manifest.json",
   "lib/traditional-demo-registry.ts",
   "schemas/traditional-demo-manifest.schema.json",
+  "schemas/traditional-demo-browser-evidence.schema.json",
   "scripts/build-traditional-demos.ts",
+  "scripts/collect-traditional-demo-evidence.ts",
   "deno.json",
   "deno.lock",
 ];
 const sources = [];
 for (const path of sourcePaths) {
   const bytes = await Deno.readFile(new URL(path, root));
+  const committed = await new Deno.Command("git", {
+    cwd: new URL(".", root),
+    args: ["show", `${sourceCommit}:${path}`],
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  if (!committed.success) throw new Error(`${path} is absent from source commit ${sourceCommit}`);
+  if (await sha256Hex(committed.stdout) !== await sha256Hex(bytes)) {
+    throw new Error(`${path} differs from recorded source commit ${sourceCommit}`);
+  }
   sources.push({ path, bytes: bytes.byteLength, sha256: await sha256Hex(bytes) });
 }
 
@@ -154,9 +183,10 @@ const manifest = {
   authoritativePerformanceEvidence: false,
   sourceRepository: "https://github.com/PaulKinlan/wasm-vs-js",
   sourceCommit,
+  sourceTree,
   build: {
     command:
-      "deno run --allow-read=. --allow-write=public/benchmarks/regex-automata-duel-demo,public/benchmarks/vdom-diff-patch-demo,public/artifacts/traditional-demos --allow-run scripts/build-traditional-demos.ts",
+      `deno run --allow-read=. --allow-write=public/benchmarks/regex-automata-duel-demo,public/benchmarks/vdom-diff-patch-demo,public/artifacts/traditional-demos --allow-run scripts/build-traditional-demos.ts --source-commit=${sourceCommit}`,
     toolchains: [`Deno ${Deno.version.deno}`],
     reproducible: true,
   },

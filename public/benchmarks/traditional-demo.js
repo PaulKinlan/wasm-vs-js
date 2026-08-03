@@ -19,6 +19,7 @@ const startButton = document.querySelector("#start");
 const cancelButton = document.querySelector("#cancel");
 const status = document.querySelector("#status");
 const result = document.querySelector("#result");
+const vdomMount = document.querySelector("#vdom-mount");
 let active = null;
 let sequence = 0;
 
@@ -31,14 +32,17 @@ for (const option of target.options) {
   if (option.value.includes("wasm") && typeof WebAssembly !== "object") option.disabled = true;
 }
 if (missingCapabilities.length > 0) {
-  startButton.disabled = true;
-  target.disabled = true;
   status.textContent = `Unavailable: ${missingCapabilities.join(" and ")} are required.`;
+} else {
+  startButton.disabled = false;
+  target.disabled = false;
+  status.textContent = "Ready. No worker is running.";
 }
 
 function setRunning(running) {
-  startButton.disabled = running;
-  target.disabled = running;
+  const unavailable = missingCapabilities.length > 0;
+  startButton.disabled = unavailable || running;
+  target.disabled = unavailable || running;
   cancelButton.disabled = !running;
   status.setAttribute("aria-busy", String(running));
 }
@@ -50,9 +54,14 @@ function retireActive() {
   active = null;
 }
 
-function fail(message) {
+function clearDemoState() {
   result.replaceChildren();
   result.hidden = true;
+  vdomMount?.replaceChildren();
+}
+
+function fail(message) {
+  clearDemoState();
   status.textContent = message;
   setRunning(false);
 }
@@ -87,6 +96,39 @@ function showResult(payload) {
   status.textContent = `${demo.title} completed; oracle and work counters match exactly.`;
 }
 
+async function validateBrowserDOM(payload) {
+  if (demoId !== "vdom-diff-patch-demo") return payload;
+  if (!vdomMount || !payload.domApplication) {
+    throw new Error("browser DOM application payload is missing");
+  }
+  const { DOMHostAdapter } = await import(
+    "/benchmarks/vdom-diff-patch-demo/engine.js"
+  );
+  const adapter = new DOMHostAdapter(document, vdomMount);
+  adapter.createTree(payload.domApplication.treeA);
+  adapter.applyPatches(payload.domApplication.patches);
+  const canonicalBrowserHTML = vdomMount.innerHTML.replace(/<input([^>]*)>/g, "<input$1/>");
+  const digest = new Uint8Array(
+    await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonicalBrowserHTML)),
+  );
+  const browserDomSha256 = [...digest]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+  if (
+    browserDomSha256 !== payload.domApplication.expectedCanonicalHtmlSha256 ||
+    adapter.domMutations !== payload.counters.domMutations
+  ) {
+    throw new Error("real browser DOM oracle mismatch");
+  }
+  return {
+    ...payload,
+    oracles: { ...payload.oracles, "Browser DOM SHA-256": browserDomSha256 },
+    counters: { ...payload.counters, domMutations: adapter.domMutations },
+    validation: "exact-worker-and-browser-DOM-match",
+    domApplication: undefined,
+  };
+}
+
 form.addEventListener("submit", (event) => {
   event.preventDefault();
   retireActive();
@@ -100,16 +142,23 @@ form.addEventListener("submit", (event) => {
   }, TIMEOUT_MS);
   active = { token, worker, timeout };
   setRunning(true);
-  result.hidden = true;
+  clearDemoState();
   status.textContent = `Running ${demo.title} in a fresh module worker…`;
 
-  worker.addEventListener("message", (messageEvent) => {
+  worker.addEventListener("message", async (messageEvent) => {
     if (!active || active.token !== token || messageEvent.data?.token !== token) return;
     const message = messageEvent.data;
     retireActive();
     setRunning(false);
-    if (message.type === "result") showResult(message.result);
-    else fail(`Run failed: ${message.message ?? "unknown worker error"}`);
+    if (message.type !== "result") {
+      fail(`Run failed: ${message.message ?? "unknown worker error"}`);
+      return;
+    }
+    try {
+      showResult(await validateBrowserDOM(message.result));
+    } catch (error) {
+      fail(`Run failed: ${error instanceof Error ? error.message : "DOM validation failed"}`);
+    }
   });
   worker.addEventListener("error", () => {
     if (!active || active.token !== token) return;
@@ -124,8 +173,7 @@ cancelButton.addEventListener("click", () => {
   sequence += 1;
   retireActive();
   setRunning(false);
-  result.replaceChildren();
-  result.hidden = true;
+  clearDemoState();
   status.textContent =
     "Canceled. The worker was terminated and its in-memory fixture and result were discarded.";
 });

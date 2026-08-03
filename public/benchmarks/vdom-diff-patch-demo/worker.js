@@ -2,11 +2,11 @@ import { generateVDOMFixture, runVdomJS, runVdomWasm } from "./engine.js";
 
 const TARGETS = Object.freeze({
   "js-controlled": Object.freeze({
-    label: "Controlled JavaScript diff and in-memory patch application",
+    label: "Controlled JavaScript diff with real browser DOM application",
     boundaryCrossings: 0,
   }),
   "wasm-linear-controlled": Object.freeze({
-    label: "Linear Wasm diff with JavaScript in-memory oracle patch application",
+    label: "Linear Wasm diff with real browser DOM application",
     boundaryCrossings: 1,
   }),
 });
@@ -88,7 +88,12 @@ async function execute(target) {
       domMutations: result.domMutations,
       boundaryCrossings: result.boundaryCrossings,
     },
-    validation: "exact-match",
+    validation: "exact-worker-match; browser-DOM-application-pending",
+    domApplication: {
+      treeA: fixture.treeA,
+      patches: result.patches,
+      expectedCanonicalHtmlSha256: EXPECTED.canonicalHtmlSha256,
+    },
     fullContract: FULL_CONTRACT,
   };
 }

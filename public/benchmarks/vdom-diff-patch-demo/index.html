@@ -17,9 +17,9 @@
         <p class="eyebrow">Reduced out-of-catalog fixture · 1,000 nodes / 250 edits</p>
         <h1>Virtual-DOM diff and patch</h1>
         <p class="lede">
-          Run the existing controlled JavaScript tree diff or linear-Wasm flat-array diff. Both apply
-          the self-contained patch array to the existing in-memory host adapter and verify the exact
-          canonical patch and resulting-tree hashes.
+          Run the existing controlled JavaScript tree diff or linear-Wasm flat-array diff. A fresh
+          worker returns the self-contained patch array; the page applies it through the project's
+          real <code>DOMHostAdapter</code> and verifies the canonical browser DOM.
         </p>
       </header>
 
@@ -27,7 +27,7 @@
         This is not the full <code>dom.vdom-diff-patch.v1</code> contract. That unavailable contract
         requires 10,000 nodes and 2,000 edits. This page stays fixed at 1,000 nodes and exactly 250
         effective edits, leaves frozen-v1 coverage at 0/38, and provides no performance ranking,
-        corpus result, framework claim, or browser-DOM claim.
+        corpus result, or framework claim.
       </p>
 
       <section class="demo-panel" aria-labelledby="run-heading">
@@ -36,18 +36,25 @@
           <div class="controls">
             <label for="target">
               <span>Target</span>
-              <select id="target" name="target">
-                <option value="js-controlled">Controlled JavaScript</option>
+              <select id="target" name="target" disabled>
+                <option value="js-controlled">Controlled JavaScript + browser DOM</option>
                 <option
-                  value="wasm-linear-controlled">Linear Wasm diff + JS in-memory apply</option>
+                  value="wasm-linear-controlled">Linear Wasm diff + browser DOM</option>
               </select>
             </label>
-            <button id="start" type="submit">Start</button>
+            <button id="start" type="submit" disabled>Start</button>
             <button id="cancel" type="button" disabled>Cancel</button>
           </div>
         </form>
-        <p id="status" role="status" aria-live="polite">Ready. No worker is running.</p>
+        <p id="status" role="status" aria-live="polite">
+          Unavailable until JavaScript initializes the module worker controls.
+        </p>
+        <noscript>
+          <p
+            class="notice">Unavailable: JavaScript and module workers are required to run this fixture.</p>
+        </noscript>
         <div id="result" aria-label="Exact textual result" hidden></div>
+        <div id="vdom-mount" aria-hidden="true" hidden></div>
       </section>
 
       <div class="detail-grid">
@@ -55,16 +62,18 @@
           <h2>Exact checks</h2>
           <p>
             Each run verifies the canonical patch-array SHA-256, resulting canonical HTML SHA-256,
-            and exact nodes-visited, patches-generated, in-memory host-mutation, and boundary-crossing
-            counters. Patch application must reproduce the target tree exactly.
+            the canonical browser-DOM SHA-256, and exact nodes-visited, patches-generated, real DOM
+            mutation, and boundary-crossing counters. Browser patch application must reproduce the
+            target tree exactly.
           </p>
         </section>
         <section>
           <h2>Lifecycle</h2>
           <p>
-            Start creates a fresh module worker, keeping fixture generation, diffing, and in-memory
-            patch application off the main thread. Cancel, completion, error, navigation, or the fixed
-            30-second timeout terminates it. Token checks ignore stale messages. Nothing is persisted.
+            Start creates a fresh module worker for fixture generation and diffing. After the worker
+            returns, the page applies its self-contained patches to an isolated real DOM mount. Cancel,
+            completion, error, navigation, or the fixed 30-second timeout terminates the worker. Token
+            checks ignore stale messages. Nothing is persisted.
           </p>
         </section>
         <section>
@@ -72,7 +81,7 @@
           <ul>
             <li><a href="/benchmarks/vdom-diff-patch/workload.js">Executed workload adapter</a></li>
             <li><a href="/benchmarks/vdom-diff-patch/input.ts">Exact fixture generator</a></li>
-            <li><a href="/benchmarks/vdom-diff-patch/js.ts">Diff and in-memory host source</a></li>
+            <li><a href="/benchmarks/vdom-diff-patch/js.ts">Diff and DOM host-adapter source</a></li>
             <li><a href="/benchmarks/vdom-diff-patch/vdom-diff-patch.wat">Authored Wasm text</a></li>
             <li><a href="/artifacts/vdom-diff-patch/build-manifest.json">Engine build manifest</a></li>
             <li><a href="/artifacts/traditional-demos/demo-manifest.v1.json">Commit-bound demo manifest</a></li>
@@ -85,7 +94,7 @@
           <ul>
             <li>One deterministic 1,000-node source/target pair and 250 effective edits only.</li>
             <li>The full 10,000-node / 2,000-edit proposal contract is typed unavailable.</li>
-            <li>Patch application uses the in-memory oracle host, not visible browser DOM nodes.</li>
+            <li>Browser patches use an isolated hidden DOM mount; this is not a framework benchmark.</li>
             <li>No durations, rankings, accepted corpus evidence, persistence, or mutation route.</li>
           </ul>
           <p><a href="/benchmarks/regex-automata-duel-demo/">Open the reduced regex fixture</a>.</p>
