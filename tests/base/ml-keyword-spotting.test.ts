@@ -109,7 +109,7 @@ Deno.test("complete work counters are exact and target-specific", () => {
   assertEquals(js.windowSamples, 960000);
   assertEquals(js.fftButterflies, 6_912_000);
   assertEquals(js.depthwiseMacs, 117000);
-  assertEquals(js.pointwiseMacs, 3120000);
+  assertEquals(js.pointwiseMacs, 312000);
   assertEquals(js.outputMacs, 96000);
   assertEquals(js.scoreElements, 12000);
   assertEquals(js.featureElements, 39000);

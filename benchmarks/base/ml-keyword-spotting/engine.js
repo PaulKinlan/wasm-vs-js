@@ -179,12 +179,16 @@ export function runJavaScript(pcm) {
     if (best !== 0 && best !== previous) detections.push(hop, best, hopScores[best]);
     previous = best;
   }
+  const detectionOutput = new Int32Array(detections);
+  const counters = exactCounters("javascript");
+  counters.detectionElements = detectionOutput.length;
+  counters.outputBytes += detectionOutput.byteLength;
   return {
     target: "javascript",
     features,
     scores,
-    detections: new Int32Array(detections),
-    counters: exactCounters("javascript"),
+    detections: detectionOutput,
+    counters,
   };
 }
 
@@ -228,12 +232,15 @@ export function runWasm(exports, pcm) {
   const detections = new Int32Array(
     new Int32Array(exports.memory.buffer, exports.detections_ptr(), detectionCount * 3),
   );
+  const counters = exactCounters("wasm-linear");
+  counters.detectionElements = detections.length;
+  counters.outputBytes += detections.byteLength;
   return {
     target: "wasm-linear",
     features,
     scores,
     detections,
-    counters: exactCounters("wasm-linear"),
+    counters,
   };
 }
 
