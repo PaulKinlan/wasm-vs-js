@@ -60,8 +60,8 @@
     },
     {
       "path": "benchmarks/v1/serialization-json-telemetry/workload.js",
-      "bytes": 9220,
-      "sha256": "4794b8af8b3f9350f92ded55791bc27eee94007457aff94435d547ac4f5d8f8f"
+      "bytes": 9211,
+      "sha256": "d39cce7d455eb09ade7ad9c01e6fad8c2bbef543919a7a697d9dbf1674805ec9"
     },
     {
       "path": "scripts/build-v1-json-telemetry.ts",

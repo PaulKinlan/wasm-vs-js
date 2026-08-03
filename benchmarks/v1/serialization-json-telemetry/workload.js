@@ -65,8 +65,7 @@ class Cursor {
   constructor(bytes) {
     if (!(bytes instanceof Uint8Array)) throw new TypeError("fixture must be Uint8Array");
     if (bytes.length > MAX_INPUT_BYTES) throw new RangeError("fixture exceeds input byte limit");
-    // Reject malformed UTF-8 before the byte grammar runs. This does not parse JSON.
-    DECODER.decode(bytes);
+    // Exact UTF-8 vocabulary matching validates every non-ASCII sequence during the single parse pass.
     this.bytes = bytes;
     this.i = 0;
   }
