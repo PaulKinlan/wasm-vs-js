@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "status": "proposal-validation-only",
+  "authoritativePerformanceEvidence": false,
+  "entryId": "audio.stft.v1",
+  "benchmarkSlug": "audio-stft",
+  "serialization": "canonical-little-endian-f32-signed-zero-normalized-positive",
+  "byteLength": 3047424,
+  "sha256": "b06a278c83d9eeff309fafd64b617a54e958665e2ef2d498194da6c1e75d97ba",
+  "variants": {
+    "js-controlled": {
+      "status": "passed",
+      "completeOutputSha256": "b06a278c83d9eeff309fafd64b617a54e958665e2ef2d498194da6c1e75d97ba",
+      "referenceSha256": "3bae7479e79489d8f97d07bcbd31439e338f7f7f2978d6acfc2cc46cb8412d7a",
+      "oracleChecks": {
+        "complete-output-bound": {
+          "status": "passed",
+          "metrics": {
+            "comparedComponents": 761856,
+            "maximumAbsoluteError": 0.000003814697265625,
+            "maximumRelativeError": 5.092565929146878,
+            "absoluteTolerance": 0.000005,
+            "relativeTolerance": 0.00001,
+            "finite": true
+          }
+        },
+        "structural-invariants": {
+          "status": "passed",
+          "metrics": {
+            "frames": 372,
+            "symmetryMaximum": 0,
+            "reconstructionMaximum": 4.470348358154297e-8,
+            "chirpBinMaximum": 0.5005533333333574,
+            "finite": true,
+            "scratchWrites": 761856,
+            "outputWrites": 761856,
+            "redundantClears": 0
+          }
+        }
+      },
+      "workCounterGate": {
+        "status": "passed",
+        "metrics": {
+          "counterCount": 8,
+          "exact": true
+        }
+      },
+      "workCounters": {
+        "frames": 372,
+        "samples": 96000,
+        "window-multiplies": 380928,
+        "butterflies": 1904640,
+        "complex-multiplies": 1904640,
+        "input-bytes": 396280,
+        "output-bytes": 3047424,
+        "boundary-crossings": 1
+      }
+    },
+    "wasm-linear-controlled": {
+      "status": "passed",
+      "completeOutputSha256": "b06a278c83d9eeff309fafd64b617a54e958665e2ef2d498194da6c1e75d97ba",
+      "referenceSha256": "3bae7479e79489d8f97d07bcbd31439e338f7f7f2978d6acfc2cc46cb8412d7a",
+      "oracleChecks": {
+        "complete-output-bound": {
+          "status": "passed",
+          "metrics": {
+            "comparedComponents": 761856,
+            "maximumAbsoluteError": 0.000003814697265625,
+            "maximumRelativeError": 5.092565929146878,
+            "absoluteTolerance": 0.000005,
+            "relativeTolerance": 0.00001,
+            "finite": true
+          }
+        },
+        "structural-invariants": {
+          "status": "passed",
+          "metrics": {
+            "frames": 372,
+            "symmetryMaximum": 0,
+            "reconstructionMaximum": 4.470348358154297e-8,
+            "chirpBinMaximum": 0.5005533333333574,
+            "finite": true,
+            "scratchWrites": 761856,
+            "outputWrites": 761856,
+            "redundantClears": 0
+          }
+        }
+      },
+      "workCounterGate": {
+        "status": "passed",
+        "metrics": {
+          "counterCount": 8,
+          "exact": true
+        }
+      },
+      "workCounters": {
+        "frames": 372,
+        "samples": 96000,
+        "window-multiplies": 380928,
+        "butterflies": 1904640,
+        "complex-multiplies": 1904640,
+        "input-bytes": 396280,
+        "output-bytes": 3047424,
+        "boundary-crossings": 1
+      }
+    }
+  },
+  "performanceClaims": [],
+  "sourceCommit": "6f507efc2961983ed087bab0bf18fd845aebd100"
+}

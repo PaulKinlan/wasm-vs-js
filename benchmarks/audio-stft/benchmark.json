@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "status": "proposal-validation-only",
+  "entryId": "audio.stft.v1",
+  "benchmarkSlug": "audio-stft",
+  "title": "Short-time Fourier transform spectrogram",
+  "tier": "T3",
+  "class": "component",
+  "parameters": [
+    { "name": "samples", "value": 96000 },
+    { "name": "sample-rate", "value": 48000 },
+    { "name": "frame-size", "value": 1024 },
+    { "name": "hop-size", "value": 256 },
+    { "name": "frames", "value": 372 },
+    { "name": "padding", "value": "none" }
+  ],
+  "input": {
+    "serialization": "canonical-little-endian-f32",
+    "generatorMapping": "unchanged 20-8000 Hz chirp plus xorshift32 seed 0x13579bdf noise ratio, multiplied by exact f32 power-of-two scale 0.125",
+    "sha256": "dfabd66f9e5272f76915165b663cb6c5cb37896454eb6ac02ea13d2f241f326a"
+  },
+  "oracle": {
+    "floatingPointPolicy": "strict-f32-frozen-order",
+    "checks": ["complete-output-bound", "structural-invariants"],
+    "absoluteTolerance": 0.000005,
+    "relativeTolerance": 0.00001,
+    "outputSha256": "b06a278c83d9eeff309fafd64b617a54e958665e2ef2d498194da6c1e75d97ba"
+  },
+  "workCounters": {
+    "frames": 372,
+    "samples": 96000,
+    "window-multiplies": 380928,
+    "butterflies": 1904640,
+    "complex-multiplies": 1904640,
+    "input-bytes": 396280,
+    "output-bytes": 3047424,
+    "boundary-crossings": 1
+  },
+  "phases": {
+    "load": "measured",
+    "initialize": "measured",
+    "transfer": "measured",
+    "compute": "measured",
+    "validation": "separate",
+    "render": "not-applicable",
+    "end-to-end": "measured"
+  },
+  "variants": [
+    {
+      "id": "js-controlled",
+      "target": "javascript",
+      "track": "controlled",
+      "algorithmFamilyId": "audio-stft-controlled-v1",
+      "implemented": true
+    },
+    {
+      "id": "wasm-linear-controlled",
+      "target": "wasm-linear",
+      "track": "controlled",
+      "algorithmFamilyId": "audio-stft-controlled-v1",
+      "implemented": true
+    },
+    {
+      "id": "js-optimized",
+      "target": "javascript",
+      "track": "optimized",
+      "algorithmFamilyId": "audio-stft-js-optimized-v1",
+      "implemented": false
+    },
+    {
+      "id": "wasm-linear-optimized",
+      "target": "wasm-linear",
+      "track": "optimized",
+      "algorithmFamilyId": "audio-stft-wasm-linear-optimized-v1",
+      "implemented": false
+    }
+  ],
+  "wasmMemory": { "initialPages": 64, "maximumPages": 64, "growth": false },
+  "missingCells": ["implementation-and-results"],
+  "performanceClaims": []
+}

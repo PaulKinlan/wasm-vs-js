@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/audio-output-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "status",
+    "authoritativePerformanceEvidence",
+    "entryId",
+    "benchmarkSlug",
+    "serialization",
+    "byteLength",
+    "sha256",
+    "variants",
+    "performanceClaims",
+    "sourceCommit"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "status": { "const": "proposal-validation-only" },
+    "authoritativePerformanceEvidence": { "const": false },
+    "entryId": { "pattern": "^audio\\.(fft|fir|stft)\\.v1$" },
+    "benchmarkSlug": { "enum": ["audio-fft", "audio-fir", "audio-stft"] },
+    "serialization": { "const": "canonical-little-endian-f32-signed-zero-normalized-positive" },
+    "byteLength": { "type": "integer", "minimum": 1 },
+    "sha256": { "$ref": "#/$defs/sha256" },
+    "variants": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["js-controlled", "wasm-linear-controlled"],
+      "properties": {
+        "js-controlled": { "$ref": "#/$defs/variant" },
+        "wasm-linear-controlled": { "$ref": "#/$defs/variant" }
+      }
+    },
+    "performanceClaims": { "type": "array", "maxItems": 0 },
+    "sourceCommit": { "pattern": "^[a-f0-9]{40}$" }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "comparedComponents": { "type": "integer", "minimum": 1 },
+        "maximumAbsoluteError": { "type": "number", "minimum": 0 },
+        "maximumRelativeError": { "type": "number", "minimum": 0 },
+        "absoluteTolerance": { "type": "number", "exclusiveMinimum": 0 },
+        "relativeTolerance": { "type": "number", "exclusiveMinimum": 0 },
+        "anchorMaximum": { "type": "number", "minimum": 0 },
+        "reconstructionMaximum": { "type": "number", "minimum": 0 },
+        "symmetryMaximum": { "type": "number", "minimum": 0 },
+        "outputLength": { "type": "integer", "minimum": 1 },
+        "dcGain": { "type": "number" },
+        "impulseLatency": { "type": "integer", "minimum": 0 },
+        "frames": { "type": "integer", "minimum": 1 },
+        "chirpBinMaximum": { "type": "number", "minimum": 0 },
+        "scratchWrites": { "type": "integer", "minimum": 0 },
+        "outputWrites": { "type": "integer", "minimum": 0 },
+        "redundantClears": { "type": "integer", "minimum": 0 },
+        "counterCount": { "type": "integer", "minimum": 1 },
+        "finite": { "type": "boolean" },
+        "exact": { "type": "boolean" }
+      },
+      "minProperties": 1
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "metrics"],
+      "properties": {
+        "status": { "const": "passed" },
+        "metrics": { "$ref": "#/$defs/metrics" }
+      }
+    },
+    "variant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "completeOutputSha256",
+        "referenceSha256",
+        "oracleChecks",
+        "workCounterGate",
+        "workCounters"
+      ],
+      "properties": {
+        "status": { "const": "passed" },
+        "completeOutputSha256": { "$ref": "#/$defs/sha256" },
+        "referenceSha256": { "$ref": "#/$defs/sha256" },
+        "oracleChecks": {
+          "type": "object",
+          "minProperties": 2,
+          "maxProperties": 3,
+          "additionalProperties": { "$ref": "#/$defs/check" }
+        },
+        "workCounterGate": { "$ref": "#/$defs/check" },
+        "workCounters": {
+          "type": "object",
+          "minProperties": 8,
+          "maxProperties": 8,
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        }
+      }
+    }
+  }
+}

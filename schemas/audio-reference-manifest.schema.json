@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/audio-reference-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contractId",
+    "status",
+    "entryId",
+    "benchmarkSlug",
+    "method",
+    "serialization",
+    "artifact",
+    "byteLength",
+    "components",
+    "sha256",
+    "tolerance",
+    "sourceCommit"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contractId": { "const": "audio-reference-manifest-v1" },
+    "status": { "const": "proposal-validation-only" },
+    "entryId": { "pattern": "^audio\\.(fft|fir|stft)\\.v1$" },
+    "benchmarkSlug": { "enum": ["audio-fft", "audio-fir", "audio-stft"] },
+    "method": {
+      "enum": [
+        "scalar-f64-direct-dft-rounded-once-to-f32",
+        "scalar-f64-direct-convolution-rounded-once-to-f32",
+        "scalar-f64-window-and-direct-dft-rounded-once-to-f32"
+      ]
+    },
+    "serialization": { "const": "canonical-little-endian-f32-signed-zero-normalized-positive" },
+    "artifact": { "pattern": "^public/artifacts/audio-(fft|fir|stft)/reference-output\\.f32le$" },
+    "byteLength": { "type": "integer", "minimum": 1 },
+    "components": { "type": "integer", "minimum": 1 },
+    "sha256": { "pattern": "^[a-f0-9]{64}$" },
+    "tolerance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "absolute", "relative"],
+      "properties": {
+        "mode": { "const": "absolute-and-relative-hybrid" },
+        "absolute": { "enum": [0.000001, 0.000005] },
+        "relative": { "const": 0.00001 }
+      }
+    },
+    "sourceCommit": { "pattern": "^[a-f0-9]{40}$" }
+  }
+}

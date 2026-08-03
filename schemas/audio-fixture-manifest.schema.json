@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/audio-fixture-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "status",
+    "entryId",
+    "benchmarkSlug",
+    "rights",
+    "generator",
+    "serialization",
+    "sourceCommit"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "status": { "const": "proposal-validation-only" },
+    "entryId": { "pattern": "^audio\\.(fft|fir|stft)\\.v1$" },
+    "benchmarkSlug": { "enum": ["audio-fft", "audio-fir", "audio-stft"] },
+    "rights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "licenseSpdx", "redistribution"],
+      "properties": {
+        "source": { "type": "string", "minLength": 1 },
+        "licenseSpdx": { "const": "CC0-1.0" },
+        "redistribution": { "const": "permitted" }
+      }
+    },
+    "generator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "seed", "revision", "mapping"],
+      "properties": {
+        "algorithm": { "const": "xorshift32" },
+        "seed": { "pattern": "^0x[a-f0-9]{8}$" },
+        "revision": { "const": "proposal-generator-v1" },
+        "mapping": { "type": "string", "minLength": 1 }
+      }
+    },
+    "serialization": { "const": "canonical little-endian f32 fields in catalog-declared order" },
+    "sourceCommit": { "pattern": "^[a-f0-9]{40}$" }
+  }
+}

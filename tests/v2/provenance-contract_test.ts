@@ -46,7 +46,8 @@ async function validRecord() {
     sha256: await sha256(path),
     immutableUrl: `${repository}/blob/${commit}/${path}`,
   });
-  const entry = catalog.entries[0];
+  const entry = catalog.entries.find((candidate: { family: string }) => candidate.family !== "dsp");
+  assert(entry, "non-audio generic provenance fixture entry missing");
   const track = entry.tracks[0];
   const variant = track.variants[0];
   const catalogFile = await ref("catalog/workloads.v2.proposed.json");

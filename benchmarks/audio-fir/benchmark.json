@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "status": "proposal-validation-only",
+  "entryId": "audio.fir.v1",
+  "benchmarkSlug": "audio-fir",
+  "title": "Finite impulse response convolution",
+  "tier": "T2",
+  "class": "kernel",
+  "parameters": [
+    { "name": "samples", "value": 131072 },
+    { "name": "taps", "value": 256 },
+    { "name": "channels", "value": 1 },
+    { "name": "boundary", "value": "zero-extend" },
+    { "name": "convolution", "value": "direct" }
+  ],
+  "input": {
+    "serialization": "canonical-little-endian-f32",
+    "sha256": "b90d5d472e7f58e18d544f32dbc7449143608939f4a8c18641d6e7eae1752b56"
+  },
+  "oracle": {
+    "floatingPointPolicy": "strict-f32-frozen-order",
+    "checks": ["complete-output-bound", "structural-invariants"],
+    "absoluteTolerance": 0.000001,
+    "relativeTolerance": 0.00001,
+    "outputSha256": "e4b89ba6d65fa9ac3aa5f1b30da32343e54cc81a9ee9d6f84eaf8b38e823fb5f"
+  },
+  "workCounters": {
+    "samples": 131072,
+    "taps": 256,
+    "multiply-accumulates": 33554432,
+    "input-bytes": 524288,
+    "coefficient-bytes": 1024,
+    "output-bytes": 525308,
+    "allocations": 1,
+    "boundary-crossings": 1
+  },
+  "phases": {
+    "load": "measured",
+    "initialize": "measured",
+    "transfer": "measured",
+    "compute": "measured",
+    "validation": "separate",
+    "render": "not-applicable",
+    "end-to-end": "measured"
+  },
+  "variants": [
+    {
+      "id": "js-controlled",
+      "target": "javascript",
+      "track": "controlled",
+      "algorithmFamilyId": "audio-fir-controlled-v1",
+      "implemented": true
+    },
+    {
+      "id": "wasm-linear-controlled",
+      "target": "wasm-linear",
+      "track": "controlled",
+      "algorithmFamilyId": "audio-fir-controlled-v1",
+      "implemented": true
+    },
+    {
+      "id": "js-optimized",
+      "target": "javascript",
+      "track": "optimized",
+      "algorithmFamilyId": "audio-fir-js-optimized-v1",
+      "implemented": false
+    },
+    {
+      "id": "wasm-linear-optimized",
+      "target": "wasm-linear",
+      "track": "optimized",
+      "algorithmFamilyId": "audio-fir-wasm-linear-optimized-v1",
+      "implemented": false
+    }
+  ],
+  "wasmMemory": { "initialPages": 32, "maximumPages": 32, "growth": false },
+  "missingCells": ["implementation-and-results"],
+  "performanceClaims": []
+}

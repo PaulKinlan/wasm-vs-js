@@ -2,6 +2,11 @@ import { validateBenchmark, validateRun } from "../lib/contracts.ts";
 import { validateCorpusSemantics } from "../lib/corpus-validation.ts";
 const foundationSchemas = [
   "attempt-record.schema.json",
+  "audio-fixture-manifest.schema.json",
+  "audio-input-manifest.schema.json",
+  "audio-reference-manifest.schema.json",
+  "audio-output-manifest.schema.json",
+  "audio-build-manifest.schema.json",
   "browser-permit.schema.json",
   "chrome-package-manifest.schema.json",
   "collection-stop.schema.json",
