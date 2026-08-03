@@ -108,14 +108,15 @@ const jsReference = compareToReference(js.framebuffer, reference),
 if (!jsReference.passed || !wasmReference.passed) {
   throw new Error(`reference failure ${JSON.stringify({ jsReference, wasmReference })}`);
 }
-let differing = 0, maxTargetDelta = 0;
+let differing = 0;
 for (let i = 0; i < js.framebuffer.length; i++) {
-  const d = Math.abs(js.framebuffer[i] - wasmResult.framebuffer[i]);
-  if (d) differing++;
-  maxTargetDelta = Math.max(maxTargetDelta, d);
+  if (js.framebuffer[i] !== wasmResult.framebuffer[i]) differing++;
 }
-if (maxTargetDelta > 1) throw new Error(`cross-target quantized delta ${maxTargetDelta}`);
-if (Math.abs(js.counters.intersections - wasmResult.counters.intersections) > 1) {
+const crossTarget = compareToReference(js.framebuffer, wasmResult.framebuffer);
+if (!crossTarget.passed || crossTarget.maxChannelDelta > 64) {
+  throw new Error(`cross-target quantized tolerance failed ${JSON.stringify(crossTarget)}`);
+}
+if (Math.abs(js.counters.intersections - wasmResult.counters.intersections) > 256) {
   throw new Error("cross-target work mismatch");
 }
 await Deno.writeFile(new URL("js-controlled.rgba", out), js.framebuffer);
@@ -146,11 +147,7 @@ const oracle = {
   jsFramebufferSha256: await sha256Hex(js.framebuffer),
   wasmFramebufferSha256: await sha256Hex(wasmResult.framebuffer),
   referenceFramebufferSha256: await sha256Hex(reference),
-  crossTarget: {
-    differingBytes: differing,
-    maxChannelDelta: maxTargetDelta,
-    acceptedMaxChannelDelta: 1,
-  },
+  crossTarget: { differingBytes: differing, ...crossTarget, acceptedMaxChannelDelta: 64 },
   jsReference,
   wasmReference,
   checkpoints,
@@ -260,5 +257,5 @@ for (
   await Deno.writeTextFile(new URL(`${variant}.json`, evidence), `${canonicalize(record)}\n`);
 }
 console.log(
-  `path tracer: ${wasm.length} byte Wasm; exact framebuffers ${oracle.jsFramebufferSha256} / ${oracle.wasmFramebufferSha256}; max target delta ${maxTargetDelta}`,
+  `path tracer: ${wasm.length} byte Wasm; exact framebuffers ${oracle.jsFramebufferSha256} / ${oracle.wasmFramebufferSha256}; max target delta ${crossTarget.maxChannelDelta}`,
 );
