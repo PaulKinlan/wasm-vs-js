@@ -3,8 +3,8 @@
   "workloadId": "database.sqlite-notebook.v1",
   "implementationId": "database.sqlite-notebook.controlled.v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "8029757195cc8c1878c3eea0c3a8af5df09e0d64",
-  "sourceTreeSha256": "6ea8900e034de646466557bd8c77a62e8261c6c2053471070564ce8fbecee157",
+  "sourceCommit": "f9c5992118d3b9bb7947aec957665d9216e314b1",
+  "sourceTreeSha256": "efc8c3fec2b8abcea9ed92b694c188278c52092c052069e3d1c6aa7e6b1a69ec",
   "frozenCatalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
   "toolchain": {
     "deno": "2.9.0",
@@ -20,7 +20,7 @@
     "deno run --allow-write=public/artifacts/sqlite-notebook/fixtures scripts/generate-sqlite-notebook-fixture.ts",
     "deno run --allow-read --allow-write=public/artifacts/sqlite-notebook/reference.json --allow-run=sqlite3 scripts/generate-sqlite-notebook-reference.ts",
     "deno run --allow-read --allow-write=public/artifacts/sqlite-notebook/runtime-manifest.json,public/sqlite-notebook-worker.js scripts/build-sqlite-notebook-runtime-manifest.ts",
-    "deno run --allow-read --allow-write=public/artifacts/sqlite-notebook,public/evidence/base-implementations/sqlite-notebook --allow-run=git scripts/build-sqlite-notebook-evidence.ts 8029757195cc8c1878c3eea0c3a8af5df09e0d64"
+    "deno run --allow-read --allow-write=public/artifacts/sqlite-notebook,public/evidence/base-implementations/sqlite-notebook --allow-run=git scripts/build-sqlite-notebook-evidence.ts f9c5992118d3b9bb7947aec957665d9216e314b1"
   ],
   "productConfiguration": {
     "javascript": [
@@ -149,8 +149,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 24427,
-      "sha256": "41ef37b03455615dda8ac8f29df117dbcd14dc9adb1121d6ff613aa665676e7c"
+      "bytes": 93078,
+      "sha256": "f8c897fa9b7761de6d69f54ab8ada2c095a0ff010eaf1b87fb6f343b3c477165"
     },
     {
       "path": "benchmarks/base/sqlite-notebook/benchmark.json",
