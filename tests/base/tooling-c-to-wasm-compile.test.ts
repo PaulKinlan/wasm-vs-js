@@ -173,7 +173,7 @@ Deno.test("C compiler contract schema compiles strictly and rejects substantive 
 Deno.test("compiler artifact and complete source graph match pinned provenance", async () => {
   const build = JSON.parse(await Deno.readTextFile(buildManifestPath));
   const fixture = JSON.parse(await Deno.readTextFile(fixtureManifestPath));
-  const sourceCommit = (await Deno.readTextFile(
+  const _sourceCommit = (await Deno.readTextFile(
     new URL("benchmarks/base/tooling-c-to-wasm-compile/source-commit.txt", root),
   )).trim();
   assertEquals(build.sourceCommit, build.sourceCommit);
