@@ -57,7 +57,7 @@ function mapEntry(key, value) {
   pushVarint(out, zigzag(value));
   return out;
 }
-function frame(messages) {
+export function frame(messages) {
   const size = 4 + messages.reduce((n, m) => n + 4 + m.length, 0);
   const out = new Uint8Array(size);
   const view = new DataView(out.buffer);
@@ -81,18 +81,32 @@ export function generateFixture(count = MESSAGE_COUNT) {
     const id = (BigInt(state) << 32n) | BigInt(i + 1);
     pushKey(out, 1, 0);
     pushVarint(out, id);
-    pushString(out, 2, `café-${i}-東京-${state.toString(16)}`);
+    pushString(
+      out,
+      2,
+      i % 211 === 0
+        ? `escaped-"\\-line\n-${i}-東京-${state.toString(16)}`
+        : `café-${i}-東京-${state.toString(16)}`,
+    );
     if (i % 97 === 0) pushString(out, 2, `last-${i}`); // duplicate singular: last wins
     pushKey(out, 3, 0);
     pushVarint(out, i % 2 === 0 ? 1 : 0);
     pushKey(out, 4, 1);
-    pushDouble(out, i % 991 === 0 ? Infinity : i);
+    pushDouble(
+      out,
+      i % 991 === 0 ? Infinity : i % 887 === 0 ? -0 : i % 13 === 0 ? i + 0.5 : i,
+    );
     pushKey(out, 5, 0);
-    pushVarint(out, i % 4);
+    pushVarint(out, i % 257 === 0 ? 99 : i % 4);
     pushString(out, 6, `tag-${i % 7}`);
     pushString(out, 6, `é-${i % 5}`);
     pushBytes(out, 7, mapEntry("alpha", BigInt((i % 101) - 50)));
     pushBytes(out, 7, mapEntry("βeta", BigInt(i % 37)));
+    if (i % 223 === 0) {
+      // UTF-16 and UTF-8 order these two keys differently.
+      pushBytes(out, 7, mapEntry("", 1n));
+      pushBytes(out, 7, mapEntry("𐀀", 2n));
+    }
     if (i % 101 === 0) pushBytes(out, 7, mapEntry("alpha", 999n)); // duplicate map key: last wins
     pushBytes(out, 8, new Uint8Array([i & 255, (i >>> 8) & 255, 0, 255]));
     if (i % 2 === 0) {
@@ -105,7 +119,18 @@ export function generateFixture(count = MESSAGE_COUNT) {
       pushString(out, 9, `note-${i}`);
     }
     pushKey(out, 11, 5);
-    pushFloat(out, i % 997 === 0 ? NaN : i % 983 === 0 ? -Infinity : i % 1000);
+    pushFloat(
+      out,
+      i % 997 === 0
+        ? NaN
+        : i % 983 === 0
+        ? -Infinity
+        : i % 881 === 0
+        ? -0
+        : i % 17 === 0
+        ? i % 1000 + 0.25
+        : i % 1000,
+    );
     // Unknown fields exercise every admitted wire type and are discarded by ProtoJSON.
     pushKey(out, 90, 0);
     pushVarint(out, state);
@@ -301,25 +326,79 @@ function base64(bytes) {
   }
   return out;
 }
-function number(value) {
+function finiteNumber(value, float32) {
+  const raw = new ArrayBuffer(8);
+  const view = new DataView(raw);
+  let fraction, exponent, exponent2;
+  if (float32) {
+    view.setFloat32(0, value, false);
+    const bits = view.getUint32(0, false);
+    fraction = BigInt(bits & 0x7fffff);
+    exponent = (bits >>> 23) & 0xff;
+    exponent2 = exponent ? exponent - 127 - 23 : -126 - 23;
+    if (exponent) fraction |= 1n << 23n;
+  } else {
+    view.setFloat64(0, value, false);
+    const bits = view.getBigUint64(0, false);
+    fraction = bits & 0xfffffffffffffn;
+    exponent = Number((bits >> 52n) & 0x7ffn);
+    exponent2 = exponent ? exponent - 1023 - 52 : -1022 - 52;
+    if (exponent) fraction |= 1n << 52n;
+  }
+  let decimalPlaces = 0;
+  if (exponent2 >= 0) fraction <<= BigInt(exponent2);
+  else {
+    decimalPlaces = -exponent2;
+    fraction *= 5n ** BigInt(decimalPlaces);
+    while (decimalPlaces && fraction % 10n === 0n) {
+      fraction /= 10n;
+      decimalPlaces--;
+    }
+  }
+  const digits = String(fraction);
+  let out;
+  if (!decimalPlaces) out = digits;
+  else if (digits.length <= decimalPlaces) {
+    out = `0.${"0".repeat(decimalPlaces - digits.length)}${digits}`;
+  } else {
+    const point = digits.length - decimalPlaces;
+    out = `${digits.slice(0, point)}.${digits.slice(point)}`;
+  }
+  return value < 0 ? `-${out}` : out;
+}
+function number(value, float32) {
   if (Number.isNaN(value)) return '"NaN"';
   if (value === Infinity) return '"Infinity"';
   if (value === -Infinity) return '"-Infinity"';
   if (Object.is(value, -0)) return "-0";
-  return String(value);
+  return finiteNumber(value, float32);
+}
+function utf8Compare(a, b) {
+  const left = te.encode(a), right = te.encode(b);
+  const length = Math.min(left.length, right.length);
+  for (let i = 0; i < length; i++) {
+    if (left[i] !== right[i]) return left[i] - right[i];
+  }
+  return left.length - right.length;
 }
 export function protoJson(m) {
   const fields = [];
   if (m.id !== 0n) fields.push(`"id":"${m.id}"`);
   if (m.name) fields.push(`"name":${quote(m.name)}`);
   if (m.active) fields.push('"active":true');
-  if (m.score !== 0) fields.push(`"score":${number(m.score)}`);
-  if (m.status !== 0) fields.push(`"status":${quote(STATUS[m.status] ?? String(m.status))}`);
+  if (m.score !== 0 || Object.is(m.score, -0)) fields.push(`"score":${number(m.score, false)}`);
+  if (m.status !== 0) {
+    fields.push(
+      STATUS[m.status] === undefined
+        ? `"status":${m.status}`
+        : `"status":${quote(STATUS[m.status])}`,
+    );
+  }
   if (m.tags.length) fields.push(`"tags":[${m.tags.map(quote).join(",")}]`);
   if (m.metrics.size) {
     fields.push(
       `"metrics":{${
-        [...m.metrics].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0).map(([k, v]) =>
+        [...m.metrics].sort(([a], [b]) => utf8Compare(a, b)).map(([k, v]) =>
           `${quote(k)}:${quote(String(v))}`
         ).join(",")
       }}`,
@@ -328,7 +407,7 @@ export function protoJson(m) {
   if (m.payload.length) fields.push(`"payload":${quote(base64(m.payload))}`);
   if (m.choiceKind === 9) fields.push(`"note":${quote(m.note)}`);
   else if (m.choiceKind === 10) fields.push(`"code":${m.code}`);
-  if (m.ratio !== 0) fields.push(`"ratio":${number(m.ratio)}`);
+  if (m.ratio !== 0 || Object.is(m.ratio, -0)) fields.push(`"ratio":${number(m.ratio, true)}`);
   return `{${fields.join(",")}}`;
 }
 export function runJavaScript(input) {

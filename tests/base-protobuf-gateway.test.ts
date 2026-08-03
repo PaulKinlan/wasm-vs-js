@@ -2,6 +2,7 @@ import { sha256Hex } from "../lib/canonical.ts";
 import { createHandler } from "../server.ts";
 import {
   decodeMessage,
+  frame,
   generateFixture,
   protoJson,
   runJavaScript,
@@ -70,7 +71,7 @@ Deno.test("base protobuf preserves frozen catalog and registers full exact suppl
 Deno.test("base protobuf complete 10k JS and material Wasm outputs and operative counters match", async () => {
   const fixture = generateFixture();
   const fixtureManifest = JSON.parse(await Deno.readTextFile(`${DIR}fixture-manifest.json`));
-  assertEquals(fixture.length, 1532559);
+  assertEquals(fixture.length, 1533942);
   assertEquals(await sha256Hex(fixture), fixtureManifest.sha256);
   const js = runJavaScript(fixture);
   const wasmBytes = await Deno.readFile(`${DIR}serialization-protobuf-gateway.wasm`);
@@ -78,12 +79,12 @@ Deno.test("base protobuf complete 10k JS and material Wasm outputs and operative
   assertEquals(js.text, wasm.text);
   assertEquals(
     await sha256Hex(js.bytes),
-    "17ddf71cde1fa5b995cfe5255ab39061e439e319c238858e565d9e5c658fc7fc",
+    "e0c54e5553fc1850e4ef0583e7cfc50f4636f68364300cc4a9a7de2518f6d8a7",
   );
-  assertEquals(js.bytes.length, 354147);
+  assertEquals(js.bytes.length, 354982);
   assertEquals(js.counters.messages, 10000);
-  assertEquals(js.counters.fields, 170204);
-  assertEquals(js.counters.varintBytes, 474624);
+  assertEquals(js.counters.fields, 170294);
+  assertEquals(js.counters.varintBytes, 474804);
   assertEquals(js.counters.unknownFields, 40000);
   assertEquals(js.counters.filteredMessages, 1703);
   const jsCounters = js.counters as Record<string, number>;
@@ -179,13 +180,99 @@ Deno.test("base protobuf conformance golden covers duplicates maps oneof default
   );
 });
 
+Deno.test("base protobuf adversarial ProtoJSON cases match in JS and material Wasm", async () => {
+  const first: number[] = [
+    0x08,
+    0x03, // selected id
+    0x12,
+    0x03,
+    0x22,
+    0x5c,
+    0x0a, // quote, backslash, newline
+    0x18,
+    0x01,
+    0x21,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x80, // double -0
+    0x28,
+    0x63, // unknown enum 99
+    0x3a,
+    0x07,
+    0x0a,
+    0x03,
+    0xee,
+    0x80,
+    0x80,
+    0x10,
+    0x02, // U+E000 => 1
+    0x3a,
+    0x08,
+    0x0a,
+    0x04,
+    0xf0,
+    0x90,
+    0x80,
+    0x80,
+    0x10,
+    0x04, // U+10000 => 2
+    0x5d,
+    0x00,
+    0x00,
+    0xc0,
+    0x3f, // float 1.5
+  ];
+  const second = [0x08, 0x06, 0x18, 0x01, 0x21];
+  const score = new Uint8Array(8);
+  new DataView(score.buffer).setFloat64(0, -12.25, true);
+  second.push(...score, 0x28, 0x01, 0x5d, 0x00, 0x00, 0x00, 0x80); // float -0
+  const third = [0x08, 0x09, 0x18, 0x01, 0x21];
+  const nonDyadicDouble = new Uint8Array(8);
+  new DataView(nonDyadicDouble.buffer).setFloat64(0, 0.1, true);
+  const nonDyadicFloat = new Uint8Array(4);
+  new DataView(nonDyadicFloat.buffer).setFloat32(0, 0.1, true);
+  third.push(...nonDyadicDouble, 0x28, 0x01, 0x5d, ...nonDyadicFloat);
+  const messages = [new Uint8Array(first), new Uint8Array(second), new Uint8Array(third)];
+  while (messages.length < 10_000) messages.push(new Uint8Array());
+  const fixture = frame(messages);
+  const js = runJavaScript(fixture);
+  const wasm = await runWasm(
+    fixture,
+    await Deno.readFile(`${DIR}serialization-protobuf-gateway.wasm`),
+  );
+  const expected =
+    '[{"id":"3","name":"\\"\\\\\\n","active":true,"score":-0,"status":99,"metrics":{"":"1","𐀀":"2"},"ratio":1.5},{"id":"6","active":true,"score":-12.25,"status":"ACTIVE","ratio":-0},{"id":"9","active":true,"score":0.1000000000000000055511151231257827021181583404541015625,"status":"ACTIVE","ratio":0.100000001490116119384765625}]';
+  assertEquals(js.text, expected);
+  assertEquals(wasm.text, expected);
+});
+
+Deno.test("base protobuf generated corpus retains every adversarial serializer case", () => {
+  const js = runJavaScript(generateFixture());
+  assert(js.text.includes('"status":99'));
+  assert(js.text.includes('"score":-0'));
+  assert(js.text.includes('"ratio":-0'));
+  assert(js.text.includes('"score":26.5'));
+  assert(js.text.includes('"ratio":'));
+  assert(js.text.includes('"metrics":{"alpha":"'));
+  assert(js.text.includes(""));
+  assert(js.text.includes("𐀀"));
+  assert(js.text.includes('\\"'));
+  assert(js.text.includes("\\\\"));
+  assert(js.text.includes("\\n"));
+});
+
 Deno.test("base protobuf malformed lengths varints UTF8 and unsupported groups fail closed", async () => {
   throws(() => decodeMessage(new Uint8Array([0x12, 0x02, 0x61])));
   throws(() => decodeMessage(new Uint8Array([0x08, ...new Array(10).fill(0x80)])));
   throws(() => decodeMessage(new Uint8Array([0x12, 0x01, 0xff])));
   throws(() => decodeMessage(new Uint8Array([0x0b, 0x0c])));
   const fixture = generateFixture();
-  const marker = new TextEncoder().encode("café-0");
+  const marker = new TextEncoder().encode("café-1");
   let at = -1;
   outer: for (let i = 0; i <= fixture.length - marker.length; i++) {
     for (let j = 0; j < marker.length; j++) if (fixture[i + j] !== marker[j]) continue outer;
@@ -299,4 +386,10 @@ Deno.test("base protobuf demo lifecycle is bounded and exact mode hashes raw ser
   assert(!runner.includes("localStorage"));
   assert(!worker.includes("indexedDB"));
   assert(!worker.includes("performance.now"));
+  const lastExactOnlyBranch = worker.lastIndexOf('if (mode === "exact")');
+  const digest = worker.indexOf("const digest = await sha256Hex(selected.bytes)");
+  const oracle = worker.indexOf('EXPECTED["output-manifest.json"]', digest);
+  const completion = worker.indexOf("self.postMessage", oracle);
+  assert(lastExactOnlyBranch < digest, "output oracle must not be exact-mode-only");
+  assert(digest < oracle && oracle < completion, "oracle must gate every successful completion");
 });

@@ -6,14 +6,14 @@ import {
 } from "/benchmarks/base/serialization-protobuf-gateway/workload.js";
 const ROOT = "/artifacts/serialization-protobuf-gateway/";
 const EXPECTED = {
-  "fixture-manifest.json": "34244a6da870bb68e66f7b1e6aea1ecb5bc65bd85b6826d2eabc5f79b891d666",
-  "output-manifest.json": "09799b4c9620a35459a38ac1e81f316629702e602a94cc622c85852bdb6bf641",
-  "build-manifest.json": "36950c08371d434ab681e0d08e2d11d8ebd695a3df899d46fd7a1cff2f86ca61",
+  "fixture-manifest.json": "1c0f312f924ded923d39e67eddb477440210fa2b3e939598a8854fd3ff66fe0f",
+  "output-manifest.json": "a57ac8b49aec3029761d6750fd713f209dfc049c0c1452f09aa6c385a95f56bf",
+  "build-manifest.json": "ff73ccc67058a44dd273a487c3aabbd4aa378c4fd10778a668c7bd22942c50c9",
   "serialization-protobuf-gateway.wasm":
-    "94e885a121de7fbe69442870b8ce0d7b62456dec37de3d978e18784dbb08a010",
+    "d0c64f5bdd783ecfe0f7fe7ff8e87d6118d6736bf807b4db2791e3ff2cea2724",
   "implementation-contract.v1.json":
     "705729301e84f4aefb0f9f76081c7f20e15ecbb291fe58f7da6d72b646e44cfc",
-  "workload.js": "9307e64445f66a0264d60da8df211d1510379da2263608360c5ff7aaa106e430",
+  "workload.js": "1d5908d35c5fed190bc7a6f2489c9adf1f6342f6b9c42b408a222a1c2c87d95b",
 };
 async function exactFetch(path, expected) {
   const response = await fetch(path, { cache: "no-store" });
@@ -65,14 +65,14 @@ self.onmessage = async ({ data }) => {
     }
     const selected = js ?? wasm;
     const digest = await sha256Hex(selected.bytes);
-    if (mode === "exact") {
-      const outputBytes = await exactFetch(
-        `${ROOT}output-manifest.json`,
-        EXPECTED["output-manifest.json"],
-      );
-      if (JSON.parse(new TextDecoder().decode(outputBytes)).sha256 !== digest) {
-        throw new Error("output oracle mismatch");
-      }
+    // Every advertised mode is a correctness mode. Never report completion
+    // unless the complete output matches the immutable output oracle.
+    const outputBytes = await exactFetch(
+      `${ROOT}output-manifest.json`,
+      EXPECTED["output-manifest.json"],
+    );
+    if (JSON.parse(new TextDecoder().decode(outputBytes)).sha256 !== digest) {
+      throw new Error("output oracle mismatch");
     }
     self.postMessage({
       token,
