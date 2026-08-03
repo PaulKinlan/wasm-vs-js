@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "contractId": "audio-demo-clean-cache-reproduction-v1",
+  "started": "2026-08-03T09:53:00.241Z",
+  "finished": "2026-08-03T09:53:02.596Z",
+  "denoVersion": "2.9.0",
+  "cacheDirectory": "fresh temporary DENO_DIR (created and removed by this script)",
+  "lockfile": "scripts/audio-demo-assets.lock",
+  "typescript": "5.9.2 (integrity-pinned in the dedicated lockfile)",
+  "outputsByteIdenticalToCommittedManifest": true,
+  "files": [
+    {
+      "output": "public/demo-assets/audio/benchmarks/audio-fft/workload.js",
+      "sha256": "149f992d09aaaef7afdc685eec95d31d0f03214121f5b93c745cbb188655963d",
+      "bytes": 3929
+    },
+    {
+      "output": "public/demo-assets/audio/benchmarks/audio-fir/workload.js",
+      "sha256": "5c2a90fdc3e4051497c742cb8a675260d928e49382620816bbe5429685cfc8a2",
+      "bytes": 2359
+    },
+    {
+      "output": "public/demo-assets/audio/benchmarks/audio-stft/workload.js",
+      "sha256": "fd8d6941ad090651d255135ab1551cab1418742381890cebe78a45da9b62725f",
+      "bytes": 3183
+    },
+    {
+      "output": "public/demo-assets/audio/benchmarks/audio-shared/canonical.js",
+      "sha256": "8f7e5c74e3ca2cbc9df251a4c9b9e3c9f52880fbdaacf059426538503e376c70",
+      "bytes": 1008
+    },
+    {
+      "output": "public/demo-assets/audio/benchmarks/audio-shared/constants.js",
+      "sha256": "25add1c20efef70e28296264a9d835f28e4371d17ce58188d29b50d708e9e639",
+      "bytes": 984
+    },
+    {
+      "output": "public/demo-assets/audio/benchmarks/audio-shared/oracle.js",
+      "sha256": "302b3cb4ea132c73e16325b2ed324c0b4eedcce6af057d3cda968e90cd3fbeec",
+      "bytes": 9102
+    },
+    {
+      "output": "public/demo-assets/audio/lib/audio-workloads.js",
+      "sha256": "55c5fc123f1073c91576fb375c451b33da49c5fbbe746c3225f22f728788a7d1",
+      "bytes": 11615
+    }
+  ]
+}

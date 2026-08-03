@@ -1,0 +1,268 @@
+{
+  "schemaVersion": 1,
+  "contractId": "audio-demo-browser-validation-v1",
+  "startedBy": "scripts/validate-audio-demo-browser.ts",
+  "browser": {
+    "product": "Chrome/150.0.7871.114",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+    "binary": "/usr/bin/chromium",
+    "launchArguments": [
+      "--headless=new",
+      "--remote-debugging-port=0",
+      "--user-data-dir=/tmp/audio-demo-browser-bc1e4b483ad23521",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-sync",
+      "--disable-crash-reporter",
+      "--disable-breakpad",
+      "--window-size=1280,900",
+      "about:blank"
+    ]
+  },
+  "server": {
+    "task": "public",
+    "base": "http://127.0.0.1:44281",
+    "mode": "public-read-only"
+  },
+  "runs": [
+    {
+      "route": "http://127.0.0.1:44281/benchmarks/audio-fft/",
+      "engine": "javascript",
+      "mode": "exact-contract",
+      "assertions": {
+        "status": "Run complete. All reported evidence comes from this page's worker run.",
+        "hashVerdicts": [
+          "matches frozen hash",
+          "matches frozen hash"
+        ],
+        "oracleHeadings": [
+          "complete-output-bound: passed",
+          "structural-invariants: passed",
+          "work-counters: passed"
+        ],
+        "contractItems": [
+          "served engine modules: verified — 7/7 modules hash-verified and anchored to the accepted-commit source graph",
+          "reference artifact hash: verified — 0432b81e06b48343… hashed from served bytes; agreement across reference-manifest, build-manifest, registry, and served constants",
+          "input manifest hash: verified — run input f312693f97034ff5… across input-manifest, registry, and served constants",
+          "output manifest hash: verified — run output f6285cd3244f76ee… across output-manifest, registry, and served constants",
+          "output variant record: verified — output-manifest variant js-controlled records the same output and reference hashes",
+          "JavaScript engine source hash: verified — served engine module source hash matches the build-manifest recorded engine source",
+          "source commit identity: verified — all five manifests and the registry name 6f507efc2961…",
+          "fixed memory relationship: verified — registry 32 pages == served AUDIO_MEMORY_PAGES 32",
+          "fixture manifest identity: verified — all manifests name the same entry ID and slug as the registry"
+        ],
+        "counterRows": 8,
+        "variantSummary": "Radix-2 complex FFT completed on the JavaScript engine in exact contract mode. Variant js-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
+      },
+      "checks": {
+        "statusComplete": true,
+        "hashesMatchFrozen": true,
+        "oracleAllPassed": true,
+        "contractAllVerified": true,
+        "counterRowCount": true,
+        "variantMatchesEngine": true
+      }
+    },
+    {
+      "route": "http://127.0.0.1:44281/benchmarks/audio-fft/",
+      "engine": "wasm-linear",
+      "mode": "exact-contract",
+      "assertions": {
+        "status": "Run complete. All reported evidence comes from this page's worker run.",
+        "hashVerdicts": [
+          "matches frozen hash",
+          "matches frozen hash"
+        ],
+        "oracleHeadings": [
+          "complete-output-bound: passed",
+          "structural-invariants: passed",
+          "work-counters: passed"
+        ],
+        "contractItems": [
+          "served engine modules: verified — 7/7 modules hash-verified and anchored to the accepted-commit source graph",
+          "reference artifact hash: verified — 0432b81e06b48343… hashed from served bytes; agreement across reference-manifest, build-manifest, registry, and served constants",
+          "input manifest hash: verified — run input f312693f97034ff5… across input-manifest, registry, and served constants",
+          "output manifest hash: verified — run output f6285cd3244f76ee… across output-manifest, registry, and served constants",
+          "output variant record: verified — output-manifest variant wasm-linear-controlled records the same output and reference hashes",
+          "Wasm artifact hash: verified — dbbcfd28be441135… hashed from served bytes against the build-manifest artifact",
+          "source commit identity: verified — all five manifests and the registry name 6f507efc2961…",
+          "fixed memory relationship: verified — registry 32 pages == served AUDIO_MEMORY_PAGES 32",
+          "fixture manifest identity: verified — all manifests name the same entry ID and slug as the registry"
+        ],
+        "counterRows": 8,
+        "variantSummary": "Radix-2 complex FFT completed on the WebAssembly (linear memory) engine in exact contract mode. Variant wasm-linear-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
+      },
+      "checks": {
+        "statusComplete": true,
+        "hashesMatchFrozen": true,
+        "oracleAllPassed": true,
+        "contractAllVerified": true,
+        "counterRowCount": true,
+        "variantMatchesEngine": true
+      }
+    },
+    {
+      "route": "http://127.0.0.1:44281/benchmarks/audio-fir/",
+      "engine": "javascript",
+      "mode": "exact-contract",
+      "assertions": {
+        "status": "Run complete. All reported evidence comes from this page's worker run.",
+        "hashVerdicts": [
+          "matches frozen hash",
+          "matches frozen hash"
+        ],
+        "oracleHeadings": [
+          "complete-output-bound: passed",
+          "structural-invariants: passed"
+        ],
+        "contractItems": [
+          "served engine modules: verified — 7/7 modules hash-verified and anchored to the accepted-commit source graph",
+          "reference artifact hash: verified — 3146faf58d2eecd4… hashed from served bytes; agreement across reference-manifest, build-manifest, registry, and served constants",
+          "input manifest hash: verified — run input b90d5d472e7f58e1… across input-manifest, registry, and served constants",
+          "output manifest hash: verified — run output e4b89ba6d65fa9ac… across output-manifest, registry, and served constants",
+          "output variant record: verified — output-manifest variant js-controlled records the same output and reference hashes",
+          "JavaScript engine source hash: verified — served engine module source hash matches the build-manifest recorded engine source",
+          "source commit identity: verified — all five manifests and the registry name 6f507efc2961…",
+          "fixed memory relationship: verified — registry 32 pages == served AUDIO_MEMORY_PAGES 32",
+          "fixture manifest identity: verified — all manifests name the same entry ID and slug as the registry"
+        ],
+        "counterRows": 8,
+        "variantSummary": "Finite impulse response convolution completed on the JavaScript engine in exact contract mode. Variant js-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
+      },
+      "checks": {
+        "statusComplete": true,
+        "hashesMatchFrozen": true,
+        "oracleAllPassed": true,
+        "contractAllVerified": true,
+        "counterRowCount": true,
+        "variantMatchesEngine": true
+      }
+    },
+    {
+      "route": "http://127.0.0.1:44281/benchmarks/audio-fir/",
+      "engine": "wasm-linear",
+      "mode": "exact-contract",
+      "assertions": {
+        "status": "Run complete. All reported evidence comes from this page's worker run.",
+        "hashVerdicts": [
+          "matches frozen hash",
+          "matches frozen hash"
+        ],
+        "oracleHeadings": [
+          "complete-output-bound: passed",
+          "structural-invariants: passed"
+        ],
+        "contractItems": [
+          "served engine modules: verified — 7/7 modules hash-verified and anchored to the accepted-commit source graph",
+          "reference artifact hash: verified — 3146faf58d2eecd4… hashed from served bytes; agreement across reference-manifest, build-manifest, registry, and served constants",
+          "input manifest hash: verified — run input b90d5d472e7f58e1… across input-manifest, registry, and served constants",
+          "output manifest hash: verified — run output e4b89ba6d65fa9ac… across output-manifest, registry, and served constants",
+          "output variant record: verified — output-manifest variant wasm-linear-controlled records the same output and reference hashes",
+          "Wasm artifact hash: verified — c61254df057f3d15… hashed from served bytes against the build-manifest artifact",
+          "source commit identity: verified — all five manifests and the registry name 6f507efc2961…",
+          "fixed memory relationship: verified — registry 32 pages == served AUDIO_MEMORY_PAGES 32",
+          "fixture manifest identity: verified — all manifests name the same entry ID and slug as the registry"
+        ],
+        "counterRows": 8,
+        "variantSummary": "Finite impulse response convolution completed on the WebAssembly (linear memory) engine in exact contract mode. Variant wasm-linear-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
+      },
+      "checks": {
+        "statusComplete": true,
+        "hashesMatchFrozen": true,
+        "oracleAllPassed": true,
+        "contractAllVerified": true,
+        "counterRowCount": true,
+        "variantMatchesEngine": true
+      }
+    },
+    {
+      "route": "http://127.0.0.1:44281/benchmarks/audio-stft/",
+      "engine": "javascript",
+      "mode": "exact-contract",
+      "assertions": {
+        "status": "Run complete. All reported evidence comes from this page's worker run.",
+        "hashVerdicts": [
+          "matches frozen hash",
+          "matches frozen hash"
+        ],
+        "oracleHeadings": [
+          "complete-output-bound: passed",
+          "structural-invariants: passed"
+        ],
+        "contractItems": [
+          "served engine modules: verified — 7/7 modules hash-verified and anchored to the accepted-commit source graph",
+          "reference artifact hash: verified — 3bae7479e79489d8… hashed from served bytes; agreement across reference-manifest, build-manifest, registry, and served constants",
+          "input manifest hash: verified — run input dfabd66f9e5272f7… across input-manifest, registry, and served constants",
+          "output manifest hash: verified — run output b06a278c83d9eeff… across output-manifest, registry, and served constants",
+          "output variant record: verified — output-manifest variant js-controlled records the same output and reference hashes",
+          "JavaScript engine source hash: verified — served engine module source hash matches the build-manifest recorded engine source",
+          "source commit identity: verified — all five manifests and the registry name 6f507efc2961…",
+          "fixed memory relationship: verified — registry 64 pages == served AUDIO_MEMORY_PAGES 64",
+          "fixture manifest identity: verified — all manifests name the same entry ID and slug as the registry"
+        ],
+        "counterRows": 8,
+        "variantSummary": "Short-time Fourier transform spectrogram completed on the JavaScript engine in exact contract mode. Variant js-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
+      },
+      "checks": {
+        "statusComplete": true,
+        "hashesMatchFrozen": true,
+        "oracleAllPassed": true,
+        "contractAllVerified": true,
+        "counterRowCount": true,
+        "variantMatchesEngine": true
+      }
+    },
+    {
+      "route": "http://127.0.0.1:44281/benchmarks/audio-stft/",
+      "engine": "wasm-linear",
+      "mode": "exact-contract",
+      "assertions": {
+        "status": "Run complete. All reported evidence comes from this page's worker run.",
+        "hashVerdicts": [
+          "matches frozen hash",
+          "matches frozen hash"
+        ],
+        "oracleHeadings": [
+          "complete-output-bound: passed",
+          "structural-invariants: passed"
+        ],
+        "contractItems": [
+          "served engine modules: verified — 7/7 modules hash-verified and anchored to the accepted-commit source graph",
+          "reference artifact hash: verified — 3bae7479e79489d8… hashed from served bytes; agreement across reference-manifest, build-manifest, registry, and served constants",
+          "input manifest hash: verified — run input dfabd66f9e5272f7… across input-manifest, registry, and served constants",
+          "output manifest hash: verified — run output b06a278c83d9eeff… across output-manifest, registry, and served constants",
+          "output variant record: verified — output-manifest variant wasm-linear-controlled records the same output and reference hashes",
+          "Wasm artifact hash: verified — 00beb1f7b6de580c… hashed from served bytes against the build-manifest artifact",
+          "source commit identity: verified — all five manifests and the registry name 6f507efc2961…",
+          "fixed memory relationship: verified — registry 64 pages == served AUDIO_MEMORY_PAGES 64",
+          "fixture manifest identity: verified — all manifests name the same entry ID and slug as the registry"
+        ],
+        "counterRows": 8,
+        "variantSummary": "Short-time Fourier transform spectrogram completed on the WebAssembly (linear memory) engine in exact contract mode. Variant wasm-linear-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
+      },
+      "checks": {
+        "statusComplete": true,
+        "hashesMatchFrozen": true,
+        "oracleAllPassed": true,
+        "contractAllVerified": true,
+        "counterRowCount": true,
+        "variantMatchesEngine": true
+      }
+    },
+    {
+      "route": "http://127.0.0.1:44281/benchmarks/audio-stft/",
+      "engine": "javascript",
+      "mode": "lifecycle",
+      "checks": {
+        "startDisabledDuringRun": true,
+        "cancelEnabledDuringRun": true,
+        "cancelTerminates": true,
+        "staleMessagesDiscarded": true,
+        "restartAfterCancel": true
+      }
+    }
+  ],
+  "networkScope": "page and worker-script requests; worker-internal fetches are proven by the per-run exact-contract assertions, which hash every served module, manifest, and artifact byte",
+  "consoleEvents": 14,
+  "networkEvents": 52
+}

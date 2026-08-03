@@ -89,7 +89,7 @@ Deno.test("audio demo assets are reproducible from the exact engine sources", as
       "--allow-write=public/demo-assets",
       "--allow-env",
       "--allow-run",
-      "--no-lock",
+      "--lock=scripts/audio-demo-assets.lock",
       "scripts/build-audio-demo-assets.ts",
     ],
     cwd: new URL(".", ROOT).pathname,
@@ -223,4 +223,55 @@ Deno.test("public server serves the audio demo routes and nothing else under /de
     child.kill("SIGTERM");
     await child.status;
   }
+});
+
+Deno.test("retained browser validation evidence is complete and passing", async () => {
+  const base = "evidence/browser/audio-demo";
+  const validation = await readJson(`${base}/validation.json`);
+  assertEquals(validation.contractId, "audio-demo-browser-validation-v1");
+  const browser = validation.browser as Record<string, unknown>;
+  assert(typeof browser.product === "string" && browser.product.includes("Chrome/"));
+  assert((browser.launchArguments as string[]).includes("--headless=new"));
+  const runs = validation.runs as Record<string, unknown>[];
+  const exactRuns = runs.filter((run) => run.mode === "exact-contract");
+  assertEquals(exactRuns.length, 6);
+  const seen = new Set(exactRuns.map((run) => `${run.route}|${run.engine}`));
+  for (const slug of SLUGS) {
+    for (const engine of ["javascript", "wasm-linear"]) {
+      assert(
+        seen.has(`http://127.0.0.1:8899/benchmarks/${slug}/|${engine}`) ||
+          [...seen].some((key) => key.includes(`/benchmarks/${slug}/|${engine}`)),
+      );
+    }
+  }
+  for (const run of runs) {
+    const checks = run.checks as Record<string, boolean>;
+    for (const [name, value] of Object.entries(checks)) {
+      assert(value === true, `${run.route} ${run.engine}: ${name}`);
+    }
+  }
+  assertEquals(runs.filter((run) => run.mode === "lifecycle").length, 1);
+  const consoleLog = new TextDecoder().decode(await readBytes(`${base}/console.jsonl`));
+  for (const line of consoleLog.trim().split("\n")) {
+    if (!line) continue;
+    assert(
+      line.includes("frame-ancestors"),
+      `unexpected console event retained: ${line.slice(0, 120)}`,
+    );
+  }
+  const networkLog = new TextDecoder().decode(await readBytes(`${base}/network.jsonl`));
+  assert(networkLog.includes("/demo-worker.js"));
+  assert(networkLog.includes("/demo-runner.js"));
+  for (const slug of SLUGS) {
+    assert(networkLog.includes(`/benchmarks/${slug}/`));
+  }
+  const scope = validation.networkScope as string;
+  assert(scope.includes("exact-contract assertions"));
+  for (const slug of SLUGS) {
+    const shot = await Deno.lstat(`${base}/screenshots/${slug}-exact-contract.png`);
+    assert(shot.isFile && shot.size > 1_000, `${slug} screenshot retained`);
+  }
+  const cleanup = await readJson(`${base}/cleanup.json`);
+  assertEquals(cleanup.profileRemoved, true);
+  assert(typeof cleanup.browserPid === "number" && typeof cleanup.serverPid === "number");
 });

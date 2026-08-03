@@ -154,12 +154,13 @@ elements.start.addEventListener("click", () => {
   setRunning(true);
   setStatus("Preparing a fresh worker…");
 
-  worker = new Worker("/demo-worker.js", { type: "module" });
+  const runWorker = new Worker("/demo-worker.js", { type: "module" });
+  worker = runWorker;
   timeoutId = setTimeout(() => {
     finish(`Timed out after ${identity.timeoutMs / 1000} seconds; the worker was terminated.`);
   }, identity.timeoutMs);
 
-  worker.addEventListener("message", (event) => {
+  runWorker.addEventListener("message", (event) => {
     const message = event.data;
     if (!message || message.token !== token) return; // stale token: ignore
     if (message.type === "progress") {
@@ -175,12 +176,14 @@ elements.start.addEventListener("click", () => {
       finish(`Run failed: ${message.message}`);
     }
   });
-  worker.addEventListener("error", (event) => {
-    if (!worker) return;
+  runWorker.addEventListener("error", (event) => {
+    // Stale-safe: a late error from a terminated older worker must not
+    // finish a newer run.
+    if (worker !== runWorker || token !== currentToken) return;
     finish(`Worker error: ${event.message ?? "unknown"}`);
   });
 
-  worker.postMessage({
+  runWorker.postMessage({
     token,
     slug: identity.slug,
     target: elements.target.value,
@@ -191,6 +194,13 @@ elements.start.addEventListener("click", () => {
 elements.cancel.addEventListener("click", () => {
   currentToken += 1; // invalidate any in-flight messages
   finish("Cancelled; the worker was terminated.");
+});
+
+// Explicit page teardown: leaving or reloading the page terminates any
+// in-flight worker and disarms its timeout.
+addEventListener("pagehide", () => {
+  currentToken += 1;
+  teardownWorker();
 });
 
 document.documentElement.classList.add("js");
