@@ -1,5 +1,5 @@
 import wabtFactory from "wabt";
-import { canonicalize, sha256Hex } from "../lib/canonical.ts";
+import { sha256Hex } from "../lib/canonical.ts";
 import {
   CONTRACT,
   counters,
@@ -270,7 +270,7 @@ const records = ["javascript", "wasm-linear"].map((target) => ({
 }));
 
 async function writeJson(url: URL, value: unknown) {
-  await Deno.writeTextFile(url, `${canonicalize(value)}\n`);
+  await Deno.writeTextFile(url, `${JSON.stringify(value, null, 2)}\n`);
 }
 await writeJson(new URL("fixture-manifest.json", artifactDir), fixtureManifest);
 await writeJson(new URL("output-manifest.json", artifactDir), outputManifest);
