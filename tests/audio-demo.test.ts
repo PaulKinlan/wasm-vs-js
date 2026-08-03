@@ -162,7 +162,7 @@ Deno.test("audio demo pages embed truthful workload identity", async () => {
     assert(html.includes(oracle.outputSha256 as string), `${slug} output hash on page`);
     assert(html.includes("/evidence/v2-proposals/"), `${slug} links the evidence records`);
     assert(
-      html.includes("/blob/6f507efc2961983ed087bab0bf18fd845aebd100/"),
+      html.includes(`/blob/${registry.sourceCommit}/`),
       `${slug} pinned source links`,
     );
     assert(html.includes(`benchmarks/${slug}/workload.ts`), `${slug} links the engine source`);
