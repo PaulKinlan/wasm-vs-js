@@ -15,7 +15,7 @@
       96,
       96
     ],
-    "retainedPixelCheckpoints": [
+    "previewPixelCheckpoints": [
       0,
       119,
       239,
@@ -23,6 +23,7 @@
       479,
       599
     ],
+    "retainedRasterFrames": 600,
     "rasterizedFrames": 600,
     "pickFrames": [
       25,
@@ -58,7 +59,7 @@
     "metallicRoughness": "GPU product baseline only"
   },
   "rendering": {
-    "controlled": "CPU 96x96 rasterization on all 600 frames; six retained pixel checkpoints plus the complete frame/counter stream",
+    "controlled": "CPU 96x96 rasterization with all 36,864 RGBA bytes retained for each of all 600 frames, plus the complete frame/counter stream",
     "gpu": "separate unavailable product baseline; never enters controlled output"
   },
   "counters": [

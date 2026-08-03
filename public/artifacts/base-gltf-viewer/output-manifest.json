@@ -2,35 +2,85 @@
   "schemaVersion": 1,
   "workloadId": "graphics.gltf-viewer.v1",
   "status": "passed",
-  "sourceCommit": "0979940e321538e034e8b3b027a49cb991664685",
+  "sourceCommit": "18d9b3e67635ccee776f6785867e46d8f0017e61",
   "input": {
     "decodedMeshSha256": "b4e03bea9c76a08a6cc8d62ad1320af25ef7e5c594015b6b8396b9efc8aa5f54",
     "asmJsWasmDecodedMeshEqual": true
   },
   "output": {
-    "bytes": 240496,
-    "semanticSha256": "f019ba556ce4c1dae8ee02b034d06ebbe7417650ed46a6bfc8dbb710477e8a0a",
+    "bytes": 22137712,
+    "semanticSha256": "5fad101bb540b089d6bd1769c87540eec6f9bfe07ebbe05fa35001358d32a054",
     "completeCrossTargetEqual": true,
+    "measurementUnits": {
+      "allocation": "one counted creation listed in allocationUnits: a length-based typed-array construction together with its backing store is one unit, a view or wrapper construction is one unit, and each WebAssembly.Module, WebAssembly.Instance, or WebAssembly.Memory is one unit; generated decoder internal allocator activity is represented by its returned wrapper object",
+      "boundaryCrossing": "one invocation of an instrumented exported Wasm function from JavaScript; includes decoder initialization and generated exports",
+      "copy": "one explicit host-to-Wasm memory.set or Wasm-to-host memory.slice operation, with bytes equal to the copied byte range"
+    },
     "variants": {
       "javascript": {
-        "sha256": "9a12dd00a3a88a548a4f39aecd9bf7702236c657c6007003cbfd93c725c0c4de",
-        "allocations": 18,
-        "decoderAllocations": 11,
-        "engineAllocations": 7,
+        "sha256": "9e8f73500f5cb35180ea28ecaf5d5645ac5f04851f8f6246cdc7b8ccdc82c297",
+        "allocations": 27,
+        "decoderAllocations": 18,
+        "engineAllocations": 9,
+        "allocationUnits": {
+          "decoder": {
+            "moduleFactoryResults": 1,
+            "generatedWrapperObjects": 11,
+            "inputTypedArrayViews": 1,
+            "outputArrayAllocations": 4,
+            "asmJsHeapBackingStores": 1,
+            "wasmModules": 0,
+            "wasmInstances": 0,
+            "wasmMemories": 0,
+            "wasmMemoryBytes": 0
+          },
+          "engine": {
+            "outputTypedArrayAndBackingStore": 1,
+            "outputViews": 2,
+            "scratchTypedArraysAndBackingStores": 6
+          }
+        },
         "decoderApiCalls": 6002,
+        "decoderInitializationAndGeneratedExportCrossings": 0,
         "decoderWasmBoundaryCrossings": 0,
         "engineWasmBoundaryCrossings": 0,
-        "totalWasmBoundaryCrossings": 0
+        "totalWasmBoundaryCrossings": 0,
+        "wasmCopyOperations": 0,
+        "wasmCopyBytes": 0
       },
       "wasm": {
-        "sha256": "a3315f04f1128aa5cb1160da7c092af622062d63e14eacb187a7c153a1cd2553",
-        "allocations": 11,
-        "decoderAllocations": 11,
-        "engineAllocations": 0,
+        "sha256": "528133099de9dbd08da410bd47c03772c70888c6149e38340d4a8283f7425740",
+        "allocations": 25,
+        "decoderAllocations": 20,
+        "engineAllocations": 5,
+        "allocationUnits": {
+          "decoder": {
+            "moduleFactoryResults": 1,
+            "generatedWrapperObjects": 11,
+            "inputTypedArrayViews": 1,
+            "outputArrayAllocations": 4,
+            "asmJsHeapBackingStores": 0,
+            "wasmModules": 1,
+            "wasmInstances": 1,
+            "wasmMemories": 1,
+            "wasmMemoryBytes": 16777216
+          },
+          "engine": {
+            "wasmModules": 1,
+            "wasmInstances": 1,
+            "wasmMemories": 1,
+            "wasmMemoryBytes": 67108864,
+            "linearMemoryViews": 1,
+            "outputCopyAllocations": 1
+          }
+        },
         "decoderApiCalls": 6002,
-        "decoderWasmBoundaryCrossings": 6002,
+        "decoderInitializationAndGeneratedExportCrossings": 35,
+        "decoderWasmBoundaryCrossings": 6037,
         "engineWasmBoundaryCrossings": 4,
-        "totalWasmBoundaryCrossings": 6006
+        "totalWasmBoundaryCrossings": 6041,
+        "wasmCopyOperations": 8,
+        "wasmCopyBytes": 22185555
       }
     },
     "header": [
@@ -46,19 +96,19 @@
       243600,
       818400,
       600,
-      6,
+      600,
       12,
       0,
-      18,
+      27,
       37560,
-      240496,
+      22137712,
       1,
       0,
-      11,
+      18,
       6002,
       0,
       0,
-      7,
+      9,
       600,
       600,
       0
