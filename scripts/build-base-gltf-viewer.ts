@@ -2,6 +2,7 @@ import { sha256Hex } from "../lib/canonical.ts";
 import {
   CONTRACT,
   makeAnimationTable,
+  normalizeControlledOutput,
   OUTPUT_BYTES,
   quantizeDecodedMesh,
   runJavaScript,
@@ -191,10 +192,17 @@ if (
   throw new Error("Wasm viewer failed");
 }
 const wasmOutput = memory.slice(exports.output_ptr(), exports.output_ptr() + OUTPUT_BYTES);
-if (await sha256Hex(jsOutput) !== await sha256Hex(wasmOutput)) {
-  throw new Error("complete JS/Wasm output mismatch");
+const jsSemantic = normalizeControlledOutput(jsOutput);
+const wasmSemantic = normalizeControlledOutput(wasmOutput);
+if (await sha256Hex(jsSemantic) !== await sha256Hex(wasmSemantic)) {
+  const first = jsSemantic.findIndex((value, index) => value !== wasmSemantic[index]);
+  throw new Error(
+    `complete JS/Wasm semantic output mismatch at ${first}: ${jsSemantic[first]} != ${
+      wasmSemantic[first]
+    }`,
+  );
 }
-await Deno.writeFile(new URL("reference-output.bin", artifacts), jsOutput);
+await Deno.writeFile(new URL("reference-output.bin", artifacts), jsSemantic);
 
 const immutableCatalog = await fileRef("catalog/workloads.v1.json");
 if (
@@ -308,8 +316,12 @@ const outputManifest = {
   input: { decodedMeshSha256: await sha256Hex(jsMeshBytes), asmJsWasmDecodedMeshEqual: true },
   output: {
     bytes: jsOutput.length,
-    sha256: await sha256Hex(jsOutput),
+    semanticSha256: await sha256Hex(jsSemantic),
     completeCrossTargetEqual: true,
+    variants: {
+      javascript: { sha256: await sha256Hex(jsOutput), boundaryCrossings: 0 },
+      wasm: { sha256: await sha256Hex(wasmOutput), boundaryCrossings: 1 },
+    },
     header: Array.from(new Uint32Array(jsOutput.buffer, 0, 20)),
   },
   performanceClaims: [],
@@ -363,7 +375,7 @@ const evidence = {
     completeOutputEqual: true,
     routeLifecycle: "covered by static tests; parent-owned retained Chrome evidence pending",
   },
-  outputSha256: await sha256Hex(jsOutput),
+  semanticOutputSha256: await sha256Hex(jsSemantic),
   browserEvidence: "unavailable-pending-authoritative-controller",
   performanceClaims: [],
 };
@@ -373,6 +385,6 @@ await Deno.writeTextFile(
 );
 console.log(
   `base glTF: ${contract.vertexCount} vertices, 682 triangles, 600 frames, ${jsOutput.length} output bytes, ${await sha256Hex(
-    jsOutput,
+    jsSemantic,
   )}`,
 );

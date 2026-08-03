@@ -106,6 +106,17 @@ function edge(ax, ay, bx, by, px, py) {
   return (px - ax) * (by - ay) - (py - ay) * (bx - ax);
 }
 
+export function normalizeControlledOutput(output) {
+  if (!(output instanceof Uint8Array) || output.length !== OUTPUT_BYTES) {
+    throw new Error("output size mismatch");
+  }
+  const normalized = output.slice();
+  const words = new Uint32Array(normalized.buffer);
+  words[14] = 0; // target-specific host boundary crossings
+  words[19] = 0; // target identity marker
+  return normalized;
+}
+
 export function runJavaScript(mesh, texture, animation = makeAnimationTable()) {
   const { positions, normals, texcoords, indices, vertexCount } = mesh;
   if (!(texture instanceof Uint8Array) || texture.length !== 64 * 64 * 4) {

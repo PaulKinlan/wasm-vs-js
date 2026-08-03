@@ -1,4 +1,5 @@
 import {
+  normalizeControlledOutput,
   OUTPUT_BYTES,
   quantizeDecodedMesh,
   runJavaScript,
@@ -182,7 +183,11 @@ self.onmessage = async (event) => {
       ? runJavaScript(mesh, texture, animation)
       : await runWasm(mesh, texture, animation, gltfText, viewer);
     const digest = await sha256(result);
-    if (digest !== outputManifest.json.output.sha256) {
+    const expectedVariant = outputManifest.json.output.variants[target];
+    if (
+      digest !== expectedVariant?.sha256 ||
+      await sha256(normalizeControlledOutput(result)) !== outputManifest.json.output.semanticSha256
+    ) {
       throw new Error("complete output oracle mismatch");
     }
     const header = Array.from(new Uint32Array(result.buffer, result.byteOffset, 20));

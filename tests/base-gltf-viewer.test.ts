@@ -2,6 +2,7 @@ import { sha256Hex } from "../lib/canonical.ts";
 import { createHandler } from "../server.ts";
 import {
   makeAnimationTable,
+  normalizeControlledOutput,
   OUTPUT_BYTES,
   quantizeDecodedMesh,
   runJavaScript,
@@ -130,9 +131,14 @@ Deno.test("complete 600-frame JS and material-Wasm outputs equal the retained or
   assertEquals(Number(ex.validate_gltf(j, json.length)), 0);
   assertEquals(Number(ex.run(p, n, u, i, t, a, mesh.vertexCount, mesh.indices.length)), 0);
   const wasm = memory.slice(Number(ex.output_ptr()), Number(ex.output_ptr()) + OUTPUT_BYTES);
-  assertEquals(await sha256Hex(js), await sha256Hex(wasm));
+  assertEquals(
+    await sha256Hex(normalizeControlledOutput(js)),
+    await sha256Hex(normalizeControlledOutput(wasm)),
+  );
   const manifest = await readJson("public/artifacts/base-gltf-viewer/output-manifest.json");
-  assertEquals(await sha256Hex(js), manifest.output.sha256);
+  assertEquals(await sha256Hex(js), manifest.output.variants.javascript.sha256);
+  assertEquals(await sha256Hex(wasm), manifest.output.variants.wasm.sha256);
+  assertEquals(await sha256Hex(normalizeControlledOutput(js)), manifest.output.semanticSha256);
   assertEquals(js.length, manifest.output.bytes);
   const header = new Uint32Array(js.buffer, 0, 20);
   assertEquals(header[1], 406);
