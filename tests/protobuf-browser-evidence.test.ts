@@ -338,6 +338,88 @@ Deno.test("protobuf semantic gate rejects source end raw-byte counter lifecycle 
   }
 });
 
+Deno.test("protobuf collector permission prefix starts and health-checks the pinned source server", async () => {
+  const config = JSON.parse(await Deno.readTextFile("deno.corpus.json"));
+  const task = config.tasks["protobuf:collect-browser-evidence"] as string;
+  const collectorEntrypoint = "scripts/collect-protobuf-browser-evidence.ts";
+  const permissionPrefix =
+    "SERVER_MODE=public deno run --no-lock --no-prompt --allow-env=PORT,HOST,SERVER_MODE ";
+  assert(task.startsWith(permissionPrefix), "collector source-server permissions changed");
+  assert(task.endsWith(collectorEntrypoint), "collector task entrypoint changed");
+
+  const tempRoot = await Deno.makeTempDir({ prefix: "protobuf-source-server-test-" });
+  const checkout = `${tempRoot}/source`;
+  let worktreeAdded = false;
+  let child: Deno.ChildProcess | undefined;
+  let statusPromise: Promise<Deno.CommandStatus> | undefined;
+  let stderrPromise: Promise<string> | undefined;
+  try {
+    const added = await new Deno.Command("/usr/bin/git", {
+      args: ["worktree", "add", "--detach", checkout, PROTOBUF_SOURCE.commit],
+      stdout: "piped",
+      stderr: "piped",
+    }).output();
+    assert(added.success, new TextDecoder().decode(added.stderr));
+    worktreeAdded = true;
+
+    const probe = Deno.listen({ hostname: "127.0.0.1", port: 0 });
+    const port = (probe.addr as Deno.NetAddr).port;
+    probe.close();
+    const sourceServerCommand = `${task.slice(0, -collectorEntrypoint.length)}server.ts`;
+    child = new Deno.Command("/bin/sh", {
+      args: ["-c", `exec env ${sourceServerCommand}`],
+      cwd: checkout,
+      env: { PORT: String(port), HOST: "127.0.0.1" },
+      stdout: "null",
+      stderr: "piped",
+    }).spawn();
+    statusPromise = child.status;
+    stderrPromise = new Response(child.stderr).text();
+    let exited: Deno.CommandStatus | undefined;
+    statusPromise.then((status) => {
+      exited = status;
+    });
+
+    let health: Response | undefined;
+    for (let attempt = 0; attempt < 100 && !exited; attempt += 1) {
+      try {
+        health = await fetch(`http://127.0.0.1:${port}/healthz`, { redirect: "error" });
+        break;
+      } catch {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+    }
+    if (!health) {
+      if (!exited) child.kill("SIGTERM");
+      const [status, stderr] = await Promise.all([statusPromise, stderrPromise]);
+      child = undefined;
+      throw new Error(
+        `pinned source server did not start (${status.code}): ${stderr.trim()}`,
+      );
+    }
+    assertEquals(health.status, 200);
+    const body = await health.json();
+    assertEquals(body.mode, "public-read-only");
+  } finally {
+    if (child && statusPromise && stderrPromise) {
+      try {
+        child.kill("SIGTERM");
+      } catch {
+        // The process may exit between the health check and cleanup.
+      }
+      await Promise.all([statusPromise, stderrPromise]);
+    }
+    if (worktreeAdded) {
+      await new Deno.Command("/usr/bin/git", {
+        args: ["worktree", "remove", "--force", checkout],
+        stdout: "null",
+        stderr: "null",
+      }).output();
+    }
+    await Deno.remove(tempRoot, { recursive: true }).catch(() => {});
+  }
+});
+
 Deno.test("protobuf collector is source-pinned parent orchestration with cgroup, session, exhaustive evidence, and protected cleanup", async () => {
   const collector = await Deno.readTextFile("scripts/collect-protobuf-browser-evidence.ts");
   const contract = await Deno.readTextFile("lib/protobuf-browser-evidence.ts");
@@ -369,7 +451,7 @@ Deno.test("protobuf collector is source-pinned parent orchestration with cgroup,
   assert(!collector.includes("google-chrome --"));
   assert(
     task.startsWith(
-      "SERVER_MODE=public deno run --no-lock --no-prompt --allow-env=SERVER_MODE",
+      "SERVER_MODE=public deno run --no-lock --no-prompt --allow-env=PORT,HOST,SERVER_MODE",
     ),
   );
   assert(task.includes("--no-prompt"));
