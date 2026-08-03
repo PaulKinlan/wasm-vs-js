@@ -1,35 +1,40 @@
 {
-  "buildManifest": {
-    "path": "public/artifacts/graphics-cpu-path-tracer-v1/build-manifest.json",
-    "sha256": "e97b06f142acf6dd87b13d1c20503495839ab5354a36fa6c2350bd3b18129b49"
-  },
+  "schemaVersion": 1,
+  "status": "validation-only",
   "catalogId": "graphics.cpu-path-tracer.v1",
+  "registrationId": "base-v1.graphics.cpu-path-tracer.v1.controlled.v1",
+  "variant": "js-controlled",
+  "sourceCommit": "e1d180410b06d77b49084fffd93d5daaf3e59130",
+  "input": {
+    "width": 512,
+    "height": 512,
+    "samplesPerPixel": 64,
+    "sceneSeed": 1831565813
+  },
   "completeOutput": {
     "bytes": 1048576,
     "sha256": "dc6475d73f11006b3e899c45eeb1f8d4427ef0aede568cfc689a947ae815dbb3"
   },
-  "counters": {
-    "allocations": 1,
-    "bounces": 52788585,
-    "boundaryCrossings": 0,
-    "intersections": 106653664,
-    "nodeTests": 585004402,
-    "rays": 54994963,
-    "rngDraws": 167218324,
-    "samples": 16777216
-  },
-  "input": { "height": 512, "samplesPerPixel": 64, "sceneSeed": 1831565813, "width": 512 },
   "oracle": {
     "maxChannelDelta": 85,
     "meanChannelDelta": 0.002197265625,
-    "outlierChannelRatio": 0.000125885009765625,
     "outlierChannels": 99,
+    "outlierChannelRatio": 0.000125885009765625,
     "passed": true
   },
-  "performanceClaims": [],
-  "registrationId": "base-v1.graphics.cpu-path-tracer.v1.controlled.v1",
-  "schemaVersion": 1,
-  "sourceCommit": "a32c0ffb7bd91788a0b8e86a26c27e168e4f80b4",
-  "status": "validation-only",
-  "variant": "js-controlled"
+  "counters": {
+    "rays": 54994963,
+    "bounces": 52788585,
+    "nodeTests": 585004402,
+    "intersections": 106653664,
+    "samples": 16777216,
+    "rngDraws": 167218324,
+    "allocations": 1,
+    "boundaryCrossings": 0
+  },
+  "buildManifest": {
+    "path": "public/artifacts/graphics-cpu-path-tracer-v1/build-manifest.json",
+    "sha256": "c09806fb00ff30c24ddf15029a5583d97fc708b4c254438708317e19d87932ab"
+  },
+  "performanceClaims": []
 }

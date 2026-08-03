@@ -46,10 +46,10 @@ Deno.test("supplemental registration is closed, unhashed-catalog-safe, and not a
   assertEquals(value.catalogMutation, false);
   assertEquals(value.acceptedCoverage, false);
   assertEquals(value.fixedWork, {
-    height: 512,
-    maxBounces: 4,
-    samplesPerPixel: 64,
     width: 512,
+    height: 512,
+    samplesPerPixel: 64,
+    maxBounces: 4,
   });
   assertEquals(value.fixture.externalAssets, false);
   assertEquals(value.fixture.licenseSpdx, "CC0-1.0");
@@ -191,10 +191,10 @@ Deno.test("manifest raw hashes bind source, build, complete frames, and exact co
     );
     assertEquals(record.status, "validation-only");
     assertEquals(record.input, {
+      width: 512,
       height: 512,
       samplesPerPixel: 64,
       sceneSeed: 1831565813,
-      width: 512,
     });
     assertEquals(record.performanceClaims, []);
     assertEquals(record.completeOutput.bytes, 1_048_576);
