@@ -1,0 +1,264 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/base-gltf-output-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "workloadId",
+    "status",
+    "sourceCommit",
+    "input",
+    "output",
+    "performanceClaims"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "workloadId": { "const": "graphics.gltf-viewer.v1" },
+    "status": { "const": "passed" },
+    "sourceCommit": { "$ref": "#/$defs/commit" },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decodedMeshSha256", "asmJsWasmDecodedMeshEqual"],
+      "properties": {
+        "decodedMeshSha256": {
+          "const": "b4e03bea9c76a08a6cc8d62ad1320af25ef7e5c594015b6b8396b9efc8aa5f54"
+        },
+        "asmJsWasmDecodedMeshEqual": { "const": true }
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bytes",
+        "semanticSha256",
+        "completeCrossTargetEqual",
+        "measurementUnits",
+        "variants",
+        "header"
+      ],
+      "properties": {
+        "bytes": { "const": 22137712 },
+        "semanticSha256": {
+          "const": "5fad101bb540b089d6bd1769c87540eec6f9bfe07ebbe05fa35001358d32a054"
+        },
+        "completeCrossTargetEqual": { "const": true },
+        "measurementUnits": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["allocation", "boundaryCrossing", "copy"],
+          "properties": {
+            "allocation": {
+              "const": "one counted creation listed in allocationUnits: a length-based typed-array construction together with its backing store is one unit, a view or wrapper construction is one unit, and each WebAssembly.Module, WebAssembly.Instance, or WebAssembly.Memory is one unit; generated decoder internal allocator activity is represented by its returned wrapper object"
+            },
+            "boundaryCrossing": {
+              "const": "one invocation of an instrumented exported Wasm function from JavaScript; includes decoder initialization and generated exports"
+            },
+            "copy": {
+              "const": "one explicit host-to-Wasm memory.set or Wasm-to-host memory.slice operation, with bytes equal to the copied byte range"
+            }
+          }
+        },
+        "variants": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["javascript", "wasm"],
+          "properties": {
+            "javascript": { "$ref": "#/$defs/javascriptVariant" },
+            "wasm": { "$ref": "#/$defs/wasmVariant" }
+          }
+        },
+        "header": {
+          "type": "array",
+          "minItems": 28,
+          "maxItems": 28,
+          "prefixItems": [
+            { "const": 1196184646 },
+            { "const": 406 },
+            { "const": 2046 },
+            { "const": 600 },
+            { "const": 125842 },
+            { "const": 12 },
+            { "const": 3380910976 },
+            { "const": 685368050 },
+            { "const": 390084 },
+            { "const": 243600 },
+            { "const": 818400 },
+            { "const": 600 },
+            { "const": 600 },
+            { "const": 12 },
+            { "const": 0 },
+            { "const": 27 },
+            { "const": 37560 },
+            { "const": 22137712 },
+            { "const": 1 },
+            { "const": 0 },
+            { "const": 18 },
+            { "const": 6002 },
+            { "const": 0 },
+            { "const": 0 },
+            { "const": 9 },
+            { "const": 600 },
+            { "const": 600 },
+            { "const": 0 }
+          ],
+          "items": false
+        }
+      }
+    },
+    "performanceClaims": { "type": "array", "maxItems": 0 }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "decoderAllocationUnits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "moduleFactoryResults",
+        "generatedWrapperObjects",
+        "inputTypedArrayViews",
+        "outputArrayAllocations",
+        "asmJsHeapBackingStores",
+        "wasmModules",
+        "wasmInstances",
+        "wasmMemories",
+        "wasmMemoryBytes"
+      ],
+      "properties": {
+        "moduleFactoryResults": { "const": 1 },
+        "generatedWrapperObjects": { "const": 11 },
+        "inputTypedArrayViews": { "const": 1 },
+        "outputArrayAllocations": { "const": 4 },
+        "asmJsHeapBackingStores": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "wasmModules": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "wasmInstances": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "wasmMemories": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "wasmMemoryBytes": { "type": "integer", "minimum": 0, "maximum": 16777216 }
+      }
+    },
+    "javascriptVariant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sha256",
+        "allocations",
+        "decoderAllocations",
+        "engineAllocations",
+        "allocationUnits",
+        "decoderApiCalls",
+        "decoderInitializationAndGeneratedExportCrossings",
+        "decoderWasmBoundaryCrossings",
+        "engineWasmBoundaryCrossings",
+        "totalWasmBoundaryCrossings",
+        "wasmCopyOperations",
+        "wasmCopyBytes"
+      ],
+      "properties": {
+        "sha256": { "const": "9e8f73500f5cb35180ea28ecaf5d5645ac5f04851f8f6246cdc7b8ccdc82c297" },
+        "allocations": { "const": 27 },
+        "decoderAllocations": { "const": 18 },
+        "engineAllocations": { "const": 9 },
+        "allocationUnits": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["decoder", "engine"],
+          "properties": {
+            "decoder": {
+              "allOf": [
+                { "$ref": "#/$defs/decoderAllocationUnits" },
+                {
+                  "properties": {
+                    "asmJsHeapBackingStores": { "const": 1 },
+                    "wasmModules": { "const": 0 },
+                    "wasmInstances": { "const": 0 },
+                    "wasmMemories": { "const": 0 },
+                    "wasmMemoryBytes": { "const": 0 }
+                  }
+                }
+              ]
+            },
+            "engine": {
+              "const": {
+                "outputTypedArrayAndBackingStore": 1,
+                "outputViews": 2,
+                "scratchTypedArraysAndBackingStores": 6
+              }
+            }
+          }
+        },
+        "decoderApiCalls": { "const": 6002 },
+        "decoderInitializationAndGeneratedExportCrossings": { "const": 0 },
+        "decoderWasmBoundaryCrossings": { "const": 0 },
+        "engineWasmBoundaryCrossings": { "const": 0 },
+        "totalWasmBoundaryCrossings": { "const": 0 },
+        "wasmCopyOperations": { "const": 0 },
+        "wasmCopyBytes": { "const": 0 }
+      }
+    },
+    "wasmVariant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sha256",
+        "allocations",
+        "decoderAllocations",
+        "engineAllocations",
+        "allocationUnits",
+        "decoderApiCalls",
+        "decoderInitializationAndGeneratedExportCrossings",
+        "decoderWasmBoundaryCrossings",
+        "engineWasmBoundaryCrossings",
+        "totalWasmBoundaryCrossings",
+        "wasmCopyOperations",
+        "wasmCopyBytes"
+      ],
+      "properties": {
+        "sha256": { "const": "528133099de9dbd08da410bd47c03772c70888c6149e38340d4a8283f7425740" },
+        "allocations": { "const": 25 },
+        "decoderAllocations": { "const": 20 },
+        "engineAllocations": { "const": 5 },
+        "allocationUnits": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["decoder", "engine"],
+          "properties": {
+            "decoder": {
+              "allOf": [
+                { "$ref": "#/$defs/decoderAllocationUnits" },
+                {
+                  "properties": {
+                    "asmJsHeapBackingStores": { "const": 0 },
+                    "wasmModules": { "const": 1 },
+                    "wasmInstances": { "const": 1 },
+                    "wasmMemories": { "const": 1 },
+                    "wasmMemoryBytes": { "const": 16777216 }
+                  }
+                }
+              ]
+            },
+            "engine": {
+              "const": {
+                "wasmModules": 1,
+                "wasmInstances": 1,
+                "wasmMemories": 1,
+                "wasmMemoryBytes": 67108864,
+                "linearMemoryViews": 1,
+                "outputCopyAllocations": 1
+              }
+            }
+          }
+        },
+        "decoderApiCalls": { "const": 6002 },
+        "decoderInitializationAndGeneratedExportCrossings": { "const": 35 },
+        "decoderWasmBoundaryCrossings": { "const": 6037 },
+        "engineWasmBoundaryCrossings": { "const": 4 },
+        "totalWasmBoundaryCrossings": { "const": 6041 },
+        "wasmCopyOperations": { "const": 8 },
+        "wasmCopyBytes": { "const": 22185555 }
+      }
+    }
+  }
+}

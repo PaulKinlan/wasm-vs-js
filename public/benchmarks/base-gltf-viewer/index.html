@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>glTF viewer base workload | Wasm versus JavaScript</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/benchmarks/base-gltf-viewer/style.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a><header>
+      <a href="/">Wasm versus JavaScript</a> <a href="/benchmarks/">Catalog</a>
+    </header>
+    <main id="content">
+      <p class="eyebrow">Frozen base workload · graphics.gltf-viewer.v1</p>
+      <h1>Avocado glTF decode, animation and picking</h1>
+      <p>
+        <strong>No performance claim.</strong> A fresh worker decodes the CC0 Avocado Draco mesh,
+        executes 600 fixed animation frames, culls every triangle, runs 12 picks, and checks all
+        600 96×96 CPU raster frames. The canvas displays the first frame only after the complete
+        output matches the registered SHA-256.
+      </p>
+      <form class="controls">
+        <label>Controlled target<select name="target">
+            <option value="javascript">JavaScript with Draco asm.js</option>
+            <option value="wasm">Linear Wasm with Draco Wasm</option>
+          </select></label>
+        <label>Validation mode<select name="mode">
+            <option value="bounded">Registered output</option>
+            <option value="exact">Exact served-byte provenance</option>
+          </select></label>
+        <div class="actions">
+          <button id="start" type="submit">Start</button>
+          <button id="cancel" type="button" disabled>Cancel</button>
+        </div><label for="progress">Run progress</label><progress id="progress" max="100" value="0">
+        </progress>
+      </form>
+      <div class="viewer-grid">
+        <section>
+          <h2>Validation result</h2>
+          <p id="status" role="status" aria-live="polite">Ready.</p>
+          <pre id="output">No result yet.</pre>
+        </section>
+        <section>
+          <h2>CPU reference</h2><canvas
+            class="preview"
+            width="96"
+            height="96"
+            aria-label="First validated CPU raster frame"
+          ></canvas>
+        </section>
+      </div>
+      <section>
+        <h2>Fixed scope</h2>
+        <p>
+          The controlled renderer uses the model's base-color texture, opaque single-sided material,
+          fixed camera, integer transforms, triangle culling, picking, and 600 retained CPU rasters.
+          Metallic/roughness, tangent-space normal mapping, GPU upload, shader compilation, and
+          driver output remain a separately unavailable product baseline; they do not become zero
+          and do not enter this output.
+        </p>
+        <p>
+          The JavaScript target executes Google's Draco 1.5.7 asm.js decoder. The Wasm target
+          executes the distinct Draco 1.5.7 linear-Wasm payload and an authored linear-Wasm frame
+          engine. Both validate all 406 decoded vertices, 2,046 indices, 600 frame summaries, 12
+          picks, and six pixel buffers. The worker uploads nothing and stores nothing.
+        </p>
+        <p>
+          <a href="/artifacts/base-gltf-viewer/implementation-contract.v1.json"
+          >Implementation contract</a> · <a href="/artifacts/base-gltf-viewer/fixture-manifest.json"
+          >fixture and rights manifest</a> · <a
+            href="/artifacts/base-gltf-viewer/build-manifest.json"
+          >build manifest</a> · <a
+            href="/evidence/base-workloads/graphics-gltf-viewer/static-validation.json"
+          >static validation</a>
+        </p>
+      </section>
+    </main>
+    <script type="module" src="/benchmarks/base-gltf-viewer/demo.js"></script>
+  </body>
+</html>

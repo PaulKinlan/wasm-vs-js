@@ -1,0 +1,179 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "graphics.gltf-viewer.v1",
+  "sourceCommit": "45d57bf657ac97d471bfe909d462eaed39763366",
+  "toolchain": {
+    "deno": "2.9.0",
+    "clang": "22.1.8",
+    "lld": "22.1.8",
+    "draco": "1.5.7",
+    "imageMagick": "7.1.2-27"
+  },
+  "commands": [
+    "node scripts/decode-gltf-draco.cjs javascript public/artifacts/base-gltf-viewer/draco_decoder_gltf.js - fixtures/base/graphics-gltf-viewer/Avocado.bin",
+    "node scripts/decode-gltf-draco.cjs wasm public/artifacts/base-gltf-viewer/draco_wasm_wrapper_gltf.js public/artifacts/base-gltf-viewer/draco_decoder_gltf.wasm fixtures/base/graphics-gltf-viewer/Avocado.bin",
+    "clang --target=wasm32-unknown-unknown -O3 -nostdlib -ffreestanding -fno-builtin -fno-vectorize -fno-slp-vectorize -c benchmarks/base/graphics-gltf-viewer/viewer.c -o public/artifacts/base-gltf-viewer/.build/viewer.o",
+    "wasm-ld --no-entry --export-memory --export=heap_ptr --export=output_ptr --export=validate_gltf --export=run --stack-first --initial-memory=67108864 --max-memory=67108864 public/artifacts/base-gltf-viewer/.build/viewer.o -o public/artifacts/base-gltf-viewer/.build/viewer.wasm"
+  ],
+  "sources": [
+    {
+      "path": "benchmarks/base/graphics-gltf-viewer/engine.js",
+      "bytes": 11797,
+      "sha256": "04fb6cc947222f2af5a077b0982ad201300823beb9424c1492729c9b891cfadb",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/45d57bf657ac97d471bfe909d462eaed39763366/benchmarks/base/graphics-gltf-viewer/engine.js"
+    },
+    {
+      "path": "benchmarks/base/graphics-gltf-viewer/viewer.c",
+      "bytes": 9247,
+      "sha256": "10722f3acf2d391ba0045d73a5c89aadab20a00989faefe46b58de6d247a7fa1",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/45d57bf657ac97d471bfe909d462eaed39763366/benchmarks/base/graphics-gltf-viewer/viewer.c"
+    },
+    {
+      "path": "scripts/decode-gltf-draco.cjs",
+      "bytes": 4535,
+      "sha256": "8f87cebb75fb456a6e54d6cfa66a01d15c77d99bf49631aac411b8b4eda63459",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/45d57bf657ac97d471bfe909d462eaed39763366/scripts/decode-gltf-draco.cjs"
+    },
+    {
+      "path": "scripts/build-base-gltf-viewer.ts",
+      "bytes": 19167,
+      "sha256": "c21c715873a2352c6bdbdf7c521824e084ccf80cdbca75c16e3cd5f60c323a0a",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/45d57bf657ac97d471bfe909d462eaed39763366/scripts/build-base-gltf-viewer.ts"
+    },
+    {
+      "path": "public/benchmarks/base-gltf-viewer/worker.js",
+      "bytes": 9448,
+      "sha256": "e431f6f2a051a2616dad185fd19459a1a9e07ac10afb2cff190047549a780338",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/45d57bf657ac97d471bfe909d462eaed39763366/public/benchmarks/base-gltf-viewer/worker.js"
+    },
+    {
+      "path": "public/benchmarks/base-gltf-viewer/decoder-worker.js",
+      "bytes": 4713,
+      "sha256": "385b4e72d80814c018d61b0fbcf24d6cd285efee8da41a9acfd160ef9b0d58f3",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/45d57bf657ac97d471bfe909d462eaed39763366/public/benchmarks/base-gltf-viewer/decoder-worker.js"
+    },
+    {
+      "path": "public/benchmarks/base-gltf-viewer/demo.js",
+      "bytes": 3121,
+      "sha256": "894c80b30b98273d9ad9cd812d2b8d28b6c73969cb8c106ded5453f0572b82a6",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/45d57bf657ac97d471bfe909d462eaed39763366/public/benchmarks/base-gltf-viewer/demo.js"
+    },
+    {
+      "path": "public/benchmarks/base-gltf-viewer/index.html",
+      "bytes": 3780,
+      "sha256": "2135bc76e551ecaeb19537b75a5d16aa69af310ac1c4e3e1a8b7344f5d9ed31d",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/45d57bf657ac97d471bfe909d462eaed39763366/public/benchmarks/base-gltf-viewer/index.html"
+    },
+    {
+      "path": "public/benchmarks/base-gltf-viewer/style.css",
+      "bytes": 561,
+      "sha256": "161863c4f2180037e4f983ba1c211e899e7d1876452c0719133636f5366945f9",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/45d57bf657ac97d471bfe909d462eaed39763366/public/benchmarks/base-gltf-viewer/style.css"
+    },
+    {
+      "path": "schemas/base-gltf-fixture-manifest.schema.json",
+      "bytes": 5575,
+      "sha256": "2718b2a42ab99802c0366c99489dfb77e34a3f1463b64c748383dca9089d78b2",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/45d57bf657ac97d471bfe909d462eaed39763366/schemas/base-gltf-fixture-manifest.schema.json"
+    },
+    {
+      "path": "schemas/base-gltf-build-manifest.schema.json",
+      "bytes": 10269,
+      "sha256": "ee5d648333b1a2a70fea436e59f3e9351fb3cc7aff91f76288cfbdd27cb54a3e",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/45d57bf657ac97d471bfe909d462eaed39763366/schemas/base-gltf-build-manifest.schema.json"
+    },
+    {
+      "path": "schemas/base-gltf-output-manifest.schema.json",
+      "bytes": 9254,
+      "sha256": "99b5d1f34a4c685a28e7bdfa6ae5d4f763c4893d6a6ab50b5cee90150ed0d99c",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/45d57bf657ac97d471bfe909d462eaed39763366/schemas/base-gltf-output-manifest.schema.json"
+    },
+    {
+      "path": "schemas/base-gltf-evidence.schema.json",
+      "bytes": 2293,
+      "sha256": "bbe5239a38f3de285baedb1aa689c53639703309a8ca969f621a3c1ebca20e80",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/45d57bf657ac97d471bfe909d462eaed39763366/schemas/base-gltf-evidence.schema.json"
+    },
+    {
+      "path": "tests/base-gltf-viewer.test.ts",
+      "bytes": 20800,
+      "sha256": "6b570ecf34efa0cc960593a129b015db01ef001d233241519c4eb115859ff7be",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/45d57bf657ac97d471bfe909d462eaed39763366/tests/base-gltf-viewer.test.ts"
+    },
+    {
+      "path": "server.ts",
+      "bytes": 20321,
+      "sha256": "28efd42d5e87be9822f07aa27046ea35acc9f63479f6224cf70b0ec720d9d9b3",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/45d57bf657ac97d471bfe909d462eaed39763366/server.ts"
+    },
+    {
+      "path": "deno.json",
+      "bytes": 1831,
+      "sha256": "17e6674c81fdaee7dfc52ed1bd28baeec70fb0715f839b92defe1e84545b08eb",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/45d57bf657ac97d471bfe909d462eaed39763366/deno.json"
+    },
+    {
+      "path": "deno.lock",
+      "bytes": 1630,
+      "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/45d57bf657ac97d471bfe909d462eaed39763366/deno.lock"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "public/artifacts/base-gltf-viewer/draco_decoder_gltf.js",
+      "bytes": 513134,
+      "sha256": "97e6a21994fddeff398e574785f4c62cf0bd8fb163d4eb80633b02fd294777b4"
+    },
+    {
+      "path": "public/artifacts/base-gltf-viewer/draco_wasm_wrapper_gltf.js",
+      "bytes": 58533,
+      "sha256": "45b46e4673066848a5890add076e171e12709e621a030a36015dfc78bb298124"
+    },
+    {
+      "path": "public/artifacts/base-gltf-viewer/draco_decoder_gltf.wasm",
+      "bytes": 192593,
+      "sha256": "712db3449ae2041d6e8a224c395bda6cedb49e51322fae38b7db9beb8b381889"
+    },
+    {
+      "path": "public/artifacts/base-gltf-viewer/DRACO-LICENSE.txt",
+      "bytes": 13898,
+      "sha256": "d3709b0fb4b8a94bbb1d02b8a2e484f258b0d9c5c5a01f940391f3fe662cd1a4"
+    },
+    {
+      "path": "public/artifacts/base-gltf-viewer/viewer.wasm",
+      "bytes": 5742,
+      "sha256": "e3bf86ee26c008ac8acf3d6b8d59034fdd09140db9e80793f36f00a6f42bccca"
+    },
+    {
+      "path": "public/artifacts/base-gltf-viewer/decoded-mesh.bin",
+      "bytes": 21196,
+      "sha256": "b4e03bea9c76a08a6cc8d62ad1320af25ef7e5c594015b6b8396b9efc8aa5f54"
+    },
+    {
+      "path": "public/artifacts/base-gltf-viewer/animation-table.i32",
+      "bytes": 7200,
+      "sha256": "ea04b37d14a4e8ee905c385e848d05f5e41a2666c89e39f6670f21bcced120dd"
+    },
+    {
+      "path": "public/artifacts/base-gltf-viewer/reference-output.bin",
+      "bytes": 22137712,
+      "sha256": "5fad101bb540b089d6bd1769c87540eec6f9bfe07ebbe05fa35001358d32a054"
+    },
+    {
+      "path": "public/artifacts/base-gltf-viewer/fixture-manifest.json",
+      "bytes": 2674,
+      "sha256": "3da1b051014bdb8d391fff30ca1577b9acefe23c08742c754405ea7a0c6fb843"
+    },
+    {
+      "path": "public/artifacts/base-gltf-viewer/implementation-contract.v1.json",
+      "bytes": 2218,
+      "sha256": "cc429a7b9fdbde79dba839ffb65f2203a800493001ca6f608b21177d5b836c95"
+    },
+    {
+      "path": "public/artifacts/base-gltf-viewer/output-manifest.json",
+      "bytes": 3795,
+      "sha256": "fc3bd00dfa8e6ee3a3ede3e78b15267c5c387fcb57cb6624990ecb74c96cab4a"
+    }
+  ]
+}

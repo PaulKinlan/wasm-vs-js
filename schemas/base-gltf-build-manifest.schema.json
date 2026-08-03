@@ -1,0 +1,326 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/base-gltf-build-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "workloadId",
+    "sourceCommit",
+    "toolchain",
+    "commands",
+    "sources",
+    "artifacts"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "workloadId": { "const": "graphics.gltf-viewer.v1" },
+    "sourceCommit": { "$ref": "#/$defs/commit" },
+    "toolchain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["deno", "clang", "lld", "draco", "imageMagick"],
+      "properties": {
+        "deno": { "const": "2.9.0" },
+        "clang": { "const": "22.1.8" },
+        "lld": { "const": "22.1.8" },
+        "draco": { "const": "1.5.7" },
+        "imageMagick": { "const": "7.1.2-27" }
+      }
+    },
+    "commands": {
+      "const": [
+        "node scripts/decode-gltf-draco.cjs javascript public/artifacts/base-gltf-viewer/draco_decoder_gltf.js - fixtures/base/graphics-gltf-viewer/Avocado.bin",
+        "node scripts/decode-gltf-draco.cjs wasm public/artifacts/base-gltf-viewer/draco_wasm_wrapper_gltf.js public/artifacts/base-gltf-viewer/draco_decoder_gltf.wasm fixtures/base/graphics-gltf-viewer/Avocado.bin",
+        "clang --target=wasm32-unknown-unknown -O3 -nostdlib -ffreestanding -fno-builtin -fno-vectorize -fno-slp-vectorize -c benchmarks/base/graphics-gltf-viewer/viewer.c -o public/artifacts/base-gltf-viewer/.build/viewer.o",
+        "wasm-ld --no-entry --export-memory --export=heap_ptr --export=output_ptr --export=validate_gltf --export=run --stack-first --initial-memory=67108864 --max-memory=67108864 public/artifacts/base-gltf-viewer/.build/viewer.o -o public/artifacts/base-gltf-viewer/.build/viewer.wasm"
+      ]
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 17,
+      "maxItems": 17,
+      "uniqueItems": true,
+      "prefixItems": [
+        { "$ref": "#/$defs/sourceEngine" },
+        { "$ref": "#/$defs/sourceViewer" },
+        { "$ref": "#/$defs/sourceDecode" },
+        { "$ref": "#/$defs/sourceBuild" },
+        { "$ref": "#/$defs/sourceWorker" },
+        { "$ref": "#/$defs/sourceDecoderWorker" },
+        { "$ref": "#/$defs/sourceDemo" },
+        { "$ref": "#/$defs/sourceHtml" },
+        { "$ref": "#/$defs/sourceCss" },
+        { "$ref": "#/$defs/sourceFixtureSchema" },
+        { "$ref": "#/$defs/sourceBuildSchema" },
+        { "$ref": "#/$defs/sourceOutputSchema" },
+        { "$ref": "#/$defs/sourceEvidenceSchema" },
+        { "$ref": "#/$defs/sourceTests" },
+        { "$ref": "#/$defs/sourceServer" },
+        { "$ref": "#/$defs/sourceDenoJson" },
+        { "$ref": "#/$defs/sourceDenoLock" }
+      ],
+      "items": false
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 11,
+      "maxItems": 11,
+      "uniqueItems": true,
+      "prefixItems": [
+        { "$ref": "#/$defs/artifactDracoJs" },
+        { "$ref": "#/$defs/artifactDracoWrapper" },
+        { "$ref": "#/$defs/artifactDracoWasm" },
+        { "$ref": "#/$defs/artifactDracoLicense" },
+        { "$ref": "#/$defs/artifactViewerWasm" },
+        { "$ref": "#/$defs/artifactMesh" },
+        { "$ref": "#/$defs/artifactAnimation" },
+        { "$ref": "#/$defs/artifactOracle" },
+        { "$ref": "#/$defs/artifactFixtureManifest" },
+        { "$ref": "#/$defs/artifactContract" },
+        { "$ref": "#/$defs/artifactOutputManifest" }
+      ],
+      "items": false
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256", "immutableUrl"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "immutableUrl": {
+          "type": "string",
+          "pattern": "^https://github\\.com/PaulKinlan/wasm-vs-js/blob/[a-f0-9]{40}/"
+        }
+      }
+    },
+    "sourceEngine": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        { "properties": { "path": { "const": "benchmarks/base/graphics-gltf-viewer/engine.js" } } }
+      ]
+    },
+    "sourceViewer": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        { "properties": { "path": { "const": "benchmarks/base/graphics-gltf-viewer/viewer.c" } } }
+      ]
+    },
+    "sourceDecode": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        { "properties": { "path": { "const": "scripts/decode-gltf-draco.cjs" } } }
+      ]
+    },
+    "sourceBuild": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        { "properties": { "path": { "const": "scripts/build-base-gltf-viewer.ts" } } }
+      ]
+    },
+    "sourceWorker": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        { "properties": { "path": { "const": "public/benchmarks/base-gltf-viewer/worker.js" } } }
+      ]
+    },
+    "sourceDecoderWorker": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        {
+          "properties": {
+            "path": { "const": "public/benchmarks/base-gltf-viewer/decoder-worker.js" }
+          }
+        }
+      ]
+    },
+    "sourceDemo": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        { "properties": { "path": { "const": "public/benchmarks/base-gltf-viewer/demo.js" } } }
+      ]
+    },
+    "sourceHtml": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        { "properties": { "path": { "const": "public/benchmarks/base-gltf-viewer/index.html" } } }
+      ]
+    },
+    "sourceCss": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        { "properties": { "path": { "const": "public/benchmarks/base-gltf-viewer/style.css" } } }
+      ]
+    },
+    "sourceFixtureSchema": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        { "properties": { "path": { "const": "schemas/base-gltf-fixture-manifest.schema.json" } } }
+      ]
+    },
+    "sourceBuildSchema": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        { "properties": { "path": { "const": "schemas/base-gltf-build-manifest.schema.json" } } }
+      ]
+    },
+    "sourceOutputSchema": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        { "properties": { "path": { "const": "schemas/base-gltf-output-manifest.schema.json" } } }
+      ]
+    },
+    "sourceEvidenceSchema": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        { "properties": { "path": { "const": "schemas/base-gltf-evidence.schema.json" } } }
+      ]
+    },
+    "sourceTests": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        { "properties": { "path": { "const": "tests/base-gltf-viewer.test.ts" } } }
+      ]
+    },
+    "sourceServer": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        { "properties": { "path": { "const": "server.ts" } } }
+      ]
+    },
+    "sourceDenoJson": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        { "properties": { "path": { "const": "deno.json" } } }
+      ]
+    },
+    "sourceDenoLock": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        { "properties": { "path": { "const": "deno.lock" } } }
+      ]
+    },
+    "artifactDracoJs": {
+      "allOf": [
+        { "$ref": "#/$defs/file" },
+        {
+          "properties": {
+            "path": { "const": "public/artifacts/base-gltf-viewer/draco_decoder_gltf.js" }
+          }
+        }
+      ]
+    },
+    "artifactDracoWrapper": {
+      "allOf": [
+        { "$ref": "#/$defs/file" },
+        {
+          "properties": {
+            "path": { "const": "public/artifacts/base-gltf-viewer/draco_wasm_wrapper_gltf.js" }
+          }
+        }
+      ]
+    },
+    "artifactDracoWasm": {
+      "allOf": [
+        { "$ref": "#/$defs/file" },
+        {
+          "properties": {
+            "path": { "const": "public/artifacts/base-gltf-viewer/draco_decoder_gltf.wasm" }
+          }
+        }
+      ]
+    },
+    "artifactDracoLicense": {
+      "allOf": [
+        { "$ref": "#/$defs/file" },
+        {
+          "properties": {
+            "path": { "const": "public/artifacts/base-gltf-viewer/DRACO-LICENSE.txt" }
+          }
+        }
+      ]
+    },
+    "artifactViewerWasm": {
+      "allOf": [
+        { "$ref": "#/$defs/file" },
+        { "properties": { "path": { "const": "public/artifacts/base-gltf-viewer/viewer.wasm" } } }
+      ]
+    },
+    "artifactMesh": {
+      "allOf": [
+        { "$ref": "#/$defs/file" },
+        {
+          "properties": {
+            "path": { "const": "public/artifacts/base-gltf-viewer/decoded-mesh.bin" }
+          }
+        }
+      ]
+    },
+    "artifactAnimation": {
+      "allOf": [
+        { "$ref": "#/$defs/file" },
+        {
+          "properties": {
+            "path": { "const": "public/artifacts/base-gltf-viewer/animation-table.i32" }
+          }
+        }
+      ]
+    },
+    "artifactOracle": {
+      "allOf": [
+        { "$ref": "#/$defs/file" },
+        {
+          "properties": {
+            "path": { "const": "public/artifacts/base-gltf-viewer/reference-output.bin" }
+          }
+        }
+      ]
+    },
+    "artifactFixtureManifest": {
+      "allOf": [
+        { "$ref": "#/$defs/file" },
+        {
+          "properties": {
+            "path": { "const": "public/artifacts/base-gltf-viewer/fixture-manifest.json" }
+          }
+        }
+      ]
+    },
+    "artifactContract": {
+      "allOf": [
+        { "$ref": "#/$defs/file" },
+        {
+          "properties": {
+            "path": { "const": "public/artifacts/base-gltf-viewer/implementation-contract.v1.json" }
+          }
+        }
+      ]
+    },
+    "artifactOutputManifest": {
+      "allOf": [
+        { "$ref": "#/$defs/file" },
+        {
+          "properties": {
+            "path": { "const": "public/artifacts/base-gltf-viewer/output-manifest.json" }
+          }
+        }
+      ]
+    }
+  }
+}

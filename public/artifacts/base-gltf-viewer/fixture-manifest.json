@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "graphics.gltf-viewer.v1",
+  "immutable": true,
+  "sourceModel": {
+    "name": "Avocado",
+    "repository": "https://github.com/KhronosGroup/glTF-Sample-Assets",
+    "revision": "5bad5aaa0bbb5d0f9cdc934e626f27d0df1e79b8",
+    "paths": {
+      "gltf": "Models/Avocado/glTF-Draco/Avocado.gltf",
+      "draco": "Models/Avocado/glTF-Draco/Avocado.bin",
+      "baseColor": "Models/Avocado/glTF-Draco/Avocado_baseColor.png",
+      "license": "Models/Avocado/LICENSE.md"
+    },
+    "modelAssetLicense": "CC0-1.0",
+    "licenseDocumentLicense": "CC-BY-4.0",
+    "rightsAudit": "Pinned LICENSE assigns CC0-1.0 to model-associated files and CC-BY-4.0 to metadocumentation.",
+    "licenseCopy": {
+      "upstreamSha256": "09cc6fda57c9c9063ce96a520fd0401da109009855e32f518ab1c54c9d5bc2c4",
+      "localModification": "renamed to AVOCADO-LICENSE.md; deno fmt normalized Markdown list markers and added the terminal newline; license wording and links are unchanged"
+    }
+  },
+  "draco": {
+    "version": "1.5.7",
+    "license": "Apache-2.0",
+    "javascriptTarget": "Emscripten asm.js decoder",
+    "wasmTarget": "Emscripten linear-Wasm decoder",
+    "upstream": {
+      "javascriptSha256": "ea66fdedab5c974050c67aaa86d795cecf9c70aa53b0ddb318b1979f1e1c5be1",
+      "wasmWrapperSha256": "8bb2952d2ba7d67e1414f8df819410cb0434a666be53f671fff75f68843d76f6",
+      "wasmPayloadSha256": "712db3449ae2041d6e8a224c395bda6cedb49e51322fae38b7db9beb8b381889",
+      "localJavaScriptFilesAddOnlyDenoLintDirective": true
+    }
+  },
+  "textureDerivation": {
+    "sourceSha256": "385dce948c3b9e8bc93e1c930d796e72b02cbd474b121a160d577de95ebbb48f",
+    "command": "ImageMagick 7.1.2-27: -filter Lanczos -resize 64x64! RGBA:",
+    "policy": "base-color texture; metallic/roughness and tangent-space normal maps excluded from the fixed CPU reference and retained as GPU product-baseline material inputs"
+  },
+  "files": [
+    {
+      "path": "fixtures/base/graphics-gltf-viewer/Avocado.gltf",
+      "bytes": 3083,
+      "sha256": "63ec45999c1df77adc3837857c95d16dde7aee062b4a1d4475ca968514ec8609"
+    },
+    {
+      "path": "fixtures/base/graphics-gltf-viewer/Avocado.bin",
+      "bytes": 8724,
+      "sha256": "535123a66a19c0427298d0bbe81b0ba5efa6d8155b7c659e11c23d8c6d6fe2c6"
+    },
+    {
+      "path": "fixtures/base/graphics-gltf-viewer/base-color-64.rgba",
+      "bytes": 16384,
+      "sha256": "d86004c21332cbe8b4ebfa0e7e99bf431f810ec479676814f8305ca2b2a4c938"
+    },
+    {
+      "path": "fixtures/base/graphics-gltf-viewer/AVOCADO-LICENSE.md",
+      "bytes": 666,
+      "sha256": "fee2e932d421fd25b5102104024681fde2d8c5d0f2299ab4102deeb10a27d8e3"
+    }
+  ]
+}

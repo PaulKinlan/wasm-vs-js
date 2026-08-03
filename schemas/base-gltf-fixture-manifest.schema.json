@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/base-gltf-fixture-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "workloadId",
+    "immutable",
+    "sourceModel",
+    "draco",
+    "textureDerivation",
+    "files"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "workloadId": { "const": "graphics.gltf-viewer.v1" },
+    "immutable": { "const": true },
+    "sourceModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "repository",
+        "revision",
+        "paths",
+        "modelAssetLicense",
+        "licenseDocumentLicense",
+        "rightsAudit",
+        "licenseCopy"
+      ],
+      "properties": {
+        "name": { "const": "Avocado" },
+        "repository": { "const": "https://github.com/KhronosGroup/glTF-Sample-Assets" },
+        "revision": { "const": "5bad5aaa0bbb5d0f9cdc934e626f27d0df1e79b8" },
+        "paths": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["gltf", "draco", "baseColor", "license"],
+          "properties": {
+            "gltf": { "const": "Models/Avocado/glTF-Draco/Avocado.gltf" },
+            "draco": { "const": "Models/Avocado/glTF-Draco/Avocado.bin" },
+            "baseColor": { "const": "Models/Avocado/glTF-Draco/Avocado_baseColor.png" },
+            "license": { "const": "Models/Avocado/LICENSE.md" }
+          }
+        },
+        "modelAssetLicense": { "const": "CC0-1.0" },
+        "licenseDocumentLicense": { "const": "CC-BY-4.0" },
+        "rightsAudit": {
+          "const": "Pinned LICENSE assigns CC0-1.0 to model-associated files and CC-BY-4.0 to metadocumentation."
+        },
+        "licenseCopy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["upstreamSha256", "localModification"],
+          "properties": {
+            "upstreamSha256": {
+              "const": "09cc6fda57c9c9063ce96a520fd0401da109009855e32f518ab1c54c9d5bc2c4"
+            },
+            "localModification": {
+              "const": "renamed to AVOCADO-LICENSE.md; deno fmt normalized Markdown list markers and added the terminal newline; license wording and links are unchanged"
+            }
+          }
+        }
+      }
+    },
+    "draco": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "license", "javascriptTarget", "wasmTarget", "upstream"],
+      "properties": {
+        "version": { "const": "1.5.7" },
+        "license": { "const": "Apache-2.0" },
+        "javascriptTarget": { "const": "Emscripten asm.js decoder" },
+        "wasmTarget": { "const": "Emscripten linear-Wasm decoder" },
+        "upstream": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "javascriptSha256",
+            "wasmWrapperSha256",
+            "wasmPayloadSha256",
+            "localJavaScriptFilesAddOnlyDenoLintDirective"
+          ],
+          "properties": {
+            "javascriptSha256": {
+              "const": "ea66fdedab5c974050c67aaa86d795cecf9c70aa53b0ddb318b1979f1e1c5be1"
+            },
+            "wasmWrapperSha256": {
+              "const": "8bb2952d2ba7d67e1414f8df819410cb0434a666be53f671fff75f68843d76f6"
+            },
+            "wasmPayloadSha256": {
+              "const": "712db3449ae2041d6e8a224c395bda6cedb49e51322fae38b7db9beb8b381889"
+            },
+            "localJavaScriptFilesAddOnlyDenoLintDirective": { "const": true }
+          }
+        }
+      }
+    },
+    "textureDerivation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceSha256", "command", "policy"],
+      "properties": {
+        "sourceSha256": {
+          "const": "385dce948c3b9e8bc93e1c930d796e72b02cbd474b121a160d577de95ebbb48f"
+        },
+        "command": { "const": "ImageMagick 7.1.2-27: -filter Lanczos -resize 64x64! RGBA:" },
+        "policy": {
+          "const": "base-color texture; metallic/roughness and tangent-space normal maps excluded from the fixed CPU reference and retained as GPU product-baseline material inputs"
+        }
+      }
+    },
+    "files": {
+      "const": [
+        {
+          "path": "fixtures/base/graphics-gltf-viewer/Avocado.gltf",
+          "bytes": 3083,
+          "sha256": "63ec45999c1df77adc3837857c95d16dde7aee062b4a1d4475ca968514ec8609"
+        },
+        {
+          "path": "fixtures/base/graphics-gltf-viewer/Avocado.bin",
+          "bytes": 8724,
+          "sha256": "535123a66a19c0427298d0bbe81b0ba5efa6d8155b7c659e11c23d8c6d6fe2c6"
+        },
+        {
+          "path": "fixtures/base/graphics-gltf-viewer/base-color-64.rgba",
+          "bytes": 16384,
+          "sha256": "d86004c21332cbe8b4ebfa0e7e99bf431f810ec479676814f8305ca2b2a4c938"
+        },
+        {
+          "path": "fixtures/base/graphics-gltf-viewer/AVOCADO-LICENSE.md",
+          "bytes": 666,
+          "sha256": "fee2e932d421fd25b5102104024681fde2d8c5d0f2299ab4102deeb10a27d8e3"
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  }
+}
