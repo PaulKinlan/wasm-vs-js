@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "status",
+    "mode",
+    "schemaVersion",
+    "acceptedImplementationCommit",
+    "localCheckoutCommit",
+    "collectorAssets"
+  ],
+  "properties": {
+    "status": { "const": "ok" },
+    "mode": { "const": "local-m1-pilot" },
+    "schemaVersion": { "const": 1 },
+    "acceptedImplementationCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "localCheckoutCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "collectorAssets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "/corpus-run",
+        "/corpus-run.js",
+        "/styles.css",
+        "/hosted-runner-core.js",
+        "/hosted-runner-worker.js",
+        "/benchmarks/sum-u32/workload.js",
+        "/artifacts/sum-u32/build-manifest.json",
+        "/artifacts/sum-u32/sum-u32.wasm"
+      ],
+      "properties": {
+        "/corpus-run": { "$ref": "#/$defs/sha256" },
+        "/corpus-run.js": { "$ref": "#/$defs/sha256" },
+        "/styles.css": { "$ref": "#/$defs/sha256" },
+        "/hosted-runner-core.js": { "$ref": "#/$defs/sha256" },
+        "/hosted-runner-worker.js": { "$ref": "#/$defs/sha256" },
+        "/benchmarks/sum-u32/workload.js": { "$ref": "#/$defs/sha256" },
+        "/artifacts/sum-u32/build-manifest.json": { "$ref": "#/$defs/sha256" },
+        "/artifacts/sum-u32/sum-u32.wasm": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

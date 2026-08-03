@@ -1,15 +1,43 @@
-import { assertPermitActive, consumePermit, validatePermit } from "../lib/browser-permit.ts";
+import {
+  assertPermitActive,
+  assertPermitReceiptAvailable,
+  consumePermit,
+  validatePermit,
+} from "../lib/browser-permit.ts";
 import { collectHostProvenance } from "../lib/host-provenance.ts";
-import { closeOwnedChrome, launchOwnedChrome } from "../lib/owned-chrome.ts";
+import {
+  ChromeLaunchLifecycleError,
+  closeOwnedChrome,
+  launchOwnedChrome,
+} from "../lib/owned-chrome.ts";
 import {
   inspectChromePackage,
+  recordStageCleanupLifecycle,
   removeStagedChrome,
+  StageAuthorization,
   stageChromePackage,
   StagedChrome,
   verifyStagedChrome,
 } from "../lib/chrome-stage.ts";
-import { attestAndRestrictTemporaryRoot, refreshLedger } from "../lib/process-ledger.ts";
-import { commitPairedBlock, LaunchManifest, writeImmutableArtifact } from "../lib/corpus-store.ts";
+import { StageCleanupLifecycle } from "../lib/stage-lifecycle.ts";
+import {
+  assertProfileReservation,
+  attestAndRestrictTemporaryRoot,
+  ProfileReservation,
+  refreshLedger,
+  releaseProfileReservation,
+  reserveProfileNamespace,
+} from "../lib/process-ledger.ts";
+import {
+  assertCorpusNamespaceReservation,
+  commitPairedBlock,
+  CorpusNamespaceReservation,
+  LaunchManifest,
+  releaseCorpusNamespace,
+  reserveCorpusNamespace,
+  validateLaunchManifest,
+  writeImmutableArtifact,
+} from "../lib/corpus-store.ts";
 import { attestNetwork, NetworkRecord } from "../lib/chrome-evidence.ts";
 import { collectChromeProvenance } from "../lib/chrome-provenance.ts";
 import { canonicalize, sha256Hex } from "../lib/canonical.ts";
@@ -20,6 +48,7 @@ import {
   assertCollectionStopSchema,
   assertCorpusSchema,
   assertLaunchEvidenceSchema,
+  assertPrelaunchFailureSchema,
   assertSourceManifestSchema,
 } from "../lib/corpus-contracts.ts";
 import { expectedBatchDigest } from "../public/hosted-runner-core.js";
@@ -38,6 +67,12 @@ import {
   FROZEN_PREREGISTRATION_SHA256,
   sourceManifest,
 } from "../lib/source-identity.ts";
+import {
+  FrozenCollectionManifests,
+  validateFrozenCollectionManifests,
+  validateScheduledLaunchManifest,
+  verifyCollectorOrigin,
+} from "../lib/collection-preflight.ts";
 
 export const CORPUS_OPERATION_FLAGS = [
   "--preflight",
@@ -94,34 +129,33 @@ const COLLECTOR_GET_ROUTES = Object.keys(COLLECTOR_ROUTES).sort();
 
 async function preflight(requireClean = true) {
   if (!/^[a-f0-9]{40}$/.test(sourceCommit)) throw new Error("exact source commit required");
-  const manifest = requireClean ? await sourceManifest(sourceCommit) : null;
-  const prereg = JSON.parse(
-    await Deno.readTextFile("experiments/m1-chrome-sum-u32-v1/preregistration.json"),
-  );
-  if (prereg.experimentId !== "m1-chrome-sum-u32-v1" || prereg.pairing?.schedule?.length !== 120) {
-    throw new Error("preregistration denied");
+  if (!requireClean) {
+    const prereg = JSON.parse(
+      await Deno.readTextFile("experiments/m1-chrome-sum-u32-v1/preregistration.json"),
+    );
+    return {
+      sourceCommit,
+      experimentId: prereg.experimentId,
+      plannedLaunches: prereg.pairing.schedule.length,
+      hostFields: Object.keys(await collectHostProvenance()).length,
+      sourceManifestSha256: "dry-fake",
+      sourceFiles: {},
+      frozen: null,
+    };
   }
-  for (
-    const path of [
-      "attempt-record.schema.json",
-      "browser-permit.schema.json",
-      "chrome-package-manifest.schema.json",
-      "collection-stop.schema.json",
-      "corpus.schema.json",
-      "launch-evidence.schema.json",
-      "paired-block.schema.json",
-      "network-attestation.schema.json",
-      "permit-receipt.schema.json",
-      "source-manifest.schema.json",
-    ]
-  ) await Deno.stat(`schemas/${path}`);
-  return {
+  const manifest = await sourceManifest(sourceCommit);
+  const checked = {
     sourceCommit,
-    experimentId: prereg.experimentId,
-    plannedLaunches: prereg.pairing.schedule.length,
+    sourceManifestSha256: manifest.sha256,
+    sourceFiles: manifest.files,
+  };
+  const frozen = await validateFrozenCollectionManifests(checked);
+  return {
+    ...checked,
+    experimentId: String(frozen.preregistration.experimentId),
+    plannedLaunches: frozen.schedule.length,
     hostFields: Object.keys(await collectHostProvenance()).length,
-    sourceManifestSha256: manifest?.sha256 ?? "dry-fake",
-    sourceFiles: manifest?.files ?? {},
+    frozen,
   };
 }
 export { closeOwnedChrome };
@@ -130,11 +164,13 @@ export async function launchReviewedChrome(
   stage: StagedChrome,
   suffix: string,
   onSpawn?: (pid: number) => void,
+  profileReservation?: ProfileReservation,
 ) {
   await verifyStagedChrome(stage);
   return await launchOwnedChrome({
     stagedChrome: stage,
     profileRoot: `${permit.profileRoot}/${suffix}`,
+    profileReservation,
     extraArguments: [],
     beforeSpawn: () => assertPermitActive(permit),
     onSpawn,
@@ -171,19 +207,123 @@ async function verifyOrigin(
   permit: ReturnType<typeof validatePermit>,
   expectedHashes: Record<string, string>,
 ) {
-  const response = await fetch(`${permit.origin}/healthz`, {
-    redirect: "error",
-    cache: "no-store",
-  });
-  if (!response.ok || new URL(response.url).origin !== permit.origin) {
-    throw new Error("local origin health denied");
+  await verifyCollectorOrigin(permit, expectedHashes);
+}
+
+function stageAuthorization(permit: ReturnType<typeof validatePermit>): StageAuthorization {
+  return {
+    permitId: permit.permitId,
+    sourceCommit: permit.sourceCommit,
+    chromePackageManifestSha256: permit.chromePackageManifestSha256,
+  };
+}
+
+export async function validatePreconsumptionEnvironment(
+  permit: ReturnType<typeof validatePermit>,
+  frozen: FrozenCollectionManifests,
+  manifest?: LaunchManifest,
+  verify: typeof verifyOrigin = verifyOrigin,
+): Promise<void> {
+  assertPermitActive(permit);
+  if (manifest) validateScheduledLaunchManifest(manifest, permit, frozen.schedule);
+  await verify(permit, frozen.collectorHashes);
+}
+
+export async function prepareCollectionInvocation(
+  permitPath: string,
+  permit: ReturnType<typeof validatePermit>,
+  frozen: FrozenCollectionManifests,
+  manifest?: LaunchManifest,
+  dependencies: {
+    verifyEnvironment?: typeof verifyOrigin;
+    stage?: typeof stageChromePackage;
+    verifyStage?: typeof verifyStagedChrome;
+    removeStage?: typeof removeStagedChrome;
+    reserveCorpus?: typeof reserveCorpusNamespace;
+    releaseCorpus?: typeof releaseCorpusNamespace;
+    reserveProfiles?: typeof reserveProfileNamespace;
+    releaseProfiles?: typeof releaseProfileReservation;
+    verifyCorpusReservation?: typeof assertCorpusNamespaceReservation;
+    verifyProfileReservation?: typeof assertProfileReservation;
+    checkReceipt?: typeof assertPermitReceiptAvailable;
+    consume?: typeof consumePermit;
+    rawBase?: string;
+  } = {},
+): Promise<{
+  stage: StagedChrome;
+  lifecycle: StageCleanupLifecycle;
+  receipt: Awaited<ReturnType<typeof consumePermit>>;
+  corpusReservation: CorpusNamespaceReservation;
+  profileReservation: ProfileReservation;
+}> {
+  await validatePreconsumptionEnvironment(
+    permit,
+    frozen,
+    manifest,
+    dependencies.verifyEnvironment,
+  );
+  await (dependencies.checkReceipt ?? assertPermitReceiptAvailable)(
+    "raw/permits",
+    permit.permitId,
+  );
+  let stage: StagedChrome | undefined;
+  let corpusReservation: CorpusNamespaceReservation | undefined;
+  let profileReservation: ProfileReservation | undefined;
+  const lifecycle = new StageCleanupLifecycle(), corpusId = `m1-${permit.permitId}`;
+  const childNames = manifest
+    ? [`${String(manifest.scheduleIndex).padStart(3, "0")}-${manifest.blockId}`]
+    : frozen.schedule.map((entry, index) => `${String(index).padStart(3, "0")}-${entry.blockId}`);
+  try {
+    corpusReservation = await (dependencies.reserveCorpus ?? reserveCorpusNamespace)(
+      dependencies.rawBase ?? "raw/corpora",
+      corpusId,
+    );
+    profileReservation = await (dependencies.reserveProfiles ?? reserveProfileNamespace)(
+      permit.profileRoot,
+      childNames,
+    );
+    stage = await (dependencies.stage ?? stageChromePackage)(
+      permit.chromeBinary,
+      permit.chromeSha256,
+      stageAuthorization(permit),
+    );
+    await (dependencies.verifyStage ?? verifyStagedChrome)(stage);
+    // Reauthenticate both create-new reservations after staging and immediately before the
+    // irreversible receipt write. A replacement at either namespace must leave the permit unused.
+    await (dependencies.verifyCorpusReservation ?? assertCorpusNamespaceReservation)(
+      corpusReservation,
+    );
+    await (dependencies.verifyProfileReservation ?? assertProfileReservation)(
+      profileReservation,
+    );
+    const receipt = await (dependencies.consume ?? consumePermit)(
+      permitPath,
+      "raw/permits",
+      permit,
+    );
+    return { stage, lifecycle, receipt, corpusReservation, profileReservation };
+  } catch (error) {
+    const cleanupErrors: unknown[] = [];
+    if (stage && lifecycle.disposition === "remove-stage") {
+      await (dependencies.removeStage ?? removeStagedChrome)(stage).catch((cleanup) =>
+        cleanupErrors.push(cleanup)
+      );
+    }
+    if (profileReservation) {
+      await (dependencies.releaseProfiles ?? releaseProfileReservation)(profileReservation).catch(
+        (cleanup) => cleanupErrors.push(cleanup),
+      );
+    }
+    if (corpusReservation) {
+      await (dependencies.releaseCorpus ?? releaseCorpusNamespace)(corpusReservation).catch(
+        (cleanup) => cleanupErrors.push(cleanup),
+      );
+    }
+    if (cleanupErrors.length) {
+      throw new AggregateError(cleanupErrors, `preconsumption cleanup failed after: ${error}`);
+    }
+    throw error;
   }
-  const health = await response.json();
-  if (
-    health.status !== "ok" || health.mode !== "local-m1-pilot" ||
-    health.localCheckoutCommit !== permit.sourceCommit ||
-    JSON.stringify(health.collectorAssets) !== JSON.stringify(expectedHashes)
-  ) throw new Error("local origin source identity mismatch");
 }
 export function classifyAttemptError(
   error: unknown,
@@ -558,6 +698,9 @@ type CollectionDependencies = {
   close?: typeof closeOwnedChrome;
   refreshLedger?: typeof refreshLedger;
   rawBase?: string;
+  stageLifecycle?: StageCleanupLifecycle;
+  recordStageLifecycle?: typeof recordStageCleanupLifecycle;
+  profileReservation?: ProfileReservation;
 };
 export async function collectOwnedBlock(
   permit: ReturnType<typeof validatePermit>,
@@ -577,6 +720,7 @@ export async function collectOwnedBlock(
   }
 > {
   assertPermitActive(permit);
+  validateLaunchManifest(manifest);
   const currentSource = await (dependencies.sourceManifest ?? sourceManifest)(permit.sourceCommit);
   if (expectedSourceManifestSha256 && currentSource.sha256 !== expectedSourceManifestSha256) {
     throw new Error("executed source manifest changed after preflight");
@@ -606,14 +750,74 @@ export async function collectOwnedBlock(
     stagedChrome.manifestSha256 !== permit.chromePackageManifestSha256
   ) throw new Error("staged Chrome package not bound by permit");
   await (dependencies.verifyStage ?? verifyStagedChrome)(stagedChrome);
-  const owned = await (dependencies.launch ?? launchReviewedChrome)(
-    permit,
-    stagedChrome,
-    `${String(manifest.scheduleIndex).padStart(3, "0")}-${manifest.blockId}`,
-    onLaunchBegan,
-  );
+  let launchBegan = false;
+  let owned: Awaited<ReturnType<typeof launchReviewedChrome>>;
+  try {
+    owned = await (dependencies.launch ?? launchReviewedChrome)(
+      permit,
+      stagedChrome,
+      `${String(manifest.scheduleIndex).padStart(3, "0")}-${manifest.blockId}`,
+      (pid) => {
+        // systemd-run has succeeded at this boundary. Account the attempt before any lifecycle
+        // persistence that can fail, so an owned launch can never become a prelaunch record.
+        launchBegan = true;
+        onLaunchBegan?.(pid);
+        dependencies.stageLifecycle?.launchBegan();
+        (dependencies.recordStageLifecycle ?? recordStageCleanupLifecycle)(
+          stagedChrome,
+          "owned-launch-active",
+        );
+      },
+      dependencies.profileReservation,
+    );
+  } catch (error) {
+    if (error instanceof ChromeLaunchLifecycleError) {
+      if (error.launchBegan) {
+        if (error.cleanupResolved) dependencies.stageLifecycle?.cleanupVerified();
+        else dependencies.stageLifecycle?.cleanupUnresolved();
+        (dependencies.recordStageLifecycle ?? recordStageCleanupLifecycle)(
+          stagedChrome,
+          error.cleanupResolved ? "cleanup-verified" : "cleanup-unresolved",
+        );
+      } else {
+        dependencies.stageLifecycle?.prelaunchFailure(error.cleanupResolved);
+        if (!error.cleanupResolved) {
+          (dependencies.recordStageLifecycle ?? recordStageCleanupLifecycle)(
+            stagedChrome,
+            "cleanup-unresolved",
+          );
+        }
+      }
+    } else if (launchBegan) {
+      dependencies.stageLifecycle?.cleanupUnresolved();
+      (dependencies.recordStageLifecycle ?? recordStageCleanupLifecycle)(
+        stagedChrome,
+        "cleanup-unresolved",
+      );
+    } else dependencies.stageLifecycle?.prelaunchFailure(true);
+    throw error;
+  }
   let cleanupComplete = false;
   let cleanupAttempted = false;
+  const closeAndTrack = async () => {
+    try {
+      const closed = await (dependencies.close ?? closeOwnedChrome)(owned);
+      cleanupComplete = closed.cleaned;
+      dependencies.stageLifecycle?.cleanupVerified();
+      (dependencies.recordStageLifecycle ?? recordStageCleanupLifecycle)(
+        stagedChrome,
+        "cleanup-verified",
+      );
+      return closed;
+    } catch (error) {
+      dependencies.stageLifecycle?.cleanupUnresolved();
+      (dependencies.recordStageLifecycle ?? recordStageCleanupLifecycle)(
+        stagedChrome,
+        "cleanup-unresolved",
+      );
+      throw error;
+    }
+  };
   try {
     // Cleanup coverage begins immediately after launch, before any evidence path can be authored.
     const corpusRoot = dependencies.rawBase ?? "raw/corpora",
@@ -904,8 +1108,7 @@ export async function collectOwnedBlock(
       })),
     );
     cleanupAttempted = true;
-    const closed = await (dependencies.close ?? closeOwnedChrome)(owned);
-    cleanupComplete = closed.cleaned;
+    const closed = await closeAndTrack();
     const typed = (value: unknown, source: string, scope: string) => ({
       status: "supported-value",
       value,
@@ -1021,18 +1224,77 @@ export async function collectOwnedBlock(
       wasmMedianMs: wasm.medianMs,
     };
   } finally {
-    if (!cleanupComplete && !cleanupAttempted) {
-      await (dependencies.close ?? closeOwnedChrome)(owned);
-    }
+    if (!cleanupComplete && !cleanupAttempted) await closeAndTrack();
   }
 }
-async function collectAll(
+export async function persistStandalonePrelaunchFailure(
+  rawBase: string,
+  manifest: LaunchManifest,
+  lifecycle: StageCleanupLifecycle,
+  error: unknown,
+): Promise<{ path: string; sha256: string }> {
+  const failure = classifyAttemptError(error);
+  const record = {
+    blockId: manifest.blockId,
+    scheduleIndex: manifest.scheduleIndex,
+    stratum: manifest.stratum,
+    order: [...manifest.order],
+    attempted: false as const,
+    category: failure.category,
+    reason: failure.reason,
+    cleanupLifecycle: lifecycle.state === "cleanup-unresolved"
+      ? "unresolved-cleanup" as const
+      : "verified-no-owned-launch" as const,
+  };
+  assertPrelaunchFailureSchema(record);
+  const path = `${rawBase}/${manifest.corpusId}/prelaunch-failures/${
+    String(manifest.scheduleIndex).padStart(3, "0")
+  }-${manifest.blockId}.json`;
+  const artifact = await writeImmutableArtifact(path, canonicalize(record) + "\n");
+  return { path, sha256: artifact.sha256 };
+}
+
+export async function collectOneWithPrelaunchEvidence(
+  permit: ReturnType<typeof validatePermit>,
+  manifest: LaunchManifest,
+  expectedHashes: Record<string, string>,
+  expectedSourceManifestSha256: string,
+  stagedChrome: StagedChrome,
+  lifecycle: StageCleanupLifecycle,
+  profileReservation: ProfileReservation,
+  collector: typeof collectOwnedBlock = collectOwnedBlock,
+  rawBase = "raw/corpora",
+): ReturnType<typeof collectOwnedBlock> {
+  let launchBegan = false;
+  try {
+    return await collector(
+      permit,
+      manifest,
+      expectedHashes,
+      expectedSourceManifestSha256,
+      () => {
+        launchBegan = true;
+      },
+      stagedChrome,
+      { stageLifecycle: lifecycle, profileReservation },
+    );
+  } catch (error) {
+    if (!launchBegan) {
+      await persistStandalonePrelaunchFailure(rawBase, manifest, lifecycle, error);
+    }
+    throw error;
+  }
+}
+
+export async function collectAll(
   permit: ReturnType<typeof validatePermit>,
   permitDigest: string,
   checked: Awaited<ReturnType<typeof preflight>>,
   collector: typeof collectOwnedBlock = collectOwnedBlock,
   rawBase = "raw/corpora",
   stagedChrome?: StagedChrome,
+  stageLifecycle = new StageCleanupLifecycle(),
+  profileReservation?: ProfileReservation,
 ): Promise<Record<string, unknown>> {
   const prereg = JSON.parse(
       await Deno.readTextFile("experiments/m1-chrome-sum-u32-v1/preregistration.json"),
@@ -1043,6 +1305,7 @@ async function collectAll(
     warm: { attempted: 0, js: [] as number[], wasm: [] as number[], terminal: "continue" },
   };
   const blocks: AttemptRecord[] = [];
+  const prelaunchFailures: Array<Record<string, unknown>> = [];
   let containmentStop = false;
   let stop: null | {
     scheduleIndex: number;
@@ -1093,6 +1356,7 @@ async function collectAll(
           cell.attempted += 1;
         },
         stagedChrome,
+        { stageLifecycle, profileReservation },
       );
       cell.js.push(result.jsMedianMs);
       cell.wasm.push(result.wasmMedianMs);
@@ -1122,6 +1386,29 @@ async function collectAll(
       // Fail closed before a spawn without inventing an attempted launch.
       if (!launchBegan) {
         containmentStop = true;
+        const prelaunchFailure = {
+          blockId: manifest.blockId,
+          scheduleIndex: index,
+          stratum,
+          order: [...manifest.order],
+          attempted: false as const,
+          category: failure.category,
+          reason: failure.reason,
+          cleanupLifecycle: stageLifecycle.state === "cleanup-unresolved"
+            ? "unresolved-cleanup" as const
+            : "verified-no-owned-launch" as const,
+        };
+        assertPrelaunchFailureSchema(prelaunchFailure);
+        const prelaunchArtifact = await writeImmutableArtifact(
+          `${rawBase}/${corpusId}/prelaunch-failures/${
+            String(index).padStart(3, "0")
+          }-${manifest.blockId}.json`,
+          canonicalize(prelaunchFailure) + "\n",
+        );
+        prelaunchFailures.push({
+          ...prelaunchFailure,
+          artifactSha256: prelaunchArtifact.sha256,
+        });
         const stopRecord = {
           scheduleIndex: index,
           blockId: manifest.blockId,
@@ -1237,6 +1524,7 @@ async function collectAll(
     blocked,
     unstarted: 120 - attempted,
     blocks,
+    prelaunchFailures,
     strata,
     stop,
     status,
@@ -1476,6 +1764,10 @@ export async function dryFake() {
       });
     const stage: StagedChrome = {
       schemaVersion: 2,
+      stageId: permit.permitId,
+      permitId: permit.permitId,
+      sourceCommit,
+      cleanupLifecycle: "ready-no-owned-launch",
       root: `${root}/stage`,
       binary: `${root}/stage/chrome`,
       binaryRelativePath: "chrome",
@@ -1486,8 +1778,14 @@ export async function dryFake() {
       stagedFileModes: { chrome: 0o500 },
       sourceDirectoryModes: { ".": 0o700 },
       stagedDirectoryModes: { ".": 0o500 },
+      stageParentDev: 1,
+      stageParentIno: 1,
       rootDev: 1,
       rootIno: 1,
+      ownerManifestPath: `${root}/stage.owner.json`,
+      ownerManifestSha256: "d".repeat(64),
+      ownerDev: 1,
+      ownerIno: 2,
     };
     let productionBlocks = 0, lifecycleValidatedBlocks = 0;
     const fakeCollector: typeof collectOwnedBlock = async (
@@ -1497,6 +1795,7 @@ export async function dryFake() {
       source,
       onLaunch,
       staged,
+      collectionDependencies,
     ) => {
       const browser = await fakeCdpBrowser(manifest, p.origin);
       const block = await collectOwnedBlock(p, manifest, hashes, source, onLaunch, staged, {
@@ -1558,6 +1857,8 @@ export async function dryFake() {
             stoppedAt: new Date().toISOString(),
           }),
         rawBase: `${root}/corpora`,
+        stageLifecycle: collectionDependencies?.stageLifecycle,
+        recordStageLifecycle: () => {},
       });
       if (
         browser.lifecycle.workerSeenBeforeRelease &&
@@ -1575,6 +1876,7 @@ export async function dryFake() {
       hostFields: 9,
       sourceManifestSha256: "1".repeat(64),
       sourceFiles: { "dry-fake.ts": "2".repeat(64) },
+      frozen: null,
     };
     const result = await collectAll(
       permit,
@@ -1650,8 +1952,17 @@ if (import.meta.main) {
       );
       break;
     case "--consume-permit": {
-      if (!permitPath) throw new Error("--permit required");
-      const receipt = await consumePermit(permitPath, "raw/permits", { sourceCommit });
+      if (!permitPath || !check.frozen) throw new Error("--permit required");
+      const permit = validatePermit(JSON.parse(await Deno.readTextFile(permitPath)), {
+        sourceCommit,
+      });
+      await validatePreconsumptionEnvironment(permit, check.frozen);
+      const inspected = await inspectChromePackage(permit.chromeBinary, permit.chromeSha256);
+      assertChromePackageManifestSchema(inspected);
+      if (inspected.manifestSha256 !== permit.chromePackageManifestSha256) {
+        throw new Error("Chrome package manifest differs from authorized permit");
+      }
+      const receipt = await consumePermit(permitPath, "raw/permits", permit);
       console.log(
         JSON.stringify({
           preflight: check,
@@ -1663,23 +1974,15 @@ if (import.meta.main) {
       break;
     }
     case "--collect-all": {
-      if (!permitPath) throw new Error("--permit required");
+      if (!permitPath || !check.frozen) throw new Error("--permit required");
       const permit = validatePermit(JSON.parse(await Deno.readTextFile(permitPath)), {
         sourceCommit,
         operation: "collect-uninstrumented-headline-paired-corpus",
         maximumLaunches: 120,
       });
-      const stage = await stageChromePackage(
-        permit.chromeBinary,
-        permit.chromeSha256,
-        permit.permitId,
-      );
-      let safeToRemoveStage = false;
+      const prepared = await prepareCollectionInvocation(permitPath, permit, check.frozen);
+      const { stage, lifecycle, receipt, profileReservation } = prepared;
       try {
-        if (stage.manifestSha256 !== permit.chromePackageManifestSha256) {
-          throw new Error("Chrome package manifest differs from authorized permit");
-        }
-        const receipt = await consumePermit(permitPath, "raw/permits", permit);
         const corpus = await collectAll(
           permit,
           receipt.digest,
@@ -1687,48 +1990,55 @@ if (import.meta.main) {
           collectOwnedBlock,
           "raw/corpora",
           stage,
+          lifecycle,
+          profileReservation,
         );
         console.log(JSON.stringify(corpus));
         await verifyStagedChrome(stage);
-        safeToRemoveStage = corpus.status !== "containment-blocked";
       } finally {
-        if (safeToRemoveStage) await removeStagedChrome(stage);
+        if (lifecycle.disposition === "remove-stage") {
+          await removeStagedChrome(stage);
+          await releaseProfileReservation(profileReservation);
+        }
       }
       break;
     }
     case "--collect-one": {
-      if (!permitPath || !manifestPath) throw new Error("--permit and --manifest required");
+      if (!permitPath || !manifestPath || !check.frozen) {
+        throw new Error("--permit and --manifest required");
+      }
       const permit = validatePermit(JSON.parse(await Deno.readTextFile(permitPath)), {
         sourceCommit,
         operation: "pilot-m1-corpus",
       });
-      const stage = await stageChromePackage(
-        permit.chromeBinary,
-        permit.chromeSha256,
-        permit.permitId,
+      const manifest = JSON.parse(await Deno.readTextFile(manifestPath)) as LaunchManifest;
+      const prepared = await prepareCollectionInvocation(
+        permitPath,
+        permit,
+        check.frozen,
+        manifest,
       );
-      let safeToRemoveStage = false;
+      const { stage, lifecycle, profileReservation } = prepared;
       try {
-        if (stage.manifestSha256 !== permit.chromePackageManifestSha256) {
-          throw new Error("Chrome package manifest differs from authorized permit");
-        }
-        await consumePermit(permitPath, "raw/permits", permit);
         console.log(
           JSON.stringify(
-            await collectOwnedBlock(
+            await collectOneWithPrelaunchEvidence(
               permit,
-              JSON.parse(await Deno.readTextFile(manifestPath)) as LaunchManifest,
-              undefined,
+              manifest,
+              check.frozen.collectorHashes,
               check.sourceManifestSha256,
-              undefined,
               stage,
+              lifecycle,
+              profileReservation,
             ),
           ),
         );
         await verifyStagedChrome(stage);
-        safeToRemoveStage = true;
       } finally {
-        if (safeToRemoveStage) await removeStagedChrome(stage);
+        if (lifecycle.disposition === "remove-stage") {
+          await removeStagedChrome(stage);
+          await releaseProfileReservation(profileReservation);
+        }
       }
       break;
     }

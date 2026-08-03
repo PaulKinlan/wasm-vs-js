@@ -14,7 +14,12 @@ import {
   launchOwnedChrome,
   waitDevToolsActivePort,
 } from "../lib/owned-chrome.ts";
-import { canonicalize, sha256Hex } from "../lib/canonical.ts";
+import { sha256Hex } from "../lib/canonical.ts";
+import {
+  inspectChromePackage,
+  removeStagedChrome,
+  stageChromePackage,
+} from "../lib/chrome-stage.ts";
 
 function ids(info: Deno.FileInfo) {
   return { dev: Number(info.dev), ino: Number(info.ino) };
@@ -253,35 +258,22 @@ Deno.test("production systemd launch/teardown uses only an injected exact-unit a
   const root = await Deno.makeTempDir(),
     proc = `${root}/proc`,
     cgroups = `${root}/cgroup`,
-    stageRoot = `${root}/stage`,
-    binary = `${stageRoot}/chrome`,
+    sourceRoot = `${root}/source-package`,
+    sourceBinary = `${sourceRoot}/chrome`,
     unit = "wasm-vs-js-0123456789abcdef.service",
     mainPid = 700;
   const profileRoot = `/tmp/wasm-vs-js-owned-profiles/fake-${crypto.randomUUID()}/launch`;
-  await Deno.mkdir(stageRoot);
-  await Deno.writeTextFile(binary, "fake chrome");
-  const expectedSha256 = await sha256Hex(await Deno.readFile(binary));
-  await Deno.chmod(binary, 0o500);
-  await Deno.chmod(stageRoot, 0o500);
-  const stageIdentity = ids(await Deno.lstat(stageRoot));
-  const packageIdentity = {
-    schemaVersion: 2 as const,
-    binaryRelativePath: "chrome",
-    binarySha256: expectedSha256,
-    files: { chrome: expectedSha256 },
-    sourceFileModes: { chrome: 0o755 },
-    stagedFileModes: { chrome: 0o500 },
-    sourceDirectoryModes: { ".": 0o700 },
-    stagedDirectoryModes: { ".": 0o500 },
-  };
-  const stagedChrome = {
-    ...packageIdentity,
-    root: stageRoot,
-    binary,
-    manifestSha256: await sha256Hex(canonicalize(packageIdentity)),
-    rootDev: stageIdentity.dev,
-    rootIno: stageIdentity.ino,
-  };
+  await Deno.mkdir(sourceRoot);
+  await Deno.writeTextFile(sourceBinary, "fake chrome");
+  const expectedSha256 = await sha256Hex(await Deno.readFile(sourceBinary));
+  await Deno.chmod(sourceBinary, 0o500);
+  const inspected = await inspectChromePackage(sourceBinary, expectedSha256);
+  const stagedChrome = await stageChromePackage(sourceBinary, expectedSha256, {
+    permitId: `test-${crypto.randomUUID()}`,
+    sourceCommit: "a".repeat(40),
+    chromePackageManifestSha256: inspected.manifestSha256,
+  });
+  const binary = stagedChrome.binary;
   const calls: Array<{ command: string; args: string[] }> = [];
   const lifecycle: string[] = [];
   let active = true, started = false;
@@ -402,6 +394,7 @@ Deno.test("production systemd launch/teardown uses only an injected exact-unit a
     );
     assertEquals(deniedCalls.some((call) => call.includes("kill") || call.includes("stop")), false);
   } finally {
+    await removeStagedChrome(stagedChrome).catch(() => {});
     await Deno.remove(root, { recursive: true }).catch(() => {});
     await Deno.remove(profileRoot.slice(0, profileRoot.lastIndexOf("/")), { recursive: true })
       .catch(() => {});

@@ -103,6 +103,21 @@ export function validatePermit(
   return permit;
 }
 
+export async function assertPermitReceiptAvailable(
+  consumptionDir: string,
+  permitId: string,
+): Promise<void> {
+  if (!/^[a-z0-9][a-z0-9._-]{7,127}$/.test(permitId)) {
+    throw new Error("unsafe permit receipt identity");
+  }
+  try {
+    await Deno.lstat(`${consumptionDir}/${permitId}.consumed.json`);
+    throw new Error("permit already consumed");
+  } catch (error) {
+    if (!(error instanceof Deno.errors.NotFound)) throw error;
+  }
+}
+
 export async function consumePermit(
   path: string,
   consumptionDir: string,

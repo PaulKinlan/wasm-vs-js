@@ -110,8 +110,10 @@ export function validateCorpusSemantics(
     blocked = Number(corpus.blocked),
     unstarted = Number(corpus.unstarted);
   const blocks = corpus.blocks as AttemptRecord[];
+  const prelaunchFailures = corpus.prelaunchFailures as Array<Record<string, unknown>>;
   if (
     planned !== 120 || schedule.length !== 120 || !Array.isArray(blocks) ||
+    !Array.isArray(prelaunchFailures) || prelaunchFailures.length > 1 ||
     attempted !== blocks.length ||
     attempted + unstarted !== planned || committed + failed + blocked !== attempted
   ) throw new Error("corpus accounting mismatch");
@@ -156,6 +158,18 @@ export function validateCorpusSemantics(
   }
   if (counts.committed !== committed || counts.failed !== failed || counts.blocked !== blocked) {
     throw new Error("corpus status counts mismatch");
+  }
+  for (const failure of prelaunchFailures) {
+    const expected = schedule[Number(failure.scheduleIndex)];
+    if (
+      failure.attempted !== false || !expected || failure.blockId !== expected.blockId ||
+      failure.stratum !== expected.stratum ||
+      JSON.stringify(failure.order) !== JSON.stringify(expected.order) ||
+      typeof failure.reason !== "string" || !failure.reason ||
+      !["verified-no-owned-launch", "unresolved-cleanup"].includes(
+        String(failure.cleanupLifecycle),
+      ) || !/^[a-f0-9]{64}$/.test(String(failure.artifactSha256))
+    ) throw new Error("prelaunch failure identity mismatch");
   }
   const strata = corpus.strata as Record<string, Record<string, unknown>>;
   if (!strata || Object.keys(strata).sort().join(",") !== "cold,warm") {
@@ -227,7 +241,11 @@ export function validateCorpusSemantics(
       stop.category === "blocked-containment" && typeof stop.reason === "string" &&
       stop.reason.length > 0 && /^[a-f0-9]{64}$/.test(String(stop.artifactSha256));
     if (!validStop) throw new Error("containment terminal contradiction");
-  } else if (stop !== null) {
+    if (
+      prelaunchFailures.length === 1 &&
+      Number(prelaunchFailures[0].scheduleIndex) !== Number(stop.scheduleIndex)
+    ) throw new Error("prelaunch failure stop identity mismatch");
+  } else if (stop !== null || prelaunchFailures.length > 0) {
     throw new Error("non-containment corpus cannot reference stop evidence");
   }
 }

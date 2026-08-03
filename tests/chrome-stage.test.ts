@@ -1,12 +1,16 @@
 import { assert, assertEquals, assertRejects } from "./assert.ts";
 import {
   inspectChromePackage,
+  reconcileStaleChromeStage,
+  recordStageCleanupLifecycle,
   removeStagedChrome,
+  setStageOwnerOpenRaceHookForTest,
+  setStageRemovalRaceHookForTest,
   stageChromePackage,
   StagedChrome,
   verifyStagedChrome,
 } from "../lib/chrome-stage.ts";
-import { sha256Hex } from "../lib/canonical.ts";
+import { canonicalize, sha256Hex } from "../lib/canonical.ts";
 
 function mode(info: Deno.FileInfo): number {
   if (info.mode === null) throw new Error("fixture mode unavailable");
@@ -46,7 +50,11 @@ Deno.test("staging preserves executable classification, exact directory modes, a
     stage = await stageChromePackage(
       fixture.binary,
       fixture.hash,
-      `test-${crypto.randomUUID()}`,
+      {
+        permitId: `test-${crypto.randomUUID()}`,
+        sourceCommit: "a".repeat(40),
+        chromePackageManifestSha256: inspected.manifestSha256,
+      },
     );
     assertEquals(stage.schemaVersion, 2);
     assertEquals(stage.manifestSha256, inspected.manifestSha256);
@@ -77,7 +85,10 @@ Deno.test("staging preserves executable classification, exact directory modes, a
     await assertRejects(() => Deno.lstat(stage!.root), "No such file");
     stage = undefined;
   } finally {
-    if (stage) await forceRemove(stage.root);
+    if (stage) {
+      await forceRemove(stage.root);
+      await forceRemove(stage.ownerManifestPath);
+    }
     await forceRemove(fixture.source);
   }
 });
@@ -96,7 +107,11 @@ Deno.test("mode metadata changes the package digest and staged mode-only mutatio
     stage = await stageChromePackage(
       fixture.binary,
       fixture.hash,
-      `test-${crypto.randomUUID()}`,
+      {
+        permitId: `test-${crypto.randomUUID()}`,
+        sourceCommit: "a".repeat(40),
+        chromePackageManifestSha256: executable.manifestSha256,
+      },
     );
     await Deno.chmod(`${stage.root}/chrome_crashpad_handler`, 0o400);
     await assertRejects(() => verifyStagedChrome(stage!), "file mode changed");
@@ -113,7 +128,10 @@ Deno.test("mode metadata changes the package digest and staged mode-only mutatio
     await removeStagedChrome(stage);
     stage = undefined;
   } finally {
-    if (stage) await forceRemove(stage.root);
+    if (stage) {
+      await forceRemove(stage.root);
+      await forceRemove(stage.ownerManifestPath);
+    }
     await forceRemove(fixture.source);
   }
 });
@@ -142,5 +160,155 @@ Deno.test("source special bits and a nonexecutable main binary are rejected befo
     );
   } finally {
     await forceRemove(fixture.source);
+  }
+});
+
+Deno.test("stale stages reconcile only for the exact permit, package, and owner identity", async () => {
+  const fixture = await fixturePackage();
+  const inspected = await inspectChromePackage(fixture.binary, fixture.hash);
+  const authorization = {
+    permitId: `test-${crypto.randomUUID()}`,
+    sourceCommit: "b".repeat(40),
+    chromePackageManifestSha256: inspected.manifestSha256,
+  };
+  let stage: StagedChrome | undefined;
+  try {
+    const first = await stageChromePackage(fixture.binary, fixture.hash, authorization);
+    stage = await stageChromePackage(fixture.binary, fixture.hash, authorization);
+    assert(first.rootIno !== stage.rootIno);
+
+    recordStageCleanupLifecycle(stage, "cleanup-unresolved");
+    await assertRejects(
+      () => reconcileStaleChromeStage(authorization),
+      "retained for unresolved cleanup",
+    );
+    assertEquals((await Deno.lstat(stage.root)).isDirectory, true);
+    recordStageCleanupLifecycle(stage, "cleanup-verified");
+    await verifyStagedChrome(stage);
+
+    const originalOwner = await Deno.readTextFile(stage.ownerManifestPath);
+    const wrongOwner = JSON.parse(originalOwner);
+    wrongOwner.permitId = `wrong-${crypto.randomUUID()}`;
+    await Deno.writeTextFile(stage.ownerManifestPath, canonicalize(wrongOwner) + "\n");
+    await Deno.chmod(stage.ownerManifestPath, 0o600);
+    await assertRejects(
+      () => reconcileStaleChromeStage(authorization),
+      "identity does not match permit",
+    );
+    assertEquals((await Deno.lstat(stage.root)).isDirectory, true);
+
+    await Deno.writeTextFile(stage.ownerManifestPath, originalOwner);
+    await Deno.chmod(stage.ownerManifestPath, 0o600);
+    await reconcileStaleChromeStage(authorization);
+    await assertRejects(() => Deno.lstat(stage!.root), "No such file");
+    stage = undefined;
+  } finally {
+    if (stage) {
+      await forceRemove(stage.root);
+      await forceRemove(stage.ownerManifestPath);
+    }
+    await forceRemove(fixture.source);
+  }
+});
+
+Deno.test("stage reconciliation rejects owner symlinks and source inspection rejects package symlinks", async () => {
+  const fixture = await fixturePackage();
+  const inspected = await inspectChromePackage(fixture.binary, fixture.hash);
+  const authorization = {
+    permitId: `test-${crypto.randomUUID()}`,
+    sourceCommit: "c".repeat(40),
+    chromePackageManifestSha256: inspected.manifestSha256,
+  };
+  let stage: StagedChrome | undefined;
+  const externalOwner = await Deno.makeTempFile();
+  try {
+    stage = await stageChromePackage(fixture.binary, fixture.hash, authorization);
+    const ownerBytes = await Deno.readFile(stage.ownerManifestPath);
+    await Deno.writeFile(externalOwner, ownerBytes);
+    await Deno.remove(stage.ownerManifestPath);
+    await Deno.symlink(externalOwner, stage.ownerManifestPath);
+    await assertRejects(
+      () => reconcileStaleChromeStage(authorization),
+      "unsafe Chrome stage owner manifest",
+    );
+    assertEquals((await Deno.lstat(stage.root)).isDirectory, true);
+    await Deno.remove(stage.ownerManifestPath);
+    await forceRemove(stage.root);
+    stage = undefined;
+
+    await Deno.symlink(externalOwner, `${fixture.source}/linked-resource`);
+    await assertRejects(
+      () => inspectChromePackage(fixture.binary, fixture.hash),
+      "package symlink denied",
+    );
+  } finally {
+    if (stage) {
+      await forceRemove(stage.root);
+      await forceRemove(stage.ownerManifestPath);
+    }
+    await forceRemove(fixture.source);
+    await forceRemove(externalOwner);
+  }
+});
+
+Deno.test("descriptor-bound lifecycle writes and stage cleanup reject pathname replacement", async () => {
+  const fixture = await fixturePackage(), outside = await Deno.makeTempDir();
+  const inspected = await inspectChromePackage(fixture.binary, fixture.hash);
+  const authorization = {
+    permitId: `test-${crypto.randomUUID()}`,
+    sourceCommit: "d".repeat(40),
+    chromePackageManifestSha256: inspected.manifestSha256,
+  };
+  let stage: StagedChrome | undefined;
+  const foreignTree = `${outside}/foreign-tree`;
+  await Deno.mkdir(foreignTree);
+  await Deno.writeTextFile(`${foreignTree}/keep`, "keep");
+  try {
+    stage = await stageChromePackage(fixture.binary, fixture.hash, authorization);
+    const savedOwner = `${stage.ownerManifestPath}.saved`,
+      originalOwner = await Deno.readTextFile(stage.ownerManifestPath),
+      originalHash = stage.ownerManifestSha256;
+    setStageOwnerOpenRaceHookForTest((current) => {
+      Deno.renameSync(current.ownerManifestPath, savedOwner);
+      // The symlink resolves back to the exact expected inode. Only true O_NOFOLLOW rejects it.
+      Deno.symlinkSync(savedOwner, current.ownerManifestPath);
+    });
+    await assertRejects(
+      () => Promise.resolve().then(() => recordStageCleanupLifecycle(stage!, "cleanup-unresolved")),
+      "fd-relative stage lifecycle update failed",
+    );
+    assertEquals(await Deno.readTextFile(savedOwner), originalOwner);
+    assertEquals(stage.cleanupLifecycle, "ready-no-owned-launch");
+    assertEquals(stage.ownerManifestSha256, originalHash);
+    setStageOwnerOpenRaceHookForTest();
+    await Deno.remove(stage.ownerManifestPath);
+    await Deno.rename(savedOwner, stage.ownerManifestPath);
+
+    const savedRoot = `${stage.root}.saved`;
+    setStageRemovalRaceHookForTest(async (current) => {
+      await Deno.rename(current.root, savedRoot);
+      await Deno.symlink(foreignTree, current.root);
+    });
+    await assertRejects(
+      () => removeStagedChrome(stage!),
+      "fd-relative Chrome stage removal failed",
+    );
+    assertEquals(await Deno.readTextFile(`${foreignTree}/keep`), "keep");
+    setStageRemovalRaceHookForTest();
+    await Deno.remove(stage.root);
+    await Deno.rename(savedRoot, stage.root);
+    await removeStagedChrome(stage);
+    stage = undefined;
+  } finally {
+    setStageOwnerOpenRaceHookForTest();
+    setStageRemovalRaceHookForTest();
+    if (stage) {
+      await forceRemove(stage.root);
+      await forceRemove(`${stage.root}.saved`);
+      await forceRemove(stage.ownerManifestPath);
+      await forceRemove(`${stage.ownerManifestPath}.saved`);
+    }
+    await forceRemove(fixture.source);
+    await forceRemove(outside);
   }
 });

@@ -6,13 +6,16 @@ export const EXECUTED_SOURCE_PATHS = [
   "server.ts",
   "deno.corpus.json",
   "scripts/run-m1-chrome-corpus.ts",
+  "scripts/remove-owned-file.py",
   "scripts/remove-owned-tree.py",
+  "scripts/write-stage-owner.py",
   "lib/browser-permit.ts",
   "lib/canonical.ts",
   "lib/cdp-client.ts",
   "lib/chrome-evidence.ts",
   "lib/chrome-provenance.ts",
   "lib/chrome-stage.ts",
+  "lib/collection-preflight.ts",
   "lib/corpus-contracts.ts",
   "lib/corpus-store.ts",
   "lib/corpus-validation.ts",
@@ -21,6 +24,7 @@ export const EXECUTED_SOURCE_PATHS = [
   "lib/paired-statistics.ts",
   "lib/process-ledger.ts",
   "lib/source-identity.ts",
+  "lib/stage-lifecycle.ts",
   "local/corpus-run.html",
   "local/corpus-run.js",
   "public/styles.css",
@@ -31,15 +35,22 @@ export const EXECUTED_SOURCE_PATHS = [
   "public/artifacts/sum-u32/build-manifest.json",
   "public/artifacts/sum-u32/sum-u32.wasm",
   "schemas/attempt-record.schema.json",
+  "schemas/benchmark.schema.json",
   "schemas/browser-permit.schema.json",
+  "schemas/build-manifest.schema.json",
   "schemas/chrome-package-manifest.schema.json",
   "schemas/collection-stop.schema.json",
+  "schemas/collector-health.schema.json",
   "schemas/corpus.schema.json",
   "schemas/launch-evidence.schema.json",
+  "schemas/launch-manifest.schema.json",
   "schemas/network-attestation.schema.json",
   "schemas/paired-block.schema.json",
   "schemas/permit-receipt.schema.json",
+  "schemas/prelaunch-failure.schema.json",
+  "schemas/preregistration.schema.json",
   "schemas/source-manifest.schema.json",
+  "schemas/stage-owner.schema.json",
   "experiments/m1-chrome-sum-u32-v1/preregistration.json",
   "public/experiments/m1-chrome-sum-u32-v1.json",
 ] as const;
@@ -58,11 +69,55 @@ async function command(args: string[]): Promise<string> {
   if (!out.success) throw new Error(`git ${args[0]} failed`);
   return new TextDecoder().decode(out.stdout).trim();
 }
+const GENERATED_RAW_ROOTS = ["raw/permits", "raw/corpora"] as const;
+
+export function assertCheckoutStatus(status: string): void {
+  const entries = status.split("\0").filter(Boolean);
+  for (const entry of entries) {
+    const state = entry.slice(0, 2), path = entry.slice(3);
+    const allowed = state === "!!" &&
+      GENERATED_RAW_ROOTS.some((root) =>
+        path === root || path === `${root}/` || path.startsWith(`${root}/`)
+      );
+    if (!allowed) throw new Error(`collection requires a clean checkout: ${path || "unknown"}`);
+  }
+}
+
+export async function assertGeneratedTreeSafe(path: string): Promise<void> {
+  let root: Deno.FileInfo;
+  try {
+    root = await Deno.lstat(path);
+  } catch (error) {
+    if (error instanceof Deno.errors.NotFound) return;
+    throw error;
+  }
+  if (root.isSymlink || !root.isDirectory || await Deno.realPath(path) !== path) {
+    throw new Error(`unsafe generated raw root: ${path}`);
+  }
+  async function visit(directory: string): Promise<void> {
+    for await (const entry of Deno.readDir(directory)) {
+      const childPath = `${directory}/${entry.name}`, info = await Deno.lstat(childPath);
+      if (info.isSymlink || (!info.isDirectory && !info.isFile)) {
+        throw new Error(`unsafe generated raw entry: ${childPath}`);
+      }
+      if (info.isDirectory) await visit(childPath);
+    }
+  }
+  await visit(path);
+}
+
 export async function assertCleanCheckout(expectedCommit: string): Promise<void> {
   const head = await command(["rev-parse", "HEAD"]);
   if (head !== expectedCommit) throw new Error("permit source commit does not match HEAD");
-  const dirty = await command(["status", "--porcelain=v1", "--untracked-files=all"]);
-  if (dirty) throw new Error("collection requires a clean checkout");
+  const output = await new Deno.Command("git", {
+    args: ["status", "--porcelain=v1", "-z", "--untracked-files=all", "--ignored=matching"],
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  if (!output.success) throw new Error("git status failed");
+  assertCheckoutStatus(new TextDecoder().decode(output.stdout));
+  const cwd = await Deno.realPath(Deno.cwd());
+  for (const root of GENERATED_RAW_ROOTS) await assertGeneratedTreeSafe(`${cwd}/${root}`);
 }
 export async function fileHashes(paths: readonly string[]): Promise<Record<string, string>> {
   const entries = await Promise.all(

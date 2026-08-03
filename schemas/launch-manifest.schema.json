@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "experimentId",
+    "corpusId",
+    "blockId",
+    "scheduleIndex",
+    "stratum",
+    "order",
+    "expiresAt"
+  ],
+  "properties": {
+    "experimentId": { "const": "m1-chrome-sum-u32-v1" },
+    "corpusId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$" },
+    "blockId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$" },
+    "scheduleIndex": { "type": "integer", "minimum": 0, "maximum": 119 },
+    "stratum": { "enum": ["cold", "warm"] },
+    "order": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "uniqueItems": true,
+      "items": { "enum": ["js-controlled", "wasm-linear-controlled"] }
+    },
+    "expiresAt": { "type": "string", "format": "date-time" }
+  }
+}

@@ -4,8 +4,10 @@ import json, os, stat, sys, uuid
 
 O_DIR = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC
 
+
 def die(message):
     raise RuntimeError(message)
+
 
 def exact(st, dev, ino, directory=True):
     if st.st_dev != dev or st.st_ino != ino:
@@ -13,8 +15,10 @@ def exact(st, dev, ino, directory=True):
     if directory and not stat.S_ISDIR(st.st_mode):
         die("expected directory")
 
+
 def empty_dir(fd):
     # scandir duplicates the supplied descriptor; all mutation remains relative to fd.
+    os.fchmod(fd, 0o700)
     for entry in list(os.scandir(fd)):
         name = entry.name
         st = os.stat(name, dir_fd=fd, follow_symlinks=False)
@@ -32,13 +36,16 @@ def empty_dir(fd):
             # unlinkat never follows the terminal symlink.
             os.unlink(name, dir_fd=fd)
 
+
 def main():
-    if len(sys.argv) != 7:
-        die("usage: helper parent parent-dev parent-ino child child-dev child-ino")
-    parent_path, pdev, pino, child_name, cdev, cino = sys.argv[1:]
+    if len(sys.argv) != 8:
+        die("usage: helper parent parent-dev parent-ino child child-dev child-ino child-mode")
+    parent_path, pdev, pino, child_name, cdev, cino, child_mode = sys.argv[1:]
     if "/" in child_name or child_name in ("", ".", ".."):
         die("unsafe child name")
-    pdev, pino, cdev, cino = map(int, (pdev, pino, cdev, cino))
+    pdev, pino, cdev, cino, child_mode = map(
+        int, (pdev, pino, cdev, cino, child_mode)
+    )
     parent = os.open(parent_path, O_DIR)
     try:
         pst = os.fstat(parent)
@@ -49,7 +56,7 @@ def main():
         try:
             cst = os.fstat(child)
             exact(cst, cdev, cino)
-            if cst.st_uid != os.getuid() or stat.S_IMODE(cst.st_mode) != 0o700:
+            if cst.st_uid != os.getuid() or stat.S_IMODE(cst.st_mode) != child_mode:
                 die("unsafe child ownership or mode")
         finally:
             os.close(child)
@@ -67,6 +74,7 @@ def main():
     finally:
         os.close(parent)
     print(json.dumps({"removed": True, "dev": cdev, "ino": cino}, separators=(",", ":")))
+
 
 if __name__ == "__main__":
     try:

@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "benchmarkId",
+    "benchmarkVersion",
+    "track",
+    "sourceRepository",
+    "sourceCommit",
+    "sourceSha256",
+    "build",
+    "lockfiles",
+    "sources",
+    "input",
+    "oracle",
+    "variants"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "benchmarkId": { "const": "sum-u32" },
+    "benchmarkVersion": { "const": 1 },
+    "track": { "const": "controlled" },
+    "sourceRepository": { "const": "https://github.com/PaulKinlan/wasm-vs-js" },
+    "sourceCommit": { "const": "supplied by the runner from the exact checked-out commit" },
+    "sourceSha256": { "$ref": "#/$defs/sha256" },
+    "build": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command", "flags", "toolchains"],
+      "properties": {
+        "command": { "const": "deno task build" },
+        "flags": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "toolchains": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "lockfiles": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/file" } },
+    "sources": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/sizedFile" } },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bytes", "generation", "sha256"],
+      "properties": {
+        "bytes": { "type": "integer", "minimum": 1 },
+        "generation": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "oracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "outputSha256", "value"],
+      "properties": {
+        "kind": { "const": "exact-u32" },
+        "outputSha256": { "$ref": "#/$defs/sha256" },
+        "value": { "type": "integer", "minimum": 0, "maximum": 4294967295 }
+      }
+    },
+    "variants": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["js-controlled", "wasm-linear-controlled"],
+      "properties": {
+        "js-controlled": { "$ref": "#/$defs/jsVariant" },
+        "wasm-linear-controlled": { "$ref": "#/$defs/wasmVariant" }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "sha256"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "sizedFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "bytes": { "type": "integer", "minimum": 0 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "footprint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "brotliBytes",
+        "glueBytes",
+        "gzipBytes",
+        "rawBytes",
+        "requestCount",
+        "sourceBytes"
+      ],
+      "properties": {
+        "brotliBytes": { "type": "integer", "minimum": 0 },
+        "glueBytes": { "type": "integer", "minimum": 0 },
+        "gzipBytes": { "type": "integer", "minimum": 0 },
+        "rawBytes": { "type": "integer", "minimum": 0 },
+        "requestCount": { "type": "integer", "minimum": 1 },
+        "sourceBytes": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "jsVariant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "footprint", "sha256", "source"],
+      "properties": {
+        "algorithm": { "type": "string", "minLength": 1 },
+        "footprint": { "$ref": "#/$defs/footprint" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "source": { "type": "string", "minLength": 1 }
+      }
+    },
+    "wasmVariant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "artifact", "features", "footprint", "sha256", "source"],
+      "properties": {
+        "algorithm": { "type": "string", "minLength": 1 },
+        "artifact": { "type": "string", "minLength": 1 },
+        "features": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["exceptions", "memory64", "simd", "threads"],
+          "properties": {
+            "exceptions": { "type": "boolean" },
+            "memory64": { "type": "boolean" },
+            "simd": { "type": "boolean" },
+            "threads": { "type": "boolean" }
+          }
+        },
+        "footprint": { "$ref": "#/$defs/footprint" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "source": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}
