@@ -206,7 +206,7 @@ Deno.test("text artifacts and closed proposal-validation records are reproducibl
         : ["allocations"];
       for (const counter of requiredCounters) {
         assert(
-          record.provenance.semanticCoverage.workCounterIds.includes(counter),
+          record.semanticCoverage.workCounterIds.includes(counter),
           `${slug}/${variant} omits formal ${counter} coverage`,
         );
       }
