@@ -57,7 +57,8 @@ Deno.test("seeded N-body fixture and complete reference output reproduce byte ex
     await sha256Hex(js.output),
     "e09f9c48b3c2945cca25102eb09667295c7889a850578622354d80b1109dba3e",
   );
-  for (const [name, value] of Object.entries(COUNTERS)) assertEquals(js.counters[name], value);
+  const jsCounters = js.counters as Record<string, number>;
+  for (const [name, value] of Object.entries(COUNTERS)) assertEquals(jsCounters[name], value);
   assertEquals(js.counters.allocations, 5);
   assertEquals(js.counters.boundaryCrossings, 0);
   assertEquals(js.energy.relativeDrift, 0.0000011147386053059117);
@@ -75,7 +76,8 @@ Deno.test("full 1024-body by 120-step JavaScript and material Wasm outputs match
     tolerance: 1e-12,
     quantizedStateDigest: "5c5c1eca3fffb709",
   });
-  for (const [name, value] of Object.entries(COUNTERS)) assertEquals(wasm.counters[name], value);
+  const wasmCounters = wasm.counters as Record<string, number>;
+  for (const [name, value] of Object.entries(COUNTERS)) assertEquals(wasmCounters[name], value);
   assertEquals(wasm.counters.allocations, 0);
   assertEquals(wasm.counters.boundaryCrossings, 2);
   const source = await Deno.readTextFile("benchmarks/base/simulation-nbody/nbody.c");
