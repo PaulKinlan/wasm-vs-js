@@ -9,6 +9,8 @@
     "relativeTolerance": 0.00005,
     "referencePath": "public/artifacts/simulation-rigid-body-2d-v1/reference-checkpoints.f32le",
     "referenceSha256": "2eda9545a9675c16facd33138da21c5e557a6007c35c196d02b2664803b6e80b",
+    "initialEnergy": 85030.6034821794,
+    "finalEnergyMaximum": 85200.66468914376,
     "javascriptDigest": "56e7b545",
     "wasmDigest": "56e7b545",
     "comparison": {
