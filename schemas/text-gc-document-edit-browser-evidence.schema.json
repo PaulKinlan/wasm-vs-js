@@ -103,8 +103,8 @@
         "supportFiles"
       ],
       "properties": {
-        "acceptedCommit": { "const": "204261da84798f17555896fa8e158b7b051def48" },
-        "acceptedTree": { "const": "9bd380330fe704f88a5c8c47ee133f66bec8a5dd" },
+        "acceptedCommit": { "const": "7fca505568b593e374185a0926ffd890196e5e18" },
+        "acceptedTree": { "const": "d585a3590b35d9552acb7b9a0a68fddb5eafad09" },
         "collectorHead": { "$ref": "#/$defs/gitSha1" },
         "collectorTree": { "$ref": "#/$defs/gitSha1" },
         "cleanAtStart": { "const": true },
@@ -134,7 +134,7 @@
         "script": { "const": "scripts/collect-text-gc-document-edit-browser-evidence.ts" },
         "command": {
           "type": "string",
-          "pattern": "^deno run -A scripts/collect-text-gc-document-edit-browser-evidence\\.ts --source-commit=204261da84798f17555896fa8e158b7b051def48 "
+          "pattern": "^deno run -A scripts/collect-text-gc-document-edit-browser-evidence\\.ts --source-commit=7fca505568b593e374185a0926ffd890196e5e18 "
         },
         "outputDirectory": { "type": "string", "pattern": "^/" }
       }
