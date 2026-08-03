@@ -55,9 +55,9 @@
       "png": "1.6.58"
     },
     "blockers": [
-      "The published artifact requires WebAssembly SIMD, SharedArrayBuffer, and cross-origin isolation; the frozen controlled scalar/no-SAB cell requires those features to be separate named variants.",
-      "No byte-reproducible scalar single-thread build recipe or matching artifact is published by the package.",
-      "The required Emscripten toolchain is not installed or repository-pinned, so this worktree cannot reproduce an acceptable scalar artifact.",
+      "The inspected wasm-vips 0.0.18 artifact requires WebAssembly SIMD, SharedArrayBuffer, and cross-origin isolation; the frozen controlled scalar/no-SAB cell requires those features to be separate named variants.",
+      "The inspected wasm-vips 0.0.18 package publishes no byte-reproducible scalar single-thread build recipe or matching artifact.",
+      "This repository does not pin the inspected release's Emscripten 6.0.0 toolchain, so this worktree cannot reproduce an acceptable scalar artifact from that release.",
       "No complete output, ownership/disposal, peak-memory, copy, allocation, or boundary-counter evidence exists for this pipeline."
     ]
   },
