@@ -483,7 +483,7 @@ try {
     collectedAt: new Date().toISOString(),
     source: { commit: sourceCommit, tree: sourceTree },
     collectionCommand:
-      `deno run --allow-read=.,/proc --allow-write=artifacts/demos/traditional,/tmp --allow-run --allow-net=127.0.0.1 --allow-env=PORT,HOST,SERVER_MODE scripts/collect-traditional-demo-evidence.ts --source-commit=${sourceCommit} --chrome=${chromeExecutable}`,
+      `deno run -A scripts/collect-traditional-demo-evidence.ts --source-commit=${sourceCommit} --chrome=${chromeExecutable}`,
     browser: {
       product: String(browserVersion.product),
       revision: String(browserVersion.revision),
