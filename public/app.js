@@ -1,3 +1,5 @@
+import { renderResultInspectability } from "./inspectability.js";
+
 const cellsBody = document.querySelector("#cells");
 const trajectories = document.querySelector("#trajectories");
 const runsContainer = document.querySelector("#runs");
@@ -99,6 +101,24 @@ function renderTrajectories(data) {
   }
 }
 
+function evidenceFallback(message) {
+  const paragraph = document.createElement("p");
+  paragraph.append(document.createTextNode(`${message} `));
+  const proposals = document.createElement("a");
+  proposals.href = "/evidence/v2-proposals/";
+  proposals.textContent = "Open six audio proposal result records";
+  const manifest = document.createElement("a");
+  manifest.href = "/data/sum-u32-inspectability.v1.json";
+  manifest.textContent = "open the accepted sum-u32 source/build manifest";
+  paragraph.append(
+    proposals,
+    document.createTextNode(" or "),
+    manifest,
+    document.createTextNode("."),
+  );
+  return paragraph;
+}
+
 function metricAvailability(metric) {
   const state = metric.availability.state;
   if (state === "supported") return `${metric.value} ${metric.unit}`;
@@ -110,9 +130,7 @@ function metricAvailability(metric) {
 function renderRuns(data) {
   runsContainer.replaceChildren();
   if (data.runs.length === 0) {
-    runsContainer.append(
-      Object.assign(document.createElement("p"), { textContent: "No local records." }),
-    );
+    runsContainer.append(evidenceFallback("No local records."));
     return;
   }
   for (const run of data.runs) {
@@ -152,11 +170,13 @@ function renderRuns(data) {
         textContent: `${metric.metric} — ${metricAvailability(metric)} [${metric.comparability}]`,
       }));
     }
+    const inspectability = document.createElement("div");
+    renderResultInspectability(inspectability, run);
     const rawHeading = document.createElement("h3");
     rawHeading.textContent = "Raw record";
     const raw = document.createElement("pre");
     raw.textContent = JSON.stringify(run, null, 2);
-    content.append(facts, metricHeading, metricList, rawHeading, raw);
+    content.append(facts, metricHeading, metricList, inspectability, rawHeading, raw);
     details.append(heading, content);
     runsContainer.append(details);
   }
@@ -192,7 +212,13 @@ async function load() {
       ? "Public read-only view loaded. Published performance run records: 0."
       : `Loaded ${summary.runCount} immutable local run records.`;
   } catch (error) {
-    cellsBody.innerHTML = '<tr><td colspan="8">Local evidence could not be loaded.</td></tr>';
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
+    cell.colSpan = 8;
+    cell.textContent = "Local evidence could not be loaded.";
+    row.append(cell);
+    cellsBody.replaceChildren(row);
+    runsContainer.replaceChildren(evidenceFallback("Local result loading failed."));
     loadStatus.textContent = `Load failed: ${error.message}`;
   }
 }

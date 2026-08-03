@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="description"
+      content="Commit-pinned source and build evidence for six audio workload proposal records.">
+    <title>Audio proposal result evidence · Wasm vs JavaScript</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to result evidence</a>
+    <header class="masthead">
+      <a class="brand" href="/">AI Focus</a>
+      <span>Wasm vs JavaScript benchmark</span>
+      <strong>v2 proposal evidence</strong>
+    </header>
+    <main id="main" class="dashboard">
+      <section class="intro narrative">
+        <p class="eyebrow">Six proposal-validation records</p>
+        <h1>Inspect each audio result's source and build</h1>
+        <p>Each panel reads one closed v2 record and keeps that record's commit, source paths, build manifest, artifacts, and SHA-256 values together.</p>
+        <p
+          class="notice"><strong>Performance claims: none.</strong> These records validate workload correctness and provenance. They contain no timing result or JavaScript-versus-Wasm conclusion.</p>
+        <p>The direct JSON link in every section remains available when JavaScript is disabled or the enhanced panel cannot load.</p>
+      </section>
+
+      <section aria-labelledby="audio-fft-js-title">
+        <h2 id="audio-fft-js-title">Audio FFT · JavaScript controlled</h2>
+        <div data-v2-result-src="/evidence/v2-proposals/audio-fft/js-controlled.json">
+          <p><a href="/evidence/v2-proposals/audio-fft/js-controlled.json">Open audio FFT JavaScript controlled result JSON</a></p>
+        </div>
+      </section>
+
+      <section aria-labelledby="audio-fft-wasm-title">
+        <h2 id="audio-fft-wasm-title">Audio FFT · linear Wasm controlled</h2>
+        <div data-v2-result-src="/evidence/v2-proposals/audio-fft/wasm-linear-controlled.json">
+          <p><a href="/evidence/v2-proposals/audio-fft/wasm-linear-controlled.json">Open audio FFT linear Wasm controlled result JSON</a></p>
+        </div>
+      </section>
+
+      <section aria-labelledby="audio-fir-js-title">
+        <h2 id="audio-fir-js-title">Audio FIR · JavaScript controlled</h2>
+        <div data-v2-result-src="/evidence/v2-proposals/audio-fir/js-controlled.json">
+          <p><a href="/evidence/v2-proposals/audio-fir/js-controlled.json">Open audio FIR JavaScript controlled result JSON</a></p>
+        </div>
+      </section>
+
+      <section aria-labelledby="audio-fir-wasm-title">
+        <h2 id="audio-fir-wasm-title">Audio FIR · linear Wasm controlled</h2>
+        <div data-v2-result-src="/evidence/v2-proposals/audio-fir/wasm-linear-controlled.json">
+          <p><a href="/evidence/v2-proposals/audio-fir/wasm-linear-controlled.json">Open audio FIR linear Wasm controlled result JSON</a></p>
+        </div>
+      </section>
+
+      <section aria-labelledby="audio-stft-js-title">
+        <h2 id="audio-stft-js-title">Audio STFT · JavaScript controlled</h2>
+        <div data-v2-result-src="/evidence/v2-proposals/audio-stft/js-controlled.json">
+          <p><a href="/evidence/v2-proposals/audio-stft/js-controlled.json">Open audio STFT JavaScript controlled result JSON</a></p>
+        </div>
+      </section>
+
+      <section aria-labelledby="audio-stft-wasm-title">
+        <h2 id="audio-stft-wasm-title">Audio STFT · linear Wasm controlled</h2>
+        <div data-v2-result-src="/evidence/v2-proposals/audio-stft/wasm-linear-controlled.json">
+          <p><a href="/evidence/v2-proposals/audio-stft/wasm-linear-controlled.json">Open audio STFT linear Wasm controlled result JSON</a></p>
+        </div>
+      </section>
+      <p id="v2-results-status" class="sr-status" role="status" aria-live="polite"></p>
+    </main>
+    <script type="module" src="/v2-results.js"></script>
+  </body>
+</html>

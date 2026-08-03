@@ -153,15 +153,14 @@ Deno.test("closed audio manifest schemas and semantics reject identity, oracle, 
   }
 });
 
-Deno.test("audio validation routes are complete locally and absent from public evidence mode", async () => {
+Deno.test("audio result evidence and fixed artifacts are public while benchmark definitions stay local", async () => {
   const temp = await Deno.makeTempDir();
   try {
     const store = new LocalRunStore(temp);
     await store.initialize();
     const local = createHandler(store, "local");
     const publicHandler = createHandler(null, "public");
-    const paths = slugs.flatMap((slug) => [
-      `/benchmarks/${slug}/benchmark.json`,
+    const publicPaths = slugs.flatMap((slug) => [
       `/artifacts/${slug}/${slug}.wasm`,
       `/artifacts/${slug}/fixture-manifest.json`,
       `/artifacts/${slug}/input-manifest.json`,
@@ -172,7 +171,12 @@ Deno.test("audio validation routes are complete locally and absent from public e
       `/evidence/v2-proposals/${slug}/js-controlled.json`,
       `/evidence/v2-proposals/${slug}/wasm-linear-controlled.json`,
     ]);
-    for (const path of paths) {
+    for (const path of publicPaths) {
+      assertEquals((await local(new Request(`http://127.0.0.1${path}`))).status, 200);
+      assertEquals((await publicHandler(new Request(`http://127.0.0.1${path}`))).status, 200);
+    }
+    for (const slug of slugs) {
+      const path = `/benchmarks/${slug}/benchmark.json`;
       assertEquals((await local(new Request(`http://127.0.0.1${path}`))).status, 200);
       assertEquals((await publicHandler(new Request(`http://127.0.0.1${path}`))).status, 404);
     }

@@ -26,6 +26,15 @@
         <p><a class="button-link" href="/evidence/v1/acceptance.json">Open acceptance JSON</a> <a href="/artifacts/sum-u32/build-manifest.json">Open the build manifest</a> <a href="/artifacts/sum-u32/sum-u32.wasm">Download the 96-byte Wasm artifact</a></p>
       </section>
 
+      <section aria-labelledby="inspectability-title">
+        <h2 id="inspectability-title">Inspect the exact source and build</h2>
+        <p>The panel binds each file and SHA-256 to the accepted commit. Only the fixed build-manifest and compiled-Wasm routes are available as local downloads.</p>
+        <div data-inspectability-src="/data/sum-u32-inspectability.v1.json">
+          <p><a href="/data/sum-u32-inspectability.v1.json">Open the source/build manifest without JavaScript</a></p>
+          <p>Loading the enhanced source and build panel…</p>
+        </div>
+      </section>
+
       <section aria-labelledby="accepted-title">
         <h2 id="accepted-title">What was accepted</h2>
         <dl class="evidence-facts">
@@ -65,5 +74,6 @@
         <p>The project has no published raw validation sample, cold/warm fresh-profile corpus, paired ratio, exact interval, stopping decision, or performance conclusion. M1 performance acceptance requires the preregistered fresh launches through the precision target or attempt cap.</p>
       </section>
     </main>
+    <script type="module" src="/inspectability.js"></script>
   </body>
 </html>

@@ -10,11 +10,20 @@ const addFormats = (addFormatsModule as unknown as { default?: typeof addFormats
 Deno.test("results and runner pages expose evidence limits and accessible controls", async () => {
   const index = await Deno.readTextFile("public/index.html");
   const runner = await Deno.readTextFile("public/run.html");
+  const evidence = await Deno.readTextFile("public/evidence/index.html");
+  const app = await Deno.readTextFile("public/app.js");
   const css = await Deno.readTextFile("public/styles.css");
   assert(index.includes("Accepted performance corpus: none"));
   assert(index.includes("Check implementation evidence"));
   assert(index.includes("unverified and supplies no timing evidence"));
   assert(index.includes("Raw run inspector"));
+  assert(index.includes('href="/evidence/v2-proposals/"'));
+  assert(index.includes('href="/data/sum-u32-inspectability.v1.json"'));
+  assert(evidence.includes("Open the source/build manifest without JavaScript"));
+  assert(app.includes("renderResultInspectability(inspectability, run)"));
+  assert(
+    app.includes('runsContainer.replaceChildren(evidenceFallback("Local result loading failed."))'),
+  );
   assert(index.includes("Complete trajectories"));
   assert(index.includes("<caption>"));
   assert(runner.includes("Pilot tool, not accepted evidence"));
@@ -116,6 +125,21 @@ Deno.test("public M1 experiment is inspectable without claiming authorization or
   assert(!page.includes("benchmark winner"));
 });
 
+Deno.test("v2 proposal result page has six per-record panels and raw-HTML fallbacks", async () => {
+  const page = await Deno.readTextFile("public/evidence/v2-proposals/index.html");
+  const script = await Deno.readTextFile("public/v2-results.js");
+  assertEquals((page.match(/data-v2-result-src=/g) ?? []).length, 6);
+  assertEquals((page.match(/Open audio .* result JSON/g) ?? []).length, 6);
+  assert(page.includes("Performance claims: none."));
+  assert(page.includes('role="status"'));
+  assert(page.includes('<script type="module" src="/v2-results.js"></script>'));
+  assert(script.includes("renderResultInspectability(container, await response.json())"));
+  assert(script.includes("RESULT_ROUTES.has(source.pathname)"));
+  assert(script.includes("fallback ?? directLink"));
+  assert(!script.includes("innerHTML"));
+  assert(!script.includes("insertAdjacentHTML"));
+});
+
 Deno.test("versioned public acceptance package is explicit and contains no invented run evidence", async () => {
   const evidencePage = await Deno.readTextFile("public/evidence/index.html");
   const acceptance = JSON.parse(
@@ -166,6 +190,7 @@ Deno.test("public pages contain no inline script, inline style, or remote asset"
       "public/benchmarks/index.html",
       "public/evidence/index.html",
       "public/experiments/index.html",
+      "public/evidence/v2-proposals/index.html",
     ]
   ) {
     const html = await Deno.readTextFile(path);

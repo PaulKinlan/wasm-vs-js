@@ -93,10 +93,20 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/evidence/v1/acceptance.json",
     "application/json; charset=utf-8",
   ]],
+  ["/evidence/v2-proposals", [
+    "public/evidence/v2-proposals/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/evidence/v2-proposals/", [
+    "public/evidence/v2-proposals/index.html",
+    "text/html; charset=utf-8",
+  ]],
   ["/styles.css", ["public/styles.css", "text/css; charset=utf-8"]],
   ["/favicon.ico", ["public/favicon.svg", "image/svg+xml"]],
   ["/favicon.svg", ["public/favicon.svg", "image/svg+xml"]],
   ["/app.js", ["public/app.js", "text/javascript; charset=utf-8"]],
+  ["/inspectability.js", ["public/inspectability.js", "text/javascript; charset=utf-8"]],
+  ["/v2-results.js", ["public/v2-results.js", "text/javascript; charset=utf-8"]],
   ["/runner.js", ["public/runner.js", "text/javascript; charset=utf-8", true]],
   ["/corpus-run", ["local/corpus-run.html", "text/html; charset=utf-8", true]],
   ["/corpus-run.js", ["local/corpus-run.js", "text/javascript; charset=utf-8", true]],
@@ -126,6 +136,10 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/data/workload-catalog.schema.json", [
     "public/data/workload-catalog.schema.json",
     "application/schema+json; charset=utf-8",
+  ]],
+  ["/data/sum-u32-inspectability.v1.json", [
+    "public/data/sum-u32-inspectability.v1.json",
+    "application/json; charset=utf-8",
   ]],
   ["/benchmarks/sum-u32/benchmark.json", [
     "benchmarks/sum-u32/benchmark.json",
@@ -159,18 +173,20 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/artifacts/sum-u32/build-manifest.json",
     "application/json; charset=utf-8",
   ]],
+  ["/artifacts/sum-u32/build-manifest.9c309c49.json", [
+    "public/artifacts/sum-u32/build-manifest.9c309c49.json",
+    "application/json; charset=utf-8",
+  ]],
 ]);
 
 for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
   routes.set(`/artifacts/${slug}/${slug}.wasm`, [
     `public/artifacts/${slug}/${slug}.wasm`,
     "application/wasm",
-    true,
   ]);
   routes.set(`/artifacts/${slug}/reference-output.f32le`, [
     `public/artifacts/${slug}/reference-output.f32le`,
     "application/octet-stream",
-    true,
   ]);
   for (
     const manifest of [
@@ -184,14 +200,12 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
     routes.set(`/artifacts/${slug}/${manifest}`, [
       `public/artifacts/${slug}/${manifest}`,
       "application/json; charset=utf-8",
-      true,
     ]);
   }
   for (const variant of ["js-controlled", "wasm-linear-controlled"]) {
     routes.set(`/evidence/v2-proposals/${slug}/${variant}.json`, [
       `public/evidence/v2-proposals/${slug}/${variant}.json`,
       "application/json; charset=utf-8",
-      true,
     ]);
   }
 }

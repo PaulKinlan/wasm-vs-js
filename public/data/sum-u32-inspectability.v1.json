@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "manifestId": "sum-u32-source-inspectability-v1",
+  "benchmarkId": "sum-u32",
+  "evidenceStatus": "implementation-only-no-performance-result",
+  "performanceResult": {
+    "state": "unavailable",
+    "reason": "not-collected",
+    "detail": "No accepted performance corpus exists. This manifest describes accepted implementation evidence only."
+  },
+  "source": {
+    "repository": "https://github.com/PaulKinlan/wasm-vs-js",
+    "commit": "9c309c4941d1b8550c15f8549f95a5636a634ef6",
+    "treeUrl": "https://github.com/PaulKinlan/wasm-vs-js/tree/9c309c4941d1b8550c15f8549f95a5636a634ef6"
+  },
+  "build": {
+    "command": "deno task build",
+    "toolchains": [
+      "Deno 2.9.0",
+      "wabt 1.0.37",
+      "node:zlib via Deno"
+    ],
+    "flags": [
+      "wabt canonicalize_lebs=true",
+      "write_debug_names=false",
+      "gzip level=9 (Node zlib deterministic header)",
+      "brotli quality=11"
+    ]
+  },
+  "resources": [
+    {
+      "role": "executed-javascript",
+      "label": "Executed JavaScript",
+      "availability": { "state": "available" },
+      "path": "benchmarks/sum-u32/workload.js",
+      "sha256": "4d8379672c1b51b0b315d2bee119880694e5a4f6412ef59b7fe2593ef6b179b7",
+      "mediaType": "text/javascript",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/9c309c4941d1b8550c15f8549f95a5636a634ef6/benchmarks/sum-u32/workload.js"
+    },
+    {
+      "role": "authored-wasm",
+      "label": "Authored WebAssembly text",
+      "availability": { "state": "available" },
+      "path": "benchmarks/sum-u32/sum-u32.wat",
+      "sha256": "f841b16161d064113e6ba01d9d565f62719d50b73193b4b241ede7f2b9decc50",
+      "mediaType": "text/plain",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/9c309c4941d1b8550c15f8549f95a5636a634ef6/benchmarks/sum-u32/sum-u32.wat"
+    },
+    {
+      "role": "build-recipe",
+      "label": "Build recipe",
+      "availability": { "state": "available" },
+      "path": "scripts/build.ts",
+      "sha256": "7f8d54e32d379193a6e5354c8d10468bc2cf3a06a85e6b0d22fe7e29f6ede13b",
+      "mediaType": "text/typescript",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/9c309c4941d1b8550c15f8549f95a5636a634ef6/scripts/build.ts"
+    },
+    {
+      "role": "lockfile",
+      "label": "Deno lockfile",
+      "availability": { "state": "available" },
+      "path": "deno.lock",
+      "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2",
+      "mediaType": "application/json",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/9c309c4941d1b8550c15f8549f95a5636a634ef6/deno.lock"
+    },
+    {
+      "role": "build-manifest",
+      "label": "Build manifest",
+      "availability": { "state": "available" },
+      "path": "public/artifacts/sum-u32/build-manifest.json",
+      "sha256": "6f34f7aee7ccbd11a1af431c2cdcd5d1ba1c9d4dfdd2cd3fd8f4201e226497a8",
+      "mediaType": "application/json",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/9c309c4941d1b8550c15f8549f95a5636a634ef6/public/artifacts/sum-u32/build-manifest.json",
+      "localDownloadRoute": "/artifacts/sum-u32/build-manifest.9c309c49.json"
+    },
+    {
+      "role": "compiled-wasm",
+      "label": "Compiled WebAssembly",
+      "availability": { "state": "available" },
+      "path": "public/artifacts/sum-u32/sum-u32.wasm",
+      "sha256": "9c4ce5f0d9e32cdd364b73b2697566e7396368d9867d9bc3d939bb2063583a6d",
+      "mediaType": "application/wasm",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/9c309c4941d1b8550c15f8549f95a5636a634ef6/public/artifacts/sum-u32/sum-u32.wasm",
+      "localDownloadRoute": "/artifacts/sum-u32/sum-u32.wasm"
+    }
+  ]
+}

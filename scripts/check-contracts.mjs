@@ -15,6 +15,7 @@ const foundationSchemas = [
   "paired-block.schema.json",
   "network-attestation.schema.json",
   "permit-receipt.schema.json",
+  "public-inspectability.schema.json",
   "source-manifest.schema.json",
 ];
 for (const name of foundationSchemas) {
