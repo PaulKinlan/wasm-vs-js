@@ -47,7 +47,9 @@ const sourceCommits = await Promise.all(
         new URL(`public/artifacts/${slug}/build-manifest.json`, ROOT).pathname,
       ),
     );
-    if (typeof manifest.sourceCommit !== "string" || !/^[a-f0-9]{40}$/.test(manifest.sourceCommit)) {
+    if (
+      typeof manifest.sourceCommit !== "string" || !/^[a-f0-9]{40}$/.test(manifest.sourceCommit)
+    ) {
       throw new Error(`build manifest for ${slug} lacks a valid sourceCommit`);
     }
     return manifest.sourceCommit as string;
