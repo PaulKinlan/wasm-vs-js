@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 2,
+  "workloadId": "ml.keyword-spotting.v1",
+  "fixtureSha256": "1643258d45167c2a1b3795b2c4f2fb11a885b08806fde7f4d235e55be61482ae",
+  "outputs": {
+    "features": {
+      "elements": 30000,
+      "bytes": 30000,
+      "sha256": "23a6a2f61af53422082b65e21aab7831529feb98e72a41701cdc2b2d379e8f07"
+    },
+    "scores": {
+      "elements": 36000,
+      "bytes": 144000,
+      "sha256": "a9d2ebd62bb869c57a092d4c04a7f51be951f6bd0625d623cc6a19a1ecedc5b3"
+    },
+    "detections": {
+      "elements": 192,
+      "bytes": 768,
+      "sha256": "116ccf8c2cbf42f467468d48d500440264a509c76e89206d98a51f77b560911e"
+    }
+  },
+  "variants": {
+    "js-controlled": {
+      "status": "passed",
+      "counters": {
+        "hops": 3000,
+        "windows": 3000,
+        "windowSamples": 1440000,
+        "fftTransforms": 3000,
+        "fftButterflies": 6912000,
+        "spectralBins": 768000,
+        "mfccCoefficients": 30000,
+        "conv2dMacs": 120000000,
+        "depthwiseMacs": 108000000,
+        "pointwiseMacs": 96000000,
+        "poolingAdds": 3000000,
+        "outputMacs": 288000,
+        "scoreElements": 36000,
+        "featureElements": 30000,
+        "inputBytes": 1920000,
+        "outputBytes": 174768,
+        "javascriptEngineOwnedTypedArrayConstructions": 10,
+        "detectionElements": 192
+      }
+    },
+    "wasm-linear-controlled": {
+      "status": "passed",
+      "counters": {
+        "hops": 3000,
+        "windows": 3000,
+        "windowSamples": 1440000,
+        "fftTransforms": 3000,
+        "fftButterflies": 6912000,
+        "spectralBins": 768000,
+        "mfccCoefficients": 30000,
+        "conv2dMacs": 120000000,
+        "depthwiseMacs": 108000000,
+        "pointwiseMacs": 96000000,
+        "poolingAdds": 3000000,
+        "outputMacs": 288000,
+        "scoreElements": 36000,
+        "featureElements": 30000,
+        "inputBytes": 1920000,
+        "outputBytes": 174768,
+        "wasmExportCalls": 6,
+        "detectionElements": 192
+      }
+    }
+  },
+  "performanceClaims": []
+}

@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 2,
+  "workloadId": "ml.keyword-spotting.v1",
+  "catalogVersion": 1,
+  "status": "implementation-candidate",
+  "track": "controlled-a",
+  "fixture": {
+    "id": "speech-commands-v2-test-60s-v1",
+    "distribution": "recipe-only",
+    "sampleRate": 16000,
+    "samples": 960000,
+    "seconds": 60,
+    "manifest": "speech-commands-subset.v1.json"
+  },
+  "fixedWork": {
+    "hops": 3000,
+    "hopSamples": 320,
+    "windowSamples": 480,
+    "fftSize": 512,
+    "mfccCoefficients": 10,
+    "contextFrames": 49,
+    "model": "trained quantized 8-channel MLPerf-Tiny-style DS-CNN v2",
+    "classes": [
+      "down",
+      "go",
+      "left",
+      "no",
+      "off",
+      "on",
+      "right",
+      "stop",
+      "up",
+      "yes",
+      "silence",
+      "unknown"
+    ]
+  },
+  "preprocessing": {
+    "resample": "not required; every prescribed WAV must be mono PCM16 at exactly 16000 Hz or acquisition fails",
+    "normalization": "truncate or zero-pad each prescribed file to 16000 samples",
+    "window": "480-sample Hann Q15, 320-sample stride, committed integer coefficients",
+    "fft": "512-point radix-2 decimation-in-time Q15 with one-bit stage scaling",
+    "spectralFeatures": "10 contiguous positive-frequency log2 magnitude bands",
+    "mfcc": "10x10 committed DCT-II Q15 table followed by the checkpoint's frozen integer normalization lookup"
+  },
+  "model": {
+    "family": "dscnn-fixed-preprocess-model",
+    "checkpoint": "model-checkpoint.v1.json",
+    "trainingRecipe": "scripts/train-base-ml-keyword-spotting.py",
+    "trainingSeed": "0x4b575332",
+    "inputShape": [49, 10, 1],
+    "channels": 8,
+    "classes": 12,
+    "licenseSpdx": "MIT",
+    "operatorOrder": [
+      "conv2d-10x4-stride2-relu",
+      "depthwise-conv2d-3x3",
+      "pointwise-conv2d-1x1-relu",
+      "depthwise-conv2d-3x3",
+      "pointwise-conv2d-1x1-relu",
+      "depthwise-conv2d-3x3",
+      "pointwise-conv2d-1x1-relu",
+      "depthwise-conv2d-3x3",
+      "pointwise-conv2d-1x1-relu",
+      "global-average-pool",
+      "dense-logits",
+      "five-hop-stable-argmax-detection"
+    ],
+    "quantization": "signed INT8 activations and weights, INT32 biases/logits, Q24 integer requantization",
+    "referenceRelationship": "The layer family and 49x10 input follow MLPerf Tiny keyword-spotting methodology; the 8-channel checkpoint is independently trained and licensed by this project. No MLPerf weights are represented as this checkpoint."
+  },
+  "accuracy": {
+    "corpus": "Speech Commands v2 published test archive, deterministic per-label last-80 holdout",
+    "trainingExamples": 3930,
+    "validationExamples": 960,
+    "floatValidation": 0.6729166666666667,
+    "quantizedValidation": 0.49895833333333334,
+    "claimScope": "reproducibility evidence only; this noncanonical split is not an MLPerf submission or upstream 92 percent reference-model claim"
+  },
+  "numericPolicy": {
+    "crossTarget": "exact integer equality for every normalized feature, every class logit and every stable detection",
+    "idealReference": "executed complete output hashes plus direct boundary checks; no tolerance is needed for controlled integer targets",
+    "nonfinite": "not representable"
+  },
+  "variants": [
+    { "id": "js-controlled", "target": "javascript" },
+    { "id": "wasm-linear-controlled", "target": "wasm-linear" }
+  ],
+  "audioScheduling": "excluded from controlled compute; any AudioWorklet or real-time schedule is a separately named future variant",
+  "performanceClaims": []
+}

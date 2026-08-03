@@ -1,0 +1,246 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "workloadId",
+    "status",
+    "frozenCatalog",
+    "model",
+    "fixture",
+    "contract",
+    "variants",
+    "sourceCommit",
+    "sourceGraph",
+    "toolchain",
+    "artifact",
+    "oracle",
+    "performanceClaims"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 2 },
+    "workloadId": { "const": "ml.keyword-spotting.v1" },
+    "status": { "const": "proposal-validation-complete" },
+    "frozenCatalog": { "$ref": "#/$defs/frozen" },
+    "model": { "$ref": "#/$defs/model" },
+    "fixture": { "$ref": "#/$defs/fixture" },
+    "contract": { "$ref": "#/$defs/runtimeContract" },
+    "variants": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "$ref": "#/$defs/variant" }
+    },
+    "sourceCommit": { "$ref": "#/$defs/commit" },
+    "sourceGraph": { "type": "array", "minItems": 20, "items": { "$ref": "#/$defs/source" } },
+    "toolchain": { "$ref": "#/$defs/toolchain" },
+    "artifact": { "$ref": "#/$defs/artifact" },
+    "oracle": { "$ref": "#/$defs/oracle" },
+    "performanceClaims": { "type": "array", "maxItems": 0 }
+  },
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "frozen": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "immutability"],
+      "properties": {
+        "path": { "type": "string" },
+        "sha256": { "$ref": "#/$defs/hash" },
+        "immutability": { "const": "byte-for-byte" }
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "checkpointPath",
+        "trainingRecipe",
+        "license",
+        "quantizedValidationAccuracy",
+        "validationExamples"
+      ],
+      "properties": {
+        "checkpointPath": { "type": "string" },
+        "trainingRecipe": { "type": "string" },
+        "license": { "const": "MIT" },
+        "quantizedValidationAccuracy": { "type": "number" },
+        "validationExamples": { "const": 960 }
+      }
+    },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["manifestPath", "redistribution", "normalizedPcmSha256"],
+      "properties": {
+        "manifestPath": { "type": "string" },
+        "redistribution": { "const": "recipe-only" },
+        "normalizedPcmSha256": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "runtimeContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workloadId",
+        "sampleRate",
+        "seconds",
+        "samples",
+        "hopSamples",
+        "hops",
+        "windowSamples",
+        "fftSize",
+        "features",
+        "contextFrames",
+        "hiddenChannels",
+        "classes",
+        "spatialRows",
+        "spatialColumns",
+        "algorithmFamily",
+        "preprocessing",
+        "model"
+      ],
+      "properties": {
+        "workloadId": { "const": "ml.keyword-spotting.v1" },
+        "sampleRate": { "const": 16000 },
+        "seconds": { "const": 60 },
+        "samples": { "const": 960000 },
+        "hopSamples": { "const": 320 },
+        "hops": { "const": 3000 },
+        "windowSamples": { "const": 480 },
+        "fftSize": { "const": 512 },
+        "features": { "const": 10 },
+        "contextFrames": { "const": 49 },
+        "hiddenChannels": { "const": 8 },
+        "classes": { "const": 12 },
+        "spatialRows": { "const": 25 },
+        "spatialColumns": { "const": 5 },
+        "algorithmFamily": { "const": "dscnn-fixed-preprocess-model" },
+        "preprocessing": { "type": "string" },
+        "model": { "type": "string" }
+      }
+    },
+    "variant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "target", "implementation"],
+      "properties": {
+        "id": { "type": "string" },
+        "target": { "enum": ["javascript", "wasm-linear"] },
+        "implementation": { "type": "string" }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "immutableUrl"],
+      "properties": {
+        "path": { "type": "string" },
+        "sha256": { "$ref": "#/$defs/hash" },
+        "immutableUrl": { "type": "string" }
+      }
+    },
+    "toolchain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["deno", "clang", "linker", "compilerFlags", "linkerFlags"],
+      "properties": {
+        "deno": { "const": "2.9.0" },
+        "clang": { "type": "string" },
+        "linker": { "type": "string" },
+        "compilerFlags": { "type": "array", "items": { "type": "string" } },
+        "linkerFlags": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256", "initialMemoryBytes", "maximumMemoryBytes"],
+      "properties": {
+        "path": { "type": "string" },
+        "bytes": { "type": "integer" },
+        "sha256": { "$ref": "#/$defs/hash" },
+        "initialMemoryBytes": { "const": 4194304 },
+        "maximumMemoryBytes": { "const": 4194304 }
+      }
+    },
+    "outputEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["elements", "bytes", "sha256"],
+      "properties": {
+        "elements": { "type": "integer" },
+        "bytes": { "type": "integer" },
+        "sha256": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["features", "scores", "detections"],
+      "properties": {
+        "features": { "$ref": "#/$defs/outputEntry" },
+        "scores": { "$ref": "#/$defs/outputEntry" },
+        "detections": { "$ref": "#/$defs/outputEntry" }
+      }
+    },
+    "counter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hops",
+        "windows",
+        "windowSamples",
+        "fftTransforms",
+        "fftButterflies",
+        "spectralBins",
+        "mfccCoefficients",
+        "conv2dMacs",
+        "depthwiseMacs",
+        "pointwiseMacs",
+        "poolingAdds",
+        "outputMacs",
+        "scoreElements",
+        "featureElements",
+        "inputBytes",
+        "outputBytes",
+        "detectionElements"
+      ],
+      "properties": {
+        "hops": { "type": "integer" },
+        "windows": { "type": "integer" },
+        "windowSamples": { "type": "integer" },
+        "fftTransforms": { "type": "integer" },
+        "fftButterflies": { "type": "integer" },
+        "spectralBins": { "type": "integer" },
+        "mfccCoefficients": { "type": "integer" },
+        "conv2dMacs": { "type": "integer" },
+        "depthwiseMacs": { "type": "integer" },
+        "pointwiseMacs": { "type": "integer" },
+        "poolingAdds": { "type": "integer" },
+        "outputMacs": { "type": "integer" },
+        "scoreElements": { "type": "integer" },
+        "featureElements": { "type": "integer" },
+        "inputBytes": { "type": "integer" },
+        "outputBytes": { "type": "integer" },
+        "detectionElements": { "type": "integer" },
+        "javascriptEngineOwnedTypedArrayConstructions": { "type": "integer" },
+        "wasmExportCalls": { "type": "integer" }
+      }
+    },
+    "oracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "outputs", "jsCounters", "wasmCounters", "crossTargetExact"],
+      "properties": {
+        "kind": { "type": "string" },
+        "outputs": { "$ref": "#/$defs/outputs" },
+        "jsCounters": { "$ref": "#/$defs/counter" },
+        "wasmCounters": { "$ref": "#/$defs/counter" },
+        "crossTargetExact": { "const": true }
+      }
+    }
+  }
+}

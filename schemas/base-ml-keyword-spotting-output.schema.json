@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "workloadId",
+    "fixtureSha256",
+    "outputs",
+    "variants",
+    "performanceClaims"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 2 },
+    "workloadId": { "const": "ml.keyword-spotting.v1" },
+    "fixtureSha256": { "$ref": "#/$defs/hash" },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["features", "scores", "detections"],
+      "properties": {
+        "features": { "$ref": "#/$defs/output" },
+        "scores": { "$ref": "#/$defs/output" },
+        "detections": { "$ref": "#/$defs/output" }
+      }
+    },
+    "variants": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["js-controlled", "wasm-linear-controlled"],
+      "properties": {
+        "js-controlled": { "$ref": "#/$defs/variant" },
+        "wasm-linear-controlled": { "$ref": "#/$defs/variant" }
+      }
+    },
+    "performanceClaims": { "type": "array", "maxItems": 0 }
+  },
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["elements", "bytes", "sha256"],
+      "properties": {
+        "elements": { "type": "integer" },
+        "bytes": { "type": "integer" },
+        "sha256": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "variant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "counters"],
+      "properties": { "status": { "const": "passed" }, "counters": { "$ref": "#/$defs/counter" } }
+    },
+    "counter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hops",
+        "windows",
+        "windowSamples",
+        "fftTransforms",
+        "fftButterflies",
+        "spectralBins",
+        "mfccCoefficients",
+        "conv2dMacs",
+        "depthwiseMacs",
+        "pointwiseMacs",
+        "poolingAdds",
+        "outputMacs",
+        "scoreElements",
+        "featureElements",
+        "inputBytes",
+        "outputBytes",
+        "detectionElements"
+      ],
+      "properties": {
+        "hops": { "type": "integer" },
+        "windows": { "type": "integer" },
+        "windowSamples": { "type": "integer" },
+        "fftTransforms": { "type": "integer" },
+        "fftButterflies": { "type": "integer" },
+        "spectralBins": { "type": "integer" },
+        "mfccCoefficients": { "type": "integer" },
+        "conv2dMacs": { "type": "integer" },
+        "depthwiseMacs": { "type": "integer" },
+        "pointwiseMacs": { "type": "integer" },
+        "poolingAdds": { "type": "integer" },
+        "outputMacs": { "type": "integer" },
+        "scoreElements": { "type": "integer" },
+        "featureElements": { "type": "integer" },
+        "inputBytes": { "type": "integer" },
+        "outputBytes": { "type": "integer" },
+        "detectionElements": { "type": "integer" },
+        "javascriptEngineOwnedTypedArrayConstructions": { "type": "integer" },
+        "wasmExportCalls": { "type": "integer" }
+      }
+    }
+  }
+}

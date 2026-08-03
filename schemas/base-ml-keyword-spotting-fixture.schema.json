@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "fixtureId",
+    "status",
+    "redistribution",
+    "license",
+    "attribution",
+    "archive",
+    "selection",
+    "files",
+    "normalizedPcmSha256"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "fixtureId": { "const": "speech-commands-v2-test-60s-v1" },
+    "status": { "const": "frozen-recipe-only" },
+    "redistribution": { "const": "recipe-only" },
+    "license": { "const": "CC-BY-4.0" },
+    "attribution": { "type": "string" },
+    "archive": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["url", "bytes", "sha256", "upstreamChecksumSource"],
+      "properties": {
+        "url": { "type": "string" },
+        "bytes": { "const": 112563277 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "upstreamChecksumSource": { "type": "string" }
+      }
+    },
+    "selection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithm",
+        "labels",
+        "filesPerLabel",
+        "normalization",
+        "sampleRate",
+        "seconds",
+        "samples"
+      ],
+      "properties": {
+        "algorithm": { "type": "string" },
+        "labels": { "type": "array", "minItems": 4, "maxItems": 4, "items": { "type": "string" } },
+        "filesPerLabel": { "const": 15 },
+        "normalization": { "type": "string" },
+        "sampleRate": { "const": 16000 },
+        "seconds": { "const": 60 },
+        "samples": { "const": 960000 }
+      }
+    },
+    "files": {
+      "type": "array",
+      "minItems": 60,
+      "maxItems": 60,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "label",
+          "path",
+          "wavSha256",
+          "wavBytes",
+          "sourceSamples",
+          "normalizedSamples",
+          "normalizedPcmSha256"
+        ],
+        "properties": {
+          "label": { "type": "string" },
+          "path": { "type": "string" },
+          "wavSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "wavBytes": { "type": "integer" },
+          "sourceSamples": { "type": "integer" },
+          "normalizedSamples": { "const": 16000 },
+          "normalizedPcmSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        }
+      }
+    },
+    "normalizedPcmSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

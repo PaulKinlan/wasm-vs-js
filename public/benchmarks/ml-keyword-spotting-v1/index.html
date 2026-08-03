@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Keyword spotting stream | Wasm versus JavaScript</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header
+      class="site-header"><a href="/">Wasm versus JavaScript</a><a href="/benchmarks/">Catalog</a></header>
+    <main id="content" class="demo-shell">
+      <p class="eyebrow">RUNNABLE CORRECTNESS DEMO · ML.KEYWORD-SPOTTING.V1</p>
+      <h1>Speech Commands keyword spotting</h1>
+      <p><strong>No performance claim.</strong> This route processes the exact recipe-only 60-second Speech Commands v2 subset locally. Files never leave this page and are not stored.</p>
+      <p>The dataset cannot be redistributed here. Acquire the pinned test archive using the public <a href="/artifacts/base-ml-keyword-spotting/fixture-manifest.json">fixture manifest</a>, extract its files, then select the directory. A run is refused unless all 60 WAV byte hashes match.</p>
+      <form id="kws-form">
+        <label for="target">Controlled target</label>
+        <select
+          id="target"><option value="both">JavaScript and linear Wasm</option><option value="javascript">JavaScript</option><option value="wasm-linear">Linear Wasm</option></select>
+        <label for="mode">Validation mode</label>
+        <select
+          id="mode"><option value="exact">Exact tensors, detections, and counters</option></select>
+        <label for="files">Speech Commands test-set directory</label>
+        <input id="files" type="file" webkitdirectory multiple required
+          aria-describedby="file-help">
+        <p
+          id="file-help">Select the extracted test-set directory. Exactly the prescribed 60 files are read; unrelated files are ignored.</p>
+        <button id="start" type="submit">Start</button>
+        <button id="cancel" type="button" disabled>Cancel</button>
+      </form>
+      <h2>Result</h2>
+      <p id="status" role="status" aria-live="polite">Ready.</p>
+      <progress id="progress" max="3000" value="0"><span>0 of 3000 hops</span></progress>
+      <pre id="result" tabindex="0">No result yet.</pre>
+      <h2>What runs</h2>
+      <p>Both targets perform the complete fixed-point Hann, 512-point FFT, ten-coefficient feature pipeline, trained 49×10 DS-CNN, and stable detection policy for all 3,000 hops. Every run verifies the raw manifest, checkpoint, source, artifact, complete tensors, detections, and target-specific work counters.</p>
+    </main>
+    <script type="module" src="/base-ml-keyword-spotting-demo.js"></script>
+  </body>
+</html>
