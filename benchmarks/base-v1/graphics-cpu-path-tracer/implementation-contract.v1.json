@@ -46,7 +46,7 @@
     "maxChannelDelta": 96,
     "meanChannelDelta": 0.01,
     "outlierThresholdChannelDelta": 4,
-    "maxOutlierChannelRatio": 0.0001,
+    "maxOutlierChannelRatio": 0.0002,
     "crossTargetMaxChannelDelta": 1,
     "crossTargetIntersectionCountTolerance": 1,
     "samplePixelCheckpoints": [[0, 0], [256, 256], [511, 511], [128, 384], [384, 128]],

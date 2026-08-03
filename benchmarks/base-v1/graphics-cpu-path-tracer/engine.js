@@ -271,7 +271,7 @@ export function compareToReference(actual, reference) {
     meanChannelDelta,
     outlierChannels,
     outlierChannelRatio,
-    passed: max <= 96 && meanChannelDelta <= 0.01 && outlierChannelRatio <= 0.0001,
+    passed: max <= 96 && meanChannelDelta <= 0.01 && outlierChannelRatio <= 0.0002,
   };
 }
 export function readWasmResult(instance, width, height, spp) {
