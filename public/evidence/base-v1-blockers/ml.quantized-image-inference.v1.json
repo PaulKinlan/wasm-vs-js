@@ -48,7 +48,7 @@
           "kind": "reproduction",
           "location": "scripts/audit-ml-quantized-image-inference-blocker.ts",
           "sha256": null,
-          "finding": "The gate rejects null archive SHA-256 and absent selected-sample hashes before any implementation or demo can be counted"
+          "finding": "The audit requires archiveSha256 to remain null and confirms that no implementation, result, coverage, or demo is claimed while the archive and selected-sample hashes remain unavailable; it does not verify unacquired fixture bytes"
         }
       ]
     },
