@@ -3,6 +3,28 @@ const SEED = 0x6d2b79f5;
 const MAX_BOUNCES = 4;
 const EPSILON = F(0.001);
 
+export const PATH_CHECKPOINT_PIXELS = Object.freeze([0, 131328, 262143]);
+export const SAMPLE_CHECKPOINT_COORDINATES = Object.freeze([
+  Object.freeze([0, 0]),
+  Object.freeze([256, 256]),
+  Object.freeze([511, 511]),
+  Object.freeze([128, 384]),
+  Object.freeze([384, 128]),
+]);
+
+export function sampleCheckpointPixels(width, height) {
+  if (width === 512 && height === 512) {
+    return SAMPLE_CHECKPOINT_COORDINATES.map(([x, y]) => y * width + x);
+  }
+  return [
+    0,
+    Math.floor(height / 2) * width + Math.floor(width / 2),
+    width * height - 1,
+    Math.floor(height * 3 / 4) * width + Math.floor(width / 4),
+    Math.floor(height / 4) * width + Math.floor(width * 3 / 4),
+  ];
+}
+
 // Project-owned Cornell-box-like product scene. Large spheres are the four planes.
 export const SCENE = Object.freeze([
   [-0.0, -1001.0, 0.0, 1000.0, 0.72, 0.72, 0.72, 0.0],
@@ -36,12 +58,12 @@ function boundsForPrimitive(index, strict) {
   const f = strict ? F : (x) => x;
   const s = SCENE[index];
   return [
-    f(s[0] - s[3]),
-    f(s[1] - s[3]),
-    f(s[2] - s[3]),
-    f(s[0] + s[3]),
-    f(s[1] + s[3]),
-    f(s[2] + s[3]),
+    f(f(s[0]) - f(s[3])),
+    f(f(s[1]) - f(s[3])),
+    f(f(s[2]) - f(s[3])),
+    f(f(s[0]) + f(s[3])),
+    f(f(s[1]) + f(s[3])),
+    f(f(s[2]) + f(s[3])),
   ];
 }
 function makeBounds(strict) {
@@ -79,27 +101,50 @@ function unitFromU32(value, strict) {
   const v = (value >>> 8) / 16777216;
   return strict ? F(v) : v;
 }
-function add(a, b, f) {
-  return [f(a[0] + b[0]), f(a[1] + b[1]), f(a[2] + b[2])];
+function countAllocation(counters, value) {
+  counters.allocations++;
+  return value;
 }
-function sub(a, b, f) {
-  return [f(a[0] - b[0]), f(a[1] - b[1]), f(a[2] - b[2])];
+function add(a, b, f, counters) {
+  return countAllocation(counters, [
+    f(f(a[0]) + f(b[0])),
+    f(f(a[1]) + f(b[1])),
+    f(f(a[2]) + f(b[2])),
+  ]);
 }
-function mul(a, s, f) {
-  return [f(a[0] * s), f(a[1] * s), f(a[2] * s)];
+function sub(a, b, f, counters) {
+  return countAllocation(counters, [
+    f(f(a[0]) - f(b[0])),
+    f(f(a[1]) - f(b[1])),
+    f(f(a[2]) - f(b[2])),
+  ]);
+}
+function mul(a, s, f, counters) {
+  return countAllocation(counters, [
+    f(f(a[0]) * f(s)),
+    f(f(a[1]) * f(s)),
+    f(f(a[2]) * f(s)),
+  ]);
 }
 function dot(a, b, f) {
-  return f(f(a[0] * b[0]) + f(f(a[1] * b[1]) + f(a[2] * b[2])));
+  const x = f(f(a[0]) * f(b[0]));
+  const y = f(f(a[1]) * f(b[1]));
+  const z = f(f(a[2]) * f(b[2]));
+  return f(x + f(y + z));
 }
-function normalize(a, f) {
+function normalize(a, f, counters) {
   const len = f(Math.sqrt(dot(a, a, f)));
-  return len === 0 ? [0, 1, 0] : [f(a[0] / len), f(a[1] / len), f(a[2] / len)];
+  return countAllocation(
+    counters,
+    len === 0 ? [0, 1, 0] : [f(a[0] / len), f(a[1] / len), f(a[2] / len)],
+  );
 }
 function hitAabb(o, d, b, tMax, f) {
   let lo = EPSILON, hi = tMax;
   for (let axis = 0; axis < 3; axis++) {
     const inv = f(1 / d[axis]);
-    let t0 = f((b[axis] - o[axis]) * inv), t1 = f((b[axis + 3] - o[axis]) * inv);
+    let t0 = f(f(b[axis] - o[axis]) * inv),
+      t1 = f(f(b[axis + 3] - o[axis]) * inv);
     if (inv < 0) {
       const q = t0;
       t0 = t1;
@@ -112,8 +157,8 @@ function hitAabb(o, d, b, tMax, f) {
   return true;
 }
 function intersect(o, d, bounds, f, counters) {
-  const stack = [0];
-  let best = 1e30, bestIndex = -1;
+  const stack = countAllocation(counters, [0]);
+  let best = f(1e30), bestIndex = -1;
   while (stack.length) {
     const node = stack.pop();
     counters.nodeTests++;
@@ -122,9 +167,9 @@ function intersect(o, d, bounds, f, counters) {
     if (primitive >= 0) {
       counters.intersections++;
       const s = SCENE[primitive];
-      const oc = sub(o, s, f);
+      const oc = sub(o, s, f, counters);
       const half = dot(oc, d, f);
-      const c = f(dot(oc, oc, f) - f(s[3] * s[3]));
+      const c = f(dot(oc, oc, f) - f(f(s[3]) * f(s[3])));
       const disc = f(f(half * half) - c);
       if (disc < 0) continue;
       const root = f(Math.sqrt(disc));
@@ -140,12 +185,21 @@ function intersect(o, d, bounds, f, counters) {
     }
   }
   if (bestIndex < 0) return null;
-  const point = add(o, mul(d, best, f), f);
+  const point = add(o, mul(d, best, f, counters), f, counters);
   const s = SCENE[bestIndex];
-  const normal = normalize(sub(point, s, f), f);
-  return { t: best, index: bestIndex, point, normal };
+  const normal = normalize(sub(point, s, f, counters), f, counters);
+  return countAllocation(counters, { t: best, index: bestIndex, point, normal });
 }
-function tone(value) {
+function toneF32(value) {
+  const denominator = F(F(1) + value);
+  const mapped = F(value / denominator);
+  const clamped = Math.max(F(0), Math.min(F(1), mapped));
+  const gamma = F(Math.sqrt(clamped));
+  const scaled = F(gamma * F(255));
+  const rounded = F(scaled + F(0.5));
+  return Math.max(0, Math.min(255, Math.floor(rounded)));
+}
+function toneF64(value) {
   const mapped = value / (1 + value);
   const gamma = Math.sqrt(Math.max(0, Math.min(1, mapped)));
   return Math.max(0, Math.min(255, Math.floor(gamma * 255 + 0.5)));
@@ -158,6 +212,7 @@ function render(width, height, spp, strict) {
   ) throw new Error("render bounds");
   const f = strict ? F : (x) => x,
     bounds = strict ? BOUNDS_F32 : BOUNDS_F64,
+    tone = strict ? toneF32 : toneF64,
     framebuffer = new Uint8Array(width * height * 4);
   const counters = {
     rays: 0,
@@ -166,10 +221,17 @@ function render(width, height, spp, strict) {
     intersections: 0,
     samples: width * height * spp,
     rngDraws: 0,
+    // Render-scope authored allocations count the framebuffer and every
+    // algorithm vector, traversal stack, and hit record. Module fixtures and
+    // validation/checkpoint evidence envelopes are outside this counter.
     allocations: 1,
-    boundaryCrossings: strict ? 0 : 0,
+    outputBytes: 0,
+    boundaryCrossings: 0,
   };
   const checkpoints = [];
+  const pathCheckpointPixels = width === 512 && height === 512
+    ? PATH_CHECKPOINT_PIXELS
+    : [0, Math.floor(width * height / 2), width * height - 1];
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const pixel = y * width + x;
@@ -181,12 +243,18 @@ function render(width, height, spp, strict) {
         state = xorshift(state);
         const jy = unitFromU32(state, strict);
         counters.rngDraws += 2;
-        const sx = f(f((f((x + jx) / width) * 2) - 1) * 1.7);
-        const sy = f(f(1 - f(f((y + jy) / height) * 2)) * 1.7);
-        let origin = [f(0), f(0), f(4.5)],
-          direction = normalize([sx, sy, f(-4.5)], f),
-          throughput = [f(1), f(1), f(1)],
-          radiance = [f(0), f(0), f(0)];
+        const pixelX = f(f(x + jx) / f(width));
+        const pixelY = f(f(y + jy) / f(height));
+        const sx = f(f(f(pixelX * f(2)) - f(1)) * f(1.7));
+        const sy = f(f(f(1) - f(pixelY * f(2))) * f(1.7));
+        let origin = countAllocation(counters, [f(0), f(0), f(4.5)]),
+          direction = normalize(
+            countAllocation(counters, [sx, sy, f(-4.5)]),
+            f,
+            counters,
+          ),
+          throughput = countAllocation(counters, [f(1), f(1), f(1)]),
+          radiance = countAllocation(counters, [f(0), f(0), f(0)]);
         counters.rays++;
         for (let bounce = 0; bounce < MAX_BOUNCES; bounce++) {
           const hit = intersect(origin, direction, bounds, f, counters);
@@ -194,31 +262,50 @@ function render(width, height, spp, strict) {
           counters.bounces++;
           const s = SCENE[hit.index];
           if (s[7] > 0) {
-            radiance = [
-              f(radiance[0] + f(throughput[0] * s[7])),
-              f(radiance[1] + f(throughput[1] * s[7])),
-              f(radiance[2] + f(throughput[2] * s[7])),
-            ];
+            radiance = countAllocation(counters, [
+              f(radiance[0] + f(throughput[0] * f(s[7]))),
+              f(radiance[1] + f(throughput[1] * f(s[7]))),
+              f(radiance[2] + f(throughput[2] * f(s[7]))),
+            ]);
             break;
           }
-          throughput = [f(throughput[0] * s[4]), f(throughput[1] * s[5]), f(throughput[2] * s[6])];
+          throughput = countAllocation(counters, [
+            f(throughput[0] * f(s[4])),
+            f(throughput[1] * f(s[5])),
+            f(throughput[2] * f(s[6])),
+          ]);
           if (bounce >= 2) {
-            const p = Math.max(0.1, Math.min(0.95, Math.max(...throughput)));
+            const p = Math.max(f(0.1), Math.min(f(0.95), Math.max(...throughput)));
             state = xorshift(state);
             counters.rngDraws++;
             if (unitFromU32(state, strict) > p) break;
-            throughput = [f(throughput[0] / p), f(throughput[1] / p), f(throughput[2] / p)];
+            throughput = countAllocation(counters, [
+              f(throughput[0] / p),
+              f(throughput[1] / p),
+              f(throughput[2] / p),
+            ]);
           }
           state = xorshift(state);
-          const rx = f(unitFromU32(state, strict) * 2 - 1);
+          const rx = f(f(unitFromU32(state, strict) * f(2)) - f(1));
           state = xorshift(state);
-          const ry = f(unitFromU32(state, strict) * 2 - 1);
+          const ry = f(f(unitFromU32(state, strict) * f(2)) - f(1));
           state = xorshift(state);
-          const rz = f(unitFromU32(state, strict) * 2 - 1);
+          const rz = f(f(unitFromU32(state, strict) * f(2)) - f(1));
           counters.rngDraws += 3;
-          let hemisphere = normalize([rx, ry, rz], f);
-          if (dot(hemisphere, hit.normal, f) < 0) hemisphere = mul(hemisphere, -1, f);
-          origin = add(hit.point, mul(hit.normal, EPSILON, f), f);
+          let hemisphere = normalize(
+            countAllocation(counters, [rx, ry, rz]),
+            f,
+            counters,
+          );
+          if (dot(hemisphere, hit.normal, f) < 0) {
+            hemisphere = mul(hemisphere, -1, f, counters);
+          }
+          origin = add(
+            hit.point,
+            mul(hit.normal, EPSILON, f, counters),
+            f,
+            counters,
+          );
           direction = hemisphere;
           counters.rays++;
         }
@@ -226,8 +313,7 @@ function render(width, height, spp, strict) {
         ag = f(ag + radiance[1]);
         ab = f(ab + radiance[2]);
         if (
-          (pixel === 0 || pixel === ((width * height / 2) | 0) || pixel === width * height - 1) &&
-          sample === 0
+          pathCheckpointPixels.includes(pixel) && sample === 0
         ) {
           checkpoints.push({
             pixel,
@@ -243,6 +329,7 @@ function render(width, height, spp, strict) {
       framebuffer[off + 1] = tone(f(ag / spp));
       framebuffer[off + 2] = tone(f(ab / spp));
       framebuffer[off + 3] = 255;
+      counters.outputBytes += 4;
     }
   }
   return { framebuffer, counters, checkpoints };
@@ -288,7 +375,7 @@ export function readWasmResult(instance, width, height, spp) {
   }
   const fbPtr = Number(framebufferPtr()), counterPtr = Number(countersPtr());
   const framebuffer = new Uint8Array(memory.buffer, fbPtr, width * height * 4).slice();
-  const raw = new Uint32Array(memory.buffer, counterPtr, 8);
+  const raw = new Uint32Array(memory.buffer, counterPtr, 9);
   return {
     framebuffer,
     counters: {
@@ -299,7 +386,8 @@ export function readWasmResult(instance, width, height, spp) {
       samples: raw[4],
       rngDraws: raw[5],
       allocations: raw[6],
-      boundaryCrossings: raw[7],
+      outputBytes: raw[7],
+      boundaryCrossings: raw[8],
     },
     checkpoints: [],
   };

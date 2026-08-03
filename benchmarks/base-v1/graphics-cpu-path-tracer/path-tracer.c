@@ -12,7 +12,9 @@ typedef struct { float cx,cy,cz,r,cr,cg,cb,emit; } Sphere;
 typedef struct { int left,right,primitive; float minx,miny,minz,maxx,maxy,maxz; } Node;
 
 static uint8_t framebuffer[MAX_WIDTH*MAX_HEIGHT*4];
-static uint32_t counters[8];
+// rays, bounces, node tests, primitive intersections, samples, RNG draws,
+// render-scope dynamic allocations, output bytes written, boundary crossings.
+static uint32_t counters[9];
 static const Sphere spheres[7] = {
  {0.0f,-1001.0f,0.0f,1000.0f,0.72f,0.72f,0.72f,0.0f},
  {-1001.0f,0.0f,0.0f,1000.0f,0.72f,0.12f,0.12f,0.0f},
@@ -50,29 +52,29 @@ static uint32_t seed_for(uint32_t pixel,uint32_t sample){return SEED^(pixel*0x9e
 
 static int hit_box(Vec3 o,Vec3 d,const Node* n,float tmax){
  float lo=EPSILON,hi=tmax; float oo[3]={o.x,o.y,o.z},dd[3]={d.x,d.y,d.z};float mn[3]={n->minx,n->miny,n->minz},mx[3]={n->maxx,n->maxy,n->maxz};
- for(int a=0;a<3;a++){float inv=1.0f/dd[a];float t0=(mn[a]-oo[a])*inv,t1=(mx[a]-oo[a])*inv;if(inv<0){float q=t0;t0=t1;t1=q;}lo=maxf(lo,t0);hi=minf(hi,t1);if(hi<lo)return 0;}return 1;
+ for(int a=0;a<3;a++){float inv=1.0f/dd[a];float near_delta=mn[a]-oo[a],far_delta=mx[a]-oo[a];float t0=near_delta*inv,t1=far_delta*inv;if(inv<0){float q=t0;t0=t1;t1=q;}lo=maxf(lo,t0);hi=minf(hi,t1);if(hi<lo)return 0;}return 1;
 }
 static int intersect(Vec3 o,Vec3 d,float* out_t,Vec3* out_p,Vec3* out_n){
  int stack[32],sp=0,best_index=-1;float best=1.0e30f;stack[sp++]=0;
  while(sp){int ni=stack[--sp];counters[2]++;const Node* n=&nodes[ni];if(!hit_box(o,d,n,best))continue;
-  if(n->primitive>=0){counters[3]++;const Sphere* s=&spheres[n->primitive];Vec3 oc={o.x-s->cx,o.y-s->cy,o.z-s->cz};float half=dot(oc,d),c=dot(oc,oc)-s->r*s->r,disc=half*half-c;if(disc<0)continue;float root=__builtin_sqrtf(disc),t=-half-root;if(t<=EPSILON)t=-half+root;if(t>EPSILON&&(t<best||(t==best&&n->primitive<best_index))){best=t;best_index=n->primitive;}}
+  if(n->primitive>=0){counters[3]++;const Sphere* s=&spheres[n->primitive];Vec3 oc={o.x-s->cx,o.y-s->cy,o.z-s->cz};float half=dot(oc,d);float radius_squared=s->r*s->r;float origin_squared=dot(oc,oc);float c=origin_squared-radius_squared;float half_squared=half*half;float disc=half_squared-c;if(disc<0)continue;float root=__builtin_sqrtf(disc),t=-half-root;if(t<=EPSILON)t=-half+root;if(t>EPSILON&&(t<best||(t==best&&n->primitive<best_index))){best=t;best_index=n->primitive;}}
   else {stack[sp++]=n->right;stack[sp++]=n->left;}
  }
  if(best_index<0)return -1;*out_t=best;*out_p=vadd(o,vmul(d,best));const Sphere* s=&spheres[best_index];*out_n=norm((Vec3){out_p->x-s->cx,out_p->y-s->cy,out_p->z-s->cz});return best_index;
 }
-static uint8_t tone(float value){float m=value/(1.0f+value);m=maxf(0,minf(1,m));float g=__builtin_sqrtf(m);int q=(int)(g*255.0f+0.5f);if(q<0)q=0;if(q>255)q=255;return (uint8_t)q;}
+static uint8_t tone(float value){float denominator=1.0f+value;float mapped=value/denominator;float clamped=maxf(0.0f,minf(1.0f,mapped));float gamma=__builtin_sqrtf(clamped);float scaled=gamma*255.0f;float rounded=scaled+0.5f;int q=(int)rounded;if(q<0)q=0;if(q>255)q=255;return (uint8_t)q;}
 
 __attribute__((visibility("default"))) uint32_t framebuffer_ptr(void){return (uint32_t)(uintptr_t)framebuffer;}
 __attribute__((visibility("default"))) uint32_t counters_ptr(void){return (uint32_t)(uintptr_t)counters;}
 __attribute__((visibility("default"))) int render(uint32_t width,uint32_t height,uint32_t spp){
- if(width<1||height<1||spp<1||width>MAX_WIDTH||height>MAX_HEIGHT||spp>MAX_SPP)return 1;for(int i=0;i<8;i++)counters[i]=0;counters[4]=width*height*spp;counters[6]=0;counters[7]=1;
+ if(width<1||height<1||spp<1||width>MAX_WIDTH||height>MAX_HEIGHT||spp>MAX_SPP)return 1;for(int i=0;i<9;i++)counters[i]=0;counters[4]=width*height*spp;counters[6]=0;counters[8]=1;
  for(uint32_t y=0;y<height;y++)for(uint32_t x=0;x<width;x++){uint32_t pixel=y*width+x;float ar=0,ag=0,ab=0;
-  for(uint32_t sample=0;sample<spp;sample++){uint32_t state=seed_for(pixel,sample);state=rng(state);float jx=unit(state);state=rng(state);float jy=unit(state);counters[5]+=2;float sx=(((x+jx)/(float)width)*2.0f-1.0f)*1.7f;float sy=(1.0f-(((y+jy)/(float)height)*2.0f))*1.7f;Vec3 origin={0,0,4.5f},direction=norm((Vec3){sx,sy,-4.5f}),throughput={1,1,1},radiance={0,0,0};counters[0]++;
+  for(uint32_t sample=0;sample<spp;sample++){uint32_t state=seed_for(pixel,sample);state=rng(state);float jx=unit(state);state=rng(state);float jy=unit(state);counters[5]+=2;float pixel_x=((float)x+jx)/(float)width;float pixel_y=((float)y+jy)/(float)height;float sx_scale=pixel_x*2.0f;float sy_scale=pixel_y*2.0f;float sx_centered=sx_scale-1.0f;float sy_centered=1.0f-sy_scale;float sx=sx_centered*1.7f;float sy=sy_centered*1.7f;Vec3 origin={0,0,4.5f},direction=norm((Vec3){sx,sy,-4.5f}),throughput={1,1,1},radiance={0,0,0};counters[0]++;
    for(uint32_t bounce=0;bounce<MAX_BOUNCES;bounce++){float t;Vec3 p,n;int index=intersect(origin,direction,&t,&p,&n);if(index<0)break;counters[1]++;const Sphere* s=&spheres[index];if(s->emit>0){radiance.x+=throughput.x*s->emit;radiance.y+=throughput.y*s->emit;radiance.z+=throughput.z*s->emit;break;}throughput.x*=s->cr;throughput.y*=s->cg;throughput.z*=s->cb;
     if(bounce>=2){float prob=maxf(0.1f,minf(0.95f,maxf(throughput.x,maxf(throughput.y,throughput.z))));state=rng(state);counters[5]++;if(unit(state)>prob)break;throughput.x/=prob;throughput.y/=prob;throughput.z/=prob;}
     state=rng(state);float rx=unit(state)*2.0f-1.0f;state=rng(state);float ry=unit(state)*2.0f-1.0f;state=rng(state);float rz=unit(state)*2.0f-1.0f;counters[5]+=3;Vec3 hemi=norm((Vec3){rx,ry,rz});if(dot(hemi,n)<0)hemi=vmul(hemi,-1);origin=vadd(p,vmul(n,EPSILON));direction=hemi;counters[0]++;
    }ar+=radiance.x;ag+=radiance.y;ab+=radiance.z;
-  }uint32_t off=pixel*4;framebuffer[off]=tone(ar/(float)spp);framebuffer[off+1]=tone(ag/(float)spp);framebuffer[off+2]=tone(ab/(float)spp);framebuffer[off+3]=255;
+  }uint32_t off=pixel*4;framebuffer[off]=tone(ar/(float)spp);framebuffer[off+1]=tone(ag/(float)spp);framebuffer[off+2]=tone(ab/(float)spp);framebuffer[off+3]=255;counters[7]+=4;
  }
  return 0;
 }

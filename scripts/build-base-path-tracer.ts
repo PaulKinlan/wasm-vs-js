@@ -1,8 +1,11 @@
 import { canonicalize, sha256Hex } from "../lib/canonical.ts";
 import {
   compareToReference,
+  PATH_CHECKPOINT_PIXELS,
   readWasmResult,
   renderJavaScript,
+  SAMPLE_CHECKPOINT_COORDINATES,
+  sampleCheckpointPixels,
 } from "../benchmarks/base-v1/graphics-cpu-path-tracer/engine.js";
 import { renderReference } from "../benchmarks/base-v1/graphics-cpu-path-tracer/reference.js";
 const root = new URL("../", import.meta.url),
@@ -22,6 +25,18 @@ async function command(name: string, args: string[]) {
   }).output();
   if (!r.success) throw new Error(new TextDecoder().decode(r.stderr));
   return r.stdout;
+}
+const contract = JSON.parse(
+  await Deno.readTextFile(
+    new URL("benchmarks/base-v1/graphics-cpu-path-tracer/implementation-contract.v1.json", root),
+  ),
+);
+if (
+  JSON.stringify(contract.oracle.samplePixelCheckpoints) !==
+    JSON.stringify(SAMPLE_CHECKPOINT_COORDINATES) ||
+  JSON.stringify(contract.oracle.pathCheckpointPixels) !== JSON.stringify(PATH_CHECKPOINT_PIXELS)
+) {
+  throw new Error("checkpoint contract/source mismatch");
 }
 const sourcePaths = [
   "benchmarks/base-v1/graphics-cpu-path-tracer/implementation-contract.v1.json",
@@ -113,11 +128,53 @@ for (let i = 0; i < js.framebuffer.length; i++) {
   if (js.framebuffer[i] !== wasmResult.framebuffer[i]) differing++;
 }
 const crossTarget = compareToReference(js.framebuffer, wasmResult.framebuffer);
-if (!crossTarget.passed || crossTarget.maxChannelDelta > 64) {
-  throw new Error(`cross-target quantized tolerance failed ${JSON.stringify(crossTarget)}`);
+if (differing !== 0 || !crossTarget.passed || crossTarget.maxChannelDelta !== 0) {
+  throw new Error(
+    `cross-target framebuffer mismatch ${JSON.stringify({ differing, crossTarget })}`,
+  );
 }
-if (Math.abs(js.counters.intersections - wasmResult.counters.intersections) > 256) {
-  throw new Error("cross-target work mismatch");
+const operationCounters = [
+  "rays",
+  "bounces",
+  "nodeTests",
+  "intersections",
+  "samples",
+  "rngDraws",
+] as const;
+const allCounters = [
+  ...operationCounters,
+  "allocations",
+  "outputBytes",
+  "boundaryCrossings",
+] as const;
+for (const key of allCounters) {
+  if (!Number.isSafeInteger(js.counters[key]) || !Number.isSafeInteger(wasmResult.counters[key])) {
+    throw new Error(`invalid ${key} counter`);
+  }
+}
+for (const key of operationCounters) {
+  if (js.counters[key] !== wasmResult.counters[key]) {
+    throw new Error(`cross-target ${key} mismatch`);
+  }
+}
+const expectedSamples = width * height * spp;
+const expectedOutputBytes = width * height * 4;
+if (
+  js.counters.samples !== expectedSamples || wasmResult.counters.samples !== expectedSamples ||
+  js.counters.outputBytes !== expectedOutputBytes ||
+  wasmResult.counters.outputBytes !== expectedOutputBytes || js.counters.allocations <= 1 ||
+  wasmResult.counters.allocations !== 0 || js.counters.boundaryCrossings !== 0 ||
+  wasmResult.counters.boundaryCrossings !== 1
+) {
+  throw new Error(
+    `counter policy failure ${JSON.stringify({ js: js.counters, wasm: wasmResult.counters })}`,
+  );
+}
+if (
+  JSON.stringify(js.checkpoints.map(({ pixel }) => pixel)) !==
+    JSON.stringify(PATH_CHECKPOINT_PIXELS)
+) {
+  throw new Error("path checkpoint capture mismatch");
 }
 await Deno.writeFile(new URL("js-controlled.rgba", out), js.framebuffer);
 await Deno.writeFile(new URL("wasm-linear-controlled.rgba", out), wasmResult.framebuffer);
@@ -132,7 +189,8 @@ for (const name of ["js-controlled.rgba", "wasm-linear-controlled.rgba", "refere
       `https://github.com/PaulKinlan/wasm-vs-js/blob/${sourceCommit}/public/artifacts/graphics-cpu-path-tracer-v1/${name}`,
   });
 }
-const checkpointPixels = [0, 131328, 262143];
+const checkpointPixels = sampleCheckpointPixels(width, height);
+if (checkpointPixels.length !== 5) throw new Error("five sample checkpoints required");
 const checkpoints = checkpointPixels.map((pixel) => ({
   pixel,
   js: Array.from(js.framebuffer.slice(pixel * 4, pixel * 4 + 4)),

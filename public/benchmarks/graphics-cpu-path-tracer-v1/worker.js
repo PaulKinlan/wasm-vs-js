@@ -1,7 +1,10 @@
 import {
   compareToReference,
+  PATH_CHECKPOINT_PIXELS,
   readWasmResult,
   renderJavaScript,
+  SAMPLE_CHECKPOINT_COORDINATES,
+  sampleCheckpointPixels,
 } from "/benchmarks/base-v1/graphics-cpu-path-tracer/engine.js";
 import { renderReference } from "/benchmarks/base-v1/graphics-cpu-path-tracer/reference.js";
 async function hash(bytes) {
@@ -45,6 +48,15 @@ self.onmessage = async (event) => {
       const contractBytes = await fetchBytes(
         "/benchmarks/base-v1/graphics-cpu-path-tracer/implementation-contract.v1.json",
       );
+      const contract = JSON.parse(new TextDecoder().decode(contractBytes));
+      if (
+        JSON.stringify(contract.oracle.samplePixelCheckpoints) !==
+          JSON.stringify(SAMPLE_CHECKPOINT_COORDINATES) ||
+        JSON.stringify(contract.oracle.pathCheckpointPixels) !==
+          JSON.stringify(PATH_CHECKPOINT_PIXELS)
+      ) {
+        throw new Error("checkpoint contract/source mismatch");
+      }
       wasmBytes = await fetchBytes("/artifacts/graphics-cpu-path-tracer-v1/path-tracer.wasm");
       for (
         const [path, bytes] of [
@@ -80,17 +92,37 @@ self.onmessage = async (event) => {
       throw new Error(`reference tolerance failed ${JSON.stringify(comparison)}`);
     }
     const framebufferHash = await hash(result.framebuffer);
-    if (exact) {
-      const expected = target === "javascript"
-        ? manifest.oracle.jsFramebufferSha256
-        : manifest.oracle.wasmFramebufferSha256;
-      if (framebufferHash !== expected) throw new Error("complete framebuffer hash mismatch");
-    }
-    const checkpointIndices = [0, (width * height / 2) | 0, width * height - 1];
+    const checkpointIndices = sampleCheckpointPixels(width, height);
     const checkpoints = checkpointIndices.map((pixel) => ({
       pixel,
       rgba: Array.from(result.framebuffer.slice(pixel * 4, pixel * 4 + 4)),
     }));
+    if (exact) {
+      const expectedHash = target === "javascript"
+        ? manifest.oracle.jsFramebufferSha256
+        : manifest.oracle.wasmFramebufferSha256;
+      if (framebufferHash !== expectedHash) throw new Error("complete framebuffer hash mismatch");
+      const expectedCounter = target === "javascript"
+        ? manifest.oracle.jsCounters
+        : manifest.oracle.wasmCounters;
+      if (JSON.stringify(result.counters) !== JSON.stringify(expectedCounter)) {
+        throw new Error("complete counter mismatch");
+      }
+      const variantKey = target === "javascript" ? "js" : "wasm";
+      const expectedCheckpoints = manifest.oracle.checkpoints.map((checkpoint) => ({
+        pixel: checkpoint.pixel,
+        rgba: checkpoint[variantKey],
+      }));
+      if (JSON.stringify(checkpoints) !== JSON.stringify(expectedCheckpoints)) {
+        throw new Error("five sample checkpoint mismatch");
+      }
+      if (
+        target === "javascript" &&
+        JSON.stringify(result.checkpoints) !== JSON.stringify(manifest.oracle.pathCheckpoints)
+      ) {
+        throw new Error("path checkpoint mismatch");
+      }
+    }
     const transfer = result.framebuffer.buffer;
     self.postMessage({
       token,

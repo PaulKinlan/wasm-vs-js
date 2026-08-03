@@ -41,7 +41,7 @@
   "oracle": {
     "kind": "perceptual-plus-structural",
     "completeFramebufferRequired": true,
-    "crossTarget": "complete RGBA8 comparison with maximum channel delta 64, mean delta 0.01 and outlier ratio 0.0002; exact counter values retained and intersection count tolerance 256",
+    "crossTarget": "complete RGBA8 equality after shared strict-f32 evaluation; exact rays, bounces, node tests, intersections, samples, RNG draws and output-byte counters; allocation and boundary counters checked against their target-specific rules",
     "highPrecisionReference": "independent f64 implementation of the same fixed scene, RNG, traversal and path rules",
     "maxChannelDelta": 96,
     "meanChannelDelta": 0.01,
@@ -50,20 +50,24 @@
     "crossTargetMaxChannelDelta": 64,
     "crossTargetMeanChannelDelta": 0.01,
     "crossTargetMaxOutlierChannelRatio": 0.0002,
-    "crossTargetIntersectionCountTolerance": 256,
+    "crossTargetIntersectionCountTolerance": 0,
     "samplePixelCheckpoints": [[0, 0], [256, 256], [511, 511], [128, 384], [384, 128]],
     "pathCheckpointPixels": [0, 131328, 262143]
   },
-  "counters": [
-    "rays",
-    "bounces",
-    "node-tests",
-    "intersections",
-    "samples",
-    "rng-draws",
-    "allocations",
-    "boundary-crossings"
-  ],
+  "counters": {
+    "operationCounters": [
+      "rays",
+      "bounces",
+      "node-tests",
+      "intersections",
+      "samples",
+      "rng-draws"
+    ],
+    "allocations": "render-scope authored framebuffer, vector, traversal-stack and hit-record allocations; module fixtures and validation/checkpoint evidence envelopes are excluded; JavaScript is counted at each creation and linear Wasm performs zero dynamic allocations",
+    "output-bytes": "incremented by four after each complete RGBA pixel write",
+    "boundary-crossings": "zero inside the JavaScript target and one call into the resident linear-Wasm render",
+    "gate": "build and exact browser validation require exact operation and output-byte equality across targets plus exact target-specific allocation and boundary values"
+  },
   "variants": [
     { "id": "js-controlled", "target": "javascript" },
     { "id": "wasm-linear-controlled", "target": "wasm-linear" }

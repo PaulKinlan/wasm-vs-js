@@ -4,8 +4,11 @@ import { createHandler } from "../server.ts";
 import { assert, assertEquals } from "./assert.ts";
 import {
   compareToReference,
+  PATH_CHECKPOINT_PIXELS,
   readWasmResult,
   renderJavaScript,
+  SAMPLE_CHECKPOINT_COORDINATES,
+  sampleCheckpointPixels,
 } from "../benchmarks/base-v1/graphics-cpu-path-tracer/engine.js";
 import { renderReference } from "../benchmarks/base-v1/graphics-cpu-path-tracer/reference.js";
 
@@ -70,10 +73,24 @@ Deno.test("controlled targets perform complete BVH path work across bounded case
     assert(wasm.counters.nodeTests > wasm.counters.rays);
     assert(js.counters.intersections > 0);
     assert(wasm.counters.intersections > 0);
-    assertEquals(js.counters.allocations, 1);
+    for (
+      const key of [
+        "rays",
+        "bounces",
+        "nodeTests",
+        "intersections",
+        "samples",
+        "rngDraws",
+        "outputBytes",
+      ] as const
+    ) assertEquals(js.counters[key], wasm.counters[key]);
+    assert(js.counters.allocations > 1);
+    assertEquals(js.counters.outputBytes, width * height * 4);
     assertEquals(js.counters.boundaryCrossings, 0);
     assertEquals(wasm.counters.allocations, 0);
+    assertEquals(wasm.counters.outputBytes, width * height * 4);
     assertEquals(wasm.counters.boundaryCrossings, 1);
+    assertEquals(js.framebuffer, wasm.framebuffer);
     const comparison = compareToReference(js.framebuffer, wasm.framebuffer);
     assert(comparison.passed, JSON.stringify(comparison));
     for (let i = 3; i < js.framebuffer.length; i += 4) {
@@ -121,7 +138,16 @@ Deno.test("fixture RNG and full controlled output are deterministic", async () =
   assertEquals(manifest.oracle.jsCounters.samples, 16_777_216);
   assertEquals(manifest.oracle.wasmCounters.samples, 16_777_216);
   assert(manifest.oracle.crossTarget.passed);
-  assertEquals(manifest.oracle.pathCheckpoints.length, 3);
+  assertEquals(manifest.oracle.checkpoints.length, 5);
+  assertEquals(
+    manifest.oracle.checkpoints.map((checkpoint: { pixel: number }) => checkpoint.pixel),
+    sampleCheckpointPixels(512, 512),
+  );
+  assertEquals(SAMPLE_CHECKPOINT_COORDINATES.length, 5);
+  assertEquals(
+    manifest.oracle.pathCheckpoints.map((checkpoint: { pixel: number }) => checkpoint.pixel),
+    PATH_CHECKPOINT_PIXELS,
+  );
   for (const checkpoint of manifest.oracle.pathCheckpoints) {
     assert(Number.isInteger(checkpoint.pixel));
     assertEquals(checkpoint.radiance.length, 3);
@@ -259,6 +285,9 @@ Deno.test("demo lifecycle is fresh-worker, bounded, stale-safe, and non-persiste
       "SHA-256",
       "build manifest raw-byte mismatch",
       "complete framebuffer hash mismatch",
+      "complete counter mismatch",
+      "five sample checkpoint mismatch",
+      "path checkpoint mismatch",
       "renderReference",
     ]
   ) {
