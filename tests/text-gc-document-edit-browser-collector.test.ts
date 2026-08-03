@@ -238,8 +238,8 @@ function validEvidence() {
       importedOrChildGeneratedEvidenceAccepted: false,
     },
     source: {
-      acceptedCommit: "52ab69f7d90ed0246f087cc5a951d0b5d911d780",
-      acceptedTree: "0924b775bab9880138cf8e1b73c376d6316cc1dd",
+      acceptedCommit: "375b7e68fd0a8ff29575a7d0eb6e4fd09e0c5d73",
+      acceptedTree: "b313fe38cd1b2b2143181b9613b4246004a7390b",
       collectorHead: H40,
       collectorTree: H40,
       cleanAtStart: true,
@@ -253,7 +253,7 @@ function validEvidence() {
     collection: {
       script: "scripts/collect-text-gc-document-edit-browser-evidence.ts",
       command:
-        "deno run -A scripts/collect-text-gc-document-edit-browser-evidence.ts --source-commit=52ab69f7d90ed0246f087cc5a951d0b5d911d780 --chrome=/opt/google/chrome/chrome --output-dir=/tmp/evidence",
+        "deno run -A scripts/collect-text-gc-document-edit-browser-evidence.ts --source-commit=375b7e68fd0a8ff29575a7d0eb6e4fd09e0c5d73 --chrome=/opt/google/chrome/chrome --output-dir=/tmp/evidence",
       outputDirectory: "/tmp/evidence",
     },
     workload: {
@@ -456,7 +456,7 @@ Deno.test("document-edit served source graph is byte-exact at the accepted candi
     routes.add(route);
     const disk = await Deno.readFile(path);
     const committed = await new Deno.Command("git", {
-      args: ["show", `52ab69f7d90ed0246f087cc5a951d0b5d911d780:${path}`],
+      args: ["show", `375b7e68fd0a8ff29575a7d0eb6e4fd09e0c5d73:${path}`],
       stdout: "piped",
       stderr: "piped",
     }).output();
@@ -496,8 +496,8 @@ Deno.test("document-edit collector source freezes parent authority, raw bytes, C
   );
   for (
     const required of [
-      "52ab69f7d90ed0246f087cc5a951d0b5d911d780",
-      "0924b775bab9880138cf8e1b73c376d6316cc1dd",
+      "375b7e68fd0a8ff29575a7d0eb6e4fd09e0c5d73",
+      "b313fe38cd1b2b2143181b9613b4246004a7390b",
       "Chrome/150.0.7871.24",
       "--enable-automation",
       "Browser.getBrowserCommandLine",

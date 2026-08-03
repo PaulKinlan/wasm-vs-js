@@ -3,8 +3,8 @@ import addFormatsModule from "ajv-formats";
 import { canonicalize, sha256Hex } from "../lib/canonical.ts";
 import { CdpClient } from "../lib/cdp-client.ts";
 
-export const ACCEPTED_COMMIT = "4cbffacfaef931a4b738e0964f257f8d6f362918";
-export const ACCEPTED_TREE = "139a1a0b27affc150ffcabd08bc354c7624a7d11";
+export const ACCEPTED_COMMIT = "375b7e68fd0a8ff29575a7d0eb6e4fd09e0c5d73";
+export const ACCEPTED_TREE = "b313fe38cd1b2b2143181b9613b4246004a7390b";
 export const EXPECTED_CHROME_PRODUCT = "Chrome/150.0.7871.24";
 export const EXPECTED_CHROME_SHA256 =
   "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355";

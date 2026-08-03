@@ -129,8 +129,8 @@
         "supportFiles"
       ],
       "properties": {
-        "acceptedCommit": { "const": "4cbffacfaef931a4b738e0964f257f8d6f362918" },
-        "acceptedTree": { "const": "139a1a0b27affc150ffcabd08bc354c7624a7d11" },
+        "acceptedCommit": { "const": "375b7e68fd0a8ff29575a7d0eb6e4fd09e0c5d73" },
+        "acceptedTree": { "const": "b313fe38cd1b2b2143181b9613b4246004a7390b" },
         "start": { "$ref": "#/$defs/checkout" },
         "end": { "$ref": "#/$defs/checkout" },
         "unchanged": { "const": true },
@@ -167,7 +167,7 @@
             { "const": "run" },
             { "const": "-A" },
             { "const": "scripts/collect-simulation-rigid-body-2d-browser-evidence.ts" },
-            { "const": "--source-commit=4cbffacfaef931a4b738e0964f257f8d6f362918" },
+            { "const": "--source-commit=375b7e68fd0a8ff29575a7d0eb6e4fd09e0c5d73" },
             { "type": "string", "pattern": "^--chrome=.+" },
             { "type": "string", "pattern": "^--output=/.+/evidence\\.v1\\.json$" }
           ],

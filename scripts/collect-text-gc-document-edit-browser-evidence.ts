@@ -3,8 +3,8 @@ import { canonicalize, sha256Hex } from "../lib/canonical.ts";
 import { CdpClient } from "../lib/cdp-client.ts";
 
 const ROOT = new URL("../", import.meta.url);
-const ACCEPTED_COMMIT = "52ab69f7d90ed0246f087cc5a951d0b5d911d780";
-const ACCEPTED_TREE = "0924b775bab9880138cf8e1b73c376d6316cc1dd";
+const ACCEPTED_COMMIT = "375b7e68fd0a8ff29575a7d0eb6e4fd09e0c5d73";
+const ACCEPTED_TREE = "b313fe38cd1b2b2143181b9613b4246004a7390b";
 const EXPECTED_PRODUCT = "Chrome/150.0.7871.24";
 const EXPECTED_CHROME_SHA256 = "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355";
 const ROUTE = "/demos/text.gc-document-edit.v1/";
