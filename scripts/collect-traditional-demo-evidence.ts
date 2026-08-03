@@ -376,6 +376,13 @@ try {
         await new Promise((resolve) => setTimeout(resolve, 10));
       }
       await Promise.all(workerAttachTasks);
+      const workerAssetDeadline = Date.now() + 2_000;
+      while (
+        Date.now() < workerAssetDeadline &&
+        ![...requests.values()].some((request) =>
+          String(request.url).endsWith("/engine.js") && request.status === 200
+        )
+      ) await new Promise((resolve) => setTimeout(resolve, 10));
       await click(client, sessionId, "#cancel");
       finalState = await waitForState(
         client,
