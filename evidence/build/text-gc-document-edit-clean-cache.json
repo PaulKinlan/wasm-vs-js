@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "text.gc-document-edit.v1",
+  "collectedAt": "2026-08-03T13:26:47Z",
+  "sourceCommit": "c77e0a7ea4148baf7136cdf780b3f329a031f3d8",
+  "command": "rm -rf <owned-xdg-cache> <owned-gradle-home> benchmarks/v1/text-gc-document-edit/kotlin/{build,.gradle,.kotlin} && XDG_CACHE_HOME=<owned-xdg-cache> GRADLE_USER_HOME=<owned-gradle-home> TEXT_GC_SOURCE_COMMIT=c77e0a7ea4148baf7136cdf780b3f329a031f3d8 scripts/build-text-gc-document-edit-wasmgc.sh",
+  "toolchain": {
+    "deno": "2.9.0",
+    "gradle": "9.6.1",
+    "gradleDistributionSha256": "9c0f7faeeb306cb14e4279a3e084ca6b596894089a0638e68a07c945a32c9e14",
+    "kotlinPlugin": "2.3.21",
+    "dependencyVerification": {
+      "mode": "strict",
+      "metadataSha256": "a46a108afa2e20e2973aa459f7f1dc6087027695b359ed5425b6b6fcbe741354"
+    },
+    "java": {
+      "version": "26.0.1",
+      "vendor": "Arch Linux",
+      "executableSha256": "0868c4200b2f78fc9e767841cc63200350303519eec74b9458031ee234e5bcb9",
+      "releaseFileSha256": "4b67a4f6526d3a2d82edca270da64ac3f560fb6a1340bfbc9ad72ae08666cd44"
+    }
+  },
+  "cleanState": {
+    "independentFreshRuns": 2,
+    "xdgCacheCreatedFreshEachRun": true,
+    "gradleUserHomeCreatedFreshEachRun": true,
+    "projectBuildDirectoriesRemovedBeforeEachRun": true,
+    "ownedTemporaryCachesRemovedAfterEvidence": true
+  },
+  "result": "passed-two-clean-runs-byte-identical",
+  "outputs": {
+    "public/artifacts/text-gc-document-edit/text-gc-document-edit.wasm": "4a3083a510acc7f26fc4bd1877c87321545931b0b05580db2d5efdbc3d3582b5",
+    "public/artifacts/text-gc-document-edit/text-gc-document-edit.mjs": "a4994be989542f4cc826fc2b782974b83ca81b55614eee22553cc064fc4bcb23",
+    "public/artifacts/text-gc-document-edit/text-gc-document-edit.import-object.mjs": "10be918973da81e5a576212ecae8c17a6b423e13015aeb92f899c7d781b5e111",
+    "public/artifacts/text-gc-document-edit/text-gc-document-edit.js-builtins.mjs": "5265daba0f4204a469f87b09f6a63ebfc59555441e4fcc98f8b2006115048451",
+    "public/artifacts/text-gc-document-edit/build-manifest.json": "072f545fe589bf35035ab9c8463772082292d5505ab7a535141b22b577823229"
+  },
+  "browserEvidence": {
+    "status": "unavailable",
+    "reason": "Delegated implementation scope explicitly prohibited Chrome; authoritative browser collection remains a separate acceptance gate."
+  }
+}

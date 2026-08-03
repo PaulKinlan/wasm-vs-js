@@ -1,0 +1,383 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.example/schemas/text-gc-document-edit-build-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "registrationId",
+    "target",
+    "sourceRepository",
+    "sourceCommit",
+    "sourceTreeSha256",
+    "frozenCatalog",
+    "toolchain",
+    "wasmFeatures",
+    "fixtureManifest",
+    "reference",
+    "outputs",
+    "sources",
+    "artifact"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "registrationId": { "const": "text.gc-document-edit.v1-supplemental-registration-v1" },
+    "target": { "const": "wasmgc-controlled" },
+    "sourceRepository": { "const": "https://github.com/PaulKinlan/wasm-vs-js" },
+    "sourceCommit": { "$ref": "#/$defs/gitOid" },
+    "sourceTreeSha256": { "$ref": "#/$defs/sha256" },
+    "frozenCatalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "immutable"],
+      "properties": {
+        "path": { "const": "catalog/workloads.v1.json" },
+        "sha256": { "const": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4" },
+        "immutable": { "const": "byte-for-byte" }
+      }
+    },
+    "toolchain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "deno",
+        "gradle",
+        "gradleDistributionSha256",
+        "kotlinPlugin",
+        "dependencyVerification",
+        "java",
+        "target",
+        "command",
+        "generatedGluePatch"
+      ],
+      "properties": {
+        "deno": { "const": "2.9.0" },
+        "gradle": { "const": "9.6.1" },
+        "gradleDistributionSha256": {
+          "const": "9c0f7faeeb306cb14e4279a3e084ca6b596894089a0638e68a07c945a32c9e14"
+        },
+        "kotlinPlugin": { "const": "2.3.21" },
+        "dependencyVerification": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "path", "sha256"],
+          "properties": {
+            "mode": { "const": "strict" },
+            "path": {
+              "const": "benchmarks/v1/text-gc-document-edit/kotlin/gradle/verification-metadata.xml"
+            },
+            "sha256": { "$ref": "#/$defs/sha256" }
+          }
+        },
+        "java": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "version",
+            "runtimeVersion",
+            "vendor",
+            "home",
+            "executableSha256",
+            "releaseFileSha256"
+          ],
+          "properties": {
+            "version": { "const": "26.0.1" },
+            "runtimeVersion": { "const": "26.0.1" },
+            "vendor": { "const": "Arch Linux" },
+            "home": { "const": "/usr/lib/jvm/java-26-openjdk" },
+            "executableSha256": {
+              "const": "0868c4200b2f78fc9e767841cc63200350303519eec74b9458031ee234e5bcb9"
+            },
+            "releaseFileSha256": {
+              "const": "4b67a4f6526d3a2d82edca270da64ac3f560fb6a1340bfbc9ad72ae08666cd44"
+            }
+          }
+        },
+        "target": { "const": "wasmJs browser production executable" },
+        "command": { "const": "scripts/build-text-gc-document-edit-wasmgc.sh" },
+        "generatedGluePatch": {
+          "const": "replace Deno-only unversioned std/path import with node:url fileURLToPath; replace browser fetch with exact pre-hashed Wasm bytes supplied by the worker"
+        }
+      }
+    },
+    "wasmFeatures": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gc", "exceptionHandling", "jsStringBuiltins", "proof", "portableGcDiagnostics"],
+      "properties": {
+        "gc": { "const": true },
+        "exceptionHandling": { "const": true },
+        "jsStringBuiltins": { "const": true },
+        "proof": { "type": "string", "minLength": 1 },
+        "portableGcDiagnostics": { "const": "unavailable" }
+      }
+    },
+    "fixtureManifest": { "$ref": "#/$defs/fixtureAnchor" },
+    "reference": { "$ref": "#/$defs/referenceAnchor" },
+    "outputs": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "prefixItems": [
+        { "$ref": "#/$defs/outputGlue" },
+        { "$ref": "#/$defs/outputImports" },
+        { "$ref": "#/$defs/outputBuiltins" },
+        { "$ref": "#/$defs/outputWasm" }
+      ],
+      "items": false
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 13,
+      "maxItems": 13,
+      "prefixItems": [
+        { "$ref": "#/$defs/sourceSettings" },
+        { "$ref": "#/$defs/sourceBuild" },
+        { "$ref": "#/$defs/sourceProperties" },
+        { "$ref": "#/$defs/sourceLock" },
+        { "$ref": "#/$defs/sourceVerification" },
+        { "$ref": "#/$defs/sourceToolchain" },
+        { "$ref": "#/$defs/sourceKotlin" },
+        { "$ref": "#/$defs/sourceJavaScript" },
+        { "$ref": "#/$defs/sourceFixtureBuilder" },
+        { "$ref": "#/$defs/sourceWasmBuilder" },
+        { "$ref": "#/$defs/sourceFinalizer" },
+        { "$ref": "#/$defs/sourceDenoConfig" },
+        { "$ref": "#/$defs/sourceDenoLock" }
+      ],
+      "items": false
+    },
+    "artifact": { "$ref": "#/$defs/outputWasm" }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "gitOid": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "anchoredPath": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "fixtureAnchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "const": "public/artifacts/text-gc-document-edit/fixture-manifest.json" },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "referenceAnchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "const": "public/artifacts/text-gc-document-edit/reference.json" },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256", "gitBlobOid"],
+      "properties": {
+        "path": {
+          "enum": [
+            "benchmarks/v1/text-gc-document-edit/kotlin/settings.gradle.kts",
+            "benchmarks/v1/text-gc-document-edit/kotlin/build.gradle.kts",
+            "benchmarks/v1/text-gc-document-edit/kotlin/gradle.properties",
+            "benchmarks/v1/text-gc-document-edit/kotlin/gradle.lockfile",
+            "benchmarks/v1/text-gc-document-edit/kotlin/gradle/verification-metadata.xml",
+            "benchmarks/v1/text-gc-document-edit/kotlin/toolchain.lock.json",
+            "benchmarks/v1/text-gc-document-edit/kotlin/src/wasmJsMain/kotlin/Main.kt",
+            "benchmarks/v1/text-gc-document-edit/workload.js",
+            "scripts/build-text-gc-document-edit-fixture.ts",
+            "scripts/build-text-gc-document-edit-wasmgc.sh",
+            "scripts/finalize-text-gc-document-edit-wasmgc.ts",
+            "deno.json",
+            "deno.lock"
+          ]
+        },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "gitBlobOid": { "$ref": "#/$defs/gitOid" }
+      }
+    },
+    "sourceSettings": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        {
+          "type": "object",
+          "properties": {
+            "path": { "const": "benchmarks/v1/text-gc-document-edit/kotlin/settings.gradle.kts" }
+          }
+        }
+      ]
+    },
+    "sourceBuild": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        {
+          "type": "object",
+          "properties": {
+            "path": { "const": "benchmarks/v1/text-gc-document-edit/kotlin/build.gradle.kts" }
+          }
+        }
+      ]
+    },
+    "sourceProperties": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        {
+          "type": "object",
+          "properties": {
+            "path": { "const": "benchmarks/v1/text-gc-document-edit/kotlin/gradle.properties" }
+          }
+        }
+      ]
+    },
+    "sourceLock": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        {
+          "type": "object",
+          "properties": {
+            "path": { "const": "benchmarks/v1/text-gc-document-edit/kotlin/gradle.lockfile" }
+          }
+        }
+      ]
+    },
+    "sourceVerification": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        {
+          "type": "object",
+          "properties": {
+            "path": {
+              "const": "benchmarks/v1/text-gc-document-edit/kotlin/gradle/verification-metadata.xml"
+            }
+          }
+        }
+      ]
+    },
+    "sourceToolchain": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        {
+          "type": "object",
+          "properties": {
+            "path": { "const": "benchmarks/v1/text-gc-document-edit/kotlin/toolchain.lock.json" }
+          }
+        }
+      ]
+    },
+    "sourceKotlin": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        {
+          "type": "object",
+          "properties": {
+            "path": {
+              "const": "benchmarks/v1/text-gc-document-edit/kotlin/src/wasmJsMain/kotlin/Main.kt"
+            }
+          }
+        }
+      ]
+    },
+    "sourceJavaScript": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        {
+          "type": "object",
+          "properties": { "path": { "const": "benchmarks/v1/text-gc-document-edit/workload.js" } }
+        }
+      ]
+    },
+    "sourceFixtureBuilder": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        {
+          "type": "object",
+          "properties": { "path": { "const": "scripts/build-text-gc-document-edit-fixture.ts" } }
+        }
+      ]
+    },
+    "sourceWasmBuilder": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        {
+          "type": "object",
+          "properties": { "path": { "const": "scripts/build-text-gc-document-edit-wasmgc.sh" } }
+        }
+      ]
+    },
+    "sourceFinalizer": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        {
+          "type": "object",
+          "properties": { "path": { "const": "scripts/finalize-text-gc-document-edit-wasmgc.ts" } }
+        }
+      ]
+    },
+    "sourceDenoConfig": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        { "type": "object", "properties": { "path": { "const": "deno.json" } } }
+      ]
+    },
+    "sourceDenoLock": {
+      "allOf": [
+        { "$ref": "#/$defs/source" },
+        { "type": "object", "properties": { "path": { "const": "deno.lock" } } }
+      ]
+    },
+    "outputGlue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "const": "public/artifacts/text-gc-document-edit/text-gc-document-edit.mjs" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "outputImports": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": {
+          "const": "public/artifacts/text-gc-document-edit/text-gc-document-edit.import-object.mjs"
+        },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "outputBuiltins": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": {
+          "const": "public/artifacts/text-gc-document-edit/text-gc-document-edit.js-builtins.mjs"
+        },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "outputWasm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "const": "public/artifacts/text-gc-document-edit/text-gc-document-edit.wasm" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.example/schemas/text-gc-document-edit-reference.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "canonicalSha256",
+    "canonicalBytes",
+    "canonical",
+    "counters",
+    "identity"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "canonicalSha256": {
+      "const": "40e55287bfd9486ef258602766e7c839e2ad77ba7f52b843117607132a6fd0c4"
+    },
+    "canonicalBytes": { "const": 7775 },
+    "canonical": { "type": "string", "minLength": 1 },
+    "counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "initial-nodes",
+        "operations",
+        "inserts",
+        "deletes",
+        "reparents",
+        "final-nodes",
+        "child-insertions",
+        "child-removals",
+        "parent-writes",
+        "node-object-allocations",
+        "child-list-allocations",
+        "label-values",
+        "traversal-nodes",
+        "boundary-crossings"
+      ],
+      "properties": {
+        "initial-nodes": { "const": 256 },
+        "operations": { "const": 10000 },
+        "inserts": { "const": 3334 },
+        "deletes": { "const": 3333 },
+        "reparents": { "const": 3333 },
+        "final-nodes": { "const": 257 },
+        "child-insertions": { "const": 6922 },
+        "child-removals": { "const": 6666 },
+        "parent-writes": { "const": 10255 },
+        "node-object-allocations": { "const": 3590 },
+        "child-list-allocations": { "const": 3590 },
+        "label-values": { "const": 3590 },
+        "traversal-nodes": { "const": 257 },
+        "boundary-crossings": { "const": 0 }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rootId",
+        "reachableNodes",
+        "uniqueNodeIds",
+        "parentChildLinksValid",
+        "orderedChildrenRetained"
+      ],
+      "properties": {
+        "rootId": { "const": 0 },
+        "reachableNodes": { "const": 257 },
+        "uniqueNodeIds": { "const": 257 },
+        "parentChildLinksValid": { "const": true },
+        "orderedChildrenRetained": { "const": true }
+      }
+    }
+  }
+}

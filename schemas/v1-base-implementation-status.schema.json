@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.example/schemas/v1-base-implementation-status.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "ledgerId", "status", "frozenCatalog", "coverage", "entries"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "ledgerId": { "const": "frozen-v1-supplemental-implementation-status" },
+    "status": { "const": "descriptive-candidate-status-not-accepted-catalog" },
+    "frozenCatalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "publicPath", "sha256", "immutable", "entryCount"],
+      "properties": {
+        "path": { "const": "catalog/workloads.v1.json" },
+        "publicPath": { "const": "public/data/workloads.v1.json" },
+        "sha256": { "const": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4" },
+        "immutable": { "const": "byte-for-byte" },
+        "entryCount": { "const": 38 }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["acceptedImplementedEntries", "denominator", "candidatePackages", "statement"],
+      "properties": {
+        "acceptedImplementedEntries": { "const": 0 },
+        "denominator": { "const": 38 },
+        "candidatePackages": { "const": 1 },
+        "statement": { "type": "string", "pattern": "0/38" }
+      }
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "registrationId",
+          "maturity",
+          "targets",
+          "fixedWork",
+          "fixture",
+          "buildManifest",
+          "records",
+          "interactiveDemo",
+          "browserEvidence"
+        ],
+        "properties": {
+          "id": { "const": "text.gc-document-edit.v1" },
+          "registrationId": { "const": "text.gc-document-edit.v1-supplemental-registration-v1" },
+          "maturity": {
+            "const": "complete-local-correctness-candidate-awaiting-browser-and-independent-review"
+          },
+          "targets": { "const": ["javascript", "wasmgc"] },
+          "fixedWork": { "$ref": "#/$defs/fixedWork" },
+          "fixture": { "$ref": "#/$defs/fixture" },
+          "buildManifest": { "$ref": "#/$defs/buildManifest" },
+          "records": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "prefixItems": [
+              { "const": "public/evidence/v1-base/text-gc-document-edit/js-controlled.json" },
+              { "const": "public/evidence/v1-base/text-gc-document-edit/wasmgc-controlled.json" }
+            ],
+            "items": false
+          },
+          "interactiveDemo": { "$ref": "#/$defs/interactiveDemo" },
+          "browserEvidence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["status", "reason"],
+            "properties": {
+              "status": { "const": "unavailable" },
+              "reason": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "fixedWork": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["initialNodes", "operations", "inserts", "deletes", "reparents"],
+      "properties": {
+        "initialNodes": { "const": 256 },
+        "operations": { "const": 10000 },
+        "inserts": { "const": 3334 },
+        "deletes": { "const": 3333 },
+        "reparents": { "const": 3333 }
+      }
+    },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "manifest", "sha256"],
+      "properties": {
+        "path": { "const": "public/artifacts/text-gc-document-edit/fixture.v1.txt" },
+        "manifest": { "const": "public/artifacts/text-gc-document-edit/fixture-manifest.json" },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "buildManifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "const": "public/artifacts/text-gc-document-edit/build-manifest.json" },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "interactiveDemo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["route", "status"],
+      "properties": {
+        "route": { "const": "/demos/text.gc-document-edit.v1/" },
+        "status": { "const": "implemented-awaiting-browser-evidence" }
+      }
+    }
+  }
+}

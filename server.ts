@@ -1518,6 +1518,30 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/artifacts/simulation-rigid-body-2d-v1/reference-checkpoints.f32le",
     "application/octet-stream",
   ]],
+["/data/v1-base-implementation-status.v1.json", [
+    "public/data/v1-base-implementation-status.v1.json",
+    "application/json; charset=utf-8",
+  ]],
+["/demos/text.gc-document-edit.v1", [
+    "public/demos/text.gc-document-edit.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+["/demos/text.gc-document-edit.v1/", [
+    "public/demos/text.gc-document-edit.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+["/text-gc-document-edit-runner.js", [
+    "public/text-gc-document-edit-runner.js",
+    "text/javascript; charset=utf-8",
+  ]],
+["/text-gc-document-edit-worker.js", [
+    "public/text-gc-document-edit-worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+["/benchmarks/v1/text-gc-document-edit/workload.js", [
+    "benchmarks/v1/text-gc-document-edit/workload.js",
+    "text/javascript; charset=utf-8",
+  ]],
 ]);
 
 for (const path of ["/demos/network.pcap-decode.v1", "/demos/network.pcap-decode.v1/"]) {
