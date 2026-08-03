@@ -25,7 +25,7 @@
     "listingSha256": "d4710e7c39cb2ed52bbd1021c9e384da83f320e3969cc1cab58b7ee94e06c031"
   },
   "schemaVersion": 1,
-  "sourceCommit": "0000000000000000000000000000000000000000",
+  "sourceCommit": "234f7797c4a9a5c2467ec4f3c18688aa339eb708",
   "status": "passed-proposal-validation",
   "structuralChecks": {
     "allEntriesListed": true,
