@@ -18,9 +18,9 @@
       "registration": "/registrations/base/crypto.file-integrity.v1.json",
       "registrationSha256": "4d0de242f341c8b4adcb33ec43073c900418b7bf6979de4f528eb92a27407722",
       "buildManifest": "/artifacts/crypto-file-integrity/build-manifest.json",
-      "buildManifestSha256": "7c0a520d5da2354e021ed4f8e93559cbbb51d144f26af96b22025ccf288cfd1d",
+      "buildManifestSha256": "142f693a8fd20175e38ebf0f2f95985fdac5de03cd2ac9a846f77a4147a20f3b",
       "validation": "/evidence/base/crypto.file-integrity.v1/validation.json",
-      "validationSha256": "53648ae71409d34e5e547da7fa84bd9c972e9dd060f1c2cb945ecc75d89d5c8f",
+      "validationSha256": "3a9bbdeaf8c38eb899b0d631ff84ece1d2eb9325dbd0286b2cd9a44c70ff5421",
       "demoRoute": "/demos/crypto.file-integrity.v1/",
       "performanceStatus": "unavailable-not-collected"
     }

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "workloadId": "crypto.file-integrity.v1",
-  "sourceRevision": "77b44e23773abca55aa1e461138c79df15dea644",
+  "sourceRevision": "800f688373bed00472fa43800ae83752e4299cb0",
   "toolchain": {
     "deno": "2.9.0",
     "clang": "22.1.8",
