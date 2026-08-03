@@ -1148,6 +1148,54 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/evidence/base-implementations/ml.numeric-kernels.v1/wasm-linear-controlled-scalar.json",
     "application/json; charset=utf-8",
   ]],
+["/demos/base/network-http2-quic-state", [
+    "public/demos/base/network-http2-quic-state/index.html",
+    "text/html; charset=utf-8",
+  ]],
+["/demos/base/network-http2-quic-state/", [
+    "public/demos/base/network-http2-quic-state/index.html",
+    "text/html; charset=utf-8",
+  ]],
+["/network-http2-quic-state-demo.js", [
+    "public/network-http2-quic-state-demo.js",
+    "text/javascript; charset=utf-8",
+  ]],
+["/network-http2-quic-state-worker.js", [
+    "public/network-http2-quic-state-worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+["/benchmarks/v1/network-http2-quic-state/engine.js", [
+    "benchmarks/v1/network-http2-quic-state/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
+["/benchmarks/v1/network-http2-quic-state/fixture.js", [
+    "benchmarks/v1/network-http2-quic-state/fixture.js",
+    "text/javascript; charset=utf-8",
+  ]],
+["/artifacts/network-http2-quic-state/network-http2-quic-state.wasm", [
+    "public/artifacts/network-http2-quic-state/network-http2-quic-state.wasm",
+    "application/wasm",
+  ]],
+["/artifacts/network-http2-quic-state/trace.bin", [
+    "public/artifacts/network-http2-quic-state/trace.bin",
+    "application/octet-stream",
+  ]],
+["/artifacts/network-http2-quic-state/expected-state.u32le", [
+    "public/artifacts/network-http2-quic-state/expected-state.u32le",
+    "application/octet-stream",
+  ]],
+["/artifacts/network-http2-quic-state/build-manifest.json", [
+    "public/artifacts/network-http2-quic-state/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+["/evidence/base-v1/network-http2-quic-state/javascript-controlled.json", [
+    "public/evidence/base-v1/network-http2-quic-state/javascript-controlled.json",
+    "application/json; charset=utf-8",
+  ]],
+["/evidence/base-v1/network-http2-quic-state/linear-wasm-controlled.json", [
+    "public/evidence/base-v1/network-http2-quic-state/linear-wasm-controlled.json",
+    "application/json; charset=utf-8",
+  ]],
 ]);
 
 for (const route of [...IMAGE_DEMO_ROUTES, ...TRADITIONAL_DEMO_ROUTES]) {

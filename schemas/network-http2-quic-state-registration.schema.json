@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.example/schemas/network-http2-quic-state-registration.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "registrationId",
+    "catalogId",
+    "catalogSha256",
+    "workloadId",
+    "status",
+    "countsTowardAcceptedCoverage",
+    "algorithmFamily",
+    "equivalenceClass",
+    "realSockets",
+    "scope",
+    "fixture",
+    "targets",
+    "oracle",
+    "counters",
+    "buildManifest",
+    "limitations"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "registrationId": { "const": "network.http2-quic-state.v1-implementation-candidate-1" },
+    "catalogId": { "const": "workload-catalog-v1" },
+    "catalogSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "workloadId": { "const": "network.http2-quic-state.v1" },
+    "status": { "const": "implementation-candidate-unreviewed" },
+    "countsTowardAcceptedCoverage": { "const": false },
+    "algorithmFamily": { "const": "protocol-fixed-frame-trace" },
+    "equivalenceClass": { "const": "conformance-equivalent" },
+    "realSockets": { "const": "excluded" },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "http2FrameTypes",
+        "hpackRepresentations",
+        "quicFrameTypes",
+        "qpackEncoderInstructions",
+        "state",
+        "errors"
+      ],
+      "properties": {
+        "http2FrameTypes": {
+          "type": "array",
+          "minItems": 6,
+          "uniqueItems": true,
+          "items": { "type": "string" }
+        },
+        "hpackRepresentations": {
+          "type": "array",
+          "minItems": 3,
+          "uniqueItems": true,
+          "items": { "type": "string" }
+        },
+        "quicFrameTypes": {
+          "type": "array",
+          "minItems": 5,
+          "uniqueItems": true,
+          "items": { "type": "string" }
+        },
+        "qpackEncoderInstructions": {
+          "type": "array",
+          "minItems": 3,
+          "uniqueItems": true,
+          "items": { "type": "string" }
+        },
+        "state": { "type": "array", "minItems": 7, "items": { "type": "string" } },
+        "errors": { "type": "array", "minItems": 6, "items": { "type": "string" } }
+      }
+    },
+    "fixture": { "type": "object" },
+    "targets": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "object" } },
+    "oracle": { "type": "object" },
+    "counters": { "type": "array", "minItems": 8, "items": { "type": "string" } },
+    "buildManifest": { "type": "string" },
+    "limitations": { "type": "array", "minItems": 3, "items": { "type": "string" } }
+  }
+}

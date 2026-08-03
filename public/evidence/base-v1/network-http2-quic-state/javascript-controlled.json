@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "recordId": "network.http2-quic-state.v1-javascript-controlled-candidate-1",
+  "workloadId": "network.http2-quic-state.v1",
+  "registrationId": "network.http2-quic-state.v1-implementation-candidate-1",
+  "status": "correctness-candidate-unreviewed",
+  "countsTowardAcceptedCoverage": false,
+  "target": "javascript",
+  "variant": "javascript-controlled",
+  "track": "controlled",
+  "source": "benchmarks/v1/network-http2-quic-state/engine.js",
+  "fixtureSha256": "064b727b817a3eb6a2c306094b7a750f26783fb6e24ed78b0898aeba90d567e1",
+  "completeOutputSha256": "f2f201a6f6478061afc6bcf881a715fa26ee5609045991b7e2e75609a823c638",
+  "oracle": "all 64 state/event words equal",
+  "errors": 0,
+  "records": 6,
+  "events": 18,
+  "fixedTrace": {
+    "http2Frames": 6,
+    "quicFrames": 6,
+    "hpackDynamicInserts": 1,
+    "qpackDynamicInserts": 1,
+    "qpackDuplicates": 1
+  },
+  "buildManifest": "/artifacts/network-http2-quic-state/build-manifest.json",
+  "limitations": ["Correctness evidence only; no browser performance corpus or timing claim."]
+}
