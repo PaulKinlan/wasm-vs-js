@@ -1,8 +1,12 @@
 {
-  "schemaVersion": 1,
-  "recordId": "numeric.polybench-panel.v1.correctness.candidate.v1",
+  "schemaVersion": 2,
+  "recordId": "numeric.polybench-panel.v1.correctness.candidate.v2",
   "workloadId": "numeric.polybench-panel.v1",
-  "status": "passed-static-and-runtime-correctness",
+  "contractId": "numeric.polybench-panel.v1-supplemental-contract-v1",
+  "repository": "https://github.com/PaulKinlan/wasm-vs-js",
+  "implementationCommit": "8f1119cbba66ae4c0907def85bbd979e770f38ac",
+  "sourceTreeSha256": "459ce78ba7432803ab89ab3aed4eacbfbccfd094cb4a535810866a2429b1942b",
+  "status": "passed-independent-complete-output-correctness",
   "targets": [
     "javascript-controlled",
     "linear-wasm-controlled"
@@ -15,90 +19,611 @@
   ],
   "completeOutputCompared": true,
   "retainedBrowserEvidence": "uncollected",
-  "sourceHashes": {
-    "contract": "3364d47248f47a9bce714a5bc79ddc647e31baccb3647ac52570f7ded7fc498b",
-    "workload": "cb0ece36e8a0d52dc6a01bf0bf8be52e524a81efbb0cc0e3d5e3f2cbe6c97889",
-    "wat": "5246130f81fdae68afd8ea562a847283360cfe3b4b316847cd60d843b0ae4d0c",
-    "frozenCatalog": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
-    "artifact": "a55a381c29923df334c25af92bb79e5e44cfdc1a9b330899c3538fac37a1b3dc"
+  "buildManifest": {
+    "file": "public/artifacts/numeric-polybench-panel/build-manifest.json",
+    "route": "/artifacts/numeric-polybench-panel/build-manifest.json"
+  },
+  "artifacts": {
+    "controlledWasm": "a55a381c29923df334c25af92bb79e5e44cfdc1a9b330899c3538fac37a1b3dc",
+    "independentReferenceWasm": "841149229d7ad2066f87ea19202772bba8dd98ba2728568ae5c90b4ba31d7db0"
   },
   "outputs": {
     "gemm": {
-      "fixtureSha256": "5d42ffb496fb48013d7e461b49836d9b8baabc4847b2d07c0f4aba5abf2e5e74",
-      "jsOutputSha256": "055c9d69c98e0ab7529a38d83e18e18d9b960c637ba77c4aec2477b14c279892",
-      "wasmOutputSha256": "055c9d69c98e0ab7529a38d83e18e18d9b960c637ba77c4aec2477b14c279892",
-      "elementCount": 500,
-      "comparison": {
-        "passed": true,
-        "violations": 0,
-        "maxAbs": 0,
-        "maxRel": 0
+      "fixture": {
+        "arrays": [
+          {
+            "name": "a",
+            "bytes": 4800,
+            "sha256": "3996c487e094f0c4df9f03cdbea624ca5bb913a9af652e719487efe69e7481a6"
+          },
+          {
+            "name": "b",
+            "bytes": 6000,
+            "sha256": "0d59c1d8057a1996ecb5800bc86e01c6d4ada6c9f3ccfa4e15a7b362f37ee9f1"
+          },
+          {
+            "name": "c",
+            "bytes": 4000,
+            "sha256": "949ecd290462201da48be70525cf8995883869205209fa3e29b975b60e4cf595"
+          }
+        ],
+        "totalBytes": 14800
       },
-      "counters": {
-        "kernels": 1,
-        "outputElements": 500,
-        "multiplyAdds": 15000,
-        "scaleMultiplications": 500,
-        "inputBytes": 14800,
-        "boundaryCrossings": 1
+      "reference": {
+        "implementation": "independent-clang-c-oracle",
+        "artifact": {
+          "file": "public/artifacts/numeric-polybench-panel/outputs/gemm.reference.f64le",
+          "route": "/artifacts/numeric-polybench-panel/outputs/gemm.reference.f64le",
+          "bytes": 4000,
+          "elements": 500,
+          "sha256": "055c9d69c98e0ab7529a38d83e18e18d9b960c637ba77c4aec2477b14c279892",
+          "format": "f64le-complete-output"
+        },
+        "checkpoints": [
+          {
+            "index": 0,
+            "valueHex": "3faeb851eb851eb8"
+          },
+          {
+            "index": 125,
+            "valueHex": "401e3d70a3d70a3d"
+          },
+          {
+            "index": 250,
+            "valueHex": "40183d70a3d70a3e"
+          },
+          {
+            "index": 499,
+            "valueHex": "4024e147ae147ae0"
+          }
+        ]
+      },
+      "targets": {
+        "javascript-controlled": {
+          "artifact": {
+            "file": "public/artifacts/numeric-polybench-panel/outputs/gemm.javascript-controlled.f64le",
+            "route": "/artifacts/numeric-polybench-panel/outputs/gemm.javascript-controlled.f64le",
+            "bytes": 4000,
+            "elements": 500,
+            "sha256": "055c9d69c98e0ab7529a38d83e18e18d9b960c637ba77c4aec2477b14c279892",
+            "format": "f64le-complete-output"
+          },
+          "comparison": {
+            "passed": true,
+            "violations": 0,
+            "maxAbs": 0,
+            "maxRel": 0
+          },
+          "structuralOracle": {
+            "passed": true,
+            "failures": []
+          },
+          "checkpoints": [
+            {
+              "index": 0,
+              "valueHex": "3faeb851eb851eb8"
+            },
+            {
+              "index": 125,
+              "valueHex": "401e3d70a3d70a3d"
+            },
+            {
+              "index": 250,
+              "valueHex": "40183d70a3d70a3e"
+            },
+            {
+              "index": 499,
+              "valueHex": "4024e147ae147ae0"
+            }
+          ],
+          "counters": {
+            "target": "javascript-controlled",
+            "boundaryCrossings": 0,
+            "wasmLinearAllocations": 0,
+            "kernels": 1,
+            "outputElements": 500,
+            "outputBytes": 4000,
+            "multiplyAdds": 15000,
+            "scaleMultiplications": 500,
+            "inputBytes": 14800,
+            "typedArrayAllocations": 4
+          }
+        },
+        "linear-wasm-controlled": {
+          "artifact": {
+            "file": "public/artifacts/numeric-polybench-panel/outputs/gemm.linear-wasm-controlled.f64le",
+            "route": "/artifacts/numeric-polybench-panel/outputs/gemm.linear-wasm-controlled.f64le",
+            "bytes": 4000,
+            "elements": 500,
+            "sha256": "055c9d69c98e0ab7529a38d83e18e18d9b960c637ba77c4aec2477b14c279892",
+            "format": "f64le-complete-output"
+          },
+          "comparison": {
+            "passed": true,
+            "violations": 0,
+            "maxAbs": 0,
+            "maxRel": 0
+          },
+          "structuralOracle": {
+            "passed": true,
+            "failures": []
+          },
+          "checkpoints": [
+            {
+              "index": 0,
+              "valueHex": "3faeb851eb851eb8"
+            },
+            {
+              "index": 125,
+              "valueHex": "401e3d70a3d70a3d"
+            },
+            {
+              "index": 250,
+              "valueHex": "40183d70a3d70a3e"
+            },
+            {
+              "index": 499,
+              "valueHex": "4024e147ae147ae0"
+            }
+          ],
+          "counters": {
+            "target": "linear-wasm-controlled",
+            "boundaryCrossings": 1,
+            "wasmLinearAllocations": 0,
+            "kernels": 1,
+            "outputElements": 500,
+            "outputBytes": 4000,
+            "multiplyAdds": 15000,
+            "scaleMultiplications": 500,
+            "inputBytes": 14800,
+            "typedArrayAllocations": 8
+          }
+        }
       }
     },
     "cholesky": {
-      "fixtureSha256": "3390fcd65779f8693f5f642b5191d8c7d336b05e415aa97b4bd2a5d6aecd59f5",
-      "jsOutputSha256": "14f43fb479b27d02ab370d472aa179abb3a0a96f540541a85b5b0617f1e2bfbf",
-      "wasmOutputSha256": "14f43fb479b27d02ab370d472aa179abb3a0a96f540541a85b5b0617f1e2bfbf",
-      "elementCount": 1600,
-      "comparison": {
-        "passed": true,
-        "violations": 0,
-        "maxAbs": 0,
-        "maxRel": 0
+      "fixture": {
+        "arrays": [
+          {
+            "name": "a",
+            "bytes": 12800,
+            "sha256": "3390fcd65779f8693f5f642b5191d8c7d336b05e415aa97b4bd2a5d6aecd59f5"
+          }
+        ],
+        "totalBytes": 12800
       },
-      "counters": {
-        "kernels": 1,
-        "outputElements": 1600,
-        "multiplySubtracts": 10660,
-        "diagonalRoots": 40,
-        "inputBytes": 12800,
-        "boundaryCrossings": 1
+      "reference": {
+        "implementation": "independent-clang-c-oracle",
+        "artifact": {
+          "file": "public/artifacts/numeric-polybench-panel/outputs/cholesky.reference.f64le",
+          "route": "/artifacts/numeric-polybench-panel/outputs/cholesky.reference.f64le",
+          "bytes": 12800,
+          "elements": 1600,
+          "sha256": "14f43fb479b27d02ab370d472aa179abb3a0a96f540541a85b5b0617f1e2bfbf",
+          "format": "f64le-complete-output"
+        },
+        "checkpoints": [
+          {
+            "index": 0,
+            "valueHex": "3ff0000000000000"
+          },
+          {
+            "index": 400,
+            "valueHex": "3ff0000000000000"
+          },
+          {
+            "index": 800,
+            "valueHex": "3ff0000000000000"
+          },
+          {
+            "index": 1599,
+            "valueHex": "3ff0000000000004"
+          }
+        ]
+      },
+      "targets": {
+        "javascript-controlled": {
+          "artifact": {
+            "file": "public/artifacts/numeric-polybench-panel/outputs/cholesky.javascript-controlled.f64le",
+            "route": "/artifacts/numeric-polybench-panel/outputs/cholesky.javascript-controlled.f64le",
+            "bytes": 12800,
+            "elements": 1600,
+            "sha256": "14f43fb479b27d02ab370d472aa179abb3a0a96f540541a85b5b0617f1e2bfbf",
+            "format": "f64le-complete-output"
+          },
+          "comparison": {
+            "passed": true,
+            "violations": 0,
+            "maxAbs": 0,
+            "maxRel": 0
+          },
+          "structuralOracle": {
+            "passed": true,
+            "failures": []
+          },
+          "checkpoints": [
+            {
+              "index": 0,
+              "valueHex": "3ff0000000000000"
+            },
+            {
+              "index": 400,
+              "valueHex": "3ff0000000000000"
+            },
+            {
+              "index": 800,
+              "valueHex": "3ff0000000000000"
+            },
+            {
+              "index": 1599,
+              "valueHex": "3ff0000000000004"
+            }
+          ],
+          "counters": {
+            "target": "javascript-controlled",
+            "boundaryCrossings": 0,
+            "wasmLinearAllocations": 0,
+            "kernels": 1,
+            "outputElements": 1600,
+            "outputBytes": 12800,
+            "multiplySubtracts": 10660,
+            "divisions": 780,
+            "diagonalRoots": 40,
+            "inputBytes": 12800,
+            "typedArrayAllocations": 3
+          }
+        },
+        "linear-wasm-controlled": {
+          "artifact": {
+            "file": "public/artifacts/numeric-polybench-panel/outputs/cholesky.linear-wasm-controlled.f64le",
+            "route": "/artifacts/numeric-polybench-panel/outputs/cholesky.linear-wasm-controlled.f64le",
+            "bytes": 12800,
+            "elements": 1600,
+            "sha256": "14f43fb479b27d02ab370d472aa179abb3a0a96f540541a85b5b0617f1e2bfbf",
+            "format": "f64le-complete-output"
+          },
+          "comparison": {
+            "passed": true,
+            "violations": 0,
+            "maxAbs": 0,
+            "maxRel": 0
+          },
+          "structuralOracle": {
+            "passed": true,
+            "failures": []
+          },
+          "checkpoints": [
+            {
+              "index": 0,
+              "valueHex": "3ff0000000000000"
+            },
+            {
+              "index": 400,
+              "valueHex": "3ff0000000000000"
+            },
+            {
+              "index": 800,
+              "valueHex": "3ff0000000000000"
+            },
+            {
+              "index": 1599,
+              "valueHex": "3ff0000000000004"
+            }
+          ],
+          "counters": {
+            "target": "linear-wasm-controlled",
+            "boundaryCrossings": 1,
+            "wasmLinearAllocations": 0,
+            "kernels": 1,
+            "outputElements": 1600,
+            "outputBytes": 12800,
+            "multiplySubtracts": 10660,
+            "divisions": 780,
+            "diagonalRoots": 40,
+            "inputBytes": 12800,
+            "typedArrayAllocations": 5
+          }
+        }
       }
     },
     "stencil": {
-      "fixtureSha256": "dcf28cc0dfda5899774be7065a9fbcdde83b337550304e42d8ba8362a91a94d7",
-      "jsOutputSha256": "4e68c9e2c139647c6a694e2adca603da3837754e2844c63e5eef292d413a21d4",
-      "wasmOutputSha256": "4e68c9e2c139647c6a694e2adca603da3837754e2844c63e5eef292d413a21d4",
-      "elementCount": 900,
-      "comparison": {
-        "passed": true,
-        "violations": 0,
-        "maxAbs": 0,
-        "maxRel": 0
+      "fixture": {
+        "arrays": [
+          {
+            "name": "a",
+            "bytes": 7200,
+            "sha256": "d6d97b8f3153407c0f65102c76df96b8fa8c649945f65a537b884fec8c52037c"
+          },
+          {
+            "name": "b",
+            "bytes": 7200,
+            "sha256": "f55648de1d5b34ca543fb8f829955f32859bc77b57b47655aa9124fe55013741"
+          }
+        ],
+        "totalBytes": 14400
       },
-      "counters": {
-        "kernels": 1,
-        "outputElements": 900,
-        "stencilPoints": 784,
-        "inputBytes": 7200,
-        "boundaryCrossings": 1
+      "reference": {
+        "implementation": "independent-clang-c-oracle",
+        "artifact": {
+          "file": "public/artifacts/numeric-polybench-panel/outputs/stencil.reference.f64le",
+          "route": "/artifacts/numeric-polybench-panel/outputs/stencil.reference.f64le",
+          "bytes": 7200,
+          "elements": 900,
+          "sha256": "4e68c9e2c139647c6a694e2adca603da3837754e2844c63e5eef292d413a21d4",
+          "format": "f64le-complete-output"
+        },
+        "checkpoints": [
+          {
+            "index": 0,
+            "valueHex": "3fb999999999999a"
+          },
+          {
+            "index": 225,
+            "valueHex": "4010222222222222"
+          },
+          {
+            "index": 450,
+            "valueHex": "3ff999999999999a"
+          },
+          {
+            "index": 899,
+            "valueHex": "403f088888888889"
+          }
+        ]
+      },
+      "targets": {
+        "javascript-controlled": {
+          "artifact": {
+            "file": "public/artifacts/numeric-polybench-panel/outputs/stencil.javascript-controlled.f64le",
+            "route": "/artifacts/numeric-polybench-panel/outputs/stencil.javascript-controlled.f64le",
+            "bytes": 7200,
+            "elements": 900,
+            "sha256": "4e68c9e2c139647c6a694e2adca603da3837754e2844c63e5eef292d413a21d4",
+            "format": "f64le-complete-output"
+          },
+          "comparison": {
+            "passed": true,
+            "violations": 0,
+            "maxAbs": 0,
+            "maxRel": 0
+          },
+          "structuralOracle": {
+            "passed": true,
+            "failures": []
+          },
+          "checkpoints": [
+            {
+              "index": 0,
+              "valueHex": "3fb999999999999a"
+            },
+            {
+              "index": 225,
+              "valueHex": "4010222222222222"
+            },
+            {
+              "index": 450,
+              "valueHex": "3ff999999999999a"
+            },
+            {
+              "index": 899,
+              "valueHex": "403f088888888889"
+            }
+          ],
+          "counters": {
+            "target": "javascript-controlled",
+            "boundaryCrossings": 0,
+            "wasmLinearAllocations": 0,
+            "kernels": 1,
+            "outputElements": 900,
+            "outputBytes": 7200,
+            "stencilPoints": 784,
+            "sampleReads": 3920,
+            "outputWrites": 784,
+            "inputBytes": 14400,
+            "typedArrayAllocations": 3
+          }
+        },
+        "linear-wasm-controlled": {
+          "artifact": {
+            "file": "public/artifacts/numeric-polybench-panel/outputs/stencil.linear-wasm-controlled.f64le",
+            "route": "/artifacts/numeric-polybench-panel/outputs/stencil.linear-wasm-controlled.f64le",
+            "bytes": 7200,
+            "elements": 900,
+            "sha256": "4e68c9e2c139647c6a694e2adca603da3837754e2844c63e5eef292d413a21d4",
+            "format": "f64le-complete-output"
+          },
+          "comparison": {
+            "passed": true,
+            "violations": 0,
+            "maxAbs": 0,
+            "maxRel": 0
+          },
+          "structuralOracle": {
+            "passed": true,
+            "failures": []
+          },
+          "checkpoints": [
+            {
+              "index": 0,
+              "valueHex": "3fb999999999999a"
+            },
+            {
+              "index": 225,
+              "valueHex": "4010222222222222"
+            },
+            {
+              "index": 450,
+              "valueHex": "3ff999999999999a"
+            },
+            {
+              "index": 899,
+              "valueHex": "403f088888888889"
+            }
+          ],
+          "counters": {
+            "target": "linear-wasm-controlled",
+            "boundaryCrossings": 1,
+            "wasmLinearAllocations": 0,
+            "kernels": 1,
+            "outputElements": 900,
+            "outputBytes": 7200,
+            "stencilPoints": 784,
+            "sampleReads": 3920,
+            "outputWrites": 784,
+            "inputBytes": 14400,
+            "typedArrayAllocations": 6
+          }
+        }
       }
     },
     "jacobi2d": {
-      "fixtureSha256": "dcf28cc0dfda5899774be7065a9fbcdde83b337550304e42d8ba8362a91a94d7",
-      "jsOutputSha256": "ab8d74d94e755eddec10c2f795efc63e5e36898938f697b4562252cf5f697681",
-      "wasmOutputSha256": "ab8d74d94e755eddec10c2f795efc63e5e36898938f697b4562252cf5f697681",
-      "elementCount": 900,
-      "comparison": {
-        "passed": true,
-        "violations": 0,
-        "maxAbs": 0,
-        "maxRel": 0
+      "fixture": {
+        "arrays": [
+          {
+            "name": "a",
+            "bytes": 7200,
+            "sha256": "d6d97b8f3153407c0f65102c76df96b8fa8c649945f65a537b884fec8c52037c"
+          },
+          {
+            "name": "b",
+            "bytes": 7200,
+            "sha256": "f55648de1d5b34ca543fb8f829955f32859bc77b57b47655aa9124fe55013741"
+          }
+        ],
+        "totalBytes": 14400
       },
-      "counters": {
-        "kernels": 1,
-        "outputElements": 900,
-        "stencilPoints": 31360,
-        "inputBytes": 7200,
-        "boundaryCrossings": 1
+      "reference": {
+        "implementation": "independent-clang-c-oracle",
+        "artifact": {
+          "file": "public/artifacts/numeric-polybench-panel/outputs/jacobi2d.reference.f64le",
+          "route": "/artifacts/numeric-polybench-panel/outputs/jacobi2d.reference.f64le",
+          "bytes": 7200,
+          "elements": 900,
+          "sha256": "ab8d74d94e755eddec10c2f795efc63e5e36898938f697b4562252cf5f697681",
+          "format": "f64le-complete-output"
+        },
+        "checkpoints": [
+          {
+            "index": 0,
+            "valueHex": "3fb1111111111111"
+          },
+          {
+            "index": 225,
+            "valueHex": "401023931776c54b"
+          },
+          {
+            "index": 450,
+            "valueHex": "3ff1111111111111"
+          },
+          {
+            "index": 899,
+            "valueHex": "403e088888888889"
+          }
+        ]
+      },
+      "targets": {
+        "javascript-controlled": {
+          "artifact": {
+            "file": "public/artifacts/numeric-polybench-panel/outputs/jacobi2d.javascript-controlled.f64le",
+            "route": "/artifacts/numeric-polybench-panel/outputs/jacobi2d.javascript-controlled.f64le",
+            "bytes": 7200,
+            "elements": 900,
+            "sha256": "ab8d74d94e755eddec10c2f795efc63e5e36898938f697b4562252cf5f697681",
+            "format": "f64le-complete-output"
+          },
+          "comparison": {
+            "passed": true,
+            "violations": 0,
+            "maxAbs": 0,
+            "maxRel": 0
+          },
+          "structuralOracle": {
+            "passed": true,
+            "failures": []
+          },
+          "checkpoints": [
+            {
+              "index": 0,
+              "valueHex": "3fb1111111111111"
+            },
+            {
+              "index": 225,
+              "valueHex": "401023931776c54b"
+            },
+            {
+              "index": 450,
+              "valueHex": "3ff1111111111111"
+            },
+            {
+              "index": 899,
+              "valueHex": "403e088888888889"
+            }
+          ],
+          "counters": {
+            "target": "javascript-controlled",
+            "boundaryCrossings": 0,
+            "wasmLinearAllocations": 0,
+            "kernels": 1,
+            "outputElements": 900,
+            "outputBytes": 7200,
+            "stencilPoints": 31360,
+            "sampleReads": 156800,
+            "outputWrites": 31360,
+            "inputBytes": 14400,
+            "typedArrayAllocations": 4
+          }
+        },
+        "linear-wasm-controlled": {
+          "artifact": {
+            "file": "public/artifacts/numeric-polybench-panel/outputs/jacobi2d.linear-wasm-controlled.f64le",
+            "route": "/artifacts/numeric-polybench-panel/outputs/jacobi2d.linear-wasm-controlled.f64le",
+            "bytes": 7200,
+            "elements": 900,
+            "sha256": "ab8d74d94e755eddec10c2f795efc63e5e36898938f697b4562252cf5f697681",
+            "format": "f64le-complete-output"
+          },
+          "comparison": {
+            "passed": true,
+            "violations": 0,
+            "maxAbs": 0,
+            "maxRel": 0
+          },
+          "structuralOracle": {
+            "passed": true,
+            "failures": []
+          },
+          "checkpoints": [
+            {
+              "index": 0,
+              "valueHex": "3fb1111111111111"
+            },
+            {
+              "index": 225,
+              "valueHex": "401023931776c54b"
+            },
+            {
+              "index": 450,
+              "valueHex": "3ff1111111111111"
+            },
+            {
+              "index": 899,
+              "valueHex": "403e088888888889"
+            }
+          ],
+          "counters": {
+            "target": "linear-wasm-controlled",
+            "boundaryCrossings": 1,
+            "wasmLinearAllocations": 0,
+            "kernels": 1,
+            "outputElements": 900,
+            "outputBytes": 7200,
+            "stencilPoints": 31360,
+            "sampleReads": 156800,
+            "outputWrites": 31360,
+            "inputBytes": 14400,
+            "typedArrayAllocations": 6
+          }
+        }
       }
     }
   },
