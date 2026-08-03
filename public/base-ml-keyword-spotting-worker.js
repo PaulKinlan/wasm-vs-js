@@ -70,6 +70,10 @@ async function exactContract() {
       "benchmarks/base/ml-keyword-spotting/speech-commands-subset.v1.json",
       "/artifacts/base-ml-keyword-spotting/fixture-manifest.json",
     ],
+    [
+      "benchmarks/base/ml-keyword-spotting/model-checkpoint.v1.json",
+      "/artifacts/base-ml-keyword-spotting/model-checkpoint.v1.json",
+    ],
   ]);
   for (const source of registration.json.sourceGraph) {
     const route = served.get(source.path);
@@ -95,12 +99,12 @@ self.addEventListener("message", async (event) => {
   const { token, target, mode, files } = event.data;
   try {
     if (!["both", "javascript", "wasm-linear"].includes(target)) throw new Error("unknown target");
-    if (!["default", "exact"].includes(mode)) throw new Error("unknown mode");
+    if (mode !== "exact") throw new Error("only exact mode is available");
     self.postMessage({ token, type: "progress", phase: "contract", hops: 0 });
     const fixture = await fetchJsonBytes(
       "/artifacts/base-ml-keyword-spotting/fixture-manifest.json",
     );
-    const exact = mode === "exact" ? await exactContract() : null;
+    const exact = await exactContract();
     const bySuffix = new Map();
     for (const selected of files) {
       const normalizedPath = selected.path.replaceAll("\\", "/");
@@ -137,23 +141,31 @@ self.addEventListener("message", async (event) => {
     });
     if (target === "both" || target === "javascript") results.javascript = runJavaScript(pcm);
     if (target === "both" || target === "wasm-linear") {
-      const artifact = exact?.artifact ??
-        await fetchBytes("/artifacts/base-ml-keyword-spotting/keyword-spotting.wasm");
-      results.wasm = runWasm(await instantiateWasm(artifact), pcm);
+      results.wasm = runWasm(await instantiateWasm(exact.artifact), pcm);
     }
     if (results.javascript && results.wasm) assertEquivalent(results.javascript, results.wasm);
     const selectedResult = results.javascript ?? results.wasm;
-    const hashes = {
-      features: await typedHash(selectedResult.features),
-      scores: await typedHash(selectedResult.scores),
-      detections: await typedHash(selectedResult.detections),
-    };
-    const oracle = exact?.output.outputs;
-    if (oracle) {
+    const resultHashes = {};
+    for (const [resultTarget, value] of Object.entries(results)) {
+      const hashes = {
+        features: await typedHash(value.features),
+        scores: await typedHash(value.scores),
+        detections: await typedHash(value.detections),
+      };
       for (const name of Object.keys(hashes)) {
-        if (hashes[name] !== oracle[name].sha256) throw new Error(`${name} oracle hash mismatch`);
+        if (hashes[name] !== exact.output.outputs[name].sha256) {
+          throw new Error(`${resultTarget} ${name} oracle hash mismatch`);
+        }
       }
+      const variant = resultTarget === "javascript" ? "js-controlled" : "wasm-linear-controlled";
+      if (
+        JSON.stringify(value.counters) !== JSON.stringify(exact.output.variants[variant].counters)
+      ) {
+        throw new Error(`${resultTarget} counter oracle mismatch`);
+      }
+      resultHashes[resultTarget] = hashes;
     }
+    const hashes = resultHashes.javascript ?? resultHashes.wasm;
     self.postMessage({ token, type: "progress", phase: "validated", hops: 3000 });
     self.postMessage({
       token,
@@ -166,6 +178,9 @@ self.addEventListener("message", async (event) => {
         detections: selectedResult.detections.length / 3,
         jsCounters: results.javascript?.counters ?? null,
         wasmCounters: results.wasm?.counters ?? null,
+        tensorsValidated: true,
+        detectionsValidated: true,
+        countersValidated: true,
         crossTargetExact: Boolean(results.javascript && results.wasm),
       },
     });

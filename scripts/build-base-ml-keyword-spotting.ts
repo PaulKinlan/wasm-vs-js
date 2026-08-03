@@ -6,7 +6,7 @@ import {
   runWasm,
   sha256Hex,
 } from "../benchmarks/base/ml-keyword-spotting/engine.js";
-import { generateKeywordSpottingConstants } from "../benchmarks/base/ml-keyword-spotting/generate-constants.ts";
+import C from "../benchmarks/base/ml-keyword-spotting/constants.v1.js";
 
 const root = new URL("../", import.meta.url);
 const sourceCommit = Deno.args.find((value) => value.startsWith("--source-commit="))?.slice(16) ??
@@ -21,13 +21,16 @@ const fixtureManifest = JSON.parse(
     new URL("benchmarks/base/ml-keyword-spotting/speech-commands-subset.v1.json", root),
   ),
 );
-const committedConstants = JSON.parse(
+const checkpoint = JSON.parse(
   await Deno.readTextFile(
-    new URL("benchmarks/base/ml-keyword-spotting/constants.v1.json", root),
+    new URL("benchmarks/base/ml-keyword-spotting/model-checkpoint.v1.json", root),
   ),
 );
-if (JSON.stringify(generateKeywordSpottingConstants()) !== JSON.stringify(committedConstants)) {
-  throw new Error("committed model/preprocessing constants do not match the pinned generator");
+if (JSON.stringify(C.layers) !== JSON.stringify(checkpoint.layers)) {
+  throw new Error("committed runtime model does not match the trained checkpoint");
+}
+if (JSON.stringify(C.normalizationLookupI8) !== JSON.stringify(checkpoint.normalizationLookupI8)) {
+  throw new Error("committed normalization does not match the trained checkpoint");
 }
 const pcmBytes = await Deno.readFile(pcmPath);
 if (pcmBytes.length !== CONTRACT.samples * 2) throw new Error(`PCM byte length ${pcmBytes.length}`);
@@ -87,9 +90,6 @@ try {
     "--export=scores_ptr",
     "--export=detections_ptr",
     "--export=detection_count",
-    "--export=hop_count",
-    "--export=feature_count",
-    "--export=class_count",
     "--export=run",
     "--initial-memory=4194304",
     "--max-memory=4194304",
@@ -126,20 +126,28 @@ const outputs = {
 };
 const sourcePaths = [
   "benchmarks/base/ml-keyword-spotting/engine.js",
-  "benchmarks/base/ml-keyword-spotting/generate-constants.ts",
+  "benchmarks/base/ml-keyword-spotting/model-checkpoint.v1.json",
+  "benchmarks/base/ml-keyword-spotting/MODEL.md",
   "benchmarks/base/ml-keyword-spotting/constants.v1.js",
-  "benchmarks/base/ml-keyword-spotting/constants.v1.json",
   "benchmarks/base/ml-keyword-spotting/constants.v1.h",
   "benchmarks/base/ml-keyword-spotting/keyword-spotting.c",
   "benchmarks/base/ml-keyword-spotting/speech-commands-subset.v1.json",
   "benchmarks/base/ml-keyword-spotting/implementation-contract.v1.json",
   "benchmarks/base/ml-keyword-spotting/RIGHTS.md",
   "scripts/acquire-base-ml-keyword-spotting.ts",
+  "scripts/generate-base-ml-keyword-spotting-constants.ts",
+  "scripts/prepare-base-ml-keyword-spotting-training.ts",
+  "scripts/train-base-ml-keyword-spotting.py",
+  "scripts/quantize-base-ml-keyword-spotting.py",
   "scripts/build-base-ml-keyword-spotting.ts",
   "public/benchmarks/ml-keyword-spotting-v1/index.html",
   "public/base-ml-keyword-spotting-demo.js",
   "public/base-ml-keyword-spotting-worker.js",
   "tests/base/ml-keyword-spotting.test.ts",
+  "schemas/base-ml-keyword-spotting-fixture.schema.json",
+  "schemas/base-ml-keyword-spotting-contract.schema.json",
+  "schemas/base-ml-keyword-spotting-registration.schema.json",
+  "schemas/base-ml-keyword-spotting-output.schema.json",
   "server.ts",
   "catalog/workloads.v1.json",
   "public/data/workloads.v1.json",
@@ -160,13 +168,20 @@ for (const path of sourcePaths) {
 }
 const catalogBytes = await Deno.readFile(new URL("catalog/workloads.v1.json", root));
 const registration = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   workloadId: CONTRACT.workloadId,
   status: "proposal-validation-complete",
   frozenCatalog: {
     path: "catalog/workloads.v1.json",
     sha256: await sha256Hex(catalogBytes),
     immutability: "byte-for-byte",
+  },
+  model: {
+    checkpointPath: "benchmarks/base/ml-keyword-spotting/model-checkpoint.v1.json",
+    trainingRecipe: "scripts/train-base-ml-keyword-spotting.py",
+    license: "MIT",
+    quantizedValidationAccuracy: checkpoint.accuracy.quantizedValidation,
+    validationExamples: checkpoint.accuracy.validationExamples,
   },
   fixture: {
     manifestPath: "benchmarks/base/ml-keyword-spotting/speech-commands-subset.v1.json",
@@ -233,7 +248,7 @@ await Deno.writeTextFile(
   `${
     JSON.stringify(
       {
-        schemaVersion: 1,
+        schemaVersion: 2,
         workloadId: CONTRACT.workloadId,
         fixtureSha256: fixtureManifest.normalizedPcmSha256,
         outputs,

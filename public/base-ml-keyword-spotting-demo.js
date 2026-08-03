@@ -54,7 +54,7 @@ form.addEventListener("submit", async (event) => {
     if (message.data.type === "complete") {
       result.textContent = JSON.stringify(message.data.result, null, 2);
       progress.value = 3000;
-      stop("Complete. Exact output and work validation passed.");
+      stop("Complete. Exact tensors, detections, and work counters validated.");
       return;
     }
     if (message.data.type === "error") {

@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "workloadId",
+    "catalogVersion",
+    "status",
+    "track",
+    "fixture",
+    "fixedWork",
+    "preprocessing",
+    "model",
+    "accuracy",
+    "numericPolicy",
+    "variants",
+    "audioScheduling",
+    "performanceClaims"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 2 },
+    "workloadId": { "const": "ml.keyword-spotting.v1" },
+    "catalogVersion": { "const": 1 },
+    "status": { "const": "implementation-candidate" },
+    "track": { "const": "controlled-a" },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "distribution", "sampleRate", "samples", "seconds", "manifest"],
+      "properties": {
+        "id": { "type": "string" },
+        "distribution": { "const": "recipe-only" },
+        "sampleRate": { "const": 16000 },
+        "samples": { "const": 960000 },
+        "seconds": { "const": 60 },
+        "manifest": { "type": "string" }
+      }
+    },
+    "fixedWork": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hops",
+        "hopSamples",
+        "windowSamples",
+        "fftSize",
+        "mfccCoefficients",
+        "contextFrames",
+        "model",
+        "classes"
+      ],
+      "properties": {
+        "hops": { "const": 3000 },
+        "hopSamples": { "const": 320 },
+        "windowSamples": { "const": 480 },
+        "fftSize": { "const": 512 },
+        "mfccCoefficients": { "const": 10 },
+        "contextFrames": { "const": 49 },
+        "model": { "type": "string" },
+        "classes": {
+          "type": "array",
+          "minItems": 12,
+          "maxItems": 12,
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "preprocessing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resample", "normalization", "window", "fft", "spectralFeatures", "mfcc"],
+      "properties": {
+        "resample": { "type": "string" },
+        "normalization": { "type": "string" },
+        "window": { "type": "string" },
+        "fft": { "type": "string" },
+        "spectralFeatures": { "type": "string" },
+        "mfcc": { "type": "string" }
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "family",
+        "checkpoint",
+        "trainingRecipe",
+        "trainingSeed",
+        "inputShape",
+        "channels",
+        "classes",
+        "licenseSpdx",
+        "operatorOrder",
+        "quantization",
+        "referenceRelationship"
+      ],
+      "properties": {
+        "family": { "const": "dscnn-fixed-preprocess-model" },
+        "checkpoint": { "type": "string" },
+        "trainingRecipe": { "type": "string" },
+        "trainingSeed": { "type": "string" },
+        "inputShape": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "type": "integer" }
+        },
+        "channels": { "const": 8 },
+        "classes": { "const": 12 },
+        "licenseSpdx": { "const": "MIT" },
+        "operatorOrder": {
+          "type": "array",
+          "minItems": 11,
+          "maxItems": 11,
+          "items": { "type": "string" }
+        },
+        "quantization": { "type": "string" },
+        "referenceRelationship": { "type": "string" }
+      }
+    },
+    "accuracy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "corpus",
+        "trainingExamples",
+        "validationExamples",
+        "floatValidation",
+        "quantizedValidation",
+        "claimScope"
+      ],
+      "properties": {
+        "corpus": { "type": "string" },
+        "trainingExamples": { "const": 3930 },
+        "validationExamples": { "const": 960 },
+        "floatValidation": { "type": "number" },
+        "quantizedValidation": { "type": "number" },
+        "claimScope": { "type": "string" }
+      }
+    },
+    "numericPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["crossTarget", "idealReference", "nonfinite"],
+      "properties": {
+        "crossTarget": { "type": "string" },
+        "idealReference": { "type": "string" },
+        "nonfinite": { "type": "string" }
+      }
+    },
+    "variants": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "target"],
+        "properties": {
+          "id": { "type": "string" },
+          "target": { "enum": ["javascript", "wasm-linear"] }
+        }
+      }
+    },
+    "audioScheduling": { "type": "string" },
+    "performanceClaims": { "type": "array", "maxItems": 0 }
+  }
+}

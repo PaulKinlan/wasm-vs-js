@@ -4,4 +4,4 @@ The benchmark does not redistribute Speech Commands audio. The committed manifes
 
 Dataset attribution: Pete Warden, “Speech Commands: A Dataset for Limited-Vocabulary Speech Recognition,” 2018. TensorFlow describes the dataset under Creative Commons Attribution 4.0. This repository keeps the frozen v1 catalog's conservative `recipe-only` distribution rule.
 
-The controlled DS-CNN model uses project-generated weights and authored implementations. MLPerf Tiny is cited as methodology prior art under Apache-2.0; no MLPerf source or weights are copied.
+The controlled DS-CNN checkpoint is independently trained by this project with the committed recipes and released under the repository's MIT license. Its architecture follows the MLPerf Tiny keyword-spotting layer family, cited as Apache-2.0 methodology prior art. No upstream MLPerf source, checkpoint, or reported accuracy is copied or claimed; see `MODEL.md` for the exact split, versions, and measured project accuracy.

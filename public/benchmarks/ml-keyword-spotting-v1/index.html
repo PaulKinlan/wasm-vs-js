@@ -21,7 +21,7 @@
           id="target"><option value="both">JavaScript and linear Wasm</option><option value="javascript">JavaScript</option><option value="wasm-linear">Linear Wasm</option></select>
         <label for="mode">Validation mode</label>
         <select
-          id="mode"><option value="exact">Exact contract</option><option value="default">Output contract</option></select>
+          id="mode"><option value="exact">Exact tensors, detections, and counters</option></select>
         <label for="files">Speech Commands test-set directory</label>
         <input id="files" type="file" webkitdirectory multiple required
           aria-describedby="file-help">
@@ -35,7 +35,7 @@
       <progress id="progress" max="3000" value="0"><span>0 of 3000 hops</span></progress>
       <pre id="result" tabindex="0">No result yet.</pre>
       <h2>What runs</h2>
-      <p>Both targets perform the complete fixed-point Hann, 512-point FFT, log-band MFCC, depthwise-separable convolution and detection pipeline for all 3,000 hops. Exact mode verifies raw manifest, source and artifact bytes before computation.</p>
+      <p>Both targets perform the complete fixed-point Hann, 512-point FFT, ten-coefficient feature pipeline, trained 49×10 DS-CNN, and stable detection policy for all 3,000 hops. Every run verifies the raw manifest, checkpoint, source, artifact, complete tensors, detections, and target-specific work counters.</p>
     </main>
     <script type="module" src="/base-ml-keyword-spotting-demo.js"></script>
   </body>
