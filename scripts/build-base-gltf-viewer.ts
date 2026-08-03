@@ -258,6 +258,12 @@ const fixtureManifest = {
     license: "Apache-2.0",
     javascriptTarget: "Emscripten asm.js decoder",
     wasmTarget: "Emscripten linear-Wasm decoder",
+    upstream: {
+      javascriptSha256: "ea66fdedab5c974050c67aaa86d795cecf9c70aa53b0ddb318b1979f1e1c5be1",
+      wasmWrapperSha256: "8bb2952d2ba7d67e1414f8df819410cb0434a666be53f671fff75f68843d76f6",
+      wasmPayloadSha256: "712db3449ae2041d6e8a224c395bda6cedb49e51322fae38b7db9beb8b381889",
+      localJavaScriptFilesAddOnlyDenoLintDirective: true,
+    },
   },
   textureDerivation: {
     sourceSha256: "385dce948c3b9e8bc93e1c930d796e72b02cbd474b121a160d577de95ebbb48f",

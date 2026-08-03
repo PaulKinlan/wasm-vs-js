@@ -1,3 +1,4 @@
+// deno-lint-ignore-file -- pinned third-party Draco 1.5.7 generated payload
 
 var DracoDecoderModule = (() => {
   var _scriptDir = typeof document !== 'undefined' && document.currentScript ? document.currentScript.src : undefined;
