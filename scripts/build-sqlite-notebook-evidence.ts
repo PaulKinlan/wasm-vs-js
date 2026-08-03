@@ -182,6 +182,7 @@ for (
       imports: 3,
       importedRows: 4192,
       queries: 8,
+      scans: 14,
       joins: 6,
       groups: 6,
       windows: 2,

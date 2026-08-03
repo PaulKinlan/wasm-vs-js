@@ -22,15 +22,15 @@
       "id": "contract",
       "source": "benchmarks/base/sqlite-notebook/contract.js",
       "path": "/benchmarks/base/sqlite-notebook/contract.js",
-      "bytes": 5025,
-      "sha256": "2037fedf68b05a30064867aaf45f95a80fd8325f0ca8a6f339f1d8147de475f8"
+      "bytes": 5038,
+      "sha256": "2ca221627a4d3e54526b3ceda08ba3a2bb0b40ec578b1f2b61d61c43de22e820"
     },
     {
       "id": "engine",
       "source": "benchmarks/base/sqlite-notebook/engine.js",
       "path": "/benchmarks/base/sqlite-notebook/engine.js",
-      "bytes": 6202,
-      "sha256": "623b844145237c77f1530982ef46a1eae13707360197dac3d77436925dc9f76b"
+      "bytes": 7722,
+      "sha256": "c8fea7c7b526fd0fcff5413b6af5041550a88cc1762fd51e3ec0dae5d6dac883"
     },
     {
       "id": "javascript-engine",

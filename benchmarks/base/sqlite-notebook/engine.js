@@ -110,78 +110,144 @@ export async function canonicalResults(results) {
   return { canonical, sha256: await sha256Text(canonical) };
 }
 
-export async function runAlaSql(alasql, fixture, selectedQueryId = null) {
-  assertContract();
-  const db = new alasql.Database(`sqlite_notebook_${crypto.randomUUID()}`);
-  for (const statement of SCHEMA) db.exec(statement);
-  for (const statement of INDEXES) db.exec(statement);
+function createCounterLedger(boundaryCrossings) {
+  return {
+    imports: 0,
+    "imported-rows": 0,
+    queries: 0,
+    scans: 0,
+    joins: 0,
+    groups: 0,
+    windows: 0,
+    sorts: 0,
+    allocations: 1,
+    "boundary-crossings": boundaryCrossings,
+  };
+}
+
+function recordSchemaAndImports(counters, fixture, executeSchema, executeIndex, executeInsert) {
+  for (const statement of SCHEMA) {
+    executeSchema(statement);
+    counters.allocations++;
+  }
+  for (const statement of INDEXES) {
+    executeIndex(statement);
+    counters.allocations++;
+  }
   for (const table of IMPORT_ORDER) {
     const statement = insertSql(table);
-    for (const row of fixture[table]) db.exec(statement, row);
+    counters.imports++;
+    counters.allocations++;
+    for (const row of fixture[table]) {
+      executeInsert(statement, row);
+      counters["imported-rows"]++;
+    }
   }
+}
+
+function recordQuery(counters, query) {
+  const joins = query.features.reduce(
+    (count, feature) => count + (feature === "join" ? 1 : feature === "two-joins" ? 2 : 0),
+    0,
+  );
+  counters.queries++;
+  counters.scans += 1 + joins;
+  counters.joins += joins;
+  counters.groups += query.features.includes("group-by") ? 1 : 0;
+  counters.windows += query.features.some((feature) => feature.startsWith("window-")) ? 1 : 0;
+  counters.sorts += query.features.includes("sort") ? 1 : 0;
+}
+
+function assertFullCounters(counters, selectedQueryId) {
+  if (selectedQueryId !== null) return;
+  const expected = {
+    imports: EXPECTED_COUNTERS.imports,
+    "imported-rows": EXPECTED_COUNTERS.importedRows,
+    queries: EXPECTED_COUNTERS.queries,
+    scans: EXPECTED_COUNTERS.scans,
+    joins: EXPECTED_COUNTERS.joins,
+    groups: EXPECTED_COUNTERS.groups,
+    windows: EXPECTED_COUNTERS.windows,
+    sorts: EXPECTED_COUNTERS.sorts,
+    allocations: EXPECTED_COUNTERS.allocations,
+  };
+  for (const [name, value] of Object.entries(expected)) {
+    if (counters[name] !== value) throw new Error(`${name} counter mismatch`);
+  }
+}
+
+export async function runAlaSql(alasql, fixture, selectedQueryId = null) {
+  assertContract();
+  const counters = createCounterLedger(0);
+  const db = new alasql.Database(`sqlite_notebook_${crypto.randomUUID()}`);
+  recordSchemaAndImports(
+    counters,
+    fixture,
+    (statement) => db.exec(statement),
+    (statement) => db.exec(statement),
+    (statement, row) => db.exec(statement, row),
+  );
   const selected = selectedQueryId
     ? QUERIES.filter((query) => query.id === selectedQueryId)
     : QUERIES;
   if (selected.length === 0) throw new Error(`Unknown query: ${selectedQueryId}`);
-  const results = selected.map(({ id, sql }) => ({ id, rows: canonicalizeRows(db.exec(sql)) }));
+  counters.allocations++;
+  const results = selected.map(({ id, sql, ...query }) => {
+    const contract = { id, sql, ...query };
+    recordQuery(counters, contract);
+    return { id, rows: canonicalizeRows(db.exec(sql)) };
+  });
+  assertFullCounters(counters, selectedQueryId);
   const output = await canonicalResults(results);
   return {
     variant: "javascript-controlled",
     engine: PRODUCT_CONFIG["javascript-controlled"],
     results,
     ...output,
-    counters: makeCounters(selected, 0),
+    counters,
   };
 }
 
 export async function runSqlite(sqlite3, fixture, selectedQueryId = null) {
   assertContract();
+  const counters = createCounterLedger(2);
   const db = new sqlite3.oo1.DB(":memory:", "c");
   try {
     for (const statement of PRODUCT_CONFIG["linear-wasm-controlled"].pragmas) db.exec(statement);
-    for (const statement of SCHEMA) db.exec(statement);
-    for (const statement of INDEXES) db.exec(statement);
     db.exec("BEGIN");
-    for (const table of IMPORT_ORDER) {
-      const statement = insertSql(table);
-      for (const row of fixture[table]) db.exec({ sql: statement, bind: row });
-    }
+    recordSchemaAndImports(
+      counters,
+      fixture,
+      (statement) => db.exec(statement),
+      (statement) => db.exec(statement),
+      (statement, row) => db.exec({ sql: statement, bind: row }),
+    );
     db.exec("COMMIT");
     const selected = selectedQueryId
       ? QUERIES.filter((query) => query.id === selectedQueryId)
       : QUERIES;
     if (selected.length === 0) throw new Error(`Unknown query: ${selectedQueryId}`);
-    const results = selected.map(({ id, sql }) => ({
-      id,
-      rows: canonicalizeRows(db.exec({ sql, rowMode: "object", returnValue: "resultRows" })),
-    }));
+    counters.allocations++;
+    const results = selected.map(({ id, sql, ...query }) => {
+      const contract = { id, sql, ...query };
+      recordQuery(counters, contract);
+      return {
+        id,
+        rows: canonicalizeRows(
+          db.exec({ sql, rowMode: "object", returnValue: "resultRows" }),
+        ),
+      };
+    });
+    assertFullCounters(counters, selectedQueryId);
     const output = await canonicalResults(results);
     return {
       variant: "linear-wasm-controlled",
       engine: PRODUCT_CONFIG["linear-wasm-controlled"],
       results,
       ...output,
-      counters: makeCounters(selected, 2),
+      counters,
     };
   } finally {
     db.close();
   }
-}
-
-function makeCounters(selected, boundaryCrossings) {
-  const features = selected.flatMap((query) => query.features);
-  return {
-    imports: EXPECTED_COUNTERS.imports,
-    "imported-rows": EXPECTED_COUNTERS.importedRows,
-    queries: selected.length,
-    joins: features.reduce(
-      (count, feature) => count + (feature === "join" ? 1 : feature === "two-joins" ? 2 : 0),
-      0,
-    ),
-    groups: features.filter((feature) => feature === "group-by").length,
-    windows: features.filter((feature) => feature.startsWith("window-")).length,
-    sorts: features.filter((feature) => feature === "sort").length,
-    allocations: EXPECTED_COUNTERS.allocations,
-    "boundary-crossings": boundaryCrossings,
-  };
 }

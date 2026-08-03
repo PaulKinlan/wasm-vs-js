@@ -93,6 +93,7 @@ export const EXPECTED_COUNTERS = Object.freeze({
   imports: 3,
   importedRows: COUNTS.customers + COUNTS.products + COUNTS.sales,
   queries: 8,
+  scans: 14,
   joins: 6,
   groups: 6,
   windows: 2,

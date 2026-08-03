@@ -38,6 +38,7 @@
       "imports",
       "imported-rows",
       "queries",
+      "scans",
       "joins",
       "groups",
       "windows",

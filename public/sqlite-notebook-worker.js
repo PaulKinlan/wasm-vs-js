@@ -1,4 +1,4 @@
-const RUNTIME_MANIFEST_SHA256 = "72ad971a2b715c1279484fd2a06f396fbbf877e540d3737dcc45432535cd4b03";
+const RUNTIME_MANIFEST_SHA256 = "ceba42bf50089808e5e5dab6713c74fefb8193c2a3d256f597f4d20507060620";
 
 async function sha256(bytes) {
   return [...new Uint8Array(await crypto.subtle.digest("SHA-256", bytes))]
