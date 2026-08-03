@@ -1,0 +1,555 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.ai-focus.dev/schemas/v1-json-telemetry-browser-evidence.v1.json",
+  "title": "serialization.json-telemetry.v1 owned Chrome browser evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "workload",
+    "evidenceId",
+    "collectedAt",
+    "source",
+    "collector",
+    "browser",
+    "server",
+    "scenarios",
+    "cleanup"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "workload": { "const": "serialization.json-telemetry.v1" },
+    "evidenceId": {
+      "type": "string",
+      "pattern": "^serialization-json-telemetry-browser-[a-f0-9]{12}$"
+    },
+    "collectedAt": { "type": "string", "format": "date-time" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commit", "tree", "root", "cleanStatus"],
+      "properties": {
+        "commit": { "$ref": "#/$defs/gitIdentity" },
+        "tree": { "$ref": "#/$defs/gitIdentity" },
+        "root": { "type": "string", "pattern": "^/" },
+        "cleanStatus": { "const": "clean" }
+      }
+    },
+    "collector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["script", "scriptBytes", "scriptSha256", "command", "denoVersion"],
+      "properties": {
+        "script": { "const": "scripts/collect-v1-json-telemetry-browser-evidence.ts" },
+        "scriptBytes": { "type": "integer", "minimum": 1 },
+        "scriptSha256": { "$ref": "#/$defs/sha256" },
+        "command": {
+          "type": "array",
+          "minItems": 4,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "denoVersion": { "type": "string", "minLength": 1 }
+      }
+    },
+    "browser": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "product",
+        "revision",
+        "userAgent",
+        "jsVersion",
+        "executable",
+        "executableBytes",
+        "executableSha256",
+        "launchArguments",
+        "effectiveArguments",
+        "headless",
+        "protocol",
+        "profile",
+        "cgroup",
+        "processes"
+      ],
+      "properties": {
+        "product": {
+          "type": "string",
+          "pattern": "^(Google Chrome|Chrome|Chromium)/[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "revision": { "type": "string", "minLength": 1 },
+        "userAgent": { "type": "string", "minLength": 1 },
+        "jsVersion": { "type": "string", "minLength": 1 },
+        "executable": { "type": "string", "pattern": "^/" },
+        "executableBytes": { "type": "integer", "minimum": 1 },
+        "executableSha256": { "$ref": "#/$defs/sha256" },
+        "launchArguments": {
+          "type": "array",
+          "minItems": 14,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "effectiveArguments": {
+          "type": "array",
+          "minItems": 14,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "headless": { "const": true },
+        "protocol": { "const": "Chrome DevTools Protocol" },
+        "profile": { "type": "string", "pattern": "^/tmp/wasm-json-telemetry-chrome-" },
+        "cgroup": { "$ref": "#/$defs/cgroupIdentity" },
+        "processes": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/processIdentity" }
+        }
+      }
+    },
+    "server": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin", "mode", "launcher"],
+      "properties": {
+        "origin": { "type": "string", "pattern": "^http://127\\.0\\.0\\.1:[0-9]+$" },
+        "mode": { "const": "public" },
+        "launcher": { "$ref": "#/$defs/processIdentity" }
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 9,
+      "maxItems": 9,
+      "items": { "$ref": "#/$defs/scenario" }
+    },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["browserProcesses", "cgroup", "profile", "server"],
+      "properties": {
+        "browserProcesses": { "$ref": "#/$defs/cleanupCheck" },
+        "cgroup": { "$ref": "#/$defs/cleanupCheck" },
+        "profile": { "$ref": "#/$defs/cleanupCheck" },
+        "server": { "$ref": "#/$defs/cleanupCheck" }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "gitIdentity": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "processIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pid", "parentPid", "startTimeTicks", "executable"],
+      "properties": {
+        "pid": { "type": "integer", "minimum": 2 },
+        "parentPid": { "type": "integer", "minimum": 0 },
+        "startTimeTicks": { "type": "string", "pattern": "^[0-9]+$" },
+        "executable": { "type": "string", "pattern": "^/" }
+      }
+    },
+    "cgroupIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit",
+        "controlGroup",
+        "path",
+        "device",
+        "inode",
+        "invocationId",
+        "mainPid",
+        "memberSnapshots"
+      ],
+      "properties": {
+        "unit": { "type": "string", "pattern": "^wasm-json-telemetry-[a-f0-9]{16}\\.service$" },
+        "controlGroup": { "type": "string", "pattern": "^/" },
+        "path": { "type": "string", "pattern": "^/sys/fs/cgroup/" },
+        "device": { "type": "integer", "minimum": 1 },
+        "inode": { "type": "integer", "minimum": 1 },
+        "invocationId": { "type": "string", "pattern": "^[a-f0-9]{32}$" },
+        "mainPid": { "type": "integer", "minimum": 2 },
+        "memberSnapshots": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["at", "pids"],
+            "properties": {
+              "at": { "type": "string", "format": "date-time" },
+              "pids": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": { "type": "integer", "minimum": 2 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "cleanupCheck": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["outcome", "checkedAt", "remaining"],
+          "properties": {
+            "outcome": { "const": "success" },
+            "checkedAt": { "type": "string", "format": "date-time" },
+            "remaining": { "type": "array", "maxItems": 0 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["outcome", "checkedAt", "remaining", "error"],
+          "properties": {
+            "outcome": { "const": "failure" },
+            "checkedAt": { "type": "string", "format": "date-time" },
+            "remaining": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "error": { "type": "string", "minLength": 1 }
+          }
+        }
+      ]
+    },
+    "consoleEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "arguments", "timestamp"],
+      "properties": {
+        "type": { "type": "string", "minLength": 1 },
+        "arguments": { "type": "array", "items": { "type": "string" } },
+        "timestamp": { "type": "number", "minimum": 0 }
+      }
+    },
+    "exceptionEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "lineNumber", "columnNumber"],
+      "properties": {
+        "text": { "type": "string", "minLength": 1 },
+        "lineNumber": { "type": "integer", "minimum": 0 },
+        "columnNumber": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "rawBody": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "bytes", "sha256", "base64", "sourcePath", "gitBlob"],
+          "properties": {
+            "status": { "const": "supported" },
+            "bytes": { "type": "integer", "minimum": 0 },
+            "sha256": { "$ref": "#/$defs/sha256" },
+            "base64": { "type": "string", "pattern": "^[A-Za-z0-9+/]*={0,2}$" },
+            "sourcePath": { "type": "string", "pattern": "^(public|benchmarks)/" },
+            "gitBlob": { "$ref": "#/$defs/gitIdentity" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "reason"],
+          "properties": {
+            "status": { "const": "unavailable" },
+            "reason": { "type": "string", "minLength": 1 }
+          }
+        }
+      ]
+    },
+    "networkEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "method",
+        "resourceType",
+        "status",
+        "mimeType",
+        "fromDiskCache",
+        "fromServiceWorker",
+        "failed",
+        "responseBody"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "pattern": "^(http://127\\.0\\.0\\.1:[0-9]+/|blob:http://127\\.0\\.0\\.1:[0-9]+/)"
+        },
+        "method": { "const": "GET" },
+        "resourceType": { "type": "string", "minLength": 1 },
+        "status": { "type": "integer", "minimum": 100, "maximum": 599 },
+        "mimeType": { "type": "string" },
+        "fromDiskCache": { "type": "boolean" },
+        "fromServiceWorker": { "type": "boolean" },
+        "failed": { "type": "boolean" },
+        "responseBody": { "$ref": "#/$defs/rawBody" }
+      }
+    },
+    "screenshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file", "bytes", "sha256"],
+      "properties": {
+        "file": { "type": "string", "pattern": "^screenshots/[a-z0-9-]+\\.png$" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "accessibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["statusText", "resultText", "axText"],
+      "properties": {
+        "statusText": { "type": "string", "minLength": 1 },
+        "resultText": { "type": "string" },
+        "axText": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["role", "name"],
+            "properties": {
+              "role": { "type": "string", "minLength": 1 },
+              "name": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    },
+    "counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "records",
+        "input-bytes",
+        "numeric-values",
+        "string-values",
+        "booleans",
+        "query-aggregates",
+        "output-bytes",
+        "allocations",
+        "boundary-crossings"
+      ],
+      "properties": {
+        "records": { "type": "integer", "minimum": 0 },
+        "input-bytes": { "type": "integer", "minimum": 2 },
+        "numeric-values": { "type": "integer", "minimum": 0 },
+        "string-values": { "type": "integer", "minimum": 0 },
+        "booleans": { "type": "integer", "minimum": 0 },
+        "query-aggregates": { "const": 11 },
+        "output-bytes": { "type": "integer", "minimum": 1 },
+        "allocations": { "enum": [0, 6] },
+        "boundary-crossings": { "enum": [0, 2] }
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rawText",
+        "target",
+        "mode",
+        "records",
+        "inputSha256",
+        "outputSha256",
+        "counters",
+        "canonicalSummary",
+        "servedByteChecks"
+      ],
+      "properties": {
+        "rawText": { "type": "string", "minLength": 1 },
+        "target": { "enum": ["js-controlled", "wasm-linear-controlled"] },
+        "mode": { "enum": ["bounded", "exact-contract"] },
+        "records": { "enum": [1000, 100000, 1000000] },
+        "inputSha256": { "$ref": "#/$defs/sha256" },
+        "outputSha256": { "$ref": "#/$defs/sha256" },
+        "counters": { "$ref": "#/$defs/counters" },
+        "canonicalSummary": { "type": "string", "pattern": "^\\{.*\\}$" },
+        "servedByteChecks": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["status"],
+              "properties": { "status": { "const": "not-requested" } }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "status",
+                "executedModuleRoute",
+                "executedModuleSha256",
+                "buildManifestSha256",
+                "fixtureManifestSha256",
+                "inputManifestSha256",
+                "outputManifestSha256",
+                "wasmSha256"
+              ],
+              "properties": {
+                "status": { "const": "verified" },
+                "executedModuleRoute": {
+                  "type": "string",
+                  "pattern": "^/benchmarks/v1/serialization-json-telemetry/workload\\.[a-f0-9]{64}\\.js$"
+                },
+                "executedModuleSha256": { "$ref": "#/$defs/sha256" },
+                "buildManifestSha256": { "$ref": "#/$defs/sha256" },
+                "fixtureManifestSha256": { "$ref": "#/$defs/sha256" },
+                "inputManifestSha256": { "$ref": "#/$defs/sha256" },
+                "outputManifestSha256": { "$ref": "#/$defs/sha256" },
+                "wasmSha256": { "$ref": "#/$defs/sha256" }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "blobExecution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "objectUrl",
+        "mimeType",
+        "bytes",
+        "sha256",
+        "base64",
+        "completionImportedModule"
+      ],
+      "properties": {
+        "objectUrl": { "type": "string", "pattern": "^blob:http://127\\.0\\.0\\.1:[0-9]+/" },
+        "mimeType": { "const": "text/javascript" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "base64": { "type": "string", "pattern": "^[A-Za-z0-9+/]*={0,2}$" },
+        "completionImportedModule": { "const": true }
+      }
+    },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checks"],
+      "properties": {
+        "checks": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "action",
+        "variant",
+        "mode",
+        "records",
+        "statusHistory",
+        "finalStatus",
+        "console",
+        "exceptions",
+        "network",
+        "accessibility",
+        "screenshot"
+      ],
+      "properties": {
+        "id": {
+          "enum": [
+            "js-bounded",
+            "js-exact",
+            "wasm-bounded",
+            "wasm-exact",
+            "wrong-token",
+            "stale-error-restart",
+            "cancel",
+            "timeout",
+            "pagehide"
+          ]
+        },
+        "action": {
+          "enum": [
+            "complete",
+            "wrong-token",
+            "stale-error-restart",
+            "cancel",
+            "timeout",
+            "pagehide"
+          ]
+        },
+        "variant": { "enum": ["js-controlled", "wasm-linear-controlled"] },
+        "mode": { "enum": ["bounded", "exact-contract"] },
+        "records": { "enum": [1000, 100000, 1000000] },
+        "statusHistory": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "finalStatus": { "type": "string", "minLength": 1 },
+        "console": { "type": "array", "items": { "$ref": "#/$defs/consoleEntry" } },
+        "exceptions": { "type": "array", "items": { "$ref": "#/$defs/exceptionEntry" } },
+        "network": { "type": "array", "minItems": 3, "items": { "$ref": "#/$defs/networkEntry" } },
+        "accessibility": { "$ref": "#/$defs/accessibility" },
+        "screenshot": { "$ref": "#/$defs/screenshot" },
+        "result": { "$ref": "#/$defs/result" },
+        "blobExecution": { "$ref": "#/$defs/blobExecution" },
+        "lifecycle": { "$ref": "#/$defs/lifecycle" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["result"],
+            "properties": { "mode": { "const": "exact-contract" } }
+          },
+          "then": {
+            "properties": {
+              "result": {
+                "properties": {
+                  "servedByteChecks": {
+                    "required": ["status"],
+                    "properties": { "status": { "const": "verified" } }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": ["result"],
+            "properties": { "mode": { "const": "bounded" } }
+          },
+          "then": {
+            "properties": {
+              "result": {
+                "properties": {
+                  "servedByteChecks": {
+                    "required": ["status"],
+                    "properties": { "status": { "const": "not-requested" } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "oneOf": [
+        {
+          "required": ["result", "blobExecution"],
+          "properties": { "action": { "const": "complete" } }
+        },
+        {
+          "required": ["lifecycle"],
+          "properties": {
+            "action": {
+              "enum": ["wrong-token", "stale-error-restart", "cancel", "timeout", "pagehide"]
+            }
+          }
+        }
+      ]
+    }
+  }
+}
