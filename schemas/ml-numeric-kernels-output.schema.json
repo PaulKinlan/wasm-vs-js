@@ -119,10 +119,12 @@
     },
     "jsCounters": {
       "$ref": "#/$defs/counterBase",
+      "type": "object",
       "properties": { "boundary-crossings": { "const": 0 } }
     },
     "wasmCounters": {
       "$ref": "#/$defs/counterBase",
+      "type": "object",
       "properties": { "boundary-crossings": { "const": 6 } }
     }
   }
