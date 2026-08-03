@@ -23,6 +23,9 @@ const SOURCE_PATHS = [
   "public/artifacts/serialization-json-telemetry/input-manifest.json",
   "public/artifacts/serialization-json-telemetry/output-manifest.json",
   "public/artifacts/serialization-json-telemetry/telemetry.wasm",
+  "lib/canonical.ts",
+  "lib/cdp-client.ts",
+  "lib/json-telemetry-evidence-validation.ts",
   SCRIPT,
 ] as const;
 
@@ -35,17 +38,31 @@ if (Deno.args.length !== 2 || !chromeArgument || !outputArgument) {
   );
 }
 if (Deno.version.deno !== DENO_VERSION) throw new Error(`collector requires Deno ${DENO_VERSION}`);
-const executable = await Deno.realPath(chromeArgument);
+const requestedExecutable = await Deno.realPath(chromeArgument);
 if (!outputArgument.startsWith("/") || !outputArgument.endsWith(".json")) {
   throw new Error("--output must be an absolute JSON path outside the source root");
 }
-const outputPath = outputArgument;
-const outputParent = outputPath.slice(0, outputPath.lastIndexOf("/")) || "/";
-await Deno.mkdir(outputParent, { recursive: true });
-const resolvedOutputParent = await Deno.realPath(outputParent);
+const outputParentArgument = outputArgument.slice(0, outputArgument.lastIndexOf("/")) || "/";
+const outputName = outputArgument.slice(outputArgument.lastIndexOf("/") + 1);
+if (!outputName || outputName === "." || outputName === "..") {
+  throw new Error("--output must name a JSON file");
+}
+await Deno.mkdir(outputParentArgument, { recursive: true });
+const resolvedOutputParent = await Deno.realPath(outputParentArgument);
 if (resolvedOutputParent === root || resolvedOutputParent.startsWith(`${root}/`)) {
   throw new Error("browser evidence must be written outside the clean source root");
 }
+const outputPath = `${resolvedOutputParent}/${outputName}`;
+async function rejectSymlink(path: string, label: string): Promise<void> {
+  try {
+    const info = await Deno.lstat(path);
+    if (info.isSymlink) throw new Error(`${label} must not be a symlink`);
+  } catch (error) {
+    if (!(error instanceof Deno.errors.NotFound)) throw error;
+  }
+}
+await rejectSymlink(outputPath, "output path");
+await rejectSymlink(`${resolvedOutputParent}/screenshots`, "screenshot directory");
 
 async function commandBytes(command: string, args: string[]): Promise<Uint8Array> {
   const result = await new Deno.Command(command, {
@@ -181,6 +198,29 @@ function base64ToBytes(value: string): Uint8Array {
 function equalBytes(left: Uint8Array, right: Uint8Array): boolean {
   return left.length === right.length && left.every((value, index) => value === right[index]);
 }
+async function atomicWrite(path: string, bytes: Uint8Array): Promise<void> {
+  await rejectSymlink(path, "atomic output target");
+  const parent = path.slice(0, path.lastIndexOf("/")) || "/";
+  const temporary = `${parent}/.json-telemetry-${crypto.randomUUID()}.tmp`;
+  const file = await Deno.open(temporary, { createNew: true, write: true, mode: 0o600 });
+  try {
+    let offset = 0;
+    while (offset < bytes.length) offset += await file.write(bytes.subarray(offset));
+    await file.sync();
+  } finally {
+    file.close();
+  }
+  try {
+    await rejectSymlink(path, "atomic output target");
+    await Deno.rename(temporary, path);
+  } catch (error) {
+    await Deno.remove(temporary).catch(() => {});
+    throw error;
+  }
+}
+async function atomicWriteText(path: string, value: string): Promise<void> {
+  await atomicWrite(path, new TextEncoder().encode(value));
+}
 
 const clean = await commandText("git", ["status", "--porcelain=v1", "--untracked-files=all"]);
 if (clean !== "") throw new Error("collector requires an exact clean HEAD before any launch");
@@ -209,15 +249,40 @@ const scriptSource = frozenSources.get(SCRIPT)!;
 if (!equalBytes(scriptSource.bytes, await Deno.readFile(`${root}/${SCRIPT}`))) {
   throw new Error("collector bytes differ from frozen clean HEAD");
 }
-const executableInfo = await Deno.lstat(executable);
-if (!executableInfo.isFile || executableInfo.isSymlink) {
+const requestedExecutableInfo = await Deno.lstat(requestedExecutable);
+if (!requestedExecutableInfo.isFile || requestedExecutableInfo.isSymlink) {
   throw new Error("Chrome must be a regular file");
 }
-const executableSha256 = await sha256Hex(await Deno.readFile(executable));
+const requestedExecutableFile = await Deno.open(requestedExecutable, { read: true });
+let requestedExecutableBytes: Uint8Array;
+let requestedExecutableIdentity: { device: number; inode: number };
+try {
+  const before = await requestedExecutableFile.stat();
+  requestedExecutableBytes = new Uint8Array(numeric(before.size, "Chrome executable size"));
+  let offset = 0;
+  while (offset < requestedExecutableBytes.length) {
+    const count = await requestedExecutableFile.read(requestedExecutableBytes.subarray(offset));
+    if (count === null) break;
+    offset += count;
+  }
+  const after = await requestedExecutableFile.stat();
+  if (
+    offset !== requestedExecutableBytes.length || before.dev !== after.dev ||
+    before.ino !== after.ino || before.size !== after.size ||
+    before.mtime?.getTime() !== after.mtime?.getTime()
+  ) throw new Error("Chrome executable changed while it was read");
+  requestedExecutableIdentity = {
+    device: numeric(after.dev, "Chrome executable device"),
+    inode: numeric(after.ino, "Chrome executable inode"),
+  };
+} finally {
+  requestedExecutableFile.close();
+}
+const executableSha256 = await sha256Hex(requestedExecutableBytes);
 if (executableSha256 !== CFT_SHA256) {
   throw new Error("Chrome for Testing executable SHA-256 mismatch");
 }
-const executableBytes = numeric(executableInfo.size, "Chrome executable size");
+const executableBytes = requestedExecutableBytes.length;
 
 const sourcePathFor = (urlValue: string): string | null => {
   const path = new URL(urlValue).pathname;
@@ -366,25 +431,38 @@ const workerAuditSource = `(() => {
     return transfer === undefined ? nativePost(data) : nativePost(data, transfer);
   };
 })();`;
-function pageAuditSource(shortTimeout: boolean): string {
+function pageAuditSource(action: ScenarioDefinition["action"]): string {
   return `(() => {
+    const action = ${JSON.stringify(action)};
     globalThis.__collector = { statuses: [], workerMessages: [], workers: [], workerRecords: [], nextWorkerId: 1 };
     const NativeWorker = globalThis.Worker;
     globalThis.Worker = class CollectorWorker extends NativeWorker {
       constructor(...args) {
         super(...args);
         const id = globalThis.__collector.nextWorkerId++;
-        const record = { id, createdAt: performance.now(), terminateCalls: [] };
+        const record = { id, createdAt: performance.now(), terminateCalls: [], postedTokens: [], deliveredTokens: [], receivedTokens: [] };
         globalThis.__collector.workers.push(this);
         globalThis.__collector.workerRecords.push(record);
+        const nativePostMessage = this.postMessage.bind(this);
+        this.postMessage = (data, transfer) => {
+          record.postedTokens.push({ token: data?.token, at: performance.now() });
+          const held = ["wrong-token", "cancel", "timeout", "pagehide"].includes(action) ||
+            (action === "stale-error-restart" && id === 1);
+          if (held) return;
+          record.deliveredTokens.push({ token: data?.token, at: performance.now() });
+          return transfer === undefined ? nativePostMessage(data) : nativePostMessage(data, transfer);
+        };
         const nativeTerminate = this.terminate.bind(this);
         this.terminate = () => { record.terminateCalls.push(performance.now()); return nativeTerminate(); };
-        this.addEventListener("message", (event) => globalThis.__collector.workerMessages.push({ workerId: id, data: event.data }));
+        this.addEventListener("message", (event) => {
+          record.receivedTokens.push({ token: event.data?.token, at: performance.now() });
+          globalThis.__collector.workerMessages.push({ workerId: id, data: event.data });
+        });
       }
     };
     ${
-    shortTimeout
-      ? `const nativeSetTimeout = globalThis.setTimeout; globalThis.setTimeout = (fn, delay, ...args) => nativeSetTimeout(fn, delay === 180000 ? 25 : delay, ...args);`
+    action === "timeout"
+      ? `const nativeSetTimeout = globalThis.setTimeout; globalThis.setTimeout = (fn, delay, ...args) => nativeSetTimeout(fn, delay === 180000 ? 5000 : delay, ...args);`
       : ""
   }
     addEventListener("DOMContentLoaded", () => {
@@ -462,6 +540,11 @@ function assertExactResult(
 let server: Deno.ChildProcess | undefined;
 let serverStatus: Promise<Deno.CommandStatus> | undefined;
 let ownedServerLauncher: ProcessIdentity | undefined;
+let binaryStagePath: string | undefined;
+let stagedExecutable: string | undefined;
+let stagedExecutableIdentity: { device: number; inode: number } | undefined;
+let stagedExecutableMode: number | undefined;
+let runningExecutableIdentity: { device: number; inode: number } | undefined;
 let profilePath: string | undefined;
 let unit: string | undefined;
 let systemd: Record<string, string> | undefined;
@@ -482,10 +565,14 @@ let sourceEndCheck: Record<string, unknown> = {
   checkedAt: new Date().toISOString(),
   error: "end recheck not attempted",
 };
-const cleanup: Record<"browserProcesses" | "cgroup" | "profile" | "server", CleanupCheck> = {
+const cleanup: Record<
+  "browserProcesses" | "cgroup" | "profile" | "binaryStage" | "server",
+  CleanupCheck
+> = {
   browserProcesses: failureCheck("cleanup not attempted"),
   cgroup: failureCheck("cleanup not attempted"),
   profile: failureCheck("cleanup not attempted"),
+  binaryStage: failureCheck("cleanup not attempted"),
   server: failureCheck("cleanup not attempted"),
 };
 const serverPort = unusedPort();
@@ -586,6 +673,77 @@ async function waitState(
     await delay(50);
   }
   throw new Error(`scenario browser state timeout: ${JSON.stringify(current)}`);
+}
+function networkRosterKey(urlValue: string): string {
+  if (urlValue.startsWith("blob:")) return "blob-executed-workload";
+  return new URL(urlValue).pathname;
+}
+function expectedNetworkRoster(definition: ScenarioDefinition): Map<string, number> {
+  const expected = new Map<string, number>([
+    [DEMO_ROUTE, 1],
+    ["/styles.css", 1],
+    ["/telemetry-demo.js", 1],
+    ["/telemetry-worker.js", definition.action === "stale-error-restart" ? 2 : 1],
+    ["/telemetry-module-loader.js", definition.action === "stale-error-restart" ? 2 : 1],
+  ]);
+  const completes = definition.action === "complete" || definition.action === "stale-error-restart";
+  if (!completes) return expected;
+  expected.set(
+    `/benchmarks/v1/serialization-json-telemetry/workload.${WORKLOAD_SHA256}.js`,
+    1,
+  );
+  expected.set("blob-executed-workload", 1);
+  if (definition.variant === "wasm-linear-controlled" || definition.mode === "exact-contract") {
+    expected.set("/artifacts/serialization-json-telemetry/telemetry.wasm", 1);
+  }
+  if (definition.mode === "exact-contract") {
+    for (
+      const name of [
+        "build-manifest.json",
+        "fixture-manifest.json",
+        "input-manifest.json",
+        "output-manifest.json",
+      ]
+    ) expected.set(`/artifacts/serialization-json-telemetry/${name}`, 1);
+  }
+  return expected;
+}
+function assertExactNetworkRoster(
+  definition: ScenarioDefinition,
+  requests: Map<string, Record<string, unknown>>,
+): void {
+  const actual = new Map<string, number>();
+  for (const request of requests.values()) {
+    const key = networkRosterKey(String(request.url));
+    actual.set(key, (actual.get(key) ?? 0) + 1);
+  }
+  if (
+    canonicalize([...actual.entries()].sort()) !==
+      canonicalize([...expectedNetworkRoster(definition).entries()].sort())
+  ) {
+    throw new Error(
+      `${definition.id} network roster differs from the exact scenario contract: ${
+        canonicalize([...actual.entries()].sort())
+      }`,
+    );
+  }
+}
+async function waitForNetworkPath(
+  requests: Map<string, Record<string, unknown>>,
+  path: string,
+  count = 1,
+): Promise<void> {
+  const deadline = Date.now() + 10_000;
+  while (Date.now() < deadline) {
+    if (
+      [...requests.values()].filter((entry) =>
+        networkRosterKey(String(entry.url)) === path &&
+        (entry.responseBody as { status?: string }).status === "supported"
+      ).length >= count
+    ) return;
+    await delay(25);
+  }
+  throw new Error(`required network request was not observed: ${path}`);
 }
 async function configure(sessionId: string, definition: ScenarioDefinition): Promise<void> {
   await evaluate(
@@ -709,6 +867,31 @@ async function finalizeCleanup(): Promise<void> {
       cleanup.profile = failureCheck(error, [profilePath]);
     }
   }
+  if (!binaryStagePath) cleanup.binaryStage = successCheck();
+  else {
+    try {
+      if (cleanup.cgroup.outcome !== "success" || cleanup.browserProcesses.outcome !== "success") {
+        throw new Error("verified browser binary retained because process cleanup did not succeed");
+      }
+      const stagedCurrent = await Deno.lstat(binaryStagePath);
+      if (
+        !stagedExecutableIdentity || stagedCurrent.isSymlink || !stagedCurrent.isFile ||
+        numeric(stagedCurrent.dev, "cleanup staged Chrome device") !==
+          stagedExecutableIdentity.device ||
+        numeric(stagedCurrent.ino, "cleanup staged Chrome inode") !== stagedExecutableIdentity.inode
+      ) throw new Error("verified browser binary stage identity changed before removal");
+      await Deno.remove(binaryStagePath);
+      try {
+        await Deno.lstat(binaryStagePath);
+        throw new Error("verified browser binary stage survived removal");
+      } catch (error) {
+        if (!(error instanceof Deno.errors.NotFound)) throw error;
+      }
+      cleanup.binaryStage = successCheck();
+    } catch (error) {
+      cleanup.binaryStage = failureCheck(error, [binaryStagePath]);
+    }
+  }
   if (!server || !serverStatus) cleanup.server = successCheck();
   else {
     try {
@@ -750,6 +933,40 @@ try {
   ownedServerLauncher = serverIdentity;
   await waitFor(`${origin}/healthz`);
 
+  const executableParent = requestedExecutable.slice(0, requestedExecutable.lastIndexOf("/")) ||
+    "/";
+  stagedExecutable = `${executableParent}/.wasm-json-telemetry-browser-bin-${crypto.randomUUID()}`;
+  const stagedFile = await Deno.open(stagedExecutable, {
+    createNew: true,
+    write: true,
+    mode: 0o500,
+  });
+  binaryStagePath = stagedExecutable;
+  const createdStageInfo = await stagedFile.stat();
+  stagedExecutableIdentity = {
+    device: numeric(createdStageInfo.dev, "created staged Chrome device"),
+    inode: numeric(createdStageInfo.ino, "created staged Chrome inode"),
+  };
+  try {
+    let offset = 0;
+    while (offset < requestedExecutableBytes.length) {
+      offset += await stagedFile.write(requestedExecutableBytes.subarray(offset));
+    }
+    await stagedFile.sync();
+  } finally {
+    stagedFile.close();
+  }
+  await Deno.chmod(stagedExecutable, 0o500);
+  const stagedInfo = await Deno.lstat(stagedExecutable);
+  stagedExecutableMode = numeric(stagedInfo.mode, "staged Chrome mode") & 0o7777;
+  if (
+    !stagedInfo.isFile || stagedInfo.isSymlink || stagedInfo.size !== executableBytes ||
+    numeric(stagedInfo.dev, "staged Chrome device") !== stagedExecutableIdentity.device ||
+    numeric(stagedInfo.ino, "staged Chrome inode") !== stagedExecutableIdentity.inode ||
+    stagedExecutableMode !== 0o500 ||
+    await sha256Hex(await Deno.readFile(stagedExecutable)) !== executableSha256
+  ) throw new Error("immutable staged Chrome does not match verified source bytes");
+
   profilePath = await Deno.makeTempDir({ prefix: "wasm-json-telemetry-chrome-" });
   launchArguments = launchArgumentsFor(profilePath);
   unit = unitName;
@@ -762,7 +979,7 @@ try {
     "--property=KillMode=control-group",
     "--property=CollectMode=inactive-or-failed",
     "--",
-    executable,
+    stagedExecutable,
     ...launchArguments,
   ]);
   systemd = await waitSystemd(unit);
@@ -776,8 +993,19 @@ try {
   cgroupInode = numeric(cgroupInfo.ino, "cgroup inode");
   mainPid = Number(systemd.MainPID);
   const mainIdentity = await processIdentity(mainPid);
-  if (!mainIdentity || mainIdentity.executable !== executable) {
-    throw new Error("systemd MainPID is not the reviewed Chrome executable");
+  const runningInfo = await Deno.stat(`/proc/${mainPid}/exe`);
+  runningExecutableIdentity = {
+    device: numeric(runningInfo.dev, "running Chrome device"),
+    inode: numeric(runningInfo.ino, "running Chrome inode"),
+  };
+  const runningBytes = await Deno.readFile(`/proc/${mainPid}/exe`);
+  if (
+    !mainIdentity || mainIdentity.executable !== stagedExecutable ||
+    runningExecutableIdentity.device !== stagedExecutableIdentity.device ||
+    runningExecutableIdentity.inode !== stagedExecutableIdentity.inode ||
+    runningBytes.length !== executableBytes || await sha256Hex(runningBytes) !== executableSha256
+  ) {
+    throw new Error("systemd MainPID is not the staged, hashed Chrome inode");
   }
   if (!(await snapshotMembers()).includes(mainPid)) {
     throw new Error("Chrome MainPID absent from cgroup");
@@ -813,7 +1041,7 @@ try {
   effectiveArguments = (await client.send("Browser.getBrowserCommandLine")).arguments as string[];
   if (
     !Array.isArray(effectiveArguments) ||
-    canonicalize(effectiveArguments) !== canonicalize([executable, ...launchArguments])
+    canonicalize(effectiveArguments) !== canonicalize([stagedExecutable, ...launchArguments])
   ) {
     throw new Error("effective Chrome arguments differ from the exact reviewed argv");
   }
@@ -871,11 +1099,18 @@ try {
           resourceType: String(params.type),
           status: 0,
           mimeType: "",
+          requestServedFromCache: false,
           fromDiskCache: false,
+          fromPrefetchCache: false,
           fromServiceWorker: false,
           failed: false,
           responseBody: { status: "unavailable", reason: "response body has not completed" },
         });
+      }),
+      client.on("Network.requestServedFromCache", (params, eventSession) => {
+        if (!eventSession || !sessions.has(eventSession)) return;
+        const entry = requests.get(`${eventSession}:${params.requestId}`);
+        if (entry) entry.requestServedFromCache = true;
       }),
       client.on("Network.responseReceived", (params, eventSession) => {
         if (!eventSession || !sessions.has(eventSession)) return;
@@ -886,6 +1121,7 @@ try {
             status: Number(response.status),
             mimeType: String(response.mimeType),
             fromDiskCache: Boolean(response.fromDiskCache),
+            fromPrefetchCache: Boolean(response.fromPrefetchCache),
             fromServiceWorker: Boolean(response.fromServiceWorker),
           });
         }
@@ -958,7 +1194,7 @@ try {
         }, sessionId),
       ]);
       await client.send("Page.addScriptToEvaluateOnNewDocument", {
-        source: pageAuditSource(definition.action === "timeout"),
+        source: pageAuditSource(definition.action),
       }, sessionId);
       const loaded = new Promise<void>((resolve, reject) => {
         const timer = setTimeout(() => reject(new Error("page load timeout")), 10_000);
@@ -975,17 +1211,31 @@ try {
       await configure(sessionId, definition);
       await click(sessionId, "#start");
       const causalChecks: string[] = [];
+      const injections: Array<Record<string, unknown>> = [];
       let final: Record<string, unknown>;
+      if (definition.action !== "complete" && definition.action !== "timeout") {
+        await waitForNetworkPath(
+          requests,
+          "/telemetry-module-loader.js",
+          definition.action === "stale-error-restart" ? 1 : 1,
+        );
+      }
       if (definition.action === "complete") {
         final = await waitState(sessionId, (value) => value.status === "Complete.");
         causalChecks.push("completion cleanup terminated the active worker");
       } else if (definition.action === "wrong-token") {
         await waitState(sessionId, (value) => String(value.status).startsWith("Generating "));
         const before = await state(sessionId);
-        await evaluate(
+        const injectedAt = await evaluate(
           sessionId,
-          `globalThis.__collector.workers.at(-1).dispatchEvent(new MessageEvent("message", {data:{token:"wrong-token",type:"complete",text:"fabricated"}}))`,
+          `(() => { const at=performance.now(); globalThis.__collector.workers.at(-1).dispatchEvent(new MessageEvent("message", {data:{token:"wrong-token",type:"complete",text:"fabricated"}})); return at; })()`,
         );
+        injections.push({
+          kind: "wrong-token-message",
+          workerId: 1,
+          token: "wrong-token",
+          at: Number(injectedAt),
+        });
         await delay(50);
         const after = await state(sessionId);
         if (before.status !== after.status || before.output !== after.output) {
@@ -1017,10 +1267,22 @@ try {
           sessionId,
           (value) => String(value.status).startsWith("Generating "),
         );
-        await evaluate(
+        const injectedAt = await evaluate(
           sessionId,
-          `globalThis.__collector.staleWorker.dispatchEvent(new ErrorEvent("error", {message:"stale injected error"}))`,
+          `(() => { const at=performance.now(); globalThis.__collector.staleWorker.dispatchEvent(new ErrorEvent("error", {message:"stale injected error"})); return at; })()`,
         );
+        const currentRecords = beforeStale.workerRecords as Array<{
+          id: number;
+          postedTokens: Array<{ token: number }>;
+        }>;
+        injections.push({
+          kind: "stale-worker-error",
+          workerId: 1,
+          staleToken: currentRecords[0].postedTokens[0].token,
+          activeWorkerId: 2,
+          activeToken: currentRecords[1].postedTokens[0].token,
+          at: Number(injectedAt),
+        });
         await delay(50);
         const afterStale = await state(sessionId);
         if (beforeStale.status !== afterStale.status || beforeStale.output !== afterStale.output) {
@@ -1071,7 +1333,8 @@ try {
         const allowedUrl = url.startsWith(`blob:${origin}/`) ||
           (url.startsWith(`${origin}/`) && sourcePathFor(url) !== null);
         return !allowedUrl || entry.method !== "GET" || entry.failed || entry.status !== 200 ||
-          entry.fromDiskCache || entry.fromServiceWorker ||
+          entry.requestServedFromCache || entry.fromDiskCache || entry.fromPrefetchCache ||
+          entry.fromServiceWorker ||
           (!url.startsWith("blob:") &&
             (entry.responseBody as { status: string }).status !== "supported");
       });
@@ -1082,6 +1345,7 @@ try {
           }`,
         );
       }
+      assertExactNetworkRoster(definition, requests);
       if (exceptions.length) {
         throw new Error(`browser exceptions observed: ${JSON.stringify(exceptions)}`);
       }
@@ -1093,8 +1357,13 @@ try {
       );
       const screenshotBytes = base64ToBytes(String(screenshotResponse.data));
       const screenshotFile = `screenshots/${definition.id}.png`;
-      await Deno.mkdir(`${resolvedOutputParent}/screenshots`, { recursive: true });
-      await Deno.writeFile(`${resolvedOutputParent}/${screenshotFile}`, screenshotBytes);
+      const screenshotDirectory = `${resolvedOutputParent}/screenshots`;
+      await rejectSymlink(screenshotDirectory, "screenshot directory");
+      await Deno.mkdir(screenshotDirectory, { recursive: true });
+      if (await Deno.realPath(screenshotDirectory) !== screenshotDirectory) {
+        throw new Error("screenshot directory identity changed");
+      }
+      await atomicWrite(`${resolvedOutputParent}/${screenshotFile}`, screenshotBytes);
       const ax = await client.send("Accessibility.getFullAXTree", {}, sessionId);
       const axText = ((ax.nodes as Array<Record<string, unknown>>) ?? []).flatMap((node) => {
         const role = String((node.role as { value?: unknown } | undefined)?.value ?? "");
@@ -1132,6 +1401,7 @@ try {
         lifecycle: {
           causalChecks,
           workers: final.workerRecords,
+          injections,
           controls: {
             startDisabled: final.startDisabled,
             cancelDisabled: final.cancelDisabled,
@@ -1255,16 +1525,22 @@ try {
   }
   if (
     version && launchArguments && effectiveArguments && profilePath && systemd && cgroupPath &&
-    mainPid && cgroupDevice !== undefined && cgroupInode !== undefined
+    mainPid && stagedExecutable && stagedExecutableIdentity && runningExecutableIdentity &&
+    stagedExecutableMode !== undefined && cgroupDevice !== undefined && cgroupInode !== undefined
   ) {
     evidence.browser = {
       product: String(version.product),
       revision: String(version.revision),
       userAgent: String(version.userAgent),
       jsVersion: String(version.jsVersion),
-      executable,
+      executable: stagedExecutable,
+      requestedExecutable,
+      requestedExecutableIdentity,
       executableBytes,
       executableSha256,
+      stagedExecutableIdentity,
+      stagedExecutableMode,
+      runningExecutableIdentity,
       launchArguments,
       effectiveArguments,
       headless: true,
@@ -1296,7 +1572,26 @@ try {
       };
     }
   }
-  await Deno.writeTextFile(outputPath, `${canonicalize(evidence)}\n`);
+  await atomicWriteText(outputPath, `${canonicalize(evidence)}\n`);
+  try {
+    await recheckFrozenSource();
+  } catch (error) {
+    collectionError ??= error;
+    evidence.source = {
+      ...(evidence.source as Record<string, unknown>),
+      endCheck: {
+        outcome: "failure",
+        checkedAt: new Date().toISOString(),
+        error: error instanceof Error ? error.message : String(error),
+      },
+    };
+    evidence.collection = {
+      outcome: "failure",
+      error: error instanceof Error ? error.message : String(error),
+      completedScenarios: scenarios.length,
+    };
+    await atomicWriteText(outputPath, `${canonicalize(evidence)}\n`);
+  }
 }
 if (collectionError) throw collectionError;
 for (const [name, check] of Object.entries(cleanup)) {

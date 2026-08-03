@@ -13,6 +13,7 @@ const addFormats = (addFormatsModule as unknown as { default?: (ajv: unknown) =>
   (addFormatsModule as unknown as (ajv: unknown) => void);
 const HASH = "a".repeat(64);
 const GIT = "b".repeat(40);
+const WORKLOAD_PATH = "benchmarks/v1/serialization-json-telemetry/workload.js";
 const WORKLOAD_HASH = "54e2ee54b225d8454664dc6a24f5fa178ee0652ccf0e7e01eea93b17f29530f8";
 const WORKLOAD_BYTES = await Deno.readFile(
   "benchmarks/v1/serialization-json-telemetry/workload.js",
@@ -31,6 +32,9 @@ const SOURCE_PATHS = [
   "public/artifacts/serialization-json-telemetry/input-manifest.json",
   "public/artifacts/serialization-json-telemetry/output-manifest.json",
   "public/artifacts/serialization-json-telemetry/telemetry.wasm",
+  "lib/canonical.ts",
+  "lib/cdp-client.ts",
+  "lib/json-telemetry-evidence-validation.ts",
   "scripts/collect-v1-json-telemetry-browser-evidence.ts",
 ];
 const LAUNCH = [
@@ -64,21 +68,23 @@ function validator(schema: unknown): Validator {
 function clone<T>(value: T): T {
   return structuredClone(value);
 }
+const ABC = new TextEncoder().encode("abc");
+const ABC_SHA256 = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
 function network(
-  url = "http://127.0.0.1:8123/telemetry-worker.js",
-  body: { bytes: Uint8Array; sourcePath: string; sha256: string } = {
-    bytes: new TextEncoder().encode("abc"),
-    sourcePath: "public/telemetry-worker.js",
-    sha256: "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
-  },
+  path: string,
+  sourcePath: string,
+  resourceType = "Script",
+  body: { bytes: Uint8Array; sha256: string } = { bytes: ABC, sha256: ABC_SHA256 },
 ) {
   return {
-    url,
+    url: `http://127.0.0.1:8123${path}`,
     method: "GET",
-    resourceType: "Script",
+    resourceType,
     status: 200,
-    mimeType: "text/javascript",
+    mimeType: resourceType === "Document" ? "text/html" : "text/javascript",
+    requestServedFromCache: false,
     fromDiskCache: false,
+    fromPrefetchCache: false,
     fromServiceWorker: false,
     failed: false,
     responseBody: {
@@ -86,10 +92,86 @@ function network(
       bytes: body.bytes.length,
       sha256: body.sha256,
       base64: body.bytes.toBase64(),
-      sourcePath: body.sourcePath,
+      sourcePath,
       gitBlob: GIT,
     },
   };
+}
+function blobNetwork() {
+  return {
+    url: "blob:http://127.0.0.1:8123/1234",
+    method: "GET",
+    resourceType: "Script",
+    status: 200,
+    mimeType: "text/javascript",
+    requestServedFromCache: false,
+    fromDiskCache: false,
+    fromPrefetchCache: false,
+    fromServiceWorker: false,
+    failed: false,
+    responseBody: {
+      status: "unavailable",
+      reason: "Blob module bytes are retained by worker constructor audit",
+    },
+  };
+}
+function scenarioNetwork(action: string, variant: string, mode: string) {
+  const stale = action === "stale-error-restart";
+  const entries: Array<Record<string, unknown>> = [
+    network(
+      "/demos/serialization.json-telemetry.v1/",
+      "public/demos/serialization.json-telemetry.v1/index.html",
+      "Document",
+    ),
+    network("/styles.css", "public/styles.css", "Stylesheet"),
+    network("/telemetry-demo.js", "public/telemetry-demo.js"),
+    network("/telemetry-worker.js", "public/telemetry-worker.js"),
+    network("/telemetry-module-loader.js", "public/telemetry-module-loader.js"),
+  ];
+  if (stale) {
+    entries.push(
+      network("/telemetry-worker.js", "public/telemetry-worker.js"),
+      network("/telemetry-module-loader.js", "public/telemetry-module-loader.js"),
+    );
+  }
+  if (action !== "complete" && !stale) return entries;
+  entries.push(
+    network(
+      `/benchmarks/v1/serialization-json-telemetry/workload.${WORKLOAD_HASH}.js`,
+      "benchmarks/v1/serialization-json-telemetry/workload.js",
+      "Fetch",
+      { bytes: WORKLOAD_BYTES, sha256: WORKLOAD_HASH },
+    ),
+    blobNetwork(),
+  );
+  if (variant === "wasm-linear-controlled" || mode === "exact-contract") {
+    entries.push(
+      network(
+        "/artifacts/serialization-json-telemetry/telemetry.wasm",
+        "public/artifacts/serialization-json-telemetry/telemetry.wasm",
+        "Fetch",
+      ),
+    );
+  }
+  if (mode === "exact-contract") {
+    for (
+      const name of [
+        "build-manifest.json",
+        "fixture-manifest.json",
+        "input-manifest.json",
+        "output-manifest.json",
+      ]
+    ) {
+      entries.push(
+        network(
+          `/artifacts/serialization-json-telemetry/${name}`,
+          `public/artifacts/serialization-json-telemetry/${name}`,
+          "Fetch",
+        ),
+      );
+    }
+  }
+  return entries;
 }
 function exactChecks() {
   return {
@@ -107,8 +189,7 @@ function result(
   variant: "js-controlled" | "wasm-linear-controlled",
   mode: "bounded" | "exact-contract",
 ) {
-  return {
-    rawText: "exact complete textual result",
+  const value = {
     target: variant,
     mode,
     records: 1000,
@@ -129,6 +210,23 @@ function result(
       '{"count":1000,"errorCount":108,"kind":{"click":345,"purchase":335,"view":320},"okCount":892,"region":{"ap":234,"eu":261,"na":247,"sa":258},"valueSum":4868080}',
     servedByteChecks: mode === "exact-contract" ? exactChecks() : { status: "not-requested" },
   };
+  const served = value.servedByteChecks as Record<string, unknown>;
+  const servedText = served.status === "verified"
+    ? `Served-byte checks: ${
+      JSON.stringify(
+        Object.fromEntries(Object.entries(served).filter(([key]) => key !== "status")),
+        null,
+        2,
+      )
+    }\n`
+    : "";
+  return {
+    rawText:
+      `Target: ${value.target}\nMode: ${value.mode}\nRecords: ${value.records}\nInput SHA-256: ${value.inputSha256}\nOutput SHA-256: ${value.outputSha256}\nCounters: ${
+        JSON.stringify(value.counters, null, 2)
+      }\n${servedText}\nCanonical summary:\n${value.canonicalSummary}`,
+    ...value,
+  };
 }
 function commonScenario(
   id: string,
@@ -138,17 +236,18 @@ function commonScenario(
   records: number,
   status: string,
 ) {
+  const generating = "Generating the registered fixture in a fresh worker.";
   return {
     id,
     action,
     variant,
     mode,
     records,
-    statusHistory: ["Ready.", status],
+    statusHistory: ["Ready.", generating, status],
     finalStatus: status,
     console: [],
     exceptions: [],
-    network: [network(), network(), network()],
+    network: scenarioNetwork(action, variant, mode),
     accessibility: {
       statusText: status,
       resultText: "",
@@ -157,7 +256,17 @@ function commonScenario(
     screenshot: { file: `screenshots/${id}.png`, bytes: 100, sha256: HASH },
     lifecycle: {
       causalChecks: [`${action} causally terminated the worker`],
-      workers: [{ id: 1, createdAt: 1, terminateCalls: [2] }],
+      workers: [{
+        id: 1,
+        createdAt: 1,
+        terminateCalls: [2],
+        postedTokens: [{ token: 1, at: 1.1 }],
+        deliveredTokens: [],
+        receivedTokens: action === "wrong-token" ? [{ token: "wrong-token", at: 1.6 }] : [],
+      }],
+      injections: action === "wrong-token"
+        ? [{ kind: "wrong-token-message", workerId: 1, token: "wrong-token", at: 1.5 }]
+        : [],
       controls: { startDisabled: false, cancelDisabled: true, progressHasValue: false },
     },
   };
@@ -168,19 +277,27 @@ function complete(
   mode: "bounded" | "exact-contract",
 ) {
   const scenario = commonScenario(id, "complete", variant, mode, 1000, "Complete.");
-  scenario.accessibility.resultText = "exact complete textual result";
-  scenario.accessibility.axText.push({ role: "code", name: "exact complete textual result" });
-  scenario.network[0] = network(
-    `http://127.0.0.1:8123/benchmarks/v1/serialization-json-telemetry/workload.${WORKLOAD_HASH}.js`,
-    {
-      bytes: WORKLOAD_BYTES,
-      sourcePath: "benchmarks/v1/serialization-json-telemetry/workload.js",
-      sha256: WORKLOAD_HASH,
-    },
-  );
+  const exactResult = result(variant, mode);
+  scenario.statusHistory = [
+    "Ready.",
+    "Generating the registered fixture in a fresh worker.",
+    "Loading and verifying the content-addressed workload module.",
+    "Generating exactly 1,000 records.",
+    "Parsing 119,397 UTF-8 bytes.",
+    ...(mode === "exact-contract"
+      ? ["Checking served module, manifests, artifact, fixture, output, and counters."]
+      : []),
+    "Complete.",
+  ];
+  scenario.accessibility.resultText = exactResult.rawText;
+  scenario.accessibility.axText.push({ role: "code", name: exactResult.rawText });
+  Object.assign(scenario.lifecycle.workers[0], {
+    deliveredTokens: [{ token: 1, at: 1.2 }],
+    receivedTokens: [{ token: 1, at: 1.3 }, { token: 1, at: 1.4 }],
+  });
   return {
     ...scenario,
-    result: result(variant, mode),
+    result: exactResult,
     blobExecution: {
       objectUrl: "blob:http://127.0.0.1:8123/1234",
       mimeType: "text/javascript",
@@ -208,15 +325,49 @@ function fixture() {
     {
       ...complete("stale-error-restart", "js-controlled", "exact-contract"),
       action: "stale-error-restart",
+      network: scenarioNetwork("stale-error-restart", "js-controlled", "exact-contract"),
+      statusHistory: [
+        "Ready.",
+        "Generating the registered fixture in a fresh worker.",
+        "Cancelled. No result was retained.",
+        "Generating the registered fixture in a fresh worker.",
+        "Loading and verifying the content-addressed workload module.",
+        "Generating exactly 1,000 records.",
+        "Parsing 119,397 UTF-8 bytes.",
+        "Checking served module, manifests, artifact, fixture, output, and counters.",
+        "Complete.",
+      ],
       lifecycle: {
         causalChecks: [
           "prior worker terminated before restart",
           "stale error left fresh state unchanged",
         ],
         workers: [
-          { id: 1, createdAt: 1, terminateCalls: [2] },
-          { id: 2, createdAt: 3, terminateCalls: [4] },
+          {
+            id: 1,
+            createdAt: 1,
+            terminateCalls: [2],
+            postedTokens: [{ token: 1, at: 1.1 }],
+            deliveredTokens: [],
+            receivedTokens: [],
+          },
+          {
+            id: 2,
+            createdAt: 3,
+            terminateCalls: [5],
+            postedTokens: [{ token: 3, at: 3.1 }],
+            deliveredTokens: [{ token: 3, at: 3.2 }],
+            receivedTokens: [{ token: 3, at: 3.3 }],
+          },
         ],
+        injections: [{
+          kind: "stale-worker-error",
+          workerId: 1,
+          staleToken: 1,
+          activeWorkerId: 2,
+          activeToken: 3,
+          at: 4,
+        }],
         controls: { startDisabled: false, cancelDisabled: true, progressHasValue: false },
       },
     },
@@ -270,7 +421,11 @@ function fixture() {
         tree: GIT,
         cleanStatus: "clean",
       },
-      frozenFiles: SOURCE_PATHS.map((path) => ({ path, bytes: 3, sha256: HASH, gitBlob: GIT })),
+      frozenFiles: SOURCE_PATHS.map((path) =>
+        path === "benchmarks/v1/serialization-json-telemetry/workload.js"
+          ? { path, bytes: WORKLOAD_BYTES.length, sha256: WORKLOAD_HASH, gitBlob: GIT }
+          : { path, bytes: 3, sha256: HASH, gitBlob: GIT }
+      ),
     },
     collector: {
       script: "scripts/collect-v1-json-telemetry-browser-evidence.ts",
@@ -291,11 +446,20 @@ function fixture() {
       revision: "revision",
       userAgent: "agent",
       jsVersion: "15.0",
-      executable: "/opt/chrome/chrome",
+      executable:
+        "/opt/chrome/.wasm-json-telemetry-browser-bin-12345678-1234-1234-1234-123456789abc",
+      requestedExecutable: "/opt/chrome/chrome",
+      requestedExecutableIdentity: { device: 1, inode: 10 },
       executableBytes: 10,
       executableSha256: "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355",
+      stagedExecutableIdentity: { device: 1, inode: 11 },
+      stagedExecutableMode: 0o500,
+      runningExecutableIdentity: { device: 1, inode: 11 },
       launchArguments: LAUNCH,
-      effectiveArguments: ["/opt/chrome/chrome", ...LAUNCH],
+      effectiveArguments: [
+        "/opt/chrome/.wasm-json-telemetry-browser-bin-12345678-1234-1234-1234-123456789abc",
+        ...LAUNCH,
+      ],
       headless: true,
       protocol: "Chrome DevTools Protocol",
       profile: "/tmp/wasm-json-telemetry-chrome-123",
@@ -313,7 +477,13 @@ function fixture() {
     },
     server: { origin: "http://127.0.0.1:8123", mode: "public", launcher: process },
     scenarios,
-    cleanup: { browserProcesses: success, cgroup: success, profile: success, server: success },
+    cleanup: {
+      browserProcesses: success,
+      cgroup: success,
+      profile: success,
+      binaryStage: success,
+      server: success,
+    },
   };
 }
 
@@ -354,6 +524,14 @@ Deno.test("schema rejects semantic roster, oracle, cache, AX, lifecycle, byte, a
       Object.assign((value.scenarios[0].network as Array<Record<string, unknown>>)[0], {
         fromDiskCache: true,
       }),
+    (value) =>
+      Object.assign((value.scenarios[0].network as Array<Record<string, unknown>>)[0], {
+        requestServedFromCache: true,
+      }),
+    (value) =>
+      Object.assign((value.scenarios[0].network as Array<Record<string, unknown>>)[0], {
+        fromPrefetchCache: true,
+      }),
     (value) => Object.assign(value.scenarios[0].accessibility as object, { statusText: "Ready." }),
     (value) =>
       Object.assign((value.scenarios[0].lifecycle as Record<string, unknown>).controls as object, {
@@ -384,23 +562,52 @@ Deno.test("schema rejects semantic roster, oracle, cache, AX, lifecycle, byte, a
   }
 });
 
-Deno.test("semantic relationship validator rejects cross-field source, argv, AX, and byte contradictions", async () => {
+Deno.test("semantic relationship validator rejects counts, source, inode, raw result, chronology, tokens, network, AX, and bytes", async () => {
   await assertJsonTelemetryEvidenceRelationships(fixture());
   const cases: Array<(value: ReturnType<typeof fixture>) => void> = [
+    (value) => Object.assign(value.collection, { completedScenarios: 0 }),
     (value) => Object.assign(value.source.endCheck, { commit: "c".repeat(40) }),
+    (value) => value.source.frozenFiles.splice(12, 1),
+    (value) =>
+      Object.assign(
+        value.source.frozenFiles.find((entry) => entry.path === WORKLOAD_PATH)!,
+        { sha256: HASH },
+      ),
     (value) => value.browser.effectiveArguments.push("--unexpected"),
+    (value) => Object.assign(value.browser.runningExecutableIdentity, { inode: 12 }),
+    (value) => Object.assign(value.scenarios[0].result as object, { rawText: "fabricated" }),
+    (value) =>
+      Object.assign(value.scenarios[0], {
+        statusHistory: ["Ready.", "fabricated status", "Complete."],
+      }),
+    (value) =>
+      Object.assign(
+        ((value.scenarios[5].lifecycle as Record<string, unknown>).workers as Array<
+          Record<string, unknown>
+        >)[1].postedTokens as unknown as object,
+        { 0: { token: 1, at: 3.1 } },
+      ),
+    (value) => (value.scenarios[0].network as Array<Record<string, unknown>>).splice(0, 1),
+    (value) => (value.scenarios[0].network as Array<Record<string, unknown>>).splice(2, 1),
+    (value) => (value.scenarios[0].network as Array<Record<string, unknown>>).splice(4, 1),
+    (value) =>
+      Object.assign((value.scenarios[0].network as Array<Record<string, unknown>>)[0], {
+        requestServedFromCache: true,
+      }),
+    (value) =>
+      Object.assign((value.scenarios[0].network as Array<Record<string, unknown>>)[0], {
+        resourceType: "Script",
+      }),
     (value) =>
       Object.assign(value.scenarios[0].accessibility as Record<string, unknown>, {
         axText: [{ role: "status", name: "Complete." }],
       }),
-    (value) =>
-      Object.assign(
-        (value.scenarios[0].network as Array<Record<string, unknown>>)[0].responseBody as Record<
-          string,
-          unknown
-        >,
-        { base64: "YWJj" },
-      ),
+    (value) => {
+      const workload = (value.scenarios[0].network as Array<Record<string, unknown>>).find((
+        entry,
+      ) => String(entry.url).includes("/workload."))!;
+      Object.assign(workload.responseBody as Record<string, unknown>, { base64: "YWJj" });
+    },
     (value) =>
       Object.assign(value.scenarios[0].blobExecution as Record<string, unknown>, { sha256: HASH }),
   ];
@@ -452,22 +659,57 @@ Deno.test("collector source pins setup, immutable source, exact browser, oracle,
       "executed Blob bytes differ from fetched workload",
       "causally terminate each created worker exactly once",
       "stale prior-worker error mutated the fresh generation",
+      "entry.requestServedFromCache",
       "entry.fromDiskCache",
+      "entry.fromPrefetchCache",
+      'client.on("Network.requestServedFromCache"',
+      "network roster differs from the exact scenario contract",
       "unmapped loopback response denied",
       "AX tree omitted visible status or result output",
       "await finalizeCleanup()",
-      "await Deno.writeTextFile(outputPath",
+      "await atomicWriteText(outputPath",
+      "systemd MainPID is not the staged, hashed Chrome inode",
+      "atomic output target",
       "cgroup.kill",
     ]
   ) assert(source.includes(required), `collector omitted ${required}`);
   assert(source.indexOf("try {\n  server =") < source.indexOf("server = new Deno.Command"));
-  assert(
-    source.indexOf("await finalizeCleanup()") <
-      source.indexOf("await Deno.writeTextFile(outputPath"),
-  );
+  const firstAtomicWrite = source.indexOf("await atomicWriteText(outputPath");
+  assert(source.indexOf("await finalizeCleanup()") < firstAtomicWrite);
+  assert(source.indexOf("await recheckFrozenSource();", firstAtomicWrite) > firstAtomicWrite);
+  assert(!source.includes("Deno.writeTextFile(outputPath"));
   assert(!source.includes("Deno.kill(-1"));
   assert(!source.includes("pkill"));
   assert(!source.includes("killall"));
+});
+
+Deno.test("collector rejects an output symlink before hashing or launching the browser", async () => {
+  const directory = await Deno.makeTempDir({ prefix: "json-telemetry-output-negative-" });
+  try {
+    const target = `${directory}/target.txt`;
+    const output = `${directory}/evidence.json`;
+    await Deno.writeTextFile(target, "retained");
+    await Deno.symlink(target, output);
+    const result = await new Deno.Command(Deno.execPath(), {
+      args: [
+        "run",
+        "-A",
+        "scripts/collect-v1-json-telemetry-browser-evidence.ts",
+        "--chrome=/bin/true",
+        `--output=${output}`,
+      ],
+      stdout: "piped",
+      stderr: "piped",
+    }).output();
+    assert(!result.success, "output symlink unexpectedly reached collection");
+    assert(
+      new TextDecoder().decode(result.stderr).includes("output path must not be a symlink"),
+      "output symlink rejection was not explicit",
+    );
+    assertEquals(await Deno.readTextFile(target), "retained");
+  } finally {
+    await Deno.remove(directory, { recursive: true });
+  }
 });
 
 Deno.test("every material object schema is closed", async () => {
