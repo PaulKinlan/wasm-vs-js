@@ -39,8 +39,8 @@
           "additionalProperties": false,
           "required": ["javascript", "wasm"],
           "properties": {
-            "javascript": { "$ref": "#/$defs/variant" },
-            "wasm": { "$ref": "#/$defs/variant" }
+            "javascript": { "$ref": "#/$defs/javascriptVariant" },
+            "wasm": { "$ref": "#/$defs/wasmVariant" }
           }
         },
         "header": {
@@ -56,7 +56,7 @@
   "$defs": {
     "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
-    "variant": {
+    "javascriptVariant": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -71,13 +71,37 @@
       ],
       "properties": {
         "sha256": { "$ref": "#/$defs/sha256" },
-        "allocations": { "type": "integer", "minimum": 0 },
+        "allocations": { "const": 18 },
         "decoderAllocations": { "const": 11 },
-        "engineAllocations": { "type": "integer", "minimum": 0 },
+        "engineAllocations": { "const": 7 },
         "decoderApiCalls": { "const": 6002 },
-        "decoderWasmBoundaryCrossings": { "type": "integer", "minimum": 0 },
-        "engineWasmBoundaryCrossings": { "type": "integer", "minimum": 0 },
-        "totalWasmBoundaryCrossings": { "type": "integer", "minimum": 0 }
+        "decoderWasmBoundaryCrossings": { "const": 0 },
+        "engineWasmBoundaryCrossings": { "const": 0 },
+        "totalWasmBoundaryCrossings": { "const": 0 }
+      }
+    },
+    "wasmVariant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sha256",
+        "allocations",
+        "decoderAllocations",
+        "engineAllocations",
+        "decoderApiCalls",
+        "decoderWasmBoundaryCrossings",
+        "engineWasmBoundaryCrossings",
+        "totalWasmBoundaryCrossings"
+      ],
+      "properties": {
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "allocations": { "const": 11 },
+        "decoderAllocations": { "const": 11 },
+        "engineAllocations": { "const": 0 },
+        "decoderApiCalls": { "const": 6002 },
+        "decoderWasmBoundaryCrossings": { "const": 6002 },
+        "engineWasmBoundaryCrossings": { "const": 4 },
+        "totalWasmBoundaryCrossings": { "const": 6006 }
       }
     }
   }

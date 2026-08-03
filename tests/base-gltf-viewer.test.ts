@@ -213,6 +213,24 @@ Deno.test("base glTF route is read-only and all runtime assets are explicitly se
     new Request("http://127.0.0.1/benchmarks/base-gltf-viewer/", { method: "POST" }),
   );
   assertEquals(denied.status, 403);
+  const build = await readJson("public/artifacts/base-gltf-viewer/build-manifest.json");
+  assert(
+    build.sources.some((source: { path: string }) =>
+      source.path === "public/benchmarks/base-gltf-viewer/decoder-worker.js"
+    ),
+    "decoder worker missing from source graph",
+  );
+  const worker = await Deno.readTextFile(
+    new URL("public/benchmarks/base-gltf-viewer/worker.js", root),
+  );
+  const decoderWorker = await Deno.readTextFile(
+    new URL("public/benchmarks/base-gltf-viewer/decoder-worker.js", root),
+  );
+  assert(worker.includes("verify(`public/artifacts/base-gltf-viewer/${decoderPath}`"));
+  assert(worker.includes("decoderScript: decoderScript.buffer"));
+  assert(decoderWorker.includes("new Blob([decoderScript]"));
+  assert(decoderWorker.includes("wasmBinary: new Uint8Array(decoderWasm)"));
+  assert(!decoderWorker.includes('importScripts("/artifacts/'));
 });
 
 Deno.test("demo lifecycle uses fresh workers, cancellation, timeout, stale tokens and pagehide", async () => {
@@ -291,7 +309,7 @@ Deno.test("base glTF fixture, build, output and evidence schemas fail closed", a
       "schemas/base-gltf-output-manifest.schema.json",
       (v: Record<string, unknown>) => {
         ((v.output as Record<string, unknown>).variants as Record<string, Record<string, unknown>>)
-          .wasm.decoderApiCalls = 0;
+          .wasm.totalWasmBoundaryCrossings = 0;
       },
     ],
     [
