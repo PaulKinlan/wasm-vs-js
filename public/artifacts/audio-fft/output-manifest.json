@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "status": "proposal-validation-only",
+  "authoritativePerformanceEvidence": false,
+  "entryId": "audio.fft.v1",
+  "benchmarkSlug": "audio-fft",
+  "serialization": "canonical-little-endian-f32-signed-zero-normalized-positive",
+  "byteLength": 1048576,
+  "sha256": "8394fb237d8e085dcee070c9c1835bdaa831f6f6cec5c84aff50e85180fa0cd9",
+  "variants": {
+    "js-controlled": {
+      "status": "passed",
+      "completeOutputSha256": "8394fb237d8e085dcee070c9c1835bdaa831f6f6cec5c84aff50e85180fa0cd9",
+      "structuralOracle": {
+        "anchorMaximum": 0.000008106231689453125,
+        "reconstructionMaximum": 6.854534149169922e-7,
+        "symmetryMaximum": 0,
+        "finite": true
+      },
+      "workCounters": {
+        "transforms": 32,
+        "samples": 131072,
+        "stages": 384,
+        "butterflies": 786432,
+        "complex-multiplies": 786432,
+        "input-bytes": 1081336,
+        "output-bytes": 1048576,
+        "boundary-crossings": 32
+      }
+    },
+    "wasm-linear-controlled": {
+      "status": "passed",
+      "completeOutputSha256": "8394fb237d8e085dcee070c9c1835bdaa831f6f6cec5c84aff50e85180fa0cd9",
+      "structuralOracle": {
+        "anchorMaximum": 0.000008106231689453125,
+        "reconstructionMaximum": 6.854534149169922e-7,
+        "symmetryMaximum": 0,
+        "finite": true
+      },
+      "workCounters": {
+        "transforms": 32,
+        "samples": 131072,
+        "stages": 384,
+        "butterflies": 786432,
+        "complex-multiplies": 786432,
+        "input-bytes": 1081336,
+        "output-bytes": 1048576,
+        "boundary-crossings": 32
+      }
+    }
+  },
+  "performanceClaims": [],
+  "sourceCommit": "398a1f8de983f804d875a10f69b83763824a8b92"
+}

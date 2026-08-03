@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "status": "proposal-validation-only",
+  "authoritativePerformanceEvidence": false,
+  "entryId": "audio.fir.v1",
+  "benchmarkSlug": "audio-fir",
+  "serialization": "canonical-little-endian-f32-signed-zero-normalized-positive",
+  "byteLength": 525308,
+  "sha256": "e4b89ba6d65fa9ac3aa5f1b30da32343e54cc81a9ee9d6f84eaf8b38e823fb5f",
+  "variants": {
+    "js-controlled": {
+      "status": "passed",
+      "completeOutputSha256": "e4b89ba6d65fa9ac3aa5f1b30da32343e54cc81a9ee9d6f84eaf8b38e823fb5f",
+      "structuralOracle": {
+        "outputLength": 131327,
+        "dcGain": 0.999999705222649,
+        "impulseLatency": 1,
+        "finite": true
+      },
+      "workCounters": {
+        "samples": 131072,
+        "taps": 256,
+        "multiply-accumulates": 33554432,
+        "input-bytes": 524288,
+        "coefficient-bytes": 1024,
+        "output-bytes": 525308,
+        "allocations": 1,
+        "boundary-crossings": 1
+      }
+    },
+    "wasm-linear-controlled": {
+      "status": "passed",
+      "completeOutputSha256": "e4b89ba6d65fa9ac3aa5f1b30da32343e54cc81a9ee9d6f84eaf8b38e823fb5f",
+      "structuralOracle": {
+        "outputLength": 131327,
+        "dcGain": 0.999999705222649,
+        "impulseLatency": 1,
+        "finite": true
+      },
+      "workCounters": {
+        "samples": 131072,
+        "taps": 256,
+        "multiply-accumulates": 33554432,
+        "input-bytes": 524288,
+        "coefficient-bytes": 1024,
+        "output-bytes": 525308,
+        "allocations": 1,
+        "boundary-crossings": 1
+      }
+    }
+  },
+  "performanceClaims": [],
+  "sourceCommit": "398a1f8de983f804d875a10f69b83763824a8b92"
+}

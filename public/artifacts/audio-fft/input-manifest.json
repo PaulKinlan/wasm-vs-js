@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "status": "proposal-validation-only",
+  "entryId": "audio.fft.v1",
+  "benchmarkSlug": "audio-fft",
+  "serialization": "canonical-little-endian-f32",
+  "byteLength": 1081336,
+  "sha256": "56a844c73dbb33c2ac426ce012b0d953f54270c8acd1bc90a4b058147a810ee0",
+  "fields": [
+    {
+      "name": "fft-size",
+      "value": 4096
+    },
+    {
+      "name": "transforms",
+      "value": 32
+    },
+    {
+      "name": "direction",
+      "value": "forward"
+    },
+    {
+      "name": "normalization",
+      "value": "none"
+    },
+    {
+      "name": "layout",
+      "value": "interleaved-complex"
+    }
+  ],
+  "sourceCommit": "398a1f8de983f804d875a10f69b83763824a8b92"
+}

@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "status": "proposal-validation-only",
+  "authoritativePerformanceEvidence": false,
+  "entryId": "audio.stft.v1",
+  "benchmarkSlug": "audio-stft",
+  "serialization": "canonical-little-endian-f32-signed-zero-normalized-positive",
+  "byteLength": 3047424,
+  "sha256": "a9f31f5ddc547961586f7f0b7cecd746f47897e82d6ecd697778d6ce53107fc8",
+  "variants": {
+    "js-controlled": {
+      "status": "passed",
+      "completeOutputSha256": "a9f31f5ddc547961586f7f0b7cecd746f47897e82d6ecd697778d6ce53107fc8",
+      "structuralOracle": {
+        "frames": 372,
+        "symmetryMaximum": 0.00006866455078125,
+        "reconstructionMaximum": 3.674067556858063e-7,
+        "chirpBinMaximum": 0.5005533333333574,
+        "finite": true
+      },
+      "workCounters": {
+        "frames": 372,
+        "samples": 96000,
+        "window-multiplies": 380928,
+        "butterflies": 1904640,
+        "complex-multiplies": 1904640,
+        "input-bytes": 396280,
+        "output-bytes": 3047424,
+        "boundary-crossings": 1
+      }
+    },
+    "wasm-linear-controlled": {
+      "status": "passed",
+      "completeOutputSha256": "a9f31f5ddc547961586f7f0b7cecd746f47897e82d6ecd697778d6ce53107fc8",
+      "structuralOracle": {
+        "frames": 372,
+        "symmetryMaximum": 0.00006866455078125,
+        "reconstructionMaximum": 3.674067556858063e-7,
+        "chirpBinMaximum": 0.5005533333333574,
+        "finite": true
+      },
+      "workCounters": {
+        "frames": 372,
+        "samples": 96000,
+        "window-multiplies": 380928,
+        "butterflies": 1904640,
+        "complex-multiplies": 1904640,
+        "input-bytes": 396280,
+        "output-bytes": 3047424,
+        "boundary-crossings": 1
+      }
+    }
+  },
+  "performanceClaims": [],
+  "sourceCommit": "398a1f8de983f804d875a10f69b83763824a8b92"
+}

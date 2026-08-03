@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "status": "proposal-validation-only",
+  "entryId": "audio.fir.v1",
+  "benchmarkSlug": "audio-fir",
+  "serialization": "canonical-little-endian-f32",
+  "byteLength": 524288,
+  "sha256": "b90d5d472e7f58e18d544f32dbc7449143608939f4a8c18641d6e7eae1752b56",
+  "fields": [
+    {
+      "name": "samples",
+      "value": 131072
+    },
+    {
+      "name": "taps",
+      "value": 256
+    },
+    {
+      "name": "channels",
+      "value": 1
+    },
+    {
+      "name": "boundary",
+      "value": "zero-extend"
+    },
+    {
+      "name": "convolution",
+      "value": "direct"
+    }
+  ],
+  "sourceCommit": "398a1f8de983f804d875a10f69b83763824a8b92"
+}

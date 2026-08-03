@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "status": "proposal-validation-only",
+  "entryId": "audio.fir.v1",
+  "benchmarkSlug": "audio-fir",
+  "rights": {
+    "source": "generated solely by repository xorshift32 and coefficient generators",
+    "licenseSpdx": "CC0-1.0",
+    "redistribution": "permitted"
+  },
+  "generatorRevision": "proposal-generator-v1",
+  "serialization": "canonical little-endian f32 fields in catalog-declared order",
+  "sourceCommit": "398a1f8de983f804d875a10f69b83763824a8b92"
+}
