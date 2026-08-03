@@ -1,10 +1,10 @@
 // Freestanding scalar linear-Wasm protobuf decoder/filter/ProtoJSON serializer.
 // Fixed schema and semantics are documented in implementation-contract.v1.json.
-typedef unsigned char u8; typedef unsigned int u32; typedef unsigned long long u64; typedef long long i64;
+typedef unsigned char u8; typedef unsigned int u32; typedef unsigned long long u64; typedef int i32; typedef long long i64;
 typedef struct { const u8 *p; u32 n; } Slice;
 typedef struct { Slice key; i64 value; } MapEntry;
 typedef struct {
-  u64 id; Slice name; u32 active; double score; u32 status; Slice tags[8]; u32 tag_n;
+  u64 id; Slice name; u32 active; double score; i32 status; Slice tags[8]; u32 tag_n;
   MapEntry maps[8]; u32 map_n; Slice payload; u32 choice; Slice note; int code; float ratio;
 } Message;
 typedef struct { u32 messages, fields, varint_bytes, unknown, filtered, wire_bytes, json_bytes, allocations, crossings; } Counters;
@@ -18,6 +18,7 @@ static int skip(const u8*b,u32 n,u32*at,u32 wire,u32*vu){u64 v;u32 l,u=0;*vu=0;i
 static u32 load32(const u8*p){return (u32)p[0]|((u32)p[1]<<8)|((u32)p[2]<<16)|((u32)p[3]<<24);}
 static u64 load64(const u8*p){return (u64)load32(p)|((u64)load32(p+4)<<32);}
 static i64 unzig(u64 v){return (i64)((v>>1)^((u64)-(i64)(v&1)));}
+static i32 as_i32(u64 v){u32 low=(u32)v;return low&0x80000000U?(i32)((i64)low-4294967296LL):(i32)low;}
 static int parse_map(const u8*b,u32 n,MapEntry*e){u32 p=0;e->key.p=0;e->key.n=0;e->value=0;while(p<n){u64 t,v;u32 u,l;if(!varint(b,n,&p,&t,&u))return 0;u32 f=(u32)(t>>3),w=(u32)(t&7);if(f==1&&w==2){if(!len(b,n,&p,&l,&u))return 0;e->key.p=b+p;e->key.n=l;p+=l;}else if(f==2&&w==0){if(!varint(b,n,&p,&v,&u))return 0;e->value=unzig(v);}else if(!skip(b,n,&p,w,&u))return 0;}return 1;}
 static int keyeq(Slice a,Slice b){if(a.n!=b.n)return 0;for(u32 i=0;i<a.n;i++)if(a.p[i]!=b.p[i])return 0;return 1;}
 static int utf8(const u8*s,u32 n){for(u32 i=0;i<n;){u8 a=s[i++];if(a<128)continue;if(a<194||a>244)return 0;if(a<224){if(i>=n||(s[i]&192)!=128)return 0;i++;continue;}if(a<240){if(i+1>=n||(s[i]&192)!=128||(s[i+1]&192)!=128)return 0;if(a==224&&s[i]<160)return 0;if(a==237&&s[i]>=160)return 0;i+=2;continue;}if(i+2>=n||(s[i]&192)!=128||(s[i+1]&192)!=128||(s[i+2]&192)!=128)return 0;if(a==240&&s[i]<144)return 0;if(a==244&&s[i]>=144)return 0;i+=3;}return 1;}
@@ -28,7 +29,7 @@ static int parse(const u8*b,u32 n,Message*m,Counters*c){
     else if(f==2&&w==2){if(!len(b,n,&p,&l,&u)||!utf8(b+p,l))return 0;c->varint_bytes+=u;m->name=(Slice){b+p,l};p+=l;}
     else if(f==3&&w==0){if(!varint(b,n,&p,&v,&u))return 0;c->varint_bytes+=u;m->active=v!=0;}
     else if(f==4&&w==1){if(p+8>n)return 0;u64 q=load64(b+p);__builtin_memcpy(&m->score,&q,8);p+=8;}
-    else if(f==5&&w==0){if(!varint(b,n,&p,&v,&u))return 0;c->varint_bytes+=u;m->status=(u32)v;}
+    else if(f==5&&w==0){if(!varint(b,n,&p,&v,&u))return 0;c->varint_bytes+=u;m->status=as_i32(v);}
     else if(f==6&&w==2){if(!len(b,n,&p,&l,&u)||m->tag_n>=8||!utf8(b+p,l))return 0;c->varint_bytes+=u;m->tags[m->tag_n++]=(Slice){b+p,l};p+=l;}
     else if(f==7&&w==2){if(!len(b,n,&p,&l,&u))return 0;c->varint_bytes+=u;MapEntry e;if(!parse_map(b+p,l,&e)||!utf8(e.key.p,e.key.n))return 0;p+=l;u32 found=99;for(u32 i=0;i<m->map_n;i++)if(keyeq(m->maps[i].key,e.key))found=i;if(found<8)m->maps[found]=e;else{if(m->map_n>=8)return 0;m->maps[m->map_n++]=e;}}
     else if(f==8&&w==2){if(!len(b,n,&p,&l,&u))return 0;c->varint_bytes+=u;m->payload=(Slice){b+p,l};p+=l;}
@@ -59,7 +60,7 @@ static int special_float(float f){u32 bits;__builtin_memcpy(&bits,&f,4);u32 exp=
 static int score_present(double d){u64 bits;__builtin_memcpy(&bits,&d,8);return bits!=0;}
 static int ratio_present(float f){u32 bits;__builtin_memcpy(&bits,&f,4);return bits!=0;}
 static int mapcmp(Slice a,Slice b){u32 n=a.n<b.n?a.n:b.n;for(u32 i=0;i<n;i++){if(a.p[i]<b.p[i])return -1;if(a.p[i]>b.p[i])return 1;}return a.n<b.n?-1:a.n>b.n;}
-static int json(Message*m){int first=1;if(!emit('{'))return 0;if(m->id){if(!field("id",&first)||!emit('"')||!uintdec(m->id)||!emit('"'))return 0;}if(m->name.n){if(!field("name",&first)||!quote(m->name))return 0;}if(m->active){if(!field("active",&first)||!lit("true"))return 0;}if(score_present(m->score)){if(!field("score",&first)||!special_num(m->score))return 0;}if(m->status){if(!field("status",&first))return 0;static const Slice st[]={{(const u8*)"STATUS_UNSPECIFIED",18},{(const u8*)"ACTIVE",6},{(const u8*)"PAUSED",6},{(const u8*)"DISABLED",8}};if(m->status<4){if(!quote(st[m->status]))return 0;}else if(!uintdec(m->status))return 0;}if(m->tag_n){if(!field("tags",&first)||!emit('['))return 0;for(u32 i=0;i<m->tag_n;i++){if(i&&!emit(','))return 0;if(!quote(m->tags[i]))return 0;}if(!emit(']'))return 0;}if(m->map_n){if(!field("metrics",&first)||!emit('{'))return 0;u32 idx[8];for(u32 i=0;i<m->map_n;i++)idx[i]=i;for(u32 i=1;i<m->map_n;i++){u32 x=idx[i],j=i;while(j&&mapcmp(m->maps[x].key,m->maps[idx[j-1]].key)<0){idx[j]=idx[j-1];j--;}idx[j]=x;}for(u32 i=0;i<m->map_n;i++){if(i&&!emit(','))return 0;MapEntry*e=&m->maps[idx[i]];if(!quote(e->key)||!emit(':')||!emit('"')||!intdec(e->value)||!emit('"'))return 0;}if(!emit('}'))return 0;}if(m->payload.n){if(!field("payload",&first)||!b64(m->payload))return 0;}if(m->choice==9){if(!field("note",&first)||!quote(m->note))return 0;}else if(m->choice==10){if(!field("code",&first)||!intdec(m->code))return 0;}if(ratio_present(m->ratio)){if(!field("ratio",&first)||!special_float(m->ratio))return 0;}return emit('}');}
+static int json(Message*m){int first=1;if(!emit('{'))return 0;if(m->id){if(!field("id",&first)||!emit('"')||!uintdec(m->id)||!emit('"'))return 0;}if(m->name.n){if(!field("name",&first)||!quote(m->name))return 0;}if(m->active){if(!field("active",&first)||!lit("true"))return 0;}if(score_present(m->score)){if(!field("score",&first)||!special_num(m->score))return 0;}if(m->status){if(!field("status",&first))return 0;static const Slice st[]={{(const u8*)"STATUS_UNSPECIFIED",18},{(const u8*)"ACTIVE",6},{(const u8*)"PAUSED",6},{(const u8*)"DISABLED",8}};if(m->status>0&&m->status<4){if(!quote(st[m->status]))return 0;}else if(!intdec(m->status))return 0;}if(m->tag_n){if(!field("tags",&first)||!emit('['))return 0;for(u32 i=0;i<m->tag_n;i++){if(i&&!emit(','))return 0;if(!quote(m->tags[i]))return 0;}if(!emit(']'))return 0;}if(m->map_n){if(!field("metrics",&first)||!emit('{'))return 0;u32 idx[8];for(u32 i=0;i<m->map_n;i++)idx[i]=i;for(u32 i=1;i<m->map_n;i++){u32 x=idx[i],j=i;while(j&&mapcmp(m->maps[x].key,m->maps[idx[j-1]].key)<0){idx[j]=idx[j-1];j--;}idx[j]=x;}for(u32 i=0;i<m->map_n;i++){if(i&&!emit(','))return 0;MapEntry*e=&m->maps[idx[i]];if(!quote(e->key)||!emit(':')||!emit('"')||!intdec(e->value)||!emit('"'))return 0;}if(!emit('}'))return 0;}if(m->payload.n){if(!field("payload",&first)||!b64(m->payload))return 0;}if(m->choice==9){if(!field("note",&first)||!quote(m->note))return 0;}else if(m->choice==10){if(!field("code",&first)||!intdec(m->code))return 0;}if(ratio_present(m->ratio)){if(!field("ratio",&first)||!special_float(m->ratio))return 0;}return emit('}');}
 __attribute__((export_name("process"))) int process(u32 input,u32 input_len,u32 output,u32 output_cap,u32 counters){
  const u8*b=(const u8*)(u64)input;if(input_len<4)return -1;u32 count=load32(b);if(count!=10000)return -2;u32 p=4;OUT=(u8*)(u64)output;OP=0;OC=output_cap;Counters c={0};c.wire_bytes=input_len;c.crossings=1;if(!emit('['))return -3;int first=1;
  for(u32 i=0;i<count;i++){if(p+4>input_len)return -4;u32 n=load32(b+p);p+=4;if(p+n>input_len)return -5;Message m;if(!parse(b+p,n,&m,&c))return -6;p+=n;c.messages++;if(m.active&&m.status!=3&&m.id%3==0){if(!comma(&first)||!json(&m))return -7;c.filtered++;}}

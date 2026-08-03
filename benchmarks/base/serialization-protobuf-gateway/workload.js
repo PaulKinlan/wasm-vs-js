@@ -97,7 +97,7 @@ export function generateFixture(count = MESSAGE_COUNT) {
       i % 991 === 0 ? Infinity : i % 887 === 0 ? -0 : i % 13 === 0 ? i + 0.5 : i,
     );
     pushKey(out, 5, 0);
-    pushVarint(out, i % 257 === 0 ? 99 : i % 4);
+    pushVarint(out, i % 521 === 0 ? -1 : i % 257 === 0 ? 99 : i % 4);
     pushString(out, 6, `tag-${i % 7}`);
     pushString(out, 6, `é-${i % 5}`);
     pushBytes(out, 7, mapEntry("alpha", BigInt((i % 101) - 50)));
@@ -253,7 +253,7 @@ export function decodeMessage(bytes, counters = null) {
       p += 8;
     } else if (field === 5 && wire === 0) {
       const [v, q, n] = readVarint(bytes, p);
-      m.status = Number(v);
+      m.status = Number(BigInt.asIntN(32, v));
       p = q;
       if (counters) counters.varintBytes += n;
     } else if (field === 6 && wire === 2) {

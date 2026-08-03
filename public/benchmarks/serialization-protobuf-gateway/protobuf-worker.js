@@ -6,14 +6,14 @@ import {
 } from "/benchmarks/base/serialization-protobuf-gateway/workload.js";
 const ROOT = "/artifacts/serialization-protobuf-gateway/";
 const EXPECTED = {
-  "fixture-manifest.json": "1c0f312f924ded923d39e67eddb477440210fa2b3e939598a8854fd3ff66fe0f",
-  "output-manifest.json": "a57ac8b49aec3029761d6750fd713f209dfc049c0c1452f09aa6c385a95f56bf",
-  "build-manifest.json": "ff73ccc67058a44dd273a487c3aabbd4aa378c4fd10778a668c7bd22942c50c9",
+  "fixture-manifest.json": "4b71993a213860b1972696a7dbc3d8d51a5984e436c06495acd0952682eee421",
+  "output-manifest.json": "cc0a8e47fdac91129fa228ee6a87b38aab61a03ecadbc0d82e7e3563bda01adc",
+  "build-manifest.json": "7a477ceec803b3792768bcf0bad10b2bf3a19c8602ea12f671a81ec723c1d440",
   "serialization-protobuf-gateway.wasm":
-    "d0c64f5bdd783ecfe0f7fe7ff8e87d6118d6736bf807b4db2791e3ff2cea2724",
+    "fc1aadc10019f26472b9f0d98d51103cdb86941ed32767189d959a244e6fd938",
   "implementation-contract.v1.json":
     "705729301e84f4aefb0f9f76081c7f20e15ecbb291fe58f7da6d72b646e44cfc",
-  "workload.js": "1d5908d35c5fed190bc7a6f2489c9adf1f6342f6b9c42b408a222a1c2c87d95b",
+  "workload.js": "f344d7a5e084b792a5354f8edd805893377dd65814ba14528f63b10b153b9214",
 };
 async function exactFetch(path, expected) {
   const response = await fetch(path, { cache: "no-store" });

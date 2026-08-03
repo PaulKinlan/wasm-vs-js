@@ -20,6 +20,17 @@ function throws(fn: () => unknown) {
   assert(did, "expected function to throw");
 }
 
+function signedEnumMessage(id: number, status: number) {
+  const bytes = [0x08, id, 0x18, 0x01, 0x28];
+  let value = BigInt.asUintN(64, BigInt(status));
+  while (value >= 128n) {
+    bytes.push(Number(value & 127n) | 128);
+    value >>= 7n;
+  }
+  bytes.push(Number(value));
+  return new Uint8Array(bytes);
+}
+
 const DIR = "public/artifacts/serialization-protobuf-gateway/";
 const FROZEN = "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4";
 
@@ -71,7 +82,7 @@ Deno.test("base protobuf preserves frozen catalog and registers full exact suppl
 Deno.test("base protobuf complete 10k JS and material Wasm outputs and operative counters match", async () => {
   const fixture = generateFixture();
   const fixtureManifest = JSON.parse(await Deno.readTextFile(`${DIR}fixture-manifest.json`));
-  assertEquals(fixture.length, 1533942);
+  assertEquals(fixture.length, 1534122);
   assertEquals(await sha256Hex(fixture), fixtureManifest.sha256);
   const js = runJavaScript(fixture);
   const wasmBytes = await Deno.readFile(`${DIR}serialization-protobuf-gateway.wasm`);
@@ -79,12 +90,12 @@ Deno.test("base protobuf complete 10k JS and material Wasm outputs and operative
   assertEquals(js.text, wasm.text);
   assertEquals(
     await sha256Hex(js.bytes),
-    "e0c54e5553fc1850e4ef0583e7cfc50f4636f68364300cc4a9a7de2518f6d8a7",
+    "4539813029587b58d20441ef6b95174dc86c2546b0becbf23ca1b48a6f0c8c9a",
   );
-  assertEquals(js.bytes.length, 354982);
+  assertEquals(js.bytes.length, 354976);
   assertEquals(js.counters.messages, 10000);
   assertEquals(js.counters.fields, 170294);
-  assertEquals(js.counters.varintBytes, 474804);
+  assertEquals(js.counters.varintBytes, 474984);
   assertEquals(js.counters.unknownFields, 40000);
   assertEquals(js.counters.filteredMessages, 1703);
   const jsCounters = js.counters as Record<string, number>;
@@ -237,7 +248,34 @@ Deno.test("base protobuf adversarial ProtoJSON cases match in JS and material Wa
   const nonDyadicFloat = new Uint8Array(4);
   new DataView(nonDyadicFloat.buffer).setFloat32(0, 0.1, true);
   third.push(...nonDyadicDouble, 0x28, 0x01, 0x5d, ...nonDyadicFloat);
-  const messages = [new Uint8Array(first), new Uint8Array(second), new Uint8Array(third)];
+  const negativeOne = signedEnumMessage(12, -1);
+  const int32Minimum = signedEnumMessage(15, -2_147_483_648);
+  const int32Maximum = signedEnumMessage(18, 2_147_483_647);
+  assertEquals([...negativeOne.subarray(5)], [
+    0xff,
+    0xff,
+    0xff,
+    0xff,
+    0xff,
+    0xff,
+    0xff,
+    0xff,
+    0xff,
+    0x01,
+  ]);
+  assertEquals(negativeOne.length, 15);
+  assertEquals(int32Minimum.length, 15);
+  assertEquals(decodeMessage(negativeOne).status, -1);
+  assertEquals(decodeMessage(int32Minimum).status, -2_147_483_648);
+  assertEquals(decodeMessage(int32Maximum).status, 2_147_483_647);
+  const messages = [
+    new Uint8Array(first),
+    new Uint8Array(second),
+    new Uint8Array(third),
+    negativeOne,
+    int32Minimum,
+    int32Maximum,
+  ];
   while (messages.length < 10_000) messages.push(new Uint8Array());
   const fixture = frame(messages);
   const js = runJavaScript(fixture);
@@ -246,7 +284,7 @@ Deno.test("base protobuf adversarial ProtoJSON cases match in JS and material Wa
     await Deno.readFile(`${DIR}serialization-protobuf-gateway.wasm`),
   );
   const expected =
-    '[{"id":"3","name":"\\"\\\\\\n","active":true,"score":-0,"status":99,"metrics":{"":"1","𐀀":"2"},"ratio":1.5},{"id":"6","active":true,"score":-12.25,"status":"ACTIVE","ratio":-0},{"id":"9","active":true,"score":0.1000000000000000055511151231257827021181583404541015625,"status":"ACTIVE","ratio":0.100000001490116119384765625}]';
+    '[{"id":"3","name":"\\"\\\\\\n","active":true,"score":-0,"status":99,"metrics":{"":"1","𐀀":"2"},"ratio":1.5},{"id":"6","active":true,"score":-12.25,"status":"ACTIVE","ratio":-0},{"id":"9","active":true,"score":0.1000000000000000055511151231257827021181583404541015625,"status":"ACTIVE","ratio":0.100000001490116119384765625},{"id":"12","active":true,"status":-1},{"id":"15","active":true,"status":-2147483648},{"id":"18","active":true,"status":2147483647}]';
   assertEquals(js.text, expected);
   assertEquals(wasm.text, expected);
 });
@@ -254,6 +292,7 @@ Deno.test("base protobuf adversarial ProtoJSON cases match in JS and material Wa
 Deno.test("base protobuf generated corpus retains every adversarial serializer case", () => {
   const js = runJavaScript(generateFixture());
   assert(js.text.includes('"status":99'));
+  assert(js.text.includes('"status":-1'));
   assert(js.text.includes('"score":-0'));
   assert(js.text.includes('"ratio":-0'));
   assert(js.text.includes('"score":26.5'));
