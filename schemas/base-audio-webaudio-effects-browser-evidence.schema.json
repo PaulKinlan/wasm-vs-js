@@ -266,7 +266,8 @@
         "inode",
         "invocationId",
         "mainPid",
-        "memberSnapshots"
+        "memberSnapshots",
+        "listenerAssertions"
       ],
       "properties": {
         "unit": { "type": "string", "pattern": "^wasm-audio-effects-[a-f0-9]{16}\\.service$" },
@@ -280,6 +281,30 @@
           "type": "array",
           "minItems": 2,
           "items": { "$ref": "#/$defs/memberSnapshot" }
+        },
+        "listenerAssertions": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": { "$ref": "#/$defs/listenerOwnershipProof" }
+        }
+      }
+    },
+    "listenerOwnershipProof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["at", "port", "socketInode", "ownerPid", "ownerFd", "cgroupPids"],
+      "properties": {
+        "at": { "type": "string", "format": "date-time" },
+        "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+        "socketInode": { "type": "string", "pattern": "^[0-9]+$" },
+        "ownerPid": { "type": "integer", "minimum": 2 },
+        "ownerFd": { "type": "string", "pattern": "^[0-9]+$" },
+        "cgroupPids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "integer", "minimum": 2 }
         }
       }
     },
@@ -324,7 +349,10 @@
           "minItems": 20,
           "maxItems": 20,
           "prefixItems": [
-            { "type": "string", "pattern": "^--user-data-dir=/tmp/wasm-audio-effects-cft-" },
+            {
+              "type": "string",
+              "pattern": "^--user-data-dir=/tmp/wasm-vs-js-owned-profiles/audio-effects-[a-f0-9-]+/launch$"
+            },
             { "const": "--remote-debugging-port=0" },
             { "const": "--remote-debugging-address=127.0.0.1" },
             { "const": "--headless=new" },
@@ -359,7 +387,10 @@
           "additionalProperties": false,
           "required": ["path", "device", "inode", "mode", "createdEmpty"],
           "properties": {
-            "path": { "type": "string", "pattern": "^/tmp/wasm-audio-effects-cft-" },
+            "path": {
+              "type": "string",
+              "pattern": "^/tmp/wasm-vs-js-owned-profiles/audio-effects-[a-f0-9-]+/launch$"
+            },
             "device": { "type": "integer", "minimum": 1 },
             "inode": { "type": "integer", "minimum": 1 },
             "mode": { "const": 448 },
@@ -557,26 +588,112 @@
         "gitBlob": { "$ref": "#/$defs/gitIdentity" }
       }
     },
+    "axRelationshipTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["backendDOMNodeId", "text"],
+      "properties": {
+        "backendDOMNodeId": { "type": "integer", "minimum": 1 },
+        "text": { "type": "string" }
+      }
+    },
+    "axRelationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "targets"],
+      "properties": {
+        "type": { "type": "string", "minLength": 1 },
+        "targets": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/axRelationshipTarget" }
+        }
+      }
+    },
+    "axControl": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "name", "relationships"],
+      "properties": {
+        "role": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "relationships": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/axRelationship" }
+        }
+      }
+    },
     "accessibility": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["bodyText", "statusText", "resultText", "axText"],
+      "required": ["bodyText", "statusText", "resultText", "axControls"],
       "properties": {
         "bodyText": { "type": "string", "minLength": 1 },
         "statusText": { "type": "string", "minLength": 1 },
         "resultText": { "type": "string" },
-        "axText": {
+        "axControls": {
           "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["role", "name"],
-            "properties": {
-              "role": { "type": "string", "minLength": 1 },
-              "name": { "type": "string", "minLength": 1 }
+          "minItems": 5,
+          "maxItems": 5,
+          "prefixItems": [
+            {
+              "allOf": [
+                { "$ref": "#/$defs/axControl" },
+                {
+                  "properties": {
+                    "role": { "const": "heading" },
+                    "name": { "const": "Complete 60-second stereo effects rack" }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                { "$ref": "#/$defs/axControl" },
+                {
+                  "properties": {
+                    "role": { "const": "combobox" },
+                    "name": { "const": "Engine" },
+                    "relationships": { "minItems": 1 }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                { "$ref": "#/$defs/axControl" },
+                {
+                  "properties": {
+                    "role": { "const": "button" },
+                    "name": { "const": "Start full validation" }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                { "$ref": "#/$defs/axControl" },
+                {
+                  "properties": {
+                    "role": { "const": "button" },
+                    "name": { "const": "Cancel" }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                { "$ref": "#/$defs/axControl" },
+                {
+                  "properties": {
+                    "role": { "const": "progressbar" },
+                    "name": { "const": "Validation phase" }
+                  }
+                }
+              ]
             }
-          }
+          ],
+          "items": false
         }
       }
     },
@@ -730,7 +847,12 @@
       "properties": {
         "bytes": { "type": "integer", "minimum": 1 },
         "sha256": { "$ref": "#/$defs/sha256" },
-        "base64": { "type": "string", "pattern": "^[A-Za-z0-9+/]*={0,2}$" }
+        "base64": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9+/]*={0,2}$",
+          "minLength": 1048,
+          "maxLength": 1048
+        }
       }
     },
     "workloadBlob": {
@@ -742,7 +864,12 @@
         "mimeType": { "const": "text/javascript" },
         "bytes": { "const": 10477 },
         "sha256": { "const": "61d09e66febd9fa65916472219198306aa43e4d7a9095c8d94aa1daa6f6b4174" },
-        "base64": { "type": "string", "pattern": "^[A-Za-z0-9+/]*={0,2}$" }
+        "base64": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9+/]*={0,2}$",
+          "minLength": 13972,
+          "maxLength": 13972
+        }
       }
     },
     "execution": {
@@ -885,7 +1012,22 @@
       "properties": {
         "id": { "const": "wrong-token" },
         "action": { "const": "wrong-token" },
-        "target": { "const": "javascript" }
+        "target": { "const": "javascript" },
+        "lifecycle": {
+          "properties": {
+            "checks": {
+              "const": ["wrong-token completion was ignored without visible mutation"]
+            }
+          }
+        },
+        "finalState": {
+          "properties": {
+            "status": { "const": "Cancelled. No result was retained." },
+            "output": { "const": "" },
+            "startDisabled": { "const": false },
+            "cancelDisabled": { "const": true }
+          }
+        }
       }
     },
     "staleRestart": {
@@ -894,7 +1036,22 @@
         "id": { "const": "stale-restart" },
         "action": { "const": "stale-restart" },
         "target": { "const": "javascript" },
-        "workerTargets": { "minItems": 2 }
+        "workerTargets": { "minItems": 2 },
+        "lifecycle": {
+          "properties": {
+            "checks": {
+              "const": ["stale prior-worker error was ignored after a fresh restart"]
+            }
+          }
+        },
+        "finalState": {
+          "properties": {
+            "status": { "const": "Cancelled. No result was retained." },
+            "output": { "const": "" },
+            "startDisabled": { "const": false },
+            "cancelDisabled": { "const": true }
+          }
+        }
       }
     },
     "restart": {
@@ -903,7 +1060,22 @@
         "id": { "const": "restart" },
         "action": { "const": "restart" },
         "target": { "const": "wasm-linear" },
-        "workerTargets": { "minItems": 2 }
+        "workerTargets": { "minItems": 2 },
+        "lifecycle": {
+          "properties": {
+            "checks": {
+              "const": ["cancel then restart replaced the exact prior worker and token"]
+            }
+          }
+        },
+        "finalState": {
+          "properties": {
+            "status": { "const": "Cancelled. No result was retained." },
+            "output": { "const": "" },
+            "startDisabled": { "const": false },
+            "cancelDisabled": { "const": true }
+          }
+        }
       }
     },
     "cancel": {
@@ -911,7 +1083,22 @@
       "properties": {
         "id": { "const": "cancel" },
         "action": { "const": "cancel" },
-        "target": { "const": "javascript" }
+        "target": { "const": "javascript" },
+        "lifecycle": {
+          "properties": {
+            "checks": {
+              "const": ["visible Cancel terminated the active worker and retained no result"]
+            }
+          }
+        },
+        "finalState": {
+          "properties": {
+            "status": { "const": "Cancelled. No result was retained." },
+            "output": { "const": "" },
+            "startDisabled": { "const": false },
+            "cancelDisabled": { "const": true }
+          }
+        }
       }
     },
     "timeout": {
@@ -919,7 +1106,22 @@
       "properties": {
         "id": { "const": "timeout" },
         "action": { "const": "timeout" },
-        "target": { "const": "wasm-linear" }
+        "target": { "const": "wasm-linear" },
+        "lifecycle": {
+          "properties": {
+            "checks": {
+              "const": ["the registered 120-second timeout path terminated the active worker"]
+            }
+          }
+        },
+        "finalState": {
+          "properties": {
+            "status": { "const": "Stopped: the 120-second validation timeout expired." },
+            "output": { "const": "" },
+            "startDisabled": { "const": false },
+            "cancelDisabled": { "const": true }
+          }
+        }
       }
     },
     "pagehide": {
@@ -927,7 +1129,22 @@
       "properties": {
         "id": { "const": "pagehide" },
         "action": { "const": "pagehide" },
-        "target": { "const": "javascript" }
+        "target": { "const": "javascript" },
+        "lifecycle": {
+          "properties": {
+            "checks": {
+              "const": ["pagehide terminated the active worker and reset visible controls"]
+            }
+          }
+        },
+        "finalState": {
+          "properties": {
+            "status": { "const": "Page hidden; active work was terminated." },
+            "output": { "const": "" },
+            "startDisabled": { "const": false },
+            "cancelDisabled": { "const": true }
+          }
+        }
       }
     },
     "successCleanup": {

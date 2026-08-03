@@ -2,6 +2,7 @@ import Ajv2020Module from "ajv2020";
 import addFormatsModule from "ajv-formats";
 import { canonicalize, sha256Hex } from "../lib/canonical.ts";
 import { CdpClient } from "../lib/cdp-client.ts";
+import { prepareProfile, ProfileIdentity, removeOwnedProfile } from "../lib/process-ledger.ts";
 
 export const ACCEPTED_STATIC_COMMIT = "1f48dc3adf1f42f698bbe50c5787a193905af72a";
 export const EXPECTED_CHROME_PRODUCT = "Chrome/150.0.7871.24";
@@ -235,6 +236,111 @@ async function waitCgroupEmpty(path: string, timeoutMs: number): Promise<number[
     await delay(25);
   }
   return remaining;
+}
+
+export interface DevToolsEndpoint {
+  port: number;
+  browserPath: string;
+}
+export interface ListenerOwnershipProof {
+  at: string;
+  port: number;
+  socketInode: string;
+  ownerPid: number;
+  ownerFd: string;
+  cgroupPids: number[];
+}
+
+export async function waitDevToolsActivePort(
+  profileRoot: string,
+  timeoutMs = 10_000,
+): Promise<DevToolsEndpoint> {
+  const path = `${profileRoot}/DevToolsActivePort`;
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      const info = await Deno.lstat(path);
+      if (info.isSymlink || !info.isFile) throw new Error("unsafe DevToolsActivePort");
+      const lines = (await Deno.readTextFile(path)).trim().split(/\r?\n/);
+      const port = Number(lines[0]);
+      const browserPath = lines[1] ?? "";
+      if (
+        lines.length === 2 && Number.isSafeInteger(port) && port > 0 && port <= 65_535 &&
+        /^\/devtools\/browser\/[A-Za-z0-9-]+$/.test(browserPath)
+      ) return { port, browserPath };
+      throw new Error("invalid DevToolsActivePort");
+    } catch (error) {
+      if (!(error instanceof Deno.errors.NotFound)) throw error;
+    }
+    await delay(25);
+  }
+  throw new Error("owned Chrome DevToolsActivePort unavailable");
+}
+
+async function listenerSocketInode(port: number, procRoot: string): Promise<string> {
+  const wantedPort = port.toString(16).toUpperCase().padStart(4, "0");
+  for (const table of [`${procRoot}/net/tcp`, `${procRoot}/net/tcp6`]) {
+    try {
+      const lines = (await Deno.readTextFile(table)).trim().split("\n").slice(1);
+      for (const line of lines) {
+        const fields = line.trim().split(/\s+/);
+        const [address, candidatePort] = (fields[1] ?? "").split(":");
+        const loopback = address === "0100007F" ||
+          address === "00000000000000000000000001000000";
+        if (
+          loopback && candidatePort === wantedPort && fields[3] === "0A" &&
+          /^\d+$/.test(fields[9] ?? "")
+        ) return fields[9];
+      }
+    } catch { /* the other kernel table may contain the listener */ }
+  }
+  throw new Error("DevTools listener socket not found on loopback");
+}
+
+export async function proveDevToolsListenerOwned(
+  port: number,
+  cgroup: { path: string; device: number; inode: number },
+  procRoot = "/proc",
+): Promise<ListenerOwnershipProof> {
+  const assertCgroupIdentity = async () => {
+    const info = await Deno.lstat(cgroup.path);
+    if (
+      info.isSymlink || !info.isDirectory ||
+      numeric(info.dev, "listener cgroup device") !== cgroup.device ||
+      numeric(info.ino, "listener cgroup inode") !== cgroup.inode
+    ) throw new Error("owned cgroup identity changed during listener proof");
+  };
+  await assertCgroupIdentity();
+  const cgroupPids = await readCgroupMembers(cgroup.path);
+  const socketInode = await listenerSocketInode(port, procRoot);
+  const wanted = `socket:[${socketInode}]`;
+  for (const ownerPid of cgroupPids) {
+    try {
+      for await (const fd of Deno.readDir(`${procRoot}/${ownerPid}/fd`)) {
+        try {
+          if (await Deno.readLink(`${procRoot}/${ownerPid}/fd/${fd.name}`) !== wanted) continue;
+          await assertCgroupIdentity();
+          const afterPids = await readCgroupMembers(cgroup.path);
+          if (!afterPids.includes(ownerPid)) {
+            throw new Error("DevTools listener owner left exact Chrome cgroup");
+          }
+          return {
+            at: new Date().toISOString(),
+            port,
+            socketInode,
+            ownerPid,
+            ownerFd: fd.name,
+            cgroupPids: afterPids,
+          };
+        } catch (error) {
+          if (!(error instanceof Deno.errors.NotFound)) throw error;
+        }
+      }
+    } catch (error) {
+      if (!(error instanceof Deno.errors.NotFound)) throw error;
+    }
+  }
+  throw new Error("DevTools listener inode has no owner in exact Chrome cgroup");
 }
 function unusedPort(): number {
   const listener = Deno.listen({ hostname: "127.0.0.1", port: 0 });
@@ -739,9 +845,20 @@ async function collectScenario(
       }
       final = await state(client, pageSessionId);
       const workers = final.workers as Array<Record<string, unknown>>;
-      if (!workers.some((worker) => worker.terminated)) {
-        throw new Error(`${scenario.id}: no exact worker termination was observed`);
-      }
+      const expectedWorkerCount = ["stale-restart", "restart"].includes(scenario.action) ? 2 : 1;
+      const expectedStatus: Record<string, string> = {
+        "wrong-token": "Cancelled. No result was retained.",
+        "stale-restart": "Cancelled. No result was retained.",
+        restart: "Cancelled. No result was retained.",
+        cancel: "Cancelled. No result was retained.",
+        timeout: "Stopped: the 120-second validation timeout expired.",
+        pagehide: "Page hidden; active work was terminated.",
+      };
+      if (
+        workers.length !== expectedWorkerCount || workers.some((worker) => !worker.terminated) ||
+        final.status !== expectedStatus[scenario.action] || final.output !== "" ||
+        final.startDisabled !== false || final.cancelDisabled !== true
+      ) throw new Error(`${scenario.id}: causal worker termination/final-state contract mismatch`);
     }
     await settle(tasks);
     const network = [...requests.values()];
@@ -844,25 +961,51 @@ async function collectScenario(
       pageSessionId,
       10_000,
     );
-    const axText = ((axResponse.nodes as Array<Record<string, unknown>>) ?? []).flatMap((node) => {
-      const role = String((node.role as { value?: unknown } | undefined)?.value ?? "");
-      const name = String((node.name as { value?: unknown } | undefined)?.value ?? "");
-      return role && name ? [{ role, name }] : [];
+    const axNodes = (axResponse.nodes as Array<Record<string, unknown>>) ?? [];
+    const relatedNodes = (value: unknown) =>
+      ((value as { relatedNodes?: Array<Record<string, unknown>> } | undefined)?.relatedNodes ?? [])
+        .map((target) => ({
+          backendDOMNodeId: Number(target.backendDOMNodeId),
+          text: String(target.text ?? ""),
+        })).filter((target) => Number.isSafeInteger(target.backendDOMNodeId));
+    const relationships = (node: Record<string, unknown>) => {
+      const found: Array<{ type: string; targets: Array<Record<string, unknown>> }> = [];
+      for (const source of ((node.name as { sources?: unknown[] } | undefined)?.sources ?? [])) {
+        const record = source as Record<string, unknown>;
+        const targets = relatedNodes(record.attributeValue ?? record.value);
+        if (targets.length) found.push({ type: String(record.attribute ?? record.type), targets });
+      }
+      for (
+        const property of (node.properties as Array<Record<string, unknown>> | undefined) ?? []
+      ) {
+        const targets = relatedNodes(property.value);
+        if (targets.length) found.push({ type: String(property.name), targets });
+      }
+      return found;
+    };
+    const requiredAx = [
+      { role: "heading", name: "Complete 60-second stereo effects rack" },
+      { role: "combobox", name: "Engine", relationship: true },
+      { role: "button", name: "Start full validation" },
+      { role: "button", name: "Cancel" },
+      { role: "progressbar", name: "Validation phase" },
+    ];
+    const axControls = requiredAx.map((required) => {
+      const node = axNodes.find((candidate) =>
+        String((candidate.role as { value?: unknown } | undefined)?.value ?? "") ===
+          required.role &&
+        String((candidate.name as { value?: unknown } | undefined)?.value ?? "") === required.name
+      );
+      if (!node) {
+        throw new Error(`${scenario.id}: AX role/name missing: ${required.role} ${required.name}`);
+      }
+      const controlRelationships = relationships(node);
+      if (required.relationship && !controlRelationships.some((entry) => entry.targets.length)) {
+        throw new Error(`${scenario.id}: AX Engine combobox omitted its label relationship`);
+      }
+      return { role: required.role, name: required.name, relationships: controlRelationships };
     });
     const bodyText = String(await evaluate(client, pageSessionId, "document.body.innerText"));
-    for (
-      const text of [
-        "Complete 60-second stereo effects rack",
-        "No performance claim.",
-        "JavaScript strict f32",
-        "Linear Wasm strict f32",
-        "Correctness result",
-      ]
-    ) {
-      if (!bodyText.includes(text)) {
-        throw new Error(`${scenario.id}: accessible text missing ${text}`);
-      }
-    }
     const screenshot = await client.send(
       "Page.captureScreenshot",
       {
@@ -904,7 +1047,7 @@ async function collectScenario(
         bodyText,
         statusText: String(final.status),
         resultText: String(final.output),
-        axText,
+        axControls,
       },
       screenshot: {
         file: screenshotFile,
@@ -916,6 +1059,92 @@ async function collectScenario(
   } finally {
     for (const remove of removers) remove();
     await client.send("Target.closeTarget", { targetId }).catch(() => ({}));
+  }
+}
+
+export async function assertEvidenceSemantics(evidence: unknown): Promise<void> {
+  const record = evidence as Record<string, unknown>;
+  const source = record.source as Record<string, unknown>;
+  const start = source.start as Record<string, unknown>;
+  const end = source.end as Record<string, unknown>;
+  if (
+    source.unchanged !== true || start.commit !== end.commit || start.tree !== end.tree ||
+    record.evidenceId !== `audio-webaudio-effects-browser-${String(start.commit).slice(0, 12)}`
+  ) throw new Error("source start/end commit and tree are not semantically unchanged");
+
+  const assertEncoded = async (value: unknown, label: string) => {
+    const payload = value as Record<string, unknown>;
+    const bytes = base64ToBytes(String(payload.base64));
+    if (
+      bytesToBase64(bytes) !== payload.base64 || bytes.length !== payload.bytes ||
+      await sha256Hex(bytes) !== payload.sha256
+    ) throw new Error(`${label} base64 bytes/hash mismatch`);
+  };
+  const browser = record.browser as Record<string, unknown>;
+  const cgroup = browser.cgroup as Record<string, unknown>;
+  const listenerAssertions = cgroup.listenerAssertions as Array<Record<string, unknown>>;
+  if (
+    listenerAssertions.length !== 2 ||
+    listenerAssertions[0].port !== listenerAssertions[1].port ||
+    listenerAssertions[0].socketInode !== listenerAssertions[1].socketInode ||
+    listenerAssertions.some((proof) => !(proof.cgroupPids as unknown[]).includes(proof.ownerPid))
+  ) throw new Error("DevTools listener before/after ownership proof mismatch");
+
+  const lifecycleChecks: Record<string, string> = {
+    "wrong-token": "wrong-token completion was ignored without visible mutation",
+    "stale-restart": "stale prior-worker error was ignored after a fresh restart",
+    restart: "cancel then restart replaced the exact prior worker and token",
+    cancel: "visible Cancel terminated the active worker and retained no result",
+    timeout: "the registered 120-second timeout path terminated the active worker",
+    pagehide: "pagehide terminated the active worker and reset visible controls",
+  };
+  for (const scenarioValue of record.scenarios as Array<Record<string, unknown>>) {
+    for (const executed of scenarioValue.executedScripts as unknown[]) {
+      await assertEncoded(executed, `${scenarioValue.id} executed script`);
+    }
+    for (const network of scenarioValue.network as Array<Record<string, unknown>>) {
+      const body = network.responseBody as Record<string, unknown>;
+      if (body.status === "supported") await assertEncoded(body, `${scenarioValue.id} response`);
+    }
+    const execution = scenarioValue.execution as Record<string, unknown> | undefined;
+    if (execution) {
+      await assertEncoded(execution.workloadBlob, `${scenarioValue.id} workload Blob`);
+      for (const wasm of execution.wasmModules as unknown[]) {
+        await assertEncoded(wasm, `${scenarioValue.id} Wasm module`);
+      }
+    }
+    const expectedLifecycle = lifecycleChecks[String(scenarioValue.id)];
+    if (expectedLifecycle) {
+      const checks = (scenarioValue.lifecycle as { checks?: unknown[] } | undefined)?.checks;
+      if (checks?.length !== 1 || checks[0] !== expectedLifecycle) {
+        throw new Error(`${scenarioValue.id} lifecycle assertion is not causal`);
+      }
+    }
+    const controls =
+      (scenarioValue.accessibility as { axControls?: Array<Record<string, unknown>> })
+        .axControls ?? [];
+    for (
+      const expected of [
+        ["heading", "Complete 60-second stereo effects rack"],
+        ["combobox", "Engine"],
+        ["button", "Start full validation"],
+        ["button", "Cancel"],
+        ["progressbar", "Validation phase"],
+      ]
+    ) {
+      if (
+        !controls.some((control) => control.role === expected[0] && control.name === expected[1])
+      ) {
+        throw new Error(`${scenarioValue.id} required AX control role/name missing`);
+      }
+    }
+    const engine = controls.find((control) =>
+      control.role === "combobox" && control.name === "Engine"
+    );
+    const relations = engine?.relationships as Array<{ targets?: unknown[] }> | undefined;
+    if (!relations?.some((relation) => relation.targets?.length)) {
+      throw new Error(`${scenarioValue.id} AX Engine label relationship missing`);
+    }
   }
 }
 
@@ -934,6 +1163,7 @@ async function assertClosedSchema(root: string, evidence: unknown) {
   if (!validate(evidence)) {
     throw new Error(`browser evidence schema failed: ${JSON.stringify(validate.errors)}`);
   }
+  await assertEvidenceSemantics(evidence);
 }
 
 function parseArguments() {
@@ -1027,6 +1257,7 @@ async function main() {
   let serverIdentity: ProcessIdentity | null = null;
   let serverOrigin = "";
   let profilePath: string | null = null;
+  let ownedProfile: ProfileIdentity | null = null;
   let profileIdentity: {
     path: string;
     device: number;
@@ -1036,11 +1267,22 @@ async function main() {
   } | null = null;
   let unit: string | null = null;
   let cgroupPath: string | null = null;
-  let cgroupIdentity: Record<string, unknown> | null = null;
+  let cgroupIdentity: {
+    unit: string;
+    controlGroup: string;
+    path: string;
+    device: number;
+    inode: number;
+    invocationId: string;
+    mainPid: number;
+    memberSnapshots: Array<{ at: string; pids: number[] }>;
+    listenerAssertions: ListenerOwnershipProof[];
+  } | null = null;
   let cgroupKill: Deno.FsFile | null = null;
   let client: CdpClient | null = null;
   const observedProcesses = new Map<number, ProcessIdentity>();
   const memberSnapshots: Array<{ at: string; pids: number[] }> = [];
+  const listenerAssertions: ListenerOwnershipProof[] = [];
   const scenarios: Array<Record<string, unknown>> = [];
   let version: Record<string, unknown> = {};
   let effectiveArguments: string[] = [];
@@ -1097,20 +1339,11 @@ async function main() {
       if (cleanup.cgroup.outcome !== "success" || cleanup.browserProcesses.outcome !== "success") {
         throw new Error("profile retained because process containment cleanup did not succeed");
       }
-      if (!profileIdentity) throw new Error("profile identity was not retained");
-      const currentProfile = await Deno.lstat(profilePath);
-      if (
-        currentProfile.isSymlink ||
-        numeric(currentProfile.dev, "cleanup profile device") !== profileIdentity.device ||
-        numeric(currentProfile.ino, "cleanup profile inode") !== profileIdentity.inode
-      ) throw new Error("owned profile identity changed before removal");
-      await Deno.remove(profilePath, { recursive: true });
-      try {
-        await Deno.lstat(profilePath);
-        throw new Error("owned profile survived removal");
-      } catch (error) {
-        if (!(error instanceof Deno.errors.NotFound)) throw error;
-      }
+      if (!profileIdentity || !ownedProfile) throw new Error("profile identity was not retained");
+      // removeOwnedProfile delegates to remove-owned-tree.py. The helper authenticates the parent
+      // and child descriptors, opens both with O_DIRECTORY|O_NOFOLLOW, renames relative to the
+      // retained parent fd, then removes every entry with descriptor-relative unlinkat/rmdirat.
+      await removeOwnedProfile(ownedProfile);
       cleanup.profile = successCheck();
     } catch (error) {
       cleanup.profile = failureCheck(error, profilePath ? [profilePath] : []);
@@ -1151,8 +1384,8 @@ async function main() {
     serverIdentity = await processIdentity(server.pid);
     if (!serverIdentity) throw new Error("owned loopback server identity unavailable");
     await waitFor(`${origin}/healthz`);
-    profilePath = await Deno.makeTempDir({ prefix: "wasm-audio-effects-cft-" });
-    await Deno.chmod(profilePath, 0o700);
+    profilePath = `/tmp/wasm-vs-js-owned-profiles/audio-effects-${crypto.randomUUID()}/launch`;
+    ownedProfile = await prepareProfile(profilePath);
     const profileInfo = await Deno.lstat(profilePath);
     if (
       !profileInfo.isDirectory || profileInfo.isSymlink || [...Deno.readDirSync(profilePath)].length
@@ -1234,32 +1467,20 @@ async function main() {
       invocationId: systemd.InvocationID,
       mainPid,
       memberSnapshots,
+      listenerAssertions,
     };
     cgroupKill = await Deno.open(`${cgroupPath}/cgroup.kill`, { write: true });
-    const activePortPath = `${profilePath}/DevToolsActivePort`;
-    let debuggerPort = 0;
-    let browserPath = "";
-    const endpointDeadline = Date.now() + 10_000;
-    while (Date.now() < endpointDeadline) {
-      try {
-        const lines = (await Deno.readTextFile(activePortPath)).trim().split(/\r?\n/);
-        debuggerPort = Number(lines[0]);
-        browserPath = lines[1] ?? "";
-        if (debuggerPort > 0 && /^\/devtools\/browser\/[A-Za-z0-9-]+$/.test(browserPath)) break;
-      } catch (error) {
-        if (!(error instanceof Deno.errors.NotFound)) throw error;
-      }
-      await delay(25);
-    }
-    if (!debuggerPort || !browserPath) {
-      throw new Error("owned Chrome DevToolsActivePort unavailable");
-    }
+    const endpoint = await waitDevToolsActivePort(profilePath);
+    const debuggerPort = endpoint.port;
+    const browserPath = endpoint.browserPath;
+    listenerAssertions.push(await proveDevToolsListenerOwned(debuggerPort, cgroupIdentity));
     const discovery = await (await waitFor(`http://127.0.0.1:${debuggerPort}/json/version`)).json();
     const webSocketUrl = new URL(discovery.webSocketDebuggerUrl);
     if (
       webSocketUrl.protocol !== "ws:" || webSocketUrl.hostname !== "127.0.0.1" ||
       Number(webSocketUrl.port) !== debuggerPort || webSocketUrl.pathname !== browserPath
     ) throw new Error("Chrome CDP endpoint escaped the owned loopback listener");
+    listenerAssertions.push(await proveDevToolsListenerOwned(debuggerPort, cgroupIdentity));
     client = new CdpClient(webSocketUrl.href);
     await client.ready();
     version = await client.send("Browser.getVersion");

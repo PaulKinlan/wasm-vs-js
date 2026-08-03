@@ -2,16 +2,24 @@ import Ajv2020Module from "ajv2020";
 import addFormatsModule from "ajv-formats";
 import {
   ACCEPTED_STATIC_COMMIT,
+  assertEvidenceSemantics,
   EXPECTED_ASSETS,
   EXPECTED_CHROME_PRODUCT,
   EXPECTED_CHROME_SHA256,
   expectedCounters,
   ORACLE,
   OUTPUT_SHA256,
+  proveDevToolsListenerOwned,
   SCENARIOS,
   validateCompleteResult,
+  waitDevToolsActivePort,
 } from "../scripts/collect-base-audio-webaudio-effects-browser-evidence.ts";
-import { assert, assertEquals } from "./assert.ts";
+import {
+  prepareProfile,
+  removeOwnedProfile,
+  setProfileRemovalRaceHookForTest,
+} from "../lib/process-ledger.ts";
+import { assert, assertEquals, assertRejects } from "./assert.ts";
 
 type Validator = ((value: unknown) => boolean) & { errors?: unknown };
 type AjvConstructor = new (options?: Record<string, unknown>) => {
@@ -23,7 +31,16 @@ const addFormats = ((addFormatsModule as unknown as { default?: (ajv: unknown) =
   addFormatsModule) as unknown as (ajv: unknown) => void;
 const H40 = "a".repeat(40);
 const H64 = "b".repeat(64);
+const ABC_SHA256 = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
 
+function base64File(path: string): string {
+  const bytes = Deno.readFileSync(path);
+  let binary = "";
+  for (let offset = 0; offset < bytes.length; offset += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
+  }
+  return btoa(binary);
+}
 function validator(schema: unknown): Validator {
   const ajv = new Ajv2020({ strict: false, allErrors: true });
   addFormats(ajv);
@@ -69,7 +86,7 @@ function network(index: number) {
     responseBody: {
       status: "supported",
       bytes: 3,
-      sha256: H64,
+      sha256: ABC_SHA256,
       base64: "YWJj",
       sourcePath: "public/base-audio-effects-worker.js",
       gitBlob: H40,
@@ -83,13 +100,21 @@ function executed(index: number) {
     route: index ? "/base-audio-effects-worker.js" : "/base-audio-effects-demo.js",
     sourcePath: index ? "public/base-audio-effects-worker.js" : "public/base-audio-effects-demo.js",
     bytes: 3,
-    sha256: H64,
+    sha256: ABC_SHA256,
     base64: "YWJj",
     gitBlob: H40,
   };
 }
 function common(id: string, action: string, target: "javascript" | "wasm-linear") {
   const workerCount = ["stale-restart", "restart"].includes(action) ? 2 : 1;
+  const lifecycleStatus: Record<string, string> = {
+    "wrong-token": "Cancelled. No result was retained.",
+    "stale-restart": "Cancelled. No result was retained.",
+    restart: "Cancelled. No result was retained.",
+    cancel: "Cancelled. No result was retained.",
+    timeout: "Stopped: the 120-second validation timeout expired.",
+    pagehide: "Page hidden; active work was terminated.",
+  };
   return {
     id,
     action,
@@ -100,7 +125,7 @@ function common(id: string, action: string, target: "javascript" | "wasm-linear"
     finalState: {
       status: action === "complete"
         ? "Complete. The full output matched the committed oracle."
-        : "Cancelled. No result was retained.",
+        : lifecycleStatus[action],
       output: action === "complete" ? `Target: ${target}` : "",
       progress: action === "complete" ? 4 : 0,
       startDisabled: false,
@@ -113,9 +138,28 @@ function common(id: string, action: string, target: "javascript" | "wasm-linear"
     accessibility: {
       bodyText:
         "Complete 60-second stereo effects rack No performance claim. JavaScript strict f32 Linear Wasm strict f32 Correctness result",
-      statusText: action === "complete" ? "Complete." : "Cancelled.",
+      statusText: action === "complete"
+        ? "Complete. The full output matched the committed oracle."
+        : lifecycleStatus[action],
       resultText: action === "complete" ? `Target: ${target}` : "",
-      axText: [{ role: "heading", name: "Complete 60-second stereo effects rack" }],
+      axControls: [
+        {
+          role: "heading",
+          name: "Complete 60-second stereo effects rack",
+          relationships: [],
+        },
+        {
+          role: "combobox",
+          name: "Engine",
+          relationships: [{
+            type: "label",
+            targets: [{ backendDOMNodeId: 10, text: "Engine" }],
+          }],
+        },
+        { role: "button", name: "Start full validation", relationships: [] },
+        { role: "button", name: "Cancel", relationships: [] },
+        { role: "progressbar", name: "Validation phase", relationships: [] },
+      ],
     },
     screenshot: { file: `screenshots/${id}.png`, bytes: 100, sha256: H64 },
   };
@@ -148,13 +192,15 @@ function complete(id: string, target: "javascript" | "wasm-linear") {
         mimeType: "text/javascript",
         bytes: 10_477,
         sha256: "61d09e66febd9fa65916472219198306aa43e4d7a9095c8d94aa1daa6f6b4174",
-        base64: "YWJj",
+        base64: base64File("benchmarks/base/audio-webaudio-effects/workload.js"),
       },
       wasmModules: target === "wasm-linear"
         ? [{
           bytes: 784,
           sha256: "495d214fd2b8970cd212de10346ba97a6f50813aa9735e85cc51f6e202935328",
-          base64: "AGFzbQ==",
+          base64: base64File(
+            "public/artifacts/base-audio-webaudio-effects-v1/audio-webaudio-effects.wasm",
+          ),
         }]
         : [],
       completedWorkerImportedBlob: true,
@@ -162,14 +208,22 @@ function complete(id: string, target: "javascript" | "wasm-linear") {
   };
 }
 function lifecycle(id: string, action: string, target: "javascript" | "wasm-linear") {
+  const checks: Record<string, string> = {
+    "wrong-token": "wrong-token completion was ignored without visible mutation",
+    "stale-restart": "stale prior-worker error was ignored after a fresh restart",
+    restart: "cancel then restart replaced the exact prior worker and token",
+    cancel: "visible Cancel terminated the active worker and retained no result",
+    timeout: "the registered 120-second timeout path terminated the active worker",
+    pagehide: "pagehide terminated the active worker and reset visible controls",
+  };
   return {
     ...common(id, action, target),
-    lifecycle: { checks: [`${action} causally terminated or isolated the exact worker`] },
+    lifecycle: { checks: [checks[id]] },
   };
 }
 function fixture() {
   const launchArguments = [
-    "--user-data-dir=/tmp/wasm-audio-effects-cft-fixture",
+    "--user-data-dir=/tmp/wasm-vs-js-owned-profiles/audio-effects-abcdef/launch",
     "--remote-debugging-port=0",
     "--remote-debugging-address=127.0.0.1",
     "--headless=new",
@@ -226,7 +280,7 @@ function fixture() {
       headless: true,
       protocol: "Chrome DevTools Protocol",
       profile: {
-        path: "/tmp/wasm-audio-effects-cft-fixture",
+        path: "/tmp/wasm-vs-js-owned-profiles/audio-effects-abcdef/launch",
         device: 56,
         inode: 9_999,
         mode: 448,
@@ -243,6 +297,24 @@ function fixture() {
         memberSnapshots: [
           { at: "2026-08-03T12:00:01Z", pids: [100] },
           { at: "2026-08-03T12:00:02Z", pids: [] },
+        ],
+        listenerAssertions: [
+          {
+            at: "2026-08-03T12:00:01Z",
+            port: 9222,
+            socketInode: "12345",
+            ownerPid: 100,
+            ownerFd: "9",
+            cgroupPids: [100],
+          },
+          {
+            at: "2026-08-03T12:00:02Z",
+            port: 9222,
+            socketInode: "12345",
+            ownerPid: 100,
+            ownerFd: "9",
+            cgroupPids: [100],
+          },
         ],
       },
       processes: [process(100), process(101)],
@@ -322,6 +394,7 @@ Deno.test("WebAudio browser schema rejects semantic counter, provenance, raw-byt
   assertInvalid(validate, (value) => Object.assign(value, { unexpected: true }));
   assertInvalid(validate, (value) => value.acceptedStaticCommit = H40);
   assertInvalid(validate, (value) => value.source.unchanged = false);
+  assertInvalid(validate, (value) => value.scenarios[0].accessibility.axControls[1].name = "");
   assertInvalid(validate, (value) => value.source.assets.pop());
   assertInvalid(validate, (value) => value.browser.product = "Chromium/150.0.7871.24");
   assertInvalid(validate, (value) => value.browser.executableSha256 = H64);
@@ -363,9 +436,47 @@ Deno.test("WebAudio browser schema rejects semantic counter, provenance, raw-byt
   assertInvalid(validate, (value) => value.scenarios[0].exceptions = [{ text: "boom" }] as never[]);
   assertInvalid(validate, (value) => {
     const scenario = value.scenarios[2] as unknown as ReturnType<typeof lifecycle>;
-    scenario.lifecycle.checks = [];
+    scenario.lifecycle.checks = ["arbitrary lifecycle prose"];
+  });
+  assertInvalid(validate, (value) => {
+    const scenario = value.scenarios[0] as unknown as ReturnType<typeof complete>;
+    scenario.execution.workloadBlob.base64 = "YWJj";
   });
   assertInvalid(validate, (value) => value.cleanup.cgroup.outcome = "failure");
+});
+
+Deno.test("browser evidence semantics bind source identity and every retained base64 byte/hash", async () => {
+  const valid = fixture();
+  await assertEvidenceSemantics(valid);
+  const changedSource = structuredClone(valid);
+  changedSource.source.end.commit = "c".repeat(40);
+  await assertRejects(
+    () => assertEvidenceSemantics(changedSource),
+    "source start/end commit and tree are not semantically unchanged",
+  );
+  const changedPayload = structuredClone(valid);
+  const scenario = changedPayload.scenarios[0] as unknown as ReturnType<typeof complete>;
+  scenario.execution.workloadBlob.base64 = `${
+    scenario.execution.workloadBlob.base64.slice(0, -4)
+  }AAAA`;
+  await assertRejects(
+    () => assertEvidenceSemantics(changedPayload),
+    "workload Blob base64 bytes/hash mismatch",
+  );
+  const changedListener = structuredClone(valid);
+  changedListener.browser.cgroup.listenerAssertions[1].socketInode = "99999";
+  await assertRejects(
+    () => assertEvidenceSemantics(changedListener),
+    "DevTools listener before/after ownership proof mismatch",
+  );
+  const changedLifecycle = structuredClone(valid);
+  (changedLifecycle.scenarios[2] as unknown as ReturnType<typeof lifecycle>).lifecycle.checks = [
+    "arbitrary lifecycle prose",
+  ];
+  await assertRejects(
+    () => assertEvidenceSemantics(changedLifecycle),
+    "lifecycle assertion is not causal",
+  );
 });
 
 Deno.test("complete-result validator requires exact 60-second output and every observed fixed-block counter", () => {
@@ -403,6 +514,75 @@ Deno.test("complete-result validator requires exact 60-second output and every o
   );
 });
 
+Deno.test("collector rejects symlink DevToolsActivePort and proves its listener inode owner twice", async () => {
+  const profile = await Deno.makeTempDir();
+  const foreign = await Deno.makeTempFile();
+  const procRoot = await Deno.makeTempDir();
+  const cgroupPath = await Deno.makeTempDir();
+  try {
+    await Deno.writeTextFile(foreign, "9222\n/devtools/browser/owned\n");
+    await Deno.symlink(foreign, `${profile}/DevToolsActivePort`);
+    await assertRejects(
+      () => waitDevToolsActivePort(profile, 50),
+      "unsafe DevToolsActivePort",
+    );
+    await Deno.remove(`${profile}/DevToolsActivePort`);
+    await Deno.writeTextFile(`${profile}/DevToolsActivePort`, "9222\n/devtools/browser/owned\n");
+    assertEquals(await waitDevToolsActivePort(profile, 50), {
+      port: 9222,
+      browserPath: "/devtools/browser/owned",
+    });
+
+    await Deno.mkdir(`${procRoot}/net`, { recursive: true });
+    await Deno.writeTextFile(
+      `${procRoot}/net/tcp`,
+      "sl local_address rem_address st tx_queue rx_queue tr tm->when retrnsmt uid timeout inode\n" +
+        "0: 0100007F:2406 00000000:0000 0A 00000000:00000000 00:00000000 00000000 1000 0 12345 1\n",
+    );
+    await Deno.mkdir(`${procRoot}/700/fd`, { recursive: true });
+    await Deno.symlink("socket:[12345]", `${procRoot}/700/fd/9`);
+    await Deno.writeTextFile(`${cgroupPath}/cgroup.procs`, "700\n");
+    const info = await Deno.lstat(cgroupPath);
+    const cgroup = {
+      path: cgroupPath,
+      device: Number(info.dev),
+      inode: Number(info.ino),
+    };
+    const before = await proveDevToolsListenerOwned(9222, cgroup, procRoot);
+    const after = await proveDevToolsListenerOwned(9222, cgroup, procRoot);
+    assertEquals(before.socketInode, "12345");
+    assertEquals(before.ownerPid, 700);
+    assertEquals(after.ownerPid, 700);
+  } finally {
+    await Deno.remove(profile, { recursive: true });
+    await Deno.remove(foreign).catch(() => {});
+    await Deno.remove(procRoot, { recursive: true });
+    await Deno.remove(cgroupPath, { recursive: true });
+  }
+});
+
+Deno.test("collector profile cleanup rejects final replacement window without following it", async () => {
+  const root = `/tmp/wasm-vs-js-owned-profiles/audio-effects-test-${crypto.randomUUID()}/launch`;
+  const outside = await Deno.makeTempDir();
+  const profile = await prepareProfile(root);
+  await Deno.writeTextFile(`${outside}/keep`, "foreign");
+  let replaced = false;
+  setProfileRemovalRaceHookForTest(async (path) => {
+    if (replaced || path !== root) return;
+    replaced = true;
+    await Deno.rename(root, `${profile.ownershipRoot}/held`);
+    await Deno.symlink(outside, root);
+  });
+  try {
+    await assertRejects(() => removeOwnedProfile(profile), "fd-relative profile removal failed");
+    assertEquals(await Deno.readTextFile(`${outside}/keep`), "foreign");
+  } finally {
+    setProfileRemovalRaceHookForTest();
+    await Deno.remove(profile.ownershipRoot, { recursive: true }).catch(() => {});
+    await Deno.remove(outside, { recursive: true });
+  }
+});
+
 Deno.test("collector source freezes exact CfT, parent cgroup/session ownership, trust chain, causal lifecycle, diagnostics, and protected cleanup without Chrome", async () => {
   const source = await Deno.readTextFile(
     "scripts/collect-base-audio-webaudio-effects-browser-evidence.ts",
@@ -426,6 +606,7 @@ Deno.test("collector source freezes exact CfT, parent cgroup/session ownership, 
       "Network.getResponseBody",
       "Debugger.getScriptSource",
       "Accessibility.getFullAXTree",
+      "AX Engine combobox omitted its label relationship",
       "Page.captureScreenshot",
       'id: "wrong-token"',
       'id: "stale-restart"',
@@ -434,6 +615,10 @@ Deno.test("collector source freezes exact CfT, parent cgroup/session ownership, 
       'id: "timeout"',
       'id: "pagehide"',
       "cgroup.kill",
+      "unsafe DevToolsActivePort",
+      "DevTools listener inode has no owner in exact Chrome cgroup",
+      "O_DIRECTORY|O_NOFOLLOW",
+      "removeOwnedProfile(ownedProfile)",
       "profile retained because process containment cleanup did not succeed",
     ]
   ) assert(source.includes(required), `collector omitted ${required}`);
