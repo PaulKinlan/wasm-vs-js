@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "fixtureId": "network-pcap-decode-project-generated-v1",
+  "frozenCatalogId": "network.pcap-decode.v1",
+  "generator": "benchmarks/base/network-pcap-decode/fixture.ts",
+  "generatorVersion": "pcap-project-generated-v1",
+  "packetCount": 8,
+  "bytes": 663,
+  "sha256": "8683e2fc95f0b8940b9dc2c867e08adeccf1a66445d7bf98785ea600ff6d9034",
+  "rights": {
+    "license": "CC0-1.0",
+    "redistribution": "permitted",
+    "provenance": "project-generated reserved-address traffic; no external or sensitive captures",
+    "grant": "benchmarks/base/network-pcap-decode/RIGHTS.md"
+  }
+}

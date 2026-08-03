@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/base-network-pcap-build-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "workloadId",
+    "supplementalContract",
+    "catalogMutation",
+    "sourceRepository",
+    "sourceCommit",
+    "sourceSha256",
+    "variants",
+    "build",
+    "wasm",
+    "fixture",
+    "referenceOutput",
+    "manifests",
+    "fullSourceGraph"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "workloadId": { "const": "network.pcap-decode.v1" },
+    "supplementalContract": {
+      "const": "benchmarks/base/network-pcap-decode/implementation-contract.v1.json"
+    },
+    "catalogMutation": { "const": false },
+    "sourceRepository": { "const": "https://github.com/PaulKinlan/wasm-vs-js" },
+    "sourceCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "sourceSha256": { "$ref": "#/$defs/sha256" },
+    "variants": { "const": ["js-controlled", "wasm-linear-controlled"] },
+    "build": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cwd",
+        "reproductionCommand",
+        "commands",
+        "toolchain",
+        "flags",
+        "lockfiles",
+        "environment"
+      ],
+      "properties": {
+        "cwd": { "const": "." },
+        "reproductionCommand": { "const": "deno task check" },
+        "commands": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "toolchain": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "version"],
+            "properties": {
+              "name": { "enum": ["deno", "clang", "wasm-ld"] },
+              "version": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "flags": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["compiler", "linker", "runtime"],
+          "properties": {
+            "compiler": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+            "linker": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+            "runtime": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+          }
+        },
+        "lockfiles": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "sha256"],
+            "properties": {
+              "path": { "const": "deno.lock" },
+              "sha256": { "$ref": "#/$defs/sha256" }
+            }
+          }
+        },
+        "environment": { "type": "array", "maxItems": 0 }
+      }
+    },
+    "wasm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "bytes",
+        "sha256",
+        "initialMemoryBytes",
+        "maximumMemoryBytes",
+        "simd",
+        "threads",
+        "memoryGrowth"
+      ],
+      "properties": {
+        "path": { "const": "public/artifacts/base-network-pcap-decode/pcap-decode.wasm" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "initialMemoryBytes": { "const": 1048576 },
+        "maximumMemoryBytes": { "const": 1048576 },
+        "simd": { "const": false },
+        "threads": { "const": false },
+        "memoryGrowth": { "const": false }
+      }
+    },
+    "fixture": { "$ref": "#/$defs/file" },
+    "referenceOutput": { "$ref": "#/$defs/file" },
+    "manifests": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "$ref": "#/$defs/file" }
+    },
+    "fullSourceGraph": {
+      "type": "array",
+      "minItems": 16,
+      "maxItems": 16,
+      "items": { "$ref": "#/$defs/file" }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "path": { "type": "string", "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$" },
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "$ref": "#/$defs/path" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  }
+}

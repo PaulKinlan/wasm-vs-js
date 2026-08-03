@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "contractId": "network.pcap-decode.v1-controlled-implementation",
+  "frozenCatalogReference": {
+    "id": "network.pcap-decode.v1",
+    "catalogPath": "catalog/workloads.v1.json",
+    "catalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+    "catalogMutation": false
+  },
+  "status": "supplemental-implementation-candidate",
+  "algorithmFamily": "pcap-fixed-protocol-subset",
+  "fixture": {
+    "generator": "benchmarks/base/network-pcap-decode/fixture.ts",
+    "version": "pcap-project-generated-v1",
+    "license": "CC0-1.0",
+    "redistribution": "permitted",
+    "packetCount": 8,
+    "sha256": "8683e2fc95f0b8940b9dc2c867e08adeccf1a66445d7bf98785ea600ff6d9034"
+  },
+  "protocol": {
+    "container": "classic PCAP",
+    "byteOrder": "little-endian",
+    "timestampResolution": "microseconds; seconds/microseconds are range-checked and monotonic, then excluded from the canonical flow key",
+    "linkType": "Ethernet (DLT_EN10MB=1)",
+    "checksumPolicy": "IPv4, TCP and UDP checksum fields are intentionally zero and are not validated",
+    "ipv4Fragmentation": "any MF flag or non-zero fragment offset is rejected as malformed; no reassembly",
+    "tcpReassembly": "per-direction contiguous sequence append, maximum 256 payload bytes; gaps/overlap rejected",
+    "dnsCompression": "one question; zero or one answer; labels are bounds checked; answer name must be a compression pointer to offset 12; the target name is not recursively expanded because the canonical output is flow metadata",
+    "httpFraming": "a reassembled direction is one message only when it begins with GET-space or HTTP-slash",
+    "malformedDisposition": "increment malformed-packets, emit no new application message, and continue at the next PCAP record",
+    "protocolSubset": [
+      "Ethernet II",
+      "IPv4 without options",
+      "TCP without options",
+      "UDP",
+      "DNS A query/answer",
+      "HTTP/1.1 request/response framing"
+    ]
+  },
+  "counterPolicy": {
+    "allocations": "Counts retained semantic arrays, flow records, reassembly arrays, canonical flow list, HTTP aggregate arrays, output word buffer and output byte view. Instrumentation envelopes and engine-internal/transient argument arrays are excluded.",
+    "boundaryCrossings": "Zero for the JavaScript controlled parser and one batched input/run/output crossing for linear Wasm."
+  },
+  "fixedOracle": {
+    "outputBytes": 208,
+    "packetRecords": 8,
+    "ethernetHeaders": 7,
+    "ipv4Headers": 7,
+    "tcpHeaders": 3,
+    "udpHeaders": 2,
+    "dnsMessages": 2,
+    "httpMessages": 2,
+    "dnsCompressionPointers": 1,
+    "tcpReassemblyAppends": 3,
+    "malformedPackets": 3,
+    "flows": 4,
+    "flowTableProbes": 6,
+    "packetBytes": 511
+  },
+  "variants": [
+    {
+      "id": "js-controlled",
+      "target": "javascript",
+      "implementation": "bounds-checked project-owned parser and deterministic open-addressed flow table"
+    },
+    {
+      "id": "wasm-linear-controlled",
+      "target": "wasm-linear",
+      "implementation": "project-owned C compiled to scalar linear Wasm; parsing, reassembly, DNS validation, HTTP framing, flow updates, sorting and canonical emission all execute in Wasm"
+    }
+  ],
+  "performanceClaims": []
+}

@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "status": "supplemental-base-v1-correctness-validation-candidate",
+  "workloadId": "network.pcap-decode.v1",
+  "variantId": "js-controlled",
+  "target": "javascript",
+  "sourceCommit": "135eb9742fef2a6ee5bb309c8e551e010e74946c",
+  "performanceClaims": [],
+  "input": {
+    "bytes": 663,
+    "sha256": "8683e2fc95f0b8940b9dc2c867e08adeccf1a66445d7bf98785ea600ff6d9034"
+  },
+  "completeOutput": {
+    "bytes": 208,
+    "sha256": "749c83f435cfc7965a5e13a9fdc7a90772a2c44f9899ce15e041fe0d47a562f3",
+    "equality": "byte-exact"
+  },
+  "structuralChecks": {
+    "packetRecords": 8,
+    "protocolsMateriallyExercised": [
+      "Ethernet",
+      "IPv4",
+      "TCP",
+      "UDP",
+      "DNS",
+      "HTTP/1.1"
+    ],
+    "malformedCases": [
+      "truncated Ethernet",
+      "IPv4 fragmentation",
+      "IPv4 total-length overrun"
+    ],
+    "tcpReassembly": "two contiguous request segments",
+    "dnsCompressionPointers": 1,
+    "canonicalFlows": 4
+  },
+  "counters": {
+    "packetRecords": 8,
+    "ethernetHeaders": 7,
+    "ipv4Headers": 7,
+    "tcpHeaders": 3,
+    "udpHeaders": 2,
+    "dnsMessages": 2,
+    "httpMessages": 2,
+    "dnsCompressionPointers": 1,
+    "tcpReassemblyAppends": 3,
+    "malformedPackets": 3,
+    "flowTableProbes": 6,
+    "packetBytes": 511,
+    "allocations": 14,
+    "boundaryCrossings": 0,
+    "flows": 4,
+    "outputBytes": 208
+  },
+  "buildManifest": {
+    "path": "public/artifacts/base-network-pcap-decode/build-manifest.json",
+    "sha256": "4cffac43343859576e6b900252710c6da6861e26a6764f9ab6e6df18f6a37058"
+  }
+}

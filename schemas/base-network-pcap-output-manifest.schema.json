@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/base-network-pcap-output-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "oracle", "bytes", "sha256", "expectedWords", "counters"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "oracle": { "const": "complete canonical flow-table bytes plus exact structural counters" },
+    "bytes": { "const": 208 },
+    "sha256": { "$ref": "#/$defs/sha256" },
+    "expectedWords": {
+      "type": "array",
+      "minItems": 52,
+      "maxItems": 52,
+      "items": { "type": "integer", "minimum": 0, "maximum": 4294967295 }
+    },
+    "counters": { "$ref": "#/$defs/jsCounters" }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "jsCounters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "packetRecords",
+        "ethernetHeaders",
+        "ipv4Headers",
+        "tcpHeaders",
+        "udpHeaders",
+        "dnsMessages",
+        "httpMessages",
+        "dnsCompressionPointers",
+        "tcpReassemblyAppends",
+        "malformedPackets",
+        "flowTableProbes",
+        "packetBytes",
+        "allocations",
+        "boundaryCrossings",
+        "flows",
+        "outputBytes"
+      ],
+      "properties": {
+        "packetRecords": { "const": 8 },
+        "ethernetHeaders": { "const": 7 },
+        "ipv4Headers": { "const": 7 },
+        "tcpHeaders": { "const": 3 },
+        "udpHeaders": { "const": 2 },
+        "dnsMessages": { "const": 2 },
+        "httpMessages": { "const": 2 },
+        "dnsCompressionPointers": { "const": 1 },
+        "tcpReassemblyAppends": { "const": 3 },
+        "malformedPackets": { "const": 3 },
+        "flowTableProbes": { "const": 6 },
+        "packetBytes": { "const": 511 },
+        "allocations": { "const": 14 },
+        "boundaryCrossings": { "const": 0 },
+        "flows": { "const": 4 },
+        "outputBytes": { "const": 208 }
+      }
+    }
+  }
+}
