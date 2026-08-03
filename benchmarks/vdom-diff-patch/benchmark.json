@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "id": "vdom-diff-patch",
+  "version": 1,
+  "tier": "T1",
+  "title": "Virtual DOM diff and in-memory host patch application",
+  "description": "Reduced conformance and harness slice: reconcile 1,000 nodes with exactly 250 effective edits, then verify self-contained application. This is not the accepted v2 production workload.",
+  "tracks": [
+    "controlled"
+  ],
+  "variants": [
+    {
+      "id": "js-controlled",
+      "target": "javascript",
+      "track": "controlled",
+      "buildManifest": "public/artifacts/vdom-diff-patch/build-manifest.json"
+    },
+    {
+      "id": "wasm-linear-controlled",
+      "target": "wasm-linear",
+      "track": "controlled",
+      "buildManifest": "public/artifacts/vdom-diff-patch/build-manifest.json"
+    },
+    {
+      "id": "hybrid-controlled",
+      "target": "hybrid",
+      "track": "controlled",
+      "buildManifest": "public/artifacts/vdom-diff-patch/build-manifest.json"
+    }
+  ],
+  "inputs": {
+    "manifestSha256": "e0cd8896cbcac384c7ca9d2c0bb97d0d15685c5c19038a1f5010159f77a08563",
+    "immutable": true,
+    "generation": "SplitMix64 seed 0xVDOM2026, 1,000 nodes depth <= 8, 250 edit operations"
+  },
+  "oracle": {
+    "kind": "canonical-digest-and-invariants",
+    "policy": "Exact patch array hash and resulting DOM tree HTML canonical serialization hash",
+    "deadCodeDefense": "Patch operations and HTML serialization hash are verified against the frozen oracle."
+  },
+  "work": {
+    "fixed": true,
+    "complexity": "O(N + 65,536 + child references) with one reusable u16 ID index",
+    "counters": [
+      "nodes-visited",
+      "patches-generated",
+      "boundary-crossings",
+      "dom-mutations"
+    ],
+    "tolerance": "All counters must match exactly."
+  },
+  "extensions": {
+    "reducedHarness": {
+      "status": "out-of-catalog-reduced-conformance-slice",
+      "catalogCoverage": false,
+      "acceptedProductionContract": {
+        "id": "dom.vdom-diff-patch.v1",
+        "status": "not-implemented",
+        "requiredNodes": 10000,
+        "requiredEdits": 2000
+      }
+    }
+  }
+}

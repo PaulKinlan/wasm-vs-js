@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "id": "regex-automata-duel",
+  "version": 1,
+  "tier": "T1",
+  "title": "JS native RegExp vs Wasm automata engine duel",
+  "description": "Reduced conformance and harness slice: native RegExp, project Thompson NFA, and Wasm DFA execution across 20 patterns over a 1 MiB ASCII/BMP corpus. This is not the accepted v2 production workload.",
+  "tracks": [
+    "controlled"
+  ],
+  "variants": [
+    {
+      "id": "js-native-controlled",
+      "target": "javascript",
+      "track": "controlled",
+      "buildManifest": "public/artifacts/regex-automata-duel/build-manifest.json"
+    },
+    {
+      "id": "js-automata-controlled",
+      "target": "javascript",
+      "track": "controlled",
+      "buildManifest": "public/artifacts/regex-automata-duel/build-manifest.json"
+    },
+    {
+      "id": "wasm-automata-controlled",
+      "target": "wasm-linear",
+      "track": "controlled",
+      "buildManifest": "public/artifacts/regex-automata-duel/build-manifest.json"
+    }
+  ],
+  "inputs": {
+    "manifestSha256": "511c892cd731b740afae39f7c053be4455a6c1cd4a7dd7ac4fc09f92859d072e",
+    "immutable": true,
+    "generation": "SplitMix64 seed 0xREGEX2026, 1,048,576 BMP code points, 20 frozen safe regex patterns"
+  },
+  "oracle": {
+    "kind": "canonical-digest-and-invariants",
+    "policy": "Exact SHA-256 digest over ordered match tuples (pattern_id, start_cp, end_cp, match_len)",
+    "deadCodeDefense": "Match tuple digests and code-point search counters are compared across variants."
+  },
+  "work": {
+    "fixed": true,
+    "complexity": "O(N * P)",
+    "counters": [
+      "code-points-searched",
+      "patterns-executed",
+      "matches-found",
+      "captures-extracted",
+      "boundary-crossings"
+    ],
+    "tolerance": "Code points, patterns, matches, and captures must match exactly."
+  },
+  "extensions": {
+    "reducedHarness": {
+      "status": "out-of-catalog-reduced-conformance-slice",
+      "catalogCoverage": false,
+      "acceptedProductionContract": {
+        "id": "text.regex-engine-duel.v1",
+        "status": "not-implemented",
+        "requiredCorpusBytes": 33554432,
+        "requiredPatterns": 40
+      }
+    }
+  }
+}
