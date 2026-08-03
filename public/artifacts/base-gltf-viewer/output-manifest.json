@@ -2,22 +2,22 @@
   "schemaVersion": 1,
   "workloadId": "graphics.gltf-viewer.v1",
   "status": "passed",
-  "sourceCommit": "76c9a284895023707d41b6e4ea1bd9e786bc0f47",
+  "sourceCommit": "5d88643cb3db0c85c065695e243a72ea26cc6b24",
   "input": {
     "decodedMeshSha256": "b4e03bea9c76a08a6cc8d62ad1320af25ef7e5c594015b6b8396b9efc8aa5f54",
     "asmJsWasmDecodedMeshEqual": true
   },
   "output": {
     "bytes": 240480,
-    "semanticSha256": "0efc779e728d0ee63875efc11a120c45179b5a679764d2f55f6e1b5d3e9856ec",
+    "semanticSha256": "05af907e85e40aa3316fa6e455fff24a3d428c81ad92c51ab3cda2940de9e778",
     "completeCrossTargetEqual": true,
     "variants": {
       "javascript": {
-        "sha256": "0efc779e728d0ee63875efc11a120c45179b5a679764d2f55f6e1b5d3e9856ec",
+        "sha256": "05af907e85e40aa3316fa6e455fff24a3d428c81ad92c51ab3cda2940de9e778",
         "boundaryCrossings": 0
       },
       "wasm": {
-        "sha256": "f1a2528e0190cb64fc27a0b28a1ba3511afcc8f98c0a95a63c10ddeba37e92a1",
+        "sha256": "3eb943b8a862ac3e1fe2b1c9dcd9948df64381358a4361cdfe24bc93d2993ed3",
         "boundaryCrossings": 1
       }
     },
@@ -27,7 +27,7 @@
       2046,
       600,
       125842,
-      0,
+      12,
       3380910976,
       685368050,
       4110,
