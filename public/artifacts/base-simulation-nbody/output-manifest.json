@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "catalogId": "workload-catalog-v1",
+  "workloadId": "simulation.nbody-cloth.v1",
+  "status": "implementation-candidate",
+  "exactCrossTargetBytes": true,
+  "completeOutputSha256": "e09f9c48b3c2945cca25102eb09667295c7889a850578622354d80b1109dba3e",
+  "quantizedStateDigest": "5c5c1eca3fffb709",
+  "maxAbsoluteDifference": 0,
+  "tolerance": 1e-12,
+  "energy": {
+    "initial": -74.8979576182066,
+    "final": -74.89804110985142,
+    "relativeDrift": 0.0000011147386053059117,
+    "tolerance": 0.0000012
+  },
+  "checkpoints": [
+    1,
+    30,
+    60,
+    90,
+    120
+  ],
+  "counters": {
+    "bodies": 1024,
+    "timesteps": 120,
+    "forceEvaluations": 121,
+    "pairInteractions": 126753792,
+    "halfKicks": 245760,
+    "positionUpdates": 122880,
+    "accelerationWrites": 371712,
+    "checkpointValues": 30720,
+    "inputBytes": 57408,
+    "outputBytes": 295040,
+    "energyPairChecks": 1047552,
+    "kineticEnergyTerms": 2048,
+    "allocations": 5,
+    "boundaryCrossings": 0
+  },
+  "performanceClaims": []
+}

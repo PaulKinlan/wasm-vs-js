@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "immutable": true,
+  "workloadId": "simulation.nbody-cloth.v1",
+  "generator": {
+    "path": "benchmarks/base/simulation-nbody/fixture.js",
+    "seed": "0x31c0ffee",
+    "stateLayout": "mass,x,y,z,vx,vy,vz structure-of-arrays f64 little-endian"
+  },
+  "rights": {
+    "license": "CC0-1.0",
+    "redistribution": "permitted",
+    "provenance": "Generated solely by committed xorshift32 source; no external inputs or user data."
+  },
+  "fixture": {
+    "path": "public/artifacts/base-simulation-nbody/fixture.bin",
+    "bytes": 57408,
+    "sha256": "00e9acbf97192d53c3013fff1667c7a335551661dd95db04bc3237e704803112",
+    "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/0452c1f1f79e15e6502ddf109c13f2cf0cbf343d/public/artifacts/base-simulation-nbody/fixture.bin"
+  }
+}

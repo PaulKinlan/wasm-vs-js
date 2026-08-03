@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.paulkinlan-ea.deno.net/schemas/base-workload-validation-record.schema.json",
+  "title": "Frozen base workload implementation validation record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "catalogId",
+    "workloadId",
+    "status",
+    "variantId",
+    "executionTarget",
+    "source",
+    "fixture",
+    "artifact",
+    "oracle",
+    "counters",
+    "performanceClaims"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "catalogId": { "const": "workload-catalog-v1" },
+    "workloadId": { "const": "simulation.nbody-cloth.v1" },
+    "status": { "const": "implementation-candidate" },
+    "variantId": { "enum": ["js-controlled", "wasm-linear-controlled"] },
+    "executionTarget": { "enum": ["javascript", "wasm-linear"] },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "commit", "files"],
+      "properties": {
+        "repository": { "type": "string", "format": "uri" },
+        "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+        "files": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/file" } }
+      }
+    },
+    "fixture": { "$ref": "#/$defs/file" },
+    "artifact": { "$ref": "#/$defs/file" },
+    "oracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "completeOutputSha256",
+        "quantizedStateDigest",
+        "maxAbsoluteDifference",
+        "tolerance",
+        "energyRelativeDrift",
+        "energyTolerance",
+        "checkpoints"
+      ],
+      "properties": {
+        "completeOutputSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "quantizedStateDigest": { "type": "string", "pattern": "^[a-f0-9]{16}$" },
+        "maxAbsoluteDifference": { "type": "number", "minimum": 0 },
+        "tolerance": { "const": 1e-12 },
+        "energyRelativeDrift": { "type": "number", "minimum": 0 },
+        "energyTolerance": { "const": 0.0000012 },
+        "checkpoints": { "const": [1, 30, 60, 90, 120] }
+      }
+    },
+    "counters": { "$ref": "#/$defs/counters" },
+    "performanceClaims": { "type": "array", "maxItems": 0 }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "variantId": { "const": "js-controlled" } },
+        "required": ["variantId"]
+      },
+      "then": {
+        "properties": {
+          "executionTarget": { "const": "javascript" },
+          "counters": {
+            "allOf": [
+              { "$ref": "#/$defs/counters" },
+              {
+                "properties": { "allocations": { "const": 5 }, "boundaryCrossings": { "const": 0 } }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "variantId": { "const": "wasm-linear-controlled" } },
+        "required": ["variantId"]
+      },
+      "then": {
+        "properties": {
+          "executionTarget": { "const": "wasm-linear" },
+          "counters": {
+            "allOf": [
+              { "$ref": "#/$defs/counters" },
+              {
+                "properties": { "allocations": { "const": 0 }, "boundaryCrossings": { "const": 2 } }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bodies",
+        "timesteps",
+        "forceEvaluations",
+        "pairInteractions",
+        "halfKicks",
+        "positionUpdates",
+        "accelerationWrites",
+        "checkpointValues",
+        "inputBytes",
+        "outputBytes",
+        "energyPairChecks",
+        "kineticEnergyTerms",
+        "allocations",
+        "boundaryCrossings"
+      ],
+      "properties": {
+        "bodies": { "type": "integer", "const": 1024 },
+        "timesteps": { "type": "integer", "const": 120 },
+        "forceEvaluations": { "type": "integer", "const": 121 },
+        "pairInteractions": { "type": "integer", "const": 126753792 },
+        "halfKicks": { "type": "integer", "const": 245760 },
+        "positionUpdates": { "type": "integer", "const": 122880 },
+        "accelerationWrites": { "type": "integer", "const": 371712 },
+        "checkpointValues": { "type": "integer", "const": 30720 },
+        "inputBytes": { "type": "integer", "const": 57408 },
+        "outputBytes": { "type": "integer", "const": 295040 },
+        "energyPairChecks": { "type": "integer", "const": 1047552 },
+        "kineticEnergyTerms": { "type": "integer", "const": 2048 },
+        "allocations": { "type": "integer", "enum": [0, 5] },
+        "boundaryCrossings": { "type": "integer", "enum": [0, 2] }
+      }
+    },
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "immutableUrl": { "type": "string", "format": "uri" }
+      }
+    }
+  }
+}
