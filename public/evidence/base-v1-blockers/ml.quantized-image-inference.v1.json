@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 1,
+  "recordId": "base-v1-blocker-ml-quantized-image-inference-2026-08-03",
+  "workloadId": "ml.quantized-image-inference.v1",
+  "status": "blocked-before-fixture-freeze",
+  "frozenCatalog": {
+    "path": "catalog/workloads.v1.json",
+    "publicPath": "public/data/workloads.v1.json",
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+    "entryCount": 38,
+    "implementationCounted": false
+  },
+  "observedAt": "2026-08-03T12:35:55Z",
+  "blockers": [
+    {
+      "code": "cifar10-redistribution-unresolved",
+      "severity": "blocker",
+      "status": "open",
+      "detail": "The frozen row requires CIFAR-10 bytes to remain download-only until a rights review. The official landing page requests citation but provides no license or redistribution grant. Committing or retransmitting the selected 200 images would silently widen the recorded rights state.",
+      "evidence": [
+        {
+          "kind": "frozen-catalog",
+          "location": "catalog/workloads.v1.json#ml.quantized-image-inference.v1",
+          "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+          "finding": "rightsStatus is download-recipe, redistribution is recipe-only, fixtureState is proposed, and sha256 is null"
+        },
+        {
+          "kind": "upstream-page",
+          "location": "https://www.cs.toronto.edu/~kriz/cifar.html",
+          "sha256": "c95fa60b177f91997e0cb891bafdae1bad862e3a4c1d88621693c8103e0cae93",
+          "finding": "Observed page bytes contain citation requests but no license, copyright grant, terms, or redistribution permission"
+        }
+      ]
+    },
+    {
+      "code": "cifar10-archive-sha256-unpinned",
+      "severity": "blocker",
+      "status": "open",
+      "detail": "The official binary archive publishes an MD5 but the required SHA-256 and every selected image hash are not pinned in the repository. A bounded acquisition attempt did not complete and partial bytes are not evidence.",
+      "evidence": [
+        {
+          "kind": "upstream-page",
+          "location": "https://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz",
+          "sha256": null,
+          "finding": "Official published MD5 c32a1d4ab5d03f1284b67883e8d87530 is recorded as a locator check only; SHA-256 remains unavailable"
+        },
+        {
+          "kind": "reproduction",
+          "location": "scripts/audit-ml-quantized-image-inference-blocker.ts",
+          "sha256": null,
+          "finding": "The gate rejects null archive SHA-256 and absent selected-sample hashes before any implementation or demo can be counted"
+        }
+      ]
+    },
+    {
+      "code": "model-operator-revision-unaccepted",
+      "severity": "blocker",
+      "status": "open",
+      "detail": "A concrete MLPerf Tiny ResNet8 artifact is pinned as a candidate, but the frozen catalog does not select that artifact, its TFLite operator revision, integer rounding rules, or model-weight provenance. Treating the candidate as accepted would silently decide the contract after implementation.",
+      "evidence": [
+        {
+          "kind": "upstream-repository",
+          "location": "https://github.com/mlcommons/tiny/tree/4addd0fa08d216e20637637874e084895f289da4/benchmark/training/image_classification",
+          "sha256": "9ecd3c69be9da53a9f386461293be4959dc0fe7f8aa33de1f6239a74b2ca9260",
+          "finding": "Pinned README identifies ResNet8, CIFAR-10, and a 200-sample performance set; repository license is Apache-2.0"
+        },
+        {
+          "kind": "upstream-artifact",
+          "location": "benchmark/training/image_classification/trained_models/pretrainedResnet_quant.tflite@4addd0fa08d216e20637637874e084895f289da4",
+          "sha256": "3c002613d1b2475eb51dd78dfb85a546c8ae658dee71cf6ade43b022fe205415",
+          "finding": "Candidate TFLite model version 3 contains 16 operations: nine CONV_2D, three ADD, one AVERAGE_POOL_2D, one RESHAPE, one FULLY_CONNECTED, and one SOFTMAX"
+        }
+      ]
+    },
+    {
+      "code": "public-demo-cannot-acquire-recipe-only-fixture",
+      "severity": "blocker",
+      "status": "open",
+      "detail": "A no-upload, no-storage public worker cannot run the exact 200-image contract without serving, proxying, or externally fetching recipe-only CIFAR bytes. A generated substitute or smaller sample would be reduced coverage and is prohibited.",
+      "evidence": [
+        {
+          "kind": "frozen-catalog",
+          "location": "catalog/workloads.v1.json#ml.quantized-image-inference.v1",
+          "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+          "finding": "Fixed work is exactly 200 images at batch 1 with frozen model and preprocessing"
+        }
+      ]
+    }
+  ],
+  "candidateContract": {
+    "fixture": {
+      "source": "https://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz",
+      "selection": "The 200 test-set indices encoded by mlcommons/tiny benchmark/training/image_classification/perf_samples_idxs.npy at commit 4addd0fa08d216e20637637874e084895f289da4 (SHA-256 3bd4a88eeb4c50fad652d0f24c8af13bc9219ba2878aea47c6536bfbeb43024d)",
+      "archiveMd5": "c32a1d4ab5d03f1284b67883e8d87530",
+      "archiveSha256": null,
+      "redistribution": "recipe-only-until-audit"
+    },
+    "model": {
+      "repository": "https://github.com/mlcommons/tiny.git",
+      "commit": "4addd0fa08d216e20637637874e084895f289da4",
+      "path": "benchmark/training/image_classification/trained_models/pretrainedResnet_quant.tflite",
+      "sha256": "3c002613d1b2475eb51dd78dfb85a546c8ae658dee71cf6ade43b022fe205415",
+      "formatVersion": 3,
+      "license": "Apache-2.0 repository license; model-weight provenance remains under audit",
+      "acceptance": "candidate-only"
+    },
+    "operators": ["ADD", "AVERAGE_POOL_2D", "CONV_2D", "FULLY_CONNECTED", "RESHAPE", "SOFTMAX"],
+    "preprocessing": {
+      "shape": [1, 32, 32, 3],
+      "layout": "NHWC",
+      "sourceType": "uint8-rgb",
+      "targetType": "int8",
+      "mapping": "target = source - 128"
+    },
+    "quantization": {
+      "inputScale": 1,
+      "inputZeroPoint": -128,
+      "rounding": "TFLite integer reference semantics; exact revision still unmet",
+      "saturation": "signed-int8 [-128,127]",
+      "perChannelWeights": true,
+      "outputComparison": "all intermediate int8 tensors and final logits/classes"
+    },
+    "fixedWork": {
+      "images": 200,
+      "batch": 1,
+      "passes": 200
+    }
+  },
+  "implementation": {
+    "status": "not-started-fail-closed",
+    "controlledJavaScript": "unavailable",
+    "materialLinearWasm": "unavailable",
+    "fixture": "unfrozen",
+    "model": "candidate-pinned-not-accepted",
+    "records": 0,
+    "coverageClaim": false
+  },
+  "publicDemo": {
+    "status": "unavailable",
+    "route": null,
+    "reason": "Exact recipe-only input acquisition and redistribution rights are unresolved; no synthetic or reduced demo is substituted."
+  },
+  "acceptanceRequirements": [
+    {
+      "id": "rights-audit",
+      "status": "unmet",
+      "requirement": "Record an authoritative license/redistribution determination for the selected 200 CIFAR-10 images without weakening recipe-only provenance."
+    },
+    {
+      "id": "fixture-freeze",
+      "status": "unmet",
+      "requirement": "Pin official archive SHA-256, exact 200 indices, every selected 3073-byte record hash, labels, ordering, and preprocessing bytes."
+    },
+    {
+      "id": "model-freeze",
+      "status": "unmet",
+      "requirement": "Approve one model artifact, weight provenance, TFLite/operator revision, layout, padding, quantization scales/zero points, rounding, saturation, and tolerances before coding targets."
+    },
+    {
+      "id": "independent-targets",
+      "status": "unmet",
+      "requirement": "Implement every frozen INT8 operator independently in controlled JavaScript and material linear Wasm with complete all-layer output checks and operative counters."
+    },
+    {
+      "id": "demo-lifecycle",
+      "status": "unmet",
+      "requirement": "Provide a rights-compliant exact-200 worker demo with target selection, cancellation, timeout, stale-token and pagehide cleanup, accessible text output, and no upload/storage/ranking."
+    }
+  ]
+}

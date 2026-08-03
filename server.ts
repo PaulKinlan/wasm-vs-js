@@ -95,6 +95,10 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/evidence/v1/acceptance.json",
     "application/json; charset=utf-8",
   ]],
+  ["/evidence/base-v1-blockers/ml.quantized-image-inference.v1.json", [
+    "public/evidence/base-v1-blockers/ml.quantized-image-inference.v1.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/evidence/v2-proposals", [
     "public/evidence/v2-proposals/index.html",
     "text/html; charset=utf-8",

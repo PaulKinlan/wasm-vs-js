@@ -1,0 +1,220 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.paulkinlan.net/schemas/base-v1-blocker.schema.json",
+  "title": "Frozen v1 workload blocker record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "recordId",
+    "workloadId",
+    "status",
+    "frozenCatalog",
+    "observedAt",
+    "blockers",
+    "candidateContract",
+    "implementation",
+    "publicDemo",
+    "acceptanceRequirements"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "recordId": { "type": "string", "minLength": 1 },
+    "workloadId": { "const": "ml.quantized-image-inference.v1" },
+    "status": { "const": "blocked-before-fixture-freeze" },
+    "frozenCatalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "publicPath", "sha256", "entryCount", "implementationCounted"],
+      "properties": {
+        "path": { "const": "catalog/workloads.v1.json" },
+        "publicPath": { "const": "public/data/workloads.v1.json" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "entryCount": { "const": 38 },
+        "implementationCounted": { "const": false }
+      }
+    },
+    "observedAt": { "type": "string", "format": "date-time" },
+    "blockers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "severity", "status", "detail", "evidence"],
+        "properties": {
+          "code": { "type": "string", "minLength": 1 },
+          "severity": { "const": "blocker" },
+          "status": { "const": "open" },
+          "detail": { "type": "string", "minLength": 1 },
+          "evidence": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["kind", "location", "sha256", "finding"],
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "frozen-catalog",
+                    "upstream-page",
+                    "upstream-repository",
+                    "upstream-artifact",
+                    "reproduction"
+                  ]
+                },
+                "location": { "type": "string", "minLength": 1 },
+                "sha256": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" },
+                "finding": { "type": "string", "minLength": 1 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "candidateContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fixture", "model", "operators", "preprocessing", "quantization", "fixedWork"],
+      "properties": {
+        "fixture": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source", "selection", "archiveMd5", "archiveSha256", "redistribution"],
+          "properties": {
+            "source": { "type": "string", "format": "uri" },
+            "selection": { "type": "string", "minLength": 1 },
+            "archiveMd5": { "type": "string", "pattern": "^[0-9a-f]{32}$" },
+            "archiveSha256": { "const": null },
+            "redistribution": { "const": "recipe-only-until-audit" }
+          }
+        },
+        "model": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "repository",
+            "commit",
+            "path",
+            "sha256",
+            "formatVersion",
+            "license",
+            "acceptance"
+          ],
+          "properties": {
+            "repository": { "type": "string", "format": "uri" },
+            "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+            "path": { "type": "string", "minLength": 1 },
+            "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+            "formatVersion": { "const": 3 },
+            "license": {
+              "const": "Apache-2.0 repository license; model-weight provenance remains under audit"
+            },
+            "acceptance": { "const": "candidate-only" }
+          }
+        },
+        "operators": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": ["ADD", "AVERAGE_POOL_2D", "CONV_2D", "FULLY_CONNECTED", "RESHAPE", "SOFTMAX"]
+          }
+        },
+        "preprocessing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["shape", "layout", "sourceType", "targetType", "mapping"],
+          "properties": {
+            "shape": { "const": [1, 32, 32, 3] },
+            "layout": { "const": "NHWC" },
+            "sourceType": { "const": "uint8-rgb" },
+            "targetType": { "const": "int8" },
+            "mapping": { "const": "target = source - 128" }
+          }
+        },
+        "quantization": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "inputScale",
+            "inputZeroPoint",
+            "rounding",
+            "saturation",
+            "perChannelWeights",
+            "outputComparison"
+          ],
+          "properties": {
+            "inputScale": { "const": 1 },
+            "inputZeroPoint": { "const": -128 },
+            "rounding": {
+              "const": "TFLite integer reference semantics; exact revision still unmet"
+            },
+            "saturation": { "const": "signed-int8 [-128,127]" },
+            "perChannelWeights": { "const": true },
+            "outputComparison": {
+              "const": "all intermediate int8 tensors and final logits/classes"
+            }
+          }
+        },
+        "fixedWork": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["images", "batch", "passes"],
+          "properties": {
+            "images": { "const": 200 },
+            "batch": { "const": 1 },
+            "passes": { "const": 200 }
+          }
+        }
+      }
+    },
+    "implementation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "controlledJavaScript",
+        "materialLinearWasm",
+        "fixture",
+        "model",
+        "records",
+        "coverageClaim"
+      ],
+      "properties": {
+        "status": { "const": "not-started-fail-closed" },
+        "controlledJavaScript": { "const": "unavailable" },
+        "materialLinearWasm": { "const": "unavailable" },
+        "fixture": { "const": "unfrozen" },
+        "model": { "const": "candidate-pinned-not-accepted" },
+        "records": { "const": 0 },
+        "coverageClaim": { "const": false }
+      }
+    },
+    "publicDemo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "route", "reason"],
+      "properties": {
+        "status": { "const": "unavailable" },
+        "route": { "const": null },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "acceptanceRequirements": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "status", "requirement"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "status": { "const": "unmet" },
+          "requirement": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}
