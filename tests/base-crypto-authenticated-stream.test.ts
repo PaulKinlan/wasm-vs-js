@@ -166,7 +166,7 @@ Deno.test("pinned source graph and builder reproduce every public artifact byte"
     root,
   );
   const manifest = JSON.parse(await Deno.readTextFile(manifestPath));
-  assertEquals(manifest.sourceCommit, "23c66c8697573ee94dcb15abd2142fddef06d93a");
+  assertEquals(manifest.sourceCommit, "955b845f46c882b0897df352c29dd76dbb340005");
   for (const source of manifest.sources) {
     const output = await new Deno.Command("git", {
       args: ["show", `${manifest.sourceCommit}:${source.path}`],
