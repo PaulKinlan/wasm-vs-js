@@ -3,7 +3,9 @@
   "gradle": {
     "version": "9.6.1",
     "distributionUrl": "https://services.gradle.org/distributions/gradle-9.6.1-bin.zip",
-    "sha256": "9c0f7faeeb306cb14e4279a3e084ca6b596894089a0638e68a07c945a32c9e14"
+    "sha256": "9c0f7faeeb306cb14e4279a3e084ca6b596894089a0638e68a07c945a32c9e14",
+    "dependencyVerification": "strict",
+    "verificationMetadata": "gradle/verification-metadata.xml"
   },
   "kotlin": {
     "pluginVersion": "2.3.21",
@@ -13,6 +15,11 @@
   },
   "java": {
     "version": "26.0.1",
-    "vendor": "Arch Linux OpenJDK"
+    "runtimeVersion": "26.0.1",
+    "vendor": "Arch Linux",
+    "home": "/usr/lib/jvm/java-26-openjdk",
+    "executable": "bin/java",
+    "executableSha256": "0868c4200b2f78fc9e767841cc63200350303519eec74b9458031ee234e5bcb9",
+    "releaseFileSha256": "4b67a4f6526d3a2d82edca270da64ac3f560fb6a1340bfbc9ad72ae08666cd44"
   }
 }

@@ -14,21 +14,39 @@ function escapeCanonical(value) {
     .replaceAll("[", "\\[").replaceAll("]", "\\]").replaceAll(":", "\\:");
 }
 
+function parseInt32(value, name, allowNegative = false) {
+  if (typeof value !== "string" || !/^[+-]?\d+$/u.test(value)) {
+    throw new Error(`${name} must be an integer`);
+  }
+  const number = Number(value);
+  if (!Number.isInteger(number) || number < -2_147_483_648 || number > 2_147_483_647) {
+    throw new Error(`${name} must be a 32-bit integer`);
+  }
+  if (!allowNegative && number < 0) throw new Error(`${name} must be non-negative`);
+  return number;
+}
+
+function parseHeader(line, label) {
+  const fields = line?.split("\t") ?? [];
+  if (fields.length !== 2 || fields[0] !== label) throw new Error(`invalid ${label} header`);
+  return parseInt32(fields[1], `${label} count`);
+}
+
 export function parseFixture(text) {
   const lines = text.trimEnd().split("\n");
   if (lines.shift() !== FORMAT) throw new Error("fixture format mismatch");
-  const initialCount = Number(lines.shift()?.slice("initial\t".length));
-  const operationCount = Number(lines.shift()?.slice("operations\t".length));
-  if (!Number.isInteger(initialCount) || initialCount < 1) throw new Error("invalid initial count");
+  const initialCount = parseHeader(lines.shift(), "initial");
+  const operationCount = parseHeader(lines.shift(), "operations");
+  if (initialCount < 1) throw new Error("invalid initial count");
   if (operationCount !== 10_000) throw new Error("fixture must contain exactly 10,000 edits");
   const initial = [];
   for (let index = 0; index < initialCount; index++) {
     const fields = lines.shift()?.split("\t") ?? [];
     if (fields.length !== 5 || fields[0] !== "N") throw new Error(`invalid node row ${index}`);
     initial.push({
-      id: Number(fields[1]),
-      parentId: Number(fields[2]),
-      position: Number(fields[3]),
+      id: parseInt32(fields[1], "node id"),
+      parentId: parseInt32(fields[2], "parent id", true),
+      position: parseInt32(fields[3], "node position"),
       label: decodeLabel(fields[4]),
     });
   }
@@ -37,21 +55,21 @@ export function parseFixture(text) {
     if (fields[0] === "I" && fields.length === 5) {
       return {
         kind: "insert",
-        id: Number(fields[1]),
-        parentId: Number(fields[2]),
-        position: Number(fields[3]),
+        id: parseInt32(fields[1], "insert id"),
+        parentId: parseInt32(fields[2], "insert parent"),
+        position: parseInt32(fields[3], "insert position"),
         label: decodeLabel(fields[4]),
       };
     }
     if (fields[0] === "D" && fields.length === 2) {
-      return { kind: "delete", id: Number(fields[1]) };
+      return { kind: "delete", id: parseInt32(fields[1], "delete id") };
     }
     if (fields[0] === "R" && fields.length === 4) {
       return {
         kind: "reparent",
-        id: Number(fields[1]),
-        parentId: Number(fields[2]),
-        position: Number(fields[3]),
+        id: parseInt32(fields[1], "reparent id"),
+        parentId: parseInt32(fields[2], "reparent parent"),
+        position: parseInt32(fields[3], "reparent position"),
       };
     }
     throw new Error(`invalid operation row ${index}`);

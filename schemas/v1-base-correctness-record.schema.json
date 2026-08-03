@@ -20,6 +20,50 @@
     "identity",
     "wasmGcFeatureProof"
   ],
+  "allOf": [
+    {
+      "if": {
+        "properties": { "variant": { "const": "js-controlled" } },
+        "required": ["variant"]
+      },
+      "then": {
+        "properties": {
+          "target": { "const": "javascript" },
+          "wasmGcFeatureProof": { "type": "null" },
+          "counters": {
+            "allOf": [
+              { "$ref": "#/$defs/counters" },
+              {
+                "type": "object",
+                "properties": { "boundary-crossings": { "const": 0 } }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "variant": { "const": "wasmgc-controlled" } },
+        "required": ["variant"]
+      },
+      "then": {
+        "properties": {
+          "target": { "const": "wasmgc" },
+          "wasmGcFeatureProof": { "$ref": "#/$defs/wasmGcFeatureProof" },
+          "counters": {
+            "allOf": [
+              { "$ref": "#/$defs/counters" },
+              {
+                "type": "object",
+                "properties": { "boundary-crossings": { "const": 2 } }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
   "properties": {
     "schemaVersion": { "const": 1 },
     "registrationId": { "type": "string", "minLength": 1 },
@@ -38,23 +82,24 @@
     "wasmGcFeatureProof": {
       "oneOf": [
         { "type": "null" },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["executed", "result", "export", "compilerTarget"],
-          "properties": {
-            "executed": { "const": true },
-            "result": { "const": "0:array-backed child:1" },
-            "export": { "const": "wasmGcFeatureProof" },
-            "compilerTarget": { "type": "string", "minLength": 1 }
-          }
-        }
+        { "$ref": "#/$defs/wasmGcFeatureProof" }
       ]
     }
   },
   "$defs": {
     "nonNegative": { "type": "integer", "minimum": 0 },
     "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "wasmGcFeatureProof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["executed", "result", "export", "compilerTarget"],
+      "properties": {
+        "executed": { "const": true },
+        "result": { "const": "0:array-backed child:1" },
+        "export": { "const": "wasmGcFeatureProof" },
+        "compilerTarget": { "const": "Kotlin 2.3.21 wasmJs production executable" }
+      }
+    },
     "fixedWork": {
       "type": "object",
       "additionalProperties": false,

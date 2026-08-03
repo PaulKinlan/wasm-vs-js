@@ -1,0 +1,175 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.example/schemas/text-gc-document-edit-fixture-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "registrationId",
+    "frozenCatalog",
+    "fixture",
+    "oracle",
+    "gcDiagnostics"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "registrationId": { "const": "text.gc-document-edit.v1-supplemental-registration-v1" },
+    "frozenCatalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "sha256", "immutable"],
+      "properties": {
+        "id": { "const": "workload-catalog-v1" },
+        "sha256": { "const": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4" },
+        "immutable": { "const": "byte-for-byte" }
+      }
+    },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "format",
+        "generator",
+        "generatorSeed",
+        "licenseSpdx",
+        "rightsStatus",
+        "bytes",
+        "sha256",
+        "initialNodes",
+        "operations",
+        "operationCounts",
+        "validityPolicy"
+      ],
+      "properties": {
+        "format": { "const": "text-gc-document-edit-fixture-v1" },
+        "generator": { "const": "scripts/build-text-gc-document-edit-fixture.ts" },
+        "generatorSeed": { "const": "0x74657874" },
+        "licenseSpdx": { "const": "CC0-1.0" },
+        "rightsStatus": { "const": "project-generated-reviewed-for-redistribution" },
+        "bytes": { "const": 255338 },
+        "sha256": { "const": "45b117b798a6b35f42a3b5a541f5112bb7100510735e17650fee11ee6c8d6075" },
+        "initialNodes": { "const": 256 },
+        "operations": { "const": 10000 },
+        "operationCounts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["insert", "delete", "reparent"],
+          "properties": {
+            "insert": { "const": 3334 },
+            "delete": { "const": 3333 },
+            "reparent": { "const": 3333 }
+          }
+        },
+        "validityPolicy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["insert", "delete", "reparent", "invalidOperation"],
+          "properties": {
+            "insert": { "const": "fresh stable id; existing parent; position in [0, child-count]" },
+            "delete": { "const": "existing non-root leaf only" },
+            "reparent": {
+              "const": "existing non-root node to existing non-descendant parent; bounded position"
+            },
+            "invalidOperation": { "const": "reject the complete run before returning a result" }
+          }
+        }
+      }
+    },
+    "oracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "equivalenceClass",
+        "algorithmFamily",
+        "canonicalEncoding",
+        "outputBytes",
+        "outputSha256",
+        "structuralCounters",
+        "identity"
+      ],
+      "properties": {
+        "kind": { "const": "canonical-semantic" },
+        "equivalenceClass": { "const": "semantic-product-choice" },
+        "algorithmFamily": { "const": "document-tree-fixed-edit-trace" },
+        "canonicalEncoding": {
+          "const": "preorder (id:escaped-label[ordered-children...]) with backslash escaping"
+        },
+        "outputBytes": { "const": 7775 },
+        "outputSha256": {
+          "const": "40e55287bfd9486ef258602766e7c839e2ad77ba7f52b843117607132a6fd0c4"
+        },
+        "structuralCounters": { "$ref": "#/$defs/jsCounters" },
+        "identity": { "$ref": "#/$defs/identity" }
+      }
+    },
+    "gcDiagnostics": { "$ref": "#/$defs/unavailable" }
+  },
+  "$defs": {
+    "jsCounters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "initial-nodes",
+        "operations",
+        "inserts",
+        "deletes",
+        "reparents",
+        "final-nodes",
+        "child-insertions",
+        "child-removals",
+        "parent-writes",
+        "node-object-allocations",
+        "child-list-allocations",
+        "label-values",
+        "traversal-nodes",
+        "boundary-crossings"
+      ],
+      "properties": {
+        "initial-nodes": { "const": 256 },
+        "operations": { "const": 10000 },
+        "inserts": { "const": 3334 },
+        "deletes": { "const": 3333 },
+        "reparents": { "const": 3333 },
+        "final-nodes": { "const": 257 },
+        "child-insertions": { "const": 6922 },
+        "child-removals": { "const": 6666 },
+        "parent-writes": { "const": 10255 },
+        "node-object-allocations": { "const": 3590 },
+        "child-list-allocations": { "const": 3590 },
+        "label-values": { "const": 3590 },
+        "traversal-nodes": { "const": 257 },
+        "boundary-crossings": { "const": 0 }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rootId",
+        "reachableNodes",
+        "uniqueNodeIds",
+        "parentChildLinksValid",
+        "orderedChildrenRetained"
+      ],
+      "properties": {
+        "rootId": { "const": 0 },
+        "reachableNodes": { "const": 257 },
+        "uniqueNodeIds": { "const": 257 },
+        "parentChildLinksValid": { "const": true },
+        "orderedChildrenRetained": { "const": true }
+      }
+    },
+    "unavailable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reason"],
+      "properties": {
+        "status": { "const": "unavailable" },
+        "reason": {
+          "const": "Portable GC events and runtime-internal allocation counts are not exposed by the Web platform."
+        }
+      }
+    }
+  }
+}

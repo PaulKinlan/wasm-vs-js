@@ -30,6 +30,17 @@ function wasmResult(input = fixture) {
   return JSON.parse(runDocumentFixture(input));
 }
 
+async function gitBytes(...args: string[]) {
+  const result = await new Deno.Command("git", {
+    cwd: new URL(".", root),
+    args,
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  assert(result.success, new TextDecoder().decode(result.stderr));
+  return result.stdout;
+}
+
 function expectBothReject(input: string) {
   let jsRejected = false;
   let wasmRejected = false;
@@ -129,6 +140,35 @@ Deno.test("text.gc-document-edit rejects invalid ids, positions, deletion, and c
   for (const candidate of cases) expectBothReject(candidate);
 });
 
+Deno.test("text.gc-document-edit rejects every malformed numeric field in both targets", () => {
+  const lines = fixture.trimEnd().split("\n");
+  const firstInsert = lines.findIndex((line) => line.startsWith("I\t"));
+  const firstDelete = lines.findIndex((line) => line.startsWith("D\t"));
+  const firstReparent = lines.findIndex((line) => line.startsWith("R\t"));
+  const mutations: Array<[number, number]> = [
+    [1, 1],
+    [3, 1],
+    [3, 2],
+    [3, 3],
+    [firstInsert, 1],
+    [firstInsert, 2],
+    [firstInsert, 3],
+    [firstDelete, 1],
+    [firstReparent, 1],
+    [firstReparent, 2],
+    [firstReparent, 3],
+  ];
+  for (const malformed of ["NaN", "1.5", "1e2", "", "2147483648", "-2147483649"]) {
+    for (const [row, field] of mutations) {
+      const candidate = [...lines];
+      const fields = candidate[row].split("\t");
+      fields[field] = malformed;
+      candidate[row] = fields.join("\t");
+      expectBothReject(`${candidate.join("\n")}\n`);
+    }
+  }
+});
+
 Deno.test("Kotlin artifact executes WasmGC-managed node/list/string proof", async () => {
   const bytes = await Deno.readFile(new URL("text-gc-document-edit.wasm", artifact));
   const compileWithOptions = WebAssembly.compile as unknown as (
@@ -148,6 +188,24 @@ Deno.test("Kotlin artifact executes WasmGC-managed node/list/string proof", asyn
   assertEquals(buildManifest.wasmFeatures.gc, true);
   assertEquals(buildManifest.toolchain.kotlinPlugin, "2.3.21");
   assertEquals(buildManifest.toolchain.gradle, "9.6.1");
+  assertEquals(buildManifest.toolchain.dependencyVerification.mode, "strict");
+  const verificationBytes = await Deno.readFile(
+    new URL(
+      "benchmarks/v1/text-gc-document-edit/kotlin/gradle/verification-metadata.xml",
+      root,
+    ),
+  );
+  const verification = new TextDecoder().decode(verificationBytes);
+  assert(verification.includes('name="kotlin-gradle-plugin" version="2.3.21"'));
+  assert(verification.includes('name="binaryen" version="125"'));
+  assertEquals(
+    await sha256Hex(verificationBytes),
+    buildManifest.toolchain.dependencyVerification.sha256,
+  );
+  const javaBytes = await Deno.readFile("/usr/lib/jvm/java-26-openjdk/bin/java");
+  const javaRelease = await Deno.readFile("/usr/lib/jvm/java-26-openjdk/release");
+  assertEquals(await sha256Hex(javaBytes), buildManifest.toolchain.java.executableSha256);
+  assertEquals(await sha256Hex(javaRelease), buildManifest.toolchain.java.releaseFileSha256);
 });
 
 Deno.test("text.gc-document-edit fixture, source tree, and artifacts match manifests", async () => {
@@ -157,10 +215,18 @@ Deno.test("text.gc-document-edit fixture, source tree, and artifacts match manif
     fixtureManifest.frozenCatalog.sha256,
     "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
   );
+  assert(/^[a-f0-9]{40}$/u.test(buildManifest.sourceCommit));
+  await gitBytes("cat-file", "-e", `${buildManifest.sourceCommit}^{commit}`);
   for (const entry of buildManifest.sources) {
     const bytes = await Deno.readFile(new URL(entry.path, root));
     assert(bytes.length === entry.bytes, entry.path);
     assert((await sha256Hex(bytes)) === entry.sha256, entry.path);
+    const committedBytes = await gitBytes("show", `${buildManifest.sourceCommit}:${entry.path}`);
+    assertEquals(committedBytes, bytes);
+    const blobOid = new TextDecoder().decode(
+      await gitBytes("rev-parse", `${buildManifest.sourceCommit}:${entry.path}`),
+    ).trim();
+    assertEquals(blobOid, entry.gitBlobOid);
   }
   for (const entry of buildManifest.outputs) {
     const bytes = await Deno.readFile(new URL(entry.path, root));
@@ -237,20 +303,67 @@ Deno.test("text.gc-document-edit supplemental ledger and records pass closed sch
   const recordSchema = JSON.parse(
     await Deno.readTextFile(new URL("schemas/v1-base-correctness-record.schema.json", root)),
   );
+  const fixtureSchema = JSON.parse(
+    await Deno.readTextFile(
+      new URL("schemas/text-gc-document-edit-fixture-manifest.schema.json", root),
+    ),
+  );
+  const referenceSchema = JSON.parse(
+    await Deno.readTextFile(new URL("schemas/text-gc-document-edit-reference.schema.json", root)),
+  );
+  const buildSchema = JSON.parse(
+    await Deno.readTextFile(
+      new URL("schemas/text-gc-document-edit-build-manifest.schema.json", root),
+    ),
+  );
   const validateStatus = ajv.compile(statusSchema);
   const validateRecord = ajv.compile(recordSchema);
+  const validateFixture = ajv.compile(fixtureSchema);
+  const validateReference = ajv.compile(referenceSchema);
+  const validateBuild = ajv.compile(buildSchema);
   const status = JSON.parse(
     await Deno.readTextFile(new URL("catalog/v1-base-implementation-status.v1.json", root)),
   );
   assert(validateStatus(status), JSON.stringify(validateStatus.errors));
+  assert(validateFixture(fixtureManifest), JSON.stringify(validateFixture.errors));
+  assert(validateReference(reference), JSON.stringify(validateReference.errors));
+  assert(validateBuild(buildManifest), JSON.stringify(validateBuild.errors));
+  const records = [];
   for (const variant of ["js-controlled", "wasmgc-controlled"]) {
     const record = JSON.parse(
       await Deno.readTextFile(
         new URL(`public/evidence/v1-base/text-gc-document-edit/${variant}.json`, root),
       ),
     );
+    records.push(record);
     assert(validateRecord(record), `${variant}: ${JSON.stringify(validateRecord.errors)}`);
   }
+
+  const contradictoryJs = structuredClone(records[0]);
+  contradictoryJs.target = "wasmgc";
+  contradictoryJs.counters["boundary-crossings"] = 2;
+  contradictoryJs.wasmGcFeatureProof = records[1].wasmGcFeatureProof;
+  assert(!validateRecord(contradictoryJs), "contradictory JS record must fail");
+  const contradictoryWasm = structuredClone(records[1]);
+  contradictoryWasm.target = "javascript";
+  contradictoryWasm.counters["boundary-crossings"] = 0;
+  contradictoryWasm.wasmGcFeatureProof = null;
+  assert(!validateRecord(contradictoryWasm), "contradictory WasmGC record must fail");
+  const openStatus = structuredClone(status);
+  openStatus.entries[0].fixedWork.bogus = true;
+  assert(!validateStatus(openStatus), "open fixedWork must fail");
+  const emptyFixture = structuredClone(status);
+  emptyFixture.entries[0].fixture = {};
+  assert(!validateStatus(emptyFixture), "empty fixture must fail");
+  const openFixtureManifest = structuredClone(fixtureManifest);
+  openFixtureManifest.fixture.unregistered = true;
+  assert(!validateFixture(openFixtureManifest), "open fixture manifest must fail");
+  const openReference = structuredClone(reference);
+  openReference.unregistered = true;
+  assert(!validateReference(openReference), "open reference must fail");
+  const invalidBuild = structuredClone(buildManifest);
+  invalidBuild.sourceCommit = "candidate prose";
+  assert(!validateBuild(invalidBuild), "non-OID build source must fail");
 });
 
 Deno.test("text.gc-document-edit validation records retain exact counters and no performance claim", async () => {
