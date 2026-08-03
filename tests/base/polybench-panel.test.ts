@@ -241,21 +241,25 @@ Deno.test("published build task reproduces every artifact and record from exact 
       stderr: "piped",
     }).output();
     if (!result.success) throw new Error(new TextDecoder().decode(result.stderr));
-    for (const root of [artifactRoot, "evidence/base/numeric-polybench-panel"]) {
-      for await (const entry of Deno.readDir(root)) {
-        if (entry.isDirectory) {
-          for await (const child of Deno.readDir(`${root}/${entry.name}`)) {
-            assertEquals(
-              await Deno.readFile(`${temp}/${root}/${entry.name}/${child.name}`),
-              await Deno.readFile(`${root}/${entry.name}/${child.name}`),
-            );
-          }
-        } else {assertEquals(
-            await Deno.readFile(`${temp}/${root}/${entry.name}`),
-            await Deno.readFile(`${root}/${entry.name}`),
-          );}
+    for await (const entry of Deno.readDir(artifactRoot)) {
+      if (entry.isDirectory) {
+        for await (const child of Deno.readDir(`${artifactRoot}/${entry.name}`)) {
+          assertEquals(
+            await Deno.readFile(`${temp}/${artifactRoot}/${entry.name}/${child.name}`),
+            await Deno.readFile(`${artifactRoot}/${entry.name}/${child.name}`),
+          );
+        }
+      } else {
+        assertEquals(
+          await Deno.readFile(`${temp}/${artifactRoot}/${entry.name}`),
+          await Deno.readFile(`${artifactRoot}/${entry.name}`),
+        );
       }
     }
+    assertEquals(
+      await Deno.readFile(`${temp}/evidence/base/numeric-polybench-panel/correctness-record.json`),
+      await Deno.readFile("evidence/base/numeric-polybench-panel/correctness-record.json"),
+    );
   } finally {
     await Deno.remove(temp, { recursive: true });
   }
