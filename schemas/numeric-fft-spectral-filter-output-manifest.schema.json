@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/numeric-fft-spectral-filter-output-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "status",
+    "authoritativePerformanceEvidence",
+    "entryId",
+    "implementationId",
+    "completeOutput",
+    "oracle",
+    "variants",
+    "performanceClaims",
+    "sourceCommit"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "status": { "const": "supplemental-implementation-candidate" },
+    "authoritativePerformanceEvidence": { "const": false },
+    "entryId": { "const": "numeric.fft-spectral-filter.v1" },
+    "implementationId": { "const": "numeric-fft-spectral-filter-controlled-v1" },
+    "completeOutput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "components",
+        "bytes",
+        "sha256",
+        "quantizationStep",
+        "quantizedSha256",
+        "checkpoints"
+      ],
+      "properties": {
+        "components": { "const": 2097152 },
+        "bytes": { "const": 8388608 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "quantizationStep": { "const": 0.00001 },
+        "quantizedSha256": { "$ref": "#/$defs/sha256" },
+        "checkpoints": {
+          "type": "array",
+          "minItems": 7,
+          "maxItems": 7,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["index", "real", "imaginary"],
+            "properties": {
+              "index": { "enum": [0, 1, 131072, 262144, 524288, 1048574, 1048575] },
+              "real": { "type": "number" },
+              "imaginary": { "type": "number" }
+            }
+          }
+        }
+      }
+    },
+    "oracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method", "tolerance", "js", "wasm"],
+      "properties": {
+        "method": { "const": "independent-scalar-f64-radix-2" },
+        "tolerance": { "$ref": "#/$defs/tolerance" },
+        "js": { "$ref": "#/$defs/oracleResult" },
+        "wasm": { "$ref": "#/$defs/oracleResult" }
+      }
+    },
+    "variants": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["js-controlled", "wasm-linear-controlled"],
+      "properties": {
+        "js-controlled": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "counters"],
+          "properties": {
+            "status": { "const": "passed" },
+            "counters": { "$ref": "#/$defs/jsCounters" }
+          }
+        },
+        "wasm-linear-controlled": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "counters"],
+          "properties": {
+            "status": { "const": "passed" },
+            "counters": { "$ref": "#/$defs/wasmCounters" }
+          }
+        }
+      }
+    },
+    "performanceClaims": { "type": "array", "maxItems": 0 },
+    "sourceCommit": { "$ref": "#/$defs/commit" }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "tolerance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["absolute", "relative", "energyRelative"],
+      "properties": {
+        "absolute": { "const": 0.00025 },
+        "relative": { "const": 0.0025 },
+        "energyRelative": { "const": 0.0002 }
+      }
+    },
+    "oracleResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "passed",
+        "violations",
+        "maxAbsolute",
+        "maxRelative",
+        "outputEnergy",
+        "referenceEnergy",
+        "energyRelative",
+        "tolerance"
+      ],
+      "properties": {
+        "passed": { "const": true },
+        "violations": { "const": 0 },
+        "maxAbsolute": { "type": "number", "minimum": 0 },
+        "maxRelative": { "type": "number", "minimum": 0 },
+        "outputEnergy": { "type": "number", "exclusiveMinimum": 0 },
+        "referenceEnergy": { "type": "number", "exclusiveMinimum": 0 },
+        "energyRelative": { "type": "number", "minimum": 0, "maximum": 0.0002 },
+        "tolerance": { "$ref": "#/$defs/tolerance" }
+      }
+    },
+    "counterBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pipelines",
+        "samples",
+        "forward-ffts",
+        "inverse-ffts",
+        "butterflies",
+        "twiddle-pair-loads",
+        "window-multiplies",
+        "filter-scalar-multiplies",
+        "inverse-scale-multiplies",
+        "input-bytes",
+        "output-bytes",
+        "allocations",
+        "boundary-crossings"
+      ],
+      "properties": {
+        "pipelines": { "const": 1 },
+        "samples": { "const": 1048576 },
+        "forward-ffts": { "const": 1 },
+        "inverse-ffts": { "const": 1 },
+        "butterflies": { "const": 20971520 },
+        "twiddle-pair-loads": { "const": 20971520 },
+        "window-multiplies": { "const": 1048576 },
+        "filter-scalar-multiplies": { "const": 2097152 },
+        "inverse-scale-multiplies": { "const": 2097152 },
+        "input-bytes": { "const": 20971512 },
+        "output-bytes": { "const": 8388608 },
+        "allocations": { "type": "integer", "minimum": 0 },
+        "boundary-crossings": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "jsCounters": {
+      "allOf": [
+        { "$ref": "#/$defs/counterBase" },
+        {
+          "type": "object",
+          "properties": {
+            "allocations": { "const": 1 },
+            "boundary-crossings": { "const": 0 }
+          }
+        }
+      ]
+    },
+    "wasmCounters": {
+      "allOf": [
+        { "$ref": "#/$defs/counterBase" },
+        {
+          "type": "object",
+          "properties": {
+            "allocations": { "const": 0 },
+            "boundary-crossings": { "const": 1 }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/numeric-fft-spectral-filter-registration.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "registrationId",
+    "status",
+    "authoritativePerformanceEvidence",
+    "frozenCatalog",
+    "fixture",
+    "algorithm",
+    "oracle",
+    "fixedWork",
+    "variants",
+    "lineage"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "registrationId": { "const": "numeric-fft-spectral-filter-controlled-v1" },
+    "status": { "const": "supplemental-implementation-candidate" },
+    "authoritativePerformanceEvidence": { "const": false },
+    "frozenCatalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "entryId", "sha256", "immutability"],
+      "properties": {
+        "id": { "const": "workload-catalog-v1" },
+        "entryId": { "const": "numeric.fft-spectral-filter.v1" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "immutability": { "const": "byte-for-byte" }
+      }
+    },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "licenseSpdx",
+        "redistribution",
+        "sampleCount",
+        "signalGenerator",
+        "signalSeed",
+        "window",
+        "windowFormula"
+      ],
+      "properties": {
+        "licenseSpdx": { "const": "CC0-1.0" },
+        "redistribution": { "const": "permitted" },
+        "sampleCount": { "const": 1048576 },
+        "signalGenerator": { "const": "xorshift32-signed-16-over-32768" },
+        "signalSeed": { "const": "0x6d2b79f5" },
+        "window": { "const": "symmetric-hann-f32" },
+        "windowFormula": { "const": "f32(0.5 - 0.5*cos(2*pi*i/(N-1)))" }
+      }
+    },
+    "algorithm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "family",
+        "representation",
+        "plan",
+        "bitReversal",
+        "twiddles",
+        "operationOrder",
+        "filter",
+        "floatingPointPolicy",
+        "simd",
+        "threads"
+      ],
+      "properties": {
+        "family": { "const": "fft-fixed-radix-window-filter" },
+        "representation": { "const": "interleaved-complex-f32" },
+        "plan": { "const": "iterative-radix-2-decimation-in-time" },
+        "bitReversal": { "type": "string", "minLength": 1 },
+        "twiddles": { "type": "string", "minLength": 1 },
+        "operationOrder": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "filter": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mirroredBinDefinition", "gains"],
+          "properties": {
+            "mirroredBinDefinition": { "const": "min(i,N-i)" },
+            "gains": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["maximumInclusive", "gain"],
+                "properties": {
+                  "maximumInclusive": { "enum": ["N/16", "N/8", "N/2"] },
+                  "gain": { "enum": [1, 0.5, 0.25] }
+                }
+              }
+            }
+          }
+        },
+        "floatingPointPolicy": { "type": "string", "minLength": 1 },
+        "simd": { "const": false },
+        "threads": { "const": false }
+      }
+    },
+    "oracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "completeOutput",
+        "independentReference",
+        "absoluteTolerance",
+        "relativeTolerance",
+        "energyRelativeTolerance",
+        "quantizationStep",
+        "crossTarget"
+      ],
+      "properties": {
+        "completeOutput": { "const": "all 2097152 interleaved f32 components" },
+        "independentReference": { "type": "string", "minLength": 1 },
+        "absoluteTolerance": { "const": 0.00025 },
+        "relativeTolerance": { "const": 0.0025 },
+        "energyRelativeTolerance": { "const": 0.0002 },
+        "quantizationStep": { "const": 0.00001 },
+        "crossTarget": { "type": "string", "minLength": 1 }
+      }
+    },
+    "fixedWork": { "$ref": "#/$defs/fixedWork" },
+    "variants": {
+      "type": "array",
+      "prefixItems": [
+        { "const": "js-controlled" },
+        { "const": "wasm-linear-controlled" }
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "lineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["description", "sourcePaths"],
+      "properties": {
+        "description": { "type": "string", "minLength": 1 },
+        "sourcePaths": {
+          "type": "array",
+          "prefixItems": [
+            { "const": "benchmarks/audio-fft/workload.ts" },
+            { "const": "benchmarks/audio-fft/audio-fft.wat" }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "fixedWork": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pipelines",
+        "samples",
+        "forwardFfts",
+        "inverseFfts",
+        "butterflies",
+        "twiddlePairLoads",
+        "windowMultiplies",
+        "filterScalarMultiplies",
+        "inverseScaleMultiplies"
+      ],
+      "properties": {
+        "pipelines": { "const": 1 },
+        "samples": { "const": 1048576 },
+        "forwardFfts": { "const": 1 },
+        "inverseFfts": { "const": 1 },
+        "butterflies": { "const": 20971520 },
+        "twiddlePairLoads": { "const": 20971520 },
+        "windowMultiplies": { "const": 1048576 },
+        "filterScalarMultiplies": { "const": 2097152 },
+        "inverseScaleMultiplies": { "const": 2097152 }
+      }
+    }
+  }
+}

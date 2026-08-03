@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/numeric-fft-spectral-filter-fixture-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "status",
+    "entryId",
+    "implementationId",
+    "sampleCount",
+    "signalSeed",
+    "rights",
+    "serialization",
+    "fields",
+    "fixtureSha256",
+    "sourceCommit"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "status": { "const": "supplemental-implementation-candidate" },
+    "entryId": { "const": "numeric.fft-spectral-filter.v1" },
+    "implementationId": { "const": "numeric-fft-spectral-filter-controlled-v1" },
+    "sampleCount": { "const": 1048576 },
+    "signalSeed": { "const": "0x6d2b79f5" },
+    "rights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["licenseSpdx", "source", "redistribution"],
+      "properties": {
+        "licenseSpdx": { "const": "CC0-1.0" },
+        "source": { "const": "project-generated" },
+        "redistribution": { "const": "permitted" }
+      }
+    },
+    "serialization": { "const": "raw-little-endian-f32" },
+    "fields": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["signal", "window", "twiddles", "gains"],
+      "properties": {
+        "signal": { "$ref": "#/$defs/sampleField" },
+        "window": { "$ref": "#/$defs/sampleField" },
+        "twiddles": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["components", "bytes", "sha256"],
+          "properties": {
+            "components": { "const": 2097150 },
+            "bytes": { "const": 8388600 },
+            "sha256": { "$ref": "#/$defs/sha256" }
+          }
+        },
+        "gains": { "$ref": "#/$defs/sampleField" }
+      }
+    },
+    "fixtureSha256": { "$ref": "#/$defs/sha256" },
+    "sourceCommit": { "$ref": "#/$defs/commit" }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "sampleField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["components", "bytes", "sha256"],
+      "properties": {
+        "components": { "const": 1048576 },
+        "bytes": { "const": 4194304 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  }
+}

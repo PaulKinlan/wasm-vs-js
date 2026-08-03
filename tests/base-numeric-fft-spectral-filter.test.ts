@@ -1,6 +1,12 @@
+import Ajv2020Module from "ajv2020";
 import { assert, assertEquals, assertRejects } from "./assert.ts";
 import wabtFactory from "wabt";
 import { sha256Hex } from "../lib/canonical.ts";
+import {
+  loadNumericFftBundle,
+  NumericFftBundle,
+  validateNumericFftSemantics,
+} from "../lib/numeric-fft-spectral-filter-validation.ts";
 import {
   expectedCounters,
   generateFixture,
@@ -18,6 +24,13 @@ import {
   validateAgainstOracle,
 } from "../benchmarks/base/numeric-fft-spectral-filter/reference.ts";
 import { createHandler } from "../server.ts";
+
+type Validator = ((value: unknown) => boolean) & { errors?: unknown };
+type AjvConstructor = new (options?: Record<string, unknown>) => {
+  compile(schema: unknown): Validator;
+};
+const Ajv2020 = ((Ajv2020Module as unknown as { default?: AjvConstructor }).default ??
+  Ajv2020Module) as unknown as AjvConstructor;
 
 function directDftPipeline(
   signal: Float32Array,
@@ -84,6 +97,104 @@ Deno.test("frozen catalog bytes remain unchanged and supplemental registration b
   assertEquals(registration.fixedWork.samples, SAMPLE_COUNT);
   assertEquals(registration.fixedWork.butterflies, 20_971_520);
   assertEquals(registration.authoritativePerformanceEvidence, false);
+});
+
+Deno.test("closed numeric FFT schemas and semantic gates reject contract mutations", async () => {
+  const bundle = await loadNumericFftBundle();
+  const ajv = new Ajv2020({ allErrors: true, strict: false });
+  const schemaFiles = {
+    registration: "numeric-fft-spectral-filter-registration.schema.json",
+    fixture: "numeric-fft-spectral-filter-fixture-manifest.schema.json",
+    output: "numeric-fft-spectral-filter-output-manifest.schema.json",
+    build: "numeric-fft-spectral-filter-build-manifest.schema.json",
+    record: "numeric-fft-spectral-filter-validation-record.schema.json",
+  } as const;
+  const validators = Object.fromEntries(
+    await Promise.all(
+      Object.entries(schemaFiles).map(async ([name, file]) => {
+        const schema = JSON.parse(await Deno.readTextFile(`schemas/${file}`));
+        assert(schema.additionalProperties === false, `${file} is not closed`);
+        return [name, ajv.compile(schema)];
+      }),
+    ),
+  ) as Record<keyof typeof schemaFiles, Validator>;
+
+  for (const name of ["registration", "fixture", "output", "build"] as const) {
+    assert(validators[name](bundle[name]), `${name}: ${JSON.stringify(validators[name].errors)}`);
+  }
+  for (const variantId of ["js-controlled", "wasm-linear-controlled"]) {
+    assert(
+      validators.record(bundle.records[variantId]),
+      `${variantId}: ${JSON.stringify(validators.record.errors)}`,
+    );
+  }
+  const semantic = await validateNumericFftSemantics(bundle);
+  assert(semantic.ok, semantic.errors.join("; "));
+
+  const schemaMutations: Array<{
+    label: string;
+    validator: Validator;
+    value: Record<string, unknown>;
+  }> = [];
+  const extra = structuredClone(bundle.registration);
+  extra.unreviewed = true;
+  schemaMutations.push({
+    label: "extra property",
+    validator: validators.registration,
+    value: extra,
+  });
+  const missing = structuredClone(bundle.fixture);
+  delete missing.rights;
+  schemaMutations.push({ label: "missing field", validator: validators.fixture, value: missing });
+  const wrongType = structuredClone(bundle.output);
+  (wrongType.completeOutput as Record<string, unknown>).components = "2097152";
+  schemaMutations.push({ label: "wrong type", validator: validators.output, value: wrongType });
+  for (const { label, validator, value } of schemaMutations) {
+    assert(!validator(value), `schema accepted ${label}`);
+  }
+  for (const variantId of ["js-controlled", "wasm-linear-controlled"]) {
+    const wrongCounter = structuredClone(bundle.records[variantId]);
+    (wrongCounter.counters as Record<string, number>)["boundary-crossings"] += 1;
+    assert(!validators.record(wrongCounter), `${variantId} schema accepted counter mutation`);
+  }
+
+  const semanticMutations: Array<{
+    label: string;
+    mutate: (value: NumericFftBundle) => void;
+  }> = [
+    {
+      label: "identity",
+      mutate: (value) => {
+        value.registration.registrationId = "numeric-fft-spectral-filter-controlled-v2";
+      },
+    },
+    {
+      label: "hash",
+      mutate: (value) => {
+        value.fixture.fixtureSha256 = "0".repeat(64);
+      },
+    },
+    {
+      label: "counter",
+      mutate: (value) => {
+        const variants = value.output.variants as Record<string, Record<string, unknown>>;
+        (variants["js-controlled"].counters as Record<string, number>).butterflies += 1;
+      },
+    },
+    {
+      label: "provenance",
+      mutate: (value) => {
+        value.records["wasm-linear-controlled"].buildManifest =
+          "/artifacts/numeric-fft-spectral-filter/unreviewed.json";
+      },
+    },
+  ];
+  for (const { label, mutate } of semanticMutations) {
+    const poisoned = structuredClone(bundle);
+    mutate(poisoned);
+    const rejected = await validateNumericFftSemantics(poisoned, { requireLocalFiles: false });
+    assert(!rejected.ok, `semantic validator accepted ${label} contradiction`);
+  }
 });
 
 Deno.test("controlled JS and material Wasm match for small transforms and adversarial inputs", async () => {

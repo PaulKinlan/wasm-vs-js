@@ -1,5 +1,10 @@
+import Ajv2020 from "ajv2020";
 import { validateBenchmark, validateRun } from "../lib/contracts.ts";
 import { validateCorpusSemantics } from "../lib/corpus-validation.ts";
+import {
+  loadNumericFftBundle,
+  validateNumericFftSemantics,
+} from "../lib/numeric-fft-spectral-filter-validation.ts";
 const foundationSchemas = [
   "attempt-record.schema.json",
   "audio-fixture-manifest.schema.json",
@@ -14,6 +19,11 @@ const foundationSchemas = [
   "launch-evidence.schema.json",
   "paired-block.schema.json",
   "network-attestation.schema.json",
+  "numeric-fft-spectral-filter-build-manifest.schema.json",
+  "numeric-fft-spectral-filter-fixture-manifest.schema.json",
+  "numeric-fft-spectral-filter-output-manifest.schema.json",
+  "numeric-fft-spectral-filter-registration.schema.json",
+  "numeric-fft-spectral-filter-validation-record.schema.json",
   "permit-receipt.schema.json",
   "public-inspectability.schema.json",
   "source-manifest.schema.json",
@@ -24,6 +34,25 @@ for (const name of foundationSchemas) {
     throw new Error(`${name} must be a closed object schema`);
   }
 }
+const numericBundle = await loadNumericFftBundle();
+const numericSchemas = {
+  registration: "numeric-fft-spectral-filter-registration.schema.json",
+  fixture: "numeric-fft-spectral-filter-fixture-manifest.schema.json",
+  output: "numeric-fft-spectral-filter-output-manifest.schema.json",
+  build: "numeric-fft-spectral-filter-build-manifest.schema.json",
+  record: "numeric-fft-spectral-filter-validation-record.schema.json",
+};
+const ajv = new Ajv2020({ allErrors: true, strict: false });
+for (const [name, schemaName] of Object.entries(numericSchemas)) {
+  const schema = JSON.parse(await Deno.readTextFile(`schemas/${schemaName}`));
+  const validate = ajv.compile(schema);
+  const values = name === "record" ? Object.values(numericBundle.records) : [numericBundle[name]];
+  for (const value of values) {
+    if (!validate(value)) throw new Error(`${schemaName}: ${JSON.stringify(validate.errors)}`);
+  }
+}
+const numericSemantics = await validateNumericFftSemantics(numericBundle);
+if (!numericSemantics.ok) throw new Error(numericSemantics.errors.join("; "));
 const hash = "a".repeat(64);
 const expectedCommit = Deno.env.get("WASM_VS_JS_COMMIT") ?? "";
 const manifest = JSON.parse(
@@ -334,5 +363,5 @@ try {
 expect("corpus accounting semantic validator", semanticRejected, true);
 
 console.log(
-  `contract-check: positive fixtures, 16 negative invariants, and ${foundationSchemas.length} corpus schemas passed`,
+  `contract-check: positive fixtures, 16 negative invariants, ${foundationSchemas.length} closed schemas, and numeric FFT schema/semantic gates passed`,
 );
