@@ -11,11 +11,11 @@
     {
       "id": "crypto.file-integrity.v1",
       "registration": "/registrations/base/crypto.file-integrity.v1.json",
-      "registrationSha256": "67aec07d656aa486fda943b7d82c62b01184998306b1b0672f38494ae8217f17",
+      "registrationSha256": "4d0de242f341c8b4adcb33ec43073c900418b7bf6979de4f528eb92a27407722",
       "buildManifest": "/artifacts/crypto-file-integrity/build-manifest.json",
-      "buildManifestSha256": "1a42bd15435be098e38b09188347de0a1ad419c51f9f6632ac00e7efd45d6c41",
+      "buildManifestSha256": "9ddddb4bf57d2ecc2c3ddb093c0034f0deab8e47ec50e8fc827988b2fd66801b",
       "validation": "/evidence/base/crypto.file-integrity.v1/validation.json",
-      "validationSha256": "a97eeae06ce5de9a38aa6fc1bab3a4a3113889acf641b23e4911529fbb016422",
+      "validationSha256": "80dfc0dbf86ed23b3c6a4f64b980af70a9ec416fb74b2b512190e3481052b848",
       "demoRoute": "/demos/crypto.file-integrity.v1/",
       "performanceStatus": "unavailable-not-collected"
     }
