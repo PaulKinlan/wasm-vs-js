@@ -23,7 +23,7 @@
     }
   ],
   "inputs": {
-    "manifestSha256": "",
+    "manifestSha256": "756be30142d6a697b70f7356ddb3e859ef47dff33c24578622d7d54abce93f42",
     "immutable": true,
     "generation": "xorshift32 noise 8192 Float32 + 256-tap Hann-windowed sinc lowpass fc=0.25 sample-rate"
   },

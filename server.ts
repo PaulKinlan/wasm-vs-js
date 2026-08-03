@@ -135,6 +135,19 @@ const routes = new Map<string, [string, string, boolean?]>([
     "benchmarks/sum-u32/workload.js",
     "text/javascript; charset=utf-8",
   ]],
+
+  ["/benchmarks/fft-radix2-c2c/benchmark.json", [
+    "benchmarks/fft-radix2-c2c/benchmark.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/benchmarks/fir-direct-convolution/benchmark.json", [
+    "benchmarks/fir-direct-convolution/benchmark.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/benchmarks/stft-power-spectrum/benchmark.json", [
+    "benchmarks/stft-power-spectrum/benchmark.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/artifacts/sum-u32/sum-u32.wasm", [
     "public/artifacts/sum-u32/sum-u32.wasm",
     "application/wasm",

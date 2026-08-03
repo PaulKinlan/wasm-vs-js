@@ -23,7 +23,7 @@
     }
   ],
   "inputs": {
-    "manifestSha256": "",
+    "manifestSha256": "2df62be2a68f27172f404ade64cb7a896ef552c087ac13bc96c7fa0e76e6a28d",
     "immutable": true,
     "generation": "12 inharmonic partials + 10% xorshift32 noise, 1024 Float32 samples + frozen twiddle table"
   },

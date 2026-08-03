@@ -23,7 +23,7 @@
     }
   ],
   "inputs": {
-    "manifestSha256": "",
+    "manifestSha256": "133088f7e54dde6367b2b7e37a558a44c2da0ae07d5ea39fabb3ad737a1d031c",
     "immutable": true,
     "generation": "Linear chirp 20Hz to 20kHz over 2s at 48kHz, 96000 Float32 samples"
   },
