@@ -95,6 +95,10 @@ async function runMlp(runToken, target, mode) {
 
   const results = {};
 
+  // Layer outputs declared at function scope so both JS and Wasm paths can access them
+  let jsLayerOutputs = null;
+  let wasmLayerOutputs = null;
+
   // JS: collect per-layer outputs for all-9-layer validation
   if (target === "both" || target === "js") {
     if (myToken !== token) return;
@@ -104,7 +108,7 @@ async function runMlp(runToken, target, mode) {
     const jsY = new Float32Array(LAYER_LEN);
 
     // Per-layer JS forward pass with output capture
-    const jsLayerOutputs = [];
+    jsLayerOutputs = [];
     let jsInput = x;
     const jsStart = performance.now();
     for (let layer = 0; layer < LAYERS; layer++) {
@@ -158,7 +162,7 @@ async function runMlp(runToken, target, mode) {
     heap.set(bias, MLP_BIAS_OFF / 4);
 
     // Per-layer Wasm forward pass with output capture
-    const wasmLayerOutputs = [];
+    wasmLayerOutputs = [];
     const wasmStart = performance.now();
     let inOff = MLP_X_OFF;
     for (let layer = 0; layer < LAYERS; layer++) {
@@ -203,30 +207,13 @@ async function runMlp(runToken, target, mode) {
     }
 
     // Cross-target correctness gate: all 9 layers must match
+    // Uses jsLayerOutputs already computed above (no redundant recomputation)
     if (results.js) {
       let identical = true;
       let mismatchLayer = -1;
       for (let l = 0; l < LAYERS && identical; l++) {
         for (let i = 0; i < LAYER_LEN; i++) {
-          // Recompute JS layers for comparison
-          const scratchA2 = new Float32Array(LAYER_LEN);
-          const scratchB2 = new Float32Array(LAYER_LEN);
-          const jsY2 = new Float32Array(LAYER_LEN);
-          let jsIn = x;
-          for (let layer2 = 0; layer2 <= l; layer2++) {
-            const out = layer2 === LAYERS - 1 ? jsY2 : layer2 % 2 === 0 ? scratchA2 : scratchB2;
-            mlp.linearLayerF32(
-              jsIn,
-              w.subarray(layer2 * WIDTH * WIDTH, (layer2 + 1) * WIDTH * WIDTH),
-              bias.subarray(layer2 * WIDTH, (layer2 + 1) * WIDTH),
-              out,
-              MLP_BATCH,
-              WIDTH,
-            );
-            if (layer2 < LAYERS - 1) mlp.geluInPlace(out);
-            jsIn = out;
-          }
-          if (jsIn[i] !== wasmLayerOutputs[l][i]) {
+          if (jsLayerOutputs[l][i] !== wasmLayerOutputs[l][i]) {
             identical = false;
             mismatchLayer = l;
             break;

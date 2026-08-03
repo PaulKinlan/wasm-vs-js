@@ -1,0 +1,173 @@
+{
+  "demo": "ml-gemm",
+  "url": "http://127.0.0.1:9317/benchmarks/ml-gemm/",
+  "chromeVersion": "Chrome/150.0.7871.24",
+  "timestamp": "2026-08-03T16:01:41.228Z",
+  "runs": {
+    "both-default": {
+      "phases": [
+        "Loading artifacts…",
+        "Artifacts loaded: wasm 241B, ref 1048576 f64, bounds 1048576 f32",
+        "Generating input…",
+        "Running JS GEMM…",
+        "JS: 974.66ms, max dev 3.898e-5, violations 0",
+        "Running Wasm GEMM…",
+        "Wasm: 940.57ms, max dev 3.898e-5, violations 0",
+        "Complete."
+      ],
+      "facts": {
+        "Status": "✓ Passed",
+        "Output elements": "1,048,576",
+        "JS time": "974.66 ms",
+        "JS max deviation": "3.898e-5",
+        "JS bound violations": "0",
+        "Wasm time": "940.57 ms",
+        "Wasm max deviation": "3.898e-5",
+        "Wasm bound violations": "0",
+        "Cross-target identical": "Yes",
+        "Wasm artifact": "241 bytes"
+      },
+      "resultVisible": true
+    },
+    "both-exact": {
+      "phases": [
+        "Loading artifacts…",
+        "Artifacts loaded: wasm 241B, ref 1048576 f64, bounds 1048576 f32",
+        "Generating input…",
+        "Running JS GEMM…",
+        "JS: 960.01ms, max dev 3.898e-5, violations 0",
+        "Running Wasm GEMM…",
+        "Wasm: 846.86ms, max dev 3.898e-5, violations 0",
+        "Complete."
+      ],
+      "facts": {
+        "Status": "✓ Passed",
+        "Output elements": "1,048,576",
+        "JS time": "960.01 ms",
+        "JS max deviation": "3.898e-5",
+        "JS bound violations": "0",
+        "Wasm time": "846.86 ms",
+        "Wasm max deviation": "3.898e-5",
+        "Wasm bound violations": "0",
+        "Cross-target identical": "Yes",
+        "Wasm artifact": "241 bytes"
+      },
+      "resultVisible": true
+    },
+    "js-default": {
+      "phases": [
+        "Loading artifacts…",
+        "Artifacts loaded: wasm 241B, ref 1048576 f64, bounds 1048576 f32",
+        "Generating input…",
+        "Running JS GEMM…",
+        "JS: 969.19ms, max dev 3.898e-5, violations 0",
+        "Complete."
+      ],
+      "facts": {
+        "Status": "✓ Passed",
+        "Output elements": "1,048,576",
+        "JS time": "969.19 ms",
+        "JS max deviation": "3.898e-5",
+        "JS bound violations": "0",
+        "Wasm artifact": "241 bytes"
+      },
+      "resultVisible": true
+    },
+    "js-exact": {
+      "phases": [
+        "Loading artifacts…",
+        "Artifacts loaded: wasm 241B, ref 1048576 f64, bounds 1048576 f32",
+        "Generating input…",
+        "Running JS GEMM…",
+        "JS: 967.85ms, max dev 3.898e-5, violations 0",
+        "Complete."
+      ],
+      "facts": {
+        "Status": "✓ Passed",
+        "Output elements": "1,048,576",
+        "JS time": "967.85 ms",
+        "JS max deviation": "3.898e-5",
+        "JS bound violations": "0",
+        "Wasm artifact": "241 bytes"
+      },
+      "resultVisible": true
+    },
+    "wasm-default": {
+      "phases": [
+        "Loading artifacts…",
+        "Artifacts loaded: wasm 241B, ref 1048576 f64, bounds 1048576 f32",
+        "Generating input…",
+        "Running Wasm GEMM…",
+        "Wasm: 803.19ms, max dev 3.898e-5, violations 0",
+        "Complete."
+      ],
+      "facts": {
+        "Status": "✓ Passed",
+        "Output elements": "1,048,576",
+        "Wasm time": "803.19 ms",
+        "Wasm max deviation": "3.898e-5",
+        "Wasm bound violations": "0",
+        "Wasm artifact": "241 bytes"
+      },
+      "resultVisible": true
+    },
+    "wasm-exact": {
+      "phases": [
+        "Loading artifacts…",
+        "Artifacts loaded: wasm 241B, ref 1048576 f64, bounds 1048576 f32",
+        "Generating input…",
+        "Running Wasm GEMM…",
+        "Wasm: 862.30ms, max dev 3.898e-5, violations 0",
+        "Complete."
+      ],
+      "facts": {
+        "Status": "✓ Passed",
+        "Output elements": "1,048,576",
+        "Wasm time": "862.30 ms",
+        "Wasm max deviation": "3.898e-5",
+        "Wasm bound violations": "0",
+        "Wasm artifact": "241 bytes"
+      },
+      "resultVisible": true
+    }
+  },
+  "events": {
+    "console": [],
+    "network": [
+      {
+        "url": "http://127.0.0.1:9317/benchmarks/ml-gemm/",
+        "status": 200,
+        "ts": 1785772901247
+      },
+      {
+        "url": "http://127.0.0.1:9317/styles.css",
+        "status": 200,
+        "ts": 1785772901252
+      },
+      {
+        "url": "http://127.0.0.1:9317/benchmarks/ml-gemm/neural-gemm-runner.js",
+        "status": 200,
+        "ts": 1785772901254
+      }
+    ],
+    "pageErrors": [],
+    "log": []
+  },
+  "screenshots": {
+    "initial": "ml-gemm-initial.png",
+    "both-default": "ml-gemm-both-default.png",
+    "both-exact": "ml-gemm-both-exact.png",
+    "js-default": "ml-gemm-js-default.png",
+    "js-exact": "ml-gemm-js-exact.png",
+    "wasm-default": "ml-gemm-wasm-default.png",
+    "wasm-exact": "ml-gemm-wasm-exact.png"
+  },
+  "cancelTest": {
+    "cancelBtnWasVisible": false,
+    "startBtnEnabled": true
+  },
+  "pagehideTest": {
+    "dispatched": true,
+    "startBtnEnabled": false
+  }
+}

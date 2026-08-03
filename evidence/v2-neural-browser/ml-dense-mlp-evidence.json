@@ -1,0 +1,189 @@
+{
+  "demo": "ml-dense-mlp",
+  "url": "http://127.0.0.1:9317/benchmarks/ml-dense-mlp/",
+  "chromeVersion": "Chrome/150.0.7871.24",
+  "timestamp": "2026-08-03T16:01:56.408Z",
+  "runs": {
+    "both-default": {
+      "phases": [
+        "Loading artifacts...",
+        "Generating input...",
+        "Running JS MLP (all 9 layers)...",
+        "JS: 177.55ms, all-9-layer max dev 1.842e-6, total violations 0",
+        "Running Wasm MLP (all 9 layers)...",
+        "Wasm: 113.34ms, all-9-layer max dev 1.842e-6, total violations 0",
+        "Complete."
+      ],
+      "facts": {
+        "Status": "✓ Passed",
+        "Output elements": "147,456",
+        "Layers": "9",
+        "JS time": "177.55 ms",
+        "JS max deviation": "1.842e-6",
+        "JS bound violations": "0",
+        "Wasm time": "113.34 ms",
+        "Wasm max deviation": "1.842e-6",
+        "Wasm bound violations": "0",
+        "Cross-target identical": "Yes",
+        "Wasm artifact": "842 bytes"
+      },
+      "resultVisible": true
+    },
+    "both-exact": {
+      "phases": [
+        "Loading artifacts...",
+        "Exact mode: verifying manifest hashes...",
+        "Manifest structure verified.",
+        "Generating input...",
+        "Running JS MLP (all 9 layers)...",
+        "JS: 180.86ms, all-9-layer max dev 1.842e-6, total violations 0",
+        "Running Wasm MLP (all 9 layers)...",
+        "Wasm: 101.73ms, all-9-layer max dev 1.842e-6, total violations 0",
+        "Complete."
+      ],
+      "facts": {
+        "Status": "✓ Passed",
+        "Output elements": "147,456",
+        "Layers": "9",
+        "JS time": "180.86 ms",
+        "JS max deviation": "1.842e-6",
+        "JS bound violations": "0",
+        "Wasm time": "101.73 ms",
+        "Wasm max deviation": "1.842e-6",
+        "Wasm bound violations": "0",
+        "Cross-target identical": "Yes",
+        "Wasm artifact": "842 bytes"
+      },
+      "resultVisible": true
+    },
+    "js-default": {
+      "phases": [
+        "Loading artifacts...",
+        "Generating input...",
+        "Running JS MLP (all 9 layers)...",
+        "JS: 144.38ms, all-9-layer max dev 1.842e-6, total violations 0",
+        "Complete."
+      ],
+      "facts": {
+        "Status": "✓ Passed",
+        "Output elements": "147,456",
+        "Layers": "9",
+        "JS time": "144.38 ms",
+        "JS max deviation": "1.842e-6",
+        "JS bound violations": "0",
+        "Wasm artifact": "842 bytes"
+      },
+      "resultVisible": true
+    },
+    "js-exact": {
+      "phases": [
+        "Loading artifacts...",
+        "Exact mode: verifying manifest hashes...",
+        "Manifest structure verified.",
+        "Generating input...",
+        "Running JS MLP (all 9 layers)...",
+        "JS: 142.95ms, all-9-layer max dev 1.842e-6, total violations 0",
+        "Complete."
+      ],
+      "facts": {
+        "Status": "✓ Passed",
+        "Output elements": "147,456",
+        "Layers": "9",
+        "JS time": "142.95 ms",
+        "JS max deviation": "1.842e-6",
+        "JS bound violations": "0",
+        "Wasm artifact": "842 bytes"
+      },
+      "resultVisible": true
+    },
+    "wasm-default": {
+      "phases": [
+        "Loading artifacts...",
+        "Generating input...",
+        "Running Wasm MLP (all 9 layers)...",
+        "Wasm: 101.29ms, all-9-layer max dev 1.842e-6, total violations 0",
+        "Complete."
+      ],
+      "facts": {
+        "Status": "✓ Passed",
+        "Output elements": "147,456",
+        "Layers": "9",
+        "Wasm time": "101.29 ms",
+        "Wasm max deviation": "1.842e-6",
+        "Wasm bound violations": "0",
+        "Wasm artifact": "842 bytes"
+      },
+      "resultVisible": true
+    },
+    "wasm-exact": {
+      "phases": [
+        "Loading artifacts...",
+        "Exact mode: verifying manifest hashes...",
+        "Manifest structure verified.",
+        "Generating input...",
+        "Running Wasm MLP (all 9 layers)...",
+        "Wasm: 104.35ms, all-9-layer max dev 1.842e-6, total violations 0",
+        "Complete."
+      ],
+      "facts": {
+        "Status": "✓ Passed",
+        "Output elements": "147,456",
+        "Layers": "9",
+        "Wasm time": "104.35 ms",
+        "Wasm max deviation": "1.842e-6",
+        "Wasm bound violations": "0",
+        "Wasm artifact": "842 bytes"
+      },
+      "resultVisible": true
+    }
+  },
+  "events": {
+    "console": [],
+    "network": [
+      {
+        "url": "http://127.0.0.1:9317/styles.css",
+        "status": 200,
+        "ts": 1785772916414
+      },
+      {
+        "url": "http://127.0.0.1:9317/benchmarks/ml-dense-mlp/neural-mlp-runner.js",
+        "status": 200,
+        "ts": 1785772916426
+      },
+      {
+        "url": "http://127.0.0.1:9317/benchmarks/ml-dense-mlp/",
+        "status": 200,
+        "ts": 1785772916429
+      },
+      {
+        "url": "http://127.0.0.1:9317/styles.css",
+        "status": 200,
+        "ts": 1785772916435
+      },
+      {
+        "url": "http://127.0.0.1:9317/benchmarks/ml-dense-mlp/neural-mlp-runner.js",
+        "status": 200,
+        "ts": 1785772916435
+      }
+    ],
+    "pageErrors": [],
+    "log": []
+  },
+  "screenshots": {
+    "initial": "ml-dense-mlp-initial.png",
+    "both-default": "ml-dense-mlp-both-default.png",
+    "both-exact": "ml-dense-mlp-both-exact.png",
+    "js-default": "ml-dense-mlp-js-default.png",
+    "js-exact": "ml-dense-mlp-js-exact.png",
+    "wasm-default": "ml-dense-mlp-wasm-default.png",
+    "wasm-exact": "ml-dense-mlp-wasm-exact.png"
+  },
+  "cancelTest": {
+    "cancelBtnWasVisible": false,
+    "startBtnEnabled": true
+  },
+  "pagehideTest": {
+    "dispatched": true,
+    "startBtnEnabled": true
+  }
+}
