@@ -8,6 +8,7 @@ type AjvConstructor = new (options?: Record<string, unknown>) => {
 const Ajv2020 = Ajv2020Module as unknown as AjvConstructor;
 const schemaPath = "schemas/base-server-ssr-browser-evidence.schema.json";
 const collectorPath = "scripts/collect-base-server-ssr-evidence.ts";
+const chromeStagePath = "lib/chrome-stage.ts";
 
 function record(value: unknown): Record<string, unknown> {
   assert(value !== null && typeof value === "object" && !Array.isArray(value));
@@ -64,6 +65,23 @@ Deno.test("server SSR browser-evidence schema compiles and closes every retained
     record(renderProperties.completeOutputSha256).const,
     "330a49b560410f667eba4ae3baa9cce1f661201f84d7ea703a91a36835dbcedc",
   );
+  const sourceProperties = record(defs.source.properties);
+  assertEquals(record(sourceProperties.head).const, "802667d4690e742afd475540ab45bd43c04e6ebb");
+  assertEquals(
+    record(sourceProperties.headTree).const,
+    "518cc6026814a456466a26d087c7278b6078a7b9",
+  );
+  assertEquals(
+    record(sourceProperties.packageCommit).const,
+    "9fbb8aa0b631e8f0ed9ca9197d4acacdb5aa6692",
+  );
+  const collectorProperties = record(record(sourceProperties.collector).properties);
+  assertEquals(record(collectorProperties.bytes).const, 62_002);
+  assertEquals(
+    record(collectorProperties.sha256).const,
+    "3baa3d247f2be63f29943a6944b913dafb85df23ba696eb1c39dd9c8f81ca3af",
+  );
+
   const browserProperties = record(defs.browser.properties);
   const executableProperties = record(record(browserProperties.executable).properties);
   assertEquals(
@@ -374,15 +392,19 @@ Deno.test("server SSR evidence schema rejects semantic scenario, source, and net
 
   const sourceValidator = validatorFor("source");
   const sourceProperties = defs.source.properties as Record<string, Record<string, unknown>>;
+  const collectorProperties = sourceProperties.collector.properties as Record<
+    string,
+    Record<string, unknown>
+  >;
   const source = {
-    head: "a".repeat(40),
-    headTree: "b".repeat(40),
+    head: sourceProperties.head.const,
+    headTree: sourceProperties.headTree.const,
     clean: true,
-    packageCommit: "c".repeat(40),
+    packageCommit: sourceProperties.packageCommit.const,
     collector: {
       path: collectorPath,
-      bytes: 1,
-      sha256: sha,
+      bytes: collectorProperties.bytes.const,
+      sha256: collectorProperties.sha256.const,
       headBytesMatch: true,
     },
     packageSources: (sourceProperties.packageSources.prefixItems as Array<{ const: unknown }>).map(
@@ -395,6 +417,22 @@ Deno.test("server SSR evidence schema rejects semantic scenario, source, and net
   assert(sourceValidator(source), JSON.stringify(sourceValidator.errors));
   source.files[1] = structuredClone(source.files[0]);
   assertEquals(sourceValidator(source), false);
+  for (
+    const mutate of [
+      (value: typeof source) => value.head = "a".repeat(40),
+      (value: typeof source) => value.headTree = "b".repeat(40),
+      (value: typeof source) => value.packageCommit = "c".repeat(40),
+      (value: typeof source) => value.collector.bytes = Number(value.collector.bytes) + 1,
+      (value: typeof source) => value.collector.sha256 = sha,
+    ]
+  ) {
+    const mutation = structuredClone(source);
+    mutation.files = (sourceProperties.files.prefixItems as Array<{ const: unknown }>).map((
+      entry,
+    ) => structuredClone(entry.const));
+    mutate(mutation);
+    assertEquals(sourceValidator(mutation), false);
+  }
 
   const workerConsole = validatorFor("consoleRecord");
   assert(workerConsole({ context: "worker-0", type: "log", arguments: ["retained"] }));
@@ -488,6 +526,7 @@ Deno.test("server SSR parent collector exercises exact JS/Wasm render and lifecy
 
 Deno.test("server SSR collector records exact owned cleanup and refuses implicit execution", async () => {
   const source = await Deno.readTextFile(collectorPath);
+  const chromeStageSource = await Deno.readTextFile(chromeStagePath);
   for (
     const required of [
       "closeOwnedChrome",
@@ -511,6 +550,25 @@ Deno.test("server SSR collector records exact owned cleanup and refuses implicit
       "network set/count differed from the exact contract",
     ]
   ) assert(source.includes(required), `collector omitted ${required}`);
+  for (
+    const required of [
+      "Chrome staging failed with unresolved cleanup",
+      'recordStageCleanupLifecycle(stagedForFailure, "cleanup-unresolved")',
+      "incomplete Chrome stage tree removal unresolved",
+      "incomplete Chrome stage owner removal unresolved",
+    ]
+  ) assert(chromeStageSource.includes(required), `Chrome staging omitted ${required}`);
+  for (
+    const forbidden of [
+      "removeStagedChrome(stage).catch",
+      "Deno.remove(options.outputDir, { recursive: true }).catch",
+      "await serverStatusPromise?.catch",
+    ]
+  ) assert(!source.includes(forbidden), `collector swallows cleanup via ${forbidden}`);
+  assert(
+    !chromeStageSource.includes(".catch(() => {})"),
+    "Chrome staging must not silently swallow setup cleanup failures",
+  );
 
   const output = await new Deno.Command(Deno.execPath(), {
     args: ["run", "--allow-read", collectorPath],

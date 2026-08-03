@@ -175,16 +175,16 @@
       ],
       "properties": {
         "head": {
-          "$ref": "#/$defs/gitIdentity"
+          "const": "802667d4690e742afd475540ab45bd43c04e6ebb"
         },
         "headTree": {
-          "$ref": "#/$defs/gitIdentity"
+          "const": "518cc6026814a456466a26d087c7278b6078a7b9"
         },
         "clean": {
           "const": true
         },
         "packageCommit": {
-          "$ref": "#/$defs/gitIdentity"
+          "const": "9fbb8aa0b631e8f0ed9ca9197d4acacdb5aa6692"
         },
         "collector": {
           "type": "object",
@@ -200,11 +200,10 @@
               "const": "scripts/collect-base-server-ssr-evidence.ts"
             },
             "bytes": {
-              "type": "integer",
-              "minimum": 1
+              "const": 62002
             },
             "sha256": {
-              "$ref": "#/$defs/sha256"
+              "const": "3baa3d247f2be63f29943a6944b913dafb85df23ba696eb1c39dd9c8f81ca3af"
             },
             "headBytesMatch": {
               "const": true
