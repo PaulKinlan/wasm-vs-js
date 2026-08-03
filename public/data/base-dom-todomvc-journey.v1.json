@@ -84,8 +84,8 @@
     {
       "path": "schemas/base-workload-implementation.schema.json",
       "route": "/data/base-workload-implementation.schema.json",
-      "bytes": 2164,
-      "sha256": "f9942015e0258174e436b6d89ef6799c34881dfe9fe8917676e60a85088a9fd3"
+      "bytes": 12529,
+      "sha256": "b5dc7dd92a964d2cb719b3d8d4fb38b6fb157a4660b255e71792ed2c59061c99"
     },
     {
       "path": "schemas/base-todomvc-browser-evidence.schema.json",

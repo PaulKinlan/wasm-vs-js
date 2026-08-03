@@ -192,158 +192,35 @@ const routes = new Map<string, [string, string, boolean?]>([
     "text/html; charset=utf-8",
   ]],
   ["/benchmarks/cad-mesh-repair-v1/", [
+    "public/benchmarks/cad-mesh-repair-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
   ["/benchmarks/cad-mesh-repair-v1/demo.js", [
     "public/benchmarks/cad-mesh-repair-v1/demo.js",
     "text/javascript; charset=utf-8",
+  ]],
   ["/benchmarks/cad-mesh-repair-v1/worker.js", [
     "public/benchmarks/cad-mesh-repair-v1/worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
   ["/benchmarks/base/cad-mesh-repair/engine.js", [
     "benchmarks/base/cad-mesh-repair/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
   ["/artifacts/cad-mesh-repair-v1/dirty-grid.stl", [
     "public/artifacts/cad-mesh-repair-v1/dirty-grid.stl",
     "model/stl",
+  ]],
   ["/artifacts/cad-mesh-repair-v1/mesh-repair.wasm", [
     "public/artifacts/cad-mesh-repair-v1/mesh-repair.wasm",
     "application/wasm",
+  ]],
   ["/artifacts/cad-mesh-repair-v1/build-manifest.json", [
     "public/artifacts/cad-mesh-repair-v1/build-manifest.json",
     "application/json; charset=utf-8",
+  ]],
   ["/artifacts/cad-mesh-repair-v1/validation-evidence.json", [
     "public/artifacts/cad-mesh-repair-v1/validation-evidence.json",
-  ["/demos/cad-parametric-bracket", [
-    "public/demos/cad-parametric-bracket/index.html",
-  ["/demos/cad-parametric-bracket/", [
-  ["/demos/cad-parametric-bracket/demo.js", [
-    "public/demos/cad-parametric-bracket/demo.js",
-  ["/demos/cad-parametric-bracket/worker.js", [
-    "public/demos/cad-parametric-bracket/worker.js",
-  ["/benchmarks/base/cad-parametric-bracket/contract.js", [
-    "benchmarks/base/cad-parametric-bracket/contract.js",
-  ["/benchmarks/base/cad-parametric-bracket/fixture.js", [
-    "benchmarks/base/cad-parametric-bracket/fixture.js",
-  ["/benchmarks/base/cad-parametric-bracket/engine.js", [
-    "benchmarks/base/cad-parametric-bracket/engine.js",
-  ["/artifacts/base-cad-parametric-bracket/bracket.wasm", [
-    "public/artifacts/base-cad-parametric-bracket/bracket.wasm",
-  ["/artifacts/base-cad-parametric-bracket/fixture-manifest.json", [
-    "public/artifacts/base-cad-parametric-bracket/fixture-manifest.json",
-  ["/artifacts/base-cad-parametric-bracket/build-manifest.json", [
-    "public/artifacts/base-cad-parametric-bracket/build-manifest.json",
-  ["/artifacts/base-cad-parametric-bracket/output-manifest.json", [
-    "public/artifacts/base-cad-parametric-bracket/output-manifest.json",
-  ["/evidence/base-catalog/cad-parametric-bracket/js-controlled.json", [
-    "public/evidence/base-catalog/cad-parametric-bracket/js-controlled.json",
-  ["/evidence/base-catalog/cad-parametric-bracket/wasm-linear-controlled.json", [
-    "public/evidence/base-catalog/cad-parametric-bracket/wasm-linear-controlled.json",
-  ["/benchmarks/database-sqlite-notebook-v1", [
-    "public/benchmarks/database-sqlite-notebook-v1/index.html",
-  ["/benchmarks/database-sqlite-notebook-v1/", [
-  ["/sqlite-notebook-runner.js", [
-    "public/sqlite-notebook-runner.js",
-  ["/sqlite-notebook-worker.js", [
-    "public/sqlite-notebook-worker.js",
-  ["/benchmarks/base/sqlite-notebook/contract.js", [
-    "benchmarks/base/sqlite-notebook/contract.js",
-  ["/benchmarks/base/sqlite-notebook/engine.js", [
-    "benchmarks/base/sqlite-notebook/engine.js",
-  ["/assets/sqlite-notebook/alasql.min.js", [
-    "public/artifacts/sqlite-notebook/alasql.min.js",
-  ["/assets/sqlite-notebook/sqlite3.mjs", [
-    "public/artifacts/sqlite-notebook/sqlite3.mjs",
-  ["/assets/sqlite-notebook/sqlite3.wasm", [
-    "public/artifacts/sqlite-notebook/sqlite3.wasm",
-  ["/assets/sqlite-notebook/dependency-manifest.json", [
-    "public/artifacts/sqlite-notebook/dependency-manifest.json",
-  ["/assets/sqlite-notebook/runtime-manifest.json", [
-    "public/artifacts/sqlite-notebook/runtime-manifest.json",
-  ["/assets/sqlite-notebook/build-manifest.json", [
-    "public/artifacts/sqlite-notebook/build-manifest.json",
-  ["/assets/sqlite-notebook/reference.json", [
-    "public/artifacts/sqlite-notebook/reference.json",
-  ["/assets/sqlite-notebook/fixtures/fixture-manifest.json", [
-    "public/artifacts/sqlite-notebook/fixtures/fixture-manifest.json",
-  ["/assets/sqlite-notebook/fixtures/RIGHTS.md", [
-    "public/artifacts/sqlite-notebook/fixtures/RIGHTS.md",
-    "text/markdown; charset=utf-8",
-  ["/assets/sqlite-notebook/fixtures/customers.csv", [
-    "public/artifacts/sqlite-notebook/fixtures/customers.csv",
-    "text/csv; charset=utf-8",
-  ["/assets/sqlite-notebook/fixtures/products.csv", [
-    "public/artifacts/sqlite-notebook/fixtures/products.csv",
-  ["/assets/sqlite-notebook/fixtures/sales.csv", [
-    "public/artifacts/sqlite-notebook/fixtures/sales.csv",
-  ["/evidence/base-implementations/sqlite-notebook/javascript-controlled.json", [
-    "public/evidence/base-implementations/sqlite-notebook/javascript-controlled.json",
-  ["/evidence/base-implementations/sqlite-notebook/linear-wasm-controlled.json", [
-    "public/evidence/base-implementations/sqlite-notebook/linear-wasm-controlled.json",
-  ["/benchmarks/base-dom-todomvc-journey", [
-    "public/benchmarks/base-dom-todomvc-journey/index.html",
-  ["/benchmarks/base-dom-todomvc-journey/", [
-  ["/benchmarks/base-dom-todomvc-journey/controller.js", [
-    "public/benchmarks/base-dom-todomvc-journey/controller.js",
-  ["/benchmarks/base-dom-todomvc-journey/worker.js", [
-    "public/benchmarks/base-dom-todomvc-journey/worker.js",
-  ["/benchmarks/base-dom-todomvc-journey/styles.css", [
-    "public/benchmarks/base-dom-todomvc-journey/styles.css",
-    "text/css; charset=utf-8",
-  ["/benchmarks/base/dom-todomvc-journey/benchmark.json", [
-    "benchmarks/base/dom-todomvc-journey/benchmark.json",
-  ["/benchmarks/base/dom-todomvc-journey/fixture.js", [
-    "benchmarks/base/dom-todomvc-journey/fixture.js",
-  ["/benchmarks/base/dom-todomvc-journey/engine.js", [
-    "benchmarks/base/dom-todomvc-journey/engine.js",
-  ["/benchmarks/base/dom-todomvc-journey/todomvc.wat", [
-    "benchmarks/base/dom-todomvc-journey/todomvc.wat",
-    "text/plain; charset=utf-8",
-  ["/artifacts/base-dom-todomvc-journey/runtime.js", [
-    "public/artifacts/base-dom-todomvc-journey/runtime.js",
-  ["/artifacts/base-dom-todomvc-journey/todomvc.wasm", [
-    "public/artifacts/base-dom-todomvc-journey/todomvc.wasm",
-  ["/artifacts/base-dom-todomvc-journey/fixture.json", [
-    "public/artifacts/base-dom-todomvc-journey/fixture.json",
-  ["/artifacts/base-dom-todomvc-journey/output-manifest.json", [
-    "public/artifacts/base-dom-todomvc-journey/output-manifest.json",
-  ["/artifacts/base-dom-todomvc-journey/build-manifest.json", [
-    "public/artifacts/base-dom-todomvc-journey/build-manifest.json",
-  ["/data/base-dom-todomvc-journey.v1.json", [
-    "public/data/base-dom-todomvc-journey.v1.json",
-  ["/data/base-workload-implementation.schema.json", [
-    "schemas/base-workload-implementation.schema.json",
-    "application/schema+json; charset=utf-8",
-  ["/data/base-todomvc-browser-evidence.schema.json", [
-    "schemas/base-todomvc-browser-evidence.schema.json",
-  ["/evidence/base/dom-todomvc-journey/js-controlled.json", [
-    "public/evidence/base/dom-todomvc-journey/js-controlled.json",
-  ["/evidence/base/dom-todomvc-journey/wasm-linear-controlled.json", [
-    "public/evidence/base/dom-todomvc-journey/wasm-linear-controlled.json",
-  ["/benchmarks/dom-virtualized-grid-v1", [
-    "public/benchmarks/dom-virtualized-grid-v1/index.html",
-  ["/benchmarks/dom-virtualized-grid-v1/", [
-  ["/benchmarks/dom-virtualized-grid-v1/grid.css", [
-    "public/benchmarks/dom-virtualized-grid-v1/grid.css",
-  ["/benchmarks/dom-virtualized-grid-v1/grid-runner.js", [
-    "public/benchmarks/dom-virtualized-grid-v1/grid-runner.js",
-  ["/benchmarks/dom-virtualized-grid-v1/grid-worker.js", [
-    "public/benchmarks/dom-virtualized-grid-v1/grid-worker.js",
-  ["/benchmarks/base/dom-virtualized-grid/engine.js", [
-    "benchmarks/base/dom-virtualized-grid/engine.js",
-  ["/artifacts/dom-virtualized-grid-v1/grid.wasm", [
-    "public/artifacts/dom-virtualized-grid-v1/grid.wasm",
-  ["/artifacts/dom-virtualized-grid-v1/fixture.bin", [
-    "public/artifacts/dom-virtualized-grid-v1/fixture.bin",
-    "application/octet-stream",
-  ["/artifacts/dom-virtualized-grid-v1/implementation-contract.v1.json", [
-    "public/artifacts/dom-virtualized-grid-v1/implementation-contract.v1.json",
-  ["/artifacts/dom-virtualized-grid-v1/build-manifest.json", [
-    "public/artifacts/dom-virtualized-grid-v1/build-manifest.json",
-  ["/artifacts/dom-virtualized-grid-v1/fixture-manifest.json", [
-    "public/artifacts/dom-virtualized-grid-v1/fixture-manifest.json",
-  ["/artifacts/dom-virtualized-grid-v1/output-manifest.json", [
-    "public/artifacts/dom-virtualized-grid-v1/output-manifest.json",
-  ["/evidence/base/dom-virtualized-grid-v1/candidate.json", [
-    "public/evidence/base/dom-virtualized-grid-v1/candidate.json",
-  ["/data/base-implementation-candidates.v1.json", [
-    "catalog/base-implementation-candidates.v1.json",
     "application/json; charset=utf-8",
   ]],
   ["/demos/game-family/demo.js", [
@@ -371,37 +248,6 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/demo-registry.json", ["public/demo-registry.json", "application/json; charset=utf-8"]],
   ["/demo-assets/audio/manifest.json", [
     "public/demo-assets/audio/manifest.json",
-  ["/benchmarks/database-olap-chart", [
-    "public/benchmarks/database-olap-chart/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/database-olap-chart/", [
-  ["/benchmarks/database-olap-chart/runner.js", [
-    "public/benchmarks/database-olap-chart/runner.js",
-    "text/javascript; charset=utf-8",
-  ["/benchmarks/database-olap-chart/worker.js", [
-    "public/benchmarks/database-olap-chart/worker.js",
-  ["/benchmarks/base/database-olap-chart/engine.js", [
-    "benchmarks/base/database-olap-chart/engine.js",
-  ["/benchmarks/base/database-olap-chart/browser-validation.js", [
-    "benchmarks/base/database-olap-chart/browser-validation.js",
-  ["/benchmarks/base/database-olap-chart/fixture.js", [
-    "benchmarks/base/database-olap-chart/fixture.js",
-  ["/artifacts/database-olap-chart/database-olap-chart.wasm", [
-    "public/artifacts/database-olap-chart/database-olap-chart.wasm",
-    "application/wasm",
-  ["/artifacts/database-olap-chart/fixture.bin", [
-    "public/artifacts/database-olap-chart/fixture.bin",
-    "application/octet-stream",
-  ["/artifacts/database-olap-chart/build-manifest.json", [
-    "public/artifacts/database-olap-chart/build-manifest.json",
-    "application/json; charset=utf-8",
-  ["/artifacts/database-olap-chart/fixture-manifest.json", [
-    "public/artifacts/database-olap-chart/fixture-manifest.json",
-  ["/artifacts/database-olap-chart/output-manifest.json", [
-    "public/artifacts/database-olap-chart/output-manifest.json",
-  ["/evidence/base/database-olap-chart/correctness-record.json", [
-    "public/evidence/base/database-olap-chart/correctness-record.json",
     "application/json; charset=utf-8",
   ]],
   ["/workload-catalog.js", ["public/workload-catalog.js", "text/javascript; charset=utf-8"]],
@@ -410,57 +256,52 @@ const routes = new Map<string, [string, string, boolean?]>([
     "text/html; charset=utf-8",
   ]],
   ["/demos/crypto.file-integrity.v1/", [
+    "public/demos/crypto.file-integrity.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
   ["/crypto-file-integrity-demo.js", [
     "public/crypto-file-integrity-demo.js",
     "text/javascript; charset=utf-8",
+  ]],
   ["/crypto-file-integrity-worker.js", [
     "public/crypto-file-integrity-worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
   ["/benchmarks/base/crypto-file-integrity/sha256.js", [
     "benchmarks/base/crypto-file-integrity/sha256.js",
+    "text/javascript; charset=utf-8",
+  ]],
   ["/benchmarks/base/crypto-file-integrity/workload.js", [
     "benchmarks/base/crypto-file-integrity/workload.js",
+    "text/javascript; charset=utf-8",
+  ]],
   ["/artifacts/crypto-file-integrity/crypto-file-integrity.wasm", [
     "public/artifacts/crypto-file-integrity/crypto-file-integrity.wasm",
     "application/wasm",
+  ]],
   ["/artifacts/crypto-file-integrity/build-manifest.json", [
     "public/artifacts/crypto-file-integrity/build-manifest.json",
     "application/json; charset=utf-8",
+  ]],
   ["/registrations/base/crypto.file-integrity.v1.json", [
     "registrations/base/crypto.file-integrity.v1.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/evidence/base/crypto.file-integrity.v1/validation.json", [
     "public/evidence/base/crypto.file-integrity.v1/validation.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/evidence/base/crypto.file-integrity.v1/validation.schema.json", [
     "public/evidence/base/crypto.file-integrity.v1/validation.schema.json",
     "application/schema+json; charset=utf-8",
+  ]],
   ["/data/base-implementation-status.v1.json", [
     "public/data/base-implementation-status.v1.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/data/base-implementation-status.schema.json", [
     "public/data/base-implementation-status.schema.json",
-  ["/benchmarks/crypto-authenticated-stream", [
-    "public/benchmarks/crypto-authenticated-stream/index.html",
-  ["/benchmarks/crypto-authenticated-stream/", [
-  ["/crypto-authenticated-stream-demo.js", [
-    "public/crypto-authenticated-stream-demo.js",
-  ["/crypto-authenticated-stream-worker.js", [
-    "public/crypto-authenticated-stream-worker.js",
-  ["/benchmarks/base/crypto-authenticated-stream/engine.js", [
-    "benchmarks/base/crypto-authenticated-stream/engine.js",
-  ["/benchmarks/base/crypto-authenticated-stream/workload.js", [
-    "benchmarks/base/crypto-authenticated-stream/workload.js",
-  ["/benchmarks/base/crypto-authenticated-stream/registration.v1.json", [
-    "benchmarks/base/crypto-authenticated-stream/registration.v1.json",
-  ["/artifacts/crypto-authenticated-stream/crypto-authenticated-stream.wasm", [
-    "public/artifacts/crypto-authenticated-stream/crypto-authenticated-stream.wasm",
-  ["/artifacts/crypto-authenticated-stream/build-manifest.json", [
-    "public/artifacts/crypto-authenticated-stream/build-manifest.json",
-  ["/artifacts/crypto-authenticated-stream/fixture-manifest.json", [
-    "public/artifacts/crypto-authenticated-stream/fixture-manifest.json",
-  ["/artifacts/crypto-authenticated-stream/output-manifest.json", [
-    "public/artifacts/crypto-authenticated-stream/output-manifest.json",
-  ["/evidence/base/crypto-authenticated-stream/js-controlled.json", [
-    "public/evidence/base/crypto-authenticated-stream/js-controlled.json",
-  ["/evidence/base/crypto-authenticated-stream/wasm-linear-controlled.json", [
-    "public/evidence/base/crypto-authenticated-stream/wasm-linear-controlled.json",
+    "application/schema+json; charset=utf-8",
   ]],
   ["/demos/text.diff-patch.v1", [
     "public/demos/text.diff-patch.v1/index.html",
@@ -698,6 +539,242 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/artifacts/sum-u32/build-manifest.9c309c49.json",
     "application/json; charset=utf-8",
   ]],
+  ["/demos/cad-parametric-bracket", [
+    "public/demos/cad-parametric-bracket/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/demos/cad-parametric-bracket/", [
+    "public/demos/cad-parametric-bracket/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/demos/cad-parametric-bracket/demo.js", [
+    "public/demos/cad-parametric-bracket/demo.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/demos/cad-parametric-bracket/worker.js", [
+    "public/demos/cad-parametric-bracket/worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/cad-parametric-bracket/contract.js", [
+    "benchmarks/base/cad-parametric-bracket/contract.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/cad-parametric-bracket/fixture.js", [
+    "benchmarks/base/cad-parametric-bracket/fixture.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/cad-parametric-bracket/engine.js", [
+    "benchmarks/base/cad-parametric-bracket/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/artifacts/base-cad-parametric-bracket/bracket.wasm", [
+    "public/artifacts/base-cad-parametric-bracket/bracket.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/base-cad-parametric-bracket/fixture-manifest.json", [
+    "public/artifacts/base-cad-parametric-bracket/fixture-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/base-cad-parametric-bracket/build-manifest.json", [
+    "public/artifacts/base-cad-parametric-bracket/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/base-cad-parametric-bracket/output-manifest.json", [
+    "public/artifacts/base-cad-parametric-bracket/output-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base-catalog/cad-parametric-bracket/js-controlled.json", [
+    "public/evidence/base-catalog/cad-parametric-bracket/js-controlled.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base-catalog/cad-parametric-bracket/wasm-linear-controlled.json", [
+    "public/evidence/base-catalog/cad-parametric-bracket/wasm-linear-controlled.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/benchmarks/crypto-authenticated-stream", [
+    "public/benchmarks/crypto-authenticated-stream/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/crypto-authenticated-stream/", [
+    "public/benchmarks/crypto-authenticated-stream/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/crypto-authenticated-stream-demo.js", [
+    "public/crypto-authenticated-stream-demo.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/crypto-authenticated-stream-worker.js", [
+    "public/crypto-authenticated-stream-worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/crypto-authenticated-stream/engine.js", [
+    "benchmarks/base/crypto-authenticated-stream/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/crypto-authenticated-stream/workload.js", [
+    "benchmarks/base/crypto-authenticated-stream/workload.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/crypto-authenticated-stream/registration.v1.json", [
+    "benchmarks/base/crypto-authenticated-stream/registration.v1.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/crypto-authenticated-stream/crypto-authenticated-stream.wasm", [
+    "public/artifacts/crypto-authenticated-stream/crypto-authenticated-stream.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/crypto-authenticated-stream/build-manifest.json", [
+    "public/artifacts/crypto-authenticated-stream/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/crypto-authenticated-stream/fixture-manifest.json", [
+    "public/artifacts/crypto-authenticated-stream/fixture-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/crypto-authenticated-stream/output-manifest.json", [
+    "public/artifacts/crypto-authenticated-stream/output-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base/crypto-authenticated-stream/js-controlled.json", [
+    "public/evidence/base/crypto-authenticated-stream/js-controlled.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base/crypto-authenticated-stream/wasm-linear-controlled.json", [
+    "public/evidence/base/crypto-authenticated-stream/wasm-linear-controlled.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/benchmarks/database-olap-chart", [
+    "public/benchmarks/database-olap-chart/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/database-olap-chart/", [
+    "public/benchmarks/database-olap-chart/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/database-olap-chart/runner.js", [
+    "public/benchmarks/database-olap-chart/runner.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/database-olap-chart/worker.js", [
+    "public/benchmarks/database-olap-chart/worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/database-olap-chart/engine.js", [
+    "benchmarks/base/database-olap-chart/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/database-olap-chart/browser-validation.js", [
+    "benchmarks/base/database-olap-chart/browser-validation.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/database-olap-chart/fixture.js", [
+    "benchmarks/base/database-olap-chart/fixture.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/artifacts/database-olap-chart/database-olap-chart.wasm", [
+    "public/artifacts/database-olap-chart/database-olap-chart.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/database-olap-chart/fixture.bin", [
+    "public/artifacts/database-olap-chart/fixture.bin",
+    "application/octet-stream",
+  ]],
+  ["/artifacts/database-olap-chart/build-manifest.json", [
+    "public/artifacts/database-olap-chart/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/database-olap-chart/fixture-manifest.json", [
+    "public/artifacts/database-olap-chart/fixture-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/database-olap-chart/output-manifest.json", [
+    "public/artifacts/database-olap-chart/output-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base/database-olap-chart/correctness-record.json", [
+    "public/evidence/base/database-olap-chart/correctness-record.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/benchmarks/database-sqlite-notebook-v1", [
+    "public/benchmarks/database-sqlite-notebook-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/database-sqlite-notebook-v1/", [
+    "public/benchmarks/database-sqlite-notebook-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/sqlite-notebook-runner.js", [
+    "public/sqlite-notebook-runner.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/sqlite-notebook-worker.js", [
+    "public/sqlite-notebook-worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/sqlite-notebook/contract.js", [
+    "benchmarks/base/sqlite-notebook/contract.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/sqlite-notebook/engine.js", [
+    "benchmarks/base/sqlite-notebook/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/assets/sqlite-notebook/alasql.min.js", [
+    "public/artifacts/sqlite-notebook/alasql.min.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/assets/sqlite-notebook/sqlite3.mjs", [
+    "public/artifacts/sqlite-notebook/sqlite3.mjs",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/assets/sqlite-notebook/sqlite3.wasm", [
+    "public/artifacts/sqlite-notebook/sqlite3.wasm",
+    "application/wasm",
+  ]],
+  ["/assets/sqlite-notebook/dependency-manifest.json", [
+    "public/artifacts/sqlite-notebook/dependency-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/assets/sqlite-notebook/runtime-manifest.json", [
+    "public/artifacts/sqlite-notebook/runtime-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/assets/sqlite-notebook/build-manifest.json", [
+    "public/artifacts/sqlite-notebook/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/assets/sqlite-notebook/reference.json", [
+    "public/artifacts/sqlite-notebook/reference.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/assets/sqlite-notebook/fixtures/fixture-manifest.json", [
+    "public/artifacts/sqlite-notebook/fixtures/fixture-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/assets/sqlite-notebook/fixtures/RIGHTS.md", [
+    "public/artifacts/sqlite-notebook/fixtures/RIGHTS.md",
+    "text/markdown; charset=utf-8",
+  ]],
+  ["/assets/sqlite-notebook/fixtures/customers.csv", [
+    "public/artifacts/sqlite-notebook/fixtures/customers.csv",
+    "text/csv; charset=utf-8",
+  ]],
+  ["/assets/sqlite-notebook/fixtures/products.csv", [
+    "public/artifacts/sqlite-notebook/fixtures/products.csv",
+    "text/csv; charset=utf-8",
+  ]],
+  ["/assets/sqlite-notebook/fixtures/sales.csv", [
+    "public/artifacts/sqlite-notebook/fixtures/sales.csv",
+    "text/csv; charset=utf-8",
+  ]],
+  ["/evidence/base-implementations/sqlite-notebook/javascript-controlled.json", [
+    "public/evidence/base-implementations/sqlite-notebook/javascript-controlled.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base-implementations/sqlite-notebook/linear-wasm-controlled.json", [
+    "public/evidence/base-implementations/sqlite-notebook/linear-wasm-controlled.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/benchmarks/document-pdf-viewer-v1", [
     "public/benchmarks/document-pdf-viewer-v1/index.html",
     "text/html; charset=utf-8",
@@ -748,6 +825,138 @@ const routes = new Map<string, [string, string, boolean?]>([
   ]],
   ["/evidence/base/document-pdf-viewer/validation.json", [
     "public/evidence/base/document-pdf-viewer/validation.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/benchmarks/base-dom-todomvc-journey", [
+    "public/benchmarks/base-dom-todomvc-journey/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/base-dom-todomvc-journey/", [
+    "public/benchmarks/base-dom-todomvc-journey/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/base-dom-todomvc-journey/controller.js", [
+    "public/benchmarks/base-dom-todomvc-journey/controller.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base-dom-todomvc-journey/worker.js", [
+    "public/benchmarks/base-dom-todomvc-journey/worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base-dom-todomvc-journey/styles.css", [
+    "public/benchmarks/base-dom-todomvc-journey/styles.css",
+    "text/css; charset=utf-8",
+  ]],
+  ["/benchmarks/base/dom-todomvc-journey/benchmark.json", [
+    "benchmarks/base/dom-todomvc-journey/benchmark.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/benchmarks/base/dom-todomvc-journey/fixture.js", [
+    "benchmarks/base/dom-todomvc-journey/fixture.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/dom-todomvc-journey/engine.js", [
+    "benchmarks/base/dom-todomvc-journey/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/dom-todomvc-journey/todomvc.wat", [
+    "benchmarks/base/dom-todomvc-journey/todomvc.wat",
+    "text/plain; charset=utf-8",
+  ]],
+  ["/artifacts/base-dom-todomvc-journey/runtime.js", [
+    "public/artifacts/base-dom-todomvc-journey/runtime.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/artifacts/base-dom-todomvc-journey/todomvc.wasm", [
+    "public/artifacts/base-dom-todomvc-journey/todomvc.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/base-dom-todomvc-journey/fixture.json", [
+    "public/artifacts/base-dom-todomvc-journey/fixture.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/base-dom-todomvc-journey/output-manifest.json", [
+    "public/artifacts/base-dom-todomvc-journey/output-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/base-dom-todomvc-journey/build-manifest.json", [
+    "public/artifacts/base-dom-todomvc-journey/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/data/base-dom-todomvc-journey.v1.json", [
+    "public/data/base-dom-todomvc-journey.v1.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/data/base-workload-implementation.schema.json", [
+    "schemas/base-workload-implementation.schema.json",
+    "application/schema+json; charset=utf-8",
+  ]],
+  ["/data/base-todomvc-browser-evidence.schema.json", [
+    "schemas/base-todomvc-browser-evidence.schema.json",
+    "application/schema+json; charset=utf-8",
+  ]],
+  ["/evidence/base/dom-todomvc-journey/js-controlled.json", [
+    "public/evidence/base/dom-todomvc-journey/js-controlled.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base/dom-todomvc-journey/wasm-linear-controlled.json", [
+    "public/evidence/base/dom-todomvc-journey/wasm-linear-controlled.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-virtualized-grid-v1", [
+    "public/benchmarks/dom-virtualized-grid-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-virtualized-grid-v1/", [
+    "public/benchmarks/dom-virtualized-grid-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-virtualized-grid-v1/grid.css", [
+    "public/benchmarks/dom-virtualized-grid-v1/grid.css",
+    "text/css; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-virtualized-grid-v1/grid-runner.js", [
+    "public/benchmarks/dom-virtualized-grid-v1/grid-runner.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-virtualized-grid-v1/grid-worker.js", [
+    "public/benchmarks/dom-virtualized-grid-v1/grid-worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/dom-virtualized-grid/engine.js", [
+    "benchmarks/base/dom-virtualized-grid/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/artifacts/dom-virtualized-grid-v1/grid.wasm", [
+    "public/artifacts/dom-virtualized-grid-v1/grid.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/dom-virtualized-grid-v1/fixture.bin", [
+    "public/artifacts/dom-virtualized-grid-v1/fixture.bin",
+    "application/octet-stream",
+  ]],
+  ["/artifacts/dom-virtualized-grid-v1/implementation-contract.v1.json", [
+    "public/artifacts/dom-virtualized-grid-v1/implementation-contract.v1.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/dom-virtualized-grid-v1/build-manifest.json", [
+    "public/artifacts/dom-virtualized-grid-v1/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/dom-virtualized-grid-v1/fixture-manifest.json", [
+    "public/artifacts/dom-virtualized-grid-v1/fixture-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/dom-virtualized-grid-v1/output-manifest.json", [
+    "public/artifacts/dom-virtualized-grid-v1/output-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base/dom-virtualized-grid-v1/candidate.json", [
+    "public/evidence/base/dom-virtualized-grid-v1/candidate.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/data/base-implementation-candidates.v1.json", [
+    "catalog/base-implementation-candidates.v1.json",
     "application/json; charset=utf-8",
   ]],
 ]);
