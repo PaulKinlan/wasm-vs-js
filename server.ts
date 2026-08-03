@@ -221,6 +221,8 @@ const routes = new Map<string, [string, string, boolean?]>([
   ]],
   ["/artifacts/cad-mesh-repair-v1/validation-evidence.json", [
     "public/artifacts/cad-mesh-repair-v1/validation-evidence.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/benchmarks/graphics-cpu-path-tracer-v1", [
     "public/benchmarks/graphics-cpu-path-tracer-v1/index.html",
     "text/html; charset=utf-8",
@@ -380,6 +382,8 @@ const routes = new Map<string, [string, string, boolean?]>([
   ]],
   ["/data/base-implementation-status.schema.json", [
     "public/data/base-implementation-status.schema.json",
+    "application/schema+json; charset=utf-8",
+  ]],
   ["/demos/game-ecs-frame-update", [
     "public/demos/game-ecs-frame-update/index.html",
     "text/html; charset=utf-8",
