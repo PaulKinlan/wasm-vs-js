@@ -183,6 +183,9 @@ Deno.test("pinned bracket builder reproduces artifacts and records byte-identica
   const before = await Promise.all(
     paths.map(async (path) => await sha256Hex(await Deno.readFile(path))),
   );
+  const build = JSON.parse(
+    await Deno.readTextFile("public/artifacts/base-cad-parametric-bracket/build-manifest.json"),
+  );
   const result = await new Deno.Command(Deno.execPath(), {
     args: [
       "run",
@@ -190,6 +193,7 @@ Deno.test("pinned bracket builder reproduces artifacts and records byte-identica
       "--allow-write=public/artifacts/base-cad-parametric-bracket,public/evidence/base-catalog/cad-parametric-bracket",
       "--allow-run=git,clang,wasm-ld",
       "scripts/build-base-cad-parametric-bracket.ts",
+      `--source-commit=${build.source.commit}`,
     ],
     stdout: "piped",
     stderr: "piped",
