@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "server.ssr-template.v1",
+  "sourceCommit": "9fbb8aa0b631e8f0ed9ca9197d4acacdb5aa6692",
+  "frozenCatalog": {
+    "path": "catalog/workloads.v1.json",
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+    "immutability": "byte-for-byte"
+  },
+  "status": "candidate-pending-independent-review",
+  "equivalence": {
+    "class": "semantic-product-choice",
+    "algorithmFamily": "ssr-fixed-template-escaping",
+    "aggregation": "excluded-from-algorithm-equivalent-aggregate"
+  },
+  "fixture": {
+    "path": "public/artifacts/base-server-ssr-template/fixture.bin",
+    "sha256": "f94cbcc0af8ab5b1b292c5d48c2b8ea319d5078e020374fb4e2beceb191ae524",
+    "records": 1000,
+    "rights": {
+      "owner": "Wasm versus JavaScript project",
+      "source": "project-generated; no external text, user data, templates, or media",
+      "licenseSpdx": "CC0-1.0",
+      "redistribution": "permitted"
+    }
+  },
+  "fixedWork": {
+    "responses": 1000,
+    "grammar": "23-token fixed interpreter: literals, UTF-8 text, HTML attribute, URL component, unsigned decimal, fixed Gregorian YYYY-MM-DD",
+    "localePolicy": "ASCII syntax, USD decimal point, and frozen YYYY-MM-DD only; locale-dependent Intl is prohibited",
+    "framing": "SSF1 little-endian input; SSO1 little-endian output; u32 count; every UTF-8 string/response length-prefixed",
+    "contexts": {
+      "text": "escape ampersand, less-than, greater-than",
+      "attribute": "text escapes plus double quote to &quot; and apostrophe to &#39;",
+      "urlComponent": "UTF-8 bytes percent-encoded unless RFC 3986 unreserved"
+    }
+  },
+  "variants": {
+    "js-controlled": {
+      "target": "javascript",
+      "source": "benchmarks/v1/server-ssr-template/workload.js",
+      "sha256": "c26324abb0cbfa3441ae2db8507eaf12b38b09420c8da6e6c0fe66fc1a0a29f8"
+    },
+    "wasm-linear-controlled": {
+      "target": "linear-wasm",
+      "source": "benchmarks/v1/server-ssr-template/server-ssr-template.c",
+      "artifact": "public/artifacts/base-server-ssr-template/server-ssr-template.wasm",
+      "sha256": "9d93f9542363f4d7e8b2c66516936176ff260db9a8604eb15c820a0d62feebe5"
+    }
+  },
+  "oracle": {
+    "kind": "canonical-semantic",
+    "completeOutputSha256": "330a49b560410f667eba4ae3baa9cce1f661201f84d7ea703a91a36835dbcedc",
+    "bytes": 426192,
+    "responses": 1000,
+    "crossTargetByteIdentical": true
+  },
+  "counters": {
+    "names": [
+      "responses",
+      "parsed-fields",
+      "template-tokens",
+      "text-escapes",
+      "attribute-escapes",
+      "url-escapes",
+      "integer-formats",
+      "date-formats",
+      "input-bytes",
+      "output-bytes",
+      "allocations",
+      "boundary-crossings"
+    ],
+    "expected": {
+      "responses": 1000,
+      "parsed-fields": 7000,
+      "template-tokens": 23000,
+      "text-escapes": 2000,
+      "attribute-escapes": 1000,
+      "url-escapes": 2000,
+      "integer-formats": 4000,
+      "date-formats": 2000,
+      "input-bytes": 91442,
+      "output-bytes": 426192,
+      "allocations": 1,
+      "boundary-crossings": {
+        "javascript": 0,
+        "wasm": 1
+      }
+    },
+    "tokenCountPerResponse": 23
+  },
+  "artifacts": {
+    "buildManifest": {
+      "path": "public/artifacts/base-server-ssr-template/build-manifest.json",
+      "sha256": "4a58cabeaab08be14fa3c0d3c7bbe98842b1de09cd2abf51ae7eeecfbaad2b40"
+    },
+    "fixtureManifest": {
+      "path": "public/artifacts/base-server-ssr-template/fixture-manifest.json",
+      "sha256": "fff71d8aa7cd013cb2e1be33c91ca0097adfd7d152534f9143e434965cbabc75"
+    },
+    "outputManifest": {
+      "path": "public/artifacts/base-server-ssr-template/output-manifest.json",
+      "sha256": "418b883f88e90bb2c6074c2c02bc8cade9819b5483db9d1c66204e49a67dcb7d"
+    }
+  },
+  "limitations": [
+    "Correctness package and runnable demo only; no performance corpus or ranking.",
+    "Semantic-product-choice results cannot enter an algorithm-equivalent aggregate.",
+    "Runtime-managed allocations and GC events are unavailable; allocations counts the single application-owned output arena only."
+  ]
+}

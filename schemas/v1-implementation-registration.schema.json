@@ -1,0 +1,221 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.example/schemas/v1-implementation-registration.schema.json",
+  "title": "Frozen catalog v1 supplemental implementation registration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "workloadId",
+    "sourceCommit",
+    "frozenCatalog",
+    "status",
+    "equivalence",
+    "fixture",
+    "fixedWork",
+    "variants",
+    "oracle",
+    "counters",
+    "artifacts",
+    "limitations"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "workloadId": { "const": "server.ssr-template.v1" },
+    "sourceCommit": { "$ref": "#/$defs/commit" },
+    "frozenCatalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "immutability"],
+      "properties": {
+        "path": { "const": "catalog/workloads.v1.json" },
+        "sha256": { "$ref": "#/$defs/hash" },
+        "immutability": { "const": "byte-for-byte" }
+      }
+    },
+    "status": { "enum": ["candidate-pending-independent-review", "accepted"] },
+    "equivalence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["class", "algorithmFamily", "aggregation"],
+      "properties": {
+        "class": { "const": "semantic-product-choice" },
+        "algorithmFamily": { "const": "ssr-fixed-template-escaping" },
+        "aggregation": { "const": "excluded-from-algorithm-equivalent-aggregate" }
+      }
+    },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "records", "rights"],
+      "properties": {
+        "path": { "const": "public/artifacts/base-server-ssr-template/fixture.bin" },
+        "sha256": { "$ref": "#/$defs/hash" },
+        "records": { "const": 1000 },
+        "rights": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["owner", "source", "licenseSpdx", "redistribution"],
+          "properties": {
+            "owner": { "type": "string", "minLength": 1 },
+            "source": { "type": "string", "minLength": 1 },
+            "licenseSpdx": { "const": "CC0-1.0" },
+            "redistribution": { "const": "permitted" }
+          }
+        }
+      }
+    },
+    "fixedWork": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["responses", "grammar", "localePolicy", "framing", "contexts"],
+      "properties": {
+        "responses": { "const": 1000 },
+        "grammar": { "type": "string", "pattern": "^23-token" },
+        "localePolicy": { "type": "string", "minLength": 1 },
+        "framing": { "type": "string", "minLength": 1 },
+        "contexts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["text", "attribute", "urlComponent"],
+          "properties": {
+            "text": { "type": "string", "minLength": 1 },
+            "attribute": { "type": "string", "minLength": 1 },
+            "urlComponent": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "variants": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["js-controlled", "wasm-linear-controlled"],
+      "properties": {
+        "js-controlled": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["target", "source", "sha256"],
+          "properties": {
+            "target": { "const": "javascript" },
+            "source": { "const": "benchmarks/v1/server-ssr-template/workload.js" },
+            "sha256": { "$ref": "#/$defs/hash" }
+          }
+        },
+        "wasm-linear-controlled": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["target", "source", "artifact", "sha256"],
+          "properties": {
+            "target": { "const": "linear-wasm" },
+            "source": { "const": "benchmarks/v1/server-ssr-template/server-ssr-template.c" },
+            "artifact": {
+              "const": "public/artifacts/base-server-ssr-template/server-ssr-template.wasm"
+            },
+            "sha256": { "$ref": "#/$defs/hash" }
+          }
+        }
+      }
+    },
+    "oracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "completeOutputSha256",
+        "bytes",
+        "responses",
+        "crossTargetByteIdentical"
+      ],
+      "properties": {
+        "kind": { "const": "canonical-semantic" },
+        "completeOutputSha256": { "$ref": "#/$defs/hash" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "responses": { "const": 1000 },
+        "crossTargetByteIdentical": { "const": true }
+      }
+    },
+    "counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["names", "expected", "tokenCountPerResponse"],
+      "properties": {
+        "names": {
+          "type": "array",
+          "minItems": 12,
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": { "type": "string" }
+        },
+        "expected": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "responses",
+            "parsed-fields",
+            "template-tokens",
+            "text-escapes",
+            "attribute-escapes",
+            "url-escapes",
+            "integer-formats",
+            "date-formats",
+            "input-bytes",
+            "output-bytes",
+            "allocations",
+            "boundary-crossings"
+          ],
+          "properties": {
+            "responses": { "const": 1000 },
+            "parsed-fields": { "const": 7000 },
+            "template-tokens": { "const": 23000 },
+            "text-escapes": { "const": 2000 },
+            "attribute-escapes": { "const": 1000 },
+            "url-escapes": { "const": 2000 },
+            "integer-formats": { "const": 4000 },
+            "date-formats": { "const": 2000 },
+            "input-bytes": { "type": "integer", "minimum": 1 },
+            "output-bytes": { "type": "integer", "minimum": 1 },
+            "allocations": { "const": 1 },
+            "boundary-crossings": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["javascript", "wasm"],
+              "properties": { "javascript": { "const": 0 }, "wasm": { "const": 1 } }
+            }
+          }
+        },
+        "tokenCountPerResponse": { "const": 23 }
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["buildManifest", "fixtureManifest", "outputManifest"],
+      "properties": {
+        "buildManifest": { "$ref": "#/$defs/artifact" },
+        "fixtureManifest": { "$ref": "#/$defs/artifact" },
+        "outputManifest": { "$ref": "#/$defs/artifact" }
+      }
+    },
+    "limitations": { "type": "array", "minItems": 3, "items": { "type": "string", "minLength": 1 } }
+  },
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "commit": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$",
+      "not": { "const": "0000000000000000000000000000000000000000" }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^public/artifacts/base-server-ssr-template/[a-z-]+\\.json$"
+        },
+        "sha256": { "$ref": "#/$defs/hash" }
+      }
+    }
+  }
+}

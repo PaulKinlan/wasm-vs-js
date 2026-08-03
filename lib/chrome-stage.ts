@@ -623,6 +623,7 @@ export async function stageChromePackage(
   await Deno.mkdir(root, { mode: 0o700 });
   const createdRoot = await assertStageDirectory(root, 0o700);
   let ownerCreated = false;
+  let stagedForFailure: StagedChrome | null = null;
   try {
     const directories = Object.keys(inspected.sourceDirectoryModes).filter((rel) => rel !== ".")
       .sort((a, b) => a.split("/").length - b.split("/").length || a.localeCompare(b));
@@ -690,37 +691,100 @@ export async function stageChromePackage(
       ownerDev: owner.dev,
       ownerIno: owner.ino,
     };
+    stagedForFailure = stage;
     await verifyStagedChrome(stage);
     return stage;
   } catch (error) {
-    const currentRoot = await Deno.lstat(root).catch(() => null);
+    const cleanupErrors: Error[] = [];
+    let currentRoot: Deno.FileInfo | null = null;
+    try {
+      currentRoot = await Deno.lstat(root);
+    } catch (cleanupError) {
+      if (!(cleanupError instanceof Deno.errors.NotFound)) {
+        cleanupErrors.push(
+          new Error("failed to inspect incomplete Chrome stage root", { cause: cleanupError }),
+        );
+      }
+    }
     if (
       currentRoot && !currentRoot.isSymlink && currentRoot.isDirectory &&
       Number(currentRoot.dev) === createdRoot.dev && Number(currentRoot.ino) === createdRoot.ino
     ) {
       const mode = permissionMode(currentRoot, "failed Chrome stage root");
       if (mode === 0o700 || mode === DIRECTORY_MODE) {
-        await removeExactStageTree(
-          stageParent.dev,
-          stageParent.ino,
-          stageId,
-          createdRoot.dev,
-          createdRoot.ino,
-          mode,
-        ).catch(() => {});
+        try {
+          await removeExactStageTree(
+            stageParent.dev,
+            stageParent.ino,
+            stageId,
+            createdRoot.dev,
+            createdRoot.ino,
+            mode,
+          );
+        } catch (cleanupError) {
+          cleanupErrors.push(
+            new Error("incomplete Chrome stage tree removal unresolved", { cause: cleanupError }),
+          );
+        }
       }
     }
-    if (ownerCreated) {
-      const owner = await ownerSnapshot(ownerManifestPath).catch(() => null);
-      if (owner) {
-        await removeExactOwnerFile(
-          stageParent.dev,
-          stageParent.ino,
-          stageId,
-          owner.dev,
-          owner.ino,
-        ).catch(() => {});
+    if (cleanupErrors.length && stagedForFailure) {
+      try {
+        recordStageCleanupLifecycle(stagedForFailure, "cleanup-unresolved");
+      } catch (cleanupError) {
+        cleanupErrors.push(
+          new Error("failed to record incomplete Chrome stage cleanup as unresolved", {
+            cause: cleanupError,
+          }),
+        );
       }
+    }
+    if (ownerCreated && cleanupErrors.length === 0) {
+      let owner: Awaited<ReturnType<typeof ownerSnapshot>> | null = null;
+      try {
+        owner = await ownerSnapshot(ownerManifestPath);
+      } catch (cleanupError) {
+        if (!(cleanupError instanceof Deno.errors.NotFound)) {
+          cleanupErrors.push(
+            new Error("failed to inspect incomplete Chrome stage owner", { cause: cleanupError }),
+          );
+        }
+      }
+      if (owner) {
+        try {
+          await removeExactOwnerFile(
+            stageParent.dev,
+            stageParent.ino,
+            stageId,
+            owner.dev,
+            owner.ino,
+          );
+        } catch (cleanupError) {
+          cleanupErrors.push(
+            new Error("incomplete Chrome stage owner removal unresolved", { cause: cleanupError }),
+          );
+        }
+      }
+    }
+    if (
+      cleanupErrors.length && stagedForFailure &&
+      stagedForFailure.cleanupLifecycle !== "cleanup-unresolved"
+    ) {
+      try {
+        recordStageCleanupLifecycle(stagedForFailure, "cleanup-unresolved");
+      } catch (cleanupError) {
+        cleanupErrors.push(
+          new Error("failed to record incomplete Chrome stage cleanup as unresolved", {
+            cause: cleanupError,
+          }),
+        );
+      }
+    }
+    if (cleanupErrors.length) {
+      throw new AggregateError(
+        [error instanceof Error ? error : new Error(String(error)), ...cleanupErrors],
+        "Chrome staging failed with unresolved cleanup",
+      );
     }
     throw error;
   }

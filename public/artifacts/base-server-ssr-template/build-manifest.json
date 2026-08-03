@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "server.ssr-template.v1",
+  "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
+  "sourceCommit": "9fbb8aa0b631e8f0ed9ca9197d4acacdb5aa6692",
+  "sources": [
+    {
+      "path": "benchmarks/v1/server-ssr-template/workload.js",
+      "bytes": 10346,
+      "sha256": "c26324abb0cbfa3441ae2db8507eaf12b38b09420c8da6e6c0fe66fc1a0a29f8"
+    },
+    {
+      "path": "benchmarks/v1/server-ssr-template/server-ssr-template.c",
+      "bytes": 5951,
+      "sha256": "a9be414e31e3314042998ed03e3544b41e20cf0932a05ba7a172f185686c884b"
+    },
+    {
+      "path": "scripts/build-base-server-ssr-template.ts",
+      "bytes": 10759,
+      "sha256": "b17822fd829399e33961fbd9917428b7e851930919c57b233ca458a5c1150d18"
+    },
+    {
+      "path": "schemas/v1-implementation-registration.schema.json",
+      "bytes": 7507,
+      "sha256": "394c0960a711b0a09cfdeeb0f0ab2098122b8d1556c0601da7e69944fc3f2c02"
+    },
+    {
+      "path": "public/base-server-ssr-demo.js",
+      "bytes": 1990,
+      "sha256": "a2926b4eb0fa01f366ca3d6f283c71186b90b473af9a95cbb94c6aeba9e1cd8d"
+    },
+    {
+      "path": "public/base-server-ssr-worker.js",
+      "bytes": 5063,
+      "sha256": "95f9db692c65b3c48d7452b178c1fec2014a462b7ee07ddc6ecf09ccac013bb0"
+    },
+    {
+      "path": "public/demos/server.ssr-template.v1/index.html",
+      "bytes": 2645,
+      "sha256": "2500082356df37117e7cef681b878b278e5e34d8d7013617c0293d4542e08acb"
+    },
+    {
+      "path": "server.ts",
+      "bytes": 20233,
+      "sha256": "5ce82866caf11bef22e08d3118b7b65ca68b84c4d4652c59bfeafcb462d0a86e"
+    },
+    {
+      "path": "tests/base-server-ssr-template.test.ts",
+      "bytes": 9722,
+      "sha256": "27160bcebc46278cab81f604087b4a0007073077161fa02756c10449aaef69bd"
+    },
+    {
+      "path": "deno.json",
+      "bytes": 1831,
+      "sha256": "17e6674c81fdaee7dfc52ed1bd28baeec70fb0715f839b92defe1e84545b08eb"
+    },
+    {
+      "path": "deno.lock",
+      "bytes": 1630,
+      "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2"
+    }
+  ],
+  "variants": {
+    "js-controlled": {
+      "source": "benchmarks/v1/server-ssr-template/workload.js",
+      "sha256": "c26324abb0cbfa3441ae2db8507eaf12b38b09420c8da6e6c0fe66fc1a0a29f8",
+      "algorithm": "owned binary fixture parser and fixed token interpreter"
+    },
+    "wasm-linear-controlled": {
+      "source": "benchmarks/v1/server-ssr-template/server-ssr-template.c",
+      "artifact": "public/artifacts/base-server-ssr-template/server-ssr-template.wasm",
+      "sha256": "9d93f9542363f4d7e8b2c66516936176ff260db9a8604eb15c820a0d62feebe5",
+      "algorithm": "owned binary fixture parser and fixed token interpreter in linear memory"
+    }
+  },
+  "build": {
+    "deno": "2.9.0",
+    "clang": "clang version 22.1.8",
+    "linker": "LLD 22.1.8",
+    "command": "deno task build",
+    "compilerFlags": [
+      "--target=wasm32-unknown-unknown",
+      "-O3",
+      "-nostdlib",
+      "-ffreestanding",
+      "-fno-builtin",
+      "-fno-ident"
+    ],
+    "linkerFlags": [
+      "--no-entry",
+      "--export-memory",
+      "--initial-memory=16777216",
+      "--max-memory=16777216",
+      "--stack-first",
+      "--strip-all"
+    ]
+  }
+}

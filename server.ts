@@ -1370,6 +1370,54 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/artifacts/serialization-protobuf-gateway/build-manifest.json",
     "application/json; charset=utf-8",
   ]],
+["/demos/server.ssr-template.v1", [
+    "public/demos/server.ssr-template.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+["/demos/server.ssr-template.v1/", [
+    "public/demos/server.ssr-template.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+["/base-server-ssr-demo.js", [
+    "public/base-server-ssr-demo.js",
+    "text/javascript; charset=utf-8",
+  ]],
+["/base-server-ssr-worker.js", [
+    "public/base-server-ssr-worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+["/benchmarks/v1/server-ssr-template/workload.js", [
+    "benchmarks/v1/server-ssr-template/workload.js",
+    "text/javascript; charset=utf-8",
+  ]],
+["/data/v1-implementation-registrations/server.ssr-template.v1.json", [
+    "catalog/v1-implementation-registrations/server.ssr-template.v1.json",
+    "application/json; charset=utf-8",
+  ]],
+["/artifacts/base-server-ssr-template/server-ssr-template.wasm", [
+    "public/artifacts/base-server-ssr-template/server-ssr-template.wasm",
+    "application/wasm",
+  ]],
+["/artifacts/base-server-ssr-template/fixture.bin", [
+    "public/artifacts/base-server-ssr-template/fixture.bin",
+    "application/octet-stream",
+  ]],
+["/artifacts/base-server-ssr-template/reference-output.bin", [
+    "public/artifacts/base-server-ssr-template/reference-output.bin",
+    "application/octet-stream",
+  ]],
+["/artifacts/base-server-ssr-template/build-manifest.json", [
+    "public/artifacts/base-server-ssr-template/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+["/artifacts/base-server-ssr-template/fixture-manifest.json", [
+    "public/artifacts/base-server-ssr-template/fixture-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+["/artifacts/base-server-ssr-template/output-manifest.json", [
+    "public/artifacts/base-server-ssr-template/output-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
 ]);
 
 for (const path of ["/demos/network.pcap-decode.v1", "/demos/network.pcap-decode.v1/"]) {
