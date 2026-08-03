@@ -150,7 +150,7 @@ const widths = Array.from({ length: 95 }, () => "6").join(" ");
 objects.set(
   3,
   ascii(
-    `<< /Type /Font /Subtype /Type3 /FontBBox [0 0 6 7] /FontMatrix [0.1388889 0 0 0.142857 0 0] /Encoding << /Type /Encoding /BaseEncoding /WinAnsiEncoding /Differences [${differences}] >> /CharProcs << ${charProcs} >> /FirstChar 32 /LastChar 126 /Widths [${widths}] /ToUnicode ${toUnicodeObject} 0 R /PDFBaseBitmap 2 0 R >>`,
+    `<< /Type /Font /Subtype /Type3 /FontBBox [0 0 6 7] /FontMatrix [0.1111111 0 0 0.1111111 0 0] /Encoding << /Type /Encoding /BaseEncoding /WinAnsiEncoding /Differences [${differences}] >> /CharProcs << ${charProcs} >> /FirstChar 32 /LastChar 126 /Widths [${widths}] /ToUnicode ${toUnicodeObject} 0 R /PDFBaseBitmap 2 0 R >>`,
   ),
 );
 const kids = Array.from({ length: 100 }, (_, i) => `${5 + i * 2} 0 R`).join(" ");

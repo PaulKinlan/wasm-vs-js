@@ -102,7 +102,7 @@ static int raster_page_allowed(uint32_t page) {
 __attribute__((export_name("render_page"))) uint32_t render_page(uint32_t page) {
   if (!raster_page_allowed(page) || counters[1] != PAGE_COUNT) return last_error = 9;
   for (uint32_t i = 0; i < RGBA_BYTES; i++) rgba[i] = 255u;
-  uint32_t x = 72u, y = 100u, scale = 5u;
+  uint32_t x = 72u, y = 100u, scale = 4u;
   uint8_t *text = page_text[page - 1u];
   for (uint32_t g = 0; g < page_lengths[page - 1u]; g++) {
     uint32_t code = text[g];

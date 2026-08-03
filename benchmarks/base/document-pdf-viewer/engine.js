@@ -91,7 +91,7 @@ export function renderPage(parsed, pageNumber) {
   if (!text) throw new Error("page missing");
   const rgba = new Uint8Array(WIDTH * HEIGHT * 4);
   rgba.fill(255);
-  const scale = 5;
+  const scale = 4;
   let x = 72;
   const y = 100;
   for (let g = 0; g < text.length; g++) {
