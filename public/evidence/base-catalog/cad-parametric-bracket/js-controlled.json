@@ -5,7 +5,7 @@
   "status": "implementation-candidate",
   "variantId": "js-controlled",
   "executionTarget": "javascript",
-  "sourceCommit": "source-tree-not-yet-committed",
+  "sourceCommit": "254b306e2100a24fee293baec0424b7c0b894c2c",
   "source": {
     "path": "source-bundle",
     "bytes": 1480,
