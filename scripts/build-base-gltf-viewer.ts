@@ -279,7 +279,8 @@ const fixtureManifest = {
       "Pinned LICENSE assigns CC0-1.0 to model-associated files and CC-BY-4.0 to metadocumentation.",
     licenseCopy: {
       upstreamSha256: "09cc6fda57c9c9063ce96a520fd0401da109009855e32f518ab1c54c9d5bc2c4",
-      localModification: "none; byte-identical pinned upstream LICENSE.md",
+      localModification:
+        "renamed to AVOCADO-LICENSE.md; deno fmt normalized Markdown list markers and added the terminal newline; license wording and links are unchanged",
     },
   },
   draco: {

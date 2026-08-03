@@ -53,7 +53,9 @@
           "required": ["upstreamSha256", "localModification"],
           "properties": {
             "upstreamSha256": { "$ref": "#/$defs/sha256" },
-            "localModification": { "const": "none; byte-identical pinned upstream LICENSE.md" }
+            "localModification": {
+              "const": "renamed to AVOCADO-LICENSE.md; deno fmt normalized Markdown list markers and added the terminal newline; license wording and links are unchanged"
+            }
           }
         }
       }
