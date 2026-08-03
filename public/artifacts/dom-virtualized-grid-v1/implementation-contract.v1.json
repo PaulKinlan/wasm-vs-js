@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "registrationId": "base-dom-virtualized-grid-controlled-v1",
+  "catalog": {
+    "id": "workload-catalog-v1",
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+    "immutability": "byte-for-byte",
+    "workloadId": "dom.virtualized-grid.v1"
+  },
+  "status": "implementation-candidate",
+  "track": "controlled",
+  "equivalenceClass": "semantic-product-choice",
+  "algorithmFamily": "grid-fixed-trace-viewport-controlled-soa-v1",
+  "fixture": {
+    "licenseSpdx": "CC0-1.0",
+    "rights": "project-generated and redistribution-permitted",
+    "generator": "xorshift32-v1",
+    "seed": 1831565813,
+    "rows": 100000,
+    "actions": 300,
+    "durationMs": 30000,
+    "eventCadenceMs": 100
+  },
+  "viewport": {
+    "widthCssPx": 960,
+    "heightCssPx": 480,
+    "devicePixelRatio": 2,
+    "rowHeightCssPx": 24,
+    "visibleRows": 20,
+    "overscanRows": 4,
+    "maximumMountedRows": 28
+  },
+  "trace": {
+    "operations": ["scroll", "filter", "stable-sort", "edit", "focus-selection"],
+    "coalescing": "none; exactly one event per 100 ms trace slot",
+    "sort": "stable score then stable row ID tie break",
+    "filter": "group equality or all groups",
+    "edit": "replace one signed score by row ID",
+    "scroll": "integer CSS pixel offset clamped to filtered extent"
+  },
+  "targets": ["js-controlled", "wasm-linear-controlled"],
+  "output": {
+    "kind": "complete-command-stream",
+    "commandWidthU32": 6,
+    "commands": ["create", "bind-reuse", "update", "place", "hide", "focus", "layout-read"],
+    "hostRule": "The host executes typed commands only; it does not reduce model state or rebuild expected DOM.",
+    "finalState": ["model", "mounted rows", "DOM order", "accessibility", "focus", "selection"]
+  },
+  "allocationPolicy": "allocations counts dynamic application-owned allocations inside the 300-event trace; fixed setup buffers and post-trace result materialization are outside the trace and excluded",
+  "counters": [
+    "rows-scanned",
+    "comparisons",
+    "events",
+    "commands",
+    "physical-creates",
+    "physical-reuses",
+    "physical-updates",
+    "physical-placements",
+    "physical-hides",
+    "focus-operations",
+    "layout-reads",
+    "allocations",
+    "boundary-crossings"
+  ],
+  "phases": {
+    "load": "measured",
+    "transfer": "measured",
+    "compute": "measured",
+    "render": "measured",
+    "endToEnd": "measured"
+  },
+  "performanceClaims": []
+}

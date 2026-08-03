@@ -1,0 +1,26 @@
+.virtual-grid {
+  height: 30rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid currentColor;
+  contain: strict;
+}
+.virtual-row {
+  box-sizing: border-box;
+  min-height: 1.5rem;
+  height: 1.5rem;
+  display: grid;
+  grid-template-columns: 7rem 1fr 6rem;
+  padding: 0 .5rem;
+  align-items: center;
+  border-block-end: 1px solid color-mix(in srgb,currentColor 20%,transparent);
+}
+.virtual-row[aria-selected="true"] {
+  outline: 2px solid currentColor;
+  outline-offset: -2px;
+}
+.virtual-row[hidden] {
+  display: none;
+}

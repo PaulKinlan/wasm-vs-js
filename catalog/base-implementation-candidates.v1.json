@@ -1,0 +1,22 @@
+{
+  "acceptedCoverage": { "denominator": 38, "implementedCatalogEntries": 0 },
+  "candidates": [
+    {
+      "browserEvidence": "pending-parent-collection",
+      "record": "public/evidence/base/dom-virtualized-grid-v1/candidate.json",
+      "registrationId": "base-dom-virtualized-grid-controlled-v1",
+      "route": "/benchmarks/dom-virtualized-grid-v1/",
+      "staticValidation": "passed",
+      "status": "implementation-candidate",
+      "workloadId": "dom.virtualized-grid.v1"
+    }
+  ],
+  "frozenCatalog": {
+    "mutation": "none",
+    "path": "catalog/workloads.v1.json",
+    "publishedCount": 38,
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4"
+  },
+  "schemaVersion": 1,
+  "status": "descriptive-non-authoritative"
+}

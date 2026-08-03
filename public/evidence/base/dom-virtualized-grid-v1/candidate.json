@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "registrationId": "base-dom-virtualized-grid-controlled-v1",
+  "workloadId": "dom.virtualized-grid.v1",
+  "status": "implementation-candidate",
+  "frozenCatalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+  "targets": [
+    "js-controlled",
+    "wasm-linear-controlled"
+  ],
+  "artifacts": {
+    "buildManifest": {
+      "path": "public/artifacts/dom-virtualized-grid-v1/build-manifest.json",
+      "sha256": "f1f84b3acf27417fe72076a7ecc868013b8781c224bd65965ec585e516d658d9"
+    },
+    "fixture": {
+      "path": "public/artifacts/dom-virtualized-grid-v1/fixture.bin",
+      "sha256": "07148a1e52a188d7dbaaf17e922075004e54addd01873b936c6207064494d17a"
+    },
+    "wasm": {
+      "path": "public/artifacts/dom-virtualized-grid-v1/grid.wasm",
+      "sha256": "fdab1416648ec271ac290a9556fa2a1cff63d1ebe333666ba58b6112283c0e56"
+    },
+    "outputManifest": {
+      "path": "public/artifacts/dom-virtualized-grid-v1/output-manifest.json",
+      "sha256": "076cd4c78eb83af75cc1057a085f4ad437e190c69188a9073debaa6d06d71b62"
+    }
+  },
+  "correctness": {
+    "status": "passed-static",
+    "completeCommandStream": true,
+    "checkpoints": 6,
+    "counters": "exact",
+    "actualDomRequired": true
+  },
+  "browserEvidence": {
+    "status": "pending-parent-collection",
+    "collector": "scripts/validate-dom-virtualized-grid-browser.ts"
+  },
+  "performanceClaims": []
+}

@@ -130,6 +130,62 @@ const routes = new Map<string, [string, string, boolean?]>([
   ]],
   ["/benchmarks", ["public/benchmarks/index.html", "text/html; charset=utf-8"]],
   ["/benchmarks/", ["public/benchmarks/index.html", "text/html; charset=utf-8"]],
+  ["/benchmarks/dom-virtualized-grid-v1", [
+    "public/benchmarks/dom-virtualized-grid-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-virtualized-grid-v1/", [
+    "public/benchmarks/dom-virtualized-grid-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-virtualized-grid-v1/grid.css", [
+    "public/benchmarks/dom-virtualized-grid-v1/grid.css",
+    "text/css; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-virtualized-grid-v1/grid-runner.js", [
+    "public/benchmarks/dom-virtualized-grid-v1/grid-runner.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-virtualized-grid-v1/grid-worker.js", [
+    "public/benchmarks/dom-virtualized-grid-v1/grid-worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/dom-virtualized-grid/engine.js", [
+    "benchmarks/base/dom-virtualized-grid/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/artifacts/dom-virtualized-grid-v1/grid.wasm", [
+    "public/artifacts/dom-virtualized-grid-v1/grid.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/dom-virtualized-grid-v1/fixture.bin", [
+    "public/artifacts/dom-virtualized-grid-v1/fixture.bin",
+    "application/octet-stream",
+  ]],
+  ["/artifacts/dom-virtualized-grid-v1/implementation-contract.v1.json", [
+    "public/artifacts/dom-virtualized-grid-v1/implementation-contract.v1.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/dom-virtualized-grid-v1/build-manifest.json", [
+    "public/artifacts/dom-virtualized-grid-v1/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/dom-virtualized-grid-v1/fixture-manifest.json", [
+    "public/artifacts/dom-virtualized-grid-v1/fixture-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/dom-virtualized-grid-v1/output-manifest.json", [
+    "public/artifacts/dom-virtualized-grid-v1/output-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base/dom-virtualized-grid-v1/candidate.json", [
+    "public/evidence/base/dom-virtualized-grid-v1/candidate.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/data/base-implementation-candidates.v1.json", [
+    "catalog/base-implementation-candidates.v1.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/demos/game-family/demo.js", [
     "public/demos/game-family/demo.js",
     "text/javascript; charset=utf-8",
