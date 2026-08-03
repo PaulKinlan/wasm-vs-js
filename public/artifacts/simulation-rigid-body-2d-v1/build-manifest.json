@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "registrationId": "simulation-rigid-body-2d-v1-controlled",
+  "sourceCommit": "uncommitted-candidate",
+  "toolchain": {
+    "deno": "2.9.0",
+    "clang": "clang version 22.1.8",
+    "linker": "LLD 22.1.8",
+    "target": "wasm32-unknown-unknown",
+    "flags": [
+      "-O3",
+      "-nostdlib",
+      "-ffreestanding",
+      "-fno-builtin",
+      "-ffp-contract=off",
+      "-fno-fast-math"
+    ],
+    "memory": {
+      "initialBytes": 2097152,
+      "maximumBytes": 2097152,
+      "growth": false
+    }
+  },
+  "command": "deno run --allow-read=. --allow-write=public/artifacts --allow-run=clang,wasm-ld scripts/build-rigid-body-2d.ts --source-commit=<commit>",
+  "sourceGraph": [
+    {
+      "path": "benchmarks/v1/simulation-rigid-body-2d/contract.v1.json",
+      "sha256": "38dc95525bc0f91d85968b52c3a86c063343aa5e46ee0eaa00f97e779a1d5ea2"
+    },
+    {
+      "path": "benchmarks/v1/simulation-rigid-body-2d/fixture.js",
+      "sha256": "d60ad0711ab6e041556290d7d5947dc1ab1595c155c637f11818d9ac3ea19afc"
+    },
+    {
+      "path": "benchmarks/v1/simulation-rigid-body-2d/engine.js",
+      "sha256": "738826901f536a79081bf725df4711229db2d09e8d0c33c224a2a7e1e74a07df"
+    },
+    {
+      "path": "benchmarks/v1/simulation-rigid-body-2d/rigid-body-2d.c",
+      "sha256": "cde28bf97044d4255d17e7beae2696a7458d257427cf6077eae6760ccc130522"
+    },
+    {
+      "path": "scripts/build-rigid-body-2d.ts",
+      "sha256": "3a62a9a57ce0263c58c95a68d2689e01716db4d40c1ed06afec82dac86eeebfd"
+    },
+    {
+      "path": "deno.json",
+      "sha256": "17e6674c81fdaee7dfc52ed1bd28baeec70fb0715f839b92defe1e84545b08eb"
+    },
+    {
+      "path": "deno.lock",
+      "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2"
+    }
+  ],
+  "artifact": {
+    "path": "public/artifacts/simulation-rigid-body-2d-v1/rigid-body-2d.wasm",
+    "bytes": 5356,
+    "sha256": "29759e3438a541edf6432412438efdcdee7488b73bb83578eb4657b25d442975"
+  },
+  "fixtureManifestSha256": "2d2346d6a3539b3c97522dc01a4d7f4605b9f0a0524dd4da5bc1833a79a29210",
+  "outputManifestSha256": "10ec6b8d06aa53c4a30007726653dd10c6aa501507efd411882eab24db665642"
+}

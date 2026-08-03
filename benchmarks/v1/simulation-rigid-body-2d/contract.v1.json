@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "registrationId": "simulation-rigid-body-2d-v1-controlled",
+  "frozenCatalogId": "simulation.rigid-body-2d.v1",
+  "frozenCatalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+  "status": "supplemental-implementation-candidate",
+  "algorithmFamily": "box2d-style-fixed-solver",
+  "targets": ["javascript", "wasm-linear"],
+  "fixture": {
+    "generator": "fixture.js generateRigidBodyFixture()",
+    "seed": 1380275022,
+    "licenseSpdx": "CC0-1.0",
+    "redistribution": "permitted",
+    "bodies": 500,
+    "joints": 19,
+    "layout": "20 columns by 25 rows of axis-aligned dynamic boxes plus adjacent distance joints across the top row"
+  },
+  "fixedWork": {
+    "timesteps": 1800,
+    "dtF32": 0.01666666753590107,
+    "gravityYF32": -9.800000190734863,
+    "velocityIterations": 4,
+    "positionIterations": 64,
+    "warmStart": false,
+    "linearDampingF32": 0.5,
+    "broadphase": "stable insertion-sorted sweep-and-prune on min-x; ties by body id",
+    "narrowphase": "axis-aligned box overlap; resolve minimum-penetration axis; ties choose y",
+    "contactOrder": "sweep order, lower body id first",
+    "jointOrder": "ascending joint id after contacts in every solver iteration",
+    "velocityUpdate": "semi-implicit Euler, strict f32 after every primitive operation",
+    "positionUpdate": "mass-weighted horizontal contacts, stack-stable lower-to-upper vertical position and support-velocity projection, and mass-weighted distance-joint corrections, strict f32",
+    "stateQuantization": "after every position-solver iteration and complete timestep, round x,y,vx,vy to the nearest 1e-3 using half-away-from-zero; this freezes chaotic cross-target evolution",
+    "rendering": "separate and excluded from compute"
+  },
+  "oracle": {
+    "kind": "numeric-tolerance",
+    "completeState": "all x,y,vx,vy values for every body at 300-step checkpoints and final state",
+    "absoluteTolerance": 0.0005,
+    "relativeTolerance": 0.00005,
+    "energyEnvelopeRelative": 0.002,
+    "settledSpeedMaximum": 0.025,
+    "groundPenetrationMaximum": 0.0005,
+    "jointLengthErrorMaximum": 0.0031,
+    "contactPenetrationMaximum": 0.003,
+    "nonFinite": "reject",
+    "quantization": "round every state scalar to 1e-3 after each position-solver iteration and timestep using half-away-from-zero; checkpoint comparison still validates all stored f32 values"
+  },
+  "counters": [
+    "timesteps",
+    "broadphase-pairs",
+    "narrowphase-tests",
+    "contacts",
+    "contact-constraints",
+    "joint-constraints",
+    "velocity-iterations",
+    "position-iterations",
+    "state-values",
+    "allocations",
+    "boundary-crossings"
+  ],
+  "limitations": [
+    "Axis-aligned translation-only Box2D-style solver; no rotation, sleeping, continuous collision detection, or warm starting.",
+    "This candidate does not alter the byte-frozen v1 catalog and is not accepted coverage until independent review and retained browser evidence pass.",
+    "No performance conclusion is recorded by this package or demo."
+  ]
+}

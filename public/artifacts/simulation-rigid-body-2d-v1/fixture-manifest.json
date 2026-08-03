@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "registrationId": "simulation-rigid-body-2d-v1-controlled",
+  "frozenCatalogId": "simulation.rigid-body-2d.v1",
+  "frozenCatalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+  "sourceCommit": "uncommitted-candidate",
+  "fixture": {
+    "path": "public/artifacts/simulation-rigid-body-2d-v1/fixture.bin",
+    "bytes": 14368,
+    "sha256": "fb8cf26308281bf5260d11420fa292bd4619c30a5cfc9b1f34c6f4f87027d2dc",
+    "generator": "generateRigidBodyFixture; xorshift32 seed 0x5242474e",
+    "licenseSpdx": "CC0-1.0",
+    "redistribution": "permitted",
+    "containsExternalData": false
+  }
+}

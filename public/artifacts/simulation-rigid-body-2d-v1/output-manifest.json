@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "status": "supplemental-validation-candidate",
+  "performanceClaims": [],
+  "oracle": {
+    "completeCheckpointValues": 12000,
+    "checkpoints": 6,
+    "absoluteTolerance": 0.0005,
+    "relativeTolerance": 0.00005,
+    "referencePath": "public/artifacts/simulation-rigid-body-2d-v1/reference-checkpoints.f32le",
+    "referenceSha256": "2eda9545a9675c16facd33138da21c5e557a6007c35c196d02b2664803b6e80b",
+    "javascriptDigest": "56e7b545",
+    "wasmDigest": "56e7b545",
+    "comparison": {
+      "passed": true,
+      "violations": 0,
+      "maximumAbsoluteError": 0,
+      "maximumRelativeError": 0
+    },
+    "javascriptMetrics": {
+      "kinetic": 0.11930073928423288,
+      "potential": 84218.74947147438,
+      "totalEnergy": 84218.86877221367,
+      "maxSpeed": 0.019026296982833684,
+      "groundPenetration": 0,
+      "jointLengthError": 0.0009999275207519531,
+      "contactPenetration": 0
+    },
+    "wasmMetrics": {
+      "kinetic": 0.11930073928423288,
+      "potential": 84218.74947147438,
+      "totalEnergy": 84218.86877221367,
+      "maxSpeed": 0.019026296982833684,
+      "groundPenetration": 0,
+      "jointLengthError": 0.0009999275207519531,
+      "contactPenetration": 0
+    }
+  },
+  "counters": {
+    "javascript": {
+      "timesteps": 1800,
+      "broadphasePairs": 702000000,
+      "narrowphaseTests": 702000000,
+      "contacts": 1468234,
+      "contactConstraints": 1752616,
+      "jointConstraints": 2325600,
+      "velocityIterations": 7200,
+      "positionIterations": 115200,
+      "stateValues": 12000,
+      "allocations": 17,
+      "boundaryCrossings": 0
+    },
+    "wasm": {
+      "timesteps": 1800,
+      "broadphasePairs": 702000000,
+      "narrowphaseTests": 702000000,
+      "contacts": 1468234,
+      "contactConstraints": 1752616,
+      "jointConstraints": 2325600,
+      "velocityIterations": 7200,
+      "positionIterations": 115200,
+      "stateValues": 12000,
+      "allocations": 0,
+      "boundaryCrossings": 2
+    }
+  }
+}
