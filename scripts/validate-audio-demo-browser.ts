@@ -287,6 +287,65 @@ try {
   }
   runRecords.push({ route, engine: "javascript", mode: "lifecycle", checks: lifecycleChecks });
 
+  // Stale message/error INJECTION and pagehide teardown, driven through the
+  // explicit ?demo-test=1 hook and the real listener paths.
+  await send("Page.navigate", { url: `${route}?demo-test=1` });
+  await waitFor(
+    async () => (await evaluate(`document.readyState`)) === "complete",
+    15_000,
+    "load",
+  );
+  await click("#demo-start");
+  await evaluate(`window.__demoTestA = window.__demoTest.getWorker()`);
+  await click("#demo-cancel");
+  await waitFor(async () => (await statusText()).startsWith("Cancelled"), 10_000, "cancel");
+  // Start run B; while it is in flight, inject a wrong-token message on the
+  // live worker and a synthetic error on the TERMINATED run-A worker object.
+  await click("#demo-start");
+  const injected = await evaluate(`(() => {
+    const tokenB = window.__demoTest.currentToken();
+    const wrongTokenResult = window.__demoTest.injectMessage({
+      token: tokenB + 99,
+      type: "failed",
+      message: "INJECTED STALE FAILURE",
+    });
+    const staleErrorResult = window.__demoTest.injectErrorOn(window.__demoTestA);
+    return { tokenB, wrongTokenResult, staleErrorResult };
+  })()`) as Record<string, unknown>;
+  const statusAfterInjection = await statusText();
+  await waitFor(
+    async () => {
+      const status = await statusText();
+      if (status.includes("INJECTED")) fail("stale injected message was processed");
+      return status.startsWith("Run complete");
+    },
+    240_000,
+    "run B completes despite injections",
+  );
+  // pagehide teardown: start run C and dispatch a real pagehide event.
+  await click("#demo-start");
+  const activeBeforePagehide = await evaluate(`window.__demoTest.workerActive()`);
+  await evaluate(`window.dispatchEvent(new PageTransitionEvent("pagehide"))`);
+  const activeAfterPagehide = await evaluate(`window.__demoTest.workerActive()`);
+  const injectionChecks = {
+    wrongTokenMessageIgnored: injected.wrongTokenResult === true &&
+      !statusAfterInjection.includes("INJECTED"),
+    staleErrorIgnored: injected.staleErrorResult === true &&
+      !statusAfterInjection.startsWith("Worker error"),
+    runCompletedDespiteInjections: true,
+    workerActiveBeforePagehide: activeBeforePagehide === true,
+    pagehideTerminatesWorker: activeAfterPagehide === false,
+  };
+  if (!Object.values(injectionChecks).every(Boolean)) {
+    fail(`injection lifecycle assertions failed: ${JSON.stringify(injectionChecks)}`);
+  }
+  runRecords.push({
+    route,
+    engine: "javascript",
+    mode: "lifecycle-injection",
+    checks: injectionChecks,
+  });
+
   // Retain evidence.
   await Deno.mkdir(EVIDENCE, { recursive: true });
   await Deno.writeTextFile(`${EVIDENCE}/console.jsonl`, consoleLog.join("\n") + "\n");
@@ -308,7 +367,7 @@ try {
         server: { task: "public", base: BASE, mode: "public-read-only" },
         runs: runRecords,
         networkScope:
-          "page and worker-script requests; worker-internal fetches are proven by the per-run exact-contract assertions, which hash every served module, manifest, and artifact byte",
+          "page and worker-script requests; worker-internal fetches are proven byte-exactly by the per-run exact-contract assertions, which hash the raw served bytes of all five manifests, all seven engine modules, the registry, the runner, the worker, the Wasm artifact, and the reference artifact",
         consoleEvents: consoleLog.length,
         networkEvents: networkLog.length,
       },

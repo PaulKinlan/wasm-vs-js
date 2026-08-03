@@ -22,6 +22,11 @@ async function fetchJson(path) {
   return await response.json();
 }
 
+async function fetchJsonWithBytes(path) {
+  const bytes = await fetchBytes(path);
+  return { bytes, json: JSON.parse(new TextDecoder().decode(bytes)) };
+}
+
 self.addEventListener("message", (event) => {
   const { token, slug, target, mode } = event.data;
   const progress = (step) => self.postMessage({ token, type: "progress", step });
@@ -75,16 +80,57 @@ async function run(token, slug, target, mode, progress) {
 
   let contractChecks;
   if (mode === "exact-contract") {
-    progress("Hashing every served module, manifest, and artifact…");
+    progress("Hashing every served byte: manifests, modules, registry, runner, worker…");
     contractChecks = [];
     const check = (label, ok, detail) => contractChecks.push([label, ok === true, detail]);
 
-    // Fetch and HASH every served byte the mode depends on. Nothing passes
-    // by comparing one manifest's string against another's without hashing
-    // the served bytes at least once in the chain.
-    const assetsManifest = await fetchJson("/demo-assets/audio/manifest.json");
-    const [buildManifest, fixtureManifest, inputManifest, outputManifest, referenceManifest] =
-      await Promise.all(entry.manifestPaths.map((path) => fetchJson(path)));
+    // Every served byte this mode depends on is hashed. Subordinate
+    // manifest hashes must equal the build manifest's recorded values;
+    // module bytes must equal the assets manifest, whose source hashes
+    // anchor to the accepted-commit fullSourceGraph; registry, runner,
+    // worker, and assets-manifest bytes must equal the registry-pinned
+    // hashes; the registry byte hash must equal the value embedded in the
+    // served page's workload identity.
+    const assetsManifestResult = await fetchJsonWithBytes("/demo-assets/audio/manifest.json");
+    const assetsManifest = assetsManifestResult.json;
+    const registryResult = await fetchJsonWithBytes("/demo-registry.json");
+    const registryBytes = registryResult.bytes;
+    const registryHash = await sha256Hex(registryBytes);
+    const manifestResults = await Promise.all(
+      entry.manifestPaths.map((path) => fetchJsonWithBytes(path)),
+    );
+    const [buildResult, fixtureResult, inputResult, outputResult, referenceResult] =
+      manifestResults;
+    const buildManifest = buildResult.json;
+    const fixtureManifest = fixtureResult.json;
+    const inputManifest = inputResult.json;
+    const outputManifest = outputResult.json;
+    const referenceManifest = referenceResult.json;
+
+    // 0. Raw manifest bytes against the build manifest's recorded
+    // subordinate manifest hashes.
+    const recordedManifests = buildManifest.manifests ?? {};
+    const manifestPairs = [
+      ["fixture", fixtureResult],
+      ["input", inputResult],
+      ["output", outputResult],
+      ["reference", referenceResult],
+    ];
+    let manifestBytesVerified = 0;
+    for (const [name, result] of manifestPairs) {
+      const hash = await sha256Hex(result.bytes);
+      if (recordedManifests[name]?.sha256 === hash) manifestBytesVerified += 1;
+      else {check(
+          `manifest bytes ${name}`,
+          false,
+          `served ${hash.slice(0, 16)}… != build-manifest record`,
+        );}
+    }
+    check(
+      "subordinate manifest bytes",
+      manifestBytesVerified === 4,
+      `${manifestBytesVerified}/4 raw manifest byte hashes equal the build-manifest recorded hashes`,
+    );
 
     // 1. Every served engine module: hash the fetched bytes and compare to
     // the provenance manifest, then anchor the manifest's source hashes to
@@ -189,6 +235,7 @@ async function run(token, slug, target, mode, progress) {
       outputManifest.sourceCommit,
       referenceManifest.sourceCommit,
       registry.sourceCommit,
+      entry.sourceCommit ?? registry.sourceCommit,
     ]);
     check(
       "source commit identity",
@@ -216,6 +263,53 @@ async function run(token, slug, target, mode, progress) {
         referenceManifest.entryId === entry.entryId &&
         buildManifest.entryId === entry.entryId,
       "all manifests name the same entry ID and slug as the registry",
+    );
+
+    // 8. Runner, worker, and assets-manifest served bytes against the
+    // registry-pinned hashes; the registry byte hash against the value
+    // embedded in the served page's workload identity.
+    const runnerHash = await sha256Hex(await fetchBytes("/demo-runner.js"));
+    check(
+      "runner served bytes",
+      runnerHash === registry.runnerSha256,
+      `${runnerHash.slice(0, 16)}… hashed from served bytes against the registry pin`,
+    );
+    const workerHash = await sha256Hex(await fetchBytes("/demo-worker.js"));
+    check(
+      "worker served bytes",
+      workerHash === registry.workerSha256,
+      `${workerHash.slice(0, 16)}… hashed from served bytes against the registry pin`,
+    );
+    const assetsManifestHash = await sha256Hex(assetsManifestResult.bytes);
+    check(
+      "assets manifest bytes",
+      assetsManifestHash === registry.assetsManifestSha256,
+      `${assetsManifestHash.slice(0, 16)}… hashed from served bytes against the registry pin`,
+    );
+    const pageBytes = await fetchBytes(entry.route);
+    const pageText = new TextDecoder().decode(pageBytes);
+    const identityMatch = pageText.match(
+      /<script type="application\/json" id="workload-identity">([\s\S]*?)<\/script>/,
+    );
+    const pageIdentity = identityMatch ? JSON.parse(identityMatch[1]) : {};
+    check(
+      "registry byte hash anchored in page",
+      pageIdentity.registrySha256 === registryHash,
+      `registry ${
+        registryHash.slice(0, 16)
+      }… hashed from served bytes equals the page-embedded pin`,
+    );
+    check(
+      "registry frozen hashes",
+      registry.demos.length === 3 &&
+        registry.demos.every((demo) =>
+          demo.frozenHashes.inputSha256 === constants.AUDIO_FROZEN_HASHES[demo.slug].inputSha256 &&
+          demo.frozenHashes.outputSha256 ===
+            constants.AUDIO_FROZEN_HASHES[demo.slug].outputSha256 &&
+          demo.frozenHashes.referenceSha256 ===
+            constants.AUDIO_FROZEN_HASHES[demo.slug].referenceSha256
+        ),
+      "registry frozen hashes equal the served constants module values for all three demos",
     );
 
     const failed = contractChecks.filter(([, ok]) => !ok);

@@ -205,3 +205,34 @@ addEventListener("pagehide", () => {
 
 document.documentElement.classList.add("js");
 setStatus("Idle. Choose an engine and a mode, then start a run.");
+
+// Explicit test hook, present only on ?demo-test=1: lets executable browser
+// validation inject synthetic stale messages and errors through the real
+// listener path and observe pagehide teardown. It exposes no run control.
+if (new URLSearchParams(location.search).get("demo-test") === "1") {
+  globalThis.__demoTest = {
+    injectMessage(data) {
+      if (!worker) return false;
+      return worker.dispatchEvent(new MessageEvent("message", { data }));
+    },
+    injectError() {
+      if (!worker) return false;
+      return worker.dispatchEvent(new Event("error"));
+    },
+    injectErrorOn(target) {
+      // Dispatch a synthetic error through a PREVIOUS worker object's real
+      // listener: exercises the stale-error path (worker identity check).
+      if (!target) return false;
+      return target.dispatchEvent(new Event("error"));
+    },
+    getWorker() {
+      return worker;
+    },
+    workerActive() {
+      return worker !== null;
+    },
+    currentToken() {
+      return currentToken;
+    },
+  };
+}

@@ -33,6 +33,15 @@ Deno.test("audio demo registry is closed and truthful", async () => {
   assertEquals(registry.authoritativePerformanceEvidence, false);
   const demos = registry.demos as Record<string, unknown>[];
   assertEquals(demos.length, 3);
+  for (const key of ["runnerSha256", "workerSha256", "assetsManifestSha256"]) {
+    assert(/^[a-f0-9]{64}$/.test(registry[key] as string), `${key} pinned`);
+  }
+  assertEquals(registry.runnerSha256, await sha256Hex(await readBytes("public/demo-runner.js")));
+  assertEquals(registry.workerSha256, await sha256Hex(await readBytes("public/demo-worker.js")));
+  assertEquals(
+    registry.assetsManifestSha256,
+    await sha256Hex(await readBytes("public/demo-assets/audio/manifest.json")),
+  );
   assertEquals(
     JSON.stringify([...demos.map((demo) => demo.slug)].sort()),
     JSON.stringify([...SLUGS].sort()),
@@ -131,6 +140,10 @@ Deno.test("audio demo pages embed truthful workload identity", async () => {
     assertEquals(identity.title, bench.title);
     assertEquals(identity.timeoutMs, demo.timeoutMs);
     assertEquals(identity.frozenHashes, demo.frozenHashes);
+    assertEquals(
+      identity.registrySha256,
+      await sha256Hex(await readBytes("public/demo-registry.json")),
+    );
     // The static page carries the frozen evidence and pinned source links.
     const oracle = bench.oracle as Record<string, unknown>;
     assert(html.includes(oracle.outputSha256 as string), `${slug} output hash on page`);
@@ -274,4 +287,41 @@ Deno.test("retained browser validation evidence is complete and passing", async 
   const cleanup = await readJson(`${base}/cleanup.json`);
   assertEquals(cleanup.profileRemoved, true);
   assert(typeof cleanup.browserPid === "number" && typeof cleanup.serverPid === "number");
+});
+
+Deno.test("audio demo registry and pages regenerate byte-identically", async () => {
+  const before = new Map<string, string>();
+  const paths = [
+    "public/demo-registry.json",
+    ...SLUGS.map((slug) => `public/benchmarks/${slug}/index.html`),
+  ];
+  for (const path of paths) before.set(path, await sha256Hex(await readBytes(path)));
+  const registryBuild = new Deno.Command(Deno.execPath(), {
+    args: [
+      "run",
+      "--allow-read=.",
+      "--allow-write=public/demo-registry.json",
+      "scripts/build-audio-demo-registry.ts",
+    ],
+    cwd: new URL(".", ROOT).pathname,
+    stdout: "piped",
+    stderr: "piped",
+  }).outputSync();
+  assert(registryBuild.success, new TextDecoder().decode(registryBuild.stderr));
+  const pagesBuild = new Deno.Command(Deno.execPath(), {
+    args: [
+      "run",
+      "--allow-read=.",
+      "--allow-write=public/benchmarks",
+      "--allow-run",
+      "scripts/build-audio-demo-pages.ts",
+    ],
+    cwd: new URL(".", ROOT).pathname,
+    stdout: "piped",
+    stderr: "piped",
+  }).outputSync();
+  assert(pagesBuild.success, new TextDecoder().decode(pagesBuild.stderr));
+  for (const path of paths) {
+    assertEquals(await sha256Hex(await readBytes(path)), before.get(path));
+  }
 });

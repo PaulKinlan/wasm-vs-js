@@ -4,6 +4,9 @@
   "status": "proposal-validation-only",
   "authoritativePerformanceEvidence": false,
   "sourceCommit": "6f507efc2961983ed087bab0bf18fd845aebd100",
+  "runnerSha256": "a17aca4b853ff44fb0d440ef317dccb5f537faea6c13aee366ce42ab6c6c5f1e",
+  "workerSha256": "4df1be812f67448471a4c20c5dabb50aa932e54115a1e3335fe1d0449ea8fc67",
+  "assetsManifestSha256": "373e98f859c59af68a2fab79f2f2333ab43dabbf94c54df952eda07129a9f49e",
   "demos": [
     {
       "slug": "audio-fft",
@@ -26,8 +29,14 @@
       },
       "memoryPages": 32,
       "timeoutMs": 120000,
-      "modes": ["bounded", "exact-contract"],
-      "targets": ["javascript", "wasm-linear"]
+      "modes": [
+        "bounded",
+        "exact-contract"
+      ],
+      "targets": [
+        "javascript",
+        "wasm-linear"
+      ]
     },
     {
       "slug": "audio-fir",
@@ -50,8 +59,14 @@
       },
       "memoryPages": 32,
       "timeoutMs": 120000,
-      "modes": ["bounded", "exact-contract"],
-      "targets": ["javascript", "wasm-linear"]
+      "modes": [
+        "bounded",
+        "exact-contract"
+      ],
+      "targets": [
+        "javascript",
+        "wasm-linear"
+      ]
     },
     {
       "slug": "audio-stft",
@@ -74,8 +89,14 @@
       },
       "memoryPages": 64,
       "timeoutMs": 240000,
-      "modes": ["bounded", "exact-contract"],
-      "targets": ["javascript", "wasm-linear"]
+      "modes": [
+        "bounded",
+        "exact-contract"
+      ],
+      "targets": [
+        "javascript",
+        "wasm-linear"
+      ]
     }
   ]
 }
