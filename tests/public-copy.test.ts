@@ -8,6 +8,7 @@ const publicCopyFiles = [
   "public/benchmarks/index.html",
   "public/experiments/index.html",
   "public/app.js",
+  "public/inspectability.js",
   "public/hosted-runner.js",
   "public/workload-catalog.js",
 ];

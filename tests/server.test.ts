@@ -97,6 +97,10 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
       "/workload-catalog.js",
       "/data/workloads.v1.json",
       "/data/workload-catalog.schema.json",
+      "/data/sum-u32-inspectability.v1.json",
+      "/inspectability.js",
+      "/artifacts/sum-u32/build-manifest.9c309c49.json",
+      "/artifacts/sum-u32/sum-u32.wasm",
       "/benchmarks/sum-u32/workload.js",
     ]
   ) {
@@ -108,11 +112,24 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
   const catalogPage = await (await handler(new Request("http://127.0.0.1/benchmarks/"))).text();
   assert(catalogPage.includes("38-WORKLOAD DENOMINATOR"));
   assert(catalogPage.includes("Coverage is 0/38"));
-  for (const path of ["/run.html", "/runner.js", "/raw/runs/example.json"]) {
+  for (
+    const path of [
+      "/run.html",
+      "/runner.js",
+      "/raw/runs/example.json",
+      "/source/9c309c4941d1b8550c15f8549f95a5636a634ef6/server.ts",
+      "/artifacts/sum-u32/server.ts",
+      "/artifacts/other/sum-u32.wasm",
+    ]
+  ) {
     assertEquals((await handler(new Request(`http://127.0.0.1${path}`))).status, 404);
   }
   assertEquals((await handler(new Request("http://127.0.0.1/api/runs"))).status, 403);
   assertEquals((await handler(new Request("http://127.0.0.1/api/runs/example"))).status, 403);
+  assertEquals(
+    (await handler(new Request("http://127.0.0.1/api/runs/example/source-bundle"))).status,
+    403,
+  );
   const summary = await (await handler(new Request("http://127.0.0.1/api/summary"))).json();
   assertEquals(summary.runCount, 0);
   assertEquals(summary.claimStatus, "no-runs");
@@ -188,6 +205,24 @@ Deno.test("local server bounds writes and serves exact Wasm MIME", async () => {
     assert(csp.includes("worker-src 'self'"));
     assert(!csp.includes("'unsafe-eval'"));
     assert(!csp.includes("'unsafe-inline'"));
+    const manifest = await handler(
+      new Request("http://127.0.0.1/artifacts/sum-u32/build-manifest.9c309c49.json"),
+    );
+    assertEquals(manifest.status, 200);
+    assertEquals(manifest.headers.get("content-type"), "application/json; charset=utf-8");
+    assert(manifest.headers.get("cache-control")?.includes("immutable"));
+    assertEquals(
+      new Uint8Array(await manifest.arrayBuffer()),
+      await Deno.readFile("public/artifacts/sum-u32/build-manifest.9c309c49.json"),
+    );
+    const head = await handler(
+      new Request("http://127.0.0.1/artifacts/sum-u32/sum-u32.wasm", { method: "HEAD" }),
+    );
+    assertEquals(head.status, 200);
+    assertEquals((await head.arrayBuffer()).byteLength, 0);
+    for (const path of ["/source/server.ts", "/artifacts/sum-u32/../server.ts"]) {
+      assertEquals((await handler(new Request(`http://127.0.0.1${path}`))).status, 404);
+    }
     const favicon = await handler(new Request("http://127.0.0.1/favicon.ico"));
     assertEquals(favicon.status, 200);
     assertEquals(favicon.headers.get("content-type"), "image/svg+xml");

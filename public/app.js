@@ -192,7 +192,12 @@ async function load() {
       ? "Public read-only view loaded. Published performance run records: 0."
       : `Loaded ${summary.runCount} immutable local run records.`;
   } catch (error) {
-    cellsBody.innerHTML = '<tr><td colspan="8">Local evidence could not be loaded.</td></tr>';
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
+    cell.colSpan = 8;
+    cell.textContent = "Local evidence could not be loaded.";
+    row.append(cell);
+    cellsBody.replaceChildren(row);
     loadStatus.textContent = `Load failed: ${error.message}`;
   }
 }

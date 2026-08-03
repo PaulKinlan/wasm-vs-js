@@ -32,6 +32,14 @@
         <p>A Chrome 150 validation completed the visible JavaScript/Wasm control and returned two HTTP 201 responses, according to a parent attestation. The records were removed and no replayable browser artifact remains, so the attestation is unverified and supplies no timing evidence.</p>
       </section>
 
+      <section aria-labelledby="inspectability-title">
+        <h2 id="inspectability-title">Inspect the exact source and build</h2>
+        <p>Open the executed JavaScript, authored WebAssembly, build recipe, lockfile, manifest, or compiled artifact from the accepted implementation evidence.</p>
+        <div data-inspectability-src="/data/sum-u32-inspectability.v1.json">
+          <p>Loading source and build evidence…</p>
+        </div>
+      </section>
+
       <section aria-labelledby="summary-title">
         <h2 id="summary-title">Evidence summary</h2>
         <dl class="metrics" id="metrics">
@@ -116,5 +124,6 @@
       <p id="load-status" class="sr-status" role="status" aria-live="polite"></p>
     </main>
     <script type="module" src="/app.js"></script>
+    <script type="module" src="/inspectability.js"></script>
   </body>
 </html>

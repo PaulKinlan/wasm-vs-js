@@ -537,6 +537,46 @@ pre {
     gap: 0;
   }
 }
+.inspectability-panel {
+  border: 1px solid var(--rule);
+  background: var(--raised);
+  padding: 1rem;
+}
+.inspectability-panel h3 {
+  margin-top: 0;
+  font-size: 1.45rem;
+}
+.inspectability-facts {
+  display: grid;
+  grid-template-columns: minmax(11rem, 1fr) minmax(0, 3fr);
+  gap: 1px;
+  padding: 1px;
+  background: var(--rule);
+}
+.inspectability-facts dt,
+.inspectability-facts dd {
+  padding: .75rem;
+  background: var(--raised);
+  overflow-wrap: anywhere;
+}
+.inspectability-facts dt {
+  font-weight: 700;
+}
+.inspectability-facts dd {
+  margin: 0;
+}
+.inspectability-unavailable {
+  border-left: 4px solid var(--warning);
+  padding-left: .6rem;
+}
+@media (max-width: 40rem) {
+  .inspectability-facts {
+    grid-template-columns: 1fr;
+  }
+  .inspectability-facts dd {
+    padding-top: 0;
+  }
+}
 .raw-provenance {
   max-height: 32rem;
   overflow: auto;

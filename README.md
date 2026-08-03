@@ -36,6 +36,7 @@ M1 has one accepted implementation slice: `sum-u32`, a controlled JavaScript/lin
 - [Run evidence schema](schemas/run.schema.json)
 - [Benchmark definition schema](schemas/benchmark.schema.json)
 - [M1 implementation evidence](public/evidence/v1/acceptance.json)
+- [Public source/build inspectability manifest](public/data/sum-u32-inspectability.v1.json) and [closed schema](schemas/public-inspectability.schema.json)
 - [Frozen M1 Chrome preregistration](experiments/m1-chrome-sum-u32-v1/preregistration.json) and [closed schema](schemas/preregistration.schema.json)
 - [Hosted exploratory runner](public/run/index.html)
 - [Public read-only deployment procedure](docs/public-deployment.md)
@@ -44,7 +45,8 @@ The public application is [wasm-vs-js.paulkinlan-ea.deno.net](https://wasm-vs-js
 
 - `/benchmarks/` contains 38 proposed workloads: P0=12, P1=12, and P2=14. Catalog implementation coverage is **0/38** because `sum-u32` is a separate harness slice.
 - `/run/` hash-verifies the JavaScript and 96-byte Wasm artifacts, runs them in a same-origin module worker, and displays the result in memory. The page uploads and stores nothing.
-- `/evidence/` records the accepted implementation and the limits of an unverified Chrome 150 attestation whose browser artifacts were not retained.
+- `/evidence/` records the accepted implementation and the limits of an unverified Chrome 150 attestation whose browser artifacts were not retained. Its source/build panel links the exact commit, executed JavaScript, authored WAT, build recipe, lockfile, versioned build manifest, and compiled Wasm with SHA-256 values.
+- Local downloads are limited to `/artifacts/sum-u32/build-manifest.9c309c49.json` and `/artifacts/sum-u32/sum-u32.wasm`; the server has no path-based source endpoint.
 - `/experiments/` publishes the repeated cold/warm protocol. Its 120-launch permit envelope is a template and authorizes no browser launch.
 
 The project has no accepted performance corpus or performance conclusion. M1 remains open until the owned-browser collection reaches its registered precision target or attempt cap.
