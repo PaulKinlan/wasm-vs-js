@@ -1,5 +1,13 @@
 import wabtFactory from "wabt";
+import Ajv2020Module from "ajv2020";
+import addFormatsModule from "ajv-formats";
+import { validateProposalProvenanceSemantics } from "../../benchmarks/v2/shared/provenance-contract.js";
 import { assert, assertEquals } from "../assert.ts";
+
+type Validator = ((value: unknown) => boolean) & { errors?: unknown };
+type AjvInstance = { compile: (schema: unknown) => Validator };
+type AjvConstructor = new (options?: Record<string, unknown>) => AjvInstance;
+type AddFormats = (ajv: AjvInstance) => void;
 import {
   generateDiffFixture,
   myersDiff,
@@ -92,7 +100,17 @@ Deno.test("Markdown authored Wasm matches canonical output and rejects adversari
   }
 });
 
-Deno.test("text artifacts and proposal-validation records are reproducible and claim no performance result", async () => {
+Deno.test("text artifacts and closed proposal-validation records are reproducible and claim no performance result", async () => {
+  const Ajv2020 = ((Ajv2020Module as unknown as { default?: AjvConstructor }).default ??
+    Ajv2020Module) as unknown as AjvConstructor;
+  const addFormats = ((addFormatsModule as unknown as { default?: AddFormats }).default ??
+    addFormatsModule) as unknown as AddFormats;
+  const ajv = new Ajv2020({ allErrors: true, strict: false });
+  addFormats(ajv);
+  const validate = ajv.compile(
+    JSON.parse(await Deno.readTextFile("schemas/workload-result-v2-proposal.schema.json")),
+  );
+  const catalog = JSON.parse(await Deno.readTextFile("catalog/workloads.v2.proposed.json"));
   for (const slug of ["text-diff-patch", "text-markdown-cms"]) {
     const manifest = JSON.parse(
       await Deno.readTextFile(`public/artifacts/${slug}/build-manifest.json`),
@@ -110,6 +128,9 @@ Deno.test("text artifacts and proposal-validation records are reproducible and c
       assertEquals(record.status, "proposal-validation-only");
       assertEquals(record.correctness.status, "passed");
       assertEquals(record.performanceClaims, []);
+      assert(validate(record), JSON.stringify(validate.errors));
+      const semantics = await validateProposalProvenanceSemantics(record, catalog);
+      assert(semantics.ok, semantics.errors.join("\n"));
     }
   }
 });

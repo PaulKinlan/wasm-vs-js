@@ -221,39 +221,5 @@ for (const workload of workloads) {
     performanceClaims: [],
   };
   await writeJson(`public/artifacts/${workload.slug}/build-manifest.json`, buildManifest);
-  const outputManifest = JSON.parse(
-    await Deno.readTextFile(`public/artifacts/${workload.slug}/output-manifest.json`),
-  );
-  await Deno.mkdir(`artifacts/v2/${workload.slug}`, { recursive: true });
-  for (
-    const [variant, target] of [["js-controlled", "javascript"], [
-      "wasm-linear-controlled",
-      "wasm-linear",
-    ]]
-  ) {
-    await writeJson(`artifacts/v2/${workload.slug}/${variant}.result.json`, {
-      schemaVersion: 1,
-      contractId: "text-v2-proposal-validation-v1",
-      status: "proposal-validation-only",
-      workload: {
-        entryId: workload.id,
-        benchmarkSlug: workload.slug,
-        variant: { id: variant, target, track: "controlled" },
-      },
-      correctness: {
-        status: "passed",
-        oracle: outputManifest.oracle,
-        outputManifestSha256: await sha256Hex(
-          await Deno.readFile(`public/artifacts/${workload.slug}/output-manifest.json`),
-        ),
-      },
-      provenance: {
-        buildManifest: `public/artifacts/${workload.slug}/build-manifest.json`,
-        fixtureManifest: `public/artifacts/${workload.slug}/fixture-manifest.json`,
-        outputManifest: `public/artifacts/${workload.slug}/output-manifest.json`,
-      },
-      performanceClaims: [],
-    });
-  }
   console.log(`${workload.id}: ${wasm.length} wasm bytes, oracle passed`);
 }
