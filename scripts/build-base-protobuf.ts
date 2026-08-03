@@ -41,6 +41,16 @@ const flags = [
   wasmPath,
   cPath,
 ];
+// Manifest-recorded flags use repo-relative paths so the committed manifest
+// reproduces byte-identically regardless of checkout location. Clang itself
+// still receives the absolute paths above.
+const recordedFlags = flags.map((flag) =>
+  flag === wasmPath
+    ? "public/artifacts/serialization-protobuf-gateway/serialization-protobuf-gateway.wasm"
+    : flag === cPath
+    ? "benchmarks/base/serialization-protobuf-gateway/protobuf-gateway.c"
+    : flag
+);
 const build = await new Deno.Command("clang", { args: flags, stdout: "piped", stderr: "piped" })
   .output();
 if (!build.success) throw new Error(new TextDecoder().decode(build.stderr));
@@ -141,7 +151,7 @@ const buildManifest = {
     command:
       "deno run --allow-read=. --allow-write=public/artifacts/serialization-protobuf-gateway --allow-run=clang scripts/build-base-protobuf.ts",
     toolchains: ["Deno 2.9.0", "Clang 22.1.8", "LLD 22.1.8"],
-    flags,
+    flags: recordedFlags,
   },
   reference: {
     repository: "protocolbuffers/protobuf",
