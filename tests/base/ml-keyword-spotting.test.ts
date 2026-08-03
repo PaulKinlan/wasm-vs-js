@@ -217,7 +217,6 @@ Deno.test("real Speech Commands result record binds every feature, score, detect
 });
 
 Deno.test("public routes are closed, readable and mutation-denied", async () => {
-  Deno.env.set("WASM_VS_JS_COMMIT", "a".repeat(40));
   const handler = createHandler(null, "public", null);
   for (
     const route of [
