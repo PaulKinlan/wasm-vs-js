@@ -1,0 +1,1111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.ai-focus.dev/schemas/simulation-rigid-body-2d-browser-evidence.v1.json",
+  "title": "Authoritative parent-run Chrome evidence for simulation.rigid-body-2d.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "evidenceId",
+    "collectedAt",
+    "authority",
+    "source",
+    "collector",
+    "workload",
+    "browser",
+    "server",
+    "scenarios",
+    "cleanup"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "evidenceId": { "const": "simulation-rigid-body-2d-chrome-150-browser-evidence-v1" },
+    "collectedAt": { "type": "string", "format": "date-time" },
+    "authority": { "$ref": "#/$defs/authority" },
+    "source": { "$ref": "#/$defs/source" },
+    "collector": { "$ref": "#/$defs/collector" },
+    "workload": { "$ref": "#/$defs/workload" },
+    "browser": { "$ref": "#/$defs/browser" },
+    "server": { "$ref": "#/$defs/server" },
+    "scenarios": {
+      "type": "array",
+      "minItems": 9,
+      "maxItems": 9,
+      "prefixItems": [
+        { "$ref": "#/$defs/javascriptComplete" },
+        { "$ref": "#/$defs/wasmComplete" },
+        { "$ref": "#/$defs/bothComplete" },
+        { "$ref": "#/$defs/wrongToken" },
+        { "$ref": "#/$defs/staleRestart" },
+        { "$ref": "#/$defs/restart" },
+        { "$ref": "#/$defs/timeout" },
+        { "$ref": "#/$defs/cancel" },
+        { "$ref": "#/$defs/pagehide" }
+      ],
+      "items": false
+    },
+    "cleanup": { "$ref": "#/$defs/cleanup" }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "gitSha1": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "gitBlob": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "browserWasLaunchedByCollector",
+        "importedOrChildGeneratedEvidenceAccepted"
+      ],
+      "properties": {
+        "kind": { "const": "authoritative-parent-run-browser-collection" },
+        "browserWasLaunchedByCollector": { "const": true },
+        "importedOrChildGeneratedEvidenceAccepted": { "const": false }
+      }
+    },
+    "checkout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commit", "tree", "cleanStatus"],
+      "properties": {
+        "commit": { "$ref": "#/$defs/gitSha1" },
+        "tree": { "$ref": "#/$defs/gitSha1" },
+        "cleanStatus": { "const": "clean" }
+      }
+    },
+    "sourceFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "route",
+        "sourcePath",
+        "bytes",
+        "sha256",
+        "gitBlob",
+        "acceptedCommitBytesMatch"
+      ],
+      "properties": {
+        "route": { "type": "string", "pattern": "^/" },
+        "sourcePath": { "type": "string", "minLength": 1 },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "gitBlob": { "$ref": "#/$defs/gitBlob" },
+        "acceptedCommitBytesMatch": { "const": true }
+      }
+    },
+    "supportFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256", "headBytesMatch"],
+      "properties": {
+        "path": {
+          "enum": [
+            "scripts/collect-simulation-rigid-body-2d-browser-evidence.ts",
+            "schemas/simulation-rigid-body-2d-browser-evidence.schema.json",
+            "lib/canonical.ts",
+            "lib/cdp-client.ts",
+            "deploy.ts",
+            "server.ts"
+          ]
+        },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "headBytesMatch": { "const": true }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "acceptedCommit",
+        "acceptedTree",
+        "start",
+        "end",
+        "unchanged",
+        "root",
+        "sourceGraphSha256",
+        "files",
+        "supportFiles"
+      ],
+      "properties": {
+        "acceptedCommit": { "const": "4cbffacfaef931a4b738e0964f257f8d6f362918" },
+        "acceptedTree": { "const": "139a1a0b27affc150ffcabd08bc354c7624a7d11" },
+        "start": { "$ref": "#/$defs/checkout" },
+        "end": { "$ref": "#/$defs/checkout" },
+        "unchanged": { "const": true },
+        "root": { "type": "string", "pattern": "^/" },
+        "sourceGraphSha256": { "$ref": "#/$defs/sha256" },
+        "files": {
+          "type": "array",
+          "minItems": 15,
+          "maxItems": 15,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/sourceFile" }
+        },
+        "supportFiles": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/supportFile" }
+        }
+      }
+    },
+    "collector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["script", "command", "output", "denoVersion"],
+      "properties": {
+        "script": { "const": "scripts/collect-simulation-rigid-body-2d-browser-evidence.ts" },
+        "command": {
+          "type": "array",
+          "minItems": 7,
+          "maxItems": 7,
+          "prefixItems": [
+            { "type": "string", "pattern": "^/" },
+            { "const": "run" },
+            { "const": "-A" },
+            { "const": "scripts/collect-simulation-rigid-body-2d-browser-evidence.ts" },
+            { "const": "--source-commit=4cbffacfaef931a4b738e0964f257f8d6f362918" },
+            { "type": "string", "pattern": "^--chrome=.+" },
+            { "type": "string", "pattern": "^--output=/.+/evidence\\.v1\\.json$" }
+          ],
+          "items": false
+        },
+        "output": { "type": "string", "pattern": "^/.+/evidence\\.v1\\.json$" },
+        "denoVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+" }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kinetic",
+        "potential",
+        "totalEnergy",
+        "maxSpeed",
+        "maxAngularSpeed",
+        "groundPenetration",
+        "jointAnchorError",
+        "contactPenetration"
+      ],
+      "properties": {
+        "kinetic": { "const": 0.027244684786372392 },
+        "potential": { "const": 75814.43372561425 },
+        "totalEnergy": { "const": 75814.46097029903 },
+        "maxSpeed": { "const": 0.008999999612569809 },
+        "maxAngularSpeed": { "const": 0.013000000268220901 },
+        "groundPenetration": { "const": 0.0014774799346923828 },
+        "jointAnchorError": { "const": 0.0038332734256982803 },
+        "contactPenetration": { "const": 0.024493813514709473 }
+      }
+    },
+    "counterBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "timesteps",
+        "broadphasePairs",
+        "rotatedManifoldTests",
+        "manifolds",
+        "contactPoints",
+        "normalImpulses",
+        "frictionImpulses",
+        "angularContactImpulses",
+        "jointImpulses",
+        "torqueApplications",
+        "velocityIterations",
+        "positionIterations",
+        "stateValues",
+        "typedArrayAllocations",
+        "exportedCallBoundaries"
+      ],
+      "properties": {
+        "timesteps": { "const": 1800 },
+        "broadphasePairs": { "const": 998471252 },
+        "rotatedManifoldTests": { "const": 36036054 },
+        "manifolds": { "const": 26380076 },
+        "contactPoints": { "const": 26380076 },
+        "normalImpulses": { "const": 323993 },
+        "frictionImpulses": { "const": 323993 },
+        "angularContactImpulses": { "const": 431986 },
+        "jointImpulses": { "const": 2394000 },
+        "torqueApplications": { "const": 60000 },
+        "velocityIterations": { "const": 10800 },
+        "positionIterations": { "const": 115200 },
+        "stateValues": { "const": 18000 },
+        "typedArrayAllocations": { "enum": [5, 28] },
+        "exportedCallBoundaries": { "enum": [0, 3] }
+      }
+    },
+    "javascriptCounters": {
+      "allOf": [
+        { "$ref": "#/$defs/counterBase" },
+        {
+          "type": "object",
+          "properties": {
+            "typedArrayAllocations": { "const": 28 },
+            "exportedCallBoundaries": { "const": 0 }
+          }
+        }
+      ]
+    },
+    "wasmCounters": {
+      "allOf": [
+        { "$ref": "#/$defs/counterBase" },
+        {
+          "type": "object",
+          "properties": {
+            "typedArrayAllocations": { "const": 5 },
+            "exportedCallBoundaries": { "const": 3 }
+          }
+        }
+      ]
+    },
+    "angularWork": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rotatedManifoldTests",
+        "angularContactImpulses",
+        "jointImpulses",
+        "torqueApplications"
+      ],
+      "properties": {
+        "rotatedManifoldTests": { "const": 36036054 },
+        "angularContactImpulses": { "const": 431986 },
+        "jointImpulses": { "const": 2394000 },
+        "torqueApplications": { "const": 60000 }
+      }
+    },
+    "workload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "registrationId",
+        "route",
+        "targets",
+        "bodies",
+        "joints",
+        "timesteps",
+        "checkpoints",
+        "checkpointStateValues",
+        "checkpointDigest",
+        "metrics",
+        "counters",
+        "angularWork",
+        "performanceClaim"
+      ],
+      "properties": {
+        "id": { "const": "simulation.rigid-body-2d.v1" },
+        "registrationId": { "const": "simulation-rigid-body-2d-v1-controlled" },
+        "route": { "const": "/benchmarks/simulation-rigid-body-2d-v1/" },
+        "targets": { "const": ["javascript", "wasm-linear"] },
+        "bodies": { "const": 500 },
+        "joints": { "const": 19 },
+        "timesteps": { "const": 1800 },
+        "checkpoints": { "const": 6 },
+        "checkpointStateValues": { "const": 18000 },
+        "checkpointDigest": { "const": "b54a6129" },
+        "metrics": { "$ref": "#/$defs/metrics" },
+        "counters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["javascript", "wasmLinear"],
+          "properties": {
+            "javascript": { "$ref": "#/$defs/javascriptCounters" },
+            "wasmLinear": { "$ref": "#/$defs/wasmCounters" }
+          }
+        },
+        "angularWork": { "$ref": "#/$defs/angularWork" },
+        "performanceClaim": { "const": false }
+      }
+    },
+    "processIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pid", "parentPid", "startTimeTicks", "executable"],
+      "properties": {
+        "pid": { "type": "integer", "minimum": 1 },
+        "parentPid": { "type": "integer", "minimum": 0 },
+        "startTimeTicks": { "type": "string", "pattern": "^[0-9]+$" },
+        "executable": { "type": "string", "pattern": "^/" }
+      }
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "device", "inode", "mode", "createdEmpty"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^/tmp/wasm-rigid-body-cft-" },
+        "device": { "type": "integer", "minimum": 0 },
+        "inode": { "type": "integer", "minimum": 1 },
+        "mode": { "const": 448 },
+        "createdEmpty": { "const": true }
+      }
+    },
+    "memberSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["at", "pids"],
+      "properties": {
+        "at": { "type": "string", "format": "date-time" },
+        "pids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "integer", "minimum": 2 }
+        }
+      }
+    },
+    "cgroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit",
+        "controlGroup",
+        "path",
+        "device",
+        "inode",
+        "invocationId",
+        "mainPid",
+        "memberSnapshots"
+      ],
+      "properties": {
+        "unit": { "type": "string", "pattern": "^wasm-rigid-body-[a-f0-9]{16}\\.service$" },
+        "controlGroup": { "type": "string", "pattern": "^/" },
+        "path": { "type": "string", "pattern": "^/sys/fs/cgroup/" },
+        "device": { "type": "integer", "minimum": 0 },
+        "inode": { "type": "integer", "minimum": 1 },
+        "invocationId": { "type": "string", "pattern": "^[a-f0-9]{32}$" },
+        "mainPid": { "type": "integer", "minimum": 2 },
+        "memberSnapshots": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/$defs/memberSnapshot" },
+          "contains": {
+            "type": "object",
+            "properties": { "pids": { "type": "array", "minItems": 1 } },
+            "required": ["pids"]
+          }
+        }
+      }
+    },
+    "browser": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "product",
+        "revision",
+        "userAgent",
+        "jsVersion",
+        "executable",
+        "launchArguments",
+        "effectiveArguments",
+        "headless",
+        "protocol",
+        "browserSessionId",
+        "profile",
+        "cgroup",
+        "processes"
+      ],
+      "properties": {
+        "product": { "const": "Chrome/150.0.7871.24" },
+        "revision": { "type": "string", "minLength": 1 },
+        "userAgent": { "type": "string", "minLength": 1 },
+        "jsVersion": { "type": "string", "minLength": 1 },
+        "executable": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "bytes", "sha256", "device", "inode"],
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "/chrome/linux-150\\.0\\.7871\\.24/chrome-linux64/chrome$"
+            },
+            "bytes": { "type": "integer", "minimum": 1 },
+            "sha256": {
+              "const": "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355"
+            },
+            "device": { "type": "integer", "minimum": 0 },
+            "inode": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "launchArguments": {
+          "type": "array",
+          "minItems": 21,
+          "maxItems": 21,
+          "prefixItems": [
+            { "type": "string", "pattern": "^--user-data-dir=/tmp/wasm-rigid-body-cft-" },
+            { "const": "--remote-debugging-port=0" },
+            { "const": "--remote-debugging-address=127.0.0.1" },
+            { "const": "--headless=new" },
+            { "const": "--no-sandbox" },
+            { "const": "--disable-gpu" },
+            { "const": "--disable-background-networking" },
+            { "const": "--disable-component-update" },
+            { "const": "--disable-default-apps" },
+            { "const": "--disable-extensions" },
+            { "const": "--disable-sync" },
+            { "const": "--disable-crash-reporter" },
+            { "const": "--disable-breakpad" },
+            { "const": "--metrics-recording-only" },
+            { "const": "--no-first-run" },
+            { "const": "--no-default-browser-check" },
+            { "const": "--hide-scrollbars" },
+            { "const": "--enable-automation" },
+            { "const": "--disable-cache" },
+            { "const": "--window-size=1440,1200" },
+            { "const": "about:blank" }
+          ],
+          "items": false,
+          "uniqueItems": true
+        },
+        "effectiveArguments": {
+          "type": "array",
+          "minItems": 21,
+          "items": { "type": "string", "minLength": 1 },
+          "allOf": [
+            {
+              "contains": {
+                "type": "string",
+                "pattern": "^--user-data-dir=/tmp/wasm-rigid-body-cft-"
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": { "const": "--remote-debugging-port=0" },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": { "const": "--remote-debugging-address=127.0.0.1" },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            { "contains": { "const": "--headless=new" }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "const": "--no-sandbox" }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "const": "--disable-gpu" }, "minContains": 1, "maxContains": 1 },
+            {
+              "contains": { "const": "--disable-background-networking" },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": { "const": "--disable-component-update" },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": { "const": "--disable-default-apps" },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            { "contains": { "const": "--disable-extensions" }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "const": "--disable-sync" }, "minContains": 1, "maxContains": 1 },
+            {
+              "contains": { "const": "--disable-crash-reporter" },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            { "contains": { "const": "--disable-breakpad" }, "minContains": 1, "maxContains": 1 },
+            {
+              "contains": { "const": "--metrics-recording-only" },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            { "contains": { "const": "--no-first-run" }, "minContains": 1, "maxContains": 1 },
+            {
+              "contains": { "const": "--no-default-browser-check" },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            { "contains": { "const": "--hide-scrollbars" }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "const": "--enable-automation" }, "minContains": 1, "maxContains": 1 },
+            { "contains": { "const": "--disable-cache" }, "minContains": 1, "maxContains": 1 },
+            {
+              "contains": { "const": "--window-size=1440,1200" },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            { "contains": { "const": "about:blank" }, "minContains": 1, "maxContains": 1 }
+          ]
+        },
+        "headless": { "const": true },
+        "protocol": { "const": "Chrome DevTools Protocol" },
+        "browserSessionId": { "type": "string", "pattern": "^[A-Za-z0-9-]+$" },
+        "profile": { "$ref": "#/$defs/profile" },
+        "cgroup": { "$ref": "#/$defs/cgroup" },
+        "processes": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/processIdentity" }
+        }
+      }
+    },
+    "server": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin", "mode", "launcher"],
+      "properties": {
+        "origin": { "type": "string", "pattern": "^http://127\\.0\\.0\\.1:[0-9]+$" },
+        "mode": { "const": "public" },
+        "launcher": { "$ref": "#/$defs/processIdentity" }
+      }
+    },
+    "targetSession": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targetId", "sessionId"],
+      "properties": {
+        "targetId": { "type": "string", "minLength": 1 },
+        "sessionId": { "type": "string", "minLength": 1 }
+      }
+    },
+    "sessionOwnership": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["browserSessionId", "page", "workers"],
+      "properties": {
+        "browserSessionId": { "type": "string", "minLength": 1 },
+        "page": { "$ref": "#/$defs/targetSession" },
+        "workers": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/targetSession" }
+        }
+      }
+    },
+    "finalState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "result", "progress", "startDisabled", "cancelDisabled"],
+      "properties": {
+        "status": { "type": "string", "minLength": 1 },
+        "result": { "type": "string", "minLength": 1 },
+        "progress": { "type": "number", "minimum": 0, "maximum": 3 },
+        "startDisabled": { "type": "boolean" },
+        "cancelDisabled": { "type": "boolean" }
+      }
+    },
+    "lifecycleEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "index"],
+      "properties": {
+        "kind": { "enum": ["worker-created", "worker-terminated"] },
+        "index": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "url": { "type": "string", "minLength": 1 }
+      }
+    },
+    "supportedBody": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "bytes", "sha256", "base64", "sourcePath", "gitBlob"],
+      "properties": {
+        "status": { "const": "supported" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "base64": { "type": "string", "minLength": 1, "contentEncoding": "base64" },
+        "sourcePath": { "type": "string", "minLength": 1 },
+        "gitBlob": { "$ref": "#/$defs/gitBlob" }
+      }
+    },
+    "network": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "context",
+        "sessionId",
+        "requestId",
+        "url",
+        "method",
+        "resourceType",
+        "status",
+        "mimeType",
+        "fromDiskCache",
+        "fromServiceWorker",
+        "failed",
+        "errorText",
+        "responseBody"
+      ],
+      "properties": {
+        "context": { "enum": ["page", "worker"] },
+        "sessionId": { "type": "string", "minLength": 1 },
+        "requestId": { "type": "string", "minLength": 1 },
+        "url": { "type": "string", "pattern": "^http://127\\.0\\.0\\.1:" },
+        "method": { "const": "GET" },
+        "resourceType": { "type": "string", "minLength": 1 },
+        "status": { "const": 200 },
+        "mimeType": { "type": "string", "minLength": 1 },
+        "fromDiskCache": { "const": false },
+        "fromServiceWorker": { "const": false },
+        "failed": { "const": false },
+        "errorText": { "type": "null" },
+        "responseBody": { "$ref": "#/$defs/supportedBody" }
+      }
+    },
+    "executedScript": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "context",
+        "sessionId",
+        "targetId",
+        "route",
+        "sourcePath",
+        "bytes",
+        "sha256",
+        "base64",
+        "gitBlob"
+      ],
+      "properties": {
+        "context": { "enum": ["page", "worker"] },
+        "sessionId": { "type": "string", "minLength": 1 },
+        "targetId": { "type": "string", "minLength": 1 },
+        "route": { "type": "string", "pattern": "^/" },
+        "sourcePath": { "type": "string", "minLength": 1 },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "base64": { "type": "string", "minLength": 1, "contentEncoding": "base64" },
+        "gitBlob": { "$ref": "#/$defs/gitBlob" }
+      }
+    },
+    "console": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["context", "sessionId", "type", "arguments", "timestamp"],
+      "properties": {
+        "context": { "enum": ["page", "worker"] },
+        "sessionId": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "not": { "const": "error" } },
+        "arguments": { "type": "array", "items": { "type": "string" } },
+        "timestamp": { "type": "number" }
+      }
+    },
+    "axNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "name", "ignored"],
+      "properties": {
+        "role": { "type": "string" },
+        "name": { "type": "string" },
+        "ignored": { "type": "boolean" }
+      }
+    },
+    "accessibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["inspectedBy", "nodes", "treeSha256", "assertions"],
+      "properties": {
+        "inspectedBy": { "const": "Accessibility.getFullAXTree" },
+        "nodes": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/axNode" } },
+        "treeSha256": { "$ref": "#/$defs/sha256" },
+        "assertions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mainPresent",
+            "headingNamed",
+            "targetNamed",
+            "startNamed",
+            "cancelNamed",
+            "statusPresent",
+            "resultFocusable"
+          ],
+          "properties": {
+            "mainPresent": { "const": true },
+            "headingNamed": { "const": true },
+            "targetNamed": { "const": true },
+            "startNamed": { "const": true },
+            "cancelNamed": { "const": true },
+            "statusPresent": { "const": true },
+            "resultFocusable": { "const": true }
+          }
+        }
+      }
+    },
+    "screenshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file", "bytes", "sha256"],
+      "properties": {
+        "file": { "type": "string", "pattern": "^screenshots/[a-z0-9-]+\\.png$" },
+        "bytes": { "type": "integer", "minimum": 8 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "javascriptChecks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["javascriptMaximumError"],
+      "properties": { "javascriptMaximumError": { "const": 0 } }
+    },
+    "wasmChecks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["wasmMaximumError"],
+      "properties": { "wasmMaximumError": { "const": 0 } }
+    },
+    "bothChecks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["javascriptMaximumError", "wasmMaximumError", "crossTarget"],
+      "properties": {
+        "javascriptMaximumError": { "const": 0 },
+        "wasmMaximumError": { "const": 0 },
+        "crossTarget": {
+          "const": {
+            "passed": true,
+            "maximumAbsoluteError": 0,
+            "maximumRelativeError": 0,
+            "violations": 0
+          }
+        }
+      }
+    },
+    "resultBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "selectedTarget",
+        "executionTarget",
+        "bodies",
+        "joints",
+        "timesteps",
+        "checkpoints",
+        "checkpointStateValues",
+        "checkpointDigest",
+        "metrics",
+        "counters",
+        "checks",
+        "angularWork",
+        "performanceClaim",
+        "passed"
+      ],
+      "properties": {
+        "selectedTarget": { "enum": ["javascript", "wasm-linear", "both"] },
+        "executionTarget": { "enum": ["javascript", "wasm-linear"] },
+        "bodies": { "const": 500 },
+        "joints": { "const": 19 },
+        "timesteps": { "const": 1800 },
+        "checkpoints": { "const": 6 },
+        "checkpointStateValues": { "const": 18000 },
+        "checkpointDigest": { "const": "b54a6129" },
+        "metrics": { "$ref": "#/$defs/metrics" },
+        "counters": { "$ref": "#/$defs/counterBase" },
+        "checks": {
+          "oneOf": [
+            { "$ref": "#/$defs/javascriptChecks" },
+            { "$ref": "#/$defs/wasmChecks" },
+            { "$ref": "#/$defs/bothChecks" }
+          ]
+        },
+        "angularWork": { "$ref": "#/$defs/angularWork" },
+        "performanceClaim": { "const": false },
+        "passed": { "const": true }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "action",
+        "target",
+        "sessionOwnership",
+        "statusHistory",
+        "finalState",
+        "lifecycleEvents",
+        "network",
+        "executedScripts",
+        "console",
+        "exceptions",
+        "accessibility",
+        "screenshot"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "action": {
+          "enum": [
+            "complete",
+            "wrong-token",
+            "stale-restart",
+            "restart",
+            "timeout",
+            "cancel",
+            "pagehide"
+          ]
+        },
+        "target": { "enum": ["javascript", "wasm-linear", "both"] },
+        "sessionOwnership": { "$ref": "#/$defs/sessionOwnership" },
+        "statusHistory": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "finalState": { "$ref": "#/$defs/finalState" },
+        "lifecycleEvents": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/$defs/lifecycleEvent" }
+        },
+        "network": { "type": "array", "minItems": 3, "items": { "$ref": "#/$defs/network" } },
+        "executedScripts": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/$defs/executedScript" }
+        },
+        "console": { "type": "array", "items": { "$ref": "#/$defs/console" } },
+        "exceptions": { "type": "array", "maxItems": 0 },
+        "accessibility": { "$ref": "#/$defs/accessibility" },
+        "screenshot": { "$ref": "#/$defs/screenshot" },
+        "result": { "$ref": "#/$defs/resultBase" },
+        "lifecycle": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["checks"],
+          "properties": {
+            "checks": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    },
+    "completeScenario": {
+      "allOf": [
+        { "$ref": "#/$defs/scenario" },
+        {
+          "type": "object",
+          "required": ["result"],
+          "properties": {
+            "result": { "$ref": "#/$defs/resultBase" },
+            "lifecycle": false,
+            "action": { "const": "complete" },
+            "finalState": {
+              "type": "object",
+              "properties": {
+                "status": { "const": "Complete. Correctness checks passed." },
+                "progress": { "const": 3 },
+                "startDisabled": { "const": false },
+                "cancelDisabled": { "const": true }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "lifecycleScenario": {
+      "allOf": [
+        { "$ref": "#/$defs/scenario" },
+        {
+          "type": "object",
+          "required": ["lifecycle"],
+          "properties": {
+            "result": false,
+            "lifecycle": {
+              "type": "object",
+              "required": ["checks"],
+              "properties": { "checks": { "type": "array" } }
+            }
+          }
+        }
+      ]
+    },
+    "javascriptComplete": {
+      "allOf": [
+        { "$ref": "#/$defs/completeScenario" },
+        {
+          "type": "object",
+          "properties": {
+            "id": { "const": "javascript-complete" },
+            "target": { "const": "javascript" },
+            "result": {
+              "type": "object",
+              "properties": {
+                "selectedTarget": { "const": "javascript" },
+                "executionTarget": { "const": "javascript" },
+                "counters": { "$ref": "#/$defs/javascriptCounters" },
+                "checks": { "$ref": "#/$defs/javascriptChecks" }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "wasmComplete": {
+      "allOf": [
+        { "$ref": "#/$defs/completeScenario" },
+        {
+          "type": "object",
+          "properties": {
+            "id": { "const": "wasm-linear-complete" },
+            "target": { "const": "wasm-linear" },
+            "result": {
+              "type": "object",
+              "properties": {
+                "selectedTarget": { "const": "wasm-linear" },
+                "executionTarget": { "const": "wasm-linear" },
+                "counters": { "$ref": "#/$defs/wasmCounters" },
+                "checks": { "$ref": "#/$defs/wasmChecks" }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "bothComplete": {
+      "allOf": [
+        { "$ref": "#/$defs/completeScenario" },
+        {
+          "type": "object",
+          "properties": {
+            "id": { "const": "both-complete" },
+            "target": { "const": "both" },
+            "result": {
+              "type": "object",
+              "properties": {
+                "selectedTarget": { "const": "both" },
+                "executionTarget": { "const": "wasm-linear" },
+                "counters": { "$ref": "#/$defs/wasmCounters" },
+                "checks": { "$ref": "#/$defs/bothChecks" }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "wrongToken": {
+      "allOf": [
+        { "$ref": "#/$defs/lifecycleScenario" },
+        {
+          "type": "object",
+          "properties": {
+            "id": { "const": "wrong-token" },
+            "action": { "const": "wrong-token" },
+            "target": { "const": "javascript" }
+          }
+        }
+      ]
+    },
+    "staleRestart": {
+      "allOf": [
+        { "$ref": "#/$defs/lifecycleScenario" },
+        {
+          "type": "object",
+          "properties": {
+            "id": { "const": "stale-restart" },
+            "action": { "const": "stale-restart" },
+            "target": { "const": "javascript" },
+            "sessionOwnership": {
+              "type": "object",
+              "properties": { "workers": { "type": "array", "minItems": 2, "maxItems": 2 } }
+            }
+          }
+        }
+      ]
+    },
+    "restart": {
+      "allOf": [
+        { "$ref": "#/$defs/lifecycleScenario" },
+        {
+          "type": "object",
+          "properties": {
+            "id": { "const": "restart" },
+            "action": { "const": "restart" },
+            "target": { "const": "wasm-linear" },
+            "sessionOwnership": {
+              "type": "object",
+              "properties": { "workers": { "type": "array", "minItems": 2, "maxItems": 2 } }
+            }
+          }
+        }
+      ]
+    },
+    "timeout": {
+      "allOf": [
+        { "$ref": "#/$defs/lifecycleScenario" },
+        {
+          "type": "object",
+          "properties": {
+            "id": { "const": "timeout" },
+            "action": { "const": "timeout" },
+            "target": { "const": "wasm-linear" },
+            "finalState": {
+              "type": "object",
+              "properties": {
+                "status": { "const": "Run stopped after the 30 second limit." },
+                "startDisabled": { "const": false },
+                "cancelDisabled": { "const": true }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "cancel": {
+      "allOf": [
+        { "$ref": "#/$defs/lifecycleScenario" },
+        {
+          "type": "object",
+          "properties": {
+            "id": { "const": "cancel" },
+            "action": { "const": "cancel" },
+            "target": { "const": "javascript" },
+            "finalState": {
+              "type": "object",
+              "properties": {
+                "status": { "const": "Cancelled. The worker was terminated." },
+                "result": { "const": "No result retained." },
+                "progress": { "const": 0 },
+                "startDisabled": { "const": false },
+                "cancelDisabled": { "const": true }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "pagehide": {
+      "allOf": [
+        { "$ref": "#/$defs/lifecycleScenario" },
+        {
+          "type": "object",
+          "properties": {
+            "id": { "const": "pagehide" },
+            "action": { "const": "pagehide" },
+            "target": { "const": "javascript" }
+          }
+        }
+      ]
+    },
+    "cleanupCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome", "checkedAt", "remaining"],
+      "properties": {
+        "outcome": { "const": "success" },
+        "checkedAt": { "type": "string", "format": "date-time" },
+        "remaining": { "type": "array", "maxItems": 0 }
+      }
+    },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["browserProcesses", "cgroup", "profile", "server"],
+      "properties": {
+        "browserProcesses": { "$ref": "#/$defs/cleanupCheck" },
+        "cgroup": { "$ref": "#/$defs/cleanupCheck" },
+        "profile": { "$ref": "#/$defs/cleanupCheck" },
+        "server": { "$ref": "#/$defs/cleanupCheck" }
+      }
+    }
+  }
+}
