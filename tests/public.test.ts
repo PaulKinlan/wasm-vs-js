@@ -101,7 +101,7 @@ Deno.test("workload catalog exposes exact totals, filters, and honest implementa
   assert(page.includes("P0 harness/calibration"));
   assert(page.includes("P1 representative applications"));
   assert(page.includes("P2 breadth/stress"));
-  assert(page.includes("Coverage is 0/38"));
+  assert(page.includes("Coverage is 1/38"));
   assert(page.includes("v2 proposal implementation inventory"));
   assert(page.includes("Runnable demos: 9"));
   assert(page.includes("5 full proposal-validation routes and 4 reduced-fixture routes"));

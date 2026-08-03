@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.paulkinlan-ea.deno.net/data/base-implementation-status.schema.json",
+  "title": "Frozen v1 catalog supplemental implementation status",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "catalogId",
+    "catalogSha256",
+    "counts",
+    "implemented",
+    "remainingIds"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "catalogId": { "const": "workload-catalog-v1" },
+    "catalogSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["denominator", "implemented", "remaining"],
+      "properties": {
+        "denominator": { "const": 38 },
+        "implemented": { "type": "integer", "minimum": 0, "maximum": 38 },
+        "remaining": { "type": "integer", "minimum": 0, "maximum": 38 }
+      }
+    },
+    "implemented": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "registration",
+          "registrationSha256",
+          "buildManifest",
+          "buildManifestSha256",
+          "validation",
+          "validationSha256",
+          "demoRoute",
+          "performanceStatus"
+        ],
+        "properties": {
+          "id": { "type": "string" },
+          "registration": { "type": "string" },
+          "registrationSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "buildManifest": { "type": "string" },
+          "buildManifestSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "validation": { "type": "string" },
+          "validationSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "demoRoute": { "type": "string", "pattern": "^/demos/" },
+          "performanceStatus": { "const": "unavailable-not-collected" }
+        }
+      }
+    },
+    "remainingIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+  }
+}

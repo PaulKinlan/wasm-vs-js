@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "crypto.file-integrity.v1",
+  "sourceRevision": "WORKTREE-CANDIDATE",
+  "toolchain": {
+    "deno": "2.9.0",
+    "clang": "22.1.8",
+    "lld": "22.1.8",
+    "target": "wasm32-unknown-unknown"
+  },
+  "build": {
+    "command": "clang --target=wasm32-unknown-unknown -O3 -nostdlib -Wl,--no-entry -Wl,--export-memory -Wl,--initial-memory=196608 -Wl,--max-memory=285343744 -Wl,--strip-all -o ./public/artifacts/crypto-file-integrity/crypto-file-integrity.wasm ./benchmarks/base/crypto-file-integrity/sha256.c",
+    "reproducible": true,
+    "optimization": "-O3",
+    "simd": false,
+    "threads": false,
+    "memory": {
+      "initialPages": 3,
+      "maximumPages": 4354,
+      "growth": "schedule-dependent"
+    }
+  },
+  "sources": [
+    {
+      "path": "benchmarks/base/crypto-file-integrity/sha256.c",
+      "sha256": "fa6bed95ac0190203dc0ca8f523555790832434ec1afe75534848a1560cc8bb2"
+    },
+    {
+      "path": "benchmarks/base/crypto-file-integrity/sha256.js",
+      "sha256": "9f55b45bc3a1cd9c0b86086070107dba3871c2db113bf9be5c65693a044b1826"
+    },
+    {
+      "path": "benchmarks/base/crypto-file-integrity/workload.js",
+      "sha256": "0ed4b3ffa23906161748acb233a98a9e7993f942c3b5fc3b23377dd7b97a9223"
+    }
+  ],
+  "artifact": {
+    "path": "public/artifacts/crypto-file-integrity/crypto-file-integrity.wasm",
+    "byteLength": 2585,
+    "sha256": "a55a38bcb6c5a9e835ce7a75b733051efca0b186309d012788727164076f36cd"
+  }
+}
