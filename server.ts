@@ -130,6 +130,46 @@ const routes = new Map<string, [string, string, boolean?]>([
   ]],
   ["/benchmarks", ["public/benchmarks/index.html", "text/html; charset=utf-8"]],
   ["/benchmarks/", ["public/benchmarks/index.html", "text/html; charset=utf-8"]],
+  ["/benchmarks/serialization-protobuf-gateway", [
+    "public/benchmarks/serialization-protobuf-gateway/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/serialization-protobuf-gateway/", [
+    "public/benchmarks/serialization-protobuf-gateway/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/serialization-protobuf-gateway/protobuf-runner.js", [
+    "public/benchmarks/serialization-protobuf-gateway/protobuf-runner.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/serialization-protobuf-gateway/protobuf-worker.js", [
+    "public/benchmarks/serialization-protobuf-gateway/protobuf-worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/serialization-protobuf-gateway/workload.js", [
+    "benchmarks/base/serialization-protobuf-gateway/workload.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/serialization-protobuf-gateway/implementation-contract.v1.json", [
+    "benchmarks/base/serialization-protobuf-gateway/implementation-contract.v1.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/serialization-protobuf-gateway/serialization-protobuf-gateway.wasm", [
+    "public/artifacts/serialization-protobuf-gateway/serialization-protobuf-gateway.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/serialization-protobuf-gateway/fixture-manifest.json", [
+    "public/artifacts/serialization-protobuf-gateway/fixture-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/serialization-protobuf-gateway/output-manifest.json", [
+    "public/artifacts/serialization-protobuf-gateway/output-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/serialization-protobuf-gateway/build-manifest.json", [
+    "public/artifacts/serialization-protobuf-gateway/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/demos/game-family/demo.js", [
     "public/demos/game-family/demo.js",
     "text/javascript; charset=utf-8",
