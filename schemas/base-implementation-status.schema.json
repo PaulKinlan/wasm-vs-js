@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.paulkinlan-ea.deno.net/data/base-implementation-status.schema.json",
+  "title": "Frozen v1 catalog supplemental implementation status",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "catalogId",
+    "catalogSha256",
+    "counts",
+    "implemented",
+    "staticForBrowserCandidates",
+    "remainingIds"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "catalogId": { "const": "workload-catalog-v1" },
+    "catalogSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["denominator", "implemented", "remaining", "staticForBrowserCandidates"],
+      "properties": {
+        "denominator": { "const": 38 },
+        "implemented": { "const": 0 },
+        "remaining": { "const": 38 },
+        "staticForBrowserCandidates": { "const": 1 }
+      }
+    },
+    "implemented": { "const": [] },
+    "staticForBrowserCandidates": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "status",
+          "countsTowardCoverage",
+          "promotionGate",
+          "registration",
+          "registrationSha256",
+          "buildManifest",
+          "buildManifestSha256",
+          "validation",
+          "validationSha256",
+          "demoRoute",
+          "performanceStatus"
+        ],
+        "properties": {
+          "id": { "const": "crypto.file-integrity.v1" },
+          "status": { "const": "static-for-browser" },
+          "countsTowardCoverage": { "const": false },
+          "promotionGate": { "const": "retained-browser-validation-required" },
+          "registration": { "type": "string" },
+          "registrationSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "buildManifest": { "type": "string" },
+          "buildManifestSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "validation": { "type": "string" },
+          "validationSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "demoRoute": { "const": "/demos/crypto.file-integrity.v1/" },
+          "performanceStatus": { "const": "unavailable-not-collected" }
+        }
+      }
+    },
+    "remainingIds": {
+      "type": "array",
+      "minItems": 38,
+      "maxItems": 38,
+      "items": { "type": "string" },
+      "uniqueItems": true
+    }
+  }
+}

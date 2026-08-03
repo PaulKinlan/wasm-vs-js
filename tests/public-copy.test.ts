@@ -80,7 +80,8 @@ Deno.test("public prose retains the benchmark's current evidence limits", async 
   assert(catalog.includes("not the full proposal contract"));
   assert(experiment.includes("Corpus status: not collected"));
   assert(experiment.includes("grants no browser authorization"));
-  assert(readme.includes("Catalog implementation coverage is **0/38**"));
+  assert(readme.includes("Catalog implementation coverage remains **0/38**"));
+  assert(readme.includes("static-for-browser candidate"));
   assert(readme.includes("The page uploads and stores nothing"));
   assert(readme.includes("no accepted performance corpus or performance conclusion"));
   assert(readme.includes("Inspectability files use exact route entries."));

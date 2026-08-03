@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "crypto.file-integrity.v1",
+  "catalogId": "workload-catalog-v1",
+  "catalogEntryStatus": "implemented-by-supplement-with-frozen-definition-unchanged",
+  "catalogContract": {
+    "algorithmFamily": "sha256-fixed-chunk-schedule",
+    "oracle": "exact-hash",
+    "fixtures": {
+      "kinds": [
+        "seeded-pseudorandom",
+        "all-zero"
+      ],
+      "sizesBytes": [
+        1048576,
+        16777216,
+        268435456
+      ],
+      "seed": "0x6d2b79f5",
+      "generator": "xorshift32 words serialized little-endian; zero fixture initialized to 0x00",
+      "licenseSpdx": "CC0-1.0",
+      "redistribution": "generated"
+    },
+    "schedulesBytes": [
+      1024,
+      65536,
+      "whole-buffer"
+    ],
+    "variants": [
+      "js-controlled",
+      "wasm-linear-controlled"
+    ],
+    "excludedFromControlledPair": [
+      "WebCrypto host intrinsic",
+      "SIMD",
+      "threads",
+      "BLAKE3"
+    ],
+    "counterDefinitions": {
+      "input-bytes": "exact bytes consumed by SHA-256",
+      "scheduled-chunks": "calls to the controlled update boundary",
+      "sha256-compression-blocks": "64-byte blocks including final padding",
+      "copied-bytes": "bytes copied across the JavaScript-to-Wasm linear-memory boundary",
+      "boundary-crossings": "reset, update, and finish calls into linear Wasm; zero for JavaScript",
+      "engine-buffer-allocations": "hash-engine buffers allocated per case, excluding the common generated fixture, Wasm instantiation, manifest validation, and digest-to-hex validation formatting"
+    }
+  },
+  "fixtures": [
+    {
+      "id": "seeded-pseudorandom-1048576",
+      "kind": "seeded-pseudorandom",
+      "byteLength": 1048576,
+      "sha256": "f8a73899aaefadab5b430a0742cdabd33db005321d10f54ecf122e92d4dc803e",
+      "expectedDigestSha256": "f8a73899aaefadab5b430a0742cdabd33db005321d10f54ecf122e92d4dc803e"
+    },
+    {
+      "id": "seeded-pseudorandom-16777216",
+      "kind": "seeded-pseudorandom",
+      "byteLength": 16777216,
+      "sha256": "5edbf30842556b3d7bd40018896119e9805abd2e7705d8b873bade9dab850e1f",
+      "expectedDigestSha256": "5edbf30842556b3d7bd40018896119e9805abd2e7705d8b873bade9dab850e1f"
+    },
+    {
+      "id": "seeded-pseudorandom-268435456",
+      "kind": "seeded-pseudorandom",
+      "byteLength": 268435456,
+      "sha256": "bc5c01970c2033cae17a1d2d125fcf3ce7faabbcbde003a669725c52d9481c13",
+      "expectedDigestSha256": "bc5c01970c2033cae17a1d2d125fcf3ce7faabbcbde003a669725c52d9481c13"
+    },
+    {
+      "id": "all-zero-1048576",
+      "kind": "all-zero",
+      "byteLength": 1048576,
+      "sha256": "30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58",
+      "expectedDigestSha256": "30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58"
+    },
+    {
+      "id": "all-zero-16777216",
+      "kind": "all-zero",
+      "byteLength": 16777216,
+      "sha256": "080acf35a507ac9849cfcba47dc2ad83e01b75663a516279c8b9d243b719643e",
+      "expectedDigestSha256": "080acf35a507ac9849cfcba47dc2ad83e01b75663a516279c8b9d243b719643e"
+    },
+    {
+      "id": "all-zero-268435456",
+      "kind": "all-zero",
+      "byteLength": 268435456,
+      "sha256": "a6d72ac7690f53be6ae46ba88506bd97302a093f7108472bd9efc3cefda06484",
+      "expectedDigestSha256": "a6d72ac7690f53be6ae46ba88506bd97302a093f7108472bd9efc3cefda06484"
+    }
+  ],
+  "fixedWork": {
+    "casesPerTarget": 18,
+    "fixtureBytesPerTarget": 1717567488,
+    "digestBytesPerCase": 32
+  }
+}

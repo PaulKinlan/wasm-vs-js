@@ -164,6 +164,58 @@ const routes = new Map<string, [string, string, boolean?]>([
     "application/json; charset=utf-8",
   ]],
   ["/workload-catalog.js", ["public/workload-catalog.js", "text/javascript; charset=utf-8"]],
+  ["/demos/crypto.file-integrity.v1", [
+    "public/demos/crypto.file-integrity.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/demos/crypto.file-integrity.v1/", [
+    "public/demos/crypto.file-integrity.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/crypto-file-integrity-demo.js", [
+    "public/crypto-file-integrity-demo.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/crypto-file-integrity-worker.js", [
+    "public/crypto-file-integrity-worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/crypto-file-integrity/sha256.js", [
+    "benchmarks/base/crypto-file-integrity/sha256.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/crypto-file-integrity/workload.js", [
+    "benchmarks/base/crypto-file-integrity/workload.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/artifacts/crypto-file-integrity/crypto-file-integrity.wasm", [
+    "public/artifacts/crypto-file-integrity/crypto-file-integrity.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/crypto-file-integrity/build-manifest.json", [
+    "public/artifacts/crypto-file-integrity/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/registrations/base/crypto.file-integrity.v1.json", [
+    "registrations/base/crypto.file-integrity.v1.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base/crypto.file-integrity.v1/validation.json", [
+    "public/evidence/base/crypto.file-integrity.v1/validation.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base/crypto.file-integrity.v1/validation.schema.json", [
+    "public/evidence/base/crypto.file-integrity.v1/validation.schema.json",
+    "application/schema+json; charset=utf-8",
+  ]],
+  ["/data/base-implementation-status.v1.json", [
+    "public/data/base-implementation-status.v1.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/data/base-implementation-status.schema.json", [
+    "public/data/base-implementation-status.schema.json",
+    "application/schema+json; charset=utf-8",
+  ]],
   ["/demos/text.diff-patch.v1", [
     "public/demos/text.diff-patch.v1/index.html",
     "text/html; charset=utf-8",
