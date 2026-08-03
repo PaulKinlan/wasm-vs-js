@@ -114,7 +114,7 @@
         "sources": {
           "type": "array",
           "minItems": 2,
-          "maxItems": 32,
+          "maxItems": 64,
           "items": {
             "$ref": "#/$defs/sourceReference"
           }
@@ -144,6 +144,12 @@
               "$ref": "#/$defs/fileReference"
             },
             "output": {
+              "$ref": "#/$defs/fileReference"
+            },
+            "reference": {
+              "$ref": "#/$defs/fileReference"
+            },
+            "build": {
               "$ref": "#/$defs/fileReference"
             }
           }

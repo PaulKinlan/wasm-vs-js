@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "status": "proposal-validation-only",
+  "entryId": "audio.stft.v1",
+  "benchmarkSlug": "audio-stft",
+  "serialization": "canonical-little-endian-f32",
+  "byteLength": 396280,
+  "sha256": "dfabd66f9e5272f76915165b663cb6c5cb37896454eb6ac02ea13d2f241f326a",
+  "fields": [
+    {
+      "name": "samples",
+      "value": 96000
+    },
+    {
+      "name": "sample-rate",
+      "value": 48000
+    },
+    {
+      "name": "frame-size",
+      "value": 1024
+    },
+    {
+      "name": "hop-size",
+      "value": 256
+    },
+    {
+      "name": "frames",
+      "value": 372
+    },
+    {
+      "name": "padding",
+      "value": "none"
+    }
+  ],
+  "sourceCommit": "6f507efc2961983ed087bab0bf18fd845aebd100"
+}

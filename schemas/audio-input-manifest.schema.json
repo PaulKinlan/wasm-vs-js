@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/audio-input-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "status",
+    "entryId",
+    "benchmarkSlug",
+    "serialization",
+    "byteLength",
+    "sha256",
+    "fields",
+    "sourceCommit"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "status": { "const": "proposal-validation-only" },
+    "entryId": { "pattern": "^audio\\.(fft|fir|stft)\\.v1$" },
+    "benchmarkSlug": { "enum": ["audio-fft", "audio-fir", "audio-stft"] },
+    "serialization": { "const": "canonical-little-endian-f32" },
+    "byteLength": { "type": "integer", "minimum": 1 },
+    "sha256": { "pattern": "^[a-f0-9]{64}$" },
+    "fields": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "value"],
+        "properties": {
+          "name": { "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+          "value": { "type": ["string", "number"] }
+        }
+      }
+    },
+    "sourceCommit": { "pattern": "^[a-f0-9]{40}$" }
+  }
+}

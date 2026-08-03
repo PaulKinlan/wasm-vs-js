@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "status": "proposal-validation-only",
+  "entryId": "audio.fft.v1",
+  "benchmarkSlug": "audio-fft",
+  "title": "Radix-2 complex FFT",
+  "tier": "T2",
+  "class": "kernel",
+  "parameters": [
+    { "name": "fft-size", "value": 4096 },
+    { "name": "transforms", "value": 32 },
+    { "name": "direction", "value": "forward" },
+    { "name": "normalization", "value": "none" },
+    { "name": "layout", "value": "interleaved-complex" }
+  ],
+  "input": {
+    "serialization": "canonical-little-endian-f32",
+    "generatorMapping": "xorshift32 seed 0x9e3779b9; three words per transform select one of four quarter-frame impulse positions, sign, and power-of-two exponent [-2,2]; imaginary and remaining fields are canonical +0",
+    "sha256": "f312693f97034ff558b541f771564e9adcc077174d84202351199e3d18fc8b01"
+  },
+  "oracle": {
+    "floatingPointPolicy": "strict-f32-frozen-order",
+    "checks": ["complete-output-bound", "structural-invariants", "work-counters"],
+    "absoluteTolerance": 0.000001,
+    "relativeTolerance": 0.00001,
+    "outputSha256": "f6285cd3244f76eed0a041f30dbfa43ef8dc49012ec92b77514edc569aadad6e"
+  },
+  "workCounters": {
+    "transforms": 32,
+    "samples": 131072,
+    "stages": 384,
+    "butterflies": 786432,
+    "complex-multiplies": 786432,
+    "input-bytes": 1081336,
+    "output-bytes": 1048576,
+    "boundary-crossings": 32
+  },
+  "phases": {
+    "load": "measured",
+    "initialize": "measured",
+    "transfer": "measured",
+    "compute": "measured",
+    "validation": "separate",
+    "render": "not-applicable",
+    "end-to-end": "measured"
+  },
+  "variants": [
+    {
+      "id": "js-controlled",
+      "target": "javascript",
+      "track": "controlled",
+      "algorithmFamilyId": "audio-fft-controlled-v1",
+      "implemented": true
+    },
+    {
+      "id": "wasm-linear-controlled",
+      "target": "wasm-linear",
+      "track": "controlled",
+      "algorithmFamilyId": "audio-fft-controlled-v1",
+      "implemented": true
+    },
+    {
+      "id": "js-optimized",
+      "target": "javascript",
+      "track": "optimized",
+      "algorithmFamilyId": "audio-fft-js-optimized-v1",
+      "implemented": false
+    },
+    {
+      "id": "wasm-linear-optimized",
+      "target": "wasm-linear",
+      "track": "optimized",
+      "algorithmFamilyId": "audio-fft-wasm-linear-optimized-v1",
+      "implemented": false
+    }
+  ],
+  "wasmMemory": { "initialPages": 32, "maximumPages": 32, "growth": false },
+  "missingCells": ["implementation-and-results"],
+  "performanceClaims": []
+}

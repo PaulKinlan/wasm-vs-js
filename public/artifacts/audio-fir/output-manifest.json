@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "status": "proposal-validation-only",
+  "authoritativePerformanceEvidence": false,
+  "entryId": "audio.fir.v1",
+  "benchmarkSlug": "audio-fir",
+  "serialization": "canonical-little-endian-f32-signed-zero-normalized-positive",
+  "byteLength": 525308,
+  "sha256": "e4b89ba6d65fa9ac3aa5f1b30da32343e54cc81a9ee9d6f84eaf8b38e823fb5f",
+  "variants": {
+    "js-controlled": {
+      "status": "passed",
+      "completeOutputSha256": "e4b89ba6d65fa9ac3aa5f1b30da32343e54cc81a9ee9d6f84eaf8b38e823fb5f",
+      "referenceSha256": "3146faf58d2eecd43b74d4297fcc575b0a688cb2e2b2d9ab1b1c9f3d1e21a564",
+      "oracleChecks": {
+        "complete-output-bound": {
+          "status": "passed",
+          "metrics": {
+            "comparedComponents": 131327,
+            "maximumAbsoluteError": 0.0000011920928955078125,
+            "maximumRelativeError": 0.0035470821886700804,
+            "absoluteTolerance": 0.000001,
+            "relativeTolerance": 0.00001,
+            "finite": true
+          }
+        },
+        "structural-invariants": {
+          "status": "passed",
+          "metrics": {
+            "outputLength": 131327,
+            "dcGain": 0.999999705222649,
+            "impulseLatency": 1,
+            "finite": true
+          }
+        }
+      },
+      "workCounterGate": {
+        "status": "passed",
+        "metrics": {
+          "counterCount": 8,
+          "exact": true
+        }
+      },
+      "workCounters": {
+        "samples": 131072,
+        "taps": 256,
+        "multiply-accumulates": 33554432,
+        "input-bytes": 524288,
+        "coefficient-bytes": 1024,
+        "output-bytes": 525308,
+        "allocations": 1,
+        "boundary-crossings": 1
+      }
+    },
+    "wasm-linear-controlled": {
+      "status": "passed",
+      "completeOutputSha256": "e4b89ba6d65fa9ac3aa5f1b30da32343e54cc81a9ee9d6f84eaf8b38e823fb5f",
+      "referenceSha256": "3146faf58d2eecd43b74d4297fcc575b0a688cb2e2b2d9ab1b1c9f3d1e21a564",
+      "oracleChecks": {
+        "complete-output-bound": {
+          "status": "passed",
+          "metrics": {
+            "comparedComponents": 131327,
+            "maximumAbsoluteError": 0.0000011920928955078125,
+            "maximumRelativeError": 0.0035470821886700804,
+            "absoluteTolerance": 0.000001,
+            "relativeTolerance": 0.00001,
+            "finite": true
+          }
+        },
+        "structural-invariants": {
+          "status": "passed",
+          "metrics": {
+            "outputLength": 131327,
+            "dcGain": 0.999999705222649,
+            "impulseLatency": 1,
+            "finite": true
+          }
+        }
+      },
+      "workCounterGate": {
+        "status": "passed",
+        "metrics": {
+          "counterCount": 8,
+          "exact": true
+        }
+      },
+      "workCounters": {
+        "samples": 131072,
+        "taps": 256,
+        "multiply-accumulates": 33554432,
+        "input-bytes": 524288,
+        "coefficient-bytes": 1024,
+        "output-bytes": 525308,
+        "allocations": 1,
+        "boundary-crossings": 1
+      }
+    }
+  },
+  "performanceClaims": [],
+  "sourceCommit": "6f507efc2961983ed087bab0bf18fd845aebd100"
+}
