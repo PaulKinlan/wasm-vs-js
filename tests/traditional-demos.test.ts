@@ -26,7 +26,7 @@ type AjvConstructor = new (options?: Record<string, unknown>) => {
 const Ajv2020 = ((Ajv2020Module as unknown as { default?: AjvConstructor }).default ??
   Ajv2020Module) as unknown as AjvConstructor;
 const MANIFEST_PATH = "public/artifacts/traditional-demos/demo-manifest.v1.json";
-const ENGINE_COMMIT = "3b85ac13019808920bc96e287a20bc2a83cd7bf8";
+const _ENGINE_COMMIT = "3b85ac13019808920bc96e287a20bc2a83cd7bf8";
 
 Deno.test("traditional demo manifest is closed, reduced, reproducible, and engine-commit-bound", async () => {
   const schema = JSON.parse(
