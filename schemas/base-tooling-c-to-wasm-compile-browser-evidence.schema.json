@@ -1,0 +1,3434 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.ai-focus.dev/schemas/base-tooling-c-to-wasm-compile-browser-evidence.v1.json",
+  "title": "tooling.c-to-wasm-compile.v1 authoritative parent Chrome evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "evidenceId",
+    "workloadId",
+    "collectedAt",
+    "source",
+    "collector",
+    "browser",
+    "server",
+    "scenarios",
+    "cleanup"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "evidenceId": {
+      "const": "tooling-c-to-wasm-compile-chrome-parent-v1"
+    },
+    "workloadId": {
+      "const": "tooling.c-to-wasm-compile.v1"
+    },
+    "collectedAt": {
+      "$ref": "#/$defs/dateTime"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start",
+        "end",
+        "unchanged"
+      ],
+      "properties": {
+        "start": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/sourceAttestation"
+            },
+            {
+              "properties": {
+                "phase": {
+                  "const": "start"
+                }
+              }
+            }
+          ]
+        },
+        "end": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/sourceAttestation"
+            },
+            {
+              "properties": {
+                "phase": {
+                  "const": "end"
+                }
+              }
+            }
+          ]
+        },
+        "unchanged": {
+          "const": true
+        }
+      }
+    },
+    "collector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "denoVersion",
+        "command",
+        "pid",
+        "parentPid"
+      ],
+      "properties": {
+        "denoVersion": {
+          "const": "2.9.0"
+        },
+        "command": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "pid": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "parentPid": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "browser": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "product",
+        "expectedProduct",
+        "revision",
+        "userAgent",
+        "jsVersion",
+        "executable",
+        "expectedSha256",
+        "configuredArguments",
+        "effectiveArguments",
+        "headless",
+        "protocol",
+        "endpoint",
+        "profile",
+        "ownership"
+      ],
+      "properties": {
+        "product": {
+          "const": "Chrome/150.0.7871.24"
+        },
+        "expectedProduct": {
+          "const": "Chrome/150.0.7871.24"
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "userAgent": {
+          "type": "string",
+          "minLength": 1
+        },
+        "jsVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "executable": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/fileIdentity"
+            },
+            {
+              "properties": {
+                "sha256": {
+                  "const": "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355"
+                }
+              }
+            }
+          ]
+        },
+        "expectedSha256": {
+          "const": "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355"
+        },
+        "configuredArguments": {
+          "type": "array",
+          "minItems": 20,
+          "maxItems": 20,
+          "uniqueItems": true,
+          "prefixItems": [
+            {
+              "type": "string",
+              "pattern": "^--user-data-dir=/tmp/wasm-vs-js-owned-profiles/tooling-c-to-wasm-[A-Fa-f0-9-]+/chrome$"
+            },
+            {
+              "const": "--remote-debugging-port=0"
+            },
+            {
+              "const": "--no-first-run"
+            },
+            {
+              "const": "--no-default-browser-check"
+            },
+            {
+              "const": "--disable-sync"
+            },
+            {
+              "const": "--disable-crash-reporter"
+            },
+            {
+              "const": "--disable-breakpad"
+            },
+            {
+              "const": "--headless=new"
+            },
+            {
+              "const": "--enable-automation"
+            },
+            {
+              "const": "--no-sandbox"
+            },
+            {
+              "const": "--disable-gpu"
+            },
+            {
+              "const": "--disable-background-networking"
+            },
+            {
+              "const": "--disable-component-update"
+            },
+            {
+              "const": "--disable-default-apps"
+            },
+            {
+              "const": "--disable-extensions"
+            },
+            {
+              "const": "--metrics-recording-only"
+            },
+            {
+              "const": "--hide-scrollbars"
+            },
+            {
+              "const": "--window-size=1440,1200"
+            },
+            {
+              "const": "--force-device-scale-factor=1"
+            },
+            {
+              "const": "about:blank"
+            }
+          ],
+          "items": false
+        },
+        "effectiveArguments": {
+          "type": "array",
+          "minItems": 20,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "contains": {
+            "const": "--enable-automation"
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        "headless": {
+          "const": true
+        },
+        "protocol": {
+          "const": "Chrome DevTools Protocol"
+        },
+        "endpoint": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "host",
+            "port",
+            "browserPath"
+          ],
+          "properties": {
+            "host": {
+              "const": "127.0.0.1"
+            },
+            "port": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535
+            },
+            "browserPath": {
+              "type": "string",
+              "pattern": "^/devtools/browser/"
+            }
+          }
+        },
+        "profile": {
+          "$ref": "#/$defs/profile"
+        },
+        "ownership": {
+          "$ref": "#/$defs/ownership"
+        }
+      }
+    },
+    "server": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "origin",
+        "loopbackOnly",
+        "mode",
+        "launcher"
+      ],
+      "properties": {
+        "origin": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+$"
+        },
+        "loopbackOnly": {
+          "const": true
+        },
+        "mode": {
+          "const": "public"
+        },
+        "launcher": {
+          "$ref": "#/$defs/process"
+        }
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 9,
+      "maxItems": 9,
+      "prefixItems": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/scenario"
+            },
+            {
+              "properties": {
+                "id": {
+                  "const": "compiler-corpus"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/scenario"
+            },
+            {
+              "properties": {
+                "id": {
+                  "const": "visible-javascript-01"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/scenario"
+            },
+            {
+              "properties": {
+                "id": {
+                  "const": "visible-wasm-01"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/scenario"
+            },
+            {
+              "properties": {
+                "id": {
+                  "const": "lifecycle-wrong-token"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/scenario"
+            },
+            {
+              "properties": {
+                "id": {
+                  "const": "lifecycle-stale-error"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/scenario"
+            },
+            {
+              "properties": {
+                "id": {
+                  "const": "lifecycle-restart"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/scenario"
+            },
+            {
+              "properties": {
+                "id": {
+                  "const": "lifecycle-cancel"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/scenario"
+            },
+            {
+              "properties": {
+                "id": {
+                  "const": "lifecycle-timeout"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/scenario"
+            },
+            {
+              "properties": {
+                "id": {
+                  "const": "lifecycle-pagehide"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "items": false
+    },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "browser",
+        "profile",
+        "server",
+        "stage"
+      ],
+      "properties": {
+        "browser": {
+          "$ref": "#/$defs/browserCleanup"
+        },
+        "profile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "removed",
+            "absent"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "^/tmp/wasm-vs-js-owned-profiles/"
+            },
+            "removed": {
+              "const": true
+            },
+            "absent": {
+              "const": true
+            }
+          }
+        },
+        "server": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "launcher",
+            "signal",
+            "exit",
+            "processAbsent"
+          ],
+          "properties": {
+            "launcher": {
+              "$ref": "#/$defs/process"
+            },
+            "signal": {
+              "const": "SIGTERM"
+            },
+            "exit": {
+              "$ref": "#/$defs/exit"
+            },
+            "processAbsent": {
+              "const": true
+            }
+          }
+        },
+        "stage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "dev",
+            "ino",
+            "removed",
+            "absent"
+          ],
+          "properties": {
+            "path": {
+              "const": "/tmp/wasm-vs-js-staged-chrome/tooling-c-to-wasm-browser-evidence-v1"
+            },
+            "dev": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "ino": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "removed": {
+              "const": true
+            },
+            "absent": {
+              "const": true
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "git": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "dateTime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "bytes",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha"
+        }
+      }
+    },
+    "sourceAttestation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "phase",
+        "commit",
+        "tree",
+        "clean",
+        "statusPorcelainSha256",
+        "acceptedImplementationCommit",
+        "files",
+        "acceptedFiles"
+      ],
+      "properties": {
+        "phase": {
+          "enum": [
+            "start",
+            "end"
+          ]
+        },
+        "commit": {
+          "$ref": "#/$defs/git"
+        },
+        "tree": {
+          "$ref": "#/$defs/git"
+        },
+        "clean": {
+          "const": true
+        },
+        "statusPorcelainSha256": {
+          "const": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "acceptedImplementationCommit": {
+          "const": "05d7135ee84839fdb2a70aee7e0769468d58f74f"
+        },
+        "files": {
+          "type": "array",
+          "minItems": 69,
+          "maxItems": 69,
+          "prefixItems": [
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "scripts/collect-base-tooling-c-to-wasm-compile-evidence.ts"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "scripts/remove-owned-file.py"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "scripts/remove-owned-tree.py"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "scripts/write-stage-owner.py"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "lib/canonical.ts"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "lib/cdp-client.ts"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "lib/chrome-stage.ts"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "lib/corpus-contracts.ts"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "lib/owned-chrome.ts"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "lib/process-ledger.ts"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "lib/stage-lifecycle.ts"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "server.ts"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "deploy.ts"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "deno.json"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "deno.corpus.json"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "deno.lock"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "schemas/base-tooling-c-to-wasm-compile-browser-evidence.schema.json"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "public/benchmarks/tooling-c-to-wasm-compile-v1/index.html"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "public/benchmarks/tooling-c-to-wasm-compile-v1/demo.js"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "public/benchmarks/tooling-c-to-wasm-compile-v1/worker.js"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "public/styles.css"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/compiler-js.js"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/compiler-wasm.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/contract.v1.json"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/negative-fixtures.v1.json"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "public/artifacts/base/tooling-c-to-wasm-compile/compiler.wasm"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "public/artifacts/base/tooling-c-to-wasm-compile/build-manifest.json"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "public/artifacts/base/tooling-c-to-wasm-compile/fixture-manifest.json"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "public/evidence/base/tooling-c-to-wasm-compile/validation.json"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/01.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/01.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/02.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/02.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/03.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/03.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/04.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/04.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/05.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/05.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/06.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/06.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/07.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/07.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/08.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/08.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/09.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/09.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/10.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/10.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/11.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/11.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/12.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/12.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/13.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/13.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/14.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/14.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/15.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/15.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/16.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/16.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/17.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/17.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/18.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/18.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/19.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/19.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/20.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/20.h"
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "items": false
+        },
+        "acceptedFiles": {
+          "type": "array",
+          "minItems": 51,
+          "maxItems": 51,
+          "prefixItems": [
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/compiler-js.js"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/compiler-wasm.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/contract.v1.json"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/negative-fixtures.v1.json"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "public/benchmarks/tooling-c-to-wasm-compile-v1/index.html"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "public/benchmarks/tooling-c-to-wasm-compile-v1/demo.js"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "public/benchmarks/tooling-c-to-wasm-compile-v1/worker.js"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "public/artifacts/base/tooling-c-to-wasm-compile/compiler.wasm"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "public/artifacts/base/tooling-c-to-wasm-compile/build-manifest.json"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "public/artifacts/base/tooling-c-to-wasm-compile/fixture-manifest.json"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "public/evidence/base/tooling-c-to-wasm-compile/validation.json"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/01.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/01.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/02.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/02.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/03.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/03.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/04.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/04.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/05.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/05.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/06.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/06.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/07.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/07.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/08.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/08.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/09.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/09.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/10.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/10.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/11.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/11.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/12.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/12.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/13.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/13.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/14.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/14.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/15.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/15.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/16.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/16.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/17.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/17.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/18.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/18.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/19.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/19.h"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/20.c"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/file"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/20.h"
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "items": false
+        }
+      }
+    },
+    "process": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pid",
+        "parentPid",
+        "startTimeTicks",
+        "executable"
+      ],
+      "properties": {
+        "pid": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "parentPid": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "startTimeTicks": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "executable": {
+          "type": "string",
+          "pattern": "^/"
+        }
+      }
+    },
+    "fileIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "dev",
+        "ino",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "dev": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ino": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha"
+        }
+      }
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ownershipRoot",
+        "ownershipParentDev",
+        "ownershipParentIno",
+        "ownershipDev",
+        "ownershipIno",
+        "removeOwnershipRoot",
+        "profileRoot",
+        "profileDev",
+        "profileIno"
+      ],
+      "properties": {
+        "ownershipRoot": {
+          "type": "string",
+          "pattern": "^/tmp/wasm-vs-js-owned-profiles/"
+        },
+        "ownershipParentDev": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ownershipParentIno": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "ownershipDev": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ownershipIno": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "removeOwnershipRoot": {
+          "const": true
+        },
+        "profileRoot": {
+          "type": "string",
+          "pattern": "^/tmp/wasm-vs-js-owned-profiles/tooling-c-to-wasm-[A-Fa-f0-9-]+/chrome$"
+        },
+        "profileDev": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "profileIno": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bytes",
+        "sha256",
+        "base64"
+      ],
+      "properties": {
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha"
+        },
+        "base64": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "session": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sessionId",
+        "targetId",
+        "kind",
+        "ownerSessionId",
+        "url"
+      ],
+      "properties": {
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "targetId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "page",
+            "worker"
+          ]
+        },
+        "ownerSessionId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "url": {
+          "type": "string"
+        }
+      }
+    },
+    "network": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sessionId",
+        "requestId",
+        "url",
+        "method",
+        "resourceType",
+        "status",
+        "mimeType",
+        "fromDiskCache",
+        "fromServiceWorker",
+        "failed",
+        "errorText",
+        "body"
+      ],
+      "properties": {
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "requestId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/"
+        },
+        "method": {
+          "const": "GET"
+        },
+        "resourceType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "const": 200
+        },
+        "mimeType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fromDiskCache": {
+          "const": false
+        },
+        "fromServiceWorker": {
+          "const": false
+        },
+        "failed": {
+          "const": false
+        },
+        "errorText": {
+          "const": null
+        },
+        "body": {
+          "$ref": "#/$defs/body"
+        }
+      }
+    },
+    "console": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sessionId",
+        "type",
+        "arguments"
+      ],
+      "properties": {
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "arguments": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "exception": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sessionId",
+        "text",
+        "lineNumber",
+        "columnNumber"
+      ],
+      "properties": {
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "text": {
+          "type": "string"
+        },
+        "lineNumber": {
+          "type": "number"
+        },
+        "columnNumber": {
+          "type": "number"
+        }
+      }
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "route",
+        "sourcePath",
+        "sessionId",
+        "protocolMethod",
+        "bytes",
+        "sha256",
+        "base64"
+      ],
+      "properties": {
+        "route": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "sourcePath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "protocolMethod": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha"
+        },
+        "base64": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "worker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "index",
+        "url",
+        "terminated",
+        "posted"
+      ],
+      "properties": {
+        "index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "url": {
+          "type": "string",
+          "minLength": 1
+        },
+        "terminated": {
+          "type": "boolean"
+        },
+        "posted": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "result",
+        "startDisabled",
+        "cancelDisabled",
+        "program",
+        "target",
+        "workerAudit"
+      ],
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "result": {
+          "type": "string"
+        },
+        "startDisabled": {
+          "type": "boolean"
+        },
+        "cancelDisabled": {
+          "type": "boolean"
+        },
+        "program": {
+          "type": "string",
+          "pattern": "^[0-9]{2}$"
+        },
+        "target": {
+          "enum": [
+            "javascript",
+            "wasm"
+          ]
+        },
+        "workerAudit": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/worker"
+          }
+        }
+      }
+    },
+    "cause": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sequence",
+        "event",
+        "detail"
+      ],
+      "properties": {
+        "sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "event": {
+          "type": "string",
+          "minLength": 1
+        },
+        "workerIndex": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "token": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceBytes",
+        "headerBytes",
+        "tokens",
+        "astNodes",
+        "functions",
+        "instructions",
+        "linkSections",
+        "vfsReads",
+        "allocations",
+        "boundaryCrossings",
+        "outputBytes"
+      ],
+      "properties": {
+        "sourceBytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "headerBytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tokens": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "astNodes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "functions": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "instructions": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "linkSections": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "vfsReads": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "allocations": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "boundaryCrossings": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "outputBytes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "targetResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outputSha256",
+        "outputBytes",
+        "testResult",
+        "counters",
+        "wasmBase64"
+      ],
+      "properties": {
+        "outputSha256": {
+          "$ref": "#/$defs/sha"
+        },
+        "outputBytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "testResult": {
+          "type": "integer"
+        },
+        "counters": {
+          "$ref": "#/$defs/counters"
+        },
+        "wasmBase64": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "program": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "javascript-controlled",
+        "wasm-self-hosted-controlled"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^(?:0[1-9]|1[0-9]|20)$"
+        },
+        "javascript-controlled": {
+          "$ref": "#/$defs/targetResult"
+        },
+        "wasm-self-hosted-controlled": {
+          "$ref": "#/$defs/targetResult"
+        }
+      }
+    },
+    "negative": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "reason",
+        "javascriptRejected",
+        "wasmReturn"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "javascriptRejected": {
+          "const": true
+        },
+        "wasmReturn": {
+          "type": "integer",
+          "maximum": -1
+        }
+      }
+    },
+    "corpus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "counterFields",
+        "programs",
+        "negatives",
+        "outputSetSha256",
+        "compilerArtifactSha256",
+        "buildManifestText",
+        "executedWasmInputs"
+      ],
+      "properties": {
+        "counterFields": {
+          "const": [
+            "sourceBytes",
+            "headerBytes",
+            "tokens",
+            "astNodes",
+            "functions",
+            "instructions",
+            "linkSections",
+            "vfsReads",
+            "allocations",
+            "boundaryCrossings",
+            "outputBytes"
+          ]
+        },
+        "programs": {
+          "type": "array",
+          "minItems": 20,
+          "maxItems": 20,
+          "items": {
+            "$ref": "#/$defs/program"
+          }
+        },
+        "negatives": {
+          "type": "array",
+          "minItems": 9,
+          "maxItems": 9,
+          "items": {
+            "$ref": "#/$defs/negative"
+          }
+        },
+        "outputSetSha256": {
+          "$ref": "#/$defs/sha"
+        },
+        "compilerArtifactSha256": {
+          "const": "ba3948eeb4a56194a458276ed8c0693f5f54bf8baf2d3179afe4df8a6ce89124"
+        },
+        "buildManifestText": {
+          "type": "string",
+          "minLength": 100
+        },
+        "executedWasmInputs": {
+          "type": "array",
+          "minItems": 41,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "bytes",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^(?:accessibility|screenshots)/"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha"
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "route",
+        "mode",
+        "sessions",
+        "causes",
+        "snapshots",
+        "finalState",
+        "rawResultText",
+        "rawResultTextSha256",
+        "corpus",
+        "assertions",
+        "console",
+        "exceptions",
+        "network",
+        "executedAssets",
+        "executedWasm",
+        "accessibility",
+        "screenshot"
+      ],
+      "properties": {
+        "id": {
+          "enum": [
+            "compiler-corpus",
+            "visible-javascript-01",
+            "visible-wasm-01",
+            "lifecycle-wrong-token",
+            "lifecycle-stale-error",
+            "lifecycle-restart",
+            "lifecycle-cancel",
+            "lifecycle-timeout",
+            "lifecycle-pagehide"
+          ]
+        },
+        "route": {
+          "const": "/benchmarks/tooling-c-to-wasm-compile-v1/"
+        },
+        "mode": {
+          "enum": [
+            "native-browser-corpus",
+            "native-visible-demo",
+            "instrumented-lifecycle"
+          ]
+        },
+        "sessions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/session"
+          }
+        },
+        "causes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/cause"
+          }
+        },
+        "snapshots": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "state"
+            ],
+            "properties": {
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "state": {
+                "$ref": "#/$defs/state"
+              }
+            }
+          }
+        },
+        "finalState": {
+          "$ref": "#/$defs/state"
+        },
+        "rawResultText": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rawResultTextSha256": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/sha"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "corpus": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/corpus"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "assertions": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "console": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/console"
+          }
+        },
+        "exceptions": {
+          "type": "array",
+          "maxItems": 0,
+          "items": {
+            "$ref": "#/$defs/exception"
+          }
+        },
+        "network": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "$ref": "#/$defs/network"
+          }
+        },
+        "executedAssets": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/asset"
+          }
+        },
+        "executedWasm": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/asset"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "accessibility": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "artifact",
+            "nodeCount",
+            "checks"
+          ],
+          "properties": {
+            "artifact": {
+              "$ref": "#/$defs/artifact"
+            },
+            "nodeCount": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "checks": {
+              "type": "array",
+              "minItems": 6,
+              "maxItems": 6,
+              "prefixItems": [
+                {
+                  "const": true
+                },
+                {
+                  "const": true
+                },
+                {
+                  "const": true
+                },
+                {
+                  "const": true
+                },
+                {
+                  "const": true
+                },
+                {
+                  "const": true
+                }
+              ],
+              "items": false
+            }
+          }
+        },
+        "screenshot": {
+          "$ref": "#/$defs/artifact"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "compiler-corpus"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "mode": {
+                "const": "native-browser-corpus"
+              },
+              "corpus": {
+                "$ref": "#/$defs/corpus"
+              },
+              "rawResultText": {
+                "type": "null"
+              },
+              "rawResultTextSha256": {
+                "type": "null"
+              },
+              "executedWasm": {
+                "$ref": "#/$defs/asset"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "enum": [
+                  "visible-javascript-01",
+                  "visible-wasm-01"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "mode": {
+                "const": "native-visible-demo"
+              },
+              "corpus": {
+                "type": "null"
+              },
+              "rawResultText": {
+                "type": "string",
+                "minLength": 1
+              },
+              "rawResultTextSha256": {
+                "$ref": "#/$defs/sha"
+              },
+              "executedWasm": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "pattern": "^lifecycle-"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "mode": {
+                "const": "instrumented-lifecycle"
+              },
+              "corpus": {
+                "type": "null"
+              },
+              "rawResultText": {
+                "type": "null"
+              },
+              "rawResultTextSha256": {
+                "type": "null"
+              },
+              "executedWasm": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "collectedAt",
+        "members"
+      ],
+      "properties": {
+        "collectedAt": {
+          "$ref": "#/$defs/dateTime"
+        },
+        "members": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "integer",
+            "minimum": 2
+          }
+        }
+      }
+    },
+    "ownership": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit",
+        "controlGroup",
+        "cgroupPath",
+        "cgroupDev",
+        "cgroupIno",
+        "invocationId",
+        "mainPid",
+        "commandLine",
+        "members",
+        "membershipSnapshots"
+      ],
+      "properties": {
+        "unit": {
+          "type": "string",
+          "pattern": "^wasm-vs-js-[a-z0-9]{16,64}\\.service$"
+        },
+        "controlGroup": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "cgroupPath": {
+          "type": "string",
+          "pattern": "^/sys/fs/cgroup/"
+        },
+        "cgroupDev": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cgroupIno": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "invocationId": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "mainPid": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "commandLine": {
+          "type": "array",
+          "minItems": 21,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "members": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "integer",
+            "minimum": 2
+          }
+        },
+        "membershipSnapshots": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/snapshot"
+          }
+        }
+      }
+    },
+    "browserCleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit",
+        "controlGroup",
+        "cgroupPath",
+        "cgroupDev",
+        "cgroupIno",
+        "invocationId",
+        "mainPid",
+        "observedPids",
+        "membershipSnapshots",
+        "remainingPids",
+        "cgroupEmpty",
+        "stoppedAt"
+      ],
+      "properties": {
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "controlGroup": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "cgroupPath": {
+          "type": "string",
+          "pattern": "^/sys/fs/cgroup/"
+        },
+        "cgroupDev": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cgroupIno": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "invocationId": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "mainPid": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "observedPids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "integer",
+            "minimum": 2
+          }
+        },
+        "membershipSnapshots": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/snapshot"
+          }
+        },
+        "remainingPids": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "cgroupEmpty": {
+          "const": true
+        },
+        "stoppedAt": {
+          "$ref": "#/$defs/dateTime"
+        }
+      }
+    },
+    "exit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "success",
+        "code",
+        "signal"
+      ],
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "code": {
+          "type": "integer"
+        },
+        "signal": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}
