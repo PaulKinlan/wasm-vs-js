@@ -61,6 +61,34 @@ for (const [name, schemaName] of Object.entries(numericSchemas)) {
 }
 const numericSemantics = await validateNumericFftSemantics(numericBundle);
 if (!numericSemantics.ok) throw new Error(numericSemantics.errors.join("; "));
+
+const toolingSchema = JSON.parse(
+  await Deno.readTextFile("schemas/base/tooling-c-to-wasm-compile.schema.json"),
+);
+const toolingContract = JSON.parse(
+  await Deno.readTextFile("benchmarks/base/tooling-c-to-wasm-compile/contract.v1.json"),
+);
+const validateToolingContract = new Ajv2020({ strict: true, allErrors: true }).compile(
+  toolingSchema,
+);
+if (!validateToolingContract(toolingContract)) {
+  throw new Error(`tooling contract rejected: ${JSON.stringify(validateToolingContract.errors)}`);
+}
+const toolingMutations = [
+  (value) => value.language.shiftCountPolicy = "WebAssembly masks counts",
+  (value) => value.fixedWork.sources = 19,
+  (value) => delete value.fixedWork.counterContract.boundaryUnit,
+  (value) => value.targets["javascript-controlled"].extra = true,
+  (value) => value.targets["wasm-self-hosted-controlled"].counterExpectations.allocations = 1,
+  (value) => value.build.flags.pop(),
+];
+for (const mutate of toolingMutations) {
+  const invalid = structuredClone(toolingContract);
+  mutate(invalid);
+  if (validateToolingContract(invalid)) {
+    throw new Error("tooling schema accepted substantive contract drift");
+  }
+}
 const hash = "a".repeat(64);
 const expectedCommit = Deno.env.get("WASM_VS_JS_COMMIT") ?? "";
 const manifest = JSON.parse(
@@ -371,5 +399,5 @@ try {
 expect("corpus accounting semantic validator", semanticRejected, true);
 
 console.log(
-  `contract-check: positive fixtures, 16 negative invariants, ${foundationSchemas.length} closed schemas, and numeric FFT schema/semantic gates passed`,
+  `contract-check: positive fixtures, 16 negative invariants, ${toolingMutations.length} tooling contract negatives, ${foundationSchemas.length} closed schemas, and numeric FFT schema/semantic gates passed`,
 );
