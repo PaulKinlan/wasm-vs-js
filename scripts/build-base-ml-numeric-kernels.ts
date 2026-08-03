@@ -390,7 +390,7 @@ const buildManifest = {
   fullSourceGraph: sources,
   build: {
     cwd: ".",
-    task: "deno task build:ml-numeric-kernels",
+    task: "deno task check",
     command: [
       "clang",
       ...flags,

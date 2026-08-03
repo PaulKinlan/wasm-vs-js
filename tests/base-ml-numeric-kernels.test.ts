@@ -250,7 +250,7 @@ Deno.test("build provenance resolves exact repository commit, task, lockfile, so
   const outputBytes = await Deno.readFile(`${artifactRoot}output-manifest.json`);
   const output = JSON.parse(new TextDecoder().decode(outputBytes));
   assertEquals(build.sourceRepository, "https://github.com/PaulKinlan/wasm-vs-js");
-  assertEquals(build.build.task, "deno task build:ml-numeric-kernels");
+  assertEquals(build.build.task, "deno task check");
   assertEquals(build.build.toolchain.deno, "2.9.0");
   assertEquals(build.build.lockfile.sha256, await sha256Hex(await Deno.readFile("deno.lock")));
   const sourceIdentity = build.fullSourceGraph.map(
@@ -280,6 +280,36 @@ Deno.test("build provenance resolves exact repository commit, task, lockfile, so
     assertEquals(evidence.sourceSha256, build.sourceSha256);
     assertEquals(evidence.outputManifestSha256, await sha256Hex(outputBytes));
   }
+});
+
+Deno.test("standard check gate rebuilds the package byte-for-byte", async () => {
+  const build = JSON.parse(await Deno.readTextFile(`${artifactRoot}build-manifest.json`));
+  const paths = [
+    "catalog/implementations/ml.numeric-kernels.v1.json",
+    ...JSON.parse(
+      await Deno.readTextFile("catalog/implementations/ml.numeric-kernels.v1.json"),
+    ).artifacts,
+  ];
+  const before = await Promise.all(
+    paths.map(async (path: string) => sha256Hex(await Deno.readFile(path))),
+  );
+  const rebuilt = await new Deno.Command("deno", {
+    args: [
+      "run",
+      "--allow-read=.",
+      "--allow-write=public/artifacts/ml-numeric-kernels,public/evidence/base-implementations/ml.numeric-kernels.v1,catalog/implementations",
+      "--allow-run=clang,git,deno",
+      "scripts/build-base-ml-numeric-kernels.ts",
+      `--source-commit=${build.sourceCommit}`,
+    ],
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  assert(rebuilt.success, new TextDecoder().decode(rebuilt.stderr));
+  const after = await Promise.all(
+    paths.map(async (path: string) => sha256Hex(await Deno.readFile(path))),
+  );
+  assertEquals(after, before);
 });
 
 Deno.test("nonfinite f32 inputs reject in JS and Wasm without accepting partial output", async () => {

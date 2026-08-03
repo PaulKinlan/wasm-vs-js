@@ -43,7 +43,7 @@
       "required": ["cwd", "task", "command", "toolchain", "lockfile"],
       "properties": {
         "cwd": { "const": "." },
-        "task": { "const": "deno task build:ml-numeric-kernels" },
+        "task": { "const": "deno task check" },
         "command": {
           "type": "array",
           "minItems": 2,
