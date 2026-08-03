@@ -121,6 +121,13 @@ Deno.test("fixture RNG and full controlled output are deterministic", async () =
   assertEquals(manifest.oracle.jsCounters.samples, 16_777_216);
   assertEquals(manifest.oracle.wasmCounters.samples, 16_777_216);
   assert(manifest.oracle.crossTarget.passed);
+  assertEquals(manifest.oracle.pathCheckpoints.length, 3);
+  for (const checkpoint of manifest.oracle.pathCheckpoints) {
+    assert(Number.isInteger(checkpoint.pixel));
+    assertEquals(checkpoint.radiance.length, 3);
+    assertEquals(checkpoint.throughput.length, 3);
+    assert(Number.isInteger(checkpoint.state));
+  }
 });
 
 Deno.test("material Wasm exports fixed memory and rebuilds byte-identically", async () => {

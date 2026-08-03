@@ -151,6 +151,7 @@ const oracle = {
   jsReference,
   wasmReference,
   checkpoints,
+  pathCheckpoints: js.checkpoints,
   jsCounters: js.counters,
   wasmCounters: wasmResult.counters,
 };
