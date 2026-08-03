@@ -1,13 +1,19 @@
 import Ajv2020Module from "ajv2020";
 import addFormatsModule from "ajv-formats";
 import {
+  CFT_EXECUTABLE_SHA256,
+  CFT_PRODUCT,
+  classifyExecutedScriptUrl,
   EXPECTED_ASSETS,
   EXPECTED_COUNTERS,
   EXPECTED_LIFECYCLE,
   INPUT_SHA256,
   OUTPUT_SHA256,
+  retainRequestHop,
   STATIC_LAUNCH_ARGUMENTS,
+  validateEvidenceRelationships,
   validateFullResult,
+  WORKLOAD_ROUTE,
 } from "../scripts/collect-base-text-regex-log-scan-evidence.ts";
 import { assert, assertEquals } from "./assert.ts";
 
@@ -147,7 +153,8 @@ function validEvidence() {
       performanceClaim: false,
     },
     browser: {
-      product: "Chrome/150.0.7871.24",
+      channel: "chrome-for-testing",
+      product: CFT_PRODUCT,
       revision: "r1",
       userAgent: "Mozilla/5.0 Chrome/150.0.0.0",
       jsVersion: "15.0.1",
@@ -155,7 +162,7 @@ function validEvidence() {
       executable: {
         path: "/opt/google/chrome/chrome",
         bytes: 1_000_000,
-        sha256: H64,
+        sha256: CFT_EXECUTABLE_SHA256,
         dev: 1,
         ino: 2,
       },
@@ -180,12 +187,24 @@ function validEvidence() {
           dev: 5,
           ino: 6,
         },
+        scopeLauncherAtLaunch: processIdentity(799),
+        browserAtLaunch: processIdentity(800),
+        preCgroupProcesses: [processIdentity(799), processIdentity(800)],
         cdpListener: {
           address: "127.0.0.1",
           port: 9222,
           inode: "123456",
           owner: processIdentity(800),
         },
+        listenerChecks: ["before-connect", "after-connect", "before-use", "after-use"].map(
+          (phase) => ({
+            phase,
+            address: "127.0.0.1",
+            port: 9222,
+            inode: "123456",
+            owner: processIdentity(800),
+          }),
+        ),
       },
     },
     server: { origin: "http://127.0.0.1:8123", mode: "public", launcher: processIdentity(700) },
@@ -200,8 +219,15 @@ function validEvidence() {
     ).map(lifecycle),
     cleanup: {
       browser: {
+        unit: "wasm-base-regex-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.scope",
+        cgroup: {
+          path:
+            "/user.slice/user-1000.slice/user@1000.service/app.slice/wasm-base-regex-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.scope",
+          dev: 5,
+          ino: 6,
+        },
         launcher: processIdentity(800),
-        observedProcesses: [processIdentity(800), processIdentity(801)],
+        observedProcesses: [processIdentity(799), processIdentity(800), processIdentity(801)],
         requested: "Browser.close",
         signals: [],
         exit: { success: true, code: 0, signal: null },
@@ -230,7 +256,17 @@ function validEvidence() {
 function assertInvalid(validate: Validator, mutate: (record: Record<string, unknown>) => void) {
   const record = structuredClone(validEvidence()) as unknown as Record<string, unknown>;
   mutate(record);
-  assert(!validate(record), `mutation unexpectedly passed: ${JSON.stringify(validate.errors)}`);
+  const schemaValid = validate(record);
+  let relationshipsValid = true;
+  try {
+    validateEvidenceRelationships(record);
+  } catch {
+    relationshipsValid = false;
+  }
+  assert(
+    !schemaValid || !relationshipsValid,
+    `mutation unexpectedly passed schema and semantics: ${JSON.stringify(validate.errors)}`,
+  );
 }
 
 function assertThrows(fn: () => void, includes: string) {
@@ -243,6 +279,55 @@ function assertThrows(fn: () => void, includes: string) {
   throw new Error("expected function to throw");
 }
 
+Deno.test("base regex collector retains redirect hops and rejects every unexpected script scheme", () => {
+  const origin = "http://127.0.0.1:8123";
+  const requests = new Map<string, Record<string, unknown>>();
+  const active = new Map<string, string>();
+  const violations: string[] = [];
+  assertEquals(
+    retainRequestHop(requests, active, violations, origin, "session-a", {
+      requestId: "request-a",
+      request: { url: `${origin}${WORKLOAD_ROUTE}`, method: "GET" },
+    }),
+    "session-a:request-a:0",
+  );
+  assertEquals(
+    retainRequestHop(requests, active, violations, origin, "session-a", {
+      requestId: "request-a",
+      redirectResponse: {
+        status: 302,
+        mimeType: "text/html",
+        fromDiskCache: false,
+        fromServiceWorker: false,
+      },
+      request: { url: "data:text/javascript,unexpected", method: "GET" },
+    }),
+    "session-a:request-a:1",
+  );
+  assertEquals([...requests.keys()], ["session-a:request-a:0", "session-a:request-a:1"]);
+  assertEquals(requests.get("session-a:request-a:0")?.redirected, true);
+  assert(violations.some((message) => message.includes("unexpected redirect hop retained")));
+  assert(violations.some((message) => message.includes("unexpected request URL/method")));
+
+  assertEquals(
+    classifyExecutedScriptUrl(`${origin}/demos/base/text.regex-log-scan.v1/demo.js`, origin),
+    { kind: "asset", route: "/demos/base/text.regex-log-scan.v1/demo.js" },
+  );
+  for (
+    const url of [
+      "",
+      "data:text/javascript,unexpected",
+      "blob:http://127.0.0.1:8123/unexpected",
+      "javascript:unexpected",
+      "file:///tmp/unexpected.js",
+      "https://127.0.0.1:8123/unexpected.js",
+      "http://foreign.invalid/unexpected.js",
+    ]
+  ) {
+    assertThrows(() => classifyExecutedScriptUrl(url, origin), "executed script");
+  }
+});
+
 Deno.test("base regex Chrome evidence schema accepts only the complete two-mode contract", async () => {
   const schema = JSON.parse(
     await Deno.readTextFile("schemas/base-text-regex-log-scan-browser-evidence.schema.json"),
@@ -252,6 +337,7 @@ Deno.test("base regex Chrome evidence schema accepts only the complete two-mode 
   const validate = ajv.compile(schema);
   const record = validEvidence();
   assert(validate(record), JSON.stringify(validate.errors));
+  validateEvidenceRelationships(record as unknown as Record<string, unknown>);
   assertEquals(record.modeRuns.map((run) => run.mode), [
     "js-controlled",
     "wasm-linear-controlled",
@@ -263,8 +349,20 @@ Deno.test("base regex Chrome evidence schema accepts only the complete two-mode 
   assertInvalid(validate, (value) => ((value.source as Record<string, unknown>).clean = false));
   assertInvalid(
     validate,
-    (value) => ((value.browser as Record<string, unknown>).product = "Chromium/150.0.7871.24"),
+    (value) => ((value.browser as Record<string, unknown>).channel = "stable"),
   );
+  assertInvalid(
+    validate,
+    (value) => ((value.browser as Record<string, unknown>).product = "Chrome/151.0.0.0"),
+  );
+  assertInvalid(validate, (value) => {
+    const browser = value.browser as Record<string, Record<string, unknown>>;
+    browser.executable.sha256 = H64;
+  });
+  assertInvalid(validate, (value) => {
+    const browser = value.browser as Record<string, Record<string, unknown>>;
+    browser.executable.path = "/opt/google/chrome/substitute";
+  });
   assertInvalid(validate, (value) => {
     const source = value.source as Record<string, unknown>;
     source.endCheck = false;
@@ -278,6 +376,53 @@ Deno.test("base regex Chrome evidence schema accepts only the complete two-mode 
     const browser = value.browser as Record<string, unknown>;
     const ownership = browser.ownership as Record<string, Record<string, unknown>>;
     ownership.cdpListener.inode = "not-an-inode";
+  });
+  assertInvalid(validate, (value) => {
+    const browser = value.browser as Record<string, unknown>;
+    const args = browser.launchArguments as string[];
+    args[17] = "--remote-debugging-port=9333";
+  });
+  assertInvalid(validate, (value) => {
+    const browser = value.browser as Record<string, Record<string, unknown>>;
+    browser.profile.path = "/tmp/wasm-base-regex-chrome-other";
+  });
+  assertInvalid(validate, (value) => {
+    const browser = value.browser as Record<string, unknown>;
+    const ownership = browser.ownership as Record<string, unknown>;
+    ownership.unit = "wasm-base-regex-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.scope";
+  });
+  assertInvalid(validate, (value) => {
+    const browser = value.browser as Record<string, unknown>;
+    const ownership = browser.ownership as Record<string, Record<string, unknown>>;
+    const owner = ownership.cdpListener.owner as Record<string, unknown>;
+    owner.executable = "/opt/google/chrome/substitute";
+  });
+  assertInvalid(validate, (value) => {
+    const browser = value.browser as Record<string, unknown>;
+    const ownership = browser.ownership as Record<string, Record<string, unknown>>;
+    ownership.browserAtLaunch.executable = "/opt/google/chrome/substitute";
+  });
+  assertInvalid(validate, (value) => {
+    const cleanup = value.cleanup as Record<string, Record<string, unknown>>;
+    const launcher = cleanup.browser.launcher as Record<string, unknown>;
+    launcher.executable = "/opt/google/chrome/substitute";
+  });
+  assertInvalid(validate, (value) => {
+    const cleanup = value.cleanup as Record<string, Record<string, unknown>>;
+    const cgroup = cleanup.browser.cgroup as Record<string, unknown>;
+    cgroup.path =
+      "/user.slice/user-1000.slice/user@1000.service/app.slice/wasm-base-regex-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.scope";
+  });
+  assertInvalid(validate, (value) => {
+    const browser = value.browser as Record<string, unknown>;
+    const ownership = browser.ownership as Record<string, unknown>;
+    const checks = ownership.listenerChecks as Array<Record<string, unknown>>;
+    checks[3].inode = "654321";
+  });
+  assertInvalid(validate, (value) => {
+    const browser = value.browser as Record<string, unknown>;
+    const ownership = browser.ownership as Record<string, unknown>;
+    ownership.preCgroupProcesses = [processIdentity(798)];
   });
   assertInvalid(validate, (value) => (value.modeRuns as unknown[]).pop());
   assertInvalid(validate, (value) => {
@@ -375,6 +520,11 @@ Deno.test("base regex collector validates the full exact output and every struct
     },
   };
   validateFullResult("js-controlled", result);
+  assertEquals(CFT_PRODUCT, "Chrome/150.0.7871.24");
+  assertEquals(
+    CFT_EXECUTABLE_SHA256,
+    "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355",
+  );
   assertEquals(EXPECTED_ASSETS.length, 13);
   assertEquals(EXPECTED_ASSETS.filter((asset) => asset.executedIn.length > 0).length, 5);
   assertEquals(EXPECTED_COUNTERS.perPattern, new Array(20).fill(2048));
@@ -412,6 +562,11 @@ Deno.test("base regex collector source freezes provenance, lifecycle, diagnostic
       "raw fetched bytes differ from clean HEAD",
       "executed source differs from raw clean-HEAD bytes",
       "Debugger.getScriptSource",
+      "unexpected URL-less/eval executed script",
+      "unexpected executed script scheme",
+      "executed script escaped owned origin",
+      "unexpected redirect hop retained",
+      "request ID reused without redirect response",
       "unexpected same-origin executed script",
       "unexpected owned-origin request",
       "asset request count mismatch",
@@ -427,15 +582,23 @@ Deno.test("base regex collector source freezes provenance, lifecycle, diagnostic
       '"Browser.close"',
       '"--enable-automation"',
       "listenerOwnership",
+      "revalidateListener",
+      '"after-connect"',
+      '"before-use"',
+      '"after-use"',
       '"Browser.getBrowserCommandLine"',
       "pinned launch arguments",
       "waitForScopeCgroup",
+      "startOwnedProcessTracker",
+      "scope launcher identity disappeared immediately after launch",
+      "launched Chrome identity was not retained before cgroup acquisition",
       "startCgroupTracker",
       "cgroup.kill",
       "processCgroupPath",
       "identityStillRunning",
       "end source check",
       "collector failure cleanup was not exact",
+      "approved Chrome for Testing executable SHA-256",
       "profile identity changed before removal",
       "NO_MATCH_SENTINEL_DO_NOT_FIND",
     ]

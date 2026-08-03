@@ -139,6 +139,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
+        "channel",
         "product",
         "revision",
         "userAgent",
@@ -151,9 +152,11 @@
         "ownership"
       ],
       "properties": {
+        "channel": {
+          "const": "chrome-for-testing"
+        },
         "product": {
-          "type": "string",
-          "pattern": "^Chrome/[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$"
+          "const": "Chrome/150.0.7871.24"
         },
         "revision": {
           "type": "string",
@@ -171,7 +174,19 @@
           "const": "Chrome DevTools Protocol"
         },
         "executable": {
-          "$ref": "#/$defs/fileIdentity"
+          "allOf": [
+            {
+              "$ref": "#/$defs/fileIdentity"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "sha256": {
+                  "const": "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355"
+                }
+              }
+            }
+          ]
         },
         "launchArguments": {
           "type": "array",
@@ -280,7 +295,11 @@
           "required": [
             "unit",
             "cgroup",
-            "cdpListener"
+            "cdpListener",
+            "scopeLauncherAtLaunch",
+            "browserAtLaunch",
+            "preCgroupProcesses",
+            "listenerChecks"
           ],
           "properties": {
             "unit": {
@@ -316,6 +335,151 @@
                   "$ref": "#/$defs/processIdentity"
                 }
               }
+            },
+            "scopeLauncherAtLaunch": {
+              "$ref": "#/$defs/processIdentity"
+            },
+            "preCgroupProcesses": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/processIdentity"
+              }
+            },
+            "listenerChecks": {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "prefixItems": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "address",
+                    "port",
+                    "inode",
+                    "owner",
+                    "phase"
+                  ],
+                  "properties": {
+                    "address": {
+                      "const": "127.0.0.1"
+                    },
+                    "port": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 65535
+                    },
+                    "inode": {
+                      "type": "string",
+                      "pattern": "^[0-9]+$"
+                    },
+                    "owner": {
+                      "$ref": "#/$defs/processIdentity"
+                    },
+                    "phase": {
+                      "const": "before-connect"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "address",
+                    "port",
+                    "inode",
+                    "owner",
+                    "phase"
+                  ],
+                  "properties": {
+                    "address": {
+                      "const": "127.0.0.1"
+                    },
+                    "port": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 65535
+                    },
+                    "inode": {
+                      "type": "string",
+                      "pattern": "^[0-9]+$"
+                    },
+                    "owner": {
+                      "$ref": "#/$defs/processIdentity"
+                    },
+                    "phase": {
+                      "const": "after-connect"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "address",
+                    "port",
+                    "inode",
+                    "owner",
+                    "phase"
+                  ],
+                  "properties": {
+                    "address": {
+                      "const": "127.0.0.1"
+                    },
+                    "port": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 65535
+                    },
+                    "inode": {
+                      "type": "string",
+                      "pattern": "^[0-9]+$"
+                    },
+                    "owner": {
+                      "$ref": "#/$defs/processIdentity"
+                    },
+                    "phase": {
+                      "const": "before-use"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "address",
+                    "port",
+                    "inode",
+                    "owner",
+                    "phase"
+                  ],
+                  "properties": {
+                    "address": {
+                      "const": "127.0.0.1"
+                    },
+                    "port": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 65535
+                    },
+                    "inode": {
+                      "type": "string",
+                      "pattern": "^[0-9]+$"
+                    },
+                    "owner": {
+                      "$ref": "#/$defs/processIdentity"
+                    },
+                    "phase": {
+                      "const": "after-use"
+                    }
+                  }
+                }
+              ],
+              "items": false
+            },
+            "browserAtLaunch": {
+              "$ref": "#/$defs/processIdentity"
             }
           }
         }
@@ -412,6 +576,8 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
+            "unit",
+            "cgroup",
             "launcher",
             "observedProcesses",
             "requested",
@@ -424,6 +590,13 @@
             "cgroupRemoved"
           ],
           "properties": {
+            "unit": {
+              "type": "string",
+              "pattern": "^wasm-base-regex-[a-f0-9]{32}\\.scope$"
+            },
+            "cgroup": {
+              "$ref": "#/$defs/cgroupIdentity"
+            },
             "launcher": {
               "$ref": "#/$defs/processIdentity"
             },

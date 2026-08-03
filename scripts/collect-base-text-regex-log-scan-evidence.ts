@@ -2,6 +2,9 @@ import { canonicalize, sha256Hex } from "../lib/canonical.ts";
 import { CdpClient } from "../lib/cdp-client.ts";
 
 export const WORKLOAD_ROUTE = "/demos/base/text.regex-log-scan.v1/";
+export const CFT_PRODUCT = "Chrome/150.0.7871.24";
+export const CFT_EXECUTABLE_SHA256 =
+  "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355";
 export const INPUT_SHA256 = "3d5810310d15b7bebf227bdc384035bd961684d4e1240b2ee93b4cb37350d388";
 export const OUTPUT_SHA256 = "6078822d35d3daea452751e74229c762e43eb4b973ca40bd1a0ac7c9c9e899de";
 export const EXPECTED_COUNTERS = {
@@ -124,6 +127,18 @@ const textDecoder = new TextDecoder();
 const SCRIPT_PATH = "scripts/collect-base-text-regex-log-scan-evidence.ts";
 const OUTPUT_PATH = "artifacts/base/text-regex-log-scan/browser-evidence/evidence.v1.json";
 const SCREENSHOT_ROOT = "artifacts/base/text-regex-log-scan/browser-evidence/screenshots";
+const COLLECTOR_PROBE_URL = "collector://base-regex/probe.js";
+const COLLECTOR_EVALUATE_URL = "collector://base-regex/evaluate.js";
+const expectedCollectorSources = new Map<string, number>();
+
+function collectorSource(source: string, url: string): string {
+  const instrumented = `${source}\n//# sourceURL=${url}`;
+  expectedCollectorSources.set(
+    instrumented,
+    (expectedCollectorSources.get(instrumented) ?? 0) + 1,
+  );
+  return instrumented;
+}
 
 export const STATIC_LAUNCH_ARGUMENTS = [
   "--headless=new",
@@ -332,6 +347,45 @@ async function waitForScopeCgroup(pid: number, unit: string): Promise<CgroupIden
   throw new Error(`owned browser scope ${unit}.scope was not established`);
 }
 
+async function waitForOwnedExecutable(
+  rootPid: number,
+  executable: string,
+  timeoutMs = 5_000,
+): Promise<ProcessIdentity> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const identity = (await ownedProcesses(rootPid)).find((candidate) =>
+      candidate.executable === executable
+    );
+    if (identity) return identity;
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  throw new Error("launched Chrome identity was not retained before cgroup acquisition");
+}
+
+function startOwnedProcessTracker(rootPid: number) {
+  const retained = new Map<string, ProcessIdentity>();
+  let stopped = false;
+  const running = (async () => {
+    while (!stopped) {
+      for (const identity of await ownedProcesses(rootPid)) {
+        retained.set(`${identity.pid}:${identity.startTimeTicks}:${identity.executable}`, identity);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+    for (const identity of await ownedProcesses(rootPid)) {
+      retained.set(`${identity.pid}:${identity.startTimeTicks}:${identity.executable}`, identity);
+    }
+  })();
+  return {
+    async stop() {
+      stopped = true;
+      await running;
+      return [...retained.values()].sort((a, b) => a.pid - b.pid);
+    },
+  };
+}
+
 function startCgroupTracker(path: string) {
   const retained = new Map<string, ProcessIdentity>();
   let stopped = false;
@@ -384,6 +438,24 @@ async function listenerOwnership(port: number, cgroupPath: string) {
     throw new Error(`CDP listener inode ${inode} is not owned by exactly one scoped process`);
   }
   return { address: "127.0.0.1", port, inode, owner: [...owners.values()][0] };
+}
+
+async function revalidateListener(
+  expected: Awaited<ReturnType<typeof listenerOwnership>>,
+  port: number,
+  cgroupPath: string,
+  phase: "after-connect" | "before-use" | "after-use",
+) {
+  const current = await listenerOwnership(port, cgroupPath);
+  if (
+    current.inode !== expected.inode || current.port !== expected.port ||
+    current.address !== expected.address || current.owner.pid !== expected.owner.pid ||
+    current.owner.startTimeTicks !== expected.owner.startTimeTicks ||
+    current.owner.executable !== expected.owner.executable
+  ) {
+    throw new Error(`CDP listener identity changed at ${phase}`);
+  }
+  return { phase, ...current };
 }
 
 async function identityStillRunning(identity: ProcessIdentity): Promise<boolean> {
@@ -455,9 +527,12 @@ function decodeBody(body: string, base64Encoded: boolean): Uint8Array {
 
 async function click(client: CdpClient, sessionId: string, selector: string): Promise<void> {
   const evaluated = await client.send("Runtime.evaluate", {
-    expression: `(() => { const node=document.querySelector(${
-      JSON.stringify(selector)
-    }); const r=node.getBoundingClientRect(); return {x:r.left+r.width/2,y:r.top+r.height/2,disabled:node.disabled}; })()`,
+    expression: collectorSource(
+      `(() => { const node=document.querySelector(${
+        JSON.stringify(selector)
+      }); const r=node.getBoundingClientRect(); return {x:r.left+r.width/2,y:r.top+r.height/2,disabled:node.disabled}; })()`,
+      COLLECTOR_EVALUATE_URL,
+    ),
     returnByValue: true,
   }, sessionId);
   const value = (evaluated.result as { value: { x: number; y: number; disabled: boolean } }).value;
@@ -481,7 +556,7 @@ async function evaluateValue(
   const evaluated = await client.send(
     "Runtime.evaluate",
     {
-      expression,
+      expression: collectorSource(expression, COLLECTOR_EVALUATE_URL),
       returnByValue: true,
       awaitPromise: true,
     },
@@ -549,6 +624,99 @@ interface SessionCapture {
   context: "page" | "worker";
 }
 
+export function classifyExecutedScriptUrl(
+  rawUrl: string,
+  origin: string,
+): { kind: "collector"; url: string } | { kind: "asset"; route: string } {
+  if (rawUrl === "") throw new Error("unexpected URL-less/eval executed script");
+  let parsed: URL;
+  try {
+    parsed = new URL(rawUrl);
+  } catch {
+    throw new Error(`executed script URL was not parseable: ${rawUrl}`);
+  }
+  if (parsed.protocol === "collector:") {
+    if (rawUrl !== COLLECTOR_PROBE_URL && rawUrl !== COLLECTOR_EVALUATE_URL) {
+      throw new Error(`unexpected collector instrumentation URL: ${rawUrl}`);
+    }
+    return { kind: "collector", url: rawUrl };
+  }
+  if (parsed.protocol !== "http:") {
+    throw new Error(`unexpected executed script scheme: ${parsed.protocol}`);
+  }
+  if (parsed.origin !== origin) {
+    throw new Error(`executed script escaped owned origin: ${parsed.href}`);
+  }
+  const expected = EXPECTED_ASSETS.find((asset) =>
+    asset.executedIn.length > 0 && asset.route === parsed.pathname
+  );
+  if (!expected) throw new Error(`unexpected same-origin executed script: ${parsed.pathname}`);
+  return { kind: "asset", route: parsed.pathname };
+}
+
+export function retainRequestHop(
+  requests: Map<string, Record<string, unknown>>,
+  activeRequestKeys: Map<string, string>,
+  captureViolations: string[],
+  origin: string,
+  eventSession: string,
+  params: Record<string, unknown>,
+): string {
+  const baseKey = `${eventSession}:${params.requestId}`;
+  const previousKey = activeRequestKeys.get(baseKey);
+  const previous = previousKey ? requests.get(previousKey) : undefined;
+  const redirectResponse = params.redirectResponse as Record<string, unknown> | undefined;
+  if (previous) {
+    if (redirectResponse) {
+      Object.assign(previous, {
+        status: Number(redirectResponse.status),
+        mimeType: String(redirectResponse.mimeType),
+        fromDiskCache: Boolean(redirectResponse.fromDiskCache),
+        fromServiceWorker: Boolean(redirectResponse.fromServiceWorker),
+        redirected: true,
+      });
+      captureViolations.push(`unexpected redirect hop retained: ${previousKey}`);
+    } else {
+      captureViolations.push(`request ID reused without redirect response: ${baseKey}`);
+    }
+  } else if (redirectResponse) {
+    captureViolations.push(`redirect response had no retained prior hop: ${baseKey}`);
+  }
+  const hop = previous ? Number(previous.hop) + 1 : 0;
+  const request = params.request as Record<string, unknown>;
+  const requestUrl = String(request.url);
+  try {
+    const parsedRequest = new URL(requestUrl);
+    const expectedRoute = EXPECTED_ASSETS.some((asset) => asset.route === parsedRequest.pathname);
+    if (
+      parsedRequest.protocol !== "http:" || parsedRequest.origin !== origin || !expectedRoute ||
+      parsedRequest.search !== "" || parsedRequest.hash !== "" || request.method !== "GET"
+    ) {
+      captureViolations.push(`unexpected request URL/method: ${request.method} ${requestUrl}`);
+    }
+  } catch {
+    captureViolations.push(`request URL was not parseable: ${requestUrl}`);
+  }
+  const requestKey = `${baseKey}:${hop}`;
+  requests.set(requestKey, {
+    sessionId: eventSession,
+    requestId: String(params.requestId),
+    hop,
+    url: requestUrl,
+    method: String(request.method),
+    status: null,
+    mimeType: null,
+    fromDiskCache: false,
+    fromServiceWorker: false,
+    redirected: false,
+    failed: false,
+    errorText: null,
+    body: null,
+  });
+  activeRequestKeys.set(baseKey, requestKey);
+  return requestKey;
+}
+
 async function createInstrumentedTarget(
   client: CdpClient,
   origin: string,
@@ -567,6 +735,7 @@ async function createInstrumentedTarget(
   const consoleMessages: Array<Record<string, unknown>> = [];
   const exceptions: Array<Record<string, unknown>> = [];
   const requests = new Map<string, Record<string, unknown>>();
+  const activeRequestKeys = new Map<string, string>();
   const scripts: Array<{ route: string; context: "page" | "worker"; bytes: Uint8Array }> = [];
   const captureViolations: string[] = [];
   const tasks: Promise<void>[] = [];
@@ -610,24 +779,20 @@ async function createInstrumentedTarget(
     }),
     client.on("Network.requestWillBeSent", (params, eventSession) => {
       if (!eventSession || !sessions.has(eventSession)) return;
-      const request = params.request as Record<string, unknown>;
-      requests.set(`${eventSession}:${params.requestId}`, {
-        sessionId: eventSession,
-        requestId: String(params.requestId),
-        url: String(request.url),
-        method: String(request.method),
-        status: null,
-        mimeType: null,
-        fromDiskCache: false,
-        fromServiceWorker: false,
-        failed: false,
-        errorText: null,
-        body: null,
-      });
+      retainRequestHop(
+        requests,
+        activeRequestKeys,
+        captureViolations,
+        origin,
+        eventSession,
+        params,
+      );
     }),
     client.on("Network.responseReceived", (params, eventSession) => {
       if (!eventSession) return;
-      const record = requests.get(`${eventSession}:${params.requestId}`);
+      const record = requests.get(
+        activeRequestKeys.get(`${eventSession}:${params.requestId}`) ?? "",
+      );
       if (!record) return;
       const response = params.response as Record<string, unknown>;
       Object.assign(record, {
@@ -639,8 +804,10 @@ async function createInstrumentedTarget(
     }),
     client.on("Network.loadingFinished", (params, eventSession) => {
       if (!eventSession) return;
-      const record = requests.get(`${eventSession}:${params.requestId}`);
+      const baseKey = `${eventSession}:${params.requestId}`;
+      const record = requests.get(activeRequestKeys.get(baseKey) ?? "");
       if (!record) return;
+      activeRequestKeys.delete(baseKey);
       tasks.push((async () => {
         const body = await client.send(
           "Network.getResponseBody",
@@ -655,23 +822,40 @@ async function createInstrumentedTarget(
     }),
     client.on("Network.loadingFailed", (params, eventSession) => {
       if (!eventSession) return;
-      const record = requests.get(`${eventSession}:${params.requestId}`);
+      const baseKey = `${eventSession}:${params.requestId}`;
+      const record = requests.get(activeRequestKeys.get(baseKey) ?? "");
+      activeRequestKeys.delete(baseKey);
       if (record) Object.assign(record, { failed: true, errorText: String(params.errorText) });
     }),
     client.on("Debugger.scriptParsed", (params, eventSession) => {
       if (!eventSession || !sessions.has(eventSession)) return;
-      let parsed: URL;
+      let disposition: ReturnType<typeof classifyExecutedScriptUrl>;
       try {
-        parsed = new URL(String(params.url));
-      } catch {
+        disposition = classifyExecutedScriptUrl(String(params.url ?? ""), origin);
+      } catch (error) {
+        captureViolations.push(error instanceof Error ? error.message : String(error));
         return;
       }
-      if (parsed.origin !== origin) return;
-      const expected = EXPECTED_ASSETS.find((asset) =>
-        asset.executedIn.length > 0 && asset.route === parsed.pathname
-      );
-      if (!expected) {
-        captureViolations.push(`unexpected same-origin executed script: ${parsed.pathname}`);
+      if (disposition.kind === "collector") {
+        tasks.push((async () => {
+          const source = await client.send(
+            "Debugger.getScriptSource",
+            { scriptId: String(params.scriptId) },
+            eventSession,
+            10_000,
+          );
+          const scriptSource = String(source.scriptSource);
+          const remaining = expectedCollectorSources.get(scriptSource) ?? 0;
+          if (remaining < 1) {
+            captureViolations.push(
+              `unregistered collector instrumentation source: ${disposition.url}`,
+            );
+          } else if (remaining === 1) {
+            expectedCollectorSources.delete(scriptSource);
+          } else {
+            expectedCollectorSources.set(scriptSource, remaining - 1);
+          }
+        })());
         return;
       }
       const context = sessions.get(eventSession)?.context ?? "page";
@@ -685,7 +869,7 @@ async function createInstrumentedTarget(
           10_000,
         );
         const bytes = textEncoder.encode(String(source.scriptSource));
-        scripts.push({ route: parsed.pathname, context, bytes });
+        scripts.push({ route: disposition.route, context, bytes });
       })());
     }),
   ];
@@ -701,7 +885,10 @@ async function createInstrumentedTarget(
     }, sessionId),
   ]);
   await client.send("Page.addScriptToEvaluateOnNewDocument", {
-    source: probeSource(Boolean(options.shortTimeout), Boolean(options.blockWorkerMessages)),
+    source: collectorSource(
+      probeSource(Boolean(options.shortTimeout), Boolean(options.blockWorkerMessages)),
+      COLLECTOR_PROBE_URL,
+    ),
   }, sessionId);
   const loaded = new Promise<void>((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error("page load timeout")), 10_000);
@@ -722,6 +909,7 @@ async function createInstrumentedTarget(
     consoleMessages,
     exceptions,
     requests,
+    activeRequestKeys,
     scripts,
     captureViolations,
     tasks,
@@ -758,6 +946,12 @@ async function collectAssets(
   expectedFiles: Awaited<ReturnType<typeof expectedFileRecords>>,
 ) {
   await settleCapture(capture);
+  if (capture.activeRequestKeys.size > 0) {
+    throw new Error("network capture retained incomplete active requests");
+  }
+  if (expectedCollectorSources.size > 0) {
+    throw new Error("collector instrumentation executions were not exhaustively captured");
+  }
   if (capture.captureViolations.length > 0) {
     throw new Error(capture.captureViolations.join("\n"));
   }
@@ -770,6 +964,9 @@ async function collectAssets(
     }
     if (request.method !== "GET") {
       throw new Error(`unexpected request method: ${request.method} ${url.href}`);
+    }
+    if (request.hop !== 0 || request.redirected) {
+      throw new Error(`unexpected redirect request record: ${JSON.stringify(request)}`);
     }
     if (request.failed || request.status !== 200 || !(request.body instanceof Uint8Array)) {
       throw new Error(`failed, incomplete, or non-200 request: ${JSON.stringify(request)}`);
@@ -1083,6 +1280,24 @@ async function collectLifecycle(
       capture.sessionId,
       `(() => { const workers=globalThis.__baseRegexCollector.workers; return {count:workers.length,terminated:workers.filter((entry)=>entry.terminated).length}; })()`,
     ) as { count: number; terminated: number };
+    await settleCapture(capture);
+    if (capture.activeRequestKeys.size > 0) {
+      throw new Error(`${id}: network capture retained incomplete active requests`);
+    }
+    if (expectedCollectorSources.size > 0) {
+      throw new Error(`${id}: collector instrumentation was not exhaustively captured`);
+    }
+    if (capture.captureViolations.length > 0) {
+      throw new Error(`${id}: ${capture.captureViolations.join("; ")}`);
+    }
+    for (const request of capture.requests.values()) {
+      if (
+        request.hop !== 0 || request.redirected || request.failed || request.status !== 200 ||
+        !(request.body instanceof Uint8Array)
+      ) {
+        throw new Error(`${id}: incomplete, redirected, or failed request evidence`);
+      }
+    }
     if (capture.exceptions.length > 0 || capture.consoleMessages.length > 0) {
       throw new Error(`${id}: lifecycle console and exceptions must both be empty`);
     }
@@ -1128,6 +1343,104 @@ async function collectLifecycle(
   }
 }
 
+function exactIdentity(left: Record<string, unknown>, right: Record<string, unknown>): boolean {
+  return left.pid === right.pid && left.parentPid === right.parentPid &&
+    left.startTimeTicks === right.startTimeTicks && left.executable === right.executable;
+}
+
+export function validateEvidenceRelationships(evidence: Record<string, unknown>): void {
+  const browser = evidence.browser as Record<string, unknown>;
+  const executable = browser.executable as Record<string, unknown>;
+  const profile = browser.profile as Record<string, unknown>;
+  const ownership = browser.ownership as Record<string, unknown>;
+  const cgroup = ownership.cgroup as Record<string, unknown>;
+  const cdpListener = ownership.cdpListener as Record<string, unknown>;
+  const scopeLauncher = ownership.scopeLauncherAtLaunch as Record<string, unknown>;
+  const browserAtLaunch = ownership.browserAtLaunch as Record<string, unknown>;
+  const preCgroup = ownership.preCgroupProcesses as Array<Record<string, unknown>>;
+  const listenerChecks = ownership.listenerChecks as Array<Record<string, unknown>>;
+  const launchArguments = browser.launchArguments as string[];
+  const cleanup = evidence.cleanup as Record<string, Record<string, unknown>>;
+  const browserCleanup = cleanup.browser;
+  const profileCleanup = cleanup.profile;
+  const server = evidence.server as Record<string, unknown>;
+  const serverCleanup = cleanup.server;
+  if (
+    browser.channel !== "chrome-for-testing" || browser.product !== CFT_PRODUCT ||
+    executable.sha256 !== CFT_EXECUTABLE_SHA256
+  ) {
+    throw new Error("browser product and executable must match the approved CfT identity");
+  }
+  const portArguments = launchArguments.filter((argument) =>
+    argument.startsWith("--remote-debugging-port=")
+  );
+  const profileArguments = launchArguments.filter((argument) =>
+    argument.startsWith("--user-data-dir=")
+  );
+  if (
+    portArguments.length !== 1 ||
+    Number(portArguments[0].slice("--remote-debugging-port=".length)) !== cdpListener.port
+  ) {
+    throw new Error("CDP listener port does not match the unique launch argument");
+  }
+  if (
+    profileArguments.length !== 1 ||
+    profileArguments[0].slice("--user-data-dir=".length) !== profile.path ||
+    profileCleanup.path !== profile.path
+  ) {
+    throw new Error("profile identity does not match launch and cleanup paths");
+  }
+  const unit = String(ownership.unit);
+  if (
+    !String(cgroup.path).endsWith(`/${unit}`) || browserCleanup.unit !== unit ||
+    JSON.stringify(browserCleanup.cgroup) !== JSON.stringify(cgroup)
+  ) {
+    throw new Error("systemd unit and cgroup identities do not reconcile across cleanup");
+  }
+  const initialOwner = cdpListener.owner as Record<string, unknown>;
+  const cleanupLauncher = browserCleanup.launcher as Record<string, unknown>;
+  if (
+    initialOwner.executable !== executable.path || cleanupLauncher.executable !== executable.path ||
+    !exactIdentity(browserAtLaunch, initialOwner) || !exactIdentity(initialOwner, cleanupLauncher)
+  ) {
+    throw new Error("CDP owner and cleanup launcher do not match the approved executable identity");
+  }
+  const expectedPhases = ["before-connect", "after-connect", "before-use", "after-use"];
+  if (
+    listenerChecks.length !== expectedPhases.length ||
+    listenerChecks.some((check, index) =>
+      check.phase !== expectedPhases[index] || check.address !== cdpListener.address ||
+      check.port !== cdpListener.port || check.inode !== cdpListener.inode ||
+      !exactIdentity(check.owner as Record<string, unknown>, initialOwner)
+    )
+  ) {
+    throw new Error("CDP listener checks do not retain one inode/owner through use");
+  }
+  if (
+    browserAtLaunch.executable !== executable.path ||
+    !preCgroup.some((identity) => exactIdentity(identity, scopeLauncher)) ||
+    !preCgroup.some((identity) => exactIdentity(identity, browserAtLaunch))
+  ) {
+    throw new Error("immediate scope/browser identities are absent from pre-cgroup retention");
+  }
+  const observed = browserCleanup.observedProcesses as Array<Record<string, unknown>>;
+  if (
+    !observed.some((identity) => exactIdentity(identity, scopeLauncher)) ||
+    !observed.some((identity) => exactIdentity(identity, browserAtLaunch)) ||
+    !observed.some((identity) => exactIdentity(identity, initialOwner))
+  ) {
+    throw new Error("cleanup process ledger omits retained launch or CDP identities");
+  }
+  if (
+    !exactIdentity(
+      server.launcher as Record<string, unknown>,
+      serverCleanup.launcher as Record<string, unknown>,
+    )
+  ) {
+    throw new Error("server launch and cleanup identities do not match");
+  }
+}
+
 async function main() {
   const chromeArg = Deno.args.find((value) => value.startsWith("--chrome="));
   if (!chromeArg || Deno.args.length !== 1) {
@@ -1154,6 +1467,9 @@ async function main() {
   const scriptBytes = await Deno.readFile(`${rootPath}/${SCRIPT_PATH}`);
   const scriptSha256 = await sha256Hex(scriptBytes);
   const executableAtLaunch = await fileIdentity(chromeArg.slice("--chrome=".length));
+  if (executableAtLaunch.sha256 !== CFT_EXECUTABLE_SHA256) {
+    throw new Error("collector requires the approved Chrome for Testing executable SHA-256");
+  }
   const expectedFiles = await expectedFileRecords(rootPath);
   const registration = JSON.parse(
     await Deno.readTextFile(
@@ -1169,6 +1485,7 @@ async function main() {
   let browserProcess: Deno.ChildProcess | null = null;
   let browserStatusPromise: Promise<Deno.CommandStatus> | null = null;
   let browserCgroup: CgroupIdentity | null = null;
+  let launchTracker: ReturnType<typeof startOwnedProcessTracker> | null = null;
   let tracker: ReturnType<typeof startCgroupTracker> | null = null;
   let client: CdpClient | null = null;
   let completed = false;
@@ -1225,7 +1542,33 @@ async function main() {
       stderr: "null",
     }).spawn();
     browserStatusPromise = browserProcess.status;
-    browserCgroup = await waitForScopeCgroup(browserProcess.pid, scopeUnit);
+    launchTracker = startOwnedProcessTracker(browserProcess.pid);
+    const scopeLauncherAtLaunch = await processIdentity(browserProcess.pid);
+    if (!scopeLauncherAtLaunch) {
+      throw new Error("systemd scope launcher identity disappeared immediately after launch");
+    }
+    const browserAtLaunch = await waitForOwnedExecutable(
+      scopeLauncherAtLaunch.pid,
+      executableAtLaunch.path,
+    );
+    browserCgroup = await waitForScopeCgroup(scopeLauncherAtLaunch.pid, scopeUnit);
+    const trackedBeforeCgroup = await launchTracker.stop();
+    const preCgroupProcesses = [...new Map(
+      [scopeLauncherAtLaunch, browserAtLaunch, ...trackedBeforeCgroup].map((identity) => [
+        `${identity.pid}:${identity.startTimeTicks}:${identity.executable}`,
+        identity,
+      ]),
+    ).values()].sort((a, b) => a.pid - b.pid);
+    launchTracker = null;
+    if (
+      !preCgroupProcesses.some((identity) =>
+        identity.pid === scopeLauncherAtLaunch.pid &&
+        identity.startTimeTicks === scopeLauncherAtLaunch.startTimeTicks &&
+        identity.executable === scopeLauncherAtLaunch.executable
+      )
+    ) {
+      throw new Error("immediate systemd scope launcher identity was not retained");
+    }
     tracker = startCgroupTracker(browserCgroup.path);
 
     let cdpListener: Awaited<ReturnType<typeof listenerOwnership>> | null = null;
@@ -1253,10 +1596,14 @@ async function main() {
     }
     client = new CdpClient(socketUrl.href);
     await client.ready();
+    const listenerChecks = [
+      { phase: "before-connect" as const, ...cdpListener },
+      await revalidateListener(cdpListener, debuggerPort, browserCgroup.path, "after-connect"),
+    ];
     const browserVersion = await client.send("Browser.getVersion");
-    if (!/^Chrome\/\d+\.\d+\.\d+\.\d+$/.test(String(browserVersion.product))) {
+    if (browserVersion.product !== CFT_PRODUCT) {
       throw new Error(
-        `collector requires exact Google Chrome provenance, got ${browserVersion.product}`,
+        `collector requires exact Chrome for Testing ${CFT_PRODUCT}, got ${browserVersion.product}`,
       );
     }
     const commandLine = await client.send("Browser.getBrowserCommandLine");
@@ -1271,6 +1618,9 @@ async function main() {
       throw new Error("connected CDP listener left its retained process/cgroup identity");
     }
 
+    listenerChecks.push(
+      await revalidateListener(cdpListener, debuggerPort, browserCgroup.path, "before-use"),
+    );
     const capturedModeRuns = [];
     for (const mode of ["js-controlled", "wasm-linear-controlled"] as const) {
       capturedModeRuns.push(await collectModeRun(client, origin, mode, expectedFiles));
@@ -1286,6 +1636,9 @@ async function main() {
         "pagehide",
       ] as const
     ) lifecycle.push(await collectLifecycle(client, origin, id));
+    listenerChecks.push(
+      await revalidateListener(cdpListener, debuggerPort, browserCgroup.path, "after-use"),
+    );
 
     const executableBeforeCleanup = await fileIdentity(executableAtLaunch.path);
     if (!sameFileIdentity(executableAtLaunch, executableBeforeCleanup)) {
@@ -1308,8 +1661,14 @@ async function main() {
     }
     const processesAbsent = await waitForCgroupEmpty(browserCgroup.path, 5_000);
     if (!processesAbsent) throw new Error("owned Chrome cgroup retained live processes");
-    const observedProcesses = await tracker.stop();
+    const cgroupObservedProcesses = await tracker.stop();
     tracker = null;
+    const observedProcesses = [...new Map(
+      [...preCgroupProcesses, ...cgroupObservedProcesses].map((identity) => [
+        `${identity.pid}:${identity.startTimeTicks}:${identity.executable}`,
+        identity,
+      ]),
+    ).values()].sort((a, b) => a.pid - b.pid);
     const launcherIdentity = observedProcesses.find((identity) =>
       identity.pid === cdpListener.owner.pid &&
       identity.startTimeTicks === cdpListener.owner.startTimeTicks
@@ -1395,6 +1754,7 @@ async function main() {
         performanceClaim: false,
       },
       browser: {
+        channel: "chrome-for-testing",
         product: String(browserVersion.product),
         revision: String(browserVersion.revision),
         userAgent: String(browserVersion.userAgent),
@@ -1407,7 +1767,11 @@ async function main() {
         ownership: {
           unit: `${scopeUnit}.scope`,
           cgroup: browserCgroup,
+          scopeLauncherAtLaunch,
+          browserAtLaunch,
+          preCgroupProcesses,
           cdpListener,
+          listenerChecks,
         },
       },
       server: { origin, mode: "public", launcher: serverIdentity },
@@ -1420,6 +1784,8 @@ async function main() {
       lifecycle,
       cleanup: {
         browser: {
+          unit: `${scopeUnit}.scope`,
+          cgroup: browserCgroup,
           launcher: launcherIdentity,
           observedProcesses,
           requested: "Browser.close",
@@ -1445,6 +1811,7 @@ async function main() {
         },
       },
     };
+    validateEvidenceRelationships(evidence as unknown as Record<string, unknown>);
     await Deno.mkdir(`${rootPath}/${SCREENSHOT_ROOT}`, { recursive: true });
     for (const screenshot of screenshotOutputs) {
       await Deno.writeFile(`${rootPath}/${screenshot.path}`, screenshot.bytes);
@@ -1459,11 +1826,19 @@ async function main() {
   } finally {
     if (!completed) {
       const cleanupFailures: string[] = [];
-      const fallbackProcesses = browserCgroup
+      const launchRetained = await launchTracker?.stop().catch(() => []) ?? [];
+      launchTracker = null;
+      const lateFallback = browserCgroup
         ? await cgroupProcesses(browserCgroup.path)
         : browserProcess
         ? await ownedProcesses(browserProcess.pid)
         : [];
+      const fallbackProcesses = [...new Map(
+        [...launchRetained, ...lateFallback].map((identity) => [
+          `${identity.pid}:${identity.startTimeTicks}:${identity.executable}`,
+          identity,
+        ]),
+      ).values()];
       try {
         await client?.send("Browser.close");
       } catch {
