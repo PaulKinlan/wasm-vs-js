@@ -1,0 +1,3426 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.ai-focus.dev/schemas/base-crypto-file-integrity-browser-evidence.v1.json",
+  "title": "crypto.file-integrity.v1 retained Chrome browser validation evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "evidenceId",
+    "collectedAt",
+    "source",
+    "browser",
+    "server",
+    "fetchedAssets",
+    "cases",
+    "visibleControlRun",
+    "lifecycle",
+    "console",
+    "network",
+    "accessibility",
+    "screenshot",
+    "cleanup"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "evidenceId": {
+      "const": "crypto.file-integrity.v1-chrome-browser-validation-v1"
+    },
+    "collectedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "root",
+        "commit",
+        "tree",
+        "collectorSha256"
+      ],
+      "properties": {
+        "root": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "commit": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$"
+        },
+        "tree": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$"
+        },
+        "collectorSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "browser": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "product",
+        "revision",
+        "userAgent",
+        "jsVersion",
+        "executable",
+        "executableSha256",
+        "launchArguments",
+        "effectiveArguments",
+        "headless",
+        "protocol",
+        "devtools",
+        "profile"
+      ],
+      "properties": {
+        "product": {
+          "type": "string",
+          "pattern": "^Chrome/[0-9]+(?:\\.[0-9]+)+$"
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "userAgent": {
+          "type": "string",
+          "minLength": 1
+        },
+        "jsVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "executable": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "executableSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "launchArguments": {
+          "type": "array",
+          "minItems": 15,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "effectiveArguments": {
+          "type": "array",
+          "minItems": 15,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "headless": {
+          "const": true
+        },
+        "protocol": {
+          "const": "Chrome DevTools Protocol"
+        },
+        "devtools": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "address",
+            "port",
+            "browserPath",
+            "webSocketOrigin"
+          ],
+          "properties": {
+            "address": {
+              "const": "127.0.0.1"
+            },
+            "port": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535
+            },
+            "browserPath": {
+              "type": "string",
+              "pattern": "^/devtools/browser/[A-Za-z0-9-]+$"
+            },
+            "webSocketOrigin": {
+              "type": "string",
+              "pattern": "^ws://127\\.0\\.0\\.1:[0-9]+$"
+            }
+          }
+        },
+        "profile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "dev",
+            "ino",
+            "mode"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "^/tmp/wasm-crypto-file-integrity-chrome-"
+            },
+            "dev": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "ino": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "mode": {
+              "const": 448
+            }
+          }
+        }
+      }
+    },
+    "server": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "origin",
+        "address",
+        "port",
+        "mode"
+      ],
+      "properties": {
+        "origin": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+$"
+        },
+        "address": {
+          "const": "127.0.0.1"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "mode": {
+          "const": "public"
+        }
+      }
+    },
+    "fetchedAssets": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/asset"
+      },
+      "allOf": [
+        {
+          "contains": {
+            "required": [
+              "route",
+              "sourcePath"
+            ],
+            "properties": {
+              "route": {
+                "const": "/demos/crypto.file-integrity.v1/"
+              },
+              "sourcePath": {
+                "const": "public/demos/crypto.file-integrity.v1/index.html"
+              }
+            },
+            "type": "object"
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "required": [
+              "route",
+              "sourcePath"
+            ],
+            "properties": {
+              "route": {
+                "const": "/styles.css"
+              },
+              "sourcePath": {
+                "const": "public/styles.css"
+              }
+            },
+            "type": "object"
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "required": [
+              "route",
+              "sourcePath"
+            ],
+            "properties": {
+              "route": {
+                "const": "/crypto-file-integrity-demo.js"
+              },
+              "sourcePath": {
+                "const": "public/crypto-file-integrity-demo.js"
+              }
+            },
+            "type": "object"
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "required": [
+              "route",
+              "sourcePath"
+            ],
+            "properties": {
+              "route": {
+                "const": "/crypto-file-integrity-worker.js"
+              },
+              "sourcePath": {
+                "const": "public/crypto-file-integrity-worker.js"
+              }
+            },
+            "type": "object"
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "required": [
+              "route",
+              "sourcePath"
+            ],
+            "properties": {
+              "route": {
+                "const": "/data/base-implementation-status.v1.json"
+              },
+              "sourcePath": {
+                "const": "public/data/base-implementation-status.v1.json"
+              }
+            },
+            "type": "object"
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "required": [
+              "route",
+              "sourcePath"
+            ],
+            "properties": {
+              "route": {
+                "const": "/registrations/base/crypto.file-integrity.v1.json"
+              },
+              "sourcePath": {
+                "const": "registrations/base/crypto.file-integrity.v1.json"
+              }
+            },
+            "type": "object"
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "required": [
+              "route",
+              "sourcePath"
+            ],
+            "properties": {
+              "route": {
+                "const": "/artifacts/crypto-file-integrity/build-manifest.json"
+              },
+              "sourcePath": {
+                "const": "public/artifacts/crypto-file-integrity/build-manifest.json"
+              }
+            },
+            "type": "object"
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "required": [
+              "route",
+              "sourcePath"
+            ],
+            "properties": {
+              "route": {
+                "const": "/artifacts/crypto-file-integrity/crypto-file-integrity.wasm"
+              },
+              "sourcePath": {
+                "const": "public/artifacts/crypto-file-integrity/crypto-file-integrity.wasm"
+              }
+            },
+            "type": "object"
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "required": [
+              "route",
+              "sourcePath"
+            ],
+            "properties": {
+              "route": {
+                "const": "/benchmarks/base/crypto-file-integrity/sha256.js"
+              },
+              "sourcePath": {
+                "const": "benchmarks/base/crypto-file-integrity/sha256.js"
+              }
+            },
+            "type": "object"
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "required": [
+              "route",
+              "sourcePath"
+            ],
+            "properties": {
+              "route": {
+                "const": "/benchmarks/base/crypto-file-integrity/workload.js"
+              },
+              "sourcePath": {
+                "const": "benchmarks/base/crypto-file-integrity/workload.js"
+              }
+            },
+            "type": "object"
+          },
+          "minContains": 1,
+          "maxContains": 1
+        }
+      ]
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 36,
+      "maxItems": 36,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/case"
+      },
+      "allOf": [
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "js-controlled:seeded-pseudorandom:1048576:1024"
+              },
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 1048576
+              },
+              "schedule": {
+                "const": 1024
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "f8a73899aaefadab5b430a0742cdabd33db005321d10f54ecf122e92d4dc803e",
+                  "counters": {
+                    "input-bytes": 1048576,
+                    "scheduled-chunks": 1024,
+                    "sha256-compression-blocks": 16385,
+                    "copied-bytes": 0,
+                    "boundary-crossings": 0,
+                    "engine-buffer-allocations": 4
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "f8a73899aaefadab5b430a0742cdabd33db005321d10f54ecf122e92d4dc803e"
+              },
+              "wasmMemoryPages": {
+                "const": null
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "wasm-linear-controlled:seeded-pseudorandom:1048576:1024"
+              },
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 1048576
+              },
+              "schedule": {
+                "const": 1024
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "f8a73899aaefadab5b430a0742cdabd33db005321d10f54ecf122e92d4dc803e",
+                  "counters": {
+                    "input-bytes": 1048576,
+                    "scheduled-chunks": 1024,
+                    "sha256-compression-blocks": 16385,
+                    "copied-bytes": 1048576,
+                    "boundary-crossings": 1026,
+                    "engine-buffer-allocations": 0
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "f8a73899aaefadab5b430a0742cdabd33db005321d10f54ecf122e92d4dc803e"
+              },
+              "wasmMemoryPages": {
+                "const": 3
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "js-controlled:seeded-pseudorandom:1048576:65536"
+              },
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 1048576
+              },
+              "schedule": {
+                "const": 65536
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "f8a73899aaefadab5b430a0742cdabd33db005321d10f54ecf122e92d4dc803e",
+                  "counters": {
+                    "input-bytes": 1048576,
+                    "scheduled-chunks": 16,
+                    "sha256-compression-blocks": 16385,
+                    "copied-bytes": 0,
+                    "boundary-crossings": 0,
+                    "engine-buffer-allocations": 4
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "f8a73899aaefadab5b430a0742cdabd33db005321d10f54ecf122e92d4dc803e"
+              },
+              "wasmMemoryPages": {
+                "const": null
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "wasm-linear-controlled:seeded-pseudorandom:1048576:65536"
+              },
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 1048576
+              },
+              "schedule": {
+                "const": 65536
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "f8a73899aaefadab5b430a0742cdabd33db005321d10f54ecf122e92d4dc803e",
+                  "counters": {
+                    "input-bytes": 1048576,
+                    "scheduled-chunks": 16,
+                    "sha256-compression-blocks": 16385,
+                    "copied-bytes": 1048576,
+                    "boundary-crossings": 18,
+                    "engine-buffer-allocations": 0
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "f8a73899aaefadab5b430a0742cdabd33db005321d10f54ecf122e92d4dc803e"
+              },
+              "wasmMemoryPages": {
+                "const": 3
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "js-controlled:seeded-pseudorandom:1048576:whole-buffer"
+              },
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 1048576
+              },
+              "schedule": {
+                "const": "whole-buffer"
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "f8a73899aaefadab5b430a0742cdabd33db005321d10f54ecf122e92d4dc803e",
+                  "counters": {
+                    "input-bytes": 1048576,
+                    "scheduled-chunks": 1,
+                    "sha256-compression-blocks": 16385,
+                    "copied-bytes": 0,
+                    "boundary-crossings": 0,
+                    "engine-buffer-allocations": 4
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "f8a73899aaefadab5b430a0742cdabd33db005321d10f54ecf122e92d4dc803e"
+              },
+              "wasmMemoryPages": {
+                "const": null
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "wasm-linear-controlled:seeded-pseudorandom:1048576:whole-buffer"
+              },
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 1048576
+              },
+              "schedule": {
+                "const": "whole-buffer"
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "f8a73899aaefadab5b430a0742cdabd33db005321d10f54ecf122e92d4dc803e",
+                  "counters": {
+                    "input-bytes": 1048576,
+                    "scheduled-chunks": 1,
+                    "sha256-compression-blocks": 16385,
+                    "copied-bytes": 1048576,
+                    "boundary-crossings": 3,
+                    "engine-buffer-allocations": 0
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "f8a73899aaefadab5b430a0742cdabd33db005321d10f54ecf122e92d4dc803e"
+              },
+              "wasmMemoryPages": {
+                "const": 18
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "js-controlled:seeded-pseudorandom:16777216:1024"
+              },
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 16777216
+              },
+              "schedule": {
+                "const": 1024
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "5edbf30842556b3d7bd40018896119e9805abd2e7705d8b873bade9dab850e1f",
+                  "counters": {
+                    "input-bytes": 16777216,
+                    "scheduled-chunks": 16384,
+                    "sha256-compression-blocks": 262145,
+                    "copied-bytes": 0,
+                    "boundary-crossings": 0,
+                    "engine-buffer-allocations": 4
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "5edbf30842556b3d7bd40018896119e9805abd2e7705d8b873bade9dab850e1f"
+              },
+              "wasmMemoryPages": {
+                "const": null
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "wasm-linear-controlled:seeded-pseudorandom:16777216:1024"
+              },
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 16777216
+              },
+              "schedule": {
+                "const": 1024
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "5edbf30842556b3d7bd40018896119e9805abd2e7705d8b873bade9dab850e1f",
+                  "counters": {
+                    "input-bytes": 16777216,
+                    "scheduled-chunks": 16384,
+                    "sha256-compression-blocks": 262145,
+                    "copied-bytes": 16777216,
+                    "boundary-crossings": 16386,
+                    "engine-buffer-allocations": 0
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "5edbf30842556b3d7bd40018896119e9805abd2e7705d8b873bade9dab850e1f"
+              },
+              "wasmMemoryPages": {
+                "const": 3
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "js-controlled:seeded-pseudorandom:16777216:65536"
+              },
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 16777216
+              },
+              "schedule": {
+                "const": 65536
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "5edbf30842556b3d7bd40018896119e9805abd2e7705d8b873bade9dab850e1f",
+                  "counters": {
+                    "input-bytes": 16777216,
+                    "scheduled-chunks": 256,
+                    "sha256-compression-blocks": 262145,
+                    "copied-bytes": 0,
+                    "boundary-crossings": 0,
+                    "engine-buffer-allocations": 4
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "5edbf30842556b3d7bd40018896119e9805abd2e7705d8b873bade9dab850e1f"
+              },
+              "wasmMemoryPages": {
+                "const": null
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "wasm-linear-controlled:seeded-pseudorandom:16777216:65536"
+              },
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 16777216
+              },
+              "schedule": {
+                "const": 65536
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "5edbf30842556b3d7bd40018896119e9805abd2e7705d8b873bade9dab850e1f",
+                  "counters": {
+                    "input-bytes": 16777216,
+                    "scheduled-chunks": 256,
+                    "sha256-compression-blocks": 262145,
+                    "copied-bytes": 16777216,
+                    "boundary-crossings": 258,
+                    "engine-buffer-allocations": 0
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "5edbf30842556b3d7bd40018896119e9805abd2e7705d8b873bade9dab850e1f"
+              },
+              "wasmMemoryPages": {
+                "const": 3
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "js-controlled:seeded-pseudorandom:16777216:whole-buffer"
+              },
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 16777216
+              },
+              "schedule": {
+                "const": "whole-buffer"
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "5edbf30842556b3d7bd40018896119e9805abd2e7705d8b873bade9dab850e1f",
+                  "counters": {
+                    "input-bytes": 16777216,
+                    "scheduled-chunks": 1,
+                    "sha256-compression-blocks": 262145,
+                    "copied-bytes": 0,
+                    "boundary-crossings": 0,
+                    "engine-buffer-allocations": 4
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "5edbf30842556b3d7bd40018896119e9805abd2e7705d8b873bade9dab850e1f"
+              },
+              "wasmMemoryPages": {
+                "const": null
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "wasm-linear-controlled:seeded-pseudorandom:16777216:whole-buffer"
+              },
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 16777216
+              },
+              "schedule": {
+                "const": "whole-buffer"
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "5edbf30842556b3d7bd40018896119e9805abd2e7705d8b873bade9dab850e1f",
+                  "counters": {
+                    "input-bytes": 16777216,
+                    "scheduled-chunks": 1,
+                    "sha256-compression-blocks": 262145,
+                    "copied-bytes": 16777216,
+                    "boundary-crossings": 3,
+                    "engine-buffer-allocations": 0
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "5edbf30842556b3d7bd40018896119e9805abd2e7705d8b873bade9dab850e1f"
+              },
+              "wasmMemoryPages": {
+                "const": 258
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "js-controlled:seeded-pseudorandom:268435456:1024"
+              },
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 268435456
+              },
+              "schedule": {
+                "const": 1024
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "bc5c01970c2033cae17a1d2d125fcf3ce7faabbcbde003a669725c52d9481c13",
+                  "counters": {
+                    "input-bytes": 268435456,
+                    "scheduled-chunks": 262144,
+                    "sha256-compression-blocks": 4194305,
+                    "copied-bytes": 0,
+                    "boundary-crossings": 0,
+                    "engine-buffer-allocations": 4
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "bc5c01970c2033cae17a1d2d125fcf3ce7faabbcbde003a669725c52d9481c13"
+              },
+              "wasmMemoryPages": {
+                "const": null
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "wasm-linear-controlled:seeded-pseudorandom:268435456:1024"
+              },
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 268435456
+              },
+              "schedule": {
+                "const": 1024
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "bc5c01970c2033cae17a1d2d125fcf3ce7faabbcbde003a669725c52d9481c13",
+                  "counters": {
+                    "input-bytes": 268435456,
+                    "scheduled-chunks": 262144,
+                    "sha256-compression-blocks": 4194305,
+                    "copied-bytes": 268435456,
+                    "boundary-crossings": 262146,
+                    "engine-buffer-allocations": 0
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "bc5c01970c2033cae17a1d2d125fcf3ce7faabbcbde003a669725c52d9481c13"
+              },
+              "wasmMemoryPages": {
+                "const": 3
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "js-controlled:seeded-pseudorandom:268435456:65536"
+              },
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 268435456
+              },
+              "schedule": {
+                "const": 65536
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "bc5c01970c2033cae17a1d2d125fcf3ce7faabbcbde003a669725c52d9481c13",
+                  "counters": {
+                    "input-bytes": 268435456,
+                    "scheduled-chunks": 4096,
+                    "sha256-compression-blocks": 4194305,
+                    "copied-bytes": 0,
+                    "boundary-crossings": 0,
+                    "engine-buffer-allocations": 4
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "bc5c01970c2033cae17a1d2d125fcf3ce7faabbcbde003a669725c52d9481c13"
+              },
+              "wasmMemoryPages": {
+                "const": null
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "wasm-linear-controlled:seeded-pseudorandom:268435456:65536"
+              },
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 268435456
+              },
+              "schedule": {
+                "const": 65536
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "bc5c01970c2033cae17a1d2d125fcf3ce7faabbcbde003a669725c52d9481c13",
+                  "counters": {
+                    "input-bytes": 268435456,
+                    "scheduled-chunks": 4096,
+                    "sha256-compression-blocks": 4194305,
+                    "copied-bytes": 268435456,
+                    "boundary-crossings": 4098,
+                    "engine-buffer-allocations": 0
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "bc5c01970c2033cae17a1d2d125fcf3ce7faabbcbde003a669725c52d9481c13"
+              },
+              "wasmMemoryPages": {
+                "const": 3
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "js-controlled:seeded-pseudorandom:268435456:whole-buffer"
+              },
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 268435456
+              },
+              "schedule": {
+                "const": "whole-buffer"
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "bc5c01970c2033cae17a1d2d125fcf3ce7faabbcbde003a669725c52d9481c13",
+                  "counters": {
+                    "input-bytes": 268435456,
+                    "scheduled-chunks": 1,
+                    "sha256-compression-blocks": 4194305,
+                    "copied-bytes": 0,
+                    "boundary-crossings": 0,
+                    "engine-buffer-allocations": 4
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "bc5c01970c2033cae17a1d2d125fcf3ce7faabbcbde003a669725c52d9481c13"
+              },
+              "wasmMemoryPages": {
+                "const": null
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "wasm-linear-controlled:seeded-pseudorandom:268435456:whole-buffer"
+              },
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 268435456
+              },
+              "schedule": {
+                "const": "whole-buffer"
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "bc5c01970c2033cae17a1d2d125fcf3ce7faabbcbde003a669725c52d9481c13",
+                  "counters": {
+                    "input-bytes": 268435456,
+                    "scheduled-chunks": 1,
+                    "sha256-compression-blocks": 4194305,
+                    "copied-bytes": 268435456,
+                    "boundary-crossings": 3,
+                    "engine-buffer-allocations": 0
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "bc5c01970c2033cae17a1d2d125fcf3ce7faabbcbde003a669725c52d9481c13"
+              },
+              "wasmMemoryPages": {
+                "const": 4098
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "js-controlled:all-zero:1048576:1024"
+              },
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 1048576
+              },
+              "schedule": {
+                "const": 1024
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58",
+                  "counters": {
+                    "input-bytes": 1048576,
+                    "scheduled-chunks": 1024,
+                    "sha256-compression-blocks": 16385,
+                    "copied-bytes": 0,
+                    "boundary-crossings": 0,
+                    "engine-buffer-allocations": 4
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58"
+              },
+              "wasmMemoryPages": {
+                "const": null
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "wasm-linear-controlled:all-zero:1048576:1024"
+              },
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 1048576
+              },
+              "schedule": {
+                "const": 1024
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58",
+                  "counters": {
+                    "input-bytes": 1048576,
+                    "scheduled-chunks": 1024,
+                    "sha256-compression-blocks": 16385,
+                    "copied-bytes": 1048576,
+                    "boundary-crossings": 1026,
+                    "engine-buffer-allocations": 0
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58"
+              },
+              "wasmMemoryPages": {
+                "const": 3
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "js-controlled:all-zero:1048576:65536"
+              },
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 1048576
+              },
+              "schedule": {
+                "const": 65536
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58",
+                  "counters": {
+                    "input-bytes": 1048576,
+                    "scheduled-chunks": 16,
+                    "sha256-compression-blocks": 16385,
+                    "copied-bytes": 0,
+                    "boundary-crossings": 0,
+                    "engine-buffer-allocations": 4
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58"
+              },
+              "wasmMemoryPages": {
+                "const": null
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "wasm-linear-controlled:all-zero:1048576:65536"
+              },
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 1048576
+              },
+              "schedule": {
+                "const": 65536
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58",
+                  "counters": {
+                    "input-bytes": 1048576,
+                    "scheduled-chunks": 16,
+                    "sha256-compression-blocks": 16385,
+                    "copied-bytes": 1048576,
+                    "boundary-crossings": 18,
+                    "engine-buffer-allocations": 0
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58"
+              },
+              "wasmMemoryPages": {
+                "const": 3
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "js-controlled:all-zero:1048576:whole-buffer"
+              },
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 1048576
+              },
+              "schedule": {
+                "const": "whole-buffer"
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58",
+                  "counters": {
+                    "input-bytes": 1048576,
+                    "scheduled-chunks": 1,
+                    "sha256-compression-blocks": 16385,
+                    "copied-bytes": 0,
+                    "boundary-crossings": 0,
+                    "engine-buffer-allocations": 4
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58"
+              },
+              "wasmMemoryPages": {
+                "const": null
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "wasm-linear-controlled:all-zero:1048576:whole-buffer"
+              },
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 1048576
+              },
+              "schedule": {
+                "const": "whole-buffer"
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58",
+                  "counters": {
+                    "input-bytes": 1048576,
+                    "scheduled-chunks": 1,
+                    "sha256-compression-blocks": 16385,
+                    "copied-bytes": 1048576,
+                    "boundary-crossings": 3,
+                    "engine-buffer-allocations": 0
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58"
+              },
+              "wasmMemoryPages": {
+                "const": 18
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "js-controlled:all-zero:16777216:1024"
+              },
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 16777216
+              },
+              "schedule": {
+                "const": 1024
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "080acf35a507ac9849cfcba47dc2ad83e01b75663a516279c8b9d243b719643e",
+                  "counters": {
+                    "input-bytes": 16777216,
+                    "scheduled-chunks": 16384,
+                    "sha256-compression-blocks": 262145,
+                    "copied-bytes": 0,
+                    "boundary-crossings": 0,
+                    "engine-buffer-allocations": 4
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "080acf35a507ac9849cfcba47dc2ad83e01b75663a516279c8b9d243b719643e"
+              },
+              "wasmMemoryPages": {
+                "const": null
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "wasm-linear-controlled:all-zero:16777216:1024"
+              },
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 16777216
+              },
+              "schedule": {
+                "const": 1024
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "080acf35a507ac9849cfcba47dc2ad83e01b75663a516279c8b9d243b719643e",
+                  "counters": {
+                    "input-bytes": 16777216,
+                    "scheduled-chunks": 16384,
+                    "sha256-compression-blocks": 262145,
+                    "copied-bytes": 16777216,
+                    "boundary-crossings": 16386,
+                    "engine-buffer-allocations": 0
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "080acf35a507ac9849cfcba47dc2ad83e01b75663a516279c8b9d243b719643e"
+              },
+              "wasmMemoryPages": {
+                "const": 3
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "js-controlled:all-zero:16777216:65536"
+              },
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 16777216
+              },
+              "schedule": {
+                "const": 65536
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "080acf35a507ac9849cfcba47dc2ad83e01b75663a516279c8b9d243b719643e",
+                  "counters": {
+                    "input-bytes": 16777216,
+                    "scheduled-chunks": 256,
+                    "sha256-compression-blocks": 262145,
+                    "copied-bytes": 0,
+                    "boundary-crossings": 0,
+                    "engine-buffer-allocations": 4
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "080acf35a507ac9849cfcba47dc2ad83e01b75663a516279c8b9d243b719643e"
+              },
+              "wasmMemoryPages": {
+                "const": null
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "wasm-linear-controlled:all-zero:16777216:65536"
+              },
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 16777216
+              },
+              "schedule": {
+                "const": 65536
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "080acf35a507ac9849cfcba47dc2ad83e01b75663a516279c8b9d243b719643e",
+                  "counters": {
+                    "input-bytes": 16777216,
+                    "scheduled-chunks": 256,
+                    "sha256-compression-blocks": 262145,
+                    "copied-bytes": 16777216,
+                    "boundary-crossings": 258,
+                    "engine-buffer-allocations": 0
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "080acf35a507ac9849cfcba47dc2ad83e01b75663a516279c8b9d243b719643e"
+              },
+              "wasmMemoryPages": {
+                "const": 3
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "js-controlled:all-zero:16777216:whole-buffer"
+              },
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 16777216
+              },
+              "schedule": {
+                "const": "whole-buffer"
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "080acf35a507ac9849cfcba47dc2ad83e01b75663a516279c8b9d243b719643e",
+                  "counters": {
+                    "input-bytes": 16777216,
+                    "scheduled-chunks": 1,
+                    "sha256-compression-blocks": 262145,
+                    "copied-bytes": 0,
+                    "boundary-crossings": 0,
+                    "engine-buffer-allocations": 4
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "080acf35a507ac9849cfcba47dc2ad83e01b75663a516279c8b9d243b719643e"
+              },
+              "wasmMemoryPages": {
+                "const": null
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "wasm-linear-controlled:all-zero:16777216:whole-buffer"
+              },
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 16777216
+              },
+              "schedule": {
+                "const": "whole-buffer"
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "080acf35a507ac9849cfcba47dc2ad83e01b75663a516279c8b9d243b719643e",
+                  "counters": {
+                    "input-bytes": 16777216,
+                    "scheduled-chunks": 1,
+                    "sha256-compression-blocks": 262145,
+                    "copied-bytes": 16777216,
+                    "boundary-crossings": 3,
+                    "engine-buffer-allocations": 0
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "080acf35a507ac9849cfcba47dc2ad83e01b75663a516279c8b9d243b719643e"
+              },
+              "wasmMemoryPages": {
+                "const": 258
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "js-controlled:all-zero:268435456:1024"
+              },
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 268435456
+              },
+              "schedule": {
+                "const": 1024
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "a6d72ac7690f53be6ae46ba88506bd97302a093f7108472bd9efc3cefda06484",
+                  "counters": {
+                    "input-bytes": 268435456,
+                    "scheduled-chunks": 262144,
+                    "sha256-compression-blocks": 4194305,
+                    "copied-bytes": 0,
+                    "boundary-crossings": 0,
+                    "engine-buffer-allocations": 4
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "a6d72ac7690f53be6ae46ba88506bd97302a093f7108472bd9efc3cefda06484"
+              },
+              "wasmMemoryPages": {
+                "const": null
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "wasm-linear-controlled:all-zero:268435456:1024"
+              },
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 268435456
+              },
+              "schedule": {
+                "const": 1024
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "a6d72ac7690f53be6ae46ba88506bd97302a093f7108472bd9efc3cefda06484",
+                  "counters": {
+                    "input-bytes": 268435456,
+                    "scheduled-chunks": 262144,
+                    "sha256-compression-blocks": 4194305,
+                    "copied-bytes": 268435456,
+                    "boundary-crossings": 262146,
+                    "engine-buffer-allocations": 0
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "a6d72ac7690f53be6ae46ba88506bd97302a093f7108472bd9efc3cefda06484"
+              },
+              "wasmMemoryPages": {
+                "const": 3
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "js-controlled:all-zero:268435456:65536"
+              },
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 268435456
+              },
+              "schedule": {
+                "const": 65536
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "a6d72ac7690f53be6ae46ba88506bd97302a093f7108472bd9efc3cefda06484",
+                  "counters": {
+                    "input-bytes": 268435456,
+                    "scheduled-chunks": 4096,
+                    "sha256-compression-blocks": 4194305,
+                    "copied-bytes": 0,
+                    "boundary-crossings": 0,
+                    "engine-buffer-allocations": 4
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "a6d72ac7690f53be6ae46ba88506bd97302a093f7108472bd9efc3cefda06484"
+              },
+              "wasmMemoryPages": {
+                "const": null
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "wasm-linear-controlled:all-zero:268435456:65536"
+              },
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 268435456
+              },
+              "schedule": {
+                "const": 65536
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "a6d72ac7690f53be6ae46ba88506bd97302a093f7108472bd9efc3cefda06484",
+                  "counters": {
+                    "input-bytes": 268435456,
+                    "scheduled-chunks": 4096,
+                    "sha256-compression-blocks": 4194305,
+                    "copied-bytes": 268435456,
+                    "boundary-crossings": 4098,
+                    "engine-buffer-allocations": 0
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "a6d72ac7690f53be6ae46ba88506bd97302a093f7108472bd9efc3cefda06484"
+              },
+              "wasmMemoryPages": {
+                "const": 3
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "js-controlled:all-zero:268435456:whole-buffer"
+              },
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 268435456
+              },
+              "schedule": {
+                "const": "whole-buffer"
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "a6d72ac7690f53be6ae46ba88506bd97302a093f7108472bd9efc3cefda06484",
+                  "counters": {
+                    "input-bytes": 268435456,
+                    "scheduled-chunks": 1,
+                    "sha256-compression-blocks": 4194305,
+                    "copied-bytes": 0,
+                    "boundary-crossings": 0,
+                    "engine-buffer-allocations": 4
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "a6d72ac7690f53be6ae46ba88506bd97302a093f7108472bd9efc3cefda06484"
+              },
+              "wasmMemoryPages": {
+                "const": null
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "id",
+              "target",
+              "kind",
+              "byteLength",
+              "schedule",
+              "output",
+              "expectedDigestSha256",
+              "wasmMemoryPages",
+              "passed"
+            ],
+            "properties": {
+              "id": {
+                "const": "wasm-linear-controlled:all-zero:268435456:whole-buffer"
+              },
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 268435456
+              },
+              "schedule": {
+                "const": "whole-buffer"
+              },
+              "output": {
+                "const": {
+                  "digestSha256": "a6d72ac7690f53be6ae46ba88506bd97302a093f7108472bd9efc3cefda06484",
+                  "counters": {
+                    "input-bytes": 268435456,
+                    "scheduled-chunks": 1,
+                    "sha256-compression-blocks": 4194305,
+                    "copied-bytes": 268435456,
+                    "boundary-crossings": 3,
+                    "engine-buffer-allocations": 0
+                  }
+                }
+              },
+              "expectedDigestSha256": {
+                "const": "a6d72ac7690f53be6ae46ba88506bd97302a093f7108472bd9efc3cefda06484"
+              },
+              "wasmMemoryPages": {
+                "const": 4098
+              },
+              "passed": {
+                "const": true
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        }
+      ]
+    },
+    "visibleControlRun": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "caseId",
+        "finalStatus",
+        "output",
+        "passed"
+      ],
+      "properties": {
+        "caseId": {
+          "const": "js-controlled:seeded-pseudorandom:1048576:1024"
+        },
+        "finalStatus": {
+          "const": "Complete. Exact digest and work counters passed."
+        },
+        "output": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "workloadId",
+            "target",
+            "kind",
+            "byteLength",
+            "schedule",
+            "digestSha256",
+            "counters",
+            "exactContract",
+            "performanceClaim"
+          ],
+          "properties": {
+            "workloadId": {
+              "const": "crypto.file-integrity.v1"
+            },
+            "target": {
+              "const": "js-controlled"
+            },
+            "kind": {
+              "const": "seeded-pseudorandom"
+            },
+            "byteLength": {
+              "const": 1048576
+            },
+            "schedule": {
+              "const": 1024
+            },
+            "digestSha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "counters": {
+              "$ref": "#/$defs/counters"
+            },
+            "exactContract": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "registrationSha256",
+                "buildManifestSha256",
+                "artifactSha256",
+                "sourceHashesMatched"
+              ],
+              "properties": {
+                "registrationSha256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "buildManifestSha256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "artifactSha256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "sourceHashesMatched": {
+                  "const": true
+                }
+              }
+            },
+            "performanceClaim": {
+              "type": "null"
+            }
+          }
+        },
+        "passed": {
+          "const": true
+        }
+      }
+    },
+    "lifecycle": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/lifecycle"
+      },
+      "allOf": [
+        {
+          "contains": {
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "const": "wrong-token"
+              }
+            },
+            "type": "object"
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "const": "stale-error"
+              }
+            },
+            "type": "object"
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "const": "restart"
+              }
+            },
+            "type": "object"
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "const": "cancel"
+              }
+            },
+            "type": "object"
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "const": "timeout"
+              }
+            },
+            "type": "object"
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "const": "pagehide"
+              }
+            },
+            "type": "object"
+          },
+          "minContains": 1,
+          "maxContains": 1
+        }
+      ]
+    },
+    "console": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "messages",
+        "exceptions"
+      ],
+      "properties": {
+        "messages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type",
+              "arguments"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "minLength": 1
+              },
+              "arguments": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "exceptions": {
+          "type": "array",
+          "maxItems": 0,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "text",
+              "lineNumber"
+            ],
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "lineNumber": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    },
+    "network": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "$ref": "#/$defs/network"
+      }
+    },
+    "accessibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lang",
+        "title",
+        "live",
+        "outputTabIndex",
+        "bodyTextSha256",
+        "requiredText",
+        "controls",
+        "axNodes",
+        "passed"
+      ],
+      "properties": {
+        "lang": {
+          "const": "en"
+        },
+        "title": {
+          "const": "SHA-256 file integrity demo | Wasm versus JavaScript"
+        },
+        "live": {
+          "const": "polite"
+        },
+        "outputTabIndex": {
+          "const": 0
+        },
+        "bodyTextSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "requiredText": {
+          "const": [
+            "No performance claim.",
+            "The page uploads and stores nothing.",
+            "2 fixture kinds \u00d7 3 sizes \u00d7 3 schedules \u00d7 2 targets.",
+            "256 MiB whole-buffer Wasm case may grow linear memory to 4,098 pages.",
+            "Every run stops after 180 seconds."
+          ]
+        },
+        "controls": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "items": {
+            "$ref": "#/$defs/control"
+          }
+        },
+        "axNodes": {
+          "type": "array",
+          "minItems": 6,
+          "items": {
+            "$ref": "#/$defs/axNode"
+          }
+        },
+        "passed": {
+          "const": true
+        }
+      }
+    },
+    "screenshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "bytes",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "const": "artifacts/base/crypto.file-integrity.v1/browser-evidence/screenshots/visible-complete.png"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1000
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "browser",
+        "profile",
+        "server"
+      ],
+      "properties": {
+        "browser": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "launcher",
+            "observedProcesses",
+            "requested",
+            "signals",
+            "exit",
+            "processesAbsent",
+            "executableUnchanged"
+          ],
+          "properties": {
+            "launcher": {
+              "$ref": "#/$defs/process"
+            },
+            "observedProcesses": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/process"
+              }
+            },
+            "requested": {
+              "const": "Browser.close"
+            },
+            "signals": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/signal"
+              }
+            },
+            "exit": {
+              "$ref": "#/$defs/exit"
+            },
+            "processesAbsent": {
+              "const": true
+            },
+            "executableUnchanged": {
+              "const": true
+            }
+          }
+        },
+        "profile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "removed",
+            "absent"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "^/tmp/wasm-crypto-file-integrity-chrome-"
+            },
+            "removed": {
+              "const": true
+            },
+            "absent": {
+              "const": true
+            }
+          }
+        },
+        "server": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "launcher",
+            "signal",
+            "signals",
+            "exit",
+            "processAbsent"
+          ],
+          "properties": {
+            "launcher": {
+              "$ref": "#/$defs/process"
+            },
+            "signal": {
+              "const": "SIGTERM"
+            },
+            "signals": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/signal"
+              }
+            },
+            "exit": {
+              "$ref": "#/$defs/exit"
+            },
+            "processAbsent": {
+              "const": true
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input-bytes",
+        "scheduled-chunks",
+        "sha256-compression-blocks",
+        "copied-bytes",
+        "boundary-crossings",
+        "engine-buffer-allocations"
+      ],
+      "properties": {
+        "input-bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "scheduled-chunks": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sha256-compression-blocks": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "copied-bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "boundary-crossings": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "engine-buffer-allocations": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "target",
+        "kind",
+        "byteLength",
+        "schedule",
+        "output",
+        "expectedDigestSha256",
+        "wasmMemoryPages",
+        "passed"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "enum": [
+            "js-controlled",
+            "wasm-linear-controlled"
+          ]
+        },
+        "kind": {
+          "enum": [
+            "seeded-pseudorandom",
+            "all-zero"
+          ]
+        },
+        "byteLength": {
+          "enum": [
+            1048576,
+            16777216,
+            268435456
+          ]
+        },
+        "schedule": {
+          "enum": [
+            1024,
+            65536,
+            "whole-buffer"
+          ]
+        },
+        "output": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "digestSha256",
+            "counters"
+          ],
+          "properties": {
+            "digestSha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "counters": {
+              "$ref": "#/$defs/counters"
+            }
+          }
+        },
+        "expectedDigestSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "wasmMemoryPages": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 3,
+          "maximum": 4098
+        },
+        "passed": {
+          "const": true
+        }
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requestId",
+        "sessionId",
+        "url",
+        "status",
+        "bodyBytes",
+        "bodySha256"
+      ],
+      "properties": {
+        "requestId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/"
+        },
+        "status": {
+          "const": 200
+        },
+        "bodyBytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "bodySha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "route",
+        "sourcePath",
+        "bytes",
+        "sha256",
+        "observedResponses"
+      ],
+      "properties": {
+        "route": {
+          "enum": [
+            "/demos/crypto.file-integrity.v1/",
+            "/styles.css",
+            "/crypto-file-integrity-demo.js",
+            "/crypto-file-integrity-worker.js",
+            "/data/base-implementation-status.v1.json",
+            "/registrations/base/crypto.file-integrity.v1.json",
+            "/artifacts/crypto-file-integrity/build-manifest.json",
+            "/artifacts/crypto-file-integrity/crypto-file-integrity.wasm",
+            "/benchmarks/base/crypto-file-integrity/sha256.js",
+            "/benchmarks/base/crypto-file-integrity/workload.js"
+          ]
+        },
+        "sourcePath": {
+          "enum": [
+            "public/demos/crypto.file-integrity.v1/index.html",
+            "public/styles.css",
+            "public/crypto-file-integrity-demo.js",
+            "public/crypto-file-integrity-worker.js",
+            "public/data/base-implementation-status.v1.json",
+            "registrations/base/crypto.file-integrity.v1.json",
+            "public/artifacts/crypto-file-integrity/build-manifest.json",
+            "public/artifacts/crypto-file-integrity/crypto-file-integrity.wasm",
+            "benchmarks/base/crypto-file-integrity/sha256.js",
+            "benchmarks/base/crypto-file-integrity/workload.js"
+          ]
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "observedResponses": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/observation"
+          }
+        }
+      }
+    },
+    "worker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "type",
+        "token",
+        "terminated"
+      ],
+      "properties": {
+        "url": {
+          "const": "/crypto-file-integrity-worker.js"
+        },
+        "type": {
+          "const": "module"
+        },
+        "token": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "terminated": {
+          "type": "boolean"
+        }
+      }
+    },
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "output",
+        "startDisabled",
+        "cancelDisabled"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "minLength": 1
+        },
+        "output": {
+          "type": "string",
+          "minLength": 1
+        },
+        "startDisabled": {
+          "type": "boolean"
+        },
+        "cancelDisabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "instrumentation",
+        "assertions",
+        "stateBeforeCleanup",
+        "stateAfterCleanup",
+        "workers",
+        "passed"
+      ],
+      "properties": {
+        "id": {
+          "enum": [
+            "wrong-token",
+            "stale-error",
+            "restart",
+            "cancel",
+            "timeout",
+            "pagehide"
+          ]
+        },
+        "instrumentation": {
+          "const": "collector-controlled Worker test double; not correctness evidence"
+        },
+        "assertions": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "workers": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": {
+            "$ref": "#/$defs/worker"
+          }
+        },
+        "passed": {
+          "const": true
+        },
+        "stateBeforeCleanup": {
+          "$ref": "#/$defs/state"
+        },
+        "stateAfterCleanup": {
+          "$ref": "#/$defs/state"
+        }
+      }
+    },
+    "network": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requestId",
+        "sessionId",
+        "url",
+        "method",
+        "resourceType",
+        "status",
+        "mimeType",
+        "fromDiskCache",
+        "fromServiceWorker",
+        "failed",
+        "errorText",
+        "bodyBytes",
+        "bodySha256"
+      ],
+      "properties": {
+        "requestId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/"
+        },
+        "method": {
+          "const": "GET"
+        },
+        "resourceType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "const": 200
+        },
+        "mimeType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fromDiskCache": {
+          "type": "boolean"
+        },
+        "fromServiceWorker": {
+          "const": false
+        },
+        "failed": {
+          "const": false
+        },
+        "errorText": {
+          "type": "null"
+        },
+        "bodyBytes": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "bodySha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "text",
+        "disabled"
+      ],
+      "properties": {
+        "id": {
+          "enum": [
+            "target",
+            "kind",
+            "size",
+            "schedule",
+            "start",
+            "cancel"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "disabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "axNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "name"
+      ],
+      "properties": {
+        "role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "process": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pid",
+        "parentPid",
+        "startTimeTicks",
+        "executable"
+      ],
+      "properties": {
+        "pid": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "parentPid": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "startTimeTicks": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "executable": {
+          "type": "string",
+          "pattern": "^/"
+        }
+      }
+    },
+    "exit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "success",
+        "code",
+        "signal"
+      ],
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "code": {
+          "type": "integer"
+        },
+        "signal": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "signal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pid",
+        "signal"
+      ],
+      "properties": {
+        "pid": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "signal": {
+          "enum": [
+            "SIGTERM",
+            "SIGKILL"
+          ]
+        }
+      }
+    }
+  }
+}
