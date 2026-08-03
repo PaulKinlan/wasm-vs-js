@@ -772,6 +772,24 @@ async function runCollector(): Promise<void> {
       const lifecycleEvents: Array<Record<string, unknown>> = [];
       const runtimeScripts = new Map<string, Record<string, unknown>>();
       const removers = [
+        client.on("Target.detachedFromTarget", (params, eventSession) => {
+          if (eventSession !== sessionId) return;
+          const workerIndex = workerSessionIds.indexOf(String(params.sessionId));
+          if (workerIndex === -1) return;
+          if (
+            lifecycleEvents.some((event) =>
+              event.kind === "worker-terminated" &&
+              (event.detail as Record<string, unknown>)?.index === workerIndex
+            )
+          ) return;
+          // Binding events emitted inside a pagehide handler race the page's
+          // teardown and can be dropped; the worker target's detach is the
+          // authoritative browser-level termination signal for pagehide.
+          lifecycleEvents.push({
+            kind: "worker-terminated",
+            detail: { index: workerIndex, via: "target-detach" },
+          });
+        }),
         client.on("Target.attachedToTarget", (params, eventSession) => {
           if (eventSession !== sessionId) return;
           const targetInfo = params.targetInfo as Record<string, unknown>;
