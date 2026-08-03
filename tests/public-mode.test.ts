@@ -45,6 +45,8 @@ Deno.test("actual public task starts without commit env permission and ignores s
         "/inspectability.js",
         "/v2-results.js",
         "/data/sum-u32-inspectability.v1.json",
+        "/data/v2-proposal-implementation-status.v1.json",
+        "/data/v2-proposal-implementation-status.schema.json",
         "/evidence/v2-proposals/",
         "/evidence/v2-proposals/audio-fft/js-controlled.json",
         "/evidence/v2-proposals/audio-fft/wasm-linear-controlled.json",

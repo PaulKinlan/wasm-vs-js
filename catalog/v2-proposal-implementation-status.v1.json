@@ -1,0 +1,1434 @@
+{
+  "schemaVersion": 1,
+  "ledgerId": "v2-proposal-implementation-inventory",
+  "status": "descriptive-proposal-status-not-accepted-catalog",
+  "sourceRevision": "9691f0e8353a221880f365712a1ebbec18b7dde4",
+  "catalog": {
+    "id": "workload-catalog-v2-proposal",
+    "path": "catalog/workloads.v2.proposed.json",
+    "proposalCount": 20
+  },
+  "frozenV1Coverage": {
+    "catalogPath": "catalog/workloads.v1.json",
+    "catalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+    "schemaPath": "schemas/workload-catalog.schema.json",
+    "schemaSha256": "7597aad1acd62c1f9a5e9343e8521d1c7906d59fddeec689eec19b50643c4b42",
+    "entryCount": 38,
+    "implementedCatalogEntries": 0,
+    "v2EntriesCounted": false
+  },
+  "counts": {
+    "proposalDefinitions": 20,
+    "testedJsAndLinearWasmEngines": 9,
+    "definitionOnly": 11,
+    "completePublicProposalValidationPackages": 3,
+    "completeLocalOnlyProposalValidationPackages": 2,
+    "publicValidationRecords": 6,
+    "localOnlyValidationRecords": 4,
+    "imageEngineOnly": 2,
+    "reducedConformanceSlices": 2,
+    "interactiveDemos": 0,
+    "authoritativePerformanceResultPackages": 0
+  },
+  "entries": [
+    {
+      "id": "audio.fft.v1",
+      "title": "Radix-2 complex FFT",
+      "maturity": "complete-public-proposal-validation-package",
+      "definitionSource": {
+        "label": "proposal definition",
+        "path": "catalog/workloads.v2.proposed.json",
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L30-L177"
+      },
+      "engine": {
+        "status": "tested-js-and-linear-wasm",
+        "sourceLinks": [
+          {
+            "label": "JavaScript source",
+            "path": "benchmarks/audio-fft/js.ts",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/audio-fft/js.ts"
+          },
+          {
+            "label": "linear-Wasm source",
+            "path": "benchmarks/audio-fft/audio-fft.wat",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/audio-fft/audio-fft.wat"
+          },
+          {
+            "label": "workload harness",
+            "path": "benchmarks/audio-fft/workload.ts",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/audio-fft/workload.ts"
+          }
+        ],
+        "unavailableReason": null
+      },
+      "artifacts": {
+        "status": "reproducible-public",
+        "repositoryLinks": [
+          {
+            "label": "build manifest",
+            "path": "public/artifacts/audio-fft/build-manifest.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/artifacts/audio-fft/build-manifest.json"
+          },
+          {
+            "label": "Wasm artifact",
+            "path": "public/artifacts/audio-fft/audio-fft.wasm",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/artifacts/audio-fft/audio-fft.wasm"
+          }
+        ],
+        "publicLinks": [
+          {
+            "label": "public build manifest",
+            "url": "/artifacts/audio-fft/build-manifest.json"
+          },
+          {
+            "label": "public Wasm artifact",
+            "url": "/artifacts/audio-fft/audio-fft.wasm"
+          }
+        ],
+        "unavailableReason": null
+      },
+      "validationResults": {
+        "status": "complete-public",
+        "recordCount": 2,
+        "repositoryLinks": [
+          {
+            "label": "JavaScript result",
+            "path": "public/evidence/v2-proposals/audio-fft/js-controlled.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/evidence/v2-proposals/audio-fft/js-controlled.json"
+          },
+          {
+            "label": "linear-Wasm result",
+            "path": "public/evidence/v2-proposals/audio-fft/wasm-linear-controlled.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/evidence/v2-proposals/audio-fft/wasm-linear-controlled.json"
+          }
+        ],
+        "publicEvidenceLinks": [
+          {
+            "label": "public JavaScript result",
+            "url": "/evidence/v2-proposals/audio-fft/js-controlled.json"
+          },
+          {
+            "label": "public linear-Wasm result",
+            "url": "/evidence/v2-proposals/audio-fft/wasm-linear-controlled.json"
+          },
+          {
+            "label": "public evidence page",
+            "url": "/evidence/v2-proposals/"
+          }
+        ],
+        "unavailableReason": null,
+        "publicEvidenceUnavailableReason": null
+      },
+      "interactiveDemo": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-interactive-demo",
+          "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
+        }
+      },
+      "authoritativePerformanceResults": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-authoritative-performance-results",
+          "detail": "No authoritative performance result package exists for this proposal ID."
+        }
+      }
+    },
+    {
+      "id": "audio.fir.v1",
+      "title": "Finite impulse response convolution",
+      "maturity": "complete-public-proposal-validation-package",
+      "definitionSource": {
+        "label": "proposal definition",
+        "path": "catalog/workloads.v2.proposed.json",
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L178-L321"
+      },
+      "engine": {
+        "status": "tested-js-and-linear-wasm",
+        "sourceLinks": [
+          {
+            "label": "JavaScript source",
+            "path": "benchmarks/audio-fir/js.ts",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/audio-fir/js.ts"
+          },
+          {
+            "label": "linear-Wasm source",
+            "path": "benchmarks/audio-fir/audio-fir.wat",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/audio-fir/audio-fir.wat"
+          },
+          {
+            "label": "workload harness",
+            "path": "benchmarks/audio-fir/workload.ts",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/audio-fir/workload.ts"
+          }
+        ],
+        "unavailableReason": null
+      },
+      "artifacts": {
+        "status": "reproducible-public",
+        "repositoryLinks": [
+          {
+            "label": "build manifest",
+            "path": "public/artifacts/audio-fir/build-manifest.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/artifacts/audio-fir/build-manifest.json"
+          },
+          {
+            "label": "Wasm artifact",
+            "path": "public/artifacts/audio-fir/audio-fir.wasm",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/artifacts/audio-fir/audio-fir.wasm"
+          }
+        ],
+        "publicLinks": [
+          {
+            "label": "public build manifest",
+            "url": "/artifacts/audio-fir/build-manifest.json"
+          },
+          {
+            "label": "public Wasm artifact",
+            "url": "/artifacts/audio-fir/audio-fir.wasm"
+          }
+        ],
+        "unavailableReason": null
+      },
+      "validationResults": {
+        "status": "complete-public",
+        "recordCount": 2,
+        "repositoryLinks": [
+          {
+            "label": "JavaScript result",
+            "path": "public/evidence/v2-proposals/audio-fir/js-controlled.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/evidence/v2-proposals/audio-fir/js-controlled.json"
+          },
+          {
+            "label": "linear-Wasm result",
+            "path": "public/evidence/v2-proposals/audio-fir/wasm-linear-controlled.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/evidence/v2-proposals/audio-fir/wasm-linear-controlled.json"
+          }
+        ],
+        "publicEvidenceLinks": [
+          {
+            "label": "public JavaScript result",
+            "url": "/evidence/v2-proposals/audio-fir/js-controlled.json"
+          },
+          {
+            "label": "public linear-Wasm result",
+            "url": "/evidence/v2-proposals/audio-fir/wasm-linear-controlled.json"
+          },
+          {
+            "label": "public evidence page",
+            "url": "/evidence/v2-proposals/"
+          }
+        ],
+        "unavailableReason": null,
+        "publicEvidenceUnavailableReason": null
+      },
+      "interactiveDemo": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-interactive-demo",
+          "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
+        }
+      },
+      "authoritativePerformanceResults": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-authoritative-performance-results",
+          "detail": "No authoritative performance result package exists for this proposal ID."
+        }
+      }
+    },
+    {
+      "id": "audio.stft.v1",
+      "title": "Short-time Fourier transform spectrogram",
+      "maturity": "complete-public-proposal-validation-package",
+      "definitionSource": {
+        "label": "proposal definition",
+        "path": "catalog/workloads.v2.proposed.json",
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L322-L469"
+      },
+      "engine": {
+        "status": "tested-js-and-linear-wasm",
+        "sourceLinks": [
+          {
+            "label": "JavaScript source",
+            "path": "benchmarks/audio-stft/js.ts",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/audio-stft/js.ts"
+          },
+          {
+            "label": "linear-Wasm source",
+            "path": "benchmarks/audio-stft/audio-stft.wat",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/audio-stft/audio-stft.wat"
+          },
+          {
+            "label": "workload harness",
+            "path": "benchmarks/audio-stft/workload.ts",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/audio-stft/workload.ts"
+          }
+        ],
+        "unavailableReason": null
+      },
+      "artifacts": {
+        "status": "reproducible-public",
+        "repositoryLinks": [
+          {
+            "label": "build manifest",
+            "path": "public/artifacts/audio-stft/build-manifest.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/artifacts/audio-stft/build-manifest.json"
+          },
+          {
+            "label": "Wasm artifact",
+            "path": "public/artifacts/audio-stft/audio-stft.wasm",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/artifacts/audio-stft/audio-stft.wasm"
+          }
+        ],
+        "publicLinks": [
+          {
+            "label": "public build manifest",
+            "url": "/artifacts/audio-stft/build-manifest.json"
+          },
+          {
+            "label": "public Wasm artifact",
+            "url": "/artifacts/audio-stft/audio-stft.wasm"
+          }
+        ],
+        "unavailableReason": null
+      },
+      "validationResults": {
+        "status": "complete-public",
+        "recordCount": 2,
+        "repositoryLinks": [
+          {
+            "label": "JavaScript result",
+            "path": "public/evidence/v2-proposals/audio-stft/js-controlled.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/evidence/v2-proposals/audio-stft/js-controlled.json"
+          },
+          {
+            "label": "linear-Wasm result",
+            "path": "public/evidence/v2-proposals/audio-stft/wasm-linear-controlled.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/evidence/v2-proposals/audio-stft/wasm-linear-controlled.json"
+          }
+        ],
+        "publicEvidenceLinks": [
+          {
+            "label": "public JavaScript result",
+            "url": "/evidence/v2-proposals/audio-stft/js-controlled.json"
+          },
+          {
+            "label": "public linear-Wasm result",
+            "url": "/evidence/v2-proposals/audio-stft/wasm-linear-controlled.json"
+          },
+          {
+            "label": "public evidence page",
+            "url": "/evidence/v2-proposals/"
+          }
+        ],
+        "unavailableReason": null,
+        "publicEvidenceUnavailableReason": null
+      },
+      "interactiveDemo": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-interactive-demo",
+          "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
+        }
+      },
+      "authoritativePerformanceResults": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-authoritative-performance-results",
+          "detail": "No authoritative performance result package exists for this proposal ID."
+        }
+      }
+    },
+    {
+      "id": "dom.dependent-form-validation.v1",
+      "title": "Dependent form validation workflow",
+      "maturity": "proposal-definition-only",
+      "definitionSource": {
+        "label": "proposal definition",
+        "path": "catalog/workloads.v2.proposed.json",
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L470-L616"
+      },
+      "engine": {
+        "status": "unavailable",
+        "sourceLinks": [],
+        "unavailableReason": {
+          "code": "definition-only",
+          "detail": "No tested JavaScript and linear-Wasm workload engine exists for this proposal ID."
+        }
+      },
+      "artifacts": {
+        "status": "unavailable",
+        "repositoryLinks": [],
+        "publicLinks": [],
+        "unavailableReason": {
+          "code": "definition-only",
+          "detail": "Only the proposal definition exists; there is no built artifact for this ID."
+        }
+      },
+      "validationResults": {
+        "status": "unavailable",
+        "recordCount": 0,
+        "repositoryLinks": [],
+        "publicEvidenceLinks": [],
+        "unavailableReason": {
+          "code": "no-validation-record",
+          "detail": "A definition-only proposal has no proposal-validation result record."
+        },
+        "publicEvidenceUnavailableReason": {
+          "code": "no-validation-record",
+          "detail": "A definition-only proposal has no proposal-validation result record."
+        }
+      },
+      "interactiveDemo": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-interactive-demo",
+          "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
+        }
+      },
+      "authoritativePerformanceResults": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-authoritative-performance-results",
+          "detail": "No authoritative performance result package exists for this proposal ID."
+        }
+      }
+    },
+    {
+      "id": "dom.grid-movement.v1",
+      "title": "DOM grid movement",
+      "maturity": "proposal-definition-only",
+      "definitionSource": {
+        "label": "proposal definition",
+        "path": "catalog/workloads.v2.proposed.json",
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L617-L768"
+      },
+      "engine": {
+        "status": "unavailable",
+        "sourceLinks": [],
+        "unavailableReason": {
+          "code": "definition-only",
+          "detail": "No tested JavaScript and linear-Wasm workload engine exists for this proposal ID."
+        }
+      },
+      "artifacts": {
+        "status": "unavailable",
+        "repositoryLinks": [],
+        "publicLinks": [],
+        "unavailableReason": {
+          "code": "definition-only",
+          "detail": "Only the proposal definition exists; there is no built artifact for this ID."
+        }
+      },
+      "validationResults": {
+        "status": "unavailable",
+        "recordCount": 0,
+        "repositoryLinks": [],
+        "publicEvidenceLinks": [],
+        "unavailableReason": {
+          "code": "no-validation-record",
+          "detail": "A definition-only proposal has no proposal-validation result record."
+        },
+        "publicEvidenceUnavailableReason": {
+          "code": "no-validation-record",
+          "detail": "A definition-only proposal has no proposal-validation result record."
+        }
+      },
+      "interactiveDemo": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-interactive-demo",
+          "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
+        }
+      },
+      "authoritativePerformanceResults": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-authoritative-performance-results",
+          "detail": "No authoritative performance result package exists for this proposal ID."
+        }
+      }
+    },
+    {
+      "id": "dom.keyed-list-mutation.v1",
+      "title": "Keyed list mutation",
+      "maturity": "proposal-definition-only",
+      "definitionSource": {
+        "label": "proposal definition",
+        "path": "catalog/workloads.v2.proposed.json",
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L769-L916"
+      },
+      "engine": {
+        "status": "unavailable",
+        "sourceLinks": [],
+        "unavailableReason": {
+          "code": "definition-only",
+          "detail": "No tested JavaScript and linear-Wasm workload engine exists for this proposal ID."
+        }
+      },
+      "artifacts": {
+        "status": "unavailable",
+        "repositoryLinks": [],
+        "publicLinks": [],
+        "unavailableReason": {
+          "code": "definition-only",
+          "detail": "Only the proposal definition exists; there is no built artifact for this ID."
+        }
+      },
+      "validationResults": {
+        "status": "unavailable",
+        "recordCount": 0,
+        "repositoryLinks": [],
+        "publicEvidenceLinks": [],
+        "unavailableReason": {
+          "code": "no-validation-record",
+          "detail": "A definition-only proposal has no proposal-validation result record."
+        },
+        "publicEvidenceUnavailableReason": {
+          "code": "no-validation-record",
+          "detail": "A definition-only proposal has no proposal-validation result record."
+        }
+      },
+      "interactiveDemo": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-interactive-demo",
+          "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
+        }
+      },
+      "authoritativePerformanceResults": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-authoritative-performance-results",
+          "detail": "No authoritative performance result package exists for this proposal ID."
+        }
+      }
+    },
+    {
+      "id": "dom.nested-tree-mutation.v1",
+      "title": "Nested DOM tree mutation",
+      "maturity": "proposal-definition-only",
+      "definitionSource": {
+        "label": "proposal definition",
+        "path": "catalog/workloads.v2.proposed.json",
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L917-L1064"
+      },
+      "engine": {
+        "status": "unavailable",
+        "sourceLinks": [],
+        "unavailableReason": {
+          "code": "definition-only",
+          "detail": "No tested JavaScript and linear-Wasm workload engine exists for this proposal ID."
+        }
+      },
+      "artifacts": {
+        "status": "unavailable",
+        "repositoryLinks": [],
+        "publicLinks": [],
+        "unavailableReason": {
+          "code": "definition-only",
+          "detail": "Only the proposal definition exists; there is no built artifact for this ID."
+        }
+      },
+      "validationResults": {
+        "status": "unavailable",
+        "recordCount": 0,
+        "repositoryLinks": [],
+        "publicEvidenceLinks": [],
+        "unavailableReason": {
+          "code": "no-validation-record",
+          "detail": "A definition-only proposal has no proposal-validation result record."
+        },
+        "publicEvidenceUnavailableReason": {
+          "code": "no-validation-record",
+          "detail": "A definition-only proposal has no proposal-validation result record."
+        }
+      },
+      "interactiveDemo": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-interactive-demo",
+          "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
+        }
+      },
+      "authoritativePerformanceResults": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-authoritative-performance-results",
+          "detail": "No authoritative performance result package exists for this proposal ID."
+        }
+      }
+    },
+    {
+      "id": "dom.table-sort-filter-pagination.v1",
+      "title": "Table sort, filter, and pagination workflow",
+      "maturity": "proposal-definition-only",
+      "definitionSource": {
+        "label": "proposal definition",
+        "path": "catalog/workloads.v2.proposed.json",
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L1065-L1216"
+      },
+      "engine": {
+        "status": "unavailable",
+        "sourceLinks": [],
+        "unavailableReason": {
+          "code": "definition-only",
+          "detail": "No tested JavaScript and linear-Wasm workload engine exists for this proposal ID."
+        }
+      },
+      "artifacts": {
+        "status": "unavailable",
+        "repositoryLinks": [],
+        "publicLinks": [],
+        "unavailableReason": {
+          "code": "definition-only",
+          "detail": "Only the proposal definition exists; there is no built artifact for this ID."
+        }
+      },
+      "validationResults": {
+        "status": "unavailable",
+        "recordCount": 0,
+        "repositoryLinks": [],
+        "publicEvidenceLinks": [],
+        "unavailableReason": {
+          "code": "no-validation-record",
+          "detail": "A definition-only proposal has no proposal-validation result record."
+        },
+        "publicEvidenceUnavailableReason": {
+          "code": "no-validation-record",
+          "detail": "A definition-only proposal has no proposal-validation result record."
+        }
+      },
+      "interactiveDemo": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-interactive-demo",
+          "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
+        }
+      },
+      "authoritativePerformanceResults": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-authoritative-performance-results",
+          "detail": "No authoritative performance result package exists for this proposal ID."
+        }
+      }
+    },
+    {
+      "id": "dom.vdom-diff-patch.v1",
+      "title": "Virtual DOM diff and patch planning",
+      "maturity": "tested-reduced-conformance-slice",
+      "definitionSource": {
+        "label": "proposal definition",
+        "path": "catalog/workloads.v2.proposed.json",
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L1217-L1364"
+      },
+      "engine": {
+        "status": "tested-js-and-linear-wasm",
+        "sourceLinks": [
+          {
+            "label": "JavaScript source",
+            "path": "benchmarks/vdom-diff-patch/js.ts",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/vdom-diff-patch/js.ts"
+          },
+          {
+            "label": "linear-Wasm source",
+            "path": "benchmarks/vdom-diff-patch/vdom-diff-patch.wat",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/vdom-diff-patch/vdom-diff-patch.wat"
+          },
+          {
+            "label": "workload harness",
+            "path": "benchmarks/vdom-diff-patch/workload.js",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/vdom-diff-patch/workload.js"
+          }
+        ],
+        "unavailableReason": null
+      },
+      "artifacts": {
+        "status": "reproducible-public",
+        "repositoryLinks": [
+          {
+            "label": "build manifest",
+            "path": "public/artifacts/vdom-diff-patch/build-manifest.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/artifacts/vdom-diff-patch/build-manifest.json"
+          },
+          {
+            "label": "Wasm artifact",
+            "path": "public/artifacts/vdom-diff-patch/vdom-diff-patch.wasm",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/artifacts/vdom-diff-patch/vdom-diff-patch.wasm"
+          }
+        ],
+        "publicLinks": [
+          {
+            "label": "public build manifest",
+            "url": "/artifacts/vdom-diff-patch/build-manifest.json"
+          },
+          {
+            "label": "public Wasm artifact",
+            "url": "/artifacts/vdom-diff-patch/vdom-diff-patch.wasm"
+          }
+        ],
+        "unavailableReason": null
+      },
+      "validationResults": {
+        "status": "unavailable",
+        "recordCount": 0,
+        "repositoryLinks": [],
+        "publicEvidenceLinks": [],
+        "unavailableReason": {
+          "code": "no-validation-record",
+          "detail": "This reduced conformance slice is not the full proposal contract and has no proposal-validation result record."
+        },
+        "publicEvidenceUnavailableReason": {
+          "code": "no-validation-record",
+          "detail": "This reduced conformance slice is not the full proposal contract and has no proposal-validation result record."
+        }
+      },
+      "interactiveDemo": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-interactive-demo",
+          "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
+        }
+      },
+      "authoritativePerformanceResults": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-authoritative-performance-results",
+          "detail": "No authoritative performance result package exists for this proposal ID."
+        }
+      }
+    },
+    {
+      "id": "dom.virtualized-scrolling.v1",
+      "title": "Virtualized DOM scrolling",
+      "maturity": "proposal-definition-only",
+      "definitionSource": {
+        "label": "proposal definition",
+        "path": "catalog/workloads.v2.proposed.json",
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L1365-L1515"
+      },
+      "engine": {
+        "status": "unavailable",
+        "sourceLinks": [],
+        "unavailableReason": {
+          "code": "definition-only",
+          "detail": "No tested JavaScript and linear-Wasm workload engine exists for this proposal ID."
+        }
+      },
+      "artifacts": {
+        "status": "unavailable",
+        "repositoryLinks": [],
+        "publicLinks": [],
+        "unavailableReason": {
+          "code": "definition-only",
+          "detail": "Only the proposal definition exists; there is no built artifact for this ID."
+        }
+      },
+      "validationResults": {
+        "status": "unavailable",
+        "recordCount": 0,
+        "repositoryLinks": [],
+        "publicEvidenceLinks": [],
+        "unavailableReason": {
+          "code": "no-validation-record",
+          "detail": "A definition-only proposal has no proposal-validation result record."
+        },
+        "publicEvidenceUnavailableReason": {
+          "code": "no-validation-record",
+          "detail": "A definition-only proposal has no proposal-validation result record."
+        }
+      },
+      "interactiveDemo": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-interactive-demo",
+          "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
+        }
+      },
+      "authoritativePerformanceResults": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-authoritative-performance-results",
+          "detail": "No authoritative performance result package exists for this proposal ID."
+        }
+      }
+    },
+    {
+      "id": "game.canvas-arcade.v1",
+      "title": "Canvas arcade game trace",
+      "maturity": "proposal-definition-only",
+      "definitionSource": {
+        "label": "proposal definition",
+        "path": "catalog/workloads.v2.proposed.json",
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L1516-L1667"
+      },
+      "engine": {
+        "status": "unavailable",
+        "sourceLinks": [],
+        "unavailableReason": {
+          "code": "definition-only",
+          "detail": "No tested JavaScript and linear-Wasm workload engine exists for this proposal ID."
+        }
+      },
+      "artifacts": {
+        "status": "unavailable",
+        "repositoryLinks": [],
+        "publicLinks": [],
+        "unavailableReason": {
+          "code": "definition-only",
+          "detail": "Only the proposal definition exists; there is no built artifact for this ID."
+        }
+      },
+      "validationResults": {
+        "status": "unavailable",
+        "recordCount": 0,
+        "repositoryLinks": [],
+        "publicEvidenceLinks": [],
+        "unavailableReason": {
+          "code": "no-validation-record",
+          "detail": "A definition-only proposal has no proposal-validation result record."
+        },
+        "publicEvidenceUnavailableReason": {
+          "code": "no-validation-record",
+          "detail": "A definition-only proposal has no proposal-validation result record."
+        }
+      },
+      "interactiveDemo": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-interactive-demo",
+          "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
+        }
+      },
+      "authoritativePerformanceResults": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-authoritative-performance-results",
+          "detail": "No authoritative performance result package exists for this proposal ID."
+        }
+      }
+    },
+    {
+      "id": "game.canvas-entity-pathfinding.v1",
+      "title": "Canvas entity, pathfinding, animation, and audio trace",
+      "maturity": "proposal-definition-only",
+      "definitionSource": {
+        "label": "proposal definition",
+        "path": "catalog/workloads.v2.proposed.json",
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L1668-L1819"
+      },
+      "engine": {
+        "status": "unavailable",
+        "sourceLinks": [],
+        "unavailableReason": {
+          "code": "definition-only",
+          "detail": "No tested JavaScript and linear-Wasm workload engine exists for this proposal ID."
+        }
+      },
+      "artifacts": {
+        "status": "unavailable",
+        "repositoryLinks": [],
+        "publicLinks": [],
+        "unavailableReason": {
+          "code": "definition-only",
+          "detail": "Only the proposal definition exists; there is no built artifact for this ID."
+        }
+      },
+      "validationResults": {
+        "status": "unavailable",
+        "recordCount": 0,
+        "repositoryLinks": [],
+        "publicEvidenceLinks": [],
+        "unavailableReason": {
+          "code": "no-validation-record",
+          "detail": "A definition-only proposal has no proposal-validation result record."
+        },
+        "publicEvidenceUnavailableReason": {
+          "code": "no-validation-record",
+          "detail": "A definition-only proposal has no proposal-validation result record."
+        }
+      },
+      "interactiveDemo": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-interactive-demo",
+          "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
+        }
+      },
+      "authoritativePerformanceResults": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-authoritative-performance-results",
+          "detail": "No authoritative performance result package exists for this proposal ID."
+        }
+      }
+    },
+    {
+      "id": "game.dom-tactics-grid.v1",
+      "title": "DOM tactics grid game trace",
+      "maturity": "proposal-definition-only",
+      "definitionSource": {
+        "label": "proposal definition",
+        "path": "catalog/workloads.v2.proposed.json",
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L1820-L1971"
+      },
+      "engine": {
+        "status": "unavailable",
+        "sourceLinks": [],
+        "unavailableReason": {
+          "code": "definition-only",
+          "detail": "No tested JavaScript and linear-Wasm workload engine exists for this proposal ID."
+        }
+      },
+      "artifacts": {
+        "status": "unavailable",
+        "repositoryLinks": [],
+        "publicLinks": [],
+        "unavailableReason": {
+          "code": "definition-only",
+          "detail": "Only the proposal definition exists; there is no built artifact for this ID."
+        }
+      },
+      "validationResults": {
+        "status": "unavailable",
+        "recordCount": 0,
+        "repositoryLinks": [],
+        "publicEvidenceLinks": [],
+        "unavailableReason": {
+          "code": "no-validation-record",
+          "detail": "A definition-only proposal has no proposal-validation result record."
+        },
+        "publicEvidenceUnavailableReason": {
+          "code": "no-validation-record",
+          "detail": "A definition-only proposal has no proposal-validation result record."
+        }
+      },
+      "interactiveDemo": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-interactive-demo",
+          "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
+        }
+      },
+      "authoritativePerformanceResults": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-authoritative-performance-results",
+          "detail": "No authoritative performance result package exists for this proposal ID."
+        }
+      }
+    },
+    {
+      "id": "image.editing-pipeline.v1",
+      "title": "Deterministic image editing pipeline",
+      "maturity": "tested-image-engine-no-result-records",
+      "definitionSource": {
+        "label": "proposal definition",
+        "path": "catalog/workloads.v2.proposed.json",
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L1972-L2127"
+      },
+      "engine": {
+        "status": "tested-js-and-linear-wasm",
+        "sourceLinks": [
+          {
+            "label": "shared JavaScript source",
+            "path": "benchmarks/image-editing/js.ts",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/image-editing/js.ts"
+          },
+          {
+            "label": "shared linear-Wasm source",
+            "path": "benchmarks/image-editing/image-editing.wat",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/image-editing/image-editing.wat"
+          },
+          {
+            "label": "Wasm adapter",
+            "path": "benchmarks/image-editing/wasm.ts",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/image-editing/wasm.ts"
+          }
+        ],
+        "unavailableReason": null
+      },
+      "artifacts": {
+        "status": "shared-reproducible-local-only",
+        "repositoryLinks": [
+          {
+            "label": "shared build manifest",
+            "path": "benchmarks/image-editing/artifacts/build-manifest.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/image-editing/artifacts/build-manifest.json"
+          },
+          {
+            "label": "shared Wasm artifact",
+            "path": "benchmarks/image-editing/artifacts/image-editing.wasm",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/image-editing/artifacts/image-editing.wasm"
+          }
+        ],
+        "publicLinks": [],
+        "unavailableReason": null
+      },
+      "validationResults": {
+        "status": "unavailable",
+        "recordCount": 0,
+        "repositoryLinks": [],
+        "publicEvidenceLinks": [],
+        "unavailableReason": {
+          "code": "no-validation-record",
+          "detail": "The tested image engine has reproducible artifacts but no proposal-validation result record."
+        },
+        "publicEvidenceUnavailableReason": {
+          "code": "no-validation-record",
+          "detail": "The tested image engine has reproducible artifacts but no proposal-validation result record."
+        }
+      },
+      "interactiveDemo": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-interactive-demo",
+          "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
+        }
+      },
+      "authoritativePerformanceResults": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-authoritative-performance-results",
+          "detail": "No authoritative performance result package exists for this proposal ID."
+        }
+      }
+    },
+    {
+      "id": "image.flood-fill.v1",
+      "title": "Span-stack image flood fill",
+      "maturity": "tested-image-engine-no-result-records",
+      "definitionSource": {
+        "label": "proposal definition",
+        "path": "catalog/workloads.v2.proposed.json",
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L2128-L2282"
+      },
+      "engine": {
+        "status": "tested-js-and-linear-wasm",
+        "sourceLinks": [
+          {
+            "label": "shared JavaScript source",
+            "path": "benchmarks/image-editing/js.ts",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/image-editing/js.ts"
+          },
+          {
+            "label": "shared linear-Wasm source",
+            "path": "benchmarks/image-editing/image-editing.wat",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/image-editing/image-editing.wat"
+          },
+          {
+            "label": "Wasm adapter",
+            "path": "benchmarks/image-editing/wasm.ts",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/image-editing/wasm.ts"
+          }
+        ],
+        "unavailableReason": null
+      },
+      "artifacts": {
+        "status": "shared-reproducible-local-only",
+        "repositoryLinks": [
+          {
+            "label": "shared build manifest",
+            "path": "benchmarks/image-editing/artifacts/build-manifest.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/image-editing/artifacts/build-manifest.json"
+          },
+          {
+            "label": "shared Wasm artifact",
+            "path": "benchmarks/image-editing/artifacts/image-editing.wasm",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/image-editing/artifacts/image-editing.wasm"
+          }
+        ],
+        "publicLinks": [],
+        "unavailableReason": null
+      },
+      "validationResults": {
+        "status": "unavailable",
+        "recordCount": 0,
+        "repositoryLinks": [],
+        "publicEvidenceLinks": [],
+        "unavailableReason": {
+          "code": "no-validation-record",
+          "detail": "The tested image engine has reproducible artifacts but no proposal-validation result record."
+        },
+        "publicEvidenceUnavailableReason": {
+          "code": "no-validation-record",
+          "detail": "The tested image engine has reproducible artifacts but no proposal-validation result record."
+        }
+      },
+      "interactiveDemo": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-interactive-demo",
+          "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
+        }
+      },
+      "authoritativePerformanceResults": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-authoritative-performance-results",
+          "detail": "No authoritative performance result package exists for this proposal ID."
+        }
+      }
+    },
+    {
+      "id": "ml.dense-mlp.v1",
+      "title": "Dense multilayer perceptron inference",
+      "maturity": "complete-local-only-proposal-validation-package",
+      "definitionSource": {
+        "label": "proposal definition",
+        "path": "catalog/workloads.v2.proposed.json",
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L2283-L2434"
+      },
+      "engine": {
+        "status": "tested-js-and-linear-wasm",
+        "sourceLinks": [
+          {
+            "label": "JavaScript source",
+            "path": "benchmarks/v2/ml-dense-mlp/workload.js",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/v2/ml-dense-mlp/workload.js"
+          },
+          {
+            "label": "linear-Wasm source",
+            "path": "benchmarks/v2/ml-dense-mlp/ml-dense-mlp.wat",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/v2/ml-dense-mlp/ml-dense-mlp.wat"
+          }
+        ],
+        "unavailableReason": null
+      },
+      "artifacts": {
+        "status": "reproducible-local-only",
+        "repositoryLinks": [
+          {
+            "label": "fixture manifest",
+            "path": "artifacts/v2/ml-dense-mlp/fixture-manifest.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/artifacts/v2/ml-dense-mlp/fixture-manifest.json"
+          },
+          {
+            "label": "Wasm artifact",
+            "path": "artifacts/v2/ml-dense-mlp/ml-dense-mlp.wasm",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/artifacts/v2/ml-dense-mlp/ml-dense-mlp.wasm"
+          }
+        ],
+        "publicLinks": [],
+        "unavailableReason": null
+      },
+      "validationResults": {
+        "status": "complete-local-only",
+        "recordCount": 2,
+        "repositoryLinks": [
+          {
+            "label": "JavaScript result",
+            "path": "artifacts/v2/ml-dense-mlp/js-controlled.result.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/artifacts/v2/ml-dense-mlp/js-controlled.result.json"
+          },
+          {
+            "label": "linear-Wasm result",
+            "path": "artifacts/v2/ml-dense-mlp/wasm-linear-controlled.result.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/artifacts/v2/ml-dense-mlp/wasm-linear-controlled.result.json"
+          }
+        ],
+        "publicEvidenceLinks": [],
+        "unavailableReason": null,
+        "publicEvidenceUnavailableReason": {
+          "code": "no-public-evidence-route",
+          "detail": "The complete validation package is committed but has no website evidence route or result panel."
+        }
+      },
+      "interactiveDemo": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-interactive-demo",
+          "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
+        }
+      },
+      "authoritativePerformanceResults": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-authoritative-performance-results",
+          "detail": "No authoritative performance result package exists for this proposal ID."
+        }
+      }
+    },
+    {
+      "id": "ml.gemm.v1",
+      "title": "Batched general matrix multiplication",
+      "maturity": "complete-local-only-proposal-validation-package",
+      "definitionSource": {
+        "label": "proposal definition",
+        "path": "catalog/workloads.v2.proposed.json",
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L2435-L2590"
+      },
+      "engine": {
+        "status": "tested-js-and-linear-wasm",
+        "sourceLinks": [
+          {
+            "label": "JavaScript source",
+            "path": "benchmarks/v2/ml-gemm/workload.js",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/v2/ml-gemm/workload.js"
+          },
+          {
+            "label": "linear-Wasm source",
+            "path": "benchmarks/v2/ml-gemm/ml-gemm.wat",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/v2/ml-gemm/ml-gemm.wat"
+          }
+        ],
+        "unavailableReason": null
+      },
+      "artifacts": {
+        "status": "reproducible-local-only",
+        "repositoryLinks": [
+          {
+            "label": "fixture manifest",
+            "path": "artifacts/v2/ml-gemm/fixture-manifest.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/artifacts/v2/ml-gemm/fixture-manifest.json"
+          },
+          {
+            "label": "Wasm artifact",
+            "path": "artifacts/v2/ml-gemm/ml-gemm.wasm",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/artifacts/v2/ml-gemm/ml-gemm.wasm"
+          }
+        ],
+        "publicLinks": [],
+        "unavailableReason": null
+      },
+      "validationResults": {
+        "status": "complete-local-only",
+        "recordCount": 2,
+        "repositoryLinks": [
+          {
+            "label": "JavaScript result",
+            "path": "artifacts/v2/ml-gemm/js-controlled.result.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/artifacts/v2/ml-gemm/js-controlled.result.json"
+          },
+          {
+            "label": "linear-Wasm result",
+            "path": "artifacts/v2/ml-gemm/wasm-linear-controlled.result.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/artifacts/v2/ml-gemm/wasm-linear-controlled.result.json"
+          }
+        ],
+        "publicEvidenceLinks": [],
+        "unavailableReason": null,
+        "publicEvidenceUnavailableReason": {
+          "code": "no-public-evidence-route",
+          "detail": "The complete validation package is committed but has no website evidence route or result panel."
+        }
+      },
+      "interactiveDemo": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-interactive-demo",
+          "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
+        }
+      },
+      "authoritativePerformanceResults": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-authoritative-performance-results",
+          "detail": "No authoritative performance result package exists for this proposal ID."
+        }
+      }
+    },
+    {
+      "id": "text.diff-patch.v1",
+      "title": "Unicode line diff and patch",
+      "maturity": "proposal-definition-only",
+      "definitionSource": {
+        "label": "proposal definition",
+        "path": "catalog/workloads.v2.proposed.json",
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L2591-L2738"
+      },
+      "engine": {
+        "status": "unavailable",
+        "sourceLinks": [],
+        "unavailableReason": {
+          "code": "definition-only",
+          "detail": "No tested JavaScript and linear-Wasm workload engine exists for this proposal ID."
+        }
+      },
+      "artifacts": {
+        "status": "unavailable",
+        "repositoryLinks": [],
+        "publicLinks": [],
+        "unavailableReason": {
+          "code": "definition-only",
+          "detail": "Only the proposal definition exists; there is no built artifact for this ID."
+        }
+      },
+      "validationResults": {
+        "status": "unavailable",
+        "recordCount": 0,
+        "repositoryLinks": [],
+        "publicEvidenceLinks": [],
+        "unavailableReason": {
+          "code": "no-validation-record",
+          "detail": "A definition-only proposal has no proposal-validation result record."
+        },
+        "publicEvidenceUnavailableReason": {
+          "code": "no-validation-record",
+          "detail": "A definition-only proposal has no proposal-validation result record."
+        }
+      },
+      "interactiveDemo": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-interactive-demo",
+          "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
+        }
+      },
+      "authoritativePerformanceResults": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-authoritative-performance-results",
+          "detail": "No authoritative performance result package exists for this proposal ID."
+        }
+      }
+    },
+    {
+      "id": "text.markdown-cms.v1",
+      "title": "Markdown CMS render pipeline",
+      "maturity": "proposal-definition-only",
+      "definitionSource": {
+        "label": "proposal definition",
+        "path": "catalog/workloads.v2.proposed.json",
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L2739-L2887"
+      },
+      "engine": {
+        "status": "unavailable",
+        "sourceLinks": [],
+        "unavailableReason": {
+          "code": "definition-only",
+          "detail": "No tested JavaScript and linear-Wasm workload engine exists for this proposal ID."
+        }
+      },
+      "artifacts": {
+        "status": "unavailable",
+        "repositoryLinks": [],
+        "publicLinks": [],
+        "unavailableReason": {
+          "code": "definition-only",
+          "detail": "Only the proposal definition exists; there is no built artifact for this ID."
+        }
+      },
+      "validationResults": {
+        "status": "unavailable",
+        "recordCount": 0,
+        "repositoryLinks": [],
+        "publicEvidenceLinks": [],
+        "unavailableReason": {
+          "code": "no-validation-record",
+          "detail": "A definition-only proposal has no proposal-validation result record."
+        },
+        "publicEvidenceUnavailableReason": {
+          "code": "no-validation-record",
+          "detail": "A definition-only proposal has no proposal-validation result record."
+        }
+      },
+      "interactiveDemo": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-interactive-demo",
+          "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
+        }
+      },
+      "authoritativePerformanceResults": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-authoritative-performance-results",
+          "detail": "No authoritative performance result package exists for this proposal ID."
+        }
+      }
+    },
+    {
+      "id": "text.regex-engine-duel.v1",
+      "title": "Regular-expression engine common-subset scan",
+      "maturity": "tested-reduced-conformance-slice",
+      "definitionSource": {
+        "label": "proposal definition",
+        "path": "catalog/workloads.v2.proposed.json",
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L2888-L3037"
+      },
+      "engine": {
+        "status": "tested-js-and-linear-wasm",
+        "sourceLinks": [
+          {
+            "label": "JavaScript automata source",
+            "path": "benchmarks/regex-automata-duel/js-automata.ts",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/regex-automata-duel/js-automata.ts"
+          },
+          {
+            "label": "native RegExp source",
+            "path": "benchmarks/regex-automata-duel/js-native.ts",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/regex-automata-duel/js-native.ts"
+          },
+          {
+            "label": "linear-Wasm source",
+            "path": "benchmarks/regex-automata-duel/regex-automata.wat",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/regex-automata-duel/regex-automata.wat"
+          },
+          {
+            "label": "workload harness",
+            "path": "benchmarks/regex-automata-duel/workload.js",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/regex-automata-duel/workload.js"
+          }
+        ],
+        "unavailableReason": null
+      },
+      "artifacts": {
+        "status": "reproducible-public",
+        "repositoryLinks": [
+          {
+            "label": "build manifest",
+            "path": "public/artifacts/regex-automata-duel/build-manifest.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/artifacts/regex-automata-duel/build-manifest.json"
+          },
+          {
+            "label": "Wasm artifact",
+            "path": "public/artifacts/regex-automata-duel/regex-automata-duel.wasm",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/artifacts/regex-automata-duel/regex-automata-duel.wasm"
+          }
+        ],
+        "publicLinks": [
+          {
+            "label": "public build manifest",
+            "url": "/artifacts/regex-automata-duel/build-manifest.json"
+          },
+          {
+            "label": "public Wasm artifact",
+            "url": "/artifacts/regex-automata-duel/regex-automata-duel.wasm"
+          }
+        ],
+        "unavailableReason": null
+      },
+      "validationResults": {
+        "status": "unavailable",
+        "recordCount": 0,
+        "repositoryLinks": [],
+        "publicEvidenceLinks": [],
+        "unavailableReason": {
+          "code": "no-validation-record",
+          "detail": "This reduced conformance slice is not the full proposal contract and has no proposal-validation result record."
+        },
+        "publicEvidenceUnavailableReason": {
+          "code": "no-validation-record",
+          "detail": "This reduced conformance slice is not the full proposal contract and has no proposal-validation result record."
+        }
+      },
+      "interactiveDemo": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-interactive-demo",
+          "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
+        }
+      },
+      "authoritativePerformanceResults": {
+        "status": "unavailable",
+        "unavailableReason": {
+          "code": "no-authoritative-performance-results",
+          "detail": "No authoritative performance result package exists for this proposal ID."
+        }
+      }
+    }
+  ]
+}

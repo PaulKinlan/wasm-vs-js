@@ -1,0 +1,278 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/v2-proposal-implementation-status.schema.json",
+  "title": "v2 proposal implementation status ledger",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "ledgerId",
+    "status",
+    "sourceRevision",
+    "catalog",
+    "frozenV1Coverage",
+    "counts",
+    "entries"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "ledgerId": { "const": "v2-proposal-implementation-inventory" },
+    "status": { "const": "descriptive-proposal-status-not-accepted-catalog" },
+    "sourceRevision": { "$ref": "#/$defs/commit" },
+    "catalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "path", "proposalCount"],
+      "properties": {
+        "id": { "const": "workload-catalog-v2-proposal" },
+        "path": { "const": "catalog/workloads.v2.proposed.json" },
+        "proposalCount": { "const": 20 }
+      }
+    },
+    "frozenV1Coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "catalogPath",
+        "catalogSha256",
+        "schemaPath",
+        "schemaSha256",
+        "entryCount",
+        "implementedCatalogEntries",
+        "v2EntriesCounted"
+      ],
+      "properties": {
+        "catalogPath": { "const": "catalog/workloads.v1.json" },
+        "catalogSha256": {
+          "const": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4"
+        },
+        "schemaPath": { "const": "schemas/workload-catalog.schema.json" },
+        "schemaSha256": {
+          "const": "7597aad1acd62c1f9a5e9343e8521d1c7906d59fddeec689eec19b50643c4b42"
+        },
+        "entryCount": { "const": 38 },
+        "implementedCatalogEntries": { "const": 0 },
+        "v2EntriesCounted": { "const": false }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "proposalDefinitions",
+        "testedJsAndLinearWasmEngines",
+        "definitionOnly",
+        "completePublicProposalValidationPackages",
+        "completeLocalOnlyProposalValidationPackages",
+        "publicValidationRecords",
+        "localOnlyValidationRecords",
+        "imageEngineOnly",
+        "reducedConformanceSlices",
+        "interactiveDemos",
+        "authoritativePerformanceResultPackages"
+      ],
+      "properties": {
+        "proposalDefinitions": { "const": 20 },
+        "testedJsAndLinearWasmEngines": { "const": 9 },
+        "definitionOnly": { "const": 11 },
+        "completePublicProposalValidationPackages": { "const": 3 },
+        "completeLocalOnlyProposalValidationPackages": { "const": 2 },
+        "publicValidationRecords": { "const": 6 },
+        "localOnlyValidationRecords": { "const": 4 },
+        "imageEngineOnly": { "const": 2 },
+        "reducedConformanceSlices": { "const": 2 },
+        "interactiveDemos": { "const": 0 },
+        "authoritativePerformanceResultPackages": { "const": 0 }
+      }
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 20,
+      "maxItems": 20,
+      "items": { "$ref": "#/$defs/entry" }
+    }
+  },
+  "$defs": {
+    "commit": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*\\.v[0-9]+$"
+    },
+    "path": {
+      "type": "string",
+      "pattern": "^(?:artifacts|benchmarks|catalog|public)/[a-zA-Z0-9._/-]+$"
+    },
+    "reason": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "detail"],
+      "properties": {
+        "code": {
+          "enum": [
+            "definition-only",
+            "no-validation-record",
+            "no-public-evidence-route",
+            "no-interactive-demo",
+            "no-authoritative-performance-results"
+          ]
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        }
+      }
+    },
+    "repositoryLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "path", "url"],
+      "properties": {
+        "label": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "path": { "$ref": "#/$defs/path" },
+        "url": {
+          "type": "string",
+          "pattern": "^https://github\\.com/PaulKinlan/wasm-vs-js/(?:blob|tree)/[a-f0-9]{40}/[a-zA-Z0-9._/-]+(?:#L[0-9]+(?:-L[0-9]+)?)?$"
+        }
+      }
+    },
+    "publicLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "url"],
+      "properties": {
+        "label": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "url": {
+          "type": "string",
+          "pattern": "^/(?:artifacts|evidence)/[a-z0-9./-]+(?:\\.json|\\.wasm|\\.f32le|/)?$"
+        }
+      }
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "maturity",
+        "definitionSource",
+        "engine",
+        "artifacts",
+        "validationResults",
+        "interactiveDemo",
+        "authoritativePerformanceResults"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "maturity": {
+          "enum": [
+            "complete-public-proposal-validation-package",
+            "complete-local-only-proposal-validation-package",
+            "tested-image-engine-no-result-records",
+            "tested-reduced-conformance-slice",
+            "proposal-definition-only"
+          ]
+        },
+        "definitionSource": { "$ref": "#/$defs/repositoryLink" },
+        "engine": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "sourceLinks", "unavailableReason"],
+          "properties": {
+            "status": { "enum": ["tested-js-and-linear-wasm", "unavailable"] },
+            "sourceLinks": {
+              "type": "array",
+              "maxItems": 4,
+              "items": { "$ref": "#/$defs/repositoryLink" }
+            },
+            "unavailableReason": {
+              "oneOf": [{ "$ref": "#/$defs/reason" }, { "type": "null" }]
+            }
+          }
+        },
+        "artifacts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "repositoryLinks", "publicLinks", "unavailableReason"],
+          "properties": {
+            "status": {
+              "enum": [
+                "reproducible-public",
+                "reproducible-local-only",
+                "shared-reproducible-local-only",
+                "unavailable"
+              ]
+            },
+            "repositoryLinks": {
+              "type": "array",
+              "maxItems": 3,
+              "items": { "$ref": "#/$defs/repositoryLink" }
+            },
+            "publicLinks": {
+              "type": "array",
+              "maxItems": 3,
+              "items": { "$ref": "#/$defs/publicLink" }
+            },
+            "unavailableReason": {
+              "oneOf": [{ "$ref": "#/$defs/reason" }, { "type": "null" }]
+            }
+          }
+        },
+        "validationResults": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "recordCount",
+            "repositoryLinks",
+            "publicEvidenceLinks",
+            "unavailableReason",
+            "publicEvidenceUnavailableReason"
+          ],
+          "properties": {
+            "status": { "enum": ["complete-public", "complete-local-only", "unavailable"] },
+            "recordCount": { "enum": [0, 2] },
+            "repositoryLinks": {
+              "type": "array",
+              "maxItems": 2,
+              "items": { "$ref": "#/$defs/repositoryLink" }
+            },
+            "publicEvidenceLinks": {
+              "type": "array",
+              "maxItems": 3,
+              "items": { "$ref": "#/$defs/publicLink" }
+            },
+            "unavailableReason": {
+              "oneOf": [{ "$ref": "#/$defs/reason" }, { "type": "null" }]
+            },
+            "publicEvidenceUnavailableReason": {
+              "oneOf": [{ "$ref": "#/$defs/reason" }, { "type": "null" }]
+            }
+          }
+        },
+        "interactiveDemo": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "unavailableReason"],
+          "properties": {
+            "status": { "const": "unavailable" },
+            "unavailableReason": { "$ref": "#/$defs/reason" }
+          }
+        },
+        "authoritativePerformanceResults": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "unavailableReason"],
+          "properties": {
+            "status": { "const": "unavailable" },
+            "unavailableReason": { "$ref": "#/$defs/reason" }
+          }
+        }
+      }
+    }
+  }
+}

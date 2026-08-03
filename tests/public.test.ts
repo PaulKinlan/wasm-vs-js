@@ -102,6 +102,9 @@ Deno.test("workload catalog exposes exact totals, filters, and honest implementa
   assert(page.includes("P1 representative applications"));
   assert(page.includes("P2 breadth/stress"));
   assert(page.includes("Coverage is 0/38"));
+  assert(page.includes("v2 proposal implementation inventory"));
+  assert(page.includes("Interactive demos: 0"));
+  assertEquals(page.match(/data-v2-id=/g)?.length, 20);
   assert(page.includes('role="search"'));
   assert(page.includes('aria-live="polite"'));
   assert(script.includes("Showing ${visible.length} of ${catalog.entries.length}"));
@@ -196,14 +199,19 @@ Deno.test("public pages contain no inline script, inline style, or remote asset"
     const html = await Deno.readTextFile(path);
     assert(!/<script(?![^>]*\bsrc=)/i.test(html), `${path} has inline script`);
     assert(!/\sstyle=/i.test(html), `${path} has inline style`);
+    const withoutAllowedLinks = html
+      .replaceAll(
+        "https://github.com/PaulKinlan/wasm-vs-js/blob/9c309c4941d1b8550c15f8549f95a5636a634ef6/PLAN.md",
+        "",
+      )
+      .replaceAll(
+        /https:\/\/github\.com\/PaulKinlan\/wasm-vs-js\/blob\/9691f0e8353a221880f365712a1ebbec18b7dde4\/[a-zA-Z0-9._/-]+(?:#L[0-9]+(?:-L[0-9]+)?)?/g,
+        "",
+      );
+    assert(!/https?:\/\//i.test(withoutAllowedLinks), `${path} has an unexpected remote URL`);
     assert(
-      !/https?:\/\//i.test(
-        html.replaceAll(
-          "https://github.com/PaulKinlan/wasm-vs-js/blob/9c309c4941d1b8550c15f8549f95a5636a634ef6/PLAN.md",
-          "",
-        ),
-      ),
-      `${path} has unexpected remote asset`,
+      !/<(?:script|link|img)[^>]+(?:src|href)="https?:\/\//i.test(html),
+      `${path} loads a remote asset`,
     );
   }
 });

@@ -64,6 +64,10 @@ Deno.test("public prose retains the benchmark's current evidence limits", async 
   assert(proposalEvidence.includes("Performance claims: none."));
   assert(catalog.includes("38 proposed workloads; 0 implemented"));
   assert(catalog.includes("Coverage is 0/38"));
+  assert(catalog.includes("v2 proposal implementation inventory"));
+  assert(catalog.includes("Interactive demos: 0"));
+  assert(catalog.includes("No v2 package contains authoritative performance results"));
+  assert(catalog.includes("not the full proposal contract"));
   assert(experiment.includes("Corpus status: not collected"));
   assert(experiment.includes("grants no browser authorization"));
   assert(readme.includes("Catalog implementation coverage is **0/38**"));

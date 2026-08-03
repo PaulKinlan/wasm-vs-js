@@ -137,6 +137,14 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/data/workload-catalog.schema.json",
     "application/schema+json; charset=utf-8",
   ]],
+  ["/data/v2-proposal-implementation-status.v1.json", [
+    "public/data/v2-proposal-implementation-status.v1.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/data/v2-proposal-implementation-status.schema.json", [
+    "public/data/v2-proposal-implementation-status.schema.json",
+    "application/schema+json; charset=utf-8",
+  ]],
   ["/data/sum-u32-inspectability.v1.json", [
     "public/data/sum-u32-inspectability.v1.json",
     "application/json; charset=utf-8",

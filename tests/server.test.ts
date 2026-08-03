@@ -97,6 +97,8 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
       "/workload-catalog.js",
       "/data/workloads.v1.json",
       "/data/workload-catalog.schema.json",
+      "/data/v2-proposal-implementation-status.v1.json",
+      "/data/v2-proposal-implementation-status.schema.json",
       "/data/sum-u32-inspectability.v1.json",
       "/inspectability.js",
       "/v2-results.js",
@@ -119,6 +121,8 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
   const catalogPage = await (await handler(new Request("http://127.0.0.1/benchmarks/"))).text();
   assert(catalogPage.includes("38-WORKLOAD DENOMINATOR"));
   assert(catalogPage.includes("Coverage is 0/38"));
+  assert(catalogPage.includes("v2 proposal implementation inventory"));
+  assert(catalogPage.includes("Interactive demos: 0"));
   for (
     const path of [
       "/run.html",

@@ -537,6 +537,28 @@ pre {
     gap: 0;
   }
 }
+.proposal-inventory {
+  margin-top: 2.5rem;
+  padding: clamp(1rem, 3vw, 2rem);
+  border: 2px solid var(--ink);
+  background: var(--surface);
+}
+.proposal-inventory h2 {
+  margin-top: .4rem;
+}
+.v2-inventory-metrics {
+  margin-block: 1.5rem;
+}
+.v2-status-table th:first-child {
+  min-width: 18rem;
+  text-align: left;
+}
+.v2-status-table th span {
+  font-weight: 400;
+}
+.v2-status-table td:last-child {
+  min-width: 24rem;
+}
 .inspectability-panel {
   border: 1px solid var(--rule);
   background: var(--raised);
