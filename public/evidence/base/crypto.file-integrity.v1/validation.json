@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "workloadId": "crypto.file-integrity.v1",
   "status": "complete-correctness-validation",
-  "sourceRevision": "WORKTREE-CANDIDATE",
+  "sourceRevision": "0e222d010e303426e444c3de0ef3f717d6de40c9",
   "runtime": {
     "deno": "2.9.0",
     "v8": "14.9.207.2-rusty",
@@ -10,7 +10,7 @@
   },
   "exactInputs": {
     "registrationRawSha256": "67aec07d656aa486fda943b7d82c62b01184998306b1b0672f38494ae8217f17",
-    "buildManifestRawSha256": "369d77bf75d422dcd3ee6880aaea98b0027b5bcae143475528aff87bc26cfa23",
+    "buildManifestRawSha256": "1a42bd15435be098e38b09188347de0a1ad419c51f9f6632ac00e7efd45d6c41",
     "artifactRawSha256": "a55a38bcb6c5a9e835ce7a75b733051efca0b186309d012788727164076f36cd"
   },
   "oracle": {
