@@ -63,6 +63,8 @@ const expectedMaturity = {
   "complete-local-only-proposal-validation-package": [
     "ml.dense-mlp.v1",
     "ml.gemm.v1",
+    "text.diff-patch.v1",
+    "text.markdown-cms.v1",
   ],
   "tested-image-engine-no-result-records": [
     "image.editing-pipeline.v1",
@@ -141,7 +143,7 @@ Deno.test("v2 ledger covers the exact 20-ID proposal roster without changing fro
   );
 });
 
-Deno.test("v2 ledger counts reconcile to eight validation packages, two engine-only images, two reduced slices, and eight definitions", () => {
+Deno.test("v2 ledger counts reconcile to ten validation packages, two engine-only images, two reduced slices, and six definitions", () => {
   for (const [maturity, ids] of Object.entries(expectedMaturity)) {
     assertEquals(
       entries.filter((entry) => entry.maturity === maturity).map((entry) => entry.id),
@@ -151,21 +153,21 @@ Deno.test("v2 ledger counts reconcile to eight validation packages, two engine-o
   const definitionOnly = entries.filter((entry) => entry.maturity === "proposal-definition-only");
   assertEquals(
     entries.filter((entry) => entry.engine.status === "tested-js-and-linear-wasm").length,
-    12,
+    14,
   );
-  assertEquals(definitionOnly.length, 8);
+  assertEquals(definitionOnly.length, 6);
   assertEquals(
     entries.filter((entry) => entry.validationResults.status === "complete-public").length,
     6,
   );
   assertEquals(
     entries.filter((entry) => entry.validationResults.status === "complete-local-only").length,
-    2,
+    4,
   );
-  assertEquals(entries.reduce((sum, entry) => sum + entry.validationResults.recordCount, 0), 16);
+  assertEquals(entries.reduce((sum, entry) => sum + entry.validationResults.recordCount, 0), 20);
   assertEquals(ledger.counts.publicValidationRecords, 12);
-  assertEquals(ledger.counts.localOnlyValidationRecords, 4);
-  assertEquals(entries.filter((entry) => entry.interactiveDemo.status !== "unavailable").length, 3);
+  assertEquals(ledger.counts.localOnlyValidationRecords, 8);
+  assertEquals(entries.filter((entry) => entry.interactiveDemo.status !== "unavailable").length, 5);
   assertEquals(
     entries.filter((entry) => entry.authoritativePerformanceResults.status !== "unavailable")
       .length,
@@ -185,7 +187,11 @@ Deno.test("v2 ledger counts reconcile to eight validation packages, two engine-o
   }
   assertEquals(
     entries.filter((entry) => entry.artifacts.publicLinks.length > 0).map((entry) => entry.id),
-    expectedMaturity["complete-public-proposal-validation-package"],
+    [
+      ...expectedMaturity["complete-public-proposal-validation-package"],
+      "text.diff-patch.v1",
+      "text.markdown-cms.v1",
+    ],
   );
   for (const entry of entries) {
     if (entry.interactiveDemo.status === "unavailable") {
@@ -224,7 +230,7 @@ Deno.test("every immutable v2 source, artifact, and result link resolves to work
   }
 });
 
-Deno.test("the twelve engine statuses bind real JavaScript, linear-Wasm, artifact, and result boundaries", async () => {
+Deno.test("the fourteen engine statuses bind real JavaScript, linear-Wasm, artifact, and result boundaries", async () => {
   const requiredSourceSuffixes: Record<string, [string, string]> = {
     "audio.fft.v1": ["benchmarks/audio-fft/js.ts", "benchmarks/audio-fft/audio-fft.wat"],
     "audio.fir.v1": ["benchmarks/audio-fir/js.ts", "benchmarks/audio-fir/audio-fir.wat"],
@@ -258,6 +264,14 @@ Deno.test("the twelve engine statuses bind real JavaScript, linear-Wasm, artifac
       "benchmarks/v2/ml-dense-mlp/ml-dense-mlp.wat",
     ],
     "ml.gemm.v1": ["benchmarks/v2/ml-gemm/workload.js", "benchmarks/v2/ml-gemm/ml-gemm.wat"],
+    "text.diff-patch.v1": [
+      "benchmarks/v2/text-diff-patch/workload.js",
+      "benchmarks/v2/text-diff-patch/text-diff-patch.wat",
+    ],
+    "text.markdown-cms.v1": [
+      "benchmarks/v2/text-markdown-cms/workload.js",
+      "benchmarks/v2/text-markdown-cms/text-markdown-cms.wat",
+    ],
     "text.regex-engine-duel.v1": [
       "benchmarks/regex-automata-duel/js-automata.ts",
       "benchmarks/regex-automata-duel/regex-automata.wat",
@@ -307,8 +321,8 @@ Deno.test("benchmarks page exposes the complete v2 inventory in raw HTML", async
   assert(page.includes("38 proposed workloads; 0 implemented"));
   assert(page.includes("Coverage is 0/38"));
   assert(page.includes("v2 proposal implementation inventory"));
-  assert(page.includes("Runnable demos: 7"));
-  assert(page.includes("3 full proposal-validation routes and 4 reduced-fixture routes"));
+  assert(page.includes("Runnable demos: 9"));
+  assert(page.includes("5 full proposal-validation routes and 4 reduced-fixture routes"));
   assert(page.includes("No v2 package contains authoritative performance results"));
   assert(page.includes("not the full proposal contract"));
   assert(page.includes('href="/data/v2-proposal-implementation-status.v1.json"'));

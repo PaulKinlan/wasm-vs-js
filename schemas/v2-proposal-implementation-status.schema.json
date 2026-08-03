@@ -104,22 +104,22 @@
           "const": 20
         },
         "testedJsAndLinearWasmEngines": {
-          "const": 12
+          "const": 14
         },
         "definitionOnly": {
-          "const": 8
+          "const": 6
         },
         "completePublicProposalValidationPackages": {
           "const": 6
         },
         "completeLocalOnlyProposalValidationPackages": {
-          "const": 2
+          "const": 4
         },
         "publicValidationRecords": {
           "const": 12
         },
         "localOnlyValidationRecords": {
-          "const": 4
+          "const": 8
         },
         "imageEngineOnly": {
           "const": 2
@@ -128,7 +128,7 @@
           "const": 2
         },
         "interactiveDemos": {
-          "const": 3
+          "const": 5
         },
         "authoritativePerformanceResultPackages": {
           "const": 0
@@ -417,7 +417,7 @@
               "oneOf": [
                 {
                   "type": "string",
-                  "pattern": "^/demos/[a-z0-9-]+/$"
+                  "pattern": "^/demos/[a-z0-9.-]+/$"
                 },
                 {
                   "type": "null"

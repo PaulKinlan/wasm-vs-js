@@ -5,8 +5,8 @@
   "entryId": "audio.fir.v1",
   "benchmarkSlug": "audio-fir",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "6f507efc2961983ed087bab0bf18fd845aebd100",
-  "sourceSha256": "2652440f88b3d9b65a840a62735dc48e42676a5e1d219b723d62ceac493a1ad1",
+  "sourceCommit": "94e7d6695d7b0b1a936ca9cb766e6d7b52b4850c",
+  "sourceSha256": "30454fce9e4fe99fbf695cef3e34f397fda49385f62b81c6428ed25d66ff1568",
   "fullSourceGraph": [
     {
       "path": "benchmarks/audio-fft/benchmark.json",
@@ -135,8 +135,8 @@
     },
     {
       "path": "catalog/workloads.v2.proposed.json",
-      "bytes": 99735,
-      "sha256": "1a09e9f8ecf9ed9c30020aa49bd049fb0ddd1c67b0e5d4629d8b08b7a3c8873f"
+      "bytes": 99813,
+      "sha256": "d1e014cc7d6db799e1a04618b8961a3a5e6ead66e5a1fcdcf1e2301c87c66ac9"
     },
     {
       "path": "benchmarks/v2/shared/workload-contract.js",
@@ -182,19 +182,19 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/audio-fir/fixture-manifest.json",
-      "sha256": "a18a085bf7aebc811ebb6c96b7149ae6347f31b05fde97d5c16207261d340301"
+      "sha256": "69ffc5898421a427adc2e3514314e969a318531571a444a491ea89dd7e5d8f91"
     },
     "input": {
       "path": "public/artifacts/audio-fir/input-manifest.json",
-      "sha256": "ed28bb0e703b4316b587afdc651b388967b1baa8235e7f56bfaa488a78265ac1"
+      "sha256": "70d26191ce9680be8dd193cf07bcb6c563a34c309e2883658b551df6ec05ee1a"
     },
     "reference": {
       "path": "public/artifacts/audio-fir/reference-manifest.json",
-      "sha256": "e3bb10a867fed1de7a3fe867ab5cdc2e6a7ab05f4239db3ba343c7c0941e9b8d"
+      "sha256": "046a19770e6951181ab73ffd1315f7acbed92ca56419784c623ae8d61f033139"
     },
     "output": {
       "path": "public/artifacts/audio-fir/output-manifest.json",
-      "sha256": "a2e6fa3b39865240fe06b19da899ab979e8c0828d13f00c7ba3262575d8d6755"
+      "sha256": "2bd8145184b719794911ded8e96387ea4ee812a29c5ba66653d90020e830cc5b"
     }
   },
   "referenceArtifact": {
@@ -236,7 +236,7 @@
       "--allow-write=public/artifacts/audio-fft,public/artifacts/audio-fir,public/artifacts/audio-stft",
       "--allow-run=git",
       "scripts/build-audio.ts",
-      "--source-commit=6f507efc2961983ed087bab0bf18fd845aebd100"
+      "--source-commit=94e7d6695d7b0b1a936ca9cb766e6d7b52b4850c"
     ],
     "toolchain": [
       {

@@ -138,8 +138,8 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
   assert(catalogPage.includes("38-WORKLOAD DENOMINATOR"));
   assert(catalogPage.includes("Coverage is 0/38"));
   assert(catalogPage.includes("v2 proposal implementation inventory"));
-  assert(catalogPage.includes("Runnable demos: 7"));
-  assert(catalogPage.includes("3 full proposal-validation routes and 4 reduced-fixture routes"));
+  assert(catalogPage.includes("Runnable demos: 9"));
+  assert(catalogPage.includes("5 full proposal-validation routes and 4 reduced-fixture routes"));
   for (
     const path of [
       "/run.html",
@@ -175,7 +175,7 @@ Deno.test("every ledger public link resolves through the exact read-only public 
     for (const link of entry.artifacts.publicLinks) paths.add(link.url);
     for (const link of entry.validationResults.publicEvidenceLinks) paths.add(link.url);
   }
-  assertEquals(paths.size, 22);
+  assertEquals(paths.size, 28);
 
   const publicHandler = createHandler(null, "public");
   for (const path of paths) {

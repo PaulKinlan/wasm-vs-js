@@ -19,15 +19,15 @@
   },
   "counts": {
     "proposalDefinitions": 20,
-    "testedJsAndLinearWasmEngines": 12,
-    "definitionOnly": 8,
+    "testedJsAndLinearWasmEngines": 14,
+    "definitionOnly": 6,
     "completePublicProposalValidationPackages": 6,
-    "completeLocalOnlyProposalValidationPackages": 2,
+    "completeLocalOnlyProposalValidationPackages": 4,
     "publicValidationRecords": 12,
-    "localOnlyValidationRecords": 4,
+    "localOnlyValidationRecords": 8,
     "imageEngineOnly": 2,
     "reducedConformanceSlices": 2,
-    "interactiveDemos": 3,
+    "interactiveDemos": 5,
     "authoritativePerformanceResultPackages": 0
   },
   "entries": [
@@ -1406,50 +1406,89 @@
     {
       "id": "text.diff-patch.v1",
       "title": "Unicode line diff and patch",
-      "maturity": "proposal-definition-only",
+      "maturity": "complete-local-only-proposal-validation-package",
       "definitionSource": {
         "label": "proposal definition",
         "path": "catalog/workloads.v2.proposed.json",
-        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/60b63a79d526c868329ded4134be1f04562f0cf6/catalog/workloads.v2.proposed.json#L2591-L2738"
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/30b41425227dc139304f25942d0be0d933fa28c9/catalog/workloads.v2.proposed.json#L2591-L2740"
       },
       "engine": {
-        "status": "unavailable",
-        "sourceLinks": [],
-        "unavailableReason": {
-          "code": "definition-only",
-          "detail": "No tested JavaScript and linear-Wasm workload engine exists for this proposal ID."
-        }
+        "status": "tested-js-and-linear-wasm",
+        "sourceLinks": [
+          {
+            "label": "JavaScript source",
+            "path": "benchmarks/v2/text-diff-patch/workload.js",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/30b41425227dc139304f25942d0be0d933fa28c9/benchmarks/v2/text-diff-patch/workload.js"
+          },
+          {
+            "label": "authored linear-Wasm source",
+            "path": "benchmarks/v2/text-diff-patch/text-diff-patch.wat",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/30b41425227dc139304f25942d0be0d933fa28c9/benchmarks/v2/text-diff-patch/text-diff-patch.wat"
+          }
+        ],
+        "unavailableReason": null
       },
       "artifacts": {
-        "status": "unavailable",
-        "repositoryLinks": [],
-        "publicLinks": [],
-        "unavailableReason": {
-          "code": "definition-only",
-          "detail": "Only the proposal definition exists; there is no built artifact for this ID."
-        }
+        "status": "reproducible-public",
+        "repositoryLinks": [
+          {
+            "label": "build manifest",
+            "path": "public/artifacts/text-diff-patch/build-manifest.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/30b41425227dc139304f25942d0be0d933fa28c9/public/artifacts/text-diff-patch/build-manifest.json"
+          },
+          {
+            "label": "Wasm artifact",
+            "path": "public/artifacts/text-diff-patch/text-diff-patch.wasm",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/30b41425227dc139304f25942d0be0d933fa28c9/public/artifacts/text-diff-patch/text-diff-patch.wasm"
+          },
+          {
+            "label": "output manifest",
+            "path": "public/artifacts/text-diff-patch/output-manifest.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/30b41425227dc139304f25942d0be0d933fa28c9/public/artifacts/text-diff-patch/output-manifest.json"
+          }
+        ],
+        "publicLinks": [
+          {
+            "label": "public build manifest",
+            "url": "/artifacts/text-diff-patch/build-manifest.json"
+          },
+          {
+            "label": "public Wasm artifact",
+            "url": "/artifacts/text-diff-patch/text-diff-patch.wasm"
+          },
+          {
+            "label": "public output manifest",
+            "url": "/artifacts/text-diff-patch/output-manifest.json"
+          }
+        ],
+        "unavailableReason": null
       },
       "validationResults": {
-        "status": "unavailable",
-        "recordCount": 0,
-        "repositoryLinks": [],
+        "status": "complete-local-only",
+        "recordCount": 2,
+        "repositoryLinks": [
+          {
+            "label": "js-controlled proposal-validation record",
+            "path": "artifacts/v2/text-diff-patch/js-controlled.result.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/30b41425227dc139304f25942d0be0d933fa28c9/artifacts/v2/text-diff-patch/js-controlled.result.json"
+          },
+          {
+            "label": "wasm-linear-controlled proposal-validation record",
+            "path": "artifacts/v2/text-diff-patch/wasm-linear-controlled.result.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/30b41425227dc139304f25942d0be0d933fa28c9/artifacts/v2/text-diff-patch/wasm-linear-controlled.result.json"
+          }
+        ],
         "publicEvidenceLinks": [],
-        "unavailableReason": {
-          "code": "no-validation-record",
-          "detail": "A definition-only proposal has no proposal-validation result record."
-        },
+        "unavailableReason": null,
         "publicEvidenceUnavailableReason": {
-          "code": "no-validation-record",
-          "detail": "A definition-only proposal has no proposal-validation result record."
+          "code": "no-public-evidence-route",
+          "detail": "The complete proposal-validation records are committed but are not served as public result evidence."
         }
       },
       "interactiveDemo": {
-        "status": "unavailable",
-        "unavailableReason": {
-          "code": "no-interactive-demo",
-          "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
-        },
-        "route": null
+        "status": "runnable-public",
+        "route": "/demos/text.diff-patch.v1/",
+        "unavailableReason": null
       },
       "authoritativePerformanceResults": {
         "status": "unavailable",
@@ -1462,50 +1501,89 @@
     {
       "id": "text.markdown-cms.v1",
       "title": "Markdown CMS render pipeline",
-      "maturity": "proposal-definition-only",
+      "maturity": "complete-local-only-proposal-validation-package",
       "definitionSource": {
         "label": "proposal definition",
         "path": "catalog/workloads.v2.proposed.json",
-        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/60b63a79d526c868329ded4134be1f04562f0cf6/catalog/workloads.v2.proposed.json#L2739-L2887"
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/30b41425227dc139304f25942d0be0d933fa28c9/catalog/workloads.v2.proposed.json#L2741-L2890"
       },
       "engine": {
-        "status": "unavailable",
-        "sourceLinks": [],
-        "unavailableReason": {
-          "code": "definition-only",
-          "detail": "No tested JavaScript and linear-Wasm workload engine exists for this proposal ID."
-        }
+        "status": "tested-js-and-linear-wasm",
+        "sourceLinks": [
+          {
+            "label": "JavaScript source",
+            "path": "benchmarks/v2/text-markdown-cms/workload.js",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/30b41425227dc139304f25942d0be0d933fa28c9/benchmarks/v2/text-markdown-cms/workload.js"
+          },
+          {
+            "label": "authored linear-Wasm source",
+            "path": "benchmarks/v2/text-markdown-cms/text-markdown-cms.wat",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/30b41425227dc139304f25942d0be0d933fa28c9/benchmarks/v2/text-markdown-cms/text-markdown-cms.wat"
+          }
+        ],
+        "unavailableReason": null
       },
       "artifacts": {
-        "status": "unavailable",
-        "repositoryLinks": [],
-        "publicLinks": [],
-        "unavailableReason": {
-          "code": "definition-only",
-          "detail": "Only the proposal definition exists; there is no built artifact for this ID."
-        }
+        "status": "reproducible-public",
+        "repositoryLinks": [
+          {
+            "label": "build manifest",
+            "path": "public/artifacts/text-markdown-cms/build-manifest.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/30b41425227dc139304f25942d0be0d933fa28c9/public/artifacts/text-markdown-cms/build-manifest.json"
+          },
+          {
+            "label": "Wasm artifact",
+            "path": "public/artifacts/text-markdown-cms/text-markdown-cms.wasm",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/30b41425227dc139304f25942d0be0d933fa28c9/public/artifacts/text-markdown-cms/text-markdown-cms.wasm"
+          },
+          {
+            "label": "output manifest",
+            "path": "public/artifacts/text-markdown-cms/output-manifest.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/30b41425227dc139304f25942d0be0d933fa28c9/public/artifacts/text-markdown-cms/output-manifest.json"
+          }
+        ],
+        "publicLinks": [
+          {
+            "label": "public build manifest",
+            "url": "/artifacts/text-markdown-cms/build-manifest.json"
+          },
+          {
+            "label": "public Wasm artifact",
+            "url": "/artifacts/text-markdown-cms/text-markdown-cms.wasm"
+          },
+          {
+            "label": "public output manifest",
+            "url": "/artifacts/text-markdown-cms/output-manifest.json"
+          }
+        ],
+        "unavailableReason": null
       },
       "validationResults": {
-        "status": "unavailable",
-        "recordCount": 0,
-        "repositoryLinks": [],
+        "status": "complete-local-only",
+        "recordCount": 2,
+        "repositoryLinks": [
+          {
+            "label": "js-controlled proposal-validation record",
+            "path": "artifacts/v2/text-markdown-cms/js-controlled.result.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/30b41425227dc139304f25942d0be0d933fa28c9/artifacts/v2/text-markdown-cms/js-controlled.result.json"
+          },
+          {
+            "label": "wasm-linear-controlled proposal-validation record",
+            "path": "artifacts/v2/text-markdown-cms/wasm-linear-controlled.result.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/30b41425227dc139304f25942d0be0d933fa28c9/artifacts/v2/text-markdown-cms/wasm-linear-controlled.result.json"
+          }
+        ],
         "publicEvidenceLinks": [],
-        "unavailableReason": {
-          "code": "no-validation-record",
-          "detail": "A definition-only proposal has no proposal-validation result record."
-        },
+        "unavailableReason": null,
         "publicEvidenceUnavailableReason": {
-          "code": "no-validation-record",
-          "detail": "A definition-only proposal has no proposal-validation result record."
+          "code": "no-public-evidence-route",
+          "detail": "The complete proposal-validation records are committed but are not served as public result evidence."
         }
       },
       "interactiveDemo": {
-        "status": "unavailable",
-        "unavailableReason": {
-          "code": "no-interactive-demo",
-          "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
-        },
-        "route": null
+        "status": "runnable-public",
+        "route": "/demos/text.markdown-cms.v1/",
+        "unavailableReason": null
       },
       "authoritativePerformanceResults": {
         "status": "unavailable",

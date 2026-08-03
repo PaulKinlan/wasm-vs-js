@@ -103,8 +103,8 @@ Deno.test("workload catalog exposes exact totals, filters, and honest implementa
   assert(page.includes("P2 breadth/stress"));
   assert(page.includes("Coverage is 0/38"));
   assert(page.includes("v2 proposal implementation inventory"));
-  assert(page.includes("Runnable demos: 7"));
-  assert(page.includes("3 full proposal-validation routes and 4 reduced-fixture routes"));
+  assert(page.includes("Runnable demos: 9"));
+  assert(page.includes("5 full proposal-validation routes and 4 reduced-fixture routes"));
   assertEquals(page.match(/data-v2-id=/g)?.length, 20);
   assert(page.includes('role="search"'));
   assert(page.includes('aria-live="polite"'));
@@ -211,7 +211,7 @@ Deno.test("public pages contain no inline script, inline style, or remote asset"
         "",
       )
       .replaceAll(
-        /https:\/\/github\.com\/PaulKinlan\/wasm-vs-js\/blob\/9691f0e8353a221880f365712a1ebbec18b7dde4\/[a-zA-Z0-9._/-]+(?:#L[0-9]+(?:-L[0-9]+)?)?/g,
+        /https:\/\/github\.com\/PaulKinlan\/wasm-vs-js\/blob\/30b41425227dc139304f25942d0be0d933fa28c9\/[a-zA-Z0-9._/-]+(?:#L[0-9]+(?:-L[0-9]+)?)?/g,
         "",
       );
     assert(!/https?:\/\//i.test(withoutAllowedLinks), `${path} has an unexpected remote URL`);
