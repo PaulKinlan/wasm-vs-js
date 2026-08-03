@@ -11,7 +11,7 @@
   "artifacts": {
     "buildManifest": {
       "path": "public/artifacts/dom-virtualized-grid-v1/build-manifest.json",
-      "sha256": "7b07dc7127018b22a92dfc62896f3ab2156f160151d72c0916fc059806bbfba7"
+      "sha256": "3b1f5f2fab61c77724bb13d3b117a245e0836c3f69f3d3763f48616dcb4c91fc"
     },
     "fixture": {
       "path": "public/artifacts/dom-virtualized-grid-v1/fixture.bin",
