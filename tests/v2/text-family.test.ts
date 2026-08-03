@@ -111,6 +111,9 @@ Deno.test("Markdown authored Wasm matches canonical output and rejects adversari
     "[nbsp](https://docs.example.test/a b)\n",
     "[emspace](https://docs.example.test/a b)\n",
     "[linesep](https://docs.example.test/a b)\n",
+    "!x](https://images.example.test/a)\n",
+    "!abc](https://images.example.test/a)\n",
+    "!](https://images.example.test/a)\n",
     "[bad](javascript:alert(1))\n",
     "<em onclick=x>not allowed</em>\n",
     "<strong>nested <em>x</em></strong>\n",
@@ -126,6 +129,10 @@ Deno.test("Markdown authored Wasm matches canonical output and rejects adversari
     assert(!linear.html.includes("<script"));
     assert(!linear.html.includes("onerror"));
     if (/^\[(?:nbsp|emspace|linesep)\]/u.test(source)) assertEquals(linear.html, "");
+    if (source.startsWith("!") && !source.startsWith("![")) {
+      assertEquals(linear.html, `<p>${source.trim()}</p>`);
+      assertEquals(linear.rejected, 0);
+    }
   }
   const tooManyLines = "x\n".repeat(MAX_NON_EMPTY_LINES + 1);
   for (
@@ -194,6 +201,15 @@ Deno.test("text artifacts and closed proposal-validation records are reproducibl
       assertEquals(record.status, "proposal-validation-only");
       assertEquals(record.correctness.status, "passed");
       assertEquals(record.performanceClaims, []);
+      const requiredCounters = slug === "text-diff-patch"
+        ? ["interned-lines", "allocations"]
+        : ["allocations"];
+      for (const counter of requiredCounters) {
+        assert(
+          record.provenance.semanticCoverage.workCounterIds.includes(counter),
+          `${slug}/${variant} omits formal ${counter} coverage`,
+        );
+      }
       assert(validate(record), JSON.stringify(validate.errors));
       const semantics = await validateProposalProvenanceSemantics(record, catalog);
       assert(semantics.ok, semantics.errors.join("\n"));

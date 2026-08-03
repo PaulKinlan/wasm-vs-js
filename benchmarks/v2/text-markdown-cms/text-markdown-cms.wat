@@ -231,7 +231,9 @@
       (local.set $p (i32.add (local.get $ast) (i32.mul (local.get $i) (i32.const 24))))
       (local.set $start (i32.load offset=4 (local.get $p))) (local.set $len (i32.load offset=8 (local.get $p)))
       (if (i32.and (i32.ge_u (local.get $len) (i32.const 5))
-          (i32.eq (i32.load8_u (i32.add (local.get $input) (local.get $start))) (i32.const 33)))
+          (i32.and
+            (i32.eq (i32.load8_u (i32.add (local.get $input) (local.get $start))) (i32.const 33))
+            (i32.eq (i32.load8_u (i32.add (local.get $input) (i32.add (local.get $start) (i32.const 1)))) (i32.const 91))))
         (then
           (local.set $j (i32.add (local.get $start) (i32.const 1))) (local.set $close (i32.const 0))
           (block $found (loop $find
@@ -255,7 +257,7 @@
   (func (export "parse") (param $input i32) (param $len i32) (param $ast i32) (param $limit i32) (result i32)
     (local $pos i32) (local $start i32) (local $end i32) (local $count i32) (local $first i32)
     (local $type i32) (local $ts i32) (local $tn i32) (local $us i32) (local $un i32)
-    (local $i i32) (local $close i32) (local $p i32)
+    (local $i i32) (local $close i32) (local $p i32) (local $resource i32)
     (block $done (loop $lines
       (br_if $done (i32.ge_u (local.get $pos) (local.get $len)))
       (local.set $start (local.get $pos)) (local.set $end (local.get $pos))
@@ -280,7 +282,18 @@
             (then (local.set $type (i32.const 2)) (local.set $ts (i32.add (local.get $start) (i32.const 3))) (local.set $tn (i32.sub (local.get $tn) (i32.const 3))))))))
       (else (if (i32.eq (local.get $first) (i32.const 60))
         (then (local.set $type (i32.const 6)))
-      (else (if (i32.or (i32.eq (local.get $first) (i32.const 91)) (i32.eq (local.get $first) (i32.const 33)))
+      (else
+        (local.set $resource (i32.const 0))
+        (if (i32.eq (local.get $first) (i32.const 91))
+          (then (local.set $resource (i32.const 1)))
+          (else (if (i32.and
+                  (i32.eq (local.get $first) (i32.const 33))
+                  (i32.ge_u (local.get $tn) (i32.const 2)))
+            (then (if (i32.eq
+                    (i32.load8_u (i32.add (local.get $input) (i32.add (local.get $start) (i32.const 1))))
+                    (i32.const 91))
+              (then (local.set $resource (i32.const 1))))))))
+        (if (local.get $resource)
         (then
           (local.set $i (local.get $start))
           (if (i32.eq (local.get $first) (i32.const 33))

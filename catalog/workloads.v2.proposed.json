@@ -2671,11 +2671,13 @@
         "counters": [
           "document-pairs",
           "input-lines",
+          "interned-lines",
           "edit-distance",
           "frontier-steps",
           "script-operations",
           "input-bytes",
           "output-bytes",
+          "allocations",
           "boundary-crossings"
         ],
         "counterTolerance": "exact"
@@ -2825,6 +2827,7 @@
           "transforms",
           "sanitizer-checks",
           "output-bytes",
+          "allocations",
           "boundary-crossings"
         ],
         "counterTolerance": "exact"
