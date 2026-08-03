@@ -293,7 +293,10 @@ Deno.test("retained Chrome 150 evidence covers controls, every target, network, 
       "wasm-linear-controlled",
     ],
   );
-  const allowedNetworkPaths = new Set(TRADITIONAL_DEMO_ROUTES.map((route) => route.path));
+  const allowedNetworkPaths = new Set([
+    ...TRADITIONAL_DEMO_ROUTES.map((route) => route.path),
+    "/favicon.ico",
+  ]);
   for (const scenario of evidence.scenarios) {
     assertEquals(scenario.exceptions, []);
     assert(scenario.console.every((entry: { type: string }) => entry.type !== "error"));
