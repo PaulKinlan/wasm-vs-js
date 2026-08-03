@@ -3,7 +3,7 @@
   "recordType": "base-workload-correctness-validation",
   "workloadId": "text.regex-log-scan.v1",
   "registrationId": "text.regex-log-scan.v1-controlled-registration-v1",
-  "sourceCommit": "uncommitted-source-tree",
+  "sourceCommit": "8bf6f9e5c2faaea424d707fbb5eea979298b08ad",
   "variant": "wasm-linear-controlled",
   "status": "passed",
   "input": {
