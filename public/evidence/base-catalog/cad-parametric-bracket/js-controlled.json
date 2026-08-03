@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "catalogId": "workload-catalog-v1",
+  "workloadId": "cad.parametric-bracket.v1",
+  "status": "implementation-candidate",
+  "variantId": "js-controlled",
+  "executionTarget": "javascript",
+  "source": {
+    "path": "source-bundle",
+    "bytes": 1480,
+    "sha256": "9ef37d5a383afed099d1c705b34e51bc64b4ea701c6f38878cfb45a4f693df77"
+  },
+  "fixture": {
+    "path": "public/artifacts/base-cad-parametric-bracket/fixture.bin",
+    "bytes": 128,
+    "sha256": "69db74cd284702632eb67d52fc6f00c18a101afc8c671badb6097a7921e74922"
+  },
+  "artifact": {
+    "path": "benchmarks/base/cad-parametric-bracket/engine.js",
+    "bytes": 11520,
+    "sha256": "9a84c2ec52f3d335e4010257774d50c38b6f45caf25ca9fb0929090869ee9783"
+  },
+  "oracle": {
+    "completeOutputSha256": "364efdd5105cdfb75df57038fad70c6f918099f814e841147525eb4aefb3b773",
+    "completeOutputDigest": "1db042502963e738",
+    "exactCrossTargetBytes": true,
+    "topology": {
+      "connectedComponents": 1,
+      "shells": 1,
+      "throughHoles": 2,
+      "genus": 2,
+      "faces": 12,
+      "edges": 30,
+      "vertices": 20,
+      "watertight": true,
+      "oriented": true
+    },
+    "triangleCount": 264
+  },
+  "counters": {
+    "featureNodes": 10,
+    "boxSolids": 1,
+    "cylinderSolids": 2,
+    "booleanCuts": 2,
+    "filletEdges": 4,
+    "scanBands": 34,
+    "intersectionTests": 3400,
+    "sortComparisons": 178,
+    "surfaceTriangles": 264,
+    "tessellationVertices": 792,
+    "inputBytes": 128,
+    "outputBytes": 20864,
+    "allocations": 8,
+    "boundaryCrossings": 0
+  },
+  "performanceClaims": []
+}

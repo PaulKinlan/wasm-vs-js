@@ -130,6 +130,58 @@ const routes = new Map<string, [string, string, boolean?]>([
   ]],
   ["/benchmarks", ["public/benchmarks/index.html", "text/html; charset=utf-8"]],
   ["/benchmarks/", ["public/benchmarks/index.html", "text/html; charset=utf-8"]],
+  ["/demos/cad-parametric-bracket", [
+    "public/demos/cad-parametric-bracket/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/demos/cad-parametric-bracket/", [
+    "public/demos/cad-parametric-bracket/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/demos/cad-parametric-bracket/demo.js", [
+    "public/demos/cad-parametric-bracket/demo.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/demos/cad-parametric-bracket/worker.js", [
+    "public/demos/cad-parametric-bracket/worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/cad-parametric-bracket/contract.js", [
+    "benchmarks/base/cad-parametric-bracket/contract.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/cad-parametric-bracket/fixture.js", [
+    "benchmarks/base/cad-parametric-bracket/fixture.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/cad-parametric-bracket/engine.js", [
+    "benchmarks/base/cad-parametric-bracket/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/artifacts/base-cad-parametric-bracket/bracket.wasm", [
+    "public/artifacts/base-cad-parametric-bracket/bracket.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/base-cad-parametric-bracket/fixture-manifest.json", [
+    "public/artifacts/base-cad-parametric-bracket/fixture-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/base-cad-parametric-bracket/build-manifest.json", [
+    "public/artifacts/base-cad-parametric-bracket/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/base-cad-parametric-bracket/output-manifest.json", [
+    "public/artifacts/base-cad-parametric-bracket/output-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base-catalog/cad-parametric-bracket/js-controlled.json", [
+    "public/evidence/base-catalog/cad-parametric-bracket/js-controlled.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base-catalog/cad-parametric-bracket/wasm-linear-controlled.json", [
+    "public/evidence/base-catalog/cad-parametric-bracket/wasm-linear-controlled.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/demos/game-family/demo.js", [
     "public/demos/game-family/demo.js",
     "text/javascript; charset=utf-8",

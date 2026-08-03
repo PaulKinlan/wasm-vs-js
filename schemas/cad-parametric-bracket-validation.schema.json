@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.paulkinlan-ea.deno.net/schemas/cad-parametric-bracket-validation.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "catalogId",
+    "workloadId",
+    "status",
+    "variantId",
+    "executionTarget",
+    "source",
+    "fixture",
+    "artifact",
+    "oracle",
+    "counters",
+    "performanceClaims"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "catalogId": { "const": "workload-catalog-v1" },
+    "workloadId": { "const": "cad.parametric-bracket.v1" },
+    "status": { "const": "implementation-candidate" },
+    "variantId": { "enum": ["js-controlled", "wasm-linear-controlled"] },
+    "executionTarget": { "enum": ["javascript", "wasm-linear"] },
+    "source": { "$ref": "#/$defs/ref" },
+    "fixture": { "$ref": "#/$defs/ref" },
+    "artifact": { "$ref": "#/$defs/ref" },
+    "oracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "completeOutputSha256",
+        "completeOutputDigest",
+        "exactCrossTargetBytes",
+        "topology",
+        "triangleCount"
+      ],
+      "properties": {
+        "completeOutputSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "completeOutputDigest": { "type": "string", "pattern": "^[a-f0-9]{16}$" },
+        "exactCrossTargetBytes": { "const": true },
+        "topology": { "type": "object" },
+        "triangleCount": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "counters": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+    "performanceClaims": { "type": "array", "maxItems": 0 }
+  },
+  "$defs": {
+    "ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    }
+  }
+}

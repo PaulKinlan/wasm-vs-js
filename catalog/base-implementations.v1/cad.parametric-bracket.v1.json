@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "registrationId": "base-implementation-cad-parametric-bracket-v1",
+  "catalogId": "workload-catalog-v1",
+  "catalogEntryId": "cad.parametric-bracket.v1",
+  "catalogMutation": false,
+  "status": "implementation-candidate",
+  "contract": {
+    "units": "millimetres",
+    "featureTree": [
+      "box(80,40,12)",
+      "cylinder(20,20,4,through)",
+      "boolean-cut(left-hole)",
+      "cylinder(60,20,4,through)",
+      "boolean-cut(right-hole)",
+      "fillet(four-outer-vertical-edges,5)",
+      "tessellate(outer-arcs=8,hole-circles=32,scan-band-policy-v1)"
+    ],
+    "booleanTiePolicy": "even-odd profile winding; horizontal bands use lower-inclusive upper-exclusive crossings; equal-x crossings preserve source edge order",
+    "floatingPointPolicy": "IEEE-754 f64 scalar source order; no fast-math, contraction, SIMD, threads, exceptions or tail calls",
+    "tolerance": {
+      "crossTargetBytes": "exact",
+      "topology": "exact",
+      "geometryAbsolute": 0
+    },
+    "topology": {
+      "connectedComponents": 1,
+      "shells": 1,
+      "throughHoles": 2,
+      "genus": 2,
+      "faces": 12,
+      "edges": 30,
+      "vertices": 20,
+      "watertight": true,
+      "oriented": true
+    },
+    "excludedVariants": [
+      "OCCT",
+      "SIMD",
+      "threads",
+      "tail-calls",
+      "exception-handling",
+      "relaxed floating point"
+    ]
+  },
+  "targets": [
+    {
+      "id": "js-controlled",
+      "target": "javascript",
+      "semanticWork": "Authored JavaScript constructs the box and cylinder B-rep loops, executes both boolean cuts and four fillets, builds scan-band intersections, and emits the complete tessellation."
+    },
+    {
+      "id": "wasm-linear-controlled",
+      "target": "wasm-linear",
+      "semanticWork": "Authored C compiled to fixed-memory linear Wasm independently constructs the complete B-rep and tessellation; JavaScript copies only the 128-byte feature-tree fixture and decodes the complete output."
+    }
+  ],
+  "performanceClaims": []
+}

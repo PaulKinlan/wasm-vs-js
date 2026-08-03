@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "catalogId": "workload-catalog-v1",
+  "workloadId": "cad.parametric-bracket.v1",
+  "status": "implementation-candidate",
+  "variantId": "wasm-linear-controlled",
+  "executionTarget": "wasm-linear",
+  "source": {
+    "path": "source-bundle",
+    "bytes": 1480,
+    "sha256": "9ef37d5a383afed099d1c705b34e51bc64b4ea701c6f38878cfb45a4f693df77"
+  },
+  "fixture": {
+    "path": "public/artifacts/base-cad-parametric-bracket/fixture.bin",
+    "bytes": 128,
+    "sha256": "69db74cd284702632eb67d52fc6f00c18a101afc8c671badb6097a7921e74922"
+  },
+  "artifact": {
+    "path": "public/artifacts/base-cad-parametric-bracket/bracket.wasm",
+    "bytes": 6706,
+    "sha256": "c9328e0dcb392dc39a244c9735afd5b7916f7a05a5b997e40167f55fa9d72edd"
+  },
+  "oracle": {
+    "completeOutputSha256": "364efdd5105cdfb75df57038fad70c6f918099f814e841147525eb4aefb3b773",
+    "completeOutputDigest": "1db042502963e738",
+    "exactCrossTargetBytes": true,
+    "topology": {
+      "connectedComponents": 1,
+      "shells": 1,
+      "throughHoles": 2,
+      "genus": 2,
+      "faces": 12,
+      "edges": 30,
+      "vertices": 20,
+      "watertight": true,
+      "oriented": true
+    },
+    "triangleCount": 264
+  },
+  "counters": {
+    "featureNodes": 10,
+    "boxSolids": 1,
+    "cylinderSolids": 2,
+    "booleanCuts": 2,
+    "filletEdges": 4,
+    "scanBands": 34,
+    "intersectionTests": 3400,
+    "sortComparisons": 178,
+    "surfaceTriangles": 264,
+    "tessellationVertices": 792,
+    "inputBytes": 128,
+    "outputBytes": 20864,
+    "allocations": 0,
+    "boundaryCrossings": 2
+  },
+  "performanceClaims": []
+}
