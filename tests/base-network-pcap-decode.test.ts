@@ -1,9 +1,20 @@
+import Ajv2020Module from "ajv2020";
 import { sha256Hex } from "../lib/canonical.ts";
 import { validateBenchmark } from "../lib/contracts.ts";
 import { generatePcapFixture } from "../benchmarks/base/network-pcap-decode/fixture.ts";
 import { runPcapJavaScript } from "../benchmarks/base/network-pcap-decode/engine.js";
+import {
+  type PcapEvidenceBundle,
+  validatePcapEvidenceSemantics,
+} from "../benchmarks/base/network-pcap-decode/evidence-contract.ts";
 import { createHandler } from "../server.ts";
 import { assert, assertEquals, assertRejects } from "./assert.ts";
+
+type Validator = ((value: unknown) => boolean) & { errors?: unknown };
+type AjvInstance = { compile: (schema: unknown) => Validator };
+type AjvConstructor = new (options?: Record<string, unknown>) => AjvInstance;
+const Ajv2020 = ((Ajv2020Module as unknown as { default?: AjvConstructor }).default ??
+  Ajv2020Module) as unknown as AjvConstructor;
 
 const artifactPath = "public/artifacts/base-network-pcap-decode/pcap-decode.wasm";
 
@@ -147,30 +158,127 @@ Deno.test("truncated records and invalid microsecond timestamps fail closed in b
   assertEquals((await wasmRun(invalidTimestamp)).status, -7);
 });
 
-Deno.test("build, fixture, output, and evidence manifests anchor exact bytes", async () => {
-  const build = JSON.parse(
-    await Deno.readTextFile("public/artifacts/base-network-pcap-decode/build-manifest.json"),
-  );
-  const fixture = JSON.parse(
-    await Deno.readTextFile("public/artifacts/base-network-pcap-decode/fixture-manifest.json"),
-  );
-  const output = JSON.parse(
-    await Deno.readTextFile("public/artifacts/base-network-pcap-decode/output-manifest.json"),
-  );
-  assertEquals(build.fixture.sha256, fixture.sha256);
-  assertEquals(build.referenceOutput.sha256, output.sha256);
-  assertEquals(build.wasm.sha256, await sha256Hex(await Deno.readFile(build.wasm.path)));
-  assertEquals(build.fullSourceGraph.length, 7);
-  for (const source of build.fullSourceGraph) {
-    assertEquals(source.sha256, await sha256Hex(await Deno.readFile(source.path)));
+async function readPcapBundle(): Promise<PcapEvidenceBundle> {
+  const readJson = async (path: string) => JSON.parse(await Deno.readTextFile(path));
+  return {
+    benchmark: await readJson("benchmarks/base/network-pcap-decode/benchmark.json"),
+    registration: await readJson(
+      "benchmarks/base/network-pcap-decode/implementation-contract.v1.json",
+    ),
+    fixture: await readJson(
+      "public/artifacts/base-network-pcap-decode/fixture-manifest.json",
+    ),
+    output: await readJson("public/artifacts/base-network-pcap-decode/output-manifest.json"),
+    build: await readJson("public/artifacts/base-network-pcap-decode/build-manifest.json"),
+    records: {
+      "js-controlled": await readJson(
+        "public/evidence/base-v1/network-pcap-decode/js-controlled.json",
+      ),
+      "wasm-linear-controlled": await readJson(
+        "public/evidence/base-v1/network-pcap-decode/wasm-linear-controlled.json",
+      ),
+    },
+  };
+}
+
+Deno.test("closed PCAP schemas and semantics reject record, manifest, and registration mutations", async () => {
+  const bundle = await readPcapBundle();
+  const ajv = new Ajv2020({ allErrors: true, strict: false });
+  const schemas = Object.fromEntries(
+    await Promise.all([
+      ["registration", "schemas/base-network-pcap-registration.schema.json"],
+      ["fixture", "schemas/base-network-pcap-fixture-manifest.schema.json"],
+      ["output", "schemas/base-network-pcap-output-manifest.schema.json"],
+      ["build", "schemas/base-network-pcap-build-manifest.schema.json"],
+      ["record", "schemas/base-network-pcap-correctness-record.schema.json"],
+    ].map(async ([name, path]) => [
+      name,
+      ajv.compile(JSON.parse(await Deno.readTextFile(path))),
+    ])),
+  ) as Record<string, Validator>;
+  for (
+    const [name, value] of [
+      ["registration", bundle.registration],
+      ["fixture", bundle.fixture],
+      ["output", bundle.output],
+      ["build", bundle.build],
+      ["record", bundle.records["js-controlled"]],
+      ["record", bundle.records["wasm-linear-controlled"]],
+    ] as const
+  ) {
+    assert(schemas[name](value), `${name}: ${JSON.stringify(schemas[name].errors)}`);
+    const undeclared = structuredClone(value);
+    undeclared.unreviewed = true;
+    assert(!schemas[name](undeclared), `${name} schema accepted an undeclared property`);
   }
-  for (const variant of ["js-controlled", "wasm-linear-controlled"]) {
-    const record = JSON.parse(
-      await Deno.readTextFile(`public/evidence/base-v1/network-pcap-decode/${variant}.json`),
+  const valid = await validatePcapEvidenceSemantics(bundle);
+  assert(valid.ok, valid.errors.join("; "));
+
+  for (
+    const mutate of [
+      (value: PcapEvidenceBundle) => value.registration.fixture.sha256 = "0".repeat(64),
+      (value: PcapEvidenceBundle) => value.fixture.sha256 = "0".repeat(64),
+      (value: PcapEvidenceBundle) => value.output.sha256 = "0".repeat(64),
+      (value: PcapEvidenceBundle) => value.build.fixture.sha256 = "0".repeat(64),
+      (value: PcapEvidenceBundle) => value.records["js-controlled"].target = "wasm-linear",
+    ]
+  ) {
+    const poisoned = structuredClone(bundle);
+    mutate(poisoned);
+    const rejected = await validatePcapEvidenceSemantics(poisoned);
+    assert(!rejected.ok, "semantic validator accepted contradictory PCAP evidence");
+  }
+});
+
+Deno.test("PCAP build reproduces eight published files from its exact commit and source graph", async () => {
+  const bundle = await readPcapBundle();
+  const paths = [
+    "public/artifacts/base-network-pcap-decode/pcap-decode.wasm",
+    "public/artifacts/base-network-pcap-decode/fixture.pcap",
+    "public/artifacts/base-network-pcap-decode/reference-output.bin",
+    "public/artifacts/base-network-pcap-decode/fixture-manifest.json",
+    "public/artifacts/base-network-pcap-decode/output-manifest.json",
+    "public/artifacts/base-network-pcap-decode/build-manifest.json",
+    "public/evidence/base-v1/network-pcap-decode/js-controlled.json",
+    "public/evidence/base-v1/network-pcap-decode/wasm-linear-controlled.json",
+  ];
+  const before = new Map(
+    await Promise.all(paths.map(async (path) =>
+      [
+        path,
+        await sha256Hex(await Deno.readFile(path)),
+      ] as const
+    )),
+  );
+  for (const source of bundle.build.fullSourceGraph) {
+    const committed = await new Deno.Command("git", {
+      args: ["show", `${bundle.build.sourceCommit}:${source.path}`],
+      stdout: "piped",
+      stderr: "piped",
+    }).output();
+    assert(committed.success, new TextDecoder().decode(committed.stderr));
+    assertEquals(await sha256Hex(committed.stdout), source.sha256);
+    assertEquals(await sha256Hex(await Deno.readFile(source.path)), source.sha256);
+  }
+  const result = await new Deno.Command(Deno.execPath(), {
+    args: [
+      "run",
+      "--allow-read=.,/tmp",
+      "--allow-write=/tmp",
+      "--allow-run=git,clang,wasm-ld",
+      "scripts/build-base-network-pcap-decode.ts",
+      "--check",
+      `--source-commit=${bundle.build.sourceCommit}`,
+    ],
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  assert(result.success, new TextDecoder().decode(result.stderr));
+  for (const [path, expected] of before) {
+    assert(
+      await sha256Hex(await Deno.readFile(path)) === expected,
+      `${path} changed during reproduction`,
     );
-    assertEquals(record.completeOutput.sha256, output.sha256);
-    assertEquals(record.performanceClaims, []);
-    assertEquals(record.structuralChecks.protocolsMateriallyExercised.length, 6);
   }
 });
 

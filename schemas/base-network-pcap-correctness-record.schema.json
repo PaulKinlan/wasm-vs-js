@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/base-network-pcap-correctness-record.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "status",
+    "workloadId",
+    "variantId",
+    "target",
+    "sourceCommit",
+    "performanceClaims",
+    "input",
+    "completeOutput",
+    "structuralChecks",
+    "counters",
+    "buildManifest"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "status": { "const": "supplemental-base-v1-correctness-validation-candidate" },
+    "workloadId": { "const": "network.pcap-decode.v1" },
+    "variantId": { "enum": ["js-controlled", "wasm-linear-controlled"] },
+    "target": { "enum": ["javascript", "wasm-linear"] },
+    "sourceCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "performanceClaims": { "type": "array", "maxItems": 0 },
+    "input": { "$ref": "#/$defs/sizedHash" },
+    "completeOutput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bytes", "sha256", "equality"],
+      "properties": {
+        "bytes": { "const": 208 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "equality": { "const": "byte-exact" }
+      }
+    },
+    "structuralChecks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "packetRecords",
+        "protocolsMateriallyExercised",
+        "malformedCases",
+        "tcpReassembly",
+        "dnsCompressionPointers",
+        "canonicalFlows"
+      ],
+      "properties": {
+        "packetRecords": { "const": 8 },
+        "protocolsMateriallyExercised": {
+          "const": ["Ethernet", "IPv4", "TCP", "UDP", "DNS", "HTTP/1.1"]
+        },
+        "malformedCases": {
+          "const": ["truncated Ethernet", "IPv4 fragmentation", "IPv4 total-length overrun"]
+        },
+        "tcpReassembly": { "const": "two contiguous request segments" },
+        "dnsCompressionPointers": { "const": 1 },
+        "canonicalFlows": { "const": 4 }
+      }
+    },
+    "counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "packetRecords",
+        "ethernetHeaders",
+        "ipv4Headers",
+        "tcpHeaders",
+        "udpHeaders",
+        "dnsMessages",
+        "httpMessages",
+        "dnsCompressionPointers",
+        "tcpReassemblyAppends",
+        "malformedPackets",
+        "flowTableProbes",
+        "packetBytes",
+        "allocations",
+        "boundaryCrossings",
+        "flows",
+        "outputBytes"
+      ],
+      "properties": {
+        "packetRecords": { "const": 8 },
+        "ethernetHeaders": { "const": 7 },
+        "ipv4Headers": { "const": 7 },
+        "tcpHeaders": { "const": 3 },
+        "udpHeaders": { "const": 2 },
+        "dnsMessages": { "const": 2 },
+        "httpMessages": { "const": 2 },
+        "dnsCompressionPointers": { "const": 1 },
+        "tcpReassemblyAppends": { "const": 3 },
+        "malformedPackets": { "const": 3 },
+        "flowTableProbes": { "const": 6 },
+        "packetBytes": { "const": 511 },
+        "allocations": { "enum": [0, 14] },
+        "boundaryCrossings": { "enum": [0, 1] },
+        "flows": { "const": 4 },
+        "outputBytes": { "const": 208 }
+      }
+    },
+    "buildManifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "const": "public/artifacts/base-network-pcap-decode/build-manifest.json" },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "sizedHash": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bytes", "sha256"],
+      "properties": { "bytes": { "const": 663 }, "sha256": { "$ref": "#/$defs/sha256" } }
+    }
+  }
+}

@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/base-network-pcap-registration.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contractId",
+    "frozenCatalogReference",
+    "status",
+    "algorithmFamily",
+    "fixture",
+    "protocol",
+    "counterPolicy",
+    "fixedOracle",
+    "variants",
+    "performanceClaims"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contractId": { "const": "network.pcap-decode.v1-controlled-implementation" },
+    "frozenCatalogReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "catalogPath", "catalogSha256", "catalogMutation"],
+      "properties": {
+        "id": { "const": "network.pcap-decode.v1" },
+        "catalogPath": { "const": "catalog/workloads.v1.json" },
+        "catalogSha256": { "$ref": "#/$defs/sha256" },
+        "catalogMutation": { "const": false }
+      }
+    },
+    "status": { "const": "supplemental-implementation-candidate" },
+    "algorithmFamily": { "const": "pcap-fixed-protocol-subset" },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["generator", "version", "license", "redistribution", "packetCount", "sha256"],
+      "properties": {
+        "generator": { "const": "benchmarks/base/network-pcap-decode/fixture.ts" },
+        "version": { "const": "pcap-project-generated-v1" },
+        "license": { "const": "CC0-1.0" },
+        "redistribution": { "const": "permitted" },
+        "packetCount": { "const": 8 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "protocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "container",
+        "byteOrder",
+        "timestampResolution",
+        "linkType",
+        "checksumPolicy",
+        "ipv4Fragmentation",
+        "tcpReassembly",
+        "dnsCompression",
+        "httpFraming",
+        "malformedDisposition",
+        "protocolSubset"
+      ],
+      "properties": {
+        "container": { "const": "classic PCAP" },
+        "byteOrder": { "const": "little-endian" },
+        "timestampResolution": { "$ref": "#/$defs/text" },
+        "linkType": { "$ref": "#/$defs/text" },
+        "checksumPolicy": { "$ref": "#/$defs/text" },
+        "ipv4Fragmentation": { "$ref": "#/$defs/text" },
+        "tcpReassembly": { "$ref": "#/$defs/text" },
+        "dnsCompression": { "$ref": "#/$defs/text" },
+        "httpFraming": { "$ref": "#/$defs/text" },
+        "malformedDisposition": { "$ref": "#/$defs/text" },
+        "protocolSubset": {
+          "const": [
+            "Ethernet II",
+            "IPv4 without options",
+            "TCP without options",
+            "UDP",
+            "DNS A query/answer",
+            "HTTP/1.1 request/response framing"
+          ]
+        }
+      }
+    },
+    "counterPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allocations", "boundaryCrossings"],
+      "properties": {
+        "allocations": { "$ref": "#/$defs/text" },
+        "boundaryCrossings": { "$ref": "#/$defs/text" }
+      }
+    },
+    "fixedOracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outputBytes",
+        "packetRecords",
+        "ethernetHeaders",
+        "ipv4Headers",
+        "tcpHeaders",
+        "udpHeaders",
+        "dnsMessages",
+        "httpMessages",
+        "dnsCompressionPointers",
+        "tcpReassemblyAppends",
+        "malformedPackets",
+        "flows",
+        "flowTableProbes",
+        "packetBytes"
+      ],
+      "properties": {
+        "outputBytes": { "const": 208 },
+        "packetRecords": { "const": 8 },
+        "ethernetHeaders": { "const": 7 },
+        "ipv4Headers": { "const": 7 },
+        "tcpHeaders": { "const": 3 },
+        "udpHeaders": { "const": 2 },
+        "dnsMessages": { "const": 2 },
+        "httpMessages": { "const": 2 },
+        "dnsCompressionPointers": { "const": 1 },
+        "tcpReassemblyAppends": { "const": 3 },
+        "malformedPackets": { "const": 3 },
+        "flows": { "const": 4 },
+        "flowTableProbes": { "const": 6 },
+        "packetBytes": { "const": 511 }
+      }
+    },
+    "variants": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "prefixItems": [
+        { "$ref": "#/$defs/jsVariant" },
+        { "$ref": "#/$defs/wasmVariant" }
+      ],
+      "items": false
+    },
+    "performanceClaims": { "type": "array", "maxItems": 0 }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "text": { "type": "string", "minLength": 1 },
+    "jsVariant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "target", "implementation"],
+      "properties": {
+        "id": { "const": "js-controlled" },
+        "target": { "const": "javascript" },
+        "implementation": { "$ref": "#/$defs/text" }
+      }
+    },
+    "wasmVariant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "target", "implementation"],
+      "properties": {
+        "id": { "const": "wasm-linear-controlled" },
+        "target": { "const": "wasm-linear" },
+        "implementation": { "$ref": "#/$defs/text" }
+      }
+    }
+  }
+}
