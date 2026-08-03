@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/base-gltf-fixture-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "workloadId",
+    "immutable",
+    "sourceModel",
+    "draco",
+    "textureDerivation",
+    "files"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "workloadId": { "const": "graphics.gltf-viewer.v1" },
+    "immutable": { "const": true },
+    "sourceModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "repository",
+        "revision",
+        "paths",
+        "modelAssetLicense",
+        "licenseDocumentLicense",
+        "rightsAudit",
+        "licenseCopy"
+      ],
+      "properties": {
+        "name": { "const": "Avocado" },
+        "repository": { "const": "https://github.com/KhronosGroup/glTF-Sample-Assets" },
+        "revision": { "$ref": "#/$defs/commit" },
+        "paths": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["gltf", "draco", "baseColor", "license"],
+          "properties": {
+            "gltf": { "const": "Models/Avocado/glTF-Draco/Avocado.gltf" },
+            "draco": { "const": "Models/Avocado/glTF-Draco/Avocado.bin" },
+            "baseColor": { "const": "Models/Avocado/glTF-Draco/Avocado_baseColor.png" },
+            "license": { "const": "Models/Avocado/LICENSE.md" }
+          }
+        },
+        "modelAssetLicense": { "const": "CC0-1.0" },
+        "licenseDocumentLicense": { "const": "CC-BY-4.0" },
+        "rightsAudit": { "type": "string", "minLength": 1 },
+        "licenseCopy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["upstreamSha256", "localModification"],
+          "properties": {
+            "upstreamSha256": { "$ref": "#/$defs/sha256" },
+            "localModification": { "const": "none; byte-identical pinned upstream LICENSE.md" }
+          }
+        }
+      }
+    },
+    "draco": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "license", "javascriptTarget", "wasmTarget", "upstream"],
+      "properties": {
+        "version": { "const": "1.5.7" },
+        "license": { "const": "Apache-2.0" },
+        "javascriptTarget": { "const": "Emscripten asm.js decoder" },
+        "wasmTarget": { "const": "Emscripten linear-Wasm decoder" },
+        "upstream": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "javascriptSha256",
+            "wasmWrapperSha256",
+            "wasmPayloadSha256",
+            "localJavaScriptFilesAddOnlyDenoLintDirective"
+          ],
+          "properties": {
+            "javascriptSha256": { "$ref": "#/$defs/sha256" },
+            "wasmWrapperSha256": { "$ref": "#/$defs/sha256" },
+            "wasmPayloadSha256": { "$ref": "#/$defs/sha256" },
+            "localJavaScriptFilesAddOnlyDenoLintDirective": { "const": true }
+          }
+        }
+      }
+    },
+    "textureDerivation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceSha256", "command", "policy"],
+      "properties": {
+        "sourceSha256": { "$ref": "#/$defs/sha256" },
+        "command": { "type": "string", "minLength": 1 },
+        "policy": { "type": "string", "minLength": 1 }
+      }
+    },
+    "files": { "type": "array", "minItems": 4, "maxItems": 4, "items": { "$ref": "#/$defs/file" } }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  }
+}

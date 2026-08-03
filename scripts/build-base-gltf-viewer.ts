@@ -44,6 +44,11 @@ async function decode(mode: "javascript" | "wasm") {
     normals: new Float32Array(value.normals),
     texcoords: new Float32Array(value.texcoords),
     indices: new Uint32Array(value.indices),
+    metrics: value.metrics as {
+      allocations: number;
+      apiCalls: number;
+      wasmBoundaryCrossings: number;
+    },
   };
 }
 function meshBytes(mesh: ReturnType<typeof quantizeDecodedMesh>) {
@@ -139,7 +144,7 @@ try {
 }
 
 const texture = await Deno.readFile(new URL("base-color-64.rgba", fixtures));
-const jsOutput = runJavaScript(jsMesh, texture, animation);
+const jsOutput = runJavaScript(jsMesh, texture, animation, jsDecoded.metrics);
 const wasmBytes = await Deno.readFile(new URL("viewer.wasm", artifacts));
 const instance = await WebAssembly.instantiate(wasmBytes, {});
 const exports = instance.instance.exports as unknown as {
@@ -156,6 +161,9 @@ const exports = instance.instance.exports as unknown as {
     f: number,
     g: number,
     h: number,
+    decoderAllocations: number,
+    decoderApiCalls: number,
+    decoderBoundaries: number,
   ): number;
 };
 const base = exports.heap_ptr();
@@ -187,6 +195,9 @@ if (
     animOff,
     jsMesh.vertexCount,
     jsMesh.indices.length,
+    wasmDecoded.metrics.allocations,
+    wasmDecoded.metrics.apiCalls,
+    wasmDecoded.metrics.wasmBoundaryCrossings,
   ) !== 0
 ) {
   throw new Error("Wasm viewer failed");
@@ -235,9 +246,15 @@ const sourcePaths = [
   "scripts/decode-gltf-draco.cjs",
   "scripts/build-base-gltf-viewer.ts",
   "public/benchmarks/base-gltf-viewer/worker.js",
+  "public/benchmarks/base-gltf-viewer/decoder-worker.js",
   "public/benchmarks/base-gltf-viewer/demo.js",
   "public/benchmarks/base-gltf-viewer/index.html",
   "public/benchmarks/base-gltf-viewer/style.css",
+  "schemas/base-gltf-fixture-manifest.schema.json",
+  "schemas/base-gltf-build-manifest.schema.json",
+  "schemas/base-gltf-output-manifest.schema.json",
+  "schemas/base-gltf-evidence.schema.json",
+  "tests/base-gltf-viewer.test.ts",
   "server.ts",
   "deno.json",
   "deno.lock",
@@ -256,9 +273,14 @@ const fixtureManifest = {
       baseColor: "Models/Avocado/glTF-Draco/Avocado_baseColor.png",
       license: "Models/Avocado/LICENSE.md",
     },
-    license: "CC0-1.0",
+    modelAssetLicense: "CC0-1.0",
+    licenseDocumentLicense: "CC-BY-4.0",
     rightsAudit:
-      "Model README and LICENSE identify all model-associated binary, image and text files as CC0-1.0.",
+      "Pinned LICENSE assigns CC0-1.0 to model-associated files and CC-BY-4.0 to metadocumentation.",
+    licenseCopy: {
+      upstreamSha256: "09cc6fda57c9c9063ce96a520fd0401da109009855e32f518ab1c54c9d5bc2c4",
+      localModification: "none; byte-identical pinned upstream LICENSE.md",
+    },
   },
   draco: {
     version: "1.5.7",
@@ -289,11 +311,12 @@ const implementationContract = {
     model: "Avocado glTF-Draco",
     frames: 600,
     viewport: [96, 96],
-    checkpoints: CONTRACT.checkpoints,
+    retainedPixelCheckpoints: CONTRACT.checkpoints,
+    rasterizedFrames: 600,
     pickFrames: CONTRACT.pickFrames,
   },
   algorithm:
-    "Draco 1.5.7 decode; quantized fixed-point node animation, transforms, culling, picking and six-frame CPU texture raster reference",
+    "Draco 1.5.7 decode; quantized fixed-point node animation, transforms, culling, picking and 600-frame CPU texture rasterization",
   scenePolicy: {
     gltfVersion: "2.0",
     primitiveMode: "TRIANGLES",
@@ -314,7 +337,7 @@ const implementationContract = {
   },
   rendering: {
     controlled:
-      "CPU 96x96 raster reference at six checkpoints plus complete 600-frame draw/state stream",
+      "CPU 96x96 rasterization on all 600 frames; six retained pixel checkpoints plus the complete frame/counter stream",
     gpu: "separate unavailable product baseline; never enters controlled output",
   },
   counters: [
@@ -342,10 +365,28 @@ const outputManifest = {
     semanticSha256: await sha256Hex(jsSemantic),
     completeCrossTargetEqual: true,
     variants: {
-      javascript: { sha256: await sha256Hex(jsOutput), boundaryCrossings: 0 },
-      wasm: { sha256: await sha256Hex(wasmOutput), boundaryCrossings: 1 },
+      javascript: {
+        sha256: await sha256Hex(jsOutput),
+        allocations: jsDecoded.metrics.allocations + 7,
+        decoderAllocations: jsDecoded.metrics.allocations,
+        engineAllocations: 7,
+        decoderApiCalls: jsDecoded.metrics.apiCalls,
+        decoderWasmBoundaryCrossings: 0,
+        engineWasmBoundaryCrossings: 0,
+        totalWasmBoundaryCrossings: 0,
+      },
+      wasm: {
+        sha256: await sha256Hex(wasmOutput),
+        allocations: wasmDecoded.metrics.allocations,
+        decoderAllocations: wasmDecoded.metrics.allocations,
+        engineAllocations: 0,
+        decoderApiCalls: wasmDecoded.metrics.apiCalls,
+        decoderWasmBoundaryCrossings: wasmDecoded.metrics.wasmBoundaryCrossings,
+        engineWasmBoundaryCrossings: 4,
+        totalWasmBoundaryCrossings: wasmDecoded.metrics.wasmBoundaryCrossings + 4,
+      },
     },
-    header: Array.from(new Uint32Array(jsOutput.buffer, 0, 20)),
+    header: Array.from(new Uint32Array(jsOutput.buffer, 0, 28)),
   },
   performanceClaims: [],
 };
@@ -394,7 +435,9 @@ const evidence = {
     all2046Indices: true,
     all406Vertices: true,
     pickTraceComplete: true,
-    cpuRasterCheckpoints: 6,
+    cpuRasterizedFrames: 600,
+    retainedPixelCheckpoints: 6,
+    countersReconciled: true,
     completeOutputEqual: true,
     routeLifecycle: "covered by static tests; parent-owned retained Chrome evidence pending",
   },

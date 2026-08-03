@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/base-gltf-output-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "workloadId",
+    "status",
+    "sourceCommit",
+    "input",
+    "output",
+    "performanceClaims"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "workloadId": { "const": "graphics.gltf-viewer.v1" },
+    "status": { "const": "passed" },
+    "sourceCommit": { "$ref": "#/$defs/commit" },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decodedMeshSha256", "asmJsWasmDecodedMeshEqual"],
+      "properties": {
+        "decodedMeshSha256": { "$ref": "#/$defs/sha256" },
+        "asmJsWasmDecodedMeshEqual": { "const": true }
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bytes", "semanticSha256", "completeCrossTargetEqual", "variants", "header"],
+      "properties": {
+        "bytes": { "const": 240496 },
+        "semanticSha256": { "$ref": "#/$defs/sha256" },
+        "completeCrossTargetEqual": { "const": true },
+        "variants": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["javascript", "wasm"],
+          "properties": {
+            "javascript": { "$ref": "#/$defs/variant" },
+            "wasm": { "$ref": "#/$defs/variant" }
+          }
+        },
+        "header": {
+          "type": "array",
+          "minItems": 28,
+          "maxItems": 28,
+          "items": { "type": "integer", "minimum": 0, "maximum": 4294967295 }
+        }
+      }
+    },
+    "performanceClaims": { "type": "array", "maxItems": 0 }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "variant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sha256",
+        "allocations",
+        "decoderAllocations",
+        "engineAllocations",
+        "decoderApiCalls",
+        "decoderWasmBoundaryCrossings",
+        "engineWasmBoundaryCrossings",
+        "totalWasmBoundaryCrossings"
+      ],
+      "properties": {
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "allocations": { "type": "integer", "minimum": 0 },
+        "decoderAllocations": { "const": 11 },
+        "engineAllocations": { "type": "integer", "minimum": 0 },
+        "decoderApiCalls": { "const": 6002 },
+        "decoderWasmBoundaryCrossings": { "type": "integer", "minimum": 0 },
+        "engineWasmBoundaryCrossings": { "type": "integer", "minimum": 0 },
+        "totalWasmBoundaryCrossings": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

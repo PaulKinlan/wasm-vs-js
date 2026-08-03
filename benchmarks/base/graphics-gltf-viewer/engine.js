@@ -11,7 +11,7 @@ export const CONTRACT = Object.freeze({
   rotationScale: 1_048_576,
 });
 
-export const OUTPUT_HEADER_WORDS = 24;
+export const OUTPUT_HEADER_WORDS = 28;
 export const FRAME_WORDS = 8;
 export const OUTPUT_BYTES = OUTPUT_HEADER_WORDS * 4 + CONTRACT.frames * FRAME_WORDS * 4 +
   CONTRACT.checkpoints.length * CONTRACT.viewportWidth * CONTRACT.viewportHeight * 4;
@@ -112,12 +112,21 @@ export function normalizeControlledOutput(output) {
   }
   const normalized = output.slice();
   const words = new Uint32Array(normalized.buffer);
-  words[14] = 0; // target-specific host boundary crossings
+  words[14] = 0; // target-specific total JS/Wasm boundary crossings
+  words[15] = 0; // target-specific explicit harness/engine allocations
   words[19] = 0; // target identity marker
+  words[22] = 0; // target-specific Draco JS/Wasm crossings
+  words[23] = 0; // target-specific engine JS/Wasm crossings
+  words[24] = 0; // target-specific engine allocations
   return normalized;
 }
 
-export function runJavaScript(mesh, texture, animation = makeAnimationTable()) {
+export function runJavaScript(
+  mesh,
+  texture,
+  animation = makeAnimationTable(),
+  decoderMetrics = { allocations: 11, apiCalls: 6002, wasmBoundaryCrossings: 0 },
+) {
   const { positions, normals, texcoords, indices, vertexCount } = mesh;
   if (!(texture instanceof Uint8Array) || texture.length !== 64 * 64 * 4) {
     throw new Error("64x64 RGBA texture required");
@@ -135,11 +144,10 @@ export function runJavaScript(mesh, texture, animation = makeAnimationTable()) {
   const sx = new Int32Array(vertexCount);
   const sy = new Int32Array(vertexCount);
   const sz = new Int32Array(vertexCount);
-  const rnx = new Int32Array(vertexCount);
   const rny = new Int32Array(vertexCount);
+  const framePixels = new Uint8Array(CONTRACT.viewportWidth * CONTRACT.viewportHeight * 4);
+  const depthBuffer = new Int32Array(CONTRACT.viewportWidth * CONTRACT.viewportHeight);
   const pixelsOffset = (OUTPUT_HEADER_WORDS + CONTRACT.frames * FRAME_WORDS) * 4;
-  const checkpoints = new Map(CONTRACT.checkpoints.map((frame, index) => [frame, index]));
-  const picks = new Set(CONTRACT.pickFrames);
   let visibleTotal = 0;
   let pickHits = 0;
   let transformHash = 2166136261;
@@ -161,9 +169,6 @@ export function runJavaScript(mesh, texture, animation = makeAnimationTable()) {
       sx[i] = 48 + divTrunc(rx * 1000, depth);
       sy[i] = 58 - divTrunc(y * 1000, depth);
       sz[i] = depth;
-      const nx = -normals[p];
-      const nz = normals[p + 2];
-      rnx[i] = divTrunc(nx * cos - nz * sin, CONTRACT.rotationScale);
       rny[i] = -normals[p + 1];
       minX = Math.min(minX, sx[i]);
       minY = Math.min(minY, sy[i]);
@@ -176,6 +181,7 @@ export function runJavaScript(mesh, texture, animation = makeAnimationTable()) {
     let visible = 0;
     let picked = -1;
     let bestPickDepth = 2_147_483_647;
+    const pick = frame >= 25 && frame <= 575 && (frame - 25) % 50 === 0;
     const pickX = 48 + ((frame / 50 | 0) % 3 - 1) * 4;
     const pickY = 70 + ((frame / 50 | 0) % 2) * 6;
     for (let tri = 0; tri < indices.length / 3; tri++) {
@@ -185,7 +191,7 @@ export function runJavaScript(mesh, texture, animation = makeAnimationTable()) {
       visible++;
       drawHash = hashWord(drawHash, tri);
       drawHash = hashWord(drawHash, frame);
-      if (picks.has(frame)) {
+      if (pick) {
         const e0 = edge(sx[a], sy[a], sx[b], sy[b], pickX, pickY);
         const e1 = edge(sx[b], sy[b], sx[c], sy[c], pickX, pickY);
         const e2 = edge(sx[c], sy[c], sx[a], sy[a], pickX, pickY);
@@ -198,7 +204,7 @@ export function runJavaScript(mesh, texture, animation = makeAnimationTable()) {
         }
       }
     }
-    if (picks.has(frame) && picked >= 0) pickHits++;
+    if (pick && picked >= 0) pickHits++;
     visibleTotal += visible;
     const fo = frame * FRAME_WORDS;
     frames[fo] = minX;
@@ -209,48 +215,45 @@ export function runJavaScript(mesh, texture, animation = makeAnimationTable()) {
     frames[fo + 5] = picked;
     frames[fo + 6] = transformHash | 0;
     frames[fo + 7] = drawHash | 0;
-    const checkpoint = checkpoints.get(frame);
-    if (checkpoint !== undefined) {
-      const pixels = output.subarray(
-        pixelsOffset + checkpoint * 96 * 96 * 4,
-        pixelsOffset + (checkpoint + 1) * 96 * 96 * 4,
+    framePixels.fill(0);
+    depthBuffer.fill(2_147_483_647);
+    for (let tri = 0; tri < indices.length / 3; tri++) {
+      const a = indices[tri * 3], b = indices[tri * 3 + 1], c = indices[tri * 3 + 2];
+      const area = edge(sx[a], sy[a], sx[b], sy[b], sx[c], sy[c]);
+      if (area >= 0) continue;
+      const loX = Math.max(0, Math.min(sx[a], sx[b], sx[c]));
+      const hiX = Math.min(95, Math.max(sx[a], sx[b], sx[c]));
+      const loY = Math.max(0, Math.min(sy[a], sy[b], sy[c]));
+      const hiY = Math.min(95, Math.max(sy[a], sy[b], sy[c]));
+      const avgDepth = Math.trunc((sz[a] + sz[b] + sz[c]) / 3);
+      const u = Math.max(0, Math.min(63, divTrunc(texcoords[a * 2] * 63, CONTRACT.uvScale)));
+      const v = Math.max(0, Math.min(63, divTrunc(texcoords[a * 2 + 1] * 63, CONTRACT.uvScale)));
+      const ti = (v * 64 + u) * 4;
+      const light = Math.max(
+        64,
+        Math.min(255, 128 + divTrunc(rny[a] * 127, CONTRACT.normalScale)),
       );
-      const depthBuffer = new Int32Array(96 * 96);
-      depthBuffer.fill(2_147_483_647);
-      for (let tri = 0; tri < indices.length / 3; tri++) {
-        const a = indices[tri * 3], b = indices[tri * 3 + 1], c = indices[tri * 3 + 2];
-        const area = edge(sx[a], sy[a], sx[b], sy[b], sx[c], sy[c]);
-        if (area >= 0) continue;
-        const loX = Math.max(0, Math.min(sx[a], sx[b], sx[c]));
-        const hiX = Math.min(95, Math.max(sx[a], sx[b], sx[c]));
-        const loY = Math.max(0, Math.min(sy[a], sy[b], sy[c]));
-        const hiY = Math.min(95, Math.max(sy[a], sy[b], sy[c]));
-        const avgDepth = Math.trunc((sz[a] + sz[b] + sz[c]) / 3);
-        const u = Math.max(0, Math.min(63, divTrunc(texcoords[a * 2] * 63, CONTRACT.uvScale)));
-        const v = Math.max(0, Math.min(63, divTrunc(texcoords[a * 2 + 1] * 63, CONTRACT.uvScale)));
-        const ti = (v * 64 + u) * 4;
-        const light = Math.max(
-          64,
-          Math.min(255, 128 + divTrunc(rny[a] * 127, CONTRACT.normalScale)),
-        );
-        for (let y = loY; y <= hiY; y++) {
-          for (let x = loX; x <= hiX; x++) {
-            const e0 = edge(sx[a], sy[a], sx[b], sy[b], x, y);
-            const e1 = edge(sx[b], sy[b], sx[c], sy[c], x, y);
-            const e2 = edge(sx[c], sy[c], sx[a], sy[a], x, y);
-            const pi = y * 96 + x;
-            if (e0 <= 0 && e1 <= 0 && e2 <= 0 && avgDepth < depthBuffer[pi]) {
-              depthBuffer[pi] = avgDepth;
-              const po = pi * 4;
-              pixels[po] = divTrunc(texture[ti] * light, 255);
-              pixels[po + 1] = divTrunc(texture[ti + 1] * light, 255);
-              pixels[po + 2] = divTrunc(texture[ti + 2] * light, 255);
-              pixels[po + 3] = 255;
-              rasterizedPixels++;
-            }
+      for (let y = loY; y <= hiY; y++) {
+        for (let x = loX; x <= hiX; x++) {
+          const e0 = edge(sx[a], sy[a], sx[b], sy[b], x, y);
+          const e1 = edge(sx[b], sy[b], sx[c], sy[c], x, y);
+          const e2 = edge(sx[c], sy[c], sx[a], sy[a], x, y);
+          const pi = y * 96 + x;
+          if (e0 <= 0 && e1 <= 0 && e2 <= 0 && avgDepth < depthBuffer[pi]) {
+            depthBuffer[pi] = avgDepth;
+            const po = pi * 4;
+            framePixels[po] = divTrunc(texture[ti] * light, 255);
+            framePixels[po + 1] = divTrunc(texture[ti + 1] * light, 255);
+            framePixels[po + 2] = divTrunc(texture[ti + 2] * light, 255);
+            framePixels[po + 3] = 255;
+            rasterizedPixels++;
           }
         }
       }
+    }
+    const checkpoint = CONTRACT.checkpoints.indexOf(frame);
+    if (checkpoint >= 0) {
+      output.set(framePixels, pixelsOffset + checkpoint * framePixels.length);
     }
   }
   words[0] = 0x474c5446;
@@ -267,12 +270,20 @@ export function runJavaScript(mesh, texture, animation = makeAnimationTable()) {
   words[11] = CONTRACT.frames;
   words[12] = CONTRACT.checkpoints.length;
   words[13] = CONTRACT.pickFrames.length;
-  words[14] = 0;
-  words[15] = 7;
+  words[14] = decoderMetrics.wasmBoundaryCrossings;
+  words[15] = decoderMetrics.allocations + 7;
   words[16] = positions.byteLength + normals.byteLength + texcoords.byteLength +
     indices.byteLength + texture.byteLength;
   words[17] = output.byteLength;
   words[18] = 1;
   words[19] = 0;
+  words[20] = decoderMetrics.allocations;
+  words[21] = decoderMetrics.apiCalls;
+  words[22] = decoderMetrics.wasmBoundaryCrossings;
+  words[23] = 0;
+  words[24] = 7;
+  words[25] = CONTRACT.frames;
+  words[26] = CONTRACT.frames;
+  words[27] = 0;
   return output;
 }

@@ -10,51 +10,73 @@ globalThis.__dirname = require("node:path").dirname(decoderPath);
 const source = fs.readFileSync(decoderPath, "utf8") +
   "\n;globalThis.__DracoDecoderModule=DracoDecoderModule;";
 vm.runInThisContext(source, { filename: decoderPath });
-const config = mode === "wasm" ? { locateFile: () => wasmPath } : {};
+const config = mode === "wasm" ? { wasmBinary: fs.readFileSync(wasmPath) } : {};
 (async () => {
   const module = await globalThis.__DracoDecoderModule(config);
+  let apiCalls = 0;
+  let allocations = 0;
+  const call = (fn) => {
+    apiCalls++;
+    return fn();
+  };
+  const allocate = (fn) => {
+    allocations++;
+    return call(fn);
+  };
   const bytes = new Int8Array(fs.readFileSync(binPath));
-  const buffer = new module.DecoderBuffer();
-  buffer.Init(bytes, bytes.length);
-  const decoder = new module.Decoder();
-  if (decoder.GetEncodedGeometryType(buffer) !== module.TRIANGULAR_MESH) {
+  const buffer = allocate(() => new module.DecoderBuffer());
+  call(() => buffer.Init(bytes, bytes.length));
+  const decoder = allocate(() => new module.Decoder());
+  if (call(() => decoder.GetEncodedGeometryType(buffer)) !== module.TRIANGULAR_MESH) {
     throw new Error("not Draco mesh");
   }
-  const mesh = new module.Mesh();
-  const status = decoder.DecodeBufferToMesh(buffer, mesh);
-  if (!status.ok()) throw new Error(status.error_msg());
+  const mesh = allocate(() => new module.Mesh());
+  const status = call(() => decoder.DecodeBufferToMesh(buffer, mesh));
+  if (!call(() => status.ok())) throw new Error(status.error_msg());
+  const points = call(() => mesh.num_points());
+  const faces = call(() => mesh.num_faces());
   const readAttribute = (id, components) => {
-    const attribute = decoder.GetAttributeByUniqueId(mesh, id);
+    const attribute = call(() => decoder.GetAttributeByUniqueId(mesh, id));
     if (!attribute || attribute.ptr === 0) throw new Error(`missing attribute ${id}`);
-    const values = new module.DracoFloat32Array();
-    if (!decoder.GetAttributeFloatForAllPoints(mesh, attribute, values)) {
+    const values = allocate(() => new module.DracoFloat32Array());
+    if (!call(() => decoder.GetAttributeFloatForAllPoints(mesh, attribute, values))) {
       throw new Error(`attribute ${id}`);
     }
-    const output = new Array(mesh.num_points() * components);
-    for (let i = 0; i < output.length; i++) output[i] = values.GetValue(i);
-    module.destroy(values);
+    allocations++;
+    const output = new Array(points * components);
+    for (let i = 0; i < output.length; i++) output[i] = call(() => values.GetValue(i));
+    call(() => module.destroy(values));
     return output;
   };
-  const face = new module.DracoInt32Array();
-  const indices = new Array(mesh.num_faces() * 3);
-  for (let i = 0; i < mesh.num_faces(); i++) {
-    if (!decoder.GetFaceFromMesh(mesh, i, face)) throw new Error(`face ${i}`);
-    indices[i * 3] = face.GetValue(0);
-    indices[i * 3 + 1] = face.GetValue(1);
-    indices[i * 3 + 2] = face.GetValue(2);
+  const face = allocate(() => new module.DracoInt32Array());
+  allocations++;
+  const indices = new Array(faces * 3);
+  for (let i = 0; i < faces; i++) {
+    if (!call(() => decoder.GetFaceFromMesh(mesh, i, face))) throw new Error(`face ${i}`);
+    indices[i * 3] = call(() => face.GetValue(0));
+    indices[i * 3 + 1] = call(() => face.GetValue(1));
+    indices[i * 3 + 2] = call(() => face.GetValue(2));
   }
-  module.destroy(face);
+  call(() => module.destroy(face));
+  const positions = readAttribute(3, 3);
+  const normals = readAttribute(1, 3);
+  const texcoords = readAttribute(0, 2);
+  call(() => module.destroy(mesh));
+  call(() => module.destroy(decoder));
+  call(() => module.destroy(buffer));
   const result = {
-    points: mesh.num_points(),
-    faces: mesh.num_faces(),
-    positions: readAttribute(3, 3),
-    normals: readAttribute(1, 3),
-    texcoords: readAttribute(0, 2),
+    points,
+    faces,
+    positions,
+    normals,
+    texcoords,
     indices,
+    metrics: {
+      allocations,
+      apiCalls,
+      wasmBoundaryCrossings: mode === "wasm" ? apiCalls : 0,
+    },
   };
-  module.destroy(mesh);
-  module.destroy(decoder);
-  module.destroy(buffer);
   process.stdout.write(JSON.stringify(result));
 })().catch((error) => {
   console.error(error);

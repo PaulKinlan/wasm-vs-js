@@ -1,3 +1,4 @@
+import Ajv2020Module from "ajv2020";
 import { sha256Hex } from "../lib/canonical.ts";
 import { createHandler } from "../server.ts";
 import {
@@ -45,6 +46,11 @@ async function decode(mode: "javascript" | "wasm") {
     normals: new Float32Array(data.normals),
     texcoords: new Float32Array(data.texcoords),
     indices: new Uint32Array(data.indices),
+    metrics: data.metrics as {
+      allocations: number;
+      apiCalls: number;
+      wasmBoundaryCrossings: number;
+    },
   };
 }
 
@@ -56,7 +62,12 @@ Deno.test("base glTF fixture has audited immutable rights and exact catalog iden
   );
   const fixture = await readJson("public/artifacts/base-gltf-viewer/fixture-manifest.json");
   assertEquals(fixture.sourceModel.name, "Avocado");
-  assertEquals(fixture.sourceModel.license, "CC0-1.0");
+  assertEquals(fixture.sourceModel.modelAssetLicense, "CC0-1.0");
+  assertEquals(fixture.sourceModel.licenseDocumentLicense, "CC-BY-4.0");
+  assertEquals(
+    fixture.sourceModel.licenseCopy.upstreamSha256,
+    "09cc6fda57c9c9063ce96a520fd0401da109009855e32f518ab1c54c9d5bc2c4",
+  );
   assertEquals(fixture.draco.version, "1.5.7");
   assertEquals(fixture.files.length, 4);
   for (const entry of fixture.files) {
@@ -100,7 +111,7 @@ Deno.test("complete 600-frame JS and material-Wasm outputs equal the retained or
     new URL("fixtures/base/graphics-gltf-viewer/base-color-64.rgba", root),
   );
   const animation = makeAnimationTable();
-  const js = runJavaScript(mesh, texture, animation);
+  const js = runJavaScript(mesh, texture, animation, decoded.metrics);
   const wasmBytes = await Deno.readFile(
     new URL("public/artifacts/base-gltf-viewer/viewer.wasm", root),
   );
@@ -129,7 +140,24 @@ Deno.test("complete 600-frame JS and material-Wasm outputs equal the retained or
     ),
     j = copy(json, state);
   assertEquals(Number(ex.validate_gltf(j, json.length)), 0);
-  assertEquals(Number(ex.run(p, n, u, i, t, a, mesh.vertexCount, mesh.indices.length)), 0);
+  assertEquals(
+    Number(
+      ex.run(
+        p,
+        n,
+        u,
+        i,
+        t,
+        a,
+        mesh.vertexCount,
+        mesh.indices.length,
+        decoded.metrics.allocations,
+        decoded.metrics.apiCalls,
+        decoded.metrics.wasmBoundaryCrossings,
+      ),
+    ),
+    0,
+  );
   const wasm = memory.slice(Number(ex.output_ptr()), Number(ex.output_ptr()) + OUTPUT_BYTES);
   assertEquals(
     await sha256Hex(normalizeControlledOutput(js)),
@@ -149,6 +177,11 @@ Deno.test("complete 600-frame JS and material-Wasm outputs equal the retained or
   assertEquals(header[11], 600);
   assertEquals(header[12], 6);
   assertEquals(header[13], 12);
+  assertEquals(header[20], 11);
+  assertEquals(header[21], 6002);
+  assertEquals(header[25], 600);
+  assertEquals(header[26], 600);
+  assert(header[8] > 6 * 96 * 96, `all-frame raster count ${header[8]}`);
   assert(header[5] > 0 && header[5] <= 12, `pick hits ${header[5]}`);
 });
 
@@ -204,6 +237,84 @@ Deno.test("demo lifecycle uses fresh workers, cancellation, timeout, stale token
   assert(!source.includes("localStorage"));
   assert(!source.includes("indexedDB"));
   assert(!source.includes("fetch("));
+});
+
+Deno.test("Wasm glTF validation parses JSON and rejects token-like or changed documents", async () => {
+  const wasm = await Deno.readFile(new URL("public/artifacts/base-gltf-viewer/viewer.wasm", root));
+  const { instance } = await WebAssembly.instantiate(wasm, {});
+  const ex = instance.exports as never as Record<string, CallableFunction> & {
+    memory: WebAssembly.Memory;
+  };
+  const memory = new Uint8Array(ex.memory.buffer);
+  const base = Number(ex.heap_ptr());
+  const validate = (text: string) => {
+    const bytes = new TextEncoder().encode(text);
+    memory.set(bytes, base);
+    return Number(ex.validate_gltf(0, bytes.length));
+  };
+  const exact = await Deno.readTextFile(
+    new URL("fixtures/base/graphics-gltf-viewer/Avocado.gltf", root),
+  );
+  assertEquals(validate(exact), 0);
+  assert(validate('not JSON "version": "2.0" "KHR_draco_mesh_compression"') !== 0);
+  assert(validate(exact.replace('"POSITION": 3', '"POSITION": 9')) !== 0);
+});
+
+Deno.test("base glTF fixture, build, output and evidence schemas fail closed", async () => {
+  type Validator = ((value: unknown) => boolean) & { errors?: unknown };
+  type AjvConstructor = new (options?: Record<string, unknown>) => {
+    compile(schema: unknown): Validator;
+  };
+  const Ajv2020 = ((Ajv2020Module as unknown as { default?: AjvConstructor }).default ??
+    Ajv2020Module) as unknown as AjvConstructor;
+  const ajv = new Ajv2020({ allErrors: true, strict: false });
+  const cases = [
+    [
+      "fixture",
+      "public/artifacts/base-gltf-viewer/fixture-manifest.json",
+      "schemas/base-gltf-fixture-manifest.schema.json",
+      (v: Record<string, unknown>) => {
+        (v.sourceModel as Record<string, unknown>).modelAssetLicense = "CC-BY-4.0";
+      },
+    ],
+    [
+      "build",
+      "public/artifacts/base-gltf-viewer/build-manifest.json",
+      "schemas/base-gltf-build-manifest.schema.json",
+      (v: Record<string, unknown>) => {
+        (v.toolchain as Record<string, unknown>).draco = "unversioned";
+      },
+    ],
+    [
+      "output",
+      "public/artifacts/base-gltf-viewer/output-manifest.json",
+      "schemas/base-gltf-output-manifest.schema.json",
+      (v: Record<string, unknown>) => {
+        ((v.output as Record<string, unknown>).variants as Record<string, Record<string, unknown>>)
+          .wasm.decoderApiCalls = 0;
+      },
+    ],
+    [
+      "evidence",
+      "public/evidence/base-workloads/graphics-gltf-viewer/static-validation.json",
+      "schemas/base-gltf-evidence.schema.json",
+      (v: Record<string, unknown>) => {
+        ((v.assertions as Record<string, unknown>).cpuRasterizedFrames) = 6;
+      },
+    ],
+  ] as const;
+  for (const [name, documentPath, schemaPath, contradict] of cases) {
+    const document = await readJson(documentPath) as Record<string, unknown>;
+    const schema = await readJson(schemaPath);
+    const validate = ajv.compile(schema);
+    assert(validate(document), `${name}: ${JSON.stringify(validate.errors)}`);
+    const extra = structuredClone(document);
+    extra.undeclared = true;
+    assert(!validate(extra), `${name} accepted undeclared field`);
+    const contradictory = structuredClone(document);
+    contradict(contradictory);
+    assert(!validate(contradictory), `${name} accepted contradictory semantics`);
+  }
 });
 
 Deno.test("build fails closed when source commit is absent", async () => {

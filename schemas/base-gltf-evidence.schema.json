@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/base-gltf-evidence.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "workloadId",
+    "status",
+    "sourceCommit",
+    "assertions",
+    "semanticOutputSha256",
+    "browserEvidence",
+    "performanceClaims"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "workloadId": { "const": "graphics.gltf-viewer.v1" },
+    "status": { "const": "static-validation-passed-browser-pending" },
+    "sourceCommit": { "$ref": "#/$defs/commit" },
+    "assertions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "catalogImmutable",
+        "rightsAudited",
+        "dracoTargetsIndependentPayloads",
+        "gltfParsedByBothTargets",
+        "all600Frames",
+        "all2046Indices",
+        "all406Vertices",
+        "pickTraceComplete",
+        "cpuRasterizedFrames",
+        "retainedPixelCheckpoints",
+        "countersReconciled",
+        "completeOutputEqual",
+        "routeLifecycle"
+      ],
+      "properties": {
+        "catalogImmutable": { "const": true },
+        "rightsAudited": { "const": true },
+        "dracoTargetsIndependentPayloads": { "const": true },
+        "gltfParsedByBothTargets": { "const": true },
+        "all600Frames": { "const": true },
+        "all2046Indices": { "const": true },
+        "all406Vertices": { "const": true },
+        "pickTraceComplete": { "const": true },
+        "cpuRasterizedFrames": { "const": 600 },
+        "retainedPixelCheckpoints": { "const": 6 },
+        "countersReconciled": { "const": true },
+        "completeOutputEqual": { "const": true },
+        "routeLifecycle": { "type": "string", "minLength": 1 }
+      }
+    },
+    "semanticOutputSha256": { "$ref": "#/$defs/sha256" },
+    "browserEvidence": { "const": "unavailable-pending-authoritative-controller" },
+    "performanceClaims": { "type": "array", "maxItems": 0 }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" }
+  }
+}

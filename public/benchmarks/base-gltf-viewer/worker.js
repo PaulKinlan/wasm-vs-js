@@ -39,7 +39,7 @@ function packMesh(mesh) {
   }
   return bytes;
 }
-function decode(mode, bytes) {
+function decode(mode, bytes, decoderScript, decoderWasm) {
   return new Promise((resolve, reject) => {
     const worker = new Worker("/benchmarks/base-gltf-viewer/decoder-worker.js");
     const timer = setTimeout(() => {
@@ -62,10 +62,17 @@ function decode(mode, bytes) {
       worker.terminate();
       reject(new Error(event.message));
     };
-    worker.postMessage({ mode, bytes: bytes.buffer }, [bytes.buffer]);
+    const transfer = [bytes.buffer, decoderScript.buffer];
+    if (decoderWasm) transfer.push(decoderWasm.buffer);
+    worker.postMessage({
+      mode,
+      bytes: bytes.buffer,
+      decoderScript: decoderScript.buffer,
+      decoderWasm: decoderWasm?.buffer,
+    }, transfer);
   });
 }
-async function runWasm(mesh, texture, animation, gltfText, wasmBytes) {
+async function runWasm(mesh, texture, animation, gltfText, wasmBytes, decoderMetrics) {
   const { instance } = await WebAssembly.instantiate(wasmBytes, {});
   const ex = instance.exports;
   const memory = new Uint8Array(ex.memory.buffer), base = ex.heap_ptr();
@@ -88,7 +95,21 @@ async function runWasm(mesh, texture, animation, gltfText, wasmBytes) {
   if (ex.validate_gltf(jo, json.length) !== 0) {
     throw new Error("Wasm glTF parser rejected exact model");
   }
-  if (ex.run(po, no, uo, io, to, ao, mesh.vertexCount, mesh.indices.length) !== 0) {
+  if (
+    ex.run(
+      po,
+      no,
+      uo,
+      io,
+      to,
+      ao,
+      mesh.vertexCount,
+      mesh.indices.length,
+      decoderMetrics.allocations,
+      decoderMetrics.apiCalls,
+      decoderMetrics.wasmBoundaryCrossings,
+    ) !== 0
+  ) {
     throw new Error("Wasm viewer failed");
   }
   return memory.slice(ex.output_ptr(), ex.output_ptr() + OUTPUT_BYTES);
@@ -151,19 +172,19 @@ self.onmessage = async (event) => {
         throw new Error(`fixture hash ${path}`);
       }
     }
-    if (mode === "exact") {
-      const decoderPath = target === "javascript"
-        ? "draco_decoder_gltf.js"
-        : "draco_wasm_wrapper_gltf.js";
-      const decoder = await fetchBytes(`${A}${decoderPath}`);
-      await verify(`public/artifacts/base-gltf-viewer/${decoderPath}`, decoder);
-      if (target === "wasm") {
-        const decoderWasm = await fetchBytes(`${A}draco_decoder_gltf.wasm`);
-        await verify("public/artifacts/base-gltf-viewer/draco_decoder_gltf.wasm", decoderWasm);
-      }
+    const decoderPath = target === "javascript"
+      ? "draco_decoder_gltf.js"
+      : "draco_wasm_wrapper_gltf.js";
+    const decoderScript = await fetchBytes(`${A}${decoderPath}`);
+    await verify(`public/artifacts/base-gltf-viewer/${decoderPath}`, decoderScript);
+    const decoderWasm = target === "wasm"
+      ? await fetchBytes(`${A}draco_decoder_gltf.wasm`)
+      : undefined;
+    if (decoderWasm) {
+      await verify("public/artifacts/base-gltf-viewer/draco_decoder_gltf.wasm", decoderWasm);
     }
     self.postMessage({ type: "progress", token, phase: `Decoding Draco in ${target}`, value: 35 });
-    const decoded = await decode(target, draco);
+    const decoded = await decode(target, draco, decoderScript, decoderWasm);
     const mesh = quantizeDecodedMesh(decoded);
     if (await sha256(packMesh(mesh)) !== outputManifest.json.input.decodedMeshSha256) {
       throw new Error("decoded mesh oracle mismatch");
@@ -180,8 +201,8 @@ self.onmessage = async (event) => {
       value: 60,
     });
     const result = target === "javascript"
-      ? runJavaScript(mesh, texture, animation)
-      : await runWasm(mesh, texture, animation, gltfText, viewer);
+      ? runJavaScript(mesh, texture, animation, decoded.metrics)
+      : await runWasm(mesh, texture, animation, gltfText, viewer, decoded.metrics);
     const digest = await sha256(result);
     const expectedVariant = outputManifest.json.output.variants[target];
     if (
@@ -190,8 +211,8 @@ self.onmessage = async (event) => {
     ) {
       throw new Error("complete output oracle mismatch");
     }
-    const header = Array.from(new Uint32Array(result.buffer, result.byteOffset, 20));
-    const pixelOffset = (24 + 600 * 8) * 4;
+    const header = Array.from(new Uint32Array(result.buffer, result.byteOffset, 28));
+    const pixelOffset = (28 + 600 * 8) * 4;
     const preview = result.slice(pixelOffset, pixelOffset + 96 * 96 * 4);
     self.postMessage({
       type: "complete",
@@ -214,6 +235,12 @@ self.onmessage = async (event) => {
         pickTests: header[13],
         boundaryCrossings: header[14],
         allocations: header[15],
+        decoderAllocations: header[20],
+        decoderApiCalls: header[21],
+        decoderBoundaryCrossings: header[22],
+        engineBoundaryCrossings: header[23],
+        engineAllocations: header[24],
+        rasterizedFrames: header[25],
         inputBytes: header[16],
         outputBytes: header[17],
         preview,
