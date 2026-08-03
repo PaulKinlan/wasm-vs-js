@@ -10,6 +10,7 @@ async function startServer() {
       "run",
       "--allow-net=127.0.0.1",
       "--allow-read=.",
+      "--allow-write=.",
       "--allow-env=PORT,HOST,SERVER_MODE,WASM_VS_JS_COMMIT",
       "server.ts",
     ],
