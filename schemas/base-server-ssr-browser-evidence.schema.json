@@ -981,10 +981,7 @@
       "additionalProperties": false,
       "properties": {
         "type": {
-          "enum": [
-            "complete",
-            "error"
-          ]
+          "const": "complete"
         },
         "token": {
           "type": "integer",
@@ -996,7 +993,37 @@
         "text": {
           "type": "string"
         }
-      }
+      },
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "token": {},
+            "target": {}
+          },
+          "required": [
+            "token",
+            "target"
+          ],
+          "minProperties": 2,
+          "maxProperties": 2
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {},
+            "token": {},
+            "text": {}
+          },
+          "required": [
+            "type",
+            "token",
+            "text"
+          ],
+          "minProperties": 3,
+          "maxProperties": 3
+        }
+      ]
     },
     "eventDetail": {
       "type": "object",
@@ -1007,8 +1034,7 @@
           "minimum": 0
         },
         "url": {
-          "type": "string",
-          "minLength": 1
+          "const": "/base-server-ssr-worker.js"
         },
         "mode": {
           "enum": [
@@ -1027,7 +1053,72 @@
           "type": "integer",
           "minimum": 1
         }
-      }
+      },
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "mode": {}
+          },
+          "required": [
+            "mode"
+          ],
+          "minProperties": 1,
+          "maxProperties": 1
+        },
+        {
+          "type": "object",
+          "properties": {
+            "index": {}
+          },
+          "required": [
+            "index"
+          ],
+          "minProperties": 1,
+          "maxProperties": 1
+        },
+        {
+          "type": "object",
+          "properties": {
+            "index": {},
+            "url": {},
+            "mode": {}
+          },
+          "required": [
+            "index",
+            "url",
+            "mode"
+          ],
+          "minProperties": 3,
+          "maxProperties": 3
+        },
+        {
+          "type": "object",
+          "properties": {
+            "index": {},
+            "data": {}
+          },
+          "required": [
+            "index",
+            "data"
+          ],
+          "minProperties": 2,
+          "maxProperties": 2
+        },
+        {
+          "type": "object",
+          "properties": {
+            "index": {},
+            "token": {}
+          },
+          "required": [
+            "index",
+            "token"
+          ],
+          "minProperties": 2,
+          "maxProperties": 2
+        }
+      ]
     },
     "lifecycleEvent": {
       "type": "object",
@@ -1052,7 +1143,291 @@
         "detail": {
           "$ref": "#/$defs/eventDetail"
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "instrumentation-ready"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "detail": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/eventDetail"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "mode": {}
+                    },
+                    "required": [
+                      "mode"
+                    ],
+                    "minProperties": 1,
+                    "maxProperties": 1
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "worker-created"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "detail": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/eventDetail"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "index": {},
+                      "url": {},
+                      "mode": {}
+                    },
+                    "required": [
+                      "index",
+                      "url",
+                      "mode"
+                    ],
+                    "minProperties": 3,
+                    "maxProperties": 3
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "worker-posted"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "detail": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/eventDetail"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "index": {},
+                      "data": {}
+                    },
+                    "required": [
+                      "index",
+                      "data"
+                    ],
+                    "minProperties": 2,
+                    "maxProperties": 2
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "wrong-token-dispatched"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "detail": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/eventDetail"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "index": {},
+                      "token": {}
+                    },
+                    "required": [
+                      "index",
+                      "token"
+                    ],
+                    "minProperties": 2,
+                    "maxProperties": 2
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "worker-held"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "detail": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/eventDetail"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "index": {}
+                    },
+                    "required": [
+                      "index"
+                    ],
+                    "minProperties": 1,
+                    "maxProperties": 1
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "synthetic-message-dispatched"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "detail": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/eventDetail"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "index": {},
+                      "data": {}
+                    },
+                    "required": [
+                      "index",
+                      "data"
+                    ],
+                    "minProperties": 2,
+                    "maxProperties": 2
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "worker-released"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "detail": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/eventDetail"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "index": {}
+                    },
+                    "required": [
+                      "index"
+                    ],
+                    "minProperties": 1,
+                    "maxProperties": 1
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "worker-terminated"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "detail": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/eventDetail"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "index": {}
+                    },
+                    "required": [
+                      "index"
+                    ],
+                    "minProperties": 1,
+                    "maxProperties": 1
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
     },
     "lifecycle": {
       "type": "object",
@@ -1175,18 +1550,22 @@
           "const": "GET"
         },
         "resourceType": {
-          "type": "string",
-          "minLength": 1
+          "enum": [
+            "Document",
+            "Stylesheet",
+            "Script",
+            "Other",
+            "Fetch"
+          ]
         },
         "status": {
           "const": 200
         },
         "statusText": {
-          "type": "string"
+          "const": "OK"
         },
         "protocol": {
-          "type": "string",
-          "minLength": 1
+          "const": "http/1.1"
         },
         "mimeType": {
           "type": "string",
@@ -1511,6 +1890,11 @@
                               "properties": {
                                 "kind": {
                                   "const": "instrumentation-ready"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "mode": "normal"
+                                  }
                                 }
                               }
                             }
@@ -1526,6 +1910,13 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-created"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0,
+                                    "url": "/base-server-ssr-worker.js",
+                                    "mode": "normal"
+                                  }
                                 }
                               }
                             }
@@ -1541,6 +1932,15 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-posted"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0,
+                                    "data": {
+                                      "token": 1,
+                                      "target": "js-controlled"
+                                    }
+                                  }
                                 }
                               }
                             }
@@ -1556,6 +1956,11 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-terminated"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0
+                                  }
                                 }
                               }
                             }
@@ -1587,6 +1992,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Document"
                         }
                       }
                     }
@@ -1605,6 +2016,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Stylesheet"
                         }
                       }
                     }
@@ -1623,6 +2040,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -1641,6 +2064,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Other"
                         }
                       }
                     }
@@ -1659,6 +2088,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -1677,6 +2112,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -1695,6 +2136,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -1713,6 +2160,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -1731,6 +2184,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -1749,6 +2208,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -1767,6 +2232,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -1785,6 +2256,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 2
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -1915,6 +2392,11 @@
                               "properties": {
                                 "kind": {
                                   "const": "instrumentation-ready"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "mode": "normal"
+                                  }
                                 }
                               }
                             }
@@ -1930,6 +2412,13 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-created"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0,
+                                    "url": "/base-server-ssr-worker.js",
+                                    "mode": "normal"
+                                  }
                                 }
                               }
                             }
@@ -1945,6 +2434,15 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-posted"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0,
+                                    "data": {
+                                      "token": 1,
+                                      "target": "wasm-linear-controlled"
+                                    }
+                                  }
                                 }
                               }
                             }
@@ -1960,6 +2458,11 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-terminated"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0
+                                  }
                                 }
                               }
                             }
@@ -1991,6 +2494,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Document"
                         }
                       }
                     }
@@ -2009,6 +2518,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Stylesheet"
                         }
                       }
                     }
@@ -2027,6 +2542,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -2045,6 +2566,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Other"
                         }
                       }
                     }
@@ -2063,6 +2590,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -2081,6 +2614,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -2099,6 +2638,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -2117,6 +2662,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -2135,6 +2686,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -2153,6 +2710,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -2171,6 +2734,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -2189,6 +2758,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -2322,6 +2897,11 @@
                               "properties": {
                                 "kind": {
                                   "const": "instrumentation-ready"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "mode": "normal"
+                                  }
                                 }
                               }
                             }
@@ -2337,6 +2917,13 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-created"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0,
+                                    "url": "/base-server-ssr-worker.js",
+                                    "mode": "normal"
+                                  }
                                 }
                               }
                             }
@@ -2352,6 +2939,15 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-posted"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0,
+                                    "data": {
+                                      "token": 1,
+                                      "target": "js-controlled"
+                                    }
+                                  }
                                 }
                               }
                             }
@@ -2367,6 +2963,11 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-terminated"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0
+                                  }
                                 }
                               }
                             }
@@ -2382,6 +2983,13 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-created"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 1,
+                                    "url": "/base-server-ssr-worker.js",
+                                    "mode": "normal"
+                                  }
                                 }
                               }
                             }
@@ -2397,6 +3005,15 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-posted"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 1,
+                                    "data": {
+                                      "token": 2,
+                                      "target": "wasm-linear-controlled"
+                                    }
+                                  }
                                 }
                               }
                             }
@@ -2412,6 +3029,11 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-terminated"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 1
+                                  }
                                 }
                               }
                             }
@@ -2443,6 +3065,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Document"
                         }
                       }
                     }
@@ -2461,6 +3089,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Stylesheet"
                         }
                       }
                     }
@@ -2479,6 +3113,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -2497,6 +3137,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Other"
                         }
                       }
                     }
@@ -2515,6 +3161,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -2533,6 +3185,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -2551,6 +3209,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 2
+                        },
+                        "context": {
+                          "const": "worker-1"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -2569,6 +3233,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 2
+                        },
+                        "context": {
+                          "const": "worker-1"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -2587,6 +3257,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -2605,6 +3281,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -2623,6 +3305,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -2641,6 +3329,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -2659,6 +3353,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -2677,6 +3377,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 3
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -2695,6 +3401,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 2
+                        },
+                        "context": {
+                          "const": "worker-1"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -2713,6 +3425,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 2
+                        },
+                        "context": {
+                          "const": "worker-1"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -2731,6 +3449,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 2
+                        },
+                        "context": {
+                          "const": "worker-1"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -2749,6 +3473,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 2
+                        },
+                        "context": {
+                          "const": "worker-1"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -2767,6 +3497,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 2
+                        },
+                        "context": {
+                          "const": "worker-1"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -2785,6 +3521,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-1"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -2917,6 +3659,11 @@
                               "properties": {
                                 "kind": {
                                   "const": "instrumentation-ready"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "mode": "wrong-token"
+                                  }
                                 }
                               }
                             }
@@ -2932,6 +3679,13 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-created"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0,
+                                    "url": "/base-server-ssr-worker.js",
+                                    "mode": "wrong-token"
+                                  }
                                 }
                               }
                             }
@@ -2947,6 +3701,15 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-posted"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0,
+                                    "data": {
+                                      "token": 1,
+                                      "target": "js-controlled"
+                                    }
+                                  }
                                 }
                               }
                             }
@@ -2962,6 +3725,12 @@
                               "properties": {
                                 "kind": {
                                   "const": "wrong-token-dispatched"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0,
+                                    "token": 2
+                                  }
                                 }
                               }
                             }
@@ -2977,6 +3746,11 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-terminated"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0
+                                  }
                                 }
                               }
                             }
@@ -3008,6 +3782,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Document"
                         }
                       }
                     }
@@ -3026,6 +3806,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Stylesheet"
                         }
                       }
                     }
@@ -3044,6 +3830,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -3062,6 +3854,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Other"
                         }
                       }
                     }
@@ -3080,6 +3878,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -3098,6 +3902,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -3116,6 +3926,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -3134,6 +3950,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -3152,6 +3974,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -3170,6 +3998,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -3188,6 +4022,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -3206,6 +4046,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 2
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -3339,6 +4185,11 @@
                               "properties": {
                                 "kind": {
                                   "const": "instrumentation-ready"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "mode": "stale"
+                                  }
                                 }
                               }
                             }
@@ -3354,6 +4205,13 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-created"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0,
+                                    "url": "/base-server-ssr-worker.js",
+                                    "mode": "stale"
+                                  }
                                 }
                               }
                             }
@@ -3369,6 +4227,15 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-posted"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0,
+                                    "data": {
+                                      "token": 1,
+                                      "target": "js-controlled"
+                                    }
+                                  }
                                 }
                               }
                             }
@@ -3384,6 +4251,11 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-held"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0
+                                  }
                                 }
                               }
                             }
@@ -3399,6 +4271,11 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-terminated"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0
+                                  }
                                 }
                               }
                             }
@@ -3414,6 +4291,13 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-created"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 1,
+                                    "url": "/base-server-ssr-worker.js",
+                                    "mode": "stale"
+                                  }
                                 }
                               }
                             }
@@ -3429,6 +4313,15 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-posted"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 1,
+                                    "data": {
+                                      "token": 2,
+                                      "target": "wasm-linear-controlled"
+                                    }
+                                  }
                                 }
                               }
                             }
@@ -3444,6 +4337,11 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-held"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 1
+                                  }
                                 }
                               }
                             }
@@ -3459,6 +4357,16 @@
                               "properties": {
                                 "kind": {
                                   "const": "synthetic-message-dispatched"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0,
+                                    "data": {
+                                      "type": "complete",
+                                      "token": 1,
+                                      "text": "STALE_RESULT_SENTINEL"
+                                    }
+                                  }
                                 }
                               }
                             }
@@ -3474,6 +4382,11 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-released"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 1
+                                  }
                                 }
                               }
                             }
@@ -3489,6 +4402,11 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-terminated"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 1
+                                  }
                                 }
                               }
                             }
@@ -3520,6 +4438,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Document"
                         }
                       }
                     }
@@ -3538,6 +4462,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Stylesheet"
                         }
                       }
                     }
@@ -3556,6 +4486,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -3574,6 +4510,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Other"
                         }
                       }
                     }
@@ -3592,6 +4534,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -3610,6 +4558,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -3628,6 +4582,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 2
+                        },
+                        "context": {
+                          "const": "worker-1"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -3646,6 +4606,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 2
+                        },
+                        "context": {
+                          "const": "worker-1"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -3664,6 +4630,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-1"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -3682,6 +4654,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-1"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -3700,6 +4678,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-1"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -3718,6 +4702,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-1"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -3736,6 +4726,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-1"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -3754,6 +4750,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-1"
+                        },
+                        "resourceType": {
+                          "const": "Fetch"
                         }
                       }
                     }
@@ -3858,6 +4860,11 @@
                               "properties": {
                                 "kind": {
                                   "const": "instrumentation-ready"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "mode": "cancel"
+                                  }
                                 }
                               }
                             }
@@ -3873,6 +4880,13 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-created"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0,
+                                    "url": "/base-server-ssr-worker.js",
+                                    "mode": "cancel"
+                                  }
                                 }
                               }
                             }
@@ -3888,6 +4902,15 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-posted"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0,
+                                    "data": {
+                                      "token": 1,
+                                      "target": "js-controlled"
+                                    }
+                                  }
                                 }
                               }
                             }
@@ -3903,6 +4926,11 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-held"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0
+                                  }
                                 }
                               }
                             }
@@ -3918,6 +4946,11 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-terminated"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0
+                                  }
                                 }
                               }
                             }
@@ -3949,6 +4982,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Document"
                         }
                       }
                     }
@@ -3967,6 +5006,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Stylesheet"
                         }
                       }
                     }
@@ -3985,6 +5030,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -4003,6 +5054,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Other"
                         }
                       }
                     }
@@ -4021,6 +5078,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -4039,6 +5102,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -4143,6 +5212,11 @@
                               "properties": {
                                 "kind": {
                                   "const": "instrumentation-ready"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "mode": "timeout"
+                                  }
                                 }
                               }
                             }
@@ -4158,6 +5232,13 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-created"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0,
+                                    "url": "/base-server-ssr-worker.js",
+                                    "mode": "timeout"
+                                  }
                                 }
                               }
                             }
@@ -4173,6 +5254,15 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-posted"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0,
+                                    "data": {
+                                      "token": 1,
+                                      "target": "js-controlled"
+                                    }
+                                  }
                                 }
                               }
                             }
@@ -4188,6 +5278,11 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-held"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0
+                                  }
                                 }
                               }
                             }
@@ -4203,6 +5298,11 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-terminated"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0
+                                  }
                                 }
                               }
                             }
@@ -4234,6 +5334,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Document"
                         }
                       }
                     }
@@ -4252,6 +5358,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Stylesheet"
                         }
                       }
                     }
@@ -4270,6 +5382,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -4288,6 +5406,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Other"
                         }
                       }
                     }
@@ -4306,6 +5430,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -4324,6 +5454,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -4428,6 +5564,11 @@
                               "properties": {
                                 "kind": {
                                   "const": "instrumentation-ready"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "mode": "pagehide"
+                                  }
                                 }
                               }
                             }
@@ -4443,6 +5584,13 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-created"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0,
+                                    "url": "/base-server-ssr-worker.js",
+                                    "mode": "pagehide"
+                                  }
                                 }
                               }
                             }
@@ -4458,6 +5606,15 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-posted"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0,
+                                    "data": {
+                                      "token": 1,
+                                      "target": "js-controlled"
+                                    }
+                                  }
                                 }
                               }
                             }
@@ -4473,6 +5630,11 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-held"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0
+                                  }
                                 }
                               }
                             }
@@ -4488,6 +5650,11 @@
                               "properties": {
                                 "kind": {
                                   "const": "worker-terminated"
+                                },
+                                "detail": {
+                                  "const": {
+                                    "index": 0
+                                  }
                                 }
                               }
                             }
@@ -4519,6 +5686,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Document"
                         }
                       }
                     }
@@ -4537,6 +5710,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Stylesheet"
                         }
                       }
                     }
@@ -4555,6 +5734,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -4573,6 +5758,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "page"
+                        },
+                        "resourceType": {
+                          "const": "Other"
                         }
                       }
                     }
@@ -4591,6 +5782,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -4609,6 +5806,12 @@
                       "properties": {
                         "occurrence": {
                           "const": 1
+                        },
+                        "context": {
+                          "const": "worker-0"
+                        },
+                        "resourceType": {
+                          "const": "Script"
                         }
                       }
                     }
@@ -4896,6 +6099,179 @@
         },
         "bodySha256": {
           "const": "2500082356df37117e7cef681b878b278e5e34d8d7013617c0293d4542e08acb"
+        },
+        "mimeType": {
+          "const": "text/html"
+        },
+        "headers": {
+          "type": "array",
+          "minItems": 10,
+          "maxItems": 10,
+          "prefixItems": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cache-control"
+                },
+                "value": {
+                  "const": "no-store"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-length"
+                },
+                "value": {
+                  "const": "2645"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-security-policy"
+                },
+                "value": {
+                  "const": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob:; worker-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-type"
+                },
+                "value": {
+                  "const": "text/html; charset=utf-8"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cross-origin-embedder-policy"
+                },
+                "value": {
+                  "const": "require-corp"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cross-origin-opener-policy"
+                },
+                "value": {
+                  "const": "same-origin"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "date"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), [0-9]{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) [0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2} GMT$"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "permissions-policy"
+                },
+                "value": {
+                  "const": "camera=(), microphone=(), geolocation=()"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "referrer-policy"
+                },
+                "value": {
+                  "const": "no-referrer"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "x-content-type-options"
+                },
+                "value": {
+                  "const": "nosniff"
+                }
+              }
+            }
+          ],
+          "items": false,
+          "uniqueItems": true
         }
       }
     },
@@ -4917,6 +6293,179 @@
         },
         "bodySha256": {
           "const": "70e73af276a14dc39b7863f586ee6aca89c2e986dffed32e71cf799ef35e3a6b"
+        },
+        "mimeType": {
+          "const": "text/css"
+        },
+        "headers": {
+          "type": "array",
+          "minItems": 10,
+          "maxItems": 10,
+          "prefixItems": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cache-control"
+                },
+                "value": {
+                  "const": "no-store"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-length"
+                },
+                "value": {
+                  "const": "11909"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-security-policy"
+                },
+                "value": {
+                  "const": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob:; worker-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-type"
+                },
+                "value": {
+                  "const": "text/css; charset=utf-8"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cross-origin-embedder-policy"
+                },
+                "value": {
+                  "const": "require-corp"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cross-origin-opener-policy"
+                },
+                "value": {
+                  "const": "same-origin"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "date"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), [0-9]{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) [0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2} GMT$"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "permissions-policy"
+                },
+                "value": {
+                  "const": "camera=(), microphone=(), geolocation=()"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "referrer-policy"
+                },
+                "value": {
+                  "const": "no-referrer"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "x-content-type-options"
+                },
+                "value": {
+                  "const": "nosniff"
+                }
+              }
+            }
+          ],
+          "items": false,
+          "uniqueItems": true
         }
       }
     },
@@ -4938,6 +6487,179 @@
         },
         "bodySha256": {
           "const": "a2926b4eb0fa01f366ca3d6f283c71186b90b473af9a95cbb94c6aeba9e1cd8d"
+        },
+        "mimeType": {
+          "const": "text/javascript"
+        },
+        "headers": {
+          "type": "array",
+          "minItems": 10,
+          "maxItems": 10,
+          "prefixItems": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cache-control"
+                },
+                "value": {
+                  "const": "no-store"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-length"
+                },
+                "value": {
+                  "const": "1990"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-security-policy"
+                },
+                "value": {
+                  "const": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob:; worker-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-type"
+                },
+                "value": {
+                  "const": "text/javascript; charset=utf-8"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cross-origin-embedder-policy"
+                },
+                "value": {
+                  "const": "require-corp"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cross-origin-opener-policy"
+                },
+                "value": {
+                  "const": "same-origin"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "date"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), [0-9]{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) [0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2} GMT$"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "permissions-policy"
+                },
+                "value": {
+                  "const": "camera=(), microphone=(), geolocation=()"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "referrer-policy"
+                },
+                "value": {
+                  "const": "no-referrer"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "x-content-type-options"
+                },
+                "value": {
+                  "const": "nosniff"
+                }
+              }
+            }
+          ],
+          "items": false,
+          "uniqueItems": true
         }
       }
     },
@@ -4959,6 +6681,179 @@
         },
         "bodySha256": {
           "const": "95f9db692c65b3c48d7452b178c1fec2014a462b7ee07ddc6ecf09ccac013bb0"
+        },
+        "mimeType": {
+          "const": "text/javascript"
+        },
+        "headers": {
+          "type": "array",
+          "minItems": 10,
+          "maxItems": 10,
+          "prefixItems": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cache-control"
+                },
+                "value": {
+                  "const": "no-store"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-length"
+                },
+                "value": {
+                  "const": "5063"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-security-policy"
+                },
+                "value": {
+                  "const": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob:; worker-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-type"
+                },
+                "value": {
+                  "const": "text/javascript; charset=utf-8"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cross-origin-embedder-policy"
+                },
+                "value": {
+                  "const": "require-corp"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cross-origin-opener-policy"
+                },
+                "value": {
+                  "const": "same-origin"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "date"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), [0-9]{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) [0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2} GMT$"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "permissions-policy"
+                },
+                "value": {
+                  "const": "camera=(), microphone=(), geolocation=()"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "referrer-policy"
+                },
+                "value": {
+                  "const": "no-referrer"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "x-content-type-options"
+                },
+                "value": {
+                  "const": "nosniff"
+                }
+              }
+            }
+          ],
+          "items": false,
+          "uniqueItems": true
         }
       }
     },
@@ -4980,6 +6875,179 @@
         },
         "bodySha256": {
           "const": "c26324abb0cbfa3441ae2db8507eaf12b38b09420c8da6e6c0fe66fc1a0a29f8"
+        },
+        "mimeType": {
+          "const": "text/javascript"
+        },
+        "headers": {
+          "type": "array",
+          "minItems": 10,
+          "maxItems": 10,
+          "prefixItems": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cache-control"
+                },
+                "value": {
+                  "const": "public, max-age=31536000, immutable"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-length"
+                },
+                "value": {
+                  "const": "10346"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-security-policy"
+                },
+                "value": {
+                  "const": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob:; worker-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-type"
+                },
+                "value": {
+                  "const": "text/javascript; charset=utf-8"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cross-origin-embedder-policy"
+                },
+                "value": {
+                  "const": "require-corp"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cross-origin-opener-policy"
+                },
+                "value": {
+                  "const": "same-origin"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "date"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), [0-9]{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) [0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2} GMT$"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "permissions-policy"
+                },
+                "value": {
+                  "const": "camera=(), microphone=(), geolocation=()"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "referrer-policy"
+                },
+                "value": {
+                  "const": "no-referrer"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "x-content-type-options"
+                },
+                "value": {
+                  "const": "nosniff"
+                }
+              }
+            }
+          ],
+          "items": false,
+          "uniqueItems": true
         }
       }
     },
@@ -5001,6 +7069,179 @@
         },
         "bodySha256": {
           "const": "247ff351055594dafb4e70f49a6526d9c46ce281824205e5604925ad9bee2986"
+        },
+        "mimeType": {
+          "const": "application/json"
+        },
+        "headers": {
+          "type": "array",
+          "minItems": 10,
+          "maxItems": 10,
+          "prefixItems": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cache-control"
+                },
+                "value": {
+                  "const": "no-store"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-length"
+                },
+                "value": {
+                  "const": "4128"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-security-policy"
+                },
+                "value": {
+                  "const": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob:; worker-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-type"
+                },
+                "value": {
+                  "const": "application/json; charset=utf-8"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cross-origin-embedder-policy"
+                },
+                "value": {
+                  "const": "require-corp"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cross-origin-opener-policy"
+                },
+                "value": {
+                  "const": "same-origin"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "date"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), [0-9]{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) [0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2} GMT$"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "permissions-policy"
+                },
+                "value": {
+                  "const": "camera=(), microphone=(), geolocation=()"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "referrer-policy"
+                },
+                "value": {
+                  "const": "no-referrer"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "x-content-type-options"
+                },
+                "value": {
+                  "const": "nosniff"
+                }
+              }
+            }
+          ],
+          "items": false,
+          "uniqueItems": true
         }
       }
     },
@@ -5022,6 +7263,179 @@
         },
         "bodySha256": {
           "const": "4a58cabeaab08be14fa3c0d3c7bbe98842b1de09cd2abf51ae7eeecfbaad2b40"
+        },
+        "mimeType": {
+          "const": "application/json"
+        },
+        "headers": {
+          "type": "array",
+          "minItems": 10,
+          "maxItems": 10,
+          "prefixItems": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cache-control"
+                },
+                "value": {
+                  "const": "public, max-age=31536000, immutable"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-length"
+                },
+                "value": {
+                  "const": "3209"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-security-policy"
+                },
+                "value": {
+                  "const": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob:; worker-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-type"
+                },
+                "value": {
+                  "const": "application/json; charset=utf-8"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cross-origin-embedder-policy"
+                },
+                "value": {
+                  "const": "require-corp"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cross-origin-opener-policy"
+                },
+                "value": {
+                  "const": "same-origin"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "date"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), [0-9]{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) [0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2} GMT$"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "permissions-policy"
+                },
+                "value": {
+                  "const": "camera=(), microphone=(), geolocation=()"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "referrer-policy"
+                },
+                "value": {
+                  "const": "no-referrer"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "x-content-type-options"
+                },
+                "value": {
+                  "const": "nosniff"
+                }
+              }
+            }
+          ],
+          "items": false,
+          "uniqueItems": true
         }
       }
     },
@@ -5043,6 +7457,179 @@
         },
         "bodySha256": {
           "const": "fff71d8aa7cd013cb2e1be33c91ca0097adfd7d152534f9143e434965cbabc75"
+        },
+        "mimeType": {
+          "const": "application/json"
+        },
+        "headers": {
+          "type": "array",
+          "minItems": 10,
+          "maxItems": 10,
+          "prefixItems": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cache-control"
+                },
+                "value": {
+                  "const": "public, max-age=31536000, immutable"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-length"
+                },
+                "value": {
+                  "const": "684"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-security-policy"
+                },
+                "value": {
+                  "const": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob:; worker-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-type"
+                },
+                "value": {
+                  "const": "application/json; charset=utf-8"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cross-origin-embedder-policy"
+                },
+                "value": {
+                  "const": "require-corp"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cross-origin-opener-policy"
+                },
+                "value": {
+                  "const": "same-origin"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "date"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), [0-9]{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) [0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2} GMT$"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "permissions-policy"
+                },
+                "value": {
+                  "const": "camera=(), microphone=(), geolocation=()"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "referrer-policy"
+                },
+                "value": {
+                  "const": "no-referrer"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "x-content-type-options"
+                },
+                "value": {
+                  "const": "nosniff"
+                }
+              }
+            }
+          ],
+          "items": false,
+          "uniqueItems": true
         }
       }
     },
@@ -5064,6 +7651,179 @@
         },
         "bodySha256": {
           "const": "418b883f88e90bb2c6074c2c02bc8cade9819b5483db9d1c66204e49a67dcb7d"
+        },
+        "mimeType": {
+          "const": "application/json"
+        },
+        "headers": {
+          "type": "array",
+          "minItems": 10,
+          "maxItems": 10,
+          "prefixItems": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cache-control"
+                },
+                "value": {
+                  "const": "public, max-age=31536000, immutable"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-length"
+                },
+                "value": {
+                  "const": "1518"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-security-policy"
+                },
+                "value": {
+                  "const": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob:; worker-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-type"
+                },
+                "value": {
+                  "const": "application/json; charset=utf-8"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cross-origin-embedder-policy"
+                },
+                "value": {
+                  "const": "require-corp"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cross-origin-opener-policy"
+                },
+                "value": {
+                  "const": "same-origin"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "date"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), [0-9]{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) [0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2} GMT$"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "permissions-policy"
+                },
+                "value": {
+                  "const": "camera=(), microphone=(), geolocation=()"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "referrer-policy"
+                },
+                "value": {
+                  "const": "no-referrer"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "x-content-type-options"
+                },
+                "value": {
+                  "const": "nosniff"
+                }
+              }
+            }
+          ],
+          "items": false,
+          "uniqueItems": true
         }
       }
     },
@@ -5085,6 +7845,179 @@
         },
         "bodySha256": {
           "const": "f94cbcc0af8ab5b1b292c5d48c2b8ea319d5078e020374fb4e2beceb191ae524"
+        },
+        "mimeType": {
+          "const": "application/octet-stream"
+        },
+        "headers": {
+          "type": "array",
+          "minItems": 10,
+          "maxItems": 10,
+          "prefixItems": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cache-control"
+                },
+                "value": {
+                  "const": "public, max-age=31536000, immutable"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-length"
+                },
+                "value": {
+                  "const": "91442"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-security-policy"
+                },
+                "value": {
+                  "const": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob:; worker-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-type"
+                },
+                "value": {
+                  "const": "application/octet-stream"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cross-origin-embedder-policy"
+                },
+                "value": {
+                  "const": "require-corp"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cross-origin-opener-policy"
+                },
+                "value": {
+                  "const": "same-origin"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "date"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), [0-9]{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) [0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2} GMT$"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "permissions-policy"
+                },
+                "value": {
+                  "const": "camera=(), microphone=(), geolocation=()"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "referrer-policy"
+                },
+                "value": {
+                  "const": "no-referrer"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "x-content-type-options"
+                },
+                "value": {
+                  "const": "nosniff"
+                }
+              }
+            }
+          ],
+          "items": false,
+          "uniqueItems": true
         }
       }
     },
@@ -5106,6 +8039,179 @@
         },
         "bodySha256": {
           "const": "9d93f9542363f4d7e8b2c66516936176ff260db9a8604eb15c820a0d62feebe5"
+        },
+        "mimeType": {
+          "const": "application/wasm"
+        },
+        "headers": {
+          "type": "array",
+          "minItems": 10,
+          "maxItems": 10,
+          "prefixItems": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cache-control"
+                },
+                "value": {
+                  "const": "public, max-age=31536000, immutable"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-length"
+                },
+                "value": {
+                  "const": "9591"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-security-policy"
+                },
+                "value": {
+                  "const": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob:; worker-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-type"
+                },
+                "value": {
+                  "const": "application/wasm"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cross-origin-embedder-policy"
+                },
+                "value": {
+                  "const": "require-corp"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cross-origin-opener-policy"
+                },
+                "value": {
+                  "const": "same-origin"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "date"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), [0-9]{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) [0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2} GMT$"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "permissions-policy"
+                },
+                "value": {
+                  "const": "camera=(), microphone=(), geolocation=()"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "referrer-policy"
+                },
+                "value": {
+                  "const": "no-referrer"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "x-content-type-options"
+                },
+                "value": {
+                  "const": "nosniff"
+                }
+              }
+            }
+          ],
+          "items": false,
+          "uniqueItems": true
         }
       }
     },
@@ -5127,6 +8233,179 @@
         },
         "bodySha256": {
           "const": "ee6c407626f2432b805e7c07252226f0b7852a591f1562fbbb0f31e0f786dffc"
+        },
+        "mimeType": {
+          "const": "image/svg+xml"
+        },
+        "headers": {
+          "type": "array",
+          "minItems": 10,
+          "maxItems": 10,
+          "prefixItems": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cache-control"
+                },
+                "value": {
+                  "const": "no-store"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-length"
+                },
+                "value": {
+                  "const": "211"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-security-policy"
+                },
+                "value": {
+                  "const": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob:; worker-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "content-type"
+                },
+                "value": {
+                  "const": "image/svg+xml"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cross-origin-embedder-policy"
+                },
+                "value": {
+                  "const": "require-corp"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "cross-origin-opener-policy"
+                },
+                "value": {
+                  "const": "same-origin"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "date"
+                },
+                "value": {
+                  "type": "string",
+                  "pattern": "^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), [0-9]{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) [0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2} GMT$"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "permissions-policy"
+                },
+                "value": {
+                  "const": "camera=(), microphone=(), geolocation=()"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "referrer-policy"
+                },
+                "value": {
+                  "const": "no-referrer"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "const": "x-content-type-options"
+                },
+                "value": {
+                  "const": "nosniff"
+                }
+              }
+            }
+          ],
+          "items": false,
+          "uniqueItems": true
         }
       }
     },

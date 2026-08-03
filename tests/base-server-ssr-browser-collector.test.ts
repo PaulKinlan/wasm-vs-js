@@ -200,23 +200,28 @@ Deno.test("server SSR evidence schema rejects semantic scenario, source, and net
       const assetName = String(allOf[1].$ref).split("/").at(-1)!;
       const assetProperties = defs[assetName].properties as Record<string, Record<string, unknown>>;
       const route = String(assetProperties.route.const);
-      const occurrence = Number(
-        (allOf[2].properties as Record<string, Record<string, unknown>>).occurrence.const,
-      );
+      const requestProperties = allOf[2].properties as Record<string, Record<string, unknown>>;
+      const occurrence = Number(requestProperties.occurrence.const);
+      const headerItems = (assetProperties.headers.prefixItems as Array<{
+        properties: Record<string, Record<string, unknown>>;
+      }>).map((header) => ({
+        name: header.properties.name.const,
+        value: header.properties.value.const ?? "Mon, 03 Aug 2026 14:00:00 GMT",
+      }));
       return {
-        context: "page",
+        context: requestProperties.context.const,
         route,
         occurrence,
         url: `http://127.0.0.1:8000${route}${
           route.endsWith("/") ? `?evidence-mode=${meta.mode}` : ""
         }`,
         method: "GET",
-        resourceType: "Document",
+        resourceType: requestProperties.resourceType.const,
         status: 200,
         statusText: "OK",
         protocol: "http/1.1",
-        mimeType: "text/plain",
-        headers: [{ name: "content-type", value: "text/plain" }],
+        mimeType: assetProperties.mimeType.const,
+        headers: headerItems,
         fromDiskCache: false,
         fromServiceWorker: false,
         failed: false,
@@ -238,13 +243,14 @@ Deno.test("server SSR evidence schema rejects semantic scenario, source, and net
     const lifecycleEvents = (
       (lifecycleSpecific.properties as Record<string, Record<string, unknown>>).events
         .prefixItems as Array<Record<string, unknown>>
-    ).map((entry) => ({
-      kind: ((entry.allOf as Array<Record<string, unknown>>)[1].properties as Record<
-        string,
-        Record<string, unknown>
-      >).kind.const,
-      detail: { mode: meta.mode },
-    }));
+    ).map((entry) => {
+      const eventProperties = (entry.allOf as Array<Record<string, unknown>>)[1]
+        .properties as Record<string, Record<string, unknown>>;
+      return {
+        kind: eventProperties.kind.const,
+        detail: structuredClone(eventProperties.detail.const),
+      };
+    });
     const routeRender = meta.render
       ? {
         target: meta.render,
@@ -318,6 +324,26 @@ Deno.test("server SSR evidence schema rejects semantic scenario, source, and net
   const wrongLifecycle = makeScenario("wrongTokenScenario");
   wrongLifecycle.lifecycle.events[3].kind = "worker-held";
   assertEquals(validatorFor("wrongTokenScenario")(wrongLifecycle), false);
+  for (
+    const [field, value] of [
+      ["index", 7],
+      ["url", "/wrong-worker.js"],
+      ["mode", "stale"],
+    ] as const
+  ) {
+    const mutation = makeScenario("wrongTokenScenario");
+    (mutation.lifecycle.events[1].detail as Record<string, unknown>)[field] = value;
+    assert(!validatorFor("wrongTokenScenario")(mutation), `accepted lifecycle ${field}`);
+  }
+  const wrongTarget = makeScenario("wrongTokenScenario");
+  record(record(wrongTarget.lifecycle.events[2].detail).data).target = "wasm-linear-controlled";
+  assertEquals(validatorFor("wrongTokenScenario")(wrongTarget), false);
+  const wrongPostedToken = makeScenario("wrongTokenScenario");
+  record(record(wrongPostedToken.lifecycle.events[2].detail).data).token = 2;
+  assertEquals(validatorFor("wrongTokenScenario")(wrongPostedToken), false);
+  const wrongDispatchedToken = makeScenario("wrongTokenScenario");
+  record(wrongDispatchedToken.lifecycle.events[3].detail).token = 1;
+  assertEquals(validatorFor("wrongTokenScenario")(wrongDispatchedToken), false);
 
   const duplicateNetwork = makeScenario("completeJsScenario");
   duplicateNetwork.network[1] = structuredClone(duplicateNetwork.network[0]);
@@ -328,6 +354,23 @@ Deno.test("server SSR evidence schema rejects semantic scenario, source, and net
   const shortNetwork = makeScenario("completeJsScenario");
   shortNetwork.network.pop();
   assertEquals(completeValidator(shortNetwork), false);
+  for (
+    const [field, value] of [
+      ["context", "page"],
+      ["resourceType", "Document"],
+      ["mimeType", "text/plain"],
+    ] as const
+  ) {
+    const mutation = makeScenario("completeJsScenario");
+    Object.assign(mutation.network[4], { [field]: value });
+    assert(!completeValidator(mutation), `accepted worker network ${field}`);
+  }
+  const wrongHeader = makeScenario("completeJsScenario");
+  wrongHeader.network[4].headers[3].value = "text/plain";
+  assertEquals(completeValidator(wrongHeader), false);
+  const missingHeader = makeScenario("completeJsScenario");
+  missingHeader.network[4].headers.pop();
+  assertEquals(completeValidator(missingHeader), false);
 
   const sourceValidator = validatorFor("source");
   const sourceProperties = defs.source.properties as Record<string, Record<string, unknown>>;
@@ -364,9 +407,11 @@ Deno.test("server SSR parent collector binds clean HEAD, raw route bytes, Chrome
   for (
     const required of [
       '["status", "--porcelain=v1", "--untracked-files=all"]',
-      'const head = await commandText("git", ["rev-parse", "HEAD"])',
-      "executed collector bytes differ from clean HEAD",
-      "differs from clean HEAD bytes",
+      'const collectionHead = await commandText("git", ["rev-parse", "HEAD"])',
+      '"log",\n  "-1",\n  "--format=%H"',
+      "executed collector bytes differ from pinned collector commit or clean HEAD",
+      "differs from pinned collector commit or clean HEAD bytes",
+      "registration, package pin, and package source commit are not cross-bound",
       "differs from the accepted package source commit",
       "packageCommitBytesMatch",
       "Chrome executable hash mismatch",
@@ -377,6 +422,8 @@ Deno.test("server SSR parent collector binds clean HEAD, raw route bytes, Chrome
       '"--remote-debugging-address=127.0.0.1"',
       '"--allow-net=127.0.0.1"',
       'Network.setCacheDisabled", { cacheDisabled: true }',
+      '"Fetch.failRequest"',
+      'disposition: "blocked-by-collector"',
       '"Network.getResponseBody"',
       "raw response differs from clean HEAD",
       "response.status !== 200",
@@ -450,13 +497,15 @@ Deno.test("server SSR collector records exact owned cleanup and refuses implicit
       "owned Chrome cgroup retained members after cleanup",
       "owned Chrome profile survived cleanup",
       "removeStagedChrome",
-      "server survived cleanup",
+      "owned evidence server survived bounded exact cleanup",
+      "identity-less evidence server status did not settle after SIGKILL",
       "evidence output directory already exists",
       "evidence output must be outside the source repository",
       "if (!validate(evidence))",
       "createNew: true",
       "if (!collectionComplete)",
-      "Deno.remove(options.outputDir, { recursive: true })",
+      "evidence output cleanup unresolved",
+      "Chrome stage removal unresolved",
       'client.send("Runtime.enable", {}, workerSession)',
       "!observedSessions.has(eventSession)",
       "network set/count differed from the exact contract",

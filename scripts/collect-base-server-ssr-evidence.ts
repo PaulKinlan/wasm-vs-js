@@ -28,7 +28,13 @@ const EXPECTED_PRODUCT = "Chrome/150.0.7871.24";
 const EXPECTED_EXECUTABLE_SHA256 =
   "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355";
 const EVIDENCE_ID = "server-ssr-template-chrome-150-browser-evidence-v1";
+const EXPECTED_PACKAGE_COMMIT = "9fbb8aa0b631e8f0ed9ca9197d4acacdb5aa6692";
 const ROUTE = "/demos/server.ssr-template.v1/";
+const COLLECTOR_PATH = "scripts/collect-base-server-ssr-evidence.ts";
+const ATTESTATION_PATHS = new Set([
+  "schemas/base-server-ssr-browser-evidence.schema.json",
+  "tests/base-server-ssr-browser-collector.test.ts",
+]);
 const root = new URL("../", import.meta.url);
 const decoder = new TextDecoder("utf-8", { fatal: true });
 const encoder = new TextEncoder();
@@ -96,10 +102,38 @@ async function gitBytes(revision: string, path: string): Promise<Uint8Array> {
 
 const dirty = await commandText("git", ["status", "--porcelain=v1", "--untracked-files=all"]);
 if (dirty) throw new Error(`collector requires an exact clean HEAD; found:\n${dirty}`);
-const head = await commandText("git", ["rev-parse", "HEAD"]);
-const headTree = await commandText("git", ["rev-parse", "HEAD^{tree}"]);
-if (!/^[a-f0-9]{40}$/u.test(head) || !/^[a-f0-9]{40}$/u.test(headTree)) {
-  throw new Error("Git HEAD or tree is not a SHA-1 identity");
+const collectionHead = await commandText("git", ["rev-parse", "HEAD"]);
+const collectorCommit = await commandText("git", [
+  "log",
+  "-1",
+  "--format=%H",
+  "--",
+  COLLECTOR_PATH,
+]);
+const collectorTree = await commandText("git", ["rev-parse", `${collectorCommit}^{tree}`]);
+if (
+  !/^[a-f0-9]{40}$/u.test(collectionHead) || !/^[a-f0-9]{40}$/u.test(collectorCommit) ||
+  !/^[a-f0-9]{40}$/u.test(collectorTree)
+) throw new Error("collection HEAD, collector commit, or collector tree is not a SHA-1 identity");
+const ancestry = await new Deno.Command("git", {
+  cwd: root,
+  args: ["merge-base", "--is-ancestor", collectorCommit, collectionHead],
+  stdout: "piped",
+  stderr: "piped",
+}).output();
+if (!ancestry.success) {
+  throw new Error("collector source commit is not an ancestor of collection HEAD");
+}
+const postCollectorPaths = (await commandText("git", [
+  "diff",
+  "--name-only",
+  collectorCommit,
+  collectionHead,
+])).split("\n").filter(Boolean);
+if (postCollectorPaths.some((path) => !ATTESTATION_PATHS.has(path))) {
+  throw new Error(
+    `collection HEAD changes non-attestation source after collector commit: ${postCollectorPaths}`,
+  );
 }
 
 const sourceExecutable = await executableSnapshot(options.chrome);
@@ -119,7 +153,17 @@ if (
   throw new Error("accepted route, registration, and collector must all require 1,000 responses");
 }
 const packageCommit = String(registration.sourceCommit);
-if (!/^[a-f0-9]{40}$/u.test(packageCommit)) throw new Error("package source commit is invalid");
+if (packageCommit !== EXPECTED_PACKAGE_COMMIT) {
+  throw new Error(`package source commit is not pinned: ${packageCommit}`);
+}
+const packagePinPath = "artifacts/base/server-ssr-template/source-commit.txt";
+const packagePin = (await Deno.readTextFile(new URL(packagePinPath, root))).trim();
+if (
+  packagePin !== packageCommit ||
+  decoder.decode(await gitBytes(collectorCommit, packagePinPath)).trim() !== packageCommit ||
+  await sha256Hex(registrationBytes) !==
+    await sha256Hex(await gitBytes(packageCommit, registrationPath))
+) throw new Error("registration, package pin, and package source commit are not cross-bound");
 
 const ASSETS = [
   [ROUTE, "public/demos/server.ssr-template.v1/index.html", "text/html"],
@@ -176,10 +220,12 @@ interface SourceFile {
 const sourceFiles: SourceFile[] = [];
 for (const [route, path, contentType] of ASSETS) {
   const diskBytes = await Deno.readFile(new URL(path, root));
-  const committedBytes = await gitBytes(head, path);
-  if (await sha256Hex(diskBytes) !== await sha256Hex(committedBytes)) {
-    throw new Error(`${path} differs from clean HEAD bytes`);
-  }
+  const committedBytes = await gitBytes(collectorCommit, path);
+  const headBytes = await gitBytes(collectionHead, path);
+  if (
+    await sha256Hex(diskBytes) !== await sha256Hex(committedBytes) ||
+    await sha256Hex(diskBytes) !== await sha256Hex(headBytes)
+  ) throw new Error(`${path} differs from pinned collector commit or clean HEAD bytes`);
   sourceFiles.push({
     route,
     path,
@@ -190,11 +236,13 @@ for (const [route, path, contentType] of ASSETS) {
   });
 }
 const sourceByRoute = new Map(sourceFiles.map((record) => [record.route, record]));
-const collectorPath = "scripts/collect-base-server-ssr-evidence.ts";
-const collectorBytes = await Deno.readFile(new URL(collectorPath, root));
-if (await sha256Hex(collectorBytes) !== await sha256Hex(await gitBytes(head, collectorPath))) {
-  throw new Error("executed collector bytes differ from clean HEAD");
-}
+const collectorBytes = await Deno.readFile(new URL(COLLECTOR_PATH, root));
+if (
+  await sha256Hex(collectorBytes) !==
+    await sha256Hex(await gitBytes(collectorCommit, COLLECTOR_PATH)) ||
+  await sha256Hex(collectorBytes) !==
+    await sha256Hex(await gitBytes(collectionHead, COLLECTOR_PATH))
+) throw new Error("executed collector bytes differ from pinned collector commit or clean HEAD");
 
 const fixture = generateFixture();
 const fixtureAsset = await Deno.readFile(
@@ -493,7 +541,7 @@ const launchSuffix = crypto.randomUUID().replaceAll("-", "");
 const profilePath = `/tmp/wasm-vs-js-owned-profiles/ssr-${launchSuffix}/launch`;
 const stageAuthorization = {
   permitId: `ssr-${launchSuffix}`,
-  sourceCommit: head,
+  sourceCommit: collectorCommit,
   chromePackageManifestSha256: chromePackage.manifestSha256,
 };
 const chromeExtraArguments = [
@@ -518,6 +566,61 @@ let ownedChrome: OwnedChrome | null = null;
 let emergencyClient: CdpClient | null = null;
 let collectionComplete = false;
 let chromeCleanupVerified = false;
+let collectionFailure: unknown = null;
+const cleanupFailures: Error[] = [];
+
+function asError(error: unknown): Error {
+  return error instanceof Error ? error : new Error(String(error));
+}
+
+async function boundedServerStatus(timeoutMs: number): Promise<Deno.CommandStatus | null> {
+  if (!serverStatusPromise) return null;
+  return await Promise.race([
+    serverStatusPromise,
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), timeoutMs)),
+  ]);
+}
+
+async function stopEvidenceServer(
+  requireIdentity: boolean,
+): Promise<{ exit: Deno.CommandStatus; signal: "SIGTERM" | "SIGKILL"; absent: true }> {
+  if (!server || !serverStatusPromise) throw new Error("evidence server handle/status unavailable");
+  if (!serverLauncher) {
+    if (requireIdentity) throw new Error("owned evidence server identity unavailable at cleanup");
+    server.kill("SIGKILL");
+    const exit = await boundedServerStatus(5_000);
+    if (!exit) throw new Error("identity-less evidence server status did not settle after SIGKILL");
+    const current = await processIdentity(server.pid);
+    if (current) throw new Error("identity-less evidence server PID remained after SIGKILL");
+    return { exit, signal: "SIGKILL", absent: true };
+  }
+  if (!(await identityStillRunning(serverLauncher))) {
+    const exit = await boundedServerStatus(1_000);
+    if (!exit) throw new Error("evidence server identity disappeared without exact exit status");
+    if (requireIdentity) {
+      throw new Error(
+        `owned evidence server exited before requested cleanup: ${JSON.stringify(exit)}`,
+      );
+    }
+    return { exit, signal: "SIGTERM", absent: true };
+  }
+  server.kill("SIGTERM");
+  let signal: "SIGTERM" | "SIGKILL" = "SIGTERM";
+  let exit = await boundedServerStatus(5_000);
+  if (!exit) {
+    if (!(await identityStillRunning(serverLauncher))) {
+      throw new Error("evidence server identity disappeared without exact status after SIGTERM");
+    }
+    server.kill("SIGKILL");
+    signal = "SIGKILL";
+    exit = await boundedServerStatus(5_000);
+  }
+  if (!exit) throw new Error("evidence server exact status remained unresolved after SIGKILL");
+  if (await identityStillRunning(serverLauncher)) {
+    throw new Error("owned evidence server survived bounded exact cleanup");
+  }
+  return { exit, signal, absent: true };
+}
 
 try {
   stage = await stageChromePackage(
@@ -620,33 +723,76 @@ try {
   if (browserVersion.product !== EXPECTED_PRODUCT) {
     throw new Error(`unexpected browser ${browserVersion.product}`);
   }
-  const baseNetworkRoutes = [ROUTE, "/styles.css", "/base-server-ssr-demo.js", "/favicon.ico"];
-  const workerModuleRoutes = [
-    "/base-server-ssr-worker.js",
-    "/benchmarks/v1/server-ssr-template/workload.js",
+  interface ExpectedNetworkRequest {
+    route: string;
+    context: string;
+    resourceType: "Document" | "Stylesheet" | "Script" | "Other" | "Fetch";
+  }
+  const baseNetworkRequests: ExpectedNetworkRequest[] = [
+    { route: ROUTE, context: "page", resourceType: "Document" },
+    { route: "/styles.css", context: "page", resourceType: "Stylesheet" },
+    { route: "/base-server-ssr-demo.js", context: "page", resourceType: "Script" },
+    { route: "/favicon.ico", context: "page", resourceType: "Other" },
   ];
-  const completedTargetRoutes = (target: string): string[] => [
-    "/data/v1-implementation-registrations/server.ssr-template.v1.json",
-    "/artifacts/base-server-ssr-template/build-manifest.json",
-    "/artifacts/base-server-ssr-template/fixture-manifest.json",
-    "/artifacts/base-server-ssr-template/output-manifest.json",
-    "/artifacts/base-server-ssr-template/fixture.bin",
-    target === "js-controlled"
-      ? "/benchmarks/v1/server-ssr-template/workload.js"
-      : "/artifacts/base-server-ssr-template/server-ssr-template.wasm",
+  const workerModuleRequests = (index: number): ExpectedNetworkRequest[] => [
+    { route: "/base-server-ssr-worker.js", context: `worker-${index}`, resourceType: "Script" },
+    {
+      route: "/benchmarks/v1/server-ssr-template/workload.js",
+      context: `worker-${index}`,
+      resourceType: "Script",
+    },
   ];
-  const expectedNetworkRoutes = (definition: typeof scenarioDefinitions[number]): string[] => {
-    const completedTargets = definition.id === "restart-js-to-wasm"
-      ? [...definition.targets]
+  const completedTargetRequests = (
+    target: string,
+    index: number,
+  ): ExpectedNetworkRequest[] => [
+    {
+      route: "/data/v1-implementation-registrations/server.ssr-template.v1.json",
+      context: `worker-${index}`,
+      resourceType: "Fetch",
+    },
+    {
+      route: "/artifacts/base-server-ssr-template/build-manifest.json",
+      context: `worker-${index}`,
+      resourceType: "Fetch",
+    },
+    {
+      route: "/artifacts/base-server-ssr-template/fixture-manifest.json",
+      context: `worker-${index}`,
+      resourceType: "Fetch",
+    },
+    {
+      route: "/artifacts/base-server-ssr-template/output-manifest.json",
+      context: `worker-${index}`,
+      resourceType: "Fetch",
+    },
+    {
+      route: "/artifacts/base-server-ssr-template/fixture.bin",
+      context: `worker-${index}`,
+      resourceType: "Fetch",
+    },
+    {
+      route: target === "js-controlled"
+        ? "/benchmarks/v1/server-ssr-template/workload.js"
+        : "/artifacts/base-server-ssr-template/server-ssr-template.wasm",
+      context: `worker-${index}`,
+      resourceType: "Fetch",
+    },
+  ];
+  const expectedNetworkRequests = (
+    definition: typeof scenarioDefinitions[number],
+  ): ExpectedNetworkRequest[] => {
+    const completed = definition.id === "restart-js-to-wasm"
+      ? definition.targets.map((target, index) => ({ target, index }))
       : definition.id === "stale-after-restart"
-      ? [definition.targets[1]]
+      ? [{ target: definition.targets[1], index: 1 }]
       : ["complete-js", "complete-wasm", "wrong-token"].includes(definition.id)
-      ? [definition.targets[0]]
+      ? [{ target: definition.targets[0], index: 0 }]
       : [];
     return [
-      ...baseNetworkRoutes,
-      ...definition.targets.flatMap(() => workerModuleRoutes),
-      ...completedTargets.flatMap(completedTargetRoutes),
+      ...baseNetworkRequests,
+      ...definition.targets.flatMap((_target, index) => workerModuleRequests(index)),
+      ...completed.flatMap(({ target, index }) => completedTargetRequests(target, index)),
     ];
   };
 
@@ -665,6 +811,9 @@ try {
     const requests = new Map<string, Record<string, unknown>>();
     const responseBodyTasks: Promise<void>[] = [];
     const responseBodyErrors: Error[] = [];
+    const interceptionTasks: Promise<void>[] = [];
+    const interceptionErrors: Error[] = [];
+    const externalRequests: Array<Record<string, unknown>> = [];
     const removers = [
       client.on("Target.attachedToTarget", (params, eventSession) => {
         if (eventSession !== sessionId) return;
@@ -678,9 +827,44 @@ try {
             client.send("Runtime.enable", {}, workerSession),
             client.send("Network.enable", {}, workerSession),
             client.send("Network.setCacheDisabled", { cacheDisabled: true }, workerSession),
+            client.send("Fetch.enable", {
+              patterns: [{ urlPattern: "*", requestStage: "Request" }],
+            }, workerSession),
           ]);
           await client.send("Runtime.runIfWaitingForDebugger", {}, workerSession);
         })());
+      }),
+      client.on("Fetch.requestPaused", (params, eventSession) => {
+        if (!eventSession || !observedSessions.has(eventSession)) return;
+        const request = params.request as Record<string, unknown>;
+        const urlText = String(request.url);
+        let allowed = false;
+        try {
+          allowed = new URL(urlText).origin === origin;
+        } catch {
+          allowed = false;
+        }
+        if (!allowed) {
+          externalRequests.push({
+            context: sessionRoles.get(eventSession),
+            url: urlText,
+            method: String(request.method),
+            resourceType: String(params.resourceType),
+            disposition: "blocked-by-collector",
+          });
+        }
+        interceptionTasks.push(
+          client.send(
+            allowed ? "Fetch.continueRequest" : "Fetch.failRequest",
+            allowed
+              ? { requestId: String(params.requestId) }
+              : { requestId: String(params.requestId), errorReason: "BlockedByClient" },
+            eventSession,
+            10_000,
+          ).then(() => undefined).catch((error) => {
+            interceptionErrors.push(error instanceof Error ? error : new Error(String(error)));
+          }),
+        );
       }),
       client.on("Runtime.bindingCalled", (params, eventSession) => {
         if (eventSession !== sessionId || params.name !== "__ssrEvidenceEvent") return;
@@ -709,7 +893,16 @@ try {
         if (!eventSession || !observedSessions.has(eventSession)) return;
         const request = params.request as Record<string, unknown>;
         const url = new URL(String(request.url));
-        if (url.origin !== origin) return;
+        if (url.origin !== origin) {
+          externalRequests.push({
+            context: sessionRoles.get(eventSession),
+            url: url.href,
+            method: String(request.method),
+            resourceType: String(params.type),
+            disposition: "observed-by-network",
+          });
+          return;
+        }
         const key = `${eventSession}:${params.requestId}`;
         requests.set(key, {
           context: sessionRoles.get(eventSession),
@@ -791,6 +984,11 @@ try {
       client.send("Runtime.enable", {}, sessionId),
       client.send("Network.enable", {}, sessionId),
       client.send("Network.setCacheDisabled", { cacheDisabled: true }, sessionId),
+      client.send(
+        "Fetch.enable",
+        { patterns: [{ urlPattern: "*", requestStage: "Request" }] },
+        sessionId,
+      ),
       client.send("Accessibility.enable", {}, sessionId),
       client.send("Runtime.addBinding", { name: "__ssrEvidenceEvent" }, sessionId),
       client.send("Page.addScriptToEvaluateOnNewDocument", { source: INSTRUMENTATION }, sessionId),
@@ -949,7 +1147,11 @@ try {
     await Deno.writeFile(`${options.outputDir}/${screenshotRelativePath}`, screenshotBytes);
 
     if (definition.id === "pagehide") {
-      await client.send("Page.navigate", { url: "about:blank" }, sessionId);
+      await evaluate(
+        client,
+        sessionId,
+        'dispatchEvent(new PageTransitionEvent("pagehide", { persisted: false }))',
+      );
       const deadline = Date.now() + 2_000;
       while (
         !lifecycleEvents.some((event) =>
@@ -958,24 +1160,34 @@ try {
         ) && Date.now() < deadline
       ) await new Promise((resolve) => setTimeout(resolve, 10));
     }
-    const expectedRoutes = expectedNetworkRoutes(definition);
-    const expectedRouteCounts = new Map<string, number>();
-    for (const route of expectedRoutes) {
-      expectedRouteCounts.set(route, (expectedRouteCounts.get(route) ?? 0) + 1);
+    const expectedRequests = expectedNetworkRequests(definition);
+    const requestIdentity = (
+      request: Record<string, unknown> | ExpectedNetworkRequest,
+    ): string => `${request.context}:${request.resourceType}:${request.route}`;
+    const expectedRequestCounts = new Map<string, number>();
+    for (const request of expectedRequests) {
+      const key = requestIdentity(request);
+      expectedRequestCounts.set(key, (expectedRequestCounts.get(key) ?? 0) + 1);
     }
     const networkDeadline = Date.now() + 10_000;
     while (Date.now() < networkDeadline) {
-      await Promise.all([...attachTasks]);
+      await Promise.all([...attachTasks, ...interceptionTasks]);
       await Promise.all([...responseBodyTasks]);
       if (responseBodyErrors.length) throw responseBodyErrors[0];
+      if (interceptionErrors.length) throw interceptionErrors[0];
+      if (externalRequests.length) {
+        throw new Error(
+          `${definition.id} external network request blocked: ${JSON.stringify(externalRequests)}`,
+        );
+      }
       const actualCounts = new Map<string, number>();
       for (const request of requests.values()) {
-        const route = String(request.route);
-        actualCounts.set(route, (actualCounts.get(route) ?? 0) + 1);
+        const key = requestIdentity(request);
+        actualCounts.set(key, (actualCounts.get(key) ?? 0) + 1);
       }
-      for (const [route, count] of actualCounts) {
-        if (count > (expectedRouteCounts.get(route) ?? 0)) {
-          throw new Error(`${definition.id} observed unexpected network route/count: ${route}`);
+      for (const [key, count] of actualCounts) {
+        if (count > (expectedRequestCounts.get(key) ?? 0)) {
+          throw new Error(`${definition.id} observed unexpected network identity/count: ${key}`);
         }
       }
       const allBodies = [...requests.values()].every((request) =>
@@ -983,18 +1195,24 @@ try {
       );
       if (
         observedSessions.size === definition.targets.length + 1 &&
-        requests.size === expectedRoutes.length && allBodies
+        requests.size === expectedRequests.length && allBodies
       ) break;
       await new Promise((resolve) => setTimeout(resolve, 25));
     }
     if (observedSessions.size !== definition.targets.length + 1) {
       throw new Error(`${definition.id} did not attach every worker target`);
     }
-    await Promise.all([...attachTasks]);
+    await Promise.all([...attachTasks, ...interceptionTasks]);
     await Promise.all([...responseBodyTasks]);
     if (responseBodyErrors.length) throw responseBodyErrors[0];
+    if (interceptionErrors.length) throw interceptionErrors[0];
+    if (externalRequests.length) {
+      throw new Error(
+        `${definition.id} external network request blocked: ${JSON.stringify(externalRequests)}`,
+      );
+    }
 
-    const requestsByRoute = new Map<string, Array<Record<string, unknown>>>();
+    const requestsByIdentity = new Map<string, Array<Record<string, unknown>>>();
     for (const request of requests.values()) {
       if (request.failed || request.status !== 200) {
         throw new Error(`${definition.id} failed network request: ${JSON.stringify(request)}`);
@@ -1004,23 +1222,24 @@ try {
       ) {
         throw new Error(`${definition.id} omitted exact raw response bytes: ${request.url}`);
       }
-      const route = String(request.route);
-      const bucket = requestsByRoute.get(route) ?? [];
+      const key = requestIdentity(request);
+      const bucket = requestsByIdentity.get(key) ?? [];
       bucket.push(request);
-      requestsByRoute.set(route, bucket);
+      requestsByIdentity.set(key, bucket);
     }
     const occurrences = new Map<string, number>();
-    const exactNetwork = expectedRoutes.map((route) => {
-      const request = requestsByRoute.get(route)?.shift();
-      if (!request) throw new Error(`${definition.id} omitted expected network route: ${route}`);
-      const occurrence = (occurrences.get(route) ?? 0) + 1;
-      occurrences.set(route, occurrence);
+    const exactNetwork = expectedRequests.map((expectedRequest) => {
+      const key = requestIdentity(expectedRequest);
+      const request = requestsByIdentity.get(key)?.shift();
+      if (!request) throw new Error(`${definition.id} omitted expected network request: ${key}`);
+      const occurrence = (occurrences.get(expectedRequest.route) ?? 0) + 1;
+      occurrences.set(expectedRequest.route, occurrence);
       request.occurrence = occurrence;
       return request;
     });
     if (
-      requests.size !== expectedRoutes.length ||
-      [...requestsByRoute.values()].some((bucket) => bucket.length !== 0)
+      requests.size !== expectedRequests.length ||
+      [...requestsByIdentity.values()].some((bucket) => bucket.length !== 0)
     ) throw new Error(`${definition.id} network set/count differed from the exact contract`);
     if (exceptions.length || consoleMessages.some((entry) => entry.type === "error")) {
       throw new Error(`${definition.id} produced a console error or exception`);
@@ -1033,6 +1252,18 @@ try {
       throw new Error(
         `${definition.id} terminated ${workerTerminations.length}/${expectedTerminations} workers`,
       );
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    await Promise.all([...interceptionTasks]);
+    if (interceptionErrors.length) throw interceptionErrors[0];
+    if (externalRequests.length) {
+      throw new Error(
+        `${definition.id} external network request blocked: ${JSON.stringify(externalRequests)}`,
+      );
+    }
+    if (requests.size !== expectedRequests.length) {
+      throw new Error(`${definition.id} received a late request outside the exact network set`);
     }
 
     const expected = renderedTarget ? expectedByTarget.get(renderedTarget)! : null;
@@ -1105,27 +1336,21 @@ try {
   await removeStagedChrome(stage);
   stage = null;
 
-  if (await identityStillRunning(serverLauncher)) Deno.kill(server.pid, "SIGTERM");
-  let serverExit = await Promise.race([
-    serverStatusPromise,
-    new Promise<null>((resolve) => setTimeout(() => resolve(null), 5_000)),
-  ]);
-  let serverSignal = "SIGTERM";
-  if (serverExit === null && await identityStillRunning(serverLauncher)) {
-    Deno.kill(server.pid, "SIGKILL");
-    serverSignal = "SIGKILL";
-    serverExit = await serverStatusPromise;
-  }
-  const serverAbsent = !(await identityStillRunning(serverLauncher));
-  if (!serverAbsent || serverExit === null) {
-    throw new Error("owned evidence server survived cleanup");
-  }
+  const serverCleanup = await stopEvidenceServer(true);
   const endDirty = await commandText("git", ["status", "--porcelain=v1", "--untracked-files=all"]);
-  const endHead = await commandText("git", ["rev-parse", "HEAD"]);
-  const endTree = await commandText("git", ["rev-parse", "HEAD^{tree}"]);
-  if (endDirty || endHead !== head || endTree !== headTree) {
-    throw new Error("repository source identity changed during collection");
-  }
+  const endCollectionHead = await commandText("git", ["rev-parse", "HEAD"]);
+  const endCollectorCommit = await commandText("git", [
+    "log",
+    "-1",
+    "--format=%H",
+    "--",
+    COLLECTOR_PATH,
+  ]);
+  const endCollectorTree = await commandText("git", ["rev-parse", `${endCollectorCommit}^{tree}`]);
+  if (
+    endDirty || endCollectionHead !== collectionHead || endCollectorCommit !== collectorCommit ||
+    endCollectorTree !== collectorTree
+  ) throw new Error("repository source identity changed during collection");
   if (!sameExecutable(sourceExecutable, await executableSnapshot(options.chrome))) {
     throw new Error("Chrome source executable changed across collection");
   }
@@ -1137,27 +1362,26 @@ try {
     const diskBytes = await Deno.readFile(new URL(source.path, root));
     if (
       diskBytes.byteLength !== source.bytes || await sha256Hex(diskBytes) !== source.sha256 ||
-      await sha256Hex(await gitBytes(head, source.path)) !== source.sha256
+      await sha256Hex(await gitBytes(collectorCommit, source.path)) !== source.sha256 ||
+      await sha256Hex(await gitBytes(collectionHead, source.path)) !== source.sha256
     ) throw new Error(`${source.path} changed after browser collection`);
   }
   if (
-    await sha256Hex(await Deno.readFile(new URL(collectorPath, root))) !==
-      await sha256Hex(await gitBytes(head, collectorPath))
-  ) {
-    throw new Error("executed collector changed after browser collection");
-  }
+    await sha256Hex(await Deno.readFile(new URL(COLLECTOR_PATH, root))) !==
+      await sha256Hex(await gitBytes(collectorCommit, COLLECTOR_PATH))
+  ) throw new Error("executed collector changed after browser collection");
 
   const evidence = {
     schemaVersion: 1,
     evidenceId: EVIDENCE_ID,
     collectedAt: new Date().toISOString(),
     source: {
-      head,
-      headTree,
+      head: collectorCommit,
+      headTree: collectorTree,
       clean: true,
       packageCommit,
       collector: {
-        path: collectorPath,
+        path: COLLECTOR_PATH,
         bytes: collectorBytes.byteLength,
         sha256: await sha256Hex(collectorBytes),
         headBytesMatch: true,
@@ -1232,9 +1456,9 @@ try {
       },
       server: {
         launcher: serverLauncher,
-        signal: serverSignal,
-        exit: serverExit,
-        processAbsent: serverAbsent,
+        signal: serverCleanup.signal,
+        exit: serverCleanup.exit,
+        processAbsent: serverCleanup.absent,
       },
     },
   };
@@ -1257,40 +1481,87 @@ try {
   );
   collectionComplete = true;
   console.log(`server SSR browser evidence: ${scenarios.length} scenarios; owned cleanup exact`);
+} catch (error) {
+  collectionFailure = error;
 } finally {
   if (!collectionComplete) {
-    emergencyClient?.close();
+    try {
+      emergencyClient?.close();
+    } catch (error) {
+      cleanupFailures.push(new Error("emergency CDP close failed", { cause: error }));
+    }
     if (ownedChrome && !chromeCleanupVerified) {
       try {
-        await closeOwnedChrome(ownedChrome);
-        chromeCleanupVerified = true;
-        if (stage) recordStageCleanupLifecycle(stage, "cleanup-verified");
-      } catch {
+        const result = await closeOwnedChrome(ownedChrome);
+        if (result.remaining.length || result.identityMismatches.length) {
+          cleanupFailures.push(
+            new Error(
+              `owned Chrome cleanup retained members: ${
+                JSON.stringify({
+                  remaining: result.remaining,
+                  identityMismatches: result.identityMismatches,
+                })
+              }`,
+            ),
+          );
+          if (stage) recordStageCleanupLifecycle(stage, "cleanup-unresolved");
+        } else {
+          chromeCleanupVerified = true;
+          if (stage) recordStageCleanupLifecycle(stage, "cleanup-verified");
+        }
+      } catch (error) {
+        cleanupFailures.push(new Error("owned Chrome cleanup unresolved", { cause: error }));
         if (stage) {
           try {
             recordStageCleanupLifecycle(stage, "cleanup-unresolved");
-          } catch {
-            // Retain the exact stage owner record when cleanup status cannot be updated.
+          } catch (recordError) {
+            cleanupFailures.push(
+              new Error("failed to record unresolved Chrome stage cleanup", { cause: recordError }),
+            );
           }
         }
       }
     }
     if (stage && stage.cleanupLifecycle !== "cleanup-unresolved") {
-      await removeStagedChrome(stage).catch(() => {});
+      const currentStage = stage;
+      try {
+        await removeStagedChrome(currentStage);
+        stage = null;
+      } catch (error) {
+        cleanupFailures.push(new Error("Chrome stage removal unresolved", { cause: error }));
+        try {
+          recordStageCleanupLifecycle(currentStage, "cleanup-unresolved");
+        } catch (recordError) {
+          cleanupFailures.push(
+            new Error("failed to record unresolved Chrome stage removal", { cause: recordError }),
+          );
+        }
+      }
     }
-    if (server && serverLauncher && await identityStillRunning(serverLauncher)) {
-      Deno.kill(server.pid, "SIGTERM");
+    if (server && serverStatusPromise) {
+      try {
+        await stopEvidenceServer(false);
+      } catch (error) {
+        cleanupFailures.push(new Error("evidence server cleanup unresolved", { cause: error }));
+      }
     }
-    if (serverStatusPromise) {
-      await Promise.race([
-        serverStatusPromise.catch(() => null),
-        new Promise((resolve) => setTimeout(resolve, 2_000)),
-      ]);
+    try {
+      await Deno.remove(options.outputDir, { recursive: true });
+    } catch (error) {
+      if (!(error instanceof Deno.errors.NotFound)) {
+        cleanupFailures.push(new Error("evidence output cleanup unresolved", { cause: error }));
+      }
     }
-    if (server && serverLauncher && await identityStillRunning(serverLauncher)) {
-      Deno.kill(server.pid, "SIGKILL");
-    }
-    await serverStatusPromise?.catch(() => {});
-    await Deno.remove(options.outputDir, { recursive: true }).catch(() => {});
   }
+}
+
+if (collectionFailure !== null || cleanupFailures.length) {
+  const failures = [
+    ...(collectionFailure === null ? [] : [asError(collectionFailure)]),
+    ...cleanupFailures,
+  ];
+  throw new AggregateError(
+    failures,
+    `server SSR collection failed with ${cleanupFailures.length} unresolved cleanup failure(s)`,
+  );
 }
