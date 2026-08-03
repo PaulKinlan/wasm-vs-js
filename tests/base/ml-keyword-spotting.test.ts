@@ -10,6 +10,7 @@ import {
   syntheticValidationPcm,
 } from "../../benchmarks/base/ml-keyword-spotting/engine.js";
 import { createHandler } from "../../server.ts";
+import { generateKeywordSpottingConstants } from "../../benchmarks/base/ml-keyword-spotting/generate-constants.ts";
 
 const fixture = JSON.parse(
   await Deno.readTextFile("benchmarks/base/ml-keyword-spotting/speech-commands-subset.v1.json"),
@@ -63,6 +64,13 @@ Deno.test("Speech Commands recipe pins 60 exact files and 60 seconds without red
     fixture.normalizedPcmSha256,
     "1643258d45167c2a1b3795b2c4f2fb11a885b08806fde7f4d235e55be61482ae",
   );
+});
+
+Deno.test("model, FFT, window and MFCC constants reproduce from the pinned seed and formulas", async () => {
+  const committed = JSON.parse(
+    await Deno.readTextFile("benchmarks/base/ml-keyword-spotting/constants.v1.json"),
+  );
+  assertEquals(generateKeywordSpottingConstants(), committed);
 });
 
 Deno.test("supplemental contract freezes every preprocessing/model decision", () => {

@@ -6,6 +6,7 @@ import {
   runWasm,
   sha256Hex,
 } from "../benchmarks/base/ml-keyword-spotting/engine.js";
+import { generateKeywordSpottingConstants } from "../benchmarks/base/ml-keyword-spotting/generate-constants.ts";
 
 const root = new URL("../", import.meta.url);
 const sourceCommit = Deno.args.find((value) => value.startsWith("--source-commit="))?.slice(16) ??
@@ -20,6 +21,14 @@ const fixtureManifest = JSON.parse(
     new URL("benchmarks/base/ml-keyword-spotting/speech-commands-subset.v1.json", root),
   ),
 );
+const committedConstants = JSON.parse(
+  await Deno.readTextFile(
+    new URL("benchmarks/base/ml-keyword-spotting/constants.v1.json", root),
+  ),
+);
+if (JSON.stringify(generateKeywordSpottingConstants()) !== JSON.stringify(committedConstants)) {
+  throw new Error("committed model/preprocessing constants do not match the pinned generator");
+}
 const pcmBytes = await Deno.readFile(pcmPath);
 if (pcmBytes.length !== CONTRACT.samples * 2) throw new Error(`PCM byte length ${pcmBytes.length}`);
 if (await sha256Hex(pcmBytes) !== fixtureManifest.normalizedPcmSha256) {
@@ -117,6 +126,7 @@ const outputs = {
 };
 const sourcePaths = [
   "benchmarks/base/ml-keyword-spotting/engine.js",
+  "benchmarks/base/ml-keyword-spotting/generate-constants.ts",
   "benchmarks/base/ml-keyword-spotting/constants.v1.js",
   "benchmarks/base/ml-keyword-spotting/constants.v1.json",
   "benchmarks/base/ml-keyword-spotting/constants.v1.h",
