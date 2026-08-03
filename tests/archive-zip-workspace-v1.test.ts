@@ -2,6 +2,7 @@ import Ajv2020Module from "ajv2020";
 import { inflateRawSync } from "node:zlib";
 import { sha256Hex } from "../lib/canonical.ts";
 import {
+  assertExactCounters,
   BOUNDED_ENTRY_COUNT,
   contentFor,
   ENTRY_COUNT,
@@ -35,7 +36,7 @@ function equalBytes(left: Uint8Array, right: Uint8Array) {
   return left.length === right.length && left.every((value, index) => value === right[index]);
 }
 
-Deno.test("archive v1 build reproduces byte-identical artifact, manifests and records", async () => {
+Deno.test("archive v1 build reproduces byte-identical attested artifacts", async () => {
   const paths = [
     "public/artifacts/archive-zip-workspace-v1/archive-zip-workspace.wasm",
     "public/artifacts/archive-zip-workspace-v1/build-manifest.json",
@@ -45,6 +46,9 @@ Deno.test("archive v1 build reproduces byte-identical artifact, manifests and re
     "public/evidence/v1-implementations/archive-zip-workspace-v1/js-controlled.json",
     "public/evidence/v1-implementations/archive-zip-workspace-v1/wasm-linear-controlled.json",
   ];
+  const manifest = JSON.parse(
+    await Deno.readTextFile("public/artifacts/archive-zip-workspace-v1/build-manifest.json"),
+  );
   const before = await Promise.all(
     paths.map(async (path) => await sha256Hex(await Deno.readFile(path))),
   );
@@ -53,8 +57,9 @@ Deno.test("archive v1 build reproduces byte-identical artifact, manifests and re
       "run",
       "--allow-read=.",
       "--allow-write=public/artifacts,public/evidence,catalog/v1-implementations",
-      "--allow-run=clang,wasm-ld",
+      "--allow-run=git,clang,wasm-ld",
       "scripts/build-v1-archive.ts",
+      `--source-commit=${manifest.sourceCommit}`,
     ],
     stdout: "piped",
     stderr: "piped",
@@ -62,6 +67,66 @@ Deno.test("archive v1 build reproduces byte-identical artifact, manifests and re
   assert(result.success, new TextDecoder().decode(result.stderr));
   const after = await Promise.all(
     paths.map(async (path) => await sha256Hex(await Deno.readFile(path))),
+  );
+  assertEquals(after, before);
+});
+
+Deno.test("archive v1 source graph matches its commit and rejects a wrong commit before writes", async () => {
+  const manifest = JSON.parse(
+    await Deno.readTextFile("public/artifacts/archive-zip-workspace-v1/build-manifest.json"),
+  );
+  assert(/^[a-f0-9]{40}$/.test(manifest.sourceCommit));
+  const graphLines: string[] = [];
+  for (const record of manifest.sourceGraph) {
+    const committed = await new Deno.Command("git", {
+      args: ["show", `${manifest.sourceCommit}:${record.path}`],
+      stdout: "piped",
+      stderr: "piped",
+    }).output();
+    assert(committed.success, new TextDecoder().decode(committed.stderr));
+    assertEquals(committed.stdout.length, record.bytes);
+    assertEquals(await sha256Hex(committed.stdout), record.sha256);
+    graphLines.push(`${record.path}\0${record.sha256}\n`);
+  }
+  assertEquals(await sha256Hex(graphLines.join("")), manifest.sourceGraphSha256);
+
+  const parent = await new Deno.Command("git", {
+    args: ["rev-parse", `${manifest.sourceCommit}^`],
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  assert(parent.success, new TextDecoder().decode(parent.stderr));
+  const wrongCommit = new TextDecoder().decode(parent.stdout).trim();
+  const outputPaths = [
+    "public/artifacts/archive-zip-workspace-v1/archive-zip-workspace.wasm",
+    "public/artifacts/archive-zip-workspace-v1/build-manifest.json",
+    "public/artifacts/archive-zip-workspace-v1/fixture-manifest.json",
+    "public/artifacts/archive-zip-workspace-v1/output-manifest.json",
+    "public/evidence/v1-implementations/archive-zip-workspace-v1/js-controlled.json",
+    "public/evidence/v1-implementations/archive-zip-workspace-v1/wasm-linear-controlled.json",
+  ];
+  const before = await Promise.all(
+    outputPaths.map(async (path) => await sha256Hex(await Deno.readFile(path))),
+  );
+  const rejected = await new Deno.Command(Deno.execPath(), {
+    args: [
+      "run",
+      "--allow-read=.",
+      "--allow-write=public/artifacts,public/evidence,catalog/v1-implementations",
+      "--allow-run=git,clang,wasm-ld",
+      "scripts/build-v1-archive.ts",
+      `--source-commit=${wrongCommit}`,
+    ],
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  assert(!rejected.success, "builder accepted a source commit with different source bytes");
+  assert(
+    new TextDecoder().decode(rejected.stderr).includes("working source does not match"),
+    "wrong source commit did not fail at the source graph gate",
+  );
+  const after = await Promise.all(
+    outputPaths.map(async (path) => await sha256Hex(await Deno.readFile(path))),
   );
   assertEquals(after, before);
 });
@@ -136,6 +201,50 @@ Deno.test("archive v1 JavaScript and material Wasm produce identical complete ou
   assertEquals(await sha256Hex(js.archive), output.outputs.archiveSha256);
   assertEquals(await sha256Hex(js.listing), output.outputs.listingSha256);
   assertEquals(await sha256Hex(js.extracted), output.outputs.extractedSha256);
+  assertExactCounters(js.counters, output.counters["js-controlled"]);
+  assertExactCounters(
+    {
+      entries: values[0],
+      inputBytes: values[1],
+      crcBytes: values[2],
+      deflateLiterals: values[3],
+      deflateMatches: values[4],
+      deflateMatchedBytes: values[5],
+      deflateEndSymbols: values[6],
+      localHeaders: values[7],
+      centralHeaders: values[8],
+      zip64Records: values[9],
+      listedEntries: values[10],
+      extractedEntries: values[11],
+      extractedBytes: values[12],
+      boundaryCrossings: values[13],
+      zipBytes: values[14],
+    },
+    output.counters["wasm-linear-controlled"],
+  );
+});
+
+Deno.test("archive v1 exact counter gate rejects value, missing-key and extra-key changes", async () => {
+  const output = JSON.parse(
+    await Deno.readTextFile("public/artifacts/archive-zip-workspace-v1/output-manifest.json"),
+  );
+  const expected = output.counters["js-controlled"];
+  assertExactCounters({ ...expected }, expected);
+  for (
+    const changed of [
+      { ...expected, entries: expected.entries - 1 },
+      Object.fromEntries(Object.entries(expected).filter(([key]) => key !== "entries")),
+      { ...expected, undeclared: 0 },
+    ]
+  ) {
+    let rejected = false;
+    try {
+      assertExactCounters(changed, expected);
+    } catch {
+      rejected = true;
+    }
+    assert(rejected, "exact counter gate accepted changed counters");
+  }
 });
 
 Deno.test("archive v1 bounded JavaScript and Wasm demos produce identical 1,000-entry outputs", async () => {
@@ -305,15 +414,22 @@ Deno.test("archive v1 public routes are explicit, readable and mutation-closed",
   const html =
     await (await handler(new Request("http://127.0.0.1/benchmarks/archive-zip-workspace-v1/")))
       .text();
-  assert(html.includes("10,000-file ZIP"));
+  assert(html.includes("ZIP workspace validation"));
   assert(html.includes("No performance claim"));
   assert(html.includes("Bounded: 1,000 entries"));
   assert(html.includes("Full contract: exactly 10,000 entries"));
+  assert(html.includes("extracts four selected paths"));
+  assert(html.includes("without a frozen output oracle"));
+  assert(html.includes("extracts ten frozen paths"));
+  assert(html.includes("every target-specific counter"));
+  assert(!html.includes("Each run creates all 10,000"));
   assert(html.includes("does not count"));
   assert(!/<script(?![^>]*\bsrc=)[^>]*>/i.test(html), "page must not contain inline scripts");
   const worker = await Deno.readTextFile("public/archive-zip-worker.js");
   assert(worker.includes('mode !== "bounded" && mode !== "full"'));
   assert(worker.includes('mode === "full" ? ENTRY_COUNT : BOUNDED_ENTRY_COUNT'));
+  assert(worker.includes("assertExactCounters(result.counters"));
+  assert(worker.includes('target === "javascript" ? "js-controlled" : "wasm-linear-controlled"'));
   const response = await handler(
     new Request("http://127.0.0.1/benchmarks/archive-zip-workspace-v1/"),
   );

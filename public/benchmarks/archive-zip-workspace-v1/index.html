@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
-    <title>10,000-file ZIP workspace | Wasm versus JavaScript</title>
+    <title>ZIP workspace validation | Wasm versus JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
     <script type="module" src="/archive-zip-demo.js"></script>
   </head>
@@ -14,8 +14,8 @@
       class="site-header"><a href="/">Wasm versus JavaScript</a><a href="/benchmarks/">Catalog</a></header>
     <main id="content" class="demo-shell">
       <p class="eyebrow">Candidate base implementation · archive.zip-workspace.v1</p>
-      <h1>Build, list and extract a 10,000-file ZIP</h1>
-      <p><strong>No performance claim.</strong> Each run creates all 10,000 paths, writes deterministic fixed-Huffman DEFLATE data and ZIP metadata, lists every central-directory entry, extracts ten frozen paths, and checks three exact SHA-256 outputs. Nothing is uploaded or stored.</p>
+      <h1>Build, list and extract a ZIP workspace</h1>
+      <p><strong>No performance claim.</strong> The default bounded mode creates and lists 1,000 entries, extracts four selected paths, and checks their structure and contents without a frozen output oracle. The full mode creates and lists exactly 10,000 entries, extracts ten frozen paths, and checks three exact SHA-256 outputs plus every target-specific counter. Nothing is uploaded or stored.</p>
       <form class="demo-controls">
         <label for="target">Controlled target</label>
         <select id="target">
@@ -27,7 +27,7 @@
           <option value="bounded">Bounded: 1,000 entries</option>
           <option value="full">Full contract: exactly 10,000 entries</option>
         </select>
-        <p>The bounded mode runs the first 1,000 generated entries and stops after 10 seconds. It checks structure and selected contents but has no frozen output oracle. The full mode runs all 10,000 entries, checks the three frozen SHA-256 outputs, and stops after 30 seconds. Zip64 is forbidden because the full fixture has fewer than 65,535 entries and every size and offset is below 2³².</p>
+        <p>Bounded mode stops after 10 seconds. Full mode checks the three frozen SHA-256 outputs and every counter in the target-specific output manifest before reporting success, and stops after 30 seconds. Zip64 is forbidden because the full fixture has fewer than 65,535 entries and every size and offset is below 2³².</p>
         <button id="start" type="submit">Start validation</button>
         <button id="cancel" type="button" disabled>Cancel</button>
       </form>

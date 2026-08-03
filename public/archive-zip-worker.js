@@ -1,6 +1,7 @@
 // Browser-served absolute module route.
 // @ts-ignore Deno checks this file from disk, while browsers resolve it from the site root.
 import {
+  assertExactCounters,
   BOUNDED_ENTRY_COUNT,
   ENTRY_COUNT,
   inspectArchive,
@@ -109,6 +110,8 @@ self.onmessage = async (event) => {
       for (const [key, value] of Object.entries(hashes)) {
         if (value !== graph.output.json.outputs[key]) throw new Error(`${key} oracle mismatch`);
       }
+      const variant = target === "javascript" ? "js-controlled" : "wasm-linear-controlled";
+      assertExactCounters(result.counters, graph.output.json.counters[variant]);
     }
     if (target === "wasm") {
       const selected = SELECTED_INDICES.filter((index) => index < entryCount);

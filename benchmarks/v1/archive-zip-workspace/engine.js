@@ -22,6 +22,26 @@ function invariant(value, message) {
   if (!value) throw new Error(message);
 }
 
+export function assertExactCounters(actual, expected) {
+  invariant(
+    actual && expected && typeof actual === "object" && typeof expected === "object",
+    "counter oracle missing",
+  );
+  const actualKeys = Object.keys(actual).sort();
+  const expectedKeys = Object.keys(expected).sort();
+  invariant(
+    actualKeys.length === expectedKeys.length &&
+      actualKeys.every((key, index) => key === expectedKeys[index]),
+    "counter keys mismatch",
+  );
+  for (const key of expectedKeys) {
+    invariant(
+      Number.isSafeInteger(expected[key]) && actual[key] === expected[key],
+      `${key} counter mismatch`,
+    );
+  }
+}
+
 class Writer {
   constructor(capacity = 1024) {
     this.bytes = new Uint8Array(capacity);

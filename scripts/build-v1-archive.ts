@@ -11,8 +11,16 @@ import {
 const root = new URL("../", import.meta.url);
 const artifactDir = new URL("public/artifacts/archive-zip-workspace-v1/", root);
 const evidenceDir = new URL("public/evidence/v1-implementations/archive-zip-workspace-v1/", root);
-await Deno.mkdir(artifactDir, { recursive: true });
-await Deno.mkdir(evidenceDir, { recursive: true });
+const sourcePaths = [
+  "benchmarks/v1/archive-zip-workspace/engine.js",
+  "benchmarks/v1/archive-zip-workspace/archive_zip.c",
+  "scripts/build-v1-archive.ts",
+  "public/benchmarks/archive-zip-workspace-v1/index.html",
+  "public/archive-zip-demo.js",
+  "public/archive-zip-worker.js",
+  "deno.json",
+  "deno.lock",
+] as const;
 
 async function hashFile(path: string) {
   return await sha256Hex(await Deno.readFile(new URL(path, root)));
@@ -31,20 +39,43 @@ async function command(name: string, args: string[]) {
   if (!result.success) throw new Error(new TextDecoder().decode(result.stderr));
 }
 
-const requestedSource = Deno.args.find((arg) => arg.startsWith("--source-commit="))?.slice(16);
-let sourceCommit = requestedSource ?? "";
-if (!sourceCommit) {
-  try {
-    const previous = JSON.parse(
-      await Deno.readTextFile(new URL("build-manifest.json", artifactDir)),
-    );
-    sourceCommit = previous.sourceCommit;
-  } catch {
-    sourceCommit = "0000000000000000000000000000000000000000";
-  }
+const sourceArgument = Deno.args.length === 1 && Deno.args[0].startsWith("--source-commit=")
+  ? Deno.args[0].slice("--source-commit=".length)
+  : "";
+if (!/^[a-f0-9]{40}$/.test(sourceArgument)) {
+  throw new Error("exactly one --source-commit=<40 lowercase hex> argument is required");
 }
-if (!/^[a-f0-9]{40}$/.test(sourceCommit)) throw new Error("source commit must be 40 lowercase hex");
+const sourceCommit = sourceArgument;
+const commitProbe = await new Deno.Command("git", {
+  args: ["cat-file", "-e", `${sourceCommit}^{commit}`],
+  cwd: root.pathname,
+  stdout: "null",
+  stderr: "piped",
+}).output();
+if (!commitProbe.success) {
+  throw new Error(`source commit is not locally resolvable: ${sourceCommit}`);
+}
 
+const sourceGraph = [];
+for (const path of sourcePaths) {
+  const bytes = await Deno.readFile(new URL(path, root));
+  const committed = await new Deno.Command("git", {
+    args: ["show", `${sourceCommit}:${path}`],
+    cwd: root.pathname,
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  if (!committed.success || await sha256Hex(committed.stdout) !== await sha256Hex(bytes)) {
+    throw new Error(`working source does not match ${sourceCommit}:${path}`);
+  }
+  sourceGraph.push({ path, bytes: bytes.length, sha256: await sha256Hex(bytes) });
+}
+const sourceGraphHash = await sha256Hex(
+  sourceGraph.map((item) => `${item.path}\0${item.sha256}\n`).join(""),
+);
+
+await Deno.mkdir(artifactDir, { recursive: true });
+await Deno.mkdir(evidenceDir, { recursive: true });
 const buildDir = new URL(".build-archive-v1/", artifactDir);
 await Deno.remove(buildDir, { recursive: true }).catch((error) => {
   if (!(error instanceof Deno.errors.NotFound)) throw error;
@@ -143,24 +174,6 @@ const outputHashes = {
   listingSha256: await sha256Hex(js.listing),
   extractedSha256: await sha256Hex(js.extracted),
 };
-const sources = [
-  "benchmarks/v1/archive-zip-workspace/engine.js",
-  "benchmarks/v1/archive-zip-workspace/archive_zip.c",
-  "scripts/build-v1-archive.ts",
-  "public/benchmarks/archive-zip-workspace-v1/index.html",
-  "public/archive-zip-demo.js",
-  "public/archive-zip-worker.js",
-  "deno.json",
-  "deno.lock",
-];
-const sourceGraph = [];
-for (const path of sources) {
-  const bytes = await Deno.readFile(new URL(path, root));
-  sourceGraph.push({ path, bytes: bytes.length, sha256: await sha256Hex(bytes) });
-}
-const sourceGraphHash = await sha256Hex(
-  sourceGraph.map((item) => `${item.path}\0${item.sha256}\n`).join(""),
-);
 const fixtureManifest = {
   schemaVersion: 1,
   workloadId: "archive.zip-workspace.v1",
@@ -198,7 +211,10 @@ const outputManifest = {
     listingBytes: js.listing.length,
     extractedBytes: js.extracted.length,
   },
-  counters: js.counters,
+  counters: {
+    "js-controlled": js.counters,
+    "wasm-linear-controlled": wasmCounters,
+  },
 };
 const buildManifest = {
   schemaVersion: 1,
@@ -215,7 +231,7 @@ const buildManifest = {
   },
   build: {
     command:
-      "deno run --allow-read=. --allow-write=public/artifacts,public/evidence,catalog/v1-implementations --allow-run=clang,wasm-ld scripts/build-v1-archive.ts --source-commit=<commit>",
+      "deno run --allow-read=. --allow-write=public/artifacts,public/evidence,catalog/v1-implementations --allow-run=git,clang,wasm-ld scripts/build-v1-archive.ts --source-commit=<commit>",
     toolchains: ["Deno 2.9.0", "Clang 22.1.8", "LLD 22.1.8"],
     flags: [
       "--target=wasm32-unknown-unknown",
