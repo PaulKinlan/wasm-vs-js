@@ -1,6 +1,7 @@
 import Ajv2020Module from "ajv2020";
 import { assert, assertEquals, assertRejects } from "./assert.ts";
 import { sha256Hex } from "../lib/canonical.ts";
+import { ControlledSha256 } from "../benchmarks/base/crypto-file-integrity/sha256.js";
 import {
   countersFor,
   generateFixture,
@@ -109,7 +110,7 @@ Deno.test("generator, schedules, counters, and malformed requests are closed", a
     "sha256-compression-blocks": 16385,
     "copied-bytes": 1048576,
     "boundary-crossings": 1026,
-    allocations: 2,
+    "engine-buffer-allocations": 0,
   });
   await assertRejects(() => Promise.resolve(generateFixture("unknown", 1)), "unknown fixture kind");
   await assertRejects(
@@ -117,6 +118,10 @@ Deno.test("generator, schedules, counters, and malformed requests are closed", a
     "invalid fixture byte length",
   );
   await assertRejects(() => Promise.resolve(resolveChunkSize(7, 10)), "unknown chunk schedule");
+  await assertRejects(
+    () => Promise.resolve(new ControlledSha256().update(new Uint8Array(2), 2, 1)),
+    "update range is invalid",
+  );
 });
 
 Deno.test("retained full validation proves all 36 registered cases and exact counters", async () => {

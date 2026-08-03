@@ -39,7 +39,7 @@ export function countersFor(byteLength, schedule, target) {
     "sha256-compression-blocks": Math.ceil((byteLength + 9) / 64),
     "copied-bytes": target === "wasm-linear-controlled" ? byteLength : 0,
     "boundary-crossings": target === "wasm-linear-controlled" ? chunks + 2 : 0,
-    allocations: target === "wasm-linear-controlled" ? 2 : 4,
+    "engine-buffer-allocations": target === "wasm-linear-controlled" ? 0 : 4,
   };
 }
 
@@ -47,7 +47,7 @@ export function runJavaScript(bytes, schedule) {
   const sha = new ControlledSha256();
   const chunkSize = resolveChunkSize(schedule, bytes.length);
   for (let offset = 0; offset < bytes.length; offset += chunkSize) {
-    sha.update(bytes.subarray(offset, Math.min(bytes.length, offset + chunkSize)));
+    sha.update(bytes, offset, Math.min(bytes.length, offset + chunkSize));
   }
   return {
     digest: hex(sha.digest()),

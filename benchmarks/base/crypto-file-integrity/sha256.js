@@ -89,13 +89,21 @@ export class ControlledSha256 {
     this.bytes = 0;
     return this;
   }
-  update(data) {
+  update(data, start = 0, end = data.length) {
     if (!(data instanceof Uint8Array)) throw new TypeError("SHA-256 input must be Uint8Array");
-    this.bytes += data.length;
-    let offset = 0;
-    while (offset < data.length) {
-      const take = Math.min(64 - this.blockLength, data.length - offset);
-      this.block.set(data.subarray(offset, offset + take), this.blockLength);
+    if (
+      !Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 0 || end < start ||
+      end > data.length
+    ) {
+      throw new RangeError("SHA-256 update range is invalid");
+    }
+    this.bytes += end - start;
+    let offset = start;
+    while (offset < end) {
+      const take = Math.min(64 - this.blockLength, end - offset);
+      for (let index = 0; index < take; index++) {
+        this.block[this.blockLength + index] = data[offset + index];
+      }
       this.blockLength += take;
       offset += take;
       if (this.blockLength === 64) {

@@ -41,6 +41,15 @@ const record = {
     schedulesBytes: [1024, 65536, "whole-buffer"],
     variants: ["js-controlled", "wasm-linear-controlled"],
     excludedFromControlledPair: ["WebCrypto host intrinsic", "SIMD", "threads", "BLAKE3"],
+    counterDefinitions: {
+      "input-bytes": "exact bytes consumed by SHA-256",
+      "scheduled-chunks": "calls to the controlled update boundary",
+      "sha256-compression-blocks": "64-byte blocks including final padding",
+      "copied-bytes": "bytes copied across the JavaScript-to-Wasm linear-memory boundary",
+      "boundary-crossings": "reset, update, and finish calls into linear Wasm; zero for JavaScript",
+      "engine-buffer-allocations":
+        "hash-engine buffers allocated per case, excluding the common generated fixture, Wasm instantiation, manifest validation, and digest-to-hex validation formatting",
+    },
   },
   fixtures,
   fixedWork: {
