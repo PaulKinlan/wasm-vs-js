@@ -16,7 +16,10 @@
     "check": "deno task build && deno fmt --check && deno lint && deno task typecheck && deno run --allow-read=. scripts/check-planning.mjs && deno task contract && deno task catalog && deno task test"
   },
   "fmt": {
-    "exclude": ["public/artifacts/"],
+    "exclude": [
+      "public/artifacts/",
+      "fixtures/base/graphics-gltf-viewer/AVOCADO-LICENSE.md"
+    ],
     "lineWidth": 100,
     "proseWrap": "preserve"
   },
