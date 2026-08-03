@@ -2,6 +2,7 @@ import { LocalRunStore } from "./lib/run-store.ts";
 import { generateSummary } from "./lib/summary.ts";
 import { CorpusCoordinator } from "./lib/corpus-store.ts";
 import { collectorRouteHashes } from "./lib/source-identity.ts";
+import { IMAGE_DEMO_ROUTES } from "./lib/image-demo-registry.ts";
 
 type ServerMode = "local" | "public";
 
@@ -186,6 +187,11 @@ const routes = new Map<string, [string, string, boolean?]>([
     "application/json; charset=utf-8",
   ]],
 ]);
+
+for (const route of IMAGE_DEMO_ROUTES) {
+  if (routes.has(route.path)) throw new Error(`duplicate image demo route: ${route.path}`);
+  routes.set(route.path, [route.file, route.contentType]);
+}
 
 for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
   routes.set(`/artifacts/${slug}/${slug}.wasm`, [
