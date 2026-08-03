@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.example/schemas/media-photo-thumbnail-implementation-status.schema.json",
+  "title": "media.photo-thumbnail.v1 blocked implementation status",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "recordId",
+    "catalogWorkloadId",
+    "maturity",
+    "coverageCounted",
+    "catalog",
+    "fixture",
+    "contract",
+    "engineAudit",
+    "targets",
+    "validation",
+    "unimplementedRequirements",
+    "prohibitedClaims"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "recordId": { "const": "media-photo-thumbnail-v1-implementation-status" },
+    "catalogWorkloadId": { "const": "media.photo-thumbnail.v1" },
+    "maturity": { "const": "blocked-before-implementation" },
+    "coverageCounted": { "const": false },
+    "catalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "immutable"],
+      "properties": {
+        "path": { "const": "catalog/workloads.v1.json" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "immutable": { "const": "byte-for-byte" }
+      }
+    },
+    "fixture": { "$ref": "#/$defs/fixtureArtifact" },
+    "contract": { "$ref": "#/$defs/boundArtifact" },
+    "engineAudit": { "$ref": "#/$defs/boundArtifact" },
+    "targets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["javascriptControlled", "linearWasmControlled"],
+      "properties": {
+        "javascriptControlled": { "$ref": "#/$defs/unavailable" },
+        "linearWasmControlled": { "$ref": "#/$defs/unavailable" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fixtureBytes",
+        "completeOutputOracle",
+        "counterEvidence",
+        "browserEvidence",
+        "performanceEvidence"
+      ],
+      "properties": {
+        "fixtureBytes": { "const": "verified-from-pinned-upstream" },
+        "completeOutputOracle": { "const": "unavailable" },
+        "counterEvidence": { "const": "unavailable" },
+        "browserEvidence": { "const": "uncollected" },
+        "performanceEvidence": { "const": "not-permitted" }
+      }
+    },
+    "unimplementedRequirements": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "prohibitedClaims": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    }
+  },
+  "$defs": {
+    "fixtureArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "manifestPath",
+        "manifestSha256",
+        "selectedFiles",
+        "redistributedByThisRepository"
+      ],
+      "properties": {
+        "status": { "const": "frozen-download-recipe" },
+        "manifestPath": { "type": "string", "minLength": 1 },
+        "manifestSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "selectedFiles": { "const": 6 },
+        "redistributedByThisRepository": { "const": false }
+      }
+    },
+    "boundArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "path", "sha256"],
+      "properties": {
+        "status": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    },
+    "unavailable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reason"],
+      "properties": {
+        "status": { "const": "unavailable" },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

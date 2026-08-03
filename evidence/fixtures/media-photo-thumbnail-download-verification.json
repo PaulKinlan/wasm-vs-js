@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "media-photo-thumbnail-download-verification-2026-08-03",
+  "capturedAt": "2026-08-03T12:20:00Z",
+  "runtime": "deno 2.9.0 (stable, release, x86_64-unknown-linux-gnu)",
+  "sourceRepository": "https://github.com/gianni-rosato/gb82-image-set",
+  "sourceCommit": "502f9f94cb73d1ad5c89ce06fe6b100d0a27df8f",
+  "fixtureManifestPath": "benchmarks/v1/media-photo-thumbnail/fixture-rights-manifest.json",
+  "fixtureManifestSha256": "2ad06bac34dd2c773f0625685eb8d1ad3ca8c3b1a79ae76458525d5b9400e14e",
+  "command": "deno run --allow-read=.,/tmp/media-photo-thumbnail-fixtures-audit --allow-net=raw.githubusercontent.com --allow-write=/tmp/media-photo-thumbnail-fixtures-audit scripts/fetch-media-photo-thumbnail-fixtures.ts --output /tmp/media-photo-thumbnail-fixtures-audit",
+  "result": "passed",
+  "redirectPolicy": "error",
+  "licenseSha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+  "readmeSha256": "a1ceb24c68e1f9cf307160308d4175972ec7b04c31c1c01138f02ae1741c9824",
+  "files": [
+    {
+      "path": "png/baby-lossless.png",
+      "byteLength": 308431,
+      "sha256": "9d41d594b2e4dcc6de58f56816aa737cf84109444725f5c36b84e6987d2f016c"
+    },
+    {
+      "path": "png/night-lossless.png",
+      "byteLength": 254247,
+      "sha256": "4ce7ff45f98595f3c7d782e2e6abd97bacb88f284ffe170dbe33a25bcca62082"
+    },
+    {
+      "path": "png/grass-lossless.png",
+      "byteLength": 588758,
+      "sha256": "b49986dad608edadf1b2071359ac6d18de55751864df407b215ea9bb00a92079"
+    },
+    {
+      "path": "png/pixel-lossless.png",
+      "byteLength": 251901,
+      "sha256": "212c7b26c48f67b3aefafeb7403622be45f4831149d4b8644ad4007ee77e51fa"
+    },
+    {
+      "path": "sc-png/graph.png",
+      "byteLength": 24510,
+      "sha256": "2f1ba6a3c196a9baea7ac09f791e2847417e13de5770e6dcf975583406f0224e"
+    },
+    {
+      "path": "sc-png/terminal.png",
+      "byteLength": 103007,
+      "sha256": "1c9deabfbe43dfff391123ea0f008ab08d75e19da4a0dad59af521ccce2a1beb"
+    }
+  ],
+  "fixtureBytesCommitted": false,
+  "temporaryDirectoryRemoved": true
+}
