@@ -63,11 +63,21 @@ for (const slug of slugs) {
   const workloadContract = await ref("benchmarks/v2/shared/workload-contract.js");
   const resultContract = await ref("schemas/workload-result-v2-proposal.schema.json");
   const generator = await ref("scripts/build-audio-results.ts");
-  const reference = await ref("lib/audio-workloads.ts");
+  const reference = await ref("benchmarks/audio-shared/reference.ts");
   const oracle = await ref("benchmarks/audio-shared/oracle.ts");
   const fixtureManifest = await ref(`public/artifacts/${slug}/fixture-manifest.json`);
   const inputManifest = await ref(`public/artifacts/${slug}/input-manifest.json`);
+  const referenceManifest = await ref(`public/artifacts/${slug}/reference-manifest.json`);
   const outputManifest = await ref(`public/artifacts/${slug}/output-manifest.json`);
+  const buildManifestReference = await ref(buildManifestPath);
+  const referenceArtifact = {
+    id: `${slug}-pinned-f64-reference`,
+    ...await ref(`public/artifacts/${slug}/reference-output.f32le`),
+    mediaType: "application/octet-stream",
+  };
+  const outputEvidence = JSON.parse(
+    await Deno.readTextFile(new URL(`public/artifacts/${slug}/output-manifest.json`, root)),
+  );
   const recipe = await ref("scripts/build-audio.ts");
   const lock = await ref("deno.lock");
 
@@ -92,6 +102,17 @@ for (const slug of slugs) {
         ...await ref(`public/artifacts/${slug}/${slug}.wasm`),
         mediaType: "application/wasm",
       };
+    const variantEvidence = outputEvidence.variants[variant.id];
+    const executedOracleCheckIds = Object.entries(variantEvidence?.oracleChecks ?? {})
+      .filter(([, value]) => (value as { status?: string }).status === "passed")
+      .map(([id]) => id);
+    const expectedOracleCheckIds = entry.oracle.checks.map((check: { id: string }) => check.id);
+    if (
+      variantEvidence?.status !== "passed" ||
+      JSON.stringify(executedOracleCheckIds) !== JSON.stringify(expectedOracleCheckIds)
+    ) {
+      throw new Error(`${slug}/${variant.id} has incomplete executed oracle evidence`);
+    }
     const allReferences = [
       workloadCatalog,
       workloadContract,
@@ -102,10 +123,13 @@ for (const slug of slugs) {
       oracle,
       fixtureManifest,
       inputManifest,
+      referenceManifest,
       outputManifest,
+      buildManifestReference,
       recipe,
       lock,
       artifact,
+      referenceArtifact,
     ];
     const record = {
       schemaVersion: 1,
@@ -142,7 +166,9 @@ for (const slug of slugs) {
         manifests: {
           fixture: fixtureManifest,
           input: inputManifest,
+          reference: referenceManifest,
           output: outputManifest,
+          build: buildManifestReference,
         },
         build: {
           recipe,
@@ -153,7 +179,7 @@ for (const slug of slugs) {
           flags: buildManifest.build.flags,
           environment: buildManifest.build.environment,
         },
-        artifacts: [artifact],
+        artifacts: [artifact, referenceArtifact],
       },
       semanticCoverage: {
         inputParameterIds: entry.input.parameters.map((parameter: { name: string }) =>
@@ -168,11 +194,11 @@ for (const slug of slugs) {
         workloadVariantKey: `${entry.id}/${catalogVariant.id}`,
         algorithmIdentityKey: catalogVariant.algorithmFamilyId,
         resourcePaths: uniquePaths(allReferences),
-        artifactIds: [artifact.id],
+        artifactIds: [artifact.id, referenceArtifact.id],
       },
       correctness: {
         status: "passed",
-        oracleCheckIds: entry.oracle.checks.map((check: { id: string }) => check.id),
+        oracleCheckIds: executedOracleCheckIds,
         outputManifestSha256: outputManifest.sha256,
       },
       performanceClaims: [],

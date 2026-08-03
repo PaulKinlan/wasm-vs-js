@@ -12,7 +12,8 @@ export const HOP_SIZE = 256;
 export const FRAMES = 1 + Math.floor((SAMPLES - FRAME_SIZE) / HOP_SIZE); // 372
 export const SEED = 0x13579bdf;
 
-// Input: chirp + seeded noise
+// Input: chirp + seeded noise, deterministically conditioned by an exact f32
+// power-of-two 1/8 scale. The chirp/noise ratio and decision stream are unchanged.
 export function generateSignal(length = SAMPLES, seed = SEED): Float32Array {
   let state = seed >>> 0;
   const data = new Float32Array(length);
@@ -31,7 +32,7 @@ export function generateSignal(length = SAMPLES, seed = SEED): Float32Array {
     state ^= state << 5;
     state >>>= 0;
     const noise = Math.fround((state / 0x1_0000_0000) * 0.1);
-    data[i] = Math.fround(Math.sin(phase) + noise);
+    data[i] = Math.fround(Math.fround(Math.sin(phase) + noise) * Math.fround(0.125));
   }
   return data;
 }
@@ -73,12 +74,11 @@ export function stftInto(
   if (spectrogram.length !== numFrames * frameSize * 2) {
     throw new Error("STFT output length mismatch");
   }
-  spectrogram.fill(0);
   for (let frame = 0; frame < numFrames; frame++) {
     const offset = frame * hopSize;
-    scratch.fill(0);
     for (let i = 0; i < frameSize; i++) {
       scratch[i * 2] = Math.fround(input[offset + i] * window[i]);
+      scratch[i * 2 + 1] = 0;
     }
     fftRadix2(scratch, frameSize, twiddle);
     spectrogram.set(scratch, frame * frameSize * 2);

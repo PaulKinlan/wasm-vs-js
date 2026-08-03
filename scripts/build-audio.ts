@@ -1,6 +1,8 @@
 import wabtFactory from "wabt";
 import { brotliCompressSync, constants, gzipSync } from "node:zlib";
 import { sha256Hex } from "../lib/canonical.ts";
+import { canonicalF32Bytes } from "../benchmarks/audio-shared/canonical.ts";
+import { generatePinnedF64Reference } from "../benchmarks/audio-shared/reference.ts";
 import { AUDIO_COUNTERS, prepareAudioHarness } from "../lib/audio-workloads.ts";
 import {
   AUDIO_FROZEN_HASHES,
@@ -46,6 +48,8 @@ const sourcePaths = [
   "benchmarks/audio-shared/canonical.ts",
   "benchmarks/audio-shared/constants.ts",
   "benchmarks/audio-shared/oracle.ts",
+  "benchmarks/audio-shared/reference.ts",
+  "benchmarks/audio-shared/manifest-contract.ts",
   "lib/audio-workloads.ts",
   "scripts/build-audio.ts",
   "scripts/build-audio-results.ts",
@@ -55,6 +59,11 @@ const sourcePaths = [
   "benchmarks/v2/shared/workload-contract.js",
   "benchmarks/v2/shared/provenance-contract.js",
   "schemas/workload-result-v2-proposal.schema.json",
+  "schemas/audio-fixture-manifest.schema.json",
+  "schemas/audio-input-manifest.schema.json",
+  "schemas/audio-reference-manifest.schema.json",
+  "schemas/audio-output-manifest.schema.json",
+  "schemas/audio-build-manifest.schema.json",
 ] as const;
 
 const sources = await Promise.all(sourcePaths.map(async (path) => {
@@ -116,10 +125,18 @@ for (const slug of slugs) {
   await Deno.mkdir(outputDir, { recursive: true });
   await Deno.writeFile(new URL(`${slug}.wasm`, outputDir), wasm);
 
+  const referenceOutput = generatePinnedF64Reference(slug);
+  const referenceBytes = canonicalF32Bytes(referenceOutput);
+  const referenceSha256 = await sha256Hex(referenceBytes);
+  if (referenceSha256 !== AUDIO_FROZEN_HASHES[slug].referenceSha256) {
+    throw new Error(`${slug} pinned f64 reference hash mismatch`);
+  }
+  await Deno.writeFile(new URL("reference-output.f32le", outputDir), referenceBytes);
+
   const jsHarness = await prepareAudioHarness(slug, "javascript");
-  const jsResult = await jsHarness.runIteration();
+  const jsResult = await jsHarness.runIteration(referenceOutput);
   const wasmHarness = await prepareAudioHarness(slug, "wasm-linear", wasm);
-  const wasmResult = await wasmHarness.runIteration(jsResult.output);
+  const wasmResult = await wasmHarness.runIteration(referenceOutput, jsResult.output);
   if (jsResult.outputSha256 !== wasmResult.outputSha256) {
     throw new Error(`${slug} strict JS/Wasm semantic hash mismatch`);
   }
@@ -136,7 +153,17 @@ for (const slug of slugs) {
       licenseSpdx: "CC0-1.0",
       redistribution: "permitted",
     },
-    generatorRevision: "proposal-generator-v1",
+    generator: {
+      algorithm: "xorshift32",
+      seed: descriptor.entryId === "audio.fft.v1"
+        ? "0x9e3779b9"
+        : descriptor.entryId === "audio.fir.v1"
+        ? "0xa1b2c3d4"
+        : "0x13579bdf",
+      revision: "proposal-generator-v1",
+      mapping: descriptor.input.generatorMapping ??
+        "xorshift32 seeded-noise PCM plus frozen taps",
+    },
     serialization: "canonical little-endian f32 fields in catalog-declared order",
     sourceCommit,
   };
@@ -159,6 +186,33 @@ for (const slug of slugs) {
     new URL("input-manifest.json", outputDir),
     inputManifest,
   );
+  const referenceManifest = {
+    schemaVersion: 1,
+    contractId: "audio-reference-manifest-v1",
+    status: "proposal-validation-only",
+    entryId: descriptor.entryId,
+    benchmarkSlug: slug,
+    method: slug === "audio-fir"
+      ? "scalar-f64-direct-convolution-rounded-once-to-f32"
+      : slug === "audio-stft"
+      ? "scalar-f64-window-and-direct-dft-rounded-once-to-f32"
+      : "scalar-f64-direct-dft-rounded-once-to-f32",
+    serialization: "canonical-little-endian-f32-signed-zero-normalized-positive",
+    artifact: `public/artifacts/${slug}/reference-output.f32le`,
+    byteLength: referenceBytes.byteLength,
+    components: referenceOutput.length,
+    sha256: referenceSha256,
+    tolerance: {
+      mode: "absolute-and-relative-hybrid",
+      absolute: slug === "audio-stft" ? 5e-6 : 1e-6,
+      relative: 1e-5,
+    },
+    sourceCommit,
+  };
+  const referenceManifestBytes = await writeJson(
+    new URL("reference-manifest.json", outputDir),
+    referenceManifest,
+  );
   const outputManifest = {
     schemaVersion: 1,
     status: "proposal-validation-only",
@@ -172,13 +226,17 @@ for (const slug of slugs) {
       "js-controlled": {
         status: "passed",
         completeOutputSha256: jsResult.outputSha256,
-        structuralOracle: jsResult.oracleMetrics,
+        referenceSha256,
+        oracleChecks: jsResult.oracleChecks,
+        workCounterGate: jsResult.workCounterGate,
         workCounters: jsResult.counters,
       },
       "wasm-linear-controlled": {
         status: "passed",
         completeOutputSha256: wasmResult.outputSha256,
-        structuralOracle: wasmResult.oracleMetrics,
+        referenceSha256,
+        oracleChecks: wasmResult.oracleChecks,
+        workCounterGate: wasmResult.workCounterGate,
         workCounters: wasmResult.counters,
       },
     },
@@ -210,10 +268,20 @@ for (const slug of slugs) {
         path: `public/artifacts/${slug}/input-manifest.json`,
         sha256: await sha256Hex(inputManifestBytes),
       },
+      reference: {
+        path: `public/artifacts/${slug}/reference-manifest.json`,
+        sha256: await sha256Hex(referenceManifestBytes),
+      },
       output: {
         path: `public/artifacts/${slug}/output-manifest.json`,
         sha256: await sha256Hex(outputManifestBytes),
       },
+    },
+    referenceArtifact: {
+      path: `public/artifacts/${slug}/reference-output.f32le`,
+      sha256: referenceSha256,
+      bytes: referenceBytes.byteLength,
+      mediaType: "application/octet-stream",
     },
     variants: {
       "js-controlled": {

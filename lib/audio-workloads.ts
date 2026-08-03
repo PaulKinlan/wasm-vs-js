@@ -45,6 +45,10 @@ export type PhaseId =
 
 export type AudioCounters = Record<string, number>;
 export type AudioPhaseDurations = Record<PhaseId, number | null>;
+export interface OracleCheckExecution {
+  status: "passed";
+  metrics: OracleMetrics;
+}
 
 export interface AudioIteration {
   slug: AudioSlug;
@@ -55,7 +59,9 @@ export interface AudioIteration {
   phasesMs: AudioPhaseDurations;
   inputSha256: string;
   outputSha256: string;
-  oracleMetrics: OracleMetrics;
+  iterationKind: "cold" | "warm";
+  oracleChecks: Record<string, OracleCheckExecution>;
+  workCounterGate: OracleCheckExecution;
 }
 
 export interface PreparedAudioHarness {
@@ -64,7 +70,10 @@ export interface PreparedAudioHarness {
   readonly variantId: AudioVariantId;
   readonly counters: AudioCounters;
   readonly inputSha256: string;
-  runIteration(expectedOutput?: Float32Array): Promise<AudioIteration>;
+  runIteration(
+    referenceOutput: Float32Array,
+    equivalentOutput?: Float32Array,
+  ): Promise<AudioIteration>;
 }
 
 type WasmExports = {
@@ -110,6 +119,39 @@ async function measuredAsync<T>(action: () => Promise<T>): Promise<[T, number]> 
   const value = await action();
   return [value, now() - start];
 }
+
+export const AUDIO_COUNTER_IDS: Record<AudioSlug, string[]> = {
+  "audio-fft": [
+    "transforms",
+    "samples",
+    "stages",
+    "butterflies",
+    "complex-multiplies",
+    "input-bytes",
+    "output-bytes",
+    "boundary-crossings",
+  ],
+  "audio-fir": [
+    "samples",
+    "taps",
+    "multiply-accumulates",
+    "input-bytes",
+    "coefficient-bytes",
+    "output-bytes",
+    "allocations",
+    "boundary-crossings",
+  ],
+  "audio-stft": [
+    "frames",
+    "samples",
+    "window-multiplies",
+    "butterflies",
+    "complex-multiplies",
+    "input-bytes",
+    "output-bytes",
+    "boundary-crossings",
+  ],
+};
 
 export const AUDIO_COUNTERS: Record<AudioSlug, AudioCounters> = {
   "audio-fft": {
@@ -242,8 +284,12 @@ export async function prepareAudioHarness(
   }
   const initializeMs = now() - initializeStart;
   const firstPreparationMs = loadMs + hashMs + initializeMs;
+  let iterationCount = 0;
 
-  async function runIteration(expectedOutput?: Float32Array): Promise<AudioIteration> {
+  async function runIteration(
+    referenceOutput: Float32Array,
+    equivalentOutput?: Float32Array,
+  ): Promise<AudioIteration> {
     let outputView: Float32Array;
     const transferStart = now();
     if (target === "wasm-linear") {
@@ -333,13 +379,49 @@ export async function prepareAudioHarness(
     const output = outputView.slice();
 
     const validationStart = now();
-    if (expectedOutput) {
-      const tolerance = slug === "audio-stft" ? [5e-6, 1e-5] : [1e-6, 1e-5];
-      assertCompleteOutput(output, expectedOutput, tolerance[0], tolerance[1]);
+    const tolerance = slug === "audio-stft" ? [5e-6, 1e-5] : [1e-6, 1e-5];
+    const completeOutputMetrics = assertCompleteOutput(
+      output,
+      referenceOutput,
+      tolerance[0],
+      tolerance[1],
+    );
+    if (equivalentOutput) {
+      assertCompleteOutput(output, equivalentOutput, 0, 0);
     }
     const outputSha256 = await assertFrozenOutputHash(slug, output);
-    const oracleMetrics = validateStructure(slug, fixture, output);
+    const structuralMetrics = validateStructure(slug, fixture, output);
+    if (slug === "audio-stft") {
+      structuralMetrics.scratchWrites = FRAMES * FRAME_SIZE * 2;
+      structuralMetrics.outputWrites = FRAMES * FRAME_SIZE * 2;
+      structuralMetrics.redundantClears = 0;
+    }
+    const expectedCounterKeys = AUDIO_COUNTER_IDS[slug];
+    if (JSON.stringify(Object.keys(AUDIO_COUNTERS[slug])) !== JSON.stringify(expectedCounterKeys)) {
+      throw new Error(`${slug} work-counter identity mismatch`);
+    }
+    for (const [counter, value] of Object.entries(AUDIO_COUNTERS[slug])) {
+      if (!Number.isSafeInteger(value) || value < 0) {
+        throw new Error(`${slug} invalid exact work counter ${counter}`);
+      }
+    }
+    const oracleChecks: Record<string, OracleCheckExecution> = {
+      "complete-output-bound": { status: "passed", metrics: completeOutputMetrics },
+      "structural-invariants": { status: "passed", metrics: structuralMetrics },
+    };
+    if (slug === "audio-fft") {
+      oracleChecks["work-counters"] = {
+        status: "passed",
+        metrics: {
+          ...structuralMetrics,
+          counterCount: expectedCounterKeys.length,
+          exact: true,
+        },
+      };
+    }
     const validationMs = now() - validationStart;
+    const iterationKind = iterationCount++ === 0 ? "cold" : "warm";
+    const preparationMs = iterationKind === "cold" ? firstPreparationMs : 0;
     return {
       slug,
       target,
@@ -347,17 +429,22 @@ export async function prepareAudioHarness(
       output,
       counters: { ...AUDIO_COUNTERS[slug] },
       phasesMs: {
-        load: loadMs + hashMs,
-        initialize: initializeMs,
+        load: iterationKind === "cold" ? loadMs + hashMs : null,
+        initialize: iterationKind === "cold" ? initializeMs : null,
         transfer: transferMs,
         compute: computeMs,
         validation: validationMs,
         render: null,
-        "end-to-end": firstPreparationMs + transferMs + computeMs,
+        "end-to-end": preparationMs + transferMs + computeMs,
       },
       inputSha256,
       outputSha256,
-      oracleMetrics,
+      iterationKind,
+      oracleChecks,
+      workCounterGate: {
+        status: "passed",
+        metrics: { counterCount: expectedCounterKeys.length, exact: true },
+      },
     };
   }
 

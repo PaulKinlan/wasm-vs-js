@@ -90,6 +90,19 @@ export async function validateProposalProvenanceSemantics(record, catalog, optio
   }
 
   const outputManifest = record.provenance?.manifests?.output;
+  const isAudio = /^audio\.(?:fft|fir|stft)\.v1$/.test(record.workload?.entryId ?? "");
+  if (isAudio) {
+    if (!record.provenance?.manifests?.reference) {
+      errors.push("audio provenance requires the pinned reference manifest");
+    }
+    if (!record.provenance?.manifests?.build) {
+      errors.push("audio provenance requires the immutable build manifest");
+    }
+    const expectedReferencePath = `public/artifacts/${record.workload?.benchmarkSlug}/reference-output.f32le`;
+    if (!(record.provenance?.artifacts ?? []).some((artifact) => artifact.path === expectedReferencePath)) {
+      errors.push("audio provenance requires the pinned reference artifact");
+    }
+  }
   if (!outputManifest?.sha256) errors.push("output manifest hash is required");
   if (record.correctness?.outputManifestSha256 !== outputManifest?.sha256) {
     errors.push("correctness output manifest hash does not match provenance");
@@ -156,9 +169,11 @@ export async function validateProposalProvenanceSemantics(record, catalog, optio
 
   const readFile = options.readFile ?? ((path) => Deno.readFile(path));
   const repoRoot = String(options.repoRoot ?? ".").replace(/\/$/, "");
+  const localBytes = new Map();
   for (const [path] of pathIdentities) {
     try {
       const bytes = await readFile(`${repoRoot}/${path}`);
+      localBytes.set(path, bytes);
       const actualHash = await sha256(bytes);
       const refsForPath = refs.filter((ref) => ref.path === path);
       if (refsForPath.some((ref) => ref.sha256 !== actualHash)) {
@@ -168,6 +183,36 @@ export async function validateProposalProvenanceSemantics(record, catalog, optio
       if (options.requireLocalFiles || !(error instanceof Deno.errors.NotFound)) {
         errors.push(`local provenance file is not resolvable: ${path}`);
       }
+    }
+  }
+
+  if (isAudio && localBytes.size > 0) {
+    try {
+      const decodeJson = (path) => JSON.parse(new TextDecoder().decode(localBytes.get(path)));
+      const output = decodeJson(record.provenance.manifests.output.path);
+      const buildManifest = decodeJson(record.provenance.manifests.build.path);
+      const variantEvidence = output.variants?.[record.workload.variant.id];
+      const executed = Object.entries(variantEvidence?.oracleChecks ?? {})
+        .filter(([, value]) => value?.status === "passed")
+        .map(([id]) => id);
+      if (!sameMembers(executed, record.correctness?.oracleCheckIds ?? [])) {
+        errors.push("audio correctness does not match executed output-manifest checks");
+      }
+      if (variantEvidence?.referenceSha256 !== buildManifest.referenceArtifact?.sha256) {
+        errors.push("audio output and build manifests disagree on the pinned reference");
+      }
+      if (!/^[a-f0-9]{40}$/.test(buildManifest.sourceCommit ?? "")) {
+        errors.push("audio build manifest lacks a typed implementation commit");
+      }
+      const wasmFeatures = buildManifest.variants?.["wasm-linear-controlled"]?.features;
+      if (
+        wasmFeatures?.initialPages !== wasmFeatures?.maximumPages ||
+        wasmFeatures?.memoryGrowth !== false
+      ) {
+        errors.push("audio build manifest does not prove fixed non-growing memory");
+      }
+    } catch {
+      errors.push("audio manifest semantic evidence is not readable");
     }
   }
 

@@ -12,8 +12,7 @@ function hybridBound(
   absolute: number,
   relative: number,
 ): boolean {
-  return Math.abs(actual - expected) <=
-    Math.max(absolute, relative * Math.max(Math.abs(expected), 1));
+  return Math.abs(actual - expected) <= Math.max(absolute, relative * Math.abs(expected));
 }
 
 export function assertCompleteOutput(
@@ -21,20 +20,34 @@ export function assertCompleteOutput(
   expected: Float32Array,
   absolute: number,
   relative: number,
-): void {
+): OracleMetrics {
   if (actual.length !== expected.length) {
     throw new Error(`complete output length ${actual.length} != ${expected.length}`);
   }
+  let maximumAbsoluteError = 0;
+  let maximumRelativeError = 0;
   for (let index = 0; index < actual.length; index++) {
     const value = actual[index];
     const reference = expected[index];
     if (!Number.isFinite(value) || !Number.isFinite(reference)) {
       throw new Error(`non-finite complete output at ${index}`);
     }
+    const absoluteError = Math.abs(value - reference);
+    const relativeError = reference === 0 ? 0 : absoluteError / Math.abs(reference);
+    maximumAbsoluteError = Math.max(maximumAbsoluteError, absoluteError);
+    maximumRelativeError = Math.max(maximumRelativeError, relativeError);
     if (!hybridBound(value, reference, absolute, relative)) {
       throw new Error(`complete output bound failed at ${index}: ${value} != ${reference}`);
     }
   }
+  return {
+    comparedComponents: actual.length,
+    maximumAbsoluteError,
+    maximumRelativeError,
+    absoluteTolerance: absolute,
+    relativeTolerance: relative,
+    finite: true,
+  };
 }
 
 function assertReconstruction(

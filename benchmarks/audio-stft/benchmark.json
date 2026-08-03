@@ -16,14 +16,15 @@
   ],
   "input": {
     "serialization": "canonical-little-endian-f32",
-    "sha256": "324551444ff689a77c896f413421b1c65a41577389d48b5709558f138319d617"
+    "generatorMapping": "unchanged 20-8000 Hz chirp plus xorshift32 seed 0x13579bdf noise ratio, multiplied by exact f32 power-of-two scale 0.125",
+    "sha256": "dfabd66f9e5272f76915165b663cb6c5cb37896454eb6ac02ea13d2f241f326a"
   },
   "oracle": {
     "floatingPointPolicy": "strict-f32-frozen-order",
     "checks": ["complete-output-bound", "structural-invariants"],
     "absoluteTolerance": 0.000005,
     "relativeTolerance": 0.00001,
-    "outputSha256": "a9f31f5ddc547961586f7f0b7cecd746f47897e82d6ecd697778d6ce53107fc8"
+    "outputSha256": "b06a278c83d9eeff309fafd64b617a54e958665e2ef2d498194da6c1e75d97ba"
   },
   "workCounters": {
     "frames": 372,

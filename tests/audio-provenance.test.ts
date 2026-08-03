@@ -3,6 +3,7 @@ import addFormatsModule from "ajv-formats";
 import { assert, assertEquals } from "./assert.ts";
 import { sha256Hex } from "../lib/canonical.ts";
 import { validateProposalProvenanceSemantics } from "../benchmarks/v2/shared/provenance-contract.js";
+import { validateAudioManifestSemantics } from "../benchmarks/audio-shared/manifest-contract.ts";
 import { LocalRunStore } from "../lib/run-store.ts";
 import { createHandler } from "../server.ts";
 
@@ -35,6 +36,8 @@ Deno.test("audio build is reproducible with exact source graph, toolchain, lock,
         `${slug}.wasm`,
         "fixture-manifest.json",
         "input-manifest.json",
+        "reference-output.f32le",
+        "reference-manifest.json",
         "output-manifest.json",
         "build-manifest.json",
       ]
@@ -88,6 +91,68 @@ Deno.test("audio build is reproducible with exact source graph, toolchain, lock,
   }
 });
 
+Deno.test("closed audio manifest schemas and semantics reject identity, oracle, and build contradictions", async () => {
+  const ajv = new Ajv2020({ allErrors: true, strict: false });
+  const schemaNames = ["fixture", "input", "reference", "output", "build"];
+  const validators = Object.fromEntries(
+    await Promise.all(schemaNames.map(async (name) => [
+      name,
+      ajv.compile(
+        JSON.parse(await Deno.readTextFile(`schemas/audio-${name}-manifest.schema.json`)),
+      ),
+    ])),
+  ) as Record<string, Validator>;
+  const catalog = JSON.parse(await Deno.readTextFile("catalog/workloads.v2.proposed.json"));
+
+  for (const slug of slugs) {
+    const bundle = Object.fromEntries(
+      await Promise.all(schemaNames.map(async (name) => [
+        name,
+        JSON.parse(await Deno.readTextFile(`public/artifacts/${slug}/${name}-manifest.json`)),
+      ])),
+    ) as Record<string, Record<string, unknown>>;
+    for (const name of schemaNames) {
+      assert(
+        validators[name](bundle[name]),
+        `${slug}/${name}: ${JSON.stringify(validators[name].errors)}`,
+      );
+    }
+    const semantic = await validateAudioManifestSemantics(slug, bundle as never, catalog);
+    assert(semantic.ok, semantic.errors.join("; "));
+
+    const undeclared = structuredClone(bundle.fixture);
+    undeclared.unreviewed = true;
+    assert(!validators.fixture(undeclared), "closed fixture schema accepted undeclared state");
+
+    for (
+      const mutate of [
+        (
+          value: typeof bundle,
+        ) => ((value.fixture.generator as Record<string, unknown>).seed = "0x00000000"),
+        (value: typeof bundle) => (value.input.sha256 = "0".repeat(64)),
+        (value: typeof bundle) => (value.reference.sha256 = "0".repeat(64)),
+        (value: typeof bundle) => {
+          const variants = value.output.variants as Record<string, unknown>;
+          const controlled = variants["js-controlled"] as Record<string, unknown>;
+          const checks = controlled.oracleChecks as Record<string, unknown>;
+          delete checks["complete-output-bound"];
+        },
+        (value: typeof bundle) => {
+          const variants = value.build.variants as Record<string, unknown>;
+          const controlled = variants["wasm-linear-controlled"] as Record<string, unknown>;
+          const features = controlled.features as Record<string, number>;
+          features.maximumPages = features.initialPages === 32 ? 64 : 32;
+        },
+      ]
+    ) {
+      const poisoned = structuredClone(bundle);
+      mutate(poisoned);
+      const rejected = await validateAudioManifestSemantics(slug, poisoned as never, catalog);
+      assert(!rejected.ok, `${slug} semantic validator accepted contradictory manifests`);
+    }
+  }
+});
+
 Deno.test("audio validation routes are complete locally and absent from public evidence mode", async () => {
   const temp = await Deno.makeTempDir();
   try {
@@ -100,6 +165,8 @@ Deno.test("audio validation routes are complete locally and absent from public e
       `/artifacts/${slug}/${slug}.wasm`,
       `/artifacts/${slug}/fixture-manifest.json`,
       `/artifacts/${slug}/input-manifest.json`,
+      `/artifacts/${slug}/reference-output.f32le`,
+      `/artifacts/${slug}/reference-manifest.json`,
       `/artifacts/${slug}/output-manifest.json`,
       `/artifacts/${slug}/build-manifest.json`,
       `/evidence/v2-proposals/${slug}/js-controlled.json`,

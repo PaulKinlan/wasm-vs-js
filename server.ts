@@ -167,10 +167,16 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
     "application/wasm",
     true,
   ]);
+  routes.set(`/artifacts/${slug}/reference-output.f32le`, [
+    `public/artifacts/${slug}/reference-output.f32le`,
+    "application/octet-stream",
+    true,
+  ]);
   for (
     const manifest of [
       "fixture-manifest.json",
       "input-manifest.json",
+      "reference-manifest.json",
       "output-manifest.json",
       "build-manifest.json",
     ]
