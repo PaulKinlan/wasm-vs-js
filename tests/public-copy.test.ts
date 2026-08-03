@@ -69,6 +69,13 @@ Deno.test("public prose retains the benchmark's current evidence limits", async 
   assert(readme.includes("Catalog implementation coverage is **0/38**"));
   assert(readme.includes("The page uploads and stores nothing"));
   assert(readme.includes("no accepted performance corpus or performance conclusion"));
+  assert(readme.includes("Inspectability files use exact route entries."));
+  assert(
+    readme.includes("Each of `audio-fft`, `audio-fir`, and `audio-stft` exposes exactly five"),
+  );
+  assert(readme.includes("no wildcard source, artifact, manifest, or result path handler"));
+  assert(readme.includes("no public mutation or ingestion route is available"));
+  assert(!readme.includes("Local downloads are limited to"));
   assert(runnerScript.includes("Status: exploratory"));
   assert(runnerScript.includes("remains in this tab and was not uploaded or saved"));
 });
