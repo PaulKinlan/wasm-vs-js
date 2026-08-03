@@ -1,0 +1,1829 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.ai-focus.dev/schemas/document-pdf-viewer-browser-evidence.v1.json",
+  "title": "document.pdf-viewer.v1 authoritative parent-run CfT browser evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "workload",
+    "evidenceId",
+    "collectedAt",
+    "authority",
+    "collection",
+    "source",
+    "browser",
+    "server",
+    "scenarios",
+    "cleanup"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "workload": {
+      "const": "document.pdf-viewer.v1"
+    },
+    "evidenceId": {
+      "type": "string",
+      "pattern": "^document-pdf-viewer-browser-[a-f0-9]{12}$"
+    },
+    "collectedAt": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T"
+    },
+    "authority": {
+      "$ref": "#/$defs/authority"
+    },
+    "collection": {
+      "$ref": "#/$defs/collection"
+    },
+    "source": {
+      "$ref": "#/$defs/source"
+    },
+    "browser": {
+      "$ref": "#/$defs/browser"
+    },
+    "server": {
+      "$ref": "#/$defs/server"
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 14,
+      "maxItems": 14,
+      "items": {
+        "$ref": "#/$defs/scenario"
+      }
+    },
+    "cleanup": {
+      "$ref": "#/$defs/cleanup"
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "git": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "browserWasLaunchedByCollector",
+        "importedOrChildGeneratedEvidenceAccepted"
+      ],
+      "properties": {
+        "kind": {
+          "const": "authoritative-parent-run-browser-collection"
+        },
+        "browserWasLaunchedByCollector": {
+          "const": true
+        },
+        "importedOrChildGeneratedEvidenceAccepted": {
+          "const": false
+        }
+      }
+    },
+    "collection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "script",
+        "command",
+        "outputDirectory"
+      ],
+      "properties": {
+        "script": {
+          "const": "scripts/collect-document-pdf-viewer-browser-evidence.ts"
+        },
+        "command": {
+          "type": "string",
+          "pattern": "^deno run -A scripts/collect-document-pdf-viewer-browser-evidence\\.ts --chrome="
+        },
+        "outputDirectory": {
+          "type": "string",
+          "pattern": "^/"
+        }
+      }
+    },
+    "process": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pid",
+        "parentPid",
+        "startTimeTicks",
+        "executable"
+      ],
+      "properties": {
+        "pid": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "parentPid": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "startTimeTicks": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "executable": {
+          "type": "string",
+          "pattern": "^/"
+        }
+      }
+    },
+    "sourceFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "route",
+        "path",
+        "bytes",
+        "sha256",
+        "gitBlob",
+        "acceptedCommitBytesMatch"
+      ],
+      "properties": {
+        "route": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "gitBlob": {
+          "$ref": "#/$defs/git"
+        },
+        "acceptedCommitBytesMatch": {
+          "const": true
+        }
+      }
+    },
+    "collector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "bytes",
+        "sha256",
+        "headBytesMatch"
+      ],
+      "properties": {
+        "path": {
+          "const": "scripts/collect-document-pdf-viewer-browser-evidence.ts"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "headBytesMatch": {
+          "const": true
+        }
+      }
+    },
+    "oracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "bytes",
+        "sha256",
+        "acceptedCommitBytesMatch"
+      ],
+      "properties": {
+        "path": {
+          "const": "public/artifacts/document-pdf-viewer/output-manifest.json"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "acceptedCommitBytesMatch": {
+          "const": true
+        }
+      }
+    },
+    "endRecheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "head",
+        "tree",
+        "filesMatch",
+        "oracleMatches",
+        "collectorMatches",
+        "checkedAt"
+      ],
+      "properties": {
+        "status": {
+          "const": "clean"
+        },
+        "head": {
+          "$ref": "#/$defs/git"
+        },
+        "tree": {
+          "$ref": "#/$defs/git"
+        },
+        "filesMatch": {
+          "const": true
+        },
+        "oracleMatches": {
+          "const": true
+        },
+        "collectorMatches": {
+          "const": true
+        },
+        "checkedAt": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T"
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "head",
+        "tree",
+        "acceptedParentCommit",
+        "acceptedParentTree",
+        "root",
+        "initialClean",
+        "collector",
+        "files",
+        "oracle",
+        "endRecheck"
+      ],
+      "properties": {
+        "head": {
+          "$ref": "#/$defs/git"
+        },
+        "tree": {
+          "$ref": "#/$defs/git"
+        },
+        "acceptedParentCommit": {
+          "const": "59dd60cdfc30edb89ad6f8fb8826892a6d20eef1"
+        },
+        "acceptedParentTree": {
+          "const": "680b38440ba48b3e4b00c913302f16d1c32fa2a8"
+        },
+        "root": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "initialClean": {
+          "const": true
+        },
+        "collector": {
+          "$ref": "#/$defs/collector"
+        },
+        "files": {
+          "type": "array",
+          "minItems": 8,
+          "maxItems": 8,
+          "items": {
+            "$ref": "#/$defs/sourceFile"
+          }
+        },
+        "oracle": {
+          "$ref": "#/$defs/oracle"
+        },
+        "endRecheck": {
+          "$ref": "#/$defs/endRecheck"
+        }
+      }
+    },
+    "executable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "bytes",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "bytes": {
+          "const": 281758968
+        },
+        "sha256": {
+          "const": "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355"
+        }
+      }
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "dev",
+        "ino",
+        "mode",
+        "initiallyEmpty"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^/tmp/wasm-document-pdf-viewer-chrome-"
+        },
+        "dev": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ino": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "mode": {
+          "const": 448
+        },
+        "initiallyEmpty": {
+          "const": true
+        }
+      }
+    },
+    "cgroupSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "at",
+        "pids"
+      ],
+      "properties": {
+        "at": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T"
+        },
+        "pids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 2
+          }
+        }
+      }
+    },
+    "cgroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit",
+        "path",
+        "dev",
+        "ino",
+        "controlGroup",
+        "invocationId",
+        "mainPid",
+        "snapshots"
+      ],
+      "properties": {
+        "unit": {
+          "type": "string",
+          "pattern": "^wasm-document-pdf-viewer-[a-f0-9]{16}\\.service$"
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^/sys/fs/cgroup/"
+        },
+        "dev": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "ino": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "controlGroup": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "invocationId": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "mainPid": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "snapshots": {
+          "type": "array",
+          "minItems": 15,
+          "items": {
+            "$ref": "#/$defs/cgroupSnapshot"
+          }
+        }
+      }
+    },
+    "browser": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "product",
+        "revision",
+        "userAgent",
+        "jsVersion",
+        "executable",
+        "launchArguments",
+        "effectiveArguments",
+        "headless",
+        "protocol",
+        "debuggerOrigin",
+        "debuggerListener",
+        "profile",
+        "cgroup",
+        "processes"
+      ],
+      "properties": {
+        "product": {
+          "const": "Chrome/150.0.7871.24"
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "userAgent": {
+          "type": "string",
+          "minLength": 1
+        },
+        "jsVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "executable": {
+          "$ref": "#/$defs/executable"
+        },
+        "launchArguments": {
+          "type": "array",
+          "minItems": 20,
+          "maxItems": 20,
+          "prefixItems": [
+            {
+              "const": "--enable-automation"
+            },
+            {
+              "const": "--headless=new"
+            },
+            {
+              "const": "--no-sandbox"
+            },
+            {
+              "const": "--disable-gpu"
+            },
+            {
+              "const": "--disable-background-networking"
+            },
+            {
+              "const": "--disable-component-update"
+            },
+            {
+              "const": "--disable-default-apps"
+            },
+            {
+              "const": "--disable-extensions"
+            },
+            {
+              "const": "--disable-sync"
+            },
+            {
+              "const": "--disable-crash-reporter"
+            },
+            {
+              "const": "--disable-breakpad"
+            },
+            {
+              "const": "--metrics-recording-only"
+            },
+            {
+              "const": "--no-first-run"
+            },
+            {
+              "const": "--no-default-browser-check"
+            },
+            {
+              "const": "--hide-scrollbars"
+            },
+            {
+              "const": "--window-size=1440,1200"
+            },
+            {
+              "const": "--remote-debugging-address=127.0.0.1"
+            },
+            {
+              "type": "string",
+              "pattern": "^--remote-debugging-port=[1-9][0-9]*$"
+            },
+            {
+              "type": "string",
+              "pattern": "^--user-data-dir=/tmp/wasm-document-pdf-viewer-chrome-"
+            },
+            {
+              "const": "about:blank"
+            }
+          ],
+          "items": false
+        },
+        "effectiveArguments": {
+          "type": "array",
+          "minItems": 20,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "headless": {
+          "const": true
+        },
+        "protocol": {
+          "const": "Chrome DevTools Protocol"
+        },
+        "debuggerOrigin": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[1-9][0-9]*$"
+        },
+        "profile": {
+          "$ref": "#/$defs/profile"
+        },
+        "cgroup": {
+          "$ref": "#/$defs/cgroup"
+        },
+        "processes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/process"
+          }
+        },
+        "debuggerListener": {
+          "$ref": "#/$defs/debuggerListener"
+        }
+      }
+    },
+    "server": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "origin",
+        "host",
+        "mode",
+        "launcher"
+      ],
+      "properties": {
+        "origin": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[1-9][0-9]*$"
+        },
+        "host": {
+          "const": "127.0.0.1"
+        },
+        "mode": {
+          "const": "public"
+        },
+        "launcher": {
+          "$ref": "#/$defs/process"
+        }
+      }
+    },
+    "session": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sessionId",
+        "targetId",
+        "type",
+        "parentSessionId"
+      ],
+      "properties": {
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "targetId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "enum": [
+            "page",
+            "worker"
+          ]
+        },
+        "parentSessionId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "ownership": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "browserContextId",
+        "pageTargetId",
+        "pageSessionId",
+        "sessions"
+      ],
+      "properties": {
+        "browserContextId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pageTargetId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pageSessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sessions": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 3,
+          "items": {
+            "$ref": "#/$defs/session"
+          }
+        }
+      }
+    },
+    "pageHash": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "page",
+        "sha256"
+      ],
+      "properties": {
+        "page": {
+          "enum": [
+            1,
+            25,
+            50,
+            75,
+            100
+          ]
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "objects",
+        "pages",
+        "glyphs",
+        "searchComparisons",
+        "rasterizedPages",
+        "pixels",
+        "allocations",
+        "boundaryCrossings",
+        "copiedBytes",
+        "peakBytes",
+        "memoryBytes"
+      ],
+      "properties": {
+        "objects": {
+          "const": 233
+        },
+        "pages": {
+          "const": 100
+        },
+        "glyphs": {
+          "const": 3470
+        },
+        "searchComparisons": {
+          "const": 2970
+        },
+        "rasterizedPages": {
+          "const": 5
+        },
+        "pixels": {
+          "const": 9694080
+        },
+        "allocations": {
+          "const": 1
+        },
+        "boundaryCrossings": {
+          "enum": [
+            0,
+            225
+          ]
+        },
+        "copiedBytes": {
+          "enum": [
+            0,
+            38819062
+          ]
+        },
+        "peakBytes": {
+          "const": 7755264
+        },
+        "memoryBytes": {
+          "enum": [
+            7755264,
+            16777216
+          ]
+        }
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rawText",
+        "target",
+        "pageCount",
+        "hits",
+        "textSha256",
+        "selectedPage",
+        "selectedRgbaSha256",
+        "pageHashes",
+        "counters"
+      ],
+      "properties": {
+        "rawText": {
+          "type": "string",
+          "minLength": 100
+        },
+        "target": {
+          "enum": [
+            "javascript",
+            "wasm-linear"
+          ]
+        },
+        "pageCount": {
+          "const": 100
+        },
+        "hits": {
+          "const": [
+            10,
+            20,
+            30,
+            40,
+            50,
+            60,
+            70,
+            80,
+            90,
+            100
+          ]
+        },
+        "textSha256": {
+          "const": "039fb76d6eb3bf1764ee5c839c4f21133a8a33b282967497378e6d7c5ca76fdb"
+        },
+        "selectedPage": {
+          "const": 1
+        },
+        "selectedRgbaSha256": {
+          "const": "6d336d36d9dd580358b180372ca5a3de3851f06ab8fd1f8dfca6f85fb41112de"
+        },
+        "pageHashes": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "prefixItems": [
+            {
+              "const": {
+                "page": 1,
+                "sha256": "6d336d36d9dd580358b180372ca5a3de3851f06ab8fd1f8dfca6f85fb41112de"
+              }
+            },
+            {
+              "const": {
+                "page": 25,
+                "sha256": "55e76b5c22ef167b001cdbe797499ffe9e2159fdfeb7dd094ff57fb68e549152"
+              }
+            },
+            {
+              "const": {
+                "page": 50,
+                "sha256": "47950d913b1e0c50ce0773cde897e54c5d3759824511f7164949e31b88634cb9"
+              }
+            },
+            {
+              "const": {
+                "page": 75,
+                "sha256": "5eace04651bde7dbeb0ed1711c04719e353b009db2254217167e44b52a8670ec"
+              }
+            },
+            {
+              "const": {
+                "page": 100,
+                "sha256": "f017e036817ce5e82e5cf7c79af4395e9c2d03e4b033530affcaa8e3406b7557"
+              }
+            }
+          ],
+          "items": false
+        },
+        "counters": {
+          "$ref": "#/$defs/counters"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "target": {
+                "const": "javascript"
+              }
+            },
+            "required": [
+              "target"
+            ]
+          },
+          "then": {
+            "properties": {
+              "counters": {
+                "properties": {
+                  "boundaryCrossings": {
+                    "const": 0
+                  },
+                  "copiedBytes": {
+                    "const": 0
+                  },
+                  "memoryBytes": {
+                    "const": 7755264
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "target": {
+                "const": "wasm-linear"
+              }
+            },
+            "required": [
+              "target"
+            ]
+          },
+          "then": {
+            "properties": {
+              "counters": {
+                "properties": {
+                  "boundaryCrossings": {
+                    "const": 225
+                  },
+                  "copiedBytes": {
+                    "const": 38819062
+                  },
+                  "memoryBytes": {
+                    "const": 16777216
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "pageState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "heading",
+        "status",
+        "result",
+        "bodyText",
+        "startDisabled",
+        "cancelDisabled",
+        "target",
+        "page",
+        "statuses"
+      ],
+      "properties": {
+        "heading": {
+          "const": "Parse, search and raster a 100-page report"
+        },
+        "status": {
+          "type": "string",
+          "minLength": 1
+        },
+        "result": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bodyText": {
+          "type": "string",
+          "minLength": 1
+        },
+        "startDisabled": {
+          "type": "boolean"
+        },
+        "cancelDisabled": {
+          "type": "boolean"
+        },
+        "target": {
+          "enum": [
+            "javascript",
+            "wasm-linear"
+          ]
+        },
+        "page": {
+          "const": 1
+        },
+        "statuses": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "causal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "wrongTokenIgnored",
+        "staleResultAndErrorIgnored",
+        "freshWorkers",
+        "timeoutTerminated",
+        "cancelTerminated",
+        "pagehideTerminated",
+        "resourceMutationRejected"
+      ],
+      "properties": {
+        "wrongTokenIgnored": {
+          "type": "boolean"
+        },
+        "staleResultAndErrorIgnored": {
+          "type": "boolean"
+        },
+        "freshWorkers": {
+          "type": "boolean"
+        },
+        "timeoutTerminated": {
+          "type": "boolean"
+        },
+        "cancelTerminated": {
+          "type": "boolean"
+        },
+        "pagehideTerminated": {
+          "type": "boolean"
+        },
+        "resourceMutationRejected": {
+          "type": "boolean"
+        }
+      }
+    },
+    "rejection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mutation",
+        "target",
+        "rejected",
+        "errorText"
+      ],
+      "properties": {
+        "mutation": {
+          "enum": [
+            "resource-key",
+            "font-key",
+            "font-nesting"
+          ]
+        },
+        "target": {
+          "enum": [
+            "javascript",
+            "wasm-linear"
+          ]
+        },
+        "rejected": {
+          "const": true
+        },
+        "errorText": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "eventDetail": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": [
+            "normal",
+            "resource-key",
+            "font-key",
+            "font-nesting",
+            "wrong-token",
+            "stale",
+            "timeout",
+            "cancel",
+            "pagehide"
+          ]
+        },
+        "index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "url": {
+          "type": "string",
+          "minLength": 1
+        },
+        "token": {
+          "type": "integer"
+        },
+        "target": {
+          "enum": [
+            "javascript",
+            "wasm-linear"
+          ]
+        },
+        "algorithm": {
+          "const": "SHA-256"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "base64": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "enum": [
+            "resource-key",
+            "font-key",
+            "font-nesting"
+          ]
+        },
+        "originalSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "mutatedSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "changedOffset": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "detail",
+        "sessionId",
+        "targetId"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "instrumentation-ready",
+            "worker-created",
+            "worker-posted",
+            "worker-held",
+            "worker-released",
+            "worker-terminated",
+            "wrong-token-dispatched",
+            "stale-result-error-dispatched",
+            "worker-instrumentation-ready",
+            "fetched-body",
+            "resource-mutation",
+            "digest-input",
+            "wasm-instantiated",
+            "wasm-module-instantiated"
+          ]
+        },
+        "detail": {
+          "$ref": "#/$defs/eventDetail"
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "targetId": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "console": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sessionId",
+        "targetId",
+        "targetType",
+        "type",
+        "arguments"
+      ],
+      "properties": {
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "targetId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "targetType": {
+          "enum": [
+            "page",
+            "worker"
+          ]
+        },
+        "type": {
+          "type": "string",
+          "not": {
+            "const": "error"
+          }
+        },
+        "arguments": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "exception": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sessionId",
+        "targetId",
+        "targetType",
+        "text",
+        "lineNumber",
+        "columnNumber"
+      ],
+      "properties": {
+        "sessionId": {
+          "type": "string"
+        },
+        "targetId": {
+          "type": "string"
+        },
+        "targetType": {
+          "enum": [
+            "page",
+            "worker"
+          ]
+        },
+        "text": {
+          "type": "string"
+        },
+        "lineNumber": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "columnNumber": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "header": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "value"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "bytes",
+        "sha256",
+        "sourcePath",
+        "gitBlob",
+        "cdpEncoding"
+      ],
+      "properties": {
+        "status": {
+          "const": "supported"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "sourcePath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "gitBlob": {
+          "$ref": "#/$defs/git"
+        },
+        "cdpEncoding": {
+          "enum": [
+            "base64",
+            "utf8"
+          ]
+        }
+      }
+    },
+    "network": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requestId",
+        "sessionId",
+        "targetId",
+        "targetType",
+        "url",
+        "method",
+        "resourceType",
+        "status",
+        "mimeType",
+        "headers",
+        "fromDiskCache",
+        "fromServiceWorker",
+        "failed",
+        "errorText",
+        "body"
+      ],
+      "properties": {
+        "requestId": {
+          "type": "string"
+        },
+        "sessionId": {
+          "type": "string"
+        },
+        "targetId": {
+          "type": "string"
+        },
+        "targetType": {
+          "enum": [
+            "page",
+            "worker"
+          ]
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:"
+        },
+        "method": {
+          "const": "GET"
+        },
+        "resourceType": {
+          "type": "string"
+        },
+        "status": {
+          "const": 200
+        },
+        "mimeType": {
+          "type": "string"
+        },
+        "headers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/header"
+          }
+        },
+        "fromDiskCache": {
+          "const": false
+        },
+        "fromServiceWorker": {
+          "const": false
+        },
+        "failed": {
+          "const": false
+        },
+        "errorText": {
+          "type": "null"
+        },
+        "body": {
+          "$ref": "#/$defs/body"
+        }
+      }
+    },
+    "executedSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sessionId",
+        "targetId",
+        "targetType",
+        "url",
+        "sourcePath",
+        "bytes",
+        "sha256",
+        "gitBlob"
+      ],
+      "properties": {
+        "sessionId": {
+          "type": "string"
+        },
+        "targetId": {
+          "type": "string"
+        },
+        "targetType": {
+          "enum": [
+            "page",
+            "worker"
+          ]
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:"
+        },
+        "sourcePath": {
+          "type": "string"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "gitBlob": {
+          "$ref": "#/$defs/git"
+        }
+      }
+    },
+    "axNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "name",
+        "ignored"
+      ],
+      "properties": {
+        "role": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "ignored": {
+          "type": "boolean"
+        }
+      }
+    },
+    "axAssertions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "headingPresent",
+        "targetPresent",
+        "startPresent",
+        "cancelPresent",
+        "statusPresent",
+        "textualOutputPresent"
+      ],
+      "properties": {
+        "headingPresent": {
+          "const": true
+        },
+        "targetPresent": {
+          "const": true
+        },
+        "startPresent": {
+          "const": true
+        },
+        "cancelPresent": {
+          "const": true
+        },
+        "statusPresent": {
+          "const": true
+        },
+        "textualOutputPresent": {
+          "const": true
+        }
+      }
+    },
+    "accessibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inspectedBy",
+        "nodes",
+        "treeSha256",
+        "assertions"
+      ],
+      "properties": {
+        "inspectedBy": {
+          "const": "Accessibility.getFullAXTree"
+        },
+        "nodes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/axNode"
+          }
+        },
+        "treeSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "assertions": {
+          "$ref": "#/$defs/axAssertions"
+        }
+      }
+    },
+    "screenshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "bytes",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^screenshots/[a-z0-9-]+\\.png$"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 8
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "mode",
+        "targetSequence",
+        "ownership",
+        "statusHistory",
+        "finalState",
+        "completedTargets",
+        "rejection",
+        "causal",
+        "assertions",
+        "lifecycleEvents",
+        "executionEvents",
+        "console",
+        "exceptions",
+        "network",
+        "executedSources",
+        "accessibility",
+        "screenshot"
+      ],
+      "properties": {
+        "id": {
+          "enum": [
+            "complete-javascript",
+            "complete-wasm",
+            "resource-key-javascript",
+            "resource-key-wasm",
+            "font-key-javascript",
+            "font-key-wasm",
+            "font-nesting-javascript",
+            "font-nesting-wasm",
+            "wrong-token",
+            "stale-after-restart",
+            "restart",
+            "timeout",
+            "cancel",
+            "pagehide"
+          ]
+        },
+        "mode": {
+          "enum": [
+            "normal",
+            "resource-key",
+            "font-key",
+            "font-nesting",
+            "wrong-token",
+            "stale",
+            "timeout",
+            "cancel",
+            "pagehide"
+          ]
+        },
+        "targetSequence": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": {
+            "enum": [
+              "javascript",
+              "wasm-linear"
+            ]
+          }
+        },
+        "ownership": {
+          "$ref": "#/$defs/ownership"
+        },
+        "statusHistory": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "finalState": {
+          "$ref": "#/$defs/pageState"
+        },
+        "completedTargets": {
+          "type": "array",
+          "maxItems": 2,
+          "items": {
+            "$ref": "#/$defs/result"
+          }
+        },
+        "rejection": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/rejection"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "causal": {
+          "$ref": "#/$defs/causal"
+        },
+        "assertions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "lifecycleEvents": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "$ref": "#/$defs/event"
+          }
+        },
+        "executionEvents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/event"
+          }
+        },
+        "console": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/console"
+          }
+        },
+        "exceptions": {
+          "type": "array",
+          "maxItems": 0,
+          "items": {
+            "$ref": "#/$defs/exception"
+          }
+        },
+        "network": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "$ref": "#/$defs/network"
+          }
+        },
+        "executedSources": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "$ref": "#/$defs/executedSource"
+          }
+        },
+        "accessibility": {
+          "$ref": "#/$defs/accessibility"
+        },
+        "screenshot": {
+          "$ref": "#/$defs/screenshot"
+        }
+      }
+    },
+    "sessionCleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outcome",
+        "browserContextId",
+        "targetsBefore",
+        "targetsAfter"
+      ],
+      "properties": {
+        "outcome": {
+          "const": "success"
+        },
+        "browserContextId": {
+          "type": "string"
+        },
+        "targetsBefore": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "targetsAfter": {
+          "type": "array",
+          "maxItems": 0
+        }
+      }
+    },
+    "emptyPidCleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outcome",
+        "remainingPids"
+      ],
+      "properties": {
+        "outcome": {
+          "const": "success"
+        },
+        "remainingPids": {
+          "type": "array",
+          "maxItems": 0
+        }
+      }
+    },
+    "cgroupCleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outcome",
+        "killed",
+        "remainingPids"
+      ],
+      "properties": {
+        "outcome": {
+          "const": "success"
+        },
+        "killed": {
+          "const": true
+        },
+        "remainingPids": {
+          "type": "array",
+          "maxItems": 0
+        }
+      }
+    },
+    "profileCleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outcome",
+        "path",
+        "absent"
+      ],
+      "properties": {
+        "outcome": {
+          "const": "success"
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^/tmp/wasm-document-pdf-viewer-chrome-"
+        },
+        "absent": {
+          "const": true
+        }
+      }
+    },
+    "serverCleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outcome",
+        "processAbsent"
+      ],
+      "properties": {
+        "outcome": {
+          "const": "success"
+        },
+        "processAbsent": {
+          "const": true
+        }
+      }
+    },
+    "outputCleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outcome",
+        "path",
+        "retained"
+      ],
+      "properties": {
+        "outcome": {
+          "const": "success"
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "retained": {
+          "const": true
+        }
+      }
+    },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sessionTargets",
+        "cgroup",
+        "browserProcesses",
+        "profile",
+        "server",
+        "output"
+      ],
+      "properties": {
+        "sessionTargets": {
+          "$ref": "#/$defs/sessionCleanup"
+        },
+        "cgroup": {
+          "$ref": "#/$defs/cgroupCleanup"
+        },
+        "browserProcesses": {
+          "$ref": "#/$defs/emptyPidCleanup"
+        },
+        "profile": {
+          "$ref": "#/$defs/profileCleanup"
+        },
+        "server": {
+          "$ref": "#/$defs/serverCleanup"
+        },
+        "output": {
+          "$ref": "#/$defs/outputCleanup"
+        }
+      }
+    },
+    "debuggerListener": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "socketInode",
+        "ownedPid",
+        "cgroupOwned"
+      ],
+      "properties": {
+        "socketInode": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "ownedPid": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "cgroupOwned": {
+          "const": true
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "document.pdf-viewer.v1",
+  "immutable": true,
+  "fixture": {
+    "path": "public/artifacts/document-pdf-viewer/report-100-pages.pdf",
+    "bytes": 39196,
+    "sha256": "2386b4ae40ea64903c16517e796546f2bfca7b7e8d8746f1cf1622bf25cd25c4"
+  },
+  "pdfSubset": {
+    "version": "PDF-1.7-pdfbase-report-v1",
+    "objectCount": 233,
+    "type3GlyphPrograms": 27,
+    "pageCount": 100
+  },
+  "rights": {
+    "licenseSpdx": "CC0-1.0",
+    "redistribution": "permitted",
+    "externalInputs": []
+  },
+  "generator": {
+    "path": "scripts/build-document-pdf-viewer.ts",
+    "sourceCommit": "2fe558272e3f33ca25c3e9c9453d00baf1b2b336"
+  }
+}

@@ -1,0 +1,231 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "document.pdf-viewer.v1",
+  "status": "supplemental-validation",
+  "sourceCommit": "2fe558272e3f33ca25c3e9c9453d00baf1b2b336",
+  "oracle": {
+    "pageCount": 100,
+    "searchTerm": "NEEDLE",
+    "hits": [
+      10,
+      20,
+      30,
+      40,
+      50,
+      60,
+      70,
+      80,
+      90,
+      100
+    ],
+    "rasterPages": [
+      {
+        "page": 1,
+        "sha256": "6d336d36d9dd580358b180372ca5a3de3851f06ab8fd1f8dfca6f85fb41112de"
+      },
+      {
+        "page": 25,
+        "sha256": "55e76b5c22ef167b001cdbe797499ffe9e2159fdfeb7dd094ff57fb68e549152"
+      },
+      {
+        "page": 50,
+        "sha256": "47950d913b1e0c50ce0773cde897e54c5d3759824511f7164949e31b88634cb9"
+      },
+      {
+        "page": 75,
+        "sha256": "5eace04651bde7dbeb0ed1711c04719e353b009db2254217167e44b52a8670ec"
+      },
+      {
+        "page": 100,
+        "sha256": "f017e036817ce5e82e5cf7c79af4395e9c2d03e4b033530affcaa8e3406b7557"
+      }
+    ],
+    "textSha256": "039fb76d6eb3bf1764ee5c839c4f21133a8a33b282967497378e6d7c5ca76fdb"
+  },
+  "variants": {
+    "js-controlled": {
+      "target": "javascript",
+      "pageCount": 100,
+      "hits": [
+        10,
+        20,
+        30,
+        40,
+        50,
+        60,
+        70,
+        80,
+        90,
+        100
+      ],
+      "textSha256": "039fb76d6eb3bf1764ee5c839c4f21133a8a33b282967497378e6d7c5ca76fdb",
+      "pageHashes": [
+        {
+          "page": 1,
+          "sha256": "6d336d36d9dd580358b180372ca5a3de3851f06ab8fd1f8dfca6f85fb41112de"
+        },
+        {
+          "page": 25,
+          "sha256": "55e76b5c22ef167b001cdbe797499ffe9e2159fdfeb7dd094ff57fb68e549152"
+        },
+        {
+          "page": 50,
+          "sha256": "47950d913b1e0c50ce0773cde897e54c5d3759824511f7164949e31b88634cb9"
+        },
+        {
+          "page": 75,
+          "sha256": "5eace04651bde7dbeb0ed1711c04719e353b009db2254217167e44b52a8670ec"
+        },
+        {
+          "page": 100,
+          "sha256": "f017e036817ce5e82e5cf7c79af4395e9c2d03e4b033530affcaa8e3406b7557"
+        }
+      ],
+      "counters": {
+        "objects": 233,
+        "pages": 100,
+        "glyphs": 3470,
+        "searchComparisons": 2970,
+        "rasterizedPages": 5,
+        "pixels": 9694080,
+        "allocations": 1,
+        "boundaryCrossings": 0,
+        "copiedBytes": 0,
+        "peakBytes": 7755264,
+        "memoryBytes": 7755264
+      }
+    },
+    "wasm-linear-controlled": {
+      "target": "wasm-linear",
+      "pageCount": 100,
+      "hits": [
+        10,
+        20,
+        30,
+        40,
+        50,
+        60,
+        70,
+        80,
+        90,
+        100
+      ],
+      "textSha256": "039fb76d6eb3bf1764ee5c839c4f21133a8a33b282967497378e6d7c5ca76fdb",
+      "pageHashes": [
+        {
+          "page": 1,
+          "sha256": "6d336d36d9dd580358b180372ca5a3de3851f06ab8fd1f8dfca6f85fb41112de"
+        },
+        {
+          "page": 25,
+          "sha256": "55e76b5c22ef167b001cdbe797499ffe9e2159fdfeb7dd094ff57fb68e549152"
+        },
+        {
+          "page": 50,
+          "sha256": "47950d913b1e0c50ce0773cde897e54c5d3759824511f7164949e31b88634cb9"
+        },
+        {
+          "page": 75,
+          "sha256": "5eace04651bde7dbeb0ed1711c04719e353b009db2254217167e44b52a8670ec"
+        },
+        {
+          "page": 100,
+          "sha256": "f017e036817ce5e82e5cf7c79af4395e9c2d03e4b033530affcaa8e3406b7557"
+        }
+      ],
+      "counters": {
+        "objects": 233,
+        "pages": 100,
+        "glyphs": 3470,
+        "searchComparisons": 2970,
+        "rasterizedPages": 5,
+        "pixels": 9694080,
+        "allocations": 1,
+        "boundaryCrossings": 225,
+        "copiedBytes": 38819062,
+        "peakBytes": 7755264,
+        "memoryBytes": 16777216
+      }
+    }
+  },
+  "independentReference": {
+    "engine": "pdfinfo version 26.07.0\nCopyright 2005-2026 The Poppler Developers - http://poppler.freedesktop.org\nCopyright 1996-2011, 2022 Glyph & Cog, LLC",
+    "executables": [
+      {
+        "name": "pdfinfo",
+        "path": "/usr/bin/pdfinfo",
+        "sha256": "dbd8d0d6d07ee4e31069736a05e922e4f66741120622e180d638a4eef4acf94a"
+      },
+      {
+        "name": "pdftotext",
+        "path": "/usr/bin/pdftotext",
+        "sha256": "b818789548c7432844009e9e137576c9e692143a1b704df884f927d2ea320bda"
+      },
+      {
+        "name": "pdftoppm",
+        "path": "/usr/bin/pdftoppm",
+        "sha256": "dcccbc24c3bdea27f5b0b2acc1f7ea3f64619c96a537a20ff3e558c968803033"
+      }
+    ],
+    "pageCount": 100,
+    "extractedTextRecords": 100,
+    "searchHits": 10,
+    "rasterDpi": 144,
+    "rasterArguments": [
+      "-aa",
+      "no",
+      "-aaVector",
+      "no",
+      "-r",
+      "144"
+    ],
+    "rasters": [
+      {
+        "page": 1,
+        "rgbaSha256": "6d336d36d9dd580358b180372ca5a3de3851f06ab8fd1f8dfca6f85fb41112de",
+        "nonWhitePixels": 10166,
+        "width": 1224,
+        "height": 1584,
+        "differingPixels": 0,
+        "maxChannelDifference": 0
+      },
+      {
+        "page": 25,
+        "rgbaSha256": "55e76b5c22ef167b001cdbe797499ffe9e2159fdfeb7dd094ff57fb68e549152",
+        "nonWhitePixels": 10224,
+        "width": 1224,
+        "height": 1584,
+        "differingPixels": 0,
+        "maxChannelDifference": 0
+      },
+      {
+        "page": 50,
+        "rgbaSha256": "47950d913b1e0c50ce0773cde897e54c5d3759824511f7164949e31b88634cb9",
+        "nonWhitePixels": 12359,
+        "width": 1224,
+        "height": 1584,
+        "differingPixels": 0,
+        "maxChannelDifference": 0
+      },
+      {
+        "page": 75,
+        "rgbaSha256": "5eace04651bde7dbeb0ed1711c04719e353b009db2254217167e44b52a8670ec",
+        "nonWhitePixels": 10156,
+        "width": 1224,
+        "height": 1584,
+        "differingPixels": 0,
+        "maxChannelDifference": 0
+      },
+      {
+        "page": 100,
+        "rgbaSha256": "f017e036817ce5e82e5cf7c79af4395e9c2d03e4b033530affcaa8e3406b7557",
+        "nonWhitePixels": 12207,
+        "width": 1224,
+        "height": 1584,
+        "differingPixels": 0,
+        "maxChannelDifference": 0
+      }
+    ]
+  },
+  "performanceClaims": []
+}
