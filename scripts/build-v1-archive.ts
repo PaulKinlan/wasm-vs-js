@@ -108,21 +108,23 @@ if (
   throw new Error("JavaScript/Wasm complete outputs differ");
 }
 const countersPointer = (exports.counters_ptr as () => number)();
-const wasmCounterValues = [...new Uint32Array(memory.buffer, countersPointer, 13)];
+const wasmCounterValues = [...new Uint32Array(memory.buffer, countersPointer, 15)];
 const wasmCounters = {
   entries: wasmCounterValues[0],
   inputBytes: wasmCounterValues[1],
   crcBytes: wasmCounterValues[2],
   deflateLiterals: wasmCounterValues[3],
-  deflateEndSymbols: wasmCounterValues[4],
-  localHeaders: wasmCounterValues[5],
-  centralHeaders: wasmCounterValues[6],
-  zip64Records: wasmCounterValues[7],
-  listedEntries: wasmCounterValues[8],
-  extractedEntries: wasmCounterValues[9],
-  extractedBytes: wasmCounterValues[10],
-  boundaryCrossings: wasmCounterValues[11],
-  zipBytes: wasmCounterValues[12],
+  deflateMatches: wasmCounterValues[4],
+  deflateMatchedBytes: wasmCounterValues[5],
+  deflateEndSymbols: wasmCounterValues[6],
+  localHeaders: wasmCounterValues[7],
+  centralHeaders: wasmCounterValues[8],
+  zip64Records: wasmCounterValues[9],
+  listedEntries: wasmCounterValues[10],
+  extractedEntries: wasmCounterValues[11],
+  extractedBytes: wasmCounterValues[12],
+  boundaryCrossings: wasmCounterValues[13],
+  zipBytes: wasmCounterValues[14],
 };
 
 const fixtureWriter: number[] = [];
@@ -169,7 +171,8 @@ const fixtureManifest = {
     pathOrder: "generator index 0..9999",
     pathEncoding:
       "UTF-8 with NFC literals; no traversal, absolute, empty, dot, or backslash segments",
-    content: "32+(index mod 33) bytes from xorshift32 seed (0x9e3779b9 xor index)",
+    content:
+      "four source/JSON/binary/Markdown families, 48+(index mod 113) bytes; binary uses xorshift32 seed (0x9e3779b9 xor index)",
     canonicalFixtureFraming: "u16le path length, path bytes, u16le content length, content bytes",
   },
   bytes: fixtureBytes.length,

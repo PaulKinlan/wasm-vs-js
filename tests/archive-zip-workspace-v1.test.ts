@@ -74,11 +74,15 @@ Deno.test("archive v1 frozen generator creates exactly 10,000 safe unique NFC pa
     assert(!path.startsWith("/") && !path.includes("\\") && !path.split("/").includes(".."));
     paths.add(path);
     const content = contentFor(index);
-    assert(content.length >= 32 && content.length <= 64);
+    assert(content.length >= 48 && content.length <= 160);
     contentBytes += content.length;
   }
   assertEquals(paths.size, 10_000);
-  assertEquals(contentBytes, 479_984);
+  assertEquals(contentBytes, 1_038_404);
+  assertEquals([...paths].filter((path) => path.endsWith(".ts")).length, 2_500);
+  assertEquals([...paths].filter((path) => path.endsWith(".json")).length, 2_500);
+  assertEquals([...paths].filter((path) => path.endsWith(".bin")).length, 2_500);
+  assertEquals([...paths].filter((path) => path.endsWith(".md")).length, 2_500);
   assertEquals(ZIP_POLICY.zip64, "forbidden-under-frozen-bounds");
 });
 
@@ -105,21 +109,23 @@ Deno.test("archive v1 JavaScript and material Wasm produce identical complete ou
     ...new Uint32Array(
       (exports.memory as WebAssembly.Memory).buffer,
       (exports.counters_ptr as () => number)(),
-      13,
+      15,
     ),
   ];
   assertEquals(values, [
     10_000,
-    479_984,
-    479_984,
-    479_984,
+    1_038_404,
+    1_038_404,
+    427_105,
+    7_501,
+    611_299,
     10_000,
     10_000,
     10_000,
     0,
     10_000,
     10,
-    395,
+    905,
     3,
     js.archive.length,
   ]);

@@ -4,7 +4,7 @@ export const ZIP_POLICY = Object.freeze({
   algorithmFamily: "zip-fixed-deflate-metadata",
   compressionMethod: 8,
   deflateBlockType: "fixed-huffman",
-  lzPolicy: "literal-only",
+  lzPolicy: "greedy-nearest-match, 1,024-byte search window, 3..258-byte matches",
   level: 1,
   utf8Flag: 0x0800,
   dosTime: 0,
@@ -82,10 +82,140 @@ function fixedCode(symbol) {
   return [reverseBits(0xc0 + symbol - 280, 8), 8];
 }
 
-function deflateFixedLiterals(input) {
+const LENGTH_BASE = [
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10,
+  11,
+  13,
+  15,
+  17,
+  19,
+  23,
+  27,
+  31,
+  35,
+  43,
+  51,
+  59,
+  67,
+  83,
+  99,
+  115,
+  131,
+  163,
+  195,
+  227,
+  258,
+];
+const LENGTH_EXTRA = [
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  1,
+  1,
+  1,
+  1,
+  2,
+  2,
+  2,
+  2,
+  3,
+  3,
+  3,
+  3,
+  4,
+  4,
+  4,
+  4,
+  5,
+  5,
+  5,
+  5,
+  0,
+];
+const DIST_BASE = [
+  1,
+  2,
+  3,
+  4,
+  5,
+  7,
+  9,
+  13,
+  17,
+  25,
+  33,
+  49,
+  65,
+  97,
+  129,
+  193,
+  257,
+  385,
+  513,
+  769,
+  1025,
+  1537,
+  2049,
+  3073,
+  4097,
+  6145,
+  8193,
+  12289,
+  16385,
+  24577,
+];
+const DIST_EXTRA = [
+  0,
+  0,
+  0,
+  0,
+  1,
+  1,
+  2,
+  2,
+  3,
+  3,
+  4,
+  4,
+  5,
+  5,
+  6,
+  6,
+  7,
+  7,
+  8,
+  8,
+  9,
+  9,
+  10,
+  10,
+  11,
+  11,
+  12,
+  12,
+  13,
+  13,
+];
+
+function deflateFixed(input) {
   const out = [];
   let accumulator = 0;
   let bits = 0;
+  let literals = 0;
+  let matches = 0;
+  let matchedBytes = 0;
   const writeBits = (value, width) => {
     accumulator |= value << bits;
     bits += width;
@@ -95,16 +225,60 @@ function deflateFixedLiterals(input) {
       bits -= 8;
     }
   };
+  const writeSymbol = (symbol) => {
+    const [code, width] = fixedCode(symbol);
+    writeBits(code, width);
+  };
   writeBits(1, 1);
   writeBits(1, 2);
-  for (const byte of input) {
-    const [code, width] = fixedCode(byte);
-    writeBits(code, width);
+  let position = 0;
+  while (position < input.length) {
+    let bestLength = 0;
+    let bestDistance = 0;
+    const earliest = Math.max(0, position - 1024);
+    for (let candidate = position - 1; candidate >= earliest; candidate--) {
+      let length = 0;
+      while (
+        length < 258 && position + length < input.length &&
+        input[candidate + length] === input[position + length]
+      ) length++;
+      if (length >= 3 && length > bestLength) {
+        bestLength = length;
+        bestDistance = position - candidate;
+      }
+    }
+    if (bestLength >= 3) {
+      let lengthIndex = LENGTH_BASE.length - 1;
+      for (let index = 0; index < LENGTH_BASE.length; index++) {
+        const maximum = LENGTH_BASE[index] + ((1 << LENGTH_EXTRA[index]) - 1);
+        if (bestLength <= maximum) {
+          lengthIndex = index;
+          break;
+        }
+      }
+      writeSymbol(257 + lengthIndex);
+      if (LENGTH_EXTRA[lengthIndex]) {
+        writeBits(bestLength - LENGTH_BASE[lengthIndex], LENGTH_EXTRA[lengthIndex]);
+      }
+      let distanceIndex = 0;
+      while (distanceIndex + 1 < DIST_BASE.length && bestDistance >= DIST_BASE[distanceIndex + 1]) {
+        distanceIndex++;
+      }
+      writeBits(reverseBits(distanceIndex, 5), 5);
+      if (DIST_EXTRA[distanceIndex]) {
+        writeBits(bestDistance - DIST_BASE[distanceIndex], DIST_EXTRA[distanceIndex]);
+      }
+      matches++;
+      matchedBytes += bestLength;
+      position += bestLength;
+    } else {
+      writeSymbol(input[position++]);
+      literals++;
+    }
   }
-  const [end, endWidth] = fixedCode(256);
-  writeBits(end, endWidth);
+  writeSymbol(256);
   if (bits > 0) out.push(accumulator & 255);
-  return Uint8Array.from(out);
+  return { bytes: Uint8Array.from(out), literals, matches, matchedBytes };
 }
 
 function decodeFixedSymbol(readBits) {
@@ -142,9 +316,22 @@ function inflateFixedLiterals(input, expectedLength) {
   while (true) {
     const symbol = decodeFixedSymbol(readBits);
     if (symbol === 256) break;
-    invariant(symbol < 256, "LZ pairs are outside the frozen literal policy");
-    invariant(written < output.length, "inflated output overflow");
-    output[written++] = symbol;
+    if (symbol < 256) {
+      invariant(written < output.length, "inflated output overflow");
+      output[written++] = symbol;
+      continue;
+    }
+    invariant(symbol >= 257 && symbol <= 285, "invalid length symbol");
+    const lengthIndex = symbol - 257;
+    const length = LENGTH_BASE[lengthIndex] + readBits(LENGTH_EXTRA[lengthIndex]);
+    const distanceCode = reverseBits(readBits(5), 5);
+    invariant(distanceCode < DIST_BASE.length, "invalid distance symbol");
+    const distance = DIST_BASE[distanceCode] + readBits(DIST_EXTRA[distanceCode]);
+    invariant(distance <= written && written + length <= output.length, "invalid LZ match bounds");
+    for (let index = 0; index < length; index++) {
+      output[written] = output[written - distance];
+      written++;
+    }
   }
   invariant(written === expectedLength, "inflated length mismatch");
   return output;
@@ -175,19 +362,37 @@ export function pathFor(index) {
   );
   const group = String(Math.floor(index / 100)).padStart(3, "0");
   const leaf = String(index).padStart(5, "0");
-  const prefix = index % 997 === 0 ? "caf\u00e9" : index % 991 === 0 ? "\u6771\u4eac" : "src";
-  return `${prefix}/${group}/file-${leaf}.txt`;
+  const families = [
+    ["src", "module", "ts"],
+    ["data", "event", "json"],
+    ["assets", "blob", "bin"],
+    ["docs", "note", "md"],
+  ];
+  const [base, stem, extension] = families[index & 3];
+  const prefix = index % 997 === 0
+    ? `${base}/caf\u00e9`
+    : index % 991 === 0
+    ? `${base}/\u6771\u4eac`
+    : base;
+  return `${prefix}/${group}/${stem}-${leaf}.${extension}`;
 }
 
 export function contentFor(index) {
-  const length = 32 + (index % 33);
+  const length = 48 + (index % 113);
   const bytes = new Uint8Array(length);
   let state = (0x9e3779b9 ^ index) >>> 0;
+  const templates = [
+    "export const value = ",
+    '{"event":"workspace","value":',
+    "",
+    "# Workspace note ",
+  ];
+  const template = encoder.encode(templates[index & 3]);
   for (let i = 0; i < length; i++) {
     state ^= state << 13;
     state ^= state >>> 17;
     state ^= state << 5;
-    bytes[i] = (state >>> 24) ^ (i & 7) ^ (index & 255);
+    bytes[i] = (index & 3) === 2 ? ((state >>> 24) ^ (index & 255)) : template[i % template.length];
   }
   return bytes;
 }
@@ -205,12 +410,14 @@ export function buildArchive() {
   const archive = new Writer(2 * 1024 * 1024);
   const entries = [];
   let inputBytes = 0;
+  const counters = { deflateLiterals: 0, deflateMatches: 0, deflateMatchedBytes: 0 };
   for (let index = 0; index < ENTRY_COUNT; index++) {
     const nameText = pathFor(index);
     safePath(nameText);
     const name = encoder.encode(nameText);
     const content = contentFor(index);
-    const compressed = deflateFixedLiterals(content);
+    const deflated = deflateFixed(content);
+    const compressed = deflated.bytes;
     const crc = crc32(content);
     const localOffset = archive.length;
     archive.u32(0x04034b50);
@@ -234,6 +441,9 @@ export function buildArchive() {
       localOffset,
     });
     inputBytes += content.length;
+    counters.deflateLiterals += deflated.literals;
+    counters.deflateMatches += deflated.matches;
+    counters.deflateMatchedBytes += deflated.matchedBytes;
   }
   const centralOffset = archive.length;
   for (const entry of entries) {
@@ -275,7 +485,9 @@ export function buildArchive() {
       entries: ENTRY_COUNT,
       inputBytes,
       crcBytes: inputBytes,
-      deflateLiterals: inputBytes,
+      deflateLiterals: counters.deflateLiterals,
+      deflateMatches: counters.deflateMatches,
+      deflateMatchedBytes: counters.deflateMatchedBytes,
       deflateEndSymbols: ENTRY_COUNT,
       localHeaders: ENTRY_COUNT,
       centralHeaders: ENTRY_COUNT,

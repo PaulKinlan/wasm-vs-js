@@ -58,7 +58,7 @@ async function runWasm(wasm) {
   const archive = copy(exports.archive_ptr, exports.archive_length);
   const listing = copy(exports.listing_ptr, exports.listing_length);
   const extracted = copy(exports.extracted_ptr, exports.extracted_length);
-  const values = [...new Uint32Array(exports.memory.buffer, exports.counters_ptr(), 13)];
+  const values = [...new Uint32Array(exports.memory.buffer, exports.counters_ptr(), 15)];
   return {
     archive,
     listing,
@@ -68,15 +68,17 @@ async function runWasm(wasm) {
       inputBytes: values[1],
       crcBytes: values[2],
       deflateLiterals: values[3],
-      deflateEndSymbols: values[4],
-      localHeaders: values[5],
-      centralHeaders: values[6],
-      zip64Records: values[7],
-      listedEntries: values[8],
-      extractedEntries: values[9],
-      extractedBytes: values[10],
-      boundaryCrossings: values[11],
-      zipBytes: values[12],
+      deflateMatches: values[4],
+      deflateMatchedBytes: values[5],
+      deflateEndSymbols: values[6],
+      localHeaders: values[7],
+      centralHeaders: values[8],
+      zip64Records: values[9],
+      listedEntries: values[10],
+      extractedEntries: values[11],
+      extractedBytes: values[12],
+      boundaryCrossings: values[13],
+      zipBytes: values[14],
     },
   };
 }
