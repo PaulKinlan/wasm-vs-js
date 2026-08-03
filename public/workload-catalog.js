@@ -6,6 +6,37 @@ const priority = document.querySelector("#catalog-priority");
 const domain = document.querySelector("#catalog-domain");
 const status = document.querySelector("#catalog-status");
 
+const WORKLOAD_DEMO_ROUTES = {
+  "audio.fft.v1": "/benchmarks/audio-fft/",
+  "audio.fir.v1": "/benchmarks/audio-fir/",
+  "audio.stft.v1": "/benchmarks/audio-stft/",
+  "ml.gemm.v1": "/benchmarks/ml-gemm/",
+  "ml.dense-mlp.v1": "/benchmarks/ml-dense-mlp/",
+  "cad.parametric-bracket.v1": "/benchmarks/base/cad-parametric-bracket/",
+  "cad.mesh-repair.v1": "/demos/cad-mesh-repair-v1/",
+  "database.olap-chart.v1": "/benchmarks/base/database-olap-chart/",
+  "database.sqlite-notebook.v1": "/benchmarks/sqlite-notebook/",
+  "document.pdf-viewer.v1": "/benchmarks/document-pdf-viewer/",
+  "dom.todomvc-journey.v1": "/benchmarks/dom-todomvc-journey/",
+  "dom.virtualized-grid.v1": "/benchmarks/dom-virtualized-grid-v1/",
+  "archive.zip-workspace.v1": "/benchmarks/archive-zip-workspace-v1/",
+  "crypto.authenticated-stream.v1": "/benchmarks/crypto-authenticated-stream/",
+  "crypto.file-integrity.v1": "/demos/crypto.file-integrity.v1/",
+  "graphics.cpu-path-tracer.v1": "/benchmarks/graphics-cpu-path-tracer-v1/",
+  "graphics.gltf-viewer.v1": "/benchmarks/base/graphics-gltf-viewer/",
+  "simulation.nbody-cloth.v1": "/benchmarks/base/simulation-nbody/",
+  "simulation.rigid-body-2d.v1": "/benchmarks/simulation-rigid-body-2d-v1/",
+  "game.ecs-frame-update.v1": "/demos/game-ecs-frame-update/",
+  "game.canvas-arcade.v1": "/demos/game-canvas-arcade/",
+  "game.canvas-entity-pathfinding.v1": "/demos/game-canvas-entity-pathfinding/",
+  "game.dom-tactics-grid.v1": "/demos/game-dom-tactics-grid/",
+  "text.diff-patch.v1": "/demos/text.diff-patch.v1/",
+  "text.markdown-cms.v1": "/demos/text.markdown-cms.v1/",
+  "text.gc-document-edit.v1": "/benchmarks/text-gc-document-edit/",
+  "text.regex-log-scan.v1": "/benchmarks/text-regex-log-scan/",
+  "tooling.c-to-wasm-compile.v1": "/benchmarks/tooling-c-to-wasm-compile-v1/",
+};
+
 function element(name, text, className) {
   const node = document.createElement(name);
   if (text !== undefined) node.textContent = text;
@@ -99,7 +130,23 @@ function renderEntry(entry) {
   prior.append(priorList);
   body.append(contract, modes, phaseSection, inputs, engineering, prior);
   details.append(body);
-  card.append(header, story, work, details);
+
+  const actions = element("div", undefined, "catalog-actions");
+  const route = WORKLOAD_DEMO_ROUTES[entry.id];
+  if (route) {
+    const runBtn = element("a", "⚡ Run Benchmark Demo", "btn-run-catalog");
+    runBtn.href = route;
+    actions.append(runBtn);
+  } else {
+    const blockedBadge = element(
+      "span",
+      "🔒 Documented Blocker (See Record)",
+      "badge-blocked-catalog",
+    );
+    actions.append(blockedBadge);
+  }
+
+  card.append(header, story, work, actions, details);
   return card;
 }
 
