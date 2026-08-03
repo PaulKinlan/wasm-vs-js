@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.ai-focus.dev/schemas/cad-mesh-repair-contract.v1.json",
+  "title": "CAD mesh repair implementation contract v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "catalogId",
+    "status",
+    "frozenCatalogSha256",
+    "fixture",
+    "policy",
+    "work",
+    "targets",
+    "performanceClaims"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "catalogId": { "const": "cad.mesh-repair.v1" },
+    "status": { "const": "supplemental-controlled-implementation" },
+    "frozenCatalogSha256": { "$ref": "#/$defs/sha256" },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "license",
+        "seed",
+        "grid",
+        "sourceFaces",
+        "validFaces",
+        "degenerateFaces"
+      ],
+      "properties": {
+        "kind": { "const": "project-generated-binary-stl" },
+        "license": { "const": "CC0-1.0" },
+        "seed": { "const": "0x4d455348" },
+        "grid": { "const": 32 },
+        "sourceFaces": { "const": 2112 },
+        "validFaces": { "const": 2048 },
+        "degenerateFaces": { "const": 64 }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "coordinate",
+        "weld",
+        "degenerate",
+        "orientation",
+        "manifold",
+        "volume",
+        "simplification",
+        "targetFaces",
+        "serialization"
+      ],
+      "properties": {
+        "coordinate": { "type": "string", "pattern": "f32.*f32.*half away from zero" },
+        "weld": { "type": "string", "pattern": "^linear first-match scan" },
+        "degenerate": { "type": "string", "minLength": 1 },
+        "orientation": { "type": "string", "minLength": 1 },
+        "manifold": { "type": "string", "pattern": "linearly compare every" },
+        "volume": { "type": "string", "minLength": 1 },
+        "simplification": { "type": "string", "pattern": "linearly weld by first match" },
+        "targetFaces": { "const": 1024 },
+        "serialization": { "type": "string", "pattern": "^20 little-endian i32 header words" }
+      }
+    },
+    "work": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "equivalentCounters",
+        "targetSpecificCounters",
+        "comparisonUnit",
+        "allocationUnit"
+      ],
+      "properties": {
+        "equivalentCounters": { "$ref": "#/$defs/equivalentCounters" },
+        "targetSpecificCounters": {
+          "type": "array",
+          "prefixItems": [{ "const": "boundaryCrossings" }, { "const": "operativeAllocations" }],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "comparisonUnit": { "type": "string", "minLength": 1 },
+        "allocationUnit": { "type": "string", "minLength": 1 }
+      }
+    },
+    "targets": {
+      "type": "array",
+      "prefixItems": [{ "const": "js-controlled" }, { "const": "wasm-linear-controlled" }],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "performanceClaims": { "type": "array", "maxItems": 0 }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "equivalentCounters": {
+      "type": "array",
+      "prefixItems": [
+        { "const": "sourceFaces" },
+        { "const": "vertexReferences" },
+        { "const": "vertexWeldComparisons" },
+        { "const": "weldedVertices" },
+        { "const": "removedDegenerates" },
+        { "const": "orientedFaces" },
+        { "const": "flippedFaces" },
+        { "const": "cleanEdgeComparisons" },
+        { "const": "simplificationWeldComparisons" },
+        { "const": "simplifiedEdgeComparisons" },
+        { "const": "uniqueEdges" },
+        { "const": "simplifiedFaces" },
+        { "const": "simplifiedVertices" },
+        { "const": "collapsedVertices" },
+        { "const": "volumeTerms" },
+        { "const": "targetFaces" }
+      ],
+      "items": false,
+      "minItems": 16,
+      "maxItems": 16
+    }
+  }
+}
