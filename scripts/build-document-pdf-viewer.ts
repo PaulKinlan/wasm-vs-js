@@ -135,11 +135,21 @@ for (let index = 0; index < glyphEntries.length; index++) {
   }
   objects.set(objectId, ascii(`<< /Length ${commands.length} >>\nstream\n${commands}endstream`));
 }
+const toUnicodeObject = 206 + glyphEntries.length;
+let unicodeMappings = "";
+for (const [character] of glyphEntries) {
+  unicodeMappings += `<${character.charCodeAt(0).toString(16).padStart(2, "0")}> <${
+    character.charCodeAt(0).toString(16).padStart(4, "0")
+  }>\n`;
+}
+const cmap =
+  `/CIDInit /ProcSet findresource begin\n12 dict begin\nbegincmap\n/CIDSystemInfo << /Registry (PDFBase) /Ordering (Unicode) /Supplement 0 >> def\n/CMapName /PDFBaseUnicode def\n/CMapType 2 def\n1 begincodespacerange\n<00> <7f>\nendcodespacerange\n${glyphEntries.length} beginbfchar\n${unicodeMappings}endbfchar\nendcmap\nCMapName currentdict /CMap defineresource pop\nend\nend\n`;
+objects.set(toUnicodeObject, ascii(`<< /Length ${cmap.length} >>\nstream\n${cmap}endstream`));
 const widths = Array.from({ length: 95 }, () => "6").join(" ");
 objects.set(
   3,
   ascii(
-    `<< /Type /Font /Subtype /Type3 /FontBBox [0 0 6 7] /FontMatrix [0.1666667 0 0 0.142857 0 0] /Encoding << /Type /Encoding /BaseEncoding /WinAnsiEncoding /Differences [${differences}] >> /CharProcs << ${charProcs} >> /FirstChar 32 /LastChar 126 /Widths [${widths}] /PDFBaseBitmap 2 0 R >>`,
+    `<< /Type /Font /Subtype /Type3 /FontBBox [0 0 6 7] /FontMatrix [0.1666667 0 0 0.142857 0 0] /Encoding << /Type /Encoding /BaseEncoding /WinAnsiEncoding /Differences [${differences}] >> /CharProcs << ${charProcs} >> /FirstChar 32 /LastChar 126 /Widths [${widths}] /ToUnicode ${toUnicodeObject} 0 R /PDFBaseBitmap 2 0 R >>`,
   ),
 );
 const kids = Array.from({ length: 100 }, (_, i) => `${5 + i * 2} 0 R`).join(" ");
@@ -158,7 +168,7 @@ for (let i = 1; i <= 100; i++) {
   const stream = `BT /F1 18 Tf 36 750 Td (${text}) Tj ET`;
   objects.set(contentObject, ascii(`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`));
 }
-const maxObject = 205 + glyphEntries.length;
+const maxObject = toUnicodeObject;
 const chunks: Uint8Array[] = [ascii("%PDF-1.7\n%PDFBase generated report\n")];
 const offsets = new Uint32Array(maxObject + 1);
 let byteLength = chunks[0].length;
