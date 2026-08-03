@@ -388,6 +388,10 @@ Deno.test("browser collector has closed schema, exact trust roots, CDP AX hooks,
       "Accessibility.getPartialAXTree",
       '"--enable-automation"',
       "CDP command line omitted an exact launch argument",
+      "Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value')",
+      "select.dispatchEvent(new Event('input', { bubbles: true, composed: true }))",
+      "select.dispatchEvent(new Event('change', { bubbles: true, composed: true }))",
+      "control-state timeout",
       "canonicalDomSha256",
       "assertCompleteNetwork(network)",
       "collector HEAD is not clean",
@@ -398,6 +402,11 @@ Deno.test("browser collector has closed schema, exact trust roots, CDP AX hooks,
       "closed evidence schema rejected collection",
     ]
   ) assert(script.includes(required), required);
+  assert(!script.includes("document.querySelector('#target').value="));
+  const selectTargetAt = script.indexOf("await selectTarget(client, sessionId, scenario.target)");
+  const startClickAt = script.indexOf('await click(client, sessionId, "#start")', selectTargetAt);
+  assert(selectTargetAt >= 0 && startClickAt > selectTargetAt);
+  assert((script.match(/await waitControls\(/g) ?? []).length >= 9);
   await assertRejects(
     () => Deno.readTextFile("artifacts/base-dom-todomvc-browser-evidence.json"),
     "No such file",

@@ -158,22 +158,79 @@ async function evaluate(client: CdpClient, sessionId: string, expression: string
   }, sessionId);
   return (response.result as { value: unknown }).value;
 }
-async function waitStatus(
+type ControlExpectation = {
+  selected?: string;
+  startDisabled: boolean;
+  cancelDisabled: boolean;
+  workerActive: boolean;
+  statusIncludes: string;
+};
+type ControlState = {
+  initialized: boolean;
+  selected: string;
+  startDisabled: boolean;
+  cancelDisabled: boolean;
+  workerActive: boolean;
+  status: string;
+};
+async function waitControls(
   client: CdpClient,
   sessionId: string,
-  includes: string,
+  expected: ControlExpectation,
   timeout = 35_000,
 ) {
   const deadline = Date.now() + timeout;
-  let value = "";
+  let state: ControlState | null = null;
   while (Date.now() < deadline) {
-    value = String(
-      await evaluate(client, sessionId, "document.querySelector('#status').textContent"),
-    );
-    if (value.includes(includes)) return value;
+    state = await evaluate(
+      client,
+      sessionId,
+      `(() => ({
+        initialized: typeof __baseTodoTest === "object",
+        selected: document.querySelector('#target')?.value ?? "",
+        startDisabled: document.querySelector('#start')?.disabled ?? true,
+        cancelDisabled: document.querySelector('#cancel')?.disabled ?? true,
+        workerActive: typeof __baseTodoTest === "object" && __baseTodoTest.workerActive(),
+        status: document.querySelector('#status')?.textContent ?? ""
+      }))()`,
+    ) as ControlState;
+    if (
+      state.initialized &&
+      (expected.selected === undefined || state.selected === expected.selected) &&
+      state.startDisabled === expected.startDisabled &&
+      state.cancelDisabled === expected.cancelDisabled &&
+      state.workerActive === expected.workerActive &&
+      state.status.includes(expected.statusIncludes)
+    ) return state;
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
-  throw new Error(`status timeout: ${value}`);
+  throw new Error(`control-state timeout: ${JSON.stringify({ expected, state })}`);
+}
+async function selectTarget(
+  client: CdpClient,
+  sessionId: string,
+  variantId: string,
+) {
+  await evaluate(
+    client,
+    sessionId,
+    `(() => {
+      const select = document.querySelector('#target');
+      const setter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value')?.set;
+      if (!select || !setter) throw new Error('target select setter absent');
+      select.focus();
+      setter.call(select, ${JSON.stringify(variantId)});
+      select.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+      select.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
+    })()`,
+  );
+  return await waitControls(client, sessionId, {
+    selected: variantId,
+    startDisabled: false,
+    cancelDisabled: true,
+    workerActive: false,
+    statusIncludes: "Ready.",
+  });
 }
 async function axName(
   client: CdpClient,
@@ -381,13 +438,21 @@ try {
     await client.send("Page.navigate", {
       url: `${origin}/benchmarks/base-dom-todomvc-journey/?demo-test=1`,
     }, sessionId);
-    await waitStatus(client, sessionId, "Ready.");
-    await evaluate(
-      client,
-      sessionId,
-      `document.querySelector('#target').value=${JSON.stringify(scenario.target)}`,
-    );
+    await waitControls(client, sessionId, {
+      startDisabled: false,
+      cancelDisabled: true,
+      workerActive: false,
+      statusIncludes: "Ready.",
+    });
+    await selectTarget(client, sessionId, scenario.target);
     await click(client, sessionId, "#start");
+    await waitControls(client, sessionId, {
+      selected: scenario.target,
+      startDisabled: true,
+      cancelDisabled: false,
+      workerActive: true,
+      statusIncludes: "Running",
+    });
     let result: Record<string, unknown> | null = null;
     let ax: Array<{ id: number; checkboxName: string; removeName: string }> | null = null;
     const lifecycle = {
@@ -399,7 +464,14 @@ try {
     };
     let finalStatus: string;
     if (scenario.action === "complete") {
-      finalStatus = await waitStatus(client, sessionId, "Complete.");
+      const completed = await waitControls(client, sessionId, {
+        selected: scenario.target,
+        startDisabled: false,
+        cancelDisabled: true,
+        workerActive: false,
+        statusIncludes: "Complete.",
+      });
+      finalStatus = completed.status;
       result = await evaluate(
         client,
         sessionId,
@@ -407,7 +479,14 @@ try {
       ) as Record<string, unknown>;
     } else if (scenario.action === "lifecycle") {
       await click(client, sessionId, "#cancel");
-      finalStatus = await waitStatus(client, sessionId, "Cancelled.");
+      const cancelled = await waitControls(client, sessionId, {
+        selected: scenario.target,
+        startDisabled: false,
+        cancelDisabled: true,
+        workerActive: false,
+        statusIncludes: "Cancelled.",
+      });
+      finalStatus = cancelled.status;
       lifecycle.cancelled = true;
       const stale = await evaluate(
         client,
@@ -416,8 +495,29 @@ try {
       ) as { ignored: boolean; absent: boolean };
       lifecycle.staleIgnored = stale.ignored;
       lifecycle.workerAbsentAfterCancel = stale.absent;
+      await waitControls(client, sessionId, {
+        selected: scenario.target,
+        startDisabled: false,
+        cancelDisabled: true,
+        workerActive: false,
+        statusIncludes: "Cancelled.",
+      });
       await click(client, sessionId, "#start");
-      finalStatus = await waitStatus(client, sessionId, "Complete.");
+      await waitControls(client, sessionId, {
+        selected: scenario.target,
+        startDisabled: true,
+        cancelDisabled: false,
+        workerActive: true,
+        statusIncludes: "Running",
+      });
+      const restarted = await waitControls(client, sessionId, {
+        selected: scenario.target,
+        startDisabled: false,
+        cancelDisabled: true,
+        workerActive: false,
+        statusIncludes: "Complete.",
+      });
+      finalStatus = restarted.status;
       lifecycle.restartCompleted = true;
       result = await evaluate(
         client,
@@ -432,9 +532,14 @@ try {
           "(() => { window.dispatchEvent(new PageTransitionEvent('pagehide')); return !__baseTodoTest.workerActive(); })()",
         ),
       );
-      finalStatus = String(
-        await evaluate(client, sessionId, "document.querySelector('#status').textContent"),
-      );
+      const hidden = await waitControls(client, sessionId, {
+        selected: scenario.target,
+        startDisabled: true,
+        cancelDisabled: false,
+        workerActive: false,
+        statusIncludes: "Running",
+      });
+      finalStatus = hidden.status;
     }
     if (result) {
       const ids = (result.canonicalDom as Array<{ id: number }>).map(({ id }) => id);
