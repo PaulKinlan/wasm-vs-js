@@ -13,6 +13,11 @@ async function hash(bytes) {
     x.toString(16).padStart(2, "0")
   ).join("");
 }
+function base64(bytes) {
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
 self.onmessage = async ({ data }) => {
   const { token, target } = data;
   try {
@@ -40,6 +45,7 @@ self.onmessage = async ({ data }) => {
         target,
         outputSha256,
         outputBytes: value.bytes.length,
+        outputBase64: base64(value.bytes),
         counters: value.counters,
         invariants: value.invariants,
       },

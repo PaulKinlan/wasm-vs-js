@@ -26,7 +26,10 @@ function finish(message) {
   cancel.disabled = true;
   progress.value = 1;
   status.textContent = "Complete.";
-  result.textContent = JSON.stringify(message.result, null, 2);
+  globalThis.__cadMeshEvidenceResult = structuredClone(message.result);
+  const displayResult = structuredClone(message.result);
+  delete displayResult.outputBase64;
+  result.textContent = JSON.stringify(displayResult, null, 2);
 }
 form.addEventListener("submit", (event) => {
   event.preventDefault();
