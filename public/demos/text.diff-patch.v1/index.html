@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>Unicode line diff demo | Wasm versus JavaScript</title>
+    <meta name="description"
+      content="Run the text.diff-patch.v1 controlled JavaScript or authored linear-WebAssembly engine on bounded text.">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="/text-demo.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#content">Skip to content</a>
+    <header
+      class="masthead"><a class="brand" href="/">Wasm versus JavaScript</a><a href="/benchmarks/">Catalog</a></header>
+    <main id="content" class="narrative" tabindex="-1">
+      <p class="eyebrow">Runnable correctness demo · text.diff-patch.v1</p>
+      <h1>Unicode line diff and patch</h1>
+      <p
+        class="notice"><strong>No performance claim.</strong> This bounded demo runs one target in a worker and checks that its canonical script recreates the target. It does not upload or store the source or result.</p>
+      <form data-worker="/text-diff-patch-worker.js">
+        <fieldset><legend>Controlled target</legend><label for="variant">Engine<select id="variant" name="variant"><option value="js-controlled">JavaScript controlled</option><option value="wasm-linear-controlled">Linear Wasm controlled</option></select></label></fieldset>
+        <p id="limits"
+          class="hint">Each document accepts at most 16,384 UTF-8 bytes and 512 lines. The worker stops after 10 seconds.</p>
+        <div class="demo-grid">
+          <label
+            for="base">Base document<textarea id="base" name="base" rows="10" maxlength="16384" aria-describedby="limits" required>Café
+東京
+old line
+🚀</textarea></label>
+          <label
+            for="target">Target document<textarea id="target" name="target" rows="10" maxlength="16384" aria-describedby="limits" required>Café
+東京
+new line
+🚀</textarea></label>
+        </div>
+        <div
+          class="actions"><button id="start" type="submit">Start</button><button id="cancel" type="button" disabled>Cancel</button></div>
+      </form>
+      <h2>Text result</h2>
+      <p id="status" aria-live="polite">Ready.</p>
+      <pre id="output" class="demo-output" tabindex="0">No result yet.</pre>
+      <h2>What runs</h2>
+      <p>Both targets intern UTF-8 lines, execute Myers O(ND), choose deletion before insertion on a tied frontier, encode the complete script, apply it, and compare every output line. The Wasm option fetches the authored <a href="/artifacts/text-diff-patch/text-diff-patch.wasm">linear-memory artifact</a>.</p>
+    </main>
+  </body>
+</html>

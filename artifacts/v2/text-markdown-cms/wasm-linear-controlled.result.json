@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "contractId": "text-v2-proposal-validation-v1",
+  "status": "proposal-validation-only",
+  "workload": {
+    "entryId": "text.markdown-cms.v1",
+    "benchmarkSlug": "text-markdown-cms",
+    "variant": {
+      "id": "wasm-linear-controlled",
+      "target": "wasm-linear",
+      "track": "controlled"
+    }
+  },
+  "correctness": {
+    "status": "passed",
+    "oracle": "per-document-canonical-html-digest-and-invariants",
+    "outputManifestSha256": "862c5763576b14af86c40028c96bee12ae7bdcb530527df6bbcbea1804304bfd"
+  },
+  "provenance": {
+    "buildManifest": "public/artifacts/text-markdown-cms/build-manifest.json",
+    "fixtureManifest": "public/artifacts/text-markdown-cms/fixture-manifest.json",
+    "outputManifest": "public/artifacts/text-markdown-cms/output-manifest.json"
+  },
+  "performanceClaims": []
+}

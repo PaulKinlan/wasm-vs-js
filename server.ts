@@ -129,6 +129,71 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/benchmarks", ["public/benchmarks/index.html", "text/html; charset=utf-8"]],
   ["/benchmarks/", ["public/benchmarks/index.html", "text/html; charset=utf-8"]],
   ["/workload-catalog.js", ["public/workload-catalog.js", "text/javascript; charset=utf-8"]],
+  ["/demos/text.diff-patch.v1", [
+    "public/demos/text.diff-patch.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/demos/text.diff-patch.v1/", [
+    "public/demos/text.diff-patch.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/demos/text.markdown-cms.v1", [
+    "public/demos/text.markdown-cms.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/demos/text.markdown-cms.v1/", [
+    "public/demos/text.markdown-cms.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/text-demo.js", ["public/text-demo.js", "text/javascript; charset=utf-8"]],
+  ["/text-diff-patch-worker.js", [
+    "public/text-diff-patch-worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/text-markdown-cms-worker.js", [
+    "public/text-markdown-cms-worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/v2/text-diff-patch/workload.js", [
+    "benchmarks/v2/text-diff-patch/workload.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/v2/text-markdown-cms/workload.js", [
+    "benchmarks/v2/text-markdown-cms/workload.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/artifacts/text-diff-patch/text-diff-patch.wasm", [
+    "public/artifacts/text-diff-patch/text-diff-patch.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/text-diff-patch/build-manifest.json", [
+    "public/artifacts/text-diff-patch/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/text-diff-patch/fixture-manifest.json", [
+    "public/artifacts/text-diff-patch/fixture-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/text-diff-patch/output-manifest.json", [
+    "public/artifacts/text-diff-patch/output-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/text-markdown-cms/text-markdown-cms.wasm", [
+    "public/artifacts/text-markdown-cms/text-markdown-cms.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/text-markdown-cms/build-manifest.json", [
+    "public/artifacts/text-markdown-cms/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/text-markdown-cms/fixture-manifest.json", [
+    "public/artifacts/text-markdown-cms/fixture-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/text-markdown-cms/output-manifest.json", [
+    "public/artifacts/text-markdown-cms/output-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/data/workloads.v1.json", [
     "public/data/workloads.v1.json",
     "application/json; charset=utf-8",

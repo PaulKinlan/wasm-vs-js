@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "contractId": "text-v2-proposal-validation-v1",
+  "status": "proposal-validation-only",
+  "workload": {
+    "entryId": "text.diff-patch.v1",
+    "benchmarkSlug": "text-diff-patch",
+    "variant": {
+      "id": "wasm-linear-controlled",
+      "target": "wasm-linear",
+      "track": "controlled"
+    }
+  },
+  "correctness": {
+    "status": "passed",
+    "oracle": "exact-script-digest-plus-apply",
+    "outputManifestSha256": "0c6200a80a953f97c111daafacf245426f57aaf5f126d92d2950256cf3628553"
+  },
+  "provenance": {
+    "buildManifest": "public/artifacts/text-diff-patch/build-manifest.json",
+    "fixtureManifest": "public/artifacts/text-diff-patch/fixture-manifest.json",
+    "outputManifest": "public/artifacts/text-diff-patch/output-manifest.json"
+  },
+  "performanceClaims": []
+}

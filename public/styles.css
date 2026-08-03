@@ -229,6 +229,25 @@ textarea {
   font-size: .85rem;
   resize: vertical;
 }
+.demo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: 1rem;
+}
+.demo-grid label {
+  display: grid;
+  gap: .35rem;
+  font-weight: 650;
+}
+.demo-output {
+  max-height: 32rem;
+  overflow: auto;
+  padding: 1rem;
+  border: 1px solid var(--rule);
+  background: var(--raised);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 fieldset {
   border: 1px solid var(--rule);
   display: grid;
