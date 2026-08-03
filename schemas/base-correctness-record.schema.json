@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.example/schemas/base-correctness-record.schema.json",
+  "title": "Base workload correctness record",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "recordId",
+    "workloadId",
+    "status",
+    "targets",
+    "exactRegisteredKernels",
+    "completeOutputCompared",
+    "retainedBrowserEvidence",
+    "sourceHashes",
+    "outputs",
+    "limitations"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "recordId": { "type": "string", "minLength": 1 },
+    "workloadId": { "type": "string", "pattern": "^[a-z0-9.-]+\\.v1$" },
+    "status": { "enum": ["passed-static-and-runtime-correctness", "accepted"] },
+    "targets": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "items": { "enum": ["javascript-controlled", "linear-wasm-controlled"] }
+    },
+    "exactRegisteredKernels": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string" }
+    },
+    "completeOutputCompared": { "const": true },
+    "retainedBrowserEvidence": { "enum": ["uncollected", "collected-passed"] },
+    "sourceHashes": {
+      "type": "object",
+      "required": ["contract", "workload", "wat", "frozenCatalog", "artifact"],
+      "additionalProperties": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+    },
+    "outputs": { "type": "object", "minProperties": 1 },
+    "limitations": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": false
+}

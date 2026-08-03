@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "recordId": "numeric.polybench-panel.v1.correctness.candidate.v1",
+  "workloadId": "numeric.polybench-panel.v1",
+  "status": "passed-static-and-runtime-correctness",
+  "targets": [
+    "javascript-controlled",
+    "linear-wasm-controlled"
+  ],
+  "exactRegisteredKernels": [
+    "gemm",
+    "cholesky",
+    "stencil",
+    "jacobi2d"
+  ],
+  "completeOutputCompared": true,
+  "retainedBrowserEvidence": "uncollected",
+  "sourceHashes": {
+    "contract": "3364d47248f47a9bce714a5bc79ddc647e31baccb3647ac52570f7ded7fc498b",
+    "workload": "cb0ece36e8a0d52dc6a01bf0bf8be52e524a81efbb0cc0e3d5e3f2cbe6c97889",
+    "wat": "5246130f81fdae68afd8ea562a847283360cfe3b4b316847cd60d843b0ae4d0c",
+    "frozenCatalog": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+    "artifact": "a55a381c29923df334c25af92bb79e5e44cfdc1a9b330899c3538fac37a1b3dc"
+  },
+  "outputs": {
+    "gemm": {
+      "fixtureSha256": "5d42ffb496fb48013d7e461b49836d9b8baabc4847b2d07c0f4aba5abf2e5e74",
+      "jsOutputSha256": "055c9d69c98e0ab7529a38d83e18e18d9b960c637ba77c4aec2477b14c279892",
+      "wasmOutputSha256": "055c9d69c98e0ab7529a38d83e18e18d9b960c637ba77c4aec2477b14c279892",
+      "elementCount": 500,
+      "comparison": {
+        "passed": true,
+        "violations": 0,
+        "maxAbs": 0,
+        "maxRel": 0
+      },
+      "counters": {
+        "kernels": 1,
+        "outputElements": 500,
+        "multiplyAdds": 15000,
+        "scaleMultiplications": 500,
+        "inputBytes": 14800,
+        "boundaryCrossings": 1
+      }
+    },
+    "cholesky": {
+      "fixtureSha256": "3390fcd65779f8693f5f642b5191d8c7d336b05e415aa97b4bd2a5d6aecd59f5",
+      "jsOutputSha256": "14f43fb479b27d02ab370d472aa179abb3a0a96f540541a85b5b0617f1e2bfbf",
+      "wasmOutputSha256": "14f43fb479b27d02ab370d472aa179abb3a0a96f540541a85b5b0617f1e2bfbf",
+      "elementCount": 1600,
+      "comparison": {
+        "passed": true,
+        "violations": 0,
+        "maxAbs": 0,
+        "maxRel": 0
+      },
+      "counters": {
+        "kernels": 1,
+        "outputElements": 1600,
+        "multiplySubtracts": 10660,
+        "diagonalRoots": 40,
+        "inputBytes": 12800,
+        "boundaryCrossings": 1
+      }
+    },
+    "stencil": {
+      "fixtureSha256": "dcf28cc0dfda5899774be7065a9fbcdde83b337550304e42d8ba8362a91a94d7",
+      "jsOutputSha256": "4e68c9e2c139647c6a694e2adca603da3837754e2844c63e5eef292d413a21d4",
+      "wasmOutputSha256": "4e68c9e2c139647c6a694e2adca603da3837754e2844c63e5eef292d413a21d4",
+      "elementCount": 900,
+      "comparison": {
+        "passed": true,
+        "violations": 0,
+        "maxAbs": 0,
+        "maxRel": 0
+      },
+      "counters": {
+        "kernels": 1,
+        "outputElements": 900,
+        "stencilPoints": 784,
+        "inputBytes": 7200,
+        "boundaryCrossings": 1
+      }
+    },
+    "jacobi2d": {
+      "fixtureSha256": "dcf28cc0dfda5899774be7065a9fbcdde83b337550304e42d8ba8362a91a94d7",
+      "jsOutputSha256": "ab8d74d94e755eddec10c2f795efc63e5e36898938f697b4562252cf5f697681",
+      "wasmOutputSha256": "ab8d74d94e755eddec10c2f795efc63e5e36898938f697b4562252cf5f697681",
+      "elementCount": 900,
+      "comparison": {
+        "passed": true,
+        "violations": 0,
+        "maxAbs": 0,
+        "maxRel": 0
+      },
+      "counters": {
+        "kernels": 1,
+        "outputElements": 900,
+        "stencilPoints": 31360,
+        "inputBytes": 7200,
+        "boundaryCrossings": 1
+      }
+    }
+  },
+  "limitations": [
+    "No performance evidence or claim.",
+    "Owned-browser evidence remains an independent acceptance-controller step."
+  ]
+}

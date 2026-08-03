@@ -224,6 +224,50 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/artifacts/text-markdown-cms/output-manifest.json",
     "application/json; charset=utf-8",
   ]],
+  ["/demos/numeric.polybench-panel.v1", [
+    "public/demos/numeric.polybench-panel.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/demos/numeric.polybench-panel.v1/", [
+    "public/demos/numeric.polybench-panel.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/polybench-panel-demo.js", [
+    "public/polybench-panel-demo.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/polybench-panel-worker.js", [
+    "public/polybench-panel-worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/numeric-polybench-panel/workload.js", [
+    "benchmarks/base/numeric-polybench-panel/workload.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/numeric-polybench-panel/contract.json", [
+    "benchmarks/base/numeric-polybench-panel/contract.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/numeric-polybench-panel/polybench-panel.wasm", [
+    "public/artifacts/numeric-polybench-panel/polybench-panel.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/numeric-polybench-panel/build-manifest.json", [
+    "public/artifacts/numeric-polybench-panel/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base/numeric-polybench-panel/correctness-record.json", [
+    "evidence/base/numeric-polybench-panel/correctness-record.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/schemas/base-workload-contract.schema.json", [
+    "schemas/base-workload-contract.schema.json",
+    "application/schema+json; charset=utf-8",
+  ]],
+  ["/schemas/base-correctness-record.schema.json", [
+    "schemas/base-correctness-record.schema.json",
+    "application/schema+json; charset=utf-8",
+  ]],
   ["/data/workloads.v1.json", [
     "public/data/workloads.v1.json",
     "application/json; charset=utf-8",
