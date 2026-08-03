@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "kind": "base-workload-implementation-registration",
+  "status": "implementation-candidate-independent-review-required",
+  "authoritativePerformanceEvidence": false,
+  "frozenCatalog": {
+    "id": "workload-catalog-v1",
+    "entryId": "audio.webaudio-effects.v1",
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4"
+  },
+  "implementation": {
+    "id": "audio-webaudio-effects-controlled-v1",
+    "track": "controlled",
+    "targets": [
+      "javascript",
+      "wasm-linear"
+    ],
+    "algorithmFamily": "dsp-fixed-block-effects-chain",
+    "exactFixedWork": {
+      "sampleRate": 48000,
+      "seconds": 60,
+      "channels": 2,
+      "frames": 2880000,
+      "blockFrames": 128,
+      "blocksPerChannel": 22500,
+      "blockInvocations": 45000,
+      "tailFlushFramesPerChannel": 15
+    },
+    "fpPolicy": "strict-f32-frozen-operation-order",
+    "nativeWebAudio": "separate-host-product-baseline-not-executed"
+  },
+  "artifacts": {
+    "fixtureManifest": "/artifacts/base-audio-webaudio-effects-v1/fixture-manifest.json",
+    "outputManifest": "/artifacts/base-audio-webaudio-effects-v1/output-manifest.json",
+    "buildManifest": "/artifacts/base-audio-webaudio-effects-v1/build-manifest.json",
+    "wasm": "/artifacts/base-audio-webaudio-effects-v1/audio-webaudio-effects.wasm"
+  },
+  "demoRoute": "/benchmarks/base/audio-webaudio-effects-v1/"
+}

@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "entryId": "audio.webaudio-effects.v1",
+  "completeOutput": true,
+  "serialization": "interleaved stereo little-endian f32, signed zero normalized positive",
+  "frames": 2880015,
+  "samples": 5760030,
+  "bytes": 23040120,
+  "jsSha256": "fba0623a3af7679b1e95b79c7f454c38e1ac2123de5ebf3a7a86bc43bff16550",
+  "wasmSha256": "fba0623a3af7679b1e95b79c7f454c38e1ac2123de5ebf3a7a86bc43bff16550",
+  "exactCrossTarget": true,
+  "oracle": {
+    "kind": "full-output-f64-tolerance",
+    "absoluteTolerance": 0.00002,
+    "relativeTolerance": 0.0002,
+    "maxAbsolute": 0.0000018638636976597844,
+    "maxRelative": 0.24027635719300827,
+    "violations": 0,
+    "nonFinite": 0
+  },
+  "checkpoints": [
+    {
+      "frame": 0,
+      "left": 0.1291075497865677,
+      "right": -0.09683066606521606
+    },
+    {
+      "frame": 1,
+      "left": 0.28010237216949463,
+      "right": -0.21007679402828217
+    },
+    {
+      "frame": 127,
+      "left": 0.06398247182369232,
+      "right": -0.04798685014247894
+    },
+    {
+      "frame": 128,
+      "left": 0.06398247182369232,
+      "right": -0.04798685014247894
+    },
+    {
+      "frame": 11999,
+      "left": 0.06398247182369232,
+      "right": -0.04798685014247894
+    },
+    {
+      "frame": 12000,
+      "left": 0.08334861695766449,
+      "right": -0.06251145154237747
+    },
+    {
+      "frame": 23999,
+      "left": 0.1599561721086502,
+      "right": -0.11996712535619736
+    },
+    {
+      "frame": 24000,
+      "left": 0.16628079116344452,
+      "right": -0.1248086616396904
+    },
+    {
+      "frame": 35999,
+      "left": 0.16795417666435242,
+      "right": -0.14471033215522766
+    },
+    {
+      "frame": 36000,
+      "left": 0.11149860918521881,
+      "right": -0.09604216367006302
+    },
+    {
+      "frame": 47999,
+      "left": -0.12796509265899658,
+      "right": 0.09597370028495789
+    },
+    {
+      "frame": 48000,
+      "left": -0.10191112011671066,
+      "right": 0.07686372101306915
+    },
+    {
+      "frame": 527999,
+      "left": 0.14273861050605774,
+      "right": 0.21220146119594574
+    },
+    {
+      "frame": 528000,
+      "left": 0.07102963328361511,
+      "right": 0.15486867725849152
+    },
+    {
+      "frame": 2879999,
+      "left": 0.010613025166094303,
+      "right": -0.06861865520477295
+    },
+    {
+      "frame": 2880014,
+      "left": -0.00010720954742282629,
+      "right": -0.00034755998058244586
+    }
+  ]
+}

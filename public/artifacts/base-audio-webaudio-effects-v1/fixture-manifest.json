@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "entryId": "audio.webaudio-effects.v1",
+  "status": "supplemental-controlled-implementation",
+  "rights": {
+    "owner": "Paul Kinlan / wasm-vs-js project",
+    "licenseSpdx": "CC0-1.0",
+    "redistribution": "permitted",
+    "source": "generated solely by the committed project generator; no recorded audio or third-party IR"
+  },
+  "generator": {
+    "revision": "d2cc45cd9080a03afb6fb1964c9e4b6333a50b0f",
+    "seed": "0x51f15e5d",
+    "sampleRate": 48000,
+    "frames": 2880000,
+    "channels": 2,
+    "segments": [
+      "1 s impulse/DC/threshold",
+      "10 s deterministic sweep",
+      "49 s xorshift32 noise"
+    ]
+  },
+  "serialization": "planar little-endian f32: complete left channel followed by complete right channel",
+  "inputBytes": 23040000,
+  "inputSha256": "e605c695644ab37a8bc66150d03ae8ee8b8a21f7368c0d3b322dd5b320d52f03",
+  "impulseResponse": {
+    "taps": 16,
+    "bytes": 64,
+    "sha256": "7de9ce9acd1a325438915a13e2bb96dc609f0e966596ca3a5a5d17c7c0a3b9cf"
+  }
+}

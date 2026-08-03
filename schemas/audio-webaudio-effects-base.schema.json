@@ -1,0 +1,504 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.paulkinlan-ea.deno.net/schemas/audio-webaudio-effects-base.schema.json",
+  "title": "audio.webaudio-effects.v1 closed implementation package",
+  "oneOf": [
+    { "$ref": "#/$defs/registration" },
+    { "$ref": "#/$defs/correctnessRecord" },
+    { "$ref": "#/$defs/fixtureManifest" },
+    { "$ref": "#/$defs/outputManifest" },
+    { "$ref": "#/$defs/buildManifest" }
+  ],
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "path": {
+      "type": "string",
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$"
+    },
+    "registration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "kind",
+        "status",
+        "authoritativePerformanceEvidence",
+        "frozenCatalog",
+        "implementation",
+        "artifacts",
+        "demoRoute"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "kind": { "const": "base-workload-implementation-registration" },
+        "status": { "const": "implementation-candidate-independent-review-required" },
+        "authoritativePerformanceEvidence": { "const": false },
+        "frozenCatalog": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "entryId", "sha256"],
+          "properties": {
+            "id": { "const": "workload-catalog-v1" },
+            "entryId": { "const": "audio.webaudio-effects.v1" },
+            "sha256": { "$ref": "#/$defs/sha256" }
+          }
+        },
+        "implementation": { "$ref": "#/$defs/implementation" },
+        "artifacts": { "$ref": "#/$defs/artifactRoutes" },
+        "demoRoute": { "const": "/benchmarks/base/audio-webaudio-effects-v1/" }
+      }
+    },
+    "implementation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "track",
+        "targets",
+        "algorithmFamily",
+        "exactFixedWork",
+        "fpPolicy",
+        "nativeWebAudio"
+      ],
+      "properties": {
+        "id": { "const": "audio-webaudio-effects-controlled-v1" },
+        "track": { "const": "controlled" },
+        "targets": {
+          "type": "array",
+          "prefixItems": [{ "const": "javascript" }, { "const": "wasm-linear" }],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "algorithmFamily": { "const": "dsp-fixed-block-effects-chain" },
+        "exactFixedWork": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "sampleRate",
+            "seconds",
+            "channels",
+            "frames",
+            "blockFrames",
+            "blocksPerChannel",
+            "blockInvocations",
+            "tailFlushFramesPerChannel"
+          ],
+          "properties": {
+            "sampleRate": { "const": 48000 },
+            "seconds": { "const": 60 },
+            "channels": { "const": 2 },
+            "frames": { "const": 2880000 },
+            "blockFrames": { "const": 128 },
+            "blocksPerChannel": { "const": 22500 },
+            "blockInvocations": { "const": 45000 },
+            "tailFlushFramesPerChannel": { "const": 15 }
+          }
+        },
+        "fpPolicy": { "const": "strict-f32-frozen-operation-order" },
+        "nativeWebAudio": { "const": "separate-host-product-baseline-not-executed" }
+      }
+    },
+    "artifactRoutes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fixtureManifest", "outputManifest", "buildManifest", "wasm"],
+      "properties": {
+        "fixtureManifest": {
+          "const": "/artifacts/base-audio-webaudio-effects-v1/fixture-manifest.json"
+        },
+        "outputManifest": {
+          "const": "/artifacts/base-audio-webaudio-effects-v1/output-manifest.json"
+        },
+        "buildManifest": {
+          "const": "/artifacts/base-audio-webaudio-effects-v1/build-manifest.json"
+        },
+        "wasm": {
+          "const": "/artifacts/base-audio-webaudio-effects-v1/audio-webaudio-effects.wasm"
+        }
+      }
+    },
+    "oracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "absoluteTolerance",
+        "relativeTolerance",
+        "maxAbsolute",
+        "maxRelative",
+        "violations",
+        "nonFinite"
+      ],
+      "properties": {
+        "absoluteTolerance": { "const": 0.00002 },
+        "relativeTolerance": { "const": 0.0002 },
+        "maxAbsolute": { "type": "number", "minimum": 0, "maximum": 0.00002 },
+        "maxRelative": { "type": "number", "minimum": 0 },
+        "violations": { "const": 0 },
+        "nonFinite": { "const": 0 },
+        "kind": { "const": "full-output-f64-tolerance" }
+      }
+    },
+    "counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "channels",
+        "input-frames",
+        "input-samples",
+        "blocks-per-channel",
+        "block-invocations",
+        "output-frames",
+        "output-samples",
+        "biquad-samples",
+        "compressor-detector-updates",
+        "convolution-macs",
+        "state-carry-boundaries-per-channel",
+        "state-carry-boundaries",
+        "tail-flush-invocations",
+        "tail-flush-frames-per-channel",
+        "tail-flush-frames",
+        "fixture-allocations",
+        "allocations",
+        "validation-output-copies",
+        "boundary-crossings"
+      ],
+      "properties": {
+        "channels": { "const": 2 },
+        "input-frames": { "const": 2880000 },
+        "input-samples": { "const": 5760000 },
+        "blocks-per-channel": { "const": 22500 },
+        "block-invocations": { "const": 45000 },
+        "output-frames": { "const": 2880015 },
+        "output-samples": { "const": 5760030 },
+        "biquad-samples": { "const": 5760000 },
+        "compressor-detector-updates": { "const": 5760000 },
+        "convolution-macs": { "const": 92160480 },
+        "state-carry-boundaries-per-channel": { "const": 22499 },
+        "state-carry-boundaries": { "const": 44998 },
+        "tail-flush-invocations": { "const": 2 },
+        "tail-flush-frames-per-channel": { "const": 15 },
+        "tail-flush-frames": { "const": 30 },
+        "fixture-allocations": { "const": 2 },
+        "allocations": { "enum": [0, 4] },
+        "validation-output-copies": { "enum": [0, 2] },
+        "boundary-crossings": { "enum": [0, 45002] }
+      }
+    },
+    "correctnessRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "kind",
+        "status",
+        "authoritativePerformanceEvidence",
+        "entryId",
+        "implementationId",
+        "target",
+        "sourceCommit",
+        "completeOutputSha256",
+        "oracle",
+        "counters",
+        "artifactSha256",
+        "limitations"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "kind": { "const": "base-workload-correctness-record" },
+        "status": { "const": "correctness-validation-only" },
+        "authoritativePerformanceEvidence": { "const": false },
+        "entryId": { "const": "audio.webaudio-effects.v1" },
+        "implementationId": { "const": "audio-webaudio-effects-controlled-v1" },
+        "target": { "enum": ["javascript", "wasm-linear"] },
+        "sourceCommit": { "$ref": "#/$defs/commit" },
+        "completeOutputSha256": { "$ref": "#/$defs/sha256" },
+        "oracle": {
+          "allOf": [
+            { "$ref": "#/$defs/oracle" },
+            { "not": { "required": ["kind"] } }
+          ]
+        },
+        "counters": { "$ref": "#/$defs/counters" },
+        "artifactSha256": { "$ref": "#/$defs/sha256" },
+        "limitations": {
+          "type": "array",
+          "prefixItems": [
+            { "const": "No performance corpus" },
+            { "const": "No browser evidence in this implementation commit" },
+            { "const": "Native WebAudio is not a controlled target" }
+          ],
+          "items": false,
+          "minItems": 3,
+          "maxItems": 3
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "target": { "const": "javascript" } } },
+          "then": {
+            "properties": {
+              "counters": {
+                "properties": {
+                  "allocations": { "const": 4 },
+                  "validation-output-copies": { "const": 0 },
+                  "boundary-crossings": { "const": 0 }
+                }
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "counters": {
+                "properties": {
+                  "allocations": { "const": 0 },
+                  "validation-output-copies": { "const": 2 },
+                  "boundary-crossings": { "const": 45002 }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "fixtureManifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "entryId",
+        "status",
+        "rights",
+        "generator",
+        "serialization",
+        "inputBytes",
+        "inputSha256",
+        "impulseResponse"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "entryId": { "const": "audio.webaudio-effects.v1" },
+        "status": { "const": "supplemental-controlled-implementation" },
+        "rights": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["owner", "licenseSpdx", "redistribution", "source"],
+          "properties": {
+            "owner": { "const": "Paul Kinlan / wasm-vs-js project" },
+            "licenseSpdx": { "const": "CC0-1.0" },
+            "redistribution": { "const": "permitted" },
+            "source": {
+              "const": "generated solely by the committed project generator; no recorded audio or third-party IR"
+            }
+          }
+        },
+        "generator": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["revision", "seed", "sampleRate", "frames", "channels", "segments"],
+          "properties": {
+            "revision": { "$ref": "#/$defs/commit" },
+            "seed": { "const": "0x51f15e5d" },
+            "sampleRate": { "const": 48000 },
+            "frames": { "const": 2880000 },
+            "channels": { "const": 2 },
+            "segments": {
+              "type": "array",
+              "prefixItems": [
+                { "const": "1 s impulse/DC/threshold" },
+                { "const": "10 s deterministic sweep" },
+                { "const": "49 s xorshift32 noise" }
+              ],
+              "items": false,
+              "minItems": 3,
+              "maxItems": 3
+            }
+          }
+        },
+        "serialization": {
+          "const": "planar little-endian f32: complete left channel followed by complete right channel"
+        },
+        "inputBytes": { "const": 23040000 },
+        "inputSha256": { "$ref": "#/$defs/sha256" },
+        "impulseResponse": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["taps", "bytes", "sha256"],
+          "properties": {
+            "taps": { "const": 16 },
+            "bytes": { "const": 64 },
+            "sha256": { "$ref": "#/$defs/sha256" }
+          }
+        }
+      }
+    },
+    "outputManifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "entryId",
+        "completeOutput",
+        "serialization",
+        "frames",
+        "samples",
+        "bytes",
+        "jsSha256",
+        "wasmSha256",
+        "exactCrossTarget",
+        "oracle",
+        "checkpoints"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "entryId": { "const": "audio.webaudio-effects.v1" },
+        "completeOutput": { "const": true },
+        "serialization": {
+          "const": "interleaved stereo little-endian f32, signed zero normalized positive"
+        },
+        "frames": { "const": 2880015 },
+        "samples": { "const": 5760030 },
+        "bytes": { "const": 23040120 },
+        "jsSha256": { "$ref": "#/$defs/sha256" },
+        "wasmSha256": { "$ref": "#/$defs/sha256" },
+        "exactCrossTarget": { "const": true },
+        "oracle": {
+          "allOf": [
+            { "$ref": "#/$defs/oracle" },
+            {
+              "type": "object",
+              "required": ["kind"],
+              "properties": { "kind": { "const": "full-output-f64-tolerance" } }
+            }
+          ]
+        },
+        "checkpoints": {
+          "type": "array",
+          "minItems": 16,
+          "maxItems": 16,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["frame", "left", "right"],
+            "properties": {
+              "frame": { "type": "integer", "minimum": 0, "maximum": 2880014 },
+              "left": { "type": "number" },
+              "right": { "type": "number" }
+            }
+          }
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "$ref": "#/$defs/path" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "buildManifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "entryId",
+        "implementationId",
+        "sourceRepository",
+        "sourceCommit",
+        "sourceSha256",
+        "frozenCatalog",
+        "artifact",
+        "build",
+        "sources"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "entryId": { "const": "audio.webaudio-effects.v1" },
+        "implementationId": { "const": "audio-webaudio-effects-controlled-v1" },
+        "sourceRepository": { "const": "https://github.com/PaulKinlan/wasm-vs-js" },
+        "sourceCommit": { "$ref": "#/$defs/commit" },
+        "sourceSha256": { "$ref": "#/$defs/sha256" },
+        "frozenCatalog": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256", "immutability"],
+          "properties": {
+            "path": { "const": "catalog/workloads.v1.json" },
+            "sha256": { "$ref": "#/$defs/sha256" },
+            "immutability": { "const": "byte-for-byte" }
+          }
+        },
+        "artifact": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "bytes", "sha256", "memory", "features"],
+          "properties": {
+            "path": {
+              "const": "public/artifacts/base-audio-webaudio-effects-v1/audio-webaudio-effects.wasm"
+            },
+            "bytes": { "type": "integer", "minimum": 1 },
+            "sha256": { "$ref": "#/$defs/sha256" },
+            "memory": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["initialPages", "maximumPages", "growth"],
+              "properties": {
+                "initialPages": { "const": 1024 },
+                "maximumPages": { "const": 1024 },
+                "growth": { "const": false }
+              }
+            },
+            "features": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["simd", "threads", "exceptions", "memory64"],
+              "properties": {
+                "simd": { "const": false },
+                "threads": { "const": false },
+                "exceptions": { "const": false },
+                "memory64": { "const": false }
+              }
+            }
+          }
+        },
+        "build": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["command", "toolchains", "flags"],
+          "properties": {
+            "command": { "const": "deno task check" },
+            "toolchains": {
+              "type": "array",
+              "prefixItems": [{ "const": "Deno 2.9.0" }, { "const": "wabt 1.0.37" }],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "flags": {
+              "type": "array",
+              "prefixItems": [
+                { "const": "canonicalize_lebs=true" },
+                { "const": "write_debug_names=false" },
+                { "const": "scalar f32" },
+                { "const": "fixed 64 MiB memory" }
+              ],
+              "items": false,
+              "minItems": 4,
+              "maxItems": 4
+            }
+          }
+        },
+        "sources": {
+          "type": "array",
+          "minItems": 14,
+          "maxItems": 14,
+          "items": { "$ref": "#/$defs/source" }
+        }
+      }
+    }
+  }
+}

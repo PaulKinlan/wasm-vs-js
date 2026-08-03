@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "kind": "base-workload-correctness-record",
+  "status": "correctness-validation-only",
+  "authoritativePerformanceEvidence": false,
+  "entryId": "audio.webaudio-effects.v1",
+  "implementationId": "audio-webaudio-effects-controlled-v1",
+  "target": "javascript",
+  "sourceCommit": "d2cc45cd9080a03afb6fb1964c9e4b6333a50b0f",
+  "completeOutputSha256": "fba0623a3af7679b1e95b79c7f454c38e1ac2123de5ebf3a7a86bc43bff16550",
+  "oracle": {
+    "absoluteTolerance": 0.00002,
+    "relativeTolerance": 0.0002,
+    "maxAbsolute": 0.0000018638636976597844,
+    "maxRelative": 0.24027635719300827,
+    "violations": 0,
+    "nonFinite": 0
+  },
+  "counters": {
+    "channels": 2,
+    "input-frames": 2880000,
+    "input-samples": 5760000,
+    "blocks-per-channel": 22500,
+    "block-invocations": 45000,
+    "output-frames": 2880015,
+    "output-samples": 5760030,
+    "biquad-samples": 5760000,
+    "compressor-detector-updates": 5760000,
+    "convolution-macs": 92160480,
+    "state-carry-boundaries-per-channel": 22499,
+    "state-carry-boundaries": 44998,
+    "tail-flush-invocations": 2,
+    "tail-flush-frames-per-channel": 15,
+    "tail-flush-frames": 30,
+    "fixture-allocations": 2,
+    "allocations": 4,
+    "validation-output-copies": 0,
+    "boundary-crossings": 0
+  },
+  "artifactSha256": "61d09e66febd9fa65916472219198306aa43e4d7a9095c8d94aa1daa6f6b4174",
+  "limitations": [
+    "No performance corpus",
+    "No browser evidence in this implementation commit",
+    "Native WebAudio is not a controlled target"
+  ]
+}
