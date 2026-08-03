@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>TodoMVC 100-item correctness journey | Wasm versus JavaScript</title>
+    <link rel="stylesheet" href="/benchmarks/base-dom-todomvc-journey/styles.css">
+    <script type="module" src="/benchmarks/base-dom-todomvc-journey/controller.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header class="site-header">
+      <a href="/">Wasm versus JavaScript</a>
+      <a href="/benchmarks/">Catalog</a>
+    </header>
+    <noscript>
+      <p
+        class="notice"><strong>JavaScript is required for this local correctness demo.</strong> The fixture, limits, source, and artifacts remain available from the links below.</p>
+    </noscript>
+    <main id="content" tabindex="-1" data-implementation-id="dom.todomvc-journey.v1.controlled-v1">
+      <p class="eyebrow">BASE CATALOG CANDIDATE · DOM.TODOMVC-JOURNEY.V1</p>
+      <h1>TodoMVC 100-item journey</h1>
+      <p
+        class="lede">This route applies 150 typed commands to the real DOM: 100 adds, 34 completions, three filters, ten removals, and three edits. It checks the final 90 items, accessible names and states, focus, selection, node reuse, and physical mutations.</p>
+      <p
+        class="notice"><strong>No performance claim.</strong> The page records no duration, stores nothing, uploads nothing, and ranks neither target. Browser evidence is pending an independently owned Chrome run.</p>
+
+      <section class="panel" aria-labelledby="controls-title">
+        <h2 id="controls-title">Run the frozen trace</h2>
+        <div class="controls">
+          <label for="target">Controlled target</label>
+          <select id="target">
+            <option value="js-controlled">JavaScript controlled</option>
+            <option value="wasm-linear-controlled">Linear Wasm controlled</option>
+          </select>
+          <button id="start" type="button" disabled>Start</button>
+          <button id="cancel" type="button" disabled>Cancel</button>
+        </div>
+        <p id="status" role="status"
+          aria-live="polite">Ready. A fresh worker has a 30-second limit.</p>
+      </section>
+
+      <section class="todo-app panel" aria-labelledby="todos-title">
+        <div class="todo-heading">
+          <h2 id="todos-title">Physical DOM result</h2>
+          <output id="todo-count">0 items</output>
+        </div>
+        <nav aria-label="Todo filters">
+          <button type="button" data-filter="0" aria-pressed="true">All</button>
+          <button type="button" data-filter="1" aria-pressed="false">Active</button>
+          <button type="button" data-filter="2" aria-pressed="false">Completed</button>
+        </nav>
+        <ul id="todo-list"></ul>
+      </section>
+
+      <section class="panel" aria-labelledby="result-title">
+        <h2 id="result-title">Exact result</h2>
+        <pre id="result" tabindex="0">No run yet.</pre>
+      </section>
+
+      <section class="panel" aria-labelledby="inspect-title">
+        <h2 id="inspect-title">Inspect the package</h2>
+        <ul>
+          <li><a href="/data/base-dom-todomvc-journey.v1.json">Supplemental registration</a></li>
+          <li><a href="/artifacts/base-dom-todomvc-journey/fixture.json">Frozen labels and action trace</a></li>
+          <li><a href="/artifacts/base-dom-todomvc-journey/output-manifest.json">Complete semantic oracle</a></li>
+          <li><a href="/artifacts/base-dom-todomvc-journey/build-manifest.json">Source and build manifest</a></li>
+          <li><a href="/artifacts/base-dom-todomvc-journey/todomvc.wasm">Compiled Wasm artifact</a></li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>

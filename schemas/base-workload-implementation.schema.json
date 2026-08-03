@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.example/schemas/base-workload-implementation.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "catalogId",
+    "implementationId",
+    "status",
+    "sourceCommit",
+    "frozenCatalog",
+    "route",
+    "variants",
+    "fixture",
+    "oracle",
+    "artifacts",
+    "limitations"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "catalogId": { "const": "dom.todomvc-journey.v1" },
+    "implementationId": { "const": "dom.todomvc-journey.v1.controlled-v1" },
+    "status": { "enum": ["implementation-candidate", "accepted"] },
+    "sourceCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "frozenCatalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha256", "immutable", "entryCount"],
+      "properties": {
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "immutable": { "const": true },
+        "entryCount": { "const": 38 }
+      }
+    },
+    "route": { "const": "/benchmarks/base-dom-todomvc-journey/" },
+    "variants": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "prefixItems": [
+        { "const": "js-controlled" },
+        { "const": "wasm-linear-controlled" }
+      ],
+      "items": false
+    },
+    "fixture": { "$ref": "#/$defs/hashedArtifact" },
+    "oracle": { "$ref": "#/$defs/hashedArtifact" },
+    "artifacts": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/hashedArtifact" }
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    }
+  },
+  "$defs": {
+    "hashedArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "route", "bytes", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "route": { "type": "string", "pattern": "^/" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    }
+  }
+}
