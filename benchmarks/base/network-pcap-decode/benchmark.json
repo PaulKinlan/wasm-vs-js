@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "id": "network-pcap-decode-v1-controlled",
+  "version": 1,
+  "tier": "T3",
+  "title": "Classic PCAP protocol decode and flow table",
+  "description": "Parse a project-generated classic PCAP containing Ethernet, IPv4, TCP, UDP, DNS and HTTP records into a canonical flow table.",
+  "tracks": ["controlled"],
+  "variants": [
+    {
+      "id": "js-controlled",
+      "target": "javascript",
+      "track": "controlled",
+      "buildManifest": "public/artifacts/base-network-pcap-decode/build-manifest.json"
+    },
+    {
+      "id": "wasm-linear-controlled",
+      "target": "wasm-linear",
+      "track": "controlled",
+      "buildManifest": "public/artifacts/base-network-pcap-decode/build-manifest.json"
+    }
+  ],
+  "inputs": {
+    "manifestSha256": "8683e2fc95f0b8940b9dc2c867e08adeccf1a66445d7bf98785ea600ff6d9034",
+    "immutable": true,
+    "generation": "pcap-project-generated-v1: eight classic-PCAP records, little-endian microsecond header, Ethernet link type"
+  },
+  "oracle": {
+    "kind": "complete-output",
+    "policy": "Every canonical flow-table byte and all structural counters must match the independently frozen reference output.",
+    "floatingPointPolicy": "No floating-point operations.",
+    "deadCodeDefense": "The complete 208-byte canonical result is compared and SHA-256 hashed."
+  },
+  "work": {
+    "fixed": true,
+    "complexity": "O(packet bytes + flow-table probes)",
+    "counters": [
+      "packet-records",
+      "ethernet-headers",
+      "ipv4-headers",
+      "tcp-headers",
+      "udp-headers",
+      "dns-messages",
+      "http-messages",
+      "dns-compression-pointers",
+      "tcp-reassembly-appends",
+      "malformed-packets",
+      "flows",
+      "flow-table-probes",
+      "packet-bytes",
+      "allocations",
+      "boundary-crossings"
+    ],
+    "tolerance": "All counters and all canonical output bytes match exactly."
+  }
+}

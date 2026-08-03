@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "network.pcap-decode.v1",
+  "supplementalContract": "benchmarks/base/network-pcap-decode/implementation-contract.v1.json",
+  "catalogMutation": false,
+  "variants": [
+    "js-controlled",
+    "wasm-linear-controlled"
+  ],
+  "toolchain": {
+    "deno": "2.9.0",
+    "clang": "clang version 22.1.8",
+    "wasmLd": "LLD 22.1.8"
+  },
+  "commands": [
+    "clang --target=wasm32-unknown-unknown -O3 -nostdlib -ffreestanding -fno-builtin -c benchmarks/base/network-pcap-decode/pcap-decode.c",
+    "wasm-ld --no-entry --export-memory --export=input_ptr --export=output_ptr --export=output_len --export=run --initial-memory=1048576 --max-memory=1048576 --stack-first"
+  ],
+  "wasm": {
+    "path": "public/artifacts/base-network-pcap-decode/pcap-decode.wasm",
+    "bytes": 3405,
+    "sha256": "e19a405c97270763bfb325c656007fe472333553cb92e6e4df24fd8509b54dab",
+    "initialMemoryBytes": 1048576,
+    "maximumMemoryBytes": 1048576,
+    "simd": false,
+    "threads": false,
+    "memoryGrowth": false
+  },
+  "fixture": {
+    "path": "public/artifacts/base-network-pcap-decode/fixture.pcap",
+    "bytes": 663,
+    "sha256": "8683e2fc95f0b8940b9dc2c867e08adeccf1a66445d7bf98785ea600ff6d9034"
+  },
+  "referenceOutput": {
+    "path": "public/artifacts/base-network-pcap-decode/reference-output.bin",
+    "bytes": 208,
+    "sha256": "749c83f435cfc7965a5e13a9fdc7a90772a2c44f9899ce15e041fe0d47a562f3"
+  },
+  "manifests": [
+    {
+      "path": "public/artifacts/base-network-pcap-decode/fixture-manifest.json",
+      "bytes": 603,
+      "sha256": "3f61daf72c9a77f83d92688c700d16aee30b8c56f70e02e0ab1779437439bfe8"
+    },
+    {
+      "path": "public/artifacts/base-network-pcap-decode/output-manifest.json",
+      "bytes": 1113,
+      "sha256": "631bd4fdaedc97f32ff25c123a813388002a9e23d5777dbe4f974f0f8f83c16f"
+    }
+  ],
+  "fullSourceGraph": [
+    {
+      "path": "benchmarks/base/network-pcap-decode/fixture.ts",
+      "bytes": 3911,
+      "sha256": "9a47109f62776da134709086c46c69c1d3e3e5b3dc3dc56069ab376ad3386d59"
+    },
+    {
+      "path": "benchmarks/base/network-pcap-decode/engine.js",
+      "bytes": 9466,
+      "sha256": "8d7d67a7d6af3f7bedf80f94fc55d5f880383cc9e953ab2dfa361a4a01beca6f"
+    },
+    {
+      "path": "benchmarks/base/network-pcap-decode/pcap-decode.c",
+      "bytes": 8807,
+      "sha256": "4a11c1867439dd32ce03f2647f079361ee40bc0d495d22cad04b4dd8db4ce6bb"
+    },
+    {
+      "path": "benchmarks/base/network-pcap-decode/benchmark.json",
+      "bytes": 1897,
+      "sha256": "41c3e65d4184dd8d2e0448a0e5aae6bbf45a8e8fda24f297f33db1de34644467"
+    },
+    {
+      "path": "benchmarks/base/network-pcap-decode/implementation-contract.v1.json",
+      "bytes": 3265,
+      "sha256": "36d798ece50ed6acdb64ec04776ea7068b96f3a926c957b0aab4c75ef2468310"
+    },
+    {
+      "path": "benchmarks/base/network-pcap-decode/RIGHTS.md",
+      "bytes": 441,
+      "sha256": "9c24604a85057dd5b31cbe3306fd0382ade8344ec4c3342e46bde985672cdd05"
+    },
+    {
+      "path": "scripts/build-base-network-pcap-decode.ts",
+      "bytes": 7774,
+      "sha256": "9ae935af7d2edaa982583fc7a837145fb599f7b3da63554619cb53866dbbee1e"
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "status": "supplemental-base-v1-correctness-validation-candidate",
+  "workloadId": "network.pcap-decode.v1",
+  "variantId": "wasm-linear-controlled",
+  "target": "wasm-linear",
+  "performanceClaims": [],
+  "input": {
+    "bytes": 663,
+    "sha256": "8683e2fc95f0b8940b9dc2c867e08adeccf1a66445d7bf98785ea600ff6d9034"
+  },
+  "completeOutput": {
+    "bytes": 208,
+    "sha256": "749c83f435cfc7965a5e13a9fdc7a90772a2c44f9899ce15e041fe0d47a562f3",
+    "equality": "byte-exact"
+  },
+  "structuralChecks": {
+    "packetRecords": 8,
+    "protocolsMateriallyExercised": [
+      "Ethernet",
+      "IPv4",
+      "TCP",
+      "UDP",
+      "DNS",
+      "HTTP/1.1"
+    ],
+    "malformedCases": [
+      "truncated Ethernet",
+      "IPv4 fragmentation",
+      "IPv4 total-length overrun"
+    ],
+    "tcpReassembly": "two contiguous request segments",
+    "dnsCompressionPointers": 1,
+    "canonicalFlows": 4
+  },
+  "counters": {
+    "packetRecords": 8,
+    "ethernetHeaders": 7,
+    "ipv4Headers": 7,
+    "tcpHeaders": 3,
+    "udpHeaders": 2,
+    "dnsMessages": 2,
+    "httpMessages": 2,
+    "dnsCompressionPointers": 1,
+    "tcpReassemblyAppends": 3,
+    "malformedPackets": 3,
+    "flowTableProbes": 6,
+    "packetBytes": 511,
+    "allocations": 0,
+    "boundaryCrossings": 1,
+    "flows": 4,
+    "outputBytes": 208
+  },
+  "buildManifest": "public/artifacts/base-network-pcap-decode/build-manifest.json"
+}

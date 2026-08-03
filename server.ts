@@ -282,6 +282,46 @@ const routes = new Map<string, [string, string, boolean?]>([
   ]],
 ]);
 
+for (const path of ["/demos/network.pcap-decode.v1", "/demos/network.pcap-decode.v1/"]) {
+  routes.set(path, [
+    "public/demos/network.pcap-decode.v1/index.html",
+    "text/html; charset=utf-8",
+  ]);
+}
+routes.set("/pcap-decode-demo.js", [
+  "public/pcap-decode-demo.js",
+  "text/javascript; charset=utf-8",
+]);
+routes.set("/pcap-decode-worker.js", [
+  "public/pcap-decode-worker.js",
+  "text/javascript; charset=utf-8",
+]);
+routes.set("/benchmarks/base/network-pcap-decode/engine.js", [
+  "benchmarks/base/network-pcap-decode/engine.js",
+  "text/javascript; charset=utf-8",
+]);
+for (
+  const [name, contentType] of [
+    ["pcap-decode.wasm", "application/wasm"],
+    ["fixture.pcap", "application/vnd.tcpdump.pcap"],
+    ["reference-output.bin", "application/octet-stream"],
+    ["fixture-manifest.json", "application/json; charset=utf-8"],
+    ["output-manifest.json", "application/json; charset=utf-8"],
+    ["build-manifest.json", "application/json; charset=utf-8"],
+  ] as const
+) {
+  routes.set(`/artifacts/base-network-pcap-decode/${name}`, [
+    `public/artifacts/base-network-pcap-decode/${name}`,
+    contentType,
+  ]);
+}
+for (const variant of ["js-controlled", "wasm-linear-controlled"]) {
+  routes.set(`/evidence/base-v1/network-pcap-decode/${variant}.json`, [
+    `public/evidence/base-v1/network-pcap-decode/${variant}.json`,
+    "application/json; charset=utf-8",
+  ]);
+}
+
 for (const route of [...IMAGE_DEMO_ROUTES, ...TRADITIONAL_DEMO_ROUTES]) {
   if (routes.has(route.path)) throw new Error(`duplicate demo route: ${route.path}`);
   routes.set(route.path, [route.file, route.contentType]);
