@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "registrationId": "base-v1.graphics.cpu-path-tracer.v1.controlled.v1",
+  "catalogId": "graphics.cpu-path-tracer.v1",
+  "catalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+  "status": "implementation-candidate",
+  "track": "controlled",
+  "algorithmFamily": "cpu-bvh-pathtrace-fixed-rng",
+  "fixture": {
+    "scene": "project-generated Cornell-box product scene: seven fixed spheres, fixed binary BVH, fixed camera and Lambert materials",
+    "licenseSpdx": "CC0-1.0",
+    "redistribution": "permitted",
+    "externalAssets": false,
+    "seed": 1831565813
+  },
+  "fixedWork": {
+    "width": 512,
+    "height": 512,
+    "samplesPerPixel": 64,
+    "maxBounces": 4,
+    "russianRouletteStartsAtBounce": 2,
+    "threads": 1,
+    "simd": false
+  },
+  "previewWork": {
+    "width": 64,
+    "height": 64,
+    "samplesPerPixel": 4
+  },
+  "semantics": {
+    "arithmetic": "strict f32 after every arithmetic operation in both controlled targets",
+    "rng": "xorshift32 seeded by seed xor pixel-index*0x9e3779b9 xor sample-index*0x85ebca6b; three draws per hemisphere sample and two per camera jitter",
+    "camera": "origin (0,0,4.5), view plane z=0, vertical field scale 1.7, square aspect",
+    "intersection": "fixed binary BVH depth-first, lower child first, sphere t tie resolved by lower primitive index, epsilon=0.001",
+    "sampling": "normalize three signed uniform components and flip to surface hemisphere; zero vector maps to normal",
+    "bounce": "Lambert throughput multiply; emitted radiance accumulated; maximum four intersections",
+    "russianRoulette": "after bounce 2, continue probability max throughput clamped to [0.1,0.95], surviving throughput divided by probability",
+    "toneMap": "c/(1+c), square-root gamma, clamp [0,1], round floor(x*255+0.5)",
+    "output": "complete row-major RGBA8 framebuffer with alpha=255"
+  },
+  "oracle": {
+    "kind": "perceptual-plus-structural",
+    "completeFramebufferRequired": true,
+    "crossTarget": "complete RGBA8 comparison with maximum channel delta 1; exact counter values retained and intersection count tolerance 1",
+    "highPrecisionReference": "independent f64 implementation of the same fixed scene, RNG, traversal and path rules",
+    "maxChannelDelta": 4,
+    "meanChannelDelta": 0.35,
+    "crossTargetMaxChannelDelta": 1,
+    "crossTargetIntersectionCountTolerance": 1,
+    "samplePixelCheckpoints": [[0, 0], [256, 256], [511, 511], [128, 384], [384, 128]],
+    "pathCheckpointPixels": [0, 131328, 262143]
+  },
+  "counters": [
+    "rays",
+    "bounces",
+    "node-tests",
+    "intersections",
+    "samples",
+    "rng-draws",
+    "allocations",
+    "boundary-crossings"
+  ],
+  "variants": [
+    { "id": "js-controlled", "target": "javascript" },
+    { "id": "wasm-linear-controlled", "target": "wasm-linear" }
+  ],
+  "separations": {
+    "threadsAndSharedArrayBuffer": "separate future variant",
+    "canvasPresentation": "outside compute and not ranked",
+    "performanceClaims": false
+  }
+}

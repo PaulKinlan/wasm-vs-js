@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "registrationId",
+    "catalogId",
+    "status",
+    "catalogMutation",
+    "catalogSha256",
+    "fixture",
+    "fixedWork",
+    "variants",
+    "artifactManifest",
+    "demoRoute",
+    "acceptedCoverage"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "registrationId": { "type": "string", "minLength": 1 },
+    "catalogId": { "type": "string", "minLength": 1 },
+    "status": {
+      "enum": ["candidate-awaiting-independent-review", "accepted", "rejected", "blocked"]
+    },
+    "catalogMutation": { "const": false },
+    "catalogSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "fixture": { "type": "object" },
+    "fixedWork": { "type": "object" },
+    "variants": { "type": "array", "minItems": 2, "items": { "type": "string" } },
+    "artifactManifest": { "type": "object", "required": ["path", "sha256"] },
+    "demoRoute": { "type": "string", "pattern": "^/" },
+    "acceptedCoverage": { "type": "boolean" }
+  }
+}
