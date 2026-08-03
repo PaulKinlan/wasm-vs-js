@@ -11,12 +11,17 @@
 // - WRITER_TESTS rebuild artifacts in place (identical bytes, but non-atomic
 //   writes) and must never run concurrently with a test that reads the same
 //   artifact. Identified empirically via per-file mtime scan (2026-08-03).
-// - Phase A runs all read-only test files under `deno test --parallel`,
-//   concurrently with the rigid-body writer: its only reader is the
-//   rigid-body browser-collector test, which is held out for phase B.
-// - Phase B runs the audio writer concurrently with the small writers (each
-//   writes a disjoint per-lane artifact dir), the sum-u32 writer/reader pair
-//   (sequential, they share sum-u32), and the rigid-body reader.
+// - Phase A runs the read-only test files under `deno test --parallel`,
+//   concurrently with the rigid-body writer (its only reader is the
+//   browser-collector test, held out for phase B) and the audio writer
+//   (permission-scoped to public/artifacts/audio-{fft,fir,stft}; its only
+//   readers are the TAIL_READERS, held out for phase C).
+// - Phase B runs the small writers (each writes a disjoint per-lane
+//   artifact dir), the sum-u32 writer/reader pair (sequential, they share
+//   sum-u32), and the rigid-body reader.
+// - Phase C runs the TAIL_READERS (server/public-mode/inspectability),
+//   which fetch writer-owned artifact bytes over HTTP routes and therefore
+//   run only after every writer has finished.
 // - New test files default to the parallel reader phase. If a flake ever
 //   shows a truncated/empty artifact read, re-run the mtime scan and extend
 //   the writer lists.
@@ -86,10 +91,23 @@ interface Stage {
   env?: Record<string, string>;
 }
 
+// Readers that fetch audio/sum-u32/small-writer artifact bytes over HTTP
+// routes. They must run after every writer has finished, so they get their
+// own tail phase instead of joining the reader flock.
+const TAIL_READERS = [
+  "tests/inspectability.test.ts",
+  "tests/public-mode.test.ts",
+  "tests/server.test.ts",
+];
+
 const writers = new Set(WRITER_TESTS);
 const allTests = await testFiles();
-const readerTests = allTests.filter((f) => !writers.has(f) && f !== RIGID_READER);
-const missing = [...WRITER_TESTS, RIGID_READER].filter((f) => !allTests.includes(f));
+const readerTests = allTests.filter((f) =>
+  !writers.has(f) && f !== RIGID_READER && !TAIL_READERS.includes(f)
+);
+const missing = [...WRITER_TESTS, RIGID_READER, ...TAIL_READERS].filter((f) =>
+  !allTests.includes(f)
+);
 if (missing.length > 0) {
   console.error(`check-parallel: expected test files not found on disk: ${missing.join(", ")}`);
   Deno.exit(2);
@@ -125,7 +143,10 @@ const staticStages: Stage[] = [
 const started = performance.now();
 for (const stage of staticStages) await runStage(stage);
 
-// Phase A: parallel readers, concurrent with the rigid-body writer.
+// Phase A: parallel readers, concurrent with the rigid-body writer and the
+// audio writer. The audio writer's subprocess is permission-scoped to
+// public/artifacts/audio-{fft,fir,stft}; the only tests reading those bytes
+// are the TAIL_READERS, which are held out.
 await Promise.all([
   runStage({
     name: "test-readers",
@@ -133,12 +154,12 @@ await Promise.all([
     env: testEnv,
   }),
   runStage({ name: "test-rigid-writer", args: ["test", ...testArgs, RIGID_WRITER], env: testEnv }),
+  runStage({ name: "test-audio-writer", args: ["test", ...testArgs, AUDIO_WRITER], env: testEnv }),
 ]);
 
-// Phase B: audio writer, small writers + rigid reader, and the sum-u32 pair —
-// three disjoint groups, run concurrently.
+// Phase B: small writers + rigid reader, and the sum-u32 pair — two disjoint
+// groups, run concurrently.
 await Promise.all([
-  runStage({ name: "test-audio-writer", args: ["test", ...testArgs, AUDIO_WRITER], env: testEnv }),
   runStage({
     name: "test-writers-small",
     args: ["test", "--parallel", ...testArgs, ...SMALL_WRITERS, RIGID_READER],
@@ -150,6 +171,13 @@ await Promise.all([
     env: testEnv,
   }),
 ]);
+
+// Phase C: route-level readers of writer-owned artifact bytes, alone.
+await runStage({
+  name: "test-tail-readers",
+  args: ["test", "--parallel", ...testArgs, ...TAIL_READERS],
+  env: testEnv,
+});
 
 console.error(
   `check-parallel: all stages ok in ${((performance.now() - started) / 1000).toFixed(1)}s`,
