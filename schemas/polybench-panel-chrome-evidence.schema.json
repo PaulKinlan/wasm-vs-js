@@ -155,18 +155,16 @@
       "additionalProperties": false,
       "required": [
         "commit",
-        "head",
         "tree",
         "cleanAtStart",
         "statusPorcelain",
         "files",
+        "cleanAtEnd",
+        "statusPorcelainAtEnd",
         "buildManifest"
       ],
       "properties": {
         "commit": {
-          "$ref": "#/$defs/gitIdentity"
-        },
-        "head": {
           "$ref": "#/$defs/gitIdentity"
         },
         "tree": {
@@ -182,10 +180,207 @@
           "type": "array",
           "minItems": 22,
           "maxItems": 22,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/sourceFile"
-          }
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/demos/numeric.polybench-panel.v1/index.html"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/polybench-panel-demo.js"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/polybench-panel-worker.js"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "benchmarks/base/numeric-polybench-panel/workload.js"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/polybench-panel.wasm"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/build-manifest.json"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/outputs/gemm.reference.f64le"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/outputs/gemm.javascript-controlled.f64le"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/outputs/gemm.linear-wasm-controlled.f64le"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/outputs/cholesky.reference.f64le"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/outputs/cholesky.javascript-controlled.f64le"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/outputs/cholesky.linear-wasm-controlled.f64le"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/outputs/stencil.reference.f64le"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/outputs/stencil.javascript-controlled.f64le"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/outputs/stencil.linear-wasm-controlled.f64le"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/outputs/jacobi2d.reference.f64le"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/outputs/jacobi2d.javascript-controlled.f64le"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/outputs/jacobi2d.linear-wasm-controlled.f64le"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "evidence/base/numeric-polybench-panel/correctness-record.json"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "scripts/collect-polybench-panel-chrome-evidence.ts"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "schemas/polybench-panel-chrome-evidence.schema.json"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "tests/base/polybench-panel-chrome-collector.test.ts"
+                }
+              },
+              "type": "object"
+            }
+          ],
+          "items": false
         },
         "buildManifest": {
           "type": "object",
@@ -206,6 +401,12 @@
               "$ref": "#/$defs/sha256"
             }
           }
+        },
+        "cleanAtEnd": {
+          "const": true
+        },
+        "statusPorcelainAtEnd": {
+          "const": ""
         }
       }
     },
@@ -276,16 +477,67 @@
         },
         "launchArguments": {
           "type": "array",
-          "minItems": 17,
-          "maxItems": 17,
-          "uniqueItems": true,
-          "contains": {
-            "const": "--headless=new"
-          },
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
+          "minItems": 18,
+          "maxItems": 18,
+          "prefixItems": [
+            {
+              "const": "--headless=new"
+            },
+            {
+              "const": "--enable-automation"
+            },
+            {
+              "const": "--no-sandbox"
+            },
+            {
+              "const": "--disable-gpu"
+            },
+            {
+              "const": "--disable-background-networking"
+            },
+            {
+              "const": "--disable-component-update"
+            },
+            {
+              "const": "--disable-default-apps"
+            },
+            {
+              "const": "--disable-extensions"
+            },
+            {
+              "const": "--disable-sync"
+            },
+            {
+              "const": "--metrics-recording-only"
+            },
+            {
+              "const": "--no-first-run"
+            },
+            {
+              "const": "--hide-scrollbars"
+            },
+            {
+              "const": "--window-size=1440,1200"
+            },
+            {
+              "const": "--force-device-scale-factor=1"
+            },
+            {
+              "const": "--remote-debugging-address=127.0.0.1"
+            },
+            {
+              "type": "string",
+              "pattern": "^--remote-debugging-port=[0-9]+$"
+            },
+            {
+              "type": "string",
+              "pattern": "^--user-data-dir=/tmp/wasm-polybench-panel-chrome-[A-Za-z0-9_-]+$"
+            },
+            {
+              "const": "about:blank"
+            }
+          ],
+          "items": false
         },
         "headless": {
           "const": true
@@ -340,469 +592,15 @@
         }
       }
     },
-    "comparison": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "passed",
-        "violations",
-        "maxAbs",
-        "maxRel"
-      ],
-      "properties": {
-        "passed": {
-          "const": true
-        },
-        "violations": {
-          "const": 0
-        },
-        "maxAbs": {
-          "type": "number",
-          "minimum": 0
-        },
-        "maxRel": {
-          "type": "number",
-          "minimum": 0
-        }
-      }
-    },
-    "structuralOracle": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "passed",
-        "failures"
-      ],
-      "properties": {
-        "passed": {
-          "const": true
-        },
-        "failures": {
-          "type": "array",
-          "maxItems": 0
-        }
-      }
-    },
-    "checkpoint": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "index",
-        "valueHex"
-      ],
-      "properties": {
-        "index": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "valueHex": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{16}$"
-        }
-      }
-    },
-    "completeOutput": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "file",
-        "route",
-        "bytes",
-        "elements",
-        "sha256",
-        "format"
-      ],
-      "properties": {
-        "file": {
-          "type": "string",
-          "pattern": "^public/artifacts/numeric-polybench-panel/outputs/(gemm|cholesky|stencil|jacobi2d)\\.(javascript-controlled|linear-wasm-controlled)\\.f64le$"
-        },
-        "route": {
-          "type": "string",
-          "pattern": "^/artifacts/numeric-polybench-panel/outputs/(gemm|cholesky|stencil|jacobi2d)\\.(javascript-controlled|linear-wasm-controlled)\\.f64le$"
-        },
-        "bytes": {
-          "enum": [
-            4000,
-            7200,
-            12800
-          ]
-        },
-        "elements": {
-          "enum": [
-            500,
-            900,
-            1600
-          ]
-        },
-        "sha256": {
-          "$ref": "#/$defs/sha256"
-        },
-        "format": {
-          "const": "f64le-complete-output"
-        }
-      }
-    },
-    "gemmCounters": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "target",
-        "boundaryCrossings",
-        "wasmLinearAllocations",
-        "kernels",
-        "outputElements",
-        "outputBytes",
-        "multiplyAdds",
-        "scaleMultiplications",
-        "inputBytes",
-        "typedArrayAllocations"
-      ],
-      "properties": {
-        "target": {
-          "enum": [
-            "javascript-controlled",
-            "linear-wasm-controlled"
-          ]
-        },
-        "boundaryCrossings": {
-          "enum": [
-            0,
-            1
-          ]
-        },
-        "wasmLinearAllocations": {
-          "const": 0
-        },
-        "kernels": {
-          "const": 1
-        },
-        "outputElements": {
-          "const": 500
-        },
-        "outputBytes": {
-          "const": 4000
-        },
-        "multiplyAdds": {
-          "const": 15000
-        },
-        "scaleMultiplications": {
-          "const": 500
-        },
-        "inputBytes": {
-          "const": 14800
-        },
-        "typedArrayAllocations": {
-          "enum": [
-            4,
-            8
-          ]
-        }
-      }
-    },
-    "choleskyCounters": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "target",
-        "boundaryCrossings",
-        "wasmLinearAllocations",
-        "kernels",
-        "outputElements",
-        "outputBytes",
-        "multiplySubtracts",
-        "divisions",
-        "diagonalRoots",
-        "inputBytes",
-        "typedArrayAllocations"
-      ],
-      "properties": {
-        "target": {
-          "enum": [
-            "javascript-controlled",
-            "linear-wasm-controlled"
-          ]
-        },
-        "boundaryCrossings": {
-          "enum": [
-            0,
-            1
-          ]
-        },
-        "wasmLinearAllocations": {
-          "const": 0
-        },
-        "kernels": {
-          "const": 1
-        },
-        "outputElements": {
-          "const": 1600
-        },
-        "outputBytes": {
-          "const": 12800
-        },
-        "multiplySubtracts": {
-          "const": 10660
-        },
-        "divisions": {
-          "const": 780
-        },
-        "diagonalRoots": {
-          "const": 40
-        },
-        "inputBytes": {
-          "const": 12800
-        },
-        "typedArrayAllocations": {
-          "enum": [
-            3,
-            5
-          ]
-        }
-      }
-    },
-    "stencilCounters": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "target",
-        "boundaryCrossings",
-        "wasmLinearAllocations",
-        "kernels",
-        "outputElements",
-        "outputBytes",
-        "stencilPoints",
-        "sampleReads",
-        "outputWrites",
-        "inputBytes",
-        "typedArrayAllocations"
-      ],
-      "properties": {
-        "target": {
-          "enum": [
-            "javascript-controlled",
-            "linear-wasm-controlled"
-          ]
-        },
-        "boundaryCrossings": {
-          "enum": [
-            0,
-            1
-          ]
-        },
-        "wasmLinearAllocations": {
-          "const": 0
-        },
-        "kernels": {
-          "const": 1
-        },
-        "outputElements": {
-          "const": 900
-        },
-        "outputBytes": {
-          "const": 7200
-        },
-        "stencilPoints": {
-          "const": 784
-        },
-        "sampleReads": {
-          "const": 3920
-        },
-        "outputWrites": {
-          "const": 784
-        },
-        "inputBytes": {
-          "const": 14400
-        },
-        "typedArrayAllocations": {
-          "enum": [
-            3,
-            6
-          ]
-        }
-      }
-    },
-    "jacobiCounters": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "target",
-        "boundaryCrossings",
-        "wasmLinearAllocations",
-        "kernels",
-        "outputElements",
-        "outputBytes",
-        "stencilPoints",
-        "sampleReads",
-        "outputWrites",
-        "inputBytes",
-        "typedArrayAllocations"
-      ],
-      "properties": {
-        "target": {
-          "enum": [
-            "javascript-controlled",
-            "linear-wasm-controlled"
-          ]
-        },
-        "boundaryCrossings": {
-          "enum": [
-            0,
-            1
-          ]
-        },
-        "wasmLinearAllocations": {
-          "const": 0
-        },
-        "kernels": {
-          "const": 1
-        },
-        "outputElements": {
-          "const": 900
-        },
-        "outputBytes": {
-          "const": 7200
-        },
-        "stencilPoints": {
-          "const": 31360
-        },
-        "sampleReads": {
-          "const": 156800
-        },
-        "outputWrites": {
-          "const": 31360
-        },
-        "inputBytes": {
-          "const": 14400
-        },
-        "typedArrayAllocations": {
-          "enum": [
-            4,
-            6
-          ]
-        }
-      }
-    },
-    "resultBase": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "kernel",
-        "target",
-        "outputSha256",
-        "comparison",
-        "structuralOracle",
-        "checkpoints",
-        "counters",
-        "completeOutputArtifact"
-      ],
-      "properties": {
-        "kernel": {
-          "enum": [
-            "gemm",
-            "cholesky",
-            "stencil",
-            "jacobi2d"
-          ]
-        },
-        "target": {
-          "enum": [
-            "javascript-controlled",
-            "linear-wasm-controlled"
-          ]
-        },
-        "outputSha256": {
-          "$ref": "#/$defs/sha256"
-        },
-        "comparison": {
-          "$ref": "#/$defs/comparison"
-        },
-        "structuralOracle": {
-          "$ref": "#/$defs/structuralOracle"
-        },
-        "checkpoints": {
-          "type": "array",
-          "minItems": 4,
-          "maxItems": 4,
-          "items": {
-            "$ref": "#/$defs/checkpoint"
-          }
-        },
-        "counters": {
-          "type": "object"
-        },
-        "completeOutputArtifact": {
-          "$ref": "#/$defs/completeOutput"
-        }
-      }
-    },
-    "gemmResult": {
-      "$ref": "#/$defs/resultBase",
-      "properties": {
-        "kernel": {
-          "const": "gemm"
-        },
-        "counters": {
-          "$ref": "#/$defs/gemmCounters"
-        }
-      },
-      "type": "object"
-    },
-    "choleskyResult": {
-      "$ref": "#/$defs/resultBase",
-      "properties": {
-        "kernel": {
-          "const": "cholesky"
-        },
-        "counters": {
-          "$ref": "#/$defs/choleskyCounters"
-        }
-      },
-      "type": "object"
-    },
-    "stencilResult": {
-      "$ref": "#/$defs/resultBase",
-      "properties": {
-        "kernel": {
-          "const": "stencil"
-        },
-        "counters": {
-          "$ref": "#/$defs/stencilCounters"
-        }
-      },
-      "type": "object"
-    },
-    "jacobiResult": {
-      "$ref": "#/$defs/resultBase",
-      "properties": {
-        "kernel": {
-          "const": "jacobi2d"
-        },
-        "counters": {
-          "$ref": "#/$defs/jacobiCounters"
-        }
-      },
-      "type": "object"
-    },
     "resultSet": {
-      "type": "array",
-      "minItems": 4,
-      "maxItems": 4,
-      "prefixItems": [
+      "oneOf": [
         {
-          "$ref": "#/$defs/gemmResult"
+          "$ref": "#/$defs/javascriptResultSet"
         },
         {
-          "$ref": "#/$defs/choleskyResult"
-        },
-        {
-          "$ref": "#/$defs/stencilResult"
-        },
-        {
-          "$ref": "#/$defs/jacobiResult"
+          "$ref": "#/$defs/wasmResultSet"
         }
-      ],
-      "items": false
+      ]
     },
     "pageState": {
       "type": "object",
@@ -1303,10 +1101,37 @@
           "$ref": "#/$defs/sha256"
         },
         "results": {
-          "$ref": "#/$defs/resultSet"
+          "$ref": "#/$defs/javascriptResultSet"
         },
         "lifecycle": {
           "type": "null"
+        },
+        "finalState": {
+          "$ref": "#/$defs/executionFinalState"
+        },
+        "screenshot": {
+          "$ref": "#/$defs/artifact",
+          "properties": {
+            "path": {
+              "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/screenshots/execute-javascript-all.png"
+            }
+          },
+          "type": "object"
+        },
+        "accessibility": {
+          "$ref": "#/$defs/accessibility",
+          "properties": {
+            "fullTree": {
+              "$ref": "#/$defs/artifact",
+              "properties": {
+                "path": {
+                  "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/accessibility/execute-javascript-all.json"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
         }
       },
       "type": "object"
@@ -1331,10 +1156,37 @@
           "$ref": "#/$defs/sha256"
         },
         "results": {
-          "$ref": "#/$defs/resultSet"
+          "$ref": "#/$defs/wasmResultSet"
         },
         "lifecycle": {
           "type": "null"
+        },
+        "finalState": {
+          "$ref": "#/$defs/executionFinalState"
+        },
+        "screenshot": {
+          "$ref": "#/$defs/artifact",
+          "properties": {
+            "path": {
+              "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/screenshots/execute-wasm-all.png"
+            }
+          },
+          "type": "object"
+        },
+        "accessibility": {
+          "$ref": "#/$defs/accessibility",
+          "properties": {
+            "fullTree": {
+              "$ref": "#/$defs/artifact",
+              "properties": {
+                "path": {
+                  "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/accessibility/execute-wasm-all.json"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
         }
       },
       "type": "object"
@@ -1367,18 +1219,53 @@
             },
             {
               "type": "object",
+              "minProperties": 3,
+              "maxProperties": 3,
               "required": [
                 "assertion",
                 "ignored",
                 "final"
               ],
               "properties": {
-                "assertion": true,
-                "ignored": true,
-                "final": true
+                "assertion": {
+                  "const": "wrong token ignored"
+                },
+                "ignored": {
+                  "$ref": "#/$defs/runningOne"
+                },
+                "final": {
+                  "$ref": "#/$defs/cancelledOne"
+                }
               }
             }
           ]
+        },
+        "finalState": {
+          "$ref": "#/$defs/cancelledFinalState"
+        },
+        "screenshot": {
+          "$ref": "#/$defs/artifact",
+          "properties": {
+            "path": {
+              "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/screenshots/lifecycle-wrong-token.png"
+            }
+          },
+          "type": "object"
+        },
+        "accessibility": {
+          "$ref": "#/$defs/accessibility",
+          "properties": {
+            "fullTree": {
+              "$ref": "#/$defs/artifact",
+              "properties": {
+                "path": {
+                  "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/accessibility/lifecycle-wrong-token.json"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
         }
       },
       "type": "object"
@@ -1411,18 +1298,53 @@
             },
             {
               "type": "object",
+              "minProperties": 3,
+              "maxProperties": 3,
               "required": [
                 "assertion",
                 "ignored",
                 "final"
               ],
               "properties": {
-                "assertion": true,
-                "ignored": true,
-                "final": true
+                "assertion": {
+                  "const": "stale worker message ignored"
+                },
+                "ignored": {
+                  "$ref": "#/$defs/runningReplacement"
+                },
+                "final": {
+                  "$ref": "#/$defs/completeReplacement"
+                }
               }
             }
           ]
+        },
+        "finalState": {
+          "$ref": "#/$defs/completeReplacementFinalState"
+        },
+        "screenshot": {
+          "$ref": "#/$defs/artifact",
+          "properties": {
+            "path": {
+              "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/screenshots/lifecycle-stale-message.png"
+            }
+          },
+          "type": "object"
+        },
+        "accessibility": {
+          "$ref": "#/$defs/accessibility",
+          "properties": {
+            "fullTree": {
+              "$ref": "#/$defs/artifact",
+              "properties": {
+                "path": {
+                  "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/accessibility/lifecycle-stale-message.json"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
         }
       },
       "type": "object"
@@ -1455,18 +1377,53 @@
             },
             {
               "type": "object",
+              "minProperties": 3,
+              "maxProperties": 3,
               "required": [
                 "assertion",
                 "restarted",
                 "final"
               ],
               "properties": {
-                "assertion": true,
-                "restarted": true,
-                "final": true
+                "assertion": {
+                  "const": "restart terminates prior worker"
+                },
+                "restarted": {
+                  "$ref": "#/$defs/runningReplacement"
+                },
+                "final": {
+                  "$ref": "#/$defs/cancelledTwo"
+                }
               }
             }
           ]
+        },
+        "finalState": {
+          "$ref": "#/$defs/cancelledFinalState"
+        },
+        "screenshot": {
+          "$ref": "#/$defs/artifact",
+          "properties": {
+            "path": {
+              "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/screenshots/lifecycle-restart.png"
+            }
+          },
+          "type": "object"
+        },
+        "accessibility": {
+          "$ref": "#/$defs/accessibility",
+          "properties": {
+            "fullTree": {
+              "$ref": "#/$defs/artifact",
+              "properties": {
+                "path": {
+                  "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/accessibility/lifecycle-restart.json"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
         }
       },
       "type": "object"
@@ -1493,7 +1450,55 @@
           "type": "null"
         },
         "lifecycle": {
-          "$ref": "#/$defs/lifecycleRecord"
+          "allOf": [
+            {
+              "$ref": "#/$defs/lifecycleRecord"
+            },
+            {
+              "type": "object",
+              "minProperties": 2,
+              "maxProperties": 2,
+              "required": [
+                "assertion",
+                "final"
+              ],
+              "properties": {
+                "assertion": {
+                  "const": "cancel terminates active worker"
+                },
+                "final": {
+                  "$ref": "#/$defs/cancelledOne"
+                }
+              }
+            }
+          ]
+        },
+        "finalState": {
+          "$ref": "#/$defs/cancelledFinalState"
+        },
+        "screenshot": {
+          "$ref": "#/$defs/artifact",
+          "properties": {
+            "path": {
+              "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/screenshots/lifecycle-cancel.png"
+            }
+          },
+          "type": "object"
+        },
+        "accessibility": {
+          "$ref": "#/$defs/accessibility",
+          "properties": {
+            "fullTree": {
+              "$ref": "#/$defs/artifact",
+              "properties": {
+                "path": {
+                  "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/accessibility/lifecycle-cancel.json"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
         }
       },
       "type": "object"
@@ -1520,7 +1525,55 @@
           "type": "null"
         },
         "lifecycle": {
-          "$ref": "#/$defs/lifecycleRecord"
+          "allOf": [
+            {
+              "$ref": "#/$defs/lifecycleRecord"
+            },
+            {
+              "type": "object",
+              "minProperties": 2,
+              "maxProperties": 2,
+              "required": [
+                "assertion",
+                "final"
+              ],
+              "properties": {
+                "assertion": {
+                  "const": "30-second bound fired under accelerated acceptance clock"
+                },
+                "final": {
+                  "$ref": "#/$defs/timedOutOne"
+                }
+              }
+            }
+          ]
+        },
+        "finalState": {
+          "$ref": "#/$defs/timedOutFinalState"
+        },
+        "screenshot": {
+          "$ref": "#/$defs/artifact",
+          "properties": {
+            "path": {
+              "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/screenshots/lifecycle-timeout.png"
+            }
+          },
+          "type": "object"
+        },
+        "accessibility": {
+          "$ref": "#/$defs/accessibility",
+          "properties": {
+            "fullTree": {
+              "$ref": "#/$defs/artifact",
+              "properties": {
+                "path": {
+                  "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/accessibility/lifecycle-timeout.json"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
         }
       },
       "type": "object"
@@ -1547,7 +1600,55 @@
           "type": "null"
         },
         "lifecycle": {
-          "$ref": "#/$defs/lifecycleRecord"
+          "allOf": [
+            {
+              "$ref": "#/$defs/lifecycleRecord"
+            },
+            {
+              "type": "object",
+              "minProperties": 2,
+              "maxProperties": 2,
+              "required": [
+                "assertion",
+                "final"
+              ],
+              "properties": {
+                "assertion": {
+                  "const": "pagehide terminates active worker"
+                },
+                "final": {
+                  "$ref": "#/$defs/pageHiddenOne"
+                }
+              }
+            }
+          ]
+        },
+        "finalState": {
+          "$ref": "#/$defs/pageHiddenFinalState"
+        },
+        "screenshot": {
+          "$ref": "#/$defs/artifact",
+          "properties": {
+            "path": {
+              "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/screenshots/lifecycle-pagehide.png"
+            }
+          },
+          "type": "object"
+        },
+        "accessibility": {
+          "$ref": "#/$defs/accessibility",
+          "properties": {
+            "fullTree": {
+              "$ref": "#/$defs/artifact",
+              "properties": {
+                "path": {
+                  "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/accessibility/lifecycle-pagehide.json"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
         }
       },
       "type": "object"
@@ -1559,7 +1660,8 @@
         "pid",
         "parentPid",
         "startTimeTicks",
-        "executable"
+        "executable",
+        "cgroup"
       ],
       "properties": {
         "pid": {
@@ -1575,6 +1677,10 @@
           "pattern": "^[0-9]+$"
         },
         "executable": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cgroup": {
           "type": "string",
           "minLength": 1
         }
@@ -1700,20 +1806,10 @@
           ],
           "properties": {
             "launcher": {
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/processIdentity"
-                },
-                {
-                  "type": "null"
-                }
-              ]
+              "$ref": "#/$defs/processIdentity"
             },
             "signal": {
-              "enum": [
-                "SIGTERM",
-                null
-              ]
+              "const": "SIGTERM"
             },
             "exit": {
               "$ref": "#/$defs/exitStatus"
@@ -1724,6 +1820,886 @@
           }
         }
       }
+    },
+    "gemmJavascriptResult": {
+      "const": {
+        "kernel": "gemm",
+        "target": "javascript-controlled",
+        "outputSha256": "055c9d69c98e0ab7529a38d83e18e18d9b960c637ba77c4aec2477b14c279892",
+        "comparison": {
+          "passed": true,
+          "violations": 0,
+          "maxAbs": 0,
+          "maxRel": 0
+        },
+        "structuralOracle": {
+          "passed": true,
+          "failures": []
+        },
+        "checkpoints": [
+          {
+            "index": 0,
+            "valueHex": "3faeb851eb851eb8"
+          },
+          {
+            "index": 125,
+            "valueHex": "401e3d70a3d70a3d"
+          },
+          {
+            "index": 250,
+            "valueHex": "40183d70a3d70a3e"
+          },
+          {
+            "index": 499,
+            "valueHex": "4024e147ae147ae0"
+          }
+        ],
+        "counters": {
+          "target": "javascript-controlled",
+          "boundaryCrossings": 0,
+          "wasmLinearAllocations": 0,
+          "kernels": 1,
+          "outputElements": 500,
+          "outputBytes": 4000,
+          "multiplyAdds": 15000,
+          "scaleMultiplications": 500,
+          "inputBytes": 14800,
+          "typedArrayAllocations": 4
+        },
+        "completeOutputArtifact": {
+          "file": "public/artifacts/numeric-polybench-panel/outputs/gemm.javascript-controlled.f64le",
+          "route": "/artifacts/numeric-polybench-panel/outputs/gemm.javascript-controlled.f64le",
+          "bytes": 4000,
+          "elements": 500,
+          "sha256": "055c9d69c98e0ab7529a38d83e18e18d9b960c637ba77c4aec2477b14c279892",
+          "format": "f64le-complete-output"
+        }
+      }
+    },
+    "choleskyJavascriptResult": {
+      "const": {
+        "kernel": "cholesky",
+        "target": "javascript-controlled",
+        "outputSha256": "14f43fb479b27d02ab370d472aa179abb3a0a96f540541a85b5b0617f1e2bfbf",
+        "comparison": {
+          "passed": true,
+          "violations": 0,
+          "maxAbs": 0,
+          "maxRel": 0
+        },
+        "structuralOracle": {
+          "passed": true,
+          "failures": []
+        },
+        "checkpoints": [
+          {
+            "index": 0,
+            "valueHex": "3ff0000000000000"
+          },
+          {
+            "index": 400,
+            "valueHex": "3ff0000000000000"
+          },
+          {
+            "index": 800,
+            "valueHex": "3ff0000000000000"
+          },
+          {
+            "index": 1599,
+            "valueHex": "3ff0000000000004"
+          }
+        ],
+        "counters": {
+          "target": "javascript-controlled",
+          "boundaryCrossings": 0,
+          "wasmLinearAllocations": 0,
+          "kernels": 1,
+          "outputElements": 1600,
+          "outputBytes": 12800,
+          "multiplySubtracts": 10660,
+          "divisions": 780,
+          "diagonalRoots": 40,
+          "inputBytes": 12800,
+          "typedArrayAllocations": 3
+        },
+        "completeOutputArtifact": {
+          "file": "public/artifacts/numeric-polybench-panel/outputs/cholesky.javascript-controlled.f64le",
+          "route": "/artifacts/numeric-polybench-panel/outputs/cholesky.javascript-controlled.f64le",
+          "bytes": 12800,
+          "elements": 1600,
+          "sha256": "14f43fb479b27d02ab370d472aa179abb3a0a96f540541a85b5b0617f1e2bfbf",
+          "format": "f64le-complete-output"
+        }
+      }
+    },
+    "stencilJavascriptResult": {
+      "const": {
+        "kernel": "stencil",
+        "target": "javascript-controlled",
+        "outputSha256": "4e68c9e2c139647c6a694e2adca603da3837754e2844c63e5eef292d413a21d4",
+        "comparison": {
+          "passed": true,
+          "violations": 0,
+          "maxAbs": 0,
+          "maxRel": 0
+        },
+        "structuralOracle": {
+          "passed": true,
+          "failures": []
+        },
+        "checkpoints": [
+          {
+            "index": 0,
+            "valueHex": "3fb999999999999a"
+          },
+          {
+            "index": 225,
+            "valueHex": "4010222222222222"
+          },
+          {
+            "index": 450,
+            "valueHex": "3ff999999999999a"
+          },
+          {
+            "index": 899,
+            "valueHex": "403f088888888889"
+          }
+        ],
+        "counters": {
+          "target": "javascript-controlled",
+          "boundaryCrossings": 0,
+          "wasmLinearAllocations": 0,
+          "kernels": 1,
+          "outputElements": 900,
+          "outputBytes": 7200,
+          "stencilPoints": 784,
+          "sampleReads": 3920,
+          "outputWrites": 784,
+          "inputBytes": 14400,
+          "typedArrayAllocations": 3
+        },
+        "completeOutputArtifact": {
+          "file": "public/artifacts/numeric-polybench-panel/outputs/stencil.javascript-controlled.f64le",
+          "route": "/artifacts/numeric-polybench-panel/outputs/stencil.javascript-controlled.f64le",
+          "bytes": 7200,
+          "elements": 900,
+          "sha256": "4e68c9e2c139647c6a694e2adca603da3837754e2844c63e5eef292d413a21d4",
+          "format": "f64le-complete-output"
+        }
+      }
+    },
+    "jacobi2dJavascriptResult": {
+      "const": {
+        "kernel": "jacobi2d",
+        "target": "javascript-controlled",
+        "outputSha256": "ab8d74d94e755eddec10c2f795efc63e5e36898938f697b4562252cf5f697681",
+        "comparison": {
+          "passed": true,
+          "violations": 0,
+          "maxAbs": 0,
+          "maxRel": 0
+        },
+        "structuralOracle": {
+          "passed": true,
+          "failures": []
+        },
+        "checkpoints": [
+          {
+            "index": 0,
+            "valueHex": "3fb1111111111111"
+          },
+          {
+            "index": 225,
+            "valueHex": "401023931776c54b"
+          },
+          {
+            "index": 450,
+            "valueHex": "3ff1111111111111"
+          },
+          {
+            "index": 899,
+            "valueHex": "403e088888888889"
+          }
+        ],
+        "counters": {
+          "target": "javascript-controlled",
+          "boundaryCrossings": 0,
+          "wasmLinearAllocations": 0,
+          "kernels": 1,
+          "outputElements": 900,
+          "outputBytes": 7200,
+          "stencilPoints": 31360,
+          "sampleReads": 156800,
+          "outputWrites": 31360,
+          "inputBytes": 14400,
+          "typedArrayAllocations": 4
+        },
+        "completeOutputArtifact": {
+          "file": "public/artifacts/numeric-polybench-panel/outputs/jacobi2d.javascript-controlled.f64le",
+          "route": "/artifacts/numeric-polybench-panel/outputs/jacobi2d.javascript-controlled.f64le",
+          "bytes": 7200,
+          "elements": 900,
+          "sha256": "ab8d74d94e755eddec10c2f795efc63e5e36898938f697b4562252cf5f697681",
+          "format": "f64le-complete-output"
+        }
+      }
+    },
+    "javascriptResultSet": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "prefixItems": [
+        {
+          "$ref": "#/$defs/gemmJavascriptResult"
+        },
+        {
+          "$ref": "#/$defs/choleskyJavascriptResult"
+        },
+        {
+          "$ref": "#/$defs/stencilJavascriptResult"
+        },
+        {
+          "$ref": "#/$defs/jacobi2dJavascriptResult"
+        }
+      ],
+      "items": false
+    },
+    "gemmWasmResult": {
+      "const": {
+        "kernel": "gemm",
+        "target": "linear-wasm-controlled",
+        "outputSha256": "055c9d69c98e0ab7529a38d83e18e18d9b960c637ba77c4aec2477b14c279892",
+        "comparison": {
+          "passed": true,
+          "violations": 0,
+          "maxAbs": 0,
+          "maxRel": 0
+        },
+        "structuralOracle": {
+          "passed": true,
+          "failures": []
+        },
+        "checkpoints": [
+          {
+            "index": 0,
+            "valueHex": "3faeb851eb851eb8"
+          },
+          {
+            "index": 125,
+            "valueHex": "401e3d70a3d70a3d"
+          },
+          {
+            "index": 250,
+            "valueHex": "40183d70a3d70a3e"
+          },
+          {
+            "index": 499,
+            "valueHex": "4024e147ae147ae0"
+          }
+        ],
+        "counters": {
+          "target": "linear-wasm-controlled",
+          "boundaryCrossings": 1,
+          "wasmLinearAllocations": 0,
+          "kernels": 1,
+          "outputElements": 500,
+          "outputBytes": 4000,
+          "multiplyAdds": 15000,
+          "scaleMultiplications": 500,
+          "inputBytes": 14800,
+          "typedArrayAllocations": 8
+        },
+        "completeOutputArtifact": {
+          "file": "public/artifacts/numeric-polybench-panel/outputs/gemm.linear-wasm-controlled.f64le",
+          "route": "/artifacts/numeric-polybench-panel/outputs/gemm.linear-wasm-controlled.f64le",
+          "bytes": 4000,
+          "elements": 500,
+          "sha256": "055c9d69c98e0ab7529a38d83e18e18d9b960c637ba77c4aec2477b14c279892",
+          "format": "f64le-complete-output"
+        }
+      }
+    },
+    "choleskyWasmResult": {
+      "const": {
+        "kernel": "cholesky",
+        "target": "linear-wasm-controlled",
+        "outputSha256": "14f43fb479b27d02ab370d472aa179abb3a0a96f540541a85b5b0617f1e2bfbf",
+        "comparison": {
+          "passed": true,
+          "violations": 0,
+          "maxAbs": 0,
+          "maxRel": 0
+        },
+        "structuralOracle": {
+          "passed": true,
+          "failures": []
+        },
+        "checkpoints": [
+          {
+            "index": 0,
+            "valueHex": "3ff0000000000000"
+          },
+          {
+            "index": 400,
+            "valueHex": "3ff0000000000000"
+          },
+          {
+            "index": 800,
+            "valueHex": "3ff0000000000000"
+          },
+          {
+            "index": 1599,
+            "valueHex": "3ff0000000000004"
+          }
+        ],
+        "counters": {
+          "target": "linear-wasm-controlled",
+          "boundaryCrossings": 1,
+          "wasmLinearAllocations": 0,
+          "kernels": 1,
+          "outputElements": 1600,
+          "outputBytes": 12800,
+          "multiplySubtracts": 10660,
+          "divisions": 780,
+          "diagonalRoots": 40,
+          "inputBytes": 12800,
+          "typedArrayAllocations": 5
+        },
+        "completeOutputArtifact": {
+          "file": "public/artifacts/numeric-polybench-panel/outputs/cholesky.linear-wasm-controlled.f64le",
+          "route": "/artifacts/numeric-polybench-panel/outputs/cholesky.linear-wasm-controlled.f64le",
+          "bytes": 12800,
+          "elements": 1600,
+          "sha256": "14f43fb479b27d02ab370d472aa179abb3a0a96f540541a85b5b0617f1e2bfbf",
+          "format": "f64le-complete-output"
+        }
+      }
+    },
+    "stencilWasmResult": {
+      "const": {
+        "kernel": "stencil",
+        "target": "linear-wasm-controlled",
+        "outputSha256": "4e68c9e2c139647c6a694e2adca603da3837754e2844c63e5eef292d413a21d4",
+        "comparison": {
+          "passed": true,
+          "violations": 0,
+          "maxAbs": 0,
+          "maxRel": 0
+        },
+        "structuralOracle": {
+          "passed": true,
+          "failures": []
+        },
+        "checkpoints": [
+          {
+            "index": 0,
+            "valueHex": "3fb999999999999a"
+          },
+          {
+            "index": 225,
+            "valueHex": "4010222222222222"
+          },
+          {
+            "index": 450,
+            "valueHex": "3ff999999999999a"
+          },
+          {
+            "index": 899,
+            "valueHex": "403f088888888889"
+          }
+        ],
+        "counters": {
+          "target": "linear-wasm-controlled",
+          "boundaryCrossings": 1,
+          "wasmLinearAllocations": 0,
+          "kernels": 1,
+          "outputElements": 900,
+          "outputBytes": 7200,
+          "stencilPoints": 784,
+          "sampleReads": 3920,
+          "outputWrites": 784,
+          "inputBytes": 14400,
+          "typedArrayAllocations": 6
+        },
+        "completeOutputArtifact": {
+          "file": "public/artifacts/numeric-polybench-panel/outputs/stencil.linear-wasm-controlled.f64le",
+          "route": "/artifacts/numeric-polybench-panel/outputs/stencil.linear-wasm-controlled.f64le",
+          "bytes": 7200,
+          "elements": 900,
+          "sha256": "4e68c9e2c139647c6a694e2adca603da3837754e2844c63e5eef292d413a21d4",
+          "format": "f64le-complete-output"
+        }
+      }
+    },
+    "jacobi2dWasmResult": {
+      "const": {
+        "kernel": "jacobi2d",
+        "target": "linear-wasm-controlled",
+        "outputSha256": "ab8d74d94e755eddec10c2f795efc63e5e36898938f697b4562252cf5f697681",
+        "comparison": {
+          "passed": true,
+          "violations": 0,
+          "maxAbs": 0,
+          "maxRel": 0
+        },
+        "structuralOracle": {
+          "passed": true,
+          "failures": []
+        },
+        "checkpoints": [
+          {
+            "index": 0,
+            "valueHex": "3fb1111111111111"
+          },
+          {
+            "index": 225,
+            "valueHex": "401023931776c54b"
+          },
+          {
+            "index": 450,
+            "valueHex": "3ff1111111111111"
+          },
+          {
+            "index": 899,
+            "valueHex": "403e088888888889"
+          }
+        ],
+        "counters": {
+          "target": "linear-wasm-controlled",
+          "boundaryCrossings": 1,
+          "wasmLinearAllocations": 0,
+          "kernels": 1,
+          "outputElements": 900,
+          "outputBytes": 7200,
+          "stencilPoints": 31360,
+          "sampleReads": 156800,
+          "outputWrites": 31360,
+          "inputBytes": 14400,
+          "typedArrayAllocations": 6
+        },
+        "completeOutputArtifact": {
+          "file": "public/artifacts/numeric-polybench-panel/outputs/jacobi2d.linear-wasm-controlled.f64le",
+          "route": "/artifacts/numeric-polybench-panel/outputs/jacobi2d.linear-wasm-controlled.f64le",
+          "bytes": 7200,
+          "elements": 900,
+          "sha256": "ab8d74d94e755eddec10c2f795efc63e5e36898938f697b4562252cf5f697681",
+          "format": "f64le-complete-output"
+        }
+      }
+    },
+    "wasmResultSet": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "prefixItems": [
+        {
+          "$ref": "#/$defs/gemmWasmResult"
+        },
+        {
+          "$ref": "#/$defs/choleskyWasmResult"
+        },
+        {
+          "$ref": "#/$defs/stencilWasmResult"
+        },
+        {
+          "$ref": "#/$defs/jacobi2dWasmResult"
+        }
+      ],
+      "items": false
+    },
+    "workerRunning": {
+      "$ref": "#/$defs/workerState",
+      "properties": {
+        "terminated": {
+          "const": false
+        },
+        "posted": {
+          "type": "object",
+          "properties": {
+            "target": {
+              "const": "javascript"
+            },
+            "kernel": {
+              "const": "all"
+            }
+          }
+        }
+      },
+      "type": "object"
+    },
+    "workerTerminated": {
+      "$ref": "#/$defs/workerState",
+      "properties": {
+        "terminated": {
+          "const": true
+        },
+        "posted": {
+          "type": "object",
+          "properties": {
+            "target": {
+              "const": "javascript"
+            },
+            "kernel": {
+              "const": "all"
+            }
+          }
+        }
+      },
+      "type": "object"
+    },
+    "runningOne": {
+      "$ref": "#/$defs/lifecycleState",
+      "properties": {
+        "status": {
+          "const": "Running exact registered work…"
+        },
+        "output": {
+          "const": "No result yet."
+        },
+        "startDisabled": {
+          "const": true
+        },
+        "cancelDisabled": {
+          "const": false
+        },
+        "progressValue": {
+          "const": "0"
+        },
+        "workers": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/workerRunning"
+            }
+          ],
+          "items": false
+        }
+      },
+      "type": "object"
+    },
+    "runningReplacement": {
+      "$ref": "#/$defs/lifecycleState",
+      "properties": {
+        "status": {
+          "const": "Running exact registered work…"
+        },
+        "output": {
+          "const": "No result yet."
+        },
+        "startDisabled": {
+          "const": true
+        },
+        "cancelDisabled": {
+          "const": false
+        },
+        "progressValue": {
+          "const": "0"
+        },
+        "workers": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/workerTerminated"
+            },
+            {
+              "$ref": "#/$defs/workerRunning"
+            }
+          ],
+          "items": false
+        }
+      },
+      "type": "object"
+    },
+    "cancelledOne": {
+      "$ref": "#/$defs/lifecycleState",
+      "properties": {
+        "status": {
+          "const": "Cancelled. The worker was terminated."
+        },
+        "output": {
+          "const": "No result yet."
+        },
+        "startDisabled": {
+          "const": false
+        },
+        "cancelDisabled": {
+          "const": true
+        },
+        "progressValue": {
+          "const": null
+        },
+        "workers": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/workerTerminated"
+            }
+          ],
+          "items": false
+        }
+      },
+      "type": "object"
+    },
+    "cancelledTwo": {
+      "$ref": "#/$defs/lifecycleState",
+      "properties": {
+        "status": {
+          "const": "Cancelled. The worker was terminated."
+        },
+        "output": {
+          "const": "No result yet."
+        },
+        "startDisabled": {
+          "const": false
+        },
+        "cancelDisabled": {
+          "const": true
+        },
+        "progressValue": {
+          "const": null
+        },
+        "workers": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/workerTerminated"
+            },
+            {
+              "$ref": "#/$defs/workerTerminated"
+            }
+          ],
+          "items": false
+        }
+      },
+      "type": "object"
+    },
+    "completeReplacement": {
+      "$ref": "#/$defs/lifecycleState",
+      "properties": {
+        "status": {
+          "const": "Complete. Every reported element passed the registered oracle."
+        },
+        "output": {
+          "const": "[]"
+        },
+        "startDisabled": {
+          "const": false
+        },
+        "cancelDisabled": {
+          "const": true
+        },
+        "progressValue": {
+          "const": null
+        },
+        "workers": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/workerTerminated"
+            },
+            {
+              "$ref": "#/$defs/workerTerminated"
+            }
+          ],
+          "items": false
+        }
+      },
+      "type": "object"
+    },
+    "timedOutOne": {
+      "$ref": "#/$defs/lifecycleState",
+      "properties": {
+        "status": {
+          "const": "Stopped after the 30-second bound."
+        },
+        "output": {
+          "const": "No result yet."
+        },
+        "startDisabled": {
+          "const": false
+        },
+        "cancelDisabled": {
+          "const": true
+        },
+        "progressValue": {
+          "const": null
+        },
+        "workers": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/workerTerminated"
+            }
+          ],
+          "items": false
+        }
+      },
+      "type": "object"
+    },
+    "pageHiddenOne": {
+      "$ref": "#/$defs/lifecycleState",
+      "properties": {
+        "status": {
+          "const": "Running exact registered work…"
+        },
+        "output": {
+          "const": "No result yet."
+        },
+        "startDisabled": {
+          "const": false
+        },
+        "cancelDisabled": {
+          "const": true
+        },
+        "progressValue": {
+          "const": null
+        },
+        "workers": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/workerTerminated"
+            }
+          ],
+          "items": false
+        }
+      },
+      "type": "object"
+    },
+    "executionFinalState": {
+      "$ref": "#/$defs/pageState",
+      "properties": {
+        "status": {
+          "const": "Complete. Every reported element passed the registered oracle."
+        },
+        "output": {
+          "type": "string",
+          "minLength": 1
+        },
+        "startDisabled": {
+          "const": false
+        },
+        "cancelDisabled": {
+          "const": true
+        },
+        "progressValue": {
+          "const": 0
+        },
+        "progressMax": {
+          "const": 4
+        }
+      },
+      "type": "object"
+    },
+    "cancelledFinalState": {
+      "$ref": "#/$defs/pageState",
+      "properties": {
+        "status": {
+          "const": "Cancelled. The worker was terminated."
+        },
+        "output": {
+          "const": "No result yet."
+        },
+        "startDisabled": {
+          "const": false
+        },
+        "cancelDisabled": {
+          "const": true
+        },
+        "progressValue": {
+          "const": 0
+        },
+        "progressMax": {
+          "const": 4
+        }
+      },
+      "type": "object"
+    },
+    "completeReplacementFinalState": {
+      "$ref": "#/$defs/pageState",
+      "properties": {
+        "status": {
+          "const": "Complete. Every reported element passed the registered oracle."
+        },
+        "output": {
+          "const": "[]"
+        },
+        "startDisabled": {
+          "const": false
+        },
+        "cancelDisabled": {
+          "const": true
+        },
+        "progressValue": {
+          "const": 0
+        },
+        "progressMax": {
+          "const": 4
+        }
+      },
+      "type": "object"
+    },
+    "timedOutFinalState": {
+      "$ref": "#/$defs/pageState",
+      "properties": {
+        "status": {
+          "const": "Stopped after the 30-second bound."
+        },
+        "output": {
+          "const": "No result yet."
+        },
+        "startDisabled": {
+          "const": false
+        },
+        "cancelDisabled": {
+          "const": true
+        },
+        "progressValue": {
+          "const": 0
+        },
+        "progressMax": {
+          "const": 4
+        }
+      },
+      "type": "object"
+    },
+    "pageHiddenFinalState": {
+      "$ref": "#/$defs/pageState",
+      "properties": {
+        "status": {
+          "const": "Running exact registered work…"
+        },
+        "output": {
+          "const": "No result yet."
+        },
+        "startDisabled": {
+          "const": false
+        },
+        "cancelDisabled": {
+          "const": true
+        },
+        "progressValue": {
+          "const": 0
+        },
+        "progressMax": {
+          "const": 4
+        }
+      },
+      "type": "object"
     }
   }
 }

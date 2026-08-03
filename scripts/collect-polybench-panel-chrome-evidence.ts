@@ -63,6 +63,7 @@ type ProcessIdentity = {
   parentPid: number;
   startTimeTicks: string;
   executable: string;
+  cgroup: string;
 };
 
 async function commandBytes(command: string, args: string[]): Promise<Uint8Array> {
@@ -256,20 +257,24 @@ async function processIdentity(pid: number): Promise<ProcessIdentity | null> {
       parentPid: Number(fields[1]),
       startTimeTicks: fields[19],
       executable: await Deno.realPath(`/proc/${pid}/exe`),
+      cgroup: (await Deno.readTextFile(`/proc/${pid}/cgroup`)).trim(),
     };
   } catch {
     return null;
   }
 }
 
-async function ownedProcesses(rootPid: number): Promise<ProcessIdentity[]> {
+async function ownedProcesses(
+  rootIdentity: ProcessIdentity,
+): Promise<ProcessIdentity[]> {
+  if (!(await identityStillRunning(rootIdentity))) return [];
   const identities: ProcessIdentity[] = [];
   for await (const entry of Deno.readDir("/proc")) {
     if (!entry.isDirectory || !/^\d+$/.test(entry.name)) continue;
     const identity = await processIdentity(Number(entry.name));
     if (identity) identities.push(identity);
   }
-  const owned = new Set([rootPid]);
+  const owned = new Set([rootIdentity.pid]);
   let changed = true;
   while (changed) {
     changed = false;
@@ -286,7 +291,7 @@ async function ownedProcesses(rootPid: number): Promise<ProcessIdentity[]> {
 async function identityStillRunning(identity: ProcessIdentity): Promise<boolean> {
   const current = await processIdentity(identity.pid);
   return current?.startTimeTicks === identity.startTimeTicks &&
-    current.executable === identity.executable;
+    current.executable === identity.executable && current.cgroup === identity.cgroup;
 }
 
 async function waitForOwnedExit(
@@ -400,55 +405,74 @@ async function collect(): Promise<void> {
   const executableHash = (await commandText("sha256sum", [executablePath])).split(/\s+/)[0];
   if (!/^[a-f0-9]{64}$/.test(executableHash)) throw new Error("Chrome executable hash failed");
 
-  await Deno.remove(outputRoot, { recursive: true }).catch(() => {});
-  await Deno.mkdir(outputRoot, { recursive: true });
+  let outputCreated = false;
+  let server: Deno.ChildProcess | null = null;
+  let serverStatusPromise: Promise<Deno.CommandStatus> | null = null;
+  let serverIdentity: ProcessIdentity | null = null;
+  let profilePath: string | null = null;
+  let browserProcess: Deno.ChildProcess | null = null;
+  let browserStatusPromise: Promise<Deno.CommandStatus> | null = null;
+  let browserLauncherIdentity: ProcessIdentity | null = null;
+  let observedBrowserProcesses: ProcessIdentity[] = [];
+  let complete = false;
+  let emergencyClient: CdpClient | null = null;
   const serverPort = unusedPort();
   const debuggerPort = unusedPort();
   const origin = `http://127.0.0.1:${serverPort}`;
-  const server = new Deno.Command(Deno.execPath(), {
-    cwd: root,
-    args: [
-      "run",
-      "--allow-env=PORT,HOST,SERVER_MODE",
-      "--allow-net=127.0.0.1",
-      "--allow-read=.",
-      "deploy.ts",
-    ],
-    env: { PORT: String(serverPort), HOST: "127.0.0.1", SERVER_MODE: "public" },
-    stdout: "null",
-    stderr: "null",
-  }).spawn();
-  const serverStatusPromise = server.status;
-  await waitFor(`${origin}/healthz`);
-  const profilePath = await Deno.makeTempDir({ prefix: "wasm-polybench-panel-chrome-" });
-  const launchArguments = [
-    "--headless=new",
-    "--no-sandbox",
-    "--disable-gpu",
-    "--disable-background-networking",
-    "--disable-component-update",
-    "--disable-default-apps",
-    "--disable-extensions",
-    "--disable-sync",
-    "--metrics-recording-only",
-    "--no-first-run",
-    "--hide-scrollbars",
-    "--window-size=1440,1200",
-    "--force-device-scale-factor=1",
-    "--remote-debugging-address=127.0.0.1",
-    `--remote-debugging-port=${debuggerPort}`,
-    `--user-data-dir=${profilePath}`,
-    "about:blank",
-  ];
-  const browserProcess = new Deno.Command(executablePath, {
-    args: launchArguments,
-    stdout: "null",
-    stderr: "null",
-  }).spawn();
-  const browserStatusPromise = browserProcess.status;
-  let complete = false;
-  let emergencyClient: CdpClient | null = null;
+  let launchArguments: string[] = [];
   try {
+    await Deno.remove(outputRoot, { recursive: true }).catch(() => {});
+    await Deno.mkdir(outputRoot, { recursive: true });
+    outputCreated = true;
+    server = new Deno.Command(Deno.execPath(), {
+      cwd: root,
+      args: [
+        "run",
+        "--allow-env=PORT,HOST,SERVER_MODE",
+        "--allow-net=127.0.0.1",
+        "--allow-read=.",
+        "deploy.ts",
+      ],
+      env: { PORT: String(serverPort), HOST: "127.0.0.1", SERVER_MODE: "public" },
+      stdout: "null",
+      stderr: "null",
+    }).spawn();
+    serverStatusPromise = server.status;
+    serverIdentity = await processIdentity(server.pid);
+    if (!serverIdentity) throw new Error("evidence server identity unavailable after spawn");
+    await waitFor(`${origin}/healthz`);
+    profilePath = await Deno.makeTempDir({ prefix: "wasm-polybench-panel-chrome-" });
+    launchArguments = [
+      "--headless=new",
+      "--enable-automation",
+      "--no-sandbox",
+      "--disable-gpu",
+      "--disable-background-networking",
+      "--disable-component-update",
+      "--disable-default-apps",
+      "--disable-extensions",
+      "--disable-sync",
+      "--metrics-recording-only",
+      "--no-first-run",
+      "--hide-scrollbars",
+      "--window-size=1440,1200",
+      "--force-device-scale-factor=1",
+      "--remote-debugging-address=127.0.0.1",
+      `--remote-debugging-port=${debuggerPort}`,
+      `--user-data-dir=${profilePath}`,
+      "about:blank",
+    ];
+    browserProcess = new Deno.Command(executablePath, {
+      args: launchArguments,
+      stdout: "null",
+      stderr: "null",
+    }).spawn();
+    browserStatusPromise = browserProcess.status;
+    browserLauncherIdentity = await processIdentity(browserProcess.pid);
+    if (!browserLauncherIdentity) {
+      throw new Error("Chrome launcher identity unavailable after spawn");
+    }
+    observedBrowserProcesses = [browserLauncherIdentity];
     const discovery = await (await waitFor(`http://127.0.0.1:${debuggerPort}/json/version`)).json();
     const socket = new URL(discovery.webSocketDebuggerUrl);
     if (
@@ -464,6 +488,12 @@ async function collect(): Promise<void> {
     if (browserVersion.product !== EXPECTED_CHROME_PRODUCT) {
       throw new Error(`unexpected browser ${browserVersion.product}`);
     }
+    const effectiveCommandLine = await client.send("Browser.getBrowserCommandLine");
+    const effectiveArguments = effectiveCommandLine.arguments;
+    if (
+      !Array.isArray(effectiveArguments) ||
+      launchArguments.some((argument) => !effectiveArguments.includes(argument))
+    ) throw new Error("Chrome effective command line omitted a pinned launch argument");
     const host = {
       operatingSystem: await commandText("uname", ["-a"]),
       denoOs: Deno.build.os,
@@ -681,29 +711,42 @@ async function collect(): Promise<void> {
       await client.send("Target.closeTarget", { targetId });
     }
 
-    const observedProcesses = await ownedProcesses(browserProcess.pid);
-    const launcher = observedProcesses.find((identity) => identity.pid === browserProcess.pid);
-    if (!launcher) throw new Error("owned Chrome launcher disappeared before cleanup");
+    if (!browserLauncherIdentity) throw new Error("Chrome launcher identity was not retained");
+    const retainedBrowserLauncher = browserLauncherIdentity;
+    const currentBrowserProcesses = await ownedProcesses(retainedBrowserLauncher);
+    observedBrowserProcesses = [...new Map(
+      [...observedBrowserProcesses, ...currentBrowserProcesses].map((identity) => [
+        `${identity.pid}:${identity.startTimeTicks}`,
+        identity,
+      ]),
+    ).values()].sort((a, b) => a.pid - b.pid);
+    const launcher = observedBrowserProcesses.find((identity) =>
+      identity.pid === retainedBrowserLauncher.pid &&
+      identity.startTimeTicks === retainedBrowserLauncher.startTimeTicks
+    );
+    if (!launcher || !currentBrowserProcesses.length) {
+      throw new Error("owned Chrome launcher disappeared before cleanup");
+    }
     await client.send("Browser.close");
     client.close();
     const signals: Array<{ pid: number; signal: string }> = [];
-    if (!(await waitForOwnedExit(observedProcesses, 10_000))) {
-      for (const identity of [...observedProcesses].reverse()) {
+    if (!(await waitForOwnedExit(observedBrowserProcesses, 10_000))) {
+      for (const identity of [...observedBrowserProcesses].reverse()) {
         if (await identityStillRunning(identity)) {
           Deno.kill(identity.pid, "SIGTERM");
           signals.push({ pid: identity.pid, signal: "SIGTERM" });
         }
       }
     }
-    if (!(await waitForOwnedExit(observedProcesses, 5_000))) {
-      for (const identity of [...observedProcesses].reverse()) {
+    if (!(await waitForOwnedExit(observedBrowserProcesses, 5_000))) {
+      for (const identity of [...observedBrowserProcesses].reverse()) {
         if (await identityStillRunning(identity)) {
           Deno.kill(identity.pid, "SIGKILL");
           signals.push({ pid: identity.pid, signal: "SIGKILL" });
         }
       }
     }
-    const processesAbsent = await waitForOwnedExit(observedProcesses, 5_000);
+    const processesAbsent = await waitForOwnedExit(observedBrowserProcesses, 5_000);
     const browserExit = await browserStatusPromise;
     if (!processesAbsent) throw new Error("owned Chrome processes survived exact cleanup");
     await Deno.remove(profilePath, { recursive: true });
@@ -715,11 +758,37 @@ async function collect(): Promise<void> {
       else throw error;
     }
     if (!profileAbsent) throw new Error("owned Chrome profile survived exact cleanup");
-    const serverIdentity = await processIdentity(server.pid);
-    if (serverIdentity) Deno.kill(server.pid, "SIGTERM");
+    if (await identityStillRunning(serverIdentity)) Deno.kill(serverIdentity.pid, "SIGTERM");
     const serverExit = await serverStatusPromise;
-    const serverAbsent = serverIdentity ? !(await identityStillRunning(serverIdentity)) : true;
+    const serverAbsent = !(await identityStillRunning(serverIdentity));
     if (!serverAbsent) throw new Error("owned evidence server survived exact cleanup");
+
+    const [endHead, endTree, endStatus, endSourceFiles, endExecutablePath] = await Promise.all([
+      commandText("git", ["rev-parse", "HEAD"]),
+      commandText("git", ["rev-parse", `${sourceCommit}^{tree}`]),
+      commandText("git", [
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=all",
+        "--",
+        ".",
+        ":(exclude)evidence/base/numeric-polybench-panel/chrome-acceptance/**",
+      ]),
+      Promise.all(executionPaths.map((path) => sourceDescriptor(sourceCommit, path))),
+      Deno.realPath(chromeArgument),
+    ]);
+    const endExecutableStat = await Deno.stat(endExecutablePath);
+    const endExecutableHash = (await commandText("sha256sum", [endExecutablePath])).split(/\s+/)[0];
+    if (
+      endHead !== sourceCommit || endTree !== tree || endStatus !== "" ||
+      canonicalize(endSourceFiles) !== canonicalize(sourceFiles)
+    ) throw new Error("source identity changed during collection");
+    if (
+      endExecutablePath !== executablePath || endExecutableStat.size !== executableStat.size ||
+      endExecutableStat.dev !== executableStat.dev ||
+      endExecutableStat.ino !== executableStat.ino ||
+      endExecutableHash !== executableHash
+    ) throw new Error("Chrome executable identity changed during collection");
 
     const evidence = {
       schemaVersion: 1,
@@ -727,10 +796,11 @@ async function collect(): Promise<void> {
       collectedAt: new Date().toISOString(),
       source: {
         commit: sourceCommit,
-        head,
         tree,
         cleanAtStart: true,
         statusPorcelain: "",
+        cleanAtEnd: true,
+        statusPorcelainAtEnd: "",
         files: sourceFiles,
         buildManifest: {
           sha256: await sha256Hex(manifestBytes),
@@ -762,7 +832,7 @@ async function collect(): Promise<void> {
       cleanup: {
         browser: {
           launcher,
-          observedProcesses,
+          observedProcesses: observedBrowserProcesses,
           requested: "Browser.close",
           signals,
           exit: browserExit,
@@ -771,7 +841,7 @@ async function collect(): Promise<void> {
         profile: { path: profilePath, removed: true, absent: profileAbsent },
         server: {
           launcher: serverIdentity,
-          signal: serverIdentity ? "SIGTERM" : null,
+          signal: "SIGTERM",
           exit: serverExit,
           processAbsent: serverAbsent,
         },
@@ -804,24 +874,32 @@ async function collect(): Promise<void> {
         // Identity-bound cleanup continues below.
       }
       emergencyClient?.close();
-      const processes = await ownedProcesses(browserProcess.pid);
-      if (!(await waitForOwnedExit(processes, 2_000))) {
-        for (const identity of [...processes].reverse()) {
-          if (await identityStillRunning(identity)) Deno.kill(identity.pid, "SIGTERM");
+      if (browserLauncherIdentity) {
+        const current = await ownedProcesses(browserLauncherIdentity);
+        const processes = [...new Map(
+          [...observedBrowserProcesses, ...current].map((identity) => [
+            `${identity.pid}:${identity.startTimeTicks}`,
+            identity,
+          ]),
+        ).values()].sort((a, b) => a.pid - b.pid);
+        if (!(await waitForOwnedExit(processes, 2_000))) {
+          for (const identity of [...processes].reverse()) {
+            if (await identityStillRunning(identity)) Deno.kill(identity.pid, "SIGTERM");
+          }
+        }
+        if (!(await waitForOwnedExit(processes, 2_000))) {
+          for (const identity of [...processes].reverse()) {
+            if (await identityStillRunning(identity)) Deno.kill(identity.pid, "SIGKILL");
+          }
         }
       }
-      if (!(await waitForOwnedExit(processes, 2_000))) {
-        for (const identity of [...processes].reverse()) {
-          if (await identityStillRunning(identity)) Deno.kill(identity.pid, "SIGKILL");
-        }
-      }
-      await browserStatusPromise.catch(() => {});
-      const serverIdentity = await processIdentity(server.pid);
+      await browserStatusPromise?.catch(() => {});
       if (serverIdentity && await identityStillRunning(serverIdentity)) {
-        Deno.kill(server.pid, "SIGTERM");
+        Deno.kill(serverIdentity.pid, "SIGTERM");
       }
-      await serverStatusPromise.catch(() => {});
-      await Deno.remove(profilePath, { recursive: true }).catch(() => {});
+      await serverStatusPromise?.catch(() => {});
+      if (profilePath) await Deno.remove(profilePath, { recursive: true }).catch(() => {});
+      if (outputCreated) await Deno.remove(outputRoot, { recursive: true }).catch(() => {});
     }
   }
 }
