@@ -1,13 +1,39 @@
 const CONTRACT_PATH = "benchmarks/base/server-wasi-request-handler/implementation-contract.v1.json";
 
+export const INDEPENDENT_JAVASCRIPT_SQLITE_CANDIDATES = [
+  {
+    id: "repository-entrypoint",
+    path: "benchmarks/base/server-wasi-request-handler/javascript-sqlite.ts",
+  },
+  {
+    id: "vendored-javascript-source",
+    path: "benchmarks/base/server-wasi-request-handler/vendor/sqlite.js",
+  },
+  {
+    id: "vendored-typescript-source",
+    path: "benchmarks/base/server-wasi-request-handler/vendor/sqlite.ts",
+  },
+] as const;
+
+type IndependentJavaScriptSqliteCandidate = {
+  id: string;
+  path: string;
+};
+
+export type IndependentJavaScriptSqliteCandidateProbe = IndependentJavaScriptSqliteCandidate & {
+  available: boolean;
+};
+
 export type QualificationProbe = {
   deno: string;
   hostSqliteCliObserved: string | null;
-  wasiSdkAvailable: boolean;
-  wasiSysrootAvailable: boolean;
+  wasiSdkClangAtOptPathAvailable: boolean;
+  wasiSysrootAtUsrSharePathAvailable: boolean;
   rustWasip1StandardLibraryAvailable: boolean;
   repositoryPinnedSqliteSourceAvailable: boolean;
   repositoryPinnedSqliteWasiArtifactAvailable: boolean;
+  independentJavaScriptSqliteCandidates: IndependentJavaScriptSqliteCandidateProbe[];
+  independentJavaScriptSqliteAvailable: boolean;
 };
 
 async function exists(path: string): Promise<boolean> {
@@ -43,19 +69,36 @@ async function rustWasip1StdAvailable(): Promise<boolean> {
   return await exists(`${sysroot}/lib/rustlib/wasm32-wasip1/lib`);
 }
 
+export async function probeIndependentJavaScriptSqliteCandidates(
+  candidates: readonly IndependentJavaScriptSqliteCandidate[] =
+    INDEPENDENT_JAVASCRIPT_SQLITE_CANDIDATES,
+): Promise<IndependentJavaScriptSqliteCandidateProbe[]> {
+  return await Promise.all(
+    candidates.map(async (candidate) => ({
+      ...candidate,
+      available: await exists(candidate.path),
+    })),
+  );
+}
+
 export async function probeQualification(): Promise<QualificationProbe> {
   const sqliteVersion = await commandFirstLine("sqlite3", ["--version"]);
+  const independentJavaScriptSqliteCandidates = await probeIndependentJavaScriptSqliteCandidates();
   return {
     deno: Deno.version.deno,
     hostSqliteCliObserved: sqliteVersion,
-    wasiSdkAvailable: await exists("/opt/wasi-sdk/bin/clang"),
-    wasiSysrootAvailable: await exists("/usr/share/wasi-sysroot"),
+    wasiSdkClangAtOptPathAvailable: await exists("/opt/wasi-sdk/bin/clang"),
+    wasiSysrootAtUsrSharePathAvailable: await exists("/usr/share/wasi-sysroot"),
     rustWasip1StandardLibraryAvailable: await rustWasip1StdAvailable(),
     repositoryPinnedSqliteSourceAvailable: await exists(
       "benchmarks/base/server-wasi-request-handler/vendor/sqlite3.c",
     ),
     repositoryPinnedSqliteWasiArtifactAvailable: await exists(
       "public/artifacts/server-wasi-request-handler/sqlite3.wasm",
+    ),
+    independentJavaScriptSqliteCandidates,
+    independentJavaScriptSqliteAvailable: independentJavaScriptSqliteCandidates.some((candidate) =>
+      candidate.available
     ),
   };
 }
@@ -67,8 +110,16 @@ export async function verifyRecordedQualification(): Promise<QualificationProbe>
   const checks: Array<[string, unknown, unknown]> = [
     ["Deno version", observed.deno, expected.deno],
     ["host SQLite CLI", observed.hostSqliteCliObserved, expected.hostSqliteCliObserved],
-    ["wasi-sdk", observed.wasiSdkAvailable, expected.wasiSdkAvailable],
-    ["WASI sysroot", observed.wasiSysrootAvailable, expected.wasiSysrootAvailable],
+    [
+      "wasi-sdk clang at /opt/wasi-sdk/bin/clang",
+      observed.wasiSdkClangAtOptPathAvailable,
+      expected.wasiSdkClangAtOptPathAvailable,
+    ],
+    [
+      "WASI sysroot at /usr/share/wasi-sysroot",
+      observed.wasiSysrootAtUsrSharePathAvailable,
+      expected.wasiSysrootAtUsrSharePathAvailable,
+    ],
     [
       "Rust wasm32-wasip1 standard library",
       observed.rustWasip1StandardLibraryAvailable,
@@ -83,6 +134,16 @@ export async function verifyRecordedQualification(): Promise<QualificationProbe>
       "pinned SQLite WASI artifact",
       observed.repositoryPinnedSqliteWasiArtifactAvailable,
       expected.repositoryPinnedSqliteWasiArtifactAvailable,
+    ],
+    [
+      "independent JavaScript SQLite candidate audit",
+      JSON.stringify(observed.independentJavaScriptSqliteCandidates),
+      JSON.stringify(expected.independentJavaScriptSqliteAudit.inspectedCandidates),
+    ],
+    [
+      "independent JavaScript SQLite availability",
+      observed.independentJavaScriptSqliteAvailable,
+      expected.independentJavaScriptSqliteAvailable,
     ],
   ];
   const mismatches = checks.filter(([, actual, wanted]) => actual !== wanted);

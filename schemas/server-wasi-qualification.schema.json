@@ -139,11 +139,12 @@
         "deno",
         "hostSqliteCliObserved",
         "hostSqliteIsControlledTarget",
-        "wasiSdkAvailable",
-        "wasiSysrootAvailable",
+        "wasiSdkClangAtOptPathAvailable",
+        "wasiSysrootAtUsrSharePathAvailable",
         "rustWasip1StandardLibraryAvailable",
         "repositoryPinnedSqliteSourceAvailable",
         "repositoryPinnedSqliteWasiArtifactAvailable",
+        "independentJavaScriptSqliteAudit",
         "independentJavaScriptSqliteAvailable",
         "identicalSqliteRuntimeEstablished"
       ],
@@ -151,11 +152,62 @@
         "deno": { "const": "2.9.0" },
         "hostSqliteCliObserved": { "const": "3.53.3" },
         "hostSqliteIsControlledTarget": { "const": false },
-        "wasiSdkAvailable": { "const": false },
-        "wasiSysrootAvailable": { "const": false },
+        "wasiSdkClangAtOptPathAvailable": { "const": false },
+        "wasiSysrootAtUsrSharePathAvailable": { "const": false },
         "rustWasip1StandardLibraryAvailable": { "const": false },
         "repositoryPinnedSqliteSourceAvailable": { "const": false },
         "repositoryPinnedSqliteWasiArtifactAvailable": { "const": false },
+        "independentJavaScriptSqliteAudit": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["availabilityRule", "inspectedCandidates"],
+          "properties": {
+            "availabilityRule": { "type": "string", "minLength": 1 },
+            "inspectedCandidates": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["id", "path", "available"],
+                  "properties": {
+                    "id": { "const": "repository-entrypoint" },
+                    "path": {
+                      "const": "benchmarks/base/server-wasi-request-handler/javascript-sqlite.ts"
+                    },
+                    "available": { "const": false }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["id", "path", "available"],
+                  "properties": {
+                    "id": { "const": "vendored-javascript-source" },
+                    "path": {
+                      "const": "benchmarks/base/server-wasi-request-handler/vendor/sqlite.js"
+                    },
+                    "available": { "const": false }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["id", "path", "available"],
+                  "properties": {
+                    "id": { "const": "vendored-typescript-source" },
+                    "path": {
+                      "const": "benchmarks/base/server-wasi-request-handler/vendor/sqlite.ts"
+                    },
+                    "available": { "const": false }
+                  }
+                }
+              ],
+              "minItems": 3,
+              "maxItems": 3
+            }
+          }
+        },
         "independentJavaScriptSqliteAvailable": { "const": false },
         "identicalSqliteRuntimeEstablished": { "const": false }
       }
