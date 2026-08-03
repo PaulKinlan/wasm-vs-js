@@ -172,7 +172,7 @@ int run(uint32_t pos_off,uint32_t norm_off,uint32_t uv_off,uint32_t index_off,ui
     int ci=checkpoint_index(frame);if(ci>=0){uint8_t *pixels=pixel_base+ci*WIDTH*HEIGHT*4;for(int i=0;i<WIDTH*HEIGHT*4;i++)pixels[i]=frame_pixels[i];}
   }
   words[0]=0x474c5446;words[1]=vertex_count;words[2]=index_count;words[3]=FRAMES;words[4]=visible_total;words[5]=pick_hits;words[6]=transform_hash;words[7]=draw_hash;words[8]=rasterized;
-  words[9]=vertex_count*FRAMES;words[10]=(index_count/3)*FRAMES;words[11]=FRAMES;words[12]=CHECKPOINTS;words[13]=12;words[14]=decoder_boundaries+4;words[15]=decoder_allocations;
+  words[9]=vertex_count*FRAMES;words[10]=(index_count/3)*FRAMES*2;words[11]=FRAMES;words[12]=CHECKPOINTS;words[13]=12;words[14]=decoder_boundaries+4;words[15]=decoder_allocations;
   words[16]=vertex_count*8*4+index_count*4+64*64*4;words[17]=HEADER_WORDS*4+FRAMES*FRAME_WORDS*4+CHECKPOINTS*WIDTH*HEIGHT*4;words[18]=1;words[19]=1;
   words[20]=decoder_allocations;words[21]=decoder_api_calls;words[22]=decoder_boundaries;words[23]=4;words[24]=0;words[25]=FRAMES;words[26]=FRAMES;words[27]=0;
   return 0;

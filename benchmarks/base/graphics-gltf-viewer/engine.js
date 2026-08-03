@@ -266,7 +266,7 @@ export function runJavaScript(
   words[7] = drawHash;
   words[8] = rasterizedPixels;
   words[9] = vertexCount * CONTRACT.frames;
-  words[10] = (indices.length / 3) * CONTRACT.frames;
+  words[10] = (indices.length / 3) * CONTRACT.frames * 2;
   words[11] = CONTRACT.frames;
   words[12] = CONTRACT.checkpoints.length;
   words[13] = CONTRACT.pickFrames.length;

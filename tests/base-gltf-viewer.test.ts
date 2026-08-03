@@ -173,7 +173,7 @@ Deno.test("complete 600-frame JS and material-Wasm outputs equal the retained or
   assertEquals(header[2], 2046);
   assertEquals(header[3], 600);
   assertEquals(header[9], 406 * 600);
-  assertEquals(header[10], 682 * 600);
+  assertEquals(header[10], 682 * 600 * 2);
   assertEquals(header[11], 600);
   assertEquals(header[12], 6);
   assertEquals(header[13], 12);
