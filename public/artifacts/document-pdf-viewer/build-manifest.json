@@ -1,11 +1,12 @@
 {
   "schemaVersion": 1,
   "workloadId": "document.pdf-viewer.v1",
-  "sourceCommit": "a16819f0004266d46570011b2423cf556676c7b1",
+  "sourceCommit": "8ae9f8cd319a1180c672ee8443507b81f12d2a49",
   "toolchain": {
     "deno": "2.9.0",
     "clang": "clang version 22.1.8\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
     "wasmLd": "LLD 22.1.8",
+    "poppler": "pdfinfo version 26.07.0\nCopyright 2005-2026 The Poppler Developers - http://poppler.freedesktop.org\nCopyright 1996-2011, 2022 Glyph & Cog, LLC",
     "flags": [
       "-O3",
       "-nostdlib",
@@ -17,69 +18,69 @@
   "sources": [
     {
       "path": "benchmarks/base/document-pdf-viewer/engine.js",
-      "sha256": "a8ce092ede08e32b2f82e265270ec7f5e0cd4d968e2d4719108115f4e3f363f4",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/a16819f0004266d46570011b2423cf556676c7b1/benchmarks/base/document-pdf-viewer/engine.js"
+      "sha256": "d3450ff23e4b68b2de6b70ccbed8d9db1f5a20a6eca393d466e11eae39565552",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8ae9f8cd319a1180c672ee8443507b81f12d2a49/benchmarks/base/document-pdf-viewer/engine.js"
     },
     {
       "path": "benchmarks/base/document-pdf-viewer/pdf-engine.c",
-      "sha256": "29424499c54fcc03a1175bb3646eebecd83d3d7222c831b503df5a68847eacac",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/a16819f0004266d46570011b2423cf556676c7b1/benchmarks/base/document-pdf-viewer/pdf-engine.c"
+      "sha256": "14462c2ca62453ae6f69e597bd17ab955176635c872f4d7b1bfe4cd905732de7",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8ae9f8cd319a1180c672ee8443507b81f12d2a49/benchmarks/base/document-pdf-viewer/pdf-engine.c"
     },
     {
       "path": "benchmarks/base/document-pdf-viewer/implementation-contract.v1.json",
-      "sha256": "e66b94d37fc6faf376435ef3dbb93a7216591e187d41323b6eea2af115f9f472",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/a16819f0004266d46570011b2423cf556676c7b1/benchmarks/base/document-pdf-viewer/implementation-contract.v1.json"
+      "sha256": "d1066e4b27085eea8ea749b83d4655751548e08f1ff0dfe27486f37d7289d0a2",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8ae9f8cd319a1180c672ee8443507b81f12d2a49/benchmarks/base/document-pdf-viewer/implementation-contract.v1.json"
     },
     {
       "path": "scripts/build-document-pdf-viewer.ts",
-      "sha256": "999ca9865d4117bcef2eebb7f3f8dd231bbaf10da48d17c5f3d8045c7f4e0a94",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/a16819f0004266d46570011b2423cf556676c7b1/scripts/build-document-pdf-viewer.ts"
+      "sha256": "34ed50a9c26bce4a5925bf757856c29d6cb696468b8549fb3b949da9d3fc047a",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8ae9f8cd319a1180c672ee8443507b81f12d2a49/scripts/build-document-pdf-viewer.ts"
     },
     {
       "path": "public/benchmarks/document-pdf-viewer-v1/index.html",
       "sha256": "6317dae7c3f3282c97e0cba05df479c76a421e207354a2d2f7970dab363da893",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/a16819f0004266d46570011b2423cf556676c7b1/public/benchmarks/document-pdf-viewer-v1/index.html"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8ae9f8cd319a1180c672ee8443507b81f12d2a49/public/benchmarks/document-pdf-viewer-v1/index.html"
     },
     {
       "path": "public/benchmarks/document-pdf-viewer-v1/runner.js",
       "sha256": "52cd4f5c786b810ad5bc9c52d997c5e0b873f8a8babcb6b18e8f9c816474bd23",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/a16819f0004266d46570011b2423cf556676c7b1/public/benchmarks/document-pdf-viewer-v1/runner.js"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8ae9f8cd319a1180c672ee8443507b81f12d2a49/public/benchmarks/document-pdf-viewer-v1/runner.js"
     },
     {
       "path": "public/benchmarks/document-pdf-viewer-v1/worker.js",
       "sha256": "aca55ee3ad7a47c679417d823640d433251249c3045a2169fb0e792eb65676e5",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/a16819f0004266d46570011b2423cf556676c7b1/public/benchmarks/document-pdf-viewer-v1/worker.js"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8ae9f8cd319a1180c672ee8443507b81f12d2a49/public/benchmarks/document-pdf-viewer-v1/worker.js"
     },
     {
       "path": "schemas/base-document-pdf-viewer-validation.schema.json",
-      "sha256": "5c127b414f1a9208f516e5387aa23e4ac89963a2217d1ea56538c12e74dad1e5",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/a16819f0004266d46570011b2423cf556676c7b1/schemas/base-document-pdf-viewer-validation.schema.json"
+      "sha256": "7e7808edde9fd205d6cc79cccc3866b5c0d7d7dcd3ab1a3736f213f759e0ff94",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8ae9f8cd319a1180c672ee8443507b81f12d2a49/schemas/base-document-pdf-viewer-validation.schema.json"
     },
     {
       "path": "tests/base-document-pdf-viewer.test.ts",
-      "sha256": "ec549316a7bd5e3cc077761a6969d869aaa513891c2c0379e2e60c212e43d404",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/a16819f0004266d46570011b2423cf556676c7b1/tests/base-document-pdf-viewer.test.ts"
+      "sha256": "03b0dedf27bc386aa6f88dbd4fc3bd082829331038a00214d2499cd74e4bcf85",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8ae9f8cd319a1180c672ee8443507b81f12d2a49/tests/base-document-pdf-viewer.test.ts"
     },
     {
       "path": "server.ts",
       "sha256": "a039657c54dcf3488137d5ec272131dcaa2d72efa158ce40c77227181944fe93",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/a16819f0004266d46570011b2423cf556676c7b1/server.ts"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8ae9f8cd319a1180c672ee8443507b81f12d2a49/server.ts"
     },
     {
       "path": "deno.json",
       "sha256": "17e6674c81fdaee7dfc52ed1bd28baeec70fb0715f839b92defe1e84545b08eb",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/a16819f0004266d46570011b2423cf556676c7b1/deno.json"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8ae9f8cd319a1180c672ee8443507b81f12d2a49/deno.json"
     },
     {
       "path": "deno.lock",
       "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/a16819f0004266d46570011b2423cf556676c7b1/deno.lock"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8ae9f8cd319a1180c672ee8443507b81f12d2a49/deno.lock"
     }
   ],
   "fixture": {
     "path": "public/artifacts/document-pdf-viewer/report-100-pages.pdf",
-    "bytes": 41373,
-    "sha256": "5029f446bdd5e40298699f853a642f1c37343d16e13768d921193942d66c2cce"
+    "bytes": 42224,
+    "sha256": "87db5120c50944c258df1157eba2d29209c6f4fea06bf85be518f73bc1e70511"
   },
   "font": {
     "path": "public/artifacts/document-pdf-viewer/pdfbase-5x7-v1.bin",
@@ -88,8 +89,8 @@
   },
   "artifact": {
     "path": "public/artifacts/document-pdf-viewer/pdf-engine.wasm",
-    "bytes": 5434,
-    "sha256": "fe5696519637b277952443369c46e91744ba4b400524fb67e6f2b08d38c414ed"
+    "bytes": 5224,
+    "sha256": "dc334044548875c0cc662f0ed599d873a2d2e2ab3071ed34f81e159877c2ac31"
   },
-  "reproduce": "deno run --frozen --allow-read=. --allow-write=public/artifacts,public/evidence --allow-run=clang,wasm-ld,git scripts/build-document-pdf-viewer.ts --source-commit=a16819f0004266d46570011b2423cf556676c7b1"
+  "reproduce": "deno run --frozen --allow-read=.,/tmp --allow-write=public/artifacts,public/evidence,/tmp --allow-run=clang,wasm-ld,git,pdfinfo,pdftotext,pdftoppm scripts/build-document-pdf-viewer.ts --source-commit=8ae9f8cd319a1180c672ee8443507b81f12d2a49"
 }

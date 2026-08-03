@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
   "workloadId": "document.pdf-viewer.v1",
-  "sourceCommit": "a16819f0004266d46570011b2423cf556676c7b1",
+  "sourceCommit": "8ae9f8cd319a1180c672ee8443507b81f12d2a49",
   "status": "passed-static",
   "fixture": {
     "path": "public/artifacts/document-pdf-viewer/report-100-pages.pdf",
-    "bytes": 41373,
-    "sha256": "5029f446bdd5e40298699f853a642f1c37343d16e13768d921193942d66c2cce"
+    "bytes": 42224,
+    "sha256": "87db5120c50944c258df1157eba2d29209c6f4fea06bf85be518f73bc1e70511"
   },
   "artifact": {
     "path": "public/artifacts/document-pdf-viewer/pdf-engine.wasm",
-    "bytes": 5434,
-    "sha256": "fe5696519637b277952443369c46e91744ba4b400524fb67e6f2b08d38c414ed"
+    "bytes": 5224,
+    "sha256": "dc334044548875c0cc662f0ed599d873a2d2e2ab3071ed34f81e159877c2ac31"
   },
   "checks": {
     "catalogUnchanged": true,
@@ -19,7 +19,8 @@
     "allSearchHits": true,
     "completeRgbaFivePages": true,
     "exactCrossTarget": true,
-    "fixedWork": true
+    "fixedWork": true,
+    "independentReference": true
   },
   "output": {
     "pageCount": 100,
@@ -39,26 +40,70 @@
     "rasterPages": [
       {
         "page": 1,
-        "sha256": "31724228457a9812b458be1414035e79aadf118e6bf901ef30d2fb8681b026fb"
+        "sha256": "16736e331362b223c1f6af043a07078e1aeb6e01a57a26466c5ddd51d8486e00"
       },
       {
         "page": 25,
-        "sha256": "5f956ae02da71f9ef036be51460284f777483b29389b2e257895c19ddc4ecce7"
+        "sha256": "06853c615a2fff18ada7019fcf12ecb82b0581b205a7d264810cc5c2f353d57d"
       },
       {
         "page": 50,
-        "sha256": "ccf71bd66cc73eddd4823406e040d13a13afad24d4bd843ebcf5631618fec2ba"
+        "sha256": "242c9bb2401d291664cf927db91b64bf17185c7a7b5d8355b319c7d57875f300"
       },
       {
         "page": 75,
-        "sha256": "12e556c682d16d6bcb4f6fabfdd6729a7361da72ffceb0eaf59e71ed991546c6"
+        "sha256": "7a03a114f07a677a856144ef5eaf7c9ec0a3356ec97661ebe9a4fa5846ead63a"
       },
       {
         "page": 100,
-        "sha256": "3ae39d981daee1ba51d2d94bdf8277c24712a13e074c496a01861d84d19a82c5"
+        "sha256": "7c7f27f729945ef78ed14d7717efd008da658ef08e2acdea6373d5a155a31877"
       }
     ],
     "textSha256": "039fb76d6eb3bf1764ee5c839c4f21133a8a33b282967497378e6d7c5ca76fdb"
+  },
+  "independentReference": {
+    "engine": "pdfinfo version 26.07.0\nCopyright 2005-2026 The Poppler Developers - http://poppler.freedesktop.org\nCopyright 1996-2011, 2022 Glyph & Cog, LLC",
+    "pageCount": 100,
+    "extractedTextRecords": 100,
+    "searchHits": 10,
+    "rasterDpi": 144,
+    "rasters": [
+      {
+        "page": 1,
+        "sha256": "845acf06433e4c7c98821b0f27c59e810d5fe298e6e7225e46c13b7dd1d5ca9b",
+        "nonWhitePixels": 9441,
+        "width": 1224,
+        "height": 1584
+      },
+      {
+        "page": 25,
+        "sha256": "f8a45a36550cf9f18dba5f9f921ce77cc08ecf1bb4d235a81bdefcca390c9267",
+        "nonWhitePixels": 9492,
+        "width": 1224,
+        "height": 1584
+      },
+      {
+        "page": 50,
+        "sha256": "f39f8e5cd5010ba03fc08dbbaa007c76320c17d0e9db055cf2129f86b069ffe9",
+        "nonWhitePixels": 11442,
+        "width": 1224,
+        "height": 1584
+      },
+      {
+        "page": 75,
+        "sha256": "d46edbb0c745b73126a471f634c0cf524b366d13cae1d513225edd50a78b8dca",
+        "nonWhitePixels": 9429,
+        "width": 1224,
+        "height": 1584
+      },
+      {
+        "page": 100,
+        "sha256": "38831aa45fa23ab2334020c9c9236342c583704a2aac9c5310523d4fca20ef8b",
+        "nonWhitePixels": 11308,
+        "width": 1224,
+        "height": 1584
+      }
+    ]
   },
   "limits": {
     "browserEvidence": "not-collected-by-worker",
