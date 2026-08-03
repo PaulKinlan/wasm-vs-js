@@ -48,6 +48,7 @@ Deno.test("server SSR browser-evidence schema compiles and closes every retained
       "processIdentity",
       "exitStatus",
       "cleanup",
+      "membershipSnapshot",
     ]
   ) assertEquals(defs[name].additionalProperties, false);
 
@@ -69,6 +70,293 @@ Deno.test("server SSR browser-evidence schema compiles and closes every retained
     record(executableProperties.sha256).const,
     "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355",
   );
+  const launch = record(browserProperties.launchArguments);
+  assertEquals(launch.minItems, 20);
+  assertEquals(launch.maxItems, 20);
+  assertEquals(
+    (launch.prefixItems as Array<Record<string, unknown>>).at(-2)?.const,
+    "--enable-automation",
+  );
+});
+
+Deno.test("server SSR evidence schema rejects semantic scenario, source, and network mutations", async () => {
+  const schema = JSON.parse(await Deno.readTextFile(schemaPath));
+  const defs = schema.$defs as Record<string, Record<string, unknown>>;
+  const ajv = new Ajv2020({ strict: true, allErrors: true });
+  const validatorFor = (name: string) =>
+    ajv.compile({
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      $defs: defs,
+      $ref: `#/$defs/${name}`,
+    });
+  const sha = "a".repeat(64);
+  const scenarioMeta: Record<string, {
+    id: string;
+    mode: string;
+    sequence: string[];
+    render: string | null;
+    status: string;
+    output: string;
+    startDisabled: boolean;
+    cancelDisabled: boolean;
+    assertions: string[];
+  }> = {
+    completeJsScenario: {
+      id: "complete-js",
+      mode: "normal",
+      sequence: ["js-controlled"],
+      render: "js-controlled",
+      status: "Complete.",
+      output: "rendered",
+      startDisabled: false,
+      cancelDisabled: true,
+      assertions: [],
+    },
+    completeWasmScenario: {
+      id: "complete-wasm",
+      mode: "normal",
+      sequence: ["wasm-linear-controlled"],
+      render: "wasm-linear-controlled",
+      status: "Complete.",
+      output: "rendered",
+      startDisabled: false,
+      cancelDisabled: true,
+      assertions: [],
+    },
+    restartScenario: {
+      id: "restart-js-to-wasm",
+      mode: "normal",
+      sequence: ["js-controlled", "wasm-linear-controlled"],
+      render: "wasm-linear-controlled",
+      status: "Complete.",
+      output: "rendered",
+      startDisabled: false,
+      cancelDisabled: true,
+      assertions: ["two sequential starts created two fresh workers"],
+    },
+    wrongTokenScenario: {
+      id: "wrong-token",
+      mode: "wrong-token",
+      sequence: ["js-controlled"],
+      render: "js-controlled",
+      status: "Complete.",
+      output: "rendered",
+      startDisabled: false,
+      cancelDisabled: true,
+      assertions: ["wrong-token completion was ignored"],
+    },
+    staleScenario: {
+      id: "stale-after-restart",
+      mode: "stale",
+      sequence: ["js-controlled", "wasm-linear-controlled"],
+      render: "wasm-linear-controlled",
+      status: "Complete.",
+      output: "rendered",
+      startDisabled: false,
+      cancelDisabled: true,
+      assertions: ["terminated first-worker message was ignored after restart"],
+    },
+    cancelScenario: {
+      id: "cancel",
+      mode: "cancel",
+      sequence: ["js-controlled"],
+      render: null,
+      status: "Cancelled. No result was retained.",
+      output: "Cancelled.",
+      startDisabled: false,
+      cancelDisabled: true,
+      assertions: ["Cancel terminated the exact held worker"],
+    },
+    timeoutScenario: {
+      id: "timeout",
+      mode: "timeout",
+      sequence: ["js-controlled"],
+      render: null,
+      status: "Stopped: the 30 second exact-run timeout expired.",
+      output: "",
+      startDisabled: false,
+      cancelDisabled: true,
+      assertions: ["30 second timeout terminated the exact held worker"],
+    },
+    pagehideScenario: {
+      id: "pagehide",
+      mode: "pagehide",
+      sequence: ["js-controlled"],
+      render: null,
+      status: "Running the exact 1,000-response contract in a fresh worker.",
+      output: "",
+      startDisabled: true,
+      cancelDisabled: false,
+      assertions: ["pagehide terminated the exact held worker"],
+    },
+  };
+  const makeScenario = (name: string) => {
+    const meta = scenarioMeta[name];
+    const specific = (defs[name].allOf as Array<Record<string, unknown>>)[1];
+    const properties = specific.properties as Record<string, Record<string, unknown>>;
+    const networkSchema = properties.network;
+    const network = (networkSchema.prefixItems as Array<Record<string, unknown>>).map((entry) => {
+      const allOf = entry.allOf as Array<Record<string, unknown>>;
+      const assetName = String(allOf[1].$ref).split("/").at(-1)!;
+      const assetProperties = defs[assetName].properties as Record<string, Record<string, unknown>>;
+      const route = String(assetProperties.route.const);
+      const occurrence = Number(
+        (allOf[2].properties as Record<string, Record<string, unknown>>).occurrence.const,
+      );
+      return {
+        context: "page",
+        route,
+        occurrence,
+        url: `http://127.0.0.1:8000${route}${
+          route.endsWith("/") ? `?evidence-mode=${meta.mode}` : ""
+        }`,
+        method: "GET",
+        resourceType: "Document",
+        status: 200,
+        statusText: "OK",
+        protocol: "http/1.1",
+        mimeType: "text/plain",
+        headers: [{ name: "content-type", value: "text/plain" }],
+        fromDiskCache: false,
+        fromServiceWorker: false,
+        failed: false,
+        errorText: null,
+        bodyBytes: assetProperties.bodyBytes.const,
+        bodySha256: assetProperties.bodySha256.const,
+        sourcePath: assetProperties.sourcePath.const,
+      };
+    });
+    const counters = Object.fromEntries(
+      Object.entries(defs.counters.properties as Record<string, Record<string, unknown>>).map(
+        ([key, value]) => [
+          key,
+          key === "boundary-crossings" ? (meta.render === "js-controlled" ? 0 : 1) : value.const,
+        ],
+      ),
+    );
+    const lifecycleSpecific = (properties.lifecycle.allOf as Array<Record<string, unknown>>)[1];
+    const lifecycleEvents = (
+      (lifecycleSpecific.properties as Record<string, Record<string, unknown>>).events
+        .prefixItems as Array<Record<string, unknown>>
+    ).map((entry) => ({
+      kind: ((entry.allOf as Array<Record<string, unknown>>)[1].properties as Record<
+        string,
+        Record<string, unknown>
+      >).kind.const,
+      detail: { mode: meta.mode },
+    }));
+    const routeRender = meta.render
+      ? {
+        target: meta.render,
+        responses: 1_000,
+        completeOutputSha256: "330a49b560410f667eba4ae3baa9cce1f661201f84d7ea703a91a36835dbcedc",
+        completeOutputBytes: 426_192,
+        counters,
+        firstResponse: { bytes: 1, sha256: sha },
+        lastResponse: { bytes: 1, sha256: sha },
+        displayedResultText:
+          `Target: ${meta.render}\nResponses: 1000\nComplete output SHA-256: 330a49b560410f667eba4ae3baa9cce1f661201f84d7ea703a91a36835dbcedc`,
+        displayedResultTextSha256: sha,
+        documentBodyTextSha256: sha,
+      }
+      : null;
+    return {
+      id: meta.id,
+      mode: meta.mode,
+      targetSequence: meta.sequence,
+      finalState: {
+        heading: "Render 1,000 catalog responses",
+        status: meta.status,
+        output: meta.output,
+        bodyText: "body",
+        startDisabled: meta.startDisabled,
+        cancelDisabled: meta.cancelDisabled,
+        target: meta.sequence.at(-1),
+      },
+      routeRender,
+      lifecycle: {
+        events: lifecycleEvents,
+        assertions: meta.assertions,
+      },
+      console: [],
+      exceptions: [],
+      network,
+      accessibility: {
+        inspectedBy: "Accessibility.getFullAXTree",
+        nodes: Array.from({ length: 5 }, (_, index) => ({
+          role: "heading",
+          name: `node-${index}`,
+          ignored: false,
+        })),
+        assertions: [
+          "named level-one heading present",
+          "named target combobox present",
+          "named Start and Cancel buttons present",
+          "live status role present",
+        ],
+      },
+      screenshot: { path: `screenshots/${meta.id}.png`, bytes: 8, sha256: sha },
+    };
+  };
+
+  for (const name of Object.keys(scenarioMeta)) {
+    const validate = validatorFor(name);
+    const scenario = makeScenario(name);
+    assert(validate(scenario), `${name} fixture invalid: ${JSON.stringify(validate.errors)}`);
+  }
+
+  const completeValidator = validatorFor("completeJsScenario");
+  const missingRender = makeScenario("completeJsScenario");
+  missingRender.routeRender = null;
+  assertEquals(completeValidator(missingRender), false);
+
+  const cancelValidator = validatorFor("cancelScenario");
+  const retainedCancelRender = makeScenario("cancelScenario");
+  retainedCancelRender.routeRender = makeScenario("completeJsScenario").routeRender;
+  assertEquals(cancelValidator(retainedCancelRender), false);
+
+  const wrongLifecycle = makeScenario("wrongTokenScenario");
+  wrongLifecycle.lifecycle.events[3].kind = "worker-held";
+  assertEquals(validatorFor("wrongTokenScenario")(wrongLifecycle), false);
+
+  const duplicateNetwork = makeScenario("completeJsScenario");
+  duplicateNetwork.network[1] = structuredClone(duplicateNetwork.network[0]);
+  assertEquals(completeValidator(duplicateNetwork), false);
+  const missingBody = makeScenario("completeJsScenario");
+  missingBody.network[0].bodySha256 = "b".repeat(64);
+  assertEquals(completeValidator(missingBody), false);
+  const shortNetwork = makeScenario("completeJsScenario");
+  shortNetwork.network.pop();
+  assertEquals(completeValidator(shortNetwork), false);
+
+  const sourceValidator = validatorFor("source");
+  const sourceProperties = defs.source.properties as Record<string, Record<string, unknown>>;
+  const source = {
+    head: "a".repeat(40),
+    headTree: "b".repeat(40),
+    clean: true,
+    packageCommit: "c".repeat(40),
+    collector: {
+      path: collectorPath,
+      bytes: 1,
+      sha256: sha,
+      headBytesMatch: true,
+    },
+    packageSources: (sourceProperties.packageSources.prefixItems as Array<{ const: unknown }>).map(
+      (entry) => structuredClone(entry.const),
+    ),
+    files: (sourceProperties.files.prefixItems as Array<{ const: unknown }>).map((entry) =>
+      structuredClone(entry.const)
+    ),
+  };
+  assert(sourceValidator(source), JSON.stringify(sourceValidator.errors));
+  source.files[1] = structuredClone(source.files[0]);
+  assertEquals(sourceValidator(source), false);
+
+  const workerConsole = validatorFor("consoleRecord");
+  assert(workerConsole({ context: "worker-0", type: "log", arguments: ["retained"] }));
+  const workerException = validatorFor("exceptionRecord");
+  assert(workerException({ context: "worker-1", text: "failure", lineNumber: 1 }));
 });
 
 Deno.test("server SSR parent collector binds clean HEAD, raw route bytes, Chrome, and loopback", async () => {
@@ -82,7 +370,9 @@ Deno.test("server SSR parent collector binds clean HEAD, raw route bytes, Chrome
       "differs from the accepted package source commit",
       "packageCommitBytesMatch",
       "Chrome executable hash mismatch",
-      'webSocketUrl.hostname !== "127.0.0.1"',
+      "launchOwnedChrome({",
+      "sourceIdentityVerifiedAtEnd: true",
+      "Chrome source package changed across collection",
       'HOST: "127.0.0.1"',
       '"--remote-debugging-address=127.0.0.1"',
       '"--allow-net=127.0.0.1"',
@@ -153,13 +443,13 @@ Deno.test("server SSR collector records exact owned cleanup and refuses implicit
   const source = await Deno.readTextFile(collectorPath);
   for (
     const required of [
-      "startTimeTicks",
-      "identityStillRunning",
-      "Browser.close",
-      'Deno.kill(identity.pid, "SIGTERM")',
-      'Deno.kill(identity.pid, "SIGKILL")',
-      "processes survived exact cleanup",
-      "profile survived cleanup",
+      "closeOwnedChrome",
+      "refreshLedger",
+      "recordStageCleanupLifecycle",
+      '"cleanup-unresolved"',
+      "owned Chrome cgroup retained members after cleanup",
+      "owned Chrome profile survived cleanup",
+      "removeStagedChrome",
       "server survived cleanup",
       "evidence output directory already exists",
       "evidence output must be outside the source repository",
@@ -167,11 +457,14 @@ Deno.test("server SSR collector records exact owned cleanup and refuses implicit
       "createNew: true",
       "if (!collectionComplete)",
       "Deno.remove(options.outputDir, { recursive: true })",
+      'client.send("Runtime.enable", {}, workerSession)',
+      "!observedSessions.has(eventSession)",
+      "network set/count differed from the exact contract",
     ]
   ) assert(source.includes(required), `collector omitted ${required}`);
 
   const output = await new Deno.Command(Deno.execPath(), {
-    args: ["run", collectorPath],
+    args: ["run", "--allow-read", collectorPath],
     stdout: "piped",
     stderr: "piped",
   }).output();

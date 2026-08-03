@@ -17,42 +17,83 @@
     "cleanup"
   ],
   "properties": {
-    "schemaVersion": { "const": 1 },
-    "evidenceId": { "const": "server-ssr-template-chrome-150-browser-evidence-v1" },
+    "schemaVersion": {
+      "const": 1
+    },
+    "evidenceId": {
+      "const": "server-ssr-template-chrome-150-browser-evidence-v1"
+    },
     "collectedAt": {
       "type": "string",
       "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:.]+Z$"
     },
-    "source": { "$ref": "#/$defs/source" },
+    "source": {
+      "$ref": "#/$defs/source"
+    },
     "collectionCommand": {
       "type": "string",
       "pattern": "^deno run -A scripts/collect-base-server-ssr-evidence\\.ts --chrome=.+ --output-dir=/"
     },
-    "browser": { "$ref": "#/$defs/browser" },
-    "server": { "$ref": "#/$defs/server" },
-    "instrumentation": { "$ref": "#/$defs/instrumentation" },
+    "browser": {
+      "$ref": "#/$defs/browser"
+    },
+    "server": {
+      "$ref": "#/$defs/server"
+    },
+    "instrumentation": {
+      "$ref": "#/$defs/instrumentation"
+    },
     "scenarios": {
       "type": "array",
       "minItems": 8,
       "maxItems": 8,
       "prefixItems": [
-        { "$ref": "#/$defs/completeJsScenario" },
-        { "$ref": "#/$defs/completeWasmScenario" },
-        { "$ref": "#/$defs/restartScenario" },
-        { "$ref": "#/$defs/wrongTokenScenario" },
-        { "$ref": "#/$defs/staleScenario" },
-        { "$ref": "#/$defs/cancelScenario" },
-        { "$ref": "#/$defs/timeoutScenario" },
-        { "$ref": "#/$defs/pagehideScenario" }
+        {
+          "$ref": "#/$defs/completeJsScenario"
+        },
+        {
+          "$ref": "#/$defs/completeWasmScenario"
+        },
+        {
+          "$ref": "#/$defs/restartScenario"
+        },
+        {
+          "$ref": "#/$defs/wrongTokenScenario"
+        },
+        {
+          "$ref": "#/$defs/staleScenario"
+        },
+        {
+          "$ref": "#/$defs/cancelScenario"
+        },
+        {
+          "$ref": "#/$defs/timeoutScenario"
+        },
+        {
+          "$ref": "#/$defs/pagehideScenario"
+        }
       ],
       "items": false
     },
-    "cleanup": { "$ref": "#/$defs/cleanup" }
+    "cleanup": {
+      "$ref": "#/$defs/cleanup"
+    }
   },
   "$defs": {
-    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-    "gitIdentity": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
-    "target": { "enum": ["js-controlled", "wasm-linear-controlled"] },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "gitIdentity": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "target": {
+      "enum": [
+        "js-controlled",
+        "wasm-linear-controlled"
+      ]
+    },
     "fileRecord": {
       "type": "object",
       "additionalProperties": false,
@@ -108,9 +149,16 @@
             "image/svg+xml"
           ]
         },
-        "bytes": { "type": "integer", "minimum": 1 },
-        "sha256": { "$ref": "#/$defs/sha256" },
-        "headBytesMatch": { "const": true }
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "headBytesMatch": {
+          "const": true
+        }
       }
     },
     "source": {
@@ -126,43 +174,295 @@
         "files"
       ],
       "properties": {
-        "head": { "$ref": "#/$defs/gitIdentity" },
-        "headTree": { "$ref": "#/$defs/gitIdentity" },
-        "clean": { "const": true },
-        "packageCommit": { "$ref": "#/$defs/gitIdentity" },
+        "head": {
+          "$ref": "#/$defs/gitIdentity"
+        },
+        "headTree": {
+          "$ref": "#/$defs/gitIdentity"
+        },
+        "clean": {
+          "const": true
+        },
+        "packageCommit": {
+          "$ref": "#/$defs/gitIdentity"
+        },
         "collector": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["path", "bytes", "sha256", "headBytesMatch"],
+          "required": [
+            "path",
+            "bytes",
+            "sha256",
+            "headBytesMatch"
+          ],
           "properties": {
-            "path": { "const": "scripts/collect-base-server-ssr-evidence.ts" },
-            "bytes": { "type": "integer", "minimum": 1 },
-            "sha256": { "$ref": "#/$defs/sha256" },
-            "headBytesMatch": { "const": true }
+            "path": {
+              "const": "scripts/collect-base-server-ssr-evidence.ts"
+            },
+            "bytes": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "headBytesMatch": {
+              "const": true
+            }
           }
         },
         "packageSources": {
           "type": "array",
-          "minItems": 1,
-          "items": { "$ref": "#/$defs/packageSource" }
+          "minItems": 11,
+          "maxItems": 11,
+          "uniqueItems": true,
+          "prefixItems": [
+            {
+              "const": {
+                "path": "benchmarks/v1/server-ssr-template/workload.js",
+                "bytes": 10346,
+                "sha256": "c26324abb0cbfa3441ae2db8507eaf12b38b09420c8da6e6c0fe66fc1a0a29f8",
+                "packageCommitBytesMatch": true
+              }
+            },
+            {
+              "const": {
+                "path": "benchmarks/v1/server-ssr-template/server-ssr-template.c",
+                "bytes": 5951,
+                "sha256": "a9be414e31e3314042998ed03e3544b41e20cf0932a05ba7a172f185686c884b",
+                "packageCommitBytesMatch": true
+              }
+            },
+            {
+              "const": {
+                "path": "scripts/build-base-server-ssr-template.ts",
+                "bytes": 10759,
+                "sha256": "b17822fd829399e33961fbd9917428b7e851930919c57b233ca458a5c1150d18",
+                "packageCommitBytesMatch": true
+              }
+            },
+            {
+              "const": {
+                "path": "schemas/v1-implementation-registration.schema.json",
+                "bytes": 7507,
+                "sha256": "394c0960a711b0a09cfdeeb0f0ab2098122b8d1556c0601da7e69944fc3f2c02",
+                "packageCommitBytesMatch": true
+              }
+            },
+            {
+              "const": {
+                "path": "public/base-server-ssr-demo.js",
+                "bytes": 1990,
+                "sha256": "a2926b4eb0fa01f366ca3d6f283c71186b90b473af9a95cbb94c6aeba9e1cd8d",
+                "packageCommitBytesMatch": true
+              }
+            },
+            {
+              "const": {
+                "path": "public/base-server-ssr-worker.js",
+                "bytes": 5063,
+                "sha256": "95f9db692c65b3c48d7452b178c1fec2014a462b7ee07ddc6ecf09ccac013bb0",
+                "packageCommitBytesMatch": true
+              }
+            },
+            {
+              "const": {
+                "path": "public/demos/server.ssr-template.v1/index.html",
+                "bytes": 2645,
+                "sha256": "2500082356df37117e7cef681b878b278e5e34d8d7013617c0293d4542e08acb",
+                "packageCommitBytesMatch": true
+              }
+            },
+            {
+              "const": {
+                "path": "server.ts",
+                "bytes": 20233,
+                "sha256": "5ce82866caf11bef22e08d3118b7b65ca68b84c4d4652c59bfeafcb462d0a86e",
+                "packageCommitBytesMatch": true
+              }
+            },
+            {
+              "const": {
+                "path": "tests/base-server-ssr-template.test.ts",
+                "bytes": 9722,
+                "sha256": "27160bcebc46278cab81f604087b4a0007073077161fa02756c10449aaef69bd",
+                "packageCommitBytesMatch": true
+              }
+            },
+            {
+              "const": {
+                "path": "deno.json",
+                "bytes": 1831,
+                "sha256": "17e6674c81fdaee7dfc52ed1bd28baeec70fb0715f839b92defe1e84545b08eb",
+                "packageCommitBytesMatch": true
+              }
+            },
+            {
+              "const": {
+                "path": "deno.lock",
+                "bytes": 1630,
+                "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2",
+                "packageCommitBytesMatch": true
+              }
+            }
+          ],
+          "items": false
         },
         "files": {
           "type": "array",
           "minItems": 12,
           "maxItems": 12,
-          "items": { "$ref": "#/$defs/fileRecord" }
+          "uniqueItems": true,
+          "prefixItems": [
+            {
+              "const": {
+                "route": "/demos/server.ssr-template.v1/",
+                "path": "public/demos/server.ssr-template.v1/index.html",
+                "contentType": "text/html",
+                "bytes": 2645,
+                "sha256": "2500082356df37117e7cef681b878b278e5e34d8d7013617c0293d4542e08acb",
+                "headBytesMatch": true
+              }
+            },
+            {
+              "const": {
+                "route": "/styles.css",
+                "path": "public/styles.css",
+                "contentType": "text/css",
+                "bytes": 11909,
+                "sha256": "70e73af276a14dc39b7863f586ee6aca89c2e986dffed32e71cf799ef35e3a6b",
+                "headBytesMatch": true
+              }
+            },
+            {
+              "const": {
+                "route": "/base-server-ssr-demo.js",
+                "path": "public/base-server-ssr-demo.js",
+                "contentType": "text/javascript",
+                "bytes": 1990,
+                "sha256": "a2926b4eb0fa01f366ca3d6f283c71186b90b473af9a95cbb94c6aeba9e1cd8d",
+                "headBytesMatch": true
+              }
+            },
+            {
+              "const": {
+                "route": "/base-server-ssr-worker.js",
+                "path": "public/base-server-ssr-worker.js",
+                "contentType": "text/javascript",
+                "bytes": 5063,
+                "sha256": "95f9db692c65b3c48d7452b178c1fec2014a462b7ee07ddc6ecf09ccac013bb0",
+                "headBytesMatch": true
+              }
+            },
+            {
+              "const": {
+                "route": "/benchmarks/v1/server-ssr-template/workload.js",
+                "path": "benchmarks/v1/server-ssr-template/workload.js",
+                "contentType": "text/javascript",
+                "bytes": 10346,
+                "sha256": "c26324abb0cbfa3441ae2db8507eaf12b38b09420c8da6e6c0fe66fc1a0a29f8",
+                "headBytesMatch": true
+              }
+            },
+            {
+              "const": {
+                "route": "/data/v1-implementation-registrations/server.ssr-template.v1.json",
+                "path": "catalog/v1-implementation-registrations/server.ssr-template.v1.json",
+                "contentType": "application/json",
+                "bytes": 4128,
+                "sha256": "247ff351055594dafb4e70f49a6526d9c46ce281824205e5604925ad9bee2986",
+                "headBytesMatch": true
+              }
+            },
+            {
+              "const": {
+                "route": "/artifacts/base-server-ssr-template/build-manifest.json",
+                "path": "public/artifacts/base-server-ssr-template/build-manifest.json",
+                "contentType": "application/json",
+                "bytes": 3209,
+                "sha256": "4a58cabeaab08be14fa3c0d3c7bbe98842b1de09cd2abf51ae7eeecfbaad2b40",
+                "headBytesMatch": true
+              }
+            },
+            {
+              "const": {
+                "route": "/artifacts/base-server-ssr-template/fixture-manifest.json",
+                "path": "public/artifacts/base-server-ssr-template/fixture-manifest.json",
+                "contentType": "application/json",
+                "bytes": 684,
+                "sha256": "fff71d8aa7cd013cb2e1be33c91ca0097adfd7d152534f9143e434965cbabc75",
+                "headBytesMatch": true
+              }
+            },
+            {
+              "const": {
+                "route": "/artifacts/base-server-ssr-template/output-manifest.json",
+                "path": "public/artifacts/base-server-ssr-template/output-manifest.json",
+                "contentType": "application/json",
+                "bytes": 1518,
+                "sha256": "418b883f88e90bb2c6074c2c02bc8cade9819b5483db9d1c66204e49a67dcb7d",
+                "headBytesMatch": true
+              }
+            },
+            {
+              "const": {
+                "route": "/artifacts/base-server-ssr-template/fixture.bin",
+                "path": "public/artifacts/base-server-ssr-template/fixture.bin",
+                "contentType": "application/octet-stream",
+                "bytes": 91442,
+                "sha256": "f94cbcc0af8ab5b1b292c5d48c2b8ea319d5078e020374fb4e2beceb191ae524",
+                "headBytesMatch": true
+              }
+            },
+            {
+              "const": {
+                "route": "/artifacts/base-server-ssr-template/server-ssr-template.wasm",
+                "path": "public/artifacts/base-server-ssr-template/server-ssr-template.wasm",
+                "contentType": "application/wasm",
+                "bytes": 9591,
+                "sha256": "9d93f9542363f4d7e8b2c66516936176ff260db9a8604eb15c820a0d62feebe5",
+                "headBytesMatch": true
+              }
+            },
+            {
+              "const": {
+                "route": "/favicon.ico",
+                "path": "public/favicon.svg",
+                "contentType": "image/svg+xml",
+                "bytes": 211,
+                "sha256": "ee6c407626f2432b805e7c07252226f0b7852a591f1562fbbb0f31e0f786dffc",
+                "headBytesMatch": true
+              }
+            }
+          ],
+          "items": false
         }
       }
     },
     "packageSource": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["path", "bytes", "sha256", "packageCommitBytesMatch"],
+      "required": [
+        "path",
+        "bytes",
+        "sha256",
+        "packageCommitBytesMatch"
+      ],
       "properties": {
-        "path": { "type": "string", "minLength": 1 },
-        "bytes": { "type": "integer", "minimum": 1 },
-        "sha256": { "$ref": "#/$defs/sha256" },
-        "packageCommitBytesMatch": { "const": true }
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "packageCommitBytesMatch": {
+          "const": true
+        }
       }
     },
     "browser": {
@@ -180,52 +480,151 @@
         "debuggerOrigin"
       ],
       "properties": {
-        "product": { "const": "Chrome/150.0.7871.24" },
-        "revision": { "type": "string", "minLength": 1 },
-        "userAgent": { "type": "string", "minLength": 1 },
-        "jsVersion": { "type": "string", "minLength": 1 },
+        "product": {
+          "const": "Chrome/150.0.7871.24"
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "userAgent": {
+          "type": "string",
+          "minLength": 1
+        },
+        "jsVersion": {
+          "type": "string",
+          "minLength": 1
+        },
         "executable": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["path", "bytes", "sha256"],
+          "required": [
+            "sourcePath",
+            "sourceDev",
+            "sourceIno",
+            "runningPath",
+            "runningDev",
+            "runningIno",
+            "sha256",
+            "sourcePackageManifestSha256",
+            "runningIdentityVerified",
+            "sourceIdentityVerifiedAtEnd"
+          ],
           "properties": {
-            "path": { "type": "string", "pattern": "^/" },
-            "bytes": { "type": "integer", "minimum": 1 },
+            "sourcePath": {
+              "type": "string",
+              "pattern": "^/"
+            },
+            "sourceDev": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sourceIno": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "runningPath": {
+              "type": "string",
+              "pattern": "^/tmp/wasm-vs-js-staged-chrome/ssr-[a-f0-9]{32}/.+"
+            },
+            "runningDev": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "runningIno": {
+              "type": "integer",
+              "minimum": 1
+            },
             "sha256": {
               "const": "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355"
+            },
+            "sourcePackageManifestSha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "runningIdentityVerified": {
+              "const": true
+            },
+            "sourceIdentityVerifiedAtEnd": {
+              "const": true
             }
           }
         },
         "launchArguments": {
           "type": "array",
-          "minItems": 16,
-          "maxItems": 16,
+          "minItems": 20,
+          "maxItems": 20,
           "uniqueItems": true,
           "prefixItems": [
-            { "const": "--headless=new" },
-            { "const": "--no-sandbox" },
-            { "const": "--disable-gpu" },
-            { "const": "--disable-background-networking" },
-            { "const": "--disable-component-update" },
-            { "const": "--disable-default-apps" },
-            { "const": "--disable-extensions" },
-            { "const": "--disable-sync" },
-            { "const": "--metrics-recording-only" },
-            { "const": "--no-first-run" },
-            { "const": "--hide-scrollbars" },
-            { "const": "--window-size=1440,1200" },
-            { "const": "--remote-debugging-address=127.0.0.1" },
-            { "type": "string", "pattern": "^--remote-debugging-port=[0-9]+$" },
             {
               "type": "string",
-              "pattern": "^--user-data-dir=/tmp/wasm-base-server-ssr-chrome-"
+              "pattern": "^--user-data-dir=/tmp/wasm-vs-js-owned-profiles/ssr-[a-f0-9]{32}/launch$"
             },
-            { "const": "about:blank" }
+            {
+              "const": "--remote-debugging-port=0"
+            },
+            {
+              "const": "--no-first-run"
+            },
+            {
+              "const": "--no-default-browser-check"
+            },
+            {
+              "const": "--disable-sync"
+            },
+            {
+              "const": "--disable-crash-reporter"
+            },
+            {
+              "const": "--disable-breakpad"
+            },
+            {
+              "const": "--headless=new"
+            },
+            {
+              "const": "--no-sandbox"
+            },
+            {
+              "const": "--disable-gpu"
+            },
+            {
+              "const": "--disable-background-networking"
+            },
+            {
+              "const": "--disable-component-update"
+            },
+            {
+              "const": "--disable-default-apps"
+            },
+            {
+              "const": "--disable-extensions"
+            },
+            {
+              "const": "--metrics-recording-only"
+            },
+            {
+              "const": "--hide-scrollbars"
+            },
+            {
+              "const": "--window-size=1440,1200"
+            },
+            {
+              "const": "--remote-debugging-address=127.0.0.1"
+            },
+            {
+              "const": "--enable-automation"
+            },
+            {
+              "const": "about:blank"
+            }
           ],
           "items": false
         },
-        "headless": { "const": true },
-        "protocol": { "const": "Chrome DevTools Protocol" },
+        "headless": {
+          "const": true
+        },
+        "protocol": {
+          "const": "Chrome DevTools Protocol"
+        },
         "debuggerOrigin": {
           "type": "string",
           "pattern": "^http://127\\.0\\.0\\.1:[0-9]+$"
@@ -235,11 +634,23 @@
     "preflightRecord": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["route", "bytes", "sha256"],
+      "required": [
+        "route",
+        "bytes",
+        "sha256"
+      ],
       "properties": {
-        "route": { "type": "string", "pattern": "^/" },
-        "bytes": { "type": "integer", "minimum": 1 },
-        "sha256": { "$ref": "#/$defs/sha256" }
+        "route": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
       }
     },
     "server": {
@@ -255,10 +666,20 @@
         "preflight"
       ],
       "properties": {
-        "origin": { "type": "string", "pattern": "^http://127\\.0\\.0\\.1:[0-9]+$" },
-        "host": { "const": "127.0.0.1" },
-        "mode": { "const": "public" },
-        "executable": { "type": "string", "pattern": "^/" },
+        "origin": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+$"
+        },
+        "host": {
+          "const": "127.0.0.1"
+        },
+        "mode": {
+          "const": "public"
+        },
+        "executable": {
+          "type": "string",
+          "pattern": "^/"
+        },
         "arguments": {
           "const": [
             "run",
@@ -268,23 +689,125 @@
             "deploy.ts"
           ]
         },
-        "launcherPid": { "type": "integer", "minimum": 1 },
+        "launcherPid": {
+          "type": "integer",
+          "minimum": 1
+        },
         "preflight": {
           "type": "array",
           "minItems": 12,
           "maxItems": 12,
-          "items": { "$ref": "#/$defs/preflightRecord" }
+          "uniqueItems": true,
+          "prefixItems": [
+            {
+              "const": {
+                "route": "/demos/server.ssr-template.v1/",
+                "bytes": 2645,
+                "sha256": "2500082356df37117e7cef681b878b278e5e34d8d7013617c0293d4542e08acb"
+              }
+            },
+            {
+              "const": {
+                "route": "/styles.css",
+                "bytes": 11909,
+                "sha256": "70e73af276a14dc39b7863f586ee6aca89c2e986dffed32e71cf799ef35e3a6b"
+              }
+            },
+            {
+              "const": {
+                "route": "/base-server-ssr-demo.js",
+                "bytes": 1990,
+                "sha256": "a2926b4eb0fa01f366ca3d6f283c71186b90b473af9a95cbb94c6aeba9e1cd8d"
+              }
+            },
+            {
+              "const": {
+                "route": "/base-server-ssr-worker.js",
+                "bytes": 5063,
+                "sha256": "95f9db692c65b3c48d7452b178c1fec2014a462b7ee07ddc6ecf09ccac013bb0"
+              }
+            },
+            {
+              "const": {
+                "route": "/benchmarks/v1/server-ssr-template/workload.js",
+                "bytes": 10346,
+                "sha256": "c26324abb0cbfa3441ae2db8507eaf12b38b09420c8da6e6c0fe66fc1a0a29f8"
+              }
+            },
+            {
+              "const": {
+                "route": "/data/v1-implementation-registrations/server.ssr-template.v1.json",
+                "bytes": 4128,
+                "sha256": "247ff351055594dafb4e70f49a6526d9c46ce281824205e5604925ad9bee2986"
+              }
+            },
+            {
+              "const": {
+                "route": "/artifacts/base-server-ssr-template/build-manifest.json",
+                "bytes": 3209,
+                "sha256": "4a58cabeaab08be14fa3c0d3c7bbe98842b1de09cd2abf51ae7eeecfbaad2b40"
+              }
+            },
+            {
+              "const": {
+                "route": "/artifacts/base-server-ssr-template/fixture-manifest.json",
+                "bytes": 684,
+                "sha256": "fff71d8aa7cd013cb2e1be33c91ca0097adfd7d152534f9143e434965cbabc75"
+              }
+            },
+            {
+              "const": {
+                "route": "/artifacts/base-server-ssr-template/output-manifest.json",
+                "bytes": 1518,
+                "sha256": "418b883f88e90bb2c6074c2c02bc8cade9819b5483db9d1c66204e49a67dcb7d"
+              }
+            },
+            {
+              "const": {
+                "route": "/artifacts/base-server-ssr-template/fixture.bin",
+                "bytes": 91442,
+                "sha256": "f94cbcc0af8ab5b1b292c5d48c2b8ea319d5078e020374fb4e2beceb191ae524"
+              }
+            },
+            {
+              "const": {
+                "route": "/artifacts/base-server-ssr-template/server-ssr-template.wasm",
+                "bytes": 9591,
+                "sha256": "9d93f9542363f4d7e8b2c66516936176ff260db9a8604eb15c820a0d62feebe5"
+              }
+            },
+            {
+              "const": {
+                "route": "/favicon.ico",
+                "bytes": 211,
+                "sha256": "ee6c407626f2432b805e7c07252226f0b7852a591f1562fbbb0f31e0f786dffc"
+              }
+            }
+          ],
+          "items": false
         }
       }
     },
     "instrumentation": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["injectionMethod", "sourceBytes", "sourceSha256", "purpose"],
+      "required": [
+        "injectionMethod",
+        "sourceBytes",
+        "sourceSha256",
+        "purpose"
+      ],
       "properties": {
-        "injectionMethod": { "const": "Page.addScriptToEvaluateOnNewDocument" },
-        "sourceBytes": { "type": "integer", "minimum": 1 },
-        "sourceSha256": { "$ref": "#/$defs/sha256" },
+        "injectionMethod": {
+          "const": "Page.addScriptToEvaluateOnNewDocument"
+        },
+        "sourceBytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sourceSha256": {
+          "$ref": "#/$defs/sha256"
+        },
         "purpose": {
           "const": "observe and deterministically exercise token and owned-worker lifecycle guards"
         }
@@ -303,13 +826,29 @@
         "target"
       ],
       "properties": {
-        "heading": { "const": "Render 1,000 catalog responses" },
-        "status": { "type": "string", "minLength": 1 },
-        "output": { "type": "string" },
-        "bodyText": { "type": "string", "minLength": 1 },
-        "startDisabled": { "type": "boolean" },
-        "cancelDisabled": { "type": "boolean" },
-        "target": { "$ref": "#/$defs/target" }
+        "heading": {
+          "const": "Render 1,000 catalog responses"
+        },
+        "status": {
+          "type": "string",
+          "minLength": 1
+        },
+        "output": {
+          "type": "string"
+        },
+        "bodyText": {
+          "type": "string",
+          "minLength": 1
+        },
+        "startDisabled": {
+          "type": "boolean"
+        },
+        "cancelDisabled": {
+          "type": "boolean"
+        },
+        "target": {
+          "$ref": "#/$defs/target"
+        }
       }
     },
     "counters": {
@@ -330,27 +869,62 @@
         "boundary-crossings"
       ],
       "properties": {
-        "responses": { "const": 1000 },
-        "parsed-fields": { "const": 7000 },
-        "template-tokens": { "const": 23000 },
-        "text-escapes": { "const": 2000 },
-        "attribute-escapes": { "const": 1000 },
-        "url-escapes": { "const": 2000 },
-        "integer-formats": { "const": 4000 },
-        "date-formats": { "const": 2000 },
-        "input-bytes": { "const": 91442 },
-        "output-bytes": { "const": 426192 },
-        "allocations": { "const": 1 },
-        "boundary-crossings": { "enum": [0, 1] }
+        "responses": {
+          "const": 1000
+        },
+        "parsed-fields": {
+          "const": 7000
+        },
+        "template-tokens": {
+          "const": 23000
+        },
+        "text-escapes": {
+          "const": 2000
+        },
+        "attribute-escapes": {
+          "const": 1000
+        },
+        "url-escapes": {
+          "const": 2000
+        },
+        "integer-formats": {
+          "const": 4000
+        },
+        "date-formats": {
+          "const": 2000
+        },
+        "input-bytes": {
+          "const": 91442
+        },
+        "output-bytes": {
+          "const": 426192
+        },
+        "allocations": {
+          "const": 1
+        },
+        "boundary-crossings": {
+          "enum": [
+            0,
+            1
+          ]
+        }
       }
     },
     "responseDigest": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["bytes", "sha256"],
+      "required": [
+        "bytes",
+        "sha256"
+      ],
       "properties": {
-        "bytes": { "type": "integer", "minimum": 1 },
-        "sha256": { "$ref": "#/$defs/sha256" }
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
       }
     },
     "routeRender": {
@@ -369,50 +943,99 @@
         "documentBodyTextSha256"
       ],
       "properties": {
-        "target": { "$ref": "#/$defs/target" },
-        "responses": { "const": 1000 },
+        "target": {
+          "$ref": "#/$defs/target"
+        },
+        "responses": {
+          "const": 1000
+        },
         "completeOutputSha256": {
           "const": "330a49b560410f667eba4ae3baa9cce1f661201f84d7ea703a91a36835dbcedc"
         },
-        "completeOutputBytes": { "const": 426192 },
-        "counters": { "$ref": "#/$defs/counters" },
-        "firstResponse": { "$ref": "#/$defs/responseDigest" },
-        "lastResponse": { "$ref": "#/$defs/responseDigest" },
+        "completeOutputBytes": {
+          "const": 426192
+        },
+        "counters": {
+          "$ref": "#/$defs/counters"
+        },
+        "firstResponse": {
+          "$ref": "#/$defs/responseDigest"
+        },
+        "lastResponse": {
+          "$ref": "#/$defs/responseDigest"
+        },
         "displayedResultText": {
           "type": "string",
           "pattern": "^Target: (js-controlled|wasm-linear-controlled)\\nResponses: 1000\\nComplete output SHA-256: 330a49b560410f667eba4ae3baa9cce1f661201f84d7ea703a91a36835dbcedc"
         },
-        "displayedResultTextSha256": { "$ref": "#/$defs/sha256" },
-        "documentBodyTextSha256": { "$ref": "#/$defs/sha256" }
+        "displayedResultTextSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "documentBodyTextSha256": {
+          "$ref": "#/$defs/sha256"
+        }
       }
     },
     "eventData": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "type": { "enum": ["complete", "error"] },
-        "token": { "type": "integer", "minimum": 1 },
-        "target": { "$ref": "#/$defs/target" },
-        "text": { "type": "string" }
+        "type": {
+          "enum": [
+            "complete",
+            "error"
+          ]
+        },
+        "token": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "target": {
+          "$ref": "#/$defs/target"
+        },
+        "text": {
+          "type": "string"
+        }
       }
     },
     "eventDetail": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "index": { "type": "integer", "minimum": 0 },
-        "url": { "type": "string", "minLength": 1 },
-        "mode": {
-          "enum": ["normal", "wrong-token", "stale", "cancel", "timeout", "pagehide"]
+        "index": {
+          "type": "integer",
+          "minimum": 0
         },
-        "data": { "$ref": "#/$defs/eventData" },
-        "token": { "type": "integer", "minimum": 1 }
+        "url": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mode": {
+          "enum": [
+            "normal",
+            "wrong-token",
+            "stale",
+            "cancel",
+            "timeout",
+            "pagehide"
+          ]
+        },
+        "data": {
+          "$ref": "#/$defs/eventData"
+        },
+        "token": {
+          "type": "integer",
+          "minimum": 1
+        }
       }
     },
     "lifecycleEvent": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind", "detail"],
+      "required": [
+        "kind",
+        "detail"
+      ],
       "properties": {
         "kind": {
           "enum": [
@@ -426,56 +1049,107 @@
             "worker-terminated"
           ]
         },
-        "detail": { "$ref": "#/$defs/eventDetail" }
+        "detail": {
+          "$ref": "#/$defs/eventDetail"
+        }
       }
     },
     "lifecycle": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["events", "assertions"],
+      "required": [
+        "events",
+        "assertions"
+      ],
       "properties": {
         "events": {
           "type": "array",
           "minItems": 4,
-          "items": { "$ref": "#/$defs/lifecycleEvent" }
+          "items": {
+            "$ref": "#/$defs/lifecycleEvent"
+          }
         },
         "assertions": {
           "type": "array",
-          "items": { "type": "string", "minLength": 1 }
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       }
     },
     "consoleRecord": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["type", "arguments"],
+      "required": [
+        "context",
+        "type",
+        "arguments"
+      ],
       "properties": {
-        "type": { "type": "string", "not": { "const": "error" } },
-        "arguments": { "type": "array", "items": { "type": "string" } }
+        "type": {
+          "type": "string",
+          "not": {
+            "const": "error"
+          }
+        },
+        "arguments": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "context": {
+          "type": "string",
+          "pattern": "^(page|worker-[01])$"
+        }
       }
     },
     "exceptionRecord": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["text", "lineNumber"],
+      "required": [
+        "context",
+        "text",
+        "lineNumber"
+      ],
       "properties": {
-        "text": { "type": "string" },
-        "lineNumber": { "type": "number" }
+        "text": {
+          "type": "string"
+        },
+        "lineNumber": {
+          "type": "number"
+        },
+        "context": {
+          "type": "string",
+          "pattern": "^(page|worker-[01])$"
+        }
       }
     },
     "header": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "value"],
+      "required": [
+        "name",
+        "value"
+      ],
       "properties": {
-        "name": { "type": "string", "pattern": "^[a-z0-9-]+$" },
-        "value": { "type": "string" }
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "value": {
+          "type": "string"
+        }
       }
     },
     "networkRecord": {
       "type": "object",
       "additionalProperties": false,
       "required": [
+        "context",
+        "route",
+        "occurrence",
         "url",
         "method",
         "resourceType",
@@ -493,47 +1167,129 @@
         "sourcePath"
       ],
       "properties": {
-        "url": { "type": "string", "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/" },
-        "method": { "const": "GET" },
-        "resourceType": { "type": "string", "minLength": 1 },
-        "status": { "const": 200 },
-        "statusText": { "type": "string" },
-        "protocol": { "type": "string", "minLength": 1 },
-        "mimeType": { "type": "string", "minLength": 1 },
+        "url": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/"
+        },
+        "method": {
+          "const": "GET"
+        },
+        "resourceType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "const": 200
+        },
+        "statusText": {
+          "type": "string"
+        },
+        "protocol": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mimeType": {
+          "type": "string",
+          "minLength": 1
+        },
         "headers": {
           "type": "array",
           "minItems": 1,
-          "items": { "$ref": "#/$defs/header" }
+          "items": {
+            "$ref": "#/$defs/header"
+          },
+          "uniqueItems": true
         },
-        "fromDiskCache": { "const": false },
-        "fromServiceWorker": { "const": false },
-        "failed": { "const": false },
-        "errorText": { "type": "null" },
-        "bodyBytes": { "type": "integer", "minimum": 1 },
-        "bodySha256": { "$ref": "#/$defs/sha256" },
-        "sourcePath": { "type": "string", "minLength": 1 }
+        "fromDiskCache": {
+          "const": false
+        },
+        "fromServiceWorker": {
+          "const": false
+        },
+        "failed": {
+          "const": false
+        },
+        "errorText": {
+          "type": "null"
+        },
+        "bodyBytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "bodySha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "sourcePath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "context": {
+          "type": "string",
+          "pattern": "^(page|worker-[01])$"
+        },
+        "route": {
+          "enum": [
+            "/demos/server.ssr-template.v1/",
+            "/styles.css",
+            "/base-server-ssr-demo.js",
+            "/base-server-ssr-worker.js",
+            "/benchmarks/v1/server-ssr-template/workload.js",
+            "/data/v1-implementation-registrations/server.ssr-template.v1.json",
+            "/artifacts/base-server-ssr-template/build-manifest.json",
+            "/artifacts/base-server-ssr-template/fixture-manifest.json",
+            "/artifacts/base-server-ssr-template/output-manifest.json",
+            "/artifacts/base-server-ssr-template/fixture.bin",
+            "/artifacts/base-server-ssr-template/server-ssr-template.wasm",
+            "/favicon.ico"
+          ]
+        },
+        "occurrence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3
+        }
       }
     },
     "axNode": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["role", "name", "ignored"],
+      "required": [
+        "role",
+        "name",
+        "ignored"
+      ],
       "properties": {
-        "role": { "type": "string", "minLength": 1 },
-        "name": { "type": "string", "minLength": 1 },
-        "ignored": { "const": false }
+        "role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ignored": {
+          "const": false
+        }
       }
     },
     "accessibility": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["inspectedBy", "nodes", "assertions"],
+      "required": [
+        "inspectedBy",
+        "nodes",
+        "assertions"
+      ],
       "properties": {
-        "inspectedBy": { "const": "Accessibility.getFullAXTree" },
+        "inspectedBy": {
+          "const": "Accessibility.getFullAXTree"
+        },
         "nodes": {
           "type": "array",
           "minItems": 5,
-          "items": { "$ref": "#/$defs/axNode" }
+          "items": {
+            "$ref": "#/$defs/axNode"
+          }
         },
         "assertions": {
           "const": [
@@ -548,11 +1304,23 @@
     "screenshot": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["path", "bytes", "sha256"],
+      "required": [
+        "path",
+        "bytes",
+        "sha256"
+      ],
       "properties": {
-        "path": { "type": "string", "pattern": "^screenshots/[a-z0-9-]+\\.png$" },
-        "bytes": { "type": "integer", "minimum": 8 },
-        "sha256": { "$ref": "#/$defs/sha256" }
+        "path": {
+          "type": "string",
+          "pattern": "^screenshots/[a-z0-9-]+\\.png$"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 8
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
       }
     },
     "scenarioBase": {
@@ -585,219 +1353,3831 @@
           ]
         },
         "mode": {
-          "enum": ["normal", "wrong-token", "stale", "cancel", "timeout", "pagehide"]
+          "enum": [
+            "normal",
+            "wrong-token",
+            "stale",
+            "cancel",
+            "timeout",
+            "pagehide"
+          ]
         },
         "targetSequence": {
           "type": "array",
           "minItems": 1,
           "maxItems": 2,
-          "items": { "$ref": "#/$defs/target" }
+          "items": {
+            "$ref": "#/$defs/target"
+          }
         },
-        "finalState": { "$ref": "#/$defs/pageState" },
+        "finalState": {
+          "$ref": "#/$defs/pageState"
+        },
         "routeRender": {
-          "anyOf": [{ "$ref": "#/$defs/routeRender" }, { "type": "null" }]
+          "anyOf": [
+            {
+              "$ref": "#/$defs/routeRender"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
-        "lifecycle": { "$ref": "#/$defs/lifecycle" },
-        "console": { "type": "array", "items": { "$ref": "#/$defs/consoleRecord" } },
-        "exceptions": { "const": [] },
+        "lifecycle": {
+          "$ref": "#/$defs/lifecycle"
+        },
+        "console": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/consoleRecord"
+          }
+        },
+        "exceptions": {
+          "const": []
+        },
         "network": {
           "type": "array",
-          "minItems": 3,
-          "items": { "$ref": "#/$defs/networkRecord" }
+          "uniqueItems": true
         },
-        "accessibility": { "$ref": "#/$defs/accessibility" },
-        "screenshot": { "$ref": "#/$defs/screenshot" }
+        "accessibility": {
+          "$ref": "#/$defs/accessibility"
+        },
+        "screenshot": {
+          "$ref": "#/$defs/screenshot"
+        }
       }
     },
     "completeJsScenario": {
       "allOf": [
-        { "$ref": "#/$defs/scenarioBase" },
+        {
+          "$ref": "#/$defs/scenarioBase"
+        },
         {
           "type": "object",
           "properties": {
-            "id": { "const": "complete-js" },
-            "mode": { "const": "normal" },
-            "targetSequence": { "const": ["js-controlled"] }
+            "id": {
+              "const": "complete-js"
+            },
+            "mode": {
+              "const": "normal"
+            },
+            "targetSequence": {
+              "const": [
+                "js-controlled"
+              ]
+            },
+            "finalState": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/pageState"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "const": "Complete."
+                    },
+                    "startDisabled": {
+                      "const": false
+                    },
+                    "cancelDisabled": {
+                      "const": true
+                    },
+                    "target": {
+                      "const": "js-controlled"
+                    },
+                    "output": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              ]
+            },
+            "routeRender": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/routeRender"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "target": {
+                      "const": "js-controlled"
+                    },
+                    "counters": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/counters"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "boundary-crossings": {
+                              "const": 0
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            },
+            "lifecycle": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/lifecycle"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "assertions": {
+                      "const": []
+                    },
+                    "events": {
+                      "type": "array",
+                      "minItems": 4,
+                      "maxItems": 4,
+                      "prefixItems": [
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "instrumentation-ready"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-created"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-posted"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-terminated"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "items": false
+                    }
+                  }
+                }
+              ]
+            },
+            "network": {
+              "type": "array",
+              "minItems": 12,
+              "maxItems": 12,
+              "uniqueItems": true,
+              "prefixItems": [
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset0"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset1"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset2"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset11"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset3"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset4"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset5"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset6"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset7"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset8"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset9"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset4"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 2
+                        }
+                      }
+                    }
+                  ]
+                }
+              ],
+              "items": false
+            },
+            "screenshot": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/screenshot"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "const": "screenshots/complete-js.png"
+                    }
+                  }
+                }
+              ]
+            }
           }
         }
       ]
     },
     "completeWasmScenario": {
       "allOf": [
-        { "$ref": "#/$defs/scenarioBase" },
+        {
+          "$ref": "#/$defs/scenarioBase"
+        },
         {
           "type": "object",
           "properties": {
-            "id": { "const": "complete-wasm" },
-            "mode": { "const": "normal" },
-            "targetSequence": { "const": ["wasm-linear-controlled"] }
+            "id": {
+              "const": "complete-wasm"
+            },
+            "mode": {
+              "const": "normal"
+            },
+            "targetSequence": {
+              "const": [
+                "wasm-linear-controlled"
+              ]
+            },
+            "finalState": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/pageState"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "const": "Complete."
+                    },
+                    "startDisabled": {
+                      "const": false
+                    },
+                    "cancelDisabled": {
+                      "const": true
+                    },
+                    "target": {
+                      "const": "wasm-linear-controlled"
+                    },
+                    "output": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              ]
+            },
+            "routeRender": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/routeRender"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "target": {
+                      "const": "wasm-linear-controlled"
+                    },
+                    "counters": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/counters"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "boundary-crossings": {
+                              "const": 1
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            },
+            "lifecycle": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/lifecycle"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "assertions": {
+                      "const": []
+                    },
+                    "events": {
+                      "type": "array",
+                      "minItems": 4,
+                      "maxItems": 4,
+                      "prefixItems": [
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "instrumentation-ready"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-created"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-posted"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-terminated"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "items": false
+                    }
+                  }
+                }
+              ]
+            },
+            "network": {
+              "type": "array",
+              "minItems": 12,
+              "maxItems": 12,
+              "uniqueItems": true,
+              "prefixItems": [
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset0"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset1"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset2"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset11"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset3"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset4"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset5"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset6"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset7"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset8"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset9"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset10"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                }
+              ],
+              "items": false
+            },
+            "screenshot": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/screenshot"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "const": "screenshots/complete-wasm.png"
+                    }
+                  }
+                }
+              ]
+            }
           }
         }
       ]
     },
     "restartScenario": {
       "allOf": [
-        { "$ref": "#/$defs/scenarioBase" },
+        {
+          "$ref": "#/$defs/scenarioBase"
+        },
         {
           "type": "object",
           "properties": {
-            "id": { "const": "restart-js-to-wasm" },
-            "mode": { "const": "normal" },
-            "targetSequence": { "const": ["js-controlled", "wasm-linear-controlled"] }
+            "id": {
+              "const": "restart-js-to-wasm"
+            },
+            "mode": {
+              "const": "normal"
+            },
+            "targetSequence": {
+              "const": [
+                "js-controlled",
+                "wasm-linear-controlled"
+              ]
+            },
+            "finalState": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/pageState"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "const": "Complete."
+                    },
+                    "startDisabled": {
+                      "const": false
+                    },
+                    "cancelDisabled": {
+                      "const": true
+                    },
+                    "target": {
+                      "const": "wasm-linear-controlled"
+                    },
+                    "output": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              ]
+            },
+            "routeRender": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/routeRender"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "target": {
+                      "const": "wasm-linear-controlled"
+                    },
+                    "counters": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/counters"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "boundary-crossings": {
+                              "const": 1
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            },
+            "lifecycle": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/lifecycle"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "assertions": {
+                      "const": [
+                        "two sequential starts created two fresh workers"
+                      ]
+                    },
+                    "events": {
+                      "type": "array",
+                      "minItems": 7,
+                      "maxItems": 7,
+                      "prefixItems": [
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "instrumentation-ready"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-created"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-posted"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-terminated"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-created"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-posted"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-terminated"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "items": false
+                    }
+                  }
+                }
+              ]
+            },
+            "network": {
+              "type": "array",
+              "minItems": 20,
+              "maxItems": 20,
+              "uniqueItems": true,
+              "prefixItems": [
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset0"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset1"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset2"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset11"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset3"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset4"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset3"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 2
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset4"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 2
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset5"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset6"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset7"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset8"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset9"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset4"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 3
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset5"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 2
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset6"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 2
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset7"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 2
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset8"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 2
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset9"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 2
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset10"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                }
+              ],
+              "items": false
+            },
+            "screenshot": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/screenshot"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "const": "screenshots/restart-js-to-wasm.png"
+                    }
+                  }
+                }
+              ]
+            }
           }
         }
       ]
     },
     "wrongTokenScenario": {
       "allOf": [
-        { "$ref": "#/$defs/scenarioBase" },
+        {
+          "$ref": "#/$defs/scenarioBase"
+        },
         {
           "type": "object",
           "properties": {
-            "id": { "const": "wrong-token" },
-            "mode": { "const": "wrong-token" },
-            "targetSequence": { "const": ["js-controlled"] }
+            "id": {
+              "const": "wrong-token"
+            },
+            "mode": {
+              "const": "wrong-token"
+            },
+            "targetSequence": {
+              "const": [
+                "js-controlled"
+              ]
+            },
+            "finalState": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/pageState"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "const": "Complete."
+                    },
+                    "startDisabled": {
+                      "const": false
+                    },
+                    "cancelDisabled": {
+                      "const": true
+                    },
+                    "target": {
+                      "const": "js-controlled"
+                    },
+                    "output": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              ]
+            },
+            "routeRender": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/routeRender"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "target": {
+                      "const": "js-controlled"
+                    },
+                    "counters": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/counters"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "boundary-crossings": {
+                              "const": 0
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            },
+            "lifecycle": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/lifecycle"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "assertions": {
+                      "const": [
+                        "wrong-token completion was ignored"
+                      ]
+                    },
+                    "events": {
+                      "type": "array",
+                      "minItems": 5,
+                      "maxItems": 5,
+                      "prefixItems": [
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "instrumentation-ready"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-created"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-posted"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "wrong-token-dispatched"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-terminated"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "items": false
+                    }
+                  }
+                }
+              ]
+            },
+            "network": {
+              "type": "array",
+              "minItems": 12,
+              "maxItems": 12,
+              "uniqueItems": true,
+              "prefixItems": [
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset0"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset1"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset2"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset11"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset3"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset4"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset5"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset6"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset7"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset8"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset9"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset4"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 2
+                        }
+                      }
+                    }
+                  ]
+                }
+              ],
+              "items": false
+            },
+            "screenshot": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/screenshot"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "const": "screenshots/wrong-token.png"
+                    }
+                  }
+                }
+              ]
+            }
           }
         }
       ]
     },
     "staleScenario": {
       "allOf": [
-        { "$ref": "#/$defs/scenarioBase" },
+        {
+          "$ref": "#/$defs/scenarioBase"
+        },
         {
           "type": "object",
           "properties": {
-            "id": { "const": "stale-after-restart" },
-            "mode": { "const": "stale" },
-            "targetSequence": { "const": ["js-controlled", "wasm-linear-controlled"] }
+            "id": {
+              "const": "stale-after-restart"
+            },
+            "mode": {
+              "const": "stale"
+            },
+            "targetSequence": {
+              "const": [
+                "js-controlled",
+                "wasm-linear-controlled"
+              ]
+            },
+            "finalState": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/pageState"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "const": "Complete."
+                    },
+                    "startDisabled": {
+                      "const": false
+                    },
+                    "cancelDisabled": {
+                      "const": true
+                    },
+                    "target": {
+                      "const": "wasm-linear-controlled"
+                    },
+                    "output": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              ]
+            },
+            "routeRender": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/routeRender"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "target": {
+                      "const": "wasm-linear-controlled"
+                    },
+                    "counters": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/counters"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "boundary-crossings": {
+                              "const": 1
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            },
+            "lifecycle": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/lifecycle"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "assertions": {
+                      "const": [
+                        "terminated first-worker message was ignored after restart"
+                      ]
+                    },
+                    "events": {
+                      "type": "array",
+                      "minItems": 11,
+                      "maxItems": 11,
+                      "prefixItems": [
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "instrumentation-ready"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-created"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-posted"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-held"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-terminated"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-created"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-posted"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-held"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "synthetic-message-dispatched"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-released"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-terminated"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "items": false
+                    }
+                  }
+                }
+              ]
+            },
+            "network": {
+              "type": "array",
+              "minItems": 14,
+              "maxItems": 14,
+              "uniqueItems": true,
+              "prefixItems": [
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset0"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset1"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset2"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset11"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset3"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset4"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset3"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 2
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset4"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 2
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset5"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset6"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset7"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset8"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset9"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset10"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                }
+              ],
+              "items": false
+            },
+            "screenshot": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/screenshot"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "const": "screenshots/stale-after-restart.png"
+                    }
+                  }
+                }
+              ]
+            }
           }
         }
       ]
     },
     "cancelScenario": {
       "allOf": [
-        { "$ref": "#/$defs/scenarioBase" },
+        {
+          "$ref": "#/$defs/scenarioBase"
+        },
         {
           "type": "object",
           "properties": {
-            "id": { "const": "cancel" },
-            "mode": { "const": "cancel" },
-            "targetSequence": { "const": ["js-controlled"] }
+            "id": {
+              "const": "cancel"
+            },
+            "mode": {
+              "const": "cancel"
+            },
+            "targetSequence": {
+              "const": [
+                "js-controlled"
+              ]
+            },
+            "finalState": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/pageState"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "const": "Cancelled. No result was retained."
+                    },
+                    "startDisabled": {
+                      "const": false
+                    },
+                    "cancelDisabled": {
+                      "const": true
+                    },
+                    "target": {
+                      "const": "js-controlled"
+                    },
+                    "output": {
+                      "const": "Cancelled."
+                    }
+                  }
+                }
+              ]
+            },
+            "routeRender": {
+              "type": "null"
+            },
+            "lifecycle": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/lifecycle"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "assertions": {
+                      "const": [
+                        "Cancel terminated the exact held worker"
+                      ]
+                    },
+                    "events": {
+                      "type": "array",
+                      "minItems": 5,
+                      "maxItems": 5,
+                      "prefixItems": [
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "instrumentation-ready"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-created"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-posted"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-held"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-terminated"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "items": false
+                    }
+                  }
+                }
+              ]
+            },
+            "network": {
+              "type": "array",
+              "minItems": 6,
+              "maxItems": 6,
+              "uniqueItems": true,
+              "prefixItems": [
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset0"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset1"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset2"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset11"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset3"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset4"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                }
+              ],
+              "items": false
+            },
+            "screenshot": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/screenshot"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "const": "screenshots/cancel.png"
+                    }
+                  }
+                }
+              ]
+            }
           }
         }
       ]
     },
     "timeoutScenario": {
       "allOf": [
-        { "$ref": "#/$defs/scenarioBase" },
+        {
+          "$ref": "#/$defs/scenarioBase"
+        },
         {
           "type": "object",
           "properties": {
-            "id": { "const": "timeout" },
-            "mode": { "const": "timeout" },
-            "targetSequence": { "const": ["js-controlled"] }
+            "id": {
+              "const": "timeout"
+            },
+            "mode": {
+              "const": "timeout"
+            },
+            "targetSequence": {
+              "const": [
+                "js-controlled"
+              ]
+            },
+            "finalState": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/pageState"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "const": "Stopped: the 30 second exact-run timeout expired."
+                    },
+                    "startDisabled": {
+                      "const": false
+                    },
+                    "cancelDisabled": {
+                      "const": true
+                    },
+                    "target": {
+                      "const": "js-controlled"
+                    },
+                    "output": {
+                      "const": ""
+                    }
+                  }
+                }
+              ]
+            },
+            "routeRender": {
+              "type": "null"
+            },
+            "lifecycle": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/lifecycle"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "assertions": {
+                      "const": [
+                        "30 second timeout terminated the exact held worker"
+                      ]
+                    },
+                    "events": {
+                      "type": "array",
+                      "minItems": 5,
+                      "maxItems": 5,
+                      "prefixItems": [
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "instrumentation-ready"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-created"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-posted"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-held"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-terminated"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "items": false
+                    }
+                  }
+                }
+              ]
+            },
+            "network": {
+              "type": "array",
+              "minItems": 6,
+              "maxItems": 6,
+              "uniqueItems": true,
+              "prefixItems": [
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset0"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset1"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset2"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset11"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset3"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset4"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                }
+              ],
+              "items": false
+            },
+            "screenshot": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/screenshot"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "const": "screenshots/timeout.png"
+                    }
+                  }
+                }
+              ]
+            }
           }
         }
       ]
     },
     "pagehideScenario": {
       "allOf": [
-        { "$ref": "#/$defs/scenarioBase" },
+        {
+          "$ref": "#/$defs/scenarioBase"
+        },
         {
           "type": "object",
           "properties": {
-            "id": { "const": "pagehide" },
-            "mode": { "const": "pagehide" },
-            "targetSequence": { "const": ["js-controlled"] }
+            "id": {
+              "const": "pagehide"
+            },
+            "mode": {
+              "const": "pagehide"
+            },
+            "targetSequence": {
+              "const": [
+                "js-controlled"
+              ]
+            },
+            "finalState": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/pageState"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "const": "Running the exact 1,000-response contract in a fresh worker."
+                    },
+                    "startDisabled": {
+                      "const": true
+                    },
+                    "cancelDisabled": {
+                      "const": false
+                    },
+                    "target": {
+                      "const": "js-controlled"
+                    },
+                    "output": {
+                      "const": ""
+                    }
+                  }
+                }
+              ]
+            },
+            "routeRender": {
+              "type": "null"
+            },
+            "lifecycle": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/lifecycle"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "assertions": {
+                      "const": [
+                        "pagehide terminated the exact held worker"
+                      ]
+                    },
+                    "events": {
+                      "type": "array",
+                      "minItems": 5,
+                      "maxItems": 5,
+                      "prefixItems": [
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "instrumentation-ready"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-created"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-posted"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-held"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/lifecycleEvent"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "const": "worker-terminated"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "items": false
+                    }
+                  }
+                }
+              ]
+            },
+            "network": {
+              "type": "array",
+              "minItems": 6,
+              "maxItems": 6,
+              "uniqueItems": true,
+              "prefixItems": [
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset0"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset1"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset2"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset11"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset3"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/networkRecord"
+                    },
+                    {
+                      "$ref": "#/$defs/networkAsset4"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "occurrence": {
+                          "const": 1
+                        }
+                      }
+                    }
+                  ]
+                }
+              ],
+              "items": false
+            },
+            "screenshot": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/screenshot"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "const": "screenshots/pagehide.png"
+                    }
+                  }
+                }
+              ]
+            }
           }
         }
       ]
     },
-    "processIdentity": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["pid", "parentPid", "startTimeTicks", "executable"],
-      "properties": {
-        "pid": { "type": "integer", "minimum": 1 },
-        "parentPid": { "type": "integer", "minimum": 0 },
-        "startTimeTicks": { "type": "string", "pattern": "^[0-9]+$" },
-        "executable": { "type": "string", "pattern": "^/" }
-      }
-    },
     "exitStatus": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["success", "code", "signal"],
+      "required": [
+        "success",
+        "code",
+        "signal"
+      ],
       "properties": {
-        "success": { "type": "boolean" },
-        "code": { "type": "integer" },
-        "signal": { "type": ["string", "null"] }
+        "success": {
+          "type": "boolean"
+        },
+        "code": {
+          "type": "integer"
+        },
+        "signal": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
       }
     },
     "cleanup": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["browser", "profile", "server"],
+      "required": [
+        "browser",
+        "profile",
+        "stage",
+        "server"
+      ],
       "properties": {
         "browser": {
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "launcher",
-            "observedProcesses",
+            "unit",
+            "controlGroup",
+            "cgroupPath",
+            "cgroupDev",
+            "cgroupIno",
+            "invocationId",
+            "mainPid",
+            "commandLine",
+            "membershipSnapshots",
             "requested",
-            "signals",
-            "exit",
-            "processesAbsent"
+            "remaining",
+            "identityMismatches",
+            "stoppedAt"
           ],
           "properties": {
-            "launcher": { "$ref": "#/$defs/processIdentity" },
-            "observedProcesses": {
-              "type": "array",
-              "minItems": 1,
-              "items": { "$ref": "#/$defs/processIdentity" }
+            "unit": {
+              "type": "string",
+              "pattern": "^wasm-vs-js-[a-z0-9]{16,64}\\.service$"
             },
-            "requested": { "const": "Browser.close" },
-            "signals": {
+            "controlGroup": {
+              "type": "string",
+              "pattern": "^/"
+            },
+            "cgroupPath": {
+              "type": "string",
+              "pattern": "^/sys/fs/cgroup/"
+            },
+            "cgroupDev": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "cgroupIno": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "invocationId": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            },
+            "mainPid": {
+              "type": "integer",
+              "minimum": 2
+            },
+            "commandLine": {
               "type": "array",
-              "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": ["pid", "signal"],
-                "properties": {
-                  "pid": { "type": "integer", "minimum": 1 },
-                  "signal": { "enum": ["SIGTERM", "SIGKILL"] }
+              "minItems": 21,
+              "maxItems": 21,
+              "uniqueItems": true,
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "pattern": "^/tmp/wasm-vs-js-staged-chrome/ssr-[a-f0-9]{32}/.+"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^--user-data-dir=/tmp/wasm-vs-js-owned-profiles/ssr-[a-f0-9]{32}/launch$"
+                },
+                {
+                  "const": "--remote-debugging-port=0"
+                },
+                {
+                  "const": "--no-first-run"
+                },
+                {
+                  "const": "--no-default-browser-check"
+                },
+                {
+                  "const": "--disable-sync"
+                },
+                {
+                  "const": "--disable-crash-reporter"
+                },
+                {
+                  "const": "--disable-breakpad"
+                },
+                {
+                  "const": "--headless=new"
+                },
+                {
+                  "const": "--no-sandbox"
+                },
+                {
+                  "const": "--disable-gpu"
+                },
+                {
+                  "const": "--disable-background-networking"
+                },
+                {
+                  "const": "--disable-component-update"
+                },
+                {
+                  "const": "--disable-default-apps"
+                },
+                {
+                  "const": "--disable-extensions"
+                },
+                {
+                  "const": "--metrics-recording-only"
+                },
+                {
+                  "const": "--hide-scrollbars"
+                },
+                {
+                  "const": "--window-size=1440,1200"
+                },
+                {
+                  "const": "--remote-debugging-address=127.0.0.1"
+                },
+                {
+                  "const": "--enable-automation"
+                },
+                {
+                  "const": "about:blank"
                 }
+              ],
+              "items": false
+            },
+            "membershipSnapshots": {
+              "type": "array",
+              "minItems": 9,
+              "items": {
+                "$ref": "#/$defs/membershipSnapshot"
               }
             },
-            "exit": { "$ref": "#/$defs/exitStatus" },
-            "processesAbsent": { "const": true }
+            "requested": {
+              "const": "cgroup.kill"
+            },
+            "remaining": {
+              "const": []
+            },
+            "identityMismatches": {
+              "const": []
+            },
+            "stoppedAt": {
+              "type": "string",
+              "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:.]+Z$"
+            }
           }
         },
         "profile": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["path", "initiallyEmpty", "removed", "absent"],
+          "required": [
+            "path",
+            "removed",
+            "absent"
+          ],
           "properties": {
             "path": {
               "type": "string",
-              "pattern": "^/tmp/wasm-base-server-ssr-chrome-"
+              "pattern": "^/tmp/wasm-vs-js-owned-profiles/ssr-[a-f0-9]{32}/launch$"
             },
-            "initiallyEmpty": { "const": true },
-            "removed": { "const": true },
-            "absent": { "const": true }
+            "removed": {
+              "const": true
+            },
+            "absent": {
+              "const": true
+            }
+          }
+        },
+        "stage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "removed",
+            "absent"
+          ],
+          "properties": {
+            "removed": {
+              "const": true
+            },
+            "absent": {
+              "const": true
+            }
           }
         },
         "server": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["launcher", "signal", "exit", "processAbsent"],
+          "required": [
+            "launcher",
+            "signal",
+            "exit",
+            "processAbsent"
+          ],
           "properties": {
-            "launcher": { "$ref": "#/$defs/processIdentity" },
-            "signal": { "enum": ["SIGTERM", "SIGKILL"] },
-            "exit": { "$ref": "#/$defs/exitStatus" },
-            "processAbsent": { "const": true }
+            "launcher": {
+              "$ref": "#/$defs/processIdentity"
+            },
+            "signal": {
+              "enum": [
+                "SIGTERM",
+                "SIGKILL"
+              ]
+            },
+            "exit": {
+              "$ref": "#/$defs/exitStatus"
+            },
+            "processAbsent": {
+              "const": true
+            }
           }
+        }
+      }
+    },
+    "networkAsset0": {
+      "type": "object",
+      "properties": {
+        "route": {
+          "const": "/demos/server.ssr-template.v1/"
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/demos/server\\.ssr-template\\.v1/\\?evidence-mode=(normal|wrong-token|stale|cancel|timeout|pagehide)$"
+        },
+        "sourcePath": {
+          "const": "public/demos/server.ssr-template.v1/index.html"
+        },
+        "bodyBytes": {
+          "const": 2645
+        },
+        "bodySha256": {
+          "const": "2500082356df37117e7cef681b878b278e5e34d8d7013617c0293d4542e08acb"
+        }
+      }
+    },
+    "networkAsset1": {
+      "type": "object",
+      "properties": {
+        "route": {
+          "const": "/styles.css"
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/styles\\.css$"
+        },
+        "sourcePath": {
+          "const": "public/styles.css"
+        },
+        "bodyBytes": {
+          "const": 11909
+        },
+        "bodySha256": {
+          "const": "70e73af276a14dc39b7863f586ee6aca89c2e986dffed32e71cf799ef35e3a6b"
+        }
+      }
+    },
+    "networkAsset2": {
+      "type": "object",
+      "properties": {
+        "route": {
+          "const": "/base-server-ssr-demo.js"
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/base-server-ssr-demo\\.js$"
+        },
+        "sourcePath": {
+          "const": "public/base-server-ssr-demo.js"
+        },
+        "bodyBytes": {
+          "const": 1990
+        },
+        "bodySha256": {
+          "const": "a2926b4eb0fa01f366ca3d6f283c71186b90b473af9a95cbb94c6aeba9e1cd8d"
+        }
+      }
+    },
+    "networkAsset3": {
+      "type": "object",
+      "properties": {
+        "route": {
+          "const": "/base-server-ssr-worker.js"
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/base-server-ssr-worker\\.js$"
+        },
+        "sourcePath": {
+          "const": "public/base-server-ssr-worker.js"
+        },
+        "bodyBytes": {
+          "const": 5063
+        },
+        "bodySha256": {
+          "const": "95f9db692c65b3c48d7452b178c1fec2014a462b7ee07ddc6ecf09ccac013bb0"
+        }
+      }
+    },
+    "networkAsset4": {
+      "type": "object",
+      "properties": {
+        "route": {
+          "const": "/benchmarks/v1/server-ssr-template/workload.js"
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/benchmarks/v1/server-ssr-template/workload\\.js$"
+        },
+        "sourcePath": {
+          "const": "benchmarks/v1/server-ssr-template/workload.js"
+        },
+        "bodyBytes": {
+          "const": 10346
+        },
+        "bodySha256": {
+          "const": "c26324abb0cbfa3441ae2db8507eaf12b38b09420c8da6e6c0fe66fc1a0a29f8"
+        }
+      }
+    },
+    "networkAsset5": {
+      "type": "object",
+      "properties": {
+        "route": {
+          "const": "/data/v1-implementation-registrations/server.ssr-template.v1.json"
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/data/v1-implementation-registrations/server\\.ssr-template\\.v1\\.json$"
+        },
+        "sourcePath": {
+          "const": "catalog/v1-implementation-registrations/server.ssr-template.v1.json"
+        },
+        "bodyBytes": {
+          "const": 4128
+        },
+        "bodySha256": {
+          "const": "247ff351055594dafb4e70f49a6526d9c46ce281824205e5604925ad9bee2986"
+        }
+      }
+    },
+    "networkAsset6": {
+      "type": "object",
+      "properties": {
+        "route": {
+          "const": "/artifacts/base-server-ssr-template/build-manifest.json"
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/artifacts/base-server-ssr-template/build-manifest\\.json$"
+        },
+        "sourcePath": {
+          "const": "public/artifacts/base-server-ssr-template/build-manifest.json"
+        },
+        "bodyBytes": {
+          "const": 3209
+        },
+        "bodySha256": {
+          "const": "4a58cabeaab08be14fa3c0d3c7bbe98842b1de09cd2abf51ae7eeecfbaad2b40"
+        }
+      }
+    },
+    "networkAsset7": {
+      "type": "object",
+      "properties": {
+        "route": {
+          "const": "/artifacts/base-server-ssr-template/fixture-manifest.json"
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/artifacts/base-server-ssr-template/fixture-manifest\\.json$"
+        },
+        "sourcePath": {
+          "const": "public/artifacts/base-server-ssr-template/fixture-manifest.json"
+        },
+        "bodyBytes": {
+          "const": 684
+        },
+        "bodySha256": {
+          "const": "fff71d8aa7cd013cb2e1be33c91ca0097adfd7d152534f9143e434965cbabc75"
+        }
+      }
+    },
+    "networkAsset8": {
+      "type": "object",
+      "properties": {
+        "route": {
+          "const": "/artifacts/base-server-ssr-template/output-manifest.json"
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/artifacts/base-server-ssr-template/output-manifest\\.json$"
+        },
+        "sourcePath": {
+          "const": "public/artifacts/base-server-ssr-template/output-manifest.json"
+        },
+        "bodyBytes": {
+          "const": 1518
+        },
+        "bodySha256": {
+          "const": "418b883f88e90bb2c6074c2c02bc8cade9819b5483db9d1c66204e49a67dcb7d"
+        }
+      }
+    },
+    "networkAsset9": {
+      "type": "object",
+      "properties": {
+        "route": {
+          "const": "/artifacts/base-server-ssr-template/fixture.bin"
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/artifacts/base-server-ssr-template/fixture\\.bin$"
+        },
+        "sourcePath": {
+          "const": "public/artifacts/base-server-ssr-template/fixture.bin"
+        },
+        "bodyBytes": {
+          "const": 91442
+        },
+        "bodySha256": {
+          "const": "f94cbcc0af8ab5b1b292c5d48c2b8ea319d5078e020374fb4e2beceb191ae524"
+        }
+      }
+    },
+    "networkAsset10": {
+      "type": "object",
+      "properties": {
+        "route": {
+          "const": "/artifacts/base-server-ssr-template/server-ssr-template.wasm"
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/artifacts/base-server-ssr-template/server-ssr-template\\.wasm$"
+        },
+        "sourcePath": {
+          "const": "public/artifacts/base-server-ssr-template/server-ssr-template.wasm"
+        },
+        "bodyBytes": {
+          "const": 9591
+        },
+        "bodySha256": {
+          "const": "9d93f9542363f4d7e8b2c66516936176ff260db9a8604eb15c820a0d62feebe5"
+        }
+      }
+    },
+    "networkAsset11": {
+      "type": "object",
+      "properties": {
+        "route": {
+          "const": "/favicon.ico"
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/favicon\\.ico$"
+        },
+        "sourcePath": {
+          "const": "public/favicon.svg"
+        },
+        "bodyBytes": {
+          "const": 211
+        },
+        "bodySha256": {
+          "const": "ee6c407626f2432b805e7c07252226f0b7852a591f1562fbbb0f31e0f786dffc"
+        }
+      }
+    },
+    "membershipSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "collectedAt",
+        "members"
+      ],
+      "properties": {
+        "collectedAt": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:.]+Z$"
+        },
+        "members": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 2
+          }
+        }
+      }
+    },
+    "processIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pid",
+        "parentPid",
+        "startTimeTicks",
+        "executable"
+      ],
+      "properties": {
+        "pid": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "parentPid": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "startTimeTicks": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "executable": {
+          "type": "string",
+          "pattern": "^/"
         }
       }
     }

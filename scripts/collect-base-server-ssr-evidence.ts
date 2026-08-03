@@ -2,6 +2,20 @@ import Ajv2020Module from "ajv2020";
 import { canonicalize, sha256Hex } from "../lib/canonical.ts";
 import { CdpClient } from "../lib/cdp-client.ts";
 import {
+  inspectChromePackage,
+  recordStageCleanupLifecycle,
+  removeStagedChrome,
+  stageChromePackage,
+  StagedChrome,
+} from "../lib/chrome-stage.ts";
+import {
+  ChromeLaunchLifecycleError,
+  closeOwnedChrome,
+  launchOwnedChrome,
+  OwnedChrome,
+} from "../lib/owned-chrome.ts";
+import { executableSnapshot, FileIdentity, refreshLedger } from "../lib/process-ledger.ts";
+import {
   generateFixture,
   instantiateSsrWasm,
   parseOutput,
@@ -88,12 +102,11 @@ if (!/^[a-f0-9]{40}$/u.test(head) || !/^[a-f0-9]{40}$/u.test(headTree)) {
   throw new Error("Git HEAD or tree is not a SHA-1 identity");
 }
 
-const executable = await Deno.realPath(options.chrome);
-const executableBytes = await Deno.readFile(executable);
-const executableSha256 = await sha256Hex(executableBytes);
-if (executableSha256 !== EXPECTED_EXECUTABLE_SHA256) {
-  throw new Error(`Chrome executable hash mismatch: ${executableSha256}`);
+const sourceExecutable = await executableSnapshot(options.chrome);
+if (sourceExecutable.sha256 !== EXPECTED_EXECUTABLE_SHA256) {
+  throw new Error(`Chrome executable hash mismatch: ${sourceExecutable.sha256}`);
 }
+const chromePackage = await inspectChromePackage(options.chrome, EXPECTED_EXECUTABLE_SHA256);
 
 const registrationPath = "catalog/v1-implementation-registrations/server.ssr-template.v1.json";
 const registrationBytes = await Deno.readFile(new URL(registrationPath, root));
@@ -309,66 +322,15 @@ async function processIdentity(pid: number): Promise<ProcessIdentity | null> {
   }
 }
 
-async function ownedProcesses(rootPid: number): Promise<ProcessIdentity[]> {
-  const identities: ProcessIdentity[] = [];
-  for await (const entry of Deno.readDir("/proc")) {
-    if (!entry.isDirectory || !/^\d+$/u.test(entry.name)) continue;
-    const identity = await processIdentity(Number(entry.name));
-    if (identity) identities.push(identity);
-  }
-  const owned = new Set([rootPid]);
-  let changed = true;
-  while (changed) {
-    changed = false;
-    for (const identity of identities) {
-      if (owned.has(identity.parentPid) && !owned.has(identity.pid)) {
-        owned.add(identity.pid);
-        changed = true;
-      }
-    }
-  }
-  return identities.filter((identity) => owned.has(identity.pid)).sort((a, b) => a.pid - b.pid);
-}
-
 async function identityStillRunning(identity: ProcessIdentity): Promise<boolean> {
   const current = await processIdentity(identity.pid);
   return current?.startTimeTicks === identity.startTimeTicks &&
     current.executable === identity.executable;
 }
 
-async function waitForOwnedExit(
-  identities: ProcessIdentity[],
-  timeoutMs: number,
-): Promise<boolean> {
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    if (!(await Promise.all(identities.map(identityStillRunning))).some(Boolean)) return true;
-    await new Promise((resolve) => setTimeout(resolve, 50));
-  }
-  return !(await Promise.all(identities.map(identityStillRunning))).some(Boolean);
-}
-
-async function terminateOwned(
-  identities: ProcessIdentity[],
-): Promise<Array<{ pid: number; signal: string }>> {
-  const signals: Array<{ pid: number; signal: string }> = [];
-  if (!(await waitForOwnedExit(identities, 10_000))) {
-    for (const identity of [...identities].reverse()) {
-      if (await identityStillRunning(identity)) {
-        Deno.kill(identity.pid, "SIGTERM");
-        signals.push({ pid: identity.pid, signal: "SIGTERM" });
-      }
-    }
-  }
-  if (!(await waitForOwnedExit(identities, 5_000))) {
-    for (const identity of [...identities].reverse()) {
-      if (await identityStillRunning(identity)) {
-        Deno.kill(identity.pid, "SIGKILL");
-        signals.push({ pid: identity.pid, signal: "SIGKILL" });
-      }
-    }
-  }
-  return signals;
+function sameExecutable(left: FileIdentity, right: FileIdentity): boolean {
+  return left.path === right.path && left.dev === right.dev && left.ino === right.ino &&
+    left.sha256 === right.sha256;
 }
 
 const INSTRUMENTATION = String.raw`(() => {
@@ -519,8 +481,6 @@ function headerEntries(value: Record<string, unknown>): Array<{ name: string; va
 }
 
 const serverPort = unusedPort();
-const debuggerPort = unusedPort();
-if (serverPort === debuggerPort) throw new Error("server and debugger ports collided");
 const origin = `http://127.0.0.1:${serverPort}`;
 const serverArguments = [
   "run",
@@ -529,27 +489,55 @@ const serverArguments = [
   "--allow-read=.",
   "deploy.ts",
 ];
-const server = new Deno.Command(Deno.execPath(), {
-  cwd: root,
-  args: serverArguments,
-  env: { PORT: String(serverPort), HOST: "127.0.0.1", SERVER_MODE: "public" },
-  stdout: "null",
-  stderr: "null",
-}).spawn();
-const serverStatusPromise = server.status;
-const serverLauncher = await processIdentity(server.pid);
-if (!serverLauncher) {
-  Deno.kill(server.pid, "SIGTERM");
-  await serverStatusPromise.catch(() => {});
-  throw new Error("owned evidence server identity unavailable");
-}
-let profilePath: string | null = null;
-let browserProcess: Deno.ChildProcess | null = null;
-let browserStatusPromise: Promise<Deno.CommandStatus> | null = null;
+const launchSuffix = crypto.randomUUID().replaceAll("-", "");
+const profilePath = `/tmp/wasm-vs-js-owned-profiles/ssr-${launchSuffix}/launch`;
+const stageAuthorization = {
+  permitId: `ssr-${launchSuffix}`,
+  sourceCommit: head,
+  chromePackageManifestSha256: chromePackage.manifestSha256,
+};
+const chromeExtraArguments = [
+  "--headless=new",
+  "--no-sandbox",
+  "--disable-gpu",
+  "--disable-background-networking",
+  "--disable-component-update",
+  "--disable-default-apps",
+  "--disable-extensions",
+  "--metrics-recording-only",
+  "--hide-scrollbars",
+  "--window-size=1440,1200",
+  "--remote-debugging-address=127.0.0.1",
+  "--enable-automation",
+];
+let server: Deno.ChildProcess | null = null;
+let serverStatusPromise: Promise<Deno.CommandStatus> | null = null;
+let serverLauncher: ProcessIdentity | null = null;
+let stage: StagedChrome | null = null;
+let ownedChrome: OwnedChrome | null = null;
 let emergencyClient: CdpClient | null = null;
 let collectionComplete = false;
+let chromeCleanupVerified = false;
 
 try {
+  stage = await stageChromePackage(
+    options.chrome,
+    EXPECTED_EXECUTABLE_SHA256,
+    stageAuthorization,
+  );
+  if (!sameExecutable(sourceExecutable, await executableSnapshot(options.chrome))) {
+    throw new Error("Chrome source executable changed during setup");
+  }
+  server = new Deno.Command(Deno.execPath(), {
+    cwd: root,
+    args: serverArguments,
+    env: { PORT: String(serverPort), HOST: "127.0.0.1", SERVER_MODE: "public" },
+    stdout: "null",
+    stderr: "null",
+  }).spawn();
+  serverStatusPromise = server.status;
+  serverLauncher = await processIdentity(server.pid);
+  if (!serverLauncher) throw new Error("owned evidence server identity unavailable");
   await waitFor(`${origin}/healthz`);
 
   for (const source of sourceFiles) {
@@ -568,34 +556,46 @@ try {
   await Deno.mkdir(options.outputDir, { recursive: false });
   const screenshotDir = `${options.outputDir}/screenshots`;
   await Deno.mkdir(screenshotDir);
-  profilePath = await Deno.makeTempDir({ prefix: "wasm-base-server-ssr-chrome-" });
-  const profileInitiallyEmpty = (await Array.fromAsync(Deno.readDir(profilePath))).length === 0;
-  if (!profileInitiallyEmpty) throw new Error("fresh Chrome profile was not initially empty");
-  const launchArguments = [
-    "--headless=new",
-    "--no-sandbox",
-    "--disable-gpu",
-    "--disable-background-networking",
-    "--disable-component-update",
-    "--disable-default-apps",
-    "--disable-extensions",
-    "--disable-sync",
-    "--metrics-recording-only",
-    "--no-first-run",
-    "--hide-scrollbars",
-    "--window-size=1440,1200",
-    "--remote-debugging-address=127.0.0.1",
-    `--remote-debugging-port=${debuggerPort}`,
+  let launchBegan = false;
+  try {
+    ownedChrome = await launchOwnedChrome({
+      stagedChrome: stage,
+      profileRoot: profilePath,
+      extraArguments: chromeExtraArguments,
+      onSpawn: () => {
+        launchBegan = true;
+        recordStageCleanupLifecycle(stage!, "owned-launch-active");
+      },
+    });
+  } catch (error) {
+    if (error instanceof ChromeLaunchLifecycleError && error.launchBegan) {
+      recordStageCleanupLifecycle(
+        stage,
+        error.cleanupResolved ? "cleanup-verified" : "cleanup-unresolved",
+      );
+      chromeCleanupVerified = error.cleanupResolved;
+    } else if (launchBegan) {
+      recordStageCleanupLifecycle(stage, "cleanup-unresolved");
+    }
+    throw error;
+  }
+  const client = ownedChrome.browser as CdpClient;
+  emergencyClient = client;
+  const launchArguments = ownedChrome.arguments;
+  const expectedLaunchArguments = [
     `--user-data-dir=${profilePath}`,
+    "--remote-debugging-port=0",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-sync",
+    "--disable-crash-reporter",
+    "--disable-breakpad",
+    ...chromeExtraArguments,
     "about:blank",
   ];
-  browserProcess = new Deno.Command(executable, {
-    args: launchArguments,
-    stdout: "null",
-    stderr: "null",
-  }).spawn();
-  browserStatusPromise = browserProcess.status;
-  const browserPid = browserProcess.pid;
+  if (JSON.stringify(launchArguments) !== JSON.stringify(expectedLaunchArguments)) {
+    throw new Error("owned Chrome launch arguments differ from the pinned collector arguments");
+  }
 
   const scenarioDefinitions = [
     { id: "complete-js", mode: "normal", targets: ["js-controlled"] },
@@ -616,32 +616,39 @@ try {
     { id: "pagehide", mode: "pagehide", targets: ["js-controlled"] },
   ] as const;
 
-  const versionResponse = await waitFor(`http://127.0.0.1:${debuggerPort}/json/version`);
-  const discovery = await versionResponse.json();
-  const webSocketUrl = new URL(discovery.webSocketDebuggerUrl);
-  if (
-    webSocketUrl.protocol !== "ws:" || webSocketUrl.hostname !== "127.0.0.1" ||
-    Number(webSocketUrl.port) !== debuggerPort || webSocketUrl.search || webSocketUrl.hash
-  ) throw new Error("Chrome CDP endpoint escaped the owned loopback port");
-  const client = new CdpClient(webSocketUrl.href);
-  emergencyClient = client;
-  await client.ready();
-  const browserVersion = await client.send("Browser.getVersion");
+  const browserVersion = ownedChrome.version;
   if (browserVersion.product !== EXPECTED_PRODUCT) {
     throw new Error(`unexpected browser ${browserVersion.product}`);
   }
-  const observedProcessMap = new Map<number, ProcessIdentity>();
-  const observeBrowserProcesses = async (): Promise<void> => {
-    for (const identity of await ownedProcesses(browserPid)) {
-      const prior = observedProcessMap.get(identity.pid);
-      if (
-        prior && (prior.startTimeTicks !== identity.startTimeTicks ||
-          prior.executable !== identity.executable)
-      ) throw new Error(`owned Chrome PID ${identity.pid} changed identity during collection`);
-      observedProcessMap.set(identity.pid, identity);
-    }
+  const baseNetworkRoutes = [ROUTE, "/styles.css", "/base-server-ssr-demo.js", "/favicon.ico"];
+  const workerModuleRoutes = [
+    "/base-server-ssr-worker.js",
+    "/benchmarks/v1/server-ssr-template/workload.js",
+  ];
+  const completedTargetRoutes = (target: string): string[] => [
+    "/data/v1-implementation-registrations/server.ssr-template.v1.json",
+    "/artifacts/base-server-ssr-template/build-manifest.json",
+    "/artifacts/base-server-ssr-template/fixture-manifest.json",
+    "/artifacts/base-server-ssr-template/output-manifest.json",
+    "/artifacts/base-server-ssr-template/fixture.bin",
+    target === "js-controlled"
+      ? "/benchmarks/v1/server-ssr-template/workload.js"
+      : "/artifacts/base-server-ssr-template/server-ssr-template.wasm",
+  ];
+  const expectedNetworkRoutes = (definition: typeof scenarioDefinitions[number]): string[] => {
+    const completedTargets = definition.id === "restart-js-to-wasm"
+      ? [...definition.targets]
+      : definition.id === "stale-after-restart"
+      ? [definition.targets[1]]
+      : ["complete-js", "complete-wasm", "wrong-token"].includes(definition.id)
+      ? [definition.targets[0]]
+      : [];
+    return [
+      ...baseNetworkRoutes,
+      ...definition.targets.flatMap(() => workerModuleRoutes),
+      ...completedTargets.flatMap(completedTargetRoutes),
+    ];
   };
-  await observeBrowserProcesses();
 
   const scenarios: Array<Record<string, unknown>> = [];
   for (const definition of scenarioDefinitions) {
@@ -650,6 +657,7 @@ try {
     const attached = await client.send("Target.attachToTarget", { targetId, flatten: true });
     const sessionId = String(attached.sessionId);
     const observedSessions = new Set([sessionId]);
+    const sessionRoles = new Map([[sessionId, "page"]]);
     const attachTasks: Promise<void>[] = [];
     const consoleMessages: Array<Record<string, unknown>> = [];
     const exceptions: Array<Record<string, unknown>> = [];
@@ -664,9 +672,13 @@ try {
         if (targetInfo.type !== "worker") return;
         const workerSession = String(params.sessionId);
         observedSessions.add(workerSession);
+        sessionRoles.set(workerSession, `worker-${sessionRoles.size - 1}`);
         attachTasks.push((async () => {
-          await client.send("Network.enable", {}, workerSession);
-          await client.send("Network.setCacheDisabled", { cacheDisabled: true }, workerSession);
+          await Promise.all([
+            client.send("Runtime.enable", {}, workerSession),
+            client.send("Network.enable", {}, workerSession),
+            client.send("Network.setCacheDisabled", { cacheDisabled: true }, workerSession),
+          ]);
           await client.send("Runtime.runIfWaitingForDebugger", {}, workerSession);
         })());
       }),
@@ -675,8 +687,9 @@ try {
         lifecycleEvents.push(JSON.parse(String(params.payload)));
       }),
       client.on("Runtime.consoleAPICalled", (params, eventSession) => {
-        if (eventSession !== sessionId) return;
+        if (!eventSession || !observedSessions.has(eventSession)) return;
         consoleMessages.push({
+          context: sessionRoles.get(eventSession),
           type: String(params.type),
           arguments: ((params.args as Array<Record<string, unknown>>) ?? []).map((argument) =>
             String(argument.value ?? argument.description ?? argument.type)
@@ -684,16 +697,25 @@ try {
         });
       }),
       client.on("Runtime.exceptionThrown", (params, eventSession) => {
-        if (eventSession !== sessionId) return;
+        if (!eventSession || !observedSessions.has(eventSession)) return;
         const details = params.exceptionDetails as Record<string, unknown>;
-        exceptions.push({ text: String(details.text), lineNumber: Number(details.lineNumber) });
+        exceptions.push({
+          context: sessionRoles.get(eventSession),
+          text: String(details.text),
+          lineNumber: Number(details.lineNumber),
+        });
       }),
       client.on("Network.requestWillBeSent", (params, eventSession) => {
         if (!eventSession || !observedSessions.has(eventSession)) return;
         const request = params.request as Record<string, unknown>;
+        const url = new URL(String(request.url));
+        if (url.origin !== origin) return;
         const key = `${eventSession}:${params.requestId}`;
         requests.set(key, {
-          url: String(request.url),
+          context: sessionRoles.get(eventSession),
+          route: url.pathname,
+          occurrence: 0,
+          url: url.href,
           method: String(request.method),
           resourceType: String(params.type),
           status: null,
@@ -936,11 +958,43 @@ try {
         ) && Date.now() < deadline
       ) await new Promise((resolve) => setTimeout(resolve, 10));
     }
-    await Promise.all(attachTasks);
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    await Promise.all(responseBodyTasks);
+    const expectedRoutes = expectedNetworkRoutes(definition);
+    const expectedRouteCounts = new Map<string, number>();
+    for (const route of expectedRoutes) {
+      expectedRouteCounts.set(route, (expectedRouteCounts.get(route) ?? 0) + 1);
+    }
+    const networkDeadline = Date.now() + 10_000;
+    while (Date.now() < networkDeadline) {
+      await Promise.all([...attachTasks]);
+      await Promise.all([...responseBodyTasks]);
+      if (responseBodyErrors.length) throw responseBodyErrors[0];
+      const actualCounts = new Map<string, number>();
+      for (const request of requests.values()) {
+        const route = String(request.route);
+        actualCounts.set(route, (actualCounts.get(route) ?? 0) + 1);
+      }
+      for (const [route, count] of actualCounts) {
+        if (count > (expectedRouteCounts.get(route) ?? 0)) {
+          throw new Error(`${definition.id} observed unexpected network route/count: ${route}`);
+        }
+      }
+      const allBodies = [...requests.values()].every((request) =>
+        request.bodyBytes !== null && request.bodySha256 !== null && request.sourcePath !== null
+      );
+      if (
+        observedSessions.size === definition.targets.length + 1 &&
+        requests.size === expectedRoutes.length && allBodies
+      ) break;
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    if (observedSessions.size !== definition.targets.length + 1) {
+      throw new Error(`${definition.id} did not attach every worker target`);
+    }
+    await Promise.all([...attachTasks]);
+    await Promise.all([...responseBodyTasks]);
     if (responseBodyErrors.length) throw responseBodyErrors[0];
 
+    const requestsByRoute = new Map<string, Array<Record<string, unknown>>>();
     for (const request of requests.values()) {
       if (request.failed || request.status !== 200) {
         throw new Error(`${definition.id} failed network request: ${JSON.stringify(request)}`);
@@ -950,7 +1004,24 @@ try {
       ) {
         throw new Error(`${definition.id} omitted exact raw response bytes: ${request.url}`);
       }
+      const route = String(request.route);
+      const bucket = requestsByRoute.get(route) ?? [];
+      bucket.push(request);
+      requestsByRoute.set(route, bucket);
     }
+    const occurrences = new Map<string, number>();
+    const exactNetwork = expectedRoutes.map((route) => {
+      const request = requestsByRoute.get(route)?.shift();
+      if (!request) throw new Error(`${definition.id} omitted expected network route: ${route}`);
+      const occurrence = (occurrences.get(route) ?? 0) + 1;
+      occurrences.set(route, occurrence);
+      request.occurrence = occurrence;
+      return request;
+    });
+    if (
+      requests.size !== expectedRoutes.length ||
+      [...requestsByRoute.values()].some((bucket) => bucket.length !== 0)
+    ) throw new Error(`${definition.id} network set/count differed from the exact contract`);
     if (exceptions.length || consoleMessages.some((entry) => entry.type === "error")) {
       throw new Error(`${definition.id} produced a console error or exception`);
     }
@@ -993,7 +1064,7 @@ try {
       lifecycle: { events: lifecycleEvents, assertions: lifecycleAssertions },
       console: consoleMessages,
       exceptions,
-      network: [...requests.values()],
+      network: exactNetwork,
       accessibility: {
         inspectedBy: "Accessibility.getFullAXTree",
         nodes: axNodes,
@@ -1012,20 +1083,17 @@ try {
     });
     for (const remove of removers) remove();
     await client.send("Target.closeTarget", { targetId });
-    await observeBrowserProcesses();
+    ownedChrome.ledger = await refreshLedger(ownedChrome.ledger);
   }
 
-  await observeBrowserProcesses();
-  const observedProcesses = [...observedProcessMap.values()].sort((a, b) => a.pid - b.pid);
-  const browserLauncher = observedProcesses.find((identity) => identity.pid === browserPid);
-  if (!browserLauncher) throw new Error("owned Chrome launcher disappeared before cleanup");
-  await client.send("Browser.close");
-  client.close();
-  const browserSignals = await terminateOwned(observedProcesses);
-  const browserProcessesAbsent = await waitForOwnedExit(observedProcesses, 5_000);
-  const browserExit = await browserStatusPromise;
-  if (!browserProcessesAbsent) throw new Error("owned Chrome processes survived exact cleanup");
-  await Deno.remove(profilePath, { recursive: true });
+  const browserLedger = ownedChrome.ledger;
+  const browserCleanup = await closeOwnedChrome(ownedChrome);
+  emergencyClient = null;
+  recordStageCleanupLifecycle(stage, "cleanup-verified");
+  chromeCleanupVerified = true;
+  if (browserCleanup.remaining.length || browserCleanup.identityMismatches.length) {
+    throw new Error("owned Chrome cgroup retained members after cleanup");
+  }
   let profileAbsent = false;
   try {
     await Deno.lstat(profilePath);
@@ -1034,6 +1102,8 @@ try {
     else throw error;
   }
   if (!profileAbsent) throw new Error("owned Chrome profile survived cleanup");
+  await removeStagedChrome(stage);
+  stage = null;
 
   if (await identityStillRunning(serverLauncher)) Deno.kill(server.pid, "SIGTERM");
   let serverExit = await Promise.race([
@@ -1049,6 +1119,32 @@ try {
   const serverAbsent = !(await identityStillRunning(serverLauncher));
   if (!serverAbsent || serverExit === null) {
     throw new Error("owned evidence server survived cleanup");
+  }
+  const endDirty = await commandText("git", ["status", "--porcelain=v1", "--untracked-files=all"]);
+  const endHead = await commandText("git", ["rev-parse", "HEAD"]);
+  const endTree = await commandText("git", ["rev-parse", "HEAD^{tree}"]);
+  if (endDirty || endHead !== head || endTree !== headTree) {
+    throw new Error("repository source identity changed during collection");
+  }
+  if (!sameExecutable(sourceExecutable, await executableSnapshot(options.chrome))) {
+    throw new Error("Chrome source executable changed across collection");
+  }
+  const endChromePackage = await inspectChromePackage(options.chrome, EXPECTED_EXECUTABLE_SHA256);
+  if (endChromePackage.manifestSha256 !== chromePackage.manifestSha256) {
+    throw new Error("Chrome source package changed across collection");
+  }
+  for (const source of sourceFiles) {
+    const diskBytes = await Deno.readFile(new URL(source.path, root));
+    if (
+      diskBytes.byteLength !== source.bytes || await sha256Hex(diskBytes) !== source.sha256 ||
+      await sha256Hex(await gitBytes(head, source.path)) !== source.sha256
+    ) throw new Error(`${source.path} changed after browser collection`);
+  }
+  if (
+    await sha256Hex(await Deno.readFile(new URL(collectorPath, root))) !==
+      await sha256Hex(await gitBytes(head, collectorPath))
+  ) {
+    throw new Error("executed collector changed after browser collection");
   }
 
   const evidence = {
@@ -1077,14 +1173,21 @@ try {
       userAgent: String(browserVersion.userAgent),
       jsVersion: String(browserVersion.jsVersion),
       executable: {
-        path: executable,
-        bytes: executableBytes.byteLength,
-        sha256: executableSha256,
+        sourcePath: sourceExecutable.path,
+        sourceDev: sourceExecutable.dev,
+        sourceIno: sourceExecutable.ino,
+        runningPath: browserLedger.executable.path,
+        runningDev: browserLedger.executable.dev,
+        runningIno: browserLedger.executable.ino,
+        sha256: browserLedger.executable.sha256,
+        sourcePackageManifestSha256: chromePackage.manifestSha256,
+        runningIdentityVerified: true,
+        sourceIdentityVerifiedAtEnd: true,
       },
       launchArguments,
       headless: true,
       protocol: "Chrome DevTools Protocol",
-      debuggerOrigin: `http://127.0.0.1:${debuggerPort}`,
+      debuggerOrigin: `http://127.0.0.1:${ownedChrome.port}`,
     },
     server: {
       origin,
@@ -1104,18 +1207,28 @@ try {
     scenarios,
     cleanup: {
       browser: {
-        launcher: browserLauncher,
-        observedProcesses,
-        requested: "Browser.close",
-        signals: browserSignals,
-        exit: browserExit,
-        processesAbsent: browserProcessesAbsent,
+        unit: browserLedger.unit,
+        controlGroup: browserLedger.controlGroup,
+        cgroupPath: browserLedger.cgroupPath,
+        cgroupDev: browserLedger.cgroupDev,
+        cgroupIno: browserLedger.cgroupIno,
+        invocationId: browserLedger.invocationId,
+        mainPid: browserLedger.mainPid,
+        commandLine: browserLedger.commandLine,
+        membershipSnapshots: browserLedger.membershipSnapshots,
+        requested: "cgroup.kill",
+        remaining: browserCleanup.remaining,
+        identityMismatches: browserCleanup.identityMismatches,
+        stoppedAt: browserCleanup.stoppedAt,
       },
       profile: {
         path: profilePath,
-        initiallyEmpty: profileInitiallyEmpty,
         removed: true,
         absent: profileAbsent,
+      },
+      stage: {
+        removed: true,
+        absent: true,
       },
       server: {
         launcher: serverLauncher,
@@ -1146,25 +1259,38 @@ try {
   console.log(`server SSR browser evidence: ${scenarios.length} scenarios; owned cleanup exact`);
 } finally {
   if (!collectionComplete) {
-    try {
-      await emergencyClient?.send("Browser.close");
-    } catch {
-      // Continue with exact identity-bound cleanup.
-    }
     emergencyClient?.close();
-    if (browserProcess) {
-      const failedBrowserProcesses = await ownedProcesses(browserProcess.pid);
-      await terminateOwned(failedBrowserProcesses);
-      await browserStatusPromise?.catch(() => {});
+    if (ownedChrome && !chromeCleanupVerified) {
+      try {
+        await closeOwnedChrome(ownedChrome);
+        chromeCleanupVerified = true;
+        if (stage) recordStageCleanupLifecycle(stage, "cleanup-verified");
+      } catch {
+        if (stage) {
+          try {
+            recordStageCleanupLifecycle(stage, "cleanup-unresolved");
+          } catch {
+            // Retain the exact stage owner record when cleanup status cannot be updated.
+          }
+        }
+      }
     }
-    if (await identityStillRunning(serverLauncher)) Deno.kill(server.pid, "SIGTERM");
-    await Promise.race([
-      serverStatusPromise.catch(() => null),
-      new Promise((resolve) => setTimeout(resolve, 2_000)),
-    ]);
-    if (await identityStillRunning(serverLauncher)) Deno.kill(server.pid, "SIGKILL");
-    await serverStatusPromise.catch(() => {});
-    if (profilePath) await Deno.remove(profilePath, { recursive: true }).catch(() => {});
+    if (stage && stage.cleanupLifecycle !== "cleanup-unresolved") {
+      await removeStagedChrome(stage).catch(() => {});
+    }
+    if (server && serverLauncher && await identityStillRunning(serverLauncher)) {
+      Deno.kill(server.pid, "SIGTERM");
+    }
+    if (serverStatusPromise) {
+      await Promise.race([
+        serverStatusPromise.catch(() => null),
+        new Promise((resolve) => setTimeout(resolve, 2_000)),
+      ]);
+    }
+    if (server && serverLauncher && await identityStillRunning(serverLauncher)) {
+      Deno.kill(server.pid, "SIGKILL");
+    }
+    await serverStatusPromise?.catch(() => {});
     await Deno.remove(options.outputDir, { recursive: true }).catch(() => {});
   }
 }
