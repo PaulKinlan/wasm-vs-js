@@ -116,7 +116,8 @@ const glyphNames: Record<string, string> = {
 const glyphEntries = Object.entries(glyphNames).sort((a, b) =>
   a[0].charCodeAt(0) - b[0].charCodeAt(0)
 );
-objects.set(205, ascii("<< /Length 10 >>\nstream\n0 0 6 7 d1\nendstream"));
+const notdef = "6 0 0 0 6 7 d1\n";
+objects.set(205, ascii(`<< /Length ${notdef.length} >>\nstream\n${notdef}endstream`));
 let charProcs = "/.notdef 205 0 R";
 let differences = "";
 for (let index = 0; index < glyphEntries.length; index++) {
@@ -127,7 +128,7 @@ for (let index = 0; index < glyphEntries.length; index++) {
   const rows = Array.from(
     font.subarray(character.charCodeAt(0) * 7, character.charCodeAt(0) * 7 + 7),
   );
-  let commands = "0 0 6 7 d1\n";
+  let commands = "6 0 0 0 6 7 d1\n";
   for (let row = 0; row < 7; row++) {
     for (let col = 0; col < 5; col++) {
       if ((rows[row] >> (4 - col)) & 1) commands += `${col} ${6 - row} 1 1 re f\n`;
@@ -149,7 +150,7 @@ const widths = Array.from({ length: 95 }, () => "6").join(" ");
 objects.set(
   3,
   ascii(
-    `<< /Type /Font /Subtype /Type3 /FontBBox [0 0 6 7] /FontMatrix [0.1666667 0 0 0.142857 0 0] /Encoding << /Type /Encoding /BaseEncoding /WinAnsiEncoding /Differences [${differences}] >> /CharProcs << ${charProcs} >> /FirstChar 32 /LastChar 126 /Widths [${widths}] /ToUnicode ${toUnicodeObject} 0 R /PDFBaseBitmap 2 0 R >>`,
+    `<< /Type /Font /Subtype /Type3 /FontBBox [0 0 6 7] /FontMatrix [0.1388889 0 0 0.142857 0 0] /Encoding << /Type /Encoding /BaseEncoding /WinAnsiEncoding /Differences [${differences}] >> /CharProcs << ${charProcs} >> /FirstChar 32 /LastChar 126 /Widths [${widths}] /ToUnicode ${toUnicodeObject} 0 R /PDFBaseBitmap 2 0 R >>`,
   ),
 );
 const kids = Array.from({ length: 100 }, (_, i) => `${5 + i * 2} 0 R`).join(" ");
