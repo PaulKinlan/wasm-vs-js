@@ -88,6 +88,34 @@
         "tolerance": { "type": "string", "minLength": 1, "maxLength": 500 }
       }
     },
+    "extensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "reducedHarness": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "catalogCoverage", "acceptedProductionContract"],
+          "properties": {
+            "status": { "const": "out-of-catalog-reduced-conformance-slice" },
+            "catalogCoverage": { "const": false },
+            "acceptedProductionContract": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "status"],
+              "properties": {
+                "id": { "type": "string", "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$" },
+                "status": { "const": "not-implemented" },
+                "requiredNodes": { "type": "integer", "minimum": 1 },
+                "requiredEdits": { "type": "integer", "minimum": 1 },
+                "requiredCorpusBytes": { "type": "integer", "minimum": 1 },
+                "requiredPatterns": { "type": "integer", "minimum": 1 }
+              }
+            }
+          }
+        }
+      }
+    },
     "missingCells": {
       "type": "array",
       "items": {

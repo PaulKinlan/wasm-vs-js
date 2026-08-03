@@ -82,13 +82,15 @@ export async function runVdomWasm(fixture, wasmInstance) {
   const treeAPtr = 1024;
   const treeBPtr = (treeAPtr + fixture.flatA.byteLength + 7) & ~7;
   const outPtr = (treeBPtr + fixture.flatB.byteLength + 7) & ~7;
+  const indexPtr = 262144;
+  if (outPtr >= indexPtr) throw new Error("VDOM reduced fixture overlaps the Wasm ID index");
   bytes.set(fixture.flatA, treeAPtr);
   bytes.set(fixture.flatB, treeBPtr);
 
   const startCompute = performance.now();
   const patchCount = diff(treeAPtr, treeBPtr, outPtr);
   const endCompute = performance.now();
-  if (outPtr + patchCount * 24 > memory.buffer.byteLength) {
+  if (outPtr + patchCount * 24 > indexPtr) {
     throw new Error("VDOM Wasm patch output exceeded memory");
   }
 
@@ -131,7 +133,7 @@ export async function runVdomWasm(fixture, wasmInstance) {
 
   return {
     patches,
-    nodesVisited: fixture.nodeCountA + fixture.nodeCountB,
+    nodesVisited: 2 * (fixture.nodeCountA + fixture.nodeCountB),
     patchesGenerated: patchCount,
     patchDigestSha256: await digestPatches(patches),
     canonicalHtml,

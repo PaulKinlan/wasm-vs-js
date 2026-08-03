@@ -7,7 +7,7 @@
   ;; frozen ASCII/UTF-8 common-subset corpus, so byte offsets equal code points.
   (func (export "scan_dfa")
     (param $text_ptr i32) (param $text_len i32)
-    (param $table_ptr i32) (param $accept_ptr i32)
+    (param $table_ptr i32) (param $accept_ptr i32) (param $commit_ptr i32)
     (param $anchor_start i32) (param $anchor_end i32)
     (param $out_ptr i32) (param $out_capacity i32)
     (result i32)
@@ -41,6 +41,14 @@
             (br_if $scan_done (i32.ge_u (local.get $cursor) (local.get $text_len)))
             (local.set $code (i32.load8_u (i32.add (local.get $text_ptr) (local.get $cursor))))
             (br_if $scan_done (i32.ge_u (local.get $code) (i32.const 128)))
+            ;; A prioritized DFA state commits before consuming when its first
+            ;; viable Thompson thread is the ordered alternation's accept.
+            (if (i32.and
+              (i32.eq (local.get $best) (local.get $cursor))
+              (i32.load8_u
+                (i32.add (local.get $commit_ptr)
+                  (i32.add (i32.shl (local.get $state) (i32.const 7)) (local.get $code)))))
+              (then (br $scan_done)))
             (local.set $next
               (i32.load16_s
                 (i32.add (local.get $table_ptr)

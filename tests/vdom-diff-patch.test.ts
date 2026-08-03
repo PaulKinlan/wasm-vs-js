@@ -7,11 +7,89 @@ import {
 } from "../benchmarks/vdom-diff-patch/input.ts";
 import {
   applyPatchesToVDOMTree,
+  DOMHostAdapter,
   runVdomJS,
   runVdomWasm,
   serializeVDOMToCanonicalHTML,
 } from "../benchmarks/vdom-diff-patch/workload.js";
 import wabtFactory from "wabt";
+
+abstract class FakeNode {
+  abstract readonly nodeType: number;
+  parentNode: FakeElement | null = null;
+}
+
+class FakeText extends FakeNode {
+  readonly nodeType = 3;
+  constructor(public data: string) {
+    super();
+  }
+}
+
+class FakeElement extends FakeNode {
+  readonly nodeType = 1;
+  readonly children: FakeNode[] = [];
+  readonly attributes = new Map<string, string>();
+  constructor(readonly tag: string) {
+    super();
+  }
+  append(...nodes: FakeNode[]): void {
+    for (const node of nodes) {
+      node.parentNode?.removeChild(node);
+      this.children.push(node);
+      node.parentNode = this;
+    }
+  }
+  replaceChildren(...nodes: FakeNode[]): void {
+    for (const child of this.children) child.parentNode = null;
+    this.children.length = 0;
+    this.append(...nodes);
+  }
+  replaceChild(node: FakeNode, prior: FakeNode): void {
+    const index = this.children.indexOf(prior);
+    if (index < 0) throw new Error("replaceChild target is not attached");
+    node.parentNode?.removeChild(node);
+    this.children[index] = node;
+    node.parentNode = this;
+    prior.parentNode = null;
+  }
+  removeChild(node: FakeNode): void {
+    const index = this.children.indexOf(node);
+    if (index >= 0) this.children.splice(index, 1);
+    node.parentNode = null;
+  }
+  setAttribute(name: string, value: string): void {
+    this.attributes.set(name, value);
+  }
+  removeAttribute(name: string): void {
+    this.attributes.delete(name);
+  }
+  getAttributeNames(): string[] {
+    return [...this.attributes.keys()];
+  }
+  serialize(): string {
+    const attributes = [...this.attributes.entries()]
+      .sort(([a], [b]) =>
+        (a.startsWith("k") ? -1 : 1) - (b.startsWith("k") ? -1 : 1) || a.localeCompare(b)
+      )
+      .map(([name, value]) => ` ${name}="${value}"`).join("");
+    const children = this.children.map((child) =>
+      child instanceof FakeText ? child.data : (child as FakeElement).serialize()
+    ).join("");
+    return this.tag === "input"
+      ? `<input${attributes}/>`
+      : `<${this.tag}${attributes}>${children}</${this.tag}>`;
+  }
+}
+
+class FakeDocument {
+  createTextNode(text: string): FakeText {
+    return new FakeText(text);
+  }
+  createElement(tag: string): FakeElement {
+    return new FakeElement(tag);
+  }
+}
 
 async function compileVdomWasm(): Promise<WebAssembly.Instance> {
   const wat = await Deno.readTextFile("benchmarks/vdom-diff-patch/vdom-diff-patch.wat");
@@ -69,15 +147,17 @@ Deno.test("vdom-diff-patch: exact 250-edit, depth-bounded frozen fixture and com
 Deno.test("vdom-diff-patch: insert, tag replacement, attribute, reorder, and removal patches are self-contained", async () => {
   const treeA: VDOMNode[] = [
     { id: 0, tag: 0, key: -1, attrKey: -1, attrVal: -1, textId: -1, children: [1, 2, 3] },
-    { id: 1, tag: 1, key: -1, attrKey: -1, attrVal: -1, textId: -1, children: [] },
+    { id: 1, tag: 1, key: -1, attrKey: -1, attrVal: -1, textId: -1, children: [5] },
     { id: 2, tag: 2, key: -1, attrKey: 1, attrVal: 1, textId: -1, children: [] },
     { id: 3, tag: -1, key: -1, attrKey: -1, attrVal: -1, textId: 3, children: [] },
+    { id: 5, tag: -1, key: -1, attrKey: -1, attrVal: -1, textId: 55, children: [] },
   ];
   const treeB: VDOMNode[] = [
     { ...treeA[0], children: [2, 1, 4] },
     { ...treeA[1], tag: 5 },
     { ...treeA[2], attrVal: 9 },
     { id: 4, tag: -1, key: -1, attrKey: -1, attrVal: -1, textId: 44, children: [] },
+    { ...treeA[4], children: [] },
   ];
   const fixture: VDOMFixture = {
     seed: 0,
@@ -94,10 +174,19 @@ Deno.test("vdom-diff-patch: insert, tag replacement, attribute, reorder, and rem
   const patches = (await runVdomWasm(fixture, wasm)).patches;
   assert(patches.some((patch) => patch.op === 5 && patch.nodeId === 3));
   assert(patches.some((patch) => patch.op === 7 && patch.nodeId === 4 && "node" in patch));
-  assertEquals(
-    serializeVDOMToCanonicalHTML(applyPatchesToVDOMTree(treeA, patches)),
-    serializeVDOMToCanonicalHTML(treeB),
-  );
+  const expectedHtml = serializeVDOMToCanonicalHTML(treeB);
+  assertEquals(serializeVDOMToCanonicalHTML(applyPatchesToVDOMTree(treeA, patches)), expectedHtml);
+
+  const document = new FakeDocument();
+  const mount = new FakeElement("mount");
+  const dom = new DOMHostAdapter(document, mount);
+  dom.createTree(treeA);
+  dom.applyPatches(patches);
+  assertEquals(mount.children.length, 1);
+  const root = mount.children[0];
+  assert(root instanceof FakeElement);
+  assertEquals(root.serialize(), expectedHtml);
+  assert(root.serialize().includes("text_55"), "replacement lost its unchanged child subtree");
 });
 
 Deno.test("vdom-diff-patch: source inspectability contract metadata", async () => {
@@ -121,5 +210,8 @@ Deno.test("vdom-diff-patch: source inspectability contract metadata", async () =
     manifest.inspectability.compiledArtifact.downloadRoute,
     "/artifacts/vdom-diff-patch/vdom-diff-patch.wasm",
   );
-  assertEquals(manifest.inspectability.buildRecipe.command, "deno task build");
+  assertEquals(
+    manifest.inspectability.buildRecipe.command,
+    "deno run --allow-read=. --allow-write=public/artifacts scripts/build-traditional-web.ts",
+  );
 });

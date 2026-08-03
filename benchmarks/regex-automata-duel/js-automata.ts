@@ -27,6 +27,7 @@ export interface CompiledDFA {
   startState: number;
   transitions: Int16Array;
   accepting: Uint8Array;
+  commitBefore: Uint8Array;
 }
 
 const ASCII_WORD: CharRange[] = [
@@ -270,18 +271,17 @@ export class CompiledNFA {
         generation = 1;
       }
       const list: number[] = [];
-      const stack = seeds.slice();
-      while (stack.length > 0) {
-        const state = stack.pop()!;
-        if (marks[state] === generation) continue;
-        marks[state] = generation;
-        list.push(state);
-        stack.push(...this.states[state].epsilon);
-      }
+      const visit = (stateId: number): void => {
+        if (marks[stateId] === generation) return;
+        marks[stateId] = generation;
+        const state = this.states[stateId];
+        if (state.accept || state.transitions.length > 0) list.push(stateId);
+        for (const target of state.epsilon) visit(target);
+      };
+      for (const seed of seeds) visit(seed);
       return list;
     };
 
-    const accepts = (states: number[]) => states.some((state) => state === this.acceptState);
     const validEnd = (end: number) =>
       !this.anchorEnd || end === text.length ||
       (end === text.length - 1 && (text.charCodeAt(end) === 10 || text.charCodeAt(end) === 13)) ||
@@ -292,12 +292,27 @@ export class CompiledNFA {
     while (searchStart <= finalStart) {
       let active = closure([this.startState]);
       let cursor = searchStart;
-      let bestEnd = accepts(active) && validEnd(cursor) ? cursor : -1;
-      while (cursor < text.length && active.length > 0) {
+      let bestEnd = -1;
+      while (active.length > 0) {
+        const acceptIndex = active.indexOf(this.acceptState);
+        const validAccept = acceptIndex >= 0 && validEnd(cursor);
+        if (validAccept) {
+          bestEnd = cursor;
+          if (cursor === text.length) break;
+          const code = text.charCodeAt(cursor);
+          const higherPriorityCanConsume = active.slice(0, acceptIndex).some((stateId) =>
+            this.states[stateId].transitions.some((transition) =>
+              transition.ranges.some((range) => code >= range.min && code <= range.max)
+            )
+          );
+          if (!higherPriorityCanConsume) break;
+        }
+        if (cursor === text.length) break;
         const code = text.charCodeAt(cursor);
         const targets: number[] = [];
-        for (const stateId of active) {
-          for (const transition of this.states[stateId].transitions) {
+        const limit = validAccept ? acceptIndex : active.length;
+        for (let index = 0; index < limit; index++) {
+          for (const transition of this.states[active[index]].transitions) {
             if (transition.ranges.some((range) => code >= range.min && code <= range.max)) {
               targets.push(transition.target);
             }
@@ -306,7 +321,6 @@ export class CompiledNFA {
         if (targets.length === 0) break;
         active = closure(targets);
         cursor++;
-        if (accepts(active) && validEnd(cursor)) bestEnd = cursor;
       }
       if (bestEnd >= searchStart) {
         const matchText = text.slice(searchStart, bestEnd);
@@ -328,34 +342,39 @@ export class CompiledNFA {
 
   toAsciiDFA(): CompiledDFA {
     const closure = (seed: number[]): number[] => {
-      const seen = new Set<number>(seed);
-      const stack = [...seed];
-      while (stack.length) {
-        for (const target of this.states[stack.pop()!].epsilon) {
-          if (!seen.has(target)) {
-            seen.add(target);
-            stack.push(target);
-          }
-        }
-      }
-      return [...seen].sort((a, b) => a - b);
+      const seen = new Set<number>();
+      const list: number[] = [];
+      const visit = (stateId: number): void => {
+        if (seen.has(stateId)) return;
+        seen.add(stateId);
+        const state = this.states[stateId];
+        if (state.accept || state.transitions.length > 0) list.push(stateId);
+        for (const target of state.epsilon) visit(target);
+      };
+      for (const stateId of seed) visit(stateId);
+      return list;
     };
     const key = (states: number[]) => states.join(",");
     const start = closure([this.startState]);
     const dfaStates: number[][] = [start];
     const indexes = new Map([[key(start), 0]]);
     const rows: number[][] = [];
+    const commitRows: number[][] = [];
     for (let index = 0; index < dfaStates.length; index++) {
       const row = new Array<number>(128).fill(-1);
+      const commitRow = new Array<number>(128).fill(0);
+      const acceptIndex = dfaStates[index].indexOf(this.acceptState);
       for (let code = 0; code < 128; code++) {
         const targets: number[] = [];
-        for (const stateId of dfaStates[index]) {
-          for (const transition of this.states[stateId].transitions) {
+        const limit = acceptIndex >= 0 ? acceptIndex : dfaStates[index].length;
+        for (let stateIndex = 0; stateIndex < limit; stateIndex++) {
+          for (const transition of this.states[dfaStates[index][stateIndex]].transitions) {
             if (transition.ranges.some((range) => code >= range.min && code <= range.max)) {
               targets.push(transition.target);
             }
           }
         }
+        if (acceptIndex >= 0 && targets.length === 0) commitRow[code] = 1;
         if (targets.length === 0) continue;
         const next = closure(targets);
         const nextKey = key(next);
@@ -368,6 +387,7 @@ export class CompiledNFA {
         row[code] = target;
       }
       rows.push(row);
+      commitRows.push(commitRow);
     }
     const transitions = new Int16Array(dfaStates.length * 128);
     transitions.fill(-1);
@@ -376,7 +396,9 @@ export class CompiledNFA {
     dfaStates.forEach((states, index) =>
       accepting[index] = states.includes(this.acceptState) ? 1 : 0
     );
-    return { stateCount: dfaStates.length, startState: 0, transitions, accepting };
+    const commitBefore = new Uint8Array(dfaStates.length * 128);
+    commitRows.forEach((row, index) => commitBefore.set(row, index * 128));
+    return { stateCount: dfaStates.length, startState: 0, transitions, accepting, commitBefore };
   }
 
   private createState(): number {
@@ -424,12 +446,12 @@ export class CompiledNFA {
     const end = this.createState();
     if (ast.max === null) {
       const fragment = this.compile(ast.child);
-      this.states[cursor].epsilon.push(end, fragment.start);
+      this.states[cursor].epsilon.push(fragment.start, end);
       this.states[fragment.end].epsilon.push(cursor);
     } else {
       for (let i = ast.min; i < ast.max; i++) {
         const fragment = this.compile(ast.child);
-        this.states[cursor].epsilon.push(end, fragment.start);
+        this.states[cursor].epsilon.push(fragment.start, end);
         cursor = fragment.end;
       }
       this.states[cursor].epsilon.push(end);
@@ -464,7 +486,7 @@ export async function scanJSAutomata(fixture: RegexFixture) {
   const endScan = performance.now();
   return {
     matches,
-    codePointsSearched: fixture.textCodePoints,
+    codePointsSearched: fixture.textCodePoints * automata.length,
     patternsExecuted: automata.length,
     matchesFound: matches.length,
     capturesExtracted,

@@ -23,6 +23,16 @@ async function compileRegexWasm(): Promise<WebAssembly.Instance> {
   );
 }
 
+function patternFixture(pattern: string, text: string): RegexFixture {
+  return {
+    seed: 0,
+    text,
+    textCodePoints: text.length,
+    patterns: [{ id: 0, pattern, isLiteral: false, description: "adversarial semantics" }],
+    textBuffer: new TextEncoder().encode(text),
+  };
+}
+
 function onePatternFixture(patternId: number, text: string): RegexFixture {
   return {
     seed: 0,
@@ -47,6 +57,10 @@ async function assertThreeWay(fixture: RegexFixture, wasm: WebAssembly.Instance)
   assertEquals(wasmResult.capturesExtracted, native.capturesExtracted);
   assertEquals(js.patternsExecuted, fixture.patterns.length);
   assertEquals(wasmResult.patternsExecuted, fixture.patterns.length);
+  const expectedCodePoints = fixture.textCodePoints * fixture.patterns.length;
+  assertEquals(native.codePointsSearched, expectedCodePoints);
+  assertEquals(js.codePointsSearched, expectedCodePoints);
+  assertEquals(wasmResult.codePointsSearched, expectedCodePoints);
   assertEquals(js.boundaryCrossings, 0);
   assertEquals(wasmResult.boundaryCrossings, fixture.patterns.length);
   for (const result of [native, js, wasmResult]) {
@@ -108,6 +122,22 @@ Deno.test("regex-automata-duel: adversarial anchors, classes, bounds, and case s
   for (const fixture of cases) await assertThreeWay(fixture, wasm);
 });
 
+Deno.test("regex-automata-duel: ordered leftmost-first alternation matches native RegExp", async () => {
+  const wasm = await compileRegexWasm();
+  const cases = [
+    { pattern: "a|ab", text: "ab", expected: "a" },
+    { pattern: "ab|a", text: "ab", expected: "ab" },
+    { pattern: "a+", text: "aaab", expected: "aaa" },
+    { pattern: "(a|ab)c", text: "abc", expected: "abc" },
+  ];
+  for (const { pattern, text, expected } of cases) {
+    const fixture = patternFixture(pattern, text);
+    await assertThreeWay(fixture, wasm);
+    assertEquals((await scanJSAutomata(fixture)).matches[0]?.matchText, expected);
+    assertEquals((await scanWasmAutomata(fixture, wasm)).matches[0]?.matchText, expected);
+  }
+});
+
 Deno.test("regex-automata-duel: source inspectability contract metadata", async () => {
   const manifest = JSON.parse(
     await Deno.readTextFile("public/artifacts/regex-automata-duel/build-manifest.json"),
@@ -129,5 +159,8 @@ Deno.test("regex-automata-duel: source inspectability contract metadata", async 
     manifest.inspectability.compiledArtifact.downloadRoute,
     "/artifacts/regex-automata-duel/regex-automata-duel.wasm",
   );
-  assertEquals(manifest.inspectability.buildRecipe.command, "deno task build");
+  assertEquals(
+    manifest.inspectability.buildRecipe.command,
+    "deno run --allow-read=. --allow-write=public/artifacts scripts/build-traditional-web.ts",
+  );
 });

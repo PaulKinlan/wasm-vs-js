@@ -436,7 +436,7 @@ export function validateWorkerResult(
   ) throw new Error("correctness evidence invalid");
   const expectedIdentities = {
     inputSha256: "4f0516549fc9d6952c8d42d642927dd5c43a8c01d03c286e0c80da919bfaf9d7",
-    manifestSha256: "5157390a8e35e769f28174997deffaac8f3f5cec8c27bab0680c2366d3f6fe97",
+    manifestSha256: "38136e96462c5b98e3057e4ea18ae339150918aa50f1270eb3db88586185cf98",
     javascriptSha256: "4d8379672c1b51b0b315d2bee119880694e5a4f6412ef59b7fe2593ef6b179b7",
     wasmSha256: "9c4ce5f0d9e32cdd364b73b2697566e7396368d9867d9bc3d939bb2063583a6d",
   };
@@ -1570,7 +1570,7 @@ function fakeWorkerEnvelope(manifest: LaunchManifest) {
       },
       identities: {
         inputSha256: "4f0516549fc9d6952c8d42d642927dd5c43a8c01d03c286e0c80da919bfaf9d7",
-        manifestSha256: "5157390a8e35e769f28174997deffaac8f3f5cec8c27bab0680c2366d3f6fe97",
+        manifestSha256: "38136e96462c5b98e3057e4ea18ae339150918aa50f1270eb3db88586185cf98",
         javascriptSha256: "4d8379672c1b51b0b315d2bee119880694e5a4f6412ef59b7fe2593ef6b179b7",
         wasmSha256: "9c4ce5f0d9e32cdd364b73b2697566e7396368d9867d9bc3d939bb2063583a6d",
       },

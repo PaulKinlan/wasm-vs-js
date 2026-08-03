@@ -3,16 +3,8 @@
   "id": "vdom-diff-patch",
   "version": 1,
   "tier": "T1",
-  "title": "Virtual DOM diff and host DOM patch/hydration",
+  "title": "Virtual DOM diff and in-memory host patch application",
   "description": "Reduced conformance and harness slice: reconcile 1,000 nodes with exactly 250 effective edits, then verify self-contained application. This is not the accepted v2 production workload.",
-  "catalogStatus": "out-of-catalog-reduced-conformance-slice",
-  "catalogCoverage": false,
-  "acceptedV2ProductionContract": {
-    "id": "dom.vdom-diff-patch.v1",
-    "status": "not-implemented",
-    "requiredNodes": 10000,
-    "requiredEdits": 2000
-  },
   "tracks": [
     "controlled"
   ],
@@ -48,7 +40,7 @@
   },
   "work": {
     "fixed": true,
-    "complexity": "O(N)",
+    "complexity": "O(N + 65,536 + child references) with one reusable u16 ID index",
     "counters": [
       "nodes-visited",
       "patches-generated",
@@ -56,5 +48,17 @@
       "dom-mutations"
     ],
     "tolerance": "All counters must match exactly."
+  },
+  "extensions": {
+    "reducedHarness": {
+      "status": "out-of-catalog-reduced-conformance-slice",
+      "catalogCoverage": false,
+      "acceptedProductionContract": {
+        "id": "dom.vdom-diff-patch.v1",
+        "status": "not-implemented",
+        "requiredNodes": 10000,
+        "requiredEdits": 2000
+      }
+    }
   }
 }

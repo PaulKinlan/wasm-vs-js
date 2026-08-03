@@ -62,7 +62,7 @@ export async function scanNativeRegExp(fixture: RegexFixture): Promise<RegexScan
 
   return {
     matches,
-    codePointsSearched: fixture.textCodePoints,
+    codePointsSearched: fixture.textCodePoints * fixture.patterns.length,
     patternsExecuted: fixture.patterns.length,
     matchesFound: matches.length,
     capturesExtracted,

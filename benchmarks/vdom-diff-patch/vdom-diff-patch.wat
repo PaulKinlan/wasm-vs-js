@@ -15,7 +15,7 @@
     (local $valA i32) (local $valB i32) (local $textA i32) (local $textB i32)
     (local $lenA i32) (local $lenB i32) (local $offA i32) (local $offB i32)
     (local $same i32) (local $records i32) (local $record i32) (local $replace i32)
-    (local $k i32) (local $found i32)
+    (local $found i32) (local $index i32)
 
     (local.set $countA (i32.load (local.get $a)))
     (local.set $countB (i32.load (local.get $b)))
@@ -23,6 +23,20 @@
     (local.set $baseB (i32.add (local.get $b) (i32.const 4)))
     (local.set $childrenA (i32.add (local.get $baseA) (i32.shl (local.get $countA) (i32.const 4))))
     (local.set $childrenB (i32.add (local.get $baseB) (i32.shl (local.get $countB) (i32.const 4))))
+    ;; One fixed u16-ID index occupies the upper 256 KiB. Reuse it for A and B
+    ;; so lookup remains O(1) without increasing the reduced harness memory.
+    (local.set $index (i32.const 262144))
+    (memory.fill (local.get $index) (i32.const 255) (i32.const 262144))
+    (local.set $i (i32.const 0))
+    (block $index_a_done
+      (loop $index_a
+        (br_if $index_a_done (i32.ge_u (local.get $i) (local.get $countA)))
+        (local.set $nodeA (i32.add (local.get $baseA) (i32.shl (local.get $i) (i32.const 4))))
+        (local.set $idA (i32.load16_u (local.get $nodeA)))
+        (i32.store (i32.add (local.get $index) (i32.shl (local.get $idA) (i32.const 2)))
+          (local.get $nodeA))
+        (local.set $i (i32.add (local.get $i) (i32.const 1)))
+        (br $index_a)))
 
     ;; Visit every target node.
     (local.set $i (i32.const 0))
@@ -31,18 +45,9 @@
         (br_if $target_done (i32.ge_u (local.get $i) (local.get $countB)))
         (local.set $nodeB (i32.add (local.get $baseB) (i32.shl (local.get $i) (i32.const 4))))
         (local.set $idB (i32.load16_u (local.get $nodeB)))
-        ;; Locate the source node by stable ID; array positions may differ after
-        ;; insertion/removal probes.
-        (local.set $found (i32.const 0))
-        (local.set $k (i32.const 0))
-        (block $source_search_done
-          (loop $source_search
-            (br_if $source_search_done (i32.ge_u (local.get $k) (local.get $countA)))
-            (local.set $nodeA (i32.add (local.get $baseA) (i32.shl (local.get $k) (i32.const 4))))
-            (if (i32.eq (i32.load16_u (local.get $nodeA)) (local.get $idB))
-              (then (local.set $found (i32.const 1)) (br $source_search_done)))
-            (local.set $k (i32.add (local.get $k) (i32.const 1)))
-            (br $source_search)))
+        (local.set $nodeA
+          (i32.load (i32.add (local.get $index) (i32.shl (local.get $idB) (i32.const 2)))))
+        (local.set $found (i32.ne (local.get $nodeA) (i32.const -1)))
         (local.set $replace (i32.eqz (local.get $found)))
         (if (local.get $found)
           (then
@@ -142,23 +147,29 @@
         (local.set $i (i32.add (local.get $i) (i32.const 1)))
         (br $target)))
 
-    ;; Emit explicit removals for every source ID absent from the target.
+    ;; Rebuild the same fixed index for B, then emit explicit removals for
+    ;; every source ID absent from the target.
+    (memory.fill (local.get $index) (i32.const 255) (i32.const 262144))
+    (local.set $i (i32.const 0))
+    (block $index_b_done
+      (loop $index_b
+        (br_if $index_b_done (i32.ge_u (local.get $i) (local.get $countB)))
+        (local.set $nodeB (i32.add (local.get $baseB) (i32.shl (local.get $i) (i32.const 4))))
+        (local.set $idB (i32.load16_u (local.get $nodeB)))
+        (i32.store (i32.add (local.get $index) (i32.shl (local.get $idB) (i32.const 2)))
+          (local.get $nodeB))
+        (local.set $i (i32.add (local.get $i) (i32.const 1)))
+        (br $index_b)))
     (local.set $i (i32.const 0))
     (block $remove_done
       (loop $remove
         (br_if $remove_done (i32.ge_u (local.get $i) (local.get $countA)))
         (local.set $nodeA (i32.add (local.get $baseA) (i32.shl (local.get $i) (i32.const 4))))
         (local.set $idA (i32.load16_u (local.get $nodeA)))
-        (local.set $found (i32.const 0))
-        (local.set $k (i32.const 0))
-        (block $target_search_done
-          (loop $target_search
-            (br_if $target_search_done (i32.ge_u (local.get $k) (local.get $countB)))
-            (local.set $nodeB (i32.add (local.get $baseB) (i32.shl (local.get $k) (i32.const 4))))
-            (if (i32.eq (i32.load16_u (local.get $nodeB)) (local.get $idA))
-              (then (local.set $found (i32.const 1)) (br $target_search_done)))
-            (local.set $k (i32.add (local.get $k) (i32.const 1)))
-            (br $target_search)))
+        (local.set $found
+          (i32.ne
+            (i32.load (i32.add (local.get $index) (i32.shl (local.get $idA) (i32.const 2))))
+            (i32.const -1)))
         (if (i32.eqz (local.get $found))
           (then
             (local.set $record (i32.add (local.get $out) (i32.mul (local.get $records) (i32.const 24))))

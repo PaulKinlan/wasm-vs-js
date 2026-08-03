@@ -37,6 +37,9 @@ export async function scanWasmAutomata(fixture, wasmInstance) {
     const acceptPtr = cursor;
     bytes.set(dfa.accepting, acceptPtr);
     cursor = (acceptPtr + dfa.accepting.byteLength + 7) & ~7;
+    const commitPtr = cursor;
+    bytes.set(dfa.commitBefore, commitPtr);
+    cursor = (commitPtr + dfa.commitBefore.byteLength + 7) & ~7;
     const outPtr = cursor;
     const outCapacity = Math.floor((memory.buffer.byteLength - outPtr) / 8);
     if (outCapacity <= 0) throw new Error("regex automata Wasm memory has no match capacity");
@@ -46,6 +49,7 @@ export async function scanWasmAutomata(fixture, wasmInstance) {
       fixture.textBuffer.byteLength,
       tablePtr,
       acceptPtr,
+      commitPtr,
       nfa.anchorStart ? 1 : 0,
       nfa.anchorEnd ? 1 : 0,
       outPtr,
@@ -72,7 +76,7 @@ export async function scanWasmAutomata(fixture, wasmInstance) {
 
   return {
     matches,
-    codePointsSearched: fixture.textCodePoints,
+    codePointsSearched: fixture.textCodePoints * automata.length,
     patternsExecuted: automata.length,
     matchesFound: matches.length,
     capturesExtracted,

@@ -105,7 +105,7 @@ export function createVDOMPatches(
   }
 
   canonicalizePatches(patches);
-  return { patches, nodesVisited: treeA.length + treeB.length };
+  return { patches, nodesVisited: 2 * (treeA.length + treeB.length) };
 }
 
 export async function diffVDOMTrees(treeA: VDOMNode[], treeB: VDOMNode[]): Promise<VDOMRunResult> {
@@ -291,11 +291,27 @@ export class DOMHostAdapter {
   }
 
   applyPatches(patches: PatchOp[]): void {
-    for (const patch of patches) {
-      if (patch.op !== 7 || !patch.node) continue;
-      const replacement = this.createNode(patch.node);
+    const replacements = new Map<number, HostNode>();
+    const replacementPatches = patches.filter((patch) => patch.op === 7 && patch.node);
+    for (const patch of replacementPatches) {
+      replacements.set(patch.nodeId, this.createNode(patch.node!));
+    }
+    const nestedReplacements = new Set<number>();
+    for (const patch of replacementPatches) {
+      const replacement = replacements.get(patch.nodeId)!;
+      if (replacement.nodeType !== 1) continue;
+      for (const childId of patch.node!.children) {
+        const child = replacements.get(childId) ?? this.nodes.get(childId);
+        if (child) (replacement as HostElement).append(child);
+        if (replacements.has(childId)) nestedReplacements.add(childId);
+      }
+    }
+    for (const patch of replacementPatches) {
+      const replacement = replacements.get(patch.nodeId)!;
       const prior = this.nodes.get(patch.nodeId);
-      prior?.parentNode?.replaceChild(replacement, prior);
+      if (prior && !nestedReplacements.has(patch.nodeId)) {
+        prior.parentNode?.replaceChild(replacement, prior);
+      }
       this.nodes.set(patch.nodeId, replacement);
       this.domMutations++;
     }
