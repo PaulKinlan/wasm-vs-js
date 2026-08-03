@@ -841,7 +841,7 @@ async function scanJSAutomata(fixture) {
   const startScan = performance.now();
   for (const automaton of automata) {
     const found = automaton.exec(fixture.text);
-    matches.push(...found);
+    for (const match of found) matches.push(match);
     capturesExtracted += found.length * automaton.captureGroups;
   }
   const endScan = performance.now();
