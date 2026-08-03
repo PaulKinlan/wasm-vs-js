@@ -1310,6 +1310,13 @@ const routes = new Map<string, [string, string, boolean?]>([
     "benchmarks/v1/serialization-json-telemetry/workload.js",
     "text/javascript; charset=utf-8",
   ]],
+  [
+    "/benchmarks/v1/serialization-json-telemetry/workload.54e2ee54b225d8454664dc6a24f5fa178ee0652ccf0e7e01eea93b17f29530f8.js",
+    [
+      "benchmarks/v1/serialization-json-telemetry/workload.js",
+      "text/javascript; charset=utf-8",
+    ],
+  ],
   ["/artifacts/serialization-json-telemetry/telemetry.wasm", [
     "public/artifacts/serialization-json-telemetry/telemetry.wasm",
     "application/wasm",
@@ -1753,6 +1760,114 @@ for (const variant of ["js-controlled", "wasm-linear-controlled"]) {
   ]);
 }
 
+// Restored lane route registrations (post-map; lanes register these via loops/spreads).
+for (const name of ["fixture-manifest.json", "output-manifest.json", "build-manifest.json"]) {
+  routes.set(`/artifacts/simulation-rigid-body-2d-v1/${name}`, [
+    `public/artifacts/simulation-rigid-body-2d-v1/${name}`,
+    "application/json; charset=utf-8",
+  ]);
+}
+for (
+  const name of [
+    "simulation-rigid-body-2d-contract.schema.json",
+    "simulation-rigid-body-2d-fixture-manifest.schema.json",
+    "simulation-rigid-body-2d-output-manifest.schema.json",
+    "simulation-rigid-body-2d-build-manifest.schema.json",
+    "simulation-rigid-body-2d-result.schema.json",
+  ]
+) {
+  routes.set(`/data/${name}`, [
+    `public/data/${name}`,
+    "application/schema+json; charset=utf-8",
+  ]);
+}
+for (const variant of ["js-controlled", "wasm-linear-controlled"]) {
+  routes.set(`/evidence/v1-base/simulation-rigid-body-2d-v1/${variant}.json`, [
+    `public/evidence/v1-base/simulation-rigid-body-2d-v1/${variant}.json`,
+    "application/json; charset=utf-8",
+  ]);
+}
+
+for (
+  const path of [
+    "/benchmarks/tooling-c-to-wasm-compile-v1",
+    "/benchmarks/tooling-c-to-wasm-compile-v1/",
+  ]
+) {
+  routes.set(path, [
+    "public/benchmarks/tooling-c-to-wasm-compile-v1/index.html",
+    "text/html; charset=utf-8",
+  ]);
+}
+routes.set("/benchmarks/tooling-c-to-wasm-compile-v1/demo.js", [
+  "public/benchmarks/tooling-c-to-wasm-compile-v1/demo.js",
+  "text/javascript; charset=utf-8",
+]);
+routes.set("/benchmarks/tooling-c-to-wasm-compile-v1/worker.js", [
+  "public/benchmarks/tooling-c-to-wasm-compile-v1/worker.js",
+  "text/javascript; charset=utf-8",
+]);
+for (
+  const [path, file, contentType] of [
+    [
+      "/benchmarks/base/tooling-c-to-wasm-compile/compiler-js.js",
+      "benchmarks/base/tooling-c-to-wasm-compile/compiler-js.js",
+      "text/javascript; charset=utf-8",
+    ],
+    [
+      "/benchmarks/base/tooling-c-to-wasm-compile/compiler-wasm.c",
+      "benchmarks/base/tooling-c-to-wasm-compile/compiler-wasm.c",
+      "text/plain; charset=utf-8",
+    ],
+    [
+      "/benchmarks/base/tooling-c-to-wasm-compile/contract.v1.json",
+      "benchmarks/base/tooling-c-to-wasm-compile/contract.v1.json",
+      "application/json; charset=utf-8",
+    ],
+    [
+      "/artifacts/base/tooling-c-to-wasm-compile/compiler.wasm",
+      "public/artifacts/base/tooling-c-to-wasm-compile/compiler.wasm",
+      "application/wasm",
+    ],
+    [
+      "/artifacts/base/tooling-c-to-wasm-compile/fixture-manifest.json",
+      "public/artifacts/base/tooling-c-to-wasm-compile/fixture-manifest.json",
+      "application/json; charset=utf-8",
+    ],
+    [
+      "/artifacts/base/tooling-c-to-wasm-compile/build-manifest.json",
+      "public/artifacts/base/tooling-c-to-wasm-compile/build-manifest.json",
+      "application/json; charset=utf-8",
+    ],
+    [
+      "/evidence/base/tooling-c-to-wasm-compile/validation.json",
+      "public/evidence/base/tooling-c-to-wasm-compile/validation.json",
+      "application/json; charset=utf-8",
+    ],
+  ] as const
+) routes.set(path, [file, contentType]);
+for (let index = 1; index <= 20; index += 1) {
+  const id = String(index).padStart(2, "0");
+  routes.set(`/benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/${id}.c`, [
+    `benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/${id}.c`,
+    "text/plain; charset=utf-8",
+  ]);
+  routes.set(`/benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/${id}.h`, [
+    `benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/${id}.h`,
+    "text/plain; charset=utf-8",
+  ]);
+}
+
+for (const kernel of ["gemm", "cholesky", "stencil", "jacobi2d"]) {
+  for (const variant of ["reference", "javascript-controlled", "linear-wasm-controlled"]) {
+    const name = `${kernel}.${variant}.f64le`;
+    routes.set(`/artifacts/numeric-polybench-panel/outputs/${name}`, [
+      `public/artifacts/numeric-polybench-panel/outputs/${name}`,
+      "application/octet-stream",
+    ]);
+  }
+}
+
 for (const route of [...IMAGE_DEMO_ROUTES, ...TRADITIONAL_DEMO_ROUTES]) {
   if (routes.has(route.path)) throw new Error(`duplicate demo route: ${route.path}`);
   routes.set(route.path, [route.file, route.contentType]);
@@ -2032,7 +2147,9 @@ function createHandler(
         headers: {
           "content-type": contentType,
           "cache-control": url.pathname.startsWith("/artifacts/") ||
-              url.pathname.startsWith("/benchmarks/") ||
+              (url.pathname.startsWith("/benchmarks/") &&
+                url.pathname !==
+                  "/benchmarks/v1/serialization-json-telemetry/workload.js") ||
               url.pathname.startsWith("/evidence/v1/")
             ? "public, max-age=31536000, immutable"
             : "no-store",
