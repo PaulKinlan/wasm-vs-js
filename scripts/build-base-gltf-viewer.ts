@@ -98,7 +98,7 @@ await Deno.writeFile(new URL("decoded-mesh.bin", artifacts), jsMeshBytes);
 const animation = makeAnimationTable();
 await Deno.writeFile(new URL("animation-table.i32", artifacts), new Uint8Array(animation.buffer));
 
-const buildDir = new URL(".build-base-gltf/", root);
+const buildDir = new URL(".build/", artifacts);
 await Deno.remove(buildDir, { recursive: true }).catch(() => {});
 await Deno.mkdir(buildDir);
 try {
