@@ -431,7 +431,11 @@ function instrumentation(mode: string): string {
       terminate() {
         this.terminated = true;
         emit("worker-terminated", {index:this.index});
-        this.native.terminate();
+        // Defer the native terminate so in-flight Network.getResponseBody
+        // calls on the worker session can drain; the worker is CPU-bound
+        // for the whole run and CDP commands queue behind its event loop.
+        const native = this.native;
+        setTimeout(() => native.terminate(), 750);
       }
     }
     Object.defineProperty(globalThis, "Worker", {value:EvidenceWorker, configurable:false});
