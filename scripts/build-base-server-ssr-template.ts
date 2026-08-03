@@ -103,6 +103,11 @@ const sourcePaths = [
   "benchmarks/v1/server-ssr-template/server-ssr-template.c",
   "scripts/build-base-server-ssr-template.ts",
   "schemas/v1-implementation-registration.schema.json",
+  "public/base-server-ssr-demo.js",
+  "public/base-server-ssr-worker.js",
+  "public/demos/server.ssr-template.v1/index.html",
+  "server.ts",
+  "tests/base-server-ssr-template.test.ts",
   "deno.json",
   "deno.lock",
 ];

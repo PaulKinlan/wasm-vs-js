@@ -154,8 +154,18 @@ Deno.test("server SSR generated manifest bytes and source/artifact hashes are op
   const build = JSON.parse(
     await Deno.readTextFile("public/artifacts/base-server-ssr-template/build-manifest.json"),
   );
+  assert(/^[a-f0-9]{40}$/.test(build.sourceCommit));
+  assert(build.sourceCommit !== "0000000000000000000000000000000000000000");
   for (const source of build.sources) {
-    assertEquals(await sha256Hex(await Deno.readFile(source.path)), source.sha256);
+    const disk = await Deno.readFile(source.path);
+    assertEquals(await sha256Hex(disk), source.sha256);
+    const tree = await new Deno.Command("git", {
+      args: ["show", `${build.sourceCommit}:${source.path}`],
+      stdout: "piped",
+      stderr: "piped",
+    }).output();
+    assert(tree.success, `${source.path} absent from source commit`);
+    assertEquals(await sha256Hex(tree.stdout), source.sha256);
   }
   assertEquals(await sha256Hex(wasmBytes), build.variants["wasm-linear-controlled"].sha256);
   assertEquals(build.build.deno, "2.9.0");
