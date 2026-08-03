@@ -53,18 +53,25 @@ function validateDns(payload, counters) {
     offset += length;
     if (++labels > 16) return false;
   }
-  if (offset + 4 > payload.length) return false;
+  if (
+    offset + 4 > payload.length || u16be(payload, offset) !== 1 ||
+    u16be(payload, offset + 2) !== 1
+  ) return false;
   offset += 4;
   if (an === 1) {
     if (offset + 12 > payload.length) return false;
     if ((payload[offset] & 0xc0) !== 0xc0) return false;
     const pointerTarget = ((payload[offset] & 0x3f) << 8) | payload[offset + 1];
     if (pointerTarget !== 12) return false;
-    counters.dnsCompressionPointers++;
     offset += 2;
     const rdLength = u16be(payload, offset + 8);
+    if (
+      u16be(payload, offset) !== 1 || u16be(payload, offset + 2) !== 1 ||
+      rdLength !== 4
+    ) return false;
     offset += 10;
     if (offset + rdLength !== payload.length) return false;
+    counters.dnsCompressionPointers++;
   } else if (offset !== payload.length) return false;
   return true;
 }
@@ -188,11 +195,12 @@ export function runPcapJavaScript(input) {
     }
     const payload = packet.subarray(payloadOffset, ip + totalLength);
     let slot = keyHash(protocol, src, dst, srcPort, dstPort) & (MAX_FLOWS - 1);
-    while (true) {
+    let flow = null;
+    for (let attempt = 0; attempt < MAX_FLOWS; attempt++) {
       counters.flowTableProbes++;
       const existing = slots[slot];
       if (!existing) {
-        slots[slot] = {
+        flow = {
           protocol,
           src,
           dst,
@@ -205,14 +213,18 @@ export function runPcapJavaScript(input) {
           reassembly: [],
           nextSequence: sequence,
         };
+        slots[slot] = flow;
         // One retained flow record and one retained reassembly array.
         counters.allocations += 2;
         break;
       }
-      if (sameFlow(existing, protocol, src, dst, srcPort, dstPort)) break;
+      if (sameFlow(existing, protocol, src, dst, srcPort, dstPort)) {
+        flow = existing;
+        break;
+      }
       slot = (slot + 1) & (MAX_FLOWS - 1);
     }
-    const flow = slots[slot];
+    if (!flow) throw new Error("flow table capacity exceeded");
     flow.packets++;
     flow.payloadBytes += payload.length;
     if (protocol === 6) {

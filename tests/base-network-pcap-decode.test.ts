@@ -49,6 +49,20 @@ function recordOffsets(bytes: Uint8Array) {
 function sameBytes(a: Uint8Array, b: Uint8Array) {
   return a.length === b.length && a.every((value, index) => value === b[index]);
 }
+function fixtureWithDistinctFlows(count: number) {
+  const base = generatePcapFixture();
+  const view = new DataView(base.buffer, base.byteOffset, base.byteLength);
+  const firstRecordBytes = 16 + view.getUint32(24 + 8, true);
+  const firstRecord = base.slice(24, 24 + firstRecordBytes);
+  const fixture = new Uint8Array(24 + count * firstRecordBytes);
+  fixture.set(base.subarray(0, 24));
+  for (let index = 0; index < count; index++) {
+    const record = firstRecord.slice();
+    record[16 + 14 + 12 + 3] = 100 + index;
+    fixture.set(record, 24 + index * firstRecordBytes);
+  }
+  return fixture;
+}
 
 Deno.test("base PCAP fixture is exact, generated, and leaves frozen v1 byte-identical", async () => {
   const fixture = generatePcapFixture();
@@ -115,6 +129,48 @@ Deno.test("same Wasm instance clears physical flow and reassembly state between 
   assertEquals(first.status, 0);
   assertEquals(second.status, 0);
   assert(sameBytes(first.bytes, second.bytes));
+});
+
+Deno.test("full flow tables terminate and the next distinct flow fails closed", async () => {
+  const full = fixtureWithDistinctFlows(16);
+  const jsFull = runPcapJavaScript(full);
+  const wasmFull = await wasmRun(full);
+  assertEquals(wasmFull.status, 0);
+  assert(sameBytes(jsFull.bytes, wasmFull.bytes));
+  assertEquals(jsFull.counters.flows, 16);
+
+  const overflow = fixtureWithDistinctFlows(17);
+  await assertRejects(
+    () => Promise.resolve(runPcapJavaScript(overflow)),
+    "flow table capacity exceeded",
+  );
+  assertEquals((await wasmRun(overflow)).status, -8);
+});
+
+Deno.test("DNS records require A type and IN class in questions and answers", async () => {
+  const base = generatePcapFixture();
+  const packets = recordOffsets(base);
+  const queryPayload = packets[3] + 14 + 20 + 8;
+  const responsePayload = packets[4] + 14 + 20 + 8;
+  for (
+    const offset of [
+      queryPayload + 27,
+      queryPayload + 29,
+      responsePayload + 27,
+      responsePayload + 29,
+      responsePayload + 33,
+      responsePayload + 35,
+    ]
+  ) {
+    const fixture = base.slice();
+    fixture[offset] = 28;
+    const js = runPcapJavaScript(fixture);
+    const wasm = await wasmRun(fixture);
+    assertEquals(wasm.status, 0);
+    assert(sameBytes(js.bytes, wasm.bytes));
+    const words = new Uint32Array(js.bytes.buffer, js.bytes.byteOffset, js.bytes.byteLength / 4);
+    assertEquals(words[7], 1);
+  }
 });
 
 Deno.test("differential malformed, DNS compression, and TCP reassembly perturbations agree", async () => {
@@ -220,6 +276,11 @@ Deno.test("closed PCAP schemas and semantics reject record, manifest, and regist
       (value: PcapEvidenceBundle) => value.fixture.sha256 = "0".repeat(64),
       (value: PcapEvidenceBundle) => value.output.sha256 = "0".repeat(64),
       (value: PcapEvidenceBundle) => value.build.fixture.sha256 = "0".repeat(64),
+      (value: PcapEvidenceBundle) => value.build.wasm.sha256 = "0".repeat(64),
+      (value: PcapEvidenceBundle) => value.build.wasm.bytes++,
+      (value: PcapEvidenceBundle) => value.build.sourceSha256 = "0".repeat(64),
+      (value: PcapEvidenceBundle) => value.build.build.lockfiles[0].sha256 = "0".repeat(64),
+      (value: PcapEvidenceBundle) => value.build.build.commands.reverse(),
       (value: PcapEvidenceBundle) => value.records["js-controlled"].target = "wasm-linear",
     ]
   ) {

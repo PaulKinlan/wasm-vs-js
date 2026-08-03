@@ -55,17 +55,17 @@ static int dns_valid(const uint8_t *payload, uint32_t len) {
     o += n;
     if (++labels > 16) return 0;
   }
-  if (o + 4 > len) return 0;
+  if (o + 4 > len || be16(payload + o) != 1 || be16(payload + o + 2) != 1) return 0;
   o += 4;
   if (an == 1) {
     if (o + 12 > len || (payload[o] & 0xc0u) != 0xc0u) return 0;
     uint32_t pointer_target = ((uint32_t)(payload[o] & 0x3fu) << 8) | payload[o + 1];
     if (pointer_target != 12) return 0;
-    dns_pointers++;
     o += 2;
     uint32_t rdlen = be16(payload + o + 8);
-    o += 10;
-    return o + rdlen == len;
+    if (be16(payload + o) != 1 || be16(payload + o + 2) != 1 || rdlen != 4 || o + 10 + rdlen != len) return 0;
+    dns_pointers++;
+    return 1;
   }
   return o == len;
 }
@@ -130,18 +130,19 @@ __attribute__((export_name("run"))) int32_t run(uint32_t length) {
     uint32_t payload_len = ip + total - payload_offset;
     const uint8_t *payload = packet + payload_offset;
     uint32_t slot = key_hash(protocol, src, dst, sp, dp) & (MAX_FLOWS - 1u);
-    while (1) {
+    Flow *f = 0;
+    for (uint32_t attempt = 0; attempt < MAX_FLOWS; attempt++) {
       probes++;
       if (!flows[slot].used) {
-        Flow *f = &flows[slot];
+        f = &flows[slot];
         f->used = 1; f->protocol = protocol; f->src = src; f->dst = dst; f->src_port = sp; f->dst_port = dp; f->next_sequence = sequence;
         flow_count++;
         break;
       }
-      if (same_flow(&flows[slot], protocol, src, dst, sp, dp)) break;
+      if (same_flow(&flows[slot], protocol, src, dst, sp, dp)) { f = &flows[slot]; break; }
       slot = (slot + 1u) & (MAX_FLOWS - 1u);
     }
-    Flow *f = &flows[slot];
+    if (!f) return -8;
     f->packets++; f->payload_bytes += payload_len;
     if (protocol == 6) {
       if (f->packets > 1 && sequence != f->next_sequence) { malformed++; f->packets--; f->payload_bytes -= payload_len; continue; }

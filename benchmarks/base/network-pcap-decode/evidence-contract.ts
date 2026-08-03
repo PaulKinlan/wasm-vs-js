@@ -16,6 +16,35 @@ const FIXTURE_PATH = "public/artifacts/base-network-pcap-decode/fixture.pcap";
 const OUTPUT_PATH = "public/artifacts/base-network-pcap-decode/reference-output.bin";
 const VARIANTS = ["js-controlled", "wasm-linear-controlled"] as const;
 const TARGETS = { "js-controlled": "javascript", "wasm-linear-controlled": "wasm-linear" };
+const COMPILER_ARGS = [
+  "--target=wasm32-unknown-unknown",
+  "-O3",
+  "-nostdlib",
+  "-ffreestanding",
+  "-fno-builtin",
+  "-c",
+  "benchmarks/base/network-pcap-decode/pcap-decode.c",
+  "-o",
+  "public/artifacts/base-network-pcap-decode/.build/pcap-decode.o",
+];
+const LINKER_ARGS = [
+  "--no-entry",
+  "--export-memory",
+  "--export=input_ptr",
+  "--export=output_ptr",
+  "--export=output_len",
+  "--export=run",
+  "--initial-memory=1048576",
+  "--max-memory=1048576",
+  "--stack-first",
+  "public/artifacts/base-network-pcap-decode/.build/pcap-decode.o",
+  "-o",
+  "public/artifacts/base-network-pcap-decode/.build/pcap-decode.wasm",
+];
+const BUILD_COMMANDS = [
+  `clang ${COMPILER_ARGS.join(" ")}`,
+  `wasm-ld ${LINKER_ARGS.join(" ")}`,
+];
 
 function ordered(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(ordered);
@@ -103,6 +132,33 @@ export async function validatePcapEvidenceSemantics(
   if (!same(sourcePaths, requiredSources)) {
     errors.push("build source graph is incomplete or reordered");
   }
+  const sourceIdentity = (build.fullSourceGraph ?? []).map(
+    (source: Record<string, unknown>) => `${source.path}\0${source.sha256}\n`,
+  ).join("");
+  if (build.sourceSha256 !== await sha256Hex(sourceIdentity)) {
+    errors.push("build aggregate source hash contradicts its source graph");
+  }
+  const lockSource = (build.fullSourceGraph ?? []).find(
+    (source: Record<string, unknown>) => source.path === "deno.lock",
+  );
+  if (
+    !lockSource ||
+    !same(build.build?.lockfiles, [{ path: "deno.lock", sha256: lockSource.sha256 }])
+  ) {
+    errors.push("build lockfile identity contradicts its source graph");
+  }
+  if (
+    !same(build.build?.commands, BUILD_COMMANDS) ||
+    !same(build.build?.flags?.compiler, COMPILER_ARGS.slice(0, 5)) ||
+    !same(build.build?.flags?.linker, LINKER_ARGS.slice(0, 9)) ||
+    !same(build.build?.flags?.runtime, [
+      "scalar Wasm",
+      "fixed initial=max memory",
+      "memory.grow unavailable",
+    ])
+  ) {
+    errors.push("build commands or flags contradict the exact compile and link recipe");
+  }
 
   const expectedCounters = {
     packetRecords: 8,
@@ -149,7 +205,14 @@ export async function validatePcapEvidenceSemantics(
         errors.push(`${variantId} correctness record does not hash the build manifest`);
       }
     }
-    for (const identity of [build.fixture, build.referenceOutput, ...(build.manifests ?? [])]) {
+    for (
+      const identity of [
+        build.wasm,
+        build.fixture,
+        build.referenceOutput,
+        ...(build.manifests ?? []),
+      ]
+    ) {
       const bytes = await readFile(`${root}/${identity.path}`);
       if (bytes.byteLength !== identity.bytes || await sha256Hex(bytes) !== identity.sha256) {
         errors.push(`persisted file contradicts build identity: ${identity.path}`);
