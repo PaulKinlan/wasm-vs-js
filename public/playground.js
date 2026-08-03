@@ -232,6 +232,178 @@ const PLAYGROUND_WORKLOADS = [
     description: "Compiles and links 20 small C programs to WebAssembly modules in the browser.",
     explanation: "Lexing, parsing, type checking, code generation, and binary module emission.",
   },
+  // ── Additional base catalog workloads with demo routes ──
+  {
+    slug: "base-gltf-viewer",
+    title: "glTF Model Viewer",
+    category: "Graphics & Rendering",
+    workerScript: "/benchmarks/base-gltf-viewer/worker.js",
+    workerProtocol: "target-only",
+    wasmTarget: "wasm",
+    route: "/benchmarks/base-gltf-viewer/",
+    description:
+      "Loads a product model, decodes Draco compression, animates 600 frames, and picks objects.",
+    explanation: "Binary asset parsing, mesh decoding, and matrix-transform animation on the CPU.",
+  },
+  {
+    slug: "database-olap-chart",
+    title: "Interactive OLAP Column Scan",
+    category: "Database",
+    workerScript: "/benchmarks/database-olap-chart/worker.js",
+    workerProtocol: "variant",
+    route: "/benchmarks/database-olap-chart/",
+    description:
+      "Filters, sorts, and aggregates columns while a chart user changes controls interactively.",
+    explanation: "Columnar scan, predicate pushdown, and hash aggregation over tabular data.",
+  },
+  {
+    slug: "dom-virtualized-grid-v1",
+    title: "Virtualized Data Grid",
+    category: "DOM & Web UI",
+    workerScript: null,
+    route: "/benchmarks/dom-virtualized-grid-v1/",
+    description:
+      "Scrolls, filters, sorts, and edits 100,000 rows over a recorded interaction trace.",
+    explanation:
+      "Windowed DOM rendering, sort-index maintenance, and efficient recycle-pool management.",
+  },
+  {
+    slug: "ml-keyword-spotting-v1",
+    title: "Keyword Spotting Stream",
+    category: "Neural & AI",
+    workerScript: null,
+    route: "/benchmarks/ml-keyword-spotting-v1/",
+    description: "Processes 60 seconds of audio in 20 ms hops and detects spoken commands.",
+    explanation: "Convolutional and dense-layer inference over streaming mel-spectrogram features.",
+  },
+  {
+    slug: "ml-numeric-kernels-v1",
+    title: "ML Numeric Kernels",
+    category: "Neural & AI",
+    workerScript: null,
+    route: "/benchmarks/ml-numeric-kernels-v1/",
+    description:
+      "Exercises inference-runtime inner loops (GEMM, convolution, softmax) over frozen tensors.",
+    explanation:
+      "Core tensor operations that dominate latency in on-device neural network inference.",
+  },
+  {
+    slug: "numeric-fft-spectral-filter-v1",
+    title: "FFT Spectral Filter",
+    category: "Numeric & Scientific",
+    workerScript: "/benchmarks/numeric-fft-spectral-filter-v1/worker.js",
+    workerProtocol: "variant",
+    route: "/benchmarks/numeric-fft-spectral-filter-v1/",
+    description:
+      "Windows, transforms, filters, and inverse-transforms a multi-channel sensor trace.",
+    explanation:
+      "Overlap-add FFT convolution and frequency-domain mask application for signal conditioning.",
+  },
+  {
+    slug: "serialization-protobuf-gateway",
+    title: "Protobuf Gateway",
+    category: "Serialization",
+    workerScript: null,
+    route: "/benchmarks/serialization-protobuf-gateway/",
+    description:
+      "Decodes Protocol Buffer messages, filters records, and emits ProtoJSON responses.",
+    explanation:
+      "Varint decoding, field-tag dispatch, and JSON serialization of nested message types.",
+  },
+  {
+    slug: "cad-parametric-bracket",
+    title: "Parametric Bracket Build",
+    category: "CAD & Engineering",
+    workerScript: "/demos/cad-parametric-bracket/worker.js",
+    workerProtocol: "variant",
+    route: "/demos/cad-parametric-bracket/",
+    description:
+      "Builds boxes, cylinders, boolean holes, fillets, and tessellates a parametric bracket.",
+    explanation:
+      "CSG boolean operations, edge filleting, and triangle tessellation for manufacturing.",
+  },
+  {
+    slug: "crypto-file-integrity-v1",
+    title: "SHA-256 File Integrity",
+    category: "Cryptography",
+    workerScript: null,
+    route: "/demos/crypto.file-integrity.v1/",
+    description: "Verifies downloaded assets with SHA-256 using fixed chunk schedules.",
+    explanation:
+      "Block-level hash compression and streaming digest updates over file-sized inputs.",
+  },
+  {
+    slug: "game-dom-tactics-grid",
+    title: "DOM Tactics Grid",
+    category: "Game Simulation",
+    workerScript: null,
+    route: "/demos/game-dom-tactics-grid/",
+    description:
+      "Runs turn-based movement, range calculation, and AI pathfinding on a tactics grid.",
+    explanation: "Grid traversal, BFS flood-fill, and heuristic-based decision trees for game AI.",
+  },
+  {
+    slug: "game-ecs-frame-update",
+    title: "Game-Frame ECS Update",
+    category: "Game Simulation",
+    workerScript: "/demos/game-ecs-frame-update/worker.js",
+    workerProtocol: "variant",
+    route: "/demos/game-ecs-frame-update/",
+    description:
+      "Updates movement, collision broadphase, and animation state for 10,000 entities per frame.",
+    explanation:
+      "Entity-component-system archetype iteration, AABB broadphase, and skeletal animation.",
+  },
+  {
+    slug: "network-pcap-decode-v1",
+    title: "PCAP Protocol Decode",
+    category: "Networking",
+    workerScript: null,
+    route: "/demos/network.pcap-decode.v1/",
+    description:
+      "Parses Ethernet, IP, TCP, DNS, and HTTP records from a capture into a flow table.",
+    explanation:
+      "Layered protocol dissection, checksum validation, and connection-state reconstruction.",
+  },
+  {
+    slug: "numeric-polybench-panel-v1",
+    title: "PolyBench Numeric Panel",
+    category: "Numeric & Scientific",
+    workerScript: null,
+    route: "/demos/numeric.polybench-panel.v1/",
+    description: "Runs GEMM, Cholesky decomposition, stencil, and Jacobi-2D notebook kernels.",
+    explanation:
+      "Dense linear algebra and iterative stencil solvers from the PolyBench benchmark suite.",
+  },
+  {
+    slug: "serialization-json-telemetry-v1",
+    title: "JSON Telemetry Pipeline",
+    category: "Serialization",
+    workerScript: null,
+    route: "/demos/serialization.json-telemetry.v1/",
+    description:
+      "Parses nested multilingual events, runs fixed aggregates, and serializes a canonical summary.",
+    explanation: "Streaming JSON tokenizer, tree construction, and canonical re-serialization.",
+  },
+  {
+    slug: "server-ssr-template-v1",
+    title: "Template & SSR Endpoint",
+    category: "Server & SSR",
+    workerScript: null,
+    route: "/demos/server.ssr-template.v1/",
+    description: "Renders 1,000 personalized catalog HTML responses from a template engine.",
+    explanation:
+      "String interpolation, partial composition, and HTML escaping at server-render scale.",
+  },
+  {
+    slug: "text-gc-document-edit-v1",
+    title: "GC-Rich Document Editor",
+    category: "Text & Parsing",
+    workerScript: null,
+    route: "/demos/text.gc-document-edit.v1/",
+    description: "Parses a tree and executes 10,000 insert, delete, and reparent operations.",
+    explanation: "Piece-table or rope-based document model with garbage-collection-aware editing.",
+  },
 ];
 
 // Execute workload for N iterations, measuring first (cold) vs subsequent (warm) iterations
