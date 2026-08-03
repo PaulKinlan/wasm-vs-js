@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "recordId": "tooling-minify-format-javascript-controlled-validation-v1",
+  "baseWorkloadId": "tooling.minify-format.v1",
+  "target": "javascript-controlled",
+  "status": "validation-package",
+  "authoritativePerformanceEvidence": false,
+  "catalogV1Sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+  "fixtureManifestSha256": "db0f8c0c4f1b14a98b1af07b0ddb7dfe73b0c8c437df452c4b735a737c23d37c",
+  "artifactSha256": null,
+  "cells": [
+    {
+      "language": "javascript",
+      "operation": "minify",
+      "inputBytes": 1747626,
+      "outputBytes": 1269776,
+      "outputSha256": "23094e6677aff84d627fc31fb0c6c4206ea41cdd0ca8f8289e988ae29b0f2b87",
+      "counters": {
+        "inputBytes": 1747626,
+        "outputBytes": 1269776,
+        "tokens": 297584,
+        "nodes": 85024,
+        "transforms": 42513,
+        "allocations": 2,
+        "boundaryCrossings": 0
+      }
+    },
+    {
+      "language": "javascript",
+      "operation": "format",
+      "inputBytes": 1747626,
+      "outputBytes": 1418568,
+      "outputSha256": "26f28007812ed2aecf578940dbfbe6c5bc185012436f2bd03d039a7ca7c7aee5",
+      "counters": {
+        "inputBytes": 1747626,
+        "outputBytes": 1418568,
+        "tokens": 297584,
+        "nodes": 85024,
+        "transforms": 127537,
+        "allocations": 2,
+        "boundaryCrossings": 0
+      }
+    },
+    {
+      "language": "css",
+      "operation": "minify",
+      "inputBytes": 1747626,
+      "outputBytes": 1325592,
+      "outputSha256": "022de35a736c17286d905070b9ee8b5ae6241db9cd4f2c507ab054d6c9b80451",
+      "counters": {
+        "inputBytes": 1747626,
+        "outputBytes": 1325592,
+        "tokens": 474329,
+        "nodes": 103115,
+        "transforms": 20624,
+        "allocations": 2,
+        "boundaryCrossings": 0
+      }
+    },
+    {
+      "language": "css",
+      "operation": "format",
+      "inputBytes": 1747626,
+      "outputBytes": 1573068,
+      "outputSha256": "38d2f2003dfdd75d7358c0f0f79f5daa4b970fde5c70965b265778ee492a194a",
+      "counters": {
+        "inputBytes": 1747626,
+        "outputBytes": 1573068,
+        "tokens": 474329,
+        "nodes": 103115,
+        "transforms": 123739,
+        "allocations": 2,
+        "boundaryCrossings": 0
+      }
+    },
+    {
+      "language": "html",
+      "operation": "minify",
+      "inputBytes": 1747628,
+      "outputBytes": 1467644,
+      "outputSha256": "2fc132ade7d30739c3893d2e461c8b98d06a00495f8fba513a792a3a6b18228e",
+      "counters": {
+        "inputBytes": 1747628,
+        "outputBytes": 1467644,
+        "tokens": 527568,
+        "nodes": 109152,
+        "transforms": 18193,
+        "allocations": 2,
+        "boundaryCrossings": 0
+      }
+    },
+    {
+      "language": "html",
+      "operation": "format",
+      "inputBytes": 1747628,
+      "outputBytes": 1904252,
+      "outputSha256": "1b885bed9508179fce3a782426f9f110916c7aa93053a6247f744458415fa025",
+      "counters": {
+        "inputBytes": 1747628,
+        "outputBytes": 1904252,
+        "tokens": 527568,
+        "nodes": 109152,
+        "transforms": 127345,
+        "allocations": 2,
+        "boundaryCrossings": 0
+      }
+    }
+  ]
+}
