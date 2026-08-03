@@ -409,7 +409,7 @@ Deno.test("bracket routes are closed, typed and mutation-safe", async () => {
   );
 });
 
-Deno.test("pinned bracket builder reproduces artifacts and records byte-identically", async () => {
+Deno.test("pinned bracket builder and extracted source bundle reproduce independently", async () => {
   const paths = [
     "public/artifacts/base-cad-parametric-bracket/bracket.wasm",
     "public/artifacts/base-cad-parametric-bracket/fixture.bin",
@@ -448,6 +448,7 @@ Deno.test("pinned bracket builder reproduces artifacts and records byte-identica
   const bundle = await Deno.readTextFile(
     "public/artifacts/base-cad-parametric-bracket/source-bundle.txt",
   );
+  const retainedFiles = new Map<string, string>();
   for (const file of build.source.files) {
     const start = `===== BEGIN ${file.path} sha256=${file.sha256} =====\n`;
     const end = `===== END ${file.path} =====\n`;
@@ -456,6 +457,61 @@ Deno.test("pinned bracket builder reproduces artifacts and records byte-identica
     assert(startIndex >= 0 && endIndex > startIndex, `missing bundled content for ${file.path}`);
     const content = bundle.slice(startIndex + start.length, endIndex);
     assertEquals(await sha256Hex(new TextEncoder().encode(content)), file.sha256);
+    retainedFiles.set(file.path, content);
+  }
+  assertEquals([...retainedFiles.keys()], [
+    "lib/canonical.ts",
+    "benchmarks/base/cad-parametric-bracket/contract.js",
+    "benchmarks/base/cad-parametric-bracket/fixture.js",
+    "benchmarks/base/cad-parametric-bracket/engine.js",
+    "benchmarks/base/cad-parametric-bracket/bracket.c",
+    "scripts/reproduce-base-cad-parametric-bracket.ts",
+  ]);
+
+  const extractedRoot = await Deno.makeTempDir({ prefix: "cad-bracket-retained-source-" });
+  try {
+    const initialEntries: string[] = [];
+    for await (const entry of Deno.readDir(extractedRoot)) initialEntries.push(entry.name);
+    assertEquals(initialEntries, []);
+    for (const [path, content] of retainedFiles) {
+      assert(!path.startsWith("/") && !path.split("/").includes(".."), `unsafe path ${path}`);
+      const destination = `${extractedRoot}/${path}`;
+      await Deno.mkdir(destination.slice(0, destination.lastIndexOf("/")), { recursive: true });
+      await Deno.writeTextFile(destination, content);
+    }
+    const reproduction = await new Deno.Command(Deno.execPath(), {
+      args: [
+        "run",
+        "--cached-only",
+        "--no-config",
+        "--allow-read=.",
+        "--allow-write=reproduced",
+        "--allow-run=clang,wasm-ld",
+        "scripts/reproduce-base-cad-parametric-bracket.ts",
+      ],
+      cwd: extractedRoot,
+      stdout: "piped",
+      stderr: "piped",
+    }).output();
+    assert(reproduction.success, new TextDecoder().decode(reproduction.stderr));
+    const summary = JSON.parse(new TextDecoder().decode(reproduction.stdout));
+    assertEquals(summary.exactCrossTargetBytes, true);
+    assertEquals(summary.completeOutputDigest, "d60fbade9eff2ffb");
+    for (
+      const [reproduced, published] of [
+        ["fixture.bin", build.artifacts.fixture],
+        ["bracket.wasm", build.artifacts.wasm],
+        ["reference-output.bin", build.artifacts.referenceOutput],
+      ] as const
+    ) {
+      const bytes = await Deno.readFile(
+        `${extractedRoot}/reproduced/base-cad-parametric-bracket/${reproduced}`,
+      );
+      assertEquals(bytes.byteLength, published.bytes);
+      assertEquals(await sha256Hex(bytes), published.sha256);
+    }
+  } finally {
+    await Deno.remove(extractedRoot, { recursive: true });
   }
 });
 

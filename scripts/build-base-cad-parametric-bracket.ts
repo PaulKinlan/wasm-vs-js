@@ -73,20 +73,12 @@ async function ref(path: string) {
   return { path, bytes: bytes.byteLength, sha256: await sha256Hex(bytes) };
 }
 const sourcePaths = [
+  "lib/canonical.ts",
   "benchmarks/base/cad-parametric-bracket/contract.js",
   "benchmarks/base/cad-parametric-bracket/fixture.js",
   "benchmarks/base/cad-parametric-bracket/engine.js",
   "benchmarks/base/cad-parametric-bracket/bracket.c",
-  "catalog/base-implementations.v1/cad.parametric-bracket.v1.json",
-  "schemas/cad-parametric-bracket-validation.schema.json",
-  "scripts/build-base-cad-parametric-bracket.ts",
-  "public/demos/cad-parametric-bracket/index.html",
-  "public/demos/cad-parametric-bracket/demo.js",
-  "public/demos/cad-parametric-bracket/worker.js",
-  "tests/base/cad-parametric-bracket.test.ts",
-  "server.ts",
-  "deno.json",
-  "deno.lock",
+  "scripts/reproduce-base-cad-parametric-bracket.ts",
 ];
 const sourceFiles = await Promise.all(sourcePaths.map(ref));
 const sourceBundleParts: string[] = [];
@@ -166,6 +158,8 @@ await Deno.writeTextFile(
         build: {
           command:
             "deno run --allow-read=. --allow-write=public/artifacts/base-cad-parametric-bracket,public/evidence/base-catalog/cad-parametric-bracket --allow-run=git,clang,wasm-ld scripts/build-base-cad-parametric-bracket.ts --source-commit=<commit>",
+          reproductionCommand:
+            "deno run --cached-only --no-config --allow-read=. --allow-write=reproduced --allow-run=clang,wasm-ld scripts/reproduce-base-cad-parametric-bracket.ts",
           toolchain: { deno: Deno.version.deno, clang, linker },
           compilerFlags: [
             "--target=wasm32-unknown-unknown",
