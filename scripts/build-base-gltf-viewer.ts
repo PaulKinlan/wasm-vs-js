@@ -248,8 +248,14 @@ const fixtureManifest = {
   immutable: true,
   sourceModel: {
     name: "Avocado",
-    repository: "KhronosGroup/glTF-Sample-Assets",
-    revision: "main pinned by individual byte hashes",
+    repository: "https://github.com/KhronosGroup/glTF-Sample-Assets",
+    revision: "5bad5aaa0bbb5d0f9cdc934e626f27d0df1e79b8",
+    paths: {
+      gltf: "Models/Avocado/glTF-Draco/Avocado.gltf",
+      draco: "Models/Avocado/glTF-Draco/Avocado.bin",
+      baseColor: "Models/Avocado/glTF-Draco/Avocado_baseColor.png",
+      license: "Models/Avocado/LICENSE.md",
+    },
     license: "CC0-1.0",
     rightsAudit:
       "Model README and LICENSE identify all model-associated binary, image and text files as CC0-1.0.",
