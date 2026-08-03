@@ -150,6 +150,54 @@ const routes = new Map<string, [string, string, boolean?]>([
     "benchmarks/v2/game-family/fixtures.js",
     "text/javascript; charset=utf-8",
   ]],
+  ["/benchmarks/base/audio-webaudio-effects-v1", [
+    "public/benchmarks/base/audio-webaudio-effects-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/base/audio-webaudio-effects-v1/", [
+    "public/benchmarks/base/audio-webaudio-effects-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/base-audio-effects-demo.js", [
+    "public/base-audio-effects-demo.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/base-audio-effects-worker.js", [
+    "public/base-audio-effects-worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/audio-webaudio-effects/workload.js", [
+    "benchmarks/base/audio-webaudio-effects/workload.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/artifacts/base-audio-webaudio-effects-v1/audio-webaudio-effects.wasm", [
+    "public/artifacts/base-audio-webaudio-effects-v1/audio-webaudio-effects.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/base-audio-webaudio-effects-v1/build-manifest.json", [
+    "public/artifacts/base-audio-webaudio-effects-v1/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/base-audio-webaudio-effects-v1/fixture-manifest.json", [
+    "public/artifacts/base-audio-webaudio-effects-v1/fixture-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/base-audio-webaudio-effects-v1/output-manifest.json", [
+    "public/artifacts/base-audio-webaudio-effects-v1/output-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base/audio-webaudio-effects-v1/javascript-controlled.json", [
+    "public/evidence/base/audio-webaudio-effects-v1/javascript-controlled.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base/audio-webaudio-effects-v1/wasm-linear-controlled.json", [
+    "public/evidence/base/audio-webaudio-effects-v1/wasm-linear-controlled.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/schemas/audio-webaudio-effects-base.schema.json", [
+    "schemas/audio-webaudio-effects-base.schema.json",
+    "application/schema+json; charset=utf-8",
+  ]],
   ["/workload-catalog.js", ["public/workload-catalog.js", "text/javascript; charset=utf-8"]],
   ["/demos/text.diff-patch.v1", [
     "public/demos/text.diff-patch.v1/index.html",

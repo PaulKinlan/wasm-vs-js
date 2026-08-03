@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.paulkinlan-ea.deno.net/schemas/audio-webaudio-effects-base.schema.json",
+  "title": "audio.webaudio-effects.v1 supplemental implementation and correctness records",
+  "oneOf": [
+    { "$ref": "#/$defs/registration" },
+    { "$ref": "#/$defs/correctnessRecord" }
+  ],
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "registration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "kind",
+        "status",
+        "authoritativePerformanceEvidence",
+        "frozenCatalog",
+        "implementation",
+        "artifacts",
+        "demoRoute"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "kind": { "const": "base-workload-implementation-registration" },
+        "status": { "const": "implementation-candidate-independent-review-required" },
+        "authoritativePerformanceEvidence": { "const": false },
+        "frozenCatalog": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "entryId", "sha256"],
+          "properties": {
+            "id": { "const": "workload-catalog-v1" },
+            "entryId": { "const": "audio.webaudio-effects.v1" },
+            "sha256": { "$ref": "#/$defs/sha256" }
+          }
+        },
+        "implementation": { "type": "object" },
+        "artifacts": { "type": "object" },
+        "demoRoute": { "const": "/benchmarks/base/audio-webaudio-effects-v1/" }
+      }
+    },
+    "correctnessRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "kind",
+        "status",
+        "authoritativePerformanceEvidence",
+        "entryId",
+        "implementationId",
+        "target",
+        "sourceCommit",
+        "completeOutputSha256",
+        "oracle",
+        "counters",
+        "artifactSha256",
+        "limitations"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "kind": { "const": "base-workload-correctness-record" },
+        "status": { "const": "correctness-validation-only" },
+        "authoritativePerformanceEvidence": { "const": false },
+        "entryId": { "const": "audio.webaudio-effects.v1" },
+        "implementationId": { "const": "audio-webaudio-effects-controlled-v1" },
+        "target": { "enum": ["javascript", "wasm-linear"] },
+        "sourceCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+        "completeOutputSha256": { "$ref": "#/$defs/sha256" },
+        "oracle": { "type": "object" },
+        "counters": { "type": "object" },
+        "artifactSha256": { "$ref": "#/$defs/sha256" },
+        "limitations": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+      }
+    }
+  }
+}
