@@ -86,8 +86,16 @@ const output = outputArgument
   ? new URL(`${outputArgument.replace(/\/$/, "")}/`, root)
   : new URL("benchmarks/base/ml-keyword-spotting/", root);
 await Deno.mkdir(output, { recursive: true });
-await Deno.writeTextFile(new URL("constants.v1.js", output), js);
-await Deno.writeTextFile(new URL("constants.v1.h", output), header);
+const jsPath = new URL("constants.v1.js", output);
+const headerPath = new URL("constants.v1.h", output);
+await Deno.writeTextFile(jsPath, js);
+await Deno.writeTextFile(headerPath, header);
+const formatted = await new Deno.Command(Deno.execPath(), {
+  args: ["fmt", jsPath.pathname],
+  stdout: "null",
+  stderr: "piped",
+}).output();
+if (!formatted.success) throw new Error(new TextDecoder().decode(formatted.stderr));
 console.log(
   JSON.stringify({
     layers: [...layerByName.keys()],

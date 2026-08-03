@@ -168,6 +168,7 @@ Deno.test("generated DSP/model constants reproduce byte-for-byte", async () => {
         "run",
         "--allow-read=.",
         `--allow-write=${temp}`,
+        `--allow-run=${Deno.execPath()}`,
         "scripts/generate-base-ml-keyword-spotting-constants.ts",
         `--output-dir=${temp}`,
       ],
