@@ -18,6 +18,11 @@ const sourcePaths = [
   "benchmarks/base/tooling-c-to-wasm-compile/fixtures/RIGHTS.md",
   "scripts/base/build-tooling-c-to-wasm-compile.ts",
   "schemas/base/tooling-c-to-wasm-compile.schema.json",
+  "public/benchmarks/tooling-c-to-wasm-compile-v1/index.html",
+  "public/benchmarks/tooling-c-to-wasm-compile-v1/demo.js",
+  "public/benchmarks/tooling-c-to-wasm-compile-v1/worker.js",
+  "tests/base/tooling-c-to-wasm-compile.test.ts",
+  "server.ts",
   "deno.json",
   "deno.lock",
 ];
@@ -34,6 +39,17 @@ async function commandVersion(command: string, args: string[]): Promise<string> 
     .output();
   if (!output.success) throw new Error(`${command} version probe failed`);
   return new TextDecoder().decode(output.stdout).trim().split("\n")[0];
+}
+
+async function committedBytes(path: string): Promise<Uint8Array> {
+  const output = await new Deno.Command("git", {
+    args: ["show", `${sourceCommit}:${path}`],
+    cwd: root,
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  if (!output.success) throw new Error(`source commit does not contain ${path}`);
+  return output.stdout;
 }
 
 await Deno.mkdir(artifacts, { recursive: true });
@@ -242,7 +258,12 @@ try {
   const sources = [];
   for (const path of sourcePaths) {
     const bytes = await Deno.readFile(new URL(path, root));
-    sources.push({ path, bytes: bytes.byteLength, sha256: await sha256Hex(bytes) });
+    const committed = await committedBytes(path);
+    const diskHash = await sha256Hex(bytes);
+    if (await sha256Hex(committed) !== diskHash) {
+      throw new Error(`source path drifted from ${sourceCommit}: ${path}`);
+    }
+    sources.push({ path, bytes: bytes.byteLength, sha256: diskHash });
   }
   const fixtureManifest = {
     schemaVersion: 1,
@@ -279,7 +300,7 @@ try {
       },
     },
     command:
-      "SOURCE_COMMIT=$(git rev-parse HEAD) deno run --allow-env=SOURCE_COMMIT --allow-read=. --allow-write=public/artifacts/base/tooling-c-to-wasm-compile,public/evidence/base/tooling-c-to-wasm-compile --allow-run=clang scripts/base/build-tooling-c-to-wasm-compile.ts",
+      "SOURCE_COMMIT=$(cat benchmarks/base/tooling-c-to-wasm-compile/source-commit.txt) deno run --allow-env=SOURCE_COMMIT --allow-read=. --allow-write=public/artifacts/base/tooling-c-to-wasm-compile,public/evidence/base/tooling-c-to-wasm-compile --allow-run=clang,wasm-ld,git scripts/base/build-tooling-c-to-wasm-compile.ts",
     toolchain: {
       deno: Deno.version.deno,
       clang: await commandVersion("clang", ["--version"]),
