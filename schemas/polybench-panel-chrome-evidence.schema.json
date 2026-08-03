@@ -1,0 +1,1729 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.ai-focus.dev/schemas/polybench-panel-chrome-evidence.v1.json",
+  "title": "Numeric PolyBench panel Chrome acceptance evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "evidenceId",
+    "collectedAt",
+    "source",
+    "collectionCommand",
+    "browser",
+    "server",
+    "scenarios",
+    "cleanup"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "evidenceId": {
+      "const": "numeric-polybench-panel-chrome-150-acceptance-v1"
+    },
+    "collectedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source": {
+      "$ref": "#/$defs/source"
+    },
+    "collectionCommand": {
+      "type": "string",
+      "pattern": "^deno run -A scripts/collect-polybench-panel-chrome-evidence\\.ts --source-commit=[a-f0-9]{40} --chrome=\\S+$"
+    },
+    "browser": {
+      "$ref": "#/$defs/browser"
+    },
+    "server": {
+      "$ref": "#/$defs/server"
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "prefixItems": [
+        {
+          "$ref": "#/$defs/javascriptExecution"
+        },
+        {
+          "$ref": "#/$defs/wasmExecution"
+        },
+        {
+          "$ref": "#/$defs/wrongToken"
+        },
+        {
+          "$ref": "#/$defs/staleMessage"
+        },
+        {
+          "$ref": "#/$defs/restart"
+        },
+        {
+          "$ref": "#/$defs/cancel"
+        },
+        {
+          "$ref": "#/$defs/timeout"
+        },
+        {
+          "$ref": "#/$defs/pagehide"
+        }
+      ],
+      "items": false
+    },
+    "cleanup": {
+      "$ref": "#/$defs/cleanup"
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "gitIdentity": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "bytes",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^evidence/base/numeric-polybench-panel/chrome-acceptance/(accessibility/[a-z0-9-]+\\.json|screenshots/[a-z0-9-]+\\.png)$"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "sourceFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "bytes",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "enum": [
+            "public/demos/numeric.polybench-panel.v1/index.html",
+            "public/polybench-panel-demo.js",
+            "public/polybench-panel-worker.js",
+            "benchmarks/base/numeric-polybench-panel/workload.js",
+            "public/artifacts/numeric-polybench-panel/polybench-panel.wasm",
+            "public/artifacts/numeric-polybench-panel/build-manifest.json",
+            "public/artifacts/numeric-polybench-panel/outputs/gemm.reference.f64le",
+            "public/artifacts/numeric-polybench-panel/outputs/gemm.javascript-controlled.f64le",
+            "public/artifacts/numeric-polybench-panel/outputs/gemm.linear-wasm-controlled.f64le",
+            "public/artifacts/numeric-polybench-panel/outputs/cholesky.reference.f64le",
+            "public/artifacts/numeric-polybench-panel/outputs/cholesky.javascript-controlled.f64le",
+            "public/artifacts/numeric-polybench-panel/outputs/cholesky.linear-wasm-controlled.f64le",
+            "public/artifacts/numeric-polybench-panel/outputs/stencil.reference.f64le",
+            "public/artifacts/numeric-polybench-panel/outputs/stencil.javascript-controlled.f64le",
+            "public/artifacts/numeric-polybench-panel/outputs/stencil.linear-wasm-controlled.f64le",
+            "public/artifacts/numeric-polybench-panel/outputs/jacobi2d.reference.f64le",
+            "public/artifacts/numeric-polybench-panel/outputs/jacobi2d.javascript-controlled.f64le",
+            "public/artifacts/numeric-polybench-panel/outputs/jacobi2d.linear-wasm-controlled.f64le",
+            "evidence/base/numeric-polybench-panel/correctness-record.json",
+            "scripts/collect-polybench-panel-chrome-evidence.ts",
+            "schemas/polybench-panel-chrome-evidence.schema.json",
+            "tests/base/polybench-panel-chrome-collector.test.ts"
+          ]
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "commit",
+        "head",
+        "tree",
+        "cleanAtStart",
+        "statusPorcelain",
+        "files",
+        "buildManifest"
+      ],
+      "properties": {
+        "commit": {
+          "$ref": "#/$defs/gitIdentity"
+        },
+        "head": {
+          "$ref": "#/$defs/gitIdentity"
+        },
+        "tree": {
+          "$ref": "#/$defs/gitIdentity"
+        },
+        "cleanAtStart": {
+          "const": true
+        },
+        "statusPorcelain": {
+          "const": ""
+        },
+        "files": {
+          "type": "array",
+          "minItems": 22,
+          "maxItems": 22,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/sourceFile"
+          }
+        },
+        "buildManifest": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "sha256",
+            "implementationCommit",
+            "sourceTreeSha256"
+          ],
+          "properties": {
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "implementationCommit": {
+              "$ref": "#/$defs/gitIdentity"
+            },
+            "sourceTreeSha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        }
+      }
+    },
+    "executable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requestedPath",
+        "realPath",
+        "bytes",
+        "sha256"
+      ],
+      "properties": {
+        "requestedPath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "realPath": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "browser": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "product",
+        "revision",
+        "userAgent",
+        "jsVersion",
+        "protocolVersion",
+        "executable",
+        "launchArguments",
+        "headless",
+        "protocol",
+        "host"
+      ],
+      "properties": {
+        "product": {
+          "const": "Chrome/150.0.7871.24"
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "userAgent": {
+          "type": "string",
+          "minLength": 1
+        },
+        "jsVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "protocolVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "executable": {
+          "$ref": "#/$defs/executable"
+        },
+        "launchArguments": {
+          "type": "array",
+          "minItems": 17,
+          "maxItems": 17,
+          "uniqueItems": true,
+          "contains": {
+            "const": "--headless=new"
+          },
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "headless": {
+          "const": true
+        },
+        "protocol": {
+          "const": "Chrome DevTools Protocol"
+        },
+        "host": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "operatingSystem",
+            "denoOs",
+            "denoArch"
+          ],
+          "properties": {
+            "operatingSystem": {
+              "type": "string",
+              "minLength": 1
+            },
+            "denoOs": {
+              "type": "string",
+              "minLength": 1
+            },
+            "denoArch": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "server": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "origin",
+        "mode",
+        "launcherPid"
+      ],
+      "properties": {
+        "origin": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+$"
+        },
+        "mode": {
+          "const": "public"
+        },
+        "launcherPid": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "comparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "passed",
+        "violations",
+        "maxAbs",
+        "maxRel"
+      ],
+      "properties": {
+        "passed": {
+          "const": true
+        },
+        "violations": {
+          "const": 0
+        },
+        "maxAbs": {
+          "type": "number",
+          "minimum": 0
+        },
+        "maxRel": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "structuralOracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "passed",
+        "failures"
+      ],
+      "properties": {
+        "passed": {
+          "const": true
+        },
+        "failures": {
+          "type": "array",
+          "maxItems": 0
+        }
+      }
+    },
+    "checkpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "index",
+        "valueHex"
+      ],
+      "properties": {
+        "index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "valueHex": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{16}$"
+        }
+      }
+    },
+    "completeOutput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "file",
+        "route",
+        "bytes",
+        "elements",
+        "sha256",
+        "format"
+      ],
+      "properties": {
+        "file": {
+          "type": "string",
+          "pattern": "^public/artifacts/numeric-polybench-panel/outputs/(gemm|cholesky|stencil|jacobi2d)\\.(javascript-controlled|linear-wasm-controlled)\\.f64le$"
+        },
+        "route": {
+          "type": "string",
+          "pattern": "^/artifacts/numeric-polybench-panel/outputs/(gemm|cholesky|stencil|jacobi2d)\\.(javascript-controlled|linear-wasm-controlled)\\.f64le$"
+        },
+        "bytes": {
+          "enum": [
+            4000,
+            7200,
+            12800
+          ]
+        },
+        "elements": {
+          "enum": [
+            500,
+            900,
+            1600
+          ]
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "format": {
+          "const": "f64le-complete-output"
+        }
+      }
+    },
+    "gemmCounters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target",
+        "boundaryCrossings",
+        "wasmLinearAllocations",
+        "kernels",
+        "outputElements",
+        "outputBytes",
+        "multiplyAdds",
+        "scaleMultiplications",
+        "inputBytes",
+        "typedArrayAllocations"
+      ],
+      "properties": {
+        "target": {
+          "enum": [
+            "javascript-controlled",
+            "linear-wasm-controlled"
+          ]
+        },
+        "boundaryCrossings": {
+          "enum": [
+            0,
+            1
+          ]
+        },
+        "wasmLinearAllocations": {
+          "const": 0
+        },
+        "kernels": {
+          "const": 1
+        },
+        "outputElements": {
+          "const": 500
+        },
+        "outputBytes": {
+          "const": 4000
+        },
+        "multiplyAdds": {
+          "const": 15000
+        },
+        "scaleMultiplications": {
+          "const": 500
+        },
+        "inputBytes": {
+          "const": 14800
+        },
+        "typedArrayAllocations": {
+          "enum": [
+            4,
+            8
+          ]
+        }
+      }
+    },
+    "choleskyCounters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target",
+        "boundaryCrossings",
+        "wasmLinearAllocations",
+        "kernels",
+        "outputElements",
+        "outputBytes",
+        "multiplySubtracts",
+        "divisions",
+        "diagonalRoots",
+        "inputBytes",
+        "typedArrayAllocations"
+      ],
+      "properties": {
+        "target": {
+          "enum": [
+            "javascript-controlled",
+            "linear-wasm-controlled"
+          ]
+        },
+        "boundaryCrossings": {
+          "enum": [
+            0,
+            1
+          ]
+        },
+        "wasmLinearAllocations": {
+          "const": 0
+        },
+        "kernels": {
+          "const": 1
+        },
+        "outputElements": {
+          "const": 1600
+        },
+        "outputBytes": {
+          "const": 12800
+        },
+        "multiplySubtracts": {
+          "const": 10660
+        },
+        "divisions": {
+          "const": 780
+        },
+        "diagonalRoots": {
+          "const": 40
+        },
+        "inputBytes": {
+          "const": 12800
+        },
+        "typedArrayAllocations": {
+          "enum": [
+            3,
+            5
+          ]
+        }
+      }
+    },
+    "stencilCounters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target",
+        "boundaryCrossings",
+        "wasmLinearAllocations",
+        "kernels",
+        "outputElements",
+        "outputBytes",
+        "stencilPoints",
+        "sampleReads",
+        "outputWrites",
+        "inputBytes",
+        "typedArrayAllocations"
+      ],
+      "properties": {
+        "target": {
+          "enum": [
+            "javascript-controlled",
+            "linear-wasm-controlled"
+          ]
+        },
+        "boundaryCrossings": {
+          "enum": [
+            0,
+            1
+          ]
+        },
+        "wasmLinearAllocations": {
+          "const": 0
+        },
+        "kernels": {
+          "const": 1
+        },
+        "outputElements": {
+          "const": 900
+        },
+        "outputBytes": {
+          "const": 7200
+        },
+        "stencilPoints": {
+          "const": 784
+        },
+        "sampleReads": {
+          "const": 3920
+        },
+        "outputWrites": {
+          "const": 784
+        },
+        "inputBytes": {
+          "const": 14400
+        },
+        "typedArrayAllocations": {
+          "enum": [
+            3,
+            6
+          ]
+        }
+      }
+    },
+    "jacobiCounters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target",
+        "boundaryCrossings",
+        "wasmLinearAllocations",
+        "kernels",
+        "outputElements",
+        "outputBytes",
+        "stencilPoints",
+        "sampleReads",
+        "outputWrites",
+        "inputBytes",
+        "typedArrayAllocations"
+      ],
+      "properties": {
+        "target": {
+          "enum": [
+            "javascript-controlled",
+            "linear-wasm-controlled"
+          ]
+        },
+        "boundaryCrossings": {
+          "enum": [
+            0,
+            1
+          ]
+        },
+        "wasmLinearAllocations": {
+          "const": 0
+        },
+        "kernels": {
+          "const": 1
+        },
+        "outputElements": {
+          "const": 900
+        },
+        "outputBytes": {
+          "const": 7200
+        },
+        "stencilPoints": {
+          "const": 31360
+        },
+        "sampleReads": {
+          "const": 156800
+        },
+        "outputWrites": {
+          "const": 31360
+        },
+        "inputBytes": {
+          "const": 14400
+        },
+        "typedArrayAllocations": {
+          "enum": [
+            4,
+            6
+          ]
+        }
+      }
+    },
+    "resultBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kernel",
+        "target",
+        "outputSha256",
+        "comparison",
+        "structuralOracle",
+        "checkpoints",
+        "counters",
+        "completeOutputArtifact"
+      ],
+      "properties": {
+        "kernel": {
+          "enum": [
+            "gemm",
+            "cholesky",
+            "stencil",
+            "jacobi2d"
+          ]
+        },
+        "target": {
+          "enum": [
+            "javascript-controlled",
+            "linear-wasm-controlled"
+          ]
+        },
+        "outputSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "comparison": {
+          "$ref": "#/$defs/comparison"
+        },
+        "structuralOracle": {
+          "$ref": "#/$defs/structuralOracle"
+        },
+        "checkpoints": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "$ref": "#/$defs/checkpoint"
+          }
+        },
+        "counters": {
+          "type": "object"
+        },
+        "completeOutputArtifact": {
+          "$ref": "#/$defs/completeOutput"
+        }
+      }
+    },
+    "gemmResult": {
+      "$ref": "#/$defs/resultBase",
+      "properties": {
+        "kernel": {
+          "const": "gemm"
+        },
+        "counters": {
+          "$ref": "#/$defs/gemmCounters"
+        }
+      },
+      "type": "object"
+    },
+    "choleskyResult": {
+      "$ref": "#/$defs/resultBase",
+      "properties": {
+        "kernel": {
+          "const": "cholesky"
+        },
+        "counters": {
+          "$ref": "#/$defs/choleskyCounters"
+        }
+      },
+      "type": "object"
+    },
+    "stencilResult": {
+      "$ref": "#/$defs/resultBase",
+      "properties": {
+        "kernel": {
+          "const": "stencil"
+        },
+        "counters": {
+          "$ref": "#/$defs/stencilCounters"
+        }
+      },
+      "type": "object"
+    },
+    "jacobiResult": {
+      "$ref": "#/$defs/resultBase",
+      "properties": {
+        "kernel": {
+          "const": "jacobi2d"
+        },
+        "counters": {
+          "$ref": "#/$defs/jacobiCounters"
+        }
+      },
+      "type": "object"
+    },
+    "resultSet": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "prefixItems": [
+        {
+          "$ref": "#/$defs/gemmResult"
+        },
+        {
+          "$ref": "#/$defs/choleskyResult"
+        },
+        {
+          "$ref": "#/$defs/stencilResult"
+        },
+        {
+          "$ref": "#/$defs/jacobiResult"
+        }
+      ],
+      "items": false
+    },
+    "pageState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "output",
+        "startDisabled",
+        "cancelDisabled",
+        "progressValue",
+        "progressMax"
+      ],
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "output": {
+          "type": "string"
+        },
+        "startDisabled": {
+          "type": "boolean"
+        },
+        "cancelDisabled": {
+          "type": "boolean"
+        },
+        "progressValue": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 4
+        },
+        "progressMax": {
+          "enum": [
+            1,
+            4
+          ]
+        }
+      }
+    },
+    "lifecycleState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "output",
+        "startDisabled",
+        "cancelDisabled",
+        "progressValue",
+        "workers"
+      ],
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "output": {
+          "type": "string"
+        },
+        "startDisabled": {
+          "type": "boolean"
+        },
+        "cancelDisabled": {
+          "type": "boolean"
+        },
+        "progressValue": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "workers": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/workerState"
+          }
+        }
+      }
+    },
+    "workerState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "terminated",
+        "posted"
+      ],
+      "properties": {
+        "terminated": {
+          "type": "boolean"
+        },
+        "posted": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "token",
+            "target",
+            "kernel"
+          ],
+          "properties": {
+            "token": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "target": {
+              "enum": [
+                "javascript",
+                "wasm"
+              ]
+            },
+            "kernel": {
+              "enum": [
+                "all",
+                "gemm",
+                "cholesky",
+                "stencil",
+                "jacobi2d"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "lifecycleRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assertion",
+        "final"
+      ],
+      "properties": {
+        "assertion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ignored": {
+          "$ref": "#/$defs/lifecycleState"
+        },
+        "restarted": {
+          "$ref": "#/$defs/lifecycleState"
+        },
+        "final": {
+          "$ref": "#/$defs/lifecycleState"
+        }
+      }
+    },
+    "consoleEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "arguments"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "not": {
+            "const": "error"
+          }
+        },
+        "arguments": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "exception": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text",
+        "lineNumber"
+      ],
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "lineNumber": {
+          "type": "number"
+        }
+      }
+    },
+    "network": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "method",
+        "type",
+        "status",
+        "mimeType",
+        "fromDiskCache",
+        "fromServiceWorker",
+        "failed",
+        "errorText",
+        "encodedDataLength"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/"
+        },
+        "method": {
+          "const": "GET"
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "const": 200
+        },
+        "mimeType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fromDiskCache": {
+          "type": "boolean"
+        },
+        "fromServiceWorker": {
+          "const": false
+        },
+        "failed": {
+          "const": false
+        },
+        "errorText": {
+          "type": "null"
+        },
+        "encodedDataLength": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "accessibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fullTree",
+        "nodeCount",
+        "required",
+        "violations"
+      ],
+      "properties": {
+        "fullTree": {
+          "$ref": "#/$defs/artifact"
+        },
+        "nodeCount": {
+          "type": "integer",
+          "minimum": 6
+        },
+        "required": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/axStart"
+            },
+            {
+              "$ref": "#/$defs/axCancel"
+            },
+            {
+              "$ref": "#/$defs/axTarget"
+            },
+            {
+              "$ref": "#/$defs/axKernel"
+            },
+            {
+              "$ref": "#/$defs/axProgress"
+            },
+            {
+              "$ref": "#/$defs/axStatus"
+            }
+          ],
+          "items": false
+        },
+        "violations": {
+          "type": "array",
+          "maxItems": 0
+        }
+      }
+    },
+    "axStart": {
+      "$ref": "#/$defs/axNode",
+      "properties": {
+        "role": {
+          "const": "button"
+        },
+        "name": {
+          "const": "Start"
+        }
+      },
+      "type": "object"
+    },
+    "axCancel": {
+      "$ref": "#/$defs/axNode",
+      "properties": {
+        "role": {
+          "const": "button"
+        },
+        "name": {
+          "const": "Cancel"
+        }
+      },
+      "type": "object"
+    },
+    "axTarget": {
+      "$ref": "#/$defs/axNode",
+      "properties": {
+        "role": {
+          "const": "combobox"
+        },
+        "name": {
+          "const": "Controlled target"
+        }
+      },
+      "type": "object"
+    },
+    "axKernel": {
+      "$ref": "#/$defs/axNode",
+      "properties": {
+        "role": {
+          "const": "combobox"
+        },
+        "name": {
+          "const": "Kernel"
+        }
+      },
+      "type": "object"
+    },
+    "axProgress": {
+      "$ref": "#/$defs/axNode",
+      "properties": {
+        "role": {
+          "const": "progressbar"
+        },
+        "name": {
+          "const": "Completed kernels"
+        }
+      },
+      "type": "object"
+    },
+    "axStatus": {
+      "$ref": "#/$defs/axNode",
+      "properties": {
+        "role": {
+          "const": "status"
+        },
+        "name": {
+          "const": ""
+        }
+      },
+      "type": "object"
+    },
+    "axNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "name",
+        "found"
+      ],
+      "properties": {
+        "role": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "found": {
+          "const": true
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "route",
+        "target",
+        "finalState",
+        "rawResultText",
+        "rawResultTextSha256",
+        "results",
+        "lifecycle",
+        "console",
+        "exceptions",
+        "network",
+        "accessibility",
+        "screenshot"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "execution",
+            "lifecycle"
+          ]
+        },
+        "route": {
+          "const": "/demos/numeric.polybench-panel.v1/"
+        },
+        "target": {
+          "enum": [
+            "javascript-controlled",
+            "linear-wasm-controlled",
+            null
+          ]
+        },
+        "finalState": {
+          "$ref": "#/$defs/pageState"
+        },
+        "rawResultText": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rawResultTextSha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "results": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/resultSet"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "lifecycle": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/lifecycleRecord"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "console": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/consoleEntry"
+          }
+        },
+        "exceptions": {
+          "type": "array",
+          "maxItems": 0,
+          "items": {
+            "$ref": "#/$defs/exception"
+          }
+        },
+        "network": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "$ref": "#/$defs/network"
+          }
+        },
+        "accessibility": {
+          "$ref": "#/$defs/accessibility"
+        },
+        "screenshot": {
+          "$ref": "#/$defs/artifact"
+        }
+      }
+    },
+    "javascriptExecution": {
+      "$ref": "#/$defs/scenario",
+      "properties": {
+        "id": {
+          "const": "execute-javascript-all"
+        },
+        "kind": {
+          "const": "execution"
+        },
+        "target": {
+          "const": "javascript-controlled"
+        },
+        "rawResultText": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rawResultTextSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "results": {
+          "$ref": "#/$defs/resultSet"
+        },
+        "lifecycle": {
+          "type": "null"
+        }
+      },
+      "type": "object"
+    },
+    "wasmExecution": {
+      "$ref": "#/$defs/scenario",
+      "properties": {
+        "id": {
+          "const": "execute-wasm-all"
+        },
+        "kind": {
+          "const": "execution"
+        },
+        "target": {
+          "const": "linear-wasm-controlled"
+        },
+        "rawResultText": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rawResultTextSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "results": {
+          "$ref": "#/$defs/resultSet"
+        },
+        "lifecycle": {
+          "type": "null"
+        }
+      },
+      "type": "object"
+    },
+    "wrongToken": {
+      "$ref": "#/$defs/scenario",
+      "properties": {
+        "id": {
+          "const": "lifecycle-wrong-token"
+        },
+        "kind": {
+          "const": "lifecycle"
+        },
+        "target": {
+          "type": "null"
+        },
+        "rawResultText": {
+          "type": "null"
+        },
+        "rawResultTextSha256": {
+          "type": "null"
+        },
+        "results": {
+          "type": "null"
+        },
+        "lifecycle": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/lifecycleRecord"
+            },
+            {
+              "type": "object",
+              "required": [
+                "assertion",
+                "ignored",
+                "final"
+              ],
+              "properties": {
+                "assertion": true,
+                "ignored": true,
+                "final": true
+              }
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "staleMessage": {
+      "$ref": "#/$defs/scenario",
+      "properties": {
+        "id": {
+          "const": "lifecycle-stale-message"
+        },
+        "kind": {
+          "const": "lifecycle"
+        },
+        "target": {
+          "type": "null"
+        },
+        "rawResultText": {
+          "type": "null"
+        },
+        "rawResultTextSha256": {
+          "type": "null"
+        },
+        "results": {
+          "type": "null"
+        },
+        "lifecycle": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/lifecycleRecord"
+            },
+            {
+              "type": "object",
+              "required": [
+                "assertion",
+                "ignored",
+                "final"
+              ],
+              "properties": {
+                "assertion": true,
+                "ignored": true,
+                "final": true
+              }
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "restart": {
+      "$ref": "#/$defs/scenario",
+      "properties": {
+        "id": {
+          "const": "lifecycle-restart"
+        },
+        "kind": {
+          "const": "lifecycle"
+        },
+        "target": {
+          "type": "null"
+        },
+        "rawResultText": {
+          "type": "null"
+        },
+        "rawResultTextSha256": {
+          "type": "null"
+        },
+        "results": {
+          "type": "null"
+        },
+        "lifecycle": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/lifecycleRecord"
+            },
+            {
+              "type": "object",
+              "required": [
+                "assertion",
+                "restarted",
+                "final"
+              ],
+              "properties": {
+                "assertion": true,
+                "restarted": true,
+                "final": true
+              }
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "cancel": {
+      "$ref": "#/$defs/scenario",
+      "properties": {
+        "id": {
+          "const": "lifecycle-cancel"
+        },
+        "kind": {
+          "const": "lifecycle"
+        },
+        "target": {
+          "type": "null"
+        },
+        "rawResultText": {
+          "type": "null"
+        },
+        "rawResultTextSha256": {
+          "type": "null"
+        },
+        "results": {
+          "type": "null"
+        },
+        "lifecycle": {
+          "$ref": "#/$defs/lifecycleRecord"
+        }
+      },
+      "type": "object"
+    },
+    "timeout": {
+      "$ref": "#/$defs/scenario",
+      "properties": {
+        "id": {
+          "const": "lifecycle-timeout"
+        },
+        "kind": {
+          "const": "lifecycle"
+        },
+        "target": {
+          "type": "null"
+        },
+        "rawResultText": {
+          "type": "null"
+        },
+        "rawResultTextSha256": {
+          "type": "null"
+        },
+        "results": {
+          "type": "null"
+        },
+        "lifecycle": {
+          "$ref": "#/$defs/lifecycleRecord"
+        }
+      },
+      "type": "object"
+    },
+    "pagehide": {
+      "$ref": "#/$defs/scenario",
+      "properties": {
+        "id": {
+          "const": "lifecycle-pagehide"
+        },
+        "kind": {
+          "const": "lifecycle"
+        },
+        "target": {
+          "type": "null"
+        },
+        "rawResultText": {
+          "type": "null"
+        },
+        "rawResultTextSha256": {
+          "type": "null"
+        },
+        "results": {
+          "type": "null"
+        },
+        "lifecycle": {
+          "$ref": "#/$defs/lifecycleRecord"
+        }
+      },
+      "type": "object"
+    },
+    "processIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pid",
+        "parentPid",
+        "startTimeTicks",
+        "executable"
+      ],
+      "properties": {
+        "pid": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "parentPid": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "startTimeTicks": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "executable": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "exitStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "success",
+        "code",
+        "signal"
+      ],
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "code": {
+          "type": "integer"
+        },
+        "signal": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "browser",
+        "profile",
+        "server"
+      ],
+      "properties": {
+        "browser": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "launcher",
+            "observedProcesses",
+            "requested",
+            "signals",
+            "exit",
+            "processesAbsent"
+          ],
+          "properties": {
+            "launcher": {
+              "$ref": "#/$defs/processIdentity"
+            },
+            "observedProcesses": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/processIdentity"
+              }
+            },
+            "requested": {
+              "const": "Browser.close"
+            },
+            "signals": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "pid",
+                  "signal"
+                ],
+                "properties": {
+                  "pid": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "signal": {
+                    "enum": [
+                      "SIGTERM",
+                      "SIGKILL"
+                    ]
+                  }
+                }
+              }
+            },
+            "exit": {
+              "$ref": "#/$defs/exitStatus"
+            },
+            "processesAbsent": {
+              "const": true
+            }
+          }
+        },
+        "profile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "removed",
+            "absent"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "^/tmp/wasm-polybench-panel-chrome-"
+            },
+            "removed": {
+              "const": true
+            },
+            "absent": {
+              "const": true
+            }
+          }
+        },
+        "server": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "launcher",
+            "signal",
+            "exit",
+            "processAbsent"
+          ],
+          "properties": {
+            "launcher": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/processIdentity"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "signal": {
+              "enum": [
+                "SIGTERM",
+                null
+              ]
+            },
+            "exit": {
+              "$ref": "#/$defs/exitStatus"
+            },
+            "processAbsent": {
+              "const": true
+            }
+          }
+        }
+      }
+    }
+  }
+}
