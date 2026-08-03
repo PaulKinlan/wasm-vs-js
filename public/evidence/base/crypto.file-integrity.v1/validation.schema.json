@@ -17,10 +17,19 @@
     "limitations"
   ],
   "properties": {
-    "schemaVersion": { "const": 1 },
-    "workloadId": { "const": "crypto.file-integrity.v1" },
-    "status": { "const": "static-correctness-validation-awaiting-browser" },
-    "sourceRevision": { "type": "string", "pattern": "^(WORKTREE-CANDIDATE|[a-f0-9]{40})$" },
+    "schemaVersion": {
+      "const": 1
+    },
+    "workloadId": {
+      "const": "crypto.file-integrity.v1"
+    },
+    "status": {
+      "const": "static-correctness-validation-awaiting-browser"
+    },
+    "sourceRevision": {
+      "type": "string",
+      "pattern": "^(WORKTREE-CANDIDATE|[a-f0-9]{40})$"
+    },
     "catalogCoverage": {
       "type": "object",
       "additionalProperties": false,
@@ -33,44 +42,1065 @@
         "promotionGate"
       ],
       "properties": {
-        "denominator": { "const": 38 },
-        "implemented": { "const": 0 },
-        "remaining": { "const": 38 },
-        "candidateCount": { "const": 1 },
-        "countsTowardCoverage": { "const": false },
-        "promotionGate": { "const": "retained-browser-validation-required" }
+        "denominator": {
+          "const": 38
+        },
+        "implemented": {
+          "const": 0
+        },
+        "remaining": {
+          "const": 38
+        },
+        "candidateCount": {
+          "const": 1
+        },
+        "countsTowardCoverage": {
+          "const": false
+        },
+        "promotionGate": {
+          "const": "retained-browser-validation-required"
+        }
       }
     },
-    "runtime": { "type": "object" },
+    "runtime": {
+      "type": "object"
+    },
     "exactInputs": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["registrationRawSha256", "buildManifestRawSha256", "artifactRawSha256"],
+      "required": [
+        "registrationRawSha256",
+        "buildManifestRawSha256",
+        "artifactRawSha256"
+      ],
       "properties": {
-        "registrationRawSha256": { "$ref": "#/$defs/hash" },
-        "buildManifestRawSha256": { "$ref": "#/$defs/hash" },
-        "artifactRawSha256": { "$ref": "#/$defs/hash" }
+        "registrationRawSha256": {
+          "$ref": "#/$defs/hash"
+        },
+        "buildManifestRawSha256": {
+          "$ref": "#/$defs/hash"
+        },
+        "artifactRawSha256": {
+          "$ref": "#/$defs/hash"
+        }
       }
     },
-    "oracle": { "type": "object" },
+    "oracle": {
+      "type": "object"
+    },
     "cases": {
       "type": "array",
       "minItems": 36,
       "maxItems": 36,
       "uniqueItems": true,
-      "items": { "$ref": "#/$defs/case" }
+      "items": {
+        "$ref": "#/$defs/case"
+      },
+      "allOf": [
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 1048576
+              },
+              "schedule": {
+                "const": 1024
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 1048576
+              },
+              "schedule": {
+                "const": 1024
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 1048576
+              },
+              "schedule": {
+                "const": 65536
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 1048576
+              },
+              "schedule": {
+                "const": 65536
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 1048576
+              },
+              "schedule": {
+                "const": "whole-buffer"
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 1048576
+              },
+              "schedule": {
+                "const": "whole-buffer"
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 16777216
+              },
+              "schedule": {
+                "const": 1024
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 16777216
+              },
+              "schedule": {
+                "const": 1024
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 16777216
+              },
+              "schedule": {
+                "const": 65536
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 16777216
+              },
+              "schedule": {
+                "const": 65536
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 16777216
+              },
+              "schedule": {
+                "const": "whole-buffer"
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 16777216
+              },
+              "schedule": {
+                "const": "whole-buffer"
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 268435456
+              },
+              "schedule": {
+                "const": 1024
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 268435456
+              },
+              "schedule": {
+                "const": 1024
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 268435456
+              },
+              "schedule": {
+                "const": 65536
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 268435456
+              },
+              "schedule": {
+                "const": 65536
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 268435456
+              },
+              "schedule": {
+                "const": "whole-buffer"
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "seeded-pseudorandom"
+              },
+              "byteLength": {
+                "const": 268435456
+              },
+              "schedule": {
+                "const": "whole-buffer"
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 1048576
+              },
+              "schedule": {
+                "const": 1024
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 1048576
+              },
+              "schedule": {
+                "const": 1024
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 1048576
+              },
+              "schedule": {
+                "const": 65536
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 1048576
+              },
+              "schedule": {
+                "const": 65536
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 1048576
+              },
+              "schedule": {
+                "const": "whole-buffer"
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 1048576
+              },
+              "schedule": {
+                "const": "whole-buffer"
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 16777216
+              },
+              "schedule": {
+                "const": 1024
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 16777216
+              },
+              "schedule": {
+                "const": 1024
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 16777216
+              },
+              "schedule": {
+                "const": 65536
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 16777216
+              },
+              "schedule": {
+                "const": 65536
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 16777216
+              },
+              "schedule": {
+                "const": "whole-buffer"
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 16777216
+              },
+              "schedule": {
+                "const": "whole-buffer"
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 268435456
+              },
+              "schedule": {
+                "const": 1024
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 268435456
+              },
+              "schedule": {
+                "const": 1024
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 268435456
+              },
+              "schedule": {
+                "const": 65536
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 268435456
+              },
+              "schedule": {
+                "const": 65536
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "js-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 268435456
+              },
+              "schedule": {
+                "const": "whole-buffer"
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "required": [
+              "target",
+              "kind",
+              "byteLength",
+              "schedule"
+            ],
+            "properties": {
+              "target": {
+                "const": "wasm-linear-controlled"
+              },
+              "kind": {
+                "const": "all-zero"
+              },
+              "byteLength": {
+                "const": 268435456
+              },
+              "schedule": {
+                "const": "whole-buffer"
+              }
+            }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        }
+      ]
     },
     "totals": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["cases", "passed", "failed", "targets", "fixtureDefinitions", "schedules"],
+      "required": [
+        "cases",
+        "passed",
+        "failed",
+        "targets",
+        "fixtureDefinitions",
+        "schedules"
+      ],
       "properties": {
-        "cases": { "const": 36 },
-        "passed": { "const": 36 },
-        "failed": { "const": 0 },
-        "targets": { "const": 2 },
-        "fixtureDefinitions": { "const": 6 },
-        "schedules": { "const": 3 }
+        "cases": {
+          "const": 36
+        },
+        "passed": {
+          "const": 36
+        },
+        "failed": {
+          "const": 0
+        },
+        "targets": {
+          "const": 2
+        },
+        "fixtureDefinitions": {
+          "const": 6
+        },
+        "schedules": {
+          "const": 3
+        }
       }
     },
     "limitations": {
@@ -83,16 +1113,30 @@
         "hostIntrinsicCompared"
       ],
       "properties": {
-        "evidenceClassification": { "const": "static-for-browser" },
-        "performanceMeasured": { "const": false },
-        "browserEvidenceIncluded": { "const": false },
-        "hostIntrinsicCompared": { "const": false }
+        "evidenceClassification": {
+          "const": "static-for-browser"
+        },
+        "performanceMeasured": {
+          "const": false
+        },
+        "browserEvidenceIncluded": {
+          "const": false
+        },
+        "hostIntrinsicCompared": {
+          "const": false
+        }
       }
     }
   },
   "$defs": {
-    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-    "counter": { "type": "integer", "minimum": 0 },
+    "hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "counter": {
+      "type": "integer",
+      "minimum": 0
+    },
     "case": {
       "type": "object",
       "additionalProperties": false,
@@ -107,12 +1151,38 @@
         "passed"
       ],
       "properties": {
-        "target": { "enum": ["js-controlled", "wasm-linear-controlled"] },
-        "kind": { "enum": ["seeded-pseudorandom", "all-zero"] },
-        "byteLength": { "enum": [1048576, 16777216, 268435456] },
-        "schedule": { "enum": [1024, 65536, "whole-buffer"] },
-        "digestSha256": { "$ref": "#/$defs/hash" },
-        "expectedDigestSha256": { "$ref": "#/$defs/hash" },
+        "target": {
+          "enum": [
+            "js-controlled",
+            "wasm-linear-controlled"
+          ]
+        },
+        "kind": {
+          "enum": [
+            "seeded-pseudorandom",
+            "all-zero"
+          ]
+        },
+        "byteLength": {
+          "enum": [
+            1048576,
+            16777216,
+            268435456
+          ]
+        },
+        "schedule": {
+          "enum": [
+            1024,
+            65536,
+            "whole-buffer"
+          ]
+        },
+        "digestSha256": {
+          "$ref": "#/$defs/hash"
+        },
+        "expectedDigestSha256": {
+          "$ref": "#/$defs/hash"
+        },
         "counters": {
           "type": "object",
           "additionalProperties": false,
@@ -125,15 +1195,29 @@
             "engine-buffer-allocations"
           ],
           "properties": {
-            "input-bytes": { "$ref": "#/$defs/counter" },
-            "scheduled-chunks": { "$ref": "#/$defs/counter" },
-            "sha256-compression-blocks": { "$ref": "#/$defs/counter" },
-            "copied-bytes": { "$ref": "#/$defs/counter" },
-            "boundary-crossings": { "$ref": "#/$defs/counter" },
-            "engine-buffer-allocations": { "$ref": "#/$defs/counter" }
+            "input-bytes": {
+              "$ref": "#/$defs/counter"
+            },
+            "scheduled-chunks": {
+              "$ref": "#/$defs/counter"
+            },
+            "sha256-compression-blocks": {
+              "$ref": "#/$defs/counter"
+            },
+            "copied-bytes": {
+              "$ref": "#/$defs/counter"
+            },
+            "boundary-crossings": {
+              "$ref": "#/$defs/counter"
+            },
+            "engine-buffer-allocations": {
+              "$ref": "#/$defs/counter"
+            }
           }
         },
-        "passed": { "const": true }
+        "passed": {
+          "const": true
+        }
       }
     }
   }

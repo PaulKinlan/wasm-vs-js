@@ -205,7 +205,7 @@ Deno.test("validation schema and semantic gate reject duplicate and missing Cart
   const semanticDuplicate = structuredClone(evidence);
   semanticDuplicate.cases[35] = structuredClone(semanticDuplicate.cases[0]);
   semanticDuplicate.cases[35].digestSha256 = "0".repeat(64);
-  assert(validate(semanticDuplicate), JSON.stringify(validate.errors));
+  assert(!validate(semanticDuplicate), "schema accepted a duplicate Cartesian combination");
   await assertRejects(
     () => Promise.resolve(assertExactValidationEvidence(semanticDuplicate, registration)),
     "duplicate validation case",
