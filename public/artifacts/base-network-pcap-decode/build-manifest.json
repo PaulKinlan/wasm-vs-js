@@ -3,19 +3,67 @@
   "workloadId": "network.pcap-decode.v1",
   "supplementalContract": "benchmarks/base/network-pcap-decode/implementation-contract.v1.json",
   "catalogMutation": false,
+  "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
+  "sourceCommit": "a121f2c988368793951ff2fd837e10e60aa88f53",
+  "sourceSha256": "17bd7b29a616b7f426caea2d1b898afaff092297bf0b3904b1f518fb5f901832",
   "variants": [
     "js-controlled",
     "wasm-linear-controlled"
   ],
-  "toolchain": {
-    "deno": "2.9.0",
-    "clang": "clang version 22.1.8",
-    "wasmLd": "LLD 22.1.8"
+  "build": {
+    "cwd": ".",
+    "reproductionCommand": "deno task check",
+    "commands": [
+      "clang --target=wasm32-unknown-unknown -O3 -nostdlib -ffreestanding -fno-builtin -c benchmarks/base/network-pcap-decode/pcap-decode.c -o public/artifacts/base-network-pcap-decode/.build/pcap-decode.o",
+      "wasm-ld --no-entry --export-memory --export=input_ptr --export=output_ptr --export=output_len --export=run --initial-memory=1048576 --max-memory=1048576 --stack-first public/artifacts/base-network-pcap-decode/.build/pcap-decode.o -o public/artifacts/base-network-pcap-decode/.build/pcap-decode.wasm"
+    ],
+    "toolchain": [
+      {
+        "name": "deno",
+        "version": "2.9.0"
+      },
+      {
+        "name": "clang",
+        "version": "clang version 22.1.8"
+      },
+      {
+        "name": "wasm-ld",
+        "version": "LLD 22.1.8"
+      }
+    ],
+    "flags": {
+      "compiler": [
+        "--target=wasm32-unknown-unknown",
+        "-O3",
+        "-nostdlib",
+        "-ffreestanding",
+        "-fno-builtin"
+      ],
+      "linker": [
+        "--no-entry",
+        "--export-memory",
+        "--export=input_ptr",
+        "--export=output_ptr",
+        "--export=output_len",
+        "--export=run",
+        "--initial-memory=1048576",
+        "--max-memory=1048576",
+        "--stack-first"
+      ],
+      "runtime": [
+        "scalar Wasm",
+        "fixed initial=max memory",
+        "memory.grow unavailable"
+      ]
+    },
+    "lockfiles": [
+      {
+        "path": "deno.lock",
+        "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2"
+      }
+    ],
+    "environment": []
   },
-  "commands": [
-    "clang --target=wasm32-unknown-unknown -O3 -nostdlib -ffreestanding -fno-builtin -c benchmarks/base/network-pcap-decode/pcap-decode.c",
-    "wasm-ld --no-entry --export-memory --export=input_ptr --export=output_ptr --export=output_len --export=run --initial-memory=1048576 --max-memory=1048576 --stack-first"
-  ],
   "wasm": {
     "path": "public/artifacts/base-network-pcap-decode/pcap-decode.wasm",
     "bytes": 3405,
@@ -80,9 +128,54 @@
       "sha256": "9c24604a85057dd5b31cbe3306fd0382ade8344ec4c3342e46bde985672cdd05"
     },
     {
+      "path": "benchmarks/base/network-pcap-decode/evidence-contract.ts",
+      "bytes": 7035,
+      "sha256": "47436e4adb2ce2c8e1c0d85b3c8ff2edea4ae75340d65499a2c8f271b674c90a"
+    },
+    {
       "path": "scripts/build-base-network-pcap-decode.ts",
-      "bytes": 7774,
-      "sha256": "9ae935af7d2edaa982583fc7a837145fb599f7b3da63554619cb53866dbbee1e"
+      "bytes": 12186,
+      "sha256": "a0e07ed09d9f1127864cc3dce6e4fd490a7a9d5a8a962c0612db09bd11e8282a"
+    },
+    {
+      "path": "lib/canonical.ts",
+      "bytes": 2378,
+      "sha256": "5e268c346bbf8d977448077ab1170e745ef120424590e87197648e14bc05d16f"
+    },
+    {
+      "path": "deno.json",
+      "bytes": 1831,
+      "sha256": "17e6674c81fdaee7dfc52ed1bd28baeec70fb0715f839b92defe1e84545b08eb"
+    },
+    {
+      "path": "deno.lock",
+      "bytes": 1630,
+      "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2"
+    },
+    {
+      "path": "schemas/base-network-pcap-registration.schema.json",
+      "bytes": 5346,
+      "sha256": "3193a98948a69a50d7bd214820af5682506ad588c0ed182c8f6784cbf1324f9f"
+    },
+    {
+      "path": "schemas/base-network-pcap-fixture-manifest.schema.json",
+      "bytes": 1353,
+      "sha256": "6ca7f449f8147cda0926d0eddd77c65c8ced19b6e931e798e0f12270c4b66a09"
+    },
+    {
+      "path": "schemas/base-network-pcap-output-manifest.schema.json",
+      "bytes": 2059,
+      "sha256": "239a155d70d6755bd8baadc601a7ed38db187550d987c9c6ffd70c67ee5b6b62"
+    },
+    {
+      "path": "schemas/base-network-pcap-build-manifest.schema.json",
+      "bytes": 4556,
+      "sha256": "852b654a4236dcc6533d54a31d8594094497f95bb8db936f3c03474869ee1bbb"
+    },
+    {
+      "path": "schemas/base-network-pcap-correctness-record.schema.json",
+      "bytes": 3888,
+      "sha256": "0a3daf430b8bea1a66a56ec332b0228eb7082282999437985a13b6be1deba437"
     }
   ]
 }
