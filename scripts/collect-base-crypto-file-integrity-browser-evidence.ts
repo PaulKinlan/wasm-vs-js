@@ -235,8 +235,32 @@ export const EXPECTED_CONTROLS = Object.freeze([
   { id: "cancel", text: "Cancel", disabled: true },
 ]);
 
+type ControlTextNode = {
+  textContent: string | null;
+  labels?: ArrayLike<{
+    cloneNode(deep: boolean): {
+      textContent: string | null;
+      querySelector(selector: string): { remove(): void } | null;
+    };
+  }>;
+};
+
+export function visibleControlText(node: ControlTextNode): string {
+  const label = node.labels?.[0];
+  if (!label) return (node.textContent ?? "").trim();
+  const clone = label.cloneNode(true);
+  clone.querySelector("select,button")?.remove();
+  return (clone.textContent ?? "").trim();
+}
+
 export function assertVisibleControls(actual: unknown): void {
-  if (!sameJson(actual, EXPECTED_CONTROLS)) throw new Error("visible controls mismatch");
+  if (!sameJson(actual, EXPECTED_CONTROLS)) {
+    throw new Error(
+      `visible controls mismatch: actual=${JSON.stringify(actual)} expected=${
+        JSON.stringify(EXPECTED_CONTROLS)
+      }`,
+    );
+  }
 }
 
 export function assertCleanStatus(status: string): void {
@@ -1438,7 +1462,7 @@ async function runCollector(options: {
     const accessibility = await evaluate(
       client,
       page.sessionId,
-      `(() => ({lang:document.documentElement.lang,title:document.title,bodyText:document.body.innerText,live:document.querySelector('#status').getAttribute('aria-live'),outputTabIndex:document.querySelector('#output').tabIndex,controls:[...document.querySelectorAll('select,button')].map((node)=>({id:node.id,text:(node.labels?.[0]?.textContent||node.textContent).trim(),disabled:node.disabled}))}))()`,
+      `(() => { const controlText=${visibleControlText.toString()}; return {lang:document.documentElement.lang,title:document.title,bodyText:document.body.innerText,live:document.querySelector('#status').getAttribute('aria-live'),outputTabIndex:document.querySelector('#output').tabIndex,controls:[...document.querySelectorAll('select,button')].map((node)=>({id:node.id,text:controlText(node),disabled:node.disabled}))}; })()`,
     ) as Record<string, unknown>;
     const bodyText = String(accessibility.bodyText);
     assertVisibleControls(accessibility.controls);

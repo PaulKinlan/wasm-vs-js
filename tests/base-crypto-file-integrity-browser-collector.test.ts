@@ -17,6 +17,7 @@ import {
   FETCHED_ASSETS,
   lifecycleSemantics,
   refreshOwnedSession,
+  visibleControlText,
 } from "../scripts/collect-base-crypto-file-integrity-browser-evidence.ts";
 import { assert, assertEquals, assertRejects } from "./assert.ts";
 
@@ -205,11 +206,50 @@ Deno.test("visible output, controls, console, and network schemas reject semanti
     { id: "cancel", text: "Cancel", disabled: true },
   ];
   assertVisibleControls(controls);
+
+  const html = await Deno.readTextFile("public/demos/crypto.file-integrity.v1/index.html");
+  const wrappedTargetLabel = html.match(/<label\s+for="target">([\s\S]*?)<\/label>/)?.[1] ?? "";
+  assert(
+    wrappedTargetLabel.includes("Engine<select") &&
+      wrappedTargetLabel.includes("Hand-written JavaScript SHA-256") &&
+      wrappedTargetLabel.includes("Authored linear-Wasm SHA-256"),
+    "real demo target label no longer wraps the select and its options",
+  );
+  const wrappedOptionText = "Hand-written JavaScript SHA-256Authored linear-Wasm SHA-256";
+  const directLabelText = "Engine";
+  const realDomEquivalentControl = {
+    textContent: wrappedOptionText,
+    labels: [{
+      textContent: `${directLabelText}${wrappedOptionText}`,
+      cloneNode: () => {
+        let controlPresent = true;
+        return {
+          get textContent() {
+            return `${directLabelText}${controlPresent ? wrappedOptionText : ""}`;
+          },
+          querySelector: (selector: string) =>
+            selector === "select,button" ? { remove: () => controlPresent = false } : null,
+        };
+      },
+    }],
+  };
+  assertEquals(
+    realDomEquivalentControl.labels[0].textContent,
+    "EngineHand-written JavaScript SHA-256Authored linear-Wasm SHA-256",
+  );
+  assertEquals(visibleControlText(realDomEquivalentControl), "Engine");
+
   const duplicateControls = structuredClone(controls);
   duplicateControls[5] = structuredClone(duplicateControls[0]);
   await assertRejects(
     () => Promise.resolve(assertVisibleControls(duplicateControls)),
-    "visible controls mismatch",
+    `visible controls mismatch: actual=${JSON.stringify(duplicateControls)} expected=`,
+  );
+  const concatenatedLabelControls = structuredClone(controls);
+  concatenatedLabelControls[0].text = realDomEquivalentControl.labels[0].textContent;
+  await assertRejects(
+    () => Promise.resolve(assertVisibleControls(concatenatedLabelControls)),
+    `actual=${JSON.stringify(concatenatedLabelControls)} expected=${JSON.stringify(controls)}`,
   );
   const validateAccessibility = validatorFor("accessibility");
   const accessibility = {
