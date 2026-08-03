@@ -39,6 +39,7 @@
     (local $patch_count i32)
     (local $cur_out i32)
     (local $nodesA_count i32)
+    (local $childPtrB i32)
 
     (local.set $nodesA_count (i32.load (local.get $treeA_ptr)))
     (local.set $countB (i32.load (local.get $treeB_ptr)))
@@ -46,7 +47,6 @@
     (local.set $cur_out (local.get $out_ptr))
 
     ;; Compute base offsets for child array buffers
-    ;; childBase = tree_ptr + 4 + count * 16
     (local.set $childBaseA (i32.add (local.get $treeA_ptr) (i32.add (i32.const 4) (i32.shl (local.get $nodesA_count) (i32.const 4)))))
     (local.set $childBaseB (i32.add (local.get $treeB_ptr) (i32.add (i32.const 4) (i32.shl (local.get $countB) (i32.const 4)))))
 
@@ -83,12 +83,13 @@
             (local.set $textB (i32.load16_s (i32.add (local.get $nodeB_offset) (i32.const 10))))
             (if (i32.ne (local.get $textA) (local.get $textB))
               (then
-                ;; Write SET_TEXT patch (op: 1, nodeId: nodeId, targetId/val: textB)
+                ;; Write SET_TEXT patch (op: 1, nodeId, textB, 0, 0)
                 (i32.store16 (i32.add (local.get $cur_out) (i32.const 0)) (i32.const 1))
                 (i32.store16 (i32.add (local.get $cur_out) (i32.const 2)) (local.get $nodeId))
                 (i32.store16 (i32.add (local.get $cur_out) (i32.const 4)) (local.get $textB))
                 (i32.store16 (i32.add (local.get $cur_out) (i32.const 6)) (i32.const -1))
-                (local.set $cur_out (i32.add (local.get $cur_out) (i32.const 8)))
+                (i32.store (i32.add (local.get $cur_out) (i32.const 8)) (i32.const 0))
+                (local.set $cur_out (i32.add (local.get $cur_out) (i32.const 16)))
                 (local.set $patch_count (i32.add (local.get $patch_count) (i32.const 1)))
               )
             )
@@ -102,12 +103,13 @@
 
             (if (i32.or (i32.ne (local.get $attrKeyA) (local.get $attrKeyB)) (i32.ne (local.get $attrValA) (local.get $attrValB)))
               (then
-                ;; Write SET_ATTR patch (op: 2, nodeId: nodeId, attrKey: keyB, attrVal: valB)
+                ;; Write SET_ATTR patch (op: 2, nodeId, keyB, valB, 0)
                 (i32.store16 (i32.add (local.get $cur_out) (i32.const 0)) (i32.const 2))
                 (i32.store16 (i32.add (local.get $cur_out) (i32.const 2)) (local.get $nodeId))
                 (i32.store16 (i32.add (local.get $cur_out) (i32.const 4)) (local.get $attrKeyB))
                 (i32.store16 (i32.add (local.get $cur_out) (i32.const 6)) (local.get $attrValB))
-                (local.set $cur_out (i32.add (local.get $cur_out) (i32.const 8)))
+                (i32.store (i32.add (local.get $cur_out) (i32.const 8)) (i32.const 0))
+                (local.set $cur_out (i32.add (local.get $cur_out) (i32.const 16)))
                 (local.set $patch_count (i32.add (local.get $patch_count) (i32.const 1)))
               )
             )
@@ -146,12 +148,16 @@
 
             (if (i32.eq (local.get $childrenMatch) (i32.const 0))
               (then
-                ;; Write REORDER_CHILDREN patch (op: 6, nodeId: nodeId, targetId: childCountB)
+                ;; Compute childPtrB = childBaseB + childOffB * 2
+                (local.set $childPtrB (i32.add (local.get $childBaseB) (i32.shl (local.get $childOffB) (i32.const 1))))
+
+                ;; Write REORDER_CHILDREN patch (op: 6, nodeId, childCountB, 0, childPtrB)
                 (i32.store16 (i32.add (local.get $cur_out) (i32.const 0)) (i32.const 6))
                 (i32.store16 (i32.add (local.get $cur_out) (i32.const 2)) (local.get $nodeId))
                 (i32.store16 (i32.add (local.get $cur_out) (i32.const 4)) (local.get $childCountB))
                 (i32.store16 (i32.add (local.get $cur_out) (i32.const 6)) (i32.const -1))
-                (local.set $cur_out (i32.add (local.get $cur_out) (i32.const 8)))
+                (i32.store (i32.add (local.get $cur_out) (i32.const 8)) (local.get $childPtrB))
+                (local.set $cur_out (i32.add (local.get $cur_out) (i32.const 16)))
                 (local.set $patch_count (i32.add (local.get $patch_count) (i32.const 1)))
               )
             )

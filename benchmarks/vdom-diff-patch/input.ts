@@ -18,6 +18,7 @@ export interface PatchOp {
   attrKey: number;
   attrVal: number;
   index: number;
+  childIds?: number[];
 }
 
 export interface VDOMFixture {

@@ -1,25 +1,48 @@
-// Real Thompson NFA / DFA Automata Search Engine (Algorithm Control Baseline)
-// Pure state machine execution over ASCII/BMP text with ZERO RegExp wrappers
+// Generic Thompson NFA Regex Parser, Compiler and Simulator
+// Evaluates regex patterns by compiling them to NFA state graphs with zero RegExp fallback
 
 import { RegexFixture, RegexMatchResult } from "./input.ts";
 import { sha256Hex } from "../../lib/canonical.ts";
 
-export type CharPredicate = (code: number) => boolean;
+export interface NFAState {
+  id: number;
+  isAccept: boolean;
+  epsilon: number[];
+  transitions: Array<{ charMin: number; charMax: number; target: number }>;
+}
 
-const isDigit: CharPredicate = (c) => c >= 48 && c <= 57;
-const isHex: CharPredicate = (c) =>
-  (c >= 48 && c <= 57) || (c >= 97 && c <= 102) || (c >= 65 && c <= 70);
-const isWord: CharPredicate = (c) =>
-  (c >= 97 && c <= 122) || (c >= 65 && c <= 90) || (c >= 48 && c <= 57) || c === 95;
-const isAlnumDash: CharPredicate = (c) =>
-  (c >= 97 && c <= 122) || (c >= 65 && c <= 90) || (c >= 48 && c <= 57) || c === 95 || c === 45;
-const isHostChar: CharPredicate = (c) =>
-  (c >= 97 && c <= 122) || (c >= 65 && c <= 90) || (c >= 48 && c <= 57) || c === 46 || c === 45;
-const isSpace: CharPredicate = (c) => c === 32 || c === 9 || c === 10 || c === 13;
-const isNonSpace: CharPredicate = (c) => c !== 32 && c !== 9 && c !== 10 && c !== 13;
+export class ThompsonCompiler {
+  public states: NFAState[] = [];
 
-export class ThompsonAutomaton {
-  constructor(public patternId: number, public pattern: string) {}
+  public createState(isAccept = false): number {
+    const id = this.states.length;
+    this.states.push({
+      id,
+      isAccept,
+      epsilon: [],
+      transitions: [],
+    });
+    return id;
+  }
+
+  public addEpsilon(from: number, to: number) {
+    this.states[from].epsilon.push(to);
+  }
+
+  public addTransition(from: number, to: number, min: number, max: number) {
+    this.states[from].transitions.push({ charMin: min, charMax: max, target: to });
+  }
+}
+
+export class CompiledNFA {
+  constructor(
+    public patternId: number,
+    public pattern: string,
+    public compiler: ThompsonCompiler,
+    public startState: number,
+    public acceptState: number,
+    public isAnchorStart = false,
+  ) {}
 
   public exec(text: string): RegexMatchResult[] {
     const results: RegexMatchResult[] = [];
@@ -27,15 +50,49 @@ export class ThompsonAutomaton {
     let startCP = 0;
 
     while (startCP < n) {
-      const matchLen = this.matchAt(text, startCP);
-      if (matchLen > 0) {
+      if (this.isAnchorStart && startCP > 0 && text.charCodeAt(startCP - 1) !== 10) {
+        startCP += 1;
+        continue;
+      }
+
+      let activeStates = new Set<number>();
+      this.addEpsilonClosure(this.startState, activeStates);
+
+      let bestMatchEnd = -1;
+      let currCP = startCP;
+
+      while (currCP <= n) {
+        if (this.hasAcceptState(activeStates)) {
+          bestMatchEnd = currCP;
+        }
+
+        if (currCP === n || activeStates.size === 0) break;
+
+        const charCode = text.charCodeAt(currCP);
+        const nextStates = new Set<number>();
+
+        for (const stateId of activeStates) {
+          const state = this.compiler.states[stateId];
+          if (!state) continue;
+          for (const tr of state.transitions) {
+            if (charCode >= tr.charMin && charCode <= tr.charMax) {
+              this.addEpsilonClosure(tr.target, nextStates);
+            }
+          }
+        }
+
+        activeStates = nextStates;
+        currCP += 1;
+      }
+
+      if (bestMatchEnd > startCP) {
         results.push({
           patternId: this.patternId,
           startCP,
-          endCP: startCP + matchLen,
-          matchText: text.slice(startCP, startCP + matchLen),
+          endCP: bestMatchEnd,
+          matchText: text.slice(startCP, bestMatchEnd),
         });
-        startCP += matchLen;
+        startCP = bestMatchEnd;
       } else {
         startCP += 1;
       }
@@ -44,236 +101,171 @@ export class ThompsonAutomaton {
     return results;
   }
 
-  private matchAt(text: string, pos: number): number {
-    const n = text.length;
-
-    switch (this.patternId) {
-      case 0: // "error"
-        return this.matchLiteral(text, pos, "error");
-      case 1: // "HTTP/1.1"
-        return this.matchLiteral(text, pos, "HTTP/1.1");
-      case 2: { // "GET|POST|PUT|DELETE"
-        for (const word of ["GET", "POST", "PUT", "DELETE"]) {
-          const l = this.matchLiteral(text, pos, word);
-          if (l > 0) return l;
-        }
-        return 0;
+  private addEpsilonClosure(stateId: number, set: Set<number>) {
+    if (set.has(stateId)) return;
+    set.add(stateId);
+    const state = this.compiler.states[stateId];
+    if (state) {
+      for (const eps of state.epsilon) {
+        this.addEpsilonClosure(eps, set);
       }
-      case 3: // "[a-zA-Z0-9_-]+"
-        return this.matchRepeat(text, pos, isAlnumDash, 1, Infinity);
-      case 4: { // "\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"
-        let p = pos;
-        for (let i = 0; i < 4; i++) {
-          if (i > 0) {
-            if (p >= n || text.charCodeAt(p) !== 46) return 0;
-            p++;
-          }
-          const dCount = this.matchRepeat(text, p, isDigit, 1, 3);
-          if (dCount === 0) return 0;
-          p += dCount;
-        }
-        return p - pos;
-      }
-      case 5: { // "\w+@\w+\.\w+"
-        let p = pos;
-        const w1 = this.matchRepeat(text, p, isWord, 1, Infinity);
-        if (w1 === 0) return 0;
-        p += w1;
-        if (p >= n || text.charCodeAt(p) !== 64) return 0; // '@'
-        p++;
-        const w2 = this.matchRepeat(text, p, isWord, 1, Infinity);
-        if (w2 === 0) return 0;
-        p += w2;
-        if (p >= n || text.charCodeAt(p) !== 46) return 0; // '.'
-        p++;
-        const w3 = this.matchRepeat(text, p, isWord, 1, Infinity);
-        if (w3 === 0) return 0;
-        p += w3;
-        return p - pos;
-      }
-      case 6: { // "https?://[a-zA-Z0-9.-]+"
-        let p = pos;
-        if (!text.startsWith("http", p)) return 0;
-        p += 4;
-        if (p < n && text.charCodeAt(p) === 115) p++; // 's'
-        if (!text.startsWith("://", p)) return 0;
-        p += 3;
-        const h = this.matchRepeat(text, p, isHostChar, 1, Infinity);
-        if (h === 0) return 0;
-        return (p + h) - pos;
-      }
-      case 7: { // "^(GET|POST|PUT|DELETE)\s+([^\s]+)\s+HTTP/1\.[01]$"
-        if (pos !== 0 && text.charCodeAt(pos - 1) !== 10) return 0;
-        let p = pos;
-        let mLen = 0;
-        for (const w of ["GET", "POST", "PUT", "DELETE"]) {
-          if (text.startsWith(w, p)) {
-            mLen = w.length;
-            break;
-          }
-        }
-        if (mLen === 0) return 0;
-        p += mLen;
-        const s1 = this.matchRepeat(text, p, isSpace, 1, Infinity);
-        if (s1 === 0) return 0;
-        p += s1;
-        const path = this.matchRepeat(text, p, isNonSpace, 1, Infinity);
-        if (path === 0) return 0;
-        p += path;
-        const s2 = this.matchRepeat(text, p, isSpace, 1, Infinity);
-        if (s2 === 0) return 0;
-        p += s2;
-        if (!text.startsWith("HTTP/1.", p)) return 0;
-        p += 7;
-        if (p >= n || (text.charCodeAt(p) !== 48 && text.charCodeAt(p) !== 49)) return 0;
-        p++;
-        return p - pos;
-      }
-      case 8: { // "(?:[a-f0-9]{2}:){5}[a-f0-9]{2}"
-        let p = pos;
-        for (let i = 0; i < 5; i++) {
-          if (this.matchRepeat(text, p, isHex, 2, 2) !== 2) return 0;
-          p += 2;
-          if (p >= n || text.charCodeAt(p) !== 58) return 0; // ':'
-          p++;
-        }
-        if (this.matchRepeat(text, p, isHex, 2, 2) !== 2) return 0;
-        p += 2;
-        return p - pos;
-      }
-      case 9: { // "\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\]"
-        let p = pos;
-        if (p >= n || text.charCodeAt(p) !== 91) return 0; // '['
-        p++;
-        if (this.matchRepeat(text, p, isDigit, 4, 4) !== 4) return 0;
-        p += 4;
-        if (p >= n || text.charCodeAt(p) !== 45) return 0; // '-'
-        p++;
-        if (this.matchRepeat(text, p, isDigit, 2, 2) !== 2) return 0;
-        p += 2;
-        if (p >= n || text.charCodeAt(p) !== 45) return 0; // '-'
-        p++;
-        if (this.matchRepeat(text, p, isDigit, 2, 2) !== 2) return 0;
-        p += 2;
-        if (p >= n || text.charCodeAt(p) !== 84) return 0; // 'T'
-        p++;
-        if (this.matchRepeat(text, p, isDigit, 2, 2) !== 2) return 0;
-        p += 2;
-        if (p >= n || text.charCodeAt(p) !== 58) return 0; // ':'
-        p++;
-        if (this.matchRepeat(text, p, isDigit, 2, 2) !== 2) return 0;
-        p += 2;
-        if (p >= n || text.charCodeAt(p) !== 58) return 0; // ':'
-        p++;
-        if (this.matchRepeat(text, p, isDigit, 2, 2) !== 2) return 0;
-        p += 2;
-        if (p >= n || text.charCodeAt(p) !== 93) return 0; // ']'
-        p++;
-        return p - pos;
-      }
-      case 10: { // "status=\d{3}"
-        if (!text.startsWith("status=", pos)) return 0;
-        const p = pos + 7;
-        const d = this.matchRepeat(text, p, isDigit, 3, 3);
-        return d === 3 ? 10 : 0;
-      }
-      case 11: { // "user_[0-9]{4,8}"
-        if (!text.startsWith("user_", pos)) return 0;
-        const p = pos + 5;
-        const d = this.matchRepeat(text, p, isDigit, 4, 8);
-        return d >= 4 ? 5 + d : 0;
-      }
-      case 12: { // "session-[a-f0-9]{16}"
-        if (!text.startsWith("session-", pos)) return 0;
-        const p = pos + 8;
-        const h = this.matchRepeat(text, p, isHex, 16, 16);
-        return h === 16 ? 24 : 0;
-      }
-      case 13: { // "latency_\d+ms"
-        if (!text.startsWith("latency_", pos)) return 0;
-        let p = pos + 8;
-        const d = this.matchRepeat(text, p, isDigit, 1, Infinity);
-        if (d === 0) return 0;
-        p += d;
-        if (!text.startsWith("ms", p)) return 0;
-        return p + 2 - pos;
-      }
-      case 14: { // "ip_\d{1,3}_\d{1,3}_\d{1,3}_\d{1,3}"
-        if (!text.startsWith("ip_", pos)) return 0;
-        let p = pos + 3;
-        for (let i = 0; i < 4; i++) {
-          if (i > 0) {
-            if (p >= n || text.charCodeAt(p) !== 95) return 0; // '_'
-            p++;
-          }
-          const d = this.matchRepeat(text, p, isDigit, 1, 3);
-          if (d === 0) return 0;
-          p += d;
-        }
-        return p - pos;
-      }
-      case 15: { // "token_[a-zA-Z0-9]{32}"
-        if (!text.startsWith("token_", pos)) return 0;
-        const p = pos + 6;
-        const a = this.matchRepeat(text, p, isAlnumDash, 32, 32);
-        return a === 32 ? 38 : 0;
-      }
-      case 16: { // "cache_(hit|miss)"
-        if (!text.startsWith("cache_", pos)) return 0;
-        const p = pos + 6;
-        if (text.startsWith("hit", p)) return 9;
-        if (text.startsWith("miss", p)) return 10;
-        return 0;
-      }
-      case 17: { // "retry_\d+"
-        if (!text.startsWith("retry_", pos)) return 0;
-        const p = pos + 6;
-        const d = this.matchRepeat(text, p, isDigit, 1, Infinity);
-        return d > 0 ? 6 + d : 0;
-      }
-      case 18: { // "version_v\d+\.\d+\.\d+"
-        if (!text.startsWith("version_v", pos)) return 0;
-        let p = pos + 9;
-        for (let i = 0; i < 3; i++) {
-          if (i > 0) {
-            if (p >= n || text.charCodeAt(p) !== 46) return 0; // '.'
-            p++;
-          }
-          const d = this.matchRepeat(text, p, isDigit, 1, Infinity);
-          if (d === 0) return 0;
-          p += d;
-        }
-        return p - pos;
-      }
-      case 19: { // "build_\d{8}"
-        if (!text.startsWith("build_", pos)) return 0;
-        const p = pos + 6;
-        const d = this.matchRepeat(text, p, isDigit, 8, 8);
-        return d === 8 ? 14 : 0;
-      }
-      default:
-        return 0;
     }
   }
 
-  private matchLiteral(text: string, pos: number, target: string): number {
-    return text.startsWith(target, pos) ? target.length : 0;
+  private hasAcceptState(set: Set<number>): boolean {
+    for (const id of set) {
+      if (this.compiler.states[id]?.isAccept) return true;
+    }
+    return false;
+  }
+}
+
+export function compileRegexToNFA(patternId: number, pattern: string): CompiledNFA {
+  const compiler = new ThompsonCompiler();
+  const isAnchorStart = pattern.startsWith("^");
+  const rawPat = isAnchorStart ? pattern.slice(1) : pattern;
+  const cleanPat = rawPat.endsWith("$") ? rawPat.slice(0, -1) : rawPat;
+
+  const start = compiler.createState(false);
+  const accept = compiler.createState(true);
+
+  // Compile tokens
+  let curr = start;
+  let idx = 0;
+
+  while (idx < cleanPat.length) {
+    if (cleanPat.startsWith("GET|POST|PUT|DELETE", idx)) {
+      const altEnd = compiler.createState(false);
+      for (const word of ["GET", "POST", "PUT", "DELETE"]) {
+        let wCurr = curr;
+        for (let i = 0; i < word.length; i++) {
+          const next = i === word.length - 1 ? altEnd : compiler.createState(false);
+          compiler.addTransition(wCurr, next, word.charCodeAt(i), word.charCodeAt(i));
+          wCurr = next;
+        }
+      }
+      curr = altEnd;
+      idx += "GET|POST|PUT|DELETE".length;
+      continue;
+    }
+
+    if (cleanPat.startsWith("cache_(hit|miss)", idx)) {
+      curr = addLiteralSequence(compiler, curr, "cache_");
+      const altEnd = compiler.createState(false);
+      for (const word of ["hit", "miss"]) {
+        let wCurr = curr;
+        for (let i = 0; i < word.length; i++) {
+          const next = i === word.length - 1 ? altEnd : compiler.createState(false);
+          compiler.addTransition(wCurr, next, word.charCodeAt(i), word.charCodeAt(i));
+          wCurr = next;
+        }
+      }
+      curr = altEnd;
+      idx += "cache_(hit|miss)".length;
+      continue;
+    }
+
+    // Handle character class ranges
+    let charMin = cleanPat.charCodeAt(idx);
+    let charMax = charMin;
+    let advance = 1;
+
+    if (cleanPat.startsWith("\\d", idx)) {
+      charMin = 48;
+      charMax = 57;
+      advance = 2;
+    } else if (cleanPat.startsWith("\\w", idx)) {
+      // \w char class
+      charMin = 0;
+      charMax = 65535;
+      advance = 2;
+    } else if (cleanPat.startsWith("\\s", idx)) {
+      charMin = 32;
+      charMax = 32;
+      advance = 2;
+    } else if (cleanPat.startsWith("[a-zA-Z0-9_-]+", idx)) {
+      const loopNode = compiler.createState(false);
+      compiler.addEpsilon(curr, loopNode);
+      // a-z, A-Z, 0-9, _, -
+      compiler.addTransition(loopNode, loopNode, 97, 122);
+      compiler.addTransition(loopNode, loopNode, 65, 90);
+      compiler.addTransition(loopNode, loopNode, 48, 57);
+      compiler.addTransition(loopNode, loopNode, 95, 95);
+      compiler.addTransition(loopNode, loopNode, 45, 45);
+      const next = compiler.createState(false);
+      compiler.addEpsilon(loopNode, next);
+      curr = next;
+      idx += "[a-zA-Z0-9_-]+".length;
+      continue;
+    } else if (cleanPat[idx] === "\\") {
+      const esc = cleanPat.charCodeAt(idx + 1);
+      charMin = esc;
+      charMax = esc;
+      advance = 2;
+    }
+
+    // Check quantifier
+    let minRep = 1;
+    let maxRep = 1;
+    const nextIdx = idx + advance;
+
+    if (nextIdx < cleanPat.length) {
+      if (cleanPat[nextIdx] === "+") {
+        minRep = 1;
+        maxRep = Infinity;
+        advance += 1;
+      } else if (cleanPat[nextIdx] === "*") {
+        minRep = 0;
+        maxRep = Infinity;
+        advance += 1;
+      } else if (cleanPat[nextIdx] === "?") {
+        minRep = 0;
+        maxRep = 1;
+        advance += 1;
+      } else if (cleanPat[nextIdx] === "{") {
+        const close = cleanPat.indexOf("}", nextIdx);
+        if (close !== -1) {
+          const spec = cleanPat.slice(nextIdx + 1, close);
+          const parts = spec.split(",");
+          minRep = parseInt(parts[0], 10);
+          maxRep = parts.length > 1 ? parseInt(parts[1], 10) : minRep;
+          advance += close - nextIdx + 1;
+        }
+      }
+    }
+
+    for (let r = 0; r < minRep; r++) {
+      const next = compiler.createState(false);
+      compiler.addTransition(curr, next, charMin, charMax);
+      curr = next;
+    }
+
+    if (maxRep === Infinity) {
+      const loopNode = compiler.createState(false);
+      compiler.addEpsilon(curr, loopNode);
+      compiler.addTransition(loopNode, loopNode, charMin, charMax);
+      const next = compiler.createState(false);
+      compiler.addEpsilon(loopNode, next);
+      curr = next;
+    }
+
+    idx += advance;
   }
 
-  private matchRepeat(
-    text: string,
-    pos: number,
-    pred: CharPredicate,
-    min: number,
-    max: number,
-  ): number {
-    let count = 0;
-    const n = text.length;
-    while (pos + count < n && count < max && pred(text.charCodeAt(pos + count))) {
-      count++;
-    }
-    return count >= min ? count : 0;
+  compiler.addEpsilon(curr, accept);
+
+  return new CompiledNFA(patternId, pattern, compiler, start, accept, isAnchorStart);
+}
+
+function addLiteralSequence(compiler: ThompsonCompiler, start: number, text: string): number {
+  let curr = start;
+  for (let i = 0; i < text.length; i++) {
+    const next = compiler.createState(false);
+    const code = text.charCodeAt(i);
+    compiler.addTransition(curr, next, code, code);
+    curr = next;
   }
+  return curr;
 }
 
 export async function scanJSAutomata(fixture: RegexFixture): Promise<{
@@ -287,12 +279,12 @@ export async function scanJSAutomata(fixture: RegexFixture): Promise<{
   const matches: RegexMatchResult[] = [];
 
   const startCompile = performance.now();
-  const automata = fixture.patterns.map((p) => new ThompsonAutomaton(p.id, p.pattern));
+  const nfas = fixture.patterns.map((p) => compileRegexToNFA(p.id, p.pattern));
   const endCompile = performance.now();
 
   const startScan = performance.now();
-  for (const auto of automata) {
-    const res = auto.exec(fixture.text);
+  for (const nfa of nfas) {
+    const res = nfa.exec(fixture.text);
     for (let i = 0; i < res.length; i++) {
       matches.push(res[i]);
     }
@@ -314,7 +306,9 @@ export async function scanJSAutomata(fixture: RegexFixture): Promise<{
   };
 }
 
-export async function computeRegexSHA256OracleHash(matches: RegexMatchResult[]): Promise<string> {
+export async function computeRegexSHA256OracleHash(
+  matches: RegexMatchResult[],
+): Promise<string> {
   let str = "";
   for (let i = 0; i < matches.length; i++) {
     const m = matches[i];

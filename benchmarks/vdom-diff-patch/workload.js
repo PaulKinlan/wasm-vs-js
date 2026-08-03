@@ -22,7 +22,7 @@ export async function runVdomJS(fixture) {
   const startRender = performance.now();
   const hostAdapter = new HostDOMAdapter();
   hostAdapter.createTree(fixture.treeA);
-  hostAdapter.applyPatches(res.patches, fixture.treeB);
+  hostAdapter.applyPatches(res.patches);
   const html = hostAdapter.serializeHTML();
   const endRender = performance.now();
 
@@ -60,28 +60,42 @@ export function runVdomWasm(fixture, wasmInstance) {
   );
   const endCompute = performance.now();
 
-  // Parse patch ops from Wasm memory outPtr
-  const outView = new DataView(memory.buffer, outPtr, patchCount * 8);
+  // Parse patch ops from Wasm memory outPtr (16 bytes per patch)
+  const outView = new DataView(memory.buffer, outPtr, patchCount * 16);
   const patches = [];
   for (let i = 0; i < patchCount; i++) {
-    const op = outView.getUint16(i * 8 + 0, true);
-    const nodeId = outView.getUint16(i * 8 + 2, true);
-    const attrKey = outView.getInt16(i * 8 + 4, true);
-    const attrVal = outView.getInt16(i * 8 + 6, true);
-    patches.push({
+    const op = outView.getUint16(i * 16 + 0, true);
+    const nodeId = outView.getUint16(i * 16 + 2, true);
+    const attrKey = outView.getInt16(i * 16 + 4, true);
+    const attrVal = outView.getInt16(i * 16 + 6, true);
+    const childPtr = outView.getUint32(i * 16 + 8, true);
+
+    const patch = {
       op,
       nodeId,
       targetId: attrKey,
       attrKey,
       attrVal,
       index: -1,
-    });
+    };
+
+    if (op === 6 && childPtr > 0) {
+      const childCount = attrKey;
+      const childView = new DataView(memory.buffer, childPtr, childCount * 2);
+      const childIds = [];
+      for (let c = 0; c < childCount; c++) {
+        childIds.push(childView.getUint16(c * 2, true));
+      }
+      patch.childIds = childIds;
+    }
+
+    patches.push(patch);
   }
 
   const startRender = performance.now();
   const hostAdapter = new HostDOMAdapter();
   hostAdapter.createTree(fixture.treeA);
-  hostAdapter.applyPatches(patches, fixture.treeB);
+  hostAdapter.applyPatches(patches);
   const html = hostAdapter.serializeHTML();
   const endRender = performance.now();
 

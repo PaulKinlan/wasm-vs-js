@@ -1,4 +1,4 @@
-// Virtual DOM Diff, Patch Application & Host DOM Adapter (JS Controlled)
+// Virtual DOM Diff, Self-Contained Patch Application & Host DOM Adapter (JS Controlled)
 
 import { PatchOp, VDOMNode } from "./input.ts";
 import { sha256Hex } from "../../lib/canonical.ts";
@@ -36,6 +36,7 @@ export async function diffVDOMTrees(
         attrKey: nodeB.attrKey,
         attrVal: nodeB.attrVal,
         index: -1,
+        childIds: [...nodeB.children],
       });
       continue;
     }
@@ -78,7 +79,7 @@ export async function diffVDOMTrees(
       }
     }
 
-    // Compare children lists (reordering)
+    // Compare children lists (reordering) - stores self-contained child ID sequence
     if (!arraysEqual(nodeA.children, nodeB.children)) {
       patches.push({
         op: 6, // REORDER_CHILDREN
@@ -87,6 +88,7 @@ export async function diffVDOMTrees(
         attrKey: -1,
         attrVal: -1,
         index: nodeB.children.length,
+        childIds: [...nodeB.children],
       });
     }
   }
@@ -104,8 +106,8 @@ export async function diffVDOMTrees(
 
   const canonicalHtml = serializeVDOMToCanonicalHTML(treeB);
 
-  // Apply patches to Tree A clone to produce Tree B'
-  const treeBPrime = applyPatchesToVDOMTree(treeA, patches, treeB);
+  // Apply patches self-contained to Tree A clone without reading Tree B
+  const treeBPrime = applyPatchesToVDOMTree(treeA, patches);
   const appliedHtml = serializeVDOMToCanonicalHTML(treeBPrime);
   const appliedTreeHtmlHash = await sha256Hex(encoder.encode(appliedHtml));
   const canonicalHtmlHash = await sha256Hex(encoder.encode(canonicalHtml));
@@ -123,15 +125,11 @@ export async function diffVDOMTrees(
 export function applyPatchesToVDOMTree(
   treeA: VDOMNode[],
   patches: PatchOp[],
-  targetTreeB: VDOMNode[],
 ): VDOMNode[] {
   // Deep clone tree A
   const tree: VDOMNode[] = JSON.parse(JSON.stringify(treeA));
   const nodeMap = new Map<number, VDOMNode>();
   for (const n of tree) nodeMap.set(n.id, n);
-
-  const targetMap = new Map<number, VDOMNode>();
-  for (const n of targetTreeB) targetMap.set(n.id, n);
 
   for (const patch of patches) {
     const node = nodeMap.get(patch.nodeId);
@@ -149,13 +147,11 @@ export function applyPatchesToVDOMTree(
         node.attrKey = -1;
         node.attrVal = -1;
         break;
-      case 6: { // REORDER_CHILDREN
-        const targetNode = targetMap.get(patch.nodeId);
-        if (targetNode) {
-          node.children = [...targetNode.children];
+      case 6: // REORDER_CHILDREN
+        if (patch.childIds) {
+          node.children = [...patch.childIds];
         }
         break;
-      }
     }
   }
 
@@ -207,7 +203,7 @@ export function serializeVDOMToCanonicalHTML(tree: VDOMNode[]): string {
   return renderNode(0);
 }
 
-// Host DOM Element Adapter
+// Host DOM Element Adapter - Self-Contained Application without reading Tree B
 export class HostDOMAdapter {
   private elementMap = new Map<
     number,
@@ -233,10 +229,7 @@ export class HostDOMAdapter {
     }
   }
 
-  public applyPatches(patches: PatchOp[], targetTreeB: VDOMNode[]) {
-    const targetMap = new Map<number, VDOMNode>();
-    for (const n of targetTreeB) targetMap.set(n.id, n);
-
+  public applyPatches(patches: PatchOp[]) {
     for (const patch of patches) {
       const el = this.elementMap.get(patch.nodeId);
       if (!el) continue;
@@ -247,11 +240,8 @@ export class HostDOMAdapter {
         el.attrs[`k${patch.attrKey}`] = `v${patch.attrVal}`;
       } else if (patch.op === 3) {
         delete el.attrs[`k${patch.attrKey}`];
-      } else if (patch.op === 6) {
-        const targetNode = targetMap.get(patch.nodeId);
-        if (targetNode) {
-          el.children = [...targetNode.children];
-        }
+      } else if (patch.op === 6 && patch.childIds) {
+        el.children = [...patch.childIds];
       }
     }
   }

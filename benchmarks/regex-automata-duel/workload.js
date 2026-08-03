@@ -1,5 +1,5 @@
 import { FROZEN_REGEX_PATTERNS, generateRegexFixture } from "./input.ts";
-import { computeRegexSHA256OracleHash, scanJSAutomata, ThompsonAutomaton } from "./js-automata.ts";
+import { compileRegexToNFA, computeRegexSHA256OracleHash, scanJSAutomata } from "./js-automata.ts";
 import { scanNativeRegExp } from "./js-native.ts";
 
 export { FROZEN_REGEX_PATTERNS, generateRegexFixture, scanJSAutomata, scanNativeRegExp };
@@ -19,8 +19,8 @@ export async function scanWasmAutomata(fixture, wasmInstance) {
 
   const startScan = performance.now();
 
-  // Compile Thompson Automata for all 20 patterns
-  const automata = fixture.patterns.map((p) => new ThompsonAutomaton(p.id, p.pattern));
+  // Compile Thompson NFA Automata for all 20 patterns
+  const automata = fixture.patterns.map((p) => compileRegexToNFA(p.id, p.pattern));
 
   for (const auto of automata) {
     if (auto.pattern === "error" || auto.pattern === "HTTP/1.1") {

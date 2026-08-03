@@ -157,6 +157,15 @@ async function compileWat(watPath: string) {
 
 // 2. Build vdom-diff-patch
 {
+  const vdomSources = [
+    "benchmarks/vdom-diff-patch/vdom-diff-patch.wat",
+    "benchmarks/vdom-diff-patch/workload.js",
+    "benchmarks/vdom-diff-patch/input.ts",
+    "benchmarks/vdom-diff-patch/js.ts",
+    "lib/canonical.ts",
+    "scripts/build.ts",
+    "deno.json",
+  ];
   const outputDir = new URL("public/artifacts/vdom-diff-patch/", root);
   await Deno.mkdir(outputDir, { recursive: true });
 
@@ -187,6 +196,12 @@ async function compileWat(watPath: string) {
   const wasmSha256 = await sha256Hex(wasm);
   const jsSha256 = await sha256Hex(jsArtifact);
   const lockfileSha256 = await sha256Hex(lockfile);
+
+  const sources = [];
+  for (const path of vdomSources) {
+    const bytes = await Deno.readFile(new URL(path, root));
+    sources.push({ path, bytes: bytes.byteLength, sha256: await sha256Hex(bytes) });
+  }
 
   const manifest = {
     schemaVersion: 1,
@@ -282,13 +297,7 @@ async function compileWat(watPath: string) {
       flags: ["wabt canonicalize_lebs=true"],
     },
     lockfiles: [{ name: "deno.lock", sha256: await sha256Hex(lockfile) }],
-    sources: [
-      {
-        path: "benchmarks/vdom-diff-patch/vdom-diff-patch.wat",
-        bytes: wat.length,
-        sha256: await sha256Hex(new TextEncoder().encode(wat)),
-      },
-    ],
+    sources,
   };
 
   await Deno.writeFile(new URL("vdom-diff-patch.wasm", outputDir), wasm);
@@ -301,6 +310,16 @@ async function compileWat(watPath: string) {
 
 // 3. Build regex-automata-duel
 {
+  const regexSources = [
+    "benchmarks/regex-automata-duel/regex-automata.wat",
+    "benchmarks/regex-automata-duel/workload.js",
+    "benchmarks/regex-automata-duel/input.ts",
+    "benchmarks/regex-automata-duel/js-native.ts",
+    "benchmarks/regex-automata-duel/js-automata.ts",
+    "lib/canonical.ts",
+    "scripts/build.ts",
+    "deno.json",
+  ];
   const outputDir = new URL("public/artifacts/regex-automata-duel/", root);
   await Deno.mkdir(outputDir, { recursive: true });
 
@@ -333,6 +352,12 @@ async function compileWat(watPath: string) {
   const wasmSha256 = await sha256Hex(wasm);
   const jsSha256 = await sha256Hex(jsArtifact);
   const lockfileSha256 = await sha256Hex(lockfile);
+
+  const sources = [];
+  for (const path of regexSources) {
+    const bytes = await Deno.readFile(new URL(path, root));
+    sources.push({ path, bytes: bytes.byteLength, sha256: await sha256Hex(bytes) });
+  }
 
   const manifest = {
     schemaVersion: 1,
@@ -427,13 +452,7 @@ async function compileWat(watPath: string) {
       flags: ["wabt canonicalize_lebs=true"],
     },
     lockfiles: [{ name: "deno.lock", sha256: await sha256Hex(lockfile) }],
-    sources: [
-      {
-        path: "benchmarks/regex-automata-duel/regex-automata.wat",
-        bytes: wat.length,
-        sha256: await sha256Hex(new TextEncoder().encode(wat)),
-      },
-    ],
+    sources,
   };
 
   await Deno.writeFile(new URL("regex-automata-duel.wasm", outputDir), wasm);
