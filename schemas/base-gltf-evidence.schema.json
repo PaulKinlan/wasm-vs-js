@@ -54,7 +54,9 @@
         }
       }
     },
-    "semanticOutputSha256": { "$ref": "#/$defs/sha256" },
+    "semanticOutputSha256": {
+      "const": "5fad101bb540b089d6bd1769c87540eec6f9bfe07ebbe05fa35001358d32a054"
+    },
     "browserEvidence": { "const": "unavailable-pending-authoritative-controller" },
     "performanceClaims": { "type": "array", "maxItems": 0 }
   },

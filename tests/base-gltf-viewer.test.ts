@@ -445,7 +445,7 @@ Deno.test("base glTF schemas and retained corpus reject identity, graph and hash
       "public/evidence/base-workloads/graphics-gltf-viewer/static-validation.json",
       "schemas/base-gltf-evidence.schema.json",
       (v: Record<string, unknown>) => {
-        ((v.assertions as Record<string, unknown>).cpuRasterizedFrames) = 6;
+        v.semanticOutputSha256 = "0".repeat(64);
       },
     ],
   ] as const;
