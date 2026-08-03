@@ -282,7 +282,7 @@ Deno.test("benchmarks page exposes the complete v2 inventory in raw HTML", async
   assert(page.includes("38 proposed workloads; 0 implemented"));
   assert(page.includes("Coverage is 0/38"));
   assert(page.includes("v2 proposal implementation inventory"));
-  assert(page.includes("Interactive demos: 0"));
+  assert(page.includes("Interactive reduced-fixture demos: 2"));
   assert(page.includes("No v2 package contains authoritative performance results"));
   assert(page.includes("not the full proposal contract"));
   assert(page.includes('href="/data/v2-proposal-implementation-status.v1.json"'));

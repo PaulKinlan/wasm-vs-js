@@ -1,0 +1,204 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.ai-focus.dev/schemas/image-demo-manifest.v1.json",
+  "title": "Reduced image demo manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "manifestId",
+    "status",
+    "catalogV1Coverage",
+    "authoritativePerformanceEvidence",
+    "sourceRepository",
+    "sourceCommit",
+    "build",
+    "demos",
+    "assets",
+    "sources",
+    "limitations"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "manifestId": { "const": "reduced-image-demos-v1" },
+    "status": { "const": "reduced-out-of-catalog-fixtures" },
+    "catalogV1Coverage": { "const": "0/38" },
+    "authoritativePerformanceEvidence": { "const": false },
+    "sourceRepository": { "const": "https://github.com/PaulKinlan/wasm-vs-js" },
+    "sourceCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "build": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command", "toolchains", "reproducible"],
+      "properties": {
+        "command": {
+          "const": "deno run --allow-read=. --allow-write=public/artifacts/image-editing-demo scripts/build-image-demos.ts"
+        },
+        "toolchains": {
+          "type": "array",
+          "prefixItems": [{ "const": "Deno 2.9.0" }],
+          "items": false,
+          "minItems": 1,
+          "maxItems": 1
+        },
+        "reproducible": { "const": true }
+      }
+    },
+    "demos": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "$ref": "#/$defs/demo" }
+    },
+    "assets": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": { "$ref": "#/$defs/fileRecord" }
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 11,
+      "items": { "$ref": "#/$defs/sourceRecord" }
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 4,
+      "items": { "type": "string", "minLength": 1 }
+    }
+  },
+  "$defs": {
+    "demo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "demoId",
+        "route",
+        "fixture",
+        "dimensions",
+        "algorithm",
+        "implementations",
+        "oracle"
+      ],
+      "properties": {
+        "demoId": { "enum": ["image-flood-fill-demo", "image-editing-demo"] },
+        "route": {
+          "enum": ["/benchmarks/image-flood-fill-demo/", "/benchmarks/image-editing-demo/"]
+        },
+        "fixture": {
+          "enum": ["generated-map-64x48", "generated-photo-40x30"]
+        },
+        "dimensions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["width", "height", "rgbaBytes"],
+          "properties": {
+            "width": { "enum": [40, 64] },
+            "height": { "enum": [30, 48] },
+            "rgbaBytes": { "enum": [4800, 12288] }
+          }
+        },
+        "algorithm": { "type": "string", "minLength": 1 },
+        "implementations": {
+          "type": "array",
+          "prefixItems": [
+            { "const": "javascript" },
+            { "const": "wasm-linear" }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "oracle": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["outputSha256", "maskSha256", "changedBounds", "counters"],
+          "properties": {
+            "outputSha256": { "$ref": "#/$defs/sha256" },
+            "maskSha256": { "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }] },
+            "changedBounds": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["minX", "minY", "maxX", "maxY"],
+                  "properties": {
+                    "minX": { "type": "integer", "minimum": 0 },
+                    "minY": { "type": "integer", "minimum": 0 },
+                    "maxX": { "type": "integer", "minimum": 0 },
+                    "maxY": { "type": "integer", "minimum": 0 }
+                  }
+                },
+                { "type": "null" }
+              ]
+            },
+            "counters": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "operations",
+                "readBytes",
+                "writeBytes",
+                "visitedPixels",
+                "changedPixels",
+                "neighborTests",
+                "stackPushes",
+                "stackPops",
+                "maxFrontier",
+                "allocations",
+                "allocationBytes",
+                "boundaryCrossings"
+              ],
+              "properties": {
+                "operations": { "type": "integer", "minimum": 0 },
+                "readBytes": { "type": "integer", "minimum": 0 },
+                "writeBytes": { "type": "integer", "minimum": 0 },
+                "visitedPixels": { "type": "integer", "minimum": 0 },
+                "changedPixels": { "type": "integer", "minimum": 0 },
+                "neighborTests": { "type": "integer", "minimum": 0 },
+                "stackPushes": { "type": "integer", "minimum": 0 },
+                "stackPops": { "type": "integer", "minimum": 0 },
+                "maxFrontier": { "type": "integer", "minimum": 0 },
+                "allocations": { "type": "integer", "minimum": 0 },
+                "allocationBytes": { "type": "integer", "minimum": 0 },
+                "boundaryCrossings": { "type": "integer", "minimum": 0 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "fileRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "route", "bytes", "sha256"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^public/" },
+        "route": {
+          "enum": [
+            "/benchmarks/image-demo.css",
+            "/benchmarks/image-demo.js",
+            "/benchmarks/image-demo-worker.js",
+            "/benchmarks/image-demo-engine.js",
+            "/artifacts/image-editing-demo/image-editing.wasm",
+            "/artifacts/image-editing-demo/generated-map-64x48.rgba",
+            "/artifacts/image-editing-demo/generated-photo-40x30.rgba"
+          ]
+        },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "sourceRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

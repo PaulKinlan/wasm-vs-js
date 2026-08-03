@@ -1,0 +1,162 @@
+import { canonicalize, sha256Hex } from "../lib/canonical.ts";
+import { IMAGE_DEMO_ASSET_PATHS } from "../lib/image-demo-registry.ts";
+
+const root = new URL("../", import.meta.url);
+const outputDir = new URL("public/artifacts/image-editing-demo/", root);
+await Deno.mkdir(outputDir, { recursive: true });
+
+const copies = [
+  {
+    source: "benchmarks/image-editing/artifacts/image-editing.wasm",
+    output: "public/artifacts/image-editing-demo/image-editing.wasm",
+  },
+  {
+    source: "benchmarks/image-editing/fixtures/generated-map-64x48.rgba",
+    output: "public/artifacts/image-editing-demo/generated-map-64x48.rgba",
+  },
+  {
+    source: "benchmarks/image-editing/fixtures/generated-photo-40x30.rgba",
+    output: "public/artifacts/image-editing-demo/generated-photo-40x30.rgba",
+  },
+] as const;
+for (const copy of copies) {
+  await Deno.writeFile(new URL(copy.output, root), await Deno.readFile(new URL(copy.source, root)));
+}
+
+const routeToPath = new Map([
+  ["/benchmarks/image-demo.css", "public/benchmarks/image-demo.css"],
+  ["/benchmarks/image-demo.js", "public/benchmarks/image-demo.js"],
+  ["/benchmarks/image-demo-worker.js", "public/benchmarks/image-demo-worker.js"],
+  ["/benchmarks/image-demo-engine.js", "public/benchmarks/image-demo-engine.js"],
+  [
+    "/artifacts/image-editing-demo/image-editing.wasm",
+    "public/artifacts/image-editing-demo/image-editing.wasm",
+  ],
+  [
+    "/artifacts/image-editing-demo/generated-map-64x48.rgba",
+    "public/artifacts/image-editing-demo/generated-map-64x48.rgba",
+  ],
+  [
+    "/artifacts/image-editing-demo/generated-photo-40x30.rgba",
+    "public/artifacts/image-editing-demo/generated-photo-40x30.rgba",
+  ],
+]);
+const assets = [];
+for (const route of IMAGE_DEMO_ASSET_PATHS) {
+  const path = routeToPath.get(route);
+  if (!path) throw new Error(`demo asset route is not build-bound: ${route}`);
+  const bytes = await Deno.readFile(new URL(path, root));
+  assets.push({ path, route, bytes: bytes.byteLength, sha256: await sha256Hex(bytes) });
+}
+
+const sourcePaths = [
+  "public/benchmarks/image-flood-fill-demo/index.html",
+  "public/benchmarks/image-editing-demo/index.html",
+  "public/benchmarks/image-demo.css",
+  "public/benchmarks/image-demo.js",
+  "public/benchmarks/image-demo-worker.js",
+  "public/benchmarks/image-demo-engine.js",
+  "benchmarks/image-editing/contract.ts",
+  "benchmarks/image-editing/js.ts",
+  "benchmarks/image-editing/wasm.ts",
+  "benchmarks/image-editing/image-editing.wat",
+  "benchmarks/image-editing/fixtures.ts",
+  "lib/image-demo-registry.ts",
+  "schemas/image-demo-manifest.schema.json",
+  "scripts/build-image-demos.ts",
+  "deno.json",
+];
+const sources = [];
+for (const path of sourcePaths) {
+  const bytes = await Deno.readFile(new URL(path, root));
+  sources.push({ path, bytes: bytes.byteLength, sha256: await sha256Hex(bytes) });
+}
+
+const floodCounters = {
+  operations: 35_536,
+  readBytes: 35_536,
+  writeBytes: 26_540,
+  visitedPixels: 3_072,
+  changedPixels: 2_795,
+  neighborTests: 10_956,
+  stackPushes: 3_072,
+  stackPops: 3_072,
+  maxFrontier: 1_050,
+  allocations: 0,
+  allocationBytes: 0,
+  boundaryCrossings: 1,
+};
+const pipelineCounters = {
+  operations: 22_800,
+  readBytes: 15_600,
+  writeBytes: 8_400,
+  visitedPixels: 1_200,
+  changedPixels: 0,
+  neighborTests: 0,
+  stackPushes: 0,
+  stackPops: 0,
+  maxFrontier: 0,
+  allocations: 0,
+  allocationBytes: 0,
+  boundaryCrossings: 1,
+};
+const manifest = {
+  schemaVersion: 1,
+  manifestId: "reduced-image-demos-v1",
+  status: "reduced-out-of-catalog-fixtures",
+  catalogV1Coverage: "0/38",
+  authoritativePerformanceEvidence: false,
+  sourceRepository: "https://github.com/PaulKinlan/wasm-vs-js",
+  sourceCommit: "db8ee77bd8e5c9cb4da21deb2e3806a78d3a21ef",
+  build: {
+    command:
+      "deno run --allow-read=. --allow-write=public/artifacts/image-editing-demo scripts/build-image-demos.ts",
+    toolchains: [`Deno ${Deno.version.deno}`],
+    reproducible: true,
+  },
+  demos: [
+    {
+      demoId: "image-flood-fill-demo",
+      route: "/benchmarks/image-flood-fill-demo/",
+      fixture: "generated-map-64x48",
+      dimensions: { width: 64, height: 48, rgbaBytes: 12_288 },
+      algorithm:
+        "iterative DFS, four-connected, inclusive per-channel threshold 12, seed (10,12), replacement RGBA (34,139,230,191)",
+      implementations: ["javascript", "wasm-linear"],
+      oracle: {
+        outputSha256: "898507f255796bd6c3edfa4d938d369ceb3cf1c744f0554f8118949182e4f559",
+        maskSha256: "f40ae0b5c3ef9b289d6ae6643c8432e77994ad72118031aa7a28aa1357efd88c",
+        changedBounds: { minX: 0, minY: 0, maxX: 63, maxY: 47 },
+        counters: floodCounters,
+      },
+    },
+    {
+      demoId: "image-editing-demo",
+      route: "/benchmarks/image-editing-demo/",
+      fixture: "generated-photo-40x30",
+      dimensions: { width: 40, height: 30, rgbaBytes: 4_800 },
+      algorithm:
+        "integer RGB luma followed by separable [1,2,1] Gaussian passes with replicated borders and alpha copy",
+      implementations: ["javascript", "wasm-linear"],
+      oracle: {
+        outputSha256: "286f9422579da9052de00c67ced53dd547fed6be27b21e608d286674dbb4006c",
+        maskSha256: null,
+        changedBounds: null,
+        counters: pipelineCounters,
+      },
+    },
+  ],
+  assets,
+  sources,
+  limitations: [
+    "These are reduced fixtures, not the full image.flood-fill.v1 or image.editing-pipeline.v1 contracts.",
+    "Dimensions, fixtures, seeds, thresholds, replacement values, and algorithms are fixed.",
+    "The pages accept no uploads, persist no data, and expose no mutation route.",
+    "The demos collect no durations and support no comparative performance claim.",
+  ],
+};
+await Deno.writeTextFile(
+  new URL("demo-manifest.v1.json", outputDir),
+  `${canonicalize(manifest)}\n`,
+);
+console.log(`build:image-demos ${assets.length} exact allowlisted assets`);

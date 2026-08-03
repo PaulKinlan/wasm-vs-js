@@ -122,7 +122,7 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
   assert(catalogPage.includes("38-WORKLOAD DENOMINATOR"));
   assert(catalogPage.includes("Coverage is 0/38"));
   assert(catalogPage.includes("v2 proposal implementation inventory"));
-  assert(catalogPage.includes("Interactive demos: 0"));
+  assert(catalogPage.includes("Interactive reduced-fixture demos: 2"));
   for (
     const path of [
       "/run.html",

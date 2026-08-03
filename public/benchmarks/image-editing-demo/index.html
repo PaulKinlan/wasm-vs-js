@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description"
+      content="Runnable 40 by 30 reduced luma and Gaussian image fixture for wasm-vs-js.">
+    <title>40 × 30 image-editing fixture · Wasm vs JavaScript</title>
+    <link rel="stylesheet" href="/benchmarks/image-demo.css">
+    <script type="module" src="/benchmarks/image-demo.js"></script>
+  </head>
+  <body data-demo="image-editing-demo">
+    <main>
+      <header>
+        <p class="eyebrow">Reduced out-of-catalog fixture · 40 × 30 RGBA</p>
+        <h1>Integer luma and Gaussian filter</h1>
+        <p class="lede">
+          Run the existing controlled JavaScript or scalar linear-Wasm engine against the generated
+          photo-like fixture. The fixed pipeline converts RGB to integer luma, applies separable
+          [1, 2, 1] horizontal and vertical passes with replicated borders, and copies alpha.
+        </p>
+      </header>
+
+      <p class="notice">
+        This page is permanently scoped to a 40 × 30 reduced fixture and the named integer algorithm.
+        It is not the full <code>image.editing-pipeline.v1</code> contract, does not change frozen-v1
+        coverage from 0/38, and supplies no timing evidence or comparative performance claim.
+      </p>
+
+      <section class="demo-panel" aria-labelledby="run-heading">
+        <h2 id="run-heading">Run in a fresh module worker</h2>
+        <form id="demo-form">
+          <div class="controls">
+            <label for="implementation">
+              <span>Implementation</span>
+              <select id="implementation" name="implementation">
+                <option value="javascript">Controlled JavaScript</option>
+                <option value="wasm-linear">Scalar linear Wasm</option>
+              </select>
+            </label>
+            <button id="start" type="submit">Start</button>
+            <button id="cancel" type="button" disabled>Cancel</button>
+          </div>
+          <label class="canvas-control" for="render-canvas">
+            <input id="render-canvas" type="checkbox" checked>
+            Render the exact output pixels on canvas
+          </label>
+        </form>
+        <p id="status" role="status" aria-live="polite">Ready. No worker is running.</p>
+        <canvas id="output-canvas" width="40" height="30" role="img"
+          aria-label="Luma and Gaussian output pixels" hidden>
+          Canvas rendering is optional. Exact textual hashes and counters appear below.
+        </canvas>
+        <div id="result" aria-label="Exact textual result" hidden></div>
+      </section>
+
+      <div class="detail-grid">
+        <section>
+          <h2>Exact checks</h2>
+          <p>
+            Every run verifies the fixture SHA-256, all 4,800 output RGBA bytes, and the declared
+            integer work counters. This reduced pipeline has no visited mask or changed-bounds output;
+            both fields are labelled not applicable instead of invented.
+          </p>
+        </section>
+        <section>
+          <h2>Lifecycle</h2>
+          <p>
+            Start creates a new module worker. Cancel, completion, error, navigation, or the fixed
+            five-second timeout terminates it. Token checks ignore late messages. Files and results
+            remain in memory; the page has no upload, storage, or mutation route.
+          </p>
+        </section>
+        <section>
+          <h2>Source and build</h2>
+          <ul>
+            <li><a href="/benchmarks/image-editing/js.ts">JavaScript engine source</a></li>
+            <li><a href="/benchmarks/image-editing/image-editing.wat">Wasm text source</a></li>
+            <li><a href="/artifacts/image-editing-demo/image-editing.wasm">Wasm artifact</a></li>
+            <li><a href="/artifacts/image-editing-demo/demo-manifest.v1.json">Commit-bound demo manifest</a></li>
+            <li><a href="/data/image-demo-manifest.schema.json">Closed manifest schema</a></li>
+          </ul>
+          <p>The page controls, scope, and limitations are present in this raw HTML response.</p>
+        </section>
+        <section>
+          <h2>Limitations</h2>
+          <ul>
+            <li>One generated 40 × 30 fixture and one fixed three-stage pipeline only.</li>
+            <li>No uploads, user images, alternate kernels, color profiles, or export.</li>
+            <li>Canvas is a visual copy; the exact textual result is the accessible record.</li>
+            <li>No durations are collected, displayed, stored, or compared.</li>
+          </ul>
+          <p><a href="/benchmarks/image-flood-fill-demo/">Open the separate 64 × 48 flood-fill fixture</a>.</p>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>
