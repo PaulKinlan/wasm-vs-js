@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "registrationId": "network.http2-quic-state.v1-implementation-candidate-1",
+  "catalogId": "workload-catalog-v1",
+  "catalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+  "workloadId": "network.http2-quic-state.v1",
+  "status": "implementation-candidate-unreviewed",
+  "countsTowardAcceptedCoverage": false,
+  "algorithmFamily": "protocol-fixed-frame-trace",
+  "equivalenceClass": "conformance-equivalent",
+  "realSockets": "excluded",
+  "scope": {
+    "http2FrameTypes": [
+      "DATA",
+      "HEADERS",
+      "RST_STREAM",
+      "SETTINGS",
+      "WINDOW_UPDATE",
+      "CONTINUATION"
+    ],
+    "hpackRepresentations": [
+      "indexed-static",
+      "indexed-dynamic",
+      "literal-with-incremental-indexing"
+    ],
+    "quicFrameTypes": ["RESET_STREAM", "STREAM", "ACK", "MAX_DATA", "CONNECTION_CLOSE"],
+    "qpackEncoderInstructions": [
+      "set-dynamic-table-capacity",
+      "insert-without-name-reference",
+      "duplicate"
+    ],
+    "state": [
+      "HTTP/2 stream open/closed",
+      "HTTP/2 flow-control window",
+      "HPACK static/dynamic table",
+      "QUIC stream bytes",
+      "QUIC maximum data",
+      "QPACK capacity/dynamic table",
+      "connection close"
+    ],
+    "errors": [
+      "truncated container",
+      "truncated HTTP/2 header/payload",
+      "orphan CONTINUATION",
+      "invalid QUIC length",
+      "unknown protocol/frame",
+      "invalid HPACK/QPACK index"
+    ]
+  },
+  "fixture": {
+    "ownership": "project-generated",
+    "licenseSpdx": "CC0-1.0",
+    "rfcExampleBytesUsed": false,
+    "standardsCitations": [
+      "RFC 9113 HTTP/2 frame format and stream state",
+      "RFC 7541 HPACK static/dynamic table representations",
+      "RFC 9000 QUIC variable integers and transport frames",
+      "RFC 9204 QPACK encoder-stream instructions"
+    ],
+    "recipe": "benchmarks/v1/network-http2-quic-state/fixture.js",
+    "path": "public/artifacts/network-http2-quic-state/trace.bin",
+    "chunking": "six frozen records: three HTTP/2 and three QUIC",
+    "malformedCases": 5
+  },
+  "targets": [
+    {
+      "id": "javascript-controlled",
+      "source": "benchmarks/v1/network-http2-quic-state/engine.js",
+      "semantics": "complete binary parsing and state transitions"
+    },
+    {
+      "id": "linear-wasm-controlled",
+      "source": "benchmarks/v1/network-http2-quic-state/network-http2-quic-state.c",
+      "artifact": "public/artifacts/network-http2-quic-state/network-http2-quic-state.wasm",
+      "semantics": "complete binary parsing and state transitions in linear memory"
+    }
+  ],
+  "oracle": {
+    "kind": "canonical-semantic",
+    "completeOutput": "64-word little-endian state and ordered event vector",
+    "path": "public/artifacts/network-http2-quic-state/expected-state.u32le",
+    "comparison": "all 64 words must match exactly"
+  },
+  "counters": [
+    "records",
+    "input-bytes",
+    "frames by type",
+    "HPACK static hits/inserts/dynamic hits/bytes",
+    "HTTP/2 stream/window/data bytes",
+    "QUIC frames/stream bytes/max data",
+    "QPACK capacity/inserts/duplicates/bytes",
+    "events",
+    "errors"
+  ],
+  "buildManifest": "public/artifacts/network-http2-quic-state/build-manifest.json",
+  "limitations": [
+    "This fixed trace is a deterministic conformance workload, not a claim of general-purpose HTTP/2, HTTP/3, HPACK, QPACK, or QUIC library completeness.",
+    "No network sockets, TLS, packet loss, congestion control, HPACK Huffman strings, or HTTP/3 request-stream header-block decoding are in the fixed trace.",
+    "Coverage remains 0/38 until independent review accepts this candidate."
+  ]
+}

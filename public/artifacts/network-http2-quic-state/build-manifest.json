@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "network.http2-quic-state.v1",
+  "status": "implementation-candidate-unreviewed",
+  "toolchain": {
+    "deno": "2.9.0",
+    "clang": "22.1.8",
+    "lld": "22.1.8",
+    "command": "clang --target=wasm32-unknown-unknown -O3 -nostdlib -Wl,--no-entry -Wl,--export-memory -Wl,--initial-memory=262144 -Wl,--max-memory=262144 -Wl,--strip-all -o public/artifacts/network-http2-quic-state/network-http2-quic-state.wasm benchmarks/v1/network-http2-quic-state/network-http2-quic-state.c",
+    "target": "wasm32-unknown-unknown",
+    "optimization": "-O3",
+    "initialMemoryBytes": 262144,
+    "maximumMemoryBytes": 262144
+  },
+  "catalogAnchor": {
+    "path": "catalog/workloads.v1.json",
+    "bytes": 110208,
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4"
+  },
+  "sources": [
+    {
+      "path": "benchmarks/v1/network-http2-quic-state/engine.js",
+      "bytes": 9071,
+      "sha256": "cf67a878b4c0e065e4e20812e5602bdcbfef38ce639c83d1684e1416f50913de"
+    },
+    {
+      "path": "benchmarks/v1/network-http2-quic-state/fixture.js",
+      "bytes": 2892,
+      "sha256": "0dc085d49c8302dbed3cdd9b924dc71c93fd837fd7317cd7e6a82446ed54f7cc"
+    },
+    {
+      "path": "benchmarks/v1/network-http2-quic-state/network-http2-quic-state.c",
+      "bytes": 6015,
+      "sha256": "c308a94a3efb51a464f3ac7d43ceb98308cc9378418d2b1ada1a05232fde1555"
+    },
+    {
+      "path": "scripts/build-network-http2-quic-state.ts",
+      "bytes": 3178,
+      "sha256": "66ff98a3a2ba9c0886360f08afde6b438c850a03aaa238370846f5b5bc103681"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "public/artifacts/network-http2-quic-state/network-http2-quic-state.wasm",
+      "bytes": 7918,
+      "sha256": "f4eccc521a677add0c2db7f13c07b1cbfd1fa473cc59b263f5f26c8bf35fa4b7"
+    },
+    {
+      "path": "public/artifacts/network-http2-quic-state/trace.bin",
+      "bytes": 151,
+      "sha256": "064b727b817a3eb6a2c306094b7a750f26783fb6e24ed78b0898aeba90d567e1"
+    },
+    {
+      "path": "public/artifacts/network-http2-quic-state/expected-state.u32le",
+      "bytes": 256,
+      "sha256": "f2f201a6f6478061afc6bcf881a715fa26ee5609045991b7e2e75609a823c638"
+    }
+  ],
+  "malformedFixtures": [
+    {
+      "id": "malformed-1",
+      "bytes": 5,
+      "sha256": "aa6710de09fff4fb47e250eee56aaf4e7c6a813855fbf02fe48b40875e08d727",
+      "expectedErrors": 1
+    },
+    {
+      "id": "malformed-2",
+      "bytes": 13,
+      "sha256": "4c785a8941ef8cd2087da2b71589dd66fefdcb09d4fcc487eefabb9c3a169ec6",
+      "expectedErrors": 1
+    },
+    {
+      "id": "malformed-3",
+      "bytes": 7,
+      "sha256": "b18bea6288836f9e7a36b57ca848f06432eb44a514e044d1f7578041004a6a52",
+      "expectedErrors": 1
+    },
+    {
+      "id": "malformed-4",
+      "bytes": 4,
+      "sha256": "fa6a68dc47a33a3c9301cd2babef22ef9ac56ca75623d8fc915d42faade00d2f",
+      "expectedErrors": 1
+    },
+    {
+      "id": "malformed-5",
+      "bytes": 3,
+      "sha256": "3e4479e6b5a0a3bed1440325ca4bb09327a1dfb39c28bdd59de53a687ade0105",
+      "expectedErrors": 1
+    }
+  ]
+}
