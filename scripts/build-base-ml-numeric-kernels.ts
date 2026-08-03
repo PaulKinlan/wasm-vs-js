@@ -456,6 +456,7 @@ const outputManifestSha256 = await sha256Hex(
 );
 const evidenceDir = new URL("public/evidence/base-implementations/ml.numeric-kernels.v1/", root);
 await Deno.mkdir(evidenceDir, { recursive: true });
+const recordPaths: string[] = [];
 for (
   const [variantId, outputSha256, counters] of [
     ["js-controlled-scalar", outputManifest.jsControlledSha256, outputManifest.counters.javascript],
@@ -493,7 +494,14 @@ for (
   };
   const path = new URL(`${variantId}.json`, evidenceDir);
   await Deno.writeTextFile(path, `${canonicalize(record)}\n`);
+  recordPaths.push(path.pathname);
 }
+const evidenceFormat = await new Deno.Command("deno", {
+  args: ["fmt", ...recordPaths],
+  stdout: "piped",
+  stderr: "piped",
+}).output();
+if (!evidenceFormat.success) throw new Error(new TextDecoder().decode(evidenceFormat.stderr));
 const artifactPaths = [
   "public/artifacts/ml-numeric-kernels/fixture-manifest.json",
   "public/artifacts/ml-numeric-kernels/build-manifest.json",
@@ -525,6 +533,14 @@ const registration = {
 await Deno.mkdir(new URL("catalog/implementations/", root), { recursive: true });
 const registrationPath = new URL("catalog/implementations/ml.numeric-kernels.v1.json", root);
 await Deno.writeTextFile(registrationPath, `${canonicalize(registration)}\n`);
+const registrationFormat = await new Deno.Command("deno", {
+  args: ["fmt", registrationPath.pathname],
+  stdout: "piped",
+  stderr: "piped",
+}).output();
+if (!registrationFormat.success) {
+  throw new Error(new TextDecoder().decode(registrationFormat.stderr));
+}
 console.log(
   `built ml.numeric-kernels.v1 ${wasm.byteLength} byte Wasm; exact outputs ${
     Object.keys(jsOutputs).length
