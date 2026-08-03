@@ -1,0 +1,106 @@
+{
+  "boundChecks": {
+    "crossTarget": { "maxBoundRatio": 0, "maxDeviation": 0 },
+    "js-controlled": {
+      "maxBoundRatio": 0.010417185803300805,
+      "maxDeviation": 0.000038977884358359915
+    },
+    "wasm-linear-controlled": {
+      "maxBoundRatio": 0.010417185803300805,
+      "maxDeviation": 0.000038977884358359915
+    }
+  },
+  "bounds": {
+    "bytes": 4194304,
+    "sha256": "9009e9e677f37e32cddefd6ab8192b4c99ffee3a31d154372c04d6de7639f278"
+  },
+  "counters": {
+    "js-controlled": {
+      "allocations": 0,
+      "batch": 4,
+      "boundary-crossings": 0,
+      "loads": 1074790400,
+      "multiply-accumulates": 536870912,
+      "output-elements": 1048576,
+      "stores": 1048576,
+      "tensor-bytes": 12582912
+    },
+    "wasm-linear-controlled": {
+      "allocations": 0,
+      "batch": 4,
+      "boundary-crossings": 4,
+      "loads": 1074790400,
+      "multiply-accumulates": 536870912,
+      "output-elements": 1048576,
+      "stores": 1048576,
+      "tensor-bytes": 12582912
+    }
+  },
+  "matrixDigests": [
+    "0cbc7dff28cbb7e143d4009106b689737bc79bd83082a89af9dc758239c72e73",
+    "9ca5d62fe809fba1f701db9fa4c6eef1963e6a015351480fbe7d8a454fb5c833",
+    "1b1e3252a2dc3028f1e4493db72c4ef42143d789c1631bae8a7d7d79bbfd5c26",
+    "635c0a392490623d76e7038c42220f9814836dfb9a6de2d2bc09b182b27c726f"
+  ],
+  "oracleChecks": ["complete-output-bound", "structural-invariants", "work-counters"],
+  "outputs": {
+    "js-controlled": "3293aca56373520658eab43e758bf986125c3d2dd4b624f82790b8057410406d",
+    "wasm-linear-controlled": "3293aca56373520658eab43e758bf986125c3d2dd4b624f82790b8057410406d"
+  },
+  "phases": {
+    "js-controlled": {
+      "compute": "measured",
+      "end-to-end": "measured",
+      "initialize": "measured",
+      "load": "measured",
+      "render": "not-applicable",
+      "transfer": "measured",
+      "validation": "separate"
+    },
+    "wasm-linear-controlled": {
+      "compute": "measured",
+      "end-to-end": "measured",
+      "initialize": "measured",
+      "load": "measured",
+      "render": "not-applicable",
+      "transfer": "measured",
+      "validation": "separate"
+    }
+  },
+  "reference": {
+    "bytes": 8388608,
+    "sha256": "a9b58b56aa5aaa81ea9b37ab34c938132f225c25312618a924a27f43792b2aa7"
+  },
+  "schemaVersion": 1,
+  "structuralChecks": {
+    "js-controlled": [
+      { "detail": "output 1048576 elements, expected 1048576", "id": "shape", "passed": true },
+      { "detail": "all output elements finite", "id": "finite-values", "passed": true },
+      {
+        "detail": "worst |checksum deviation| / row bound sum ratio 0.00010941201426111478",
+        "id": "row-checksums",
+        "passed": true
+      },
+      {
+        "detail": "worst corner bound ratio 0.001886244911467924",
+        "id": "corner-elements",
+        "passed": true
+      }
+    ],
+    "wasm-linear-controlled": [
+      { "detail": "output 1048576 elements, expected 1048576", "id": "shape", "passed": true },
+      { "detail": "all output elements finite", "id": "finite-values", "passed": true },
+      {
+        "detail": "worst |checksum deviation| / row bound sum ratio 0.00010941201426111478",
+        "id": "row-checksums",
+        "passed": true
+      },
+      {
+        "detail": "worst corner bound ratio 0.001886244911467924",
+        "id": "corner-elements",
+        "passed": true
+      }
+    ]
+  },
+  "workload": "ml.gemm.v1"
+}

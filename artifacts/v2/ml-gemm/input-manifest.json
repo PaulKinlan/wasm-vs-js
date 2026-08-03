@@ -1,0 +1,6 @@
+{
+  "bytes": 12582912,
+  "schemaVersion": 1,
+  "sha256": "d90074772bcd303b7b95ce399fcff551e3c33be85101e3caf44adf1d1b4e287d",
+  "workload": "ml.gemm.v1"
+}
