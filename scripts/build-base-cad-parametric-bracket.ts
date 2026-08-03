@@ -105,6 +105,10 @@ if (/^[a-f0-9]{40}$/.test(sourceCommit)) {
     }
   }
 }
+await Deno.writeFile(new URL("source-bundle.txt", artifactDir), sourceBundle);
+const sourceBundleRef = await ref(
+  "public/artifacts/base-cad-parametric-bracket/source-bundle.txt",
+);
 const fixtureRef = await ref("public/artifacts/base-cad-parametric-bracket/fixture.bin");
 const wasmRef = await ref("public/artifacts/base-cad-parametric-bracket/bracket.wasm");
 const outputRef = await ref("public/artifacts/base-cad-parametric-bracket/reference-output.bin");
@@ -148,6 +152,7 @@ await Deno.writeTextFile(
         source: {
           repository: "https://github.com/PaulKinlan/wasm-vs-js",
           commit: sourceCommit,
+          sourceBundle: sourceBundleRef,
           sourceBundleSha256: await sha256Hex(sourceBundle),
           files: sourceFiles,
         },
@@ -225,11 +230,7 @@ for (
           variantId,
           executionTarget,
           sourceCommit,
-          source: {
-            path: "source-bundle",
-            bytes: sourceBundle.byteLength,
-            sha256: await sha256Hex(sourceBundle),
-          },
+          source: sourceBundleRef,
           fixture: fixtureRef,
           artifact,
           oracle: {

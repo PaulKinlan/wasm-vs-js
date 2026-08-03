@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "workloadId": "cad.parametric-bracket.v1",
-  "completeOutputSha256": "e976937d9234a4cd63f5c17fbb7d0997d69e43611674f590eceac73820c0007a",
-  "completeOutputDigest": "a8dce8f458de8a4d",
+  "completeOutputSha256": "47244801c8cc678e2e71aa53606b53b32939a65aa30700133b1fbf048e516433",
+  "completeOutputDigest": "50670daa6b950c62",
   "exactCrossTargetBytes": true,
   "topology": {
     "connectedComponents": 1,

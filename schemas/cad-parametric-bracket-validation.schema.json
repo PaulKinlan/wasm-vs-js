@@ -46,13 +46,39 @@
         "completeOutputSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
         "completeOutputDigest": { "type": "string", "pattern": "^[a-f0-9]{16}$" },
         "exactCrossTargetBytes": { "const": true },
-        "topology": { "type": "object" },
+        "topology": { "$ref": "#/$defs/topology" },
         "triangleCount": { "type": "integer", "minimum": 1 }
       }
     },
-    "counters": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+    "counters": { "$ref": "#/$defs/counters" },
     "performanceClaims": { "type": "array", "maxItems": 0 }
   },
+  "oneOf": [
+    {
+      "properties": {
+        "variantId": { "const": "js-controlled" },
+        "executionTarget": { "const": "javascript" },
+        "counters": {
+          "properties": {
+            "allocations": { "const": 8 },
+            "boundaryCrossings": { "const": 0 }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "variantId": { "const": "wasm-linear-controlled" },
+        "executionTarget": { "const": "wasm-linear" },
+        "counters": {
+          "properties": {
+            "allocations": { "const": 0 },
+            "boundaryCrossings": { "const": 2 }
+          }
+        }
+      }
+    }
+  ],
   "$defs": {
     "ref": {
       "type": "object",
@@ -62,6 +88,72 @@
         "path": { "type": "string", "minLength": 1 },
         "bytes": { "type": "integer", "minimum": 1 },
         "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "topology": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "connectedComponents",
+        "shells",
+        "throughHoles",
+        "genus",
+        "faces",
+        "edges",
+        "vertices",
+        "watertight",
+        "oriented",
+        "tessellationEdges"
+      ],
+      "properties": {
+        "connectedComponents": { "const": 1 },
+        "shells": { "const": 1 },
+        "throughHoles": { "type": "integer", "minimum": 0, "maximum": 2 },
+        "genus": { "type": "integer", "minimum": 0, "maximum": 2 },
+        "faces": { "type": "integer", "minimum": 6 },
+        "edges": { "type": "integer", "minimum": 12 },
+        "vertices": { "type": "integer", "minimum": 8 },
+        "watertight": { "const": true },
+        "oriented": { "const": true },
+        "tessellationEdges": { "type": "integer", "minimum": 18 }
+      }
+    },
+    "counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "featureNodes",
+        "boxSolids",
+        "cylinderSolids",
+        "booleanCuts",
+        "filletEdges",
+        "booleanIntersectionTests",
+        "scanBands",
+        "intersectionTests",
+        "sortComparisons",
+        "surfaceTriangles",
+        "tessellationVertices",
+        "inputBytes",
+        "outputBytes",
+        "allocations",
+        "boundaryCrossings"
+      ],
+      "properties": {
+        "featureNodes": { "type": "integer", "minimum": 2, "maximum": 10 },
+        "boxSolids": { "const": 1 },
+        "cylinderSolids": { "type": "integer", "minimum": 0, "maximum": 2 },
+        "booleanCuts": { "type": "integer", "minimum": 0, "maximum": 2 },
+        "filletEdges": { "enum": [0, 4] },
+        "booleanIntersectionTests": { "type": "integer", "minimum": 0, "maximum": 64 },
+        "scanBands": { "type": "integer", "minimum": 1 },
+        "intersectionTests": { "type": "integer", "minimum": 1 },
+        "sortComparisons": { "type": "integer", "minimum": 0 },
+        "surfaceTriangles": { "type": "integer", "minimum": 1 },
+        "tessellationVertices": { "type": "integer", "minimum": 3 },
+        "inputBytes": { "const": 128 },
+        "outputBytes": { "type": "integer", "minimum": 256 },
+        "allocations": { "type": "integer", "minimum": 0 },
+        "boundaryCrossings": { "type": "integer", "minimum": 0 }
       }
     }
   }

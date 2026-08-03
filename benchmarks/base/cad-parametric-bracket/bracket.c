@@ -14,6 +14,17 @@ typedef unsigned long long u64;
 typedef struct { double x, y; } P2;
 typedef struct { P2 a, b; } Segment;
 typedef struct { Segment *edge; double x; } Hit;
+typedef enum { SURFACE_PLANE = 1u, SURFACE_CYLINDER = 2u } SurfaceKind;
+typedef enum { CURVE_LINE = 1u, CURVE_CIRCLE = 2u } CurveKind;
+typedef struct { double x, y, z; } BrepVertex;
+typedef struct { CurveKind curve; u32 v0, v1, face0, face1; } BrepEdge;
+typedef struct { SurfaceKind surface; u32 first_edge, edge_count; } BrepFace;
+typedef struct {
+  BrepVertex vertices[24]; BrepEdge edges[36]; BrepFace faces[16];
+  P2 hole_centers[2]; double hole_radii[2];
+  u32 vertex_count, edge_count, face_count, through_holes, feature_nodes;
+} BrepSolid;
+typedef struct { P2 center; double radius, depth; BrepFace faces[3]; } CylinderSolid;
 static u8 input_data[INPUT_BYTES] __attribute__((aligned(16)));
 static u8 output_data[OUTPUT_CAPACITY] __attribute__((aligned(16)));
 static P2 loops[MAX_LOOPS][MAX_POINTS];
@@ -25,6 +36,7 @@ static double xs[MAX_SEGMENTS];
 static double bottom_cuts[MAX_SEGMENTS + 2u];
 static double top_cuts[MAX_SEGMENTS + 2u];
 static Hit hits[MAX_SEGMENTS];
+static BrepSolid brep;
 
 static const double ux[32] = {
   1.0,0.9807852804032304,0.9238795325112867,0.8314696123025452,
@@ -58,8 +70,88 @@ static double absd(double x) { return x < 0.0 ? -x : x; }
 static void point(u32 loop, u32 *cursor, double x, double y) {
   loops[loop][*cursor].x = x; loops[loop][*cursor].y = y; (*cursor)++;
 }
-static u32 construct(double w, double h, double r, double hole_r, u32 hole_count, u64 *boolean_tests) {
+static void set_edge(BrepSolid *solid,u32 id,CurveKind curve,u32 v0,u32 v1,u32 face0,u32 face1){
+  solid->edges[id].curve=curve;solid->edges[id].v0=v0;solid->edges[id].v1=v1;
+  solid->edges[id].face0=face0;solid->edges[id].face1=face1;
+}
+static void make_box_solid(BrepSolid *solid,double w,double h,double depth) {
+  solid->vertex_count=8u;solid->edge_count=12u;solid->face_count=6u;
+  solid->through_holes=0u;solid->feature_nodes=1u;
+  double px[4]={0.0,w,w,0.0},py[4]={0.0,0.0,h,h};
+  for(u32 z=0;z<2u;z++)for(u32 i=0;i<4u;i++){
+    u32 v=z*4u+i;solid->vertices[v].x=px[i];solid->vertices[v].y=py[i];solid->vertices[v].z=z?depth:0.0;
+  }
+  for(u32 i=0;i<6u;i++){solid->faces[i].surface=SURFACE_PLANE;solid->faces[i].first_edge=0u;solid->faces[i].edge_count=4u;}
+  for(u32 i=0;i<4u;i++){
+    set_edge(solid,i,CURVE_LINE,i,(i+1u)%4u,0u,2u+i);
+    set_edge(solid,4u+i,CURVE_LINE,4u+i,4u+(i+1u)%4u,1u,2u+i);
+    set_edge(solid,8u+i,CURVE_LINE,i,4u+i,2u+(i+3u)%4u,2u+i);
+  }
+}
+static CylinderSolid make_cylinder_solid(double cx,double cy,double radius,double depth) {
+  CylinderSolid tool;tool.center.x=cx;tool.center.y=cy;tool.radius=radius;tool.depth=depth;
+  tool.faces[0].surface=SURFACE_PLANE;tool.faces[1].surface=SURFACE_PLANE;tool.faces[2].surface=SURFACE_CYLINDER;
+  return tool;
+}
+static u32 boolean_cut(BrepSolid *solid,CylinderSolid *tool,double w,double h,double fillet,u64 *boolean_tests) {
+  for(u32 k=0;k<32u;k++){
+    double x=tool->center.x+tool->radius*ux[k],y=tool->center.y+tool->radius*uy[k];
+    double qx=x<fillet?fillet-x:(x>w-fillet?x-(w-fillet):0.0);
+    double qy=y<fillet?fillet-y:(y>h-fillet?y-(h-fillet):0.0);(*boolean_tests)++;
+    if(x<0.0||x>w||y<0.0||y>h||qx*qx+qy*qy>fillet*fillet+1e-15)return 0u;
+  }
+  u32 hole=solid->through_holes,wall=solid->face_count,v0=solid->vertex_count,v1=v0+1u,e=solid->edge_count;
+  solid->hole_centers[hole]=tool->center;solid->hole_radii[hole]=tool->radius;
+  solid->vertices[v0].x=tool->center.x+tool->radius;solid->vertices[v0].y=tool->center.y;solid->vertices[v0].z=0.0;
+  solid->vertices[v1].x=tool->center.x+tool->radius;solid->vertices[v1].y=tool->center.y;solid->vertices[v1].z=tool->depth;
+  solid->faces[wall].surface=SURFACE_CYLINDER;solid->faces[wall].first_edge=e;solid->faces[wall].edge_count=4u;
+  set_edge(solid,e,CURVE_CIRCLE,v0,v0,0u,wall);set_edge(solid,e+1u,CURVE_CIRCLE,v1,v1,1u,wall);
+  set_edge(solid,e+2u,CURVE_LINE,v0,v1,wall,wall);
+  solid->vertex_count+=2u;solid->edge_count+=3u;solid->face_count++;
+  solid->through_holes++;solid->feature_nodes+=2u;return 1u;
+}
+static void fillet_vertical_edges(BrepSolid *solid,double radius) {
+  if(radius>0.0)solid->feature_nodes+=4u;
+}
+static P2 brep_profile_point(u32 i,double w,double h,double r){
+  P2 p;if(r==0.0){double px[4]={0.0,w,w,0.0},py[4]={0.0,0.0,h,h};p.x=px[i];p.y=py[i];return p;}
+  double px[8]={r,w-r,w,w,w-r,r,0.0,0.0},py[8]={0.0,0.0,r,h-r,h,h,h-r,r};p.x=px[i];p.y=py[i];return p;
+}
+static void finish_brep(BrepSolid *solid,double w,double h,double depth,double fillet) {
+  u32 profile_edges=fillet>0.0?8u:4u,hole_count=solid->through_holes,features=solid->feature_nodes;
+  P2 centers[2];double radii[2];for(u32 i=0;i<hole_count;i++){centers[i]=solid->hole_centers[i];radii[i]=solid->hole_radii[i];}
+  solid->vertex_count=0u;solid->edge_count=0u;solid->face_count=0u;
+  u32 bottom=solid->face_count++;solid->faces[bottom].surface=SURFACE_PLANE;
+  u32 top=solid->face_count++;solid->faces[top].surface=SURFACE_PLANE;
+  for(u32 i=0;i<profile_edges;i++){
+    u32 face=solid->face_count++;solid->faces[face].surface=fillet>0.0&&(i&1u)?SURFACE_CYLINDER:SURFACE_PLANE;
+  }
+  for(u32 z=0;z<2u;z++)for(u32 i=0;i<profile_edges;i++){
+    P2 p=brep_profile_point(i,w,h,fillet);u32 v=solid->vertex_count++;
+    solid->vertices[v].x=p.x;solid->vertices[v].y=p.y;solid->vertices[v].z=z?depth:0.0;
+  }
+  for(u32 i=0;i<profile_edges;i++){
+    u32 side=2u+i,next=(i+1u)%profile_edges,prior=(i+profile_edges-1u)%profile_edges;
+    CurveKind curve=fillet>0.0&&(i&1u)?CURVE_CIRCLE:CURVE_LINE;
+    set_edge(solid,solid->edge_count++,curve,i,next,bottom,side);
+    set_edge(solid,solid->edge_count++,curve,profile_edges+i,profile_edges+next,top,side);
+    set_edge(solid,solid->edge_count++,CURVE_LINE,i,profile_edges+i,2u+prior,side);
+  }
+  for(u32 hole=0;hole<hole_count;hole++){
+    u32 wall=solid->face_count++,v0=solid->vertex_count++,v1=solid->vertex_count++;
+    solid->faces[wall].surface=SURFACE_CYLINDER;solid->faces[wall].first_edge=solid->edge_count;solid->faces[wall].edge_count=4u;
+    solid->vertices[v0].x=centers[hole].x+radii[hole];solid->vertices[v0].y=centers[hole].y;solid->vertices[v0].z=0.0;
+    solid->vertices[v1].x=centers[hole].x+radii[hole];solid->vertices[v1].y=centers[hole].y;solid->vertices[v1].z=depth;
+    set_edge(solid,solid->edge_count++,CURVE_CIRCLE,v0,v0,bottom,wall);
+    set_edge(solid,solid->edge_count++,CURVE_CIRCLE,v1,v1,top,wall);
+    set_edge(solid,solid->edge_count++,CURVE_LINE,v0,v1,wall,wall);
+  }
+  solid->feature_nodes=features+1u;
+}
+static u32 construct_face_loops(double w, double h, double r, double hole_r, u32 hole_count) {
   u32 n = 0;
+  if(r==0.0){point(0,&n,0.0,0.0);point(0,&n,w,0.0);point(0,&n,w,h);point(0,&n,0.0,h);loop_lengths[0]=n;}
+  else {
   point(0,&n,r,0.0); point(0,&n,w-r,0.0);
   for (u32 k=1;k<=8;k++) { u32 q=(24u+k)&31u; point(0,&n,w-r+r*ux[q],r+r*uy[q]); }
   point(0,&n,w,h-r);
@@ -69,13 +161,11 @@ static u32 construct(double w, double h, double r, double hole_r, u32 hole_count
   point(0,&n,0.0,r);
   for (u32 k=1;k<8;k++) { u32 q=16u+k; point(0,&n,r+r*ux[q],r+r*uy[q]); }
   loop_lengths[0]=n;
+  }
   for (u32 hole=0;hole<hole_count;hole++) {
     u32 m=0; double cx=read_f64(64u+hole*16u), cy=read_f64(72u+hole*16u);
     for (u32 k=0;k<32;k++) {
       u32 q=(32u-k)&31u; double x=cx+hole_r*ux[q],y=cy+hole_r*uy[q];
-      double qx=x<r?r-x:(x>w-r?x-(w-r):0.0),qy=y<r?r-y:(y>h-r?y-(h-r):0.0);
-      (*boolean_tests)++;
-      if(x<0.0||x>w||y<0.0||y>h||qx*qx+qy*qy>r*r+1e-15)return 0u;
       point(1u+hole,&m,x,y);
     }
     loop_lengths[1u+hole]=m;
@@ -96,7 +186,7 @@ static void add_triangle(u32 *count, double ax,double ay,double az,double bx,dou
   triangle_data[o+6]=cx;triangle_data[o+7]=cy;triangle_data[o+8]=cz;
   (*count)++;
 }
-static u32 tessellate(u32 loop_count,double depth,u64 *band_count,u64 *tests,u64 *comparisons) {
+static u32 tessellate_faces(u32 loop_count,double depth,u64 *band_count,u64 *tests,u64 *comparisons) {
   u32 edge_count=0,y_count=0,x_count=0;
   for (u32 l=0;l<loop_count;l++) for (u32 i=0;i<loop_lengths[l];i++) {
     Segment *s=&edge_data[edge_count++]; s->a=loops[l][i]; s->b=loops[l][(i+1u)%loop_lengths[l]];
@@ -167,14 +257,20 @@ static u32 tessellate(u32 loop_count,double depth,u64 *band_count,u64 *tests,u64
 u32 run(void) {
   if(read_u32(0)!=INPUT_MAGIC||read_u32(4)!=1u||read_u32(8)>2u||read_u32(12)!=8u||read_u32(16)!=32u)return 0u;
   u32 hole_count=read_u32(8);double w=read_f64(24),h=read_f64(32),depth=read_f64(40),fillet=read_f64(48),hole_r=read_f64(56);
-  if(!(w>0.0&&h>0.0&&depth>0.0&&fillet>=0.0&&fillet*2.0<(w<h?w:h)))return 0u;
-  u64 boolean_tests=0;u32 loop_count=construct(w,h,fillet,hole_r,hole_count,&boolean_tests);if(loop_count==0u)return 0u;
-  u64 bands=0,tests=0,comparisons=0;u32 triangle_count=tessellate(loop_count,depth,&bands,&tests,&comparisons);if(triangle_count==0u)return 0u;
+  if(!(w>0.0&&h>0.0&&depth>0.0&&fillet>=0.0&&hole_r>0.0&&fillet*2.0<(w<h?w:h)))return 0u;
+  make_box_solid(&brep,w,h,depth);u64 boolean_tests=0;
+  for(u32 hole=0;hole<hole_count;hole++){
+    double cx=read_f64(64u+hole*16u),cy=read_f64(72u+hole*16u);CylinderSolid tool=make_cylinder_solid(cx,cy,hole_r,depth);
+    if(!boolean_cut(&brep,&tool,w,h,fillet,&boolean_tests))return 0u;
+  }
+  fillet_vertical_edges(&brep,fillet);finish_brep(&brep,w,h,depth,fillet);
+  u32 loop_count=construct_face_loops(w,h,fillet,hole_r,hole_count);if(loop_count==0u)return 0u;
+  u64 bands=0,tests=0,comparisons=0;u32 triangle_count=tessellate_faces(loop_count,depth,&bands,&tests,&comparisons);if(triangle_count==0u)return 0u;
   u32 loop_values=0;for(u32 l=0;l<loop_count;l++)loop_values+=loop_lengths[l]*2u;u32 output_bytes=HEADER_BYTES+loop_values*8u+triangle_count*72u;if(output_bytes>OUTPUT_CAPACITY)return 0u;
   for(u32 i=0;i<HEADER_BYTES;i++)output_data[i]=0;
-  write_u32(0,OUTPUT_MAGIC);write_u32(4,1u);write_u32(8,loop_lengths[0]);write_u32(12,hole_count);write_u32(16,32u);write_u32(20,triangle_count);
-  write_u32(24,12u);write_u32(28,30u);write_u32(32,20u);write_u32(36,2u);
-  u64 counters[13]={10u,1u,hole_count,hole_count,fillet>0.0?4u:0u,boolean_tests,bands,tests,comparisons,triangle_count,(u64)triangle_count*3u,INPUT_BYTES,output_bytes};
+  write_u32(0,OUTPUT_MAGIC);write_u32(4,2u);write_u32(8,loop_lengths[0]);write_u32(12,hole_count);write_u32(16,32u);write_u32(20,triangle_count);
+  write_u32(24,brep.face_count);write_u32(28,brep.edge_count);write_u32(32,brep.vertex_count);write_u32(36,brep.through_holes);
+  u64 counters[13]={brep.feature_nodes,1u,hole_count,hole_count,fillet>0.0?4u:0u,boolean_tests,bands,tests,comparisons,triangle_count,(u64)triangle_count*3u,INPUT_BYTES,output_bytes};
   for(u32 i=0;i<13;i++)write_u64(64u+i*8u,counters[i]);
   u32 off=HEADER_BYTES;for(u32 l=0;l<loop_count;l++)for(u32 i=0;i<loop_lengths[l];i++){write_f64(off,loops[l][i].x);off+=8u;write_f64(off,loops[l][i].y);off+=8u;}
   for(u32 i=0;i<triangle_count*9u;i++){write_f64(off,triangle_data[i]);off+=8u;}

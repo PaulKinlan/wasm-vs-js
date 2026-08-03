@@ -10,6 +10,8 @@ import {
 import { generateFixture } from "../../benchmarks/base/cad-parametric-bracket/fixture.js";
 import {
   assertEquivalent,
+  buildFeatureTree,
+  decodeResult,
   instantiateBracketWasm,
   runJavaScript,
   runWasm,
@@ -61,12 +63,12 @@ Deno.test("complete JavaScript and material Wasm B-rep/tessellation outputs matc
   const wasm = runWasm(await runtime(), fixture);
   assertEquals(assertEquivalent(js, wasm), {
     exactBytes: true,
-    completeOutputDigest: "a8dce8f458de8a4d",
+    completeOutputDigest: "50670daa6b950c62",
   });
   assertEquals(js.output, wasm.output);
   assertEquals(
     await sha256Hex(js.output),
-    "e976937d9234a4cd63f5c17fbb7d0997d69e43611674f590eceac73820c0007a",
+    "47244801c8cc678e2e71aa53606b53b32939a65aa30700133b1fbf048e516433",
   );
   assertEquals(js.triangleCount, 5804);
   assertEquals(js.topology, {
@@ -90,10 +92,28 @@ Deno.test("complete JavaScript and material Wasm B-rep/tessellation outputs matc
   assertEquals(jsCounters.boundaryCrossings, 0);
   assertEquals(wasmCounters.allocations, 0);
   assertEquals(wasmCounters.boundaryCrossings, 2);
+  const tree = buildFeatureTree(fixture).solid;
+  assertEquals(tree.vertices.length, 20);
+  assertEquals(tree.edges.length, 30);
+  assertEquals(tree.faces.length, 12);
+  assertEquals(
+    tree.faces.filter((face: { surface: { kind: string } }) => face.surface.kind === "cylinder")
+      .length,
+    6,
+  );
+  assert(tree.edges.every((edge: { faces: number[] }) => edge.faces.length === 2));
   const c = await Deno.readTextFile("benchmarks/base/cad-parametric-bracket/bracket.c");
-  for (const token of ["construct", "tessellate", "x_at", "add_triangle", "booleanCuts"]) {
-    assert(c.includes(token) || token === "booleanCuts");
-  }
+  for (
+    const token of [
+      "make_box_solid",
+      "make_cylinder_solid",
+      "boolean_cut",
+      "fillet_vertical_edges",
+      "finish_brep",
+      "tessellate_faces",
+      "SURFACE_CYLINDER",
+    ]
+  ) assert(c.includes(token));
 });
 
 Deno.test("simple solids, one cut and a fragile near-fillet cut differentially match", async () => {
@@ -115,11 +135,46 @@ Deno.test("simple solids, one cut and a fragile near-fillet cut differentially m
     const wasm = runWasm(await runtime(), fixture);
     assertEquivalent(js, wasm);
     assert(js.triangleCount > 0);
-    assertEquals(
-      (js.counters as Record<string, number>).cylinderSolids,
-      new DataView(fixture.buffer).getUint32(8, true),
-    );
+    const holeCount = new DataView(fixture.buffer).getUint32(8, true);
+    assertEquals((js.counters as Record<string, number>).cylinderSolids, holeCount);
+    assertEquals(js.topology.throughHoles, holeCount);
+    assertEquals(js.topology.genus, holeCount);
+    assertEquals(js.topology.faces, 10 + holeCount);
+    assertEquals(js.topology.edges, 24 + holeCount * 3);
+    assertEquals(js.topology.vertices, 16 + holeCount * 2);
   }
+});
+
+Deno.test("independent oracle rejects forged topology and feature counters", () => {
+  const fixture = generateFixture({ holeCenters: [[20, 20]] });
+  const valid = runJavaScript(fixture).output;
+  for (const [offset, message] of [[24, "topology"], [64, "featureNodes"]] as const) {
+    const forged = valid.slice();
+    const view = new DataView(forged.buffer);
+    if (offset === 24) view.setUint32(offset, 999, true);
+    else view.setBigUint64(offset, 999n, true);
+    let rejected = false;
+    try {
+      decodeResult(forged, "js-controlled", fixture);
+    } catch (error) {
+      rejected = error instanceof Error && error.message.includes(message);
+    }
+    assert(rejected, `forged ${message} was accepted`);
+  }
+  const sharp = runJavaScript(generateFixture({ holeCenters: [], filletRadius: 0 }));
+  assertEquals(sharp.topology, {
+    connectedComponents: 1,
+    shells: 1,
+    throughHoles: 0,
+    genus: 0,
+    faces: 6,
+    edges: 12,
+    vertices: 8,
+    watertight: true,
+    oriented: true,
+    tessellationEdges: 18,
+  });
+  assertEquals((sharp.counters as Record<string, number>).featureNodes, 2);
 });
 
 Deno.test("Wasm memory is fixed and repeat runs clear complete output state", async () => {
@@ -144,6 +199,10 @@ Deno.test("bracket demo lifecycle is fresh-worker, cancellable, token-bound and 
   assert(demo.includes("worker !== owned") && demo.includes("token !== runToken"));
   assert(demo.includes("worker?.terminate()") && demo.includes("10_000"));
   assert(demo.includes('addEventListener("pagehide"'));
+  assert(demo.includes("oracleVerified") && demo.includes("Frozen exact-output oracle verified"));
+  const worker = await Deno.readTextFile("public/demos/cad-parametric-bracket/worker.js");
+  assert(worker.includes('crypto.subtle.digest("SHA-256"'));
+  assert(worker.includes("completeOutputSha256 !== manifest.completeOutputSha256"));
   assert(!/(localStorage|sessionStorage|indexedDB)/u.test(demo));
   const page = await Deno.readTextFile("public/demos/cad-parametric-bracket/index.html");
   assert(page.includes('role="status"') && page.includes('aria-live="polite"'));
@@ -183,6 +242,7 @@ Deno.test("pinned bracket builder reproduces artifacts and records byte-identica
     "public/artifacts/base-cad-parametric-bracket/fixture-manifest.json",
     "public/artifacts/base-cad-parametric-bracket/build-manifest.json",
     "public/artifacts/base-cad-parametric-bracket/output-manifest.json",
+    "public/artifacts/base-cad-parametric-bracket/source-bundle.txt",
     "public/evidence/base-catalog/cad-parametric-bracket/js-controlled.json",
     "public/evidence/base-catalog/cad-parametric-bracket/wasm-linear-controlled.json",
   ];
@@ -231,11 +291,28 @@ Deno.test("bracket records satisfy closed schema and retain exact bytes", async 
     );
     assert(validate(record), JSON.stringify(validate.errors));
     assertEquals(record.sourceCommit, build.source.commit);
+    assertEquals(
+      record.source.sha256,
+      await sha256Hex(await Deno.readFile(record.source.path)),
+    );
     assertEquals(record.fixture.sha256, await sha256Hex(await Deno.readFile(record.fixture.path)));
     assertEquals(
       record.oracle.completeOutputSha256,
-      "e976937d9234a4cd63f5c17fbb7d0997d69e43611674f590eceac73820c0007a",
+      "47244801c8cc678e2e71aa53606b53b32939a65aa30700133b1fbf048e516433",
     );
     assertEquals(record.oracle.exactCrossTargetBytes, true);
+
+    const wrongTarget = structuredClone(record);
+    wrongTarget.executionTarget = variant === "js-controlled" ? "wasm-linear" : "javascript";
+    assert(!validate(wrongTarget), "variant/target mismatch passed schema");
+    const forgedTopology = structuredClone(record);
+    forgedTopology.oracle.topology = { forged: true };
+    assert(!validate(forgedTopology), "open topology passed schema");
+    const emptyCounters = structuredClone(record);
+    emptyCounters.counters = {};
+    assert(!validate(emptyCounters), "empty counters passed schema");
+    const extraCounter = structuredClone(record);
+    extraCounter.counters.forged = 1;
+    assert(!validate(extraCounter), "extra counter passed schema");
   }
 });

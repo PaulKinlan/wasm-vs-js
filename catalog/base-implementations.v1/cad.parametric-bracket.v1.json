@@ -19,7 +19,7 @@
     "booleanTiePolicy": "even-odd profile winding; horizontal bands use lower-inclusive upper-exclusive crossings; equal-x crossings preserve source edge order",
     "floatingPointPolicy": "IEEE-754 f64 scalar source order; no fast-math, contraction, SIMD, threads, exceptions or tail calls",
     "allocationPolicy": "Counts owned binary/backing stores only; point and edge metadata used by the untimed correctness oracle are excluded. JavaScript owns eight backing stores; fixed-memory Wasm performs no semantic allocation.",
-    "counterPolicy": "Boolean intersection tests count every cylinder boundary sample tested against the filleted box. Scan intersection tests count every B-rep edge tested in every horizontal band. Triangle and tessellation-vertex counters come from the complete emitted mesh.",
+    "counterPolicy": "Boolean intersection tests count the 32 boundary samples checked for each cylinder tool. Scan intersection tests count each sampled B-rep curve segment checked in each horizontal band. Triangle and tessellation-vertex counters come from the complete emitted mesh.",
     "tolerance": {
       "crossTargetBytes": "exact",
       "topology": "exact",
@@ -49,12 +49,12 @@
     {
       "id": "js-controlled",
       "target": "javascript",
-      "semanticWork": "Authored JavaScript constructs the box and cylinder B-rep loops, executes both boolean cuts and four fillets, builds scan-band intersections, and emits the complete tessellation."
+      "semanticWork": "Authored JavaScript constructs box and cylinder solids, subtracts both cylinder tools, replaces four vertical edges with quarter-cylinder fillet faces, builds face/edge adjacency, and tessellates the resulting plane and cylinder surfaces."
     },
     {
       "id": "wasm-linear-controlled",
       "target": "wasm-linear",
-      "semanticWork": "Authored C compiled to fixed-memory linear Wasm independently constructs the complete B-rep and tessellation; JavaScript copies only the 128-byte feature-tree fixture and decodes the complete output."
+      "semanticWork": "Authored C compiled to fixed-memory linear Wasm independently constructs the solids, boolean cuts, fillet faces, face/edge adjacency, and tessellation. JavaScript copies the 128-byte feature-tree fixture and validates the returned output."
     }
   ],
   "performanceClaims": []

@@ -34,10 +34,13 @@ function begin() {
     if (event.data.type === "error") return finish(`Failed: ${event.data.message}`);
     if (event.data.type !== "result") return;
     const value = event.data.result;
+    if (value.oracleVerified !== true) return finish("Failed: frozen oracle was not verified.");
     cleanup();
-    status.textContent = "Complete. Correctness output only; no duration was collected.";
+    status.textContent =
+      "Complete. Frozen exact-output oracle verified; no duration was collected.";
     result.textContent = [
       `Target: ${value.variantId}`,
+      `Complete output SHA-256: ${value.completeOutputSha256}`,
       `Complete output digest: ${value.completeOutputDigest}`,
       `Triangles: ${value.triangleCount}`,
       `Topology: ${JSON.stringify(value.topology, null, 2)}`,
