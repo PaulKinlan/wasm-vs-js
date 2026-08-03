@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.example/schemas/base-workload-registration.schema.json",
+  "title": "Frozen base workload supplemental registration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "registrationId",
+    "catalogEntryId",
+    "catalogSha256",
+    "catalogMutation",
+    "track",
+    "status",
+    "fixture",
+    "semantics",
+    "fixedWork",
+    "oracle",
+    "structuralCounters",
+    "variants",
+    "limits",
+    "claims"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "registrationId": { "type": "string", "minLength": 1 },
+    "catalogEntryId": { "const": "text.regex-log-scan.v1" },
+    "catalogSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "catalogMutation": { "const": false },
+    "track": { "const": "controlled" },
+    "status": { "const": "implementation-candidate" },
+    "fixture": {
+      "type": "object",
+      "required": [
+        "kind",
+        "licenseSpdx",
+        "redistribution",
+        "seed",
+        "generator",
+        "bytes",
+        "records",
+        "sha256"
+      ],
+      "properties": {
+        "kind": { "const": "project-generated" },
+        "licenseSpdx": { "const": "CC0-1.0" },
+        "redistribution": { "type": "string" },
+        "seed": { "type": "integer" },
+        "generator": { "type": "string" },
+        "bytes": { "const": 104857600 },
+        "records": { "const": 409600 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      },
+      "additionalProperties": false
+    },
+    "semantics": { "type": "object", "minProperties": 8 },
+    "fixedWork": {
+      "type": "object",
+      "required": [
+        "inputBytes",
+        "patternDefinitions",
+        "logicalPatternBytes",
+        "expectedMatches",
+        "expectedMatchesPerPattern",
+        "iterations",
+        "timeLimited"
+      ],
+      "properties": {
+        "inputBytes": { "const": 104857600 },
+        "patternDefinitions": { "const": 20 },
+        "logicalPatternBytes": { "const": 2097152000 },
+        "expectedMatches": { "const": 40960 },
+        "expectedMatchesPerPattern": { "const": 2048 },
+        "iterations": { "const": 1 },
+        "timeLimited": { "const": false }
+      },
+      "additionalProperties": false
+    },
+    "oracle": {
+      "type": "object",
+      "required": ["kind", "frame", "sha256", "canonicalOutputBytes"],
+      "properties": {
+        "kind": { "const": "exact-sha256-over-length-framed-ordered-captures" },
+        "frame": { "type": "string" },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "canonicalOutputBytes": { "const": 1798498 }
+      },
+      "additionalProperties": false
+    },
+    "structuralCounters": {
+      "type": "object",
+      "required": [
+        "candidateStarts",
+        "prefixByteComparisons",
+        "tailByteComparisons",
+        "matchesFound",
+        "capturesExtracted",
+        "perPattern"
+      ]
+    },
+    "variants": { "const": ["js-controlled", "wasm-linear-controlled"] },
+    "limits": { "type": "object" },
+    "claims": { "type": "object" }
+  }
+}

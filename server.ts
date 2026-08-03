@@ -151,6 +151,74 @@ const routes = new Map<string, [string, string, boolean?]>([
     "text/javascript; charset=utf-8",
   ]],
   ["/workload-catalog.js", ["public/workload-catalog.js", "text/javascript; charset=utf-8"]],
+  ["/demos/base/text.regex-log-scan.v1", [
+    "public/demos/base/text.regex-log-scan.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/demos/base/text.regex-log-scan.v1/", [
+    "public/demos/base/text.regex-log-scan.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/demos/base/text.regex-log-scan.v1/demo.js", [
+    "public/demos/base/text.regex-log-scan.v1/demo.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/demos/base/text.regex-log-scan.v1/worker.js", [
+    "public/demos/base/text.regex-log-scan.v1/worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/demos/base/text.regex-log-scan.v1/identity.js", [
+    "public/demos/base/text.regex-log-scan.v1/identity.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/text-regex-log-scan/input.js", [
+    "benchmarks/text-regex-log-scan/input.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/text-regex-log-scan/workload.js", [
+    "benchmarks/text-regex-log-scan/workload.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/data/base-implementations/text.regex-log-scan.v1.json", [
+    "public/data/base-implementations/text.regex-log-scan.v1.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/data/schemas/base-workload-registration.schema.json", [
+    "schemas/base-workload-registration.schema.json",
+    "application/schema+json; charset=utf-8",
+  ]],
+  ["/data/schemas/base-workload-correctness-record.schema.json", [
+    "schemas/base-workload-correctness-record.schema.json",
+    "application/schema+json; charset=utf-8",
+  ]],
+  ["/artifacts/text-regex-log-scan/text-regex-log-scan.wasm", [
+    "public/artifacts/text-regex-log-scan/text-regex-log-scan.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/text-regex-log-scan/ordered-captures.bin", [
+    "public/artifacts/text-regex-log-scan/ordered-captures.bin",
+    "application/octet-stream",
+  ]],
+  ["/artifacts/text-regex-log-scan/build-manifest.json", [
+    "public/artifacts/text-regex-log-scan/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/text-regex-log-scan/input-manifest.json", [
+    "public/artifacts/text-regex-log-scan/input-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/text-regex-log-scan/output-manifest.json", [
+    "public/artifacts/text-regex-log-scan/output-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base/text.regex-log-scan.v1/js-controlled.json", [
+    "public/evidence/base/text.regex-log-scan.v1/js-controlled.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base/text.regex-log-scan.v1/wasm-linear-controlled.json", [
+    "public/evidence/base/text.regex-log-scan.v1/wasm-linear-controlled.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/demos/text.diff-patch.v1", [
     "public/demos/text.diff-patch.v1/index.html",
     "text/html; charset=utf-8",

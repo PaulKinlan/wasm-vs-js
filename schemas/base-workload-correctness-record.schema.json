@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.example/schemas/base-workload-correctness-record.schema.json",
+  "title": "Base workload correctness validation record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "recordType",
+    "workloadId",
+    "registrationId",
+    "sourceCommit",
+    "variant",
+    "status",
+    "input",
+    "output",
+    "counters",
+    "assertions",
+    "scope"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "recordType": { "const": "base-workload-correctness-validation" },
+    "workloadId": { "const": "text.regex-log-scan.v1" },
+    "registrationId": { "const": "text.regex-log-scan.v1-controlled-registration-v1" },
+    "sourceCommit": {
+      "anyOf": [{ "pattern": "^[a-f0-9]{40}$" }, { "const": "uncommitted-source-tree" }]
+    },
+    "variant": { "enum": ["js-controlled", "wasm-linear-controlled"] },
+    "status": { "const": "passed" },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bytes", "sha256"],
+      "properties": { "bytes": { "const": 104857600 }, "sha256": { "pattern": "^[a-f0-9]{64}$" } }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capturesArtifact", "bytes", "sha256"],
+      "properties": {
+        "capturesArtifact": { "const": "/artifacts/text-regex-log-scan/ordered-captures.bin" },
+        "bytes": { "const": 1798498 },
+        "sha256": { "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "counters": {
+      "type": "object",
+      "required": [
+        "inputBytes",
+        "patternsExecuted",
+        "logicalPatternBytes",
+        "matchesFound",
+        "capturesExtracted",
+        "canonicalOutputBytes",
+        "candidateStarts",
+        "prefixByteComparisons",
+        "tailByteComparisons",
+        "boundaryCrossings",
+        "perPattern"
+      ]
+    },
+    "assertions": {
+      "type": "object",
+      "required": [
+        "exactInputHash",
+        "exactOutputHash",
+        "completeTupleIdentityAcrossTargets",
+        "structuralCountersExact",
+        "wasmMaterialMatchingSemantics"
+      ]
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["correctnessOnly", "browserEvidence", "performanceCorpus", "performanceClaim"],
+      "properties": {
+        "correctnessOnly": { "const": true },
+        "browserEvidence": { "type": "string" },
+        "performanceCorpus": { "const": "unavailable" },
+        "performanceClaim": { "const": false }
+      }
+    }
+  }
+}

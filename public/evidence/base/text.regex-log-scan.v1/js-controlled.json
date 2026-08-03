@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "recordType": "base-workload-correctness-validation",
+  "workloadId": "text.regex-log-scan.v1",
+  "registrationId": "text.regex-log-scan.v1-controlled-registration-v1",
+  "sourceCommit": "uncommitted-source-tree",
+  "variant": "js-controlled",
+  "status": "passed",
+  "input": {
+    "bytes": 104857600,
+    "sha256": "3d5810310d15b7bebf227bdc384035bd961684d4e1240b2ee93b4cb37350d388"
+  },
+  "output": {
+    "capturesArtifact": "/artifacts/text-regex-log-scan/ordered-captures.bin",
+    "bytes": 1798498,
+    "sha256": "6078822d35d3daea452751e74229c762e43eb4b973ca40bd1a0ac7c9c9e899de"
+  },
+  "counters": {
+    "inputBytes": 104857600,
+    "patternsExecuted": 20,
+    "logicalPatternBytes": 2097152000,
+    "matchesFound": 40960,
+    "capturesExtracted": 40960,
+    "canonicalOutputBytes": 1798498,
+    "candidateStarts": 6732995,
+    "prefixByteComparisons": 15570166,
+    "tailByteComparisons": 861922,
+    "boundaryCrossings": 0,
+    "perPattern": [
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048
+    ]
+  },
+  "assertions": {
+    "exactInputHash": true,
+    "exactOutputHash": true,
+    "completeTupleIdentityAcrossTargets": true,
+    "structuralCountersExact": true,
+    "wasmMaterialMatchingSemantics": null
+  },
+  "scope": {
+    "correctnessOnly": true,
+    "browserEvidence": "uncollected-by-implementation-worker",
+    "performanceCorpus": "unavailable",
+    "performanceClaim": false
+  }
+}
