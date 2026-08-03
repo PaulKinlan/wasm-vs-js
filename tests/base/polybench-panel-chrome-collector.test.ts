@@ -2,6 +2,8 @@ import Ajv2020Module from "ajv2020";
 import addFormatsModule from "ajv-formats";
 import { assert, assertEquals } from "../assert.ts";
 import {
+  EXPECTED_RAW_RESULT_SHA256,
+  expectedRawResultText,
   KERNELS,
   lifecycleExpression,
   lifecycleInitScript,
@@ -41,7 +43,7 @@ function browserResults(manifest: Json, target: string): Json[] {
   });
 }
 
-function worker(terminated: boolean, token = 1): Json {
+function worker(terminated: boolean, token = 2): Json {
   return {
     terminated,
     posted: { token, target: "javascript", kernel: "all" },
@@ -133,12 +135,12 @@ function scenarioBase(id: string): Json {
       ignored: state({
         status: "Running exact registered work…",
         progressValue: "0",
-        workers: [worker(true), worker(false, 3)],
+        workers: [worker(true), worker(false, 4)],
       }),
       final: state({
         status: finalStatus,
         output: finalOutput,
-        workers: [worker(true), worker(true, 3)],
+        workers: [worker(true), worker(true, 4)],
       }),
     };
   } else if (id === "lifecycle-restart") {
@@ -147,9 +149,9 @@ function scenarioBase(id: string): Json {
       restarted: state({
         status: "Running exact registered work…",
         progressValue: "0",
-        workers: [worker(true), worker(false, 3)],
+        workers: [worker(true), worker(false, 4)],
       }),
-      final: state({ workers: [worker(true), worker(true, 3)] }),
+      final: state({ workers: [worker(true), worker(true, 4)] }),
     };
   } else if (id === "lifecycle-cancel") {
     lifecycle = { assertion: "cancel terminates active worker", final: state() };
@@ -215,7 +217,7 @@ function scenarioBase(id: string): Json {
 function syntheticEvidence(manifest: Json): Json {
   const scenarios = SCENARIO_IDS.map((id) => scenarioBase(id));
   for (const [index, target] of TARGETS.entries()) {
-    const raw = JSON.stringify(browserResults(manifest, target));
+    const raw = expectedRawResultText(target, manifest);
     Object.assign(scenarios[index], {
       kind: "execution",
       target,
@@ -228,7 +230,7 @@ function syntheticEvidence(manifest: Json): Json {
         progressMax: 4,
       },
       rawResultText: raw,
-      rawResultTextSha256: sha,
+      rawResultTextSha256: EXPECTED_RAW_RESULT_SHA256[target],
       results: verifyExecutionResults(JSON.parse(raw), target, manifest),
       lifecycle: null,
     });
@@ -370,6 +372,21 @@ Deno.test("closed PolyBench Chrome evidence schema freezes provenance, scenarios
   const evidence = syntheticEvidence(manifest);
   assert(validate(evidence), JSON.stringify(validate.errors));
   for (const [scenarioIndex, target] of TARGETS.entries()) {
+    const rawText = expectedRawResultText(target, manifest);
+    const rawTextHash = Array.from(
+      new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(rawText))),
+      (value) => value.toString(16).padStart(2, "0"),
+    ).join("");
+    assertEquals(rawTextHash, EXPECTED_RAW_RESULT_SHA256[target]);
+    const changedRawText = clone(evidence);
+    (changedRawText.scenarios as Json[])[scenarioIndex].rawResultText = `${rawText} `;
+    assert(!validate(changedRawText), `${target} contradictory raw text was accepted`);
+    const changedRawHash = clone(evidence);
+    (changedRawHash.scenarios as Json[])[scenarioIndex].rawResultTextSha256 = "b".repeat(64);
+    assert(!validate(changedRawHash), `${target} contradictory raw hash was accepted`);
+    const changedFinalOutput = clone(evidence);
+    ((changedFinalOutput.scenarios as Json[])[scenarioIndex].finalState as Json).output = "[]";
+    assert(!validate(changedFinalOutput), `${target} contradictory final output was accepted`);
     for (const [resultIndex, kernel] of KERNELS.entries()) {
       const rejected = (mutate: (result: Json) => void, label: string) => {
         const changed = clone(evidence);
@@ -470,6 +487,16 @@ Deno.test("closed PolyBench Chrome evidence schema freezes provenance, scenarios
       (value: Json) =>
         (((value.scenarios as Json[])[3].lifecycle as Json).ignored as Json).status =
           "Cancelled. The worker was terminated.",
+      (value: Json) => {
+        const workers = (((value.scenarios as Json[])[3].lifecycle as Json).ignored as Json)
+          .workers as Json[];
+        (workers[1].posted as Json).token = (workers[0].posted as Json).token;
+      },
+      (value: Json) => {
+        const workers = (((value.scenarios as Json[])[4].lifecycle as Json).restarted as Json)
+          .workers as Json[];
+        (workers[1].posted as Json).token = (workers[0].posted as Json).token;
+      },
       (value: Json) => ((value.scenarios as Json[])[5].lifecycle as Json).extra = true,
       (value: Json) => ((value.scenarios as Json[])[6].finalState as Json).output = "contradiction",
       (value: Json) =>
@@ -521,7 +548,7 @@ Deno.test("collector lifecycle probes cover wrong-token, stale, restart, cancel,
   const replacement = state({
     status: "Running exact registered work…",
     progressValue: "0",
-    workers: [worker(true), worker(false, 3)],
+    workers: [worker(true), worker(false, 4)],
   });
   verifyLifecycle("lifecycle-stale-message", {
     assertion: "stale",
@@ -529,14 +556,46 @@ Deno.test("collector lifecycle probes cover wrong-token, stale, restart, cancel,
     final: state({
       status: "Complete. Every reported element passed the registered oracle.",
       output: "[]",
-      workers: [worker(true), worker(true, 3)],
+      workers: [worker(true), worker(true, 4)],
     }),
   });
   verifyLifecycle("lifecycle-restart", {
     assertion: "restart",
     restarted: replacement,
-    final: state({ workers: [worker(true), worker(true, 3)] }),
+    final: state({ workers: [worker(true), worker(true, 4)] }),
   });
+  for (const id of ["lifecycle-stale-message", "lifecycle-restart"]) {
+    const changed = id === "lifecycle-stale-message"
+      ? {
+        assertion: "stale",
+        ignored: state({
+          status: "Running exact registered work…",
+          progressValue: "0",
+          workers: [worker(true), worker(false, 2)],
+        }),
+        final: state({
+          status: "Complete. Every reported element passed the registered oracle.",
+          output: "[]",
+          workers: [worker(true), worker(true, 2)],
+        }),
+      }
+      : {
+        assertion: "restart",
+        restarted: state({
+          status: "Running exact registered work…",
+          progressValue: "0",
+          workers: [worker(true), worker(false, 2)],
+        }),
+        final: state({ workers: [worker(true), worker(true, 2)] }),
+      };
+    let rejected = false;
+    try {
+      verifyLifecycle(id, changed);
+    } catch {
+      rejected = true;
+    }
+    assert(rejected, `${id} accepted replacement token reuse`);
+  }
 });
 
 Deno.test("collector source binds clean HEAD, raw execution files, Chrome hash, diagnostics, and identity-owned cleanup", async () => {
@@ -558,6 +617,8 @@ Deno.test("collector source binds clean HEAD, raw execution files, Chrome hash, 
       '"Runtime.consoleAPICalled"',
       '"Network.requestWillBeSent"',
       "w.posted.token+1",
+      "rawResultText !== expectedRawText",
+      "rawResultTextSha256 !== EXPECTED_RAW_RESULT_SHA256[target]",
       'Deno.kill(identity.pid, "SIGKILL")',
       "await Deno.remove(profilePath, { recursive: true })",
     ]

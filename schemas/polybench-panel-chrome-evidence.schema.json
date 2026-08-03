@@ -1094,11 +1094,10 @@
           "const": "javascript-controlled"
         },
         "rawResultText": {
-          "type": "string",
-          "minLength": 1
+          "$ref": "#/$defs/javascriptRawResultText"
         },
         "rawResultTextSha256": {
-          "$ref": "#/$defs/sha256"
+          "const": "67aab29943fb3ae6c82b1f225f946f8f0139697fbb45dba68574cc212972fde0"
         },
         "results": {
           "$ref": "#/$defs/javascriptResultSet"
@@ -1107,7 +1106,13 @@
           "type": "null"
         },
         "finalState": {
-          "$ref": "#/$defs/executionFinalState"
+          "$ref": "#/$defs/executionFinalState",
+          "properties": {
+            "output": {
+              "$ref": "#/$defs/javascriptRawResultText"
+            }
+          },
+          "type": "object"
         },
         "screenshot": {
           "$ref": "#/$defs/artifact",
@@ -1149,11 +1154,10 @@
           "const": "linear-wasm-controlled"
         },
         "rawResultText": {
-          "type": "string",
-          "minLength": 1
+          "$ref": "#/$defs/wasmRawResultText"
         },
         "rawResultTextSha256": {
-          "$ref": "#/$defs/sha256"
+          "const": "8e08504106e7b9b5957a955baea3757fd1e666732a821d0a1480004678f337b9"
         },
         "results": {
           "$ref": "#/$defs/wasmResultSet"
@@ -1162,7 +1166,13 @@
           "type": "null"
         },
         "finalState": {
-          "$ref": "#/$defs/executionFinalState"
+          "$ref": "#/$defs/executionFinalState",
+          "properties": {
+            "output": {
+              "$ref": "#/$defs/wasmRawResultText"
+            }
+          },
+          "type": "object"
         },
         "screenshot": {
           "$ref": "#/$defs/artifact",
@@ -2321,6 +2331,9 @@
             },
             "kernel": {
               "const": "all"
+            },
+            "token": {
+              "const": 2
             }
           }
         }
@@ -2341,6 +2354,9 @@
             },
             "kernel": {
               "const": "all"
+            },
+            "token": {
+              "const": 2
             }
           }
         }
@@ -2406,7 +2422,7 @@
               "$ref": "#/$defs/workerTerminated"
             },
             {
-              "$ref": "#/$defs/workerRunning"
+              "$ref": "#/$defs/workerReplacementRunning"
             }
           ],
           "items": false
@@ -2473,7 +2489,7 @@
               "$ref": "#/$defs/workerTerminated"
             },
             {
-              "$ref": "#/$defs/workerTerminated"
+              "$ref": "#/$defs/workerReplacementTerminated"
             }
           ],
           "items": false
@@ -2508,7 +2524,7 @@
               "$ref": "#/$defs/workerTerminated"
             },
             {
-              "$ref": "#/$defs/workerTerminated"
+              "$ref": "#/$defs/workerReplacementTerminated"
             }
           ],
           "items": false
@@ -2700,6 +2716,58 @@
         }
       },
       "type": "object"
+    },
+    "workerReplacementRunning": {
+      "$ref": "#/$defs/workerState",
+      "properties": {
+        "terminated": {
+          "const": false
+        },
+        "posted": {
+          "type": "object",
+          "properties": {
+            "target": {
+              "const": "javascript"
+            },
+            "kernel": {
+              "const": "all"
+            },
+            "token": {
+              "const": 4
+            }
+          }
+        }
+      },
+      "type": "object"
+    },
+    "workerReplacementTerminated": {
+      "$ref": "#/$defs/workerState",
+      "properties": {
+        "terminated": {
+          "const": true
+        },
+        "posted": {
+          "type": "object",
+          "properties": {
+            "target": {
+              "const": "javascript"
+            },
+            "kernel": {
+              "const": "all"
+            },
+            "token": {
+              "const": 4
+            }
+          }
+        }
+      },
+      "type": "object"
+    },
+    "javascriptRawResultText": {
+      "const": "[\n  {\n    \"kernel\": \"gemm\",\n    \"target\": \"javascript-controlled\",\n    \"outputSha256\": \"055c9d69c98e0ab7529a38d83e18e18d9b960c637ba77c4aec2477b14c279892\",\n    \"comparison\": {\n      \"passed\": true,\n      \"violations\": 0,\n      \"maxAbs\": 0,\n      \"maxRel\": 0\n    },\n    \"structuralOracle\": {\n      \"passed\": true,\n      \"failures\": []\n    },\n    \"checkpoints\": [\n      {\n        \"index\": 0,\n        \"valueHex\": \"3faeb851eb851eb8\"\n      },\n      {\n        \"index\": 125,\n        \"valueHex\": \"401e3d70a3d70a3d\"\n      },\n      {\n        \"index\": 250,\n        \"valueHex\": \"40183d70a3d70a3e\"\n      },\n      {\n        \"index\": 499,\n        \"valueHex\": \"4024e147ae147ae0\"\n      }\n    ],\n    \"counters\": {\n      \"target\": \"javascript-controlled\",\n      \"boundaryCrossings\": 0,\n      \"wasmLinearAllocations\": 0,\n      \"kernels\": 1,\n      \"outputElements\": 500,\n      \"outputBytes\": 4000,\n      \"multiplyAdds\": 15000,\n      \"scaleMultiplications\": 500,\n      \"inputBytes\": 14800,\n      \"typedArrayAllocations\": 4\n    }\n  },\n  {\n    \"kernel\": \"cholesky\",\n    \"target\": \"javascript-controlled\",\n    \"outputSha256\": \"14f43fb479b27d02ab370d472aa179abb3a0a96f540541a85b5b0617f1e2bfbf\",\n    \"comparison\": {\n      \"passed\": true,\n      \"violations\": 0,\n      \"maxAbs\": 0,\n      \"maxRel\": 0\n    },\n    \"structuralOracle\": {\n      \"passed\": true,\n      \"failures\": []\n    },\n    \"checkpoints\": [\n      {\n        \"index\": 0,\n        \"valueHex\": \"3ff0000000000000\"\n      },\n      {\n        \"index\": 400,\n        \"valueHex\": \"3ff0000000000000\"\n      },\n      {\n        \"index\": 800,\n        \"valueHex\": \"3ff0000000000000\"\n      },\n      {\n        \"index\": 1599,\n        \"valueHex\": \"3ff0000000000004\"\n      }\n    ],\n    \"counters\": {\n      \"target\": \"javascript-controlled\",\n      \"boundaryCrossings\": 0,\n      \"wasmLinearAllocations\": 0,\n      \"kernels\": 1,\n      \"outputElements\": 1600,\n      \"outputBytes\": 12800,\n      \"multiplySubtracts\": 10660,\n      \"divisions\": 780,\n      \"diagonalRoots\": 40,\n      \"inputBytes\": 12800,\n      \"typedArrayAllocations\": 3\n    }\n  },\n  {\n    \"kernel\": \"stencil\",\n    \"target\": \"javascript-controlled\",\n    \"outputSha256\": \"4e68c9e2c139647c6a694e2adca603da3837754e2844c63e5eef292d413a21d4\",\n    \"comparison\": {\n      \"passed\": true,\n      \"violations\": 0,\n      \"maxAbs\": 0,\n      \"maxRel\": 0\n    },\n    \"structuralOracle\": {\n      \"passed\": true,\n      \"failures\": []\n    },\n    \"checkpoints\": [\n      {\n        \"index\": 0,\n        \"valueHex\": \"3fb999999999999a\"\n      },\n      {\n        \"index\": 225,\n        \"valueHex\": \"4010222222222222\"\n      },\n      {\n        \"index\": 450,\n        \"valueHex\": \"3ff999999999999a\"\n      },\n      {\n        \"index\": 899,\n        \"valueHex\": \"403f088888888889\"\n      }\n    ],\n    \"counters\": {\n      \"target\": \"javascript-controlled\",\n      \"boundaryCrossings\": 0,\n      \"wasmLinearAllocations\": 0,\n      \"kernels\": 1,\n      \"outputElements\": 900,\n      \"outputBytes\": 7200,\n      \"stencilPoints\": 784,\n      \"sampleReads\": 3920,\n      \"outputWrites\": 784,\n      \"inputBytes\": 14400,\n      \"typedArrayAllocations\": 3\n    }\n  },\n  {\n    \"kernel\": \"jacobi2d\",\n    \"target\": \"javascript-controlled\",\n    \"outputSha256\": \"ab8d74d94e755eddec10c2f795efc63e5e36898938f697b4562252cf5f697681\",\n    \"comparison\": {\n      \"passed\": true,\n      \"violations\": 0,\n      \"maxAbs\": 0,\n      \"maxRel\": 0\n    },\n    \"structuralOracle\": {\n      \"passed\": true,\n      \"failures\": []\n    },\n    \"checkpoints\": [\n      {\n        \"index\": 0,\n        \"valueHex\": \"3fb1111111111111\"\n      },\n      {\n        \"index\": 225,\n        \"valueHex\": \"401023931776c54b\"\n      },\n      {\n        \"index\": 450,\n        \"valueHex\": \"3ff1111111111111\"\n      },\n      {\n        \"index\": 899,\n        \"valueHex\": \"403e088888888889\"\n      }\n    ],\n    \"counters\": {\n      \"target\": \"javascript-controlled\",\n      \"boundaryCrossings\": 0,\n      \"wasmLinearAllocations\": 0,\n      \"kernels\": 1,\n      \"outputElements\": 900,\n      \"outputBytes\": 7200,\n      \"stencilPoints\": 31360,\n      \"sampleReads\": 156800,\n      \"outputWrites\": 31360,\n      \"inputBytes\": 14400,\n      \"typedArrayAllocations\": 4\n    }\n  }\n]"
+    },
+    "wasmRawResultText": {
+      "const": "[\n  {\n    \"kernel\": \"gemm\",\n    \"target\": \"linear-wasm-controlled\",\n    \"outputSha256\": \"055c9d69c98e0ab7529a38d83e18e18d9b960c637ba77c4aec2477b14c279892\",\n    \"comparison\": {\n      \"passed\": true,\n      \"violations\": 0,\n      \"maxAbs\": 0,\n      \"maxRel\": 0\n    },\n    \"structuralOracle\": {\n      \"passed\": true,\n      \"failures\": []\n    },\n    \"checkpoints\": [\n      {\n        \"index\": 0,\n        \"valueHex\": \"3faeb851eb851eb8\"\n      },\n      {\n        \"index\": 125,\n        \"valueHex\": \"401e3d70a3d70a3d\"\n      },\n      {\n        \"index\": 250,\n        \"valueHex\": \"40183d70a3d70a3e\"\n      },\n      {\n        \"index\": 499,\n        \"valueHex\": \"4024e147ae147ae0\"\n      }\n    ],\n    \"counters\": {\n      \"target\": \"linear-wasm-controlled\",\n      \"boundaryCrossings\": 1,\n      \"wasmLinearAllocations\": 0,\n      \"kernels\": 1,\n      \"outputElements\": 500,\n      \"outputBytes\": 4000,\n      \"multiplyAdds\": 15000,\n      \"scaleMultiplications\": 500,\n      \"inputBytes\": 14800,\n      \"typedArrayAllocations\": 8\n    }\n  },\n  {\n    \"kernel\": \"cholesky\",\n    \"target\": \"linear-wasm-controlled\",\n    \"outputSha256\": \"14f43fb479b27d02ab370d472aa179abb3a0a96f540541a85b5b0617f1e2bfbf\",\n    \"comparison\": {\n      \"passed\": true,\n      \"violations\": 0,\n      \"maxAbs\": 0,\n      \"maxRel\": 0\n    },\n    \"structuralOracle\": {\n      \"passed\": true,\n      \"failures\": []\n    },\n    \"checkpoints\": [\n      {\n        \"index\": 0,\n        \"valueHex\": \"3ff0000000000000\"\n      },\n      {\n        \"index\": 400,\n        \"valueHex\": \"3ff0000000000000\"\n      },\n      {\n        \"index\": 800,\n        \"valueHex\": \"3ff0000000000000\"\n      },\n      {\n        \"index\": 1599,\n        \"valueHex\": \"3ff0000000000004\"\n      }\n    ],\n    \"counters\": {\n      \"target\": \"linear-wasm-controlled\",\n      \"boundaryCrossings\": 1,\n      \"wasmLinearAllocations\": 0,\n      \"kernels\": 1,\n      \"outputElements\": 1600,\n      \"outputBytes\": 12800,\n      \"multiplySubtracts\": 10660,\n      \"divisions\": 780,\n      \"diagonalRoots\": 40,\n      \"inputBytes\": 12800,\n      \"typedArrayAllocations\": 5\n    }\n  },\n  {\n    \"kernel\": \"stencil\",\n    \"target\": \"linear-wasm-controlled\",\n    \"outputSha256\": \"4e68c9e2c139647c6a694e2adca603da3837754e2844c63e5eef292d413a21d4\",\n    \"comparison\": {\n      \"passed\": true,\n      \"violations\": 0,\n      \"maxAbs\": 0,\n      \"maxRel\": 0\n    },\n    \"structuralOracle\": {\n      \"passed\": true,\n      \"failures\": []\n    },\n    \"checkpoints\": [\n      {\n        \"index\": 0,\n        \"valueHex\": \"3fb999999999999a\"\n      },\n      {\n        \"index\": 225,\n        \"valueHex\": \"4010222222222222\"\n      },\n      {\n        \"index\": 450,\n        \"valueHex\": \"3ff999999999999a\"\n      },\n      {\n        \"index\": 899,\n        \"valueHex\": \"403f088888888889\"\n      }\n    ],\n    \"counters\": {\n      \"target\": \"linear-wasm-controlled\",\n      \"boundaryCrossings\": 1,\n      \"wasmLinearAllocations\": 0,\n      \"kernels\": 1,\n      \"outputElements\": 900,\n      \"outputBytes\": 7200,\n      \"stencilPoints\": 784,\n      \"sampleReads\": 3920,\n      \"outputWrites\": 784,\n      \"inputBytes\": 14400,\n      \"typedArrayAllocations\": 6\n    }\n  },\n  {\n    \"kernel\": \"jacobi2d\",\n    \"target\": \"linear-wasm-controlled\",\n    \"outputSha256\": \"ab8d74d94e755eddec10c2f795efc63e5e36898938f697b4562252cf5f697681\",\n    \"comparison\": {\n      \"passed\": true,\n      \"violations\": 0,\n      \"maxAbs\": 0,\n      \"maxRel\": 0\n    },\n    \"structuralOracle\": {\n      \"passed\": true,\n      \"failures\": []\n    },\n    \"checkpoints\": [\n      {\n        \"index\": 0,\n        \"valueHex\": \"3fb1111111111111\"\n      },\n      {\n        \"index\": 225,\n        \"valueHex\": \"401023931776c54b\"\n      },\n      {\n        \"index\": 450,\n        \"valueHex\": \"3ff1111111111111\"\n      },\n      {\n        \"index\": 899,\n        \"valueHex\": \"403e088888888889\"\n      }\n    ],\n    \"counters\": {\n      \"target\": \"linear-wasm-controlled\",\n      \"boundaryCrossings\": 1,\n      \"wasmLinearAllocations\": 0,\n      \"kernels\": 1,\n      \"outputElements\": 900,\n      \"outputBytes\": 7200,\n      \"stencilPoints\": 31360,\n      \"sampleReads\": 156800,\n      \"outputWrites\": 31360,\n      \"inputBytes\": 14400,\n      \"typedArrayAllocations\": 6\n    }\n  }\n]"
     }
   }
 }

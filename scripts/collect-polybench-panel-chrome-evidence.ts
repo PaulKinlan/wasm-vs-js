@@ -15,6 +15,10 @@ const addFormats = ((addFormatsModule as unknown as { default?: AddFormats }).de
 export const EXPECTED_CHROME_PRODUCT = "Chrome/150.0.7871.24";
 export const KERNELS = ["gemm", "cholesky", "stencil", "jacobi2d"] as const;
 export const TARGETS = ["javascript-controlled", "linear-wasm-controlled"] as const;
+export const EXPECTED_RAW_RESULT_SHA256 = {
+  "javascript-controlled": "67aab29943fb3ae6c82b1f225f946f8f0139697fbb45dba68574cc212972fde0",
+  "linear-wasm-controlled": "8e08504106e7b9b5957a955baea3757fd1e666732a821d0a1480004678f337b9",
+} as const;
 export const SCENARIO_IDS = [
   "execute-javascript-all",
   "execute-wasm-all",
@@ -83,6 +87,29 @@ async function commandText(command: string, args: string[]): Promise<string> {
 
 function assertExact(actual: unknown, expected: unknown, label: string): void {
   if (canonicalize(actual) !== canonicalize(expected)) throw new Error(`${label} mismatch`);
+}
+
+export function expectedRawResultText(
+  target: (typeof TARGETS)[number],
+  manifest: Json,
+): string {
+  const outputs = manifest.outputs as Json;
+  return JSON.stringify(
+    KERNELS.map((kernel) => {
+      const record = ((outputs[kernel] as Json).targets as Json)[target] as Json;
+      return {
+        kernel,
+        target,
+        outputSha256: (record.artifact as Json).sha256,
+        comparison: record.comparison,
+        structuralOracle: record.structuralOracle,
+        checkpoints: record.checkpoints,
+        counters: record.counters,
+      };
+    }),
+    null,
+    2,
+  );
 }
 
 export function verifyExecutionResults(
@@ -181,6 +208,19 @@ export function verifyLifecycle(id: string, value: Json): void {
   if (!workers.length || workers.some((worker) => worker.terminated !== true)) {
     throw new Error(`${id} did not terminate every created worker`);
   }
+  const expectedTokens = id === "lifecycle-stale-message" || id === "lifecycle-restart"
+    ? [2, 4]
+    : [2];
+  const workerTokens = workers.map((worker) => (worker.posted as Json)?.token);
+  if (canonicalize(workerTokens) !== canonicalize(expectedTokens)) {
+    throw new Error(`${id} worker generation transition mismatch`);
+  }
+  if (
+    workers.some((worker) => {
+      const posted = worker.posted as Json;
+      return posted?.target !== "javascript" || posted?.kernel !== "all";
+    })
+  ) throw new Error(`${id} worker request identity mismatch`);
   if (final.startDisabled !== false || final.cancelDisabled !== true) {
     throw new Error(`${id} did not restore controls`);
   }
@@ -196,18 +236,23 @@ export function verifyLifecycle(id: string, value: Json): void {
   }
   if (id === "lifecycle-wrong-token") {
     const ignored = value.ignored as Json;
+    const ignoredWorkers = ignored.workers as Json[];
     if (
-      ignored.status !== "Running exact registered work…" || ignored.output !== "No result yet."
+      ignored.status !== "Running exact registered work…" || ignored.output !== "No result yet." ||
+      (ignoredWorkers[0].posted as Json).token !== 2
     ) {
-      throw new Error(`${id} mutated UI for a wrong token`);
+      throw new Error(`${id} mutated UI or worker identity for a wrong token`);
     }
   }
   if (id === "lifecycle-stale-message") {
     const ignored = value.ignored as Json;
+    const ignoredWorkers = ignored.workers as Json[];
     if (
-      ignored.status !== "Running exact registered work…" || ignored.output !== "No result yet."
+      ignored.status !== "Running exact registered work…" || ignored.output !== "No result yet." ||
+      (ignoredWorkers[0].posted as Json).token !== 2 ||
+      (ignoredWorkers[1].posted as Json).token !== 4
     ) {
-      throw new Error(`${id} mutated UI for a stale worker`);
+      throw new Error(`${id} mutated UI or reused a stale worker token`);
     }
     if (status !== "Complete. Every reported element passed the registered oracle.") {
       throw new Error(`${id} active replacement did not complete`);
@@ -218,7 +263,8 @@ export function verifyLifecycle(id: string, value: Json): void {
     const restartWorkers = restarted.workers as Json[];
     if (
       restartWorkers.length !== 2 || restartWorkers[0].terminated !== true ||
-      restartWorkers[1].terminated
+      restartWorkers[1].terminated || (restartWorkers[0].posted as Json).token !== 2 ||
+      (restartWorkers[1].posted as Json).token !== 4
     ) {
       throw new Error(`${id} replacement identity mismatch`);
     }
@@ -599,6 +645,7 @@ async function collect(): Promise<void> {
       await loaded;
       await waitForState(client, sessionId, (state) => state.status === "Ready.");
       let rawResultText: string | null = null;
+      let rawResultTextSha256: string | null = null;
       let results: Json[] | null = null;
       let lifecycleResult: Json | null = null;
       if (!lifecycle) {
@@ -619,6 +666,14 @@ async function collect(): Promise<void> {
               "Complete. Every reported element passed the registered oracle.",
         );
         rawResultText = String(state.output);
+        const expectedRawText = expectedRawResultText(target, manifest);
+        if (rawResultText !== expectedRawText) {
+          throw new Error(`${target} raw result text did not match exact expected bytes`);
+        }
+        rawResultTextSha256 = await sha256Hex(new TextEncoder().encode(rawResultText));
+        if (rawResultTextSha256 !== EXPECTED_RAW_RESULT_SHA256[target]) {
+          throw new Error(`${target} raw result text SHA-256 mismatch`);
+        }
         results = verifyExecutionResults(JSON.parse(rawResultText), target, manifest);
       } else {
         const evaluated = await client.send("Runtime.evaluate", {
@@ -691,9 +746,7 @@ async function collect(): Promise<void> {
           : "linear-wasm-controlled",
         finalState: await pageState(client, sessionId),
         rawResultText,
-        rawResultTextSha256: rawResultText
-          ? await sha256Hex(new TextEncoder().encode(rawResultText))
-          : null,
+        rawResultTextSha256,
         results,
         lifecycle: lifecycleResult,
         console: consoleMessages,
