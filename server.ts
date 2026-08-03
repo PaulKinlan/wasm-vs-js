@@ -316,6 +316,34 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/evidence/base/dom-todomvc-journey/js-controlled.json",
   ["/evidence/base/dom-todomvc-journey/wasm-linear-controlled.json", [
     "public/evidence/base/dom-todomvc-journey/wasm-linear-controlled.json",
+  ["/benchmarks/dom-virtualized-grid-v1", [
+    "public/benchmarks/dom-virtualized-grid-v1/index.html",
+  ["/benchmarks/dom-virtualized-grid-v1/", [
+  ["/benchmarks/dom-virtualized-grid-v1/grid.css", [
+    "public/benchmarks/dom-virtualized-grid-v1/grid.css",
+  ["/benchmarks/dom-virtualized-grid-v1/grid-runner.js", [
+    "public/benchmarks/dom-virtualized-grid-v1/grid-runner.js",
+  ["/benchmarks/dom-virtualized-grid-v1/grid-worker.js", [
+    "public/benchmarks/dom-virtualized-grid-v1/grid-worker.js",
+  ["/benchmarks/base/dom-virtualized-grid/engine.js", [
+    "benchmarks/base/dom-virtualized-grid/engine.js",
+  ["/artifacts/dom-virtualized-grid-v1/grid.wasm", [
+    "public/artifacts/dom-virtualized-grid-v1/grid.wasm",
+  ["/artifacts/dom-virtualized-grid-v1/fixture.bin", [
+    "public/artifacts/dom-virtualized-grid-v1/fixture.bin",
+    "application/octet-stream",
+  ["/artifacts/dom-virtualized-grid-v1/implementation-contract.v1.json", [
+    "public/artifacts/dom-virtualized-grid-v1/implementation-contract.v1.json",
+  ["/artifacts/dom-virtualized-grid-v1/build-manifest.json", [
+    "public/artifacts/dom-virtualized-grid-v1/build-manifest.json",
+  ["/artifacts/dom-virtualized-grid-v1/fixture-manifest.json", [
+    "public/artifacts/dom-virtualized-grid-v1/fixture-manifest.json",
+  ["/artifacts/dom-virtualized-grid-v1/output-manifest.json", [
+    "public/artifacts/dom-virtualized-grid-v1/output-manifest.json",
+  ["/evidence/base/dom-virtualized-grid-v1/candidate.json", [
+    "public/evidence/base/dom-virtualized-grid-v1/candidate.json",
+  ["/data/base-implementation-candidates.v1.json", [
+    "catalog/base-implementation-candidates.v1.json",
     "application/json; charset=utf-8",
   ]],
   ["/demos/game-family/demo.js", [

@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.example/schemas/base-implementation-candidate.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "registrationId",
+    "workloadId",
+    "status",
+    "frozenCatalogSha256",
+    "targets",
+    "artifacts",
+    "correctness",
+    "lifecycle",
+    "browserEvidence",
+    "performanceClaims"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "registrationId": { "type": "string", "minLength": 1 },
+    "workloadId": { "const": "dom.virtualized-grid.v1" },
+    "status": { "enum": ["implementation-candidate", "accepted"] },
+    "frozenCatalogSha256": {
+      "const": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4"
+    },
+    "targets": {
+      "type": "array",
+      "prefixItems": [{ "const": "js-controlled" }, { "const": "wasm-linear-controlled" }],
+      "items": false
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["buildManifest", "fixture", "wasm", "outputManifest"],
+      "properties": {
+        "buildManifest": { "$ref": "#/$defs/reference" },
+        "fixture": { "$ref": "#/$defs/reference" },
+        "wasm": { "$ref": "#/$defs/reference" },
+        "outputManifest": { "$ref": "#/$defs/reference" }
+      }
+    },
+    "correctness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "completeCommandStream",
+        "checkpoints",
+        "counters",
+        "actualDomRequired"
+      ],
+      "properties": {
+        "status": { "const": "passed-static" },
+        "completeCommandStream": { "const": true },
+        "checkpoints": { "const": 6 },
+        "counters": { "const": "exact" },
+        "actualDomRequired": { "const": true }
+      }
+    },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "slots",
+        "cadenceMs",
+        "firstSlotOffsetMs",
+        "lastSlotOffsetMs",
+        "slotToleranceMs",
+        "minimumIntervalMs",
+        "maximumIntervalMs",
+        "catchUp",
+        "minimumCompletionAfterFirstSlotMs",
+        "maximumCompletionAfterFirstSlotMs",
+        "phaseSpanPolicy",
+        "manifestDecodePhase"
+      ],
+      "properties": {
+        "slots": { "const": 300 },
+        "cadenceMs": { "const": 100 },
+        "firstSlotOffsetMs": { "const": 0 },
+        "lastSlotOffsetMs": { "const": 29900 },
+        "slotToleranceMs": { "const": 20 },
+        "minimumIntervalMs": { "const": 80 },
+        "maximumIntervalMs": { "const": 120 },
+        "catchUp": { "const": false },
+        "minimumCompletionAfterFirstSlotMs": { "const": 29900 },
+        "maximumCompletionAfterFirstSlotMs": { "const": 30100 },
+        "phaseSpanPolicy": {
+          "const": "labelled-non-overlapping-exclusive-spans-plus-e2e-residual"
+        },
+        "manifestDecodePhase": { "const": "transfer" }
+      }
+    },
+    "browserEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "collector"],
+      "properties": {
+        "status": { "const": "pending-parent-collection" },
+        "collector": { "const": "scripts/validate-dom-virtualized-grid-browser.ts" }
+      }
+    },
+    "performanceClaims": { "type": "array", "maxItems": 0 }
+  },
+  "$defs": {
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    }
+  }
+}

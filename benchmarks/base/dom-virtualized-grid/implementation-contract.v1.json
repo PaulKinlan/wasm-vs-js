@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "registrationId": "base-dom-virtualized-grid-controlled-v1",
+  "catalog": {
+    "id": "workload-catalog-v1",
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+    "immutability": "byte-for-byte",
+    "workloadId": "dom.virtualized-grid.v1"
+  },
+  "status": "implementation-candidate",
+  "track": "controlled",
+  "equivalenceClass": "semantic-product-choice",
+  "algorithmFamily": "grid-fixed-trace-viewport-controlled-soa-v1",
+  "fixture": {
+    "licenseSpdx": "CC0-1.0",
+    "rights": "project-generated and redistribution-permitted",
+    "generator": "xorshift32-v1",
+    "seed": 1831565813,
+    "rows": 100000,
+    "actions": 300,
+    "durationMs": 30000,
+    "eventCadenceMs": 100
+  },
+  "viewport": {
+    "widthCssPx": 960,
+    "heightCssPx": 480,
+    "devicePixelRatio": 2,
+    "rowHeightCssPx": 24,
+    "visibleRows": 20,
+    "overscanRows": 4,
+    "maximumMountedRows": 28
+  },
+  "trace": {
+    "operations": ["scroll", "filter", "stable-sort", "edit", "focus-selection"],
+    "coalescing": "none; exactly one event per 100 ms trace slot",
+    "lifecycle": {
+      "slots": 300,
+      "firstSlotOffsetMs": 0,
+      "lastSlotOffsetMs": 29900,
+      "slotToleranceMs": 20,
+      "minimumIntervalMs": 80,
+      "maximumIntervalMs": 120,
+      "catchUp": "prohibited; fail immediately when the next slot is already more than 20 ms late",
+      "minimumCompletionAfterFirstSlotMs": 29900,
+      "maximumCompletionAfterFirstSlotMs": 30100,
+      "completion": "after the final event paint acknowledgment and model finish"
+    },
+    "sort": "stable score then stable row ID tie break",
+    "filter": "group equality or all groups",
+    "edit": "replace one signed score by row ID",
+    "scroll": "integer CSS pixel offset clamped to filtered extent"
+  },
+  "targets": ["js-controlled", "wasm-linear-controlled"],
+  "output": {
+    "kind": "complete-command-stream",
+    "commandWidthU32": 6,
+    "commands": ["create", "bind-reuse", "update", "place", "hide", "focus", "layout-read"],
+    "hostRule": "The host executes typed commands only; it does not reduce model state or rebuild expected DOM.",
+    "finalState": ["model", "mounted rows", "DOM order", "accessibility", "focus", "selection"]
+  },
+  "allocationPolicy": "allocations counts dynamic application-owned allocations inside the 300-event trace; fixed setup buffers and post-trace result materialization are outside the trace and excluded",
+  "boundaryPolicy": "Count every operative exported Wasm function call: input_ptr, prepare, result_ptr, 300 run_event calls, and finish (304 crossings). Memory reads and writes through the exported Memory object are counted as bytes, not function crossings.",
+  "counters": [
+    "rows-scanned",
+    "comparisons",
+    "events",
+    "commands",
+    "physical-creates",
+    "physical-reuses",
+    "physical-updates",
+    "physical-placements",
+    "physical-hides",
+    "focus-operations",
+    "layout-reads",
+    "allocations",
+    "boundary-crossings"
+  ],
+  "phases": {
+    "clock": "Performance timeOrigin + performance.now",
+    "exclusivity": "Load, transfer, instantiate, compute, and render retain individually labelled non-overlapping spans. End-to-end is the containing envelope; the residual outside exclusive spans is retained as unattributed duration.",
+    "load": "resource fetch through response validation, JSON.parse, and SHA-256 hashing; excludes response body arrayBuffer, Uint8Array construction, and TextDecoder construction/decode",
+    "transfer": "response body arrayBuffer, Uint8Array construction, and build-manifest TextDecoder construction/decode",
+    "instantiate": "WebAssembly.instantiate only; zero for the JavaScript target",
+    "compute": "controlled model prepare, 300 event steps, and finish",
+    "render": "host command application through two animation frames for each event",
+    "endToEnd": "Start activation through receipt of completion after final paint acknowledgment",
+    "reconciliation": "exclusive phase sum plus unattributed duration equals end-to-end duration"
+  },
+  "performanceClaims": []
+}

@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "registrationId": "base-dom-virtualized-grid-controlled-v1",
+  "workloadId": "dom.virtualized-grid.v1",
+  "status": "implementation-candidate",
+  "frozenCatalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+  "targets": [
+    "js-controlled",
+    "wasm-linear-controlled"
+  ],
+  "artifacts": {
+    "buildManifest": {
+      "path": "public/artifacts/dom-virtualized-grid-v1/build-manifest.json",
+      "sha256": "7b07dc7127018b22a92dfc62896f3ab2156f160151d72c0916fc059806bbfba7"
+    },
+    "fixture": {
+      "path": "public/artifacts/dom-virtualized-grid-v1/fixture.bin",
+      "sha256": "07148a1e52a188d7dbaaf17e922075004e54addd01873b936c6207064494d17a"
+    },
+    "wasm": {
+      "path": "public/artifacts/dom-virtualized-grid-v1/grid.wasm",
+      "sha256": "dd7aab37efdf2c85a0df3114838a67f966c615cb94067253d957537c8c80234a"
+    },
+    "outputManifest": {
+      "path": "public/artifacts/dom-virtualized-grid-v1/output-manifest.json",
+      "sha256": "c67f627576d51221fb2f3c5d032344485aa81494a0471857b722296f290bde3a"
+    }
+  },
+  "correctness": {
+    "status": "passed-static",
+    "completeCommandStream": true,
+    "checkpoints": 6,
+    "counters": "exact",
+    "actualDomRequired": true
+  },
+  "lifecycle": {
+    "slots": 300,
+    "cadenceMs": 100,
+    "firstSlotOffsetMs": 0,
+    "lastSlotOffsetMs": 29900,
+    "slotToleranceMs": 20,
+    "minimumIntervalMs": 80,
+    "maximumIntervalMs": 120,
+    "catchUp": false,
+    "minimumCompletionAfterFirstSlotMs": 29900,
+    "maximumCompletionAfterFirstSlotMs": 30100,
+    "phaseSpanPolicy": "labelled-non-overlapping-exclusive-spans-plus-e2e-residual",
+    "manifestDecodePhase": "transfer"
+  },
+  "browserEvidence": {
+    "status": "pending-parent-collection",
+    "collector": "scripts/validate-dom-virtualized-grid-browser.ts"
+  },
+  "performanceClaims": []
+}

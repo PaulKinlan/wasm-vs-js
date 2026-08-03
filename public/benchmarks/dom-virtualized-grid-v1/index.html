@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>100,000-row virtualized grid | Wasm versus JavaScript</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/benchmarks/dom-virtualized-grid-v1/grid.css">
+    <script type="module" src="/benchmarks/dom-virtualized-grid-v1/grid-runner.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <main id="content" class="shell" data-workload-id="dom.virtualized-grid.v1">
+      <p><a href="/benchmarks/">← Benchmark inventory</a></p>
+      <p class="eyebrow">FROZEN BASE IMPLEMENTATION CANDIDATE · DOM.VIRTUALIZED-GRID.V1</p>
+      <h1>100,000-row virtualized grid</h1>
+      <p
+        class="notice"><strong>No performance claim.</strong> A fresh worker schedules 300 trace events from 0 through 29,900 ms. Each slot must stay within ±20 ms of its 100 ms offset, and adjacent events must remain 80–120 ms apart. Each event transfers one typed command batch; the host applies its scroll offset and commands, waits for a browser paint, and then acknowledges the event. A missed slot rejects the run. Nothing is uploaded or stored.</p>
+      <section class="panel" aria-labelledby="controls-title">
+        <h2 id="controls-title">Run exact fixed work</h2>
+        <label for="target">Controlled target</label>
+        <select id="target">
+          <option value="js-controlled">JavaScript controlled</option>
+          <option value="wasm-linear-controlled">Linear Wasm controlled</option>
+        </select>
+        <button id="start" type="button">Start</button>
+        <button id="cancel" type="button" disabled>Cancel</button>
+        <p id="status" role="status" aria-live="polite">Ready. No worker is running.</p>
+      </section>
+      <section class="panel" aria-labelledby="grid-title">
+        <h2 id="grid-title">Applied host DOM</h2>
+        <div id="grid" class="virtual-grid" role="grid" aria-label="Virtualized benchmark rows"
+          aria-rowcount="100000" tabindex="0"></div>
+      </section>
+      <section class="panel" aria-labelledby="result-title">
+        <h2 id="result-title">Exact textual result</h2>
+        <pre id="result" tabindex="0">No result yet.</pre>
+      </section>
+      <section class="panel">
+        <h2>Fixed contract</h2>
+        <p>100,000 seeded rows; 300 events at 100 ms trace cadence; 960×480 CSS-pixel viewport; DPR 2; 24 px rows; 20 visible rows; four-row overscan; at most 28 mounted row nodes.</p>
+        <p><a href="/artifacts/dom-virtualized-grid-v1/implementation-contract.v1.json">Implementation contract</a> · <a href="/artifacts/dom-virtualized-grid-v1/build-manifest.json">Build manifest</a> · <a href="/artifacts/dom-virtualized-grid-v1/output-manifest.json">Oracle manifest</a></p>
+      </section>
+    </main>
+    <noscript><p class="shell notice"><strong>JavaScript is required to run this local correctness demo.</strong> The exact contract above remains readable.</p></noscript>
+  </body>
+</html>
