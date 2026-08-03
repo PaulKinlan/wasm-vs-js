@@ -340,6 +340,10 @@ for (const script of ["demo.js", "worker.js", "decoder-worker.js"]) {
     "text/javascript; charset=utf-8",
   ]);
 }
+routes.set("/benchmarks/base-gltf-viewer/style.css", [
+  "public/benchmarks/base-gltf-viewer/style.css",
+  "text/css; charset=utf-8",
+]);
 routes.set("/benchmarks/base/graphics-gltf-viewer/engine.js", [
   "benchmarks/base/graphics-gltf-viewer/engine.js",
   "text/javascript; charset=utf-8",

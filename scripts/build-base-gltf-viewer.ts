@@ -237,6 +237,7 @@ const sourcePaths = [
   "public/benchmarks/base-gltf-viewer/worker.js",
   "public/benchmarks/base-gltf-viewer/demo.js",
   "public/benchmarks/base-gltf-viewer/index.html",
+  "public/benchmarks/base-gltf-viewer/style.css",
   "server.ts",
   "deno.json",
   "deno.lock",

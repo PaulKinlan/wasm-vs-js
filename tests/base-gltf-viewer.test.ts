@@ -159,6 +159,7 @@ Deno.test("base glTF route is read-only and all runtime assets are explicitly se
       "/benchmarks/base-gltf-viewer/demo.js",
       "/benchmarks/base-gltf-viewer/worker.js",
       "/benchmarks/base-gltf-viewer/decoder-worker.js",
+      "/benchmarks/base-gltf-viewer/style.css",
       "/benchmarks/base/graphics-gltf-viewer/engine.js",
       "/artifacts/base-gltf-viewer/Avocado.gltf",
       "/artifacts/base-gltf-viewer/Avocado.bin",
@@ -194,6 +195,11 @@ Deno.test("demo lifecycle uses fresh workers, cancellation, timeout, stale token
       "No result retained.",
     ]
   ) assert(source.includes(marker), marker);
+  const html = await Deno.readTextFile(
+    new URL("public/benchmarks/base-gltf-viewer/index.html", root),
+  );
+  assert(!html.includes("<style"));
+  assert(!html.includes("<script>") && html.includes('script type="module" src='));
   assert(!source.includes("localStorage"));
   assert(!source.includes("indexedDB"));
   assert(!source.includes("fetch("));
