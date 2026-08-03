@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "workload": "serialization.json-telemetry.v1",
+  "variant": "wasm-linear-controlled",
+  "toolchain": [
+    {
+      "name": "Deno",
+      "version": "2.9.0"
+    },
+    {
+      "name": "Clang",
+      "version": "22.1.8"
+    },
+    {
+      "name": "LLD",
+      "version": "22.1.8"
+    }
+  ],
+  "command": [
+    "clang",
+    "--target=wasm32",
+    "-O3",
+    "-nostdlib",
+    "-fno-builtin",
+    "-fno-ident",
+    "-Wl,--no-entry",
+    "-Wl,--strip-all",
+    "-Wl,--export-memory",
+    "-Wl,--initial-memory=131072",
+    "-Wl,--max-memory=268435456",
+    "-Wl,--stack-first",
+    "-Wl,--export=process",
+    "-Wl,--export=get_records",
+    "-Wl,--export=get_input_bytes",
+    "-Wl,--export=get_numeric_values",
+    "-Wl,--export=get_string_values",
+    "-Wl,--export=get_booleans",
+    "-Wl,--export=get_query_aggregates",
+    "-Wl,--export=get_allocations",
+    "-o",
+    "public/artifacts/serialization-json-telemetry/telemetry.wasm",
+    "benchmarks/v1/serialization-json-telemetry/telemetry.c"
+  ],
+  "features": {
+    "simd": false,
+    "threads": false,
+    "exceptions": false,
+    "memoryGrowth": true,
+    "maximumPages": 4096
+  },
+  "artifact": {
+    "path": "public/artifacts/serialization-json-telemetry/telemetry.wasm",
+    "bytes": 7509,
+    "sha256": "8d03d4fedbbef99659d95e8930a3db6757eb460d73301c9e95c9eafbfe330c42"
+  },
+  "fullSourceGraph": [
+    {
+      "path": "benchmarks/v1/serialization-json-telemetry/telemetry.c",
+      "bytes": 6369,
+      "sha256": "8ce3f16fcdcd795689ac1c55b373880ca0bc20ab16f5719507bb19080e0dcf85"
+    },
+    {
+      "path": "benchmarks/v1/serialization-json-telemetry/workload.js",
+      "bytes": 11159,
+      "sha256": "54e2ee54b225d8454664dc6a24f5fa178ee0652ccf0e7e01eea93b17f29530f8"
+    },
+    {
+      "path": "scripts/build-v1-json-telemetry.ts",
+      "bytes": 5893,
+      "sha256": "38d17c9c50a8e4b3f127608f2ae21f566137823fd7d301120f0c88b5f5750831"
+    },
+    {
+      "path": "deno.json",
+      "bytes": 1831,
+      "sha256": "17e6674c81fdaee7dfc52ed1bd28baeec70fb0715f839b92defe1e84545b08eb"
+    },
+    {
+      "path": "deno.lock",
+      "bytes": 1630,
+      "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2"
+    }
+  ]
+}

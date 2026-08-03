@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.example/schemas/v1-base-implementation-registration.schema.json",
+  "title": "Frozen v1 catalog supplemental implementation registration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contractId",
+    "status",
+    "frozenCatalog",
+    "workload",
+    "input",
+    "oracle",
+    "work",
+    "provenance",
+    "performanceClaims",
+    "coverage"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contractId": { "const": "v1-base-implementation-registration-v1" },
+    "status": { "enum": ["candidate-pending-independent-review", "accepted"] },
+    "frozenCatalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["catalogId", "path", "sha256", "entryId", "mutated"],
+      "properties": {
+        "catalogId": { "const": "workload-catalog-v1" },
+        "path": { "const": "catalog/workloads.v1.json" },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "entryId": { "type": "string", "minLength": 1 },
+        "mutated": { "const": false }
+      }
+    },
+    "workload": {
+      "type": "object",
+      "required": [
+        "id",
+        "algorithmFamily",
+        "track",
+        "fixtureState",
+        "rightsStatus",
+        "licenseSpdx",
+        "variants"
+      ]
+    },
+    "input": {
+      "type": "object",
+      "required": [
+        "generator",
+        "generatorRevision",
+        "seed",
+        "manifest",
+        "recordCounts",
+        "maximumBytes",
+        "committedFixtureBlobs"
+      ]
+    },
+    "oracle": { "type": "object", "required": ["kind", "manifest", "checks"] },
+    "work": { "type": "object", "required": ["fixed", "counters"] },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "buildManifest",
+        "fixtureManifest",
+        "inputManifest",
+        "outputManifest",
+        "wasmArtifact",
+        "authoredWasmSource",
+        "authoredJavaScriptSource",
+        "buildRecipe",
+        "toolchain"
+      ]
+    },
+    "performanceClaims": { "type": "array", "maxItems": 0 },
+    "coverage": {
+      "type": "object",
+      "required": [
+        "catalogNumeratorBeforeReview",
+        "catalogDenominator",
+        "countAfterIndependentAcceptance"
+      ]
+    }
+  }
+}

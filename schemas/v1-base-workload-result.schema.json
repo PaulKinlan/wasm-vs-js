@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.example/schemas/v1-base-workload-result.schema.json",
+  "title": "Frozen v1 catalog supplemental correctness result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contractId",
+    "status",
+    "source",
+    "workload",
+    "provenance",
+    "correctness",
+    "performanceClaims"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contractId": { "const": "v1-base-workload-result-v1" },
+    "status": { "const": "candidate-validation-passed" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "commit"],
+      "properties": {
+        "repository": { "type": "string", "format": "uri" },
+        "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" }
+      }
+    },
+    "workload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entryId", "variantId", "track", "algorithmFamily"],
+      "properties": {
+        "entryId": { "const": "serialization.json-telemetry.v1" },
+        "variantId": { "enum": ["js-controlled", "wasm-linear-controlled"] },
+        "track": { "const": "controlled" },
+        "algorithmFamily": { "const": "json-parse-fixed-query-canonicalize" }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "registration",
+        "catalog",
+        "sources",
+        "manifests",
+        "artifact",
+        "buildRecipe",
+        "demo"
+      ],
+      "properties": {
+        "registration": { "$ref": "#/$defs/fileRef" },
+        "catalog": { "$ref": "#/$defs/fileRef" },
+        "sources": { "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/fileRef" } },
+        "manifests": { "type": "array", "minItems": 4, "items": { "$ref": "#/$defs/fileRef" } },
+        "artifact": { "$ref": "#/$defs/fileRef" },
+        "buildRecipe": { "$ref": "#/$defs/fileRef" },
+        "demo": { "type": "array", "minItems": 3, "items": { "$ref": "#/$defs/fileRef" } }
+      }
+    },
+    "correctness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "registeredTiers", "oracle", "counterIds", "fullFixtureValidation"],
+      "properties": {
+        "status": { "const": "passed" },
+        "registeredTiers": { "const": [1000, 100000, 1000000] },
+        "oracle": { "const": "byte-exact canonical summary and exact structural counters" },
+        "counterIds": { "type": "array", "minItems": 9, "uniqueItems": true },
+        "fullFixtureValidation": { "const": true }
+      }
+    },
+    "performanceClaims": { "type": "array", "maxItems": 0 }
+  },
+  "$defs": {
+    "fileRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256", "immutableUrl"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "immutableUrl": { "type": "string", "format": "uri" }
+      }
+    }
+  }
+}
