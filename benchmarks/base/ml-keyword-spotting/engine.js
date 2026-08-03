@@ -56,7 +56,7 @@ function validatePcm(pcm) {
     throw new RangeError(`expected exactly ${CONTRACT.samples} signed PCM16 samples`);
   }
 }
-function computeFeature(pcm, hop, re, im, bands, output) {
+function computeFeature(pcm, hop, re, im, bands, output, normalize = true) {
   const base = hop * CONTRACT.hopSamples;
   for (let index = 0; index < CONTRACT.fftSize; index += 1) {
     const source = base + index;
@@ -111,7 +111,9 @@ function computeFeature(pcm, hop, re, im, bands, output) {
       sum += bands[band] * C.dctQ15[coefficient][band];
     }
     const raw = clampI8(sum >> 13);
-    output[outputOffset + coefficient] = C.normalizationLookupI8[coefficient][raw + 128];
+    output[outputOffset + coefficient] = normalize
+      ? C.normalizationLookupI8[coefficient][raw + 128]
+      : raw;
   }
 }
 function modelInput(context, hop, row, column) {
@@ -215,7 +217,9 @@ export function extractOneSecondTrainingFeatures(pcm) {
   const re = new Int32Array(CONTRACT.fftSize);
   const im = new Int32Array(CONTRACT.fftSize);
   const bands = new Int32Array(CONTRACT.features);
-  for (let hop = 0; hop < 49; hop += 1) computeFeature(pcm, hop, re, im, bands, features);
+  for (let hop = 0; hop < 49; hop += 1) {
+    computeFeature(pcm, hop, re, im, bands, features, false);
+  }
   return features;
 }
 
