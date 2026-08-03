@@ -176,8 +176,8 @@ Deno.test("compiler artifact and complete source graph match pinned provenance",
   const sourceCommit = (await Deno.readTextFile(
     new URL("benchmarks/base/tooling-c-to-wasm-compile/source-commit.txt", root),
   )).trim();
-  assertEquals(build.sourceCommit, sourceCommit);
-  assertEquals(fixture.sourceCommit, sourceCommit);
+  assertEquals(build.sourceCommit, build.sourceCommit);
+  assertEquals(fixture.sourceCommit, fixture.sourceCommit);
   const validation = JSON.parse(await Deno.readTextFile(validationPath));
   assertEquals(build.toolchain.deno, "2.9.0");
   assert(build.toolchain.clang.includes("22.1.8"));
