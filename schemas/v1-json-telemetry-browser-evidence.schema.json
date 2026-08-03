@@ -9,46 +9,352 @@
     "workload",
     "evidenceId",
     "collectedAt",
+    "collection",
     "source",
     "collector",
-    "browser",
-    "server",
     "scenarios",
     "cleanup"
   ],
   "properties": {
-    "schemaVersion": { "const": 1 },
-    "workload": { "const": "serialization.json-telemetry.v1" },
+    "schemaVersion": {
+      "const": 1
+    },
+    "workload": {
+      "const": "serialization.json-telemetry.v1"
+    },
     "evidenceId": {
       "type": "string",
       "pattern": "^serialization-json-telemetry-browser-[a-f0-9]{12}$"
     },
-    "collectedAt": { "type": "string", "format": "date-time" },
+    "collectedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
     "source": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["commit", "tree", "root", "cleanStatus"],
+      "required": [
+        "commit",
+        "tree",
+        "root",
+        "cleanStatus",
+        "endCheck",
+        "frozenFiles"
+      ],
       "properties": {
-        "commit": { "$ref": "#/$defs/gitIdentity" },
-        "tree": { "$ref": "#/$defs/gitIdentity" },
-        "root": { "type": "string", "pattern": "^/" },
-        "cleanStatus": { "const": "clean" }
+        "commit": {
+          "$ref": "#/$defs/gitIdentity"
+        },
+        "tree": {
+          "$ref": "#/$defs/gitIdentity"
+        },
+        "root": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "cleanStatus": {
+          "const": "clean"
+        },
+        "endCheck": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "outcome",
+                "checkedAt",
+                "commit",
+                "tree",
+                "cleanStatus"
+              ],
+              "properties": {
+                "outcome": {
+                  "const": "success"
+                },
+                "checkedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "commit": {
+                  "$ref": "#/$defs/gitIdentity"
+                },
+                "tree": {
+                  "$ref": "#/$defs/gitIdentity"
+                },
+                "cleanStatus": {
+                  "const": "clean"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "outcome",
+                "checkedAt",
+                "error"
+              ],
+              "properties": {
+                "outcome": {
+                  "const": "failure"
+                },
+                "checkedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "error": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          ]
+        },
+        "frozenFiles": {
+          "type": "array",
+          "minItems": 13,
+          "maxItems": 13,
+          "prefixItems": [
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/frozenFile"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "public/demos/serialization.json-telemetry.v1/index.html"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/frozenFile"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "public/styles.css"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/frozenFile"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "public/favicon.svg"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/frozenFile"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "public/telemetry-demo.js"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/frozenFile"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "public/telemetry-worker.js"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/frozenFile"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "public/telemetry-module-loader.js"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/frozenFile"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "benchmarks/v1/serialization-json-telemetry/workload.js"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/frozenFile"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "public/artifacts/serialization-json-telemetry/build-manifest.json"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/frozenFile"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "public/artifacts/serialization-json-telemetry/fixture-manifest.json"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/frozenFile"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "public/artifacts/serialization-json-telemetry/input-manifest.json"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/frozenFile"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "public/artifacts/serialization-json-telemetry/output-manifest.json"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/frozenFile"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "public/artifacts/serialization-json-telemetry/telemetry.wasm"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/frozenFile"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "const": "scripts/collect-v1-json-telemetry-browser-evidence.ts"
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "items": false
+        }
       }
     },
     "collector": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["script", "scriptBytes", "scriptSha256", "command", "denoVersion"],
+      "required": [
+        "script",
+        "scriptBytes",
+        "scriptSha256",
+        "command",
+        "denoVersion"
+      ],
       "properties": {
-        "script": { "const": "scripts/collect-v1-json-telemetry-browser-evidence.ts" },
-        "scriptBytes": { "type": "integer", "minimum": 1 },
-        "scriptSha256": { "$ref": "#/$defs/sha256" },
+        "script": {
+          "const": "scripts/collect-v1-json-telemetry-browser-evidence.ts"
+        },
+        "scriptBytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "scriptSha256": {
+          "$ref": "#/$defs/sha256"
+        },
         "command": {
           "type": "array",
-          "minItems": 4,
-          "items": { "type": "string", "minLength": 1 }
+          "minItems": 6,
+          "maxItems": 6,
+          "prefixItems": [
+            {
+              "type": "string",
+              "pattern": "^/"
+            },
+            {
+              "const": "run"
+            },
+            {
+              "const": "-A"
+            },
+            {
+              "const": "scripts/collect-v1-json-telemetry-browser-evidence.ts"
+            },
+            {
+              "type": "string",
+              "pattern": "^--chrome=/"
+            },
+            {
+              "type": "string",
+              "pattern": "^--output=/.*\\.json$"
+            }
+          ],
+          "items": false
         },
-        "denoVersion": { "type": "string", "minLength": 1 }
+        "denoVersion": {
+          "const": "2.9.0"
+        }
       }
     },
     "browser": {
@@ -72,77 +378,1182 @@
       ],
       "properties": {
         "product": {
-          "type": "string",
-          "pattern": "^(Google Chrome|Chrome|Chromium)/[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$"
+          "const": "Chrome/150.0.7871.24"
         },
-        "revision": { "type": "string", "minLength": 1 },
-        "userAgent": { "type": "string", "minLength": 1 },
-        "jsVersion": { "type": "string", "minLength": 1 },
-        "executable": { "type": "string", "pattern": "^/" },
-        "executableBytes": { "type": "integer", "minimum": 1 },
-        "executableSha256": { "$ref": "#/$defs/sha256" },
+        "revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "userAgent": {
+          "type": "string",
+          "minLength": 1
+        },
+        "jsVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "executable": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "executableBytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "executableSha256": {
+          "const": "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355"
+        },
         "launchArguments": {
           "type": "array",
-          "minItems": 14,
-          "uniqueItems": true,
-          "items": { "type": "string", "minLength": 1 }
+          "minItems": 20,
+          "maxItems": 20,
+          "prefixItems": [
+            {
+              "type": "string",
+              "pattern": "^--user-data-dir=/tmp/wasm-json-telemetry-chrome-"
+            },
+            {
+              "const": "--remote-debugging-port=0"
+            },
+            {
+              "const": "--remote-debugging-address=127.0.0.1"
+            },
+            {
+              "const": "--headless=new"
+            },
+            {
+              "const": "--no-sandbox"
+            },
+            {
+              "const": "--disable-gpu"
+            },
+            {
+              "const": "--enable-automation"
+            },
+            {
+              "const": "--disable-background-networking"
+            },
+            {
+              "const": "--disable-component-update"
+            },
+            {
+              "const": "--disable-default-apps"
+            },
+            {
+              "const": "--disable-extensions"
+            },
+            {
+              "const": "--disable-sync"
+            },
+            {
+              "const": "--disable-crash-reporter"
+            },
+            {
+              "const": "--disable-breakpad"
+            },
+            {
+              "const": "--metrics-recording-only"
+            },
+            {
+              "const": "--no-first-run"
+            },
+            {
+              "const": "--no-default-browser-check"
+            },
+            {
+              "const": "--hide-scrollbars"
+            },
+            {
+              "const": "--window-size=1440,1200"
+            },
+            {
+              "const": "about:blank"
+            }
+          ],
+          "items": false
         },
         "effectiveArguments": {
           "type": "array",
-          "minItems": 14,
-          "items": { "type": "string", "minLength": 1 }
+          "minItems": 21,
+          "maxItems": 21,
+          "prefixItems": [
+            {
+              "type": "string",
+              "pattern": "^/"
+            },
+            {
+              "type": "string",
+              "pattern": "^--user-data-dir=/tmp/wasm-json-telemetry-chrome-"
+            },
+            {
+              "const": "--remote-debugging-port=0"
+            },
+            {
+              "const": "--remote-debugging-address=127.0.0.1"
+            },
+            {
+              "const": "--headless=new"
+            },
+            {
+              "const": "--no-sandbox"
+            },
+            {
+              "const": "--disable-gpu"
+            },
+            {
+              "const": "--enable-automation"
+            },
+            {
+              "const": "--disable-background-networking"
+            },
+            {
+              "const": "--disable-component-update"
+            },
+            {
+              "const": "--disable-default-apps"
+            },
+            {
+              "const": "--disable-extensions"
+            },
+            {
+              "const": "--disable-sync"
+            },
+            {
+              "const": "--disable-crash-reporter"
+            },
+            {
+              "const": "--disable-breakpad"
+            },
+            {
+              "const": "--metrics-recording-only"
+            },
+            {
+              "const": "--no-first-run"
+            },
+            {
+              "const": "--no-default-browser-check"
+            },
+            {
+              "const": "--hide-scrollbars"
+            },
+            {
+              "const": "--window-size=1440,1200"
+            },
+            {
+              "const": "about:blank"
+            }
+          ],
+          "items": false
         },
-        "headless": { "const": true },
-        "protocol": { "const": "Chrome DevTools Protocol" },
-        "profile": { "type": "string", "pattern": "^/tmp/wasm-json-telemetry-chrome-" },
-        "cgroup": { "$ref": "#/$defs/cgroupIdentity" },
+        "headless": {
+          "const": true
+        },
+        "protocol": {
+          "const": "Chrome DevTools Protocol"
+        },
+        "profile": {
+          "type": "string",
+          "pattern": "^/tmp/wasm-json-telemetry-chrome-"
+        },
+        "cgroup": {
+          "$ref": "#/$defs/cgroupIdentity"
+        },
         "processes": {
           "type": "array",
           "minItems": 1,
-          "items": { "$ref": "#/$defs/processIdentity" }
+          "items": {
+            "$ref": "#/$defs/processIdentity"
+          }
         }
       }
     },
     "server": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["origin", "mode", "launcher"],
+      "required": [
+        "origin",
+        "mode",
+        "launcher"
+      ],
       "properties": {
-        "origin": { "type": "string", "pattern": "^http://127\\.0\\.0\\.1:[0-9]+$" },
-        "mode": { "const": "public" },
-        "launcher": { "$ref": "#/$defs/processIdentity" }
+        "origin": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+$"
+        },
+        "mode": {
+          "const": "public"
+        },
+        "launcher": {
+          "$ref": "#/$defs/processIdentity"
+        }
       }
     },
     "scenarios": {
       "type": "array",
-      "minItems": 9,
       "maxItems": 9,
-      "items": { "$ref": "#/$defs/scenario" }
+      "prefixItems": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/scenario"
+            },
+            {
+              "properties": {
+                "id": {
+                  "const": "js-bounded"
+                },
+                "action": {
+                  "const": "complete"
+                },
+                "variant": {
+                  "const": "js-controlled"
+                },
+                "mode": {
+                  "const": "bounded"
+                },
+                "records": {
+                  "const": 1000
+                },
+                "finalStatus": {
+                  "const": "Complete."
+                },
+                "accessibility": {
+                  "properties": {
+                    "statusText": {
+                      "const": "Complete."
+                    }
+                  }
+                },
+                "result": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/result"
+                    },
+                    {
+                      "properties": {
+                        "target": {
+                          "const": "js-controlled"
+                        },
+                        "mode": {
+                          "const": "bounded"
+                        },
+                        "records": {
+                          "const": 1000
+                        },
+                        "inputSha256": {
+                          "const": "1cb2368099252795ffc85d23ea057c93a266d9cdb026e041d0ec1aa563be92f9"
+                        },
+                        "outputSha256": {
+                          "const": "b748d5a006f9ca3d3570318cd5bd9c290408eaa243af53470282e7721a302ce8"
+                        },
+                        "canonicalSummary": {
+                          "const": "{\"count\":1000,\"errorCount\":108,\"kind\":{\"click\":345,\"purchase\":335,\"view\":320},\"okCount\":892,\"region\":{\"ap\":234,\"eu\":261,\"na\":247,\"sa\":258},\"valueSum\":4868080}"
+                        },
+                        "counters": {
+                          "properties": {
+                            "records": {
+                              "const": 1000
+                            },
+                            "input-bytes": {
+                              "const": 119397
+                            },
+                            "numeric-values": {
+                              "const": 3000
+                            },
+                            "string-values": {
+                              "const": 4000
+                            },
+                            "booleans": {
+                              "const": 1000
+                            },
+                            "query-aggregates": {
+                              "const": 11
+                            },
+                            "output-bytes": {
+                              "const": 158
+                            },
+                            "allocations": {
+                              "const": 6
+                            },
+                            "boundary-crossings": {
+                              "const": 0
+                            }
+                          }
+                        },
+                        "servedByteChecks": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "status"
+                          ],
+                          "properties": {
+                            "status": {
+                              "const": "not-requested"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "result",
+                "blobExecution"
+              ]
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/scenario"
+            },
+            {
+              "properties": {
+                "id": {
+                  "const": "js-exact"
+                },
+                "action": {
+                  "const": "complete"
+                },
+                "variant": {
+                  "const": "js-controlled"
+                },
+                "mode": {
+                  "const": "exact-contract"
+                },
+                "records": {
+                  "const": 1000
+                },
+                "finalStatus": {
+                  "const": "Complete."
+                },
+                "accessibility": {
+                  "properties": {
+                    "statusText": {
+                      "const": "Complete."
+                    }
+                  }
+                },
+                "result": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/result"
+                    },
+                    {
+                      "properties": {
+                        "target": {
+                          "const": "js-controlled"
+                        },
+                        "mode": {
+                          "const": "exact-contract"
+                        },
+                        "records": {
+                          "const": 1000
+                        },
+                        "inputSha256": {
+                          "const": "1cb2368099252795ffc85d23ea057c93a266d9cdb026e041d0ec1aa563be92f9"
+                        },
+                        "outputSha256": {
+                          "const": "b748d5a006f9ca3d3570318cd5bd9c290408eaa243af53470282e7721a302ce8"
+                        },
+                        "canonicalSummary": {
+                          "const": "{\"count\":1000,\"errorCount\":108,\"kind\":{\"click\":345,\"purchase\":335,\"view\":320},\"okCount\":892,\"region\":{\"ap\":234,\"eu\":261,\"na\":247,\"sa\":258},\"valueSum\":4868080}"
+                        },
+                        "counters": {
+                          "properties": {
+                            "records": {
+                              "const": 1000
+                            },
+                            "input-bytes": {
+                              "const": 119397
+                            },
+                            "numeric-values": {
+                              "const": 3000
+                            },
+                            "string-values": {
+                              "const": 4000
+                            },
+                            "booleans": {
+                              "const": 1000
+                            },
+                            "query-aggregates": {
+                              "const": 11
+                            },
+                            "output-bytes": {
+                              "const": 158
+                            },
+                            "allocations": {
+                              "const": 6
+                            },
+                            "boundary-crossings": {
+                              "const": 0
+                            }
+                          }
+                        },
+                        "servedByteChecks": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "status",
+                            "executedModuleRoute",
+                            "executedModuleSha256",
+                            "buildManifestSha256",
+                            "fixtureManifestSha256",
+                            "inputManifestSha256",
+                            "outputManifestSha256",
+                            "wasmSha256"
+                          ],
+                          "properties": {
+                            "status": {
+                              "const": "verified"
+                            },
+                            "executedModuleRoute": {
+                              "const": "/benchmarks/v1/serialization-json-telemetry/workload.54e2ee54b225d8454664dc6a24f5fa178ee0652ccf0e7e01eea93b17f29530f8.js"
+                            },
+                            "executedModuleSha256": {
+                              "const": "54e2ee54b225d8454664dc6a24f5fa178ee0652ccf0e7e01eea93b17f29530f8"
+                            },
+                            "buildManifestSha256": {
+                              "const": "51afa93fb6d36edf50eb4ee801826acf3058c3c3e3c73cfc2a8cd3f02da101a8"
+                            },
+                            "fixtureManifestSha256": {
+                              "const": "89a1039bd30c2ab72499102e653a7ae44a4c9c0c731408223afe2d7df6cb31cf"
+                            },
+                            "inputManifestSha256": {
+                              "const": "0cfe5e4dbf3ce2bee9e047a32688a6b5f48ea64dcb120cb24ac9ddfa90a34fb0"
+                            },
+                            "outputManifestSha256": {
+                              "const": "3acf258af1cf022c3b6af581107e16324222e551ae3c16f05d522782399bf387"
+                            },
+                            "wasmSha256": {
+                              "const": "8d03d4fedbbef99659d95e8930a3db6757eb460d73301c9e95c9eafbfe330c42"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "result",
+                "blobExecution"
+              ]
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/scenario"
+            },
+            {
+              "properties": {
+                "id": {
+                  "const": "wasm-bounded"
+                },
+                "action": {
+                  "const": "complete"
+                },
+                "variant": {
+                  "const": "wasm-linear-controlled"
+                },
+                "mode": {
+                  "const": "bounded"
+                },
+                "records": {
+                  "const": 1000
+                },
+                "finalStatus": {
+                  "const": "Complete."
+                },
+                "accessibility": {
+                  "properties": {
+                    "statusText": {
+                      "const": "Complete."
+                    }
+                  }
+                },
+                "result": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/result"
+                    },
+                    {
+                      "properties": {
+                        "target": {
+                          "const": "wasm-linear-controlled"
+                        },
+                        "mode": {
+                          "const": "bounded"
+                        },
+                        "records": {
+                          "const": 1000
+                        },
+                        "inputSha256": {
+                          "const": "1cb2368099252795ffc85d23ea057c93a266d9cdb026e041d0ec1aa563be92f9"
+                        },
+                        "outputSha256": {
+                          "const": "b748d5a006f9ca3d3570318cd5bd9c290408eaa243af53470282e7721a302ce8"
+                        },
+                        "canonicalSummary": {
+                          "const": "{\"count\":1000,\"errorCount\":108,\"kind\":{\"click\":345,\"purchase\":335,\"view\":320},\"okCount\":892,\"region\":{\"ap\":234,\"eu\":261,\"na\":247,\"sa\":258},\"valueSum\":4868080}"
+                        },
+                        "counters": {
+                          "properties": {
+                            "records": {
+                              "const": 1000
+                            },
+                            "input-bytes": {
+                              "const": 119397
+                            },
+                            "numeric-values": {
+                              "const": 3000
+                            },
+                            "string-values": {
+                              "const": 4000
+                            },
+                            "booleans": {
+                              "const": 1000
+                            },
+                            "query-aggregates": {
+                              "const": 11
+                            },
+                            "output-bytes": {
+                              "const": 158
+                            },
+                            "allocations": {
+                              "const": 0
+                            },
+                            "boundary-crossings": {
+                              "const": 2
+                            }
+                          }
+                        },
+                        "servedByteChecks": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "status"
+                          ],
+                          "properties": {
+                            "status": {
+                              "const": "not-requested"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "result",
+                "blobExecution"
+              ]
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/scenario"
+            },
+            {
+              "properties": {
+                "id": {
+                  "const": "wasm-exact"
+                },
+                "action": {
+                  "const": "complete"
+                },
+                "variant": {
+                  "const": "wasm-linear-controlled"
+                },
+                "mode": {
+                  "const": "exact-contract"
+                },
+                "records": {
+                  "const": 1000
+                },
+                "finalStatus": {
+                  "const": "Complete."
+                },
+                "accessibility": {
+                  "properties": {
+                    "statusText": {
+                      "const": "Complete."
+                    }
+                  }
+                },
+                "result": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/result"
+                    },
+                    {
+                      "properties": {
+                        "target": {
+                          "const": "wasm-linear-controlled"
+                        },
+                        "mode": {
+                          "const": "exact-contract"
+                        },
+                        "records": {
+                          "const": 1000
+                        },
+                        "inputSha256": {
+                          "const": "1cb2368099252795ffc85d23ea057c93a266d9cdb026e041d0ec1aa563be92f9"
+                        },
+                        "outputSha256": {
+                          "const": "b748d5a006f9ca3d3570318cd5bd9c290408eaa243af53470282e7721a302ce8"
+                        },
+                        "canonicalSummary": {
+                          "const": "{\"count\":1000,\"errorCount\":108,\"kind\":{\"click\":345,\"purchase\":335,\"view\":320},\"okCount\":892,\"region\":{\"ap\":234,\"eu\":261,\"na\":247,\"sa\":258},\"valueSum\":4868080}"
+                        },
+                        "counters": {
+                          "properties": {
+                            "records": {
+                              "const": 1000
+                            },
+                            "input-bytes": {
+                              "const": 119397
+                            },
+                            "numeric-values": {
+                              "const": 3000
+                            },
+                            "string-values": {
+                              "const": 4000
+                            },
+                            "booleans": {
+                              "const": 1000
+                            },
+                            "query-aggregates": {
+                              "const": 11
+                            },
+                            "output-bytes": {
+                              "const": 158
+                            },
+                            "allocations": {
+                              "const": 0
+                            },
+                            "boundary-crossings": {
+                              "const": 2
+                            }
+                          }
+                        },
+                        "servedByteChecks": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "status",
+                            "executedModuleRoute",
+                            "executedModuleSha256",
+                            "buildManifestSha256",
+                            "fixtureManifestSha256",
+                            "inputManifestSha256",
+                            "outputManifestSha256",
+                            "wasmSha256"
+                          ],
+                          "properties": {
+                            "status": {
+                              "const": "verified"
+                            },
+                            "executedModuleRoute": {
+                              "const": "/benchmarks/v1/serialization-json-telemetry/workload.54e2ee54b225d8454664dc6a24f5fa178ee0652ccf0e7e01eea93b17f29530f8.js"
+                            },
+                            "executedModuleSha256": {
+                              "const": "54e2ee54b225d8454664dc6a24f5fa178ee0652ccf0e7e01eea93b17f29530f8"
+                            },
+                            "buildManifestSha256": {
+                              "const": "51afa93fb6d36edf50eb4ee801826acf3058c3c3e3c73cfc2a8cd3f02da101a8"
+                            },
+                            "fixtureManifestSha256": {
+                              "const": "89a1039bd30c2ab72499102e653a7ae44a4c9c0c731408223afe2d7df6cb31cf"
+                            },
+                            "inputManifestSha256": {
+                              "const": "0cfe5e4dbf3ce2bee9e047a32688a6b5f48ea64dcb120cb24ac9ddfa90a34fb0"
+                            },
+                            "outputManifestSha256": {
+                              "const": "3acf258af1cf022c3b6af581107e16324222e551ae3c16f05d522782399bf387"
+                            },
+                            "wasmSha256": {
+                              "const": "8d03d4fedbbef99659d95e8930a3db6757eb460d73301c9e95c9eafbfe330c42"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "result",
+                "blobExecution"
+              ]
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/scenario"
+            },
+            {
+              "properties": {
+                "id": {
+                  "const": "wrong-token"
+                },
+                "action": {
+                  "const": "wrong-token"
+                },
+                "variant": {
+                  "const": "js-controlled"
+                },
+                "mode": {
+                  "const": "bounded"
+                },
+                "records": {
+                  "const": 1000000
+                },
+                "finalStatus": {
+                  "const": "Cancelled. No result was retained."
+                },
+                "accessibility": {
+                  "properties": {
+                    "statusText": {
+                      "const": "Cancelled. No result was retained."
+                    },
+                    "resultText": {
+                      "const": ""
+                    }
+                  }
+                }
+              },
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "result"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "blobExecution"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/scenario"
+            },
+            {
+              "properties": {
+                "id": {
+                  "const": "stale-error-restart"
+                },
+                "action": {
+                  "const": "stale-error-restart"
+                },
+                "variant": {
+                  "const": "js-controlled"
+                },
+                "mode": {
+                  "const": "exact-contract"
+                },
+                "records": {
+                  "const": 1000
+                },
+                "finalStatus": {
+                  "const": "Complete."
+                },
+                "accessibility": {
+                  "properties": {
+                    "statusText": {
+                      "const": "Complete."
+                    }
+                  }
+                },
+                "result": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/result"
+                    },
+                    {
+                      "properties": {
+                        "target": {
+                          "const": "js-controlled"
+                        },
+                        "mode": {
+                          "const": "exact-contract"
+                        },
+                        "records": {
+                          "const": 1000
+                        },
+                        "inputSha256": {
+                          "const": "1cb2368099252795ffc85d23ea057c93a266d9cdb026e041d0ec1aa563be92f9"
+                        },
+                        "outputSha256": {
+                          "const": "b748d5a006f9ca3d3570318cd5bd9c290408eaa243af53470282e7721a302ce8"
+                        },
+                        "canonicalSummary": {
+                          "const": "{\"count\":1000,\"errorCount\":108,\"kind\":{\"click\":345,\"purchase\":335,\"view\":320},\"okCount\":892,\"region\":{\"ap\":234,\"eu\":261,\"na\":247,\"sa\":258},\"valueSum\":4868080}"
+                        },
+                        "counters": {
+                          "properties": {
+                            "records": {
+                              "const": 1000
+                            },
+                            "input-bytes": {
+                              "const": 119397
+                            },
+                            "numeric-values": {
+                              "const": 3000
+                            },
+                            "string-values": {
+                              "const": 4000
+                            },
+                            "booleans": {
+                              "const": 1000
+                            },
+                            "query-aggregates": {
+                              "const": 11
+                            },
+                            "output-bytes": {
+                              "const": 158
+                            },
+                            "allocations": {
+                              "const": 6
+                            },
+                            "boundary-crossings": {
+                              "const": 0
+                            }
+                          }
+                        },
+                        "servedByteChecks": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "status",
+                            "executedModuleRoute",
+                            "executedModuleSha256",
+                            "buildManifestSha256",
+                            "fixtureManifestSha256",
+                            "inputManifestSha256",
+                            "outputManifestSha256",
+                            "wasmSha256"
+                          ],
+                          "properties": {
+                            "status": {
+                              "const": "verified"
+                            },
+                            "executedModuleRoute": {
+                              "const": "/benchmarks/v1/serialization-json-telemetry/workload.54e2ee54b225d8454664dc6a24f5fa178ee0652ccf0e7e01eea93b17f29530f8.js"
+                            },
+                            "executedModuleSha256": {
+                              "const": "54e2ee54b225d8454664dc6a24f5fa178ee0652ccf0e7e01eea93b17f29530f8"
+                            },
+                            "buildManifestSha256": {
+                              "const": "51afa93fb6d36edf50eb4ee801826acf3058c3c3e3c73cfc2a8cd3f02da101a8"
+                            },
+                            "fixtureManifestSha256": {
+                              "const": "89a1039bd30c2ab72499102e653a7ae44a4c9c0c731408223afe2d7df6cb31cf"
+                            },
+                            "inputManifestSha256": {
+                              "const": "0cfe5e4dbf3ce2bee9e047a32688a6b5f48ea64dcb120cb24ac9ddfa90a34fb0"
+                            },
+                            "outputManifestSha256": {
+                              "const": "3acf258af1cf022c3b6af581107e16324222e551ae3c16f05d522782399bf387"
+                            },
+                            "wasmSha256": {
+                              "const": "8d03d4fedbbef99659d95e8930a3db6757eb460d73301c9e95c9eafbfe330c42"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "result",
+                "blobExecution"
+              ]
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/scenario"
+            },
+            {
+              "properties": {
+                "id": {
+                  "const": "cancel"
+                },
+                "action": {
+                  "const": "cancel"
+                },
+                "variant": {
+                  "const": "wasm-linear-controlled"
+                },
+                "mode": {
+                  "const": "bounded"
+                },
+                "records": {
+                  "const": 1000000
+                },
+                "finalStatus": {
+                  "const": "Cancelled. No result was retained."
+                },
+                "accessibility": {
+                  "properties": {
+                    "statusText": {
+                      "const": "Cancelled. No result was retained."
+                    },
+                    "resultText": {
+                      "const": ""
+                    }
+                  }
+                }
+              },
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "result"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "blobExecution"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/scenario"
+            },
+            {
+              "properties": {
+                "id": {
+                  "const": "timeout"
+                },
+                "action": {
+                  "const": "timeout"
+                },
+                "variant": {
+                  "const": "wasm-linear-controlled"
+                },
+                "mode": {
+                  "const": "exact-contract"
+                },
+                "records": {
+                  "const": 1000000
+                },
+                "finalStatus": {
+                  "const": "Stopped: the 180 second limit expired."
+                },
+                "accessibility": {
+                  "properties": {
+                    "statusText": {
+                      "const": "Stopped: the 180 second limit expired."
+                    },
+                    "resultText": {
+                      "const": ""
+                    }
+                  }
+                }
+              },
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "result"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "blobExecution"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/scenario"
+            },
+            {
+              "properties": {
+                "id": {
+                  "const": "pagehide"
+                },
+                "action": {
+                  "const": "pagehide"
+                },
+                "variant": {
+                  "const": "js-controlled"
+                },
+                "mode": {
+                  "const": "bounded"
+                },
+                "records": {
+                  "const": 1000000
+                },
+                "finalStatus": {
+                  "const": "Stopped because the page was hidden."
+                },
+                "accessibility": {
+                  "properties": {
+                    "statusText": {
+                      "const": "Stopped because the page was hidden."
+                    },
+                    "resultText": {
+                      "const": ""
+                    }
+                  }
+                }
+              },
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "result"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "blobExecution"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "items": false
     },
     "cleanup": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["browserProcesses", "cgroup", "profile", "server"],
+      "required": [
+        "browserProcesses",
+        "cgroup",
+        "profile",
+        "server"
+      ],
       "properties": {
-        "browserProcesses": { "$ref": "#/$defs/cleanupCheck" },
-        "cgroup": { "$ref": "#/$defs/cleanupCheck" },
-        "profile": { "$ref": "#/$defs/cleanupCheck" },
-        "server": { "$ref": "#/$defs/cleanupCheck" }
+        "browserProcesses": {
+          "$ref": "#/$defs/cleanupCheck"
+        },
+        "cgroup": {
+          "$ref": "#/$defs/cleanupCheck"
+        },
+        "profile": {
+          "$ref": "#/$defs/cleanupCheck"
+        },
+        "server": {
+          "$ref": "#/$defs/cleanupCheck"
+        }
       }
+    },
+    "collection": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "outcome",
+            "completedScenarios"
+          ],
+          "properties": {
+            "outcome": {
+              "const": "success"
+            },
+            "completedScenarios": {
+              "const": 9
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "outcome",
+            "error",
+            "completedScenarios"
+          ],
+          "properties": {
+            "outcome": {
+              "const": "failure"
+            },
+            "error": {
+              "type": "string",
+              "minLength": 1
+            },
+            "completedScenarios": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9
+            }
+          }
+        }
+      ]
     }
   },
   "$defs": {
-    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-    "gitIdentity": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "gitIdentity": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
     "processIdentity": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["pid", "parentPid", "startTimeTicks", "executable"],
+      "required": [
+        "pid",
+        "parentPid",
+        "startTimeTicks",
+        "executable"
+      ],
       "properties": {
-        "pid": { "type": "integer", "minimum": 2 },
-        "parentPid": { "type": "integer", "minimum": 0 },
-        "startTimeTicks": { "type": "string", "pattern": "^[0-9]+$" },
-        "executable": { "type": "string", "pattern": "^/" }
+        "pid": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "parentPid": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "startTimeTicks": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "executable": {
+          "type": "string",
+          "pattern": "^/"
+        }
       }
     },
     "cgroupIdentity": {
@@ -159,27 +1570,57 @@
         "memberSnapshots"
       ],
       "properties": {
-        "unit": { "type": "string", "pattern": "^wasm-json-telemetry-[a-f0-9]{16}\\.service$" },
-        "controlGroup": { "type": "string", "pattern": "^/" },
-        "path": { "type": "string", "pattern": "^/sys/fs/cgroup/" },
-        "device": { "type": "integer", "minimum": 1 },
-        "inode": { "type": "integer", "minimum": 1 },
-        "invocationId": { "type": "string", "pattern": "^[a-f0-9]{32}$" },
-        "mainPid": { "type": "integer", "minimum": 2 },
+        "unit": {
+          "type": "string",
+          "pattern": "^wasm-json-telemetry-[a-f0-9]{16}\\.service$"
+        },
+        "controlGroup": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^/sys/fs/cgroup/"
+        },
+        "device": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "inode": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "invocationId": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "mainPid": {
+          "type": "integer",
+          "minimum": 2
+        },
         "memberSnapshots": {
           "type": "array",
           "minItems": 1,
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["at", "pids"],
+            "required": [
+              "at",
+              "pids"
+            ],
             "properties": {
-              "at": { "type": "string", "format": "date-time" },
+              "at": {
+                "type": "string",
+                "format": "date-time"
+              },
               "pids": {
                 "type": "array",
                 "minItems": 1,
                 "uniqueItems": true,
-                "items": { "type": "integer", "minimum": 2 }
+                "items": {
+                  "type": "integer",
+                  "minimum": 2
+                }
               }
             }
           }
@@ -191,22 +1632,53 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["outcome", "checkedAt", "remaining"],
+          "required": [
+            "outcome",
+            "checkedAt",
+            "remaining"
+          ],
           "properties": {
-            "outcome": { "const": "success" },
-            "checkedAt": { "type": "string", "format": "date-time" },
-            "remaining": { "type": "array", "maxItems": 0 }
+            "outcome": {
+              "const": "success"
+            },
+            "checkedAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "remaining": {
+              "type": "array",
+              "maxItems": 0
+            }
           }
         },
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["outcome", "checkedAt", "remaining", "error"],
+          "required": [
+            "outcome",
+            "checkedAt",
+            "remaining",
+            "error"
+          ],
           "properties": {
-            "outcome": { "const": "failure" },
-            "checkedAt": { "type": "string", "format": "date-time" },
-            "remaining": { "type": "array", "items": { "type": "string", "minLength": 1 } },
-            "error": { "type": "string", "minLength": 1 }
+            "outcome": {
+              "const": "failure"
+            },
+            "checkedAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "remaining": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "error": {
+              "type": "string",
+              "minLength": 1
+            }
           }
         }
       ]
@@ -214,21 +1686,49 @@
     "consoleEntry": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["type", "arguments", "timestamp"],
+      "required": [
+        "type",
+        "arguments",
+        "timestamp"
+      ],
       "properties": {
-        "type": { "type": "string", "minLength": 1 },
-        "arguments": { "type": "array", "items": { "type": "string" } },
-        "timestamp": { "type": "number", "minimum": 0 }
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "arguments": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "timestamp": {
+          "type": "number",
+          "minimum": 0
+        }
       }
     },
     "exceptionEntry": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["text", "lineNumber", "columnNumber"],
+      "required": [
+        "text",
+        "lineNumber",
+        "columnNumber"
+      ],
       "properties": {
-        "text": { "type": "string", "minLength": 1 },
-        "lineNumber": { "type": "integer", "minimum": 0 },
-        "columnNumber": { "type": "integer", "minimum": 0 }
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lineNumber": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "columnNumber": {
+          "type": "integer",
+          "minimum": 0
+        }
       }
     },
     "rawBody": {
@@ -236,23 +1736,53 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["status", "bytes", "sha256", "base64", "sourcePath", "gitBlob"],
+          "required": [
+            "status",
+            "bytes",
+            "sha256",
+            "base64",
+            "sourcePath",
+            "gitBlob"
+          ],
           "properties": {
-            "status": { "const": "supported" },
-            "bytes": { "type": "integer", "minimum": 0 },
-            "sha256": { "$ref": "#/$defs/sha256" },
-            "base64": { "type": "string", "pattern": "^[A-Za-z0-9+/]*={0,2}$" },
-            "sourcePath": { "type": "string", "pattern": "^(public|benchmarks)/" },
-            "gitBlob": { "$ref": "#/$defs/gitIdentity" }
+            "status": {
+              "const": "supported"
+            },
+            "bytes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "base64": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9+/]*={0,2}$"
+            },
+            "sourcePath": {
+              "type": "string",
+              "pattern": "^(public|benchmarks)/"
+            },
+            "gitBlob": {
+              "$ref": "#/$defs/gitIdentity"
+            }
           }
         },
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["status", "reason"],
+          "required": [
+            "status",
+            "reason"
+          ],
           "properties": {
-            "status": { "const": "unavailable" },
-            "reason": { "type": "string", "minLength": 1 }
+            "status": {
+              "const": "unavailable"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            }
           }
         }
       ]
@@ -276,43 +1806,90 @@
           "type": "string",
           "pattern": "^(http://127\\.0\\.0\\.1:[0-9]+/|blob:http://127\\.0\\.0\\.1:[0-9]+/)"
         },
-        "method": { "const": "GET" },
-        "resourceType": { "type": "string", "minLength": 1 },
-        "status": { "type": "integer", "minimum": 100, "maximum": 599 },
-        "mimeType": { "type": "string" },
-        "fromDiskCache": { "type": "boolean" },
-        "fromServiceWorker": { "type": "boolean" },
-        "failed": { "type": "boolean" },
-        "responseBody": { "$ref": "#/$defs/rawBody" }
+        "method": {
+          "const": "GET"
+        },
+        "resourceType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "const": 200
+        },
+        "mimeType": {
+          "type": "string"
+        },
+        "fromDiskCache": {
+          "const": false
+        },
+        "fromServiceWorker": {
+          "const": false
+        },
+        "failed": {
+          "const": false
+        },
+        "responseBody": {
+          "$ref": "#/$defs/rawBody"
+        }
       }
     },
     "screenshot": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["file", "bytes", "sha256"],
+      "required": [
+        "file",
+        "bytes",
+        "sha256"
+      ],
       "properties": {
-        "file": { "type": "string", "pattern": "^screenshots/[a-z0-9-]+\\.png$" },
-        "bytes": { "type": "integer", "minimum": 1 },
-        "sha256": { "$ref": "#/$defs/sha256" }
+        "file": {
+          "type": "string",
+          "pattern": "^screenshots/[a-z0-9-]+\\.png$"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
       }
     },
     "accessibility": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["statusText", "resultText", "axText"],
+      "required": [
+        "statusText",
+        "resultText",
+        "axText"
+      ],
       "properties": {
-        "statusText": { "type": "string", "minLength": 1 },
-        "resultText": { "type": "string" },
+        "statusText": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resultText": {
+          "type": "string"
+        },
         "axText": {
           "type": "array",
           "minItems": 1,
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["role", "name"],
+            "required": [
+              "role",
+              "name"
+            ],
             "properties": {
-              "role": { "type": "string", "minLength": 1 },
-              "name": { "type": "string", "minLength": 1 }
+              "role": {
+                "type": "string",
+                "minLength": 1
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              }
             }
           }
         }
@@ -333,15 +1910,45 @@
         "boundary-crossings"
       ],
       "properties": {
-        "records": { "type": "integer", "minimum": 0 },
-        "input-bytes": { "type": "integer", "minimum": 2 },
-        "numeric-values": { "type": "integer", "minimum": 0 },
-        "string-values": { "type": "integer", "minimum": 0 },
-        "booleans": { "type": "integer", "minimum": 0 },
-        "query-aggregates": { "const": 11 },
-        "output-bytes": { "type": "integer", "minimum": 1 },
-        "allocations": { "enum": [0, 6] },
-        "boundary-crossings": { "enum": [0, 2] }
+        "records": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "input-bytes": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "numeric-values": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "string-values": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "booleans": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "query-aggregates": {
+          "const": 11
+        },
+        "output-bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "allocations": {
+          "enum": [
+            0,
+            6
+          ]
+        },
+        "boundary-crossings": {
+          "enum": [
+            0,
+            2
+          ]
+        }
       }
     },
     "result": {
@@ -359,21 +1966,55 @@
         "servedByteChecks"
       ],
       "properties": {
-        "rawText": { "type": "string", "minLength": 1 },
-        "target": { "enum": ["js-controlled", "wasm-linear-controlled"] },
-        "mode": { "enum": ["bounded", "exact-contract"] },
-        "records": { "enum": [1000, 100000, 1000000] },
-        "inputSha256": { "$ref": "#/$defs/sha256" },
-        "outputSha256": { "$ref": "#/$defs/sha256" },
-        "counters": { "$ref": "#/$defs/counters" },
-        "canonicalSummary": { "type": "string", "pattern": "^\\{.*\\}$" },
+        "rawText": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "enum": [
+            "js-controlled",
+            "wasm-linear-controlled"
+          ]
+        },
+        "mode": {
+          "enum": [
+            "bounded",
+            "exact-contract"
+          ]
+        },
+        "records": {
+          "enum": [
+            1000,
+            100000,
+            1000000
+          ]
+        },
+        "inputSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "outputSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "counters": {
+          "$ref": "#/$defs/counters"
+        },
+        "canonicalSummary": {
+          "type": "string",
+          "pattern": "^\\{.*\\}$"
+        },
         "servedByteChecks": {
           "oneOf": [
             {
               "type": "object",
               "additionalProperties": false,
-              "required": ["status"],
-              "properties": { "status": { "const": "not-requested" } }
+              "required": [
+                "status"
+              ],
+              "properties": {
+                "status": {
+                  "const": "not-requested"
+                }
+              }
             },
             {
               "type": "object",
@@ -389,17 +2030,31 @@
                 "wasmSha256"
               ],
               "properties": {
-                "status": { "const": "verified" },
+                "status": {
+                  "const": "verified"
+                },
                 "executedModuleRoute": {
                   "type": "string",
                   "pattern": "^/benchmarks/v1/serialization-json-telemetry/workload\\.[a-f0-9]{64}\\.js$"
                 },
-                "executedModuleSha256": { "$ref": "#/$defs/sha256" },
-                "buildManifestSha256": { "$ref": "#/$defs/sha256" },
-                "fixtureManifestSha256": { "$ref": "#/$defs/sha256" },
-                "inputManifestSha256": { "$ref": "#/$defs/sha256" },
-                "outputManifestSha256": { "$ref": "#/$defs/sha256" },
-                "wasmSha256": { "$ref": "#/$defs/sha256" }
+                "executedModuleSha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "buildManifestSha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "fixtureManifestSha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "inputManifestSha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "outputManifestSha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "wasmSha256": {
+                  "$ref": "#/$defs/sha256"
+                }
               }
             }
           ]
@@ -418,24 +2073,96 @@
         "completionImportedModule"
       ],
       "properties": {
-        "objectUrl": { "type": "string", "pattern": "^blob:http://127\\.0\\.0\\.1:[0-9]+/" },
-        "mimeType": { "const": "text/javascript" },
-        "bytes": { "type": "integer", "minimum": 1 },
-        "sha256": { "$ref": "#/$defs/sha256" },
-        "base64": { "type": "string", "pattern": "^[A-Za-z0-9+/]*={0,2}$" },
-        "completionImportedModule": { "const": true }
+        "objectUrl": {
+          "type": "string",
+          "pattern": "^blob:http://127\\.0\\.0\\.1:[0-9]+/"
+        },
+        "mimeType": {
+          "const": "text/javascript"
+        },
+        "bytes": {
+          "const": 11159
+        },
+        "sha256": {
+          "const": "54e2ee54b225d8454664dc6a24f5fa178ee0652ccf0e7e01eea93b17f29530f8"
+        },
+        "base64": {
+          "const": "Y29uc3QgRU5DT0RFUiA9IG5ldyBUZXh0RW5jb2RlcigpOwpjb25zdCBERUNPREVSID0gbmV3IFRleHREZWNvZGVyKCJ1dGYtOCIsIHsgZmF0YWw6IHRydWUgfSk7CmV4cG9ydCBjb25zdCBXT1JLTE9BRF9JRCA9ICJzZXJpYWxpemF0aW9uLmpzb24tdGVsZW1ldHJ5LnYxIjsKZXhwb3J0IGNvbnN0IFZBUklBTlRTID0gT2JqZWN0LmZyZWV6ZShbImpzLWNvbnRyb2xsZWQiLCAid2FzbS1saW5lYXItY29udHJvbGxlZCJdKTsKZXhwb3J0IGNvbnN0IFJFR0lTVEVSRURfQ09VTlRTID0gT2JqZWN0LmZyZWV6ZShbMV8wMDAsIDEwMF8wMDAsIDFfMDAwXzAwMF0pOwpleHBvcnQgY29uc3QgR0VORVJBVE9SX1NFRUQgPSAweDdlMWUyMDI2OwpleHBvcnQgY29uc3QgR0VORVJBVE9SX1JFVklTSU9OID0gInRlbGVtZXRyeS1nZW5lcmF0b3ItdjEiOwpleHBvcnQgY29uc3QgTUFYX0lOUFVUX0JZVEVTID0gMTkyICogMTAyNCAqIDEwMjQ7CmNvbnN0IFJFR0lPTlMgPSBPYmplY3QuZnJlZXplKFsiYXAiLCAiZXUiLCAibmEiLCAic2EiXSk7CmNvbnN0IEtJTkRTID0gT2JqZWN0LmZyZWV6ZShbImNsaWNrIiwgInB1cmNoYXNlIiwgInZpZXciXSk7CmNvbnN0IExBQkVMUyA9IE9iamVjdC5mcmVlemUoWyJDYWbDqSIsICLmnbHkuqwiLCAi2YXYsdit2KjYpyIsICLwn5qAIl0pOwpjb25zdCBUQUdTID0gT2JqZWN0LmZyZWV6ZShbIs6xIiwgIuaVsOaNriIsICJtYcOxYW5hIiwgIvCfp6oiXSk7Ci8vIFZvY2FidWxhcnkgZW5jb2RpbmcgaXMgbW9kdWxlIGluaXRpYWxpemF0aW9uIHdvcmssIG91dHNpZGUgZXZlcnkgcmVnaXN0ZXJlZCBwYXJzZS9vdXRwdXQgcnVuLgpjb25zdCBlbmNvZGVWb2NhYnVsYXJ5ID0gKHZhbHVlcykgPT4gT2JqZWN0LmZyZWV6ZSh2YWx1ZXMubWFwKCh2YWx1ZSkgPT4gRU5DT0RFUi5lbmNvZGUodmFsdWUpKSk7CmNvbnN0IFJFR0lPTl9CWVRFUyA9IGVuY29kZVZvY2FidWxhcnkoUkVHSU9OUyk7CmNvbnN0IEtJTkRfQllURVMgPSBlbmNvZGVWb2NhYnVsYXJ5KEtJTkRTKTsKY29uc3QgTEFCRUxfQllURVMgPSBlbmNvZGVWb2NhYnVsYXJ5KExBQkVMUyk7CmNvbnN0IFRBR19CWVRFUyA9IGVuY29kZVZvY2FidWxhcnkoVEFHUyk7CmV4cG9ydCBjb25zdCBDT05UUk9MTEVEX0pTX0FMTE9DQVRJT05fTEFCRUxTID0gT2JqZWN0LmZyZWV6ZShbCiAgInBhcnNlci1zdGF0ZSIsCiAgImtpbmQtY291bnQtdmVjdG9yIiwKICAicmVnaW9uLWNvdW50LXZlY3RvciIsCiAgInN1bW1hcnktYWdncmVnYXRlIiwKICAiY2Fub25pY2FsLXN1bW1hcnktdGV4dCIsCiAgImNhbm9uaWNhbC1zdW1tYXJ5LWJ5dGVzIiwKXSk7CgpleHBvcnQgZnVuY3Rpb24gYXNzZXJ0Q29udHJvbGxlZEpTQWxsb2NhdGlvblRyYWNlKGxhYmVscykgewogIGlmICgKICAgICFBcnJheS5pc0FycmF5KGxhYmVscykgfHwgbGFiZWxzLmxlbmd0aCAhPT0gQ09OVFJPTExFRF9KU19BTExPQ0FUSU9OX0xBQkVMUy5sZW5ndGggfHwKICAgIGxhYmVscy5zb21lKChsYWJlbCwgaW5kZXgpID0+IGxhYmVsICE9PSBDT05UUk9MTEVEX0pTX0FMTE9DQVRJT05fTEFCRUxTW2luZGV4XSkKICApIHsKICAgIHRocm93IG5ldyBFcnJvcigiY29udHJvbGxlZCBKYXZhU2NyaXB0IGFsbG9jYXRpb24gdHJhY2UgbWlzbWF0Y2giKTsKICB9Cn0KCmZ1bmN0aW9uIGFsbG9jYXRpb25Qcm9iZShvbkFsbG9jYXRpb24pIHsKICBsZXQgY291bnQgPSAwOwogIHJldHVybiB7CiAgICBhbGxvY2F0ZShsYWJlbCwgdmFsdWUpIHsKICAgICAgaWYgKGxhYmVsICE9PSBDT05UUk9MTEVEX0pTX0FMTE9DQVRJT05fTEFCRUxTW2NvdW50XSkgewogICAgICAgIHRocm93IG5ldyBFcnJvcihgYWxsb2NhdGlvbiAke2NvdW50fSBtdXN0IGJlICR7Q09OVFJPTExFRF9KU19BTExPQ0FUSU9OX0xBQkVMU1tjb3VudF19YCk7CiAgICAgIH0KICAgICAgY291bnQrKzsKICAgICAgb25BbGxvY2F0aW9uPy4obGFiZWwpOwogICAgICByZXR1cm4gdmFsdWU7CiAgICB9LAogICAgZmluaXNoKCkgewogICAgICBpZiAoY291bnQgIT09IENPTlRST0xMRURfSlNfQUxMT0NBVElPTl9MQUJFTFMubGVuZ3RoKSB7CiAgICAgICAgdGhyb3cgbmV3IEVycm9yKAogICAgICAgICAgYGV4cGVjdGVkICR7Q09OVFJPTExFRF9KU19BTExPQ0FUSU9OX0xBQkVMUy5sZW5ndGh9IGFsbG9jYXRpb25zLCBvYnNlcnZlZCAke2NvdW50fWAsCiAgICAgICAgKTsKICAgICAgfQogICAgICByZXR1cm4gY291bnQ7CiAgICB9LAogIH07Cn0KCmZ1bmN0aW9uIHhvcnNoaWZ0MzIoc3RhdGUpIHsKICBzdGF0ZSBePSBzdGF0ZSA8PCAxMzsKICBzdGF0ZSBePSBzdGF0ZSA+Pj4gMTc7CiAgc3RhdGUgXj0gc3RhdGUgPDwgNTsKICByZXR1cm4gc3RhdGUgPj4+IDA7Cn0KCmV4cG9ydCBmdW5jdGlvbiBnZW5lcmF0ZVRlbGVtZXRyeUZpeHR1cmUocmVjb3JkQ291bnQpIHsKICBpZiAoIU51bWJlci5pc0ludGVnZXIocmVjb3JkQ291bnQpIHx8IHJlY29yZENvdW50IDwgMCB8fCByZWNvcmRDb3VudCA+IDFfMDAwXzAwMCkgewogICAgdGhyb3cgbmV3IFJhbmdlRXJyb3IoInJlY29yZCBjb3VudCBtdXN0IGJlIGFuIGludGVnZXIgZnJvbSAwIHRocm91Z2ggMSwwMDAsMDAwIik7CiAgfQogIGNvbnN0IGNodW5rcyA9IFtFTkNPREVSLmVuY29kZSgiWyIpXTsKICBsZXQgY2h1bmsgPSAiIjsKICBsZXQgc3RhdGUgPSBHRU5FUkFUT1JfU0VFRDsKICBmb3IgKGxldCBpZCA9IDA7IGlkIDwgcmVjb3JkQ291bnQ7IGlkKyspIHsKICAgIHN0YXRlID0geG9yc2hpZnQzMihzdGF0ZSk7CiAgICBjb25zdCByZWdpb24gPSBSRUdJT05TW3N0YXRlICYgM107CiAgICBzdGF0ZSA9IHhvcnNoaWZ0MzIoc3RhdGUpOwogICAgY29uc3Qga2luZCA9IEtJTkRTW3N0YXRlICUgM107CiAgICBzdGF0ZSA9IHhvcnNoaWZ0MzIoc3RhdGUpOwogICAgY29uc3Qgb2sgPSAoc3RhdGUgJiA3KSAhPT0gMDsKICAgIHN0YXRlID0geG9yc2hpZnQzMihzdGF0ZSk7CiAgICBjb25zdCB2YWx1ZSA9IHN0YXRlICUgMTBfMDAwOwogICAgc3RhdGUgPSB4b3JzaGlmdDMyKHN0YXRlKTsKICAgIGNvbnN0IGxhYmVsID0gTEFCRUxTW3N0YXRlICYgM107CiAgICBzdGF0ZSA9IHhvcnNoaWZ0MzIoc3RhdGUpOwogICAgY29uc3QgdGFnID0gVEFHU1tzdGF0ZSAmIDNdOwogICAgY2h1bmsgKz0gYCR7aWQgPT09IDAgPyAiIiA6ICIsIn17ImlkIjoke2lkfSwidHMiOiR7CiAgICAgIDFfNzAwXzAwMF8wMDAgKyBpZAogICAgfSwicmVnaW9uIjoiJHtyZWdpb259Iiwia2luZCI6IiR7a2luZH0iLCJvayI6JHsKICAgICAgb2sgPyAidHJ1ZSIgOiAiZmFsc2UiCiAgICB9LCJ2YWx1ZSI6JHt2YWx1ZX0sIm1ldGEiOnsibGFiZWwiOiIke2xhYmVsfSIsInRhZyI6IiR7dGFnfSJ9fWA7CiAgICBpZiAoY2h1bmsubGVuZ3RoID49IDFfMDQ4XzU3NikgewogICAgICBjaHVua3MucHVzaChFTkNPREVSLmVuY29kZShjaHVuaykpOwogICAgICBjaHVuayA9ICIiOwogICAgfQogIH0KICBpZiAoY2h1bmspIGNodW5rcy5wdXNoKEVOQ09ERVIuZW5jb2RlKGNodW5rKSk7CiAgY2h1bmtzLnB1c2goRU5DT0RFUi5lbmNvZGUoIl0iKSk7CiAgY29uc3QgbGVuZ3RoID0gY2h1bmtzLnJlZHVjZSgodG90YWwsIGJ5dGVzKSA9PiB0b3RhbCArIGJ5dGVzLmxlbmd0aCwgMCk7CiAgaWYgKGxlbmd0aCA+IE1BWF9JTlBVVF9CWVRFUykgdGhyb3cgbmV3IFJhbmdlRXJyb3IoImdlbmVyYXRlZCBmaXh0dXJlIGV4Y2VlZHMgaW5wdXQgYnl0ZSBsaW1pdCIpOwogIGNvbnN0IG91dHB1dCA9IG5ldyBVaW50OEFycmF5KGxlbmd0aCk7CiAgbGV0IG9mZnNldCA9IDA7CiAgZm9yIChjb25zdCBieXRlcyBvZiBjaHVua3MpIHsKICAgIG91dHB1dC5zZXQoYnl0ZXMsIG9mZnNldCk7CiAgICBvZmZzZXQgKz0gYnl0ZXMubGVuZ3RoOwogIH0KICByZXR1cm4gb3V0cHV0Owp9CgpjbGFzcyBDdXJzb3IgewogIGNvbnN0cnVjdG9yKGJ5dGVzKSB7CiAgICBpZiAoIShieXRlcyBpbnN0YW5jZW9mIFVpbnQ4QXJyYXkpKSB0aHJvdyBuZXcgVHlwZUVycm9yKCJmaXh0dXJlIG11c3QgYmUgVWludDhBcnJheSIpOwogICAgaWYgKGJ5dGVzLmxlbmd0aCA+IE1BWF9JTlBVVF9CWVRFUykgdGhyb3cgbmV3IFJhbmdlRXJyb3IoImZpeHR1cmUgZXhjZWVkcyBpbnB1dCBieXRlIGxpbWl0Iik7CiAgICAvLyBFeGFjdCBVVEYtOCB2b2NhYnVsYXJ5IG1hdGNoaW5nIHZhbGlkYXRlcyBldmVyeSBub24tQVNDSUkgc2VxdWVuY2UgZHVyaW5nIHRoZSBzaW5nbGUgcGFyc2UgcGFzcy4KICAgIHRoaXMuYnl0ZXMgPSBieXRlczsKICAgIHRoaXMuaSA9IDA7CiAgfQogIGJ5dGUodmFsdWUpIHsKICAgIGlmICh0aGlzLmJ5dGVzW3RoaXMuaSsrXSAhPT0gdmFsdWUpIHRocm93IG5ldyBTeW50YXhFcnJvcihgdW5leHBlY3RlZCBieXRlIGF0ICR7dGhpcy5pIC0gMX1gKTsKICB9CiAgYXNjaWkodmFsdWUpIHsKICAgIGZvciAobGV0IGkgPSAwOyBpIDwgdmFsdWUubGVuZ3RoOyBpKyspIHRoaXMuYnl0ZSh2YWx1ZS5jaGFyQ29kZUF0KGkpKTsKICB9CiAgdWludCgpIHsKICAgIGNvbnN0IHN0YXJ0ID0gdGhpcy5pOwogICAgbGV0IHZhbHVlID0gMDsKICAgIHdoaWxlICh0aGlzLmkgPCB0aGlzLmJ5dGVzLmxlbmd0aCkgewogICAgICBjb25zdCBkaWdpdCA9IHRoaXMuYnl0ZXNbdGhpcy5pXSAtIDQ4OwogICAgICBpZiAoZGlnaXQgPCAwIHx8IGRpZ2l0ID4gOSkgYnJlYWs7CiAgICAgIGlmICh0aGlzLmkgPiBzdGFydCAmJiB0aGlzLmJ5dGVzW3N0YXJ0XSA9PT0gNDgpIHRocm93IG5ldyBTeW50YXhFcnJvcigibGVhZGluZyB6ZXJvIGRlbmllZCIpOwogICAgICB2YWx1ZSA9IHZhbHVlICogMTAgKyBkaWdpdDsKICAgICAgaWYgKCFOdW1iZXIuaXNTYWZlSW50ZWdlcih2YWx1ZSkpIHRocm93IG5ldyBSYW5nZUVycm9yKCJpbnRlZ2VyIGV4Y2VlZHMgc2FmZSByYW5nZSIpOwogICAgICB0aGlzLmkrKzsKICAgIH0KICAgIGlmICh0aGlzLmkgPT09IHN0YXJ0KSB0aHJvdyBuZXcgU3ludGF4RXJyb3IoInVuc2lnbmVkIGludGVnZXIgcmVxdWlyZWQiKTsKICAgIHJldHVybiB2YWx1ZTsKICB9CiAgb25lT2ZCeXRlcyh2YWx1ZXMpIHsKICAgIHRoaXMuYnl0ZSgzNCk7CiAgICBmb3IgKGxldCBpbmRleCA9IDA7IGluZGV4IDwgdmFsdWVzLmxlbmd0aDsgaW5kZXgrKykgewogICAgICBjb25zdCBjYW5kaWRhdGUgPSB2YWx1ZXNbaW5kZXhdOwogICAgICBsZXQgbWF0Y2hlcyA9IHRoaXMuaSArIGNhbmRpZGF0ZS5sZW5ndGggPCB0aGlzLmJ5dGVzLmxlbmd0aDsKICAgICAgZm9yIChsZXQgaiA9IDA7IG1hdGNoZXMgJiYgaiA8IGNhbmRpZGF0ZS5sZW5ndGg7IGorKykgewogICAgICAgIG1hdGNoZXMgPSB0aGlzLmJ5dGVzW3RoaXMuaSArIGpdID09PSBjYW5kaWRhdGVbal07CiAgICAgIH0KICAgICAgaWYgKG1hdGNoZXMgJiYgdGhpcy5ieXRlc1t0aGlzLmkgKyBjYW5kaWRhdGUubGVuZ3RoXSA9PT0gMzQpIHsKICAgICAgICB0aGlzLmkgKz0gY2FuZGlkYXRlLmxlbmd0aCArIDE7CiAgICAgICAgcmV0dXJuIGluZGV4OwogICAgICB9CiAgICB9CiAgICB0aHJvdyBuZXcgU3ludGF4RXJyb3IoYHN0cmluZyBvdXRzaWRlIGZyb3plbiB2b2NhYnVsYXJ5IGF0ICR7dGhpcy5pfWApOwogIH0KICBib29sZWFuKCkgewogICAgaWYgKHRoaXMuYnl0ZXNbdGhpcy5pXSA9PT0gMTE2KSB7CiAgICAgIHRoaXMuYXNjaWkoInRydWUiKTsKICAgICAgcmV0dXJuIHRydWU7CiAgICB9CiAgICB0aGlzLmFzY2lpKCJmYWxzZSIpOwogICAgcmV0dXJuIGZhbHNlOwogIH0KICBkb25lKCkgewogICAgaWYgKHRoaXMuaSAhPT0gdGhpcy5ieXRlcy5sZW5ndGgpIHRocm93IG5ldyBTeW50YXhFcnJvcihgdHJhaWxpbmcgYnl0ZXMgYXQgJHt0aGlzLml9YCk7CiAgfQp9CgpmdW5jdGlvbiBjYW5vbmljYWxTdW1tYXJ5KHN1bW1hcnkpIHsKICByZXR1cm4gYHsiY291bnQiOiR7c3VtbWFyeS5jb3VudH0sImVycm9yQ291bnQiOiR7c3VtbWFyeS5lcnJvckNvdW50fSwia2luZCI6eyJjbGljayI6JHsKICAgIHN1bW1hcnkua2luZFswXQogIH0sInB1cmNoYXNlIjoke3N1bW1hcnkua2luZFsxXX0sInZpZXciOiR7CiAgICBzdW1tYXJ5LmtpbmRbMl0KICB9fSwib2tDb3VudCI6JHtzdW1tYXJ5Lm9rQ291bnR9LCJyZWdpb24iOnsiYXAiOiR7c3VtbWFyeS5yZWdpb25bMF19LCJldSI6JHsKICAgIHN1bW1hcnkucmVnaW9uWzFdCiAgfSwibmEiOiR7c3VtbWFyeS5yZWdpb25bMl19LCJzYSI6JHtzdW1tYXJ5LnJlZ2lvblszXX19LCJ2YWx1ZVN1bSI6JHtzdW1tYXJ5LnZhbHVlU3VtfX1gOwp9CgpleHBvcnQgZnVuY3Rpb24gcnVuVGVsZW1ldHJ5SlMoYnl0ZXMsIG9wdGlvbnMgPSB7fSkgewogIGNvbnN0IHByb2JlID0gYWxsb2NhdGlvblByb2JlKG9wdGlvbnMub25BbGxvY2F0aW9uKTsKICBjb25zdCBjID0gcHJvYmUuYWxsb2NhdGUoInBhcnNlci1zdGF0ZSIsIG5ldyBDdXJzb3IoYnl0ZXMpKTsKICBjb25zdCBraW5kID0gcHJvYmUuYWxsb2NhdGUoImtpbmQtY291bnQtdmVjdG9yIiwgWzAsIDAsIDBdKTsKICBjb25zdCByZWdpb25Db3VudHMgPSBwcm9iZS5hbGxvY2F0ZSgicmVnaW9uLWNvdW50LXZlY3RvciIsIFswLCAwLCAwLCAwXSk7CiAgY29uc3Qgc3VtbWFyeSA9IHByb2JlLmFsbG9jYXRlKCJzdW1tYXJ5LWFnZ3JlZ2F0ZSIsIHsKICAgIGNvdW50OiAwLAogICAgZXJyb3JDb3VudDogMCwKICAgIGtpbmQsCiAgICBva0NvdW50OiAwLAogICAgcmVnaW9uOiByZWdpb25Db3VudHMsCiAgICB2YWx1ZVN1bTogMCwKICB9KTsKICBjLmJ5dGUoOTEpOwogIHdoaWxlIChjLmJ5dGVzW2MuaV0gIT09IDkzKSB7CiAgICBpZiAoc3VtbWFyeS5jb3VudCkgYy5ieXRlKDQ0KTsKICAgIGMuYXNjaWkoJ3siaWQiOicpOwogICAgY29uc3QgaWQgPSBjLnVpbnQoKTsKICAgIGlmIChpZCAhPT0gc3VtbWFyeS5jb3VudCkgdGhyb3cgbmV3IFN5bnRheEVycm9yKCJyZWNvcmQgaWQgaXMgbm90IGNvbnRpZ3VvdXMiKTsKICAgIGMuYXNjaWkoJywidHMiOicpOwogICAgY29uc3QgdGltZXN0YW1wID0gYy51aW50KCk7CiAgICBpZiAodGltZXN0YW1wICE9PSAxXzcwMF8wMDBfMDAwICsgaWQpIHsKICAgICAgdGhyb3cgbmV3IFN5bnRheEVycm9yKCJ0aW1lc3RhbXAgZG9lcyBub3QgbWF0Y2ggZnJvemVuIHNlcXVlbmNlIik7CiAgICB9CiAgICBjLmFzY2lpKCcsInJlZ2lvbiI6Jyk7CiAgICBjb25zdCByZWdpb24gPSBjLm9uZU9mQnl0ZXMoUkVHSU9OX0JZVEVTKTsKICAgIGMuYXNjaWkoJywia2luZCI6Jyk7CiAgICBjb25zdCBraW5kID0gYy5vbmVPZkJ5dGVzKEtJTkRfQllURVMpOwogICAgYy5hc2NpaSgnLCJvayI6Jyk7CiAgICBjb25zdCBvayA9IGMuYm9vbGVhbigpOwogICAgYy5hc2NpaSgnLCJ2YWx1ZSI6Jyk7CiAgICBjb25zdCB2YWx1ZSA9IGMudWludCgpOwogICAgaWYgKHZhbHVlID4gOV85OTkpIHRocm93IG5ldyBSYW5nZUVycm9yKCJ2YWx1ZSBleGNlZWRzIGZyb3plbiByYW5nZSIpOwogICAgYy5hc2NpaSgnLCJtZXRhIjp7ImxhYmVsIjonKTsKICAgIGMub25lT2ZCeXRlcyhMQUJFTF9CWVRFUyk7CiAgICBjLmFzY2lpKCcsInRhZyI6Jyk7CiAgICBjLm9uZU9mQnl0ZXMoVEFHX0JZVEVTKTsKICAgIGMuYXNjaWkoIn19Iik7CiAgICBzdW1tYXJ5LmNvdW50Kys7CiAgICBzdW1tYXJ5LnJlZ2lvbltyZWdpb25dKys7CiAgICBzdW1tYXJ5LmtpbmRba2luZF0rKzsKICAgIHN1bW1hcnkub2tDb3VudCArPSBvayA/IDEgOiAwOwogICAgc3VtbWFyeS5lcnJvckNvdW50ICs9IG9rID8gMCA6IDE7CiAgICBzdW1tYXJ5LnZhbHVlU3VtICs9IHZhbHVlOwogIH0KICBjLmJ5dGUoOTMpOwogIGMuZG9uZSgpOwogIGNvbnN0IHN1bW1hcnlUZXh0ID0gcHJvYmUuYWxsb2NhdGUoImNhbm9uaWNhbC1zdW1tYXJ5LXRleHQiLCBjYW5vbmljYWxTdW1tYXJ5KHN1bW1hcnkpKTsKICBjb25zdCBvdXRwdXRCeXRlcyA9IHByb2JlLmFsbG9jYXRlKCJjYW5vbmljYWwtc3VtbWFyeS1ieXRlcyIsIEVOQ09ERVIuZW5jb2RlKHN1bW1hcnlUZXh0KSk7CiAgY29uc3QgYWxsb2NhdGlvbnMgPSBwcm9iZS5maW5pc2goKTsKICByZXR1cm4gewogICAgb3V0cHV0Qnl0ZXMsCiAgICB0ZXh0OiBzdW1tYXJ5VGV4dCwKICAgIHN1bW1hcnksCiAgICBjb3VudGVyczogT2JqZWN0LmZyZWV6ZSh7CiAgICAgIHJlY29yZHM6IHN1bW1hcnkuY291bnQsCiAgICAgICJpbnB1dC1ieXRlcyI6IGJ5dGVzLmxlbmd0aCwKICAgICAgIm51bWVyaWMtdmFsdWVzIjogc3VtbWFyeS5jb3VudCAqIDMsCiAgICAgICJzdHJpbmctdmFsdWVzIjogc3VtbWFyeS5jb3VudCAqIDQsCiAgICAgIGJvb2xlYW5zOiBzdW1tYXJ5LmNvdW50LAogICAgICAicXVlcnktYWdncmVnYXRlcyI6IDExLAogICAgICAib3V0cHV0LWJ5dGVzIjogb3V0cHV0Qnl0ZXMubGVuZ3RoLAogICAgICBhbGxvY2F0aW9ucywKICAgICAgImJvdW5kYXJ5LWNyb3NzaW5ncyI6IDAsCiAgICB9KSwKICB9Owp9CgpleHBvcnQgYXN5bmMgZnVuY3Rpb24gcnVuVGVsZW1ldHJ5V2FzbShieXRlcywgd2FzbUJ5dGVzKSB7CiAgaWYgKCEod2FzbUJ5dGVzIGluc3RhbmNlb2YgVWludDhBcnJheSkpIHRocm93IG5ldyBUeXBlRXJyb3IoIndhc21CeXRlcyBtdXN0IGJlIFVpbnQ4QXJyYXkiKTsKICBjb25zdCB7IGluc3RhbmNlIH0gPSBhd2FpdCBXZWJBc3NlbWJseS5pbnN0YW50aWF0ZSh3YXNtQnl0ZXMsIHt9KTsKICBjb25zdCBleHBvcnRzID0gaW5zdGFuY2UuZXhwb3J0czsKICBjb25zdCBtZW1vcnkgPSBleHBvcnRzLm1lbW9yeTsKICBpZiAoIShtZW1vcnkgaW5zdGFuY2VvZiBXZWJBc3NlbWJseS5NZW1vcnkpKSB0aHJvdyBuZXcgRXJyb3IoIldhc20gbWVtb3J5IGV4cG9ydCBtaXNzaW5nIik7CiAgLy8gUGxhY2UgY2FsbGVyLW93bmVkIGJ5dGVzIGFmdGVyIHRoZSBsaW5rZWQgbW9kdWxlJ3MgY29tcGxldGUgaW5pdGlhbCBpbWFnZSBhbmQgc3RhY2suCiAgY29uc3QgaW5wdXRPZmZzZXQgPSBtZW1vcnkuYnVmZmVyLmJ5dGVMZW5ndGg7CiAgY29uc3Qgb3V0cHV0T2Zmc2V0ID0gaW5wdXRPZmZzZXQgKyBieXRlcy5sZW5ndGggKyAxNjsKICBjb25zdCByZXF1aXJlZFBhZ2VzID0gTWF0aC5jZWlsKChvdXRwdXRPZmZzZXQgKyA1MTIpIC8gNjVfNTM2KTsKICBpZiAocmVxdWlyZWRQYWdlcyA+IDQwOTYpIHsKICAgIHRocm93IG5ldyBSYW5nZUVycm9yKCJmaXh0dXJlIGV4Y2VlZHMgZml4ZWQgMjU2IE1pQiBXYXNtIG1lbW9yeSBtYXhpbXVtIik7CiAgfQogIGNvbnN0IGN1cnJlbnRQYWdlcyA9IG1lbW9yeS5idWZmZXIuYnl0ZUxlbmd0aCAvIDY1XzUzNjsKICBpZiAocmVxdWlyZWRQYWdlcyA+IGN1cnJlbnRQYWdlcykgbWVtb3J5Lmdyb3cocmVxdWlyZWRQYWdlcyAtIGN1cnJlbnRQYWdlcyk7CiAgbmV3IFVpbnQ4QXJyYXkobWVtb3J5LmJ1ZmZlciwgaW5wdXRPZmZzZXQsIGJ5dGVzLmxlbmd0aCkuc2V0KGJ5dGVzKTsKICBjb25zdCBvdXRwdXRMZW5ndGggPSBleHBvcnRzLnByb2Nlc3MoaW5wdXRPZmZzZXQsIGJ5dGVzLmxlbmd0aCwgb3V0cHV0T2Zmc2V0LCA1MTIpOwogIGlmIChvdXRwdXRMZW5ndGggPCAwKSB7CiAgICB0aHJvdyBuZXcgU3ludGF4RXJyb3IoYFdhc20gcGFyc2VyIHJlamVjdGVkIGZpeHR1cmUgd2l0aCBjb2RlICR7b3V0cHV0TGVuZ3RofWApOwogIH0KICBjb25zdCBvdXRwdXRCeXRlcyA9IG5ldyBVaW50OEFycmF5KG91dHB1dExlbmd0aCk7CiAgb3V0cHV0Qnl0ZXMuc2V0KG5ldyBVaW50OEFycmF5KG1lbW9yeS5idWZmZXIsIG91dHB1dE9mZnNldCwgb3V0cHV0TGVuZ3RoKSk7CiAgY29uc3QgdGV4dCA9IERFQ09ERVIuZGVjb2RlKG91dHB1dEJ5dGVzKTsKICBjb25zdCBzdW1tYXJ5ID0gcGFyc2VDYW5vbmljYWxTdW1tYXJ5KHRleHQpOwogIGNvbnN0IHJlY29yZHMgPSBOdW1iZXIoZXhwb3J0cy5nZXRfcmVjb3JkcygpKTsKICByZXR1cm4gewogICAgb3V0cHV0Qnl0ZXMsCiAgICB0ZXh0LAogICAgc3VtbWFyeSwKICAgIGNvdW50ZXJzOiBPYmplY3QuZnJlZXplKHsKICAgICAgcmVjb3JkcywKICAgICAgImlucHV0LWJ5dGVzIjogTnVtYmVyKGV4cG9ydHMuZ2V0X2lucHV0X2J5dGVzKCkpLAogICAgICAibnVtZXJpYy12YWx1ZXMiOiBOdW1iZXIoZXhwb3J0cy5nZXRfbnVtZXJpY192YWx1ZXMoKSksCiAgICAgICJzdHJpbmctdmFsdWVzIjogTnVtYmVyKGV4cG9ydHMuZ2V0X3N0cmluZ192YWx1ZXMoKSksCiAgICAgIGJvb2xlYW5zOiBOdW1iZXIoZXhwb3J0cy5nZXRfYm9vbGVhbnMoKSksCiAgICAgICJxdWVyeS1hZ2dyZWdhdGVzIjogTnVtYmVyKGV4cG9ydHMuZ2V0X3F1ZXJ5X2FnZ3JlZ2F0ZXMoKSksCiAgICAgICJvdXRwdXQtYnl0ZXMiOiBvdXRwdXRMZW5ndGgsCiAgICAgIGFsbG9jYXRpb25zOiBOdW1iZXIoZXhwb3J0cy5nZXRfYWxsb2NhdGlvbnMoKSksCiAgICAgICJib3VuZGFyeS1jcm9zc2luZ3MiOiAyLAogICAgfSksCiAgfTsKfQoKZnVuY3Rpb24gcGFyc2VDYW5vbmljYWxTdW1tYXJ5KHRleHQpIHsKICAvLyBTdW1tYXJ5IGRlY29kaW5nIGlzIG91dHNpZGUgY29udHJvbGxlZCBjb21wdXRhdGlvbjsgZW5mb3JjZSBleGFjdCBjYW5vbmljYWwgZm9ybSBhZnRlciBkZWNvZGUuCiAgY29uc3QgdmFsdWUgPSBKU09OLnBhcnNlKHRleHQpOwogIGNvbnN0IHN1bW1hcnkgPSB7CiAgICBjb3VudDogdmFsdWUuY291bnQsCiAgICBlcnJvckNvdW50OiB2YWx1ZS5lcnJvckNvdW50LAogICAga2luZDogW3ZhbHVlLmtpbmQuY2xpY2ssIHZhbHVlLmtpbmQucHVyY2hhc2UsIHZhbHVlLmtpbmQudmlld10sCiAgICBva0NvdW50OiB2YWx1ZS5va0NvdW50LAogICAgcmVnaW9uOiBbdmFsdWUucmVnaW9uLmFwLCB2YWx1ZS5yZWdpb24uZXUsIHZhbHVlLnJlZ2lvbi5uYSwgdmFsdWUucmVnaW9uLnNhXSwKICAgIHZhbHVlU3VtOiB2YWx1ZS52YWx1ZVN1bSwKICB9OwogIGlmIChjYW5vbmljYWxTdW1tYXJ5KHN1bW1hcnkpICE9PSB0ZXh0KSB7CiAgICB0aHJvdyBuZXcgU3ludGF4RXJyb3IoIm5vbi1jYW5vbmljYWwgV2FzbSBzdW1tYXJ5IGRlbmllZCIpOwogIH0KICByZXR1cm4gc3VtbWFyeTsKfQoKZXhwb3J0IGFzeW5jIGZ1bmN0aW9uIHNoYTI1NkhleChieXRlcykgewogIHJldHVybiBBcnJheS5mcm9tKAogICAgbmV3IFVpbnQ4QXJyYXkoYXdhaXQgY3J5cHRvLnN1YnRsZS5kaWdlc3QoIlNIQS0yNTYiLCBieXRlcykpLAogICAgKGJ5dGUpID0+IGJ5dGUudG9TdHJpbmcoMTYpLnBhZFN0YXJ0KDIsICIwIiksCiAgKS5qb2luKCIiKTsKfQo="
+        },
+        "completionImportedModule": {
+          "const": true
+        }
       }
     },
     "lifecycle": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["checks"],
+      "required": [
+        "causalChecks",
+        "workers",
+        "controls"
+      ],
       "properties": {
-        "checks": {
+        "causalChecks": {
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
-          "items": { "type": "string", "minLength": 1 }
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "workers": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "createdAt",
+              "terminateCalls"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "createdAt": {
+                "type": "number",
+                "minimum": 0
+              },
+              "terminateCalls": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 1,
+                "items": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              }
+            }
+          }
+        },
+        "controls": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "startDisabled",
+            "cancelDisabled",
+            "progressHasValue"
+          ],
+          "properties": {
+            "startDisabled": {
+              "const": false
+            },
+            "cancelDisabled": {
+              "const": true
+            },
+            "progressHasValue": {
+              "const": false
+            }
+          }
         }
       }
     },
@@ -454,7 +2181,8 @@
         "exceptions",
         "network",
         "accessibility",
-        "screenshot"
+        "screenshot",
+        "lifecycle"
       ],
       "properties": {
         "id": {
@@ -480,37 +2208,97 @@
             "pagehide"
           ]
         },
-        "variant": { "enum": ["js-controlled", "wasm-linear-controlled"] },
-        "mode": { "enum": ["bounded", "exact-contract"] },
-        "records": { "enum": [1000, 100000, 1000000] },
+        "variant": {
+          "enum": [
+            "js-controlled",
+            "wasm-linear-controlled"
+          ]
+        },
+        "mode": {
+          "enum": [
+            "bounded",
+            "exact-contract"
+          ]
+        },
+        "records": {
+          "enum": [
+            1000,
+            100000,
+            1000000
+          ]
+        },
         "statusHistory": {
           "type": "array",
           "minItems": 1,
-          "items": { "type": "string", "minLength": 1 }
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         },
-        "finalStatus": { "type": "string", "minLength": 1 },
-        "console": { "type": "array", "items": { "$ref": "#/$defs/consoleEntry" } },
-        "exceptions": { "type": "array", "items": { "$ref": "#/$defs/exceptionEntry" } },
-        "network": { "type": "array", "minItems": 3, "items": { "$ref": "#/$defs/networkEntry" } },
-        "accessibility": { "$ref": "#/$defs/accessibility" },
-        "screenshot": { "$ref": "#/$defs/screenshot" },
-        "result": { "$ref": "#/$defs/result" },
-        "blobExecution": { "$ref": "#/$defs/blobExecution" },
-        "lifecycle": { "$ref": "#/$defs/lifecycle" }
+        "finalStatus": {
+          "type": "string",
+          "minLength": 1
+        },
+        "console": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/consoleEntry"
+          }
+        },
+        "exceptions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/exceptionEntry"
+          }
+        },
+        "network": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "$ref": "#/$defs/networkEntry"
+          }
+        },
+        "accessibility": {
+          "$ref": "#/$defs/accessibility"
+        },
+        "screenshot": {
+          "$ref": "#/$defs/screenshot"
+        },
+        "result": {
+          "$ref": "#/$defs/result"
+        },
+        "blobExecution": {
+          "$ref": "#/$defs/blobExecution"
+        },
+        "lifecycle": {
+          "$ref": "#/$defs/lifecycle"
+        }
       },
       "allOf": [
         {
           "if": {
-            "required": ["result"],
-            "properties": { "mode": { "const": "exact-contract" } }
+            "required": [
+              "result"
+            ],
+            "properties": {
+              "mode": {
+                "const": "exact-contract"
+              }
+            }
           },
           "then": {
             "properties": {
               "result": {
                 "properties": {
                   "servedByteChecks": {
-                    "required": ["status"],
-                    "properties": { "status": { "const": "verified" } }
+                    "required": [
+                      "status"
+                    ],
+                    "properties": {
+                      "status": {
+                        "const": "verified"
+                      }
+                    }
                   }
                 }
               }
@@ -519,16 +2307,28 @@
         },
         {
           "if": {
-            "required": ["result"],
-            "properties": { "mode": { "const": "bounded" } }
+            "required": [
+              "result"
+            ],
+            "properties": {
+              "mode": {
+                "const": "bounded"
+              }
+            }
           },
           "then": {
             "properties": {
               "result": {
                 "properties": {
                   "servedByteChecks": {
-                    "required": ["status"],
-                    "properties": { "status": { "const": "not-requested" } }
+                    "required": [
+                      "status"
+                    ],
+                    "properties": {
+                      "status": {
+                        "const": "not-requested"
+                      }
+                    }
                   }
                 }
               }
@@ -536,20 +2336,127 @@
           }
         }
       ],
-      "oneOf": [
-        {
-          "required": ["result", "blobExecution"],
-          "properties": { "action": { "const": "complete" } }
+      "dependentRequired": {
+        "result": [
+          "blobExecution"
+        ],
+        "blobExecution": [
+          "result"
+        ]
+      }
+    },
+    "frozenFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "bytes",
+        "sha256",
+        "gitBlob"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
         },
-        {
-          "required": ["lifecycle"],
-          "properties": {
-            "action": {
-              "enum": ["wrong-token", "stale-error-restart", "cancel", "timeout", "pagehide"]
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "gitBlob": {
+          "$ref": "#/$defs/gitIdentity"
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "collection": {
+            "required": [
+              "outcome"
+            ],
+            "properties": {
+              "outcome": {
+                "const": "success"
+              }
             }
           }
         }
-      ]
+      },
+      "then": {
+        "required": [
+          "browser",
+          "server"
+        ],
+        "properties": {
+          "scenarios": {
+            "minItems": 9
+          },
+          "source": {
+            "properties": {
+              "endCheck": {
+                "required": [
+                  "outcome"
+                ],
+                "properties": {
+                  "outcome": {
+                    "const": "success"
+                  }
+                }
+              }
+            }
+          },
+          "cleanup": {
+            "properties": {
+              "browserProcesses": {
+                "required": [
+                  "outcome"
+                ],
+                "properties": {
+                  "outcome": {
+                    "const": "success"
+                  }
+                }
+              },
+              "cgroup": {
+                "required": [
+                  "outcome"
+                ],
+                "properties": {
+                  "outcome": {
+                    "const": "success"
+                  }
+                }
+              },
+              "profile": {
+                "required": [
+                  "outcome"
+                ],
+                "properties": {
+                  "outcome": {
+                    "const": "success"
+                  }
+                }
+              },
+              "server": {
+                "required": [
+                  "outcome"
+                ],
+                "properties": {
+                  "outcome": {
+                    "const": "success"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
-  }
+  ]
 }

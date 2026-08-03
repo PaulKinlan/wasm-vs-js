@@ -1,9 +1,31 @@
 import { canonicalize, sha256Hex } from "../lib/canonical.ts";
 import { CdpClient } from "../lib/cdp-client.ts";
+import { assertJsonTelemetryEvidenceRelationships } from "../lib/json-telemetry-evidence-validation.ts";
 
 const SCRIPT = "scripts/collect-v1-json-telemetry-browser-evidence.ts";
 const WORKLOAD = "serialization.json-telemetry.v1";
 const DEMO_ROUTE = "/demos/serialization.json-telemetry.v1/";
+const CFT_PRODUCT = "Chrome/150.0.7871.24";
+const CFT_SHA256 = "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355";
+const DENO_VERSION = "2.9.0";
+const WORKLOAD_PATH = "benchmarks/v1/serialization-json-telemetry/workload.js";
+const WORKLOAD_SHA256 = "54e2ee54b225d8454664dc6a24f5fa178ee0652ccf0e7e01eea93b17f29530f8";
+const SOURCE_PATHS = [
+  "public/demos/serialization.json-telemetry.v1/index.html",
+  "public/styles.css",
+  "public/favicon.svg",
+  "public/telemetry-demo.js",
+  "public/telemetry-worker.js",
+  "public/telemetry-module-loader.js",
+  WORKLOAD_PATH,
+  "public/artifacts/serialization-json-telemetry/build-manifest.json",
+  "public/artifacts/serialization-json-telemetry/fixture-manifest.json",
+  "public/artifacts/serialization-json-telemetry/input-manifest.json",
+  "public/artifacts/serialization-json-telemetry/output-manifest.json",
+  "public/artifacts/serialization-json-telemetry/telemetry.wasm",
+  SCRIPT,
+] as const;
+
 const root = await Deno.realPath(new URL("../", import.meta.url));
 const chromeArgument = Deno.args.find((value) => value.startsWith("--chrome="))?.slice(9) ?? "";
 const outputArgument = Deno.args.find((value) => value.startsWith("--output="))?.slice(9) ?? "";
@@ -12,6 +34,7 @@ if (Deno.args.length !== 2 || !chromeArgument || !outputArgument) {
     `usage: deno run -A ${SCRIPT} --chrome=<absolute-path> --output=<absolute-json-path>`,
   );
 }
+if (Deno.version.deno !== DENO_VERSION) throw new Error(`collector requires Deno ${DENO_VERSION}`);
 const executable = await Deno.realPath(chromeArgument);
 if (!outputArgument.startsWith("/") || !outputArgument.endsWith(".json")) {
   throw new Error("--output must be an absolute JSON path outside the source root");
@@ -24,7 +47,7 @@ if (resolvedOutputParent === root || resolvedOutputParent.startsWith(`${root}/`)
   throw new Error("browser evidence must be written outside the clean source root");
 }
 
-async function commandText(command: string, args: string[]): Promise<string> {
+async function commandBytes(command: string, args: string[]): Promise<Uint8Array> {
   const result = await new Deno.Command(command, {
     cwd: root,
     args,
@@ -32,7 +55,10 @@ async function commandText(command: string, args: string[]): Promise<string> {
     stderr: "piped",
   }).output();
   if (!result.success) throw new Error(new TextDecoder().decode(result.stderr).trim());
-  return new TextDecoder().decode(result.stdout).trim();
+  return result.stdout;
+}
+async function commandText(command: string, args: string[]): Promise<string> {
+  return new TextDecoder().decode(await commandBytes(command, args)).trim();
 }
 async function systemdShow(unit: string): Promise<Record<string, string>> {
   const text = await commandText("/usr/bin/systemctl", [
@@ -152,6 +178,9 @@ function bytesToBase64(bytes: Uint8Array): string {
 function base64ToBytes(value: string): Uint8Array {
   return Uint8Array.from(atob(value), (character) => character.charCodeAt(0));
 }
+function equalBytes(left: Uint8Array, right: Uint8Array): boolean {
+  return left.length === right.length && left.every((value, index) => value === right[index]);
+}
 
 const clean = await commandText("git", ["status", "--porcelain=v1", "--untracked-files=all"]);
 if (clean !== "") throw new Error("collector requires an exact clean HEAD before any launch");
@@ -160,134 +189,35 @@ const sourceTree = await commandText("git", ["rev-parse", "HEAD^{tree}"]);
 if (!/^[a-f0-9]{40}$/.test(sourceCommit) || !/^[a-f0-9]{40}$/.test(sourceTree)) {
   throw new Error("clean HEAD identity unavailable");
 }
-const scriptBytes = await Deno.readFile(`${root}/${SCRIPT}`);
+interface FrozenSource {
+  path: string;
+  bytes: Uint8Array;
+  sha256: string;
+  gitBlob: string;
+}
+const frozenSources = new Map<string, FrozenSource>();
+for (const path of SOURCE_PATHS) {
+  const bytes = await commandBytes("git", ["show", `${sourceCommit}:${path}`]);
+  frozenSources.set(path, {
+    path,
+    bytes,
+    sha256: await sha256Hex(bytes),
+    gitBlob: await commandText("git", ["rev-parse", `${sourceCommit}:${path}`]),
+  });
+}
+const scriptSource = frozenSources.get(SCRIPT)!;
+if (!equalBytes(scriptSource.bytes, await Deno.readFile(`${root}/${SCRIPT}`))) {
+  throw new Error("collector bytes differ from frozen clean HEAD");
+}
 const executableInfo = await Deno.lstat(executable);
 if (!executableInfo.isFile || executableInfo.isSymlink) {
   throw new Error("Chrome must be a regular file");
 }
 const executableSha256 = await sha256Hex(await Deno.readFile(executable));
+if (executableSha256 !== CFT_SHA256) {
+  throw new Error("Chrome for Testing executable SHA-256 mismatch");
+}
 const executableBytes = numeric(executableInfo.size, "Chrome executable size");
-
-const serverPort = unusedPort();
-const origin = `http://127.0.0.1:${serverPort}`;
-const server = new Deno.Command(Deno.execPath(), {
-  cwd: root,
-  args: [
-    "run",
-    "--allow-env=PORT,HOST,SERVER_MODE",
-    "--allow-net=127.0.0.1",
-    "--allow-read=.",
-    "deploy.ts",
-  ],
-  env: { PORT: String(serverPort), HOST: "127.0.0.1", SERVER_MODE: "public" },
-  stdout: "null",
-  stderr: "null",
-}).spawn();
-const serverStatus = server.status;
-const serverLauncher = await processIdentity(server.pid);
-if (!serverLauncher) throw new Error("owned loopback server identity unavailable");
-const ownedServerLauncher: ProcessIdentity = serverLauncher;
-await waitFor(`${origin}/healthz`);
-
-const profilePath = await Deno.makeTempDir({ prefix: "wasm-json-telemetry-chrome-" });
-const unit = `wasm-json-telemetry-${crypto.randomUUID().replaceAll("-", "").slice(0, 16)}.service`;
-const launchArguments = [
-  `--user-data-dir=${profilePath}`,
-  "--remote-debugging-port=0",
-  "--remote-debugging-address=127.0.0.1",
-  "--headless=new",
-  "--no-sandbox",
-  "--disable-gpu",
-  "--disable-background-networking",
-  "--disable-component-update",
-  "--disable-default-apps",
-  "--disable-extensions",
-  "--disable-sync",
-  "--disable-crash-reporter",
-  "--disable-breakpad",
-  "--metrics-recording-only",
-  "--no-first-run",
-  "--no-default-browser-check",
-  "--hide-scrollbars",
-  "--window-size=1440,1200",
-  "about:blank",
-];
-await commandText("/usr/bin/systemd-run", [
-  "--user",
-  `--unit=${unit}`,
-  "--collect",
-  "--quiet",
-  "--property=Type=exec",
-  "--property=KillMode=control-group",
-  "--property=CollectMode=inactive-or-failed",
-  "--",
-  executable,
-  ...launchArguments,
-]);
-const systemd = await waitSystemd(unit);
-const controlGroup = systemd.ControlGroup;
-const cgroupPath = `/sys/fs/cgroup${controlGroup}`;
-const cgroupInfo = await Deno.lstat(cgroupPath);
-if (
-  !cgroupInfo.isDirectory || cgroupInfo.isSymlink || await Deno.realPath(cgroupPath) !== cgroupPath
-) {
-  throw new Error("unsafe owned Chrome cgroup identity");
-}
-const cgroupDevice = numeric(cgroupInfo.dev, "cgroup device");
-const cgroupInode = numeric(cgroupInfo.ino, "cgroup inode");
-const mainPid = Number(systemd.MainPID);
-const mainIdentity = await processIdentity(mainPid);
-if (!mainIdentity || mainIdentity.executable !== executable) {
-  throw new Error("systemd MainPID is not the reviewed Chrome executable");
-}
-const memberSnapshots: Array<{ at: string; pids: number[] }> = [];
-const observedBrowserProcesses = new Map<number, ProcessIdentity>();
-async function snapshotMembers(): Promise<number[]> {
-  const pids = await readCgroupMembers(cgroupPath);
-  memberSnapshots.push({ at: new Date().toISOString(), pids });
-  for (const pid of pids) {
-    const identity = await processIdentity(pid);
-    if (identity) observedBrowserProcesses.set(pid, identity);
-  }
-  return pids;
-}
-if (!(await snapshotMembers()).includes(mainPid)) {
-  throw new Error("Chrome MainPID absent from cgroup");
-}
-const cgroupKill = await Deno.open(`${cgroupPath}/cgroup.kill`, { write: true });
-
-const activePortPath = `${profilePath}/DevToolsActivePort`;
-let debuggerPort = 0;
-let browserPath = "";
-const endpointDeadline = Date.now() + 10_000;
-while (Date.now() < endpointDeadline) {
-  try {
-    const lines = (await Deno.readTextFile(activePortPath)).trim().split(/\r?\n/);
-    debuggerPort = Number(lines[0]);
-    browserPath = lines[1] ?? "";
-    if (debuggerPort > 0 && /^\/devtools\/browser\/[A-Za-z0-9-]+$/.test(browserPath)) break;
-  } catch (error) {
-    if (!(error instanceof Deno.errors.NotFound)) throw error;
-  }
-  await delay(25);
-}
-if (!debuggerPort || !browserPath) throw new Error("owned Chrome DevToolsActivePort unavailable");
-const discovery = await (await waitFor(`http://127.0.0.1:${debuggerPort}/json/version`)).json();
-const webSocketUrl = new URL(discovery.webSocketDebuggerUrl);
-if (
-  webSocketUrl.protocol !== "ws:" || webSocketUrl.hostname !== "127.0.0.1" ||
-  Number(webSocketUrl.port) !== debuggerPort || webSocketUrl.pathname !== browserPath
-) throw new Error("Chrome CDP endpoint escaped the owned loopback listener");
-const client = new CdpClient(webSocketUrl.href);
-await client.ready();
-const version = await client.send("Browser.getVersion");
-const effectiveArguments = (await client.send("Browser.getBrowserCommandLine")).arguments;
-if (!Array.isArray(effectiveArguments)) throw new Error("effective Chrome arguments unavailable");
-for (const argument of launchArguments.filter((value) => value.startsWith("--"))) {
-  if (!effectiveArguments.includes(argument)) {
-    throw new Error(`effective Chrome argument missing: ${argument}`);
-  }
-}
 
 const sourcePathFor = (urlValue: string): string | null => {
   const path = new URL(urlValue).pathname;
@@ -299,44 +229,10 @@ const sourcePathFor = (urlValue: string): string | null => {
   if (path === "/telemetry-module-loader.js") return "public/telemetry-module-loader.js";
   if (
     /^\/benchmarks\/v1\/serialization-json-telemetry\/workload(?:\.[a-f0-9]{64})?\.js$/.test(path)
-  ) {
-    return "benchmarks/v1/serialization-json-telemetry/workload.js";
-  }
+  ) return WORKLOAD_PATH;
   if (path.startsWith("/artifacts/serialization-json-telemetry/")) return `public${path}`;
   return null;
 };
-
-const workerAuditSource = `(() => {
-  const records = [];
-  const NativeBlob = globalThis.Blob;
-  globalThis.Blob = class CollectorBlob extends NativeBlob {
-    constructor(parts, options) {
-      super(parts, options);
-      const bytes = [];
-      for (const part of parts) {
-        if (part instanceof Uint8Array) bytes.push(...part);
-        else if (part instanceof ArrayBuffer) bytes.push(...new Uint8Array(part));
-        else if (typeof part === "string") bytes.push(...new TextEncoder().encode(part));
-        else throw new Error("collector cannot bind unknown Blob part type");
-      }
-      this.__collectorRawBytes = new Uint8Array(bytes);
-    }
-  };
-  const nativeObjectUrl = URL.createObjectURL.bind(URL);
-  URL.createObjectURL = (blob) => {
-    const objectUrl = nativeObjectUrl(blob);
-    const raw = blob.__collectorRawBytes;
-    let binary = "";
-    for (let i = 0; i < raw.length; i += 32768) binary += String.fromCharCode(...raw.subarray(i, i + 32768));
-    records.push({ objectUrl, mimeType: blob.type, bytes: raw.length, base64: btoa(binary) });
-    return objectUrl;
-  };
-  const nativePost = globalThis.postMessage.bind(globalThis);
-  globalThis.postMessage = (data, transfer) => {
-    if (data?.type === "complete") data.__collectorBlobAudit = records;
-    return transfer === undefined ? nativePost(data) : nativePost(data, transfer);
-  };
-})();`;
 
 interface ScenarioDefinition {
   id: string;
@@ -410,16 +306,80 @@ const definitions: ScenarioDefinition[] = [
     records: 1000000,
   },
 ];
+const inputManifest = JSON.parse(new TextDecoder().decode(
+  frozenSources.get("public/artifacts/serialization-json-telemetry/input-manifest.json")!.bytes,
+));
+const outputManifest = JSON.parse(new TextDecoder().decode(
+  frozenSources.get("public/artifacts/serialization-json-telemetry/output-manifest.json")!.bytes,
+));
+const buildManifest = JSON.parse(new TextDecoder().decode(
+  frozenSources.get("public/artifacts/serialization-json-telemetry/build-manifest.json")!.bytes,
+));
+const exactServedChecks = {
+  executedModuleRoute: `/benchmarks/v1/serialization-json-telemetry/workload.${WORKLOAD_SHA256}.js`,
+  executedModuleSha256: WORKLOAD_SHA256,
+  buildManifestSha256:
+    frozenSources.get("public/artifacts/serialization-json-telemetry/build-manifest.json")!.sha256,
+  fixtureManifestSha256:
+    frozenSources.get("public/artifacts/serialization-json-telemetry/fixture-manifest.json")!
+      .sha256,
+  inputManifestSha256:
+    frozenSources.get("public/artifacts/serialization-json-telemetry/input-manifest.json")!.sha256,
+  outputManifestSha256:
+    frozenSources.get("public/artifacts/serialization-json-telemetry/output-manifest.json")!.sha256,
+  wasmSha256:
+    frozenSources.get("public/artifacts/serialization-json-telemetry/telemetry.wasm")!.sha256,
+};
+if (exactServedChecks.wasmSha256 !== buildManifest.artifact.sha256) {
+  throw new Error("frozen build oracle mismatch");
+}
 
+const workerAuditSource = `(() => {
+  const records = [];
+  globalThis.__collectorBlobAudits = records;
+  const NativeBlob = globalThis.Blob;
+  globalThis.Blob = class CollectorBlob extends NativeBlob {
+    constructor(parts, options) {
+      super(parts, options);
+      const bytes = [];
+      for (const part of parts) {
+        if (part instanceof Uint8Array) bytes.push(...part);
+        else if (part instanceof ArrayBuffer) bytes.push(...new Uint8Array(part));
+        else if (typeof part === "string") bytes.push(...new TextEncoder().encode(part));
+        else throw new Error("collector cannot bind unknown Blob part type");
+      }
+      this.__collectorRawBytes = new Uint8Array(bytes);
+    }
+  };
+  const nativeObjectUrl = URL.createObjectURL.bind(URL);
+  URL.createObjectURL = (blob) => {
+    const objectUrl = nativeObjectUrl(blob);
+    const raw = blob.__collectorRawBytes;
+    let binary = "";
+    for (let i = 0; i < raw.length; i += 32768) binary += String.fromCharCode(...raw.subarray(i, i + 32768));
+    records.push({ objectUrl, mimeType: blob.type, bytes: raw.length, base64: btoa(binary) });
+    return objectUrl;
+  };
+  const nativePost = globalThis.postMessage.bind(globalThis);
+  globalThis.postMessage = (data, transfer) => {
+    if (data?.type === "complete") data.__collectorBlobAudit = records;
+    return transfer === undefined ? nativePost(data) : nativePost(data, transfer);
+  };
+})();`;
 function pageAuditSource(shortTimeout: boolean): string {
   return `(() => {
-    globalThis.__collector = { statuses: [], workerMessages: [], workers: [] };
+    globalThis.__collector = { statuses: [], workerMessages: [], workers: [], workerRecords: [], nextWorkerId: 1 };
     const NativeWorker = globalThis.Worker;
     globalThis.Worker = class CollectorWorker extends NativeWorker {
       constructor(...args) {
         super(...args);
+        const id = globalThis.__collector.nextWorkerId++;
+        const record = { id, createdAt: performance.now(), terminateCalls: [] };
         globalThis.__collector.workers.push(this);
-        this.addEventListener("message", (event) => globalThis.__collector.workerMessages.push(event.data));
+        globalThis.__collector.workerRecords.push(record);
+        const nativeTerminate = this.terminate.bind(this);
+        this.terminate = () => { record.terminateCalls.push(performance.now()); return nativeTerminate(); };
+        this.addEventListener("message", (event) => globalThis.__collector.workerMessages.push({ workerId: id, data: event.data }));
       }
     };
     ${
@@ -438,14 +398,139 @@ function pageAuditSource(shortTimeout: boolean): string {
     });
   })();`;
 }
+function parseResult(text: string) {
+  const target = text.match(/^Target: (.+)$/m)?.[1];
+  const mode = text.match(/^Mode: (.+)$/m)?.[1];
+  const records = Number(text.match(/^Records: ([0-9]+)$/m)?.[1]);
+  const inputSha256 = text.match(/^Input SHA-256: ([a-f0-9]{64})$/m)?.[1];
+  const outputSha256 = text.match(/^Output SHA-256: ([a-f0-9]{64})$/m)?.[1];
+  const counterStart = text.indexOf("Counters: ") + "Counters: ".length;
+  const servedIndex = text.indexOf("\nServed-byte checks:", counterStart);
+  const counterEnd = servedIndex >= 0
+    ? servedIndex
+    : text.indexOf("\n\nCanonical summary:", counterStart);
+  const counters = JSON.parse(text.slice(counterStart, counterEnd));
+  const servedStart = text.indexOf("Served-byte checks: ");
+  let servedByteChecks: Record<string, unknown> = { status: "not-requested" };
+  if (servedStart >= 0) {
+    const valueStart = servedStart + "Served-byte checks: ".length;
+    const valueEnd = text.indexOf("\n\nCanonical summary:", valueStart);
+    servedByteChecks = { status: "verified", ...JSON.parse(text.slice(valueStart, valueEnd)) };
+  }
+  const canonicalSummary = text.slice(text.indexOf("\nCanonical summary:\n") + 20).trim();
+  if (!target || !mode || !inputSha256 || !outputSha256 || !canonicalSummary) {
+    throw new Error("complete textual result could not be parsed without omission");
+  }
+  return {
+    rawText: text,
+    target,
+    mode,
+    records,
+    inputSha256,
+    outputSha256,
+    counters,
+    canonicalSummary,
+    servedByteChecks,
+  };
+}
+function assertExactResult(
+  definition: ScenarioDefinition,
+  result: ReturnType<typeof parseResult>,
+): void {
+  const inputTier = inputManifest.tiers.find((tier: { records: number }) =>
+    tier.records === definition.records
+  );
+  const outputTier = outputManifest.tiers.find((tier: { records: number }) =>
+    tier.records === definition.records
+  );
+  const expectedCounters = outputTier?.variants?.[definition.variant]?.counters;
+  if (
+    result.target !== definition.variant || result.mode !== definition.mode ||
+    result.records !== definition.records ||
+    result.inputSha256 !== inputTier?.sha256 || result.outputSha256 !== outputTier?.sha256 ||
+    result.canonicalSummary !== outputTier?.canonicalSummary ||
+    canonicalize(result.counters) !== canonicalize(expectedCounters)
+  ) throw new Error(`${definition.id} result differs from frozen scenario oracle`);
+  const expectedServed = definition.mode === "exact-contract"
+    ? { status: "verified", ...exactServedChecks }
+    : { status: "not-requested" };
+  if (canonicalize(result.servedByteChecks) !== canonicalize(expectedServed)) {
+    throw new Error(`${definition.id} served-byte result differs from frozen oracle`);
+  }
+}
+
+let server: Deno.ChildProcess | undefined;
+let serverStatus: Promise<Deno.CommandStatus> | undefined;
+let ownedServerLauncher: ProcessIdentity | undefined;
+let profilePath: string | undefined;
+let unit: string | undefined;
+let systemd: Record<string, string> | undefined;
+let cgroupPath: string | undefined;
+let cgroupDevice: number | undefined;
+let cgroupInode: number | undefined;
+let cgroupKill: Deno.FsFile | undefined;
+let mainPid: number | undefined;
+let client: CdpClient | undefined;
+let version: Record<string, unknown> | undefined;
+let effectiveArguments: string[] | undefined;
+const memberSnapshots: Array<{ at: string; pids: number[] }> = [];
+const observedBrowserProcesses = new Map<number, ProcessIdentity>();
+const scenarios: Array<Record<string, unknown>> = [];
+let collectionError: unknown;
+let sourceEndCheck: Record<string, unknown> = {
+  outcome: "failure",
+  checkedAt: new Date().toISOString(),
+  error: "end recheck not attempted",
+};
+const cleanup: Record<"browserProcesses" | "cgroup" | "profile" | "server", CleanupCheck> = {
+  browserProcesses: failureCheck("cleanup not attempted"),
+  cgroup: failureCheck("cleanup not attempted"),
+  profile: failureCheck("cleanup not attempted"),
+  server: failureCheck("cleanup not attempted"),
+};
+const serverPort = unusedPort();
+const origin = `http://127.0.0.1:${serverPort}`;
+const unitName = `wasm-json-telemetry-${
+  crypto.randomUUID().replaceAll("-", "").slice(0, 16)
+}.service`;
+const launchArgumentsFor = (profile: string) => [
+  `--user-data-dir=${profile}`,
+  "--remote-debugging-port=0",
+  "--remote-debugging-address=127.0.0.1",
+  "--headless=new",
+  "--no-sandbox",
+  "--disable-gpu",
+  "--enable-automation",
+  "--disable-background-networking",
+  "--disable-component-update",
+  "--disable-default-apps",
+  "--disable-extensions",
+  "--disable-sync",
+  "--disable-crash-reporter",
+  "--disable-breakpad",
+  "--metrics-recording-only",
+  "--no-first-run",
+  "--no-default-browser-check",
+  "--hide-scrollbars",
+  "--window-size=1440,1200",
+  "about:blank",
+];
+let launchArguments: string[] | undefined;
+async function snapshotMembers(): Promise<number[]> {
+  if (!cgroupPath) return [];
+  const pids = await readCgroupMembers(cgroupPath);
+  memberSnapshots.push({ at: new Date().toISOString(), pids });
+  for (const pid of pids) {
+    const identity = await processIdentity(pid);
+    if (identity) observedBrowserProcesses.set(pid, identity);
+  }
+  return pids;
+}
 async function evaluate(sessionId: string, expression: string): Promise<unknown> {
+  if (!client) throw new Error("CDP client unavailable");
   const response = await client.send(
     "Runtime.evaluate",
-    {
-      expression,
-      awaitPromise: true,
-      returnByValue: true,
-    },
+    { expression, awaitPromise: true, returnByValue: true },
     sessionId,
     10_000,
   );
@@ -454,6 +539,7 @@ async function evaluate(sessionId: string, expression: string): Promise<unknown>
   return (response.result as { value?: unknown }).value;
 }
 async function click(sessionId: string, selector: string): Promise<void> {
+  if (!client) throw new Error("CDP client unavailable");
   const point = await evaluate(
     sessionId,
     `(() => { const node=document.querySelector(${
@@ -480,13 +566,10 @@ async function state(sessionId: string) {
   return await evaluate(
     sessionId,
     `(() => ({
-    status: document.querySelector("#status").textContent.trim(),
-    output: document.querySelector("#output").textContent,
-    startDisabled: document.querySelector("#start").disabled,
-    cancelDisabled: document.querySelector("#cancel").disabled,
-    statuses: [...globalThis.__collector.statuses],
-    workerMessages: globalThis.__collector.workerMessages,
-    workerCount: globalThis.__collector.workers.length
+    status: document.querySelector("#status").textContent.trim(), output: document.querySelector("#output").textContent,
+    startDisabled: document.querySelector("#start").disabled, cancelDisabled: document.querySelector("#cancel").disabled,
+    progressHasValue: document.querySelector("#progress").hasAttribute("value"), statuses: [...globalThis.__collector.statuses],
+    workerMessages: globalThis.__collector.workerMessages, workerRecords: globalThis.__collector.workerRecords
   }))()`,
   ) as Record<string, unknown>;
 }
@@ -509,120 +592,232 @@ async function configure(sessionId: string, definition: ScenarioDefinition): Pro
     sessionId,
     `(() => {
     const set = (id, value) => { const node=document.querySelector(id); node.value=value; node.dispatchEvent(new Event("change", {bubbles:true})); };
-    set("#variant", ${JSON.stringify(definition.variant)});
-    set("#mode", ${JSON.stringify(definition.mode)});
-    set("#records", ${JSON.stringify(String(definition.records))});
+    set("#variant", ${JSON.stringify(definition.variant)}); set("#mode", ${
+      JSON.stringify(definition.mode)
+    }); set("#records", ${JSON.stringify(String(definition.records))});
   })()`,
   );
 }
-function parseResult(text: string) {
-  const target = text.match(/^Target: (.+)$/m)?.[1];
-  const mode = text.match(/^Mode: (.+)$/m)?.[1];
-  const records = Number(text.match(/^Records: ([0-9]+)$/m)?.[1]);
-  const inputSha256 = text.match(/^Input SHA-256: ([a-f0-9]{64})$/m)?.[1];
-  const outputSha256 = text.match(/^Output SHA-256: ([a-f0-9]{64})$/m)?.[1];
-  const counterStart = text.indexOf("Counters: ") + "Counters: ".length;
-  const counterEnd = text.indexOf("\nServed-byte checks:", counterStart) >= 0
-    ? text.indexOf("\nServed-byte checks:", counterStart)
-    : text.indexOf("\n\nCanonical summary:", counterStart);
-  const counters = JSON.parse(text.slice(counterStart, counterEnd));
-  const servedStart = text.indexOf("Served-byte checks: ");
-  let servedByteChecks: Record<string, unknown> = { status: "not-requested" };
-  if (servedStart >= 0) {
-    const valueStart = servedStart + "Served-byte checks: ".length;
-    const valueEnd = text.indexOf("\n\nCanonical summary:", valueStart);
-    servedByteChecks = { status: "verified", ...JSON.parse(text.slice(valueStart, valueEnd)) };
+function assertFinalControls(definition: ScenarioDefinition, final: Record<string, unknown>): void {
+  if (
+    final.startDisabled !== false || final.cancelDisabled !== true ||
+    final.progressHasValue !== false
+  ) {
+    throw new Error(`${definition.id} did not reset visible controls`);
   }
-  const canonicalSummary = text.slice(text.indexOf("\nCanonical summary:\n") + 20).trim();
-  if (!target || !mode || !inputSha256 || !outputSha256 || !canonicalSummary) {
-    throw new Error("complete textual result could not be parsed without omission");
+  const workers = final.workerRecords as Array<{ id: number; terminateCalls: number[] }>;
+  if (!workers.length || workers.some((worker) => worker.terminateCalls.length !== 1)) {
+    throw new Error(`${definition.id} did not causally terminate each created worker exactly once`);
+  }
+}
+async function recheckFrozenSource(): Promise<Record<string, unknown>> {
+  const endClean = await commandText("git", ["status", "--porcelain=v1", "--untracked-files=all"]);
+  const endCommit = await commandText("git", ["rev-parse", "HEAD"]);
+  const endTree = await commandText("git", ["rev-parse", "HEAD^{tree}"]);
+  for (const frozen of frozenSources.values()) {
+    const current = await Deno.readFile(`${root}/${frozen.path}`);
+    if (!equalBytes(current, frozen.bytes)) {
+      throw new Error(`source bytes changed during collection: ${frozen.path}`);
+    }
+  }
+  if (endClean !== "" || endCommit !== sourceCommit || endTree !== sourceTree) {
+    throw new Error("clean HEAD identity changed during collection");
   }
   return {
-    rawText: text,
-    target,
-    mode,
-    records,
-    inputSha256,
-    outputSha256,
-    counters,
-    canonicalSummary,
-    servedByteChecks,
+    outcome: "success",
+    checkedAt: new Date().toISOString(),
+    commit: endCommit,
+    tree: endTree,
+    cleanStatus: "clean",
   };
 }
-
-const scenarios: Array<Record<string, unknown>> = [];
-let collectionError: unknown;
-const cleanup: Record<"browserProcesses" | "cgroup" | "profile" | "server", CleanupCheck> = {
-  browserProcesses: failureCheck("cleanup not attempted"),
-  cgroup: failureCheck("cleanup not attempted"),
-  profile: failureCheck("cleanup not attempted"),
-  server: failureCheck("cleanup not attempted"),
-};
 async function finalizeCleanup(): Promise<void> {
   await snapshotMembers().catch(() => []);
-  const resolvedBrowserIdentities = [...observedBrowserProcesses.values()];
+  const identities = [...observedBrowserProcesses.values()];
   let cgroupRemaining: number[] = [];
-  try {
-    const current = await Deno.lstat(cgroupPath);
-    if (
-      numeric(current.dev, "cleanup cgroup device") !== cgroupDevice ||
-      numeric(current.ino, "cleanup cgroup inode") !== cgroupInode
-    ) {
-      throw new Error("owned cgroup identity changed before cleanup");
-    }
-    await cgroupKill.write(new TextEncoder().encode("1"));
-    cgroupRemaining = await waitCgroupEmpty(cgroupPath, 5_000);
-    if (cgroupRemaining.length) throw new Error("owned cgroup retained member PIDs");
+  if (!unit) {
     cleanup.cgroup = successCheck();
-  } catch (error) {
-    cleanup.cgroup = failureCheck(error, cgroupRemaining.map(String));
-  }
-  try {
-    cgroupKill.close();
-  } catch { /* cleanup outcome already retained */ }
-  try {
-    await commandText("/usr/bin/systemctl", ["--user", "stop", unit]).catch(() => "");
-    const remaining = [];
-    for (const identity of resolvedBrowserIdentities) {
-      if (await identityRunning(identity)) remaining.push(String(identity.pid));
-    }
-    if (remaining.length) throw new Error("identity-bound Chrome PIDs survived cgroup cleanup");
     cleanup.browserProcesses = successCheck();
-  } catch (error) {
-    cleanup.browserProcesses = failureCheck(
-      error,
-      resolvedBrowserIdentities.map((value) => String(value.pid)),
-    );
-  }
-  try {
-    if (cleanup.cgroup.outcome !== "success" || cleanup.browserProcesses.outcome !== "success") {
-      throw new Error("profile retained because process containment cleanup did not succeed");
-    }
-    await Deno.remove(profilePath, { recursive: true });
+  } else {
     try {
-      await Deno.lstat(profilePath);
-      throw new Error("owned profile survived removal");
+      if (!cgroupPath) {
+        const discovered = await systemdShow(unit);
+        if (/^\/.+/.test(discovered.ControlGroup ?? "")) {
+          const candidate = `/sys/fs/cgroup${discovered.ControlGroup}`;
+          const info = await Deno.lstat(candidate);
+          if (
+            !info.isDirectory || info.isSymlink ||
+            await Deno.realPath(candidate) !== candidate
+          ) throw new Error("unsafe cleanup-discovered Chrome cgroup identity");
+          cgroupPath = candidate;
+          cgroupDevice = numeric(info.dev, "cleanup-discovered cgroup device");
+          cgroupInode = numeric(info.ino, "cleanup-discovered cgroup inode");
+        } else if (discovered.ActiveState === "active") {
+          throw new Error("active owned Chrome service had no cleanup cgroup identity");
+        }
+      }
+      if (cgroupPath) {
+        const current = await Deno.lstat(cgroupPath);
+        if (
+          numeric(current.dev, "cleanup cgroup device") !== cgroupDevice ||
+          numeric(current.ino, "cleanup cgroup inode") !== cgroupInode
+        ) {
+          throw new Error("owned cgroup identity changed before cleanup");
+        }
+        if (!cgroupKill) cgroupKill = await Deno.open(`${cgroupPath}/cgroup.kill`, { write: true });
+        await cgroupKill.write(new TextEncoder().encode("1"));
+        cgroupRemaining = await waitCgroupEmpty(cgroupPath, 5_000);
+        if (cgroupRemaining.length) throw new Error("owned cgroup retained member PIDs");
+      }
+      cleanup.cgroup = successCheck();
+    } catch (error) {
+      cleanup.cgroup = failureCheck(error, cgroupRemaining.map(String));
+    }
+    try {
+      cgroupKill?.close();
+    } catch { /* retained above */ }
+    try {
+      await commandText("/usr/bin/systemctl", ["--user", "stop", unit]);
+      const remaining: string[] = [];
+      for (const identity of identities) {
+        if (await identityRunning(identity)) remaining.push(String(identity.pid));
+      }
+      const post = await systemdShow(unit).catch(() => ({ ActiveState: "inactive" }));
+      if (post.ActiveState === "active" || remaining.length) {
+        throw new Error("identity-bound Chrome processes survived owned service cleanup");
+      }
+      cleanup.browserProcesses = successCheck();
+    } catch (error) {
+      cleanup.browserProcesses = failureCheck(error, identities.map((value) => String(value.pid)));
+    }
+  }
+  if (!profilePath) cleanup.profile = successCheck();
+  else {
+    try {
+      if (cleanup.cgroup.outcome !== "success" || cleanup.browserProcesses.outcome !== "success") {
+        throw new Error("profile retained because process containment cleanup did not succeed");
+      }
+      await Deno.remove(profilePath, { recursive: true });
+      try {
+        await Deno.lstat(profilePath);
+        throw new Error("owned profile survived removal");
+      } catch (error) {
+        if (!(error instanceof Deno.errors.NotFound)) throw error;
+      }
+      cleanup.profile = successCheck();
+    } catch (error) {
+      cleanup.profile = failureCheck(error, [profilePath]);
+    }
+  }
+  if (!server || !serverStatus) cleanup.server = successCheck();
+  else {
+    try {
+      if (ownedServerLauncher) {
+        if (await identityRunning(ownedServerLauncher)) {
+          Deno.kill(ownedServerLauncher.pid, "SIGTERM");
+        }
+      } else {
+        server.kill("SIGTERM");
+      }
+      await serverStatus;
+      if (ownedServerLauncher && await identityRunning(ownedServerLauncher)) {
+        throw new Error("owned loopback server survived SIGTERM");
+      }
+      cleanup.server = successCheck();
+    } catch (error) {
+      cleanup.server = failureCheck(error, [String(server.pid)]);
+    }
+  }
+}
+
+try {
+  server = new Deno.Command(Deno.execPath(), {
+    cwd: root,
+    args: [
+      "run",
+      "--allow-env=PORT,HOST,SERVER_MODE",
+      "--allow-net=127.0.0.1",
+      "--allow-read=.",
+      "deploy.ts",
+    ],
+    env: { PORT: String(serverPort), HOST: "127.0.0.1", SERVER_MODE: "public" },
+    stdout: "null",
+    stderr: "null",
+  }).spawn();
+  serverStatus = server.status;
+  const serverIdentity = await processIdentity(server.pid);
+  if (!serverIdentity) throw new Error("owned loopback server identity unavailable");
+  ownedServerLauncher = serverIdentity;
+  await waitFor(`${origin}/healthz`);
+
+  profilePath = await Deno.makeTempDir({ prefix: "wasm-json-telemetry-chrome-" });
+  launchArguments = launchArgumentsFor(profilePath);
+  unit = unitName;
+  await commandText("/usr/bin/systemd-run", [
+    "--user",
+    `--unit=${unit}`,
+    "--collect",
+    "--quiet",
+    "--property=Type=exec",
+    "--property=KillMode=control-group",
+    "--property=CollectMode=inactive-or-failed",
+    "--",
+    executable,
+    ...launchArguments,
+  ]);
+  systemd = await waitSystemd(unit);
+  cgroupPath = `/sys/fs/cgroup${systemd.ControlGroup}`;
+  const cgroupInfo = await Deno.lstat(cgroupPath);
+  if (
+    !cgroupInfo.isDirectory || cgroupInfo.isSymlink ||
+    await Deno.realPath(cgroupPath) !== cgroupPath
+  ) throw new Error("unsafe owned Chrome cgroup identity");
+  cgroupDevice = numeric(cgroupInfo.dev, "cgroup device");
+  cgroupInode = numeric(cgroupInfo.ino, "cgroup inode");
+  mainPid = Number(systemd.MainPID);
+  const mainIdentity = await processIdentity(mainPid);
+  if (!mainIdentity || mainIdentity.executable !== executable) {
+    throw new Error("systemd MainPID is not the reviewed Chrome executable");
+  }
+  if (!(await snapshotMembers()).includes(mainPid)) {
+    throw new Error("Chrome MainPID absent from cgroup");
+  }
+  cgroupKill = await Deno.open(`${cgroupPath}/cgroup.kill`, { write: true });
+
+  const activePortPath = `${profilePath}/DevToolsActivePort`;
+  let debuggerPort = 0;
+  let browserPath = "";
+  const endpointDeadline = Date.now() + 10_000;
+  while (Date.now() < endpointDeadline) {
+    try {
+      const lines = (await Deno.readTextFile(activePortPath)).trim().split(/\r?\n/);
+      debuggerPort = Number(lines[0]);
+      browserPath = lines[1] ?? "";
+      if (debuggerPort > 0 && /^\/devtools\/browser\/[A-Za-z0-9-]+$/.test(browserPath)) break;
     } catch (error) {
       if (!(error instanceof Deno.errors.NotFound)) throw error;
     }
-    cleanup.profile = successCheck();
-  } catch (error) {
-    cleanup.profile = failureCheck(error, [profilePath]);
+    await delay(25);
   }
-  try {
-    if (await identityRunning(ownedServerLauncher)) {
-      Deno.kill(ownedServerLauncher.pid, "SIGTERM");
-    }
-    await serverStatus;
-    if (await identityRunning(ownedServerLauncher)) {
-      throw new Error("owned loopback server survived SIGTERM");
-    }
-    cleanup.server = successCheck();
-  } catch (error) {
-    cleanup.server = failureCheck(error, [String(ownedServerLauncher.pid)]);
+  if (!debuggerPort || !browserPath) throw new Error("owned Chrome DevToolsActivePort unavailable");
+  const discovery = await (await waitFor(`http://127.0.0.1:${debuggerPort}/json/version`)).json();
+  const webSocketUrl = new URL(discovery.webSocketDebuggerUrl);
+  if (
+    webSocketUrl.protocol !== "ws:" || webSocketUrl.hostname !== "127.0.0.1" ||
+    Number(webSocketUrl.port) !== debuggerPort || webSocketUrl.pathname !== browserPath
+  ) throw new Error("Chrome CDP endpoint escaped the owned loopback listener");
+  client = new CdpClient(webSocketUrl.href);
+  await client.ready();
+  version = await client.send("Browser.getVersion");
+  if (version.product !== CFT_PRODUCT) throw new Error(`unexpected browser ${version.product}`);
+  effectiveArguments = (await client.send("Browser.getBrowserCommandLine")).arguments as string[];
+  if (
+    !Array.isArray(effectiveArguments) ||
+    canonicalize(effectiveArguments) !== canonicalize([executable, ...launchArguments])
+  ) {
+    throw new Error("effective Chrome arguments differ from the exact reviewed argv");
   }
-}
-try {
+
   for (const definition of definitions) {
     const created = await client.send("Target.createTarget", { url: "about:blank" });
     const targetId = String(created.targetId);
@@ -636,15 +831,16 @@ try {
     const workerSetupTasks: Promise<void>[] = [];
     const removers = [
       client.on("Target.attachedToTarget", (params, eventSession) => {
-        if (eventSession !== sessionId) return;
-        const info = params.targetInfo as Record<string, unknown>;
-        if (info.type !== "worker") return;
+        if (
+          eventSession !== sessionId ||
+          (params.targetInfo as Record<string, unknown>).type !== "worker"
+        ) return;
         const workerSession = String(params.sessionId);
         sessions.add(workerSession);
         workerSetupTasks.push((async () => {
-          await client.send("Network.enable", {}, workerSession);
-          await client.send("Runtime.evaluate", { expression: workerAuditSource }, workerSession);
-          await client.send("Runtime.runIfWaitingForDebugger", {}, workerSession);
+          await client!.send("Network.enable", {}, workerSession);
+          await client!.send("Runtime.evaluate", { expression: workerAuditSource }, workerSession);
+          await client!.send("Runtime.runIfWaitingForDebugger", {}, workerSession);
         })());
       }),
       client.on("Runtime.consoleAPICalled", (params, eventSession) => {
@@ -718,8 +914,10 @@ try {
             return;
           }
           const sourcePath = sourcePathFor(url);
-          if (!sourcePath) throw new Error(`unmapped loopback response denied: ${url}`);
-          const response = await client.send(
+          if (!sourcePath || new URL(url).origin !== origin) {
+            throw new Error(`unmapped loopback response denied: ${url}`);
+          }
+          const response = await client!.send(
             "Network.getResponseBody",
             { requestId: params.requestId },
             eventSession,
@@ -728,254 +926,377 @@ try {
           const bytes = response.base64Encoded
             ? base64ToBytes(String(response.body))
             : new TextEncoder().encode(String(response.body));
-          const expected = await Deno.readFile(`${root}/${sourcePath}`);
-          if (
-            bytes.length !== expected.length || await sha256Hex(bytes) !== await sha256Hex(expected)
-          ) {
-            throw new Error(`fetched raw response differs from clean HEAD source: ${sourcePath}`);
+          const expected = frozenSources.get(sourcePath);
+          if (!expected || !equalBytes(bytes, expected.bytes)) {
+            throw new Error(
+              `fetched raw response differs from frozen clean HEAD source: ${sourcePath}`,
+            );
           }
           entry.responseBody = {
             status: "supported",
             bytes: bytes.length,
-            sha256: await sha256Hex(bytes),
+            sha256: expected.sha256,
             base64: bytesToBase64(bytes),
             sourcePath,
-            gitBlob: await commandText("git", ["rev-parse", `HEAD:${sourcePath}`]),
+            gitBlob: expected.gitBlob,
           };
         })());
       }),
     ];
-    await Promise.all([
-      client.send("Page.enable", {}, sessionId),
-      client.send("Runtime.enable", {}, sessionId),
-      client.send("Network.enable", {}, sessionId),
-      client.send("Network.setCacheDisabled", { cacheDisabled: true }, sessionId),
-      client.send("Network.setBypassServiceWorker", { bypass: true }, sessionId),
-      client.send("Accessibility.enable", {}, sessionId),
-      client.send("Target.setAutoAttach", {
-        autoAttach: true,
-        waitForDebuggerOnStart: true,
-        flatten: true,
-      }, sessionId),
-    ]);
-    await client.send("Page.addScriptToEvaluateOnNewDocument", {
-      source: pageAuditSource(definition.action === "timeout"),
-    }, sessionId);
-    const loaded = new Promise<void>((resolve, reject) => {
-      const timer = setTimeout(() => reject(new Error("page load timeout")), 10_000);
-      const remove = client.on("Page.loadEventFired", (_params, eventSession) => {
-        if (eventSession !== sessionId) return;
-        clearTimeout(timer);
-        remove();
-        resolve();
+    try {
+      await Promise.all([
+        client.send("Page.enable", {}, sessionId),
+        client.send("Runtime.enable", {}, sessionId),
+        client.send("Network.enable", {}, sessionId),
+        client.send("Network.setCacheDisabled", { cacheDisabled: true }, sessionId),
+        client.send("Network.setBypassServiceWorker", { bypass: true }, sessionId),
+        client.send("Accessibility.enable", {}, sessionId),
+        client.send("Target.setAutoAttach", {
+          autoAttach: true,
+          waitForDebuggerOnStart: true,
+          flatten: true,
+        }, sessionId),
+      ]);
+      await client.send("Page.addScriptToEvaluateOnNewDocument", {
+        source: pageAuditSource(definition.action === "timeout"),
+      }, sessionId);
+      const loaded = new Promise<void>((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error("page load timeout")), 10_000);
+        const remove = client!.on("Page.loadEventFired", (_params, eventSession) => {
+          if (eventSession !== sessionId) return;
+          clearTimeout(timer);
+          remove();
+          resolve();
+        });
       });
-    });
-    await client.send("Page.navigate", { url: `${origin}${DEMO_ROUTE}` }, sessionId);
-    await loaded;
-    await waitState(sessionId, (value) => value.status === "Ready.", 10_000);
-    await configure(sessionId, definition);
-    await click(sessionId, "#start");
-    const checks: string[] = [];
-    let final: Record<string, unknown>;
-    if (definition.action === "complete") {
-      final = await waitState(sessionId, (value) => value.status === "Complete.");
-    } else if (definition.action === "wrong-token") {
-      await waitState(sessionId, (value) => String(value.status).startsWith("Generating "));
-      const before = await state(sessionId);
-      await evaluate(
-        sessionId,
-        `globalThis.__collector.workers.at(-1).dispatchEvent(new MessageEvent("message", {data:{token:"wrong-token",type:"complete",text:"fabricated"}}))`,
-      );
-      await delay(50);
-      const after = await state(sessionId);
-      if (before.status !== after.status || before.output !== after.output) {
-        throw new Error("wrong-token message mutated visible state");
-      }
-      checks.push("wrong-token completion was ignored without visible mutation");
-      await click(sessionId, "#cancel");
-      final = await waitState(
-        sessionId,
-        (value) => value.status === "Cancelled. No result was retained.",
-      );
-    } else if (definition.action === "stale-error-restart") {
-      await waitState(sessionId, (value) => String(value.status).startsWith("Generating "));
-      await evaluate(
-        sessionId,
-        "globalThis.__collector.staleWorker = globalThis.__collector.workers.at(-1)",
-      );
-      await click(sessionId, "#cancel");
+      await client.send("Page.navigate", { url: `${origin}${DEMO_ROUTE}` }, sessionId);
+      await loaded;
+      await waitState(sessionId, (value) => value.status === "Ready.", 10_000);
+      await configure(sessionId, definition);
       await click(sessionId, "#start");
-      await evaluate(
+      const causalChecks: string[] = [];
+      let final: Record<string, unknown>;
+      if (definition.action === "complete") {
+        final = await waitState(sessionId, (value) => value.status === "Complete.");
+        causalChecks.push("completion cleanup terminated the active worker");
+      } else if (definition.action === "wrong-token") {
+        await waitState(sessionId, (value) => String(value.status).startsWith("Generating "));
+        const before = await state(sessionId);
+        await evaluate(
+          sessionId,
+          `globalThis.__collector.workers.at(-1).dispatchEvent(new MessageEvent("message", {data:{token:"wrong-token",type:"complete",text:"fabricated"}}))`,
+        );
+        await delay(50);
+        const after = await state(sessionId);
+        if (before.status !== after.status || before.output !== after.output) {
+          throw new Error("wrong-token message mutated visible state");
+        }
+        causalChecks.push("wrong-token message left status and output unchanged");
+        await click(sessionId, "#cancel");
+        final = await waitState(
+          sessionId,
+          (value) => value.status === "Cancelled. No result was retained.",
+        );
+      } else if (definition.action === "stale-error-restart") {
+        await waitState(sessionId, (value) => String(value.status).startsWith("Generating "));
+        await evaluate(
+          sessionId,
+          "globalThis.__collector.staleWorker = globalThis.__collector.workers.at(-1)",
+        );
+        await click(sessionId, "#cancel");
+        const cancelled = await waitState(
+          sessionId,
+          (value) => value.status === "Cancelled. No result was retained.",
+        );
+        const firstRecord = (cancelled.workerRecords as Array<{ terminateCalls: number[] }>)[0];
+        if (firstRecord?.terminateCalls.length !== 1) {
+          throw new Error("cancel did not terminate the stale worker");
+        }
+        await click(sessionId, "#start");
+        const beforeStale = await waitState(
+          sessionId,
+          (value) => String(value.status).startsWith("Generating "),
+        );
+        await evaluate(
+          sessionId,
+          `globalThis.__collector.staleWorker.dispatchEvent(new ErrorEvent("error", {message:"stale injected error"}))`,
+        );
+        await delay(50);
+        const afterStale = await state(sessionId);
+        if (beforeStale.status !== afterStale.status || beforeStale.output !== afterStale.output) {
+          throw new Error("stale prior-worker error mutated the fresh generation");
+        }
+        causalChecks.push(
+          "prior worker terminated before restart",
+          "stale prior-worker error left fresh status and output unchanged",
+        );
+        final = await waitState(sessionId, (value) => value.status === "Complete.");
+      } else if (definition.action === "cancel") {
+        await waitState(sessionId, (value) => String(value.status).startsWith("Generating "));
+        await click(sessionId, "#cancel");
+        final = await waitState(
+          sessionId,
+          (value) => value.status === "Cancelled. No result was retained.",
+        );
+        causalChecks.push("cancel cleanup terminated the active worker and retained no output");
+      } else if (definition.action === "timeout") {
+        final = await waitState(
+          sessionId,
+          (value) => value.status === "Stopped: the 180 second limit expired.",
+          10_000,
+        );
+        causalChecks.push("registered timeout callback terminated the active worker");
+      } else {
+        await waitState(sessionId, (value) => String(value.status).startsWith("Generating "));
+        await evaluate(
+          sessionId,
+          `dispatchEvent(new PageTransitionEvent("pagehide", {persisted:false}))`,
+        );
+        final = await waitState(
+          sessionId,
+          (value) => value.status === "Stopped because the page was hidden.",
+        );
+        causalChecks.push("pagehide cleanup terminated the active worker");
+      }
+      assertFinalControls(definition, final);
+      if (
+        definition.action !== "complete" && definition.action !== "stale-error-restart" &&
+        final.output !== ""
+      ) throw new Error(`${definition.id} unexpectedly retained output`);
+      await Promise.all(workerSetupTasks);
+      await delay(100);
+      await Promise.all(bodyTasks);
+      const badNetwork = [...requests.values()].filter((entry) => {
+        const url = String(entry.url);
+        const allowedUrl = url.startsWith(`blob:${origin}/`) ||
+          (url.startsWith(`${origin}/`) && sourcePathFor(url) !== null);
+        return !allowedUrl || entry.method !== "GET" || entry.failed || entry.status !== 200 ||
+          entry.fromDiskCache || entry.fromServiceWorker ||
+          (!url.startsWith("blob:") &&
+            (entry.responseBody as { status: string }).status !== "supported");
+      });
+      if (badNetwork.length) {
+        throw new Error(
+          `cache, unexpected network, or incomplete response evidence: ${
+            JSON.stringify(badNetwork)
+          }`,
+        );
+      }
+      if (exceptions.length) {
+        throw new Error(`browser exceptions observed: ${JSON.stringify(exceptions)}`);
+      }
+      const screenshotResponse = await client.send(
+        "Page.captureScreenshot",
+        { format: "png", fromSurface: true, captureBeyondViewport: true },
         sessionId,
-        `globalThis.__collector.staleWorker.dispatchEvent(new ErrorEvent("error", {message:"stale injected error"}))`,
-      );
-      final = await waitState(sessionId, (value) => value.status === "Complete.");
-      checks.push(
-        "fresh worker restarted after cancellation",
-        "stale prior-worker error was ignored by generation token",
-      );
-    } else if (definition.action === "cancel") {
-      await waitState(sessionId, (value) => String(value.status).startsWith("Generating "));
-      await click(sessionId, "#cancel");
-      final = await waitState(
-        sessionId,
-        (value) => value.status === "Cancelled. No result was retained.",
-      );
-      checks.push(
-        "visible Cancel terminated the active worker",
-        "cancel retained no textual result",
-      );
-    } else if (definition.action === "timeout") {
-      final = await waitState(
-        sessionId,
-        (value) => value.status === "Stopped: the 180 second limit expired.",
         10_000,
       );
-      checks.push(
-        "registered 180-second timer path terminated the worker under collector-shortened clock",
-      );
-    } else {
-      await waitState(sessionId, (value) => String(value.status).startsWith("Generating "));
-      await evaluate(
-        sessionId,
-        `dispatchEvent(new PageTransitionEvent("pagehide", {persisted:false}))`,
-      );
-      final = await waitState(
-        sessionId,
-        (value) => value.status === "Stopped because the page was hidden.",
-      );
-      checks.push("pagehide terminated the active worker and reset controls");
-    }
-    await Promise.all(workerSetupTasks);
-    await delay(100);
-    await Promise.all(bodyTasks);
-    const badNetwork = [...requests.values()].filter((entry) =>
-      entry.failed || entry.status !== 200 || entry.fromServiceWorker ||
-      (!String(entry.url).startsWith("blob:") &&
-        (entry.responseBody as { status: string }).status !== "supported")
-    );
-    if (badNetwork.length) {
-      throw new Error(`incomplete network evidence: ${JSON.stringify(badNetwork)}`);
-    }
-    if (exceptions.length) {
-      throw new Error(`browser exceptions observed: ${JSON.stringify(exceptions)}`);
-    }
-    const screenshotResponse = await client.send(
-      "Page.captureScreenshot",
-      { format: "png", fromSurface: true, captureBeyondViewport: true },
-      sessionId,
-      10_000,
-    );
-    const screenshotBytes = base64ToBytes(String(screenshotResponse.data));
-    const screenshotFile = `screenshots/${definition.id}.png`;
-    await Deno.mkdir(`${resolvedOutputParent}/screenshots`, { recursive: true });
-    await Deno.writeFile(`${resolvedOutputParent}/${screenshotFile}`, screenshotBytes);
-    const ax = await client.send("Accessibility.getFullAXTree", {}, sessionId);
-    const axText = ((ax.nodes as Array<Record<string, unknown>>) ?? []).flatMap((node) => {
-      const role = String((node.role as { value?: unknown } | undefined)?.value ?? "");
-      const name = String((node.name as { value?: unknown } | undefined)?.value ?? "");
-      return role && name ? [{ role, name }] : [];
-    });
-    const common: Record<string, unknown> = {
-      id: definition.id,
-      action: definition.action,
-      variant: definition.variant,
-      mode: definition.mode,
-      records: definition.records,
-      statusHistory: final.statuses,
-      finalStatus: String(final.status),
-      console: consoleEntries,
-      exceptions,
-      network: [...requests.values()],
-      accessibility: { statusText: String(final.status), resultText: String(final.output), axText },
-      screenshot: {
-        file: screenshotFile,
-        bytes: screenshotBytes.length,
-        sha256: await sha256Hex(screenshotBytes),
-      },
-    };
-    if (definition.action === "complete" || definition.action === "stale-error-restart") {
-      const result = parseResult(String(final.output));
-      const messages = final.workerMessages as Array<Record<string, unknown>>;
-      const completion = [...messages].reverse().find((message) => message.type === "complete");
-      const audit = (completion?.__collectorBlobAudit as Array<Record<string, unknown>> | undefined)
-        ?.[0];
-      if (!audit) throw new Error("completed worker omitted exact Blob module audit");
-      const blobBytes = base64ToBytes(String(audit.base64));
-      common.result = result;
-      common.blobExecution = {
-        objectUrl: String(audit.objectUrl),
-        mimeType: String(audit.mimeType),
-        bytes: blobBytes.length,
-        sha256: await sha256Hex(blobBytes),
-        base64: String(audit.base64),
-        completionImportedModule: true,
+      const screenshotBytes = base64ToBytes(String(screenshotResponse.data));
+      const screenshotFile = `screenshots/${definition.id}.png`;
+      await Deno.mkdir(`${resolvedOutputParent}/screenshots`, { recursive: true });
+      await Deno.writeFile(`${resolvedOutputParent}/${screenshotFile}`, screenshotBytes);
+      const ax = await client.send("Accessibility.getFullAXTree", {}, sessionId);
+      const axText = ((ax.nodes as Array<Record<string, unknown>>) ?? []).flatMap((node) => {
+        const role = String((node.role as { value?: unknown } | undefined)?.value ?? "");
+        const name = String((node.name as { value?: unknown } | undefined)?.value ?? "");
+        return role && name ? [{ role, name }] : [];
+      });
+      const axNames = axText.map(({ name }) => name);
+      if (
+        !axNames.includes(String(final.status)) ||
+        (final.output !== "" && !axNames.includes(String(final.output)))
+      ) {
+        throw new Error(`${definition.id} AX tree omitted visible status or result output`);
+      }
+      const common: Record<string, unknown> = {
+        id: definition.id,
+        action: definition.action,
+        variant: definition.variant,
+        mode: definition.mode,
+        records: definition.records,
+        statusHistory: final.statuses,
+        finalStatus: String(final.status),
+        console: consoleEntries,
+        exceptions,
+        network: [...requests.values()],
+        accessibility: {
+          statusText: String(final.status),
+          resultText: String(final.output),
+          axText,
+        },
+        screenshot: {
+          file: screenshotFile,
+          bytes: screenshotBytes.length,
+          sha256: await sha256Hex(screenshotBytes),
+        },
+        lifecycle: {
+          causalChecks,
+          workers: final.workerRecords,
+          controls: {
+            startDisabled: final.startDisabled,
+            cancelDisabled: final.cancelDisabled,
+            progressHasValue: final.progressHasValue,
+          },
+        },
       };
-      if (definition.action === "stale-error-restart") common.lifecycle = { checks };
-    } else common.lifecycle = { checks };
-    scenarios.push(common);
-    for (const remove of removers) remove();
-    await client.send("Target.closeTarget", { targetId });
-    await snapshotMembers();
+      if (definition.action === "complete" || definition.action === "stale-error-restart") {
+        const result = parseResult(String(final.output));
+        assertExactResult(definition, result);
+        const messages = final.workerMessages as Array<
+          { workerId: number; data: Record<string, unknown> }
+        >;
+        const completion = [...messages].reverse().find((message) =>
+          message.data.type === "complete"
+        )?.data;
+        const audit =
+          (completion?.__collectorBlobAudit as Array<Record<string, unknown>> | undefined)?.[0];
+        if (!audit) throw new Error("completed worker omitted exact Blob module audit");
+        const blobBytes = base64ToBytes(String(audit.base64));
+        const frozenWorkload = frozenSources.get(WORKLOAD_PATH)!;
+        const workloadResponse = [...requests.values()].find((entry) =>
+          (entry.responseBody as { sourcePath?: string }).sourcePath === WORKLOAD_PATH
+        );
+        const responseBody = workloadResponse?.responseBody as
+          | { sha256?: string; bytes?: number }
+          | undefined;
+        if (
+          !equalBytes(blobBytes, frozenWorkload.bytes) || String(audit.objectUrl) === "" ||
+          responseBody?.sha256 !== WORKLOAD_SHA256 || responseBody.bytes !== blobBytes.length ||
+          (result.servedByteChecks as { executedModuleSha256?: string }).executedModuleSha256 !==
+            WORKLOAD_SHA256
+        ) {
+          throw new Error(
+            "executed Blob bytes differ from fetched workload and frozen executed-module identity",
+          );
+        }
+        common.result = result;
+        common.blobExecution = {
+          objectUrl: String(audit.objectUrl),
+          mimeType: String(audit.mimeType),
+          bytes: blobBytes.length,
+          sha256: await sha256Hex(blobBytes),
+          base64: String(audit.base64),
+          completionImportedModule: true,
+        };
+      }
+      scenarios.push(common);
+    } finally {
+      for (const remove of removers) remove();
+      await client.send("Target.closeTarget", { targetId }).catch(() => ({}));
+      await snapshotMembers();
+    }
   }
 } catch (error) {
   collectionError = error;
 } finally {
-  client.close();
+  client?.close();
   await finalizeCleanup();
-
-  if (!collectionError && scenarios.length === definitions.length) {
-    const evidence = {
-      schemaVersion: 1,
-      workload: WORKLOAD,
-      evidenceId: `serialization-json-telemetry-browser-${sourceCommit.slice(0, 12)}`,
-      collectedAt: new Date().toISOString(),
-      source: { commit: sourceCommit, tree: sourceTree, root, cleanStatus: "clean" },
-      collector: {
-        script: SCRIPT,
-        scriptBytes: scriptBytes.length,
-        scriptSha256: await sha256Hex(scriptBytes),
-        command: [
-          Deno.execPath(),
-          "run",
-          "-A",
-          SCRIPT,
-          `--chrome=${chromeArgument}`,
-          `--output=${outputPath}`,
-        ],
-        denoVersion: Deno.version.deno,
-      },
-      browser: {
-        product: String(version.product),
-        revision: String(version.revision),
-        userAgent: String(version.userAgent),
-        jsVersion: String(version.jsVersion),
-        executable,
-        executableBytes,
-        executableSha256,
-        launchArguments,
-        effectiveArguments,
-        headless: true,
-        protocol: "Chrome DevTools Protocol",
-        profile: profilePath,
-        cgroup: {
-          unit,
-          controlGroup,
-          path: cgroupPath,
-          device: cgroupDevice,
-          inode: cgroupInode,
-          invocationId: systemd.InvocationID,
-          mainPid,
-          memberSnapshots,
-        },
-        processes: [...observedBrowserProcesses.values()].sort((a, b) => a.pid - b.pid),
-      },
-      server: { origin, mode: "public", launcher: ownedServerLauncher },
-      scenarios,
-      cleanup,
+  try {
+    sourceEndCheck = await recheckFrozenSource();
+  } catch (error) {
+    sourceEndCheck = {
+      outcome: "failure",
+      checkedAt: new Date().toISOString(),
+      error: error instanceof Error ? error.message : String(error),
     };
-    await Deno.writeTextFile(outputPath, `${canonicalize(evidence)}\n`);
+    if (!collectionError) collectionError = error;
   }
+  const cleanupFailures = Object.entries(cleanup).filter(([, check]) =>
+    check.outcome !== "success"
+  );
+  let finalError: unknown = collectionError ??
+    (cleanupFailures.length
+      ? new Error(cleanupFailures.map(([name]) => `${name} cleanup failed`).join("; "))
+      : undefined);
+  const evidence: Record<string, unknown> = {
+    schemaVersion: 1,
+    workload: WORKLOAD,
+    evidenceId: `serialization-json-telemetry-browser-${sourceCommit.slice(0, 12)}`,
+    collectedAt: new Date().toISOString(),
+    collection: finalError
+      ? {
+        outcome: "failure",
+        error: finalError instanceof Error ? finalError.message : String(finalError),
+        completedScenarios: scenarios.length,
+      }
+      : { outcome: "success", completedScenarios: scenarios.length },
+    source: {
+      commit: sourceCommit,
+      tree: sourceTree,
+      root,
+      cleanStatus: "clean",
+      endCheck: sourceEndCheck,
+      frozenFiles: [...frozenSources.values()].map(({ path, bytes, sha256, gitBlob }) => ({
+        path,
+        bytes: bytes.length,
+        sha256,
+        gitBlob,
+      })),
+    },
+    collector: {
+      script: SCRIPT,
+      scriptBytes: scriptSource.bytes.length,
+      scriptSha256: scriptSource.sha256,
+      command: [
+        Deno.execPath(),
+        "run",
+        "-A",
+        SCRIPT,
+        `--chrome=${chromeArgument}`,
+        `--output=${outputPath}`,
+      ],
+      denoVersion: Deno.version.deno,
+    },
+    scenarios,
+    cleanup,
+  };
+  if (ownedServerLauncher) {
+    evidence.server = { origin, mode: "public", launcher: ownedServerLauncher };
+  }
+  if (
+    version && launchArguments && effectiveArguments && profilePath && systemd && cgroupPath &&
+    mainPid && cgroupDevice !== undefined && cgroupInode !== undefined
+  ) {
+    evidence.browser = {
+      product: String(version.product),
+      revision: String(version.revision),
+      userAgent: String(version.userAgent),
+      jsVersion: String(version.jsVersion),
+      executable,
+      executableBytes,
+      executableSha256,
+      launchArguments,
+      effectiveArguments,
+      headless: true,
+      protocol: "Chrome DevTools Protocol",
+      profile: profilePath,
+      cgroup: {
+        unit,
+        controlGroup: systemd.ControlGroup,
+        path: cgroupPath,
+        device: cgroupDevice,
+        inode: cgroupInode,
+        invocationId: systemd.InvocationID,
+        mainPid,
+        memberSnapshots,
+      },
+      processes: [...observedBrowserProcesses.values()].sort((a, b) => a.pid - b.pid),
+    };
+  }
+  if (!finalError) {
+    try {
+      await assertJsonTelemetryEvidenceRelationships(evidence);
+    } catch (error) {
+      collectionError = error;
+      finalError = error;
+      evidence.collection = {
+        outcome: "failure",
+        error: error instanceof Error ? error.message : String(error),
+        completedScenarios: scenarios.length,
+      };
+    }
+  }
+  await Deno.writeTextFile(outputPath, `${canonicalize(evidence)}\n`);
 }
 if (collectionError) throw collectionError;
 for (const [name, check] of Object.entries(cleanup)) {
