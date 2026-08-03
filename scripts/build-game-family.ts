@@ -111,7 +111,8 @@ const manifest = {
   familyId: "game-v2-controlled-family",
   sourceRepository: "https://github.com/PaulKinlan/wasm-vs-js",
   sourceRevision: "bound by the immutable implementation inventory link",
-  reproducibleCommand: "deno task build:games",
+  reproducibleCommand:
+    "deno run --allow-read=. --allow-write=public/artifacts/game-v2-controlled-family,public/evidence/v2-proposals/games scripts/build-game-family.ts",
   toolchain: [`Deno ${Deno.version.deno}`, "wabt 1.0.37"],
   flags: [
     "scalar",

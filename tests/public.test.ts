@@ -103,7 +103,7 @@ Deno.test("workload catalog exposes exact totals, filters, and honest implementa
   assert(page.includes("P2 breadth/stress"));
   assert(page.includes("Coverage is 0/38"));
   assert(page.includes("v2 proposal implementation inventory"));
-  assert(page.includes("Interactive demos: 0"));
+  assert(page.includes("Interactive demos: 3"));
   assertEquals(page.match(/data-v2-id=/g)?.length, 20);
   assert(page.includes('role="search"'));
   assert(page.includes('aria-live="polite"'));
@@ -194,6 +194,9 @@ Deno.test("public pages contain no inline script, inline style, or remote asset"
       "public/evidence/index.html",
       "public/experiments/index.html",
       "public/evidence/v2-proposals/index.html",
+      "public/demos/game-canvas-arcade/index.html",
+      "public/demos/game-canvas-entity-pathfinding/index.html",
+      "public/demos/game-dom-tactics-grid/index.html",
     ]
   ) {
     const html = await Deno.readTextFile(path);

@@ -51,6 +51,36 @@ Deno.test("game fixtures reproduce exact binary manifests without external input
   }
 });
 
+Deno.test("game family builder reproduces byte-identical fixtures, Wasm, manifest, and records", async () => {
+  const paths = [
+    "public/artifacts/game-v2-controlled-family/build-manifest.json",
+    "public/artifacts/game-v2-controlled-family/game-family.wasm",
+    ...GAME_IDS.map((id) =>
+      `public/artifacts/game-v2-controlled-family/${id.replaceAll(".", "-")}.bin`
+    ),
+  ];
+  for await (const entry of Deno.readDir("public/evidence/v2-proposals/games")) {
+    if (entry.isFile && entry.name.endsWith(".json")) {
+      paths.push(`public/evidence/v2-proposals/games/${entry.name}`);
+    }
+  }
+  const before = await Promise.all(paths.map((path) => Deno.readFile(path)));
+  const result = await new Deno.Command(Deno.execPath(), {
+    args: [
+      "run",
+      "--allow-read=.",
+      "--allow-write=public/artifacts/game-v2-controlled-family,public/evidence/v2-proposals/games",
+      "scripts/build-game-family.ts",
+    ],
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  if (!result.success) throw new Error(new TextDecoder().decode(result.stderr));
+  for (let index = 0; index < paths.length; index += 1) {
+    assertEquals(await Deno.readFile(paths[index]), before[index]);
+  }
+});
+
 Deno.test("all three full fixed workloads have exact JavaScript and honest Wasm-hybrid outputs", async () => {
   const wasm = await runtime();
   for (const id of GAME_IDS) {
@@ -136,9 +166,9 @@ Deno.test("six validation records contain no timing values or performance claims
     assertEquals(record.status, "proposal-validation-only");
     assertEquals(record.validation, {
       completeOutput: "pass",
-      crossTargetEquivalence: "pass",
       structuralInvariants: "pass",
       workCounters: "pass",
+      crossTargetEquivalence: "pass",
     });
     assertEquals(record.timing.status, "not-collected");
     assertEquals(record.performanceClaims, []);

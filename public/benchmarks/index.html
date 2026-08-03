@@ -34,9 +34,9 @@
         <p class="eyebrow">Separate from frozen catalog v1</p>
         <h2 id="v2-inventory-title">v2 proposal implementation inventory</h2>
         <p
-          class="lede">The repository contains <strong>20 v2 proposal definitions</strong>. Nine IDs have tested JavaScript and linear-Wasm workload engines; 11 remain definition-only. Tested engines are harness/source implementations, not user-facing interactive demos.</p>
+          class="lede">The repository contains <strong>20 v2 proposal definitions</strong>. Twelve IDs have tested JavaScript and linear-Wasm workload engines; eight remain definition-only. Three game IDs also have user-facing proposal-validation demos.</p>
         <p
-          class="notice"><strong>Interactive demos: 0.</strong> No v2 package contains authoritative performance results, and this proposal inventory does not change frozen-v1 coverage: <strong>0/38</strong>.</p>
+          class="notice"><strong>Interactive demos: 3.</strong> No v2 package contains authoritative performance results, and this proposal inventory does not change frozen-v1 coverage: <strong>0/38</strong>.</p>
         <dl class="metrics v2-inventory-metrics">
           <div>
             <dt>Proposal definitions</dt>
@@ -44,15 +44,15 @@
           </div>
           <div>
             <dt>Tested JS + linear-Wasm engines</dt>
-            <dd>9</dd>
+            <dd>12</dd>
           </div>
           <div>
             <dt>Definition-only</dt>
-            <dd>11</dd>
+            <dd>8</dd>
           </div>
           <div>
             <dt>Public validation packages</dt>
-            <dd>3 IDs / 6 records</dd>
+            <dd>6 IDs / 12 records</dd>
           </div>
           <div>
             <dt>Local-only validation packages</dt>
@@ -68,10 +68,10 @@
           </div>
           <div>
             <dt>Interactive demos</dt>
-            <dd>0</dd>
+            <dd>3</dd>
           </div>
         </dl>
-        <p>Of the nine tested engines, three audio IDs have complete public proposal-validation packages; two neural IDs have complete local-only packages; two image IDs have artifacts but no result records; and the regex and virtual-DOM IDs cover reduced conformance slices rather than their full proposal contracts.</p>
+        <p>Of the twelve tested engines, the three audio and three game IDs have complete public proposal-validation packages; two neural IDs have complete local-only packages; two image IDs have artifacts but no result records; and the regex and virtual-DOM IDs cover reduced conformance slices rather than their full proposal contracts.</p>
         <p><a href="/data/v2-proposal-implementation-status.v1.json">Open the machine-readable status ledger</a> · <a href="/data/v2-proposal-implementation-status.schema.json">Open its closed schema</a></p>
         <div class="table-wrap">
           <table class="v2-status-table">
@@ -147,20 +147,20 @@
               <tr data-v2-id="game.canvas-arcade.v1">
                 <th
                   scope="row"><code>game.canvas-arcade.v1</code><br><span>Canvas arcade game trace</span><br><a href="https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L1516-L1667">proposal definition</a></th>
-                <td>Proposal definition only; no tested engine, artifact, result record, or demo.</td>
-                <td>No implementation evidence.</td>
+                <td>Complete public proposal-validation package: 2 exact correctness/work records and a runnable demo; no timing results.</td>
+                <td><a href="/demos/game-canvas-arcade/">run demo</a> · <a href="/evidence/v2-proposals/games/game-canvas-arcade-v1-js-controlled.json">JavaScript validation</a> · <a href="/evidence/v2-proposals/games/game-canvas-arcade-v1-wasm-linear-controlled.json">Wasm-hybrid validation</a> · <a href="/artifacts/game-v2-controlled-family/build-manifest.json">build manifest</a></td>
               </tr>
               <tr data-v2-id="game.canvas-entity-pathfinding.v1">
                 <th
                   scope="row"><code>game.canvas-entity-pathfinding.v1</code><br><span>Canvas entity, pathfinding, animation, and audio trace</span><br><a href="https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L1668-L1819">proposal definition</a></th>
-                <td>Proposal definition only; no tested engine, artifact, result record, or demo.</td>
-                <td>No implementation evidence.</td>
+                <td>Complete public proposal-validation package: 2 exact correctness/work records and a runnable demo; no timing results.</td>
+                <td><a href="/demos/game-canvas-entity-pathfinding/">run demo</a> · <a href="/evidence/v2-proposals/games/game-canvas-entity-pathfinding-v1-js-controlled.json">JavaScript validation</a> · <a href="/evidence/v2-proposals/games/game-canvas-entity-pathfinding-v1-wasm-linear-controlled.json">Wasm-hybrid validation</a> · <a href="/artifacts/game-v2-controlled-family/build-manifest.json">build manifest</a></td>
               </tr>
               <tr data-v2-id="game.dom-tactics-grid.v1">
                 <th
                   scope="row"><code>game.dom-tactics-grid.v1</code><br><span>DOM tactics grid game trace</span><br><a href="https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L1820-L1971">proposal definition</a></th>
-                <td>Proposal definition only; no tested engine, artifact, result record, or demo.</td>
-                <td>No implementation evidence.</td>
+                <td>Complete public proposal-validation package: 2 exact correctness/work records and a runnable demo; no timing results.</td>
+                <td><a href="/demos/game-dom-tactics-grid/">run demo</a> · <a href="/evidence/v2-proposals/games/game-dom-tactics-grid-v1-js-controlled.json">JavaScript validation</a> · <a href="/evidence/v2-proposals/games/game-dom-tactics-grid-v1-wasm-linear-controlled.json">Wasm-hybrid validation</a> · <a href="/artifacts/game-v2-controlled-family/build-manifest.json">build manifest</a></td>
               </tr>
               <tr data-v2-id="image.editing-pipeline.v1">
                 <th
