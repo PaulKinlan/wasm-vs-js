@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "workloadId": "crypto.file-integrity.v1",
-  "sourceRevision": "51cbd23f1625b2899ad132eb9aec684fdd3b4e8b",
+  "sourceRevision": "77b44e23773abca55aa1e461138c79df15dea644",
   "toolchain": {
     "deno": "2.9.0",
     "clang": "22.1.8",
@@ -32,6 +32,10 @@
     {
       "path": "benchmarks/base/crypto-file-integrity/workload.js",
       "sha256": "83e2397f945c9561bdeedd9752c657ac2cd7ad01031c45fdaec2297683b8bd70"
+    },
+    {
+      "path": "benchmarks/base/crypto-file-integrity/validation.js",
+      "sha256": "668e577abc302c937ceff0090d011bbaa9655d9333eb0c4417eb8a1fc2642b84"
     }
   ],
   "artifact": {

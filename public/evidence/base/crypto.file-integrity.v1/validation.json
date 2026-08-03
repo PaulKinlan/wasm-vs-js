@@ -1,8 +1,16 @@
 {
   "schemaVersion": 1,
   "workloadId": "crypto.file-integrity.v1",
-  "status": "complete-correctness-validation",
-  "sourceRevision": "51cbd23f1625b2899ad132eb9aec684fdd3b4e8b",
+  "status": "static-correctness-validation-awaiting-browser",
+  "sourceRevision": "77b44e23773abca55aa1e461138c79df15dea644",
+  "catalogCoverage": {
+    "denominator": 38,
+    "implemented": 0,
+    "remaining": 38,
+    "candidateCount": 1,
+    "countsTowardCoverage": false,
+    "promotionGate": "retained-browser-validation-required"
+  },
   "runtime": {
     "deno": "2.9.0",
     "v8": "14.9.207.2-rusty",
@@ -10,7 +18,7 @@
   },
   "exactInputs": {
     "registrationRawSha256": "4d0de242f341c8b4adcb33ec43073c900418b7bf6979de4f528eb92a27407722",
-    "buildManifestRawSha256": "9ddddb4bf57d2ecc2c3ddb093c0034f0deab8e47ec50e8fc827988b2fd66801b",
+    "buildManifestRawSha256": "7c0a520d5da2354e021ed4f8e93559cbbb51d144f26af96b22025ccf288cfd1d",
     "artifactRawSha256": "a55a38bcb6c5a9e835ce7a75b733051efca0b186309d012788727164076f36cd"
   },
   "oracle": {
@@ -641,6 +649,7 @@
     "schedules": 3
   },
   "limitations": {
+    "evidenceClassification": "static-for-browser",
     "performanceMeasured": false,
     "browserEvidenceIncluded": false,
     "hostIntrinsicCompared": false
