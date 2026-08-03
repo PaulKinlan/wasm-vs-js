@@ -118,6 +118,7 @@ export function expectedTodoRequestRoster(workerRuns: number): Map<string, numbe
 type WaitDependencies = {
   now?: () => number;
   sleep?: (milliseconds: number) => Promise<void>;
+  failures?: () => string[];
   timeoutMs?: number;
   pollMs?: number;
 };
@@ -166,7 +167,7 @@ export async function waitForTodoNetworkClosure(
   const deadline = now() + timeoutMs;
   const expected = expectedTodoRequestRoster(workerRuns);
   let state = closureState(ledger.snapshot(), origin, expected);
-  state.failed.push(...ledger.eventErrors());
+  state.failed.push(...ledger.eventErrors(), ...(dependencies.failures?.() ?? []));
   while (true) {
     if (state.failed.length) throw new Error(`network request failed: ${state.failed.join(", ")}`);
     if (!state.missing.length && !state.incomplete.length) return ledger.snapshot();
@@ -175,6 +176,6 @@ export async function waitForTodoNetworkClosure(
     }
     await sleep(pollMs);
     state = closureState(ledger.snapshot(), origin, expected);
-    state.failed.push(...ledger.eventErrors());
+    state.failed.push(...ledger.eventErrors(), ...(dependencies.failures?.() ?? []));
   }
 }

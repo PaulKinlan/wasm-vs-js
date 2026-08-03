@@ -437,7 +437,9 @@ try {
       if (workerSetupErrors.length) {
         throw new Error(`worker Network setup failed: ${workerSetupErrors.join(", ")}`);
       }
-      return await waitForTodoNetworkClosure(requests, origin, workerRuns);
+      return await waitForTodoNetworkClosure(requests, origin, workerRuns, {
+        failures: () => workerSetupErrors.map((error) => `worker Network setup failed: ${error}`),
+      });
     };
     await client.send("Page.navigate", {
       url: `${origin}/benchmarks/base-dom-todomvc-journey/?demo-test=1`,
