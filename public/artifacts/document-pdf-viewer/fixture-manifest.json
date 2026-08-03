@@ -4,13 +4,19 @@
   "immutable": true,
   "fixture": {
     "path": "public/artifacts/document-pdf-viewer/report-100-pages.pdf",
-    "bytes": 33144,
-    "sha256": "81b653401a5e20b7ade23c2a81dffdafc7e39034892a18d7e503fced11f893da"
+    "bytes": 41373,
+    "sha256": "5029f446bdd5e40298699f853a642f1c37343d16e13768d921193942d66c2cce"
   },
   "font": {
     "path": "public/artifacts/document-pdf-viewer/pdfbase-5x7-v1.bin",
     "bytes": 896,
-    "sha256": "e6eff636c456d47bd3adceb0e63ee13dd5cf2dff3e81df76c32dd4e3c937a4a1"
+    "sha256": "5cb9b995e464eaf84f4e8ec408ed13d2e77066c4e2559ccc99393a05cec80c49"
+  },
+  "pdfSubset": {
+    "version": "PDF-1.7-pdfbase-report-v1",
+    "objectCount": 232,
+    "type3GlyphPrograms": 27,
+    "pageCount": 100
   },
   "rights": {
     "licenseSpdx": "CC0-1.0",
@@ -19,6 +25,6 @@
   },
   "generator": {
     "path": "scripts/build-document-pdf-viewer.ts",
-    "sourceCommit": "a4f3d1c632a617d19d5bc2437e22269f25330e3d"
+    "sourceCommit": "a16819f0004266d46570011b2423cf556676c7b1"
   }
 }

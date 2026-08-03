@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "workloadId": "document.pdf-viewer.v1",
   "status": "supplemental-validation",
-  "sourceCommit": "a4f3d1c632a617d19d5bc2437e22269f25330e3d",
+  "sourceCommit": "a16819f0004266d46570011b2423cf556676c7b1",
   "oracle": {
     "pageCount": 100,
     "searchTerm": "NEEDLE",
@@ -21,23 +21,23 @@
     "rasterPages": [
       {
         "page": 1,
-        "sha256": "2eec361c432cdab8004f0ad3104c27cbf716dd3676cad69f1310c72a83c8c36c"
+        "sha256": "31724228457a9812b458be1414035e79aadf118e6bf901ef30d2fb8681b026fb"
       },
       {
         "page": 25,
-        "sha256": "79df9f85f9d651ac0458580314ae06b0d281799eb2463a86df5ec092972b545b"
+        "sha256": "5f956ae02da71f9ef036be51460284f777483b29389b2e257895c19ddc4ecce7"
       },
       {
         "page": 50,
-        "sha256": "5a5c6d9925b08f6f110f93e3537d6451452b8bf8e98f605f97dc8675987e9d53"
+        "sha256": "ccf71bd66cc73eddd4823406e040d13a13afad24d4bd843ebcf5631618fec2ba"
       },
       {
         "page": 75,
-        "sha256": "d9dc33158a45e6739bb6f4dc6af72945b65f61c3ce7aaa401b7dbec8428db451"
+        "sha256": "12e556c682d16d6bcb4f6fabfdd6729a7361da72ffceb0eaf59e71ed991546c6"
       },
       {
         "page": 100,
-        "sha256": "19cd719f18098055d605881e65ca41f0f0fffeaecce7c8f9bbde18af80560ccd"
+        "sha256": "3ae39d981daee1ba51d2d94bdf8277c24712a13e074c496a01861d84d19a82c5"
       }
     ],
     "textSha256": "039fb76d6eb3bf1764ee5c839c4f21133a8a33b282967497378e6d7c5ca76fdb"
@@ -62,27 +62,27 @@
       "pageHashes": [
         {
           "page": 1,
-          "sha256": "2eec361c432cdab8004f0ad3104c27cbf716dd3676cad69f1310c72a83c8c36c"
+          "sha256": "31724228457a9812b458be1414035e79aadf118e6bf901ef30d2fb8681b026fb"
         },
         {
           "page": 25,
-          "sha256": "79df9f85f9d651ac0458580314ae06b0d281799eb2463a86df5ec092972b545b"
+          "sha256": "5f956ae02da71f9ef036be51460284f777483b29389b2e257895c19ddc4ecce7"
         },
         {
           "page": 50,
-          "sha256": "5a5c6d9925b08f6f110f93e3537d6451452b8bf8e98f605f97dc8675987e9d53"
+          "sha256": "ccf71bd66cc73eddd4823406e040d13a13afad24d4bd843ebcf5631618fec2ba"
         },
         {
           "page": 75,
-          "sha256": "d9dc33158a45e6739bb6f4dc6af72945b65f61c3ce7aaa401b7dbec8428db451"
+          "sha256": "12e556c682d16d6bcb4f6fabfdd6729a7361da72ffceb0eaf59e71ed991546c6"
         },
         {
           "page": 100,
-          "sha256": "19cd719f18098055d605881e65ca41f0f0fffeaecce7c8f9bbde18af80560ccd"
+          "sha256": "3ae39d981daee1ba51d2d94bdf8277c24712a13e074c496a01861d84d19a82c5"
         }
       ],
       "counters": {
-        "objects": 205,
+        "objects": 232,
         "pages": 100,
         "glyphs": 3470,
         "searchComparisons": 2970,
@@ -112,27 +112,27 @@
       "pageHashes": [
         {
           "page": 1,
-          "sha256": "2eec361c432cdab8004f0ad3104c27cbf716dd3676cad69f1310c72a83c8c36c"
+          "sha256": "31724228457a9812b458be1414035e79aadf118e6bf901ef30d2fb8681b026fb"
         },
         {
           "page": 25,
-          "sha256": "79df9f85f9d651ac0458580314ae06b0d281799eb2463a86df5ec092972b545b"
+          "sha256": "5f956ae02da71f9ef036be51460284f777483b29389b2e257895c19ddc4ecce7"
         },
         {
           "page": 50,
-          "sha256": "5a5c6d9925b08f6f110f93e3537d6451452b8bf8e98f605f97dc8675987e9d53"
+          "sha256": "ccf71bd66cc73eddd4823406e040d13a13afad24d4bd843ebcf5631618fec2ba"
         },
         {
           "page": 75,
-          "sha256": "d9dc33158a45e6739bb6f4dc6af72945b65f61c3ce7aaa401b7dbec8428db451"
+          "sha256": "12e556c682d16d6bcb4f6fabfdd6729a7361da72ffceb0eaf59e71ed991546c6"
         },
         {
           "page": 100,
-          "sha256": "19cd719f18098055d605881e65ca41f0f0fffeaecce7c8f9bbde18af80560ccd"
+          "sha256": "3ae39d981daee1ba51d2d94bdf8277c24712a13e074c496a01861d84d19a82c5"
         }
       ],
       "counters": {
-        "objects": 205,
+        "objects": 232,
         "pages": 100,
         "glyphs": 3470,
         "searchComparisons": 2970,
