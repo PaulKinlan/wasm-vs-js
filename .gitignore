@@ -14,3 +14,5 @@ raw/corpora/
 benchmarks/v1/text-gc-document-edit/kotlin/.gradle/
 benchmarks/v1/text-gc-document-edit/kotlin/.kotlin/
 benchmarks/v1/text-gc-document-edit/kotlin/build/
+source-commit.txt
+**/source-commit.txt
