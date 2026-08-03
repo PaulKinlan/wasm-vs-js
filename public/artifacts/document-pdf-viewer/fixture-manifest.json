@@ -20,6 +20,6 @@
   },
   "generator": {
     "path": "scripts/build-document-pdf-viewer.ts",
-    "sourceCommit": "worktree-source"
+    "sourceCommit": "76fdac798f38eddd50201044c510e8695b07a3d3"
   }
 }
