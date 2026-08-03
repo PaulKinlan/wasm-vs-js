@@ -65,6 +65,16 @@ Deno.test("traditional demo manifest is closed, reduced, reproducible, and engin
     assertEquals(bytes.byteLength, record.bytes);
     assertEquals(await sha256Hex(bytes), record.sha256);
   }
+  for (const record of manifest.sources) {
+    const committed = await new Deno.Command("git", {
+      args: ["show", `${sourceCommit}:${record.path}`],
+      stdout: "piped",
+      stderr: "piped",
+    }).output();
+    assert(committed.success, `${record.path} is absent from source commit ${sourceCommit}`);
+    assertEquals(committed.stdout.byteLength, record.bytes);
+    assertEquals(await sha256Hex(committed.stdout), record.sha256);
+  }
   for (const id of ["regex-automata-duel", "vdom-diff-patch"]) {
     const engineManifest = JSON.parse(
       await Deno.readTextFile(`public/artifacts/${id}/build-manifest.json`),
