@@ -1,0 +1,949 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.invalid/schemas/base-database-olap-chart-browser-evidence.schema.json",
+  "title": "Parent-collected database OLAP chart browser correctness evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "evidenceId",
+    "collectedAt",
+    "workloadId",
+    "performanceClaims",
+    "source",
+    "collector",
+    "browser",
+    "server",
+    "contract",
+    "scenarios",
+    "cleanup"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "evidenceId": { "type": "string", "pattern": "^database-olap-chart-browser-[a-f0-9]{12}$" },
+    "collectedAt": { "type": "string", "format": "date-time" },
+    "workloadId": { "const": "database.olap-chart.v1" },
+    "performanceClaims": { "type": "array", "maxItems": 0 },
+    "source": { "$ref": "#/$defs/source" },
+    "collector": { "$ref": "#/$defs/collector" },
+    "browser": { "$ref": "#/$defs/browser" },
+    "server": { "$ref": "#/$defs/server" },
+    "contract": { "$ref": "#/$defs/contract" },
+    "scenarios": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "prefixItems": [
+        { "$ref": "#/$defs/completeJs" },
+        { "$ref": "#/$defs/completeWasm" },
+        { "$ref": "#/$defs/wrongToken" },
+        { "$ref": "#/$defs/stale" },
+        { "$ref": "#/$defs/restart" },
+        { "$ref": "#/$defs/timeout" },
+        { "$ref": "#/$defs/cancel" },
+        { "$ref": "#/$defs/pagehide" }
+      ],
+      "items": false
+    },
+    "cleanup": { "$ref": "#/$defs/cleanup" }
+  },
+  "$defs": {
+    "hash40": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "hash64": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "absolutePath": { "type": "string", "pattern": "^/" },
+    "process": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pid", "parentPid", "startTimeTicks", "executable"],
+      "properties": {
+        "pid": { "type": "integer", "minimum": 2 },
+        "parentPid": { "type": "integer", "minimum": 0 },
+        "startTimeTicks": { "type": "string", "pattern": "^[0-9]+$" },
+        "executable": { "$ref": "#/$defs/absolutePath" }
+      }
+    },
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256", "gitBlob"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/hash64" },
+        "gitBlob": { "$ref": "#/$defs/hash40" }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commit", "tree", "root", "clean", "files", "endCheck"],
+      "properties": {
+        "commit": { "$ref": "#/$defs/hash40" },
+        "tree": { "$ref": "#/$defs/hash40" },
+        "root": { "$ref": "#/$defs/absolutePath" },
+        "clean": { "const": true },
+        "files": {
+          "type": "array",
+          "minItems": 21,
+          "maxItems": 21,
+          "items": { "$ref": "#/$defs/file" }
+        },
+        "endCheck": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["commit", "tree", "clean", "checkedAfterCleanup"],
+          "properties": {
+            "commit": { "$ref": "#/$defs/hash40" },
+            "tree": { "$ref": "#/$defs/hash40" },
+            "clean": { "const": true },
+            "checkedAfterCleanup": { "const": true }
+          }
+        }
+      }
+    },
+    "collector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "script",
+        "scriptBytes",
+        "scriptSha256",
+        "command",
+        "denoVersion",
+        "parentPid"
+      ],
+      "properties": {
+        "script": { "const": "scripts/collect-base-database-olap-chart-browser-evidence.ts" },
+        "scriptBytes": { "type": "integer", "minimum": 1 },
+        "scriptSha256": { "$ref": "#/$defs/hash64" },
+        "command": {
+          "type": "array",
+          "minItems": 8,
+          "maxItems": 8,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "denoVersion": { "const": "2.9.0" },
+        "parentPid": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "executable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256", "dev", "ino"],
+      "properties": {
+        "path": { "$ref": "#/$defs/absolutePath" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/hash64" },
+        "dev": { "type": "integer", "minimum": 0 },
+        "ino": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "browser": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "product",
+        "revision",
+        "userAgent",
+        "jsVersion",
+        "executable",
+        "requestedLaunchArguments",
+        "effectiveCommandLine",
+        "headless",
+        "protocol",
+        "devtools",
+        "profile",
+        "cgroup"
+      ],
+      "properties": {
+        "product": { "const": "Chrome/150.0.7871.24" },
+        "revision": { "type": "string", "minLength": 1 },
+        "userAgent": { "type": "string", "minLength": 1 },
+        "jsVersion": { "type": "string", "minLength": 1 },
+        "executable": { "$ref": "#/$defs/executable" },
+        "requestedLaunchArguments": {
+          "type": "array",
+          "minItems": 20,
+          "maxItems": 20,
+          "contains": { "const": "--enable-automation" },
+          "minContains": 1,
+          "maxContains": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "effectiveCommandLine": {
+          "type": "array",
+          "minItems": 20,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "headless": { "const": true },
+        "protocol": { "const": "Chrome DevTools Protocol" },
+        "devtools": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["address", "port", "browserPath", "webSocketOrigin"],
+          "properties": {
+            "address": { "const": "127.0.0.1" },
+            "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+            "browserPath": { "type": "string", "pattern": "^/devtools/browser/[A-Za-z0-9-]+$" },
+            "webSocketOrigin": { "type": "string", "pattern": "^ws://127\\.0\\.0\\.1:[0-9]+$" }
+          }
+        },
+        "profile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "mode",
+            "ownershipRoot",
+            "ownershipParentDev",
+            "ownershipParentIno",
+            "ownershipDev",
+            "ownershipIno",
+            "removeOwnershipRoot",
+            "profileRoot",
+            "profileDev",
+            "profileIno"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "^/tmp/wasm-vs-js-owned-profiles/olap-[a-f0-9]{32}/profile$"
+            },
+            "mode": { "const": 448 },
+            "ownershipRoot": {
+              "type": "string",
+              "pattern": "^/tmp/wasm-vs-js-owned-profiles/olap-[a-f0-9]{32}$"
+            },
+            "ownershipParentDev": { "type": "integer", "minimum": 0 },
+            "ownershipParentIno": { "type": "integer", "minimum": 1 },
+            "ownershipDev": { "type": "integer", "minimum": 0 },
+            "ownershipIno": { "type": "integer", "minimum": 1 },
+            "removeOwnershipRoot": { "const": true },
+            "profileRoot": {
+              "type": "string",
+              "pattern": "^/tmp/wasm-vs-js-owned-profiles/olap-[a-f0-9]{32}/profile$"
+            },
+            "profileDev": { "type": "integer", "minimum": 0 },
+            "profileIno": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "cgroup": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "unit",
+            "controlGroup",
+            "path",
+            "dev",
+            "ino",
+            "invocationId",
+            "mainPid",
+            "memberSnapshots"
+          ],
+          "properties": {
+            "unit": { "type": "string", "pattern": "^wasm-olap-chart-[a-f0-9]{16}\\.service$" },
+            "controlGroup": { "type": "string", "pattern": "^/" },
+            "path": { "type": "string", "pattern": "^/sys/fs/cgroup/" },
+            "dev": { "type": "integer", "minimum": 0 },
+            "ino": { "type": "integer", "minimum": 1 },
+            "invocationId": { "type": "string", "pattern": "^[a-f0-9]{32}$" },
+            "mainPid": { "type": "integer", "minimum": 2 },
+            "memberSnapshots": {
+              "type": "array",
+              "minItems": 9,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["at", "pids"],
+                "properties": {
+                  "at": { "type": "string", "format": "date-time" },
+                  "pids": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": { "type": "integer", "minimum": 2 },
+                    "uniqueItems": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "server": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin", "mode", "launcher"],
+      "properties": {
+        "origin": { "type": "string", "pattern": "^http://127\\.0\\.0\\.1:[0-9]+$" },
+        "mode": { "const": "public" },
+        "launcher": { "$ref": "#/$defs/process" }
+      }
+    },
+    "row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stableRowId", "units", "revenueCents"],
+      "properties": {
+        "stableRowId": { "type": "integer", "minimum": 0, "maximum": 9999 },
+        "units": { "type": "integer", "minimum": 0 },
+        "revenueCents": { "type": "integer", "minimum": 0, "maximum": 4294967295 }
+      }
+    },
+    "bin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["category", "count", "unitsLow", "unitsHigh", "revenueLow", "revenueHigh"],
+      "properties": {
+        "category": { "type": "integer", "minimum": 0, "maximum": 15 },
+        "count": { "type": "integer", "minimum": 0, "maximum": 10000 },
+        "unitsLow": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+        "unitsHigh": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+        "revenueLow": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+        "revenueHigh": { "type": "integer", "minimum": 0, "maximum": 4294967295 }
+      }
+    },
+    "chartModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "query",
+        "matchedRows",
+        "sortColumn",
+        "descending",
+        "filterDigest",
+        "controlRevision",
+        "topRows",
+        "bins"
+      ],
+      "properties": {
+        "query": { "type": "integer", "minimum": 0, "maximum": 4 },
+        "matchedRows": { "type": "integer", "minimum": 0, "maximum": 10000 },
+        "sortColumn": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "descending": { "type": "boolean" },
+        "filterDigest": { "type": "string", "pattern": "^[a-f0-9]{8}$" },
+        "controlRevision": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "topRows": {
+          "type": "array",
+          "minItems": 8,
+          "maxItems": 8,
+          "items": { "$ref": "#/$defs/row" }
+        },
+        "bins": {
+          "type": "array",
+          "minItems": 16,
+          "maxItems": 16,
+          "items": { "$ref": "#/$defs/bin" }
+        }
+      }
+    },
+    "completeOutput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["digestAlgorithm", "digest", "words", "bytes", "values", "chartModels"],
+      "properties": {
+        "digestAlgorithm": { "const": "fnv1a-u32le-v1" },
+        "digest": { "const": "e26a152f" },
+        "words": { "const": 560 },
+        "bytes": { "const": 2240 },
+        "values": {
+          "type": "array",
+          "minItems": 560,
+          "maxItems": 560,
+          "items": { "type": "integer", "minimum": 0, "maximum": 4294967295 }
+        },
+        "chartModels": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": { "$ref": "#/$defs/chartModel" }
+        }
+      }
+    },
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "digest",
+        "completeOutput",
+        "targets",
+        "queries",
+        "binsPerModel",
+        "topRowsPerModel",
+        "crossTargetValidated"
+      ],
+      "properties": {
+        "digest": { "const": "e26a152f" },
+        "completeOutput": { "$ref": "#/$defs/completeOutput" },
+        "targets": {
+          "type": "array",
+          "prefixItems": [{ "const": "js-controlled" }, { "const": "wasm-linear-controlled" }],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "queries": { "const": 5 },
+        "binsPerModel": { "const": 16 },
+        "topRowsPerModel": { "const": 8 },
+        "crossTargetValidated": { "const": true }
+      }
+    },
+    "jsCounters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "queries",
+        "rowsVisited",
+        "predicateChecks",
+        "matchedRows",
+        "sortComparisons",
+        "aggregateRows",
+        "chartBins",
+        "outputRows",
+        "outputWords",
+        "allocations",
+        "boundaryCrossings"
+      ],
+      "properties": {
+        "queries": { "const": 5 },
+        "rowsVisited": { "const": 50000 },
+        "predicateChecks": { "const": 150000 },
+        "matchedRows": { "const": 18297 },
+        "sortComparisons": { "const": 207481 },
+        "aggregateRows": { "const": 18297 },
+        "chartBins": { "const": 80 },
+        "outputRows": { "const": 40 },
+        "outputWords": { "const": 560 },
+        "allocations": { "const": 41 },
+        "boundaryCrossings": { "const": 0 }
+      }
+    },
+    "wasmCounters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "queries",
+        "rowsVisited",
+        "predicateChecks",
+        "matchedRows",
+        "sortComparisons",
+        "aggregateRows",
+        "chartBins",
+        "outputRows",
+        "outputWords",
+        "allocations",
+        "boundaryCrossings"
+      ],
+      "properties": {
+        "queries": { "const": 5 },
+        "rowsVisited": { "const": 50000 },
+        "predicateChecks": { "const": 150000 },
+        "matchedRows": { "const": 18297 },
+        "sortComparisons": { "const": 207481 },
+        "aggregateRows": { "const": 18297 },
+        "chartBins": { "const": 80 },
+        "outputRows": { "const": 40 },
+        "outputWords": { "const": 560 },
+        "allocations": { "const": 0 },
+        "boundaryCrossings": { "const": 12 }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "expectedDigest",
+        "exactArtifactHashes",
+        "fullOutputValidated",
+        "countersValidated",
+        "crossTargetValidated",
+        "oracleValidated",
+        "allFiveModelsValidated"
+      ],
+      "properties": {
+        "expectedDigest": { "const": "e26a152f" },
+        "exactArtifactHashes": { "const": true },
+        "fullOutputValidated": { "const": true },
+        "countersValidated": { "const": true },
+        "crossTargetValidated": { "const": true },
+        "oracleValidated": { "const": true },
+        "allFiveModelsValidated": { "const": true }
+      }
+    },
+    "resultJs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workloadId",
+        "variantId",
+        "digest",
+        "outputBytes",
+        "counters",
+        "chartModels",
+        "validation"
+      ],
+      "properties": {
+        "workloadId": { "const": "database.olap-chart.v1" },
+        "variantId": { "const": "js-controlled" },
+        "digest": { "const": "e26a152f" },
+        "outputBytes": { "const": 2240 },
+        "counters": { "$ref": "#/$defs/jsCounters" },
+        "chartModels": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": { "$ref": "#/$defs/chartModel" }
+        },
+        "validation": { "$ref": "#/$defs/validation" }
+      }
+    },
+    "resultWasm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workloadId",
+        "variantId",
+        "digest",
+        "outputBytes",
+        "counters",
+        "chartModels",
+        "validation"
+      ],
+      "properties": {
+        "workloadId": { "const": "database.olap-chart.v1" },
+        "variantId": { "const": "wasm-linear-controlled" },
+        "digest": { "const": "e26a152f" },
+        "outputBytes": { "const": 2240 },
+        "counters": { "$ref": "#/$defs/wasmCounters" },
+        "chartModels": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": { "$ref": "#/$defs/chartModel" }
+        },
+        "validation": { "$ref": "#/$defs/validation" }
+      }
+    },
+    "pageState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "result",
+        "chartLabel",
+        "startDisabled",
+        "cancelDisabled",
+        "statusHistory",
+        "workerCount",
+        "terminatedWorkers"
+      ],
+      "properties": {
+        "status": { "type": "string", "minLength": 1 },
+        "result": { "type": "string", "minLength": 1 },
+        "chartLabel": { "type": "string", "minLength": 1 },
+        "startDisabled": { "type": "boolean" },
+        "cancelDisabled": { "type": "boolean" },
+        "statusHistory": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "workerCount": { "type": "integer", "minimum": 1 },
+        "terminatedWorkers": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "accessibleResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["query", "rawText", "chartLabel", "rawTextSha256"],
+      "properties": {
+        "query": { "type": "integer", "minimum": 0, "maximum": 4 },
+        "rawText": { "type": "string", "minLength": 1 },
+        "chartLabel": {
+          "type": "string",
+          "pattern": "^Query [1-5]: [0-9]+ matched rows across 16 category bins$"
+        },
+        "rawTextSha256": { "$ref": "#/$defs/hash64" }
+      }
+    },
+    "completeSemanticJs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["result", "accessibleResults", "assertionPassed"],
+      "properties": {
+        "result": { "$ref": "#/$defs/resultJs" },
+        "accessibleResults": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": { "$ref": "#/$defs/accessibleResult" }
+        },
+        "assertionPassed": { "const": true }
+      }
+    },
+    "completeSemanticWasm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["result", "accessibleResults", "assertionPassed"],
+      "properties": {
+        "result": { "$ref": "#/$defs/resultWasm" },
+        "accessibleResults": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": { "$ref": "#/$defs/accessibleResult" }
+        },
+        "assertionPassed": { "const": true }
+      }
+    },
+    "lifecycleAssertions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "wrongTokenIgnored",
+        "staleWorkerIgnored",
+        "restartReplacedWorker",
+        "timeoutTerminatedWorker",
+        "cancelTerminatedWorker",
+        "pagehideTerminatedWorker"
+      ],
+      "properties": {
+        "wrongTokenIgnored": { "type": "boolean" },
+        "staleWorkerIgnored": { "type": "boolean" },
+        "restartReplacedWorker": { "type": "boolean" },
+        "timeoutTerminatedWorker": { "type": "boolean" },
+        "cancelTerminatedWorker": { "type": "boolean" },
+        "pagehideTerminatedWorker": { "type": "boolean" }
+      }
+    },
+    "lifecycleSemantic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "action",
+        "finalState",
+        "workerCount",
+        "terminatedWorkers",
+        "assertions",
+        "assertionPassed"
+      ],
+      "properties": {
+        "id": { "enum": ["wrong-token", "stale", "restart", "timeout", "cancel", "pagehide"] },
+        "action": { "const": "controller-lifecycle-probe" },
+        "finalState": { "$ref": "#/$defs/pageState" },
+        "workerCount": { "type": "integer", "minimum": 1, "maximum": 2 },
+        "terminatedWorkers": { "type": "integer", "minimum": 1, "maximum": 2 },
+        "assertions": { "$ref": "#/$defs/lifecycleAssertions" },
+        "assertionPassed": { "const": true }
+      }
+    },
+    "consoleEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["context", "type", "arguments"],
+      "properties": {
+        "context": { "enum": ["page", "worker"] },
+        "type": { "type": "string", "minLength": 1 },
+        "arguments": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "exception": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["context", "text", "lineNumber", "columnNumber"],
+      "properties": {
+        "context": { "enum": ["page", "worker"] },
+        "text": { "type": "string" },
+        "lineNumber": { "type": "number" },
+        "columnNumber": { "type": "number" }
+      }
+    },
+    "network": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "targetId",
+        "targetIdSha256",
+        "sessionId",
+        "sessionIdSha256",
+        "requestId",
+        "requestIdSha256",
+        "url",
+        "route",
+        "method",
+        "resourceType",
+        "status",
+        "mimeType",
+        "fromDiskCache",
+        "fromServiceWorker",
+        "failed",
+        "sourcePath",
+        "sourceBytes",
+        "sourceSha256",
+        "sourceGitBlob",
+        "rawResponseBytes",
+        "rawResponseSha256",
+        "exactSourceMatch"
+      ],
+      "properties": {
+        "targetId": { "type": "string", "minLength": 1 },
+        "targetIdSha256": { "$ref": "#/$defs/hash64" },
+        "sessionId": { "type": "string", "minLength": 1 },
+        "sessionIdSha256": { "$ref": "#/$defs/hash64" },
+        "requestId": { "type": "string", "minLength": 1 },
+        "requestIdSha256": { "$ref": "#/$defs/hash64" },
+        "url": { "type": "string", "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/" },
+        "route": { "type": "string", "pattern": "^/" },
+        "method": { "const": "GET" },
+        "resourceType": { "type": "string", "minLength": 1 },
+        "status": { "const": 200 },
+        "mimeType": { "type": "string", "minLength": 1 },
+        "fromDiskCache": { "const": false },
+        "fromServiceWorker": { "const": false },
+        "failed": { "const": false },
+        "sourcePath": { "type": "string", "minLength": 1 },
+        "sourceBytes": { "type": "integer", "minimum": 1 },
+        "sourceSha256": { "$ref": "#/$defs/hash64" },
+        "sourceGitBlob": { "$ref": "#/$defs/hash40" },
+        "rawResponseBytes": { "type": "integer", "minimum": 1 },
+        "rawResponseSha256": { "$ref": "#/$defs/hash64" },
+        "exactSourceMatch": { "const": true }
+      }
+    },
+    "accessibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bodyTextSha256",
+        "statusText",
+        "resultText",
+        "resultTextSha256",
+        "inspectedAxNodes",
+        "axTreeSha256",
+        "assertions"
+      ],
+      "properties": {
+        "bodyTextSha256": { "$ref": "#/$defs/hash64" },
+        "statusText": { "type": "string", "minLength": 1 },
+        "resultText": { "type": "string", "minLength": 1 },
+        "resultTextSha256": { "$ref": "#/$defs/hash64" },
+        "inspectedAxNodes": { "type": "integer", "minimum": 1 },
+        "axTreeSha256": { "$ref": "#/$defs/hash64" },
+        "assertions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "languageEnglish",
+            "mainLandmark",
+            "namedHeading",
+            "labelledTarget",
+            "labelledQuery",
+            "namedControls",
+            "liveStatus",
+            "keyboardTextResult"
+          ],
+          "properties": {
+            "languageEnglish": { "const": true },
+            "mainLandmark": { "const": true },
+            "namedHeading": { "const": true },
+            "labelledTarget": { "const": true },
+            "labelledQuery": { "const": true },
+            "namedControls": { "const": true },
+            "liveStatus": { "const": true },
+            "keyboardTextResult": { "const": true }
+          }
+        }
+      }
+    },
+    "screenshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "format", "bytes", "sha256"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^[^/]+\\.screenshots/[a-z0-9-]+\\.png$" },
+        "format": { "const": "png" },
+        "bytes": { "type": "integer", "minimum": 8 },
+        "sha256": { "$ref": "#/$defs/hash64" }
+      }
+    },
+    "scenarioBaseProperties": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {}
+    },
+    "completeJs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "target",
+        "route",
+        "targetId",
+        "targetIdSha256",
+        "sessionId",
+        "sessionIdSha256",
+        "finalState",
+        "semantic",
+        "console",
+        "exceptions",
+        "network",
+        "accessibility",
+        "screenshot"
+      ],
+      "properties": {
+        "id": { "const": "complete-js-controlled" },
+        "kind": { "const": "complete" },
+        "target": { "const": "js-controlled" },
+        "route": { "const": "/benchmarks/database-olap-chart/" },
+        "targetId": { "type": "string", "minLength": 1 },
+        "targetIdSha256": { "$ref": "#/$defs/hash64" },
+        "sessionId": { "type": "string", "minLength": 1 },
+        "sessionIdSha256": { "$ref": "#/$defs/hash64" },
+        "finalState": { "$ref": "#/$defs/pageState" },
+        "semantic": { "$ref": "#/$defs/completeSemanticJs" },
+        "console": { "type": "array", "items": { "$ref": "#/$defs/consoleEntry" } },
+        "exceptions": { "type": "array", "maxItems": 0, "items": { "$ref": "#/$defs/exception" } },
+        "network": { "type": "array", "minItems": 12, "items": { "$ref": "#/$defs/network" } },
+        "accessibility": { "$ref": "#/$defs/accessibility" },
+        "screenshot": { "$ref": "#/$defs/screenshot" }
+      }
+    },
+    "completeWasm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "target",
+        "route",
+        "targetId",
+        "targetIdSha256",
+        "sessionId",
+        "sessionIdSha256",
+        "finalState",
+        "semantic",
+        "console",
+        "exceptions",
+        "network",
+        "accessibility",
+        "screenshot"
+      ],
+      "properties": {
+        "id": { "const": "complete-wasm-linear-controlled" },
+        "kind": { "const": "complete" },
+        "target": { "const": "wasm-linear-controlled" },
+        "route": { "const": "/benchmarks/database-olap-chart/" },
+        "targetId": { "type": "string", "minLength": 1 },
+        "targetIdSha256": { "$ref": "#/$defs/hash64" },
+        "sessionId": { "type": "string", "minLength": 1 },
+        "sessionIdSha256": { "$ref": "#/$defs/hash64" },
+        "finalState": { "$ref": "#/$defs/pageState" },
+        "semantic": { "$ref": "#/$defs/completeSemanticWasm" },
+        "console": { "type": "array", "items": { "$ref": "#/$defs/consoleEntry" } },
+        "exceptions": { "type": "array", "maxItems": 0, "items": { "$ref": "#/$defs/exception" } },
+        "network": { "type": "array", "minItems": 12, "items": { "$ref": "#/$defs/network" } },
+        "accessibility": { "$ref": "#/$defs/accessibility" },
+        "screenshot": { "$ref": "#/$defs/screenshot" }
+      }
+    },
+    "lifecycleBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "target",
+        "route",
+        "targetId",
+        "targetIdSha256",
+        "sessionId",
+        "sessionIdSha256",
+        "finalState",
+        "semantic",
+        "console",
+        "exceptions",
+        "network",
+        "accessibility",
+        "screenshot"
+      ],
+      "properties": {
+        "id": { "type": "string" },
+        "kind": { "const": "lifecycle" },
+        "target": { "const": "js-controlled" },
+        "route": { "const": "/benchmarks/database-olap-chart/" },
+        "targetId": { "type": "string", "minLength": 1 },
+        "targetIdSha256": { "$ref": "#/$defs/hash64" },
+        "sessionId": { "type": "string", "minLength": 1 },
+        "sessionIdSha256": { "$ref": "#/$defs/hash64" },
+        "finalState": { "$ref": "#/$defs/pageState" },
+        "semantic": { "$ref": "#/$defs/lifecycleSemantic" },
+        "console": { "type": "array", "items": { "$ref": "#/$defs/consoleEntry" } },
+        "exceptions": { "type": "array", "maxItems": 0, "items": { "$ref": "#/$defs/exception" } },
+        "network": { "type": "array", "minItems": 3, "items": { "$ref": "#/$defs/network" } },
+        "accessibility": { "$ref": "#/$defs/accessibility" },
+        "screenshot": { "$ref": "#/$defs/screenshot" }
+      }
+    },
+    "wrongToken": { "$ref": "#/$defs/lifecycleBase" },
+    "stale": { "$ref": "#/$defs/lifecycleBase" },
+    "restart": { "$ref": "#/$defs/lifecycleBase" },
+    "timeout": { "$ref": "#/$defs/lifecycleBase" },
+    "cancel": { "$ref": "#/$defs/lifecycleBase" },
+    "pagehide": { "$ref": "#/$defs/lifecycleBase" },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["browser", "profile", "server"],
+      "properties": {
+        "browser": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "requested",
+            "processesAbsent",
+            "remainingPids",
+            "mainProcess",
+            "observedProcesses"
+          ],
+          "properties": {
+            "requested": { "const": "cgroup.kill" },
+            "processesAbsent": { "const": true },
+            "remainingPids": { "type": "array", "maxItems": 0 },
+            "mainProcess": { "$ref": "#/$defs/process" },
+            "observedProcesses": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "$ref": "#/$defs/process" }
+            }
+          }
+        },
+        "profile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["removed", "absent", "path"],
+          "properties": {
+            "removed": { "const": true },
+            "absent": { "const": true },
+            "path": {
+              "type": "string",
+              "pattern": "^/tmp/wasm-vs-js-owned-profiles/olap-[a-f0-9]{32}/profile$"
+            }
+          }
+        },
+        "server": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["signal", "processAbsent", "launcher"],
+          "properties": {
+            "signal": { "const": "SIGTERM" },
+            "processAbsent": { "const": true },
+            "launcher": { "$ref": "#/$defs/process" }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "database.olap-chart.v1",
+  "sourceCommit": "b59e7d7e74c30d36d027d133929f1448a504af0f",
+  "command": "deno run --allow-read=. --allow-write=public/artifacts,public/evidence --allow-run=clang,wasm-ld scripts/build-base-olap.ts --source-commit=<commit>",
+  "flags": [
+    "--target=wasm32-unknown-unknown",
+    "-O3",
+    "-nostdlib",
+    "-ffreestanding",
+    "-fno-builtin",
+    "-fno-vectorize",
+    "-fno-slp-vectorize",
+    "--initial-memory=1048576",
+    "--max-memory=1048576"
+  ],
+  "toolchain": {
+    "deno": "2.9.0",
+    "clang": "clang version 22.1.8\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+    "wasmLd": "LLD 22.1.8"
+  },
+  "sources": [
+    {
+      "path": "benchmarks/base/database-olap-chart/implementation-contract.v1.json",
+      "bytes": 2291,
+      "sha256": "0427217049cb2d34691324677a13de68dc83882a30c34181471c12866c2f4c85"
+    },
+    {
+      "path": "benchmarks/base/database-olap-chart/fixture.js",
+      "bytes": 2369,
+      "sha256": "f35f1314f7f575d45477fe85342b5d5d05ed87642ef7672400c1eaf7ab1d3c45"
+    },
+    {
+      "path": "benchmarks/base/database-olap-chart/engine.js",
+      "bytes": 7810,
+      "sha256": "34430d57f3e4a6039d1c8ead6c10b0b5990992dbd1a3c32a025317961dedae19"
+    },
+    {
+      "path": "benchmarks/base/database-olap-chart/browser-validation.js",
+      "bytes": 2810,
+      "sha256": "c2a453e817ab7c51d30a6317ed90cd9e9c1c9a06e509e1b75cbe6dc233af9af9"
+    },
+    {
+      "path": "benchmarks/base/database-olap-chart/olap.c",
+      "bytes": 4653,
+      "sha256": "a5a40cb0c8e60b7b662862c149bc02874bc4c039d2b583a88bd65b3864537799"
+    },
+    {
+      "path": "public/benchmarks/database-olap-chart/worker.js",
+      "bytes": 5168,
+      "sha256": "6af6aa576da55880735a06f472020852775f6d335c5a5a5df3848adb5b485773"
+    },
+    {
+      "path": "public/benchmarks/database-olap-chart/runner.js",
+      "bytes": 3641,
+      "sha256": "79aa31bf6969669bda597f8765684c7efadaff8e8fda9ddf553e231a28b67d3f"
+    },
+    {
+      "path": "scripts/build-base-olap.ts",
+      "bytes": 7819,
+      "sha256": "240ad3a010cb15da9ecd5186904630cb58e832efe97f7e3d140a7edd82f0e152"
+    },
+    {
+      "path": "schemas/base-implementation/registration.schema.json",
+      "bytes": 1216,
+      "sha256": "9074d3379f5c36994dcb3373be2128b9122eb04c4a27938bc83999c83461f424"
+    },
+    {
+      "path": "schemas/base-implementation/correctness-record.schema.json",
+      "bytes": 1716,
+      "sha256": "7481cf25443749ad6d4cc287725d52b0f83bd6ff5537b1a2a246355572737df0"
+    },
+    {
+      "path": "deno.json",
+      "bytes": 1831,
+      "sha256": "17e6674c81fdaee7dfc52ed1bd28baeec70fb0715f839b92defe1e84545b08eb"
+    },
+    {
+      "path": "deno.lock",
+      "bytes": 1630,
+      "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "public/artifacts/database-olap-chart/database-olap-chart.wasm",
+      "bytes": 4092,
+      "sha256": "d8961ca2376da7f5fc571b89235d3986fa80e27d557c832ba86d025d8077acd8"
+    },
+    {
+      "path": "public/artifacts/database-olap-chart/fixture.bin",
+      "bytes": 240152,
+      "sha256": "5cf987b48dffafc4d11f11f23d25c2064e631a8ac8070ef89fdb2090751b9e8c"
+    },
+    {
+      "path": "public/artifacts/database-olap-chart/fixture-manifest.json",
+      "bytes": 613,
+      "sha256": "a05e3b89e64f4dd4868d7c6617d5e5fa283ca7ccb7fa864ad5905c1993a85ffd"
+    },
+    {
+      "path": "public/artifacts/database-olap-chart/output-manifest.json",
+      "bytes": 29529,
+      "sha256": "de1bb41b8e1053b7639a4c96f150698bb3542c6278ba4e6d277c49f9715374c1"
+    }
+  ]
+}

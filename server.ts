@@ -211,6 +211,37 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/demo-registry.json", ["public/demo-registry.json", "application/json; charset=utf-8"]],
   ["/demo-assets/audio/manifest.json", [
     "public/demo-assets/audio/manifest.json",
+  ["/benchmarks/database-olap-chart", [
+    "public/benchmarks/database-olap-chart/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/database-olap-chart/", [
+  ["/benchmarks/database-olap-chart/runner.js", [
+    "public/benchmarks/database-olap-chart/runner.js",
+    "text/javascript; charset=utf-8",
+  ["/benchmarks/database-olap-chart/worker.js", [
+    "public/benchmarks/database-olap-chart/worker.js",
+  ["/benchmarks/base/database-olap-chart/engine.js", [
+    "benchmarks/base/database-olap-chart/engine.js",
+  ["/benchmarks/base/database-olap-chart/browser-validation.js", [
+    "benchmarks/base/database-olap-chart/browser-validation.js",
+  ["/benchmarks/base/database-olap-chart/fixture.js", [
+    "benchmarks/base/database-olap-chart/fixture.js",
+  ["/artifacts/database-olap-chart/database-olap-chart.wasm", [
+    "public/artifacts/database-olap-chart/database-olap-chart.wasm",
+    "application/wasm",
+  ["/artifacts/database-olap-chart/fixture.bin", [
+    "public/artifacts/database-olap-chart/fixture.bin",
+    "application/octet-stream",
+  ["/artifacts/database-olap-chart/build-manifest.json", [
+    "public/artifacts/database-olap-chart/build-manifest.json",
+    "application/json; charset=utf-8",
+  ["/artifacts/database-olap-chart/fixture-manifest.json", [
+    "public/artifacts/database-olap-chart/fixture-manifest.json",
+  ["/artifacts/database-olap-chart/output-manifest.json", [
+    "public/artifacts/database-olap-chart/output-manifest.json",
+  ["/evidence/base/database-olap-chart/correctness-record.json", [
+    "public/evidence/base/database-olap-chart/correctness-record.json",
     "application/json; charset=utf-8",
   ]],
   ["/workload-catalog.js", ["public/workload-catalog.js", "text/javascript; charset=utf-8"]],

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.example/schemas/base-implementation/registration.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "registrationId",
+    "catalogId",
+    "catalogSha256",
+    "workloadId",
+    "status",
+    "track",
+    "algorithmFamily",
+    "catalogEquivalenceClass",
+    "coverage",
+    "representation",
+    "variants",
+    "performanceClaims"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "registrationId": { "type": "string", "minLength": 1 },
+    "catalogId": { "const": "workload-catalog-v1" },
+    "catalogSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "workloadId": { "const": "database.olap-chart.v1" },
+    "status": { "const": "implementation-candidate" },
+    "track": { "const": "controlled-a" },
+    "algorithmFamily": { "type": "string", "minLength": 1 },
+    "catalogEquivalenceClass": { "const": "semantic-product-choice" },
+    "coverage": { "type": "object" },
+    "representation": { "type": "object" },
+    "variants": { "const": ["js-controlled", "wasm-linear-controlled"] },
+    "performanceClaims": { "const": [] }
+  }
+}
