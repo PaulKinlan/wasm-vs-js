@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.example/schemas/base-workload-contract.schema.json",
+  "title": "numeric.polybench-panel.v1 exact supplemental contract",
+  "const": {
+    "schemaVersion": 1,
+    "contractId": "numeric.polybench-panel.v1-supplemental-contract-v1",
+    "catalogId": "workload-catalog-v1",
+    "catalogEntryId": "numeric.polybench-panel.v1",
+    "catalogMutation": false,
+    "status": "candidate-complete-correctness-package",
+    "track": "controlled",
+    "algorithmFamily": "polybench-fixed-kernel-size",
+    "equivalenceClass": "algorithm-equivalent",
+    "sourceBasis": {
+      "name": "PolyBench/C 4.2.1 beta",
+      "url": "https://sourceforge.net/projects/polybench/files/polybench-c-4.2.1-beta.tar.gz/download",
+      "archiveSha256": "426519ee8443a5f2175de6a3e9328cda8917a5e33053d0e8f59855ab56d689a4",
+      "licenseSpdx": "LicenseRef-PolyBench",
+      "redistribution": "recipe-only",
+      "verificationEvidence": "evidence/base/numeric-polybench-panel/prior-art-verification.json",
+      "notice": "PolyBench/C is by Louis-Noel Pouchet at Ohio State University. The 297,237-byte archive was fetched and verified at the recorded SHA-256. No PolyBench source or downloaded archive bytes are redistributed here; this package independently expresses the registered initialization and loop contract."
+    },
+    "fixedWork": {
+      "gemm": {
+        "dataset": "MINI_DATASET",
+        "ni": 20,
+        "nj": 25,
+        "nk": 30,
+        "alpha": 1.5,
+        "beta": 1.2,
+        "passes": 1
+      },
+      "cholesky": {
+        "dataset": "MINI_DATASET",
+        "n": 40,
+        "factorizations": 1
+      },
+      "stencil": {
+        "dataset": "MINI_DATASET",
+        "n": 30,
+        "sweeps": 1,
+        "pointsPerInteriorCell": 5,
+        "weight": 0.2
+      },
+      "jacobi2d": {
+        "dataset": "MINI_DATASET",
+        "n": 30,
+        "timesteps": 20,
+        "sweepsPerTimestep": 2,
+        "pointsPerInteriorCell": 5,
+        "weight": 0.2
+      }
+    },
+    "fixtureRecipe": {
+      "format": "generated-f64-row-major-no-redistributed-input-bytes",
+      "gemm": "C[i,j]=((i*j+1)%NI)/NI; A[i,k]=(i*(k+1)%NK)/NK; B[k,j]=(k*(j+2)%NJ)/NJ",
+      "cholesky": "L0[i,j]=(-j%N)/N+1 for j<=i, L0[i,i]=1, zero otherwise; A=L0*transpose(L0)",
+      "stencil": "A[i,j]=(i*(j+2)+2)/N; B[i,j]=(i*(j+3)+3)/N; retain B boundaries; one A-to-B five-point sweep",
+      "jacobi2d": "Same A/B initialization; each of 20 timesteps performs A-to-B then B-to-A five-point sweeps",
+      "determinism": "IEEE-754 binary64 operations in source order; no random state"
+    },
+    "floatingPointPolicy": {
+      "storage": "f64",
+      "operationOrder": "i-j scale then i-k-j accumulate for GEMM; i-j-k for Cholesky; timestep-i-j for stencil/Jacobi",
+      "fmaContraction": false,
+      "fastMath": false,
+      "nanInfinity": "reject",
+      "signedZero": "equal",
+      "absoluteTolerance": 1e-10,
+      "relativeTolerance": 1e-10,
+      "exactCrossTargetExpected": true
+    },
+    "oracles": {
+      "completeOutput": true,
+      "independentNumericReference": "Clang 22.1.8 compiles reference.c with -O0, f64, FP contraction disabled and fast-math disabled; complete JS and Wasm outputs are compared element-by-element with its retained raw f64le outputs.",
+      "gemm": [
+        "every C element",
+        "finite",
+        "reference tolerance"
+      ],
+      "cholesky": [
+        "every lower-triangle element",
+        "upper triangle canonical zero",
+        "finite",
+        "L*transpose(L) reconstructs A within 1e-10"
+      ],
+      "stencil": [
+        "every output element",
+        "boundaries unchanged",
+        "finite",
+        "reference tolerance"
+      ],
+      "jacobi2d": [
+        "every final element after 20 timesteps",
+        "boundaries unchanged",
+        "finite",
+        "reference tolerance"
+      ]
+    },
+    "requiredCounters": [
+      "kernels",
+      "outputElements",
+      "inputBytes",
+      "outputBytes",
+      "typedArrayAllocations",
+      "wasmLinearAllocations",
+      "boundaryCrossings",
+      "multiplyAdds",
+      "scaleMultiplications",
+      "multiplySubtracts",
+      "divisions",
+      "diagonalRoots",
+      "stencilPoints",
+      "sampleReads",
+      "outputWrites"
+    ],
+    "counterScope": {
+      "inputBytes": "all target-consumed fixture arrays; stencil and Jacobi include both A and B grids",
+      "outputBytes": "complete returned f64 output",
+      "typedArrayAllocations": "per run from fixture initialization through returned output, including JS host linear-memory views; excludes worker/module initialization",
+      "boundaryCrossings": "zero for JavaScript; one exported kernel call for linear Wasm",
+      "wasmLinearAllocations": "zero because the fixed 64-page memory never grows"
+    },
+    "targets": {
+      "javascript-controlled": {
+        "representation": "Float64Array",
+        "completeKernels": [
+          "gemm",
+          "cholesky",
+          "stencil",
+          "jacobi2d"
+        ]
+      },
+      "linear-wasm-controlled": {
+        "representation": "fixed 64-page linear memory, f64 row-major",
+        "completeKernels": [
+          "gemm",
+          "cholesky",
+          "stencil",
+          "jacobi2d"
+        ]
+      }
+    },
+    "performanceClaims": []
+  }
+}

@@ -1,0 +1,2773 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.ai-focus.dev/schemas/polybench-panel-chrome-evidence.v1.json",
+  "title": "Numeric PolyBench panel Chrome acceptance evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "evidenceId",
+    "collectedAt",
+    "source",
+    "collectionCommand",
+    "browser",
+    "server",
+    "scenarios",
+    "cleanup"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "evidenceId": {
+      "const": "numeric-polybench-panel-chrome-150-acceptance-v1"
+    },
+    "collectedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source": {
+      "$ref": "#/$defs/source"
+    },
+    "collectionCommand": {
+      "type": "string",
+      "pattern": "^deno run -A scripts/collect-polybench-panel-chrome-evidence\\.ts --source-commit=[a-f0-9]{40} --chrome=\\S+$"
+    },
+    "browser": {
+      "$ref": "#/$defs/browser"
+    },
+    "server": {
+      "$ref": "#/$defs/server"
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "prefixItems": [
+        {
+          "$ref": "#/$defs/javascriptExecution"
+        },
+        {
+          "$ref": "#/$defs/wasmExecution"
+        },
+        {
+          "$ref": "#/$defs/wrongToken"
+        },
+        {
+          "$ref": "#/$defs/staleMessage"
+        },
+        {
+          "$ref": "#/$defs/restart"
+        },
+        {
+          "$ref": "#/$defs/cancel"
+        },
+        {
+          "$ref": "#/$defs/timeout"
+        },
+        {
+          "$ref": "#/$defs/pagehide"
+        }
+      ],
+      "items": false
+    },
+    "cleanup": {
+      "$ref": "#/$defs/cleanup"
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "gitIdentity": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "bytes",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^evidence/base/numeric-polybench-panel/chrome-acceptance/(accessibility/[a-z0-9-]+\\.json|screenshots/[a-z0-9-]+\\.png)$"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "sourceFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "bytes",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "enum": [
+            "public/demos/numeric.polybench-panel.v1/index.html",
+            "public/polybench-panel-demo.js",
+            "public/polybench-panel-worker.js",
+            "benchmarks/base/numeric-polybench-panel/workload.js",
+            "public/artifacts/numeric-polybench-panel/polybench-panel.wasm",
+            "public/artifacts/numeric-polybench-panel/build-manifest.json",
+            "public/artifacts/numeric-polybench-panel/outputs/gemm.reference.f64le",
+            "public/artifacts/numeric-polybench-panel/outputs/gemm.javascript-controlled.f64le",
+            "public/artifacts/numeric-polybench-panel/outputs/gemm.linear-wasm-controlled.f64le",
+            "public/artifacts/numeric-polybench-panel/outputs/cholesky.reference.f64le",
+            "public/artifacts/numeric-polybench-panel/outputs/cholesky.javascript-controlled.f64le",
+            "public/artifacts/numeric-polybench-panel/outputs/cholesky.linear-wasm-controlled.f64le",
+            "public/artifacts/numeric-polybench-panel/outputs/stencil.reference.f64le",
+            "public/artifacts/numeric-polybench-panel/outputs/stencil.javascript-controlled.f64le",
+            "public/artifacts/numeric-polybench-panel/outputs/stencil.linear-wasm-controlled.f64le",
+            "public/artifacts/numeric-polybench-panel/outputs/jacobi2d.reference.f64le",
+            "public/artifacts/numeric-polybench-panel/outputs/jacobi2d.javascript-controlled.f64le",
+            "public/artifacts/numeric-polybench-panel/outputs/jacobi2d.linear-wasm-controlled.f64le",
+            "evidence/base/numeric-polybench-panel/correctness-record.json",
+            "scripts/collect-polybench-panel-chrome-evidence.ts",
+            "schemas/polybench-panel-chrome-evidence.schema.json",
+            "tests/base/polybench-panel-chrome-collector.test.ts"
+          ]
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "commit",
+        "tree",
+        "cleanAtStart",
+        "statusPorcelain",
+        "files",
+        "cleanAtEnd",
+        "statusPorcelainAtEnd",
+        "buildManifest"
+      ],
+      "properties": {
+        "commit": {
+          "$ref": "#/$defs/gitIdentity"
+        },
+        "tree": {
+          "$ref": "#/$defs/gitIdentity"
+        },
+        "cleanAtStart": {
+          "const": true
+        },
+        "statusPorcelain": {
+          "const": ""
+        },
+        "files": {
+          "type": "array",
+          "minItems": 22,
+          "maxItems": 22,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/demos/numeric.polybench-panel.v1/index.html"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/polybench-panel-demo.js"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/polybench-panel-worker.js"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "benchmarks/base/numeric-polybench-panel/workload.js"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/polybench-panel.wasm"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/build-manifest.json"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/outputs/gemm.reference.f64le"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/outputs/gemm.javascript-controlled.f64le"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/outputs/gemm.linear-wasm-controlled.f64le"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/outputs/cholesky.reference.f64le"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/outputs/cholesky.javascript-controlled.f64le"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/outputs/cholesky.linear-wasm-controlled.f64le"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/outputs/stencil.reference.f64le"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/outputs/stencil.javascript-controlled.f64le"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/outputs/stencil.linear-wasm-controlled.f64le"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/outputs/jacobi2d.reference.f64le"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/outputs/jacobi2d.javascript-controlled.f64le"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "public/artifacts/numeric-polybench-panel/outputs/jacobi2d.linear-wasm-controlled.f64le"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "evidence/base/numeric-polybench-panel/correctness-record.json"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "scripts/collect-polybench-panel-chrome-evidence.ts"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "schemas/polybench-panel-chrome-evidence.schema.json"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/sourceFile",
+              "properties": {
+                "path": {
+                  "const": "tests/base/polybench-panel-chrome-collector.test.ts"
+                }
+              },
+              "type": "object"
+            }
+          ],
+          "items": false
+        },
+        "buildManifest": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "sha256",
+            "implementationCommit",
+            "sourceTreeSha256"
+          ],
+          "properties": {
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "implementationCommit": {
+              "$ref": "#/$defs/gitIdentity"
+            },
+            "sourceTreeSha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "cleanAtEnd": {
+          "const": true
+        },
+        "statusPorcelainAtEnd": {
+          "const": ""
+        }
+      }
+    },
+    "executable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requestedPath",
+        "realPath",
+        "bytes",
+        "sha256"
+      ],
+      "properties": {
+        "requestedPath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "realPath": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "browser": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "product",
+        "revision",
+        "userAgent",
+        "jsVersion",
+        "protocolVersion",
+        "executable",
+        "launchArguments",
+        "headless",
+        "protocol",
+        "host"
+      ],
+      "properties": {
+        "product": {
+          "const": "Chrome/150.0.7871.24"
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "userAgent": {
+          "type": "string",
+          "minLength": 1
+        },
+        "jsVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "protocolVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "executable": {
+          "$ref": "#/$defs/executable"
+        },
+        "launchArguments": {
+          "type": "array",
+          "minItems": 18,
+          "maxItems": 18,
+          "prefixItems": [
+            {
+              "const": "--headless=new"
+            },
+            {
+              "const": "--enable-automation"
+            },
+            {
+              "const": "--no-sandbox"
+            },
+            {
+              "const": "--disable-gpu"
+            },
+            {
+              "const": "--disable-background-networking"
+            },
+            {
+              "const": "--disable-component-update"
+            },
+            {
+              "const": "--disable-default-apps"
+            },
+            {
+              "const": "--disable-extensions"
+            },
+            {
+              "const": "--disable-sync"
+            },
+            {
+              "const": "--metrics-recording-only"
+            },
+            {
+              "const": "--no-first-run"
+            },
+            {
+              "const": "--hide-scrollbars"
+            },
+            {
+              "const": "--window-size=1440,1200"
+            },
+            {
+              "const": "--force-device-scale-factor=1"
+            },
+            {
+              "const": "--remote-debugging-address=127.0.0.1"
+            },
+            {
+              "type": "string",
+              "pattern": "^--remote-debugging-port=[0-9]+$"
+            },
+            {
+              "type": "string",
+              "pattern": "^--user-data-dir=/tmp/wasm-polybench-panel-chrome-[A-Za-z0-9_-]+$"
+            },
+            {
+              "const": "about:blank"
+            }
+          ],
+          "items": false
+        },
+        "headless": {
+          "const": true
+        },
+        "protocol": {
+          "const": "Chrome DevTools Protocol"
+        },
+        "host": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "operatingSystem",
+            "denoOs",
+            "denoArch"
+          ],
+          "properties": {
+            "operatingSystem": {
+              "type": "string",
+              "minLength": 1
+            },
+            "denoOs": {
+              "type": "string",
+              "minLength": 1
+            },
+            "denoArch": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "server": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "origin",
+        "mode",
+        "launcherPid"
+      ],
+      "properties": {
+        "origin": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+$"
+        },
+        "mode": {
+          "const": "public"
+        },
+        "launcherPid": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "resultSet": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/javascriptResultSet"
+        },
+        {
+          "$ref": "#/$defs/wasmResultSet"
+        }
+      ]
+    },
+    "pageState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "output",
+        "startDisabled",
+        "cancelDisabled",
+        "progressValue",
+        "progressMax"
+      ],
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "output": {
+          "type": "string"
+        },
+        "startDisabled": {
+          "type": "boolean"
+        },
+        "cancelDisabled": {
+          "type": "boolean"
+        },
+        "progressValue": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 4
+        },
+        "progressMax": {
+          "enum": [
+            1,
+            4
+          ]
+        }
+      }
+    },
+    "lifecycleState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "output",
+        "startDisabled",
+        "cancelDisabled",
+        "progressValue",
+        "workers"
+      ],
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "output": {
+          "type": "string"
+        },
+        "startDisabled": {
+          "type": "boolean"
+        },
+        "cancelDisabled": {
+          "type": "boolean"
+        },
+        "progressValue": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "workers": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/workerState"
+          }
+        }
+      }
+    },
+    "workerState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "terminated",
+        "posted"
+      ],
+      "properties": {
+        "terminated": {
+          "type": "boolean"
+        },
+        "posted": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "token",
+            "target",
+            "kernel"
+          ],
+          "properties": {
+            "token": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "target": {
+              "enum": [
+                "javascript",
+                "wasm"
+              ]
+            },
+            "kernel": {
+              "enum": [
+                "all",
+                "gemm",
+                "cholesky",
+                "stencil",
+                "jacobi2d"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "lifecycleRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assertion",
+        "final"
+      ],
+      "properties": {
+        "assertion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ignored": {
+          "$ref": "#/$defs/lifecycleState"
+        },
+        "restarted": {
+          "$ref": "#/$defs/lifecycleState"
+        },
+        "final": {
+          "$ref": "#/$defs/lifecycleState"
+        }
+      }
+    },
+    "consoleEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "arguments"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "not": {
+            "const": "error"
+          }
+        },
+        "arguments": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "exception": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text",
+        "lineNumber"
+      ],
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "lineNumber": {
+          "type": "number"
+        }
+      }
+    },
+    "network": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "method",
+        "type",
+        "status",
+        "mimeType",
+        "fromDiskCache",
+        "fromServiceWorker",
+        "failed",
+        "errorText",
+        "encodedDataLength"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/"
+        },
+        "method": {
+          "const": "GET"
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "const": 200
+        },
+        "mimeType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fromDiskCache": {
+          "type": "boolean"
+        },
+        "fromServiceWorker": {
+          "const": false
+        },
+        "failed": {
+          "const": false
+        },
+        "errorText": {
+          "type": "null"
+        },
+        "encodedDataLength": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "accessibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fullTree",
+        "nodeCount",
+        "required",
+        "violations"
+      ],
+      "properties": {
+        "fullTree": {
+          "$ref": "#/$defs/artifact"
+        },
+        "nodeCount": {
+          "type": "integer",
+          "minimum": 6
+        },
+        "required": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/axStart"
+            },
+            {
+              "$ref": "#/$defs/axCancel"
+            },
+            {
+              "$ref": "#/$defs/axTarget"
+            },
+            {
+              "$ref": "#/$defs/axKernel"
+            },
+            {
+              "$ref": "#/$defs/axProgress"
+            },
+            {
+              "$ref": "#/$defs/axStatus"
+            }
+          ],
+          "items": false
+        },
+        "violations": {
+          "type": "array",
+          "maxItems": 0
+        }
+      }
+    },
+    "axStart": {
+      "$ref": "#/$defs/axNode",
+      "properties": {
+        "role": {
+          "const": "button"
+        },
+        "name": {
+          "const": "Start"
+        }
+      },
+      "type": "object"
+    },
+    "axCancel": {
+      "$ref": "#/$defs/axNode",
+      "properties": {
+        "role": {
+          "const": "button"
+        },
+        "name": {
+          "const": "Cancel"
+        }
+      },
+      "type": "object"
+    },
+    "axTarget": {
+      "$ref": "#/$defs/axNode",
+      "properties": {
+        "role": {
+          "const": "combobox"
+        },
+        "name": {
+          "const": "Controlled target"
+        }
+      },
+      "type": "object"
+    },
+    "axKernel": {
+      "$ref": "#/$defs/axNode",
+      "properties": {
+        "role": {
+          "const": "combobox"
+        },
+        "name": {
+          "const": "Kernel"
+        }
+      },
+      "type": "object"
+    },
+    "axProgress": {
+      "$ref": "#/$defs/axNode",
+      "properties": {
+        "role": {
+          "const": "progressbar"
+        },
+        "name": {
+          "const": "Completed kernels"
+        }
+      },
+      "type": "object"
+    },
+    "axStatus": {
+      "$ref": "#/$defs/axNode",
+      "properties": {
+        "role": {
+          "const": "status"
+        },
+        "name": {
+          "const": ""
+        }
+      },
+      "type": "object"
+    },
+    "axNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "name",
+        "found"
+      ],
+      "properties": {
+        "role": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "found": {
+          "const": true
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "route",
+        "target",
+        "finalState",
+        "rawResultText",
+        "rawResultTextSha256",
+        "results",
+        "lifecycle",
+        "console",
+        "exceptions",
+        "network",
+        "accessibility",
+        "screenshot"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "execution",
+            "lifecycle"
+          ]
+        },
+        "route": {
+          "const": "/demos/numeric.polybench-panel.v1/"
+        },
+        "target": {
+          "enum": [
+            "javascript-controlled",
+            "linear-wasm-controlled",
+            null
+          ]
+        },
+        "finalState": {
+          "$ref": "#/$defs/pageState"
+        },
+        "rawResultText": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rawResultTextSha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "results": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/resultSet"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "lifecycle": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/lifecycleRecord"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "console": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/consoleEntry"
+          }
+        },
+        "exceptions": {
+          "type": "array",
+          "maxItems": 0,
+          "items": {
+            "$ref": "#/$defs/exception"
+          }
+        },
+        "network": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "$ref": "#/$defs/network"
+          }
+        },
+        "accessibility": {
+          "$ref": "#/$defs/accessibility"
+        },
+        "screenshot": {
+          "$ref": "#/$defs/artifact"
+        }
+      }
+    },
+    "javascriptExecution": {
+      "$ref": "#/$defs/scenario",
+      "properties": {
+        "id": {
+          "const": "execute-javascript-all"
+        },
+        "kind": {
+          "const": "execution"
+        },
+        "target": {
+          "const": "javascript-controlled"
+        },
+        "rawResultText": {
+          "$ref": "#/$defs/javascriptRawResultText"
+        },
+        "rawResultTextSha256": {
+          "const": "67aab29943fb3ae6c82b1f225f946f8f0139697fbb45dba68574cc212972fde0"
+        },
+        "results": {
+          "$ref": "#/$defs/javascriptResultSet"
+        },
+        "lifecycle": {
+          "type": "null"
+        },
+        "finalState": {
+          "$ref": "#/$defs/executionFinalState",
+          "properties": {
+            "output": {
+              "$ref": "#/$defs/javascriptRawResultText"
+            }
+          },
+          "type": "object"
+        },
+        "screenshot": {
+          "$ref": "#/$defs/artifact",
+          "properties": {
+            "path": {
+              "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/screenshots/execute-javascript-all.png"
+            }
+          },
+          "type": "object"
+        },
+        "accessibility": {
+          "$ref": "#/$defs/accessibility",
+          "properties": {
+            "fullTree": {
+              "$ref": "#/$defs/artifact",
+              "properties": {
+                "path": {
+                  "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/accessibility/execute-javascript-all.json"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "wasmExecution": {
+      "$ref": "#/$defs/scenario",
+      "properties": {
+        "id": {
+          "const": "execute-wasm-all"
+        },
+        "kind": {
+          "const": "execution"
+        },
+        "target": {
+          "const": "linear-wasm-controlled"
+        },
+        "rawResultText": {
+          "$ref": "#/$defs/wasmRawResultText"
+        },
+        "rawResultTextSha256": {
+          "const": "8e08504106e7b9b5957a955baea3757fd1e666732a821d0a1480004678f337b9"
+        },
+        "results": {
+          "$ref": "#/$defs/wasmResultSet"
+        },
+        "lifecycle": {
+          "type": "null"
+        },
+        "finalState": {
+          "$ref": "#/$defs/executionFinalState",
+          "properties": {
+            "output": {
+              "$ref": "#/$defs/wasmRawResultText"
+            }
+          },
+          "type": "object"
+        },
+        "screenshot": {
+          "$ref": "#/$defs/artifact",
+          "properties": {
+            "path": {
+              "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/screenshots/execute-wasm-all.png"
+            }
+          },
+          "type": "object"
+        },
+        "accessibility": {
+          "$ref": "#/$defs/accessibility",
+          "properties": {
+            "fullTree": {
+              "$ref": "#/$defs/artifact",
+              "properties": {
+                "path": {
+                  "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/accessibility/execute-wasm-all.json"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "wrongToken": {
+      "$ref": "#/$defs/scenario",
+      "properties": {
+        "id": {
+          "const": "lifecycle-wrong-token"
+        },
+        "kind": {
+          "const": "lifecycle"
+        },
+        "target": {
+          "type": "null"
+        },
+        "rawResultText": {
+          "type": "null"
+        },
+        "rawResultTextSha256": {
+          "type": "null"
+        },
+        "results": {
+          "type": "null"
+        },
+        "lifecycle": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/lifecycleRecord"
+            },
+            {
+              "type": "object",
+              "minProperties": 3,
+              "maxProperties": 3,
+              "required": [
+                "assertion",
+                "ignored",
+                "final"
+              ],
+              "properties": {
+                "assertion": {
+                  "const": "wrong token ignored"
+                },
+                "ignored": {
+                  "$ref": "#/$defs/runningOne"
+                },
+                "final": {
+                  "$ref": "#/$defs/cancelledOne"
+                }
+              }
+            }
+          ]
+        },
+        "finalState": {
+          "$ref": "#/$defs/cancelledFinalState"
+        },
+        "screenshot": {
+          "$ref": "#/$defs/artifact",
+          "properties": {
+            "path": {
+              "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/screenshots/lifecycle-wrong-token.png"
+            }
+          },
+          "type": "object"
+        },
+        "accessibility": {
+          "$ref": "#/$defs/accessibility",
+          "properties": {
+            "fullTree": {
+              "$ref": "#/$defs/artifact",
+              "properties": {
+                "path": {
+                  "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/accessibility/lifecycle-wrong-token.json"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "staleMessage": {
+      "$ref": "#/$defs/scenario",
+      "properties": {
+        "id": {
+          "const": "lifecycle-stale-message"
+        },
+        "kind": {
+          "const": "lifecycle"
+        },
+        "target": {
+          "type": "null"
+        },
+        "rawResultText": {
+          "type": "null"
+        },
+        "rawResultTextSha256": {
+          "type": "null"
+        },
+        "results": {
+          "type": "null"
+        },
+        "lifecycle": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/lifecycleRecord"
+            },
+            {
+              "type": "object",
+              "minProperties": 3,
+              "maxProperties": 3,
+              "required": [
+                "assertion",
+                "ignored",
+                "final"
+              ],
+              "properties": {
+                "assertion": {
+                  "const": "stale worker message ignored"
+                },
+                "ignored": {
+                  "$ref": "#/$defs/runningReplacement"
+                },
+                "final": {
+                  "$ref": "#/$defs/completeReplacement"
+                }
+              }
+            }
+          ]
+        },
+        "finalState": {
+          "$ref": "#/$defs/completeReplacementFinalState"
+        },
+        "screenshot": {
+          "$ref": "#/$defs/artifact",
+          "properties": {
+            "path": {
+              "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/screenshots/lifecycle-stale-message.png"
+            }
+          },
+          "type": "object"
+        },
+        "accessibility": {
+          "$ref": "#/$defs/accessibility",
+          "properties": {
+            "fullTree": {
+              "$ref": "#/$defs/artifact",
+              "properties": {
+                "path": {
+                  "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/accessibility/lifecycle-stale-message.json"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "restart": {
+      "$ref": "#/$defs/scenario",
+      "properties": {
+        "id": {
+          "const": "lifecycle-restart"
+        },
+        "kind": {
+          "const": "lifecycle"
+        },
+        "target": {
+          "type": "null"
+        },
+        "rawResultText": {
+          "type": "null"
+        },
+        "rawResultTextSha256": {
+          "type": "null"
+        },
+        "results": {
+          "type": "null"
+        },
+        "lifecycle": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/lifecycleRecord"
+            },
+            {
+              "type": "object",
+              "minProperties": 3,
+              "maxProperties": 3,
+              "required": [
+                "assertion",
+                "restarted",
+                "final"
+              ],
+              "properties": {
+                "assertion": {
+                  "const": "restart terminates prior worker"
+                },
+                "restarted": {
+                  "$ref": "#/$defs/runningReplacement"
+                },
+                "final": {
+                  "$ref": "#/$defs/cancelledTwo"
+                }
+              }
+            }
+          ]
+        },
+        "finalState": {
+          "$ref": "#/$defs/cancelledFinalState"
+        },
+        "screenshot": {
+          "$ref": "#/$defs/artifact",
+          "properties": {
+            "path": {
+              "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/screenshots/lifecycle-restart.png"
+            }
+          },
+          "type": "object"
+        },
+        "accessibility": {
+          "$ref": "#/$defs/accessibility",
+          "properties": {
+            "fullTree": {
+              "$ref": "#/$defs/artifact",
+              "properties": {
+                "path": {
+                  "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/accessibility/lifecycle-restart.json"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "cancel": {
+      "$ref": "#/$defs/scenario",
+      "properties": {
+        "id": {
+          "const": "lifecycle-cancel"
+        },
+        "kind": {
+          "const": "lifecycle"
+        },
+        "target": {
+          "type": "null"
+        },
+        "rawResultText": {
+          "type": "null"
+        },
+        "rawResultTextSha256": {
+          "type": "null"
+        },
+        "results": {
+          "type": "null"
+        },
+        "lifecycle": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/lifecycleRecord"
+            },
+            {
+              "type": "object",
+              "minProperties": 2,
+              "maxProperties": 2,
+              "required": [
+                "assertion",
+                "final"
+              ],
+              "properties": {
+                "assertion": {
+                  "const": "cancel terminates active worker"
+                },
+                "final": {
+                  "$ref": "#/$defs/cancelledOne"
+                }
+              }
+            }
+          ]
+        },
+        "finalState": {
+          "$ref": "#/$defs/cancelledFinalState"
+        },
+        "screenshot": {
+          "$ref": "#/$defs/artifact",
+          "properties": {
+            "path": {
+              "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/screenshots/lifecycle-cancel.png"
+            }
+          },
+          "type": "object"
+        },
+        "accessibility": {
+          "$ref": "#/$defs/accessibility",
+          "properties": {
+            "fullTree": {
+              "$ref": "#/$defs/artifact",
+              "properties": {
+                "path": {
+                  "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/accessibility/lifecycle-cancel.json"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "timeout": {
+      "$ref": "#/$defs/scenario",
+      "properties": {
+        "id": {
+          "const": "lifecycle-timeout"
+        },
+        "kind": {
+          "const": "lifecycle"
+        },
+        "target": {
+          "type": "null"
+        },
+        "rawResultText": {
+          "type": "null"
+        },
+        "rawResultTextSha256": {
+          "type": "null"
+        },
+        "results": {
+          "type": "null"
+        },
+        "lifecycle": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/lifecycleRecord"
+            },
+            {
+              "type": "object",
+              "minProperties": 2,
+              "maxProperties": 2,
+              "required": [
+                "assertion",
+                "final"
+              ],
+              "properties": {
+                "assertion": {
+                  "const": "30-second bound fired under accelerated acceptance clock"
+                },
+                "final": {
+                  "$ref": "#/$defs/timedOutOne"
+                }
+              }
+            }
+          ]
+        },
+        "finalState": {
+          "$ref": "#/$defs/timedOutFinalState"
+        },
+        "screenshot": {
+          "$ref": "#/$defs/artifact",
+          "properties": {
+            "path": {
+              "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/screenshots/lifecycle-timeout.png"
+            }
+          },
+          "type": "object"
+        },
+        "accessibility": {
+          "$ref": "#/$defs/accessibility",
+          "properties": {
+            "fullTree": {
+              "$ref": "#/$defs/artifact",
+              "properties": {
+                "path": {
+                  "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/accessibility/lifecycle-timeout.json"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "pagehide": {
+      "$ref": "#/$defs/scenario",
+      "properties": {
+        "id": {
+          "const": "lifecycle-pagehide"
+        },
+        "kind": {
+          "const": "lifecycle"
+        },
+        "target": {
+          "type": "null"
+        },
+        "rawResultText": {
+          "type": "null"
+        },
+        "rawResultTextSha256": {
+          "type": "null"
+        },
+        "results": {
+          "type": "null"
+        },
+        "lifecycle": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/lifecycleRecord"
+            },
+            {
+              "type": "object",
+              "minProperties": 2,
+              "maxProperties": 2,
+              "required": [
+                "assertion",
+                "final"
+              ],
+              "properties": {
+                "assertion": {
+                  "const": "pagehide terminates active worker"
+                },
+                "final": {
+                  "$ref": "#/$defs/pageHiddenOne"
+                }
+              }
+            }
+          ]
+        },
+        "finalState": {
+          "$ref": "#/$defs/pageHiddenFinalState"
+        },
+        "screenshot": {
+          "$ref": "#/$defs/artifact",
+          "properties": {
+            "path": {
+              "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/screenshots/lifecycle-pagehide.png"
+            }
+          },
+          "type": "object"
+        },
+        "accessibility": {
+          "$ref": "#/$defs/accessibility",
+          "properties": {
+            "fullTree": {
+              "$ref": "#/$defs/artifact",
+              "properties": {
+                "path": {
+                  "const": "evidence/base/numeric-polybench-panel/chrome-acceptance/accessibility/lifecycle-pagehide.json"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "processIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pid",
+        "parentPid",
+        "startTimeTicks",
+        "executable",
+        "cgroup"
+      ],
+      "properties": {
+        "pid": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "parentPid": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "startTimeTicks": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "executable": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cgroup": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "exitStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "success",
+        "code",
+        "signal"
+      ],
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "code": {
+          "type": "integer"
+        },
+        "signal": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "browser",
+        "profile",
+        "server"
+      ],
+      "properties": {
+        "browser": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "launcher",
+            "observedProcesses",
+            "requested",
+            "signals",
+            "exit",
+            "processesAbsent"
+          ],
+          "properties": {
+            "launcher": {
+              "$ref": "#/$defs/processIdentity"
+            },
+            "observedProcesses": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/processIdentity"
+              }
+            },
+            "requested": {
+              "const": "Browser.close"
+            },
+            "signals": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "pid",
+                  "signal"
+                ],
+                "properties": {
+                  "pid": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "signal": {
+                    "enum": [
+                      "SIGTERM",
+                      "SIGKILL"
+                    ]
+                  }
+                }
+              }
+            },
+            "exit": {
+              "$ref": "#/$defs/exitStatus"
+            },
+            "processesAbsent": {
+              "const": true
+            }
+          }
+        },
+        "profile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "removed",
+            "absent"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "^/tmp/wasm-polybench-panel-chrome-"
+            },
+            "removed": {
+              "const": true
+            },
+            "absent": {
+              "const": true
+            }
+          }
+        },
+        "server": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "launcher",
+            "signal",
+            "exit",
+            "processAbsent"
+          ],
+          "properties": {
+            "launcher": {
+              "$ref": "#/$defs/processIdentity"
+            },
+            "signal": {
+              "const": "SIGTERM"
+            },
+            "exit": {
+              "$ref": "#/$defs/exitStatus"
+            },
+            "processAbsent": {
+              "const": true
+            }
+          }
+        }
+      }
+    },
+    "gemmJavascriptResult": {
+      "const": {
+        "kernel": "gemm",
+        "target": "javascript-controlled",
+        "outputSha256": "055c9d69c98e0ab7529a38d83e18e18d9b960c637ba77c4aec2477b14c279892",
+        "comparison": {
+          "passed": true,
+          "violations": 0,
+          "maxAbs": 0,
+          "maxRel": 0
+        },
+        "structuralOracle": {
+          "passed": true,
+          "failures": []
+        },
+        "checkpoints": [
+          {
+            "index": 0,
+            "valueHex": "3faeb851eb851eb8"
+          },
+          {
+            "index": 125,
+            "valueHex": "401e3d70a3d70a3d"
+          },
+          {
+            "index": 250,
+            "valueHex": "40183d70a3d70a3e"
+          },
+          {
+            "index": 499,
+            "valueHex": "4024e147ae147ae0"
+          }
+        ],
+        "counters": {
+          "target": "javascript-controlled",
+          "boundaryCrossings": 0,
+          "wasmLinearAllocations": 0,
+          "kernels": 1,
+          "outputElements": 500,
+          "outputBytes": 4000,
+          "multiplyAdds": 15000,
+          "scaleMultiplications": 500,
+          "inputBytes": 14800,
+          "typedArrayAllocations": 4
+        },
+        "completeOutputArtifact": {
+          "file": "public/artifacts/numeric-polybench-panel/outputs/gemm.javascript-controlled.f64le",
+          "route": "/artifacts/numeric-polybench-panel/outputs/gemm.javascript-controlled.f64le",
+          "bytes": 4000,
+          "elements": 500,
+          "sha256": "055c9d69c98e0ab7529a38d83e18e18d9b960c637ba77c4aec2477b14c279892",
+          "format": "f64le-complete-output"
+        }
+      }
+    },
+    "choleskyJavascriptResult": {
+      "const": {
+        "kernel": "cholesky",
+        "target": "javascript-controlled",
+        "outputSha256": "14f43fb479b27d02ab370d472aa179abb3a0a96f540541a85b5b0617f1e2bfbf",
+        "comparison": {
+          "passed": true,
+          "violations": 0,
+          "maxAbs": 0,
+          "maxRel": 0
+        },
+        "structuralOracle": {
+          "passed": true,
+          "failures": []
+        },
+        "checkpoints": [
+          {
+            "index": 0,
+            "valueHex": "3ff0000000000000"
+          },
+          {
+            "index": 400,
+            "valueHex": "3ff0000000000000"
+          },
+          {
+            "index": 800,
+            "valueHex": "3ff0000000000000"
+          },
+          {
+            "index": 1599,
+            "valueHex": "3ff0000000000004"
+          }
+        ],
+        "counters": {
+          "target": "javascript-controlled",
+          "boundaryCrossings": 0,
+          "wasmLinearAllocations": 0,
+          "kernels": 1,
+          "outputElements": 1600,
+          "outputBytes": 12800,
+          "multiplySubtracts": 10660,
+          "divisions": 780,
+          "diagonalRoots": 40,
+          "inputBytes": 12800,
+          "typedArrayAllocations": 3
+        },
+        "completeOutputArtifact": {
+          "file": "public/artifacts/numeric-polybench-panel/outputs/cholesky.javascript-controlled.f64le",
+          "route": "/artifacts/numeric-polybench-panel/outputs/cholesky.javascript-controlled.f64le",
+          "bytes": 12800,
+          "elements": 1600,
+          "sha256": "14f43fb479b27d02ab370d472aa179abb3a0a96f540541a85b5b0617f1e2bfbf",
+          "format": "f64le-complete-output"
+        }
+      }
+    },
+    "stencilJavascriptResult": {
+      "const": {
+        "kernel": "stencil",
+        "target": "javascript-controlled",
+        "outputSha256": "4e68c9e2c139647c6a694e2adca603da3837754e2844c63e5eef292d413a21d4",
+        "comparison": {
+          "passed": true,
+          "violations": 0,
+          "maxAbs": 0,
+          "maxRel": 0
+        },
+        "structuralOracle": {
+          "passed": true,
+          "failures": []
+        },
+        "checkpoints": [
+          {
+            "index": 0,
+            "valueHex": "3fb999999999999a"
+          },
+          {
+            "index": 225,
+            "valueHex": "4010222222222222"
+          },
+          {
+            "index": 450,
+            "valueHex": "3ff999999999999a"
+          },
+          {
+            "index": 899,
+            "valueHex": "403f088888888889"
+          }
+        ],
+        "counters": {
+          "target": "javascript-controlled",
+          "boundaryCrossings": 0,
+          "wasmLinearAllocations": 0,
+          "kernels": 1,
+          "outputElements": 900,
+          "outputBytes": 7200,
+          "stencilPoints": 784,
+          "sampleReads": 3920,
+          "outputWrites": 784,
+          "inputBytes": 14400,
+          "typedArrayAllocations": 3
+        },
+        "completeOutputArtifact": {
+          "file": "public/artifacts/numeric-polybench-panel/outputs/stencil.javascript-controlled.f64le",
+          "route": "/artifacts/numeric-polybench-panel/outputs/stencil.javascript-controlled.f64le",
+          "bytes": 7200,
+          "elements": 900,
+          "sha256": "4e68c9e2c139647c6a694e2adca603da3837754e2844c63e5eef292d413a21d4",
+          "format": "f64le-complete-output"
+        }
+      }
+    },
+    "jacobi2dJavascriptResult": {
+      "const": {
+        "kernel": "jacobi2d",
+        "target": "javascript-controlled",
+        "outputSha256": "ab8d74d94e755eddec10c2f795efc63e5e36898938f697b4562252cf5f697681",
+        "comparison": {
+          "passed": true,
+          "violations": 0,
+          "maxAbs": 0,
+          "maxRel": 0
+        },
+        "structuralOracle": {
+          "passed": true,
+          "failures": []
+        },
+        "checkpoints": [
+          {
+            "index": 0,
+            "valueHex": "3fb1111111111111"
+          },
+          {
+            "index": 225,
+            "valueHex": "401023931776c54b"
+          },
+          {
+            "index": 450,
+            "valueHex": "3ff1111111111111"
+          },
+          {
+            "index": 899,
+            "valueHex": "403e088888888889"
+          }
+        ],
+        "counters": {
+          "target": "javascript-controlled",
+          "boundaryCrossings": 0,
+          "wasmLinearAllocations": 0,
+          "kernels": 1,
+          "outputElements": 900,
+          "outputBytes": 7200,
+          "stencilPoints": 31360,
+          "sampleReads": 156800,
+          "outputWrites": 31360,
+          "inputBytes": 14400,
+          "typedArrayAllocations": 4
+        },
+        "completeOutputArtifact": {
+          "file": "public/artifacts/numeric-polybench-panel/outputs/jacobi2d.javascript-controlled.f64le",
+          "route": "/artifacts/numeric-polybench-panel/outputs/jacobi2d.javascript-controlled.f64le",
+          "bytes": 7200,
+          "elements": 900,
+          "sha256": "ab8d74d94e755eddec10c2f795efc63e5e36898938f697b4562252cf5f697681",
+          "format": "f64le-complete-output"
+        }
+      }
+    },
+    "javascriptResultSet": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "prefixItems": [
+        {
+          "$ref": "#/$defs/gemmJavascriptResult"
+        },
+        {
+          "$ref": "#/$defs/choleskyJavascriptResult"
+        },
+        {
+          "$ref": "#/$defs/stencilJavascriptResult"
+        },
+        {
+          "$ref": "#/$defs/jacobi2dJavascriptResult"
+        }
+      ],
+      "items": false
+    },
+    "gemmWasmResult": {
+      "const": {
+        "kernel": "gemm",
+        "target": "linear-wasm-controlled",
+        "outputSha256": "055c9d69c98e0ab7529a38d83e18e18d9b960c637ba77c4aec2477b14c279892",
+        "comparison": {
+          "passed": true,
+          "violations": 0,
+          "maxAbs": 0,
+          "maxRel": 0
+        },
+        "structuralOracle": {
+          "passed": true,
+          "failures": []
+        },
+        "checkpoints": [
+          {
+            "index": 0,
+            "valueHex": "3faeb851eb851eb8"
+          },
+          {
+            "index": 125,
+            "valueHex": "401e3d70a3d70a3d"
+          },
+          {
+            "index": 250,
+            "valueHex": "40183d70a3d70a3e"
+          },
+          {
+            "index": 499,
+            "valueHex": "4024e147ae147ae0"
+          }
+        ],
+        "counters": {
+          "target": "linear-wasm-controlled",
+          "boundaryCrossings": 1,
+          "wasmLinearAllocations": 0,
+          "kernels": 1,
+          "outputElements": 500,
+          "outputBytes": 4000,
+          "multiplyAdds": 15000,
+          "scaleMultiplications": 500,
+          "inputBytes": 14800,
+          "typedArrayAllocations": 8
+        },
+        "completeOutputArtifact": {
+          "file": "public/artifacts/numeric-polybench-panel/outputs/gemm.linear-wasm-controlled.f64le",
+          "route": "/artifacts/numeric-polybench-panel/outputs/gemm.linear-wasm-controlled.f64le",
+          "bytes": 4000,
+          "elements": 500,
+          "sha256": "055c9d69c98e0ab7529a38d83e18e18d9b960c637ba77c4aec2477b14c279892",
+          "format": "f64le-complete-output"
+        }
+      }
+    },
+    "choleskyWasmResult": {
+      "const": {
+        "kernel": "cholesky",
+        "target": "linear-wasm-controlled",
+        "outputSha256": "14f43fb479b27d02ab370d472aa179abb3a0a96f540541a85b5b0617f1e2bfbf",
+        "comparison": {
+          "passed": true,
+          "violations": 0,
+          "maxAbs": 0,
+          "maxRel": 0
+        },
+        "structuralOracle": {
+          "passed": true,
+          "failures": []
+        },
+        "checkpoints": [
+          {
+            "index": 0,
+            "valueHex": "3ff0000000000000"
+          },
+          {
+            "index": 400,
+            "valueHex": "3ff0000000000000"
+          },
+          {
+            "index": 800,
+            "valueHex": "3ff0000000000000"
+          },
+          {
+            "index": 1599,
+            "valueHex": "3ff0000000000004"
+          }
+        ],
+        "counters": {
+          "target": "linear-wasm-controlled",
+          "boundaryCrossings": 1,
+          "wasmLinearAllocations": 0,
+          "kernels": 1,
+          "outputElements": 1600,
+          "outputBytes": 12800,
+          "multiplySubtracts": 10660,
+          "divisions": 780,
+          "diagonalRoots": 40,
+          "inputBytes": 12800,
+          "typedArrayAllocations": 5
+        },
+        "completeOutputArtifact": {
+          "file": "public/artifacts/numeric-polybench-panel/outputs/cholesky.linear-wasm-controlled.f64le",
+          "route": "/artifacts/numeric-polybench-panel/outputs/cholesky.linear-wasm-controlled.f64le",
+          "bytes": 12800,
+          "elements": 1600,
+          "sha256": "14f43fb479b27d02ab370d472aa179abb3a0a96f540541a85b5b0617f1e2bfbf",
+          "format": "f64le-complete-output"
+        }
+      }
+    },
+    "stencilWasmResult": {
+      "const": {
+        "kernel": "stencil",
+        "target": "linear-wasm-controlled",
+        "outputSha256": "4e68c9e2c139647c6a694e2adca603da3837754e2844c63e5eef292d413a21d4",
+        "comparison": {
+          "passed": true,
+          "violations": 0,
+          "maxAbs": 0,
+          "maxRel": 0
+        },
+        "structuralOracle": {
+          "passed": true,
+          "failures": []
+        },
+        "checkpoints": [
+          {
+            "index": 0,
+            "valueHex": "3fb999999999999a"
+          },
+          {
+            "index": 225,
+            "valueHex": "4010222222222222"
+          },
+          {
+            "index": 450,
+            "valueHex": "3ff999999999999a"
+          },
+          {
+            "index": 899,
+            "valueHex": "403f088888888889"
+          }
+        ],
+        "counters": {
+          "target": "linear-wasm-controlled",
+          "boundaryCrossings": 1,
+          "wasmLinearAllocations": 0,
+          "kernels": 1,
+          "outputElements": 900,
+          "outputBytes": 7200,
+          "stencilPoints": 784,
+          "sampleReads": 3920,
+          "outputWrites": 784,
+          "inputBytes": 14400,
+          "typedArrayAllocations": 6
+        },
+        "completeOutputArtifact": {
+          "file": "public/artifacts/numeric-polybench-panel/outputs/stencil.linear-wasm-controlled.f64le",
+          "route": "/artifacts/numeric-polybench-panel/outputs/stencil.linear-wasm-controlled.f64le",
+          "bytes": 7200,
+          "elements": 900,
+          "sha256": "4e68c9e2c139647c6a694e2adca603da3837754e2844c63e5eef292d413a21d4",
+          "format": "f64le-complete-output"
+        }
+      }
+    },
+    "jacobi2dWasmResult": {
+      "const": {
+        "kernel": "jacobi2d",
+        "target": "linear-wasm-controlled",
+        "outputSha256": "ab8d74d94e755eddec10c2f795efc63e5e36898938f697b4562252cf5f697681",
+        "comparison": {
+          "passed": true,
+          "violations": 0,
+          "maxAbs": 0,
+          "maxRel": 0
+        },
+        "structuralOracle": {
+          "passed": true,
+          "failures": []
+        },
+        "checkpoints": [
+          {
+            "index": 0,
+            "valueHex": "3fb1111111111111"
+          },
+          {
+            "index": 225,
+            "valueHex": "401023931776c54b"
+          },
+          {
+            "index": 450,
+            "valueHex": "3ff1111111111111"
+          },
+          {
+            "index": 899,
+            "valueHex": "403e088888888889"
+          }
+        ],
+        "counters": {
+          "target": "linear-wasm-controlled",
+          "boundaryCrossings": 1,
+          "wasmLinearAllocations": 0,
+          "kernels": 1,
+          "outputElements": 900,
+          "outputBytes": 7200,
+          "stencilPoints": 31360,
+          "sampleReads": 156800,
+          "outputWrites": 31360,
+          "inputBytes": 14400,
+          "typedArrayAllocations": 6
+        },
+        "completeOutputArtifact": {
+          "file": "public/artifacts/numeric-polybench-panel/outputs/jacobi2d.linear-wasm-controlled.f64le",
+          "route": "/artifacts/numeric-polybench-panel/outputs/jacobi2d.linear-wasm-controlled.f64le",
+          "bytes": 7200,
+          "elements": 900,
+          "sha256": "ab8d74d94e755eddec10c2f795efc63e5e36898938f697b4562252cf5f697681",
+          "format": "f64le-complete-output"
+        }
+      }
+    },
+    "wasmResultSet": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "prefixItems": [
+        {
+          "$ref": "#/$defs/gemmWasmResult"
+        },
+        {
+          "$ref": "#/$defs/choleskyWasmResult"
+        },
+        {
+          "$ref": "#/$defs/stencilWasmResult"
+        },
+        {
+          "$ref": "#/$defs/jacobi2dWasmResult"
+        }
+      ],
+      "items": false
+    },
+    "workerRunning": {
+      "$ref": "#/$defs/workerState",
+      "properties": {
+        "terminated": {
+          "const": false
+        },
+        "posted": {
+          "type": "object",
+          "properties": {
+            "target": {
+              "const": "javascript"
+            },
+            "kernel": {
+              "const": "all"
+            },
+            "token": {
+              "const": 2
+            }
+          }
+        }
+      },
+      "type": "object"
+    },
+    "workerTerminated": {
+      "$ref": "#/$defs/workerState",
+      "properties": {
+        "terminated": {
+          "const": true
+        },
+        "posted": {
+          "type": "object",
+          "properties": {
+            "target": {
+              "const": "javascript"
+            },
+            "kernel": {
+              "const": "all"
+            },
+            "token": {
+              "const": 2
+            }
+          }
+        }
+      },
+      "type": "object"
+    },
+    "runningOne": {
+      "$ref": "#/$defs/lifecycleState",
+      "properties": {
+        "status": {
+          "const": "Running exact registered work…"
+        },
+        "output": {
+          "const": "No result yet."
+        },
+        "startDisabled": {
+          "const": true
+        },
+        "cancelDisabled": {
+          "const": false
+        },
+        "progressValue": {
+          "const": "0"
+        },
+        "workers": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/workerRunning"
+            }
+          ],
+          "items": false
+        }
+      },
+      "type": "object"
+    },
+    "runningReplacement": {
+      "$ref": "#/$defs/lifecycleState",
+      "properties": {
+        "status": {
+          "const": "Running exact registered work…"
+        },
+        "output": {
+          "const": "No result yet."
+        },
+        "startDisabled": {
+          "const": true
+        },
+        "cancelDisabled": {
+          "const": false
+        },
+        "progressValue": {
+          "const": "0"
+        },
+        "workers": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/workerTerminated"
+            },
+            {
+              "$ref": "#/$defs/workerReplacementRunning"
+            }
+          ],
+          "items": false
+        }
+      },
+      "type": "object"
+    },
+    "cancelledOne": {
+      "$ref": "#/$defs/lifecycleState",
+      "properties": {
+        "status": {
+          "const": "Cancelled. The worker was terminated."
+        },
+        "output": {
+          "const": "No result yet."
+        },
+        "startDisabled": {
+          "const": false
+        },
+        "cancelDisabled": {
+          "const": true
+        },
+        "progressValue": {
+          "const": null
+        },
+        "workers": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/workerTerminated"
+            }
+          ],
+          "items": false
+        }
+      },
+      "type": "object"
+    },
+    "cancelledTwo": {
+      "$ref": "#/$defs/lifecycleState",
+      "properties": {
+        "status": {
+          "const": "Cancelled. The worker was terminated."
+        },
+        "output": {
+          "const": "No result yet."
+        },
+        "startDisabled": {
+          "const": false
+        },
+        "cancelDisabled": {
+          "const": true
+        },
+        "progressValue": {
+          "const": null
+        },
+        "workers": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/workerTerminated"
+            },
+            {
+              "$ref": "#/$defs/workerReplacementTerminated"
+            }
+          ],
+          "items": false
+        }
+      },
+      "type": "object"
+    },
+    "completeReplacement": {
+      "$ref": "#/$defs/lifecycleState",
+      "properties": {
+        "status": {
+          "const": "Complete. Every reported element passed the registered oracle."
+        },
+        "output": {
+          "const": "[]"
+        },
+        "startDisabled": {
+          "const": false
+        },
+        "cancelDisabled": {
+          "const": true
+        },
+        "progressValue": {
+          "const": null
+        },
+        "workers": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/workerTerminated"
+            },
+            {
+              "$ref": "#/$defs/workerReplacementTerminated"
+            }
+          ],
+          "items": false
+        }
+      },
+      "type": "object"
+    },
+    "timedOutOne": {
+      "$ref": "#/$defs/lifecycleState",
+      "properties": {
+        "status": {
+          "const": "Stopped after the 30-second bound."
+        },
+        "output": {
+          "const": "No result yet."
+        },
+        "startDisabled": {
+          "const": false
+        },
+        "cancelDisabled": {
+          "const": true
+        },
+        "progressValue": {
+          "const": null
+        },
+        "workers": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/workerTerminated"
+            }
+          ],
+          "items": false
+        }
+      },
+      "type": "object"
+    },
+    "pageHiddenOne": {
+      "$ref": "#/$defs/lifecycleState",
+      "properties": {
+        "status": {
+          "const": "Running exact registered work…"
+        },
+        "output": {
+          "const": "No result yet."
+        },
+        "startDisabled": {
+          "const": false
+        },
+        "cancelDisabled": {
+          "const": true
+        },
+        "progressValue": {
+          "const": null
+        },
+        "workers": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/workerTerminated"
+            }
+          ],
+          "items": false
+        }
+      },
+      "type": "object"
+    },
+    "executionFinalState": {
+      "$ref": "#/$defs/pageState",
+      "properties": {
+        "status": {
+          "const": "Complete. Every reported element passed the registered oracle."
+        },
+        "output": {
+          "type": "string",
+          "minLength": 1
+        },
+        "startDisabled": {
+          "const": false
+        },
+        "cancelDisabled": {
+          "const": true
+        },
+        "progressValue": {
+          "const": 0
+        },
+        "progressMax": {
+          "const": 4
+        }
+      },
+      "type": "object"
+    },
+    "cancelledFinalState": {
+      "$ref": "#/$defs/pageState",
+      "properties": {
+        "status": {
+          "const": "Cancelled. The worker was terminated."
+        },
+        "output": {
+          "const": "No result yet."
+        },
+        "startDisabled": {
+          "const": false
+        },
+        "cancelDisabled": {
+          "const": true
+        },
+        "progressValue": {
+          "const": 0
+        },
+        "progressMax": {
+          "const": 4
+        }
+      },
+      "type": "object"
+    },
+    "completeReplacementFinalState": {
+      "$ref": "#/$defs/pageState",
+      "properties": {
+        "status": {
+          "const": "Complete. Every reported element passed the registered oracle."
+        },
+        "output": {
+          "const": "[]"
+        },
+        "startDisabled": {
+          "const": false
+        },
+        "cancelDisabled": {
+          "const": true
+        },
+        "progressValue": {
+          "const": 0
+        },
+        "progressMax": {
+          "const": 4
+        }
+      },
+      "type": "object"
+    },
+    "timedOutFinalState": {
+      "$ref": "#/$defs/pageState",
+      "properties": {
+        "status": {
+          "const": "Stopped after the 30-second bound."
+        },
+        "output": {
+          "const": "No result yet."
+        },
+        "startDisabled": {
+          "const": false
+        },
+        "cancelDisabled": {
+          "const": true
+        },
+        "progressValue": {
+          "const": 0
+        },
+        "progressMax": {
+          "const": 4
+        }
+      },
+      "type": "object"
+    },
+    "pageHiddenFinalState": {
+      "$ref": "#/$defs/pageState",
+      "properties": {
+        "status": {
+          "const": "Running exact registered work…"
+        },
+        "output": {
+          "const": "No result yet."
+        },
+        "startDisabled": {
+          "const": false
+        },
+        "cancelDisabled": {
+          "const": true
+        },
+        "progressValue": {
+          "const": 0
+        },
+        "progressMax": {
+          "const": 4
+        }
+      },
+      "type": "object"
+    },
+    "workerReplacementRunning": {
+      "$ref": "#/$defs/workerState",
+      "properties": {
+        "terminated": {
+          "const": false
+        },
+        "posted": {
+          "type": "object",
+          "properties": {
+            "target": {
+              "const": "javascript"
+            },
+            "kernel": {
+              "const": "all"
+            },
+            "token": {
+              "const": 4
+            }
+          }
+        }
+      },
+      "type": "object"
+    },
+    "workerReplacementTerminated": {
+      "$ref": "#/$defs/workerState",
+      "properties": {
+        "terminated": {
+          "const": true
+        },
+        "posted": {
+          "type": "object",
+          "properties": {
+            "target": {
+              "const": "javascript"
+            },
+            "kernel": {
+              "const": "all"
+            },
+            "token": {
+              "const": 4
+            }
+          }
+        }
+      },
+      "type": "object"
+    },
+    "javascriptRawResultText": {
+      "const": "[\n  {\n    \"kernel\": \"gemm\",\n    \"target\": \"javascript-controlled\",\n    \"outputSha256\": \"055c9d69c98e0ab7529a38d83e18e18d9b960c637ba77c4aec2477b14c279892\",\n    \"comparison\": {\n      \"passed\": true,\n      \"violations\": 0,\n      \"maxAbs\": 0,\n      \"maxRel\": 0\n    },\n    \"structuralOracle\": {\n      \"passed\": true,\n      \"failures\": []\n    },\n    \"checkpoints\": [\n      {\n        \"index\": 0,\n        \"valueHex\": \"3faeb851eb851eb8\"\n      },\n      {\n        \"index\": 125,\n        \"valueHex\": \"401e3d70a3d70a3d\"\n      },\n      {\n        \"index\": 250,\n        \"valueHex\": \"40183d70a3d70a3e\"\n      },\n      {\n        \"index\": 499,\n        \"valueHex\": \"4024e147ae147ae0\"\n      }\n    ],\n    \"counters\": {\n      \"target\": \"javascript-controlled\",\n      \"boundaryCrossings\": 0,\n      \"wasmLinearAllocations\": 0,\n      \"kernels\": 1,\n      \"outputElements\": 500,\n      \"outputBytes\": 4000,\n      \"multiplyAdds\": 15000,\n      \"scaleMultiplications\": 500,\n      \"inputBytes\": 14800,\n      \"typedArrayAllocations\": 4\n    }\n  },\n  {\n    \"kernel\": \"cholesky\",\n    \"target\": \"javascript-controlled\",\n    \"outputSha256\": \"14f43fb479b27d02ab370d472aa179abb3a0a96f540541a85b5b0617f1e2bfbf\",\n    \"comparison\": {\n      \"passed\": true,\n      \"violations\": 0,\n      \"maxAbs\": 0,\n      \"maxRel\": 0\n    },\n    \"structuralOracle\": {\n      \"passed\": true,\n      \"failures\": []\n    },\n    \"checkpoints\": [\n      {\n        \"index\": 0,\n        \"valueHex\": \"3ff0000000000000\"\n      },\n      {\n        \"index\": 400,\n        \"valueHex\": \"3ff0000000000000\"\n      },\n      {\n        \"index\": 800,\n        \"valueHex\": \"3ff0000000000000\"\n      },\n      {\n        \"index\": 1599,\n        \"valueHex\": \"3ff0000000000004\"\n      }\n    ],\n    \"counters\": {\n      \"target\": \"javascript-controlled\",\n      \"boundaryCrossings\": 0,\n      \"wasmLinearAllocations\": 0,\n      \"kernels\": 1,\n      \"outputElements\": 1600,\n      \"outputBytes\": 12800,\n      \"multiplySubtracts\": 10660,\n      \"divisions\": 780,\n      \"diagonalRoots\": 40,\n      \"inputBytes\": 12800,\n      \"typedArrayAllocations\": 3\n    }\n  },\n  {\n    \"kernel\": \"stencil\",\n    \"target\": \"javascript-controlled\",\n    \"outputSha256\": \"4e68c9e2c139647c6a694e2adca603da3837754e2844c63e5eef292d413a21d4\",\n    \"comparison\": {\n      \"passed\": true,\n      \"violations\": 0,\n      \"maxAbs\": 0,\n      \"maxRel\": 0\n    },\n    \"structuralOracle\": {\n      \"passed\": true,\n      \"failures\": []\n    },\n    \"checkpoints\": [\n      {\n        \"index\": 0,\n        \"valueHex\": \"3fb999999999999a\"\n      },\n      {\n        \"index\": 225,\n        \"valueHex\": \"4010222222222222\"\n      },\n      {\n        \"index\": 450,\n        \"valueHex\": \"3ff999999999999a\"\n      },\n      {\n        \"index\": 899,\n        \"valueHex\": \"403f088888888889\"\n      }\n    ],\n    \"counters\": {\n      \"target\": \"javascript-controlled\",\n      \"boundaryCrossings\": 0,\n      \"wasmLinearAllocations\": 0,\n      \"kernels\": 1,\n      \"outputElements\": 900,\n      \"outputBytes\": 7200,\n      \"stencilPoints\": 784,\n      \"sampleReads\": 3920,\n      \"outputWrites\": 784,\n      \"inputBytes\": 14400,\n      \"typedArrayAllocations\": 3\n    }\n  },\n  {\n    \"kernel\": \"jacobi2d\",\n    \"target\": \"javascript-controlled\",\n    \"outputSha256\": \"ab8d74d94e755eddec10c2f795efc63e5e36898938f697b4562252cf5f697681\",\n    \"comparison\": {\n      \"passed\": true,\n      \"violations\": 0,\n      \"maxAbs\": 0,\n      \"maxRel\": 0\n    },\n    \"structuralOracle\": {\n      \"passed\": true,\n      \"failures\": []\n    },\n    \"checkpoints\": [\n      {\n        \"index\": 0,\n        \"valueHex\": \"3fb1111111111111\"\n      },\n      {\n        \"index\": 225,\n        \"valueHex\": \"401023931776c54b\"\n      },\n      {\n        \"index\": 450,\n        \"valueHex\": \"3ff1111111111111\"\n      },\n      {\n        \"index\": 899,\n        \"valueHex\": \"403e088888888889\"\n      }\n    ],\n    \"counters\": {\n      \"target\": \"javascript-controlled\",\n      \"boundaryCrossings\": 0,\n      \"wasmLinearAllocations\": 0,\n      \"kernels\": 1,\n      \"outputElements\": 900,\n      \"outputBytes\": 7200,\n      \"stencilPoints\": 31360,\n      \"sampleReads\": 156800,\n      \"outputWrites\": 31360,\n      \"inputBytes\": 14400,\n      \"typedArrayAllocations\": 4\n    }\n  }\n]"
+    },
+    "wasmRawResultText": {
+      "const": "[\n  {\n    \"kernel\": \"gemm\",\n    \"target\": \"linear-wasm-controlled\",\n    \"outputSha256\": \"055c9d69c98e0ab7529a38d83e18e18d9b960c637ba77c4aec2477b14c279892\",\n    \"comparison\": {\n      \"passed\": true,\n      \"violations\": 0,\n      \"maxAbs\": 0,\n      \"maxRel\": 0\n    },\n    \"structuralOracle\": {\n      \"passed\": true,\n      \"failures\": []\n    },\n    \"checkpoints\": [\n      {\n        \"index\": 0,\n        \"valueHex\": \"3faeb851eb851eb8\"\n      },\n      {\n        \"index\": 125,\n        \"valueHex\": \"401e3d70a3d70a3d\"\n      },\n      {\n        \"index\": 250,\n        \"valueHex\": \"40183d70a3d70a3e\"\n      },\n      {\n        \"index\": 499,\n        \"valueHex\": \"4024e147ae147ae0\"\n      }\n    ],\n    \"counters\": {\n      \"target\": \"linear-wasm-controlled\",\n      \"boundaryCrossings\": 1,\n      \"wasmLinearAllocations\": 0,\n      \"kernels\": 1,\n      \"outputElements\": 500,\n      \"outputBytes\": 4000,\n      \"multiplyAdds\": 15000,\n      \"scaleMultiplications\": 500,\n      \"inputBytes\": 14800,\n      \"typedArrayAllocations\": 8\n    }\n  },\n  {\n    \"kernel\": \"cholesky\",\n    \"target\": \"linear-wasm-controlled\",\n    \"outputSha256\": \"14f43fb479b27d02ab370d472aa179abb3a0a96f540541a85b5b0617f1e2bfbf\",\n    \"comparison\": {\n      \"passed\": true,\n      \"violations\": 0,\n      \"maxAbs\": 0,\n      \"maxRel\": 0\n    },\n    \"structuralOracle\": {\n      \"passed\": true,\n      \"failures\": []\n    },\n    \"checkpoints\": [\n      {\n        \"index\": 0,\n        \"valueHex\": \"3ff0000000000000\"\n      },\n      {\n        \"index\": 400,\n        \"valueHex\": \"3ff0000000000000\"\n      },\n      {\n        \"index\": 800,\n        \"valueHex\": \"3ff0000000000000\"\n      },\n      {\n        \"index\": 1599,\n        \"valueHex\": \"3ff0000000000004\"\n      }\n    ],\n    \"counters\": {\n      \"target\": \"linear-wasm-controlled\",\n      \"boundaryCrossings\": 1,\n      \"wasmLinearAllocations\": 0,\n      \"kernels\": 1,\n      \"outputElements\": 1600,\n      \"outputBytes\": 12800,\n      \"multiplySubtracts\": 10660,\n      \"divisions\": 780,\n      \"diagonalRoots\": 40,\n      \"inputBytes\": 12800,\n      \"typedArrayAllocations\": 5\n    }\n  },\n  {\n    \"kernel\": \"stencil\",\n    \"target\": \"linear-wasm-controlled\",\n    \"outputSha256\": \"4e68c9e2c139647c6a694e2adca603da3837754e2844c63e5eef292d413a21d4\",\n    \"comparison\": {\n      \"passed\": true,\n      \"violations\": 0,\n      \"maxAbs\": 0,\n      \"maxRel\": 0\n    },\n    \"structuralOracle\": {\n      \"passed\": true,\n      \"failures\": []\n    },\n    \"checkpoints\": [\n      {\n        \"index\": 0,\n        \"valueHex\": \"3fb999999999999a\"\n      },\n      {\n        \"index\": 225,\n        \"valueHex\": \"4010222222222222\"\n      },\n      {\n        \"index\": 450,\n        \"valueHex\": \"3ff999999999999a\"\n      },\n      {\n        \"index\": 899,\n        \"valueHex\": \"403f088888888889\"\n      }\n    ],\n    \"counters\": {\n      \"target\": \"linear-wasm-controlled\",\n      \"boundaryCrossings\": 1,\n      \"wasmLinearAllocations\": 0,\n      \"kernels\": 1,\n      \"outputElements\": 900,\n      \"outputBytes\": 7200,\n      \"stencilPoints\": 784,\n      \"sampleReads\": 3920,\n      \"outputWrites\": 784,\n      \"inputBytes\": 14400,\n      \"typedArrayAllocations\": 6\n    }\n  },\n  {\n    \"kernel\": \"jacobi2d\",\n    \"target\": \"linear-wasm-controlled\",\n    \"outputSha256\": \"ab8d74d94e755eddec10c2f795efc63e5e36898938f697b4562252cf5f697681\",\n    \"comparison\": {\n      \"passed\": true,\n      \"violations\": 0,\n      \"maxAbs\": 0,\n      \"maxRel\": 0\n    },\n    \"structuralOracle\": {\n      \"passed\": true,\n      \"failures\": []\n    },\n    \"checkpoints\": [\n      {\n        \"index\": 0,\n        \"valueHex\": \"3fb1111111111111\"\n      },\n      {\n        \"index\": 225,\n        \"valueHex\": \"401023931776c54b\"\n      },\n      {\n        \"index\": 450,\n        \"valueHex\": \"3ff1111111111111\"\n      },\n      {\n        \"index\": 899,\n        \"valueHex\": \"403e088888888889\"\n      }\n    ],\n    \"counters\": {\n      \"target\": \"linear-wasm-controlled\",\n      \"boundaryCrossings\": 1,\n      \"wasmLinearAllocations\": 0,\n      \"kernels\": 1,\n      \"outputElements\": 900,\n      \"outputBytes\": 7200,\n      \"stencilPoints\": 31360,\n      \"sampleReads\": 156800,\n      \"outputWrites\": 31360,\n      \"inputBytes\": 14400,\n      \"typedArrayAllocations\": 6\n    }\n  }\n]"
+    }
+  }
+}

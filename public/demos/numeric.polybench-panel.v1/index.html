@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>PolyBench numeric panel | Wasm versus JavaScript</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="/polybench-panel-demo.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header
+      class="site-header"><a href="/">Wasm versus JavaScript</a><a href="/benchmarks/">Catalog</a></header>
+    <main id="content" class="content-shell">
+      <p class="eyebrow">BASE CATALOG CORRECTNESS DEMO · NUMERIC.POLYBENCH-PANEL.V1</p>
+      <h1>Four fixed numeric kernels</h1>
+      <p><strong>No performance claim.</strong> This route runs the registered MINI_DATASET panel in a fresh worker and compares every output element with retained raw output from an independently compiled C oracle. It stores and uploads nothing.</p>
+      <form class="demo-controls">
+        <label for="target">Controlled target</label>
+        <select
+          id="target"><option value="javascript">JavaScript f64</option><option value="wasm">Linear Wasm f64</option></select>
+        <label for="kernel">Kernel</label>
+        <select
+          id="kernel"><option value="all">All four</option><option value="gemm">GEMM 20×25×30</option><option value="cholesky">Cholesky 40×40</option><option value="stencil">One 30×30 stencil sweep</option><option value="jacobi2d">Jacobi-2D 30×30 × 20 timesteps</option></select>
+        <div><button id="start" type="submit">Start</button><button id="cancel" type="button" disabled>Cancel</button></div>
+      </form>
+      <label for="progress">Completed kernels</label>
+      <progress id="progress" max="4"></progress>
+      <p id="status" role="status" aria-live="polite">Ready.</p>
+      <h2>Correctness result</h2>
+      <pre id="output">No result yet.</pre>
+      <h2>Exact contract</h2>
+      <p>Both targets use row-major <code>f64</code>, the same loop order, fixed 64-page Wasm memory, complete output comparison, and absolute/relative tolerance <code>1e-10</code>. The Wasm module exports and executes GEMM, Cholesky, five-point stencil, and Jacobi-2D kernels.</p>
+      <ul>
+        <li><a href="/artifacts/numeric-polybench-panel/build-manifest.json">Build manifest, complete-output artifacts, checkpoints, counters, and raw-byte hashes</a></li>
+        <li><a href="/evidence/base/numeric-polybench-panel/correctness-record.json">Correctness record</a></li>
+        <li><a href="https://github.com/PaulKinlan/wasm-vs-js/blob/main/benchmarks/base/numeric-polybench-panel/contract.json">Supplemental fixture contract</a></li>
+      </ul>
+    </main>
+  </body>
+</html>
