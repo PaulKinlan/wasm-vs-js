@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "recordId": "base-v1-tooling-typescript-rebuild-qualification-v1",
+  "workloadId": "tooling.typescript-rebuild.v1",
+  "status": "blocked-missing-qualified-material-wasm-semantic-typechecker",
+  "frozenCatalog": {
+    "path": "catalog/workloads.v1.json",
+    "publicPath": "public/data/workloads.v1.json",
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+    "entryIndex": 37,
+    "immutable": true
+  },
+  "coverage": {
+    "countsAsImplementedCatalogEntry": false,
+    "controlledPairAvailable": false,
+    "validationRecords": 0,
+    "interactiveDemoRoute": null,
+    "performanceResults": "unavailable"
+  },
+  "requiredContract": {
+    "moduleCount": 1000,
+    "fixedEditCount": 1,
+    "work": "parse, resolve, semantically typecheck, incrementally invalidate, emit and bundle the complete generated project after the fixed edit",
+    "oracle": "normalized complete diagnostics, dependency graph, emitted modules, executable bundle behavior and complete output hashes",
+    "requiredTargetCapabilities": [
+      "typescript-parser",
+      "typescript-module-resolution",
+      "typescript-semantic-typechecker",
+      "incremental-invalidation",
+      "javascript-emission",
+      "bundle-construction"
+    ],
+    "requiredCounters": [
+      "modules-parsed",
+      "modules-resolved",
+      "modules-rechecked",
+      "diagnostics",
+      "modules-emitted",
+      "bundle-bytes",
+      "cache-hits",
+      "cache-misses",
+      "allocations",
+      "boundary-crossings"
+    ]
+  },
+  "qualification": {
+    "qualifiedTarget": null,
+    "repositoryRequirements": [
+      {
+        "id": "material-wasm-artifact",
+        "path": "benchmarks/base-v1/tooling-typescript-rebuild/artifacts/typescript-rebuild.wasm",
+        "present": false
+      },
+      {
+        "id": "material-wasm-authored-source",
+        "path": "benchmarks/base-v1/tooling-typescript-rebuild/wasm-src/",
+        "present": false
+      },
+      {
+        "id": "pinned-compiler-lock",
+        "path": "benchmarks/base-v1/tooling-typescript-rebuild/toolchain.lock.json",
+        "present": false
+      },
+      {
+        "id": "reproducible-build-manifest",
+        "path": "benchmarks/base-v1/tooling-typescript-rebuild/artifacts/build-manifest.json",
+        "present": false
+      },
+      {
+        "id": "semantic-conformance-corpus",
+        "path": "benchmarks/base-v1/tooling-typescript-rebuild/fixtures/semantic-conformance-manifest.json",
+        "present": false
+      }
+    ],
+    "candidateDispositions": [
+      {
+        "candidate": "esbuild-wasm",
+        "disposition": "rejected-for-controlled-pair",
+        "reason": "Its TypeScript path removes types and bundles modules but does not perform TypeScript semantic typechecking or emit the complete normalized diagnostic set."
+      },
+      {
+        "candidate": "swc-wasm",
+        "disposition": "rejected-for-controlled-pair",
+        "reason": "Its parser and transform pipeline does not provide the TypeScript semantic checker and incremental diagnostic behavior required by this workload."
+      },
+      {
+        "candidate": "typescript-running-inside-a-javascript-wasm-runtime",
+        "disposition": "rejected-for-controlled-pair",
+        "reason": "Packaging the JavaScript TypeScript compiler inside QuickJS, Javy or another Wasm-hosted JavaScript runtime is a wrapper, not a material Wasm implementation of parsing and typechecking."
+      },
+      {
+        "candidate": "assemblyscript-compiler",
+        "disposition": "rejected-for-controlled-pair",
+        "reason": "AssemblyScript accepts a TypeScript-like language but does not implement the frozen TypeScript compiler options, module semantics, diagnostics and JavaScript bundle contract."
+      }
+    ]
+  },
+  "blocker": {
+    "code": "material-wasm-semantic-typechecker-unavailable",
+    "detail": "This repository and pinned toolchain contain no reproducible material Wasm or WasmGC compiler that implements TypeScript parsing, module resolution, semantic typechecking, incremental invalidation, JavaScript emission and bundling. Building only the JavaScript target or substituting a syntax-only Wasm bundler would create an incomplete and inequivalent pair.",
+    "doesNotQualify": [
+      "syntax-only transform or bundle",
+      "JavaScript TypeScript compiler hosted behind a Wasm runtime wrapper",
+      "JavaScript host performing semantic work for a Wasm checksum or dispatch stub",
+      "reduced module count or omitted typechecking"
+    ]
+  },
+  "nextAction": "Resume implementation only after a specific material Wasm or WasmGC semantic TypeScript compiler is source-pinned, license-audited, reproducibly built, and independently proven to satisfy every required capability over the exact 1,000-module fixture."
+}
