@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "audio.opus-stream.v1",
+  "catalogBinding": {
+    "catalogId": "workload-catalog-v1",
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+    "immutability": "byte-for-byte"
+  },
+  "status": "blocked",
+  "coverageClaim": false,
+  "interactiveDemo": null,
+  "decision": {
+    "code": "independent-controlled-javascript-decoder-unavailable",
+    "summary": "The audited browser-capable JavaScript packages are libopus compiled through Emscripten or WebAssembly. They cannot be the independent controlled JavaScript target opposite a libopus-derived linear-Wasm target.",
+    "observedAt": "2026-08-03T12:25:39Z",
+    "unblockConditions": [
+      "Identify a browser-capable decoder whose Opus algorithm implementation is independent of libopus, native codecs, WebCodecs and the material-Wasm target.",
+      "Pin that decoder's source revision, complete transitive source graph, license, build command and raw output hashes.",
+      "Run every official RFC 8251 vector invocation through the independent JavaScript decoder and the material linear-Wasm decoder with the official libopus 1.5.2 comparison policy.",
+      "Retain complete PCM/checkpoint/vector dispositions and exact state, work, allocation and boundary counters before adding a demo or coverage claim."
+    ]
+  },
+  "fixtureRecipe": {
+    "redistribution": "recipe-only",
+    "archive": {
+      "url": "https://opus-codec.org/docs/opus_testvectors-rfc8251.tar.gz",
+      "sha256": "6b26a22f9ba87b2b836906a9bb7afec5f8e54d49553b1200382520ee6fedfa55",
+      "bytes": 74624664
+    },
+    "archiveLayout": {
+      "entryCountIncludingDirectory": 37,
+      "bitstreams": 12,
+      "referencePcmFiles": 24
+    },
+    "officialInvocation": "./tests/run_vectors.sh ./ opus_newvectors 48000",
+    "comparisonPolicy": {
+      "sampleRate": 48000,
+      "channelRuns": [1, 2],
+      "vectorIds": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"],
+      "acceptance": "Decode each numbered bitstream once as mono and once as stereo. For each of the 24 invocations, opus_compare from libopus 1.5.2 must accept the complete little-endian signed-16 PCM output against either the normal .dec reference or its matching m.dec reference; stereo comparisons use -s and every invocation must pass."
+    }
+  },
+  "referenceImplementation": {
+    "name": "libopus",
+    "version": "1.5.2",
+    "source": {
+      "url": "https://downloads.xiph.org/releases/opus/opus-1.5.2.tar.gz",
+      "sha256": "65c1d2f78b9f2fb20082c38cbe47c951ad5839345876e46941612ee87f9a7ce1",
+      "bytes": 7839412
+    },
+    "licenseSpdx": "BSD-3-Clause",
+    "role": "official-reference-and-material-wasm-candidate",
+    "runnerPath": "tests/run_vectors.sh"
+  },
+  "controlledJavaScriptAudit": {
+    "requiredIndependence": "not-libopus-derived-and-not-wasm-native-or-webcodecs-facade",
+    "searchDisposition": "no-qualifying-candidate",
+    "candidates": [
+      {
+        "package": "opusscript",
+        "version": "0.1.1",
+        "download": {
+          "url": "https://registry.npmjs.org/opusscript/-/opusscript-0.1.1.tgz",
+          "sha256": "019de769ad4a556f2ca874459f3c2c4b6a626a82b39318e2dbf4a494964bdc7a",
+          "bytes": 378408
+        },
+        "licenseSpdx": "MIT AND BSD-3-Clause",
+        "observedMarkers": [
+          "README.md identifies the package as JS bindings for libopus 1.4 ported with Emscripten.",
+          "The archive contains build/opusscript_native_wasm.wasm and COPYING.libopus.",
+          "The optional JS-only mode remains generated from the same libopus implementation and is not an independent algorithm."
+        ],
+        "disposition": "rejected-same-libopus-lineage-or-wasm-facade"
+      },
+      {
+        "package": "opus-decoder",
+        "version": "0.7.11",
+        "download": {
+          "url": "https://registry.npmjs.org/opus-decoder/-/opus-decoder-0.7.11.tgz",
+          "sha256": "1c8c0b27f5b4e941e8059bbbf8d26ff8e9f7c882e2465bb68da1b19ceaa64e25",
+          "bytes": 142195
+        },
+        "licenseSpdx": "MIT AND BSD-3-Clause",
+        "observedMarkers": [
+          "README.md says the decoder is based on libopus.",
+          "README.md describes WebAssembly compilation and package.json includes libopus and Wasm keywords.",
+          "src/EmscriptenWasm.js loads the compiled decoder, so the JavaScript API is a facade over the material implementation family."
+        ],
+        "disposition": "rejected-same-libopus-lineage-or-wasm-facade"
+      }
+    ]
+  },
+  "requiredContract": {
+    "fixedWork": "Run all 12 RFC 8251 bitstreams at 48 kHz for the mono and stereo channel configurations prescribed by the official runner, decode every framed packet exactly once per invocation and retain all 24 dispositions.",
+    "decodeSemantics": [
+      "Keep one decoder state for the complete framed stream rather than resetting per packet.",
+      "Exercise SILK, CELT and hybrid mode transitions, range-state checks, packet-loss concealment and in-band FEC whenever present in the official vectors.",
+      "Reject malformed framing, truncated payloads, invalid channel/rate declarations and output-length overflow without reading beyond the acquired bytes."
+    ],
+    "outputs": [
+      "Complete signed-16 PCM for every vector/channel invocation.",
+      "Per-packet sample ranges, final-range checkpoints and mode dispositions.",
+      "Official opus_compare verdict against the normal or modified fixed/floating reference for every invocation."
+    ],
+    "counters": [
+      "vector-invocations",
+      "packets",
+      "input-bytes",
+      "decoded-samples",
+      "decoded-sample-values",
+      "silk-packets",
+      "celt-packets",
+      "hybrid-packets",
+      "plc-frames",
+      "fec-frames",
+      "range-state-checks",
+      "allocations",
+      "boundary-crossings",
+      "output-bytes"
+    ],
+    "lifecycle": [
+      "A future demo must show recipe-only fixture acquisition status before enabling Start.",
+      "Each Start must use a fresh module worker and unique token with bounded timeout.",
+      "Cancel, stale message/error delivery, restart and pagehide must terminate only the owned worker and must be executed in retained browser evidence.",
+      "The page must expose accessible textual progress and output, and must not upload, persist or rank results."
+    ]
+  },
+  "unavailableEvidence": {
+    "javascriptSource": "unavailable",
+    "wasmSource": "unavailable",
+    "wasmArtifact": "unavailable",
+    "resultRecords": "unavailable",
+    "browserEvidence": "unavailable",
+    "performanceEvidence": "unavailable"
+  },
+  "reproduction": {
+    "denoVersion": "2.9.0",
+    "command": "deno run --allow-net=opus-codec.org,downloads.xiph.org,ftp.osuosl.org,registry.npmjs.org --allow-read --allow-write --allow-run=tar scripts/reproduce-audio-opus-stream-blocker.ts --fetch",
+    "networkHosts": [
+      "opus-codec.org",
+      "downloads.xiph.org",
+      "ftp.osuosl.org",
+      "registry.npmjs.org"
+    ],
+    "committedFixtureBytes": false
+  }
+}
