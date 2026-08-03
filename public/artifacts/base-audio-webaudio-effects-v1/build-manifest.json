@@ -82,8 +82,8 @@
     },
     {
       "path": "public/benchmarks/base/audio-webaudio-effects-v1/index.html",
-      "bytes": 2879,
-      "sha256": "b4939a723b33d9bd79c58635fb8f6941f1d88b2452d1d461f1fe2a2679b631c3"
+      "bytes": 3020,
+      "sha256": "3c2d833a1d5e91d71fcd829396e7fb0c976304dc3acc299fecc03449bcf8bd7f"
     },
     {
       "path": "public/base-audio-effects-demo.js",

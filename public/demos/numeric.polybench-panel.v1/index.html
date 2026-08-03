@@ -9,10 +9,15 @@
     <script type="module" src="/polybench-panel-demo.js"></script>
   </head>
   <body>
-    <a class="skip-link" href="#content">Skip to content</a>
-    <header
-      class="site-header"><a href="/">Wasm versus JavaScript</a><a href="/benchmarks/">Catalog</a></header>
-    <main id="content" class="content-shell">
+    <a class="skip" href="#main">Skip to main content</a>
+    <header class="masthead">
+      <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
+      <a href="/benchmarks/">Browse Catalog</a>
+      <a href="/experiments/">Experiment</a>
+      <a href="/evidence/">Evidence</a>
+      <strong>data v1</strong>
+    </header>
+    <main id="main" class="content-shell">
       <p class="eyebrow">BASE CATALOG CORRECTNESS DEMO · NUMERIC.POLYBENCH-PANEL.V1</p>
       <h1>Four fixed numeric kernels</h1>
       <p><strong>No performance claim.</strong> This route runs the registered MINI_DATASET panel in a fresh worker and compares every output element with retained raw output from an independently compiled C oracle. It stores and uploads nothing.</p>

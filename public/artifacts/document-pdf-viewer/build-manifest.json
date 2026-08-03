@@ -38,8 +38,9 @@
     },
     {
       "path": "public/benchmarks/document-pdf-viewer-v1/index.html",
-      "sha256": "1c0a9342d41cf8bb2450f5dfae5b89235a89d025b66a5c3e09bcde9156bd6b4b",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/63c7d18946ec6aa8185b8ef99dad46c0e5f69606/public/benchmarks/document-pdf-viewer-v1/index.html"
+      "sha256": "1ba071c536276c1c62de4665b01f6ac58d99d2dc184a3ea1ad2a99a5d12dbdb4",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/63c7d18946ec6aa8185b8ef99dad46c0e5f69606/public/benchmarks/document-pdf-viewer-v1/index.html",
+      "bytes": 2955
     },
     {
       "path": "public/benchmarks/document-pdf-viewer-v1/runner.js",

@@ -9,10 +9,15 @@
     <script type="module" src="./demo.js"></script>
   </head>
   <body>
-    <a class="skip-link" href="#content">Skip to content</a>
-    <header
-      class="site-header"><a class="brand" href="/">Wasm versus JavaScript</a><a href="/benchmarks/">Catalog</a></header>
-    <main id="content" class="page-shell">
+    <a class="skip" href="#main">Skip to main content</a>
+    <header class="masthead">
+      <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
+      <a href="/benchmarks/">Browse Catalog</a>
+      <a href="/experiments/">Experiment</a>
+      <a href="/evidence/">Evidence</a>
+      <strong>data v1</strong>
+    </header>
+    <main id="main" class="page-shell">
       <p class="eyebrow">FULL BASE CONTRACT · TEXT.REGEX-LOG-SCAN.V1</p>
       <h1>Scan 100 MiB with 20 safe patterns</h1>
       <p><strong>No performance claim.</strong> A fresh worker generates the registered 100 MiB multilingual log, extracts every URL, IPv4 address, and status code, then checks the complete ordered-capture hash and structural counters. Nothing is uploaded or stored.</p>

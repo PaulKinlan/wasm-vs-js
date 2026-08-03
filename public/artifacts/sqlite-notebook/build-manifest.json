@@ -209,8 +209,8 @@
     },
     {
       "path": "public/benchmarks/database-sqlite-notebook-v1/index.html",
-      "bytes": 4289,
-      "sha256": "13099fe088503c322fc85d54c1ad85ca47691dc7fb40b45c004d169991db1c10"
+      "bytes": 4436,
+      "sha256": "8d2b95d7493c3c9087c1eadc0d8a84a417f6a2e166d6e38bd8d99e941e40d4e9"
     },
     {
       "path": "public/sqlite-notebook-runner.js",

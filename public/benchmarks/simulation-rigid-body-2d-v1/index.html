@@ -7,10 +7,15 @@
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
-    <a class="skip-link" href="#content">Skip to content</a>
-    <header
-      class="site-header"><a href="/">Wasm versus JavaScript</a><a href="/benchmarks/">Catalog</a></header>
-    <main id="content" class="demo-shell">
+    <a class="skip" href="#main">Skip to main content</a>
+    <header class="masthead">
+      <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
+      <a href="/benchmarks/">Browse Catalog</a>
+      <a href="/experiments/">Experiment</a>
+      <a href="/evidence/">Evidence</a>
+      <strong>data v1</strong>
+    </header>
+    <main id="main" class="demo-shell">
       <p class="eyebrow">Supplemental implementation candidate · simulation.rigid-body-2d.v1</p>
       <h1>500-box rigid-body settlement</h1>
       <p><strong>No performance claim.</strong> This correctness demo executes exactly 1,800 fixed timesteps in a fresh worker. It checks all 18,000 checkpoint position, angle, linear-velocity, and angular-velocity values, solver counters, ground contact, joints, contact penetration, energy, and settlement. Nothing is uploaded or stored.</p>

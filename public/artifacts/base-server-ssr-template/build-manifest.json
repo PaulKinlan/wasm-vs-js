@@ -36,8 +36,8 @@
     },
     {
       "path": "public/demos/server.ssr-template.v1/index.html",
-      "bytes": 2645,
-      "sha256": "2500082356df37117e7cef681b878b278e5e34d8d7013617c0293d4542e08acb"
+      "bytes": 2792,
+      "sha256": "64bffa18aafba287eb2dc4cb8cca7c9488d986451cbe33b500e0995f12d92c51"
     },
     {
       "path": "server.ts",

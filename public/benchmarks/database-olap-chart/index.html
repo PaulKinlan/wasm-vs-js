@@ -9,10 +9,15 @@
     <script type="module" src="/benchmarks/database-olap-chart/runner.js"></script>
   </head>
   <body>
-    <a class="skip-link" href="#content">Skip to content</a>
-    <header
-      class="site-header"><a href="/">Wasm versus JavaScript</a><a href="/benchmarks/">Catalog</a></header>
-    <main id="content" class="shell">
+    <a class="skip" href="#main">Skip to main content</a>
+    <header class="masthead">
+      <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
+      <a href="/benchmarks/">Browse Catalog</a>
+      <a href="/experiments/">Experiment</a>
+      <a href="/evidence/">Evidence</a>
+      <strong>data v1</strong>
+    </header>
+    <main id="main" class="shell">
       <p class="eyebrow">Runnable correctness demo · database.olap-chart.v1</p>
       <h1>Five-query OLAP chart trace</h1>
       <p><strong>No performance claim.</strong> Each Start executes the complete frozen trace: 10,000 columnar rows, five filters, five stable sorts, five aggregations, and five canonical chart models in a fresh worker. The selected query changes only which completed chart model is displayed. Nothing is stored or uploaded.</p>
