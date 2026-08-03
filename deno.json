@@ -6,6 +6,7 @@
   },
   "tasks": {
     "build": "deno run --allow-read=. --allow-write=public/artifacts scripts/build.ts",
+    "build:base-gltf-viewer": "deno run --allow-read=. --allow-write=public/artifacts,public/evidence --allow-run=node,clang,wasm-ld,git scripts/build-base-gltf-viewer.ts --source-commit=$(git rev-parse HEAD)",
     "local": "SERVER_MODE=local HOST=127.0.0.1 WASM_VS_JS_COMMIT=$(git rev-parse HEAD) deno run --allow-env=PORT,HOST,SERVER_MODE,WASM_VS_JS_COMMIT --allow-net=127.0.0.1 --allow-read=. --allow-write=raw/runs server.ts",
     "public": "deno run --allow-env=PORT,HOST,SERVER_MODE --allow-net=0.0.0.0,127.0.0.1 --allow-read=. deploy.ts",
     "summary": "WASM_VS_JS_COMMIT=$(git rev-parse HEAD) deno run --allow-env=WASM_VS_JS_COMMIT --allow-read=. --allow-write=raw/summaries scripts/summarize.ts",
@@ -21,7 +22,8 @@
     "proseWrap": "preserve"
   },
   "lint": {
-    "include": ["benchmarks/", "deploy.ts", "lib/", "public/", "scripts/", "server.ts", "tests/"]
+    "include": ["benchmarks/", "deploy.ts", "lib/", "public/", "scripts/", "server.ts", "tests/"],
+    "exclude": ["public/artifacts/"]
   },
   "deploy": {
     "org": "paulkinlan-ea",

@@ -331,6 +331,48 @@ for (
   }
 }
 
+for (const path of ["/benchmarks/base-gltf-viewer", "/benchmarks/base-gltf-viewer/"]) {
+  routes.set(path, ["public/benchmarks/base-gltf-viewer/index.html", "text/html; charset=utf-8"]);
+}
+for (const script of ["demo.js", "worker.js", "decoder-worker.js"]) {
+  routes.set(`/benchmarks/base-gltf-viewer/${script}`, [
+    `public/benchmarks/base-gltf-viewer/${script}`,
+    "text/javascript; charset=utf-8",
+  ]);
+}
+routes.set("/benchmarks/base/graphics-gltf-viewer/engine.js", [
+  "benchmarks/base/graphics-gltf-viewer/engine.js",
+  "text/javascript; charset=utf-8",
+]);
+for (
+  const [name, contentType] of [
+    ["Avocado.gltf", "model/gltf+json"],
+    ["Avocado.bin", "application/octet-stream"],
+    ["base-color-64.rgba", "application/octet-stream"],
+    ["decoded-mesh.bin", "application/octet-stream"],
+    ["animation-table.i32", "application/octet-stream"],
+    ["reference-output.bin", "application/octet-stream"],
+    ["viewer.wasm", "application/wasm"],
+    ["draco_decoder_gltf.wasm", "application/wasm"],
+    ["draco_decoder_gltf.js", "text/javascript; charset=utf-8"],
+    ["draco_wasm_wrapper_gltf.js", "text/javascript; charset=utf-8"],
+    ["DRACO-LICENSE.txt", "text/plain; charset=utf-8"],
+    ["fixture-manifest.json", "application/json; charset=utf-8"],
+    ["implementation-contract.v1.json", "application/json; charset=utf-8"],
+    ["output-manifest.json", "application/json; charset=utf-8"],
+    ["build-manifest.json", "application/json; charset=utf-8"],
+  ] as const
+) {
+  routes.set(`/artifacts/base-gltf-viewer/${name}`, [
+    `public/artifacts/base-gltf-viewer/${name}`,
+    contentType,
+  ]);
+}
+routes.set("/evidence/base-workloads/graphics-gltf-viewer/static-validation.json", [
+  "public/evidence/base-workloads/graphics-gltf-viewer/static-validation.json",
+  "application/json; charset=utf-8",
+]);
+
 for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
   routes.set(`/artifacts/${slug}/${slug}.wasm`, [
     `public/artifacts/${slug}/${slug}.wasm`,
