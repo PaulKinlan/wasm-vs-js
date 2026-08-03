@@ -4,7 +4,15 @@
   "version": 1,
   "tier": "T1",
   "title": "Virtual DOM diff and host DOM patch/hydration",
-  "description": "Virtual DOM tree reconciliation (1,000 nodes, 250 edit ops) generating a canonical patch script and applying controlled host DOM mutations.",
+  "description": "Reduced conformance and harness slice: reconcile 1,000 nodes with exactly 250 effective edits, then verify self-contained application. This is not the accepted v2 production workload.",
+  "catalogStatus": "out-of-catalog-reduced-conformance-slice",
+  "catalogCoverage": false,
+  "acceptedV2ProductionContract": {
+    "id": "dom.vdom-diff-patch.v1",
+    "status": "not-implemented",
+    "requiredNodes": 10000,
+    "requiredEdits": 2000
+  },
   "tracks": [
     "controlled"
   ],

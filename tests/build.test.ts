@@ -20,6 +20,15 @@ Deno.test("pinned build reproduces every Wasm artifact and manifest byte-for-byt
   for (const [path, expected] of before) assertEquals(await Deno.readFile(path), expected);
 });
 
+Deno.test("reduced traditional-web slices cannot claim accepted-v2 catalog coverage", async () => {
+  for (const id of ["vdom-diff-patch", "regex-automata-duel"]) {
+    const benchmark = JSON.parse(await Deno.readTextFile(`benchmarks/${id}/benchmark.json`));
+    assertEquals(benchmark.catalogStatus, "out-of-catalog-reduced-conformance-slice");
+    assertEquals(benchmark.catalogCoverage, false);
+    assertEquals(benchmark.acceptedV2ProductionContract.status, "not-implemented");
+  }
+});
+
 Deno.test("build manifests bind real source graphs, inputs, outputs, and artifacts", async () => {
   for (const id of ARTIFACTS) {
     const manifest = JSON.parse(

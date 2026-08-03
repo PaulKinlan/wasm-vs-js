@@ -4,7 +4,15 @@
   "version": 1,
   "tier": "T1",
   "title": "JS native RegExp vs Wasm automata engine duel",
-  "description": "Head-to-head evaluation of V8 Irregexp native engine vs. Thompson NFA/DFA automata search across 20 frozen safe regular expressions over a 1 MiB text corpus.",
+  "description": "Reduced conformance and harness slice: native RegExp, project Thompson NFA, and Wasm DFA execution across 20 patterns over a 1 MiB ASCII/BMP corpus. This is not the accepted v2 production workload.",
+  "catalogStatus": "out-of-catalog-reduced-conformance-slice",
+  "catalogCoverage": false,
+  "acceptedV2ProductionContract": {
+    "id": "text.regex-engine-duel.v1",
+    "status": "not-implemented",
+    "requiredCorpusBytes": 33554432,
+    "requiredPatterns": 40
+  },
   "tracks": [
     "controlled"
   ],

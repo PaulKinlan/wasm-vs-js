@@ -20,11 +20,11 @@ const schema = JSON.parse(
 const validateSchema = ajv.compile(schema);
 
 const EXPECTED = {
-  canonicalSha256: "a30b19e5c8141252a0ecd8a255fc05cf13d3bc421bf6e653bf83ce2242632721",
+  canonicalSha256: "9a58542c5bfb36922078fd311266ddd44164082a943727cbec4bb2541dc1ef4e",
   benchmarkPath: "../benchmarks/sum-u32/benchmark.json",
   benchmarkSha256: "d5a7c9459e5bbed3a64d521af393d30d572b1034184a249f14265e2a0a99ff0a",
   manifestPath: "../public/artifacts/sum-u32/build-manifest.json",
-  manifestSha256: "e5663a43eecc5a645f479c06d1c1fb0f5b250d4f5942a790e9d893cc9b42cb45",
+  manifestSha256: "5157390a8e35e769f28174997deffaac8f3f5cec8c27bab0680c2366d3f6fe97",
   javascriptPath: "../benchmarks/sum-u32/workload.js",
   javascriptSha256: "4d8379672c1b51b0b315d2bee119880694e5a4f6412ef59b7fe2593ef6b179b7",
   wasmPath: "../public/artifacts/sum-u32/sum-u32.wasm",
