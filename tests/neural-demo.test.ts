@@ -18,7 +18,10 @@ async function startServer() {
       HOST: "127.0.0.1",
       SERVER_MODE: "local",
       WASM_VS_JS_COMMIT: Deno.env.get("WASM_VS_JS_COMMIT") ||
-        Deno.readTextFileSync(".git/HEAD").trim(),
+        Deno.env.get("WASM_VS_JS_COMMIT") || (() => {
+          const p = new Deno.Command("git", { args: ["rev-parse", "HEAD"] }).outputSync();
+          return new TextDecoder().decode(p.stdout).trim();
+        })(),
     },
     stdout: "null",
     stderr: "null",
@@ -28,17 +31,21 @@ async function startServer() {
     try {
       const r = await fetch(`${ORIGIN}/benchmarks/ml-gemm/`);
       if (r.ok) return;
-    } catch {}
+    } catch (e) {
+      void e;
+    }
     await new Promise((r) => setTimeout(r, 200));
   }
   throw new Error("server did not start");
 }
 
-async function stopServer() {
+function stopServer() {
   if (server) {
     try {
       server.kill("SIGTERM");
-    } catch {}
+    } catch (e) {
+      void e;
+    }
   }
 }
 
@@ -235,9 +242,9 @@ Deno.test({
 });
 
 Deno.test({
-  name: "neural demo MLP output validates against reference and bounds (all 9 layers)",
+  name: "neural demo MLP validates all 9 layer outputs against reference and bounds",
   fn: async () => {
-    const { generateInput, mlpControlled } = await import(
+    const { generateInput, linearLayerF32, geluInPlace } = await import(
       "../benchmarks/v2/ml-dense-mlp/workload.js"
     );
     const refBytes = Deno.readFileSync("artifacts/v2/ml-dense-mlp/reference.f64");
@@ -257,24 +264,51 @@ Deno.test({
     assert(bounds.length === 147456, "MLP bounds (9×32×512)");
 
     const { x, w, bias } = generateInput();
-    const scratchA = new Float32Array(32 * 512);
-    const scratchB = new Float32Array(32 * 512);
-    const y = new Float32Array(32 * 512);
-    mlpControlled(x, w, bias, scratchA, scratchB, y);
+    const LAYER_LEN = 32 * 512;
+    const LAYERS = 9;
+    const WIDTH = 512;
 
-    const layerLen = 32 * 512;
-    const finalRef = reference.subarray(8 * layerLen, 9 * layerLen);
-    const finalBounds = bounds.subarray(8 * layerLen, 9 * layerLen);
-
-    let maxDev = 0, violations = 0;
-    for (let i = 0; i < y.length; i++) {
-      assert(Number.isFinite(y[i]), `NaN/Inf at [${i}]: ${y[i]}`);
-      const dev = Math.abs(y[i] - finalRef[i]);
-      if (dev > maxDev) maxDev = dev;
-      if (dev > finalBounds[i]) violations++;
+    // Per-layer JS forward pass with output capture
+    const scratchA = new Float32Array(LAYER_LEN);
+    const scratchB = new Float32Array(LAYER_LEN);
+    const layerOutputs: Float32Array[] = [];
+    let input = x;
+    for (let layer = 0; layer < LAYERS; layer++) {
+      const out = layer === LAYERS - 1
+        ? new Float32Array(LAYER_LEN)
+        : layer % 2 === 0
+        ? scratchA
+        : scratchB;
+      linearLayerF32(
+        input,
+        w.subarray(layer * WIDTH * WIDTH, (layer + 1) * WIDTH * WIDTH),
+        bias.subarray(layer * WIDTH, (layer + 1) * WIDTH),
+        out,
+        32,
+        WIDTH,
+      );
+      if (layer < LAYERS - 1) geluInPlace(out);
+      layerOutputs.push(new Float32Array(out));
+      input = out;
     }
-    assert(violations === 0, `MLP JS final layer has ${violations} bound violations`);
-    assert(maxDev < 1e-3, `MLP JS final max deviation ${maxDev.toExponential(3)} exceeds 1e-3`);
+
+    // Validate ALL 9 layers
+    let maxDev = 0, totalViolations = 0;
+    for (let l = 0; l < LAYERS; l++) {
+      const ref = reference.subarray(l * LAYER_LEN, (l + 1) * LAYER_LEN);
+      const bnd = bounds.subarray(l * LAYER_LEN, (l + 1) * LAYER_LEN);
+      for (let i = 0; i < LAYER_LEN; i++) {
+        assert(Number.isFinite(layerOutputs[l][i]), `NaN/Inf layer ${l}[${i}]`);
+        const dev = Math.abs(layerOutputs[l][i] - ref[i]);
+        if (dev > maxDev) maxDev = dev;
+        if (dev > bnd[i]) totalViolations++;
+      }
+    }
+    assert(
+      totalViolations === 0,
+      `MLP JS has ${totalViolations} bound violations across all 9 layers`,
+    );
+    assert(maxDev < 1e-3, `MLP JS all-layer max deviation ${maxDev.toExponential(3)} exceeds 1e-3`);
   },
   sanitizeResources: false,
   sanitizeOps: false,

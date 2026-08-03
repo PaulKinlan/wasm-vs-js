@@ -50,7 +50,8 @@ function validateOutput(output, reference, bounds, label) {
   return { maxDev, violations };
 }
 
-async function runGemm(runToken, target) {
+async function runGemm(runToken, target, mode) {
+  const exact = mode === "exact";
   const post = (type, data = {}) => {
     if (runToken === token) self.postMessage({ type, token: runToken, ...data });
   };

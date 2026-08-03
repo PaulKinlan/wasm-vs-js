@@ -117,3 +117,10 @@ cancelBtn.addEventListener("click", () => {
   addPhase("Cancelled.");
   cleanup();
 });
+
+self.addEventListener("pagehide", () => {
+  if (worker) {
+    worker.terminate();
+    worker = null;
+  }
+});
