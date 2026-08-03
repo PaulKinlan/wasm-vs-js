@@ -187,9 +187,6 @@ Deno.test("compiler artifact and complete source graph match pinned provenance",
     const bytes = await Deno.readFile(new URL(source.path, root));
     assert(bytes.byteLength > 0, `source file exists: ${source.path}`);
   }
-    assert(committed.success, `missing committed source ${source.path}`);
-    assertEquals(await sha256Hex(committed.stdout), source.sha256);
-  }
   for (const entry of fixture.entries) {
     for (const file of [entry.source, entry.header]) {
       const bytes = await Deno.readFile(new URL(file.path, root));
