@@ -195,6 +195,14 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/artifacts/ml-numeric-kernels/reference.f64",
     "application/octet-stream",
   ]],
+  ["/artifacts/ml-numeric-kernels/reference.i32", [
+    "public/artifacts/ml-numeric-kernels/reference.i32",
+    "application/octet-stream",
+  ]],
+  ["/artifacts/ml-numeric-kernels/reference.u8", [
+    "public/artifacts/ml-numeric-kernels/reference.u8",
+    "application/octet-stream",
+  ]],
   ["/artifacts/ml-numeric-kernels/bounds.f64", [
     "public/artifacts/ml-numeric-kernels/bounds.f64",
     "application/octet-stream",

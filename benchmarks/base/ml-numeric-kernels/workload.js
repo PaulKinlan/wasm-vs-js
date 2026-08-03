@@ -230,13 +230,24 @@ export function workCounters(target = "javascript") {
     }
   }
   const softmaxElements = SOFTMAX.rows * SOFTMAX.cols;
+  // Operative tensor accesses count the actual frozen loop topology. Softmax
+  // reads 384 FP32 and 392 INT8 tensor elements; its INT8 residual correction
+  // adds eight reads and writes. The finite-input gate reads every FP32 input.
+  const kernelTensorReads = 4 * (gemmMacs + convMacs) + 776;
+  const validationTensorReads = GEMM.m * GEMM.k + GEMM.k * GEMM.n +
+    CONV.height * CONV.width * CONV.inChannels +
+    CONV.kernel * CONV.kernel * CONV.inChannels * CONV.outChannels + softmaxElements;
+  const tensorWrites = 2 *
+      (GEMM.m * GEMM.n + CONV.height * CONV.width * CONV.outChannels) +
+    2 * softmaxElements + softmaxElements + SOFTMAX.rows;
   return {
     "gemm-macs-per-dtype": gemmMacs,
     "conv-macs-per-dtype": convMacs,
     "total-macs": 2 * (gemmMacs + convMacs),
-    "tensor-reads": 4 * (gemmMacs + convMacs) + 4 * softmaxElements,
-    "tensor-writes": 2 *
-      (GEMM.m * GEMM.n + CONV.height * CONV.width * CONV.outChannels + softmaxElements),
+    "kernel-tensor-reads": kernelTensorReads,
+    "validation-tensor-reads": validationTensorReads,
+    "tensor-reads": kernelTensorReads + validationTensorReads,
+    "tensor-writes": tensorWrites,
     "exp-approximations": softmaxElements,
     "normalizations": 2 * softmaxElements,
     allocations: 6,

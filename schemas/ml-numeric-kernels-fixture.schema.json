@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/ml-numeric-kernels-fixture.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "catalogId",
+    "frozenCatalogSha256",
+    "contractId",
+    "rights",
+    "generator",
+    "tensorOrder",
+    "shapes",
+    "dtypes",
+    "layout",
+    "fixtureBytes",
+    "fixtureSha256"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "catalogId": { "const": "ml.numeric-kernels.v1" },
+    "frozenCatalogSha256": { "$ref": "#/$defs/sha256" },
+    "contractId": { "const": "ml.numeric-kernels.v1-controlled-scalar.v1" },
+    "rights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["licenseSpdx", "source", "redistribution"],
+      "properties": {
+        "licenseSpdx": { "const": "CC0-1.0" },
+        "source": { "const": "project-generated" },
+        "redistribution": { "const": "permitted" }
+      }
+    },
+    "generator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "seed"],
+      "properties": { "algorithm": { "const": "xorshift32" }, "seed": { "const": 1835821873 } }
+    },
+    "tensorOrder": {
+      "type": "array",
+      "prefixItems": [
+        { "const": "gemmF32A" },
+        { "const": "gemmF32B" },
+        { "const": "gemmI8A" },
+        { "const": "gemmI8B" },
+        { "const": "convF32Input" },
+        { "const": "convF32Weights" },
+        { "const": "convI8Input" },
+        { "const": "convI8Weights" },
+        { "const": "softmaxF32Input" },
+        { "const": "softmaxI8Input" }
+      ],
+      "items": false,
+      "minItems": 10,
+      "maxItems": 10
+    },
+    "shapes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gemm", "convolution", "softmax"],
+      "properties": {
+        "gemm": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["m", "n", "k"],
+          "properties": { "m": { "const": 8 }, "n": { "const": 7 }, "k": { "const": 9 } }
+        },
+        "convolution": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "batch",
+            "height",
+            "width",
+            "inChannels",
+            "outChannels",
+            "kernel",
+            "stride",
+            "padding"
+          ],
+          "properties": {
+            "batch": { "const": 1 },
+            "height": { "const": 8 },
+            "width": { "const": 8 },
+            "inChannels": { "const": 3 },
+            "outChannels": { "const": 4 },
+            "kernel": { "const": 3 },
+            "stride": { "const": 1 },
+            "padding": { "const": 1 }
+          }
+        },
+        "softmax": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["rows", "cols"],
+          "properties": { "rows": { "const": 8 }, "cols": { "const": 16 } }
+        }
+      }
+    },
+    "dtypes": {
+      "type": "array",
+      "prefixItems": [{ "const": "fp32" }, { "const": "int8" }],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gemm", "convolution", "softmax"],
+      "properties": {
+        "gemm": { "const": "row-major NN" },
+        "convolution": { "const": "NHWC/HWIO" },
+        "softmax": { "const": "row-major" }
+      }
+    },
+    "fixtureBytes": { "const": 2815 },
+    "fixtureSha256": { "$ref": "#/$defs/sha256" }
+  },
+  "$defs": { "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" } }
+}

@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/ml-numeric-kernels-output.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "catalogId",
+    "contractId",
+    "passed",
+    "completeOutputs",
+    "jsControlledSha256",
+    "wasmLinearControlledSha256",
+    "crossTargetExact",
+    "oracle",
+    "counters",
+    "buildManifestSha256"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "catalogId": { "const": "ml.numeric-kernels.v1" },
+    "contractId": { "const": "ml.numeric-kernels.v1-controlled-scalar.v1" },
+    "passed": { "const": true },
+    "completeOutputs": { "const": true },
+    "crossTargetExact": { "const": true },
+    "jsControlledSha256": { "$ref": "#/$defs/outputHashes" },
+    "wasmLinearControlledSha256": { "$ref": "#/$defs/outputHashes" },
+    "oracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "f32Reference",
+        "f32Bounds",
+        "int32Reference",
+        "uint8Reference",
+        "f32Policy",
+        "int8Policy"
+      ],
+      "properties": {
+        "kind": { "const": "independent-f64-int32-and-u8-retained-artifacts" },
+        "f32Reference": { "$ref": "#/$defs/artifact" },
+        "f32Bounds": { "$ref": "#/$defs/artifact" },
+        "int32Reference": { "$ref": "#/$defs/artifact" },
+        "uint8Reference": { "$ref": "#/$defs/artifact" },
+        "f32Policy": {
+          "const": "strict-scalar-f32; finite-only; +0 normalization; abs+relative stored bounds"
+        },
+        "int8Policy": {
+          "const": "independent loops; i8 inputs; i32 exact accumulation; u8 Q0.8 softmax sum=255"
+        }
+      }
+    },
+    "counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["javascript", "wasmLinear"],
+      "properties": {
+        "javascript": { "$ref": "#/$defs/jsCounters" },
+        "wasmLinear": { "$ref": "#/$defs/wasmCounters" }
+      }
+    },
+    "buildManifestSha256": { "$ref": "#/$defs/sha256" }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^public/artifacts/ml-numeric-kernels/[a-z0-9.]+$" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "outputHashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gemmF32", "gemmI8", "convF32", "convI8", "softmaxF32", "softmaxI8"],
+      "properties": {
+        "gemmF32": { "$ref": "#/$defs/sha256" },
+        "gemmI8": { "$ref": "#/$defs/sha256" },
+        "convF32": { "$ref": "#/$defs/sha256" },
+        "convI8": { "$ref": "#/$defs/sha256" },
+        "softmaxF32": { "$ref": "#/$defs/sha256" },
+        "softmaxI8": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "counterBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gemm-macs-per-dtype",
+        "conv-macs-per-dtype",
+        "total-macs",
+        "kernel-tensor-reads",
+        "validation-tensor-reads",
+        "tensor-reads",
+        "tensor-writes",
+        "exp-approximations",
+        "normalizations",
+        "allocations",
+        "boundary-crossings"
+      ],
+      "properties": {
+        "gemm-macs-per-dtype": { "const": 504 },
+        "conv-macs-per-dtype": { "const": 5808 },
+        "total-macs": { "const": 12624 },
+        "kernel-tensor-reads": { "const": 26024 },
+        "validation-tensor-reads": { "const": 563 },
+        "tensor-reads": { "const": 26587 },
+        "tensor-writes": { "const": 1016 },
+        "exp-approximations": { "const": 128 },
+        "normalizations": { "const": 256 },
+        "allocations": { "const": 6 },
+        "boundary-crossings": { "type": "integer" }
+      }
+    },
+    "jsCounters": {
+      "$ref": "#/$defs/counterBase",
+      "properties": { "boundary-crossings": { "const": 0 } }
+    },
+    "wasmCounters": {
+      "$ref": "#/$defs/counterBase",
+      "properties": { "boundary-crossings": { "const": 6 } }
+    }
+  }
+}

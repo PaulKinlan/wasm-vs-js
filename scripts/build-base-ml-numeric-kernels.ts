@@ -5,6 +5,36 @@ const root = new URL("../", import.meta.url);
 const out = new URL("public/artifacts/ml-numeric-kernels/", root);
 const PINNED_DENO = "2.9.0";
 const PINNED_CLANG = "clang version 22.1.8";
+const REPOSITORY = "https://github.com/PaulKinlan/wasm-vs-js";
+const sourcePaths = [
+  "benchmarks/base/ml-numeric-kernels/ml-numeric-kernels.c",
+  "benchmarks/base/ml-numeric-kernels/workload.js",
+  "public/ml-numeric-kernels-demo.js",
+  "public/ml-numeric-kernels-worker.js",
+  "scripts/build-base-ml-numeric-kernels.ts",
+  "lib/canonical.ts",
+  "schemas/base-implementation.schema.json",
+  "schemas/ml-numeric-kernels-fixture.schema.json",
+  "schemas/ml-numeric-kernels-build.schema.json",
+  "schemas/ml-numeric-kernels-output.schema.json",
+  "schemas/ml-numeric-kernels-evidence.schema.json",
+  "deno.json",
+  "deno.lock",
+];
+const sourceCommitArgument = Deno.args.find((value) => value.startsWith("--source-commit="));
+let sourceCommit = sourceCommitArgument?.slice("--source-commit=".length) ?? "";
+if (!sourceCommit) {
+  try {
+    sourceCommit = JSON.parse(
+      await Deno.readTextFile(new URL("build-manifest.json", out)),
+    ).sourceCommit;
+  } catch {
+    // The first attestation must name its committed source tree explicitly.
+  }
+}
+if (!/^[a-f0-9]{40}$/.test(sourceCommit)) {
+  throw new Error("--source-commit=<40 lowercase hex Git commit> is required for first build");
+}
 const flags = [
   "--target=wasm32-unknown-unknown",
   "-O2",
@@ -31,6 +61,20 @@ const version = new TextDecoder().decode(
   (await new Deno.Command("clang", { args: ["--version"], stdout: "piped" }).output()).stdout,
 ).split("\n")[0];
 if (version !== PINNED_CLANG) throw new Error(`requires ${PINNED_CLANG}; found ${version}`);
+const sources = await Promise.all(sourcePaths.map(async (path) => {
+  const working = await Deno.readFile(new URL(path, root));
+  const committed = await new Deno.Command("git", {
+    args: ["show", `${sourceCommit}:${path}`],
+    cwd: root.pathname,
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  if (!committed.success || await sha256Hex(committed.stdout) !== await sha256Hex(working)) {
+    throw new Error(`working source does not match ${sourceCommit}:${path}`);
+  }
+  return { path, bytes: working.byteLength, sha256: await sha256Hex(working) };
+}));
+const sourceIdentity = sources.map(({ path, sha256 }) => `${path}\0${sha256}\n`).join("");
 await Deno.mkdir(out, { recursive: true });
 const sourcePath = "benchmarks/base/ml-numeric-kernels/ml-numeric-kernels.c";
 const wasmPath = new URL("ml-numeric-kernels.wasm", out).pathname;
@@ -121,12 +165,93 @@ function softmaxReference(input: Float32Array) {
   }
   return o;
 }
+function gemmInt32Reference(a: Int8Array, b: Int8Array) {
+  const output = new Int32Array(workload.GEMM.m * workload.GEMM.n);
+  for (let row = 0; row < workload.GEMM.m; row++) {
+    for (let column = 0; column < workload.GEMM.n; column++) {
+      let sum = 0;
+      for (let inner = 0; inner < workload.GEMM.k; inner++) {
+        sum += Number(a[row * workload.GEMM.k + inner]) *
+          Number(b[inner * workload.GEMM.n + column]);
+      }
+      output[row * workload.GEMM.n + column] = sum;
+    }
+  }
+  return output;
+}
+function convInt32Reference(input: Int8Array, weights: Int8Array) {
+  const C = workload.CONV;
+  const output = new Int32Array(C.height * C.width * C.outChannels);
+  for (let outputY = 0; outputY < C.height; outputY++) {
+    for (let outputX = 0; outputX < C.width; outputX++) {
+      for (let outputChannel = 0; outputChannel < C.outChannels; outputChannel++) {
+        let sum = 0;
+        for (let filterY = 0; filterY < C.kernel; filterY++) {
+          const inputY = outputY + filterY - C.padding;
+          if (inputY < 0 || inputY >= C.height) continue;
+          for (let filterX = 0; filterX < C.kernel; filterX++) {
+            const inputX = outputX + filterX - C.padding;
+            if (inputX < 0 || inputX >= C.width) continue;
+            for (let inputChannel = 0; inputChannel < C.inChannels; inputChannel++) {
+              const inputOffset = (inputY * C.width + inputX) * C.inChannels + inputChannel;
+              const weightOffset = ((filterY * C.kernel + filterX) * C.inChannels + inputChannel) *
+                  C.outChannels + outputChannel;
+              sum += Number(input[inputOffset]) * Number(weights[weightOffset]);
+            }
+          }
+        }
+        output[(outputY * C.width + outputX) * C.outChannels + outputChannel] = sum;
+      }
+    }
+  }
+  return output;
+}
+function softmaxUint8Reference(input: Int8Array) {
+  const { rows, cols } = workload.SOFTMAX;
+  const independentLut = [256, 94, 35, 13, 5, 2, 1, 0, 0];
+  const output = new Uint8Array(input.length);
+  for (let row = 0; row < rows; row++) {
+    const base = row * cols;
+    let maximum = Number(input[base]), maximumColumn = 0;
+    for (let column = 1; column < cols; column++) {
+      const value = Number(input[base + column]);
+      if (value > maximum) {
+        maximum = value;
+        maximumColumn = column;
+      }
+    }
+    const weights = new Array<number>(cols);
+    let denominator = 0;
+    for (let column = 0; column < cols; column++) {
+      const weight = independentLut[Math.min(8, maximum - Number(input[base + column]))];
+      weights[column] = weight;
+      denominator += weight;
+    }
+    let emitted = 0;
+    for (let column = 0; column < cols; column++) {
+      const quantized = Math.trunc(
+        (weights[column] * 255 + Math.trunc(denominator / 2)) / denominator,
+      );
+      output[base + column] = quantized;
+      emitted += quantized;
+    }
+    output[base + maximumColumn] = output[base + maximumColumn] + 255 - emitted;
+  }
+  return output;
+}
 const f64Reference = concat([
   gemmReference(fixtures.gemmF32A, fixtures.gemmF32B),
   convReference(fixtures.convF32Input, fixtures.convF32Weights),
   softmaxReference(fixtures.softmaxF32Input),
 ]);
+const int32Reference = concat([
+  gemmInt32Reference(fixtures.gemmI8A, fixtures.gemmI8B),
+  convInt32Reference(fixtures.convI8Input, fixtures.convI8Weights),
+]);
+const uint8Reference = softmaxUint8Reference(fixtures.softmaxI8Input);
 await Deno.writeFile(new URL("reference.f64", out), f64Reference);
+await Deno.writeFile(new URL("reference.i32", out), int32Reference);
+await Deno.writeFile(new URL("reference.u8", out), uint8Reference);
 const bounds = new Float64Array(440);
 let bi = 0;
 for (
@@ -154,6 +279,18 @@ for (let i = 0; i < controlledF32.length; i++) {
   if (Math.abs(controlledF32[i] - referenceView[i]) > bounds[i]) {
     throw new Error(`reference bound failed at ${i}`);
   }
+}
+const controlledInt32 = [...jsOutputs.gemmI8, ...jsOutputs.convI8];
+const int32ReferenceView = new Int32Array(
+  int32Reference.buffer,
+  int32Reference.byteOffset,
+  int32Reference.byteLength / 4,
+);
+if (!controlledInt32.every((value, index) => value === int32ReferenceView[index])) {
+  throw new Error("independent int32 reference failed");
+}
+if (!jsOutputs.softmaxI8.every((value, index) => value === uint8Reference[index])) {
+  throw new Error("independent uint8 reference failed");
 }
 
 const wasm = await Deno.readFile(new URL("ml-numeric-kernels.wasm", out));
@@ -225,16 +362,10 @@ const hashMap = async (object: Record<string, ArrayBufferView>) =>
       ]),
     ),
   );
-const sourceRefs: Record<string, string> = {};
-for (
-  const path of [
-    sourcePath,
-    "benchmarks/base/ml-numeric-kernels/workload.js",
-    "scripts/build-base-ml-numeric-kernels.ts",
-    "deno.json",
-    "deno.lock",
-  ]
-) sourceRefs[path] = await sha256Hex(await Deno.readFile(new URL(path, root)));
+const artifactRecord = async (path: string) => {
+  const value = await Deno.readFile(new URL(path, root));
+  return { path, bytes: value.byteLength, sha256: await sha256Hex(value) };
+};
 const fixtureManifest = {
   schemaVersion: 1,
   catalogId: "ml.numeric-kernels.v1",
@@ -253,7 +384,31 @@ const buildManifest = {
   schemaVersion: 1,
   catalogId: "ml.numeric-kernels.v1",
   contractId: workload.CONTRACT_ID,
-  toolchain: { deno: PINNED_DENO, clang: PINNED_CLANG },
+  sourceRepository: REPOSITORY,
+  sourceCommit,
+  sourceSha256: await sha256Hex(sourceIdentity),
+  fullSourceGraph: sources,
+  build: {
+    cwd: ".",
+    task: "deno task build:ml-numeric-kernels",
+    command: [
+      "clang",
+      ...flags,
+      sourcePath,
+      "-o",
+      "public/artifacts/ml-numeric-kernels/ml-numeric-kernels.wasm",
+    ],
+    toolchain: {
+      deno: PINNED_DENO,
+      v8: Deno.version.v8,
+      typescript: Deno.version.typescript,
+      clang: PINNED_CLANG,
+    },
+    lockfile: {
+      path: "deno.lock",
+      sha256: await sha256Hex(await Deno.readFile(new URL("deno.lock", root))),
+    },
+  },
   scalarProof: {
     simd: false,
     vectorization: false,
@@ -261,20 +416,16 @@ const buildManifest = {
     fpContraction: false,
     threads: false,
   },
-  command: [
-    "clang",
-    ...flags,
-    sourcePath,
-    "-o",
-    "public/artifacts/ml-numeric-kernels/ml-numeric-kernels.wasm",
-  ],
-  sourceRefs,
-  artifact: {
-    path: "public/artifacts/ml-numeric-kernels/ml-numeric-kernels.wasm",
-    bytes: wasm.byteLength,
-    sha256: await sha256Hex(wasm),
-  },
+  artifact: await artifactRecord("public/artifacts/ml-numeric-kernels/ml-numeric-kernels.wasm"),
 };
+await Deno.writeTextFile(
+  new URL("fixture-manifest.json", out),
+  `${canonicalize(fixtureManifest)}\n`,
+);
+await Deno.writeTextFile(new URL("build-manifest.json", out), `${canonicalize(buildManifest)}\n`);
+const buildManifestSha256 = await sha256Hex(
+  await Deno.readFile(new URL("build-manifest.json", out)),
+);
 const outputManifest = {
   schemaVersion: 1,
   catalogId: "ml.numeric-kernels.v1",
@@ -285,30 +436,26 @@ const outputManifest = {
   wasmLinearControlledSha256: await hashMap(wasmOutputs),
   crossTargetExact: true,
   oracle: {
-    reference: "independent-f64-and-int32",
-    referenceSha256: await sha256Hex(f64Reference),
-    boundsSha256: await sha256Hex(new Uint8Array(bounds.buffer)),
+    kind: "independent-f64-int32-and-u8-retained-artifacts",
+    f32Reference: await artifactRecord("public/artifacts/ml-numeric-kernels/reference.f64"),
+    f32Bounds: await artifactRecord("public/artifacts/ml-numeric-kernels/bounds.f64"),
+    int32Reference: await artifactRecord("public/artifacts/ml-numeric-kernels/reference.i32"),
+    uint8Reference: await artifactRecord("public/artifacts/ml-numeric-kernels/reference.u8"),
     f32Policy: "strict-scalar-f32; finite-only; +0 normalization; abs+relative stored bounds",
-    int8Policy: "i8 inputs; i32 exact accumulation; u8 Q0.8 softmax sum=255",
+    int8Policy: "independent loops; i8 inputs; i32 exact accumulation; u8 Q0.8 softmax sum=255",
   },
   counters: {
     javascript: workload.workCounters("javascript"),
     wasmLinear: workload.workCounters("wasm-linear"),
   },
+  buildManifestSha256,
 };
-const jsonArtifacts: Array<[string, unknown]> = [
-  ["fixture-manifest.json", fixtureManifest],
-  ["build-manifest.json", buildManifest],
-  ["output-manifest.json", outputManifest],
-];
-for (const [name, value] of jsonArtifacts) {
-  await Deno.writeTextFile(new URL(name, out), `${canonicalize(value)}\n`);
-}
+await Deno.writeTextFile(new URL("output-manifest.json", out), `${canonicalize(outputManifest)}\n`);
+const outputManifestSha256 = await sha256Hex(
+  await Deno.readFile(new URL("output-manifest.json", out)),
+);
 const evidenceDir = new URL("public/evidence/base-implementations/ml.numeric-kernels.v1/", root);
 await Deno.mkdir(evidenceDir, { recursive: true });
-const buildManifestSha256 = await sha256Hex(
-  await Deno.readFile(new URL("build-manifest.json", out)),
-);
 const recordPaths: string[] = [];
 for (
   const [variantId, outputSha256, counters] of [
@@ -327,18 +474,41 @@ for (
     workloadId: "ml.numeric-kernels.v1",
     contractId: workload.CONTRACT_ID,
     variantId,
+    sourceRepository: REPOSITORY,
+    sourceCommit,
+    sourceSha256: buildManifest.sourceSha256,
     frozenCatalogSha256: fixtureManifest.frozenCatalogSha256,
     fixtureSha256: fixtureManifest.fixtureSha256,
     buildManifestSha256,
+    outputManifestSha256,
     completeOutputSha256: outputSha256,
     counters,
-    validation: { passed: true, completeOutputs: true, crossTargetExact: true },
+    validation: {
+      passed: true,
+      completeOutputs: true,
+      crossTargetExact: true,
+      independentF32Oracle: true,
+      independentInt8Oracle: true,
+      exactCounters: true,
+    },
   };
-  const name = `${variantId}.json`;
-  const path = new URL(name, evidenceDir);
+  const path = new URL(`${variantId}.json`, evidenceDir);
   await Deno.writeTextFile(path, `${canonicalize(record)}\n`);
   recordPaths.push(path.pathname);
 }
+const artifactPaths = [
+  "public/artifacts/ml-numeric-kernels/fixture-manifest.json",
+  "public/artifacts/ml-numeric-kernels/build-manifest.json",
+  "public/artifacts/ml-numeric-kernels/output-manifest.json",
+  "public/artifacts/ml-numeric-kernels/fixture.bin",
+  "public/artifacts/ml-numeric-kernels/reference.f64",
+  "public/artifacts/ml-numeric-kernels/bounds.f64",
+  "public/artifacts/ml-numeric-kernels/reference.i32",
+  "public/artifacts/ml-numeric-kernels/reference.u8",
+  "public/artifacts/ml-numeric-kernels/ml-numeric-kernels.wasm",
+  "public/evidence/base-implementations/ml.numeric-kernels.v1/js-controlled-scalar.json",
+  "public/evidence/base-implementations/ml.numeric-kernels.v1/wasm-linear-controlled-scalar.json",
+];
 const registration = {
   schemaVersion: 1,
   status: "supplemental-controlled-implementation",
@@ -351,17 +521,8 @@ const registration = {
   contractId: workload.CONTRACT_ID,
   variants: ["js-controlled-scalar", "wasm-linear-controlled-scalar"],
   tracksExcluded: ["simd", "autovectorized", "layout-alternative"],
-  artifacts: [
-    "fixture-manifest.json",
-    "build-manifest.json",
-    "output-manifest.json",
-    "fixture.bin",
-    "reference.f64",
-    "bounds.f64",
-    "ml-numeric-kernels.wasm",
-    "public/evidence/base-implementations/ml.numeric-kernels.v1/js-controlled-scalar.json",
-    "public/evidence/base-implementations/ml.numeric-kernels.v1/wasm-linear-controlled-scalar.json",
-  ],
+  artifacts: artifactPaths,
+  artifactHashes: await Promise.all(artifactPaths.map(artifactRecord)),
 };
 await Deno.mkdir(new URL("catalog/implementations/", root), { recursive: true });
 const registrationPath = new URL("catalog/implementations/ml.numeric-kernels.v1.json", root);
