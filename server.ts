@@ -276,6 +276,46 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/evidence/base-implementations/sqlite-notebook/javascript-controlled.json",
   ["/evidence/base-implementations/sqlite-notebook/linear-wasm-controlled.json", [
     "public/evidence/base-implementations/sqlite-notebook/linear-wasm-controlled.json",
+  ["/benchmarks/base-dom-todomvc-journey", [
+    "public/benchmarks/base-dom-todomvc-journey/index.html",
+  ["/benchmarks/base-dom-todomvc-journey/", [
+  ["/benchmarks/base-dom-todomvc-journey/controller.js", [
+    "public/benchmarks/base-dom-todomvc-journey/controller.js",
+  ["/benchmarks/base-dom-todomvc-journey/worker.js", [
+    "public/benchmarks/base-dom-todomvc-journey/worker.js",
+  ["/benchmarks/base-dom-todomvc-journey/styles.css", [
+    "public/benchmarks/base-dom-todomvc-journey/styles.css",
+    "text/css; charset=utf-8",
+  ["/benchmarks/base/dom-todomvc-journey/benchmark.json", [
+    "benchmarks/base/dom-todomvc-journey/benchmark.json",
+  ["/benchmarks/base/dom-todomvc-journey/fixture.js", [
+    "benchmarks/base/dom-todomvc-journey/fixture.js",
+  ["/benchmarks/base/dom-todomvc-journey/engine.js", [
+    "benchmarks/base/dom-todomvc-journey/engine.js",
+  ["/benchmarks/base/dom-todomvc-journey/todomvc.wat", [
+    "benchmarks/base/dom-todomvc-journey/todomvc.wat",
+    "text/plain; charset=utf-8",
+  ["/artifacts/base-dom-todomvc-journey/runtime.js", [
+    "public/artifacts/base-dom-todomvc-journey/runtime.js",
+  ["/artifacts/base-dom-todomvc-journey/todomvc.wasm", [
+    "public/artifacts/base-dom-todomvc-journey/todomvc.wasm",
+  ["/artifacts/base-dom-todomvc-journey/fixture.json", [
+    "public/artifacts/base-dom-todomvc-journey/fixture.json",
+  ["/artifacts/base-dom-todomvc-journey/output-manifest.json", [
+    "public/artifacts/base-dom-todomvc-journey/output-manifest.json",
+  ["/artifacts/base-dom-todomvc-journey/build-manifest.json", [
+    "public/artifacts/base-dom-todomvc-journey/build-manifest.json",
+  ["/data/base-dom-todomvc-journey.v1.json", [
+    "public/data/base-dom-todomvc-journey.v1.json",
+  ["/data/base-workload-implementation.schema.json", [
+    "schemas/base-workload-implementation.schema.json",
+    "application/schema+json; charset=utf-8",
+  ["/data/base-todomvc-browser-evidence.schema.json", [
+    "schemas/base-todomvc-browser-evidence.schema.json",
+  ["/evidence/base/dom-todomvc-journey/js-controlled.json", [
+    "public/evidence/base/dom-todomvc-journey/js-controlled.json",
+  ["/evidence/base/dom-todomvc-journey/wasm-linear-controlled.json", [
+    "public/evidence/base/dom-todomvc-journey/wasm-linear-controlled.json",
     "application/json; charset=utf-8",
   ]],
   ["/demos/game-family/demo.js", [

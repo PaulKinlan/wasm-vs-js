@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "id": "dom.todomvc-journey.v1.controlled-v1",
+  "version": 1,
+  "tier": "T6",
+  "title": "TodoMVC 100-item controlled journey",
+  "description": "A framework-free controlled pair owns the same 100-item state machine and emits typed commands that a minimal host adapter applies to the real DOM.",
+  "tracks": ["controlled"],
+  "variants": [
+    {
+      "id": "js-controlled",
+      "target": "javascript",
+      "track": "controlled",
+      "buildManifest": "public/artifacts/base-dom-todomvc-journey/build-manifest.json"
+    },
+    {
+      "id": "wasm-linear-controlled",
+      "target": "wasm-linear",
+      "track": "controlled",
+      "buildManifest": "public/artifacts/base-dom-todomvc-journey/build-manifest.json"
+    }
+  ],
+  "inputs": {
+    "manifestSha256": "3685e7c3f03ad7589aaf04073fba1af461847daa9c5d7339a98025e0e24e1208",
+    "immutable": true,
+    "generation": "100 repository-owned multilingual labels and a 150-action trace: 100 add, 34 complete, 3 filter, 10 remove, and 3 edit actions"
+  },
+  "oracle": {
+    "kind": "complete-output",
+    "policy": "Exact typed-command stream, engine state, final physical DOM, accessibility names/states, focus target, and UTF-16 selection range.",
+    "floatingPointPolicy": "No floating-point operations.",
+    "deadCodeDefense": "Every command is physically applied to the DOM; final state and command bytes are hashed and compared with the supplemental oracle."
+  },
+  "work": {
+    "fixed": true,
+    "complexity": "O(actions + todos per filter)",
+    "counters": [
+      "actions",
+      "adds",
+      "toggles",
+      "filters",
+      "removes",
+      "edits",
+      "state-writes",
+      "commands-emitted",
+      "DOM-node-creations",
+      "physical-mutations",
+      "node-reuses",
+      "allocations",
+      "boundary-crossings"
+    ],
+    "tolerance": "All semantic, command, physical-DOM, accessibility, focus, selection, and work counters must match exactly; target-specific allocation and boundary counters remain explicit."
+  }
+}

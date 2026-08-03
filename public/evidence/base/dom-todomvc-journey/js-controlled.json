@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "catalogId": "dom.todomvc-journey.v1",
+  "implementationId": "dom.todomvc-journey.v1.controlled-v1",
+  "variantId": "js-controlled",
+  "status": "static-validation-passed-browser-pending",
+  "sourceCommit": "3accb00ab48b688be3fece9189430741ae214d7b",
+  "fixtureSha256": "3685e7c3f03ad7589aaf04073fba1af461847daa9c5d7339a98025e0e24e1208",
+  "oracleSha256": "678c59b64f50579777b04603d2a0f3d0b1e3a1f4167711441440f8b3a88b00be",
+  "semanticOutputSha256": "6877d79f8495afe8a709cb24836caeca370c03023253e5a974a696f657778dde",
+  "typedCommandSha256": "5c6bc6a25e0ed88bd67e9f2a3fd0e344db3ba5ed73feab99056d62827d77bc06",
+  "counters": {
+    "actions": 150,
+    "adds": 100,
+    "toggles": 34,
+    "filters": 3,
+    "removes": 10,
+    "edits": 3,
+    "stateWrites": 250,
+    "commandsEmitted": 150,
+    "commandFields": 600,
+    "outputElements": 801,
+    "allocations": 4,
+    "boundaryCrossings": 0
+  },
+  "browserEvidence": {
+    "status": "uncollected",
+    "reason": "authoritative parent-owned Chrome run pending"
+  },
+  "performanceClaims": []
+}

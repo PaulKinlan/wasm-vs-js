@@ -46,17 +46,13 @@
             "detail": "The frozen catalog marks Unicode conformance inputs recipe-only and LicenseRef-Download-Only. Raw Unicode data, generated Unicode tables, a table-bearing Wasm artifact, and a public runnable route remain unpublished until an independent redistribution audit permits them."
           }
         },
-        {
-          "const": {
             "code": "material-wasm-validation-unavailable",
             "detail": "No table-bearing linear-Wasm artifact is committed while redistribution is unresolved, so this package does not count toward frozen v1 coverage and makes no JS-versus-Wasm result claim."
-          }
         }
       ],
       "items": false,
       "minItems": 2,
       "maxItems": 2
-    },
     "fixture": {
       "type": "object",
       "additionalProperties": false,
@@ -64,12 +60,9 @@
       "properties": {
         "unicodeVersion": { "const": "15.1.0" },
         "rights": {
-          "const": {
             "status": "requires-independent-audit",
             "redistribution": "recipe-only-no-vendored-unicode-data",
             "committedUnicodeSourceExcerpts": false
-          }
-        },
         "downloads": {
           "type": "array",
           "prefixItems": [
@@ -81,88 +74,50 @@
                 "sha256": "871238e37e3be0696ec2bd0891119a041b052da1a84485eda05a5438724b223e"
               }
             },
-            {
-              "const": {
                 "name": "GraphemeBreakTest.txt",
                 "url": "https://www.unicode.org/Public/15.1.0/ucd/auxiliary/GraphemeBreakTest.txt",
                 "bytes": 188211,
                 "sha256": "ed9c5e92fd0911ccbeeb63c97cb19c519ea272ff1112ce843abd991582dd848f"
-              }
-            },
-            {
-              "const": {
                 "name": "CaseFolding.txt",
                 "url": "https://www.unicode.org/Public/15.1.0/ucd/CaseFolding.txt",
                 "bytes": 84870,
                 "sha256": "4e55acfdc32825a22e87670e9056a3bf94ad7c5400065778e9e10f8314372bcf"
-              }
-            },
-            {
-              "const": {
                 "name": "UnicodeData.txt",
                 "url": "https://www.unicode.org/Public/15.1.0/ucd/UnicodeData.txt",
                 "bytes": 1914200,
                 "sha256": "2fc713e6a31a87c4850a37fe2caffa4218180fadb5de86b43a143ddb4581fb86"
-              }
-            },
-            {
-              "const": {
                 "name": "CompositionExclusions.txt",
                 "url": "https://www.unicode.org/Public/15.1.0/ucd/CompositionExclusions.txt",
                 "bytes": 8888,
                 "sha256": "59d2d9e3dfdf0a999cf9dae11d594f053631222679a2f5710315ea07f7fe82af"
-              }
-            },
-            {
-              "const": {
                 "name": "DerivedNormalizationProps.txt",
                 "url": "https://www.unicode.org/Public/15.1.0/ucd/DerivedNormalizationProps.txt",
                 "bytes": 1355530,
                 "sha256": "8875dccee2bc1a7c1fe568a3b502a9e78c9e0495afd96b6568b4294d0ed1f7e1"
-              }
-            },
-            {
-              "const": {
                 "name": "GraphemeBreakProperty.txt",
                 "url": "https://www.unicode.org/Public/15.1.0/ucd/auxiliary/GraphemeBreakProperty.txt",
                 "bytes": 96863,
                 "sha256": "a7e52eee647e52dc210b8719b4d7037276f4b353810293d69377fc46374cec3f"
-              }
-            },
-            {
-              "const": {
                 "name": "emoji-data.txt",
                 "url": "https://www.unicode.org/Public/15.1.0/ucd/emoji/emoji-data.txt",
                 "bytes": 111505,
                 "sha256": "d7aef489c8fe4c14f09ea5695200277c6b93ac82ac60845cdd2161b0d6835cc1"
-              }
-            },
-            {
-              "const": {
                 "name": "DerivedCoreProperties.txt",
                 "url": "https://www.unicode.org/Public/15.1.0/ucd/DerivedCoreProperties.txt",
                 "bytes": 1072686,
                 "sha256": "f55d0db69123431a7317868725b1fcbf1eab6b265d756d1bd7f0f6d9f9ee108b"
-              }
             }
           ],
           "items": false,
           "minItems": 9,
           "maxItems": 9
-        },
         "generatedCorpus": {
-          "const": {
             "generator": "unicode-editor-corpus-v1",
             "licenseSpdx": "CC0-1.0",
             "codePoints": 65536,
             "utf8Bytes": 125776,
             "sha256": "981e0f7c47c5b9995e1fda5081ac17228d8f2caf54a895fa2c40a5438c715fcc"
-          }
-        }
-      }
-    },
     "semantics": {
-      "const": {
         "normalizationForms": ["NFC", "NFD", "NFKC", "NFKD"],
         "normalizationVersion": "15.1.0",
         "graphemeAlgorithm": "UAX-29 extended grapheme clusters, Unicode 15.1.0 including GB9c",
@@ -172,10 +127,7 @@
         "inputRepresentation": "Unicode-scalar JavaScript strings; lone UTF-16 surrogates are rejected",
         "outputRepresentation": "JavaScript strings plus code-point boundary and match arrays; no UTF-8 framing implementation is claimed",
         "malformedUtf8": "unavailable-not-implemented"
-      }
-    },
     "targets": {
-      "const": {
         "javascriptControlled": {
           "status": "source-present-local-conformance-passed",
           "path": "benchmarks/base/text-unicode-editor/workload.ts",
@@ -184,27 +136,59 @@
             "Intl.Segmenter",
             "locale casing"
           ]
-        },
         "linearWasmControlled": {
           "status": "blocked-unavailable",
           "reason": "A material table-bearing artifact cannot be distributed before the Unicode-data redistribution audit."
-        },
         "hostBaseline": {
           "status": "labelled-not-controlled",
           "apis": [
-            "String.prototype.normalize",
-            "Intl.Segmenter",
             "String.prototype.toLocaleLowerCase"
-          ]
-        }
-      }
-    },
     "evidence": {
-      "const": {
         "sourceAuditCommand": "deno run --allow-net=www.unicode.org --allow-read=. --allow-write=evidence/base/text-unicode-editor scripts/audit-base-unicode-editor.ts",
         "conformanceCommand": "same as sourceAuditCommand; validates the repository-owned JavaScript engine against complete NormalizationTest, GraphemeBreakTest, CaseFolding mappings, adversarial cases, and the complete generated corpus",
         "sourceAuditPath": "evidence/base/text-unicode-editor/source-audit.json",
         "browserEvidence": "unavailable-no-public-artifact"
+    "catalogId",
+    "implementationId",
+    "sourceCommit",
+    "frozenCatalog",
+    "route",
+    "variants",
+    "oracle",
+    "artifacts",
+    "limitations"
+    "catalogId": { "const": "dom.todomvc-journey.v1" },
+    "implementationId": { "const": "dom.todomvc-journey.v1.controlled-v1" },
+    "status": { "enum": ["implementation-candidate", "accepted"] },
+    "sourceCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "frozenCatalog": {
+      "required": ["sha256", "immutable", "entryCount"],
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "immutable": { "const": true },
+        "entryCount": { "const": 38 }
+    "route": { "const": "/benchmarks/base-dom-todomvc-journey/" },
+    "variants": {
+      "maxItems": 2,
+        { "const": "js-controlled" },
+        { "const": "wasm-linear-controlled" }
+      "items": false
+    "fixture": { "$ref": "#/$defs/hashedArtifact" },
+    "oracle": { "$ref": "#/$defs/hashedArtifact" },
+    "artifacts": {
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/hashedArtifact" }
+    "limitations": {
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    }
+  },
+  "$defs": {
+    "hashedArtifact": {
+      "required": ["path", "route", "bytes", "sha256"],
+        "path": { "type": "string", "minLength": 1 },
+        "route": { "type": "string", "pattern": "^/" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
       }
     }
   }

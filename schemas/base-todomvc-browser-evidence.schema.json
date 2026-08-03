@@ -1,0 +1,477 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.ai-focus.dev/schemas/base-todomvc-browser-evidence.v1.json",
+  "title": "Base TodoMVC authoritative Chrome evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "evidenceId",
+    "source",
+    "collectedAt",
+    "browser",
+    "route",
+    "viewport",
+    "scenarios",
+    "rawHashes",
+    "cleanup"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "evidenceId": { "const": "base-dom-todomvc-chrome-150-v1" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "collectorHead",
+        "sourceCommit",
+        "sourceRoot",
+        "cleanHead",
+        "registrationSha256",
+        "buildManifestSha256"
+      ],
+      "properties": {
+        "collectorHead": { "$ref": "#/$defs/git" },
+        "sourceCommit": { "$ref": "#/$defs/git" },
+        "sourceRoot": { "type": "string", "minLength": 1 },
+        "cleanHead": { "const": true },
+        "registrationSha256": { "$ref": "#/$defs/sha" },
+        "buildManifestSha256": { "$ref": "#/$defs/sha" }
+      }
+    },
+    "collectedAt": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T" },
+    "browser": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "commandLine",
+        "executable",
+        "sha256",
+        "externalToSourceRoot",
+        "launchArguments"
+      ],
+      "properties": {
+        "version": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["protocolVersion", "product", "revision", "userAgent", "jsVersion"],
+          "properties": {
+            "protocolVersion": { "type": "string" },
+            "product": { "const": "Chrome/150.0.7871.24" },
+            "revision": { "type": "string" },
+            "userAgent": { "type": "string" },
+            "jsVersion": { "type": "string" }
+          }
+        },
+        "commandLine": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["arguments"],
+          "properties": {
+            "arguments": {
+              "type": "array",
+              "items": { "type": "string" },
+              "contains": { "const": "--enable-automation" },
+              "minContains": 1,
+              "maxContains": 1
+            }
+          }
+        },
+        "executable": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/sha" },
+        "externalToSourceRoot": { "const": true },
+        "launchArguments": {
+          "type": "array",
+          "minItems": 16,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "prefixItems": [
+            { "const": "--headless=new" },
+            { "const": "--enable-automation" },
+            { "const": "--no-sandbox" },
+            { "const": "--disable-gpu" },
+            { "const": "--disable-background-networking" },
+            { "const": "--disable-component-update" },
+            { "const": "--disable-default-apps" },
+            { "const": "--disable-extensions" },
+            { "const": "--disable-sync" },
+            { "const": "--metrics-recording-only" },
+            { "const": "--no-first-run" },
+            { "const": "--window-size=1280,720" },
+            { "const": "--remote-debugging-address=127.0.0.1" },
+            { "type": "string", "pattern": "^--remote-debugging-port=[0-9]+$" },
+            {
+              "type": "string",
+              "pattern": "^--user-data-dir=/tmp/base-todomvc-chrome-[A-Za-z0-9_-]+$"
+            },
+            { "const": "about:blank" }
+          ],
+          "items": false
+        }
+      }
+    },
+    "route": { "const": "/benchmarks/base-dom-todomvc-journey/" },
+    "viewport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["width", "height", "deviceScaleFactor"],
+      "properties": {
+        "width": { "const": 1280 },
+        "height": { "const": 720 },
+        "deviceScaleFactor": { "const": 1 }
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": { "$ref": "#/$defs/scenario" }
+    },
+    "rawHashes": {
+      "type": "array",
+      "minItems": 16,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["route", "bytes", "sha256"],
+        "properties": {
+          "route": { "type": "string", "pattern": "^/" },
+          "bytes": { "type": "integer", "minimum": 1 },
+          "sha256": { "$ref": "#/$defs/sha" }
+        }
+      }
+    },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "observedBrowserProcesses",
+        "signals",
+        "ownedProcessesAbsent",
+        "profileRemoved",
+        "profileAbsent",
+        "serverAbsent"
+      ],
+      "properties": {
+        "observedBrowserProcesses": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/process" }
+        },
+        "signals": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["pid", "signal"],
+            "properties": {
+              "pid": { "type": "integer", "minimum": 1 },
+              "signal": { "enum": ["SIGTERM", "SIGKILL"] }
+            }
+          }
+        },
+        "ownedProcessesAbsent": { "const": true },
+        "profileRemoved": { "const": true },
+        "profileAbsent": { "const": true },
+        "serverAbsent": { "const": true }
+      }
+    }
+  },
+  "$defs": {
+    "git": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "sha": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "process": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pid", "parentPid", "start", "executable"],
+      "properties": {
+        "pid": { "type": "integer", "minimum": 1 },
+        "parentPid": { "type": "integer", "minimum": 0 },
+        "start": { "type": "string", "pattern": "^[0-9]+$" },
+        "executable": { "type": "string", "minLength": 1 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["alive", "active", "completed", "edited", "filter", "focus"],
+      "properties": {
+        "alive": { "const": 90 },
+        "active": { "const": 60 },
+        "completed": { "const": 30 },
+        "edited": { "const": 3 },
+        "filter": { "const": 0 },
+        "focus": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "version"],
+          "properties": { "id": { "const": 95 }, "version": { "const": 1 } }
+        }
+      }
+    },
+    "counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "actions",
+        "adds",
+        "toggles",
+        "filters",
+        "removes",
+        "edits",
+        "stateWrites",
+        "commandsEmitted",
+        "commandFields",
+        "outputElements",
+        "allocations",
+        "boundaryCrossings"
+      ],
+      "properties": {
+        "actions": { "const": 150 },
+        "adds": { "const": 100 },
+        "toggles": { "const": 34 },
+        "filters": { "const": 3 },
+        "removes": { "const": 10 },
+        "edits": { "const": 3 },
+        "stateWrites": { "const": 250 },
+        "commandsEmitted": { "const": 150 },
+        "commandFields": { "const": 600 },
+        "outputElements": { "const": 801 },
+        "allocations": { "enum": [0, 4] },
+        "boundaryCrossings": { "enum": [0, 1] }
+      }
+    },
+    "physical": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "createdElements",
+        "appendOperations",
+        "removeOperations",
+        "propertyWrites",
+        "attributeWrites",
+        "nodeReuses",
+        "focusCalls",
+        "selectionCalls",
+        "rafCheckpoints",
+        "physicalMutations"
+      ],
+      "properties": {
+        "createdElements": { "const": 500 },
+        "appendOperations": { "const": 500 },
+        "removeOperations": { "const": 10 },
+        "propertyWrites": { "const": 1177 },
+        "attributeWrites": { "const": 715 },
+        "nodeReuses": { "const": 347 },
+        "focusCalls": { "const": 1 },
+        "selectionCalls": { "const": 1 },
+        "rafCheckpoints": { "const": 150 },
+        "physicalMutations": { "const": 2402 }
+      }
+    },
+    "dom": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "completed",
+        "hidden",
+        "className",
+        "label",
+        "editValue",
+        "editHidden",
+        "checkboxAriaLabelledby",
+        "removeAriaLabel"
+      ],
+      "properties": {
+        "id": { "type": "integer", "minimum": 0, "maximum": 99 },
+        "completed": { "type": "boolean" },
+        "hidden": { "type": "boolean" },
+        "className": { "type": "string" },
+        "label": { "type": "string" },
+        "editValue": { "type": "string" },
+        "editHidden": { "type": "boolean" },
+        "checkboxAriaLabelledby": { "type": "string" },
+        "removeAriaLabel": { "type": "string" }
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["variantId", "summary", "counters", "physical", "canonicalDom", "assertions"],
+      "properties": {
+        "variantId": { "enum": ["js-controlled", "wasm-linear-controlled"] },
+        "summary": { "$ref": "#/$defs/summary" },
+        "counters": { "$ref": "#/$defs/counters" },
+        "physical": { "$ref": "#/$defs/physical" },
+        "canonicalDom": {
+          "type": "array",
+          "minItems": 90,
+          "maxItems": 90,
+          "items": { "$ref": "#/$defs/dom" }
+        },
+        "assertions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "implementationId",
+            "itemCount",
+            "completedCount",
+            "activeCount",
+            "allVisible",
+            "completeCanonicalDom",
+            "focus",
+            "selection",
+            "semanticSummary",
+            "physicalCounters"
+          ],
+          "properties": {
+            "implementationId": { "const": true },
+            "itemCount": { "const": true },
+            "completedCount": { "const": true },
+            "activeCount": { "const": true },
+            "allVisible": { "const": true },
+            "completeCanonicalDom": { "const": true },
+            "focus": { "const": true },
+            "selection": { "const": true },
+            "semanticSummary": { "const": true },
+            "physicalCounters": { "const": true }
+          }
+        }
+      }
+    },
+    "axEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "checkboxName", "removeName"],
+      "properties": {
+        "id": { "type": "integer", "minimum": 0, "maximum": 99 },
+        "checkboxName": { "type": "string" },
+        "removeName": { "type": "string" }
+      }
+    },
+    "network": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sessionId",
+        "requestId",
+        "url",
+        "method",
+        "status",
+        "mimeType",
+        "fromDiskCache",
+        "fromServiceWorker",
+        "failed",
+        "completed",
+        "errorText"
+      ],
+      "properties": {
+        "sessionId": { "type": "string", "minLength": 1 },
+        "requestId": { "type": "string", "minLength": 1 },
+        "url": { "type": "string", "pattern": "^http://127\\.0\\.0\\.1:" },
+        "method": { "const": "GET" },
+        "status": { "const": 200 },
+        "mimeType": { "type": "string", "minLength": 1 },
+        "fromDiskCache": { "type": "boolean" },
+        "fromServiceWorker": { "const": false },
+        "failed": { "const": false },
+        "completed": { "const": true },
+        "errorText": { "type": "null" }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "target",
+        "action",
+        "finalStatus",
+        "result",
+        "canonicalDomSha256",
+        "ax",
+        "lifecycle",
+        "gate",
+        "console",
+        "network",
+        "screenshot"
+      ],
+      "properties": {
+        "id": {
+          "enum": ["javascript-complete", "wasm-complete", "cancel-stale-restart", "pagehide"]
+        },
+        "target": { "enum": ["js-controlled", "wasm-linear-controlled"] },
+        "action": { "enum": ["complete", "lifecycle", "pagehide"] },
+        "finalStatus": { "type": "string", "minLength": 1 },
+        "result": { "anyOf": [{ "$ref": "#/$defs/result" }, { "type": "null" }] },
+        "canonicalDomSha256": { "anyOf": [{ "$ref": "#/$defs/sha" }, { "type": "null" }] },
+        "ax": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["entries", "sha256"],
+              "properties": {
+                "entries": {
+                  "type": "array",
+                  "minItems": 90,
+                  "maxItems": 90,
+                  "items": { "$ref": "#/$defs/axEntry" }
+                },
+                "sha256": { "$ref": "#/$defs/sha" }
+              }
+            },
+            { "type": "null" }
+          ]
+        },
+        "lifecycle": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "cancelled",
+            "staleIgnored",
+            "workerAbsentAfterCancel",
+            "restartCompleted",
+            "workerAbsentAfterPagehide"
+          ],
+          "properties": {
+            "cancelled": { "type": "boolean" },
+            "staleIgnored": { "type": "boolean" },
+            "workerAbsentAfterCancel": { "type": "boolean" },
+            "restartCompleted": { "type": "boolean" },
+            "workerAbsentAfterPagehide": { "type": "boolean" }
+          }
+        },
+        "gate": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["semantic", "dom", "ax", "lifecycle", "network"],
+          "properties": {
+            "semantic": { "type": ["boolean", "null"] },
+            "dom": { "type": ["boolean", "null"] },
+            "ax": { "type": ["boolean", "null"] },
+            "lifecycle": { "const": true },
+            "network": { "const": true }
+          }
+        },
+        "console": { "type": "array", "maxItems": 0 },
+        "network": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/network" } },
+        "screenshot": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "bytes", "sha256"],
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "^artifacts/base-dom-todomvc-browser-[a-z-]+\\.png$"
+            },
+            "bytes": { "type": "integer", "minimum": 1 },
+            "sha256": { "$ref": "#/$defs/sha" }
+          }
+        }
+      }
+    }
+  }
+}
