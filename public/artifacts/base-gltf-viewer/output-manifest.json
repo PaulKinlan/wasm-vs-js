@@ -2,18 +2,18 @@
   "schemaVersion": 1,
   "workloadId": "graphics.gltf-viewer.v1",
   "status": "passed",
-  "sourceCommit": "56c75211552cceb6acc91e1dd1d73cef3a3d6d75",
+  "sourceCommit": "0979940e321538e034e8b3b027a49cb991664685",
   "input": {
     "decodedMeshSha256": "b4e03bea9c76a08a6cc8d62ad1320af25ef7e5c594015b6b8396b9efc8aa5f54",
     "asmJsWasmDecodedMeshEqual": true
   },
   "output": {
     "bytes": 240496,
-    "semanticSha256": "2182020fe70fddbdfdb64c861f62fbaa83ede5a7b27386ad85d9bd3cbc312cda",
+    "semanticSha256": "f019ba556ce4c1dae8ee02b034d06ebbe7417650ed46a6bfc8dbb710477e8a0a",
     "completeCrossTargetEqual": true,
     "variants": {
       "javascript": {
-        "sha256": "899ab52df62c96ca3d149002533e040bcc04c35221d057d53e0ebfe5158fda16",
+        "sha256": "9a12dd00a3a88a548a4f39aecd9bf7702236c657c6007003cbfd93c725c0c4de",
         "allocations": 18,
         "decoderAllocations": 11,
         "engineAllocations": 7,
@@ -23,7 +23,7 @@
         "totalWasmBoundaryCrossings": 0
       },
       "wasm": {
-        "sha256": "24bba79fe1b9ad294a53eaa9ee889c8ac4fed83225773aece088836d3ef35eed",
+        "sha256": "a3315f04f1128aa5cb1160da7c092af622062d63e14eacb187a7c153a1cd2553",
         "allocations": 11,
         "decoderAllocations": 11,
         "engineAllocations": 0,
@@ -44,7 +44,7 @@
       685368050,
       390084,
       243600,
-      409200,
+      818400,
       600,
       6,
       12,
