@@ -160,6 +160,53 @@ Deno.test("registration uses download-only RFC provenance and generated redistri
   assertEquals(registration.fixtureRights.generatedPayloads.licenseSpdx, "CC0-1.0");
 });
 
+Deno.test("pinned source graph and builder reproduce every public artifact byte", async () => {
+  const manifestPath = new URL(
+    "public/artifacts/crypto-authenticated-stream/build-manifest.json",
+    root,
+  );
+  const manifest = JSON.parse(await Deno.readTextFile(manifestPath));
+  assertEquals(manifest.sourceCommit, "23c66c8697573ee94dcb15abd2142fddef06d93a");
+  for (const source of manifest.sources) {
+    const output = await new Deno.Command("git", {
+      args: ["show", `${manifest.sourceCommit}:${source.path}`],
+      cwd: root.pathname,
+      stdout: "piped",
+      stderr: "piped",
+    }).output();
+    assert(output.success, `missing source at pinned commit: ${source.path}`);
+    assertEquals(await sha256Hex(output.stdout), source.sha256);
+  }
+  const paths = [
+    "public/artifacts/crypto-authenticated-stream/crypto-authenticated-stream.wasm",
+    "public/artifacts/crypto-authenticated-stream/build-manifest.json",
+    "public/artifacts/crypto-authenticated-stream/fixture-manifest.json",
+    "public/artifacts/crypto-authenticated-stream/output-manifest.json",
+    "public/evidence/base/crypto-authenticated-stream/js-controlled.json",
+    "public/evidence/base/crypto-authenticated-stream/wasm-linear-controlled.json",
+  ];
+  const before = await Promise.all(
+    paths.map(async (path) => sha256Hex(await Deno.readFile(new URL(path, root)))),
+  );
+  const result = await new Deno.Command(Deno.execPath(), {
+    args: [
+      "run",
+      "--allow-read=.",
+      "--allow-write=public/artifacts/crypto-authenticated-stream,public/evidence/base/crypto-authenticated-stream",
+      "--allow-run=clang,wasm-ld",
+      "scripts/build-crypto-authenticated-stream.ts",
+    ],
+    cwd: root.pathname,
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  assert(result.success, new TextDecoder().decode(result.stderr));
+  const after = await Promise.all(
+    paths.map(async (path) => sha256Hex(await Deno.readFile(new URL(path, root)))),
+  );
+  assertEquals(after, before);
+});
+
 Deno.test("public routes are closed, read-only, and content typed", async () => {
   const handler = createHandler(null, "public");
   for (
