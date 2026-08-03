@@ -224,7 +224,11 @@ async function accessibilityState(
   };
 }
 
-function validatePhaseEvidence(phases: Record<string, unknown>, target: string): void {
+function validatePhaseEvidence(
+  phases: Record<string, unknown>,
+  target: string,
+  frozenTopology: Record<string, unknown>,
+): void {
   const phaseNames = ["load", "transfer", "instantiate", "compute", "render"];
   const allSpans: Array<Record<string, unknown> & { phase: string }> = [];
   let exclusiveDurationMs = 0;
@@ -267,11 +271,22 @@ function validatePhaseEvidence(phases: Record<string, unknown>, target: string):
   ];
   const expectedTransferLabels = [
     "/artifacts/dom-virtualized-grid-v1/build-manifest.json:body",
+    "build-manifest:decode",
     "/artifacts/dom-virtualized-grid-v1/fixture.bin:body",
     ...(target === "wasm-linear-controlled"
       ? ["/artifacts/dom-virtualized-grid-v1/grid.wasm:body"]
       : []),
   ];
+  const topologyTarget = frozenTopology[
+    target === "wasm-linear-controlled" ? "wasmLinear" : "javascript"
+  ] as Record<string, unknown>;
+  if (
+    frozenTopology.manifestDecodePhase !== "transfer" ||
+    JSON.stringify(topologyTarget?.loadLabels) !== JSON.stringify(expectedLoadLabels) ||
+    JSON.stringify(topologyTarget?.transferLabels) !== JSON.stringify(expectedTransferLabels) ||
+    JSON.stringify(topologyTarget?.instantiateLabels) !==
+      JSON.stringify(target === "wasm-linear-controlled" ? ["wasm:instantiate"] : [])
+  ) throw new Error("output manifest phase topology did not match collector expectations");
   const expectedComputeLabels = [
     "model:prepare",
     ...Array.from({ length: 300 }, (_, index) => `model:event:${index}`),
@@ -363,6 +378,7 @@ const expectedBrowserDomSha256 = String(
   (outputManifest.browserDom as Record<string, unknown>).jsonSha256,
 );
 const expectedTrace = outputManifest.trace as Record<string, unknown>;
+const expectedPhaseTopology = outputManifest.phaseTopology as Record<string, unknown>;
 
 const profilePath = await Deno.makeTempDir({ prefix: "wasm-grid-chrome-" });
 const launchArguments = [
@@ -779,7 +795,7 @@ try {
         parsed.trace.completionAfterFirstSlotMs > lifecycle.maximumCompletionAfterFirstSlotMs ||
         actualOffsets[0] + parsed.trace.completionAfterFirstSlotMs < paintAcks[299]
       ) throw new Error(`${scenario.id} final-paint completion exceeded its bound`);
-      validatePhaseEvidence(parsed.phases, effectiveTarget);
+      validatePhaseEvidence(parsed.phases, effectiveTarget, expectedPhaseTopology);
       accessibility = await accessibilityState(
         client,
         sessionId,

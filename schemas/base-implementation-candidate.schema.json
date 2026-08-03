@@ -72,7 +72,8 @@
         "catchUp",
         "minimumCompletionAfterFirstSlotMs",
         "maximumCompletionAfterFirstSlotMs",
-        "phaseSpanPolicy"
+        "phaseSpanPolicy",
+        "manifestDecodePhase"
       ],
       "properties": {
         "slots": { "const": 300 },
@@ -85,7 +86,10 @@
         "catchUp": { "const": false },
         "minimumCompletionAfterFirstSlotMs": { "const": 29900 },
         "maximumCompletionAfterFirstSlotMs": { "const": 30100 },
-        "phaseSpanPolicy": { "const": "labelled-non-overlapping-exclusive-spans-plus-e2e-residual" }
+        "phaseSpanPolicy": {
+          "const": "labelled-non-overlapping-exclusive-spans-plus-e2e-residual"
+        },
+        "manifestDecodePhase": { "const": "transfer" }
       }
     },
     "browserEvidence": {

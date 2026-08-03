@@ -95,10 +95,15 @@ async function runTrace(token, variantId) {
     "/artifacts/dom-virtualized-grid-v1/build-manifest.json",
     phases,
   );
+  const manifestText = measuredSync(
+    phases.transfer.spans,
+    "build-manifest:decode",
+    () => new TextDecoder().decode(manifestBytes),
+  );
   const manifest = measuredSync(
     phases.load.spans,
     "build-manifest:parse",
-    () => JSON.parse(new TextDecoder().decode(manifestBytes)),
+    () => JSON.parse(manifestText),
   );
   const fixture = await fetchBytes("/artifacts/dom-virtualized-grid-v1/fixture.bin", phases);
   const fixtureSha256 = await measuredAsync(

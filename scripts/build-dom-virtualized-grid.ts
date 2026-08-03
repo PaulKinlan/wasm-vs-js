@@ -212,6 +212,42 @@ function traceOracle(fixtureBytes: Uint8Array, commands: Uint32Array) {
 
 const expectedBrowserDom = browserDomOracle(js.commands);
 const expectedTrace = traceOracle(fixture, js.commands);
+const phaseTopology = {
+  manifestDecodePhase: "transfer",
+  javascript: {
+    loadLabels: [
+      "/artifacts/dom-virtualized-grid-v1/build-manifest.json:request",
+      "build-manifest:parse",
+      "/artifacts/dom-virtualized-grid-v1/fixture.bin:request",
+      "fixture:sha256",
+      "build-manifest:sha256",
+    ],
+    transferLabels: [
+      "/artifacts/dom-virtualized-grid-v1/build-manifest.json:body",
+      "build-manifest:decode",
+      "/artifacts/dom-virtualized-grid-v1/fixture.bin:body",
+    ],
+    instantiateLabels: [],
+  },
+  wasmLinear: {
+    loadLabels: [
+      "/artifacts/dom-virtualized-grid-v1/build-manifest.json:request",
+      "build-manifest:parse",
+      "/artifacts/dom-virtualized-grid-v1/fixture.bin:request",
+      "fixture:sha256",
+      "/artifacts/dom-virtualized-grid-v1/grid.wasm:request",
+      "wasm:sha256",
+      "build-manifest:sha256",
+    ],
+    transferLabels: [
+      "/artifacts/dom-virtualized-grid-v1/build-manifest.json:body",
+      "build-manifest:decode",
+      "/artifacts/dom-virtualized-grid-v1/fixture.bin:body",
+      "/artifacts/dom-virtualized-grid-v1/grid.wasm:body",
+    ],
+    instantiateLabels: ["wasm:instantiate"],
+  },
+};
 const expectedBrowserDomSha256 = await sha256Hex(
   new TextEncoder().encode(JSON.stringify(expectedBrowserDom)),
 );
@@ -232,6 +268,7 @@ const outputManifest = {
   final: js.final,
   structural: { maximumMountedRows: 28, commandWidthU32: 6, events: 300, rows: 100000 },
   browserDom: { state: expectedBrowserDom, jsonSha256: expectedBrowserDomSha256 },
+  phaseTopology,
   trace: {
     ...expectedTrace,
     lifecycle: GRID_TRACE_LIFECYCLE,

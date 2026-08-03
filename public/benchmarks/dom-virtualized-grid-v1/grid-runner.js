@@ -50,8 +50,10 @@ function reconciledPhases(workerPhaseData, endToEndEndedEpochMs) {
   return {
     clock: "Performance timeOrigin + performance.now",
     definitions: {
-      load: "resource request, response validation, parsing, and hashing outside body transfer",
-      transfer: "response body arrayBuffer transfer and decoding",
+      load:
+        "resource fetch through response validation, JSON.parse, and SHA-256 hashing; excludes response body arrayBuffer, Uint8Array construction, and TextDecoder construction/decode",
+      transfer:
+        "response body arrayBuffer, Uint8Array construction, and build-manifest TextDecoder construction/decode",
       instantiate: "WebAssembly.instantiate only; zero for the JavaScript target",
       compute: "controlled model prepare, 300 event steps, and finish",
       render: "host command application through two animation frames for each event",

@@ -11,7 +11,7 @@
   "artifacts": {
     "buildManifest": {
       "path": "public/artifacts/dom-virtualized-grid-v1/build-manifest.json",
-      "sha256": "8f2708afdd0c1a342ff68ef6ef798b19d2349fd1f7bd0b02882866014bd16d13"
+      "sha256": "626f78cec1fad256232ac79aa6606073b279fa8b510f508b3b2da423f4f9dcee"
     },
     "fixture": {
       "path": "public/artifacts/dom-virtualized-grid-v1/fixture.bin",
@@ -23,7 +23,7 @@
     },
     "outputManifest": {
       "path": "public/artifacts/dom-virtualized-grid-v1/output-manifest.json",
-      "sha256": "f9776677b7ae49bd8244284c631581d9a420da1de833348a0e88d5a97a7cec8c"
+      "sha256": "c67f627576d51221fb2f3c5d032344485aa81494a0471857b722296f290bde3a"
     }
   },
   "correctness": {
@@ -44,7 +44,8 @@
     "catchUp": false,
     "minimumCompletionAfterFirstSlotMs": 29900,
     "maximumCompletionAfterFirstSlotMs": 30100,
-    "phaseSpanPolicy": "labelled-non-overlapping-exclusive-spans-plus-e2e-residual"
+    "phaseSpanPolicy": "labelled-non-overlapping-exclusive-spans-plus-e2e-residual",
+    "manifestDecodePhase": "transfer"
   },
   "browserEvidence": {
     "status": "pending-parent-collection",

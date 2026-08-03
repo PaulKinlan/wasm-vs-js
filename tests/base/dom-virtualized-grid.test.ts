@@ -53,6 +53,14 @@ Deno.test("frozen v1 catalog remains byte-identical while supplemental grid regi
   assertEquals(contract.fixture.rows, 100_000);
   assertEquals(contract.fixture.actions, 300);
   assertEquals(contract.trace.coalescing, "none; exactly one event per 100 ms trace slot");
+  assertEquals(
+    contract.phases.load,
+    "resource fetch through response validation, JSON.parse, and SHA-256 hashing; excludes response body arrayBuffer, Uint8Array construction, and TextDecoder construction/decode",
+  );
+  assertEquals(
+    contract.phases.transfer,
+    "response body arrayBuffer, Uint8Array construction, and build-manifest TextDecoder construction/decode",
+  );
   assertEquals(contract.trace.lifecycle, {
     slots: 300,
     firstSlotOffsetMs: 0,
@@ -331,6 +339,7 @@ Deno.test("candidate record is closed-schema, raw-hash anchored, and honestly br
     minimumCompletionAfterFirstSlotMs: 29_900,
     maximumCompletionAfterFirstSlotMs: 30_100,
     phaseSpanPolicy: "labelled-non-overlapping-exclusive-spans-plus-e2e-residual",
+    manifestDecodePhase: "transfer",
   });
   for (
     const [field, value] of [
@@ -340,6 +349,7 @@ Deno.test("candidate record is closed-schema, raw-hash anchored, and honestly br
       ["catchUp", true],
       ["maximumCompletionAfterFirstSlotMs", 30_101],
       ["phaseSpanPolicy", "overlapping"],
+      ["manifestDecodePhase", "load"],
     ] as const
   ) {
     const mutation = structuredClone(record);
@@ -447,9 +457,21 @@ Deno.test("runner uses a fresh worker, typed-only host commands, timeout, stale 
   assert(worker.includes("commands: batch.buffer"));
   assert(worker.includes("Fixture raw-byte hash mismatch"));
   assert(worker.includes("Wasm raw-byte hash mismatch"));
+  assert(worker.includes('phases.transfer.spans,\n    "build-manifest:decode"'));
+  assert(worker.includes("JSON.parse(manifestText)"));
+  assert(!worker.includes("JSON.parse(new TextDecoder().decode"));
   assertEquals(outputManifest.browserDom.state.rows.length, 28);
   assertEquals(outputManifest.trace.scheduledOffsetsMs.length, 300);
   assertEquals(outputManifest.trace.scrollOffsetsCssPx.length, 300);
+  assertEquals(outputManifest.phaseTopology.manifestDecodePhase, "transfer");
+  assertEquals(
+    outputManifest.phaseTopology.javascript.transferLabels,
+    [
+      "/artifacts/dom-virtualized-grid-v1/build-manifest.json:body",
+      "build-manifest:decode",
+      "/artifacts/dom-virtualized-grid-v1/fixture.bin:body",
+    ],
+  );
   assertEquals(
     canonicalize(outputManifest.trace.lifecycle),
     canonicalize(GRID_TRACE_LIFECYCLE),
@@ -459,6 +481,7 @@ Deno.test("runner uses a fresh worker, typed-only host commands, timeout, stale 
   assert(collector.includes("canonicalize(parsed.browserDom)"));
   assert(collector.includes("layout.clientWidth !== 960"));
   assert(collector.includes("layout.clientHeight !== 480"));
+  assert(collector.includes('"build-manifest:decode"'));
   assert(collector.includes("validatePhaseEvidence(parsed.phases"));
   assert(collector.includes("endingWorktreeStatus"));
   assert(collector.includes("unexpectedEndingChanges"));
