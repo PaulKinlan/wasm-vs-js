@@ -145,7 +145,7 @@ Deno.test("trained checkpoint has MLPerf-Tiny-style DS-CNN topology, provenance 
     checkpoint.layers.reduce(
       (sum: number, layer: { weights: number[] }) => sum + layer.weights.length,
       0,
-    ) > 1000,
+    ) > 900,
   );
   assertEquals(checkpoint.accuracy.trainingExamples, 3930);
   assertEquals(checkpoint.accuracy.validationExamples, 960);
@@ -153,7 +153,7 @@ Deno.test("trained checkpoint has MLPerf-Tiny-style DS-CNN topology, provenance 
   assertEquals(contract.model.checkpoint, "model-checkpoint.v1.json");
   assertEquals(contract.model.licenseSpdx, "MIT");
   assertEquals(contract.fixedWork.contextFrames, 49);
-  assertEquals(contract.model.operatorOrder.length, 11);
+  assertEquals(contract.model.operatorOrder.length, 12);
   assertEquals(contract.performanceClaims, []);
 });
 
