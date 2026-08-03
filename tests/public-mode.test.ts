@@ -70,7 +70,7 @@ Deno.test("actual public task starts without commit env permission and ignores s
         publicPaths.add(link.url);
       }
     }
-    assertEquals(publicPaths.size, 21);
+    assertEquals(publicPaths.size, 22);
     for (const path of publicPaths) {
       assertEquals((await fetch(`http://127.0.0.1:${port}${path}`)).status, 200);
     }

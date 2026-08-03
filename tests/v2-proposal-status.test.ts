@@ -243,15 +243,15 @@ Deno.test("the twelve engine statuses bind real JavaScript, linear-Wasm, artifac
     ],
     "game.canvas-arcade.v1": [
       "benchmarks/v2/game-family/engine.js",
-      "benchmarks/v2/game-family/game-family.wat",
+      "benchmarks/v2/game-family/game-family.c",
     ],
     "game.canvas-entity-pathfinding.v1": [
       "benchmarks/v2/game-family/engine.js",
-      "benchmarks/v2/game-family/game-family.wat",
+      "benchmarks/v2/game-family/game-family.c",
     ],
     "game.dom-tactics-grid.v1": [
       "benchmarks/v2/game-family/engine.js",
-      "benchmarks/v2/game-family/game-family.wat",
+      "benchmarks/v2/game-family/game-family.c",
     ],
     "ml.dense-mlp.v1": [
       "benchmarks/v2/ml-dense-mlp/workload.js",

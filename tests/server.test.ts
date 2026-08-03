@@ -174,7 +174,7 @@ Deno.test("every ledger public link resolves through the exact read-only public 
     for (const link of entry.artifacts.publicLinks) paths.add(link.url);
     for (const link of entry.validationResults.publicEvidenceLinks) paths.add(link.url);
   }
-  assertEquals(paths.size, 21);
+  assertEquals(paths.size, 22);
 
   const publicHandler = createHandler(null, "public");
   for (const path of paths) {
