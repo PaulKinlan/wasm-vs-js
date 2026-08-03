@@ -1,0 +1,5613 @@
+{
+  "schemaVersion": 1,
+  "status": "proposal-validation-only",
+  "familyId": "game-v2-controlled-family",
+  "equivalence": "complete exact cross-target equality",
+  "workloads": {
+    "game.canvas-arcade.v1": {
+      "input": {
+        "bytes": 14424,
+        "sha256": "fd58ad78008171e86ee187483661e929a693b6c8f5e9bf6ca01430f4ed09054c"
+      },
+      "variants": {
+        "js-controlled": {
+          "status": "passed",
+          "executionTarget": "javascript",
+          "oracleChecks": {
+            "complete-output": {
+              "status": "passed",
+              "digest": "8fe31dbe",
+              "oracle": {
+                "finalStateDigest": "87695460",
+                "drawCommandStreamDigest": "f3a03070",
+                "audioEventStreamDigest": "8b4cb497",
+                "checkpoints": [
+                  {
+                    "frame": 600,
+                    "stateDigest": "6ee05dbb",
+                    "drawDigest": "a6e23a8a",
+                    "audioDigest": "b9f22a0c",
+                    "x": 619,
+                    "y": 684,
+                    "score": 100,
+                    "lives": 3,
+                    "activeEntities": 54
+                  },
+                  {
+                    "frame": 1200,
+                    "stateDigest": "e4be579a",
+                    "drawDigest": "60ab952d",
+                    "audioDigest": "dc0e3329",
+                    "x": 549,
+                    "y": 639,
+                    "score": 250,
+                    "lives": 2,
+                    "activeEntities": 35
+                  },
+                  {
+                    "frame": 1800,
+                    "stateDigest": "8c92dd5c",
+                    "drawDigest": "5467a5c6",
+                    "audioDigest": "e05dec71",
+                    "x": 619,
+                    "y": 684,
+                    "score": 380,
+                    "lives": 1,
+                    "activeEntities": 35
+                  },
+                  {
+                    "frame": 2400,
+                    "stateDigest": "76624fbe",
+                    "drawDigest": "1af76408",
+                    "audioDigest": "9a06a372",
+                    "x": 507,
+                    "y": 719,
+                    "score": 560,
+                    "lives": 0,
+                    "activeEntities": 39
+                  },
+                  {
+                    "frame": 3000,
+                    "stateDigest": "20f69b7e",
+                    "drawDigest": "fe99861d",
+                    "audioDigest": "03209d79",
+                    "x": 367,
+                    "y": 709,
+                    "score": 750,
+                    "lives": 0,
+                    "activeEntities": 39
+                  },
+                  {
+                    "frame": 3600,
+                    "stateDigest": "87695460",
+                    "drawDigest": "f3a03070",
+                    "audioDigest": "8b4cb497",
+                    "x": 409,
+                    "y": 694,
+                    "score": 880,
+                    "lives": 0,
+                    "activeEntities": 34
+                  }
+                ]
+              }
+            },
+            "structural-invariants": {
+              "status": "passed",
+              "replay": [
+                {
+                  "frame": 600,
+                  "x": 619,
+                  "y": 684,
+                  "score": 100,
+                  "lives": 3,
+                  "entities": 54,
+                  "traceDigest": "a6e23a8a"
+                },
+                {
+                  "frame": 1200,
+                  "x": 549,
+                  "y": 639,
+                  "score": 250,
+                  "lives": 2,
+                  "entities": 35,
+                  "traceDigest": "60ab952d"
+                },
+                {
+                  "frame": 1800,
+                  "x": 619,
+                  "y": 684,
+                  "score": 380,
+                  "lives": 1,
+                  "entities": 35,
+                  "traceDigest": "5467a5c6"
+                },
+                {
+                  "frame": 2400,
+                  "x": 507,
+                  "y": 719,
+                  "score": 560,
+                  "lives": 0,
+                  "entities": 39,
+                  "traceDigest": "1af76408"
+                },
+                {
+                  "frame": 3000,
+                  "x": 367,
+                  "y": 709,
+                  "score": 750,
+                  "lives": 0,
+                  "entities": 39,
+                  "traceDigest": "fe99861d"
+                },
+                {
+                  "frame": 3600,
+                  "x": 409,
+                  "y": 694,
+                  "score": 880,
+                  "lives": 0,
+                  "entities": 34,
+                  "traceDigest": "f3a03070"
+                }
+              ]
+            },
+            "work-counters": {
+              "status": "passed",
+              "counters": {
+                "frames": 3600,
+                "entityUpdates": 169501,
+                "collisionTests": 169501,
+                "drawCommands": 180301,
+                "audioEvents": 91,
+                "inputBytes": 14424,
+                "outputBytes": 204,
+                "boundaryCrossings": 2
+              }
+            }
+          }
+        },
+        "wasm-linear-controlled": {
+          "status": "passed",
+          "executionTarget": "wasm-linear",
+          "oracleChecks": {
+            "complete-output": {
+              "status": "passed",
+              "digest": "8fe31dbe",
+              "oracle": {
+                "finalStateDigest": "87695460",
+                "drawCommandStreamDigest": "f3a03070",
+                "audioEventStreamDigest": "8b4cb497",
+                "checkpoints": [
+                  {
+                    "frame": 600,
+                    "stateDigest": "6ee05dbb",
+                    "drawDigest": "a6e23a8a",
+                    "audioDigest": "b9f22a0c",
+                    "x": 619,
+                    "y": 684,
+                    "score": 100,
+                    "lives": 3,
+                    "activeEntities": 54
+                  },
+                  {
+                    "frame": 1200,
+                    "stateDigest": "e4be579a",
+                    "drawDigest": "60ab952d",
+                    "audioDigest": "dc0e3329",
+                    "x": 549,
+                    "y": 639,
+                    "score": 250,
+                    "lives": 2,
+                    "activeEntities": 35
+                  },
+                  {
+                    "frame": 1800,
+                    "stateDigest": "8c92dd5c",
+                    "drawDigest": "5467a5c6",
+                    "audioDigest": "e05dec71",
+                    "x": 619,
+                    "y": 684,
+                    "score": 380,
+                    "lives": 1,
+                    "activeEntities": 35
+                  },
+                  {
+                    "frame": 2400,
+                    "stateDigest": "76624fbe",
+                    "drawDigest": "1af76408",
+                    "audioDigest": "9a06a372",
+                    "x": 507,
+                    "y": 719,
+                    "score": 560,
+                    "lives": 0,
+                    "activeEntities": 39
+                  },
+                  {
+                    "frame": 3000,
+                    "stateDigest": "20f69b7e",
+                    "drawDigest": "fe99861d",
+                    "audioDigest": "03209d79",
+                    "x": 367,
+                    "y": 709,
+                    "score": 750,
+                    "lives": 0,
+                    "activeEntities": 39
+                  },
+                  {
+                    "frame": 3600,
+                    "stateDigest": "87695460",
+                    "drawDigest": "f3a03070",
+                    "audioDigest": "8b4cb497",
+                    "x": 409,
+                    "y": 694,
+                    "score": 880,
+                    "lives": 0,
+                    "activeEntities": 34
+                  }
+                ]
+              }
+            },
+            "structural-invariants": {
+              "status": "passed",
+              "replay": [
+                {
+                  "frame": 600,
+                  "x": 619,
+                  "y": 684,
+                  "score": 100,
+                  "lives": 3,
+                  "entities": 54,
+                  "traceDigest": "a6e23a8a"
+                },
+                {
+                  "frame": 1200,
+                  "x": 549,
+                  "y": 639,
+                  "score": 250,
+                  "lives": 2,
+                  "entities": 35,
+                  "traceDigest": "60ab952d"
+                },
+                {
+                  "frame": 1800,
+                  "x": 619,
+                  "y": 684,
+                  "score": 380,
+                  "lives": 1,
+                  "entities": 35,
+                  "traceDigest": "5467a5c6"
+                },
+                {
+                  "frame": 2400,
+                  "x": 507,
+                  "y": 719,
+                  "score": 560,
+                  "lives": 0,
+                  "entities": 39,
+                  "traceDigest": "1af76408"
+                },
+                {
+                  "frame": 3000,
+                  "x": 367,
+                  "y": 709,
+                  "score": 750,
+                  "lives": 0,
+                  "entities": 39,
+                  "traceDigest": "fe99861d"
+                },
+                {
+                  "frame": 3600,
+                  "x": 409,
+                  "y": 694,
+                  "score": 880,
+                  "lives": 0,
+                  "entities": 34,
+                  "traceDigest": "f3a03070"
+                }
+              ]
+            },
+            "work-counters": {
+              "status": "passed",
+              "counters": {
+                "frames": 3600,
+                "entityUpdates": 169501,
+                "collisionTests": 169501,
+                "drawCommands": 180301,
+                "audioEvents": 91,
+                "inputBytes": 14424,
+                "outputBytes": 204,
+                "boundaryCrossings": 2
+              }
+            }
+          }
+        }
+      }
+    },
+    "game.canvas-entity-pathfinding.v1": {
+      "input": {
+        "bytes": 106552,
+        "sha256": "3eb783e411cf4a21948efdff81ef624640dad8d512487ef30948060320cd9fb0"
+      },
+      "variants": {
+        "js-controlled": {
+          "status": "passed",
+          "executionTarget": "javascript",
+          "oracleChecks": {
+            "complete-output": {
+              "status": "passed",
+              "digest": "073b8a16",
+              "oracle": {
+                "pathNodeSequenceDigest": "55c75f61",
+                "tieBreakDigest": "8108145d",
+                "pathOracles": [
+                  {
+                    "request": 0,
+                    "length": 115,
+                    "pathDigest": "d02b3def",
+                    "tieBreakDigest": "0f336307"
+                  },
+                  {
+                    "request": 1,
+                    "length": 96,
+                    "pathDigest": "c67bb2a6",
+                    "tieBreakDigest": "973c313b"
+                  },
+                  {
+                    "request": 2,
+                    "length": 276,
+                    "pathDigest": "be461771",
+                    "tieBreakDigest": "c1414918"
+                  },
+                  {
+                    "request": 3,
+                    "length": 95,
+                    "pathDigest": "ab1dbea2",
+                    "tieBreakDigest": "83c66e7b"
+                  },
+                  {
+                    "request": 4,
+                    "length": 105,
+                    "pathDigest": "2969e5a6",
+                    "tieBreakDigest": "68db6f02"
+                  },
+                  {
+                    "request": 5,
+                    "length": 157,
+                    "pathDigest": "b9b65c39",
+                    "tieBreakDigest": "8606cdf8"
+                  },
+                  {
+                    "request": 6,
+                    "length": 200,
+                    "pathDigest": "9fca1820",
+                    "tieBreakDigest": "eed1f3fe"
+                  },
+                  {
+                    "request": 7,
+                    "length": 96,
+                    "pathDigest": "ef7bca4d",
+                    "tieBreakDigest": "16015348"
+                  },
+                  {
+                    "request": 8,
+                    "length": 79,
+                    "pathDigest": "5cab6cc7",
+                    "tieBreakDigest": "3f8b19d0"
+                  },
+                  {
+                    "request": 9,
+                    "length": 19,
+                    "pathDigest": "e3b77682",
+                    "tieBreakDigest": "e56c98d7"
+                  },
+                  {
+                    "request": 10,
+                    "length": 310,
+                    "pathDigest": "3ae6da92",
+                    "tieBreakDigest": "558b5f44"
+                  },
+                  {
+                    "request": 11,
+                    "length": 224,
+                    "pathDigest": "9bd75564",
+                    "tieBreakDigest": "c3565359"
+                  },
+                  {
+                    "request": 12,
+                    "length": 123,
+                    "pathDigest": "fe0d3a39",
+                    "tieBreakDigest": "87d32c6a"
+                  },
+                  {
+                    "request": 13,
+                    "length": 123,
+                    "pathDigest": "ca427ab6",
+                    "tieBreakDigest": "479764a9"
+                  },
+                  {
+                    "request": 14,
+                    "length": 264,
+                    "pathDigest": "fc478876",
+                    "tieBreakDigest": "742fbee8"
+                  },
+                  {
+                    "request": 15,
+                    "length": 127,
+                    "pathDigest": "26598644",
+                    "tieBreakDigest": "982a6ec0"
+                  },
+                  {
+                    "request": 16,
+                    "length": 57,
+                    "pathDigest": "393b3ae3",
+                    "tieBreakDigest": "084d6af0"
+                  },
+                  {
+                    "request": 17,
+                    "length": 126,
+                    "pathDigest": "c850f540",
+                    "tieBreakDigest": "895266e1"
+                  },
+                  {
+                    "request": 18,
+                    "length": 0,
+                    "pathDigest": "a27ca0e7",
+                    "tieBreakDigest": "9ddcd273"
+                  },
+                  {
+                    "request": 19,
+                    "length": 70,
+                    "pathDigest": "fba48fe5",
+                    "tieBreakDigest": "752d94ac"
+                  },
+                  {
+                    "request": 20,
+                    "length": 0,
+                    "pathDigest": "a27ca0e7",
+                    "tieBreakDigest": "f541c9b7"
+                  },
+                  {
+                    "request": 21,
+                    "length": 70,
+                    "pathDigest": "2033914a",
+                    "tieBreakDigest": "012672b6"
+                  },
+                  {
+                    "request": 22,
+                    "length": 122,
+                    "pathDigest": "8c90e18f",
+                    "tieBreakDigest": "c8c2447a"
+                  },
+                  {
+                    "request": 23,
+                    "length": 95,
+                    "pathDigest": "e22d6e7c",
+                    "tieBreakDigest": "00ed540c"
+                  },
+                  {
+                    "request": 24,
+                    "length": 77,
+                    "pathDigest": "3eaa8392",
+                    "tieBreakDigest": "8362172b"
+                  },
+                  {
+                    "request": 25,
+                    "length": 362,
+                    "pathDigest": "eb1e161d",
+                    "tieBreakDigest": "b81e6f6b"
+                  },
+                  {
+                    "request": 26,
+                    "length": 135,
+                    "pathDigest": "75bb010e",
+                    "tieBreakDigest": "d64a0d8b"
+                  },
+                  {
+                    "request": 27,
+                    "length": 0,
+                    "pathDigest": "a27ca0e7",
+                    "tieBreakDigest": "9244d471"
+                  },
+                  {
+                    "request": 28,
+                    "length": 292,
+                    "pathDigest": "74385128",
+                    "tieBreakDigest": "e5596833"
+                  },
+                  {
+                    "request": 29,
+                    "length": 158,
+                    "pathDigest": "5834c0ea",
+                    "tieBreakDigest": "ef8780d8"
+                  },
+                  {
+                    "request": 30,
+                    "length": 235,
+                    "pathDigest": "b5d36b54",
+                    "tieBreakDigest": "0487b7a0"
+                  },
+                  {
+                    "request": 31,
+                    "length": 295,
+                    "pathDigest": "567ff913",
+                    "tieBreakDigest": "f751f5ec"
+                  },
+                  {
+                    "request": 32,
+                    "length": 106,
+                    "pathDigest": "77c9ce92",
+                    "tieBreakDigest": "ede05a7e"
+                  },
+                  {
+                    "request": 33,
+                    "length": 171,
+                    "pathDigest": "a4f252e1",
+                    "tieBreakDigest": "422dacd3"
+                  },
+                  {
+                    "request": 34,
+                    "length": 204,
+                    "pathDigest": "6f5a6e29",
+                    "tieBreakDigest": "9fa6701b"
+                  },
+                  {
+                    "request": 35,
+                    "length": 256,
+                    "pathDigest": "e4b8c0ee",
+                    "tieBreakDigest": "9c9ed5c5"
+                  },
+                  {
+                    "request": 36,
+                    "length": 165,
+                    "pathDigest": "8699113f",
+                    "tieBreakDigest": "88768518"
+                  },
+                  {
+                    "request": 37,
+                    "length": 243,
+                    "pathDigest": "c38a423b",
+                    "tieBreakDigest": "cf831cc2"
+                  },
+                  {
+                    "request": 38,
+                    "length": 148,
+                    "pathDigest": "14f96331",
+                    "tieBreakDigest": "49dcccad"
+                  },
+                  {
+                    "request": 39,
+                    "length": 157,
+                    "pathDigest": "9dc8310c",
+                    "tieBreakDigest": "f0a8da4b"
+                  },
+                  {
+                    "request": 40,
+                    "length": 190,
+                    "pathDigest": "43f5caf6",
+                    "tieBreakDigest": "44d84630"
+                  },
+                  {
+                    "request": 41,
+                    "length": 167,
+                    "pathDigest": "ebcd49d5",
+                    "tieBreakDigest": "b0802432"
+                  },
+                  {
+                    "request": 42,
+                    "length": 179,
+                    "pathDigest": "327dfd62",
+                    "tieBreakDigest": "ab2c4b2f"
+                  },
+                  {
+                    "request": 43,
+                    "length": 160,
+                    "pathDigest": "f8b4a1eb",
+                    "tieBreakDigest": "64f422bd"
+                  },
+                  {
+                    "request": 44,
+                    "length": 154,
+                    "pathDigest": "7260eb3a",
+                    "tieBreakDigest": "3f58964a"
+                  },
+                  {
+                    "request": 45,
+                    "length": 145,
+                    "pathDigest": "9390f7c6",
+                    "tieBreakDigest": "d2168191"
+                  },
+                  {
+                    "request": 46,
+                    "length": 0,
+                    "pathDigest": "a27ca0e7",
+                    "tieBreakDigest": "7488100b"
+                  },
+                  {
+                    "request": 47,
+                    "length": 152,
+                    "pathDigest": "2a533512",
+                    "tieBreakDigest": "14ee5eac"
+                  },
+                  {
+                    "request": 48,
+                    "length": 55,
+                    "pathDigest": "0f608ee1",
+                    "tieBreakDigest": "278c6ff9"
+                  },
+                  {
+                    "request": 49,
+                    "length": 80,
+                    "pathDigest": "f50b92fa",
+                    "tieBreakDigest": "b9e3834b"
+                  },
+                  {
+                    "request": 50,
+                    "length": 144,
+                    "pathDigest": "69e514d1",
+                    "tieBreakDigest": "6b12e852"
+                  },
+                  {
+                    "request": 51,
+                    "length": 245,
+                    "pathDigest": "077bf907",
+                    "tieBreakDigest": "b335d584"
+                  },
+                  {
+                    "request": 52,
+                    "length": 295,
+                    "pathDigest": "0873da90",
+                    "tieBreakDigest": "005281cb"
+                  },
+                  {
+                    "request": 53,
+                    "length": 0,
+                    "pathDigest": "a27ca0e7",
+                    "tieBreakDigest": "91083763"
+                  },
+                  {
+                    "request": 54,
+                    "length": 207,
+                    "pathDigest": "bca531f9",
+                    "tieBreakDigest": "e8419d3e"
+                  },
+                  {
+                    "request": 55,
+                    "length": 0,
+                    "pathDigest": "a27ca0e7",
+                    "tieBreakDigest": "2ec38440"
+                  },
+                  {
+                    "request": 56,
+                    "length": 202,
+                    "pathDigest": "3d894ea0",
+                    "tieBreakDigest": "d3fb6a05"
+                  },
+                  {
+                    "request": 57,
+                    "length": 157,
+                    "pathDigest": "363ad431",
+                    "tieBreakDigest": "dfc5be94"
+                  },
+                  {
+                    "request": 58,
+                    "length": 216,
+                    "pathDigest": "7ea61c2d",
+                    "tieBreakDigest": "74f78235"
+                  },
+                  {
+                    "request": 59,
+                    "length": 47,
+                    "pathDigest": "4cf8595a",
+                    "tieBreakDigest": "d4e7325f"
+                  },
+                  {
+                    "request": 60,
+                    "length": 317,
+                    "pathDigest": "34c8a060",
+                    "tieBreakDigest": "54fe3e12"
+                  },
+                  {
+                    "request": 61,
+                    "length": 204,
+                    "pathDigest": "8cddf06d",
+                    "tieBreakDigest": "d2490ecc"
+                  },
+                  {
+                    "request": 62,
+                    "length": 97,
+                    "pathDigest": "aed70c2c",
+                    "tieBreakDigest": "3cce7e7c"
+                  },
+                  {
+                    "request": 63,
+                    "length": 141,
+                    "pathDigest": "5beb5719",
+                    "tieBreakDigest": "a8af6acc"
+                  },
+                  {
+                    "request": 64,
+                    "length": 226,
+                    "pathDigest": "08b698ec",
+                    "tieBreakDigest": "d81546c4"
+                  },
+                  {
+                    "request": 65,
+                    "length": 26,
+                    "pathDigest": "5e539435",
+                    "tieBreakDigest": "55e1b019"
+                  },
+                  {
+                    "request": 66,
+                    "length": 140,
+                    "pathDigest": "e5bb3706",
+                    "tieBreakDigest": "95bb441d"
+                  },
+                  {
+                    "request": 67,
+                    "length": 337,
+                    "pathDigest": "224f3be4",
+                    "tieBreakDigest": "0683692b"
+                  },
+                  {
+                    "request": 68,
+                    "length": 158,
+                    "pathDigest": "0111a724",
+                    "tieBreakDigest": "b0b75662"
+                  },
+                  {
+                    "request": 69,
+                    "length": 23,
+                    "pathDigest": "2cef5621",
+                    "tieBreakDigest": "0a1c9b41"
+                  },
+                  {
+                    "request": 70,
+                    "length": 199,
+                    "pathDigest": "ed40557b",
+                    "tieBreakDigest": "4762056e"
+                  },
+                  {
+                    "request": 71,
+                    "length": 90,
+                    "pathDigest": "f4204aff",
+                    "tieBreakDigest": "4ccceb3c"
+                  },
+                  {
+                    "request": 72,
+                    "length": 128,
+                    "pathDigest": "602c788c",
+                    "tieBreakDigest": "452f70d0"
+                  },
+                  {
+                    "request": 73,
+                    "length": 38,
+                    "pathDigest": "e1d82e6c",
+                    "tieBreakDigest": "942bfe07"
+                  },
+                  {
+                    "request": 74,
+                    "length": 139,
+                    "pathDigest": "d2a64a7c",
+                    "tieBreakDigest": "63f5366a"
+                  },
+                  {
+                    "request": 75,
+                    "length": 194,
+                    "pathDigest": "d28d66e9",
+                    "tieBreakDigest": "78baa897"
+                  },
+                  {
+                    "request": 76,
+                    "length": 190,
+                    "pathDigest": "5139f356",
+                    "tieBreakDigest": "7cef986e"
+                  },
+                  {
+                    "request": 77,
+                    "length": 32,
+                    "pathDigest": "58d14d3f",
+                    "tieBreakDigest": "fd1d925c"
+                  },
+                  {
+                    "request": 78,
+                    "length": 180,
+                    "pathDigest": "b4e89859",
+                    "tieBreakDigest": "764df84d"
+                  },
+                  {
+                    "request": 79,
+                    "length": 387,
+                    "pathDigest": "02f71aab",
+                    "tieBreakDigest": "852691a1"
+                  },
+                  {
+                    "request": 80,
+                    "length": 228,
+                    "pathDigest": "2df33910",
+                    "tieBreakDigest": "5063d624"
+                  },
+                  {
+                    "request": 81,
+                    "length": 20,
+                    "pathDigest": "c3c8eb59",
+                    "tieBreakDigest": "5e6d7d85"
+                  },
+                  {
+                    "request": 82,
+                    "length": 105,
+                    "pathDigest": "18619d8f",
+                    "tieBreakDigest": "e45fbf43"
+                  },
+                  {
+                    "request": 83,
+                    "length": 74,
+                    "pathDigest": "be23a80f",
+                    "tieBreakDigest": "49a8989b"
+                  },
+                  {
+                    "request": 84,
+                    "length": 0,
+                    "pathDigest": "a27ca0e7",
+                    "tieBreakDigest": "5b06d2b4"
+                  },
+                  {
+                    "request": 85,
+                    "length": 310,
+                    "pathDigest": "f2b74d1f",
+                    "tieBreakDigest": "911606ad"
+                  },
+                  {
+                    "request": 86,
+                    "length": 148,
+                    "pathDigest": "0562e1a8",
+                    "tieBreakDigest": "0426c4f9"
+                  },
+                  {
+                    "request": 87,
+                    "length": 189,
+                    "pathDigest": "cc9340ea",
+                    "tieBreakDigest": "4b6b6b34"
+                  },
+                  {
+                    "request": 88,
+                    "length": 184,
+                    "pathDigest": "43f8294c",
+                    "tieBreakDigest": "4fe14608"
+                  },
+                  {
+                    "request": 89,
+                    "length": 68,
+                    "pathDigest": "049d0874",
+                    "tieBreakDigest": "65217560"
+                  },
+                  {
+                    "request": 90,
+                    "length": 187,
+                    "pathDigest": "cf2ee18c",
+                    "tieBreakDigest": "2726ff1a"
+                  },
+                  {
+                    "request": 91,
+                    "length": 186,
+                    "pathDigest": "35f44c5f",
+                    "tieBreakDigest": "b535ac49"
+                  },
+                  {
+                    "request": 92,
+                    "length": 353,
+                    "pathDigest": "00a6d733",
+                    "tieBreakDigest": "5d8f67fd"
+                  },
+                  {
+                    "request": 93,
+                    "length": 0,
+                    "pathDigest": "a27ca0e7",
+                    "tieBreakDigest": "b59e6a9d"
+                  },
+                  {
+                    "request": 94,
+                    "length": 228,
+                    "pathDigest": "0625a71c",
+                    "tieBreakDigest": "01737dd4"
+                  },
+                  {
+                    "request": 95,
+                    "length": 171,
+                    "pathDigest": "51a4530f",
+                    "tieBreakDigest": "40211a92"
+                  },
+                  {
+                    "request": 96,
+                    "length": 147,
+                    "pathDigest": "5d2c2c9e",
+                    "tieBreakDigest": "2bc009e0"
+                  },
+                  {
+                    "request": 97,
+                    "length": 369,
+                    "pathDigest": "db56e2e2",
+                    "tieBreakDigest": "dd2f34c7"
+                  },
+                  {
+                    "request": 98,
+                    "length": 275,
+                    "pathDigest": "10d5ddac",
+                    "tieBreakDigest": "c05154ee"
+                  },
+                  {
+                    "request": 99,
+                    "length": 215,
+                    "pathDigest": "ce75e1f7",
+                    "tieBreakDigest": "17e1d5cb"
+                  },
+                  {
+                    "request": 100,
+                    "length": 214,
+                    "pathDigest": "f4836468",
+                    "tieBreakDigest": "fab5c683"
+                  },
+                  {
+                    "request": 101,
+                    "length": 171,
+                    "pathDigest": "5564872e",
+                    "tieBreakDigest": "e64c40cd"
+                  },
+                  {
+                    "request": 102,
+                    "length": 212,
+                    "pathDigest": "e8f72b34",
+                    "tieBreakDigest": "dcf49839"
+                  },
+                  {
+                    "request": 103,
+                    "length": 219,
+                    "pathDigest": "1108e648",
+                    "tieBreakDigest": "be836ca8"
+                  },
+                  {
+                    "request": 104,
+                    "length": 59,
+                    "pathDigest": "060d7e85",
+                    "tieBreakDigest": "a35183b2"
+                  },
+                  {
+                    "request": 105,
+                    "length": 27,
+                    "pathDigest": "c4439dfd",
+                    "tieBreakDigest": "81630ce7"
+                  },
+                  {
+                    "request": 106,
+                    "length": 191,
+                    "pathDigest": "99264329",
+                    "tieBreakDigest": "f57c8c5e"
+                  },
+                  {
+                    "request": 107,
+                    "length": 85,
+                    "pathDigest": "aa4b3f2b",
+                    "tieBreakDigest": "d6c4977b"
+                  },
+                  {
+                    "request": 108,
+                    "length": 231,
+                    "pathDigest": "1e33d41f",
+                    "tieBreakDigest": "fd1e3026"
+                  },
+                  {
+                    "request": 109,
+                    "length": 228,
+                    "pathDigest": "4d2b507c",
+                    "tieBreakDigest": "fa082e33"
+                  },
+                  {
+                    "request": 110,
+                    "length": 86,
+                    "pathDigest": "ca0be4ad",
+                    "tieBreakDigest": "5bbfb2ba"
+                  },
+                  {
+                    "request": 111,
+                    "length": 125,
+                    "pathDigest": "02bee7b5",
+                    "tieBreakDigest": "d30ad40a"
+                  },
+                  {
+                    "request": 112,
+                    "length": 186,
+                    "pathDigest": "030bee72",
+                    "tieBreakDigest": "68d0091e"
+                  },
+                  {
+                    "request": 113,
+                    "length": 190,
+                    "pathDigest": "0987c8f7",
+                    "tieBreakDigest": "7d86aa01"
+                  },
+                  {
+                    "request": 114,
+                    "length": 227,
+                    "pathDigest": "0e1e7032",
+                    "tieBreakDigest": "c03d7870"
+                  },
+                  {
+                    "request": 115,
+                    "length": 215,
+                    "pathDigest": "c42838b3",
+                    "tieBreakDigest": "430c9ae2"
+                  },
+                  {
+                    "request": 116,
+                    "length": 110,
+                    "pathDigest": "db9fc9f2",
+                    "tieBreakDigest": "14196652"
+                  },
+                  {
+                    "request": 117,
+                    "length": 184,
+                    "pathDigest": "3ed99e79",
+                    "tieBreakDigest": "971c333b"
+                  },
+                  {
+                    "request": 118,
+                    "length": 313,
+                    "pathDigest": "9da8d455",
+                    "tieBreakDigest": "c5016f3f"
+                  },
+                  {
+                    "request": 119,
+                    "length": 270,
+                    "pathDigest": "16155d61",
+                    "tieBreakDigest": "7dfe81a7"
+                  },
+                  {
+                    "request": 120,
+                    "length": 127,
+                    "pathDigest": "25d9de50",
+                    "tieBreakDigest": "24e570a8"
+                  },
+                  {
+                    "request": 121,
+                    "length": 190,
+                    "pathDigest": "aab78fd5",
+                    "tieBreakDigest": "2c4f4c0d"
+                  },
+                  {
+                    "request": 122,
+                    "length": 191,
+                    "pathDigest": "90c92490",
+                    "tieBreakDigest": "f5364832"
+                  },
+                  {
+                    "request": 123,
+                    "length": 126,
+                    "pathDigest": "bdc23e52",
+                    "tieBreakDigest": "b39add87"
+                  },
+                  {
+                    "request": 124,
+                    "length": 133,
+                    "pathDigest": "3f405862",
+                    "tieBreakDigest": "d648b0c7"
+                  },
+                  {
+                    "request": 125,
+                    "length": 0,
+                    "pathDigest": "a27ca0e7",
+                    "tieBreakDigest": "7e718d12"
+                  },
+                  {
+                    "request": 126,
+                    "length": 104,
+                    "pathDigest": "76e263f0",
+                    "tieBreakDigest": "3c0b2594"
+                  },
+                  {
+                    "request": 127,
+                    "length": 148,
+                    "pathDigest": "b94312b9",
+                    "tieBreakDigest": "b8397dc6"
+                  }
+                ],
+                "ecsCheckpointDigest": "c497aa94",
+                "animationCommandStreamDigest": "569ffa98",
+                "drawCommandStreamDigest": "992a9d1d",
+                "audioEventStreamDigest": "d1fcc811",
+                "checkpoints": [
+                  {
+                    "frame": 300,
+                    "ecsDigest": "395ce0c4",
+                    "animationDigest": "4e5a3a98",
+                    "drawDigest": "f8e8373b",
+                    "audioDigest": "452821e6",
+                    "sampleX": 91,
+                    "sampleY": 238
+                  },
+                  {
+                    "frame": 600,
+                    "ecsDigest": "2a1cfeda",
+                    "animationDigest": "7bf9ba98",
+                    "drawDigest": "03ab94d7",
+                    "audioDigest": "452821e6",
+                    "sampleX": 68,
+                    "sampleY": 11
+                  },
+                  {
+                    "frame": 900,
+                    "ecsDigest": "1cb04008",
+                    "animationDigest": "ba7f3a98",
+                    "drawDigest": "8f43ce5f",
+                    "audioDigest": "452821e6",
+                    "sampleX": 49,
+                    "sampleY": 35
+                  },
+                  {
+                    "frame": 1200,
+                    "ecsDigest": "caf68172",
+                    "animationDigest": "f863da98",
+                    "drawDigest": "4f56e18f",
+                    "audioDigest": "452821e6",
+                    "sampleX": 39,
+                    "sampleY": 58
+                  },
+                  {
+                    "frame": 1500,
+                    "ecsDigest": "58456454",
+                    "animationDigest": "2f7d3a98",
+                    "drawDigest": "75a7faa1",
+                    "audioDigest": "452821e6",
+                    "sampleX": 35,
+                    "sampleY": 74
+                  },
+                  {
+                    "frame": 1800,
+                    "ecsDigest": "c497aa94",
+                    "animationDigest": "569ffa98",
+                    "drawDigest": "992a9d1d",
+                    "audioDigest": "d1fcc811",
+                    "sampleX": 17,
+                    "sampleY": 89
+                  }
+                ]
+              }
+            },
+            "structural-invariants": {
+              "status": "passed",
+              "replay": [
+                {
+                  "frame": 300,
+                  "entities": 80,
+                  "goalX": 7,
+                  "goalY": 2,
+                  "sampleX": 91,
+                  "sampleY": 238,
+                  "traceDigest": "f8e8373b"
+                },
+                {
+                  "frame": 600,
+                  "entities": 80,
+                  "goalX": 9,
+                  "goalY": 5,
+                  "sampleX": 68,
+                  "sampleY": 11,
+                  "traceDigest": "03ab94d7"
+                },
+                {
+                  "frame": 900,
+                  "entities": 80,
+                  "goalX": 3,
+                  "goalY": 0,
+                  "sampleX": 49,
+                  "sampleY": 35,
+                  "traceDigest": "8f43ce5f"
+                },
+                {
+                  "frame": 1200,
+                  "entities": 80,
+                  "goalX": 1,
+                  "goalY": 3,
+                  "sampleX": 39,
+                  "sampleY": 58,
+                  "traceDigest": "4f56e18f"
+                },
+                {
+                  "frame": 1500,
+                  "entities": 80,
+                  "goalX": 15,
+                  "goalY": 9,
+                  "sampleX": 35,
+                  "sampleY": 74,
+                  "traceDigest": "75a7faa1"
+                },
+                {
+                  "frame": 1800,
+                  "entities": 80,
+                  "goalX": 15,
+                  "goalY": 3,
+                  "sampleX": 17,
+                  "sampleY": 89,
+                  "traceDigest": "992a9d1d"
+                }
+              ]
+            },
+            "work-counters": {
+              "status": "passed",
+              "counters": {
+                "frames": 1800,
+                "entities": 4096,
+                "systemUpdates": 7372800,
+                "pathNodesExpanded": 974592,
+                "frontierOperations": 2213135,
+                "drawCommands": 7372800,
+                "audioEvents": 1,
+                "boundaryCrossings": 2
+              }
+            }
+          }
+        },
+        "wasm-linear-controlled": {
+          "status": "passed",
+          "executionTarget": "wasm-linear",
+          "oracleChecks": {
+            "complete-output": {
+              "status": "passed",
+              "digest": "073b8a16",
+              "oracle": {
+                "pathNodeSequenceDigest": "55c75f61",
+                "tieBreakDigest": "8108145d",
+                "pathOracles": [
+                  {
+                    "request": 0,
+                    "length": 115,
+                    "pathDigest": "d02b3def",
+                    "tieBreakDigest": "0f336307"
+                  },
+                  {
+                    "request": 1,
+                    "length": 96,
+                    "pathDigest": "c67bb2a6",
+                    "tieBreakDigest": "973c313b"
+                  },
+                  {
+                    "request": 2,
+                    "length": 276,
+                    "pathDigest": "be461771",
+                    "tieBreakDigest": "c1414918"
+                  },
+                  {
+                    "request": 3,
+                    "length": 95,
+                    "pathDigest": "ab1dbea2",
+                    "tieBreakDigest": "83c66e7b"
+                  },
+                  {
+                    "request": 4,
+                    "length": 105,
+                    "pathDigest": "2969e5a6",
+                    "tieBreakDigest": "68db6f02"
+                  },
+                  {
+                    "request": 5,
+                    "length": 157,
+                    "pathDigest": "b9b65c39",
+                    "tieBreakDigest": "8606cdf8"
+                  },
+                  {
+                    "request": 6,
+                    "length": 200,
+                    "pathDigest": "9fca1820",
+                    "tieBreakDigest": "eed1f3fe"
+                  },
+                  {
+                    "request": 7,
+                    "length": 96,
+                    "pathDigest": "ef7bca4d",
+                    "tieBreakDigest": "16015348"
+                  },
+                  {
+                    "request": 8,
+                    "length": 79,
+                    "pathDigest": "5cab6cc7",
+                    "tieBreakDigest": "3f8b19d0"
+                  },
+                  {
+                    "request": 9,
+                    "length": 19,
+                    "pathDigest": "e3b77682",
+                    "tieBreakDigest": "e56c98d7"
+                  },
+                  {
+                    "request": 10,
+                    "length": 310,
+                    "pathDigest": "3ae6da92",
+                    "tieBreakDigest": "558b5f44"
+                  },
+                  {
+                    "request": 11,
+                    "length": 224,
+                    "pathDigest": "9bd75564",
+                    "tieBreakDigest": "c3565359"
+                  },
+                  {
+                    "request": 12,
+                    "length": 123,
+                    "pathDigest": "fe0d3a39",
+                    "tieBreakDigest": "87d32c6a"
+                  },
+                  {
+                    "request": 13,
+                    "length": 123,
+                    "pathDigest": "ca427ab6",
+                    "tieBreakDigest": "479764a9"
+                  },
+                  {
+                    "request": 14,
+                    "length": 264,
+                    "pathDigest": "fc478876",
+                    "tieBreakDigest": "742fbee8"
+                  },
+                  {
+                    "request": 15,
+                    "length": 127,
+                    "pathDigest": "26598644",
+                    "tieBreakDigest": "982a6ec0"
+                  },
+                  {
+                    "request": 16,
+                    "length": 57,
+                    "pathDigest": "393b3ae3",
+                    "tieBreakDigest": "084d6af0"
+                  },
+                  {
+                    "request": 17,
+                    "length": 126,
+                    "pathDigest": "c850f540",
+                    "tieBreakDigest": "895266e1"
+                  },
+                  {
+                    "request": 18,
+                    "length": 0,
+                    "pathDigest": "a27ca0e7",
+                    "tieBreakDigest": "9ddcd273"
+                  },
+                  {
+                    "request": 19,
+                    "length": 70,
+                    "pathDigest": "fba48fe5",
+                    "tieBreakDigest": "752d94ac"
+                  },
+                  {
+                    "request": 20,
+                    "length": 0,
+                    "pathDigest": "a27ca0e7",
+                    "tieBreakDigest": "f541c9b7"
+                  },
+                  {
+                    "request": 21,
+                    "length": 70,
+                    "pathDigest": "2033914a",
+                    "tieBreakDigest": "012672b6"
+                  },
+                  {
+                    "request": 22,
+                    "length": 122,
+                    "pathDigest": "8c90e18f",
+                    "tieBreakDigest": "c8c2447a"
+                  },
+                  {
+                    "request": 23,
+                    "length": 95,
+                    "pathDigest": "e22d6e7c",
+                    "tieBreakDigest": "00ed540c"
+                  },
+                  {
+                    "request": 24,
+                    "length": 77,
+                    "pathDigest": "3eaa8392",
+                    "tieBreakDigest": "8362172b"
+                  },
+                  {
+                    "request": 25,
+                    "length": 362,
+                    "pathDigest": "eb1e161d",
+                    "tieBreakDigest": "b81e6f6b"
+                  },
+                  {
+                    "request": 26,
+                    "length": 135,
+                    "pathDigest": "75bb010e",
+                    "tieBreakDigest": "d64a0d8b"
+                  },
+                  {
+                    "request": 27,
+                    "length": 0,
+                    "pathDigest": "a27ca0e7",
+                    "tieBreakDigest": "9244d471"
+                  },
+                  {
+                    "request": 28,
+                    "length": 292,
+                    "pathDigest": "74385128",
+                    "tieBreakDigest": "e5596833"
+                  },
+                  {
+                    "request": 29,
+                    "length": 158,
+                    "pathDigest": "5834c0ea",
+                    "tieBreakDigest": "ef8780d8"
+                  },
+                  {
+                    "request": 30,
+                    "length": 235,
+                    "pathDigest": "b5d36b54",
+                    "tieBreakDigest": "0487b7a0"
+                  },
+                  {
+                    "request": 31,
+                    "length": 295,
+                    "pathDigest": "567ff913",
+                    "tieBreakDigest": "f751f5ec"
+                  },
+                  {
+                    "request": 32,
+                    "length": 106,
+                    "pathDigest": "77c9ce92",
+                    "tieBreakDigest": "ede05a7e"
+                  },
+                  {
+                    "request": 33,
+                    "length": 171,
+                    "pathDigest": "a4f252e1",
+                    "tieBreakDigest": "422dacd3"
+                  },
+                  {
+                    "request": 34,
+                    "length": 204,
+                    "pathDigest": "6f5a6e29",
+                    "tieBreakDigest": "9fa6701b"
+                  },
+                  {
+                    "request": 35,
+                    "length": 256,
+                    "pathDigest": "e4b8c0ee",
+                    "tieBreakDigest": "9c9ed5c5"
+                  },
+                  {
+                    "request": 36,
+                    "length": 165,
+                    "pathDigest": "8699113f",
+                    "tieBreakDigest": "88768518"
+                  },
+                  {
+                    "request": 37,
+                    "length": 243,
+                    "pathDigest": "c38a423b",
+                    "tieBreakDigest": "cf831cc2"
+                  },
+                  {
+                    "request": 38,
+                    "length": 148,
+                    "pathDigest": "14f96331",
+                    "tieBreakDigest": "49dcccad"
+                  },
+                  {
+                    "request": 39,
+                    "length": 157,
+                    "pathDigest": "9dc8310c",
+                    "tieBreakDigest": "f0a8da4b"
+                  },
+                  {
+                    "request": 40,
+                    "length": 190,
+                    "pathDigest": "43f5caf6",
+                    "tieBreakDigest": "44d84630"
+                  },
+                  {
+                    "request": 41,
+                    "length": 167,
+                    "pathDigest": "ebcd49d5",
+                    "tieBreakDigest": "b0802432"
+                  },
+                  {
+                    "request": 42,
+                    "length": 179,
+                    "pathDigest": "327dfd62",
+                    "tieBreakDigest": "ab2c4b2f"
+                  },
+                  {
+                    "request": 43,
+                    "length": 160,
+                    "pathDigest": "f8b4a1eb",
+                    "tieBreakDigest": "64f422bd"
+                  },
+                  {
+                    "request": 44,
+                    "length": 154,
+                    "pathDigest": "7260eb3a",
+                    "tieBreakDigest": "3f58964a"
+                  },
+                  {
+                    "request": 45,
+                    "length": 145,
+                    "pathDigest": "9390f7c6",
+                    "tieBreakDigest": "d2168191"
+                  },
+                  {
+                    "request": 46,
+                    "length": 0,
+                    "pathDigest": "a27ca0e7",
+                    "tieBreakDigest": "7488100b"
+                  },
+                  {
+                    "request": 47,
+                    "length": 152,
+                    "pathDigest": "2a533512",
+                    "tieBreakDigest": "14ee5eac"
+                  },
+                  {
+                    "request": 48,
+                    "length": 55,
+                    "pathDigest": "0f608ee1",
+                    "tieBreakDigest": "278c6ff9"
+                  },
+                  {
+                    "request": 49,
+                    "length": 80,
+                    "pathDigest": "f50b92fa",
+                    "tieBreakDigest": "b9e3834b"
+                  },
+                  {
+                    "request": 50,
+                    "length": 144,
+                    "pathDigest": "69e514d1",
+                    "tieBreakDigest": "6b12e852"
+                  },
+                  {
+                    "request": 51,
+                    "length": 245,
+                    "pathDigest": "077bf907",
+                    "tieBreakDigest": "b335d584"
+                  },
+                  {
+                    "request": 52,
+                    "length": 295,
+                    "pathDigest": "0873da90",
+                    "tieBreakDigest": "005281cb"
+                  },
+                  {
+                    "request": 53,
+                    "length": 0,
+                    "pathDigest": "a27ca0e7",
+                    "tieBreakDigest": "91083763"
+                  },
+                  {
+                    "request": 54,
+                    "length": 207,
+                    "pathDigest": "bca531f9",
+                    "tieBreakDigest": "e8419d3e"
+                  },
+                  {
+                    "request": 55,
+                    "length": 0,
+                    "pathDigest": "a27ca0e7",
+                    "tieBreakDigest": "2ec38440"
+                  },
+                  {
+                    "request": 56,
+                    "length": 202,
+                    "pathDigest": "3d894ea0",
+                    "tieBreakDigest": "d3fb6a05"
+                  },
+                  {
+                    "request": 57,
+                    "length": 157,
+                    "pathDigest": "363ad431",
+                    "tieBreakDigest": "dfc5be94"
+                  },
+                  {
+                    "request": 58,
+                    "length": 216,
+                    "pathDigest": "7ea61c2d",
+                    "tieBreakDigest": "74f78235"
+                  },
+                  {
+                    "request": 59,
+                    "length": 47,
+                    "pathDigest": "4cf8595a",
+                    "tieBreakDigest": "d4e7325f"
+                  },
+                  {
+                    "request": 60,
+                    "length": 317,
+                    "pathDigest": "34c8a060",
+                    "tieBreakDigest": "54fe3e12"
+                  },
+                  {
+                    "request": 61,
+                    "length": 204,
+                    "pathDigest": "8cddf06d",
+                    "tieBreakDigest": "d2490ecc"
+                  },
+                  {
+                    "request": 62,
+                    "length": 97,
+                    "pathDigest": "aed70c2c",
+                    "tieBreakDigest": "3cce7e7c"
+                  },
+                  {
+                    "request": 63,
+                    "length": 141,
+                    "pathDigest": "5beb5719",
+                    "tieBreakDigest": "a8af6acc"
+                  },
+                  {
+                    "request": 64,
+                    "length": 226,
+                    "pathDigest": "08b698ec",
+                    "tieBreakDigest": "d81546c4"
+                  },
+                  {
+                    "request": 65,
+                    "length": 26,
+                    "pathDigest": "5e539435",
+                    "tieBreakDigest": "55e1b019"
+                  },
+                  {
+                    "request": 66,
+                    "length": 140,
+                    "pathDigest": "e5bb3706",
+                    "tieBreakDigest": "95bb441d"
+                  },
+                  {
+                    "request": 67,
+                    "length": 337,
+                    "pathDigest": "224f3be4",
+                    "tieBreakDigest": "0683692b"
+                  },
+                  {
+                    "request": 68,
+                    "length": 158,
+                    "pathDigest": "0111a724",
+                    "tieBreakDigest": "b0b75662"
+                  },
+                  {
+                    "request": 69,
+                    "length": 23,
+                    "pathDigest": "2cef5621",
+                    "tieBreakDigest": "0a1c9b41"
+                  },
+                  {
+                    "request": 70,
+                    "length": 199,
+                    "pathDigest": "ed40557b",
+                    "tieBreakDigest": "4762056e"
+                  },
+                  {
+                    "request": 71,
+                    "length": 90,
+                    "pathDigest": "f4204aff",
+                    "tieBreakDigest": "4ccceb3c"
+                  },
+                  {
+                    "request": 72,
+                    "length": 128,
+                    "pathDigest": "602c788c",
+                    "tieBreakDigest": "452f70d0"
+                  },
+                  {
+                    "request": 73,
+                    "length": 38,
+                    "pathDigest": "e1d82e6c",
+                    "tieBreakDigest": "942bfe07"
+                  },
+                  {
+                    "request": 74,
+                    "length": 139,
+                    "pathDigest": "d2a64a7c",
+                    "tieBreakDigest": "63f5366a"
+                  },
+                  {
+                    "request": 75,
+                    "length": 194,
+                    "pathDigest": "d28d66e9",
+                    "tieBreakDigest": "78baa897"
+                  },
+                  {
+                    "request": 76,
+                    "length": 190,
+                    "pathDigest": "5139f356",
+                    "tieBreakDigest": "7cef986e"
+                  },
+                  {
+                    "request": 77,
+                    "length": 32,
+                    "pathDigest": "58d14d3f",
+                    "tieBreakDigest": "fd1d925c"
+                  },
+                  {
+                    "request": 78,
+                    "length": 180,
+                    "pathDigest": "b4e89859",
+                    "tieBreakDigest": "764df84d"
+                  },
+                  {
+                    "request": 79,
+                    "length": 387,
+                    "pathDigest": "02f71aab",
+                    "tieBreakDigest": "852691a1"
+                  },
+                  {
+                    "request": 80,
+                    "length": 228,
+                    "pathDigest": "2df33910",
+                    "tieBreakDigest": "5063d624"
+                  },
+                  {
+                    "request": 81,
+                    "length": 20,
+                    "pathDigest": "c3c8eb59",
+                    "tieBreakDigest": "5e6d7d85"
+                  },
+                  {
+                    "request": 82,
+                    "length": 105,
+                    "pathDigest": "18619d8f",
+                    "tieBreakDigest": "e45fbf43"
+                  },
+                  {
+                    "request": 83,
+                    "length": 74,
+                    "pathDigest": "be23a80f",
+                    "tieBreakDigest": "49a8989b"
+                  },
+                  {
+                    "request": 84,
+                    "length": 0,
+                    "pathDigest": "a27ca0e7",
+                    "tieBreakDigest": "5b06d2b4"
+                  },
+                  {
+                    "request": 85,
+                    "length": 310,
+                    "pathDigest": "f2b74d1f",
+                    "tieBreakDigest": "911606ad"
+                  },
+                  {
+                    "request": 86,
+                    "length": 148,
+                    "pathDigest": "0562e1a8",
+                    "tieBreakDigest": "0426c4f9"
+                  },
+                  {
+                    "request": 87,
+                    "length": 189,
+                    "pathDigest": "cc9340ea",
+                    "tieBreakDigest": "4b6b6b34"
+                  },
+                  {
+                    "request": 88,
+                    "length": 184,
+                    "pathDigest": "43f8294c",
+                    "tieBreakDigest": "4fe14608"
+                  },
+                  {
+                    "request": 89,
+                    "length": 68,
+                    "pathDigest": "049d0874",
+                    "tieBreakDigest": "65217560"
+                  },
+                  {
+                    "request": 90,
+                    "length": 187,
+                    "pathDigest": "cf2ee18c",
+                    "tieBreakDigest": "2726ff1a"
+                  },
+                  {
+                    "request": 91,
+                    "length": 186,
+                    "pathDigest": "35f44c5f",
+                    "tieBreakDigest": "b535ac49"
+                  },
+                  {
+                    "request": 92,
+                    "length": 353,
+                    "pathDigest": "00a6d733",
+                    "tieBreakDigest": "5d8f67fd"
+                  },
+                  {
+                    "request": 93,
+                    "length": 0,
+                    "pathDigest": "a27ca0e7",
+                    "tieBreakDigest": "b59e6a9d"
+                  },
+                  {
+                    "request": 94,
+                    "length": 228,
+                    "pathDigest": "0625a71c",
+                    "tieBreakDigest": "01737dd4"
+                  },
+                  {
+                    "request": 95,
+                    "length": 171,
+                    "pathDigest": "51a4530f",
+                    "tieBreakDigest": "40211a92"
+                  },
+                  {
+                    "request": 96,
+                    "length": 147,
+                    "pathDigest": "5d2c2c9e",
+                    "tieBreakDigest": "2bc009e0"
+                  },
+                  {
+                    "request": 97,
+                    "length": 369,
+                    "pathDigest": "db56e2e2",
+                    "tieBreakDigest": "dd2f34c7"
+                  },
+                  {
+                    "request": 98,
+                    "length": 275,
+                    "pathDigest": "10d5ddac",
+                    "tieBreakDigest": "c05154ee"
+                  },
+                  {
+                    "request": 99,
+                    "length": 215,
+                    "pathDigest": "ce75e1f7",
+                    "tieBreakDigest": "17e1d5cb"
+                  },
+                  {
+                    "request": 100,
+                    "length": 214,
+                    "pathDigest": "f4836468",
+                    "tieBreakDigest": "fab5c683"
+                  },
+                  {
+                    "request": 101,
+                    "length": 171,
+                    "pathDigest": "5564872e",
+                    "tieBreakDigest": "e64c40cd"
+                  },
+                  {
+                    "request": 102,
+                    "length": 212,
+                    "pathDigest": "e8f72b34",
+                    "tieBreakDigest": "dcf49839"
+                  },
+                  {
+                    "request": 103,
+                    "length": 219,
+                    "pathDigest": "1108e648",
+                    "tieBreakDigest": "be836ca8"
+                  },
+                  {
+                    "request": 104,
+                    "length": 59,
+                    "pathDigest": "060d7e85",
+                    "tieBreakDigest": "a35183b2"
+                  },
+                  {
+                    "request": 105,
+                    "length": 27,
+                    "pathDigest": "c4439dfd",
+                    "tieBreakDigest": "81630ce7"
+                  },
+                  {
+                    "request": 106,
+                    "length": 191,
+                    "pathDigest": "99264329",
+                    "tieBreakDigest": "f57c8c5e"
+                  },
+                  {
+                    "request": 107,
+                    "length": 85,
+                    "pathDigest": "aa4b3f2b",
+                    "tieBreakDigest": "d6c4977b"
+                  },
+                  {
+                    "request": 108,
+                    "length": 231,
+                    "pathDigest": "1e33d41f",
+                    "tieBreakDigest": "fd1e3026"
+                  },
+                  {
+                    "request": 109,
+                    "length": 228,
+                    "pathDigest": "4d2b507c",
+                    "tieBreakDigest": "fa082e33"
+                  },
+                  {
+                    "request": 110,
+                    "length": 86,
+                    "pathDigest": "ca0be4ad",
+                    "tieBreakDigest": "5bbfb2ba"
+                  },
+                  {
+                    "request": 111,
+                    "length": 125,
+                    "pathDigest": "02bee7b5",
+                    "tieBreakDigest": "d30ad40a"
+                  },
+                  {
+                    "request": 112,
+                    "length": 186,
+                    "pathDigest": "030bee72",
+                    "tieBreakDigest": "68d0091e"
+                  },
+                  {
+                    "request": 113,
+                    "length": 190,
+                    "pathDigest": "0987c8f7",
+                    "tieBreakDigest": "7d86aa01"
+                  },
+                  {
+                    "request": 114,
+                    "length": 227,
+                    "pathDigest": "0e1e7032",
+                    "tieBreakDigest": "c03d7870"
+                  },
+                  {
+                    "request": 115,
+                    "length": 215,
+                    "pathDigest": "c42838b3",
+                    "tieBreakDigest": "430c9ae2"
+                  },
+                  {
+                    "request": 116,
+                    "length": 110,
+                    "pathDigest": "db9fc9f2",
+                    "tieBreakDigest": "14196652"
+                  },
+                  {
+                    "request": 117,
+                    "length": 184,
+                    "pathDigest": "3ed99e79",
+                    "tieBreakDigest": "971c333b"
+                  },
+                  {
+                    "request": 118,
+                    "length": 313,
+                    "pathDigest": "9da8d455",
+                    "tieBreakDigest": "c5016f3f"
+                  },
+                  {
+                    "request": 119,
+                    "length": 270,
+                    "pathDigest": "16155d61",
+                    "tieBreakDigest": "7dfe81a7"
+                  },
+                  {
+                    "request": 120,
+                    "length": 127,
+                    "pathDigest": "25d9de50",
+                    "tieBreakDigest": "24e570a8"
+                  },
+                  {
+                    "request": 121,
+                    "length": 190,
+                    "pathDigest": "aab78fd5",
+                    "tieBreakDigest": "2c4f4c0d"
+                  },
+                  {
+                    "request": 122,
+                    "length": 191,
+                    "pathDigest": "90c92490",
+                    "tieBreakDigest": "f5364832"
+                  },
+                  {
+                    "request": 123,
+                    "length": 126,
+                    "pathDigest": "bdc23e52",
+                    "tieBreakDigest": "b39add87"
+                  },
+                  {
+                    "request": 124,
+                    "length": 133,
+                    "pathDigest": "3f405862",
+                    "tieBreakDigest": "d648b0c7"
+                  },
+                  {
+                    "request": 125,
+                    "length": 0,
+                    "pathDigest": "a27ca0e7",
+                    "tieBreakDigest": "7e718d12"
+                  },
+                  {
+                    "request": 126,
+                    "length": 104,
+                    "pathDigest": "76e263f0",
+                    "tieBreakDigest": "3c0b2594"
+                  },
+                  {
+                    "request": 127,
+                    "length": 148,
+                    "pathDigest": "b94312b9",
+                    "tieBreakDigest": "b8397dc6"
+                  }
+                ],
+                "ecsCheckpointDigest": "c497aa94",
+                "animationCommandStreamDigest": "569ffa98",
+                "drawCommandStreamDigest": "992a9d1d",
+                "audioEventStreamDigest": "d1fcc811",
+                "checkpoints": [
+                  {
+                    "frame": 300,
+                    "ecsDigest": "395ce0c4",
+                    "animationDigest": "4e5a3a98",
+                    "drawDigest": "f8e8373b",
+                    "audioDigest": "452821e6",
+                    "sampleX": 91,
+                    "sampleY": 238
+                  },
+                  {
+                    "frame": 600,
+                    "ecsDigest": "2a1cfeda",
+                    "animationDigest": "7bf9ba98",
+                    "drawDigest": "03ab94d7",
+                    "audioDigest": "452821e6",
+                    "sampleX": 68,
+                    "sampleY": 11
+                  },
+                  {
+                    "frame": 900,
+                    "ecsDigest": "1cb04008",
+                    "animationDigest": "ba7f3a98",
+                    "drawDigest": "8f43ce5f",
+                    "audioDigest": "452821e6",
+                    "sampleX": 49,
+                    "sampleY": 35
+                  },
+                  {
+                    "frame": 1200,
+                    "ecsDigest": "caf68172",
+                    "animationDigest": "f863da98",
+                    "drawDigest": "4f56e18f",
+                    "audioDigest": "452821e6",
+                    "sampleX": 39,
+                    "sampleY": 58
+                  },
+                  {
+                    "frame": 1500,
+                    "ecsDigest": "58456454",
+                    "animationDigest": "2f7d3a98",
+                    "drawDigest": "75a7faa1",
+                    "audioDigest": "452821e6",
+                    "sampleX": 35,
+                    "sampleY": 74
+                  },
+                  {
+                    "frame": 1800,
+                    "ecsDigest": "c497aa94",
+                    "animationDigest": "569ffa98",
+                    "drawDigest": "992a9d1d",
+                    "audioDigest": "d1fcc811",
+                    "sampleX": 17,
+                    "sampleY": 89
+                  }
+                ]
+              }
+            },
+            "structural-invariants": {
+              "status": "passed",
+              "replay": [
+                {
+                  "frame": 300,
+                  "entities": 80,
+                  "goalX": 7,
+                  "goalY": 2,
+                  "sampleX": 91,
+                  "sampleY": 238,
+                  "traceDigest": "f8e8373b"
+                },
+                {
+                  "frame": 600,
+                  "entities": 80,
+                  "goalX": 9,
+                  "goalY": 5,
+                  "sampleX": 68,
+                  "sampleY": 11,
+                  "traceDigest": "03ab94d7"
+                },
+                {
+                  "frame": 900,
+                  "entities": 80,
+                  "goalX": 3,
+                  "goalY": 0,
+                  "sampleX": 49,
+                  "sampleY": 35,
+                  "traceDigest": "8f43ce5f"
+                },
+                {
+                  "frame": 1200,
+                  "entities": 80,
+                  "goalX": 1,
+                  "goalY": 3,
+                  "sampleX": 39,
+                  "sampleY": 58,
+                  "traceDigest": "4f56e18f"
+                },
+                {
+                  "frame": 1500,
+                  "entities": 80,
+                  "goalX": 15,
+                  "goalY": 9,
+                  "sampleX": 35,
+                  "sampleY": 74,
+                  "traceDigest": "75a7faa1"
+                },
+                {
+                  "frame": 1800,
+                  "entities": 80,
+                  "goalX": 15,
+                  "goalY": 3,
+                  "sampleX": 17,
+                  "sampleY": 89,
+                  "traceDigest": "992a9d1d"
+                }
+              ]
+            },
+            "work-counters": {
+              "status": "passed",
+              "counters": {
+                "frames": 1800,
+                "entities": 4096,
+                "systemUpdates": 7372800,
+                "pathNodesExpanded": 974592,
+                "frontierOperations": 2213135,
+                "drawCommands": 7372800,
+                "audioEvents": 1,
+                "boundaryCrossings": 2
+              }
+            }
+          }
+        }
+      }
+    },
+    "game.dom-tactics-grid.v1": {
+      "input": {
+        "bytes": 7064,
+        "sha256": "93ea1b049be33d4a2d1fcf08d58e433181195b24c03e36326bfecd328c3a5262"
+      },
+      "variants": {
+        "js-controlled": {
+          "status": "passed",
+          "executionTarget": "javascript",
+          "oracleChecks": {
+            "complete-output": {
+              "status": "passed",
+              "digest": "14997b1e",
+              "oracle": {
+                "finalUnitDigest": "adaea4e5",
+                "finalOccupancyDigest": "8d730f69",
+                "finalInitiativeDigest": "67cf2fa8",
+                "finalObjectiveDigest": "dc971318",
+                "canonicalDomDigest": "ea6127a1",
+                "focusStateDigest": "103c75c2",
+                "accessibilityStateDigest": "e819fe54",
+                "turnCheckpoints": [
+                  {
+                    "turn": 1,
+                    "unitDigest": "8607563a",
+                    "occupancyDigest": "8a2b7a3d",
+                    "initiativeDigest": "70edf2e5",
+                    "objectiveDigest": "cc94bb51",
+                    "domDigest": "3801ad4d",
+                    "focusDigest": "373b2027",
+                    "accessibilityDigest": "d69e39b8",
+                    "selectedCell": 3114,
+                    "focusedCell": 3114,
+                    "initiative": 1,
+                    "objectives": [
+                      14,
+                      13
+                    ]
+                  },
+                  {
+                    "turn": 2,
+                    "unitDigest": "11f6bdd8",
+                    "occupancyDigest": "0d8bc411",
+                    "initiativeDigest": "adec9573",
+                    "objectiveDigest": "c994b698",
+                    "domDigest": "33cc2711",
+                    "focusDigest": "b443c3ee",
+                    "accessibilityDigest": "a93a2e44",
+                    "selectedCell": 1709,
+                    "focusedCell": 1709,
+                    "initiative": 7,
+                    "objectives": [
+                      14,
+                      14
+                    ]
+                  },
+                  {
+                    "turn": 3,
+                    "unitDigest": "4fbf4040",
+                    "occupancyDigest": "056e3eb1",
+                    "initiativeDigest": "562fa80b",
+                    "objectiveDigest": "c994b698",
+                    "domDigest": "3884ae21",
+                    "focusDigest": "1c3962a6",
+                    "accessibilityDigest": "454aa164",
+                    "selectedCell": 3381,
+                    "focusedCell": 3381,
+                    "initiative": 15,
+                    "objectives": [
+                      14,
+                      14
+                    ]
+                  },
+                  {
+                    "turn": 4,
+                    "unitDigest": "4fbf4040",
+                    "occupancyDigest": "056e3eb1",
+                    "initiativeDigest": "787f3010",
+                    "objectiveDigest": "c994b698",
+                    "domDigest": "3f00ae21",
+                    "focusDigest": "5847ec1a",
+                    "accessibilityDigest": "2bf126b4",
+                    "selectedCell": 1033,
+                    "focusedCell": 1033,
+                    "initiative": 22,
+                    "objectives": [
+                      14,
+                      14
+                    ]
+                  },
+                  {
+                    "turn": 5,
+                    "unitDigest": "4fbf4040",
+                    "occupancyDigest": "056e3eb1",
+                    "initiativeDigest": "dd8b5561",
+                    "objectiveDigest": "c994b698",
+                    "domDigest": "3f00ae21",
+                    "focusDigest": "5847ec1a",
+                    "accessibilityDigest": "2bf126b4",
+                    "selectedCell": 1033,
+                    "focusedCell": 1033,
+                    "initiative": 29,
+                    "objectives": [
+                      14,
+                      14
+                    ]
+                  },
+                  {
+                    "turn": 6,
+                    "unitDigest": "2354e757",
+                    "occupancyDigest": "3f3aa0b1",
+                    "initiativeDigest": "2a2903a6",
+                    "objectiveDigest": "c994b698",
+                    "domDigest": "59401621",
+                    "focusDigest": "11477c55",
+                    "accessibilityDigest": "6a2bacac",
+                    "selectedCell": 1216,
+                    "focusedCell": 1216,
+                    "initiative": 36,
+                    "objectives": [
+                      14,
+                      14
+                    ]
+                  },
+                  {
+                    "turn": 7,
+                    "unitDigest": "2354e757",
+                    "occupancyDigest": "3f3aa0b1",
+                    "initiativeDigest": "1da1f364",
+                    "objectiveDigest": "c994b698",
+                    "domDigest": "0fe21621",
+                    "focusDigest": "5544c161",
+                    "accessibilityDigest": "556964cc",
+                    "selectedCell": 1548,
+                    "focusedCell": 1548,
+                    "initiative": 42,
+                    "objectives": [
+                      14,
+                      14
+                    ]
+                  },
+                  {
+                    "turn": 8,
+                    "unitDigest": "2354e757",
+                    "occupancyDigest": "3f3aa0b1",
+                    "initiativeDigest": "bb68cffc",
+                    "objectiveDigest": "c994b698",
+                    "domDigest": "1e2c1621",
+                    "focusDigest": "824b5438",
+                    "accessibilityDigest": "79ee7f94",
+                    "selectedCell": 607,
+                    "focusedCell": 607,
+                    "initiative": 50,
+                    "objectives": [
+                      14,
+                      14
+                    ]
+                  },
+                  {
+                    "turn": 9,
+                    "unitDigest": "2354e757",
+                    "occupancyDigest": "3f3aa0b1",
+                    "initiativeDigest": "5b7d6a4d",
+                    "objectiveDigest": "c994b698",
+                    "domDigest": "04e81621",
+                    "focusDigest": "944e968e",
+                    "accessibilityDigest": "14b1eb14",
+                    "selectedCell": 77,
+                    "focusedCell": 77,
+                    "initiative": 57,
+                    "objectives": [
+                      14,
+                      14
+                    ]
+                  },
+                  {
+                    "turn": 10,
+                    "unitDigest": "2354e757",
+                    "occupancyDigest": "3f3aa0b1",
+                    "initiativeDigest": "25cb8c12",
+                    "objectiveDigest": "c994b698",
+                    "domDigest": "04e81621",
+                    "focusDigest": "944e968e",
+                    "accessibilityDigest": "14b1eb14",
+                    "selectedCell": 77,
+                    "focusedCell": 77,
+                    "initiative": 64,
+                    "objectives": [
+                      14,
+                      14
+                    ]
+                  },
+                  {
+                    "turn": 11,
+                    "unitDigest": "2354e757",
+                    "occupancyDigest": "3f3aa0b1",
+                    "initiativeDigest": "9e30fa33",
+                    "objectiveDigest": "c994b698",
+                    "domDigest": "03b01621",
+                    "focusDigest": "7d49b959",
+                    "accessibilityDigest": "29f3a14c",
+                    "selectedCell": 852,
+                    "focusedCell": 852,
+                    "initiative": 71,
+                    "objectives": [
+                      14,
+                      14
+                    ]
+                  },
+                  {
+                    "turn": 12,
+                    "unitDigest": "2354e757",
+                    "occupancyDigest": "3f3aa0b1",
+                    "initiativeDigest": "80d722f1",
+                    "objectiveDigest": "c994b698",
+                    "domDigest": "6d361621",
+                    "focusDigest": "563e76f4",
+                    "accessibilityDigest": "d71c2b64",
+                    "selectedCell": 2571,
+                    "focusedCell": 2571,
+                    "initiative": 77,
+                    "objectives": [
+                      14,
+                      14
+                    ]
+                  },
+                  {
+                    "turn": 13,
+                    "unitDigest": "b79382a1",
+                    "occupancyDigest": "9cf0e231",
+                    "initiativeDigest": "adf85e89",
+                    "objectiveDigest": "ca94b82b",
+                    "domDigest": "b3208f21",
+                    "focusDigest": "47463e57",
+                    "accessibilityDigest": "f37574dc",
+                    "selectedCell": 1306,
+                    "focusedCell": 1306,
+                    "initiative": 85,
+                    "objectives": [
+                      14,
+                      15
+                    ]
+                  },
+                  {
+                    "turn": 14,
+                    "unitDigest": "b79382a1",
+                    "occupancyDigest": "9cf0e231",
+                    "initiativeDigest": "75e1c08e",
+                    "objectiveDigest": "ca94b82b",
+                    "domDigest": "a3648f21",
+                    "focusDigest": "644cb7fe",
+                    "accessibilityDigest": "739eb784",
+                    "selectedCell": 381,
+                    "focusedCell": 381,
+                    "initiative": 92,
+                    "objectives": [
+                      14,
+                      15
+                    ]
+                  },
+                  {
+                    "turn": 15,
+                    "unitDigest": "af0e91ad",
+                    "occupancyDigest": "86104ba5",
+                    "initiativeDigest": "5a90b11f",
+                    "objectiveDigest": "ca94b82b",
+                    "domDigest": "b97c4071",
+                    "focusDigest": "213c9085",
+                    "accessibilityDigest": "9b83d4bc",
+                    "selectedCell": 2864,
+                    "focusedCell": 2864,
+                    "initiative": 99,
+                    "objectives": [
+                      14,
+                      15
+                    ]
+                  },
+                  {
+                    "turn": 16,
+                    "unitDigest": "d88c4cf9",
+                    "occupancyDigest": "8b51f685",
+                    "initiativeDigest": "e16be424",
+                    "objectiveDigest": "ca94b82b",
+                    "domDigest": "98826a71",
+                    "focusDigest": "2f4ad18f",
+                    "accessibilityDigest": "a70b4dac",
+                    "selectedCell": 546,
+                    "focusedCell": 546,
+                    "initiative": 106,
+                    "objectives": [
+                      14,
+                      15
+                    ]
+                  },
+                  {
+                    "turn": 17,
+                    "unitDigest": "d88c4cf9",
+                    "occupancyDigest": "8b51f685",
+                    "initiativeDigest": "bf5be4e2",
+                    "objectiveDigest": "ca94b82b",
+                    "domDigest": "d3106a71",
+                    "focusDigest": "b443c3ee",
+                    "accessibilityDigest": "f9f1a084",
+                    "selectedCell": 1709,
+                    "focusedCell": 1709,
+                    "initiative": 112,
+                    "objectives": [
+                      14,
+                      15
+                    ]
+                  },
+                  {
+                    "turn": 18,
+                    "unitDigest": "a238b60c",
+                    "occupancyDigest": "a587e0d5",
+                    "initiativeDigest": "1486a47a",
+                    "objectiveDigest": "d794cca2",
+                    "domDigest": "c6b8a6e9",
+                    "focusDigest": "7a3b89a0",
+                    "accessibilityDigest": "bfce3894",
+                    "selectedCell": 3159,
+                    "focusedCell": 3159,
+                    "initiative": 120,
+                    "objectives": [
+                      14,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 19,
+                    "unitDigest": "a238b60c",
+                    "occupancyDigest": "a587e0d5",
+                    "initiativeDigest": "b281b39b",
+                    "objectiveDigest": "d794cca2",
+                    "domDigest": "2924a6e9",
+                    "focusDigest": "644cb7fe",
+                    "accessibilityDigest": "4daa9504",
+                    "selectedCell": 381,
+                    "focusedCell": 381,
+                    "initiative": 127,
+                    "objectives": [
+                      14,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 20,
+                    "unitDigest": "ecc39829",
+                    "occupancyDigest": "a5de0579",
+                    "initiativeDigest": "e37d7ee0",
+                    "objectiveDigest": "d794cca2",
+                    "domDigest": "ed66acc9",
+                    "focusDigest": "c03f1dd2",
+                    "accessibilityDigest": "927f81e4",
+                    "selectedCell": 2449,
+                    "focusedCell": 2449,
+                    "initiative": 6,
+                    "objectives": [
+                      14,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 21,
+                    "unitDigest": "38befb81",
+                    "occupancyDigest": "2446a215",
+                    "initiativeDigest": "be5bbe31",
+                    "objectiveDigest": "dd9714ab",
+                    "domDigest": "ae0dfa6d",
+                    "focusDigest": "e3440deb",
+                    "accessibilityDigest": "389c67ec",
+                    "selectedCell": 1790,
+                    "focusedCell": 1790,
+                    "initiative": 13,
+                    "objectives": [
+                      15,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 22,
+                    "unitDigest": "011bf52d",
+                    "occupancyDigest": "463fc921",
+                    "initiativeDigest": "b702f7ef",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "f1cb6c6d",
+                    "focusDigest": "19491bed",
+                    "accessibilityDigest": "c040140c",
+                    "selectedCell": 968,
+                    "focusedCell": 968,
+                    "initiative": 19,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 23,
+                    "unitDigest": "98c58856",
+                    "occupancyDigest": "9f6d6a6b",
+                    "initiativeDigest": "53ede487",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "42b01d3b",
+                    "focusDigest": "0b3f93e3",
+                    "accessibilityDigest": "38b7061c",
+                    "selectedCell": 2502,
+                    "focusedCell": 2502,
+                    "initiative": 27,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 24,
+                    "unitDigest": "98c58856",
+                    "occupancyDigest": "9f6d6a6b",
+                    "initiativeDigest": "591897cc",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "3fb61d3b",
+                    "focusDigest": "a94b919d",
+                    "accessibilityDigest": "a02adcdc",
+                    "selectedCell": 440,
+                    "focusedCell": 440,
+                    "initiative": 34,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 25,
+                    "unitDigest": "bb5be6fc",
+                    "occupancyDigest": "dd1bcb63",
+                    "initiativeDigest": "5fa3c41d",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "0e97d60f",
+                    "focusDigest": "6b44e403",
+                    "accessibilityDigest": "5d47f93c",
+                    "selectedCell": 1638,
+                    "focusedCell": 1638,
+                    "initiative": 41,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 26,
+                    "unitDigest": "3cc27adb",
+                    "occupancyDigest": "eaf40e11",
+                    "initiativeDigest": "e73e5e22",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "20e2e725",
+                    "focusDigest": "b13f0635",
+                    "accessibilityDigest": "b3f6f33c",
+                    "selectedCell": 2464,
+                    "focusedCell": 2464,
+                    "initiative": 48,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 27,
+                    "unitDigest": "8e60447d",
+                    "occupancyDigest": "ce288ba9",
+                    "initiativeDigest": "604af5b0",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "971da3c1",
+                    "focusDigest": "1c3af5a6",
+                    "accessibilityDigest": "3d10e004",
+                    "selectedCell": 3125,
+                    "focusedCell": 3125,
+                    "initiative": 54,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 28,
+                    "unitDigest": "1081cf50",
+                    "occupancyDigest": "194cb4c5",
+                    "initiativeDigest": "5e6c6748",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "69fb0a09",
+                    "focusDigest": "6c39e096",
+                    "accessibilityDigest": "31b3b464",
+                    "selectedCell": 3429,
+                    "focusedCell": 3429,
+                    "initiative": 62,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 29,
+                    "unitDigest": "1081cf50",
+                    "occupancyDigest": "194cb4c5",
+                    "initiativeDigest": "58374159",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "dec50a09",
+                    "focusDigest": "4c44b336",
+                    "accessibilityDigest": "953a5e24",
+                    "selectedCell": 1541,
+                    "focusedCell": 1541,
+                    "initiative": 69,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 30,
+                    "unitDigest": "f87b2881",
+                    "occupancyDigest": "6f116975",
+                    "initiativeDigest": "e99a935e",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "818d7809",
+                    "focusDigest": "92484768",
+                    "accessibilityDigest": "755ab894",
+                    "selectedCell": 1103,
+                    "focusedCell": 1103,
+                    "initiative": 76,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 31,
+                    "unitDigest": "a3e8362b",
+                    "occupancyDigest": "bfcbfedd",
+                    "initiativeDigest": "852f5caf",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "05295f65",
+                    "focusDigest": "33461edb",
+                    "accessibilityDigest": "d7d1c92c",
+                    "selectedCell": 1326,
+                    "focusedCell": 1326,
+                    "initiative": 83,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 32,
+                    "unitDigest": "e2615512",
+                    "occupancyDigest": "2009bb77",
+                    "initiativeDigest": "ad3a816d",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "48e3107b",
+                    "focusDigest": "fc4da746",
+                    "accessibilityDigest": "e1230104",
+                    "selectedCell": 213,
+                    "focusedCell": 213,
+                    "initiative": 89,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 33,
+                    "unitDigest": "5a563c63",
+                    "occupancyDigest": "2589ea3b",
+                    "initiativeDigest": "7cb5e945",
+                    "objectiveDigest": "94d50a7f",
+                    "domDigest": "3af09373",
+                    "focusDigest": "833b97cb",
+                    "accessibilityDigest": "c8e4a1ac",
+                    "selectedCell": 3166,
+                    "focusedCell": 3166,
+                    "initiative": 97,
+                    "objectives": [
+                      16,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 34,
+                    "unitDigest": "5a563c63",
+                    "occupancyDigest": "2589ea3b",
+                    "initiativeDigest": "a574064a",
+                    "objectiveDigest": "94d50a7f",
+                    "domDigest": "46ce9373",
+                    "focusDigest": "433cc60b",
+                    "accessibilityDigest": "31aecd5c",
+                    "selectedCell": 2846,
+                    "focusedCell": 2846,
+                    "initiative": 104,
+                    "objectives": [
+                      16,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 35,
+                    "unitDigest": "ddafec40",
+                    "occupancyDigest": "31ace8df",
+                    "initiativeDigest": "83275a6b",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "f842442b",
+                    "focusDigest": "a938ad9d",
+                    "accessibilityDigest": "808eb6dc",
+                    "selectedCell": 3512,
+                    "focusedCell": 3512,
+                    "initiative": 111,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 36,
+                    "unitDigest": "f7dd1d0a",
+                    "occupancyDigest": "2a498533",
+                    "initiativeDigest": "28b9f270",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "dfdc07f3",
+                    "focusDigest": "7448182e",
+                    "accessibilityDigest": "49e26a34",
+                    "selectedCell": 1133,
+                    "focusedCell": 1133,
+                    "initiative": 118,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 37,
+                    "unitDigest": "0a4979f5",
+                    "occupancyDigest": "1267f1d3",
+                    "initiativeDigest": "2e58ea2e",
+                    "objectiveDigest": "aad52d21",
+                    "domDigest": "67476653",
+                    "focusDigest": "3c4c7906",
+                    "accessibilityDigest": "c42dcef4",
+                    "selectedCell": 277,
+                    "focusedCell": 277,
+                    "initiative": 124,
+                    "objectives": [
+                      16,
+                      15
+                    ]
+                  },
+                  {
+                    "turn": 38,
+                    "unitDigest": "c7d7473f",
+                    "occupancyDigest": "41689e23",
+                    "initiativeDigest": "60cb3406",
+                    "objectiveDigest": "aad52d21",
+                    "domDigest": "5f338727",
+                    "focusDigest": "294ac81d",
+                    "accessibilityDigest": "ace0749c",
+                    "selectedCell": 568,
+                    "focusedCell": 568,
+                    "initiative": 4,
+                    "objectives": [
+                      16,
+                      15
+                    ]
+                  },
+                  {
+                    "turn": 39,
+                    "unitDigest": "c7d7473f",
+                    "occupancyDigest": "41689e23",
+                    "initiativeDigest": "e5646057",
+                    "objectiveDigest": "aad52d21",
+                    "domDigest": "63f18727",
+                    "focusDigest": "443e5a9e",
+                    "accessibilityDigest": "fa3297d4",
+                    "selectedCell": 2589,
+                    "focusedCell": 2589,
+                    "initiative": 11,
+                    "objectives": [
+                      16,
+                      15
+                    ]
+                  },
+                  {
+                    "turn": 40,
+                    "unitDigest": "4264b876",
+                    "occupancyDigest": "6a3a4553",
+                    "initiativeDigest": "0ff6195c",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "8d813dfb",
+                    "focusDigest": "ff4dabff",
+                    "accessibilityDigest": "e3a4479c",
+                    "selectedCell": 210,
+                    "focusedCell": 210,
+                    "initiative": 18,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 41,
+                    "unitDigest": "5e21bb0f",
+                    "occupancyDigest": "48ae469d",
+                    "initiativeDigest": "790c1cad",
+                    "objectiveDigest": "d9d7b5b5",
+                    "domDigest": "7ca462e9",
+                    "focusDigest": "6e4b34bc",
+                    "accessibilityDigest": "e4a03f04",
+                    "selectedCell": 611,
+                    "focusedCell": 611,
+                    "initiative": 25,
+                    "objectives": [
+                      17,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 42,
+                    "unitDigest": "79c44d54",
+                    "occupancyDigest": "247218a7",
+                    "initiativeDigest": "b5c9013b",
+                    "objectiveDigest": "d9d7b5b5",
+                    "domDigest": "450fad57",
+                    "focusDigest": "ff4439ff",
+                    "accessibilityDigest": "158ab33c",
+                    "selectedCell": 1746,
+                    "focusedCell": 1746,
+                    "initiative": 31,
+                    "objectives": [
+                      17,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 43,
+                    "unitDigest": "5a3e5b06",
+                    "occupancyDigest": "7efc2e07",
+                    "initiativeDigest": "2875e313",
+                    "objectiveDigest": "d8d7b422",
+                    "domDigest": "e5ff5347",
+                    "focusDigest": "9d4b7eb9",
+                    "accessibilityDigest": "04dd00fc",
+                    "selectedCell": 436,
+                    "focusedCell": 436,
+                    "initiative": 39,
+                    "objectives": [
+                      17,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 44,
+                    "unitDigest": "5a3e5b06",
+                    "occupancyDigest": "7efc2e07",
+                    "initiativeDigest": "32235d18",
+                    "objectiveDigest": "d8d7b422",
+                    "domDigest": "8af35347",
+                    "focusDigest": "e635e7a4",
+                    "accessibilityDigest": "4b17a3d4",
+                    "selectedCell": 4091,
+                    "focusedCell": 4091,
+                    "initiative": 46,
+                    "objectives": [
+                      17,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 45,
+                    "unitDigest": "5a3e5b06",
+                    "occupancyDigest": "7efc2e07",
+                    "initiativeDigest": "997e0369",
+                    "objectiveDigest": "d8d7b422",
+                    "domDigest": "8af35347",
+                    "focusDigest": "e635e7a4",
+                    "accessibilityDigest": "4b17a3d4",
+                    "selectedCell": 4091,
+                    "focusedCell": 4091,
+                    "initiative": 53,
+                    "objectives": [
+                      17,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 46,
+                    "unitDigest": "5a3e5b06",
+                    "occupancyDigest": "7efc2e07",
+                    "initiativeDigest": "5e8cb56e",
+                    "objectiveDigest": "d8d7b422",
+                    "domDigest": "9bf35347",
+                    "focusDigest": "af43bc0f",
+                    "accessibilityDigest": "f17dba4c",
+                    "selectedCell": 1698,
+                    "focusedCell": 1698,
+                    "initiative": 60,
+                    "objectives": [
+                      17,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 47,
+                    "unitDigest": "5a3e5b06",
+                    "occupancyDigest": "7efc2e07",
+                    "initiativeDigest": "ff65b8ec",
+                    "objectiveDigest": "d8d7b422",
+                    "domDigest": "ff335347",
+                    "focusDigest": "563e76f4",
+                    "accessibilityDigest": "d38b3014",
+                    "selectedCell": 2571,
+                    "focusedCell": 2571,
+                    "initiative": 66,
+                    "objectives": [
+                      17,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 48,
+                    "unitDigest": "5a3e5b06",
+                    "occupancyDigest": "7efc2e07",
+                    "initiativeDigest": "b0be5684",
+                    "objectiveDigest": "d8d7b422",
+                    "domDigest": "16995347",
+                    "focusDigest": "ae37227c",
+                    "accessibilityDigest": "e5010584",
+                    "selectedCell": 3747,
+                    "focusedCell": 3747,
+                    "initiative": 74,
+                    "objectives": [
+                      17,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 49,
+                    "unitDigest": "5a3e5b06",
+                    "occupancyDigest": "7efc2e07",
+                    "initiativeDigest": "a47674d5",
+                    "objectiveDigest": "d8d7b422",
+                    "domDigest": "adf35347",
+                    "focusDigest": "2f493e8f",
+                    "accessibilityDigest": "f415efec",
+                    "selectedCell": 802,
+                    "focusedCell": 802,
+                    "initiative": 81,
+                    "objectives": [
+                      17,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 50,
+                    "unitDigest": "5a3e5b06",
+                    "occupancyDigest": "7efc2e07",
+                    "initiativeDigest": "245d03da",
+                    "objectiveDigest": "d8d7b422",
+                    "domDigest": "adf35347",
+                    "focusDigest": "2f493e8f",
+                    "accessibilityDigest": "f415efec",
+                    "selectedCell": 802,
+                    "focusedCell": 802,
+                    "initiative": 88,
+                    "objectives": [
+                      17,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 51,
+                    "unitDigest": "5a3e5b06",
+                    "occupancyDigest": "7efc2e07",
+                    "initiativeDigest": "567365fb",
+                    "objectiveDigest": "d8d7b422",
+                    "domDigest": "169f5347",
+                    "focusDigest": "6e4b34bc",
+                    "accessibilityDigest": "01864114",
+                    "selectedCell": 611,
+                    "focusedCell": 611,
+                    "initiative": 95,
+                    "objectives": [
+                      17,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 52,
+                    "unitDigest": "76a155d8",
+                    "occupancyDigest": "25b87bef",
+                    "initiativeDigest": "ba218ef9",
+                    "objectiveDigest": "94d50a7f",
+                    "domDigest": "f8f0b443",
+                    "focusDigest": "924d0068",
+                    "accessibilityDigest": "13c29434",
+                    "selectedCell": 335,
+                    "focusedCell": 335,
+                    "initiative": 101,
+                    "objectives": [
+                      16,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 53,
+                    "unitDigest": "3e7cc7bb",
+                    "occupancyDigest": "ea4d2e6d",
+                    "initiativeDigest": "b900f091",
+                    "objectiveDigest": "94d50a7f",
+                    "domDigest": "ef3935b1",
+                    "focusDigest": "1a42d180",
+                    "accessibilityDigest": "4c1f36f4",
+                    "selectedCell": 1847,
+                    "focusedCell": 1847,
+                    "initiative": 109,
+                    "objectives": [
+                      16,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 54,
+                    "unitDigest": "3e7cc7bb",
+                    "occupancyDigest": "ea4d2e6d",
+                    "initiativeDigest": "d8dd9d96",
+                    "objectiveDigest": "94d50a7f",
+                    "domDigest": "1b8735b1",
+                    "focusDigest": "d837649a",
+                    "accessibilityDigest": "2a725544",
+                    "selectedCell": 3721,
+                    "focusedCell": 3721,
+                    "initiative": 116,
+                    "objectives": [
+                      16,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 55,
+                    "unitDigest": "28148c1c",
+                    "occupancyDigest": "f8daa827",
+                    "initiativeDigest": "d6711ee7",
+                    "objectiveDigest": "dc971318",
+                    "domDigest": "b5dee4ab",
+                    "focusDigest": "0148f625",
+                    "accessibilityDigest": "67b7d02c",
+                    "selectedCell": 976,
+                    "focusedCell": 976,
+                    "initiative": 123,
+                    "objectives": [
+                      15,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 56,
+                    "unitDigest": "c9a9a475",
+                    "occupancyDigest": "c480d5bd",
+                    "initiativeDigest": "7666602c",
+                    "objectiveDigest": "dc971318",
+                    "domDigest": "e812dfed",
+                    "focusDigest": "0742b397",
+                    "accessibilityDigest": "0e3ecfac",
+                    "selectedCell": 2010,
+                    "focusedCell": 2010,
+                    "initiative": 2,
+                    "objectives": [
+                      15,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 57,
+                    "unitDigest": "c9a9a475",
+                    "occupancyDigest": "c480d5bd",
+                    "initiativeDigest": "72a553ea",
+                    "objectiveDigest": "dc971318",
+                    "domDigest": "f3a4dfed",
+                    "focusDigest": "d238ee28",
+                    "accessibilityDigest": "a7751bf4",
+                    "selectedCell": 3471,
+                    "focusedCell": 3471,
+                    "initiative": 8,
+                    "objectives": [
+                      15,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 58,
+                    "unitDigest": "118b3453",
+                    "occupancyDigest": "b954cabd",
+                    "initiativeDigest": "ac4ca982",
+                    "objectiveDigest": "dc971318",
+                    "domDigest": "8d6238dd",
+                    "focusDigest": "ac4b9656",
+                    "accessibilityDigest": "73a35234",
+                    "selectedCell": 421,
+                    "focusedCell": 421,
+                    "initiative": 16,
+                    "objectives": [
+                      15,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 59,
+                    "unitDigest": "118b3453",
+                    "occupancyDigest": "b954cabd",
+                    "initiativeDigest": "d30782a3",
+                    "objectiveDigest": "dc971318",
+                    "domDigest": "e3bc38dd",
+                    "focusDigest": "b53f0c81",
+                    "accessibilityDigest": "09782f8c",
+                    "selectedCell": 2476,
+                    "focusedCell": 2476,
+                    "initiative": 23,
+                    "objectives": [
+                      15,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 60,
+                    "unitDigest": "adaea4e5",
+                    "occupancyDigest": "8d730f69",
+                    "initiativeDigest": "67cf2fa8",
+                    "objectiveDigest": "dc971318",
+                    "domDigest": "ea6127a1",
+                    "focusDigest": "103c75c2",
+                    "accessibilityDigest": "e819fe54",
+                    "selectedCell": 3009,
+                    "focusedCell": 3009,
+                    "initiative": 30,
+                    "objectives": [
+                      15,
+                      17
+                    ]
+                  }
+                ]
+              }
+            },
+            "structural-invariants": {
+              "status": "passed",
+              "replay": [
+                {
+                  "turn": 1,
+                  "selected": 42,
+                  "focused": 42,
+                  "initiative": 1,
+                  "objectives": [
+                    14,
+                    13
+                  ],
+                  "traceDigest": "3801ad4d"
+                },
+                {
+                  "turn": 2,
+                  "selected": 77,
+                  "focused": 77,
+                  "initiative": 7,
+                  "objectives": [
+                    14,
+                    14
+                  ],
+                  "traceDigest": "33cc2711"
+                },
+                {
+                  "turn": 3,
+                  "selected": 21,
+                  "focused": 21,
+                  "initiative": 15,
+                  "objectives": [
+                    14,
+                    14
+                  ],
+                  "traceDigest": "3884ae21"
+                },
+                {
+                  "turn": 4,
+                  "selected": 73,
+                  "focused": 73,
+                  "initiative": 22,
+                  "objectives": [
+                    14,
+                    14
+                  ],
+                  "traceDigest": "3f00ae21"
+                },
+                {
+                  "turn": 5,
+                  "selected": 73,
+                  "focused": 73,
+                  "initiative": 29,
+                  "objectives": [
+                    14,
+                    14
+                  ],
+                  "traceDigest": "3f00ae21"
+                },
+                {
+                  "turn": 6,
+                  "selected": 64,
+                  "focused": 64,
+                  "initiative": 36,
+                  "objectives": [
+                    14,
+                    14
+                  ],
+                  "traceDigest": "59401621"
+                },
+                {
+                  "turn": 7,
+                  "selected": 12,
+                  "focused": 12,
+                  "initiative": 42,
+                  "objectives": [
+                    14,
+                    14
+                  ],
+                  "traceDigest": "0fe21621"
+                },
+                {
+                  "turn": 8,
+                  "selected": 31,
+                  "focused": 31,
+                  "initiative": 50,
+                  "objectives": [
+                    14,
+                    14
+                  ],
+                  "traceDigest": "1e2c1621"
+                },
+                {
+                  "turn": 9,
+                  "selected": 77,
+                  "focused": 77,
+                  "initiative": 57,
+                  "objectives": [
+                    14,
+                    14
+                  ],
+                  "traceDigest": "04e81621"
+                },
+                {
+                  "turn": 10,
+                  "selected": 77,
+                  "focused": 77,
+                  "initiative": 64,
+                  "objectives": [
+                    14,
+                    14
+                  ],
+                  "traceDigest": "04e81621"
+                },
+                {
+                  "turn": 11,
+                  "selected": 84,
+                  "focused": 84,
+                  "initiative": 71,
+                  "objectives": [
+                    14,
+                    14
+                  ],
+                  "traceDigest": "03b01621"
+                },
+                {
+                  "turn": 12,
+                  "selected": 75,
+                  "focused": 75,
+                  "initiative": 77,
+                  "objectives": [
+                    14,
+                    14
+                  ],
+                  "traceDigest": "6d361621"
+                },
+                {
+                  "turn": 13,
+                  "selected": 58,
+                  "focused": 58,
+                  "initiative": 85,
+                  "objectives": [
+                    14,
+                    15
+                  ],
+                  "traceDigest": "b3208f21"
+                },
+                {
+                  "turn": 14,
+                  "selected": 93,
+                  "focused": 93,
+                  "initiative": 92,
+                  "objectives": [
+                    14,
+                    15
+                  ],
+                  "traceDigest": "a3648f21"
+                },
+                {
+                  "turn": 15,
+                  "selected": 80,
+                  "focused": 80,
+                  "initiative": 99,
+                  "objectives": [
+                    14,
+                    15
+                  ],
+                  "traceDigest": "b97c4071"
+                },
+                {
+                  "turn": 16,
+                  "selected": 66,
+                  "focused": 66,
+                  "initiative": 106,
+                  "objectives": [
+                    14,
+                    15
+                  ],
+                  "traceDigest": "98826a71"
+                },
+                {
+                  "turn": 17,
+                  "selected": 77,
+                  "focused": 77,
+                  "initiative": 112,
+                  "objectives": [
+                    14,
+                    15
+                  ],
+                  "traceDigest": "d3106a71"
+                },
+                {
+                  "turn": 18,
+                  "selected": 87,
+                  "focused": 87,
+                  "initiative": 120,
+                  "objectives": [
+                    14,
+                    16
+                  ],
+                  "traceDigest": "c6b8a6e9"
+                },
+                {
+                  "turn": 19,
+                  "selected": 93,
+                  "focused": 93,
+                  "initiative": 127,
+                  "objectives": [
+                    14,
+                    16
+                  ],
+                  "traceDigest": "2924a6e9"
+                },
+                {
+                  "turn": 20,
+                  "selected": 49,
+                  "focused": 49,
+                  "initiative": 6,
+                  "objectives": [
+                    14,
+                    16
+                  ],
+                  "traceDigest": "ed66acc9"
+                },
+                {
+                  "turn": 21,
+                  "selected": 62,
+                  "focused": 62,
+                  "initiative": 13,
+                  "objectives": [
+                    15,
+                    16
+                  ],
+                  "traceDigest": "ae0dfa6d"
+                },
+                {
+                  "turn": 22,
+                  "selected": 8,
+                  "focused": 8,
+                  "initiative": 19,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "f1cb6c6d"
+                },
+                {
+                  "turn": 23,
+                  "selected": 6,
+                  "focused": 6,
+                  "initiative": 27,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "42b01d3b"
+                },
+                {
+                  "turn": 24,
+                  "selected": 56,
+                  "focused": 56,
+                  "initiative": 34,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "3fb61d3b"
+                },
+                {
+                  "turn": 25,
+                  "selected": 6,
+                  "focused": 6,
+                  "initiative": 41,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "0e97d60f"
+                },
+                {
+                  "turn": 26,
+                  "selected": 64,
+                  "focused": 64,
+                  "initiative": 48,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "20e2e725"
+                },
+                {
+                  "turn": 27,
+                  "selected": 53,
+                  "focused": 53,
+                  "initiative": 54,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "971da3c1"
+                },
+                {
+                  "turn": 28,
+                  "selected": 69,
+                  "focused": 69,
+                  "initiative": 62,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "69fb0a09"
+                },
+                {
+                  "turn": 29,
+                  "selected": 5,
+                  "focused": 5,
+                  "initiative": 69,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "dec50a09"
+                },
+                {
+                  "turn": 30,
+                  "selected": 47,
+                  "focused": 47,
+                  "initiative": 76,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "818d7809"
+                },
+                {
+                  "turn": 31,
+                  "selected": 78,
+                  "focused": 78,
+                  "initiative": 83,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "05295f65"
+                },
+                {
+                  "turn": 32,
+                  "selected": 21,
+                  "focused": 21,
+                  "initiative": 89,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "48e3107b"
+                },
+                {
+                  "turn": 33,
+                  "selected": 94,
+                  "focused": 94,
+                  "initiative": 97,
+                  "objectives": [
+                    16,
+                    17
+                  ],
+                  "traceDigest": "3af09373"
+                },
+                {
+                  "turn": 34,
+                  "selected": 62,
+                  "focused": 62,
+                  "initiative": 104,
+                  "objectives": [
+                    16,
+                    17
+                  ],
+                  "traceDigest": "46ce9373"
+                },
+                {
+                  "turn": 35,
+                  "selected": 56,
+                  "focused": 56,
+                  "initiative": 111,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "f842442b"
+                },
+                {
+                  "turn": 36,
+                  "selected": 77,
+                  "focused": 77,
+                  "initiative": 118,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "dfdc07f3"
+                },
+                {
+                  "turn": 37,
+                  "selected": 85,
+                  "focused": 85,
+                  "initiative": 124,
+                  "objectives": [
+                    16,
+                    15
+                  ],
+                  "traceDigest": "67476653"
+                },
+                {
+                  "turn": 38,
+                  "selected": 88,
+                  "focused": 88,
+                  "initiative": 4,
+                  "objectives": [
+                    16,
+                    15
+                  ],
+                  "traceDigest": "5f338727"
+                },
+                {
+                  "turn": 39,
+                  "selected": 93,
+                  "focused": 93,
+                  "initiative": 11,
+                  "objectives": [
+                    16,
+                    15
+                  ],
+                  "traceDigest": "63f18727"
+                },
+                {
+                  "turn": 40,
+                  "selected": 18,
+                  "focused": 18,
+                  "initiative": 18,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "8d813dfb"
+                },
+                {
+                  "turn": 41,
+                  "selected": 35,
+                  "focused": 35,
+                  "initiative": 25,
+                  "objectives": [
+                    17,
+                    16
+                  ],
+                  "traceDigest": "7ca462e9"
+                },
+                {
+                  "turn": 42,
+                  "selected": 18,
+                  "focused": 18,
+                  "initiative": 31,
+                  "objectives": [
+                    17,
+                    16
+                  ],
+                  "traceDigest": "450fad57"
+                },
+                {
+                  "turn": 43,
+                  "selected": 52,
+                  "focused": 52,
+                  "initiative": 39,
+                  "objectives": [
+                    17,
+                    17
+                  ],
+                  "traceDigest": "e5ff5347"
+                },
+                {
+                  "turn": 44,
+                  "selected": 59,
+                  "focused": 59,
+                  "initiative": 46,
+                  "objectives": [
+                    17,
+                    17
+                  ],
+                  "traceDigest": "8af35347"
+                },
+                {
+                  "turn": 45,
+                  "selected": 59,
+                  "focused": 59,
+                  "initiative": 53,
+                  "objectives": [
+                    17,
+                    17
+                  ],
+                  "traceDigest": "8af35347"
+                },
+                {
+                  "turn": 46,
+                  "selected": 66,
+                  "focused": 66,
+                  "initiative": 60,
+                  "objectives": [
+                    17,
+                    17
+                  ],
+                  "traceDigest": "9bf35347"
+                },
+                {
+                  "turn": 47,
+                  "selected": 75,
+                  "focused": 75,
+                  "initiative": 66,
+                  "objectives": [
+                    17,
+                    17
+                  ],
+                  "traceDigest": "ff335347"
+                },
+                {
+                  "turn": 48,
+                  "selected": 3,
+                  "focused": 3,
+                  "initiative": 74,
+                  "objectives": [
+                    17,
+                    17
+                  ],
+                  "traceDigest": "16995347"
+                },
+                {
+                  "turn": 49,
+                  "selected": 34,
+                  "focused": 34,
+                  "initiative": 81,
+                  "objectives": [
+                    17,
+                    17
+                  ],
+                  "traceDigest": "adf35347"
+                },
+                {
+                  "turn": 50,
+                  "selected": 34,
+                  "focused": 34,
+                  "initiative": 88,
+                  "objectives": [
+                    17,
+                    17
+                  ],
+                  "traceDigest": "adf35347"
+                },
+                {
+                  "turn": 51,
+                  "selected": 35,
+                  "focused": 35,
+                  "initiative": 95,
+                  "objectives": [
+                    17,
+                    17
+                  ],
+                  "traceDigest": "169f5347"
+                },
+                {
+                  "turn": 52,
+                  "selected": 47,
+                  "focused": 47,
+                  "initiative": 101,
+                  "objectives": [
+                    16,
+                    17
+                  ],
+                  "traceDigest": "f8f0b443"
+                },
+                {
+                  "turn": 53,
+                  "selected": 23,
+                  "focused": 23,
+                  "initiative": 109,
+                  "objectives": [
+                    16,
+                    17
+                  ],
+                  "traceDigest": "ef3935b1"
+                },
+                {
+                  "turn": 54,
+                  "selected": 73,
+                  "focused": 73,
+                  "initiative": 116,
+                  "objectives": [
+                    16,
+                    17
+                  ],
+                  "traceDigest": "1b8735b1"
+                },
+                {
+                  "turn": 55,
+                  "selected": 16,
+                  "focused": 16,
+                  "initiative": 123,
+                  "objectives": [
+                    15,
+                    17
+                  ],
+                  "traceDigest": "b5dee4ab"
+                },
+                {
+                  "turn": 56,
+                  "selected": 90,
+                  "focused": 90,
+                  "initiative": 2,
+                  "objectives": [
+                    15,
+                    17
+                  ],
+                  "traceDigest": "e812dfed"
+                },
+                {
+                  "turn": 57,
+                  "selected": 15,
+                  "focused": 15,
+                  "initiative": 8,
+                  "objectives": [
+                    15,
+                    17
+                  ],
+                  "traceDigest": "f3a4dfed"
+                },
+                {
+                  "turn": 58,
+                  "selected": 37,
+                  "focused": 37,
+                  "initiative": 16,
+                  "objectives": [
+                    15,
+                    17
+                  ],
+                  "traceDigest": "8d6238dd"
+                },
+                {
+                  "turn": 59,
+                  "selected": 76,
+                  "focused": 76,
+                  "initiative": 23,
+                  "objectives": [
+                    15,
+                    17
+                  ],
+                  "traceDigest": "e3bc38dd"
+                },
+                {
+                  "turn": 60,
+                  "selected": 33,
+                  "focused": 33,
+                  "initiative": 30,
+                  "objectives": [
+                    15,
+                    17
+                  ],
+                  "traceDigest": "ea6127a1"
+                }
+              ]
+            },
+            "work-counters": {
+              "status": "passed",
+              "counters": {
+                "actions": 240,
+                "turns": 60,
+                "pathNodesExpanded": 95614,
+                "lineOfSightTests": 450,
+                "stateUpdates": 81,
+                "domMutations": 423,
+                "transferredBytes": 7064,
+                "boundaryCrossings": 2
+              }
+            }
+          }
+        },
+        "wasm-linear-controlled": {
+          "status": "passed",
+          "executionTarget": "wasm-linear",
+          "oracleChecks": {
+            "complete-output": {
+              "status": "passed",
+              "digest": "14997b1e",
+              "oracle": {
+                "finalUnitDigest": "adaea4e5",
+                "finalOccupancyDigest": "8d730f69",
+                "finalInitiativeDigest": "67cf2fa8",
+                "finalObjectiveDigest": "dc971318",
+                "canonicalDomDigest": "ea6127a1",
+                "focusStateDigest": "103c75c2",
+                "accessibilityStateDigest": "e819fe54",
+                "turnCheckpoints": [
+                  {
+                    "turn": 1,
+                    "unitDigest": "8607563a",
+                    "occupancyDigest": "8a2b7a3d",
+                    "initiativeDigest": "70edf2e5",
+                    "objectiveDigest": "cc94bb51",
+                    "domDigest": "3801ad4d",
+                    "focusDigest": "373b2027",
+                    "accessibilityDigest": "d69e39b8",
+                    "selectedCell": 3114,
+                    "focusedCell": 3114,
+                    "initiative": 1,
+                    "objectives": [
+                      14,
+                      13
+                    ]
+                  },
+                  {
+                    "turn": 2,
+                    "unitDigest": "11f6bdd8",
+                    "occupancyDigest": "0d8bc411",
+                    "initiativeDigest": "adec9573",
+                    "objectiveDigest": "c994b698",
+                    "domDigest": "33cc2711",
+                    "focusDigest": "b443c3ee",
+                    "accessibilityDigest": "a93a2e44",
+                    "selectedCell": 1709,
+                    "focusedCell": 1709,
+                    "initiative": 7,
+                    "objectives": [
+                      14,
+                      14
+                    ]
+                  },
+                  {
+                    "turn": 3,
+                    "unitDigest": "4fbf4040",
+                    "occupancyDigest": "056e3eb1",
+                    "initiativeDigest": "562fa80b",
+                    "objectiveDigest": "c994b698",
+                    "domDigest": "3884ae21",
+                    "focusDigest": "1c3962a6",
+                    "accessibilityDigest": "454aa164",
+                    "selectedCell": 3381,
+                    "focusedCell": 3381,
+                    "initiative": 15,
+                    "objectives": [
+                      14,
+                      14
+                    ]
+                  },
+                  {
+                    "turn": 4,
+                    "unitDigest": "4fbf4040",
+                    "occupancyDigest": "056e3eb1",
+                    "initiativeDigest": "787f3010",
+                    "objectiveDigest": "c994b698",
+                    "domDigest": "3f00ae21",
+                    "focusDigest": "5847ec1a",
+                    "accessibilityDigest": "2bf126b4",
+                    "selectedCell": 1033,
+                    "focusedCell": 1033,
+                    "initiative": 22,
+                    "objectives": [
+                      14,
+                      14
+                    ]
+                  },
+                  {
+                    "turn": 5,
+                    "unitDigest": "4fbf4040",
+                    "occupancyDigest": "056e3eb1",
+                    "initiativeDigest": "dd8b5561",
+                    "objectiveDigest": "c994b698",
+                    "domDigest": "3f00ae21",
+                    "focusDigest": "5847ec1a",
+                    "accessibilityDigest": "2bf126b4",
+                    "selectedCell": 1033,
+                    "focusedCell": 1033,
+                    "initiative": 29,
+                    "objectives": [
+                      14,
+                      14
+                    ]
+                  },
+                  {
+                    "turn": 6,
+                    "unitDigest": "2354e757",
+                    "occupancyDigest": "3f3aa0b1",
+                    "initiativeDigest": "2a2903a6",
+                    "objectiveDigest": "c994b698",
+                    "domDigest": "59401621",
+                    "focusDigest": "11477c55",
+                    "accessibilityDigest": "6a2bacac",
+                    "selectedCell": 1216,
+                    "focusedCell": 1216,
+                    "initiative": 36,
+                    "objectives": [
+                      14,
+                      14
+                    ]
+                  },
+                  {
+                    "turn": 7,
+                    "unitDigest": "2354e757",
+                    "occupancyDigest": "3f3aa0b1",
+                    "initiativeDigest": "1da1f364",
+                    "objectiveDigest": "c994b698",
+                    "domDigest": "0fe21621",
+                    "focusDigest": "5544c161",
+                    "accessibilityDigest": "556964cc",
+                    "selectedCell": 1548,
+                    "focusedCell": 1548,
+                    "initiative": 42,
+                    "objectives": [
+                      14,
+                      14
+                    ]
+                  },
+                  {
+                    "turn": 8,
+                    "unitDigest": "2354e757",
+                    "occupancyDigest": "3f3aa0b1",
+                    "initiativeDigest": "bb68cffc",
+                    "objectiveDigest": "c994b698",
+                    "domDigest": "1e2c1621",
+                    "focusDigest": "824b5438",
+                    "accessibilityDigest": "79ee7f94",
+                    "selectedCell": 607,
+                    "focusedCell": 607,
+                    "initiative": 50,
+                    "objectives": [
+                      14,
+                      14
+                    ]
+                  },
+                  {
+                    "turn": 9,
+                    "unitDigest": "2354e757",
+                    "occupancyDigest": "3f3aa0b1",
+                    "initiativeDigest": "5b7d6a4d",
+                    "objectiveDigest": "c994b698",
+                    "domDigest": "04e81621",
+                    "focusDigest": "944e968e",
+                    "accessibilityDigest": "14b1eb14",
+                    "selectedCell": 77,
+                    "focusedCell": 77,
+                    "initiative": 57,
+                    "objectives": [
+                      14,
+                      14
+                    ]
+                  },
+                  {
+                    "turn": 10,
+                    "unitDigest": "2354e757",
+                    "occupancyDigest": "3f3aa0b1",
+                    "initiativeDigest": "25cb8c12",
+                    "objectiveDigest": "c994b698",
+                    "domDigest": "04e81621",
+                    "focusDigest": "944e968e",
+                    "accessibilityDigest": "14b1eb14",
+                    "selectedCell": 77,
+                    "focusedCell": 77,
+                    "initiative": 64,
+                    "objectives": [
+                      14,
+                      14
+                    ]
+                  },
+                  {
+                    "turn": 11,
+                    "unitDigest": "2354e757",
+                    "occupancyDigest": "3f3aa0b1",
+                    "initiativeDigest": "9e30fa33",
+                    "objectiveDigest": "c994b698",
+                    "domDigest": "03b01621",
+                    "focusDigest": "7d49b959",
+                    "accessibilityDigest": "29f3a14c",
+                    "selectedCell": 852,
+                    "focusedCell": 852,
+                    "initiative": 71,
+                    "objectives": [
+                      14,
+                      14
+                    ]
+                  },
+                  {
+                    "turn": 12,
+                    "unitDigest": "2354e757",
+                    "occupancyDigest": "3f3aa0b1",
+                    "initiativeDigest": "80d722f1",
+                    "objectiveDigest": "c994b698",
+                    "domDigest": "6d361621",
+                    "focusDigest": "563e76f4",
+                    "accessibilityDigest": "d71c2b64",
+                    "selectedCell": 2571,
+                    "focusedCell": 2571,
+                    "initiative": 77,
+                    "objectives": [
+                      14,
+                      14
+                    ]
+                  },
+                  {
+                    "turn": 13,
+                    "unitDigest": "b79382a1",
+                    "occupancyDigest": "9cf0e231",
+                    "initiativeDigest": "adf85e89",
+                    "objectiveDigest": "ca94b82b",
+                    "domDigest": "b3208f21",
+                    "focusDigest": "47463e57",
+                    "accessibilityDigest": "f37574dc",
+                    "selectedCell": 1306,
+                    "focusedCell": 1306,
+                    "initiative": 85,
+                    "objectives": [
+                      14,
+                      15
+                    ]
+                  },
+                  {
+                    "turn": 14,
+                    "unitDigest": "b79382a1",
+                    "occupancyDigest": "9cf0e231",
+                    "initiativeDigest": "75e1c08e",
+                    "objectiveDigest": "ca94b82b",
+                    "domDigest": "a3648f21",
+                    "focusDigest": "644cb7fe",
+                    "accessibilityDigest": "739eb784",
+                    "selectedCell": 381,
+                    "focusedCell": 381,
+                    "initiative": 92,
+                    "objectives": [
+                      14,
+                      15
+                    ]
+                  },
+                  {
+                    "turn": 15,
+                    "unitDigest": "af0e91ad",
+                    "occupancyDigest": "86104ba5",
+                    "initiativeDigest": "5a90b11f",
+                    "objectiveDigest": "ca94b82b",
+                    "domDigest": "b97c4071",
+                    "focusDigest": "213c9085",
+                    "accessibilityDigest": "9b83d4bc",
+                    "selectedCell": 2864,
+                    "focusedCell": 2864,
+                    "initiative": 99,
+                    "objectives": [
+                      14,
+                      15
+                    ]
+                  },
+                  {
+                    "turn": 16,
+                    "unitDigest": "d88c4cf9",
+                    "occupancyDigest": "8b51f685",
+                    "initiativeDigest": "e16be424",
+                    "objectiveDigest": "ca94b82b",
+                    "domDigest": "98826a71",
+                    "focusDigest": "2f4ad18f",
+                    "accessibilityDigest": "a70b4dac",
+                    "selectedCell": 546,
+                    "focusedCell": 546,
+                    "initiative": 106,
+                    "objectives": [
+                      14,
+                      15
+                    ]
+                  },
+                  {
+                    "turn": 17,
+                    "unitDigest": "d88c4cf9",
+                    "occupancyDigest": "8b51f685",
+                    "initiativeDigest": "bf5be4e2",
+                    "objectiveDigest": "ca94b82b",
+                    "domDigest": "d3106a71",
+                    "focusDigest": "b443c3ee",
+                    "accessibilityDigest": "f9f1a084",
+                    "selectedCell": 1709,
+                    "focusedCell": 1709,
+                    "initiative": 112,
+                    "objectives": [
+                      14,
+                      15
+                    ]
+                  },
+                  {
+                    "turn": 18,
+                    "unitDigest": "a238b60c",
+                    "occupancyDigest": "a587e0d5",
+                    "initiativeDigest": "1486a47a",
+                    "objectiveDigest": "d794cca2",
+                    "domDigest": "c6b8a6e9",
+                    "focusDigest": "7a3b89a0",
+                    "accessibilityDigest": "bfce3894",
+                    "selectedCell": 3159,
+                    "focusedCell": 3159,
+                    "initiative": 120,
+                    "objectives": [
+                      14,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 19,
+                    "unitDigest": "a238b60c",
+                    "occupancyDigest": "a587e0d5",
+                    "initiativeDigest": "b281b39b",
+                    "objectiveDigest": "d794cca2",
+                    "domDigest": "2924a6e9",
+                    "focusDigest": "644cb7fe",
+                    "accessibilityDigest": "4daa9504",
+                    "selectedCell": 381,
+                    "focusedCell": 381,
+                    "initiative": 127,
+                    "objectives": [
+                      14,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 20,
+                    "unitDigest": "ecc39829",
+                    "occupancyDigest": "a5de0579",
+                    "initiativeDigest": "e37d7ee0",
+                    "objectiveDigest": "d794cca2",
+                    "domDigest": "ed66acc9",
+                    "focusDigest": "c03f1dd2",
+                    "accessibilityDigest": "927f81e4",
+                    "selectedCell": 2449,
+                    "focusedCell": 2449,
+                    "initiative": 6,
+                    "objectives": [
+                      14,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 21,
+                    "unitDigest": "38befb81",
+                    "occupancyDigest": "2446a215",
+                    "initiativeDigest": "be5bbe31",
+                    "objectiveDigest": "dd9714ab",
+                    "domDigest": "ae0dfa6d",
+                    "focusDigest": "e3440deb",
+                    "accessibilityDigest": "389c67ec",
+                    "selectedCell": 1790,
+                    "focusedCell": 1790,
+                    "initiative": 13,
+                    "objectives": [
+                      15,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 22,
+                    "unitDigest": "011bf52d",
+                    "occupancyDigest": "463fc921",
+                    "initiativeDigest": "b702f7ef",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "f1cb6c6d",
+                    "focusDigest": "19491bed",
+                    "accessibilityDigest": "c040140c",
+                    "selectedCell": 968,
+                    "focusedCell": 968,
+                    "initiative": 19,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 23,
+                    "unitDigest": "98c58856",
+                    "occupancyDigest": "9f6d6a6b",
+                    "initiativeDigest": "53ede487",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "42b01d3b",
+                    "focusDigest": "0b3f93e3",
+                    "accessibilityDigest": "38b7061c",
+                    "selectedCell": 2502,
+                    "focusedCell": 2502,
+                    "initiative": 27,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 24,
+                    "unitDigest": "98c58856",
+                    "occupancyDigest": "9f6d6a6b",
+                    "initiativeDigest": "591897cc",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "3fb61d3b",
+                    "focusDigest": "a94b919d",
+                    "accessibilityDigest": "a02adcdc",
+                    "selectedCell": 440,
+                    "focusedCell": 440,
+                    "initiative": 34,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 25,
+                    "unitDigest": "bb5be6fc",
+                    "occupancyDigest": "dd1bcb63",
+                    "initiativeDigest": "5fa3c41d",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "0e97d60f",
+                    "focusDigest": "6b44e403",
+                    "accessibilityDigest": "5d47f93c",
+                    "selectedCell": 1638,
+                    "focusedCell": 1638,
+                    "initiative": 41,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 26,
+                    "unitDigest": "3cc27adb",
+                    "occupancyDigest": "eaf40e11",
+                    "initiativeDigest": "e73e5e22",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "20e2e725",
+                    "focusDigest": "b13f0635",
+                    "accessibilityDigest": "b3f6f33c",
+                    "selectedCell": 2464,
+                    "focusedCell": 2464,
+                    "initiative": 48,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 27,
+                    "unitDigest": "8e60447d",
+                    "occupancyDigest": "ce288ba9",
+                    "initiativeDigest": "604af5b0",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "971da3c1",
+                    "focusDigest": "1c3af5a6",
+                    "accessibilityDigest": "3d10e004",
+                    "selectedCell": 3125,
+                    "focusedCell": 3125,
+                    "initiative": 54,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 28,
+                    "unitDigest": "1081cf50",
+                    "occupancyDigest": "194cb4c5",
+                    "initiativeDigest": "5e6c6748",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "69fb0a09",
+                    "focusDigest": "6c39e096",
+                    "accessibilityDigest": "31b3b464",
+                    "selectedCell": 3429,
+                    "focusedCell": 3429,
+                    "initiative": 62,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 29,
+                    "unitDigest": "1081cf50",
+                    "occupancyDigest": "194cb4c5",
+                    "initiativeDigest": "58374159",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "dec50a09",
+                    "focusDigest": "4c44b336",
+                    "accessibilityDigest": "953a5e24",
+                    "selectedCell": 1541,
+                    "focusedCell": 1541,
+                    "initiative": 69,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 30,
+                    "unitDigest": "f87b2881",
+                    "occupancyDigest": "6f116975",
+                    "initiativeDigest": "e99a935e",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "818d7809",
+                    "focusDigest": "92484768",
+                    "accessibilityDigest": "755ab894",
+                    "selectedCell": 1103,
+                    "focusedCell": 1103,
+                    "initiative": 76,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 31,
+                    "unitDigest": "a3e8362b",
+                    "occupancyDigest": "bfcbfedd",
+                    "initiativeDigest": "852f5caf",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "05295f65",
+                    "focusDigest": "33461edb",
+                    "accessibilityDigest": "d7d1c92c",
+                    "selectedCell": 1326,
+                    "focusedCell": 1326,
+                    "initiative": 83,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 32,
+                    "unitDigest": "e2615512",
+                    "occupancyDigest": "2009bb77",
+                    "initiativeDigest": "ad3a816d",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "48e3107b",
+                    "focusDigest": "fc4da746",
+                    "accessibilityDigest": "e1230104",
+                    "selectedCell": 213,
+                    "focusedCell": 213,
+                    "initiative": 89,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 33,
+                    "unitDigest": "5a563c63",
+                    "occupancyDigest": "2589ea3b",
+                    "initiativeDigest": "7cb5e945",
+                    "objectiveDigest": "94d50a7f",
+                    "domDigest": "3af09373",
+                    "focusDigest": "833b97cb",
+                    "accessibilityDigest": "c8e4a1ac",
+                    "selectedCell": 3166,
+                    "focusedCell": 3166,
+                    "initiative": 97,
+                    "objectives": [
+                      16,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 34,
+                    "unitDigest": "5a563c63",
+                    "occupancyDigest": "2589ea3b",
+                    "initiativeDigest": "a574064a",
+                    "objectiveDigest": "94d50a7f",
+                    "domDigest": "46ce9373",
+                    "focusDigest": "433cc60b",
+                    "accessibilityDigest": "31aecd5c",
+                    "selectedCell": 2846,
+                    "focusedCell": 2846,
+                    "initiative": 104,
+                    "objectives": [
+                      16,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 35,
+                    "unitDigest": "ddafec40",
+                    "occupancyDigest": "31ace8df",
+                    "initiativeDigest": "83275a6b",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "f842442b",
+                    "focusDigest": "a938ad9d",
+                    "accessibilityDigest": "808eb6dc",
+                    "selectedCell": 3512,
+                    "focusedCell": 3512,
+                    "initiative": 111,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 36,
+                    "unitDigest": "f7dd1d0a",
+                    "occupancyDigest": "2a498533",
+                    "initiativeDigest": "28b9f270",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "dfdc07f3",
+                    "focusDigest": "7448182e",
+                    "accessibilityDigest": "49e26a34",
+                    "selectedCell": 1133,
+                    "focusedCell": 1133,
+                    "initiative": 118,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 37,
+                    "unitDigest": "0a4979f5",
+                    "occupancyDigest": "1267f1d3",
+                    "initiativeDigest": "2e58ea2e",
+                    "objectiveDigest": "aad52d21",
+                    "domDigest": "67476653",
+                    "focusDigest": "3c4c7906",
+                    "accessibilityDigest": "c42dcef4",
+                    "selectedCell": 277,
+                    "focusedCell": 277,
+                    "initiative": 124,
+                    "objectives": [
+                      16,
+                      15
+                    ]
+                  },
+                  {
+                    "turn": 38,
+                    "unitDigest": "c7d7473f",
+                    "occupancyDigest": "41689e23",
+                    "initiativeDigest": "60cb3406",
+                    "objectiveDigest": "aad52d21",
+                    "domDigest": "5f338727",
+                    "focusDigest": "294ac81d",
+                    "accessibilityDigest": "ace0749c",
+                    "selectedCell": 568,
+                    "focusedCell": 568,
+                    "initiative": 4,
+                    "objectives": [
+                      16,
+                      15
+                    ]
+                  },
+                  {
+                    "turn": 39,
+                    "unitDigest": "c7d7473f",
+                    "occupancyDigest": "41689e23",
+                    "initiativeDigest": "e5646057",
+                    "objectiveDigest": "aad52d21",
+                    "domDigest": "63f18727",
+                    "focusDigest": "443e5a9e",
+                    "accessibilityDigest": "fa3297d4",
+                    "selectedCell": 2589,
+                    "focusedCell": 2589,
+                    "initiative": 11,
+                    "objectives": [
+                      16,
+                      15
+                    ]
+                  },
+                  {
+                    "turn": 40,
+                    "unitDigest": "4264b876",
+                    "occupancyDigest": "6a3a4553",
+                    "initiativeDigest": "0ff6195c",
+                    "objectiveDigest": "93d508ec",
+                    "domDigest": "8d813dfb",
+                    "focusDigest": "ff4dabff",
+                    "accessibilityDigest": "e3a4479c",
+                    "selectedCell": 210,
+                    "focusedCell": 210,
+                    "initiative": 18,
+                    "objectives": [
+                      16,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 41,
+                    "unitDigest": "5e21bb0f",
+                    "occupancyDigest": "48ae469d",
+                    "initiativeDigest": "790c1cad",
+                    "objectiveDigest": "d9d7b5b5",
+                    "domDigest": "7ca462e9",
+                    "focusDigest": "6e4b34bc",
+                    "accessibilityDigest": "e4a03f04",
+                    "selectedCell": 611,
+                    "focusedCell": 611,
+                    "initiative": 25,
+                    "objectives": [
+                      17,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 42,
+                    "unitDigest": "79c44d54",
+                    "occupancyDigest": "247218a7",
+                    "initiativeDigest": "b5c9013b",
+                    "objectiveDigest": "d9d7b5b5",
+                    "domDigest": "450fad57",
+                    "focusDigest": "ff4439ff",
+                    "accessibilityDigest": "158ab33c",
+                    "selectedCell": 1746,
+                    "focusedCell": 1746,
+                    "initiative": 31,
+                    "objectives": [
+                      17,
+                      16
+                    ]
+                  },
+                  {
+                    "turn": 43,
+                    "unitDigest": "5a3e5b06",
+                    "occupancyDigest": "7efc2e07",
+                    "initiativeDigest": "2875e313",
+                    "objectiveDigest": "d8d7b422",
+                    "domDigest": "e5ff5347",
+                    "focusDigest": "9d4b7eb9",
+                    "accessibilityDigest": "04dd00fc",
+                    "selectedCell": 436,
+                    "focusedCell": 436,
+                    "initiative": 39,
+                    "objectives": [
+                      17,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 44,
+                    "unitDigest": "5a3e5b06",
+                    "occupancyDigest": "7efc2e07",
+                    "initiativeDigest": "32235d18",
+                    "objectiveDigest": "d8d7b422",
+                    "domDigest": "8af35347",
+                    "focusDigest": "e635e7a4",
+                    "accessibilityDigest": "4b17a3d4",
+                    "selectedCell": 4091,
+                    "focusedCell": 4091,
+                    "initiative": 46,
+                    "objectives": [
+                      17,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 45,
+                    "unitDigest": "5a3e5b06",
+                    "occupancyDigest": "7efc2e07",
+                    "initiativeDigest": "997e0369",
+                    "objectiveDigest": "d8d7b422",
+                    "domDigest": "8af35347",
+                    "focusDigest": "e635e7a4",
+                    "accessibilityDigest": "4b17a3d4",
+                    "selectedCell": 4091,
+                    "focusedCell": 4091,
+                    "initiative": 53,
+                    "objectives": [
+                      17,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 46,
+                    "unitDigest": "5a3e5b06",
+                    "occupancyDigest": "7efc2e07",
+                    "initiativeDigest": "5e8cb56e",
+                    "objectiveDigest": "d8d7b422",
+                    "domDigest": "9bf35347",
+                    "focusDigest": "af43bc0f",
+                    "accessibilityDigest": "f17dba4c",
+                    "selectedCell": 1698,
+                    "focusedCell": 1698,
+                    "initiative": 60,
+                    "objectives": [
+                      17,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 47,
+                    "unitDigest": "5a3e5b06",
+                    "occupancyDigest": "7efc2e07",
+                    "initiativeDigest": "ff65b8ec",
+                    "objectiveDigest": "d8d7b422",
+                    "domDigest": "ff335347",
+                    "focusDigest": "563e76f4",
+                    "accessibilityDigest": "d38b3014",
+                    "selectedCell": 2571,
+                    "focusedCell": 2571,
+                    "initiative": 66,
+                    "objectives": [
+                      17,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 48,
+                    "unitDigest": "5a3e5b06",
+                    "occupancyDigest": "7efc2e07",
+                    "initiativeDigest": "b0be5684",
+                    "objectiveDigest": "d8d7b422",
+                    "domDigest": "16995347",
+                    "focusDigest": "ae37227c",
+                    "accessibilityDigest": "e5010584",
+                    "selectedCell": 3747,
+                    "focusedCell": 3747,
+                    "initiative": 74,
+                    "objectives": [
+                      17,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 49,
+                    "unitDigest": "5a3e5b06",
+                    "occupancyDigest": "7efc2e07",
+                    "initiativeDigest": "a47674d5",
+                    "objectiveDigest": "d8d7b422",
+                    "domDigest": "adf35347",
+                    "focusDigest": "2f493e8f",
+                    "accessibilityDigest": "f415efec",
+                    "selectedCell": 802,
+                    "focusedCell": 802,
+                    "initiative": 81,
+                    "objectives": [
+                      17,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 50,
+                    "unitDigest": "5a3e5b06",
+                    "occupancyDigest": "7efc2e07",
+                    "initiativeDigest": "245d03da",
+                    "objectiveDigest": "d8d7b422",
+                    "domDigest": "adf35347",
+                    "focusDigest": "2f493e8f",
+                    "accessibilityDigest": "f415efec",
+                    "selectedCell": 802,
+                    "focusedCell": 802,
+                    "initiative": 88,
+                    "objectives": [
+                      17,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 51,
+                    "unitDigest": "5a3e5b06",
+                    "occupancyDigest": "7efc2e07",
+                    "initiativeDigest": "567365fb",
+                    "objectiveDigest": "d8d7b422",
+                    "domDigest": "169f5347",
+                    "focusDigest": "6e4b34bc",
+                    "accessibilityDigest": "01864114",
+                    "selectedCell": 611,
+                    "focusedCell": 611,
+                    "initiative": 95,
+                    "objectives": [
+                      17,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 52,
+                    "unitDigest": "76a155d8",
+                    "occupancyDigest": "25b87bef",
+                    "initiativeDigest": "ba218ef9",
+                    "objectiveDigest": "94d50a7f",
+                    "domDigest": "f8f0b443",
+                    "focusDigest": "924d0068",
+                    "accessibilityDigest": "13c29434",
+                    "selectedCell": 335,
+                    "focusedCell": 335,
+                    "initiative": 101,
+                    "objectives": [
+                      16,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 53,
+                    "unitDigest": "3e7cc7bb",
+                    "occupancyDigest": "ea4d2e6d",
+                    "initiativeDigest": "b900f091",
+                    "objectiveDigest": "94d50a7f",
+                    "domDigest": "ef3935b1",
+                    "focusDigest": "1a42d180",
+                    "accessibilityDigest": "4c1f36f4",
+                    "selectedCell": 1847,
+                    "focusedCell": 1847,
+                    "initiative": 109,
+                    "objectives": [
+                      16,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 54,
+                    "unitDigest": "3e7cc7bb",
+                    "occupancyDigest": "ea4d2e6d",
+                    "initiativeDigest": "d8dd9d96",
+                    "objectiveDigest": "94d50a7f",
+                    "domDigest": "1b8735b1",
+                    "focusDigest": "d837649a",
+                    "accessibilityDigest": "2a725544",
+                    "selectedCell": 3721,
+                    "focusedCell": 3721,
+                    "initiative": 116,
+                    "objectives": [
+                      16,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 55,
+                    "unitDigest": "28148c1c",
+                    "occupancyDigest": "f8daa827",
+                    "initiativeDigest": "d6711ee7",
+                    "objectiveDigest": "dc971318",
+                    "domDigest": "b5dee4ab",
+                    "focusDigest": "0148f625",
+                    "accessibilityDigest": "67b7d02c",
+                    "selectedCell": 976,
+                    "focusedCell": 976,
+                    "initiative": 123,
+                    "objectives": [
+                      15,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 56,
+                    "unitDigest": "c9a9a475",
+                    "occupancyDigest": "c480d5bd",
+                    "initiativeDigest": "7666602c",
+                    "objectiveDigest": "dc971318",
+                    "domDigest": "e812dfed",
+                    "focusDigest": "0742b397",
+                    "accessibilityDigest": "0e3ecfac",
+                    "selectedCell": 2010,
+                    "focusedCell": 2010,
+                    "initiative": 2,
+                    "objectives": [
+                      15,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 57,
+                    "unitDigest": "c9a9a475",
+                    "occupancyDigest": "c480d5bd",
+                    "initiativeDigest": "72a553ea",
+                    "objectiveDigest": "dc971318",
+                    "domDigest": "f3a4dfed",
+                    "focusDigest": "d238ee28",
+                    "accessibilityDigest": "a7751bf4",
+                    "selectedCell": 3471,
+                    "focusedCell": 3471,
+                    "initiative": 8,
+                    "objectives": [
+                      15,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 58,
+                    "unitDigest": "118b3453",
+                    "occupancyDigest": "b954cabd",
+                    "initiativeDigest": "ac4ca982",
+                    "objectiveDigest": "dc971318",
+                    "domDigest": "8d6238dd",
+                    "focusDigest": "ac4b9656",
+                    "accessibilityDigest": "73a35234",
+                    "selectedCell": 421,
+                    "focusedCell": 421,
+                    "initiative": 16,
+                    "objectives": [
+                      15,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 59,
+                    "unitDigest": "118b3453",
+                    "occupancyDigest": "b954cabd",
+                    "initiativeDigest": "d30782a3",
+                    "objectiveDigest": "dc971318",
+                    "domDigest": "e3bc38dd",
+                    "focusDigest": "b53f0c81",
+                    "accessibilityDigest": "09782f8c",
+                    "selectedCell": 2476,
+                    "focusedCell": 2476,
+                    "initiative": 23,
+                    "objectives": [
+                      15,
+                      17
+                    ]
+                  },
+                  {
+                    "turn": 60,
+                    "unitDigest": "adaea4e5",
+                    "occupancyDigest": "8d730f69",
+                    "initiativeDigest": "67cf2fa8",
+                    "objectiveDigest": "dc971318",
+                    "domDigest": "ea6127a1",
+                    "focusDigest": "103c75c2",
+                    "accessibilityDigest": "e819fe54",
+                    "selectedCell": 3009,
+                    "focusedCell": 3009,
+                    "initiative": 30,
+                    "objectives": [
+                      15,
+                      17
+                    ]
+                  }
+                ]
+              }
+            },
+            "structural-invariants": {
+              "status": "passed",
+              "replay": [
+                {
+                  "turn": 1,
+                  "selected": 42,
+                  "focused": 42,
+                  "initiative": 1,
+                  "objectives": [
+                    14,
+                    13
+                  ],
+                  "traceDigest": "3801ad4d"
+                },
+                {
+                  "turn": 2,
+                  "selected": 77,
+                  "focused": 77,
+                  "initiative": 7,
+                  "objectives": [
+                    14,
+                    14
+                  ],
+                  "traceDigest": "33cc2711"
+                },
+                {
+                  "turn": 3,
+                  "selected": 21,
+                  "focused": 21,
+                  "initiative": 15,
+                  "objectives": [
+                    14,
+                    14
+                  ],
+                  "traceDigest": "3884ae21"
+                },
+                {
+                  "turn": 4,
+                  "selected": 73,
+                  "focused": 73,
+                  "initiative": 22,
+                  "objectives": [
+                    14,
+                    14
+                  ],
+                  "traceDigest": "3f00ae21"
+                },
+                {
+                  "turn": 5,
+                  "selected": 73,
+                  "focused": 73,
+                  "initiative": 29,
+                  "objectives": [
+                    14,
+                    14
+                  ],
+                  "traceDigest": "3f00ae21"
+                },
+                {
+                  "turn": 6,
+                  "selected": 64,
+                  "focused": 64,
+                  "initiative": 36,
+                  "objectives": [
+                    14,
+                    14
+                  ],
+                  "traceDigest": "59401621"
+                },
+                {
+                  "turn": 7,
+                  "selected": 12,
+                  "focused": 12,
+                  "initiative": 42,
+                  "objectives": [
+                    14,
+                    14
+                  ],
+                  "traceDigest": "0fe21621"
+                },
+                {
+                  "turn": 8,
+                  "selected": 31,
+                  "focused": 31,
+                  "initiative": 50,
+                  "objectives": [
+                    14,
+                    14
+                  ],
+                  "traceDigest": "1e2c1621"
+                },
+                {
+                  "turn": 9,
+                  "selected": 77,
+                  "focused": 77,
+                  "initiative": 57,
+                  "objectives": [
+                    14,
+                    14
+                  ],
+                  "traceDigest": "04e81621"
+                },
+                {
+                  "turn": 10,
+                  "selected": 77,
+                  "focused": 77,
+                  "initiative": 64,
+                  "objectives": [
+                    14,
+                    14
+                  ],
+                  "traceDigest": "04e81621"
+                },
+                {
+                  "turn": 11,
+                  "selected": 84,
+                  "focused": 84,
+                  "initiative": 71,
+                  "objectives": [
+                    14,
+                    14
+                  ],
+                  "traceDigest": "03b01621"
+                },
+                {
+                  "turn": 12,
+                  "selected": 75,
+                  "focused": 75,
+                  "initiative": 77,
+                  "objectives": [
+                    14,
+                    14
+                  ],
+                  "traceDigest": "6d361621"
+                },
+                {
+                  "turn": 13,
+                  "selected": 58,
+                  "focused": 58,
+                  "initiative": 85,
+                  "objectives": [
+                    14,
+                    15
+                  ],
+                  "traceDigest": "b3208f21"
+                },
+                {
+                  "turn": 14,
+                  "selected": 93,
+                  "focused": 93,
+                  "initiative": 92,
+                  "objectives": [
+                    14,
+                    15
+                  ],
+                  "traceDigest": "a3648f21"
+                },
+                {
+                  "turn": 15,
+                  "selected": 80,
+                  "focused": 80,
+                  "initiative": 99,
+                  "objectives": [
+                    14,
+                    15
+                  ],
+                  "traceDigest": "b97c4071"
+                },
+                {
+                  "turn": 16,
+                  "selected": 66,
+                  "focused": 66,
+                  "initiative": 106,
+                  "objectives": [
+                    14,
+                    15
+                  ],
+                  "traceDigest": "98826a71"
+                },
+                {
+                  "turn": 17,
+                  "selected": 77,
+                  "focused": 77,
+                  "initiative": 112,
+                  "objectives": [
+                    14,
+                    15
+                  ],
+                  "traceDigest": "d3106a71"
+                },
+                {
+                  "turn": 18,
+                  "selected": 87,
+                  "focused": 87,
+                  "initiative": 120,
+                  "objectives": [
+                    14,
+                    16
+                  ],
+                  "traceDigest": "c6b8a6e9"
+                },
+                {
+                  "turn": 19,
+                  "selected": 93,
+                  "focused": 93,
+                  "initiative": 127,
+                  "objectives": [
+                    14,
+                    16
+                  ],
+                  "traceDigest": "2924a6e9"
+                },
+                {
+                  "turn": 20,
+                  "selected": 49,
+                  "focused": 49,
+                  "initiative": 6,
+                  "objectives": [
+                    14,
+                    16
+                  ],
+                  "traceDigest": "ed66acc9"
+                },
+                {
+                  "turn": 21,
+                  "selected": 62,
+                  "focused": 62,
+                  "initiative": 13,
+                  "objectives": [
+                    15,
+                    16
+                  ],
+                  "traceDigest": "ae0dfa6d"
+                },
+                {
+                  "turn": 22,
+                  "selected": 8,
+                  "focused": 8,
+                  "initiative": 19,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "f1cb6c6d"
+                },
+                {
+                  "turn": 23,
+                  "selected": 6,
+                  "focused": 6,
+                  "initiative": 27,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "42b01d3b"
+                },
+                {
+                  "turn": 24,
+                  "selected": 56,
+                  "focused": 56,
+                  "initiative": 34,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "3fb61d3b"
+                },
+                {
+                  "turn": 25,
+                  "selected": 6,
+                  "focused": 6,
+                  "initiative": 41,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "0e97d60f"
+                },
+                {
+                  "turn": 26,
+                  "selected": 64,
+                  "focused": 64,
+                  "initiative": 48,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "20e2e725"
+                },
+                {
+                  "turn": 27,
+                  "selected": 53,
+                  "focused": 53,
+                  "initiative": 54,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "971da3c1"
+                },
+                {
+                  "turn": 28,
+                  "selected": 69,
+                  "focused": 69,
+                  "initiative": 62,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "69fb0a09"
+                },
+                {
+                  "turn": 29,
+                  "selected": 5,
+                  "focused": 5,
+                  "initiative": 69,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "dec50a09"
+                },
+                {
+                  "turn": 30,
+                  "selected": 47,
+                  "focused": 47,
+                  "initiative": 76,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "818d7809"
+                },
+                {
+                  "turn": 31,
+                  "selected": 78,
+                  "focused": 78,
+                  "initiative": 83,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "05295f65"
+                },
+                {
+                  "turn": 32,
+                  "selected": 21,
+                  "focused": 21,
+                  "initiative": 89,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "48e3107b"
+                },
+                {
+                  "turn": 33,
+                  "selected": 94,
+                  "focused": 94,
+                  "initiative": 97,
+                  "objectives": [
+                    16,
+                    17
+                  ],
+                  "traceDigest": "3af09373"
+                },
+                {
+                  "turn": 34,
+                  "selected": 62,
+                  "focused": 62,
+                  "initiative": 104,
+                  "objectives": [
+                    16,
+                    17
+                  ],
+                  "traceDigest": "46ce9373"
+                },
+                {
+                  "turn": 35,
+                  "selected": 56,
+                  "focused": 56,
+                  "initiative": 111,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "f842442b"
+                },
+                {
+                  "turn": 36,
+                  "selected": 77,
+                  "focused": 77,
+                  "initiative": 118,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "dfdc07f3"
+                },
+                {
+                  "turn": 37,
+                  "selected": 85,
+                  "focused": 85,
+                  "initiative": 124,
+                  "objectives": [
+                    16,
+                    15
+                  ],
+                  "traceDigest": "67476653"
+                },
+                {
+                  "turn": 38,
+                  "selected": 88,
+                  "focused": 88,
+                  "initiative": 4,
+                  "objectives": [
+                    16,
+                    15
+                  ],
+                  "traceDigest": "5f338727"
+                },
+                {
+                  "turn": 39,
+                  "selected": 93,
+                  "focused": 93,
+                  "initiative": 11,
+                  "objectives": [
+                    16,
+                    15
+                  ],
+                  "traceDigest": "63f18727"
+                },
+                {
+                  "turn": 40,
+                  "selected": 18,
+                  "focused": 18,
+                  "initiative": 18,
+                  "objectives": [
+                    16,
+                    16
+                  ],
+                  "traceDigest": "8d813dfb"
+                },
+                {
+                  "turn": 41,
+                  "selected": 35,
+                  "focused": 35,
+                  "initiative": 25,
+                  "objectives": [
+                    17,
+                    16
+                  ],
+                  "traceDigest": "7ca462e9"
+                },
+                {
+                  "turn": 42,
+                  "selected": 18,
+                  "focused": 18,
+                  "initiative": 31,
+                  "objectives": [
+                    17,
+                    16
+                  ],
+                  "traceDigest": "450fad57"
+                },
+                {
+                  "turn": 43,
+                  "selected": 52,
+                  "focused": 52,
+                  "initiative": 39,
+                  "objectives": [
+                    17,
+                    17
+                  ],
+                  "traceDigest": "e5ff5347"
+                },
+                {
+                  "turn": 44,
+                  "selected": 59,
+                  "focused": 59,
+                  "initiative": 46,
+                  "objectives": [
+                    17,
+                    17
+                  ],
+                  "traceDigest": "8af35347"
+                },
+                {
+                  "turn": 45,
+                  "selected": 59,
+                  "focused": 59,
+                  "initiative": 53,
+                  "objectives": [
+                    17,
+                    17
+                  ],
+                  "traceDigest": "8af35347"
+                },
+                {
+                  "turn": 46,
+                  "selected": 66,
+                  "focused": 66,
+                  "initiative": 60,
+                  "objectives": [
+                    17,
+                    17
+                  ],
+                  "traceDigest": "9bf35347"
+                },
+                {
+                  "turn": 47,
+                  "selected": 75,
+                  "focused": 75,
+                  "initiative": 66,
+                  "objectives": [
+                    17,
+                    17
+                  ],
+                  "traceDigest": "ff335347"
+                },
+                {
+                  "turn": 48,
+                  "selected": 3,
+                  "focused": 3,
+                  "initiative": 74,
+                  "objectives": [
+                    17,
+                    17
+                  ],
+                  "traceDigest": "16995347"
+                },
+                {
+                  "turn": 49,
+                  "selected": 34,
+                  "focused": 34,
+                  "initiative": 81,
+                  "objectives": [
+                    17,
+                    17
+                  ],
+                  "traceDigest": "adf35347"
+                },
+                {
+                  "turn": 50,
+                  "selected": 34,
+                  "focused": 34,
+                  "initiative": 88,
+                  "objectives": [
+                    17,
+                    17
+                  ],
+                  "traceDigest": "adf35347"
+                },
+                {
+                  "turn": 51,
+                  "selected": 35,
+                  "focused": 35,
+                  "initiative": 95,
+                  "objectives": [
+                    17,
+                    17
+                  ],
+                  "traceDigest": "169f5347"
+                },
+                {
+                  "turn": 52,
+                  "selected": 47,
+                  "focused": 47,
+                  "initiative": 101,
+                  "objectives": [
+                    16,
+                    17
+                  ],
+                  "traceDigest": "f8f0b443"
+                },
+                {
+                  "turn": 53,
+                  "selected": 23,
+                  "focused": 23,
+                  "initiative": 109,
+                  "objectives": [
+                    16,
+                    17
+                  ],
+                  "traceDigest": "ef3935b1"
+                },
+                {
+                  "turn": 54,
+                  "selected": 73,
+                  "focused": 73,
+                  "initiative": 116,
+                  "objectives": [
+                    16,
+                    17
+                  ],
+                  "traceDigest": "1b8735b1"
+                },
+                {
+                  "turn": 55,
+                  "selected": 16,
+                  "focused": 16,
+                  "initiative": 123,
+                  "objectives": [
+                    15,
+                    17
+                  ],
+                  "traceDigest": "b5dee4ab"
+                },
+                {
+                  "turn": 56,
+                  "selected": 90,
+                  "focused": 90,
+                  "initiative": 2,
+                  "objectives": [
+                    15,
+                    17
+                  ],
+                  "traceDigest": "e812dfed"
+                },
+                {
+                  "turn": 57,
+                  "selected": 15,
+                  "focused": 15,
+                  "initiative": 8,
+                  "objectives": [
+                    15,
+                    17
+                  ],
+                  "traceDigest": "f3a4dfed"
+                },
+                {
+                  "turn": 58,
+                  "selected": 37,
+                  "focused": 37,
+                  "initiative": 16,
+                  "objectives": [
+                    15,
+                    17
+                  ],
+                  "traceDigest": "8d6238dd"
+                },
+                {
+                  "turn": 59,
+                  "selected": 76,
+                  "focused": 76,
+                  "initiative": 23,
+                  "objectives": [
+                    15,
+                    17
+                  ],
+                  "traceDigest": "e3bc38dd"
+                },
+                {
+                  "turn": 60,
+                  "selected": 33,
+                  "focused": 33,
+                  "initiative": 30,
+                  "objectives": [
+                    15,
+                    17
+                  ],
+                  "traceDigest": "ea6127a1"
+                }
+              ]
+            },
+            "work-counters": {
+              "status": "passed",
+              "counters": {
+                "actions": 240,
+                "turns": 60,
+                "pathNodesExpanded": 95614,
+                "lineOfSightTests": 450,
+                "stateUpdates": 81,
+                "domMutations": 423,
+                "transferredBytes": 7064,
+                "boundaryCrossings": 2
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "performanceClaims": []
+}

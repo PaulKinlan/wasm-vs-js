@@ -130,6 +130,26 @@ const routes = new Map<string, [string, string, boolean?]>([
   ]],
   ["/benchmarks", ["public/benchmarks/index.html", "text/html; charset=utf-8"]],
   ["/benchmarks/", ["public/benchmarks/index.html", "text/html; charset=utf-8"]],
+  ["/demos/game-family/demo.js", [
+    "public/demos/game-family/demo.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/demos/game-family/worker.js", [
+    "public/demos/game-family/worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/demos/game-family/styles.css", [
+    "public/demos/game-family/styles.css",
+    "text/css; charset=utf-8",
+  ]],
+  ["/benchmarks/v2/game-family/engine.js", [
+    "benchmarks/v2/game-family/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/v2/game-family/fixtures.js", [
+    "benchmarks/v2/game-family/fixtures.js",
+    "text/javascript; charset=utf-8",
+  ]],
   ["/workload-catalog.js", ["public/workload-catalog.js", "text/javascript; charset=utf-8"]],
   ["/data/workloads.v1.json", [
     "public/data/workloads.v1.json",
@@ -192,6 +212,50 @@ const routes = new Map<string, [string, string, boolean?]>([
 for (const route of [...IMAGE_DEMO_ROUTES, ...TRADITIONAL_DEMO_ROUTES]) {
   if (routes.has(route.path)) throw new Error(`duplicate demo route: ${route.path}`);
   routes.set(route.path, [route.file, route.contentType]);
+}
+
+for (
+  const slug of ["game-canvas-arcade", "game-canvas-entity-pathfinding", "game-dom-tactics-grid"]
+) {
+  for (const path of [`/demos/${slug}`, `/demos/${slug}/`]) {
+    if (routes.has(path)) throw new Error(`duplicate demo route: ${path}`);
+    routes.set(path, [`public/demos/${slug}/index.html`, "text/html; charset=utf-8"]);
+  }
+}
+routes.set("/artifacts/game-v2-controlled-family/game-family.wasm", [
+  "public/artifacts/game-v2-controlled-family/game-family.wasm",
+  "application/wasm",
+]);
+for (
+  const manifest of [
+    "build-manifest.json",
+    "fixture-manifest.json",
+    "input-manifest.json",
+    "output-manifest.json",
+  ]
+) {
+  routes.set(`/artifacts/game-v2-controlled-family/${manifest}`, [
+    `public/artifacts/game-v2-controlled-family/${manifest}`,
+    "application/json; charset=utf-8",
+  ]);
+}
+for (
+  const id of [
+    "game-canvas-arcade-v1",
+    "game-canvas-entity-pathfinding-v1",
+    "game-dom-tactics-grid-v1",
+  ]
+) {
+  routes.set(`/artifacts/game-v2-controlled-family/${id}.bin`, [
+    `public/artifacts/game-v2-controlled-family/${id}.bin`,
+    "application/octet-stream",
+  ]);
+  for (const variant of ["js-controlled", "wasm-linear-controlled"]) {
+    routes.set(`/evidence/v2-proposals/games/${id}-${variant}.json`, [
+      `public/evidence/v2-proposals/games/${id}-${variant}.json`,
+      "application/json; charset=utf-8",
+    ]);
+  }
 }
 
 for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {

@@ -38,7 +38,11 @@ type StatusEntry = {
     unavailableReason: { code: string } | null;
     publicEvidenceUnavailableReason: { code: string } | null;
   };
-  interactiveDemo: { status: string; unavailableReason: { code: string } };
+  interactiveDemo: {
+    status: string;
+    route: string | null;
+    unavailableReason: { code: string } | null;
+  };
   authoritativePerformanceResults: {
     status: string;
     unavailableReason: { code: string };
@@ -52,6 +56,9 @@ const expectedMaturity = {
     "audio.fft.v1",
     "audio.fir.v1",
     "audio.stft.v1",
+    "game.canvas-arcade.v1",
+    "game.canvas-entity-pathfinding.v1",
+    "game.dom-tactics-grid.v1",
   ],
   "complete-local-only-proposal-validation-package": [
     "ml.dense-mlp.v1",
@@ -134,7 +141,7 @@ Deno.test("v2 ledger covers the exact 20-ID proposal roster without changing fro
   );
 });
 
-Deno.test("v2 ledger counts reconcile to five validation packages, two engine-only images, two reduced slices, and eleven definitions", () => {
+Deno.test("v2 ledger counts reconcile to eight validation packages, two engine-only images, two reduced slices, and eight definitions", () => {
   for (const [maturity, ids] of Object.entries(expectedMaturity)) {
     assertEquals(
       entries.filter((entry) => entry.maturity === maturity).map((entry) => entry.id),
@@ -144,21 +151,21 @@ Deno.test("v2 ledger counts reconcile to five validation packages, two engine-on
   const definitionOnly = entries.filter((entry) => entry.maturity === "proposal-definition-only");
   assertEquals(
     entries.filter((entry) => entry.engine.status === "tested-js-and-linear-wasm").length,
-    9,
+    12,
   );
-  assertEquals(definitionOnly.length, 11);
+  assertEquals(definitionOnly.length, 8);
   assertEquals(
     entries.filter((entry) => entry.validationResults.status === "complete-public").length,
-    3,
+    6,
   );
   assertEquals(
     entries.filter((entry) => entry.validationResults.status === "complete-local-only").length,
     2,
   );
-  assertEquals(entries.reduce((sum, entry) => sum + entry.validationResults.recordCount, 0), 10);
-  assertEquals(ledger.counts.publicValidationRecords, 6);
+  assertEquals(entries.reduce((sum, entry) => sum + entry.validationResults.recordCount, 0), 16);
+  assertEquals(ledger.counts.publicValidationRecords, 12);
   assertEquals(ledger.counts.localOnlyValidationRecords, 4);
-  assertEquals(entries.filter((entry) => entry.interactiveDemo.status !== "unavailable").length, 0);
+  assertEquals(entries.filter((entry) => entry.interactiveDemo.status !== "unavailable").length, 3);
   assertEquals(
     entries.filter((entry) => entry.authoritativePerformanceResults.status !== "unavailable")
       .length,
@@ -181,7 +188,13 @@ Deno.test("v2 ledger counts reconcile to five validation packages, two engine-on
     expectedMaturity["complete-public-proposal-validation-package"],
   );
   for (const entry of entries) {
-    assertEquals(entry.interactiveDemo.unavailableReason.code, "no-interactive-demo");
+    if (entry.interactiveDemo.status === "unavailable") {
+      assertEquals(entry.interactiveDemo.unavailableReason?.code, "no-interactive-demo");
+      assertEquals(entry.interactiveDemo.route, null);
+    } else {
+      assert(entry.interactiveDemo.route?.startsWith("/demos/"));
+      assertEquals(entry.interactiveDemo.unavailableReason, null);
+    }
     assertEquals(
       entry.authoritativePerformanceResults.unavailableReason.code,
       "no-authoritative-performance-results",
@@ -211,7 +224,7 @@ Deno.test("every immutable v2 source, artifact, and result link resolves to work
   }
 });
 
-Deno.test("the nine engine statuses bind real JavaScript, linear-Wasm, artifact, and result boundaries", async () => {
+Deno.test("the twelve engine statuses bind real JavaScript, linear-Wasm, artifact, and result boundaries", async () => {
   const requiredSourceSuffixes: Record<string, [string, string]> = {
     "audio.fft.v1": ["benchmarks/audio-fft/js.ts", "benchmarks/audio-fft/audio-fft.wat"],
     "audio.fir.v1": ["benchmarks/audio-fir/js.ts", "benchmarks/audio-fir/audio-fir.wat"],
@@ -227,6 +240,18 @@ Deno.test("the nine engine statuses bind real JavaScript, linear-Wasm, artifact,
     "image.flood-fill.v1": [
       "benchmarks/image-editing/js.ts",
       "benchmarks/image-editing/image-editing.wat",
+    ],
+    "game.canvas-arcade.v1": [
+      "benchmarks/v2/game-family/engine.js",
+      "benchmarks/v2/game-family/game-family.c",
+    ],
+    "game.canvas-entity-pathfinding.v1": [
+      "benchmarks/v2/game-family/engine.js",
+      "benchmarks/v2/game-family/game-family.c",
+    ],
+    "game.dom-tactics-grid.v1": [
+      "benchmarks/v2/game-family/engine.js",
+      "benchmarks/v2/game-family/game-family.c",
     ],
     "ml.dense-mlp.v1": [
       "benchmarks/v2/ml-dense-mlp/workload.js",
@@ -282,7 +307,8 @@ Deno.test("benchmarks page exposes the complete v2 inventory in raw HTML", async
   assert(page.includes("38 proposed workloads; 0 implemented"));
   assert(page.includes("Coverage is 0/38"));
   assert(page.includes("v2 proposal implementation inventory"));
-  assert(page.includes("Interactive reduced-fixture demos: 4"));
+  assert(page.includes("Runnable demos: 7"));
+  assert(page.includes("3 full proposal-validation routes and 4 reduced-fixture routes"));
   assert(page.includes("No v2 package contains authoritative performance results"));
   assert(page.includes("not the full proposal contract"));
   assert(page.includes('href="/data/v2-proposal-implementation-status.v1.json"'));

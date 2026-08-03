@@ -111,6 +111,22 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
       "/artifacts/sum-u32/build-manifest.9c309c49.json",
       "/artifacts/sum-u32/sum-u32.wasm",
       "/benchmarks/sum-u32/workload.js",
+      "/demos/game-canvas-arcade/",
+      "/demos/game-canvas-entity-pathfinding/",
+      "/demos/game-dom-tactics-grid/",
+      "/demos/game-family/demo.js",
+      "/demos/game-family/worker.js",
+      "/demos/game-family/styles.css",
+      "/benchmarks/v2/game-family/engine.js",
+      "/benchmarks/v2/game-family/fixtures.js",
+      "/artifacts/game-v2-controlled-family/build-manifest.json",
+      "/artifacts/game-v2-controlled-family/game-family.wasm",
+      "/evidence/v2-proposals/games/game-canvas-arcade-v1-js-controlled.json",
+      "/evidence/v2-proposals/games/game-canvas-arcade-v1-wasm-linear-controlled.json",
+      "/evidence/v2-proposals/games/game-canvas-entity-pathfinding-v1-js-controlled.json",
+      "/evidence/v2-proposals/games/game-canvas-entity-pathfinding-v1-wasm-linear-controlled.json",
+      "/evidence/v2-proposals/games/game-dom-tactics-grid-v1-js-controlled.json",
+      "/evidence/v2-proposals/games/game-dom-tactics-grid-v1-wasm-linear-controlled.json",
     ]
   ) {
     assertEquals((await handler(new Request(`http://127.0.0.1${path}`))).status, 200);
@@ -122,7 +138,8 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
   assert(catalogPage.includes("38-WORKLOAD DENOMINATOR"));
   assert(catalogPage.includes("Coverage is 0/38"));
   assert(catalogPage.includes("v2 proposal implementation inventory"));
-  assert(catalogPage.includes("Interactive reduced-fixture demos: 4"));
+  assert(catalogPage.includes("Runnable demos: 7"));
+  assert(catalogPage.includes("3 full proposal-validation routes and 4 reduced-fixture routes"));
   for (
     const path of [
       "/run.html",
@@ -158,7 +175,7 @@ Deno.test("every ledger public link resolves through the exact read-only public 
     for (const link of entry.artifacts.publicLinks) paths.add(link.url);
     for (const link of entry.validationResults.publicEvidenceLinks) paths.add(link.url);
   }
-  assertEquals(paths.size, 13);
+  assertEquals(paths.size, 22);
 
   const publicHandler = createHandler(null, "public");
   for (const path of paths) {

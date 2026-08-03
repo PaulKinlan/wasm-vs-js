@@ -15,18 +15,36 @@
     "entries"
   ],
   "properties": {
-    "schemaVersion": { "const": 1 },
-    "ledgerId": { "const": "v2-proposal-implementation-inventory" },
-    "status": { "const": "descriptive-proposal-status-not-accepted-catalog" },
-    "sourceRevision": { "$ref": "#/$defs/commit" },
+    "schemaVersion": {
+      "const": 1
+    },
+    "ledgerId": {
+      "const": "v2-proposal-implementation-inventory"
+    },
+    "status": {
+      "const": "descriptive-proposal-status-not-accepted-catalog"
+    },
+    "sourceRevision": {
+      "$ref": "#/$defs/commit"
+    },
     "catalog": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "path", "proposalCount"],
+      "required": [
+        "id",
+        "path",
+        "proposalCount"
+      ],
       "properties": {
-        "id": { "const": "workload-catalog-v2-proposal" },
-        "path": { "const": "catalog/workloads.v2.proposed.json" },
-        "proposalCount": { "const": 20 }
+        "id": {
+          "const": "workload-catalog-v2-proposal"
+        },
+        "path": {
+          "const": "catalog/workloads.v2.proposed.json"
+        },
+        "proposalCount": {
+          "const": 20
+        }
       }
     },
     "frozenV1Coverage": {
@@ -42,17 +60,27 @@
         "v2EntriesCounted"
       ],
       "properties": {
-        "catalogPath": { "const": "catalog/workloads.v1.json" },
+        "catalogPath": {
+          "const": "catalog/workloads.v1.json"
+        },
         "catalogSha256": {
           "const": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4"
         },
-        "schemaPath": { "const": "schemas/workload-catalog.schema.json" },
+        "schemaPath": {
+          "const": "schemas/workload-catalog.schema.json"
+        },
         "schemaSha256": {
           "const": "7597aad1acd62c1f9a5e9343e8521d1c7906d59fddeec689eec19b50643c4b42"
         },
-        "entryCount": { "const": 38 },
-        "implementedCatalogEntries": { "const": 0 },
-        "v2EntriesCounted": { "const": false }
+        "entryCount": {
+          "const": 38
+        },
+        "implementedCatalogEntries": {
+          "const": 0
+        },
+        "v2EntriesCounted": {
+          "const": false
+        }
       }
     },
     "counts": {
@@ -72,24 +100,48 @@
         "authoritativePerformanceResultPackages"
       ],
       "properties": {
-        "proposalDefinitions": { "const": 20 },
-        "testedJsAndLinearWasmEngines": { "const": 9 },
-        "definitionOnly": { "const": 11 },
-        "completePublicProposalValidationPackages": { "const": 3 },
-        "completeLocalOnlyProposalValidationPackages": { "const": 2 },
-        "publicValidationRecords": { "const": 6 },
-        "localOnlyValidationRecords": { "const": 4 },
-        "imageEngineOnly": { "const": 2 },
-        "reducedConformanceSlices": { "const": 2 },
-        "interactiveDemos": { "const": 0 },
-        "authoritativePerformanceResultPackages": { "const": 0 }
+        "proposalDefinitions": {
+          "const": 20
+        },
+        "testedJsAndLinearWasmEngines": {
+          "const": 12
+        },
+        "definitionOnly": {
+          "const": 8
+        },
+        "completePublicProposalValidationPackages": {
+          "const": 6
+        },
+        "completeLocalOnlyProposalValidationPackages": {
+          "const": 2
+        },
+        "publicValidationRecords": {
+          "const": 12
+        },
+        "localOnlyValidationRecords": {
+          "const": 4
+        },
+        "imageEngineOnly": {
+          "const": 2
+        },
+        "reducedConformanceSlices": {
+          "const": 2
+        },
+        "interactiveDemos": {
+          "const": 3
+        },
+        "authoritativePerformanceResultPackages": {
+          "const": 0
+        }
       }
     },
     "entries": {
       "type": "array",
       "minItems": 20,
       "maxItems": 20,
-      "items": { "$ref": "#/$defs/entry" }
+      "items": {
+        "$ref": "#/$defs/entry"
+      }
     }
   },
   "$defs": {
@@ -108,7 +160,10 @@
     "reason": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["code", "detail"],
+      "required": [
+        "code",
+        "detail"
+      ],
       "properties": {
         "code": {
           "enum": [
@@ -129,10 +184,20 @@
     "repositoryLink": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["label", "path", "url"],
+      "required": [
+        "label",
+        "path",
+        "url"
+      ],
       "properties": {
-        "label": { "type": "string", "minLength": 1, "maxLength": 80 },
-        "path": { "$ref": "#/$defs/path" },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "path": {
+          "$ref": "#/$defs/path"
+        },
         "url": {
           "type": "string",
           "pattern": "^https://github\\.com/PaulKinlan/wasm-vs-js/(?:blob|tree)/[a-f0-9]{40}/[a-zA-Z0-9._/-]+(?:#L[0-9]+(?:-L[0-9]+)?)?$"
@@ -142,9 +207,16 @@
     "publicLink": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["label", "url"],
+      "required": [
+        "label",
+        "url"
+      ],
       "properties": {
-        "label": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
         "url": {
           "type": "string",
           "pattern": "^/(?:artifacts|evidence)/[a-z0-9./-]+(?:\\.json|\\.wasm|\\.f32le|/)?$"
@@ -166,8 +238,14 @@
         "authoritativePerformanceResults"
       ],
       "properties": {
-        "id": { "$ref": "#/$defs/id" },
-        "title": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
         "maturity": {
           "enum": [
             "complete-public-proposal-validation-package",
@@ -177,27 +255,52 @@
             "proposal-definition-only"
           ]
         },
-        "definitionSource": { "$ref": "#/$defs/repositoryLink" },
+        "definitionSource": {
+          "$ref": "#/$defs/repositoryLink"
+        },
         "engine": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["status", "sourceLinks", "unavailableReason"],
+          "required": [
+            "status",
+            "sourceLinks",
+            "unavailableReason"
+          ],
           "properties": {
-            "status": { "enum": ["tested-js-and-linear-wasm", "unavailable"] },
+            "status": {
+              "enum": [
+                "tested-js-and-linear-wasm",
+                "unavailable"
+              ]
+            },
             "sourceLinks": {
               "type": "array",
               "maxItems": 4,
-              "items": { "$ref": "#/$defs/repositoryLink" }
+              "items": {
+                "$ref": "#/$defs/repositoryLink"
+              }
             },
             "unavailableReason": {
-              "oneOf": [{ "$ref": "#/$defs/reason" }, { "type": "null" }]
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/reason"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           }
         },
         "artifacts": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["status", "repositoryLinks", "publicLinks", "unavailableReason"],
+          "required": [
+            "status",
+            "repositoryLinks",
+            "publicLinks",
+            "unavailableReason"
+          ],
           "properties": {
             "status": {
               "enum": [
@@ -211,15 +314,26 @@
             "repositoryLinks": {
               "type": "array",
               "maxItems": 3,
-              "items": { "$ref": "#/$defs/repositoryLink" }
+              "items": {
+                "$ref": "#/$defs/repositoryLink"
+              }
             },
             "publicLinks": {
               "type": "array",
               "maxItems": 3,
-              "items": { "$ref": "#/$defs/publicLink" }
+              "items": {
+                "$ref": "#/$defs/publicLink"
+              }
             },
             "unavailableReason": {
-              "oneOf": [{ "$ref": "#/$defs/reason" }, { "type": "null" }]
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/reason"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           }
         },
@@ -235,42 +349,107 @@
             "publicEvidenceUnavailableReason"
           ],
           "properties": {
-            "status": { "enum": ["complete-public", "complete-local-only", "unavailable"] },
-            "recordCount": { "enum": [0, 2] },
+            "status": {
+              "enum": [
+                "complete-public",
+                "complete-local-only",
+                "unavailable"
+              ]
+            },
+            "recordCount": {
+              "enum": [
+                0,
+                2
+              ]
+            },
             "repositoryLinks": {
               "type": "array",
               "maxItems": 2,
-              "items": { "$ref": "#/$defs/repositoryLink" }
+              "items": {
+                "$ref": "#/$defs/repositoryLink"
+              }
             },
             "publicEvidenceLinks": {
               "type": "array",
               "maxItems": 3,
-              "items": { "$ref": "#/$defs/publicLink" }
+              "items": {
+                "$ref": "#/$defs/publicLink"
+              }
             },
             "unavailableReason": {
-              "oneOf": [{ "$ref": "#/$defs/reason" }, { "type": "null" }]
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/reason"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             },
             "publicEvidenceUnavailableReason": {
-              "oneOf": [{ "$ref": "#/$defs/reason" }, { "type": "null" }]
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/reason"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           }
         },
         "interactiveDemo": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["status", "unavailableReason"],
+          "required": [
+            "status",
+            "route",
+            "unavailableReason"
+          ],
           "properties": {
-            "status": { "const": "unavailable" },
-            "unavailableReason": { "$ref": "#/$defs/reason" }
+            "status": {
+              "enum": [
+                "runnable-public",
+                "unavailable"
+              ]
+            },
+            "route": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "pattern": "^/demos/[a-z0-9-]+/$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "unavailableReason": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/reason"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
           }
         },
         "authoritativePerformanceResults": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["status", "unavailableReason"],
+          "required": [
+            "status",
+            "unavailableReason"
+          ],
           "properties": {
-            "status": { "const": "unavailable" },
-            "unavailableReason": { "$ref": "#/$defs/reason" }
+            "status": {
+              "const": "unavailable"
+            },
+            "unavailableReason": {
+              "$ref": "#/$defs/reason"
+            }
           }
         }
       }

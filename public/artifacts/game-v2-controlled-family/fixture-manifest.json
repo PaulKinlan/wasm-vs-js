@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "familyId": "game-v2-controlled-family",
+  "immutable": true,
+  "rights": {
+    "license": "CC0-1.0",
+    "redistribution": "permitted",
+    "provenance": "Generated entirely by benchmarks/v2/game-family/fixtures.js; no external media or user data."
+  },
+  "fixtures": [
+    {
+      "workloadId": "game.canvas-arcade.v1",
+      "path": "public/artifacts/game-v2-controlled-family/game-canvas-arcade-v1.bin",
+      "bytes": 14424,
+      "sha256": "fd58ad78008171e86ee187483661e929a693b6c8f5e9bf6ca01430f4ed09054c",
+      "generator": "xorshift32 with the catalog seed and canonical little-endian serialization"
+    },
+    {
+      "workloadId": "game.canvas-entity-pathfinding.v1",
+      "path": "public/artifacts/game-v2-controlled-family/game-canvas-entity-pathfinding-v1.bin",
+      "bytes": 106552,
+      "sha256": "3eb783e411cf4a21948efdff81ef624640dad8d512487ef30948060320cd9fb0",
+      "generator": "xorshift32 with the catalog seed and canonical little-endian serialization"
+    },
+    {
+      "workloadId": "game.dom-tactics-grid.v1",
+      "path": "public/artifacts/game-v2-controlled-family/game-dom-tactics-grid-v1.bin",
+      "bytes": 7064,
+      "sha256": "93ea1b049be33d4a2d1fcf08d58e433181195b24c03e36326bfecd328c3a5262",
+      "generator": "xorshift32 with the catalog seed and canonical little-endian serialization"
+    }
+  ]
+}
