@@ -516,6 +516,192 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/artifacts/text-markdown-cms/output-manifest.json",
     "application/json; charset=utf-8",
   ]],
+
+  // Friendly route aliases to prevent 404s when navigating or entering URLs
+  ["/benchmarks/text-markdown-cms", [
+    "public/demos/text.markdown-cms.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/text-markdown-cms/", [
+    "public/demos/text.markdown-cms.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/demos/text-markdown-cms", [
+    "public/demos/text.markdown-cms.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/demos/text-markdown-cms/", [
+    "public/demos/text.markdown-cms.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/text-diff-patch", [
+    "public/demos/text.diff-patch.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/text-diff-patch/", [
+    "public/demos/text.diff-patch.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/demos/text-diff-patch", [
+    "public/demos/text.diff-patch.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/demos/text-diff-patch/", [
+    "public/demos/text.diff-patch.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/game-canvas-arcade", [
+    "public/demos/game-canvas-arcade/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/game-canvas-arcade/", [
+    "public/demos/game-canvas-arcade/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/game-canvas-entity-pathfinding", [
+    "public/demos/game-canvas-entity-pathfinding/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/game-canvas-entity-pathfinding/", [
+    "public/demos/game-canvas-entity-pathfinding/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/game-dom-tactics-grid", [
+    "public/demos/game-dom-tactics-grid/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/game-dom-tactics-grid/", [
+    "public/demos/game-dom-tactics-grid/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/game-ecs-frame-update", [
+    "public/demos/game-ecs-frame-update/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/game-ecs-frame-update/", [
+    "public/demos/game-ecs-frame-update/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/cad-mesh-repair", [
+    "public/demos/cad-mesh-repair-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/cad-mesh-repair/", [
+    "public/demos/cad-mesh-repair-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/crypto-file-integrity", [
+    "public/demos/crypto.file-integrity.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/crypto-file-integrity/", [
+    "public/demos/crypto.file-integrity.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/network-pcap-decode", [
+    "public/demos/network.pcap-decode.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/network-pcap-decode/", [
+    "public/demos/network.pcap-decode.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/numeric-polybench-panel", [
+    "public/demos/numeric.polybench-panel.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/numeric-polybench-panel/", [
+    "public/demos/numeric.polybench-panel.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/serialization-json-telemetry", [
+    "public/demos/serialization.json-telemetry.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/serialization-json-telemetry/", [
+    "public/demos/serialization.json-telemetry.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/server-ssr-template", [
+    "public/demos/server.ssr-template.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/server-ssr-template/", [
+    "public/demos/server.ssr-template.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/text-gc-document-edit", [
+    "public/demos/text.gc-document-edit.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/text-gc-document-edit/", [
+    "public/demos/text.gc-document-edit.v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/image-editing", [
+    "public/benchmarks/image-editing-demo/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/image-editing/", [
+    "public/benchmarks/image-editing-demo/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/image-flood-fill", [
+    "public/benchmarks/image-flood-fill-demo/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/image-flood-fill/", [
+    "public/benchmarks/image-flood-fill-demo/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/regex-automata-duel", [
+    "public/benchmarks/regex-automata-duel-demo/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/regex-automata-duel/", [
+    "public/benchmarks/regex-automata-duel-demo/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/vdom-diff-patch", [
+    "public/benchmarks/vdom-diff-patch-demo/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/vdom-diff-patch/", [
+    "public/benchmarks/vdom-diff-patch-demo/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/cad-parametric-bracket", [
+    "public/benchmarks/base/cad-parametric-bracket/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/cad-parametric-bracket/", [
+    "public/benchmarks/base/cad-parametric-bracket/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/database-olap-chart", [
+    "public/benchmarks/base/database-olap-chart/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/database-olap-chart/", [
+    "public/benchmarks/base/database-olap-chart/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/graphics-gltf-viewer", [
+    "public/benchmarks/base/graphics-gltf-viewer/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/graphics-gltf-viewer/", [
+    "public/benchmarks/base/graphics-gltf-viewer/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/simulation-nbody", [
+    "public/benchmarks/base/simulation-nbody/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/simulation-nbody/", [
+    "public/benchmarks/base/simulation-nbody/index.html",
+    "text/html; charset=utf-8",
+  ]],
   ["/data/workloads.v1.json", [
     "public/data/workloads.v1.json",
     "application/json; charset=utf-8",
