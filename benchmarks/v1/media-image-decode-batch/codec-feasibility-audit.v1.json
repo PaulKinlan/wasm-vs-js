@@ -3,6 +3,8 @@
   "auditId": "media-image-decode-batch-codec-feasibility-v1",
   "workloadId": "media.image-decode-batch.v1",
   "status": "blocked-no-controlled-pair",
+  "sourceMetadataManifest": "benchmarks/v1/media-image-decode-batch/source-metadata-manifest.v1.json",
+  "verificationScope": "The package retains exact metadata/source bytes for icodec at revision 9a81cb4 and jxl.js 1.0.3. Other package rows are discovery notes with identifiers and integrity values, not retained external-response evidence. The blocker is limited to the inspected pinned candidates; it does not claim that no genuine JavaScript JXL decoder exists anywhere.",
   "requirements": {
     "formats": [
       "jpeg",
@@ -48,7 +50,12 @@
       "executionTechnology": "WebAssembly",
       "javascriptTargetEligible": false,
       "linearWasmCandidate": true,
-      "source": "https://github.com/kaciras/icodec"
+      "source": "https://github.com/kaciras/icodec",
+      "verification": "retained-source-metadata",
+      "evidencePaths": [
+        "benchmarks/v1/media-image-decode-batch/source-metadata/icodec-9a81cb4-package.json.raw",
+        "benchmarks/v1/media-image-decode-batch/source-metadata/icodec-9a81cb4-jxl.ts.raw"
+      ]
     },
     {
       "name": "jxl.js",
@@ -59,7 +66,12 @@
       "declaredDescription": "JPEG XL decoder in JavaScript using WebAssembly",
       "executionTechnology": "WebAssembly",
       "javascriptTargetEligible": false,
-      "source": "https://www.npmjs.com/package/jxl.js"
+      "source": "https://www.npmjs.com/package/jxl.js",
+      "verification": "retained-source-metadata",
+      "evidencePaths": [
+        "benchmarks/v1/media-image-decode-batch/source-metadata/jxl.js-1.0.3-package.json.raw",
+        "benchmarks/v1/media-image-decode-batch/source-metadata/jxl.js-1.0.3-README.md.raw"
+      ]
     },
     {
       "name": "jpeg-js",
@@ -73,7 +85,9 @@
       "executionTechnology": "JavaScript",
       "javascriptTargetEligible": true,
       "completeFiveFormatTarget": false,
-      "source": "https://www.npmjs.com/package/jpeg-js"
+      "source": "https://www.npmjs.com/package/jpeg-js",
+      "verification": "identifier-and-integrity-only",
+      "evidencePaths": []
     },
     {
       "name": "pngjs",
@@ -87,7 +101,9 @@
       "executionTechnology": "JavaScript",
       "javascriptTargetEligible": true,
       "completeFiveFormatTarget": false,
-      "source": "https://www.npmjs.com/package/pngjs"
+      "source": "https://www.npmjs.com/package/pngjs",
+      "verification": "identifier-and-integrity-only",
+      "evidencePaths": []
     },
     {
       "name": "@stacksjs/ts-webp",
@@ -101,7 +117,9 @@
       "executionTechnology": "TypeScript",
       "javascriptTargetEligible": "unverified",
       "completeFiveFormatTarget": false,
-      "source": "https://www.npmjs.com/package/@stacksjs/ts-webp"
+      "source": "https://www.npmjs.com/package/@stacksjs/ts-webp",
+      "verification": "identifier-and-integrity-only",
+      "evidencePaths": []
     },
     {
       "name": "@stacksjs/ts-avif",
@@ -115,7 +133,9 @@
       "executionTechnology": "TypeScript",
       "javascriptTargetEligible": "unverified",
       "completeFiveFormatTarget": false,
-      "source": "https://www.npmjs.com/package/@stacksjs/ts-avif"
+      "source": "https://www.npmjs.com/package/@stacksjs/ts-avif",
+      "verification": "identifier-and-integrity-only",
+      "evidencePaths": []
     },
     {
       "name": "avif.js",
@@ -129,7 +149,9 @@
       "executionTechnology": "JavaScript wrapper around dav1d.wasm",
       "javascriptTargetEligible": false,
       "completeFiveFormatTarget": false,
-      "source": "https://www.npmjs.com/package/avif.js"
+      "source": "https://www.npmjs.com/package/avif.js",
+      "verification": "locally-inspected-package-not-retained",
+      "evidencePaths": []
     }
   ],
   "hostBaseline": {
