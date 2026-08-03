@@ -16,6 +16,9 @@ const root = new URL("../../", import.meta.url);
 const artifact = new URL("public/artifacts/simulation-rigid-body-2d-v1/", root);
 
 async function build() {
+  const pinned = JSON.parse(
+    await Deno.readTextFile(new URL("build-manifest.json", artifact)),
+  ).sourceCommit;
   const command = new Deno.Command(Deno.execPath(), {
     cwd: root,
     args: [
@@ -25,6 +28,7 @@ async function build() {
       "--allow-run=clang,wasm-ld",
       "scripts/build-rigid-body-2d.ts",
       "--source-only",
+      `--source-commit=${pinned}`,
     ],
     stdout: "piped",
     stderr: "piped",
