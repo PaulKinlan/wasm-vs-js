@@ -127,9 +127,13 @@ Deno.test("exact counters cover blocks, samples, state, MACs, allocations and cr
   assertEquals(js["convolution-macs"], 92_160_480);
   assertEquals(js["state-carry-boundaries"], 22_499);
   assertEquals(js["tail-flush-frames"], 15);
-  assertEquals(js.allocations, 6);
+  assertEquals(js["fixture-allocations"], 2);
+  assertEquals(js.allocations, 4);
+  assertEquals(js["validation-output-copies"], 0);
   assertEquals(js["boundary-crossings"], 0);
+  assertEquals(wasm["fixture-allocations"], 2);
   assertEquals(wasm.allocations, 0);
+  assertEquals(wasm["validation-output-copies"], 2);
   assertEquals(wasm["boundary-crossings"], 1);
 });
 

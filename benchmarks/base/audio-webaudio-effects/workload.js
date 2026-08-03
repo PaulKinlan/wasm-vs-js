@@ -181,7 +181,9 @@ export function counters(frames = Number(CONTRACT.frames), target = "javascript"
     "convolution-macs": outputFrames * CONTRACT.irLength * 2,
     "state-carry-boundaries": Math.max(0, Math.ceil(frames / CONTRACT.blockFrames) - 1),
     "tail-flush-frames": CONTRACT.irLength - 1,
-    allocations: target === "javascript" ? 6 : 0,
+    "fixture-allocations": 2,
+    allocations: target === "javascript" ? 4 : 0,
+    "validation-output-copies": target === "wasm-linear" ? 2 : 0,
     "boundary-crossings": target === "wasm-linear" ? 1 : 0,
   });
 }
