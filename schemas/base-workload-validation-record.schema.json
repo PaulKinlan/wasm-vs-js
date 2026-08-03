@@ -59,10 +59,86 @@
         "checkpoints": { "const": [1, 30, 60, 90, 120] }
       }
     },
-    "counters": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+    "counters": { "$ref": "#/$defs/counters" },
     "performanceClaims": { "type": "array", "maxItems": 0 }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "variantId": { "const": "js-controlled" } },
+        "required": ["variantId"]
+      },
+      "then": {
+        "properties": {
+          "executionTarget": { "const": "javascript" },
+          "counters": {
+            "allOf": [
+              { "$ref": "#/$defs/counters" },
+              {
+                "properties": { "allocations": { "const": 5 }, "boundaryCrossings": { "const": 0 } }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "variantId": { "const": "wasm-linear-controlled" } },
+        "required": ["variantId"]
+      },
+      "then": {
+        "properties": {
+          "executionTarget": { "const": "wasm-linear" },
+          "counters": {
+            "allOf": [
+              { "$ref": "#/$defs/counters" },
+              {
+                "properties": { "allocations": { "const": 0 }, "boundaryCrossings": { "const": 2 } }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
   "$defs": {
+    "counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bodies",
+        "timesteps",
+        "forceEvaluations",
+        "pairInteractions",
+        "halfKicks",
+        "positionUpdates",
+        "accelerationWrites",
+        "checkpointValues",
+        "inputBytes",
+        "outputBytes",
+        "energyPairChecks",
+        "kineticEnergyTerms",
+        "allocations",
+        "boundaryCrossings"
+      ],
+      "properties": {
+        "bodies": { "type": "integer", "const": 1024 },
+        "timesteps": { "type": "integer", "const": 120 },
+        "forceEvaluations": { "type": "integer", "const": 121 },
+        "pairInteractions": { "type": "integer", "const": 126753792 },
+        "halfKicks": { "type": "integer", "const": 245760 },
+        "positionUpdates": { "type": "integer", "const": 122880 },
+        "accelerationWrites": { "type": "integer", "const": 371712 },
+        "checkpointValues": { "type": "integer", "const": 30720 },
+        "inputBytes": { "type": "integer", "const": 57408 },
+        "outputBytes": { "type": "integer", "const": 295040 },
+        "energyPairChecks": { "type": "integer", "const": 1047552 },
+        "kineticEnergyTerms": { "type": "integer", "const": 2048 },
+        "allocations": { "type": "integer", "enum": [0, 5] },
+        "boundaryCrossings": { "type": "integer", "enum": [0, 2] }
+      }
+    },
     "file": {
       "type": "object",
       "additionalProperties": false,

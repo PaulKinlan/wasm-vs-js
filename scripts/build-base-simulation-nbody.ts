@@ -133,6 +133,7 @@ const sourcePaths = [
   "public/demos/simulation-nbody-cloth/index.html",
   "public/demos/simulation-nbody-cloth/demo.js",
   "public/demos/simulation-nbody-cloth/worker.js",
+  "public/styles.css",
   "server.ts",
   "tests/base/simulation-nbody.test.ts",
   "public/artifacts/base-simulation-nbody/nbody.wasm",

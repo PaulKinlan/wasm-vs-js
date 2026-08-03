@@ -190,17 +190,51 @@ Deno.test("N-body validation records satisfy the closed schema and exact retaine
   });
   (addFormats as unknown as (instance: unknown) => void)(ajv);
   const validate = ajv.compile(schema);
+  const records: Record<string, Record<string, unknown>> = {};
   for (const variant of ["js-controlled", "wasm-linear-controlled"]) {
     const record = JSON.parse(
       await Deno.readTextFile(
         `public/evidence/base-catalog/simulation-nbody-cloth/${variant}.json`,
       ),
     );
+    records[variant] = record;
     assert(validate(record), JSON.stringify(validate.errors));
     assertEquals(record.fixture.sha256, await sha256Hex(await Deno.readFile(record.fixture.path)));
     assertEquals(
       record.oracle.completeOutputSha256,
       "e09f9c48b3c2945cca25102eb09667295c7889a850578622354d80b1109dba3e",
     );
+    const styles = record.source.files.find((file: { path: string }) =>
+      file.path === "public/styles.css"
+    );
+    assert(styles, "served public/styles.css is absent from the record source graph");
+    assertEquals(styles.sha256, await sha256Hex(await Deno.readFile(styles.path)));
   }
+
+  const rejected = (mutate: (record: Record<string, unknown>) => void) => {
+    const candidate = structuredClone(records["js-controlled"]);
+    mutate(candidate);
+    assert(!validate(candidate), "semantic mutation unexpectedly passed the closed schema");
+  };
+  rejected((record) => record.executionTarget = "wasm-linear");
+  rejected((record) => record.counters = { inventedCounter: 7 });
+  rejected((record) => delete (record.counters as Record<string, unknown>).pairInteractions);
+  rejected((record) => (record.counters as Record<string, unknown>).inventedCounter = 7);
+  rejected((record) => (record.counters as Record<string, unknown>).pairInteractions = 1);
+  rejected((record) => (record.counters as Record<string, unknown>).pairInteractions = "126753792");
+  rejected((record) => (record.counters as Record<string, unknown>).allocations = 0);
+  rejected((record) => (record.counters as Record<string, unknown>).boundaryCrossings = 2);
+
+  const wasmAsJavaScript = structuredClone(records["wasm-linear-controlled"]);
+  wasmAsJavaScript.executionTarget = "javascript";
+  assert(!validate(wasmAsJavaScript), "wasm-linear-controlled accepted a JavaScript target");
+
+  const build = JSON.parse(
+    await Deno.readTextFile("public/artifacts/base-simulation-nbody/build-manifest.json"),
+  );
+  const buildStyles = build.source.files.find((file: { path: string }) =>
+    file.path === "public/styles.css"
+  );
+  assert(buildStyles, "served public/styles.css is absent from build source graph");
+  assertEquals(buildStyles.sha256, await sha256Hex(await Deno.readFile(buildStyles.path)));
 });
