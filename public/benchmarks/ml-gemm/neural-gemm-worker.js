@@ -78,6 +78,20 @@ async function runGemm(runToken, target, mode) {
       `Artifacts loaded: wasm ${wasmBytes.byteLength}B, ref ${reference.length} f64, bounds ${bounds.length} f32`,
   });
 
+  if (exact) {
+    post("phase", { message: "Exact mode: hashing raw bytes..." });
+    const manifestResp = await fetch("/artifacts/v2/ml-gemm/fixture-manifest.json");
+    if (!manifestResp.ok) throw new Error("fixture-manifest.json not available");
+    const manifest = await manifestResp.json();
+    const wasmHash = await crypto.subtle.digest("SHA-256", wasmBytes);
+    const wasmHashHex = [...new Uint8Array(wasmHash)].map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+    if (
+      manifest.parameters && manifest.parameters.batch !== BATCH
+    ) throw new Error("manifest batch mismatch");
+    post("phase", { message: `Exact: wasm sha256=${wasmHashHex.slice(0, 12)}... verified.` });
+  }
+
   post("phase", { message: "Generating input…" });
   const { a, b, c0 } = gemm.generateInput();
 
