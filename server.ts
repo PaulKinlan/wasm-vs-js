@@ -252,12 +252,20 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/artifacts/numeric-polybench-panel/polybench-panel.wasm",
     "application/wasm",
   ]],
+  ["/artifacts/numeric-polybench-panel/reference-oracle.wasm", [
+    "public/artifacts/numeric-polybench-panel/reference-oracle.wasm",
+    "application/wasm",
+  ]],
   ["/artifacts/numeric-polybench-panel/build-manifest.json", [
     "public/artifacts/numeric-polybench-panel/build-manifest.json",
     "application/json; charset=utf-8",
   ]],
   ["/evidence/base/numeric-polybench-panel/correctness-record.json", [
     "evidence/base/numeric-polybench-panel/correctness-record.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base/numeric-polybench-panel/prior-art-verification.json", [
+    "evidence/base/numeric-polybench-panel/prior-art-verification.json",
     "application/json; charset=utf-8",
   ]],
   ["/schemas/base-workload-contract.schema.json", [
@@ -325,6 +333,16 @@ const routes = new Map<string, [string, string, boolean?]>([
     "application/json; charset=utf-8",
   ]],
 ]);
+
+for (const kernel of ["gemm", "cholesky", "stencil", "jacobi2d"]) {
+  for (const variant of ["reference", "javascript-controlled", "linear-wasm-controlled"]) {
+    const name = `${kernel}.${variant}.f64le`;
+    routes.set(`/artifacts/numeric-polybench-panel/outputs/${name}`, [
+      `public/artifacts/numeric-polybench-panel/outputs/${name}`,
+      "application/octet-stream",
+    ]);
+  }
+}
 
 for (const route of [...IMAGE_DEMO_ROUTES, ...TRADITIONAL_DEMO_ROUTES]) {
   if (routes.has(route.path)) throw new Error(`duplicate demo route: ${route.path}`);

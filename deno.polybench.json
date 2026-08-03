@@ -1,0 +1,8 @@
+{
+  "imports": {
+    "wabt": "npm:wabt@1.0.37"
+  },
+  "tasks": {
+    "build:base-polybench": "deno run --allow-read=. --allow-write=.,/tmp --allow-run=clang,git --allow-env=TMPDIR scripts/build-base-polybench.ts"
+  }
+}

@@ -1,47 +1,2376 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://wasm-vs-js.example/schemas/base-correctness-record.schema.json",
-  "title": "Base workload correctness record",
+  "title": "numeric.polybench-panel.v1 exact correctness record",
   "type": "object",
   "required": [
     "schemaVersion",
     "recordId",
     "workloadId",
+    "contractId",
+    "repository",
+    "implementationCommit",
+    "sourceTreeSha256",
     "status",
     "targets",
     "exactRegisteredKernels",
     "completeOutputCompared",
     "retainedBrowserEvidence",
-    "sourceHashes",
+    "buildManifest",
+    "artifacts",
     "outputs",
     "limitations"
   ],
   "properties": {
-    "schemaVersion": { "const": 1 },
-    "recordId": { "type": "string", "minLength": 1 },
-    "workloadId": { "type": "string", "pattern": "^[a-z0-9.-]+\\.v1$" },
-    "status": { "enum": ["passed-static-and-runtime-correctness", "accepted"] },
+    "schemaVersion": {
+      "const": 2
+    },
+    "recordId": {
+      "const": "numeric.polybench-panel.v1.correctness.candidate.v2"
+    },
+    "workloadId": {
+      "const": "numeric.polybench-panel.v1"
+    },
+    "contractId": {
+      "const": "numeric.polybench-panel.v1-supplemental-contract-v1"
+    },
+    "repository": {
+      "const": "https://github.com/PaulKinlan/wasm-vs-js"
+    },
+    "implementationCommit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "sourceTreeSha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "status": {
+      "const": "passed-independent-complete-output-correctness"
+    },
     "targets": {
-      "type": "array",
-      "minItems": 2,
-      "uniqueItems": true,
-      "items": { "enum": ["javascript-controlled", "linear-wasm-controlled"] }
+      "const": [
+        "javascript-controlled",
+        "linear-wasm-controlled"
+      ]
     },
     "exactRegisteredKernels": {
-      "type": "array",
-      "minItems": 1,
-      "uniqueItems": true,
-      "items": { "type": "string" }
+      "const": [
+        "gemm",
+        "cholesky",
+        "stencil",
+        "jacobi2d"
+      ]
     },
-    "completeOutputCompared": { "const": true },
-    "retainedBrowserEvidence": { "enum": ["uncollected", "collected-passed"] },
-    "sourceHashes": {
+    "completeOutputCompared": {
+      "const": true
+    },
+    "retainedBrowserEvidence": {
+      "enum": [
+        "uncollected",
+        "collected-passed"
+      ]
+    },
+    "buildManifest": {
+      "const": {
+        "file": "public/artifacts/numeric-polybench-panel/build-manifest.json",
+        "route": "/artifacts/numeric-polybench-panel/build-manifest.json"
+      }
+    },
+    "artifacts": {
       "type": "object",
-      "required": ["contract", "workload", "wat", "frozenCatalog", "artifact"],
-      "additionalProperties": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      "required": [
+        "controlledWasm",
+        "independentReferenceWasm"
+      ],
+      "properties": {
+        "controlledWasm": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "independentReferenceWasm": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
     },
-    "outputs": { "type": "object", "minProperties": 1 },
-    "limitations": { "type": "array", "items": { "type": "string" } }
+    "outputs": {
+      "type": "object",
+      "required": [
+        "gemm",
+        "cholesky",
+        "stencil",
+        "jacobi2d"
+      ],
+      "properties": {
+        "gemm": {
+          "type": "object",
+          "required": [
+            "fixture",
+            "reference",
+            "targets"
+          ],
+          "properties": {
+            "fixture": {
+              "type": "object",
+              "required": [
+                "arrays",
+                "totalBytes"
+              ],
+              "properties": {
+                "arrays": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "bytes",
+                        "sha256"
+                      ],
+                      "properties": {
+                        "name": {
+                          "const": "a"
+                        },
+                        "bytes": {
+                          "const": 4800
+                        },
+                        "sha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "bytes",
+                        "sha256"
+                      ],
+                      "properties": {
+                        "name": {
+                          "const": "b"
+                        },
+                        "bytes": {
+                          "const": 6000
+                        },
+                        "sha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "bytes",
+                        "sha256"
+                      ],
+                      "properties": {
+                        "name": {
+                          "const": "c"
+                        },
+                        "bytes": {
+                          "const": 4000
+                        },
+                        "sha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ],
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "totalBytes": {
+                  "const": 14800
+                }
+              },
+              "additionalProperties": false
+            },
+            "reference": {
+              "type": "object",
+              "required": [
+                "implementation",
+                "artifact",
+                "checkpoints"
+              ],
+              "properties": {
+                "implementation": {
+                  "const": "independent-clang-c-oracle"
+                },
+                "artifact": {
+                  "type": "object",
+                  "required": [
+                    "file",
+                    "route",
+                    "bytes",
+                    "elements",
+                    "sha256",
+                    "format"
+                  ],
+                  "properties": {
+                    "file": {
+                      "const": "public/artifacts/numeric-polybench-panel/outputs/gemm.reference.f64le"
+                    },
+                    "route": {
+                      "const": "/artifacts/numeric-polybench-panel/outputs/gemm.reference.f64le"
+                    },
+                    "bytes": {
+                      "const": 4000
+                    },
+                    "elements": {
+                      "const": 500
+                    },
+                    "sha256": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    },
+                    "format": {
+                      "const": "f64le-complete-output"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "checkpoints": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "index",
+                        "valueHex"
+                      ],
+                      "properties": {
+                        "index": {
+                          "const": 0
+                        },
+                        "valueHex": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{16}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "index",
+                        "valueHex"
+                      ],
+                      "properties": {
+                        "index": {
+                          "const": 125
+                        },
+                        "valueHex": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{16}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "index",
+                        "valueHex"
+                      ],
+                      "properties": {
+                        "index": {
+                          "const": 250
+                        },
+                        "valueHex": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{16}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "index",
+                        "valueHex"
+                      ],
+                      "properties": {
+                        "index": {
+                          "const": 499
+                        },
+                        "valueHex": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{16}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ],
+                  "minItems": 4,
+                  "maxItems": 4
+                }
+              },
+              "additionalProperties": false
+            },
+            "targets": {
+              "type": "object",
+              "required": [
+                "javascript-controlled",
+                "linear-wasm-controlled"
+              ],
+              "properties": {
+                "javascript-controlled": {
+                  "type": "object",
+                  "required": [
+                    "artifact",
+                    "comparison",
+                    "structuralOracle",
+                    "checkpoints",
+                    "counters"
+                  ],
+                  "properties": {
+                    "artifact": {
+                      "type": "object",
+                      "required": [
+                        "file",
+                        "route",
+                        "bytes",
+                        "elements",
+                        "sha256",
+                        "format"
+                      ],
+                      "properties": {
+                        "file": {
+                          "const": "public/artifacts/numeric-polybench-panel/outputs/gemm.javascript-controlled.f64le"
+                        },
+                        "route": {
+                          "const": "/artifacts/numeric-polybench-panel/outputs/gemm.javascript-controlled.f64le"
+                        },
+                        "bytes": {
+                          "const": 4000
+                        },
+                        "elements": {
+                          "const": 500
+                        },
+                        "sha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        },
+                        "format": {
+                          "const": "f64le-complete-output"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "comparison": {
+                      "type": "object",
+                      "required": [
+                        "passed",
+                        "violations",
+                        "maxAbs",
+                        "maxRel"
+                      ],
+                      "properties": {
+                        "passed": {
+                          "const": true
+                        },
+                        "violations": {
+                          "const": 0
+                        },
+                        "maxAbs": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1e-10
+                        },
+                        "maxRel": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1e-10
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "structuralOracle": {
+                      "type": "object",
+                      "required": [
+                        "passed",
+                        "failures"
+                      ],
+                      "properties": {
+                        "passed": {
+                          "const": true
+                        },
+                        "failures": {
+                          "const": []
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "checkpoints": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 0
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 125
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 250
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 499
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      ],
+                      "minItems": 4,
+                      "maxItems": 4
+                    },
+                    "counters": {
+                      "const": {
+                        "target": "javascript-controlled",
+                        "boundaryCrossings": 0,
+                        "wasmLinearAllocations": 0,
+                        "kernels": 1,
+                        "outputElements": 500,
+                        "outputBytes": 4000,
+                        "inputBytes": 14800,
+                        "typedArrayAllocations": 4,
+                        "multiplyAdds": 15000,
+                        "scaleMultiplications": 500
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "linear-wasm-controlled": {
+                  "type": "object",
+                  "required": [
+                    "artifact",
+                    "comparison",
+                    "structuralOracle",
+                    "checkpoints",
+                    "counters"
+                  ],
+                  "properties": {
+                    "artifact": {
+                      "type": "object",
+                      "required": [
+                        "file",
+                        "route",
+                        "bytes",
+                        "elements",
+                        "sha256",
+                        "format"
+                      ],
+                      "properties": {
+                        "file": {
+                          "const": "public/artifacts/numeric-polybench-panel/outputs/gemm.linear-wasm-controlled.f64le"
+                        },
+                        "route": {
+                          "const": "/artifacts/numeric-polybench-panel/outputs/gemm.linear-wasm-controlled.f64le"
+                        },
+                        "bytes": {
+                          "const": 4000
+                        },
+                        "elements": {
+                          "const": 500
+                        },
+                        "sha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        },
+                        "format": {
+                          "const": "f64le-complete-output"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "comparison": {
+                      "type": "object",
+                      "required": [
+                        "passed",
+                        "violations",
+                        "maxAbs",
+                        "maxRel"
+                      ],
+                      "properties": {
+                        "passed": {
+                          "const": true
+                        },
+                        "violations": {
+                          "const": 0
+                        },
+                        "maxAbs": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1e-10
+                        },
+                        "maxRel": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1e-10
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "structuralOracle": {
+                      "type": "object",
+                      "required": [
+                        "passed",
+                        "failures"
+                      ],
+                      "properties": {
+                        "passed": {
+                          "const": true
+                        },
+                        "failures": {
+                          "const": []
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "checkpoints": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 0
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 125
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 250
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 499
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      ],
+                      "minItems": 4,
+                      "maxItems": 4
+                    },
+                    "counters": {
+                      "const": {
+                        "target": "linear-wasm-controlled",
+                        "boundaryCrossings": 1,
+                        "wasmLinearAllocations": 0,
+                        "kernels": 1,
+                        "outputElements": 500,
+                        "outputBytes": 4000,
+                        "inputBytes": 14800,
+                        "typedArrayAllocations": 8,
+                        "multiplyAdds": 15000,
+                        "scaleMultiplications": 500
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "cholesky": {
+          "type": "object",
+          "required": [
+            "fixture",
+            "reference",
+            "targets"
+          ],
+          "properties": {
+            "fixture": {
+              "type": "object",
+              "required": [
+                "arrays",
+                "totalBytes"
+              ],
+              "properties": {
+                "arrays": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "bytes",
+                        "sha256"
+                      ],
+                      "properties": {
+                        "name": {
+                          "const": "a"
+                        },
+                        "bytes": {
+                          "const": 12800
+                        },
+                        "sha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ],
+                  "minItems": 1,
+                  "maxItems": 1
+                },
+                "totalBytes": {
+                  "const": 12800
+                }
+              },
+              "additionalProperties": false
+            },
+            "reference": {
+              "type": "object",
+              "required": [
+                "implementation",
+                "artifact",
+                "checkpoints"
+              ],
+              "properties": {
+                "implementation": {
+                  "const": "independent-clang-c-oracle"
+                },
+                "artifact": {
+                  "type": "object",
+                  "required": [
+                    "file",
+                    "route",
+                    "bytes",
+                    "elements",
+                    "sha256",
+                    "format"
+                  ],
+                  "properties": {
+                    "file": {
+                      "const": "public/artifacts/numeric-polybench-panel/outputs/cholesky.reference.f64le"
+                    },
+                    "route": {
+                      "const": "/artifacts/numeric-polybench-panel/outputs/cholesky.reference.f64le"
+                    },
+                    "bytes": {
+                      "const": 12800
+                    },
+                    "elements": {
+                      "const": 1600
+                    },
+                    "sha256": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    },
+                    "format": {
+                      "const": "f64le-complete-output"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "checkpoints": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "index",
+                        "valueHex"
+                      ],
+                      "properties": {
+                        "index": {
+                          "const": 0
+                        },
+                        "valueHex": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{16}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "index",
+                        "valueHex"
+                      ],
+                      "properties": {
+                        "index": {
+                          "const": 400
+                        },
+                        "valueHex": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{16}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "index",
+                        "valueHex"
+                      ],
+                      "properties": {
+                        "index": {
+                          "const": 800
+                        },
+                        "valueHex": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{16}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "index",
+                        "valueHex"
+                      ],
+                      "properties": {
+                        "index": {
+                          "const": 1599
+                        },
+                        "valueHex": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{16}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ],
+                  "minItems": 4,
+                  "maxItems": 4
+                }
+              },
+              "additionalProperties": false
+            },
+            "targets": {
+              "type": "object",
+              "required": [
+                "javascript-controlled",
+                "linear-wasm-controlled"
+              ],
+              "properties": {
+                "javascript-controlled": {
+                  "type": "object",
+                  "required": [
+                    "artifact",
+                    "comparison",
+                    "structuralOracle",
+                    "checkpoints",
+                    "counters"
+                  ],
+                  "properties": {
+                    "artifact": {
+                      "type": "object",
+                      "required": [
+                        "file",
+                        "route",
+                        "bytes",
+                        "elements",
+                        "sha256",
+                        "format"
+                      ],
+                      "properties": {
+                        "file": {
+                          "const": "public/artifacts/numeric-polybench-panel/outputs/cholesky.javascript-controlled.f64le"
+                        },
+                        "route": {
+                          "const": "/artifacts/numeric-polybench-panel/outputs/cholesky.javascript-controlled.f64le"
+                        },
+                        "bytes": {
+                          "const": 12800
+                        },
+                        "elements": {
+                          "const": 1600
+                        },
+                        "sha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        },
+                        "format": {
+                          "const": "f64le-complete-output"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "comparison": {
+                      "type": "object",
+                      "required": [
+                        "passed",
+                        "violations",
+                        "maxAbs",
+                        "maxRel"
+                      ],
+                      "properties": {
+                        "passed": {
+                          "const": true
+                        },
+                        "violations": {
+                          "const": 0
+                        },
+                        "maxAbs": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1e-10
+                        },
+                        "maxRel": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1e-10
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "structuralOracle": {
+                      "type": "object",
+                      "required": [
+                        "passed",
+                        "failures"
+                      ],
+                      "properties": {
+                        "passed": {
+                          "const": true
+                        },
+                        "failures": {
+                          "const": []
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "checkpoints": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 0
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 400
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 800
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 1599
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      ],
+                      "minItems": 4,
+                      "maxItems": 4
+                    },
+                    "counters": {
+                      "const": {
+                        "target": "javascript-controlled",
+                        "boundaryCrossings": 0,
+                        "wasmLinearAllocations": 0,
+                        "kernels": 1,
+                        "outputElements": 1600,
+                        "outputBytes": 12800,
+                        "inputBytes": 12800,
+                        "typedArrayAllocations": 3,
+                        "multiplySubtracts": 10660,
+                        "divisions": 780,
+                        "diagonalRoots": 40
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "linear-wasm-controlled": {
+                  "type": "object",
+                  "required": [
+                    "artifact",
+                    "comparison",
+                    "structuralOracle",
+                    "checkpoints",
+                    "counters"
+                  ],
+                  "properties": {
+                    "artifact": {
+                      "type": "object",
+                      "required": [
+                        "file",
+                        "route",
+                        "bytes",
+                        "elements",
+                        "sha256",
+                        "format"
+                      ],
+                      "properties": {
+                        "file": {
+                          "const": "public/artifacts/numeric-polybench-panel/outputs/cholesky.linear-wasm-controlled.f64le"
+                        },
+                        "route": {
+                          "const": "/artifacts/numeric-polybench-panel/outputs/cholesky.linear-wasm-controlled.f64le"
+                        },
+                        "bytes": {
+                          "const": 12800
+                        },
+                        "elements": {
+                          "const": 1600
+                        },
+                        "sha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        },
+                        "format": {
+                          "const": "f64le-complete-output"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "comparison": {
+                      "type": "object",
+                      "required": [
+                        "passed",
+                        "violations",
+                        "maxAbs",
+                        "maxRel"
+                      ],
+                      "properties": {
+                        "passed": {
+                          "const": true
+                        },
+                        "violations": {
+                          "const": 0
+                        },
+                        "maxAbs": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1e-10
+                        },
+                        "maxRel": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1e-10
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "structuralOracle": {
+                      "type": "object",
+                      "required": [
+                        "passed",
+                        "failures"
+                      ],
+                      "properties": {
+                        "passed": {
+                          "const": true
+                        },
+                        "failures": {
+                          "const": []
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "checkpoints": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 0
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 400
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 800
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 1599
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      ],
+                      "minItems": 4,
+                      "maxItems": 4
+                    },
+                    "counters": {
+                      "const": {
+                        "target": "linear-wasm-controlled",
+                        "boundaryCrossings": 1,
+                        "wasmLinearAllocations": 0,
+                        "kernels": 1,
+                        "outputElements": 1600,
+                        "outputBytes": 12800,
+                        "inputBytes": 12800,
+                        "typedArrayAllocations": 5,
+                        "multiplySubtracts": 10660,
+                        "divisions": 780,
+                        "diagonalRoots": 40
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "stencil": {
+          "type": "object",
+          "required": [
+            "fixture",
+            "reference",
+            "targets"
+          ],
+          "properties": {
+            "fixture": {
+              "type": "object",
+              "required": [
+                "arrays",
+                "totalBytes"
+              ],
+              "properties": {
+                "arrays": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "bytes",
+                        "sha256"
+                      ],
+                      "properties": {
+                        "name": {
+                          "const": "a"
+                        },
+                        "bytes": {
+                          "const": 7200
+                        },
+                        "sha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "bytes",
+                        "sha256"
+                      ],
+                      "properties": {
+                        "name": {
+                          "const": "b"
+                        },
+                        "bytes": {
+                          "const": 7200
+                        },
+                        "sha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ],
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "totalBytes": {
+                  "const": 14400
+                }
+              },
+              "additionalProperties": false
+            },
+            "reference": {
+              "type": "object",
+              "required": [
+                "implementation",
+                "artifact",
+                "checkpoints"
+              ],
+              "properties": {
+                "implementation": {
+                  "const": "independent-clang-c-oracle"
+                },
+                "artifact": {
+                  "type": "object",
+                  "required": [
+                    "file",
+                    "route",
+                    "bytes",
+                    "elements",
+                    "sha256",
+                    "format"
+                  ],
+                  "properties": {
+                    "file": {
+                      "const": "public/artifacts/numeric-polybench-panel/outputs/stencil.reference.f64le"
+                    },
+                    "route": {
+                      "const": "/artifacts/numeric-polybench-panel/outputs/stencil.reference.f64le"
+                    },
+                    "bytes": {
+                      "const": 7200
+                    },
+                    "elements": {
+                      "const": 900
+                    },
+                    "sha256": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    },
+                    "format": {
+                      "const": "f64le-complete-output"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "checkpoints": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "index",
+                        "valueHex"
+                      ],
+                      "properties": {
+                        "index": {
+                          "const": 0
+                        },
+                        "valueHex": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{16}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "index",
+                        "valueHex"
+                      ],
+                      "properties": {
+                        "index": {
+                          "const": 225
+                        },
+                        "valueHex": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{16}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "index",
+                        "valueHex"
+                      ],
+                      "properties": {
+                        "index": {
+                          "const": 450
+                        },
+                        "valueHex": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{16}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "index",
+                        "valueHex"
+                      ],
+                      "properties": {
+                        "index": {
+                          "const": 899
+                        },
+                        "valueHex": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{16}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ],
+                  "minItems": 4,
+                  "maxItems": 4
+                }
+              },
+              "additionalProperties": false
+            },
+            "targets": {
+              "type": "object",
+              "required": [
+                "javascript-controlled",
+                "linear-wasm-controlled"
+              ],
+              "properties": {
+                "javascript-controlled": {
+                  "type": "object",
+                  "required": [
+                    "artifact",
+                    "comparison",
+                    "structuralOracle",
+                    "checkpoints",
+                    "counters"
+                  ],
+                  "properties": {
+                    "artifact": {
+                      "type": "object",
+                      "required": [
+                        "file",
+                        "route",
+                        "bytes",
+                        "elements",
+                        "sha256",
+                        "format"
+                      ],
+                      "properties": {
+                        "file": {
+                          "const": "public/artifacts/numeric-polybench-panel/outputs/stencil.javascript-controlled.f64le"
+                        },
+                        "route": {
+                          "const": "/artifacts/numeric-polybench-panel/outputs/stencil.javascript-controlled.f64le"
+                        },
+                        "bytes": {
+                          "const": 7200
+                        },
+                        "elements": {
+                          "const": 900
+                        },
+                        "sha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        },
+                        "format": {
+                          "const": "f64le-complete-output"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "comparison": {
+                      "type": "object",
+                      "required": [
+                        "passed",
+                        "violations",
+                        "maxAbs",
+                        "maxRel"
+                      ],
+                      "properties": {
+                        "passed": {
+                          "const": true
+                        },
+                        "violations": {
+                          "const": 0
+                        },
+                        "maxAbs": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1e-10
+                        },
+                        "maxRel": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1e-10
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "structuralOracle": {
+                      "type": "object",
+                      "required": [
+                        "passed",
+                        "failures"
+                      ],
+                      "properties": {
+                        "passed": {
+                          "const": true
+                        },
+                        "failures": {
+                          "const": []
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "checkpoints": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 0
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 225
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 450
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 899
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      ],
+                      "minItems": 4,
+                      "maxItems": 4
+                    },
+                    "counters": {
+                      "const": {
+                        "target": "javascript-controlled",
+                        "boundaryCrossings": 0,
+                        "wasmLinearAllocations": 0,
+                        "kernels": 1,
+                        "outputElements": 900,
+                        "outputBytes": 7200,
+                        "inputBytes": 14400,
+                        "typedArrayAllocations": 3,
+                        "stencilPoints": 784,
+                        "sampleReads": 3920,
+                        "outputWrites": 784
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "linear-wasm-controlled": {
+                  "type": "object",
+                  "required": [
+                    "artifact",
+                    "comparison",
+                    "structuralOracle",
+                    "checkpoints",
+                    "counters"
+                  ],
+                  "properties": {
+                    "artifact": {
+                      "type": "object",
+                      "required": [
+                        "file",
+                        "route",
+                        "bytes",
+                        "elements",
+                        "sha256",
+                        "format"
+                      ],
+                      "properties": {
+                        "file": {
+                          "const": "public/artifacts/numeric-polybench-panel/outputs/stencil.linear-wasm-controlled.f64le"
+                        },
+                        "route": {
+                          "const": "/artifacts/numeric-polybench-panel/outputs/stencil.linear-wasm-controlled.f64le"
+                        },
+                        "bytes": {
+                          "const": 7200
+                        },
+                        "elements": {
+                          "const": 900
+                        },
+                        "sha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        },
+                        "format": {
+                          "const": "f64le-complete-output"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "comparison": {
+                      "type": "object",
+                      "required": [
+                        "passed",
+                        "violations",
+                        "maxAbs",
+                        "maxRel"
+                      ],
+                      "properties": {
+                        "passed": {
+                          "const": true
+                        },
+                        "violations": {
+                          "const": 0
+                        },
+                        "maxAbs": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1e-10
+                        },
+                        "maxRel": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1e-10
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "structuralOracle": {
+                      "type": "object",
+                      "required": [
+                        "passed",
+                        "failures"
+                      ],
+                      "properties": {
+                        "passed": {
+                          "const": true
+                        },
+                        "failures": {
+                          "const": []
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "checkpoints": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 0
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 225
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 450
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 899
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      ],
+                      "minItems": 4,
+                      "maxItems": 4
+                    },
+                    "counters": {
+                      "const": {
+                        "target": "linear-wasm-controlled",
+                        "boundaryCrossings": 1,
+                        "wasmLinearAllocations": 0,
+                        "kernels": 1,
+                        "outputElements": 900,
+                        "outputBytes": 7200,
+                        "inputBytes": 14400,
+                        "typedArrayAllocations": 6,
+                        "stencilPoints": 784,
+                        "sampleReads": 3920,
+                        "outputWrites": 784
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "jacobi2d": {
+          "type": "object",
+          "required": [
+            "fixture",
+            "reference",
+            "targets"
+          ],
+          "properties": {
+            "fixture": {
+              "type": "object",
+              "required": [
+                "arrays",
+                "totalBytes"
+              ],
+              "properties": {
+                "arrays": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "bytes",
+                        "sha256"
+                      ],
+                      "properties": {
+                        "name": {
+                          "const": "a"
+                        },
+                        "bytes": {
+                          "const": 7200
+                        },
+                        "sha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "bytes",
+                        "sha256"
+                      ],
+                      "properties": {
+                        "name": {
+                          "const": "b"
+                        },
+                        "bytes": {
+                          "const": 7200
+                        },
+                        "sha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ],
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "totalBytes": {
+                  "const": 14400
+                }
+              },
+              "additionalProperties": false
+            },
+            "reference": {
+              "type": "object",
+              "required": [
+                "implementation",
+                "artifact",
+                "checkpoints"
+              ],
+              "properties": {
+                "implementation": {
+                  "const": "independent-clang-c-oracle"
+                },
+                "artifact": {
+                  "type": "object",
+                  "required": [
+                    "file",
+                    "route",
+                    "bytes",
+                    "elements",
+                    "sha256",
+                    "format"
+                  ],
+                  "properties": {
+                    "file": {
+                      "const": "public/artifacts/numeric-polybench-panel/outputs/jacobi2d.reference.f64le"
+                    },
+                    "route": {
+                      "const": "/artifacts/numeric-polybench-panel/outputs/jacobi2d.reference.f64le"
+                    },
+                    "bytes": {
+                      "const": 7200
+                    },
+                    "elements": {
+                      "const": 900
+                    },
+                    "sha256": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    },
+                    "format": {
+                      "const": "f64le-complete-output"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "checkpoints": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "index",
+                        "valueHex"
+                      ],
+                      "properties": {
+                        "index": {
+                          "const": 0
+                        },
+                        "valueHex": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{16}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "index",
+                        "valueHex"
+                      ],
+                      "properties": {
+                        "index": {
+                          "const": 225
+                        },
+                        "valueHex": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{16}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "index",
+                        "valueHex"
+                      ],
+                      "properties": {
+                        "index": {
+                          "const": 450
+                        },
+                        "valueHex": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{16}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "index",
+                        "valueHex"
+                      ],
+                      "properties": {
+                        "index": {
+                          "const": 899
+                        },
+                        "valueHex": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{16}$"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ],
+                  "minItems": 4,
+                  "maxItems": 4
+                }
+              },
+              "additionalProperties": false
+            },
+            "targets": {
+              "type": "object",
+              "required": [
+                "javascript-controlled",
+                "linear-wasm-controlled"
+              ],
+              "properties": {
+                "javascript-controlled": {
+                  "type": "object",
+                  "required": [
+                    "artifact",
+                    "comparison",
+                    "structuralOracle",
+                    "checkpoints",
+                    "counters"
+                  ],
+                  "properties": {
+                    "artifact": {
+                      "type": "object",
+                      "required": [
+                        "file",
+                        "route",
+                        "bytes",
+                        "elements",
+                        "sha256",
+                        "format"
+                      ],
+                      "properties": {
+                        "file": {
+                          "const": "public/artifacts/numeric-polybench-panel/outputs/jacobi2d.javascript-controlled.f64le"
+                        },
+                        "route": {
+                          "const": "/artifacts/numeric-polybench-panel/outputs/jacobi2d.javascript-controlled.f64le"
+                        },
+                        "bytes": {
+                          "const": 7200
+                        },
+                        "elements": {
+                          "const": 900
+                        },
+                        "sha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        },
+                        "format": {
+                          "const": "f64le-complete-output"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "comparison": {
+                      "type": "object",
+                      "required": [
+                        "passed",
+                        "violations",
+                        "maxAbs",
+                        "maxRel"
+                      ],
+                      "properties": {
+                        "passed": {
+                          "const": true
+                        },
+                        "violations": {
+                          "const": 0
+                        },
+                        "maxAbs": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1e-10
+                        },
+                        "maxRel": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1e-10
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "structuralOracle": {
+                      "type": "object",
+                      "required": [
+                        "passed",
+                        "failures"
+                      ],
+                      "properties": {
+                        "passed": {
+                          "const": true
+                        },
+                        "failures": {
+                          "const": []
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "checkpoints": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 0
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 225
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 450
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 899
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      ],
+                      "minItems": 4,
+                      "maxItems": 4
+                    },
+                    "counters": {
+                      "const": {
+                        "target": "javascript-controlled",
+                        "boundaryCrossings": 0,
+                        "wasmLinearAllocations": 0,
+                        "kernels": 1,
+                        "outputElements": 900,
+                        "outputBytes": 7200,
+                        "inputBytes": 14400,
+                        "typedArrayAllocations": 4,
+                        "stencilPoints": 31360,
+                        "sampleReads": 156800,
+                        "outputWrites": 31360
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "linear-wasm-controlled": {
+                  "type": "object",
+                  "required": [
+                    "artifact",
+                    "comparison",
+                    "structuralOracle",
+                    "checkpoints",
+                    "counters"
+                  ],
+                  "properties": {
+                    "artifact": {
+                      "type": "object",
+                      "required": [
+                        "file",
+                        "route",
+                        "bytes",
+                        "elements",
+                        "sha256",
+                        "format"
+                      ],
+                      "properties": {
+                        "file": {
+                          "const": "public/artifacts/numeric-polybench-panel/outputs/jacobi2d.linear-wasm-controlled.f64le"
+                        },
+                        "route": {
+                          "const": "/artifacts/numeric-polybench-panel/outputs/jacobi2d.linear-wasm-controlled.f64le"
+                        },
+                        "bytes": {
+                          "const": 7200
+                        },
+                        "elements": {
+                          "const": 900
+                        },
+                        "sha256": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        },
+                        "format": {
+                          "const": "f64le-complete-output"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "comparison": {
+                      "type": "object",
+                      "required": [
+                        "passed",
+                        "violations",
+                        "maxAbs",
+                        "maxRel"
+                      ],
+                      "properties": {
+                        "passed": {
+                          "const": true
+                        },
+                        "violations": {
+                          "const": 0
+                        },
+                        "maxAbs": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1e-10
+                        },
+                        "maxRel": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1e-10
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "structuralOracle": {
+                      "type": "object",
+                      "required": [
+                        "passed",
+                        "failures"
+                      ],
+                      "properties": {
+                        "passed": {
+                          "const": true
+                        },
+                        "failures": {
+                          "const": []
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "checkpoints": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 0
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 225
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 450
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "index",
+                            "valueHex"
+                          ],
+                          "properties": {
+                            "index": {
+                              "const": 899
+                            },
+                            "valueHex": {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{16}$"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      ],
+                      "minItems": 4,
+                      "maxItems": 4
+                    },
+                    "counters": {
+                      "const": {
+                        "target": "linear-wasm-controlled",
+                        "boundaryCrossings": 1,
+                        "wasmLinearAllocations": 0,
+                        "kernels": 1,
+                        "outputElements": 900,
+                        "outputBytes": 7200,
+                        "inputBytes": 14400,
+                        "typedArrayAllocations": 6,
+                        "stencilPoints": 31360,
+                        "sampleReads": 156800,
+                        "outputWrites": 31360
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "limitations": {
+      "const": [
+        "No performance evidence or claim.",
+        "Owned-browser evidence remains an independent acceptance-controller step."
+      ]
+    }
   },
   "additionalProperties": false
 }

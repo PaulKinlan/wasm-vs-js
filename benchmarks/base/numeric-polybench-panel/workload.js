@@ -2,6 +2,8 @@
 // Both targets use f64 row-major arrays, identical loop order, and no target-specific substitution.
 
 export const CONTRACT_ID = "numeric.polybench-panel.v1-supplemental-contract-v1";
+export const KERNEL_IDS = Object.freeze(["gemm", "cholesky", "stencil", "jacobi2d"]);
+export const TARGET_IDS = Object.freeze(["javascript-controlled", "linear-wasm-controlled"]);
 export const DIMENSIONS = Object.freeze({
   gemm: Object.freeze({ ni: 20, nj: 25, nk: 30 }),
   cholesky: Object.freeze({ n: 40 }),
@@ -199,16 +201,25 @@ export function compareNumeric(actual, expected, policy = FP_POLICY) {
   return { passed: violations === 0, violations, maxAbs, maxRel };
 }
 
-export function countersFor(kernel, dimensions = DIMENSIONS) {
+export function countersFor(kernel, target, dimensions = DIMENSIONS) {
+  if (!TARGET_IDS.includes(target)) throw new Error(`unknown target ${target}`);
+  const wasm = target === "linear-wasm-controlled";
+  const targetCounters = {
+    target,
+    boundaryCrossings: wasm ? 1 : 0,
+    wasmLinearAllocations: 0,
+  };
   if (kernel === "gemm") {
     const { ni, nj, nk } = dimensions.gemm;
     return {
+      ...targetCounters,
       kernels: 1,
       outputElements: ni * nj,
+      outputBytes: ni * nj * 8,
       multiplyAdds: ni * nj * nk,
       scaleMultiplications: ni * nj,
       inputBytes: (ni * nk + nk * nj + ni * nj) * 8,
-      boundaryCrossings: 1,
+      typedArrayAllocations: wasm ? 8 : 4,
     };
   }
   if (kernel === "cholesky") {
@@ -216,21 +227,104 @@ export function countersFor(kernel, dimensions = DIMENSIONS) {
     let products = 0;
     for (let i = 0; i < n; i++) for (let j = 0; j <= i; j++) products += j;
     return {
+      ...targetCounters,
       kernels: 1,
       outputElements: n * n,
+      outputBytes: n * n * 8,
       multiplySubtracts: products,
+      divisions: n * (n - 1) / 2,
       diagonalRoots: n,
       inputBytes: n * n * 8,
-      boundaryCrossings: 1,
+      typedArrayAllocations: wasm ? 5 : 3,
     };
   }
+  if (kernel !== "stencil" && kernel !== "jacobi2d") throw new Error(`unknown kernel ${kernel}`);
   const d = kernel === "stencil" ? dimensions.stencil : dimensions.jacobi2d;
   const sweeps = kernel === "stencil" ? d.sweeps : d.timesteps * d.sweepsPerTimestep;
+  const points = (d.n - 2) ** 2 * sweeps;
   return {
+    ...targetCounters,
     kernels: 1,
     outputElements: d.n * d.n,
-    stencilPoints: (d.n - 2) ** 2 * sweeps,
-    inputBytes: d.n * d.n * 8,
-    boundaryCrossings: 1,
+    outputBytes: d.n * d.n * 8,
+    stencilPoints: points,
+    sampleReads: points * 5,
+    outputWrites: points,
+    inputBytes: d.n * d.n * 8 * 2,
+    typedArrayAllocations: wasm ? 6 : kernel === "stencil" ? 3 : 4,
   };
+}
+
+export function checkpointIndices(length) {
+  return [...new Set([0, Math.floor(length / 4), Math.floor(length / 2), length - 1])];
+}
+
+export function checkpointBits(values) {
+  const view = new DataView(new ArrayBuffer(8));
+  return checkpointIndices(values.length).map((index) => {
+    view.setFloat64(0, values[index], true);
+    return { index, valueHex: view.getBigUint64(0, true).toString(16).padStart(16, "0") };
+  });
+}
+
+export function validateStructure(kernel, output, fixture) {
+  const failures = [];
+  for (let index = 0; index < output.length; index++) {
+    if (!Number.isFinite(output[index])) failures.push(`non-finite:${index}`);
+  }
+  if (kernel === "gemm") {
+    if (output.length !== fixture.ni * fixture.nj) failures.push("length");
+    for (const p of checkpointIndices(output.length)) {
+      const i = Math.floor(p / fixture.nj), j = p % fixture.nj;
+      let expected = fixture.c[p] * fixture.beta;
+      for (let k = 0; k < fixture.nk; k++) {
+        expected += fixture.alpha * fixture.a[i * fixture.nk + k] * fixture.b[k * fixture.nj + j];
+      }
+      if (Math.abs(output[p] - expected) > FP_POLICY.absoluteTolerance) {
+        failures.push(`checkpoint:${p}`);
+      }
+    }
+  } else if (kernel === "cholesky") {
+    if (output.length !== fixture.n * fixture.n) failures.push("length");
+    for (let i = 0; i < fixture.n; i++) {
+      if (!(output[i * fixture.n + i] > 0)) failures.push(`diagonal:${i}`);
+      for (let j = 0; j < fixture.n; j++) {
+        if (j > i && output[i * fixture.n + j] !== 0) failures.push(`upper:${i},${j}`);
+        let reconstructed = 0;
+        for (let k = 0; k < fixture.n; k++) {
+          reconstructed += output[i * fixture.n + k] * output[j * fixture.n + k];
+        }
+        if (Math.abs(reconstructed - fixture.a[i * fixture.n + j]) > FP_POLICY.absoluteTolerance) {
+          failures.push(`reconstruct:${i},${j}`);
+        }
+      }
+    }
+  } else if (kernel === "stencil") {
+    const n = fixture.n;
+    if (output.length !== n * n) failures.push("length");
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        const p = i * n + j;
+        const boundary = i === 0 || j === 0 || i === n - 1 || j === n - 1;
+        const expected = boundary ? fixture.b[p] : 0.2 *
+          (fixture.a[p] + fixture.a[p - 1] + fixture.a[p + 1] + fixture.a[p - n] +
+            fixture.a[p + n]);
+        if (Math.abs(output[p] - expected) > FP_POLICY.absoluteTolerance) {
+          failures.push(`cell:${p}`);
+        }
+      }
+    }
+  } else if (kernel === "jacobi2d") {
+    const n = fixture.n;
+    if (output.length !== n * n) failures.push("length");
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        if (i === 0 || j === 0 || i === n - 1 || j === n - 1) {
+          const p = i * n + j;
+          if (output[p] !== fixture.a[p]) failures.push(`boundary:${p}`);
+        }
+      }
+    }
+  } else failures.push("unknown-kernel");
+  return { passed: failures.length === 0, failures };
 }
