@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "workloadId": "document.pdf-viewer.v1",
-  "sourceCommit": "74144c94f363beaa10e07f990271465c380cdb20",
+  "sourceCommit": "48086e1318dab1bcfd55ea29abb2b4901d62848a",
   "status": "passed-static",
   "fixture": {
     "path": "public/artifacts/document-pdf-viewer/report-100-pages.pdf",
@@ -64,6 +64,23 @@
   },
   "independentReference": {
     "engine": "pdfinfo version 26.07.0\nCopyright 2005-2026 The Poppler Developers - http://poppler.freedesktop.org\nCopyright 1996-2011, 2022 Glyph & Cog, LLC",
+    "executables": [
+      {
+        "name": "pdfinfo",
+        "path": "/usr/bin/pdfinfo",
+        "sha256": "dbd8d0d6d07ee4e31069736a05e922e4f66741120622e180d638a4eef4acf94a"
+      },
+      {
+        "name": "pdftotext",
+        "path": "/usr/bin/pdftotext",
+        "sha256": "b818789548c7432844009e9e137576c9e692143a1b704df884f927d2ea320bda"
+      },
+      {
+        "name": "pdftoppm",
+        "path": "/usr/bin/pdftoppm",
+        "sha256": "dcccbc24c3bdea27f5b0b2acc1f7ea3f64619c96a537a20ff3e558c968803033"
+      }
+    ],
     "pageCount": 100,
     "extractedTextRecords": 100,
     "searchHits": 10,
