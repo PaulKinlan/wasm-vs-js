@@ -838,7 +838,7 @@ async function runCollector(): Promise<void> {
             cdpBodyEncoding: null,
           });
         }),
-        client.on("Network.responseReceived", (params, eventSession) => {
+        client.on("Network.responseReceived", (params, _eventSession) => {
           const record = requests.get(String(params.requestId));
           if (!record) return;
           const response = params.response as Record<string, unknown>;
@@ -849,7 +849,7 @@ async function runCollector(): Promise<void> {
             fromServiceWorker: Boolean(response.fromServiceWorker),
           });
         }),
-        client.on("Network.loadingFailed", (params, eventSession) => {
+        client.on("Network.loadingFailed", (params, _eventSession) => {
           const record = requests.get(String(params.requestId));
           if (record) Object.assign(record, { failed: true, errorText: String(params.errorText) });
         }),
