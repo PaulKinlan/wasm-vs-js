@@ -1,0 +1,944 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.ai-focus.dev/schemas/base-audio-webaudio-effects-browser-evidence.v1.json",
+  "title": "audio.webaudio-effects.v1 authoritative owned Chrome browser evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "workload",
+    "evidenceId",
+    "collectedAt",
+    "acceptedStaticCommit",
+    "source",
+    "collector",
+    "browser",
+    "server",
+    "contract",
+    "scenarios",
+    "cleanup"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "workload": { "const": "audio.webaudio-effects.v1" },
+    "evidenceId": {
+      "type": "string",
+      "pattern": "^audio-webaudio-effects-browser-[a-f0-9]{12}$"
+    },
+    "collectedAt": { "type": "string", "format": "date-time" },
+    "acceptedStaticCommit": {
+      "const": "1f48dc3adf1f42f698bbe50c5787a193905af72a"
+    },
+    "source": { "$ref": "#/$defs/source" },
+    "collector": { "$ref": "#/$defs/collector" },
+    "browser": { "$ref": "#/$defs/browser" },
+    "server": { "$ref": "#/$defs/server" },
+    "contract": { "$ref": "#/$defs/contract" },
+    "scenarios": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "prefixItems": [
+        {
+          "allOf": [
+            { "$ref": "#/$defs/completeScenario" },
+            { "$ref": "#/$defs/javascriptComplete" }
+          ]
+        },
+        { "allOf": [{ "$ref": "#/$defs/completeScenario" }, { "$ref": "#/$defs/wasmComplete" }] },
+        { "allOf": [{ "$ref": "#/$defs/lifecycleScenario" }, { "$ref": "#/$defs/wrongToken" }] },
+        { "allOf": [{ "$ref": "#/$defs/lifecycleScenario" }, { "$ref": "#/$defs/staleRestart" }] },
+        { "allOf": [{ "$ref": "#/$defs/lifecycleScenario" }, { "$ref": "#/$defs/restart" }] },
+        { "allOf": [{ "$ref": "#/$defs/lifecycleScenario" }, { "$ref": "#/$defs/cancel" }] },
+        { "allOf": [{ "$ref": "#/$defs/lifecycleScenario" }, { "$ref": "#/$defs/timeout" }] },
+        { "allOf": [{ "$ref": "#/$defs/lifecycleScenario" }, { "$ref": "#/$defs/pagehide" }] }
+      ],
+      "items": false
+    },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["browserProcesses", "cgroup", "profile", "server"],
+      "properties": {
+        "browserProcesses": { "$ref": "#/$defs/successCleanup" },
+        "cgroup": { "$ref": "#/$defs/successCleanup" },
+        "profile": { "$ref": "#/$defs/successCleanup" },
+        "server": { "$ref": "#/$defs/successCleanup" }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "gitIdentity": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "cdpIdentity": { "type": "string", "minLength": 1 },
+    "sourceIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commit", "tree", "cleanStatus"],
+      "properties": {
+        "commit": { "$ref": "#/$defs/gitIdentity" },
+        "tree": { "$ref": "#/$defs/gitIdentity" },
+        "cleanStatus": { "const": "clean" }
+      }
+    },
+    "fileRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["route", "sourcePath", "bytes", "sha256", "gitBlob"],
+      "properties": {
+        "route": { "type": "string", "pattern": "^/" },
+        "sourcePath": { "type": "string", "pattern": "^(public|benchmarks)/" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "gitBlob": { "$ref": "#/$defs/gitIdentity" }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start", "end", "unchanged", "root", "assets"],
+      "properties": {
+        "start": { "$ref": "#/$defs/sourceIdentity" },
+        "end": { "$ref": "#/$defs/sourceIdentity" },
+        "unchanged": { "const": true },
+        "root": { "type": "string", "pattern": "^/" },
+        "assets": {
+          "type": "array",
+          "minItems": 8,
+          "maxItems": 8,
+          "prefixItems": [
+            {
+              "allOf": [
+                { "$ref": "#/$defs/fileRecord" },
+                {
+                  "properties": {
+                    "route": { "const": "/benchmarks/base/audio-webaudio-effects-v1/" },
+                    "sourcePath": {
+                      "const": "public/benchmarks/base/audio-webaudio-effects-v1/index.html"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                { "$ref": "#/$defs/fileRecord" },
+                {
+                  "properties": {
+                    "route": { "const": "/styles.css" },
+                    "sourcePath": { "const": "public/styles.css" }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                { "$ref": "#/$defs/fileRecord" },
+                {
+                  "properties": {
+                    "route": { "const": "/base-audio-effects-demo.js" },
+                    "sourcePath": { "const": "public/base-audio-effects-demo.js" }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                { "$ref": "#/$defs/fileRecord" },
+                {
+                  "properties": {
+                    "route": { "const": "/base-audio-effects-worker.js" },
+                    "sourcePath": { "const": "public/base-audio-effects-worker.js" }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                { "$ref": "#/$defs/fileRecord" },
+                {
+                  "properties": {
+                    "route": { "const": "/benchmarks/base/audio-webaudio-effects/workload.js" },
+                    "sourcePath": { "const": "benchmarks/base/audio-webaudio-effects/workload.js" }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                { "$ref": "#/$defs/fileRecord" },
+                {
+                  "properties": {
+                    "route": {
+                      "const": "/artifacts/base-audio-webaudio-effects-v1/build-manifest.json"
+                    },
+                    "sourcePath": {
+                      "const": "public/artifacts/base-audio-webaudio-effects-v1/build-manifest.json"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                { "$ref": "#/$defs/fileRecord" },
+                {
+                  "properties": {
+                    "route": {
+                      "const": "/artifacts/base-audio-webaudio-effects-v1/output-manifest.json"
+                    },
+                    "sourcePath": {
+                      "const": "public/artifacts/base-audio-webaudio-effects-v1/output-manifest.json"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                { "$ref": "#/$defs/fileRecord" },
+                {
+                  "properties": {
+                    "route": {
+                      "const": "/artifacts/base-audio-webaudio-effects-v1/audio-webaudio-effects.wasm"
+                    },
+                    "sourcePath": {
+                      "const": "public/artifacts/base-audio-webaudio-effects-v1/audio-webaudio-effects.wasm"
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "items": false
+        }
+      }
+    },
+    "collector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["script", "bytes", "sha256", "command", "denoVersion"],
+      "properties": {
+        "script": { "const": "scripts/collect-base-audio-webaudio-effects-browser-evidence.ts" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "command": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "denoVersion": { "type": "string", "minLength": 1 }
+      }
+    },
+    "processIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pid", "parentPid", "startTimeTicks", "executable"],
+      "properties": {
+        "pid": { "type": "integer", "minimum": 2 },
+        "parentPid": { "type": "integer", "minimum": 0 },
+        "startTimeTicks": { "type": "string", "pattern": "^[0-9]+$" },
+        "executable": { "type": "string", "pattern": "^/" }
+      }
+    },
+    "memberSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["at", "pids"],
+      "properties": {
+        "at": { "type": "string", "format": "date-time" },
+        "pids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "integer", "minimum": 2 }
+        }
+      }
+    },
+    "cgroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit",
+        "controlGroup",
+        "path",
+        "device",
+        "inode",
+        "invocationId",
+        "mainPid",
+        "memberSnapshots"
+      ],
+      "properties": {
+        "unit": { "type": "string", "pattern": "^wasm-audio-effects-[a-f0-9]{16}\\.service$" },
+        "controlGroup": { "type": "string", "pattern": "^/" },
+        "path": { "type": "string", "pattern": "^/sys/fs/cgroup/" },
+        "device": { "type": "integer", "minimum": 1 },
+        "inode": { "type": "integer", "minimum": 1 },
+        "invocationId": { "type": "string", "pattern": "^[a-f0-9]{32}$" },
+        "mainPid": { "type": "integer", "minimum": 2 },
+        "memberSnapshots": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/$defs/memberSnapshot" }
+        }
+      }
+    },
+    "browser": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "product",
+        "revision",
+        "userAgent",
+        "jsVersion",
+        "executable",
+        "executableBytes",
+        "executableSha256",
+        "executableDevice",
+        "executableInode",
+        "launchArguments",
+        "effectiveArguments",
+        "headless",
+        "protocol",
+        "profile",
+        "cgroup",
+        "processes"
+      ],
+      "properties": {
+        "product": { "const": "Chrome/150.0.7871.24" },
+        "revision": { "type": "string", "minLength": 1 },
+        "userAgent": { "type": "string", "minLength": 1 },
+        "jsVersion": { "type": "string", "minLength": 1 },
+        "executable": {
+          "type": "string",
+          "pattern": "/chrome/linux-150\\.0\\.7871\\.24/chrome-linux64/chrome$"
+        },
+        "executableBytes": { "const": 281758968 },
+        "executableSha256": {
+          "const": "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355"
+        },
+        "executableDevice": { "type": "integer", "minimum": 1 },
+        "executableInode": { "type": "integer", "minimum": 1 },
+        "launchArguments": {
+          "type": "array",
+          "minItems": 20,
+          "maxItems": 20,
+          "prefixItems": [
+            { "type": "string", "pattern": "^--user-data-dir=/tmp/wasm-audio-effects-cft-" },
+            { "const": "--remote-debugging-port=0" },
+            { "const": "--remote-debugging-address=127.0.0.1" },
+            { "const": "--headless=new" },
+            { "const": "--no-sandbox" },
+            { "const": "--disable-gpu" },
+            { "const": "--disable-background-networking" },
+            { "const": "--disable-component-update" },
+            { "const": "--disable-default-apps" },
+            { "const": "--disable-extensions" },
+            { "const": "--disable-sync" },
+            { "const": "--disable-crash-reporter" },
+            { "const": "--disable-breakpad" },
+            { "const": "--metrics-recording-only" },
+            { "const": "--no-first-run" },
+            { "const": "--no-default-browser-check" },
+            { "const": "--hide-scrollbars" },
+            { "const": "--enable-automation" },
+            { "const": "--window-size=1440,1200" },
+            { "const": "about:blank" }
+          ],
+          "items": false
+        },
+        "effectiveArguments": {
+          "type": "array",
+          "minItems": 20,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "headless": { "const": true },
+        "protocol": { "const": "Chrome DevTools Protocol" },
+        "profile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "device", "inode", "mode", "createdEmpty"],
+          "properties": {
+            "path": { "type": "string", "pattern": "^/tmp/wasm-audio-effects-cft-" },
+            "device": { "type": "integer", "minimum": 1 },
+            "inode": { "type": "integer", "minimum": 1 },
+            "mode": { "const": 448 },
+            "createdEmpty": { "const": true }
+          }
+        },
+        "cgroup": { "$ref": "#/$defs/cgroup" },
+        "processes": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/processIdentity" }
+        }
+      }
+    },
+    "server": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin", "mode", "launcher"],
+      "properties": {
+        "origin": { "type": "string", "pattern": "^http://127\\.0\\.0\\.1:[0-9]+$" },
+        "mode": { "const": "public" },
+        "launcher": { "$ref": "#/$defs/processIdentity" }
+      }
+    },
+    "oracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "absoluteTolerance",
+        "relativeTolerance",
+        "maxAbsolute",
+        "maxRelative",
+        "violations",
+        "nonFinite"
+      ],
+      "properties": {
+        "kind": { "const": "full-output-f64-tolerance" },
+        "absoluteTolerance": { "const": 0.00002 },
+        "relativeTolerance": { "const": 0.0002 },
+        "maxAbsolute": { "const": 0.0000018638636976597844 },
+        "maxRelative": { "const": 0.24027635719300827 },
+        "violations": { "const": 0 },
+        "nonFinite": { "const": 0 }
+      }
+    },
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "seconds",
+        "channels",
+        "frames",
+        "outputFrames",
+        "outputBytes",
+        "outputSha256",
+        "targets",
+        "blocksPerChannel",
+        "blockInvocations",
+        "stateCarryBoundaries",
+        "oracle",
+        "performanceClaim"
+      ],
+      "properties": {
+        "seconds": { "const": 60 },
+        "channels": { "const": 2 },
+        "frames": { "const": 2880000 },
+        "outputFrames": { "const": 2880015 },
+        "outputBytes": { "const": 23040120 },
+        "outputSha256": {
+          "const": "fba0623a3af7679b1e95b79c7f454c38e1ac2123de5ebf3a7a86bc43bff16550"
+        },
+        "targets": { "const": ["javascript", "wasm-linear"] },
+        "blocksPerChannel": { "const": 22500 },
+        "blockInvocations": { "const": 45000 },
+        "stateCarryBoundaries": { "const": 44998 },
+        "oracle": { "$ref": "#/$defs/oracle" },
+        "performanceClaim": { "const": false }
+      }
+    },
+    "targetIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targetId", "sessionId"],
+      "properties": {
+        "targetId": { "$ref": "#/$defs/cdpIdentity" },
+        "sessionId": { "$ref": "#/$defs/cdpIdentity" }
+      }
+    },
+    "consoleEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["context", "type", "arguments", "timestamp"],
+      "properties": {
+        "context": { "enum": ["page", "worker"] },
+        "type": { "type": "string", "minLength": 1 },
+        "arguments": { "type": "array", "items": { "type": "string" } },
+        "timestamp": { "type": "number", "minimum": 0 }
+      }
+    },
+    "exceptionEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["context", "text", "lineNumber", "columnNumber"],
+      "properties": {
+        "context": { "enum": ["page", "worker"] },
+        "text": { "type": "string", "minLength": 1 },
+        "lineNumber": { "type": "integer", "minimum": 0 },
+        "columnNumber": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "supportedBody": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "bytes", "sha256", "base64", "sourcePath", "gitBlob"],
+      "properties": {
+        "status": { "const": "supported" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "base64": { "type": "string", "pattern": "^[A-Za-z0-9+/]*={0,2}$" },
+        "sourcePath": { "type": "string", "pattern": "^(public|benchmarks)/" },
+        "gitBlob": { "$ref": "#/$defs/gitIdentity" }
+      }
+    },
+    "unavailableBody": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reason"],
+      "properties": {
+        "status": { "const": "unavailable" },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "networkEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "context",
+        "sessionId",
+        "requestId",
+        "url",
+        "method",
+        "resourceType",
+        "status",
+        "mimeType",
+        "fromDiskCache",
+        "fromServiceWorker",
+        "failed",
+        "responseBody"
+      ],
+      "properties": {
+        "context": { "enum": ["page", "worker"] },
+        "sessionId": { "$ref": "#/$defs/cdpIdentity" },
+        "requestId": { "$ref": "#/$defs/cdpIdentity" },
+        "url": {
+          "type": "string",
+          "pattern": "^(http://127\\.0\\.0\\.1:[0-9]+/|blob:http://127\\.0\\.0\\.1:[0-9]+/)"
+        },
+        "method": { "const": "GET" },
+        "resourceType": { "type": "string", "minLength": 1 },
+        "status": { "const": 200 },
+        "mimeType": { "type": "string" },
+        "fromDiskCache": { "const": false },
+        "fromServiceWorker": { "const": false },
+        "failed": { "const": false },
+        "responseBody": {
+          "oneOf": [
+            { "$ref": "#/$defs/supportedBody" },
+            { "$ref": "#/$defs/unavailableBody" }
+          ]
+        }
+      }
+    },
+    "executedScript": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "context",
+        "sessionId",
+        "route",
+        "sourcePath",
+        "bytes",
+        "sha256",
+        "base64",
+        "gitBlob"
+      ],
+      "properties": {
+        "context": { "enum": ["page", "worker"] },
+        "sessionId": { "$ref": "#/$defs/cdpIdentity" },
+        "route": { "type": "string", "pattern": "\\.js$" },
+        "sourcePath": { "type": "string", "pattern": "^(public|benchmarks)/.*\\.js$" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "base64": { "type": "string", "pattern": "^[A-Za-z0-9+/]*={0,2}$" },
+        "gitBlob": { "$ref": "#/$defs/gitIdentity" }
+      }
+    },
+    "accessibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bodyText", "statusText", "resultText", "axText"],
+      "properties": {
+        "bodyText": { "type": "string", "minLength": 1 },
+        "statusText": { "type": "string", "minLength": 1 },
+        "resultText": { "type": "string" },
+        "axText": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["role", "name"],
+            "properties": {
+              "role": { "type": "string", "minLength": 1 },
+              "name": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    },
+    "screenshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file", "bytes", "sha256"],
+      "properties": {
+        "file": { "type": "string", "pattern": "^screenshots/[a-z0-9-]+\\.png$" },
+        "bytes": { "type": "integer", "minimum": 8 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "finalState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "output", "progress", "startDisabled", "cancelDisabled"],
+      "properties": {
+        "status": { "type": "string", "minLength": 1 },
+        "output": { "type": "string" },
+        "progress": { "type": "number", "minimum": 0, "maximum": 4 },
+        "startDisabled": { "type": "boolean" },
+        "cancelDisabled": { "type": "boolean" }
+      }
+    },
+    "observations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "blocksPerChannel",
+        "blockInvocations",
+        "stateCarryBoundaries",
+        "tailFlushInvocations",
+        "tailFlushFrames",
+        "processingBoundaryCrossings"
+      ],
+      "properties": {
+        "blocksPerChannel": { "const": [22500, 22500] },
+        "blockInvocations": { "const": 45000 },
+        "stateCarryBoundaries": { "const": 44998 },
+        "tailFlushInvocations": { "const": 2 },
+        "tailFlushFrames": { "const": 30 },
+        "processingBoundaryCrossings": { "enum": [0, 45002] }
+      }
+    },
+    "counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "channels",
+        "input-frames",
+        "input-samples",
+        "blocks-per-channel",
+        "block-invocations",
+        "output-frames",
+        "output-samples",
+        "biquad-samples",
+        "compressor-detector-updates",
+        "convolution-macs",
+        "state-carry-boundaries-per-channel",
+        "state-carry-boundaries",
+        "tail-flush-invocations",
+        "tail-flush-frames-per-channel",
+        "tail-flush-frames",
+        "fixture-allocations",
+        "allocations",
+        "validation-output-copies",
+        "boundary-crossings"
+      ],
+      "properties": {
+        "channels": { "const": 2 },
+        "input-frames": { "const": 2880000 },
+        "input-samples": { "const": 5760000 },
+        "blocks-per-channel": { "const": 22500 },
+        "block-invocations": { "const": 45000 },
+        "output-frames": { "const": 2880015 },
+        "output-samples": { "const": 5760030 },
+        "biquad-samples": { "const": 5760000 },
+        "compressor-detector-updates": { "const": 5760000 },
+        "convolution-macs": { "const": 92160480 },
+        "state-carry-boundaries-per-channel": { "const": 22499 },
+        "state-carry-boundaries": { "const": 44998 },
+        "tail-flush-invocations": { "const": 2 },
+        "tail-flush-frames-per-channel": { "const": 15 },
+        "tail-flush-frames": { "const": 30 },
+        "fixture-allocations": { "const": 2 },
+        "allocations": { "enum": [0, 4] },
+        "validation-output-copies": { "enum": [0, 2] },
+        "boundary-crossings": { "enum": [0, 45002] }
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target",
+        "completeOutputSha256",
+        "completeOutputBytes",
+        "observations",
+        "counters",
+        "oracle",
+        "passed"
+      ],
+      "properties": {
+        "target": { "enum": ["javascript", "wasm-linear"] },
+        "completeOutputSha256": {
+          "const": "fba0623a3af7679b1e95b79c7f454c38e1ac2123de5ebf3a7a86bc43bff16550"
+        },
+        "completeOutputBytes": { "const": 23040120 },
+        "observations": { "$ref": "#/$defs/observations" },
+        "counters": { "$ref": "#/$defs/counters" },
+        "oracle": { "$ref": "#/$defs/oracle" },
+        "passed": { "const": true }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "target": { "const": "javascript" } } },
+          "then": {
+            "properties": {
+              "observations": { "properties": { "processingBoundaryCrossings": { "const": 0 } } },
+              "counters": {
+                "properties": {
+                  "allocations": { "const": 4 },
+                  "validation-output-copies": { "const": 0 },
+                  "boundary-crossings": { "const": 0 }
+                }
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "observations": {
+                "properties": { "processingBoundaryCrossings": { "const": 45002 } }
+              },
+              "counters": {
+                "properties": {
+                  "allocations": { "const": 0 },
+                  "validation-output-copies": { "const": 2 },
+                  "boundary-crossings": { "const": 45002 }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "rawExecution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bytes", "sha256", "base64"],
+      "properties": {
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "base64": { "type": "string", "pattern": "^[A-Za-z0-9+/]*={0,2}$" }
+      }
+    },
+    "workloadBlob": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["objectUrl", "mimeType", "bytes", "sha256", "base64"],
+      "properties": {
+        "objectUrl": { "type": "string", "pattern": "^blob:http://127\\.0\\.0\\.1:[0-9]+/" },
+        "mimeType": { "const": "text/javascript" },
+        "bytes": { "const": 10477 },
+        "sha256": { "const": "61d09e66febd9fa65916472219198306aa43e4d7a9095c8d94aa1daa6f6b4174" },
+        "base64": { "type": "string", "pattern": "^[A-Za-z0-9+/]*={0,2}$" }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["workloadBlob", "wasmModules", "completedWorkerImportedBlob"],
+      "properties": {
+        "workloadBlob": { "$ref": "#/$defs/workloadBlob" },
+        "wasmModules": {
+          "type": "array",
+          "maxItems": 1,
+          "items": {
+            "allOf": [
+              { "$ref": "#/$defs/rawExecution" },
+              {
+                "properties": {
+                  "bytes": { "const": 784 },
+                  "sha256": {
+                    "const": "495d214fd2b8970cd212de10346ba97a6f50813aa9735e85cc51f6e202935328"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "completedWorkerImportedBlob": { "const": true }
+      }
+    },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checks"],
+      "properties": {
+        "checks": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "scenarioCommonProperties": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "action",
+        "target",
+        "pageTarget",
+        "workerTargets",
+        "statusHistory",
+        "finalState",
+        "network",
+        "executedScripts",
+        "console",
+        "exceptions",
+        "accessibility",
+        "screenshot"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "action": {
+          "enum": [
+            "complete",
+            "wrong-token",
+            "stale-restart",
+            "restart",
+            "cancel",
+            "timeout",
+            "pagehide"
+          ]
+        },
+        "target": { "enum": ["javascript", "wasm-linear"] },
+        "pageTarget": { "$ref": "#/$defs/targetIdentity" },
+        "workerTargets": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/targetIdentity" }
+        },
+        "statusHistory": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "finalState": { "$ref": "#/$defs/finalState" },
+        "network": {
+          "type": "array",
+          "minItems": 4,
+          "items": { "$ref": "#/$defs/networkEntry" }
+        },
+        "executedScripts": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/$defs/executedScript" }
+        },
+        "console": { "type": "array", "items": { "$ref": "#/$defs/consoleEntry" } },
+        "exceptions": { "type": "array", "maxItems": 0 },
+        "accessibility": { "$ref": "#/$defs/accessibility" },
+        "screenshot": { "$ref": "#/$defs/screenshot" },
+        "result": { "$ref": "#/$defs/result" },
+        "execution": { "$ref": "#/$defs/execution" },
+        "lifecycle": { "$ref": "#/$defs/lifecycle" }
+      }
+    },
+    "completeScenario": {
+      "allOf": [
+        { "$ref": "#/$defs/scenarioCommonProperties" },
+        {
+          "required": ["result", "execution"],
+          "properties": { "action": { "const": "complete" } }
+        }
+      ]
+    },
+    "lifecycleScenario": {
+      "allOf": [
+        { "$ref": "#/$defs/scenarioCommonProperties" },
+        { "required": ["lifecycle"] }
+      ]
+    },
+    "javascriptComplete": {
+      "type": "object",
+      "properties": {
+        "id": { "const": "javascript-complete" },
+        "target": { "const": "javascript" },
+        "result": { "properties": { "target": { "const": "javascript" } } },
+        "execution": { "properties": { "wasmModules": { "maxItems": 0 } } }
+      }
+    },
+    "wasmComplete": {
+      "type": "object",
+      "properties": {
+        "id": { "const": "wasm-linear-complete" },
+        "target": { "const": "wasm-linear" },
+        "result": { "properties": { "target": { "const": "wasm-linear" } } },
+        "execution": { "properties": { "wasmModules": { "minItems": 1, "maxItems": 1 } } }
+      }
+    },
+    "wrongToken": {
+      "type": "object",
+      "properties": {
+        "id": { "const": "wrong-token" },
+        "action": { "const": "wrong-token" },
+        "target": { "const": "javascript" }
+      }
+    },
+    "staleRestart": {
+      "type": "object",
+      "properties": {
+        "id": { "const": "stale-restart" },
+        "action": { "const": "stale-restart" },
+        "target": { "const": "javascript" },
+        "workerTargets": { "minItems": 2 }
+      }
+    },
+    "restart": {
+      "type": "object",
+      "properties": {
+        "id": { "const": "restart" },
+        "action": { "const": "restart" },
+        "target": { "const": "wasm-linear" },
+        "workerTargets": { "minItems": 2 }
+      }
+    },
+    "cancel": {
+      "type": "object",
+      "properties": {
+        "id": { "const": "cancel" },
+        "action": { "const": "cancel" },
+        "target": { "const": "javascript" }
+      }
+    },
+    "timeout": {
+      "type": "object",
+      "properties": {
+        "id": { "const": "timeout" },
+        "action": { "const": "timeout" },
+        "target": { "const": "wasm-linear" }
+      }
+    },
+    "pagehide": {
+      "type": "object",
+      "properties": {
+        "id": { "const": "pagehide" },
+        "action": { "const": "pagehide" },
+        "target": { "const": "javascript" }
+      }
+    },
+    "successCleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome", "checkedAt", "remaining"],
+      "properties": {
+        "outcome": { "const": "success" },
+        "checkedAt": { "type": "string", "format": "date-time" },
+        "remaining": { "type": "array", "maxItems": 0 }
+      }
+    }
+  }
+}
