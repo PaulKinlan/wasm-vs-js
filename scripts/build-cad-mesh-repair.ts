@@ -1,3 +1,4 @@
+import { validatePublishedCadMeshSemantics } from "../lib/cad-mesh-semantics.ts";
 import { sha256Hex } from "../lib/canonical.ts";
 import { fixtureParameters, generateDirtyStl } from "../benchmarks/base/cad-mesh-repair/fixture.js";
 import {
@@ -36,6 +37,7 @@ const sourceNodes = [
   ["schemas/cad-mesh-repair-contract.schema.json", "contract-schema"],
   ["schemas/cad-mesh-repair-build-manifest.schema.json", "build-schema"],
   ["schemas/cad-mesh-repair-evidence.schema.json", "evidence-schema"],
+  ["lib/cad-mesh-semantics.ts", "semantic-validator"],
   ["scripts/build-cad-mesh-repair.ts", "build-recipe"],
   ["deno.json", "task-and-toolchain-configuration"],
   ["deno.lock", "dependency-lock"],
@@ -142,6 +144,21 @@ const manifest = {
         to: "schemas/cad-mesh-repair-contract.schema.json",
         relation: "validated-by",
       },
+      {
+        from: "lib/cad-mesh-semantics.ts",
+        to: "benchmarks/base/cad-mesh-repair/implementation-contract.v1.json",
+        relation: "validates-semantics",
+      },
+      {
+        from: "lib/cad-mesh-semantics.ts",
+        to: "benchmarks/base/cad-mesh-repair/engine.js",
+        relation: "recomputes-evidence",
+      },
+      {
+        from: "scripts/build-cad-mesh-repair.ts",
+        to: "lib/cad-mesh-semantics.ts",
+        relation: "validates-package",
+      },
     ],
   },
   frozenCatalog: {
@@ -246,6 +263,7 @@ await Deno.writeTextFile(
   new URL("validation-evidence.json", out),
   `${JSON.stringify(evidence, null, 2)}\n`,
 );
+await validatePublishedCadMeshSemantics(root);
 console.log(
   `cad mesh: ${fixture.length} input bytes, ${wasm.length} Wasm bytes, ${js.bytes.length} output bytes, ${evidence.oracle.completeOutputSha256}`,
 );

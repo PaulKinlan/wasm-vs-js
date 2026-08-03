@@ -44,7 +44,8 @@
     ],
     "targetSpecificCounters": ["boundaryCrossings", "operativeAllocations"],
     "comparisonUnit": "one candidate xyz tuple or undirected edge tested by the prescribed linear scan",
-    "allocationUnit": "one explicit JavaScript DataView, Array, typed array, or output view allocated by the repair operation; Wasm uses fixed static storage and reports zero operative allocations"
+    "allocationUnit": "one explicit JavaScript DataView, Array, typed array, or output view allocated by the repair operation; Wasm uses fixed static storage and reports zero operative allocations",
+    "boundaryCrossingUnit": "one JavaScript-to-Wasm exported-function call made by repairMeshWasm; each workload run calls input_ptr, run, and output_ptr once and reports three; instantiation is outside the workload run"
   },
   "targets": ["js-controlled", "wasm-linear-controlled"],
   "performanceClaims": []

@@ -282,7 +282,7 @@ export function repairMeshWasm(exports, input) {
       collapsedVertices: words[3] - words[11],
       volumeTerms: words[13],
       targetFaces: words[5],
-      boundaryCrossings: 1,
+      boundaryCrossings: 3,
       operativeAllocations: words[18],
     },
     invariants: {

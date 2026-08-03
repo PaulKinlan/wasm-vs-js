@@ -75,7 +75,8 @@
         "equivalentCounters",
         "targetSpecificCounters",
         "comparisonUnit",
-        "allocationUnit"
+        "allocationUnit",
+        "boundaryCrossingUnit"
       ],
       "properties": {
         "equivalentCounters": { "$ref": "#/$defs/equivalentCounters" },
@@ -87,7 +88,11 @@
           "maxItems": 2
         },
         "comparisonUnit": { "type": "string", "minLength": 1 },
-        "allocationUnit": { "type": "string", "minLength": 1 }
+        "allocationUnit": { "type": "string", "minLength": 1 },
+        "boundaryCrossingUnit": {
+          "type": "string",
+          "pattern": "input_ptr, run, and output_ptr once and reports three"
+        }
       }
     },
     "targets": {

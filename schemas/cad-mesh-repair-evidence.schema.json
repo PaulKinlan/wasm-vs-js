@@ -135,7 +135,7 @@
         "collapsedVertices": { "const": 528 },
         "volumeTerms": { "const": 1024 },
         "targetFaces": { "const": 1024 },
-        "boundaryCrossings": { "enum": [0, 1] },
+        "boundaryCrossings": { "enum": [0, 3] },
         "operativeAllocations": { "type": "integer", "minimum": 0 }
       }
     },
