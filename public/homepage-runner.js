@@ -11,7 +11,7 @@ const WORKLOAD_CONFIGS = [
     category: "Audio",
     description: "32 transforms over 4,096 complex samples",
     workerScript: "/demo-worker.js",
-    target: "both"
+    target: "both",
   },
   {
     slug: "audio-fir",
@@ -19,7 +19,7 @@ const WORKLOAD_CONFIGS = [
     category: "Audio",
     description: "256-tap FIR filter on audio signal stream",
     workerScript: "/demo-worker.js",
-    target: "both"
+    target: "both",
   },
   {
     slug: "audio-stft",
@@ -27,7 +27,7 @@ const WORKLOAD_CONFIGS = [
     category: "Audio",
     description: "Spectrogram computation over time windows",
     workerScript: "/demo-worker.js",
-    target: "both"
+    target: "both",
   },
   {
     slug: "ml-gemm",
@@ -35,7 +35,7 @@ const WORKLOAD_CONFIGS = [
     category: "Neural ML",
     description: "Batched 512x512 matrix multiplication in f32",
     workerScript: "/benchmarks/ml-gemm/neural-gemm-worker.js",
-    target: "both"
+    target: "both",
   },
   {
     slug: "ml-dense-mlp",
@@ -43,7 +43,7 @@ const WORKLOAD_CONFIGS = [
     category: "Neural ML",
     description: "9-layer dense MLP neural network inference",
     workerScript: "/benchmarks/ml-dense-mlp/neural-mlp-worker.js",
-    target: "both"
+    target: "both",
   },
   {
     slug: "vdom-diff-patch-demo",
@@ -51,7 +51,7 @@ const WORKLOAD_CONFIGS = [
     category: "DOM & Web",
     description: "1,000-node VDOM tree diffing and patch planning",
     workerScript: null,
-    route: "/benchmarks/vdom-diff-patch-demo/"
+    route: "/benchmarks/vdom-diff-patch-demo/",
   },
   {
     slug: "image-editing-demo",
@@ -59,7 +59,7 @@ const WORKLOAD_CONFIGS = [
     category: "Graphics & Media",
     description: "Gaussian blur & luma processing pipeline",
     workerScript: null,
-    route: "/benchmarks/image-editing-demo/"
+    route: "/benchmarks/image-editing-demo/",
   },
   {
     slug: "image-flood-fill-demo",
@@ -67,7 +67,7 @@ const WORKLOAD_CONFIGS = [
     category: "Graphics & Media",
     description: "Span-stack 4-connected threshold flood fill",
     workerScript: null,
-    route: "/benchmarks/image-flood-fill-demo/"
+    route: "/benchmarks/image-flood-fill-demo/",
   },
   {
     slug: "regex-automata-duel-demo",
@@ -75,7 +75,7 @@ const WORKLOAD_CONFIGS = [
     category: "Text Processing",
     description: "JS NFA vs Wasm DFA regex engine scan",
     workerScript: null,
-    route: "/benchmarks/regex-automata-duel-demo/"
+    route: "/benchmarks/regex-automata-duel-demo/",
   },
   {
     slug: "game-canvas-arcade",
@@ -83,7 +83,7 @@ const WORKLOAD_CONFIGS = [
     category: "Game Family",
     description: "Arcade physics, state, draw & audio trace",
     workerScript: null,
-    route: "/demos/game-canvas-arcade/"
+    route: "/demos/game-canvas-arcade/",
   },
   {
     slug: "game-canvas-entity-pathfinding",
@@ -91,7 +91,7 @@ const WORKLOAD_CONFIGS = [
     category: "Game Family",
     description: "A* pathfinding, ECS update & audio trace",
     workerScript: null,
-    route: "/demos/game-canvas-entity-pathfinding/"
+    route: "/demos/game-canvas-entity-pathfinding/",
   },
   {
     slug: "game-dom-tactics-grid",
@@ -99,7 +99,7 @@ const WORKLOAD_CONFIGS = [
     category: "Game Family",
     description: "240 tactical actions over 60 encoded turns",
     workerScript: null,
-    route: "/demos/game-dom-tactics-grid/"
+    route: "/demos/game-dom-tactics-grid/",
   },
   {
     slug: "text-diff-patch",
@@ -107,7 +107,7 @@ const WORKLOAD_CONFIGS = [
     category: "Text Processing",
     description: "Myers line diff and patch generation",
     workerScript: null,
-    route: "/demos/text.diff-patch.v1/"
+    route: "/demos/text.diff-patch.v1/",
   },
   {
     slug: "text-markdown-cms",
@@ -115,8 +115,8 @@ const WORKLOAD_CONFIGS = [
     category: "Text Processing",
     description: "Markdown parsing and HTML rendering pipeline",
     workerScript: null,
-    route: "/demos/text.markdown-cms.v1/"
-  }
+    route: "/demos/text.markdown-cms.v1/",
+  },
 ];
 
 // Execute a worker-based workload test with timing
@@ -144,7 +144,7 @@ function executeWorkerTest(workerScript, slug, target, mode = "bounded") {
           variantId: msg.variantId,
           oracleChecks: msg.oracleChecks,
           inputSha256: msg.inputSha256,
-          outputSha256: msg.outputSha256
+          outputSha256: msg.outputSha256,
         });
       } else if (msg.type === "failed") {
         clearTimeout(timeout);
@@ -200,7 +200,12 @@ async function runWorkerBenchmark(config, cardElement) {
       <div class="metric-summary">${speedupText}</div>
     `;
 
-    return { slug: config.slug, passed: true, jsMs: jsResult.durationMs, wasmMs: wasmResult.durationMs };
+    return {
+      slug: config.slug,
+      passed: true,
+      jsMs: jsResult.durationMs,
+      wasmMs: wasmResult.durationMs,
+    };
   } catch (err) {
     statusEl.textContent = "✕ Error";
     statusEl.className = "card-status failed";
@@ -261,7 +266,9 @@ function initUI() {
       let passedCount = 0;
 
       for (const config of workerConfigs) {
-        progressText.textContent = `Running ${completed + 1} of ${workerConfigs.length}: ${config.title}...`;
+        progressText.textContent = `Running ${
+          completed + 1
+        } of ${workerConfigs.length}: ${config.title}...`;
         const card = container.querySelector(`[data-slug="${config.slug}"]`);
         const result = await runWorkerBenchmark(config, card);
 
@@ -271,7 +278,8 @@ function initUI() {
         progressBar.style.width = `${pct}%`;
       }
 
-      progressText.textContent = `Batch complete: ${passedCount} / ${workerConfigs.length} worker benchmarks passed!`;
+      progressText.textContent =
+        `Batch complete: ${passedCount} / ${workerConfigs.length} worker benchmarks passed!`;
       runAllBtn.disabled = false;
     });
   }

@@ -775,10 +775,21 @@ html.js .js-only[hidden] {
   padding: 0.15rem 0.5rem;
   border-radius: 3px;
 }
-.card-status.idle { background: var(--surface); }
-.card-status.running { background: var(--warning); color: #000; }
-.card-status.passed { background: #1b5e20; color: #fff; }
-.card-status.failed { background: #b71c1c; color: #fff; }
+.card-status.idle {
+  background: var(--surface);
+}
+.card-status.running {
+  background: var(--warning);
+  color: #000;
+}
+.card-status.passed {
+  background: #1b5e20;
+  color: #fff;
+}
+.card-status.failed {
+  background: #b71c1c;
+  color: #fff;
+}
 
 .benchmark-card h3 {
   margin: 0.25rem 0 0.4rem;
@@ -831,4 +842,3 @@ html.js .js-only[hidden] {
   background: var(--surface);
   border: 1px solid var(--rule);
 }
-
