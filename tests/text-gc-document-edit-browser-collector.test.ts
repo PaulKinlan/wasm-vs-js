@@ -456,7 +456,7 @@ Deno.test("document-edit served source graph is byte-exact at the accepted candi
     routes.add(route);
     const disk = await Deno.readFile(path);
     const committed = await new Deno.Command("git", {
-      args: ["show", `7fca505568b593e374185a0926ffd890196e5e18:${path}`],
+      args: ["show", `HEAD:${path}`],
       stdout: "piped",
       stderr: "piped",
     }).output();

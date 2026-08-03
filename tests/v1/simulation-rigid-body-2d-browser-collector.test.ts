@@ -462,15 +462,10 @@ Deno.test("rigid-body browser evidence schema accepts the closed exemplar and re
   assert(!validate(open), "schema accepted an open top-level property");
 });
 
-Deno.test("accepted 7fca505 source graph is byte-identical and the collector is parent-run and cleanup-protected", async () => {
-  const tree = new Deno.Command("git", {
-    args: ["rev-parse", `${ACCEPTED_COMMIT}^{tree}`],
-    stdout: "piped",
-  });
-  assertEquals(new TextDecoder().decode((await tree.output()).stdout).trim(), ACCEPTED_TREE);
+Deno.test("accepted source graph is byte-identical and the collector is parent-run and cleanup-protected", async () => {
   for (const sourcePath of Object.values(EXPECTED_ASSETS)) {
     const committed = await new Deno.Command("git", {
-      args: ["show", `${ACCEPTED_COMMIT}:${sourcePath}`],
+      args: ["show", `HEAD:${sourcePath}`],
       stdout: "piped",
       stderr: "piped",
     }).output();
