@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "workloadId": "database.olap-chart.v1",
-  "sourceCommit": "76b6c332b044706aa87347b8105435b13e69a3b6",
+  "sourceCommit": "2459e3868758b460714172066a6220e3182623f1",
   "command": "deno run --allow-read=. --allow-write=public/artifacts,public/evidence --allow-run=clang,wasm-ld scripts/build-base-olap.ts --source-commit=<commit>",
   "flags": [
     "--target=wasm32-unknown-unknown",
@@ -42,8 +42,18 @@
     },
     {
       "path": "scripts/build-base-olap.ts",
-      "bytes": 6341,
-      "sha256": "d7d9b4051d5880d46275bba6be47eec1a21fbb8cfd0a82d7b4c09dcdce644dd2"
+      "bytes": 6463,
+      "sha256": "b2966c402ba2722e5d2bb235d797d60cc6b7d60ad0375bd2b5beedbab227c971"
+    },
+    {
+      "path": "schemas/base-implementation/registration.schema.json",
+      "bytes": 1216,
+      "sha256": "9074d3379f5c36994dcb3373be2128b9122eb04c4a27938bc83999c83461f424"
+    },
+    {
+      "path": "schemas/base-implementation/correctness-record.schema.json",
+      "bytes": 1716,
+      "sha256": "7481cf25443749ad6d4cc287725d52b0f83bd6ff5537b1a2a246355572737df0"
     },
     {
       "path": "deno.json",
