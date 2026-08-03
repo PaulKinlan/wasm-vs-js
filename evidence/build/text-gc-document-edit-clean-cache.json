@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "workloadId": "text.gc-document-edit.v1",
   "collectedAt": "2026-08-03T13:07:48Z",
-  "sourceCommit": "b150ea5a666177eb938ecd941f806df730c67d14",
-  "command": "rm -rf <owned-xdg-cache> <owned-gradle-home> benchmarks/v1/text-gc-document-edit/kotlin/{build,.gradle,.kotlin} && XDG_CACHE_HOME=<owned-xdg-cache> GRADLE_USER_HOME=<owned-gradle-home> TEXT_GC_SOURCE_COMMIT=b150ea5a666177eb938ecd941f806df730c67d14 scripts/build-text-gc-document-edit-wasmgc.sh",
+  "sourceCommit": "284768967829c4e3551c9429c2d8b60248bedce6",
+  "command": "rm -rf <owned-xdg-cache> <owned-gradle-home> benchmarks/v1/text-gc-document-edit/kotlin/{build,.gradle,.kotlin} && XDG_CACHE_HOME=<owned-xdg-cache> GRADLE_USER_HOME=<owned-gradle-home> TEXT_GC_SOURCE_COMMIT=284768967829c4e3551c9429c2d8b60248bedce6 scripts/build-text-gc-document-edit-wasmgc.sh",
   "toolchain": {
     "deno": "2.9.0",
     "gradle": "9.6.1",
@@ -11,7 +11,7 @@
     "kotlinPlugin": "2.3.21",
     "dependencyVerification": {
       "mode": "strict",
-      "metadataSha256": "da5b2e07cfb15380b8d86e52e6f2440b78f9039f4e8e0cc37db630e37f586306"
+      "metadataSha256": "a46a108afa2e20e2973aa459f7f1dc6087027695b359ed5425b6b6fcbe741354"
     },
     "java": {
       "version": "26.0.1",
@@ -33,7 +33,7 @@
     "public/artifacts/text-gc-document-edit/text-gc-document-edit.mjs": "a4994be989542f4cc826fc2b782974b83ca81b55614eee22553cc064fc4bcb23",
     "public/artifacts/text-gc-document-edit/text-gc-document-edit.import-object.mjs": "10be918973da81e5a576212ecae8c17a6b423e13015aeb92f899c7d781b5e111",
     "public/artifacts/text-gc-document-edit/text-gc-document-edit.js-builtins.mjs": "5265daba0f4204a469f87b09f6a63ebfc59555441e4fcc98f8b2006115048451",
-    "public/artifacts/text-gc-document-edit/build-manifest.json": "fcab7f22b4132d2a40fe74f8f4e850017b0ccba9b901a7420cba235475a847e3"
+    "public/artifacts/text-gc-document-edit/build-manifest.json": "e88aa016ffd6d222cdfbaa525f8b236e297296e0fd4bf53e9c18cb71a4b2c1ca"
   },
   "browserEvidence": {
     "status": "unavailable",

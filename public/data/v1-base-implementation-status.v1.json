@@ -38,7 +38,7 @@
       },
       "buildManifest": {
         "path": "public/artifacts/text-gc-document-edit/build-manifest.json",
-        "sha256": "fcab7f22b4132d2a40fe74f8f4e850017b0ccba9b901a7420cba235475a847e3"
+        "sha256": "e88aa016ffd6d222cdfbaa525f8b236e297296e0fd4bf53e9c18cb71a4b2c1ca"
       },
       "records": [
         "public/evidence/v1-base/text-gc-document-edit/js-controlled.json",
