@@ -395,7 +395,7 @@ const pageAuditSource = (shortTimeout: boolean) =>
       const nativePost=this.postMessage.bind(this);
       this.postMessage=(data,transfer)=>{entry.request=structuredClone(data);return transfer===undefined?nativePost(data):nativePost(data,transfer);};
       const nativeTerminate=this.terminate.bind(this);
-      this.terminate=()=>{entry.terminated=true;globalThis.__rigidEvidenceEvent(JSON.stringify({kind:'worker-terminated',index:audit.workers.indexOf(entry)}));return nativeTerminate();};
+      this.terminate=()=>{entry.terminated=true;globalThis.__rigidEvidenceEvent(JSON.stringify({kind:'worker-terminated',index:audit.workers.indexOf(entry)}));nativeSetTimeout(()=>nativeTerminate(),750);};
       globalThis.__rigidEvidenceEvent(JSON.stringify({kind:'worker-created',index:audit.workers.length-1,url:entry.url}));
     }
   }
@@ -533,7 +533,7 @@ async function collectScenario(
     client.on("Network.requestWillBeSent", (params, sessionId) => {
       if (!sessionId || !sessions.has(sessionId)) return;
       const request = params.request as Record<string, unknown>;
-      requests.set(`${sessionId}:${params.requestId}`, {
+      requests.set(String(params.requestId), {
         context: sessions.get(sessionId)!.context,
         sessionId,
         requestId: String(params.requestId),
@@ -551,7 +551,7 @@ async function collectScenario(
     }),
     client.on("Network.responseReceived", (params, sessionId) => {
       if (!sessionId) return;
-      const entry = requests.get(`${sessionId}:${params.requestId}`);
+      const entry = requests.get(String(params.requestId));
       const response = params.response as Record<string, unknown>;
       if (entry) {
         Object.assign(entry, {
@@ -564,7 +564,7 @@ async function collectScenario(
     }),
     client.on("Network.loadingFailed", (params, sessionId) => {
       if (!sessionId) return;
-      const entry = requests.get(`${sessionId}:${params.requestId}`);
+      const entry = requests.get(String(params.requestId));
       if (entry) {
         Object.assign(entry, {
           failed: true,
@@ -575,7 +575,7 @@ async function collectScenario(
     }),
     client.on("Network.loadingFinished", (params, sessionId) => {
       if (!sessionId) return;
-      const entry = requests.get(`${sessionId}:${params.requestId}`);
+      const entry = requests.get(String(params.requestId));
       if (!entry) return;
       queue((async () => {
         const sourcePath = sourcePathFor(String(entry.url));
