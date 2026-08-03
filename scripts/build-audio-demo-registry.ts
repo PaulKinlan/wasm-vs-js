@@ -39,8 +39,28 @@ const existing = JSON.parse(
   new TextDecoder().decode(await Deno.readFile(new URL("public/demo-registry.json", ROOT))),
 );
 
+const sourceCommits = await Promise.all(
+  existing.demos.map(async (demo: Record<string, unknown>) => {
+    const slug = demo.slug as string;
+    const manifest = JSON.parse(
+      await Deno.readTextFile(
+        new URL(`public/artifacts/${slug}/build-manifest.json`, ROOT).pathname,
+      ),
+    );
+    if (typeof manifest.sourceCommit !== "string" || !/^[a-f0-9]{40}$/.test(manifest.sourceCommit)) {
+      throw new Error(`build manifest for ${slug} lacks a valid sourceCommit`);
+    }
+    return manifest.sourceCommit as string;
+  }),
+);
+const uniqueSourceCommits = new Set(sourceCommits);
+if (uniqueSourceCommits.size !== 1) {
+  throw new Error("audio demo build manifests do not share one sourceCommit");
+}
+
 const registry = {
   ...existing,
+  sourceCommit: sourceCommits[0],
   runnerSha256: await hashFile("public/demo-runner.js"),
   workerSha256: await hashFile("public/demo-worker.js"),
   assetsManifestSha256: await hashFile("public/demo-assets/audio/manifest.json"),

@@ -4,7 +4,6 @@
 // here, not in the generated files.
 
 const ROOT = new URL("../", import.meta.url);
-const COMMIT = "6f507efc2961983ed087bab0bf18fd845aebd100";
 const REPO = "https://github.com/PaulKinlan/wasm-vs-js";
 
 const DATA: Record<string, {
@@ -195,6 +194,10 @@ async function sha256Hex(bytes: Uint8Array): Promise<string> {
 const registryBytes = await Deno.readFile(new URL("public/demo-registry.json", ROOT));
 const registrySha256 = await sha256Hex(registryBytes);
 const registry = JSON.parse(new TextDecoder().decode(registryBytes));
+const COMMIT = registry.sourceCommit;
+if (typeof COMMIT !== "string" || !/^[a-f0-9]{40}$/.test(COMMIT)) {
+  throw new Error("audio demo registry lacks a valid sourceCommit");
+}
 
 for (const demo of registry.demos) {
   const slug: string = demo.slug;
