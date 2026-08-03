@@ -8,6 +8,7 @@
     "workloadId",
     "status",
     "sourceRevision",
+    "catalogCoverage",
     "runtime",
     "exactInputs",
     "oracle",
@@ -18,8 +19,28 @@
   "properties": {
     "schemaVersion": { "const": 1 },
     "workloadId": { "const": "crypto.file-integrity.v1" },
-    "status": { "const": "complete-correctness-validation" },
+    "status": { "const": "static-correctness-validation-awaiting-browser" },
     "sourceRevision": { "type": "string", "pattern": "^(WORKTREE-CANDIDATE|[a-f0-9]{40})$" },
+    "catalogCoverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "denominator",
+        "implemented",
+        "remaining",
+        "candidateCount",
+        "countsTowardCoverage",
+        "promotionGate"
+      ],
+      "properties": {
+        "denominator": { "const": 38 },
+        "implemented": { "const": 0 },
+        "remaining": { "const": 38 },
+        "candidateCount": { "const": 1 },
+        "countsTowardCoverage": { "const": false },
+        "promotionGate": { "const": "retained-browser-validation-required" }
+      }
+    },
     "runtime": { "type": "object" },
     "exactInputs": {
       "type": "object",
@@ -36,13 +57,42 @@
       "type": "array",
       "minItems": 36,
       "maxItems": 36,
+      "uniqueItems": true,
       "items": { "$ref": "#/$defs/case" }
     },
-    "totals": { "type": "object" },
-    "limitations": { "type": "object" }
+    "totals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cases", "passed", "failed", "targets", "fixtureDefinitions", "schedules"],
+      "properties": {
+        "cases": { "const": 36 },
+        "passed": { "const": 36 },
+        "failed": { "const": 0 },
+        "targets": { "const": 2 },
+        "fixtureDefinitions": { "const": 6 },
+        "schedules": { "const": 3 }
+      }
+    },
+    "limitations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidenceClassification",
+        "performanceMeasured",
+        "browserEvidenceIncluded",
+        "hostIntrinsicCompared"
+      ],
+      "properties": {
+        "evidenceClassification": { "const": "static-for-browser" },
+        "performanceMeasured": { "const": false },
+        "browserEvidenceIncluded": { "const": false },
+        "hostIntrinsicCompared": { "const": false }
+      }
+    }
   },
   "$defs": {
     "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "counter": { "type": "integer", "minimum": 0 },
     "case": {
       "type": "object",
       "additionalProperties": false,
@@ -63,7 +113,26 @@
         "schedule": { "enum": [1024, 65536, "whole-buffer"] },
         "digestSha256": { "$ref": "#/$defs/hash" },
         "expectedDigestSha256": { "$ref": "#/$defs/hash" },
-        "counters": { "type": "object" },
+        "counters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "input-bytes",
+            "scheduled-chunks",
+            "sha256-compression-blocks",
+            "copied-bytes",
+            "boundary-crossings",
+            "engine-buffer-allocations"
+          ],
+          "properties": {
+            "input-bytes": { "$ref": "#/$defs/counter" },
+            "scheduled-chunks": { "$ref": "#/$defs/counter" },
+            "sha256-compression-blocks": { "$ref": "#/$defs/counter" },
+            "copied-bytes": { "$ref": "#/$defs/counter" },
+            "boundary-crossings": { "$ref": "#/$defs/counter" },
+            "engine-buffer-allocations": { "$ref": "#/$defs/counter" }
+          }
+        },
         "passed": { "const": true }
       }
     }

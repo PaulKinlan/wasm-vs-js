@@ -1,5 +1,10 @@
 import { sha256Hex } from "../lib/canonical.ts";
 import {
+  assertExactValidationEvidence,
+  COVERAGE_PROMOTION_GATE,
+  VALIDATION_STATUS,
+} from "../benchmarks/base/crypto-file-integrity/validation.js";
+import {
   generateFixture,
   instantiateWasm,
   REGISTERED_KINDS,
@@ -66,8 +71,16 @@ const sourceRevision = Deno.env.get("SOURCE_REVISION") ?? buildManifest.sourceRe
 const evidence = {
   schemaVersion: 1,
   workloadId: "crypto.file-integrity.v1",
-  status: "complete-correctness-validation",
+  status: VALIDATION_STATUS,
   sourceRevision,
+  catalogCoverage: {
+    denominator: 38,
+    implemented: 0,
+    remaining: 38,
+    candidateCount: 1,
+    countsTowardCoverage: false,
+    promotionGate: COVERAGE_PROMOTION_GATE,
+  },
   runtime: { deno: Deno.version.deno, v8: Deno.version.v8, typescript: Deno.version.typescript },
   exactInputs: {
     registrationRawSha256: await sha256Hex(registrationBytes),
@@ -89,11 +102,13 @@ const evidence = {
     schedules: 3,
   },
   limitations: {
+    evidenceClassification: "static-for-browser",
     performanceMeasured: false,
     browserEvidenceIncluded: false,
     hostIntrinsicCompared: false,
   },
 };
+assertExactValidationEvidence(evidence, registration);
 const privateOutput = new URL("evidence/base/crypto.file-integrity.v1/validation.json", root);
 const publicOutput = new URL("public/evidence/base/crypto.file-integrity.v1/validation.json", root);
 await Deno.mkdir(new URL("./", privateOutput), { recursive: true });

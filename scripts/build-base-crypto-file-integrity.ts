@@ -39,6 +39,7 @@ const relativeSources = [
   "benchmarks/base/crypto-file-integrity/sha256.c",
   "benchmarks/base/crypto-file-integrity/sha256.js",
   "benchmarks/base/crypto-file-integrity/workload.js",
+  "benchmarks/base/crypto-file-integrity/validation.js",
 ];
 const sources = [];
 for (const path of relativeSources) {

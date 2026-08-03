@@ -31,8 +31,16 @@ self.onmessage = async (event) => {
     self.postMessage({ token, type: "progress", phase: "Verifying registered bytes" });
     const ledgerBytes = await fetchBytes("/data/base-implementation-status.v1.json");
     const ledger = decode(ledgerBytes);
-    const entry = ledger.implemented.find((item) => item.id === "crypto.file-integrity.v1");
-    if (!entry) throw new Error("base status does not register this workload");
+    if (ledger.counts?.implemented !== 0 || ledger.counts?.denominator !== 38) {
+      throw new Error("pre-browser catalog coverage is not 0/38");
+    }
+    const entry = ledger.staticForBrowserCandidates.find((item) =>
+      item.id === "crypto.file-integrity.v1"
+    );
+    if (
+      !entry || entry.status !== "static-for-browser" || entry.countsTowardCoverage !== false ||
+      entry.promotionGate !== "retained-browser-validation-required"
+    ) throw new Error("base status does not register a static-for-browser candidate");
     const [registrationBytes, buildBytes, artifactBytes, jsBytes, workloadBytes] = await Promise
       .all([
         fetchBytes(entry.registration),
