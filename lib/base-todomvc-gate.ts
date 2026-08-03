@@ -1,5 +1,25 @@
 function equal(left: unknown, right: unknown): boolean {
-  return JSON.stringify(left) === JSON.stringify(right);
+  if (Object.is(left, right)) return true;
+  if (typeof left !== typeof right || left === null || right === null) return false;
+  if (Array.isArray(left) || Array.isArray(right)) {
+    if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) return false;
+    for (let index = 0; index < left.length; index += 1) {
+      if (
+        Object.hasOwn(left, index) !== Object.hasOwn(right, index) ||
+        !equal(left[index], right[index])
+      ) return false;
+    }
+    return true;
+  }
+  if (typeof left !== "object") return false;
+  const leftObject = left as Record<string, unknown>;
+  const rightObject = right as Record<string, unknown>;
+  const leftKeys = Object.keys(leftObject);
+  const rightKeys = Object.keys(rightObject);
+  return leftKeys.length === rightKeys.length &&
+    leftKeys.every((key) =>
+      Object.hasOwn(rightObject, key) && equal(leftObject[key], rightObject[key])
+    );
 }
 
 export type NetworkRecord = {

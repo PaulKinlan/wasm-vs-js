@@ -275,34 +275,68 @@ Deno.test("TodoMVC route is explicit, read-only, accessible, and lifecycle bound
   assert(!worker.startsWith("import "));
 });
 
-Deno.test("TodoMVC semantic, lifecycle, network, DOM, and AX gates reject incomplete evidence", () => {
+Deno.test("TodoMVC semantic, lifecycle, network, DOM, and AX gates use structural equality", () => {
   const js = runJavaScript();
+  const dom = finalDomOracle();
+  const ax = finalAxOracle();
+  const reorder = (value: Record<string, unknown>) =>
+    Object.fromEntries(Object.entries(value).reverse());
   const result = {
     variantId: js.variantId,
     summary: js.summary,
     counters: js.counters,
-    canonicalDom: finalDomOracle(),
+    canonicalDom: dom,
     assertions: { completeCanonicalDom: true },
   };
   const oracle = {
-    finalState: js.summary,
-    canonicalDom: finalDomOracle(),
-    canonicalAx: finalAxOracle(),
-    variants: { "js-controlled": { counters: js.counters } },
+    finalState: reorder({ ...js.summary, focus: reorder(js.summary.focus) }),
+    canonicalDom: dom.map((item) => reorder(item)),
+    canonicalAx: ax.map((item) => reorder(item)),
+    variants: { "js-controlled": { counters: reorder(js.counters) } },
   };
-  assertCompleteTodoEvidence(result, finalAxOracle(), oracle, "js-controlled");
+  assertCompleteTodoEvidence(result, ax, oracle, "js-controlled");
   assertThrows(
     () =>
       assertCompleteTodoEvidence(
-        { ...result, canonicalDom: result.canonicalDom.slice(1) },
-        finalAxOracle(),
+        { ...result, summary: { ...js.summary, active: 61 } },
+        ax,
+        oracle,
+        "js-controlled",
+      ),
+    "semantic summary mismatch",
+  );
+  assertThrows(
+    () =>
+      assertCompleteTodoEvidence(
+        { ...result, summary: { ...js.summary, active: "60" } },
+        ax,
+        oracle,
+        "js-controlled",
+      ),
+    "semantic summary mismatch",
+  );
+  assertThrows(
+    () =>
+      assertCompleteTodoEvidence(
+        { ...result, canonicalDom: [...dom].reverse() },
+        ax,
         oracle,
         "js-controlled",
       ),
     "canonical DOM mismatch",
   );
   assertThrows(
-    () => assertCompleteTodoEvidence(result, finalAxOracle().slice(1), oracle, "js-controlled"),
+    () =>
+      assertCompleteTodoEvidence(
+        { ...result, counters: { ...js.counters, actions: "150" } },
+        ax,
+        oracle,
+        "js-controlled",
+      ),
+    "operative counter mismatch",
+  );
+  assertThrows(
+    () => assertCompleteTodoEvidence(result, [...ax].reverse(), oracle, "js-controlled"),
     "CDP AX-tree mismatch",
   );
   assertCompleteNetwork([{
@@ -324,11 +358,11 @@ Deno.test("TodoMVC semantic, lifecycle, network, DOM, and AX gates reject incomp
     "network request incomplete",
   );
   assertLifecycleEvidence("pagehide", {
-    cancelled: false,
-    staleIgnored: false,
-    workerAbsentAfterCancel: false,
-    restartCompleted: false,
     workerAbsentAfterPagehide: true,
+    restartCompleted: false,
+    workerAbsentAfterCancel: false,
+    staleIgnored: false,
+    cancelled: false,
   });
   assertThrows(
     () =>
