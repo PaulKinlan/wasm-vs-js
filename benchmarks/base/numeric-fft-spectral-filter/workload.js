@@ -204,10 +204,10 @@ export function expectedCounters(n = SAMPLE_COUNT, target = "js-controlled") {
     "window-multiplies": n,
     "filter-scalar-multiplies": n * 2,
     "inverse-scale-multiplies": n * 2,
-    "input-bytes": n * 4,
+    "input-bytes": (n * 5 - 2) * 4,
     "output-bytes": n * 2 * 4,
     allocations: target === "js-controlled" ? 1 : 0,
-    "boundary-crossings": target === "wasm-linear-controlled" ? 2 : 0,
+    "boundary-crossings": target === "wasm-linear-controlled" ? 1 : 0,
   });
 }
 

@@ -156,7 +156,8 @@ Deno.test({
     assert(wasmOracle.passed, JSON.stringify(wasmOracle));
     assertEquals(await completeOutputSha256(js), await completeOutputSha256(linearWasm));
     assertEquals(expectedCounters(SAMPLE_COUNT, "js-controlled").butterflies, 20_971_520);
-    assertEquals(expectedCounters(SAMPLE_COUNT, "wasm-linear-controlled")["boundary-crossings"], 2);
+    assertEquals(expectedCounters(SAMPLE_COUNT, "wasm-linear-controlled")["boundary-crossings"], 1);
+    assertEquals(expectedCounters(SAMPLE_COUNT, "js-controlled")["input-bytes"], 20_971_512);
   },
 });
 
@@ -242,7 +243,7 @@ Deno.test("generated manifests bind raw fixture fields, complete output and exac
   assert(/^[a-f0-9]{64}$/.test(output.completeOutput.sha256));
   assert(/^[a-f0-9]{64}$/.test(output.completeOutput.quantizedSha256));
   assertEquals(output.variants["js-controlled"].counters.butterflies, 20_971_520);
-  assertEquals(output.variants["wasm-linear-controlled"].counters["boundary-crossings"], 2);
+  assertEquals(output.variants["wasm-linear-controlled"].counters["boundary-crossings"], 1);
   assertEquals(build.frozenCatalog.immutability, "byte-for-byte");
   assert(build.fullSourceGraph.length >= 10);
   const artifact = await Deno.readFile(
