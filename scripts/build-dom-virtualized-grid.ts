@@ -44,7 +44,9 @@ try {
     "--export-memory",
     "--export=input_ptr",
     "--export=result_ptr",
-    "--export=run",
+    "--export=prepare",
+    "--export=run_event",
+    "--export=finish",
     "--initial-memory=16777216",
     "--max-memory=16777216",
     "--stack-first",
@@ -128,6 +130,90 @@ await Deno.writeTextFile(
   new URL("fixture-manifest.json", output),
   `${canonicalize(fixtureManifest)}\n`,
 );
+function browserDomOracle(commands: Uint32Array) {
+  const slots: Array<
+    null | {
+      id: string;
+      rowId: number;
+      score: number;
+      rowIndex: number;
+      selected: boolean;
+      text: string;
+      role: string;
+      tabIndex: number;
+    }
+  > = Array(28).fill(null);
+  const order: number[] = [];
+  let activeDescendant: string | null = null;
+  for (let at = 0; at < commands.length; at += 6) {
+    const [op, slot, b, c, d, e] = commands.subarray(at, at + 6);
+    if (op === 1 || op === 2 || op === 3) {
+      slots[slot] = {
+        id: `grid-row-${b}`,
+        rowId: b,
+        score: d | 0,
+        rowIndex: c + 1,
+        selected: Boolean(e),
+        text: `Row ${b} · score ${d | 0} · position ${c + 1}`,
+        role: "row",
+        tabIndex: -1,
+      };
+    } else if (op === 4) {
+      const previous = order.indexOf(slot);
+      if (previous >= 0) order.splice(previous, 1);
+      order.push(slot);
+    } else if (op === 5) {
+      const previous = order.indexOf(slot);
+      if (previous >= 0) order.splice(previous, 1);
+      if (activeDescendant === slots[slot]?.id) activeDescendant = null;
+    } else if (op === 6) {
+      activeDescendant = slots[slot]?.id ?? null;
+    }
+  }
+  const rows = order.map((slot) => slots[slot]);
+  return {
+    role: "grid",
+    rowCount: 100000,
+    activeDescendant,
+    activeElement: activeDescendant,
+    selectedRow: rows.find((row) => row?.selected)?.rowId ?? null,
+    rows,
+  };
+}
+
+function traceOracle(fixtureBytes: Uint8Array, commands: Uint32Array) {
+  const view = new DataView(
+    fixtureBytes.buffer,
+    fixtureBytes.byteOffset,
+    fixtureBytes.byteLength,
+  );
+  const filteredLengths: number[] = [];
+  for (let at = 0; at < commands.length; at += 6) {
+    if (commands[at] === 7) filteredLengths.push(commands[at + 5]);
+  }
+  const scheduledOffsetsMs: number[] = [];
+  const scrollOffsetsCssPx: number[] = [];
+  let scrollOffset = 0;
+  for (let action = 0; action < 300; action += 1) {
+    const at = 64 + 100_000 * 16 + action * 16;
+    const eventType = view.getUint32(at + 4, true);
+    const a = view.getUint32(at + 8, true);
+    if (eventType === 0) {
+      scrollOffset = Math.min(a, Math.max(0, filteredLengths[action] - 20) * 24);
+    } else if (eventType === 1) {
+      scrollOffset = 0;
+    }
+    scheduledOffsetsMs.push(action * 100);
+    scrollOffsetsCssPx.push(scrollOffset);
+  }
+  return { scheduledOffsetsMs, scrollOffsetsCssPx };
+}
+
+const expectedBrowserDom = browserDomOracle(js.commands);
+const expectedTrace = traceOracle(fixture, js.commands);
+const expectedBrowserDomSha256 = await sha256Hex(
+  new TextEncoder().encode(JSON.stringify(expectedBrowserDom)),
+);
 const outputManifest = {
   schemaVersion: 1,
   workloadId: "dom.virtualized-grid.v1",
@@ -144,6 +230,8 @@ const outputManifest = {
   fixture: js.fixture,
   final: js.final,
   structural: { maximumMountedRows: 28, commandWidthU32: 6, events: 300, rows: 100000 },
+  browserDom: { state: expectedBrowserDom, jsonSha256: expectedBrowserDomSha256 },
+  trace: expectedTrace,
   performanceClaims: [],
 };
 await Deno.writeTextFile(

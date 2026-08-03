@@ -8,6 +8,26 @@ let worker = null;
 let token = 0;
 let timeout = 0;
 let slots = [];
+let preparedResult = null;
+let workerPrepared = false;
+let workerPhases = null;
+let runStarted = 0;
+let eventCount = 0;
+let dispatchedEvents = 0;
+let renderMs = 0;
+let actual = null;
+
+function emptyCounters() {
+  return {
+    physicalCreates: 0,
+    physicalReuses: 0,
+    physicalUpdates: 0,
+    physicalPlacements: 0,
+    physicalHides: 0,
+    focusOperations: 0,
+    layoutReads: 0,
+  };
+}
 
 function rowText(rowId, score, rowIndex) {
   return `Row ${rowId} · score ${score} · position ${rowIndex + 1}`;
@@ -22,6 +42,7 @@ function bindRow(element, rowId, rowIndex, score, selected) {
   element.id = `grid-row-${rowId}`;
   element.dataset.rowId = String(rowId);
   element.dataset.score = String(score);
+  element.style.transform = `translateY(${rowIndex * 24}px)`;
   element.setAttribute("aria-rowindex", String(rowIndex + 1));
   element.setAttribute("aria-selected", selected ? "true" : "false");
   element.textContent = rowText(rowId, score, rowIndex);
@@ -32,15 +53,7 @@ function applyCommands(words) {
   if (!(words instanceof Uint32Array) || words.length % 6 !== 0) {
     throw new Error("Typed command stream is malformed");
   }
-  const actual = {
-    physicalCreates: 0,
-    physicalReuses: 0,
-    physicalUpdates: 0,
-    physicalPlacements: 0,
-    physicalHides: 0,
-    focusOperations: 0,
-    layoutReads: 0,
-  };
+  let layoutTerminators = 0;
   for (let at = 0; at < words.length; at += 6) {
     const [op, slot, b, c, d, e] = words.subarray(at, at + 6);
     if (slot >= 28 && op !== 7) throw new Error("Command slot exceeds the frozen bound");
@@ -83,9 +96,10 @@ function applyCommands(words) {
     } else if (op === 7) {
       grid.getBoundingClientRect();
       actual.layoutReads += 1;
+      layoutTerminators += 1;
     } else throw new Error(`Unknown command opcode ${op}`);
   }
-  return actual;
+  if (layoutTerminators !== 1) throw new Error("Event batch omitted its layout terminator");
 }
 
 function canonicalDom() {
@@ -97,20 +111,27 @@ function canonicalDom() {
     selected: row.getAttribute("aria-selected") === "true",
     text: row.textContent,
     role: row.getAttribute("role"),
+    tabIndex: row.tabIndex,
   }));
-  return JSON.stringify({
+  return {
     role: grid.getAttribute("role"),
     rowCount: Number(grid.getAttribute("aria-rowcount")),
     activeDescendant: grid.getAttribute("aria-activedescendant") || null,
-    focusedRow: grid.dataset.focusedRow || null,
-    selectedRow: grid.dataset.selectedRow || null,
+    activeElement: document.activeElement?.id || null,
+    selectedRow: rows.find((row) => row.selected)?.rowId ?? null,
     rows,
-  });
+  };
 }
 
 async function sha256(text) {
   return [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)))]
     .map((value) => value.toString(16).padStart(2, "0")).join("");
+}
+
+function afterPaint() {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(resolve));
+  });
 }
 
 function terminate() {
@@ -123,9 +144,15 @@ function terminate() {
 function resetDom() {
   grid.replaceChildren();
   grid.removeAttribute("aria-activedescendant");
-  grid.dataset.focusedRow = "";
-  grid.dataset.selectedRow = "";
+  grid.scrollTop = 0;
   slots = [];
+  preparedResult = null;
+  workerPrepared = false;
+  workerPhases = null;
+  eventCount = 0;
+  dispatchedEvents = 0;
+  renderMs = 0;
+  actual = emptyCounters();
 }
 
 function fail(message) {
@@ -142,10 +169,11 @@ start.addEventListener("click", () => {
   terminate();
   resetDom();
   const runToken = ++token;
+  runStarted = performance.now();
   worker = new Worker("/benchmarks/dom-virtualized-grid-v1/grid-worker.js", { type: "module" });
   document.documentElement.dataset.gridWorkerActive = "true";
-  status.textContent = "Running exact model and typed DOM command stream…";
-  output.textContent = "Waiting for exact output.";
+  status.textContent = "Running the 30-second trace at exact 100 ms offsets…";
+  output.textContent = "Waiting for 300 rendered events.";
   start.disabled = true;
   cancel.disabled = false;
   worker.onerror = () => {
@@ -154,38 +182,80 @@ start.addEventListener("click", () => {
   worker.onmessage = async ({ data }) => {
     if (runToken !== token || !data || data.token !== runToken) return;
     if (data.type === "error") return fail(data.message);
-    if (data.type !== "result") return;
     try {
-      const commands = new Uint32Array(data.commands);
-      const actual = applyCommands(commands);
-      const expected = data.result.counters;
+      if (data.type === "prepared") {
+        workerPrepared = true;
+        workerPhases = data.phases;
+        return;
+      }
+      if (data.type === "event") {
+        if (!workerPrepared || data.actionIndex !== eventCount) {
+          throw new Error("Trace event arrived out of order");
+        }
+        const renderedStarted = performance.now();
+        grid.scrollTop = data.scrollOffset;
+        grid.dispatchEvent(
+          new CustomEvent("gridtraceevent", {
+            detail: {
+              actionIndex: data.actionIndex,
+              eventType: data.eventType,
+              scheduledOffsetMs: data.scheduledOffsetMs,
+              actualOffsetMs: data.actualOffsetMs,
+              scrollOffset: data.scrollOffset,
+            },
+          }),
+        );
+        dispatchedEvents += 1;
+        applyCommands(new Uint32Array(data.commands));
+        await afterPaint();
+        renderMs += performance.now() - renderedStarted;
+        eventCount += 1;
+        worker?.postMessage({ type: "ack", token: runToken, actionIndex: data.actionIndex });
+        return;
+      }
+      if (data.type !== "complete") return;
+      preparedResult = data.result;
+      workerPhases = data.phases;
+      if (!workerPrepared || !preparedResult || eventCount !== 300 || dispatchedEvents !== 300) {
+        throw new Error("Trace completed without 300 rendered events");
+      }
+      const expected = preparedResult.counters;
       for (const key of Object.keys(actual)) {
         if (actual[key] !== expected[key]) throw new Error(`${key} physical counter mismatch`);
       }
-      grid.dataset.focusedRow = String(data.result.final.focused);
-      grid.dataset.selectedRow = String(data.result.final.selected);
-      const domSource = canonicalDom();
+      const dom = canonicalDom();
+      const domSource = JSON.stringify(dom);
       const domSha256 = await sha256(domSource);
+      const phases = {
+        loadMs: workerPhases.loadMs,
+        transferMs: workerPhases.transferMs,
+        instantiateMs: workerPhases.instantiateMs,
+        computeMs: workerPhases.computeMs,
+        renderMs,
+        endToEndMs: performance.now() - runStarted,
+      };
       clearTimeout(timeout);
       terminate();
-      status.textContent =
-        "Virtualized grid completed; exact commands were physically applied to the host DOM.";
+      status.textContent = "Virtualized grid completed 300 interleaved event and render steps.";
       output.textContent = JSON.stringify(
         {
-          workloadId: data.result.workloadId,
-          executionTarget: data.result.executionTarget,
-          commandDigest: data.result.commandDigest,
-          commandWords: commands.length,
-          commandCount: data.result.counters.commands,
+          workloadId: preparedResult.workloadId,
+          executionTarget: preparedResult.executionTarget,
+          commandDigest: preparedResult.commandDigest,
+          commandCount: preparedResult.counters.commands,
           "Browser DOM SHA-256": domSha256,
+          browserDom: dom,
           mountedRows: grid.children.length,
           activeElement: document.activeElement?.id || null,
           actualPhysicalCounters: actual,
-          modelCounters: data.result.counters,
-          final: data.result.final,
-          checkpoints: data.result.checkpoints,
-          fixture: data.result.fixture,
-          buildManifestSha256: data.result.buildManifestSha256,
+          modelCounters: preparedResult.counters,
+          final: preparedResult.final,
+          checkpoints: preparedResult.checkpoints,
+          fixture: preparedResult.fixture,
+          trace: { ...data.trace, dispatchedEvents, renderedEvents: eventCount },
+          phases,
+          fixtureScrollTop: grid.scrollTop,
+          buildManifestSha256: preparedResult.buildManifestSha256,
         },
         null,
         2,
@@ -225,7 +295,7 @@ addEventListener("pagehide", () => {
 if (new URLSearchParams(location.search).get("demo-test") === "1") {
   globalThis.__gridDemoTest = Object.freeze({
     injectWrongToken() {
-      worker?.onmessage?.({ data: { type: "result", token: token - 1 } });
+      worker?.onmessage?.({ data: { type: "complete", token: token - 1 } });
     },
     workerActive() {
       return Boolean(worker);

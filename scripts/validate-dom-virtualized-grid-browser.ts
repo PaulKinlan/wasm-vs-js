@@ -23,6 +23,26 @@ async function commandText(command: string, args: string[]): Promise<string> {
 }
 
 const sourceTree = await commandText("git", ["rev-parse", `${sourceCommit}^{tree}`]);
+const worktreeHead = await commandText("git", ["rev-parse", "HEAD"]);
+const worktreeTree = await commandText("git", ["rev-parse", "HEAD^{tree}"]);
+const worktreeStatus = await commandText("git", [
+  "status",
+  "--porcelain=v1",
+  "--untracked-files=all",
+]);
+if (worktreeHead !== sourceCommit || worktreeTree !== sourceTree || worktreeStatus !== "") {
+  throw new Error(
+    `collector requires the exact clean source tree: ${
+      JSON.stringify({
+        sourceCommit,
+        sourceTree,
+        worktreeHead,
+        worktreeTree,
+        worktreeStatus,
+      })
+    }`,
+  );
+}
 const executable = await Deno.realPath(chromeExecutable);
 const screenshotDir = new URL("evidence/browser/dom-virtualized-grid-v1/screenshots/", root);
 await Deno.remove(new URL("evidence/browser/dom-virtualized-grid-v1/", root), {
@@ -142,17 +162,73 @@ async function click(client: CdpClient, sessionId: string, selector: string): Pr
 async function pageState(client: CdpClient, sessionId: string) {
   const evaluated = await client.send("Runtime.evaluate", {
     expression:
-      `(() => { const grid=document.querySelector('#grid'); return {status:document.querySelector('#status').textContent.trim(),result:document.querySelector('#result').textContent.trim(),startDisabled:document.querySelector('#start').disabled,cancelDisabled:document.querySelector('#cancel').disabled,mountedRows:grid.children.length,role:grid.getAttribute('role'),rowCount:grid.getAttribute('aria-rowcount'),selectedCount:grid.querySelectorAll('[aria-selected="true"]').length,activeDescendant:grid.getAttribute('aria-activedescendant'),focusedRow:grid.dataset.focusedRow,selectedRow:grid.dataset.selectedRow,activeElement:document.activeElement?.id||null,workerActive:document.documentElement.dataset.gridWorkerActive||"false"}; })()`,
+      `(() => { const grid=document.querySelector('#grid'); const rect=grid.getBoundingClientRect(); const rows=[...grid.children]; return {status:document.querySelector('#status').textContent.trim(),result:document.querySelector('#result').textContent.trim(),startDisabled:document.querySelector('#start').disabled,cancelDisabled:document.querySelector('#cancel').disabled,mountedRows:rows.length,role:grid.getAttribute('role'),rowCount:grid.getAttribute('aria-rowcount'),selectedCount:grid.querySelectorAll('[aria-selected="true"]').length,activeDescendant:grid.getAttribute('aria-activedescendant'),focusedRow:document.activeElement?.dataset.rowId||null,selectedRow:grid.querySelector('[aria-selected="true"]')?.dataset.rowId||null,activeElement:document.activeElement?.id||null,workerActive:document.documentElement.dataset.gridWorkerActive||"false",layout:{innerWidth,innerHeight,devicePixelRatio,gridWidth:rect.width,gridHeight:rect.height,scrollHeight:grid.scrollHeight,rowHeights:rows.map(row=>row.getBoundingClientRect().height)}}; })()`,
     returnByValue: true,
   }, sessionId);
   return (evaluated.result as { value: Record<string, unknown> }).value;
+}
+
+function axValue(node: Record<string, unknown>, key: "role" | "name"): unknown {
+  return (node[key] as { value?: unknown } | undefined)?.value;
+}
+
+function axProperty(node: Record<string, unknown>, name: string): unknown {
+  const property = ((node.properties as Array<Record<string, unknown>>) ?? []).find((item) =>
+    item.name === name
+  );
+  return (property?.value as { value?: unknown } | undefined)?.value;
+}
+
+async function accessibilityState(
+  client: CdpClient,
+  sessionId: string,
+  expectedRows: Array<Record<string, unknown>>,
+) {
+  const response = await client.send("Accessibility.getFullAXTree", {}, sessionId);
+  const nodes = response.nodes as Array<Record<string, unknown>>;
+  const byId = new Map(nodes.map((node) => [String(node.nodeId), node]));
+  const gridNode = nodes.find((node) =>
+    axValue(node, "role") === "grid" && axValue(node, "name") === "Virtualized benchmark rows"
+  );
+  if (!gridNode) throw new Error("accessibility tree omitted the named grid");
+  const rowNodes = ((gridNode.childIds as string[]) ?? []).map((id) => byId.get(String(id)))
+    .filter((node): node is Record<string, unknown> => axValue(node ?? {}, "role") === "row");
+  if (rowNodes.length !== expectedRows.length) {
+    throw new Error(`accessibility row count mismatch: ${rowNodes.length}`);
+  }
+  const rows = rowNodes.map((node, index) => ({
+    name: String(axValue(node, "name")),
+    selected: axProperty(node, "selected") === true,
+    focused: axProperty(node, "focused") === true,
+    focusable: axProperty(node, "focusable") === true,
+    expectedName: String(expectedRows[index].text),
+  }));
+  if (rows.some((row) => row.name !== row.expectedName || !row.focusable)) {
+    throw new Error(`accessibility row order/name/focusability mismatch: ${JSON.stringify(rows)}`);
+  }
+  const expectedSelected = expectedRows.map((row) => row.selected === true);
+  if (JSON.stringify(rows.map((row) => row.selected)) !== JSON.stringify(expectedSelected)) {
+    throw new Error("accessibility selection state mismatch");
+  }
+  if (rows.filter((row) => row.focused).length !== 1) {
+    throw new Error("accessibility tree did not retain exactly one focused row");
+  }
+  return {
+    grid: { role: axValue(gridNode, "role"), name: axValue(gridNode, "name") },
+    rows: rows.map(({ name, selected, focused, focusable }) => ({
+      name,
+      selected,
+      focused,
+      focusable,
+    })),
+  };
 }
 
 async function waitForState(
   client: CdpClient,
   sessionId: string,
   predicate: (state: Record<string, unknown>) => boolean,
-  timeoutMs = 35_000,
+  timeoutMs = 50_000,
 ): Promise<Record<string, unknown>> {
   const deadline = Date.now() + timeoutMs;
   let state: Record<string, unknown> = {};
@@ -182,6 +258,17 @@ const server = new Deno.Command(Deno.execPath(), {
 }).spawn();
 const serverStatusPromise = server.status;
 await waitFor(`${origin}/healthz`);
+const outputManifest = await (await waitFor(
+  `${origin}/artifacts/dom-virtualized-grid-v1/output-manifest.json`,
+)).json() as Record<string, unknown>;
+const expectedBrowserDom = (outputManifest.browserDom as Record<string, unknown>).state as Record<
+  string,
+  unknown
+>;
+const expectedBrowserDomSha256 = String(
+  (outputManifest.browserDom as Record<string, unknown>).jsonSha256,
+);
+const expectedTrace = outputManifest.trace as Record<string, unknown>;
 
 const profilePath = await Deno.makeTempDir({ prefix: "wasm-grid-chrome-" });
 const launchArguments = [
@@ -196,7 +283,7 @@ const launchArguments = [
   "--metrics-recording-only",
   "--no-first-run",
   "--hide-scrollbars",
-  "--window-size=1440,1200",
+  "--window-size=960,480",
   "--remote-debugging-address=127.0.0.1",
   `--remote-debugging-port=${debuggerPort}`,
   `--user-data-dir=${profilePath}`,
@@ -334,6 +421,15 @@ try {
       client.send("Page.enable", {}, sessionId),
       client.send("Runtime.enable", {}, sessionId),
       client.send("Network.enable", {}, sessionId),
+      client.send("Accessibility.enable", {}, sessionId),
+      client.send("Emulation.setDeviceMetricsOverride", {
+        width: 960,
+        height: 480,
+        deviceScaleFactor: 2,
+        mobile: false,
+        screenWidth: 960,
+        screenHeight: 480,
+      }, sessionId),
       client.send("Target.setAutoAttach", {
         autoAttach: true,
         waitForDebuggerOnStart: true,
@@ -351,11 +447,19 @@ try {
     });
     await client.send("Page.navigate", { url: `${origin}${scenario.route}` }, sessionId);
     await loaded;
-    await waitForState(
+    const initialState = await waitForState(
       client,
       sessionId,
       (state) => state.status === "Ready. No worker is running.",
     );
+    const layout = initialState.layout as Record<string, unknown>;
+    if (
+      layout.innerWidth !== 960 || layout.innerHeight !== 480 ||
+      layout.devicePixelRatio !== 2 || layout.gridWidth !== 960 || layout.gridHeight !== 480 ||
+      Number(layout.scrollHeight) < 2_400_000
+    ) {
+      throw new Error(`${scenario.id} viewport/DPR/layout mismatch: ${JSON.stringify(layout)}`);
+    }
     await client.send("Runtime.evaluate", {
       expression: `(() => { const select=document.querySelector('#target'); select.value=${
         JSON.stringify(scenario.target)
@@ -450,10 +554,11 @@ try {
       : [
         "visible Start control completed",
         "oracle and exact work counters matched",
-        "typed commands physically mutated at most 28 actual row nodes",
-        "actual DOM role and 100,000-row accessibility metadata matched",
-        "focus and selection state were retained from the executed trace",
-        "canonical browser DOM SHA-256 was retained",
+        "300 events ran at fixed 100 ms offsets with a paint acknowledgment between events",
+        "typed commands produced the exact oracle row IDs, order, text, ARIA, focus, and selection",
+        "960×480 CSS-pixel layout and DPR 2 matched",
+        "the accessibility tree matched the exact row order, names, focus, and selection",
+        "load, transfer, compute, render, and end-to-end phases were measured",
       ];
     if (exceptions.length > 0) throw new Error(`${scenario.id} raised browser exceptions`);
     if ([...requests.values()].some((request) => request.failed || request.status !== 200)) {
@@ -463,6 +568,8 @@ try {
         }`,
       );
     }
+    let accessibility = null;
+    let validatedResult = null;
     if (scenario.action === "complete" || scenario.action === "restart") {
       if (!String(finalState.result).includes("Browser DOM SHA-256")) {
         throw new Error(`${scenario.id} omitted the browser DOM oracle`);
@@ -480,6 +587,7 @@ try {
         throw new Error(`${scenario.id} omitted focus/selection model state`);
       }
       const parsed = JSON.parse(String(finalState.result));
+      validatedResult = parsed;
       if (
         parsed.commandCount !== 4252 || parsed.modelCounters.events !== 300 ||
         parsed.modelCounters.layoutReads !== 300
@@ -497,13 +605,67 @@ try {
           layoutReads: 300,
         })
       ) throw new Error(`${scenario.id} physical mutation counters mismatch`);
+      const expectedBoundaryCrossings = scenario.target === "wasm-linear-controlled" ? 304 : 0;
+      if (parsed.modelCounters.boundaryCrossings !== expectedBoundaryCrossings) {
+        throw new Error(`${scenario.id} operative boundary counter mismatch`);
+      }
+      if (
+        canonicalize(parsed.browserDom) !== canonicalize(expectedBrowserDom) ||
+        parsed["Browser DOM SHA-256"] !== expectedBrowserDomSha256
+      ) {
+        throw new Error(`${scenario.id} exact browser DOM oracle mismatch`);
+      }
+      if (
+        finalState.activeDescendant !== expectedBrowserDom.activeDescendant ||
+        finalState.activeElement !== expectedBrowserDom.activeElement ||
+        Number(finalState.focusedRow) !== (expectedBrowserDom.selectedRow as number) ||
+        Number(finalState.selectedRow) !== (expectedBrowserDom.selectedRow as number) ||
+        Number(finalState.selectedCount) !== 1
+      ) {
+        throw new Error(`${scenario.id} focus/selection DOM mismatch`);
+      }
+      const finalLayout = finalState.layout as Record<string, unknown>;
+      if (
+        finalLayout.innerWidth !== 960 || finalLayout.innerHeight !== 480 ||
+        finalLayout.devicePixelRatio !== 2 || finalLayout.gridWidth !== 960 ||
+        finalLayout.gridHeight !== 480 ||
+        !(finalLayout.rowHeights as number[]).every((height) => height === 24)
+      ) {
+        throw new Error(`${scenario.id} final layout mismatch: ${JSON.stringify(finalLayout)}`);
+      }
+      if (
+        JSON.stringify(parsed.trace.scheduledOffsetsMs) !==
+          JSON.stringify(expectedTrace.scheduledOffsetsMs) ||
+        JSON.stringify(parsed.trace.scrollOffsetsCssPx) !==
+          JSON.stringify(expectedTrace.scrollOffsetsCssPx) ||
+        parsed.trace.dispatchedEvents !== 300 || parsed.trace.renderedEvents !== 300 ||
+        parsed.trace.durationMs < 30_000 || parsed.trace.actualOffsetsMs.length !== 300 ||
+        parsed.trace.actualOffsetsMs.some((offset: number, index: number) =>
+          offset + 0.1 < parsed.trace.scheduledOffsetsMs[index]
+        )
+      ) {
+        throw new Error(`${scenario.id} interleaved trace lifecycle mismatch`);
+      }
+      for (const phase of ["loadMs", "transferMs", "computeMs", "renderMs", "endToEndMs"]) {
+        if (!Number.isFinite(parsed.phases[phase]) || parsed.phases[phase] <= 0) {
+          throw new Error(`${scenario.id} phase ${phase} was not measured`);
+        }
+      }
+      if (!Number.isFinite(parsed.phases.instantiateMs) || parsed.phases.instantiateMs < 0) {
+        throw new Error(`${scenario.id} instantiate phase was malformed`);
+      }
+      accessibility = await accessibilityState(
+        client,
+        sessionId,
+        expectedBrowserDom.rows as Array<Record<string, unknown>>,
+      );
     }
     const screenshot = await client.send(
       "Page.captureScreenshot",
       {
         format: "png",
         fromSurface: true,
-        captureBeyondViewport: true,
+        captureBeyondViewport: false,
       },
       sessionId,
       10_000,
@@ -520,6 +682,14 @@ try {
       finalStatus: String(finalState.status),
       resultTextSha256: await sha256Hex(new TextEncoder().encode(String(finalState.result))),
       assertions,
+      validatedResult: validatedResult
+        ? {
+          browserDomSha256: validatedResult["Browser DOM SHA-256"],
+          trace: validatedResult.trace,
+          phases: validatedResult.phases,
+        }
+        : null,
+      accessibility,
       console: consoleMessages,
       exceptions,
       network: [...requests.values()],
@@ -582,7 +752,13 @@ try {
     schemaVersion: 1,
     evidenceId: "dom-virtualized-grid-v1-chrome-150",
     collectedAt: new Date().toISOString(),
-    source: { commit: sourceCommit, tree: sourceTree },
+    source: {
+      commit: sourceCommit,
+      tree: sourceTree,
+      worktreeHead,
+      worktreeTree,
+      cleanAtCollectionStart: worktreeStatus === "",
+    },
     collectionCommand:
       `deno run -A scripts/validate-dom-virtualized-grid-browser.ts --source-commit=${sourceCommit} --chrome=${chromeExecutable}`,
     browser: {

@@ -117,7 +117,7 @@ function hashWords(words) {
   return hash.toString(16).padStart(8, "0");
 }
 
-function execute(bytes, boundaryCrossings, executionTarget) {
+function* executeSteps(bytes, boundaryCrossings, executionTarget) {
   const view = readFixture(bytes);
   const scores = new Int32Array(ROWS);
   const groups = new Uint32Array(ROWS);
@@ -305,7 +305,9 @@ function execute(bytes, boundaryCrossings, executionTarget) {
   };
 
   const actionOffset = HEADER_BYTES + ROWS * ROW_BYTES;
+  yield { type: "prepared" };
   for (let action = 0; action < ACTIONS; action += 1) {
+    const commandStart = commandWordLength;
     const at = actionOffset + action * ACTION_BYTES;
     if (view.getUint32(at, true) !== action * 100) {
       throw new Error("virtualized-grid event cadence mismatch");
@@ -335,6 +337,12 @@ function execute(bytes, boundaryCrossings, executionTarget) {
     } else throw new Error("virtualized-grid action denied");
     counters.events += 1;
     reconcile(action);
+    yield {
+      type: "event",
+      actionIndex: action,
+      scrollOffset,
+      commands: commandWords.slice(commandStart, commandWordLength),
+    };
   }
   const words = commandWords.slice(0, commandWordLength);
   const checkpoints = [];
@@ -364,8 +372,21 @@ function execute(bytes, boundaryCrossings, executionTarget) {
   };
 }
 
+export function createJavaScriptGridExecution(bytes = generateFixture()) {
+  const steps = executeSteps(bytes, 0, "javascript");
+  const prepared = steps.next();
+  if (prepared.done || prepared.value.type !== "prepared") {
+    throw new Error("virtualized-grid JavaScript preparation failed");
+  }
+  return steps;
+}
+
 export function runJavaScript(bytes = generateFixture()) {
-  return execute(bytes, 0, "javascript");
+  const steps = createJavaScriptGridExecution(bytes);
+  while (true) {
+    const step = steps.next();
+    if (step.done) return step.value;
+  }
 }
 
 export async function instantiateGridWasm(bytes) {
@@ -373,8 +394,7 @@ export async function instantiateGridWasm(bytes) {
   return instance.exports;
 }
 
-function decodeWasm(exports) {
-  const pointer = exports.result_ptr();
+function decodeWasm(exports, pointer = exports.result_ptr()) {
   const memory = exports.memory;
   const header = new Uint32Array(memory.buffer, pointer, 20).slice();
   if (header[0] !== RESULT_MAGIC || header[1] !== 1) {
@@ -420,14 +440,7 @@ function decodeWasm(exports) {
   return { header, commands, counters, checkpoints };
 }
 
-export function runWasm(exports, bytes = generateFixture()) {
-  readFixture(bytes);
-  const pointer = exports.input_ptr();
-  const memory = exports.memory;
-  new Uint8Array(memory.buffer, pointer, bytes.byteLength).set(bytes);
-  const status = exports.run(bytes.byteLength);
-  if (status !== 0) throw new Error(`virtualized-grid Wasm failed (${status})`);
-  const decoded = decodeWasm(exports);
+function wasmResult(decoded) {
   return {
     workloadId: GRID_ID,
     executionTarget: "wasm-linear",
@@ -439,6 +452,57 @@ export function runWasm(exports, bytes = generateFixture()) {
     checkpoints: decoded.checkpoints,
     fixture: { rows: ROWS, actions: ACTIONS, durationMs: 30_000, eventCadenceMs: 100 },
   };
+}
+
+export function createWasmGridExecution(exports, bytes = generateFixture()) {
+  readFixture(bytes);
+  const inputPointer = exports.input_ptr();
+  const memory = exports.memory;
+  new Uint8Array(memory.buffer, inputPointer, bytes.byteLength).set(bytes);
+  const prepareStatus = exports.prepare(bytes.byteLength);
+  if (prepareStatus !== 0) {
+    throw new Error(`virtualized-grid Wasm prepare failed (${prepareStatus})`);
+  }
+  const resultPointer = exports.result_ptr();
+  let actionIndex = 0;
+  let priorCommandCount = 0;
+  let finished = false;
+  return {
+    next() {
+      if (actionIndex < ACTIONS) {
+        const status = exports.run_event(actionIndex);
+        if (status !== 0) throw new Error(`virtualized-grid Wasm event failed (${status})`);
+        const commandCount = new Uint32Array(memory.buffer, resultPointer + 2 * 4, 1)[0];
+        const commands = new Uint32Array(
+          memory.buffer,
+          resultPointer + (20 + 6 * 8 + priorCommandCount * COMMAND_WIDTH) * 4,
+          (commandCount - priorCommandCount) * COMMAND_WIDTH,
+        ).slice();
+        const value = { type: "event", actionIndex, commands };
+        priorCommandCount = commandCount;
+        actionIndex += 1;
+        return { done: false, value };
+      }
+      if (finished) throw new Error("virtualized-grid Wasm execution already completed");
+      finished = true;
+      const status = exports.finish();
+      if (status !== 0) throw new Error(`virtualized-grid Wasm finish failed (${status})`);
+      return { done: true, value: wasmResult(decodeWasm(exports, resultPointer)) };
+    },
+  };
+}
+
+export function runWasm(exports, bytes = generateFixture()) {
+  const steps = createWasmGridExecution(exports, bytes);
+  while (true) {
+    const step = steps.next();
+    if (step.done) {
+      if (!("counters" in step.value)) {
+        throw new Error("virtualized-grid Wasm result was malformed");
+      }
+      return step.value;
+    }
+  }
 }
 
 export function normalizeForEquivalence(result) {

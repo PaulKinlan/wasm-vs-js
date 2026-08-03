@@ -47,6 +47,7 @@
     "finalState": ["model", "mounted rows", "DOM order", "accessibility", "focus", "selection"]
   },
   "allocationPolicy": "allocations counts dynamic application-owned allocations inside the 300-event trace; fixed setup buffers and post-trace result materialization are outside the trace and excluded",
+  "boundaryPolicy": "Count every operative exported Wasm function call: input_ptr, prepare, result_ptr, 300 run_event calls, and finish (304 crossings). Memory reads and writes through the exported Memory object are counted as bytes, not function crossings.",
   "counters": [
     "rows-scanned",
     "comparisons",

@@ -11,7 +11,7 @@
   "artifacts": {
     "buildManifest": {
       "path": "public/artifacts/dom-virtualized-grid-v1/build-manifest.json",
-      "sha256": "f1f84b3acf27417fe72076a7ecc868013b8781c224bd65965ec585e516d658d9"
+      "sha256": "484c7a0491cdd65a95380290ac8daad7209058d6ec41fea6bf370cb0805ba7e7"
     },
     "fixture": {
       "path": "public/artifacts/dom-virtualized-grid-v1/fixture.bin",
@@ -19,11 +19,11 @@
     },
     "wasm": {
       "path": "public/artifacts/dom-virtualized-grid-v1/grid.wasm",
-      "sha256": "fdab1416648ec271ac290a9556fa2a1cff63d1ebe333666ba58b6112283c0e56"
+      "sha256": "dd7aab37efdf2c85a0df3114838a67f966c615cb94067253d957537c8c80234a"
     },
     "outputManifest": {
       "path": "public/artifacts/dom-virtualized-grid-v1/output-manifest.json",
-      "sha256": "076cd4c78eb83af75cc1057a085f4ad437e190c69188a9073debaa6d06d71b62"
+      "sha256": "21bfa2336d9265fc8f8f2c6f3d23a8e65102a2d9e42e0a99e872f2ec3a9ec2f8"
     }
   },
   "correctness": {

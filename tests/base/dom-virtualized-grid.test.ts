@@ -15,7 +15,7 @@ import {
 const Ajv2020 = (Ajv2020Module as unknown as { default?: typeof Ajv2020Module }).default ??
   Ajv2020Module;
 const fixtureHash = "07148a1e52a188d7dbaaf17e922075004e54addd01873b936c6207064494d17a";
-const wasmHash = "fdab1416648ec271ac290a9556fa2a1cff63d1ebe333666ba58b6112283c0e56";
+const wasmHash = "dd7aab37efdf2c85a0df3114838a67f966c615cb94067253d957537c8c80234a";
 
 async function runtime() {
   return await instantiateGridWasm(
@@ -102,7 +102,12 @@ Deno.test("JavaScript and material Wasm emit every identical typed DOM command a
     allocations: 0,
     boundaryCrossings: 0,
   });
-  assertEquals(wasm.counters.boundaryCrossings, 2);
+  assertEquals(wasm.counters.boundaryCrossings, 304);
+  const operativeExports = ["input_ptr", "prepare", "result_ptr", "run_event", "finish"];
+  const adapterSource = await Deno.readTextFile("benchmarks/base/dom-virtualized-grid/engine.js");
+  for (const name of operativeExports) {
+    assert(adapterSource.includes(`exports.${name}(`), `adapter omitted ${name} crossing`);
+  }
   assertEquals(
     canonicalize(js.final),
     canonicalize({
@@ -128,8 +133,7 @@ Deno.test("JavaScript and material Wasm emit every identical typed DOM command a
   ) {
     assert(c.includes(symbol), `material Wasm source omitted ${symbol}`);
   }
-  const adapter = await Deno.readTextFile("benchmarks/base/dom-virtualized-grid/engine.js");
-  const wasmAdapter = adapter.slice(adapter.indexOf("export function runWasm"));
+  const wasmAdapter = adapterSource.slice(adapterSource.indexOf("export function runWasm"));
   assert(
     !wasmAdapter.includes("execute(bytes"),
     "Wasm result was reconstructed by the JavaScript reducer",
@@ -339,6 +343,12 @@ Deno.test("runner uses a fresh worker, typed-only host commands, timeout, stale 
   const worker = await Deno.readTextFile(
     "public/benchmarks/dom-virtualized-grid-v1/grid-worker.js",
   );
+  const collector = await Deno.readTextFile(
+    "scripts/validate-dom-virtualized-grid-browser.ts",
+  );
+  const outputManifest = JSON.parse(
+    await Deno.readTextFile("public/artifacts/dom-virtualized-grid-v1/output-manifest.json"),
+  );
   assert(html.includes('aria-rowcount="100000"'));
   assert(html.includes("No performance claim."));
   assert(runner.includes("new Worker("));
@@ -350,7 +360,23 @@ Deno.test("runner uses a fresh worker, typed-only host commands, timeout, stale 
   assert(!runner.includes("localStorage"));
   assert(!runner.includes("sessionStorage"));
   assert(!runner.includes("fetch("));
-  assert(worker.includes("commands.buffer"));
+  assert(worker.includes("createJavaScriptGridExecution"));
+  assert(worker.includes("createWasmGridExecution"));
+  assert(worker.includes("const step = execution.next()"));
+  assert(worker.includes("scheduledOffsetMs = actionIndex * EVENT_CADENCE_MS"));
+  assert(worker.includes("await acknowledged"));
+  assert(runner.includes('CustomEvent("gridtraceevent"'));
+  assert(runner.includes("await afterPaint()"));
+  assert(!runner.includes("dataset.focusedRow"));
+  assert(!runner.includes("dataset.selectedRow"));
+  assert(worker.includes("commands: batch.buffer"));
   assert(worker.includes("Fixture raw-byte hash mismatch"));
   assert(worker.includes("Wasm raw-byte hash mismatch"));
+  assertEquals(outputManifest.browserDom.state.rows.length, 28);
+  assertEquals(outputManifest.trace.scheduledOffsetsMs.length, 300);
+  assertEquals(outputManifest.trace.scrollOffsetsCssPx.length, 300);
+  assert(collector.includes('client.send("Emulation.setDeviceMetricsOverride"'));
+  assert(collector.includes('client.send("Accessibility.getFullAXTree"'));
+  assert(collector.includes("canonicalize(parsed.browserDom)"));
+  assert(collector.includes('"--porcelain=v1"'));
 });

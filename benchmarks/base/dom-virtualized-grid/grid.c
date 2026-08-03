@@ -42,6 +42,10 @@ static uint32_t final_start;
 static uint32_t final_end;
 static uint32_t focused;
 static uint32_t selected;
+static uint32_t filter_group;
+static uint32_t scroll_offset;
+static uint32_t next_action;
+static uint32_t checkpoint;
 
 static uint32_t slot_rows[MAX_MOUNTED];
 static int32_t slot_scores[MAX_MOUNTED];
@@ -205,7 +209,7 @@ static void reconcile(uint32_t action_index, uint32_t checkpoint_index) {
 uint8_t *input_ptr(void) { return input_buffer; }
 uint32_t *result_ptr(void) { return output_buffer; }
 
-int run(uint32_t length) {
+int prepare(uint32_t length) {
   if (length != FIXTURE_BYTES) return 1;
   if (load_u32(input_buffer) != MAGIC || load_u32(input_buffer + 4) != 1u || load_u32(input_buffer + 8) != ROWS || load_u32(input_buffer + 12) != ACTIONS) return 2;
   rows_scanned = comparisons = events = command_count = 0;
@@ -213,6 +217,10 @@ int run(uint32_t length) {
   focus_operations = layout_reads = 0;
   filtered_length = ROWS;
   focused = selected = EMPTY;
+  filter_group = EMPTY;
+  scroll_offset = 0;
+  next_action = 0;
+  checkpoint = 0;
   slot_count = 0;
   for (uint32_t i = 0; i < MAX_MOUNTED; i++) {
     slot_rows[i] = EMPTY;
@@ -231,47 +239,55 @@ int run(uint32_t length) {
     filtered_rows[i] = id;
     row_offset += ROW_BYTES;
   }
-  uint32_t filter_group = EMPTY;
-  uint32_t scroll_offset = 0;
+  output_buffer[2] = 0;
   output_buffer[19] = 0;
+  return 0;
+}
+
+int run_event(uint32_t action) {
+  if (action != next_action || action >= ACTIONS) return 8;
   uint32_t action_offset = HEADER_BYTES + ROWS * ROW_BYTES;
-  uint32_t checkpoint = 0;
-  for (uint32_t action = 0; action < ACTIONS; action++) {
-    const uint8_t *at = input_buffer + action_offset + action * ACTION_BYTES;
-    if (load_u32(at) != action * 100u) return 4;
-    uint32_t type = load_u32(at + 4);
-    uint32_t a = load_u32(at + 8);
-    uint32_t b = load_u32(at + 12);
-    if (type == 0) {
-      uint32_t max_offset = filtered_length > 20u ? (filtered_length - 20u) * 24u : 0u;
-      scroll_offset = a < max_offset ? a : max_offset;
-    } else if (type == 1) {
-      filter_group = a;
-      rebuild_filter(filter_group);
-      scroll_offset = 0;
-    } else if (type == 2) {
-      stable_sort(a & 1u, filter_group);
-    } else if (type == 3) {
-      if (a >= ROWS) return 5;
-      scores[a] = (int32_t)b;
-      selected = a;
-    } else if (type == 4) {
-      if (a == EMPTY) {
-        uint32_t base = scroll_offset / 24u + 5u;
-        if (base >= filtered_length) base = filtered_length - 1u;
-        focused = filtered_rows[base];
-      } else {
-        if (a >= ROWS) return 6;
-        focused = a;
-      }
-      selected = focused;
-    } else return 7;
-    events++;
-    output_buffer[19] = scroll_offset;
-    uint32_t checkpoint_index = EMPTY;
-    if ((action + 1u) % 50u == 0u) checkpoint_index = checkpoint++;
-    reconcile(action, checkpoint_index);
-  }
+  const uint8_t *at = input_buffer + action_offset + action * ACTION_BYTES;
+  if (load_u32(at) != action * 100u) return 4;
+  uint32_t type = load_u32(at + 4);
+  uint32_t a = load_u32(at + 8);
+  uint32_t b = load_u32(at + 12);
+  if (type == 0) {
+    uint32_t max_offset = filtered_length > 20u ? (filtered_length - 20u) * 24u : 0u;
+    scroll_offset = a < max_offset ? a : max_offset;
+  } else if (type == 1) {
+    filter_group = a;
+    rebuild_filter(filter_group);
+    scroll_offset = 0;
+  } else if (type == 2) {
+    stable_sort(a & 1u, filter_group);
+  } else if (type == 3) {
+    if (a >= ROWS) return 5;
+    scores[a] = (int32_t)b;
+    selected = a;
+  } else if (type == 4) {
+    if (a == EMPTY) {
+      uint32_t base = scroll_offset / 24u + 5u;
+      if (base >= filtered_length) base = filtered_length - 1u;
+      focused = filtered_rows[base];
+    } else {
+      if (a >= ROWS) return 6;
+      focused = a;
+    }
+    selected = focused;
+  } else return 7;
+  events++;
+  output_buffer[19] = scroll_offset;
+  uint32_t checkpoint_index = EMPTY;
+  if ((action + 1u) % 50u == 0u) checkpoint_index = checkpoint++;
+  reconcile(action, checkpoint_index);
+  output_buffer[2] = command_count;
+  next_action++;
+  return 0;
+}
+
+int finish(void) {
+  if (next_action != ACTIONS) return 9;
   output_buffer[0] = RESULT_MAGIC;
   output_buffer[1] = 1;
   output_buffer[2] = command_count;
@@ -290,7 +306,7 @@ int run(uint32_t length) {
   output_buffer[15] = focus_operations;
   output_buffer[16] = layout_reads;
   output_buffer[17] = 0;
-  output_buffer[18] = 2;
+  output_buffer[18] = 304;
   output_buffer[19] = filtered_length;
   return 0;
 }
