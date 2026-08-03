@@ -23,6 +23,17 @@ async function commandBytes(name: string, args: string[]) {
 async function command(name: string, args: string[]) {
   return new TextDecoder().decode(await commandBytes(name, args)).trim();
 }
+async function toolVersion(name: string) {
+  const result = await new Deno.Command(name, {
+    args: ["-v"],
+    cwd: root.pathname,
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  if (!result.success) throw new Error(new TextDecoder().decode(result.stderr));
+  return `${new TextDecoder().decode(result.stdout)}${new TextDecoder().decode(result.stderr)}`
+    .trim();
+}
 
 const patterns: Record<string, string[]> = {
   "0": ["01110", "10001", "10011", "10101", "11001", "10001", "01110"],
@@ -191,8 +202,65 @@ xref += `trailer\n<< /Size ${
 } /Root 1 0 R /ID [<5044464241534531><5044464241534531>] >>\nstartxref\n${xrefAt}\n%%EOF\n`;
 chunks.push(ascii(xref));
 const pdf = concat(chunks);
-await Deno.writeFile(new URL("report-100-pages.pdf", out), pdf);
+const pdfUrl = new URL("report-100-pages.pdf", out);
+await Deno.writeFile(pdfUrl, pdf);
 await Deno.writeFile(new URL("pdfbase-5x7-v1.bin", out), font);
+
+const popplerDir = await Deno.makeTempDir({ prefix: "pdfbase-poppler-" });
+let independentReference;
+try {
+  const info = await command("pdfinfo", [pdfUrl.pathname]);
+  if (!/^Pages:\s+100$/m.test(info) || !/^PDF version:\s+1\.7$/m.test(info)) {
+    throw new Error("Poppler rejected PDF page count or version");
+  }
+  const textPath = `${popplerDir}/report.txt`;
+  await command("pdftotext", [pdfUrl.pathname, textPath]);
+  const extracted = await Deno.readTextFile(textPath);
+  const reportLines = extracted.match(/REPORT PAGE [0-9]{3} DOCUMENT BENCHMARK(?: NEEDLE)?/g) ?? [];
+  const hitLines = reportLines.filter((line) => line.endsWith(" NEEDLE"));
+  if (reportLines.length !== 100 || hitLines.length !== 10) {
+    throw new Error("Poppler text extraction oracle mismatch");
+  }
+  const rasters = [];
+  for (const page of [1, 25, 50, 75, 100]) {
+    const prefix = `${popplerDir}/page-${page}`;
+    await command("pdftoppm", [
+      "-f",
+      String(page),
+      "-l",
+      String(page),
+      "-singlefile",
+      "-r",
+      "144",
+      pdfUrl.pathname,
+      prefix,
+    ]);
+    const ppm = await Deno.readFile(`${prefix}.ppm`);
+    const header = new TextDecoder().decode(ppm.subarray(0, 32));
+    const match = /^P6\s+1224\s+1584\s+255\s/.exec(header);
+    if (!match) throw new Error(`Poppler raster header mismatch for page ${page}`);
+    const headerBytes = new TextEncoder().encode(match[0]).length;
+    if (ppm.length !== headerBytes + 1224 * 1584 * 3) {
+      throw new Error(`Poppler raster length mismatch for page ${page}`);
+    }
+    let nonWhitePixels = 0;
+    for (let at = headerBytes; at < ppm.length; at += 3) {
+      if (ppm[at] !== 255 || ppm[at + 1] !== 255 || ppm[at + 2] !== 255) nonWhitePixels++;
+    }
+    if (nonWhitePixels === 0) throw new Error(`Poppler raster is blank for page ${page}`);
+    rasters.push({ page, sha256: await sha256Hex(ppm), nonWhitePixels, width: 1224, height: 1584 });
+  }
+  independentReference = {
+    engine: await toolVersion("pdfinfo"),
+    pageCount: 100,
+    extractedTextRecords: reportLines.length,
+    searchHits: hitLines.length,
+    rasterDpi: 144,
+    rasters,
+  };
+} finally {
+  await Deno.remove(popplerDir, { recursive: true });
+}
 
 const buildDir = new URL(".build/", out).pathname;
 await Deno.remove(buildDir, { recursive: true }).catch(() => {});
@@ -320,6 +388,7 @@ const outputManifest = {
     textSha256: js.textSha256,
   },
   variants: { "js-controlled": js, "wasm-linear-controlled": wa },
+  independentReference,
   performanceClaims: [],
 };
 const buildManifest = {
@@ -330,6 +399,7 @@ const buildManifest = {
     deno: Deno.version.deno,
     clang: await command("clang", ["--version"]),
     wasmLd: await command("wasm-ld", ["--version"]),
+    poppler: independentReference.engine,
     flags: ["-O3", "-nostdlib", "-ffreestanding", "-fno-builtin", "fixed 16 MiB memory"],
   },
   sources,
@@ -337,7 +407,7 @@ const buildManifest = {
   font: fontRef,
   artifact,
   reproduce:
-    `deno run --frozen --allow-read=. --allow-write=public/artifacts,public/evidence --allow-run=clang,wasm-ld,git scripts/build-document-pdf-viewer.ts --source-commit=${sourceCommit}`,
+    `deno run --frozen --allow-read=. --allow-write=public/artifacts,public/evidence,/tmp --allow-run=clang,wasm-ld,git,pdfinfo,pdftotext,pdftoppm scripts/build-document-pdf-viewer.ts --source-commit=${sourceCommit}`,
 };
 for (
   const [name, value] of [["fixture-manifest.json", fixtureManifest], [
@@ -363,8 +433,10 @@ await Deno.writeTextFile(
           completeRgbaFivePages: true,
           exactCrossTarget: true,
           fixedWork: true,
+          independentReference: true,
         },
         output: outputManifest.oracle,
+        independentReference,
         limits: { browserEvidence: "not-collected-by-worker", performance: "not-measured" },
       },
       null,

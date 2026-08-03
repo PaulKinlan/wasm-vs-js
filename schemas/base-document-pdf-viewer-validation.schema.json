@@ -12,6 +12,7 @@
     "artifact",
     "checks",
     "output",
+    "independentReference",
     "limits"
   ],
   "properties": {
@@ -30,7 +31,8 @@
         "allSearchHits": { "const": true },
         "completeRgbaFivePages": { "const": true },
         "exactCrossTarget": { "const": true },
-        "fixedWork": { "const": true }
+        "fixedWork": { "const": true },
+        "independentReference": { "const": true }
       },
       "required": [
         "catalogUnchanged",
@@ -38,10 +40,30 @@
         "allSearchHits",
         "completeRgbaFivePages",
         "exactCrossTarget",
-        "fixedWork"
+        "fixedWork",
+        "independentReference"
       ]
     },
     "output": { "type": "object" },
+    "independentReference": {
+      "type": "object",
+      "required": [
+        "engine",
+        "pageCount",
+        "extractedTextRecords",
+        "searchHits",
+        "rasterDpi",
+        "rasters"
+      ],
+      "properties": {
+        "engine": { "type": "string" },
+        "pageCount": { "const": 100 },
+        "extractedTextRecords": { "const": 100 },
+        "searchHits": { "const": 10 },
+        "rasterDpi": { "const": 144 },
+        "rasters": { "type": "array", "minItems": 5, "maxItems": 5 }
+      }
+    },
     "limits": {
       "type": "object",
       "additionalProperties": false,
