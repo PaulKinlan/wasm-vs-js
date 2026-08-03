@@ -3,7 +3,7 @@ import {
   GAME_VARIANTS,
   instantiateGameWasm,
   runGameJavaScript,
-  runGameWasmHybrid,
+  runGameWasm,
 } from "../../../benchmarks/v2/game-family/engine.js";
 
 let wasm;
@@ -31,7 +31,7 @@ self.onmessage = async (event) => {
           })).arrayBuffer(),
         ),
       );
-      result = runGameWasmHybrid(workloadId, await wasm);
+      result = runGameWasm(workloadId, await wasm);
     }
     self.postMessage({ type: "result", token, result });
   } catch (error) {

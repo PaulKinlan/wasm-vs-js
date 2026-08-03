@@ -18,9 +18,10 @@ function makeWorker() {
     if (data.type === "error") return finishError(data.message);
     if (data.type !== "result") return;
     clearTimeout(timer);
-    status.textContent = "Completed deterministic validation run.";
+    status.textContent =
+      "Completed deterministic validation run; replaying retained trace checkpoints.";
     output.textContent = JSON.stringify(data.result, null, 2);
-    draw(data.result);
+    replay(data.result, token);
     start.disabled = false;
     cancel.disabled = true;
   };
@@ -34,6 +35,7 @@ function stopWorker() {
 }
 
 function finishError(message) {
+  token += 1;
   stopWorker();
   status.textContent = message;
   output.textContent = "No result was accepted.";
@@ -41,8 +43,7 @@ function finishError(message) {
   cancel.disabled = true;
 }
 
-function draw(result) {
-  const visual = result.visual;
+function renderSnapshot(snapshot, result) {
   if (canvas) {
     const context = canvas.getContext("2d");
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -51,33 +52,60 @@ function draw(result) {
     context.fillStyle = "#f2c94c";
     if (workloadId === "game.canvas-arcade.v1") {
       context.fillRect(
-        (visual.x / 1280) * canvas.width - 6,
-        (visual.y / 720) * canvas.height - 4,
+        (snapshot.x / 1280) * canvas.width - 6,
+        (snapshot.y / 720) * canvas.height - 4,
         12,
         8,
       );
       context.fillStyle = "#71d4c8";
-      for (let i = 0; i < visual.entities; i += 1) {
-        context.fillRect((i * 47 + visual.score) % canvas.width, (i * 29) % canvas.height, 3, 3);
+      for (let i = 0; i < snapshot.entities; i += 1) {
+        context.fillRect(
+          (i * 47 + snapshot.score) % canvas.width,
+          (i * 29 + snapshot.frame) % canvas.height,
+          3,
+          3,
+        );
       }
     } else {
-      for (let i = 0; i < visual.entities; i += 1) {
-        context.fillRect((i * 37) % canvas.width, (i * 23) % canvas.height, 4, 4);
+      for (let i = 0; i < snapshot.entities; i += 1) {
+        context.fillRect(
+          (i * 37 + snapshot.sampleX) % canvas.width,
+          (i * 23 + snapshot.sampleY) % canvas.height,
+          4,
+          4,
+        );
       }
       context.strokeStyle = "#ef8354";
-      context.strokeRect(visual.goalX * 20, visual.goalY * 20, 18, 18);
+      context.strokeRect(snapshot.goalX * 20, snapshot.goalY * 20, 18, 18);
     }
   }
   if (grid) {
     grid.replaceChildren();
-    for (let i = 0; i < visual.columns * visual.rows; i += 1) {
+    for (let i = 0; i < result.visual.columns * result.visual.rows; i += 1) {
       const cell = document.createElement("span");
-      cell.className = `cell${i === visual.selected ? " selected" : ""}${
-        i < visual.units ? " occupied" : ""
+      cell.className = `cell${i === snapshot.selected ? " selected" : ""}${
+        i < result.visual.units ? " occupied" : ""
       }`;
       grid.append(cell);
     }
   }
+}
+
+function replay(result, acceptedToken) {
+  const trace = result.replay;
+  if (!Array.isArray(trace) || trace.length === 0) return;
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    renderSnapshot(trace.at(-1), result);
+    return;
+  }
+  let index = 0;
+  const next = () => {
+    if (acceptedToken !== token) return;
+    renderSnapshot(trace[index], result);
+    index += 1;
+    if (index < trace.length) requestAnimationFrame(next);
+  };
+  requestAnimationFrame(next);
 }
 
 start?.addEventListener("click", () => {
@@ -106,3 +134,4 @@ cancel?.addEventListener("click", () => {
 });
 
 makeWorker();
+start.disabled = false;

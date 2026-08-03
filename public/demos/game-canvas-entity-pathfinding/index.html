@@ -9,6 +9,7 @@
     <script type="module" src="/demos/game-family/demo.js"></script>
   </head>
   <body>
+    <noscript><p class="shell notice"><strong>JavaScript is required to run this local worker validation demo.</strong> No computation, storage, or upload occurs while scripting is disabled.</p></noscript>
     <main class="shell" data-workload-id="game.canvas-entity-pathfinding.v1">
       <p><a href="/benchmarks/">← Benchmark inventory</a></p>
       <h1>Canvas entity and pathfinding deterministic trace</h1>
@@ -17,7 +18,7 @@
       <section class="panel" aria-labelledby="controls-title">
         <h2 id="controls-title">Run exact fixed work</h2>
         <div
-          class="controls"><label>Target<select id="target"><option value="js-controlled">JavaScript controlled</option><option value="wasm-linear-controlled">Linear Wasm hash kernel + JavaScript host</option></select></label><button id="start" type="button">Start</button><button id="cancel" type="button" disabled>Cancel</button></div>
+          class="controls"><label>Target<select id="target"><option value="js-controlled">JavaScript controlled</option><option value="wasm-linear-controlled">Linear Wasm controlled reducer</option></select></label><button id="start" type="button" disabled>Start</button><button id="cancel" type="button" disabled>Cancel</button></div>
         <p id="status" role="status"
           aria-live="polite">Ready. Computation runs in a dedicated worker with a 15-second timeout.</p>
       </section>

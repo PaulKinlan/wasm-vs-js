@@ -217,10 +217,19 @@ routes.set("/artifacts/game-v2-controlled-family/game-family.wasm", [
   "public/artifacts/game-v2-controlled-family/game-family.wasm",
   "application/wasm",
 ]);
-routes.set("/artifacts/game-v2-controlled-family/build-manifest.json", [
-  "public/artifacts/game-v2-controlled-family/build-manifest.json",
-  "application/json; charset=utf-8",
-]);
+for (
+  const manifest of [
+    "build-manifest.json",
+    "fixture-manifest.json",
+    "input-manifest.json",
+    "output-manifest.json",
+  ]
+) {
+  routes.set(`/artifacts/game-v2-controlled-family/${manifest}`, [
+    `public/artifacts/game-v2-controlled-family/${manifest}`,
+    "application/json; charset=utf-8",
+  ]);
+}
 for (
   const id of [
     "game-canvas-arcade-v1",

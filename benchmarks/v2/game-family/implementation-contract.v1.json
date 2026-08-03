@@ -12,12 +12,13 @@
         "format": "six little-endian u32 parameters followed by 3,600 little-endian u32 input/event records"
       },
       "oracle": [
-        "exact final digest",
-        "six checkpoint digests",
-        "exact visual state",
+        "exact final state digest",
+        "six state checkpoints",
+        "canonical draw-command stream digest",
+        "canonical audio-event stream digest",
         "exact work counters"
       ],
-      "adapter": "Canvas 2D visual enhancement; the complete textual result is authoritative"
+      "adapter": "The demo replays retained 600-frame checkpoints through Canvas 2D; complete trace oracles remain textual."
     },
     {
       "id": "game.canvas-entity-pathfinding.v1",
@@ -31,12 +32,15 @@
         "format": "little-endian header, tile bytes, entity records, path requests, and control records"
       },
       "oracle": [
-        "exact final digest",
-        "path and frame checkpoint digests",
-        "exact visual state",
+        "128 exact path-sequence digests and lengths",
+        "128 heap tie-break digests",
+        "ECS checkpoint digest",
+        "animation command digest",
+        "draw-command digest",
+        "audio-event digest",
         "exact work counters"
       ],
-      "adapter": "Canvas 2D visual enhancement; the complete textual result is authoritative"
+      "adapter": "The demo replays retained 300-frame ECS checkpoints through Canvas 2D; complete path and host-command oracles remain textual."
     },
     {
       "id": "game.dom-tactics-grid.v1",
@@ -47,31 +51,34 @@
         "units": 128,
         "actions": 240,
         "turns": 60,
-        "format": "little-endian header, map bytes, unit records, and action records"
+        "format": "little-endian header, map bytes, unit records, and 240 action records grouped by 60 encoded turn IDs"
       },
       "oracle": [
-        "exact final digest",
-        "60 turn checkpoint digests",
-        "exact visual state",
+        "60 per-turn unit digests",
+        "60 occupancy digests",
+        "initiative and objective digests",
+        "canonical DOM serializer digests",
+        "focus-state digests",
+        "accessibility-state digests",
         "exact work counters"
       ],
-      "adapter": "DOM grid visual enhancement with aria-hidden cells; the complete textual result is authoritative"
+      "adapter": "The demo replays the retained per-turn command state into a DOM grid visual enhancement; complete canonical DOM and accessibility oracles remain textual."
     }
   ],
   "targets": [
     {
       "id": "js-controlled",
       "target": "javascript",
-      "algorithm": "fixture hash and deterministic semantic reducer execute in JavaScript"
+      "algorithm": "All fixture parsing, integer state reduction, A-star/BFS, ECS, trace encoding, and oracle production execute in authored JavaScript."
     },
     {
       "id": "wasm-linear-controlled",
-      "target": "hybrid",
-      "algorithm": "the exact fixture hash executes in fixed four-page linear Wasm; the shared deterministic semantic reducer and Canvas/DOM host adapter execute in JavaScript"
+      "target": "wasm-linear",
+      "algorithm": "The same fixture parsing, integer state reduction, A-star/BFS, ECS, trace encoding, and oracle production execute independently in C compiled to fixed-memory linear WebAssembly; JavaScript only copies bytes and decodes the result buffer."
     }
   ],
-  "equivalence": "Both targets consume byte-identical generated fixtures and must match complete fixture, semantic, checkpoint, counter, and visual outputs exactly. Wasm residency and host work are disclosed rather than represented as an all-Wasm game.",
-  "floatingPointPolicy": "No floating-point arithmetic is used by fixture generation, reducers, counters, digests, or the Wasm kernel. Canvas drawing is an untimed visual adapter outside the oracle.",
+  "equivalence": "The independently authored JavaScript and C-to-linear-Wasm targets consume byte-identical fixtures and match every retained digest, checkpoint, path length, tie-break trace, counter, replay snapshot, and final visual state exactly.",
+  "floatingPointPolicy": "No floating-point arithmetic occurs in fixture generation, either controlled reducer, counters, digests, or the Wasm module. Canvas drawing is an untimed visual adapter outside the oracle.",
   "rights": {
     "license": "CC0-1.0",
     "redistribution": "permitted",
@@ -100,7 +107,7 @@
     },
     {
       "cell": "audio playback",
-      "reason": "Audio-event counters are validated, but the runnable demo does not create an AudioContext or play sound."
+      "reason": "Canonical audio-event streams are validated, but the demo does not create an AudioContext or play sound."
     }
   ]
 }
