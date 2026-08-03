@@ -52,7 +52,7 @@ function display() {
       digest: lastResult.digest,
       counters: lastResult.counters,
       displayedChartModel: model,
-      allFiveModelsValidated: true,
+      validation: lastResult.validation,
     },
     null,
     2,
@@ -71,8 +71,16 @@ form.addEventListener("submit", (event) => {
     if (data.type === "error") return finishError(data.message);
     if (data.type !== "result") return;
     cleanup();
+    if (
+      !data.result?.validation?.exactArtifactHashes ||
+      !data.result.validation.fullOutputValidated ||
+      !data.result.validation.countersValidated ||
+      !data.result.validation.crossTargetValidated ||
+      !data.result.validation.oracleValidated ||
+      !data.result.validation.allFiveModelsValidated
+    ) return finishError("The worker returned without the complete correctness gate.");
     lastResult = data.result;
-    status.textContent = "Complete. All five canonical chart models passed.";
+    status.textContent = "Complete. Artifact hashes, both targets, and all five models passed.";
     start.disabled = false;
     cancel.disabled = true;
     display();

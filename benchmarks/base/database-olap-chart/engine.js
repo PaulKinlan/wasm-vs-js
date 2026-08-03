@@ -16,18 +16,13 @@ export function digestWords(words) {
   for (const value of words) hash = mix(hash, value);
   return hex(hash);
 }
-function add64(lo, hi, value) {
-  const next = (lo + (value >>> 0)) >>> 0;
-  return [next, (hi + (next < lo ? 1 : 0)) >>> 0];
+function add64(lowWords, highWords, index, value) {
+  const previous = lowWords[index];
+  const next = (previous + (value >>> 0)) >>> 0;
+  lowWords[index] = next;
+  highWords[index] = (highWords[index] + (next < previous ? 1 : 0)) >>> 0;
 }
 
-function queryTrace(words) {
-  const start = HEADER_WORDS + OLAP.rows * OLAP.rowWords;
-  return Array.from(
-    { length: OLAP.queries },
-    (_, i) => words.slice(start + i * OLAP.queryWords, start + (i + 1) * OLAP.queryWords),
-  );
-}
 function column(words, columnIndex, row) {
   return words[HEADER_WORDS + columnIndex * OLAP.rows + row];
 }
@@ -71,12 +66,20 @@ export function runOlapJavaScript(bytes = generateOlapFixture()) {
     chartBins: OLAP.queries * OLAP.categories,
     outputRows: OLAP.queries * OLAP.topRows,
     outputWords: OUTPUT_WORDS,
-    allocations: OLAP.queries * 7 + 1,
+    // One unit per explicitly created Array or TypedArray object/view in the controlled compute.
+    // This includes the output, seven per-query work arrays, and each selected-row subarray view.
+    allocations: OLAP.queries * 8 + 1,
     boundaryCrossings: 0,
   };
-  const trace = queryTrace(words);
-  for (let q = 0; q < trace.length; q += 1) {
-    const [regionMask, categoryMask, minUnits, descending, sortColumn, controlRevision] = trace[q];
+  const queryStart = HEADER_WORDS + OLAP.rows * OLAP.rowWords;
+  for (let q = 0; q < OLAP.queries; q += 1) {
+    const query = queryStart + q * OLAP.queryWords;
+    const regionMask = words[query];
+    const categoryMask = words[query + 1];
+    const minUnits = words[query + 2];
+    const descending = words[query + 3];
+    const sortColumn = words[query + 4];
+    const controlRevision = words[query + 5];
     const indexes = new Uint32Array(OLAP.rows);
     const temp = new Uint32Array(OLAP.rows);
     let matched = 0;
@@ -100,35 +103,32 @@ export function runOlapJavaScript(bytes = generateOlapFixture()) {
       counters.aggregateRows += 1;
       filterDigest = mix(filterDigest, row);
       count[category] += 1;
-      [unitsLo[category], unitsHi[category]] = add64(unitsLo[category], unitsHi[category], units);
-      [revenueLo[category], revenueHi[category]] = add64(
-        revenueLo[category],
-        revenueHi[category],
-        column(words, 5, row),
-      );
+      add64(unitsLo, unitsHi, category, units);
+      add64(revenueLo, revenueHi, category, column(words, 5, row));
     }
     const selected = indexes.subarray(0, matched);
     stableMergeSort(words, selected, temp, sortColumn, descending !== 0, counters);
     let out = q * OUTPUT_WORDS_PER_QUERY;
-    output.set([
-      q,
-      matched,
-      sortColumn,
-      descending,
-      filterDigest,
-      OLAP.topRows,
-      OLAP.categories,
-      controlRevision,
-    ], out);
-    out += 8;
+    output[out++] = q;
+    output[out++] = matched;
+    output[out++] = sortColumn;
+    output[out++] = descending;
+    output[out++] = filterDigest;
+    output[out++] = OLAP.topRows;
+    output[out++] = OLAP.categories;
+    output[out++] = controlRevision;
     for (let i = 0; i < OLAP.topRows; i += 1) {
       const row = selected[i];
-      output.set([row, column(words, 4, row), column(words, 5, row)], out);
-      out += 3;
+      output[out++] = row;
+      output[out++] = column(words, 4, row);
+      output[out++] = column(words, 5, row);
     }
     for (let bin = 0; bin < OLAP.categories; bin += 1) {
-      output.set([count[bin], unitsLo[bin], unitsHi[bin], revenueLo[bin], revenueHi[bin]], out);
-      out += 5;
+      output[out++] = count[bin];
+      output[out++] = unitsLo[bin];
+      output[out++] = unitsHi[bin];
+      output[out++] = revenueLo[bin];
+      output[out++] = revenueHi[bin];
     }
   }
   return finalize("js-controlled", "javascript", bytes, output, counters);
@@ -204,7 +204,8 @@ export function runOlapWasm(runtime, bytes = generateOlapFixture()) {
     outputRows: Number(runtime.counter(7)),
     outputWords: Number(runtime.counter(8)),
     allocations: 0,
-    boundaryCrossings: 2,
+    // Host-to-Wasm exported calls: input_ptr, run, result_ptr, and nine counter reads.
+    boundaryCrossings: 12,
   };
   return finalize("wasm-linear-controlled", "wasm-linear", bytes, output, counters);
 }

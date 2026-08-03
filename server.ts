@@ -170,6 +170,10 @@ const routes = new Map<string, [string, string, boolean?]>([
     "benchmarks/base/database-olap-chart/engine.js",
     "text/javascript; charset=utf-8",
   ]],
+  ["/benchmarks/base/database-olap-chart/browser-validation.js", [
+    "benchmarks/base/database-olap-chart/browser-validation.js",
+    "text/javascript; charset=utf-8",
+  ]],
   ["/benchmarks/base/database-olap-chart/fixture.js", [
     "benchmarks/base/database-olap-chart/fixture.js",
     "text/javascript; charset=utf-8",

@@ -17,6 +17,7 @@ import {
   generateOlapFixture,
   OLAP,
 } from "../../benchmarks/base/database-olap-chart/fixture.js";
+import { validateOlapBrowserResults } from "../../benchmarks/base/database-olap-chart/browser-validation.js";
 import {
   instantiateOlapWasm,
   runOlapJavaScript,
@@ -122,7 +123,32 @@ Deno.test("base OLAP generator freezes 10,000 rows and exactly five query-contro
 Deno.test("JavaScript and material linear Wasm execute the complete five-query trace identically", async () => {
   const fixture = generateOlapFixture();
   const js = runOlapJavaScript(fixture);
-  const wasm = runOlapWasm(await runtime(), fixture);
+  const wasmRuntime = await runtime();
+  const inputPtr = wasmRuntime.input_ptr as () => number;
+  const run = wasmRuntime.run as (bytes: number) => number;
+  const resultPtr = wasmRuntime.result_ptr as () => number;
+  const counter = wasmRuntime.counter as (index: number) => number;
+  let exportedCalls = 0;
+  const countedRuntime = {
+    memory: wasmRuntime.memory,
+    input_ptr: () => {
+      exportedCalls += 1;
+      return inputPtr();
+    },
+    run: (bytes: number) => {
+      exportedCalls += 1;
+      return run(bytes);
+    },
+    result_ptr: () => {
+      exportedCalls += 1;
+      return resultPtr();
+    },
+    counter: (index: number) => {
+      exportedCalls += 1;
+      return counter(index);
+    },
+  };
+  const wasm = runOlapWasm(countedRuntime, fixture);
   assertEquals(js.digest, expectedDigest);
   assertEquals(wasm.digest, expectedDigest);
   assertEquals(wasm.output, js.output);
@@ -141,11 +167,12 @@ Deno.test("JavaScript and material linear Wasm execute the complete five-query t
     chartBins: 80,
     outputRows: 40,
     outputWords: 560,
-    allocations: 36,
+    allocations: 41,
     boundaryCrossings: 0,
   });
   assertEquals(wasm.counters.allocations, 0);
-  assertEquals(wasm.counters.boundaryCrossings, 2);
+  assertEquals(wasm.counters.boundaryCrossings, 12);
+  assertEquals(exportedCalls, wasm.counters.boundaryCrossings);
   const c = await Deno.readTextFile("benchmarks/base/database-olap-chart/olap.c");
   for (
     const material of [
@@ -158,6 +185,8 @@ Deno.test("JavaScript and material linear Wasm execute the complete five-query t
     ]
   ) assert(c.includes(material));
   const adapter = await Deno.readTextFile("benchmarks/base/database-olap-chart/engine.js");
+  assert(!adapter.includes("return [next"));
+  assert(!adapter.includes("output.set(["));
   const wasmAdapter = adapter.slice(adapter.indexOf("export function runOlapWasm"));
   assert(!wasmAdapter.includes("runOlapJavaScript"));
 });
@@ -201,9 +230,56 @@ Deno.test("OLAP fixture and target boundaries fail closed on corruption and unkn
   assertEquals((wasm.run as (length: number) => number)(16), 0);
   const worker = await Deno.readTextFile("public/benchmarks/database-olap-chart/worker.js");
   assert(worker.includes("OLAP_VARIANTS.includes"));
+  assert(worker.includes('crypto.subtle.digest("SHA-256"'));
+  assert(worker.includes("FROZEN_ARTIFACTS"));
+  assert(worker.includes("de1bb41b8e1053b7639a4c96f150698bb3542c6278ba4e6d277c49f9715374c1"));
+  assert(worker.includes("validateOlapBrowserResults(javascript, wasm"));
   assert(!worker.includes("localStorage"));
   assert(!worker.includes('fetch("/api/'));
   assertThrows(() => fixtureWords(new Uint8Array(3)), "aligned Uint8Array");
+});
+
+Deno.test("browser OLAP gate rejects full-output, counter, cross-target, and oracle corruption", async () => {
+  const fixture = generateOlapFixture();
+  const js = runOlapJavaScript(fixture);
+  const wasm = runOlapWasm(await runtime(), fixture);
+  const oracle = JSON.parse(
+    await Deno.readTextFile("public/artifacts/database-olap-chart/output-manifest.json"),
+  );
+  assertEquals(validateOlapBrowserResults(js, wasm, oracle), {
+    expectedDigest,
+    exactArtifactHashes: true,
+    fullOutputValidated: true,
+    countersValidated: true,
+    crossTargetValidated: true,
+    oracleValidated: true,
+    allFiveModelsValidated: true,
+  });
+
+  const wrongOutput = { ...wasm, output: wasm.output.slice() };
+  wrongOutput.output[559] ^= 1;
+  assertThrows(
+    () => validateOlapBrowserResults(js, wrongOutput, oracle),
+    "Wasm complete output mismatch",
+  );
+  const wrongCounters = { ...wasm, counters: { ...wasm.counters, rowsVisited: 0 } };
+  assertThrows(
+    () => validateOlapBrowserResults(js, wrongCounters, oracle),
+    "Wasm counters mismatch",
+  );
+  const crossTargetWasm = { ...wasm, counters: { ...wasm.counters, rowsVisited: 0 } };
+  const crossTargetOracle = structuredClone(oracle);
+  crossTargetOracle.variants["wasm-linear-controlled"].counters.rowsVisited = 0;
+  assertThrows(
+    () => validateOlapBrowserResults(js, crossTargetWasm, crossTargetOracle),
+    "cross-target rowsVisited counter mismatch",
+  );
+  const wrongOracle = structuredClone(oracle);
+  wrongOracle.completeOutput.digest = "00000000";
+  assertThrows(
+    () => validateOlapBrowserResults(js, wasm, wrongOracle),
+    "oracle output contract mismatch",
+  );
 });
 
 Deno.test("pinned OLAP build reproduces Wasm, fixture, manifests, and correctness record", async () => {
@@ -220,6 +296,10 @@ Deno.test("pinned OLAP build reproduces Wasm, fixture, manifests, and correctnes
   const manifest = JSON.parse(
     await Deno.readTextFile("public/artifacts/database-olap-chart/build-manifest.json"),
   );
+  for (const artifact of manifest.artifacts) {
+    assertEquals(await sha256Hex(await Deno.readFile(artifact.path)), artifact.sha256);
+    assertEquals((await Deno.stat(artifact.path)).size, artifact.bytes);
+  }
   const result = await new Deno.Command(Deno.execPath(), {
     args: [
       "run",
@@ -246,8 +326,12 @@ Deno.test("public OLAP routes are closed, typed, and read-only", async () => {
       ["/benchmarks/database-olap-chart/runner.js", "text/javascript"],
       ["/benchmarks/database-olap-chart/worker.js", "text/javascript"],
       ["/benchmarks/base/database-olap-chart/engine.js", "text/javascript"],
+      ["/benchmarks/base/database-olap-chart/browser-validation.js", "text/javascript"],
       ["/artifacts/database-olap-chart/database-olap-chart.wasm", "application/wasm"],
       ["/artifacts/database-olap-chart/fixture.bin", "application/octet-stream"],
+      ["/artifacts/database-olap-chart/build-manifest.json", "application/json"],
+      ["/artifacts/database-olap-chart/fixture-manifest.json", "application/json"],
+      ["/artifacts/database-olap-chart/output-manifest.json", "application/json"],
       ["/evidence/base/database-olap-chart/correctness-record.json", "application/json"],
     ]
   ) {
@@ -278,6 +362,8 @@ Deno.test("runner lifecycle owns fresh workers, timeout, stale-token, cancel, an
       "pagehide",
       "Cancelled",
       "aria-label",
+      "exactArtifactHashes",
+      "crossTargetValidated",
     ]
   ) assert(runner.includes(text));
   const page = await Deno.readTextFile("public/benchmarks/database-olap-chart/index.html");

@@ -1,4 +1,5 @@
 import { sha256Hex } from "../lib/canonical.ts";
+import { validateOlapBrowserResults } from "../benchmarks/base/database-olap-chart/browser-validation.js";
 import { generateOlapFixture } from "../benchmarks/base/database-olap-chart/fixture.js";
 import {
   instantiateOlapWasm,
@@ -71,15 +72,19 @@ const js = runOlapJavaScript(fixture);
 const linear = runOlapWasm(await instantiateOlapWasm(wasm), fixture);
 if (
   js.digest !== linear.digest ||
+  js.output.some((value: number, index: number) => value !== linear.output[index]) ||
   JSON.stringify(js.chartModels) !== JSON.stringify(linear.chartModels)
 ) {
-  throw new Error("complete JavaScript/Wasm chart model mismatch");
+  throw new Error("complete JavaScript/Wasm output mismatch");
 }
 const sourcePaths = [
   "benchmarks/base/database-olap-chart/implementation-contract.v1.json",
   "benchmarks/base/database-olap-chart/fixture.js",
   "benchmarks/base/database-olap-chart/engine.js",
+  "benchmarks/base/database-olap-chart/browser-validation.js",
   "benchmarks/base/database-olap-chart/olap.c",
+  "public/benchmarks/database-olap-chart/worker.js",
+  "public/benchmarks/database-olap-chart/runner.js",
   "scripts/build-base-olap.ts",
   "schemas/base-implementation/registration.schema.json",
   "schemas/base-implementation/correctness-record.schema.json",
@@ -125,7 +130,14 @@ const outputManifest = {
     bytes: js.output.byteLength,
     digestAlgorithm: "fnv1a-u32le-v1",
     digest: js.digest,
+    values: Array.from(js.output),
     chartModels: js.chartModels,
+  },
+  counterUnits: {
+    allocations:
+      "one per explicit Array or TypedArray object/view in controlled compute; backing storage is part of the same unit; fixture validation, boundary adaptation, and chart-model decoding are excluded",
+    boundaryCrossings:
+      "one per host invocation of an exported Wasm function, including pointer, run, result, and counter calls",
   },
   variants: {
     "js-controlled": { status: "passed", counters: js.counters },
@@ -133,6 +145,13 @@ const outputManifest = {
   },
   performanceClaims: [],
 };
+validateOlapBrowserResults(js, linear, outputManifest);
+const fixtureManifestBytes = new TextEncoder().encode(
+  `${JSON.stringify(fixtureManifest, null, 2)}\n`,
+);
+const outputManifestBytes = new TextEncoder().encode(
+  `${JSON.stringify(outputManifest, null, 2)}\n`,
+);
 const toolchain = {
   deno: Deno.version.deno,
   clang: await command("clang", ["--version"]),
@@ -168,16 +187,24 @@ const buildManifest = {
       bytes: fixture.length,
       sha256: fixtureSha256,
     },
+    {
+      path: "public/artifacts/database-olap-chart/fixture-manifest.json",
+      bytes: fixtureManifestBytes.length,
+      sha256: await sha256Hex(fixtureManifestBytes),
+    },
+    {
+      path: "public/artifacts/database-olap-chart/output-manifest.json",
+      bytes: outputManifestBytes.length,
+      sha256: await sha256Hex(outputManifestBytes),
+    },
   ],
 };
-const manifestFiles: Array<readonly [string, unknown]> = [
-  ["fixture-manifest.json", fixtureManifest],
-  ["output-manifest.json", outputManifest],
-  ["build-manifest.json", buildManifest],
-];
-for (const [name, value] of manifestFiles) {
-  await Deno.writeTextFile(new URL(name, out), `${JSON.stringify(value, null, 2)}\n`);
-}
+await Deno.writeFile(new URL("fixture-manifest.json", out), fixtureManifestBytes);
+await Deno.writeFile(new URL("output-manifest.json", out), outputManifestBytes);
+await Deno.writeTextFile(
+  new URL("build-manifest.json", out),
+  `${JSON.stringify(buildManifest, null, 2)}\n`,
+);
 const record = {
   schemaVersion: 1,
   recordId: "database.olap-chart.v1.controlled-a1.correctness",

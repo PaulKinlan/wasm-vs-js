@@ -11,7 +11,11 @@
   "coverage": {
     "story": "Filter, stable-sort, aggregate, and emit a canonical chart model for each of five frozen user-control queries.",
     "fixedWork": { "rows": 10000, "queries": 5, "categories": 16, "topRowsPerQuery": 8 },
-    "rendering": "separate; the complete canonical chart model is output by the compute target"
+    "rendering": "separate; the complete canonical chart model is output by the compute target",
+    "counterUnits": {
+      "allocations": "one per explicit Array or TypedArray object/view created from output allocation through controlled-compute output materialization; backing storage is part of the same unit; fixture integrity validation, boundary adaptation, and untimed chart-model decoding are excluded",
+      "boundaryCrossings": "one per host invocation of an exported Wasm function, including pointer lookup, run, result lookup, and every counter read; JavaScript has zero Wasm export crossings"
+    }
   },
   "representation": {
     "layout": "structure-of-arrays: six contiguous 10,000-element u32 column vectors, followed by the five-query trace",
