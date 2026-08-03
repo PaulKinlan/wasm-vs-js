@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "registrationId",
+    "baseWorkloadId",
+    "status",
+    "authoritativePerformanceEvidence",
+    "implementationCoverage",
+    "frozenCatalog",
+    "blockers",
+    "routes",
+    "artifacts",
+    "evidenceCells"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "registrationId": { "const": "base-tooling-minify-format-controlled-v1" },
+    "baseWorkloadId": { "const": "tooling.minify-format.v1" },
+    "status": { "const": "blocked" },
+    "authoritativePerformanceEvidence": { "const": false },
+    "implementationCoverage": { "const": 0 },
+    "frozenCatalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "mutation"],
+      "properties": {
+        "path": { "const": "catalog/workloads.v1.json" },
+        "sha256": {
+          "const": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4"
+        },
+        "mutation": { "const": "none" }
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "state",
+          "scope",
+          "reason",
+          "rejectedCommit",
+          "rejectedCandidateClass",
+          "requiredToUnblock"
+        ],
+        "properties": {
+          "code": { "const": "full-language-engines-unavailable" },
+          "state": { "const": "blocked" },
+          "scope": { "const": "repository-pinned-toolchains" },
+          "reason": { "type": "string", "minLength": 1 },
+          "rejectedCommit": {
+            "const": "a70b418612bf4211df1acc5965303f924152a5a8"
+          },
+          "rejectedCandidateClass": { "const": "reduced-token-transformer" },
+          "requiredToUnblock": {
+            "type": "array",
+            "minItems": 4,
+            "maxItems": 4,
+            "uniqueItems": true,
+            "items": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "routes": { "type": "array", "maxItems": 0 },
+    "artifacts": { "type": "array", "maxItems": 0 },
+    "evidenceCells": { "type": "array", "maxItems": 0 }
+  }
+}

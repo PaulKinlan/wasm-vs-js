@@ -2,41 +2,31 @@
   "schemaVersion": 1,
   "registrationId": "base-tooling-minify-format-controlled-v1",
   "baseWorkloadId": "tooling.minify-format.v1",
-  "status": "implementation-candidate",
+  "status": "blocked",
   "authoritativePerformanceEvidence": false,
+  "implementationCoverage": 0,
   "frozenCatalog": {
     "path": "catalog/workloads.v1.json",
     "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
     "mutation": "none"
   },
-  "fixedWork": {
-    "totalInputBytes": 5242880,
-    "languages": [
-      "javascript",
-      "css",
-      "html"
-    ],
-    "operations": [
-      "minify",
-      "format"
-    ],
-    "sourceMaps": false
-  },
-  "equivalence": {
-    "class": "semantic-product-choice",
-    "controlledFamily": "owned-three-language-token-policy-v1",
-    "rule": "Each target must pass its own canonical output and semantic round-trip; cross-product output identity is not generalized to unrelated tools."
-  },
-  "targets": [
-    "javascript-controlled",
-    "linear-wasm-controlled"
+  "blockers": [
+    {
+      "code": "full-language-engines-unavailable",
+      "state": "blocked",
+      "scope": "repository-pinned-toolchains",
+      "reason": "The repository has no version-pinned full JS, CSS and HTML engines for both JavaScript and material Wasm, and no independent semantic oracle corpus.",
+      "rejectedCommit": "a70b418612bf4211df1acc5965303f924152a5a8",
+      "rejectedCandidateClass": "reduced-token-transformer",
+      "requiredToUnblock": [
+        "Pin full JavaScript engines that parse, format and minify normal JS, CSS and HTML syntax.",
+        "Pin material Wasm engines with the same language and operation coverage.",
+        "Validate semantic round-trips with independent parsers or oracles.",
+        "Record all six language-operation cells with operative counters, artifact bindings and full provenance."
+      ]
+    }
   ],
-  "routes": {
-    "demo": "/benchmarks/tooling-minify-format-v1/",
-    "artifact": "/artifacts/base-tooling-minify-format/tooling-minify-format.wasm"
-  },
-  "manifests": {
-    "fixture": "/artifacts/base-tooling-minify-format/fixture-manifest.json",
-    "build": "/artifacts/base-tooling-minify-format/build-manifest.json"
-  }
+  "routes": [],
+  "artifacts": [],
+  "evidenceCells": []
 }

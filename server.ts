@@ -280,46 +280,6 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/artifacts/sum-u32/build-manifest.9c309c49.json",
     "application/json; charset=utf-8",
   ]],
-  ["/benchmarks/tooling-minify-format-v1", [
-    "public/benchmarks/tooling-minify-format-v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/tooling-minify-format-v1/", [
-    "public/benchmarks/tooling-minify-format-v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/tooling-minify-format-v1/demo.js", [
-    "public/benchmarks/tooling-minify-format-v1/demo.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/benchmarks/tooling-minify-format-v1/worker.js", [
-    "public/benchmarks/tooling-minify-format-v1/worker.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/benchmarks/tooling-minify-format-v1/engine.js", [
-    "public/benchmarks/tooling-minify-format-v1/engine.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/artifacts/base-tooling-minify-format/tooling-minify-format.wasm", [
-    "public/artifacts/base-tooling-minify-format/tooling-minify-format.wasm",
-    "application/wasm",
-  ]],
-  ["/artifacts/base-tooling-minify-format/fixture-manifest.json", [
-    "public/artifacts/base-tooling-minify-format/fixture-manifest.json",
-    "application/json; charset=utf-8",
-  ]],
-  ["/artifacts/base-tooling-minify-format/build-manifest.json", [
-    "public/artifacts/base-tooling-minify-format/build-manifest.json",
-    "application/json; charset=utf-8",
-  ]],
-  ["/evidence/base/tooling-minify-format/javascript-controlled.json", [
-    "public/evidence/base/tooling-minify-format/javascript-controlled.json",
-    "application/json; charset=utf-8",
-  ]],
-  ["/evidence/base/tooling-minify-format/linear-wasm-controlled.json", [
-    "public/evidence/base/tooling-minify-format/linear-wasm-controlled.json",
-    "application/json; charset=utf-8",
-  ]],
 ]);
 
 for (const route of [...IMAGE_DEMO_ROUTES, ...TRADITIONAL_DEMO_ROUTES]) {
