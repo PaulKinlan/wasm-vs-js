@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "workloadId": "document.pdf-viewer.v1",
-  "sourceCommit": "worktree-source",
+  "sourceCommit": "2cc1cafdcb86bcc382072b5756464b8eaec8b9ae",
   "toolchain": {
     "deno": "2.9.0",
     "clang": "clang version 22.1.8\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
@@ -79,5 +79,5 @@
     "bytes": 5434,
     "sha256": "fe5696519637b277952443369c46e91744ba4b400524fb67e6f2b08d38c414ed"
   },
-  "reproduce": "deno run --allow-read=. --allow-write=public/artifacts,public/evidence --allow-run=clang,wasm-ld scripts/build-document-pdf-viewer.ts --source-commit=worktree-source"
+  "reproduce": "deno run --allow-read=. --allow-write=public/artifacts,public/evidence --allow-run=clang,wasm-ld scripts/build-document-pdf-viewer.ts --source-commit=2cc1cafdcb86bcc382072b5756464b8eaec8b9ae"
 }
