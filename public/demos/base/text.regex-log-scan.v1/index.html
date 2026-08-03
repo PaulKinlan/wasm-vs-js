@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>100 MiB regex log scan | Wasm versus JavaScript</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="./demo.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header
+      class="site-header"><a class="brand" href="/">Wasm versus JavaScript</a><a href="/benchmarks/">Catalog</a></header>
+    <main id="content" class="page-shell">
+      <p class="eyebrow">FULL BASE CONTRACT · TEXT.REGEX-LOG-SCAN.V1</p>
+      <h1>Scan 100 MiB with 20 safe patterns</h1>
+      <p><strong>No performance claim.</strong> A fresh worker generates the registered 100 MiB multilingual log, extracts every URL, IPv4 address, and status code, then checks the complete ordered-capture hash and structural counters. Nothing is uploaded or stored.</p>
+      <section class="panel" aria-labelledby="controls-title">
+        <h2 id="controls-title">Controlled target</h2>
+        <form id="run-form">
+          <label for="engine">Engine</label>
+          <select id="engine" name="engine">
+            <option value="js-controlled">JavaScript controlled</option>
+            <option value="wasm-linear-controlled">Linear Wasm controlled</option>
+          </select>
+          <p
+            id="limits">Exact registered work: 104,857,600 input bytes, 20 frozen patterns, 2,097,152,000 logical pattern-bytes, one iteration. The worker stops after 120 seconds.</p>
+          <div
+            class="button-row"><button id="start" type="submit">Start</button><button id="cancel" type="button" disabled>Cancel</button></div>
+        </form>
+        <progress id="progress" max="4" value="0" aria-label="Run progress"></progress>
+        <p id="status" role="status" aria-live="polite">Ready.</p>
+        <pre id="result" tabindex="0">No result yet.</pre>
+      </section>
+      <section>
+        <h2>Registered semantics and evidence</h2>
+        <p>The bounded set automaton uses byte-exact UTF-8 input, ASCII patterns, strict IPv4 octets, status codes from 100 through 599, and URL tails limited to 96 bytes. Captures retain byte offsets and overlap across different patterns.</p>
+        <ul>
+          <li><a href="/data/base-implementations/text.regex-log-scan.v1.json">Supplemental registration</a></li>
+          <li><a href="/artifacts/text-regex-log-scan/build-manifest.json">Build manifest</a></li>
+          <li><a href="/artifacts/text-regex-log-scan/ordered-captures.bin">Canonical capture artifact</a></li>
+          <li><a href="/evidence/base/text.regex-log-scan.v1/wasm-linear-controlled.json">Wasm correctness record</a></li>
+        </ul>
+        <p>This is separate from the 1 MiB regex automata duel, which remains a reduced fixture and does not count as this base contract.</p>
+      </section>
+    </main>
+  </body>
+</html>

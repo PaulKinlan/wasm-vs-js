@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.example/schemas/base-workload-registration.schema.json",
+  "title": "Frozen base workload supplemental registration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "registrationId",
+    "catalogEntryId",
+    "catalogSha256",
+    "catalogMutation",
+    "track",
+    "status",
+    "fixture",
+    "semantics",
+    "fixedWork",
+    "oracle",
+    "structuralCounters",
+    "variants",
+    "limits",
+    "claims"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "registrationId": { "const": "text.regex-log-scan.v1-controlled-registration-v1" },
+    "catalogEntryId": { "const": "text.regex-log-scan.v1" },
+    "catalogSha256": {
+      "const": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4"
+    },
+    "catalogMutation": { "const": false },
+    "track": { "const": "controlled" },
+    "status": { "const": "implementation-candidate" },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "licenseSpdx",
+        "redistribution",
+        "seed",
+        "generator",
+        "bytes",
+        "records",
+        "sha256"
+      ],
+      "properties": {
+        "kind": { "const": "project-generated" },
+        "licenseSpdx": { "const": "CC0-1.0" },
+        "redistribution": { "const": "generator-and-bytes-permitted" },
+        "seed": { "const": 1511506142 },
+        "generator": { "type": "string", "minLength": 1 },
+        "bytes": { "const": 104857600 },
+        "records": { "const": 409600 },
+        "sha256": { "const": "3d5810310d15b7bebf227bdc384035bd961684d4e1240b2ee93b4cb37350d388" }
+      }
+    },
+    "semantics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "engineFamily",
+        "model",
+        "encoding",
+        "search",
+        "urlTail",
+        "ipv4",
+        "status",
+        "caseSensitive",
+        "unicodePolicy",
+        "emptyMatches"
+      ],
+      "properties": {
+        "engineFamily": { "const": "safe-regex-fixed-pattern-set" },
+        "model": { "type": "string", "minLength": 1 },
+        "encoding": { "type": "string", "minLength": 1 },
+        "search": { "type": "string", "minLength": 1 },
+        "urlTail": { "type": "string", "minLength": 1 },
+        "ipv4": { "type": "string", "minLength": 1 },
+        "status": { "type": "string", "minLength": 1 },
+        "caseSensitive": { "const": true },
+        "unicodePolicy": { "type": "string", "minLength": 1 },
+        "emptyMatches": { "const": false }
+      }
+    },
+    "fixedWork": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inputBytes",
+        "patternDefinitions",
+        "logicalPatternBytes",
+        "expectedMatches",
+        "expectedMatchesPerPattern",
+        "iterations",
+        "timeLimited"
+      ],
+      "properties": {
+        "inputBytes": { "const": 104857600 },
+        "patternDefinitions": { "const": 20 },
+        "logicalPatternBytes": { "const": 2097152000 },
+        "expectedMatches": { "const": 40960 },
+        "expectedMatchesPerPattern": { "const": 2048 },
+        "iterations": { "const": 1 },
+        "timeLimited": { "const": false }
+      }
+    },
+    "oracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "frame", "sha256", "canonicalOutputBytes"],
+      "properties": {
+        "kind": { "const": "exact-sha256-over-length-framed-ordered-captures" },
+        "frame": { "type": "string", "minLength": 1 },
+        "sha256": { "const": "6078822d35d3daea452751e74229c762e43eb4b973ca40bd1a0ac7c9c9e899de" },
+        "canonicalOutputBytes": { "const": 1798498 }
+      }
+    },
+    "structuralCounters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidateStarts",
+        "prefixByteComparisons",
+        "tailByteComparisons",
+        "matchesFound",
+        "capturesExtracted",
+        "perPattern"
+      ],
+      "properties": {
+        "candidateStarts": { "const": 6732995 },
+        "prefixByteComparisons": { "const": 15570166 },
+        "tailByteComparisons": { "const": 861922 },
+        "matchesFound": { "const": 40960 },
+        "capturesExtracted": { "const": 40960 },
+        "perPattern": {
+          "type": "array",
+          "minItems": 20,
+          "maxItems": 20,
+          "items": { "const": 2048 }
+        }
+      }
+    },
+    "variants": { "const": ["js-controlled", "wasm-linear-controlled"] },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "wasmMemoryInitialPages",
+        "wasmMemoryMaximumPages",
+        "browserTimeoutMs",
+        "outputCapacity"
+      ],
+      "properties": {
+        "wasmMemoryInitialPages": { "const": 1800 },
+        "wasmMemoryMaximumPages": { "const": 1800 },
+        "browserTimeoutMs": { "const": 120000 },
+        "outputCapacity": { "const": 50000 }
+      }
+    },
+    "claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "correctnessOnly",
+        "performanceRanking",
+        "acceptedPerformanceCorpus",
+        "reducedFixture"
+      ],
+      "properties": {
+        "correctnessOnly": { "const": true },
+        "performanceRanking": { "const": false },
+        "acceptedPerformanceCorpus": { "const": false },
+        "reducedFixture": { "const": false }
+      }
+    },
+    "implementation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceCommit",
+        "buildManifest",
+        "artifact",
+        "canonicalOutput",
+        "demo",
+        "evidence"
+      ],
+      "properties": {
+        "sourceCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+        "buildManifest": { "const": "/artifacts/text-regex-log-scan/build-manifest.json" },
+        "artifact": { "const": "/artifacts/text-regex-log-scan/text-regex-log-scan.wasm" },
+        "canonicalOutput": { "const": "/artifacts/text-regex-log-scan/ordered-captures.bin" },
+        "demo": { "const": "/demos/base/text.regex-log-scan.v1/" },
+        "evidence": {
+          "const": [
+            "/evidence/base/text.regex-log-scan.v1/js-controlled.json",
+            "/evidence/base/text.regex-log-scan.v1/wasm-linear-controlled.json"
+          ]
+        }
+      }
+    }
+  }
+}

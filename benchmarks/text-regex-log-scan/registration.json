@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "registrationId": "text.regex-log-scan.v1-controlled-registration-v1",
+  "catalogEntryId": "text.regex-log-scan.v1",
+  "catalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+  "catalogMutation": false,
+  "track": "controlled",
+  "status": "implementation-candidate",
+  "fixture": {
+    "kind": "project-generated",
+    "licenseSpdx": "CC0-1.0",
+    "redistribution": "generator-and-bytes-permitted",
+    "seed": 1511506142,
+    "generator": "100 MiB as 409600 fixed 256-byte UTF-8 records; one seeded event every 10 records; pattern id cycles 0..19",
+    "bytes": 104857600,
+    "records": 409600,
+    "sha256": "3d5810310d15b7bebf227bdc384035bd961684d4e1240b2ee93b4cb37350d388"
+  },
+  "semantics": {
+    "engineFamily": "safe-regex-fixed-pattern-set",
+    "model": "bounded deterministic set automaton equivalent to Thompson-NFA subset construction for the registered macro grammar",
+    "encoding": "UTF-8 raw bytes; patterns are ASCII; captures use byte offsets",
+    "search": "each pattern searches every byte offset; matches are emitted in ascending start offset then pattern id; overlapping captures from different patterns are retained",
+    "urlTail": "one through 96 bytes from [a-z0-9._/-]; a 97th allowed byte rejects that start",
+    "ipv4": "four decimal octets separated by dots; each octet is 0..255 with no leading zero unless the octet is zero; a following digit or dot rejects that start",
+    "status": "exactly three decimal digits in 100..599; a following decimal digit rejects that start",
+    "caseSensitive": true,
+    "unicodePolicy": "non-ASCII UTF-8 bytes are ordinary nonmatching bytes and cannot split an ASCII capture",
+    "emptyMatches": false
+  },
+  "fixedWork": {
+    "inputBytes": 104857600,
+    "patternDefinitions": 20,
+    "logicalPatternBytes": 2097152000,
+    "expectedMatches": 40960,
+    "expectedMatchesPerPattern": 2048,
+    "iterations": 1,
+    "timeLimited": false
+  },
+  "oracle": {
+    "kind": "exact-sha256-over-length-framed-ordered-captures",
+    "frame": "u32le(patternId,startByte,endByte,captureByteLength) followed by raw capture bytes",
+    "sha256": "6078822d35d3daea452751e74229c762e43eb4b973ca40bd1a0ac7c9c9e899de",
+    "canonicalOutputBytes": 1798498
+  },
+  "structuralCounters": {
+    "candidateStarts": 6732995,
+    "prefixByteComparisons": 15570166,
+    "tailByteComparisons": 861922,
+    "matchesFound": 40960,
+    "capturesExtracted": 40960,
+    "perPattern": [
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048,
+      2048
+    ]
+  },
+  "variants": ["js-controlled", "wasm-linear-controlled"],
+  "limits": {
+    "wasmMemoryInitialPages": 1800,
+    "wasmMemoryMaximumPages": 1800,
+    "browserTimeoutMs": 120000,
+    "outputCapacity": 50000
+  },
+  "claims": {
+    "correctnessOnly": true,
+    "performanceRanking": false,
+    "acceptedPerformanceCorpus": false,
+    "reducedFixture": false
+  }
+}
