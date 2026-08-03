@@ -4,13 +4,13 @@ export const IDENTITY = {
   "sourceCommit": "8bf6f9e5c2faaea424d707fbb5eea979298b08ad",
   "rawSha256": {
     "registration": "eec1246b9450b07f7625fb9b193bb52316dbca34b1686b345250b5f67540ffb8",
-    "buildManifest": "884fec20a9f0793590064693850ae1d6a1d387d6809f61255c46a030758d18e8",
+    "buildManifest": "43546101f07f1a1152093bdfb8c469db6f7d1d61504c8ca61d1d2feb4c2a7aa6",
     "inputManifest": "546b40c57f1a75db3b4f37feb8b38d5a3b75054de997394abdaa578953c9924a",
     "outputManifest": "e7599e0e453ec6059269073533a28cf6ab37c39109eee3792e8065cb6ec562ac",
     "wasm": "7c9e86f13085de36a1a4a4c5f93162f5b5fb0b96b1d36dfc01b5775a0d832fbe",
     "captures": "6078822d35d3daea452751e74229c762e43eb4b973ca40bd1a0ac7c9c9e899de",
     "inputModule": "720b03e0cea263b5e883a016731b7c3c4551285a905e75909069b11601ccbec5",
-    "workloadModule": "6b36d55458c58bac76ae736cefb79f90e773c934644ccb52846b6faa8af107fd",
+    "workloadModule": "35ac6a5007d9bce0ca353b272d3cddf75a192a1f390c4e68e67c6491057fdd88",
     "workerModule": "4554265b184e5de1fc1ed72da4af1bee02187fe399a1764f75530be8ad06bee8",
   },
 };

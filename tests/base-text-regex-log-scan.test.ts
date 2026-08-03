@@ -13,9 +13,10 @@ import {
   canonicalOutput,
   scanJsControlled,
   scanWasmControlled,
+  WASM_OUTPUT_CAPACITY,
 } from "../benchmarks/text-regex-log-scan/workload.js";
 import { createHandler } from "../server.ts";
-import { assert, assertEquals } from "./assert.ts";
+import { assert, assertEquals, assertRejects } from "./assert.ts";
 
 type Validator = ((value: unknown) => boolean) & { errors?: unknown };
 type AjvConstructor = new (options?: Record<string, unknown>) => {
@@ -57,9 +58,18 @@ Deno.test("base regex registration preserves frozen v1 bytes and validates again
   );
   const validate = new Ajv2020({ allErrors: true, strict: false }).compile(schema);
   assert(validate(registration), JSON.stringify(validate.errors));
+  const publicRegistration = JSON.parse(
+    await Deno.readTextFile("public/data/base-implementations/text.regex-log-scan.v1.json"),
+  );
+  assert(validate(publicRegistration), JSON.stringify(validate.errors));
+  assertEquals(
+    publicRegistration.implementation.buildManifest,
+    "/artifacts/text-regex-log-scan/build-manifest.json",
+  );
   assertEquals(registration.catalogMutation, false);
   assertEquals(registration.fixedWork.inputBytes, 100 * 1024 * 1024);
   assertEquals(registration.fixedWork.patternDefinitions, 20);
+  assertEquals(registration.limits.outputCapacity, WASM_OUTPUT_CAPACITY);
   assertEquals(registration.claims.reducedFixture, false);
   assertEquals(SAFE_PATTERNS.length, 20);
 });
@@ -128,6 +138,42 @@ Deno.test("base regex JS and Wasm reject malformed boundaries and agree on Unico
     assertEquals(linear.outputSha256, js.outputSha256);
     assertEquals(linear.counters, { ...js.counters, boundaryCrossings: 1 });
   }
+
+  const url96 = makeAdversarialCorpus([`http://${"a".repeat(96)}!`]);
+  const url96Js = await scanJsControlled(url96);
+  const url96Wasm = await scanWasmControlled(url96, instance);
+  assertEquals(url96Js.matches, [{ patternId: 0, start: 0, end: 103 }]);
+  assertEquals(url96Wasm.matches, url96Js.matches);
+
+  const url97 = makeAdversarialCorpus([`http://${"a".repeat(97)}!`]);
+  const url97Js = await scanJsControlled(url97);
+  const url97Wasm = await scanWasmControlled(url97, instance);
+  assertEquals(url97Js.matches, []);
+  assertEquals(url97Wasm.matches, []);
+
+  const encoder = new TextEncoder();
+  const malformedUtf8 = Uint8Array.from([
+    ...encoder.encode("status=200 "),
+    0xc3,
+    0x28,
+    0xa0,
+    0xa1,
+    ...encoder.encode(" ip=1.2.3.4"),
+  ]);
+  const malformedJs = await scanJsControlled(malformedUtf8);
+  const malformedWasm = await scanWasmControlled(malformedUtf8, instance);
+  assertEquals(
+    malformedJs.matches.map((match: { patternId: number }) => match.patternId),
+    [14, 8],
+  );
+  assertEquals(malformedWasm.matches, malformedJs.matches);
+  assertEquals(malformedWasm.outputSha256, malformedJs.outputSha256);
+
+  const overCapacity = makeAdversarialCorpus(new Array(50_001).fill("status=200"));
+  await assertRejects(
+    () => scanWasmControlled(overCapacity, instance),
+    "Wasm output capacity exceeded",
+  );
 });
 
 Deno.test("base regex artifact, evidence records, routes, and lifecycle source are complete", async () => {
@@ -163,6 +209,7 @@ Deno.test("base regex artifact, evidence records, routes, and lifecycle source a
     await Deno.readTextFile("schemas/base-workload-correctness-record.schema.json"),
   );
   const validate = new Ajv2020({ allErrors: true, strict: false }).compile(recordSchema);
+  const records = [];
   for (const variant of ["js-controlled", "wasm-linear-controlled"]) {
     const record = JSON.parse(
       await Deno.readTextFile(
@@ -172,6 +219,23 @@ Deno.test("base regex artifact, evidence records, routes, and lifecycle source a
     assert(validate(record), JSON.stringify(validate.errors));
     assertEquals(record.scope.performanceClaim, false);
     assertEquals(record.scope.performanceCorpus, "unavailable");
+    records.push(record);
+  }
+  const invalidRecords = [
+    { ...structuredClone(records[0]), counters: { ...records[0].counters, matchesFound: -1 } },
+    { ...structuredClone(records[0]), counters: { ...records[0].counters, perPattern: [] } },
+    {
+      ...structuredClone(records[0]),
+      assertions: { ...records[0].assertions, exactOutputHash: false },
+    },
+    {
+      ...structuredClone(records[0]),
+      assertions: { ...records[0].assertions, wasmMaterialMatchingSemantics: true },
+    },
+    { ...structuredClone(records[1]), counters: { ...records[1].counters, boundaryCrossings: 0 } },
+  ];
+  for (const invalid of invalidRecords) {
+    assert(!validate(invalid), "invalid passed correctness record must fail closed");
   }
 
   const handler = createHandler(null, "public");

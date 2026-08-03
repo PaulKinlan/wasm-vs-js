@@ -2,6 +2,7 @@ import { CORPUS_BYTES, SAFE_PATTERNS } from "./input.js";
 
 const encoder = new TextEncoder();
 const CLASS_ID = { "url-tail": 1, ipv4: 2, status: 3 };
+export const WASM_OUTPUT_CAPACITY = 50_000;
 
 function isUrlTail(byte) {
   return (byte >= 97 && byte <= 122) || (byte >= 48 && byte <= 57) ||
@@ -206,7 +207,11 @@ function prepareWasmTables(memory, input) {
   }
   cursor = align(dispatchItemsPtr + item * 4);
   const outPtr = cursor;
-  const outCapacity = Math.floor((memory.buffer.byteLength - outPtr - 16) / 12);
+  const physicalCapacity = Math.floor((memory.buffer.byteLength - outPtr - 16) / 12);
+  if (physicalCapacity < WASM_OUTPUT_CAPACITY) {
+    throw new Error("Wasm memory cannot provide the registered output capacity");
+  }
+  const outCapacity = WASM_OUTPUT_CAPACITY;
   return {
     inputPtr,
     descPtr,

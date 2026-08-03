@@ -23,16 +23,17 @@
     "recordType": { "const": "base-workload-correctness-validation" },
     "workloadId": { "const": "text.regex-log-scan.v1" },
     "registrationId": { "const": "text.regex-log-scan.v1-controlled-registration-v1" },
-    "sourceCommit": {
-      "anyOf": [{ "pattern": "^[a-f0-9]{40}$" }, { "const": "uncommitted-source-tree" }]
-    },
+    "sourceCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
     "variant": { "enum": ["js-controlled", "wasm-linear-controlled"] },
     "status": { "const": "passed" },
     "input": {
       "type": "object",
       "additionalProperties": false,
       "required": ["bytes", "sha256"],
-      "properties": { "bytes": { "const": 104857600 }, "sha256": { "pattern": "^[a-f0-9]{64}$" } }
+      "properties": {
+        "bytes": { "const": 104857600 },
+        "sha256": { "const": "3d5810310d15b7bebf227bdc384035bd961684d4e1240b2ee93b4cb37350d388" }
+      }
     },
     "output": {
       "type": "object",
@@ -41,11 +42,12 @@
       "properties": {
         "capturesArtifact": { "const": "/artifacts/text-regex-log-scan/ordered-captures.bin" },
         "bytes": { "const": 1798498 },
-        "sha256": { "pattern": "^[a-f0-9]{64}$" }
+        "sha256": { "const": "6078822d35d3daea452751e74229c762e43eb4b973ca40bd1a0ac7c9c9e899de" }
       }
     },
     "counters": {
       "type": "object",
+      "additionalProperties": false,
       "required": [
         "inputBytes",
         "patternsExecuted",
@@ -58,17 +60,43 @@
         "tailByteComparisons",
         "boundaryCrossings",
         "perPattern"
-      ]
+      ],
+      "properties": {
+        "inputBytes": { "const": 104857600 },
+        "patternsExecuted": { "const": 20 },
+        "logicalPatternBytes": { "const": 2097152000 },
+        "matchesFound": { "const": 40960 },
+        "capturesExtracted": { "const": 40960 },
+        "canonicalOutputBytes": { "const": 1798498 },
+        "candidateStarts": { "const": 6732995 },
+        "prefixByteComparisons": { "const": 15570166 },
+        "tailByteComparisons": { "const": 861922 },
+        "boundaryCrossings": { "enum": [0, 1] },
+        "perPattern": {
+          "type": "array",
+          "minItems": 20,
+          "maxItems": 20,
+          "items": { "const": 2048 }
+        }
+      }
     },
     "assertions": {
       "type": "object",
+      "additionalProperties": false,
       "required": [
         "exactInputHash",
         "exactOutputHash",
         "completeTupleIdentityAcrossTargets",
         "structuralCountersExact",
         "wasmMaterialMatchingSemantics"
-      ]
+      ],
+      "properties": {
+        "exactInputHash": { "const": true },
+        "exactOutputHash": { "const": true },
+        "completeTupleIdentityAcrossTargets": { "const": true },
+        "structuralCountersExact": { "const": true },
+        "wasmMaterialMatchingSemantics": { "enum": [true, null] }
+      }
     },
     "scope": {
       "type": "object",
@@ -76,10 +104,33 @@
       "required": ["correctnessOnly", "browserEvidence", "performanceCorpus", "performanceClaim"],
       "properties": {
         "correctnessOnly": { "const": true },
-        "browserEvidence": { "type": "string" },
+        "browserEvidence": { "const": "uncollected-by-implementation-worker" },
         "performanceCorpus": { "const": "unavailable" },
         "performanceClaim": { "const": false }
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "variant": { "const": "js-controlled" } }, "required": ["variant"] },
+      "then": {
+        "properties": {
+          "counters": { "properties": { "boundaryCrossings": { "const": 0 } } },
+          "assertions": { "properties": { "wasmMaterialMatchingSemantics": { "const": null } } }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "variant": { "const": "wasm-linear-controlled" } },
+        "required": ["variant"]
+      },
+      "then": {
+        "properties": {
+          "counters": { "properties": { "boundaryCrossings": { "const": 1 } } },
+          "assertions": { "properties": { "wasmMaterialMatchingSemantics": { "const": true } } }
+        }
+      }
+    }
+  ]
 }
