@@ -16,6 +16,42 @@ const LOCAL_DOWNLOADS = new Map([
     "public/artifacts/sum-u32/sum-u32.wasm|9c4ce5f0d9e32cdd364b73b2697566e7396368d9867d9bc3d939bb2063583a6d",
     "/artifacts/sum-u32/sum-u32.wasm",
   ],
+  [
+    "public/artifacts/audio-fft/build-manifest.json|6e160e3888e87b078e7ef701e4cbdcc97073685069188f542c8f7e6c6df2c454",
+    "/artifacts/audio-fft/build-manifest.json",
+  ],
+  [
+    "public/artifacts/audio-fft/audio-fft.wasm|dbbcfd28be4411357844ae7f444bf3f9f705477d289a42bde9646a0f19a45bd0",
+    "/artifacts/audio-fft/audio-fft.wasm",
+  ],
+  [
+    "public/artifacts/audio-fft/reference-output.f32le|0432b81e06b48343754d26ae074cad984524cdbeb73bea0ba0539d8a726b9498",
+    "/artifacts/audio-fft/reference-output.f32le",
+  ],
+  [
+    "public/artifacts/audio-fir/build-manifest.json|f5a848a63248a5f3055c0fff4415e9442ca1184268e2301a553c98b211b7f0e8",
+    "/artifacts/audio-fir/build-manifest.json",
+  ],
+  [
+    "public/artifacts/audio-fir/audio-fir.wasm|c61254df057f3d15d933a738012a3ee3c9d133a87a3a3e28c924e105b82cc335",
+    "/artifacts/audio-fir/audio-fir.wasm",
+  ],
+  [
+    "public/artifacts/audio-fir/reference-output.f32le|3146faf58d2eecd43b74d4297fcc575b0a688cb2e2b2d9ab1b1c9f3d1e21a564",
+    "/artifacts/audio-fir/reference-output.f32le",
+  ],
+  [
+    "public/artifacts/audio-stft/build-manifest.json|0ae1be1bfa87492b1b3c3dc9cfe0f946bdc421a547825685e4ee014976ebc108",
+    "/artifacts/audio-stft/build-manifest.json",
+  ],
+  [
+    "public/artifacts/audio-stft/audio-stft.wasm|00beb1f7b6de580c4b2c0b9e32950b8fc85a1b82baf5021d075004f6585ed45c",
+    "/artifacts/audio-stft/audio-stft.wasm",
+  ],
+  [
+    "public/artifacts/audio-stft/reference-output.f32le|3bae7479e79489d8f97d07bcbd31439e338f7f7f2978d6acfc2cc46cb8412d7a",
+    "/artifacts/audio-stft/reference-output.f32le",
+  ],
 ]);
 
 const MANIFEST_ROUTE = "/data/sum-u32-inspectability.v1.json";
@@ -81,8 +117,18 @@ function normalizeV2Result(record) {
   const artifacts = Array.isArray(provenance.artifacts) ? provenance.artifacts : [];
   const jsSource = sources.find((source) => source.role === "javascript-authored");
   const wasmSource = sources.find((source) => source.role === "wasm-authored");
+  const buildManifest = provenance.manifests?.build;
   const wasmArtifacts = artifacts.filter((artifact) =>
     artifact.mediaType === "application/wasm" || artifact.path?.endsWith(".wasm")
+  );
+  const otherArtifacts = artifacts.filter((artifact) => !wasmArtifacts.includes(artifact)).map(
+    (artifact) =>
+      availableResource(
+        "result-artifact",
+        artifact.id ? `Result artifact: ${artifact.id}` : "Result artifact",
+        artifact,
+        "application/octet-stream",
+      ),
   );
   const locks = Array.isArray(build.locks) && build.locks.length > 0
     ? build.locks.map((lock) =>
@@ -162,13 +208,21 @@ function normalizeV2Result(record) {
           "The result record contains no build-recipe file reference.",
         ),
       ...locks,
-      unavailableResource(
-        "build-manifest",
-        "Build manifest",
-        "unknown-provenance",
-        "The accepted v2 result contract has no distinct build-manifest reference.",
-      ),
+      buildManifest
+        ? availableResource(
+          "build-manifest",
+          "Build manifest",
+          buildManifest,
+          "application/json",
+        )
+        : unavailableResource(
+          "build-manifest",
+          "Build manifest",
+          "unknown-provenance",
+          "This result record contains no distinct build-manifest reference.",
+        ),
       ...compiled,
+      ...otherArtifacts,
     ],
   };
 }
@@ -332,7 +386,7 @@ export function validateInspectabilityManifest(value) {
       if (resource.localDownloadRoute !== allowedDownload) {
         errors.push(`${resource.role}: local download route is not allowlisted for these bytes`);
       }
-      if (!new Set(["build-manifest", "compiled-wasm"]).has(resource.role)) {
+      if (!new Set(["build-manifest", "compiled-wasm", "result-artifact"]).has(resource.role)) {
         errors.push(`${resource.role}: source paths cannot have local download routes`);
       }
     }
@@ -458,6 +512,7 @@ export function renderInspectabilityPanel(container, manifest) {
   appendResourceDefinitions(facts, manifest, "lockfile", "Lockfile");
   appendResourceDefinitions(facts, manifest, "build-manifest", "Build manifest");
   appendResourceDefinitions(facts, manifest, "compiled-wasm", "Compiled artifact");
+  appendResourceDefinitions(facts, manifest, "result-artifact", "Result artifact");
   panel.append(facts);
   container.replaceChildren(panel);
 }

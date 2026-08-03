@@ -101,6 +101,24 @@ function renderTrajectories(data) {
   }
 }
 
+function evidenceFallback(message) {
+  const paragraph = document.createElement("p");
+  paragraph.append(document.createTextNode(`${message} `));
+  const proposals = document.createElement("a");
+  proposals.href = "/evidence/v2-proposals/";
+  proposals.textContent = "Open six audio proposal result records";
+  const manifest = document.createElement("a");
+  manifest.href = "/data/sum-u32-inspectability.v1.json";
+  manifest.textContent = "open the accepted sum-u32 source/build manifest";
+  paragraph.append(
+    proposals,
+    document.createTextNode(" or "),
+    manifest,
+    document.createTextNode("."),
+  );
+  return paragraph;
+}
+
 function metricAvailability(metric) {
   const state = metric.availability.state;
   if (state === "supported") return `${metric.value} ${metric.unit}`;
@@ -112,9 +130,7 @@ function metricAvailability(metric) {
 function renderRuns(data) {
   runsContainer.replaceChildren();
   if (data.runs.length === 0) {
-    runsContainer.append(
-      Object.assign(document.createElement("p"), { textContent: "No local records." }),
-    );
+    runsContainer.append(evidenceFallback("No local records."));
     return;
   }
   for (const run of data.runs) {
@@ -202,6 +218,7 @@ async function load() {
     cell.textContent = "Local evidence could not be loaded.";
     row.append(cell);
     cellsBody.replaceChildren(row);
+    runsContainer.replaceChildren(evidenceFallback("Local result loading failed."));
     loadStatus.textContent = `Load failed: ${error.message}`;
   }
 }

@@ -5,10 +5,12 @@ const publicCopyFiles = [
   "public/index.html",
   "public/run/index.html",
   "public/evidence/index.html",
+  "public/evidence/v2-proposals/index.html",
   "public/benchmarks/index.html",
   "public/experiments/index.html",
   "public/app.js",
   "public/inspectability.js",
+  "public/v2-results.js",
   "public/hosted-runner.js",
   "public/workload-catalog.js",
 ];
@@ -47,6 +49,7 @@ Deno.test("public prose retains the benchmark's current evidence limits", async 
   const home = await Deno.readTextFile("public/index.html");
   const runner = await Deno.readTextFile("public/run/index.html");
   const evidence = await Deno.readTextFile("public/evidence/index.html");
+  const proposalEvidence = await Deno.readTextFile("public/evidence/v2-proposals/index.html");
   const catalog = await Deno.readTextFile("public/benchmarks/index.html");
   const experiment = await Deno.readTextFile("public/experiments/index.html");
   const readme = await Deno.readTextFile("README.md");
@@ -58,6 +61,7 @@ Deno.test("public prose retains the benchmark's current evidence limits", async 
   assert(runner.includes("Its durations do not enter the accepted corpus"));
   assert(evidence.includes("Accepted performance corpus: none"));
   assert(evidence.includes("Chrome 150 attestation: unverified"));
+  assert(proposalEvidence.includes("Performance claims: none."));
   assert(catalog.includes("38 proposed workloads; 0 implemented"));
   assert(catalog.includes("Coverage is 0/38"));
   assert(experiment.includes("Corpus status: not collected"));

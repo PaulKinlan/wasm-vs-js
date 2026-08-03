@@ -163,6 +163,77 @@ Deno.test("individual v1 and accepted v2 records retain distinct commits, hashes
   );
 });
 
+Deno.test("all six audio records expose build manifests and every recorded artifact", async () => {
+  for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
+    for (const variant of ["js-controlled", "wasm-linear-controlled"]) {
+      const record = JSON.parse(
+        await Deno.readTextFile(`public/evidence/v2-proposals/${slug}/${variant}.json`),
+      );
+      const normalized = inspectabilityFromResultRecord(record);
+      assert(validateSchema(normalized), JSON.stringify(validateSchema.errors));
+      const semantic = validateInspectabilityManifest(normalized);
+      assert(semantic.ok, semantic.errors.join("; "));
+      const buildManifest = normalized.resources.find(
+        (resource: { role: string }) => resource.role === "build-manifest",
+      );
+      assertEquals(buildManifest.availability.state, "available");
+      assertEquals(buildManifest.path, record.provenance.manifests.build.path);
+      assertEquals(buildManifest.sha256, record.provenance.manifests.build.sha256);
+      assertEquals(buildManifest.localDownloadRoute, `/artifacts/${slug}/build-manifest.json`);
+
+      const exposedArtifacts = normalized.resources.filter(
+        (resource: { role: string; availability: { state: string } }) =>
+          ["compiled-wasm", "result-artifact"].includes(resource.role) &&
+          resource.availability.state === "available",
+      );
+      assertEquals(exposedArtifacts.length, record.provenance.artifacts.length);
+      for (const artifact of record.provenance.artifacts) {
+        const exposed = exposedArtifacts.find(
+          (resource: { path?: string; sha256?: string }) => resource.path === artifact.path,
+        );
+        assert(exposed, `${slug}/${variant} omitted ${artifact.path}`);
+        assertEquals(exposed.sha256, artifact.sha256);
+        if (artifact.path.startsWith("public/artifacts/")) {
+          assertEquals(exposed.localDownloadRoute, artifact.path.slice("public".length));
+        } else {
+          assertEquals("localDownloadRoute" in exposed, false);
+        }
+      }
+      const immutableLinks = inspectabilityRows(normalized).flatMap((row) =>
+        row.links.map((item: { href: string }) => item.href)
+      ).filter((href) => href.startsWith("https://github.com/"));
+      assert(immutableLinks.every((href) => href.includes(record.source.commit)));
+    }
+  }
+});
+
+Deno.test("local downloads require an exact real path and hash pair", async () => {
+  const record = JSON.parse(
+    await Deno.readTextFile("public/evidence/v2-proposals/audio-fft/wasm-linear-controlled.json"),
+  );
+  const exact = inspectabilityFromResultRecord(record);
+  const exactWasm = exact.resources.find(
+    (resource: { role: string }) => resource.role === "compiled-wasm",
+  );
+  assertEquals(exactWasm.localDownloadRoute, "/artifacts/audio-fft/audio-fft.wasm");
+
+  const wrongHashRecord = structuredClone(record);
+  wrongHashRecord.provenance.artifacts[0].sha256 = "f".repeat(64);
+  const wrongHash = inspectabilityFromResultRecord(wrongHashRecord).resources.find(
+    (resource: { role: string }) => resource.role === "compiled-wasm",
+  );
+  assertEquals("localDownloadRoute" in wrongHash, false);
+
+  const collision = structuredClone(exact);
+  const collisionWasm = collision.resources.find(
+    (resource: { role: string }) => resource.role === "compiled-wasm",
+  );
+  collisionWasm.path = "public/artifacts/audio-fir/audio-fir.wasm";
+  collisionWasm.immutableUrl =
+    `${collision.source.repository}/blob/${collision.source.commit}/${collisionWasm.path}`;
+  assert(!validateInspectabilityManifest(collision).ok, "path/hash collision retained a route");
+});
+
 Deno.test("inspectability validation rejects mutable links, traversal, route widening, and missing roles", () => {
   const mutations = [
     (value: typeof manifest) => {

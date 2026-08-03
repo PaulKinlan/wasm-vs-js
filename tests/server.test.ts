@@ -99,6 +99,13 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
       "/data/workload-catalog.schema.json",
       "/data/sum-u32-inspectability.v1.json",
       "/inspectability.js",
+      "/v2-results.js",
+      "/evidence/v2-proposals/",
+      "/evidence/v2-proposals/audio-fft/js-controlled.json",
+      "/evidence/v2-proposals/audio-fft/wasm-linear-controlled.json",
+      "/artifacts/audio-fft/build-manifest.json",
+      "/artifacts/audio-fft/audio-fft.wasm",
+      "/artifacts/audio-fft/reference-output.f32le",
       "/artifacts/sum-u32/build-manifest.9c309c49.json",
       "/artifacts/sum-u32/sum-u32.wasm",
       "/benchmarks/sum-u32/workload.js",
@@ -120,6 +127,9 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
       "/source/9c309c4941d1b8550c15f8549f95a5636a634ef6/server.ts",
       "/artifacts/sum-u32/server.ts",
       "/artifacts/other/sum-u32.wasm",
+      "/evidence/v2-proposals/audio-fft/unknown.json",
+      "/artifacts/audio-fft/server.ts",
+      "/artifacts/audio-fft/../audio-fir/not-allowlisted.wasm",
     ]
   ) {
     assertEquals((await handler(new Request(`http://127.0.0.1${path}`))).status, 404);

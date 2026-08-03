@@ -116,7 +116,8 @@
             "build-recipe",
             "lockfile",
             "build-manifest",
-            "compiled-wasm"
+            "compiled-wasm",
+            "result-artifact"
           ]
         },
         "label": { "type": "string", "minLength": 1, "maxLength": 120 },
@@ -136,7 +137,16 @@
         "localDownloadRoute": {
           "enum": [
             "/artifacts/sum-u32/build-manifest.9c309c49.json",
-            "/artifacts/sum-u32/sum-u32.wasm"
+            "/artifacts/sum-u32/sum-u32.wasm",
+            "/artifacts/audio-fft/build-manifest.json",
+            "/artifacts/audio-fft/audio-fft.wasm",
+            "/artifacts/audio-fft/reference-output.f32le",
+            "/artifacts/audio-fir/build-manifest.json",
+            "/artifacts/audio-fir/audio-fir.wasm",
+            "/artifacts/audio-fir/reference-output.f32le",
+            "/artifacts/audio-stft/build-manifest.json",
+            "/artifacts/audio-stft/audio-stft.wasm",
+            "/artifacts/audio-stft/reference-output.f32le"
           ]
         }
       },
