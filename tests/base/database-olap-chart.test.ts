@@ -56,6 +56,14 @@ Deno.test("base OLAP supplemental registration preserves the frozen v1 catalog b
   assert(validate(registration), JSON.stringify(validate.errors));
   assertEquals(registration.catalogEquivalenceClass, "semantic-product-choice");
   assertEquals(registration.performanceClaims, []);
+  const recordSchema = JSON.parse(
+    await Deno.readTextFile("schemas/base-implementation/correctness-record.schema.json"),
+  );
+  const record = JSON.parse(
+    await Deno.readTextFile("public/evidence/base/database-olap-chart/correctness-record.json"),
+  );
+  const validateRecord = new Ajv2020({ strict: true }).compile(recordSchema);
+  assert(validateRecord(record), JSON.stringify(validateRecord.errors));
 });
 
 Deno.test("base OLAP generator freezes 10,000 rows and exactly five query-control updates", async () => {

@@ -81,6 +81,8 @@ const sourcePaths = [
   "benchmarks/base/database-olap-chart/engine.js",
   "benchmarks/base/database-olap-chart/olap.c",
   "scripts/build-base-olap.ts",
+  "schemas/base-implementation/registration.schema.json",
+  "schemas/base-implementation/correctness-record.schema.json",
   "deno.json",
   "deno.lock",
 ];

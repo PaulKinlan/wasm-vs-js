@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.example/schemas/base-implementation/correctness-record.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "recordId",
+    "workloadId",
+    "status",
+    "sourceCommit",
+    "fixtureSha256",
+    "wasmSha256",
+    "completeOutputDigest",
+    "oracleChecks",
+    "limitations"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "recordId": { "const": "database.olap-chart.v1.controlled-a1.correctness" },
+    "workloadId": { "const": "database.olap-chart.v1" },
+    "status": { "const": "passed-correctness-only" },
+    "sourceCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "fixtureSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "wasmSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "completeOutputDigest": { "type": "string", "pattern": "^[a-f0-9]{8}$" },
+    "oracleChecks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fixedFiveQueryTrace",
+        "completeChartModels",
+        "stableSortAndRowIds",
+        "exactCrossTargetOutput",
+        "exactCounters"
+      ],
+      "properties": {
+        "fixedFiveQueryTrace": { "const": true },
+        "completeChartModels": { "const": true },
+        "stableSortAndRowIds": { "const": true },
+        "exactCrossTargetOutput": { "const": true },
+        "exactCounters": { "const": true }
+      }
+    },
+    "limitations": {
+      "const": [
+        "No performance samples or ranking are included.",
+        "Chart rendering is separate; the complete canonical chart model is retained."
+      ]
+    }
+  }
+}
