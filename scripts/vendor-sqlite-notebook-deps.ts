@@ -58,7 +58,8 @@ try {
   ] as const;
   for (const [source, destination] of textCopies) {
     const upstream = await Deno.readTextFile(source);
-    await Deno.writeTextFile(destination, `// deno-lint-ignore-file\n${upstream}`);
+    const normalized = upstream.replace(/[ \t]+$/gm, "");
+    await Deno.writeTextFile(destination, `// deno-lint-ignore-file\n${normalized}`);
   }
   await Deno.copyFile(
     `${sqliteDir}/package/dist/sqlite3.wasm`,

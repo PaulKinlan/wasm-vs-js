@@ -19,20 +19,20 @@
   ],
   "files": {
     "sqlite3.mjs": {
-      "bytes": 578584,
-      "sha256": "a6097d970d6a7abee54d4cbd3b467ffec8e1275b80c74c153060006fc5c63d5b"
+      "bytes": 576438,
+      "sha256": "3f707d33cc51193ea446d02487dbda93223ac462aa8b4f512fee9a4122101c1e"
     },
     "sqlite3-node.mjs": {
-      "bytes": 474916,
-      "sha256": "b8d8e520ec14bd6bc9f735259b03ec15c3878fada2b0a5155905dd8f72baee44"
+      "bytes": 473256,
+      "sha256": "4f9899d600c32a63339800dcdd732bfed08470bc6203a69d22eeea15853a62bb"
     },
     "sqlite3.wasm": {
       "bytes": 864752,
       "sha256": "02d7e48164395fa68f81c6ec33e9da5461be397dc57602ac0cd89b4bbba1d312"
     },
     "alasql.min.js": {
-      "bytes": 511856,
-      "sha256": "e2166b962526ab6549df987eaa7d0df9529321b71ed47ae18e3401067a8a50d9"
+      "bytes": 511842,
+      "sha256": "563a94ede6083cf2de8c8e3b07294a8edef03bcb5870f1ff3da3f364f3f5cac7"
     },
     "ALASQL-LICENSE.txt": {
       "bytes": 1103,

@@ -36,15 +36,15 @@
       "id": "javascript-engine",
       "source": "public/artifacts/sqlite-notebook/alasql.min.js",
       "path": "/assets/sqlite-notebook/alasql.min.js",
-      "bytes": 511856,
-      "sha256": "e2166b962526ab6549df987eaa7d0df9529321b71ed47ae18e3401067a8a50d9"
+      "bytes": 511842,
+      "sha256": "563a94ede6083cf2de8c8e3b07294a8edef03bcb5870f1ff3da3f364f3f5cac7"
     },
     {
       "id": "sqlite-glue",
       "source": "public/artifacts/sqlite-notebook/sqlite3.mjs",
       "path": "/assets/sqlite-notebook/sqlite3.mjs",
-      "bytes": 578584,
-      "sha256": "a6097d970d6a7abee54d4cbd3b467ffec8e1275b80c74c153060006fc5c63d5b"
+      "bytes": 576438,
+      "sha256": "3f707d33cc51193ea446d02487dbda93223ac462aa8b4f512fee9a4122101c1e"
     },
     {
       "id": "sqlite-wasm",
@@ -58,7 +58,7 @@
       "source": "public/artifacts/sqlite-notebook/dependency-manifest.json",
       "path": "/assets/sqlite-notebook/dependency-manifest.json",
       "bytes": 1470,
-      "sha256": "12240fbd33c6993105a45c9fa5cfa4c7579f0ef33a03c94c9cafa7dc51bd6fa2"
+      "sha256": "d9190c655b75be765d65264d8d778e062a11baff8305e40febf4b877c52c731d"
     },
     {
       "id": "fixture-manifest",
