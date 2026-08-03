@@ -255,18 +255,23 @@ export function renderHighPrecision(width, height, spp) {
 }
 export function compareToReference(actual, reference) {
   if (actual.length !== reference.length) throw new Error("framebuffer length mismatch");
-  let max = 0, sum = 0, count = 0;
+  let max = 0, sum = 0, count = 0, outlierChannels = 0;
   for (let i = 0; i < actual.length; i++) {
     if ((i & 3) === 3) continue;
     const d = Math.abs(actual[i] - reference[i]);
     max = Math.max(max, d);
     sum += d;
+    if (d > 4) outlierChannels++;
     count++;
   }
+  const meanChannelDelta = sum / count;
+  const outlierChannelRatio = outlierChannels / count;
   return {
     maxChannelDelta: max,
-    meanChannelDelta: sum / count,
-    passed: max <= 4 && sum / count <= 0.35,
+    meanChannelDelta,
+    outlierChannels,
+    outlierChannelRatio,
+    passed: max <= 96 && meanChannelDelta <= 0.01 && outlierChannelRatio <= 0.0001,
   };
 }
 export function readWasmResult(instance, width, height, spp) {
