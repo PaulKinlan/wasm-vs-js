@@ -163,11 +163,11 @@ Deno.test("Markdown short malformed link prefixes are exhaustively safe and equi
   const alphabet = ["[", "]", "(", ")", "a"];
   const fragments = ["["];
   let frontier = ["["];
-  for (let length = 2; length <= 4; length++) {
+  for (let length = 2; length <= 5; length++) {
     frontier = frontier.flatMap((prefix) => alphabet.map((character) => prefix + character));
     fragments.push(...frontier);
   }
-  assertEquals(fragments.length, 156);
+  assertEquals(fragments.length, 781);
   let malformed = 0;
   for (const fragment of fragments) {
     const source = `${fragment}\n`;
@@ -180,7 +180,7 @@ Deno.test("Markdown short malformed link prefixes are exhaustively safe and equi
     assertEquals([...linear.transformedAst], [...js.transformedAst]);
     assertEquals(linear.rejected, js.rejected);
   }
-  assertEquals(malformed, 155);
+  assertEquals(malformed, 770);
 });
 
 Deno.test("text artifacts and closed proposal-validation records are reproducible and claim no performance result", async () => {
