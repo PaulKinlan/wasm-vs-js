@@ -39,6 +39,15 @@
     ]
   },
   "algorithm": "Draco 1.5.7 decode; quantized fixed-point node animation, transforms, culling, picking and six-frame CPU texture raster reference",
+  "scenePolicy": {
+    "gltfVersion": "2.0",
+    "primitiveMode": "TRIANGLES",
+    "nodeTransform": "fixed source quaternion [0,1,0,0] followed by the 600-entry integer yaw/bounce table",
+    "skinning": "not-applicable: the audited Avocado model declares no skins or joints",
+    "camera": "fixed perspective projection into a 96x96 viewport",
+    "culling": "single-sided screen-space counter-clockwise triangle rejection",
+    "picking": "12 fixed frame and screen-coordinate triangle tests with nearest average depth"
+  },
   "materialPolicy": {
     "baseColorTexture": "64x64 Lanczos RGBA derivative",
     "lighting": "fixed normal-Y Lambert",
