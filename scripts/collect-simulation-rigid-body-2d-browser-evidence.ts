@@ -395,7 +395,7 @@ const pageAuditSource = (shortTimeout: boolean) =>
       const nativePost=this.postMessage.bind(this);
       this.postMessage=(data,transfer)=>{entry.request=structuredClone(data);return transfer===undefined?nativePost(data):nativePost(data,transfer);};
       const nativeTerminate=this.terminate.bind(this);
-      this.terminate=()=>{entry.terminated=true;globalThis.__rigidEvidenceEvent(JSON.stringify({kind:'worker-terminated',index:audit.workers.indexOf(entry)}));nativeSetTimeout(()=>nativeTerminate(),750);};
+      this.terminate=()=>{entry.terminated=true;try{globalThis.__rigidEvidenceEvent(JSON.stringify({kind:'worker-terminated',index:audit.workers.indexOf(entry)}));}catch{}nativeSetTimeout(()=>nativeTerminate(),750);};
       globalThis.__rigidEvidenceEvent(JSON.stringify({kind:'worker-created',index:audit.workers.length-1,url:entry.url}));
     }
   }
@@ -501,6 +501,21 @@ async function collectScenario(
       const sessionId = String(params.sessionId);
       sessions.set(sessionId, { context: "worker", targetId: String(info.targetId) });
       queue(enableWorker(sessionId));
+    }),
+    client.on("Target.detachedFromTarget", (params, eventSession) => {
+      if (eventSession !== pageSessionId) return;
+      const workerSessions = [...sessions.entries()].filter(([, v]) => v.context === "worker");
+      const index = workerSessions.findIndex(([id]) => id === String(params.sessionId));
+      if (index === -1) return;
+      if (
+        lifecycleEvents.some((event) =>
+          event.kind === "worker-terminated" &&
+          Number((event as Record<string, unknown>).index) === index
+        )
+      ) return;
+      // Binding calls during pagehide race page teardown; the target detach
+      // is the authoritative browser-level termination signal.
+      lifecycleEvents.push({ kind: "worker-terminated", index });
     }),
     client.on("Runtime.bindingCalled", (params, eventSession) => {
       if (eventSession === pageSessionId && params.name === "__rigidEvidenceEvent") {
