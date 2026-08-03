@@ -19,6 +19,7 @@ const foundationSchemas = [
   "launch-evidence.schema.json",
   "paired-block.schema.json",
   "network-attestation.schema.json",
+  "numeric-fft-spectral-filter-browser-evidence.schema.json",
   "numeric-fft-spectral-filter-build-manifest.schema.json",
   "numeric-fft-spectral-filter-fixture-manifest.schema.json",
   "numeric-fft-spectral-filter-output-manifest.schema.json",
