@@ -246,6 +246,7 @@ const server = new Deno.Command(Deno.execPath(), {
 const profile = await Deno.makeTempDir({ prefix: "base-todomvc-chrome-" });
 const launchArguments = [
   "--headless=new",
+  "--enable-automation",
   "--no-sandbox",
   "--disable-gpu",
   "--disable-background-networking",
@@ -280,6 +281,13 @@ try {
   const version = await client.send("Browser.getVersion");
   if (version.product !== "Chrome/150.0.7871.24") throw new Error(`unexpected ${version.product}`);
   const commandLine = await client.send("Browser.getBrowserCommandLine");
+  const returnedArguments = commandLine.arguments;
+  if (
+    !Array.isArray(returnedArguments) ||
+    !launchArguments.every((argument) => returnedArguments.includes(argument))
+  ) {
+    throw new Error("CDP command line omitted an exact launch argument");
+  }
   const servedRegistrationBytes =
     await (await fetch(`${origin}/data/base-dom-todomvc-journey.v1.json`, { cache: "no-store" }))
       .bytes();

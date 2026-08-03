@@ -347,8 +347,37 @@ Deno.test("browser collector has closed schema, exact trust roots, CDP AX hooks,
   const schema = JSON.parse(
     await Deno.readTextFile("schemas/base-todomvc-browser-evidence.schema.json"),
   );
-  const validate = new Ajv2020({ strict: true, allErrors: true }).compile(schema);
+  const ajv = new Ajv2020({ strict: true, allErrors: true });
+  const validate = ajv.compile(schema);
   assert(!validate({ schemaVersion: 1, unexpected: true }));
+  const launchArguments = [
+    "--headless=new",
+    "--enable-automation",
+    "--no-sandbox",
+    "--disable-gpu",
+    "--disable-background-networking",
+    "--disable-component-update",
+    "--disable-default-apps",
+    "--disable-extensions",
+    "--disable-sync",
+    "--metrics-recording-only",
+    "--no-first-run",
+    "--window-size=1280,720",
+    "--remote-debugging-address=127.0.0.1",
+    "--remote-debugging-port=9222",
+    "--user-data-dir=/tmp/base-todomvc-chrome-test",
+    "about:blank",
+  ];
+  const browserProperties = schema.properties.browser.properties;
+  const validateLaunchArguments = ajv.compile(browserProperties.launchArguments);
+  assert(validateLaunchArguments(launchArguments), JSON.stringify(validateLaunchArguments.errors));
+  assert(
+    !validateLaunchArguments(launchArguments.filter((value) => value !== "--enable-automation")),
+  );
+  assert(!validateLaunchArguments([...launchArguments, "--unexpected"]));
+  const validateCommandLine = ajv.compile(browserProperties.commandLine);
+  assert(validateCommandLine({ arguments: ["/external/chrome", ...launchArguments] }));
+  assert(!validateCommandLine({ arguments: ["/external/chrome", ...launchArguments.slice(2)] }));
   const script = await Deno.readTextFile("scripts/validate-base-todomvc-browser.ts");
   for (
     const required of [
@@ -357,6 +386,8 @@ Deno.test("browser collector has closed schema, exact trust roots, CDP AX hooks,
       "cancel-stale-restart",
       "pagehide",
       "Accessibility.getPartialAXTree",
+      '"--enable-automation"',
+      "CDP command line omitted an exact launch argument",
       "canonicalDomSha256",
       "assertCompleteNetwork(network)",
       "collector HEAD is not clean",

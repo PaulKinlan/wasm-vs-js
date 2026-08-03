@@ -68,12 +68,47 @@
           "type": "object",
           "additionalProperties": false,
           "required": ["arguments"],
-          "properties": { "arguments": { "type": "array", "items": { "type": "string" } } }
+          "properties": {
+            "arguments": {
+              "type": "array",
+              "items": { "type": "string" },
+              "contains": { "const": "--enable-automation" },
+              "minContains": 1,
+              "maxContains": 1
+            }
+          }
         },
         "executable": { "type": "string", "minLength": 1 },
         "sha256": { "$ref": "#/$defs/sha" },
         "externalToSourceRoot": { "const": true },
-        "launchArguments": { "type": "array", "minItems": 10, "items": { "type": "string" } }
+        "launchArguments": {
+          "type": "array",
+          "minItems": 16,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "prefixItems": [
+            { "const": "--headless=new" },
+            { "const": "--enable-automation" },
+            { "const": "--no-sandbox" },
+            { "const": "--disable-gpu" },
+            { "const": "--disable-background-networking" },
+            { "const": "--disable-component-update" },
+            { "const": "--disable-default-apps" },
+            { "const": "--disable-extensions" },
+            { "const": "--disable-sync" },
+            { "const": "--metrics-recording-only" },
+            { "const": "--no-first-run" },
+            { "const": "--window-size=1280,720" },
+            { "const": "--remote-debugging-address=127.0.0.1" },
+            { "type": "string", "pattern": "^--remote-debugging-port=[0-9]+$" },
+            {
+              "type": "string",
+              "pattern": "^--user-data-dir=/tmp/base-todomvc-chrome-[A-Za-z0-9_-]+$"
+            },
+            { "const": "about:blank" }
+          ],
+          "items": false
+        }
       }
     },
     "route": { "const": "/benchmarks/base-dom-todomvc-journey/" },
