@@ -71,6 +71,22 @@ interface Stage {
   env?: Record<string, string>;
 }
 
+// Writer scheduling: the two heavy writers run in their own parallel pair
+// (disjoint artifact dirs), the pair touching shared sum-u32 references runs
+// sequentially, and the remaining small writers (<=2s each) run in one
+// parallel batch.
+const BIG_WRITERS = [
+  "tests/v1/simulation-rigid-body-2d.test.ts",
+  "tests/audio-provenance.test.ts",
+];
+const SUM_U32_PAIR = [
+  "tests/build.test.ts",
+  "tests/traditional-web-build.test.ts",
+];
+const SMALL_WRITERS = WRITER_TESTS.filter((f) =>
+  !BIG_WRITERS.includes(f) && !SUM_U32_PAIR.includes(f)
+);
+
 const writers = new Set(WRITER_TESTS);
 const allTests = await testFiles();
 const parallelTests = allTests.filter((f) => !writers.has(f));
@@ -93,7 +109,17 @@ const stages: Stage[] = [
     args: ["test", "--parallel", ...testArgs, ...parallelTests],
     env: testEnv,
   },
-  { name: "test-writers", args: ["test", ...testArgs, ...WRITER_TESTS], env: testEnv },
+  {
+    name: "test-writers-small",
+    args: ["test", "--parallel", ...testArgs, ...SMALL_WRITERS],
+    env: testEnv,
+  },
+  { name: "test-writers-pair", args: ["test", ...testArgs, ...SUM_U32_PAIR], env: testEnv },
+  {
+    name: "test-writers-big",
+    args: ["test", "--parallel", ...testArgs, ...BIG_WRITERS],
+    env: testEnv,
+  },
 ];
 
 const started = performance.now();
