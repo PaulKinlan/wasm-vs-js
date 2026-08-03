@@ -175,8 +175,7 @@ const PLAYGROUND_WORKLOADS = [
     route: "/benchmarks/archive-zip-workspace-v1/",
     description:
       "Zips 10,000 mixed files, lists entries, and extracts selected paths with SHA-256 verification.",
-    explanation:
-      "DEFLATE compression, central-directory parsing, and CRC-32 checksum validation.",
+    explanation: "DEFLATE compression, central-directory parsing, and CRC-32 checksum validation.",
   },
   {
     slug: "crypto-authenticated-stream",
@@ -184,8 +183,7 @@ const PLAYGROUND_WORKLOADS = [
     category: "Cryptography",
     workerScript: null,
     route: "/benchmarks/crypto-authenticated-stream/",
-    description:
-      "Encrypts, verifies, and decrypts 10,000 deterministic message frames with AEAD.",
+    description: "Encrypts, verifies, and decrypts 10,000 deterministic message frames with AEAD.",
     explanation:
       "ChaCha20 keystream generation and Poly1305 MAC computation over structured frames.",
   },
@@ -197,10 +195,8 @@ const PLAYGROUND_WORKLOADS = [
     workerProtocol: "target-only",
     wasmTarget: "wasm",
     route: "/benchmarks/graphics-cpu-path-tracer-v1/",
-    description:
-      "Renders a deterministic 512×512 product preview at 64 samples per pixel.",
-    explanation:
-      "Ray-scene intersection, BSDF sampling, and Monte Carlo integration on the CPU.",
+    description: "Renders a deterministic 512×512 product preview at 64 samples per pixel.",
+    explanation: "Ray-scene intersection, BSDF sampling, and Monte Carlo integration on the CPU.",
   },
   {
     slug: "simulation-nbody-cloth",
@@ -211,8 +207,7 @@ const PLAYGROUND_WORKLOADS = [
     route: "/demos/simulation-nbody-cloth/",
     description:
       "Advances 1,024 seeded bodies with a direct all-pairs gravitational solver for fixed timesteps.",
-    explanation:
-      "O(n²) force computation and velocity integration with strict-f32 arithmetic.",
+    explanation: "O(n²) force computation and velocity integration with strict-f32 arithmetic.",
   },
   {
     slug: "simulation-rigid-body-2d-v1",
@@ -234,10 +229,8 @@ const PLAYGROUND_WORKLOADS = [
     workerProtocol: "target-only",
     wasmTarget: "wasm",
     route: "/benchmarks/tooling-c-to-wasm-compile-v1/",
-    description:
-      "Compiles and links 20 small C programs to WebAssembly modules in the browser.",
-    explanation:
-      "Lexing, parsing, type checking, code generation, and binary module emission.",
+    description: "Compiles and links 20 small C programs to WebAssembly modules in the browser.",
+    explanation: "Lexing, parsing, type checking, code generation, and binary module emission.",
   },
 ];
 
