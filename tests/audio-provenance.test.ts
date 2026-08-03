@@ -202,6 +202,22 @@ Deno.test("six audio records satisfy the closed v2 provenance schema and immutab
         requireLocalFiles: true,
       });
       assert(semantic.ok, semantic.errors.join("; "));
+      if (slug === "audio-fft" && variant === "js-controlled") {
+        const missingBuild = structuredClone(record);
+        delete missingBuild.provenance.manifests.build;
+        const rejectedBuild = await validateProposalProvenanceSemantics(missingBuild, catalog);
+        assert(!rejectedBuild.ok, "audio provenance accepted a missing immutable build manifest");
+
+        const missingReference = structuredClone(record);
+        missingReference.provenance.artifacts = missingReference.provenance.artifacts.filter(
+          (artifact: { id: string }) => !artifact.id.endsWith("pinned-f64-reference"),
+        );
+        const rejectedReference = await validateProposalProvenanceSemantics(
+          missingReference,
+          catalog,
+        );
+        assert(!rejectedReference.ok, "audio provenance accepted a missing pinned reference");
+      }
       assertEquals(record.status, "proposal-validation-only");
       assertEquals(record.performanceClaims, []);
       for (const resourcePath of record.collisionGuards.resourcePaths) {
