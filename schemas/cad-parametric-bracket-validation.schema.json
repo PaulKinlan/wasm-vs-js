@@ -108,14 +108,14 @@
       "properties": {
         "connectedComponents": { "const": 1 },
         "shells": { "const": 1 },
-        "throughHoles": { "type": "integer", "minimum": 0, "maximum": 2 },
-        "genus": { "type": "integer", "minimum": 0, "maximum": 2 },
-        "faces": { "type": "integer", "minimum": 6 },
-        "edges": { "type": "integer", "minimum": 12 },
-        "vertices": { "type": "integer", "minimum": 8 },
+        "throughHoles": { "const": 2 },
+        "genus": { "const": 2 },
+        "faces": { "const": 12 },
+        "edges": { "const": 30 },
+        "vertices": { "const": 20 },
         "watertight": { "const": true },
         "oriented": { "const": true },
-        "tessellationEdges": { "type": "integer", "minimum": 18 }
+        "tessellationEdges": { "const": 8706 }
       }
     },
     "counters": {
@@ -139,19 +139,19 @@
         "boundaryCrossings"
       ],
       "properties": {
-        "featureNodes": { "type": "integer", "minimum": 2, "maximum": 10 },
+        "featureNodes": { "const": 10 },
         "boxSolids": { "const": 1 },
-        "cylinderSolids": { "type": "integer", "minimum": 0, "maximum": 2 },
-        "booleanCuts": { "type": "integer", "minimum": 0, "maximum": 2 },
-        "filletEdges": { "enum": [0, 4] },
-        "booleanIntersectionTests": { "type": "integer", "minimum": 0, "maximum": 64 },
-        "scanBands": { "type": "integer", "minimum": 1 },
-        "intersectionTests": { "type": "integer", "minimum": 1 },
-        "sortComparisons": { "type": "integer", "minimum": 0 },
-        "surfaceTriangles": { "type": "integer", "minimum": 1 },
-        "tessellationVertices": { "type": "integer", "minimum": 3 },
+        "cylinderSolids": { "const": 2 },
+        "booleanCuts": { "const": 2 },
+        "filletEdges": { "const": 4 },
+        "booleanIntersectionTests": { "const": 64 },
+        "scanBands": { "const": 34 },
+        "intersectionTests": { "const": 3400 },
+        "sortComparisons": { "const": 178 },
+        "surfaceTriangles": { "const": 5804 },
+        "tessellationVertices": { "const": 17412 },
         "inputBytes": { "const": 128 },
-        "outputBytes": { "type": "integer", "minimum": 256 },
+        "outputBytes": { "const": 419744 },
         "allocations": { "type": "integer", "minimum": 0 },
         "boundaryCrossings": { "type": "integer", "minimum": 0 }
       }

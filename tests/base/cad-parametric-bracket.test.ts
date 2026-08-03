@@ -308,6 +308,12 @@ Deno.test("bracket records satisfy closed schema and retain exact bytes", async 
     const forgedTopology = structuredClone(record);
     forgedTopology.oracle.topology = { forged: true };
     assert(!validate(forgedTopology), "open topology passed schema");
+    const wrongTopologyCount = structuredClone(record);
+    wrongTopologyCount.oracle.topology.faces = 999;
+    assert(!validate(wrongTopologyCount), "forged topology count passed schema");
+    const wrongCounter = structuredClone(record);
+    wrongCounter.counters.featureNodes = 999;
+    assert(!validate(wrongCounter), "forged feature counter passed schema");
     const emptyCounters = structuredClone(record);
     emptyCounters.counters = {};
     assert(!validate(emptyCounters), "empty counters passed schema");
