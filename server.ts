@@ -174,6 +174,10 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/artifacts/sqlite-notebook/runtime-manifest.json",
     "application/json; charset=utf-8",
   ]],
+  ["/assets/sqlite-notebook/build-manifest.json", [
+    "public/artifacts/sqlite-notebook/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/assets/sqlite-notebook/reference.json", [
     "public/artifacts/sqlite-notebook/reference.json",
     "application/json; charset=utf-8",
@@ -197,6 +201,14 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/assets/sqlite-notebook/fixtures/sales.csv", [
     "public/artifacts/sqlite-notebook/fixtures/sales.csv",
     "text/csv; charset=utf-8",
+  ]],
+  ["/evidence/base-implementations/sqlite-notebook/javascript-controlled.json", [
+    "public/evidence/base-implementations/sqlite-notebook/javascript-controlled.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base-implementations/sqlite-notebook/linear-wasm-controlled.json", [
+    "public/evidence/base-implementations/sqlite-notebook/linear-wasm-controlled.json",
+    "application/json; charset=utf-8",
   ]],
   ["/demos/game-family/demo.js", [
     "public/demos/game-family/demo.js",

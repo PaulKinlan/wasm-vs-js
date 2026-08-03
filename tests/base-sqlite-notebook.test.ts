@@ -1,3 +1,4 @@
+import Ajv2020Module from "ajv2020";
 import sqlite3InitModule from "../public/artifacts/sqlite-notebook/sqlite3-node.mjs";
 import {
   assertContract,
@@ -11,6 +12,9 @@ import {
   runSqlite,
 } from "../benchmarks/base/sqlite-notebook/engine.js";
 import { assert, assertEquals } from "./assert.ts";
+
+const Ajv2020 = (Ajv2020Module as unknown as { default?: typeof Ajv2020Module }).default ??
+  Ajv2020Module;
 
 async function sha256(bytes: Uint8Array) {
   return [...new Uint8Array(await crypto.subtle.digest("SHA-256", Uint8Array.from(bytes)))]
@@ -180,6 +184,37 @@ Deno.test("SQLite notebook runtime manifest hashes every served dependency befor
   }
   assert(worker.includes("output.canonical !== expected.canonical"));
   assert(worker.includes("Complete SQL output mismatch"));
+});
+
+Deno.test("SQLite notebook evidence records are closed, source-pinned static packages", async () => {
+  const schema = JSON.parse(
+    await Deno.readTextFile("schemas/base-sqlite-notebook-record.schema.json"),
+  );
+  const validate = new Ajv2020({ allErrors: true, strict: true }).compile(schema);
+  for (const variant of ["javascript-controlled", "linear-wasm-controlled"]) {
+    const record = JSON.parse(
+      await Deno.readTextFile(
+        `public/evidence/base-implementations/sqlite-notebook/${variant}.json`,
+      ),
+    );
+    assert(validate(record), JSON.stringify(validate.errors));
+    assertEquals(record.performanceResult, null);
+    assertEquals(record.browserEvidence, "not-collected");
+    assertEquals(
+      record.completeOutputSha256,
+      "fae41d80865456365118c98ee8dd74a502fb359ace69878190edca22e4f6572d",
+    );
+  }
+  const build = JSON.parse(
+    await Deno.readTextFile("public/artifacts/sqlite-notebook/build-manifest.json"),
+  );
+  assert(/^[a-f0-9]{40}$/.test(build.sourceCommit));
+  assertEquals(build.oracle.queryCount, 8);
+  assertEquals(build.oracle.resultRows, 744);
+  assertEquals(
+    build.productConfiguration.equivalence,
+    "semantic-product-choice; plans and product internals are not aggregated",
+  );
 });
 
 Deno.test("SQLite notebook route is closed, accessible, cancellable, and non-persistent", async () => {
