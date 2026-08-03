@@ -41,7 +41,17 @@ for (const bundle of bundles) {
     throw new Error(new TextDecoder().decode(result.stderr) || `bundle failed: ${bundle.entry}`);
   }
   const outputUrl = new URL(bundle.output, root);
-  const browserModule = (await Deno.readTextFile(outputUrl)).replace(/^var /gm, "const ");
+  let browserModule = (await Deno.readTextFile(outputUrl)).replace(/^var /gm, "const ");
+  if (bundle.entry === "benchmarks/regex-automata-duel/workload.js") {
+    const spread = "matches.push(...found);";
+    if (!browserModule.includes(spread)) {
+      throw new Error("regex browser compatibility site changed");
+    }
+    browserModule = browserModule.replace(
+      spread,
+      "for (const match of found) matches.push(match);",
+    );
+  }
   await Deno.writeTextFile(outputUrl, browserModule);
   const format = await new Deno.Command(Deno.execPath(), {
     cwd: new URL(".", root),
