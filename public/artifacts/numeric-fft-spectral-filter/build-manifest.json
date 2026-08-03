@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "502219c329eed2212c55becfc279f022c2790f21",
-  "sourceSha256": "5dac0b4dba2d07e07f91d78248c3ecf291cceb84039cb487a440428d5d79eef2",
+  "sourceCommit": "1c5cd8c661c1d8b3b554dd2b4e7b8f3956fd5f35",
+  "sourceSha256": "c61da63f6e9b3523d981fc578f64108ad35639eb249c83d3d4132ec1b7000ac9",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 81078,
-      "sha256": "2fa80ccc779ba5d99444d327f5e198234f9bf312ebfd02717a0d90dc64e16e93"
+      "bytes": 81509,
+      "sha256": "6df4305de72f079624a38ba753c2224750ddd41fe6d534c7a5b534c9cf77a874"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "c352f543eaaa8d5d4aa9a12e85f3b5771cf4156db3d90de5e7ba934c11dbbded"
+      "sha256": "7008cf5dc7745e71736476b5412765876f96aa60cea2391e95cacd78bcf173d8"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "8a18240e8df079b7ce06d2f4c4d8593bc7634ff7679eb5120c7255f2b7ebb095"
+      "sha256": "833a8e8e3e6ff7e5d33b4f5191ee254a4c24de674b94ba821db55fc9920ade50"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=502219c329eed2212c55becfc279f022c2790f21"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=1c5cd8c661c1d8b3b554dd2b4e7b8f3956fd5f35"
   }
 }
