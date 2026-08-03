@@ -568,15 +568,10 @@ async function runBenchmarkPair(config, cardElement, iterations = 30) {
   statusEl.className = "playground-status running";
 
   try {
-    const jsStats = await runTimedLoop(config.workerScript, config.slug, "javascript", iterations);
+    const jsStats = await runTimedLoop(config, "javascript", iterations);
 
     statusEl.textContent = `Running Wasm (${iterations}× loop)...`;
-    const wasmStats = await runTimedLoop(
-      config.workerScript,
-      config.slug,
-      "wasm-linear",
-      iterations,
-    );
+    const wasmStats = await runTimedLoop(config, "wasm-linear", iterations);
 
     const speedupWarm = (jsStats.medianWarmMs / wasmStats.medianWarmMs).toFixed(2);
     const speedupCold = (jsStats.coldMs / wasmStats.coldMs).toFixed(2);
@@ -622,6 +617,7 @@ async function runBenchmarkPair(config, cardElement, iterations = 30) {
 
     return { slug: config.slug, passed: true, jsStats, wasmStats, speedupWarm };
   } catch (err) {
+    console.error(`Benchmark error [${config.slug}]:`, err);
     statusEl.textContent = "✕ Error";
     statusEl.className = "playground-status failed";
     resultsEl.textContent = `Run error: ${err.message}`;
