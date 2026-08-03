@@ -91,11 +91,11 @@
   "artifacts": {
     "buildManifest": {
       "path": "public/artifacts/base-server-ssr-template/build-manifest.json",
-      "sha256": "3e2e6c0572c52c4448f38c8414bb1d45a2e27cab289679cae6584116a05ba7b6"
+      "sha256": "993bfa41f0209835a7869c1ef05a135733ae476e2db2ec5c61a1bed8c0977223"
     },
     "fixtureManifest": {
       "path": "public/artifacts/base-server-ssr-template/fixture-manifest.json",
-      "sha256": "6efeaeac2d0a11bd932ec6175619815997c42f11ec26da36135dc252ec7098e3"
+      "sha256": "a9b103eaa6cf6999cd57f705fa1379fb1695dd3393506c200da2babb162adeea"
     },
     "outputManifest": {
       "path": "public/artifacts/base-server-ssr-template/output-manifest.json",
