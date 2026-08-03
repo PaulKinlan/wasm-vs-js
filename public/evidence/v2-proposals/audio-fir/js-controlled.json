@@ -7,7 +7,7 @@
     "file": {
       "path": "catalog/workloads.v2.proposed.json",
       "sha256": "1a09e9f8ecf9ed9c30020aa49bd049fb0ddd1c67b0e5d4629d8b08b7a3c8873f",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/catalog/workloads.v2.proposed.json"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/catalog/workloads.v2.proposed.json"
     }
   },
   "workloadContract": {
@@ -15,7 +15,7 @@
     "file": {
       "path": "benchmarks/v2/shared/workload-contract.js",
       "sha256": "c2c816ec5177a190999b9a030bc992519935301684f1bb884281440e08a43155",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/benchmarks/v2/shared/workload-contract.js"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/benchmarks/v2/shared/workload-contract.js"
     }
   },
   "resultContract": {
@@ -23,12 +23,12 @@
     "file": {
       "path": "schemas/workload-result-v2-proposal.schema.json",
       "sha256": "40ab5bde8f76b7eda3c97a88fe502e4fb8c32fa0085d3e8fd869d29b3e08863a",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/schemas/workload-result-v2-proposal.schema.json"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/schemas/workload-result-v2-proposal.schema.json"
     }
   },
   "source": {
     "repository": "https://github.com/PaulKinlan/wasm-vs-js",
-    "commit": "43d03e87e9b0edffc6bc76ffd33f7c51eab2822b"
+    "commit": "59acf36e872361d0471fc2b063624ac2f627c7f4"
   },
   "workload": {
     "entryId": "audio.fir.v1",
@@ -46,202 +46,202 @@
         "role": "shared-support",
         "path": "benchmarks/audio-fft/benchmark.json",
         "sha256": "5a4b3363c2e53c72294bf7562126f7e640122b7932612e1cb20a794e5bae8a7a",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/benchmarks/audio-fft/benchmark.json"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/benchmarks/audio-fft/benchmark.json"
       },
       {
         "role": "shared-support",
         "path": "benchmarks/audio-fft/input.ts",
         "sha256": "99aff4edd12e9b74e7dd6406729ba69dfe7447341ee497111748adf098d071cf",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/benchmarks/audio-fft/input.ts"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/benchmarks/audio-fft/input.ts"
       },
       {
         "role": "shared-support",
         "path": "benchmarks/audio-fft/js.ts",
         "sha256": "3f919bcf470df11e1d9fb06646b32c314f38e92654982c66213ec3f9a9387dbd",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/benchmarks/audio-fft/js.ts"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/benchmarks/audio-fft/js.ts"
       },
       {
         "role": "shared-support",
         "path": "benchmarks/audio-fft/workload.ts",
         "sha256": "042ee23718db040e41f1baccae41d7cb4a9d111fde5156e696e96e8af9a08683",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/benchmarks/audio-fft/workload.ts"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/benchmarks/audio-fft/workload.ts"
       },
       {
         "role": "shared-support",
         "path": "benchmarks/audio-fft/audio-fft.wat",
         "sha256": "ac8e86c24908904763c126605fa2d625312bdc07ec7c7c681c3daa9319c394b1",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/benchmarks/audio-fft/audio-fft.wat"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/benchmarks/audio-fft/audio-fft.wat"
       },
       {
         "role": "shared-support",
         "path": "benchmarks/audio-fir/benchmark.json",
         "sha256": "69408db61389715d7183b702acc0ed673ab595f235d6e7afaf0ae9c6401f8ae9",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/benchmarks/audio-fir/benchmark.json"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/benchmarks/audio-fir/benchmark.json"
       },
       {
         "role": "shared-support",
         "path": "benchmarks/audio-fir/input.ts",
         "sha256": "425ae9edfe24761a551d36b0f8fb2f591d8163e5d3479a41fd1b50cb04099aa1",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/benchmarks/audio-fir/input.ts"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/benchmarks/audio-fir/input.ts"
       },
       {
         "role": "shared-support",
         "path": "benchmarks/audio-fir/js.ts",
         "sha256": "e7cd7c9933fc4cd2eba6b960e472e7670df1633a912d9d9c5debd063f9b3dca4",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/benchmarks/audio-fir/js.ts"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/benchmarks/audio-fir/js.ts"
       },
       {
         "role": "javascript-authored",
         "path": "benchmarks/audio-fir/workload.ts",
         "sha256": "5ef9a79c6365a757d4280d7f1192239e296cb82d0d881440acc2cacac82c751a",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/benchmarks/audio-fir/workload.ts"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/benchmarks/audio-fir/workload.ts"
       },
       {
         "role": "wasm-authored",
         "path": "benchmarks/audio-fir/audio-fir.wat",
         "sha256": "7c18598b57d252d5089b3d5808019e247d7e25ac3e0cec7f660fed1e6a5bf31f",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/benchmarks/audio-fir/audio-fir.wat"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/benchmarks/audio-fir/audio-fir.wat"
       },
       {
         "role": "shared-support",
         "path": "benchmarks/audio-stft/benchmark.json",
         "sha256": "5be5d6ac7850be38709970a83dbeb8231b9ebcbe4767512ee05b83877b71c5b8",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/benchmarks/audio-stft/benchmark.json"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/benchmarks/audio-stft/benchmark.json"
       },
       {
         "role": "shared-support",
         "path": "benchmarks/audio-stft/input.ts",
         "sha256": "244efe35c78267d0d28aa81551a80fa4c0ee260c584446828d99810254094146",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/benchmarks/audio-stft/input.ts"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/benchmarks/audio-stft/input.ts"
       },
       {
         "role": "shared-support",
         "path": "benchmarks/audio-stft/js.ts",
         "sha256": "f655cd7f381f5d6528dddd4c08dce88f699eac31bed838a8c9f18f7c35b28027",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/benchmarks/audio-stft/js.ts"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/benchmarks/audio-stft/js.ts"
       },
       {
         "role": "shared-support",
         "path": "benchmarks/audio-stft/workload.ts",
         "sha256": "3b5037e667ede3142e5d9530302468d49aef1072530f6241f1a2019350a17676",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/benchmarks/audio-stft/workload.ts"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/benchmarks/audio-stft/workload.ts"
       },
       {
         "role": "shared-support",
         "path": "benchmarks/audio-stft/audio-stft.wat",
         "sha256": "b9733ca35bb362f6783648a8c1a6b4607610512871980875bed701b8e70143fb",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/benchmarks/audio-stft/audio-stft.wat"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/benchmarks/audio-stft/audio-stft.wat"
       },
       {
         "role": "shared-support",
         "path": "benchmarks/audio-shared/canonical.ts",
         "sha256": "19b9875883ab7cc33f280a8e9b39fceca024b7db29c9bf1e0f6c65a59aec0f07",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/benchmarks/audio-shared/canonical.ts"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/benchmarks/audio-shared/canonical.ts"
       },
       {
         "role": "shared-support",
         "path": "benchmarks/audio-shared/constants.ts",
         "sha256": "927699480a84f4d2819b4fe096a705fd69fe9429a710ce047ec307a6def7981d",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/benchmarks/audio-shared/constants.ts"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/benchmarks/audio-shared/constants.ts"
       },
       {
         "role": "shared-support",
         "path": "benchmarks/audio-shared/oracle.ts",
         "sha256": "c8faff2c4b1f71d70e84a830fe8caf62adb4b18031e2d73e1996feb5361255e5",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/benchmarks/audio-shared/oracle.ts"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/benchmarks/audio-shared/oracle.ts"
       },
       {
         "role": "shared-support",
         "path": "lib/audio-workloads.ts",
         "sha256": "c08e8b5f5ab1da9b578b7ce6209d46fc5d46f324c7c814588724be6fe96e1483",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/lib/audio-workloads.ts"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/lib/audio-workloads.ts"
       },
       {
         "role": "shared-support",
         "path": "scripts/build-audio.ts",
         "sha256": "b899504af8f90c49396c84f0558aad0fb0f22b937ac6ccbf2eb1e27f81a2147d",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/scripts/build-audio.ts"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/scripts/build-audio.ts"
       },
       {
         "role": "shared-support",
         "path": "scripts/build-audio-results.ts",
         "sha256": "757a125490b2cb86d6d9c6a025b3a24a4493a4301588dfd6962d46e7a358b482",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/scripts/build-audio-results.ts"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/scripts/build-audio-results.ts"
       },
       {
         "role": "shared-support",
         "path": "deno.json",
-        "sha256": "1afeda212c279fb9a0a80130436579a89d70646f40cca0015b619f2fabe3b60c",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/deno.json"
+        "sha256": "17e6674c81fdaee7dfc52ed1bd28baeec70fb0715f839b92defe1e84545b08eb",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/deno.json"
       },
       {
         "role": "shared-support",
         "path": "deno.lock",
         "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/deno.lock"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/deno.lock"
       },
       {
         "role": "shared-support",
         "path": "catalog/workloads.v2.proposed.json",
         "sha256": "1a09e9f8ecf9ed9c30020aa49bd049fb0ddd1c67b0e5d4629d8b08b7a3c8873f",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/catalog/workloads.v2.proposed.json"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/catalog/workloads.v2.proposed.json"
       },
       {
         "role": "shared-support",
         "path": "benchmarks/v2/shared/workload-contract.js",
         "sha256": "c2c816ec5177a190999b9a030bc992519935301684f1bb884281440e08a43155",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/benchmarks/v2/shared/workload-contract.js"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/benchmarks/v2/shared/workload-contract.js"
       },
       {
         "role": "shared-support",
         "path": "benchmarks/v2/shared/provenance-contract.js",
         "sha256": "ca53f7e5916b1ac4b89b2668e7f409127a6dd88b7cbe546b88ccde284e2f0ef0",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/benchmarks/v2/shared/provenance-contract.js"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/benchmarks/v2/shared/provenance-contract.js"
       },
       {
         "role": "shared-support",
         "path": "schemas/workload-result-v2-proposal.schema.json",
         "sha256": "40ab5bde8f76b7eda3c97a88fe502e4fb8c32fa0085d3e8fd869d29b3e08863a",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/schemas/workload-result-v2-proposal.schema.json"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/schemas/workload-result-v2-proposal.schema.json"
       }
     ],
     "generator": {
       "path": "scripts/build-audio-results.ts",
       "sha256": "757a125490b2cb86d6d9c6a025b3a24a4493a4301588dfd6962d46e7a358b482",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/scripts/build-audio-results.ts"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/scripts/build-audio-results.ts"
     },
     "reference": {
       "path": "lib/audio-workloads.ts",
       "sha256": "c08e8b5f5ab1da9b578b7ce6209d46fc5d46f324c7c814588724be6fe96e1483",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/lib/audio-workloads.ts"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/lib/audio-workloads.ts"
     },
     "oracle": {
       "path": "benchmarks/audio-shared/oracle.ts",
       "sha256": "c8faff2c4b1f71d70e84a830fe8caf62adb4b18031e2d73e1996feb5361255e5",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/benchmarks/audio-shared/oracle.ts"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/benchmarks/audio-shared/oracle.ts"
     },
     "manifests": {
       "fixture": {
         "path": "public/artifacts/audio-fir/fixture-manifest.json",
-        "sha256": "ee76e7dcca21baf6b29104b7bbeb3a0ba228bbdee73dd8408ccb4b7ae091d55d",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/public/artifacts/audio-fir/fixture-manifest.json"
+        "sha256": "32f550f7fe953f8351c3c4bed0e6b70b0182911055ec19208126f2d8124f097d",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/public/artifacts/audio-fir/fixture-manifest.json"
       },
       "input": {
         "path": "public/artifacts/audio-fir/input-manifest.json",
-        "sha256": "6d284d2cb0a6c2aba3ec538e5dfbd5bcd93f20065c7d26af9fe1a830125a517d",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/public/artifacts/audio-fir/input-manifest.json"
+        "sha256": "83dd435749a2ac5bb465e021011b1e7eaa0994380066276215e494b8e2cab2f8",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/public/artifacts/audio-fir/input-manifest.json"
       },
       "output": {
         "path": "public/artifacts/audio-fir/output-manifest.json",
-        "sha256": "3d210fff35f7a313c6ba8bafe8a083a0d99c41395cca3fd1e105a91d79c0863b",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/public/artifacts/audio-fir/output-manifest.json"
+        "sha256": "52e11e7a9cdef9cd497ac105dfda1d6eeac4f9bffd85ba5a75a7fc73d2d9e7aa",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/public/artifacts/audio-fir/output-manifest.json"
       }
     },
     "build": {
       "recipe": {
         "path": "scripts/build-audio.ts",
         "sha256": "b899504af8f90c49396c84f0558aad0fb0f22b937ac6ccbf2eb1e27f81a2147d",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/scripts/build-audio.ts"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/scripts/build-audio.ts"
       },
       "cwd": ".",
       "command": [
@@ -251,13 +251,13 @@
         "--allow-write=public/artifacts/audio-fft,public/artifacts/audio-fir,public/artifacts/audio-stft",
         "--allow-run=git",
         "scripts/build-audio.ts",
-        "--source-commit=398a1f8de983f804d875a10f69b83763824a8b92"
+        "--source-commit=02624c3c25497cd6ec0b363df2b17cbf5b9b5268"
       ],
       "locks": [
         {
           "path": "deno.lock",
           "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2",
-          "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/deno.lock"
+          "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/deno.lock"
         }
       ],
       "toolchain": [
@@ -303,7 +303,7 @@
         "id": "audio-fir-js-controlled-source",
         "path": "benchmarks/audio-fir/workload.ts",
         "sha256": "5ef9a79c6365a757d4280d7f1192239e296cb82d0d881440acc2cacac82c751a",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/43d03e87e9b0edffc6bc76ffd33f7c51eab2822b/benchmarks/audio-fir/workload.ts",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/59acf36e872361d0471fc2b063624ac2f627c7f4/benchmarks/audio-fir/workload.ts",
         "mediaType": "application/typescript"
       }
     ]
@@ -388,7 +388,7 @@
       "complete-output-bound",
       "structural-invariants"
     ],
-    "outputManifestSha256": "3d210fff35f7a313c6ba8bafe8a083a0d99c41395cca3fd1e105a91d79c0863b"
+    "outputManifestSha256": "52e11e7a9cdef9cd497ac105dfda1d6eeac4f9bffd85ba5a75a7fc73d2d9e7aa"
   },
   "performanceClaims": []
 }
