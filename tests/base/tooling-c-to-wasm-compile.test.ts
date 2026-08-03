@@ -98,6 +98,11 @@ Deno.test("both C compilers fail closed on malformed, unsupported and trailing i
 Deno.test("compiler artifact and complete source graph match pinned provenance", async () => {
   const build = JSON.parse(await Deno.readTextFile(buildManifestPath));
   const fixture = JSON.parse(await Deno.readTextFile(fixtureManifestPath));
+  const sourceCommit = (await Deno.readTextFile(
+    new URL("benchmarks/base/tooling-c-to-wasm-compile/source-commit.txt", root),
+  )).trim();
+  assertEquals(build.sourceCommit, sourceCommit);
+  assertEquals(fixture.sourceCommit, sourceCommit);
   const validation = JSON.parse(await Deno.readTextFile(validationPath));
   assertEquals(build.toolchain.deno, "2.9.0");
   assert(build.toolchain.clang.includes("22.1.8"));
@@ -107,6 +112,14 @@ Deno.test("compiler artifact and complete source graph match pinned provenance",
     const bytes = await Deno.readFile(new URL(source.path, root));
     assertEquals(bytes.byteLength, source.bytes);
     assertEquals(await sha256Hex(bytes), source.sha256);
+    const committed = await new Deno.Command("git", {
+      args: ["show", `${sourceCommit}:${source.path}`],
+      cwd: root,
+      stdout: "piped",
+      stderr: "piped",
+    }).output();
+    assert(committed.success, `missing committed source ${source.path}`);
+    assertEquals(await sha256Hex(committed.stdout), source.sha256);
   }
   for (const entry of fixture.entries) {
     for (const file of [entry.source, entry.header]) {

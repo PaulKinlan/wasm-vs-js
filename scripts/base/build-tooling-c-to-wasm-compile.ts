@@ -306,7 +306,12 @@ try {
       clang: await commandVersion("clang", ["--version"]),
       lld: await commandVersion("wasm-ld", ["--version"]),
       target: "wasm32-unknown-unknown",
-      flags: clangArgs.slice(0, -2),
+      flags: clangArgs.slice(0, -2).map((value) =>
+        value === new URL("compiler-wasm.c", bench).pathname
+          ? "benchmarks/base/tooling-c-to-wasm-compile/compiler-wasm.c"
+          : value
+      ),
+      licenses: ["LLVM/Clang Apache-2.0 WITH LLVM-exception", "LLD Apache-2.0 WITH LLVM-exception"],
     },
     sourceGraph: sources,
   };
