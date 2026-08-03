@@ -1,24 +1,27 @@
-// Neural MLP demo worker — runs in a fresh module worker.
-// Validates JS and Wasm layer outputs against committed reference/bounds artifacts.
-
 import * as mlp from "/benchmarks/v2/ml-dense-mlp/workload.js";
+
+const MLP_BATCH = 32, WIDTH = 512, LAYERS = 9;
+const MLP_X_OFF = 0;
+const MLP_W_OFF = MLP_BATCH * WIDTH * 4;
+const MLP_BIAS_OFF = MLP_W_OFF + LAYERS * WIDTH * WIDTH * 4;
+const MLP_SCRATCH_A_OFF = MLP_BIAS_OFF + LAYERS * WIDTH * 4;
+const MLP_SCRATCH_B_OFF = MLP_SCRATCH_A_OFF + MLP_BATCH * WIDTH * 4;
+const MLP_Y_OFF = MLP_SCRATCH_B_OFF + MLP_BATCH * WIDTH * 4;
 
 let running = false;
 let token = 0;
 
 self.onmessage = async (event) => {
   const msg = event.data;
-  if (msg.type === "run") {
-    if (running) {
-      self.postMessage({ type: "error", detail: "already running" });
-      return;
-    }
+  if (msg.type === "run" && !running) {
     running = true;
     token = msg.token;
     try {
-      await runMlp(msg.token, msg.mode || "default");
+      await runMlp(msg.token, msg.target || "both");
     } catch (err) {
-      self.postMessage({ type: "error", detail: String(err?.message || err), token: msg.token });
+      if (msg.token === token) {
+        self.postMessage({ type: "error", detail: String(err?.message || err), token: msg.token });
+      }
     }
     running = false;
   } else if (msg.type === "cancel") {
@@ -27,123 +30,162 @@ self.onmessage = async (event) => {
   }
 };
 
-async function fetchArrayBuffer(url) {
-  const resp = await fetch(url);
-  if (!resp.ok) throw new Error(`fetch ${url}: ${resp.status}`);
-  return new Uint8Array(await resp.arrayBuffer());
+async function fetchBuf(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`fetch ${url}: ${r.status}`);
+  return new Uint8Array(await r.arrayBuffer());
 }
 
-async function runMlp(runToken, _mode) {
+function validateOutput(output, reference, bounds, label) {
+  if (output.length !== reference.length || output.length !== bounds.length) {
+    throw new Error(
+      `${label} length mismatch: out=${output.length} ref=${reference.length} bounds=${bounds.length}`,
+    );
+  }
+  let maxDev = 0, violations = 0;
+  for (let i = 0; i < output.length; i++) {
+    if (!Number.isFinite(output[i])) throw new Error(`${label}[${i}] is NaN/Inf: ${output[i]}`);
+    const dev = Math.abs(output[i] - reference[i]);
+    if (dev > maxDev) maxDev = dev;
+    if (dev > bounds[i]) violations++;
+  }
+  return { maxDev, violations };
+}
+
+async function runMlp(runToken, target) {
   const post = (type, data = {}) => {
     if (runToken === token) self.postMessage({ type, token: runToken, ...data });
   };
+  const myToken = runToken;
+
   post("phase", { message: "Loading artifacts…" });
-
-  const wasmBytes = await fetchArrayBuffer("/artifacts/v2/ml-dense-mlp/ml-dense-mlp.wasm");
-  post("phase", { message: `Wasm artifact loaded: ${wasmBytes.byteLength} bytes` });
-
-  const refBytes = await fetchArrayBuffer("/artifacts/v2/ml-dense-mlp/reference.f64");
-  const boundsBytes = await fetchArrayBuffer("/artifacts/v2/ml-dense-mlp/bounds.f32");
+  const wasmBytes = await fetchBuf("/artifacts/v2/ml-dense-mlp/ml-dense-mlp.wasm");
+  const refBytes = await fetchBuf("/artifacts/v2/ml-dense-mlp/reference.f64");
+  const boundsBytes = await fetchBuf("/artifacts/v2/ml-dense-mlp/bounds.f32");
   const reference = new Float64Array(refBytes.buffer, refBytes.byteOffset, refBytes.byteLength / 8);
   const bounds = new Float32Array(
     boundsBytes.buffer,
     boundsBytes.byteOffset,
     boundsBytes.byteLength / 4,
   );
+  // reference = 9 layers × 32 batch × 512 width = 147456 values
+  if (reference.length !== LAYERS * MLP_BATCH * WIDTH) {
+    throw new Error(`reference ${reference.length} ≠ ${LAYERS * MLP_BATCH * WIDTH}`);
+  }
+  if (bounds.length !== LAYERS * MLP_BATCH * WIDTH) {
+    throw new Error(`bounds ${bounds.length} ≠ ${LAYERS * MLP_BATCH * WIDTH}`);
+  }
   post("phase", {
-    message: `Reference: ${reference.length} f64 values, bounds: ${bounds.length} f32 values`,
+    message:
+      `Artifacts: wasm ${wasmBytes.byteLength}B, ref ${reference.length} f64 (9 layers), bounds ${bounds.length} f32`,
   });
 
-  post("phase", { message: "Generating deterministic input…" });
-  const input = mlp.generateInput();
-  const { x, w, bias } = input;
-  post("phase", { message: `Input: x ${x.length}, w ${w.length}, bias ${bias.length} f32 values` });
+  post("phase", { message: "Generating input…" });
+  const { x, w, bias } = mlp.generateInput();
 
-  post("phase", { message: "Instantiating Wasm module…" });
-  const wasmModule = await WebAssembly.compile(wasmBytes);
-  const instance = await WebAssembly.instantiate(wasmModule);
-  const exports = instance.exports;
+  const results = {};
+  const layerLen = MLP_BATCH * WIDTH;
 
-  const BATCH = mlp.MLP_BATCH, WIDTH = mlp.WIDTH, LAYERS = mlp.LAYERS;
-  const scratchA = new Float32Array(BATCH * WIDTH);
-  const scratchB = new Float32Array(BATCH * WIDTH);
-  const jsY = new Float32Array(BATCH * WIDTH);
-  const wasmY = new Float32Array(BATCH * WIDTH);
+  if (target === "both" || target === "js") {
+    if (myToken !== token) return;
+    post("phase", { message: "Running JS MLP…" });
+    const scratchA = new Float32Array(layerLen);
+    const scratchB = new Float32Array(layerLen);
+    const jsY = new Float32Array(layerLen);
+    const jsStart = performance.now();
+    mlp.mlpControlled(x, w, bias, scratchA, scratchB, jsY);
+    const jsMs = performance.now() - jsStart;
 
-  // Prepare Wasm memory layout (matches neural.ts MLP layout)
-  const heap = new Float32Array(exports.memory.buffer);
-  const X_OFF = 0;
-  const W_OFF = BATCH * WIDTH * 4;
-  const BIAS_OFF = W_OFF + LAYERS * WIDTH * WIDTH * 4;
-  const SCRATCH_A_OFF = BIAS_OFF + LAYERS * WIDTH * 4;
-  const SCRATCH_B_OFF = SCRATCH_A_OFF + BATCH * WIDTH * 4;
-  const Y_OFF = SCRATCH_B_OFF + BATCH * WIDTH * 4;
-
-  // Run JS
-  post("phase", { message: "Running JS MLP…" });
-  const jsStart = performance.now();
-  mlp.mlpControlled(x, w, bias, scratchA, scratchB, jsY);
-  const jsMs = performance.now() - jsStart;
-  post("phase", { message: `JS completed in ${jsMs.toFixed(2)} ms (${LAYERS} layers)` });
-
-  // Run Wasm
-  post("phase", { message: "Running Wasm MLP…" });
-  heap.set(x, X_OFF / 4);
-  heap.set(w, W_OFF / 4);
-  heap.set(bias, BIAS_OFF / 4);
-
-  const wasmStart = performance.now();
-  exports.mlp_forward(
-    X_OFF,
-    W_OFF,
-    BIAS_OFF,
-    SCRATCH_A_OFF,
-    SCRATCH_B_OFF,
-    Y_OFF,
-    BATCH,
-    WIDTH,
-    LAYERS,
-  );
-  const wasmMs = performance.now() - wasmStart;
-  wasmY.set(heap.subarray(Y_OFF / 4, Y_OFF / 4 + BATCH * WIDTH));
-  post("phase", { message: `Wasm completed in ${wasmMs.toFixed(2)} ms` });
-
-  // Validate final output against reference/bounds
-  post("phase", { message: "Validating outputs…" });
-  let jsMaxDev = 0, wasmMaxDev = 0;
-  let jsBoundViolations = 0, wasmBoundViolations = 0;
-  let jsFinite = true, wasmFinite = true;
-
-  const outputLen = BATCH * WIDTH;
-  for (let i = 0; i < outputLen; i++) {
-    if (!Number.isFinite(jsY[i])) jsFinite = false;
-    if (!Number.isFinite(wasmY[i])) wasmFinite = false;
-    const ref = reference[i];
-    const jsDev = Math.abs(jsY[i] - ref);
-    const wasmDev = Math.abs(wasmY[i] - ref);
-    if (jsDev > jsMaxDev) jsMaxDev = jsDev;
-    if (wasmDev > wasmMaxDev) wasmMaxDev = wasmDev;
-    if (jsDev > bounds[i]) jsBoundViolations++;
-    if (wasmDev > bounds[i]) wasmBoundViolations++;
+    // Validate final layer (last layerLen values of reference)
+    const jsFinalRef = reference.subarray((LAYERS - 1) * layerLen, LAYERS * layerLen);
+    const jsFinalBounds = bounds.subarray((LAYERS - 1) * layerLen, LAYERS * layerLen);
+    const jsVal = validateOutput(jsY, jsFinalRef, jsFinalBounds, "JS final");
+    post("phase", {
+      message: `JS: ${jsMs.toFixed(2)}ms, final max dev ${
+        jsVal.maxDev.toExponential(3)
+      }, violations ${jsVal.violations}`,
+    });
+    results.js = {
+      ms: jsMs.toFixed(2),
+      maxDeviation: jsVal.maxDev.toExponential(3),
+      boundViolations: jsVal.violations,
+    };
+    if (jsVal.violations > 0) throw new Error(`JS has ${jsVal.violations} bound violations`);
   }
 
-  const passed = jsFinite && wasmFinite && jsBoundViolations === 0 && wasmBoundViolations === 0;
-  const counters = mlp.workCounters({ target: "javascript" });
+  if (target === "both" || target === "wasm") {
+    if (myToken !== token) return;
+    post("phase", { message: "Running Wasm MLP…" });
+    const mod = await WebAssembly.compile(wasmBytes);
+    const inst = await WebAssembly.instantiate(mod);
+    const exp = inst.exports;
+    const heap = new Float32Array(exp.memory.buffer);
+    heap.set(x, MLP_X_OFF / 4);
+    heap.set(w, MLP_W_OFF / 4);
+    heap.set(bias, MLP_BIAS_OFF / 4);
 
-  post("phase", { message: passed ? "Validation passed ✓" : "Validation FAILED ✗" });
+    const wasmStart = performance.now();
+    // Per-layer forward pass matching neural.ts MlpWasmRunner.compute()
+    let inOff = MLP_X_OFF;
+    for (let layer = 0; layer < LAYERS; layer++) {
+      const outOff = layer === LAYERS - 1
+        ? MLP_Y_OFF
+        : layer % 2 === 0
+        ? MLP_SCRATCH_A_OFF
+        : MLP_SCRATCH_B_OFF;
+      exp.linear_f32(
+        inOff,
+        MLP_W_OFF + layer * WIDTH * WIDTH * 4,
+        MLP_BIAS_OFF + layer * WIDTH * 4,
+        outOff,
+        MLP_BATCH,
+        WIDTH,
+      );
+      if (layer < LAYERS - 1) exp.gelu_f32(outOff, MLP_BATCH * WIDTH);
+      inOff = outOff;
+    }
+    const wasmMs = performance.now() - wasmStart;
+
+    const wasmY = new Float32Array(heap.subarray(MLP_Y_OFF / 4, MLP_Y_OFF / 4 + layerLen));
+    const wasmFinalRef = reference.subarray((LAYERS - 1) * layerLen, LAYERS * layerLen);
+    const wasmFinalBounds = bounds.subarray((LAYERS - 1) * layerLen, LAYERS * layerLen);
+    const wasmVal = validateOutput(wasmY, wasmFinalRef, wasmFinalBounds, "Wasm final");
+    post("phase", {
+      message: `Wasm: ${wasmMs.toFixed(2)}ms, final max dev ${
+        wasmVal.maxDev.toExponential(3)
+      }, violations ${wasmVal.violations}`,
+    });
+    results.wasm = {
+      ms: wasmMs.toFixed(2),
+      maxDeviation: wasmVal.maxDev.toExponential(3),
+      boundViolations: wasmVal.violations,
+    };
+    if (wasmVal.violations > 0) throw new Error(`Wasm has ${wasmVal.violations} bound violations`);
+
+    // Cross-target check
+    if (results.js) {
+      const scratchA2 = new Float32Array(layerLen), scratchB2 = new Float32Array(layerLen);
+      const jsY2 = new Float32Array(layerLen);
+      mlp.mlpControlled(x, w, bias, scratchA2, scratchB2, jsY2);
+      let identical = true;
+      for (let i = 0; i < wasmY.length; i++) {
+        if (jsY2[i] !== wasmY[i]) {
+          identical = false;
+          break;
+        }
+      }
+      results.crossTargetIdentical = identical;
+    }
+  }
+
+  const counters = mlp.workCounters({ target: "javascript" });
   post("result", {
-    passed,
-    jsMs: jsMs.toFixed(2),
-    wasmMs: wasmMs.toFixed(2),
-    jsMaxDeviation: jsMaxDev.toExponential(3),
-    wasmMaxDeviation: wasmMaxDev.toExponential(3),
-    jsBoundViolations,
-    wasmBoundViolations,
-    outputElements: outputLen,
+    passed: true,
+    outputElements: layerLen,
     layers: LAYERS,
     counters,
     wasmBytes: wasmBytes.byteLength,
+    ...results,
   });
-
   post("done");
 }

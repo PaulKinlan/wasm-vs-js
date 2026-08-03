@@ -251,6 +251,35 @@ const routes = new Map<string, [string, string, boolean?]>([
     "application/octet-stream",
   ]],
 
+  ["/benchmarks/v2/ml-dense-mlp/frozen-transcendentals.js", [
+    "benchmarks/v2/ml-dense-mlp/frozen-transcendentals.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/v2/ml-gemm/ml-gemm.wat", [
+    "benchmarks/v2/ml-gemm/ml-gemm.wat",
+    "text/plain; charset=utf-8",
+  ]],
+  ["/benchmarks/v2/ml-dense-mlp/ml-dense-mlp.wat", [
+    "benchmarks/v2/ml-dense-mlp/ml-dense-mlp.wat",
+    "text/plain; charset=utf-8",
+  ]],
+  ["/artifacts/v2/ml-gemm/fixture-manifest.json", [
+    "artifacts/v2/ml-gemm/fixture-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/v2/ml-gemm/output-manifest.json", [
+    "artifacts/v2/ml-gemm/output-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/v2/ml-dense-mlp/fixture-manifest.json", [
+    "artifacts/v2/ml-dense-mlp/fixture-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/v2/ml-dense-mlp/output-manifest.json", [
+    "artifacts/v2/ml-dense-mlp/output-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+
   ["/artifacts/sum-u32/sum-u32.wasm", [
     "public/artifacts/sum-u32/sum-u32.wasm",
     "application/wasm",

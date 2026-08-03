@@ -1,5 +1,3 @@
-// Neural GEMM demo main-thread controller.
-// Manages a fresh module worker with Start/Cancel/hard timeout/stale-token cleanup.
 const form = document.getElementById("neural-form");
 const startBtn = document.getElementById("start-btn");
 const cancelBtn = document.getElementById("cancel-btn");
@@ -8,10 +6,7 @@ const phaseLog = document.getElementById("phase-log");
 const resultSection = document.getElementById("result-section");
 const resultContent = document.getElementById("result-content");
 const TIMEOUT_MS = 120_000;
-
-let worker = null;
-let token = 0;
-let timeoutId = null;
+let worker = null, token = 0, timeoutId = null;
 
 function addPhase(msg) {
   const li = document.createElement("li");
@@ -19,41 +14,8 @@ function addPhase(msg) {
   phaseLog.append(li);
 }
 
-function showResult(data) {
-  resultSection.hidden = false;
-  const status = data.passed ? "✓ Passed" : "✗ Failed";
-  const rows = [
-    ["Status", status],
-    ["Output elements", data.outputElements.toLocaleString()],
-    ["JS time", `${data.jsMs} ms`],
-    ["Wasm time", `${data.wasmMs} ms`],
-    ["JS max deviation", data.jsMaxDeviation],
-    ["Wasm max deviation", data.wasmMaxDeviation],
-    ["JS bound violations", data.jsBoundViolations],
-    ["Wasm bound violations", data.wasmBoundViolations],
-    ["Cross-target identical", data.crossTargetIdentical ? "Yes" : "No"],
-    ["Wasm artifact", `${data.wasmBytes} bytes`],
-  ];
-  if (data.layers) rows.splice(1, 0, ["Layers", data.layers]);
-  resultContent.innerHTML = "";
-  const dl = document.createElement("dl");
-  dl.className = "result-facts";
-  for (const [dt, dd] of rows) {
-    const dtEl = document.createElement("dt");
-    dtEl.textContent = dt;
-    const ddEl = document.createElement("dd");
-    ddEl.textContent = dd;
-    dl.append(dtEl, ddEl);
-  }
-  resultContent.append(dl);
-  const note = document.createElement("p");
-  note.className = "notice";
-  note.textContent =
-    "Exploratory result. Not uploaded, not stored, not part of the accepted corpus.";
-  resultContent.append(note);
-}
-
 function cleanup() {
+  token++; // invalidate any stale messages
   if (timeoutId) {
     clearTimeout(timeoutId);
     timeoutId = null;
@@ -64,7 +26,48 @@ function cleanup() {
   }
   startBtn.disabled = false;
   cancelBtn.hidden = true;
-  progress.value = 0;
+}
+
+function showResult(data) {
+  resultSection.hidden = false;
+  const status = data.passed ? "✓ Passed" : "✗ Failed";
+  const rows = [["Status", status], [
+    "Output elements",
+    (data.outputElements || 0).toLocaleString(),
+  ]];
+  if (data.layers) rows.push(["Layers", data.layers]);
+  if (data.js) {
+    rows.push(["JS time", `${data.js.ms} ms`], ["JS max deviation", data.js.maxDeviation], [
+      "JS bound violations",
+      data.js.boundViolations,
+    ]);
+  }
+  if (data.wasm) {
+    rows.push(["Wasm time", `${data.wasm.ms} ms`], ["Wasm max deviation", data.wasm.maxDeviation], [
+      "Wasm bound violations",
+      data.wasm.boundViolations,
+    ]);
+  }
+  if (data.crossTargetIdentical !== undefined) {
+    rows.push(["Cross-target identical", data.crossTargetIdentical ? "Yes" : "No"]);
+  }
+  if (data.wasmBytes) rows.push(["Wasm artifact", `${data.wasmBytes} bytes`]);
+  resultContent.innerHTML = "";
+  const dl = document.createElement("dl");
+  dl.className = "result-facts";
+  for (const [dt, dd] of rows) {
+    const d = document.createElement("dt");
+    d.textContent = dt;
+    const v = document.createElement("dd");
+    v.textContent = dd;
+    dl.append(d, v);
+  }
+  resultContent.append(dl);
+  const note = document.createElement("p");
+  note.className = "notice";
+  note.textContent =
+    "Exploratory result. Not uploaded, not stored, not part of the accepted corpus.";
+  resultContent.append(note);
 }
 
 form.addEventListener("submit", (e) => {
@@ -74,21 +77,20 @@ form.addEventListener("submit", (e) => {
   resultSection.hidden = true;
   startBtn.disabled = true;
   cancelBtn.hidden = false;
-  progress.value = 0.1;
-  token++;
-  const runToken = token;
+  const runToken = ++token;
+  const target = document.getElementById("target-select").value;
   const mode = document.getElementById("mode-select").value;
+  progress.value = 0.1;
 
   worker = new Worker("/benchmarks/ml-dense-mlp/neural-mlp-worker.js", { type: "module" });
-
   timeoutId = setTimeout(() => {
-    addPhase("Hard timeout — terminating worker.");
+    addPhase("Hard timeout — terminating.");
     cleanup();
   }, TIMEOUT_MS);
 
-  worker.onmessage = (e) => {
-    const msg = e.data;
-    if (msg.token !== runToken) return; // stale
+  worker.onmessage = (ev) => {
+    const msg = ev.data;
+    if (msg.token !== runToken || msg.token !== token) return; // stale
     if (msg.type === "phase") {
       addPhase(msg.message);
       progress.value = Math.min(0.9, progress.value + 0.1);
@@ -103,12 +105,11 @@ form.addEventListener("submit", (e) => {
       cleanup();
     }
   };
-  worker.onerror = (e) => {
-    addPhase(`Worker error: ${e.message || e}`);
+  worker.onerror = (er) => {
+    addPhase(`Worker error: ${er.message || er}`);
     cleanup();
   };
-
-  worker.postMessage({ type: "run", token: runToken, mode });
+  worker.postMessage({ type: "run", token: runToken, target, mode });
 });
 
 cancelBtn.addEventListener("click", () => {

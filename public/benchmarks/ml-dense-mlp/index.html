@@ -46,7 +46,8 @@
       </form>
       <section aria-labelledby="progress-title" class="run-progress">
         <h2 id="progress-title">Progress</h2>
-        <progress id="run-progress" value="0" max="1"></progress>
+        <label for="run-progress" class="sr-only">Run progress</label>
+        <progress id="run-progress" value="0" max="1" aria-labelledby="progress-title"></progress>
         <ol id="phase-log" aria-live="polite"></ol>
       </section>
       <section id="result-section" hidden aria-labelledby="result-title">
