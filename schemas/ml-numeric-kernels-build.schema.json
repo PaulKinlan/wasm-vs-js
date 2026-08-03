@@ -78,7 +78,9 @@
         "autoVectorizationFlags": {
           "type": "array",
           "prefixItems": [{ "const": "-fno-vectorize" }, { "const": "-fno-slp-vectorize" }],
-          "items": false
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
         },
         "fpContraction": { "const": false },
         "threads": { "const": false }
