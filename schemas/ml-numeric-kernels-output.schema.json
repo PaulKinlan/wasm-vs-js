@@ -39,10 +39,10 @@
       ],
       "properties": {
         "kind": { "const": "independent-f64-int32-and-u8-retained-artifacts" },
-        "f32Reference": { "$ref": "#/$defs/artifact" },
-        "f32Bounds": { "$ref": "#/$defs/artifact" },
-        "int32Reference": { "$ref": "#/$defs/artifact" },
-        "uint8Reference": { "$ref": "#/$defs/artifact" },
+        "f32Reference": { "$ref": "#/$defs/f32ReferenceArtifact" },
+        "f32Bounds": { "$ref": "#/$defs/f32BoundsArtifact" },
+        "int32Reference": { "$ref": "#/$defs/int32ReferenceArtifact" },
+        "uint8Reference": { "$ref": "#/$defs/uint8ReferenceArtifact" },
         "f32Policy": {
           "const": "strict-scalar-f32; finite-only; +0 normalization; abs+relative stored bounds"
         },
@@ -72,6 +72,38 @@
         "path": { "type": "string", "pattern": "^public/artifacts/ml-numeric-kernels/[a-z0-9.]+$" },
         "bytes": { "type": "integer", "minimum": 1 },
         "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "f32ReferenceArtifact": {
+      "$ref": "#/$defs/artifact",
+      "type": "object",
+      "properties": {
+        "path": { "const": "public/artifacts/ml-numeric-kernels/reference.f64" },
+        "bytes": { "const": 3520 }
+      }
+    },
+    "f32BoundsArtifact": {
+      "$ref": "#/$defs/artifact",
+      "type": "object",
+      "properties": {
+        "path": { "const": "public/artifacts/ml-numeric-kernels/bounds.f64" },
+        "bytes": { "const": 3520 }
+      }
+    },
+    "int32ReferenceArtifact": {
+      "$ref": "#/$defs/artifact",
+      "type": "object",
+      "properties": {
+        "path": { "const": "public/artifacts/ml-numeric-kernels/reference.i32" },
+        "bytes": { "const": 1248 }
+      }
+    },
+    "uint8ReferenceArtifact": {
+      "$ref": "#/$defs/artifact",
+      "type": "object",
+      "properties": {
+        "path": { "const": "public/artifacts/ml-numeric-kernels/reference.u8" },
+        "bytes": { "const": 128 }
       }
     },
     "outputHashes": {
@@ -107,9 +139,9 @@
         "gemm-macs-per-dtype": { "const": 504 },
         "conv-macs-per-dtype": { "const": 5808 },
         "total-macs": { "const": 12624 },
-        "kernel-tensor-reads": { "const": 26024 },
+        "kernel-tensor-reads": { "const": 26054 },
         "validation-tensor-reads": { "const": 563 },
-        "tensor-reads": { "const": 26587 },
+        "tensor-reads": { "const": 26617 },
         "tensor-writes": { "const": 1016 },
         "exp-approximations": { "const": 128 },
         "normalizations": { "const": 256 },

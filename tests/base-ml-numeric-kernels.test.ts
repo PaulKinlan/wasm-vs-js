@@ -137,7 +137,7 @@ Deno.test("ml numeric supplemental registration preserves frozen v1 bytes and pi
   }
 });
 
-Deno.test("fixture, build, output, and evidence schemas reject omissions, extras, malformed hashes, and contradictory counters", async () => {
+Deno.test("ML schemas reject every closed-identity, typed-role, target, and counter contradiction", async () => {
   const cases = [
     ["schemas/ml-numeric-kernels-fixture.schema.json", `${artifactRoot}fixture-manifest.json`],
     ["schemas/ml-numeric-kernels-build.schema.json", `${artifactRoot}build-manifest.json`],
@@ -158,22 +158,82 @@ Deno.test("fixture, build, output, and evidence schemas reject omissions, extras
     extra.unregistered = true;
     assert(!validate(extra), `${recordPath} accepted an extra field`);
   }
+
   const fixture = JSON.parse(await Deno.readTextFile(`${artifactRoot}fixture-manifest.json`));
   fixture.fixtureSha256 = "not-a-hash";
   assert(!(await validatorFor("schemas/ml-numeric-kernels-fixture.schema.json"))(fixture));
+
+  const buildValidator = await validatorFor("schemas/ml-numeric-kernels-build.schema.json");
   const build = JSON.parse(await Deno.readTextFile(`${artifactRoot}build-manifest.json`));
-  build.build.lockfile.sha256 = "0".repeat(63);
-  assert(!(await validatorFor("schemas/ml-numeric-kernels-build.schema.json"))(build));
+  const malformedLock = clone(build);
+  malformedLock.build.lockfile.sha256 = "0".repeat(63);
+  assert(!buildValidator(malformedLock));
+  for (let index = 0; index < build.fullSourceGraph.length; index++) {
+    const missingIdentity = clone(build);
+    missingIdentity.fullSourceGraph.splice(index, 1);
+    missingIdentity.sourceSha256 = "0".repeat(64);
+    assert(!buildValidator(missingIdentity), `accepted missing source identity ${index}`);
+
+    const replacedIdentity = clone(build);
+    replacedIdentity.fullSourceGraph[index].path = `replacement-${index}.ts`;
+    replacedIdentity.sourceSha256 = "0".repeat(64);
+    assert(!buildValidator(replacedIdentity), `accepted replaced source identity ${index}`);
+  }
+  for (let index = 0; index < build.fullSourceGraph.length - 1; index++) {
+    const reordered = clone(build);
+    [reordered.fullSourceGraph[index], reordered.fullSourceGraph[index + 1]] = [
+      reordered.fullSourceGraph[index + 1],
+      reordered.fullSourceGraph[index],
+    ];
+    reordered.sourceSha256 = "0".repeat(64);
+    assert(!buildValidator(reordered), `accepted reordered source identities ${index}`);
+  }
+
+  const outputValidator = await validatorFor("schemas/ml-numeric-kernels-output.schema.json");
   const output = JSON.parse(await Deno.readTextFile(`${artifactRoot}output-manifest.json`));
-  output.counters.javascript["tensor-reads"] = 0;
-  assert(!(await validatorFor("schemas/ml-numeric-kernels-output.schema.json"))(output));
-  const evidence = JSON.parse(
-    await Deno.readTextFile(
-      "public/evidence/base-implementations/ml.numeric-kernels.v1/js-controlled-scalar.json",
-    ),
-  );
-  evidence.counters["tensor-writes"] = 880;
-  assert(!(await validatorFor("schemas/ml-numeric-kernels-evidence.schema.json"))(evidence));
+  for (const target of ["javascript", "wasmLinear"]) {
+    const wrongReads = clone(output);
+    wrongReads.counters[target]["tensor-reads"] = 0;
+    assert(!outputValidator(wrongReads), `accepted contradictory ${target} reads`);
+  }
+  const oracleRoles = ["f32Reference", "f32Bounds", "int32Reference", "uint8Reference"];
+  for (let left = 0; left < oracleRoles.length; left++) {
+    for (let right = left + 1; right < oracleRoles.length; right++) {
+      const swapped = clone(output);
+      const leftRole = oracleRoles[left], rightRole = oracleRoles[right];
+      [swapped.oracle[leftRole], swapped.oracle[rightRole]] = [
+        swapped.oracle[rightRole],
+        swapped.oracle[leftRole],
+      ];
+      assert(!outputValidator(swapped), `accepted swapped ${leftRole}/${rightRole} artifacts`);
+    }
+  }
+  for (const [target, crossings] of [["javascript", 6], ["wasmLinear", 0]] as const) {
+    const contradicted = clone(output);
+    contradicted.counters[target]["boundary-crossings"] = crossings;
+    assert(!outputValidator(contradicted), `accepted ${target} boundary contradiction`);
+  }
+
+  const evidenceValidator = await validatorFor("schemas/ml-numeric-kernels-evidence.schema.json");
+  for (
+    const [variant, crossings] of [
+      ["js-controlled-scalar", 6],
+      ["wasm-linear-controlled-scalar", 0],
+    ] as const
+  ) {
+    const evidence = JSON.parse(
+      await Deno.readTextFile(
+        `public/evidence/base-implementations/ml.numeric-kernels.v1/${variant}.json`,
+      ),
+    );
+    assert(evidenceValidator(evidence), JSON.stringify(evidenceValidator.errors));
+    const wrongCrossings = clone(evidence);
+    wrongCrossings.counters["boundary-crossings"] = crossings;
+    assert(!evidenceValidator(wrongCrossings), `accepted ${variant} boundary contradiction`);
+    const wrongWrites = clone(evidence);
+    wrongWrites.counters["tensor-writes"] = 880;
+    assert(!evidenceValidator(wrongWrites), `accepted ${variant} counter contradiction`);
+  }
 });
 
 Deno.test("all six JS and material Wasm scalar kernels produce complete exact paired outputs", async () => {
@@ -265,20 +325,43 @@ Deno.test("build provenance resolves exact repository commit, task, lockfile, so
     assertEquals(await sha256Hex(await gitBytes(build.sourceCommit, source.path)), source.sha256);
   }
   assertEquals(await sha256Hex(await Deno.readFile(build.artifact.path)), build.artifact.sha256);
-  assertEquals(
-    await sha256Hex(await Deno.readFile(`${artifactRoot}build-manifest.json`)),
-    output.buildManifestSha256,
+  const buildBytes = await Deno.readFile(`${artifactRoot}build-manifest.json`);
+  const buildSha256 = await sha256Hex(buildBytes);
+  const outputSha256 = await sha256Hex(outputBytes);
+  assertEquals(buildSha256, output.buildManifestSha256);
+  const registration = JSON.parse(
+    await Deno.readTextFile("catalog/implementations/ml.numeric-kernels.v1.json"),
   );
+  type ArtifactRecord = { path: string; bytes: number; sha256: string };
+  const registered = new Map<string, ArtifactRecord>();
+  for (const record of registration.artifactHashes as ArtifactRecord[]) {
+    registered.set(record.path, record);
+  }
+  const outputRecord = registered.get(`${artifactRoot}output-manifest.json`)!;
+  assertEquals(outputRecord.bytes, outputBytes.byteLength);
+  assertEquals(outputRecord.sha256, outputSha256);
   for (const variant of ["js-controlled-scalar", "wasm-linear-controlled-scalar"]) {
-    const evidence = JSON.parse(
-      await Deno.readTextFile(
-        `public/evidence/base-implementations/ml.numeric-kernels.v1/${variant}.json`,
-      ),
-    );
+    const evidencePath =
+      `public/evidence/base-implementations/ml.numeric-kernels.v1/${variant}.json`;
+    const evidenceBytes = await Deno.readFile(evidencePath);
+    const evidence = JSON.parse(new TextDecoder().decode(evidenceBytes));
+    assertEquals(registered.get(evidencePath)!.bytes, evidenceBytes.byteLength);
+    assertEquals(registered.get(evidencePath)!.sha256, await sha256Hex(evidenceBytes));
     assertEquals(evidence.sourceRepository, build.sourceRepository);
     assertEquals(evidence.sourceCommit, build.sourceCommit);
     assertEquals(evidence.sourceSha256, build.sourceSha256);
-    assertEquals(evidence.outputManifestSha256, await sha256Hex(outputBytes));
+    assertEquals(evidence.buildManifestSha256, buildSha256);
+    assertEquals(evidence.outputManifestSha256, outputSha256);
+    assertEquals(
+      evidence.completeOutputSha256,
+      output[
+        variant === "js-controlled-scalar" ? "jsControlledSha256" : "wasmLinearControlledSha256"
+      ],
+    );
+    assertEquals(
+      evidence.counters,
+      output.counters[variant === "js-controlled-scalar" ? "javascript" : "wasmLinear"],
+    );
   }
 });
 
@@ -330,15 +413,54 @@ Deno.test("nonfinite f32 inputs reject in JS and Wasm without accepting partial 
   assertEquals(wasmRun(await instantiate(), soft).softmaxF32.status, 1);
 });
 
-Deno.test("registered counters equal every operative access and boundary exactly", () => {
+Deno.test("instrumented tensor properties prove every operative read and write counter", () => {
+  let reads = 0, writes = 0;
+  const numericIndex = /^(?:0|[1-9][0-9]*)$/;
+  function instrument<T extends ArrayBufferView>(value: T): T {
+    return new Proxy(value, {
+      get(target, property) {
+        if (typeof property === "string" && numericIndex.test(property)) reads++;
+        return Reflect.get(target, property, target);
+      },
+      set(target, property, next) {
+        if (typeof property === "string" && numericIndex.test(property)) writes++;
+        return Reflect.set(target, property, next, target);
+      },
+    });
+  }
+  const fixture = workload.generateFixtures();
+  const tracked = Object.fromEntries(
+    Object.entries(fixture).map(([key, value]) => [key, instrument(value)]),
+  ) as typeof fixture;
+  workload.gemmF32(tracked.gemmF32A, tracked.gemmF32B, instrument(new Float32Array(56)));
+  workload.gemmI8(tracked.gemmI8A, tracked.gemmI8B, instrument(new Int32Array(56)));
+  workload.convF32(
+    tracked.convF32Input,
+    tracked.convF32Weights,
+    instrument(new Float32Array(256)),
+  );
+  workload.convI8(
+    tracked.convI8Input,
+    tracked.convI8Weights,
+    instrument(new Int32Array(256)),
+  );
+  workload.softmaxF32(tracked.softmaxF32Input, instrument(new Float32Array(128)));
+  workload.softmaxI8(tracked.softmaxI8Input, instrument(new Uint8Array(128)));
+
+  const validationReads = tracked.gemmF32A.length + tracked.gemmF32B.length +
+    tracked.convF32Input.length + tracked.convF32Weights.length + tracked.softmaxF32Input.length;
+  assertEquals(validationReads, 563);
+  assertEquals(reads, 26617);
+  assertEquals(reads - validationReads, 26054);
+  assertEquals(writes, 1016);
   const expected = {
     "gemm-macs-per-dtype": 504,
     "conv-macs-per-dtype": 5808,
     "total-macs": 12624,
-    "kernel-tensor-reads": 26024,
-    "validation-tensor-reads": 563,
-    "tensor-reads": 26587,
-    "tensor-writes": 1016,
+    "kernel-tensor-reads": reads - validationReads,
+    "validation-tensor-reads": validationReads,
+    "tensor-reads": reads,
+    "tensor-writes": writes,
     "exp-approximations": 128,
     "normalizations": 256,
     "output-tensor-allocations": 6,
@@ -358,6 +480,7 @@ Deno.test("demo and every exact-contract artifact route are closed public GET su
     "/artifacts/ml-numeric-kernels/fixture-manifest.json",
     "/artifacts/ml-numeric-kernels/build-manifest.json",
     "/artifacts/ml-numeric-kernels/output-manifest.json",
+    "/implementations/ml.numeric-kernels.v1.json",
     "/artifacts/ml-numeric-kernels/fixture.bin",
     "/artifacts/ml-numeric-kernels/reference.f64",
     "/artifacts/ml-numeric-kernels/reference.i32",

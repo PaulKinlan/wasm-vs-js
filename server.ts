@@ -187,6 +187,10 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/artifacts/ml-numeric-kernels/output-manifest.json",
     "application/json; charset=utf-8",
   ]],
+  ["/implementations/ml.numeric-kernels.v1.json", [
+    "catalog/implementations/ml.numeric-kernels.v1.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/artifacts/ml-numeric-kernels/fixture.bin", [
     "public/artifacts/ml-numeric-kernels/fixture.bin",
     "application/octet-stream",

@@ -24,18 +24,84 @@
     "sourceSha256": { "$ref": "#/$defs/sha256" },
     "fullSourceGraph": {
       "type": "array",
-      "minItems": 10,
+      "minItems": 14,
+      "maxItems": 14,
       "uniqueItems": true,
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["path", "bytes", "sha256"],
-        "properties": {
-          "path": { "$ref": "#/$defs/path" },
-          "bytes": { "type": "integer", "minimum": 1 },
-          "sha256": { "$ref": "#/$defs/sha256" }
+      "prefixItems": [
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": {
+            "path": { "const": "benchmarks/base/ml-numeric-kernels/ml-numeric-kernels.c" }
+          }
+        },
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": { "path": { "const": "benchmarks/base/ml-numeric-kernels/workload.js" } }
+        },
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": { "path": { "const": "public/ml-numeric-kernels-demo.js" } }
+        },
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": { "path": { "const": "public/ml-numeric-kernels-worker.js" } }
+        },
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": { "path": { "const": "server.ts" } }
+        },
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": { "path": { "const": "scripts/build-base-ml-numeric-kernels.ts" } }
+        },
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": { "path": { "const": "lib/canonical.ts" } }
+        },
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": { "path": { "const": "schemas/base-implementation.schema.json" } }
+        },
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": { "path": { "const": "schemas/ml-numeric-kernels-fixture.schema.json" } }
+        },
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": { "path": { "const": "schemas/ml-numeric-kernels-build.schema.json" } }
+        },
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": { "path": { "const": "schemas/ml-numeric-kernels-output.schema.json" } }
+        },
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": { "path": { "const": "schemas/ml-numeric-kernels-evidence.schema.json" } }
+        },
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": { "path": { "const": "deno.json" } }
+        },
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": { "path": { "const": "deno.lock" } }
         }
-      }
+      ],
+      "items": false
     },
     "build": {
       "type": "object",
@@ -99,6 +165,16 @@
   },
   "$defs": {
     "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-    "path": { "type": "string", "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$" }
+    "path": { "type": "string", "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$" },
+    "sourceRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "$ref": "#/$defs/path" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
   }
 }

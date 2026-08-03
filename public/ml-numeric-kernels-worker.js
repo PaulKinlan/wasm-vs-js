@@ -5,6 +5,10 @@ const paths = {
   fixture: "/artifacts/ml-numeric-kernels/fixture-manifest.json",
   build: "/artifacts/ml-numeric-kernels/build-manifest.json",
   output: "/artifacts/ml-numeric-kernels/output-manifest.json",
+  registration: "/implementations/ml.numeric-kernels.v1.json",
+  jsEvidence: "/evidence/base-implementations/ml.numeric-kernels.v1/js-controlled-scalar.json",
+  wasmEvidence:
+    "/evidence/base-implementations/ml.numeric-kernels.v1/wasm-linear-controlled-scalar.json",
   f32Reference: "/artifacts/ml-numeric-kernels/reference.f64",
   f32Bounds: "/artifacts/ml-numeric-kernels/bounds.f64",
   int32Reference: "/artifacts/ml-numeric-kernels/reference.i32",
@@ -121,6 +125,9 @@ self.addEventListener("message", async ({ data }) => {
       fixtureManifestBytes,
       buildManifestBytes,
       outputManifestBytes,
+      registrationBytes,
+      jsEvidenceBytes,
+      wasmEvidenceBytes,
       f32ReferenceBytes,
       f32BoundsBytes,
       int32ReferenceBytes,
@@ -129,7 +136,71 @@ self.addEventListener("message", async ({ data }) => {
     ] = await Promise.all(Object.values(paths).map(raw));
     const fixtureManifest = decodeJson(fixtureManifestBytes),
       buildManifest = decodeJson(buildManifestBytes),
-      outputManifest = decodeJson(outputManifestBytes);
+      outputManifest = decodeJson(outputManifestBytes),
+      registration = decodeJson(registrationBytes),
+      evidenceRecords = [decodeJson(jsEvidenceBytes), decodeJson(wasmEvidenceBytes)];
+    if (
+      registration.workloadId !== outputManifest.catalogId ||
+      registration.contractId !== outputManifest.contractId ||
+      buildManifest.catalogId !== outputManifest.catalogId ||
+      buildManifest.contractId !== outputManifest.contractId ||
+      fixtureManifest.catalogId !== outputManifest.catalogId ||
+      fixtureManifest.contractId !== outputManifest.contractId
+    ) throw new Error("manifest identity mismatch");
+    const buildManifestSha256 = await sha(buildManifestBytes);
+    const outputManifestSha256 = await sha(outputManifestBytes);
+    if (buildManifestSha256 !== outputManifest.buildManifestSha256) {
+      throw new Error("output manifest does not bind the fetched build manifest bytes");
+    }
+    const registeredArtifacts = new Map(
+      registration.artifactHashes.map((record) => [record.path, record]),
+    );
+    const assertRegistered = async (path, bytes) => {
+      const record = registeredArtifacts.get(path);
+      if (
+        !registration.artifacts.includes(path) || !record || record.bytes !== bytes.byteLength ||
+        record.sha256 !== await sha(bytes)
+      ) throw new Error(`registration artifact mismatch: ${path}`);
+    };
+    await assertRegistered(
+      "public/artifacts/ml-numeric-kernels/output-manifest.json",
+      outputManifestBytes,
+    );
+    await assertRegistered(
+      "public/evidence/base-implementations/ml.numeric-kernels.v1/js-controlled-scalar.json",
+      jsEvidenceBytes,
+    );
+    await assertRegistered(
+      "public/evidence/base-implementations/ml.numeric-kernels.v1/wasm-linear-controlled-scalar.json",
+      wasmEvidenceBytes,
+    );
+    const expectedEvidence = new Map([
+      [
+        "js-controlled-scalar",
+        [outputManifest.jsControlledSha256, outputManifest.counters.javascript],
+      ],
+      [
+        "wasm-linear-controlled-scalar",
+        [outputManifest.wasmLinearControlledSha256, outputManifest.counters.wasmLinear],
+      ],
+    ]);
+    const validatedEvidence = new Set();
+    for (const evidence of evidenceRecords) {
+      const expected = expectedEvidence.get(evidence.variantId);
+      if (
+        !expected || validatedEvidence.has(evidence.variantId) ||
+        evidence.workloadId !== outputManifest.catalogId ||
+        evidence.contractId !== outputManifest.contractId ||
+        evidence.outputManifestSha256 !== outputManifestSha256 ||
+        evidence.buildManifestSha256 !== buildManifestSha256 ||
+        JSON.stringify(evidence.completeOutputSha256) !== JSON.stringify(expected[0]) ||
+        JSON.stringify(evidence.counters) !== JSON.stringify(expected[1])
+      ) throw new Error(`evidence trust-chain mismatch: ${evidence.variantId}`);
+      validatedEvidence.add(evidence.variantId);
+    }
+    if (validatedEvidence.size !== expectedEvidence.size) {
+      throw new Error("incomplete evidence trust chain");
+    }
     if (await sha(catalogBytes) !== fixtureManifest.frozenCatalogSha256) {
       throw new Error("frozen catalog byte mismatch");
     }

@@ -11,6 +11,7 @@ const sourcePaths = [
   "benchmarks/base/ml-numeric-kernels/workload.js",
   "public/ml-numeric-kernels-demo.js",
   "public/ml-numeric-kernels-worker.js",
+  "server.ts",
   "scripts/build-base-ml-numeric-kernels.ts",
   "lib/canonical.ts",
   "schemas/base-implementation.schema.json",

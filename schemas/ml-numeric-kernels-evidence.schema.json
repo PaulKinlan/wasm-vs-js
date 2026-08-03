@@ -3,6 +3,38 @@
   "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/ml-numeric-kernels-evidence.schema.json",
   "type": "object",
   "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": { "variantId": { "const": "js-controlled-scalar" } },
+        "required": ["variantId"]
+      },
+      "then": {
+        "properties": {
+          "counters": {
+            "type": "object",
+            "properties": { "boundary-crossings": { "const": 0 } },
+            "required": ["boundary-crossings"]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "variantId": { "const": "wasm-linear-controlled-scalar" } },
+        "required": ["variantId"]
+      },
+      "then": {
+        "properties": {
+          "counters": {
+            "type": "object",
+            "properties": { "boundary-crossings": { "const": 6 } },
+            "required": ["boundary-crossings"]
+          }
+        }
+      }
+    }
+  ],
   "required": [
     "schemaVersion",
     "status",
@@ -68,14 +100,14 @@
         "gemm-macs-per-dtype": { "const": 504 },
         "conv-macs-per-dtype": { "const": 5808 },
         "total-macs": { "const": 12624 },
-        "kernel-tensor-reads": { "const": 26024 },
+        "kernel-tensor-reads": { "const": 26054 },
         "validation-tensor-reads": { "const": 563 },
-        "tensor-reads": { "const": 26587 },
+        "tensor-reads": { "const": 26617 },
         "tensor-writes": { "const": 1016 },
         "exp-approximations": { "const": 128 },
         "normalizations": { "const": 256 },
         "output-tensor-allocations": { "const": 6 },
-        "boundary-crossings": { "enum": [0, 6] }
+        "boundary-crossings": { "type": "integer" }
       }
     },
     "validation": {

@@ -231,9 +231,11 @@ export function workCounters(target = "javascript") {
   }
   const softmaxElements = SOFTMAX.rows * SOFTMAX.cols;
   // Operative tensor accesses count the actual frozen loop topology. Softmax
-  // reads 384 FP32 and 392 INT8 tensor elements; its INT8 residual correction
-  // adds eight reads and writes. The finite-input gate reads every FP32 input.
-  const kernelTensorReads = 4 * (gemmMacs + convMacs) + 776;
+  // reads 403 FP32 and 403 INT8 tensor elements. Those totals include the
+  // successful maximum-update rereads (19 FP32, 11 INT8), FP32 normalization
+  // output reads, and the eight INT8 residual-correction output reads. The
+  // finite-input gate separately reads every FP32 input.
+  const kernelTensorReads = 4 * (gemmMacs + convMacs) + 806;
   const validationTensorReads = GEMM.m * GEMM.k + GEMM.k * GEMM.n +
     CONV.height * CONV.width * CONV.inChannels +
     CONV.kernel * CONV.kernel * CONV.inChannels * CONV.outChannels + softmaxElements;
