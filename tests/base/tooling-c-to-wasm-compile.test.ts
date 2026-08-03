@@ -1,7 +1,15 @@
+import Ajv2020Module from "ajv2020";
 import { compileC } from "../../benchmarks/base/tooling-c-to-wasm-compile/compiler-js.js";
 import { sha256Hex } from "../../lib/canonical.ts";
 import { createHandler } from "../../server.ts";
 import { assert, assertEquals, assertRejects } from "../assert.ts";
+
+type Validator = ((value: unknown) => boolean) & { errors?: unknown };
+type AjvConstructor = new (options?: Record<string, unknown>) => {
+  compile: (schema: unknown) => Validator;
+};
+const Ajv2020 = ((Ajv2020Module as unknown as { default?: AjvConstructor }).default ??
+  Ajv2020Module) as unknown as AjvConstructor;
 
 const root = new URL("../../", import.meta.url);
 const artifactPath = new URL("public/artifacts/base/tooling-c-to-wasm-compile/compiler.wasm", root);
@@ -18,6 +26,19 @@ const validationPath = new URL(
   root,
 );
 const expected = [4, 21, 32, 15, 20, 8, 37, 6, 41, 176, 10200, 83, 55, 15, 37, 29, 21, 366, 5, 270];
+const contractPath = new URL(
+  "benchmarks/base/tooling-c-to-wasm-compile/contract.v1.json",
+  root,
+);
+const negativeFixturesPath = new URL(
+  "benchmarks/base/tooling-c-to-wasm-compile/negative-fixtures.v1.json",
+  root,
+);
+const schemaPath = new URL("schemas/base/tooling-c-to-wasm-compile.schema.json", root);
+
+function counterExportName(field: string): string {
+  return `counter_${field.replaceAll(/([A-Z])/g, "_$1").toLowerCase()}`;
+}
 
 async function readProgram(id: string): Promise<[string, string]> {
   return await Promise.all([
@@ -38,12 +59,14 @@ Deno.test("C compiler targets compile, link, validate and execute all 20 frozen 
   const compile = exports.compile_c as CallableFunction;
   const manifest = JSON.parse(await Deno.readTextFile(fixtureManifestPath));
   const validation = JSON.parse(await Deno.readTextFile(validationPath));
+  const contract = JSON.parse(await Deno.readTextFile(contractPath));
   assertEquals(manifest.entries.length, 20);
   assertEquals(validation.results.length, 20);
   for (let index = 1; index <= 20; index += 1) {
     const id = String(index).padStart(2, "0");
     const [source, header] = await readProgram(id);
     const js = compileC(source, header);
+    const jsCounters = js.counters as Record<string, number>;
     const view = new Uint8Array(memory.buffer);
     const sourceBytes = new TextEncoder().encode(source);
     const headerBytes = new TextEncoder().encode(header);
@@ -59,20 +82,39 @@ Deno.test("C compiler targets compile, link, validate and execute all 20 frozen 
     const instance = await WebAssembly.instantiate(module, {});
     assertEquals(Number((instance.exports.test as CallableFunction)()), expected[index - 1]);
     assertEquals(await sha256Hex(wasm), validation.results[index - 1].outputSha256);
-    for (const field of ["tokens", "astNodes", "instructions", "outputBytes"]) {
+    const result = validation.results[index - 1];
+    assertEquals(Object.keys(result.jsCounters), contract.fixedWork.counterContract.fields);
+    assertEquals(Object.keys(result.wasmCounters), contract.fixedWork.counterContract.fields);
+    for (const field of contract.fixedWork.counterContract.fields) {
+      assertEquals(result.jsCounters[field], jsCounters[field]);
       assertEquals(
-        validation.results[index - 1].jsCounters[field],
-        validation.results[index - 1].wasmCounters[field],
+        result.wasmCounters[field],
+        Number((exports[counterExportName(field)] as CallableFunction)()),
       );
+    }
+    for (const field of contract.fixedWork.counterContract.equalAcrossTargets) {
+      assertEquals(result.jsCounters[field], result.wasmCounters[field]);
+    }
+    for (
+      const [target, counters] of [
+        ["javascript-controlled", result.jsCounters],
+        ["wasm-self-hosted-controlled", result.wasmCounters],
+      ] as const
+    ) {
+      for (const [field, value] of Object.entries(contract.targets[target].counterExpectations)) {
+        assertEquals(counters[field], value);
+      }
     }
   }
 });
 
-Deno.test("both C compilers fail closed on malformed, unsupported and trailing input", async () => {
+Deno.test("both C compilers fail closed on undefined, malformed and unsupported input", async () => {
+  const fixtureDocument = JSON.parse(await Deno.readTextFile(negativeFixturesPath));
   const invalid = [
-    ['#include "other.h"\nint test(void) { return BASE; }\n', "#define BASE 1\n"],
-    ['#include "fixture.h"\nint test(void) { return BASE / 2; }\n', "#define BASE 1\n"],
-    ['#include "fixture.h"\nint test(void) { return missing; }\n', "#define BASE 1\n"],
+    ...fixtureDocument.cases.map(({ source, header }: { source: string; header: string }) => [
+      source,
+      header,
+    ]),
     ['#include "fixture.h"\nint test(void) { return BASE; } garbage\n', "#define BASE 1\n"],
     ['#include "fixture.h"\nint test(void) { return 2147483648; }\n', "#define BASE 1\n"],
   ];
@@ -92,6 +134,39 @@ Deno.test("both C compilers fail closed on malformed, unsupported and trailing i
         compile(196608, sourceBytes.byteLength, 200704, headerBytes.byteLength, 131072, 4096),
       ) < 0,
     );
+  }
+});
+
+Deno.test("C compiler contract schema compiles strictly and rejects substantive drift", async () => {
+  const schema = JSON.parse(await Deno.readTextFile(schemaPath));
+  const contract = JSON.parse(await Deno.readTextFile(contractPath));
+  const validate = new Ajv2020({ strict: true, allErrors: true }).compile(schema);
+  assert(validate(contract), JSON.stringify(validate.errors));
+
+  type ContractDocument = {
+    language: { shiftCountPolicy: string };
+    fixedWork: { sources: number; counterContract: { allocationUnit?: string } };
+    targets: Record<
+      string,
+      { extra?: boolean; counterExpectations: { boundaryCrossings: number } }
+    >;
+    build: { flags: string[] };
+  };
+  const mutations: Array<(value: ContractDocument) => void> = [
+    (value) => value.language.shiftCountPolicy = "WebAssembly masks counts",
+    (value) => value.fixedWork.sources = 19,
+    (value) => delete value.fixedWork.counterContract.allocationUnit,
+    (value) => value.targets["javascript-controlled"].extra = true,
+    (value) =>
+      value.targets["wasm-self-hosted-controlled"].counterExpectations.boundaryCrossings = 1,
+    (value) => {
+      value.build.flags.pop();
+    },
+  ];
+  for (const mutate of mutations) {
+    const invalid = structuredClone(contract);
+    mutate(invalid);
+    assert(!validate(invalid), "substantive contract mutation must fail schema validation");
   }
 });
 
@@ -153,10 +228,9 @@ Deno.test("self-hosted compiler artifact rebuilds byte-identically with pinned f
       source,
       "-Wl,--no-entry",
       "-Wl,--export=compile_c",
-      "-Wl,--export=counter_tokens",
-      "-Wl,--export=counter_ast_nodes",
-      "-Wl,--export=counter_instructions",
-      "-Wl,--export=counter_output_bytes",
+      ...(JSON.parse(await Deno.readTextFile(contractPath)).fixedWork.counterContract
+        .fields as string[])
+        .map((field) => `-Wl,--export=${counterExportName(field)}`),
       "-Wl,--export-memory",
       "-Wl,--initial-memory=262144",
       "-Wl,--max-memory=262144",

@@ -20,18 +20,229 @@
   "properties": {
     "schemaVersion": { "const": 1 },
     "workloadId": { "const": "tooling.c-to-wasm-compile.v1" },
-    "catalogSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "catalogSha256": {
+      "const": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4"
+    },
     "status": { "const": "supplemental-implementation-candidate" },
     "coverageCredit": { "const": false },
-    "toolchainFamily": { "type": "string", "minLength": 1 },
+    "toolchainFamily": {
+      "const": "c-toolchain-fixed-revision-flags/owned-c-expression-subset-v1"
+    },
     "programCount": { "const": 20 },
-    "language": { "type": "object" },
-    "fixedWork": { "type": "object" },
+    "language": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceEncoding",
+        "translationUnit",
+        "preprocessor",
+        "expressionGrammar",
+        "typePolicy",
+        "shiftCountPolicy",
+        "diagnosticPolicy"
+      ],
+      "properties": {
+        "sourceEncoding": { "const": "ASCII" },
+        "translationUnit": {
+          "const": "#include fixture.h followed by exactly int test(void) { return EXPR; }"
+        },
+        "preprocessor": {
+          "const": "fixture.h must contain exactly one #define BASE signed-i32 line"
+        },
+        "expressionGrammar": {
+          "const": "signed decimal i32 literals, BASE, parentheses, unary minus, *, +, -, <<, >>, &, ^, | with C precedence"
+        },
+        "typePolicy": {
+          "const": "one i32 expression; arithmetic and left shift have WebAssembly i32 wrap semantics; right shift is signed; division, pointers, calls, globals and undefined behavior are denied"
+        },
+        "shiftCountPolicy": {
+          "const": "each fully evaluated shift count must be in 0..31; negative counts and counts at least 32 fail closed instead of using WebAssembly masking"
+        },
+        "diagnosticPolicy": {
+          "const": "any byte or token outside the admitted grammar fails closed"
+        }
+      }
+    },
+    "fixedWork": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sources",
+        "preprocessPasses",
+        "parsePasses",
+        "typecheckPasses",
+        "codegenPasses",
+        "linkPasses",
+        "executedExport",
+        "vfsFilesPerProgram",
+        "counterContract"
+      ],
+      "properties": {
+        "sources": { "const": 20 },
+        "preprocessPasses": { "const": 20 },
+        "parsePasses": { "const": 20 },
+        "typecheckPasses": { "const": 20 },
+        "codegenPasses": { "const": 20 },
+        "linkPasses": { "const": 20 },
+        "executedExport": { "const": "test" },
+        "vfsFilesPerProgram": { "const": 2 },
+        "counterContract": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "fields",
+            "equalAcrossTargets",
+            "allocationUnit",
+            "boundaryUnit"
+          ],
+          "properties": {
+            "fields": {
+              "const": [
+                "sourceBytes",
+                "headerBytes",
+                "tokens",
+                "astNodes",
+                "functions",
+                "instructions",
+                "linkSections",
+                "vfsReads",
+                "allocations",
+                "boundaryCrossings",
+                "outputBytes"
+              ]
+            },
+            "equalAcrossTargets": {
+              "const": [
+                "sourceBytes",
+                "headerBytes",
+                "tokens",
+                "astNodes",
+                "functions",
+                "instructions",
+                "linkSections",
+                "vfsReads",
+                "outputBytes"
+              ]
+            },
+            "allocationUnit": {
+              "const": "compiler-owned mutable token or byte buffer allocated while compiling one program"
+            },
+            "boundaryUnit": {
+              "const": "one host-to-Wasm compiler invocation input boundary or one emitted-byte output boundary"
+            }
+          }
+        }
+      }
+    },
     "targets": {
       "type": "object",
-      "required": ["javascript-controlled", "wasm-self-hosted-controlled"]
+      "additionalProperties": false,
+      "required": ["javascript-controlled", "wasm-self-hosted-controlled"],
+      "properties": {
+        "javascript-controlled": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source", "implementation", "counterExpectations"],
+          "properties": {
+            "source": {
+              "const": "benchmarks/base/tooling-c-to-wasm-compile/compiler-js.js"
+            },
+            "implementation": {
+              "const": "independent JavaScript tokenizer, recursive-descent parser, type gate, Wasm binary code generator and linker"
+            },
+            "counterExpectations": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "functions",
+                "linkSections",
+                "vfsReads",
+                "allocations",
+                "boundaryCrossings"
+              ],
+              "properties": {
+                "functions": { "const": 1 },
+                "linkSections": { "const": 4 },
+                "vfsReads": { "const": 2 },
+                "allocations": { "const": 4 },
+                "boundaryCrossings": { "const": 0 }
+              }
+            }
+          }
+        },
+        "wasm-self-hosted-controlled": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source", "implementation", "counterExpectations"],
+          "properties": {
+            "source": {
+              "const": "benchmarks/base/tooling-c-to-wasm-compile/compiler-wasm.c"
+            },
+            "implementation": {
+              "const": "material compiler running inside linear Wasm; source and header bytes enter its VFS boundary and emitted Wasm bytes leave it"
+            },
+            "counterExpectations": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "functions",
+                "linkSections",
+                "vfsReads",
+                "allocations",
+                "boundaryCrossings"
+              ],
+              "properties": {
+                "functions": { "const": 1 },
+                "linkSections": { "const": 4 },
+                "vfsReads": { "const": 2 },
+                "allocations": { "const": 0 },
+                "boundaryCrossings": { "const": 2 }
+              }
+            }
+          }
+        }
+      }
     },
-    "build": { "type": "object" },
-    "limitations": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+    "build": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["deno", "clang", "lld", "target", "flags"],
+      "properties": {
+        "deno": { "const": "2.9.0" },
+        "clang": { "const": "22.1.8" },
+        "lld": { "const": "22.1.8" },
+        "target": { "const": "wasm32-unknown-unknown" },
+        "flags": {
+          "const": [
+            "-O2",
+            "-nostdlib",
+            "--no-entry",
+            "--export=compile_c",
+            "--export=counter_source_bytes",
+            "--export=counter_header_bytes",
+            "--export=counter_tokens",
+            "--export=counter_ast_nodes",
+            "--export=counter_functions",
+            "--export=counter_instructions",
+            "--export=counter_link_sections",
+            "--export=counter_vfs_reads",
+            "--export=counter_allocations",
+            "--export=counter_boundary_crossings",
+            "--export=counter_output_bytes",
+            "--export-memory",
+            "--initial-memory=262144",
+            "--max-memory=262144",
+            "--strip-all"
+          ]
+        }
+      }
+    },
+    "limitations": {
+      "const": [
+        "This is a frozen, rights-clean C expression subset, not a claim to implement ISO C generally.",
+        "Cold-load and self-hosting results remain unavailable until retained browser evidence is collected.",
+        "Coverage remains unavailable until independent review and retained browser lifecycle evidence pass."
+      ]
+    }
   }
 }

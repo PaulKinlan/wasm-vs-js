@@ -11,7 +11,8 @@
     "translationUnit": "#include fixture.h followed by exactly int test(void) { return EXPR; }",
     "preprocessor": "fixture.h must contain exactly one #define BASE signed-i32 line",
     "expressionGrammar": "signed decimal i32 literals, BASE, parentheses, unary minus, *, +, -, <<, >>, &, ^, | with C precedence",
-    "typePolicy": "one i32 expression; overflow has WebAssembly i32 wrap semantics; signed right shift; division, pointers, calls, globals and undefined behavior are denied",
+    "typePolicy": "one i32 expression; arithmetic and left shift have WebAssembly i32 wrap semantics; right shift is signed; division, pointers, calls, globals and undefined behavior are denied",
+    "shiftCountPolicy": "each fully evaluated shift count must be in 0..31; negative counts and counts at least 32 fail closed instead of using WebAssembly masking",
     "diagnosticPolicy": "any byte or token outside the admitted grammar fails closed"
   },
   "fixedWork": {
@@ -22,16 +23,58 @@
     "codegenPasses": 20,
     "linkPasses": 20,
     "executedExport": "test",
-    "vfsFilesPerProgram": 2
+    "vfsFilesPerProgram": 2,
+    "counterContract": {
+      "fields": [
+        "sourceBytes",
+        "headerBytes",
+        "tokens",
+        "astNodes",
+        "functions",
+        "instructions",
+        "linkSections",
+        "vfsReads",
+        "allocations",
+        "boundaryCrossings",
+        "outputBytes"
+      ],
+      "equalAcrossTargets": [
+        "sourceBytes",
+        "headerBytes",
+        "tokens",
+        "astNodes",
+        "functions",
+        "instructions",
+        "linkSections",
+        "vfsReads",
+        "outputBytes"
+      ],
+      "allocationUnit": "compiler-owned mutable token or byte buffer allocated while compiling one program",
+      "boundaryUnit": "one host-to-Wasm compiler invocation input boundary or one emitted-byte output boundary"
+    }
   },
   "targets": {
     "javascript-controlled": {
       "source": "benchmarks/base/tooling-c-to-wasm-compile/compiler-js.js",
-      "implementation": "independent JavaScript tokenizer, recursive-descent parser, type gate, Wasm binary code generator and linker"
+      "implementation": "independent JavaScript tokenizer, recursive-descent parser, type gate, Wasm binary code generator and linker",
+      "counterExpectations": {
+        "functions": 1,
+        "linkSections": 4,
+        "vfsReads": 2,
+        "allocations": 4,
+        "boundaryCrossings": 0
+      }
     },
     "wasm-self-hosted-controlled": {
       "source": "benchmarks/base/tooling-c-to-wasm-compile/compiler-wasm.c",
-      "implementation": "material compiler running inside linear Wasm; source and header bytes enter its VFS boundary and emitted Wasm bytes leave it"
+      "implementation": "material compiler running inside linear Wasm; source and header bytes enter its VFS boundary and emitted Wasm bytes leave it",
+      "counterExpectations": {
+        "functions": 1,
+        "linkSections": 4,
+        "vfsReads": 2,
+        "allocations": 0,
+        "boundaryCrossings": 2
+      }
     }
   },
   "build": {
@@ -44,6 +87,17 @@
       "-nostdlib",
       "--no-entry",
       "--export=compile_c",
+      "--export=counter_source_bytes",
+      "--export=counter_header_bytes",
+      "--export=counter_tokens",
+      "--export=counter_ast_nodes",
+      "--export=counter_functions",
+      "--export=counter_instructions",
+      "--export=counter_link_sections",
+      "--export=counter_vfs_reads",
+      "--export=counter_allocations",
+      "--export=counter_boundary_crossings",
+      "--export=counter_output_bytes",
       "--export-memory",
       "--initial-memory=262144",
       "--max-memory=262144",

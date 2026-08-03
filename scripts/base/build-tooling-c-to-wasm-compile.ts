@@ -11,10 +11,17 @@ if (!/^[a-f0-9]{40}$/.test(sourceCommit)) {
 }
 
 const expected = [4, 21, 32, 15, 20, 8, 37, 6, 41, 176, 10200, 83, 55, 15, 37, 29, 21, 366, 5, 270];
+const contract = JSON.parse(await Deno.readTextFile(new URL("contract.v1.json", bench)));
+const negativeFixtures = JSON.parse(
+  await Deno.readTextFile(new URL("negative-fixtures.v1.json", bench)),
+).cases as Array<{ id: string; source: string; header: string; reason: string }>;
+const counterFields = contract.fixedWork.counterContract.fields as string[];
+const equalCounterFields = contract.fixedWork.counterContract.equalAcrossTargets as string[];
 const sourcePaths = [
   "benchmarks/base/tooling-c-to-wasm-compile/compiler-js.js",
   "benchmarks/base/tooling-c-to-wasm-compile/compiler-wasm.c",
   "benchmarks/base/tooling-c-to-wasm-compile/contract.v1.json",
+  "benchmarks/base/tooling-c-to-wasm-compile/negative-fixtures.v1.json",
   "benchmarks/base/tooling-c-to-wasm-compile/fixtures/RIGHTS.md",
   "scripts/base/build-tooling-c-to-wasm-compile.ts",
   "schemas/base/tooling-c-to-wasm-compile.schema.json",
@@ -68,10 +75,9 @@ try {
     new URL("compiler-wasm.c", bench).pathname,
     "-Wl,--no-entry",
     "-Wl,--export=compile_c",
-    "-Wl,--export=counter_tokens",
-    "-Wl,--export=counter_ast_nodes",
-    "-Wl,--export=counter_instructions",
-    "-Wl,--export=counter_output_bytes",
+    ...counterFields.map((field) =>
+      `-Wl,--export=counter_${field.replaceAll(/([A-Z])/g, "_$1").toLowerCase()}`
+    ),
     "-Wl,--export-memory",
     "-Wl,--initial-memory=262144",
     "-Wl,--max-memory=262144",
@@ -91,26 +97,28 @@ try {
   const exports = compilerInstance.exports as Record<string, WebAssembly.ExportValue>;
   const memory = exports.memory as WebAssembly.Memory;
   const compile = exports.compile_c as CallableFunction;
-  const counterTokens = exports.counter_tokens as CallableFunction;
-  const counterAst = exports.counter_ast_nodes as CallableFunction;
-  const counterInstructions = exports.counter_instructions as CallableFunction;
-  const counterOutput = exports.counter_output_bytes as CallableFunction;
-  if (
-    !memory || !compile || !counterTokens || !counterAst || !counterInstructions || !counterOutput
-  ) {
-    throw new Error("self-hosted compiler export contract missing");
-  }
+  const wasmCounterExports = Object.fromEntries(counterFields.map((field) => {
+    const exportName = `counter_${field.replaceAll(/([A-Z])/g, "_$1").toLowerCase()}`;
+    const counter = exports[exportName] as CallableFunction;
+    if (!counter) throw new Error(`self-hosted compiler counter export missing: ${exportName}`);
+    return [field, counter];
+  })) as Record<string, CallableFunction>;
+  if (!memory || !compile) throw new Error("self-hosted compiler export contract missing");
 
   const encoder = new TextEncoder();
   const fixtureEntries = [];
   const results = [];
   const outputHashes: string[] = [];
-  let totalSourceBytes = 0;
-  let totalHeaderBytes = 0;
-  let totalTokens = 0;
-  let totalAstNodes = 0;
-  let totalInstructions = 0;
-  let totalOutputBytes = 0;
+  const counterTotals = {
+    javascript: Object.fromEntries(counterFields.map((field) => [field, 0])) as Record<
+      string,
+      number
+    >,
+    wasmSelfHosted: Object.fromEntries(counterFields.map((field) => [field, 0])) as Record<
+      string,
+      number
+    >,
+  };
   for (let index = 1; index <= 20; index += 1) {
     const id = String(index).padStart(2, "0");
     const sourcePath = `benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/${id}.c`;
@@ -120,6 +128,7 @@ try {
     const source = new TextDecoder("utf-8", { fatal: true }).decode(sourceBytes);
     const header = new TextDecoder("utf-8", { fatal: true }).decode(headerBytes);
     const js = compileC(source, header);
+    const jsCounters = js.counters as Record<string, number>;
 
     const sourceOffset = 196608;
     const headerOffset = 200704;
@@ -140,9 +149,6 @@ try {
     );
     if (outputLength <= 0) throw new Error(`self-hosted compiler rejected ${id}: ${outputLength}`);
     const wasm = view.slice(outputOffset, outputOffset + outputLength);
-    if (wasm.byteLength !== Number(counterOutput())) {
-      throw new Error(`output counter mismatch for ${id}`);
-    }
     if (
       wasm.byteLength !== js.bytes.byteLength ||
       wasm.some((value, offset) => value !== js.bytes[offset])
@@ -159,42 +165,48 @@ try {
     }
     const hash = await sha256Hex(wasm);
     outputHashes.push(hash);
-    const wasmCounters = {
-      sourceBytes: sourceBytes.byteLength,
-      headerBytes: headerBytes.byteLength,
-      tokens: Number(counterTokens()),
-      astNodes: Number(counterAst()),
-      functions: 1,
-      instructions: Number(counterInstructions()),
-      linkSections: 4,
-      vfsReads: 2,
-      allocations: 0,
-      boundaryCrossings: 2,
-      outputBytes: wasm.byteLength,
-    };
-    for (
-      const field of [
-        "tokens",
-        "astNodes",
-        "functions",
-        "instructions",
-        "linkSections",
-        "vfsReads",
-        "outputBytes",
-      ] as const
+    const wasmCounters = Object.fromEntries(
+      counterFields.map((field) => [field, Number(wasmCounterExports[field]())]),
+    ) as Record<string, number>;
+    const jsCounterKeys = Object.keys(jsCounters);
+    if (
+      jsCounterKeys.length !== counterFields.length ||
+      counterFields.some((field) => !jsCounterKeys.includes(field))
     ) {
-      if (wasmCounters[field] !== js.counters[field]) {
+      throw new Error(`JavaScript counter contract incomplete for ${id}`);
+    }
+    for (const field of counterFields) {
+      if (!Number.isSafeInteger(jsCounters[field]) || !Number.isSafeInteger(wasmCounters[field])) {
+        throw new Error(`counter ${field} is not an integer for ${id}`);
+      }
+      counterTotals.javascript[field] += jsCounters[field];
+      counterTotals.wasmSelfHosted[field] += wasmCounters[field];
+    }
+    for (const field of equalCounterFields) {
+      if (wasmCounters[field] !== jsCounters[field]) {
         throw new Error(
-          `counter ${field} mismatch for ${id}: ${wasmCounters[field]} != ${js.counters[field]}`,
+          `counter ${field} mismatch for ${id}: ${wasmCounters[field]} != ${jsCounters[field]}`,
         );
       }
     }
-    totalSourceBytes += sourceBytes.byteLength;
-    totalHeaderBytes += headerBytes.byteLength;
-    totalTokens += wasmCounters.tokens;
-    totalAstNodes += wasmCounters.astNodes;
-    totalInstructions += wasmCounters.instructions;
-    totalOutputBytes += wasm.byteLength;
+    for (
+      const [target, counters] of [
+        ["javascript-controlled", jsCounters],
+        ["wasm-self-hosted-controlled", wasmCounters],
+      ] as const
+    ) {
+      for (
+        const [field, expectedValue] of Object.entries(
+          contract.targets[target].counterExpectations,
+        )
+      ) {
+        if (counters[field] !== expectedValue) {
+          throw new Error(
+            `${target} counter ${field} mismatch for ${id}: ${counters[field]} != ${expectedValue}`,
+          );
+        }
+      }
+    }
     fixtureEntries.push({
       id,
       source: {
@@ -214,24 +226,19 @@ try {
       outputSha256: hash,
       outputBytes: wasm.byteLength,
       testResult: actual,
-      jsCounters: js.counters,
+      jsCounters,
       wasmCounters,
     });
   }
 
-  const malformed = [
-    ['#include "other.h"\nint test(void) { return BASE; }\n', "#define BASE 1\n"],
-    ['#include "fixture.h"\nint test(void) { return BASE / 2; }\n', "#define BASE 1\n"],
-    ['#include "fixture.h"\nint test(void) { return missing; }\n', "#define BASE 1\n"],
-  ];
-  for (const [source, header] of malformed) {
+  for (const { id, source, header } of negativeFixtures) {
     let rejected = false;
     try {
       compileC(source, header);
     } catch {
       rejected = true;
     }
-    if (!rejected) throw new Error("JavaScript compiler accepted malformed fixture");
+    if (!rejected) throw new Error(`JavaScript compiler accepted negative fixture ${id}`);
     const sourceBytes = encoder.encode(source);
     const headerBytes = encoder.encode(header);
     const view = new Uint8Array(memory.buffer);
@@ -242,7 +249,7 @@ try {
         compile(196608, sourceBytes.byteLength, 200704, headerBytes.byteLength, 131072, 4096),
       ) >= 0
     ) {
-      throw new Error("self-hosted compiler accepted malformed fixture");
+      throw new Error(`self-hosted compiler accepted negative fixture ${id}`);
     }
   }
 
@@ -335,21 +342,13 @@ try {
       retainedBrowserEvidence: false,
     },
     totals: {
-      sourceBytes: totalSourceBytes,
-      headerBytes: totalHeaderBytes,
-      preprocessPasses: 40,
-      parsePasses: 40,
-      typecheckPasses: 40,
-      codegenPasses: 40,
-      linkPasses: 40,
-      executedExports: 40,
-      tokens: totalTokens * 2,
-      astNodes: totalAstNodes * 2,
-      instructions: totalInstructions * 2,
-      vfsReads: 80,
-      allocations: { javascript: 80, wasmSelfHosted: 0 },
-      boundaryCrossings: { javascript: 0, wasmSelfHosted: 40 },
-      outputBytes: totalOutputBytes * 2,
+      preprocessPasses: contract.fixedWork.preprocessPasses * 2,
+      parsePasses: contract.fixedWork.parsePasses * 2,
+      typecheckPasses: contract.fixedWork.typecheckPasses * 2,
+      codegenPasses: contract.fixedWork.codegenPasses * 2,
+      linkPasses: contract.fixedWork.linkPasses * 2,
+      executedExports: contract.fixedWork.sources * 2,
+      counters: counterTotals,
     },
     outputSetSha256: await sha256Hex(outputHashes.join("\n")),
     results,

@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "tooling.c-to-wasm-compile.v1",
+  "cases": [
+    {
+      "id": "wrong-include",
+      "source": "#include \"other.h\"\nint test(void) { return BASE; }\n",
+      "header": "#define BASE 1\n",
+      "reason": "only the fixture.h VFS include is admitted"
+    },
+    {
+      "id": "unsupported-division",
+      "source": "#include \"fixture.h\"\nint test(void) { return BASE / 2; }\n",
+      "header": "#define BASE 1\n",
+      "reason": "division is outside the defined arithmetic subset"
+    },
+    {
+      "id": "unknown-identifier",
+      "source": "#include \"fixture.h\"\nint test(void) { return missing; }\n",
+      "header": "#define BASE 1\n",
+      "reason": "identifiers other than BASE are denied"
+    },
+    {
+      "id": "negative-left-shift-count",
+      "source": "#include \"fixture.h\"\nint test(void) { return 1 << -1; }\n",
+      "header": "#define BASE 0\n",
+      "reason": "negative shift counts are undefined and denied"
+    },
+    {
+      "id": "left-shift-count-32",
+      "source": "#include \"fixture.h\"\nint test(void) { return 1 << 32; }\n",
+      "header": "#define BASE 0\n",
+      "reason": "shift counts equal to the i32 width are undefined and denied"
+    },
+    {
+      "id": "right-shift-count-32",
+      "source": "#include \"fixture.h\"\nint test(void) { return -1 >> 32; }\n",
+      "header": "#define BASE 0\n",
+      "reason": "right shift counts equal to the i32 width are undefined and denied"
+    },
+    {
+      "id": "shift-count-from-negative-base",
+      "source": "#include \"fixture.h\"\nint test(void) { return 1 << BASE; }\n",
+      "header": "#define BASE -1\n",
+      "reason": "evaluated negative shift counts are denied"
+    },
+    {
+      "id": "shift-count-wraps-to-32",
+      "source": "#include \"fixture.h\"\nint test(void) { return 1 << (31 + 1); }\n",
+      "header": "#define BASE 0\n",
+      "reason": "evaluated shift counts at least 32 are denied"
+    },
+    {
+      "id": "shift-count-wraps-negative",
+      "source": "#include \"fixture.h\"\nint test(void) { return 1 << (2147483647 + 1); }\n",
+      "header": "#define BASE 0\n",
+      "reason": "evaluated wrapped-negative shift counts are denied"
+    }
+  ]
+}

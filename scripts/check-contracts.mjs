@@ -1,3 +1,4 @@
+import Ajv2020Module from "ajv2020";
 import { validateBenchmark, validateRun } from "../lib/contracts.ts";
 import { validateCorpusSemantics } from "../lib/corpus-validation.ts";
 const foundationSchemas = [
@@ -22,6 +23,35 @@ for (const name of foundationSchemas) {
   const schema = JSON.parse(await Deno.readTextFile(`schemas/${name}`));
   if (schema.type !== "object" || schema.additionalProperties !== false) {
     throw new Error(`${name} must be a closed object schema`);
+  }
+}
+
+const Ajv2020 = Ajv2020Module.default ?? Ajv2020Module;
+const toolingSchema = JSON.parse(
+  await Deno.readTextFile("schemas/base/tooling-c-to-wasm-compile.schema.json"),
+);
+const toolingContract = JSON.parse(
+  await Deno.readTextFile("benchmarks/base/tooling-c-to-wasm-compile/contract.v1.json"),
+);
+const validateToolingContract = new Ajv2020({ strict: true, allErrors: true }).compile(
+  toolingSchema,
+);
+if (!validateToolingContract(toolingContract)) {
+  throw new Error(`tooling contract rejected: ${JSON.stringify(validateToolingContract.errors)}`);
+}
+const toolingMutations = [
+  (value) => value.language.shiftCountPolicy = "WebAssembly masks counts",
+  (value) => value.fixedWork.sources = 19,
+  (value) => delete value.fixedWork.counterContract.boundaryUnit,
+  (value) => value.targets["javascript-controlled"].extra = true,
+  (value) => value.targets["wasm-self-hosted-controlled"].counterExpectations.allocations = 1,
+  (value) => value.build.flags.pop(),
+];
+for (const mutate of toolingMutations) {
+  const invalid = structuredClone(toolingContract);
+  mutate(invalid);
+  if (validateToolingContract(invalid)) {
+    throw new Error("tooling schema accepted substantive contract drift");
   }
 }
 const hash = "a".repeat(64);
@@ -334,5 +364,5 @@ try {
 expect("corpus accounting semantic validator", semanticRejected, true);
 
 console.log(
-  `contract-check: positive fixtures, 16 negative invariants, and ${foundationSchemas.length} corpus schemas passed`,
+  `contract-check: positive fixtures, 16 core negative invariants, ${toolingMutations.length} tooling contract negatives, and ${foundationSchemas.length} corpus schemas passed`,
 );
