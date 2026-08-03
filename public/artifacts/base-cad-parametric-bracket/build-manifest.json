@@ -3,8 +3,8 @@
   "workloadId": "cad.parametric-bracket.v1",
   "source": {
     "repository": "https://github.com/PaulKinlan/wasm-vs-js",
-    "commit": "254b306e2100a24fee293baec0424b7c0b894c2c",
-    "sourceBundleSha256": "747846343f5377c3cfa98365d7693a472bae8bbe26ef6dfa9a1a19b6338d075b",
+    "commit": "59ce9239657ca97b92811ba77191b602776cd5f7",
+    "sourceBundleSha256": "6bb1fbddd218e65073504f5cc2a77888f6dc6d4af8abfe8400cab72a9ff61a93",
     "files": [
       {
         "path": "benchmarks/base/cad-parametric-bracket/contract.js",
@@ -58,8 +58,8 @@
       },
       {
         "path": "tests/base/cad-parametric-bracket.test.ts",
-        "bytes": 9617,
-        "sha256": "3c71c9aa7987aa79623248e12916e5c44592253c3aed2fb24efd6ddb55215309"
+        "bytes": 9795,
+        "sha256": "a19dfa0739e3a8029471998b9213f50d4b8e1cee170609a22f3e30f1579cc6b2"
       },
       {
         "path": "server.ts",
