@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "recordId",
+    "workloadId",
+    "implementationId",
+    "variant",
+    "target",
+    "status",
+    "sourceCommit",
+    "sourceTreeSha256",
+    "buildManifest",
+    "fixtureManifest",
+    "reference",
+    "completeOutputSha256",
+    "correctness",
+    "counters",
+    "performanceResult",
+    "browserEvidence"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "recordId": { "type": "string", "minLength": 1 },
+    "workloadId": { "const": "database.sqlite-notebook.v1" },
+    "implementationId": { "const": "database.sqlite-notebook.controlled.v1" },
+    "variant": { "enum": ["javascript-controlled", "linear-wasm-controlled"] },
+    "target": { "enum": ["javascript", "linear-wasm"] },
+    "status": { "const": "static-validation-package" },
+    "sourceCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "sourceTreeSha256": { "$ref": "#/$defs/sha256" },
+    "buildManifest": { "type": "string", "minLength": 1 },
+    "fixtureManifest": { "type": "string", "minLength": 1 },
+    "reference": { "type": "string", "minLength": 1 },
+    "completeOutputSha256": { "$ref": "#/$defs/sha256" },
+    "correctness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["queryCount", "resultRows", "allCellsMatched", "independentReferenceMatched"],
+      "properties": {
+        "queryCount": { "const": 8 },
+        "resultRows": { "const": 744 },
+        "allCellsMatched": { "const": true },
+        "independentReferenceMatched": { "const": true }
+      }
+    },
+    "counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "imports",
+        "importedRows",
+        "queries",
+        "scans",
+        "joins",
+        "groups",
+        "windows",
+        "sorts",
+        "allocations",
+        "boundaryCrossings"
+      ],
+      "properties": {
+        "imports": { "const": 3 },
+        "importedRows": { "const": 4192 },
+        "queries": { "const": 8 },
+        "scans": { "const": 14 },
+        "joins": { "const": 6 },
+        "groups": { "const": 6 },
+        "windows": { "const": 2 },
+        "sorts": { "const": 8 },
+        "allocations": { "const": 11 },
+        "boundaryCrossings": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "performanceResult": { "type": "null" },
+    "browserEvidence": { "const": "not-collected" }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

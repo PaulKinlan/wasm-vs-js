@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "database.sqlite-notebook.v1",
+  "implementationId": "database.sqlite-notebook.controlled.v1",
+  "exactMode": "server-held manifest trust root; page SRI; execute fetched and SHA-256-checked Blob/module/Wasm bytes without refetch",
+  "files": [
+    {
+      "id": "page",
+      "source": "public/benchmarks/database-sqlite-notebook-v1/index.html",
+      "path": "/benchmarks/database-sqlite-notebook-v1/",
+      "bytes": 4289,
+      "sha256": "13099fe088503c322fc85d54c1ad85ca47691dc7fb40b45c004d169991db1c10"
+    },
+    {
+      "id": "runner",
+      "source": "public/sqlite-notebook-runner.js",
+      "path": "/sqlite-notebook-runner.js",
+      "bytes": 6083,
+      "sha256": "7c08a7884c2f28039a29c8de14f6b5b63c298883780032a56136ad52c397ae48"
+    },
+    {
+      "id": "worker",
+      "source": "public/sqlite-notebook-worker.js",
+      "path": "/sqlite-notebook-worker.js",
+      "bytes": 4828,
+      "sha256": "b92b7507bbd5ffa6d69328f0dd8b58a10a80423fe08b16b7f63dbb2465d91bdb"
+    },
+    {
+      "id": "contract",
+      "source": "benchmarks/base/sqlite-notebook/contract.js",
+      "path": "/benchmarks/base/sqlite-notebook/contract.js",
+      "bytes": 5099,
+      "sha256": "137cbba4f5f825f7dd8cb6e3442be6d5f2bffd3a9fc5c5f9ed8a23f3b51ef48f"
+    },
+    {
+      "id": "engine",
+      "source": "benchmarks/base/sqlite-notebook/engine.js",
+      "path": "/benchmarks/base/sqlite-notebook/engine.js",
+      "bytes": 8389,
+      "sha256": "ee413b0095633ef9218c37ed8ff0e803bc3ecc8dff8aa282574f442b0a1b5851"
+    },
+    {
+      "id": "javascript-engine",
+      "source": "public/artifacts/sqlite-notebook/alasql.min.js",
+      "path": "/assets/sqlite-notebook/alasql.min.js",
+      "bytes": 511709,
+      "sha256": "d7a6b9f0d11c60fcd1d1e5d574a13cf8bd02cfa1589a600ff701c6be3926cc87"
+    },
+    {
+      "id": "sqlite-glue",
+      "source": "public/artifacts/sqlite-notebook/sqlite3.mjs",
+      "path": "/assets/sqlite-notebook/sqlite3.mjs",
+      "bytes": 576438,
+      "sha256": "3f707d33cc51193ea446d02487dbda93223ac462aa8b4f512fee9a4122101c1e"
+    },
+    {
+      "id": "sqlite-wasm",
+      "source": "public/artifacts/sqlite-notebook/sqlite3.wasm",
+      "path": "/assets/sqlite-notebook/sqlite3.wasm",
+      "bytes": 864752,
+      "sha256": "02d7e48164395fa68f81c6ec33e9da5461be397dc57602ac0cd89b4bbba1d312"
+    },
+    {
+      "id": "dependencies",
+      "source": "public/artifacts/sqlite-notebook/dependency-manifest.json",
+      "path": "/assets/sqlite-notebook/dependency-manifest.json",
+      "bytes": 1470,
+      "sha256": "6269d01a0dd29410eca9e5774c8d9dd7cd71706b882ef9bd3dc68d7750620ffc"
+    },
+    {
+      "id": "fixture-manifest",
+      "source": "public/artifacts/sqlite-notebook/fixtures/fixture-manifest.json",
+      "path": "/assets/sqlite-notebook/fixtures/fixture-manifest.json",
+      "bytes": 1066,
+      "sha256": "5a42c7a7caf3e131846fbcfc2179de016b8f6de8501337172f0c7e534cc3845a"
+    },
+    {
+      "id": "customers",
+      "source": "public/artifacts/sqlite-notebook/fixtures/customers.csv",
+      "path": "/assets/sqlite-notebook/fixtures/customers.csv",
+      "bytes": 1686,
+      "sha256": "43392b2d16460b282d48cea531c610e7e60c6441e7cb52676f6ba1790f540243"
+    },
+    {
+      "id": "products",
+      "source": "public/artifacts/sqlite-notebook/fixtures/products.csv",
+      "path": "/assets/sqlite-notebook/fixtures/products.csv",
+      "bytes": 762,
+      "sha256": "a7b935af4de4c21ac40b7a45fd5d7e214dcdf8cd611a756a9bae106615721aa1"
+    },
+    {
+      "id": "sales",
+      "source": "public/artifacts/sqlite-notebook/fixtures/sales.csv",
+      "path": "/assets/sqlite-notebook/fixtures/sales.csv",
+      "bytes": 173575,
+      "sha256": "40047e14c8445e9fcf49ac0f97bda606efa7485c6b6167b1ae11b0a84ed26d98"
+    },
+    {
+      "id": "reference",
+      "source": "public/artifacts/sqlite-notebook/reference.json",
+      "path": "/assets/sqlite-notebook/reference.json",
+      "bytes": 119551,
+      "sha256": "13aeb91156f6a11ddb62b6d08c5902bff44962cc886e4d689f4c54fddadc828a"
+    }
+  ]
+}

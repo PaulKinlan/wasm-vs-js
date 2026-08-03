@@ -1,0 +1,288 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "database.sqlite-notebook.v1",
+  "implementationId": "database.sqlite-notebook.controlled.v1",
+  "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
+  "sourceCommit": "8029757195cc8c1878c3eea0c3a8af5df09e0d64",
+  "sourceTreeSha256": "6ea8900e034de646466557bd8c77a62e8261c6c2053471070564ce8fbecee157",
+  "frozenCatalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+  "toolchain": {
+    "deno": "2.9.0",
+    "javascriptPackage": "alasql@4.17.3",
+    "javascriptRuntime": "AlaSQL 4.17.2 (develop-f960d23a)",
+    "wasmEngine": "@sqlite.org/sqlite-wasm@3.53.0-build1",
+    "sqlite": "3.53.0",
+    "sqliteSourceId": "2026-04-09 11:41:38 4525003a53a7fc63ca75c59b22c79608659ca12f0131f52c18637f829977f20b",
+    "independentReference": "3.53.3 2026-06-26 20:14:12 d4c0e51e4aeb96955b99185ab9cde75c339e2c29c3f3f12428d364a10d78alt1 (64-bit)"
+  },
+  "commands": [
+    "deno run --allow-net=registry.npmjs.org --allow-read --allow-write=public/artifacts/sqlite-notebook,/tmp --allow-run=tar scripts/vendor-sqlite-notebook-deps.ts",
+    "deno run --allow-write=public/artifacts/sqlite-notebook/fixtures scripts/generate-sqlite-notebook-fixture.ts",
+    "deno run --allow-read --allow-write=public/artifacts/sqlite-notebook/reference.json --allow-run=sqlite3 scripts/generate-sqlite-notebook-reference.ts",
+    "deno run --allow-read --allow-write=public/artifacts/sqlite-notebook/runtime-manifest.json,public/sqlite-notebook-worker.js scripts/build-sqlite-notebook-runtime-manifest.ts",
+    "deno run --allow-read --allow-write=public/artifacts/sqlite-notebook,public/evidence/base-implementations/sqlite-notebook --allow-run=git scripts/build-sqlite-notebook-evidence.ts 8029757195cc8c1878c3eea0c3a8af5df09e0d64"
+  ],
+  "productConfiguration": {
+    "javascript": [
+      "AlaSQL npm package 4.17.3",
+      "embedded runtime 4.17.2 (develop-f960d23a)",
+      "in-memory",
+      "single worker"
+    ],
+    "linearWasm": [
+      "SQLite 3.53.0",
+      "in-memory",
+      "single worker",
+      "OPFS disabled",
+      "foreign_keys=OFF",
+      "journal_mode=MEMORY",
+      "synchronous=OFF",
+      "temp_store=MEMORY",
+      "automatic_index=OFF"
+    ],
+    "equivalence": "semantic-product-choice; plans and product internals are not aggregated"
+  },
+  "fixture": {
+    "schemaVersion": 1,
+    "workloadId": "database.sqlite-notebook.v1",
+    "fixtureId": "sqlite-notebook-seeded-sales-v1",
+    "generator": {
+      "path": "scripts/generate-sqlite-notebook-fixture.ts",
+      "algorithm": "xorshift32",
+      "seed": "0x0051a17e",
+      "deno": "2.9.0"
+    },
+    "rights": {
+      "licenseSpdx": "CC0-1.0",
+      "provenance": "project-generated",
+      "redistribution": "permitted",
+      "notice": "fixtures/RIGHTS.md"
+    },
+    "importOrder": [
+      "customers",
+      "products",
+      "sales"
+    ],
+    "files": {
+      "customers.csv": {
+        "bytes": 1686,
+        "sha256": "43392b2d16460b282d48cea531c610e7e60c6441e7cb52676f6ba1790f540243",
+        "rows": 64
+      },
+      "products.csv": {
+        "bytes": 762,
+        "sha256": "a7b935af4de4c21ac40b7a45fd5d7e214dcdf8cd611a756a9bae106615721aa1",
+        "rows": 32
+      },
+      "sales.csv": {
+        "bytes": 173575,
+        "sha256": "40047e14c8445e9fcf49ac0f97bda606efa7485c6b6167b1ae11b0a84ed26d98",
+        "rows": 4096
+      }
+    },
+    "combinedSha256": "6acdcb8eb160fd481814727ee2a7c710354657dcfa98f09c7db0f7a51b927144"
+  },
+  "oracle": {
+    "kind": "complete-canonical-sql-results",
+    "queryCount": 8,
+    "resultRows": 744,
+    "outputSha256": "fae41d80865456365118c98ee8dd74a502fb359ace69878190edca22e4f6572d",
+    "independentReference": "system-sqlite-independent-v1"
+  },
+  "dependencies": {
+    "schemaVersion": 1,
+    "generatedBy": "scripts/vendor-sqlite-notebook-deps.ts",
+    "packages": [
+      {
+        "identity": "@sqlite.org/sqlite-wasm@3.53.0-build1",
+        "tarball": "https://registry.npmjs.org/@sqlite.org/sqlite-wasm/-/sqlite-wasm-3.53.0-build1.tgz",
+        "tarballSha256": "fbbd5c542fad22ce1d90df1533025903a00a593f461f4a43b1e43e9897dfad9c",
+        "licenseSpdx": "Apache-2.0 AND blessing",
+        "upstream": "https://github.com/sqlite/sqlite-wasm"
+      },
+      {
+        "identity": "alasql@4.17.3",
+        "tarball": "https://registry.npmjs.org/alasql/-/alasql-4.17.3.tgz",
+        "tarballSha256": "64bb8f63574b42f377ca1d4911c26505a48e668c64112af48b9af9100adb7b88",
+        "licenseSpdx": "MIT",
+        "upstream": "https://github.com/AlaSQL/alasql"
+      }
+    ],
+    "files": {
+      "sqlite3.mjs": {
+        "bytes": 576438,
+        "sha256": "3f707d33cc51193ea446d02487dbda93223ac462aa8b4f512fee9a4122101c1e"
+      },
+      "sqlite3-node.mjs": {
+        "bytes": 473256,
+        "sha256": "4f9899d600c32a63339800dcdd732bfed08470bc6203a69d22eeea15853a62bb"
+      },
+      "sqlite3.wasm": {
+        "bytes": 864752,
+        "sha256": "02d7e48164395fa68f81c6ec33e9da5461be397dc57602ac0cd89b4bbba1d312"
+      },
+      "alasql.min.js": {
+        "bytes": 511709,
+        "sha256": "d7a6b9f0d11c60fcd1d1e5d574a13cf8bd02cfa1589a600ff701c6be3926cc87"
+      },
+      "ALASQL-LICENSE.txt": {
+        "bytes": 1082,
+        "sha256": "291c4b217057a5565034aa3aaf2fc34f5d188359502463fa6bbc0f3541dc128b"
+      }
+    }
+  },
+  "runtimeManifest": {
+    "path": "public/artifacts/sqlite-notebook/runtime-manifest.json",
+    "bytes": 4045,
+    "sha256": "2ce28bfc0925ccb9881858fe8e6fcd9c39d6b7d41ec25e01b22e7abe15c82c4e"
+  },
+  "sources": [
+    {
+      "path": "deno.json",
+      "bytes": 1831,
+      "sha256": "17e6674c81fdaee7dfc52ed1bd28baeec70fb0715f839b92defe1e84545b08eb"
+    },
+    {
+      "path": "deno.lock",
+      "bytes": 1630,
+      "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2"
+    },
+    {
+      "path": "server.ts",
+      "bytes": 24427,
+      "sha256": "41ef37b03455615dda8ac8f29df117dbcd14dc9adb1121d6ff613aa665676e7c"
+    },
+    {
+      "path": "benchmarks/base/sqlite-notebook/benchmark.json",
+      "bytes": 1968,
+      "sha256": "487622ea9d575e74cb0090590d314c3c31806aae26165635a91d779dbfa3d936"
+    },
+    {
+      "path": "benchmarks/base/sqlite-notebook/contract.js",
+      "bytes": 5099,
+      "sha256": "137cbba4f5f825f7dd8cb6e3442be6d5f2bffd3a9fc5c5f9ed8a23f3b51ef48f"
+    },
+    {
+      "path": "benchmarks/base/sqlite-notebook/engine.js",
+      "bytes": 8389,
+      "sha256": "ee413b0095633ef9218c37ed8ff0e803bc3ecc8dff8aa282574f442b0a1b5851"
+    },
+    {
+      "path": "catalog/base-database-sqlite-notebook-implementation.v1.json",
+      "bytes": 1352,
+      "sha256": "617782d88d4373bfb5105724df48567fdf0b43b25d356659c3fa9a06e5b70dc0"
+    },
+    {
+      "path": "schemas/base-sqlite-notebook-record.schema.json",
+      "bytes": 2591,
+      "sha256": "837f3224982c164658a53fc36e6c64ed09b5c97b8d638dc38de3e91743f9eee3"
+    },
+    {
+      "path": "scripts/build-sqlite-notebook-evidence.ts",
+      "bytes": 7706,
+      "sha256": "20b1fc84aec0c4ed6449d3c7fe24778b905d56a5fd865c152ddfa30ae672828d"
+    },
+    {
+      "path": "scripts/build-sqlite-notebook-runtime-manifest.ts",
+      "bytes": 4262,
+      "sha256": "a60d6b6a8535359b1bffac63a23f00f0d8bcb311ef80fcc5f076c2825ca0cbf1"
+    },
+    {
+      "path": "scripts/check-sqlite-notebook-engines.ts",
+      "bytes": 1598,
+      "sha256": "c6564526ea0a93eaf863263d527b651f1aad086f374d4c11c470c17bd8bd0dcc"
+    },
+    {
+      "path": "scripts/generate-sqlite-notebook-fixture.ts",
+      "bytes": 4019,
+      "sha256": "f15f8229dd1f671b6235c4a5381c7f31ee87f0189b5aa6ae6f2bf5e4237978d2"
+    },
+    {
+      "path": "scripts/generate-sqlite-notebook-reference.ts",
+      "bytes": 3164,
+      "sha256": "89014015623cb8ac8bae2a2bee44a365b149d374d5d11f4ff45338d0438805b2"
+    },
+    {
+      "path": "scripts/vendor-sqlite-notebook-deps.ts",
+      "bytes": 4495,
+      "sha256": "a229071dc737bf3a32f7ea02eff336b26be52755169503b666519438e56328a7"
+    },
+    {
+      "path": "public/benchmarks/database-sqlite-notebook-v1/index.html",
+      "bytes": 4289,
+      "sha256": "13099fe088503c322fc85d54c1ad85ca47691dc7fb40b45c004d169991db1c10"
+    },
+    {
+      "path": "public/sqlite-notebook-runner.js",
+      "bytes": 6083,
+      "sha256": "7c08a7884c2f28039a29c8de14f6b5b63c298883780032a56136ad52c397ae48"
+    },
+    {
+      "path": "public/sqlite-notebook-worker.js",
+      "bytes": 4828,
+      "sha256": "b92b7507bbd5ffa6d69328f0dd8b58a10a80423fe08b16b7f63dbb2465d91bdb"
+    },
+    {
+      "path": "tests/base-sqlite-notebook.test.ts",
+      "bytes": 12421,
+      "sha256": "f8f6f5e2d066a8de3b4eeba591aa17373d03ba0ce22fc934ab422f70ecdf3b7e"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "public/artifacts/sqlite-notebook/alasql.min.js",
+      "bytes": 511709,
+      "sha256": "d7a6b9f0d11c60fcd1d1e5d574a13cf8bd02cfa1589a600ff701c6be3926cc87"
+    },
+    {
+      "path": "public/artifacts/sqlite-notebook/sqlite3.mjs",
+      "bytes": 576438,
+      "sha256": "3f707d33cc51193ea446d02487dbda93223ac462aa8b4f512fee9a4122101c1e"
+    },
+    {
+      "path": "public/artifacts/sqlite-notebook/sqlite3-node.mjs",
+      "bytes": 473256,
+      "sha256": "4f9899d600c32a63339800dcdd732bfed08470bc6203a69d22eeea15853a62bb"
+    },
+    {
+      "path": "public/artifacts/sqlite-notebook/sqlite3.wasm",
+      "bytes": 864752,
+      "sha256": "02d7e48164395fa68f81c6ec33e9da5461be397dc57602ac0cd89b4bbba1d312"
+    },
+    {
+      "path": "public/artifacts/sqlite-notebook/dependency-manifest.json",
+      "bytes": 1470,
+      "sha256": "6269d01a0dd29410eca9e5774c8d9dd7cd71706b882ef9bd3dc68d7750620ffc"
+    },
+    {
+      "path": "public/artifacts/sqlite-notebook/runtime-manifest.json",
+      "bytes": 4045,
+      "sha256": "2ce28bfc0925ccb9881858fe8e6fcd9c39d6b7d41ec25e01b22e7abe15c82c4e"
+    },
+    {
+      "path": "public/artifacts/sqlite-notebook/fixtures/fixture-manifest.json",
+      "bytes": 1066,
+      "sha256": "5a42c7a7caf3e131846fbcfc2179de016b8f6de8501337172f0c7e534cc3845a"
+    },
+    {
+      "path": "public/artifacts/sqlite-notebook/fixtures/customers.csv",
+      "bytes": 1686,
+      "sha256": "43392b2d16460b282d48cea531c610e7e60c6441e7cb52676f6ba1790f540243"
+    },
+    {
+      "path": "public/artifacts/sqlite-notebook/fixtures/products.csv",
+      "bytes": 762,
+      "sha256": "a7b935af4de4c21ac40b7a45fd5d7e214dcdf8cd611a756a9bae106615721aa1"
+    },
+    {
+      "path": "public/artifacts/sqlite-notebook/fixtures/sales.csv",
+      "bytes": 173575,
+      "sha256": "40047e14c8445e9fcf49ac0f97bda606efa7485c6b6167b1ae11b0a84ed26d98"
+    },
+    {
+      "path": "public/artifacts/sqlite-notebook/reference.json",
+      "bytes": 119551,
+      "sha256": "13aeb91156f6a11ddb62b6d08c5902bff44962cc886e4d689f4c54fddadc828a"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "database.sqlite-notebook.v1",
+  "fixtureId": "sqlite-notebook-seeded-sales-v1",
+  "generator": {
+    "path": "scripts/generate-sqlite-notebook-fixture.ts",
+    "algorithm": "xorshift32",
+    "seed": "0x0051a17e",
+    "deno": "2.9.0"
+  },
+  "rights": {
+    "licenseSpdx": "CC0-1.0",
+    "provenance": "project-generated",
+    "redistribution": "permitted",
+    "notice": "fixtures/RIGHTS.md"
+  },
+  "importOrder": [
+    "customers",
+    "products",
+    "sales"
+  ],
+  "files": {
+    "customers.csv": {
+      "bytes": 1686,
+      "sha256": "43392b2d16460b282d48cea531c610e7e60c6441e7cb52676f6ba1790f540243",
+      "rows": 64
+    },
+    "products.csv": {
+      "bytes": 762,
+      "sha256": "a7b935af4de4c21ac40b7a45fd5d7e214dcdf8cd611a756a9bae106615721aa1",
+      "rows": 32
+    },
+    "sales.csv": {
+      "bytes": 173575,
+      "sha256": "40047e14c8445e9fcf49ac0f97bda606efa7485c6b6167b1ae11b0a84ed26d98",
+      "rows": 4096
+    }
+  },
+  "combinedSha256": "6acdcb8eb160fd481814727ee2a7c710354657dcfa98f09c7db0f7a51b927144"
+}

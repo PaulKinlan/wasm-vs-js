@@ -1,0 +1,1169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.ai-focus.dev/schemas/sqlite-notebook-browser-evidence.v1.json",
+  "title": "database.sqlite-notebook.v1 authoritative owned CfT browser evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "workload",
+    "evidenceId",
+    "collectedAt",
+    "source",
+    "browser",
+    "server",
+    "scenarios",
+    "cleanup"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "workload": { "const": "database.sqlite-notebook.v1" },
+    "evidenceId": {
+      "type": "string",
+      "pattern": "^database-sqlite-notebook-browser-[a-f0-9]{12}$"
+    },
+    "collectedAt": { "type": "string", "format": "date-time" },
+    "source": { "$ref": "#/$defs/source" },
+    "browser": { "$ref": "#/$defs/browser" },
+    "server": { "$ref": "#/$defs/server" },
+    "scenarios": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "prefixItems": [
+        {
+          "allOf": [
+            { "$ref": "#/$defs/scenario" },
+            {
+              "type": "object",
+              "required": ["result"],
+              "properties": {
+                "id": { "const": "complete-javascript" },
+                "mode": { "const": "normal" },
+                "targetSequence": { "const": ["javascript-controlled"] },
+                "result": {
+                  "type": "object",
+                  "properties": { "variant": { "const": "javascript-controlled" } }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/$defs/scenario" },
+            {
+              "type": "object",
+              "required": ["result"],
+              "properties": {
+                "id": { "const": "complete-wasm" },
+                "mode": { "const": "normal" },
+                "targetSequence": { "const": ["linear-wasm-controlled"] },
+                "result": {
+                  "type": "object",
+                  "properties": { "variant": { "const": "linear-wasm-controlled" } }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/$defs/scenario" },
+            {
+              "type": "object",
+              "required": ["result"],
+              "properties": {
+                "id": { "const": "wrong-token" },
+                "mode": { "const": "wrong-token" },
+                "targetSequence": { "const": ["javascript-controlled"] },
+                "result": {
+                  "type": "object",
+                  "properties": { "variant": { "const": "javascript-controlled" } }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/$defs/scenario" },
+            {
+              "type": "object",
+              "required": ["result"],
+              "properties": {
+                "id": { "const": "stale-after-restart" },
+                "mode": { "const": "stale" },
+                "targetSequence": { "const": ["javascript-controlled", "linear-wasm-controlled"] },
+                "result": {
+                  "type": "object",
+                  "properties": { "variant": { "const": "linear-wasm-controlled" } }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/$defs/scenario" },
+            {
+              "type": "object",
+              "required": ["result"],
+              "properties": {
+                "id": { "const": "restart" },
+                "mode": { "const": "normal" },
+                "targetSequence": { "const": ["javascript-controlled", "linear-wasm-controlled"] },
+                "result": {
+                  "type": "object",
+                  "properties": { "variant": { "const": "linear-wasm-controlled" } }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/$defs/scenario" },
+            {
+              "type": "object",
+              "not": { "type": "object", "required": ["result"], "properties": { "result": {} } },
+              "properties": {
+                "id": { "const": "timeout" },
+                "mode": { "const": "timeout" },
+                "targetSequence": { "const": ["linear-wasm-controlled"] }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/$defs/scenario" },
+            {
+              "type": "object",
+              "not": { "type": "object", "required": ["result"], "properties": { "result": {} } },
+              "properties": {
+                "id": { "const": "cancel" },
+                "mode": { "const": "cancel" },
+                "targetSequence": { "const": ["javascript-controlled"] }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/$defs/scenario" },
+            {
+              "type": "object",
+              "not": { "type": "object", "required": ["result"], "properties": { "result": {} } },
+              "properties": {
+                "id": { "const": "pagehide" },
+                "mode": { "const": "pagehide" },
+                "targetSequence": { "const": ["linear-wasm-controlled"] }
+              }
+            }
+          ]
+        }
+      ],
+      "items": false
+    },
+    "cleanup": { "$ref": "#/$defs/cleanup" }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "git": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "process": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pid", "parentPid", "startTimeTicks", "executable"],
+      "properties": {
+        "pid": { "type": "integer", "minimum": 2 },
+        "parentPid": { "type": "integer", "minimum": 0 },
+        "startTimeTicks": { "type": "string", "pattern": "^[0-9]+$" },
+        "executable": { "type": "string", "pattern": "^/" }
+      }
+    },
+    "sourceFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["route", "path", "bytes", "sha256", "gitBlob", "headBytesMatch"],
+      "properties": {
+        "route": { "type": "string", "pattern": "^/" },
+        "path": { "type": "string", "pattern": "^(public|benchmarks|server\\.ts#)" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "gitBlob": { "$ref": "#/$defs/git" },
+        "headBytesMatch": { "const": true }
+      }
+    },
+    "collector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256", "headBytesMatch"],
+      "properties": {
+        "path": { "const": "scripts/collect-sqlite-notebook-browser-evidence.ts" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "headBytesMatch": { "const": true }
+      }
+    },
+    "endRecheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "head", "tree", "filesMatch", "collectorMatches", "checkedAt"],
+      "properties": {
+        "status": { "const": "clean" },
+        "head": { "$ref": "#/$defs/git" },
+        "tree": { "$ref": "#/$defs/git" },
+        "filesMatch": { "const": true },
+        "collectorMatches": { "const": true },
+        "checkedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "head",
+        "tree",
+        "acceptedParentCommit",
+        "root",
+        "initialClean",
+        "collector",
+        "files",
+        "endRecheck"
+      ],
+      "properties": {
+        "head": { "$ref": "#/$defs/git" },
+        "tree": { "$ref": "#/$defs/git" },
+        "acceptedParentCommit": { "const": "3a49f34aa7bd226ade54001fd503c346b4e4883c" },
+        "root": { "type": "string", "pattern": "^/" },
+        "initialClean": { "const": true },
+        "collector": { "$ref": "#/$defs/collector" },
+        "files": {
+          "type": "array",
+          "minItems": 17,
+          "maxItems": 17,
+          "items": { "$ref": "#/$defs/sourceFile" }
+        },
+        "endRecheck": { "$ref": "#/$defs/endRecheck" }
+      }
+    },
+    "executable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^/" },
+        "bytes": { "const": 281758968 },
+        "sha256": { "const": "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355" }
+      }
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "dev", "ino", "mode", "initiallyEmpty"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^/tmp/wasm-sqlite-notebook-chrome-" },
+        "dev": { "type": "integer", "minimum": 0 },
+        "ino": { "type": "integer", "minimum": 1 },
+        "mode": { "const": 448 },
+        "initiallyEmpty": { "const": true }
+      }
+    },
+    "cgroupSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["at", "pids"],
+      "properties": {
+        "at": { "type": "string", "format": "date-time" },
+        "pids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "integer", "minimum": 2 }
+        }
+      }
+    },
+    "cgroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit",
+        "path",
+        "dev",
+        "ino",
+        "controlGroup",
+        "invocationId",
+        "mainPid",
+        "snapshots"
+      ],
+      "properties": {
+        "unit": { "type": "string", "pattern": "^wasm-sqlite-notebook-[a-f0-9]{16}\\.service$" },
+        "path": { "type": "string", "pattern": "^/sys/fs/cgroup/" },
+        "dev": { "type": "integer", "minimum": 1 },
+        "ino": { "type": "integer", "minimum": 1 },
+        "controlGroup": { "type": "string", "pattern": "^/" },
+        "invocationId": { "type": "string", "pattern": "^[a-f0-9]{32}$" },
+        "mainPid": { "type": "integer", "minimum": 2 },
+        "snapshots": {
+          "type": "array",
+          "minItems": 9,
+          "items": { "$ref": "#/$defs/cgroupSnapshot" }
+        }
+      }
+    },
+    "browser": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "product",
+        "revision",
+        "userAgent",
+        "jsVersion",
+        "executable",
+        "launchArguments",
+        "effectiveArguments",
+        "headless",
+        "protocol",
+        "debuggerOrigin",
+        "profile",
+        "cgroup",
+        "processes"
+      ],
+      "properties": {
+        "product": { "const": "Chrome/150.0.7871.24" },
+        "revision": { "type": "string", "minLength": 1 },
+        "userAgent": { "type": "string", "minLength": 1 },
+        "jsVersion": { "type": "string", "minLength": 1 },
+        "executable": { "$ref": "#/$defs/executable" },
+        "launchArguments": {
+          "type": "array",
+          "minItems": 20,
+          "maxItems": 20,
+          "prefixItems": [
+            { "const": "--enable-automation" },
+            { "const": "--headless=new" },
+            { "const": "--no-sandbox" },
+            { "const": "--disable-gpu" },
+            { "const": "--disable-background-networking" },
+            { "const": "--disable-component-update" },
+            { "const": "--disable-default-apps" },
+            { "const": "--disable-extensions" },
+            { "const": "--disable-sync" },
+            { "const": "--disable-crash-reporter" },
+            { "const": "--disable-breakpad" },
+            { "const": "--metrics-recording-only" },
+            { "const": "--no-first-run" },
+            { "const": "--no-default-browser-check" },
+            { "const": "--hide-scrollbars" },
+            { "const": "--window-size=1440,1200" },
+            { "const": "--remote-debugging-address=127.0.0.1" },
+            { "type": "string", "pattern": "^--remote-debugging-port=[1-9][0-9]*$" },
+            { "type": "string", "pattern": "^--user-data-dir=/tmp/wasm-sqlite-notebook-chrome-" },
+            { "const": "about:blank" }
+          ],
+          "items": false
+        },
+        "effectiveArguments": {
+          "type": "array",
+          "minItems": 21,
+          "maxItems": 21,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "headless": { "const": true },
+        "protocol": { "const": "Chrome DevTools Protocol" },
+        "debuggerOrigin": { "type": "string", "pattern": "^http://127\\.0\\.0\\.1:[1-9][0-9]*$" },
+        "profile": { "$ref": "#/$defs/profile" },
+        "cgroup": { "$ref": "#/$defs/cgroup" },
+        "processes": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/process" } }
+      }
+    },
+    "server": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin", "host", "mode", "launcher"],
+      "properties": {
+        "origin": { "type": "string", "pattern": "^http://127\\.0\\.0\\.1:[1-9][0-9]*$" },
+        "host": { "const": "127.0.0.1" },
+        "mode": { "const": "public" },
+        "launcher": { "$ref": "#/$defs/process" }
+      }
+    },
+    "session": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessionId", "targetId", "type", "parentSessionId"],
+      "properties": {
+        "sessionId": { "type": "string", "minLength": 1 },
+        "targetId": { "type": "string", "minLength": 1 },
+        "type": { "enum": ["page", "worker"] },
+        "parentSessionId": { "type": ["string", "null"] }
+      }
+    },
+    "ownership": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["browserContextId", "pageTargetId", "pageSessionId", "sessions"],
+      "properties": {
+        "browserContextId": { "type": "string", "minLength": 1 },
+        "pageTargetId": { "type": "string", "minLength": 1 },
+        "pageSessionId": { "type": "string", "minLength": 1 },
+        "sessions": { "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/session" } }
+      }
+    },
+    "finalState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "resultTextSha256",
+        "bodyTextSha256",
+        "startDisabled",
+        "cancelDisabled",
+        "progress"
+      ],
+      "properties": {
+        "status": { "type": "string", "minLength": 1 },
+        "resultTextSha256": { "$ref": "#/$defs/sha256" },
+        "bodyTextSha256": { "$ref": "#/$defs/sha256" },
+        "startDisabled": { "type": "boolean" },
+        "cancelDisabled": { "type": "boolean" },
+        "progress": { "type": "integer", "minimum": 0, "maximum": 4 }
+      }
+    },
+    "counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "imports",
+        "imported-rows",
+        "queries",
+        "scans",
+        "joins",
+        "groups",
+        "windows",
+        "sorts",
+        "allocations",
+        "boundary-crossings"
+      ],
+      "properties": {
+        "imports": { "const": 3 },
+        "imported-rows": { "const": 4192 },
+        "queries": { "const": 8 },
+        "scans": { "const": 14 },
+        "joins": { "const": 6 },
+        "groups": { "const": 6 },
+        "windows": { "const": 2 },
+        "sorts": { "const": 8 },
+        "allocations": { "const": 11 },
+        "boundary-crossings": { "enum": [0, 2] }
+      }
+    },
+    "exactCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "sha256"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "q1row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["region", "gross_cents", "sale_count"],
+      "properties": {
+        "region": { "type": "string" },
+        "gross_cents": { "type": "integer" },
+        "sale_count": { "type": "integer" }
+      }
+    },
+    "q2row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["category", "units", "sale_count"],
+      "properties": {
+        "category": { "type": "string" },
+        "units": { "type": "integer" },
+        "sale_count": { "type": "integer" }
+      }
+    },
+    "q3row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["region", "category", "gross_cents"],
+      "properties": {
+        "region": { "type": "string" },
+        "category": { "type": "string" },
+        "gross_cents": { "type": "integer" }
+      }
+    },
+    "q4row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["product_id", "product_name", "gross_cents"],
+      "properties": {
+        "product_id": { "type": "integer" },
+        "product_name": { "type": "string" },
+        "gross_cents": { "type": "integer" }
+      }
+    },
+    "q5row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sale_id", "customer_id", "sale_day", "coupon_code", "purchase_number"],
+      "properties": {
+        "sale_id": { "type": "integer" },
+        "customer_id": { "type": "integer" },
+        "sale_day": { "type": "integer" },
+        "coupon_code": { "type": ["string", "null"] },
+        "purchase_number": { "type": "integer" }
+      }
+    },
+    "q6row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sale_id", "product_id", "quantity", "product_units"],
+      "properties": {
+        "sale_id": { "type": "integer" },
+        "product_id": { "type": "integer" },
+        "quantity": { "type": "integer" },
+        "product_units": { "type": "integer" }
+      }
+    },
+    "q7row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coupon_code", "sale_count", "units"],
+      "properties": {
+        "coupon_code": { "type": ["string", "null"] },
+        "sale_count": { "type": "integer" },
+        "units": { "type": "integer" }
+      }
+    },
+    "q8row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sale_month", "region", "sale_count", "units"],
+      "properties": {
+        "sale_month": { "type": "integer" },
+        "region": { "type": "string" },
+        "sale_count": { "type": "integer" },
+        "units": { "type": "integer" }
+      }
+    },
+    "query1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "rows"],
+      "properties": {
+        "id": { "const": "q1-region-revenue" },
+        "rows": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": { "$ref": "#/$defs/q1row" }
+        }
+      }
+    },
+    "query2": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "rows"],
+      "properties": {
+        "id": { "const": "q2-category-units" },
+        "rows": {
+          "type": "array",
+          "minItems": 8,
+          "maxItems": 8,
+          "items": { "$ref": "#/$defs/q2row" }
+        }
+      }
+    },
+    "query3": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "rows"],
+      "properties": {
+        "id": { "const": "q3-region-category-cube" },
+        "rows": {
+          "type": "array",
+          "minItems": 32,
+          "maxItems": 32,
+          "items": { "$ref": "#/$defs/q3row" }
+        }
+      }
+    },
+    "query4": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "rows"],
+      "properties": {
+        "id": { "const": "q4-top-products" },
+        "rows": {
+          "type": "array",
+          "minItems": 10,
+          "maxItems": 10,
+          "items": { "$ref": "#/$defs/q4row" }
+        }
+      }
+    },
+    "query5": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "rows"],
+      "properties": {
+        "id": { "const": "q5-customer-purchase-sequence" },
+        "rows": {
+          "type": "array",
+          "minItems": 512,
+          "maxItems": 512,
+          "items": { "$ref": "#/$defs/q5row" }
+        }
+      }
+    },
+    "query6": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "rows"],
+      "properties": {
+        "id": { "const": "q6-product-partition-total" },
+        "rows": {
+          "type": "array",
+          "minItems": 125,
+          "maxItems": 125,
+          "items": { "$ref": "#/$defs/q6row" }
+        }
+      }
+    },
+    "query7": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "rows"],
+      "properties": {
+        "id": { "const": "q7-null-coupon-groups" },
+        "rows": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": { "$ref": "#/$defs/q7row" }
+        }
+      }
+    },
+    "query8": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "rows"],
+      "properties": {
+        "id": { "const": "q8-monthly-region-orders" },
+        "rows": {
+          "type": "array",
+          "minItems": 48,
+          "maxItems": 48,
+          "items": { "$ref": "#/$defs/q8row" }
+        }
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rawText",
+        "variant",
+        "engine",
+        "queryCount",
+        "resultRowCount",
+        "completeOutputSha256",
+        "counters",
+        "exactChecks",
+        "results"
+      ],
+      "properties": {
+        "rawText": { "type": "string", "minLength": 100 },
+        "variant": { "enum": ["javascript-controlled", "linear-wasm-controlled"] },
+        "engine": { "type": "string", "minLength": 1 },
+        "queryCount": { "const": 8 },
+        "resultRowCount": { "const": 744 },
+        "completeOutputSha256": {
+          "const": "fae41d80865456365118c98ee8dd74a502fb359ace69878190edca22e4f6572d"
+        },
+        "counters": { "$ref": "#/$defs/counters" },
+        "exactChecks": {
+          "type": "array",
+          "minItems": 15,
+          "maxItems": 15,
+          "uniqueItems": true,
+          "prefixItems": [
+            {
+              "const": {
+                "id": "runtime-manifest",
+                "sha256": "2ce28bfc0925ccb9881858fe8e6fcd9c39d6b7d41ec25e01b22e7abe15c82c4e"
+              }
+            },
+            {
+              "const": {
+                "id": "page",
+                "sha256": "13099fe088503c322fc85d54c1ad85ca47691dc7fb40b45c004d169991db1c10"
+              }
+            },
+            {
+              "const": {
+                "id": "runner",
+                "sha256": "7c08a7884c2f28039a29c8de14f6b5b63c298883780032a56136ad52c397ae48"
+              }
+            },
+            {
+              "const": {
+                "id": "worker",
+                "sha256": "b92b7507bbd5ffa6d69328f0dd8b58a10a80423fe08b16b7f63dbb2465d91bdb"
+              }
+            },
+            {
+              "const": {
+                "id": "contract",
+                "sha256": "137cbba4f5f825f7dd8cb6e3442be6d5f2bffd3a9fc5c5f9ed8a23f3b51ef48f"
+              }
+            },
+            {
+              "const": {
+                "id": "engine",
+                "sha256": "ee413b0095633ef9218c37ed8ff0e803bc3ecc8dff8aa282574f442b0a1b5851"
+              }
+            },
+            {
+              "const": {
+                "id": "javascript-engine",
+                "sha256": "d7a6b9f0d11c60fcd1d1e5d574a13cf8bd02cfa1589a600ff701c6be3926cc87"
+              }
+            },
+            {
+              "const": {
+                "id": "sqlite-glue",
+                "sha256": "3f707d33cc51193ea446d02487dbda93223ac462aa8b4f512fee9a4122101c1e"
+              }
+            },
+            {
+              "const": {
+                "id": "sqlite-wasm",
+                "sha256": "02d7e48164395fa68f81c6ec33e9da5461be397dc57602ac0cd89b4bbba1d312"
+              }
+            },
+            {
+              "const": {
+                "id": "dependencies",
+                "sha256": "6269d01a0dd29410eca9e5774c8d9dd7cd71706b882ef9bd3dc68d7750620ffc"
+              }
+            },
+            {
+              "const": {
+                "id": "fixture-manifest",
+                "sha256": "5a42c7a7caf3e131846fbcfc2179de016b8f6de8501337172f0c7e534cc3845a"
+              }
+            },
+            {
+              "const": {
+                "id": "customers",
+                "sha256": "43392b2d16460b282d48cea531c610e7e60c6441e7cb52676f6ba1790f540243"
+              }
+            },
+            {
+              "const": {
+                "id": "products",
+                "sha256": "a7b935af4de4c21ac40b7a45fd5d7e214dcdf8cd611a756a9bae106615721aa1"
+              }
+            },
+            {
+              "const": {
+                "id": "sales",
+                "sha256": "40047e14c8445e9fcf49ac0f97bda606efa7485c6b6167b1ae11b0a84ed26d98"
+              }
+            },
+            {
+              "const": {
+                "id": "reference",
+                "sha256": "13aeb91156f6a11ddb62b6d08c5902bff44962cc886e4d689f4c54fddadc828a"
+              }
+            }
+          ],
+          "items": false
+        },
+        "results": {
+          "type": "array",
+          "minItems": 8,
+          "maxItems": 8,
+          "prefixItems": [
+            { "$ref": "#/$defs/query1" },
+            { "$ref": "#/$defs/query2" },
+            { "$ref": "#/$defs/query3" },
+            { "$ref": "#/$defs/query4" },
+            { "$ref": "#/$defs/query5" },
+            { "$ref": "#/$defs/query6" },
+            { "$ref": "#/$defs/query7" },
+            { "$ref": "#/$defs/query8" }
+          ],
+          "items": false
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "variant": { "const": "javascript-controlled" } },
+            "required": ["variant"]
+          },
+          "then": {
+            "properties": {
+              "counters": {
+                "type": "object",
+                "properties": { "boundary-crossings": { "const": 0 } }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "variant": { "const": "linear-wasm-controlled" } },
+            "required": ["variant"]
+          },
+          "then": {
+            "properties": {
+              "counters": {
+                "type": "object",
+                "properties": { "boundary-crossings": { "const": 2 } }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "lifecycleEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "detailJson", "sessionId", "targetId"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "instrumentation-ready",
+            "blob-created",
+            "worker-created",
+            "worker-posted",
+            "worker-held",
+            "worker-released",
+            "worker-terminated",
+            "synthetic-message",
+            "synthetic-error"
+          ]
+        },
+        "detailJson": { "type": "string", "pattern": "^\\{" },
+        "sessionId": { "type": "string", "minLength": 1 },
+        "targetId": { "type": "string", "minLength": 1 }
+      }
+    },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["events", "assertions"],
+      "properties": {
+        "events": { "type": "array", "minItems": 3, "items": { "$ref": "#/$defs/lifecycleEvent" } },
+        "assertions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "executionAudit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "sessionId", "targetId", "url", "mimeType", "bytes", "sha256", "base64"],
+      "properties": {
+        "kind": { "enum": ["blob-created", "wasm-instantiated", "import-scripts"] },
+        "sessionId": { "type": "string", "minLength": 1 },
+        "targetId": { "type": "string", "minLength": 1 },
+        "url": { "type": ["string", "null"] },
+        "mimeType": { "type": ["string", "null"] },
+        "bytes": { "type": ["integer", "null"], "minimum": 1 },
+        "sha256": { "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }] },
+        "base64": { "type": ["string", "null"] }
+      }
+    },
+    "console": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessionId", "targetId", "targetType", "type", "arguments"],
+      "properties": {
+        "sessionId": { "type": "string", "minLength": 1 },
+        "targetId": { "type": "string", "minLength": 1 },
+        "targetType": { "enum": ["page", "worker"] },
+        "type": { "type": "string", "minLength": 1, "not": { "const": "error" } },
+        "arguments": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "exception": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessionId", "targetId", "targetType", "text", "lineNumber", "columnNumber"],
+      "properties": {
+        "sessionId": { "type": "string", "minLength": 1 },
+        "targetId": { "type": "string", "minLength": 1 },
+        "targetType": { "enum": ["page", "worker"] },
+        "text": { "type": "string", "minLength": 1 },
+        "lineNumber": { "type": "integer", "minimum": 0 },
+        "columnNumber": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "header": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "value"],
+      "properties": { "name": { "type": "string" }, "value": { "type": "string" } }
+    },
+    "supportedBody": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "bytes", "sha256", "sourcePath", "gitBlob"],
+      "properties": {
+        "status": { "const": "supported" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "sourcePath": { "type": "string", "minLength": 1 },
+        "gitBlob": { "$ref": "#/$defs/git" }
+      }
+    },
+    "blobBody": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reason"],
+      "properties": {
+        "status": { "const": "executed-blob-audit" },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "network": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requestId",
+        "sessionId",
+        "targetId",
+        "targetType",
+        "url",
+        "method",
+        "resourceType",
+        "status",
+        "statusText",
+        "protocol",
+        "mimeType",
+        "headers",
+        "fromDiskCache",
+        "fromServiceWorker",
+        "failed",
+        "errorText",
+        "body"
+      ],
+      "properties": {
+        "requestId": { "type": "string", "minLength": 1 },
+        "sessionId": { "type": "string", "minLength": 1 },
+        "targetId": { "type": "string", "minLength": 1 },
+        "targetType": { "enum": ["page", "worker"] },
+        "url": {
+          "type": "string",
+          "pattern": "^(http://127\\.0\\.0\\.1:[1-9][0-9]*|blob:http://127\\.0\\.0\\.1:[1-9][0-9]*/)"
+        },
+        "method": { "const": "GET" },
+        "resourceType": { "type": "string", "minLength": 1 },
+        "status": { "const": 200 },
+        "statusText": { "type": "string" },
+        "protocol": { "type": "string" },
+        "mimeType": { "type": "string" },
+        "headers": { "type": "array", "items": { "$ref": "#/$defs/header" } },
+        "fromDiskCache": { "const": false },
+        "fromServiceWorker": { "const": false },
+        "failed": { "const": false },
+        "errorText": { "type": "null" },
+        "body": { "oneOf": [{ "$ref": "#/$defs/supportedBody" }, { "$ref": "#/$defs/blobBody" }] }
+      }
+    },
+    "axMatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "nameSha256"],
+      "properties": {
+        "role": { "type": "string", "minLength": 1 },
+        "nameSha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "accessibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inspectedBy",
+        "visibleStatus",
+        "visibleResultTextSha256",
+        "resultDigestExposed",
+        "matchingNodes",
+        "assertions"
+      ],
+      "properties": {
+        "inspectedBy": { "const": "Accessibility.getFullAXTree" },
+        "visibleStatus": { "type": "string", "minLength": 1 },
+        "visibleResultTextSha256": { "$ref": "#/$defs/sha256" },
+        "resultDigestExposed": { "type": "boolean" },
+        "matchingNodes": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/axMatch" } },
+        "assertions": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "screenshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^screenshots/[a-z-]+\\.png$" },
+        "bytes": { "type": "integer", "minimum": 8 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "mode",
+        "targetSequence",
+        "ownership",
+        "statusHistory",
+        "finalState",
+        "lifecycle",
+        "executionAudits",
+        "console",
+        "exceptions",
+        "network",
+        "accessibility",
+        "screenshot"
+      ],
+      "properties": {
+        "id": {
+          "enum": [
+            "complete-javascript",
+            "complete-wasm",
+            "wrong-token",
+            "stale-after-restart",
+            "restart",
+            "timeout",
+            "cancel",
+            "pagehide"
+          ]
+        },
+        "mode": { "enum": ["normal", "wrong-token", "stale", "timeout", "cancel", "pagehide"] },
+        "targetSequence": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": { "enum": ["javascript-controlled", "linear-wasm-controlled"] }
+        },
+        "ownership": { "$ref": "#/$defs/ownership" },
+        "statusHistory": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "finalState": { "$ref": "#/$defs/finalState" },
+        "result": { "$ref": "#/$defs/result" },
+        "lifecycle": { "$ref": "#/$defs/lifecycle" },
+        "executionAudits": { "type": "array", "items": { "$ref": "#/$defs/executionAudit" } },
+        "console": { "type": "array", "items": { "$ref": "#/$defs/console" } },
+        "exceptions": { "type": "array", "maxItems": 0, "items": { "$ref": "#/$defs/exception" } },
+        "network": { "type": "array", "minItems": 3, "items": { "$ref": "#/$defs/network" } },
+        "accessibility": { "$ref": "#/$defs/accessibility" },
+        "screenshot": { "$ref": "#/$defs/screenshot" }
+      },
+      "allOf": [
+        {
+          "if": { "required": ["result"], "properties": { "result": {} } },
+          "then": {
+            "properties": {
+              "executionAudits": { "type": "array", "minItems": 3 },
+              "accessibility": {
+                "type": "object",
+                "properties": { "resultDigestExposed": { "const": true } }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "cleanupSuccess": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome", "remainingPids"],
+      "properties": {
+        "outcome": { "const": "success" },
+        "remainingPids": { "type": "array", "maxItems": 0 }
+      }
+    },
+    "sessionCleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome", "browserContextId", "targetsBefore", "targetsAfter"],
+      "properties": {
+        "outcome": { "const": "success" },
+        "browserContextId": { "type": "string", "minLength": 1 },
+        "targetsBefore": { "type": "array", "items": { "type": "string" } },
+        "targetsAfter": { "type": "array", "maxItems": 0 }
+      }
+    },
+    "cgroupCleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome", "killed", "remainingPids"],
+      "properties": {
+        "outcome": { "const": "success" },
+        "killed": { "const": true },
+        "remainingPids": { "type": "array", "maxItems": 0 }
+      }
+    },
+    "profileCleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome", "path", "absent"],
+      "properties": {
+        "outcome": { "const": "success" },
+        "path": { "type": "string", "pattern": "^/tmp/wasm-sqlite-notebook-chrome-" },
+        "absent": { "const": true }
+      }
+    },
+    "serverCleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome", "processAbsent"],
+      "properties": { "outcome": { "const": "success" }, "processAbsent": { "const": true } }
+    },
+    "outputCleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome", "path", "retained"],
+      "properties": {
+        "outcome": { "const": "success" },
+        "path": { "type": "string", "pattern": "^/" },
+        "retained": { "const": true }
+      }
+    },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessionTargets", "cgroup", "browserProcesses", "profile", "server", "output"],
+      "properties": {
+        "sessionTargets": { "$ref": "#/$defs/sessionCleanup" },
+        "cgroup": { "$ref": "#/$defs/cgroupCleanup" },
+        "browserProcesses": { "$ref": "#/$defs/cleanupSuccess" },
+        "profile": { "$ref": "#/$defs/profileCleanup" },
+        "server": { "$ref": "#/$defs/serverCleanup" },
+        "output": { "$ref": "#/$defs/outputCleanup" }
+      }
+    }
+  }
+}
