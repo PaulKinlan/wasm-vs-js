@@ -835,6 +835,135 @@ html.js .js-only[hidden] {
   font-size: 0.85rem;
   text-decoration: underline;
 }
+
+/* Interactive Playground UI Styles */
+.playground-card {
+  border: 1px solid var(--rule);
+  background: var(--raised);
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+}
+.pg-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.pg-cat-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+.playground-status {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+}
+.playground-status.idle {
+  background: var(--surface);
+}
+.playground-status.running {
+  background: var(--warning);
+  color: #000;
+}
+.playground-status.passed {
+  background: #1b5e20;
+  color: #fff;
+}
+.playground-status.failed {
+  background: #b71c1c;
+  color: #fff;
+}
+
+.pg-desc,
+.pg-expl {
+  font-size: 0.9rem;
+  margin: 0.3rem 0;
+}
+.playground-metrics {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  padding: 0.75rem;
+  margin: 0.8rem 0;
+  font-family: ui-monospace, monospace;
+  font-size: 0.88rem;
+}
+.result-table {
+  display: grid;
+  gap: 0.25rem;
+}
+.result-header,
+.result-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  padding: 0.25rem 0;
+}
+.result-header {
+  font-weight: 700;
+  border-bottom: 1px solid var(--rule);
+}
+.result-summary-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--rule);
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.badge-speedup {
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.85rem;
+}
+.badge-speedup.wasm {
+  background: #1b5e20;
+  color: #fff;
+}
+.badge-speedup.js {
+  background: #0277bd;
+  color: #fff;
+}
+.badge-speedup.tie {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+
+.cold-ratio {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.pg-card-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.btn-pg-run {
+  font: inherit;
+  font-weight: 600;
+  padding: 0.45rem 0.85rem;
+  background: var(--ink);
+  color: var(--page);
+  border: 1px solid var(--rule);
+  cursor: pointer;
+}
+.btn-pg-link {
+  font-size: 0.88rem;
+  text-decoration: underline;
+}
+.controls-wrap {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
 .commit-link {
   font-family: ui-monospace, monospace;
   font-size: 0.85rem;

@@ -19,6 +19,40 @@
       <strong>data v1</strong>
     </header>
     <main id="main" class="dashboard">
+      <section aria-labelledby="playground-title" class="narrative">
+        <h2 id="playground-title">Interactive Benchmark Playground &amp; Performance Comparison</h2>
+        <p>Run JavaScript and WebAssembly benchmarks directly in browser workers across multi-iteration loops. Compare cold startup vs warm runtime optimizations and see real-time execution timing and speedup ratios.</p>
+
+        <div class="runner-header">
+          <div class="controls-wrap">
+            <label for="pg-iterations"><strong>Loop Iterations:</strong>
+              <select id="pg-iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10">10 iterations</option>
+                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                <option value="50">50 iterations</option>
+                <option value="100">100 iterations (Sustained loop)</option>
+              </select>
+            </label>
+          </div>
+          <div>
+            <button type="button" id="pg-run-all"
+              class="button-link">Run Entire Benchmark Suite</button>
+          </div>
+        </div>
+
+        <div id="pg-progress-wrap" class="batch-progress-wrap" hidden>
+          <div class="progress-bar-bg">
+            <div id="pg-progress-bar" class="progress-bar-fill"></div>
+          </div>
+          <p id="pg-progress-text" role="status" aria-live="polite">Preparing benchmark suite...</p>
+        </div>
+
+        <div id="playground-cards">
+          <p>Loading Interactive Benchmark Playground...</p>
+        </div>
+      </section>
+
       <section class="intro narrative">
         <p class="eyebrow">M1 · sum-u32</p>
         <h1>Measure the costs around the loop</h1>
@@ -190,5 +224,6 @@
     </main>
     <script type="module" src="/app.js"></script>
     <script type="module" src="/homepage-runner.js"></script>
+    <script type="module" src="/playground.js"></script>
   </body>
 </html>
