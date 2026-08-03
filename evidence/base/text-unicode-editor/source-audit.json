@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "workload": "text.unicode-editor.v1",
+  "status": "javascript-controlled-conformance-passed-linear-wasm-blocked-not-counted",
+  "deno": "2.9.0",
+  "unicodeVersion": "15.1.0",
+  "registrationSha256": "9d697af299c0fc552e03f562ca0cd8e733c1df4d1d81e7490bd089584054f69a",
+  "frozenCatalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+  "downloads": [
+    {
+      "name": "NormalizationTest.txt",
+      "bytes": 2625136,
+      "sha256": "871238e37e3be0696ec2bd0891119a041b052da1a84485eda05a5438724b223e",
+      "verified": true
+    },
+    {
+      "name": "GraphemeBreakTest.txt",
+      "bytes": 188211,
+      "sha256": "ed9c5e92fd0911ccbeeb63c97cb19c519ea272ff1112ce843abd991582dd848f",
+      "verified": true
+    },
+    {
+      "name": "CaseFolding.txt",
+      "bytes": 84870,
+      "sha256": "4e55acfdc32825a22e87670e9056a3bf94ad7c5400065778e9e10f8314372bcf",
+      "verified": true
+    },
+    {
+      "name": "UnicodeData.txt",
+      "bytes": 1914200,
+      "sha256": "2fc713e6a31a87c4850a37fe2caffa4218180fadb5de86b43a143ddb4581fb86",
+      "verified": true
+    },
+    {
+      "name": "CompositionExclusions.txt",
+      "bytes": 8888,
+      "sha256": "59d2d9e3dfdf0a999cf9dae11d594f053631222679a2f5710315ea07f7fe82af",
+      "verified": true
+    },
+    {
+      "name": "DerivedNormalizationProps.txt",
+      "bytes": 1355530,
+      "sha256": "8875dccee2bc1a7c1fe568a3b502a9e78c9e0495afd96b6568b4294d0ed1f7e1",
+      "verified": true
+    },
+    {
+      "name": "GraphemeBreakProperty.txt",
+      "bytes": 96863,
+      "sha256": "a7e52eee647e52dc210b8719b4d7037276f4b353810293d69377fc46374cec3f",
+      "verified": true
+    },
+    {
+      "name": "emoji-data.txt",
+      "bytes": 111505,
+      "sha256": "d7aef489c8fe4c14f09ea5695200277c6b93ac82ac60845cdd2161b0d6835cc1",
+      "verified": true
+    },
+    {
+      "name": "DerivedCoreProperties.txt",
+      "bytes": 1072686,
+      "sha256": "f55d0db69123431a7317868725b1fcbf1eab6b265d756d1bd7f0f6d9f9ee108b",
+      "verified": true
+    }
+  ],
+  "conformance": {
+    "normalizationRows": 19074,
+    "normalizationAssertions": 381480,
+    "graphemeRows": 1187,
+    "caseFoldRows": 1563,
+    "adversarialAssertions": 5
+  },
+  "generatedCorpus": {
+    "codePoints": 65536,
+    "utf8Bytes": 125776,
+    "sha256": "981e0f7c47c5b9995e1fda5081ac17228d8f2caf54a895fa2c40a5438c715fcc",
+    "resultCounters": {
+      "input-code-points": 65544,
+      "output-code-points": 179678,
+      "normalization-decompositions": 9798,
+      "normalization-compositions": 13939,
+      "combining-reorders": 752,
+      "grapheme-boundaries": 51989,
+      "case-fold-mappings": 6031,
+      "search-comparisons": 66287,
+      "boundary-crossings": 0,
+      "allocations": 6
+    },
+    "normalizedSha256": "51afb953d03f2354d1b728e68419092cc06a2b1051deffacea4209b210173e0f",
+    "searchableSha256": "2535d94406bcf292d6013461010c46891d0b574379d9b471c8648ed0de188e08"
+  },
+  "linearWasm": {
+    "status": "blocked-unavailable",
+    "reason": "Unicode data redistribution audit required before generating or publishing table-bearing artifact"
+  },
+  "performanceClaims": []
+}
