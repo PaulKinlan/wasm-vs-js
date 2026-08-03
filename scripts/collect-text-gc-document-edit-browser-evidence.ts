@@ -785,9 +785,10 @@ async function runCollector(): Promise<void> {
           // Binding events emitted inside a pagehide handler race the page's
           // teardown and can be dropped; the worker target's detach is the
           // authoritative browser-level termination signal for pagehide.
+          // Closed schema: detail carries exactly {index} (eventDetail def).
           lifecycleEvents.push({
             kind: "worker-terminated",
-            detail: { index: workerIndex, via: "target-detach" },
+            detail: { index: workerIndex },
           });
         }),
         client.on("Target.attachedToTarget", (params, eventSession) => {
