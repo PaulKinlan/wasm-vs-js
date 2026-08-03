@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "registrationId": "base-text-unicode-editor-implementation-v1",
+  "catalogReference": {
+    "id": "text.unicode-editor.v1",
+    "path": "catalog/workloads.v1.json",
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+    "immutability": "byte-for-byte"
+  },
+  "status": "blocked-not-counted",
+  "blockers": [
+    {
+      "code": "unicode-data-redistribution-audit-required",
+      "detail": "The frozen catalog marks Unicode conformance inputs recipe-only and LicenseRef-Download-Only. Raw data, generated tables, a table-bearing Wasm artifact, and a public runnable route remain unpublished until an independent redistribution audit permits them."
+    },
+    {
+      "code": "material-wasm-validation-unavailable",
+      "detail": "No table-bearing linear-Wasm artifact is committed while redistribution is unresolved, so this package does not count toward frozen v1 coverage and makes no JS-versus-Wasm result claim."
+    }
+  ],
+  "fixture": {
+    "unicodeVersion": "15.1.0",
+    "rights": {
+      "status": "requires-independent-audit",
+      "redistribution": "recipe-only-no-vendored-unicode-data"
+    },
+    "downloads": [
+      {
+        "name": "NormalizationTest.txt",
+        "url": "https://www.unicode.org/Public/15.1.0/ucd/NormalizationTest.txt",
+        "bytes": 2625136,
+        "sha256": "871238e37e3be0696ec2bd0891119a041b052da1a84485eda05a5438724b223e"
+      },
+      {
+        "name": "GraphemeBreakTest.txt",
+        "url": "https://www.unicode.org/Public/15.1.0/ucd/auxiliary/GraphemeBreakTest.txt",
+        "bytes": 188211,
+        "sha256": "ed9c5e92fd0911ccbeeb63c97cb19c519ea272ff1112ce843abd991582dd848f"
+      },
+      {
+        "name": "CaseFolding.txt",
+        "url": "https://www.unicode.org/Public/15.1.0/ucd/CaseFolding.txt",
+        "bytes": 84870,
+        "sha256": "4e55acfdc32825a22e87670e9056a3bf94ad7c5400065778e9e10f8314372bcf"
+      },
+      {
+        "name": "UnicodeData.txt",
+        "url": "https://www.unicode.org/Public/15.1.0/ucd/UnicodeData.txt",
+        "bytes": 1914200,
+        "sha256": "2fc713e6a31a87c4850a37fe2caffa4218180fadb5de86b43a143ddb4581fb86"
+      },
+      {
+        "name": "CompositionExclusions.txt",
+        "url": "https://www.unicode.org/Public/15.1.0/ucd/CompositionExclusions.txt",
+        "bytes": 8888,
+        "sha256": "59d2d9e3dfdf0a999cf9dae11d594f053631222679a2f5710315ea07f7fe82af"
+      },
+      {
+        "name": "DerivedNormalizationProps.txt",
+        "url": "https://www.unicode.org/Public/15.1.0/ucd/DerivedNormalizationProps.txt",
+        "bytes": 1355530,
+        "sha256": "8875dccee2bc1a7c1fe568a3b502a9e78c9e0495afd96b6568b4294d0ed1f7e1"
+      },
+      {
+        "name": "GraphemeBreakProperty.txt",
+        "url": "https://www.unicode.org/Public/15.1.0/ucd/auxiliary/GraphemeBreakProperty.txt",
+        "bytes": 96863,
+        "sha256": "a7e52eee647e52dc210b8719b4d7037276f4b353810293d69377fc46374cec3f"
+      },
+      {
+        "name": "emoji-data.txt",
+        "url": "https://www.unicode.org/Public/15.1.0/ucd/emoji/emoji-data.txt",
+        "bytes": 111505,
+        "sha256": "d7aef489c8fe4c14f09ea5695200277c6b93ac82ac60845cdd2161b0d6835cc1"
+      },
+      {
+        "name": "DerivedCoreProperties.txt",
+        "url": "https://www.unicode.org/Public/15.1.0/ucd/DerivedCoreProperties.txt",
+        "bytes": 1072686,
+        "sha256": "f55d0db69123431a7317868725b1fcbf1eab6b265d756d1bd7f0f6d9f9ee108b"
+      }
+    ],
+    "generatedCorpus": {
+      "generator": "unicode-editor-corpus-v1",
+      "licenseSpdx": "CC0-1.0",
+      "codePoints": 65536,
+      "utf8Bytes": 125776,
+      "sha256": "981e0f7c47c5b9995e1fda5081ac17228d8f2caf54a895fa2c40a5438c715fcc"
+    }
+  },
+  "semantics": {
+    "normalizationForms": ["NFC", "NFD", "NFKC", "NFKD"],
+    "normalizationVersion": "15.1.0",
+    "graphemeAlgorithm": "UAX-29 extended grapheme clusters, Unicode 15.1.0 including GB9c",
+    "caseFoldPolicies": ["default-full", "default-simple", "turkic-full", "turkic-simple"],
+    "searchPipeline": "NFC document, selected case fold, NFKC; query uses selected case fold then NFKC",
+    "searchIndexUnits": "zero-based code-point offsets in the normalized-and-folded searchable string",
+    "serialization": "canonical UTF-8 plus little-endian u32 grapheme-boundary and match-offset arrays",
+    "malformedInput": "reject lone UTF-16 surrogates and malformed UTF-8"
+  },
+  "targets": {
+    "javascriptControlled": {
+      "status": "source-present-local-conformance-required",
+      "path": "benchmarks/base/text-unicode-editor/workload.ts",
+      "hostIntrinsicsExcluded": ["String.prototype.normalize", "Intl.Segmenter", "locale casing"]
+    },
+    "linearWasmControlled": {
+      "status": "blocked-unavailable",
+      "reason": "A material table-bearing artifact cannot be distributed before the Unicode-data redistribution audit."
+    },
+    "hostBaseline": {
+      "status": "labelled-not-controlled",
+      "apis": ["String.prototype.normalize", "Intl.Segmenter", "String.prototype.toLocaleLowerCase"]
+    }
+  },
+  "evidence": {
+    "sourceAuditCommand": "deno run --allow-net=www.unicode.org --allow-read=. --allow-write=evidence/base/text-unicode-editor scripts/audit-base-unicode-editor.ts",
+    "conformanceCommand": "same as sourceAuditCommand; validates the repository-owned JavaScript engine against complete NormalizationTest, GraphemeBreakTest, CaseFolding mappings, adversarial cases, and the complete generated corpus",
+    "browserEvidence": "unavailable-no-public-artifact",
+    "performanceClaims": []
+  }
+}

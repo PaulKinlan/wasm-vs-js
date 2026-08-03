@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.example/schemas/base-workload-implementation.schema.json",
+  "title": "Frozen base workload supplemental implementation registration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "registrationId",
+    "catalogReference",
+    "status",
+    "blockers",
+    "fixture",
+    "semantics",
+    "targets",
+    "evidence"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "registrationId": { "type": "string", "pattern": "^[a-z0-9.-]+$" },
+    "catalogReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "path", "sha256", "immutability"],
+      "properties": {
+        "id": { "const": "text.unicode-editor.v1" },
+        "path": { "const": "catalog/workloads.v1.json" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "immutability": { "const": "byte-for-byte" }
+      }
+    },
+    "status": { "enum": ["blocked-not-counted", "validation-complete-not-performance-result"] },
+    "blockers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "detail"],
+        "properties": {
+          "code": { "type": "string", "minLength": 1 },
+          "detail": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unicodeVersion", "rights", "downloads", "generatedCorpus"],
+      "properties": {
+        "unicodeVersion": { "const": "15.1.0" },
+        "rights": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "redistribution"],
+          "properties": {
+            "status": { "const": "requires-independent-audit" },
+            "redistribution": { "const": "recipe-only-no-vendored-unicode-data" }
+          }
+        },
+        "downloads": {
+          "type": "array",
+          "minItems": 9,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "url", "bytes", "sha256"],
+            "properties": {
+              "name": { "type": "string", "minLength": 1 },
+              "url": {
+                "type": "string",
+                "pattern": "^https://www\\.unicode\\.org/Public/15\\.1\\.0/"
+              },
+              "bytes": { "type": "integer", "minimum": 1 },
+              "sha256": { "$ref": "#/$defs/sha256" }
+            }
+          }
+        },
+        "generatedCorpus": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["generator", "licenseSpdx", "codePoints", "utf8Bytes", "sha256"],
+          "properties": {
+            "generator": { "const": "unicode-editor-corpus-v1" },
+            "licenseSpdx": { "const": "CC0-1.0" },
+            "codePoints": { "const": 65536 },
+            "utf8Bytes": { "type": "integer", "minimum": 65536 },
+            "sha256": { "$ref": "#/$defs/sha256" }
+          }
+        }
+      }
+    },
+    "semantics": { "type": "object" },
+    "targets": { "type": "object" },
+    "evidence": { "type": "object" }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+  }
+}
