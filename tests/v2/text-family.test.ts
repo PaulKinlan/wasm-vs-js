@@ -98,6 +98,21 @@ Deno.test("Markdown authored Wasm matches canonical output and rejects adversari
     assert(!linear.html.includes("<script"));
     assert(!linear.html.includes("onerror"));
   }
+  const mixed = "# heading\n[link](https://docs.example.test/path)\n";
+  for (
+    const run of [
+      () => Promise.resolve(renderMarkdown(mixed)),
+      () => renderMarkdownWasm(mixed, markdownWasm),
+    ]
+  ) {
+    let rejected = false;
+    try {
+      await run();
+    } catch (error) {
+      rejected = error instanceof Error && error.message.includes("only non-empty block");
+    }
+    assert(rejected, "mixed resource-block document was not rejected consistently");
+  }
 });
 
 Deno.test("text artifacts and closed proposal-validation records are reproducible and claim no performance result", async () => {

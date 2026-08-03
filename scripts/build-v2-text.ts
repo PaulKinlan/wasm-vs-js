@@ -162,6 +162,8 @@ await writeJson("public/artifacts/text-markdown-cms/fixture-manifest.json", {
     sanitize: "frozen-allowlist",
   },
   corpus: { bytes: corpusBytes.length, sha256: await textSha256(corpusBytes) },
+  grammarComposition:
+    "whole-line links and figures are valid only as the document's sole non-empty block",
   allowlist: {
     rawElements: ["em-without-attributes", "strong-without-attributes"],
     linkPrefixes: ["https://example.test/", "https://docs.example.test/"],

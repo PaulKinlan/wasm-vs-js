@@ -59,7 +59,16 @@ function safeUrl(url, image) {
     : url.startsWith("https://example.test/") || url.startsWith("https://docs.example.test/");
 }
 
+export function validateMarkdownComposition(source) {
+  const nonEmpty = source.split("\n").filter((line) => line !== "");
+  const hasStandaloneResource = nonEmpty.some((line) => /^!?\[[^\]]*\]\([^)]*\)$/u.test(line));
+  if (hasStandaloneResource && nonEmpty.length !== 1) {
+    throw new Error("whole-line links and figures must be the document's only non-empty block");
+  }
+}
+
 export function parseMarkdown(source) {
+  validateMarkdownComposition(source);
   const nodes = [];
   for (const line of source.split("\n")) {
     if (line === "") continue;
@@ -173,6 +182,7 @@ export async function sha256Hex(bytes) {
 }
 
 export async function renderMarkdownWasm(source, wasmBytes) {
+  validateMarkdownComposition(source);
   const input = encoder.encode(source);
   if (input.length > RAW_HTML_LIMIT_BYTES) {
     throw new Error(`input exceeds ${RAW_HTML_LIMIT_BYTES} UTF-8 bytes`);
