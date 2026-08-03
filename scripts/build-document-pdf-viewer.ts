@@ -10,7 +10,7 @@ const sourceArg = Deno.args.find((arg) => arg.startsWith("--source-commit="));
 const sourceCommit = sourceArg?.slice(16) ?? "worktree-source";
 if (sourceArg && !/^[a-f0-9]{40}$/.test(sourceCommit)) throw new Error("invalid source commit");
 
-async function command(name: string, args: string[]) {
+async function commandBytes(name: string, args: string[]) {
   const result = await new Deno.Command(name, {
     args,
     cwd: root.pathname,
@@ -18,7 +18,10 @@ async function command(name: string, args: string[]) {
     stderr: "piped",
   }).output();
   if (!result.success) throw new Error(new TextDecoder().decode(result.stderr));
-  return new TextDecoder().decode(result.stdout).trim();
+  return result.stdout;
+}
+async function command(name: string, args: string[]) {
+  return new TextDecoder().decode(await commandBytes(name, args)).trim();
 }
 
 const patterns: Record<string, string[]> = {
@@ -193,12 +196,20 @@ const sourcePaths = [
   "deno.json",
   "deno.lock",
 ];
-const sources = await Promise.all(
-  sourcePaths.map(async (path) => ({
+const sources = await Promise.all(sourcePaths.map(async (path) => {
+  const disk = await Deno.readFile(new URL(path, root));
+  const pinned = sourceArg ? await commandBytes("git", ["show", `${sourceCommit}:${path}`]) : disk;
+  if (await sha256Hex(disk) !== await sha256Hex(pinned)) {
+    throw new Error(`source tree mismatch at ${path}`);
+  }
+  return {
     path,
-    sha256: await sha256Hex(await Deno.readFile(new URL(path, root))),
-  })),
-);
+    sha256: await sha256Hex(pinned),
+    immutableUrl: sourceArg
+      ? `https://github.com/PaulKinlan/wasm-vs-js/blob/${sourceCommit}/${path}`
+      : null,
+  };
+}));
 const fixture = {
   path: "public/artifacts/document-pdf-viewer/report-100-pages.pdf",
   bytes: pdf.length,
@@ -253,7 +264,7 @@ const buildManifest = {
   font: fontRef,
   artifact,
   reproduce:
-    `deno run --allow-read=. --allow-write=public/artifacts,public/evidence --allow-run=clang,wasm-ld scripts/build-document-pdf-viewer.ts --source-commit=${sourceCommit}`,
+    `deno run --frozen --allow-read=. --allow-write=public/artifacts,public/evidence --allow-run=clang,wasm-ld,git scripts/build-document-pdf-viewer.ts --source-commit=${sourceCommit}`,
 };
 for (
   const [name, value] of [["fixture-manifest.json", fixtureManifest], [
