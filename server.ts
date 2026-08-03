@@ -279,6 +279,113 @@ const routes = new Map<string, [string, string, boolean?]>([
     "application/json; charset=utf-8",
     true,
   ]],
+
+  ["/benchmarks/ml-gemm/", [
+    "public/benchmarks/ml-gemm/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/ml-gemm/index.html", [
+    "public/benchmarks/ml-gemm/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/ml-gemm/neural-gemm-runner.js", [
+    "public/benchmarks/ml-gemm/neural-gemm-runner.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/ml-gemm/neural-gemm-worker.js", [
+    "public/benchmarks/ml-gemm/neural-gemm-worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/ml-dense-mlp/", [
+    "public/benchmarks/ml-dense-mlp/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/ml-dense-mlp/index.html", [
+    "public/benchmarks/ml-dense-mlp/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/ml-dense-mlp/neural-mlp-runner.js", [
+    "public/benchmarks/ml-dense-mlp/neural-mlp-runner.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/ml-dense-mlp/neural-mlp-worker.js", [
+    "public/benchmarks/ml-dense-mlp/neural-mlp-worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/v2/ml-gemm/workload.js", [
+    "benchmarks/v2/ml-gemm/workload.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/v2/ml-dense-mlp/workload.js", [
+    "benchmarks/v2/ml-dense-mlp/workload.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/v2/shared/allocations.js", [
+    "benchmarks/v2/shared/allocations.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/v2/shared/generator.js", [
+    "benchmarks/v2/shared/generator.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/v2/shared/workload-contract.js", [
+    "benchmarks/v2/shared/workload-contract.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/artifacts/v2/ml-gemm/ml-gemm.wasm", [
+    "artifacts/v2/ml-gemm/ml-gemm.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/v2/ml-gemm/reference.f64", [
+    "artifacts/v2/ml-gemm/reference.f64",
+    "application/octet-stream",
+  ]],
+  ["/artifacts/v2/ml-gemm/bounds.f32", [
+    "artifacts/v2/ml-gemm/bounds.f32",
+    "application/octet-stream",
+  ]],
+  ["/artifacts/v2/ml-dense-mlp/ml-dense-mlp.wasm", [
+    "artifacts/v2/ml-dense-mlp/ml-dense-mlp.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/v2/ml-dense-mlp/reference.f64", [
+    "artifacts/v2/ml-dense-mlp/reference.f64",
+    "application/octet-stream",
+  ]],
+  ["/artifacts/v2/ml-dense-mlp/bounds.f32", [
+    "artifacts/v2/ml-dense-mlp/bounds.f32",
+    "application/octet-stream",
+  ]],
+
+  ["/benchmarks/v2/ml-dense-mlp/frozen-transcendentals.js", [
+    "benchmarks/v2/ml-dense-mlp/frozen-transcendentals.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/v2/ml-gemm/ml-gemm.wat", [
+    "benchmarks/v2/ml-gemm/ml-gemm.wat",
+    "text/plain; charset=utf-8",
+  ]],
+  ["/benchmarks/v2/ml-dense-mlp/ml-dense-mlp.wat", [
+    "benchmarks/v2/ml-dense-mlp/ml-dense-mlp.wat",
+    "text/plain; charset=utf-8",
+  ]],
+  ["/artifacts/v2/ml-gemm/fixture-manifest.json", [
+    "artifacts/v2/ml-gemm/fixture-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/v2/ml-gemm/output-manifest.json", [
+    "artifacts/v2/ml-gemm/output-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/v2/ml-dense-mlp/fixture-manifest.json", [
+    "artifacts/v2/ml-dense-mlp/fixture-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/v2/ml-dense-mlp/output-manifest.json", [
+    "artifacts/v2/ml-dense-mlp/output-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+
   ["/artifacts/sum-u32/sum-u32.wasm", [
     "public/artifacts/sum-u32/sum-u32.wasm",
     "application/wasm",
