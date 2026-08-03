@@ -308,6 +308,28 @@ th {
   height: .65rem;
   border: 2px solid currentColor;
 }
+.panel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: 1rem;
+}
+.panel {
+  border: 1px solid var(--rule);
+  padding: 1rem;
+  background: var(--raised);
+}
+.panel h3 {
+  margin-top: 0;
+  font-size: 1.05rem;
+}
+.panel ul {
+  padding-left: 1.2rem;
+  margin-bottom: 0;
+}
+.panel li + li {
+  margin-top: 0.35rem;
+}
+
 .status.pilot::before {
   transform: rotate(45deg);
 }
