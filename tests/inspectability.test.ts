@@ -1,6 +1,10 @@
 import Ajv2020Module from "ajv2020";
 import addFormatsModule from "ajv-formats";
-import { validateInspectabilityManifest } from "../public/inspectability.js";
+import {
+  inspectabilityFromResultRecord,
+  inspectabilityRows,
+  validateInspectabilityManifest,
+} from "../public/inspectability.js";
 import { assert, assertEquals } from "./assert.ts";
 
 type ValidationError = { instancePath?: string; message?: string };
@@ -75,6 +79,90 @@ Deno.test("inspectability schema preserves unavailable data as a typed state", (
   assert(!validateSchema(unavailable), "unavailable resource retained a fabricated hash");
 });
 
+Deno.test("individual v1 and accepted v2 records retain distinct commits, hashes, and unavailable fields", () => {
+  const repository = "https://github.com/PaulKinlan/wasm-vs-js";
+  const firstCommit = "a".repeat(40);
+  const secondCommit = "b".repeat(40);
+  const firstHash = "1".repeat(64);
+  const secondHash = "2".repeat(64);
+  const ref = (commit: string, path: string, sha256: string, extra = {}) => ({
+    path,
+    sha256,
+    immutableUrl: `${repository}/blob/${commit}/${path}`,
+    ...extra,
+  });
+  const v1 = inspectabilityFromResultRecord({
+    runId: "first-run",
+    benchmark: { id: "sum-u32" },
+    build: {
+      sourceRepository: repository,
+      sourceCommit: firstCommit,
+      artifacts: [{ name: "benchmarks/sum-u32/workload.js", sha256: firstHash }],
+      lockfiles: [{ name: "deno.lock", sha256: "3".repeat(64) }],
+      command: "deno task build",
+      toolchains: ["Deno 2.9.0"],
+      flags: [],
+    },
+  });
+  const v2 = inspectabilityFromResultRecord({
+    contractId: "workload-result-v2-proposal-v1",
+    source: { repository, commit: secondCommit },
+    workload: { entryId: "dom.vdom-diff-patch.v1" },
+    provenance: {
+      sources: [
+        {
+          role: "javascript-authored",
+          ...ref(secondCommit, "benchmarks/v2/dom/workload.js", secondHash),
+        },
+        {
+          role: "wasm-authored",
+          ...ref(secondCommit, "benchmarks/v2/dom/workload.wat", "4".repeat(64)),
+        },
+      ],
+      build: {
+        recipe: ref(secondCommit, "scripts/build-v2.ts", "5".repeat(64)),
+        locks: [ref(secondCommit, "deno.lock", "6".repeat(64))],
+        command: ["deno", "task", "build-v2"],
+        toolchain: [{ name: "deno", version: "2.9.0" }],
+        flags: { compiler: ["-O3"], linker: [], runtime: [] },
+      },
+      artifacts: [
+        ref(secondCommit, "public/artifacts/v2/workload.wasm", "7".repeat(64), {
+          mediaType: "application/wasm",
+        }),
+      ],
+    },
+  });
+  for (const normalized of [v1, v2]) {
+    assert(validateSchema(normalized), JSON.stringify(validateSchema.errors));
+    assert(validateInspectabilityManifest(normalized).ok);
+  }
+  const firstRows = inspectabilityRows(v1);
+  const secondRows = inspectabilityRows(v2);
+  const firstHrefs = firstRows.flatMap((row) =>
+    row.links.map((item: { href: string }) => item.href)
+  );
+  const secondHrefs = secondRows.flatMap((row) =>
+    row.links.map((item: { href: string }) => item.href)
+  );
+  assert(firstHrefs.every((href) => href.includes(firstCommit)));
+  assert(secondHrefs.every((href) => href.includes(secondCommit)));
+  assert(firstHrefs.every((href) => !href.includes(secondCommit)));
+  assert(secondHrefs.every((href) => !href.includes(firstCommit)));
+  assert(firstRows.some((row) => row.code === firstHash));
+  assert(secondRows.some((row) => row.code === secondHash));
+  assert(
+    v1.resources.some((resource: { role: string; availability: { state: string } }) =>
+      resource.role === "authored-wasm" && resource.availability.state === "unavailable"
+    ),
+  );
+  assert(
+    v2.resources.some((resource: { role: string; availability: { state: string } }) =>
+      resource.role === "build-manifest" && resource.availability.state === "unavailable"
+    ),
+  );
+});
+
 Deno.test("inspectability validation rejects mutable links, traversal, route widening, and missing roles", () => {
   const mutations = [
     (value: typeof manifest) => {
@@ -113,13 +201,17 @@ Deno.test("inspectability UI uses accessible native links and no HTML injection 
   assert(script.includes("textContent"));
   assert(script.includes("replaceChildren"));
   assert(script.includes("localDownloadRoute"));
+  assert(script.includes("inspectabilityFromResultRecord"));
   assert(script.includes("Source and build evidence unavailable"));
   assert(!script.includes("innerHTML"));
   assert(!script.includes("insertAdjacentHTML"));
+  assert(evidence.includes('aria-labelledby="inspectability-title"'));
+  assert(evidence.includes('data-inspectability-src="/data/sum-u32-inspectability.v1.json"'));
+  assert(evidence.includes('<script type="module" src="/inspectability.js"></script>'));
+  assert(evidence.includes("Open the source/build manifest without JavaScript"));
+  assert(home.includes('<script type="module" src="/app.js"></script>'));
+  assert(!home.includes('data-inspectability-src="/data/sum-u32-inspectability.v1.json"'));
   for (const page of [home, evidence]) {
-    assert(page.includes('aria-labelledby="inspectability-title"'));
-    assert(page.includes('data-inspectability-src="/data/sum-u32-inspectability.v1.json"'));
-    assert(page.includes('<script type="module" src="/inspectability.js"></script>'));
     assert(!/<script(?![^>]*\bsrc=)/i.test(page));
     assert(!/\sstyle=/i.test(page));
   }

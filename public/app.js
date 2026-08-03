@@ -1,3 +1,5 @@
+import { renderResultInspectability } from "./inspectability.js";
+
 const cellsBody = document.querySelector("#cells");
 const trajectories = document.querySelector("#trajectories");
 const runsContainer = document.querySelector("#runs");
@@ -152,11 +154,13 @@ function renderRuns(data) {
         textContent: `${metric.metric} — ${metricAvailability(metric)} [${metric.comparability}]`,
       }));
     }
+    const inspectability = document.createElement("div");
+    renderResultInspectability(inspectability, run);
     const rawHeading = document.createElement("h3");
     rawHeading.textContent = "Raw record";
     const raw = document.createElement("pre");
     raw.textContent = JSON.stringify(run, null, 2);
-    content.append(facts, metricHeading, metricList, rawHeading, raw);
+    content.append(facts, metricHeading, metricList, inspectability, rawHeading, raw);
     details.append(heading, content);
     runsContainer.append(details);
   }

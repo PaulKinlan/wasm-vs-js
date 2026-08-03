@@ -16,9 +16,19 @@
   ],
   "properties": {
     "schemaVersion": { "const": 1 },
-    "manifestId": { "const": "sum-u32-source-inspectability-v1" },
-    "benchmarkId": { "const": "sum-u32" },
-    "evidenceStatus": { "const": "implementation-only-no-performance-result" },
+    "manifestId": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$",
+      "maxLength": 160
+    },
+    "benchmarkId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9]+(?:[._-][A-Za-z0-9]+)*$",
+      "maxLength": 160
+    },
+    "evidenceStatus": {
+      "enum": ["implementation-only-no-performance-result", "result-provenance"]
+    },
     "performanceResult": { "$ref": "#/$defs/unavailable" },
     "source": {
       "type": "object",
@@ -58,7 +68,7 @@
     "resources": {
       "type": "array",
       "minItems": 6,
-      "maxItems": 6,
+      "maxItems": 32,
       "items": { "$ref": "#/$defs/resource" }
     }
   },

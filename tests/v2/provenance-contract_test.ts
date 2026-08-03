@@ -2,6 +2,11 @@ import Ajv2020Module from "ajv2020";
 import addFormatsModule from "ajv-formats";
 import { assert, assertEquals } from "../assert.ts";
 import { validateProposalProvenanceSemantics } from "../../benchmarks/v2/shared/provenance-contract.js";
+import {
+  inspectabilityFromResultRecord,
+  inspectabilityRows,
+  validateInspectabilityManifest,
+} from "../../public/inspectability.js";
 
 type ValidationError = { instancePath?: string; message?: string };
 type Validator = ((value: unknown) => boolean) & { errors?: ValidationError[] | null };
@@ -251,6 +256,24 @@ Deno.test("proposal provenance rejects incomplete semantic coverage and collisio
   collision.collisionGuards.resourcePaths.pop();
   const collisionResult = await validateProposalProvenanceSemantics(collision, catalog);
   assert(!collisionResult.ok, "incomplete resource collision guard was accepted");
+});
+
+Deno.test("accepted v2 result provenance renders its own commit-pinned inspectability rows", async () => {
+  const record = await validRecord();
+  assert(validateSchema(record), JSON.stringify(validateSchema.errors));
+  const inspectability = inspectabilityFromResultRecord(record);
+  const result = validateInspectabilityManifest(inspectability);
+  assert(result.ok, result.errors.join("; "));
+  const rows = inspectabilityRows(inspectability);
+  const hrefs = rows.flatMap((row) => row.links.map((item: { href: string }) => item.href));
+  const immutableHrefs = hrefs.filter((href) => href.startsWith("https://github.com/"));
+  assert(immutableHrefs.length > 0);
+  assert(immutableHrefs.every((href) => href.includes(record.source.commit)));
+  assert(rows.some((row) => row.term === "Executed JavaScript" && row.code));
+  assert(rows.some((row) => row.term === "Authored WebAssembly" && row.code));
+  assert(
+    rows.some((row) => row.term === "Build manifest" && row.availability.state === "unavailable"),
+  );
 });
 
 Deno.test("proposal provenance closes structured build and artifact fields", async () => {
