@@ -130,6 +130,50 @@ const routes = new Map<string, [string, string, boolean?]>([
   ]],
   ["/benchmarks", ["public/benchmarks/index.html", "text/html; charset=utf-8"]],
   ["/benchmarks/", ["public/benchmarks/index.html", "text/html; charset=utf-8"]],
+  ["/benchmarks/numeric-fft-spectral-filter-v1", [
+    "public/benchmarks/numeric-fft-spectral-filter-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/numeric-fft-spectral-filter-v1/", [
+    "public/benchmarks/numeric-fft-spectral-filter-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/numeric-fft-spectral-filter-v1/demo.js", [
+    "public/benchmarks/numeric-fft-spectral-filter-v1/demo.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/numeric-fft-spectral-filter-v1/worker.js", [
+    "public/benchmarks/numeric-fft-spectral-filter-v1/worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/numeric-fft-spectral-filter/workload.js", [
+    "benchmarks/base/numeric-fft-spectral-filter/workload.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/artifacts/numeric-fft-spectral-filter/numeric-fft-spectral-filter.wasm", [
+    "public/artifacts/numeric-fft-spectral-filter/numeric-fft-spectral-filter.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/numeric-fft-spectral-filter/build-manifest.json", [
+    "public/artifacts/numeric-fft-spectral-filter/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/numeric-fft-spectral-filter/fixture-manifest.json", [
+    "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/numeric-fft-spectral-filter/output-manifest.json", [
+    "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base-v1/numeric-fft-spectral-filter/js-controlled.json", [
+    "public/evidence/base-v1/numeric-fft-spectral-filter/js-controlled.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base-v1/numeric-fft-spectral-filter/wasm-linear-controlled.json", [
+    "public/evidence/base-v1/numeric-fft-spectral-filter/wasm-linear-controlled.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/demos/game-family/demo.js", [
     "public/demos/game-family/demo.js",
     "text/javascript; charset=utf-8",

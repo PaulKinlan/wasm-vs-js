@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>FFT spectral filter correctness demo | Wasm versus JavaScript</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="/benchmarks/numeric-fft-spectral-filter-v1/demo.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header
+      class="site-header"><a href="/">Wasm versus JavaScript</a><a href="/benchmarks/">Catalog</a></header>
+    <main id="content" class="shell">
+      <p class="eyebrow">Supplemental correctness demo · numeric.fft-spectral-filter.v1</p>
+      <h1>2<sup>20</sup>-sample FFT spectral filter</h1>
+      <p><strong>No performance claim.</strong> This worker runs the complete frozen Hann-window, forward FFT, spectral gain and inverse FFT pipeline. It hashes all 2,097,152 output components. Nothing is stored or uploaded.</p>
+      <section class="panel" aria-labelledby="controls-heading">
+        <h2 id="controls-heading">Run one controlled target</h2>
+        <label for="target">Target</label>
+        <select id="target">
+          <option value="js-controlled">JavaScript controlled</option>
+          <option value="wasm-linear-controlled">Linear Wasm controlled</option>
+        </select>
+        <div
+          class="controls"><button id="start" type="button" disabled>Start</button><button id="cancel" type="button" disabled>Cancel</button></div>
+        <label for="progress">Pipeline progress</label>
+        <progress id="progress" max="4"></progress>
+        <p id="status" role="status"
+          aria-live="polite">Ready. The worker timeout is 120 seconds.</p>
+      </section>
+      <section class="panel" aria-labelledby="result-heading">
+        <h2 id="result-heading">Accessible result</h2>
+        <pre id="result" tabindex="0">No run yet.</pre>
+      </section>
+      <section class="panel">
+        <h2>Frozen work</h2>
+        <p>The pair shares one generated signal, 1,048,576 Hann coefficients, stage-major f32 twiddles, fixed radix-2 bit reversal, mirrored gains of 1, 0.5 and 0.25, and f32 inverse scaling. Each target performs 20,971,520 butterflies.</p>
+        <p><a href="/artifacts/numeric-fft-spectral-filter/build-manifest.json">Build and source manifest</a> · <a href="/artifacts/numeric-fft-spectral-filter/fixture-manifest.json">Fixture hashes</a> · <a href="/artifacts/numeric-fft-spectral-filter/output-manifest.json">Oracle and complete-output hashes</a></p>
+      </section>
+    </main>
+  </body>
+</html>
