@@ -1,0 +1,1188 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.ai-focus.dev/schemas/base-simulation-nbody-browser-evidence.v1.json",
+  "title": "Direct N-body workload Chrome correctness evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "evidenceId",
+    "collectedAt",
+    "workloadId",
+    "performanceClaims",
+    "source",
+    "collectionCommand",
+    "browser",
+    "server",
+    "contract",
+    "scenarios",
+    "cleanup"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "evidenceId": {
+      "const": "simulation-nbody-browser-correctness-v1"
+    },
+    "collectedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "workloadId": {
+      "const": "simulation.nbody-cloth.v1"
+    },
+    "performanceClaims": {
+      "type": "array",
+      "maxItems": 0
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "commit",
+        "tree",
+        "files",
+        "acceptedStaticSourceCommit"
+      ],
+      "properties": {
+        "commit": {
+          "$ref": "#/$defs/gitIdentity"
+        },
+        "tree": {
+          "$ref": "#/$defs/gitIdentity"
+        },
+        "acceptedStaticSourceCommit": {
+          "$ref": "#/$defs/gitIdentity"
+        },
+        "files": {
+          "type": "array",
+          "minItems": 15,
+          "maxItems": 15,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/sourceFile"
+          }
+        }
+      }
+    },
+    "collectionCommand": {
+      "type": "string",
+      "pattern": "^deno run -A scripts/collect-base-simulation-nbody-evidence\\.ts --source-commit=[a-f0-9]{40} --chrome=.+ --output=.+\\.json$"
+    },
+    "browser": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "product",
+        "revision",
+        "userAgent",
+        "jsVersion",
+        "executable",
+        "requestedLaunchArguments",
+        "effectiveCommandLine",
+        "headless",
+        "protocol"
+      ],
+      "properties": {
+        "product": {
+          "type": "string",
+          "pattern": "^Chrome/[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "userAgent": {
+          "type": "string",
+          "minLength": 1
+        },
+        "jsVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "executable": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "bytes",
+            "sha256",
+            "dev",
+            "ino"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "bytes": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "dev": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "ino": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "requestedLaunchArguments": {
+          "type": "array",
+          "minItems": 17,
+          "maxItems": 17,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "effectiveCommandLine": {
+          "type": "array",
+          "minItems": 17,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "headless": {
+          "const": true
+        },
+        "protocol": {
+          "const": "Chrome DevTools Protocol"
+        }
+      }
+    },
+    "server": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "origin",
+        "mode",
+        "launcherPid"
+      ],
+      "properties": {
+        "origin": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+$"
+        },
+        "mode": {
+          "const": "public"
+        },
+        "launcherPid": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "targets",
+        "timesteps",
+        "checkpoints",
+        "counterCount",
+        "output",
+        "excluded"
+      ],
+      "properties": {
+        "targets": {
+          "const": [
+            "js-controlled",
+            "wasm-linear-controlled"
+          ]
+        },
+        "timesteps": {
+          "const": 120
+        },
+        "checkpoints": {
+          "const": [
+            1,
+            30,
+            60,
+            90,
+            120
+          ]
+        },
+        "counterCount": {
+          "const": 14
+        },
+        "output": {
+          "const": "text-only"
+        },
+        "excluded": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "cloth",
+            "rendering"
+          ],
+          "properties": {
+            "cloth": {
+              "const": {
+                "status": "unavailable",
+                "reason": "The independently accepted implementation contract explicitly excludes cloth."
+              }
+            },
+            "rendering": {
+              "const": {
+                "status": "unavailable",
+                "reason": "The route exposes a textual correctness oracle only; its acceptance screenshot is not benchmark rendering evidence."
+              }
+            }
+          }
+        }
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "prefixItems": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/scenario"
+            },
+            {
+              "properties": {
+                "id": {
+                  "const": "js-controlled-complete"
+                },
+                "target": {
+                  "const": "js-controlled"
+                },
+                "action": {
+                  "const": "complete"
+                }
+              },
+              "type": "object"
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/scenario"
+            },
+            {
+              "properties": {
+                "id": {
+                  "const": "wasm-linear-controlled-complete"
+                },
+                "target": {
+                  "const": "wasm-linear-controlled"
+                },
+                "action": {
+                  "const": "complete"
+                }
+              },
+              "type": "object"
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/scenario"
+            },
+            {
+              "properties": {
+                "id": {
+                  "const": "cancel-lifecycle"
+                },
+                "target": {
+                  "const": "js-controlled"
+                },
+                "action": {
+                  "const": "cancel"
+                }
+              },
+              "type": "object"
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/scenario"
+            },
+            {
+              "properties": {
+                "id": {
+                  "const": "timeout-lifecycle"
+                },
+                "target": {
+                  "const": "js-controlled"
+                },
+                "action": {
+                  "const": "timeout"
+                }
+              },
+              "type": "object"
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/scenario"
+            },
+            {
+              "properties": {
+                "id": {
+                  "const": "pagehide-lifecycle"
+                },
+                "target": {
+                  "const": "js-controlled"
+                },
+                "action": {
+                  "const": "pagehide"
+                }
+              },
+              "type": "object"
+            }
+          ]
+        }
+      ]
+    },
+    "cleanup": {
+      "$ref": "#/$defs/cleanup"
+    }
+  },
+  "$defs": {
+    "gitIdentity": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "sourceFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "bytes",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "enum": [
+            "scripts/collect-base-simulation-nbody-evidence.ts",
+            "lib/canonical.ts",
+            "lib/cdp-client.ts",
+            "deploy.ts",
+            "server.ts",
+            "benchmarks/base/simulation-nbody/contract.js",
+            "benchmarks/base/simulation-nbody/fixture.js",
+            "benchmarks/base/simulation-nbody/engine.js",
+            "public/demos/simulation-nbody-cloth/index.html",
+            "public/demos/simulation-nbody-cloth/demo.js",
+            "public/demos/simulation-nbody-cloth/worker.js",
+            "public/styles.css",
+            "public/artifacts/base-simulation-nbody/nbody.wasm",
+            "public/artifacts/base-simulation-nbody/build-manifest.json",
+            "schemas/base-simulation-nbody-browser-evidence.schema.json"
+          ]
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "target",
+        "action",
+        "route",
+        "lifecycleInjection",
+        "finalState",
+        "oracle",
+        "console",
+        "exceptions",
+        "network",
+        "executedAssets",
+        "accessibility",
+        "screenshot"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "enum": [
+            "js-controlled",
+            "wasm-linear-controlled"
+          ]
+        },
+        "action": {
+          "enum": [
+            "complete",
+            "cancel",
+            "timeout",
+            "pagehide"
+          ]
+        },
+        "route": {
+          "const": "/demos/simulation-nbody-cloth/"
+        },
+        "lifecycleInjection": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "expression"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "none",
+                "visible-cancel-control",
+                "timeout-shortening",
+                "pagehide-dispatch"
+              ]
+            },
+            "expression": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "finalState": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "result",
+            "startDisabled",
+            "cancelDisabled"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "minLength": 1
+            },
+            "result": {
+              "type": "string",
+              "minLength": 1
+            },
+            "startDisabled": {
+              "type": "boolean"
+            },
+            "cancelDisabled": {
+              "type": "boolean"
+            }
+          }
+        },
+        "oracle": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/textOracle"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "console": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "session",
+              "type",
+              "arguments"
+            ],
+            "properties": {
+              "session": {
+                "enum": [
+                  "page",
+                  "worker"
+                ]
+              },
+              "type": {
+                "type": "string",
+                "minLength": 1
+              },
+              "arguments": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "exceptions": {
+          "type": "array",
+          "maxItems": 0,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "session",
+              "text",
+              "lineNumber"
+            ],
+            "properties": {
+              "session": {
+                "enum": [
+                  "page",
+                  "worker"
+                ]
+              },
+              "text": {
+                "type": "string"
+              },
+              "lineNumber": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "network": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "$ref": "#/$defs/networkRequest"
+          }
+        },
+        "executedAssets": {
+          "type": "array",
+          "minItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/executedAsset"
+          }
+        },
+        "accessibility": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "inspectedAxNodes",
+            "assertions"
+          ],
+          "properties": {
+            "inspectedAxNodes": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "assertions": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "languageEnglish",
+                "mainLandmark",
+                "namedHeading",
+                "labelledTarget",
+                "namedControls",
+                "liveStatus",
+                "keyboardResult"
+              ],
+              "properties": {
+                "languageEnglish": {
+                  "const": true
+                },
+                "mainLandmark": {
+                  "const": true
+                },
+                "namedHeading": {
+                  "const": true
+                },
+                "labelledTarget": {
+                  "const": true
+                },
+                "namedControls": {
+                  "const": true
+                },
+                "liveStatus": {
+                  "const": true
+                },
+                "keyboardResult": {
+                  "const": true
+                }
+              }
+            }
+          }
+        },
+        "screenshot": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "bytes",
+            "sha256"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "\\.screenshots/[a-z0-9-]+\\.png$"
+            },
+            "bytes": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "complete"
+              }
+            },
+            "required": [
+              "action"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "properties": {
+              "oracle": {
+                "$ref": "#/$defs/textOracle"
+              },
+              "lifecycleInjection": {
+                "properties": {
+                  "kind": {
+                    "const": "none"
+                  },
+                  "expression": {
+                    "type": "null"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "type": "object"
+          },
+          "else": {
+            "properties": {
+              "oracle": {
+                "type": "null"
+              }
+            },
+            "type": "object"
+          }
+        },
+        {
+          "if": {
+            "type": "object",
+            "properties": {
+              "target": {
+                "const": "js-controlled"
+              }
+            },
+            "required": [
+              "target"
+            ]
+          },
+          "then": {
+            "type": "object",
+            "properties": {
+              "oracle": {
+                "anyOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "variantId": {
+                        "const": "js-controlled"
+                      },
+                      "counters": {
+                        "type": "object",
+                        "properties": {
+                          "allocations": {
+                            "const": 5
+                          },
+                          "boundaryCrossings": {
+                            "const": 0
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "type": "object",
+            "properties": {
+              "target": {
+                "const": "wasm-linear-controlled"
+              }
+            },
+            "required": [
+              "target"
+            ]
+          },
+          "then": {
+            "type": "object",
+            "properties": {
+              "oracle": {
+                "anyOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "variantId": {
+                        "const": "wasm-linear-controlled"
+                      },
+                      "counters": {
+                        "type": "object",
+                        "properties": {
+                          "allocations": {
+                            "const": 0
+                          },
+                          "boundaryCrossings": {
+                            "const": 2
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "textOracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rendering",
+        "variantId",
+        "completeOutputDigest",
+        "quantizedStateDigest",
+        "checkpoints",
+        "energy",
+        "counters",
+        "counterCount",
+        "text",
+        "textSha256"
+      ],
+      "properties": {
+        "rendering": {
+          "const": "text-only"
+        },
+        "variantId": {
+          "enum": [
+            "js-controlled",
+            "wasm-linear-controlled"
+          ]
+        },
+        "completeOutputDigest": {
+          "const": "00136c5b760c3794"
+        },
+        "quantizedStateDigest": {
+          "const": "5c5c1eca3fffb709"
+        },
+        "checkpoints": {
+          "const": [
+            1,
+            30,
+            60,
+            90,
+            120
+          ]
+        },
+        "energy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "relativeDrift",
+            "tolerance"
+          ],
+          "properties": {
+            "relativeDrift": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1.2e-06
+            },
+            "tolerance": {
+              "const": 1.2e-06
+            }
+          }
+        },
+        "counters": {
+          "$ref": "#/$defs/counters"
+        },
+        "counterCount": {
+          "const": 14
+        },
+        "text": {
+          "type": "string",
+          "pattern": "^Target: (js-controlled|wasm-linear-controlled)"
+        },
+        "textSha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bodies",
+        "timesteps",
+        "forceEvaluations",
+        "pairInteractions",
+        "halfKicks",
+        "positionUpdates",
+        "accelerationWrites",
+        "checkpointValues",
+        "energyPairChecks",
+        "kineticEnergyTerms",
+        "inputBytes",
+        "outputBytes",
+        "allocations",
+        "boundaryCrossings"
+      ],
+      "properties": {
+        "bodies": {
+          "const": 1024
+        },
+        "timesteps": {
+          "const": 120
+        },
+        "forceEvaluations": {
+          "const": 121
+        },
+        "pairInteractions": {
+          "const": 126753792
+        },
+        "halfKicks": {
+          "const": 245760
+        },
+        "positionUpdates": {
+          "const": 122880
+        },
+        "accelerationWrites": {
+          "const": 371712
+        },
+        "checkpointValues": {
+          "const": 30720
+        },
+        "energyPairChecks": {
+          "const": 1047552
+        },
+        "kineticEnergyTerms": {
+          "const": 2048
+        },
+        "inputBytes": {
+          "const": 57408
+        },
+        "outputBytes": {
+          "const": 295040
+        },
+        "allocations": {
+          "enum": [
+            0,
+            5
+          ]
+        },
+        "boundaryCrossings": {
+          "enum": [
+            0,
+            2
+          ]
+        }
+      }
+    },
+    "networkRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "method",
+        "type",
+        "status",
+        "mimeType",
+        "fromDiskCache",
+        "fromServiceWorker",
+        "failed",
+        "errorText"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/"
+        },
+        "method": {
+          "const": "GET"
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "const": 200
+        },
+        "mimeType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fromDiskCache": {
+          "const": false
+        },
+        "fromServiceWorker": {
+          "const": false
+        },
+        "failed": {
+          "const": false
+        },
+        "errorText": {
+          "type": "null"
+        }
+      }
+    },
+    "executedAsset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "route",
+        "sourcePath",
+        "bytes",
+        "sha256",
+        "cdpBodyEncoding"
+      ],
+      "properties": {
+        "route": {
+          "enum": [
+            "/demos/simulation-nbody-cloth/",
+            "/demos/simulation-nbody-cloth/demo.js",
+            "/demos/simulation-nbody-cloth/worker.js",
+            "/benchmarks/base/simulation-nbody/contract.js",
+            "/benchmarks/base/simulation-nbody/fixture.js",
+            "/benchmarks/base/simulation-nbody/engine.js",
+            "/artifacts/base-simulation-nbody/nbody.wasm",
+            "/styles.css"
+          ]
+        },
+        "sourcePath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "cdpBodyEncoding": {
+          "enum": [
+            "utf8",
+            "base64"
+          ]
+        }
+      }
+    },
+    "processIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pid",
+        "parentPid",
+        "startTimeTicks",
+        "executable"
+      ],
+      "properties": {
+        "pid": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "parentPid": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "startTimeTicks": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "executable": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "exitStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "success",
+        "code",
+        "signal"
+      ],
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "code": {
+          "type": "integer"
+        },
+        "signal": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "browser",
+        "profile",
+        "server"
+      ],
+      "properties": {
+        "browser": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "launcher",
+            "observedProcesses",
+            "requested",
+            "signals",
+            "exit",
+            "processesAbsent"
+          ],
+          "properties": {
+            "launcher": {
+              "$ref": "#/$defs/processIdentity"
+            },
+            "observedProcesses": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/processIdentity"
+              }
+            },
+            "requested": {
+              "const": "Browser.close"
+            },
+            "signals": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "pid",
+                  "signal"
+                ],
+                "properties": {
+                  "pid": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "signal": {
+                    "enum": [
+                      "SIGTERM",
+                      "SIGKILL"
+                    ]
+                  }
+                }
+              }
+            },
+            "exit": {
+              "$ref": "#/$defs/exitStatus"
+            },
+            "processesAbsent": {
+              "const": true
+            }
+          }
+        },
+        "profile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "removed",
+            "absent"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "^/tmp/wasm-nbody-chrome-"
+            },
+            "removed": {
+              "const": true
+            },
+            "absent": {
+              "const": true
+            }
+          }
+        },
+        "server": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "launcher",
+            "signal",
+            "exit",
+            "processAbsent"
+          ],
+          "properties": {
+            "launcher": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/processIdentity"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "signal": {
+              "enum": [
+                "SIGTERM",
+                null
+              ]
+            },
+            "exit": {
+              "$ref": "#/$defs/exitStatus"
+            },
+            "processAbsent": {
+              "const": true
+            }
+          }
+        }
+      }
+    }
+  }
+}
