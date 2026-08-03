@@ -32,12 +32,12 @@
     "window-multiplies": 1048576,
     "filter-scalar-multiplies": 2097152,
     "inverse-scale-multiplies": 2097152,
-    "input-bytes": 4194304,
+    "input-bytes": 20971512,
     "output-bytes": 8388608,
     "allocations": 1,
     "boundary-crossings": 0
   },
   "buildManifest": "/artifacts/numeric-fft-spectral-filter/build-manifest.json",
   "performanceSamples": [],
-  "sourceCommit": "c37f959bfe47bc627cbeb69a30639ffeb508fa34"
+  "sourceCommit": "eb1ee177f3c9206385017dbe2ba4ed6973a569d1"
 }
