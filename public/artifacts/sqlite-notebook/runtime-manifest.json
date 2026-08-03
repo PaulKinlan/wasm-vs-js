@@ -57,8 +57,8 @@
       "id": "dependencies",
       "source": "public/artifacts/sqlite-notebook/dependency-manifest.json",
       "path": "/assets/sqlite-notebook/dependency-manifest.json",
-      "bytes": 1749,
-      "sha256": "dd2107b1927796f84d663ea8296f8c89d6fcdde00228f138708a2f68ed68e888"
+      "bytes": 1470,
+      "sha256": "12240fbd33c6993105a45c9fa5cfa4c7579f0ef33a03c94c9cafa7dc51bd6fa2"
     },
     {
       "id": "fixture-manifest",

@@ -37,14 +37,6 @@
     "ALASQL-LICENSE.txt": {
       "bytes": 1103,
       "sha256": "48f0d722a7b35a9d92de38fe6b949c9477da90e84e8f763c6fca58457732e33e"
-    },
-    "reference.json": {
-      "bytes": 119551,
-      "sha256": "13aeb91156f6a11ddb62b6d08c5902bff44962cc886e4d689f4c54fddadc828a"
-    },
-    "runtime-manifest.json": {
-      "bytes": 3744,
-      "sha256": "bf235798ea8eb18f5c05e0d61ceb1a97ae37c36210b9767aa4508714149c5c84"
     }
   }
 }

@@ -91,10 +91,16 @@ try {
     files: {},
   };
   const files = manifest.files as Record<string, { bytes: number; sha256: string }>;
-  for await (const entry of Deno.readDir(output)) {
-    if (!entry.isFile || entry.name === "dependency-manifest.json") continue;
-    const bytes = await Deno.readFile(new URL(entry.name, output));
-    files[entry.name] = { bytes: bytes.byteLength, sha256: await sha256(bytes) };
+  const vendoredNames = [
+    "sqlite3.mjs",
+    "sqlite3-node.mjs",
+    "sqlite3.wasm",
+    "alasql.min.js",
+    "ALASQL-LICENSE.txt",
+  ];
+  for (const name of vendoredNames) {
+    const bytes = await Deno.readFile(new URL(name, output));
+    files[name] = { bytes: bytes.byteLength, sha256: await sha256(bytes) };
   }
   await Deno.writeTextFile(
     new URL("dependency-manifest.json", output),
