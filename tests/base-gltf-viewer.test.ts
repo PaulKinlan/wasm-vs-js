@@ -172,7 +172,7 @@ Deno.test("base glTF route is read-only and all runtime assets are explicitly se
     ]
   ) {
     const response = await handler(new Request(`http://127.0.0.1${path}`));
-    assertEquals(response.status, 200, path);
+    assert(response.status === 200, `${path} returned ${response.status}`);
   }
   const denied = await handler(
     new Request("http://127.0.0.1/benchmarks/base-gltf-viewer/", { method: "POST" }),
@@ -188,7 +188,7 @@ Deno.test("demo lifecycle uses fresh workers, cancellation, timeout, stale token
     const marker of [
       "new Worker",
       "worker.terminate()",
-      "runToken!==token",
+      "runToken !== token",
       "setTimeout",
       "pagehide",
       "No result retained.",
