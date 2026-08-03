@@ -136,6 +136,42 @@ const routes = new Map<string, [string, string, boolean?]>([
   ]],
   ["/benchmarks", ["public/benchmarks/index.html", "text/html; charset=utf-8"]],
   ["/benchmarks/", ["public/benchmarks/index.html", "text/html; charset=utf-8"]],
+  ["/benchmarks/cad-mesh-repair-v1", [
+    "public/benchmarks/cad-mesh-repair-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/cad-mesh-repair-v1/", [
+    "public/benchmarks/cad-mesh-repair-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/cad-mesh-repair-v1/demo.js", [
+    "public/benchmarks/cad-mesh-repair-v1/demo.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/cad-mesh-repair-v1/worker.js", [
+    "public/benchmarks/cad-mesh-repair-v1/worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/cad-mesh-repair/engine.js", [
+    "benchmarks/base/cad-mesh-repair/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/artifacts/cad-mesh-repair-v1/dirty-grid.stl", [
+    "public/artifacts/cad-mesh-repair-v1/dirty-grid.stl",
+    "model/stl",
+  ]],
+  ["/artifacts/cad-mesh-repair-v1/mesh-repair.wasm", [
+    "public/artifacts/cad-mesh-repair-v1/mesh-repair.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/cad-mesh-repair-v1/build-manifest.json", [
+    "public/artifacts/cad-mesh-repair-v1/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/cad-mesh-repair-v1/validation-evidence.json", [
+    "public/artifacts/cad-mesh-repair-v1/validation-evidence.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/demos/game-family/demo.js", [
     "public/demos/game-family/demo.js",
     "text/javascript; charset=utf-8",

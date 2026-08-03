@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.ai-focus.dev/schemas/cad-mesh-repair-evidence.v1.json",
+  "title": "CAD mesh repair correctness evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "evidenceId",
+    "status",
+    "buildManifest",
+    "contract",
+    "fixture",
+    "artifact",
+    "oracle",
+    "performanceClaims"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "evidenceId": { "const": "cad-mesh-repair-v1-correctness" },
+    "status": { "const": "proposal-validation-only" },
+    "buildManifest": { "$ref": "#/$defs/pathHash" },
+    "contract": { "$ref": "#/$defs/pathHash" },
+    "fixture": { "$ref": "#/$defs/pathHash" },
+    "artifact": { "$ref": "#/$defs/pathHash" },
+    "oracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "completeOutputSha256",
+        "bytes",
+        "invariants",
+        "jsCounters",
+        "wasmCounters",
+        "equivalentCounterNames",
+        "crossTargetCompleteBytesEqual",
+        "negativeHalfAdversarial"
+      ],
+      "properties": {
+        "completeOutputSha256": { "$ref": "#/$defs/sha256" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "invariants": { "$ref": "#/$defs/invariants" },
+        "jsCounters": { "$ref": "#/$defs/counters" },
+        "wasmCounters": { "$ref": "#/$defs/counters" },
+        "equivalentCounterNames": { "$ref": "#/$defs/equivalentCounters" },
+        "crossTargetCompleteBytesEqual": { "const": true },
+        "negativeHalfAdversarial": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["storedF32", "quantizedI32", "expectedI32"],
+          "properties": {
+            "storedF32": { "const": -0.00004999999873689376 },
+            "quantizedI32": { "const": -1 },
+            "expectedI32": { "const": -1 }
+          }
+        }
+      }
+    },
+    "performanceClaims": { "type": "array", "maxItems": 0 }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "pathHash": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "invariants": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "finiteCoordinates",
+        "quantizationScale",
+        "quantizationArithmetic",
+        "manifoldEdgeMaximum",
+        "consistentPositiveZ",
+        "exactTarget",
+        "canonicalLittleEndian",
+        "signedVolumeSixQuantized",
+        "volumePolicy"
+      ],
+      "properties": {
+        "finiteCoordinates": { "const": true },
+        "quantizationScale": { "const": 10000 },
+        "quantizationArithmetic": { "const": "f32-multiply-round-half-away-from-zero" },
+        "manifoldEdgeMaximum": { "const": 2 },
+        "consistentPositiveZ": { "const": true },
+        "exactTarget": { "const": true },
+        "canonicalLittleEndian": { "const": true },
+        "signedVolumeSixQuantized": { "const": 0 },
+        "volumePolicy": { "type": "string", "minLength": 1 }
+      }
+    },
+    "counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceFaces",
+        "vertexReferences",
+        "vertexWeldComparisons",
+        "weldedVertices",
+        "removedDegenerates",
+        "orientedFaces",
+        "flippedFaces",
+        "cleanEdgeComparisons",
+        "simplificationWeldComparisons",
+        "simplifiedEdgeComparisons",
+        "uniqueEdges",
+        "simplifiedFaces",
+        "simplifiedVertices",
+        "collapsedVertices",
+        "volumeTerms",
+        "targetFaces",
+        "boundaryCrossings",
+        "operativeAllocations"
+      ],
+      "properties": {
+        "sourceFaces": { "const": 2112 },
+        "vertexReferences": { "const": 6336 },
+        "vertexWeldComparisons": { "type": "integer", "minimum": 1 },
+        "weldedVertices": { "const": 1089 },
+        "removedDegenerates": { "const": 64 },
+        "orientedFaces": { "const": 2048 },
+        "flippedFaces": { "const": 352 },
+        "cleanEdgeComparisons": { "type": "integer", "minimum": 1 },
+        "simplificationWeldComparisons": { "type": "integer", "minimum": 1 },
+        "simplifiedEdgeComparisons": { "type": "integer", "minimum": 1 },
+        "uniqueEdges": { "const": 1584 },
+        "simplifiedFaces": { "const": 1024 },
+        "simplifiedVertices": { "const": 561 },
+        "collapsedVertices": { "const": 528 },
+        "volumeTerms": { "const": 1024 },
+        "targetFaces": { "const": 1024 },
+        "boundaryCrossings": { "enum": [0, 3] },
+        "operativeAllocations": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "equivalentCounters": {
+      "type": "array",
+      "prefixItems": [
+        { "const": "sourceFaces" },
+        { "const": "vertexReferences" },
+        { "const": "vertexWeldComparisons" },
+        { "const": "weldedVertices" },
+        { "const": "removedDegenerates" },
+        { "const": "orientedFaces" },
+        { "const": "flippedFaces" },
+        { "const": "cleanEdgeComparisons" },
+        { "const": "simplificationWeldComparisons" },
+        { "const": "simplifiedEdgeComparisons" },
+        { "const": "uniqueEdges" },
+        { "const": "simplifiedFaces" },
+        { "const": "simplifiedVertices" },
+        { "const": "collapsedVertices" },
+        { "const": "volumeTerms" },
+        { "const": "targetFaces" }
+      ],
+      "items": false,
+      "minItems": 16,
+      "maxItems": 16
+    }
+  }
+}

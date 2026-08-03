@@ -1,0 +1,220 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.ai-focus.dev/schemas/cad-mesh-repair-build-manifest.v1.json",
+  "title": "CAD mesh repair build manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "catalogId",
+    "status",
+    "source",
+    "sourceGraph",
+    "frozenCatalog",
+    "fixture",
+    "artifact",
+    "contract",
+    "evidence",
+    "build",
+    "performanceClaims"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "catalogId": { "const": "cad.mesh-repair.v1" },
+    "status": { "const": "supplemental-validation-package" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "commit", "commitUrl"],
+      "properties": {
+        "repository": { "const": "https://github.com/PaulKinlan/wasm-vs-js" },
+        "commit": { "$ref": "#/$defs/commit" },
+        "commitUrl": {
+          "type": "string",
+          "pattern": "^https://github\\.com/PaulKinlan/wasm-vs-js/commit/[a-f0-9]{40}$"
+        }
+      }
+    },
+    "sourceGraph": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodes", "edges"],
+      "properties": {
+        "nodes": {
+          "type": "array",
+          "minItems": 11,
+          "maxItems": 11,
+          "items": { "$ref": "#/$defs/sourceNode" }
+        },
+        "edges": {
+          "type": "array",
+          "minItems": 7,
+          "maxItems": 7,
+          "items": { "$ref": "#/$defs/sourceEdge" }
+        }
+      }
+    },
+    "frozenCatalog": { "$ref": "#/$defs/catalogRecord" },
+    "fixture": { "$ref": "#/$defs/fixture" },
+    "artifact": { "$ref": "#/$defs/artifact" },
+    "contract": { "$ref": "#/$defs/schemaFileRecord" },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "schema"],
+      "properties": {
+        "path": { "const": "public/artifacts/cad-mesh-repair-v1/validation-evidence.json" },
+        "schema": { "$ref": "#/$defs/pathHash" }
+      }
+    },
+    "build": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["deno", "clang", "linker", "command", "flags", "schema"],
+      "properties": {
+        "deno": { "const": "2.9.0" },
+        "clang": { "type": "string", "pattern": "^clang version 22\\.1\\.8" },
+        "linker": { "const": "LLD 22.1.8" },
+        "command": {
+          "type": "string",
+          "pattern": "^deno run --allow-read=\\. --allow-write=public/artifacts --allow-run=clang,wasm-ld,git scripts/build-cad-mesh-repair\\.ts --source-commit=[a-f0-9]{40}$"
+        },
+        "flags": {
+          "type": "array",
+          "minItems": 7,
+          "maxItems": 7,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "schema": { "$ref": "#/$defs/pathHash" }
+      }
+    },
+    "performanceClaims": { "type": "array", "maxItems": 0 }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "pathHash": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "sourceNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "role", "bytes", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "role": { "type": "string", "minLength": 1 },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "sourceEdge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to", "relation"],
+      "properties": {
+        "from": { "type": "string", "minLength": 1 },
+        "to": { "type": "string", "minLength": 1 },
+        "relation": {
+          "enum": [
+            "generates-fixture",
+            "compiles",
+            "validates-target-equivalence",
+            "validated-by",
+            "validates-semantics",
+            "recomputes-evidence",
+            "validates-package"
+          ]
+        }
+      }
+    },
+    "catalogRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "immutability"],
+      "properties": {
+        "path": { "const": "catalog/workloads.v1.json" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "immutability": { "const": "byte-for-byte" }
+      }
+    },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256", "parameters", "rights"],
+      "properties": {
+        "path": { "const": "public/artifacts/cad-mesh-repair-v1/dirty-grid.stl" },
+        "bytes": { "const": 105684 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "seed",
+            "grid",
+            "sourceFaces",
+            "validFaces",
+            "degenerateFaces",
+            "weldedVertices",
+            "targetFaces",
+            "quantizationScale",
+            "simplificationPolicy"
+          ],
+          "properties": {
+            "seed": { "const": "0x4d455348" },
+            "grid": { "const": 32 },
+            "sourceFaces": { "const": 2112 },
+            "validFaces": { "const": 2048 },
+            "degenerateFaces": { "const": 64 },
+            "weldedVertices": { "const": 1089 },
+            "targetFaces": { "const": 1024 },
+            "quantizationScale": { "const": 10000 },
+            "simplificationPolicy": { "type": "string", "minLength": 1 }
+          }
+        },
+        "rights": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["license", "redistribution", "origin"],
+          "properties": {
+            "license": { "const": "CC0-1.0" },
+            "redistribution": { "const": "permitted" },
+            "origin": { "const": "generated solely by fixture.js" }
+          }
+        }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256", "memory"],
+      "properties": {
+        "path": { "const": "public/artifacts/cad-mesh-repair-v1/mesh-repair.wasm" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "memory": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["initialPages", "maximumPages"],
+          "properties": { "initialPages": { "const": 16 }, "maximumPages": { "const": 16 } }
+        }
+      }
+    },
+    "schemaFileRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256", "schema"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "schema": { "$ref": "#/$defs/pathHash" }
+      }
+    }
+  }
+}

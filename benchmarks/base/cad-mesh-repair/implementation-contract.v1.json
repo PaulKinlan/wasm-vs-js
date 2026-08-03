@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "catalogId": "cad.mesh-repair.v1",
+  "status": "supplemental-controlled-implementation",
+  "frozenCatalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+  "fixture": {
+    "kind": "project-generated-binary-stl",
+    "license": "CC0-1.0",
+    "seed": "0x4d455348",
+    "grid": 32,
+    "sourceFaces": 2112,
+    "validFaces": 2048,
+    "degenerateFaces": 64
+  },
+  "policy": {
+    "coordinate": "decode each stored coordinate as f32, multiply by f32 10000 with an f32 result, then round the f32 product half away from zero to signed i32",
+    "weld": "linear first-match scan in source order by exact quantized xyz",
+    "degenerate": "duplicate vertex or zero projected XY signed area",
+    "orientation": "positive Z; swap vertices 1 and 2 when negative",
+    "manifold": "for each directed face edge, linearly compare every undirected face edge and reject incidence above two before and after collapse",
+    "volume": "sum the signed six-times-volume determinant over every simplified face in canonical order; the generated planar open fixture must equal exactly zero and makes no watertight-volume claim",
+    "simplification": "collapse each odd quantized X column onto the preceding even X column, linearly weld by first match, remap every face in source order, then remove collapsed faces",
+    "targetFaces": 1024,
+    "serialization": "20 little-endian i32 header words, simplified quantized xyz, then selected face indices"
+  },
+  "work": {
+    "equivalentCounters": [
+      "sourceFaces",
+      "vertexReferences",
+      "vertexWeldComparisons",
+      "weldedVertices",
+      "removedDegenerates",
+      "orientedFaces",
+      "flippedFaces",
+      "cleanEdgeComparisons",
+      "simplificationWeldComparisons",
+      "simplifiedEdgeComparisons",
+      "uniqueEdges",
+      "simplifiedFaces",
+      "simplifiedVertices",
+      "collapsedVertices",
+      "volumeTerms",
+      "targetFaces"
+    ],
+    "targetSpecificCounters": ["boundaryCrossings", "operativeAllocations"],
+    "comparisonUnit": "one candidate xyz tuple or undirected edge tested by the prescribed linear scan",
+    "allocationUnit": "one explicit JavaScript DataView, Array, typed array, or output view allocated by the repair operation; Wasm uses fixed static storage and reports zero operative allocations",
+    "boundaryCrossingUnit": "one JavaScript-to-Wasm exported-function call made by repairMeshWasm; each workload run calls input_ptr, run, and output_ptr once and reports three; instantiation is outside the workload run"
+  },
+  "targets": ["js-controlled", "wasm-linear-controlled"],
+  "performanceClaims": []
+}

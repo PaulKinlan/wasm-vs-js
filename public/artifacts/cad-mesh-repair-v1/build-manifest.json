@@ -1,0 +1,188 @@
+{
+  "schemaVersion": 1,
+  "catalogId": "cad.mesh-repair.v1",
+  "status": "supplemental-validation-package",
+  "source": {
+    "repository": "https://github.com/PaulKinlan/wasm-vs-js",
+    "commit": "e1e19c5b3f817f9ed42c6d8e2cfc9978c2be53f4",
+    "commitUrl": "https://github.com/PaulKinlan/wasm-vs-js/commit/e1e19c5b3f817f9ed42c6d8e2cfc9978c2be53f4"
+  },
+  "sourceGraph": {
+    "nodes": [
+      {
+        "path": "benchmarks/base/cad-mesh-repair/fixture.js",
+        "role": "fixture-generator",
+        "bytes": 1739,
+        "sha256": "4c906699d48b22087ae0f0185fc3d7f342174797f949e41fd089681aad834bec"
+      },
+      {
+        "path": "benchmarks/base/cad-mesh-repair/engine.js",
+        "role": "javascript-target-and-wasm-adapter",
+        "bytes": 10145,
+        "sha256": "a35593509a9925e97f9ecfef1786f97d9db8f8b3ed4fe560735374ad03657531"
+      },
+      {
+        "path": "benchmarks/base/cad-mesh-repair/mesh-repair.c",
+        "role": "authored-wasm-target",
+        "bytes": 6213,
+        "sha256": "2c3924659315ce1fd95aec1179b26c277fc123c1e2d6d641e5c6328e5402d84f"
+      },
+      {
+        "path": "benchmarks/base/cad-mesh-repair/implementation-contract.v1.json",
+        "role": "contract",
+        "bytes": 2652,
+        "sha256": "e41a850bd1dc1805fec344f1b38d3345c486281c6925071f69013b0924fd7f6d"
+      },
+      {
+        "path": "schemas/cad-mesh-repair-contract.schema.json",
+        "role": "contract-schema",
+        "bytes": 4295,
+        "sha256": "2dc65e2989e1ce6b21658ebeaf4a5724012ae43534b5740b84e43bbc9adebaf6"
+      },
+      {
+        "path": "schemas/cad-mesh-repair-build-manifest.schema.json",
+        "role": "build-schema",
+        "bytes": 7219,
+        "sha256": "f2dc5676cddfc749c0bd377f6df6d643b5fae9bc81bc0177ea92cae049d9797e"
+      },
+      {
+        "path": "schemas/cad-mesh-repair-evidence.schema.json",
+        "role": "evidence-schema",
+        "bytes": 5692,
+        "sha256": "17e9f8d4f2cf6ef9bae1ad9e7be8a0d7d0658ff7ee3c1a5ba9618dd89ad97d1e"
+      },
+      {
+        "path": "lib/cad-mesh-semantics.ts",
+        "role": "semantic-validator",
+        "bytes": 12874,
+        "sha256": "a44e4b4cfe60dfb6e6ffde24aee62ef6d8301a345f2bd8a7102fcd03fe0cea4a"
+      },
+      {
+        "path": "scripts/build-cad-mesh-repair.ts",
+        "role": "build-recipe",
+        "bytes": 9292,
+        "sha256": "2101065c8062507e93b04c18c17d3bab04fb1987607d5b3abd3de2ea268d0f0e"
+      },
+      {
+        "path": "deno.json",
+        "role": "task-and-toolchain-configuration",
+        "bytes": 1831,
+        "sha256": "17e6674c81fdaee7dfc52ed1bd28baeec70fb0715f839b92defe1e84545b08eb"
+      },
+      {
+        "path": "deno.lock",
+        "role": "dependency-lock",
+        "bytes": 1630,
+        "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2"
+      }
+    ],
+    "edges": [
+      {
+        "from": "scripts/build-cad-mesh-repair.ts",
+        "to": "benchmarks/base/cad-mesh-repair/fixture.js",
+        "relation": "generates-fixture"
+      },
+      {
+        "from": "scripts/build-cad-mesh-repair.ts",
+        "to": "benchmarks/base/cad-mesh-repair/mesh-repair.c",
+        "relation": "compiles"
+      },
+      {
+        "from": "scripts/build-cad-mesh-repair.ts",
+        "to": "benchmarks/base/cad-mesh-repair/engine.js",
+        "relation": "validates-target-equivalence"
+      },
+      {
+        "from": "benchmarks/base/cad-mesh-repair/implementation-contract.v1.json",
+        "to": "schemas/cad-mesh-repair-contract.schema.json",
+        "relation": "validated-by"
+      },
+      {
+        "from": "lib/cad-mesh-semantics.ts",
+        "to": "benchmarks/base/cad-mesh-repair/implementation-contract.v1.json",
+        "relation": "validates-semantics"
+      },
+      {
+        "from": "lib/cad-mesh-semantics.ts",
+        "to": "benchmarks/base/cad-mesh-repair/engine.js",
+        "relation": "recomputes-evidence"
+      },
+      {
+        "from": "scripts/build-cad-mesh-repair.ts",
+        "to": "lib/cad-mesh-semantics.ts",
+        "relation": "validates-package"
+      }
+    ]
+  },
+  "frozenCatalog": {
+    "path": "catalog/workloads.v1.json",
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+    "immutability": "byte-for-byte"
+  },
+  "fixture": {
+    "path": "public/artifacts/cad-mesh-repair-v1/dirty-grid.stl",
+    "bytes": 105684,
+    "sha256": "46fa97b0518e96edd1a2bb01d362955f5fae7f9d3e1371c0056ff17ba7d95a91",
+    "parameters": {
+      "seed": "0x4d455348",
+      "grid": 32,
+      "sourceFaces": 2112,
+      "validFaces": 2048,
+      "degenerateFaces": 64,
+      "weldedVertices": 1089,
+      "targetFaces": 1024,
+      "quantizationScale": 10000,
+      "simplificationPolicy": "collapse every odd quantized X column onto its preceding even X column, then remove collapsed faces"
+    },
+    "rights": {
+      "license": "CC0-1.0",
+      "redistribution": "permitted",
+      "origin": "generated solely by fixture.js"
+    }
+  },
+  "artifact": {
+    "path": "public/artifacts/cad-mesh-repair-v1/mesh-repair.wasm",
+    "bytes": 5423,
+    "sha256": "ac2f086d3cda9c7ffa8c59caf7121a8b6f131a0bf87718a2390d46c935a63dbf",
+    "memory": {
+      "initialPages": 16,
+      "maximumPages": 16
+    }
+  },
+  "contract": {
+    "path": "benchmarks/base/cad-mesh-repair/implementation-contract.v1.json",
+    "bytes": 2652,
+    "sha256": "e41a850bd1dc1805fec344f1b38d3345c486281c6925071f69013b0924fd7f6d",
+    "schema": {
+      "path": "schemas/cad-mesh-repair-contract.schema.json",
+      "sha256": "2dc65e2989e1ce6b21658ebeaf4a5724012ae43534b5740b84e43bbc9adebaf6"
+    }
+  },
+  "evidence": {
+    "path": "public/artifacts/cad-mesh-repair-v1/validation-evidence.json",
+    "schema": {
+      "path": "schemas/cad-mesh-repair-evidence.schema.json",
+      "sha256": "17e9f8d4f2cf6ef9bae1ad9e7be8a0d7d0658ff7ee3c1a5ba9618dd89ad97d1e"
+    }
+  },
+  "build": {
+    "deno": "2.9.0",
+    "clang": "clang version 22.1.8",
+    "linker": "LLD 22.1.8",
+    "command": "deno run --allow-read=. --allow-write=public/artifacts --allow-run=clang,wasm-ld,git scripts/build-cad-mesh-repair.ts --source-commit=e1e19c5b3f817f9ed42c6d8e2cfc9978c2be53f4",
+    "flags": [
+      "--target=wasm32-unknown-unknown",
+      "-O3",
+      "-nostdlib",
+      "-ffreestanding",
+      "-fno-builtin",
+      "-fno-fast-math",
+      "fixed memory 16 pages"
+    ],
+    "schema": {
+      "path": "schemas/cad-mesh-repair-build-manifest.schema.json",
+      "sha256": "f2dc5676cddfc749c0bd377f6df6d643b5fae9bc81bc0177ea92cae049d9797e"
+    }
+  },
+  "performanceClaims": []
+}
