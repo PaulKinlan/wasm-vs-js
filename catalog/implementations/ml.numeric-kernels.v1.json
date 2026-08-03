@@ -1,0 +1,24 @@
+{
+  "artifacts": [
+    "fixture-manifest.json",
+    "build-manifest.json",
+    "output-manifest.json",
+    "fixture.bin",
+    "reference.f64",
+    "bounds.f64",
+    "ml-numeric-kernels.wasm",
+    "public/evidence/base-implementations/ml.numeric-kernels.v1/js-controlled-scalar.json",
+    "public/evidence/base-implementations/ml.numeric-kernels.v1/wasm-linear-controlled-scalar.json"
+  ],
+  "catalog": {
+    "id": "workload-catalog-v1",
+    "immutable": true,
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4"
+  },
+  "contractId": "ml.numeric-kernels.v1-controlled-scalar.v1",
+  "schemaVersion": 1,
+  "status": "supplemental-controlled-implementation",
+  "tracksExcluded": ["simd", "autovectorized", "layout-alternative"],
+  "variants": ["js-controlled-scalar", "wasm-linear-controlled-scalar"],
+  "workloadId": "ml.numeric-kernels.v1"
+}

@@ -151,6 +151,62 @@ const routes = new Map<string, [string, string, boolean?]>([
     "text/javascript; charset=utf-8",
   ]],
   ["/workload-catalog.js", ["public/workload-catalog.js", "text/javascript; charset=utf-8"]],
+  ["/benchmarks/ml-numeric-kernels-v1", [
+    "public/benchmarks/ml-numeric-kernels-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/ml-numeric-kernels-v1/", [
+    "public/benchmarks/ml-numeric-kernels-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/ml-numeric-kernels-demo.js", [
+    "public/ml-numeric-kernels-demo.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/ml-numeric-kernels-worker.js", [
+    "public/ml-numeric-kernels-worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/ml-numeric-kernels/workload.js", [
+    "benchmarks/base/ml-numeric-kernels/workload.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/artifacts/ml-numeric-kernels/ml-numeric-kernels.wasm", [
+    "public/artifacts/ml-numeric-kernels/ml-numeric-kernels.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/ml-numeric-kernels/fixture-manifest.json", [
+    "public/artifacts/ml-numeric-kernels/fixture-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/ml-numeric-kernels/build-manifest.json", [
+    "public/artifacts/ml-numeric-kernels/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/ml-numeric-kernels/output-manifest.json", [
+    "public/artifacts/ml-numeric-kernels/output-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/ml-numeric-kernels/fixture.bin", [
+    "public/artifacts/ml-numeric-kernels/fixture.bin",
+    "application/octet-stream",
+  ]],
+  ["/artifacts/ml-numeric-kernels/reference.f64", [
+    "public/artifacts/ml-numeric-kernels/reference.f64",
+    "application/octet-stream",
+  ]],
+  ["/artifacts/ml-numeric-kernels/bounds.f64", [
+    "public/artifacts/ml-numeric-kernels/bounds.f64",
+    "application/octet-stream",
+  ]],
+  ["/evidence/base-implementations/ml.numeric-kernels.v1/js-controlled-scalar.json", [
+    "public/evidence/base-implementations/ml.numeric-kernels.v1/js-controlled-scalar.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base-implementations/ml.numeric-kernels.v1/wasm-linear-controlled-scalar.json", [
+    "public/evidence/base-implementations/ml.numeric-kernels.v1/wasm-linear-controlled-scalar.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/demos/text.diff-patch.v1", [
     "public/demos/text.diff-patch.v1/index.html",
     "text/html; charset=utf-8",
