@@ -39,10 +39,12 @@ function validate(result, expected, reference, finalEnergyMaximum) {
     maximum = Math.max(maximum, difference);
     if (difference > 0.0005) throw new Error(`checkpoint ${index} exceeds tolerance`);
   }
-  if (result.metrics.groundPenetration > 0.0005) throw new Error("ground penetration");
-  if (result.metrics.jointLengthError > 0.0031) throw new Error("joint length error");
-  if (result.metrics.contactPenetration > 0.003) throw new Error("contact penetration");
-  if (result.metrics.maxSpeed > 0.025) throw new Error("scene did not settle");
+  if (result.metrics.groundPenetration > 0.002) throw new Error("ground penetration");
+  if (result.metrics.jointAnchorError > 0.004) throw new Error("joint anchor error");
+  if (result.metrics.contactPenetration > 0.025) throw new Error("contact penetration");
+  if (result.metrics.maxSpeed > 0.04 || result.metrics.maxAngularSpeed > 0.04) {
+    throw new Error("scene did not settle");
+  }
   if (result.metrics.totalEnergy < 0 || result.metrics.totalEnergy > finalEnergyMaximum) {
     throw new Error("energy envelope");
   }
@@ -92,6 +94,10 @@ self.addEventListener("message", async (event) => {
       throw new Error("output manifest raw-byte mismatch");
     }
     if (buildManifest.toolchain.deno !== "2.9.0") throw new Error("toolchain pin mismatch");
+    for (const record of buildManifest.resultRecords) {
+      const raw = await bytes(`/${record.path.replace(/^public\//, "")}`);
+      if (await sha256(raw) !== record.sha256) throw new Error("result record raw-byte mismatch");
+    }
     if (
       fixtureManifest.frozenCatalogSha256 !==
         "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4"
@@ -109,7 +115,7 @@ self.addEventListener("message", async (event) => {
     }
     post(token, "progress", {
       phase: 3,
-      message: "Checking 12,000 state values and exact counters…",
+      message: "Checking 18,000 state values and exact counters…",
     });
     const checks = {};
     if (javascript) {

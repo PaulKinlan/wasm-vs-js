@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.paulkinlan-ea.deno.net/data/simulation-rigid-body-2d-contract.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "registrationId",
+    "frozenCatalogId",
+    "frozenCatalogSha256",
+    "status",
+    "algorithmFamily",
+    "targets",
+    "fixture",
+    "fixedWork",
+    "oracle",
+    "counters",
+    "limitations"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 2 },
+    "registrationId": { "const": "simulation-rigid-body-2d-v1-controlled" },
+    "frozenCatalogId": { "const": "simulation.rigid-body-2d.v1" },
+    "frozenCatalogSha256": {
+      "const": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4"
+    },
+    "status": { "const": "supplemental-implementation-candidate" },
+    "algorithmFamily": { "const": "box2d-style-fixed-solver" },
+    "targets": { "const": ["javascript", "wasm-linear"] },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "generator",
+        "seed",
+        "licenseSpdx",
+        "redistribution",
+        "bodies",
+        "joints",
+        "layout"
+      ],
+      "properties": {
+        "generator": { "type": "string", "minLength": 1 },
+        "seed": { "type": "integer" },
+        "licenseSpdx": { "const": "CC0-1.0" },
+        "redistribution": { "const": "permitted" },
+        "bodies": { "const": 500 },
+        "joints": { "const": 19 },
+        "layout": { "type": "string", "minLength": 1 }
+      }
+    },
+    "fixedWork": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "timesteps",
+        "dtF32",
+        "gravityYF32",
+        "velocityIterations",
+        "positionIterations",
+        "warmStart",
+        "linearDampingF32",
+        "angularDampingF32",
+        "torqueSteps",
+        "broadphase",
+        "narrowphase",
+        "contactOrder",
+        "jointOrder",
+        "velocityUpdate",
+        "positionUpdate",
+        "trigonometry",
+        "stateQuantization",
+        "rendering"
+      ],
+      "properties": {
+        "timesteps": { "const": 1800 },
+        "dtF32": { "type": "number" },
+        "gravityYF32": { "type": "number" },
+        "velocityIterations": { "const": 6 },
+        "positionIterations": { "const": 64 },
+        "warmStart": { "const": false },
+        "linearDampingF32": { "type": "number" },
+        "angularDampingF32": { "type": "number" },
+        "torqueSteps": { "const": 120 },
+        "broadphase": { "type": "string" },
+        "narrowphase": { "type": "string" },
+        "contactOrder": { "type": "string" },
+        "jointOrder": { "type": "string" },
+        "velocityUpdate": { "type": "string" },
+        "positionUpdate": { "type": "string" },
+        "trigonometry": { "type": "string" },
+        "stateQuantization": { "type": "string" },
+        "rendering": { "const": "separate and excluded from compute" }
+      }
+    },
+    "oracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "completeState",
+        "absoluteTolerance",
+        "relativeTolerance",
+        "energyEnvelopeRelative",
+        "settledLinearSpeedMaximum",
+        "settledAngularSpeedMaximum",
+        "groundPenetrationMaximum",
+        "jointAnchorErrorMaximum",
+        "contactPenetrationMaximum",
+        "nonFinite",
+        "quantization"
+      ],
+      "properties": {
+        "kind": { "const": "numeric-tolerance" },
+        "completeState": { "type": "string" },
+        "absoluteTolerance": { "const": 0.0005 },
+        "relativeTolerance": { "const": 0.00005 },
+        "energyEnvelopeRelative": { "const": 0.01 },
+        "settledLinearSpeedMaximum": { "const": 0.04 },
+        "settledAngularSpeedMaximum": { "const": 0.04 },
+        "groundPenetrationMaximum": { "const": 0.002 },
+        "jointAnchorErrorMaximum": { "const": 0.004 },
+        "contactPenetrationMaximum": { "const": 0.025 },
+        "nonFinite": { "const": "reject" },
+        "quantization": { "type": "string" }
+      }
+    },
+    "counters": {
+      "const": [
+        "timesteps",
+        "broadphase-pairs",
+        "rotated-manifold-tests",
+        "manifolds",
+        "contact-points",
+        "normal-impulses",
+        "friction-impulses",
+        "angular-contact-impulses",
+        "joint-impulses",
+        "torque-applications",
+        "velocity-iterations",
+        "position-iterations",
+        "state-values",
+        "typed-array-allocations",
+        "exported-call-boundaries"
+      ]
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}

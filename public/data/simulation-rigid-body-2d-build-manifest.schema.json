@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.paulkinlan-ea.deno.net/data/simulation-rigid-body-2d-build-manifest.schema.json",
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/hash" }
+      }
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "registrationId",
+    "sourceCommit",
+    "toolchain",
+    "command",
+    "sourceGraph",
+    "artifact",
+    "fixtureManifestSha256",
+    "outputManifestSha256",
+    "resultRecords"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "registrationId": { "const": "simulation-rigid-body-2d-v1-controlled" },
+    "sourceCommit": { "type": "string", "pattern": "^(?:[a-f0-9]{40}|uncommitted-candidate)$" },
+    "toolchain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["deno", "clang", "linker", "target", "flags", "memory"],
+      "properties": {
+        "deno": { "const": "2.9.0" },
+        "clang": { "type": "string", "pattern": "^clang version 22\\." },
+        "linker": { "type": "string", "pattern": "^LLD 22\\." },
+        "target": { "const": "wasm32-unknown-unknown" },
+        "flags": {
+          "type": "array",
+          "minItems": 6,
+          "uniqueItems": true,
+          "items": { "type": "string" }
+        },
+        "memory": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["initialBytes", "maximumBytes", "growth"],
+          "properties": {
+            "initialBytes": { "const": 2097152 },
+            "maximumBytes": { "const": 2097152 },
+            "growth": { "const": false }
+          }
+        }
+      }
+    },
+    "command": { "type": "string", "minLength": 1 },
+    "sourceGraph": {
+      "type": "array",
+      "minItems": 15,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/file" }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "const": "public/artifacts/simulation-rigid-body-2d-v1/rigid-body-2d.wasm" },
+        "bytes": { "type": "integer", "minimum": 1000 },
+        "sha256": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "fixtureManifestSha256": { "$ref": "#/$defs/hash" },
+    "outputManifestSha256": { "$ref": "#/$defs/hash" },
+    "resultRecords": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256"],
+        "properties": {
+          "path": {
+            "enum": [
+              "public/evidence/v1-base/simulation-rigid-body-2d-v1/js-controlled.json",
+              "public/evidence/v1-base/simulation-rigid-body-2d-v1/wasm-linear-controlled.json"
+            ]
+          },
+          "sha256": { "$ref": "#/$defs/hash" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.paulkinlan-ea.deno.net/data/simulation-rigid-body-2d-output-manifest.schema.json",
+  "$defs": {
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kinetic",
+        "potential",
+        "totalEnergy",
+        "maxSpeed",
+        "maxAngularSpeed",
+        "groundPenetration",
+        "jointAnchorError",
+        "contactPenetration"
+      ],
+      "properties": {
+        "kinetic": { "type": "number", "minimum": 0 },
+        "potential": { "type": "number", "minimum": 0 },
+        "totalEnergy": { "type": "number", "minimum": 0 },
+        "maxSpeed": { "type": "number", "minimum": 0 },
+        "maxAngularSpeed": { "type": "number", "minimum": 0 },
+        "groundPenetration": { "type": "number", "minimum": 0 },
+        "jointAnchorError": { "type": "number", "minimum": 0 },
+        "contactPenetration": { "type": "number", "minimum": 0 }
+      }
+    },
+    "counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "timesteps",
+        "broadphasePairs",
+        "rotatedManifoldTests",
+        "manifolds",
+        "contactPoints",
+        "normalImpulses",
+        "frictionImpulses",
+        "angularContactImpulses",
+        "jointImpulses",
+        "torqueApplications",
+        "velocityIterations",
+        "positionIterations",
+        "stateValues",
+        "typedArrayAllocations",
+        "exportedCallBoundaries"
+      ],
+      "properties": {
+        "timesteps": { "const": 1800 },
+        "broadphasePairs": { "type": "integer", "minimum": 1 },
+        "rotatedManifoldTests": { "type": "integer", "minimum": 1 },
+        "manifolds": { "type": "integer", "minimum": 1 },
+        "contactPoints": { "type": "integer", "minimum": 1 },
+        "normalImpulses": { "type": "integer", "minimum": 1 },
+        "frictionImpulses": { "type": "integer", "minimum": 1 },
+        "angularContactImpulses": { "type": "integer", "minimum": 1 },
+        "jointImpulses": { "type": "integer", "minimum": 1 },
+        "torqueApplications": { "const": 60000 },
+        "velocityIterations": { "const": 10800 },
+        "positionIterations": { "const": 115200 },
+        "stateValues": { "const": 18000 },
+        "typedArrayAllocations": { "type": "integer", "minimum": 0 },
+        "exportedCallBoundaries": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "status", "performanceClaims", "oracle", "counters"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "status": { "const": "supplemental-validation-candidate" },
+    "performanceClaims": { "const": [] },
+    "oracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "completeCheckpointValues",
+        "checkpoints",
+        "absoluteTolerance",
+        "relativeTolerance",
+        "referencePath",
+        "referenceSha256",
+        "initialEnergy",
+        "finalEnergyMaximum",
+        "javascriptDigest",
+        "wasmDigest",
+        "comparison",
+        "javascriptMetrics",
+        "wasmMetrics"
+      ],
+      "properties": {
+        "completeCheckpointValues": { "const": 18000 },
+        "checkpoints": { "const": 6 },
+        "absoluteTolerance": { "const": 0.0005 },
+        "relativeTolerance": { "const": 0.00005 },
+        "referencePath": {
+          "const": "public/artifacts/simulation-rigid-body-2d-v1/reference-checkpoints.f32le"
+        },
+        "referenceSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "initialEnergy": { "type": "number", "minimum": 0 },
+        "finalEnergyMaximum": { "type": "number", "minimum": 0 },
+        "javascriptDigest": { "type": "string", "pattern": "^[a-f0-9]{8}$" },
+        "wasmDigest": { "type": "string", "pattern": "^[a-f0-9]{8}$" },
+        "comparison": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["passed", "violations", "maximumAbsoluteError", "maximumRelativeError"],
+          "properties": {
+            "passed": { "const": true },
+            "violations": { "const": 0 },
+            "maximumAbsoluteError": { "type": "number", "minimum": 0 },
+            "maximumRelativeError": { "type": "number", "minimum": 0 }
+          }
+        },
+        "javascriptMetrics": { "$ref": "#/$defs/metrics" },
+        "wasmMetrics": { "$ref": "#/$defs/metrics" }
+      }
+    },
+    "counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["javascript", "wasm"],
+      "properties": {
+        "javascript": { "$ref": "#/$defs/counters" },
+        "wasm": { "$ref": "#/$defs/counters" }
+      }
+    }
+  }
+}

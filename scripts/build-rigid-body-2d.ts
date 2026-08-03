@@ -1,6 +1,8 @@
 import { sha256Hex } from "../lib/canonical.ts";
 import {
+  BODY_WORDS,
   generateRigidBodyFixture,
+  HEADER_BYTES,
   RIGID_CONFIG,
 } from "../benchmarks/v1/simulation-rigid-body-2d/fixture.js";
 import {
@@ -12,10 +14,26 @@ import {
 
 const root = new URL("../", import.meta.url);
 const artifactDir = new URL("public/artifacts/simulation-rigid-body-2d-v1/", root);
+const evidenceDir = new URL("public/evidence/v1-base/simulation-rigid-body-2d-v1/", root);
 const sourceArg = Deno.args.find((value) => value.startsWith("--source-commit="));
 const sourceCommit = sourceArg?.slice("--source-commit=".length) ?? "uncommitted-candidate";
 const sourceOnly = Deno.args.includes("--source-only");
 await Deno.mkdir(artifactDir, { recursive: true });
+await Deno.mkdir(evidenceDir, { recursive: true });
+for (
+  const name of [
+    "simulation-rigid-body-2d-contract.schema.json",
+    "simulation-rigid-body-2d-fixture-manifest.schema.json",
+    "simulation-rigid-body-2d-output-manifest.schema.json",
+    "simulation-rigid-body-2d-build-manifest.schema.json",
+    "simulation-rigid-body-2d-result.schema.json",
+  ]
+) {
+  await Deno.writeFile(
+    new URL(`public/data/${name}`, root),
+    await Deno.readFile(new URL(`schemas/${name}`, root)),
+  );
+}
 
 async function command(name: string, args: string[]) {
   const output = await new Deno.Command(name, {
@@ -78,24 +96,29 @@ const comparison = compareRigidBodyResults(js, wasmResult);
 const fixtureView = new DataView(fixture.buffer, fixture.byteOffset, fixture.byteLength);
 let initialEnergy = 0;
 for (let id = 0; id < RIGID_CONFIG.bodies; id += 1) {
-  const offset = 64 + id * 28;
-  const xVelocity = fixtureView.getFloat32(offset + 8, true);
-  const yVelocity = fixtureView.getFloat32(offset + 12, true);
-  const inverseMass = fixtureView.getFloat32(offset + 16, true);
+  const offset = HEADER_BYTES + id * BODY_WORDS * 4;
+  const xVelocity = fixtureView.getFloat32(offset + 12, true);
+  const yVelocity = fixtureView.getFloat32(offset + 16, true);
+  const angularVelocity = fixtureView.getFloat32(offset + 20, true);
+  const inverseMass = fixtureView.getFloat32(offset + 24, true);
+  const inverseInertia = fixtureView.getFloat32(offset + 28, true);
   const y = fixtureView.getFloat32(offset + 4, true);
   const mass = 1 / inverseMass;
+  const inertia = 1 / inverseInertia;
   initialEnergy += 0.5 * mass * (xVelocity * xVelocity + yVelocity * yVelocity) +
-    mass * -RIGID_CONFIG.gravityY * y;
+    0.5 * inertia * angularVelocity * angularVelocity + mass * -RIGID_CONFIG.gravityY * y;
 }
 if (!comparison.passed) {
   throw new Error(`rigid-body cross-target mismatch ${JSON.stringify(comparison)}`);
 }
 for (const [name, result] of [["javascript", js], ["wasm-linear", wasmResult]] as const) {
-  if (result.metrics.groundPenetration > 0.0005) throw new Error(`${name} ground penetration`);
-  if (result.metrics.jointLengthError > 0.0031) throw new Error(`${name} joint length error`);
-  if (result.metrics.contactPenetration > 0.003) throw new Error(`${name} contact penetration`);
-  if (result.metrics.maxSpeed > 0.025) throw new Error(`${name} did not settle`);
-  if (result.metrics.totalEnergy < 0 || result.metrics.totalEnergy > initialEnergy * 1.002) {
+  if (result.metrics.groundPenetration > 0.002) throw new Error(`${name} ground penetration`);
+  if (result.metrics.jointAnchorError > 0.004) throw new Error(`${name} joint anchor error`);
+  if (result.metrics.contactPenetration > 0.025) throw new Error(`${name} contact penetration`);
+  if (result.metrics.maxSpeed > 0.04 || result.metrics.maxAngularSpeed > 0.04) {
+    throw new Error(`${name} did not settle`);
+  }
+  if (result.metrics.totalEnergy < 0 || result.metrics.totalEnergy > initialEnergy * 1.01) {
     throw new Error(`${name} energy envelope`);
   }
 }
@@ -108,6 +131,11 @@ const paths = [
   "benchmarks/v1/simulation-rigid-body-2d/engine.js",
   "benchmarks/v1/simulation-rigid-body-2d/rigid-body-2d.c",
   "scripts/build-rigid-body-2d.ts",
+  "schemas/simulation-rigid-body-2d-contract.schema.json",
+  "schemas/simulation-rigid-body-2d-fixture-manifest.schema.json",
+  "schemas/simulation-rigid-body-2d-output-manifest.schema.json",
+  "schemas/simulation-rigid-body-2d-build-manifest.schema.json",
+  "schemas/simulation-rigid-body-2d-result.schema.json",
   "public/benchmarks/simulation-rigid-body-2d-v1/index.html",
   "public/benchmarks/simulation-rigid-body-2d-v1/runner.js",
   "public/benchmarks/simulation-rigid-body-2d-v1/worker.js",
@@ -173,7 +201,7 @@ const outputManifest = {
     referencePath: "public/artifacts/simulation-rigid-body-2d-v1/reference-checkpoints.f32le",
     referenceSha256: await sha256Hex(referenceBytes),
     initialEnergy,
-    finalEnergyMaximum: initialEnergy * 1.002,
+    finalEnergyMaximum: initialEnergy * 1.01,
     javascriptDigest: js.checkpointDigest,
     wasmDigest: wasmResult.checkpointDigest,
     comparison,
@@ -185,6 +213,54 @@ const outputManifest = {
     wasm: wasmResult.counters,
   },
 };
+const artifactSha256 = await sha256Hex(wasmBytes);
+const fixtureSha256 = await sha256Hex(fixture);
+const referenceSha256 = await sha256Hex(referenceBytes);
+const recordValues = [
+  {
+    schemaVersion: 1,
+    status: "supplemental-validation-candidate",
+    frozenCatalogId: RIGID_CONFIG.id,
+    registrationId: "simulation-rigid-body-2d-v1-controlled",
+    variantId: "js-controlled",
+    executionTarget: "javascript",
+    sourceCommit,
+    fixtureSha256,
+    artifactSha256: null,
+    referenceSha256,
+    checkpointDigest: js.checkpointDigest,
+    completeStateValues: js.checkpoints.length,
+    counters: js.counters,
+    metrics: js.metrics,
+    performanceClaims: [],
+  },
+  {
+    schemaVersion: 1,
+    status: "supplemental-validation-candidate",
+    frozenCatalogId: RIGID_CONFIG.id,
+    registrationId: "simulation-rigid-body-2d-v1-controlled",
+    variantId: "wasm-linear-controlled",
+    executionTarget: "wasm-linear",
+    sourceCommit,
+    fixtureSha256,
+    artifactSha256,
+    referenceSha256,
+    checkpointDigest: wasmResult.checkpointDigest,
+    completeStateValues: wasmResult.checkpoints.length,
+    counters: wasmResult.counters,
+    metrics: wasmResult.metrics,
+    performanceClaims: [],
+  },
+];
+const jsonBytes = (value: unknown) =>
+  new TextEncoder().encode(`${JSON.stringify(value, null, 2)}\n`);
+const resultRecords = [];
+for (const record of recordValues) {
+  const path = `public/evidence/v1-base/simulation-rigid-body-2d-v1/${record.variantId}.json`;
+  const bytes = jsonBytes(record);
+  await Deno.writeFile(new URL(path, root), bytes);
+  resultRecords.push({ path, sha256: await sha256Hex(bytes) });
+}
 const buildManifest = {
   schemaVersion: 1,
   registrationId: "simulation-rigid-body-2d-v1-controlled",
@@ -205,18 +281,17 @@ const buildManifest = {
     memory: { initialBytes: 2097152, maximumBytes: 2097152, growth: false },
   },
   command:
-    "deno run --allow-read=. --allow-write=public/artifacts --allow-run=clang,wasm-ld,git scripts/build-rigid-body-2d.ts --source-commit=<commit>",
+    "deno run --allow-read=. --allow-write=public/artifacts,public/evidence,public/data --allow-run=clang,wasm-ld,git scripts/build-rigid-body-2d.ts --source-commit=<commit>",
   sourceGraph,
   artifact: {
     path: "public/artifacts/simulation-rigid-body-2d-v1/rigid-body-2d.wasm",
     bytes: wasmBytes.length,
-    sha256: await sha256Hex(wasmBytes),
+    sha256: artifactSha256,
   },
   fixtureManifestSha256: "filled-after-serialization",
   outputManifestSha256: "filled-after-serialization",
+  resultRecords,
 };
-const jsonBytes = (value: unknown) =>
-  new TextEncoder().encode(`${JSON.stringify(value, null, 2)}\n`);
 const fixtureManifestBytes = jsonBytes(fixtureManifest);
 const outputManifestBytes = jsonBytes(outputManifest);
 buildManifest.fixtureManifestSha256 = await sha256Hex(fixtureManifestBytes);

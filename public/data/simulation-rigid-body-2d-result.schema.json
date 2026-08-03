@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.paulkinlan-ea.deno.net/data/simulation-rigid-body-2d-result.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "status",
+    "frozenCatalogId",
+    "registrationId",
+    "variantId",
+    "executionTarget",
+    "sourceCommit",
+    "fixtureSha256",
+    "artifactSha256",
+    "referenceSha256",
+    "checkpointDigest",
+    "completeStateValues",
+    "counters",
+    "metrics",
+    "performanceClaims"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "status": { "const": "supplemental-validation-candidate" },
+    "frozenCatalogId": { "const": "simulation.rigid-body-2d.v1" },
+    "registrationId": { "const": "simulation-rigid-body-2d-v1-controlled" },
+    "variantId": { "enum": ["js-controlled", "wasm-linear-controlled"] },
+    "executionTarget": { "enum": ["javascript", "wasm-linear"] },
+    "sourceCommit": { "type": "string", "pattern": "^(?:[a-f0-9]{40}|uncommitted-candidate)$" },
+    "fixtureSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "artifactSha256": {
+      "anyOf": [{ "type": "string", "pattern": "^[a-f0-9]{64}$" }, { "type": "null" }]
+    },
+    "referenceSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "checkpointDigest": { "type": "string", "pattern": "^[a-f0-9]{8}$" },
+    "completeStateValues": { "const": 18000 },
+    "counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 15,
+      "maxProperties": 15,
+      "required": [
+        "timesteps",
+        "broadphasePairs",
+        "rotatedManifoldTests",
+        "manifolds",
+        "contactPoints",
+        "normalImpulses",
+        "frictionImpulses",
+        "angularContactImpulses",
+        "jointImpulses",
+        "torqueApplications",
+        "velocityIterations",
+        "positionIterations",
+        "stateValues",
+        "typedArrayAllocations",
+        "exportedCallBoundaries"
+      ],
+      "properties": {
+        "timesteps": { "const": 1800 },
+        "broadphasePairs": { "type": "integer", "minimum": 1 },
+        "rotatedManifoldTests": { "type": "integer", "minimum": 1 },
+        "manifolds": { "type": "integer", "minimum": 1 },
+        "contactPoints": { "type": "integer", "minimum": 1 },
+        "normalImpulses": { "type": "integer", "minimum": 1 },
+        "frictionImpulses": { "type": "integer", "minimum": 1 },
+        "angularContactImpulses": { "type": "integer", "minimum": 1 },
+        "jointImpulses": { "type": "integer", "minimum": 1 },
+        "torqueApplications": { "const": 60000 },
+        "velocityIterations": { "const": 10800 },
+        "positionIterations": { "const": 115200 },
+        "stateValues": { "const": 18000 },
+        "typedArrayAllocations": { "type": "integer", "minimum": 0 },
+        "exportedCallBoundaries": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kinetic",
+        "potential",
+        "totalEnergy",
+        "maxSpeed",
+        "maxAngularSpeed",
+        "groundPenetration",
+        "jointAnchorError",
+        "contactPenetration"
+      ],
+      "properties": {
+        "kinetic": { "type": "number", "minimum": 0 },
+        "potential": { "type": "number", "minimum": 0 },
+        "totalEnergy": { "type": "number", "minimum": 0 },
+        "maxSpeed": { "type": "number", "minimum": 0 },
+        "maxAngularSpeed": { "type": "number", "minimum": 0 },
+        "groundPenetration": { "type": "number", "minimum": 0 },
+        "jointAnchorError": { "type": "number", "minimum": 0 },
+        "contactPenetration": { "type": "number", "minimum": 0 }
+      }
+    },
+    "performanceClaims": { "const": [] }
+  },
+  "allOf": [
+    {
+      "if": { "type": "object", "properties": { "variantId": { "const": "js-controlled" } } },
+      "then": {
+        "type": "object",
+        "properties": {
+          "executionTarget": { "const": "javascript" },
+          "artifactSha256": { "const": null },
+          "counters": {
+            "type": "object",
+            "properties": { "exportedCallBoundaries": { "const": 0 } }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": { "variantId": { "const": "wasm-linear-controlled" } }
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "executionTarget": { "const": "wasm-linear" },
+          "artifactSha256": { "type": "string" },
+          "counters": {
+            "type": "object",
+            "properties": { "exportedCallBoundaries": { "const": 3 } }
+          }
+        }
+      }
+    }
+  ]
+}

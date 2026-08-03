@@ -326,6 +326,27 @@ const routes = new Map<string, [string, string, boolean?]>([
       [`public/artifacts/simulation-rigid-body-2d-v1/${name}`, "application/json; charset=utf-8"],
     ] as [string, [string, string]]
   ),
+  ...[
+    "simulation-rigid-body-2d-contract.schema.json",
+    "simulation-rigid-body-2d-fixture-manifest.schema.json",
+    "simulation-rigid-body-2d-output-manifest.schema.json",
+    "simulation-rigid-body-2d-build-manifest.schema.json",
+    "simulation-rigid-body-2d-result.schema.json",
+  ].map((name) =>
+    [
+      `/data/${name}`,
+      [`public/data/${name}`, "application/schema+json; charset=utf-8"],
+    ] as [string, [string, string]]
+  ),
+  ...["js-controlled", "wasm-linear-controlled"].map((variant) =>
+    [
+      `/evidence/v1-base/simulation-rigid-body-2d-v1/${variant}.json`,
+      [
+        `public/evidence/v1-base/simulation-rigid-body-2d-v1/${variant}.json`,
+        "application/json; charset=utf-8",
+      ],
+    ] as [string, [string, string]]
+  ),
 ]);
 
 for (const route of [...IMAGE_DEMO_ROUTES, ...TRADITIONAL_DEMO_ROUTES]) {

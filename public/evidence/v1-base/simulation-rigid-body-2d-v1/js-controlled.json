@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "status": "supplemental-validation-candidate",
+  "frozenCatalogId": "simulation.rigid-body-2d.v1",
+  "registrationId": "simulation-rigid-body-2d-v1-controlled",
+  "variantId": "js-controlled",
+  "executionTarget": "javascript",
+  "sourceCommit": "uncommitted-candidate",
+  "fixtureSha256": "8ea94bb93e6eafaaa9824750da76da143e8676a8bb8db22074f3abe354a90e42",
+  "artifactSha256": null,
+  "referenceSha256": "ec1518e2d98240fe9202e5d48b609943230eb5e076aa30da97cd8f31b79c4498",
+  "checkpointDigest": "b54a6129",
+  "completeStateValues": 18000,
+  "counters": {
+    "timesteps": 1800,
+    "broadphasePairs": 998471252,
+    "rotatedManifoldTests": 36036054,
+    "manifolds": 26380076,
+    "contactPoints": 26380076,
+    "normalImpulses": 323993,
+    "frictionImpulses": 323993,
+    "angularContactImpulses": 431986,
+    "jointImpulses": 2394000,
+    "torqueApplications": 60000,
+    "velocityIterations": 10800,
+    "positionIterations": 115200,
+    "stateValues": 18000,
+    "typedArrayAllocations": 28,
+    "exportedCallBoundaries": 0
+  },
+  "metrics": {
+    "kinetic": 0.027244684786372392,
+    "potential": 75814.43372561425,
+    "totalEnergy": 75814.46097029903,
+    "maxSpeed": 0.008999999612569809,
+    "maxAngularSpeed": 0.013000000268220901,
+    "groundPenetration": 0.0014774799346923828,
+    "jointAnchorError": 0.0038332734256982803,
+    "contactPenetration": 0.024493813514709473
+  },
+  "performanceClaims": []
+}
