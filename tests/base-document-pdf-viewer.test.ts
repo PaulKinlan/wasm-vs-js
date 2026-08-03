@@ -57,7 +57,7 @@ Deno.test("independent JS and material Wasm parse 100 pages and match complete t
   assertEquals(js.pageHashes.length, RASTER_PAGES.length);
   assertEquals(js.counters.pixels, RASTER_PAGES.length * WIDTH * HEIGHT);
   assertEquals(wa.counters.pixels, RASTER_PAGES.length * WIDTH * HEIGHT);
-  assertEquals(js.counters.objects, 205);
+  assertEquals(js.counters.objects, fixtureManifest.pdfSubset.objectCount);
   assertEquals(js.counters.pages, 100);
   assertEquals(js.counters.glyphs, wa.counters.glyphs);
   assertEquals(js.counters.searchComparisons, wa.counters.searchComparisons);

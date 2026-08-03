@@ -51,6 +51,7 @@ const patterns: Record<string, string[]> = {
   "P": ["11110", "10001", "10001", "11110", "10000", "10000", "10000"],
   "R": ["11110", "10001", "10001", "11110", "10100", "10010", "10001"],
   "T": ["11111", "00100", "00100", "00100", "00100", "00100", "00100"],
+  "U": ["10001", "10001", "10001", "10001", "10001", "10001", "01110"],
 };
 const font = new Uint8Array(128 * 7);
 for (const [character, rows] of Object.entries(patterns)) {
@@ -83,10 +84,62 @@ objects.set(
     ascii("\nendstream"),
   ]),
 );
+const glyphNames: Record<string, string> = {
+  " ": "space",
+  "0": "zero",
+  "1": "one",
+  "2": "two",
+  "3": "three",
+  "4": "four",
+  "5": "five",
+  "6": "six",
+  "7": "seven",
+  "8": "eight",
+  "9": "nine",
+  "A": "A",
+  "B": "B",
+  "C": "C",
+  "D": "D",
+  "E": "E",
+  "G": "G",
+  "H": "H",
+  "K": "K",
+  "L": "L",
+  "M": "M",
+  "N": "N",
+  "O": "O",
+  "P": "P",
+  "R": "R",
+  "T": "T",
+  "U": "U",
+};
+const glyphEntries = Object.entries(glyphNames).sort((a, b) =>
+  a[0].charCodeAt(0) - b[0].charCodeAt(0)
+);
+objects.set(205, ascii("<< /Length 10 >>\nstream\n0 0 6 7 d1\nendstream"));
+let charProcs = "/.notdef 205 0 R";
+let differences = "";
+for (let index = 0; index < glyphEntries.length; index++) {
+  const [character, name] = glyphEntries[index];
+  const objectId = 206 + index;
+  charProcs += ` /${name} ${objectId} 0 R`;
+  differences += ` ${character.charCodeAt(0)} /${name}`;
+  const rows = Array.from(
+    font.subarray(character.charCodeAt(0) * 7, character.charCodeAt(0) * 7 + 7),
+  );
+  let commands = "0 0 6 7 d1\n";
+  for (let row = 0; row < 7; row++) {
+    for (let col = 0; col < 5; col++) {
+      if ((rows[row] >> (4 - col)) & 1) commands += `${col} ${6 - row} 1 1 re f\n`;
+    }
+  }
+  objects.set(objectId, ascii(`<< /Length ${commands.length} >>\nstream\n${commands}endstream`));
+}
+const widths = Array.from({ length: 95 }, () => "6").join(" ");
 objects.set(
   3,
   ascii(
-    "<< /Type /Font /Subtype /Type3 /FontBBox [0 0 5 7] /FontMatrix [0.2 0 0 0.142857 0 0] /Encoding << /Type /Encoding /BaseEncoding /WinAnsiEncoding >> /CharProcs << /.notdef 205 0 R >> /FirstChar 32 /LastChar 126 /Widths [5] /PDFBaseBitmap 2 0 R >>",
+    `<< /Type /Font /Subtype /Type3 /FontBBox [0 0 6 7] /FontMatrix [0.1666667 0 0 0.142857 0 0] /Encoding << /Type /Encoding /BaseEncoding /WinAnsiEncoding /Differences [${differences}] >> /CharProcs << ${charProcs} >> /FirstChar 32 /LastChar 126 /Widths [${widths}] /PDFBaseBitmap 2 0 R >>`,
   ),
 );
 const kids = Array.from({ length: 100 }, (_, i) => `${5 + i * 2} 0 R`).join(" ");
@@ -105,11 +158,11 @@ for (let i = 1; i <= 100; i++) {
   const stream = `BT /F1 18 Tf 36 750 Td (${text}) Tj ET`;
   objects.set(contentObject, ascii(`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`));
 }
-objects.set(205, ascii("<< /Length 10 >>\nstream\n0 0 5 7 d1\nendstream"));
+const maxObject = 205 + glyphEntries.length;
 const chunks: Uint8Array[] = [ascii("%PDF-1.7\n%PDFBase generated report\n")];
-const offsets = new Uint32Array(206);
+const offsets = new Uint32Array(maxObject + 1);
 let byteLength = chunks[0].length;
-for (let id = 1; id <= 205; id++) {
+for (let id = 1; id <= maxObject; id++) {
   const body = objects.get(id);
   if (!body) throw new Error(`missing object ${id}`);
   offsets[id] = byteLength;
@@ -118,10 +171,13 @@ for (let id = 1; id <= 205; id++) {
   byteLength += chunk.length;
 }
 const xrefAt = byteLength;
-let xref = "xref\n0 206\n0000000000 65535 f \n";
-for (let id = 1; id <= 205; id++) xref += `${String(offsets[id]).padStart(10, "0")} 00000 n \n`;
-xref +=
-  `trailer\n<< /Size 206 /Root 1 0 R /ID [<5044464241534531><5044464241534531>] >>\nstartxref\n${xrefAt}\n%%EOF\n`;
+let xref = `xref\n0 ${maxObject + 1}\n0000000000 65535 f \n`;
+for (let id = 1; id <= maxObject; id++) {
+  xref += `${String(offsets[id]).padStart(10, "0")} 00000 n \n`;
+}
+xref += `trailer\n<< /Size ${
+  maxObject + 1
+} /Root 1 0 R /ID [<5044464241534531><5044464241534531>] >>\nstartxref\n${xrefAt}\n%%EOF\n`;
 chunks.push(ascii(xref));
 const pdf = concat(chunks);
 await Deno.writeFile(new URL("report-100-pages.pdf", out), pdf);
@@ -231,6 +287,12 @@ const fixtureManifest = {
   immutable: true,
   fixture,
   font: fontRef,
+  pdfSubset: {
+    version: "PDF-1.7-pdfbase-report-v1",
+    objectCount: maxObject,
+    type3GlyphPrograms: glyphEntries.length,
+    pageCount: 100,
+  },
   rights: { licenseSpdx: "CC0-1.0", redistribution: "permitted", externalInputs: [] },
   generator: { path: "scripts/build-document-pdf-viewer.ts", sourceCommit },
 };

@@ -23,7 +23,7 @@
     "stringEncoding": "printable ASCII without escapes",
     "textOrder": "page order then content-stream order",
     "unicodePolicy": "ASCII is an exact Unicode scalar subset; malformed or non-ASCII content is rejected",
-    "font": "PDFBase5x7-v1 project-owned bitmap, embedded as 896 raw bytes and referenced from each page resource",
+    "font": "PDFBase5x7-v1 project-owned bitmap, embedded as 896 raw bytes, mirrored by valid Type3 glyph programs, and referenced from every page resource",
     "color": "opaque black glyph pixels on opaque white sRGB-like RGBA",
     "alpha": "255 for every pixel"
   },
