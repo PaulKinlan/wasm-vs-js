@@ -201,7 +201,8 @@ const buildManifest = {
     features: { simd: false, threads: false, exceptions: false, memory64: false },
   },
   build: {
-    command: "deno task build:base-audio-effects",
+    command:
+      "deno run --allow-read=. --allow-write=public/artifacts,public/evidence,catalog/base-implementations --allow-run=git scripts/build-base-audio-webaudio-effects.ts",
     toolchains: [`Deno ${Deno.version.deno}`, "wabt 1.0.37"],
     flags: [
       "canonicalize_lebs=true",
