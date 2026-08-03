@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "tooling.c-to-wasm-compile.v1",
+  "catalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+  "status": "supplemental-implementation-candidate",
+  "coverageCredit": false,
+  "toolchainFamily": "c-toolchain-fixed-revision-flags/owned-c-expression-subset-v1",
+  "programCount": 20,
+  "language": {
+    "sourceEncoding": "ASCII",
+    "translationUnit": "#include fixture.h followed by exactly int test(void) { return EXPR; }",
+    "preprocessor": "fixture.h must contain exactly one #define BASE signed-i32 line",
+    "expressionGrammar": "signed decimal i32 literals, BASE, parentheses, unary minus, *, +, -, <<, >>, &, ^, | with C precedence",
+    "typePolicy": "one i32 expression; overflow has WebAssembly i32 wrap semantics; signed right shift; division, pointers, calls, globals and undefined behavior are denied",
+    "diagnosticPolicy": "any byte or token outside the admitted grammar fails closed"
+  },
+  "fixedWork": {
+    "sources": 20,
+    "preprocessPasses": 20,
+    "parsePasses": 20,
+    "typecheckPasses": 20,
+    "codegenPasses": 20,
+    "linkPasses": 20,
+    "executedExport": "test",
+    "vfsFilesPerProgram": 2
+  },
+  "targets": {
+    "javascript-controlled": {
+      "source": "benchmarks/base/tooling-c-to-wasm-compile/compiler-js.js",
+      "implementation": "independent JavaScript tokenizer, recursive-descent parser, type gate, Wasm binary code generator and linker"
+    },
+    "wasm-self-hosted-controlled": {
+      "source": "benchmarks/base/tooling-c-to-wasm-compile/compiler-wasm.c",
+      "implementation": "material compiler running inside linear Wasm; source and header bytes enter its VFS boundary and emitted Wasm bytes leave it"
+    }
+  },
+  "build": {
+    "deno": "2.9.0",
+    "clang": "22.1.8",
+    "lld": "22.1.8",
+    "target": "wasm32-unknown-unknown",
+    "flags": [
+      "-O2",
+      "-nostdlib",
+      "--no-entry",
+      "--export=compile_c",
+      "--export-memory",
+      "--initial-memory=262144",
+      "--max-memory=262144",
+      "--strip-all"
+    ]
+  },
+  "limitations": [
+    "This is a frozen, rights-clean C expression subset, not a claim to implement ISO C generally.",
+    "Cold-load and self-hosting results remain unavailable until retained browser evidence is collected.",
+    "Coverage remains unavailable until independent review and retained browser lifecycle evidence pass."
+  ]
+}

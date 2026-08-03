@@ -282,6 +282,76 @@ const routes = new Map<string, [string, string, boolean?]>([
   ]],
 ]);
 
+for (
+  const path of [
+    "/benchmarks/tooling-c-to-wasm-compile-v1",
+    "/benchmarks/tooling-c-to-wasm-compile-v1/",
+  ]
+) {
+  routes.set(path, [
+    "public/benchmarks/tooling-c-to-wasm-compile-v1/index.html",
+    "text/html; charset=utf-8",
+  ]);
+}
+routes.set("/benchmarks/tooling-c-to-wasm-compile-v1/demo.js", [
+  "public/benchmarks/tooling-c-to-wasm-compile-v1/demo.js",
+  "text/javascript; charset=utf-8",
+]);
+routes.set("/benchmarks/tooling-c-to-wasm-compile-v1/worker.js", [
+  "public/benchmarks/tooling-c-to-wasm-compile-v1/worker.js",
+  "text/javascript; charset=utf-8",
+]);
+for (
+  const [path, file, contentType] of [
+    [
+      "/benchmarks/base/tooling-c-to-wasm-compile/compiler-js.js",
+      "benchmarks/base/tooling-c-to-wasm-compile/compiler-js.js",
+      "text/javascript; charset=utf-8",
+    ],
+    [
+      "/benchmarks/base/tooling-c-to-wasm-compile/compiler-wasm.c",
+      "benchmarks/base/tooling-c-to-wasm-compile/compiler-wasm.c",
+      "text/plain; charset=utf-8",
+    ],
+    [
+      "/benchmarks/base/tooling-c-to-wasm-compile/contract.v1.json",
+      "benchmarks/base/tooling-c-to-wasm-compile/contract.v1.json",
+      "application/json; charset=utf-8",
+    ],
+    [
+      "/artifacts/base/tooling-c-to-wasm-compile/compiler.wasm",
+      "public/artifacts/base/tooling-c-to-wasm-compile/compiler.wasm",
+      "application/wasm",
+    ],
+    [
+      "/artifacts/base/tooling-c-to-wasm-compile/fixture-manifest.json",
+      "public/artifacts/base/tooling-c-to-wasm-compile/fixture-manifest.json",
+      "application/json; charset=utf-8",
+    ],
+    [
+      "/artifacts/base/tooling-c-to-wasm-compile/build-manifest.json",
+      "public/artifacts/base/tooling-c-to-wasm-compile/build-manifest.json",
+      "application/json; charset=utf-8",
+    ],
+    [
+      "/evidence/base/tooling-c-to-wasm-compile/validation.json",
+      "public/evidence/base/tooling-c-to-wasm-compile/validation.json",
+      "application/json; charset=utf-8",
+    ],
+  ] as const
+) routes.set(path, [file, contentType]);
+for (let index = 1; index <= 20; index += 1) {
+  const id = String(index).padStart(2, "0");
+  routes.set(`/benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/${id}.c`, [
+    `benchmarks/base/tooling-c-to-wasm-compile/fixtures/programs/${id}.c`,
+    "text/plain; charset=utf-8",
+  ]);
+  routes.set(`/benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/${id}.h`, [
+    `benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/${id}.h`,
+    "text/plain; charset=utf-8",
+  ]);
+}
+
 for (const route of [...IMAGE_DEMO_ROUTES, ...TRADITIONAL_DEMO_ROUTES]) {
   if (routes.has(route.path)) throw new Error(`duplicate demo route: ${route.path}`);
   routes.set(route.path, [route.file, route.contentType]);

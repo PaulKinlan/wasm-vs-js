@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.example/schemas/base/tooling-c-to-wasm-compile.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "workloadId",
+    "catalogSha256",
+    "status",
+    "coverageCredit",
+    "toolchainFamily",
+    "programCount",
+    "language",
+    "fixedWork",
+    "targets",
+    "build",
+    "limitations"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "workloadId": { "const": "tooling.c-to-wasm-compile.v1" },
+    "catalogSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "status": { "const": "supplemental-implementation-candidate" },
+    "coverageCredit": { "const": false },
+    "toolchainFamily": { "type": "string", "minLength": 1 },
+    "programCount": { "const": 20 },
+    "language": { "type": "object" },
+    "fixedWork": { "type": "object" },
+    "targets": {
+      "type": "object",
+      "required": ["javascript-controlled", "wasm-self-hosted-controlled"]
+    },
+    "build": { "type": "object" },
+    "limitations": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+  }
+}
