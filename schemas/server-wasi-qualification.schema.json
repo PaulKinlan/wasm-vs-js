@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/server-wasi-qualification.schema.json",
+  "title": "Frozen-v1 server WASI qualification",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contractId",
+    "catalogEntryId",
+    "catalog",
+    "status",
+    "coverage",
+    "fixedWork",
+    "requiredTargets",
+    "requiredOracle",
+    "requiredCounters",
+    "qualification",
+    "blockers",
+    "unblockConditions"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "contractId": { "const": "server-wasi-request-handler-v1-qualification" },
+    "catalogEntryId": { "const": "server.wasi-request-handler.v1" },
+    "catalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "entryCount", "immutability"],
+      "properties": {
+        "path": { "const": "catalog/workloads.v1.json" },
+        "sha256": { "const": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4" },
+        "entryCount": { "const": 38 },
+        "immutability": { "const": "byte-for-byte" }
+      }
+    },
+    "status": { "const": "blocked-before-implementation" },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["counted", "implementedCatalogEntriesDelta", "reason"],
+      "properties": {
+        "counted": { "const": false },
+        "implementedCatalogEntriesDelta": { "const": 0 },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "fixedWork": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requests",
+        "concurrencyCells",
+        "iterationBased",
+        "timeLimited",
+        "clock",
+        "randomSeedHex",
+        "hmac",
+        "sqlite"
+      ],
+      "properties": {
+        "requests": { "const": 10000 },
+        "concurrencyCells": {
+          "type": "array",
+          "prefixItems": [{ "const": 1 }, { "const": 32 }],
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "iterationBased": { "const": true },
+        "timeLimited": { "const": false },
+        "clock": { "type": "string", "format": "date-time" },
+        "randomSeedHex": { "type": "string", "pattern": "^[a-f0-9]{16}$" },
+        "hmac": { "const": "HMAC-SHA-256" },
+        "sqlite": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "requiredVersion",
+            "requiredSourceSha256",
+            "requiredCompileFlags",
+            "schema",
+            "statements",
+            "rowOrder"
+          ],
+          "properties": {
+            "requiredVersion": { "type": "null" },
+            "requiredSourceSha256": { "type": "null" },
+            "requiredCompileFlags": { "type": "null" },
+            "schema": { "type": "string", "minLength": 1 },
+            "statements": {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "items": { "type": "string", "minLength": 1 }
+            },
+            "rowOrder": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "requiredTargets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["javascript", "wasiLinearWasm"],
+      "properties": {
+        "javascript": { "type": "string", "minLength": 1 },
+        "wasiLinearWasm": { "type": "string", "minLength": 1 }
+      }
+    },
+    "requiredOracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "completeResponseBytes",
+        "checkpoints",
+        "finalDatabaseState",
+        "tamperRejection",
+        "concurrencyDeterminism"
+      ],
+      "properties": {
+        "completeResponseBytes": { "const": true },
+        "checkpoints": { "const": true },
+        "finalDatabaseState": { "const": true },
+        "tamperRejection": { "const": true },
+        "concurrencyDeterminism": { "const": true }
+      }
+    },
+    "requiredCounters": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "qualification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "deno",
+        "hostSqliteCliObserved",
+        "hostSqliteIsControlledTarget",
+        "wasiSdkAvailable",
+        "wasiSysrootAvailable",
+        "rustWasip1StandardLibraryAvailable",
+        "repositoryPinnedSqliteSourceAvailable",
+        "repositoryPinnedSqliteWasiArtifactAvailable",
+        "independentJavaScriptSqliteAvailable",
+        "identicalSqliteRuntimeEstablished"
+      ],
+      "properties": {
+        "deno": { "const": "2.9.0" },
+        "hostSqliteCliObserved": { "const": "3.53.3" },
+        "hostSqliteIsControlledTarget": { "const": false },
+        "wasiSdkAvailable": { "const": false },
+        "wasiSysrootAvailable": { "const": false },
+        "rustWasip1StandardLibraryAvailable": { "const": false },
+        "repositoryPinnedSqliteSourceAvailable": { "const": false },
+        "repositoryPinnedSqliteWasiArtifactAvailable": { "const": false },
+        "independentJavaScriptSqliteAvailable": { "const": false },
+        "identicalSqliteRuntimeEstablished": { "const": false }
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "detail"],
+        "properties": {
+          "code": {
+            "enum": [
+              "sqlite-source-unpinned",
+              "wasi-toolchain-unavailable",
+              "controlled-js-sqlite-unavailable",
+              "sqlite-version-unresolved"
+            ]
+          },
+          "detail": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "unblockConditions": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}

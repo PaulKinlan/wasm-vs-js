@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "contractId": "server-wasi-request-handler-v1-qualification",
+  "catalogEntryId": "server.wasi-request-handler.v1",
+  "catalog": {
+    "path": "catalog/workloads.v1.json",
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+    "entryCount": 38,
+    "immutability": "byte-for-byte"
+  },
+  "status": "blocked-before-implementation",
+  "coverage": {
+    "counted": false,
+    "implementedCatalogEntriesDelta": 0,
+    "reason": "No version-pinned SQLite source and WASI build can currently be reproduced in this repository, and no independent JavaScript SQLite implementation with the same semantics is registered."
+  },
+  "fixedWork": {
+    "requests": 10000,
+    "concurrencyCells": [1, 32],
+    "iterationBased": true,
+    "timeLimited": false,
+    "clock": "2026-01-01T00:00:00.000Z",
+    "randomSeedHex": "6d36f1a7c203984b",
+    "hmac": "HMAC-SHA-256",
+    "sqlite": {
+      "requiredVersion": null,
+      "requiredSourceSha256": null,
+      "requiredCompileFlags": null,
+      "schema": "CREATE TABLE inventory (sku TEXT PRIMARY KEY, price_cents INTEGER NOT NULL, stock INTEGER NOT NULL); CREATE TABLE requests (request_id INTEGER PRIMARY KEY, sku TEXT NOT NULL, quantity INTEGER NOT NULL);",
+      "statements": [
+        "SELECT sku, price_cents, stock FROM inventory WHERE sku = ?1",
+        "INSERT INTO requests(request_id, sku, quantity) VALUES (?1, ?2, ?3)",
+        "UPDATE inventory SET stock = stock - ?2 WHERE sku = ?1 AND stock >= ?2",
+        "SELECT request_id, sku, quantity FROM requests ORDER BY request_id"
+      ],
+      "rowOrder": "Every result is ordered by an explicit primary-key or ORDER BY clause."
+    }
+  },
+  "requiredTargets": {
+    "javascript": "Repository-owned JSON parser, HMAC-SHA-256, SQLite execution, validation and canonical response renderer; native SQLite and WebCrypto shortcuts are prohibited.",
+    "wasiLinearWasm": "One material WASI module performs JSON parsing, HMAC-SHA-256, SQLite execution, validation and canonical response rendering; host code only supplies deterministic bytes and scheduling."
+  },
+  "requiredOracle": {
+    "completeResponseBytes": true,
+    "checkpoints": true,
+    "finalDatabaseState": true,
+    "tamperRejection": true,
+    "concurrencyDeterminism": true
+  },
+  "requiredCounters": [
+    "requests",
+    "json-bytes",
+    "json-tokens",
+    "hmac-bytes",
+    "hmac-compressions",
+    "sql-statements",
+    "rows-read",
+    "rows-written",
+    "rendered-bytes",
+    "wasi-calls",
+    "boundary-crossings",
+    "allocations"
+  ],
+  "qualification": {
+    "deno": "2.9.0",
+    "hostSqliteCliObserved": "3.53.3",
+    "hostSqliteIsControlledTarget": false,
+    "wasiSdkAvailable": false,
+    "wasiSysrootAvailable": false,
+    "rustWasip1StandardLibraryAvailable": false,
+    "repositoryPinnedSqliteSourceAvailable": false,
+    "repositoryPinnedSqliteWasiArtifactAvailable": false,
+    "independentJavaScriptSqliteAvailable": false,
+    "identicalSqliteRuntimeEstablished": false
+  },
+  "blockers": [
+    {
+      "code": "sqlite-source-unpinned",
+      "detail": "The repository contains no SQLite amalgamation, source hash, compile flags, license manifest or reproducible SQLite build recipe."
+    },
+    {
+      "code": "wasi-toolchain-unavailable",
+      "detail": "The host has no wasi-sdk or WASI sysroot, and the installed Rust toolchain has no wasm32-wasip1 standard library."
+    },
+    {
+      "code": "controlled-js-sqlite-unavailable",
+      "detail": "Using host SQLite or wrapping the Wasm SQLite build from JavaScript would violate the independent controlled-JavaScript target and identical-work contract."
+    },
+    {
+      "code": "sqlite-version-unresolved",
+      "detail": "The observed host SQLite 3.53.3 executable is not a source-pinned WASI build and cannot set the benchmark's required SQLite version."
+    }
+  ],
+  "unblockConditions": [
+    "Commit an audited SQLite source revision, SHA-256, license notice, configuration and reproducible WASI build under a pinned toolchain.",
+    "Provide an independent JavaScript SQLite implementation that executes the same schema and SQL semantics without calling host SQLite or the Wasm target.",
+    "Freeze the SQLite version, compile flags, schema, statements, fixture generator, request bytes, key bytes and in-memory database bytes before implementation measurement.",
+    "Pass complete-response, final-database, tamper, SQL-order and concurrency-determinism differential tests before recording any performance sample."
+  ]
+}
