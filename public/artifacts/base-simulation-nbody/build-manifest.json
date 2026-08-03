@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "simulation.nbody-cloth.v1",
+  "source": {
+    "repository": "https://github.com/PaulKinlan/wasm-vs-js",
+    "commit": "dd715ae5a33896a5d64a23459c7593c8843d3775",
+    "files": [
+      {
+        "path": "benchmarks/base/simulation-nbody/contract.js",
+        "bytes": 1379,
+        "sha256": "3f6d4ec0abb7e587dbdae0b4cbc68caada25440179276e3ab2ffb74404915bc2",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/dd715ae5a33896a5d64a23459c7593c8843d3775/benchmarks/base/simulation-nbody/contract.js"
+      },
+      {
+        "path": "benchmarks/base/simulation-nbody/fixture.js",
+        "bytes": 1636,
+        "sha256": "05617e9d10e78b61a3e1305f3ade773a25ae50eefa7c1efb6f0e62e926461a18",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/dd715ae5a33896a5d64a23459c7593c8843d3775/benchmarks/base/simulation-nbody/fixture.js"
+      },
+      {
+        "path": "benchmarks/base/simulation-nbody/engine.js",
+        "bytes": 10391,
+        "sha256": "b1df0d7638683478334c042422b59407e4b06999d01699987435c6bec327db3f",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/dd715ae5a33896a5d64a23459c7593c8843d3775/benchmarks/base/simulation-nbody/engine.js"
+      },
+      {
+        "path": "benchmarks/base/simulation-nbody/nbody.c",
+        "bytes": 6953,
+        "sha256": "89f1240091be6207f03afc0dc36f2cce8e036954f3e2a7daf063c943a42f7410",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/dd715ae5a33896a5d64a23459c7593c8843d3775/benchmarks/base/simulation-nbody/nbody.c"
+      },
+      {
+        "path": "catalog/base-implementations.v1/simulation.nbody-cloth.v1.json",
+        "bytes": 1647,
+        "sha256": "15adbcf4a7e75e4b5d261f44c3269439eea96d496efb0c88731d2894425bec52",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/dd715ae5a33896a5d64a23459c7593c8843d3775/catalog/base-implementations.v1/simulation.nbody-cloth.v1.json"
+      },
+      {
+        "path": "schemas/base-workload-validation-record.schema.json",
+        "bytes": 2728,
+        "sha256": "ac1eb40783aea83f9ac4adaed4a24b594a768e076dc86c87c7acf89333f4ed1c",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/dd715ae5a33896a5d64a23459c7593c8843d3775/schemas/base-workload-validation-record.schema.json"
+      },
+      {
+        "path": "scripts/build-base-simulation-nbody.ts",
+        "bytes": 8431,
+        "sha256": "ebb555e1423b4c0963273e720ec1fd2465d7cd94c1525231dd0707188c6d8643",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/dd715ae5a33896a5d64a23459c7593c8843d3775/scripts/build-base-simulation-nbody.ts"
+      },
+      {
+        "path": "public/artifacts/base-simulation-nbody/nbody.wasm",
+        "bytes": 6339,
+        "sha256": "5a13117734e4c1c33ed5ac1022a58b20c4e369f78afc46c0d13e733e4cdeb80c",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/dd715ae5a33896a5d64a23459c7593c8843d3775/public/artifacts/base-simulation-nbody/nbody.wasm"
+      },
+      {
+        "path": "public/artifacts/base-simulation-nbody/fixture.bin",
+        "bytes": 57408,
+        "sha256": "00e9acbf97192d53c3013fff1667c7a335551661dd95db04bc3237e704803112",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/dd715ae5a33896a5d64a23459c7593c8843d3775/public/artifacts/base-simulation-nbody/fixture.bin"
+      },
+      {
+        "path": "public/artifacts/base-simulation-nbody/reference-output.bin",
+        "bytes": 295040,
+        "sha256": "6b0555a4033658967cf552767a3ac0b2681df9f3e68d9f2aa71717c9c96ffa3b",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/dd715ae5a33896a5d64a23459c7593c8843d3775/public/artifacts/base-simulation-nbody/reference-output.bin"
+      },
+      {
+        "path": "deno.json",
+        "bytes": 1831,
+        "sha256": "17e6674c81fdaee7dfc52ed1bd28baeec70fb0715f839b92defe1e84545b08eb",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/dd715ae5a33896a5d64a23459c7593c8843d3775/deno.json"
+      },
+      {
+        "path": "deno.lock",
+        "bytes": 1630,
+        "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/dd715ae5a33896a5d64a23459c7593c8843d3775/deno.lock"
+      }
+    ]
+  },
+  "build": {
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/base-simulation-nbody,public/evidence/base-catalog/simulation-nbody-cloth --allow-run=git,clang,wasm-ld scripts/build-base-simulation-nbody.ts --source-commit=<commit>",
+    "toolchain": {
+      "deno": "2.9.0",
+      "clang": "clang version 22.1.8",
+      "linker": "LLD 22.1.8"
+    },
+    "compilerFlags": [
+      "--target=wasm32-unknown-unknown",
+      "-O3",
+      "-nostdlib",
+      "-ffreestanding",
+      "-fno-builtin"
+    ],
+    "linkerFlags": [
+      "--no-entry",
+      "--export-memory",
+      "--initial-memory=4194304",
+      "--max-memory=4194304",
+      "--stack-first"
+    ],
+    "fixedMemory": {
+      "initialPages": 64,
+      "maximumPages": 64,
+      "growth": false
+    }
+  },
+  "artifacts": {
+    "fixture": {
+      "path": "public/artifacts/base-simulation-nbody/fixture.bin",
+      "bytes": 57408,
+      "sha256": "00e9acbf97192d53c3013fff1667c7a335551661dd95db04bc3237e704803112",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/dd715ae5a33896a5d64a23459c7593c8843d3775/public/artifacts/base-simulation-nbody/fixture.bin"
+    },
+    "wasm": {
+      "path": "public/artifacts/base-simulation-nbody/nbody.wasm",
+      "bytes": 6339,
+      "sha256": "5a13117734e4c1c33ed5ac1022a58b20c4e369f78afc46c0d13e733e4cdeb80c",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/dd715ae5a33896a5d64a23459c7593c8843d3775/public/artifacts/base-simulation-nbody/nbody.wasm"
+    },
+    "referenceOutput": {
+      "path": "public/artifacts/base-simulation-nbody/reference-output.bin",
+      "bytes": 295040,
+      "sha256": "6b0555a4033658967cf552767a3ac0b2681df9f3e68d9f2aa71717c9c96ffa3b",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/dd715ae5a33896a5d64a23459c7593c8843d3775/public/artifacts/base-simulation-nbody/reference-output.bin"
+    }
+  },
+  "performanceClaims": []
+}

@@ -1,4 +1,5 @@
 import Ajv2020Module from "ajv2020";
+import addFormatsModule from "ajv-formats";
 import { assert, assertEquals } from "../assert.ts";
 import { sha256Hex } from "../../lib/canonical.ts";
 import { createHandler } from "../../server.ts";
@@ -15,6 +16,8 @@ import {
 
 const Ajv2020 = (Ajv2020Module as unknown as { default?: typeof Ajv2020Module }).default ??
   Ajv2020Module;
+const addFormats = (addFormatsModule as unknown as { default?: typeof addFormatsModule }).default ??
+  addFormatsModule;
 async function runtime() {
   return await instantiateNbodyWasm(
     await Deno.readFile("public/artifacts/base-simulation-nbody/nbody.wasm"),
@@ -133,6 +136,18 @@ Deno.test("N-body Wasm memory is fixed and repeat runs clear all state", async (
   assert(fixed);
 });
 
+Deno.test("N-body demo lifecycle is fresh-worker, token-bound, cancellable, bounded and non-persistent", async () => {
+  const demo = await Deno.readTextFile("public/demos/simulation-nbody-cloth/demo.js");
+  assert(demo.includes('new Worker("/demos/simulation-nbody-cloth/worker.js"'));
+  assert(demo.includes("worker !== owned") && demo.includes("token !== runToken"));
+  assert(demo.includes("worker?.terminate()") && demo.includes("30_000"));
+  assert(demo.includes('addEventListener("pagehide"'));
+  assert(!/(localStorage|sessionStorage|indexedDB|fetch\s*\()/u.test(demo));
+  const page = await Deno.readTextFile("public/demos/simulation-nbody-cloth/index.html");
+  assert(page.includes('role="status"') && page.includes('aria-live="polite"'));
+  assert(page.includes("No performance claim.") && page.includes("stores and uploads nothing"));
+});
+
 Deno.test("N-body public routes are closed, typed, and mutation-safe", async () => {
   const handler = createHandler(null, "public");
   for (
@@ -161,12 +176,14 @@ Deno.test("N-body validation records satisfy the closed schema and exact retaine
   const schema = JSON.parse(
     await Deno.readTextFile("schemas/base-workload-validation-record.schema.json"),
   );
-  const validate = new (Ajv2020 as unknown as new (
+  const ajv = new (Ajv2020 as unknown as new (
     options: Record<string, unknown>,
   ) => { compile: (schema: unknown) => ((value: unknown) => boolean) & { errors?: unknown } })({
     allErrors: true,
     strict: false,
-  }).compile(schema);
+  });
+  (addFormats as unknown as (instance: unknown) => void)(ajv);
+  const validate = ajv.compile(schema);
   for (const variant of ["js-controlled", "wasm-linear-controlled"]) {
     const record = JSON.parse(
       await Deno.readTextFile(
