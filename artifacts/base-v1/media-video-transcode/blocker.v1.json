@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "catalogWorkloadId": "media.video-transcode.v1",
+  "catalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+  "status": "blocked",
+  "implementationCoverage": false,
+  "reasonCode": "controlled-javascript-vp9-encoder-unavailable",
+  "requirement": "The controlled JavaScript target must independently encode the complete frozen 10-second 720p Y4M clip as VP9/WebM, decode the result, and extract the registered thumbnails in JavaScript. It cannot call WebCodecs, Canvas/WebP, MediaRecorder, a native process, or a WebAssembly codec, and it must implement the same fixed VP9 family as the material linear-Wasm target.",
+  "controlledJavaScriptCandidates": [
+    {
+      "name": "whammy",
+      "version": "0.0.1",
+      "licenseSpdx": "BSD-2-Clause",
+      "source": "https://github.com/antimatter15/whammy",
+      "packageTarballSha256": "08ced27aa6091a77d22e52c73742d460ed28510b7b3e44f77f0a564360931c13",
+      "disposition": "host-vp8",
+      "evidence": [
+        "The package calls canvas.toDataURL('image/webp') and extracts the browser-produced VP8 payload.",
+        "Its WebM track declares V_VP8, not V_VP9, and it does not implement a video decoder or the thumbnail stage."
+      ]
+    },
+    {
+      "name": "webm-writer",
+      "version": "1.0.0",
+      "licenseSpdx": "WTFPL",
+      "source": "https://github.com/thenickdude/webm-writer-js",
+      "packageTarballSha256": "ee48cafe6f9a2d87e8e87ec93660847a6a572d868cbb8bafc5bb2cfe78d59d47",
+      "disposition": "host-vp8",
+      "evidence": [
+        "The README states that Chrome's WebP encoder performs the compression.",
+        "The implementation calls canvas.toDataURL('image/webp') and writes V_VP8 frames, so it is neither a JavaScript VP9 encoder nor a complete transcode pipeline."
+      ]
+    },
+    {
+      "name": "@ffmpeg/ffmpeg",
+      "version": "0.12.15",
+      "licenseSpdx": "MIT",
+      "source": "https://github.com/ffmpegwasm/ffmpeg.wasm",
+      "packageTarballSha256": "c8a23365fb39b46d3d1d9baa2e74b522d00ce5d57e8b20471ad2665eaad38e3e",
+      "disposition": "wasm-backed",
+      "evidence": [
+        "The worker loads ffmpeg-core and a .wasm payload through createFFmpegCore.",
+        "Using it for the JavaScript target would compare a Wasm codec with another Wasm codec."
+      ]
+    },
+    {
+      "name": "@webav/av-cliper",
+      "version": "1.2.8",
+      "licenseSpdx": "NOASSERTION",
+      "source": "https://github.com/WebAV-Tech/WebAV",
+      "packageTarballSha256": "6016c72f68a6e4d729a2b9461631c423669be388c4e7f472c1ecdedd60f3258d",
+      "disposition": "host-webcodecs",
+      "evidence": [
+        "The shipped implementation requires global VideoEncoder and VideoDecoder and calls their isConfigSupported methods.",
+        "WebCodecs is a native host product baseline excluded from the controlled JavaScript implementation."
+      ]
+    },
+    {
+      "name": "libvpx",
+      "version": "1.0.0",
+      "licenseSpdx": "LicenseRef-Unspecified",
+      "source": "https://www.npmjs.com/package/libvpx",
+      "packageTarballSha256": "a8f4aad068ee17361874abbff1075efa537c00d01dbca2bae4f916fff893eb3b",
+      "disposition": "empty-package",
+      "evidence": [
+        "The npm tarball contains only a 38-byte package.json with name and version.",
+        "It provides no JavaScript or Wasm encoder, decoder, WebM muxer, or thumbnail code."
+      ]
+    }
+  ],
+  "materialWasmCandidate": {
+    "name": "libvpx",
+    "version": "1.16.0",
+    "licenseSpdx": "BSD-3-Clause",
+    "source": "https://chromium.googlesource.com/webm/libvpx/",
+    "nativeProbeSha256": "70ae42b3b09df9d8be1cf444265a389628e112704b465bf6595e0d60a7b8a46f",
+    "disposition": "credible-unbuilt-wasm-source"
+  },
+  "reproduction": {
+    "script": "scripts/reproduce-base-video-js-blocker.sh",
+    "denoVersion": "2.9.0",
+    "npmVersion": "11.13.0",
+    "libvpxVersion": "1.16.0",
+    "candidateChecks": 5
+  },
+  "unresolvedRequirements": [
+    "No independent controlled JavaScript VP9 encoder, VP9 decoder, WebM mux/demux pair, and thumbnail pipeline was found.",
+    "The project-generated 10-second 720p CC0 clip, frame hashes, bitrate, preset, GOP, thread count, decoded-frame oracle, PSNR/SSIM bounds, and thumbnail pixels cannot be frozen until both controlled targets exist.",
+    "A minimal libvpx/FFmpeg linear-Wasm build remains unbuilt; source revision, Emscripten configuration, patent configuration, licenses, notices, threads, SIMD, VFS, memory and artifact hashes remain unavailable rather than inferred.",
+    "A host WebCodecs, Canvas/WebP, MediaRecorder, native ffmpeg, or JavaScript facade around Wasm cannot fill the controlled JavaScript cell."
+  ],
+  "nextAction": "Keep this workload at zero implementation coverage. Re-open it only when a pinned, license-compatible independent JavaScript VP9/WebM encode-decode implementation passes official interoperability vectors and the complete registered clip, decoded-frame, structure, thumbnail and counter contract against a separately built libvpx/FFmpeg linear-Wasm target."
+}
