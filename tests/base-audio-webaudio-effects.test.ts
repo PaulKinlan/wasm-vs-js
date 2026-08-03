@@ -16,7 +16,7 @@ import {
 } from "../benchmarks/base/audio-webaudio-effects/reference.js";
 import { processWasm } from "../benchmarks/base/audio-webaudio-effects/wasm.js";
 
-let compiled: Promise<WebAssembly.Instance> | undefined;
+let compiled: Promise<{ bytes: Uint8Array; instance: WebAssembly.Instance }> | undefined;
 function compileWasm() {
   compiled ??= (async () => {
     const wabt = await wabtFactory();
@@ -35,7 +35,8 @@ function compileWasm() {
     parsed.destroy();
     const bytes = new Uint8Array(generated.byteLength);
     bytes.set(generated);
-    return await WebAssembly.instantiate(new WebAssembly.Module(bytes.buffer));
+    const instance = await WebAssembly.instantiate(new WebAssembly.Module(bytes.buffer));
+    return { bytes, instance };
   })();
   return compiled;
 }
@@ -79,7 +80,7 @@ for (
   Deno.test(`${name} differential: JS and material Wasm match every sample`, async () => {
     const fixture = generateFixture(frames);
     const js = processJavaScript(fixture);
-    const wasm = processWasm(await compileWasm(), fixture);
+    const wasm = processWasm((await compileWasm()).instance, fixture);
     assertEquals(js.left.length, frames + 15);
     for (const side of ["left", "right"] as const) {
       for (let index = 0; index < js[side].length; index++) {
@@ -102,11 +103,22 @@ Deno.test({
   fn: async () => {
     const fixture = generateFixture();
     const js = processJavaScript(fixture);
-    const wasm = processWasm(await compileWasm(), fixture);
+    const wasm = processWasm((await compileWasm()).instance, fixture);
+    const jsCounts = counters(CONTRACT.frames, "javascript", js.observations);
+    const wasmCounts = counters(CONTRACT.frames, "wasm-linear", wasm.observations);
+    assertEquals(jsCounts["blocks-per-channel"], 22_500);
+    assertEquals(jsCounts["block-invocations"], 45_000);
+    assertEquals(jsCounts["state-carry-boundaries"], 44_998);
+    assertEquals(jsCounts["tail-flush-invocations"], 2);
+    assertEquals(wasmCounts["blocks-per-channel"], 22_500);
+    assertEquals(wasmCounts["block-invocations"], 45_000);
+    assertEquals(wasmCounts["state-carry-boundaries"], 44_998);
+    assertEquals(wasmCounts["boundary-crossings"], 45_002);
     const jsBytes = interleaveBytes(js);
     const wasmBytes = interleaveBytes(wasm);
     assertEquals(jsBytes.byteLength, 23_040_120);
-    assertEquals(await sha256Hex(jsBytes), await sha256Hex(wasmBytes));
+    const outputHash = await sha256Hex(jsBytes);
+    assertEquals(outputHash, await sha256Hex(wasmBytes));
     for (let index = 0; index < jsBytes.length; index++) {
       assertEquals(jsBytes[index], wasmBytes[index]);
     }
@@ -114,27 +126,55 @@ Deno.test({
     assertEquals(oracle.violations, 0);
     assertEquals(oracle.nonFinite, 0);
     assert(oracle.maxAbsolute <= oracle.absoluteTolerance);
+    const manifest = JSON.parse(
+      await Deno.readTextFile(
+        "public/artifacts/base-audio-webaudio-effects-v1/output-manifest.json",
+      ),
+    );
+    const jsEvidence = JSON.parse(
+      await Deno.readTextFile(
+        "public/evidence/base/audio-webaudio-effects-v1/javascript-controlled.json",
+      ),
+    );
+    const wasmEvidence = JSON.parse(
+      await Deno.readTextFile(
+        "public/evidence/base/audio-webaudio-effects-v1/wasm-linear-controlled.json",
+      ),
+    );
+    assertEquals(manifest.jsSha256, outputHash);
+    assertEquals(manifest.wasmSha256, outputHash);
+    assertEquals(jsEvidence.completeOutputSha256, outputHash);
+    assertEquals(wasmEvidence.completeOutputSha256, outputHash);
+    assertEquals(jsEvidence.counters, jsCounts);
+    assertEquals(wasmEvidence.counters, wasmCounts);
   },
 });
 
-Deno.test("exact counters cover blocks, samples, state, MACs, allocations and crossings", () => {
-  const js = counters();
-  const wasm = counters(CONTRACT.frames, "wasm-linear");
-  assertEquals(js["input-frames"], 2_880_000);
-  assertEquals(js["input-samples"], 5_760_000);
-  assertEquals(js["blocks-128"], 22_500);
-  assertEquals(js["output-samples"], 5_760_030);
-  assertEquals(js["convolution-macs"], 92_160_480);
-  assertEquals(js["state-carry-boundaries"], 22_499);
-  assertEquals(js["tail-flush-frames"], 15);
-  assertEquals(js["fixture-allocations"], 2);
-  assertEquals(js.allocations, 4);
-  assertEquals(js["validation-output-copies"], 0);
+Deno.test("counters are derived from observed block calls, state carries and tail calls", async () => {
+  const fixture = generateFixture(257);
+  const jsOutput = processJavaScript(fixture);
+  const wasmOutput = processWasm((await compileWasm()).instance, fixture);
+  const js = counters(257, "javascript", jsOutput.observations);
+  const wasm = counters(257, "wasm-linear", wasmOutput.observations);
+  assertEquals(js["blocks-per-channel"], 3);
+  assertEquals(js["block-invocations"], 6);
+  assertEquals(js["state-carry-boundaries-per-channel"], 2);
+  assertEquals(js["state-carry-boundaries"], 4);
+  assertEquals(js["tail-flush-invocations"], 2);
+  assertEquals(js["tail-flush-frames"], 30);
   assertEquals(js["boundary-crossings"], 0);
-  assertEquals(wasm["fixture-allocations"], 2);
-  assertEquals(wasm.allocations, 0);
-  assertEquals(wasm["validation-output-copies"], 2);
-  assertEquals(wasm["boundary-crossings"], 1);
+  assertEquals(wasm["blocks-per-channel"], 3);
+  assertEquals(wasm["block-invocations"], 6);
+  assertEquals(wasm["state-carry-boundaries"], 4);
+  assertEquals(wasm["boundary-crossings"], 8);
+  let rejectedCalculatedClaim = false;
+  try {
+    counters(257, "javascript", { ...jsOutput.observations, blockInvocations: 1 });
+  } catch (error) {
+    rejectedCalculatedClaim = error instanceof Error &&
+      error.message.includes("observed execution does not satisfy");
+  }
+  assert(rejectedCalculatedClaim, "unobserved/calculated block claims must be rejected");
 });
 
 Deno.test("demo is bounded, cancellable, stale-safe, pagehide-safe and non-persistent", async () => {
@@ -170,7 +210,34 @@ Deno.test("demo is bounded, cancellable, stale-safe, pagehide-safe and non-persi
   }
 });
 
-Deno.test("generated registration and both correctness records satisfy the closed schema", async () => {
+Deno.test("artifact is byte-identical to a fresh canonical WAT compilation", async () => {
+  const fresh = (await compileWasm()).bytes;
+  const committed = await Deno.readFile(
+    "public/artifacts/base-audio-webaudio-effects-v1/audio-webaudio-effects.wasm",
+  );
+  assertEquals(await sha256Hex(fresh), await sha256Hex(committed));
+  assertEquals([...fresh], [...committed]);
+});
+
+Deno.test("build manifest source graph is byte-exact at its recorded Git commit", async () => {
+  const manifest = JSON.parse(
+    await Deno.readTextFile(
+      "public/artifacts/base-audio-webaudio-effects-v1/build-manifest.json",
+    ),
+  );
+  for (const source of manifest.sources) {
+    const committed = await new Deno.Command("git", {
+      args: ["show", `${manifest.sourceCommit}:${source.path}`],
+      stdout: "piped",
+      stderr: "piped",
+    }).output();
+    assert(committed.success, `source missing at commit: ${source.path}`);
+    assertEquals(await sha256Hex(committed.stdout), source.sha256);
+    assertEquals(committed.stdout.byteLength, source.bytes);
+  }
+});
+
+Deno.test("all generated package records satisfy the fully closed exact schema", async () => {
   const schema = JSON.parse(
     await Deno.readTextFile("schemas/audio-webaudio-effects-base.schema.json"),
   );
@@ -179,15 +246,41 @@ Deno.test("generated registration and both correctness records satisfy the close
   const validate = new (Ajv2020 as unknown as new (options: Record<string, unknown>) => {
     compile: (schema: unknown) => ((value: unknown) => boolean) & { errors?: unknown };
   })({ allErrors: true, strict: false }).compile(schema);
-  for (
-    const path of [
-      "catalog/base-implementations/audio.webaudio-effects.v1.json",
-      "public/evidence/base/audio-webaudio-effects-v1/javascript-controlled.json",
-      "public/evidence/base/audio-webaudio-effects-v1/wasm-linear-controlled.json",
-    ]
-  ) {
+  const paths = [
+    "catalog/base-implementations/audio.webaudio-effects.v1.json",
+    "public/artifacts/base-audio-webaudio-effects-v1/fixture-manifest.json",
+    "public/artifacts/base-audio-webaudio-effects-v1/output-manifest.json",
+    "public/artifacts/base-audio-webaudio-effects-v1/build-manifest.json",
+    "public/evidence/base/audio-webaudio-effects-v1/javascript-controlled.json",
+    "public/evidence/base/audio-webaudio-effects-v1/wasm-linear-controlled.json",
+  ];
+  const records = new Map<string, Record<string, unknown>>();
+  for (const path of paths) {
     const value = JSON.parse(await Deno.readTextFile(path));
+    records.set(path, value);
     assert(validate(value), `${path}: ${JSON.stringify(validate.errors)}`);
+  }
+
+  const registration = records.get(paths[0])!;
+  const fixture = records.get(paths[1])!;
+  const output = records.get(paths[2])!;
+  const build = records.get(paths[3])!;
+  const evidence = records.get(paths[4])!;
+  const negatives = [
+    { ...structuredClone(registration), implementation: {} },
+    { ...structuredClone(registration), artifacts: {} },
+    { ...structuredClone(fixture), inputBytes: 0 },
+    { ...structuredClone(fixture), unexpected: true },
+    { ...structuredClone(output), checkpoints: [] },
+    { ...structuredClone(output), bytes: 1 },
+    { ...structuredClone(build), artifact: {} },
+    { ...structuredClone(build), sources: [] },
+    { ...structuredClone(evidence), oracle: {} },
+    { ...structuredClone(evidence), counters: {} },
+    { ...structuredClone(evidence), authoritativePerformanceEvidence: true },
+  ];
+  for (const [index, value] of negatives.entries()) {
+    assert(!validate(value), `negative ${index} unexpectedly satisfied the package schema`);
   }
 });
 

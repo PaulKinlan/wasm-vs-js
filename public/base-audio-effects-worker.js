@@ -21,29 +21,69 @@ function align(value, boundary = 16) {
   return Math.ceil(value / boundary) * boundary;
 }
 
-function runWasm(instance, fixture, ir) {
-  const memory = instance.exports.memory;
-  const effects = instance.exports.effects_chain;
-  if (!(memory instanceof WebAssembly.Memory) || typeof effects !== "function") {
-    throw new Error("Wasm exports are incomplete");
-  }
+function runWasm(instance, fixture, ir, blockFrames) {
+  const { memory, reset_state: resetState, effects_block: effectsBlock, flush_tail: flushTail } =
+    instance.exports;
+  if (
+    !(memory instanceof WebAssembly.Memory) || typeof resetState !== "function" ||
+    typeof effectsBlock !== "function" || typeof flushTail !== "function"
+  ) throw new Error("Wasm exports are incomplete");
   const frames = fixture.left.length;
   const outputFrames = frames + ir.length - 1;
+  const stateBytes = align(16 + ir.length * 4);
   const leftIn = 0;
   const rightIn = align(leftIn + frames * 4);
   const irPtr = align(rightIn + frames * 4);
   const leftOut = align(irPtr + ir.length * 4);
   const rightOut = align(leftOut + outputFrames * 4);
-  const history = align(rightOut + outputFrames * 4);
-  if (history + ir.length * 8 > memory.buffer.byteLength) throw new Error("fixed memory too small");
+  const leftState = align(rightOut + outputFrames * 4);
+  const rightState = leftState + stateBytes;
+  if (rightState + stateBytes > memory.buffer.byteLength) throw new Error("fixed memory too small");
   new Float32Array(memory.buffer, leftIn, frames).set(fixture.left);
   new Float32Array(memory.buffer, rightIn, frames).set(fixture.right);
   new Float32Array(memory.buffer, irPtr, ir.length).set(ir);
-  effects(leftIn, rightIn, frames, irPtr, ir.length, leftOut, rightOut, history);
+  const observed = {
+    blocksPerChannel: [],
+    blockInvocations: 0,
+    stateCarryBoundaries: 0,
+    tailFlushInvocations: 0,
+    tailFlushFrames: 0,
+    processingBoundaryCrossings: 0,
+  };
+  for (
+    const [input, output, state] of [
+      [leftIn, leftOut, leftState],
+      [rightIn, rightOut, rightState],
+    ]
+  ) {
+    resetState(state, ir.length);
+    let channelBlocks = 0;
+    for (let offset = 0; offset < frames; offset += blockFrames) {
+      const count = Math.min(blockFrames, frames - offset);
+      if (channelBlocks > 0) observed.stateCarryBoundaries++;
+      effectsBlock(input + offset * 4, count, irPtr, ir.length, output + offset * 4, state);
+      channelBlocks++;
+      observed.blockInvocations++;
+      observed.processingBoundaryCrossings++;
+    }
+    observed.blocksPerChannel.push(channelBlocks);
+    flushTail(ir.length - 1, irPtr, ir.length, output + frames * 4, state);
+    observed.tailFlushInvocations++;
+    observed.tailFlushFrames += ir.length - 1;
+    observed.processingBoundaryCrossings++;
+  }
   return {
     left: new Float32Array(memory.buffer, leftOut, outputFrames).slice(),
     right: new Float32Array(memory.buffer, rightOut, outputFrames).slice(),
+    observations: workloadObservations(observed),
   };
+}
+
+function workloadObservations(observed) {
+  return Object.freeze({
+    ...observed,
+    blocksPerChannel: Object.freeze([...observed.blocksPerChannel]),
+  });
 }
 
 self.addEventListener("message", async (event) => {
@@ -97,7 +137,7 @@ self.addEventListener("message", async (event) => {
         throw new Error("Wasm artifact hash mismatch");
       }
       const { instance } = await WebAssembly.instantiate(wasmBytes);
-      result = runWasm(instance, fixture, workload.IR);
+      result = runWasm(instance, fixture, workload.IR, workload.CONTRACT.blockFrames);
     }
     self.postMessage({
       token,
@@ -110,9 +150,11 @@ self.addEventListener("message", async (event) => {
     if (digest !== expected || oracle.exactCrossTarget !== true) {
       throw new Error("complete output oracle mismatch");
     }
-    const counts = workload.counters(workload.CONTRACT.frames, target);
+    const counts = workload.counters(workload.CONTRACT.frames, target, result.observations);
     if (
-      counts["input-frames"] !== 2_880_000 || counts["blocks-128"] !== 22_500 ||
+      counts["input-frames"] !== 2_880_000 || counts["blocks-per-channel"] !== 22_500 ||
+      counts["block-invocations"] !== 45_000 ||
+      counts["state-carry-boundaries"] !== 44_998 ||
       counts["output-samples"] !== 5_760_030 || counts["convolution-macs"] !== 92_160_480
     ) {
       throw new Error("fixed-work counter mismatch");
@@ -122,11 +164,11 @@ self.addEventListener("message", async (event) => {
       type: "complete",
       text: `Target: ${target}\nComplete output SHA-256: ${digest}\nFrames: ${
         counts["input-frames"]
-      }\nBlocks: ${counts["blocks-128"]}\nOutput samples: ${
-        counts["output-samples"]
-      }\nConvolution MACs: ${counts["convolution-macs"]}\nBoundary crossings: ${
-        counts["boundary-crossings"]
-      }`,
+      }\nBlocks per channel: ${counts["blocks-per-channel"]}\nBlock invocations: ${
+        counts["block-invocations"]
+      }\nOutput samples: ${counts["output-samples"]}\nConvolution MACs: ${
+        counts["convolution-macs"]
+      }\nBoundary crossings: ${counts["boundary-crossings"]}`,
     });
   } catch (error) {
     self.postMessage({

@@ -118,37 +118,66 @@ function compressorGain(envelope) {
   return f(effective / envelope);
 }
 
-function processChannel(input, ir, output) {
+function createChannelState(irLength) {
+  return { z1: f(0), z2: f(0), envelope: f(0), history: new Float32Array(irLength), cursor: 0 };
+}
+
+function convolveSample(compressed, ir, output, outputIndex, state) {
+  state.history[state.cursor] = compressed;
+  let sum = f(0);
+  let historyIndex = state.cursor;
+  for (let tap = 0; tap < ir.length; tap++) {
+    sum = f(sum + f(state.history[historyIndex] * ir[tap]));
+    historyIndex = historyIndex === 0 ? ir.length - 1 : historyIndex - 1;
+  }
+  output[outputIndex] = sum;
+  state.cursor++;
+  if (state.cursor === ir.length) state.cursor = 0;
+}
+
+function processBlock(input, offset, frames, ir, output, state) {
   const { b0, b1, b2, a1, a2 } = CONTRACT.biquad;
   const { attackCoefficient, releaseCoefficient } = CONTRACT.compressor;
-  let z1 = f(0);
-  let z2 = f(0);
-  let envelope = f(0);
-  const history = new Float32Array(ir.length);
-  let cursor = 0;
-  for (let index = 0; index < output.length; index++) {
-    let compressed = f(0);
-    if (index < input.length) {
-      const sample = input[index];
-      const filtered = f(f(b0 * sample) + z1);
-      z1 = f(f(f(b1 * sample) - f(a1 * filtered)) + z2);
-      z2 = f(f(b2 * sample) - f(a2 * filtered));
-      const magnitude = f(Math.abs(filtered));
-      const coefficient = magnitude > envelope ? attackCoefficient : releaseCoefficient;
-      envelope = f(f(coefficient * envelope) + f(f(f(1) - coefficient) * magnitude));
-      compressed = f(filtered * compressorGain(envelope));
-    }
-    history[cursor] = compressed;
-    let sum = f(0);
-    let historyIndex = cursor;
-    for (let tap = 0; tap < ir.length; tap++) {
-      sum = f(sum + f(history[historyIndex] * ir[tap]));
-      historyIndex = historyIndex === 0 ? ir.length - 1 : historyIndex - 1;
-    }
-    output[index] = sum;
-    cursor++;
-    if (cursor === ir.length) cursor = 0;
+  for (let blockIndex = 0; blockIndex < frames; blockIndex++) {
+    const sample = input[offset + blockIndex];
+    const filtered = f(f(b0 * sample) + state.z1);
+    state.z1 = f(f(f(b1 * sample) - f(a1 * filtered)) + state.z2);
+    state.z2 = f(f(b2 * sample) - f(a2 * filtered));
+    const magnitude = f(Math.abs(filtered));
+    const coefficient = magnitude > state.envelope ? attackCoefficient : releaseCoefficient;
+    state.envelope = f(
+      f(coefficient * state.envelope) + f(f(f(1) - coefficient) * magnitude),
+    );
+    convolveSample(
+      f(filtered * compressorGain(state.envelope)),
+      ir,
+      output,
+      offset + blockIndex,
+      state,
+    );
   }
+}
+
+function flushConvolution(inputFrames, ir, output, state) {
+  for (let tail = 0; tail < ir.length - 1; tail++) {
+    convolveSample(f(0), ir, output, inputFrames + tail, state);
+  }
+}
+
+function processChannelInBlocks(input, ir, output, observations) {
+  const state = createChannelState(ir.length);
+  let blocksForChannel = 0;
+  for (let offset = 0; offset < input.length; offset += CONTRACT.blockFrames) {
+    const frames = Math.min(CONTRACT.blockFrames, input.length - offset);
+    if (blocksForChannel > 0) observations.stateCarryBoundaries++;
+    processBlock(input, offset, frames, ir, output, state);
+    blocksForChannel++;
+    observations.blockInvocations++;
+  }
+  observations.blocksPerChannel.push(blocksForChannel);
+  flushConvolution(input.length, ir, output, state);
+  observations.tailFlushInvocations++;
+  observations.tailFlushFrames += ir.length - 1;
 }
 
 export function processJavaScript(fixture, ir = IR) {
@@ -162,29 +191,70 @@ export function processJavaScript(fixture, ir = IR) {
   const outputFrames = fixture.left.length + ir.length - 1;
   const left = new Float32Array(outputFrames);
   const right = new Float32Array(outputFrames);
-  processChannel(fixture.left, ir, left);
-  processChannel(fixture.right, ir, right);
-  return { left, right };
+  const observed = {
+    blocksPerChannel: [],
+    blockInvocations: 0,
+    stateCarryBoundaries: 0,
+    tailFlushInvocations: 0,
+    tailFlushFrames: 0,
+    processingBoundaryCrossings: 0,
+  };
+  processChannelInBlocks(fixture.left, ir, left, observed);
+  processChannelInBlocks(fixture.right, ir, right, observed);
+  return { left, right, observations: freezeObservations(observed) };
 }
 
-export function counters(frames = Number(CONTRACT.frames), target = "javascript") {
+export function freezeObservations(observed) {
+  return Object.freeze({
+    blocksPerChannel: Object.freeze([...observed.blocksPerChannel]),
+    blockInvocations: observed.blockInvocations,
+    stateCarryBoundaries: observed.stateCarryBoundaries,
+    tailFlushInvocations: observed.tailFlushInvocations,
+    tailFlushFrames: observed.tailFlushFrames,
+    processingBoundaryCrossings: observed.processingBoundaryCrossings,
+  });
+}
+
+export function counters(frames, target, observations) {
+  if (!Number.isInteger(frames) || frames < 1 || !["javascript", "wasm-linear"].includes(target)) {
+    throw new TypeError("exact frame count and target required");
+  }
+  if (!observations || observations.blocksPerChannel?.length !== CONTRACT.channels) {
+    throw new TypeError("observed per-channel block execution required");
+  }
+  const expectedBlocks = Math.ceil(frames / CONTRACT.blockFrames);
+  if (
+    observations.blocksPerChannel.some((value) => value !== expectedBlocks) ||
+    observations.blockInvocations !== expectedBlocks * CONTRACT.channels ||
+    observations.stateCarryBoundaries !== (expectedBlocks - 1) * CONTRACT.channels ||
+    observations.tailFlushInvocations !== CONTRACT.channels ||
+    observations.tailFlushFrames !== (CONTRACT.irLength - 1) * CONTRACT.channels ||
+    observations.processingBoundaryCrossings !==
+      (target === "wasm-linear" ? observations.blockInvocations + CONTRACT.channels : 0)
+  ) {
+    throw new Error("observed execution does not satisfy the fixed-block contract");
+  }
   const outputFrames = frames + CONTRACT.irLength - 1;
   return Object.freeze({
     channels: 2,
     "input-frames": frames,
     "input-samples": frames * 2,
-    "blocks-128": Math.ceil(frames / CONTRACT.blockFrames),
+    "blocks-per-channel": observations.blocksPerChannel[0],
+    "block-invocations": observations.blockInvocations,
     "output-frames": outputFrames,
     "output-samples": outputFrames * 2,
     "biquad-samples": frames * 2,
     "compressor-detector-updates": frames * 2,
     "convolution-macs": outputFrames * CONTRACT.irLength * 2,
-    "state-carry-boundaries": Math.max(0, Math.ceil(frames / CONTRACT.blockFrames) - 1),
-    "tail-flush-frames": CONTRACT.irLength - 1,
+    "state-carry-boundaries-per-channel": observations.blocksPerChannel[0] - 1,
+    "state-carry-boundaries": observations.stateCarryBoundaries,
+    "tail-flush-invocations": observations.tailFlushInvocations,
+    "tail-flush-frames-per-channel": CONTRACT.irLength - 1,
+    "tail-flush-frames": observations.tailFlushFrames,
     "fixture-allocations": 2,
     allocations: target === "javascript" ? 4 : 0,
     "validation-output-copies": target === "wasm-linear" ? 2 : 0,
-    "boundary-crossings": target === "wasm-linear" ? 1 : 0,
+    "boundary-crossings": observations.processingBoundaryCrossings,
   });
 }
 

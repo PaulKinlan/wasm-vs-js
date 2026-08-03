@@ -67,3 +67,7 @@ for (
 console.log(
   `planning-check: ${requiredFiles.length} files, 2 closed schemas, and later-scope invariants passed`,
 );
+
+// The standard repository gate rebuilds the controlled audio-effects package in
+// memory and byte-reconciles its committed artifact, manifests, and evidence.
+await import("./build-base-audio-webaudio-effects.ts");

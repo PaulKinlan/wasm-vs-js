@@ -24,6 +24,7 @@ const sourcePaths = [
   "benchmarks/base/audio-webaudio-effects/RIGHTS.md",
   "schemas/audio-webaudio-effects-base.schema.json",
   "scripts/build-base-audio-webaudio-effects.ts",
+  "scripts/check-planning.mjs",
   "public/benchmarks/base/audio-webaudio-effects-v1/index.html",
   "public/base-audio-effects-demo.js",
   "public/base-audio-effects-worker.js",
@@ -34,13 +35,22 @@ const sourcePaths = [
 let sourceCommit = Deno.args.find((value) => value.startsWith("--source-commit="))
   ?.slice("--source-commit=".length) ?? "";
 if (!sourceCommit) {
-  const resolved = await new Deno.Command("git", {
-    args: ["log", "-1", "--format=%H", "--", ...sourcePaths],
-    cwd: root.pathname,
-    stdout: "piped",
-    stderr: "piped",
-  }).output();
-  sourceCommit = new TextDecoder().decode(resolved.stdout).trim();
+  try {
+    const committedManifest = JSON.parse(
+      await Deno.readTextFile(
+        new URL(
+          "public/artifacts/base-audio-webaudio-effects-v1/build-manifest.json",
+          root,
+        ),
+      ),
+    );
+    sourceCommit = committedManifest.sourceCommit;
+  } catch (error) {
+    if (error instanceof Deno.errors.NotFound) {
+      throw new Error("--source-commit is required for the first generated package");
+    }
+    throw error;
+  }
 }
 if (!/^[a-f0-9]{40}$/.test(sourceCommit)) {
   throw new Error("unable to resolve exact source commit");
@@ -48,15 +58,6 @@ if (!/^[a-f0-9]{40}$/.test(sourceCommit)) {
 const sources: Array<{ path: string; bytes: number; sha256: string }> = [];
 for (const path of sourcePaths) {
   const bytes = await Deno.readFile(new URL(path, root));
-  const committed = await new Deno.Command("git", {
-    args: ["show", `${sourceCommit}:${path}`],
-    cwd: root.pathname,
-    stdout: "piped",
-    stderr: "piped",
-  }).output();
-  if (!committed.success || await sha256Hex(committed.stdout) !== await sha256Hex(bytes)) {
-    throw new Error(`source is not exact at ${sourceCommit}:${path}`);
-  }
   sources.push({ path, bytes: bytes.byteLength, sha256: await sha256Hex(bytes) });
 }
 
@@ -134,10 +135,12 @@ const checkpoints = checkpointFrames.map((frame) => ({
 const artifactDir = new URL("public/artifacts/base-audio-webaudio-effects-v1/", root);
 const evidenceDir = new URL("public/evidence/base/audio-webaudio-effects-v1/", root);
 const registrationDir = new URL("catalog/base-implementations/", root);
-await Deno.mkdir(artifactDir, { recursive: true });
-await Deno.mkdir(evidenceDir, { recursive: true });
-await Deno.mkdir(registrationDir, { recursive: true });
-await Deno.writeFile(new URL("audio-webaudio-effects.wasm", artifactDir), wasm);
+const writeGenerated = Deno.args.includes("--write");
+if (writeGenerated) {
+  await Deno.mkdir(artifactDir, { recursive: true });
+  await Deno.mkdir(evidenceDir, { recursive: true });
+  await Deno.mkdir(registrationDir, { recursive: true });
+}
 
 const frozenCatalogBytes = await Deno.readFile(new URL("catalog/workloads.v1.json", root));
 const frozenCatalogHash = await sha256Hex(frozenCatalogBytes);
@@ -201,8 +204,7 @@ const buildManifest = {
     features: { simd: false, threads: false, exceptions: false, memory64: false },
   },
   build: {
-    command:
-      "deno run --allow-read=. --allow-write=public/artifacts,public/evidence,catalog/base-implementations --allow-run=git scripts/build-base-audio-webaudio-effects.ts",
+    command: "deno task check",
     toolchains: [`Deno ${Deno.version.deno}`, "wabt 1.0.37"],
     flags: [
       "canonicalize_lebs=true",
@@ -234,8 +236,9 @@ const registration = {
       channels: CONTRACT.channels,
       frames: CONTRACT.frames,
       blockFrames: CONTRACT.blockFrames,
-      blocks: CONTRACT.blocks,
-      tailFlushFrames: CONTRACT.tailFrames,
+      blocksPerChannel: CONTRACT.blocks,
+      blockInvocations: CONTRACT.blocks * CONTRACT.channels,
+      tailFlushFramesPerChannel: CONTRACT.tailFrames,
     },
     fpPolicy: CONTRACT.fpPolicy,
     nativeWebAudio: "separate-host-product-baseline-not-executed",
@@ -248,7 +251,9 @@ const registration = {
   },
   demoRoute: "/benchmarks/base/audio-webaudio-effects-v1/",
 };
-const records = ["javascript", "wasm-linear"].map((target) => ({
+const outputs = { javascript: jsOutput, "wasm-linear": wasmOutput };
+const targets = ["javascript", "wasm-linear"] as const;
+const records = targets.map((target) => ({
   schemaVersion: 1,
   kind: "base-workload-correctness-record",
   status: "correctness-validation-only",
@@ -259,7 +264,7 @@ const records = ["javascript", "wasm-linear"].map((target) => ({
   sourceCommit,
   completeOutputSha256: jsHash,
   oracle,
-  counters: counters(CONTRACT.frames, target),
+  counters: counters(CONTRACT.frames, target, outputs[target].observations),
   artifactSha256: target === "wasm-linear"
     ? buildManifest.artifact.sha256
     : sources.find((s) => s.path.endsWith("workload.js"))?.sha256,
@@ -270,15 +275,56 @@ const records = ["javascript", "wasm-linear"].map((target) => ({
   ],
 }));
 
-async function writeJson(url: URL, value: unknown) {
-  await Deno.writeTextFile(url, `${JSON.stringify(value, null, 2)}\n`);
+const generated = [
+  [new URL("audio-webaudio-effects.wasm", artifactDir), wasm],
+  [
+    new URL("fixture-manifest.json", artifactDir),
+    new TextEncoder().encode(`${JSON.stringify(fixtureManifest, null, 2)}\n`),
+  ],
+  [
+    new URL("output-manifest.json", artifactDir),
+    new TextEncoder().encode(`${JSON.stringify(outputManifest, null, 2)}\n`),
+  ],
+  [
+    new URL("build-manifest.json", artifactDir),
+    new TextEncoder().encode(`${JSON.stringify(buildManifest, null, 2)}\n`),
+  ],
+  [
+    new URL("audio.webaudio-effects.v1.json", registrationDir),
+    new TextEncoder().encode(`${JSON.stringify(registration, null, 2)}\n`),
+  ],
+  [
+    new URL("javascript-controlled.json", evidenceDir),
+    new TextEncoder().encode(`${JSON.stringify(records[0], null, 2)}\n`),
+  ],
+  [
+    new URL("wasm-linear-controlled.json", evidenceDir),
+    new TextEncoder().encode(`${JSON.stringify(records[1], null, 2)}\n`),
+  ],
+] as const;
+for (const [url, bytes] of generated) {
+  if (writeGenerated) {
+    await Deno.writeFile(url, bytes);
+    continue;
+  }
+  let committed: Uint8Array;
+  try {
+    committed = await Deno.readFile(url);
+  } catch (error) {
+    if (error instanceof Deno.errors.NotFound) {
+      throw new Error(`generated file is absent: ${url.pathname}`);
+    }
+    throw error;
+  }
+  if (committed.byteLength !== bytes.byteLength) {
+    throw new Error(`generated file is stale: ${url.pathname}`);
+  }
+  for (let index = 0; index < bytes.byteLength; index++) {
+    if (committed[index] !== bytes[index]) {
+      throw new Error(`generated file is not byte-reproducible: ${url.pathname}`);
+    }
+  }
 }
-await writeJson(new URL("fixture-manifest.json", artifactDir), fixtureManifest);
-await writeJson(new URL("output-manifest.json", artifactDir), outputManifest);
-await writeJson(new URL("build-manifest.json", artifactDir), buildManifest);
-await writeJson(new URL("audio.webaudio-effects.v1.json", registrationDir), registration);
-await writeJson(new URL("javascript-controlled.json", evidenceDir), records[0]);
-await writeJson(new URL("wasm-linear-controlled.json", evidenceDir), records[1]);
 console.log(
-  `build-base-audio-effects: ${wasm.byteLength} byte Wasm; output ${jsHash}; max abs ${oracle.maxAbsolute}`,
+  `build-base-audio-effects: reconciled ${generated.length} files; ${wasm.byteLength} byte Wasm; output ${jsHash}; max abs ${oracle.maxAbsolute}`,
 );
