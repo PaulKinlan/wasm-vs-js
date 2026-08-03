@@ -1906,6 +1906,30 @@ for (
   ]);
 }
 
+for (
+  const [name, contentType] of [
+    ["fixture.v1.txt", "text/plain; charset=utf-8"],
+    ["fixture-manifest.json", "application/json; charset=utf-8"],
+    ["reference.json", "application/json; charset=utf-8"],
+    ["build-manifest.json", "application/json; charset=utf-8"],
+    ["text-gc-document-edit.mjs", "text/javascript; charset=utf-8"],
+    ["text-gc-document-edit.import-object.mjs", "text/javascript; charset=utf-8"],
+    ["text-gc-document-edit.js-builtins.mjs", "text/javascript; charset=utf-8"],
+    ["text-gc-document-edit.wasm", "application/wasm"],
+  ] as const
+) {
+  routes.set(`/artifacts/text-gc-document-edit/${name}`, [
+    `public/artifacts/text-gc-document-edit/${name}`,
+    contentType,
+  ]);
+}
+for (const variant of ["js-controlled", "wasmgc-controlled"]) {
+  routes.set(`/evidence/v1-base/text-gc-document-edit/${variant}.json`, [
+    `public/evidence/v1-base/text-gc-document-edit/${variant}.json`,
+    "application/json; charset=utf-8",
+  ]);
+}
+
 function createHandler(
   store: LocalRunStore | null,
   serverMode: ServerMode = "local",
