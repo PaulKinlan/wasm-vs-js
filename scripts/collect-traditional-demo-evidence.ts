@@ -371,6 +371,11 @@ try {
     let finalState;
     if (scenario.action === "cancel") {
       await waitForState(client, sessionId, (state) => String(state.status).startsWith("Running "));
+      const attachDeadline = Date.now() + 2_000;
+      while (workerAttachTasks.length === 0 && Date.now() < attachDeadline) {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+      await Promise.all(workerAttachTasks);
       await click(client, sessionId, "#cancel");
       finalState = await waitForState(
         client,
