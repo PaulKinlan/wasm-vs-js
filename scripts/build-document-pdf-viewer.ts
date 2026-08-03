@@ -407,7 +407,7 @@ const buildManifest = {
   font: fontRef,
   artifact,
   reproduce:
-    `deno run --frozen --allow-read=. --allow-write=public/artifacts,public/evidence,/tmp --allow-run=clang,wasm-ld,git,pdfinfo,pdftotext,pdftoppm scripts/build-document-pdf-viewer.ts --source-commit=${sourceCommit}`,
+    `deno run --frozen --allow-read=.,/tmp --allow-write=public/artifacts,public/evidence,/tmp --allow-run=clang,wasm-ld,git,pdfinfo,pdftotext,pdftoppm scripts/build-document-pdf-viewer.ts --source-commit=${sourceCommit}`,
 };
 for (
   const [name, value] of [["fixture-manifest.json", fixtureManifest], [
