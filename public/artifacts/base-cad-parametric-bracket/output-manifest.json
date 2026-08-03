@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "workloadId": "cad.parametric-bracket.v1",
-  "completeOutputSha256": "364efdd5105cdfb75df57038fad70c6f918099f814e841147525eb4aefb3b773",
-  "completeOutputDigest": "1db042502963e738",
+  "completeOutputSha256": "e976937d9234a4cd63f5c17fbb7d0997d69e43611674f590eceac73820c0007a",
+  "completeOutputDigest": "a8dce8f458de8a4d",
   "exactCrossTargetBytes": true,
   "topology": {
     "connectedComponents": 1,
@@ -13,22 +13,24 @@
     "edges": 30,
     "vertices": 20,
     "watertight": true,
-    "oriented": true
+    "oriented": true,
+    "tessellationEdges": 8706
   },
-  "triangleCount": 264,
+  "triangleCount": 5804,
   "counters": {
     "featureNodes": 10,
     "boxSolids": 1,
     "cylinderSolids": 2,
     "booleanCuts": 2,
     "filletEdges": 4,
+    "booleanIntersectionTests": 64,
     "scanBands": 34,
     "intersectionTests": 3400,
     "sortComparisons": 178,
-    "surfaceTriangles": 264,
-    "tessellationVertices": 792,
+    "surfaceTriangles": 5804,
+    "tessellationVertices": 17412,
     "inputBytes": 128,
-    "outputBytes": 20864,
+    "outputBytes": 419744,
     "allocations": 8,
     "boundaryCrossings": 0
   },

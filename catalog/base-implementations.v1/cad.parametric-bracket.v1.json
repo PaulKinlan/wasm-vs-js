@@ -18,6 +18,8 @@
     ],
     "booleanTiePolicy": "even-odd profile winding; horizontal bands use lower-inclusive upper-exclusive crossings; equal-x crossings preserve source edge order",
     "floatingPointPolicy": "IEEE-754 f64 scalar source order; no fast-math, contraction, SIMD, threads, exceptions or tail calls",
+    "allocationPolicy": "Counts owned binary/backing stores only; point and edge metadata used by the untimed correctness oracle are excluded. JavaScript owns eight backing stores; fixed-memory Wasm performs no semantic allocation.",
+    "counterPolicy": "Boolean intersection tests count every cylinder boundary sample tested against the filleted box. Scan intersection tests count every B-rep edge tested in every horizontal band. Triangle and tessellation-vertex counters come from the complete emitted mesh.",
     "tolerance": {
       "crossTargetBytes": "exact",
       "topology": "exact",

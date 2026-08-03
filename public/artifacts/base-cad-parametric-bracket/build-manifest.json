@@ -3,8 +3,8 @@
   "workloadId": "cad.parametric-bracket.v1",
   "source": {
     "repository": "https://github.com/PaulKinlan/wasm-vs-js",
-    "commit": "59ce9239657ca97b92811ba77191b602776cd5f7",
-    "sourceBundleSha256": "6bb1fbddd218e65073504f5cc2a77888f6dc6d4af8abfe8400cab72a9ff61a93",
+    "commit": "source-tree-not-yet-committed",
+    "sourceBundleSha256": "1c0a3f59946221e70057b3ddee31d67b2685a9d676d9b1db5921c9928e293dfb",
     "files": [
       {
         "path": "benchmarks/base/cad-parametric-bracket/contract.js",
@@ -18,18 +18,18 @@
       },
       {
         "path": "benchmarks/base/cad-parametric-bracket/engine.js",
-        "bytes": 11520,
-        "sha256": "9a84c2ec52f3d335e4010257774d50c38b6f45caf25ca9fb0929090869ee9783"
+        "bytes": 15475,
+        "sha256": "e912bb0573d6fdc2018aa38b694d1242e22652d809d379269387c94e56fc3c7b"
       },
       {
         "path": "benchmarks/base/cad-parametric-bracket/bracket.c",
-        "bytes": 7493,
-        "sha256": "773918e88815a9347e9b532178e4aff3aef1f73658d3371ac861e2b9cb4a1ed4"
+        "bytes": 10308,
+        "sha256": "4b1ee2c92382bbc2c921ea79ac8b87567a5a4ed5825a3f8bff2e9a39230890c8"
       },
       {
         "path": "catalog/base-implementations.v1/cad.parametric-bracket.v1.json",
-        "bytes": 2018,
-        "sha256": "a8f21b65197799f0316e71da8b9a98fbea8f000b372527a19c66666457b04871"
+        "bytes": 2532,
+        "sha256": "c5440bd150da3aefaa49b9cbbc5d57f11e233d5260fc82f8a93d8daf16021b45"
       },
       {
         "path": "schemas/cad-parametric-bracket-validation.schema.json",
@@ -38,13 +38,13 @@
       },
       {
         "path": "scripts/build-base-cad-parametric-bracket.ts",
-        "bytes": 8689,
-        "sha256": "c286a057182dbe1298ab9db127f55b7053cc75f3987a38c377521d320421023e"
+        "bytes": 8691,
+        "sha256": "80131e0b4260a1030795240308bcaf698b7a21976419315f77137dc65d4bc1d4"
       },
       {
         "path": "public/demos/cad-parametric-bracket/index.html",
-        "bytes": 2076,
-        "sha256": "7a4865ca043def93b658b2738d0f8591c9c503b6ce380e8c367bd159bfefff03"
+        "bytes": 2085,
+        "sha256": "c3dba1ee090e1326261551eea90210f51a9890b543c3844780d1270db266d922"
       },
       {
         "path": "public/demos/cad-parametric-bracket/demo.js",
@@ -58,8 +58,8 @@
       },
       {
         "path": "tests/base/cad-parametric-bracket.test.ts",
-        "bytes": 9795,
-        "sha256": "a19dfa0739e3a8029471998b9213f50d4b8e1cee170609a22f3e30f1579cc6b2"
+        "bytes": 9901,
+        "sha256": "73d34bef4741bf36c74f1e0acb6f51c8563580d7039c886f5efeb889c89b47a0"
       },
       {
         "path": "server.ts",
@@ -96,8 +96,8 @@
     "linkerFlags": [
       "--no-entry",
       "--export-memory",
-      "--initial-memory=1048576",
-      "--max-memory=1048576",
+      "--initial-memory=8388608",
+      "--max-memory=8388608",
       "--stack-first"
     ],
     "features": {
@@ -108,8 +108,8 @@
       "memoryGrowth": false
     },
     "fixedMemory": {
-      "initialPages": 16,
-      "maximumPages": 16
+      "initialPages": 128,
+      "maximumPages": 128
     }
   },
   "artifacts": {
@@ -120,13 +120,13 @@
     },
     "wasm": {
       "path": "public/artifacts/base-cad-parametric-bracket/bracket.wasm",
-      "bytes": 6706,
-      "sha256": "c9328e0dcb392dc39a244c9735afd5b7916f7a05a5b997e40167f55fa9d72edd"
+      "bytes": 9689,
+      "sha256": "a17fb917738560bf0132114a5bdceb2eb313dc4f9336444e9f7b3736c9b1152c"
     },
     "referenceOutput": {
       "path": "public/artifacts/base-cad-parametric-bracket/reference-output.bin",
-      "bytes": 20864,
-      "sha256": "364efdd5105cdfb75df57038fad70c6f918099f814e841147525eb4aefb3b773"
+      "bytes": 419744,
+      "sha256": "e976937d9234a4cd63f5c17fbb7d0997d69e43611674f590eceac73820c0007a"
     }
   },
   "performanceClaims": []

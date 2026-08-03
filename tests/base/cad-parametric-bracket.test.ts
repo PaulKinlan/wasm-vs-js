@@ -61,15 +61,20 @@ Deno.test("complete JavaScript and material Wasm B-rep/tessellation outputs matc
   const wasm = runWasm(await runtime(), fixture);
   assertEquals(assertEquivalent(js, wasm), {
     exactBytes: true,
-    completeOutputDigest: "1db042502963e738",
+    completeOutputDigest: "a8dce8f458de8a4d",
   });
   assertEquals(js.output, wasm.output);
   assertEquals(
     await sha256Hex(js.output),
-    "364efdd5105cdfb75df57038fad70c6f918099f814e841147525eb4aefb3b773",
+    "e976937d9234a4cd63f5c17fbb7d0997d69e43611674f590eceac73820c0007a",
   );
-  assertEquals(js.triangleCount, 264);
-  assertEquals(js.topology, { ...ANALYTIC_TOPOLOGY, watertight: true, oriented: true });
+  assertEquals(js.triangleCount, 5804);
+  assertEquals(js.topology, {
+    ...ANALYTIC_TOPOLOGY,
+    watertight: true,
+    oriented: true,
+    tessellationEdges: 8706,
+  });
   const jsCounters = js.counters as Record<string, number>;
   const wasmCounters = wasm.counters as Record<string, number>;
   assertEquals(jsCounters.featureNodes, 10);
@@ -77,9 +82,10 @@ Deno.test("complete JavaScript and material Wasm B-rep/tessellation outputs matc
   assertEquals(jsCounters.cylinderSolids, 2);
   assertEquals(jsCounters.booleanCuts, 2);
   assertEquals(jsCounters.filletEdges, 4);
+  assertEquals(jsCounters.booleanIntersectionTests, 64);
   assertEquals(jsCounters.intersectionTests, 3400);
-  assertEquals(jsCounters.surfaceTriangles, 264);
-  assertEquals(jsCounters.tessellationVertices, 792);
+  assertEquals(jsCounters.surfaceTriangles, 5804);
+  assertEquals(jsCounters.tessellationVertices, 17412);
   assertEquals(jsCounters.allocations, 8);
   assertEquals(jsCounters.boundaryCrossings, 0);
   assertEquals(wasmCounters.allocations, 0);
@@ -122,7 +128,7 @@ Deno.test("Wasm memory is fixed and repeat runs clear complete output state", as
   runWasm(wasm, generateFixture({ holeCenters: [] }));
   const third = runWasm(wasm, generateFixture());
   assertEquals(third.output, first.output);
-  assertEquals((wasm.memory as WebAssembly.Memory).buffer.byteLength, 16 * 65536);
+  assertEquals((wasm.memory as WebAssembly.Memory).buffer.byteLength, 128 * 65536);
   let fixed = false;
   try {
     (wasm.memory as WebAssembly.Memory).grow(1);
@@ -228,7 +234,7 @@ Deno.test("bracket records satisfy closed schema and retain exact bytes", async 
     assertEquals(record.fixture.sha256, await sha256Hex(await Deno.readFile(record.fixture.path)));
     assertEquals(
       record.oracle.completeOutputSha256,
-      "364efdd5105cdfb75df57038fad70c6f918099f814e841147525eb4aefb3b773",
+      "e976937d9234a4cd63f5c17fbb7d0997d69e43611674f590eceac73820c0007a",
     );
     assertEquals(record.oracle.exactCrossTargetBytes, true);
   }

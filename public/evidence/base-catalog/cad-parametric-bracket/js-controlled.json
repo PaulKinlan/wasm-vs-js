@@ -5,11 +5,11 @@
   "status": "implementation-candidate",
   "variantId": "js-controlled",
   "executionTarget": "javascript",
-  "sourceCommit": "59ce9239657ca97b92811ba77191b602776cd5f7",
+  "sourceCommit": "source-tree-not-yet-committed",
   "source": {
     "path": "source-bundle",
     "bytes": 1480,
-    "sha256": "6bb1fbddd218e65073504f5cc2a77888f6dc6d4af8abfe8400cab72a9ff61a93"
+    "sha256": "1c0a3f59946221e70057b3ddee31d67b2685a9d676d9b1db5921c9928e293dfb"
   },
   "fixture": {
     "path": "public/artifacts/base-cad-parametric-bracket/fixture.bin",
@@ -18,12 +18,12 @@
   },
   "artifact": {
     "path": "benchmarks/base/cad-parametric-bracket/engine.js",
-    "bytes": 11520,
-    "sha256": "9a84c2ec52f3d335e4010257774d50c38b6f45caf25ca9fb0929090869ee9783"
+    "bytes": 15475,
+    "sha256": "e912bb0573d6fdc2018aa38b694d1242e22652d809d379269387c94e56fc3c7b"
   },
   "oracle": {
-    "completeOutputSha256": "364efdd5105cdfb75df57038fad70c6f918099f814e841147525eb4aefb3b773",
-    "completeOutputDigest": "1db042502963e738",
+    "completeOutputSha256": "e976937d9234a4cd63f5c17fbb7d0997d69e43611674f590eceac73820c0007a",
+    "completeOutputDigest": "a8dce8f458de8a4d",
     "exactCrossTargetBytes": true,
     "topology": {
       "connectedComponents": 1,
@@ -34,9 +34,10 @@
       "edges": 30,
       "vertices": 20,
       "watertight": true,
-      "oriented": true
+      "oriented": true,
+      "tessellationEdges": 8706
     },
-    "triangleCount": 264
+    "triangleCount": 5804
   },
   "counters": {
     "featureNodes": 10,
@@ -44,13 +45,14 @@
     "cylinderSolids": 2,
     "booleanCuts": 2,
     "filletEdges": 4,
+    "booleanIntersectionTests": 64,
     "scanBands": 34,
     "intersectionTests": 3400,
     "sortComparisons": 178,
-    "surfaceTriangles": 264,
-    "tessellationVertices": 792,
+    "surfaceTriangles": 5804,
+    "tessellationVertices": 17412,
     "inputBytes": 128,
-    "outputBytes": 20864,
+    "outputBytes": 419744,
     "allocations": 8,
     "boundaryCrossings": 0
   },

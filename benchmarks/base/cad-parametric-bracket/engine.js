@@ -51,6 +51,7 @@ const COUNTER_NAMES = [
   "cylinderSolids",
   "booleanCuts",
   "filletEdges",
+  "booleanIntersectionTests",
   "scanBands",
   "intersectionTests",
   "sortComparisons",
@@ -104,13 +105,24 @@ function constructLoops(c) {
     const [x, y] = UNIT[16 + k];
     outer.push([r + r * x, r + r * y]);
   }
+  let booleanIntersectionTests = 0;
   const holes = c.holes.map(([cx, cy]) =>
     Array.from({ length: HOLE_SEGMENTS }, (_, k) => {
       const [x, y] = UNIT[(32 - k) % 32];
-      return [cx + c.holeRadius * x, cy + c.holeRadius * y];
+      const point = [cx + c.holeRadius * x, cy + c.holeRadius * y];
+      const qx = point[0] < r ? r - point[0] : point[0] > w - r ? point[0] - (w - r) : 0;
+      const qy = point[1] < r ? r - point[1] : point[1] > h - r ? point[1] - (h - r) : 0;
+      booleanIntersectionTests++;
+      if (
+        point[0] < 0 || point[0] > w || point[1] < 0 || point[1] > h ||
+        qx * qx + qy * qy > r * r + 1e-15
+      ) {
+        throw new Error("cylinder does not produce a contained through-hole");
+      }
+      return point;
     })
   );
-  return [outer, ...holes];
+  return { loops: [outer, ...holes], booleanIntersectionTests };
 }
 function segments(loops) {
   const result = [];
@@ -128,13 +140,19 @@ function xAt(segment, y) {
   return ax + (bx - ax) * ((y - ay) / (by - ay));
 }
 function addTriangle(triangles, a, b, c) {
-  const area = (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
-  if (Math.abs(area) <= 1e-15) return;
+  const abx = b[0] - a[0], aby = b[1] - a[1], abz = b[2] - a[2];
+  const acx = c[0] - a[0], acy = c[1] - a[1], acz = c[2] - a[2];
+  const nx = aby * acz - abz * acy;
+  const ny = abz * acx - abx * acz;
+  const nz = abx * acy - aby * acx;
+  if (nx * nx + ny * ny + nz * nz <= 1e-30) return;
   triangles.push(...a, ...b, ...c);
 }
 function tessellate(loops, depth) {
   const edges = segments(loops);
-  const ys = [...new Set(loops.flat().map((point) => point[1]))].sort((a, b) => a - b);
+  const points = loops.flat();
+  const ys = [...new Set(points.map((point) => point[1]))].sort((a, b) => a - b);
+  const xs = [...new Set(points.map((point) => point[0]))].sort((a, b) => a - b);
   const triangles = [];
   let intersectionTests = 0, sortComparisons = 0, scanBands = 0;
   for (let band = 0; band + 1 < ys.length; band++) {
@@ -164,22 +182,78 @@ function tessellate(loops, depth) {
       const left = hits[i].edge, right = hits[i + 1].edge;
       const l0 = xAt(left, y0), l1 = xAt(left, y1);
       const r0 = xAt(right, y0), r1 = xAt(right, y1);
-      addTriangle(triangles, [l0, y0, depth], [r0, y0, depth], [r1, y1, depth]);
-      addTriangle(triangles, [l0, y0, depth], [r1, y1, depth], [l1, y1, depth]);
-      addTriangle(triangles, [l0, y0, 0], [r1, y1, 0], [r0, y0, 0]);
-      addTriangle(triangles, [l0, y0, 0], [l1, y1, 0], [r1, y1, 0]);
+      const bottom = l0 === r0 ? [l0] : [l0, ...xs.filter((x) => x > l0 && x < r0), r0];
+      const top = l1 === r1 ? [l1] : [l1, ...xs.filter((x) => x > l1 && x < r1), r1];
+      let bi = 0, ti = 0;
+      while (bi + 1 < bottom.length || ti + 1 < top.length) {
+        const bottomProgress = bi + 1 < bottom.length
+          ? (bottom[bi + 1] - l0) / (r0 - l0)
+          : Number.POSITIVE_INFINITY;
+        const topProgress = ti + 1 < top.length
+          ? (top[ti + 1] - l1) / (r1 - l1)
+          : Number.POSITIVE_INFINITY;
+        if (bottomProgress <= topProgress) {
+          addTriangle(
+            triangles,
+            [bottom[bi], y0, depth],
+            [bottom[bi + 1], y0, depth],
+            [top[ti], y1, depth],
+          );
+          addTriangle(
+            triangles,
+            [bottom[bi], y0, 0],
+            [top[ti], y1, 0],
+            [bottom[bi + 1], y0, 0],
+          );
+          bi++;
+        } else {
+          addTriangle(
+            triangles,
+            [bottom[bi], y0, depth],
+            [top[ti + 1], y1, depth],
+            [top[ti], y1, depth],
+          );
+          addTriangle(
+            triangles,
+            [bottom[bi], y0, 0],
+            [top[ti], y1, 0],
+            [top[ti + 1], y1, 0],
+          );
+          ti++;
+        }
+      }
     }
   }
   for (const loop of loops) {
     for (let i = 0; i < loop.length; i++) {
-      const a = loop[i], b = loop[(i + 1) % loop.length];
-      addTriangle(triangles, [a[0], a[1], 0], [b[0], b[1], 0], [b[0], b[1], depth]);
-      addTriangle(triangles, [a[0], a[1], 0], [b[0], b[1], depth], [a[0], a[1], depth]);
+      const edge = { a: loop[i], b: loop[(i + 1) % loop.length] };
+      if (edge.a[1] === edge.b[1]) {
+        const cuts = xs.filter((x) =>
+          x >= Math.min(edge.a[0], edge.b[0]) && x <= Math.max(edge.a[0], edge.b[0])
+        );
+        if (edge.b[0] < edge.a[0]) cuts.reverse();
+        for (let cut = 0; cut + 1 < cuts.length; cut++) {
+          const a = [cuts[cut], edge.a[1]], b = [cuts[cut + 1], edge.a[1]];
+          addTriangle(triangles, [a[0], a[1], 0], [b[0], b[1], 0], [b[0], b[1], depth]);
+          addTriangle(triangles, [a[0], a[1], 0], [b[0], b[1], depth], [a[0], a[1], depth]);
+        }
+        continue;
+      }
+      const cuts = ys.filter((y) =>
+        y >= Math.min(edge.a[1], edge.b[1]) && y <= Math.max(edge.a[1], edge.b[1])
+      );
+      if (edge.b[1] < edge.a[1]) cuts.reverse();
+      for (let cut = 0; cut + 1 < cuts.length; cut++) {
+        const y0 = cuts[cut], y1 = cuts[cut + 1];
+        const a = [xAt(edge, y0), y0], b = [xAt(edge, y1), y1];
+        addTriangle(triangles, [a[0], a[1], 0], [b[0], b[1], 0], [b[0], b[1], depth]);
+        addTriangle(triangles, [a[0], a[1], 0], [b[0], b[1], depth], [a[0], a[1], depth]);
+      }
     }
   }
   return { triangles, scanBands, intersectionTests, sortComparisons };
 }
-function encode(c, loops, mesh) {
+function encode(c, loops, mesh, booleanIntersectionTests) {
   const triangleCount = mesh.triangles.length / 9;
   const loopValues = loops.reduce((sum, loop) => sum + loop.length * 2, 0);
   const output = new Uint8Array(OUTPUT_HEADER_BYTES + loopValues * 8 + mesh.triangles.length * 8);
@@ -200,6 +274,7 @@ function encode(c, loops, mesh) {
     cylinderSolids: c.holeCount,
     booleanCuts: c.holeCount,
     filletEdges: c.fillet > 0 ? 4 : 0,
+    booleanIntersectionTests,
     scanBands: mesh.scanBands,
     intersectionTests: mesh.intersectionTests,
     sortComparisons: mesh.sortComparisons,
@@ -230,8 +305,37 @@ function encode(c, loops, mesh) {
 }
 function execute(input) {
   const c = inputContract(input);
-  const loops = constructLoops(c);
-  return encode(c, loops, tessellate(loops, c.depth));
+  const constructed = constructLoops(c);
+  return encode(
+    c,
+    constructed.loops,
+    tessellate(constructed.loops, c.depth),
+    constructed.booleanIntersectionTests,
+  );
+}
+function validateTriangleTopology(values) {
+  const edges = new Map();
+  const vertexKey = (offset) =>
+    [values[offset], values[offset + 1], values[offset + 2]]
+      .map((value) => Math.round(value * 1e9))
+      .join(",");
+  for (let triangle = 0; triangle < values.length; triangle += 9) {
+    const vertices = [vertexKey(triangle), vertexKey(triangle + 3), vertexKey(triangle + 6)];
+    for (let edge = 0; edge < 3; edge++) {
+      const a = vertices[edge], b = vertices[(edge + 1) % 3];
+      const key = a < b ? `${a}|${b}` : `${b}|${a}`;
+      const item = edges.get(key) ?? { count: 0, orientation: 0 };
+      item.count++;
+      item.orientation += a < b ? 1 : -1;
+      edges.set(key, item);
+    }
+  }
+  for (const edge of edges.values()) {
+    if (edge.count !== 2 || edge.orientation !== 0) {
+      throw new Error("bracket tessellation is not a closed oriented 2-manifold");
+    }
+  }
+  return { watertight: true, oriented: true, tessellationEdges: edges.size };
 }
 function digest64(bytes) {
   let h = 0xcbf29ce484222325n;
@@ -268,7 +372,10 @@ export function decodeResult(output, variantId) {
   const values = new Float64Array(
     output.buffer.slice(output.byteOffset + triangleOffset, output.byteOffset + output.byteLength),
   );
-  for (const value of values) if (!Number.isFinite(value)) throw new Error("non-finite mesh value");
+  for (const value of values) {
+    if (!Number.isFinite(value)) throw new Error("non-finite mesh value");
+  }
+  const meshTopology = validateTriangleTopology(values);
   return {
     workloadId: WORKLOAD_ID,
     variantId,
@@ -280,8 +387,7 @@ export function decodeResult(output, variantId) {
       edges: view.getUint32(28, true),
       vertices: view.getUint32(32, true),
       genus: view.getUint32(36, true),
-      watertight: true,
-      oriented: true,
+      ...meshTopology,
     },
     triangleCount,
     counters: {
