@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "ledgerId": "v2-proposal-implementation-inventory",
   "status": "descriptive-proposal-status-not-accepted-catalog",
-  "sourceRevision": "9691f0e8353a221880f365712a1ebbec18b7dde4",
+  "sourceRevision": "f471dd0b4d02a45aac86ecc228b19c3784b9b343",
   "catalog": {
     "id": "workload-catalog-v2-proposal",
     "path": "catalog/workloads.v2.proposed.json",
@@ -19,15 +19,15 @@
   },
   "counts": {
     "proposalDefinitions": 20,
-    "testedJsAndLinearWasmEngines": 9,
-    "definitionOnly": 11,
+    "testedJsAndLinearWasmEngines": 11,
+    "definitionOnly": 9,
     "completePublicProposalValidationPackages": 3,
-    "completeLocalOnlyProposalValidationPackages": 2,
+    "completeLocalOnlyProposalValidationPackages": 4,
     "publicValidationRecords": 6,
-    "localOnlyValidationRecords": 4,
+    "localOnlyValidationRecords": 8,
     "imageEngineOnly": 2,
     "reducedConformanceSlices": 2,
-    "interactiveDemos": 0,
+    "interactiveDemos": 2,
     "authoritativePerformanceResultPackages": 0
   },
   "entries": [
@@ -38,7 +38,7 @@
       "definitionSource": {
         "label": "proposal definition",
         "path": "catalog/workloads.v2.proposed.json",
-        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L30-L177"
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/catalog/workloads.v2.proposed.json#L30-L177"
       },
       "engine": {
         "status": "tested-js-and-linear-wasm",
@@ -46,17 +46,17 @@
           {
             "label": "JavaScript source",
             "path": "benchmarks/audio-fft/js.ts",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/audio-fft/js.ts"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/audio-fft/js.ts"
           },
           {
             "label": "linear-Wasm source",
             "path": "benchmarks/audio-fft/audio-fft.wat",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/audio-fft/audio-fft.wat"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/audio-fft/audio-fft.wat"
           },
           {
             "label": "workload harness",
             "path": "benchmarks/audio-fft/workload.ts",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/audio-fft/workload.ts"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/audio-fft/workload.ts"
           }
         ],
         "unavailableReason": null
@@ -67,12 +67,12 @@
           {
             "label": "build manifest",
             "path": "public/artifacts/audio-fft/build-manifest.json",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/artifacts/audio-fft/build-manifest.json"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/public/artifacts/audio-fft/build-manifest.json"
           },
           {
             "label": "Wasm artifact",
             "path": "public/artifacts/audio-fft/audio-fft.wasm",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/artifacts/audio-fft/audio-fft.wasm"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/public/artifacts/audio-fft/audio-fft.wasm"
           }
         ],
         "publicLinks": [
@@ -94,12 +94,12 @@
           {
             "label": "JavaScript result",
             "path": "public/evidence/v2-proposals/audio-fft/js-controlled.json",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/evidence/v2-proposals/audio-fft/js-controlled.json"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/public/evidence/v2-proposals/audio-fft/js-controlled.json"
           },
           {
             "label": "linear-Wasm result",
             "path": "public/evidence/v2-proposals/audio-fft/wasm-linear-controlled.json",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/evidence/v2-proposals/audio-fft/wasm-linear-controlled.json"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/public/evidence/v2-proposals/audio-fft/wasm-linear-controlled.json"
           }
         ],
         "publicEvidenceLinks": [
@@ -121,6 +121,7 @@
       },
       "interactiveDemo": {
         "status": "unavailable",
+        "url": null,
         "unavailableReason": {
           "code": "no-interactive-demo",
           "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
@@ -141,7 +142,7 @@
       "definitionSource": {
         "label": "proposal definition",
         "path": "catalog/workloads.v2.proposed.json",
-        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L178-L321"
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/catalog/workloads.v2.proposed.json#L178-L321"
       },
       "engine": {
         "status": "tested-js-and-linear-wasm",
@@ -149,17 +150,17 @@
           {
             "label": "JavaScript source",
             "path": "benchmarks/audio-fir/js.ts",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/audio-fir/js.ts"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/audio-fir/js.ts"
           },
           {
             "label": "linear-Wasm source",
             "path": "benchmarks/audio-fir/audio-fir.wat",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/audio-fir/audio-fir.wat"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/audio-fir/audio-fir.wat"
           },
           {
             "label": "workload harness",
             "path": "benchmarks/audio-fir/workload.ts",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/audio-fir/workload.ts"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/audio-fir/workload.ts"
           }
         ],
         "unavailableReason": null
@@ -170,12 +171,12 @@
           {
             "label": "build manifest",
             "path": "public/artifacts/audio-fir/build-manifest.json",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/artifacts/audio-fir/build-manifest.json"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/public/artifacts/audio-fir/build-manifest.json"
           },
           {
             "label": "Wasm artifact",
             "path": "public/artifacts/audio-fir/audio-fir.wasm",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/artifacts/audio-fir/audio-fir.wasm"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/public/artifacts/audio-fir/audio-fir.wasm"
           }
         ],
         "publicLinks": [
@@ -197,12 +198,12 @@
           {
             "label": "JavaScript result",
             "path": "public/evidence/v2-proposals/audio-fir/js-controlled.json",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/evidence/v2-proposals/audio-fir/js-controlled.json"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/public/evidence/v2-proposals/audio-fir/js-controlled.json"
           },
           {
             "label": "linear-Wasm result",
             "path": "public/evidence/v2-proposals/audio-fir/wasm-linear-controlled.json",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/evidence/v2-proposals/audio-fir/wasm-linear-controlled.json"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/public/evidence/v2-proposals/audio-fir/wasm-linear-controlled.json"
           }
         ],
         "publicEvidenceLinks": [
@@ -224,6 +225,7 @@
       },
       "interactiveDemo": {
         "status": "unavailable",
+        "url": null,
         "unavailableReason": {
           "code": "no-interactive-demo",
           "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
@@ -244,7 +246,7 @@
       "definitionSource": {
         "label": "proposal definition",
         "path": "catalog/workloads.v2.proposed.json",
-        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L322-L469"
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/catalog/workloads.v2.proposed.json#L322-L469"
       },
       "engine": {
         "status": "tested-js-and-linear-wasm",
@@ -252,17 +254,17 @@
           {
             "label": "JavaScript source",
             "path": "benchmarks/audio-stft/js.ts",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/audio-stft/js.ts"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/audio-stft/js.ts"
           },
           {
             "label": "linear-Wasm source",
             "path": "benchmarks/audio-stft/audio-stft.wat",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/audio-stft/audio-stft.wat"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/audio-stft/audio-stft.wat"
           },
           {
             "label": "workload harness",
             "path": "benchmarks/audio-stft/workload.ts",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/audio-stft/workload.ts"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/audio-stft/workload.ts"
           }
         ],
         "unavailableReason": null
@@ -273,12 +275,12 @@
           {
             "label": "build manifest",
             "path": "public/artifacts/audio-stft/build-manifest.json",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/artifacts/audio-stft/build-manifest.json"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/public/artifacts/audio-stft/build-manifest.json"
           },
           {
             "label": "Wasm artifact",
             "path": "public/artifacts/audio-stft/audio-stft.wasm",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/artifacts/audio-stft/audio-stft.wasm"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/public/artifacts/audio-stft/audio-stft.wasm"
           }
         ],
         "publicLinks": [
@@ -300,12 +302,12 @@
           {
             "label": "JavaScript result",
             "path": "public/evidence/v2-proposals/audio-stft/js-controlled.json",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/evidence/v2-proposals/audio-stft/js-controlled.json"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/public/evidence/v2-proposals/audio-stft/js-controlled.json"
           },
           {
             "label": "linear-Wasm result",
             "path": "public/evidence/v2-proposals/audio-stft/wasm-linear-controlled.json",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/evidence/v2-proposals/audio-stft/wasm-linear-controlled.json"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/public/evidence/v2-proposals/audio-stft/wasm-linear-controlled.json"
           }
         ],
         "publicEvidenceLinks": [
@@ -327,6 +329,7 @@
       },
       "interactiveDemo": {
         "status": "unavailable",
+        "url": null,
         "unavailableReason": {
           "code": "no-interactive-demo",
           "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
@@ -347,7 +350,7 @@
       "definitionSource": {
         "label": "proposal definition",
         "path": "catalog/workloads.v2.proposed.json",
-        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L470-L616"
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/catalog/workloads.v2.proposed.json#L470-L616"
       },
       "engine": {
         "status": "unavailable",
@@ -382,6 +385,7 @@
       },
       "interactiveDemo": {
         "status": "unavailable",
+        "url": null,
         "unavailableReason": {
           "code": "no-interactive-demo",
           "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
@@ -402,7 +406,7 @@
       "definitionSource": {
         "label": "proposal definition",
         "path": "catalog/workloads.v2.proposed.json",
-        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L617-L768"
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/catalog/workloads.v2.proposed.json#L617-L768"
       },
       "engine": {
         "status": "unavailable",
@@ -437,6 +441,7 @@
       },
       "interactiveDemo": {
         "status": "unavailable",
+        "url": null,
         "unavailableReason": {
           "code": "no-interactive-demo",
           "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
@@ -457,7 +462,7 @@
       "definitionSource": {
         "label": "proposal definition",
         "path": "catalog/workloads.v2.proposed.json",
-        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L769-L916"
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/catalog/workloads.v2.proposed.json#L769-L916"
       },
       "engine": {
         "status": "unavailable",
@@ -492,6 +497,7 @@
       },
       "interactiveDemo": {
         "status": "unavailable",
+        "url": null,
         "unavailableReason": {
           "code": "no-interactive-demo",
           "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
@@ -512,7 +518,7 @@
       "definitionSource": {
         "label": "proposal definition",
         "path": "catalog/workloads.v2.proposed.json",
-        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L917-L1064"
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/catalog/workloads.v2.proposed.json#L917-L1064"
       },
       "engine": {
         "status": "unavailable",
@@ -547,6 +553,7 @@
       },
       "interactiveDemo": {
         "status": "unavailable",
+        "url": null,
         "unavailableReason": {
           "code": "no-interactive-demo",
           "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
@@ -567,7 +574,7 @@
       "definitionSource": {
         "label": "proposal definition",
         "path": "catalog/workloads.v2.proposed.json",
-        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L1065-L1216"
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/catalog/workloads.v2.proposed.json#L1065-L1216"
       },
       "engine": {
         "status": "unavailable",
@@ -602,6 +609,7 @@
       },
       "interactiveDemo": {
         "status": "unavailable",
+        "url": null,
         "unavailableReason": {
           "code": "no-interactive-demo",
           "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
@@ -622,7 +630,7 @@
       "definitionSource": {
         "label": "proposal definition",
         "path": "catalog/workloads.v2.proposed.json",
-        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L1217-L1364"
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/catalog/workloads.v2.proposed.json#L1217-L1364"
       },
       "engine": {
         "status": "tested-js-and-linear-wasm",
@@ -630,17 +638,17 @@
           {
             "label": "JavaScript source",
             "path": "benchmarks/vdom-diff-patch/js.ts",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/vdom-diff-patch/js.ts"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/vdom-diff-patch/js.ts"
           },
           {
             "label": "linear-Wasm source",
             "path": "benchmarks/vdom-diff-patch/vdom-diff-patch.wat",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/vdom-diff-patch/vdom-diff-patch.wat"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/vdom-diff-patch/vdom-diff-patch.wat"
           },
           {
             "label": "workload harness",
             "path": "benchmarks/vdom-diff-patch/workload.js",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/vdom-diff-patch/workload.js"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/vdom-diff-patch/workload.js"
           }
         ],
         "unavailableReason": null
@@ -651,12 +659,12 @@
           {
             "label": "build manifest",
             "path": "public/artifacts/vdom-diff-patch/build-manifest.json",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/artifacts/vdom-diff-patch/build-manifest.json"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/public/artifacts/vdom-diff-patch/build-manifest.json"
           },
           {
             "label": "Wasm artifact",
             "path": "public/artifacts/vdom-diff-patch/vdom-diff-patch.wasm",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/artifacts/vdom-diff-patch/vdom-diff-patch.wasm"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/public/artifacts/vdom-diff-patch/vdom-diff-patch.wasm"
           }
         ],
         "publicLinks": [],
@@ -678,6 +686,7 @@
       },
       "interactiveDemo": {
         "status": "unavailable",
+        "url": null,
         "unavailableReason": {
           "code": "no-interactive-demo",
           "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
@@ -698,7 +707,7 @@
       "definitionSource": {
         "label": "proposal definition",
         "path": "catalog/workloads.v2.proposed.json",
-        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L1365-L1515"
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/catalog/workloads.v2.proposed.json#L1365-L1515"
       },
       "engine": {
         "status": "unavailable",
@@ -733,6 +742,7 @@
       },
       "interactiveDemo": {
         "status": "unavailable",
+        "url": null,
         "unavailableReason": {
           "code": "no-interactive-demo",
           "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
@@ -753,7 +763,7 @@
       "definitionSource": {
         "label": "proposal definition",
         "path": "catalog/workloads.v2.proposed.json",
-        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L1516-L1667"
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/catalog/workloads.v2.proposed.json#L1516-L1667"
       },
       "engine": {
         "status": "unavailable",
@@ -788,6 +798,7 @@
       },
       "interactiveDemo": {
         "status": "unavailable",
+        "url": null,
         "unavailableReason": {
           "code": "no-interactive-demo",
           "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
@@ -808,7 +819,7 @@
       "definitionSource": {
         "label": "proposal definition",
         "path": "catalog/workloads.v2.proposed.json",
-        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L1668-L1819"
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/catalog/workloads.v2.proposed.json#L1668-L1819"
       },
       "engine": {
         "status": "unavailable",
@@ -843,6 +854,7 @@
       },
       "interactiveDemo": {
         "status": "unavailable",
+        "url": null,
         "unavailableReason": {
           "code": "no-interactive-demo",
           "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
@@ -863,7 +875,7 @@
       "definitionSource": {
         "label": "proposal definition",
         "path": "catalog/workloads.v2.proposed.json",
-        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L1820-L1971"
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/catalog/workloads.v2.proposed.json#L1820-L1971"
       },
       "engine": {
         "status": "unavailable",
@@ -898,6 +910,7 @@
       },
       "interactiveDemo": {
         "status": "unavailable",
+        "url": null,
         "unavailableReason": {
           "code": "no-interactive-demo",
           "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
@@ -918,7 +931,7 @@
       "definitionSource": {
         "label": "proposal definition",
         "path": "catalog/workloads.v2.proposed.json",
-        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L1972-L2127"
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/catalog/workloads.v2.proposed.json#L1972-L2127"
       },
       "engine": {
         "status": "tested-js-and-linear-wasm",
@@ -926,17 +939,17 @@
           {
             "label": "shared JavaScript source",
             "path": "benchmarks/image-editing/js.ts",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/image-editing/js.ts"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/image-editing/js.ts"
           },
           {
             "label": "shared linear-Wasm source",
             "path": "benchmarks/image-editing/image-editing.wat",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/image-editing/image-editing.wat"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/image-editing/image-editing.wat"
           },
           {
             "label": "Wasm adapter",
             "path": "benchmarks/image-editing/wasm.ts",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/image-editing/wasm.ts"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/image-editing/wasm.ts"
           }
         ],
         "unavailableReason": null
@@ -947,12 +960,12 @@
           {
             "label": "shared build manifest",
             "path": "benchmarks/image-editing/artifacts/build-manifest.json",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/image-editing/artifacts/build-manifest.json"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/image-editing/artifacts/build-manifest.json"
           },
           {
             "label": "shared Wasm artifact",
             "path": "benchmarks/image-editing/artifacts/image-editing.wasm",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/image-editing/artifacts/image-editing.wasm"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/image-editing/artifacts/image-editing.wasm"
           }
         ],
         "publicLinks": [],
@@ -974,6 +987,7 @@
       },
       "interactiveDemo": {
         "status": "unavailable",
+        "url": null,
         "unavailableReason": {
           "code": "no-interactive-demo",
           "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
@@ -994,7 +1008,7 @@
       "definitionSource": {
         "label": "proposal definition",
         "path": "catalog/workloads.v2.proposed.json",
-        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L2128-L2282"
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/catalog/workloads.v2.proposed.json#L2128-L2282"
       },
       "engine": {
         "status": "tested-js-and-linear-wasm",
@@ -1002,17 +1016,17 @@
           {
             "label": "shared JavaScript source",
             "path": "benchmarks/image-editing/js.ts",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/image-editing/js.ts"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/image-editing/js.ts"
           },
           {
             "label": "shared linear-Wasm source",
             "path": "benchmarks/image-editing/image-editing.wat",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/image-editing/image-editing.wat"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/image-editing/image-editing.wat"
           },
           {
             "label": "Wasm adapter",
             "path": "benchmarks/image-editing/wasm.ts",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/image-editing/wasm.ts"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/image-editing/wasm.ts"
           }
         ],
         "unavailableReason": null
@@ -1023,12 +1037,12 @@
           {
             "label": "shared build manifest",
             "path": "benchmarks/image-editing/artifacts/build-manifest.json",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/image-editing/artifacts/build-manifest.json"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/image-editing/artifacts/build-manifest.json"
           },
           {
             "label": "shared Wasm artifact",
             "path": "benchmarks/image-editing/artifacts/image-editing.wasm",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/image-editing/artifacts/image-editing.wasm"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/image-editing/artifacts/image-editing.wasm"
           }
         ],
         "publicLinks": [],
@@ -1050,6 +1064,7 @@
       },
       "interactiveDemo": {
         "status": "unavailable",
+        "url": null,
         "unavailableReason": {
           "code": "no-interactive-demo",
           "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
@@ -1070,7 +1085,7 @@
       "definitionSource": {
         "label": "proposal definition",
         "path": "catalog/workloads.v2.proposed.json",
-        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L2283-L2434"
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/catalog/workloads.v2.proposed.json#L2283-L2434"
       },
       "engine": {
         "status": "tested-js-and-linear-wasm",
@@ -1078,12 +1093,12 @@
           {
             "label": "JavaScript source",
             "path": "benchmarks/v2/ml-dense-mlp/workload.js",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/v2/ml-dense-mlp/workload.js"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/v2/ml-dense-mlp/workload.js"
           },
           {
             "label": "linear-Wasm source",
             "path": "benchmarks/v2/ml-dense-mlp/ml-dense-mlp.wat",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/v2/ml-dense-mlp/ml-dense-mlp.wat"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/v2/ml-dense-mlp/ml-dense-mlp.wat"
           }
         ],
         "unavailableReason": null
@@ -1094,12 +1109,12 @@
           {
             "label": "fixture manifest",
             "path": "artifacts/v2/ml-dense-mlp/fixture-manifest.json",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/artifacts/v2/ml-dense-mlp/fixture-manifest.json"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/artifacts/v2/ml-dense-mlp/fixture-manifest.json"
           },
           {
             "label": "Wasm artifact",
             "path": "artifacts/v2/ml-dense-mlp/ml-dense-mlp.wasm",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/artifacts/v2/ml-dense-mlp/ml-dense-mlp.wasm"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/artifacts/v2/ml-dense-mlp/ml-dense-mlp.wasm"
           }
         ],
         "publicLinks": [],
@@ -1112,12 +1127,12 @@
           {
             "label": "JavaScript result",
             "path": "artifacts/v2/ml-dense-mlp/js-controlled.result.json",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/artifacts/v2/ml-dense-mlp/js-controlled.result.json"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/artifacts/v2/ml-dense-mlp/js-controlled.result.json"
           },
           {
             "label": "linear-Wasm result",
             "path": "artifacts/v2/ml-dense-mlp/wasm-linear-controlled.result.json",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/artifacts/v2/ml-dense-mlp/wasm-linear-controlled.result.json"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/artifacts/v2/ml-dense-mlp/wasm-linear-controlled.result.json"
           }
         ],
         "publicEvidenceLinks": [],
@@ -1129,6 +1144,7 @@
       },
       "interactiveDemo": {
         "status": "unavailable",
+        "url": null,
         "unavailableReason": {
           "code": "no-interactive-demo",
           "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
@@ -1149,7 +1165,7 @@
       "definitionSource": {
         "label": "proposal definition",
         "path": "catalog/workloads.v2.proposed.json",
-        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L2435-L2590"
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/catalog/workloads.v2.proposed.json#L2435-L2590"
       },
       "engine": {
         "status": "tested-js-and-linear-wasm",
@@ -1157,12 +1173,12 @@
           {
             "label": "JavaScript source",
             "path": "benchmarks/v2/ml-gemm/workload.js",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/v2/ml-gemm/workload.js"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/v2/ml-gemm/workload.js"
           },
           {
             "label": "linear-Wasm source",
             "path": "benchmarks/v2/ml-gemm/ml-gemm.wat",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/v2/ml-gemm/ml-gemm.wat"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/v2/ml-gemm/ml-gemm.wat"
           }
         ],
         "unavailableReason": null
@@ -1173,12 +1189,12 @@
           {
             "label": "fixture manifest",
             "path": "artifacts/v2/ml-gemm/fixture-manifest.json",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/artifacts/v2/ml-gemm/fixture-manifest.json"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/artifacts/v2/ml-gemm/fixture-manifest.json"
           },
           {
             "label": "Wasm artifact",
             "path": "artifacts/v2/ml-gemm/ml-gemm.wasm",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/artifacts/v2/ml-gemm/ml-gemm.wasm"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/artifacts/v2/ml-gemm/ml-gemm.wasm"
           }
         ],
         "publicLinks": [],
@@ -1191,12 +1207,12 @@
           {
             "label": "JavaScript result",
             "path": "artifacts/v2/ml-gemm/js-controlled.result.json",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/artifacts/v2/ml-gemm/js-controlled.result.json"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/artifacts/v2/ml-gemm/js-controlled.result.json"
           },
           {
             "label": "linear-Wasm result",
             "path": "artifacts/v2/ml-gemm/wasm-linear-controlled.result.json",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/artifacts/v2/ml-gemm/wasm-linear-controlled.result.json"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/artifacts/v2/ml-gemm/wasm-linear-controlled.result.json"
           }
         ],
         "publicEvidenceLinks": [],
@@ -1208,6 +1224,7 @@
       },
       "interactiveDemo": {
         "status": "unavailable",
+        "url": null,
         "unavailableReason": {
           "code": "no-interactive-demo",
           "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
@@ -1224,49 +1241,89 @@
     {
       "id": "text.diff-patch.v1",
       "title": "Unicode line diff and patch",
-      "maturity": "proposal-definition-only",
+      "maturity": "complete-local-only-proposal-validation-package",
       "definitionSource": {
         "label": "proposal definition",
         "path": "catalog/workloads.v2.proposed.json",
-        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L2591-L2738"
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/catalog/workloads.v2.proposed.json#L2591-L2738"
       },
       "engine": {
-        "status": "unavailable",
-        "sourceLinks": [],
-        "unavailableReason": {
-          "code": "definition-only",
-          "detail": "No tested JavaScript and linear-Wasm workload engine exists for this proposal ID."
-        }
+        "status": "tested-js-and-linear-wasm",
+        "sourceLinks": [
+          {
+            "label": "JavaScript source",
+            "path": "benchmarks/v2/text-diff-patch/workload.js",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/v2/text-diff-patch/workload.js"
+          },
+          {
+            "label": "authored linear-Wasm source",
+            "path": "benchmarks/v2/text-diff-patch/text-diff-patch.wat",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/v2/text-diff-patch/text-diff-patch.wat"
+          }
+        ],
+        "unavailableReason": null
       },
       "artifacts": {
-        "status": "unavailable",
-        "repositoryLinks": [],
-        "publicLinks": [],
-        "unavailableReason": {
-          "code": "definition-only",
-          "detail": "Only the proposal definition exists; there is no built artifact for this ID."
-        }
+        "status": "reproducible-public",
+        "repositoryLinks": [
+          {
+            "label": "build manifest",
+            "path": "public/artifacts/text-diff-patch/build-manifest.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/public/artifacts/text-diff-patch/build-manifest.json"
+          },
+          {
+            "label": "Wasm artifact",
+            "path": "public/artifacts/text-diff-patch/text-diff-patch.wasm",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/public/artifacts/text-diff-patch/text-diff-patch.wasm"
+          },
+          {
+            "label": "output manifest",
+            "path": "public/artifacts/text-diff-patch/output-manifest.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/public/artifacts/text-diff-patch/output-manifest.json"
+          }
+        ],
+        "publicLinks": [
+          {
+            "label": "public build manifest",
+            "url": "/artifacts/text-diff-patch/build-manifest.json"
+          },
+          {
+            "label": "public Wasm artifact",
+            "url": "/artifacts/text-diff-patch/text-diff-patch.wasm"
+          },
+          {
+            "label": "public output manifest",
+            "url": "/artifacts/text-diff-patch/output-manifest.json"
+          }
+        ],
+        "unavailableReason": null
       },
       "validationResults": {
-        "status": "unavailable",
-        "recordCount": 0,
-        "repositoryLinks": [],
+        "status": "complete-local-only",
+        "recordCount": 2,
+        "repositoryLinks": [
+          {
+            "label": "js-controlled proposal-validation record",
+            "path": "artifacts/v2/text-diff-patch/js-controlled.result.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/artifacts/v2/text-diff-patch/js-controlled.result.json"
+          },
+          {
+            "label": "wasm-linear-controlled proposal-validation record",
+            "path": "artifacts/v2/text-diff-patch/wasm-linear-controlled.result.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/artifacts/v2/text-diff-patch/wasm-linear-controlled.result.json"
+          }
+        ],
         "publicEvidenceLinks": [],
-        "unavailableReason": {
-          "code": "no-validation-record",
-          "detail": "A definition-only proposal has no proposal-validation result record."
-        },
+        "unavailableReason": null,
         "publicEvidenceUnavailableReason": {
-          "code": "no-validation-record",
-          "detail": "A definition-only proposal has no proposal-validation result record."
+          "code": "no-public-evidence-route",
+          "detail": "The complete proposal-validation records are committed but are not served as public result evidence."
         }
       },
       "interactiveDemo": {
-        "status": "unavailable",
-        "unavailableReason": {
-          "code": "no-interactive-demo",
-          "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
-        }
+        "status": "available",
+        "url": "/demos/text.diff-patch.v1/",
+        "unavailableReason": null
       },
       "authoritativePerformanceResults": {
         "status": "unavailable",
@@ -1279,49 +1336,89 @@
     {
       "id": "text.markdown-cms.v1",
       "title": "Markdown CMS render pipeline",
-      "maturity": "proposal-definition-only",
+      "maturity": "complete-local-only-proposal-validation-package",
       "definitionSource": {
         "label": "proposal definition",
         "path": "catalog/workloads.v2.proposed.json",
-        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L2739-L2887"
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/catalog/workloads.v2.proposed.json#L2739-L2887"
       },
       "engine": {
-        "status": "unavailable",
-        "sourceLinks": [],
-        "unavailableReason": {
-          "code": "definition-only",
-          "detail": "No tested JavaScript and linear-Wasm workload engine exists for this proposal ID."
-        }
+        "status": "tested-js-and-linear-wasm",
+        "sourceLinks": [
+          {
+            "label": "JavaScript source",
+            "path": "benchmarks/v2/text-markdown-cms/workload.js",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/v2/text-markdown-cms/workload.js"
+          },
+          {
+            "label": "authored linear-Wasm source",
+            "path": "benchmarks/v2/text-markdown-cms/text-markdown-cms.wat",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/v2/text-markdown-cms/text-markdown-cms.wat"
+          }
+        ],
+        "unavailableReason": null
       },
       "artifacts": {
-        "status": "unavailable",
-        "repositoryLinks": [],
-        "publicLinks": [],
-        "unavailableReason": {
-          "code": "definition-only",
-          "detail": "Only the proposal definition exists; there is no built artifact for this ID."
-        }
+        "status": "reproducible-public",
+        "repositoryLinks": [
+          {
+            "label": "build manifest",
+            "path": "public/artifacts/text-markdown-cms/build-manifest.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/public/artifacts/text-markdown-cms/build-manifest.json"
+          },
+          {
+            "label": "Wasm artifact",
+            "path": "public/artifacts/text-markdown-cms/text-markdown-cms.wasm",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/public/artifacts/text-markdown-cms/text-markdown-cms.wasm"
+          },
+          {
+            "label": "output manifest",
+            "path": "public/artifacts/text-markdown-cms/output-manifest.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/public/artifacts/text-markdown-cms/output-manifest.json"
+          }
+        ],
+        "publicLinks": [
+          {
+            "label": "public build manifest",
+            "url": "/artifacts/text-markdown-cms/build-manifest.json"
+          },
+          {
+            "label": "public Wasm artifact",
+            "url": "/artifacts/text-markdown-cms/text-markdown-cms.wasm"
+          },
+          {
+            "label": "public output manifest",
+            "url": "/artifacts/text-markdown-cms/output-manifest.json"
+          }
+        ],
+        "unavailableReason": null
       },
       "validationResults": {
-        "status": "unavailable",
-        "recordCount": 0,
-        "repositoryLinks": [],
+        "status": "complete-local-only",
+        "recordCount": 2,
+        "repositoryLinks": [
+          {
+            "label": "js-controlled proposal-validation record",
+            "path": "artifacts/v2/text-markdown-cms/js-controlled.result.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/artifacts/v2/text-markdown-cms/js-controlled.result.json"
+          },
+          {
+            "label": "wasm-linear-controlled proposal-validation record",
+            "path": "artifacts/v2/text-markdown-cms/wasm-linear-controlled.result.json",
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/artifacts/v2/text-markdown-cms/wasm-linear-controlled.result.json"
+          }
+        ],
         "publicEvidenceLinks": [],
-        "unavailableReason": {
-          "code": "no-validation-record",
-          "detail": "A definition-only proposal has no proposal-validation result record."
-        },
+        "unavailableReason": null,
         "publicEvidenceUnavailableReason": {
-          "code": "no-validation-record",
-          "detail": "A definition-only proposal has no proposal-validation result record."
+          "code": "no-public-evidence-route",
+          "detail": "The complete proposal-validation records are committed but are not served as public result evidence."
         }
       },
       "interactiveDemo": {
-        "status": "unavailable",
-        "unavailableReason": {
-          "code": "no-interactive-demo",
-          "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."
-        }
+        "status": "available",
+        "url": "/demos/text.markdown-cms.v1/",
+        "unavailableReason": null
       },
       "authoritativePerformanceResults": {
         "status": "unavailable",
@@ -1338,7 +1435,7 @@
       "definitionSource": {
         "label": "proposal definition",
         "path": "catalog/workloads.v2.proposed.json",
-        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/catalog/workloads.v2.proposed.json#L2888-L3037"
+        "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/catalog/workloads.v2.proposed.json#L2888-L3037"
       },
       "engine": {
         "status": "tested-js-and-linear-wasm",
@@ -1346,22 +1443,22 @@
           {
             "label": "JavaScript automata source",
             "path": "benchmarks/regex-automata-duel/js-automata.ts",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/regex-automata-duel/js-automata.ts"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/regex-automata-duel/js-automata.ts"
           },
           {
             "label": "native RegExp source",
             "path": "benchmarks/regex-automata-duel/js-native.ts",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/regex-automata-duel/js-native.ts"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/regex-automata-duel/js-native.ts"
           },
           {
             "label": "linear-Wasm source",
             "path": "benchmarks/regex-automata-duel/regex-automata.wat",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/regex-automata-duel/regex-automata.wat"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/regex-automata-duel/regex-automata.wat"
           },
           {
             "label": "workload harness",
             "path": "benchmarks/regex-automata-duel/workload.js",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/benchmarks/regex-automata-duel/workload.js"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/benchmarks/regex-automata-duel/workload.js"
           }
         ],
         "unavailableReason": null
@@ -1372,12 +1469,12 @@
           {
             "label": "build manifest",
             "path": "public/artifacts/regex-automata-duel/build-manifest.json",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/artifacts/regex-automata-duel/build-manifest.json"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/public/artifacts/regex-automata-duel/build-manifest.json"
           },
           {
             "label": "Wasm artifact",
             "path": "public/artifacts/regex-automata-duel/regex-automata-duel.wasm",
-            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/9691f0e8353a221880f365712a1ebbec18b7dde4/public/artifacts/regex-automata-duel/regex-automata-duel.wasm"
+            "url": "https://github.com/PaulKinlan/wasm-vs-js/blob/f471dd0b4d02a45aac86ecc228b19c3784b9b343/public/artifacts/regex-automata-duel/regex-automata-duel.wasm"
           }
         ],
         "publicLinks": [],
@@ -1399,6 +1496,7 @@
       },
       "interactiveDemo": {
         "status": "unavailable",
+        "url": null,
         "unavailableReason": {
           "code": "no-interactive-demo",
           "detail": "No user-facing interactive demo exists for this proposal ID; tested engines are harness code, not demos."

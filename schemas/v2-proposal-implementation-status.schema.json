@@ -73,15 +73,15 @@
       ],
       "properties": {
         "proposalDefinitions": { "const": 20 },
-        "testedJsAndLinearWasmEngines": { "const": 9 },
-        "definitionOnly": { "const": 11 },
+        "testedJsAndLinearWasmEngines": { "const": 11 },
+        "definitionOnly": { "const": 9 },
         "completePublicProposalValidationPackages": { "const": 3 },
-        "completeLocalOnlyProposalValidationPackages": { "const": 2 },
+        "completeLocalOnlyProposalValidationPackages": { "const": 4 },
         "publicValidationRecords": { "const": 6 },
-        "localOnlyValidationRecords": { "const": 4 },
+        "localOnlyValidationRecords": { "const": 8 },
         "imageEngineOnly": { "const": 2 },
         "reducedConformanceSlices": { "const": 2 },
-        "interactiveDemos": { "const": 0 },
+        "interactiveDemos": { "const": 2 },
         "authoritativePerformanceResultPackages": { "const": 0 }
       }
     },
@@ -258,10 +258,18 @@
         "interactiveDemo": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["status", "unavailableReason"],
+          "required": ["status", "url", "unavailableReason"],
           "properties": {
-            "status": { "const": "unavailable" },
-            "unavailableReason": { "$ref": "#/$defs/reason" }
+            "status": { "enum": ["available", "unavailable"] },
+            "url": {
+              "oneOf": [
+                { "type": "string", "pattern": "^/demos/[a-z0-9.-]+\\.v[0-9]+/$" },
+                { "type": "null" }
+              ]
+            },
+            "unavailableReason": {
+              "oneOf": [{ "$ref": "#/$defs/reason" }, { "type": "null" }]
+            }
           }
         },
         "authoritativePerformanceResults": {
