@@ -12,8 +12,13 @@
       "baseColor": "Models/Avocado/glTF-Draco/Avocado_baseColor.png",
       "license": "Models/Avocado/LICENSE.md"
     },
-    "license": "CC0-1.0",
-    "rightsAudit": "Model README and LICENSE identify all model-associated binary, image and text files as CC0-1.0."
+    "modelAssetLicense": "CC0-1.0",
+    "licenseDocumentLicense": "CC-BY-4.0",
+    "rightsAudit": "Pinned LICENSE assigns CC0-1.0 to model-associated files and CC-BY-4.0 to metadocumentation.",
+    "licenseCopy": {
+      "upstreamSha256": "09cc6fda57c9c9063ce96a520fd0401da109009855e32f518ab1c54c9d5bc2c4",
+      "localModification": "renamed to AVOCADO-LICENSE.md; deno fmt normalized Markdown list markers and added the terminal newline; license wording and links are unchanged"
+    }
   },
   "draco": {
     "version": "1.5.7",
@@ -50,8 +55,8 @@
     },
     {
       "path": "fixtures/base/graphics-gltf-viewer/AVOCADO-LICENSE.md",
-      "bytes": 696,
-      "sha256": "e6f2b3f6291b5933eb06d50d5c71024bdb0ca1d2ac6928374e624e19c6dcf54a"
+      "bytes": 666,
+      "sha256": "fee2e932d421fd25b5102104024681fde2d8c5d0f2299ab4102deeb10a27d8e3"
     }
   ]
 }

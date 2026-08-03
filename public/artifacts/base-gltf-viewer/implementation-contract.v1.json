@@ -15,7 +15,7 @@
       96,
       96
     ],
-    "checkpoints": [
+    "retainedPixelCheckpoints": [
       0,
       119,
       239,
@@ -23,6 +23,7 @@
       479,
       599
     ],
+    "rasterizedFrames": 600,
     "pickFrames": [
       25,
       75,
@@ -38,7 +39,7 @@
       575
     ]
   },
-  "algorithm": "Draco 1.5.7 decode; quantized fixed-point node animation, transforms, culling, picking and six-frame CPU texture raster reference",
+  "algorithm": "Draco 1.5.7 decode; quantized fixed-point node animation, transforms, culling, picking and 600-frame CPU texture rasterization",
   "scenePolicy": {
     "gltfVersion": "2.0",
     "primitiveMode": "TRIANGLES",
@@ -57,7 +58,7 @@
     "metallicRoughness": "GPU product baseline only"
   },
   "rendering": {
-    "controlled": "CPU 96x96 raster reference at six checkpoints plus complete 600-frame draw/state stream",
+    "controlled": "CPU 96x96 rasterization on all 600 frames; six retained pixel checkpoints plus the complete frame/counter stream",
     "gpu": "separate unavailable product baseline; never enters controlled output"
   },
   "counters": [

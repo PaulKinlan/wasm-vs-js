@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "workloadId": "graphics.gltf-viewer.v1",
   "status": "static-validation-passed-browser-pending",
-  "sourceCommit": "9b5057c5324dd8f08db2f8af68efe1ca941cb93f",
+  "sourceCommit": "04366baa1655b8c6e15db16ddd52bcd76ba1d421",
   "assertions": {
     "catalogImmutable": true,
     "rightsAudited": true,
@@ -12,11 +12,13 @@
     "all2046Indices": true,
     "all406Vertices": true,
     "pickTraceComplete": true,
-    "cpuRasterCheckpoints": 6,
+    "cpuRasterizedFrames": 600,
+    "retainedPixelCheckpoints": 6,
+    "countersReconciled": true,
     "completeOutputEqual": true,
     "routeLifecycle": "covered by static tests; parent-owned retained Chrome evidence pending"
   },
-  "semanticOutputSha256": "05af907e85e40aa3316fa6e455fff24a3d428c81ad92c51ab3cda2940de9e778",
+  "semanticOutputSha256": "2182020fe70fddbdfdb64c861f62fbaa83ede5a7b27386ad85d9bd3cbc312cda",
   "browserEvidence": "unavailable-pending-authoritative-controller",
   "performanceClaims": []
 }

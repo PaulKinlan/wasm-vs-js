@@ -2,23 +2,35 @@
   "schemaVersion": 1,
   "workloadId": "graphics.gltf-viewer.v1",
   "status": "passed",
-  "sourceCommit": "9b5057c5324dd8f08db2f8af68efe1ca941cb93f",
+  "sourceCommit": "04366baa1655b8c6e15db16ddd52bcd76ba1d421",
   "input": {
     "decodedMeshSha256": "b4e03bea9c76a08a6cc8d62ad1320af25ef7e5c594015b6b8396b9efc8aa5f54",
     "asmJsWasmDecodedMeshEqual": true
   },
   "output": {
-    "bytes": 240480,
-    "semanticSha256": "05af907e85e40aa3316fa6e455fff24a3d428c81ad92c51ab3cda2940de9e778",
+    "bytes": 240496,
+    "semanticSha256": "2182020fe70fddbdfdb64c861f62fbaa83ede5a7b27386ad85d9bd3cbc312cda",
     "completeCrossTargetEqual": true,
     "variants": {
       "javascript": {
-        "sha256": "05af907e85e40aa3316fa6e455fff24a3d428c81ad92c51ab3cda2940de9e778",
-        "boundaryCrossings": 0
+        "sha256": "899ab52df62c96ca3d149002533e040bcc04c35221d057d53e0ebfe5158fda16",
+        "allocations": 18,
+        "decoderAllocations": 11,
+        "engineAllocations": 7,
+        "decoderApiCalls": 6002,
+        "decoderWasmBoundaryCrossings": 0,
+        "engineWasmBoundaryCrossings": 0,
+        "totalWasmBoundaryCrossings": 0
       },
       "wasm": {
-        "sha256": "3eb943b8a862ac3e1fe2b1c9dcd9948df64381358a4361cdfe24bc93d2993ed3",
-        "boundaryCrossings": 1
+        "sha256": "24bba79fe1b9ad294a53eaa9ee889c8ac4fed83225773aece088836d3ef35eed",
+        "allocations": 11,
+        "decoderAllocations": 11,
+        "engineAllocations": 0,
+        "decoderApiCalls": 6002,
+        "decoderWasmBoundaryCrossings": 6002,
+        "engineWasmBoundaryCrossings": 4,
+        "totalWasmBoundaryCrossings": 6006
       }
     },
     "header": [
@@ -30,17 +42,25 @@
       12,
       3380910976,
       685368050,
-      4110,
+      390084,
       243600,
       409200,
       600,
       6,
       12,
       0,
-      7,
+      18,
       37560,
-      240480,
+      240496,
       1,
+      0,
+      11,
+      6002,
+      0,
+      0,
+      7,
+      600,
+      600,
       0
     ]
   },
