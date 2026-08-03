@@ -6,7 +6,7 @@
   "entryId": "audio.webaudio-effects.v1",
   "implementationId": "audio-webaudio-effects-controlled-v1",
   "target": "wasm-linear",
-  "sourceCommit": "e30143d426adef0a0ccaf9d8516ab54e6953bd00",
+  "sourceCommit": "c7d08b2339e37a14a1096d5f303b3fe3a6229e2c",
   "completeOutputSha256": "fba0623a3af7679b1e95b79c7f454c38e1ac2123de5ebf3a7a86bc43bff16550",
   "oracle": {
     "absoluteTolerance": 0.00002,
@@ -28,7 +28,9 @@
     "convolution-macs": 92160480,
     "state-carry-boundaries": 22499,
     "tail-flush-frames": 15,
+    "fixture-allocations": 2,
     "allocations": 0,
+    "validation-output-copies": 2,
     "boundary-crossings": 1
   },
   "artifactSha256": "b5797c710b9598d31fba23107f5b77b0bb2b6d9e4d7b6192c430076a103305ea",
