@@ -24,29 +24,133 @@ export function generateDiffFixture(lineCount = BASE_LINES) {
       (state >>> 0).toString(16).padStart(8, "0")
     }`;
   }
-  const targets = EDIT_DENOMINATORS.map((denominator) => {
+  const targets = EDIT_DENOMINATORS.map((denominator, pairIndex) => {
     const removed = Math.max(1, Math.floor(lineCount / denominator));
-    return { denominator, removed, lines: base.slice(0, lineCount - removed) };
+    const lines = base.slice(0, lineCount - removed);
+    // The smallest edit class includes one replacement at the final retained
+    // line. This keeps the 100,000-line corpus practical while forcing the
+    // frozen full-size run through the non-degenerate Myers frontier.
+    if (pairIndex === 0 && lines.length > 0) lines[lines.length - 1] += " edited-🚧";
+    return { denominator, removed, lines };
   });
   return { seed: GENERATOR_SEED, base, targets };
 }
 
-export function internLinePairs(base, targets) {
-  const table = [];
-  const ids = new Map();
-  const intern = (line) => {
-    let id = ids.get(line);
-    if (id === undefined) {
-      id = table.length + 1;
-      ids.set(line, id);
-      table.push(line);
+const DIFF_FRAME_MAGIC = 0x31464454; // "TDF1" as little-endian u32.
+
+function assertScalarText(value) {
+  for (let index = 0; index < value.length; index++) {
+    const unit = value.charCodeAt(index);
+    if (unit >= 0xd800 && unit <= 0xdbff) {
+      const next = value.charCodeAt(++index);
+      if (!(next >= 0xdc00 && next <= 0xdfff)) {
+        throw new Error("line contains an unpaired surrogate");
+      }
+    } else if (unit >= 0xdc00 && unit <= 0xdfff) {
+      throw new Error("line contains an unpaired surrogate");
     }
+  }
+}
+
+export function serializeDiffPair(base, target) {
+  const groups = [base, target];
+  const encoded = groups.map((lines) =>
+    lines.map((line) => {
+      assertScalarText(line);
+      return encoder.encode(line);
+    })
+  );
+  const byteLength = 4 + encoded.reduce(
+    (total, lines) => total + 4 + lines.reduce((sum, line) => sum + 4 + line.length, 0),
+    0,
+  );
+  const output = new Uint8Array(byteLength);
+  const view = new DataView(output.buffer);
+  let offset = 0;
+  view.setUint32(offset, DIFF_FRAME_MAGIC, true);
+  offset += 4;
+  for (const lines of encoded) {
+    view.setUint32(offset, lines.length, true);
+    offset += 4;
+    for (const line of lines) {
+      view.setUint32(offset, line.length, true);
+      offset += 4;
+      output.set(line, offset);
+      offset += line.length;
+    }
+  }
+  return output;
+}
+
+function fnv1a(bytes) {
+  let hash = 0x811c9dc5;
+  for (const byte of bytes) hash = Math.imul(hash ^ byte, 0x01000193) >>> 0;
+  return hash;
+}
+
+export function internSerializedDiff(input) {
+  const view = new DataView(input.buffer, input.byteOffset, input.byteLength);
+  let offset = 0;
+  const readU32 = () => {
+    if (offset + 4 > input.length) throw new Error("truncated diff frame");
+    const value = view.getUint32(offset, true);
+    offset += 4;
+    return value;
+  };
+  if (readU32() !== DIFF_FRAME_MAGIC) throw new Error("invalid diff frame magic");
+  const counts = [readU32()];
+  const descriptors = [];
+  for (let group = 0; group < 2; group++) {
+    if (group === 1) counts.push(readU32());
+    const lines = [];
+    for (let index = 0; index < counts[group]; index++) {
+      const length = readU32();
+      if (offset + length > input.length) throw new Error("truncated diff line");
+      lines.push({ offset, length, bytes: input.subarray(offset, offset + length) });
+      offset += length;
+    }
+    descriptors.push(lines);
+  }
+  if (offset !== input.length) throw new Error("trailing diff frame bytes");
+  let capacity = 1;
+  while (capacity < (counts[0] + counts[1]) * 2) capacity *= 2;
+  const slots = new Int32Array(capacity);
+  const table = [];
+  const intern = (line) => {
+    const hash = fnv1a(line.bytes);
+    let slot = hash & (capacity - 1);
+    while (slots[slot] !== 0) {
+      const prior = table[slots[slot] - 1];
+      if (prior.hash === hash && prior.length === line.length) {
+        let equal = true;
+        for (let index = 0; index < line.length; index++) {
+          if (input[prior.offset + index] !== line.bytes[index]) {
+            equal = false;
+            break;
+          }
+        }
+        if (equal) return slots[slot];
+      }
+      slot = (slot + 1) & (capacity - 1);
+    }
+    const id = table.length + 1;
+    table.push({ hash, offset: line.offset, length: line.length });
+    slots[slot] = id;
     return id;
   };
   return {
-    table,
-    baseIds: Uint32Array.from(base, intern),
-    targetIds: targets.map((target) => Uint32Array.from(target, intern)),
+    baseIds: Uint32Array.from(descriptors[0], intern),
+    targetIds: Uint32Array.from(descriptors[1], intern),
+    uniqueLines: table.length,
+    tableCapacity: capacity,
+  };
+}
+
+export function internLinePairs(base, targets) {
+  const results = targets.map((target) => internSerializedDiff(serializeDiffPair(base, target)));
+  return {
+    baseIds: results[0]?.baseIds ?? new Uint32Array(),
+    targetIds: results.map((item) => item.targetIds),
   };
 }
 
@@ -168,106 +272,109 @@ export async function sha256Hex(bytes) {
 }
 
 export async function runDiffJS(baseLines, targetLines) {
-  const { baseIds, targetIds } = internLinePairs(baseLines, [targetLines]);
-  const result = myersDiff(baseIds, targetIds[0]);
+  const input = serializeDiffPair(baseLines, targetLines);
+  const { baseIds, targetIds, uniqueLines } = internSerializedDiff(input);
+  const result = myersDiff(baseIds, targetIds);
   const applied = applyScript(baseIds, result.operations);
   if (
-    applied.length !== targetIds[0].length ||
-    applied.some((value, index) => value !== targetIds[0][index])
-  ) throw new Error("apply oracle failed");
-  const inputBytes =
-    encoder.encode(`${baseLines.join("\n")}\n${targetLines.join("\n")}`).byteLength;
+    applied.length !== targetIds.length ||
+    applied.some((value, index) => value !== targetIds[index])
+  ) {
+    throw new Error("apply oracle failed");
+  }
   const output = encodeScript(result.operations);
   return {
     operations: result.operations,
     digestSha256: await sha256Hex(output),
+    inputSha256: await sha256Hex(input),
     counters: {
       "document-pairs": 1,
       "input-lines": baseLines.length + targetLines.length,
+      "interned-lines": uniqueLines,
       "edit-distance": result.editDistance,
       "frontier-steps": result.frontierSteps,
       "script-operations": result.operations.length,
-      "input-bytes": inputBytes,
+      "input-bytes": input.byteLength,
       "output-bytes": output.byteLength,
+      allocations: 5,
       "boundary-crossings": 0,
     },
   };
 }
 
 export async function runDiffWasm(baseLines, targetLines, wasmBytes) {
-  const { baseIds, targetIds } = internLinePairs(baseLines, [targetLines]);
-  const target = targetIds[0];
+  const input = serializeDiffPair(baseLines, targetLines);
   const { instance } = await WebAssembly.instantiate(wasmBytes);
-  const { memory, diff_myers: diffMyers } = instance.exports;
-  if (!(memory instanceof WebAssembly.Memory) || typeof diffMyers !== "function") {
-    throw new Error("diff Wasm exports missing");
+  const { memory, intern_diff_apply_validate: run } = instance.exports;
+  if (!(memory instanceof WebAssembly.Memory) || typeof run !== "function") {
+    throw new Error("complete diff Wasm exports missing");
   }
-  let prefix = 0;
-  while (prefix < baseIds.length && prefix < target.length && baseIds[prefix] === target[prefix]) {
-    prefix++;
-  }
-  let suffix = 0;
-  while (
-    suffix < baseIds.length - prefix && suffix < target.length - prefix &&
-    baseIds[baseIds.length - 1 - suffix] === target[target.length - 1 - suffix]
-  ) suffix++;
-  const n = baseIds.length - prefix - suffix;
-  const m = target.length - prefix - suffix;
-  const max = n + m;
-  const width = 2 * max + 1;
+  const totalLines = baseLines.length + targetLines.length;
+  let tableCapacity = 1;
+  while (tableCapacity < totalLines * 2) tableCapacity *= 2;
   let pointer = 1024;
-  const aPtr = pointer;
-  pointer += baseIds.byteLength;
-  const bPtr = (pointer + 7) & ~7;
-  pointer = bPtr + target.byteLength;
+  const inputPtr = pointer;
+  pointer += input.byteLength;
+  const basePtr = (pointer + 7) & ~7;
+  pointer = basePtr + baseLines.length * 4;
+  const targetPtr = (pointer + 7) & ~7;
+  pointer = targetPtr + targetLines.length * 4;
+  const tablePtr = (pointer + 7) & ~7;
+  pointer = tablePtr + tableCapacity * 16;
   const outPtr = (pointer + 7) & ~7;
-  pointer = outPtr + (baseIds.length + target.length) * 16;
+  pointer = outPtr + totalLines * 16;
+  const applyPtr = (pointer + 7) & ~7;
+  pointer = applyPtr + targetLines.length * 4;
   const frontierPtr = (pointer + 7) & ~7;
-  pointer = frontierPtr + Math.max(width * 4, 16);
+  pointer = frontierPtr + Math.max((totalLines * 2 + 1) * 4, 16);
   const tracePtr = (pointer + 7) & ~7;
-  if (n > 0 && m > 0) pointer = tracePtr + (max + 1) * width * 4;
+  const traceBytes = Math.max(16 * 1024 * 1024, (Math.min(totalLines, 2048) + 1) ** 2 * 8);
+  pointer = tracePtr + traceBytes;
   const metaPtr = (pointer + 7) & ~7;
-  pointer = metaPtr + 12;
+  pointer = metaPtr + 24;
   const requiredPages = Math.ceil(pointer / 65536);
   if (requiredPages > memory.buffer.byteLength / 65536) {
     memory.grow(requiredPages - memory.buffer.byteLength / 65536);
   }
-  new Uint32Array(memory.buffer, aPtr, baseIds.length).set(baseIds);
-  new Uint32Array(memory.buffer, bPtr, target.length).set(target);
-  const count = diffMyers(
-    aPtr,
-    baseIds.length,
-    bPtr,
-    target.length,
+  new Uint8Array(memory.buffer, inputPtr, input.byteLength).set(input);
+  const count = run(
+    inputPtr,
+    input.byteLength,
+    basePtr,
+    targetPtr,
+    tablePtr,
+    tableCapacity,
     outPtr,
+    applyPtr,
     frontierPtr,
     tracePtr,
+    traceBytes,
     metaPtr,
   );
   const view = new DataView(memory.buffer);
+  if (view.getUint32(metaPtr + 12, true) !== 1) {
+    throw new Error("Wasm apply/validation oracle failed");
+  }
   const operations = Array.from(
     { length: count },
     (_, index) =>
       [0, 1, 2, 3].map((field) => view.getUint32(outPtr + index * 16 + field * 4, true)),
   );
-  const applied = applyScript(baseIds, operations);
-  if (applied.length !== target.length || applied.some((value, index) => value !== target[index])) {
-    throw new Error("Wasm apply oracle failed");
-  }
   const output = new Uint8Array(memory.buffer.slice(outPtr, outPtr + count * 16));
-  const inputBytes =
-    encoder.encode(`${baseLines.join("\n")}\n${targetLines.join("\n")}`).byteLength;
   return {
     operations,
     digestSha256: await sha256Hex(output),
+    inputSha256: await sha256Hex(input),
     counters: {
       "document-pairs": 1,
-      "input-lines": baseLines.length + targetLines.length,
+      "input-lines": totalLines,
+      "interned-lines": view.getUint32(metaPtr + 16, true),
       "edit-distance": view.getUint32(metaPtr, true),
       "frontier-steps": view.getUint32(metaPtr + 4, true),
       "script-operations": count,
-      "input-bytes": inputBytes,
+      "input-bytes": input.byteLength,
       "output-bytes": output.byteLength,
+      allocations: view.getUint32(metaPtr + 20, true),
       "boundary-crossings": 1,
     },
   };

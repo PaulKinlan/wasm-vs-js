@@ -174,6 +174,10 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/artifacts/text-diff-patch/fixture-manifest.json",
     "application/json; charset=utf-8",
   ]],
+  ["/artifacts/text-diff-patch/input-manifest.json", [
+    "public/artifacts/text-diff-patch/input-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/artifacts/text-diff-patch/output-manifest.json", [
     "public/artifacts/text-diff-patch/output-manifest.json",
     "application/json; charset=utf-8",
@@ -188,6 +192,10 @@ const routes = new Map<string, [string, string, boolean?]>([
   ]],
   ["/artifacts/text-markdown-cms/fixture-manifest.json", [
     "public/artifacts/text-markdown-cms/fixture-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/text-markdown-cms/input-manifest.json", [
+    "public/artifacts/text-markdown-cms/input-manifest.json",
     "application/json; charset=utf-8",
   ]],
   ["/artifacts/text-markdown-cms/output-manifest.json", [

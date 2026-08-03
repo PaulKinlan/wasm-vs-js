@@ -3,6 +3,7 @@ import { runDiffJS, runDiffWasm } from "/benchmarks/v2/text-diff-patch/workload.
 const MAX_BYTES = 16_384;
 const MAX_LINES = 512;
 const encoder = new TextEncoder();
+const VARIANTS = new Set(["js-controlled", "wasm-linear-controlled"]);
 function lines(value) {
   if (encoder.encode(value).length > MAX_BYTES) {
     throw new Error(`each document is limited to ${MAX_BYTES} UTF-8 bytes`);
@@ -14,6 +15,7 @@ function lines(value) {
 self.onmessage = async ({ data }) => {
   const { token, values } = data;
   try {
+    if (!VARIANTS.has(values.variant)) throw new Error("unknown variant denied");
     const base = lines(String(values.base ?? ""));
     const target = lines(String(values.target ?? ""));
     let result;
@@ -21,7 +23,8 @@ self.onmessage = async ({ data }) => {
       const response = await fetch("/artifacts/text-diff-patch/text-diff-patch.wasm");
       if (!response.ok) throw new Error("Wasm artifact could not be loaded");
       result = await runDiffWasm(base, target, new Uint8Array(await response.arrayBuffer()));
-    } else result = await runDiffJS(base, target);
+    } else if (values.variant === "js-controlled") result = await runDiffJS(base, target);
+    else throw new Error("unknown variant denied");
     const preview = result.operations.slice(0, 80).map(([kind, ai, bi, id]) =>
       `${["equal", "delete", "insert"][kind]} base=${ai} target=${bi} line-id=${id}`
     ).join("\n");

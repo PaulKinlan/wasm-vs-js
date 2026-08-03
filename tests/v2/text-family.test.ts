@@ -13,11 +13,14 @@ import {
   myersDiff,
   runDiffJS,
   runDiffWasm,
+  serializeDiffPair,
 } from "../../benchmarks/v2/text-diff-patch/workload.js";
 import {
   generateMarkdownFixture,
+  MAX_NON_EMPTY_LINES,
   renderMarkdown,
   renderMarkdownWasm,
+  serializeMarkdownCorpus,
 } from "../../benchmarks/v2/text-markdown-cms/workload.js";
 
 async function wasm(path: string) {
@@ -38,12 +41,15 @@ async function wasm(path: string) {
 const diffWasm = await wasm("benchmarks/v2/text-diff-patch/text-diff-patch.wat");
 const markdownWasm = await wasm("benchmarks/v2/text-markdown-cms/text-markdown-cms.wat");
 
-Deno.test("text diff frozen Unicode fixture has exact full-contract shape", () => {
+Deno.test("text diff frozen Unicode fixture has exact full-contract shape and framing", () => {
   const fixture = generateDiffFixture();
   assertEquals(fixture.base.length, 100000);
   assertEquals(fixture.targets.map((target) => target.lines.length), [99900, 99000, 90000]);
   assert(fixture.base.some((line) => line.includes("🚀")));
   assert(fixture.base.some((line) => line.includes("é")));
+  assert(fixture.targets[0].lines.at(-1)?.endsWith("edited-🚧"));
+  const framed = serializeDiffPair(fixture.base.slice(0, 2), fixture.targets[0].lines.slice(0, 2));
+  assertEquals(new DataView(framed.buffer).getUint32(0, true), 0x31464454);
 });
 
 Deno.test("text diff authored Wasm and JavaScript agree on adversarial Myers ties", async () => {
@@ -58,6 +64,7 @@ Deno.test("text diff authored Wasm and JavaScript agree on adversarial Myers tie
     const linear = await runDiffWasm(base, target, diffWasm);
     assertEquals(linear.operations, js.operations);
     assertEquals(linear.digestSha256, js.digestSha256);
+    assertEquals(linear.inputSha256, js.inputSha256);
     assertEquals(linear.counters, { ...js.counters, "boundary-crossings": 1 });
   }
   assertEquals(myersDiff(Uint32Array.of(1, 2), Uint32Array.of(2, 1)).operations[0][0], 1);
@@ -73,11 +80,15 @@ Deno.test("Markdown fixture is exact, deterministic, Unicode, and spans all 500 
     assert(bytes >= 2048 && bytes <= 40960, `fixture bytes ${bytes}`);
   }
   assert(first.documents.some((document) => document.includes("東京")));
-  assert(first.documents.some((document) => document.startsWith("![")), "figure transform absent");
+  assert(first.documents.some((document) => document.includes("\n![")), "figure transform absent");
+  assert(first.documents.some((document) => document.includes("\n[x](")), "odd-label link absent");
   assert(
-    first.documents.some((document) => document.startsWith("[link]")),
-    "link transform absent",
+    first.documents.some((document) => document.includes("a b")),
+    "Unicode whitespace vector absent",
   );
+  const framed = serializeMarkdownCorpus(first.documents.slice(0, 2));
+  assertEquals(new DataView(framed.buffer).getUint32(0, true), 0x3146434d);
+  assertEquals(new DataView(framed.buffer).getUint32(4, true), 2);
 });
 
 Deno.test("Markdown authored Wasm matches canonical output and rejects adversarial raw HTML", async () => {
@@ -85,6 +96,9 @@ Deno.test("Markdown authored Wasm matches canonical output and rejects adversari
     "# Café 東京\n## é 🚀\n<em>allowed</em>\n<strong>also allowed</strong>\n<script>alert(1)</script>\n<img src=x onerror=alert(1)>\nA & B < C\n",
     "![alt](https://images.example.test/ok.png)\n",
     "[safe](https://docs.example.test/ok)\n",
+    "[x](https://docs.example.test/ok)\n",
+    "# heading\n[x](https://docs.example.test/path)\n![a](https://images.example.test/x)\n",
+    "[nbsp](https://docs.example.test/a b)\n",
     "[bad](javascript:alert(1))\n",
     "<em onclick=x>not allowed</em>\n",
     "<strong>nested <em>x</em></strong>\n",
@@ -95,23 +109,25 @@ Deno.test("Markdown authored Wasm matches canonical output and rejects adversari
     assertEquals(linear.html, js.html);
     assertEquals(linear.counters, { ...js.counters, "boundary-crossings": 4 });
     assertEquals(linear.rejected, js.rejected);
+    assertEquals([...linear.ast], [...js.ast]);
+    assertEquals([...linear.transformedAst], [...js.transformedAst]);
     assert(!linear.html.includes("<script"));
     assert(!linear.html.includes("onerror"));
   }
-  const mixed = "# heading\n[link](https://docs.example.test/path)\n";
+  const tooManyLines = "x\n".repeat(MAX_NON_EMPTY_LINES + 1);
   for (
     const run of [
-      () => Promise.resolve(renderMarkdown(mixed)),
-      () => renderMarkdownWasm(mixed, markdownWasm),
+      () => Promise.resolve(renderMarkdown(tooManyLines)),
+      () => renderMarkdownWasm(tooManyLines, markdownWasm),
     ]
   ) {
     let rejected = false;
     try {
       await run();
     } catch (error) {
-      rejected = error instanceof Error && error.message.includes("only non-empty block");
+      rejected = error instanceof Error && error.message.includes("non-empty lines");
     }
-    assert(rejected, "mixed resource-block document was not rejected consistently");
+    assert(rejected, "line-count limit was not enforced consistently");
   }
 });
 
@@ -126,6 +142,28 @@ Deno.test("text artifacts and closed proposal-validation records are reproducibl
     JSON.parse(await Deno.readTextFile("schemas/workload-result-v2-proposal.schema.json")),
   );
   const catalog = JSON.parse(await Deno.readTextFile("catalog/workloads.v2.proposed.json"));
+  const diffOutput = JSON.parse(
+    await Deno.readTextFile("public/artifacts/text-diff-patch/output-manifest.json"),
+  );
+  assert(diffOutput.pairs[0].jsCounters["frontier-steps"] > 0);
+  assertEquals(
+    diffOutput.pairs[0].jsCounters["frontier-steps"],
+    diffOutput.pairs[0].wasmCounters["frontier-steps"],
+  );
+  const markdownOutput = JSON.parse(
+    await Deno.readTextFile("public/artifacts/text-markdown-cms/output-manifest.json"),
+  );
+  assertEquals(markdownOutput.documents.length, 500);
+  assert(
+    markdownOutput.documents.every((document: Record<string, unknown>) =>
+      typeof document.astSha256 === "string" && typeof document.transformedAstSha256 === "string" &&
+      typeof document.htmlSha256 === "string"
+    ),
+  );
+  assertEquals(markdownOutput.variants["js-controlled"]["boundary-crossings"], 0);
+  assertEquals(markdownOutput.variants["wasm-linear-controlled"]["boundary-crossings"], 2000);
+  assertEquals(markdownOutput.variants["js-controlled"].allocations, 2000);
+  assertEquals(markdownOutput.variants["wasm-linear-controlled"].allocations, 2000);
   for (const slug of ["text-diff-patch", "text-markdown-cms"]) {
     const manifest = JSON.parse(
       await Deno.readTextFile(`public/artifacts/${slug}/build-manifest.json`),
@@ -166,4 +204,12 @@ Deno.test("text demo source exposes worker cancellation, timeout, stale-token gu
   const markdown = await Deno.readTextFile("public/demos/text.markdown-cms.v1/index.html");
   assert(markdown.includes("Raw HTML permits only"));
   assert(markdown.includes("40,960 UTF-8 bytes"));
+  assert(markdown.includes("4,096 non-empty lines"));
+  for (
+    const workerPath of ["public/text-diff-patch-worker.js", "public/text-markdown-cms-worker.js"]
+  ) {
+    const worker = await Deno.readTextFile(workerPath);
+    assert(worker.includes("unknown variant denied"));
+    assert(worker.includes('new Set(["js-controlled", "wasm-linear-controlled"])'));
+  }
 });

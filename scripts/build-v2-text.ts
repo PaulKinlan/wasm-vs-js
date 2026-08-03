@@ -4,11 +4,13 @@ import {
   generateDiffFixture,
   runDiffJS,
   runDiffWasm,
+  serializeDiffPair,
 } from "../benchmarks/v2/text-diff-patch/workload.js";
 import {
   generateMarkdownFixture,
   renderMarkdown,
   renderMarkdownWasm,
+  serializeMarkdownCorpus,
   sha256Hex as textSha256,
 } from "../benchmarks/v2/text-markdown-cms/workload.js";
 
@@ -78,6 +80,8 @@ for (const target of diffFixture.targets) {
   diffPairs.push({
     denominator: target.denominator,
     removedLines: target.removed,
+    inputSha256: js.inputSha256,
+    inputBytes: js.counters["input-bytes"],
     digestSha256: js.digestSha256,
     jsCounters: js.counters,
     wasmCounters: wasm.counters,
@@ -91,7 +95,8 @@ const diffFixtureRecord = {
     seed: "0xd1ff2026",
     revision: "proposal-generator-v1",
     unicode: "Unicode 15.1 scalar UTF-8 lines",
-    serialization: "base UTF-8 lines then targets in 1/1000, 1/100, 1/10 order",
+    serialization:
+      "TDF1: little-endian magic, base count, repeated byte-length plus UTF-8 line bytes, target count, repeated byte-length plus UTF-8 line bytes",
   },
   parameters: {
     baseLines: 100000,
@@ -99,17 +104,30 @@ const diffFixtureRecord = {
     editClasses: ["1/1000", "1/100", "1/10"],
     algorithm: "myers-ond",
     tieBreak: "delete-before-insert",
+    targetDerivation:
+      "tail deletion for all pairs; 1/1000 additionally replaces the final retained line to exercise Myers frontier",
   },
-  baseSha256: await textSha256(new TextEncoder().encode(diffFixture.base.join("\n"))),
-  targets: await Promise.all(
-    diffFixture.targets.map(async (target) => ({
-      denominator: target.denominator,
-      lines: target.lines.length,
-      sha256: await textSha256(new TextEncoder().encode(target.lines.join("\n"))),
-    })),
-  ),
+  allocationCounter:
+    "five logical work buffers: intern table, base IDs, target IDs, canonical script, applied target IDs",
+  baseFrameSha256: await textSha256(serializeDiffPair(diffFixture.base, [])),
+  targets: diffPairs.map((pair, index) => ({
+    denominator: pair.denominator,
+    lines: diffFixture.targets[index].lines.length,
+    framedInputBytes: pair.inputBytes,
+    framedInputSha256: pair.inputSha256,
+  })),
 };
 await writeJson("public/artifacts/text-diff-patch/fixture-manifest.json", diffFixtureRecord);
+await writeJson("public/artifacts/text-diff-patch/input-manifest.json", {
+  schemaVersion: 1,
+  workload: "text.diff-patch.v1",
+  serialization: "TDF1 little-endian framed UTF-8",
+  pairs: diffPairs.map(({ denominator, inputBytes, inputSha256 }) => ({
+    denominator,
+    bytes: inputBytes,
+    sha256: inputSha256,
+  })),
+});
 await writeJson("public/artifacts/text-diff-patch/output-manifest.json", {
   schemaVersion: 1,
   workload: "text.diff-patch.v1",
@@ -126,16 +144,30 @@ let markdownInputBytes = 0,
   markdownTransforms = 0,
   markdownChecks = 0,
   markdownRejected = 0;
-const outputDigests: string[] = [];
+const markdownDocuments = [];
+let markdownJsAllocations = 0, markdownWasmAllocations = 0, markdownWasmCrossings = 0;
 for (const document of markdownFixture.documents) {
   const js = renderMarkdown(document);
   const wasm = await renderMarkdownWasm(document, binaries.get("text-markdown-cms")!);
   const expectedWasm = { ...js.counters, "boundary-crossings": 4 };
   if (
     js.html !== wasm.html || canonicalize(wasm.counters) !== canonicalize(expectedWasm) ||
-    js.rejected !== wasm.rejected
+    js.rejected !== wasm.rejected ||
+    canonicalize([...js.ast]) !== canonicalize([...wasm.ast]) ||
+    canonicalize([...js.transformedAst]) !== canonicalize([...wasm.transformedAst])
   ) throw new Error("markdown oracle mismatch");
-  outputDigests.push(await textSha256(js.outputBytes));
+  markdownDocuments.push({
+    index: markdownDocuments.length,
+    inputSha256: await textSha256(new TextEncoder().encode(document)),
+    astSha256: await textSha256(js.ast),
+    transformedAstSha256: await textSha256(js.transformedAst),
+    htmlSha256: await textSha256(js.outputBytes),
+    variantCounters: {
+      "js-controlled": js.counters,
+      "wasm-linear-controlled": wasm.counters,
+    },
+    rejected: js.rejected,
+  });
   markdownInputBytes += js.counters["input-bytes"];
   markdownOutputBytes += js.counters["output-bytes"];
   markdownTokens += js.counters.tokens;
@@ -143,8 +175,11 @@ for (const document of markdownFixture.documents) {
   markdownTransforms += js.counters.transforms;
   markdownChecks += js.counters["sanitizer-checks"];
   markdownRejected += js.rejected;
+  markdownJsAllocations += js.counters.allocations;
+  markdownWasmAllocations += wasm.counters.allocations;
+  markdownWasmCrossings += wasm.counters["boundary-crossings"];
 }
-const corpusBytes = new TextEncoder().encode(markdownFixture.documents.join(""));
+const corpusBytes = serializeMarkdownCorpus(markdownFixture.documents);
 await writeJson("public/artifacts/text-markdown-cms/fixture-manifest.json", {
   schemaVersion: 1,
   workload: "text.markdown-cms.v1",
@@ -153,6 +188,20 @@ await writeJson("public/artifacts/text-markdown-cms/fixture-manifest.json", {
     seed: "0xc05c0de1",
     revision: "proposal-generator-v1",
     unicode: "Unicode 15.1 scalar UTF-8",
+    serialization:
+      "MCF1: little-endian magic, document count, repeated byte-length plus UTF-8 document bytes",
+  },
+  astLayout: {
+    encoding: "six little-endian u32 fields per record",
+    fields: [
+      "type",
+      "text-byte-offset",
+      "text-byte-length",
+      "url-byte-offset",
+      "url-byte-length",
+      "sanitizer-allowed",
+    ],
+    typeIds: { heading1: 1, heading2: 2, paragraph: 3, link: 4, figure: 5, rawHtml: 6 },
   },
   parameters: {
     documents: 500,
@@ -162,19 +211,30 @@ await writeJson("public/artifacts/text-markdown-cms/fixture-manifest.json", {
     sanitize: "frozen-allowlist",
   },
   corpus: { bytes: corpusBytes.length, sha256: await textSha256(corpusBytes) },
-  grammarComposition:
-    "whole-line links and figures are valid only as the document's sole non-empty block",
+  allocationCounter:
+    "four logical work buffers per document: UTF-8 input, parsed AST, transformed AST with sanitizer flags, canonical HTML",
   allowlist: {
     rawElements: ["em-without-attributes", "strong-without-attributes"],
     linkPrefixes: ["https://example.test/", "https://docs.example.test/"],
     imagePrefixes: ["https://images.example.test/"],
   },
 });
+await writeJson("public/artifacts/text-markdown-cms/input-manifest.json", {
+  schemaVersion: 1,
+  workload: "text.markdown-cms.v1",
+  serialization: "MCF1 little-endian framed UTF-8",
+  documents: 500,
+  bytes: corpusBytes.length,
+  sha256: await textSha256(corpusBytes),
+});
 await writeJson("public/artifacts/text-markdown-cms/output-manifest.json", {
   schemaVersion: 1,
   workload: "text.markdown-cms.v1",
   oracle: "per-document-canonical-html-digest-and-invariants",
-  corpusDigestSha256: await textSha256(new TextEncoder().encode(outputDigests.join("\n"))),
+  corpusDigestSha256: await textSha256(
+    new TextEncoder().encode(markdownDocuments.map((document) => document.htmlSha256).join("\n")),
+  ),
+  documents: markdownDocuments,
   counters: {
     documents: 500,
     "input-bytes": markdownInputBytes,
@@ -184,6 +244,13 @@ await writeJson("public/artifacts/text-markdown-cms/output-manifest.json", {
     "sanitizer-checks": markdownChecks,
     "output-bytes": markdownOutputBytes,
     rejected: markdownRejected,
+  },
+  variants: {
+    "js-controlled": { allocations: markdownJsAllocations, "boundary-crossings": 0 },
+    "wasm-linear-controlled": {
+      allocations: markdownWasmAllocations,
+      "boundary-crossings": markdownWasmCrossings,
+    },
   },
   performanceClaims: [],
 });

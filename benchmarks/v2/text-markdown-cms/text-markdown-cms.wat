@@ -64,8 +64,8 @@
     (block $done (loop $loop (br_if $done (i32.ge_u (local.get $i) (local.get $n)))
       (local.set $c (i32.load8_u (i32.add (local.get $p) (local.get $i))))
       (if (i32.or (i32.le_u (local.get $c) (i32.const 32))
-            (i32.or (i32.eq (local.get $c) (i32.const 34)) (i32.or (i32.eq (local.get $c) (i32.const 39))
-            (i32.or (i32.eq (local.get $c) (i32.const 60)) (i32.or (i32.eq (local.get $c) (i32.const 62)) (i32.eq (local.get $c) (i32.const 92)))))))
+            (i32.or (i32.ge_u (local.get $c) (i32.const 127)) (i32.or (i32.eq (local.get $c) (i32.const 34)) (i32.or (i32.eq (local.get $c) (i32.const 39))
+            (i32.or (i32.eq (local.get $c) (i32.const 60)) (i32.or (i32.eq (local.get $c) (i32.const 62)) (i32.eq (local.get $c) (i32.const 92))))))))
         (then (return (i32.const 0))))
       (local.set $i (i32.add (local.get $i) (i32.const 1))) (br $loop))) (i32.const 1))
 
@@ -109,7 +109,7 @@
                            (i32.eq (i32.load8_u (i32.add (local.get $input) (i32.add (local.get $i) (i32.const 1)))) (i32.const 40)))
                 (then (local.set $close (local.get $i)) (br $findDone)))
               (local.set $i (i32.add (local.get $i) (i32.const 1))) (br $find)))
-            (if (i32.and (local.get $close) (i32.eq (i32.load8_u (i32.add (local.get $input) (i32.sub (local.get $end) (i32.const 1)))) (i32.const 41)))
+            (if (i32.and (i32.ne (local.get $close) (i32.const 0)) (i32.eq (i32.load8_u (i32.add (local.get $input) (i32.sub (local.get $end) (i32.const 1)))) (i32.const 41)))
               (then (local.set $textLen (i32.sub (local.get $close) (local.get $textStart)))
                     (local.set $urlStart (i32.add (local.get $close) (i32.const 2)))
                     (local.set $urlLen (i32.sub (i32.sub (local.get $end) (local.get $urlStart)) (i32.const 1))))
@@ -131,7 +131,7 @@
                          (i32.eq (i32.load8_u (i32.add (local.get $input) (i32.add (local.get $i) (i32.const 1)))) (i32.const 40)))
               (then (local.set $close (local.get $i)) (br $findAgainDone)))
             (local.set $i (i32.add (local.get $i) (i32.const 1))) (br $findAgain)))
-          (if (i32.and (local.get $close) (i32.eq (i32.load8_u (i32.add (local.get $input) (i32.sub (local.get $end) (i32.const 1)))) (i32.const 41)))
+          (if (i32.and (i32.ne (local.get $close) (i32.const 0)) (i32.eq (i32.load8_u (i32.add (local.get $input) (i32.sub (local.get $end) (i32.const 1)))) (i32.const 41)))
             (then (local.set $textLen (i32.sub (local.get $close) (local.get $textStart)))
                   (local.set $urlStart (i32.add (local.get $close) (i32.const 2)))
                   (local.set $urlLen (i32.sub (i32.sub (local.get $end) (local.get $urlStart)) (i32.const 1))))
@@ -151,7 +151,9 @@
       (local.set $i (i32.add (local.get $i) (i32.const 1))) (br $loop)))
     (i32.store (local.get $meta) (local.get $trans)) (i32.store offset=8 (local.get $meta) (local.get $head))
     (i32.store offset=12 (local.get $meta) (i32.add (i32.add (local.get $count) (i32.mul (local.get $head) (i32.const 2))) (i32.add (select (i32.const 2) (i32.const 0) (local.get $head)) (local.get $links))))
-    (i32.store offset=16 (local.get $meta) (local.get $links)) (local.get $trans))
+    (i32.store offset=16 (local.get $meta) (local.get $links))
+    (i32.store offset=24 (local.get $meta) (i32.const 4))
+    (local.get $trans))
 
   (func (export "sanitize") (param $input i32) (param $ast i32) (param $count i32) (param $meta i32) (result i32)
     (local $i i32) (local $type i32) (local $p i32) (local $ok i32) (local $checks i32) (local $reject i32) (local $start i32) (local $len i32)
@@ -161,14 +163,11 @@
         (then (local.set $checks (i32.add (local.get $checks) (i32.const 1)))
           (local.set $ok (call $safeUrl (i32.add (local.get $input) (i32.load offset=12 (local.get $p))) (i32.load offset=16 (local.get $p)) (i32.eq (local.get $type) (i32.const 5)))))
       (else (if (i32.eq (local.get $type) (i32.const 6))
-        (then (local.set $checks (i32.add (local.get $checks) (i32.const 1))) (local.set $ok (i32.const 0))
-          (local.set $start (i32.load offset=4 (local.get $p))) (local.set $len (i32.load offset=8 (local.get $p)))
-          ;; Attribute-free <em>...</em> or <strong>...</strong>, with no nested markup.
-          (if (i32.or
-            (i32.and (call $starts (i32.add (local.get $input) (local.get $start)) (local.get $len) (i32.const 400) (i32.const 4)) (i32.const 0))
-            (i32.const 0)) (then (local.set $ok (i32.const 0))))))))
-      ;; Raw allowlist is evaluated by exact byte shape below in render; status 2 marks raw for that check.
-      (if (i32.eq (local.get $type) (i32.const 6)) (then (local.set $ok (i32.const 2))))
+        (then
+          (local.set $checks (i32.add (local.get $checks) (i32.const 1)))
+          (local.set $start (i32.load offset=4 (local.get $p)))
+          (local.set $len (i32.load offset=8 (local.get $p)))
+          (local.set $ok (call $rawAllowed (i32.add (local.get $input) (local.get $start)) (local.get $len)))))))
       (i32.store offset=20 (local.get $p) (local.get $ok))
       (if (i32.eqz (local.get $ok)) (then (local.set $reject (i32.add (local.get $reject) (i32.const 1)))))
       (local.set $i (i32.add (local.get $i) (i32.const 1))) (br $loop)))
@@ -219,10 +218,8 @@
       (else (if (i32.eq (local.get $type) (i32.const 3)) (then (call $lit (i32.const 136) (i32.const 3)) (call $escaped (local.get $start) (local.get $len)) (call $lit (i32.const 144) (i32.const 4)))
       (else (if (i32.eq (local.get $type) (i32.const 4)) (then (if (i32.load offset=20 (local.get $p)) (then (call $lit (i32.const 152) (i32.const 12)) (call $escaped (local.get $url) (local.get $urlLen)) (call $lit (i32.const 80) (i32.const 2)) (call $escaped (local.get $start) (local.get $len)) (call $lit (i32.const 168) (i32.const 8)))))
       (else (if (i32.eq (local.get $type) (i32.const 5)) (then (if (i32.load offset=20 (local.get $p)) (then (call $lit (i32.const 180) (i32.const 18)) (call $escaped (local.get $url) (local.get $urlLen)) (call $lit (i32.const 200) (i32.const 7)) (call $escaped (local.get $start) (local.get $len)) (call $lit (i32.const 208) (i32.const 11)))))
-      (else (if (call $rawAllowed (local.get $start) (local.get $len)) (then (call $lit (local.get $start) (local.get $len))) (else (local.set $reject (i32.add (local.get $reject) (i32.const 1)))))))))))))))
+      (else (if (i32.load offset=20 (local.get $p)) (then (call $lit (local.get $start) (local.get $len))))))))))))))
       (local.set $i (i32.add (local.get $i) (i32.const 1))) (br $loop)))
-    ;; sanitize could not decide raw bodies without this final exact check.
-    (i32.store offset=20 (local.get $meta) (i32.add (i32.load offset=20 (local.get $meta)) (local.get $reject)))
     (i32.sub (global.get $w) (local.get $out)))
 
   ;; Transform stage also canonicalizes figure records from their raw line
@@ -243,7 +240,7 @@
                          (i32.eq (i32.load8_u (i32.add (local.get $input) (i32.add (local.get $j) (i32.const 1)))) (i32.const 40)))
               (then (local.set $close (local.get $j)) (br $found)))
             (local.set $j (i32.add (local.get $j) (i32.const 1))) (br $find)))
-          (if (i32.and (local.get $close)
+          (if (i32.and (i32.ne (local.get $close) (i32.const 0))
                 (i32.eq (i32.load8_u (i32.add (local.get $input) (i32.sub (i32.add (local.get $start) (local.get $len)) (i32.const 1)))) (i32.const 41)))
             (then
               (i32.store (local.get $p) (i32.const 5))
@@ -296,7 +293,7 @@
                          (i32.eq (i32.load8_u (i32.add (local.get $input) (i32.add (local.get $i) (i32.const 1)))) (i32.const 40)))
               (then (local.set $close (local.get $i)) (br $found)))
             (local.set $i (i32.add (local.get $i) (i32.const 1))) (br $find)))
-          (if (i32.and (local.get $close) (i32.eq (i32.load8_u (i32.add (local.get $input) (i32.sub (local.get $end) (i32.const 1)))) (i32.const 41)))
+          (if (i32.and (i32.ne (local.get $close) (i32.const 0)) (i32.eq (i32.load8_u (i32.add (local.get $input) (i32.sub (local.get $end) (i32.const 1)))) (i32.const 41)))
             (then (local.set $tn (i32.sub (local.get $close) (local.get $ts)))
                   (local.set $us (i32.add (local.get $close) (i32.const 2)))
                   (local.set $un (i32.sub (i32.sub (local.get $end) (local.get $us)) (i32.const 1))))

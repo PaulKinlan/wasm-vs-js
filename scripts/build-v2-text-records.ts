@@ -33,6 +33,7 @@ for (
     artifactScript = "scripts/build-v2-text.ts",
     script = "scripts/build-v2-text-records.ts",
     fixture = `public/artifacts/${slug}/fixture-manifest.json`,
+    input = `public/artifacts/${slug}/input-manifest.json`,
     output = `public/artifacts/${slug}/output-manifest.json`,
     build = `public/artifacts/${slug}/build-manifest.json`,
     wasm = `public/artifacts/${slug}/${slug}.wasm`;
@@ -45,6 +46,7 @@ for (
     script: await ref(script),
     artifactScript: await ref(artifactScript),
     fixture: await ref(fixture),
+    input: await ref(input),
     output: await ref(output),
     build: await ref(build),
     wasm: await ref(wasm),
@@ -71,7 +73,7 @@ for (
       oracle: refs.output,
       manifests: {
         fixture: refs.fixture,
-        input: refs.fixture,
+        input: refs.input,
         output: refs.output,
         build: refs.build,
       },
@@ -118,6 +120,7 @@ for (
         refs.js.path,
         refs.output.path,
         refs.fixture.path,
+        refs.input.path,
         refs.build.path,
         refs.script.path,
         refs.lock.path,
