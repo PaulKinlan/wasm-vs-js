@@ -7,6 +7,11 @@ import {
 } from "../benchmarks/base/document-pdf-viewer/engine.js";
 
 const root = new URL("../", import.meta.url);
+const popplerExecutables = {
+  pdfinfo: "/usr/bin/pdfinfo",
+  pdftotext: "/usr/bin/pdftotext",
+  pdftoppm: "/usr/bin/pdftoppm",
+} as const;
 const out = new URL("public/artifacts/document-pdf-viewer/", root);
 const evidence = new URL("public/evidence/base/document-pdf-viewer/", root);
 await Deno.mkdir(out, { recursive: true });
@@ -208,12 +213,12 @@ const referenceRgba = new Map<number, Uint8Array>();
 const popplerDir = await Deno.makeTempDir({ prefix: "pdfbase-poppler-" });
 let independentReference;
 try {
-  const info = await command("pdfinfo", [pdfUrl.pathname]);
+  const info = await command(popplerExecutables.pdfinfo, [pdfUrl.pathname]);
   if (!/^Pages:\s+100$/m.test(info) || !/^PDF version:\s+1\.7$/m.test(info)) {
     throw new Error("Poppler rejected PDF page count or version");
   }
   const textPath = `${popplerDir}/report.txt`;
-  await command("pdftotext", [pdfUrl.pathname, textPath]);
+  await command(popplerExecutables.pdftotext, [pdfUrl.pathname, textPath]);
   const extracted = await Deno.readTextFile(textPath);
   const reportLines = extracted.match(/REPORT PAGE [0-9]{3} DOCUMENT BENCHMARK(?: NEEDLE)?/g) ?? [];
   const hitLines = reportLines.filter((line) => line.endsWith(" NEEDLE"));
@@ -223,7 +228,7 @@ try {
   const rasters = [];
   for (const page of [1, 25, 50, 75, 100]) {
     const prefix = `${popplerDir}/page-${page}`;
-    await command("pdftoppm", [
+    await command(popplerExecutables.pdftoppm, [
       "-aa",
       "no",
       "-aaVector",
@@ -268,7 +273,14 @@ try {
     });
   }
   independentReference = {
-    engine: await toolVersion("pdfinfo"),
+    engine: await toolVersion(popplerExecutables.pdfinfo),
+    executables: await Promise.all(
+      Object.entries(popplerExecutables).map(async ([name, path]) => ({
+        name,
+        path,
+        sha256: await sha256Hex(await Deno.readFile(path)),
+      })),
+    ),
     pageCount: 100,
     extractedTextRecords: reportLines.length,
     searchHits: hitLines.length,
@@ -447,7 +459,7 @@ const buildManifest = {
   fixture,
   artifact,
   reproduce:
-    `deno run --frozen --allow-read=.,/tmp --allow-write=public/artifacts,public/evidence,/tmp --allow-run=clang,wasm-ld,git,pdfinfo,pdftotext,pdftoppm scripts/build-document-pdf-viewer.ts --source-commit=${sourceCommit}`,
+    `deno run --frozen --allow-read=.,/tmp,/usr/bin/pdfinfo,/usr/bin/pdftotext,/usr/bin/pdftoppm --allow-write=public/artifacts,public/evidence,/tmp --allow-run=clang,wasm-ld,git,pdfinfo,pdftotext,pdftoppm scripts/build-document-pdf-viewer.ts --source-commit=${sourceCommit}`,
 };
 for (
   const [name, value] of [["fixture-manifest.json", fixtureManifest], [
