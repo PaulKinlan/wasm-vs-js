@@ -205,7 +205,7 @@ Deno.test("public pages contain no inline script, inline style, or remote asset"
         "",
       )
       .replaceAll(
-        /https:\/\/github\.com\/PaulKinlan\/wasm-vs-js\/blob\/d4062f860464d2a91cf0dda8e0c7f01a813caf75\/[a-zA-Z0-9._/-]+(?:#L[0-9]+(?:-L[0-9]+)?)?/g,
+        /https:\/\/github\.com\/PaulKinlan\/wasm-vs-js\/blob\/9503e874db4351bf2ebb76010a466bba6befcd9b\/[a-zA-Z0-9._/-]+(?:#L[0-9]+(?:-L[0-9]+)?)?/g,
         "",
       );
     assert(!/https?:\/\//i.test(withoutAllowedLinks), `${path} has an unexpected remote URL`);
