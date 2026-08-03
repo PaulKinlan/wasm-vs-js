@@ -31,12 +31,12 @@
       "sha256": "02d7e48164395fa68f81c6ec33e9da5461be397dc57602ac0cd89b4bbba1d312"
     },
     "alasql.min.js": {
-      "bytes": 511842,
-      "sha256": "563a94ede6083cf2de8c8e3b07294a8edef03bcb5870f1ff3da3f364f3f5cac7"
+      "bytes": 511709,
+      "sha256": "d7a6b9f0d11c60fcd1d1e5d574a13cf8bd02cfa1589a600ff701c6be3926cc87"
     },
     "ALASQL-LICENSE.txt": {
-      "bytes": 1103,
-      "sha256": "48f0d722a7b35a9d92de38fe6b949c9477da90e84e8f763c6fca58457732e33e"
+      "bytes": 1082,
+      "sha256": "291c4b217057a5565034aa3aaf2fc34f5d188359502463fa6bbc0f3541dc128b"
     }
   }
 }

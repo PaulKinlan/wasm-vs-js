@@ -58,16 +58,21 @@ try {
   ] as const;
   for (const [source, destination] of textCopies) {
     const upstream = await Deno.readTextFile(source);
-    const normalized = upstream.replace(/[ \t]+$/gm, "");
+    const normalized = upstream.replaceAll("\r\n", "\n").replace(/[ \t]+$/gm, "").replace(
+      / +\t/g,
+      "\t",
+    );
     await Deno.writeTextFile(destination, `// deno-lint-ignore-file\n${normalized}`);
   }
   await Deno.copyFile(
     `${sqliteDir}/package/dist/sqlite3.wasm`,
     new URL("sqlite3.wasm", output),
   );
-  await Deno.copyFile(
-    `${alasqlDir}/package/LICENSE`,
+  const alasqlLicense = (await Deno.readTextFile(`${alasqlDir}/package/LICENSE`))
+    .replaceAll("\r\n", "\n").replace(/[ \t]+$/gm, "");
+  await Deno.writeTextFile(
     new URL("ALASQL-LICENSE.txt", output),
+    alasqlLicense,
   );
 
   const manifest: Record<string, unknown> = {
