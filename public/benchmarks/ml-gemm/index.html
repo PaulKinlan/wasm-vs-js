@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob:; worker-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'"
+    >
+    <title>ML GEMM · Wasm vs JavaScript</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to demo</a>
+    <header class="masthead">
+      <a href="/" class="brand">AI Focus</a><span>Wasm vs JavaScript</span><strong>ML GEMM
+        Demo</strong>
+    </header>
+    <main id="main" class="narrative hosted-runner">
+      <h1>GEMM: 4 × 512×512 matrix products</h1>
+      <p class="notice">
+        <strong>Status: exploratory.</strong> This tab runs the controlled JS and linear-Wasm
+        variants of a strict-f32 batched GEMM locally. No upload, no storage, no accepted corpus
+        claim.
+      </p>
+      <p>
+        The worker generates deterministic input (xorshift32 seed 0x91e10da5), runs both variants in
+        a fresh module worker, and validates every output element against the committed f64
+        reference and propagated f32 bounds.
+      </p>
+      <form id="neural-form">
+        <fieldset>
+          <legend>Protocol</legend>
+          <label>Target<select name="target" id="target-select">
+              <option value="both">Both (JS + Wasm)</option>
+              <option value="js">JavaScript only</option>
+              <option value="wasm">Wasm only</option>
+            </select></label>
+          <label>Mode<select name="mode" id="mode-select">
+              <option value="default">Default (bounded)</option>
+              <option value="exact">Exact full-contract</option>
+            </select></label>
+        </fieldset>
+        <button id="start-btn" type="submit">Start</button>
+        <button id="cancel-btn" type="button" hidden>Cancel</button>
+      </form>
+      <section aria-labelledby="progress-title" class="run-progress">
+        <h2 id="progress-title">Progress</h2>
+        <progress id="run-progress" value="0" max="1"></progress>
+        <ol id="phase-log" aria-live="polite"></ol>
+      </section>
+      <section id="result-section" hidden aria-labelledby="result-title">
+        <h2 id="result-title">Result</h2>
+        <div id="result-content"></div>
+      </section>
+    </main>
+    <script type="module" src="/benchmarks/ml-gemm/neural-gemm-runner.js"></script>
+  </body>
+</html>
