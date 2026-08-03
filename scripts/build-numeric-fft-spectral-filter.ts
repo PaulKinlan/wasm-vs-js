@@ -88,16 +88,10 @@ if (checkOnly) {
   if (await sha256Hex(existing) !== await sha256Hex(wasm)) {
     throw new Error("Wasm artifact is not reproducible");
   }
-  const build = JSON.parse(await Deno.readTextFile(new URL("build-manifest.json", outputDir)));
-  if (build.sourceCommit !== sourceCommit || build.sourceSha256 !== sourceSha256) {
-    throw new Error("build manifest source identity mismatch");
-  }
-  console.log("numeric FFT spectral filter artifact and source graph reproduce exactly");
-  Deno.exit(0);
+} else {
+  await Deno.mkdir(outputDir, { recursive: true });
+  await Deno.writeFile(new URL("numeric-fft-spectral-filter.wasm", outputDir), wasm);
 }
-
-await Deno.mkdir(outputDir, { recursive: true });
-await Deno.writeFile(new URL("numeric-fft-spectral-filter.wasm", outputDir), wasm);
 
 const fixture = generateFixture();
 const fieldHashes = {
@@ -139,7 +133,15 @@ function jsonBytes(value: unknown) {
 }
 async function writeJson(name: string, value: unknown) {
   const bytes = jsonBytes(value);
-  await Deno.writeFile(new URL(name, outputDir), bytes);
+  const destination = new URL(name, outputDir);
+  if (checkOnly) {
+    const existing = await Deno.readFile(destination);
+    if (await sha256Hex(existing) !== await sha256Hex(bytes)) {
+      throw new Error(`${name} is not byte-reproducible`);
+    }
+  } else {
+    await Deno.writeFile(destination, bytes);
+  }
   return {
     path: `public/artifacts/numeric-fft-spectral-filter/${name}`,
     sha256: await sha256Hex(bytes),
@@ -258,33 +260,42 @@ const evidenceDir = new URL(
   "../public/evidence/base-v1/numeric-fft-spectral-filter/",
   import.meta.url,
 );
-await Deno.mkdir(evidenceDir, { recursive: true });
+if (!checkOnly) await Deno.mkdir(evidenceDir, { recursive: true });
 for (const variantId of ["js-controlled", "wasm-linear-controlled"] as const) {
-  await Deno.writeTextFile(
-    new URL(`${variantId}.json`, evidenceDir),
-    `${
-      JSON.stringify(
-        {
-          schemaVersion: 1,
-          status: "supplemental-validation-record",
-          authoritativePerformanceEvidence: false,
-          entryId: ENTRY_ID,
-          implementationId: IMPLEMENTATION_ID,
-          variantId,
-          fixtureSha256,
-          completeOutputSha256: jsSha256,
-          quantizedOutputSha256: quantizedSha256,
-          oracle: variantId === "js-controlled" ? jsOracle : wasmOracle,
-          counters: expectedCounters(SAMPLE_COUNT, variantId),
-          buildManifest: "/artifacts/numeric-fft-spectral-filter/build-manifest.json",
-          performanceSamples: [],
-          sourceCommit,
-        },
-        null,
-        2,
-      )
-    }\n`,
-  );
+  const recordBytes = new TextEncoder().encode(`${
+    JSON.stringify(
+      {
+        schemaVersion: 1,
+        status: "supplemental-validation-record",
+        authoritativePerformanceEvidence: false,
+        entryId: ENTRY_ID,
+        implementationId: IMPLEMENTATION_ID,
+        variantId,
+        fixtureSha256,
+        completeOutputSha256: jsSha256,
+        quantizedOutputSha256: quantizedSha256,
+        oracle: variantId === "js-controlled" ? jsOracle : wasmOracle,
+        counters: expectedCounters(SAMPLE_COUNT, variantId),
+        buildManifest: "/artifacts/numeric-fft-spectral-filter/build-manifest.json",
+        performanceSamples: [],
+        sourceCommit,
+      },
+      null,
+      2,
+    )
+  }\n`);
+  const recordUrl = new URL(`${variantId}.json`, evidenceDir);
+  if (checkOnly) {
+    const existing = await Deno.readFile(recordUrl);
+    if (await sha256Hex(existing) !== await sha256Hex(recordBytes)) {
+      throw new Error(`${variantId} record is not byte-reproducible`);
+    }
+  } else {
+    await Deno.writeFile(recordUrl, recordBytes);
+  }
+}
+if (checkOnly) {
+  console.log("numeric FFT artifact, manifests, records and source graph reproduce exactly");
 }
 console.log(
   JSON.stringify(
