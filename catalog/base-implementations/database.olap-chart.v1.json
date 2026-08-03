@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "database.olap-chart.v1",
+  "catalogReference": {
+    "catalogId": "workload-catalog-v1",
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+    "immutability": "byte-for-byte"
+  },
+  "maturity": {
+    "definition": "frozen-proposal",
+    "controlledImplementation": "candidate",
+    "correctnessPackage": "candidate",
+    "interactiveDemo": "candidate",
+    "performanceCorpus": "unavailable"
+  },
+  "registration": "benchmarks/base/database-olap-chart/implementation-contract.v1.json",
+  "artifacts": {
+    "fixtureManifest": "public/artifacts/database-olap-chart/fixture-manifest.json",
+    "buildManifest": "public/artifacts/database-olap-chart/build-manifest.json",
+    "outputManifest": "public/artifacts/database-olap-chart/output-manifest.json",
+    "correctnessRecord": "public/evidence/base/database-olap-chart/correctness-record.json"
+  },
+  "route": "/benchmarks/database-olap-chart/",
+  "coverageCounted": false,
+  "coverageNote": "Independent review and browser evidence are still required before this candidate can change the accepted 0/38 coverage numerator."
+}

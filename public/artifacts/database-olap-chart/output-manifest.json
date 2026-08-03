@@ -1,0 +1,948 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "database.olap-chart.v1",
+  "status": "correctness-validation-not-performance",
+  "completeOutput": {
+    "words": 560,
+    "bytes": 2240,
+    "digestAlgorithm": "fnv1a-u32le-v1",
+    "digest": "e26a152f",
+    "chartModels": [
+      {
+        "query": 0,
+        "matchedRows": 10000,
+        "sortColumn": 0,
+        "descending": false,
+        "filterDigest": "62cfb515",
+        "controlRevision": 1,
+        "topRows": [
+          {
+            "stableRowId": 4986,
+            "units": 1,
+            "revenueCents": 1737
+          },
+          {
+            "stableRowId": 8678,
+            "units": 4,
+            "revenueCents": 2124
+          },
+          {
+            "stableRowId": 9341,
+            "units": 3,
+            "revenueCents": 2430
+          },
+          {
+            "stableRowId": 8516,
+            "units": 3,
+            "revenueCents": 2574
+          },
+          {
+            "stableRowId": 7826,
+            "units": 2,
+            "revenueCents": 2966
+          },
+          {
+            "stableRowId": 1651,
+            "units": 3,
+            "revenueCents": 3045
+          },
+          {
+            "stableRowId": 2300,
+            "units": 4,
+            "revenueCents": 3088
+          },
+          {
+            "stableRowId": 8701,
+            "units": 3,
+            "revenueCents": 3408
+          }
+        ],
+        "bins": [
+          {
+            "category": 0,
+            "count": 636,
+            "unitsLow": 79985,
+            "unitsHigh": 0,
+            "revenueLow": 2023734279,
+            "revenueHigh": 0
+          },
+          {
+            "category": 1,
+            "count": 603,
+            "unitsLow": 76812,
+            "unitsHigh": 0,
+            "revenueLow": 1904873351,
+            "revenueHigh": 0
+          },
+          {
+            "category": 2,
+            "count": 628,
+            "unitsLow": 82117,
+            "unitsHigh": 0,
+            "revenueLow": 2044524362,
+            "revenueHigh": 0
+          },
+          {
+            "category": 3,
+            "count": 594,
+            "unitsLow": 77064,
+            "unitsHigh": 0,
+            "revenueLow": 1936314274,
+            "revenueHigh": 0
+          },
+          {
+            "category": 4,
+            "count": 610,
+            "unitsLow": 79333,
+            "unitsHigh": 0,
+            "revenueLow": 1993207521,
+            "revenueHigh": 0
+          },
+          {
+            "category": 5,
+            "count": 639,
+            "unitsLow": 81068,
+            "unitsHigh": 0,
+            "revenueLow": 2053318464,
+            "revenueHigh": 0
+          },
+          {
+            "category": 6,
+            "count": 639,
+            "unitsLow": 76498,
+            "unitsHigh": 0,
+            "revenueLow": 1971062027,
+            "revenueHigh": 0
+          },
+          {
+            "category": 7,
+            "count": 603,
+            "unitsLow": 75991,
+            "unitsHigh": 0,
+            "revenueLow": 1941265209,
+            "revenueHigh": 0
+          },
+          {
+            "category": 8,
+            "count": 628,
+            "unitsLow": 78448,
+            "unitsHigh": 0,
+            "revenueLow": 2033071148,
+            "revenueHigh": 0
+          },
+          {
+            "category": 9,
+            "count": 602,
+            "unitsLow": 74198,
+            "unitsHigh": 0,
+            "revenueLow": 1885603026,
+            "revenueHigh": 0
+          },
+          {
+            "category": 10,
+            "count": 605,
+            "unitsLow": 77049,
+            "unitsHigh": 0,
+            "revenueLow": 1970667464,
+            "revenueHigh": 0
+          },
+          {
+            "category": 11,
+            "count": 619,
+            "unitsLow": 76973,
+            "unitsHigh": 0,
+            "revenueLow": 1937163490,
+            "revenueHigh": 0
+          },
+          {
+            "category": 12,
+            "count": 626,
+            "unitsLow": 78608,
+            "unitsHigh": 0,
+            "revenueLow": 2084261667,
+            "revenueHigh": 0
+          },
+          {
+            "category": 13,
+            "count": 657,
+            "unitsLow": 81546,
+            "unitsHigh": 0,
+            "revenueLow": 2150745171,
+            "revenueHigh": 0
+          },
+          {
+            "category": 14,
+            "count": 647,
+            "unitsLow": 82435,
+            "unitsHigh": 0,
+            "revenueLow": 2156621745,
+            "revenueHigh": 0
+          },
+          {
+            "category": 15,
+            "count": 664,
+            "unitsLow": 84062,
+            "unitsHigh": 0,
+            "revenueLow": 2213763337,
+            "revenueHigh": 0
+          }
+        ]
+      },
+      {
+        "query": 1,
+        "matchedRows": 2176,
+        "sortColumn": 0,
+        "descending": true,
+        "filterDigest": "38c2402a",
+        "controlRevision": 2,
+        "topRows": [
+          {
+            "stableRowId": 9642,
+            "units": 245,
+            "revenueCents": 12140485
+          },
+          {
+            "stableRowId": 6395,
+            "units": 245,
+            "revenueCents": 11896465
+          },
+          {
+            "stableRowId": 3986,
+            "units": 242,
+            "revenueCents": 11838156
+          },
+          {
+            "stableRowId": 6722,
+            "units": 243,
+            "revenueCents": 11700936
+          },
+          {
+            "stableRowId": 2338,
+            "units": 247,
+            "revenueCents": 11590722
+          },
+          {
+            "stableRowId": 590,
+            "units": 245,
+            "revenueCents": 11355015
+          },
+          {
+            "stableRowId": 1889,
+            "units": 246,
+            "revenueCents": 11342076
+          },
+          {
+            "stableRowId": 1414,
+            "units": 235,
+            "revenueCents": 11318775
+          }
+        ],
+        "bins": [
+          {
+            "category": 0,
+            "count": 265,
+            "unitsLow": 37929,
+            "unitsHigh": 0,
+            "revenueLow": 929598125,
+            "revenueHigh": 0
+          },
+          {
+            "category": 1,
+            "count": 260,
+            "unitsLow": 36240,
+            "unitsHigh": 0,
+            "revenueLow": 901636509,
+            "revenueHigh": 0
+          },
+          {
+            "category": 2,
+            "count": 274,
+            "unitsLow": 39992,
+            "unitsHigh": 0,
+            "revenueLow": 987828967,
+            "revenueHigh": 0
+          },
+          {
+            "category": 3,
+            "count": 276,
+            "unitsLow": 40293,
+            "unitsHigh": 0,
+            "revenueLow": 960871321,
+            "revenueHigh": 0
+          },
+          {
+            "category": 4,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 5,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 6,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 7,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 8,
+            "count": 292,
+            "unitsLow": 41476,
+            "unitsHigh": 0,
+            "revenueLow": 1071943612,
+            "revenueHigh": 0
+          },
+          {
+            "category": 9,
+            "count": 270,
+            "unitsLow": 37058,
+            "unitsHigh": 0,
+            "revenueLow": 938547558,
+            "revenueHigh": 0
+          },
+          {
+            "category": 10,
+            "count": 279,
+            "unitsLow": 40080,
+            "unitsHigh": 0,
+            "revenueLow": 1022776784,
+            "revenueHigh": 0
+          },
+          {
+            "category": 11,
+            "count": 260,
+            "unitsLow": 35831,
+            "unitsHigh": 0,
+            "revenueLow": 925720786,
+            "revenueHigh": 0
+          },
+          {
+            "category": 12,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 13,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 14,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 15,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          }
+        ]
+      },
+      {
+        "query": 2,
+        "matchedRows": 2044,
+        "sortColumn": 1,
+        "descending": false,
+        "filterDigest": "68a77f23",
+        "controlRevision": 3,
+        "topRows": [
+          {
+            "stableRowId": 998,
+            "units": 55,
+            "revenueCents": 1118810
+          },
+          {
+            "stableRowId": 1022,
+            "units": 55,
+            "revenueCents": 2775080
+          },
+          {
+            "stableRowId": 1036,
+            "units": 55,
+            "revenueCents": 1294865
+          },
+          {
+            "stableRowId": 1044,
+            "units": 55,
+            "revenueCents": 2698465
+          },
+          {
+            "stableRowId": 1712,
+            "units": 55,
+            "revenueCents": 1554630
+          },
+          {
+            "stableRowId": 1770,
+            "units": 55,
+            "revenueCents": 2743125
+          },
+          {
+            "stableRowId": 2519,
+            "units": 55,
+            "revenueCents": 1800645
+          },
+          {
+            "stableRowId": 3749,
+            "units": 55,
+            "revenueCents": 424655
+          }
+        ],
+        "bins": [
+          {
+            "category": 0,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 1,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 2,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 3,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 4,
+            "count": 263,
+            "unitsLow": 41363,
+            "unitsHigh": 0,
+            "revenueLow": 1019721855,
+            "revenueHigh": 0
+          },
+          {
+            "category": 5,
+            "count": 260,
+            "unitsLow": 40182,
+            "unitsHigh": 0,
+            "revenueLow": 1061427617,
+            "revenueHigh": 0
+          },
+          {
+            "category": 6,
+            "count": 259,
+            "unitsLow": 37645,
+            "unitsHigh": 0,
+            "revenueLow": 962599906,
+            "revenueHigh": 0
+          },
+          {
+            "category": 7,
+            "count": 248,
+            "unitsLow": 36896,
+            "unitsHigh": 0,
+            "revenueLow": 920410026,
+            "revenueHigh": 0
+          },
+          {
+            "category": 8,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 9,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 10,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 11,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 12,
+            "count": 234,
+            "unitsLow": 35149,
+            "unitsHigh": 0,
+            "revenueLow": 943871403,
+            "revenueHigh": 0
+          },
+          {
+            "category": 13,
+            "count": 256,
+            "unitsLow": 38773,
+            "unitsHigh": 0,
+            "revenueLow": 1008323510,
+            "revenueHigh": 0
+          },
+          {
+            "category": 14,
+            "count": 258,
+            "unitsLow": 39726,
+            "unitsHigh": 0,
+            "revenueLow": 1051128930,
+            "revenueHigh": 0
+          },
+          {
+            "category": 15,
+            "count": 266,
+            "unitsLow": 41095,
+            "unitsHigh": 0,
+            "revenueLow": 1085004253,
+            "revenueHigh": 0
+          }
+        ]
+      },
+      {
+        "query": 3,
+        "matchedRows": 2291,
+        "sortColumn": 1,
+        "descending": true,
+        "filterDigest": "eace3ee3",
+        "controlRevision": 4,
+        "topRows": [
+          {
+            "stableRowId": 942,
+            "units": 250,
+            "revenueCents": 1698250
+          },
+          {
+            "stableRowId": 3290,
+            "units": 250,
+            "revenueCents": 4042000
+          },
+          {
+            "stableRowId": 3994,
+            "units": 250,
+            "revenueCents": 3907750
+          },
+          {
+            "stableRowId": 5073,
+            "units": 250,
+            "revenueCents": 11638000
+          },
+          {
+            "stableRowId": 5747,
+            "units": 250,
+            "revenueCents": 4905500
+          },
+          {
+            "stableRowId": 6233,
+            "units": 250,
+            "revenueCents": 7025500
+          },
+          {
+            "stableRowId": 7539,
+            "units": 250,
+            "revenueCents": 3350750
+          },
+          {
+            "stableRowId": 7987,
+            "units": 250,
+            "revenueCents": 6102000
+          }
+        ],
+        "bins": [
+          {
+            "category": 0,
+            "count": 275,
+            "unitsLow": 37735,
+            "unitsHigh": 0,
+            "revenueLow": 956883392,
+            "revenueHigh": 0
+          },
+          {
+            "category": 1,
+            "count": 288,
+            "unitsLow": 39093,
+            "unitsHigh": 0,
+            "revenueLow": 992151387,
+            "revenueHigh": 0
+          },
+          {
+            "category": 2,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 3,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 4,
+            "count": 287,
+            "unitsLow": 39458,
+            "unitsHigh": 0,
+            "revenueLow": 985499191,
+            "revenueHigh": 0
+          },
+          {
+            "category": 5,
+            "count": 290,
+            "unitsLow": 40498,
+            "unitsHigh": 0,
+            "revenueLow": 1087372829,
+            "revenueHigh": 0
+          },
+          {
+            "category": 6,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 7,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 8,
+            "count": 287,
+            "unitsLow": 37901,
+            "unitsHigh": 0,
+            "revenueLow": 957778719,
+            "revenueHigh": 0
+          },
+          {
+            "category": 9,
+            "count": 289,
+            "unitsLow": 37495,
+            "unitsHigh": 0,
+            "revenueLow": 930514211,
+            "revenueHigh": 0
+          },
+          {
+            "category": 10,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 11,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 12,
+            "count": 283,
+            "unitsLow": 38587,
+            "unitsHigh": 0,
+            "revenueLow": 982223891,
+            "revenueHigh": 0
+          },
+          {
+            "category": 13,
+            "count": 292,
+            "unitsLow": 40295,
+            "unitsHigh": 0,
+            "revenueLow": 1082351916,
+            "revenueHigh": 0
+          },
+          {
+            "category": 14,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 15,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          }
+        ]
+      },
+      {
+        "query": 4,
+        "matchedRows": 1786,
+        "sortColumn": 0,
+        "descending": false,
+        "filterDigest": "bd16a429",
+        "controlRevision": 5,
+        "topRows": [
+          {
+            "stableRowId": 4420,
+            "units": 78,
+            "revenueCents": 45864
+          },
+          {
+            "stableRowId": 3600,
+            "units": 79,
+            "revenueCents": 55537
+          },
+          {
+            "stableRowId": 1637,
+            "units": 82,
+            "revenueCents": 62730
+          },
+          {
+            "stableRowId": 4372,
+            "units": 90,
+            "revenueCents": 84600
+          },
+          {
+            "stableRowId": 2859,
+            "units": 106,
+            "revenueCents": 96672
+          },
+          {
+            "stableRowId": 9133,
+            "units": 100,
+            "revenueCents": 102000
+          },
+          {
+            "stableRowId": 3343,
+            "units": 117,
+            "revenueCents": 102609
+          },
+          {
+            "stableRowId": 3704,
+            "units": 157,
+            "revenueCents": 110685
+          }
+        ],
+        "bins": [
+          {
+            "category": 0,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 1,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 2,
+            "count": 221,
+            "unitsLow": 37469,
+            "unitsHigh": 0,
+            "revenueLow": 905934487,
+            "revenueHigh": 0
+          },
+          {
+            "category": 3,
+            "count": 225,
+            "unitsLow": 37237,
+            "unitsHigh": 0,
+            "revenueLow": 990636617,
+            "revenueHigh": 0
+          },
+          {
+            "category": 4,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 5,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 6,
+            "count": 213,
+            "unitsLow": 33850,
+            "unitsHigh": 0,
+            "revenueLow": 914309389,
+            "revenueHigh": 0
+          },
+          {
+            "category": 7,
+            "count": 218,
+            "unitsLow": 34581,
+            "unitsHigh": 0,
+            "revenueLow": 859178363,
+            "revenueHigh": 0
+          },
+          {
+            "category": 8,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 9,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 10,
+            "count": 231,
+            "unitsLow": 38337,
+            "unitsHigh": 0,
+            "revenueLow": 1013453468,
+            "revenueHigh": 0
+          },
+          {
+            "category": 11,
+            "count": 208,
+            "unitsLow": 32219,
+            "unitsHigh": 0,
+            "revenueLow": 840040840,
+            "revenueHigh": 0
+          },
+          {
+            "category": 12,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 13,
+            "count": 0,
+            "unitsLow": 0,
+            "unitsHigh": 0,
+            "revenueLow": 0,
+            "revenueHigh": 0
+          },
+          {
+            "category": 14,
+            "count": 224,
+            "unitsLow": 35447,
+            "unitsHigh": 0,
+            "revenueLow": 885108278,
+            "revenueHigh": 0
+          },
+          {
+            "category": 15,
+            "count": 246,
+            "unitsLow": 39809,
+            "unitsHigh": 0,
+            "revenueLow": 1034552820,
+            "revenueHigh": 0
+          }
+        ]
+      }
+    ]
+  },
+  "variants": {
+    "js-controlled": {
+      "status": "passed",
+      "counters": {
+        "queries": 5,
+        "rowsVisited": 50000,
+        "predicateChecks": 150000,
+        "matchedRows": 18297,
+        "sortComparisons": 207481,
+        "aggregateRows": 18297,
+        "chartBins": 80,
+        "outputRows": 40,
+        "outputWords": 560,
+        "allocations": 36,
+        "boundaryCrossings": 0
+      }
+    },
+    "wasm-linear-controlled": {
+      "status": "passed",
+      "counters": {
+        "queries": 5,
+        "rowsVisited": 50000,
+        "predicateChecks": 150000,
+        "matchedRows": 18297,
+        "sortComparisons": 207481,
+        "aggregateRows": 18297,
+        "chartBins": 80,
+        "outputRows": 40,
+        "outputWords": 560,
+        "allocations": 0,
+        "boundaryCrossings": 2
+      }
+    }
+  },
+  "performanceClaims": []
+}

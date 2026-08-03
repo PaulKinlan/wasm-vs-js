@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "registrationId": "base-implementation.database.olap-chart.v1.controlled-a1",
+  "catalogId": "workload-catalog-v1",
+  "catalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+  "workloadId": "database.olap-chart.v1",
+  "status": "implementation-candidate",
+  "track": "controlled-a",
+  "algorithmFamily": "columnar-five-query-trace.explicit-stable-mergesort.v1",
+  "catalogEquivalenceClass": "semantic-product-choice",
+  "coverage": {
+    "story": "Filter, stable-sort, aggregate, and emit a canonical chart model for each of five frozen user-control queries.",
+    "fixedWork": { "rows": 10000, "queries": 5, "categories": 16, "topRowsPerQuery": 8 },
+    "rendering": "separate; the complete canonical chart model is output by the compute target"
+  },
+  "representation": {
+    "byteOrder": "little-endian",
+    "rowColumns": [
+      { "name": "stableRowId", "type": "u32" },
+      { "name": "region", "type": "u32", "range": "0..7" },
+      { "name": "category", "type": "u32", "range": "0..15" },
+      { "name": "year", "type": "u32", "range": "2020..2024" },
+      { "name": "units", "type": "u32" },
+      { "name": "revenueCents", "type": "u32" }
+    ],
+    "numericPolicy": "all predicates, sort keys, sums, and canonical outputs use exact unsigned integer arithmetic; sums are u64 split low/high",
+    "sort": "bottom-up stable mergesort; revenueCents or units primary key, stableRowId ascending tie-break",
+    "chartBins": "16 category bins with count, u64 units sum, and u64 revenue-cents sum"
+  },
+  "variants": ["js-controlled", "wasm-linear-controlled"],
+  "performanceClaims": []
+}

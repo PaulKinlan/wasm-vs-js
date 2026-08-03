@@ -150,6 +150,54 @@ const routes = new Map<string, [string, string, boolean?]>([
     "benchmarks/v2/game-family/fixtures.js",
     "text/javascript; charset=utf-8",
   ]],
+  ["/benchmarks/database-olap-chart", [
+    "public/benchmarks/database-olap-chart/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/database-olap-chart/", [
+    "public/benchmarks/database-olap-chart/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/database-olap-chart/runner.js", [
+    "public/benchmarks/database-olap-chart/runner.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/database-olap-chart/worker.js", [
+    "public/benchmarks/database-olap-chart/worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/database-olap-chart/engine.js", [
+    "benchmarks/base/database-olap-chart/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/database-olap-chart/fixture.js", [
+    "benchmarks/base/database-olap-chart/fixture.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/artifacts/database-olap-chart/database-olap-chart.wasm", [
+    "public/artifacts/database-olap-chart/database-olap-chart.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/database-olap-chart/fixture.bin", [
+    "public/artifacts/database-olap-chart/fixture.bin",
+    "application/octet-stream",
+  ]],
+  ["/artifacts/database-olap-chart/build-manifest.json", [
+    "public/artifacts/database-olap-chart/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/database-olap-chart/fixture-manifest.json", [
+    "public/artifacts/database-olap-chart/fixture-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/database-olap-chart/output-manifest.json", [
+    "public/artifacts/database-olap-chart/output-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base/database-olap-chart/correctness-record.json", [
+    "public/evidence/base/database-olap-chart/correctness-record.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/workload-catalog.js", ["public/workload-catalog.js", "text/javascript; charset=utf-8"]],
   ["/demos/text.diff-patch.v1", [
     "public/demos/text.diff-patch.v1/index.html",

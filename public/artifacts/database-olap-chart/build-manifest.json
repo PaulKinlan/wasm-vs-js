@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "database.olap-chart.v1",
+  "sourceCommit": "uncommitted-source",
+  "command": "deno run --allow-read=. --allow-write=public/artifacts,public/evidence --allow-run=clang,wasm-ld scripts/build-base-olap.ts --source-commit=<commit>",
+  "flags": [
+    "--target=wasm32-unknown-unknown",
+    "-O3",
+    "-nostdlib",
+    "-ffreestanding",
+    "-fno-builtin",
+    "-fno-vectorize",
+    "-fno-slp-vectorize",
+    "--initial-memory=1048576",
+    "--max-memory=1048576"
+  ],
+  "toolchain": {
+    "deno": "2.9.0",
+    "clang": "clang version 22.1.8\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin",
+    "wasmLd": "LLD 22.1.8"
+  },
+  "sources": [
+    {
+      "path": "benchmarks/base/database-olap-chart/implementation-contract.v1.json",
+      "bytes": 1652,
+      "sha256": "5d558b925f0d14d0834b0998161c4be0a619b52e62880b4fad1e0cd8faf0a9dc"
+    },
+    {
+      "path": "benchmarks/base/database-olap-chart/fixture.js",
+      "bytes": 2234,
+      "sha256": "4b8b042e33afbe6c9f05298200328d220cf67b749634803612d149ec70e47391"
+    },
+    {
+      "path": "benchmarks/base/database-olap-chart/engine.js",
+      "bytes": 7375,
+      "sha256": "6ad8a7f27f0e39a3545f0f6643eadae1b64508c04527539955d039570501714c"
+    },
+    {
+      "path": "benchmarks/base/database-olap-chart/olap.c",
+      "bytes": 4647,
+      "sha256": "e8541de6fb2e620e071e1d62140547462b36d6fcff07122d72ff6508b8f93f01"
+    },
+    {
+      "path": "scripts/build-base-olap.ts",
+      "bytes": 6277,
+      "sha256": "1676c7c1924d54505401b66706a1a7c0225c7fbdb66a08dd9b30cd5e7e65dc50"
+    },
+    {
+      "path": "deno.json",
+      "bytes": 1831,
+      "sha256": "17e6674c81fdaee7dfc52ed1bd28baeec70fb0715f839b92defe1e84545b08eb"
+    },
+    {
+      "path": "deno.lock",
+      "bytes": 1630,
+      "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "public/artifacts/database-olap-chart/database-olap-chart.wasm",
+      "bytes": 4092,
+      "sha256": "437bd0e8dac4d93963e30ed79ee1daebbe252a1be0ba197c3ac2c072be972f67"
+    },
+    {
+      "path": "public/artifacts/database-olap-chart/fixture.bin",
+      "bytes": 240152,
+      "sha256": "2da4d645e991adfd736bfdc00ab6dc3396cd2b4f8c456fcc83136be673bb1a3a"
+    }
+  ]
+}

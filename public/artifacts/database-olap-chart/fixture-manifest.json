@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "database.olap-chart.v1",
+  "immutable": true,
+  "generator": {
+    "path": "benchmarks/base/database-olap-chart/fixture.js",
+    "seed": "0x91e10da5",
+    "rows": 10000,
+    "queries": 5
+  },
+  "fixture": {
+    "path": "public/artifacts/database-olap-chart/fixture.bin",
+    "bytes": 240152,
+    "sha256": "2da4d645e991adfd736bfdc00ab6dc3396cd2b4f8c456fcc83136be673bb1a3a"
+  },
+  "rights": {
+    "licenseSpdx": "CC0-1.0",
+    "owner": "Paul Kinlan / wasm-vs-js project",
+    "source": "project-generated",
+    "redistribution": "permitted",
+    "externalInputs": []
+  }
+}

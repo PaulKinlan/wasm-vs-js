@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "recordId": "database.olap-chart.v1.controlled-a1.correctness",
+  "workloadId": "database.olap-chart.v1",
+  "status": "passed-correctness-only",
+  "sourceCommit": "uncommitted-source",
+  "fixtureSha256": "2da4d645e991adfd736bfdc00ab6dc3396cd2b4f8c456fcc83136be673bb1a3a",
+  "wasmSha256": "437bd0e8dac4d93963e30ed79ee1daebbe252a1be0ba197c3ac2c072be972f67",
+  "completeOutputDigest": "e26a152f",
+  "oracleChecks": {
+    "fixedFiveQueryTrace": true,
+    "completeChartModels": true,
+    "stableSortAndRowIds": true,
+    "exactCrossTargetOutput": true,
+    "exactCounters": true
+  },
+  "limitations": [
+    "No performance samples or ranking are included.",
+    "Chart rendering is separate; the complete canonical chart model is retained."
+  ]
+}
