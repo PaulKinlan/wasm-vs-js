@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "1c5cd8c661c1d8b3b554dd2b4e7b8f3956fd5f35",
-  "sourceSha256": "c61da63f6e9b3523d981fc578f64108ad35639eb249c83d3d4132ec1b7000ac9",
+  "sourceCommit": "bbe10892517a212a3b7fdc1bd429fe236fe4d1f4",
+  "sourceSha256": "4ada754492b04eacd1b1f921b62c2aedd886fe41cc245ea2811ea6211a7cf8a7",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 81509,
-      "sha256": "6df4305de72f079624a38ba753c2224750ddd41fe6d534c7a5b534c9cf77a874"
+      "bytes": 86825,
+      "sha256": "74c459603e9d22c930fcc247850eaabdbb523fbe7cf6757bfc10356b41b04ad6"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "7008cf5dc7745e71736476b5412765876f96aa60cea2391e95cacd78bcf173d8"
+      "sha256": "9892cb28e479f0a5673ff741c15e26947bceeb2dc4de2a9a20b18cccf75d74bd"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "833a8e8e3e6ff7e5d33b4f5191ee254a4c24de674b94ba821db55fc9920ade50"
+      "sha256": "d85b0a0785fa3bf329f9adfccf7db2a80f778ee4ae56ffd3177bc2ceafdffb1e"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=1c5cd8c661c1d8b3b554dd2b4e7b8f3956fd5f35"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=bbe10892517a212a3b7fdc1bd429fe236fe4d1f4"
   }
 }
