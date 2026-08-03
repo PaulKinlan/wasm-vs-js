@@ -29,7 +29,7 @@
     "contractId": { "const": "ml.numeric-kernels.v1-controlled-scalar.v1" },
     "variantId": { "enum": ["js-controlled-scalar", "wasm-linear-controlled-scalar"] },
     "sourceRepository": { "const": "https://github.com/PaulKinlan/wasm-vs-js" },
-    "sourceCommit": { "pattern": "^[a-f0-9]{40}$" },
+    "sourceCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
     "sourceSha256": { "$ref": "#/$defs/sha256" },
     "frozenCatalogSha256": { "$ref": "#/$defs/sha256" },
     "fixtureSha256": { "$ref": "#/$defs/sha256" },
