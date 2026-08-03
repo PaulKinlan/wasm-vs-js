@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/ml-numeric-kernels-build.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "catalogId",
+    "contractId",
+    "sourceRepository",
+    "sourceCommit",
+    "sourceSha256",
+    "fullSourceGraph",
+    "build",
+    "scalarProof",
+    "artifact"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "catalogId": { "const": "ml.numeric-kernels.v1" },
+    "contractId": { "const": "ml.numeric-kernels.v1-controlled-scalar.v1" },
+    "sourceRepository": { "const": "https://github.com/PaulKinlan/wasm-vs-js" },
+    "sourceCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "sourceSha256": { "$ref": "#/$defs/sha256" },
+    "fullSourceGraph": {
+      "type": "array",
+      "minItems": 14,
+      "maxItems": 14,
+      "uniqueItems": true,
+      "prefixItems": [
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": {
+            "path": { "const": "benchmarks/base/ml-numeric-kernels/ml-numeric-kernels.c" }
+          }
+        },
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": { "path": { "const": "benchmarks/base/ml-numeric-kernels/workload.js" } }
+        },
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": { "path": { "const": "public/ml-numeric-kernels-demo.js" } }
+        },
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": { "path": { "const": "public/ml-numeric-kernels-worker.js" } }
+        },
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": { "path": { "const": "server.ts" } }
+        },
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": { "path": { "const": "scripts/build-base-ml-numeric-kernels.ts" } }
+        },
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": { "path": { "const": "lib/canonical.ts" } }
+        },
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": { "path": { "const": "schemas/base-implementation.schema.json" } }
+        },
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": { "path": { "const": "schemas/ml-numeric-kernels-fixture.schema.json" } }
+        },
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": { "path": { "const": "schemas/ml-numeric-kernels-build.schema.json" } }
+        },
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": { "path": { "const": "schemas/ml-numeric-kernels-output.schema.json" } }
+        },
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": { "path": { "const": "schemas/ml-numeric-kernels-evidence.schema.json" } }
+        },
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": { "path": { "const": "deno.json" } }
+        },
+        {
+          "$ref": "#/$defs/sourceRecord",
+          "type": "object",
+          "properties": { "path": { "const": "deno.lock" } }
+        }
+      ],
+      "items": false
+    },
+    "build": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cwd", "task", "command", "toolchain", "lockfile"],
+      "properties": {
+        "cwd": { "const": "." },
+        "task": { "const": "deno task check" },
+        "command": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "toolchain": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["deno", "v8", "typescript", "clang"],
+          "properties": {
+            "deno": { "const": "2.9.0" },
+            "v8": { "type": "string", "minLength": 1 },
+            "typescript": { "type": "string", "minLength": 1 },
+            "clang": { "const": "clang version 22.1.8" }
+          }
+        },
+        "lockfile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": { "path": { "const": "deno.lock" }, "sha256": { "$ref": "#/$defs/sha256" } }
+        }
+      }
+    },
+    "scalarProof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["simd", "vectorization", "autoVectorizationFlags", "fpContraction", "threads"],
+      "properties": {
+        "simd": { "const": false },
+        "vectorization": { "const": false },
+        "autoVectorizationFlags": {
+          "type": "array",
+          "prefixItems": [{ "const": "-fno-vectorize" }, { "const": "-fno-slp-vectorize" }],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "fpContraction": { "const": false },
+        "threads": { "const": false }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "const": "public/artifacts/ml-numeric-kernels/ml-numeric-kernels.wasm" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "path": { "type": "string", "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$" },
+    "sourceRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "$ref": "#/$defs/path" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/ml-numeric-kernels-evidence.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": { "variantId": { "const": "js-controlled-scalar" } },
+        "required": ["variantId"]
+      },
+      "then": {
+        "properties": {
+          "counters": {
+            "type": "object",
+            "properties": { "boundary-crossings": { "const": 0 } },
+            "required": ["boundary-crossings"]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "variantId": { "const": "wasm-linear-controlled-scalar" } },
+        "required": ["variantId"]
+      },
+      "then": {
+        "properties": {
+          "counters": {
+            "type": "object",
+            "properties": { "boundary-crossings": { "const": 6 } },
+            "required": ["boundary-crossings"]
+          }
+        }
+      }
+    }
+  ],
+  "required": [
+    "schemaVersion",
+    "status",
+    "authoritativePerformanceEvidence",
+    "workloadId",
+    "contractId",
+    "variantId",
+    "sourceRepository",
+    "sourceCommit",
+    "sourceSha256",
+    "frozenCatalogSha256",
+    "fixtureSha256",
+    "buildManifestSha256",
+    "outputManifestSha256",
+    "completeOutputSha256",
+    "counters",
+    "validation"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "status": { "const": "correctness-validation-package" },
+    "authoritativePerformanceEvidence": { "const": false },
+    "workloadId": { "const": "ml.numeric-kernels.v1" },
+    "contractId": { "const": "ml.numeric-kernels.v1-controlled-scalar.v1" },
+    "variantId": { "enum": ["js-controlled-scalar", "wasm-linear-controlled-scalar"] },
+    "sourceRepository": { "const": "https://github.com/PaulKinlan/wasm-vs-js" },
+    "sourceCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "sourceSha256": { "$ref": "#/$defs/sha256" },
+    "frozenCatalogSha256": { "$ref": "#/$defs/sha256" },
+    "fixtureSha256": { "$ref": "#/$defs/sha256" },
+    "buildManifestSha256": { "$ref": "#/$defs/sha256" },
+    "outputManifestSha256": { "$ref": "#/$defs/sha256" },
+    "completeOutputSha256": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gemmF32", "gemmI8", "convF32", "convI8", "softmaxF32", "softmaxI8"],
+      "properties": {
+        "gemmF32": { "$ref": "#/$defs/sha256" },
+        "gemmI8": { "$ref": "#/$defs/sha256" },
+        "convF32": { "$ref": "#/$defs/sha256" },
+        "convI8": { "$ref": "#/$defs/sha256" },
+        "softmaxF32": { "$ref": "#/$defs/sha256" },
+        "softmaxI8": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gemm-macs-per-dtype",
+        "conv-macs-per-dtype",
+        "total-macs",
+        "kernel-tensor-reads",
+        "validation-tensor-reads",
+        "tensor-reads",
+        "tensor-writes",
+        "exp-approximations",
+        "normalizations",
+        "output-tensor-allocations",
+        "boundary-crossings"
+      ],
+      "properties": {
+        "gemm-macs-per-dtype": { "const": 504 },
+        "conv-macs-per-dtype": { "const": 5808 },
+        "total-macs": { "const": 12624 },
+        "kernel-tensor-reads": { "const": 26054 },
+        "validation-tensor-reads": { "const": 563 },
+        "tensor-reads": { "const": 26617 },
+        "tensor-writes": { "const": 1016 },
+        "exp-approximations": { "const": 128 },
+        "normalizations": { "const": 256 },
+        "output-tensor-allocations": { "const": 6 },
+        "boundary-crossings": { "type": "integer" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "passed",
+        "completeOutputs",
+        "crossTargetExact",
+        "independentF32Oracle",
+        "independentInt8Oracle",
+        "exactCounters"
+      ],
+      "properties": {
+        "passed": { "const": true },
+        "completeOutputs": { "const": true },
+        "crossTargetExact": { "const": true },
+        "independentF32Oracle": { "const": true },
+        "independentInt8Oracle": { "const": true },
+        "exactCounters": { "const": true }
+      }
+    }
+  },
+  "$defs": { "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" } }
+}

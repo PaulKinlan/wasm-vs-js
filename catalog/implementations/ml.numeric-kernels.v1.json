@@ -1,0 +1,83 @@
+{
+  "artifactHashes": [
+    {
+      "bytes": 898,
+      "path": "public/artifacts/ml-numeric-kernels/fixture-manifest.json",
+      "sha256": "20d3e28656f6c178dd15b86a1037c4900ea70d798bf234504378f664d1ef916d"
+    },
+    {
+      "bytes": 3356,
+      "path": "public/artifacts/ml-numeric-kernels/build-manifest.json",
+      "sha256": "2517a91a11353d60c49274957b65165ab7a4676ab5d8763812e9215c41c2ab29"
+    },
+    {
+      "bytes": 2741,
+      "path": "public/artifacts/ml-numeric-kernels/output-manifest.json",
+      "sha256": "9fa93c193e468e684ad851fd2c73198de2f455320e55b3286c1c083bbc85b2ee"
+    },
+    {
+      "bytes": 2815,
+      "path": "public/artifacts/ml-numeric-kernels/fixture.bin",
+      "sha256": "89296e267c286e7d66a2497525d6294d4abe96528ebbab2ef5095a09140d8318"
+    },
+    {
+      "bytes": 3520,
+      "path": "public/artifacts/ml-numeric-kernels/reference.f64",
+      "sha256": "8ca7c0cb4f3600e34d7607dbedaba8ff8b71821651f2b1393227149a994425e5"
+    },
+    {
+      "bytes": 3520,
+      "path": "public/artifacts/ml-numeric-kernels/bounds.f64",
+      "sha256": "b7a4861043ee2c4c77380a0bb27f2ecafc8669adfb80b1cd2a1490b36a39f8bc"
+    },
+    {
+      "bytes": 1248,
+      "path": "public/artifacts/ml-numeric-kernels/reference.i32",
+      "sha256": "74819114f11d3f911914baf41838f5c57f4965e36dfbf2ff04c4c438fcb7d059"
+    },
+    {
+      "bytes": 128,
+      "path": "public/artifacts/ml-numeric-kernels/reference.u8",
+      "sha256": "040625fab815d350d818b58ac185305bfadeb95e6f5ae2f0a1af7fb4c91ed4ca"
+    },
+    {
+      "bytes": 4372,
+      "path": "public/artifacts/ml-numeric-kernels/ml-numeric-kernels.wasm",
+      "sha256": "2e5105a7593fba76cf707bd47d0957d5ba0332b792e70b449cc098736eafc9db"
+    },
+    {
+      "bytes": 1926,
+      "path": "public/evidence/base-implementations/ml.numeric-kernels.v1/js-controlled-scalar.json",
+      "sha256": "d1053a9a2c378430c46a06d88312b0d044994cc9c76d264f07ef28807a4e1f6d"
+    },
+    {
+      "bytes": 1935,
+      "path": "public/evidence/base-implementations/ml.numeric-kernels.v1/wasm-linear-controlled-scalar.json",
+      "sha256": "df29b0678c260d13926104d4b6a20e5ba2aede3df468b1508cb335820dfdce0a"
+    }
+  ],
+  "artifacts": [
+    "public/artifacts/ml-numeric-kernels/fixture-manifest.json",
+    "public/artifacts/ml-numeric-kernels/build-manifest.json",
+    "public/artifacts/ml-numeric-kernels/output-manifest.json",
+    "public/artifacts/ml-numeric-kernels/fixture.bin",
+    "public/artifacts/ml-numeric-kernels/reference.f64",
+    "public/artifacts/ml-numeric-kernels/bounds.f64",
+    "public/artifacts/ml-numeric-kernels/reference.i32",
+    "public/artifacts/ml-numeric-kernels/reference.u8",
+    "public/artifacts/ml-numeric-kernels/ml-numeric-kernels.wasm",
+    "public/evidence/base-implementations/ml.numeric-kernels.v1/js-controlled-scalar.json",
+    "public/evidence/base-implementations/ml.numeric-kernels.v1/wasm-linear-controlled-scalar.json"
+  ],
+  "catalog": {
+    "id": "workload-catalog-v1",
+    "immutable": true,
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4"
+  },
+  "contractId": "ml.numeric-kernels.v1-controlled-scalar.v1",
+  "schemaVersion": 1,
+  "status": "supplemental-controlled-implementation",
+  "tracksExcluded": ["simd", "autovectorized", "layout-alternative"],
+  "variants": ["js-controlled-scalar", "wasm-linear-controlled-scalar"],
+  "workloadId": "ml.numeric-kernels.v1"
+}

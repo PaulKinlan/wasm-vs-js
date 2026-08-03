@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.local/schemas/base-implementation.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "status",
+    "catalog",
+    "workloadId",
+    "contractId",
+    "variants",
+    "tracksExcluded",
+    "artifacts",
+    "artifactHashes"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "status": { "const": "supplemental-controlled-implementation" },
+    "catalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "sha256", "immutable"],
+      "properties": {
+        "id": { "const": "workload-catalog-v1" },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "immutable": { "const": true }
+      }
+    },
+    "workloadId": { "type": "string", "minLength": 1 },
+    "contractId": { "type": "string", "minLength": 1 },
+    "variants": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "items": { "type": "string" }
+    },
+    "tracksExcluded": { "type": "array", "uniqueItems": true, "items": { "type": "string" } },
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/path" }
+    },
+    "artifactHashes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "bytes", "sha256"],
+        "properties": {
+          "path": { "$ref": "#/$defs/path" },
+          "bytes": { "type": "integer", "minimum": 1 },
+          "sha256": { "$ref": "#/$defs/sha256" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "path": { "type": "string", "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$" }
+  }
+}
