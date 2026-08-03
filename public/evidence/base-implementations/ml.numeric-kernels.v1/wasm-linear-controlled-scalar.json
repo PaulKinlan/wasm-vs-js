@@ -1,6 +1,6 @@
 {
   "authoritativePerformanceEvidence": false,
-  "buildManifestSha256": "40c9c65c71e3ff25fbe48da79226a0ec5d7b5cde551271c0feff075cec25930e",
+  "buildManifestSha256": "99b2fa14ecd26fa0b8d47b3949843bdcf635316d2440729f0820d9a96ad70adb",
   "completeOutputSha256": {
     "convF32": "83737bad2b5d604cbd3bca1ad98bead0194b169fff62a88e7aff3434b420c59d",
     "convI8": "63b5a99ca52d627e35e890def9f88b53fa0800c51de276a58d3174528868d075",
@@ -16,16 +16,29 @@
     "conv-macs-per-dtype": 5808,
     "exp-approximations": 128,
     "gemm-macs-per-dtype": 504,
+    "kernel-tensor-reads": 26024,
     "normalizations": 256,
-    "tensor-reads": 25760,
-    "tensor-writes": 880,
-    "total-macs": 12624
+    "tensor-reads": 26587,
+    "tensor-writes": 1016,
+    "total-macs": 12624,
+    "validation-tensor-reads": 563
   },
   "fixtureSha256": "89296e267c286e7d66a2497525d6294d4abe96528ebbab2ef5095a09140d8318",
   "frozenCatalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+  "outputManifestSha256": "e984d493aa42955a20c63523c684b0e59917c95de0c18fe23217001a23ee949a",
   "schemaVersion": 1,
+  "sourceCommit": "eb56cba8e080ef0854b4f63680728d8443ece35e",
+  "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
+  "sourceSha256": "53db7c48237189c8ea166e1dc2a28c8b499e094c8b7cf505ce6a9578e55774eb",
   "status": "correctness-validation-package",
-  "validation": { "completeOutputs": true, "crossTargetExact": true, "passed": true },
+  "validation": {
+    "completeOutputs": true,
+    "crossTargetExact": true,
+    "exactCounters": true,
+    "independentF32Oracle": true,
+    "independentInt8Oracle": true,
+    "passed": true
+  },
   "variantId": "wasm-linear-controlled-scalar",
   "workloadId": "ml.numeric-kernels.v1"
 }
