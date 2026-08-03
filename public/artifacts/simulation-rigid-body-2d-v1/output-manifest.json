@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "status": "supplemental-validation-candidate",
+  "performanceClaims": [],
+  "oracle": {
+    "completeCheckpointValues": 18000,
+    "checkpoints": 6,
+    "absoluteTolerance": 0.0005,
+    "relativeTolerance": 0.00005,
+    "referencePath": "public/artifacts/simulation-rigid-body-2d-v1/reference-checkpoints.f32le",
+    "referenceSha256": "ec1518e2d98240fe9202e5d48b609943230eb5e076aa30da97cd8f31b79c4498",
+    "initialEnergy": 75705.96134056478,
+    "finalEnergyMaximum": 76463.02095397044,
+    "javascriptDigest": "b54a6129",
+    "wasmDigest": "b54a6129",
+    "comparison": {
+      "passed": true,
+      "violations": 0,
+      "maximumAbsoluteError": 0,
+      "maximumRelativeError": 0
+    },
+    "javascriptMetrics": {
+      "kinetic": 0.027244684786372392,
+      "potential": 75814.43372561425,
+      "totalEnergy": 75814.46097029903,
+      "maxSpeed": 0.008999999612569809,
+      "maxAngularSpeed": 0.013000000268220901,
+      "groundPenetration": 0.0014774799346923828,
+      "jointAnchorError": 0.0038332734256982803,
+      "contactPenetration": 0.024493813514709473
+    },
+    "wasmMetrics": {
+      "kinetic": 0.027244684786372392,
+      "potential": 75814.43372561425,
+      "totalEnergy": 75814.46097029903,
+      "maxSpeed": 0.008999999612569809,
+      "maxAngularSpeed": 0.013000000268220901,
+      "groundPenetration": 0.0014774799346923828,
+      "jointAnchorError": 0.0038332734256982803,
+      "contactPenetration": 0.024493813514709473
+    }
+  },
+  "counters": {
+    "javascript": {
+      "timesteps": 1800,
+      "broadphasePairs": 998471252,
+      "rotatedManifoldTests": 36036054,
+      "manifolds": 26380076,
+      "contactPoints": 26380076,
+      "normalImpulses": 323993,
+      "frictionImpulses": 323993,
+      "angularContactImpulses": 431986,
+      "jointImpulses": 2394000,
+      "torqueApplications": 60000,
+      "velocityIterations": 10800,
+      "positionIterations": 115200,
+      "stateValues": 18000,
+      "typedArrayAllocations": 28,
+      "exportedCallBoundaries": 0
+    },
+    "wasm": {
+      "timesteps": 1800,
+      "broadphasePairs": 998471252,
+      "rotatedManifoldTests": 36036054,
+      "manifolds": 26380076,
+      "contactPoints": 26380076,
+      "normalImpulses": 323993,
+      "frictionImpulses": 323993,
+      "angularContactImpulses": 431986,
+      "jointImpulses": 2394000,
+      "torqueApplications": 60000,
+      "velocityIterations": 10800,
+      "positionIterations": 115200,
+      "stateValues": 18000,
+      "typedArrayAllocations": 5,
+      "exportedCallBoundaries": 3
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.paulkinlan-ea.deno.net/data/simulation-rigid-body-2d-fixture-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "registrationId",
+    "frozenCatalogId",
+    "frozenCatalogSha256",
+    "sourceCommit",
+    "fixture"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "registrationId": { "const": "simulation-rigid-body-2d-v1-controlled" },
+    "frozenCatalogId": { "const": "simulation.rigid-body-2d.v1" },
+    "frozenCatalogSha256": {
+      "const": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4"
+    },
+    "sourceCommit": { "type": "string", "pattern": "^(?:[a-f0-9]{40}|uncommitted-candidate)$" },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "bytes",
+        "sha256",
+        "generator",
+        "licenseSpdx",
+        "redistribution",
+        "containsExternalData"
+      ],
+      "properties": {
+        "path": { "const": "public/artifacts/simulation-rigid-body-2d-v1/fixture.bin" },
+        "bytes": { "const": 22704 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "generator": { "type": "string", "minLength": 1 },
+        "licenseSpdx": { "const": "CC0-1.0" },
+        "redistribution": { "const": "permitted" },
+        "containsExternalData": { "const": false }
+      }
+    }
+  }
+}

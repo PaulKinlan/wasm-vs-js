@@ -1478,6 +1478,46 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/evidence/base-catalog/simulation-nbody-cloth/wasm-linear-controlled.json",
     "application/json; charset=utf-8",
   ]],
+["/benchmarks/simulation-rigid-body-2d-v1", [
+    "public/benchmarks/simulation-rigid-body-2d-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+["/benchmarks/simulation-rigid-body-2d-v1/", [
+    "public/benchmarks/simulation-rigid-body-2d-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+["/benchmarks/simulation-rigid-body-2d-v1/runner.js", [
+    "public/benchmarks/simulation-rigid-body-2d-v1/runner.js",
+    "text/javascript; charset=utf-8",
+  ]],
+["/benchmarks/simulation-rigid-body-2d-v1/worker.js", [
+    "public/benchmarks/simulation-rigid-body-2d-v1/worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+["/benchmarks/v1/simulation-rigid-body-2d/engine.js", [
+    "benchmarks/v1/simulation-rigid-body-2d/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
+["/benchmarks/v1/simulation-rigid-body-2d/fixture.js", [
+    "benchmarks/v1/simulation-rigid-body-2d/fixture.js",
+    "text/javascript; charset=utf-8",
+  ]],
+["/benchmarks/v1/simulation-rigid-body-2d/contract.v1.json", [
+    "benchmarks/v1/simulation-rigid-body-2d/contract.v1.json",
+    "application/json; charset=utf-8",
+  ]],
+["/artifacts/simulation-rigid-body-2d-v1/rigid-body-2d.wasm", [
+    "public/artifacts/simulation-rigid-body-2d-v1/rigid-body-2d.wasm",
+    "application/wasm",
+  ]],
+["/artifacts/simulation-rigid-body-2d-v1/fixture.bin", [
+    "public/artifacts/simulation-rigid-body-2d-v1/fixture.bin",
+    "application/octet-stream",
+  ]],
+["/artifacts/simulation-rigid-body-2d-v1/reference-checkpoints.f32le", [
+    "public/artifacts/simulation-rigid-body-2d-v1/reference-checkpoints.f32le",
+    "application/octet-stream",
+  ]],
 ]);
 
 for (const path of ["/demos/network.pcap-decode.v1", "/demos/network.pcap-decode.v1/"]) {
