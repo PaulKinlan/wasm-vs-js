@@ -1,4 +1,5 @@
 import Ajv2020Module from "ajv2020";
+import addFormatsModule from "ajv-formats";
 import { sha256Hex } from "../lib/canonical.ts";
 import { createHandler } from "../server.ts";
 import { assert, assertEquals, assertRejects } from "./assert.ts";
@@ -24,6 +25,13 @@ type AjvConstructor = new (
 ) => { compile: (schema: unknown) => Validator };
 const Ajv2020 = ((Ajv2020Module as unknown as { default?: AjvConstructor }).default ??
   Ajv2020Module) as unknown as AjvConstructor;
+const addFormats = (addFormatsModule as unknown as { default?: (ajv: unknown) => void }).default ??
+  (addFormatsModule as unknown as (ajv: unknown) => void);
+function validator(schema: unknown): Validator {
+  const ajv = new Ajv2020({ strict: false, allErrors: true });
+  addFormats(ajv);
+  return ajv.compile(schema);
+}
 const artifactPath = "public/artifacts/serialization-json-telemetry/telemetry.wasm";
 
 Deno.test("supplemental registration is schema-valid and frozen v1 bytes stay unchanged", async () => {
@@ -38,7 +46,7 @@ Deno.test("supplemental registration is schema-valid and frozen v1 bytes stay un
   const registration = JSON.parse(
     await Deno.readTextFile("benchmarks/v1/serialization-json-telemetry/registration.v1.json"),
   );
-  const validate = new Ajv2020({ strict: false, allErrors: true }).compile(schema);
+  const validate = validator(schema);
   assert(validate(registration), JSON.stringify(validate.errors));
   assertEquals(registration.frozenCatalog.mutated, false);
   assertEquals(registration.coverage.catalogNumeratorBeforeReview, 0);
@@ -177,6 +185,42 @@ Deno.test("public mode exposes only the explicit demo, source, artifact, and man
     )).status,
     403,
   );
+});
+
+Deno.test("closed result records bind every source, manifest, artifact, recipe, and demo byte to one exact commit", async () => {
+  const schema = JSON.parse(
+    await Deno.readTextFile("schemas/v1-base-workload-result.schema.json"),
+  );
+  const validate = validator(schema);
+  for (const variant of ["js-controlled", "wasm-linear-controlled"]) {
+    const record = JSON.parse(
+      await Deno.readTextFile(
+        `artifacts/base/serialization-json-telemetry/${variant}.result.json`,
+      ),
+    );
+    assert(validate(record), JSON.stringify(validate.errors));
+    const refs = [
+      record.provenance.registration,
+      record.provenance.catalog,
+      ...record.provenance.sources,
+      ...record.provenance.manifests,
+      record.provenance.artifact,
+      record.provenance.buildRecipe,
+      ...record.provenance.demo,
+    ];
+    for (const ref of refs) {
+      const result = await new Deno.Command("git", {
+        args: ["show", `${record.source.commit}:${ref.path}`],
+        stdout: "piped",
+        stderr: "piped",
+      }).output();
+      assert(result.success, `${ref.path} absent from ${record.source.commit}`);
+      assertEquals(result.stdout.length, ref.bytes);
+      assertEquals(await sha256Hex(result.stdout), ref.sha256);
+      assert(ref.immutableUrl.endsWith(`/${record.source.commit}/${ref.path}`));
+    }
+    assertEquals(record.performanceClaims, []);
+  }
 });
 
 Deno.test("demo lifecycle source uses fresh workers, stale-token rejection, bounded timeout, and pagehide cleanup", async () => {
