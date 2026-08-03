@@ -25,7 +25,7 @@ async function build() {
       "run",
       "--allow-read=.",
       "--allow-write=public/artifacts",
-      "--allow-run=clang,wasm-ld",
+      "--allow-run=clang,wasm-ld,git",
       "scripts/build-rigid-body-2d.ts",
       "--source-only",
       `--source-commit=${pinned}`,

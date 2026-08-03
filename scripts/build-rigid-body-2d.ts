@@ -188,7 +188,7 @@ const buildManifest = {
     memory: { initialBytes: 2097152, maximumBytes: 2097152, growth: false },
   },
   command:
-    "deno run --allow-read=. --allow-write=public/artifacts --allow-run=clang,wasm-ld scripts/build-rigid-body-2d.ts --source-commit=<commit>",
+    "deno run --allow-read=. --allow-write=public/artifacts --allow-run=clang,wasm-ld,git scripts/build-rigid-body-2d.ts --source-commit=<commit>",
   sourceGraph,
   artifact: {
     path: "public/artifacts/simulation-rigid-body-2d-v1/rigid-body-2d.wasm",
