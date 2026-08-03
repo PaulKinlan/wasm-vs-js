@@ -821,7 +821,7 @@ async function runCollector(): Promise<void> {
           // them), never fetches of additional served routes.
           const url = String(request.url);
           if (url.startsWith("blob:") || url.startsWith("data:")) return;
-          requests.set(`${eventSession}:${params.requestId}`, {
+          requests.set(String(params.requestId), {
             context: observedSessions.get(eventSession),
             url,
             method: String(request.method),
@@ -839,7 +839,7 @@ async function runCollector(): Promise<void> {
           });
         }),
         client.on("Network.responseReceived", (params, eventSession) => {
-          const record = requests.get(`${eventSession}:${params.requestId}`);
+          const record = requests.get(String(params.requestId));
           if (!record) return;
           const response = params.response as Record<string, unknown>;
           Object.assign(record, {
@@ -850,12 +850,12 @@ async function runCollector(): Promise<void> {
           });
         }),
         client.on("Network.loadingFailed", (params, eventSession) => {
-          const record = requests.get(`${eventSession}:${params.requestId}`);
+          const record = requests.get(String(params.requestId));
           if (record) Object.assign(record, { failed: true, errorText: String(params.errorText) });
         }),
         client.on("Network.loadingFinished", (params, eventSession) => {
           if (!eventSession) return;
-          const record = requests.get(`${eventSession}:${params.requestId}`);
+          const record = requests.get(String(params.requestId));
           if (!record) return;
           responseTasks.push(
             (async () => {
