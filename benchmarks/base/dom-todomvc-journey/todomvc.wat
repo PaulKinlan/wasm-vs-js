@@ -11,6 +11,8 @@
   (global $edits (mut i32) (i32.const 0))
   (global $state-writes (mut i32) (i32.const 0))
   (global $commands-emitted (mut i32) (i32.const 0))
+  (global $output-elements (mut i32) (i32.const 0))
+  (global $allocations (mut i32) (i32.const 0))
   (func (export "input_ptr") (result i32) (global.get $input))
   (func (export "counter_actions") (result i32) (global.get $actions))
   (func (export "counter_adds") (result i32) (global.get $adds))
@@ -20,6 +22,8 @@
   (func (export "counter_edits") (result i32) (global.get $edits))
   (func (export "counter_state_writes") (result i32) (global.get $state-writes))
   (func (export "counter_commands_emitted") (result i32) (global.get $commands-emitted))
+  (func (export "counter_output_elements") (result i32) (global.get $output-elements))
+  (func (export "counter_allocations") (result i32) (global.get $allocations))
   (func (export "command_ptr") (result i32) (global.get $commands))
   (func (export "state_ptr") (result i32) (global.get $state))
 
@@ -106,6 +110,8 @@
     (global.set $edits (i32.const 0))
     (global.set $state-writes (i32.const 0))
     (global.set $commands-emitted (i32.const 0))
+    (global.set $output-elements (i32.const 0))
+    (global.set $allocations (i32.const 0))
     (block $done
       (loop $next
         (br_if $done (i32.ge_u (local.get $i) (local.get $count)))
@@ -121,5 +127,7 @@
           (then (return (i32.const -1))))
         (local.set $i (i32.add (local.get $i) (i32.const 1)))
         (br $next)))
+    (global.set $output-elements
+      (i32.add (i32.mul (local.get $i) (i32.const 4)) (i32.const 201)))
     (local.get $i))
 )
