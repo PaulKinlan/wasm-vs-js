@@ -1,10 +1,17 @@
 import Ajv2020Module from "ajv2020";
 import wabtFactory from "wabt";
+import {
+  assertCompleteNetwork,
+  assertCompleteTodoEvidence,
+  assertLifecycleEvidence,
+} from "../lib/base-todomvc-gate.ts";
 import { sha256Hex } from "../lib/canonical.ts";
 import { createHandler } from "../server.ts";
 import {
   ACTION,
   encodeActionTrace,
+  finalAxOracle,
+  finalDomOracle,
   fixtureDocument,
   generateActionTrace,
 } from "../benchmarks/base/dom-todomvc-journey/fixture.js";
@@ -54,6 +61,18 @@ Deno.test("base TodoMVC fixture freezes 100 labels and the complete 150-action j
   assertEquals(counts.get(ACTION.EDIT), 3);
   assert(fixture.labels.some((label) => label.includes("東京")));
   assert(fixture.labels.some((label) => label.includes("🚀")));
+  const dom = finalDomOracle();
+  assertEquals(dom.length, 90);
+  assertEquals(
+    dom.map(({ id }) => id),
+    Array.from({ length: 100 }, (_, id) => id).filter((id) => id % 10 !== 0),
+  );
+  for (const item of dom) {
+    assertEquals(item.completed, item.id % 3 === 0);
+    assertEquals(item.editHidden, item.id !== 95);
+    assertEquals(item.editValue, item.label);
+  }
+  assertEquals(finalAxOracle().map(({ id }) => id), dom.map(({ id }) => id));
   assertEquals(fixture.rights.licenseSpdx, "CC0-1.0");
   assertEquals(fixture.rights.redistribution, "permitted");
 });
@@ -76,6 +95,17 @@ Deno.test("JavaScript and material Wasm own identical state and typed command se
   assertEquals(js.counters.stateWrites, 250);
   assertEquals(linear.counters.boundaryCrossings, 1);
   assertEquals(linear.counters.allocations, 0);
+  const freshExports = await instantiateTodoWasm(wasm) as unknown as {
+    counter_actions: () => number;
+  };
+  assertEquals(Number(freshExports.counter_actions()), 0);
+
+  const exports = await instantiateTodoWasm(wasm) as Record<string, unknown>;
+  const falsified = { ...exports, counter_state_writes: () => 249 };
+  await assertRejects(
+    async () => runWasm(falsified, encodeActionTrace()),
+    "operative counter mismatch",
+  );
 });
 
 Deno.test("verified browser runtime bundle exports the complete controlled engine", async () => {
@@ -194,6 +224,7 @@ Deno.test("TodoMVC route is explicit, read-only, accessible, and lifecycle bound
     "/artifacts/base-dom-todomvc-journey/build-manifest.json",
     "/data/base-dom-todomvc-journey.v1.json",
     "/data/base-workload-implementation.schema.json",
+    "/data/base-todomvc-browser-evidence.schema.json",
   ];
   for (const route of routes) {
     const response = await handler(new Request(`https://example.test${route}`));
@@ -223,7 +254,8 @@ Deno.test("TodoMVC route is explicit, read-only, accessible, and lifecycle bound
       "injectStaleMessage",
       "worker?.terminate()",
       "physicalMutations",
-      "accessibleCheckboxNames",
+      "completeCanonicalDom",
+      "canonicalDom: domResult.dom",
     ]
   ) assert(controller.includes(required), required);
   const worker = await Deno.readTextFile("public/benchmarks/base-dom-todomvc-journey/worker.js");
@@ -233,7 +265,81 @@ Deno.test("TodoMVC route is explicit, read-only, accessible, and lifecycle bound
   assert(!worker.startsWith("import "));
 });
 
-Deno.test("browser collector is prepared but retained evidence remains uncollected", async () => {
+Deno.test("TodoMVC semantic, lifecycle, network, DOM, and AX gates reject incomplete evidence", () => {
+  const js = runJavaScript();
+  const result = {
+    variantId: js.variantId,
+    summary: js.summary,
+    counters: js.counters,
+    canonicalDom: finalDomOracle(),
+    assertions: { completeCanonicalDom: true },
+  };
+  const oracle = {
+    finalState: js.summary,
+    canonicalDom: finalDomOracle(),
+    canonicalAx: finalAxOracle(),
+    variants: { "js-controlled": { counters: js.counters } },
+  };
+  assertCompleteTodoEvidence(result, finalAxOracle(), oracle, "js-controlled");
+  assertRejects(
+    async () =>
+      assertCompleteTodoEvidence(
+        { ...result, canonicalDom: result.canonicalDom.slice(1) },
+        finalAxOracle(),
+        oracle,
+        "js-controlled",
+      ),
+    "canonical DOM mismatch",
+  );
+  assertRejects(
+    async () =>
+      assertCompleteTodoEvidence(result, finalAxOracle().slice(1), oracle, "js-controlled"),
+    "CDP AX-tree mismatch",
+  );
+  assertCompleteNetwork([{
+    url: "http://127.0.0.1:8000/",
+    method: "GET",
+    status: 200,
+    failed: false,
+    completed: true,
+  }]);
+  assertRejects(
+    async () =>
+      assertCompleteNetwork([{
+        url: "http://127.0.0.1:8000/",
+        method: "GET",
+        status: null,
+        failed: false,
+        completed: true,
+      }]),
+    "network request incomplete",
+  );
+  assertLifecycleEvidence("pagehide", {
+    cancelled: false,
+    staleIgnored: false,
+    workerAbsentAfterCancel: false,
+    restartCompleted: false,
+    workerAbsentAfterPagehide: true,
+  });
+  assertRejects(
+    async () =>
+      assertLifecycleEvidence("pagehide", {
+        cancelled: false,
+        staleIgnored: false,
+        workerAbsentAfterCancel: false,
+        restartCompleted: false,
+        workerAbsentAfterPagehide: false,
+      }),
+    "lifecycle gate failed",
+  );
+});
+
+Deno.test("browser collector has closed schema, exact trust roots, CDP AX hooks, and descendant cleanup", async () => {
+  const schema = JSON.parse(
+    await Deno.readTextFile("schemas/base-todomvc-browser-evidence.schema.json"),
+  );
+  const validate = new Ajv2020({ strict: true, allErrors: true }).compile(schema);
+  assert(!validate({ schemaVersion: 1, unexpected: true }));
   const script = await Deno.readTextFile("scripts/validate-base-todomvc-browser.ts");
   for (
     const required of [
@@ -241,11 +347,15 @@ Deno.test("browser collector is prepared but retained evidence remains uncollect
       "wasm-complete",
       "cancel-stale-restart",
       "pagehide",
-      "Input.dispatchMouseEvent",
-      "Page.captureScreenshot",
-      "Browser.getVersion",
-      "ownedProcessesAbsent",
-      "raw served hash mismatch",
+      "Accessibility.getPartialAXTree",
+      "canonicalDomSha256",
+      "assertCompleteNetwork(network)",
+      "collector HEAD is not clean",
+      "served registration differs from local trust root",
+      "Chrome trust root must be external",
+      'Deno.kill(item.pid, "SIGKILL")',
+      "Chrome profile survived cleanup",
+      "closed evidence schema rejected collection",
     ]
   ) assert(script.includes(required), required);
   await assertRejects(

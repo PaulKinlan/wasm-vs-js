@@ -8,6 +8,8 @@ import {
 } from "../benchmarks/base/dom-todomvc-journey/engine.js";
 import {
   BASE_CATALOG_ID,
+  finalAxOracle,
+  finalDomOracle,
   fixtureDocument,
   IMPLEMENTATION_ID,
   ROUTE,
@@ -71,7 +73,9 @@ const sourcePaths = [
   "public/benchmarks/base-dom-todomvc-journey/controller.js",
   "public/benchmarks/base-dom-todomvc-journey/worker.js",
   "public/benchmarks/base-dom-todomvc-journey/styles.css",
+  "lib/base-todomvc-gate.ts",
   "schemas/base-workload-implementation.schema.json",
+  "schemas/base-todomvc-browser-evidence.schema.json",
   "scripts/build-base-todomvc.ts",
   "scripts/validate-base-todomvc-browser.ts",
   "tests/base-todomvc.test.ts",
@@ -127,6 +131,8 @@ const normalize = (value: typeof js) => ({
   summary: value.summary,
 });
 const canonicalOutputBytes = new TextEncoder().encode(canonicalize(normalize(js)));
+const canonicalDom = finalDomOracle();
+const canonicalAx = finalAxOracle();
 const outputManifest = {
   schemaVersion: 1,
   catalogId: BASE_CATALOG_ID,
@@ -138,13 +144,17 @@ const outputManifest = {
     semanticOutputSha256: await sha256Hex(canonicalOutputBytes),
     typedCommandSha256: await sha256Hex(new Uint8Array(new Int32Array(js.commands).buffer)),
     finalState: js.summary,
+    canonicalDom,
+    canonicalDomSha256: await sha256Hex(canonicalize(canonicalDom)),
+    canonicalAx,
+    canonicalAxSha256: await sha256Hex(canonicalize(canonicalAx)),
     requiredBrowserAssertions: [
       "90 physical list items in canonical ID order",
       "30 checked and 60 unchecked native checkboxes",
       "all items visible under the final All filter",
-      "edited labels 5, 55, and 95 match exact UTF-8 fixture strings",
+      "all 90 per-ID labels, checked states, class names, edit values, edit visibility, and ARIA attributes equal the retained canonical DOM oracle",
       "focus remains on edit input 95 with collapsed UTF-16 selection at the end",
-      "checkbox and remove-button accessible names match visible labels",
+      "actual CDP AX-tree checkbox and remove-button names equal the retained per-ID AX oracle",
       "exact adapter counters include 500 created elements, 500 appends, 10 removes, 347 reuses, and 2,402 physical mutations",
     ],
   },
@@ -239,6 +249,10 @@ const routeByPath = new Map([
   [
     "schemas/base-workload-implementation.schema.json",
     "/data/base-workload-implementation.schema.json",
+  ],
+  [
+    "schemas/base-todomvc-browser-evidence.schema.json",
+    "/data/base-todomvc-browser-evidence.schema.json",
   ],
 ]);
 const artifacts = [];

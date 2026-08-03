@@ -194,6 +194,10 @@ const routes = new Map<string, [string, string, boolean?]>([
     "schemas/base-workload-implementation.schema.json",
     "application/schema+json; charset=utf-8",
   ]],
+  ["/data/base-todomvc-browser-evidence.schema.json", [
+    "schemas/base-todomvc-browser-evidence.schema.json",
+    "application/schema+json; charset=utf-8",
+  ]],
   ["/evidence/base/dom-todomvc-journey/js-controlled.json", [
     "public/evidence/base/dom-todomvc-journey/js-controlled.json",
     "application/json; charset=utf-8",

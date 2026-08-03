@@ -1,9 +1,17 @@
 // Prepared authoritative collector. Do not run from implementation workers.
-// The parent evidence controller supplies one exact Chrome path and source commit.
+// The parent evidence controller supplies one exact external Chrome executable and source commit.
+import Ajv2020Module from "ajv2020";
+import addFormatsModule from "ajv-formats";
+import {
+  assertCompleteNetwork,
+  assertCompleteTodoEvidence,
+  assertLifecycleEvidence,
+} from "../lib/base-todomvc-gate.ts";
 import { canonicalize, sha256Hex } from "../lib/canonical.ts";
 import { CdpClient } from "../lib/cdp-client.ts";
 
-const root = new URL("../", import.meta.url);
+const rootUrl = new URL("../", import.meta.url);
+const root = await Deno.realPath(rootUrl);
 const sourceCommit = Deno.args.find((arg) => arg.startsWith("--source-commit="))?.slice(16) ?? "";
 const chromeArg = Deno.args.find((arg) => arg.startsWith("--chrome="))?.slice(9) ?? "";
 if (Deno.args.length !== 2 || !/^[a-f0-9]{40}$/.test(sourceCommit) || !chromeArg) {
@@ -12,6 +20,53 @@ if (Deno.args.length !== 2 || !/^[a-f0-9]{40}$/.test(sourceCommit) || !chromeArg
   );
 }
 const chrome = await Deno.realPath(chromeArg);
+if (chrome === root || chrome.startsWith(`${root}/`)) {
+  throw new Error("Chrome trust root must be external to the source root");
+}
+
+async function command(args: string[]) {
+  const output = await new Deno.Command("git", {
+    cwd: root,
+    args,
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  if (!output.success) throw new Error(new TextDecoder().decode(output.stderr));
+  return new TextDecoder().decode(output.stdout).trim();
+}
+const collectorHead = await command(["rev-parse", "HEAD"]);
+const gitRoot = await Deno.realPath(await command(["rev-parse", "--show-toplevel"]));
+if (gitRoot !== root) throw new Error("collector source-root mismatch");
+if (await command(["status", "--porcelain=v1", "--untracked-files=all"])) {
+  throw new Error("collector HEAD is not clean");
+}
+
+const localRegistrationBytes = await Deno.readFile(
+  new URL("catalog/base-dom-todomvc-journey.v1.json", rootUrl),
+);
+const localRegistration = JSON.parse(new TextDecoder().decode(localRegistrationBytes));
+const localBuildBytes = await Deno.readFile(
+  new URL("public/artifacts/base-dom-todomvc-journey/build-manifest.json", rootUrl),
+);
+const localBuild = JSON.parse(new TextDecoder().decode(localBuildBytes));
+if (localRegistration.sourceCommit !== sourceCommit || localBuild.sourceCommit !== sourceCommit) {
+  throw new Error("requested source commit does not match registration and build source roots");
+}
+for (const source of localBuild.sourceGraph) {
+  const disk = await Deno.readFile(new URL(source.path, rootUrl));
+  const committed = await new Deno.Command("git", {
+    cwd: root,
+    args: ["show", `${sourceCommit}:${source.path}`],
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  if (
+    !committed.success || await sha256Hex(disk) !== source.sha256 ||
+    await sha256Hex(committed.stdout) !== source.sha256
+  ) {
+    throw new Error(`source graph mismatch: ${source.path}`);
+  }
+}
 
 function unusedPort() {
   const listener = Deno.listen({ hostname: "127.0.0.1", port: 0 });
@@ -45,7 +100,7 @@ async function identity(pid: number): Promise<Identity | null> {
     return null;
   }
 }
-async function owned(rootPid: number) {
+async function descendants(rootPid: number) {
   const all: Identity[] = [];
   for await (const entry of Deno.readDir("/proc")) {
     if (!entry.isDirectory || !/^\d+$/.test(entry.name)) continue;
@@ -53,8 +108,7 @@ async function owned(rootPid: number) {
     if (value) all.push(value);
   }
   const ids = new Set([rootPid]);
-  let changed = true;
-  while (changed) {
+  for (let changed = true; changed;) {
     changed = false;
     for (const item of all) {
       if (ids.has(item.parentPid) && !ids.has(item.pid)) {
@@ -121,6 +175,57 @@ async function waitStatus(
   }
   throw new Error(`status timeout: ${value}`);
 }
+async function axName(
+  client: CdpClient,
+  sessionId: string,
+  documentNodeId: number,
+  selector: string,
+  role: string,
+) {
+  const queried = await client.send(
+    "DOM.querySelector",
+    { nodeId: documentNodeId, selector },
+    sessionId,
+  );
+  const nodeId = Number(queried.nodeId);
+  if (!nodeId) throw new Error(`AX selector absent: ${selector}`);
+  const tree = await client.send("Accessibility.getPartialAXTree", {
+    nodeId,
+    fetchRelatives: false,
+  }, sessionId);
+  const nodes = tree.nodes as Array<Record<string, unknown>>;
+  const match = nodes.find((node) =>
+    (node.role as { value?: string } | undefined)?.value === role && node.ignored !== true
+  );
+  const name = (match?.name as { value?: unknown } | undefined)?.value;
+  if (typeof name !== "string") throw new Error(`AX ${role} name absent: ${selector}`);
+  return name;
+}
+async function collectAx(client: CdpClient, sessionId: string, ids: number[]) {
+  const document = await client.send("DOM.getDocument", { depth: 1 }, sessionId);
+  const documentNodeId = Number((document.root as { nodeId: number }).nodeId);
+  const entries = [];
+  for (const id of ids) {
+    entries.push({
+      id,
+      checkboxName: await axName(
+        client,
+        sessionId,
+        documentNodeId,
+        `li[data-todo-id="${id}"] input[type="checkbox"]`,
+        "checkbox",
+      ),
+      removeName: await axName(
+        client,
+        sessionId,
+        documentNodeId,
+        `li[data-todo-id="${id}"] button`,
+        "button",
+      ),
+    });
+  }
+  return entries;
+}
 
 const serverPort = unusedPort();
 const debuggerPort = unusedPort();
@@ -158,12 +263,16 @@ const launchArguments = [
 ];
 const browser = new Deno.Command(chrome, { args: launchArguments, stdout: "null", stderr: "piped" })
   .spawn();
+const observed = new Map<string, Identity>();
 let client: CdpClient | null = null;
+let browserCloseRequested = false;
+let evidenceBody: Record<string, unknown> | null = null;
+let failure: unknown = null;
 try {
   await waitFor(`${origin}/healthz`);
   const discovery = await (await waitFor(`http://127.0.0.1:${debuggerPort}/json/version`)).json();
   const ws = new URL(discovery.webSocketDebuggerUrl);
-  if (ws.hostname !== "127.0.0.1" || Number(ws.port) !== debuggerPort) {
+  if (ws.protocol !== "ws:" || ws.hostname !== "127.0.0.1" || Number(ws.port) !== debuggerPort) {
     throw new Error("CDP ownership mismatch");
   }
   client = new CdpClient(ws.href);
@@ -171,6 +280,17 @@ try {
   const version = await client.send("Browser.getVersion");
   if (version.product !== "Chrome/150.0.7871.24") throw new Error(`unexpected ${version.product}`);
   const commandLine = await client.send("Browser.getBrowserCommandLine");
+  const servedRegistrationBytes =
+    await (await fetch(`${origin}/data/base-dom-todomvc-journey.v1.json`, { cache: "no-store" }))
+      .bytes();
+  if (await sha256Hex(servedRegistrationBytes) !== await sha256Hex(localRegistrationBytes)) {
+    throw new Error("served registration differs from local trust root");
+  }
+  const outputManifestBytes = await Deno.readFile(
+    new URL("public/artifacts/base-dom-todomvc-journey/output-manifest.json", rootUrl),
+  );
+  const oracleManifest = JSON.parse(new TextDecoder().decode(outputManifestBytes));
+  const oracle = { ...oracleManifest.oracle, variants: oracleManifest.variants };
   const scenarios = [
     { id: "javascript-complete", target: "js-controlled", action: "complete" },
     { id: "wasm-complete", target: "wasm-linear-controlled", action: "complete" },
@@ -178,7 +298,11 @@ try {
     { id: "pagehide", target: "js-controlled", action: "pagehide" },
   ];
   const records = [];
+  let firstCompleteDom: unknown = null;
   for (const scenario of scenarios) {
+    for (const item of await descendants(browser.pid)) {
+      observed.set(`${item.pid}:${item.start}`, item);
+    }
     const created = await client.send("Target.createTarget", { url: "about:blank" });
     const targetId = String(created.targetId);
     const attached = await client.send("Target.attachToTarget", { targetId, flatten: true });
@@ -190,7 +314,7 @@ try {
         if (eventSession === sessionId) console.push(params);
       }),
       client.on("Runtime.exceptionThrown", (params, eventSession) => {
-        if (eventSession === sessionId) console.push({ exception: params });
+        if (eventSession === sessionId) console.push(params);
       }),
       client.on("Network.requestWillBeSent", (params, eventSession) => {
         if (eventSession !== sessionId) return;
@@ -199,24 +323,52 @@ try {
           url: request.url,
           method: request.method,
           status: null,
+          mimeType: "",
+          fromDiskCache: false,
+          fromServiceWorker: false,
           failed: false,
+          completed: false,
+          errorText: null,
         });
       }),
       client.on("Network.responseReceived", (params, eventSession) => {
         if (eventSession !== sessionId) return;
         const record = requests.get(String(params.requestId));
-        if (record) record.status = Number((params.response as Record<string, unknown>).status);
+        const response = params.response as Record<string, unknown>;
+        if (record) {
+          Object.assign(record, {
+            status: Number(response.status),
+            mimeType: response.mimeType,
+            fromDiskCache: Boolean(response.fromDiskCache),
+            fromServiceWorker: Boolean(response.fromServiceWorker),
+          });
+        }
+      }),
+      client.on("Network.loadingFinished", (params, eventSession) => {
+        if (eventSession === sessionId) {
+          const record = requests.get(String(params.requestId));
+          if (record) record.completed = true;
+        }
       }),
       client.on("Network.loadingFailed", (params, eventSession) => {
-        if (eventSession !== sessionId) return;
-        const record = requests.get(String(params.requestId));
-        if (record) record.failed = true;
+        if (eventSession === sessionId) {
+          const record = requests.get(String(params.requestId));
+          if (record) {
+            Object.assign(record, {
+              failed: true,
+              completed: true,
+              errorText: String(params.errorText),
+            });
+          }
+        }
       }),
     ];
     await Promise.all([
       client.send("Page.enable", {}, sessionId),
       client.send("Runtime.enable", {}, sessionId),
       client.send("Network.enable", {}, sessionId),
+      client.send("DOM.enable", {}, sessionId),
+      client.send("Accessibility.enable", {}, sessionId),
     ]);
     await client.send("Page.navigate", {
       url: `${origin}/benchmarks/base-dom-todomvc-journey/?demo-test=1`,
@@ -228,40 +380,70 @@ try {
       `document.querySelector('#target').value=${JSON.stringify(scenario.target)}`,
     );
     await click(client, sessionId, "#start");
-    let assertions;
+    let result: Record<string, unknown> | null = null;
+    let ax: Array<{ id: number; checkboxName: string; removeName: string }> | null = null;
+    const lifecycle = {
+      cancelled: false,
+      staleIgnored: false,
+      workerAbsentAfterCancel: false,
+      restartCompleted: false,
+      workerAbsentAfterPagehide: false,
+    };
+    let finalStatus: string;
     if (scenario.action === "complete") {
-      await waitStatus(client, sessionId, "Complete.");
-      assertions = await evaluate(
+      finalStatus = await waitStatus(client, sessionId, "Complete.");
+      result = await evaluate(
         client,
         sessionId,
-        `(() => { const r=JSON.parse(document.querySelector('#result').textContent); return {all:Object.values(r.assertions).every(Boolean),items:document.querySelectorAll('#todo-list>li').length,focused:document.activeElement?.id,selection:[document.activeElement?.selectionStart,document.activeElement?.selectionEnd],physical:r.physical}; })()`,
-      );
+        "JSON.parse(document.querySelector('#result').textContent)",
+      ) as Record<string, unknown>;
     } else if (scenario.action === "lifecycle") {
       await click(client, sessionId, "#cancel");
-      await waitStatus(client, sessionId, "Cancelled.");
+      finalStatus = await waitStatus(client, sessionId, "Cancelled.");
+      lifecycle.cancelled = true;
       const stale = await evaluate(
         client,
         sessionId,
-        `(() => { const before=document.querySelector('#status').textContent; __baseTodoTest.injectStaleMessage(); return {ignored:before===document.querySelector('#status').textContent,active:__baseTodoTest.workerActive()}; })()`,
-      );
+        "(() => { const before=document.querySelector('#status').textContent; const absent=!__baseTodoTest.workerActive(); __baseTodoTest.injectStaleMessage(); return {ignored:before===document.querySelector('#status').textContent,absent}; })()",
+      ) as { ignored: boolean; absent: boolean };
+      lifecycle.staleIgnored = stale.ignored;
+      lifecycle.workerAbsentAfterCancel = stale.absent;
       await click(client, sessionId, "#start");
-      await waitStatus(client, sessionId, "Complete.");
-      assertions = { stale, restartCompleted: true };
-    } else {
-      assertions = await evaluate(
+      finalStatus = await waitStatus(client, sessionId, "Complete.");
+      lifecycle.restartCompleted = true;
+      result = await evaluate(
         client,
         sessionId,
-        `(() => { window.dispatchEvent(new PageTransitionEvent('pagehide')); return {workerAbsent:!__baseTodoTest.workerActive()}; })()`,
+        "JSON.parse(document.querySelector('#result').textContent)",
+      ) as Record<string, unknown>;
+    } else {
+      lifecycle.workerAbsentAfterPagehide = Boolean(
+        await evaluate(
+          client,
+          sessionId,
+          "(() => { window.dispatchEvent(new PageTransitionEvent('pagehide')); return !__baseTodoTest.workerActive(); })()",
+        ),
+      );
+      finalStatus = String(
+        await evaluate(client, sessionId, "document.querySelector('#status').textContent"),
       );
     }
-    if (console.length) throw new Error(`${scenario.id} console/exception output`);
-    if (
-      [...requests.values()].some((record) =>
-        record.failed || (record.status !== null && record.status !== 200)
-      )
-    ) {
-      throw new Error(`${scenario.id} network failure`);
+    if (result) {
+      const ids = (result.canonicalDom as Array<{ id: number }>).map(({ id }) => id);
+      ax = await collectAx(client, sessionId, ids);
+      assertCompleteTodoEvidence(result, ax, oracle, scenario.target);
+      if (firstCompleteDom === null) firstCompleteDom = result.canonicalDom;
+      else if (JSON.stringify(firstCompleteDom) !== JSON.stringify(result.canonicalDom)) {
+        throw new Error("cross-scenario canonical DOM mismatch");
+      }
     }
+    assertLifecycleEvidence(scenario.action, lifecycle);
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    const network = [...requests.values()] as unknown as Parameters<
+      typeof assertCompleteNetwork
+    >[0];
+    assertCompleteNetwork(network);
+    if (console.length) throw new Error(`${scenario.id} console/exception output`);
     const screenshot = await client.send(
       "Page.captureScreenshot",
       { format: "png", captureBeyondViewport: true },
@@ -273,12 +455,23 @@ try {
       (char) => char.charCodeAt(0),
     );
     const screenshotPath = `artifacts/base-dom-todomvc-browser-${scenario.id}.png`;
-    await Deno.writeFile(new URL(screenshotPath, root), screenshotBytes);
+    await Deno.writeFile(new URL(screenshotPath, rootUrl), screenshotBytes);
     records.push({
       ...scenario,
-      assertions,
+      finalStatus,
+      result,
+      canonicalDomSha256: result ? await sha256Hex(canonicalize(result.canonicalDom)) : null,
+      ax: ax ? { entries: ax, sha256: await sha256Hex(canonicalize(ax)) } : null,
+      lifecycle,
+      gate: {
+        semantic: result ? true : null,
+        dom: result ? true : null,
+        ax: result ? true : null,
+        lifecycle: true,
+        network: true,
+      },
       console,
-      network: [...requests.values()],
+      network,
       screenshot: {
         path: screenshotPath,
         bytes: screenshotBytes.length,
@@ -288,53 +481,131 @@ try {
     offs.forEach((off) => off());
     await client.send("Target.closeTarget", { targetId });
   }
-  const registrationBytes =
-    await (await fetch(`${origin}/data/base-dom-todomvc-journey.v1.json`, { cache: "no-store" }))
-      .bytes();
-  const registration = JSON.parse(new TextDecoder().decode(registrationBytes));
   const rawHashes = [];
-  for (const artifact of registration.artifacts) {
-    const bytes = await (await fetch(`${origin}${artifact.route}`, { cache: "no-store" })).bytes();
-    const actual = await sha256Hex(bytes);
-    if (actual !== artifact.sha256) throw new Error(`raw served hash mismatch: ${artifact.route}`);
-    rawHashes.push({ route: artifact.route, bytes: bytes.length, sha256: actual });
-  }
-  const ownedBeforeClose = await owned(browser.pid);
-  await client.send("Browser.close");
-  client.close();
-  client = null;
-  if (!(await waitExit(ownedBeforeClose, 10_000))) {
-    for (const item of [...ownedBeforeClose].reverse()) {
-      if (await running(item)) Deno.kill(item.pid, "SIGTERM");
+  for (const artifact of localRegistration.artifacts) {
+    const local = await Deno.readFile(new URL(artifact.path, rootUrl));
+    if (local.byteLength !== artifact.bytes || await sha256Hex(local) !== artifact.sha256) {
+      throw new Error(`local artifact trust-root mismatch: ${artifact.path}`);
     }
+    const served = await (await fetch(`${origin}${artifact.route}`, { cache: "no-store" })).bytes();
+    if (served.byteLength !== local.byteLength || await sha256Hex(served) !== artifact.sha256) {
+      throw new Error(`served artifact mismatch: ${artifact.route}`);
+    }
+    rawHashes.push({ route: artifact.route, bytes: served.length, sha256: artifact.sha256 });
   }
-  if (!(await waitExit(ownedBeforeClose, 5_000))) throw new Error("owned Chrome cleanup failed");
-  await browser.status;
-  await Deno.remove(profile, { recursive: true });
-  const serverIdentity = await identity(server.pid);
-  if (serverIdentity) Deno.kill(server.pid, "SIGTERM");
-  await server.status;
-  const evidence = {
+  evidenceBody = {
     schemaVersion: 1,
     evidenceId: "base-dom-todomvc-chrome-150-v1",
-    sourceCommit,
+    source: {
+      collectorHead,
+      sourceCommit,
+      sourceRoot: root,
+      cleanHead: true,
+      registrationSha256: await sha256Hex(localRegistrationBytes),
+      buildManifestSha256: await sha256Hex(localBuildBytes),
+    },
     collectedAt: new Date().toISOString(),
-    browser: { version, commandLine, executable: chrome, launchArguments },
+    browser: {
+      version,
+      commandLine,
+      executable: chrome,
+      sha256: await sha256Hex(await Deno.readFile(chrome)),
+      externalToSourceRoot: true,
+      launchArguments,
+    },
     route: "/benchmarks/base-dom-todomvc-journey/",
     viewport: { width: 1280, height: 720, deviceScaleFactor: 1 },
     scenarios: records,
     rawHashes,
-    cleanup: { ownedProcessesAbsent: true, profileRemoved: true, serverAbsent: true },
   };
-  await Deno.writeTextFile(
-    new URL("artifacts/base-dom-todomvc-browser-evidence.json", root),
-    `${canonicalize(evidence)}\n`,
-  );
+} catch (error) {
+  failure = error;
 } finally {
-  client?.close();
-  const browserIdentity = await identity(browser.pid);
-  if (browserIdentity && await running(browserIdentity)) Deno.kill(browser.pid, "SIGTERM");
-  const serverIdentity = await identity(server.pid);
-  if (serverIdentity && await running(serverIdentity)) Deno.kill(server.pid, "SIGTERM");
+  for (const item of await descendants(browser.pid)) {
+    observed.set(`${item.pid}:${item.start}`, item);
+  }
+  if (client) {
+    try {
+      await client.send("Browser.close");
+      browserCloseRequested = true;
+    } catch { /* signal fallback below */ }
+    client.close();
+    client = null;
+  }
+  const observedProcesses = [...observed.values()];
+  const signals: Array<{ pid: number; signal: "SIGTERM" | "SIGKILL" }> = [];
+  if (!(await waitExit(observedProcesses, 5_000))) {
+    for (const item of [...observedProcesses].reverse()) {
+      if (await running(item)) {
+        Deno.kill(item.pid, "SIGTERM");
+        signals.push({ pid: item.pid, signal: "SIGTERM" });
+      }
+    }
+  }
+  if (!(await waitExit(observedProcesses, 5_000))) {
+    for (const item of [...observedProcesses].reverse()) {
+      if (await running(item)) {
+        Deno.kill(item.pid, "SIGKILL");
+        signals.push({ pid: item.pid, signal: "SIGKILL" });
+      }
+    }
+  }
+  const ownedProcessesAbsent = await waitExit(observedProcesses, 5_000);
+  await browser.status;
+  if (!ownedProcessesAbsent) failure ??= new Error("owned Chrome descendants survived cleanup");
   await Deno.remove(profile, { recursive: true }).catch(() => {});
+  let profileAbsent = false;
+  try {
+    await Deno.stat(profile);
+  } catch (error) {
+    if (error instanceof Deno.errors.NotFound) profileAbsent = true;
+  }
+  if (!profileAbsent) failure ??= new Error("Chrome profile survived cleanup");
+  const serverProcesses = await descendants(server.pid);
+  for (const item of [...serverProcesses].reverse()) {
+    if (await running(item)) Deno.kill(item.pid, "SIGTERM");
+  }
+  if (!(await waitExit(serverProcesses, 5_000))) {
+    for (const item of [...serverProcesses].reverse()) {
+      if (await running(item)) Deno.kill(item.pid, "SIGKILL");
+    }
+  }
+  const serverAbsent = await waitExit(serverProcesses, 5_000);
+  await server.status;
+  if (!serverAbsent) failure ??= new Error("owned server descendants survived cleanup");
+  if (evidenceBody) {
+    evidenceBody.cleanup = {
+      observedBrowserProcesses: observedProcesses,
+      signals,
+      ownedProcessesAbsent,
+      profileRemoved: profileAbsent,
+      profileAbsent,
+      serverAbsent,
+    };
+  }
 }
+if (failure) throw failure;
+if (!evidenceBody || !browserCloseRequested) {
+  throw new Error("evidence or Browser.close request absent");
+}
+const schema = JSON.parse(
+  await Deno.readTextFile(new URL("schemas/base-todomvc-browser-evidence.schema.json", rootUrl)),
+);
+type Validator = ((value: unknown) => boolean) & { errors?: unknown };
+type AjvInstance = { compile: (schema: unknown) => Validator };
+type AjvConstructor = new (options?: Record<string, unknown>) => AjvInstance;
+const Ajv2020 = ((Ajv2020Module as unknown as { default?: AjvConstructor }).default ??
+  Ajv2020Module) as unknown as AjvConstructor;
+const addFormats = ((addFormatsModule as unknown as {
+  default?: (ajv: AjvInstance) => unknown;
+}).default ?? addFormatsModule) as unknown as (ajv: AjvInstance) => unknown;
+const ajv = new Ajv2020({ strict: true, allErrors: true });
+addFormats(ajv);
+const validate = ajv.compile(schema);
+if (!validate(evidenceBody)) {
+  throw new Error(`closed evidence schema rejected collection: ${JSON.stringify(validate.errors)}`);
+}
+await Deno.writeTextFile(
+  new URL("artifacts/base-dom-todomvc-browser-evidence.json", rootUrl),
+  `${canonicalize(evidenceBody)}\n`,
+);

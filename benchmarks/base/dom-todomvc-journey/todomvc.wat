@@ -3,7 +3,23 @@
   (global $input i32 (i32.const 4096))
   (global $commands i32 (i32.const 8192))
   (global $state i32 (i32.const 16384))
+  (global $actions (mut i32) (i32.const 0))
+  (global $adds (mut i32) (i32.const 0))
+  (global $toggles (mut i32) (i32.const 0))
+  (global $filters (mut i32) (i32.const 0))
+  (global $removes (mut i32) (i32.const 0))
+  (global $edits (mut i32) (i32.const 0))
+  (global $state-writes (mut i32) (i32.const 0))
+  (global $commands-emitted (mut i32) (i32.const 0))
   (func (export "input_ptr") (result i32) (global.get $input))
+  (func (export "counter_actions") (result i32) (global.get $actions))
+  (func (export "counter_adds") (result i32) (global.get $adds))
+  (func (export "counter_toggles") (result i32) (global.get $toggles))
+  (func (export "counter_filters") (result i32) (global.get $filters))
+  (func (export "counter_removes") (result i32) (global.get $removes))
+  (func (export "counter_edits") (result i32) (global.get $edits))
+  (func (export "counter_state_writes") (result i32) (global.get $state-writes))
+  (func (export "counter_commands_emitted") (result i32) (global.get $commands-emitted))
   (func (export "command_ptr") (result i32) (global.get $commands))
   (func (export "state_ptr") (result i32) (global.get $state))
 
@@ -25,6 +41,8 @@
           (if (call $alive (local.get $id)) (then (return (i32.const 0))))
           (i32.store8 (i32.add (global.get $state) (local.get $id)) (i32.const 1))
           (i32.store8 (i32.add (i32.add (global.get $state) (i32.const 100)) (local.get $id)) (i32.const 0))
+          (global.set $adds (i32.add (global.get $adds) (i32.const 1)))
+          (global.set $state-writes (i32.add (global.get $state-writes) (i32.const 2)))
           (br $accepted)))
       (if (i32.eq (local.get $opcode) (i32.const 2))
         (then
@@ -33,11 +51,15 @@
           (i32.store8
             (i32.add (global.get $state) (local.get $id))
             (i32.xor (local.get $flags) (i32.const 2)))
+          (global.set $toggles (i32.add (global.get $toggles) (i32.const 1)))
+          (global.set $state-writes (i32.add (global.get $state-writes) (i32.const 1)))
           (br $accepted)))
       (if (i32.eq (local.get $opcode) (i32.const 3))
         (then
           (if (i32.gt_s (local.get $value) (i32.const 2)) (then (return (i32.const 0))))
           (i32.store8 (i32.add (global.get $state) (i32.const 200)) (local.get $value))
+          (global.set $filters (i32.add (global.get $filters) (i32.const 1)))
+          (global.set $state-writes (i32.add (global.get $state-writes) (i32.const 1)))
           (br $accepted)))
       (if (i32.eq (local.get $opcode) (i32.const 4))
         (then
@@ -48,11 +70,15 @@
           (i32.store8
             (i32.add (i32.add (global.get $state) (i32.const 100)) (local.get $id))
             (local.get $value))
+          (global.set $edits (i32.add (global.get $edits) (i32.const 1)))
+          (global.set $state-writes (i32.add (global.get $state-writes) (i32.const 1)))
           (br $accepted)))
       (if (i32.eq (local.get $opcode) (i32.const 5))
         (then
           (if (i32.eqz (call $alive (local.get $id))) (then (return (i32.const 0))))
           (i32.store8 (i32.add (global.get $state) (local.get $id)) (i32.const 0))
+          (global.set $removes (i32.add (global.get $removes) (i32.const 1)))
+          (global.set $state-writes (i32.add (global.get $state-writes) (i32.const 1)))
           (br $accepted)))
       (return (i32.const 0)))
 
@@ -60,6 +86,8 @@
     (i32.store offset=4 (local.get $out) (local.get $id))
     (i32.store offset=8 (local.get $out) (local.get $value))
     (i32.store offset=12 (local.get $out) (local.get $focus))
+    (global.set $actions (i32.add (global.get $actions) (i32.const 1)))
+    (global.set $commands-emitted (i32.add (global.get $commands-emitted) (i32.const 1)))
     (i32.const 1))
 
   (func (export "run") (param $count i32) (result i32)
@@ -70,6 +98,14 @@
       (then (return (i32.const -1))))
     (memory.fill (global.get $state) (i32.const 0) (i32.const 201))
     (memory.fill (global.get $commands) (i32.const 0) (i32.const 2400))
+    (global.set $actions (i32.const 0))
+    (global.set $adds (i32.const 0))
+    (global.set $toggles (i32.const 0))
+    (global.set $filters (i32.const 0))
+    (global.set $removes (i32.const 0))
+    (global.set $edits (i32.const 0))
+    (global.set $state-writes (i32.const 0))
+    (global.set $commands-emitted (i32.const 0))
     (block $done
       (loop $next
         (br_if $done (i32.ge_u (local.get $i) (local.get $count)))

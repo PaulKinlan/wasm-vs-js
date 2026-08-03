@@ -73,6 +73,32 @@ export function encodeActionTrace(actions = generateActionTrace()) {
   return encoded;
 }
 
+export function finalDomOracle() {
+  const labels = generateLabels();
+  return Array.from({ length: 100 }, (_, id) => id).filter((id) => id % 10 !== 0).map((id) => {
+    const label = editedLabels[id] ?? labels[id];
+    return {
+      id,
+      completed: id % 3 === 0,
+      hidden: false,
+      className: id % 3 === 0 ? "completed" : "",
+      label,
+      editValue: label,
+      editHidden: id !== 95,
+      checkboxAriaLabelledby: `label-${id}`,
+      removeAriaLabel: `Remove ${label}`,
+    };
+  });
+}
+
+export function finalAxOracle() {
+  return finalDomOracle().map(({ id, label }) => ({
+    id,
+    checkboxName: label,
+    removeName: `Remove ${label}`,
+  }));
+}
+
 export function fixtureDocument() {
   return {
     schemaVersion: 1,

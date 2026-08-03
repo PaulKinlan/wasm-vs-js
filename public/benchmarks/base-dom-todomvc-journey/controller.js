@@ -2,6 +2,7 @@ import {
   ACTION,
   editedLabels,
   FILTER,
+  finalDomOracle,
   generateLabels,
   IMPLEMENTATION_ID,
 } from "/benchmarks/base/dom-todomvc-journey/fixture.js";
@@ -157,11 +158,12 @@ function canonicalDom() {
       id,
       completed: node.checkbox.checked,
       hidden: item.hidden,
+      className: item.className,
       label: node.label.textContent,
       editValue: node.edit.value,
       editHidden: node.edit.hidden,
-      checkboxName: node.label.textContent,
-      removeName: node.remove.getAttribute("aria-label"),
+      checkboxAriaLabelledby: node.checkbox.getAttribute("aria-labelledby"),
+      removeAriaLabel: node.remove.getAttribute("aria-label"),
     };
   });
 }
@@ -181,13 +183,10 @@ function finalAssertions(engineResult) {
     completedCount: dom.filter((item) => item.completed).length === 30,
     activeCount: dom.filter((item) => !item.completed).length === 60,
     allVisible: dom.every((item) => item.hidden === false),
-    orderedIds: dom.every((item, index) => item.id === index + 1 + Math.floor(index / 9)),
-    editedLabels: [5, 55, 95].every((id) => nodes.get(id).label.textContent === editedLabels[id]),
+    completeCanonicalDom: JSON.stringify(dom) === JSON.stringify(finalDomOracle()),
     focus: focused === expectedFocus,
     selection: expectedFocus.selectionStart === expectedFocus.value.length &&
       expectedFocus.selectionEnd === expectedFocus.value.length,
-    accessibleCheckboxNames: dom.every((item) => item.checkboxName === item.label),
-    accessibleRemoveNames: dom.every((item) => item.removeName === `Remove ${item.label}`),
     semanticSummary: JSON.stringify(engineResult.summary) === JSON.stringify({
       alive: 90,
       active: 60,
@@ -251,6 +250,7 @@ function replay(commands, acceptedToken, engineResult) {
             summary: engineResult.summary,
             counters: engineResult.counters,
             physical: domResult.physical,
+            canonicalDom: domResult.dom,
             assertions: domResult.assertions,
           },
           null,
