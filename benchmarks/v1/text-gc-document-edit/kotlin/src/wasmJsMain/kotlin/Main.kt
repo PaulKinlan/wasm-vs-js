@@ -11,7 +11,9 @@ private class DocumentNode(
 }
 
 private fun decodeHex(value: String): String {
-    require(value.length % 2 == 0) { "invalid UTF-8 hex label" }
+    require(value.length % 2 == 0 && value.all { it in '0'..'9' || it in 'a'..'f' }) {
+        "invalid UTF-8 hex label"
+    }
     val bytes = ByteArray(value.length / 2)
     for (index in bytes.indices) {
         bytes[index] = value.substring(index * 2, index * 2 + 2).toInt(16).toByte()

@@ -169,6 +169,29 @@ Deno.test("text.gc-document-edit rejects every malformed numeric field in both t
   }
 });
 
+Deno.test("text.gc-document-edit rejects adversarial label encodings in both targets", () => {
+  const lines = fixture.trimEnd().split("\n");
+  const firstInsert = lines.findIndex((line) => line.startsWith("I\t"));
+  for (const row of [3, firstInsert]) {
+    const fields = lines[row].split("\t");
+    const label = fields[4];
+    const adversarial = [
+      label.replace(/[a-f]/u, (character) => character.toUpperCase()),
+      `+${label.slice(1)}`,
+      `-${label.slice(1)}`,
+      `g${label.slice(1)}`,
+      label.slice(1),
+    ];
+    for (const encodedLabel of adversarial) {
+      const candidate = [...lines];
+      const candidateFields = candidate[row].split("\t");
+      candidateFields[4] = encodedLabel;
+      candidate[row] = candidateFields.join("\t");
+      expectBothReject(`${candidate.join("\n")}\n`);
+    }
+  }
+});
+
 Deno.test("Kotlin artifact executes WasmGC-managed node/list/string proof", async () => {
   const bytes = await Deno.readFile(new URL("text-gc-document-edit.wasm", artifact));
   const compileWithOptions = WebAssembly.compile as unknown as (
@@ -364,6 +387,28 @@ Deno.test("text.gc-document-edit supplemental ledger and records pass closed sch
   const invalidBuild = structuredClone(buildManifest);
   invalidBuild.sourceCommit = "candidate prose";
   assert(!validateBuild(invalidBuild), "non-OID build source must fail");
+  for (let index = 0; index < buildManifest.sources.length; index++) {
+    const omission = structuredClone(buildManifest);
+    omission.sources.splice(index, 1);
+    assert(!validateBuild(omission), `source omission ${index} must fail`);
+
+    const duplicate = structuredClone(buildManifest);
+    const replacementIndex = (index + 1) % buildManifest.sources.length;
+    duplicate.sources[replacementIndex] = {
+      ...structuredClone(buildManifest.sources[index]),
+      bytes: buildManifest.sources[index].bytes + 1,
+      sha256: "0".repeat(64),
+      gitBlobOid: "0".repeat(40),
+    };
+    assert(
+      !validateBuild(duplicate),
+      `source duplicate with differing metadata ${index} must fail`,
+    );
+
+    const addition = structuredClone(buildManifest);
+    addition.sources.push(structuredClone(buildManifest.sources[index]));
+    assert(!validateBuild(addition), `source addition ${index} must fail`);
+  }
 });
 
 Deno.test("text.gc-document-edit validation records retain exact counters and no performance claim", async () => {
