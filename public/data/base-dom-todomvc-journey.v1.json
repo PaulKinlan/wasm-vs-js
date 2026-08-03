@@ -3,7 +3,7 @@
   "catalogId": "dom.todomvc-journey.v1",
   "implementationId": "dom.todomvc-journey.v1.controlled-v1",
   "status": "implementation-candidate",
-  "sourceCommit": "060613325f4750ef2d08c6e63a5162908b5a0428",
+  "sourceCommit": "03519cd0e8ccd1cc32ecc61986436e6d513f128b",
   "frozenCatalog": {
     "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
     "immutable": true,
@@ -23,8 +23,8 @@
   "oracle": {
     "path": "public/artifacts/base-dom-todomvc-journey/output-manifest.json",
     "route": "/artifacts/base-dom-todomvc-journey/output-manifest.json",
-    "bytes": 1683,
-    "sha256": "6ea94be3282264244e0992930d43e5182ec602d527e68160c6c5bda035aa401e"
+    "bytes": 31312,
+    "sha256": "678c59b64f50579777b04603d2a0f3d0b1e3a1f4167711441440f8b3a88b00be"
   },
   "artifacts": [
     {
@@ -42,20 +42,20 @@
     {
       "path": "benchmarks/base/dom-todomvc-journey/fixture.js",
       "route": "/benchmarks/base/dom-todomvc-journey/fixture.js",
-      "bytes": 2982,
-      "sha256": "4a0c91a3018f5f0bfa2473d92d3e995001ca57d014e7d65afc5fd644eae2b5ca"
+      "bytes": 3656,
+      "sha256": "0b271deabca1487fa669e289ddd4ade7b3e9f26621261d2e18748ff09792a4bb"
     },
     {
       "path": "benchmarks/base/dom-todomvc-journey/engine.js",
       "route": "/benchmarks/base/dom-todomvc-journey/engine.js",
-      "bytes": 6107,
-      "sha256": "ff131927970547ba69350a8aaf84172ad2c2c6f03edc25f762127d31e8db42d9"
+      "bytes": 7844,
+      "sha256": "09af045e48da430de68231304c77fdea09a28158b3eee9302a9b6060a57f2142"
     },
     {
       "path": "benchmarks/base/dom-todomvc-journey/todomvc.wat",
       "route": "/benchmarks/base/dom-todomvc-journey/todomvc.wat",
-      "bytes": 4034,
-      "sha256": "cb2eb8eaa2dc3e9905a425c430bdd0826039cd659b4024f7e06a33b31e708350"
+      "bytes": 6292,
+      "sha256": "5c8489b2df36f874207cbe7d64af88382cbb6c07b780601fe755379b45384d08"
     },
     {
       "path": "public/benchmarks/base-dom-todomvc-journey/index.html",
@@ -66,8 +66,8 @@
     {
       "path": "public/benchmarks/base-dom-todomvc-journey/controller.js",
       "route": "/benchmarks/base-dom-todomvc-journey/controller.js",
-      "bytes": 10643,
-      "sha256": "337e29d545efb3774bd367d7572f6e06a7218fe38431f5d1a4bfb3d8942daa30"
+      "bytes": 10491,
+      "sha256": "81ff9d3460f52df871134375b342520fabecb64f3918bda84da8eaa52f686238"
     },
     {
       "path": "public/benchmarks/base-dom-todomvc-journey/worker.js",
@@ -88,16 +88,22 @@
       "sha256": "f9942015e0258174e436b6d89ef6799c34881dfe9fe8917676e60a85088a9fd3"
     },
     {
+      "path": "schemas/base-todomvc-browser-evidence.schema.json",
+      "route": "/data/base-todomvc-browser-evidence.schema.json",
+      "bytes": 13765,
+      "sha256": "ad923d1f19362e074c8661de742889baa8e95fff3c6796cf48154efe53a2f77d"
+    },
+    {
       "path": "public/artifacts/base-dom-todomvc-journey/runtime.js",
       "route": "/artifacts/base-dom-todomvc-journey/runtime.js",
-      "bytes": 8452,
-      "sha256": "5fc0f7b8e54703c9a8019b651a0c2d5450aad45ce1fb33fb94cd386acbc86ec8"
+      "bytes": 10094,
+      "sha256": "78b08f5fd6438243d9fc33b21b70e7fda032384e9d8b3f99e730905ab1f5c429"
     },
     {
       "path": "public/artifacts/base-dom-todomvc-journey/todomvc.wasm",
       "route": "/artifacts/base-dom-todomvc-journey/todomvc.wasm",
-      "bytes": 543,
-      "sha256": "631c4769c10638d06dc3c85a65c50a3c130e19bb74328d8355d3c7b784b946c1"
+      "bytes": 902,
+      "sha256": "a6e30d091c4a469b755d2d5807614f0cddda2300cd144d09f0eef94cf399fedf"
     },
     {
       "path": "public/artifacts/base-dom-todomvc-journey/fixture.json",
@@ -108,14 +114,14 @@
     {
       "path": "public/artifacts/base-dom-todomvc-journey/output-manifest.json",
       "route": "/artifacts/base-dom-todomvc-journey/output-manifest.json",
-      "bytes": 1683,
-      "sha256": "6ea94be3282264244e0992930d43e5182ec602d527e68160c6c5bda035aa401e"
+      "bytes": 31312,
+      "sha256": "678c59b64f50579777b04603d2a0f3d0b1e3a1f4167711441440f8b3a88b00be"
     },
     {
       "path": "public/artifacts/base-dom-todomvc-journey/build-manifest.json",
       "route": "/artifacts/base-dom-todomvc-journey/build-manifest.json",
-      "bytes": 6025,
-      "sha256": "cc516b64372e0d0c3bcce185a55cc91e04e1e417ef771d6ca3c782910dfb8fac"
+      "bytes": 6583,
+      "sha256": "5bb71314891646484932ba6539e2d21e831eb39ed4ba0dea5b36fc88c378bdc2"
     }
   ],
   "limitations": [

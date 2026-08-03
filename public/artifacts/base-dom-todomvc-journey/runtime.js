@@ -126,6 +126,16 @@ const TodoJsEngine = class {
     this.flags = new Uint8Array(TODO_COUNT);
     this.versions = new Uint8Array(TODO_COUNT);
     this.filter = FILTER.ALL;
+    this.counters = {
+      actions: 0,
+      adds: 0,
+      toggles: 0,
+      filters: 0,
+      removes: 0,
+      edits: 0,
+      stateWrites: 0,
+      commandsEmitted: 0
+    };
   }
   apply(opcode, id, value, focus) {
     assertAction(opcode, id, value, focus);
@@ -133,9 +143,13 @@ const TodoJsEngine = class {
       if (this.flags[id] !== 0) throw new Error(`duplicate add ${id}`);
       this.flags[id] = 1;
       this.versions[id] = 0;
+      this.counters.adds += 1;
+      this.counters.stateWrites += 2;
     } else if (opcode === ACTION.TOGGLE) {
       if ((this.flags[id] & 1) === 0) throw new Error(`toggle missing ${id}`);
       this.flags[id] ^= 2;
+      this.counters.toggles += 1;
+      this.counters.stateWrites += 1;
     } else if (opcode === ACTION.FILTER) {
       if (![
         FILTER.ALL,
@@ -145,13 +159,21 @@ const TodoJsEngine = class {
         throw new Error(`invalid filter ${value}`);
       }
       this.filter = value;
+      this.counters.filters += 1;
+      this.counters.stateWrites += 1;
     } else if (opcode === ACTION.EDIT) {
       if ((this.flags[id] & 1) === 0 || value !== 1) throw new Error(`invalid edit ${id}`);
       this.versions[id] = value;
+      this.counters.edits += 1;
+      this.counters.stateWrites += 1;
     } else if (opcode === ACTION.REMOVE) {
       if ((this.flags[id] & 1) === 0) throw new Error(`remove missing ${id}`);
       this.flags[id] = 0;
+      this.counters.removes += 1;
+      this.counters.stateWrites += 1;
     }
+    this.counters.actions += 1;
+    this.counters.commandsEmitted += 1;
     return [
       opcode,
       id,
@@ -193,23 +215,29 @@ function summarizeState(flags, versions, filter) {
     }
   };
 }
-function expectedCounters(target) {
+const EXPECTED_OPERATIVE_COUNTERS = Object.freeze({
+  actions: 150,
+  adds: 100,
+  toggles: 34,
+  filters: 3,
+  removes: 10,
+  edits: 3,
+  stateWrites: 250,
+  commandsEmitted: 150
+});
+function completeCounters(operative, target) {
+  if (JSON.stringify(operative) !== JSON.stringify(EXPECTED_OPERATIVE_COUNTERS)) {
+    throw new Error(`operative counter mismatch: ${JSON.stringify(operative)}`);
+  }
   return {
-    actions: 150,
-    adds: 100,
-    toggles: 34,
-    filters: 3,
-    removes: 10,
-    edits: 3,
-    stateWrites: 250,
-    commandsEmitted: 150,
-    commandFields: 600,
-    outputElements: 801,
+    ...operative,
+    commandFields: operative.commandsEmitted * COMMAND_FIELDS,
+    outputElements: operative.commandsEmitted * COMMAND_FIELDS + TODO_COUNT * 2 + 1,
     allocations: target === "javascript" ? 4 : 0,
     boundaryCrossings: target === "wasm-linear" ? 1 : 0
   };
 }
-function result(variantId, target, commands, flags, versions, filter) {
+function result(variantId, target, commands, flags, versions, filter, operativeCounters) {
   const summary = summarizeState(flags, versions, filter);
   if (JSON.stringify(summary) !== JSON.stringify({
     alive: 90,
@@ -229,13 +257,13 @@ function result(variantId, target, commands, flags, versions, filter) {
     flags: Array.from(flags),
     versions: Array.from(versions),
     summary,
-    counters: expectedCounters(target)
+    counters: completeCounters(operativeCounters, target)
   };
 }
 function runJavaScript(encoded = encodeActionTrace()) {
   const engine = new TodoJsEngine();
   const commands = engine.run(encoded);
-  return result("js-controlled", "javascript", commands, engine.flags, engine.versions, engine.filter);
+  return result("js-controlled", "javascript", commands, engine.flags, engine.versions, engine.filter, engine.counters);
 }
 async function instantiateTodoWasm(bytes) {
   const module = await WebAssembly.compile(bytes);
@@ -246,7 +274,15 @@ async function instantiateTodoWasm(bytes) {
     "input_ptr",
     "command_ptr",
     "state_ptr",
-    "run"
+    "run",
+    "counter_actions",
+    "counter_adds",
+    "counter_toggles",
+    "counter_filters",
+    "counter_removes",
+    "counter_edits",
+    "counter_state_writes",
+    "counter_commands_emitted"
   ]) {
     if (!(name in exports)) throw new Error(`Wasm export missing: ${name}`);
   }
@@ -268,7 +304,17 @@ function runWasm(exports, encoded = encodeActionTrace()) {
   const flags = new Uint8Array(new Uint8Array(memory.buffer, statePtr, TODO_COUNT));
   const versions = new Uint8Array(new Uint8Array(memory.buffer, statePtr + TODO_COUNT, TODO_COUNT));
   const filter = new Uint8Array(memory.buffer, statePtr + 200, 1)[0];
-  return result("wasm-linear-controlled", "wasm-linear", commands, flags, versions, filter);
+  const operativeCounters = {
+    actions: Number(exports.counter_actions()),
+    adds: Number(exports.counter_adds()),
+    toggles: Number(exports.counter_toggles()),
+    filters: Number(exports.counter_filters()),
+    removes: Number(exports.counter_removes()),
+    edits: Number(exports.counter_edits()),
+    stateWrites: Number(exports.counter_state_writes()),
+    commandsEmitted: Number(exports.counter_commands_emitted())
+  };
+  return result("wasm-linear-controlled", "wasm-linear", commands, flags, versions, filter, operativeCounters);
 }
 function assertEquivalent(js, wasm) {
   for (const field of [
