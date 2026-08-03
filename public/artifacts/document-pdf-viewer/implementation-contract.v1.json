@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "document.pdf-viewer.v1",
+  "catalogReference": {
+    "path": "catalog/workloads.v1.json",
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+    "immutability": "byte-for-byte"
+  },
+  "status": "supplemental-controlled-implementation",
+  "pdfSubset": {
+    "version": "PDF-1.7-pdfbase-report-v1",
+    "objects": [
+      "catalog",
+      "pages-tree",
+      "page",
+      "content-stream",
+      "type3-font",
+      "embedded-bitmap-font",
+      "xref",
+      "trailer"
+    ],
+    "contentOperators": ["BT", "Tf", "Td", "Tj", "ET"],
+    "stringEncoding": "printable ASCII without escapes",
+    "textOrder": "page order then content-stream order",
+    "unicodePolicy": "ASCII is an exact Unicode scalar subset; malformed or non-ASCII content is rejected",
+    "font": "PDFBase5x7-v1 project-owned bitmap, embedded as 896 raw bytes and referenced from each page resource",
+    "color": "opaque black glyph pixels on opaque white sRGB-like RGBA",
+    "alpha": "255 for every pixel"
+  },
+  "fixture": {
+    "pages": 100,
+    "pagePoints": [612, 792],
+    "searchTerm": "NEEDLE",
+    "expectedHitPages": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+    "rasterPages": [1, 25, 50, 75, 100],
+    "dpi": 144,
+    "rasterPixels": [1224, 1584],
+    "rights": {
+      "licenseSpdx": "CC0-1.0",
+      "redistribution": "permitted",
+      "externalResources": false
+    }
+  },
+  "oracle": {
+    "text": "exact complete extracted-page text and exact ordered hit pages",
+    "raster": "exact complete RGBA SHA-256 for each of five pages",
+    "perceptualTolerance": { "maxDifferingPixels": 0, "maxChannelDifference": 0 },
+    "malformedPolicy": "fail closed before returning output"
+  },
+  "targets": {
+    "js-controlled": "independent repository-owned byte parser, search and bitmap rasterizer",
+    "wasm-linear-controlled": "independent C parser, search and bitmap rasterizer compiled to linear Wasm"
+  },
+  "fixedWork": {
+    "parsedPages": 100,
+    "searches": 100,
+    "rasterizedPages": 5,
+    "pixelsPerRaster": 1938816,
+    "workerTopology": "one fresh module worker per start"
+  },
+  "limitations": [
+    "This is the complete frozen report task over a deliberately narrow pinned PDF subset, not a general PDF reader.",
+    "No browser PDF viewer, Canvas, native font rasterizer, PDFium, MuPDF, or host text extraction participates.",
+    "No performance result or ranking is claimed."
+  ]
+}

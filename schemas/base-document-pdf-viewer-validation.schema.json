@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.example/schemas/base-document-pdf-viewer-validation.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "workloadId",
+    "sourceCommit",
+    "status",
+    "fixture",
+    "artifact",
+    "checks",
+    "output",
+    "limits"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "workloadId": { "const": "document.pdf-viewer.v1" },
+    "sourceCommit": { "type": "string", "minLength": 1 },
+    "status": { "const": "passed-static" },
+    "fixture": { "$ref": "#/$defs/file" },
+    "artifact": { "$ref": "#/$defs/file" },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "catalogUnchanged": { "const": true },
+        "completeText": { "const": true },
+        "allSearchHits": { "const": true },
+        "completeRgbaFivePages": { "const": true },
+        "exactCrossTarget": { "const": true },
+        "fixedWork": { "const": true }
+      },
+      "required": [
+        "catalogUnchanged",
+        "completeText",
+        "allSearchHits",
+        "completeRgbaFivePages",
+        "exactCrossTarget",
+        "fixedWork"
+      ]
+    },
+    "output": { "type": "object" },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["browserEvidence", "performance"],
+      "properties": {
+        "browserEvidence": { "const": "not-collected-by-worker" },
+        "performance": { "const": "not-measured" }
+      }
+    }
+  },
+  "$defs": {
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "type": "string" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    }
+  }
+}

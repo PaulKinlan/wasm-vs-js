@@ -280,6 +280,58 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/artifacts/sum-u32/build-manifest.9c309c49.json",
     "application/json; charset=utf-8",
   ]],
+  ["/benchmarks/document-pdf-viewer-v1", [
+    "public/benchmarks/document-pdf-viewer-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/document-pdf-viewer-v1/", [
+    "public/benchmarks/document-pdf-viewer-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/document-pdf-viewer-v1/runner.js", [
+    "public/benchmarks/document-pdf-viewer-v1/runner.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/document-pdf-viewer-v1/worker.js", [
+    "public/benchmarks/document-pdf-viewer-v1/worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/document-pdf-viewer/engine.js", [
+    "benchmarks/base/document-pdf-viewer/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/artifacts/document-pdf-viewer/report-100-pages.pdf", [
+    "public/artifacts/document-pdf-viewer/report-100-pages.pdf",
+    "application/pdf",
+  ]],
+  ["/artifacts/document-pdf-viewer/pdf-engine.wasm", [
+    "public/artifacts/document-pdf-viewer/pdf-engine.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/document-pdf-viewer/pdfbase-5x7-v1.bin", [
+    "public/artifacts/document-pdf-viewer/pdfbase-5x7-v1.bin",
+    "application/octet-stream",
+  ]],
+  ["/artifacts/document-pdf-viewer/implementation-contract.v1.json", [
+    "public/artifacts/document-pdf-viewer/implementation-contract.v1.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/document-pdf-viewer/fixture-manifest.json", [
+    "public/artifacts/document-pdf-viewer/fixture-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/document-pdf-viewer/output-manifest.json", [
+    "public/artifacts/document-pdf-viewer/output-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/document-pdf-viewer/build-manifest.json", [
+    "public/artifacts/document-pdf-viewer/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/base/document-pdf-viewer/validation.json", [
+    "public/evidence/base/document-pdf-viewer/validation.json",
+    "application/json; charset=utf-8",
+  ]],
 ]);
 
 for (const route of [...IMAGE_DEMO_ROUTES, ...TRADITIONAL_DEMO_ROUTES]) {

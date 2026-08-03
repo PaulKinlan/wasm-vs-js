@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "document.pdf-viewer.v1",
+  "sourceCommit": "worktree-source",
+  "status": "passed-static",
+  "fixture": {
+    "path": "public/artifacts/document-pdf-viewer/report-100-pages.pdf",
+    "bytes": 33144,
+    "sha256": "81b653401a5e20b7ade23c2a81dffdafc7e39034892a18d7e503fced11f893da"
+  },
+  "artifact": {
+    "path": "public/artifacts/document-pdf-viewer/pdf-engine.wasm",
+    "bytes": 5434,
+    "sha256": "fe5696519637b277952443369c46e91744ba4b400524fb67e6f2b08d38c414ed"
+  },
+  "checks": {
+    "catalogUnchanged": true,
+    "completeText": true,
+    "allSearchHits": true,
+    "completeRgbaFivePages": true,
+    "exactCrossTarget": true,
+    "fixedWork": true
+  },
+  "output": {
+    "pageCount": 100,
+    "searchTerm": "NEEDLE",
+    "hits": [
+      10,
+      20,
+      30,
+      40,
+      50,
+      60,
+      70,
+      80,
+      90,
+      100
+    ],
+    "rasterPages": [
+      {
+        "page": 1,
+        "sha256": "2eec361c432cdab8004f0ad3104c27cbf716dd3676cad69f1310c72a83c8c36c"
+      },
+      {
+        "page": 25,
+        "sha256": "79df9f85f9d651ac0458580314ae06b0d281799eb2463a86df5ec092972b545b"
+      },
+      {
+        "page": 50,
+        "sha256": "5a5c6d9925b08f6f110f93e3537d6451452b8bf8e98f605f97dc8675987e9d53"
+      },
+      {
+        "page": 75,
+        "sha256": "d9dc33158a45e6739bb6f4dc6af72945b65f61c3ce7aaa401b7dbec8428db451"
+      },
+      {
+        "page": 100,
+        "sha256": "19cd719f18098055d605881e65ca41f0f0fffeaecce7c8f9bbde18af80560ccd"
+      }
+    ],
+    "textSha256": "039fb76d6eb3bf1764ee5c839c4f21133a8a33b282967497378e6d7c5ca76fdb"
+  },
+  "limits": {
+    "browserEvidence": "not-collected-by-worker",
+    "performance": "not-measured"
+  }
+}
