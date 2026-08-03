@@ -1,0 +1,48 @@
+{
+  "algorithmFamily": "zip-fixed-deflate-metadata",
+  "counters": {
+    "boundaryCrossings": 0,
+    "centralHeaders": 10000,
+    "crcBytes": 479984,
+    "deflateEndSymbols": 10000,
+    "deflateLiterals": 479984,
+    "entries": 10000,
+    "extractedBytes": 395,
+    "extractedEntries": 10,
+    "inputBytes": 479984,
+    "listedEntries": 10000,
+    "localHeaders": 10000,
+    "zip64Records": 0
+  },
+  "fixedWork": {
+    "listPasses": 1,
+    "paths": 10000,
+    "selectedExtractions": 10,
+    "writePasses": 1,
+    "zip64": "forbidden because entries < 65535 and all sizes/offsets < 2^32"
+  },
+  "outputs": {
+    "archiveBytes": 1723184,
+    "archiveSha256": "a788e3cabb392ae350f504e14ec0ab5402163b4cf8c8af901bc1a18d459c25f5",
+    "extractedBytes": 475,
+    "extractedSha256": "3224cc0bdc12491f8b9e74a510b209aea57c20df0d2f34abb3c784ab8d9dcfa5",
+    "listingBytes": 360052,
+    "listingSha256": "d4710e7c39cb2ed52bbd1021c9e384da83f320e3969cc1cab58b7ee94e06c031"
+  },
+  "schemaVersion": 1,
+  "workloadId": "archive.zip-workspace.v1",
+  "zipPolicy": {
+    "algorithmFamily": "zip-fixed-deflate-metadata",
+    "compressionMethod": 8,
+    "creatorVersion": 788,
+    "deflateBlockType": "fixed-huffman",
+    "dosDate": 33,
+    "dosTime": 0,
+    "extractVersion": 20,
+    "level": 1,
+    "lzPolicy": "literal-only",
+    "unixMode": 33188,
+    "utf8Flag": 2048,
+    "zip64": "forbidden-under-frozen-bounds"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wasm-vs-js.example/schemas/v1-supplemental-implementation.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "workloadId",
+    "frozenCatalog",
+    "status",
+    "countsTowardCoverage",
+    "track",
+    "algorithmFamily",
+    "variants",
+    "fixtureManifest",
+    "outputManifest",
+    "buildManifest",
+    "demoRoute",
+    "limitations"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "workloadId": { "type": "string", "pattern": "^[a-z0-9.-]+\\.v1$" },
+    "frozenCatalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "modified"],
+      "properties": {
+        "path": { "const": "catalog/workloads.v1.json" },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "modified": { "const": false }
+      }
+    },
+    "status": {
+      "enum": ["candidate-implementation-awaiting-independent-review", "accepted-implementation"]
+    },
+    "countsTowardCoverage": { "type": "boolean" },
+    "track": { "const": "controlled" },
+    "algorithmFamily": { "type": "string", "minLength": 1 },
+    "variants": { "const": ["js-controlled", "wasm-linear-controlled"] },
+    "fixtureManifest": { "type": "string", "minLength": 1 },
+    "outputManifest": { "type": "string", "minLength": 1 },
+    "buildManifest": { "type": "string", "minLength": 1 },
+    "demoRoute": { "type": "string", "pattern": "^/" },
+    "limitations": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+  }
+}

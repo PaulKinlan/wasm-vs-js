@@ -1,0 +1,32 @@
+{
+  "bytes": 740036,
+  "catalogImmutability": "byte-for-byte",
+  "catalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+  "generator": {
+    "canonicalFixtureFraming": "u16le path length, path bytes, u16le content length, content bytes",
+    "content": "32+(index mod 33) bytes from xorshift32 seed (0x9e3779b9 xor index)",
+    "entryCount": 10000,
+    "pathEncoding": "UTF-8 with NFC literals; no traversal, absolute, empty, dot, or backslash segments",
+    "pathOrder": "generator index 0..9999"
+  },
+  "rights": {
+    "licenseSpdx": "CC0-1.0",
+    "provenance": "project-generated",
+    "redistribution": "permitted"
+  },
+  "schemaVersion": 1,
+  "selectedIndices": [
+    0,
+    1,
+    17,
+    997,
+    2048,
+    4096,
+    7001,
+    8191,
+    9998,
+    9999
+  ],
+  "sha256": "23083abad5521aa3dd59716285edfe221a80c50b80019357d54a9767704e1c84",
+  "workloadId": "archive.zip-workspace.v1"
+}

@@ -130,6 +130,44 @@ const routes = new Map<string, [string, string, boolean?]>([
   ]],
   ["/benchmarks", ["public/benchmarks/index.html", "text/html; charset=utf-8"]],
   ["/benchmarks/", ["public/benchmarks/index.html", "text/html; charset=utf-8"]],
+  ["/benchmarks/archive-zip-workspace-v1", [
+    "public/benchmarks/archive-zip-workspace-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/archive-zip-workspace-v1/", [
+    "public/benchmarks/archive-zip-workspace-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/archive-zip-demo.js", ["public/archive-zip-demo.js", "text/javascript; charset=utf-8"]],
+  ["/archive-zip-worker.js", ["public/archive-zip-worker.js", "text/javascript; charset=utf-8"]],
+  ["/benchmarks/v1/archive-zip-workspace/engine.js", [
+    "benchmarks/v1/archive-zip-workspace/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/artifacts/archive-zip-workspace-v1/archive-zip-workspace.wasm", [
+    "public/artifacts/archive-zip-workspace-v1/archive-zip-workspace.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/archive-zip-workspace-v1/build-manifest.json", [
+    "public/artifacts/archive-zip-workspace-v1/build-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/archive-zip-workspace-v1/fixture-manifest.json", [
+    "public/artifacts/archive-zip-workspace-v1/fixture-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/archive-zip-workspace-v1/output-manifest.json", [
+    "public/artifacts/archive-zip-workspace-v1/output-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/v1-implementations/archive-zip-workspace-v1/js-controlled.json", [
+    "public/evidence/v1-implementations/archive-zip-workspace-v1/js-controlled.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/evidence/v1-implementations/archive-zip-workspace-v1/wasm-linear-controlled.json", [
+    "public/evidence/v1-implementations/archive-zip-workspace-v1/wasm-linear-controlled.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/demos/game-family/demo.js", [
     "public/demos/game-family/demo.js",
     "text/javascript; charset=utf-8",

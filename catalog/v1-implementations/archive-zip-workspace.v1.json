@@ -1,0 +1,25 @@
+{
+  "algorithmFamily": "zip-fixed-deflate-metadata",
+  "buildManifest": "public/artifacts/archive-zip-workspace-v1/build-manifest.json",
+  "countsTowardCoverage": false,
+  "demoRoute": "/benchmarks/archive-zip-workspace-v1/",
+  "fixtureManifest": "public/artifacts/archive-zip-workspace-v1/fixture-manifest.json",
+  "frozenCatalog": {
+    "modified": false,
+    "path": "catalog/workloads.v1.json",
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4"
+  },
+  "limitations": [
+    "No performance corpus or ranking",
+    "Coverage remains 0/38 until independent acceptance and integration"
+  ],
+  "outputManifest": "public/artifacts/archive-zip-workspace-v1/output-manifest.json",
+  "schemaVersion": 1,
+  "status": "candidate-implementation-awaiting-independent-review",
+  "track": "controlled",
+  "variants": [
+    "js-controlled",
+    "wasm-linear-controlled"
+  ],
+  "workloadId": "archive.zip-workspace.v1"
+}
