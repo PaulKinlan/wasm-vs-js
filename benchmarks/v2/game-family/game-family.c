@@ -88,6 +88,10 @@ static int run_arcade(uint32_t length) {
 
 static int run_pathfinding(uint32_t length) {
   if (length != 106552u || read32(0) != 256u || read32(8) != 4096u) return 2;
+  for (uint32_t node = 0; node < 65536; node++) {
+    astar_seen[node] = 0;
+    astar_closed[node] = 0;
+  }
   const uint32_t map_offset = 24, entity_offset = map_offset + 65536, path_offset = entity_offset + 4096 * 8, control_offset = path_offset + 128 * 8;
   uint16_t stamp = 0; uint32_t state = 0xa1427b39u, path_digest = 0x13198a2eu, tie_digest = 0x03707344u;
   uint32_t expanded = 0, frontier_operations = 0, system_updates = 0, draw_commands = 0, audio_events = 0;
@@ -183,6 +187,7 @@ static int tactics_los_visible(uint32_t start, uint32_t goal, uint32_t map_offse
 }
 static int run_tactics(uint32_t length) {
   if (length != 7064u || read32(0) != 64u || read32(8) != 128u) return 2;
+  for (uint32_t cell = 0; cell < 4096; cell++) bfs_seen[cell] = 0;
   const uint32_t map_offset = 24, unit_offset = map_offset + 4096, action_offset = unit_offset + 1024;
   for (uint32_t cell = 0; cell < 4096; cell++) occupancy[cell] = -1;
   for (uint32_t unit = 0; unit < 128; unit++) {

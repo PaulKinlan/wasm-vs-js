@@ -87,6 +87,66 @@ Deno.test("all three catalog algorithms execute independently in JavaScript and 
   ) assert(c.includes(symbol));
 });
 
+Deno.test("one cached Wasm instance is byte-identical across repeated and reordered workloads", async () => {
+  const wasm = await runtime();
+  const baselineBytes = new Map<string, Uint8Array>();
+  const exactCounters = {
+    "game.canvas-arcade.v1": {
+      frames: 3600,
+      entityUpdates: 169501,
+      collisionTests: 169501,
+      drawCommands: 180301,
+      audioEvents: 91,
+      inputBytes: 14424,
+      outputBytes: 204,
+      boundaryCrossings: 2,
+    },
+    "game.canvas-entity-pathfinding.v1": {
+      frames: 1800,
+      entities: 4096,
+      systemUpdates: 7_372_800,
+      pathNodesExpanded: 974592,
+      frontierOperations: 2213135,
+      drawCommands: 7_372_800,
+      audioEvents: 1,
+      boundaryCrossings: 2,
+    },
+    "game.dom-tactics-grid.v1": {
+      actions: 240,
+      turns: 60,
+      pathNodesExpanded: 95614,
+      lineOfSightTests: 450,
+      stateUpdates: 81,
+      domMutations: 423,
+      transferredBytes: 7064,
+      boundaryCrossings: 2,
+    },
+  } as const;
+  const order = [
+    GAME_IDS[0],
+    GAME_IDS[1],
+    GAME_IDS[2],
+    GAME_IDS[1],
+    GAME_IDS[2],
+    GAME_IDS[0],
+    GAME_IDS[2],
+    GAME_IDS[0],
+    GAME_IDS[1],
+  ];
+  for (const id of order) {
+    const result = runGameWasm(id, wasm, generateFixture(id));
+    assertEquals(result.digest, expected[id as keyof typeof expected].digest);
+    assertEquals(result.counters, exactCounters[id as keyof typeof exactCounters]);
+    const pointer = (wasm.result_ptr as () => number)();
+    const bytes = new Uint8Array((wasm.memory as WebAssembly.Memory).buffer, pointer, 2048 * 4)
+      .slice();
+    const baseline = baselineBytes.get(id);
+    if (baseline) assertEquals(bytes, baseline);
+    else baselineBytes.set(id, bytes);
+  }
+  assertEquals(baselineBytes.size, GAME_IDS.length);
+});
+
 Deno.test("arcade freezes complete state, draw, audio, checkpoints, and exact work", () => {
   const result = runGameJavaScript(GAME_IDS[0]);
   assertEquals(result.oracle.finalStateDigest, "87695460");
