@@ -105,7 +105,7 @@ Deno.test("glTF parser accepts the exact Draco product model and rejects malform
 });
 
 Deno.test("complete 600-frame JS and material-Wasm outputs equal the retained oracle", async () => {
-  const decoded = await decode("javascript");
+  const [decoded, wasmDecoded] = await Promise.all([decode("javascript"), decode("wasm")]);
   const mesh = quantizeDecodedMesh(decoded);
   const texture = await Deno.readFile(
     new URL("fixtures/base/graphics-gltf-viewer/base-color-64.rgba", root),
@@ -151,9 +151,9 @@ Deno.test("complete 600-frame JS and material-Wasm outputs equal the retained or
         a,
         mesh.vertexCount,
         mesh.indices.length,
-        decoded.metrics.allocations,
-        decoded.metrics.apiCalls,
-        decoded.metrics.wasmBoundaryCrossings,
+        wasmDecoded.metrics.allocations,
+        wasmDecoded.metrics.apiCalls,
+        wasmDecoded.metrics.wasmBoundaryCrossings,
       ),
     ),
     0,
@@ -168,7 +168,7 @@ Deno.test("complete 600-frame JS and material-Wasm outputs equal the retained or
   assertEquals(await sha256Hex(wasm), manifest.output.variants.wasm.sha256);
   assertEquals(await sha256Hex(normalizeControlledOutput(js)), manifest.output.semanticSha256);
   assertEquals(js.length, manifest.output.bytes);
-  const header = new Uint32Array(js.buffer, 0, 20);
+  const header = new Uint32Array(js.buffer, 0, 28);
   assertEquals(header[1], 406);
   assertEquals(header[2], 2046);
   assertEquals(header[3], 600);
