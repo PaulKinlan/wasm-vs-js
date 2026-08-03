@@ -274,7 +274,20 @@ try {
     const consoleMessages: Array<Record<string, unknown>> = [];
     const exceptions: Array<Record<string, unknown>> = [];
     const requests = new Map<string, Record<string, unknown>>();
+    const observedSessions = new Set([sessionId]);
+    const workerAttachTasks: Promise<void>[] = [];
     const removers = [
+      client.on("Target.attachedToTarget", (params, eventSession) => {
+        if (eventSession !== sessionId) return;
+        const targetInfo = params.targetInfo as Record<string, unknown>;
+        if (targetInfo.type !== "worker") return;
+        const workerSession = String(params.sessionId);
+        observedSessions.add(workerSession);
+        workerAttachTasks.push((async () => {
+          await client.send("Network.enable", {}, workerSession);
+          await client.send("Runtime.runIfWaitingForDebugger", {}, workerSession);
+        })());
+      }),
       client.on("Runtime.consoleAPICalled", (params, eventSession) => {
         if (eventSession !== sessionId) return;
         consoleMessages.push({
@@ -290,7 +303,7 @@ try {
         exceptions.push({ text: String(details.text), lineNumber: Number(details.lineNumber) });
       }),
       client.on("Network.requestWillBeSent", (params, eventSession) => {
-        if (eventSession !== sessionId) return;
+        if (!eventSession || !observedSessions.has(eventSession)) return;
         const request = params.request as Record<string, unknown>;
         requests.set(String(params.requestId), {
           url: String(request.url),
@@ -305,7 +318,7 @@ try {
         });
       }),
       client.on("Network.responseReceived", (params, eventSession) => {
-        if (eventSession !== sessionId) return;
+        if (!eventSession || !observedSessions.has(eventSession)) return;
         const record = requests.get(String(params.requestId));
         const response = params.response as Record<string, unknown>;
         if (record) {
@@ -318,7 +331,7 @@ try {
         }
       }),
       client.on("Network.loadingFailed", (params, eventSession) => {
-        if (eventSession !== sessionId) return;
+        if (!eventSession || !observedSessions.has(eventSession)) return;
         const record = requests.get(String(params.requestId));
         if (record) Object.assign(record, { failed: true, errorText: String(params.errorText) });
       }),
@@ -327,6 +340,11 @@ try {
       client.send("Page.enable", {}, sessionId),
       client.send("Runtime.enable", {}, sessionId),
       client.send("Network.enable", {}, sessionId),
+      client.send("Target.setAutoAttach", {
+        autoAttach: true,
+        waitForDebuggerOnStart: true,
+        flatten: true,
+      }, sessionId),
     ]);
     const loaded = new Promise<void>((resolve, reject) => {
       const timer = setTimeout(() => reject(new Error("page load timeout")), 10_000);
@@ -366,6 +384,7 @@ try {
         (state) => String(state.status).includes(" completed;"),
       );
     }
+    await Promise.all(workerAttachTasks);
     const networkDeadline = Date.now() + 2_000;
     while (
       Date.now() < networkDeadline &&
