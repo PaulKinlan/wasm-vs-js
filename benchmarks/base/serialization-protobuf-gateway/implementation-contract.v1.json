@@ -1,0 +1,173 @@
+{
+  "schemaVersion": 1,
+  "registrationId": "base.serialization.protobuf-gateway.v1.controlled-v1",
+  "frozenCatalog": {
+    "id": "serialization.protobuf-gateway.v1",
+    "catalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+    "immutability": "byte-for-byte",
+    "coverageClaim": "candidate pending independent acceptance"
+  },
+  "algorithmFamily": "protobuf-semantic-message-v1",
+  "equivalenceClass": "conformance-equivalent",
+  "fixedWork": {
+    "messages": 10000,
+    "operations": [
+      "decode protobuf wire bytes",
+      "apply frozen predicate",
+      "serialize canonical ProtoJSON"
+    ],
+    "filter": "active == true AND status != DISABLED AND unsigned id modulo 3 == 0"
+  },
+  "schema": {
+    "name": "GatewayEvent",
+    "file": "benchmarks/base/serialization-protobuf-gateway/gateway-event.proto",
+    "fields": [
+      {
+        "number": 1,
+        "name": "id",
+        "type": "uint64",
+        "protoJson": "decimal string",
+        "presence": "omit default"
+      },
+      {
+        "number": 2,
+        "name": "name",
+        "type": "string",
+        "protoJson": "UTF-8 JSON string",
+        "presence": "last duplicate wins; omit default"
+      },
+      {
+        "number": 3,
+        "name": "active",
+        "type": "bool",
+        "presence": "last duplicate wins; omit false"
+      },
+      {
+        "number": 4,
+        "name": "score",
+        "type": "double",
+        "protoJson": "number or NaN/Infinity/-Infinity string; preserve -0",
+        "presence": "omit positive zero"
+      },
+      {
+        "number": 5,
+        "name": "status",
+        "type": "enum",
+        "values": { "0": "STATUS_UNSPECIFIED", "1": "ACTIVE", "2": "PAUSED", "3": "DISABLED" },
+        "unknown": "decimal number",
+        "presence": "omit zero"
+      },
+      {
+        "number": 6,
+        "name": "tags",
+        "type": "repeated string",
+        "presence": "preserve wire order; omit empty"
+      },
+      {
+        "number": 7,
+        "name": "metrics",
+        "type": "map<string,sint64>",
+        "protoJson": "lexicographically sorted UTF-8 keys and decimal-string values",
+        "duplicates": "last key wins",
+        "presence": "omit empty"
+      },
+      {
+        "number": 8,
+        "name": "payload",
+        "type": "bytes",
+        "protoJson": "standard padded base64",
+        "presence": "omit empty"
+      },
+      { "number": 9, "name": "note", "type": "oneof string", "oneof": "choice" },
+      { "number": 10, "name": "code", "type": "oneof int32", "oneof": "choice" },
+      {
+        "number": 11,
+        "name": "ratio",
+        "type": "float",
+        "protoJson": "number or NaN/Infinity/-Infinity string; preserve -0",
+        "presence": "omit positive zero"
+      }
+    ],
+    "wireTypes": {
+      "admitted": [0, 1, 2, 5],
+      "groups": [3, 4],
+      "groupsPolicy": "reject as outside the frozen admitted schema"
+    },
+    "duplicates": "singular last wins; repeated appends; map key last wins; oneof last member wins",
+    "unknownFields": "skip admitted wire types and count each occurrence; omit from ProtoJSON",
+    "utf8": "fatal validation for every declared string and map key",
+    "protoJsonFieldOrder": [
+      "id",
+      "name",
+      "active",
+      "score",
+      "status",
+      "tags",
+      "metrics",
+      "payload",
+      "note-or-code",
+      "ratio"
+    ],
+    "escaping": "JSON RFC 8259 short escapes for quote, backslash, backspace, tab, LF, FF, CR; other U+0000..U+001F use lowercase \\u00xx; preserve other UTF-8 scalar bytes"
+  },
+  "fixture": {
+    "generator": "xorshift32 seed 0x28a11ce5, revision gateway-generator-v1",
+    "framing": "little-endian u32 message count followed by repeated little-endian u32 byte length and protobuf message bytes",
+    "rights": "project-generated CC0-1.0",
+    "coverage": [
+      "all declared scalar/repeated/map/bytes/oneof fields",
+      "duplicate singular/map/oneof",
+      "unknown wire types 0/1/2/5",
+      "defaults",
+      "uint64 above 2^53",
+      "enum",
+      "float/double non-finite",
+      "multilingual UTF-8 and JSON escaping"
+    ]
+  },
+  "reference": {
+    "upstream": "protocolbuffers/protobuf",
+    "tag": "v32.0",
+    "commit": "4fbd1111a292d04746c732573025e3251de0bb9c",
+    "archiveUrl": "https://github.com/protocolbuffers/protobuf/archive/4fbd1111a292d04746c732573025e3251de0bb9c.tar.gz",
+    "archiveSha256": "bb1fd58473c47c747a3f00fc45ced1d562bba4bf645db07cc889fe86dee279ca",
+    "archiveBytes": 9697278,
+    "redistribution": "recipe-only; archive is not vendored",
+    "license": "BSD-3-Clause",
+    "role": "offline conformance reference, not a controlled target"
+  },
+  "targets": {
+    "js-controlled": {
+      "source": "benchmarks/base/serialization-protobuf-gateway/workload.js",
+      "hostIntrinsics": [
+        "TextEncoder",
+        "fatal TextDecoder",
+        "WebCrypto only for untimed evidence hashing"
+      ],
+      "forbidden": ["JSON.parse", "JSON.stringify", "native protobuf"]
+    },
+    "wasm-linear-controlled": {
+      "source": "benchmarks/base/serialization-protobuf-gateway/protobuf-gateway.c",
+      "toolchain": "Clang/LLD 22.1.8 wasm32-unknown-unknown",
+      "features": { "simd": false, "threads": false, "memoryGrowth": false },
+      "semanticAuthority": [
+        "wire decode",
+        "filter",
+        "map/oneof resolution",
+        "UTF-8 ProtoJSON output construction"
+      ]
+    }
+  },
+  "counters": [
+    "messages",
+    "fields",
+    "varintBytes",
+    "unknownFields",
+    "filteredMessages",
+    "wireBytes",
+    "protoJsonBytes",
+    "allocations",
+    "boundaryCrossings"
+  ],
+  "performanceClaims": []
+}

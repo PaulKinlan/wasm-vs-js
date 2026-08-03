@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Protobuf gateway correctness demo | Wasm versus JavaScript</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body><a class="skip-link" href="#content">Skip to content</a><header class="site-header"><a href="/">Wasm versus JavaScript</a><a href="/benchmarks/">Catalog</a></header>
+<main id="content" class="shell"><p class="eyebrow">BASE CANDIDATE · SERIALIZATION.PROTOBUF-GATEWAY.V1</p><h1>Protobuf gateway</h1>
+<p><strong>No performance claim.</strong> This correctness route generates exactly 10,000 frozen protobuf messages, decodes every message, applies one fixed filter, and constructs the complete canonical ProtoJSON response in a fresh worker. Nothing is uploaded or stored.</p>
+<form><fieldset><legend>Controlled target</legend><label>Engine <select name="target"><option value="both">JavaScript and linear Wasm</option><option value="javascript">JavaScript only</option><option value="wasm">Linear Wasm only</option></select></label><label>Validation <select name="mode"><option value="exact">Exact contract</option><option value="default">Output oracle</option></select></label><button id="start" type="submit">Start</button><button id="cancel" type="button" disabled>Cancel</button></fieldset></form>
+<p id="status" role="status" aria-live="polite">Ready.</p><h2>Text result</h2><pre id="output">No result yet.</pre>
+<h2>What is admitted</h2><p>The frozen schema covers uint64, strings, booleans, double, enum, repeated strings, map&lt;string,sint64&gt;, bytes, oneof, int32, and float. The corpus exercises duplicate singular, map, and oneof fields; unknown wire types 0, 1, 2, and 5; defaults; values above JavaScript’s safe integer range; non-finite numbers; multilingual UTF-8; base64; and JSON escaping. Unknown fields are counted and omitted from ProtoJSON.</p>
+<p>The Wasm target performs wire decoding, filtering, duplicate and oneof resolution, map sorting, UTF-8 output construction, number formatting, JSON escaping, and base64 inside fixed 32 MiB linear memory. It does not call a JavaScript reducer or host JSON serializer.</p>
+<p><a href="/benchmarks/base/serialization-protobuf-gateway/implementation-contract.v1.json">Exact supplemental contract</a> · <a href="/artifacts/serialization-protobuf-gateway/build-manifest.json">Build manifest</a> · <a href="/artifacts/serialization-protobuf-gateway/output-manifest.json">Output oracle</a></p>
+</main><script type="module" src="/benchmarks/serialization-protobuf-gateway/protobuf-runner.js"></script></body>
+</html>

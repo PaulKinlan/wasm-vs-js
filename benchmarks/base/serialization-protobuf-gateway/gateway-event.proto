@@ -1,0 +1,25 @@
+syntax = "proto3";
+package wasm_vs_js.base;
+
+message GatewayEvent {
+  uint64 id = 1;
+  string name = 2;
+  bool active = 3;
+  double score = 4;
+  Status status = 5;
+  repeated string tags = 6;
+  map<string, sint64> metrics = 7;
+  bytes payload = 8;
+  oneof choice {
+    string note = 9;
+    int32 code = 10;
+  }
+  float ratio = 11;
+}
+
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  ACTIVE = 1;
+  PAUSED = 2;
+  DISABLED = 3;
+}
