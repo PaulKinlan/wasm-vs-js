@@ -19,7 +19,9 @@ export const INDEXES = Object.freeze([
 export const PRODUCT_CONFIG = Object.freeze({
   "javascript-controlled": {
     engine: "AlaSQL",
-    version: "4.17.3",
+    packageVersion: "4.17.3",
+    version: "4.17.2",
+    build: "develop-f960d23a",
     settings: ["case-sensitive identifiers", "in-memory database", "single worker"],
   },
   "linear-wasm-controlled": {

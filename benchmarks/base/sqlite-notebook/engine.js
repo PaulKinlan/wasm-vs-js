@@ -1,12 +1,14 @@
-import {
-  assertContract,
-  EXPECTED_COUNTERS,
-  IMPORT_ORDER,
-  INDEXES,
-  PRODUCT_CONFIG,
-  QUERIES,
-  SCHEMA,
-} from "./contract.js";
+let CONTRACT = null;
+
+export function bindContract(contract) {
+  contract.assertContract();
+  CONTRACT = contract;
+}
+
+function contract() {
+  if (!CONTRACT) throw new Error("SQLite notebook contract is not bound");
+  return CONTRACT;
+}
 
 const TABLE_COLUMNS = Object.freeze({
   customers: ["id", "name", "region"],
@@ -63,11 +65,13 @@ export function parseCsv(text, table) {
 
 export async function fetchFixture(baseUrl = "/assets/sqlite-notebook/fixtures/") {
   const result = {};
-  await Promise.all(IMPORT_ORDER.map(async (table) => {
-    const response = await fetch(`${baseUrl}${table}.csv`);
-    if (!response.ok) throw new Error(`${table}.csv returned ${response.status}`);
-    result[table] = parseCsv(await response.text(), table);
-  }));
+  await Promise.all(
+    contract().IMPORT_ORDER.map(async (table) => {
+      const response = await fetch(`${baseUrl}${table}.csv`);
+      if (!response.ok) throw new Error(`${table}.csv returned ${response.status}`);
+      result[table] = parseCsv(await response.text(), table);
+    }),
+  );
   return result;
 }
 
@@ -126,6 +130,7 @@ function createCounterLedger(boundaryCrossings) {
 }
 
 function recordSchemaAndImports(counters, fixture, executeSchema, executeIndex, executeInsert) {
+  const { IMPORT_ORDER, INDEXES, SCHEMA } = contract();
   for (const statement of SCHEMA) {
     executeSchema(statement);
     counters.allocations++;
@@ -160,6 +165,7 @@ function recordQuery(counters, query) {
 
 function assertFullCounters(counters, selectedQueryId) {
   if (selectedQueryId !== null) return;
+  const { EXPECTED_COUNTERS } = contract();
   const expected = {
     imports: EXPECTED_COUNTERS.imports,
     "imported-rows": EXPECTED_COUNTERS.importedRows,
@@ -177,7 +183,16 @@ function assertFullCounters(counters, selectedQueryId) {
 }
 
 export async function runAlaSql(alasql, fixture, selectedQueryId = null) {
+  const { assertContract, PRODUCT_CONFIG, QUERIES } = contract();
   assertContract();
+  const expectedEngine = PRODUCT_CONFIG["javascript-controlled"];
+  if (alasql.version !== expectedEngine.version || alasql.build !== expectedEngine.build) {
+    throw new Error(
+      `AlaSQL runtime identity mismatch: ${alasql.version ?? "unknown"} ${
+        alasql.build ?? "unknown"
+      }`,
+    );
+  }
   const counters = createCounterLedger(0);
   const db = new alasql.Database(`sqlite_notebook_${crypto.randomUUID()}`);
   recordSchemaAndImports(
@@ -209,6 +224,7 @@ export async function runAlaSql(alasql, fixture, selectedQueryId = null) {
 }
 
 export async function runSqlite(sqlite3, fixture, selectedQueryId = null) {
+  const { assertContract, PRODUCT_CONFIG, QUERIES } = contract();
   assertContract();
   const counters = createCounterLedger(2);
   const db = new sqlite3.oo1.DB(":memory:", "c");

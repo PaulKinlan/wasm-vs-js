@@ -1,14 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="js">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>SQLite analytical notebook | Wasm versus JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
-    <script>
-    document.documentElement.classList.add("js");
-    </script>
-    <script src="/sqlite-notebook-runner.js" defer></script>
+    <script src="/sqlite-notebook-runner.js"
+      integrity="sha256-fAiniEwvKAOaKcjeFPa1tjwpiIN4ADKlYTatUsOXrkg=" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#content">Skip to content</a>
@@ -18,7 +16,7 @@
       <p class="eyebrow">BASE IMPLEMENTATION CANDIDATE · DATABASE.SQLITE-NOTEBOOK.V1</p>
       <h1>SQLite analytical notebook</h1>
       <p><strong>No performance claim.</strong> This correctness route creates a fresh in-memory database, imports 4,192 generated rows in a frozen order, creates three indexes, and executes eight ordered SQL queries. It never uses OPFS, uploads, storage, or timing rankings.</p>
-      <p>The two targets are semantic product choices: pure JavaScript AlaSQL 4.17.3 and material SQLite 3.53.0 linear Wasm. Both execute the same SQL text and every returned value is checked against an independent command-line SQLite reference.</p>
+      <p>The two targets are semantic product choices: the AlaSQL npm package is 4.17.3 while its embedded runtime reports 4.17.2 (build develop-f960d23a); the linear Wasm target is SQLite 3.53.0. Both execute the same SQL text and every returned value is checked against an independent command-line SQLite reference.</p>
 
       <form id="notebook-form">
         <label for="target">Target</label>
@@ -38,7 +36,7 @@
           <option value="q7-null-coupon-groups">Q7 · NULL groups</option>
           <option value="q8-monthly-region-orders">Q8 · monthly region totals</option>
         </select>
-        <label><input id="exact" type="checkbox" checked> Verify every served input, manifest, engine and artifact byte before execution</label>
+        <label><input id="exact" type="checkbox" checked> Execute the already-fetched bytes only after their SHA-256 checks pass</label>
         <p
           id="limits">Fresh worker per run. Hard timeout: 120 seconds. Cancel terminates the worker.</p>
         <button id="start" type="submit">Start</button>

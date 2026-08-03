@@ -2,35 +2,42 @@
   "schemaVersion": 1,
   "workloadId": "database.sqlite-notebook.v1",
   "implementationId": "database.sqlite-notebook.controlled.v1",
-  "exactMode": "hash raw response bytes before parsing or execution",
+  "exactMode": "server-held manifest trust root; page SRI; execute fetched and SHA-256-checked Blob/module/Wasm bytes without refetch",
   "files": [
     {
       "id": "page",
       "source": "public/benchmarks/database-sqlite-notebook-v1/index.html",
       "path": "/benchmarks/database-sqlite-notebook-v1/",
-      "bytes": 4221,
-      "sha256": "760a84efb37d1a0c66b6acaee22bb1899e5e1e42ec87ae1337952f9a65660979"
+      "bytes": 4289,
+      "sha256": "13099fe088503c322fc85d54c1ad85ca47691dc7fb40b45c004d169991db1c10"
     },
     {
       "id": "runner",
       "source": "public/sqlite-notebook-runner.js",
       "path": "/sqlite-notebook-runner.js",
-      "bytes": 3334,
-      "sha256": "72452e098ebc0d727eeb6d6edee03a3971f21a39ae464ce1288e8d7b429da1e0"
+      "bytes": 6083,
+      "sha256": "7c08a7884c2f28039a29c8de14f6b5b63c298883780032a56136ad52c397ae48"
+    },
+    {
+      "id": "worker",
+      "source": "public/sqlite-notebook-worker.js",
+      "path": "/sqlite-notebook-worker.js",
+      "bytes": 4828,
+      "sha256": "b92b7507bbd5ffa6d69328f0dd8b58a10a80423fe08b16b7f63dbb2465d91bdb"
     },
     {
       "id": "contract",
       "source": "benchmarks/base/sqlite-notebook/contract.js",
       "path": "/benchmarks/base/sqlite-notebook/contract.js",
-      "bytes": 5038,
-      "sha256": "2ca221627a4d3e54526b3ceda08ba3a2bb0b40ec578b1f2b61d61c43de22e820"
+      "bytes": 5099,
+      "sha256": "137cbba4f5f825f7dd8cb6e3442be6d5f2bffd3a9fc5c5f9ed8a23f3b51ef48f"
     },
     {
       "id": "engine",
       "source": "benchmarks/base/sqlite-notebook/engine.js",
       "path": "/benchmarks/base/sqlite-notebook/engine.js",
-      "bytes": 7722,
-      "sha256": "c8fea7c7b526fd0fcff5413b6af5041550a88cc1762fd51e3ec0dae5d6dac883"
+      "bytes": 8389,
+      "sha256": "ee413b0095633ef9218c37ed8ff0e803bc3ecc8dff8aa282574f442b0a1b5851"
     },
     {
       "id": "javascript-engine",

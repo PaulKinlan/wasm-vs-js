@@ -30,6 +30,57 @@ const host = Deno.env.get("HOST") ?? (mode === "public" ? "0.0.0.0" : "127.0.0.1
 const MAX_BODY = 512 * 1024;
 const collectorAssets = await collectorRouteHashes();
 
+// This server-held digest is outside the browser runtime graph. The runtime-manifest builder
+// updates it only after hashing the page, runner, worker, and every runtime dependency.
+const SQLITE_NOTEBOOK_RUNTIME_MANIFEST_SHA256 =
+  "2ce28bfc0925ccb9881858fe8e6fcd9c39d6b7d41ec25e01b22e7abe15c82c4e";
+
+async function sha256Hex(bytes: Uint8Array): Promise<string> {
+  return [...new Uint8Array(await crypto.subtle.digest("SHA-256", Uint8Array.from(bytes)))]
+    .map((value) => value.toString(16).padStart(2, "0")).join("");
+}
+
+const sqliteNotebookManifestPath = "/assets/sqlite-notebook/runtime-manifest.json";
+const sqliteNotebookManifestBytes = await Deno.readFile(
+  new URL("public/artifacts/sqlite-notebook/runtime-manifest.json", root),
+);
+const sqliteNotebookManifestHash = await sha256Hex(sqliteNotebookManifestBytes);
+if (sqliteNotebookManifestHash !== SQLITE_NOTEBOOK_RUNTIME_MANIFEST_SHA256) {
+  throw new Error(
+    `SQLite notebook runtime manifest trust-root mismatch: ${sqliteNotebookManifestHash}`,
+  );
+}
+const sqliteNotebookManifest = JSON.parse(
+  new TextDecoder().decode(sqliteNotebookManifestBytes),
+) as {
+  files: Array<{ id: string; source: string; path: string; sha256: string }>;
+};
+const sqliteNotebookRuntimeBytes = new Map<string, Uint8Array>([
+  [sqliteNotebookManifestPath, sqliteNotebookManifestBytes],
+]);
+for (const entry of sqliteNotebookManifest.files) {
+  const bytes = await Deno.readFile(new URL(entry.source, root));
+  const actual = await sha256Hex(bytes);
+  if (actual !== entry.sha256) {
+    throw new Error(`SQLite notebook runtime file mismatch: ${entry.source}`);
+  }
+  sqliteNotebookRuntimeBytes.set(entry.path, bytes);
+}
+const sqliteNotebookRuntimeEntries = new Map(
+  sqliteNotebookManifest.files.map((entry) => [entry.id, entry]),
+);
+for (const id of ["page", "runner", "worker"]) {
+  if (!sqliteNotebookRuntimeEntries.has(id)) {
+    throw new Error(`SQLite notebook runtime manifest is missing ${id}`);
+  }
+}
+const sqliteNotebookTrustRoot = Object.freeze({
+  schemaVersion: 1,
+  runtimeManifestSha256: SQLITE_NOTEBOOK_RUNTIME_MANIFEST_SHA256,
+  pageSha256: sqliteNotebookRuntimeEntries.get("page")!.sha256,
+  runnerSha256: sqliteNotebookRuntimeEntries.get("runner")!.sha256,
+});
+
 const securityHeaders = {
   "cross-origin-opener-policy": "same-origin",
   "cross-origin-embedder-policy": "require-corp",
@@ -37,7 +88,7 @@ const securityHeaders = {
   "referrer-policy": "no-referrer",
   "permissions-policy": "camera=(), microphone=(), geolocation=()",
   "content-security-policy":
-    "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob:; worker-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
+    "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob:; worker-src 'self' blob:; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
 };
 
 function response(body: BodyInit | null, init: ResponseInit = {}): Response {
@@ -464,6 +515,18 @@ function createHandler(
         })
         : json({ error: "method denied" }, 405);
     }
+    if (url.pathname === "/assets/sqlite-notebook/runtime-trust-root.json") {
+      if (request.method !== "GET" && request.method !== "HEAD") {
+        return json({ error: "method denied" }, 405);
+      }
+      const bytes = new TextEncoder().encode(`${JSON.stringify(sqliteNotebookTrustRoot)}\n`);
+      return response(request.method === "HEAD" ? null : bytes, {
+        headers: {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+        },
+      });
+    }
     if (url.pathname.startsWith("/api/corpus/")) {
       if (serverMode === "public" || !corpus) {
         return json(
@@ -523,8 +586,12 @@ function createHandler(
     }
     try {
       const [path, contentType] = route;
-      const bytes = await Deno.readFile(new URL(path, root));
-      return response(request.method === "HEAD" ? null : bytes, {
+      const runtimePath = url.pathname === "/benchmarks/database-sqlite-notebook-v1"
+        ? "/benchmarks/database-sqlite-notebook-v1/"
+        : url.pathname;
+      const bytes = sqliteNotebookRuntimeBytes.get(runtimePath) ??
+        await Deno.readFile(new URL(path, root));
+      return response(request.method === "HEAD" ? null : Uint8Array.from(bytes), {
         headers: {
           "content-type": contentType,
           "cache-control": url.pathname.startsWith("/artifacts/") ||

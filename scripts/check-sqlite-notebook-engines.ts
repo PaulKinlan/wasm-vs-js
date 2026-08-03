@@ -1,6 +1,14 @@
 import sqlite3InitModule from "../public/artifacts/sqlite-notebook/sqlite3-node.mjs";
-import { parseCsv, runAlaSql, runSqlite } from "../benchmarks/base/sqlite-notebook/engine.js";
-import { IMPORT_ORDER } from "../benchmarks/base/sqlite-notebook/contract.js";
+import * as contract from "../benchmarks/base/sqlite-notebook/contract.js";
+import {
+  bindContract,
+  parseCsv,
+  runAlaSql,
+  runSqlite,
+} from "../benchmarks/base/sqlite-notebook/engine.js";
+
+bindContract(contract);
+const { IMPORT_ORDER } = contract;
 
 const alasqlSource = await Deno.readTextFile(
   new URL("../public/artifacts/sqlite-notebook/alasql.min.js", import.meta.url),
@@ -31,7 +39,10 @@ console.log(
   JSON.stringify(
     {
       sha256: js.sha256,
-      queries: js.results.map((entry) => ({ id: entry.id, rows: entry.rows.length })),
+      queries: js.results.map((entry: { id: string; rows: unknown[] }) => ({
+        id: entry.id,
+        rows: entry.rows.length,
+      })),
     },
     null,
     2,

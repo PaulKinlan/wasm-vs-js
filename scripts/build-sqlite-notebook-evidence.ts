@@ -94,7 +94,8 @@ const buildManifest = {
   frozenCatalogSha256: "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
   toolchain: {
     deno: "2.9.0",
-    javascriptEngine: "alasql@4.17.3",
+    javascriptPackage: "alasql@4.17.3",
+    javascriptRuntime: "AlaSQL 4.17.2 (develop-f960d23a)",
     wasmEngine: "@sqlite.org/sqlite-wasm@3.53.0-build1",
     sqlite: "3.53.0",
     sqliteSourceId:
@@ -109,7 +110,12 @@ const buildManifest = {
     `deno run --allow-read --allow-write=public/artifacts/sqlite-notebook,public/evidence/base-implementations/sqlite-notebook --allow-run=git scripts/build-sqlite-notebook-evidence.ts ${sourceCommit}`,
   ],
   productConfiguration: {
-    javascript: ["AlaSQL 4.17.3", "in-memory", "single worker"],
+    javascript: [
+      "AlaSQL npm package 4.17.3",
+      "embedded runtime 4.17.2 (develop-f960d23a)",
+      "in-memory",
+      "single worker",
+    ],
     linearWasm: [
       "SQLite 3.53.0",
       "in-memory",

@@ -13,7 +13,7 @@
     {
       "id": "javascript-controlled",
       "target": "javascript",
-      "product": "AlaSQL 4.17.3",
+      "product": "AlaSQL npm package 4.17.3; embedded runtime 4.17.2 (develop-f960d23a)",
       "relationship": "pure JavaScript SQL engine"
     },
     {

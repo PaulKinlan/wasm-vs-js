@@ -1,5 +1,3 @@
-const RUNTIME_MANIFEST_SHA256 = "ceba42bf50089808e5e5dab6713c74fefb8193c2a3d256f597f4d20507060620";
-
 async function sha256(bytes) {
   return [...new Uint8Array(await crypto.subtle.digest("SHA-256", bytes))]
     .map((value) => value.toString(16).padStart(2, "0")).join("");
@@ -11,53 +9,83 @@ async function fetchBytes(path) {
   return new Uint8Array(await response.arrayBuffer());
 }
 
-async function verifiedRuntimeFiles(exact) {
-  const manifestBytes = await fetchBytes("/assets/sqlite-notebook/runtime-manifest.json");
-  const manifestHash = await sha256(manifestBytes);
-  if (exact && manifestHash !== RUNTIME_MANIFEST_SHA256) {
-    throw new Error(`Runtime manifest mismatch: ${manifestHash}`);
-  }
-  const manifest = JSON.parse(new TextDecoder().decode(manifestBytes));
-  const bytesByPath = new Map();
-  const checks = [`runtime-manifest:${manifestHash}`];
+async function verifiedRuntimeFiles(exact, manifest, shellChecks) {
+  const shellIds = new Set(["page", "runner", "worker"]);
+  const bytesById = new Map();
+  const checks = [...shellChecks];
   for (const entry of manifest.files) {
+    if (shellIds.has(entry.id)) continue;
     const bytes = await fetchBytes(entry.path);
     const actual = await sha256(bytes);
     if (exact && actual !== entry.sha256) throw new Error(`${entry.path} SHA-256 mismatch`);
-    bytesByPath.set(entry.path, bytes);
+    bytesById.set(entry.id, bytes);
     checks.push(`${entry.id}:${actual}`);
   }
-  return { bytesByPath, checks };
+  for (
+    const id of [
+      "contract",
+      "engine",
+      "javascript-engine",
+      "sqlite-glue",
+      "sqlite-wasm",
+      "customers",
+      "products",
+      "sales",
+      "reference",
+    ]
+  ) {
+    if (!bytesById.has(id)) throw new Error(`Runtime manifest is missing ${id}`);
+  }
+  return { bytesById, checks };
+}
+
+function blobUrl(bytes, type = "text/javascript") {
+  return URL.createObjectURL(new Blob([bytes], { type }));
 }
 
 self.addEventListener("message", async (message) => {
   if (message.data?.type !== "run") return;
-  const { token, target, queryId, exact } = message.data;
+  const { token, target, queryId, exact, manifest, shellChecks } = message.data;
   const progress = (value, label) => self.postMessage({ type: "progress", token, value, label });
+  const objectUrls = [];
   try {
     progress(1, "Verifying fixture, reference, source and engine bytes…");
-    const { bytesByPath, checks } = await verifiedRuntimeFiles(Boolean(exact));
+    const { bytesById, checks } = await verifiedRuntimeFiles(
+      Boolean(exact),
+      manifest,
+      shellChecks,
+    );
     const decoder = new TextDecoder();
-    const engine = await import("/benchmarks/base/sqlite-notebook/engine.js");
-    const contract = await import("/benchmarks/base/sqlite-notebook/contract.js");
+    const contractUrl = blobUrl(bytesById.get("contract"));
+    const engineUrl = blobUrl(bytesById.get("engine"));
+    objectUrls.push(contractUrl, engineUrl);
+    const contract = await import(contractUrl);
+    const engine = await import(engineUrl);
+    engine.bindContract(contract);
+
     const fixture = {};
     for (const table of contract.IMPORT_ORDER) {
-      const path = `/assets/sqlite-notebook/fixtures/${table}.csv`;
-      fixture[table] = engine.parseCsv(decoder.decode(bytesByPath.get(path)), table);
+      fixture[table] = engine.parseCsv(decoder.decode(bytesById.get(table)), table);
     }
-    const reference = JSON.parse(
-      decoder.decode(bytesByPath.get("/assets/sqlite-notebook/reference.json")),
-    );
+    const reference = JSON.parse(decoder.decode(bytesById.get("reference")));
     progress(2, "Creating a fresh in-memory database and importing 4,192 rows…");
     let output;
     if (target === "javascript-controlled") {
-      importScripts("/assets/sqlite-notebook/alasql.min.js");
+      const alasqlUrl = blobUrl(bytesById.get("javascript-engine"));
+      objectUrls.push(alasqlUrl);
+      importScripts(alasqlUrl);
       if (typeof self.alasql !== "function") throw new Error("AlaSQL did not initialize");
       output = await engine.runAlaSql(self.alasql, fixture, queryId);
     } else if (target === "linear-wasm-controlled") {
-      const { default: sqlite3InitModule } = await import("/assets/sqlite-notebook/sqlite3.mjs");
+      const glueUrl = blobUrl(bytesById.get("sqlite-glue"));
+      objectUrls.push(glueUrl);
+      const { default: sqlite3InitModule } = await import(glueUrl);
       const sqlite3 = await sqlite3InitModule({
-        locateFile: (path) => `/assets/sqlite-notebook/${path}`,
+        wasmBinary: bytesById.get("sqlite-wasm"),
+        locateFile: (path) => {
+          if (path === "sqlite3.wasm") return "verified:sqlite3.wasm";
+          throw new Error(`Unexpected SQLite runtime file: ${path}`);
+        },
         print: () => {},
         printErr: () => {},
       });
@@ -91,5 +119,7 @@ self.addEventListener("message", async (message) => {
       token,
       message: error instanceof Error ? error.message : String(error),
     });
+  } finally {
+    for (const url of objectUrls) URL.revokeObjectURL(url);
   }
 });

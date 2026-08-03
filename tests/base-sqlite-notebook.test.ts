@@ -1,11 +1,14 @@
 import Ajv2020Module from "ajv2020";
 import sqlite3InitModule from "../public/artifacts/sqlite-notebook/sqlite3-node.mjs";
+import * as sqliteNotebookContract from "../benchmarks/base/sqlite-notebook/contract.js";
 import {
   assertContract,
   IMPORT_ORDER,
+  PRODUCT_CONFIG,
   QUERIES,
 } from "../benchmarks/base/sqlite-notebook/contract.js";
 import {
+  bindContract,
   canonicalResults,
   parseCsv,
   runAlaSql,
@@ -18,6 +21,7 @@ type AjvInstance = { compile: (schema: unknown) => Validator };
 type AjvConstructor = new (options?: Record<string, unknown>) => AjvInstance;
 const Ajv2020 = ((Ajv2020Module as unknown as { default?: AjvConstructor }).default ??
   Ajv2020Module) as unknown as AjvConstructor;
+bindContract(sqliteNotebookContract);
 
 async function sha256(bytes: Uint8Array) {
   return [...new Uint8Array(await crypto.subtle.digest("SHA-256", Uint8Array.from(bytes)))]
@@ -39,6 +43,8 @@ async function loadAlaSql() {
   const source = await Deno.readTextFile("public/artifacts/sqlite-notebook/alasql.min.js");
   const alasql = new Function(`${source}\nreturn this.alasql;`).call(globalThis);
   assert(typeof alasql === "function", "vendored AlaSQL must initialize as executable JavaScript");
+  assertEquals(alasql.version, PRODUCT_CONFIG["javascript-controlled"].version);
+  assertEquals(alasql.build, PRODUCT_CONFIG["javascript-controlled"].build);
   return alasql;
 }
 
@@ -121,7 +127,13 @@ Deno.test({
       "fae41d80865456365118c98ee8dd74a502fb359ace69878190edca22e4f6572d",
     );
     assertEquals(wasm.sha256, javascript.sha256);
-    assertEquals(javascript.results.reduce((sum, query) => sum + query.rows.length, 0), 744);
+    assertEquals(
+      javascript.results.reduce(
+        (sum: number, query: { rows: unknown[] }) => sum + query.rows.length,
+        0,
+      ),
+      744,
+    );
     assertEquals(javascript.counters, {
       imports: 3,
       "imported-rows": 4192,
@@ -136,7 +148,7 @@ Deno.test({
     });
     assertEquals(wasm.counters, { ...javascript.counters, "boundary-crossings": 2 });
 
-    const q5 = javascript.results.find((query) =>
+    const q5 = javascript.results.find((query: { id: string }) =>
       query.id === "q5-customer-purchase-sequence"
     )!.rows;
     const customers = new Map<number, number>();
@@ -145,7 +157,9 @@ Deno.test({
       assertEquals(row.purchase_number, expectedNumber);
       customers.set(row.customer_id, expectedNumber);
     }
-    const q6 = javascript.results.find((query) => query.id === "q6-product-partition-total")!.rows;
+    const q6 = javascript.results.find((query: { id: string }) =>
+      query.id === "q6-product-partition-total"
+    )!.rows;
     const totals = new Map<number, number>();
     for (const row of q6) {
       totals.set(
@@ -153,8 +167,13 @@ Deno.test({
         (totals.get(row.product_id) ?? 0) + row.quantity,
       );
     }
-    for (const row of q6) assertEquals(row.product_units, totals.get(row.product_id));
-    const q7 = javascript.results.find((query) => query.id === "q7-null-coupon-groups")!.rows;
+    for (const row of q6) {
+      assertEquals(row.product_units, totals.get(row.product_id));
+    }
+    const q7 = javascript.results.find((query: { id: string }) =>
+      query.id === "q7-null-coupon-groups"
+    )!
+      .rows;
     assertEquals(q7[0].coupon_code, null);
     for (const query of javascript.results) {
       for (const row of query.rows) {
@@ -174,18 +193,49 @@ Deno.test("independent oracle rejects changed fixture semantics", async () => {
   assert(changed.sha256 !== "fae41d80865456365118c98ee8dd74a502fb359ace69878190edca22e4f6572d");
 });
 
-Deno.test("SQLite notebook runtime manifest hashes every served dependency before use", async () => {
+Deno.test("SQLite notebook exact mode executes the fetched and hashed runtime bytes", async () => {
   const bytes = await Deno.readFile("public/artifacts/sqlite-notebook/runtime-manifest.json");
   const hash = await sha256(bytes);
-  const worker = await Deno.readTextFile("public/sqlite-notebook-worker.js");
-  assert(worker.includes(`const RUNTIME_MANIFEST_SHA256 = "${hash}"`));
   const manifest = JSON.parse(new TextDecoder().decode(bytes));
-  assertEquals(manifest.files.length, 13);
+  assertEquals(manifest.files.length, 14);
+  assertEquals(
+    manifest.files.slice(0, 3).map((entry: { id: string }) => entry.id),
+    ["page", "runner", "worker"],
+  );
   for (const entry of manifest.files) {
     const disk = await Deno.readFile(entry.source);
     assertEquals(disk.byteLength, entry.bytes);
     assertEquals(await sha256(disk), entry.sha256);
   }
+
+  const page = await Deno.readTextFile("public/benchmarks/database-sqlite-notebook-v1/index.html");
+  const runnerBytes = await Deno.readFile("public/sqlite-notebook-runner.js");
+  const runnerDigest = new Uint8Array(
+    await crypto.subtle.digest("SHA-256", Uint8Array.from(runnerBytes)),
+  );
+  const runnerSri = btoa(String.fromCharCode(...runnerDigest));
+  assert(page.includes(`integrity="sha256-${runnerSri}"`));
+
+  const runner = new TextDecoder().decode(runnerBytes);
+  const worker = await Deno.readTextFile("public/sqlite-notebook-worker.js");
+  const server = await Deno.readTextFile("server.ts");
+  assert(server.includes(`"${hash}"`));
+  assert(server.includes("runtime-trust-root.json"));
+  assert(server.includes("sqliteNotebookRuntimeBytes.get(runtimePath)"));
+  assert(runner.includes("new Blob([workerBytes]"));
+  assert(worker.includes("await import(contractUrl)"));
+  assert(worker.includes("await import(engineUrl)"));
+  assert(worker.includes("importScripts(alasqlUrl)"));
+  assert(worker.includes("await import(glueUrl)"));
+  assert(worker.includes('wasmBinary: bytesById.get("sqlite-wasm")'));
+  for (
+    const refetch of [
+      'import("/benchmarks/base/sqlite-notebook/engine.js")',
+      'import("/benchmarks/base/sqlite-notebook/contract.js")',
+      'importScripts("/assets/sqlite-notebook/alasql.min.js")',
+      'import("/assets/sqlite-notebook/sqlite3.mjs")',
+    ]
+  ) assert(!worker.includes(refetch), refetch);
   assert(worker.includes("output.canonical !== expected.canonical"));
   assert(worker.includes("Complete SQL output mismatch"));
 });
@@ -215,6 +265,8 @@ Deno.test("SQLite notebook evidence records are closed, source-pinned static pac
   assert(/^[a-f0-9]{40}$/.test(build.sourceCommit));
   assertEquals(build.oracle.queryCount, 8);
   assertEquals(build.oracle.resultRows, 744);
+  assertEquals(build.toolchain.javascriptPackage, "alasql@4.17.3");
+  assertEquals(build.toolchain.javascriptRuntime, "AlaSQL 4.17.2 (develop-f960d23a)");
   assertEquals(
     build.productConfiguration.equivalence,
     "semantic-product-choice; plans and product internals are not aggregated",
@@ -231,6 +283,7 @@ Deno.test("SQLite notebook route is closed, accessible, cancellable, and non-per
   assert(page.includes('aria-live="polite"'));
   assert(page.includes('aria-label="Notebook validation progress"'));
   assert(runner.includes("new Worker"));
+  assert(runner.includes("new Blob([workerBytes]"));
   assert(runner.includes("worker?.terminate()"));
   assert(runner.includes('self.addEventListener("pagehide", cleanup)'));
   assert(runner.includes("runToken !== token"));
