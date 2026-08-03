@@ -50,11 +50,11 @@ const sourcePaths = [
   "deno.json",
   "deno.lock",
 ];
-const files = [];
-for (const path of sourcePaths) {
+const files: Array<{ path: string; bytes: number; sha256: string; immutableUrl: string }> = [];
+async function appendAttestedFile(path: string) {
   const disk = await Deno.readFile(new URL(path, root));
   const tree = await command("git", ["show", `${sourceCommit}:${path}`]);
-  if (await sha256Hex(disk) !== await sha256Hex(tree)) {
+  if (disk.length !== tree.length || disk.some((byte, index) => byte !== tree[index])) {
     throw new Error(`source tree mismatch ${path}`);
   }
   files.push({
@@ -64,6 +64,7 @@ for (const path of sourcePaths) {
     immutableUrl: `https://github.com/PaulKinlan/wasm-vs-js/blob/${sourceCommit}/${path}`,
   });
 }
+for (const path of sourcePaths) await appendAttestedFile(path);
 const buildDir = new URL(".build/", out).pathname;
 await Deno.remove(buildDir, { recursive: true }).catch((error) => {
   if (!(error instanceof Deno.errors.NotFound)) throw error;
@@ -103,13 +104,7 @@ try {
   await Deno.remove(buildDir, { recursive: true });
 }
 const wasm = await Deno.readFile(new URL("path-tracer.wasm", out));
-files.push({
-  path: "public/artifacts/graphics-cpu-path-tracer-v1/path-tracer.wasm",
-  bytes: wasm.length,
-  sha256: await sha256Hex(wasm),
-  immutableUrl:
-    `https://github.com/PaulKinlan/wasm-vs-js/blob/${sourceCommit}/public/artifacts/graphics-cpu-path-tracer-v1/path-tracer.wasm`,
-});
+await appendAttestedFile("public/artifacts/graphics-cpu-path-tracer-v1/path-tracer.wasm");
 const width = 512, height = 512, spp = 64;
 console.log("rendering exact JavaScript framebuffer");
 const js = renderJavaScript(width, height, spp);
@@ -184,14 +179,7 @@ await Deno.writeFile(new URL("js-controlled.rgba", out), js.framebuffer);
 await Deno.writeFile(new URL("wasm-linear-controlled.rgba", out), wasmResult.framebuffer);
 await Deno.writeFile(new URL("reference-f64.rgba", out), reference);
 for (const name of ["js-controlled.rgba", "wasm-linear-controlled.rgba", "reference-f64.rgba"]) {
-  const bytes = await Deno.readFile(new URL(name, out));
-  files.push({
-    path: `public/artifacts/graphics-cpu-path-tracer-v1/${name}`,
-    bytes: bytes.length,
-    sha256: await sha256Hex(bytes),
-    immutableUrl:
-      `https://github.com/PaulKinlan/wasm-vs-js/blob/${sourceCommit}/public/artifacts/graphics-cpu-path-tracer-v1/${name}`,
-  });
+  await appendAttestedFile(`public/artifacts/graphics-cpu-path-tracer-v1/${name}`);
 }
 const checkpointPixels = sampleCheckpointPixels(width, height);
 if (checkpointPixels.length !== 5) throw new Error("five sample checkpoints required");

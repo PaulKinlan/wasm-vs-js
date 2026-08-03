@@ -219,15 +219,39 @@ Deno.test("material Wasm exports fixed memory and rebuilds byte-identically", as
   }
 });
 
-Deno.test("manifest raw hashes bind source, build, complete frames, and exact commit", async () => {
+Deno.test("manifest records resolve to byte-identical immutable commit files", async () => {
   const manifest = JSON.parse(await Deno.readTextFile(MANIFEST));
   assert(/^[a-f0-9]{40}$/.test(manifest.sourceCommit));
   assertEquals(manifest.catalogV1.immutable, true);
   assertEquals(manifest.performanceClaims, []);
   assert(manifest.files.length >= 13);
   for (const file of manifest.files) {
-    assertEquals(await sha256Hex(await Deno.readFile(file.path)), file.sha256);
-    assert(file.immutableUrl.includes(manifest.sourceCommit));
+    const current = await Deno.readFile(file.path);
+    assertEquals(current.length, file.bytes);
+    assertEquals(await sha256Hex(current), file.sha256);
+
+    const immutableUrl = new URL(file.immutableUrl);
+    const match = immutableUrl.pathname.match(
+      /^\/PaulKinlan\/wasm-vs-js\/blob\/([a-f0-9]{40})\/(.+)$/,
+    );
+    assert(match, `invalid immutable URL ${file.immutableUrl}`);
+    const [, commit, encodedPath] = match;
+    const path = decodeURIComponent(encodedPath);
+    assertEquals(commit, manifest.sourceCommit);
+    assertEquals(path, file.path);
+
+    const committed = await new Deno.Command("git", {
+      args: ["show", `${commit}:${path}`],
+      stdout: "piped",
+      stderr: "piped",
+    }).output();
+    assert(
+      committed.success,
+      `${path} is absent from source commit ${commit}: ${
+        new TextDecoder().decode(committed.stderr)
+      }`,
+    );
+    assertEquals(committed.stdout, current);
   }
   for (const variant of ["js-controlled", "wasm-linear-controlled"]) {
     const record = JSON.parse(
