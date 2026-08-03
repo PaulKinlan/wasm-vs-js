@@ -1,4 +1,5 @@
-import argparse, random
+import argparse, os, random
+os.environ.setdefault('CPU', '1')
 import numpy as np
 from importlib.metadata import version
 from tinygrad import Tensor, nn

@@ -147,6 +147,9 @@ Deno.test("trained checkpoint has MLPerf-Tiny-style DS-CNN topology, provenance 
       0,
     ) > 900,
   );
+  assertEquals(checkpoint.licenseSpdx, "MIT");
+  assertEquals(checkpoint.training.tinygrad, "0.11.0");
+  assertEquals(checkpoint.training.archiveSha256, fixture.archive.sha256);
   assertEquals(checkpoint.accuracy.trainingExamples, 3930);
   assertEquals(checkpoint.accuracy.validationExamples, 960);
   assert(checkpoint.accuracy.quantizedValidation > 0.49);
