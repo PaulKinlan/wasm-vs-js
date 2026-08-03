@@ -97,9 +97,15 @@
         (then (local.set $type (i32.const 6)))
       (else
         (local.set $i (local.get $start))
-        (if (i32.and (i32.ge_u (local.get $textLen) (i32.const 5)) (i32.eq (i32.load8_u (i32.add (local.get $input) (local.get $start))) (i32.const 33)))
+        (if (i32.and (i32.ge_u (local.get $textLen) (i32.const 5))
+              (i32.and
+                (i32.eq (i32.load8_u (i32.add (local.get $input) (local.get $start))) (i32.const 33))
+                (i32.eq (i32.load8_u (i32.add (local.get $input) (i32.add (local.get $start) (i32.const 1)))) (i32.const 91))))
           (then (local.set $type (i32.const 5)) (local.set $i (i32.add (local.get $start) (i32.const 1))))
-          (else (if (i32.eq (i32.load8_u (i32.add (local.get $input) (local.get $start))) (i32.const 91)) (then (local.set $type (i32.const 4))))))
+          (else (if (i32.and
+                    (i32.ge_u (local.get $textLen) (i32.const 2))
+                    (i32.eq (i32.load8_u (i32.add (local.get $input) (local.get $start))) (i32.const 91)))
+            (then (local.set $type (i32.const 4))))))
         (if (i32.or (i32.eq (local.get $type) (i32.const 4)) (i32.eq (local.get $type) (i32.const 5)))
           (then
             (local.set $textStart (i32.add (local.get $i) (i32.const 1))) (local.set $close (i32.const 0))
@@ -117,8 +123,14 @@
       ;; Closed whole-line link/figure grammar (rechecked here so it cannot
       ;; be shadowed by a block-prefix branch).
       (if (i32.or
-          (i32.eq (i32.load8_u (i32.add (local.get $input) (local.get $start))) (i32.const 91))
-          (i32.eq (i32.load8_u (i32.add (local.get $input) (local.get $start))) (i32.const 33)))
+          (i32.and
+            (i32.ge_u (local.get $textLen) (i32.const 2))
+            (i32.eq (i32.load8_u (i32.add (local.get $input) (local.get $start))) (i32.const 91)))
+          (i32.and
+            (i32.ge_u (local.get $textLen) (i32.const 5))
+            (i32.and
+              (i32.eq (i32.load8_u (i32.add (local.get $input) (local.get $start))) (i32.const 33))
+              (i32.eq (i32.load8_u (i32.add (local.get $input) (i32.add (local.get $start) (i32.const 1)))) (i32.const 91)))))
         (then
           (local.set $i (local.get $start))
           (if (i32.eq (i32.load8_u (i32.add (local.get $input) (local.get $start))) (i32.const 33))
@@ -284,7 +296,10 @@
         (then (local.set $type (i32.const 6)))
       (else
         (local.set $resource (i32.const 0))
-        (if (i32.eq (local.get $first) (i32.const 91))
+        ;; A one-byte [ would underflow the unsigned end-2 scan.
+        (if (i32.and
+              (i32.eq (local.get $first) (i32.const 91))
+              (i32.ge_u (local.get $tn) (i32.const 2)))
           (then (local.set $resource (i32.const 1)))
           (else (if (i32.and
                   (i32.eq (local.get $first) (i32.const 33))

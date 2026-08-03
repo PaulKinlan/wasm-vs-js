@@ -111,6 +111,11 @@ Deno.test("Markdown authored Wasm matches canonical output and rejects adversari
     "[nbsp](https://docs.example.test/a b)\n",
     "[emspace](https://docs.example.test/a b)\n",
     "[linesep](https://docs.example.test/a b)\n",
+    "[\n",
+    "[]\n",
+    "[x\n",
+    "[x]\n",
+    "[x](\n",
     "!x](https://images.example.test/a)\n",
     "!abc](https://images.example.test/a)\n",
     "!](https://images.example.test/a)\n",
@@ -149,6 +154,33 @@ Deno.test("Markdown authored Wasm matches canonical output and rejects adversari
     }
     assert(rejected, "line-count limit was not enforced consistently");
   }
+});
+
+Deno.test("Markdown short malformed link prefixes are exhaustively safe and equivalent", async () => {
+  const markdownWasm = await Deno.readFile(
+    "public/artifacts/text-markdown-cms/text-markdown-cms.wasm",
+  );
+  const alphabet = ["[", "]", "(", ")", "a"];
+  const fragments = ["["];
+  let frontier = ["["];
+  for (let length = 2; length <= 4; length++) {
+    frontier = frontier.flatMap((prefix) => alphabet.map((character) => prefix + character));
+    fragments.push(...frontier);
+  }
+  assertEquals(fragments.length, 156);
+  let malformed = 0;
+  for (const fragment of fragments) {
+    const source = `${fragment}\n`;
+    const js = renderMarkdown(source);
+    if (js.html !== `<p>${fragment}</p>`) continue;
+    malformed++;
+    const linear = await renderMarkdownWasm(source, markdownWasm);
+    assertEquals(linear.html, js.html);
+    assertEquals([...linear.ast], [...js.ast]);
+    assertEquals([...linear.transformedAst], [...js.transformedAst]);
+    assertEquals(linear.rejected, js.rejected);
+  }
+  assertEquals(malformed, 155);
 });
 
 Deno.test("text artifacts and closed proposal-validation records are reproducible and claim no performance result", async () => {
