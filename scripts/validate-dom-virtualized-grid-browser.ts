@@ -162,7 +162,7 @@ async function click(client: CdpClient, sessionId: string, selector: string): Pr
 async function pageState(client: CdpClient, sessionId: string) {
   const evaluated = await client.send("Runtime.evaluate", {
     expression:
-      `(() => { const grid=document.querySelector('#grid'); const rect=grid.getBoundingClientRect(); const rows=[...grid.children]; return {status:document.querySelector('#status').textContent.trim(),result:document.querySelector('#result').textContent.trim(),startDisabled:document.querySelector('#start').disabled,cancelDisabled:document.querySelector('#cancel').disabled,mountedRows:rows.length,role:grid.getAttribute('role'),rowCount:grid.getAttribute('aria-rowcount'),selectedCount:grid.querySelectorAll('[aria-selected="true"]').length,activeDescendant:grid.getAttribute('aria-activedescendant'),focusedRow:document.activeElement?.dataset.rowId||null,selectedRow:grid.querySelector('[aria-selected="true"]')?.dataset.rowId||null,activeElement:document.activeElement?.id||null,workerActive:document.documentElement.dataset.gridWorkerActive||"false",layout:{innerWidth,innerHeight,devicePixelRatio,gridWidth:rect.width,gridHeight:rect.height,scrollHeight:grid.scrollHeight,rowHeights:rows.map(row=>row.getBoundingClientRect().height)}}; })()`,
+      `(() => { const grid=document.querySelector('#grid'); const rect=grid.getBoundingClientRect(); const rows=[...grid.children]; return {status:document.querySelector('#status').textContent.trim(),result:document.querySelector('#result').textContent.trim(),startDisabled:document.querySelector('#start').disabled,cancelDisabled:document.querySelector('#cancel').disabled,mountedRows:rows.length,role:grid.getAttribute('role'),rowCount:grid.getAttribute('aria-rowcount'),selectedCount:grid.querySelectorAll('[aria-selected="true"]').length,activeDescendant:grid.getAttribute('aria-activedescendant'),focusedRow:document.activeElement?.dataset.rowId||null,selectedRow:grid.querySelector('[aria-selected="true"]')?.dataset.rowId||null,activeElement:document.activeElement?.id||null,workerActive:document.documentElement.dataset.gridWorkerActive||"false",layout:{innerWidth,innerHeight,devicePixelRatio,gridWidth:rect.width,gridHeight:rect.height,clientWidth:grid.clientWidth,clientHeight:grid.clientHeight,visibleRowCapacity:grid.clientHeight/24,scrollHeight:grid.scrollHeight,rowHeights:rows.map(row=>row.getBoundingClientRect().height)}}; })()`,
     returnByValue: true,
   }, sessionId);
   return (evaluated.result as { value: Record<string, unknown> }).value;
@@ -222,6 +222,100 @@ async function accessibilityState(
       focusable,
     })),
   };
+}
+
+function validatePhaseEvidence(phases: Record<string, unknown>, target: string): void {
+  const phaseNames = ["load", "transfer", "instantiate", "compute", "render"];
+  const allSpans: Array<Record<string, unknown> & { phase: string }> = [];
+  let exclusiveDurationMs = 0;
+  for (const phaseName of phaseNames) {
+    const phase = phases[phaseName] as Record<string, unknown>;
+    const spans = phase?.spans as Array<Record<string, unknown>>;
+    if (!phase || !Array.isArray(spans) || !Number.isFinite(phase.durationMs)) {
+      throw new Error(`lifecycle phase ${phaseName} is malformed`);
+    }
+    const summed = spans.reduce((total, span) => {
+      const start = Number(span.startedEpochMs);
+      const end = Number(span.endedEpochMs);
+      const duration = Number(span.durationMs);
+      if (
+        typeof span.label !== "string" || span.label.length === 0 || !Number.isFinite(start) ||
+        !Number.isFinite(end) ||
+        !Number.isFinite(duration) || end < start || Math.abs(end - start - duration) > 0.1
+      ) throw new Error(`lifecycle phase ${phaseName} contains an invalid span`);
+      allSpans.push({ ...span, phase: phaseName });
+      return total + duration;
+    }, 0);
+    if (Math.abs(summed - Number(phase.durationMs)) > 0.1) {
+      throw new Error(`lifecycle phase ${phaseName} duration did not reconcile`);
+    }
+    exclusiveDurationMs += summed;
+  }
+  const labels = (phase: string) =>
+    ((phases[phase] as Record<string, unknown>).spans as Array<Record<string, unknown>>).map(
+      (span) => span.label,
+    );
+  const expectedLoadLabels = [
+    "/artifacts/dom-virtualized-grid-v1/build-manifest.json:request",
+    "build-manifest:parse",
+    "/artifacts/dom-virtualized-grid-v1/fixture.bin:request",
+    "fixture:sha256",
+    ...(target === "wasm-linear-controlled"
+      ? ["/artifacts/dom-virtualized-grid-v1/grid.wasm:request", "wasm:sha256"]
+      : []),
+    "build-manifest:sha256",
+  ];
+  const expectedTransferLabels = [
+    "/artifacts/dom-virtualized-grid-v1/build-manifest.json:body",
+    "/artifacts/dom-virtualized-grid-v1/fixture.bin:body",
+    ...(target === "wasm-linear-controlled"
+      ? ["/artifacts/dom-virtualized-grid-v1/grid.wasm:body"]
+      : []),
+  ];
+  const expectedComputeLabels = [
+    "model:prepare",
+    ...Array.from({ length: 300 }, (_, index) => `model:event:${index}`),
+    "model:finish",
+  ];
+  const expectedRenderLabels = Array.from(
+    { length: 300 },
+    (_, index) => `host:render:${index}`,
+  );
+  if (
+    JSON.stringify(labels("load")) !== JSON.stringify(expectedLoadLabels) ||
+    JSON.stringify(labels("transfer")) !== JSON.stringify(expectedTransferLabels) ||
+    JSON.stringify(labels("instantiate")) !==
+      JSON.stringify(target === "wasm-linear-controlled" ? ["wasm:instantiate"] : []) ||
+    JSON.stringify(labels("compute")) !== JSON.stringify(expectedComputeLabels) ||
+    JSON.stringify(labels("render")) !== JSON.stringify(expectedRenderLabels)
+  ) throw new Error("lifecycle phase labels did not match the frozen non-overlapping topology");
+  allSpans.sort((left, right) => Number(left.startedEpochMs) - Number(right.startedEpochMs));
+  for (let index = 1; index < allSpans.length; index += 1) {
+    if (Number(allSpans[index].startedEpochMs) + 0.1 < Number(allSpans[index - 1].endedEpochMs)) {
+      throw new Error(
+        `lifecycle phases overlap: ${allSpans[index - 1].phase}/${allSpans[index].phase}`,
+      );
+    }
+  }
+  const endToEnd = phases.endToEnd as Record<string, unknown>;
+  const e2eStart = Number(endToEnd?.startedEpochMs);
+  const e2eEnd = Number(endToEnd?.endedEpochMs);
+  const e2eDuration = Number(endToEnd?.durationMs);
+  if (
+    !Number.isFinite(e2eStart) || !Number.isFinite(e2eEnd) || !Number.isFinite(e2eDuration) ||
+    Math.abs(e2eEnd - e2eStart - e2eDuration) > 0.1 ||
+    allSpans.some((span) =>
+      Number(span.startedEpochMs) + 0.1 < e2eStart || Number(span.endedEpochMs) - 0.1 > e2eEnd
+    )
+  ) throw new Error("end-to-end envelope did not contain every exclusive phase span");
+  const reconciliation = phases.reconciliation as Record<string, unknown>;
+  const unattributed = Number(reconciliation?.unattributedDurationMs);
+  if (
+    !Number.isFinite(unattributed) || unattributed < 0 ||
+    Math.abs(Number(reconciliation.exclusiveDurationMs) - exclusiveDurationMs) > 0.1 ||
+    Math.abs(Number(reconciliation.reconciledEndToEndMs) - e2eDuration) > 0.1 ||
+    Math.abs(exclusiveDurationMs + unattributed - e2eDuration) > 0.1
+  ) throw new Error("exclusive lifecycle phases did not reconcile to end-to-end");
 }
 
 async function waitForState(
@@ -455,8 +549,9 @@ try {
     const layout = initialState.layout as Record<string, unknown>;
     if (
       layout.innerWidth !== 960 || layout.innerHeight !== 480 ||
-      layout.devicePixelRatio !== 2 || layout.gridWidth !== 960 || layout.gridHeight !== 480 ||
-      Number(layout.scrollHeight) < 2_400_000
+      layout.devicePixelRatio !== 2 || layout.gridWidth !== 962 || layout.gridHeight !== 482 ||
+      layout.clientWidth !== 960 || layout.clientHeight !== 480 ||
+      layout.visibleRowCapacity !== 20 || Number(layout.scrollHeight) < 2_400_000
     ) {
       throw new Error(`${scenario.id} viewport/DPR/layout mismatch: ${JSON.stringify(layout)}`);
     }
@@ -556,7 +651,7 @@ try {
         "oracle and exact work counters matched",
         "300 events ran at fixed 100 ms offsets with a paint acknowledgment between events",
         "typed commands produced the exact oracle row IDs, order, text, ARIA, focus, and selection",
-        "960×480 CSS-pixel layout and DPR 2 matched",
+        "960×480 client viewport, 20×24 px visible rows, and DPR 2 matched",
         "the accessibility tree matched the exact row order, names, focus, and selection",
         "load, transfer, compute, render, and end-to-end phases were measured",
       ];
@@ -605,7 +700,10 @@ try {
           layoutReads: 300,
         })
       ) throw new Error(`${scenario.id} physical mutation counters mismatch`);
-      const expectedBoundaryCrossings = scenario.target === "wasm-linear-controlled" ? 304 : 0;
+      const effectiveTarget = scenario.action === "restart"
+        ? "wasm-linear-controlled"
+        : scenario.target;
+      const expectedBoundaryCrossings = effectiveTarget === "wasm-linear-controlled" ? 304 : 0;
       if (parsed.modelCounters.boundaryCrossings !== expectedBoundaryCrossings) {
         throw new Error(`${scenario.id} operative boundary counter mismatch`);
       }
@@ -627,33 +725,61 @@ try {
       const finalLayout = finalState.layout as Record<string, unknown>;
       if (
         finalLayout.innerWidth !== 960 || finalLayout.innerHeight !== 480 ||
-        finalLayout.devicePixelRatio !== 2 || finalLayout.gridWidth !== 960 ||
-        finalLayout.gridHeight !== 480 ||
+        finalLayout.devicePixelRatio !== 2 || finalLayout.gridWidth !== 962 ||
+        finalLayout.gridHeight !== 482 || finalLayout.clientWidth !== 960 ||
+        finalLayout.clientHeight !== 480 || finalLayout.visibleRowCapacity !== 20 ||
+        (finalLayout.rowHeights as number[]).length !== 28 ||
         !(finalLayout.rowHeights as number[]).every((height) => height === 24)
       ) {
         throw new Error(`${scenario.id} final layout mismatch: ${JSON.stringify(finalLayout)}`);
       }
+      const lifecycle = expectedTrace.lifecycle as Record<string, number>;
+      const actualOffsets = parsed.trace.actualOffsetsMs as number[];
+      const paintAcks = parsed.trace.paintAckOffsetsMs as number[];
+      const scheduledOffsets = parsed.trace.scheduledOffsetsMs as number[];
       if (
-        JSON.stringify(parsed.trace.scheduledOffsetsMs) !==
-          JSON.stringify(expectedTrace.scheduledOffsetsMs) ||
+        JSON.stringify(scheduledOffsets) !== JSON.stringify(expectedTrace.scheduledOffsetsMs) ||
         JSON.stringify(parsed.trace.scrollOffsetsCssPx) !==
           JSON.stringify(expectedTrace.scrollOffsetsCssPx) ||
+        parsed.trace.slots !== lifecycle.slots ||
+        parsed.trace.scheduledSpanMs !== lifecycle.lastSlotOffsetMs ||
+        parsed.trace.eventCadenceMs !== lifecycle.cadenceMs ||
+        parsed.trace.slotToleranceMs !== lifecycle.slotToleranceMs ||
+        JSON.stringify(parsed.trace.intervalBoundsMs) !==
+          JSON.stringify([lifecycle.minimumIntervalMs, lifecycle.maximumIntervalMs]) ||
+        JSON.stringify(parsed.trace.completionBoundsAfterFirstSlotMs) !== JSON.stringify([
+            lifecycle.minimumCompletionAfterFirstSlotMs,
+            lifecycle.maximumCompletionAfterFirstSlotMs,
+          ]) ||
         parsed.trace.dispatchedEvents !== 300 || parsed.trace.renderedEvents !== 300 ||
-        parsed.trace.durationMs < 30_000 || parsed.trace.actualOffsetsMs.length !== 300 ||
-        parsed.trace.actualOffsetsMs.some((offset: number, index: number) =>
-          offset + 0.1 < parsed.trace.scheduledOffsetsMs[index]
-        )
-      ) {
-        throw new Error(`${scenario.id} interleaved trace lifecycle mismatch`);
-      }
-      for (const phase of ["loadMs", "transferMs", "computeMs", "renderMs", "endToEndMs"]) {
-        if (!Number.isFinite(parsed.phases[phase]) || parsed.phases[phase] <= 0) {
-          throw new Error(`${scenario.id} phase ${phase} was not measured`);
+        actualOffsets.length !== 300 || paintAcks.length !== 300
+      ) throw new Error(`${scenario.id} trace identity or slot count mismatch`);
+      for (let index = 0; index < actualOffsets.length; index += 1) {
+        if (
+          !Number.isFinite(actualOffsets[index]) ||
+          Math.abs(actualOffsets[index] - scheduledOffsets[index]) > lifecycle.slotToleranceMs
+        ) throw new Error(`${scenario.id} trace slot ${index} exceeded ±20 ms`);
+        if (index > 0) {
+          const interval = actualOffsets[index] - actualOffsets[index - 1];
+          if (
+            interval < lifecycle.minimumIntervalMs || interval > lifecycle.maximumIntervalMs
+          ) throw new Error(`${scenario.id} trace interval ${index - 1}-${index} drifted`);
         }
+        if (!Number.isFinite(paintAcks[index]) || paintAcks[index] < actualOffsets[index]) {
+          throw new Error(`${scenario.id} paint acknowledgment ${index} preceded its event`);
+        }
+        if (
+          index < actualOffsets.length - 1 &&
+          paintAcks[index] > scheduledOffsets[index + 1] + lifecycle.slotToleranceMs
+        ) throw new Error(`${scenario.id} paint acknowledgment ${index} missed the next slot`);
       }
-      if (!Number.isFinite(parsed.phases.instantiateMs) || parsed.phases.instantiateMs < 0) {
-        throw new Error(`${scenario.id} instantiate phase was malformed`);
-      }
+      if (
+        parsed.trace.completionAfterFirstSlotMs <
+          lifecycle.minimumCompletionAfterFirstSlotMs ||
+        parsed.trace.completionAfterFirstSlotMs > lifecycle.maximumCompletionAfterFirstSlotMs ||
+        actualOffsets[0] + parsed.trace.completionAfterFirstSlotMs < paintAcks[299]
+      ) throw new Error(`${scenario.id} final-paint completion exceeded its bound`);
+      validatePhaseEvidence(parsed.phases, effectiveTarget);
       accessibility = await accessibilityState(
         client,
         sessionId,
@@ -701,6 +827,31 @@ try {
     });
     for (const remove of removers) remove();
     await client.send("Target.closeTarget", { targetId });
+  }
+
+  const endingWorktreeHead = await commandText("git", ["rev-parse", "HEAD"]);
+  const endingWorktreeTree = await commandText("git", ["rev-parse", "HEAD^{tree}"]);
+  const endingWorktreeStatus = await commandText("git", [
+    "status",
+    "--porcelain=v1",
+    "--untracked-files=all",
+  ]);
+  const unexpectedEndingChanges = endingWorktreeStatus.split("\n").filter(Boolean).filter((line) =>
+    !line.slice(3).startsWith("evidence/browser/dom-virtualized-grid-v1/")
+  );
+  if (
+    endingWorktreeHead !== sourceCommit || endingWorktreeTree !== sourceTree ||
+    unexpectedEndingChanges.length > 0
+  ) {
+    throw new Error(
+      `source tree changed during collection: ${
+        JSON.stringify({
+          endingWorktreeHead,
+          endingWorktreeTree,
+          unexpectedEndingChanges,
+        })
+      }`,
+    );
   }
 
   const observedProcesses = await ownedProcesses(browserProcess.pid);
@@ -758,6 +909,10 @@ try {
       worktreeHead,
       worktreeTree,
       cleanAtCollectionStart: worktreeStatus === "",
+      endingWorktreeHead,
+      endingWorktreeTree,
+      exactAtCollectionEnd: unexpectedEndingChanges.length === 0,
+      allowedCollectorOutputsAtEnd: endingWorktreeStatus.split("\n").filter(Boolean),
     },
     collectionCommand:
       `deno run -A scripts/validate-dom-virtualized-grid-browser.ts --source-commit=${sourceCommit} --chrome=${chromeExecutable}`,

@@ -16,7 +16,7 @@
       <p class="eyebrow">FROZEN BASE IMPLEMENTATION CANDIDATE · DOM.VIRTUALIZED-GRID.V1</p>
       <h1>100,000-row virtualized grid</h1>
       <p
-        class="notice"><strong>No performance claim.</strong> A fresh worker schedules all 300 trace events at their fixed 100 ms offsets. Each event transfers one typed command batch; the host applies its scroll offset and commands, waits for a browser paint, and then acknowledges the event. The controlled target owns filtering, stable sorting, edits, focus, selection, and virtualization. Nothing is uploaded or stored.</p>
+        class="notice"><strong>No performance claim.</strong> A fresh worker schedules 300 trace events from 0 through 29,900 ms. Each slot must stay within ±20 ms of its 100 ms offset, and adjacent events must remain 80–120 ms apart. Each event transfers one typed command batch; the host applies its scroll offset and commands, waits for a browser paint, and then acknowledges the event. A missed slot rejects the run. Nothing is uploaded or stored.</p>
       <section class="panel" aria-labelledby="controls-title">
         <h2 id="controls-title">Run exact fixed work</h2>
         <label for="target">Controlled target</label>

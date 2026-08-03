@@ -12,6 +12,7 @@
     "targets",
     "artifacts",
     "correctness",
+    "lifecycle",
     "browserEvidence",
     "performanceClaims"
   ],
@@ -55,6 +56,36 @@
         "checkpoints": { "const": 6 },
         "counters": { "const": "exact" },
         "actualDomRequired": { "const": true }
+      }
+    },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "slots",
+        "cadenceMs",
+        "firstSlotOffsetMs",
+        "lastSlotOffsetMs",
+        "slotToleranceMs",
+        "minimumIntervalMs",
+        "maximumIntervalMs",
+        "catchUp",
+        "minimumCompletionAfterFirstSlotMs",
+        "maximumCompletionAfterFirstSlotMs",
+        "phaseSpanPolicy"
+      ],
+      "properties": {
+        "slots": { "const": 300 },
+        "cadenceMs": { "const": 100 },
+        "firstSlotOffsetMs": { "const": 0 },
+        "lastSlotOffsetMs": { "const": 29900 },
+        "slotToleranceMs": { "const": 20 },
+        "minimumIntervalMs": { "const": 80 },
+        "maximumIntervalMs": { "const": 120 },
+        "catchUp": { "const": false },
+        "minimumCompletionAfterFirstSlotMs": { "const": 29900 },
+        "maximumCompletionAfterFirstSlotMs": { "const": 30100 },
+        "phaseSpanPolicy": { "const": "labelled-non-overlapping-exclusive-spans-plus-e2e-residual" }
       }
     },
     "browserEvidence": {

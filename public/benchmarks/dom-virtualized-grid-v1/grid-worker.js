@@ -1,16 +1,47 @@
 import {
   createJavaScriptGridExecution,
   createWasmGridExecution,
+  GRID_TRACE_LIFECYCLE,
   instantiateGridWasm,
+  validateGridTraceLifecycle,
   VARIANTS,
 } from "/benchmarks/base/dom-virtualized-grid/engine.js";
 
 const ACTIONS = 300;
 const ACTION_BYTES = 16;
 const ACTION_OFFSET = 64 + 100_000 * 16;
-const EVENT_CADENCE_MS = 100;
-const TRACE_DURATION_MS = 30_000;
 let pendingAck = null;
+
+function epochNow() {
+  return performance.timeOrigin + performance.now();
+}
+
+function recordSpan(spans, label, startedEpochMs) {
+  const endedEpochMs = epochNow();
+  spans.push({ label, startedEpochMs, endedEpochMs, durationMs: endedEpochMs - startedEpochMs });
+}
+
+async function measuredAsync(spans, label, operation) {
+  const startedEpochMs = epochNow();
+  try {
+    return await operation();
+  } finally {
+    recordSpan(spans, label, startedEpochMs);
+  }
+}
+
+function measuredSync(spans, label, operation) {
+  const startedEpochMs = epochNow();
+  try {
+    return operation();
+  } finally {
+    recordSpan(spans, label, startedEpochMs);
+  }
+}
+
+function phaseDuration(spans) {
+  return spans.reduce((total, span) => total + span.durationMs, 0);
+}
 
 async function sha256(bytes) {
   return [...new Uint8Array(await crypto.subtle.digest("SHA-256", bytes))].map((value) =>
@@ -18,17 +49,21 @@ async function sha256(bytes) {
   ).join("");
 }
 
-async function fetchBytes(path) {
-  const started = performance.now();
-  const response = await fetch(path, { cache: "no-store" });
-  if (!response.ok) throw new Error(`${path} returned ${response.status}`);
-  const transferStarted = performance.now();
-  const bytes = new Uint8Array(await response.arrayBuffer());
-  return {
-    bytes,
-    loadMs: performance.now() - started,
-    transferMs: performance.now() - transferStarted,
-  };
+async function fetchBytes(path, phases) {
+  const response = await measuredAsync(
+    phases.load.spans,
+    `${path}:request`,
+    async () => {
+      const response = await fetch(path, { cache: "no-store" });
+      if (!response.ok) throw new Error(`${path} returned ${response.status}`);
+      return response;
+    },
+  );
+  return await measuredAsync(
+    phases.transfer.spans,
+    `${path}:body`,
+    async () => new Uint8Array(await response.arrayBuffer()),
+  );
 }
 
 function waitUntil(deadline) {
@@ -36,7 +71,7 @@ function waitUntil(deadline) {
     const tick = () => {
       const remaining = deadline - performance.now();
       if (remaining <= 0) resolve();
-      else setTimeout(tick, Math.min(remaining, 25));
+      else setTimeout(tick, Math.min(remaining, 10));
     };
     tick();
   });
@@ -50,56 +85,83 @@ function waitForAck(token, actionIndex) {
 }
 
 async function runTrace(token, variantId) {
-  const loadStarted = performance.now();
-  const manifestResource = await fetchBytes(
+  const phases = {
+    load: { spans: [] },
+    transfer: { spans: [] },
+    instantiate: { spans: [] },
+    compute: { spans: [] },
+  };
+  const manifestBytes = await fetchBytes(
     "/artifacts/dom-virtualized-grid-v1/build-manifest.json",
+    phases,
   );
-  const manifest = JSON.parse(new TextDecoder().decode(manifestResource.bytes));
-  const fixtureResource = await fetchBytes("/artifacts/dom-virtualized-grid-v1/fixture.bin");
-  const fixture = fixtureResource.bytes;
-  if (await sha256(fixture) !== manifest.artifacts.fixture.sha256) {
+  const manifest = measuredSync(
+    phases.load.spans,
+    "build-manifest:parse",
+    () => JSON.parse(new TextDecoder().decode(manifestBytes)),
+  );
+  const fixture = await fetchBytes("/artifacts/dom-virtualized-grid-v1/fixture.bin", phases);
+  const fixtureSha256 = await measuredAsync(
+    phases.load.spans,
+    "fixture:sha256",
+    () => sha256(fixture),
+  );
+  if (fixtureSha256 !== manifest.artifacts.fixture.sha256) {
     throw new Error("Fixture raw-byte hash mismatch");
   }
 
   let wasm = null;
-  let wasmResource = null;
-  let instantiateMs = 0;
   if (variantId === "wasm-linear-controlled") {
-    wasmResource = await fetchBytes("/artifacts/dom-virtualized-grid-v1/grid.wasm");
-    if (await sha256(wasmResource.bytes) !== manifest.artifacts.wasm.sha256) {
+    const wasmBytes = await fetchBytes("/artifacts/dom-virtualized-grid-v1/grid.wasm", phases);
+    const wasmSha256 = await measuredAsync(
+      phases.load.spans,
+      "wasm:sha256",
+      () => sha256(wasmBytes),
+    );
+    if (wasmSha256 !== manifest.artifacts.wasm.sha256) {
       throw new Error("Wasm raw-byte hash mismatch");
     }
-    const instantiateStarted = performance.now();
-    wasm = await instantiateGridWasm(wasmResource.bytes);
-    instantiateMs = performance.now() - instantiateStarted;
+    wasm = await measuredAsync(
+      phases.instantiate.spans,
+      "wasm:instantiate",
+      () => instantiateGridWasm(wasmBytes),
+    );
   }
-  const loadMs = performance.now() - loadStarted;
-  const transferMs = manifestResource.transferMs + fixtureResource.transferMs +
-    (wasmResource?.transferMs ?? 0);
-  const preparationStarted = performance.now();
-  const execution = variantId === "js-controlled"
-    ? createJavaScriptGridExecution(fixture)
-    : createWasmGridExecution(wasm, fixture);
-  let computeMs = performance.now() - preparationStarted;
+  const buildManifestSha256 = await measuredAsync(
+    phases.load.spans,
+    "build-manifest:sha256",
+    () => sha256(manifestBytes),
+  );
+  const execution = measuredSync(
+    phases.compute.spans,
+    "model:prepare",
+    () =>
+      variantId === "js-controlled"
+        ? createJavaScriptGridExecution(fixture)
+        : createWasmGridExecution(wasm, fixture),
+  );
   const fixtureView = new DataView(fixture.buffer, fixture.byteOffset, fixture.byteLength);
-  const buildManifestSha256 = await sha256(manifestResource.bytes);
   const actualOffsetsMs = [];
+  const paintAckOffsetsMs = [];
   const scrollOffsetsCssPx = [];
   let scrollOffset = 0;
+  let firstEventAt = 0;
 
-  self.postMessage({
-    type: "prepared",
-    token,
-    phases: { loadMs, transferMs, instantiateMs },
-  });
+  self.postMessage({ type: "prepared", token });
 
   const traceStarted = performance.now();
   for (let actionIndex = 0; actionIndex < ACTIONS; actionIndex += 1) {
-    const scheduledOffsetMs = actionIndex * EVENT_CADENCE_MS;
-    await waitUntil(traceStarted + scheduledOffsetMs);
-    const computeStarted = performance.now();
-    const step = execution.next();
-    computeMs += performance.now() - computeStarted;
+    const scheduledOffsetMs = actionIndex * GRID_TRACE_LIFECYCLE.cadenceMs;
+    const deadline = traceStarted + scheduledOffsetMs;
+    if (performance.now() > deadline + GRID_TRACE_LIFECYCLE.slotToleranceMs) {
+      throw new Error(`Trace slot ${actionIndex} was missed before dispatch`);
+    }
+    await waitUntil(deadline);
+    const step = measuredSync(
+      phases.compute.spans,
+      `model:event:${actionIndex}`,
+      () => execution.next(),
+    );
     if (step.done || step.value.actionIndex !== actionIndex) {
       throw new Error("Controlled target omitted an interleaved trace event");
     }
@@ -117,6 +179,22 @@ async function runTrace(token, variantId) {
       scrollOffset = 0;
     }
     const actualOffsetMs = performance.now() - traceStarted;
+    if (
+      Math.abs(actualOffsetMs - scheduledOffsetMs) > GRID_TRACE_LIFECYCLE.slotToleranceMs
+    ) {
+      throw new Error(`Trace slot ${actionIndex} exceeded its ±20 ms tolerance`);
+    }
+    if (actionIndex > 0) {
+      const intervalMs = actualOffsetMs - actualOffsetsMs[actionIndex - 1];
+      if (
+        intervalMs < GRID_TRACE_LIFECYCLE.minimumIntervalMs ||
+        intervalMs > GRID_TRACE_LIFECYCLE.maximumIntervalMs
+      ) {
+        throw new Error(`Trace interval ${actionIndex - 1}-${actionIndex} exceeded 80–120 ms`);
+      }
+    } else {
+      firstEventAt = performance.now();
+    }
     actualOffsetsMs.push(actualOffsetMs);
     scrollOffsetsCssPx.push(scrollOffset);
     const acknowledged = waitForAck(token, actionIndex);
@@ -131,23 +209,38 @@ async function runTrace(token, variantId) {
       commands: batch.buffer,
     }, [batch.buffer]);
     await acknowledged;
+    paintAckOffsetsMs.push(performance.now() - traceStarted);
   }
-  await waitUntil(traceStarted + TRACE_DURATION_MS);
-  const finishStarted = performance.now();
-  const completed = execution.next();
-  computeMs += performance.now() - finishStarted;
+  const completed = measuredSync(phases.compute.spans, "model:finish", () => execution.next());
   if (!completed.done) throw new Error("Controlled target did not complete after 300 events");
+  const completionAfterFirstSlotMs = performance.now() - firstEventAt;
+  validateGridTraceLifecycle(actualOffsetsMs, completionAfterFirstSlotMs);
+  for (const phase of Object.values(phases)) phase.durationMs = phaseDuration(phase.spans);
   self.postMessage({
     type: "complete",
     token,
     result: { ...completed.value, commands: undefined, buildManifestSha256 },
-    phases: { loadMs, transferMs, instantiateMs, computeMs },
+    workerPhases: phases,
     trace: {
-      durationMs: performance.now() - traceStarted,
-      scheduledDurationMs: TRACE_DURATION_MS,
-      eventCadenceMs: EVENT_CADENCE_MS,
-      scheduledOffsetsMs: Array.from({ length: ACTIONS }, (_, index) => index * EVENT_CADENCE_MS),
+      slots: ACTIONS,
+      scheduledSpanMs: GRID_TRACE_LIFECYCLE.lastSlotOffsetMs,
+      eventCadenceMs: GRID_TRACE_LIFECYCLE.cadenceMs,
+      slotToleranceMs: GRID_TRACE_LIFECYCLE.slotToleranceMs,
+      intervalBoundsMs: [
+        GRID_TRACE_LIFECYCLE.minimumIntervalMs,
+        GRID_TRACE_LIFECYCLE.maximumIntervalMs,
+      ],
+      completionBoundsAfterFirstSlotMs: [
+        GRID_TRACE_LIFECYCLE.minimumCompletionAfterFirstSlotMs,
+        GRID_TRACE_LIFECYCLE.maximumCompletionAfterFirstSlotMs,
+      ],
+      completionAfterFirstSlotMs,
+      scheduledOffsetsMs: Array.from(
+        { length: ACTIONS },
+        (_, index) => index * GRID_TRACE_LIFECYCLE.cadenceMs,
+      ),
       actualOffsetsMs,
+      paintAckOffsetsMs,
       scrollOffsetsCssPx,
     },
   });

@@ -5,11 +5,13 @@ import { assert, assertEquals } from "../assert.ts";
 import {
   ACTIONS,
   generateFixture,
+  GRID_TRACE_LIFECYCLE,
   instantiateGridWasm,
   normalizeForEquivalence,
   ROWS,
   runJavaScript,
   runWasm,
+  validateGridTraceLifecycle,
 } from "../../benchmarks/base/dom-virtualized-grid/engine.js";
 
 const Ajv2020 = (Ajv2020Module as unknown as { default?: typeof Ajv2020Module }).default ??
@@ -51,6 +53,18 @@ Deno.test("frozen v1 catalog remains byte-identical while supplemental grid regi
   assertEquals(contract.fixture.rows, 100_000);
   assertEquals(contract.fixture.actions, 300);
   assertEquals(contract.trace.coalescing, "none; exactly one event per 100 ms trace slot");
+  assertEquals(contract.trace.lifecycle, {
+    slots: 300,
+    firstSlotOffsetMs: 0,
+    lastSlotOffsetMs: 29_900,
+    slotToleranceMs: 20,
+    minimumIntervalMs: 80,
+    maximumIntervalMs: 120,
+    catchUp: "prohibited; fail immediately when the next slot is already more than 20 ms late",
+    minimumCompletionAfterFirstSlotMs: 29_900,
+    maximumCompletionAfterFirstSlotMs: 30_100,
+    completion: "after the final event paint acknowledgment and model finish",
+  });
 });
 
 Deno.test("fixture freezes 100,000 rows and all five operations over exactly 30 seconds", async () => {
@@ -76,6 +90,40 @@ Deno.test("fixture freezes 100,000 rows and all five operations over exactly 30 
     types.add(view.getUint32(actionOffset + index * 16 + 4, true));
   }
   assertEquals([...types].sort(), [0, 1, 2, 3, 4]);
+});
+
+Deno.test("trace lifecycle rejects early, late, missed, drifted, and overlong schedules", () => {
+  const exact = Array.from(
+    { length: GRID_TRACE_LIFECYCLE.slots },
+    (_, index) => index * GRID_TRACE_LIFECYCLE.cadenceMs,
+  );
+  assert(validateGridTraceLifecycle(exact, 29_900));
+  const invalid = [
+    exact.slice(0, -1),
+    exact.map((offset, index) => index === 0 ? -21 : offset),
+    exact.map((offset, index) => index === 299 ? offset + 21 : offset),
+    exact.map((offset, index) =>
+      index === 100 ? offset - 20 : index === 101 ? offset + 20 : offset
+    ),
+  ];
+  for (const offsets of invalid) {
+    let denied = false;
+    try {
+      validateGridTraceLifecycle(offsets, 29_900);
+    } catch {
+      denied = true;
+    }
+    assert(denied, "invalid trace lifecycle was accepted");
+  }
+  for (const completion of [29_899.9, 30_100.1]) {
+    let denied = false;
+    try {
+      validateGridTraceLifecycle(exact, completion);
+    } catch {
+      denied = true;
+    }
+    assert(denied, "invalid final-paint completion was accepted");
+  }
 });
 
 Deno.test("JavaScript and material Wasm emit every identical typed DOM command and checkpoint", async () => {
@@ -271,6 +319,33 @@ Deno.test("candidate record is closed-schema, raw-hash anchored, and honestly br
   assertEquals(record.status, "implementation-candidate");
   assertEquals(record.browserEvidence.status, "pending-parent-collection");
   assertEquals(record.performanceClaims, []);
+  assertEquals(record.lifecycle, {
+    slots: 300,
+    cadenceMs: 100,
+    firstSlotOffsetMs: 0,
+    lastSlotOffsetMs: 29_900,
+    slotToleranceMs: 20,
+    minimumIntervalMs: 80,
+    maximumIntervalMs: 120,
+    catchUp: false,
+    minimumCompletionAfterFirstSlotMs: 29_900,
+    maximumCompletionAfterFirstSlotMs: 30_100,
+    phaseSpanPolicy: "labelled-non-overlapping-exclusive-spans-plus-e2e-residual",
+  });
+  for (
+    const [field, value] of [
+      ["slotToleranceMs", 21],
+      ["minimumIntervalMs", 79],
+      ["maximumIntervalMs", 121],
+      ["catchUp", true],
+      ["maximumCompletionAfterFirstSlotMs", 30_101],
+      ["phaseSpanPolicy", "overlapping"],
+    ] as const
+  ) {
+    const mutation = structuredClone(record);
+    mutation.lifecycle[field] = value;
+    assert(!validate(mutation), `candidate schema accepted lifecycle mutation ${field}`);
+  }
   for (
     const reference of Object.values(record.artifacts) as Array<{ path: string; sha256: string }>
   ) {
@@ -362,8 +437,8 @@ Deno.test("runner uses a fresh worker, typed-only host commands, timeout, stale 
   assert(!runner.includes("fetch("));
   assert(worker.includes("createJavaScriptGridExecution"));
   assert(worker.includes("createWasmGridExecution"));
-  assert(worker.includes("const step = execution.next()"));
-  assert(worker.includes("scheduledOffsetMs = actionIndex * EVENT_CADENCE_MS"));
+  assert(worker.includes("() => execution.next()"));
+  assert(worker.includes("scheduledOffsetMs = actionIndex * GRID_TRACE_LIFECYCLE.cadenceMs"));
   assert(worker.includes("await acknowledged"));
   assert(runner.includes('CustomEvent("gridtraceevent"'));
   assert(runner.includes("await afterPaint()"));
@@ -375,8 +450,17 @@ Deno.test("runner uses a fresh worker, typed-only host commands, timeout, stale 
   assertEquals(outputManifest.browserDom.state.rows.length, 28);
   assertEquals(outputManifest.trace.scheduledOffsetsMs.length, 300);
   assertEquals(outputManifest.trace.scrollOffsetsCssPx.length, 300);
+  assertEquals(
+    canonicalize(outputManifest.trace.lifecycle),
+    canonicalize(GRID_TRACE_LIFECYCLE),
+  );
   assert(collector.includes('client.send("Emulation.setDeviceMetricsOverride"'));
   assert(collector.includes('client.send("Accessibility.getFullAXTree"'));
   assert(collector.includes("canonicalize(parsed.browserDom)"));
+  assert(collector.includes("layout.clientWidth !== 960"));
+  assert(collector.includes("layout.clientHeight !== 480"));
+  assert(collector.includes("validatePhaseEvidence(parsed.phases"));
+  assert(collector.includes("endingWorktreeStatus"));
+  assert(collector.includes("unexpectedEndingChanges"));
   assert(collector.includes('"--porcelain=v1"'));
 });

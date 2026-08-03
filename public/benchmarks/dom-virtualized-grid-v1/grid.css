@@ -1,5 +1,5 @@
 .virtual-grid {
-  box-sizing: border-box;
+  box-sizing: content-box;
   width: 960px;
   height: 480px;
   overflow: hidden;

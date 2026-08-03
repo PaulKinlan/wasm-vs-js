@@ -33,6 +33,18 @@
   "trace": {
     "operations": ["scroll", "filter", "stable-sort", "edit", "focus-selection"],
     "coalescing": "none; exactly one event per 100 ms trace slot",
+    "lifecycle": {
+      "slots": 300,
+      "firstSlotOffsetMs": 0,
+      "lastSlotOffsetMs": 29900,
+      "slotToleranceMs": 20,
+      "minimumIntervalMs": 80,
+      "maximumIntervalMs": 120,
+      "catchUp": "prohibited; fail immediately when the next slot is already more than 20 ms late",
+      "minimumCompletionAfterFirstSlotMs": 29900,
+      "maximumCompletionAfterFirstSlotMs": 30100,
+      "completion": "after the final event paint acknowledgment and model finish"
+    },
     "sort": "stable score then stable row ID tie break",
     "filter": "group equality or all groups",
     "edit": "replace one signed score by row ID",
@@ -64,11 +76,15 @@
     "boundary-crossings"
   ],
   "phases": {
-    "load": "measured",
-    "transfer": "measured",
-    "compute": "measured",
-    "render": "measured",
-    "endToEnd": "measured"
+    "clock": "Performance timeOrigin + performance.now",
+    "exclusivity": "Load, transfer, instantiate, compute, and render retain individually labelled non-overlapping spans. End-to-end is the containing envelope; the residual outside exclusive spans is retained as unattributed duration.",
+    "load": "resource request, response validation, parsing, and hashing outside body transfer",
+    "transfer": "response body arrayBuffer transfer and decoding",
+    "instantiate": "WebAssembly.instantiate only; zero for the JavaScript target",
+    "compute": "controlled model prepare, 300 event steps, and finish",
+    "render": "host command application through two animation frames for each event",
+    "endToEnd": "Start activation through receipt of completion after final paint acknowledgment",
+    "reconciliation": "exclusive phase sum plus unattributed duration equals end-to-end duration"
   },
   "performanceClaims": []
 }

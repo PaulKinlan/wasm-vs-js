@@ -11,7 +11,7 @@
   "artifacts": {
     "buildManifest": {
       "path": "public/artifacts/dom-virtualized-grid-v1/build-manifest.json",
-      "sha256": "484c7a0491cdd65a95380290ac8daad7209058d6ec41fea6bf370cb0805ba7e7"
+      "sha256": "8f2708afdd0c1a342ff68ef6ef798b19d2349fd1f7bd0b02882866014bd16d13"
     },
     "fixture": {
       "path": "public/artifacts/dom-virtualized-grid-v1/fixture.bin",
@@ -23,7 +23,7 @@
     },
     "outputManifest": {
       "path": "public/artifacts/dom-virtualized-grid-v1/output-manifest.json",
-      "sha256": "21bfa2336d9265fc8f8f2c6f3d23a8e65102a2d9e42e0a99e872f2ec3a9ec2f8"
+      "sha256": "f9776677b7ae49bd8244284c631581d9a420da1de833348a0e88d5a97a7cec8c"
     }
   },
   "correctness": {
@@ -32,6 +32,19 @@
     "checkpoints": 6,
     "counters": "exact",
     "actualDomRequired": true
+  },
+  "lifecycle": {
+    "slots": 300,
+    "cadenceMs": 100,
+    "firstSlotOffsetMs": 0,
+    "lastSlotOffsetMs": 29900,
+    "slotToleranceMs": 20,
+    "minimumIntervalMs": 80,
+    "maximumIntervalMs": 120,
+    "catchUp": false,
+    "minimumCompletionAfterFirstSlotMs": 29900,
+    "maximumCompletionAfterFirstSlotMs": 30100,
+    "phaseSpanPolicy": "labelled-non-overlapping-exclusive-spans-plus-e2e-residual"
   },
   "browserEvidence": {
     "status": "pending-parent-collection",

@@ -14,8 +14,58 @@ let workerPhases = null;
 let runStarted = 0;
 let eventCount = 0;
 let dispatchedEvents = 0;
-let renderMs = 0;
+let renderSpans = [];
 let actual = null;
+
+function epochNow() {
+  return performance.timeOrigin + performance.now();
+}
+
+function spanDuration(spans) {
+  return spans.reduce((total, span) => total + span.durationMs, 0);
+}
+
+function reconciledPhases(workerPhaseData, endToEndEndedEpochMs) {
+  const render = { spans: renderSpans, durationMs: spanDuration(renderSpans) };
+  const phases = {
+    load: workerPhaseData.load,
+    transfer: workerPhaseData.transfer,
+    instantiate: workerPhaseData.instantiate,
+    compute: workerPhaseData.compute,
+    render,
+  };
+  const exclusiveDurationMs = Object.values(phases).reduce(
+    (total, phase) => total + phase.durationMs,
+    0,
+  );
+  const endToEnd = {
+    startedEpochMs: performance.timeOrigin + runStarted,
+    endedEpochMs: endToEndEndedEpochMs,
+    durationMs: endToEndEndedEpochMs - (performance.timeOrigin + runStarted),
+  };
+  const unattributedDurationMs = endToEnd.durationMs - exclusiveDurationMs;
+  if (unattributedDurationMs < 0) {
+    throw new Error("Exclusive lifecycle phases exceeded end-to-end duration");
+  }
+  return {
+    clock: "Performance timeOrigin + performance.now",
+    definitions: {
+      load: "resource request, response validation, parsing, and hashing outside body transfer",
+      transfer: "response body arrayBuffer transfer and decoding",
+      instantiate: "WebAssembly.instantiate only; zero for the JavaScript target",
+      compute: "controlled model prepare, 300 event steps, and finish",
+      render: "host command application through two animation frames for each event",
+      endToEnd: "Start activation through receipt of completion after final paint acknowledgment",
+    },
+    ...phases,
+    endToEnd,
+    reconciliation: {
+      exclusiveDurationMs,
+      unattributedDurationMs,
+      reconciledEndToEndMs: exclusiveDurationMs + unattributedDurationMs,
+    },
+  };
+}
 
 function emptyCounters() {
   return {
@@ -151,7 +201,7 @@ function resetDom() {
   workerPhases = null;
   eventCount = 0;
   dispatchedEvents = 0;
-  renderMs = 0;
+  renderSpans = [];
   actual = emptyCounters();
 }
 
@@ -172,7 +222,7 @@ start.addEventListener("click", () => {
   runStarted = performance.now();
   worker = new Worker("/benchmarks/dom-virtualized-grid-v1/grid-worker.js", { type: "module" });
   document.documentElement.dataset.gridWorkerActive = "true";
-  status.textContent = "Running the 30-second trace at exact 100 ms offsets…";
+  status.textContent = "Running 300 trace slots at 100 ms cadence (±20 ms)…";
   output.textContent = "Waiting for 300 rendered events.";
   start.disabled = true;
   cancel.disabled = false;
@@ -185,14 +235,13 @@ start.addEventListener("click", () => {
     try {
       if (data.type === "prepared") {
         workerPrepared = true;
-        workerPhases = data.phases;
         return;
       }
       if (data.type === "event") {
         if (!workerPrepared || data.actionIndex !== eventCount) {
           throw new Error("Trace event arrived out of order");
         }
-        const renderedStarted = performance.now();
+        const renderedStartedEpochMs = epochNow();
         grid.scrollTop = data.scrollOffset;
         grid.dispatchEvent(
           new CustomEvent("gridtraceevent", {
@@ -208,14 +257,21 @@ start.addEventListener("click", () => {
         dispatchedEvents += 1;
         applyCommands(new Uint32Array(data.commands));
         await afterPaint();
-        renderMs += performance.now() - renderedStarted;
+        const renderedEndedEpochMs = epochNow();
+        renderSpans.push({
+          label: `host:render:${data.actionIndex}`,
+          startedEpochMs: renderedStartedEpochMs,
+          endedEpochMs: renderedEndedEpochMs,
+          durationMs: renderedEndedEpochMs - renderedStartedEpochMs,
+        });
         eventCount += 1;
         worker?.postMessage({ type: "ack", token: runToken, actionIndex: data.actionIndex });
         return;
       }
       if (data.type !== "complete") return;
+      const endToEndEndedEpochMs = epochNow();
       preparedResult = data.result;
-      workerPhases = data.phases;
+      workerPhases = data.workerPhases;
       if (!workerPrepared || !preparedResult || eventCount !== 300 || dispatchedEvents !== 300) {
         throw new Error("Trace completed without 300 rendered events");
       }
@@ -226,14 +282,7 @@ start.addEventListener("click", () => {
       const dom = canonicalDom();
       const domSource = JSON.stringify(dom);
       const domSha256 = await sha256(domSource);
-      const phases = {
-        loadMs: workerPhases.loadMs,
-        transferMs: workerPhases.transferMs,
-        instantiateMs: workerPhases.instantiateMs,
-        computeMs: workerPhases.computeMs,
-        renderMs,
-        endToEndMs: performance.now() - runStarted,
-      };
+      const phases = reconciledPhases(workerPhases, endToEndEndedEpochMs);
       clearTimeout(timeout);
       terminate();
       status.textContent = "Virtualized grid completed 300 interleaved event and render steps.";

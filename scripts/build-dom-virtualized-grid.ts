@@ -1,6 +1,7 @@
 import { canonicalize, sha256Hex } from "../lib/canonical.ts";
 import {
   generateFixture,
+  GRID_TRACE_LIFECYCLE,
   instantiateGridWasm,
   normalizeForEquivalence,
   runJavaScript,
@@ -231,7 +232,10 @@ const outputManifest = {
   final: js.final,
   structural: { maximumMountedRows: 28, commandWidthU32: 6, events: 300, rows: 100000 },
   browserDom: { state: expectedBrowserDom, jsonSha256: expectedBrowserDomSha256 },
-  trace: expectedTrace,
+  trace: {
+    ...expectedTrace,
+    lifecycle: GRID_TRACE_LIFECYCLE,
+  },
   performanceClaims: [],
 };
 await Deno.writeTextFile(

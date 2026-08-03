@@ -7,6 +7,17 @@ export const ACTION_BYTES = 16;
 export const HEADER_BYTES = 64;
 export const COMMAND_WIDTH = 6;
 export const MAX_MOUNTED = 28;
+export const GRID_TRACE_LIFECYCLE = Object.freeze({
+  slots: ACTIONS,
+  cadenceMs: 100,
+  firstSlotOffsetMs: 0,
+  lastSlotOffsetMs: 29_900,
+  slotToleranceMs: 20,
+  minimumIntervalMs: 80,
+  maximumIntervalMs: 120,
+  minimumCompletionAfterFirstSlotMs: 29_900,
+  maximumCompletionAfterFirstSlotMs: 30_100,
+});
 export const MAGIC = 0x31445247;
 export const RESULT_MAGIC = 0x31525347;
 const EMPTY = 0xffffffff;
@@ -16,6 +27,39 @@ function next(state) {
   state.value ^= state.value >>> 17;
   state.value ^= state.value << 5;
   return state.value >>> 0;
+}
+
+export function validateGridTraceLifecycle(actualOffsetsMs, completionAfterFirstSlotMs) {
+  if (!Array.isArray(actualOffsetsMs) || actualOffsetsMs.length !== GRID_TRACE_LIFECYCLE.slots) {
+    throw new Error("virtualized-grid trace must contain 300 unique sequential slots");
+  }
+  for (let index = 0; index < actualOffsetsMs.length; index += 1) {
+    const actual = actualOffsetsMs[index];
+    const scheduled = index * GRID_TRACE_LIFECYCLE.cadenceMs;
+    if (
+      !Number.isFinite(actual) ||
+      Math.abs(actual - scheduled) > GRID_TRACE_LIFECYCLE.slotToleranceMs
+    ) {
+      throw new Error(`virtualized-grid trace slot ${index} exceeded cadence tolerance`);
+    }
+    if (index > 0) {
+      const interval = actual - actualOffsetsMs[index - 1];
+      if (
+        interval < GRID_TRACE_LIFECYCLE.minimumIntervalMs ||
+        interval > GRID_TRACE_LIFECYCLE.maximumIntervalMs
+      ) {
+        throw new Error(`virtualized-grid trace interval ${index - 1}-${index} drifted`);
+      }
+    }
+  }
+  if (
+    !Number.isFinite(completionAfterFirstSlotMs) ||
+    completionAfterFirstSlotMs < GRID_TRACE_LIFECYCLE.minimumCompletionAfterFirstSlotMs ||
+    completionAfterFirstSlotMs > GRID_TRACE_LIFECYCLE.maximumCompletionAfterFirstSlotMs
+  ) {
+    throw new Error("virtualized-grid final paint completion exceeded its bound");
+  }
+  return true;
 }
 
 export function generateFixture() {
