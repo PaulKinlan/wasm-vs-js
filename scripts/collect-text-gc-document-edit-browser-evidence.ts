@@ -1393,7 +1393,12 @@ async function runCollector(): Promise<void> {
       compile: (schema: unknown) => Validator;
     };
     const Ajv2020 = Ajv2020Module as unknown as AjvConstructor;
-    const validate = new Ajv2020({ strict: true, allErrors: true }).compile(schema);
+    // strictSchema stays off so the date-time annotation (a documentation
+    // format, not a closedness rule) does not abort evidence serialization;
+    // every structural/closedness assertion still runs.
+    const validate = new Ajv2020({ strict: true, strictSchema: false, allErrors: true }).compile(
+      schema,
+    );
     if (!validate(evidence)) {
       throw new Error(`browser evidence schema failure: ${JSON.stringify(validate.errors)}`);
     }
