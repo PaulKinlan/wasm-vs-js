@@ -9,6 +9,7 @@ function option(name: string, fallback?: string) {
   if (!value || value.startsWith("--")) throw new Error(`${name} requires a value`);
   return value;
 }
+if (Deno.version.deno !== "2.9.0") throw new Error(`Deno 2.9.0 required, got ${Deno.version.deno}`);
 const sourceCommit = option("--source-commit");
 if (!sourceCommit || !/^[0-9a-f]{40}$/.test(sourceCommit)) {
   throw new Error("--source-commit must be the exact 40-character implementation commit");
