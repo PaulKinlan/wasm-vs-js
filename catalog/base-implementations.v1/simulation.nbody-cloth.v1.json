@@ -22,6 +22,7 @@
     "quantization": 1e-9,
     "crossTargetAbsoluteTolerance": 1e-12,
     "energyRelativeTolerance": 0.0000012,
+    "counterPolicy": "Solver interactions exclude oracle work; energyPairChecks and kineticEnergyTerms count the two retained energy evaluations separately. Allocations count owned runtime backing stores, not zero-copy typed views or result metadata.",
     "excluded": ["cloth", "Barnes-Hut", "SIMD", "relaxed SIMD", "rendering"]
   },
   "targets": [

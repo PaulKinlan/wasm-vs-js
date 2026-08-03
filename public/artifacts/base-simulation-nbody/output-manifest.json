@@ -4,7 +4,7 @@
   "workloadId": "simulation.nbody-cloth.v1",
   "status": "implementation-candidate",
   "exactCrossTargetBytes": true,
-  "completeOutputSha256": "6b0555a4033658967cf552767a3ac0b2681df9f3e68d9f2aa71717c9c96ffa3b",
+  "completeOutputSha256": "e09f9c48b3c2945cca25102eb09667295c7889a850578622354d80b1109dba3e",
   "quantizedStateDigest": "5c5c1eca3fffb709",
   "maxAbsoluteDifference": 0,
   "tolerance": 1e-12,
@@ -32,7 +32,9 @@
     "checkpointValues": 30720,
     "inputBytes": 57408,
     "outputBytes": 295040,
-    "allocations": 13,
+    "energyPairChecks": 1047552,
+    "kineticEnergyTerms": 2048,
+    "allocations": 5,
     "boundaryCrossings": 0
   },
   "performanceClaims": []

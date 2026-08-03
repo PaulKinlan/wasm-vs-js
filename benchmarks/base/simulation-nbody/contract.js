@@ -27,6 +27,8 @@ export const COUNTERS = Object.freeze({
   positionUpdates: TIMESTEPS * BODY_COUNT,
   accelerationWrites: FORCE_EVALUATIONS * BODY_COUNT * 3,
   checkpointValues: CHECKPOINT_STEPS.length * STATE_VALUES,
+  energyPairChecks: BODY_COUNT * (BODY_COUNT - 1),
+  kineticEnergyTerms: BODY_COUNT * 2,
   inputBytes: INPUT_BYTES,
   outputBytes: OUTPUT_BYTES,
 });

@@ -131,7 +131,7 @@ u32 run(void) {
   write_u64(40, (u64)STEPS * N * 2u); write_u64(48, (u64)STEPS * N);
   write_u64(56, (u64)121u * N * 3u); write_u64(64, (u64)5u * STATE_VALUES);
   write_u64(72, INPUT_BYTES); write_u64(80, OUTPUT_BYTES);
-  for (u32 off = 88; off < OUTPUT_HEADER; off += 8) write_u64(off, 0u);
+  write_u64(88, (u64)N * (N - 1u)); write_u64(96, (u64)N * 2u);
 
   const double initial_energy = total_energy(mass, px, py, pz, vx, vy, vz, gravity, softening_squared);
   write_f64(104, initial_energy);

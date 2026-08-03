@@ -28,6 +28,8 @@ const U64_FIELDS = [
   "checkpointValues",
   "inputBytes",
   "outputBytes",
+  "energyPairChecks",
+  "kineticEnergyTerms",
 ];
 function validateInput(input) {
   if (!(input instanceof Uint8Array) || input.byteLength !== INPUT_BYTES) {
@@ -196,7 +198,7 @@ export function decodeResult(output, variantId) {
     energy,
     counters: {
       ...counters,
-      allocations: variantId === "js-controlled" ? 13 : 0,
+      allocations: variantId === "js-controlled" ? 5 : 0,
       boundaryCrossings: variantId === "js-controlled" ? 0 : 2,
     },
     checkpoints: CHECKPOINT_STEPS.slice(),

@@ -51,13 +51,13 @@ Deno.test("seeded N-body fixture and complete reference output reproduce byte ex
   );
   const js = runJavaScript(fixture);
   assertEquals(js.output.byteLength, OUTPUT_BYTES);
-  assertEquals(js.completeOutputDigest, "29efdda0fa9b046f");
+  assertEquals(js.completeOutputDigest, "00136c5b760c3794");
   assertEquals(js.quantizedStateDigest, "5c5c1eca3fffb709");
   assertEquals(
     await sha256Hex(js.output),
-    "6b0555a4033658967cf552767a3ac0b2681df9f3e68d9f2aa71717c9c96ffa3b",
+    "e09f9c48b3c2945cca25102eb09667295c7889a850578622354d80b1109dba3e",
   );
-  assertEquals(js.counters, { ...COUNTERS, allocations: 13, boundaryCrossings: 0 });
+  assertEquals(js.counters, { ...COUNTERS, allocations: 5, boundaryCrossings: 0 });
   assertEquals(js.energy.relativeDrift, 0.0000011147386053059117);
 });
 
@@ -194,7 +194,7 @@ Deno.test("N-body validation records satisfy the closed schema and exact retaine
     assertEquals(record.fixture.sha256, await sha256Hex(await Deno.readFile(record.fixture.path)));
     assertEquals(
       record.oracle.completeOutputSha256,
-      "6b0555a4033658967cf552767a3ac0b2681df9f3e68d9f2aa71717c9c96ffa3b",
+      "e09f9c48b3c2945cca25102eb09667295c7889a850578622354d80b1109dba3e",
     );
   }
 });
