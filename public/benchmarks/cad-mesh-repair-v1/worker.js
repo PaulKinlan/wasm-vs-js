@@ -5,8 +5,8 @@ import {
 } from "/benchmarks/base/cad-mesh-repair/engine.js";
 const EXPECTED = {
   fixture: "46fa97b0518e96edd1a2bb01d362955f5fae7f9d3e1371c0056ff17ba7d95a91",
-  wasm: "b0067130175374850480fba3bed5a6e90f5cc7b9ba2403937023f4f4dced5b48",
-  output: "8e5abc003ef884f807630e4cbc0afaa555ef0aa7eacb9a3012ebd3c78590566b",
+  wasm: "ac2f086d3cda9c7ffa8c59caf7121a8b6f131a0bf87718a2390d46c935a63dbf",
+  output: "9176fd44b472ec6369d880a0f605c9a1a0c518f4fbe55485da399b5718228309",
 };
 async function hash(bytes) {
   return [...new Uint8Array(await crypto.subtle.digest("SHA-256", bytes))].map((x) =>

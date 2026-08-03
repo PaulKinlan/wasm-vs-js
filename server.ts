@@ -162,6 +162,10 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/artifacts/cad-mesh-repair-v1/build-manifest.json",
     "application/json; charset=utf-8",
   ]],
+  ["/artifacts/cad-mesh-repair-v1/validation-evidence.json", [
+    "public/artifacts/cad-mesh-repair-v1/validation-evidence.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/demos/game-family/demo.js", [
     "public/demos/game-family/demo.js",
     "text/javascript; charset=utf-8",

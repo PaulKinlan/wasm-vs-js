@@ -194,6 +194,7 @@ Deno.test("public pages contain no inline script, inline style, or remote asset"
       "public/benchmarks/index.html",
       "public/benchmarks/regex-automata-duel-demo/index.html",
       "public/benchmarks/vdom-diff-patch-demo/index.html",
+      "public/benchmarks/cad-mesh-repair-v1/index.html",
       "public/evidence/index.html",
       "public/experiments/index.html",
       "public/evidence/v2-proposals/index.html",
@@ -211,7 +212,7 @@ Deno.test("public pages contain no inline script, inline style, or remote asset"
         "",
       )
       .replaceAll(
-        /https:\/\/github\.com\/PaulKinlan\/wasm-vs-js\/blob\/(?:30b41425227dc139304f25942d0be0d933fa28c9|9691f0e8353a221880f365712a1ebbec18b7dde4)\/[a-zA-Z0-9._/-]+(?:#L[0-9]+(?:-L[0-9]+)?)?/g,
+        /https:\/\/github\.com\/PaulKinlan\/wasm-vs-js\/blob\/(?:30b41425227dc139304f25942d0be0d933fa28c9|9691f0e8353a221880f365712a1ebbec18b7dde4|31b9535d89453670de5b0f081beebf3a9c666a4f)\/[a-zA-Z0-9._/-]+(?:#L[0-9]+(?:-L[0-9]+)?)?/g,
         "",
       );
     assert(!/https?:\/\//i.test(withoutAllowedLinks), `${path} has an unexpected remote URL`);

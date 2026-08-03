@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "cad-mesh-repair-v1-correctness",
+  "status": "proposal-validation-only",
+  "buildManifest": {
+    "path": "public/artifacts/cad-mesh-repair-v1/build-manifest.json",
+    "sha256": "7b88ed785480acf5ae938517a2598c8ac54702fd07457025e250aa624044ed65"
+  },
+  "contract": {
+    "path": "benchmarks/base/cad-mesh-repair/implementation-contract.v1.json",
+    "sha256": "336ff1a2dd3568d9de14ae05f1e16c717812e662e09f4c924ce531b500e8e06a"
+  },
+  "fixture": {
+    "path": "public/artifacts/cad-mesh-repair-v1/dirty-grid.stl",
+    "sha256": "46fa97b0518e96edd1a2bb01d362955f5fae7f9d3e1371c0056ff17ba7d95a91"
+  },
+  "artifact": {
+    "path": "public/artifacts/cad-mesh-repair-v1/mesh-repair.wasm",
+    "sha256": "ac2f086d3cda9c7ffa8c59caf7121a8b6f131a0bf87718a2390d46c935a63dbf"
+  },
+  "oracle": {
+    "completeOutputSha256": "9176fd44b472ec6369d880a0f605c9a1a0c518f4fbe55485da399b5718228309",
+    "bytes": 19100,
+    "invariants": {
+      "finiteCoordinates": true,
+      "quantizationScale": 10000,
+      "quantizationArithmetic": "f32-multiply-round-half-away-from-zero",
+      "manifoldEdgeMaximum": 2,
+      "consistentPositiveZ": true,
+      "exactTarget": true,
+      "canonicalLittleEndian": true,
+      "signedVolumeSixQuantized": 0,
+      "volumePolicy": "planar open mesh has exact zero signed volume; no watertight-volume claim"
+    },
+    "jsCounters": {
+      "sourceFaces": 2112,
+      "vertexReferences": 6336,
+      "vertexWeldComparisons": 3351963,
+      "weldedVertices": 1089,
+      "removedDegenerates": 64,
+      "orientedFaces": 2048,
+      "flippedFaces": 352,
+      "cleanEdgeComparisons": 37748736,
+      "simplificationWeldComparisons": 305168,
+      "simplifiedEdgeComparisons": 9437184,
+      "uniqueEdges": 1584,
+      "simplifiedFaces": 1024,
+      "simplifiedVertices": 561,
+      "collapsedVertices": 528,
+      "volumeTerms": 1024,
+      "targetFaces": 1024,
+      "boundaryCrossings": 0,
+      "operativeAllocations": 9
+    },
+    "wasmCounters": {
+      "sourceFaces": 2112,
+      "vertexReferences": 6336,
+      "vertexWeldComparisons": 3351963,
+      "weldedVertices": 1089,
+      "removedDegenerates": 64,
+      "orientedFaces": 2048,
+      "flippedFaces": 352,
+      "cleanEdgeComparisons": 37748736,
+      "simplificationWeldComparisons": 305168,
+      "simplifiedEdgeComparisons": 9437184,
+      "uniqueEdges": 1584,
+      "simplifiedFaces": 1024,
+      "simplifiedVertices": 561,
+      "collapsedVertices": 528,
+      "volumeTerms": 1024,
+      "targetFaces": 1024,
+      "boundaryCrossings": 1,
+      "operativeAllocations": 0
+    },
+    "equivalentCounterNames": [
+      "sourceFaces",
+      "vertexReferences",
+      "vertexWeldComparisons",
+      "weldedVertices",
+      "removedDegenerates",
+      "orientedFaces",
+      "flippedFaces",
+      "cleanEdgeComparisons",
+      "simplificationWeldComparisons",
+      "simplifiedEdgeComparisons",
+      "uniqueEdges",
+      "simplifiedFaces",
+      "simplifiedVertices",
+      "collapsedVertices",
+      "volumeTerms",
+      "targetFaces"
+    ],
+    "crossTargetCompleteBytesEqual": true,
+    "negativeHalfAdversarial": {
+      "storedF32": -0.00004999999873689376,
+      "quantizedI32": -1,
+      "expectedI32": -1
+    }
+  },
+  "performanceClaims": []
+}

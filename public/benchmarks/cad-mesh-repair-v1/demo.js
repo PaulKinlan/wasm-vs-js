@@ -1,3 +1,5 @@
+document.documentElement.classList.add("js");
+
 const form = document.querySelector("#demo-form"),
   target = document.querySelector("#target"),
   start = document.querySelector("#start"),
