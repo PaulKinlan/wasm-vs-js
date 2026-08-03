@@ -90,13 +90,43 @@ Deno.test("archive v1 source graph matches its commit and rejects a wrong commit
   }
   assertEquals(await sha256Hex(graphLines.join("")), manifest.sourceGraphSha256);
 
-  const parent = await new Deno.Command("git", {
-    args: ["rev-parse", `${manifest.sourceCommit}^`],
+  // The "wrong commit" must be an ancestor whose source-graph bytes actually
+  // differ; the immediate parent is not guaranteed to (merge integration
+  // commits routinely touch only manifests/evidence outside this graph).
+  const ancestors = await new Deno.Command("git", {
+    args: ["rev-list", "--max-count=200", manifest.sourceCommit],
     stdout: "piped",
     stderr: "piped",
   }).output();
-  assert(parent.success, new TextDecoder().decode(parent.stderr));
-  const wrongCommit = new TextDecoder().decode(parent.stdout).trim();
+  assert(ancestors.success, new TextDecoder().decode(ancestors.stderr));
+  let wrongCommit = "";
+  for (
+    const candidate of new TextDecoder().decode(ancestors.stdout).trim().split("\n")
+  ) {
+    if (candidate === manifest.sourceCommit) continue;
+    const candidateLines: string[] = [];
+    let differs = false;
+    for (const record of manifest.sourceGraph) {
+      const committed = await new Deno.Command("git", {
+        args: ["show", `${candidate}:${record.path}`],
+        stdout: "piped",
+        stderr: "piped",
+      }).output();
+      if (!committed.success) {
+        differs = true;
+        break;
+      }
+      candidateLines.push(`${record.path}\0${await sha256Hex(committed.stdout)}\n`);
+    }
+    if (
+      differs ||
+      (await sha256Hex(candidateLines.join(""))) !== manifest.sourceGraphSha256
+    ) {
+      wrongCommit = candidate;
+      break;
+    }
+  }
+  assert(wrongCommit !== "", "no ancestor with differing source bytes found");
   const outputPaths = [
     "public/artifacts/archive-zip-workspace-v1/archive-zip-workspace.wasm",
     "public/artifacts/archive-zip-workspace-v1/build-manifest.json",
