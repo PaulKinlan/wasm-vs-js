@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "registrationId": "simulation-rigid-body-2d-v1-controlled",
-  "sourceCommit": "0e21aa575cf21aa21395fa531eb97c74e2c58027",
+  "sourceCommit": "3f2531b72ee667dc89dd15d6df902ba4372d0849",
   "toolchain": {
     "deno": "2.9.0",
     "clang": "clang version 22.1.8",
@@ -21,7 +21,7 @@
       "growth": false
     }
   },
-  "command": "deno run --allow-read=. --allow-write=public/artifacts --allow-run=clang,wasm-ld scripts/build-rigid-body-2d.ts --source-commit=<commit>",
+  "command": "deno run --allow-read=. --allow-write=public/artifacts --allow-run=clang,wasm-ld,git scripts/build-rigid-body-2d.ts --source-commit=<commit>",
   "sourceGraph": [
     {
       "path": "benchmarks/v1/simulation-rigid-body-2d/contract.v1.json",
@@ -41,7 +41,23 @@
     },
     {
       "path": "scripts/build-rigid-body-2d.ts",
-      "sha256": "3a62a9a57ce0263c58c95a68d2689e01716db4d40c1ed06afec82dac86eeebfd"
+      "sha256": "3aa074450e914999f3e011e03ecb91f39a57ec6e99606237a948ec711dbca35d"
+    },
+    {
+      "path": "public/benchmarks/simulation-rigid-body-2d-v1/index.html",
+      "sha256": "9611388b2796629cc3aeb439b0ce005d2f0e1237a2b2128ea826ea5bf4105736"
+    },
+    {
+      "path": "public/benchmarks/simulation-rigid-body-2d-v1/runner.js",
+      "sha256": "3719fcf16e92ca8b2a51c0ad82f5379a2bbc0bdbb75a4c0099630ac7cc40e4ca"
+    },
+    {
+      "path": "public/benchmarks/simulation-rigid-body-2d-v1/worker.js",
+      "sha256": "620560fa0e8efbe5feed9cc569e2065a9dfb7cde2d51d7c1e0af8b4ce062bfc9"
+    },
+    {
+      "path": "server.ts",
+      "sha256": "3df4b584b9263968eff7b3fd9a1adbe5c543e0ca8928b0707e1ddff00ff93996"
     },
     {
       "path": "deno.json",
@@ -57,6 +73,6 @@
     "bytes": 5356,
     "sha256": "29759e3438a541edf6432412438efdcdee7488b73bb83578eb4657b25d442975"
   },
-  "fixtureManifestSha256": "c38ec24b9f0f6fcb94d57d9b509bf53765fefeb05033b790dedf994cb58f57ed",
+  "fixtureManifestSha256": "95f511e9588c9cf2f0bf423f23bb9a37501549cc9db0ea018c6fdb89426d7de3",
   "outputManifestSha256": "10ec6b8d06aa53c4a30007726653dd10c6aa501507efd411882eab24db665642"
 }
