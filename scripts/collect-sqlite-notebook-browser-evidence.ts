@@ -1,5 +1,6 @@
 // deno-lint-ignore-file no-unsafe-finally -- cleanup assertions throw only inside nested try/catch blocks so every cleanup phase still runs and retains its outcome.
 import Ajv2020Module from "ajv2020";
+import addFormatsModule from "ajv-formats";
 import { canonicalize, sha256Hex } from "../lib/canonical.ts";
 import { CdpClient } from "../lib/cdp-client.ts";
 
@@ -78,12 +79,32 @@ export function assertBrowserContract(
       launchArguments.at(-2) ?? "",
     ) || launchArguments.at(-1) !== "about:blank"
   ) throw new Error("Chrome launch arguments differ from the reviewed exact argument vector");
-  if (!Array.isArray(effectiveArguments)) throw new Error("effective Chrome arguments unavailable");
-  for (const argument of launchArguments.filter((value) => value.startsWith("--"))) {
-    if (!effectiveArguments.includes(argument)) {
-      throw new Error(`effective Chrome argument missing: ${argument}`);
-    }
+  if (
+    !Array.isArray(effectiveArguments) ||
+    effectiveArguments.length !== launchArguments.length + 1 ||
+    !launchArguments.every((argument, index) => effectiveArguments[index + 1] === argument)
+  ) {
+    throw new Error("effective Chrome arguments differ from the reviewed exact argument vector");
   }
+}
+
+interface Validator {
+  (value: unknown): boolean;
+  errors?: unknown;
+}
+type AjvConstructor = new (options?: Record<string, unknown>) => {
+  compile: (schema: unknown) => Validator;
+};
+
+export function compileEvidenceSchema(schema: unknown): Validator {
+  const Ajv2020 = ((Ajv2020Module as unknown as { default?: AjvConstructor }).default ??
+    Ajv2020Module) as unknown as AjvConstructor;
+  const addFormats =
+    (addFormatsModule as unknown as { default?: (ajv: unknown) => void }).default ??
+      (addFormatsModule as unknown as (ajv: unknown) => void);
+  const ajv = new Ajv2020({ strict: true, allErrors: true });
+  addFormats(ajv);
+  return ajv.compile(schema);
 }
 
 export interface NotebookResult {
@@ -175,6 +196,257 @@ function parseDisplayedResult(text: string): NotebookResult {
     exactChecks,
     results,
   };
+}
+
+function asRecord(value: unknown, label: string): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(`${label} is not an object`);
+  }
+  return value as Record<string, unknown>;
+}
+
+function asRecords(value: unknown, label: string): Array<Record<string, unknown>> {
+  if (!Array.isArray(value)) throw new Error(`${label} is not an array`);
+  return value.map((entry) => asRecord(entry, label));
+}
+
+function assertOwnedSessionRecord(
+  record: Record<string, unknown>,
+  sessions: Map<string, Record<string, unknown>>,
+  label: string,
+): void {
+  const session = sessions.get(String(record.sessionId));
+  if (
+    !session || session.targetId !== record.targetId ||
+    (record.targetType !== undefined && session.type !== record.targetType)
+  ) throw new Error(`${label} escaped the declared owned session/target identity`);
+}
+
+export async function assertEvidenceSemantics(
+  evidence: unknown,
+  expectedResults: NotebookResult["results"],
+): Promise<void> {
+  const value = asRecord(evidence, "evidence");
+  const source = asRecord(value.source, "source");
+  const end = asRecord(source.endRecheck, "source end recheck");
+  if (end.head !== source.head || end.tree !== source.tree) {
+    throw new Error("source/end HEAD or tree identity differs");
+  }
+
+  const sourceFiles = asRecords(source.files, "source files");
+  const sourceByRoute = new Map<string, Record<string, unknown>>();
+  for (const file of sourceFiles) {
+    const route = String(file.route);
+    if (sourceByRoute.has(route)) throw new Error(`duplicate source route: ${route}`);
+    sourceByRoute.set(route, file);
+  }
+
+  const browser = asRecord(value.browser, "browser");
+  const executable = asRecord(browser.executable, "browser executable");
+  assertBrowserContract(
+    browser.product,
+    String(executable.sha256),
+    browser.launchArguments as string[],
+    browser.effectiveArguments,
+  );
+  const cgroup = asRecord(browser.cgroup, "browser cgroup");
+  if (cgroup.path !== `/sys/fs/cgroup${String(cgroup.controlGroup)}`) {
+    throw new Error("cgroup path/control-group identity differs");
+  }
+  const processes = asRecords(browser.processes, "browser processes");
+  const processByPid = new Map(processes.map((entry) => [Number(entry.pid), entry]));
+  const mainProcess = processByPid.get(Number(cgroup.mainPid));
+  if (!mainProcess || mainProcess.executable !== executable.path) {
+    throw new Error("cgroup MainPID is not the declared CfT process identity");
+  }
+  for (const snapshot of asRecords(cgroup.snapshots, "cgroup snapshots")) {
+    const pids = snapshot.pids as number[];
+    if (
+      !pids.includes(Number(cgroup.mainPid)) ||
+      pids.some((pid) => !processByPid.has(pid))
+    ) throw new Error("cgroup snapshot differs from retained process identities");
+  }
+
+  const server = asRecord(value.server, "server");
+  const serverOrigin = String(server.origin);
+  const cleanup = asRecord(value.cleanup, "cleanup");
+  const sessionCleanup = asRecord(cleanup.sessionTargets, "session cleanup");
+  const scenarioIds = new Set<string>();
+  const screenshotPaths = new Set<string>();
+  const lifecycleKinds = new Set([
+    "instrumentation-ready",
+    "blob-created",
+    "worker-created",
+    "worker-posted",
+    "worker-held",
+    "worker-released",
+    "worker-terminated",
+    "synthetic-message",
+    "synthetic-error",
+  ]);
+  const expectedCompleteStatus =
+    "Complete. Every returned value matched the independent reference.";
+
+  for (const scenario of asRecords(value.scenarios, "scenarios")) {
+    const id = String(scenario.id);
+    if (scenarioIds.has(id)) throw new Error(`duplicate scenario identity: ${id}`);
+    scenarioIds.add(id);
+    const ownership = asRecord(scenario.ownership, `${id} ownership`);
+    if (ownership.browserContextId !== sessionCleanup.browserContextId) {
+      throw new Error(`${id} browser-context identity differs from cleanup evidence`);
+    }
+    const sessions = new Map<string, Record<string, unknown>>();
+    const targetIds = new Set<string>();
+    for (const session of asRecords(ownership.sessions, `${id} sessions`)) {
+      const sessionId = String(session.sessionId);
+      const targetId = String(session.targetId);
+      if (sessions.has(sessionId) || targetIds.has(targetId)) {
+        throw new Error(`${id} duplicated session/target identity`);
+      }
+      sessions.set(sessionId, session);
+      targetIds.add(targetId);
+    }
+    const pageSession = sessions.get(String(ownership.pageSessionId));
+    if (
+      !pageSession || pageSession.targetId !== ownership.pageTargetId ||
+      pageSession.type !== "page" || pageSession.parentSessionId !== null
+    ) throw new Error(`${id} page session/target identity differs`);
+    for (const session of sessions.values()) {
+      if (
+        session.type === "worker" &&
+        session.parentSessionId !== ownership.pageSessionId
+      ) throw new Error(`${id} worker session parent identity differs`);
+    }
+
+    const lifecycle = asRecord(scenario.lifecycle, `${id} lifecycle`);
+    const lifecycleEvents = asRecords(lifecycle.events, `${id} lifecycle events`);
+    for (const event of lifecycleEvents) {
+      if (!lifecycleKinds.has(String(event.kind))) {
+        throw new Error(`${id} retained an undeclared lifecycle kind`);
+      }
+      if (
+        event.sessionId !== ownership.pageSessionId ||
+        event.targetId !== ownership.pageTargetId
+      ) throw new Error(`${id} lifecycle escaped the owned page session`);
+      try {
+        JSON.parse(String(event.detailJson));
+      } catch {
+        throw new Error(`${id} lifecycle detail is not JSON`);
+      }
+    }
+    const targetCount = (scenario.targetSequence as unknown[]).length;
+    if (
+      lifecycleEvents.filter((event) => event.kind === "worker-created").length !== targetCount ||
+      lifecycleEvents.filter((event) => event.kind === "worker-terminated").length !== targetCount
+    ) throw new Error(`${id} lifecycle worker counts differ from the target sequence`);
+
+    for (const audit of asRecords(scenario.executionAudits, `${id} execution audits`)) {
+      assertOwnedSessionRecord(audit, sessions, `${id} execution audit`);
+      if (
+        audit.kind !== "blob-created" &&
+        sessions.get(String(audit.sessionId))?.type !== "worker"
+      ) throw new Error(`${id} module execution audit did not belong to an owned worker`);
+    }
+    for (const entry of asRecords(scenario.console, `${id} console`)) {
+      assertOwnedSessionRecord(entry, sessions, `${id} console`);
+      if (entry.type === "error") throw new Error(`${id} retained a console error`);
+    }
+
+    for (const request of asRecords(scenario.network, `${id} network`)) {
+      assertOwnedSessionRecord(request, sessions, `${id} network`);
+      const url = new URL(String(request.url));
+      if (
+        (url.protocol === "http:" && url.origin !== serverOrigin) ||
+        (url.protocol === "blob:" && !url.href.startsWith(`blob:${serverOrigin}/`)) ||
+        !(url.protocol === "http:" || url.protocol === "blob:")
+      ) throw new Error(`${id} network URL escaped the owned loopback origin`);
+      const body = asRecord(request.body, `${id} network body`);
+      if (body.status === "supported") {
+        const frozen = sourceByRoute.get(url.pathname);
+        if (
+          !frozen || body.bytes !== frozen.bytes || body.sha256 !== frozen.sha256 ||
+          body.sourcePath !== frozen.path || body.gitBlob !== frozen.gitBlob
+        ) throw new Error(`${id} raw response/source identity differs`);
+      } else if (body.status !== "executed-blob-audit" || url.protocol !== "blob:") {
+        throw new Error(`${id} network body semantics differ from its URL`);
+      }
+    }
+
+    const finalState = asRecord(scenario.finalState, `${id} final state`);
+    const statusHistory = scenario.statusHistory as string[];
+    const accessibility = asRecord(scenario.accessibility, `${id} accessibility`);
+    if (
+      statusHistory.at(-1) !== finalState.status ||
+      accessibility.visibleStatus !== finalState.status ||
+      accessibility.visibleResultTextSha256 !== finalState.resultTextSha256
+    ) throw new Error(`${id} visible/final status or result identity differs`);
+
+    const retainedResult = scenario.result === undefined
+      ? null
+      : scenario.result as unknown as NotebookResult;
+    const expectedEngine = retainedResult?.variant === "javascript-controlled"
+      ? "AlaSQL 4.17.2"
+      : "SQLite linear-wasm 3.53.0";
+    if (retainedResult) {
+      if (retainedResult.engine !== expectedEngine) {
+        throw new Error(`${id} result engine differs from the controlled variant`);
+      }
+      assertCompleteResult(
+        retainedResult,
+        expectedResults,
+        new Map(
+          retainedResult.exactChecks.map((entry) => [entry.id, entry.sha256]),
+        ),
+      );
+      const computedHash = await sha256Hex(
+        encoder.encode(`${JSON.stringify(retainedResult.results)}\n`),
+      );
+      if (computedHash !== retainedResult.completeOutputSha256) {
+        throw new Error(`${id} oracle rows do not produce the retained output hash`);
+      }
+      const displayed = parseDisplayedResult(retainedResult.rawText);
+      if (!sameJson(displayed, retainedResult)) {
+        throw new Error(`${id} raw visible result differs from its semantic result fields`);
+      }
+      if (
+        finalState.status !== expectedCompleteStatus || finalState.progress !== 4 ||
+        finalState.startDisabled !== false || finalState.cancelDisabled !== true ||
+        finalState.resultTextSha256 !==
+          await sha256Hex(encoder.encode(retainedResult.rawText)) ||
+        accessibility.resultDigestExposed !== true ||
+        !sameJson(accessibility.assertions, [
+          "visible status is exposed",
+          "full-result digest is exposed",
+        ])
+      ) throw new Error(`${id} completed result/status/AX semantics differ`);
+    } else {
+      const expectedStatus = id === "timeout"
+        ? "Failed: Stopped after 120 seconds"
+        : id === "cancel"
+        ? "Cancelled. The worker and in-memory database were discarded."
+        : "Binding the runtime to verified response bytes…";
+      const expectedResultText = id === "timeout"
+        ? "Stopped after 120 seconds"
+        : id === "cancel"
+        ? "No result retained."
+        : "Running…";
+      if (
+        finalState.status !== expectedStatus || finalState.progress !== 0 ||
+        finalState.startDisabled !== false || finalState.cancelDisabled !== true ||
+        finalState.resultTextSha256 !==
+          await sha256Hex(encoder.encode(expectedResultText)) ||
+        accessibility.resultDigestExposed !== false ||
+        !sameJson(accessibility.assertions, ["visible status is exposed"])
+      ) throw new Error(`${id} stopped result/status/AX semantics differ`);
+    }
+
+    const screenshot = asRecord(scenario.screenshot, `${id} screenshot`);
+    const screenshotPath = String(screenshot.path);
+    if (screenshotPath !== `screenshots/${id}.png` || screenshotPaths.has(screenshotPath)) {
+      throw new Error(`${id} screenshot assignment differs`);
+    }
+    screenshotPaths.add(screenshotPath);
+  }
 }
 
 interface ProcessIdentity {
@@ -662,6 +934,7 @@ async function runCollector(options: CliOptions): Promise<void> {
   let serverStatus: Promise<Deno.CommandStatus> | null = null;
   let serverIdentity: ProcessIdentity | null = null;
   let unit: string | null = null;
+  let systemdRunSucceeded = false;
   let cgroupPath: string | null = null;
   let cgroupIdentity: {
     dev: number;
@@ -799,6 +1072,7 @@ async function runCollector(options: CliOptions): Promise<void> {
       executable,
       ...launchArguments,
     ]);
+    systemdRunSucceeded = true;
     const systemd = await waitSystemd(root, unit);
     cgroupPath = `/sys/fs/cgroup${systemd.ControlGroup}`;
     const cgroupInfo = await Deno.lstat(cgroupPath);
@@ -1518,7 +1792,33 @@ async function runCollector(options: CliOptions): Promise<void> {
     try {
       client?.close();
       await snapshotCgroup().catch(() => []);
-      if (cgroupPath && cgroupIdentity && cgroupKill) {
+      if (systemdRunSucceeded && (!cgroupPath || !cgroupIdentity || !cgroupKill)) {
+        const state = await systemdShow(root, unit!);
+        if (
+          !/^\/.+/u.test(state.ControlGroup ?? "") ||
+          !/^[a-f0-9]{32}$/u.test(state.InvocationID ?? "")
+        ) throw new Error("unresolved owned cgroup cleanup evidence after systemd-run");
+        const resolvedPath = `/sys/fs/cgroup${state.ControlGroup}`;
+        const resolved = await Deno.lstat(resolvedPath);
+        if (
+          !resolved.isDirectory || resolved.isSymlink ||
+          await Deno.realPath(resolvedPath) !== resolvedPath
+        ) throw new Error("unsafe resolved owned cgroup cleanup identity");
+        cgroupPath = resolvedPath;
+        cgroupIdentity = {
+          dev: numeric(resolved.dev, "resolved cleanup cgroup device"),
+          ino: numeric(resolved.ino, "resolved cleanup cgroup inode"),
+          controlGroup: state.ControlGroup,
+          invocationId: state.InvocationID,
+          mainPid: Number(state.MainPID),
+        };
+        cgroupKill = await Deno.open(`${cgroupPath}/cgroup.kill`, { write: true });
+        await snapshotCgroup();
+      }
+      if (systemdRunSucceeded) {
+        if (!cgroupPath || !cgroupIdentity || !cgroupKill) {
+          throw new Error("unresolved owned cgroup cleanup evidence after systemd-run");
+        }
         const current = await Deno.lstat(cgroupPath);
         if (
           numeric(current.dev, "cleanup cgroup device") !== cgroupIdentity.dev ||
@@ -1530,7 +1830,11 @@ async function runCollector(options: CliOptions): Promise<void> {
         const remaining = await waitCgroupEmpty(cgroupPath, 5_000);
         if (remaining.length) throw new Error(`owned cgroup retained PIDs: ${remaining.join(",")}`);
       }
-      cleanup.cgroup = { outcome: "success", killed: Boolean(cgroupKill), remainingPids: [] };
+      cleanup.cgroup = {
+        outcome: "success",
+        killed: systemdRunSucceeded,
+        remainingPids: [],
+      };
     } catch (error) {
       cleanup.cgroup = {
         outcome: "failure",
@@ -1541,23 +1845,46 @@ async function runCollector(options: CliOptions): Promise<void> {
     try {
       cgroupKill?.close();
     } catch { /* retained above */ }
+    const remainingBrowserPids: number[] = [];
     try {
-      if (unit) {
-        await commandText(root, "/usr/bin/systemctl", ["--user", "stop", unit]).catch(() => "");
+      const fallbackFailures: string[] = [];
+      if (
+        systemdRunSucceeded && (cleanup.cgroup as { outcome: string }).outcome !== "success"
+      ) {
+        for (
+          const args of [
+            ["--user", "kill", "--kill-whom=all", "--signal=SIGKILL", unit!],
+            ["--user", "stop", unit!],
+          ]
+        ) {
+          try {
+            await commandText(root, "/usr/bin/systemctl", args);
+          } catch (error) {
+            fallbackFailures.push(error instanceof Error ? error.message : String(error));
+          }
+        }
       }
-      const remaining = [];
       for (const identity of browserProcesses.values()) {
-        if (await identityRunning(identity)) remaining.push(identity.pid);
+        if (await identityRunning(identity)) remainingBrowserPids.push(identity.pid);
       }
-      if (remaining.length) {
-        throw new Error(`identity-bound CfT processes survived: ${remaining.join(",")}`);
+      if (remainingBrowserPids.length) {
+        throw new Error(
+          `identity-bound CfT processes survived: ${remainingBrowserPids.join(",")}`,
+        );
+      }
+      if (
+        systemdRunSucceeded && browserProcesses.size === 0 &&
+        (cleanup.cgroup as { outcome: string }).outcome !== "success"
+      ) throw new Error("unresolved owned browser process identity evidence after exact unit kill");
+      if (fallbackFailures.length) {
+        throw new Error(`exact systemd fallback cleanup failed: ${fallbackFailures.join("; ")}`);
       }
       cleanup.browserProcesses = { outcome: "success", remainingPids: [] };
     } catch (error) {
       cleanup.browserProcesses = {
         outcome: "failure",
         error: error instanceof Error ? error.message : String(error),
-        remainingPids: [],
+        remainingPids: remainingBrowserPids,
       };
     }
     try {
@@ -1723,15 +2050,11 @@ async function runCollector(options: CliOptions): Promise<void> {
   const schema = JSON.parse(
     await Deno.readTextFile(`${root}/schemas/sqlite-notebook-browser-evidence.schema.json`),
   );
-  type Validator = ((value: unknown) => boolean) & { errors?: unknown };
-  type AjvConstructor = new (
-    options?: Record<string, unknown>,
-  ) => { compile: (schema: unknown) => Validator };
-  const Ajv2020 = Ajv2020Module as unknown as AjvConstructor;
-  const validate = new Ajv2020({ strict: true, allErrors: true }).compile(schema);
+  const validate = compileEvidenceSchema(schema);
   if (!validate(evidence)) {
     throw new Error(`browser evidence schema failed: ${JSON.stringify(validate.errors)}`);
   }
+  await assertEvidenceSemantics(evidence, reference.results);
   await Deno.writeTextFile(`${options.outputDir}/evidence.v1.json`, `${canonicalize(evidence)}\n`, {
     createNew: true,
   });

@@ -366,7 +366,8 @@
         },
         "effectiveArguments": {
           "type": "array",
-          "minItems": 20,
+          "minItems": 21,
+          "maxItems": 21,
           "items": { "type": "string", "minLength": 1 }
         },
         "headless": { "const": true },
@@ -839,7 +840,19 @@
       "additionalProperties": false,
       "required": ["kind", "detailJson", "sessionId", "targetId"],
       "properties": {
-        "kind": { "type": "string", "minLength": 1 },
+        "kind": {
+          "enum": [
+            "instrumentation-ready",
+            "blob-created",
+            "worker-created",
+            "worker-posted",
+            "worker-held",
+            "worker-released",
+            "worker-terminated",
+            "synthetic-message",
+            "synthetic-error"
+          ]
+        },
         "detailJson": { "type": "string", "pattern": "^\\{" },
         "sessionId": { "type": "string", "minLength": 1 },
         "targetId": { "type": "string", "minLength": 1 }
@@ -882,7 +895,7 @@
         "sessionId": { "type": "string", "minLength": 1 },
         "targetId": { "type": "string", "minLength": 1 },
         "targetType": { "enum": ["page", "worker"] },
-        "type": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "minLength": 1, "not": { "const": "error" } },
         "arguments": { "type": "array", "items": { "type": "string" } }
       }
     },
@@ -953,7 +966,10 @@
         "sessionId": { "type": "string", "minLength": 1 },
         "targetId": { "type": "string", "minLength": 1 },
         "targetType": { "enum": ["page", "worker"] },
-        "url": { "type": "string", "pattern": "^(http|blob):" },
+        "url": {
+          "type": "string",
+          "pattern": "^(http://127\\.0\\.0\\.1:[1-9][0-9]*|blob:http://127\\.0\\.0\\.1:[1-9][0-9]*/)"
+        },
         "method": { "const": "GET" },
         "resourceType": { "type": "string", "minLength": 1 },
         "status": { "const": 200 },

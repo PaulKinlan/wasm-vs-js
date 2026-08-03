@@ -1,8 +1,8 @@
-import Ajv2020Module from "ajv2020";
-import addFormatsModule from "ajv-formats";
 import {
   assertBrowserContract,
   assertCompleteResult,
+  assertEvidenceSemantics,
+  compileEvidenceSchema,
   COMPLETE_OUTPUT_SHA256,
   EXPECTED_EXECUTABLE_SHA256,
   EXPECTED_PRODUCT,
@@ -10,19 +10,13 @@ import {
   parseOptions,
   STATIC_LAUNCH_ARGUMENTS,
 } from "../scripts/collect-sqlite-notebook-browser-evidence.ts";
+import { sha256Hex } from "../lib/canonical.ts";
 import { assert, assertEquals, assertRejects } from "./assert.ts";
 
 interface Validator {
   (value: unknown): boolean;
   errors?: unknown;
 }
-type AjvConstructor = new (options?: Record<string, unknown>) => {
-  compile: (schema: unknown) => Validator;
-};
-const Ajv2020 = ((Ajv2020Module as unknown as { default?: AjvConstructor }).default ??
-  Ajv2020Module) as unknown as AjvConstructor;
-const addFormats = (addFormatsModule as unknown as { default?: (ajv: unknown) => void }).default ??
-  (addFormatsModule as unknown as (ajv: unknown) => void);
 const HASH = "a".repeat(64);
 const GIT = "b".repeat(40);
 const EXACT_CHECKS = [
@@ -47,9 +41,7 @@ async function schemaValidator(): Promise<Validator> {
   const schema = JSON.parse(
     await Deno.readTextFile("schemas/sqlite-notebook-browser-evidence.schema.json"),
   );
-  const ajv = new Ajv2020({ strict: true, allErrors: true });
-  addFormats(ajv);
-  return ajv.compile(schema);
+  return compileEvidenceSchema(schema);
 }
 
 async function referenceResults() {
@@ -74,16 +66,32 @@ function counters(variant: NotebookResult["variant"]) {
 }
 
 async function result(variant: NotebookResult["variant"]): Promise<NotebookResult> {
+  const engine = variant === "javascript-controlled"
+    ? "AlaSQL 4.17.2"
+    : "SQLite linear-wasm 3.53.0";
+  const results = await referenceResults();
+  const exactChecks = EXACT_CHECKS.map(([id, sha256]) => ({ id, sha256 }));
+  const resultCounters = counters(variant);
+  const rawText = [
+    `Variant: ${variant}`,
+    `Engine: ${engine}`,
+    "Queries: 8",
+    `Canonical output SHA-256: ${COMPLETE_OUTPUT_SHA256}`,
+    `Counters: ${JSON.stringify(resultCounters, null, 2)}`,
+    `Executed-byte checks: ${exactChecks.map((entry) => `${entry.id}:${entry.sha256}`).join("; ")}`,
+    "",
+    JSON.stringify(results, null, 2),
+  ].join("\n");
   return {
-    rawText: `${variant} exact full eight-query visible result ${"x".repeat(100)}`,
+    rawText,
     variant,
-    engine: variant === "javascript-controlled" ? "AlaSQL 4.17.2" : "SQLite linear-wasm 3.53.0",
+    engine,
     queryCount: 8,
     resultRowCount: 744,
     completeOutputSha256: COMPLETE_OUTPUT_SHA256,
-    counters: counters(variant),
-    exactChecks: EXACT_CHECKS.map(([id, sha256]) => ({ id, sha256 })),
-    results: await referenceResults(),
+    counters: resultCounters,
+    exactChecks,
+    results,
   };
 }
 
@@ -113,7 +121,7 @@ function network(index: number) {
       status: "supported",
       bytes: 3,
       sha256: HASH,
-      sourcePath: "public/asset.js",
+      sourcePath: `public/asset-${index}`,
       gitBlob: GIT,
     },
   };
@@ -125,16 +133,43 @@ async function scenario(
   targets: NotebookResult["variant"][],
   variant: NotebookResult["variant"] | null,
 ) {
-  const lifecycle = Array.from({ length: 3 }, (_, index) => ({
-    kind: index === 0
-      ? "instrumentation-ready"
-      : index === 1
-      ? "worker-created"
-      : "worker-terminated",
-    detailJson: `{"index":${index}}`,
-    sessionId: "page-session",
-    targetId: "page-target",
-  }));
+  const lifecycle = [
+    {
+      kind: "instrumentation-ready",
+      detailJson: "{}",
+      sessionId: "page-session",
+      targetId: "page-target",
+    },
+    ...targets.flatMap((_target, index) => [
+      {
+        kind: "worker-created",
+        detailJson: `{"index":${index}}`,
+        sessionId: "page-session",
+        targetId: "page-target",
+      },
+      {
+        kind: "worker-terminated",
+        detailJson: `{"index":${index}}`,
+        sessionId: "page-session",
+        targetId: "page-target",
+      },
+    ]),
+  ];
+  const retainedResult = variant ? await result(variant) : null;
+  const resultText = retainedResult?.rawText ??
+    (id === "timeout"
+      ? "Stopped after 120 seconds"
+      : id === "cancel"
+      ? "No result retained."
+      : "Running…");
+  const resultTextSha256 = await sha256Hex(new TextEncoder().encode(resultText));
+  const finalStatus = variant
+    ? "Complete. Every returned value matched the independent reference."
+    : id === "timeout"
+    ? "Failed: Stopped after 120 seconds"
+    : id === "cancel"
+    ? "Cancelled. The worker and in-memory database were discarded."
+    : "Binding the runtime to verified response bytes…";
   return {
     id,
     mode,
@@ -153,16 +188,16 @@ async function scenario(
         },
       ],
     },
-    statusHistory: ["Ready.", variant ? "Complete." : "Stopped."],
+    statusHistory: ["Ready.", finalStatus],
     finalState: {
-      status: variant ? "Complete." : "Stopped.",
-      resultTextSha256: HASH,
+      status: finalStatus,
+      resultTextSha256,
       bodyTextSha256: HASH,
       startDisabled: false,
       cancelDisabled: true,
       progress: variant ? 4 : 0,
     },
-    ...(variant ? { result: await result(variant) } : {}),
+    ...(retainedResult ? { result: retainedResult } : {}),
     lifecycle: { events: lifecycle, assertions: [`${id} causal assertion`] },
     executionAudits: variant
       ? Array.from({ length: 3 }, (_, index) => ({
@@ -196,8 +231,8 @@ async function scenario(
     network: [network(1), network(2), network(3)],
     accessibility: {
       inspectedBy: "Accessibility.getFullAXTree",
-      visibleStatus: variant ? "Complete." : "Stopped.",
-      visibleResultTextSha256: HASH,
+      visibleStatus: finalStatus,
+      visibleResultTextSha256: resultTextSha256,
       resultDigestExposed: variant !== null,
       matchingNodes: [{ role: "status", nameSha256: HASH }],
       assertions: variant
@@ -404,6 +439,101 @@ Deno.test("SQLite notebook evidence rejects browser, source, semantic, lifecycle
   }
 });
 
+Deno.test("semantic validator rejects cross-field oracle, ownership, raw, UI, and engine contradictions", async () => {
+  const expected = await referenceResults();
+  const baseline = await fixture();
+  await assertEvidenceSemantics(baseline, expected);
+  const mutations: Array<{
+    name: string;
+    mutate: (value: Awaited<ReturnType<typeof fixture>>) => void;
+  }> = [
+    {
+      name: "oracle row/hash",
+      mutate: (value) => {
+        value.scenarios[0].result!.results[0].rows[0].gross_cents = 1;
+      },
+    },
+    {
+      name: "raw visible result",
+      mutate: (value) => {
+        value.scenarios[0].result!.rawText = value.scenarios[0].result!.rawText.replace(
+          "Queries: 8",
+          "Queries: 7",
+        );
+      },
+    },
+    {
+      name: "raw response/source hash",
+      mutate: (value) =>
+        Object.assign(value.scenarios[0].network[0].body, { sha256: "c".repeat(64) }),
+    },
+    {
+      name: "source/end identity",
+      mutate: (value) => Object.assign(value.source.endRecheck, { head: "c".repeat(40) }),
+    },
+    {
+      name: "cgroup identity",
+      mutate: (value) => Object.assign(value.browser.cgroup, { path: "/sys/fs/cgroup/other" }),
+    },
+    {
+      name: "cgroup process membership",
+      mutate: (value) => value.browser.cgroup.snapshots[0].pids.push(9999),
+    },
+    {
+      name: "session/target identity",
+      mutate: (value) => Object.assign(value.scenarios[0].network[0], { targetId: "other" }),
+    },
+    {
+      name: "lifecycle kind",
+      mutate: (value) =>
+        Object.assign(value.scenarios[0].lifecycle.events[0], { kind: "fabricated" }),
+    },
+    {
+      name: "final/visible status",
+      mutate: (value) =>
+        Object.assign(value.scenarios[0].accessibility, { visibleStatus: "Ready." }),
+    },
+    {
+      name: "console error",
+      mutate: (value) => Object.assign(value.scenarios[0].console[0], { type: "error" }),
+    },
+    {
+      name: "external network URL",
+      mutate: (value) =>
+        Object.assign(value.scenarios[0].network[0], { url: "http://example.com/x" }),
+    },
+    {
+      name: "AX digest",
+      mutate: (value) =>
+        Object.assign(value.scenarios[0].accessibility, { resultDigestExposed: false }),
+    },
+    {
+      name: "screenshot assignment",
+      mutate: (value) =>
+        Object.assign(value.scenarios[0].screenshot, { path: "screenshots/complete-wasm.png" }),
+    },
+    {
+      name: "result engine",
+      mutate: (value) =>
+        Object.assign(value.scenarios[0].result!, { engine: "SQLite linear-wasm 3.53.0" }),
+    },
+    {
+      name: "effective argument extra",
+      mutate: (value) => value.browser.effectiveArguments.push("--js-flags=--jitless"),
+    },
+  ];
+  for (const { name, mutate } of mutations) {
+    const changed = structuredClone(baseline);
+    mutate(changed);
+    await assertRejects(
+      () => assertEvidenceSemantics(changed, expected),
+      "",
+    ).catch((error) => {
+      throw new Error(`${name}: ${error instanceof Error ? error.message : String(error)}`);
+    });
+  }
+});
+
 Deno.test("parent result gate requires all eight queries, 744 rows, exact output, counters, and 15 byte checks", async () => {
   const actual = await result("javascript-controlled");
   const runtimeHashes = new Map(actual.exactChecks.map((entry) => [entry.id, entry.sha256]));
@@ -449,6 +579,18 @@ Deno.test("CfT contract is exact and explicitly retains --enable-automation", as
       "",
     );
   }
+  await assertRejects(
+    () =>
+      Promise.resolve(
+        assertBrowserContract(
+          EXPECTED_PRODUCT,
+          EXPECTED_EXECUTABLE_SHA256,
+          args,
+          ["chrome", ...args, "--js-flags=--jitless"],
+        ),
+      ),
+    "effective Chrome arguments differ",
+  );
   assertEquals(
     parseOptions(["--chrome=/opt/cft/chrome", "--output-dir=/tmp/evidence"]),
     { chrome: "/opt/cft/chrome", outputDir: "/tmp/evidence" },
@@ -465,6 +607,9 @@ Deno.test("collector source hardens cgroup, target/session, raw/executed bytes, 
       "Chrome/150.0.7871.24",
       EXPECTED_EXECUTABLE_SHA256,
       '"--enable-automation"',
+      'from "ajv-formats"',
+      "addFormats(ajv)",
+      "assertEvidenceSemantics(evidence, reference.results)",
       '"status",\n    "--porcelain=v1"',
       '"rev-parse", "HEAD^{tree}"',
       "endRecheck",
@@ -473,6 +618,9 @@ Deno.test("collector source hardens cgroup, target/session, raw/executed bytes, 
       "/usr/bin/systemd-run",
       "KillMode=control-group",
       "cgroup.kill",
+      "unresolved owned cgroup cleanup evidence after systemd-run",
+      '"--kill-whom=all"',
+      "unresolved owned browser process identity evidence after exact unit kill",
       "Target.createBrowserContext",
       "Target.disposeBrowserContext",
       "Target.getTargetInfo",
