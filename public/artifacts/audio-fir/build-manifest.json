@@ -5,8 +5,8 @@
   "entryId": "audio.fir.v1",
   "benchmarkSlug": "audio-fir",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "398a1f8de983f804d875a10f69b83763824a8b92",
-  "sourceSha256": "5d6d801a23abe7c377f6ed2a3d161e9845fa62df1f0606e5f08fdc4eb7ec4042",
+  "sourceCommit": "02624c3c25497cd6ec0b363df2b17cbf5b9b5268",
+  "sourceSha256": "d8ba8899e36e5545c67845a6ce54212331079e663f354e529e266ca30a703e6f",
   "fullSourceGraph": [
     {
       "path": "benchmarks/audio-fft/benchmark.json",
@@ -115,8 +115,8 @@
     },
     {
       "path": "deno.json",
-      "bytes": 2338,
-      "sha256": "1afeda212c279fb9a0a80130436579a89d70646f40cca0015b619f2fabe3b60c"
+      "bytes": 1831,
+      "sha256": "17e6674c81fdaee7dfc52ed1bd28baeec70fb0715f839b92defe1e84545b08eb"
     },
     {
       "path": "deno.lock",
@@ -147,15 +147,15 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/audio-fir/fixture-manifest.json",
-      "sha256": "ee76e7dcca21baf6b29104b7bbeb3a0ba228bbdee73dd8408ccb4b7ae091d55d"
+      "sha256": "32f550f7fe953f8351c3c4bed0e6b70b0182911055ec19208126f2d8124f097d"
     },
     "input": {
       "path": "public/artifacts/audio-fir/input-manifest.json",
-      "sha256": "6d284d2cb0a6c2aba3ec538e5dfbd5bcd93f20065c7d26af9fe1a830125a517d"
+      "sha256": "83dd435749a2ac5bb465e021011b1e7eaa0994380066276215e494b8e2cab2f8"
     },
     "output": {
       "path": "public/artifacts/audio-fir/output-manifest.json",
-      "sha256": "3d210fff35f7a313c6ba8bafe8a083a0d99c41395cca3fd1e105a91d79c0863b"
+      "sha256": "52e11e7a9cdef9cd497ac105dfda1d6eeac4f9bffd85ba5a75a7fc73d2d9e7aa"
     }
   },
   "variants": {
@@ -191,7 +191,7 @@
       "--allow-write=public/artifacts/audio-fft,public/artifacts/audio-fir,public/artifacts/audio-stft",
       "--allow-run=git",
       "scripts/build-audio.ts",
-      "--source-commit=398a1f8de983f804d875a10f69b83763824a8b92"
+      "--source-commit=02624c3c25497cd6ec0b363df2b17cbf5b9b5268"
     ],
     "toolchain": [
       {
