@@ -1,0 +1,158 @@
+{
+  "bounds": {
+    "bytes": 589824,
+    "sha256": "058372fcc320716352573db38138f0708974ba74767ce2960604864b0e35b58a"
+  },
+  "counters": {
+    "js-controlled": {
+      "activation-evaluations": 131072,
+      "allocations": 0,
+      "boundary-crossings": 0,
+      "layers": 9,
+      "multiply-accumulates": 75497472,
+      "output-elements": 147456,
+      "scratch-bytes": 131072,
+      "tensor-bytes": 9521152
+    },
+    "wasm-linear-controlled": {
+      "activation-evaluations": 131072,
+      "allocations": 0,
+      "boundary-crossings": 17,
+      "layers": 9,
+      "multiply-accumulates": 75497472,
+      "output-elements": 147456,
+      "scratch-bytes": 131072,
+      "tensor-bytes": 9521152
+    }
+  },
+  "crossTarget": { "maxBoundRatio": 0, "maxDeviation": 0 },
+  "layerChecks": [
+    {
+      "js": { "maxBoundRatio": 0.006520264729202777, "maxDeviation": 0.000001841545442138326 },
+      "layer": 0,
+      "wasm": { "maxBoundRatio": 0.006520264729202777, "maxDeviation": 0.000001841545442138326 }
+    },
+    {
+      "js": { "maxBoundRatio": 0.007340008075635984, "maxDeviation": 9.954541997370114e-7 },
+      "layer": 1,
+      "wasm": { "maxBoundRatio": 0.007340008075635984, "maxDeviation": 9.954541997370114e-7 }
+    },
+    {
+      "js": { "maxBoundRatio": 0.0071372139395762, "maxDeviation": 5.323943598756209e-7 },
+      "layer": 2,
+      "wasm": { "maxBoundRatio": 0.0071372139395762, "maxDeviation": 5.323943598756209e-7 }
+    },
+    {
+      "js": { "maxBoundRatio": 0.009090573105776772, "maxDeviation": 4.941412301839865e-7 },
+      "layer": 3,
+      "wasm": { "maxBoundRatio": 0.009090573105776772, "maxDeviation": 4.941412301839865e-7 }
+    },
+    {
+      "js": { "maxBoundRatio": 0.008588709756390202, "maxDeviation": 4.102273724881922e-7 },
+      "layer": 4,
+      "wasm": { "maxBoundRatio": 0.008588709756390202, "maxDeviation": 4.102273724881922e-7 }
+    },
+    {
+      "js": { "maxBoundRatio": 0.009382282330325351, "maxDeviation": 4.2395278920803747e-7 },
+      "layer": 5,
+      "wasm": { "maxBoundRatio": 0.009382282330325351, "maxDeviation": 4.2395278920803747e-7 }
+    },
+    {
+      "js": { "maxBoundRatio": 0.008675629638695448, "maxDeviation": 3.7721109344412973e-7 },
+      "layer": 6,
+      "wasm": { "maxBoundRatio": 0.008675629638695448, "maxDeviation": 3.7721109344412973e-7 }
+    },
+    {
+      "js": { "maxBoundRatio": 0.009384425752312065, "maxDeviation": 4.1955916382785396e-7 },
+      "layer": 7,
+      "wasm": { "maxBoundRatio": 0.009384425752312065, "maxDeviation": 4.1955916382785396e-7 }
+    },
+    {
+      "js": { "maxBoundRatio": 0.013682338846662881, "maxDeviation": 5.673732021427291e-7 },
+      "layer": 8,
+      "wasm": { "maxBoundRatio": 0.013682338846662881, "maxDeviation": 5.673732021427291e-7 }
+    }
+  ],
+  "layerDigests": [
+    "7976ca02e7291d523079493f0bf318793c5e094722e4e0073f76b23e53df8370",
+    "0280354c3b88eb8b8d7889aa3ad0ccfcf13ff2bfd63d140e973e663ec0e05fc3",
+    "7489b8c4e275d93023d6b485b4d0a0771ae2dc0d1703e4e3c6b67c3ce6578dbb",
+    "947d5b0eb18ccae7416f8c12f5d59b579ab3189a4e9d0332f12621744cc7f3ed",
+    "aff92a23b1a1c469691d28ea588b85d7a73a3f14286d6f791f1b9991482f16ef",
+    "b6e14ce65aa2c8a3a597125665f646555e761ddb948481003ff1b88f68b9d787",
+    "812a1eea604e81441f087c371f4c168e4ff477d74bba796217d177538678a0a2",
+    "b8fd2f8aa9f5b668cfe17585a837c2d04f964beab22f0f504e4be893ec0d68aa",
+    "b739b758d58304889cbc014b4b6715697fff811a13d9f4d382921ecfb7f7267f"
+  ],
+  "oracleChecks": ["complete-output-bound", "structural-invariants", "work-counters"],
+  "outputs": {
+    "js-controlled": "b739b758d58304889cbc014b4b6715697fff811a13d9f4d382921ecfb7f7267f",
+    "wasm-linear-controlled": "b739b758d58304889cbc014b4b6715697fff811a13d9f4d382921ecfb7f7267f"
+  },
+  "phases": {
+    "js-controlled": {
+      "compute": "measured",
+      "end-to-end": "measured",
+      "initialize": "measured",
+      "load": "measured",
+      "render": "not-applicable",
+      "transfer": "measured",
+      "validation": "separate"
+    },
+    "wasm-linear-controlled": {
+      "compute": "measured",
+      "end-to-end": "measured",
+      "initialize": "measured",
+      "load": "measured",
+      "render": "not-applicable",
+      "transfer": "measured",
+      "validation": "separate"
+    }
+  },
+  "reference": {
+    "bytes": 1179648,
+    "sha256": "a1d23f3381e391ab38a83da4bf4e7dbcb1a42cbf51a79278efdf20dbe46ef2a4"
+  },
+  "schemaVersion": 1,
+  "structuralChecks": {
+    "js-controlled": [
+      { "detail": "9 layers of 16384 elements", "id": "tensor-shapes", "passed": true },
+      { "detail": "all layer outputs finite", "id": "finite-values", "passed": true },
+      {
+        "detail": "worst final-logit bound ratio 0.013682338846662881",
+        "id": "final-logits",
+        "passed": true
+      },
+      {
+        "detail": "16352 adjacent ranking pairs checked, no provable inversion",
+        "id": "ranking",
+        "passed": true
+      },
+      {
+        "detail": "131072 hidden activations checked against ideal pre-activations",
+        "id": "gelu-invariants",
+        "passed": true
+      }
+    ],
+    "wasm-linear-controlled": [
+      { "detail": "9 layers of 16384 elements", "id": "tensor-shapes", "passed": true },
+      { "detail": "all layer outputs finite", "id": "finite-values", "passed": true },
+      {
+        "detail": "worst final-logit bound ratio 0.013682338846662881",
+        "id": "final-logits",
+        "passed": true
+      },
+      {
+        "detail": "16352 adjacent ranking pairs checked, no provable inversion",
+        "id": "ranking",
+        "passed": true
+      },
+      {
+        "detail": "131072 hidden activations checked against ideal pre-activations",
+        "id": "gelu-invariants",
+        "passed": true
+      }
+    ]
+  },
+  "workload": "ml.dense-mlp.v1"
+}

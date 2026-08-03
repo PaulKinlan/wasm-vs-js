@@ -1,0 +1,6 @@
+{
+  "bytes": 9521152,
+  "schemaVersion": 1,
+  "sha256": "d23c0f63d9c4c90b084c3a4c23db4f96dfe7fb95806f2a69227d40473fc6b350",
+  "workload": "ml.dense-mlp.v1"
+}

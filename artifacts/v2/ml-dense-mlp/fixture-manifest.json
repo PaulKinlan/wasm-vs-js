@@ -1,0 +1,36 @@
+{
+  "generator": {
+    "algorithm": "xorshift32",
+    "revision": "proposal-generator-v1",
+    "scales": { "W": 0.0625, "bias": 0.25, "x": 1 },
+    "seed": "0x5a17c0de",
+    "streamTable": "x, then per layer W then bias, stream indices 0..18",
+    "valueMapping": "(d / 2^32) * 2 * scale - scale, f64 compute, single f32 store rounding"
+  },
+  "parameters": {
+    "batch": 32,
+    "hiddenLayers": 8,
+    "projection": "final 512-wide linear layer without activation",
+    "width": 512
+  },
+  "schemaVersion": 1,
+  "tensors": {
+    "bias": {
+      "bytes": 18432,
+      "sha256": "8731dfb86e00c7493df399a8e468a8ed4c1b3f13db52bc7e99bd1b45b9767bb7"
+    },
+    "concatenated": {
+      "bytes": 9521152,
+      "sha256": "d23c0f63d9c4c90b084c3a4c23db4f96dfe7fb95806f2a69227d40473fc6b350"
+    },
+    "w": {
+      "bytes": 9437184,
+      "sha256": "96d17068740a6dda165b33d115092035123f4d75e38b37d1e79c098ae378dd61"
+    },
+    "x": {
+      "bytes": 65536,
+      "sha256": "44d59065f3855df70d8a895cd8986e29abd6a911677ccf63ed801dbe3a507eee"
+    }
+  },
+  "workload": "ml.dense-mlp.v1"
+}

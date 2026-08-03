@@ -1,0 +1,31 @@
+{
+  "generator": {
+    "algorithm": "xorshift32",
+    "revision": "proposal-generator-v1",
+    "scales": { "A": 1, "B": 1, "C0": 1 },
+    "seed": "0x91e10da5",
+    "streamTable": "per batch element: A then B then C0, stream indices 0..11",
+    "valueMapping": "(d / 2^32) * 2 * scale - scale, f64 compute, single f32 store rounding"
+  },
+  "parameters": { "batch": 4, "k": 512, "m": 512, "n": 512 },
+  "schemaVersion": 1,
+  "tensors": {
+    "a": {
+      "bytes": 4194304,
+      "sha256": "44871398407e9d9fe18f664620e98e75b4f96cafa2abb3615e75cff6418fd7b5"
+    },
+    "b": {
+      "bytes": 4194304,
+      "sha256": "6ac874c74d49eb71f4ff4ea5f48f38eb08a5c3f972ffb6c95f9e3850b8ba46c5"
+    },
+    "c0": {
+      "bytes": 4194304,
+      "sha256": "258fbd939b68973c1e689e54cbbf51350b05c402ea3f1708a1954a501ccf80a2"
+    },
+    "concatenated": {
+      "bytes": 12582912,
+      "sha256": "d90074772bcd303b7b95ce399fcff551e3c33be85101e3caf44adf1d1b4e287d"
+    }
+  },
+  "workload": "ml.gemm.v1"
+}
