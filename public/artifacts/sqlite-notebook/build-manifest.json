@@ -3,8 +3,8 @@
   "workloadId": "database.sqlite-notebook.v1",
   "implementationId": "database.sqlite-notebook.controlled.v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "f9c5992118d3b9bb7947aec957665d9216e314b1",
-  "sourceTreeSha256": "efc8c3fec2b8abcea9ed92b694c188278c52092c052069e3d1c6aa7e6b1a69ec",
+  "sourceCommit": "0b0bc13a0754eb8aefa1bf808e06080d028b02ac",
+  "sourceTreeSha256": "e3eece07d78563e96e6f053eb17d4f89a614bb3d00358c54f8b57a8a4cbb87bd",
   "frozenCatalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
   "toolchain": {
     "deno": "2.9.0",
@@ -20,7 +20,7 @@
     "deno run --allow-write=public/artifacts/sqlite-notebook/fixtures scripts/generate-sqlite-notebook-fixture.ts",
     "deno run --allow-read --allow-write=public/artifacts/sqlite-notebook/reference.json --allow-run=sqlite3 scripts/generate-sqlite-notebook-reference.ts",
     "deno run --allow-read --allow-write=public/artifacts/sqlite-notebook/runtime-manifest.json,public/sqlite-notebook-worker.js scripts/build-sqlite-notebook-runtime-manifest.ts",
-    "deno run --allow-read --allow-write=public/artifacts/sqlite-notebook,public/evidence/base-implementations/sqlite-notebook --allow-run=git scripts/build-sqlite-notebook-evidence.ts f9c5992118d3b9bb7947aec957665d9216e314b1"
+    "deno run --allow-read --allow-write=public/artifacts/sqlite-notebook,public/evidence/base-implementations/sqlite-notebook --allow-run=git scripts/build-sqlite-notebook-evidence.ts 0b0bc13a0754eb8aefa1bf808e06080d028b02ac"
   ],
   "productConfiguration": {
     "javascript": [
@@ -134,7 +134,7 @@
   "runtimeManifest": {
     "path": "public/artifacts/sqlite-notebook/runtime-manifest.json",
     "bytes": 4045,
-    "sha256": "2ce28bfc0925ccb9881858fe8e6fcd9c39d6b7d41ec25e01b22e7abe15c82c4e"
+    "sha256": "bb84b2c70e110cb1027fc334b75d147ee5492cdf1263e5e381b40808e918c46e"
   },
   "sources": [
     {
@@ -257,7 +257,7 @@
     {
       "path": "public/artifacts/sqlite-notebook/runtime-manifest.json",
       "bytes": 4045,
-      "sha256": "2ce28bfc0925ccb9881858fe8e6fcd9c39d6b7d41ec25e01b22e7abe15c82c4e"
+      "sha256": "bb84b2c70e110cb1027fc334b75d147ee5492cdf1263e5e381b40808e918c46e"
     },
     {
       "path": "public/artifacts/sqlite-notebook/fixtures/fixture-manifest.json",

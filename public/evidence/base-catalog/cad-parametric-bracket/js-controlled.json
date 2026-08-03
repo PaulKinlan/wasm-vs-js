@@ -5,7 +5,7 @@
   "status": "implementation-candidate",
   "variantId": "js-controlled",
   "executionTarget": "javascript",
-  "sourceCommit": "4a4e301f508d0876ff02b7034104e89ecf35311a",
+  "sourceCommit": "0b0bc13a0754eb8aefa1bf808e06080d028b02ac",
   "source": {
     "path": "public/artifacts/base-cad-parametric-bracket/source-bundle.txt",
     "bytes": 70561,

@@ -69,8 +69,7 @@
     {
       "path": "server.ts",
       "sha256": "13ee07c130f7a5eff03e000fb13c90fc0736240a19770fc970028d1410a52b07",
-      "immutableUrl": null,
-      "bytes": 93078
+      "immutableUrl": null
     },
     {
       "path": "deno.json",
