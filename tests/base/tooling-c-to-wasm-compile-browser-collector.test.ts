@@ -1,13 +1,14 @@
 import Ajv2020Module from "ajv2020";
 import addFormatsModule from "ajv-formats";
 import { compileC } from "../../benchmarks/base/tooling-c-to-wasm-compile/compiler-js.js";
-import { sha256Hex } from "../../lib/canonical.ts";
+import { canonicalize, sha256Hex } from "../../lib/canonical.ts";
 import {
   ACCEPTED_IMPLEMENTATION_COMMIT,
   ACCEPTED_PACKAGE_PATHS,
   assertCorpusSemantics,
   assertEvidenceSemantics,
   COUNTER_FIELDS,
+  EXACT_CHROME_PACKAGE_MANIFEST_SHA256,
   EXACT_CHROME_PRODUCT,
   EXACT_CHROME_SHA256,
   EXECUTED_SOURCE_PATHS,
@@ -61,6 +62,14 @@ async function documents() {
     ),
     compilerBytes: await Deno.readFile(
       new URL("public/artifacts/base/tooling-c-to-wasm-compile/compiler.wasm", root),
+    ),
+    chromePackage: JSON.parse(
+      await Deno.readTextFile(
+        new URL(
+          "evidence/collectors/chrome-for-testing-150.0.7871.24-linux64-package-manifest.json",
+          root,
+        ),
+      ),
     ),
   };
 }
@@ -194,27 +203,157 @@ async function fetchedInput(sessionId: string, index: number, route: string, pat
     body: { bytes: raw.byteLength, sha256: await sha256Hex(raw), base64: b64(raw) },
   };
 }
-function lifecycleAssertions(id: string): string[] {
-  return ({
-    "lifecycle-wrong-token": ["wrong-token-ignored", "worker-terminated"],
-    "lifecycle-stale-error": [
-      "prior-worker-terminated",
-      "stale-error-ignored",
-      "worker-terminated",
+function lifecycleWorker(index: number, token: number, terminated: boolean): Json {
+  return {
+    index,
+    url: "/benchmarks/tooling-c-to-wasm-compile-v1/worker.js",
+    terminated,
+    posted: [{ token, target: "javascript", program: "01" }],
+  };
+}
+function lifecycleState(status: string, workerAudit: Json[], active: boolean): Json {
+  return {
+    status,
+    result: "No result yet.",
+    startDisabled: active,
+    cancelDisabled: !active,
+    program: "01",
+    target: "javascript",
+    workerAudit,
+  };
+}
+function lifecycleEvidence(id: string): Json {
+  const worker0Active = lifecycleWorker(0, 1, false);
+  const worker0Stopped = lifecycleWorker(0, 1, true);
+  const running = lifecycleState("Compiling…", [worker0Active], true);
+  const start = {
+    sequence: 0,
+    event: "visible-start",
+    workerIndex: 0,
+    token: 1,
+    detail: "visible Start created the first instrumented worker",
+  };
+  if (id === "lifecycle-wrong-token") {
+    return {
+      causes: [
+        start,
+        {
+          sequence: 1,
+          event: "wrong-token",
+          workerIndex: 0,
+          token: 999,
+          detail: "collector injected a completion with a non-current token",
+        },
+      ],
+      snapshots: [
+        { label: "running", state: running },
+        { label: "wrong-token-ignored", state: running },
+      ],
+      finalState: lifecycleState("Cancelled.", [worker0Stopped], false),
+      assertions: ["wrong-token-ignored", "worker-terminated"],
+    };
+  }
+  if (id === "lifecycle-stale-error" || id === "lifecycle-restart") {
+    const causes: Json[] = [
+      start,
+      {
+        sequence: 1,
+        event: "restart",
+        workerIndex: 1,
+        token: 2,
+        detail: "submit handler cleaned the prior worker and created a replacement",
+      },
+    ];
+    if (id === "lifecycle-stale-error") {
+      causes.push({
+        sequence: 2,
+        event: "stale-error",
+        workerIndex: 0,
+        token: 1,
+        detail: "collector invoked the prior worker error callback",
+      });
+    }
+    return {
+      causes,
+      snapshots: [
+        { label: "running", state: running },
+        {
+          label: "replacement-active",
+          state: lifecycleState(
+            "Compiling…",
+            [worker0Stopped, lifecycleWorker(1, 2, false)],
+            true,
+          ),
+        },
+      ],
+      finalState: lifecycleState(
+        "Cancelled.",
+        [worker0Stopped, lifecycleWorker(1, 2, true)],
+        false,
+      ),
+      assertions: id === "lifecycle-stale-error"
+        ? ["prior-worker-terminated", "stale-error-ignored", "worker-terminated"]
+        : ["prior-worker-terminated", "replacement-worker-active", "worker-terminated"],
+    };
+  }
+  const status = id === "lifecycle-cancel"
+    ? "Cancelled."
+    : id === "lifecycle-timeout"
+    ? "Stopped after the 20 second limit."
+    : "Compiling…";
+  const causes: Json[] = [
+    start,
+    id === "lifecycle-cancel"
+      ? {
+        sequence: 1,
+        event: "cancel",
+        workerIndex: 0,
+        token: 1,
+        detail: "visible Cancel terminated the current worker",
+      }
+      : id === "lifecycle-timeout"
+      ? {
+        sequence: 1,
+        event: "timeout",
+        workerIndex: 0,
+        token: 1,
+        detail: "exact 20000 ms callback fired under accelerated lifecycle clock",
+      }
+      : {
+        sequence: 1,
+        event: "pagehide",
+        workerIndex: 0,
+        token: 1,
+        detail: "collector dispatched pagehide",
+      },
+  ];
+  if (id === "lifecycle-cancel") {
+    causes.push({
+      sequence: 2,
+      event: "late-completion",
+      workerIndex: 0,
+      token: 1,
+      detail: "collector injected a completion after cancellation",
+    });
+  }
+  const finalState = lifecycleState(status, [worker0Stopped], false);
+  return {
+    causes,
+    snapshots: [
+      { label: "running", state: running },
+      { label: "late-message-ignored", state: finalState },
     ],
-    "lifecycle-restart": [
-      "prior-worker-terminated",
-      "replacement-worker-active",
-      "worker-terminated",
-    ],
-    "lifecycle-cancel": ["cancelled", "late-message-ignored", "worker-terminated"],
-    "lifecycle-timeout": ["timeout-fired", "late-message-ignored", "worker-terminated"],
-    "lifecycle-pagehide": ["pagehide-fired", "late-message-ignored", "worker-terminated"],
-  } as Record<string, string[]>)[id];
+    finalState,
+    assertions: id === "lifecycle-cancel"
+      ? ["cancelled", "late-message-ignored", "worker-terminated"]
+      : id === "lifecycle-timeout"
+      ? ["timeout-fired", "late-message-ignored", "worker-terminated"]
+      : ["pagehide-fired", "late-message-ignored", "worker-terminated"],
+  };
 }
 async function evidenceFixture() {
   const corpus = await corpusFixture();
-  const { validation, compilerBytes } = await documents();
+  const { validation, compilerBytes, chromePackage } = await documents();
   const visible = (target: "javascript" | "wasm") =>
     JSON.stringify({
       target,
@@ -235,6 +374,8 @@ async function evidenceFixture() {
       : null;
     const isCorpus = id === "compiler-corpus";
     const isVisible = id.startsWith("visible-");
+    const isLifecycle = id.startsWith("lifecycle-");
+    const lifecycleRecord = isLifecycle ? lifecycleEvidence(id) : null;
     const workerSession = `worker-${index}`;
     const sessions: Json[] = [{
       sessionId,
@@ -269,9 +410,13 @@ async function evidenceFixture() {
         ? "native-visible-demo"
         : "instrumented-lifecycle",
       sessions,
-      causes: [{ sequence: 0, event: "test", detail: "synthetic closed-schema evidence" }],
-      snapshots: [],
-      finalState: state(),
+      causes: lifecycleRecord?.causes ?? [{
+        sequence: 0,
+        event: "test",
+        detail: "synthetic closed-schema evidence",
+      }],
+      snapshots: lifecycleRecord?.snapshots ?? [],
+      finalState: lifecycleRecord?.finalState ?? state(),
       rawResultText: raw,
       rawResultTextSha256: raw === null ? null : await sha256Hex(raw),
       corpus: isCorpus ? corpus : null,
@@ -291,7 +436,7 @@ async function evidenceFixture() {
           "exported-test-oracle",
           "exact-counters",
         ]
-        : lifecycleAssertions(id),
+        : lifecycleRecord?.assertions,
       console: [],
       exceptions: [],
       network: [network(sessionId, 0), network(sessionId, 1), network(sessionId, 2)],
@@ -400,6 +545,7 @@ async function evidenceFixture() {
       jsVersion: "15.0.245.5",
       executable: { path: "/tmp/chrome", dev: 1, ino: 2, sha256: EXACT_CHROME_SHA256 },
       expectedSha256: EXACT_CHROME_SHA256,
+      package: chromePackage,
       configuredArguments: args,
       effectiveArguments: args,
       headless: true,
@@ -501,6 +647,21 @@ Deno.test("C-to-Wasm parent collector argument contract freezes exact external i
   }
 });
 
+Deno.test("C-to-Wasm collector pins a complete independent Chrome for Testing package manifest", async () => {
+  const { chromePackage } = await documents();
+  const { manifestSha256, ...identity } = chromePackage;
+  assertEquals(manifestSha256, EXACT_CHROME_PACKAGE_MANIFEST_SHA256);
+  assertEquals(await sha256Hex(canonicalize(identity)), EXACT_CHROME_PACKAGE_MANIFEST_SHA256);
+  const filePaths = Object.keys(chromePackage.files).sort();
+  assert(filePaths.length > 100, "complete CfT package companions were not retained");
+  assertEquals(Object.keys(chromePackage.sourceFileModes).sort(), filePaths);
+  assertEquals(Object.keys(chromePackage.stagedFileModes).sort(), filePaths);
+  assertEquals(chromePackage.files.chrome, EXACT_CHROME_SHA256);
+  for (const companion of ["chrome-wrapper", "chrome_crashpad_handler", "icudtl.dat"]) {
+    assert(/^[a-f0-9]{64}$/.test(chromePackage.files[companion]), `${companion} hash absent`);
+  }
+});
+
 Deno.test("C-to-Wasm browser corpus semantic gate binds raw bytes, all programs, counters, and negatives", async () => {
   const docs = await documents(), corpus = await corpusFixture();
   await assertCorpusSemantics(corpus, docs.fixture, docs.validation, docs.negatives);
@@ -539,12 +700,19 @@ Deno.test("C-to-Wasm browser evidence schema is closed and ordered", async () =>
   const mutations: Array<(value: Json) => void> = [
     (value) => value.unexpected = true,
     (value) => delete (value.browser as Json).expectedSha256,
+    (value) => delete (value.browser as Json).package,
     (value) => ((value.browser as Json).configuredArguments as string[]).splice(8, 1),
     (value) => ((value.scenarios as Json[]).reverse()),
     (value) => ((value.scenarios as Json[])[0].network as Json[])[0].body = null,
     (value) => ((value.scenarios as Json[])[0].exceptions as Json[]).push({}),
     (value) => ((value.cleanup as Json).browser as Json).remainingPids = [1234],
     (value) => ((value.source as Json).start as Json).extra = true,
+    (value) => {
+      (((value.scenarios as Json[])[5].snapshots as Json[])[1].state as Json)
+        .workerAudit = [lifecycleWorker(0, 1, false), lifecycleWorker(1, 2, false)];
+    },
+    (value) => (((value.scenarios as Json[])[5].causes as Json[])[1].token = 3),
+    (value) => (((value.scenarios as Json[])[6].finalState as Json).status = "Compiling…"),
   ];
   for (const mutate of mutations) {
     const changed = clone(evidence) as Json;
@@ -567,7 +735,23 @@ Deno.test("C-to-Wasm evidence semantic gate rejects internally consistent-lookin
       },
     (value) => ((value.scenarios as Json[])[0].executedWasm as Json).base64 = "AGFzbQEAAAA=",
     (value) => ((value.scenarios as Json[])[0].sessions as Json[])[0].ownerSessionId = "foreign",
+    (value) => (((value.browser as Json).package as Json).files as Json)["chrome-wrapper"] = HASH,
     (value) => ((value.scenarios as Json[])[3].assertions as string[])[0] = "claimed-without-cause",
+    (value) => ((value.scenarios as Json[])[4].causes as Json[])[1].event = "claimed-restart",
+    (value) => ((value.scenarios as Json[])[5].causes as Json[])[1].token = 1,
+    (value) => ((value.scenarios as Json[])[5].snapshots as Json[])[1].label = "running",
+    (value) => {
+      (((value.scenarios as Json[])[5].snapshots as Json[])[1].state as Json)
+        .workerAudit = [lifecycleWorker(0, 1, false), lifecycleWorker(1, 2, false)];
+    },
+    (value) => {
+      (((value.scenarios as Json[])[5].finalState as Json).workerAudit as Json[])[1].posted = [{
+        token: 1,
+        target: "javascript",
+        program: "01",
+      }];
+    },
+    (value) => (((value.scenarios as Json[])[7].finalState as Json).status = "Cancelled."),
     (value) => ((value.cleanup as Json).profile as Json).absent = false,
   ];
   for (const mutate of mutations) {

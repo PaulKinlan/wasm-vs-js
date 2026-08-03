@@ -9,6 +9,7 @@ import {
   OwnedChrome,
 } from "../lib/owned-chrome.ts";
 import {
+  ChromePackageInspection,
   inspectChromePackage,
   recordStageCleanupLifecycle,
   removeStagedChrome,
@@ -21,6 +22,8 @@ export const ACCEPTED_IMPLEMENTATION_COMMIT = "05d7135ee84839fdb2a70aee7e0769468
 export const EXACT_CHROME_PRODUCT = "Chrome/150.0.7871.24";
 export const EXACT_CHROME_SHA256 =
   "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355";
+export const EXACT_CHROME_PACKAGE_MANIFEST_SHA256 =
+  "e3d5088a5244a494b206819630d4eb2d7e3ee999d1a04cab9d2d95d0daf292db";
 export const WORKLOAD_ID = "tooling.c-to-wasm-compile.v1";
 export const ROUTE = "/benchmarks/tooling-c-to-wasm-compile-v1/";
 export const SCENARIO_IDS = [
@@ -51,6 +54,10 @@ export const COUNTER_FIELDS = [
 
 const root = new URL("../", import.meta.url);
 const rootPath = await Deno.realPath(root);
+const chromePackageManifestUrl = new URL(
+  "evidence/collectors/chrome-for-testing-150.0.7871.24-linux64-package-manifest.json",
+  root,
+);
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
@@ -91,6 +98,7 @@ export const EXECUTED_SOURCE_PATHS = [
       `benchmarks/base/tooling-c-to-wasm-compile/fixtures/headers/${id}.h`,
     ];
   }).flat(),
+  "evidence/collectors/chrome-for-testing-150.0.7871.24-linux64-package-manifest.json",
 ] as const;
 
 export const ACCEPTED_PACKAGE_PATHS = [
@@ -237,6 +245,15 @@ export async function attestFrozenSource(
 
 function same(left: unknown, right: unknown): boolean {
   return canonicalize(left) === canonicalize(right);
+}
+async function readPinnedChromePackageManifest(): Promise<ChromePackageInspection> {
+  const manifest = JSON.parse(await Deno.readTextFile(chromePackageManifestUrl));
+  if (
+    manifest.schemaVersion !== 2 || manifest.binaryRelativePath !== "chrome" ||
+    manifest.binarySha256 !== EXACT_CHROME_SHA256 ||
+    manifest.manifestSha256 !== EXACT_CHROME_PACKAGE_MANIFEST_SHA256
+  ) throw new Error("pinned Chrome for Testing package manifest identity changed");
+  return manifest as ChromePackageInspection;
 }
 function base64ToBytes(value: string): Uint8Array {
   return Uint8Array.from(atob(value), (character) => character.charCodeAt(0));
@@ -412,6 +429,165 @@ export async function assertCorpusSemantics(
   ) throw new Error("corpus manifest identity changed");
 }
 
+const LIFECYCLE_WORKER_URL = "/benchmarks/tooling-c-to-wasm-compile-v1/worker.js";
+function expectedWorker(index: number, token: number, terminated: boolean): Json {
+  return {
+    index,
+    url: LIFECYCLE_WORKER_URL,
+    terminated,
+    posted: [{ token, target: "javascript", program: "01" }],
+  };
+}
+function expectedLifecycleState(
+  status: string,
+  workerAudit: Json[],
+  active: boolean,
+): Json {
+  return {
+    status,
+    result: "No result yet.",
+    startDisabled: active,
+    cancelDisabled: !active,
+    program: "01",
+    target: "javascript",
+    workerAudit,
+  };
+}
+function expectedLifecycleSemantics(id: string): Json {
+  const worker0Active = expectedWorker(0, 1, false);
+  const worker0Stopped = expectedWorker(0, 1, true);
+  const running = expectedLifecycleState("Compiling…", [worker0Active], true);
+  const start = {
+    sequence: 0,
+    event: "visible-start",
+    workerIndex: 0,
+    token: 1,
+    detail: "visible Start created the first instrumented worker",
+  };
+  const workerTerminated = "worker-terminated";
+  if (id === "lifecycle-wrong-token") {
+    return {
+      causes: [
+        start,
+        {
+          sequence: 1,
+          event: "wrong-token",
+          workerIndex: 0,
+          token: 999,
+          detail: "collector injected a completion with a non-current token",
+        },
+      ],
+      snapshots: [
+        { label: "running", state: running },
+        { label: "wrong-token-ignored", state: running },
+      ],
+      finalState: expectedLifecycleState("Cancelled.", [worker0Stopped], false),
+      assertions: ["wrong-token-ignored", workerTerminated],
+    };
+  }
+  if (id === "lifecycle-stale-error" || id === "lifecycle-restart") {
+    const worker1Active = expectedWorker(1, 2, false);
+    const worker1Stopped = expectedWorker(1, 2, true);
+    const causes: Json[] = [
+      start,
+      {
+        sequence: 1,
+        event: "restart",
+        workerIndex: 1,
+        token: 2,
+        detail: "submit handler cleaned the prior worker and created a replacement",
+      },
+    ];
+    if (id === "lifecycle-stale-error") {
+      causes.push({
+        sequence: 2,
+        event: "stale-error",
+        workerIndex: 0,
+        token: 1,
+        detail: "collector invoked the prior worker error callback",
+      });
+    }
+    return {
+      causes,
+      snapshots: [
+        { label: "running", state: running },
+        {
+          label: "replacement-active",
+          state: expectedLifecycleState(
+            "Compiling…",
+            [worker0Stopped, worker1Active],
+            true,
+          ),
+        },
+      ],
+      finalState: expectedLifecycleState(
+        "Cancelled.",
+        [worker0Stopped, worker1Stopped],
+        false,
+      ),
+      assertions: id === "lifecycle-stale-error"
+        ? ["prior-worker-terminated", "stale-error-ignored", workerTerminated]
+        : ["prior-worker-terminated", "replacement-worker-active", workerTerminated],
+    };
+  }
+  const finalStatus = id === "lifecycle-cancel"
+    ? "Cancelled."
+    : id === "lifecycle-timeout"
+    ? "Stopped after the 20 second limit."
+    : id === "lifecycle-pagehide"
+    ? "Compiling…"
+    : null;
+  if (finalStatus === null) throw new Error(`unknown lifecycle scenario: ${id}`);
+  const cause = id === "lifecycle-cancel"
+    ? {
+      sequence: 1,
+      event: "cancel",
+      workerIndex: 0,
+      token: 1,
+      detail: "visible Cancel terminated the current worker",
+    }
+    : id === "lifecycle-timeout"
+    ? {
+      sequence: 1,
+      event: "timeout",
+      workerIndex: 0,
+      token: 1,
+      detail: "exact 20000 ms callback fired under accelerated lifecycle clock",
+    }
+    : {
+      sequence: 1,
+      event: "pagehide",
+      workerIndex: 0,
+      token: 1,
+      detail: "collector dispatched pagehide",
+    };
+  const late = id === "lifecycle-cancel"
+    ? {
+      sequence: 2,
+      event: "late-completion",
+      workerIndex: 0,
+      token: 1,
+      detail: "collector injected a completion after cancellation",
+    }
+    : null;
+  return {
+    causes: late ? [start, cause, late] : [start, cause],
+    snapshots: [
+      { label: "running", state: running },
+      {
+        label: "late-message-ignored",
+        state: expectedLifecycleState(finalStatus, [worker0Stopped], false),
+      },
+    ],
+    finalState: expectedLifecycleState(finalStatus, [worker0Stopped], false),
+    assertions: id === "lifecycle-cancel"
+      ? ["cancelled", "late-message-ignored", workerTerminated]
+      : id === "lifecycle-timeout"
+      ? ["timeout-fired", "late-message-ignored", workerTerminated]
+      : ["pagehide-fired", "late-message-ignored", workerTerminated],
+  };
+}
+
 export async function assertEvidenceSemantics(
   evidence: Json,
   fixtureManifest: Json,
@@ -434,11 +610,13 @@ export async function assertEvidenceSemantics(
     throw new Error("collector command/source commit binding changed");
   }
   const browser = evidence.browser as Json;
+  const pinnedChromePackage = await readPinnedChromePackageManifest();
   if (
     browser.product !== EXACT_CHROME_PRODUCT || browser.expectedProduct !== EXACT_CHROME_PRODUCT ||
     (browser.executable as Json).sha256 !== EXACT_CHROME_SHA256 ||
-    browser.expectedSha256 !== EXACT_CHROME_SHA256
-  ) throw new Error("exact Chrome input changed");
+    browser.expectedSha256 !== EXACT_CHROME_SHA256 ||
+    !same(browser.package, pinnedChromePackage)
+  ) throw new Error("exact Chrome for Testing package input changed");
   const configured = browser.configuredArguments as string[];
   const effective = browser.effectiveArguments as string[];
   const exactStatic = [
@@ -590,25 +768,17 @@ export async function assertEvidenceSemantics(
       parsed.testResult !== expected.testResult || !same(parsed.counters, expectedCounters)
     ) throw new Error(`${scenarios[index].id} visible result changed`);
   }
-  const expectedLifecycleChecks: Record<string, string[]> = {
-    "lifecycle-wrong-token": ["wrong-token-ignored", "worker-terminated"],
-    "lifecycle-stale-error": [
-      "prior-worker-terminated",
-      "stale-error-ignored",
-      "worker-terminated",
-    ],
-    "lifecycle-restart": [
-      "prior-worker-terminated",
-      "replacement-worker-active",
-      "worker-terminated",
-    ],
-    "lifecycle-cancel": ["cancelled", "late-message-ignored", "worker-terminated"],
-    "lifecycle-timeout": ["timeout-fired", "late-message-ignored", "worker-terminated"],
-    "lifecycle-pagehide": ["pagehide-fired", "late-message-ignored", "worker-terminated"],
-  };
   for (const scenario of scenarios.slice(3)) {
-    if (!same(scenario.assertions, expectedLifecycleChecks[String(scenario.id)])) {
-      throw new Error(`${scenario.id} causal lifecycle assertions changed`);
+    const expected = expectedLifecycleSemantics(String(scenario.id));
+    if (
+      !same(scenario.causes, expected.causes) ||
+      !same(scenario.snapshots, expected.snapshots) ||
+      !same(scenario.finalState, expected.finalState) ||
+      !same(scenario.assertions, expected.assertions)
+    ) {
+      throw new Error(
+        `${scenario.id} lifecycle causes, snapshots, worker audit, tokens, or final state changed`,
+      );
     }
   }
   const cleanup = evidence.cleanup as Json, cleanedBrowser = cleanup.browser as Json;
@@ -1020,10 +1190,18 @@ async function captureScenario(
           });
           assertions.push("prior-worker-terminated", "stale-error-ignored");
         } else assertions.push("prior-worker-terminated", "replacement-worker-active");
-        snapshots.push({
-          label: "replacement-active",
-          state: await pageState(client, pageSession),
-        });
+        const replacementActive = await pageState(client, pageSession);
+        const restartAudit = replacementActive.workerAudit as Json[];
+        if (
+          restartAudit.length !== 2 ||
+          !same(restartAudit[0], expectedWorker(0, 1, true)) ||
+          !same(restartAudit[1], expectedWorker(1, 2, false))
+        ) {
+          throw new Error(
+            `${id} did not separately prove terminated worker 0 and active replacement worker 1`,
+          );
+        }
+        snapshots.push({ label: "replacement-active", state: replacementActive });
         await click(client, pageSession, "#cancel");
       } else if (id === "lifecycle-cancel") {
         await click(client, pageSession, "#cancel");
@@ -1105,8 +1283,8 @@ async function captureScenario(
         pageSession,
         `__compilerCollector.summary()`,
       ) as Json[];
-      if (!summary.some((worker) => worker.terminated === true)) {
-        throw new Error(`${id} did not terminate an owned worker`);
+      if (!summary.length || summary.some((worker) => worker.terminated !== true)) {
+        throw new Error(`${id} did not terminate every instrumented worker`);
       }
       assertions.push("worker-terminated");
     }
@@ -1290,14 +1468,20 @@ async function main(args: CollectorArguments): Promise<void> {
     serverCleanup: Json | undefined,
     stageCleanup: Json | undefined;
   let effectiveArguments: string[] | undefined;
+  let chromePackage: ChromePackageInspection | undefined;
   let records: Json[] | undefined, artifacts: ArtifactPayload[] | undefined;
   let primaryError: unknown;
   try {
+    const pinnedChromePackage = await readPinnedChromePackageManifest();
     const inspection = await inspectChromePackage(args.chrome, EXACT_CHROME_SHA256);
+    if (!same(inspection, pinnedChromePackage)) {
+      throw new Error("supplied Chrome package differs from independently pinned manifest");
+    }
+    chromePackage = inspection;
     stage = await stageChromePackage(args.chrome, EXACT_CHROME_SHA256, {
       permitId: "tooling-c-to-wasm-browser-evidence-v1",
       sourceCommit: args.sourceCommit,
-      chromePackageManifestSha256: inspection.manifestSha256,
+      chromePackageManifestSha256: EXACT_CHROME_PACKAGE_MANIFEST_SHA256,
     });
     const port = unusedPort(), origin = `http://127.0.0.1:${port}`;
     serverProcess = new Deno.Command(Deno.execPath(), {
@@ -1484,8 +1668,8 @@ async function main(args: CollectorArguments): Promise<void> {
   }
   if (primaryError) throw primaryError;
   if (
-    !owned || !records || !artifacts || !effectiveArguments || !browserCleanup || !serverCleanup ||
-    !stageCleanup
+    !owned || !chromePackage || !records || !artifacts || !effectiveArguments || !browserCleanup ||
+    !serverCleanup || !stageCleanup
   ) {
     throw new Error("collector did not reach the exact cleanup commit gate");
   }
@@ -1515,6 +1699,7 @@ async function main(args: CollectorArguments): Promise<void> {
       jsVersion: String(owned.version.jsVersion),
       executable: owned.ledger.executable,
       expectedSha256: EXACT_CHROME_SHA256,
+      package: chromePackage,
       configuredArguments: owned.arguments,
       effectiveArguments,
       headless: true,
