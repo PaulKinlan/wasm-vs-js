@@ -1,22 +1,22 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "workloadId": "ml.keyword-spotting.v1",
   "fixtureSha256": "1643258d45167c2a1b3795b2c4f2fb11a885b08806fde7f4d235e55be61482ae",
   "outputs": {
     "features": {
-      "elements": 39000,
-      "bytes": 78000,
-      "sha256": "8a9a24ba49d14cc3bc6d6c071609cac9af23c62c97957b5e6aacea800a05b40f"
+      "elements": 30000,
+      "bytes": 30000,
+      "sha256": "23a6a2f61af53422082b65e21aab7831529feb98e72a41701cdc2b2d379e8f07"
     },
     "scores": {
-      "elements": 12000,
-      "bytes": 48000,
-      "sha256": "51fd84f30fca19274538b1cd001b5213b06fafb82ebb2210b7e09b93973858de"
+      "elements": 36000,
+      "bytes": 144000,
+      "sha256": "a9d2ebd62bb869c57a092d4c04a7f51be951f6bd0625d623cc6a19a1ecedc5b3"
     },
     "detections": {
-      "elements": 2337,
-      "bytes": 9348,
-      "sha256": "12ec3e9274171c3170328f989ee7d2a5b76377b70ace95e2f474db0951b62cb1"
+      "elements": 192,
+      "bytes": 768,
+      "sha256": "116ccf8c2cbf42f467468d48d500440264a509c76e89206d98a51f77b560911e"
     }
   },
   "variants": {
@@ -25,21 +25,22 @@
       "counters": {
         "hops": 3000,
         "windows": 3000,
-        "windowSamples": 960000,
+        "windowSamples": 1440000,
         "fftTransforms": 3000,
         "fftButterflies": 6912000,
         "spectralBins": 768000,
-        "mfccCoefficients": 39000,
-        "depthwiseMacs": 117000,
-        "pointwiseMacs": 312000,
-        "outputMacs": 96000,
-        "scoreElements": 12000,
-        "featureElements": 39000,
+        "mfccCoefficients": 30000,
+        "conv2dMacs": 120000000,
+        "depthwiseMacs": 108000000,
+        "pointwiseMacs": 96000000,
+        "poolingAdds": 3000000,
+        "outputMacs": 288000,
+        "scoreElements": 36000,
+        "featureElements": 30000,
         "inputBytes": 1920000,
-        "outputBytes": 135348,
-        "allocations": 10,
-        "boundaryCrossings": 0,
-        "detectionElements": 2337
+        "outputBytes": 174768,
+        "javascriptEngineOwnedTypedArrayConstructions": 10,
+        "detectionElements": 192
       }
     },
     "wasm-linear-controlled": {
@@ -47,21 +48,22 @@
       "counters": {
         "hops": 3000,
         "windows": 3000,
-        "windowSamples": 960000,
+        "windowSamples": 1440000,
         "fftTransforms": 3000,
         "fftButterflies": 6912000,
         "spectralBins": 768000,
-        "mfccCoefficients": 39000,
-        "depthwiseMacs": 117000,
-        "pointwiseMacs": 312000,
-        "outputMacs": 96000,
-        "scoreElements": 12000,
-        "featureElements": 39000,
+        "mfccCoefficients": 30000,
+        "conv2dMacs": 120000000,
+        "depthwiseMacs": 108000000,
+        "pointwiseMacs": 96000000,
+        "poolingAdds": 3000000,
+        "outputMacs": 288000,
+        "scoreElements": 36000,
+        "featureElements": 30000,
         "inputBytes": 1920000,
-        "outputBytes": 135348,
-        "allocations": 0,
-        "boundaryCrossings": 2,
-        "detectionElements": 2337
+        "outputBytes": 174768,
+        "wasmExportCalls": 6,
+        "detectionElements": 192
       }
     }
   },
