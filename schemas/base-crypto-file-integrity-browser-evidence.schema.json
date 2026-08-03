@@ -39,7 +39,8 @@
         "root",
         "commit",
         "tree",
-        "collectorSha256"
+        "collectorSha256",
+        "endVerified"
       ],
       "properties": {
         "root": {
@@ -57,6 +58,9 @@
         "collectorSha256": {
           "type": "string",
           "pattern": "^[a-f0-9]{64}$"
+        },
+        "endVerified": {
+          "const": true
         }
       }
     },
@@ -109,7 +113,12 @@
           "items": {
             "type": "string",
             "minLength": 1
-          }
+          },
+          "contains": {
+            "const": "--enable-automation"
+          },
+          "minContains": 1,
+          "maxContains": 1
         },
         "effectiveArguments": {
           "type": "array",
@@ -117,7 +126,12 @@
           "items": {
             "type": "string",
             "minLength": 1
-          }
+          },
+          "contains": {
+            "const": "--enable-automation"
+          },
+          "minContains": 1,
+          "maxContains": 1
         },
         "headless": {
           "const": true
@@ -132,7 +146,9 @@
             "address",
             "port",
             "browserPath",
-            "webSocketOrigin"
+            "webSocketOrigin",
+            "owner",
+            "launchSessionId"
           ],
           "properties": {
             "address": {
@@ -150,6 +166,13 @@
             "webSocketOrigin": {
               "type": "string",
               "pattern": "^ws://127\\.0\\.0\\.1:[0-9]+$"
+            },
+            "owner": {
+              "$ref": "#/$defs/process"
+            },
+            "launchSessionId": {
+              "type": "integer",
+              "minimum": 1
             }
           }
         },
@@ -2520,11 +2543,17 @@
               "const": 1024
             },
             "digestSha256": {
-              "type": "string",
-              "pattern": "^[a-f0-9]{64}$"
+              "const": "f8a73899aaefadab5b430a0742cdabd33db005321d10f54ecf122e92d4dc803e"
             },
             "counters": {
-              "$ref": "#/$defs/counters"
+              "const": {
+                "input-bytes": 1048576,
+                "scheduled-chunks": 1024,
+                "sha256-compression-blocks": 16385,
+                "copied-bytes": 0,
+                "boundary-crossings": 0,
+                "engine-buffer-allocations": 4
+              }
             },
             "exactContract": {
               "type": "object",
@@ -2537,16 +2566,13 @@
               ],
               "properties": {
                 "registrationSha256": {
-                  "type": "string",
-                  "pattern": "^[a-f0-9]{64}$"
+                  "const": "4d0de242f341c8b4adcb33ec43073c900418b7bf6979de4f528eb92a27407722"
                 },
                 "buildManifestSha256": {
-                  "type": "string",
-                  "pattern": "^[a-f0-9]{64}$"
+                  "const": "142f693a8fd20175e38ebf0f2f95985fdac5de03cd2ac9a846f77a4147a20f3b"
                 },
                 "artifactSha256": {
-                  "type": "string",
-                  "pattern": "^[a-f0-9]{64}$"
+                  "const": "a55a38bcb6c5a9e835ce7a75b733051efca0b186309d012788727164076f36cd"
                 },
                 "sourceHashesMatched": {
                   "const": true
@@ -2673,47 +2699,10 @@
       ],
       "properties": {
         "messages": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "type",
-              "arguments"
-            ],
-            "properties": {
-              "type": {
-                "type": "string",
-                "minLength": 1
-              },
-              "arguments": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              }
-            }
-          }
+          "const": []
         },
         "exceptions": {
-          "type": "array",
-          "maxItems": 0,
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "text",
-              "lineNumber"
-            ],
-            "properties": {
-              "text": {
-                "type": "string"
-              },
-              "lineNumber": {
-                "type": "number"
-              }
-            }
-          }
+          "const": []
         }
       }
     },
@@ -2765,12 +2754,38 @@
           ]
         },
         "controls": {
-          "type": "array",
-          "minItems": 6,
-          "maxItems": 6,
-          "items": {
-            "$ref": "#/$defs/control"
-          }
+          "const": [
+            {
+              "id": "target",
+              "text": "Engine",
+              "disabled": false
+            },
+            {
+              "id": "kind",
+              "text": "Generated fixture",
+              "disabled": false
+            },
+            {
+              "id": "size",
+              "text": "Exact size",
+              "disabled": false
+            },
+            {
+              "id": "schedule",
+              "text": "Chunk schedule",
+              "disabled": false
+            },
+            {
+              "id": "start",
+              "text": "Start",
+              "disabled": false
+            },
+            {
+              "id": "cancel",
+              "text": "Cancel",
+              "disabled": true
+            }
+          ]
         },
         "axNodes": {
           "type": "array",
@@ -2820,7 +2835,10 @@
           "additionalProperties": false,
           "required": [
             "launcher",
+            "launchSessionId",
+            "devToolsOwner",
             "observedProcesses",
+            "membershipSnapshots",
             "requested",
             "signals",
             "exit",
@@ -2855,6 +2873,39 @@
             },
             "executableUnchanged": {
               "const": true
+            },
+            "launchSessionId": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "devToolsOwner": {
+              "$ref": "#/$defs/process"
+            },
+            "membershipSnapshots": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "collectedAt",
+                  "pids"
+                ],
+                "properties": {
+                  "collectedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "pids": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "uniqueItems": true
+                  }
+                }
+              }
             }
           }
         },
@@ -3176,58 +3227,208 @@
       }
     },
     "lifecycle": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "id",
-        "instrumentation",
-        "assertions",
-        "stateBeforeCleanup",
-        "stateAfterCleanup",
-        "workers",
-        "passed"
-      ],
-      "properties": {
-        "id": {
-          "enum": [
-            "wrong-token",
-            "stale-error",
-            "restart",
-            "cancel",
-            "timeout",
-            "pagehide"
-          ]
-        },
-        "instrumentation": {
-          "const": "collector-controlled Worker test double; not correctness evidence"
-        },
-        "assertions": {
-          "type": "array",
-          "minItems": 2,
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "minLength": 1
+      "oneOf": [
+        {
+          "const": {
+            "id": "wrong-token",
+            "instrumentation": "collector-controlled Worker test double; not correctness evidence",
+            "assertions": [
+              "wrong token ignored",
+              "owned worker terminated"
+            ],
+            "stateBeforeCleanup": {
+              "status": "Starting fresh worker.",
+              "output": "No result while work is in progress.",
+              "startDisabled": true,
+              "cancelDisabled": false
+            },
+            "stateAfterCleanup": {
+              "status": "Cancelled. The worker was terminated.",
+              "output": "No result while work is in progress.",
+              "startDisabled": false,
+              "cancelDisabled": true
+            },
+            "workers": [
+              {
+                "url": "/crypto-file-integrity-worker.js",
+                "type": "module",
+                "token": 1,
+                "terminated": true
+              }
+            ],
+            "passed": true
           }
         },
-        "workers": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 2,
-          "items": {
-            "$ref": "#/$defs/worker"
+        {
+          "const": {
+            "id": "stale-error",
+            "instrumentation": "collector-controlled Worker test double; not correctness evidence",
+            "assertions": [
+              "stale error ignored",
+              "replaced worker terminated",
+              "owned worker terminated"
+            ],
+            "stateBeforeCleanup": {
+              "status": "Starting fresh worker.",
+              "output": "No result while work is in progress.",
+              "startDisabled": true,
+              "cancelDisabled": false
+            },
+            "stateAfterCleanup": {
+              "status": "Cancelled. The worker was terminated.",
+              "output": "No result while work is in progress.",
+              "startDisabled": false,
+              "cancelDisabled": true
+            },
+            "workers": [
+              {
+                "url": "/crypto-file-integrity-worker.js",
+                "type": "module",
+                "token": 1,
+                "terminated": true
+              },
+              {
+                "url": "/crypto-file-integrity-worker.js",
+                "type": "module",
+                "token": 3,
+                "terminated": true
+              }
+            ],
+            "passed": true
           }
         },
-        "passed": {
-          "const": true
+        {
+          "const": {
+            "id": "restart",
+            "instrumentation": "collector-controlled Worker test double; not correctness evidence",
+            "assertions": [
+              "restart terminated prior worker",
+              "fresh worker created",
+              "owned worker terminated"
+            ],
+            "stateBeforeCleanup": {
+              "status": "Starting fresh worker.",
+              "output": "No result while work is in progress.",
+              "startDisabled": true,
+              "cancelDisabled": false
+            },
+            "stateAfterCleanup": {
+              "status": "Cancelled. The worker was terminated.",
+              "output": "No result while work is in progress.",
+              "startDisabled": false,
+              "cancelDisabled": true
+            },
+            "workers": [
+              {
+                "url": "/crypto-file-integrity-worker.js",
+                "type": "module",
+                "token": 1,
+                "terminated": true
+              },
+              {
+                "url": "/crypto-file-integrity-worker.js",
+                "type": "module",
+                "token": 3,
+                "terminated": true
+              }
+            ],
+            "passed": true
+          }
         },
-        "stateBeforeCleanup": {
-          "$ref": "#/$defs/state"
+        {
+          "const": {
+            "id": "cancel",
+            "instrumentation": "collector-controlled Worker test double; not correctness evidence",
+            "assertions": [
+              "Cancel control terminated worker",
+              "cancel status exposed"
+            ],
+            "stateBeforeCleanup": {
+              "status": "Cancelled. The worker was terminated.",
+              "output": "No result while work is in progress.",
+              "startDisabled": false,
+              "cancelDisabled": true
+            },
+            "stateAfterCleanup": {
+              "status": "Cancelled. The worker was terminated.",
+              "output": "No result while work is in progress.",
+              "startDisabled": false,
+              "cancelDisabled": true
+            },
+            "workers": [
+              {
+                "url": "/crypto-file-integrity-worker.js",
+                "type": "module",
+                "token": 1,
+                "terminated": true
+              }
+            ],
+            "passed": true
+          }
         },
-        "stateAfterCleanup": {
-          "$ref": "#/$defs/state"
+        {
+          "const": {
+            "id": "timeout",
+            "instrumentation": "collector-controlled Worker test double; not correctness evidence",
+            "assertions": [
+              "180 second callback exercised",
+              "timeout terminated worker"
+            ],
+            "stateBeforeCleanup": {
+              "status": "Stopped after the 180 second limit.",
+              "output": "No result while work is in progress.",
+              "startDisabled": false,
+              "cancelDisabled": true
+            },
+            "stateAfterCleanup": {
+              "status": "Stopped after the 180 second limit.",
+              "output": "No result while work is in progress.",
+              "startDisabled": false,
+              "cancelDisabled": true
+            },
+            "workers": [
+              {
+                "url": "/crypto-file-integrity-worker.js",
+                "type": "module",
+                "token": 1,
+                "terminated": true
+              }
+            ],
+            "passed": true
+          }
+        },
+        {
+          "const": {
+            "id": "pagehide",
+            "instrumentation": "collector-controlled Worker test double; not correctness evidence",
+            "assertions": [
+              "pagehide cleanup exercised",
+              "pagehide terminated worker"
+            ],
+            "stateBeforeCleanup": {
+              "status": "Starting fresh worker.",
+              "output": "No result while work is in progress.",
+              "startDisabled": false,
+              "cancelDisabled": true
+            },
+            "stateAfterCleanup": {
+              "status": "Starting fresh worker.",
+              "output": "No result while work is in progress.",
+              "startDisabled": false,
+              "cancelDisabled": true
+            },
+            "workers": [
+              {
+                "url": "/crypto-file-integrity-worker.js",
+                "type": "module",
+                "token": 1,
+                "terminated": true
+              }
+            ],
+            "passed": true
+          }
         }
-      }
+      ]
     },
     "network": {
       "type": "object",
@@ -3235,6 +3436,8 @@
       "required": [
         "requestId",
         "sessionId",
+        "targetId",
+        "targetType",
         "url",
         "method",
         "resourceType",
@@ -3302,6 +3505,16 @@
               "type": "null"
             }
           ]
+        },
+        "targetId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "targetType": {
+          "enum": [
+            "page",
+            "worker"
+          ]
         }
       }
     },
@@ -3357,6 +3570,8 @@
       "required": [
         "pid",
         "parentPid",
+        "processGroupId",
+        "sessionId",
         "startTimeTicks",
         "executable"
       ],
@@ -3376,6 +3591,14 @@
         "executable": {
           "type": "string",
           "pattern": "^/"
+        },
+        "processGroupId": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sessionId": {
+          "type": "integer",
+          "minimum": 1
         }
       }
     },

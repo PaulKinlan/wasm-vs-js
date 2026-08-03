@@ -67,16 +67,29 @@ type Registration = {
   }>;
 };
 
-type ProcessIdentity = {
+export type ProcessIdentity = {
   pid: number;
   parentPid: number;
+  processGroupId: number;
+  sessionId: number;
   startTimeTicks: string;
   executable: string;
 };
 
-type NetworkRecord = {
+export type OwnedSessionLedger = {
+  launcher: ProcessIdentity;
+  sessionId: number;
+  identities: ProcessIdentity[];
+  snapshots: Array<{ collectedAt: string; pids: number[] }>;
+};
+
+type TargetPairing = { targetId: string; targetType: "page" | "worker" };
+
+export type NetworkRecord = {
   requestId: string;
   sessionId: string;
+  targetId: string;
+  targetType: "page" | "worker";
   url: string;
   method: string;
   resourceType: string;
@@ -171,6 +184,61 @@ export function assertBrowserCase(actual: BrowserCase, expected: BrowserCase): v
   }
 }
 
+export function assertTargetPairings(cases: BrowserCase[]): void {
+  if (cases.length !== 36) throw new Error("target pairing denominator mismatch");
+  for (const kind of KINDS) {
+    for (const byteLength of SIZES) {
+      for (const schedule of SCHEDULES) {
+        const pair = cases.filter((entry) =>
+          entry.kind === kind && entry.byteLength === byteLength && entry.schedule === schedule
+        );
+        if (
+          pair.length !== 2 || pair[0].target !== "js-controlled" ||
+          pair[1].target !== "wasm-linear-controlled" ||
+          pair[0].output.digestSha256 !== pair[1].output.digestSha256 ||
+          pair[0].expectedDigestSha256 !== pair[1].expectedDigestSha256
+        ) throw new Error(`target pairing mismatch: ${kind}:${byteLength}:${schedule}`);
+      }
+    }
+  }
+}
+
+export function assertVisibleControlOutput(
+  actual: Record<string, unknown>,
+  expected: BrowserCase,
+  exactContract: {
+    registrationSha256: string;
+    buildManifestSha256: string;
+    artifactSha256: string;
+  },
+): void {
+  const wanted = {
+    workloadId: WORKLOAD_ID,
+    target: expected.target,
+    kind: expected.kind,
+    byteLength: expected.byteLength,
+    schedule: expected.schedule,
+    digestSha256: expected.output.digestSha256,
+    counters: expected.output.counters,
+    exactContract: { ...exactContract, sourceHashesMatched: true },
+    performanceClaim: null,
+  };
+  if (!sameJson(actual, wanted)) throw new Error("visible control output contract mismatch");
+}
+
+export const EXPECTED_CONTROLS = Object.freeze([
+  { id: "target", text: "Engine", disabled: false },
+  { id: "kind", text: "Generated fixture", disabled: false },
+  { id: "size", text: "Exact size", disabled: false },
+  { id: "schedule", text: "Chunk schedule", disabled: false },
+  { id: "start", text: "Start", disabled: false },
+  { id: "cancel", text: "Cancel", disabled: true },
+]);
+
+export function assertVisibleControls(actual: unknown): void {
+  if (!sameJson(actual, EXPECTED_CONTROLS)) throw new Error("visible controls mismatch");
+}
+
 export function assertCleanStatus(status: string): void {
   if (status !== "") throw new Error("browser collection requires an exact clean HEAD");
 }
@@ -238,28 +306,45 @@ async function waitFor(url: string, timeoutMs = 10_000): Promise<Response> {
   throw new Error(`${url} unavailable: ${last}`);
 }
 
-async function processIdentity(pid: number): Promise<ProcessIdentity | null> {
+export async function processIdentity(
+  pid: number,
+  procRoot = "/proc",
+): Promise<ProcessIdentity | null> {
   try {
-    const stat = await Deno.readTextFile(`/proc/${pid}/stat`);
-    const fields = stat.slice(stat.lastIndexOf(")") + 2).split(" ");
-    return {
+    const stat = await Deno.readTextFile(`${procRoot}/${pid}/stat`);
+    const fields = stat.slice(stat.lastIndexOf(")") + 2).trim().split(" ");
+    const identity = {
       pid,
       parentPid: Number(fields[1]),
+      processGroupId: Number(fields[2]),
+      sessionId: Number(fields[3]),
       startTimeTicks: fields[19],
-      executable: await Deno.realPath(`/proc/${pid}/exe`),
+      executable: await Deno.realPath(`${procRoot}/${pid}/exe`),
     };
+    if (
+      !Number.isSafeInteger(identity.parentPid) || identity.parentPid < 0 ||
+      !Number.isSafeInteger(identity.processGroupId) || identity.processGroupId < 1 ||
+      !Number.isSafeInteger(identity.sessionId) || identity.sessionId < 1 ||
+      !/^\d+$/.test(identity.startTimeTicks)
+    ) return null;
+    return identity;
   } catch {
     return null;
   }
 }
 
-async function ownedProcesses(rootPid: number): Promise<ProcessIdentity[]> {
+async function processSnapshot(procRoot = "/proc"): Promise<ProcessIdentity[]> {
   const identities: ProcessIdentity[] = [];
-  for await (const entry of Deno.readDir("/proc")) {
+  for await (const entry of Deno.readDir(procRoot)) {
     if (!entry.isDirectory || !/^\d+$/.test(entry.name)) continue;
-    const identity = await processIdentity(Number(entry.name));
+    const identity = await processIdentity(Number(entry.name), procRoot);
     if (identity) identities.push(identity);
   }
+  return identities;
+}
+
+async function ownedProcesses(rootPid: number, procRoot = "/proc"): Promise<ProcessIdentity[]> {
+  const identities = await processSnapshot(procRoot);
   const owned = new Set([rootPid]);
   let changed = true;
   while (changed) {
@@ -274,10 +359,163 @@ async function ownedProcesses(rootPid: number): Promise<ProcessIdentity[]> {
   return identities.filter((identity) => owned.has(identity.pid)).sort((a, b) => a.pid - b.pid);
 }
 
-async function identityStillRunning(identity: ProcessIdentity): Promise<boolean> {
-  const current = await processIdentity(identity.pid);
+async function identityStillRunning(
+  identity: ProcessIdentity,
+  procRoot = "/proc",
+): Promise<boolean> {
+  const current = await processIdentity(identity.pid, procRoot);
   return current?.startTimeTicks === identity.startTimeTicks &&
-    current.executable === identity.executable;
+    current.executable === identity.executable && current.sessionId === identity.sessionId;
+}
+
+function mergeIdentities(
+  retained: ProcessIdentity[],
+  observed: ProcessIdentity[],
+): ProcessIdentity[] {
+  const byPid = new Map(retained.map((identity) => [identity.pid, identity]));
+  for (const identity of observed) {
+    const prior = byPid.get(identity.pid);
+    if (
+      prior &&
+      (prior.startTimeTicks !== identity.startTimeTicks ||
+        prior.executable !== identity.executable ||
+        prior.sessionId !== identity.sessionId || prior.processGroupId !== identity.processGroupId)
+    ) throw new Error(`owned process identity changed for pid ${identity.pid}`);
+    // Preserve the first observed parent so later reparenting cannot erase launch ancestry.
+    byPid.set(identity.pid, prior ?? identity);
+  }
+  return [...byPid.values()].sort((a, b) => a.pid - b.pid);
+}
+
+export async function acquireOwnedSession(
+  launcherPid: number,
+  chromeExecutable: string,
+  timeoutMs = 10_000,
+  procRoot = "/proc",
+): Promise<OwnedSessionLedger> {
+  const deadline = Date.now() + timeoutMs;
+  const expectedLauncher = await Deno.realPath("/usr/bin/setsid");
+  let launcher: ProcessIdentity | null = null;
+  let retained: ProcessIdentity[] = [];
+  while (Date.now() < deadline) {
+    const candidateLauncher = await processIdentity(launcherPid, procRoot);
+    if (candidateLauncher?.executable === expectedLauncher) launcher ??= candidateLauncher;
+    if (!launcher) {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      continue;
+    }
+    const descendants = await ownedProcesses(launcherPid, procRoot);
+    retained = mergeIdentities(retained, descendants);
+    const chrome = descendants.find((identity) =>
+      identity.executable === chromeExecutable && identity.sessionId === identity.pid
+    );
+    if (chrome) {
+      const members = (await processSnapshot(procRoot)).filter((identity) =>
+        identity.sessionId === chrome.sessionId
+      );
+      retained = mergeIdentities(retained, members);
+      return {
+        launcher,
+        sessionId: chrome.sessionId,
+        identities: retained,
+        snapshots: [{
+          collectedAt: new Date().toISOString(),
+          pids: members.map((identity) => identity.pid).sort((a, b) => a - b),
+        }],
+      };
+    }
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  throw new Error("exact owned Chrome session unavailable after launch");
+}
+
+export async function refreshOwnedSession(
+  ledger: OwnedSessionLedger,
+  procRoot = "/proc",
+): Promise<OwnedSessionLedger> {
+  const members = (await processSnapshot(procRoot)).filter((identity) =>
+    identity.sessionId === ledger.sessionId
+  );
+  return {
+    ...ledger,
+    identities: mergeIdentities(ledger.identities, members),
+    snapshots: [...ledger.snapshots, {
+      collectedAt: new Date().toISOString(),
+      pids: members.map((identity) => identity.pid).sort((a, b) => a - b),
+    }],
+  };
+}
+
+async function listenerInode(port: number, procRoot = "/proc"): Promise<string> {
+  const wantedPort = port.toString(16).toUpperCase().padStart(4, "0");
+  for (const file of [`${procRoot}/net/tcp`, `${procRoot}/net/tcp6`]) {
+    try {
+      for (const line of (await Deno.readTextFile(file)).trim().split("\n").slice(1)) {
+        const fields = line.trim().split(/\s+/);
+        const [address, observedPort] = (fields[1] ?? "").split(":");
+        const loopback = address === "0100007F" ||
+          address === "00000000000000000000000001000000";
+        if (
+          observedPort === wantedPort && fields[3] === "0A" && loopback &&
+          /^\d+$/.test(fields[9] ?? "")
+        ) return fields[9];
+      }
+    } catch {
+      // Continue to the other kernel socket table.
+    }
+  }
+  throw new Error("Chrome DevTools listener socket not found on exact loopback port");
+}
+
+export async function assertOwnedDevToolsListener(
+  port: number,
+  ledger: OwnedSessionLedger,
+  procRoot = "/proc",
+): Promise<{ ledger: OwnedSessionLedger; owner: ProcessIdentity }> {
+  const refreshed = await refreshOwnedSession(ledger, procRoot);
+  const wanted = `socket:[${await listenerInode(port, procRoot)}]`;
+  for (const identity of refreshed.identities) {
+    if (
+      identity.sessionId !== refreshed.sessionId ||
+      !(await identityStillRunning(identity, procRoot))
+    ) {
+      continue;
+    }
+    try {
+      for await (const fd of Deno.readDir(`${procRoot}/${identity.pid}/fd`)) {
+        try {
+          if (await Deno.readLink(`${procRoot}/${identity.pid}/fd/${fd.name}`) === wanted) {
+            return { ledger: refreshed, owner: identity };
+          }
+        } catch {
+          // File descriptors may close while the exact session is inspected.
+        }
+      }
+    } catch {
+      // Processes may exit while the exact session is inspected.
+    }
+  }
+  throw new Error("Chrome DevTools listener is not owned by the launched session");
+}
+
+async function waitForOwnedDevToolsListener(
+  port: number,
+  ledger: OwnedSessionLedger,
+  timeoutMs = 10_000,
+): Promise<{ ledger: OwnedSessionLedger; owner: ProcessIdentity }> {
+  const deadline = Date.now() + timeoutMs;
+  let current = ledger;
+  let last = "listener absent";
+  while (Date.now() < deadline) {
+    try {
+      return await assertOwnedDevToolsListener(port, current);
+    } catch (error) {
+      last = error instanceof Error ? error.message : String(error);
+      current = await refreshOwnedSession(current);
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+  }
+  throw new Error(`owned Chrome DevTools listener unavailable: ${last}`);
 }
 
 async function waitForOwnedExit(
@@ -286,7 +524,13 @@ async function waitForOwnedExit(
 ): Promise<boolean> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
-    if (!(await Promise.all(identities.map(identityStillRunning))).some(Boolean)) return true;
+    if (
+      !(await Promise.all(identities.map((identity) => identityStillRunning(identity)))).some(
+        Boolean,
+      )
+    ) {
+      return true;
+    }
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
   return false;
@@ -299,20 +543,78 @@ async function exactProcessCleanup(
   if (!(await waitForOwnedExit(identities, 10_000))) {
     for (const identity of [...identities].reverse()) {
       if (await identityStillRunning(identity)) {
-        Deno.kill(identity.pid, "SIGTERM");
-        signals.push({ pid: identity.pid, signal: "SIGTERM" });
+        try {
+          Deno.kill(identity.pid, "SIGTERM");
+          signals.push({ pid: identity.pid, signal: "SIGTERM" });
+        } catch (error) {
+          if (await identityStillRunning(identity)) throw error;
+        }
       }
     }
   }
   if (!(await waitForOwnedExit(identities, 5_000))) {
     for (const identity of [...identities].reverse()) {
       if (await identityStillRunning(identity)) {
-        Deno.kill(identity.pid, "SIGKILL");
-        signals.push({ pid: identity.pid, signal: "SIGKILL" });
+        try {
+          Deno.kill(identity.pid, "SIGKILL");
+          signals.push({ pid: identity.pid, signal: "SIGKILL" });
+        } catch (error) {
+          if (await identityStillRunning(identity)) throw error;
+        }
       }
     }
   }
   return { signals, processesAbsent: await waitForOwnedExit(identities, 5_000) };
+}
+
+export async function exactSessionCleanup(
+  ledger: OwnedSessionLedger,
+): Promise<{
+  ledger: OwnedSessionLedger;
+  signals: Array<{ pid: number; signal: string }>;
+  processesAbsent: boolean;
+}> {
+  let refreshed = await refreshOwnedSession(ledger);
+  const signals: Array<{ pid: number; signal: string }> = [];
+  for (const signal of ["SIGTERM", "SIGKILL"] as const) {
+    const deadline = Date.now() + (signal === "SIGTERM" ? 5_000 : 2_000);
+    while (Date.now() < deadline) {
+      refreshed = await refreshOwnedSession(refreshed);
+      const retainedSession = refreshed.identities.filter((identity) =>
+        identity.sessionId === refreshed.sessionId
+      );
+      const currentLive: ProcessIdentity[] = [];
+      for (const identity of retainedSession) {
+        if (await identityStillRunning(identity)) currentLive.push(identity);
+      }
+      if (!currentLive.length) {
+        const launcherCleanup = await exactProcessCleanup([refreshed.launcher]);
+        return {
+          ledger: refreshed,
+          signals: [...signals, ...launcherCleanup.signals],
+          processesAbsent: launcherCleanup.processesAbsent,
+        };
+      }
+      for (const identity of [...currentLive].reverse()) {
+        try {
+          Deno.kill(identity.pid, signal);
+          signals.push({ pid: identity.pid, signal });
+        } catch (error) {
+          if (await identityStillRunning(identity)) throw error;
+        }
+      }
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+  }
+  refreshed = await refreshOwnedSession(refreshed);
+  const currentLive: number[] = [];
+  for (const identity of refreshed.identities) {
+    if (identity.sessionId === refreshed.sessionId && await identityStillRunning(identity)) {
+      currentLive.push(identity.pid);
+    }
+  }
+  const processesAbsent = !currentLive.length && !(await identityStillRunning(refreshed.launcher));
+  return { ledger: refreshed, signals, processesAbsent };
 }
 
 function nestedValue(result: Record<string, unknown>): unknown {
@@ -415,11 +717,13 @@ async function attachPage(
   client: CdpClient,
   url: string,
   injectLifecycle = false,
+  registerSession?: (sessionId: string, pairing: TargetPairing) => void,
 ): Promise<{ targetId: string; sessionId: string }> {
   const created = await client.send("Target.createTarget", { url: "about:blank" });
   const targetId = String(created.targetId);
   const attached = await client.send("Target.attachToTarget", { targetId, flatten: true });
   const sessionId = String(attached.sessionId);
+  registerSession?.(sessionId, { targetId, targetType: "page" });
   await Promise.all([
     client.send("Page.enable", {}, sessionId),
     client.send("Runtime.enable", {}, sessionId),
@@ -427,7 +731,7 @@ async function attachPage(
     client.send("Accessibility.enable", {}, sessionId),
     client.send("Target.setAutoAttach", {
       autoAttach: true,
-      waitForDebuggerOnStart: false,
+      waitForDebuggerOnStart: true,
       flatten: true,
     }, sessionId),
   ]);
@@ -455,6 +759,7 @@ async function attachPage(
 async function collectLifecycle(
   client: CdpClient,
   origin: string,
+  registerSession: (sessionId: string, pairing: TargetPairing) => void,
 ): Promise<Array<Record<string, unknown>>> {
   const records: Array<Record<string, unknown>> = [];
   for (const id of LIFECYCLE_IDS) {
@@ -462,6 +767,7 @@ async function collectLifecycle(
       client,
       `${origin}${DEMO_ROUTE}?collectorLifecycle=${id}`,
       true,
+      registerSession,
     );
     await waitForState(client, page.sessionId, (state) => state.status === "Ready.");
     await click(client, page.sessionId, "#start");
@@ -560,11 +866,116 @@ async function collectLifecycle(
   return records;
 }
 
-function lifecycleSemantics(records: Array<Record<string, unknown>>): void {
-  if (!sameJson(records.map((record) => record.id), LIFECYCLE_IDS)) {
-    throw new Error("lifecycle corpus is not exact");
+function lifecycleState(
+  status: string,
+  startDisabled: boolean,
+  cancelDisabled: boolean,
+): Record<string, unknown> {
+  return {
+    status,
+    output: "No result while work is in progress.",
+    startDisabled,
+    cancelDisabled,
+  };
+}
+
+export function expectedLifecycleRecords(): Array<Record<string, unknown>> {
+  const cancelled = lifecycleState("Cancelled. The worker was terminated.", false, true);
+  const starting = lifecycleState("Starting fresh worker.", true, false);
+  const worker = (token: number) => ({
+    url: "/crypto-file-integrity-worker.js",
+    type: "module",
+    token,
+    terminated: true,
+  });
+  return [
+    {
+      id: "wrong-token",
+      instrumentation: "collector-controlled Worker test double; not correctness evidence",
+      assertions: ["wrong token ignored", "owned worker terminated"],
+      stateBeforeCleanup: starting,
+      stateAfterCleanup: cancelled,
+      workers: [worker(1)],
+      passed: true,
+    },
+    {
+      id: "stale-error",
+      instrumentation: "collector-controlled Worker test double; not correctness evidence",
+      assertions: ["stale error ignored", "replaced worker terminated", "owned worker terminated"],
+      stateBeforeCleanup: starting,
+      stateAfterCleanup: cancelled,
+      workers: [worker(1), worker(3)],
+      passed: true,
+    },
+    {
+      id: "restart",
+      instrumentation: "collector-controlled Worker test double; not correctness evidence",
+      assertions: [
+        "restart terminated prior worker",
+        "fresh worker created",
+        "owned worker terminated",
+      ],
+      stateBeforeCleanup: starting,
+      stateAfterCleanup: cancelled,
+      workers: [worker(1), worker(3)],
+      passed: true,
+    },
+    {
+      id: "cancel",
+      instrumentation: "collector-controlled Worker test double; not correctness evidence",
+      assertions: ["Cancel control terminated worker", "cancel status exposed"],
+      stateBeforeCleanup: cancelled,
+      stateAfterCleanup: cancelled,
+      workers: [worker(1)],
+      passed: true,
+    },
+    {
+      id: "timeout",
+      instrumentation: "collector-controlled Worker test double; not correctness evidence",
+      assertions: ["180 second callback exercised", "timeout terminated worker"],
+      stateBeforeCleanup: lifecycleState("Stopped after the 180 second limit.", false, true),
+      stateAfterCleanup: lifecycleState("Stopped after the 180 second limit.", false, true),
+      workers: [worker(1)],
+      passed: true,
+    },
+    {
+      id: "pagehide",
+      instrumentation: "collector-controlled Worker test double; not correctness evidence",
+      assertions: ["pagehide cleanup exercised", "pagehide terminated worker"],
+      stateBeforeCleanup: lifecycleState("Starting fresh worker.", false, true),
+      stateAfterCleanup: lifecycleState("Starting fresh worker.", false, true),
+      workers: [worker(1)],
+      passed: true,
+    },
+  ];
+}
+
+export function lifecycleSemantics(records: Array<Record<string, unknown>>): void {
+  if (!sameJson(records, expectedLifecycleRecords())) {
+    throw new Error("lifecycle corpus semantics are not exact");
   }
-  if (records.some((record) => record.passed !== true)) throw new Error("lifecycle case failed");
+}
+
+export function assertExhaustiveNetwork(
+  records: NetworkRecord[],
+  origin: string,
+  allowedPaths: ReadonlySet<string>,
+): void {
+  if (!records.length) throw new Error("browser network evidence is empty");
+  for (const record of records) {
+    let url: URL;
+    try {
+      url = new URL(record.url);
+    } catch {
+      throw new Error(`browser network URL is invalid: ${record.url}`);
+    }
+    if (
+      url.origin !== origin || !allowedPaths.has(url.pathname) || record.method !== "GET" ||
+      record.status !== 200 || record.failed || record.errorText !== null ||
+      record.fromServiceWorker || !record.targetId ||
+      !["page", "worker"].includes(record.targetType)
+    ) throw new Error(`browser network request denied: ${record.url}`);
+  }
 }
 
 export function assertFetchedAssets(
@@ -640,10 +1051,19 @@ async function runCollector(options: {
   const chromeInfoBefore = await Deno.stat(chromePath);
   if (!chromeInfoBefore.isFile) throw new Error("Chrome executable is not a file");
   const observedChromeSha256 = await sha256Hex(await Deno.readFile(chromePath));
-  if (observedChromeSha256 !== options.chromeSha256) throw new Error("Chrome hash mismatch");
+  const chromeInfoAfterHash = await Deno.stat(chromePath);
+  if (
+    chromeInfoBefore.dev !== chromeInfoAfterHash.dev ||
+    chromeInfoBefore.ino !== chromeInfoAfterHash.ino ||
+    chromeInfoBefore.size !== chromeInfoAfterHash.size ||
+    chromeInfoBefore.mtime?.getTime() !== chromeInfoAfterHash.mtime?.getTime() ||
+    observedChromeSha256 !== options.chromeSha256
+  ) throw new Error("Chrome hash mismatch or executable changed while hashing");
 
-  const outputParent = `${source.root}/artifacts/base/crypto.file-integrity.v1`;
-  const partialRoot = `${outputParent}/.browser-evidence-${crypto.randomUUID()}`;
+  const partialRoot = await Deno.makeTempDir({
+    dir: `${source.root}/..`,
+    prefix: ".wasm-crypto-browser-evidence-",
+  });
   await Deno.mkdir(`${partialRoot}/screenshots`, { recursive: true });
   const serverPort = unusedPort();
   const debuggerPort = unusedPort();
@@ -665,6 +1085,7 @@ async function runCollector(options: {
   const setup = await (async () => {
     let profilePath: string | null = null;
     let chrome: Deno.ChildProcess | null = null;
+    let chromeLedger: OwnedSessionLedger | null = null;
     try {
       await waitFor(`${origin}/healthz`);
       const serverIdentity = await processIdentity(server.pid);
@@ -691,32 +1112,64 @@ async function runCollector(options: {
         `--user-data-dir=${profilePath}`,
         "about:blank",
       ];
-      chrome = new Deno.Command(chromePath, {
-        args: launchArguments,
+      launchArguments.splice(1, 0, "--enable-automation");
+      chrome = new Deno.Command("/usr/bin/setsid", {
+        args: ["--fork", "--wait", chromePath, ...launchArguments],
         stdout: "null",
         stderr: "null",
       }).spawn();
+      chromeLedger = await acquireOwnedSession(chrome.pid, chromePath);
       return {
         serverIdentity,
         profilePath,
         profileInfo,
         launchArguments,
         chrome,
+        chromeLedger,
         chromeStatus: chrome.status,
       };
     } catch (error) {
-      if (chrome) {
-        await exactProcessCleanup(await ownedProcesses(chrome.pid));
-        await chrome.status.catch(() => {});
+      const cleanupErrors: unknown[] = [];
+      let browserAbsent = chrome === null;
+      try {
+        if (chromeLedger) {
+          const cleaned = await exactSessionCleanup(chromeLedger);
+          browserAbsent = cleaned.processesAbsent;
+        } else if (chrome) {
+          const cleaned = await exactProcessCleanup(await ownedProcesses(chrome.pid));
+          browserAbsent = cleaned.processesAbsent;
+        }
+        if (!browserAbsent) throw new Error("setup Chrome cleanup was incomplete");
+        if (chrome) await chrome.status;
+      } catch (cleanupError) {
+        cleanupErrors.push(cleanupError);
       }
-      if (profilePath) await Deno.remove(profilePath, { recursive: true }).catch(() => {});
-      const currentServer = await processIdentity(server.pid);
-      if (currentServer && await identityStillRunning(currentServer)) {
-        Deno.kill(currentServer.pid, "SIGTERM");
-        await exactProcessCleanup([currentServer]);
+      if (profilePath && browserAbsent) {
+        try {
+          await Deno.remove(profilePath, { recursive: true });
+        } catch (cleanupError) {
+          cleanupErrors.push(cleanupError);
+        }
       }
-      await serverStatus.catch(() => {});
-      await Deno.remove(partialRoot, { recursive: true }).catch(() => {});
+      try {
+        const currentServer = await processIdentity(server.pid);
+        if (currentServer && await identityStillRunning(currentServer)) {
+          Deno.kill(currentServer.pid, "SIGTERM");
+          const cleaned = await exactProcessCleanup([currentServer]);
+          if (!cleaned.processesAbsent) throw new Error("setup server cleanup was incomplete");
+        }
+        await serverStatus;
+      } catch (cleanupError) {
+        cleanupErrors.push(cleanupError);
+      }
+      try {
+        await Deno.remove(partialRoot, { recursive: true });
+      } catch (cleanupError) {
+        cleanupErrors.push(cleanupError);
+      }
+      if (cleanupErrors.length) {
+        throw new AggregateError([error, ...cleanupErrors], "collector setup cleanup failed");
+      }
       throw error;
     }
   })();
@@ -725,22 +1178,81 @@ async function runCollector(options: {
     profilePath,
     profileInfo,
     launchArguments,
-    chrome,
+    chromeLedger: initialChromeLedger,
     chromeStatus,
   } = setup;
+  let chromeLedger = initialChromeLedger;
+  let devToolsOwner: ProcessIdentity | null = null;
   let client: CdpClient | null = null;
   let success = false;
+  const cleanupAfterFailure = async () => {
+    const cleanupErrors: unknown[] = [];
+    try {
+      await client?.send("Browser.close");
+    } catch {
+      // The retained launch session remains the cleanup authority when CDP has failed.
+    }
+    client?.close();
+    let browserAbsent = false;
+    try {
+      const cleaned = await exactSessionCleanup(chromeLedger);
+      browserAbsent = cleaned.processesAbsent;
+      if (!browserAbsent) throw new Error("failure-path Chrome cleanup was incomplete");
+      await chromeStatus;
+    } catch (error) {
+      cleanupErrors.push(error);
+    }
+    try {
+      const currentServer = await processIdentity(server.pid);
+      if (currentServer && await identityStillRunning(currentServer)) {
+        Deno.kill(currentServer.pid, "SIGTERM");
+        const cleaned = await exactProcessCleanup([currentServer]);
+        if (!cleaned.processesAbsent) throw new Error("failure-path server cleanup was incomplete");
+      }
+      await serverStatus;
+    } catch (error) {
+      cleanupErrors.push(error);
+    }
+    if (browserAbsent) {
+      try {
+        await Deno.remove(profilePath, { recursive: true });
+      } catch (error) {
+        cleanupErrors.push(error);
+      }
+    }
+    try {
+      await Deno.remove(partialRoot, { recursive: true });
+    } catch (error) {
+      cleanupErrors.push(error);
+    }
+    if (cleanupErrors.length) {
+      throw new AggregateError(cleanupErrors, "collector failure cleanup did not complete");
+    }
+  };
   try {
+    ({ ledger: chromeLedger, owner: devToolsOwner } = await waitForOwnedDevToolsListener(
+      debuggerPort,
+      chromeLedger,
+    ));
     const discoveryResponse = await waitFor(`http://127.0.0.1:${debuggerPort}/json/version`);
+    ({ ledger: chromeLedger, owner: devToolsOwner } = await assertOwnedDevToolsListener(
+      debuggerPort,
+      chromeLedger,
+    ));
     const discovery = await discoveryResponse.json();
     const webSocketUrl = new URL(String(discovery.webSocketDebuggerUrl));
     if (
-      webSocketUrl.protocol !== "ws:" || webSocketUrl.hostname !== "127.0.0.1" ||
-      Number(webSocketUrl.port) !== debuggerPort ||
-      !webSocketUrl.pathname.startsWith("/devtools/browser/")
+      String(discovery.Browser) !== options.chromeProduct || webSocketUrl.protocol !== "ws:" ||
+      webSocketUrl.hostname !== "127.0.0.1" || Number(webSocketUrl.port) !== debuggerPort ||
+      !/^\/devtools\/browser\/[A-Za-z0-9-]+$/.test(webSocketUrl.pathname) || webSocketUrl.search ||
+      webSocketUrl.hash
     ) throw new Error("Chrome DevTools endpoint escaped exact loopback ownership");
     client = new CdpClient(webSocketUrl.href);
     await client.ready();
+    ({ ledger: chromeLedger, owner: devToolsOwner } = await assertOwnedDevToolsListener(
+      debuggerPort,
+      chromeLedger,
+    ));
     const version = await client.send("Browser.getVersion");
     if (version.product !== options.chromeProduct) {
       throw new Error(`Chrome product mismatch: ${String(version.product)}`);
@@ -758,20 +1270,41 @@ async function runCollector(options: {
     const bodyTasks: Promise<void>[] = [];
     const consoleMessages: Array<Record<string, unknown>> = [];
     const exceptions: Array<Record<string, unknown>> = [];
-    const observedSessions = new Set<string>();
+    const targetPairingErrors: string[] = [];
+    const sessionPairings = new Map<string, TargetPairing>();
+    const registerSession = (sessionId: string, pairing: TargetPairing) => {
+      const prior = sessionPairings.get(sessionId);
+      if (prior && !sameJson(prior, pairing)) {
+        targetPairingErrors.push(`session ${sessionId} changed target identity`);
+      } else sessionPairings.set(sessionId, pairing);
+    };
     client.on("Target.attachedToTarget", (params) => {
-      const sessionId = String(params.sessionId);
-      observedSessions.add(sessionId);
+      const sessionId = String(params.sessionId ?? "");
+      const targetInfo = params.targetInfo as Record<string, unknown> | undefined;
+      const type = String(targetInfo?.type ?? "");
+      const targetId = String(targetInfo?.targetId ?? "");
+      if (!sessionId || !targetId || !["page", "worker"].includes(type)) {
+        targetPairingErrors.push(`unapproved attached target: ${type}:${targetId}`);
+        return;
+      }
+      registerSession(sessionId, { targetId, targetType: type as "page" | "worker" });
       bodyTasks.push(
         Promise.all([
           client!.send("Network.enable", {}, sessionId),
           client!.send("Runtime.enable", {}, sessionId),
-        ]).then(() => {}),
+        ]).then(async () => {
+          await client!.send("Runtime.runIfWaitingForDebugger", {}, sessionId);
+        }),
       );
     });
     client.on("Runtime.consoleAPICalled", (params, sessionId) => {
-      if (!sessionId || !observedSessions.has(sessionId)) return;
+      const pairing = sessionId ? sessionPairings.get(sessionId) : undefined;
+      if (!sessionId || !pairing) {
+        targetPairingErrors.push("console event lacked an exact target pairing");
+        return;
+      }
       consoleMessages.push({
+        ...pairing,
         type: String(params.type),
         arguments: ((params.args as Array<Record<string, unknown>>) ?? []).map((arg) =>
           String(arg.value ?? arg.description ?? arg.type)
@@ -779,18 +1312,31 @@ async function runCollector(options: {
       });
     });
     client.on("Runtime.exceptionThrown", (params, sessionId) => {
-      if (!sessionId || !observedSessions.has(sessionId)) return;
+      const pairing = sessionId ? sessionPairings.get(sessionId) : undefined;
+      if (!sessionId || !pairing) {
+        targetPairingErrors.push("exception event lacked an exact target pairing");
+        return;
+      }
       const details = params.exceptionDetails as Record<string, unknown>;
-      exceptions.push({ text: String(details.text), lineNumber: Number(details.lineNumber) });
+      exceptions.push({
+        ...pairing,
+        text: String(details.text),
+        lineNumber: Number(details.lineNumber),
+      });
     });
     client.on("Network.requestWillBeSent", (params, sessionId) => {
-      if (!sessionId) return;
-      observedSessions.add(sessionId);
+      const pairing = sessionId ? sessionPairings.get(sessionId) : undefined;
+      if (!sessionId || !pairing) {
+        targetPairingErrors.push("network request lacked an exact target pairing");
+        return;
+      }
       const request = params.request as Record<string, unknown>;
       const key = `${sessionId}:${String(params.requestId)}`;
+      if (network.has(key)) targetPairingErrors.push(`duplicate network request identity: ${key}`);
       network.set(key, {
         requestId: String(params.requestId),
         sessionId,
+        ...pairing,
         url: String(request.url),
         method: String(request.method),
         resourceType: String(params.type),
@@ -808,25 +1354,32 @@ async function runCollector(options: {
       if (!sessionId) return;
       const record = network.get(`${sessionId}:${String(params.requestId)}`);
       const response = params.response as Record<string, unknown>;
-      if (record) {
-        record.status = Number(response.status);
-        record.mimeType = String(response.mimeType);
-        record.fromDiskCache = Boolean(response.fromDiskCache);
-        record.fromServiceWorker = Boolean(response.fromServiceWorker);
+      if (!record) {
+        targetPairingErrors.push("network response lacked a retained request");
+        return;
       }
+      record.status = Number(response.status);
+      record.mimeType = String(response.mimeType);
+      record.fromDiskCache = Boolean(response.fromDiskCache);
+      record.fromServiceWorker = Boolean(response.fromServiceWorker);
     });
     client.on("Network.loadingFailed", (params, sessionId) => {
       if (!sessionId) return;
       const record = network.get(`${sessionId}:${String(params.requestId)}`);
-      if (record) {
-        record.failed = true;
-        record.errorText = String(params.errorText);
+      if (!record) {
+        targetPairingErrors.push("network failure lacked a retained request");
+        return;
       }
+      record.failed = true;
+      record.errorText = String(params.errorText);
     });
     client.on("Network.loadingFinished", (params, sessionId) => {
       if (!sessionId) return;
       const record = network.get(`${sessionId}:${String(params.requestId)}`);
-      if (!record) return;
+      if (!record) {
+        targetPairingErrors.push("network completion lacked a retained request");
+        return;
+      }
       bodyTasks.push((async () => {
         try {
           const body = await client!.send(
@@ -846,8 +1399,7 @@ async function runCollector(options: {
       })());
     });
 
-    const page = await attachPage(client, `${origin}${DEMO_ROUTE}`);
-    observedSessions.add(page.sessionId);
+    const page = await attachPage(client, `${origin}${DEMO_ROUTE}`, false, registerSession);
     await waitForState(client, page.sessionId, (state) => state.status === "Ready.");
     await click(client, page.sessionId, "#start");
     const visibleState = await waitForState(
@@ -865,6 +1417,16 @@ async function runCollector(options: {
       },
     };
     assertBrowserCase(visibleCase, visibleExpected);
+    const assetHash = (route: string) => {
+      const value = localAssets.find((asset) => asset.route === route)?.sha256;
+      if (!value) throw new Error(`visible contract asset missing: ${route}`);
+      return value;
+    };
+    assertVisibleControlOutput(visibleOutput, visibleExpected, {
+      registrationSha256: assetHash("/registrations/base/crypto.file-integrity.v1.json"),
+      buildManifestSha256: assetHash("/artifacts/crypto-file-integrity/build-manifest.json"),
+      artifactSha256: assetHash("/artifacts/crypto-file-integrity/crypto-file-integrity.wasm"),
+    });
 
     const requiredText = [
       "No performance claim.",
@@ -879,6 +1441,7 @@ async function runCollector(options: {
       `(() => ({lang:document.documentElement.lang,title:document.title,bodyText:document.body.innerText,live:document.querySelector('#status').getAttribute('aria-live'),outputTabIndex:document.querySelector('#output').tabIndex,controls:[...document.querySelectorAll('select,button')].map((node)=>({id:node.id,text:(node.labels?.[0]?.textContent||node.textContent).trim(),disabled:node.disabled}))}))()`,
     ) as Record<string, unknown>;
     const bodyText = String(accessibility.bodyText);
+    assertVisibleControls(accessibility.controls);
     for (const text of requiredText) {
       if (!bodyText.includes(text)) throw new Error(`accessibility text missing: ${text}`);
     }
@@ -975,6 +1538,7 @@ async function runCollector(options: {
       cases.push(value);
     }
     if (cases.length !== 36) throw new Error("browser case denominator incomplete");
+    assertTargetPairings(cases);
     const fullWasmCases = cases.filter((entry) =>
       entry.target === "wasm-linear-controlled" && entry.byteLength === 268_435_456 &&
       entry.schedule === "whole-buffer"
@@ -985,24 +1549,23 @@ async function runCollector(options: {
       throw new Error("full 256 MiB Wasm memory evidence did not observe 4,098 pages");
     }
 
-    const lifecycle = await collectLifecycle(client, origin);
+    const lifecycle = await collectLifecycle(client, origin, registerSession);
     lifecycleSemantics(lifecycle);
-    await Promise.all(bodyTasks);
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    await Promise.all(bodyTasks);
-    if (exceptions.length || consoleMessages.some((entry) => entry.type === "error")) {
+    let drainedTasks = -1;
+    while (drainedTasks !== bodyTasks.length) {
+      drainedTasks = bodyTasks.length;
+      await Promise.all(bodyTasks.slice(0, drainedTasks));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+    if (targetPairingErrors.length) {
+      throw new Error(`browser target pairing gate failed: ${targetPairingErrors.join("; ")}`);
+    }
+    if (exceptions.length || consoleMessages.length) {
       throw new Error("browser console or exception gate failed");
     }
-    const networkRecords = [...network.values()].filter((record) =>
-      new URL(record.url).origin === origin
-    );
+    const networkRecords = [...network.values()];
     const allowedNetworkPaths = new Set([...Object.keys(FETCHED_ASSETS), "/favicon.ico"]);
-    if (
-      networkRecords.some((record) =>
-        record.method !== "GET" || record.status !== 200 || record.failed ||
-        record.fromServiceWorker || !allowedNetworkPaths.has(new URL(record.url).pathname)
-      )
-    ) throw new Error("browser network gate failed or unexpected browser network route denied");
+    assertExhaustiveNetwork(networkRecords, origin, allowedNetworkPaths);
     const fetchedAssets = localAssets.map((asset) => ({
       ...asset,
       observedResponses: networkRecords.filter((record) => {
@@ -1020,13 +1583,18 @@ async function runCollector(options: {
     }));
     assertFetchedAssets(fetchedAssets, localAssets);
 
-    const observedProcesses = await ownedProcesses(chrome.pid);
-    const launcher = observedProcesses.find((identity) => identity.pid === chrome.pid);
-    if (!launcher) throw new Error("owned Chrome launcher disappeared before cleanup");
+    chromeLedger = await refreshOwnedSession(chromeLedger);
+    if (
+      !devToolsOwner ||
+      !chromeLedger.identities.some((identity) => sameJson(identity, devToolsOwner))
+    ) {
+      throw new Error("DevTools listener owner was not retained in the exact launch ledger");
+    }
     await client.send("Browser.close");
     client.close();
     client = null;
-    const browserCleanup = await exactProcessCleanup(observedProcesses);
+    const browserCleanup = await exactSessionCleanup(chromeLedger);
+    chromeLedger = browserCleanup.ledger;
     const browserExit = await chromeStatus;
     if (!browserCleanup.processesAbsent) throw new Error("owned Chrome processes survived cleanup");
     const chromeInfoAfter = await Deno.stat(chromePath);
@@ -1050,11 +1618,14 @@ async function runCollector(options: {
     const serverExit = await serverStatus;
     if (!serverCleanup.processesAbsent) throw new Error("owned loopback server survived cleanup");
 
+    const endSource = await assertExactSourceRoot(options.sourceRoot, options.sourceCommit);
+    if (!sameJson(endSource, source)) throw new Error("source identity changed across collection");
+
     const evidence = {
       schemaVersion: 1,
       evidenceId: "crypto.file-integrity.v1-chrome-browser-validation-v1",
       collectedAt: new Date().toISOString(),
-      source: { ...source, collectorSha256 },
+      source: { ...source, collectorSha256, endVerified: true },
       browser: {
         product: String(version.product),
         revision: String(version.revision),
@@ -1071,6 +1642,8 @@ async function runCollector(options: {
           port: debuggerPort,
           browserPath: webSocketUrl.pathname,
           webSocketOrigin: webSocketUrl.origin,
+          owner: devToolsOwner,
+          launchSessionId: chromeLedger.sessionId,
         },
         profile: {
           path: profilePath,
@@ -1109,8 +1682,11 @@ async function runCollector(options: {
       },
       cleanup: {
         browser: {
-          launcher,
-          observedProcesses,
+          launcher: chromeLedger.launcher,
+          launchSessionId: chromeLedger.sessionId,
+          devToolsOwner,
+          observedProcesses: chromeLedger.identities,
+          membershipSnapshots: chromeLedger.snapshots,
           requested: "Browser.close",
           signals: browserCleanup.signals,
           exit: browserExit,
@@ -1133,24 +1709,7 @@ async function runCollector(options: {
     success = true;
     console.log("crypto browser evidence: 36/36 cases and 6/6 lifecycle controls; cleanup exact");
   } finally {
-    if (!success) {
-      try {
-        await client?.send("Browser.close");
-      } catch {
-        // Continue only with identities descended from the owned parent process.
-      }
-      client?.close();
-      const remainingChrome = await ownedProcesses(chrome.pid);
-      await exactProcessCleanup(remainingChrome);
-      await chromeStatus.catch(() => {});
-      const currentServer = await processIdentity(server.pid);
-      if (currentServer && await identityStillRunning(currentServer)) {
-        Deno.kill(currentServer.pid, "SIGTERM");
-      }
-      await serverStatus.catch(() => {});
-      await Deno.remove(profilePath, { recursive: true }).catch(() => {});
-      await Deno.remove(partialRoot, { recursive: true }).catch(() => {});
-    }
+    if (!success) await cleanupAfterFailure();
   }
 }
 
