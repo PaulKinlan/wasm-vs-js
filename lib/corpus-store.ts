@@ -37,6 +37,106 @@ async function ensurePrivateTree(directory: string): Promise<void> {
     await assertPrivateDirectory(current);
   }
 }
+export type CorpusNamespaceReservation = {
+  root: string;
+  corpusId: string;
+  parentDev: number;
+  parentIno: number;
+  namespaceDev: number;
+  namespaceIno: number;
+};
+
+function identity(info: Deno.FileInfo, label: string): number {
+  const value = Number(label === "dev" ? info.dev : info.ino);
+  if (!Number.isSafeInteger(value) || value < 0) throw new Error(`corpus ${label} unavailable`);
+  return value;
+}
+
+async function privateIdentity(path: string): Promise<{ dev: number; ino: number }> {
+  await assertPrivateDirectory(path);
+  const info = await Deno.lstat(path);
+  return { dev: identity(info, "dev"), ino: identity(info, "ino") };
+}
+
+export async function reserveCorpusNamespace(
+  root: string,
+  corpusId: string,
+): Promise<CorpusNamespaceReservation> {
+  if (!/^[a-z0-9][a-z0-9._-]{1,127}$/.test(corpusId)) {
+    throw new Error("unsafe corpus reservation identity");
+  }
+  await ensurePrivateTree(root);
+  const cwd = await Deno.realPath(Deno.cwd()),
+    absoluteRoot = root.startsWith("/") ? root : `${cwd}/${root}`,
+    parent = await privateIdentity(absoluteRoot),
+    namespace = `${absoluteRoot}/${corpusId}`;
+  try {
+    await Deno.mkdir(namespace, { mode: 0o700 });
+  } catch (error) {
+    if (error instanceof Deno.errors.AlreadyExists) {
+      throw new Error("corpus namespace already exists");
+    }
+    throw error;
+  }
+  const reserved = await privateIdentity(namespace),
+    parentAfter = await privateIdentity(absoluteRoot);
+  if (parent.dev !== parentAfter.dev || parent.ino !== parentAfter.ino) {
+    throw new Error("corpus namespace parent identity changed");
+  }
+  return {
+    root: absoluteRoot,
+    corpusId,
+    parentDev: parent.dev,
+    parentIno: parent.ino,
+    namespaceDev: reserved.dev,
+    namespaceIno: reserved.ino,
+  };
+}
+
+export async function assertCorpusNamespaceReservation(
+  value: CorpusNamespaceReservation,
+): Promise<void> {
+  const parent = await privateIdentity(value.root),
+    namespace = await privateIdentity(`${value.root}/${value.corpusId}`);
+  if (
+    parent.dev !== value.parentDev || parent.ino !== value.parentIno ||
+    namespace.dev !== value.namespaceDev || namespace.ino !== value.namespaceIno
+  ) throw new Error("corpus namespace reservation identity changed");
+}
+
+export async function releaseCorpusNamespace(
+  value: CorpusNamespaceReservation,
+): Promise<void> {
+  await assertCorpusNamespaceReservation(value);
+  const helper = await Deno.realPath(new URL("../scripts/remove-owned-tree.py", import.meta.url));
+  const result = await new Deno.Command("/usr/bin/python3", {
+    args: [
+      helper,
+      value.root,
+      String(value.parentDev),
+      String(value.parentIno),
+      value.corpusId,
+      String(value.namespaceDev),
+      String(value.namespaceIno),
+      String(0o700),
+    ],
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  if (!result.success) {
+    throw new Error(
+      `fd-relative corpus reservation removal failed: ${
+        new TextDecoder().decode(result.stderr).trim()
+      }`,
+    );
+  }
+  const proof = JSON.parse(new TextDecoder().decode(result.stdout));
+  if (
+    proof.removed !== true || proof.dev !== value.namespaceDev ||
+    proof.ino !== value.namespaceIno
+  ) throw new Error("fd-relative corpus reservation removal proof mismatch");
+}
+
 export type VariantRecord = {
   variantId: "js-controlled" | "wasm-linear-controlled";
   payloadSha256: string;

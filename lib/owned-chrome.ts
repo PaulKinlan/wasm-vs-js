@@ -5,6 +5,7 @@ import {
   CgroupLedger,
   executableSnapshot,
   prepareProfile,
+  ProfileReservation,
   readCgroupMembers,
   refreshLedger,
   removeOwnedProfile,
@@ -286,6 +287,7 @@ async function cleanupUnit(
 export async function launchOwnedChrome(options: {
   stagedChrome: StagedChrome;
   profileRoot: string;
+  profileReservation?: ProfileReservation;
   extraArguments?: string[];
   timeoutMs?: number;
   beforeSpawn?: () => void;
@@ -303,7 +305,7 @@ export async function launchOwnedChrome(options: {
   ) => Promise<ReturnType<typeof executableSnapshot> extends Promise<infer T> ? T : never>;
 }): Promise<OwnedChrome> {
   const command = options.command ?? realCommand,
-    profile = await prepareProfile(options.profileRoot);
+    profile = await prepareProfile(options.profileRoot, options.profileReservation);
   await verifyStagedChrome(options.stagedChrome).catch(async (error) => {
     await removeOwnedProfile(profile);
     throw error;

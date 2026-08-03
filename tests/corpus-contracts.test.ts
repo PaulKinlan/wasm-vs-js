@@ -13,6 +13,7 @@ import {
   assertPrelaunchFailureSchema,
   assertPreregistrationSchema,
   assertSourceManifestSchema,
+  assertStageOwnerSchema,
 } from "../lib/corpus-contracts.ts";
 
 Deno.test("permit receipt and Chrome package manifests are closed", async () => {
@@ -185,7 +186,7 @@ Deno.test("collection preflight manifests and lifecycle artifacts use closed sch
     expiresAt: new Date(Date.now() + 60_000).toISOString(),
   };
   assertLaunchManifestSchema(launch);
-  assertPrelaunchFailureSchema({
+  const prelaunch = {
     blockId: launch.blockId,
     scheduleIndex: 0,
     stratum: launch.stratum,
@@ -194,7 +195,32 @@ Deno.test("collection preflight manifests and lifecycle artifacts use closed sch
     category: "blocked-provenance",
     reason: "fixture",
     cleanupLifecycle: "verified-no-owned-launch",
-  });
+  };
+  assertPrelaunchFailureSchema(prelaunch);
+  const stageOwner = {
+    schemaVersion: 1,
+    stageId: "permit-test",
+    permitId: "permit-test",
+    sourceCommit: "a".repeat(40),
+    root: "/tmp/wasm-vs-js-staged-chrome/permit-test",
+    stageParentDev: 1,
+    stageParentIno: 2,
+    rootDev: 1,
+    rootIno: 3,
+    cleanupLifecycle: "ready-no-owned-launch",
+    package: {
+      schemaVersion: 2,
+      binaryRelativePath: "chrome",
+      binarySha256: "b".repeat(64),
+      manifestSha256: "c".repeat(64),
+      files: { chrome: "b".repeat(64) },
+      sourceFileModes: { chrome: 493 },
+      stagedFileModes: { chrome: 320 },
+      sourceDirectoryModes: { ".": 448 },
+      stagedDirectoryModes: { ".": 320 },
+    },
+  };
+  assertStageOwnerSchema(stageOwner);
   const collectorAssets = Object.fromEntries([
     "/corpus-run",
     "/corpus-run.js",
@@ -226,4 +252,48 @@ Deno.test("collection preflight manifests and lifecycle artifacts use closed sch
       "schema invalid",
     );
   }
+  for (
+    const [value, validate] of [
+      [prelaunch, assertPrelaunchFailureSchema],
+      [stageOwner, assertStageOwnerSchema],
+    ] as const
+  ) {
+    await assertRejects(
+      () => Promise.resolve().then(() => validate({ ...value, invented: true })),
+      "schema invalid",
+    );
+  }
+  const inlineCorpus = {
+    schemaVersion: 1,
+    corpusId: "corpus-prelaunch",
+    experimentId: "m1-chrome-sum-u32-v1",
+    permitDigest: "a".repeat(64),
+    sourceManifestSha256: "b".repeat(64),
+    chromePackageManifestSha256: "c".repeat(64),
+    preregistrationSha256: "d13aed9404ec289046f885f79a1d7b9f04923d2264de22b1fee60a4e7a8d6f61",
+    planned: 120,
+    attempted: 0,
+    committed: 0,
+    failed: 0,
+    blocked: 0,
+    unstarted: 120,
+    blocks: [],
+    prelaunchFailures: [{ ...prelaunch, artifactSha256: "d".repeat(64), invented: true }],
+    strata: {
+      cold: { attempted: 0, committed: 0, failed: 0, blocked: 0, terminal: "continue" },
+      warm: { attempted: 0, committed: 0, failed: 0, blocked: 0, terminal: "continue" },
+    },
+    stop: {
+      scheduleIndex: 0,
+      blockId: launch.blockId,
+      category: "blocked-containment",
+      reason: "fixture",
+      artifactSha256: "e".repeat(64),
+    },
+    status: "containment-blocked",
+  };
+  await assertRejects(
+    () => Promise.resolve().then(() => assertCorpusSchema(inlineCorpus)),
+    "schema invalid",
+  );
 });

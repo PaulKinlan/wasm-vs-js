@@ -1,4 +1,9 @@
-import { assertPermitActive, consumePermit, validatePermit } from "../lib/browser-permit.ts";
+import {
+  assertPermitActive,
+  assertPermitReceiptAvailable,
+  consumePermit,
+  validatePermit,
+} from "../lib/browser-permit.ts";
 import { collectHostProvenance } from "../lib/host-provenance.ts";
 import {
   ChromeLaunchLifecycleError,
@@ -15,10 +20,19 @@ import {
   verifyStagedChrome,
 } from "../lib/chrome-stage.ts";
 import { StageCleanupLifecycle } from "../lib/stage-lifecycle.ts";
-import { attestAndRestrictTemporaryRoot, refreshLedger } from "../lib/process-ledger.ts";
+import {
+  attestAndRestrictTemporaryRoot,
+  ProfileReservation,
+  refreshLedger,
+  releaseProfileReservation,
+  reserveProfileNamespace,
+} from "../lib/process-ledger.ts";
 import {
   commitPairedBlock,
+  CorpusNamespaceReservation,
   LaunchManifest,
+  releaseCorpusNamespace,
+  reserveCorpusNamespace,
   validateLaunchManifest,
   writeImmutableArtifact,
 } from "../lib/corpus-store.ts";
@@ -148,11 +162,13 @@ export async function launchReviewedChrome(
   stage: StagedChrome,
   suffix: string,
   onSpawn?: (pid: number) => void,
+  profileReservation?: ProfileReservation,
 ) {
   await verifyStagedChrome(stage);
   return await launchOwnedChrome({
     stagedChrome: stage,
     profileRoot: `${permit.profileRoot}/${suffix}`,
+    profileReservation,
     extraArguments: [],
     beforeSpawn: () => assertPermitActive(permit),
     onSpawn,
@@ -221,12 +237,20 @@ export async function prepareCollectionInvocation(
     stage?: typeof stageChromePackage;
     verifyStage?: typeof verifyStagedChrome;
     removeStage?: typeof removeStagedChrome;
+    reserveCorpus?: typeof reserveCorpusNamespace;
+    releaseCorpus?: typeof releaseCorpusNamespace;
+    reserveProfiles?: typeof reserveProfileNamespace;
+    releaseProfiles?: typeof releaseProfileReservation;
+    checkReceipt?: typeof assertPermitReceiptAvailable;
     consume?: typeof consumePermit;
+    rawBase?: string;
   } = {},
 ): Promise<{
   stage: StagedChrome;
   lifecycle: StageCleanupLifecycle;
   receipt: Awaited<ReturnType<typeof consumePermit>>;
+  corpusReservation: CorpusNamespaceReservation;
+  profileReservation: ProfileReservation;
 }> {
   await validatePreconsumptionEnvironment(
     permit,
@@ -234,9 +258,26 @@ export async function prepareCollectionInvocation(
     manifest,
     dependencies.verifyEnvironment,
   );
+  await (dependencies.checkReceipt ?? assertPermitReceiptAvailable)(
+    "raw/permits",
+    permit.permitId,
+  );
   let stage: StagedChrome | undefined;
-  const lifecycle = new StageCleanupLifecycle();
+  let corpusReservation: CorpusNamespaceReservation | undefined;
+  let profileReservation: ProfileReservation | undefined;
+  const lifecycle = new StageCleanupLifecycle(), corpusId = `m1-${permit.permitId}`;
+  const childNames = manifest
+    ? [`${String(manifest.scheduleIndex).padStart(3, "0")}-${manifest.blockId}`]
+    : frozen.schedule.map((entry, index) => `${String(index).padStart(3, "0")}-${entry.blockId}`);
   try {
+    corpusReservation = await (dependencies.reserveCorpus ?? reserveCorpusNamespace)(
+      dependencies.rawBase ?? "raw/corpora",
+      corpusId,
+    );
+    profileReservation = await (dependencies.reserveProfiles ?? reserveProfileNamespace)(
+      permit.profileRoot,
+      childNames,
+    );
     stage = await (dependencies.stage ?? stageChromePackage)(
       permit.chromeBinary,
       permit.chromeSha256,
@@ -248,10 +289,26 @@ export async function prepareCollectionInvocation(
       "raw/permits",
       permit,
     );
-    return { stage, lifecycle, receipt };
+    return { stage, lifecycle, receipt, corpusReservation, profileReservation };
   } catch (error) {
+    const cleanupErrors: unknown[] = [];
     if (stage && lifecycle.disposition === "remove-stage") {
-      await (dependencies.removeStage ?? removeStagedChrome)(stage);
+      await (dependencies.removeStage ?? removeStagedChrome)(stage).catch((cleanup) =>
+        cleanupErrors.push(cleanup)
+      );
+    }
+    if (profileReservation) {
+      await (dependencies.releaseProfiles ?? releaseProfileReservation)(profileReservation).catch(
+        (cleanup) => cleanupErrors.push(cleanup),
+      );
+    }
+    if (corpusReservation) {
+      await (dependencies.releaseCorpus ?? releaseCorpusNamespace)(corpusReservation).catch(
+        (cleanup) => cleanupErrors.push(cleanup),
+      );
+    }
+    if (cleanupErrors.length) {
+      throw new AggregateError(cleanupErrors, `preconsumption cleanup failed after: ${error}`);
     }
     throw error;
   }
@@ -631,6 +688,7 @@ type CollectionDependencies = {
   rawBase?: string;
   stageLifecycle?: StageCleanupLifecycle;
   recordStageLifecycle?: typeof recordStageCleanupLifecycle;
+  profileReservation?: ProfileReservation;
 };
 export async function collectOwnedBlock(
   permit: ReturnType<typeof validatePermit>,
@@ -688,14 +746,17 @@ export async function collectOwnedBlock(
       stagedChrome,
       `${String(manifest.scheduleIndex).padStart(3, "0")}-${manifest.blockId}`,
       (pid) => {
+        // systemd-run has succeeded at this boundary. Account the attempt before any lifecycle
+        // persistence that can fail, so an owned launch can never become a prelaunch record.
         launchBegan = true;
+        onLaunchBegan?.(pid);
         dependencies.stageLifecycle?.launchBegan();
         (dependencies.recordStageLifecycle ?? recordStageCleanupLifecycle)(
           stagedChrome,
           "owned-launch-active",
         );
-        onLaunchBegan?.(pid);
       },
+      dependencies.profileReservation,
     );
   } catch (error) {
     if (error instanceof ChromeLaunchLifecycleError) {
@@ -1154,6 +1215,65 @@ export async function collectOwnedBlock(
     if (!cleanupComplete && !cleanupAttempted) await closeAndTrack();
   }
 }
+export async function persistStandalonePrelaunchFailure(
+  rawBase: string,
+  manifest: LaunchManifest,
+  lifecycle: StageCleanupLifecycle,
+  error: unknown,
+): Promise<{ path: string; sha256: string }> {
+  const failure = classifyAttemptError(error);
+  const record = {
+    blockId: manifest.blockId,
+    scheduleIndex: manifest.scheduleIndex,
+    stratum: manifest.stratum,
+    order: [...manifest.order],
+    attempted: false as const,
+    category: failure.category,
+    reason: failure.reason,
+    cleanupLifecycle: lifecycle.state === "cleanup-unresolved"
+      ? "unresolved-cleanup" as const
+      : "verified-no-owned-launch" as const,
+  };
+  assertPrelaunchFailureSchema(record);
+  const path = `${rawBase}/${manifest.corpusId}/prelaunch-failures/${
+    String(manifest.scheduleIndex).padStart(3, "0")
+  }-${manifest.blockId}.json`;
+  const artifact = await writeImmutableArtifact(path, canonicalize(record) + "\n");
+  return { path, sha256: artifact.sha256 };
+}
+
+export async function collectOneWithPrelaunchEvidence(
+  permit: ReturnType<typeof validatePermit>,
+  manifest: LaunchManifest,
+  expectedHashes: Record<string, string>,
+  expectedSourceManifestSha256: string,
+  stagedChrome: StagedChrome,
+  lifecycle: StageCleanupLifecycle,
+  profileReservation: ProfileReservation,
+  collector: typeof collectOwnedBlock = collectOwnedBlock,
+  rawBase = "raw/corpora",
+): ReturnType<typeof collectOwnedBlock> {
+  let launchBegan = false;
+  try {
+    return await collector(
+      permit,
+      manifest,
+      expectedHashes,
+      expectedSourceManifestSha256,
+      () => {
+        launchBegan = true;
+      },
+      stagedChrome,
+      { stageLifecycle: lifecycle, profileReservation },
+    );
+  } catch (error) {
+    if (!launchBegan) {
+      await persistStandalonePrelaunchFailure(rawBase, manifest, lifecycle, error);
+    }
+    throw error;
+  }
+}
+
 export async function collectAll(
   permit: ReturnType<typeof validatePermit>,
   permitDigest: string,
@@ -1162,6 +1282,7 @@ export async function collectAll(
   rawBase = "raw/corpora",
   stagedChrome?: StagedChrome,
   stageLifecycle = new StageCleanupLifecycle(),
+  profileReservation?: ProfileReservation,
 ): Promise<Record<string, unknown>> {
   const prereg = JSON.parse(
       await Deno.readTextFile("experiments/m1-chrome-sum-u32-v1/preregistration.json"),
@@ -1223,7 +1344,7 @@ export async function collectAll(
           cell.attempted += 1;
         },
         stagedChrome,
-        { stageLifecycle },
+        { stageLifecycle, profileReservation },
       );
       cell.js.push(result.jsMedianMs);
       cell.wasm.push(result.wasmMedianMs);
@@ -1645,6 +1766,8 @@ export async function dryFake() {
       stagedFileModes: { chrome: 0o500 },
       sourceDirectoryModes: { ".": 0o700 },
       stagedDirectoryModes: { ".": 0o500 },
+      stageParentDev: 1,
+      stageParentIno: 1,
       rootDev: 1,
       rootIno: 1,
       ownerManifestPath: `${root}/stage.owner.json`,
@@ -1846,7 +1969,7 @@ if (import.meta.main) {
         maximumLaunches: 120,
       });
       const prepared = await prepareCollectionInvocation(permitPath, permit, check.frozen);
-      const { stage, lifecycle, receipt } = prepared;
+      const { stage, lifecycle, receipt, profileReservation } = prepared;
       try {
         const corpus = await collectAll(
           permit,
@@ -1856,11 +1979,15 @@ if (import.meta.main) {
           "raw/corpora",
           stage,
           lifecycle,
+          profileReservation,
         );
         console.log(JSON.stringify(corpus));
         await verifyStagedChrome(stage);
       } finally {
-        if (lifecycle.disposition === "remove-stage") await removeStagedChrome(stage);
+        if (lifecycle.disposition === "remove-stage") {
+          await removeStagedChrome(stage);
+          await releaseProfileReservation(profileReservation);
+        }
       }
       break;
     }
@@ -1879,24 +2006,27 @@ if (import.meta.main) {
         check.frozen,
         manifest,
       );
-      const { stage, lifecycle } = prepared;
+      const { stage, lifecycle, profileReservation } = prepared;
       try {
         console.log(
           JSON.stringify(
-            await collectOwnedBlock(
+            await collectOneWithPrelaunchEvidence(
               permit,
               manifest,
               check.frozen.collectorHashes,
               check.sourceManifestSha256,
-              undefined,
               stage,
-              { stageLifecycle: lifecycle },
+              lifecycle,
+              profileReservation,
             ),
           ),
         );
         await verifyStagedChrome(stage);
       } finally {
-        if (lifecycle.disposition === "remove-stage") await removeStagedChrome(stage);
+        if (lifecycle.disposition === "remove-stage") {
+          await removeStagedChrome(stage);
+          await releaseProfileReservation(profileReservation);
+        }
       }
       break;
     }

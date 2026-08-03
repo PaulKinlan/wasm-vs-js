@@ -3,7 +3,13 @@ import { validatePermit } from "../lib/browser-permit.ts";
 import { StagedChrome } from "../lib/chrome-stage.ts";
 import { FrozenCollectionManifests, verifyCollectorOrigin } from "../lib/collection-preflight.ts";
 import { StageCleanupLifecycle } from "../lib/stage-lifecycle.ts";
-import { collectAll, prepareCollectionInvocation } from "../scripts/run-m1-chrome-corpus.ts";
+import { ChromeLaunchLifecycleError } from "../lib/owned-chrome.ts";
+import {
+  collectAll,
+  collectOneWithPrelaunchEvidence,
+  collectOwnedBlock,
+  prepareCollectionInvocation,
+} from "../scripts/run-m1-chrome-corpus.ts";
 import {
   assertCheckoutStatus,
   assertGeneratedTreeSafe,
@@ -11,7 +17,7 @@ import {
   collectorRouteHashes,
 } from "../lib/source-identity.ts";
 
-function permit() {
+function permit(overrides: Record<string, unknown> = {}) {
   const now = Date.now();
   return validatePermit({
     schemaVersion: 1,
@@ -30,6 +36,7 @@ function permit() {
     expiresAt: new Date(now + 60_000).toISOString(),
     authorizationReference: "unit-test-no-browser-no-permit-file",
     retryOf: null,
+    ...overrides,
   });
 }
 
@@ -67,6 +74,8 @@ function fakeStage(p = permit()): StagedChrome {
     stagedFileModes: { chrome: 0o500 },
     sourceDirectoryModes: { ".": 0o700 },
     stagedDirectoryModes: { ".": 0o500 },
+    stageParentDev: 1,
+    stageParentIno: 1,
     rootDev: 1,
     rootIno: 2,
     ownerManifestPath: `/tmp/wasm-vs-js-staged-chrome/${p.permitId}.owner.json`,
@@ -79,9 +88,44 @@ function fakeStage(p = permit()): StagedChrome {
 Deno.test("permit consumption is last after source/server/asset, launch-manifest, and stage gates", async () => {
   const p = permit(), f = frozen(), stage = fakeStage(p);
   const calls: string[] = [];
+  const corpusReservation = {
+    root: "/tmp/fake-corpus",
+    corpusId: `m1-${p.permitId}`,
+    parentDev: 1,
+    parentIno: 1,
+    namespaceDev: 1,
+    namespaceIno: 2,
+  };
+  const profileReservation = {
+    ownershipRoot: p.profileRoot,
+    ownershipParentDev: 1,
+    ownershipParentIno: 1,
+    ownershipDev: 1,
+    ownershipIno: 2,
+  };
   const dependencies = {
     verifyEnvironment: () => {
       calls.push("origin-and-assets");
+      return Promise.resolve();
+    },
+    checkReceipt: () => {
+      calls.push("receipt-available");
+      return Promise.resolve();
+    },
+    reserveCorpus: () => {
+      calls.push("reserve-corpus");
+      return Promise.resolve(corpusReservation);
+    },
+    reserveProfiles: () => {
+      calls.push("reserve-profiles");
+      return Promise.resolve(profileReservation);
+    },
+    releaseCorpus: () => {
+      calls.push("release-corpus");
+      return Promise.resolve();
+    },
+    releaseProfiles: () => {
+      calls.push("release-profiles");
       return Promise.resolve();
     },
     stage: () => {
@@ -102,7 +146,15 @@ Deno.test("permit consumption is last after source/server/asset, launch-manifest
     },
   };
   await prepareCollectionInvocation("unused", p, f, undefined, dependencies);
-  assertEquals(calls, ["origin-and-assets", "stage", "stage-manifest", "consume"]);
+  assertEquals(calls, [
+    "origin-and-assets",
+    "receipt-available",
+    "reserve-corpus",
+    "reserve-profiles",
+    "stage",
+    "stage-manifest",
+    "consume",
+  ]);
 
   calls.length = 0;
   await assertRejects(
@@ -130,7 +182,17 @@ Deno.test("permit consumption is last after source/server/asset, launch-manifest
       }),
     "stage package identity mismatch",
   );
-  assertEquals(calls, ["origin-and-assets", "stage", "stage-manifest", "remove-stage"]);
+  assertEquals(calls, [
+    "origin-and-assets",
+    "receipt-available",
+    "reserve-corpus",
+    "reserve-profiles",
+    "stage",
+    "stage-manifest",
+    "remove-stage",
+    "release-profiles",
+    "release-corpus",
+  ]);
 });
 
 Deno.test("collector health and every served asset byte must match the exact local origin", async () => {
@@ -196,8 +258,7 @@ Deno.test("stage disposition is a typed cleanup lifecycle and unresolved cleanup
   assertEquals(lifecycle.disposition, "retain-stage-unresolved-cleanup");
   lifecycle.cleanupVerified();
   assertEquals(lifecycle.disposition, "remove-stage");
-  lifecycle.launchBegan();
-  lifecycle.cleanupUnresolved();
+  lifecycle.prelaunchFailure(false);
   assertEquals(lifecycle.state, "cleanup-unresolved");
   assertEquals(lifecycle.disposition, "retain-stage-unresolved-cleanup");
 });
@@ -250,5 +311,198 @@ Deno.test("clean-source status allows only generated permit/corpus roots and rej
   } finally {
     await Deno.remove(root, { recursive: true });
     await Deno.remove(outside);
+  }
+});
+
+Deno.test("post-systemd lifecycle persistence failure remains an attempted launch", async () => {
+  const p = permit(), f = frozen(), stage = fakeStage(p), lifecycle = new StageCleanupLifecycle();
+  const manifest = {
+    experimentId: "m1-chrome-sum-u32-v1" as const,
+    corpusId: `m1-${p.permitId}`,
+    blockId: f.schedule[0].blockId,
+    scheduleIndex: 0,
+    stratum: f.schedule[0].stratum,
+    order: f.schedule[0].order,
+    expiresAt: new Date(Date.now() + 30_000).toISOString(),
+  };
+  let attempted = false;
+  await assertRejects(
+    () =>
+      collectOwnedBlock(
+        p,
+        manifest,
+        {},
+        "a".repeat(64),
+        () => {
+          attempted = true;
+        },
+        stage,
+        {
+          sourceManifest: () =>
+            Promise.resolve({
+              sourceCommit: p.sourceCommit,
+              files: { "fixture.ts": "b".repeat(64) },
+              sha256: "a".repeat(64),
+            }),
+          verifyOrigin: () => Promise.resolve(),
+          issueToken: () => Promise.resolve("fixture-token"),
+          verifyStage: () => Promise.resolve(),
+          stageLifecycle: lifecycle,
+          recordStageLifecycle: () => {
+            throw new Error("stage lifecycle persistence failed");
+          },
+          launch: async (_permit, _stage, _suffix, began) => {
+            await Promise.resolve();
+            try {
+              began?.(0);
+            } catch (error) {
+              throw new ChromeLaunchLifecycleError(
+                "stage lifecycle persistence failed after systemd-run",
+                true,
+                true,
+                error,
+              );
+            }
+            throw new Error("fixture expected persistence failure");
+          },
+        },
+      ),
+    "stage lifecycle persistence failed",
+  );
+  assertEquals(attempted, true);
+});
+
+Deno.test("corpus and profile namespace collisions reject before permit consumption", async () => {
+  const root = await Deno.makeTempDir(), f = frozen();
+  let consumed = false;
+  const corpusPermit = permit(), corpusId = `m1-${corpusPermit.permitId}`;
+  try {
+    await Deno.mkdir(`${root}/${corpusId}`, { mode: 0o700 });
+    await assertRejects(
+      () =>
+        prepareCollectionInvocation("unused", corpusPermit, f, undefined, {
+          verifyEnvironment: () => Promise.resolve(),
+          rawBase: root,
+          consume: () => {
+            consumed = true;
+            return Promise.reject(new Error("must not consume"));
+          },
+        }),
+      "corpus namespace already exists",
+    );
+    assertEquals(consumed, false);
+
+    await Deno.remove(`${root}/${corpusId}`, { recursive: true });
+    const profilePermit = permit();
+    await Deno.mkdir(profilePermit.profileRoot, { recursive: true, mode: 0o700 });
+    await assertRejects(
+      () =>
+        prepareCollectionInvocation("unused", profilePermit, f, undefined, {
+          verifyEnvironment: () => Promise.resolve(),
+          rawBase: root,
+          consume: () => {
+            consumed = true;
+            return Promise.reject(new Error("must not consume"));
+          },
+        }),
+      "profile ownership reservation already exists",
+    );
+    assertEquals(consumed, false);
+    await Deno.remove(profilePermit.profileRoot, { recursive: true });
+  } finally {
+    await Deno.remove(root, { recursive: true }).catch(() => {});
+    await Deno.remove(corpusPermit.profileRoot, { recursive: true }).catch(() => {});
+  }
+});
+
+Deno.test("collect-one persists a closed standalone prelaunch failure", async () => {
+  const root = await Deno.makeTempDir(), p = permit(), f = frozen();
+  const manifest = {
+    experimentId: "m1-chrome-sum-u32-v1" as const,
+    corpusId: `m1-${p.permitId}`,
+    blockId: f.schedule[0].blockId,
+    scheduleIndex: 0,
+    stratum: f.schedule[0].stratum,
+    order: f.schedule[0].order,
+    expiresAt: new Date(Date.now() + 30_000).toISOString(),
+  };
+  try {
+    await assertRejects(
+      () =>
+        collectOneWithPrelaunchEvidence(
+          p,
+          manifest,
+          {},
+          "a".repeat(64),
+          fakeStage(p),
+          new StageCleanupLifecycle(),
+          {
+            ownershipRoot: p.profileRoot,
+            ownershipParentDev: 1,
+            ownershipParentIno: 1,
+            ownershipDev: 1,
+            ownershipIno: 2,
+          },
+          () => Promise.reject(new Error("collect-one prelaunch fixture")),
+          `${root}/corpora`,
+        ),
+      "collect-one prelaunch fixture",
+    );
+    const path =
+      `${root}/corpora/${manifest.corpusId}/prelaunch-failures/000-${manifest.blockId}.json`;
+    const record = JSON.parse(await Deno.readTextFile(path));
+    assertEquals(record.attempted, false);
+    assertEquals(record.cleanupLifecycle, "verified-no-owned-launch");
+    assertEquals("invented" in record, false);
+  } finally {
+    await Deno.remove(root, { recursive: true });
+  }
+});
+
+Deno.test("a second-launch preflight cleanup failure retains the shared stage", async () => {
+  const root = await Deno.makeTempDir(), p = permit({ maximumLaunches: 2 });
+  const lifecycle = new StageCleanupLifecycle();
+  let invocation = 0;
+  try {
+    const result = await collectAll(
+      p,
+      "d".repeat(64),
+      {
+        sourceCommit: p.sourceCommit,
+        experimentId: "m1-chrome-sum-u32-v1",
+        plannedLaunches: 120,
+        hostFields: 1,
+        sourceManifestSha256: "e".repeat(64),
+        sourceFiles: { "server.ts": "f".repeat(64) },
+        frozen: null,
+      },
+      async (_permit, manifest, _hashes, _source, onLaunch, _stage, dependencies) => {
+        await Promise.resolve();
+        invocation += 1;
+        if (invocation === 1) {
+          onLaunch?.(1);
+          dependencies?.stageLifecycle?.launchBegan();
+          dependencies?.stageLifecycle?.cleanupVerified();
+          return {
+            blockSha256: "a".repeat(64),
+            cleanup: true as const,
+            stratum: manifest.stratum,
+            jsMedianMs: 10,
+            wasmMedianMs: 5,
+          };
+        }
+        dependencies?.stageLifecycle?.prelaunchFailure(false);
+        throw new Error("second launch preflight cleanup unresolved");
+      },
+      `${root}/corpora`,
+      fakeStage(p),
+      lifecycle,
+    );
+    assertEquals(result.attempted, 1);
+    assertEquals((result.prelaunchFailures as unknown[]).length, 1);
+    assertEquals(lifecycle.state, "cleanup-unresolved");
+    assertEquals(lifecycle.disposition, "retain-stage-unresolved-cleanup");
+  } finally {
+    await Deno.remove(root, { recursive: true });
   }
 });

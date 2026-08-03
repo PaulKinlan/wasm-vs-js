@@ -6,6 +6,7 @@ export const EXECUTED_SOURCE_PATHS = [
   "server.ts",
   "deno.corpus.json",
   "scripts/run-m1-chrome-corpus.ts",
+  "scripts/remove-owned-file.py",
   "scripts/remove-owned-tree.py",
   "lib/browser-permit.ts",
   "lib/canonical.ts",

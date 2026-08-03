@@ -26,6 +26,8 @@ export type StagedChrome = ChromePackageInspection & {
   sourceCommit: string;
   root: string;
   binary: string;
+  stageParentDev: number;
+  stageParentIno: number;
   rootDev: number;
   rootIno: number;
   cleanupLifecycle: CleanupLifecycleState;
@@ -41,6 +43,8 @@ type StageOwnerManifest = {
   permitId: string;
   sourceCommit: string;
   root: string;
+  stageParentDev: number;
+  stageParentIno: number;
   rootDev: number;
   rootIno: number;
   cleanupLifecycle: CleanupLifecycleState;
@@ -134,6 +138,8 @@ function ownerManifest(stage: StagedChrome): StageOwnerManifest {
     permitId: stage.permitId,
     sourceCommit: stage.sourceCommit,
     root: stage.root,
+    stageParentDev: stage.stageParentDev,
+    stageParentIno: stage.stageParentIno,
     rootDev: stage.rootDev,
     rootIno: stage.rootIno,
     cleanupLifecycle: stage.cleanupLifecycle,
@@ -148,25 +154,38 @@ async function ownerSnapshot(path: string): Promise<{
   ino: number;
 }> {
   const before = await Deno.lstat(path);
-  if (
-    before.isSymlink || !before.isFile || await Deno.realPath(path) !== path ||
-    numberIdentity(before.uid, "stage owner uid") !== await expectedUid() ||
-    permissionMode(before, "stage owner") !== OWNER_MODE
-  ) throw new Error("unsafe Chrome stage owner manifest");
-  const bytes = await Deno.readFile(path), sha256 = await sha256Hex(bytes);
-  const manifest = JSON.parse(new TextDecoder().decode(bytes));
-  assertStageOwnerSchema(manifest);
-  const after = await Deno.lstat(path);
-  if (
-    after.isSymlink || !after.isFile || after.dev !== before.dev || after.ino !== before.ino ||
-    after.size !== before.size || permissionMode(after, "stage owner") !== OWNER_MODE
-  ) throw new Error("Chrome stage owner manifest changed while reading");
-  return {
-    manifest: manifest as StageOwnerManifest,
-    sha256,
-    dev: numberIdentity(before.dev, "stage owner dev"),
-    ino: numberIdentity(before.ino, "stage owner inode"),
-  };
+  if (before.isSymlink || !before.isFile) throw new Error("unsafe Chrome stage owner manifest");
+  const handle = await Deno.open(path, { read: true });
+  try {
+    const opened = await handle.stat();
+    if (
+      !opened.isFile || opened.dev !== before.dev || opened.ino !== before.ino ||
+      numberIdentity(opened.uid, "stage owner uid") !== await expectedUid() ||
+      permissionMode(opened, "stage owner") !== OWNER_MODE
+    ) throw new Error("unsafe Chrome stage owner manifest");
+    const bytes = new Uint8Array(numberIdentity(opened.size, "stage owner size"));
+    let offset = 0;
+    while (offset < bytes.length) {
+      const count = await handle.read(bytes.subarray(offset));
+      if (count === null) throw new Error("short Chrome stage owner manifest");
+      offset += count;
+    }
+    const manifest = JSON.parse(new TextDecoder().decode(bytes));
+    assertStageOwnerSchema(manifest);
+    const after = await Deno.lstat(path);
+    if (
+      after.isSymlink || !after.isFile || after.dev !== opened.dev || after.ino !== opened.ino ||
+      after.size !== opened.size || permissionMode(after, "stage owner") !== OWNER_MODE
+    ) throw new Error("Chrome stage owner manifest changed while reading");
+    return {
+      manifest: manifest as StageOwnerManifest,
+      sha256: await sha256Hex(bytes),
+      dev: numberIdentity(opened.dev, "stage owner dev"),
+      ino: numberIdentity(opened.ino, "stage owner inode"),
+    };
+  } finally {
+    handle.close();
+  }
 }
 
 async function assertStageDirectory(path: string, expectedMode: number) {
@@ -281,27 +300,50 @@ async function inspectResolvedChromePackage(
   return inspection;
 }
 
+export let stageOwnerOpenRaceHook: ((stage: StagedChrome) => void) | undefined;
+export function setStageOwnerOpenRaceHookForTest(hook?: (stage: StagedChrome) => void): void {
+  stageOwnerOpenRaceHook = hook;
+}
+
 export function recordStageCleanupLifecycle(
   stage: StagedChrome,
   cleanupLifecycle: CleanupLifecycleState,
 ): void {
   const before = Deno.lstatSync(stage.ownerManifestPath);
-  if (
-    before.isSymlink || !before.isFile ||
-    numberIdentity(before.dev, "stage owner dev") !== stage.ownerDev ||
-    numberIdentity(before.ino, "stage owner inode") !== stage.ownerIno ||
-    permissionMode(before, "stage owner") !== OWNER_MODE
-  ) throw new Error("unsafe Chrome stage lifecycle owner");
-  const current = JSON.parse(Deno.readTextFileSync(stage.ownerManifestPath));
-  assertStageOwnerSchema(current);
-  if (canonicalize(current) !== canonicalize(ownerManifest(stage))) {
-    throw new Error("Chrome stage lifecycle identity changed");
+  if (before.isSymlink || !before.isFile) {
+    throw new Error("unsafe Chrome stage lifecycle owner");
   }
-  const next = { ...current, cleanupLifecycle };
-  assertStageOwnerSchema(next);
-  const handle = Deno.openSync(stage.ownerManifestPath, { write: true, truncate: true });
+  stageOwnerOpenRaceHook?.(stage);
+  // Open without truncate, authenticate the retained descriptor, and mutate only that descriptor.
+  // A pathname replacement can make the operation fail, but cannot redirect truncation.
+  const handle = Deno.openSync(stage.ownerManifestPath, { read: true, write: true });
   try {
-    handle.writeSync(new TextEncoder().encode(canonicalize(next) + "\n"));
+    const opened = handle.statSync();
+    if (
+      !opened.isFile || opened.dev !== before.dev || opened.ino !== before.ino ||
+      numberIdentity(opened.dev, "stage owner dev") !== stage.ownerDev ||
+      numberIdentity(opened.ino, "stage owner inode") !== stage.ownerIno ||
+      permissionMode(opened, "stage owner") !== OWNER_MODE
+    ) throw new Error("unsafe Chrome stage lifecycle owner");
+    const bytes = new Uint8Array(numberIdentity(opened.size, "stage owner size"));
+    let offset = 0;
+    while (offset < bytes.length) {
+      const count = handle.readSync(bytes.subarray(offset));
+      if (count === null) throw new Error("short Chrome stage lifecycle owner");
+      offset += count;
+    }
+    const current = JSON.parse(new TextDecoder().decode(bytes));
+    assertStageOwnerSchema(current);
+    if (canonicalize(current) !== canonicalize(ownerManifest(stage))) {
+      throw new Error("Chrome stage lifecycle identity changed");
+    }
+    const next = { ...current, cleanupLifecycle };
+    assertStageOwnerSchema(next);
+    const encoded = new TextEncoder().encode(canonicalize(next) + "\n");
+    handle.truncateSync(0);
+    handle.seekSync(0, Deno.SeekMode.Start);
+    offset = 0;
+    while (offset < encoded.length) offset += handle.writeSync(encoded.subarray(offset));
     handle.syncSync();
   } finally {
     handle.close();
@@ -321,6 +363,10 @@ export async function verifyStageOwnership(stage: StagedChrome): Promise<void> {
     stage.ownerManifestPath !== `${STAGE_ROOT}/${stage.stageId}.owner.json` ||
     !/^[a-f0-9]{40}$/.test(stage.sourceCommit)
   ) throw new Error("staged Chrome ownership identity changed");
+  const parent = await assertStageDirectory(STAGE_ROOT, 0o700);
+  if (parent.dev !== stage.stageParentDev || parent.ino !== stage.stageParentIno) {
+    throw new Error("staged Chrome parent identity changed");
+  }
   const owner = await ownerSnapshot(stage.ownerManifestPath);
   if (
     (stage.ownerManifestSha256 && owner.sha256 !== stage.ownerManifestSha256) ||
@@ -390,28 +436,93 @@ export async function verifyStagedChrome(stage: StagedChrome): Promise<void> {
   ) throw new Error("staged Chrome package manifest changed");
 }
 
-async function makeTreeRemovable(root: string): Promise<void> {
-  const info = await Deno.lstat(root);
-  if (info.isSymlink || !info.isDirectory) throw new Error("unsafe Chrome stage cleanup root");
-  await Deno.chmod(root, 0o700);
-  for await (const entry of Deno.readDir(root)) {
-    const path = `${root}/${entry.name}`;
-    const child = await Deno.lstat(path);
-    if (child.isDirectory && !child.isSymlink) await makeTreeRemovable(path);
-    else if (child.isFile && !child.isSymlink) await Deno.chmod(path, 0o600);
+async function runRemovalHelper(script: string, args: string[]): Promise<Record<string, unknown>> {
+  const helper = await Deno.realPath(new URL(`../scripts/${script}`, import.meta.url));
+  const result = await new Deno.Command("/usr/bin/python3", {
+    args: [helper, ...args],
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  if (!result.success) {
+    throw new Error(
+      `fd-relative Chrome stage removal failed: ${new TextDecoder().decode(result.stderr).trim()}`,
+    );
   }
+  return JSON.parse(new TextDecoder().decode(result.stdout));
+}
+
+async function removeExactStageTree(
+  stageParentDev: number,
+  stageParentIno: number,
+  stageId: string,
+  rootDev: number,
+  rootIno: number,
+  mode: number,
+): Promise<void> {
+  const proof = await runRemovalHelper("remove-owned-tree.py", [
+    STAGE_ROOT,
+    String(stageParentDev),
+    String(stageParentIno),
+    safeId(stageId),
+    String(rootDev),
+    String(rootIno),
+    String(mode),
+  ]);
+  if (proof.removed !== true || proof.dev !== rootDev || proof.ino !== rootIno) {
+    throw new Error("fd-relative Chrome stage removal proof mismatch");
+  }
+}
+
+async function removeExactOwnerFile(
+  stageParentDev: number,
+  stageParentIno: number,
+  stageId: string,
+  ownerDev: number,
+  ownerIno: number,
+): Promise<void> {
+  const proof = await runRemovalHelper("remove-owned-file.py", [
+    STAGE_ROOT,
+    String(stageParentDev),
+    String(stageParentIno),
+    `${safeId(stageId)}.owner.json`,
+    String(ownerDev),
+    String(ownerIno),
+  ]);
+  if (proof.removed !== true || proof.dev !== ownerDev || proof.ino !== ownerIno) {
+    throw new Error("fd-relative Chrome stage owner removal proof mismatch");
+  }
+}
+
+export let stageRemovalRaceHook: ((stage: StagedChrome) => void | Promise<void>) | undefined;
+export function setStageRemovalRaceHookForTest(
+  hook?: (stage: StagedChrome) => void | Promise<void>,
+): void {
+  stageRemovalRaceHook = hook;
 }
 
 export async function removeStagedChrome(stage: StagedChrome): Promise<void> {
   await verifyStagedChrome(stage);
-  await makeTreeRemovable(stage.root);
-  await Deno.remove(stage.root, { recursive: true });
+  await stageRemovalRaceHook?.(stage);
+  await removeExactStageTree(
+    stage.stageParentDev,
+    stage.stageParentIno,
+    stage.stageId,
+    stage.rootDev,
+    stage.rootIno,
+    DIRECTORY_MODE,
+  );
   const owner = await ownerSnapshot(stage.ownerManifestPath);
   if (
     owner.sha256 !== stage.ownerManifestSha256 || owner.dev !== stage.ownerDev ||
     owner.ino !== stage.ownerIno
   ) throw new Error("Chrome stage owner changed during cleanup");
-  await Deno.remove(stage.ownerManifestPath);
+  await removeExactOwnerFile(
+    stage.stageParentDev,
+    stage.stageParentIno,
+    stage.stageId,
+    stage.ownerDev,
+    stage.ownerIno,
+  );
 }
 
 export async function inspectChromePackage(
@@ -451,11 +562,13 @@ export async function reconcileStaleChromeStage(
     ownerManifestPath = `${STAGE_ROOT}/${stageId}.owner.json`;
   const rootExists = await pathExists(root), ownerExists = await pathExists(ownerManifestPath);
   if (!rootExists && !ownerExists) return "absent";
+  const stageParent = await assertStageDirectory(STAGE_ROOT, 0o700);
   if (!ownerExists) throw new Error("stale Chrome stage has no exact owner manifest");
   const owner = await ownerSnapshot(ownerManifestPath), manifest = owner.manifest;
   if (
     manifest.stageId !== stageId || manifest.permitId !== authorization.permitId ||
     manifest.sourceCommit !== authorization.sourceCommit || manifest.root !== root ||
+    manifest.stageParentDev !== stageParent.dev || manifest.stageParentIno !== stageParent.ino ||
     manifest.package.manifestSha256 !== authorization.chromePackageManifestSha256
   ) throw new Error("stale Chrome stage identity does not match permit");
   if (["owned-launch-active", "cleanup-unresolved"].includes(manifest.cleanupLifecycle)) {
@@ -466,7 +579,13 @@ export async function reconcileStaleChromeStage(
     if (current.dev !== owner.dev || current.ino !== owner.ino || current.sha256 !== owner.sha256) {
       throw new Error("stale Chrome stage owner changed during reconciliation");
     }
-    await Deno.remove(ownerManifestPath);
+    await removeExactOwnerFile(
+      stageParent.dev,
+      stageParent.ino,
+      stageId,
+      owner.dev,
+      owner.ino,
+    );
     return "removed";
   }
   const stage: StagedChrome = {
@@ -477,6 +596,8 @@ export async function reconcileStaleChromeStage(
     cleanupLifecycle: manifest.cleanupLifecycle,
     root,
     binary: `${root}/${manifest.package.binaryRelativePath}`,
+    stageParentDev: manifest.stageParentDev,
+    stageParentIno: manifest.stageParentIno,
     rootDev: manifest.rootDev,
     rootIno: manifest.rootIno,
     ownerManifestPath,
@@ -508,6 +629,7 @@ export async function stageChromePackage(
   const root = `${STAGE_ROOT}/${stageId}`,
     ownerManifestPath = `${STAGE_ROOT}/${stageId}.owner.json`;
   await Deno.mkdir(root, { mode: 0o700 });
+  const createdRoot = await assertStageDirectory(root, 0o700);
   let ownerCreated = false;
   try {
     const directories = Object.keys(inspected.sourceDirectoryModes).filter((rel) => rel !== ".")
@@ -547,6 +669,8 @@ export async function stageChromePackage(
       cleanupLifecycle: "ready-no-owned-launch",
       root,
       binary: `${root}/${inspected.binaryRelativePath}`,
+      stageParentDev: stageParent.dev,
+      stageParentIno: stageParent.ino,
       rootDev: rootIdentity.dev,
       rootIno: rootIdentity.ino,
       ownerManifestPath,
@@ -577,9 +701,35 @@ export async function stageChromePackage(
     await verifyStagedChrome(stage);
     return stage;
   } catch (error) {
-    await makeTreeRemovable(root).catch(() => {});
-    await Deno.remove(root, { recursive: true }).catch(() => {});
-    if (ownerCreated) await Deno.remove(ownerManifestPath).catch(() => {});
+    const currentRoot = await Deno.lstat(root).catch(() => null);
+    if (
+      currentRoot && !currentRoot.isSymlink && currentRoot.isDirectory &&
+      Number(currentRoot.dev) === createdRoot.dev && Number(currentRoot.ino) === createdRoot.ino
+    ) {
+      const mode = permissionMode(currentRoot, "failed Chrome stage root");
+      if (mode === 0o700 || mode === DIRECTORY_MODE) {
+        await removeExactStageTree(
+          stageParent.dev,
+          stageParent.ino,
+          stageId,
+          createdRoot.dev,
+          createdRoot.ino,
+          mode,
+        ).catch(() => {});
+      }
+    }
+    if (ownerCreated) {
+      const owner = await ownerSnapshot(ownerManifestPath).catch(() => null);
+      if (owner) {
+        await removeExactOwnerFile(
+          stageParent.dev,
+          stageParent.ino,
+          stageId,
+          owner.dev,
+          owner.ino,
+        ).catch(() => {});
+      }
+    }
     throw error;
   }
 }

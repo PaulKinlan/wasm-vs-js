@@ -38,7 +38,9 @@ export class StageCleanupLifecycle {
   }
 
   prelaunchFailure(cleanupResolved: boolean): void {
-    if (this.#state !== "ready-no-owned-launch") {
+    if (
+      this.#state !== "ready-no-owned-launch" && this.#state !== "cleanup-verified"
+    ) {
       throw new Error(`invalid prelaunch lifecycle transition from ${this.#state}`);
     }
     if (!cleanupResolved) this.#state = "cleanup-unresolved";

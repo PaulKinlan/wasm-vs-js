@@ -8,6 +8,8 @@
     "permitId",
     "sourceCommit",
     "root",
+    "stageParentDev",
+    "stageParentIno",
     "rootDev",
     "rootIno",
     "cleanupLifecycle",
@@ -22,6 +24,8 @@
       "type": "string",
       "pattern": "^/tmp/wasm-vs-js-staged-chrome/[A-Za-z0-9._-]{8,128}$"
     },
+    "stageParentDev": { "type": "integer", "minimum": 0 },
+    "stageParentIno": { "type": "integer", "minimum": 0 },
     "rootDev": { "type": "integer", "minimum": 0 },
     "rootIno": { "type": "integer", "minimum": 0 },
     "cleanupLifecycle": {
