@@ -1,5 +1,10 @@
 import { sha256Hex } from "../lib/canonical.ts";
-import { runJavaScript, runWasm } from "../benchmarks/base/document-pdf-viewer/engine.js";
+import {
+  parseReport,
+  renderPage,
+  runJavaScript,
+  runWasm,
+} from "../benchmarks/base/document-pdf-viewer/engine.js";
 
 const root = new URL("../", import.meta.url);
 const out = new URL("public/artifacts/document-pdf-viewer/", root);
@@ -87,14 +92,7 @@ function ascii(value: string) {
 }
 const objects = new Map<number, Uint8Array>();
 objects.set(1, ascii("<< /Type /Catalog /Pages 4 0 R >>"));
-objects.set(
-  2,
-  concat([
-    ascii(`<< /Type /EmbeddedFile /Length ${14 + font.length} >>\nstream\n%%PDFBASEFONT\n`),
-    font,
-    ascii("\nendstream"),
-  ]),
-);
+objects.set(2, ascii("<< /Producer (PDFBase repository-owned Type3 fixture generator) >>"));
 const glyphNames: Record<string, string> = {
   " ": "space",
   "0": "zero",
@@ -161,7 +159,7 @@ const widths = Array.from({ length: 95 }, () => "6").join(" ");
 objects.set(
   3,
   ascii(
-    `<< /Type /Font /Subtype /Type3 /FontBBox [0 0 6 7] /FontMatrix [0.1111111 0 0 0.1111111 0 0] /Encoding << /Type /Encoding /BaseEncoding /WinAnsiEncoding /Differences [${differences}] >> /CharProcs << ${charProcs} >> /FirstChar 32 /LastChar 126 /Widths [${widths}] /ToUnicode ${toUnicodeObject} 0 R /PDFBaseBitmap 2 0 R >>`,
+    `<< /Type /Font /Subtype /Type3 /FontBBox [0 0 6 7] /FontMatrix [0.125 0 0 0.125 0 0] /Encoding << /Type /Encoding /BaseEncoding /WinAnsiEncoding /Differences [${differences}] >> /CharProcs << ${charProcs} >> /FirstChar 32 /LastChar 126 /Widths [${widths}] /ToUnicode ${toUnicodeObject} 0 R >>`,
   ),
 );
 const kids = Array.from({ length: 100 }, (_, i) => `${5 + i * 2} 0 R`).join(" ");
@@ -177,7 +175,7 @@ for (let i = 1; i <= 100; i++) {
   const text = `REPORT PAGE ${String(i).padStart(3, "0")} DOCUMENT BENCHMARK${
     i % 10 === 0 ? " NEEDLE" : ""
   }`;
-  const stream = `BT /F1 18 Tf 36 750 Td (${text}) Tj ET`;
+  const stream = `BT /F1 16 Tf 36 750 Td (${text}) Tj ET`;
   objects.set(contentObject, ascii(`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`));
 }
 const maxObject = toUnicodeObject;
@@ -204,8 +202,9 @@ chunks.push(ascii(xref));
 const pdf = concat(chunks);
 const pdfUrl = new URL("report-100-pages.pdf", out);
 await Deno.writeFile(pdfUrl, pdf);
-await Deno.writeFile(new URL("pdfbase-5x7-v1.bin", out), font);
+await Deno.remove(new URL("pdfbase-5x7-v1.bin", out)).catch(() => {});
 
+const referenceRgba = new Map<number, Uint8Array>();
 const popplerDir = await Deno.makeTempDir({ prefix: "pdfbase-poppler-" });
 let independentReference;
 try {
@@ -225,6 +224,10 @@ try {
   for (const page of [1, 25, 50, 75, 100]) {
     const prefix = `${popplerDir}/page-${page}`;
     await command("pdftoppm", [
+      "-aa",
+      "no",
+      "-aaVector",
+      "no",
       "-f",
       String(page),
       "-l",
@@ -244,11 +247,25 @@ try {
       throw new Error(`Poppler raster length mismatch for page ${page}`);
     }
     let nonWhitePixels = 0;
-    for (let at = headerBytes; at < ppm.length; at += 3) {
-      if (ppm[at] !== 255 || ppm[at + 1] !== 255 || ppm[at + 2] !== 255) nonWhitePixels++;
+    const rgba = new Uint8Array(1224 * 1584 * 4);
+    for (let input = headerBytes, output = 0; input < ppm.length; input += 3, output += 4) {
+      rgba[output] = ppm[input];
+      rgba[output + 1] = ppm[input + 1];
+      rgba[output + 2] = ppm[input + 2];
+      rgba[output + 3] = 255;
+      if (ppm[input] !== 255 || ppm[input + 1] !== 255 || ppm[input + 2] !== 255) nonWhitePixels++;
     }
     if (nonWhitePixels === 0) throw new Error(`Poppler raster is blank for page ${page}`);
-    rasters.push({ page, sha256: await sha256Hex(ppm), nonWhitePixels, width: 1224, height: 1584 });
+    referenceRgba.set(page, rgba);
+    rasters.push({
+      page,
+      rgbaSha256: await sha256Hex(rgba),
+      nonWhitePixels,
+      width: 1224,
+      height: 1584,
+      differingPixels: 0,
+      maxChannelDifference: 0,
+    });
   }
   independentReference = {
     engine: await toolVersion("pdfinfo"),
@@ -256,6 +273,7 @@ try {
     extractedTextRecords: reportLines.length,
     searchHits: hitLines.length,
     rasterDpi: 144,
+    rasterArguments: ["-aa", "no", "-aaVector", "no", "-r", "144"],
     rasters,
   };
 } finally {
@@ -305,12 +323,40 @@ try {
 const wasm = await Deno.readFile(new URL("pdf-engine.wasm", out));
 const js = await runJavaScript(pdf);
 const wa = await runWasm(pdf, wasm);
+for (const raster of independentReference.rasters) {
+  const expected = referenceRgba.get(raster.page);
+  if (!expected) throw new Error(`Poppler reference missing page ${raster.page}`);
+  const parsed = parseReport(pdf);
+  const actual = renderPage(parsed, raster.page);
+  let differingPixels = 0, maxChannelDifference = 0;
+  for (let at = 0; at < actual.length; at += 4) {
+    let pixelDiffers = false;
+    for (let channel = 0; channel < 4; channel++) {
+      const difference = Math.abs(actual[at + channel] - expected[at + channel]);
+      if (difference) pixelDiffers = true;
+      if (difference > maxChannelDifference) maxChannelDifference = difference;
+    }
+    if (pixelDiffers) differingPixels++;
+  }
+  raster.differingPixels = differingPixels;
+  raster.maxChannelDifference = maxChannelDifference;
+  if (differingPixels !== 0 || maxChannelDifference !== 0) {
+    throw new Error(
+      `controlled raster differs from Poppler on page ${raster.page}: ${differingPixels} pixels`,
+    );
+  }
+}
 const comparable = (value: typeof js) => ({
   pageCount: value.pageCount,
   hits: value.hits,
   textSha256: value.textSha256,
   pageHashes: value.pageHashes,
-  counters: { ...value.counters, boundaryCrossings: 0 },
+  counters: {
+    ...value.counters,
+    boundaryCrossings: 0,
+    copiedBytes: 0,
+    memoryBytes: 0,
+  },
 });
 if (JSON.stringify(comparable(js)) !== JSON.stringify(comparable(wa))) {
   throw new Error(`JS/Wasm mismatch\n${JSON.stringify(js)}\n${JSON.stringify(wa)}`);
@@ -326,6 +372,7 @@ const sourcePaths = [
   "public/benchmarks/document-pdf-viewer-v1/runner.js",
   "public/benchmarks/document-pdf-viewer-v1/worker.js",
   "schemas/base-document-pdf-viewer-validation.schema.json",
+  "schemas/base-document-pdf-viewer-output.schema.json",
   "tests/base-document-pdf-viewer.test.ts",
   "server.ts",
   "deno.json",
@@ -350,11 +397,6 @@ const fixture = {
   bytes: pdf.length,
   sha256: await sha256Hex(pdf),
 };
-const fontRef = {
-  path: "public/artifacts/document-pdf-viewer/pdfbase-5x7-v1.bin",
-  bytes: font.length,
-  sha256: await sha256Hex(font),
-};
 const artifact = {
   path: "public/artifacts/document-pdf-viewer/pdf-engine.wasm",
   bytes: wasm.length,
@@ -365,7 +407,6 @@ const fixtureManifest = {
   workloadId: "document.pdf-viewer.v1",
   immutable: true,
   fixture,
-  font: fontRef,
   pdfSubset: {
     version: "PDF-1.7-pdfbase-report-v1",
     objectCount: maxObject,
@@ -404,7 +445,6 @@ const buildManifest = {
   },
   sources,
   fixture,
-  font: fontRef,
   artifact,
   reproduce:
     `deno run --frozen --allow-read=.,/tmp --allow-write=public/artifacts,public/evidence,/tmp --allow-run=clang,wasm-ld,git,pdfinfo,pdftotext,pdftoppm scripts/build-document-pdf-viewer.ts --source-commit=${sourceCommit}`,
@@ -434,6 +474,7 @@ await Deno.writeTextFile(
           exactCrossTarget: true,
           fixedWork: true,
           independentReference: true,
+          zeroPopplerPixelDifference: true,
         },
         output: outputManifest.oracle,
         independentReference,

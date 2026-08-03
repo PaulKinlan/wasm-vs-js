@@ -6,6 +6,7 @@ import {
   PAGE_COUNT,
   parseReport,
   RASTER_PAGES,
+  renderPage,
   runJavaScript,
   runWasm,
   WIDTH,
@@ -32,6 +33,28 @@ const outputManifest = JSON.parse(
 const buildManifest = JSON.parse(
   await Deno.readTextFile(new URL("build-manifest.json", artifactRoot)),
 );
+
+function replaceSameLength(bytes: Uint8Array, before: string, after: string) {
+  assertEquals(before.length, after.length);
+  const result = bytes.slice();
+  const needle = new TextEncoder().encode(before);
+  outer: for (let at = 0; at <= result.length - needle.length; at++) {
+    for (let i = 0; i < needle.length; i++) if (result[at + i] !== needle[i]) continue outer;
+    result.set(new TextEncoder().encode(after), at);
+    return result;
+  }
+  throw new Error(`mutation target missing: ${before}`);
+}
+
+async function rejects(action: () => unknown | Promise<unknown>) {
+  let rejected = false;
+  try {
+    await action();
+  } catch {
+    rejected = true;
+  }
+  assert(rejected);
+}
 
 Deno.test("document PDF frozen catalog remains byte-identical and fixture bytes are pinned", async () => {
   assertEquals(
@@ -63,47 +86,60 @@ Deno.test("independent JS and material Wasm parse 100 pages and match complete t
   assertEquals(js.counters.searchComparisons, wa.counters.searchComparisons);
   assertEquals(outputManifest.oracle.textSha256, js.textSha256);
   assertEquals(outputManifest.oracle.rasterPages, js.pageHashes);
+  assertEquals(js.counters.allocations, 1);
+  assertEquals(wa.counters.allocations, 1);
+  assertEquals(wa.counters.boundaryCrossings, 225);
+  assertEquals(wa.counters.memoryBytes, 16 * 1024 * 1024);
+  assertEquals(js.counters.memoryBytes, WIDTH * HEIGHT * 4);
+  assertEquals(wa.counters.copiedBytes, pdf.length + 5 * WIDTH * HEIGHT * 4 + 3470 + 36 + 40);
+  assertEquals(js.counters.copiedBytes, 0);
+  assertEquals(
+    outputManifest.independentReference.rasters.map((entry: { rgbaSha256: string }) =>
+      entry.rgbaSha256
+    ),
+    js.pageHashes.map((entry: { sha256: string }) => entry.sha256),
+  );
+  assert(
+    outputManifest.independentReference.rasters.every(
+      (entry: { differingPixels: number; maxChannelDifference: number }) =>
+        entry.differingPixels === 0 && entry.maxChannelDifference === 0,
+    ),
+  );
 });
 
-Deno.test("parser rejects malformed header, missing embedded font, bad page text and truncation", () => {
-  const cases: Uint8Array[] = [];
+Deno.test("independent parsers fail closed on header, xref, trailer root, page tree and truncation", async () => {
   const header = pdf.slice();
   header[1] = 0x58;
-  cases.push(header);
-  const font = pdf.slice();
-  const fontNeedle = new TextEncoder().encode("%%PDFBASEFONT");
-  let fontAt = -1;
-  outer: for (let i = 0; i <= font.length - fontNeedle.length; i++) {
-    for (let j = 0; j < fontNeedle.length; j++) if (font[i + j] !== fontNeedle[j]) continue outer;
-    fontAt = i;
-    break;
+  const xref = replaceSameLength(pdf, "0000000035 00000 n", "0000000036 00000 n");
+  const root = replaceSameLength(pdf, "/Root 1 0 R", "/Root 9 0 R");
+  const parent = replaceSameLength(pdf, "/Parent 4 0 R", "/Parent 9 0 R");
+  for (const bytes of [header, xref, root, parent, pdf.slice(0, pdf.length - 100)]) {
+    await rejects(() => parseReport(bytes));
+    await rejects(() => runWasm(bytes, wasm));
   }
-  assert(fontAt >= 0);
-  font[fontAt] = 0x58;
-  cases.push(font);
-  const badText = pdf.slice();
-  const pageNeedle = new TextEncoder().encode("REPORT PAGE 001");
-  let pageAt = -1;
-  outer2: for (let i = 0; i <= badText.length - pageNeedle.length; i++) {
-    for (let j = 0; j < pageNeedle.length; j++) {
-      if (badText[i + j] !== pageNeedle[j]) continue outer2;
-    }
-    pageAt = i;
-    break;
-  }
-  assert(pageAt >= 0);
-  badText[pageAt] = 0x58;
-  cases.push(badText);
-  cases.push(pdf.slice(0, pdf.length - 100));
-  for (const bytes of cases) {
-    let rejected = false;
-    try {
-      parseReport(bytes);
-    } catch {
-      rejected = true;
-    }
-    assert(rejected);
-  }
+});
+
+Deno.test("ToUnicode and Type3 same-length mutations change both independent targets", async () => {
+  const unicode = replaceSameLength(pdf, "<4e> <004e>", "<4e> <0058>");
+  const unicodeJs = await runJavaScript(unicode);
+  const unicodeWasm = await runWasm(unicode, wasm);
+  assertEquals(unicodeJs.hits, []);
+  assertEquals(unicodeWasm.hits, []);
+  assertEquals(unicodeJs.textSha256, unicodeWasm.textSha256);
+  assert(unicodeJs.textSha256 !== outputManifest.oracle.textSha256);
+
+  const type3 = replaceSameLength(
+    pdf,
+    "230 0 obj\n<< /Length 249 >>\nstream\n6 0 0 0 6 7 d1\n0 6 1 1 re f",
+    "230 0 obj\n<< /Length 249 >>\nstream\n6 0 0 0 6 7 d1\n4 6 1 1 re f",
+  );
+  const original = renderPage(parseReport(pdf), 1);
+  const changed = renderPage(parseReport(type3), 1);
+  assert((await sha256Hex(original)) !== (await sha256Hex(changed)));
+  const type3Js = await runJavaScript(type3);
+  const type3Wasm = await runWasm(type3, wasm);
+  assertEquals(type3Js.pageHashes, type3Wasm.pageHashes);
+  assert(type3Js.pageHashes[0].sha256 !== outputManifest.oracle.rasterPages[0].sha256);
 });
 
 Deno.test("Wasm parser independently rejects malformed PDF bytes", async () => {
@@ -187,19 +223,64 @@ Deno.test("worker demo has fresh-worker cancellation, stale, timeout and pagehid
   assert(!worker.includes("PDFViewer"));
 });
 
-Deno.test("static validation record satisfies its closed schema", async () => {
-  const schema = JSON.parse(
+Deno.test("closed output and validation schemas reject omitted, null and extra evidence", async () => {
+  const validationSchema = JSON.parse(
     await Deno.readTextFile(
       new URL("schemas/base-document-pdf-viewer-validation.schema.json", root),
     ),
+  );
+  const outputSchema = JSON.parse(
+    await Deno.readTextFile(new URL("schemas/base-document-pdf-viewer-output.schema.json", root)),
   );
   const record = JSON.parse(
     await Deno.readTextFile(
       new URL("public/evidence/base/document-pdf-viewer/validation.json", root),
     ),
   );
-  const validate = new Ajv2020({ strict: true }).compile(schema);
-  assert(validate(record), JSON.stringify(validate.errors));
+  const validation = new Ajv2020({ strict: true }).compile(validationSchema);
+  const output = new Ajv2020({ strict: true }).compile(outputSchema);
+  assert(validation(record), JSON.stringify(validation.errors));
+  assert(output(outputManifest), JSON.stringify(output.errors));
+  for (
+    const mutate of [
+      (value: Record<string, unknown>) => value.output = {},
+      (value: Record<string, unknown>) => {
+        const reference = value.independentReference as { rasters: unknown[] };
+        reference.rasters[0] = null;
+      },
+      (value: Record<string, unknown>) => value.undeclaredEvidence = true,
+    ]
+  ) {
+    const changed = structuredClone(record);
+    mutate(changed);
+    assert(!validation(changed), "validation schema accepted mutated evidence");
+  }
+  for (
+    const mutate of [
+      (value: Record<string, unknown>) => {
+        const variants = value.variants as { "js-controlled": { pageHashes: unknown[] } };
+        variants["js-controlled"].pageHashes[0] = null;
+      },
+      (value: Record<string, unknown>) => {
+        const variants = value.variants as {
+          "wasm-linear-controlled": { counters: Record<string, unknown> };
+        };
+        delete variants["wasm-linear-controlled"].counters.boundaryCrossings;
+      },
+      (value: Record<string, unknown>) => {
+        const reference = value.independentReference as { rasters: unknown[] };
+        [reference.rasters[0], reference.rasters[1]] = [
+          reference.rasters[1],
+          reference.rasters[0],
+        ];
+      },
+      (value: Record<string, unknown>) => value.undeclaredEvidence = true,
+    ]
+  ) {
+    const changed = structuredClone(outputManifest);
+    mutate(changed);
+    assert(!output(changed), "output schema accepted mutated result");
+  }
 });
 
 Deno.test("pinned source graph and builder reproduce every generated byte", async () => {
@@ -221,7 +302,6 @@ Deno.test("pinned source graph and builder reproduce every generated byte", asyn
   }
   const generated = [
     "report-100-pages.pdf",
-    "pdfbase-5x7-v1.bin",
     "pdf-engine.wasm",
     "implementation-contract.v1.json",
     "fixture-manifest.json",
@@ -266,14 +346,14 @@ Deno.test("build provenance pins source, compiler, linker, artifacts and zero ex
   );
   assert(buildManifest.sources.some((entry: { path: string }) => entry.path.endsWith("engine.js")));
   assertEquals(buildManifest.fixture.sha256, fixtureManifest.fixture.sha256);
-  assertEquals(buildManifest.font.sha256, fixtureManifest.font.sha256);
   assert(buildManifest.toolchain.poppler.includes("pdfinfo version"));
   assertEquals(outputManifest.independentReference.pageCount, 100);
   assertEquals(outputManifest.independentReference.searchHits, 10);
   assertEquals(outputManifest.independentReference.rasters.length, 5);
   assert(
-    outputManifest.independentReference.rasters.every((entry: { nonWhitePixels: number }) =>
-      entry.nonWhitePixels > 0
+    outputManifest.independentReference.rasters.every(
+      (entry: { nonWhitePixels: number; differingPixels: number }) =>
+        entry.nonWhitePixels > 0 && entry.differingPixels === 0,
     ),
   );
 });

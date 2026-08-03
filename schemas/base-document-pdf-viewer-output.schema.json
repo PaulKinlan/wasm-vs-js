@@ -1,75 +1,48 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://wasm-vs-js.example/schemas/base-document-pdf-viewer-validation.schema.json",
+  "$id": "https://wasm-vs-js.example/schemas/base-document-pdf-viewer-output.schema.json",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "schemaVersion",
     "workloadId",
-    "sourceCommit",
     "status",
-    "fixture",
-    "artifact",
-    "checks",
-    "output",
+    "sourceCommit",
+    "oracle",
+    "variants",
     "independentReference",
-    "limits"
+    "performanceClaims"
   ],
   "properties": {
     "schemaVersion": { "const": 1 },
     "workloadId": { "const": "document.pdf-viewer.v1" },
+    "status": { "const": "supplemental-validation" },
     "sourceCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
-    "status": { "const": "passed-static" },
-    "fixture": { "$ref": "#/$defs/file" },
-    "artifact": { "$ref": "#/$defs/file" },
-    "checks": {
+    "oracle": { "$ref": "#/$defs/oracle" },
+    "variants": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "catalogUnchanged",
-        "completeText",
-        "allSearchHits",
-        "completeRgbaFivePages",
-        "exactCrossTarget",
-        "fixedWork",
-        "independentReference",
-        "zeroPopplerPixelDifference"
-      ],
+      "required": ["js-controlled", "wasm-linear-controlled"],
       "properties": {
-        "catalogUnchanged": { "const": true },
-        "completeText": { "const": true },
-        "allSearchHits": { "const": true },
-        "completeRgbaFivePages": { "const": true },
-        "exactCrossTarget": { "const": true },
-        "fixedWork": { "const": true },
-        "independentReference": { "const": true },
-        "zeroPopplerPixelDifference": { "const": true }
+        "js-controlled": {
+          "allOf": [
+            { "$ref": "#/$defs/result" },
+            { "type": "object", "properties": { "target": { "const": "javascript" } } }
+          ]
+        },
+        "wasm-linear-controlled": {
+          "allOf": [
+            { "$ref": "#/$defs/result" },
+            { "type": "object", "properties": { "target": { "const": "wasm-linear" } } }
+          ]
+        }
       }
     },
-    "output": { "$ref": "#/$defs/oracle" },
     "independentReference": { "$ref": "#/$defs/reference" },
-    "limits": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["browserEvidence", "performance"],
-      "properties": {
-        "browserEvidence": { "const": "not-collected-by-worker" },
-        "performance": { "const": "not-measured" }
-      }
-    }
+    "performanceClaims": { "const": [] }
   },
   "$defs": {
     "sha": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-    "file": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["path", "bytes", "sha256"],
-      "properties": {
-        "path": { "type": "string", "minLength": 1 },
-        "bytes": { "type": "integer", "minimum": 1 },
-        "sha256": { "$ref": "#/$defs/sha" }
-      }
-    },
     "pageHash": {
       "type": "object",
       "additionalProperties": false,
@@ -79,6 +52,45 @@
         "sha256": { "$ref": "#/$defs/sha" }
       }
     },
+    "pageHashes": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "allOf": [
+            { "$ref": "#/$defs/pageHash" },
+            { "type": "object", "properties": { "page": { "const": 1 } } }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/$defs/pageHash" },
+            { "type": "object", "properties": { "page": { "const": 25 } } }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/$defs/pageHash" },
+            { "type": "object", "properties": { "page": { "const": 50 } } }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/$defs/pageHash" },
+            { "type": "object", "properties": { "page": { "const": 75 } } }
+          ]
+        },
+        {
+          "allOf": [
+            { "$ref": "#/$defs/pageHash" },
+            { "type": "object", "properties": { "page": { "const": 100 } } }
+          ]
+        }
+      ],
+      "items": false,
+      "minItems": 5,
+      "maxItems": 5
+    },
+    "hits": { "const": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100] },
     "oracle": {
       "type": "object",
       "additionalProperties": false,
@@ -86,46 +98,52 @@
       "properties": {
         "pageCount": { "const": 100 },
         "searchTerm": { "const": "NEEDLE" },
-        "hits": { "const": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100] },
-        "rasterPages": {
-          "type": "array",
-          "prefixItems": [
-            {
-              "allOf": [
-                { "$ref": "#/$defs/pageHash" },
-                { "type": "object", "properties": { "page": { "const": 1 } } }
-              ]
-            },
-            {
-              "allOf": [
-                { "$ref": "#/$defs/pageHash" },
-                { "type": "object", "properties": { "page": { "const": 25 } } }
-              ]
-            },
-            {
-              "allOf": [
-                { "$ref": "#/$defs/pageHash" },
-                { "type": "object", "properties": { "page": { "const": 50 } } }
-              ]
-            },
-            {
-              "allOf": [
-                { "$ref": "#/$defs/pageHash" },
-                { "type": "object", "properties": { "page": { "const": 75 } } }
-              ]
-            },
-            {
-              "allOf": [
-                { "$ref": "#/$defs/pageHash" },
-                { "type": "object", "properties": { "page": { "const": 100 } } }
-              ]
-            }
-          ],
-          "items": false,
-          "minItems": 5,
-          "maxItems": 5
-        },
+        "hits": { "$ref": "#/$defs/hits" },
+        "rasterPages": { "$ref": "#/$defs/pageHashes" },
         "textSha256": { "$ref": "#/$defs/sha" }
+      }
+    },
+    "counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "objects",
+        "pages",
+        "glyphs",
+        "searchComparisons",
+        "rasterizedPages",
+        "pixels",
+        "allocations",
+        "boundaryCrossings",
+        "copiedBytes",
+        "peakBytes",
+        "memoryBytes"
+      ],
+      "properties": {
+        "objects": { "type": "integer", "minimum": 1 },
+        "pages": { "const": 100 },
+        "glyphs": { "type": "integer", "minimum": 1 },
+        "searchComparisons": { "type": "integer", "minimum": 1 },
+        "rasterizedPages": { "const": 5 },
+        "pixels": { "const": 9694080 },
+        "allocations": { "const": 1 },
+        "boundaryCrossings": { "type": "integer", "minimum": 0 },
+        "copiedBytes": { "type": "integer", "minimum": 0 },
+        "peakBytes": { "const": 7755264 },
+        "memoryBytes": { "type": "integer", "minimum": 7755264 }
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target", "pageCount", "hits", "textSha256", "pageHashes", "counters"],
+      "properties": {
+        "target": { "enum": ["javascript", "wasm-linear"] },
+        "pageCount": { "const": 100 },
+        "hits": { "$ref": "#/$defs/hits" },
+        "textSha256": { "$ref": "#/$defs/sha" },
+        "pageHashes": { "$ref": "#/$defs/pageHashes" },
+        "counters": { "$ref": "#/$defs/counters" }
       }
     },
     "referenceRaster": {
