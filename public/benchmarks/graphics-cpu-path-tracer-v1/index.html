@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="build-manifest-sha256"
+      content="90006d5d66daba5560e7ce545c88414ade0910232d2698026eb83835ee60efef">
+    <title>CPU path tracer | Wasm versus JavaScript</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="/benchmarks/graphics-cpu-path-tracer-v1/runner.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header
+      class="site-header"><a href="/">Wasm versus JavaScript</a><a href="/benchmarks/">Catalog</a></header>
+    <main id="content">
+      <p class="eyebrow">RUNNABLE CORRECTNESS DEMO · GRAPHICS.CPU-PATH-TRACER.V1</p>
+      <h1>Fixed CPU path tracer</h1>
+      <p><strong>No performance claim.</strong> A fresh worker renders a project-generated Cornell-box product scene. The controlled pair shares the scalar BVH, xorshift32 sequence, four-bounce path rules, strict-f32 policy, tone map and complete RGBA oracle.</p>
+      <form>
+    <label>Target <select name="target"><option value="javascript">JavaScript controlled</option><option value="wasm-linear">Linear Wasm controlled</option></select></label>
+    <label>Work <select name="mode"><option value="preview">Bounded preview: 64×64 × 4 spp</option><option value="exact">Exact catalog contract: 512×512 × 64 spp</option></select></label>
+    <p>Exact mode executes 16,777,216 primary samples. It verifies raw source, manifest and artifact bytes before accepting the complete framebuffer hash. It stops after 150 seconds.</p>
+    <button id="start" type="submit">Start</button> <button id="cancel" type="button" disabled>Cancel</button>
+    <label class="sr-only" for="progress">Run progress</label><progress id="progress" max="1">Not started</progress>
+  </form>
+      <p id="status" role="status" aria-live="polite">Ready.</p>
+      <pre id="output" tabindex="0">No result yet.</pre>
+      <canvas width="64" height="64" role="img"
+        aria-label="Rendered path tracer framebuffer; exact pixel checkpoints are listed in the text result"></canvas>
+      <h2>Fixed contract</h2>
+      <p>One thread performs complete ray generation, fixed-order BVH traversal, Lambert integration and framebuffer quantization. Canvas presentation happens after validation. The page does not upload, store or rank results. Threads, SharedArrayBuffer and SIMD are separate unavailable variants.</p>
+    </main>
+  </body>
+</html>

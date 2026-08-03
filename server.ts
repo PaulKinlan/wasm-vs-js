@@ -221,6 +221,40 @@ const routes = new Map<string, [string, string, boolean?]>([
   ]],
   ["/artifacts/cad-mesh-repair-v1/validation-evidence.json", [
     "public/artifacts/cad-mesh-repair-v1/validation-evidence.json",
+  ["/benchmarks/graphics-cpu-path-tracer-v1", [
+    "public/benchmarks/graphics-cpu-path-tracer-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/graphics-cpu-path-tracer-v1/", [
+    "public/benchmarks/graphics-cpu-path-tracer-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/graphics-cpu-path-tracer-v1/runner.js", [
+    "public/benchmarks/graphics-cpu-path-tracer-v1/runner.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/graphics-cpu-path-tracer-v1/worker.js", [
+    "public/benchmarks/graphics-cpu-path-tracer-v1/worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base-v1/graphics-cpu-path-tracer/engine.js", [
+    "benchmarks/base-v1/graphics-cpu-path-tracer/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base-v1/graphics-cpu-path-tracer/reference.js", [
+    "benchmarks/base-v1/graphics-cpu-path-tracer/reference.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base-v1/graphics-cpu-path-tracer/implementation-contract.v1.json", [
+    "benchmarks/base-v1/graphics-cpu-path-tracer/implementation-contract.v1.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/artifacts/graphics-cpu-path-tracer-v1/path-tracer.wasm", [
+    "public/artifacts/graphics-cpu-path-tracer-v1/path-tracer.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/graphics-cpu-path-tracer-v1/build-manifest.json", [
+    "public/artifacts/graphics-cpu-path-tracer-v1/build-manifest.json",
     "application/json; charset=utf-8",
   ]],
   ["/demos/game-family/demo.js", [

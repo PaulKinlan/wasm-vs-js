@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "status": "validation-only",
+  "catalogId": "graphics.cpu-path-tracer.v1",
+  "registrationId": "base-v1.graphics.cpu-path-tracer.v1.controlled.v1",
+  "variant": "wasm-linear-controlled",
+  "sourceCommit": "13ee314ebd51715ab599e9d0b480005eb79e628e",
+  "input": {
+    "width": 512,
+    "height": 512,
+    "samplesPerPixel": 64,
+    "sceneSeed": 1831565813
+  },
+  "completeOutput": {
+    "bytes": 1048576,
+    "sha256": "53684263aed5a49195bce1d4af22d3d0b514a4a8e1df96c4856bb0928a37d70f"
+  },
+  "oracle": {
+    "maxChannelDelta": 85,
+    "meanChannelDelta": 0.002323150634765625,
+    "outlierChannels": 99,
+    "outlierChannelRatio": 0.000125885009765625,
+    "passed": true
+  },
+  "counters": {
+    "rays": 54994960,
+    "bounces": 52788587,
+    "nodeTests": 585004375,
+    "intersections": 106653769,
+    "samples": 16777216,
+    "rngDraws": 167218317,
+    "allocations": 0,
+    "outputBytes": 1048576,
+    "boundaryCrossings": 1
+  },
+  "buildManifest": {
+    "path": "public/artifacts/graphics-cpu-path-tracer-v1/build-manifest.json",
+    "sha256": "90006d5d66daba5560e7ce545c88414ade0910232d2698026eb83835ee60efef"
+  },
+  "performanceClaims": []
+}
