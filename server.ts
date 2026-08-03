@@ -1696,6 +1696,21 @@ const routes = new Map<string, [string, string, boolean?]>([
     "schemas/audio-webaudio-effects-base.schema.json",
     "application/schema+json; charset=utf-8",
   ]],
+  ["/benchmarks/audio-fft/benchmark.json", [
+    "benchmarks/audio-fft/benchmark.json",
+    "application/json; charset=utf-8",
+    true,
+  ]],
+  ["/benchmarks/audio-fir/benchmark.json", [
+    "benchmarks/audio-fir/benchmark.json",
+    "application/json; charset=utf-8",
+    true,
+  ]],
+  ["/benchmarks/audio-stft/benchmark.json", [
+    "benchmarks/audio-stft/benchmark.json",
+    "application/json; charset=utf-8",
+    true,
+  ]],
 ]);
 
 for (const path of ["/demos/network.pcap-decode.v1", "/demos/network.pcap-decode.v1/"]) {
