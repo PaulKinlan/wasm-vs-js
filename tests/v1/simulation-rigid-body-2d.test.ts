@@ -138,6 +138,11 @@ Deno.test("frozen rigid-body base implementation is reproducible, differential, 
   assertEquals(fixtureManifest.fixture.sha256, await sha256Hex(fixture));
   assertEquals(fixtureManifest.fixture.licenseSpdx, "CC0-1.0");
   assertEquals(outputManifest.performanceClaims, []);
+  assert(outputManifest.oracle.initialEnergy > outputManifest.oracle.javascriptMetrics.totalEnergy);
+  assert(
+    outputManifest.oracle.javascriptMetrics.totalEnergy <=
+      outputManifest.oracle.finalEnergyMaximum,
+  );
   assertEquals(buildManifest.toolchain.deno, "2.9.0");
   assertEquals(buildManifest.artifact.sha256, await sha256Hex(wasmBytes));
   assert(

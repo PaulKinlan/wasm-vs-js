@@ -75,6 +75,18 @@ const wasm = await instantiateRigidBodyWasm(wasmBytes);
 const js = runRigidBodyJavaScript(fixture);
 const wasmResult = runRigidBodyWasm(fixture, wasm);
 const comparison = compareRigidBodyResults(js, wasmResult);
+const fixtureView = new DataView(fixture.buffer, fixture.byteOffset, fixture.byteLength);
+let initialEnergy = 0;
+for (let id = 0; id < RIGID_CONFIG.bodies; id += 1) {
+  const offset = 64 + id * 28;
+  const xVelocity = fixtureView.getFloat32(offset + 8, true);
+  const yVelocity = fixtureView.getFloat32(offset + 12, true);
+  const inverseMass = fixtureView.getFloat32(offset + 16, true);
+  const y = fixtureView.getFloat32(offset + 4, true);
+  const mass = 1 / inverseMass;
+  initialEnergy += 0.5 * mass * (xVelocity * xVelocity + yVelocity * yVelocity) +
+    mass * -RIGID_CONFIG.gravityY * y;
+}
 if (!comparison.passed) {
   throw new Error(`rigid-body cross-target mismatch ${JSON.stringify(comparison)}`);
 }
@@ -83,6 +95,9 @@ for (const [name, result] of [["javascript", js], ["wasm-linear", wasmResult]] a
   if (result.metrics.jointLengthError > 0.0031) throw new Error(`${name} joint length error`);
   if (result.metrics.contactPenetration > 0.003) throw new Error(`${name} contact penetration`);
   if (result.metrics.maxSpeed > 0.025) throw new Error(`${name} did not settle`);
+  if (result.metrics.totalEnergy < 0 || result.metrics.totalEnergy > initialEnergy * 1.002) {
+    throw new Error(`${name} energy envelope`);
+  }
 }
 const referenceBytes = new Uint8Array(js.checkpoints.buffer.slice(0));
 await Deno.writeFile(new URL("reference-checkpoints.f32le", artifactDir), referenceBytes);
@@ -157,6 +172,8 @@ const outputManifest = {
     relativeTolerance: 0.00005,
     referencePath: "public/artifacts/simulation-rigid-body-2d-v1/reference-checkpoints.f32le",
     referenceSha256: await sha256Hex(referenceBytes),
+    initialEnergy,
+    finalEnergyMaximum: initialEnergy * 1.002,
     javascriptDigest: js.checkpointDigest,
     wasmDigest: wasmResult.checkpointDigest,
     comparison,

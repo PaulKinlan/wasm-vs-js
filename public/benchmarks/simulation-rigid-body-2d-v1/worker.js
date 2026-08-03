@@ -31,7 +31,7 @@ function exactObject(actual, expected, label) {
     }
   }
 }
-function validate(result, expected, reference) {
+function validate(result, expected, reference, finalEnergyMaximum) {
   if (result.checkpoints.length !== reference.length) throw new Error("reference length mismatch");
   let maximum = 0;
   for (let index = 0; index < reference.length; index += 1) {
@@ -43,6 +43,9 @@ function validate(result, expected, reference) {
   if (result.metrics.jointLengthError > 0.0031) throw new Error("joint length error");
   if (result.metrics.contactPenetration > 0.003) throw new Error("contact penetration");
   if (result.metrics.maxSpeed > 0.025) throw new Error("scene did not settle");
+  if (result.metrics.totalEnergy < 0 || result.metrics.totalEnergy > finalEnergyMaximum) {
+    throw new Error("energy envelope");
+  }
   exactObject(result.counters, expected, result.executionTarget);
   return maximum;
 }
@@ -114,9 +117,17 @@ self.addEventListener("message", async (event) => {
         javascript,
         outputManifest.counters.javascript,
         reference,
+        outputManifest.oracle.finalEnergyMaximum,
       );
     }
-    if (wasm) checks.wasmMaximumError = validate(wasm, outputManifest.counters.wasm, reference);
+    if (wasm) {
+      checks.wasmMaximumError = validate(
+        wasm,
+        outputManifest.counters.wasm,
+        reference,
+        outputManifest.oracle.finalEnergyMaximum,
+      );
+    }
     if (javascript && wasm) {
       const comparison = compareRigidBodyResults(javascript, wasm);
       if (!comparison.passed) throw new Error("cross-target state mismatch");
