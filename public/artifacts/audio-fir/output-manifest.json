@@ -11,11 +11,35 @@
     "js-controlled": {
       "status": "passed",
       "completeOutputSha256": "e4b89ba6d65fa9ac3aa5f1b30da32343e54cc81a9ee9d6f84eaf8b38e823fb5f",
-      "structuralOracle": {
-        "outputLength": 131327,
-        "dcGain": 0.999999705222649,
-        "impulseLatency": 1,
-        "finite": true
+      "referenceSha256": "3146faf58d2eecd43b74d4297fcc575b0a688cb2e2b2d9ab1b1c9f3d1e21a564",
+      "oracleChecks": {
+        "complete-output-bound": {
+          "status": "passed",
+          "metrics": {
+            "comparedComponents": 131327,
+            "maximumAbsoluteError": 0.0000011920928955078125,
+            "maximumRelativeError": 0.0035470821886700804,
+            "absoluteTolerance": 0.000001,
+            "relativeTolerance": 0.00001,
+            "finite": true
+          }
+        },
+        "structural-invariants": {
+          "status": "passed",
+          "metrics": {
+            "outputLength": 131327,
+            "dcGain": 0.999999705222649,
+            "impulseLatency": 1,
+            "finite": true
+          }
+        }
+      },
+      "workCounterGate": {
+        "status": "passed",
+        "metrics": {
+          "counterCount": 8,
+          "exact": true
+        }
       },
       "workCounters": {
         "samples": 131072,
@@ -31,11 +55,35 @@
     "wasm-linear-controlled": {
       "status": "passed",
       "completeOutputSha256": "e4b89ba6d65fa9ac3aa5f1b30da32343e54cc81a9ee9d6f84eaf8b38e823fb5f",
-      "structuralOracle": {
-        "outputLength": 131327,
-        "dcGain": 0.999999705222649,
-        "impulseLatency": 1,
-        "finite": true
+      "referenceSha256": "3146faf58d2eecd43b74d4297fcc575b0a688cb2e2b2d9ab1b1c9f3d1e21a564",
+      "oracleChecks": {
+        "complete-output-bound": {
+          "status": "passed",
+          "metrics": {
+            "comparedComponents": 131327,
+            "maximumAbsoluteError": 0.0000011920928955078125,
+            "maximumRelativeError": 0.0035470821886700804,
+            "absoluteTolerance": 0.000001,
+            "relativeTolerance": 0.00001,
+            "finite": true
+          }
+        },
+        "structural-invariants": {
+          "status": "passed",
+          "metrics": {
+            "outputLength": 131327,
+            "dcGain": 0.999999705222649,
+            "impulseLatency": 1,
+            "finite": true
+          }
+        }
+      },
+      "workCounterGate": {
+        "status": "passed",
+        "metrics": {
+          "counterCount": 8,
+          "exact": true
+        }
       },
       "workCounters": {
         "samples": 131072,
@@ -50,5 +98,5 @@
     }
   },
   "performanceClaims": [],
-  "sourceCommit": "02624c3c25497cd6ec0b363df2b17cbf5b9b5268"
+  "sourceCommit": "05d9bd481c58ffd5ae2360470d40ac59c61942b2"
 }

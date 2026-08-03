@@ -6,16 +6,51 @@
   "benchmarkSlug": "audio-fft",
   "serialization": "canonical-little-endian-f32-signed-zero-normalized-positive",
   "byteLength": 1048576,
-  "sha256": "8394fb237d8e085dcee070c9c1835bdaa831f6f6cec5c84aff50e85180fa0cd9",
+  "sha256": "f6285cd3244f76eed0a041f30dbfa43ef8dc49012ec92b77514edc569aadad6e",
   "variants": {
     "js-controlled": {
       "status": "passed",
-      "completeOutputSha256": "8394fb237d8e085dcee070c9c1835bdaa831f6f6cec5c84aff50e85180fa0cd9",
-      "structuralOracle": {
-        "anchorMaximum": 0.000008106231689453125,
-        "reconstructionMaximum": 6.854534149169922e-7,
-        "symmetryMaximum": 0,
-        "finite": true
+      "completeOutputSha256": "f6285cd3244f76eed0a041f30dbfa43ef8dc49012ec92b77514edc569aadad6e",
+      "referenceSha256": "0432b81e06b48343754d26ae074cad984524cdbeb73bea0ba0539d8a726b9498",
+      "oracleChecks": {
+        "complete-output-bound": {
+          "status": "passed",
+          "metrics": {
+            "comparedComponents": 262144,
+            "maximumAbsoluteError": 1.5554512539095455e-11,
+            "maximumRelativeError": 99.9244862554182,
+            "absoluteTolerance": 0.000001,
+            "relativeTolerance": 0.00001,
+            "finite": true
+          }
+        },
+        "structural-invariants": {
+          "status": "passed",
+          "metrics": {
+            "anchorMaximum": 1.504845944036437e-12,
+            "reconstructionMaximum": 0,
+            "symmetryMaximum": 0,
+            "finite": true
+          }
+        },
+        "work-counters": {
+          "status": "passed",
+          "metrics": {
+            "anchorMaximum": 1.504845944036437e-12,
+            "reconstructionMaximum": 0,
+            "symmetryMaximum": 0,
+            "finite": true,
+            "counterCount": 8,
+            "exact": true
+          }
+        }
+      },
+      "workCounterGate": {
+        "status": "passed",
+        "metrics": {
+          "counterCount": 8,
+          "exact": true
+        }
       },
       "workCounters": {
         "transforms": 32,
@@ -30,12 +65,47 @@
     },
     "wasm-linear-controlled": {
       "status": "passed",
-      "completeOutputSha256": "8394fb237d8e085dcee070c9c1835bdaa831f6f6cec5c84aff50e85180fa0cd9",
-      "structuralOracle": {
-        "anchorMaximum": 0.000008106231689453125,
-        "reconstructionMaximum": 6.854534149169922e-7,
-        "symmetryMaximum": 0,
-        "finite": true
+      "completeOutputSha256": "f6285cd3244f76eed0a041f30dbfa43ef8dc49012ec92b77514edc569aadad6e",
+      "referenceSha256": "0432b81e06b48343754d26ae074cad984524cdbeb73bea0ba0539d8a726b9498",
+      "oracleChecks": {
+        "complete-output-bound": {
+          "status": "passed",
+          "metrics": {
+            "comparedComponents": 262144,
+            "maximumAbsoluteError": 1.5554512539095455e-11,
+            "maximumRelativeError": 99.9244862554182,
+            "absoluteTolerance": 0.000001,
+            "relativeTolerance": 0.00001,
+            "finite": true
+          }
+        },
+        "structural-invariants": {
+          "status": "passed",
+          "metrics": {
+            "anchorMaximum": 1.504845944036437e-12,
+            "reconstructionMaximum": 0,
+            "symmetryMaximum": 0,
+            "finite": true
+          }
+        },
+        "work-counters": {
+          "status": "passed",
+          "metrics": {
+            "anchorMaximum": 1.504845944036437e-12,
+            "reconstructionMaximum": 0,
+            "symmetryMaximum": 0,
+            "finite": true,
+            "counterCount": 8,
+            "exact": true
+          }
+        }
+      },
+      "workCounterGate": {
+        "status": "passed",
+        "metrics": {
+          "counterCount": 8,
+          "exact": true
+        }
       },
       "workCounters": {
         "transforms": 32,
@@ -50,5 +120,5 @@
     }
   },
   "performanceClaims": [],
-  "sourceCommit": "02624c3c25497cd6ec0b363df2b17cbf5b9b5268"
+  "sourceCommit": "05d9bd481c58ffd5ae2360470d40ac59c61942b2"
 }

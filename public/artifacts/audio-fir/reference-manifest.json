@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "contractId": "audio-reference-manifest-v1",
+  "status": "proposal-validation-only",
+  "entryId": "audio.fir.v1",
+  "benchmarkSlug": "audio-fir",
+  "method": "scalar-f64-direct-convolution-rounded-once-to-f32",
+  "serialization": "canonical-little-endian-f32-signed-zero-normalized-positive",
+  "artifact": "public/artifacts/audio-fir/reference-output.f32le",
+  "byteLength": 525308,
+  "components": 131327,
+  "sha256": "3146faf58d2eecd43b74d4297fcc575b0a688cb2e2b2d9ab1b1c9f3d1e21a564",
+  "tolerance": {
+    "mode": "absolute-and-relative-hybrid",
+    "absolute": 0.000001,
+    "relative": 0.00001
+  },
+  "sourceCommit": "05d9bd481c58ffd5ae2360470d40ac59c61942b2"
+}

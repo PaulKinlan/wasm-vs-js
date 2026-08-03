@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "contractId": "audio-reference-manifest-v1",
+  "status": "proposal-validation-only",
+  "entryId": "audio.stft.v1",
+  "benchmarkSlug": "audio-stft",
+  "method": "scalar-f64-window-and-direct-dft-rounded-once-to-f32",
+  "serialization": "canonical-little-endian-f32-signed-zero-normalized-positive",
+  "artifact": "public/artifacts/audio-stft/reference-output.f32le",
+  "byteLength": 3047424,
+  "components": 761856,
+  "sha256": "3bae7479e79489d8f97d07bcbd31439e338f7f7f2978d6acfc2cc46cb8412d7a",
+  "tolerance": {
+    "mode": "absolute-and-relative-hybrid",
+    "absolute": 0.000005,
+    "relative": 0.00001
+  },
+  "sourceCommit": "05d9bd481c58ffd5ae2360470d40ac59c61942b2"
+}

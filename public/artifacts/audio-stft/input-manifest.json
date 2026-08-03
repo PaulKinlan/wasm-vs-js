@@ -5,7 +5,7 @@
   "benchmarkSlug": "audio-stft",
   "serialization": "canonical-little-endian-f32",
   "byteLength": 396280,
-  "sha256": "324551444ff689a77c896f413421b1c65a41577389d48b5709558f138319d617",
+  "sha256": "dfabd66f9e5272f76915165b663cb6c5cb37896454eb6ac02ea13d2f241f326a",
   "fields": [
     {
       "name": "samples",
@@ -32,5 +32,5 @@
       "value": "none"
     }
   ],
-  "sourceCommit": "02624c3c25497cd6ec0b363df2b17cbf5b9b5268"
+  "sourceCommit": "05d9bd481c58ffd5ae2360470d40ac59c61942b2"
 }

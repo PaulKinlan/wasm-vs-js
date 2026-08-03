@@ -5,13 +5,13 @@
   "entryId": "audio.fft.v1",
   "benchmarkSlug": "audio-fft",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "02624c3c25497cd6ec0b363df2b17cbf5b9b5268",
-  "sourceSha256": "d8ba8899e36e5545c67845a6ce54212331079e663f354e529e266ca30a703e6f",
+  "sourceCommit": "05d9bd481c58ffd5ae2360470d40ac59c61942b2",
+  "sourceSha256": "bcda8551f8df099ce407d63a92a9c1f21bf129eb7fcad302152fab8e94e3e0e8",
   "fullSourceGraph": [
     {
       "path": "benchmarks/audio-fft/benchmark.json",
-      "bytes": 2309,
-      "sha256": "5a4b3363c2e53c72294bf7562126f7e640122b7932612e1cb20a794e5bae8a7a"
+      "bytes": 2530,
+      "sha256": "5ddf84dfa0ca60f47ac14c9570e195acb6e4235c4fe7c081f0279d32e782b5d4"
     },
     {
       "path": "benchmarks/audio-fft/input.ts",
@@ -25,8 +25,8 @@
     },
     {
       "path": "benchmarks/audio-fft/workload.ts",
-      "bytes": 3445,
-      "sha256": "042ee23718db040e41f1baccae41d7cb4a9d111fde5156e696e96e8af9a08683"
+      "bytes": 4067,
+      "sha256": "c6e86d7647a29c859e27b0673327cb4ce1fb315786c6f8353f8e8502e011b96a"
     },
     {
       "path": "benchmarks/audio-fft/audio-fft.wat",
@@ -60,8 +60,8 @@
     },
     {
       "path": "benchmarks/audio-stft/benchmark.json",
-      "bytes": 2350,
-      "sha256": "5be5d6ac7850be38709970a83dbeb8231b9ebcbe4767512ee05b83877b71c5b8"
+      "bytes": 2498,
+      "sha256": "bcf84978f1efb13b179d5d20d8d2c83ce8969ae29decdc62a08b06286cf6b916"
     },
     {
       "path": "benchmarks/audio-stft/input.ts",
@@ -75,8 +75,8 @@
     },
     {
       "path": "benchmarks/audio-stft/workload.ts",
-      "bytes": 3249,
-      "sha256": "3b5037e667ede3142e5d9530302468d49aef1072530f6241f1a2019350a17676"
+      "bytes": 3400,
+      "sha256": "25ea0fbed16894b4763df1c2d39061ee4cfbba06858b8609b150395687ce9ec2"
     },
     {
       "path": "benchmarks/audio-stft/audio-stft.wat",
@@ -90,28 +90,38 @@
     },
     {
       "path": "benchmarks/audio-shared/constants.ts",
-      "bytes": 884,
-      "sha256": "927699480a84f4d2819b4fe096a705fd69fe9429a710ce047ec307a6def7981d"
+      "bytes": 1176,
+      "sha256": "b46f162044830cdb50cb366e0021b8d23abccbb39447ef698cffd829ca11e1a0"
     },
     {
       "path": "benchmarks/audio-shared/oracle.ts",
-      "bytes": 8984,
-      "sha256": "c8faff2c4b1f71d70e84a830fe8caf62adb4b18031e2d73e1996feb5361255e5"
+      "bytes": 9519,
+      "sha256": "9d6f99b0e1afd8c3594aff90aae61befd47f15d679e2ebce78a02851695c97bd"
+    },
+    {
+      "path": "benchmarks/audio-shared/reference.ts",
+      "bytes": 3961,
+      "sha256": "c676f057747339256f92a9fd85029f373575ca3b39f07dc40499fc117d7b8c08"
+    },
+    {
+      "path": "benchmarks/audio-shared/manifest-contract.ts",
+      "bytes": 6280,
+      "sha256": "2a6b6fcc6c99d5f10ef5e259e9716031a86eaa1dd6fa204fe4957385aaf672fb"
     },
     {
       "path": "lib/audio-workloads.ts",
-      "bytes": 11382,
-      "sha256": "c08e8b5f5ab1da9b578b7ce6209d46fc5d46f324c7c814588724be6fe96e1483"
+      "bytes": 13941,
+      "sha256": "a0018dfb3c415844c55a134c6cb7a8a7bc7d16ea7df885ee89d976bef08e062b"
     },
     {
       "path": "scripts/build-audio.ts",
-      "bytes": 9814,
-      "sha256": "b899504af8f90c49396c84f0558aad0fb0f22b937ac6ccbf2eb1e27f81a2147d"
+      "bytes": 12567,
+      "sha256": "73a2875d6d1760a23ba48a96c06e1f68d2f68820e9b566530285e61c75f8df16"
     },
     {
       "path": "scripts/build-audio-results.ts",
-      "bytes": 7044,
-      "sha256": "757a125490b2cb86d6d9c6a025b3a24a4493a4301588dfd6962d46e7a358b482"
+      "bytes": 8299,
+      "sha256": "fd74403109bf436ea03374092dec4b3773b9f50d4016d96c3882edda1bca0993"
     },
     {
       "path": "deno.json",
@@ -135,33 +145,68 @@
     },
     {
       "path": "benchmarks/v2/shared/provenance-contract.js",
-      "bytes": 7389,
-      "sha256": "ca53f7e5916b1ac4b89b2668e7f409127a6dd88b7cbe546b88ccde284e2f0ef0"
+      "bytes": 9609,
+      "sha256": "b0e0af0d35ab024105d626d318d2c7e94556ea6a83bd29b681ee85318067f44a"
     },
     {
       "path": "schemas/workload-result-v2-proposal.schema.json",
-      "bytes": 11701,
-      "sha256": "40ab5bde8f76b7eda3c97a88fe502e4fb8c32fa0085d3e8fd869d29b3e08863a"
+      "bytes": 11873,
+      "sha256": "64fa72510b1e775c8d4b968ad4aacfd9b0e1ae3cf199156b958476857cd8d39a"
+    },
+    {
+      "path": "schemas/audio-fixture-manifest.schema.json",
+      "bytes": 1503,
+      "sha256": "c8a0f69c6eba15ded20507c2361370f4edbbf74272e837e3ebf246b9ee154a49"
+    },
+    {
+      "path": "schemas/audio-input-manifest.schema.json",
+      "bytes": 1227,
+      "sha256": "689b78e0fa0a72ebd579391830a06c0dbed4ad3fe2d8a9bb363f0820c79b4280"
+    },
+    {
+      "path": "schemas/audio-reference-manifest.schema.json",
+      "bytes": 1731,
+      "sha256": "dbcc10ffd13d4d3243452abc9bfd9323d39be2b356113dbe42423dfbc74224b4"
+    },
+    {
+      "path": "schemas/audio-output-manifest.schema.json",
+      "bytes": 3891,
+      "sha256": "316719bcde13760db04a7cd01148436768d096341e34844f5deb0c7343327562"
+    },
+    {
+      "path": "schemas/audio-build-manifest.schema.json",
+      "bytes": 6603,
+      "sha256": "bf385bf5c3447fe57f5185f0ab5a83357c63b7204ddd3abaea967eadfe3f453b"
     }
   ],
   "manifests": {
     "fixture": {
       "path": "public/artifacts/audio-fft/fixture-manifest.json",
-      "sha256": "e147e33ca3097c5e64ce47edd3ab551afbe1579f1495a47646e8f77dc39f4bd1"
+      "sha256": "42cfa6fcf3a841a408fad0115b389dd359bb897bbaeb074dff53284105f1a9de"
     },
     "input": {
       "path": "public/artifacts/audio-fft/input-manifest.json",
-      "sha256": "264f4943c93a14545889134a9a2c45f54cef24c23c65f87ee36ca0901838e9a3"
+      "sha256": "7fa898ef4d78d6334b83172a81696715257dc1c54400c99b952817cfb4f1a73e"
+    },
+    "reference": {
+      "path": "public/artifacts/audio-fft/reference-manifest.json",
+      "sha256": "e434d3ef0d38fba26465cff6da5872cedab0630e76c85e185c107e7fb1f808bf"
     },
     "output": {
       "path": "public/artifacts/audio-fft/output-manifest.json",
-      "sha256": "219aaeb2df92a99122b8e8c427d37f927b06db815936dc22e4cd18de0cd6c71b"
+      "sha256": "772ee91d4ce25df6886edf9e7567c58f440ea51e700a036e92635eafe7ee0722"
     }
+  },
+  "referenceArtifact": {
+    "path": "public/artifacts/audio-fft/reference-output.f32le",
+    "sha256": "0432b81e06b48343754d26ae074cad984524cdbeb73bea0ba0539d8a726b9498",
+    "bytes": 1048576,
+    "mediaType": "application/octet-stream"
   },
   "variants": {
     "js-controlled": {
       "artifact": "benchmarks/audio-fft/workload.ts",
-      "artifactSha256": "042ee23718db040e41f1baccae41d7cb4a9d111fde5156e696e96e8af9a08683"
+      "artifactSha256": "c6e86d7647a29c859e27b0673327cb4ce1fb315786c6f8353f8e8502e011b96a"
     },
     "wasm-linear-controlled": {
       "source": "benchmarks/audio-fft/audio-fft.wat",
@@ -191,7 +236,7 @@
       "--allow-write=public/artifacts/audio-fft,public/artifacts/audio-fir,public/artifacts/audio-stft",
       "--allow-run=git",
       "scripts/build-audio.ts",
-      "--source-commit=02624c3c25497cd6ec0b363df2b17cbf5b9b5268"
+      "--source-commit=05d9bd481c58ffd5ae2360470d40ac59c61942b2"
     ],
     "toolchain": [
       {

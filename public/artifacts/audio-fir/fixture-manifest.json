@@ -8,7 +8,12 @@
     "licenseSpdx": "CC0-1.0",
     "redistribution": "permitted"
   },
-  "generatorRevision": "proposal-generator-v1",
+  "generator": {
+    "algorithm": "xorshift32",
+    "seed": "0xa1b2c3d4",
+    "revision": "proposal-generator-v1",
+    "mapping": "xorshift32 seeded-noise PCM plus frozen taps"
+  },
   "serialization": "canonical little-endian f32 fields in catalog-declared order",
-  "sourceCommit": "02624c3c25497cd6ec0b363df2b17cbf5b9b5268"
+  "sourceCommit": "05d9bd481c58ffd5ae2360470d40ac59c61942b2"
 }
