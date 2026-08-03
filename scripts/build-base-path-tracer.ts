@@ -49,7 +49,11 @@ for (const path of sourcePaths) {
     immutableUrl: `https://github.com/PaulKinlan/wasm-vs-js/blob/${sourceCommit}/${path}`,
   });
 }
-const buildDir = await Deno.makeTempDir({ prefix: "path-tracer-build-" });
+const buildDir = new URL(".build/", out).pathname;
+await Deno.remove(buildDir, { recursive: true }).catch((error) => {
+  if (!(error instanceof Deno.errors.NotFound)) throw error;
+});
+await Deno.mkdir(buildDir, { recursive: true });
 try {
   await command("clang", [
     "--target=wasm32-unknown-unknown",
