@@ -24,7 +24,8 @@
       <section class="hero" aria-labelledby="demo-title">
         <p class="eyebrow">Runnable demo · v2 proposal · audio.fir.v1</p>
         <h1 id="demo-title">Direct 256-tap FIR convolution</h1>
-        <p class="lede">Direct convolution of 131,072 mono samples with a 256-tap windowed-sinc lowpass (cutoff 0.25 sample-rate, Hann window, DC gain normalized to 1), in strict-f32 frozen order.</p>
+        <p
+          class="lede">Direct convolution of 131,072 mono samples with a 256-tap windowed-sinc lowpass (cutoff 0.25 sample-rate, Hann window, DC gain normalized to 1), in strict-f32 frozen order.</p>
         <p class="notice"><strong>Scope.</strong> This page runs one contract iteration in a fresh
           worker and reports correctness, oracle, and work-counter evidence. It collects no
           performance claims, uploads nothing, and stores nothing. The authoritative validation
@@ -34,19 +35,53 @@
       <section aria-labelledby="identity-title">
         <h2 id="identity-title">Workload identity</h2>
         <dl class="metrics">
-          <div><dt>Entry ID</dt><dd><code>audio.fir.v1</code></dd></div>
-          <div><dt>Slug</dt><dd><code>audio-fir</code></dd></div>
-          <div><dt>Tier / class</dt><dd>T2 · kernel</dd></div>
-          <div><dt>Variants</dt><dd><code>js-controlled</code> · <code>wasm-linear-controlled</code></dd></div>
-          <div><dt>Floating-point policy</dt><dd>strict-f32-frozen-order</dd></div>
-          <div><dt>Status</dt><dd>proposal-validation-only</dd></div>
+          <div>
+            <dt>Entry ID</dt>
+            <dd><code>audio.fir.v1</code></dd>
+          </div>
+          <div>
+            <dt>Slug</dt>
+            <dd><code>audio-fir</code></dd>
+          </div>
+          <div>
+            <dt>Tier / class</dt>
+            <dd>T2 · kernel</dd>
+          </div>
+          <div>
+            <dt>Variants</dt>
+            <dd><code>js-controlled</code> · <code>wasm-linear-controlled</code></dd>
+          </div>
+          <div>
+            <dt>Floating-point policy</dt>
+            <dd>strict-f32-frozen-order</dd>
+          </div>
+          <div>
+            <dt>Status</dt>
+            <dd>proposal-validation-only</dd>
+          </div>
         </dl>
         <h3>Fixed dimensions</h3>
-        <dl class="metrics">          <div><dt>samples</dt><dd>131072</dd></div>
-          <div><dt>taps</dt><dd>256</dd></div>
-          <div><dt>channels</dt><dd>1</dd></div>
-          <div><dt>boundary</dt><dd>zero-extend</dd></div>
-          <div><dt>convolution</dt><dd>direct</dd></div>
+        <dl class="metrics">
+          <div>
+            <dt>samples</dt>
+            <dd>131072</dd>
+          </div>
+          <div>
+            <dt>taps</dt>
+            <dd>256</dd>
+          </div>
+          <div>
+            <dt>channels</dt>
+            <dd>1</dd>
+          </div>
+          <div>
+            <dt>boundary</dt>
+            <dd>zero-extend</dd>
+          </div>
+          <div>
+            <dt>convolution</dt>
+            <dd>direct</dd>
+          </div>
         </dl>
       </section>
 
@@ -82,7 +117,13 @@
         <p id="demo-summary"></p>
         <h3>Hashes</h3>
         <table>
-          <thead><tr><th scope="col">Artifact</th><th scope="col">SHA-256</th><th scope="col">Verdict</th></tr></thead>
+          <thead>
+            <tr>
+              <th scope="col">Artifact</th>
+              <th scope="col">SHA-256</th>
+              <th scope="col">Verdict</th>
+            </tr>
+          </thead>
           <tbody id="demo-hashes"></tbody>
         </table>
         <h3>Oracle checks</h3>
@@ -100,10 +141,22 @@
       <section aria-labelledby="evidence-title">
         <h2 id="evidence-title">Frozen evidence</h2>
         <dl class="metrics">
-          <div><dt>Input SHA-256</dt><dd><code>b90d5d472e7f58e18d544f32dbc7449143608939f4a8c18641d6e7eae1752b56</code></dd></div>
-          <div><dt>Output SHA-256</dt><dd><code>e4b89ba6d65fa9ac3aa5f1b30da32343e54cc81a9ee9d6f84eaf8b38e823fb5f</code></dd></div>
-          <div><dt>Reference SHA-256</dt><dd><code>3146faf58d2eecd43b74d4297fcc575b0a688cb2e2b2d9ab1b1c9f3d1e21a564</code></dd></div>
-          <div><dt>Oracle tolerances</dt><dd>absolute 1e-06 · relative 1e-05</dd></div>
+          <div>
+            <dt>Input SHA-256</dt>
+            <dd><code>b90d5d472e7f58e18d544f32dbc7449143608939f4a8c18641d6e7eae1752b56</code></dd>
+          </div>
+          <div>
+            <dt>Output SHA-256</dt>
+            <dd><code>e4b89ba6d65fa9ac3aa5f1b30da32343e54cc81a9ee9d6f84eaf8b38e823fb5f</code></dd>
+          </div>
+          <div>
+            <dt>Reference SHA-256</dt>
+            <dd><code>3146faf58d2eecd43b74d4297fcc575b0a688cb2e2b2d9ab1b1c9f3d1e21a564</code></dd>
+          </div>
+          <div>
+            <dt>Oracle tolerances</dt>
+            <dd>absolute 1e-06 · relative 1e-05</dd>
+          </div>
         </dl>
         <h3>Artifacts and records</h3>
         <ul class="demo-links">
@@ -131,17 +184,19 @@
         </ul>
       </section>
     </main>
-    <script type="application/json" id="workload-identity">{
-  "slug": "audio-fir",
-  "entryId": "audio.fir.v1",
-  "title": "Finite impulse response convolution",
-  "timeoutMs": 120000,
-  "frozenHashes": {
-    "inputSha256": "b90d5d472e7f58e18d544f32dbc7449143608939f4a8c18641d6e7eae1752b56",
-    "outputSha256": "e4b89ba6d65fa9ac3aa5f1b30da32343e54cc81a9ee9d6f84eaf8b38e823fb5f",
-    "referenceSha256": "3146faf58d2eecd43b74d4297fcc575b0a688cb2e2b2d9ab1b1c9f3d1e21a564"
-  },
-  "registrySha256": "9cf2f7f619df58f3178ca12311ca440a5e7e5903985d38da7296140408440ac7"
-}</script>
+    <script type="application/json" id="workload-identity">
+    {
+      "slug": "audio-fir",
+      "entryId": "audio.fir.v1",
+      "title": "Finite impulse response convolution",
+      "timeoutMs": 120000,
+      "frozenHashes": {
+        "inputSha256": "b90d5d472e7f58e18d544f32dbc7449143608939f4a8c18641d6e7eae1752b56",
+        "outputSha256": "e4b89ba6d65fa9ac3aa5f1b30da32343e54cc81a9ee9d6f84eaf8b38e823fb5f",
+        "referenceSha256": "3146faf58d2eecd43b74d4297fcc575b0a688cb2e2b2d9ab1b1c9f3d1e21a564"
+      },
+      "registrySha256": "9cf2f7f619df58f3178ca12311ca440a5e7e5903985d38da7296140408440ac7"
+    }
+    </script>
   </body>
 </html>
