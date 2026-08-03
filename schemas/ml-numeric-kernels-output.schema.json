@@ -100,7 +100,7 @@
         "tensor-writes",
         "exp-approximations",
         "normalizations",
-        "allocations",
+        "output-tensor-allocations",
         "boundary-crossings"
       ],
       "properties": {
@@ -113,7 +113,7 @@
         "tensor-writes": { "const": 1016 },
         "exp-approximations": { "const": 128 },
         "normalizations": { "const": 256 },
-        "allocations": { "const": 6 },
+        "output-tensor-allocations": { "const": 6 },
         "boundary-crossings": { "type": "integer" }
       }
     },

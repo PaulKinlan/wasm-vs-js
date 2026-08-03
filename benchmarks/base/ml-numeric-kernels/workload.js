@@ -250,7 +250,7 @@ export function workCounters(target = "javascript") {
     "tensor-writes": tensorWrites,
     "exp-approximations": softmaxElements,
     "normalizations": 2 * softmaxElements,
-    allocations: 6,
+    "output-tensor-allocations": 6,
     "boundary-crossings": target === "wasm-linear" ? 6 : 0,
   };
 }

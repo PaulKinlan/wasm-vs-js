@@ -341,7 +341,7 @@ Deno.test("registered counters equal every operative access and boundary exactly
     "tensor-writes": 1016,
     "exp-approximations": 128,
     "normalizations": 256,
-    allocations: 6,
+    "output-tensor-allocations": 6,
   };
   assertEquals(workload.workCounters("javascript"), { ...expected, "boundary-crossings": 0 });
   assertEquals(workload.workCounters("wasm-linear"), { ...expected, "boundary-crossings": 6 });
