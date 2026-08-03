@@ -13,8 +13,11 @@ import {
 } from "../benchmarks/base/sqlite-notebook/engine.js";
 import { assert, assertEquals } from "./assert.ts";
 
-const Ajv2020 = (Ajv2020Module as unknown as { default?: typeof Ajv2020Module }).default ??
-  Ajv2020Module;
+type Validator = ((value: unknown) => boolean) & { errors?: unknown };
+type AjvInstance = { compile: (schema: unknown) => Validator };
+type AjvConstructor = new (options?: Record<string, unknown>) => AjvInstance;
+const Ajv2020 = ((Ajv2020Module as unknown as { default?: AjvConstructor }).default ??
+  Ajv2020Module) as unknown as AjvConstructor;
 
 async function sha256(bytes: Uint8Array) {
   return [...new Uint8Array(await crypto.subtle.digest("SHA-256", Uint8Array.from(bytes)))]
