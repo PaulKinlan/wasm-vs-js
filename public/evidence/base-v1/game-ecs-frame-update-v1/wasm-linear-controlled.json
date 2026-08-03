@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "status": "passed",
+  "workloadId": "game.ecs-frame-update.v1",
+  "sourceCommit": "7522be8ec0c21127e7ecc18f7ebcd2d58d6b484a",
+  "fixture": {
+    "bytes": 81016,
+    "sha256": "9ad7ed255f244425f3da0d281f7dffcaa8a8923e03907d5ac0bf0322968df769"
+  },
+  "artifact": {
+    "bytes": 3911,
+    "sha256": "e76d6c13392a6cb2d570d14c03de0147528a84267b7d527a84209f3b7d79b12f"
+  },
+  "oracle": {
+    "semanticDigest": "fe967b61",
+    "finalStateDigest": "4f0cc1ca",
+    "finalStateSha256": "c514e7e9f50a62707af610bca1bf222ff88061ccbf55aa711bcdc1929adc4210",
+    "checkpointDigest": "434e9372",
+    "checkpoints": [
+      {
+        "frame": 100,
+        "stateDigest": "559769ed",
+        "pairTests": 2718161,
+        "collisions": 835
+      },
+      {
+        "frame": 200,
+        "stateDigest": "df293b6f",
+        "pairTests": 5437836,
+        "collisions": 1696
+      },
+      {
+        "frame": 300,
+        "stateDigest": "6f9bc3ad",
+        "pairTests": 8137188,
+        "collisions": 2534
+      },
+      {
+        "frame": 400,
+        "stateDigest": "4d213769",
+        "pairTests": 10835791,
+        "collisions": 3350
+      },
+      {
+        "frame": 500,
+        "stateDigest": "b2ada4a5",
+        "pairTests": 13532542,
+        "collisions": 4190
+      },
+      {
+        "frame": 600,
+        "stateDigest": "81fa8f43",
+        "pairTests": 16252325,
+        "collisions": 5031
+      },
+      {
+        "frame": 700,
+        "stateDigest": "ab67a1c3",
+        "pairTests": 18967629,
+        "collisions": 5870
+      },
+      {
+        "frame": 800,
+        "stateDigest": "f5f3082e",
+        "pairTests": 21668314,
+        "collisions": 6735
+      },
+      {
+        "frame": 900,
+        "stateDigest": "41a4df82",
+        "pairTests": 24383614,
+        "collisions": 7584
+      },
+      {
+        "frame": 1000,
+        "stateDigest": "4f0cc1ca",
+        "pairTests": 27086270,
+        "collisions": 8538
+      }
+    ],
+    "finalStateWords": 60000,
+    "integerTolerance": 0
+  },
+  "completeStateComparedAcrossTargets": true,
+  "performanceClaims": [],
+  "variantId": "wasm-linear-controlled",
+  "executionTarget": "wasm-linear",
+  "counters": {
+    "frames": 1000,
+    "entities": 10000,
+    "systemPasses": 3000,
+    "movementUpdates": 10000000,
+    "broadphaseCellClears": 16384000,
+    "broadphaseCellScans": 81920000,
+    "broadphaseInsertions": 10000000,
+    "pairTests": 27086270,
+    "collisions": 8538,
+    "animationUpdates": 10000000,
+    "controlMutations": 77862,
+    "stateMutations": 30113243,
+    "checkpointCount": 10,
+    "ownedBufferAllocations": 0,
+    "boundaryCrossings": 2,
+    "inputBytes": 81016,
+    "outputBytes": 240128
+  }
+}
