@@ -117,15 +117,139 @@ const PLAYGROUND_WORKLOADS = [
     description: "Parses Markdown documents into sanitized HTML syntax trees.",
     explanation: "Text parsing, character scanning, and string building.",
   },
+  // ── Base catalog workloads (merged from catalog shards) ──
+  {
+    slug: "cad-mesh-repair-v1",
+    title: "3D Mesh Quantization & Repair",
+    category: "CAD & Engineering",
+    workerScript: "/benchmarks/cad-mesh-repair-v1/worker.js",
+    workerProtocol: "target-only",
+    wasmTarget: "wasm",
+    route: "/benchmarks/cad-mesh-repair-v1/",
+    description:
+      "Welds, orients, removes degenerate faces, and simplifies a dirty STL mesh to 50%.",
+    explanation:
+      "Integer quantization and adjacency-map operations common in 3D printing and CAD pipelines.",
+  },
+  {
+    slug: "database-sqlite-notebook-v1",
+    title: "SQLite Analytical Notebook",
+    category: "Database",
+    workerScript: null,
+    route: "/benchmarks/database-sqlite-notebook-v1/",
+    description:
+      "Imports a sales CSV, creates indexes, and runs eight joins, group-bys, and window queries.",
+    explanation:
+      "Heavy SQL parsing, query planning, and B-tree traversal in both JS (AlaSQL) and Wasm (SQLite).",
+  },
+  {
+    slug: "document-pdf-viewer-v1",
+    title: "PDF Document Parsing & Rendering",
+    category: "Document Processing",
+    workerScript: "/benchmarks/document-pdf-viewer-v1/worker.js",
+    workerProtocol: "target-only",
+    wasmTarget: "wasm-linear",
+    route: "/benchmarks/document-pdf-viewer-v1/",
+    description:
+      "Opens a 100-page report, searches for a term, and rasterizes five pages to bitmaps.",
+    explanation:
+      "Cross-reference table traversal, content stream decoding, and pixel rasterization.",
+  },
+  {
+    slug: "base-dom-todomvc-journey",
+    title: "TodoMVC User Journey",
+    category: "DOM & Web UI",
+    workerScript: "/benchmarks/base-dom-todomvc-journey/worker.js",
+    workerProtocol: "variant",
+    route: "/benchmarks/base-dom-todomvc-journey/",
+    description:
+      "Adds, completes, filters, edits, and removes 100 todos through a full TodoMVC interaction.",
+    explanation:
+      "DOM mutation, event dispatch, and virtual-dom reconciliation under realistic user interaction.",
+  },
+  {
+    slug: "archive-zip-workspace-v1",
+    title: "ZIP Archive Compression Workspace",
+    category: "Compression & Archival",
+    workerScript: null,
+    route: "/benchmarks/archive-zip-workspace-v1/",
+    description:
+      "Zips 10,000 mixed files, lists entries, and extracts selected paths with SHA-256 verification.",
+    explanation:
+      "DEFLATE compression, central-directory parsing, and CRC-32 checksum validation.",
+  },
+  {
+    slug: "crypto-authenticated-stream",
+    title: "ChaCha20-Poly1305 Stream Encryption",
+    category: "Cryptography",
+    workerScript: null,
+    route: "/benchmarks/crypto-authenticated-stream/",
+    description:
+      "Encrypts, verifies, and decrypts 10,000 deterministic message frames with AEAD.",
+    explanation:
+      "ChaCha20 keystream generation and Poly1305 MAC computation over structured frames.",
+  },
+  {
+    slug: "graphics-cpu-path-tracer-v1",
+    title: "CPU Ray-Tracing Path Tracer",
+    category: "Graphics & Rendering",
+    workerScript: "/benchmarks/graphics-cpu-path-tracer-v1/worker.js",
+    workerProtocol: "target-only",
+    wasmTarget: "wasm",
+    route: "/benchmarks/graphics-cpu-path-tracer-v1/",
+    description:
+      "Renders a deterministic 512×512 product preview at 64 samples per pixel.",
+    explanation:
+      "Ray-scene intersection, BSDF sampling, and Monte Carlo integration on the CPU.",
+  },
+  {
+    slug: "simulation-nbody-cloth",
+    title: "N-Body Particle Simulation",
+    category: "Physics Simulation",
+    workerScript: "/demos/simulation-nbody-cloth/worker.js",
+    workerProtocol: "variant",
+    route: "/demos/simulation-nbody-cloth/",
+    description:
+      "Advances 1,024 seeded bodies with a direct all-pairs gravitational solver for fixed timesteps.",
+    explanation:
+      "O(n²) force computation and velocity integration with strict-f32 arithmetic.",
+  },
+  {
+    slug: "simulation-rigid-body-2d-v1",
+    title: "2D Rigid-Body Physics Engine",
+    category: "Physics Simulation",
+    workerScript: "/benchmarks/simulation-rigid-body-2d-v1/worker.js",
+    workerProtocol: "rigid-body",
+    route: "/benchmarks/simulation-rigid-body-2d-v1/",
+    description:
+      "Settles 500 stacked boxes and joints over fixed timesteps with constraint solving.",
+    explanation:
+      "Broad-phase collision detection, contact resolution, and sequential impulse solving.",
+  },
+  {
+    slug: "tooling-c-to-wasm-compile-v1",
+    title: "C-to-Wasm Compiler",
+    category: "Developer Tooling",
+    workerScript: "/benchmarks/tooling-c-to-wasm-compile-v1/worker.js",
+    workerProtocol: "target-only",
+    wasmTarget: "wasm",
+    route: "/benchmarks/tooling-c-to-wasm-compile-v1/",
+    description:
+      "Compiles and links 20 small C programs to WebAssembly modules in the browser.",
+    explanation:
+      "Lexing, parsing, type checking, code generation, and binary module emission.",
+  },
 ];
 
 // Execute workload for N iterations, measuring first (cold) vs subsequent (warm) iterations
-async function runTimedLoop(workerScript, slug, target, iterations = 30) {
+async function runTimedLoop(config, target, iterations = 30) {
+  const { workerScript: workerScript_, slug, workerProtocol, wasmTarget } = config;
+  const effectiveTarget = target === "wasm-linear" && wasmTarget ? wasmTarget : target;
   const durations = [];
 
   for (let i = 0; i < iterations; i++) {
     const res = await new Promise((resolve, reject) => {
-      const worker = new Worker(workerScript, { type: "module" });
+      const worker = new Worker(workerScript_, { type: "module" });
       const token = Math.floor(Math.random() * 1000000);
       const start = performance.now();
 
@@ -137,7 +261,12 @@ async function runTimedLoop(workerScript, slug, target, iterations = 30) {
       worker.addEventListener("message", (event) => {
         const msg = event.data;
         if (!msg || msg.token !== token) return;
-        if (msg.type === "completed" || msg.type === "done") {
+        // Accept varied success signals from different worker families
+        if (
+          msg.type === "completed" || msg.type === "done" ||
+          msg.type === "complete" || msg.type === "result" ||
+          msg.ok === true
+        ) {
           clearTimeout(timeout);
           const time = performance.now() - start;
           worker.terminate();
@@ -239,8 +368,15 @@ async function runTimedLoop(workerScript, slug, target, iterations = 30) {
           iterations: 1,
           mode: "validation",
         });
+      } else if (workerProtocol === "target-only") {
+        worker.postMessage({ token, target: effectiveTarget });
+      } else if (workerProtocol === "variant") {
+        const variantId = target === "javascript" ? "js-controlled" : "wasm-linear-controlled";
+        worker.postMessage({ type: "start", token, variantId });
+      } else if (workerProtocol === "rigid-body") {
+        worker.postMessage({ token, type: "start", target: effectiveTarget });
       } else {
-        worker.postMessage({ token, slug, target, mode: "bounded" });
+        worker.postMessage({ token, slug, target: effectiveTarget, mode: "bounded" });
       }
     });
 

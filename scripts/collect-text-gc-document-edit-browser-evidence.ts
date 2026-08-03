@@ -1021,9 +1021,9 @@ async function runCollector(): Promise<void> {
           assertions.push("two sequential exact runs used two fresh terminated workers");
         } else {
           const target = definition.targets[0];
-          await selectTarget(client, sessionId, target);
-          await click(client, sessionId, "#start");
           if (definition.id === "wrong-token") {
+            await selectTarget(client, sessionId, target);
+            await click(client, sessionId, "#start");
             await waitForState(client, sessionId, (state) => state.status.startsWith("Loading "));
             const deadline = Date.now() + 2_000;
             while (
@@ -1049,6 +1049,8 @@ async function runCollector(): Promise<void> {
             });
             assertions.push("wrong-token completion was ignored before the exact run completed");
           } else if (definition.id === "timeout") {
+            await selectTarget(client, sessionId, target);
+            await click(client, sessionId, "#start");
             finalState = await waitForState(
               client,
               sessionId,
@@ -1060,6 +1062,8 @@ async function runCollector(): Promise<void> {
             );
             assertions.push("shortened causal probe reached the exact 120-second timeout branch");
           } else if (definition.id === "cancel") {
+            await selectTarget(client, sessionId, target);
+            await click(client, sessionId, "#start");
             await waitForState(client, sessionId, (state) => state.status.startsWith("Loading "));
             await click(client, sessionId, "#cancel");
             finalState = await waitForState(
@@ -1073,6 +1077,8 @@ async function runCollector(): Promise<void> {
             );
             assertions.push("visible Cancel terminated the exact held worker");
           } else if (definition.id === "pagehide") {
+            await selectTarget(client, sessionId, target);
+            await click(client, sessionId, "#start");
             finalState = await waitForState(
               client,
               sessionId,
