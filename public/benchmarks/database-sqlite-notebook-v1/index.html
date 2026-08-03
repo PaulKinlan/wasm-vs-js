@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SQLite analytical notebook | Wasm versus JavaScript</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script>
+    document.documentElement.classList.add("js");
+    </script>
+    <script src="/sqlite-notebook-runner.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header
+      class="site-header"><a href="/">Wasm versus JavaScript</a><a href="/benchmarks/">Catalog</a></header>
+    <main id="content" class="content-shell">
+      <p class="eyebrow">BASE IMPLEMENTATION CANDIDATE · DATABASE.SQLITE-NOTEBOOK.V1</p>
+      <h1>SQLite analytical notebook</h1>
+      <p><strong>No performance claim.</strong> This correctness route creates a fresh in-memory database, imports 4,192 generated rows in a frozen order, creates three indexes, and executes eight ordered SQL queries. It never uses OPFS, uploads, storage, or timing rankings.</p>
+      <p>The two targets are semantic product choices: pure JavaScript AlaSQL 4.17.3 and material SQLite 3.53.0 linear Wasm. Both execute the same SQL text and every returned value is checked against an independent command-line SQLite reference.</p>
+
+      <form id="notebook-form">
+        <label for="target">Target</label>
+        <select id="target" name="target">
+          <option value="javascript-controlled">JavaScript SQL engine</option>
+          <option value="linear-wasm-controlled">SQLite linear Wasm</option>
+        </select>
+        <label for="query">Query</label>
+        <select id="query" name="query">
+          <option value="all">All eight ordered queries</option>
+          <option value="q1-region-revenue">Q1 · region revenue</option>
+          <option value="q2-category-units">Q2 · category units</option>
+          <option value="q3-region-category-cube">Q3 · region/category cube</option>
+          <option value="q4-top-products">Q4 · top products</option>
+          <option value="q5-customer-purchase-sequence">Q5 · ROW_NUMBER window</option>
+          <option value="q6-product-partition-total">Q6 · SUM window</option>
+          <option value="q7-null-coupon-groups">Q7 · NULL groups</option>
+          <option value="q8-monthly-region-orders">Q8 · monthly region totals</option>
+        </select>
+        <label><input id="exact" type="checkbox" checked> Verify every served input, manifest, engine and artifact byte before execution</label>
+        <p
+          id="limits">Fresh worker per run. Hard timeout: 120 seconds. Cancel terminates the worker.</p>
+        <button id="start" type="submit">Start</button>
+        <button id="cancel" type="button" disabled>Cancel</button>
+      </form>
+
+      <section aria-labelledby="result-title">
+        <h2 id="result-title">Result</h2>
+        <p id="status" role="status" aria-live="polite">Ready.</p>
+        <progress id="progress" max="4" value="0"
+          aria-label="Notebook validation progress"></progress>
+        <pre id="result" tabindex="0">No result yet.</pre>
+      </section>
+
+      <section>
+        <h2>Inspectable contract</h2>
+        <ul>
+          <li><a href="/assets/sqlite-notebook/runtime-manifest.json">Runtime byte manifest</a></li>
+          <li><a href="/assets/sqlite-notebook/fixtures/fixture-manifest.json">Generated fixture manifest and CC0 provenance</a></li>
+          <li><a href="/assets/sqlite-notebook/reference.json">Independent eight-query oracle</a></li>
+          <li><a href="/assets/sqlite-notebook/sqlite3.wasm">SQLite 3.53.0 Wasm artifact</a></li>
+          <li><a href="/benchmarks/base/sqlite-notebook/contract.js">Exact schema, indexes, PRAGMAs and queries</a></li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>

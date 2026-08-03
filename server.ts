@@ -130,6 +130,74 @@ const routes = new Map<string, [string, string, boolean?]>([
   ]],
   ["/benchmarks", ["public/benchmarks/index.html", "text/html; charset=utf-8"]],
   ["/benchmarks/", ["public/benchmarks/index.html", "text/html; charset=utf-8"]],
+  ["/benchmarks/database-sqlite-notebook-v1", [
+    "public/benchmarks/database-sqlite-notebook-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/database-sqlite-notebook-v1/", [
+    "public/benchmarks/database-sqlite-notebook-v1/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/sqlite-notebook-runner.js", [
+    "public/sqlite-notebook-runner.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/sqlite-notebook-worker.js", [
+    "public/sqlite-notebook-worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/sqlite-notebook/contract.js", [
+    "benchmarks/base/sqlite-notebook/contract.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/base/sqlite-notebook/engine.js", [
+    "benchmarks/base/sqlite-notebook/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/assets/sqlite-notebook/alasql.min.js", [
+    "public/artifacts/sqlite-notebook/alasql.min.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/assets/sqlite-notebook/sqlite3.mjs", [
+    "public/artifacts/sqlite-notebook/sqlite3.mjs",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/assets/sqlite-notebook/sqlite3.wasm", [
+    "public/artifacts/sqlite-notebook/sqlite3.wasm",
+    "application/wasm",
+  ]],
+  ["/assets/sqlite-notebook/dependency-manifest.json", [
+    "public/artifacts/sqlite-notebook/dependency-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/assets/sqlite-notebook/runtime-manifest.json", [
+    "public/artifacts/sqlite-notebook/runtime-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/assets/sqlite-notebook/reference.json", [
+    "public/artifacts/sqlite-notebook/reference.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/assets/sqlite-notebook/fixtures/fixture-manifest.json", [
+    "public/artifacts/sqlite-notebook/fixtures/fixture-manifest.json",
+    "application/json; charset=utf-8",
+  ]],
+  ["/assets/sqlite-notebook/fixtures/RIGHTS.md", [
+    "public/artifacts/sqlite-notebook/fixtures/RIGHTS.md",
+    "text/markdown; charset=utf-8",
+  ]],
+  ["/assets/sqlite-notebook/fixtures/customers.csv", [
+    "public/artifacts/sqlite-notebook/fixtures/customers.csv",
+    "text/csv; charset=utf-8",
+  ]],
+  ["/assets/sqlite-notebook/fixtures/products.csv", [
+    "public/artifacts/sqlite-notebook/fixtures/products.csv",
+    "text/csv; charset=utf-8",
+  ]],
+  ["/assets/sqlite-notebook/fixtures/sales.csv", [
+    "public/artifacts/sqlite-notebook/fixtures/sales.csv",
+    "text/csv; charset=utf-8",
+  ]],
   ["/demos/game-family/demo.js", [
     "public/demos/game-family/demo.js",
     "text/javascript; charset=utf-8",

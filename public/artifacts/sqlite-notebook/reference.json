@@ -1,0 +1,4982 @@
+{
+  "schemaVersion": 1,
+  "workloadId": "database.sqlite-notebook.v1",
+  "referenceId": "system-sqlite-independent-v1",
+  "generatedBy": "scripts/generate-sqlite-notebook-reference.ts",
+  "tool": {
+    "command": "sqlite3 :memory:",
+    "version": "3.53.3 2026-06-26 20:14:12 d4c0e51e4aeb96955b99185ab9cde75c339e2c29c3f3f12428d364a10d78alt1 (64-bit)",
+    "relationship": "independent untimed correctness reference; not a benchmark target"
+  },
+  "queryCount": 8,
+  "rowCounts": {
+    "q1-region-revenue": 4,
+    "q2-category-units": 8,
+    "q3-region-category-cube": 32,
+    "q4-top-products": 10,
+    "q5-customer-purchase-sequence": 512,
+    "q6-product-partition-total": 125,
+    "q7-null-coupon-groups": 5,
+    "q8-monthly-region-orders": 48
+  },
+  "canonicalOutputSha256": "fae41d80865456365118c98ee8dd74a502fb359ace69878190edca22e4f6572d",
+  "results": [
+    {
+      "id": "q1-region-revenue",
+      "rows": [
+        {
+          "region": "europe",
+          "gross_cents": 7827845,
+          "sale_count": 1015
+        },
+        {
+          "region": "asia-pacific",
+          "gross_cents": 7686549,
+          "sale_count": 1059
+        },
+        {
+          "region": "middle-east-africa",
+          "gross_cents": 7413380,
+          "sale_count": 982
+        },
+        {
+          "region": "americas",
+          "gross_cents": 7400989,
+          "sale_count": 1040
+        }
+      ]
+    },
+    {
+      "id": "q2-category-units",
+      "rows": [
+        {
+          "category": "audio",
+          "units": 1695,
+          "sale_count": 550
+        },
+        {
+          "category": "wearables",
+          "units": 1567,
+          "sale_count": 527
+        },
+        {
+          "category": "books",
+          "units": 1556,
+          "sale_count": 525
+        },
+        {
+          "category": "camera",
+          "units": 1527,
+          "sale_count": 502
+        },
+        {
+          "category": "kitchen",
+          "units": 1508,
+          "sale_count": 516
+        },
+        {
+          "category": "toys",
+          "units": 1482,
+          "sale_count": 479
+        },
+        {
+          "category": "outdoor",
+          "units": 1464,
+          "sale_count": 498
+        },
+        {
+          "category": "garden",
+          "units": 1448,
+          "sale_count": 499
+        }
+      ]
+    },
+    {
+      "id": "q3-region-category-cube",
+      "rows": [
+        {
+          "region": "americas",
+          "category": "audio",
+          "gross_cents": 760764
+        },
+        {
+          "region": "americas",
+          "category": "books",
+          "gross_cents": 1077694
+        },
+        {
+          "region": "americas",
+          "category": "camera",
+          "gross_cents": 1255024
+        },
+        {
+          "region": "americas",
+          "category": "garden",
+          "gross_cents": 799114
+        },
+        {
+          "region": "americas",
+          "category": "kitchen",
+          "gross_cents": 864482
+        },
+        {
+          "region": "americas",
+          "category": "outdoor",
+          "gross_cents": 515048
+        },
+        {
+          "region": "americas",
+          "category": "toys",
+          "gross_cents": 1044184
+        },
+        {
+          "region": "americas",
+          "category": "wearables",
+          "gross_cents": 1084679
+        },
+        {
+          "region": "asia-pacific",
+          "category": "audio",
+          "gross_cents": 1052748
+        },
+        {
+          "region": "asia-pacific",
+          "category": "books",
+          "gross_cents": 883128
+        },
+        {
+          "region": "asia-pacific",
+          "category": "camera",
+          "gross_cents": 1114408
+        },
+        {
+          "region": "asia-pacific",
+          "category": "garden",
+          "gross_cents": 836599
+        },
+        {
+          "region": "asia-pacific",
+          "category": "kitchen",
+          "gross_cents": 883470
+        },
+        {
+          "region": "asia-pacific",
+          "category": "outdoor",
+          "gross_cents": 913373
+        },
+        {
+          "region": "asia-pacific",
+          "category": "toys",
+          "gross_cents": 852472
+        },
+        {
+          "region": "asia-pacific",
+          "category": "wearables",
+          "gross_cents": 1150351
+        },
+        {
+          "region": "europe",
+          "category": "audio",
+          "gross_cents": 949128
+        },
+        {
+          "region": "europe",
+          "category": "books",
+          "gross_cents": 1130929
+        },
+        {
+          "region": "europe",
+          "category": "camera",
+          "gross_cents": 1083112
+        },
+        {
+          "region": "europe",
+          "category": "garden",
+          "gross_cents": 765478
+        },
+        {
+          "region": "europe",
+          "category": "kitchen",
+          "gross_cents": 1064504
+        },
+        {
+          "region": "europe",
+          "category": "outdoor",
+          "gross_cents": 824357
+        },
+        {
+          "region": "europe",
+          "category": "toys",
+          "gross_cents": 953096
+        },
+        {
+          "region": "europe",
+          "category": "wearables",
+          "gross_cents": 1057241
+        },
+        {
+          "region": "middle-east-africa",
+          "category": "audio",
+          "gross_cents": 901350
+        },
+        {
+          "region": "middle-east-africa",
+          "category": "books",
+          "gross_cents": 912421
+        },
+        {
+          "region": "middle-east-africa",
+          "category": "camera",
+          "gross_cents": 1107528
+        },
+        {
+          "region": "middle-east-africa",
+          "category": "garden",
+          "gross_cents": 844321
+        },
+        {
+          "region": "middle-east-africa",
+          "category": "kitchen",
+          "gross_cents": 1052240
+        },
+        {
+          "region": "middle-east-africa",
+          "category": "outdoor",
+          "gross_cents": 624390
+        },
+        {
+          "region": "middle-east-africa",
+          "category": "toys",
+          "gross_cents": 688616
+        },
+        {
+          "region": "middle-east-africa",
+          "category": "wearables",
+          "gross_cents": 1282514
+        }
+      ]
+    },
+    {
+      "id": "q4-top-products",
+      "rows": [
+        {
+          "product_id": 28,
+          "product_name": "Pico-28-4036",
+          "gross_cents": 956532
+        },
+        {
+          "product_id": 26,
+          "product_name": "灯-26-3762",
+          "gross_cents": 921690
+        },
+        {
+          "product_id": 29,
+          "product_name": "Québec-29-4173",
+          "gross_cents": 876330
+        },
+        {
+          "product_id": 31,
+          "product_name": "Sol-31-4447",
+          "gross_cents": 791566
+        },
+        {
+          "product_id": 32,
+          "product_name": "Übung-32-4584",
+          "gross_cents": 742608
+        },
+        {
+          "product_id": 24,
+          "product_name": "Übung-24-3488",
+          "gross_cents": 739456
+        },
+        {
+          "product_id": 30,
+          "product_name": "Rīga-30-4310",
+          "gross_cents": 685290
+        },
+        {
+          "product_id": 21,
+          "product_name": "Québec-21-3077",
+          "gross_cents": 673863
+        },
+        {
+          "product_id": 23,
+          "product_name": "Sol-23-3351",
+          "gross_cents": 656796
+        },
+        {
+          "product_id": 19,
+          "product_name": "Nimbus-19-2803",
+          "gross_cents": 650296
+        }
+      ]
+    },
+    {
+      "id": "q5-customer-purchase-sequence",
+      "rows": [
+        {
+          "sale_id": 12,
+          "customer_id": 1,
+          "sale_day": 20250715,
+          "coupon_code": "夜市",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 72,
+          "customer_id": 1,
+          "sale_day": 20250911,
+          "coupon_code": "SPRING",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 76,
+          "customer_id": 1,
+          "sale_day": 20251223,
+          "coupon_code": "WELCOME",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 93,
+          "customer_id": 1,
+          "sale_day": 20250328,
+          "coupon_code": null,
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 145,
+          "customer_id": 1,
+          "sale_day": 20250606,
+          "coupon_code": null,
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 147,
+          "customer_id": 1,
+          "sale_day": 20250116,
+          "coupon_code": null,
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 183,
+          "customer_id": 1,
+          "sale_day": 20251104,
+          "coupon_code": "SPRING",
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 213,
+          "customer_id": 1,
+          "sale_day": 20251220,
+          "coupon_code": "WELCOME",
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 13,
+          "customer_id": 2,
+          "sale_day": 20251013,
+          "coupon_code": "夜市",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 68,
+          "customer_id": 2,
+          "sale_day": 20251119,
+          "coupon_code": "WELCOME",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 212,
+          "customer_id": 2,
+          "sale_day": 20250427,
+          "coupon_code": "WELCOME",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 279,
+          "customer_id": 2,
+          "sale_day": 20250113,
+          "coupon_code": "WELCOME",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 390,
+          "customer_id": 2,
+          "sale_day": 20250428,
+          "coupon_code": "WELCOME",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 444,
+          "customer_id": 2,
+          "sale_day": 20250822,
+          "coupon_code": "SPRING",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 453,
+          "customer_id": 2,
+          "sale_day": 20250903,
+          "coupon_code": null,
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 458,
+          "customer_id": 2,
+          "sale_day": 20250423,
+          "coupon_code": null,
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 490,
+          "customer_id": 2,
+          "sale_day": 20250402,
+          "coupon_code": null,
+          "purchase_number": 9
+        },
+        {
+          "sale_id": 109,
+          "customer_id": 3,
+          "sale_day": 20250502,
+          "coupon_code": null,
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 163,
+          "customer_id": 3,
+          "sale_day": 20250704,
+          "coupon_code": null,
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 382,
+          "customer_id": 3,
+          "sale_day": 20250123,
+          "coupon_code": "SPRING",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 431,
+          "customer_id": 3,
+          "sale_day": 20250501,
+          "coupon_code": "WELCOME",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 461,
+          "customer_id": 3,
+          "sale_day": 20250203,
+          "coupon_code": "SPRING",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 31,
+          "customer_id": 4,
+          "sale_day": 20250219,
+          "coupon_code": "WELCOME",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 180,
+          "customer_id": 4,
+          "sale_day": 20250127,
+          "coupon_code": "SPRING",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 352,
+          "customer_id": 4,
+          "sale_day": 20251006,
+          "coupon_code": "SPRING",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 379,
+          "customer_id": 4,
+          "sale_day": 20250604,
+          "coupon_code": "LOYAL",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 387,
+          "customer_id": 4,
+          "sale_day": 20250304,
+          "coupon_code": "WELCOME",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 405,
+          "customer_id": 4,
+          "sale_day": 20250124,
+          "coupon_code": "LOYAL",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 435,
+          "customer_id": 4,
+          "sale_day": 20251228,
+          "coupon_code": "WELCOME",
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 71,
+          "customer_id": 5,
+          "sale_day": 20250217,
+          "coupon_code": "LOYAL",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 82,
+          "customer_id": 5,
+          "sale_day": 20251107,
+          "coupon_code": "WELCOME",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 167,
+          "customer_id": 5,
+          "sale_day": 20250826,
+          "coupon_code": "LOYAL",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 188,
+          "customer_id": 5,
+          "sale_day": 20250223,
+          "coupon_code": "SPRING",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 244,
+          "customer_id": 5,
+          "sale_day": 20250719,
+          "coupon_code": "SPRING",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 265,
+          "customer_id": 5,
+          "sale_day": 20250711,
+          "coupon_code": null,
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 318,
+          "customer_id": 5,
+          "sale_day": 20250228,
+          "coupon_code": "WELCOME",
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 401,
+          "customer_id": 5,
+          "sale_day": 20250622,
+          "coupon_code": "SPRING",
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 479,
+          "customer_id": 5,
+          "sale_day": 20250316,
+          "coupon_code": "SPRING",
+          "purchase_number": 9
+        },
+        {
+          "sale_id": 511,
+          "customer_id": 5,
+          "sale_day": 20251023,
+          "coupon_code": null,
+          "purchase_number": 10
+        },
+        {
+          "sale_id": 20,
+          "customer_id": 6,
+          "sale_day": 20250407,
+          "coupon_code": "SPRING",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 22,
+          "customer_id": 6,
+          "sale_day": 20251118,
+          "coupon_code": null,
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 25,
+          "customer_id": 6,
+          "sale_day": 20251223,
+          "coupon_code": "夜市",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 84,
+          "customer_id": 6,
+          "sale_day": 20251211,
+          "coupon_code": null,
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 87,
+          "customer_id": 6,
+          "sale_day": 20250828,
+          "coupon_code": "夜市",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 205,
+          "customer_id": 6,
+          "sale_day": 20250826,
+          "coupon_code": "夜市",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 293,
+          "customer_id": 6,
+          "sale_day": 20250517,
+          "coupon_code": "WELCOME",
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 29,
+          "customer_id": 7,
+          "sale_day": 20250528,
+          "coupon_code": null,
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 257,
+          "customer_id": 7,
+          "sale_day": 20250808,
+          "coupon_code": "LOYAL",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 273,
+          "customer_id": 7,
+          "sale_day": 20250318,
+          "coupon_code": null,
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 336,
+          "customer_id": 7,
+          "sale_day": 20250817,
+          "coupon_code": null,
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 447,
+          "customer_id": 7,
+          "sale_day": 20250104,
+          "coupon_code": "夜市",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 481,
+          "customer_id": 7,
+          "sale_day": 20250702,
+          "coupon_code": "SPRING",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 496,
+          "customer_id": 7,
+          "sale_day": 20250407,
+          "coupon_code": "夜市",
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 55,
+          "customer_id": 8,
+          "sale_day": 20251202,
+          "coupon_code": "LOYAL",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 112,
+          "customer_id": 8,
+          "sale_day": 20250813,
+          "coupon_code": null,
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 214,
+          "customer_id": 8,
+          "sale_day": 20250920,
+          "coupon_code": "WELCOME",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 314,
+          "customer_id": 8,
+          "sale_day": 20250905,
+          "coupon_code": "WELCOME",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 495,
+          "customer_id": 8,
+          "sale_day": 20251213,
+          "coupon_code": "LOYAL",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 98,
+          "customer_id": 9,
+          "sale_day": 20250218,
+          "coupon_code": null,
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 104,
+          "customer_id": 9,
+          "sale_day": 20250309,
+          "coupon_code": "夜市",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 110,
+          "customer_id": 9,
+          "sale_day": 20250714,
+          "coupon_code": "LOYAL",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 130,
+          "customer_id": 9,
+          "sale_day": 20251205,
+          "coupon_code": null,
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 196,
+          "customer_id": 9,
+          "sale_day": 20251118,
+          "coupon_code": null,
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 211,
+          "customer_id": 9,
+          "sale_day": 20250325,
+          "coupon_code": "SPRING",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 216,
+          "customer_id": 9,
+          "sale_day": 20250417,
+          "coupon_code": "SPRING",
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 437,
+          "customer_id": 9,
+          "sale_day": 20250914,
+          "coupon_code": "夜市",
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 483,
+          "customer_id": 9,
+          "sale_day": 20251004,
+          "coupon_code": null,
+          "purchase_number": 9
+        },
+        {
+          "sale_id": 489,
+          "customer_id": 9,
+          "sale_day": 20250425,
+          "coupon_code": "LOYAL",
+          "purchase_number": 10
+        },
+        {
+          "sale_id": 35,
+          "customer_id": 10,
+          "sale_day": 20251104,
+          "coupon_code": null,
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 119,
+          "customer_id": 10,
+          "sale_day": 20250120,
+          "coupon_code": null,
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 240,
+          "customer_id": 10,
+          "sale_day": 20250316,
+          "coupon_code": "夜市",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 280,
+          "customer_id": 10,
+          "sale_day": 20250517,
+          "coupon_code": null,
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 333,
+          "customer_id": 10,
+          "sale_day": 20251112,
+          "coupon_code": "WELCOME",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 337,
+          "customer_id": 10,
+          "sale_day": 20250616,
+          "coupon_code": "WELCOME",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 350,
+          "customer_id": 10,
+          "sale_day": 20251120,
+          "coupon_code": null,
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 425,
+          "customer_id": 10,
+          "sale_day": 20250712,
+          "coupon_code": null,
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 506,
+          "customer_id": 10,
+          "sale_day": 20250719,
+          "coupon_code": null,
+          "purchase_number": 9
+        },
+        {
+          "sale_id": 509,
+          "customer_id": 10,
+          "sale_day": 20250207,
+          "coupon_code": "LOYAL",
+          "purchase_number": 10
+        },
+        {
+          "sale_id": 61,
+          "customer_id": 11,
+          "sale_day": 20251016,
+          "coupon_code": "LOYAL",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 62,
+          "customer_id": 11,
+          "sale_day": 20250510,
+          "coupon_code": "WELCOME",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 80,
+          "customer_id": 11,
+          "sale_day": 20250925,
+          "coupon_code": "LOYAL",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 95,
+          "customer_id": 11,
+          "sale_day": 20250917,
+          "coupon_code": null,
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 157,
+          "customer_id": 11,
+          "sale_day": 20251220,
+          "coupon_code": null,
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 191,
+          "customer_id": 11,
+          "sale_day": 20251017,
+          "coupon_code": null,
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 202,
+          "customer_id": 11,
+          "sale_day": 20250615,
+          "coupon_code": "SPRING",
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 208,
+          "customer_id": 11,
+          "sale_day": 20250305,
+          "coupon_code": "LOYAL",
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 223,
+          "customer_id": 11,
+          "sale_day": 20251205,
+          "coupon_code": "LOYAL",
+          "purchase_number": 9
+        },
+        {
+          "sale_id": 299,
+          "customer_id": 11,
+          "sale_day": 20251216,
+          "coupon_code": null,
+          "purchase_number": 10
+        },
+        {
+          "sale_id": 393,
+          "customer_id": 11,
+          "sale_day": 20250325,
+          "coupon_code": null,
+          "purchase_number": 11
+        },
+        {
+          "sale_id": 432,
+          "customer_id": 11,
+          "sale_day": 20250218,
+          "coupon_code": null,
+          "purchase_number": 12
+        },
+        {
+          "sale_id": 440,
+          "customer_id": 11,
+          "sale_day": 20250804,
+          "coupon_code": null,
+          "purchase_number": 13
+        },
+        {
+          "sale_id": 455,
+          "customer_id": 11,
+          "sale_day": 20251007,
+          "coupon_code": null,
+          "purchase_number": 14
+        },
+        {
+          "sale_id": 484,
+          "customer_id": 11,
+          "sale_day": 20250413,
+          "coupon_code": "夜市",
+          "purchase_number": 15
+        },
+        {
+          "sale_id": 17,
+          "customer_id": 12,
+          "sale_day": 20251211,
+          "coupon_code": "SPRING",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 43,
+          "customer_id": 12,
+          "sale_day": 20250717,
+          "coupon_code": "LOYAL",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 66,
+          "customer_id": 12,
+          "sale_day": 20251216,
+          "coupon_code": "夜市",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 168,
+          "customer_id": 12,
+          "sale_day": 20250819,
+          "coupon_code": null,
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 176,
+          "customer_id": 12,
+          "sale_day": 20251128,
+          "coupon_code": "SPRING",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 195,
+          "customer_id": 12,
+          "sale_day": 20250424,
+          "coupon_code": "SPRING",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 247,
+          "customer_id": 12,
+          "sale_day": 20251020,
+          "coupon_code": null,
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 274,
+          "customer_id": 12,
+          "sale_day": 20250718,
+          "coupon_code": "SPRING",
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 369,
+          "customer_id": 12,
+          "sale_day": 20250118,
+          "coupon_code": "WELCOME",
+          "purchase_number": 9
+        },
+        {
+          "sale_id": 371,
+          "customer_id": 12,
+          "sale_day": 20250512,
+          "coupon_code": null,
+          "purchase_number": 10
+        },
+        {
+          "sale_id": 420,
+          "customer_id": 12,
+          "sale_day": 20250409,
+          "coupon_code": null,
+          "purchase_number": 11
+        },
+        {
+          "sale_id": 474,
+          "customer_id": 12,
+          "sale_day": 20250711,
+          "coupon_code": "SPRING",
+          "purchase_number": 12
+        },
+        {
+          "sale_id": 37,
+          "customer_id": 13,
+          "sale_day": 20250606,
+          "coupon_code": "LOYAL",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 200,
+          "customer_id": 13,
+          "sale_day": 20250411,
+          "coupon_code": null,
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 203,
+          "customer_id": 13,
+          "sale_day": 20251005,
+          "coupon_code": null,
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 221,
+          "customer_id": 13,
+          "sale_day": 20251122,
+          "coupon_code": "WELCOME",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 356,
+          "customer_id": 13,
+          "sale_day": 20250514,
+          "coupon_code": null,
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 396,
+          "customer_id": 13,
+          "sale_day": 20250113,
+          "coupon_code": "夜市",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 456,
+          "customer_id": 13,
+          "sale_day": 20250818,
+          "coupon_code": "WELCOME",
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 465,
+          "customer_id": 13,
+          "sale_day": 20250513,
+          "coupon_code": "SPRING",
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 156,
+          "customer_id": 14,
+          "sale_day": 20250321,
+          "coupon_code": "LOYAL",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 295,
+          "customer_id": 14,
+          "sale_day": 20251227,
+          "coupon_code": null,
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 330,
+          "customer_id": 14,
+          "sale_day": 20250705,
+          "coupon_code": null,
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 443,
+          "customer_id": 14,
+          "sale_day": 20250608,
+          "coupon_code": null,
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 88,
+          "customer_id": 15,
+          "sale_day": 20250716,
+          "coupon_code": "LOYAL",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 262,
+          "customer_id": 15,
+          "sale_day": 20250127,
+          "coupon_code": "SPRING",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 334,
+          "customer_id": 15,
+          "sale_day": 20250827,
+          "coupon_code": "夜市",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 351,
+          "customer_id": 15,
+          "sale_day": 20250419,
+          "coupon_code": "WELCOME",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 398,
+          "customer_id": 15,
+          "sale_day": 20250714,
+          "coupon_code": "LOYAL",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 418,
+          "customer_id": 15,
+          "sale_day": 20250117,
+          "coupon_code": "LOYAL",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 7,
+          "customer_id": 16,
+          "sale_day": 20251115,
+          "coupon_code": null,
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 40,
+          "customer_id": 16,
+          "sale_day": 20250805,
+          "coupon_code": "LOYAL",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 47,
+          "customer_id": 16,
+          "sale_day": 20250504,
+          "coupon_code": "SPRING",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 108,
+          "customer_id": 16,
+          "sale_day": 20250404,
+          "coupon_code": "SPRING",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 338,
+          "customer_id": 16,
+          "sale_day": 20250510,
+          "coupon_code": "夜市",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 347,
+          "customer_id": 16,
+          "sale_day": 20250211,
+          "coupon_code": null,
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 501,
+          "customer_id": 16,
+          "sale_day": 20250113,
+          "coupon_code": "WELCOME",
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 26,
+          "customer_id": 17,
+          "sale_day": 20250301,
+          "coupon_code": "LOYAL",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 199,
+          "customer_id": 17,
+          "sale_day": 20250713,
+          "coupon_code": "夜市",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 210,
+          "customer_id": 17,
+          "sale_day": 20250425,
+          "coupon_code": null,
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 230,
+          "customer_id": 17,
+          "sale_day": 20250819,
+          "coupon_code": "SPRING",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 236,
+          "customer_id": 17,
+          "sale_day": 20251209,
+          "coupon_code": "夜市",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 237,
+          "customer_id": 17,
+          "sale_day": 20250712,
+          "coupon_code": "LOYAL",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 239,
+          "customer_id": 17,
+          "sale_day": 20250905,
+          "coupon_code": "LOYAL",
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 260,
+          "customer_id": 17,
+          "sale_day": 20250426,
+          "coupon_code": "SPRING",
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 286,
+          "customer_id": 17,
+          "sale_day": 20250306,
+          "coupon_code": "WELCOME",
+          "purchase_number": 9
+        },
+        {
+          "sale_id": 288,
+          "customer_id": 17,
+          "sale_day": 20250220,
+          "coupon_code": null,
+          "purchase_number": 10
+        },
+        {
+          "sale_id": 312,
+          "customer_id": 17,
+          "sale_day": 20250707,
+          "coupon_code": "SPRING",
+          "purchase_number": 11
+        },
+        {
+          "sale_id": 317,
+          "customer_id": 17,
+          "sale_day": 20250310,
+          "coupon_code": null,
+          "purchase_number": 12
+        },
+        {
+          "sale_id": 386,
+          "customer_id": 17,
+          "sale_day": 20250110,
+          "coupon_code": "WELCOME",
+          "purchase_number": 13
+        },
+        {
+          "sale_id": 419,
+          "customer_id": 17,
+          "sale_day": 20250614,
+          "coupon_code": "夜市",
+          "purchase_number": 14
+        },
+        {
+          "sale_id": 445,
+          "customer_id": 17,
+          "sale_day": 20250918,
+          "coupon_code": "SPRING",
+          "purchase_number": 15
+        },
+        {
+          "sale_id": 494,
+          "customer_id": 17,
+          "sale_day": 20250627,
+          "coupon_code": "WELCOME",
+          "purchase_number": 16
+        },
+        {
+          "sale_id": 32,
+          "customer_id": 18,
+          "sale_day": 20250226,
+          "coupon_code": "LOYAL",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 57,
+          "customer_id": 18,
+          "sale_day": 20251004,
+          "coupon_code": "夜市",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 65,
+          "customer_id": 18,
+          "sale_day": 20251113,
+          "coupon_code": "SPRING",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 158,
+          "customer_id": 18,
+          "sale_day": 20250208,
+          "coupon_code": null,
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 197,
+          "customer_id": 18,
+          "sale_day": 20250321,
+          "coupon_code": null,
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 232,
+          "customer_id": 18,
+          "sale_day": 20250321,
+          "coupon_code": "夜市",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 294,
+          "customer_id": 18,
+          "sale_day": 20250315,
+          "coupon_code": null,
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 301,
+          "customer_id": 18,
+          "sale_day": 20250811,
+          "coupon_code": null,
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 385,
+          "customer_id": 18,
+          "sale_day": 20250928,
+          "coupon_code": null,
+          "purchase_number": 9
+        },
+        {
+          "sale_id": 439,
+          "customer_id": 18,
+          "sale_day": 20250104,
+          "coupon_code": null,
+          "purchase_number": 10
+        },
+        {
+          "sale_id": 446,
+          "customer_id": 18,
+          "sale_day": 20250914,
+          "coupon_code": "夜市",
+          "purchase_number": 11
+        },
+        {
+          "sale_id": 480,
+          "customer_id": 18,
+          "sale_day": 20251027,
+          "coupon_code": "SPRING",
+          "purchase_number": 12
+        },
+        {
+          "sale_id": 241,
+          "customer_id": 19,
+          "sale_day": 20251102,
+          "coupon_code": "夜市",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 322,
+          "customer_id": 19,
+          "sale_day": 20250310,
+          "coupon_code": null,
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 358,
+          "customer_id": 19,
+          "sale_day": 20250819,
+          "coupon_code": "夜市",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 448,
+          "customer_id": 19,
+          "sale_day": 20250720,
+          "coupon_code": null,
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 471,
+          "customer_id": 19,
+          "sale_day": 20250115,
+          "coupon_code": "WELCOME",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 16,
+          "customer_id": 20,
+          "sale_day": 20251122,
+          "coupon_code": "WELCOME",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 48,
+          "customer_id": 20,
+          "sale_day": 20250605,
+          "coupon_code": "WELCOME",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 89,
+          "customer_id": 20,
+          "sale_day": 20251002,
+          "coupon_code": "SPRING",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 92,
+          "customer_id": 20,
+          "sale_day": 20250913,
+          "coupon_code": "LOYAL",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 182,
+          "customer_id": 20,
+          "sale_day": 20250907,
+          "coupon_code": null,
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 267,
+          "customer_id": 20,
+          "sale_day": 20251013,
+          "coupon_code": "SPRING",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 302,
+          "customer_id": 20,
+          "sale_day": 20251019,
+          "coupon_code": null,
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 394,
+          "customer_id": 20,
+          "sale_day": 20250702,
+          "coupon_code": "SPRING",
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 473,
+          "customer_id": 20,
+          "sale_day": 20251121,
+          "coupon_code": "LOYAL",
+          "purchase_number": 9
+        },
+        {
+          "sale_id": 19,
+          "customer_id": 21,
+          "sale_day": 20250520,
+          "coupon_code": null,
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 63,
+          "customer_id": 21,
+          "sale_day": 20251109,
+          "coupon_code": null,
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 117,
+          "customer_id": 21,
+          "sale_day": 20250212,
+          "coupon_code": "LOYAL",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 126,
+          "customer_id": 21,
+          "sale_day": 20250205,
+          "coupon_code": null,
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 263,
+          "customer_id": 21,
+          "sale_day": 20250526,
+          "coupon_code": "SPRING",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 392,
+          "customer_id": 21,
+          "sale_day": 20250813,
+          "coupon_code": null,
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 28,
+          "customer_id": 22,
+          "sale_day": 20250517,
+          "coupon_code": null,
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 115,
+          "customer_id": 22,
+          "sale_day": 20250912,
+          "coupon_code": "夜市",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 132,
+          "customer_id": 22,
+          "sale_day": 20250925,
+          "coupon_code": "WELCOME",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 198,
+          "customer_id": 22,
+          "sale_day": 20250121,
+          "coupon_code": "SPRING",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 248,
+          "customer_id": 22,
+          "sale_day": 20250527,
+          "coupon_code": "WELCOME",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 251,
+          "customer_id": 22,
+          "sale_day": 20250624,
+          "coupon_code": "SPRING",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 258,
+          "customer_id": 22,
+          "sale_day": 20250917,
+          "coupon_code": "LOYAL",
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 306,
+          "customer_id": 22,
+          "sale_day": 20250317,
+          "coupon_code": "SPRING",
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 335,
+          "customer_id": 22,
+          "sale_day": 20250604,
+          "coupon_code": "WELCOME",
+          "purchase_number": 9
+        },
+        {
+          "sale_id": 508,
+          "customer_id": 22,
+          "sale_day": 20251113,
+          "coupon_code": null,
+          "purchase_number": 10
+        },
+        {
+          "sale_id": 136,
+          "customer_id": 23,
+          "sale_day": 20250805,
+          "coupon_code": "WELCOME",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 149,
+          "customer_id": 23,
+          "sale_day": 20250313,
+          "coupon_code": "夜市",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 270,
+          "customer_id": 23,
+          "sale_day": 20250425,
+          "coupon_code": null,
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 297,
+          "customer_id": 23,
+          "sale_day": 20251221,
+          "coupon_code": "SPRING",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 367,
+          "customer_id": 23,
+          "sale_day": 20250703,
+          "coupon_code": "WELCOME",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 408,
+          "customer_id": 23,
+          "sale_day": 20251004,
+          "coupon_code": "WELCOME",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 125,
+          "customer_id": 24,
+          "sale_day": 20250108,
+          "coupon_code": "SPRING",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 373,
+          "customer_id": 24,
+          "sale_day": 20250207,
+          "coupon_code": "SPRING",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 378,
+          "customer_id": 24,
+          "sale_day": 20251102,
+          "coupon_code": null,
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 415,
+          "customer_id": 24,
+          "sale_day": 20250902,
+          "coupon_code": "LOYAL",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 482,
+          "customer_id": 24,
+          "sale_day": 20250907,
+          "coupon_code": "夜市",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 44,
+          "customer_id": 25,
+          "sale_day": 20250526,
+          "coupon_code": "LOYAL",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 81,
+          "customer_id": 25,
+          "sale_day": 20250810,
+          "coupon_code": "SPRING",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 91,
+          "customer_id": 25,
+          "sale_day": 20250201,
+          "coupon_code": null,
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 186,
+          "customer_id": 25,
+          "sale_day": 20250701,
+          "coupon_code": "WELCOME",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 187,
+          "customer_id": 25,
+          "sale_day": 20250807,
+          "coupon_code": "SPRING",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 252,
+          "customer_id": 25,
+          "sale_day": 20250823,
+          "coupon_code": null,
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 253,
+          "customer_id": 25,
+          "sale_day": 20250313,
+          "coupon_code": "SPRING",
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 277,
+          "customer_id": 25,
+          "sale_day": 20250304,
+          "coupon_code": null,
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 332,
+          "customer_id": 25,
+          "sale_day": 20251025,
+          "coupon_code": "夜市",
+          "purchase_number": 9
+        },
+        {
+          "sale_id": 464,
+          "customer_id": 25,
+          "sale_day": 20250325,
+          "coupon_code": null,
+          "purchase_number": 10
+        },
+        {
+          "sale_id": 15,
+          "customer_id": 26,
+          "sale_day": 20251207,
+          "coupon_code": "WELCOME",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 201,
+          "customer_id": 26,
+          "sale_day": 20250215,
+          "coupon_code": "WELCOME",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 207,
+          "customer_id": 26,
+          "sale_day": 20250507,
+          "coupon_code": "夜市",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 217,
+          "customer_id": 26,
+          "sale_day": 20250527,
+          "coupon_code": null,
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 348,
+          "customer_id": 26,
+          "sale_day": 20250604,
+          "coupon_code": "WELCOME",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 414,
+          "customer_id": 26,
+          "sale_day": 20250421,
+          "coupon_code": "SPRING",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 485,
+          "customer_id": 26,
+          "sale_day": 20250724,
+          "coupon_code": "SPRING",
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 41,
+          "customer_id": 27,
+          "sale_day": 20251211,
+          "coupon_code": "SPRING",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 58,
+          "customer_id": 27,
+          "sale_day": 20250608,
+          "coupon_code": "夜市",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 90,
+          "customer_id": 27,
+          "sale_day": 20250816,
+          "coupon_code": "WELCOME",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 316,
+          "customer_id": 27,
+          "sale_day": 20250824,
+          "coupon_code": "SPRING",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 341,
+          "customer_id": 27,
+          "sale_day": 20250618,
+          "coupon_code": "夜市",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 413,
+          "customer_id": 27,
+          "sale_day": 20250609,
+          "coupon_code": null,
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 283,
+          "customer_id": 28,
+          "sale_day": 20250627,
+          "coupon_code": "SPRING",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 289,
+          "customer_id": 28,
+          "sale_day": 20250427,
+          "coupon_code": "夜市",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 33,
+          "customer_id": 29,
+          "sale_day": 20250303,
+          "coupon_code": null,
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 42,
+          "customer_id": 29,
+          "sale_day": 20250122,
+          "coupon_code": null,
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 159,
+          "customer_id": 29,
+          "sale_day": 20250524,
+          "coupon_code": "LOYAL",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 243,
+          "customer_id": 29,
+          "sale_day": 20251228,
+          "coupon_code": "夜市",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 250,
+          "customer_id": 29,
+          "sale_day": 20250527,
+          "coupon_code": "SPRING",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 254,
+          "customer_id": 29,
+          "sale_day": 20250520,
+          "coupon_code": "SPRING",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 268,
+          "customer_id": 29,
+          "sale_day": 20251219,
+          "coupon_code": "SPRING",
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 296,
+          "customer_id": 29,
+          "sale_day": 20250423,
+          "coupon_code": "SPRING",
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 359,
+          "customer_id": 29,
+          "sale_day": 20251223,
+          "coupon_code": null,
+          "purchase_number": 9
+        },
+        {
+          "sale_id": 368,
+          "customer_id": 29,
+          "sale_day": 20250101,
+          "coupon_code": "LOYAL",
+          "purchase_number": 10
+        },
+        {
+          "sale_id": 421,
+          "customer_id": 29,
+          "sale_day": 20251016,
+          "coupon_code": null,
+          "purchase_number": 11
+        },
+        {
+          "sale_id": 5,
+          "customer_id": 30,
+          "sale_day": 20251111,
+          "coupon_code": "LOYAL",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 60,
+          "customer_id": 30,
+          "sale_day": 20251005,
+          "coupon_code": "WELCOME",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 399,
+          "customer_id": 30,
+          "sale_day": 20251226,
+          "coupon_code": null,
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 36,
+          "customer_id": 31,
+          "sale_day": 20251106,
+          "coupon_code": "LOYAL",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 67,
+          "customer_id": 31,
+          "sale_day": 20250224,
+          "coupon_code": "LOYAL",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 161,
+          "customer_id": 31,
+          "sale_day": 20250303,
+          "coupon_code": null,
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 407,
+          "customer_id": 31,
+          "sale_day": 20250705,
+          "coupon_code": "夜市",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 463,
+          "customer_id": 31,
+          "sale_day": 20250808,
+          "coupon_code": "SPRING",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 127,
+          "customer_id": 32,
+          "sale_day": 20250703,
+          "coupon_code": "SPRING",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 339,
+          "customer_id": 32,
+          "sale_day": 20250309,
+          "coupon_code": "夜市",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 342,
+          "customer_id": 32,
+          "sale_day": 20250814,
+          "coupon_code": null,
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 354,
+          "customer_id": 32,
+          "sale_day": 20251203,
+          "coupon_code": "SPRING",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 370,
+          "customer_id": 32,
+          "sale_day": 20250401,
+          "coupon_code": "LOYAL",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 375,
+          "customer_id": 32,
+          "sale_day": 20250112,
+          "coupon_code": "夜市",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 404,
+          "customer_id": 32,
+          "sale_day": 20250426,
+          "coupon_code": "LOYAL",
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 423,
+          "customer_id": 32,
+          "sale_day": 20251204,
+          "coupon_code": "夜市",
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 457,
+          "customer_id": 32,
+          "sale_day": 20251204,
+          "coupon_code": "WELCOME",
+          "purchase_number": 9
+        },
+        {
+          "sale_id": 460,
+          "customer_id": 32,
+          "sale_day": 20250624,
+          "coupon_code": "夜市",
+          "purchase_number": 10
+        },
+        {
+          "sale_id": 23,
+          "customer_id": 33,
+          "sale_day": 20250102,
+          "coupon_code": "WELCOME",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 116,
+          "customer_id": 33,
+          "sale_day": 20250119,
+          "coupon_code": null,
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 175,
+          "customer_id": 33,
+          "sale_day": 20251214,
+          "coupon_code": null,
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 259,
+          "customer_id": 33,
+          "sale_day": 20250220,
+          "coupon_code": null,
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 261,
+          "customer_id": 33,
+          "sale_day": 20251006,
+          "coupon_code": "SPRING",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 383,
+          "customer_id": 33,
+          "sale_day": 20251205,
+          "coupon_code": "SPRING",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 388,
+          "customer_id": 33,
+          "sale_day": 20251002,
+          "coupon_code": null,
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 459,
+          "customer_id": 33,
+          "sale_day": 20251104,
+          "coupon_code": "LOYAL",
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 466,
+          "customer_id": 33,
+          "sale_day": 20250312,
+          "coupon_code": "WELCOME",
+          "purchase_number": 9
+        },
+        {
+          "sale_id": 1,
+          "customer_id": 34,
+          "sale_day": 20250208,
+          "coupon_code": "LOYAL",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 144,
+          "customer_id": 34,
+          "sale_day": 20251107,
+          "coupon_code": "夜市",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 153,
+          "customer_id": 34,
+          "sale_day": 20250828,
+          "coupon_code": "WELCOME",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 266,
+          "customer_id": 34,
+          "sale_day": 20250213,
+          "coupon_code": null,
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 300,
+          "customer_id": 34,
+          "sale_day": 20250909,
+          "coupon_code": "LOYAL",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 320,
+          "customer_id": 34,
+          "sale_day": 20250803,
+          "coupon_code": "WELCOME",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 324,
+          "customer_id": 34,
+          "sale_day": 20251027,
+          "coupon_code": "WELCOME",
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 340,
+          "customer_id": 34,
+          "sale_day": 20250814,
+          "coupon_code": "SPRING",
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 372,
+          "customer_id": 34,
+          "sale_day": 20250124,
+          "coupon_code": "WELCOME",
+          "purchase_number": 9
+        },
+        {
+          "sale_id": 400,
+          "customer_id": 34,
+          "sale_day": 20250723,
+          "coupon_code": "SPRING",
+          "purchase_number": 10
+        },
+        {
+          "sale_id": 411,
+          "customer_id": 34,
+          "sale_day": 20250120,
+          "coupon_code": "LOYAL",
+          "purchase_number": 11
+        },
+        {
+          "sale_id": 476,
+          "customer_id": 34,
+          "sale_day": 20251011,
+          "coupon_code": null,
+          "purchase_number": 12
+        },
+        {
+          "sale_id": 24,
+          "customer_id": 35,
+          "sale_day": 20250810,
+          "coupon_code": "夜市",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 27,
+          "customer_id": 35,
+          "sale_day": 20250416,
+          "coupon_code": "WELCOME",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 114,
+          "customer_id": 35,
+          "sale_day": 20251122,
+          "coupon_code": null,
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 134,
+          "customer_id": 35,
+          "sale_day": 20251223,
+          "coupon_code": "SPRING",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 179,
+          "customer_id": 35,
+          "sale_day": 20250406,
+          "coupon_code": "夜市",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 218,
+          "customer_id": 35,
+          "sale_day": 20250822,
+          "coupon_code": "WELCOME",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 238,
+          "customer_id": 35,
+          "sale_day": 20250616,
+          "coupon_code": null,
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 298,
+          "customer_id": 35,
+          "sale_day": 20251013,
+          "coupon_code": "WELCOME",
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 331,
+          "customer_id": 35,
+          "sale_day": 20250612,
+          "coupon_code": "SPRING",
+          "purchase_number": 9
+        },
+        {
+          "sale_id": 389,
+          "customer_id": 35,
+          "sale_day": 20251204,
+          "coupon_code": "夜市",
+          "purchase_number": 10
+        },
+        {
+          "sale_id": 433,
+          "customer_id": 35,
+          "sale_day": 20250213,
+          "coupon_code": "夜市",
+          "purchase_number": 11
+        },
+        {
+          "sale_id": 449,
+          "customer_id": 35,
+          "sale_day": 20250203,
+          "coupon_code": "WELCOME",
+          "purchase_number": 12
+        },
+        {
+          "sale_id": 498,
+          "customer_id": 35,
+          "sale_day": 20250210,
+          "coupon_code": "WELCOME",
+          "purchase_number": 13
+        },
+        {
+          "sale_id": 6,
+          "customer_id": 36,
+          "sale_day": 20250618,
+          "coupon_code": "夜市",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 77,
+          "customer_id": 36,
+          "sale_day": 20250915,
+          "coupon_code": null,
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 83,
+          "customer_id": 36,
+          "sale_day": 20251017,
+          "coupon_code": "LOYAL",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 135,
+          "customer_id": 36,
+          "sale_day": 20250408,
+          "coupon_code": "夜市",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 285,
+          "customer_id": 36,
+          "sale_day": 20250818,
+          "coupon_code": "WELCOME",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 305,
+          "customer_id": 36,
+          "sale_day": 20250217,
+          "coupon_code": null,
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 325,
+          "customer_id": 36,
+          "sale_day": 20250604,
+          "coupon_code": "WELCOME",
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 353,
+          "customer_id": 36,
+          "sale_day": 20250903,
+          "coupon_code": null,
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 69,
+          "customer_id": 37,
+          "sale_day": 20250406,
+          "coupon_code": "WELCOME",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 278,
+          "customer_id": 37,
+          "sale_day": 20250702,
+          "coupon_code": "WELCOME",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 4,
+          "customer_id": 38,
+          "sale_day": 20250510,
+          "coupon_code": "SPRING",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 111,
+          "customer_id": 38,
+          "sale_day": 20250516,
+          "coupon_code": "LOYAL",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 165,
+          "customer_id": 38,
+          "sale_day": 20250523,
+          "coupon_code": null,
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 222,
+          "customer_id": 38,
+          "sale_day": 20251124,
+          "coupon_code": null,
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 229,
+          "customer_id": 38,
+          "sale_day": 20250717,
+          "coupon_code": "WELCOME",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 234,
+          "customer_id": 38,
+          "sale_day": 20250603,
+          "coupon_code": null,
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 235,
+          "customer_id": 38,
+          "sale_day": 20250420,
+          "coupon_code": "LOYAL",
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 245,
+          "customer_id": 38,
+          "sale_day": 20250402,
+          "coupon_code": null,
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 255,
+          "customer_id": 38,
+          "sale_day": 20250118,
+          "coupon_code": "WELCOME",
+          "purchase_number": 9
+        },
+        {
+          "sale_id": 311,
+          "customer_id": 38,
+          "sale_day": 20250302,
+          "coupon_code": "WELCOME",
+          "purchase_number": 10
+        },
+        {
+          "sale_id": 315,
+          "customer_id": 38,
+          "sale_day": 20250714,
+          "coupon_code": null,
+          "purchase_number": 11
+        },
+        {
+          "sale_id": 38,
+          "customer_id": 39,
+          "sale_day": 20250222,
+          "coupon_code": "LOYAL",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 142,
+          "customer_id": 39,
+          "sale_day": 20250118,
+          "coupon_code": "夜市",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 148,
+          "customer_id": 39,
+          "sale_day": 20251021,
+          "coupon_code": null,
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 151,
+          "customer_id": 39,
+          "sale_day": 20250405,
+          "coupon_code": "SPRING",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 173,
+          "customer_id": 39,
+          "sale_day": 20250523,
+          "coupon_code": "WELCOME",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 189,
+          "customer_id": 39,
+          "sale_day": 20250503,
+          "coupon_code": null,
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 287,
+          "customer_id": 39,
+          "sale_day": 20250128,
+          "coupon_code": null,
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 452,
+          "customer_id": 39,
+          "sale_day": 20250820,
+          "coupon_code": "SPRING",
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 491,
+          "customer_id": 39,
+          "sale_day": 20250312,
+          "coupon_code": "SPRING",
+          "purchase_number": 9
+        },
+        {
+          "sale_id": 219,
+          "customer_id": 40,
+          "sale_day": 20251104,
+          "coupon_code": "夜市",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 365,
+          "customer_id": 40,
+          "sale_day": 20250928,
+          "coupon_code": null,
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 377,
+          "customer_id": 40,
+          "sale_day": 20250214,
+          "coupon_code": "WELCOME",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 427,
+          "customer_id": 40,
+          "sale_day": 20250520,
+          "coupon_code": null,
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 441,
+          "customer_id": 40,
+          "sale_day": 20251126,
+          "coupon_code": null,
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 497,
+          "customer_id": 40,
+          "sale_day": 20250720,
+          "coupon_code": null,
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 56,
+          "customer_id": 41,
+          "sale_day": 20250407,
+          "coupon_code": null,
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 129,
+          "customer_id": 41,
+          "sale_day": 20250613,
+          "coupon_code": null,
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 249,
+          "customer_id": 41,
+          "sale_day": 20250628,
+          "coupon_code": "SPRING",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 328,
+          "customer_id": 41,
+          "sale_day": 20250212,
+          "coupon_code": "LOYAL",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 442,
+          "customer_id": 41,
+          "sale_day": 20250709,
+          "coupon_code": "LOYAL",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 487,
+          "customer_id": 41,
+          "sale_day": 20250513,
+          "coupon_code": "夜市",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 52,
+          "customer_id": 42,
+          "sale_day": 20250807,
+          "coupon_code": null,
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 74,
+          "customer_id": 42,
+          "sale_day": 20251111,
+          "coupon_code": "LOYAL",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 78,
+          "customer_id": 42,
+          "sale_day": 20250301,
+          "coupon_code": "夜市",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 103,
+          "customer_id": 42,
+          "sale_day": 20250415,
+          "coupon_code": "LOYAL",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 171,
+          "customer_id": 42,
+          "sale_day": 20250514,
+          "coupon_code": "WELCOME",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 225,
+          "customer_id": 42,
+          "sale_day": 20250403,
+          "coupon_code": "WELCOME",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 308,
+          "customer_id": 42,
+          "sale_day": 20250520,
+          "coupon_code": null,
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 364,
+          "customer_id": 42,
+          "sale_day": 20250110,
+          "coupon_code": null,
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 395,
+          "customer_id": 42,
+          "sale_day": 20250407,
+          "coupon_code": null,
+          "purchase_number": 9
+        },
+        {
+          "sale_id": 477,
+          "customer_id": 42,
+          "sale_day": 20250203,
+          "coupon_code": "LOYAL",
+          "purchase_number": 10
+        },
+        {
+          "sale_id": 79,
+          "customer_id": 43,
+          "sale_day": 20250619,
+          "coupon_code": "WELCOME",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 113,
+          "customer_id": 43,
+          "sale_day": 20251016,
+          "coupon_code": "夜市",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 242,
+          "customer_id": 43,
+          "sale_day": 20250623,
+          "coupon_code": "LOYAL",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 271,
+          "customer_id": 43,
+          "sale_day": 20250305,
+          "coupon_code": "LOYAL",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 323,
+          "customer_id": 43,
+          "sale_day": 20251127,
+          "coupon_code": "WELCOME",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 357,
+          "customer_id": 43,
+          "sale_day": 20250608,
+          "coupon_code": null,
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 417,
+          "customer_id": 43,
+          "sale_day": 20250218,
+          "coupon_code": "SPRING",
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 434,
+          "customer_id": 43,
+          "sale_day": 20250703,
+          "coupon_code": null,
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 272,
+          "customer_id": 44,
+          "sale_day": 20250811,
+          "coupon_code": "WELCOME",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 282,
+          "customer_id": 44,
+          "sale_day": 20250225,
+          "coupon_code": "LOYAL",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 486,
+          "customer_id": 44,
+          "sale_day": 20250417,
+          "coupon_code": "SPRING",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 493,
+          "customer_id": 44,
+          "sale_day": 20250411,
+          "coupon_code": "WELCOME",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 21,
+          "customer_id": 45,
+          "sale_day": 20250416,
+          "coupon_code": null,
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 49,
+          "customer_id": 45,
+          "sale_day": 20250902,
+          "coupon_code": null,
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 174,
+          "customer_id": 45,
+          "sale_day": 20250614,
+          "coupon_code": null,
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 177,
+          "customer_id": 45,
+          "sale_day": 20250212,
+          "coupon_code": "LOYAL",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 363,
+          "customer_id": 45,
+          "sale_day": 20250424,
+          "coupon_code": "LOYAL",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 11,
+          "customer_id": 46,
+          "sale_day": 20250701,
+          "coupon_code": "WELCOME",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 45,
+          "customer_id": 46,
+          "sale_day": 20251122,
+          "coupon_code": null,
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 101,
+          "customer_id": 46,
+          "sale_day": 20250314,
+          "coupon_code": "夜市",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 184,
+          "customer_id": 46,
+          "sale_day": 20250710,
+          "coupon_code": null,
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 256,
+          "customer_id": 46,
+          "sale_day": 20251126,
+          "coupon_code": "SPRING",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 307,
+          "customer_id": 46,
+          "sale_day": 20250108,
+          "coupon_code": null,
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 454,
+          "customer_id": 46,
+          "sale_day": 20250326,
+          "coupon_code": "夜市",
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 500,
+          "customer_id": 46,
+          "sale_day": 20250208,
+          "coupon_code": "LOYAL",
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 9,
+          "customer_id": 47,
+          "sale_day": 20250506,
+          "coupon_code": "SPRING",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 121,
+          "customer_id": 47,
+          "sale_day": 20250314,
+          "coupon_code": "夜市",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 140,
+          "customer_id": 47,
+          "sale_day": 20250519,
+          "coupon_code": null,
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 275,
+          "customer_id": 47,
+          "sale_day": 20250608,
+          "coupon_code": null,
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 303,
+          "customer_id": 47,
+          "sale_day": 20250318,
+          "coupon_code": "SPRING",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 360,
+          "customer_id": 47,
+          "sale_day": 20251015,
+          "coupon_code": "SPRING",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 426,
+          "customer_id": 47,
+          "sale_day": 20250724,
+          "coupon_code": "SPRING",
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 438,
+          "customer_id": 47,
+          "sale_day": 20250407,
+          "coupon_code": "SPRING",
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 2,
+          "customer_id": 48,
+          "sale_day": 20250724,
+          "coupon_code": "LOYAL",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 51,
+          "customer_id": 48,
+          "sale_day": 20250105,
+          "coupon_code": "SPRING",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 106,
+          "customer_id": 48,
+          "sale_day": 20250326,
+          "coupon_code": "SPRING",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 123,
+          "customer_id": 48,
+          "sale_day": 20251009,
+          "coupon_code": "夜市",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 124,
+          "customer_id": 48,
+          "sale_day": 20250613,
+          "coupon_code": "SPRING",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 139,
+          "customer_id": 48,
+          "sale_day": 20250703,
+          "coupon_code": "SPRING",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 172,
+          "customer_id": 48,
+          "sale_day": 20251116,
+          "coupon_code": "WELCOME",
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 292,
+          "customer_id": 48,
+          "sale_day": 20250210,
+          "coupon_code": "WELCOME",
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 326,
+          "customer_id": 48,
+          "sale_day": 20250119,
+          "coupon_code": "SPRING",
+          "purchase_number": 9
+        },
+        {
+          "sale_id": 355,
+          "customer_id": 48,
+          "sale_day": 20250815,
+          "coupon_code": "SPRING",
+          "purchase_number": 10
+        },
+        {
+          "sale_id": 366,
+          "customer_id": 48,
+          "sale_day": 20251214,
+          "coupon_code": "夜市",
+          "purchase_number": 11
+        },
+        {
+          "sale_id": 422,
+          "customer_id": 48,
+          "sale_day": 20251028,
+          "coupon_code": null,
+          "purchase_number": 12
+        },
+        {
+          "sale_id": 428,
+          "customer_id": 48,
+          "sale_day": 20250414,
+          "coupon_code": null,
+          "purchase_number": 13
+        },
+        {
+          "sale_id": 3,
+          "customer_id": 49,
+          "sale_day": 20251018,
+          "coupon_code": "LOYAL",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 96,
+          "customer_id": 49,
+          "sale_day": 20250705,
+          "coupon_code": "SPRING",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 204,
+          "customer_id": 49,
+          "sale_day": 20251028,
+          "coupon_code": "SPRING",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 228,
+          "customer_id": 49,
+          "sale_day": 20250615,
+          "coupon_code": "WELCOME",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 246,
+          "customer_id": 49,
+          "sale_day": 20250921,
+          "coupon_code": "SPRING",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 276,
+          "customer_id": 49,
+          "sale_day": 20251203,
+          "coupon_code": null,
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 429,
+          "customer_id": 49,
+          "sale_day": 20250208,
+          "coupon_code": "夜市",
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 475,
+          "customer_id": 49,
+          "sale_day": 20250922,
+          "coupon_code": "SPRING",
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 291,
+          "customer_id": 50,
+          "sale_day": 20251216,
+          "coupon_code": "LOYAL",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 492,
+          "customer_id": 50,
+          "sale_day": 20250715,
+          "coupon_code": "SPRING",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 10,
+          "customer_id": 51,
+          "sale_day": 20251017,
+          "coupon_code": "夜市",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 18,
+          "customer_id": 51,
+          "sale_day": 20251212,
+          "coupon_code": "夜市",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 73,
+          "customer_id": 51,
+          "sale_day": 20250515,
+          "coupon_code": "SPRING",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 150,
+          "customer_id": 51,
+          "sale_day": 20250421,
+          "coupon_code": "夜市",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 154,
+          "customer_id": 51,
+          "sale_day": 20250614,
+          "coupon_code": null,
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 227,
+          "customer_id": 51,
+          "sale_day": 20250824,
+          "coupon_code": "LOYAL",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 94,
+          "customer_id": 52,
+          "sale_day": 20250623,
+          "coupon_code": "夜市",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 290,
+          "customer_id": 52,
+          "sale_day": 20251210,
+          "coupon_code": null,
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 304,
+          "customer_id": 52,
+          "sale_day": 20250406,
+          "coupon_code": "WELCOME",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 343,
+          "customer_id": 52,
+          "sale_day": 20250918,
+          "coupon_code": null,
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 406,
+          "customer_id": 52,
+          "sale_day": 20250503,
+          "coupon_code": null,
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 39,
+          "customer_id": 53,
+          "sale_day": 20251006,
+          "coupon_code": "LOYAL",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 107,
+          "customer_id": 53,
+          "sale_day": 20250126,
+          "coupon_code": null,
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 137,
+          "customer_id": 53,
+          "sale_day": 20251207,
+          "coupon_code": "夜市",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 162,
+          "customer_id": 53,
+          "sale_day": 20251115,
+          "coupon_code": "LOYAL",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 178,
+          "customer_id": 53,
+          "sale_day": 20250424,
+          "coupon_code": "夜市",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 190,
+          "customer_id": 53,
+          "sale_day": 20251212,
+          "coupon_code": "夜市",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 231,
+          "customer_id": 53,
+          "sale_day": 20250503,
+          "coupon_code": null,
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 329,
+          "customer_id": 53,
+          "sale_day": 20251003,
+          "coupon_code": null,
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 349,
+          "customer_id": 53,
+          "sale_day": 20250102,
+          "coupon_code": null,
+          "purchase_number": 9
+        },
+        {
+          "sale_id": 397,
+          "customer_id": 53,
+          "sale_day": 20251218,
+          "coupon_code": "LOYAL",
+          "purchase_number": 10
+        },
+        {
+          "sale_id": 450,
+          "customer_id": 53,
+          "sale_day": 20250610,
+          "coupon_code": "SPRING",
+          "purchase_number": 11
+        },
+        {
+          "sale_id": 499,
+          "customer_id": 53,
+          "sale_day": 20250102,
+          "coupon_code": "LOYAL",
+          "purchase_number": 12
+        },
+        {
+          "sale_id": 105,
+          "customer_id": 54,
+          "sale_day": 20250801,
+          "coupon_code": null,
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 122,
+          "customer_id": 54,
+          "sale_day": 20250810,
+          "coupon_code": "LOYAL",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 181,
+          "customer_id": 54,
+          "sale_day": 20250823,
+          "coupon_code": "SPRING",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 233,
+          "customer_id": 54,
+          "sale_day": 20250302,
+          "coupon_code": "夜市",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 409,
+          "customer_id": 54,
+          "sale_day": 20251124,
+          "coupon_code": "LOYAL",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 478,
+          "customer_id": 54,
+          "sale_day": 20250919,
+          "coupon_code": "WELCOME",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 46,
+          "customer_id": 55,
+          "sale_day": 20250521,
+          "coupon_code": "SPRING",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 50,
+          "customer_id": 55,
+          "sale_day": 20251006,
+          "coupon_code": "LOYAL",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 64,
+          "customer_id": 55,
+          "sale_day": 20250109,
+          "coupon_code": "LOYAL",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 85,
+          "customer_id": 55,
+          "sale_day": 20250325,
+          "coupon_code": "SPRING",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 97,
+          "customer_id": 55,
+          "sale_day": 20250814,
+          "coupon_code": "夜市",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 99,
+          "customer_id": 55,
+          "sale_day": 20250704,
+          "coupon_code": "LOYAL",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 133,
+          "customer_id": 55,
+          "sale_day": 20251113,
+          "coupon_code": null,
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 138,
+          "customer_id": 55,
+          "sale_day": 20250504,
+          "coupon_code": "WELCOME",
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 169,
+          "customer_id": 55,
+          "sale_day": 20250708,
+          "coupon_code": "LOYAL",
+          "purchase_number": 9
+        },
+        {
+          "sale_id": 185,
+          "customer_id": 55,
+          "sale_day": 20250714,
+          "coupon_code": "WELCOME",
+          "purchase_number": 10
+        },
+        {
+          "sale_id": 194,
+          "customer_id": 55,
+          "sale_day": 20250926,
+          "coupon_code": "夜市",
+          "purchase_number": 11
+        },
+        {
+          "sale_id": 269,
+          "customer_id": 55,
+          "sale_day": 20250722,
+          "coupon_code": "LOYAL",
+          "purchase_number": 12
+        },
+        {
+          "sale_id": 313,
+          "customer_id": 55,
+          "sale_day": 20251025,
+          "coupon_code": "LOYAL",
+          "purchase_number": 13
+        },
+        {
+          "sale_id": 361,
+          "customer_id": 55,
+          "sale_day": 20250311,
+          "coupon_code": "LOYAL",
+          "purchase_number": 14
+        },
+        {
+          "sale_id": 376,
+          "customer_id": 55,
+          "sale_day": 20251028,
+          "coupon_code": "WELCOME",
+          "purchase_number": 15
+        },
+        {
+          "sale_id": 402,
+          "customer_id": 55,
+          "sale_day": 20250117,
+          "coupon_code": "SPRING",
+          "purchase_number": 16
+        },
+        {
+          "sale_id": 416,
+          "customer_id": 55,
+          "sale_day": 20250426,
+          "coupon_code": "夜市",
+          "purchase_number": 17
+        },
+        {
+          "sale_id": 470,
+          "customer_id": 55,
+          "sale_day": 20250421,
+          "coupon_code": "LOYAL",
+          "purchase_number": 18
+        },
+        {
+          "sale_id": 512,
+          "customer_id": 55,
+          "sale_day": 20250225,
+          "coupon_code": null,
+          "purchase_number": 19
+        },
+        {
+          "sale_id": 54,
+          "customer_id": 56,
+          "sale_day": 20251210,
+          "coupon_code": null,
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 166,
+          "customer_id": 56,
+          "sale_day": 20251004,
+          "coupon_code": null,
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 209,
+          "customer_id": 56,
+          "sale_day": 20250522,
+          "coupon_code": "LOYAL",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 327,
+          "customer_id": 56,
+          "sale_day": 20250921,
+          "coupon_code": null,
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 345,
+          "customer_id": 56,
+          "sale_day": 20250525,
+          "coupon_code": "SPRING",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 380,
+          "customer_id": 56,
+          "sale_day": 20250726,
+          "coupon_code": "WELCOME",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 384,
+          "customer_id": 56,
+          "sale_day": 20250414,
+          "coupon_code": "SPRING",
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 403,
+          "customer_id": 56,
+          "sale_day": 20250705,
+          "coupon_code": null,
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 34,
+          "customer_id": 57,
+          "sale_day": 20250628,
+          "coupon_code": null,
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 102,
+          "customer_id": 57,
+          "sale_day": 20251018,
+          "coupon_code": "WELCOME",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 192,
+          "customer_id": 57,
+          "sale_day": 20250403,
+          "coupon_code": "夜市",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 220,
+          "customer_id": 57,
+          "sale_day": 20251104,
+          "coupon_code": "SPRING",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 284,
+          "customer_id": 57,
+          "sale_day": 20250902,
+          "coupon_code": "LOYAL",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 344,
+          "customer_id": 57,
+          "sale_day": 20251021,
+          "coupon_code": "WELCOME",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 346,
+          "customer_id": 57,
+          "sale_day": 20250613,
+          "coupon_code": "SPRING",
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 374,
+          "customer_id": 57,
+          "sale_day": 20250907,
+          "coupon_code": "WELCOME",
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 488,
+          "customer_id": 57,
+          "sale_day": 20250325,
+          "coupon_code": "WELCOME",
+          "purchase_number": 9
+        },
+        {
+          "sale_id": 504,
+          "customer_id": 57,
+          "sale_day": 20250202,
+          "coupon_code": null,
+          "purchase_number": 10
+        },
+        {
+          "sale_id": 59,
+          "customer_id": 58,
+          "sale_day": 20251225,
+          "coupon_code": "WELCOME",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 118,
+          "customer_id": 58,
+          "sale_day": 20251219,
+          "coupon_code": "WELCOME",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 120,
+          "customer_id": 58,
+          "sale_day": 20250926,
+          "coupon_code": null,
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 128,
+          "customer_id": 58,
+          "sale_day": 20250120,
+          "coupon_code": "LOYAL",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 131,
+          "customer_id": 58,
+          "sale_day": 20250416,
+          "coupon_code": "LOYAL",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 160,
+          "customer_id": 58,
+          "sale_day": 20250120,
+          "coupon_code": "夜市",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 164,
+          "customer_id": 58,
+          "sale_day": 20250820,
+          "coupon_code": null,
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 215,
+          "customer_id": 58,
+          "sale_day": 20250127,
+          "coupon_code": "夜市",
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 281,
+          "customer_id": 58,
+          "sale_day": 20250706,
+          "coupon_code": "WELCOME",
+          "purchase_number": 9
+        },
+        {
+          "sale_id": 309,
+          "customer_id": 58,
+          "sale_day": 20250805,
+          "coupon_code": "夜市",
+          "purchase_number": 10
+        },
+        {
+          "sale_id": 8,
+          "customer_id": 59,
+          "sale_day": 20250326,
+          "coupon_code": "WELCOME",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 75,
+          "customer_id": 59,
+          "sale_day": 20250410,
+          "coupon_code": "SPRING",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 391,
+          "customer_id": 59,
+          "sale_day": 20250801,
+          "coupon_code": "WELCOME",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 468,
+          "customer_id": 59,
+          "sale_day": 20250402,
+          "coupon_code": "SPRING",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 469,
+          "customer_id": 59,
+          "sale_day": 20250402,
+          "coupon_code": null,
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 70,
+          "customer_id": 60,
+          "sale_day": 20250110,
+          "coupon_code": null,
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 152,
+          "customer_id": 60,
+          "sale_day": 20251209,
+          "coupon_code": null,
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 155,
+          "customer_id": 60,
+          "sale_day": 20250712,
+          "coupon_code": "LOYAL",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 264,
+          "customer_id": 60,
+          "sale_day": 20250206,
+          "coupon_code": "LOYAL",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 30,
+          "customer_id": 61,
+          "sale_day": 20250611,
+          "coupon_code": "LOYAL",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 100,
+          "customer_id": 61,
+          "sale_day": 20250921,
+          "coupon_code": "WELCOME",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 141,
+          "customer_id": 61,
+          "sale_day": 20250318,
+          "coupon_code": "WELCOME",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 170,
+          "customer_id": 61,
+          "sale_day": 20250122,
+          "coupon_code": "SPRING",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 206,
+          "customer_id": 61,
+          "sale_day": 20250913,
+          "coupon_code": "WELCOME",
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 226,
+          "customer_id": 61,
+          "sale_day": 20250303,
+          "coupon_code": "夜市",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 319,
+          "customer_id": 61,
+          "sale_day": 20250209,
+          "coupon_code": "夜市",
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 462,
+          "customer_id": 61,
+          "sale_day": 20250705,
+          "coupon_code": null,
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 381,
+          "customer_id": 62,
+          "sale_day": 20250610,
+          "coupon_code": "LOYAL",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 412,
+          "customer_id": 62,
+          "sale_day": 20250611,
+          "coupon_code": "WELCOME",
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 430,
+          "customer_id": 62,
+          "sale_day": 20250515,
+          "coupon_code": null,
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 451,
+          "customer_id": 62,
+          "sale_day": 20250619,
+          "coupon_code": "SPRING",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 472,
+          "customer_id": 62,
+          "sale_day": 20250813,
+          "coupon_code": null,
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 505,
+          "customer_id": 62,
+          "sale_day": 20251214,
+          "coupon_code": "SPRING",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 510,
+          "customer_id": 62,
+          "sale_day": 20250620,
+          "coupon_code": "LOYAL",
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 53,
+          "customer_id": 63,
+          "sale_day": 20251028,
+          "coupon_code": "SPRING",
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 86,
+          "customer_id": 63,
+          "sale_day": 20250206,
+          "coupon_code": null,
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 143,
+          "customer_id": 63,
+          "sale_day": 20251023,
+          "coupon_code": "SPRING",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 146,
+          "customer_id": 63,
+          "sale_day": 20250410,
+          "coupon_code": "夜市",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 193,
+          "customer_id": 63,
+          "sale_day": 20251205,
+          "coupon_code": null,
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 321,
+          "customer_id": 63,
+          "sale_day": 20250806,
+          "coupon_code": "WELCOME",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 362,
+          "customer_id": 63,
+          "sale_day": 20250414,
+          "coupon_code": null,
+          "purchase_number": 7
+        },
+        {
+          "sale_id": 436,
+          "customer_id": 63,
+          "sale_day": 20251117,
+          "coupon_code": "LOYAL",
+          "purchase_number": 8
+        },
+        {
+          "sale_id": 503,
+          "customer_id": 63,
+          "sale_day": 20250422,
+          "coupon_code": "WELCOME",
+          "purchase_number": 9
+        },
+        {
+          "sale_id": 507,
+          "customer_id": 63,
+          "sale_day": 20250210,
+          "coupon_code": "LOYAL",
+          "purchase_number": 10
+        },
+        {
+          "sale_id": 14,
+          "customer_id": 64,
+          "sale_day": 20250722,
+          "coupon_code": null,
+          "purchase_number": 1
+        },
+        {
+          "sale_id": 224,
+          "customer_id": 64,
+          "sale_day": 20250811,
+          "coupon_code": null,
+          "purchase_number": 2
+        },
+        {
+          "sale_id": 310,
+          "customer_id": 64,
+          "sale_day": 20250322,
+          "coupon_code": "SPRING",
+          "purchase_number": 3
+        },
+        {
+          "sale_id": 410,
+          "customer_id": 64,
+          "sale_day": 20251205,
+          "coupon_code": "WELCOME",
+          "purchase_number": 4
+        },
+        {
+          "sale_id": 424,
+          "customer_id": 64,
+          "sale_day": 20251213,
+          "coupon_code": null,
+          "purchase_number": 5
+        },
+        {
+          "sale_id": 467,
+          "customer_id": 64,
+          "sale_day": 20250228,
+          "coupon_code": "WELCOME",
+          "purchase_number": 6
+        },
+        {
+          "sale_id": 502,
+          "customer_id": 64,
+          "sale_day": 20251013,
+          "coupon_code": null,
+          "purchase_number": 7
+        }
+      ]
+    },
+    {
+      "id": "q6-product-partition-total",
+      "rows": [
+        {
+          "sale_id": 24,
+          "product_id": 1,
+          "quantity": 1,
+          "product_units": 45
+        },
+        {
+          "sale_id": 71,
+          "product_id": 1,
+          "quantity": 4,
+          "product_units": 45
+        },
+        {
+          "sale_id": 85,
+          "product_id": 1,
+          "quantity": 5,
+          "product_units": 45
+        },
+        {
+          "sale_id": 162,
+          "product_id": 1,
+          "quantity": 2,
+          "product_units": 45
+        },
+        {
+          "sale_id": 179,
+          "product_id": 1,
+          "quantity": 4,
+          "product_units": 45
+        },
+        {
+          "sale_id": 275,
+          "product_id": 1,
+          "quantity": 5,
+          "product_units": 45
+        },
+        {
+          "sale_id": 279,
+          "product_id": 1,
+          "quantity": 1,
+          "product_units": 45
+        },
+        {
+          "sale_id": 294,
+          "product_id": 1,
+          "quantity": 2,
+          "product_units": 45
+        },
+        {
+          "sale_id": 329,
+          "product_id": 1,
+          "quantity": 4,
+          "product_units": 45
+        },
+        {
+          "sale_id": 435,
+          "product_id": 1,
+          "quantity": 3,
+          "product_units": 45
+        },
+        {
+          "sale_id": 445,
+          "product_id": 1,
+          "quantity": 5,
+          "product_units": 45
+        },
+        {
+          "sale_id": 461,
+          "product_id": 1,
+          "quantity": 1,
+          "product_units": 45
+        },
+        {
+          "sale_id": 474,
+          "product_id": 1,
+          "quantity": 5,
+          "product_units": 45
+        },
+        {
+          "sale_id": 507,
+          "product_id": 1,
+          "quantity": 3,
+          "product_units": 45
+        },
+        {
+          "sale_id": 3,
+          "product_id": 2,
+          "quantity": 3,
+          "product_units": 53
+        },
+        {
+          "sale_id": 49,
+          "product_id": 2,
+          "quantity": 1,
+          "product_units": 53
+        },
+        {
+          "sale_id": 54,
+          "product_id": 2,
+          "quantity": 5,
+          "product_units": 53
+        },
+        {
+          "sale_id": 62,
+          "product_id": 2,
+          "quantity": 5,
+          "product_units": 53
+        },
+        {
+          "sale_id": 82,
+          "product_id": 2,
+          "quantity": 4,
+          "product_units": 53
+        },
+        {
+          "sale_id": 98,
+          "product_id": 2,
+          "quantity": 1,
+          "product_units": 53
+        },
+        {
+          "sale_id": 102,
+          "product_id": 2,
+          "quantity": 3,
+          "product_units": 53
+        },
+        {
+          "sale_id": 105,
+          "product_id": 2,
+          "quantity": 5,
+          "product_units": 53
+        },
+        {
+          "sale_id": 114,
+          "product_id": 2,
+          "quantity": 2,
+          "product_units": 53
+        },
+        {
+          "sale_id": 125,
+          "product_id": 2,
+          "quantity": 2,
+          "product_units": 53
+        },
+        {
+          "sale_id": 310,
+          "product_id": 2,
+          "quantity": 3,
+          "product_units": 53
+        },
+        {
+          "sale_id": 316,
+          "product_id": 2,
+          "quantity": 3,
+          "product_units": 53
+        },
+        {
+          "sale_id": 319,
+          "product_id": 2,
+          "quantity": 2,
+          "product_units": 53
+        },
+        {
+          "sale_id": 325,
+          "product_id": 2,
+          "quantity": 1,
+          "product_units": 53
+        },
+        {
+          "sale_id": 348,
+          "product_id": 2,
+          "quantity": 1,
+          "product_units": 53
+        },
+        {
+          "sale_id": 386,
+          "product_id": 2,
+          "quantity": 5,
+          "product_units": 53
+        },
+        {
+          "sale_id": 397,
+          "product_id": 2,
+          "quantity": 3,
+          "product_units": 53
+        },
+        {
+          "sale_id": 481,
+          "product_id": 2,
+          "quantity": 4,
+          "product_units": 53
+        },
+        {
+          "sale_id": 59,
+          "product_id": 3,
+          "quantity": 4,
+          "product_units": 36
+        },
+        {
+          "sale_id": 66,
+          "product_id": 3,
+          "quantity": 2,
+          "product_units": 36
+        },
+        {
+          "sale_id": 72,
+          "product_id": 3,
+          "quantity": 5,
+          "product_units": 36
+        },
+        {
+          "sale_id": 84,
+          "product_id": 3,
+          "quantity": 1,
+          "product_units": 36
+        },
+        {
+          "sale_id": 118,
+          "product_id": 3,
+          "quantity": 5,
+          "product_units": 36
+        },
+        {
+          "sale_id": 221,
+          "product_id": 3,
+          "quantity": 5,
+          "product_units": 36
+        },
+        {
+          "sale_id": 380,
+          "product_id": 3,
+          "quantity": 3,
+          "product_units": 36
+        },
+        {
+          "sale_id": 449,
+          "product_id": 3,
+          "quantity": 2,
+          "product_units": 36
+        },
+        {
+          "sale_id": 503,
+          "product_id": 3,
+          "quantity": 5,
+          "product_units": 36
+        },
+        {
+          "sale_id": 511,
+          "product_id": 3,
+          "quantity": 4,
+          "product_units": 36
+        },
+        {
+          "sale_id": 42,
+          "product_id": 4,
+          "quantity": 4,
+          "product_units": 50
+        },
+        {
+          "sale_id": 58,
+          "product_id": 4,
+          "quantity": 5,
+          "product_units": 50
+        },
+        {
+          "sale_id": 103,
+          "product_id": 4,
+          "quantity": 3,
+          "product_units": 50
+        },
+        {
+          "sale_id": 107,
+          "product_id": 4,
+          "quantity": 2,
+          "product_units": 50
+        },
+        {
+          "sale_id": 144,
+          "product_id": 4,
+          "quantity": 5,
+          "product_units": 50
+        },
+        {
+          "sale_id": 161,
+          "product_id": 4,
+          "quantity": 2,
+          "product_units": 50
+        },
+        {
+          "sale_id": 230,
+          "product_id": 4,
+          "quantity": 5,
+          "product_units": 50
+        },
+        {
+          "sale_id": 245,
+          "product_id": 4,
+          "quantity": 2,
+          "product_units": 50
+        },
+        {
+          "sale_id": 283,
+          "product_id": 4,
+          "quantity": 1,
+          "product_units": 50
+        },
+        {
+          "sale_id": 296,
+          "product_id": 4,
+          "quantity": 5,
+          "product_units": 50
+        },
+        {
+          "sale_id": 327,
+          "product_id": 4,
+          "quantity": 2,
+          "product_units": 50
+        },
+        {
+          "sale_id": 337,
+          "product_id": 4,
+          "quantity": 3,
+          "product_units": 50
+        },
+        {
+          "sale_id": 369,
+          "product_id": 4,
+          "quantity": 2,
+          "product_units": 50
+        },
+        {
+          "sale_id": 371,
+          "product_id": 4,
+          "quantity": 4,
+          "product_units": 50
+        },
+        {
+          "sale_id": 444,
+          "product_id": 4,
+          "quantity": 2,
+          "product_units": 50
+        },
+        {
+          "sale_id": 483,
+          "product_id": 4,
+          "quantity": 3,
+          "product_units": 50
+        },
+        {
+          "sale_id": 22,
+          "product_id": 5,
+          "quantity": 3,
+          "product_units": 40
+        },
+        {
+          "sale_id": 94,
+          "product_id": 5,
+          "quantity": 1,
+          "product_units": 40
+        },
+        {
+          "sale_id": 166,
+          "product_id": 5,
+          "quantity": 4,
+          "product_units": 40
+        },
+        {
+          "sale_id": 255,
+          "product_id": 5,
+          "quantity": 1,
+          "product_units": 40
+        },
+        {
+          "sale_id": 326,
+          "product_id": 5,
+          "quantity": 4,
+          "product_units": 40
+        },
+        {
+          "sale_id": 330,
+          "product_id": 5,
+          "quantity": 5,
+          "product_units": 40
+        },
+        {
+          "sale_id": 343,
+          "product_id": 5,
+          "quantity": 4,
+          "product_units": 40
+        },
+        {
+          "sale_id": 344,
+          "product_id": 5,
+          "quantity": 2,
+          "product_units": 40
+        },
+        {
+          "sale_id": 347,
+          "product_id": 5,
+          "quantity": 2,
+          "product_units": 40
+        },
+        {
+          "sale_id": 354,
+          "product_id": 5,
+          "quantity": 4,
+          "product_units": 40
+        },
+        {
+          "sale_id": 388,
+          "product_id": 5,
+          "quantity": 1,
+          "product_units": 40
+        },
+        {
+          "sale_id": 390,
+          "product_id": 5,
+          "quantity": 1,
+          "product_units": 40
+        },
+        {
+          "sale_id": 403,
+          "product_id": 5,
+          "quantity": 2,
+          "product_units": 40
+        },
+        {
+          "sale_id": 415,
+          "product_id": 5,
+          "quantity": 2,
+          "product_units": 40
+        },
+        {
+          "sale_id": 431,
+          "product_id": 5,
+          "quantity": 4,
+          "product_units": 40
+        },
+        {
+          "sale_id": 13,
+          "product_id": 6,
+          "quantity": 4,
+          "product_units": 65
+        },
+        {
+          "sale_id": 26,
+          "product_id": 6,
+          "quantity": 5,
+          "product_units": 65
+        },
+        {
+          "sale_id": 53,
+          "product_id": 6,
+          "quantity": 4,
+          "product_units": 65
+        },
+        {
+          "sale_id": 75,
+          "product_id": 6,
+          "quantity": 4,
+          "product_units": 65
+        },
+        {
+          "sale_id": 77,
+          "product_id": 6,
+          "quantity": 5,
+          "product_units": 65
+        },
+        {
+          "sale_id": 101,
+          "product_id": 6,
+          "quantity": 1,
+          "product_units": 65
+        },
+        {
+          "sale_id": 141,
+          "product_id": 6,
+          "quantity": 5,
+          "product_units": 65
+        },
+        {
+          "sale_id": 160,
+          "product_id": 6,
+          "quantity": 5,
+          "product_units": 65
+        },
+        {
+          "sale_id": 181,
+          "product_id": 6,
+          "quantity": 2,
+          "product_units": 65
+        },
+        {
+          "sale_id": 212,
+          "product_id": 6,
+          "quantity": 3,
+          "product_units": 65
+        },
+        {
+          "sale_id": 223,
+          "product_id": 6,
+          "quantity": 2,
+          "product_units": 65
+        },
+        {
+          "sale_id": 227,
+          "product_id": 6,
+          "quantity": 1,
+          "product_units": 65
+        },
+        {
+          "sale_id": 241,
+          "product_id": 6,
+          "quantity": 5,
+          "product_units": 65
+        },
+        {
+          "sale_id": 250,
+          "product_id": 6,
+          "quantity": 5,
+          "product_units": 65
+        },
+        {
+          "sale_id": 251,
+          "product_id": 6,
+          "quantity": 2,
+          "product_units": 65
+        },
+        {
+          "sale_id": 323,
+          "product_id": 6,
+          "quantity": 4,
+          "product_units": 65
+        },
+        {
+          "sale_id": 351,
+          "product_id": 6,
+          "quantity": 4,
+          "product_units": 65
+        },
+        {
+          "sale_id": 367,
+          "product_id": 6,
+          "quantity": 2,
+          "product_units": 65
+        },
+        {
+          "sale_id": 375,
+          "product_id": 6,
+          "quantity": 1,
+          "product_units": 65
+        },
+        {
+          "sale_id": 420,
+          "product_id": 6,
+          "quantity": 1,
+          "product_units": 65
+        },
+        {
+          "sale_id": 140,
+          "product_id": 7,
+          "quantity": 4,
+          "product_units": 39
+        },
+        {
+          "sale_id": 228,
+          "product_id": 7,
+          "quantity": 4,
+          "product_units": 39
+        },
+        {
+          "sale_id": 249,
+          "product_id": 7,
+          "quantity": 4,
+          "product_units": 39
+        },
+        {
+          "sale_id": 257,
+          "product_id": 7,
+          "quantity": 3,
+          "product_units": 39
+        },
+        {
+          "sale_id": 259,
+          "product_id": 7,
+          "quantity": 5,
+          "product_units": 39
+        },
+        {
+          "sale_id": 314,
+          "product_id": 7,
+          "quantity": 3,
+          "product_units": 39
+        },
+        {
+          "sale_id": 432,
+          "product_id": 7,
+          "quantity": 2,
+          "product_units": 39
+        },
+        {
+          "sale_id": 442,
+          "product_id": 7,
+          "quantity": 1,
+          "product_units": 39
+        },
+        {
+          "sale_id": 448,
+          "product_id": 7,
+          "quantity": 3,
+          "product_units": 39
+        },
+        {
+          "sale_id": 465,
+          "product_id": 7,
+          "quantity": 5,
+          "product_units": 39
+        },
+        {
+          "sale_id": 472,
+          "product_id": 7,
+          "quantity": 2,
+          "product_units": 39
+        },
+        {
+          "sale_id": 491,
+          "product_id": 7,
+          "quantity": 3,
+          "product_units": 39
+        },
+        {
+          "sale_id": 15,
+          "product_id": 8,
+          "quantity": 3,
+          "product_units": 66
+        },
+        {
+          "sale_id": 28,
+          "product_id": 8,
+          "quantity": 3,
+          "product_units": 66
+        },
+        {
+          "sale_id": 36,
+          "product_id": 8,
+          "quantity": 4,
+          "product_units": 66
+        },
+        {
+          "sale_id": 38,
+          "product_id": 8,
+          "quantity": 4,
+          "product_units": 66
+        },
+        {
+          "sale_id": 68,
+          "product_id": 8,
+          "quantity": 5,
+          "product_units": 66
+        },
+        {
+          "sale_id": 80,
+          "product_id": 8,
+          "quantity": 1,
+          "product_units": 66
+        },
+        {
+          "sale_id": 97,
+          "product_id": 8,
+          "quantity": 5,
+          "product_units": 66
+        },
+        {
+          "sale_id": 137,
+          "product_id": 8,
+          "quantity": 2,
+          "product_units": 66
+        },
+        {
+          "sale_id": 170,
+          "product_id": 8,
+          "quantity": 4,
+          "product_units": 66
+        },
+        {
+          "sale_id": 246,
+          "product_id": 8,
+          "quantity": 4,
+          "product_units": 66
+        },
+        {
+          "sale_id": 280,
+          "product_id": 8,
+          "quantity": 5,
+          "product_units": 66
+        },
+        {
+          "sale_id": 281,
+          "product_id": 8,
+          "quantity": 4,
+          "product_units": 66
+        },
+        {
+          "sale_id": 393,
+          "product_id": 8,
+          "quantity": 1,
+          "product_units": 66
+        },
+        {
+          "sale_id": 419,
+          "product_id": 8,
+          "quantity": 1,
+          "product_units": 66
+        },
+        {
+          "sale_id": 425,
+          "product_id": 8,
+          "quantity": 5,
+          "product_units": 66
+        },
+        {
+          "sale_id": 427,
+          "product_id": 8,
+          "quantity": 3,
+          "product_units": 66
+        },
+        {
+          "sale_id": 453,
+          "product_id": 8,
+          "quantity": 2,
+          "product_units": 66
+        },
+        {
+          "sale_id": 475,
+          "product_id": 8,
+          "quantity": 5,
+          "product_units": 66
+        },
+        {
+          "sale_id": 476,
+          "product_id": 8,
+          "quantity": 4,
+          "product_units": 66
+        },
+        {
+          "sale_id": 497,
+          "product_id": 8,
+          "quantity": 1,
+          "product_units": 66
+        }
+      ]
+    },
+    {
+      "id": "q7-null-coupon-groups",
+      "rows": [
+        {
+          "coupon_code": null,
+          "sale_count": 1243,
+          "units": 3685
+        },
+        {
+          "coupon_code": "LOYAL",
+          "sale_count": 727,
+          "units": 2218
+        },
+        {
+          "coupon_code": "SPRING",
+          "sale_count": 732,
+          "units": 2185
+        },
+        {
+          "coupon_code": "WELCOME",
+          "sale_count": 688,
+          "units": 2059
+        },
+        {
+          "coupon_code": "夜市",
+          "sale_count": 706,
+          "units": 2100
+        }
+      ]
+    },
+    {
+      "id": "q8-monthly-region-orders",
+      "rows": [
+        {
+          "sale_month": 202501,
+          "region": "americas",
+          "sale_count": 91,
+          "units": 254
+        },
+        {
+          "sale_month": 202501,
+          "region": "asia-pacific",
+          "sale_count": 86,
+          "units": 258
+        },
+        {
+          "sale_month": 202501,
+          "region": "europe",
+          "sale_count": 93,
+          "units": 289
+        },
+        {
+          "sale_month": 202501,
+          "region": "middle-east-africa",
+          "sale_count": 87,
+          "units": 250
+        },
+        {
+          "sale_month": 202502,
+          "region": "americas",
+          "sale_count": 79,
+          "units": 243
+        },
+        {
+          "sale_month": 202502,
+          "region": "asia-pacific",
+          "sale_count": 93,
+          "units": 304
+        },
+        {
+          "sale_month": 202502,
+          "region": "europe",
+          "sale_count": 67,
+          "units": 201
+        },
+        {
+          "sale_month": 202502,
+          "region": "middle-east-africa",
+          "sale_count": 75,
+          "units": 236
+        },
+        {
+          "sale_month": 202503,
+          "region": "americas",
+          "sale_count": 93,
+          "units": 261
+        },
+        {
+          "sale_month": 202503,
+          "region": "asia-pacific",
+          "sale_count": 90,
+          "units": 259
+        },
+        {
+          "sale_month": 202503,
+          "region": "europe",
+          "sale_count": 75,
+          "units": 218
+        },
+        {
+          "sale_month": 202503,
+          "region": "middle-east-africa",
+          "sale_count": 84,
+          "units": 258
+        },
+        {
+          "sale_month": 202504,
+          "region": "americas",
+          "sale_count": 99,
+          "units": 264
+        },
+        {
+          "sale_month": 202504,
+          "region": "asia-pacific",
+          "sale_count": 84,
+          "units": 267
+        },
+        {
+          "sale_month": 202504,
+          "region": "europe",
+          "sale_count": 87,
+          "units": 261
+        },
+        {
+          "sale_month": 202504,
+          "region": "middle-east-africa",
+          "sale_count": 78,
+          "units": 227
+        },
+        {
+          "sale_month": 202505,
+          "region": "americas",
+          "sale_count": 93,
+          "units": 274
+        },
+        {
+          "sale_month": 202505,
+          "region": "asia-pacific",
+          "sale_count": 90,
+          "units": 265
+        },
+        {
+          "sale_month": 202505,
+          "region": "europe",
+          "sale_count": 89,
+          "units": 281
+        },
+        {
+          "sale_month": 202505,
+          "region": "middle-east-africa",
+          "sale_count": 71,
+          "units": 200
+        },
+        {
+          "sale_month": 202506,
+          "region": "americas",
+          "sale_count": 89,
+          "units": 282
+        },
+        {
+          "sale_month": 202506,
+          "region": "asia-pacific",
+          "sale_count": 82,
+          "units": 227
+        },
+        {
+          "sale_month": 202506,
+          "region": "europe",
+          "sale_count": 101,
+          "units": 285
+        },
+        {
+          "sale_month": 202506,
+          "region": "middle-east-africa",
+          "sale_count": 78,
+          "units": 242
+        },
+        {
+          "sale_month": 202507,
+          "region": "americas",
+          "sale_count": 71,
+          "units": 203
+        },
+        {
+          "sale_month": 202507,
+          "region": "asia-pacific",
+          "sale_count": 76,
+          "units": 208
+        },
+        {
+          "sale_month": 202507,
+          "region": "europe",
+          "sale_count": 90,
+          "units": 261
+        },
+        {
+          "sale_month": 202507,
+          "region": "middle-east-africa",
+          "sale_count": 82,
+          "units": 264
+        },
+        {
+          "sale_month": 202508,
+          "region": "americas",
+          "sale_count": 96,
+          "units": 268
+        },
+        {
+          "sale_month": 202508,
+          "region": "asia-pacific",
+          "sale_count": 89,
+          "units": 274
+        },
+        {
+          "sale_month": 202508,
+          "region": "europe",
+          "sale_count": 81,
+          "units": 222
+        },
+        {
+          "sale_month": 202508,
+          "region": "middle-east-africa",
+          "sale_count": 91,
+          "units": 281
+        },
+        {
+          "sale_month": 202509,
+          "region": "americas",
+          "sale_count": 79,
+          "units": 236
+        },
+        {
+          "sale_month": 202509,
+          "region": "asia-pacific",
+          "sale_count": 94,
+          "units": 288
+        },
+        {
+          "sale_month": 202509,
+          "region": "europe",
+          "sale_count": 79,
+          "units": 249
+        },
+        {
+          "sale_month": 202509,
+          "region": "middle-east-africa",
+          "sale_count": 100,
+          "units": 313
+        },
+        {
+          "sale_month": 202510,
+          "region": "americas",
+          "sale_count": 76,
+          "units": 218
+        },
+        {
+          "sale_month": 202510,
+          "region": "asia-pacific",
+          "sale_count": 90,
+          "units": 276
+        },
+        {
+          "sale_month": 202510,
+          "region": "europe",
+          "sale_count": 79,
+          "units": 244
+        },
+        {
+          "sale_month": 202510,
+          "region": "middle-east-africa",
+          "sale_count": 76,
+          "units": 223
+        },
+        {
+          "sale_month": 202511,
+          "region": "americas",
+          "sale_count": 82,
+          "units": 267
+        },
+        {
+          "sale_month": 202511,
+          "region": "asia-pacific",
+          "sale_count": 76,
+          "units": 228
+        },
+        {
+          "sale_month": 202511,
+          "region": "europe",
+          "sale_count": 83,
+          "units": 269
+        },
+        {
+          "sale_month": 202511,
+          "region": "middle-east-africa",
+          "sale_count": 86,
+          "units": 273
+        },
+        {
+          "sale_month": 202512,
+          "region": "americas",
+          "sale_count": 92,
+          "units": 261
+        },
+        {
+          "sale_month": 202512,
+          "region": "asia-pacific",
+          "sale_count": 109,
+          "units": 317
+        },
+        {
+          "sale_month": 202512,
+          "region": "europe",
+          "sale_count": 91,
+          "units": 270
+        },
+        {
+          "sale_month": 202512,
+          "region": "middle-east-africa",
+          "sale_count": 74,
+          "units": 228
+        }
+      ]
+    }
+  ]
+}

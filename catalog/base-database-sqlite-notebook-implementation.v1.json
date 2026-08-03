@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "status": "implementation-candidate-not-accepted",
+  "frozenCatalog": {
+    "id": "workload-catalog-v1",
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+    "immutability": "byte-for-byte"
+  },
+  "workloadId": "database.sqlite-notebook.v1",
+  "implementationId": "database.sqlite-notebook.controlled.v1",
+  "equivalenceClass": "semantic-product-choice",
+  "variants": [
+    {
+      "id": "javascript-controlled",
+      "target": "javascript",
+      "product": "AlaSQL 4.17.3",
+      "relationship": "pure JavaScript SQL engine"
+    },
+    {
+      "id": "linear-wasm-controlled",
+      "target": "linear-wasm",
+      "product": "SQLite 3.53.0",
+      "relationship": "material SQLite SQL execution in linear Wasm"
+    }
+  ],
+  "fixture": "public/artifacts/sqlite-notebook/fixtures/fixture-manifest.json",
+  "reference": "public/artifacts/sqlite-notebook/reference.json",
+  "route": "/benchmarks/database-sqlite-notebook-v1/",
+  "limitations": [
+    "No performance corpus or ranking exists.",
+    "OPFS and I/O are excluded from this in-memory base cell.",
+    "Different SQL products cannot enter an algorithm-equivalent aggregate.",
+    "Independent browser evidence is required before acceptance or frozen-v1 coverage changes."
+  ]
+}

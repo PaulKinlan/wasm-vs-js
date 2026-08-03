@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "id": "database.sqlite-notebook.v1",
+  "version": 1,
+  "tier": "T6",
+  "title": "SQLite analytical notebook",
+  "description": "Fresh in-memory analytical database: import 4,192 generated rows, create three indexes, and execute eight frozen join, group-by, window and ordered-result queries.",
+  "tracks": ["controlled"],
+  "variants": [
+    {
+      "id": "javascript-controlled",
+      "target": "javascript",
+      "track": "controlled",
+      "buildManifest": "public/artifacts/sqlite-notebook/build-manifest.json"
+    },
+    {
+      "id": "linear-wasm-controlled",
+      "target": "wasm-linear",
+      "track": "controlled",
+      "buildManifest": "public/artifacts/sqlite-notebook/build-manifest.json"
+    }
+  ],
+  "inputs": {
+    "manifestSha256": "6acdcb8eb160fd481814727ee2a7c710354657dcfa98f09c7db0f7a51b927144",
+    "immutable": true,
+    "generation": "xorshift32 seed 0x0051a17e; 64 customers, 32 products, 4,096 sales; CC0-1.0"
+  },
+  "oracle": {
+    "kind": "complete-output",
+    "policy": "Every ordered cell from all eight result sets must equal the independent sqlite3 reference; frozen canonical SHA-256 fae41d80865456365118c98ee8dd74a502fb359ace69878190edca22e4f6572d.",
+    "floatingPointPolicy": "All fixture values and computed outputs are safe integers. Non-integer and non-finite output is rejected.",
+    "deadCodeDefense": "All 744 result rows are canonicalized, compared cell-for-cell, and hashed."
+  },
+  "work": {
+    "fixed": true,
+    "complexity": "Product-specific SQL planning over identical schema, data, indexes and query text",
+    "counters": [
+      "imports",
+      "imported-rows",
+      "queries",
+      "joins",
+      "groups",
+      "windows",
+      "sorts",
+      "allocations",
+      "boundary-crossings"
+    ],
+    "tolerance": "All logical work counters are exact. Product plans remain separately labelled because the frozen equivalence class is semantic-product-choice."
+  }
+}

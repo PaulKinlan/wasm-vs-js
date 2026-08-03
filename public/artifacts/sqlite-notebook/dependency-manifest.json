@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "generatedBy": "scripts/vendor-sqlite-notebook-deps.ts",
+  "packages": [
+    {
+      "identity": "@sqlite.org/sqlite-wasm@3.53.0-build1",
+      "tarball": "https://registry.npmjs.org/@sqlite.org/sqlite-wasm/-/sqlite-wasm-3.53.0-build1.tgz",
+      "tarballSha256": "fbbd5c542fad22ce1d90df1533025903a00a593f461f4a43b1e43e9897dfad9c",
+      "licenseSpdx": "Apache-2.0 AND blessing",
+      "upstream": "https://github.com/sqlite/sqlite-wasm"
+    },
+    {
+      "identity": "alasql@4.17.3",
+      "tarball": "https://registry.npmjs.org/alasql/-/alasql-4.17.3.tgz",
+      "tarballSha256": "64bb8f63574b42f377ca1d4911c26505a48e668c64112af48b9af9100adb7b88",
+      "licenseSpdx": "MIT",
+      "upstream": "https://github.com/AlaSQL/alasql"
+    }
+  ],
+  "files": {
+    "sqlite3.mjs": {
+      "bytes": 578584,
+      "sha256": "a6097d970d6a7abee54d4cbd3b467ffec8e1275b80c74c153060006fc5c63d5b"
+    },
+    "sqlite3-node.mjs": {
+      "bytes": 474916,
+      "sha256": "b8d8e520ec14bd6bc9f735259b03ec15c3878fada2b0a5155905dd8f72baee44"
+    },
+    "sqlite3.wasm": {
+      "bytes": 864752,
+      "sha256": "02d7e48164395fa68f81c6ec33e9da5461be397dc57602ac0cd89b4bbba1d312"
+    },
+    "alasql.min.js": {
+      "bytes": 511856,
+      "sha256": "e2166b962526ab6549df987eaa7d0df9529321b71ed47ae18e3401067a8a50d9"
+    },
+    "ALASQL-LICENSE.txt": {
+      "bytes": 1103,
+      "sha256": "48f0d722a7b35a9d92de38fe6b949c9477da90e84e8f763c6fca58457732e33e"
+    },
+    "reference.json": {
+      "bytes": 119551,
+      "sha256": "13aeb91156f6a11ddb62b6d08c5902bff44962cc886e4d689f4c54fddadc828a"
+    },
+    "runtime-manifest.json": {
+      "bytes": 3744,
+      "sha256": "bf235798ea8eb18f5c05e0d61ceb1a97ae37c36210b9767aa4508714149c5c84"
+    }
+  }
+}
