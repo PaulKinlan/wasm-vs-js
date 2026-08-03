@@ -41,6 +41,18 @@ export type CleanupResult = {
   identityMismatches: number[];
   stoppedAt: string;
 };
+
+export class ChromeLaunchLifecycleError extends Error {
+  constructor(
+    message: string,
+    readonly launchBegan: boolean,
+    readonly cleanupResolved: boolean,
+    cause: unknown,
+  ) {
+    super(message, { cause });
+    this.name = "ChromeLaunchLifecycleError";
+  }
+}
 export async function waitDevToolsActivePort(
   profileRoot: string,
   timeoutMs = 10_000,
@@ -417,20 +429,50 @@ export async function launchOwnedChrome(options: {
     };
   } catch (error) {
     if (ledger) {
-      await cleanupUnit(command, ledger).catch((cleanup) => {
-        throw new Error(`Chrome startup containment cleanup failed: ${cleanup}`);
-      });
-    } else if (systemdRunSucceeded) {
+      try {
+        await cleanupUnit(command, ledger);
+      } catch (cleanup) {
+        throw new ChromeLaunchLifecycleError(
+          `Chrome startup containment cleanup failed: ${cleanup}`,
+          true,
+          false,
+          error,
+        );
+      }
+      throw new ChromeLaunchLifecycleError(
+        error instanceof Error ? error.message : String(error),
+        true,
+        true,
+        error,
+      );
+    }
+    if (systemdRunSucceeded) {
       // The launch is counted, but without a positively mapped cgroup it is unsafe to target the
       // unit name or remove the live profile. Retain both as immutable containment evidence.
-      throw new Error(`Chrome startup containment blocked before unit mapping: ${error}`);
-    } else {
-      // systemd-run did not create an owned unit, so no process may be targeted.
-      await removeOwnedProfile(profile).catch((cleanup) => {
-        throw new Error(`Chrome pre-launch profile cleanup failed: ${cleanup}`);
-      });
+      throw new ChromeLaunchLifecycleError(
+        `Chrome startup containment blocked before unit mapping: ${error}`,
+        true,
+        false,
+        error,
+      );
     }
-    throw error;
+    // systemd-run did not create an owned unit, so no process may be targeted.
+    try {
+      await removeOwnedProfile(profile);
+    } catch (cleanup) {
+      throw new ChromeLaunchLifecycleError(
+        `Chrome pre-launch profile cleanup failed: ${cleanup}`,
+        false,
+        false,
+        error,
+      );
+    }
+    throw new ChromeLaunchLifecycleError(
+      error instanceof Error ? error.message : String(error),
+      false,
+      true,
+      error,
+    );
   }
 }
 export function closeOwnedChrome(owned: OwnedChrome): Promise<CleanupResult> {

@@ -1,5 +1,5 @@
 import { canonicalize, sha256Hex } from "./canonical.ts";
-import { assertPairedBlockSchema } from "./corpus-contracts.ts";
+import { assertLaunchManifestSchema, assertPairedBlockSchema } from "./corpus-contracts.ts";
 
 async function assertPrivateDirectory(path: string): Promise<void> {
   const info = await Deno.lstat(path);
@@ -131,19 +131,24 @@ export type LaunchManifest = {
   order: PairInput["order"];
   expiresAt: string;
 };
+export function validateLaunchManifest(manifest: LaunchManifest, now = new Date()): void {
+  assertLaunchManifestSchema(manifest);
+  if (
+    manifest.experimentId !== "m1-chrome-sum-u32-v1" ||
+    !/^[a-z0-9][a-z0-9._-]{1,127}$/.test(manifest.corpusId) ||
+    !/^[a-z0-9][a-z0-9._-]{1,127}$/.test(manifest.blockId) ||
+    !Number.isSafeInteger(manifest.scheduleIndex) || manifest.scheduleIndex < 0 ||
+    manifest.scheduleIndex > 119 ||
+    new Set(manifest.order).size !== 2 ||
+    Date.parse(manifest.expiresAt) <= now.getTime()
+  ) throw new Error("launch manifest denied");
+}
+
 export class CorpusCoordinator {
   #tokens = new Map<string, { manifest: LaunchManifest; used: boolean }>();
   constructor(readonly root: string) {}
   issue(manifest: LaunchManifest): string {
-    if (
-      manifest.experimentId !== "m1-chrome-sum-u32-v1" ||
-      !/^[a-z0-9][a-z0-9._-]{1,127}$/.test(manifest.corpusId) ||
-      !/^[a-z0-9][a-z0-9._-]{1,127}$/.test(manifest.blockId) ||
-      !Number.isSafeInteger(manifest.scheduleIndex) || manifest.scheduleIndex < 0 ||
-      manifest.scheduleIndex > 119 ||
-      new Set(manifest.order).size !== 2 ||
-      Date.parse(manifest.expiresAt) <= Date.now()
-    ) throw new Error("launch manifest denied");
+    validateLaunchManifest(manifest);
     const token = crypto.randomUUID();
     this.#tokens.set(token, { manifest: structuredClone(manifest), used: false });
     return token;

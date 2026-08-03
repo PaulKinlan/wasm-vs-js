@@ -47,6 +47,16 @@ Mode bits are not claimed as kernel-enforced immutability: portable unprivileged
 
 The production Deno tasks grant write access only to `raw/`, the two owned temporary roots, and the current user's systemd app-slice cgroup (`user-$(id -u)`). The cgroup grant exists solely so the collector can retain and write the authenticated `cgroup.kill` descriptor. `corpus:permission-probe` exercises the same open/write operation against an owned fake cgroup tree without launching systemd or Chrome.
 
+## Permit and cleanup lifecycle
+
+Before writing a consumption receipt, the collector validates the clean source identity, closed preregistration/benchmark/build/source/Chrome/launch manifests, local health response, and the bytes of every collector route against its locally computed SHA-256. Generated private evidence under `raw/permits/` and `raw/corpora/` is the only ignored checkout state allowed during those repeated checks. A failed preflight does not consume the one-time permit.
+
+An attempt begins only after the exact `systemd-run` invocation succeeds. Failures before that signal are retained in a separate closed prelaunch-failure record and do not increment `attempted`. Stage removal follows an explicit cleanup lifecycle state. A verified no-launch or verified owned cleanup permits removal; active or unresolved owned cleanup retains the exact stage.
+
+Each stage has a closed owner manifest bound to its permit ID, source commit, package digest, and root device/inode. Startup reconciles only that permit's named stage and owner file. Missing, symlinked, replaced, or mismatched identity is retained for inspection; the collector does not scan or delete other stage trees. Process cleanup remains limited to the authenticated owned cgroup and profile. No global Chrome process operation is used.
+
+These checks describe the local collector implementation. They are not browser evidence, M1 acceptance, or a performance claim.
+
 ## What remains before M1 acceptance
 
 An independently reviewed orchestrator must launch exact owned Chrome processes and profiles, gather at least 20 paired fresh launches, continue to the preregistered precision target or cap, retain console/network/screenshots/assertions, and prove exact process/profile cleanup. A manual pilot cannot satisfy that gate.

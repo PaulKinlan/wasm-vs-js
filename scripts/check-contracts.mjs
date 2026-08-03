@@ -301,6 +301,7 @@ const corpus = {
   blocked: 0,
   unstarted: 119,
   blocks: [attempt],
+  prelaunchFailures: [],
   strata: {
     cold: { attempted: 1, committed: 1, failed: 0, blocked: 0, terminal: "continue" },
     warm: { attempted: 0, committed: 0, failed: 0, blocked: 0, terminal: "continue" },

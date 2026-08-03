@@ -16,15 +16,22 @@ addFormats(ajv);
 
 const names = [
   "attempt-record",
+  "benchmark",
   "browser-permit",
+  "build-manifest",
   "chrome-package-manifest",
   "collection-stop",
+  "collector-health",
   "corpus",
   "launch-evidence",
+  "launch-manifest",
   "network-attestation",
   "paired-block",
   "permit-receipt",
+  "prelaunch-failure",
+  "preregistration",
   "source-manifest",
+  "stage-owner",
 ] as const;
 const validators = Object.fromEntries(
   await Promise.all(names.map(async (name) => {
@@ -46,17 +53,28 @@ function assertSchema(name: typeof names[number], value: unknown): void {
 }
 
 export const assertAttemptRecordSchema = (value: unknown) => assertSchema("attempt-record", value);
+export const assertBenchmarkSchema = (value: unknown) => assertSchema("benchmark", value);
 export const assertBrowserPermitSchema = (value: unknown) => assertSchema("browser-permit", value);
+export const assertBuildManifestSchema = (value: unknown) => assertSchema("build-manifest", value);
 export const assertChromePackageManifestSchema = (value: unknown) =>
   assertSchema("chrome-package-manifest", value);
 export const assertCollectionStopSchema = (value: unknown) =>
   assertSchema("collection-stop", value);
+export const assertCollectorHealthSchema = (value: unknown) =>
+  assertSchema("collector-health", value);
 export const assertCorpusSchema = (value: unknown) => assertSchema("corpus", value);
 export const assertLaunchEvidenceSchema = (value: unknown) =>
   assertSchema("launch-evidence", value);
+export const assertLaunchManifestSchema = (value: unknown) =>
+  assertSchema("launch-manifest", value);
 export const assertNetworkAttestationSchema = (value: unknown) =>
   assertSchema("network-attestation", value);
 export const assertPairedBlockSchema = (value: unknown) => assertSchema("paired-block", value);
 export const assertPermitReceiptSchema = (value: unknown) => assertSchema("permit-receipt", value);
+export const assertPrelaunchFailureSchema = (value: unknown) =>
+  assertSchema("prelaunch-failure", value);
+export const assertPreregistrationSchema = (value: unknown) =>
+  assertSchema("preregistration", value);
 export const assertSourceManifestSchema = (value: unknown) =>
   assertSchema("source-manifest", value);
+export const assertStageOwnerSchema = (value: unknown) => assertSchema("stage-owner", value);

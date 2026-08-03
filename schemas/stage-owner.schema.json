@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "stageId",
+    "permitId",
+    "sourceCommit",
+    "root",
+    "rootDev",
+    "rootIno",
+    "cleanupLifecycle",
+    "package"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "stageId": { "type": "string", "pattern": "^[A-Za-z0-9._-]{8,128}$" },
+    "permitId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{7,127}$" },
+    "sourceCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "root": {
+      "type": "string",
+      "pattern": "^/tmp/wasm-vs-js-staged-chrome/[A-Za-z0-9._-]{8,128}$"
+    },
+    "rootDev": { "type": "integer", "minimum": 0 },
+    "rootIno": { "type": "integer", "minimum": 0 },
+    "cleanupLifecycle": {
+      "enum": [
+        "ready-no-owned-launch",
+        "owned-launch-active",
+        "cleanup-verified",
+        "cleanup-unresolved"
+      ]
+    },
+    "package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "binaryRelativePath",
+        "binarySha256",
+        "manifestSha256",
+        "files",
+        "sourceFileModes",
+        "stagedFileModes",
+        "sourceDirectoryModes",
+        "stagedDirectoryModes"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 2 },
+        "binaryRelativePath": { "type": "string", "pattern": "^[^/].+$" },
+        "binarySha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "manifestSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "files": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        },
+        "sourceFileModes": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "type": "integer", "minimum": 0, "maximum": 511 }
+        },
+        "stagedFileModes": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "enum": [256, 320] }
+        },
+        "sourceDirectoryModes": {
+          "type": "object",
+          "minProperties": 1,
+          "required": ["."],
+          "additionalProperties": { "type": "integer", "minimum": 0, "maximum": 511 }
+        },
+        "stagedDirectoryModes": {
+          "type": "object",
+          "minProperties": 1,
+          "required": ["."],
+          "additionalProperties": { "const": 320 }
+        }
+      }
+    }
+  }
+}

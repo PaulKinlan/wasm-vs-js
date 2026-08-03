@@ -1,11 +1,17 @@
 import { assertEquals, assertRejects } from "./assert.ts";
 import {
   assertAttemptRecordSchema,
+  assertBenchmarkSchema,
+  assertBuildManifestSchema,
   assertChromePackageManifestSchema,
   assertCollectionStopSchema,
+  assertCollectorHealthSchema,
   assertCorpusSchema,
   assertLaunchEvidenceSchema,
+  assertLaunchManifestSchema,
   assertPermitReceiptSchema,
+  assertPrelaunchFailureSchema,
+  assertPreregistrationSchema,
   assertSourceManifestSchema,
 } from "../lib/corpus-contracts.ts";
 
@@ -126,6 +132,7 @@ Deno.test("corpus schema accepts typed per-stratum accounting and rejects omitte
     failed: 0,
     blocked: 0,
     unstarted: 119,
+    prelaunchFailures: [],
     blocks: [{
       blockId: "cold-01",
       scheduleIndex: 0,
@@ -155,4 +162,68 @@ Deno.test("corpus schema accepts typed per-stratum accounting and rejects omitte
     rejected = true;
   }
   assertEquals(rejected, true);
+});
+
+Deno.test("collection preflight manifests and lifecycle artifacts use closed schemas", async () => {
+  const benchmark = JSON.parse(await Deno.readTextFile("benchmarks/sum-u32/benchmark.json"));
+  const build = JSON.parse(
+    await Deno.readTextFile("public/artifacts/sum-u32/build-manifest.json"),
+  );
+  const preregistration = JSON.parse(
+    await Deno.readTextFile("experiments/m1-chrome-sum-u32-v1/preregistration.json"),
+  );
+  assertBenchmarkSchema(benchmark);
+  assertBuildManifestSchema(build);
+  assertPreregistrationSchema(preregistration);
+  const launch = {
+    experimentId: "m1-chrome-sum-u32-v1",
+    corpusId: "m1-permit-test",
+    blockId: preregistration.pairing.schedule[0].blockId,
+    scheduleIndex: 0,
+    stratum: preregistration.pairing.schedule[0].stratum,
+    order: preregistration.pairing.schedule[0].order,
+    expiresAt: new Date(Date.now() + 60_000).toISOString(),
+  };
+  assertLaunchManifestSchema(launch);
+  assertPrelaunchFailureSchema({
+    blockId: launch.blockId,
+    scheduleIndex: 0,
+    stratum: launch.stratum,
+    order: launch.order,
+    attempted: false,
+    category: "blocked-provenance",
+    reason: "fixture",
+    cleanupLifecycle: "verified-no-owned-launch",
+  });
+  const collectorAssets = Object.fromEntries([
+    "/corpus-run",
+    "/corpus-run.js",
+    "/styles.css",
+    "/hosted-runner-core.js",
+    "/hosted-runner-worker.js",
+    "/benchmarks/sum-u32/workload.js",
+    "/artifacts/sum-u32/build-manifest.json",
+    "/artifacts/sum-u32/sum-u32.wasm",
+  ].map((route) => [route, "a".repeat(64)]));
+  assertCollectorHealthSchema({
+    status: "ok",
+    mode: "local-m1-pilot",
+    schemaVersion: 1,
+    acceptedImplementationCommit: "a".repeat(40),
+    localCheckoutCommit: "b".repeat(40),
+    collectorAssets,
+  });
+  for (const value of [benchmark, build, launch]) {
+    await assertRejects(
+      () =>
+        Promise.resolve().then(() => {
+          const open = structuredClone(value) as Record<string, unknown>;
+          open.invented = true;
+          if (value === benchmark) assertBenchmarkSchema(open);
+          else if (value === build) assertBuildManifestSchema(open);
+          else assertLaunchManifestSchema(open);
+        }),
+      "schema invalid",
+    );
+  }
 });

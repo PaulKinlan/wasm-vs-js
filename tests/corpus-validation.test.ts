@@ -37,6 +37,7 @@ function corpus(blocks = [attempt("committed", 0)]) {
     blocked: blocks.filter((b) => b.status === "blocked").length,
     unstarted: 120 - blocks.length,
     blocks,
+    prelaunchFailures: [],
     strata: {
       cold: {
         attempted: blocks.filter((b) => b.stratum === "cold").length,
