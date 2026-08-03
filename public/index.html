@@ -14,6 +14,7 @@
     <header class="masthead">
       <span class="brand">AI Focus</span>
       <span>Wasm vs JavaScript benchmark</span>
+      <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/commit/4601355" target="_blank" rel="noopener">Commit 4601355</a>
       <strong>data v1</strong>
     </header>
     <main id="main" class="dashboard">
@@ -24,6 +25,29 @@
         <p
           class="notice"><strong id="claim-status">Accepted performance corpus: none.</strong> M1 needs independently launched cold and warm pairs through the registered precision target or 60-attempt cap per stratum.</p>
         <p><a class="button-link" href="/run/">Run the pair in this browser</a> <a href="/benchmarks/">Browse 38 proposed workloads and the separate v2 inventory</a> <a href="/experiments/">Read the frozen experiment</a> <a href="/evidence/">Check implementation evidence</a> <a href="https://github.com/PaulKinlan/wasm-vs-js/blob/9c309c4941d1b8550c15f8549f95a5636a634ef6/PLAN.md">Read the methodology</a></p>
+      </section>
+
+      <section aria-labelledby="runner-suite-title">
+        <div class="runner-header">
+          <div>
+            <h2 id="runner-suite-title">Interactive Browser Benchmark Suite</h2>
+            <p>Execute proposal workloads directly in your browser workers to compare JavaScript vs WebAssembly execution timing and verify exact oracle correctness.</p>
+          </div>
+          <div>
+            <button type="button" id="run-all-benchmarks" class="button-link">Run All Benchmarks in Browser</button>
+          </div>
+        </div>
+
+        <div id="batch-progress-container" class="batch-progress-wrap" hidden>
+          <div class="progress-bar-bg">
+            <div id="batch-progress-bar" class="progress-bar-fill"></div>
+          </div>
+          <p id="batch-progress-text" role="status" aria-live="polite">Preparing benchmark batch...</p>
+        </div>
+
+        <div id="benchmark-cards" class="benchmark-card-grid">
+          <p>Loading interactive benchmark suite...</p>
+        </div>
       </section>
 
       <section aria-labelledby="demos-title">
@@ -162,5 +186,6 @@
       <p id="load-status" class="sr-status" role="status" aria-live="polite"></p>
     </main>
     <script type="module" src="/app.js"></script>
+    <script type="module" src="/homepage-runner.js"></script>
   </body>
 </html>

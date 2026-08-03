@@ -713,3 +713,122 @@ html.js .js-only[hidden] {
 .demo-links li {
   margin-block-end: 0.35rem;
 }
+
+/* Interactive Homepage Benchmark Runner */
+.runner-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.batch-progress-wrap {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+.progress-bar-bg {
+  width: 100%;
+  height: 0.6rem;
+  background: var(--rule);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+.progress-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  transition: width 0.2s ease;
+}
+.benchmark-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: 1.2rem;
+  margin-top: 1rem;
+}
+.benchmark-card {
+  border: 1px solid var(--rule);
+  background: var(--raised);
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.category-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+.card-status {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+}
+.card-status.idle { background: var(--surface); }
+.card-status.running { background: var(--warning); color: #000; }
+.card-status.passed { background: #1b5e20; color: #fff; }
+.card-status.failed { background: #b71c1c; color: #fff; }
+
+.benchmark-card h3 {
+  margin: 0.25rem 0 0.4rem;
+  font-size: 1.1rem;
+}
+.card-desc {
+  font-size: 0.88rem;
+  margin-bottom: 0.8rem;
+}
+.card-metrics {
+  font-size: 0.88rem;
+  background: var(--surface);
+  padding: 0.6rem;
+  border: 1px solid var(--rule);
+  margin-bottom: 1rem;
+  font-family: ui-monospace, monospace;
+}
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+.metric-summary {
+  font-weight: 700;
+  margin-top: 0.25rem;
+}
+.card-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.btn-run-card {
+  font: inherit;
+  font-weight: 600;
+  padding: 0.4rem 0.75rem;
+  background: var(--ink);
+  color: var(--page);
+  border: 1px solid var(--rule);
+  cursor: pointer;
+}
+.btn-link-card {
+  font-size: 0.85rem;
+  text-decoration: underline;
+}
+.commit-link {
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+  padding: 0.2rem 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+
