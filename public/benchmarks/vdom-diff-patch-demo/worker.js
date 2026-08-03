@@ -92,6 +92,7 @@ async function execute(target) {
     domApplication: {
       treeA: fixture.treeA,
       patches: result.patches,
+      expectedCanonicalHtml: result.canonicalHtml,
       expectedCanonicalHtmlSha256: EXPECTED.canonicalHtmlSha256,
     },
     fullContract: FULL_CONTRACT,

@@ -96,6 +96,22 @@ function showResult(payload) {
   status.textContent = `${demo.title} completed; oracle and work counters match exactly.`;
 }
 
+function serializeCanonicalBrowserDOM(mount) {
+  const render = (node) => {
+    if (node.nodeType === Node.TEXT_NODE) return node.data;
+    if (node.nodeType !== Node.ELEMENT_NODE) return "";
+    const names = node.getAttributeNames().sort((a, b) =>
+      (a.startsWith("k") ? -1 : 1) - (b.startsWith("k") ? -1 : 1) || a.localeCompare(b)
+    );
+    const attributes = names.map((name) => ` ${name}="${node.getAttribute(name)}"`).join("");
+    const children = [...node.childNodes].map(render).join("");
+    return node.localName === "input"
+      ? `<input${attributes}/>`
+      : `<${node.localName}${attributes}>${children}</${node.localName}>`;
+  };
+  return mount.firstChild ? render(mount.firstChild) : "";
+}
+
 async function validateBrowserDOM(payload) {
   if (demoId !== "vdom-diff-patch-demo") return payload;
   if (!vdomMount || !payload.domApplication) {
@@ -107,7 +123,7 @@ async function validateBrowserDOM(payload) {
   const adapter = new DOMHostAdapter(document, vdomMount);
   adapter.createTree(payload.domApplication.treeA);
   adapter.applyPatches(payload.domApplication.patches);
-  const canonicalBrowserHTML = vdomMount.innerHTML.replace(/<input([^>]*)>/g, "<input$1/>");
+  const canonicalBrowserHTML = serializeCanonicalBrowserDOM(vdomMount);
   const digest = new Uint8Array(
     await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonicalBrowserHTML)),
   );
@@ -115,6 +131,7 @@ async function validateBrowserDOM(payload) {
     .map((byte) => byte.toString(16).padStart(2, "0"))
     .join("");
   if (
+    canonicalBrowserHTML !== payload.domApplication.expectedCanonicalHtml ||
     browserDomSha256 !== payload.domApplication.expectedCanonicalHtmlSha256 ||
     adapter.domMutations !== payload.counters.domMutations
   ) {
