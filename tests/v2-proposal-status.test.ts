@@ -322,8 +322,8 @@ Deno.test("the fourteen engine statuses bind real JavaScript, linear-Wasm, artif
 
 Deno.test("benchmarks page exposes the complete v2 inventory in raw HTML", async () => {
   const page = await Deno.readTextFile("public/benchmarks/index.html");
-  assert(page.includes("38 proposed workloads; 0 implemented"));
-  assert(page.includes("Coverage is 0/38"));
+  assert(page.includes("38 proposed workloads; 28 runnable implementations"));
+  assert(page.includes("28/38 catalog workloads implemented and runnable"));
   assert(page.includes("v2 proposal implementation inventory"));
   assert(page.includes("Runnable demos: 12"));
   assert(page.includes("8 full proposal-validation routes and 4 reduced-fixture routes"));

@@ -71,8 +71,8 @@ Deno.test("public prose retains the benchmark's current evidence limits", async 
   assert(evidence.includes("Accepted performance corpus: none"));
   assert(evidence.includes("Chrome 150 attestation: unverified"));
   assert(proposalEvidence.includes("Performance claims: none."));
-  assert(catalog.includes("38 proposed workloads; 0 implemented"));
-  assert(catalog.includes("Coverage is 0/38"));
+  assert(catalog.includes("38 proposed workloads; 28 runnable implementations"));
+  assert(catalog.includes("28/38 catalog workloads implemented and runnable"));
   assert(catalog.includes("v2 proposal implementation inventory"));
   assert(catalog.includes("Runnable demos: 12"));
   assert(catalog.includes("8 full proposal-validation routes and 4 reduced-fixture routes"));
@@ -80,7 +80,7 @@ Deno.test("public prose retains the benchmark's current evidence limits", async 
   assert(catalog.includes("not the full proposal contract"));
   assert(experiment.includes("Corpus status: not collected"));
   assert(experiment.includes("grants no browser authorization"));
-  assert(readme.includes("Catalog implementation coverage remains **0/38**"));
+  assert(readme.includes("28/38 catalog workloads implemented and runnable"));
   assert(readme.includes("static-for-browser candidate"));
   assert(readme.includes("The page uploads and stores nothing"));
   assert(readme.includes("no accepted performance corpus or performance conclusion"));
