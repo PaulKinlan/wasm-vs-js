@@ -191,7 +191,7 @@ const buildManifest = {
   ),
   build: {
     command:
-      `deno run --allow-read=. --allow-write=public/artifacts/base-dom-todomvc-journey,public/evidence/base/dom-todomvc-journey,catalog/base-dom-todomvc-journey.v1.json,public/data/base-dom-todomvc-journey.v1.json --allow-run=git scripts/build-base-todomvc.ts --source-commit=${sourceCommit}`,
+      `deno run --allow-read=. --allow-write=public/artifacts/base-dom-todomvc-journey,public/evidence/base/dom-todomvc-journey,catalog/base-dom-todomvc-journey.v1.json,public/data/base-dom-todomvc-journey.v1.json --allow-run scripts/build-base-todomvc.ts --source-commit=${sourceCommit}`,
     toolchains: ["Deno 2.9.0", "wabt 1.0.37"],
     flags: [
       "deno bundle platform=browser format=esm no-remote frozen",
