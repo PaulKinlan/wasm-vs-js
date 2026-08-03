@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "registrationId": "numeric-fft-spectral-filter-controlled-v1",
+  "status": "supplemental-implementation-candidate",
+  "authoritativePerformanceEvidence": false,
+  "frozenCatalog": {
+    "id": "workload-catalog-v1",
+    "entryId": "numeric.fft-spectral-filter.v1",
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+    "immutability": "byte-for-byte"
+  },
+  "fixture": {
+    "licenseSpdx": "CC0-1.0",
+    "redistribution": "permitted",
+    "sampleCount": 1048576,
+    "signalGenerator": "xorshift32-signed-16-over-32768",
+    "signalSeed": "0x6d2b79f5",
+    "window": "symmetric-hann-f32",
+    "windowFormula": "f32(0.5 - 0.5*cos(2*pi*i/(N-1)))"
+  },
+  "algorithm": {
+    "family": "fft-fixed-radix-window-filter",
+    "representation": "interleaved-complex-f32",
+    "plan": "iterative-radix-2-decimation-in-time",
+    "bitReversal": "in-place binary carry permutation before each transform",
+    "twiddles": "stage-major f32(cos(-2*pi*j/len)),f32(sin(-2*pi*j/len))",
+    "operationOrder": [
+      "multiply each real sample by its frozen f32 window coefficient",
+      "forward radix-2 FFT",
+      "multiply real and imaginary components by the frozen bin gain",
+      "conjugate, forward radix-2 FFT, conjugate, scale by f32(1/N)"
+    ],
+    "filter": {
+      "mirroredBinDefinition": "min(i,N-i)",
+      "gains": [
+        { "maximumInclusive": "N/16", "gain": 1 },
+        { "maximumInclusive": "N/8", "gain": 0.5 },
+        { "maximumInclusive": "N/2", "gain": 0.25 }
+      ]
+    },
+    "floatingPointPolicy": "strict f32 at each controlled arithmetic operation; oracle uses f64 arithmetic over frozen f32 fixture fields",
+    "simd": false,
+    "threads": false
+  },
+  "oracle": {
+    "completeOutput": "all 2097152 interleaved f32 components",
+    "independentReference": "scalar f64 radix-2 implementation that does not call either controlled target",
+    "absoluteTolerance": 0.00025,
+    "relativeTolerance": 0.0025,
+    "energyRelativeTolerance": 0.0002,
+    "quantizationStep": 0.00001,
+    "crossTarget": "byte-identical canonical f32 output required"
+  },
+  "fixedWork": {
+    "pipelines": 1,
+    "samples": 1048576,
+    "forwardFfts": 1,
+    "inverseFfts": 1,
+    "butterflies": 20971520,
+    "twiddlePairLoads": 20971520,
+    "windowMultiplies": 1048576,
+    "filterScalarMultiplies": 2097152,
+    "inverseScaleMultiplies": 2097152
+  },
+  "variants": ["js-controlled", "wasm-linear-controlled"],
+  "lineage": {
+    "description": "The radix-2 controlled kernel derives from the accepted audio.fft.v1 authored implementation. This registration adds a distinct 2^20 sensor fixture, Hann window, spectral gain, inverse pass, oracle, counters and route. Audio evidence and claims are not reused.",
+    "sourcePaths": [
+      "benchmarks/audio-fft/workload.ts",
+      "benchmarks/audio-fft/audio-fft.wat"
+    ]
+  }
+}

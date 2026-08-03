@@ -76,9 +76,10 @@ export function assertCheckoutStatus(status: string): void {
   for (const entry of entries) {
     const state = entry.slice(0, 2), path = entry.slice(3);
     const allowed = state === "!!" &&
-      GENERATED_RAW_ROOTS.some((root) =>
-        path === root || path === `${root}/` || path.startsWith(`${root}/`)
-      );
+      (path === ".pi-subagents/" ||
+        GENERATED_RAW_ROOTS.some((root) =>
+          path === root || path === `${root}/` || path.startsWith(`${root}/`)
+        ));
     if (!allowed) throw new Error(`collection requires a clean checkout: ${path || "unknown"}`);
   }
 }

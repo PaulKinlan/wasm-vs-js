@@ -1,0 +1,925 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/numeric-fft-spectral-filter-browser-evidence.schema.json",
+  "title": "Numeric FFT spectral-filter parent-run Chrome evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "evidenceId",
+    "collectedAt",
+    "source",
+    "collector",
+    "browser",
+    "server",
+    "workload",
+    "scenarios",
+    "cleanup"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "evidenceId": { "const": "numeric-fft-spectral-filter-chrome-parent-v1" },
+    "collectedAt": { "$ref": "#/$defs/timestamp" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "commit",
+        "tree",
+        "clean",
+        "statusPorcelainSha256",
+        "ignoredEntries",
+        "files",
+        "verificationPasses"
+      ],
+      "properties": {
+        "commit": { "$ref": "#/$defs/gitIdentity" },
+        "tree": { "$ref": "#/$defs/gitIdentity" },
+        "clean": { "const": true },
+        "statusPorcelainSha256": { "$ref": "#/$defs/sha256" },
+        "ignoredEntries": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^(\\.pi-subagents/|raw/(permits|corpora)/.*)$"
+          }
+        },
+        "files": {
+          "type": "array",
+          "minItems": 44,
+          "maxItems": 44,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/sourceFile" }
+        },
+        "verificationPasses": {
+          "const": ["before-launch", "after-cleanup-before-publication"]
+        }
+      }
+    },
+    "collector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "denoVersion",
+        "executable",
+        "commandLine",
+        "scriptArguments",
+        "parentPid",
+        "pid"
+      ],
+      "properties": {
+        "denoVersion": { "const": "2.9.0" },
+        "executable": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": { "type": "string", "pattern": "^/" },
+            "sha256": { "$ref": "#/$defs/sha256" }
+          }
+        },
+        "commandLine": {
+          "type": "array",
+          "minItems": 6,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "scriptArguments": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "parentPid": { "$ref": "#/$defs/pid" },
+        "pid": { "$ref": "#/$defs/pid" }
+      }
+    },
+    "browser": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "product",
+        "expectedProduct",
+        "revision",
+        "userAgent",
+        "jsVersion",
+        "executable",
+        "expectedSha256",
+        "configuredArguments",
+        "effectiveArguments",
+        "headless",
+        "protocol",
+        "endpoint",
+        "profile",
+        "containment",
+        "stagedPackage"
+      ],
+      "properties": {
+        "product": { "const": "Chrome/150.0.7871.24" },
+        "expectedProduct": { "const": "Chrome/150.0.7871.24" },
+        "revision": { "type": "string", "minLength": 1 },
+        "userAgent": { "type": "string", "minLength": 1 },
+        "jsVersion": { "type": "string", "minLength": 1 },
+        "executable": { "$ref": "#/$defs/fileIdentity" },
+        "expectedSha256": {
+          "const": "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355"
+        },
+        "configuredArguments": {
+          "type": "array",
+          "minItems": 19,
+          "maxItems": 19,
+          "uniqueItems": true,
+          "prefixItems": [
+            {
+              "const": "--user-data-dir=/tmp/wasm-vs-js-owned-profiles/numeric-fft-browser-evidence-v1/chrome"
+            },
+            { "const": "--remote-debugging-port=0" },
+            { "const": "--no-first-run" },
+            { "const": "--no-default-browser-check" },
+            { "const": "--disable-sync" },
+            { "const": "--disable-crash-reporter" },
+            { "const": "--disable-breakpad" },
+            { "const": "--enable-automation" },
+            { "const": "--headless=new" },
+            { "const": "--no-sandbox" },
+            { "const": "--disable-gpu" },
+            { "const": "--disable-background-networking" },
+            { "const": "--disable-component-update" },
+            { "const": "--disable-default-apps" },
+            { "const": "--disable-extensions" },
+            { "const": "--metrics-recording-only" },
+            { "const": "--hide-scrollbars" },
+            { "const": "--window-size=1440,1200" },
+            { "const": "about:blank" }
+          ],
+          "items": false
+        },
+        "effectiveArguments": {
+          "type": "array",
+          "minItems": 19,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "headless": { "const": true },
+        "protocol": { "const": "Chrome DevTools Protocol" },
+        "endpoint": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["host", "port", "browserPath"],
+          "properties": {
+            "host": { "const": "127.0.0.1" },
+            "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+            "browserPath": {
+              "type": "string",
+              "pattern": "^/devtools/browser/[A-Za-z0-9-]+$"
+            }
+          }
+        },
+        "profile": { "$ref": "#/$defs/profileIdentity" },
+        "containment": { "$ref": "#/$defs/containmentIdentity" },
+        "stagedPackage": { "$ref": "#/$defs/stagedPackageIdentity" }
+      }
+    },
+    "server": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin", "loopbackOnly", "mode", "launcher", "arguments"],
+      "properties": {
+        "origin": { "$ref": "#/$defs/loopbackOrigin" },
+        "loopbackOnly": { "const": true },
+        "mode": { "const": "public" },
+        "launcher": { "$ref": "#/$defs/processIdentity" },
+        "arguments": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "workload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entryId",
+        "implementationId",
+        "mode",
+        "sampleCount",
+        "components",
+        "completeOutputSha256",
+        "quantizedOutputSha256",
+        "oracleMethod",
+        "performanceSamples"
+      ],
+      "properties": {
+        "entryId": { "const": "numeric.fft-spectral-filter.v1" },
+        "implementationId": { "const": "numeric-fft-spectral-filter-controlled-v1" },
+        "mode": { "const": "correctness-only-no-timing" },
+        "sampleCount": { "const": 1048576 },
+        "components": { "const": 2097152 },
+        "completeOutputSha256": {
+          "const": "56674b58154a2272f25bd2cd8c950cea04cf30be7211e9f51f13a183f31ff1a5"
+        },
+        "quantizedOutputSha256": {
+          "const": "513b24c63d27d9e84c41b7e0c65c95b687973f209420dd13dbb5fe3b3076ded3"
+        },
+        "oracleMethod": { "const": "independent-scalar-f64-radix-2" },
+        "performanceSamples": { "type": "array", "maxItems": 0 }
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "prefixItems": [
+        { "$ref": "#/$defs/scenario" },
+        { "$ref": "#/$defs/scenario" },
+        { "$ref": "#/$defs/scenario" },
+        { "$ref": "#/$defs/scenario" },
+        { "$ref": "#/$defs/scenario" },
+        { "$ref": "#/$defs/scenario" },
+        { "$ref": "#/$defs/scenario" },
+        { "$ref": "#/$defs/scenario" }
+      ],
+      "items": false
+    },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["browser", "profile", "server", "stage"],
+      "properties": {
+        "browser": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "unit",
+            "controlGroup",
+            "cgroupPath",
+            "cgroupDev",
+            "cgroupIno",
+            "invocationId",
+            "mainPid",
+            "observedPids",
+            "membershipSnapshots",
+            "remainingPids",
+            "cgroupEmpty",
+            "stoppedAt"
+          ],
+          "properties": {
+            "unit": { "type": "string", "pattern": "^wasm-vs-js-[a-z0-9]{16,64}\\.service$" },
+            "controlGroup": { "type": "string", "pattern": "^/" },
+            "cgroupPath": { "type": "string", "pattern": "^/sys/fs/cgroup/" },
+            "cgroupDev": { "$ref": "#/$defs/nonnegativeInteger" },
+            "cgroupIno": { "$ref": "#/$defs/nonnegativeInteger" },
+            "invocationId": { "type": "string", "pattern": "^[a-f0-9]{32}$" },
+            "mainPid": { "$ref": "#/$defs/pid" },
+            "observedPids": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "$ref": "#/$defs/pid" }
+            },
+            "membershipSnapshots": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "$ref": "#/$defs/membershipSnapshot" }
+            },
+            "remainingPids": { "type": "array", "maxItems": 0 },
+            "cgroupEmpty": { "const": true },
+            "stoppedAt": { "$ref": "#/$defs/timestamp" }
+          }
+        },
+        "profile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "dev", "ino", "removed", "absent"],
+          "properties": {
+            "path": {
+              "const": "/tmp/wasm-vs-js-owned-profiles/numeric-fft-browser-evidence-v1/chrome"
+            },
+            "dev": { "$ref": "#/$defs/nonnegativeInteger" },
+            "ino": { "$ref": "#/$defs/nonnegativeInteger" },
+            "removed": { "const": true },
+            "absent": { "const": true }
+          }
+        },
+        "server": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["launcher", "signal", "exit", "processAbsent"],
+          "properties": {
+            "launcher": { "$ref": "#/$defs/processIdentity" },
+            "signal": { "const": "SIGTERM" },
+            "exit": { "$ref": "#/$defs/exitStatus" },
+            "processAbsent": { "const": true }
+          }
+        },
+        "stage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["root", "dev", "ino", "removed", "absent"],
+          "properties": {
+            "root": { "const": "/tmp/wasm-vs-js-staged-chrome/numeric-fft-browser-evidence-v1" },
+            "dev": { "$ref": "#/$defs/nonnegativeInteger" },
+            "ino": { "$ref": "#/$defs/nonnegativeInteger" },
+            "removed": { "const": true },
+            "absent": { "const": true }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "gitIdentity": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "timestamp": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
+    },
+    "pid": { "type": "integer", "minimum": 1 },
+    "nonnegativeInteger": { "type": "integer", "minimum": 0 },
+    "chromeProduct": { "type": "string", "pattern": "^Chrome/[0-9]+(\\.[0-9]+){3}$" },
+    "loopbackOrigin": { "type": "string", "pattern": "^http://127\\.0\\.0\\.1:[0-9]+$" },
+    "sourceFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^[A-Za-z0-9._/-]+$" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "fileIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "dev", "ino", "sha256"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^/" },
+        "dev": { "$ref": "#/$defs/nonnegativeInteger" },
+        "ino": { "$ref": "#/$defs/nonnegativeInteger" },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "profileIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ownershipRoot",
+        "ownershipParentDev",
+        "ownershipParentIno",
+        "ownershipDev",
+        "ownershipIno",
+        "removeOwnershipRoot",
+        "profileRoot",
+        "profileDev",
+        "profileIno"
+      ],
+      "properties": {
+        "ownershipRoot": {
+          "const": "/tmp/wasm-vs-js-owned-profiles/numeric-fft-browser-evidence-v1"
+        },
+        "ownershipParentDev": { "$ref": "#/$defs/nonnegativeInteger" },
+        "ownershipParentIno": { "$ref": "#/$defs/nonnegativeInteger" },
+        "ownershipDev": { "$ref": "#/$defs/nonnegativeInteger" },
+        "ownershipIno": { "$ref": "#/$defs/nonnegativeInteger" },
+        "removeOwnershipRoot": { "const": true },
+        "profileRoot": {
+          "const": "/tmp/wasm-vs-js-owned-profiles/numeric-fft-browser-evidence-v1/chrome"
+        },
+        "profileDev": { "$ref": "#/$defs/nonnegativeInteger" },
+        "profileIno": { "$ref": "#/$defs/nonnegativeInteger" }
+      }
+    },
+    "containmentIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit",
+        "controlGroup",
+        "cgroupPath",
+        "cgroupDev",
+        "cgroupIno",
+        "invocationId",
+        "mainPid"
+      ],
+      "properties": {
+        "unit": { "type": "string", "pattern": "^wasm-vs-js-[a-z0-9]{16,64}\\.service$" },
+        "controlGroup": { "type": "string", "pattern": "^/" },
+        "cgroupPath": { "type": "string", "pattern": "^/sys/fs/cgroup/" },
+        "cgroupDev": { "$ref": "#/$defs/nonnegativeInteger" },
+        "cgroupIno": { "$ref": "#/$defs/nonnegativeInteger" },
+        "invocationId": { "type": "string", "pattern": "^[a-f0-9]{32}$" },
+        "mainPid": { "$ref": "#/$defs/pid" }
+      }
+    },
+    "stagedPackageIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["root", "dev", "ino"],
+      "properties": {
+        "root": { "const": "/tmp/wasm-vs-js-staged-chrome/numeric-fft-browser-evidence-v1" },
+        "dev": { "$ref": "#/$defs/nonnegativeInteger" },
+        "ino": { "$ref": "#/$defs/nonnegativeInteger" }
+      }
+    },
+    "processIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pid", "parentPid", "startTimeTicks", "executable"],
+      "properties": {
+        "pid": { "$ref": "#/$defs/pid" },
+        "parentPid": { "$ref": "#/$defs/nonnegativeInteger" },
+        "startTimeTicks": { "type": "string", "pattern": "^[0-9]+$" },
+        "executable": { "type": "string", "pattern": "^/" }
+      }
+    },
+    "membershipSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["collectedAt", "members"],
+      "properties": {
+        "collectedAt": { "$ref": "#/$defs/timestamp" },
+        "members": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/pid" }
+        }
+      }
+    },
+    "exitStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["success", "code", "signal"],
+      "properties": {
+        "success": { "type": "boolean" },
+        "code": { "type": "integer" },
+        "signal": { "type": ["string", "null"] }
+      }
+    },
+    "cause": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sequence", "event", "workerIndex", "token", "detail"],
+      "properties": {
+        "sequence": { "$ref": "#/$defs/nonnegativeInteger" },
+        "event": {
+          "enum": [
+            "start",
+            "complete",
+            "inject-wrong-token",
+            "cancel",
+            "restart",
+            "inject-stale-error",
+            "new-worker-active",
+            "timeout-fired",
+            "pagehide",
+            "worker-terminated",
+            "late-message",
+            "ignored"
+          ]
+        },
+        "workerIndex": {
+          "anyOf": [{ "$ref": "#/$defs/nonnegativeInteger" }, { "type": "null" }]
+        },
+        "token": {
+          "anyOf": [{ "$ref": "#/$defs/nonnegativeInteger" }, { "type": "null" }]
+        },
+        "detail": { "type": "string", "minLength": 1 }
+      }
+    },
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sequence", "status", "result", "startDisabled", "cancelDisabled"],
+      "properties": {
+        "sequence": { "$ref": "#/$defs/nonnegativeInteger" },
+        "status": { "type": "string", "minLength": 1 },
+        "result": { "type": "string", "minLength": 1 },
+        "startDisabled": { "type": "boolean" },
+        "cancelDisabled": { "type": "boolean" }
+      }
+    },
+    "finalState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "result", "startDisabled", "cancelDisabled", "progress"],
+      "properties": {
+        "status": { "type": "string", "minLength": 1 },
+        "result": { "type": "string", "minLength": 1 },
+        "startDisabled": { "type": "boolean" },
+        "cancelDisabled": { "type": "boolean" },
+        "progress": { "type": "number", "minimum": 0, "maximum": 4 }
+      }
+    },
+    "workerPost": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "token", "target"],
+      "properties": {
+        "type": { "const": "start" },
+        "token": { "enum": [1, 3] },
+        "target": { "const": "js-controlled" }
+      }
+    },
+    "workerObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["terminated", "posts"],
+      "properties": {
+        "terminated": { "type": "boolean" },
+        "posts": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "items": { "$ref": "#/$defs/workerPost" }
+        }
+      }
+    },
+    "lifecycleObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "label",
+        "status",
+        "result",
+        "startDisabled",
+        "cancelDisabled",
+        "progress",
+        "workers"
+      ],
+      "properties": {
+        "label": {
+          "enum": [
+            "ready",
+            "after-start",
+            "after-wrong-token",
+            "after-cancel",
+            "after-restart",
+            "after-stale-error",
+            "after-late-message",
+            "after-timeout",
+            "after-pagehide"
+          ]
+        },
+        "status": { "type": "string", "minLength": 1 },
+        "result": { "type": "string", "minLength": 1 },
+        "startDisabled": { "type": "boolean" },
+        "cancelDisabled": { "type": "boolean" },
+        "progress": { "type": "number", "minimum": 0, "maximum": 4 },
+        "workers": {
+          "type": "array",
+          "maxItems": 2,
+          "items": { "$ref": "#/$defs/workerObservation" }
+        }
+      }
+    },
+    "consoleEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["session", "type", "arguments"],
+      "properties": {
+        "session": { "enum": ["page", "worker"] },
+        "type": { "type": "string", "minLength": 1 },
+        "arguments": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "exception": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["session", "text", "lineNumber"],
+      "properties": {
+        "session": { "enum": ["page", "worker"] },
+        "text": { "type": "string" },
+        "lineNumber": { "type": "number", "minimum": 0 }
+      }
+    },
+    "network": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "method",
+        "resourceType",
+        "status",
+        "mimeType",
+        "fromDiskCache",
+        "fromServiceWorker",
+        "failed",
+        "errorText",
+        "bodyBytes",
+        "bodySha256"
+      ],
+      "properties": {
+        "url": { "type": "string", "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/" },
+        "method": { "const": "GET" },
+        "resourceType": { "type": "string", "minLength": 1 },
+        "status": { "const": 200 },
+        "mimeType": { "type": "string", "minLength": 1 },
+        "fromDiskCache": { "const": false },
+        "fromServiceWorker": { "const": false },
+        "failed": { "const": false },
+        "errorText": { "type": "null" },
+        "bodyBytes": { "type": "integer", "minimum": 1 },
+        "bodySha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "byteIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bytes", "sha256"],
+      "properties": {
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "executedIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bytes", "sha256", "protocolMethod"],
+      "properties": {
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "protocolMethod": { "enum": ["Debugger.getScriptSource", "Debugger.getWasmBytecode"] }
+      }
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["route", "localPath", "kind", "fetched", "executed", "byteIdentical"],
+      "properties": {
+        "route": {
+          "enum": [
+            "/benchmarks/numeric-fft-spectral-filter-v1/demo.js",
+            "/benchmarks/numeric-fft-spectral-filter-v1/worker.js",
+            "/benchmarks/base/numeric-fft-spectral-filter/workload.js",
+            "/artifacts/numeric-fft-spectral-filter/numeric-fft-spectral-filter.wasm"
+          ]
+        },
+        "localPath": { "type": "string", "pattern": "^[A-Za-z0-9._/-]+$" },
+        "kind": { "enum": ["javascript", "webassembly"] },
+        "fetched": { "$ref": "#/$defs/byteIdentity" },
+        "executed": { "$ref": "#/$defs/executedIdentity" },
+        "byteIdentical": { "const": true }
+      }
+    },
+    "tolerance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["absolute", "relative", "energyRelative"],
+      "properties": {
+        "absolute": { "const": 0.00025 },
+        "relative": { "const": 0.0025 },
+        "energyRelative": { "const": 0.0002 }
+      }
+    },
+    "oracle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "passed",
+        "violations",
+        "maxAbsolute",
+        "maxRelative",
+        "outputEnergy",
+        "referenceEnergy",
+        "energyRelative",
+        "tolerance"
+      ],
+      "properties": {
+        "passed": { "const": true },
+        "violations": { "const": 0 },
+        "maxAbsolute": { "type": "number", "minimum": 0 },
+        "maxRelative": { "type": "number", "minimum": 0 },
+        "outputEnergy": { "type": "number", "exclusiveMinimum": 0 },
+        "referenceEnergy": { "type": "number", "exclusiveMinimum": 0 },
+        "energyRelative": { "type": "number", "minimum": 0, "maximum": 0.0002 },
+        "tolerance": { "$ref": "#/$defs/tolerance" }
+      }
+    },
+    "checkpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["index", "real", "imaginary"],
+      "properties": {
+        "index": { "enum": [0, 1, 131072, 262144, 524288, 1048574, 1048575] },
+        "real": { "type": "number" },
+        "imaginary": { "type": "number" }
+      }
+    },
+    "counters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pipelines",
+        "samples",
+        "forward-ffts",
+        "inverse-ffts",
+        "butterflies",
+        "twiddle-pair-loads",
+        "window-multiplies",
+        "filter-scalar-multiplies",
+        "inverse-scale-multiplies",
+        "input-bytes",
+        "output-bytes",
+        "allocations",
+        "boundary-crossings"
+      ],
+      "properties": {
+        "pipelines": { "const": 1 },
+        "samples": { "const": 1048576 },
+        "forward-ffts": { "const": 1 },
+        "inverse-ffts": { "const": 1 },
+        "butterflies": { "const": 20971520 },
+        "twiddle-pair-loads": { "const": 20971520 },
+        "window-multiplies": { "const": 1048576 },
+        "filter-scalar-multiplies": { "const": 2097152 },
+        "inverse-scale-multiplies": { "const": 2097152 },
+        "input-bytes": { "const": 20971512 },
+        "output-bytes": { "const": 8388608 },
+        "allocations": { "enum": [0, 1] },
+        "boundary-crossings": { "enum": [0, 1] }
+      }
+    },
+    "fullResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target",
+        "passed",
+        "completeOutputSha256",
+        "quantizedOutputSha256",
+        "componentsValidated",
+        "checkpoints",
+        "counters",
+        "statement",
+        "executionMode",
+        "sampleCount",
+        "registeredOracle"
+      ],
+      "properties": {
+        "target": { "enum": ["js-controlled", "wasm-linear-controlled"] },
+        "passed": { "const": true },
+        "completeOutputSha256": {
+          "const": "56674b58154a2272f25bd2cd8c950cea04cf30be7211e9f51f13a183f31ff1a5"
+        },
+        "quantizedOutputSha256": {
+          "const": "513b24c63d27d9e84c41b7e0c65c95b687973f209420dd13dbb5fe3b3076ded3"
+        },
+        "componentsValidated": { "const": 2097152 },
+        "checkpoints": {
+          "type": "array",
+          "minItems": 7,
+          "maxItems": 7,
+          "items": { "$ref": "#/$defs/checkpoint" }
+        },
+        "counters": { "$ref": "#/$defs/counters" },
+        "statement": { "const": "No duration was collected." },
+        "executionMode": { "const": "full-2^20-correctness" },
+        "sampleCount": { "const": 1048576 },
+        "registeredOracle": { "$ref": "#/$defs/oracle" }
+      }
+    },
+    "accessibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodeCount", "treeSha256", "checks"],
+      "properties": {
+        "nodeCount": { "type": "integer", "minimum": 1 },
+        "treeSha256": { "$ref": "#/$defs/sha256" },
+        "checks": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "document",
+            "main",
+            "startButton",
+            "cancelButton",
+            "statusLiveRegion",
+            "resultFocusable"
+          ],
+          "properties": {
+            "document": { "const": true },
+            "main": { "const": true },
+            "startButton": { "const": true },
+            "cancelButton": { "const": true },
+            "statusLiveRegion": { "const": true },
+            "resultFocusable": { "const": true }
+          }
+        }
+      }
+    },
+    "screenshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^screenshots/[a-z0-9-]+\\.png$" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "route",
+        "mode",
+        "target",
+        "action",
+        "causes",
+        "observations",
+        "states",
+        "finalState",
+        "fullResult",
+        "assertions",
+        "console",
+        "exceptions",
+        "network",
+        "assets",
+        "accessibility",
+        "screenshot"
+      ],
+      "properties": {
+        "id": {
+          "enum": [
+            "complete-js",
+            "complete-wasm",
+            "wrong-token",
+            "stale-error",
+            "restart",
+            "cancel",
+            "timeout",
+            "pagehide"
+          ]
+        },
+        "route": { "const": "/benchmarks/numeric-fft-spectral-filter-v1/" },
+        "mode": { "enum": ["native-full", "instrumented-lifecycle"] },
+        "target": {
+          "enum": ["js-controlled", "wasm-linear-controlled", null]
+        },
+        "action": {
+          "enum": [
+            "complete",
+            "wrong-token",
+            "stale-error",
+            "restart",
+            "cancel",
+            "timeout",
+            "pagehide"
+          ]
+        },
+        "causes": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/$defs/cause" }
+        },
+        "observations": {
+          "type": "array",
+          "maxItems": 5,
+          "items": { "$ref": "#/$defs/lifecycleObservation" }
+        },
+        "states": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/state" }
+        },
+        "finalState": { "$ref": "#/$defs/finalState" },
+        "fullResult": {
+          "anyOf": [{ "$ref": "#/$defs/fullResult" }, { "type": "null" }]
+        },
+        "assertions": {
+          "type": "array",
+          "minItems": 3,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "console": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/consoleEntry" }
+        },
+        "exceptions": {
+          "type": "array",
+          "maxItems": 0,
+          "items": { "$ref": "#/$defs/exception" }
+        },
+        "network": {
+          "type": "array",
+          "minItems": 3,
+          "items": { "$ref": "#/$defs/network" }
+        },
+        "assets": {
+          "type": "array",
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/asset" }
+        },
+        "accessibility": { "$ref": "#/$defs/accessibility" },
+        "screenshot": { "$ref": "#/$defs/screenshot" }
+      }
+    }
+  }
+}

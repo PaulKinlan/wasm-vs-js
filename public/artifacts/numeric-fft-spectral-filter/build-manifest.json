@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "status": "supplemental-implementation-candidate",
+  "authoritativePerformanceEvidence": false,
+  "entryId": "numeric.fft-spectral-filter.v1",
+  "implementationId": "numeric-fft-spectral-filter-controlled-v1",
+  "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
+  "sourceCommit": "a2d2a63afa2a8902f8e21bcde99d7e0f1f35d391",
+  "sourceSha256": "202cc62a7d9076c8550d88e7404426fe3f9039eb8486e1476cab380ec34ba684",
+  "fullSourceGraph": [
+    {
+      "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
+      "bytes": 7647,
+      "sha256": "443d21266b4ac03ad3f5e56a776c4415f09f6d60dc510a698807cc7188fea8a7"
+    },
+    {
+      "path": "benchmarks/base/numeric-fft-spectral-filter/reference.ts",
+      "bytes": 4443,
+      "sha256": "c8265358973c58799fb7719b48ecc85f8ae9765126e1dfe9e0055395696bb3bc"
+    },
+    {
+      "path": "benchmarks/base/numeric-fft-spectral-filter/numeric-fft-spectral-filter.wat",
+      "bytes": 6443,
+      "sha256": "bf5c4ce805e9a7e534abdd88f6b59d998dc7ad9739c18e602f973a0abaf35642"
+    },
+    {
+      "path": "catalog/base-implementations/numeric.fft-spectral-filter.v1.json",
+      "bytes": 2886,
+      "sha256": "3cd1f51a2023c2d4eea1f014f9658190a2a66ac39b5e8d44ebad785994dd8664"
+    },
+    {
+      "path": "public/benchmarks/numeric-fft-spectral-filter-v1/index.html",
+      "bytes": 2657,
+      "sha256": "5792d5aa23a00c43174f151d9518f8305504115911d629fbd82a867325b0708d"
+    },
+    {
+      "path": "public/benchmarks/numeric-fft-spectral-filter-v1/demo.js",
+      "bytes": 2714,
+      "sha256": "ea543fbe4e6ca5809a3c48027fa2e22991e760915274ed319b9cf13257382b14"
+    },
+    {
+      "path": "public/benchmarks/numeric-fft-spectral-filter-v1/worker.js",
+      "bytes": 2688,
+      "sha256": "9b0977aba0ce356c3791c96f6f6193fd1e29f73edcae299bd06a52986f1f319b"
+    },
+    {
+      "path": "scripts/build-numeric-fft-spectral-filter.ts",
+      "bytes": 10327,
+      "sha256": "be376f2f70f8fd6db68f4a4a0dd546a4708c38ac1f7232e52cd93654e332f547"
+    },
+    {
+      "path": "server.ts",
+      "bytes": 20337,
+      "sha256": "49e5ca1a34cecad96925e495bb56a500a1b64d825607c2477bd720b71e116c82"
+    },
+    {
+      "path": "deno.json",
+      "bytes": 1831,
+      "sha256": "17e6674c81fdaee7dfc52ed1bd28baeec70fb0715f839b92defe1e84545b08eb"
+    },
+    {
+      "path": "deno.lock",
+      "bytes": 1630,
+      "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2"
+    }
+  ],
+  "frozenCatalog": {
+    "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
+    "immutability": "byte-for-byte"
+  },
+  "manifests": {
+    "fixture": {
+      "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
+      "sha256": "b29ec881692badb1d6d0f4c1d7ca95af4148463a6a16f50f15ca5760a6d89d18"
+    },
+    "output": {
+      "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
+      "sha256": "eafd5b872306044c03818a13164145a1b263190ca965dd80eab3a4e4196560bb"
+    }
+  },
+  "variants": {
+    "js-controlled": {
+      "source": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
+      "sourceSha256": "443d21266b4ac03ad3f5e56a776c4415f09f6d60dc510a698807cc7188fea8a7"
+    },
+    "wasm-linear-controlled": {
+      "source": "benchmarks/base/numeric-fft-spectral-filter/numeric-fft-spectral-filter.wat",
+      "artifact": "public/artifacts/numeric-fft-spectral-filter/numeric-fft-spectral-filter.wasm",
+      "artifactSha256": "c94a5eee6c85887db6be91f4a98cb983344d74cf41fb476097d3a59968e08c25",
+      "bytes": 773,
+      "features": {
+        "scalar": true,
+        "simd": false,
+        "threads": false,
+        "initialPages": 512,
+        "maximumPages": 512,
+        "memoryGrowth": false
+      }
+    }
+  },
+  "toolchain": {
+    "runtime": "Deno 2.9.0",
+    "wabt": "1.0.37",
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=a2d2a63afa2a8902f8e21bcde99d7e0f1f35d391"
+  }
+}

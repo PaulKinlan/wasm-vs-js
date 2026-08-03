@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "status": "supplemental-implementation-candidate",
+  "entryId": "numeric.fft-spectral-filter.v1",
+  "implementationId": "numeric-fft-spectral-filter-controlled-v1",
+  "sampleCount": 1048576,
+  "signalSeed": "0x6d2b79f5",
+  "rights": {
+    "licenseSpdx": "CC0-1.0",
+    "source": "project-generated",
+    "redistribution": "permitted"
+  },
+  "serialization": "raw-little-endian-f32",
+  "fields": {
+    "signal": {
+      "components": 1048576,
+      "bytes": 4194304,
+      "sha256": "f78231f04f40b2599525279ea5e3eb65d85a4a827e6e594ad8509d4f161366af"
+    },
+    "window": {
+      "components": 1048576,
+      "bytes": 4194304,
+      "sha256": "2d6d8d8dc74a451bb031c96e701434aac2a59f2cf700edc1a330ea81208390fa"
+    },
+    "twiddles": {
+      "components": 2097150,
+      "bytes": 8388600,
+      "sha256": "ee1f74fa8bd709e4be217616056dfcc648d8202c9a5e0bc98c04e808c28fe59b"
+    },
+    "gains": {
+      "components": 1048576,
+      "bytes": 4194304,
+      "sha256": "7ad3f4fd82073a1bd05da2a96e10d3ba7807c47277b998f99aa9effa09fa4495"
+    }
+  },
+  "fixtureSha256": "dad4a8b3db7bee10be5ea60aef48af3768414c8161aa3bb2d46334052d077fcf",
+  "sourceCommit": "a2d2a63afa2a8902f8e21bcde99d7e0f1f35d391"
+}

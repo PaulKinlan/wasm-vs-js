@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PaulKinlan/wasm-vs-js/schemas/numeric-fft-spectral-filter-build-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "status",
+    "authoritativePerformanceEvidence",
+    "entryId",
+    "implementationId",
+    "sourceRepository",
+    "sourceCommit",
+    "sourceSha256",
+    "fullSourceGraph",
+    "frozenCatalog",
+    "manifests",
+    "variants",
+    "toolchain"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "status": { "const": "supplemental-implementation-candidate" },
+    "authoritativePerformanceEvidence": { "const": false },
+    "entryId": { "const": "numeric.fft-spectral-filter.v1" },
+    "implementationId": { "const": "numeric-fft-spectral-filter-controlled-v1" },
+    "sourceRepository": { "const": "https://github.com/PaulKinlan/wasm-vs-js" },
+    "sourceCommit": { "$ref": "#/$defs/commit" },
+    "sourceSha256": { "$ref": "#/$defs/sha256" },
+    "fullSourceGraph": {
+      "type": "array",
+      "minItems": 11,
+      "maxItems": 11,
+      "items": { "$ref": "#/$defs/fileWithBytes" }
+    },
+    "frozenCatalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha256", "immutability"],
+      "properties": {
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "immutability": { "const": "byte-for-byte" }
+      }
+    },
+    "manifests": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fixture", "output"],
+      "properties": {
+        "fixture": { "$ref": "#/$defs/file" },
+        "output": { "$ref": "#/$defs/file" }
+      }
+    },
+    "variants": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["js-controlled", "wasm-linear-controlled"],
+      "properties": {
+        "js-controlled": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source", "sourceSha256"],
+          "properties": {
+            "source": { "const": "benchmarks/base/numeric-fft-spectral-filter/workload.js" },
+            "sourceSha256": { "$ref": "#/$defs/sha256" }
+          }
+        },
+        "wasm-linear-controlled": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source", "artifact", "artifactSha256", "bytes", "features"],
+          "properties": {
+            "source": {
+              "const": "benchmarks/base/numeric-fft-spectral-filter/numeric-fft-spectral-filter.wat"
+            },
+            "artifact": {
+              "const": "public/artifacts/numeric-fft-spectral-filter/numeric-fft-spectral-filter.wasm"
+            },
+            "artifactSha256": { "$ref": "#/$defs/sha256" },
+            "bytes": { "const": 773 },
+            "features": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scalar",
+                "simd",
+                "threads",
+                "initialPages",
+                "maximumPages",
+                "memoryGrowth"
+              ],
+              "properties": {
+                "scalar": { "const": true },
+                "simd": { "const": false },
+                "threads": { "const": false },
+                "initialPages": { "const": 512 },
+                "maximumPages": { "const": 512 },
+                "memoryGrowth": { "const": false }
+              }
+            }
+          }
+        }
+      }
+    },
+    "toolchain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtime", "wabt", "command"],
+      "properties": {
+        "runtime": { "const": "Deno 2.9.0" },
+        "wabt": { "const": "1.0.37" },
+        "command": {
+          "type": "string",
+          "pattern": "^deno run --allow-read=\\. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter\\.ts --source-commit=[a-f0-9]{40}$"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "path": {
+      "type": "string",
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$"
+    },
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "$ref": "#/$defs/path" },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "fileWithBytes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "$ref": "#/$defs/path" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "status": "supplemental-validation-record",
+  "authoritativePerformanceEvidence": false,
+  "entryId": "numeric.fft-spectral-filter.v1",
+  "implementationId": "numeric-fft-spectral-filter-controlled-v1",
+  "variantId": "js-controlled",
+  "fixtureSha256": "dad4a8b3db7bee10be5ea60aef48af3768414c8161aa3bb2d46334052d077fcf",
+  "completeOutputSha256": "56674b58154a2272f25bd2cd8c950cea04cf30be7211e9f51f13a183f31ff1a5",
+  "quantizedOutputSha256": "513b24c63d27d9e84c41b7e0c65c95b687973f209420dd13dbb5fe3b3076ded3",
+  "oracle": {
+    "passed": true,
+    "violations": 0,
+    "maxAbsolute": 1.7113793338019434e-7,
+    "maxRelative": 45181.96588413063,
+    "outputEnergy": 26623.35842396255,
+    "referenceEnergy": 26623.358400572066,
+    "energyRelative": 8.785699615237633e-10,
+    "tolerance": {
+      "absolute": 0.00025,
+      "relative": 0.0025,
+      "energyRelative": 0.0002
+    }
+  },
+  "counters": {
+    "pipelines": 1,
+    "samples": 1048576,
+    "forward-ffts": 1,
+    "inverse-ffts": 1,
+    "butterflies": 20971520,
+    "twiddle-pair-loads": 20971520,
+    "window-multiplies": 1048576,
+    "filter-scalar-multiplies": 2097152,
+    "inverse-scale-multiplies": 2097152,
+    "input-bytes": 20971512,
+    "output-bytes": 8388608,
+    "allocations": 1,
+    "boundary-crossings": 0
+  },
+  "buildManifest": "/artifacts/numeric-fft-spectral-filter/build-manifest.json",
+  "performanceSamples": [],
+  "sourceCommit": "a2d2a63afa2a8902f8e21bcde99d7e0f1f35d391"
+}
