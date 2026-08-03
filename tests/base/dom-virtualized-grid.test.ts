@@ -1,6 +1,11 @@
 import Ajv2020Module from "ajv2020";
 import { canonicalize, sha256Hex } from "../../lib/canonical.ts";
 import { createHandler } from "../../server.ts";
+import {
+  assertGridControlRunning,
+  gridControlReady,
+  gridControlRunning,
+} from "../../lib/dom-virtualized-grid-control.ts";
 import { assert, assertEquals } from "../assert.ts";
 import {
   ACTIONS,
@@ -420,6 +425,36 @@ Deno.test("builder reproduces the complete fixture, Wasm, manifests, and hashes"
   }
 });
 
+Deno.test("browser control readiness and click transition fail closed", () => {
+  const ready = {
+    selectedTarget: "js-controlled",
+    runnerInitialized: "true",
+    startDisabled: false,
+    cancelDisabled: true,
+    workerActive: "false",
+    status: "Ready. No worker is running.",
+  };
+  assert(gridControlReady(ready, "js-controlled"));
+  assert(!gridControlReady(ready, "wasm-linear-controlled"));
+  assert(!gridControlRunning(ready));
+  let denied = false;
+  try {
+    assertGridControlRunning(ready);
+  } catch (error) {
+    denied = error instanceof Error && error.message.includes("did not enter Running state");
+  }
+  assert(denied, "click transition failure was not rejected");
+  const running = {
+    ...ready,
+    startDisabled: true,
+    cancelDisabled: false,
+    workerActive: "true",
+    status: "Running 300 trace slots at 100 ms cadence (±20 ms)…",
+  };
+  assert(gridControlRunning(running));
+  assertGridControlRunning(running);
+});
+
 Deno.test("runner uses a fresh worker, typed-only host commands, timeout, stale tokens, and pagehide cleanup", async () => {
   const html = await Deno.readTextFile("public/benchmarks/dom-virtualized-grid-v1/index.html");
   const runner = await Deno.readTextFile(
@@ -440,6 +475,7 @@ Deno.test("runner uses a fresh worker, typed-only host commands, timeout, stale 
   assert(runner.includes("runToken !== token"));
   assert(runner.includes("pagehide"));
   assert(runner.includes("injectWrongToken"));
+  assert(runner.includes('dataset.gridRunnerInitialized = "true"'));
   assert(runner.includes("60_000"));
   assert(runner.includes("getBoundingClientRect"));
   assert(!runner.includes("localStorage"));
@@ -476,6 +512,19 @@ Deno.test("runner uses a fresh worker, typed-only host commands, timeout, stale 
     canonicalize(outputManifest.trace.lifecycle),
     canonicalize(GRID_TRACE_LIFECYCLE),
   );
+  assert(!collector.includes("select.value="));
+  assert(!collector.includes("querySelector('#target').value="));
+  assert(collector.includes("Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype"));
+  assert(collector.includes("descriptor.set.call(select"));
+  assert(collector.includes("new Event('input',{bubbles:true})"));
+  assert(collector.includes("new Event('change',{bubbles:true})"));
+  assert(collector.includes("clickStartAndRequireRunning"));
+  assert(collector.includes("assertGridControlRunning(state)"));
+  assert(collector.includes("gridControlReady(state, value)"));
+  assert(collector.includes("} finally {"));
+  assert(collector.includes('emergencyClient?.send("Browser.close")'));
+  assert(collector.includes("await Deno.remove(profilePath, { recursive: true }).catch"));
+  assert(collector.includes("2_000"));
   assert(collector.includes('client.send("Emulation.setDeviceMetricsOverride"'));
   assert(collector.includes('client.send("Accessibility.getFullAXTree"'));
   assert(collector.includes("canonicalize(parsed.browserDom)"));

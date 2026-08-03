@@ -100,6 +100,7 @@ const sourcePaths = [
   "public/benchmarks/dom-virtualized-grid-v1/grid-runner.js",
   "public/benchmarks/dom-virtualized-grid-v1/grid-worker.js",
   "scripts/validate-dom-virtualized-grid-browser.ts",
+  "lib/dom-virtualized-grid-control.ts",
   "schemas/base-implementation-candidate.schema.json",
   "tests/base/dom-virtualized-grid.test.ts",
   "catalog/base-implementation-candidates.v1.json",

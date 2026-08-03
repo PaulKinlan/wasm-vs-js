@@ -353,3 +353,5 @@ if (new URLSearchParams(location.search).get("demo-test") === "1") {
     },
   });
 }
+
+document.documentElement.dataset.gridRunnerInitialized = "true";

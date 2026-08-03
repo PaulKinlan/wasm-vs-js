@@ -1,5 +1,10 @@
 import { canonicalize, sha256Hex } from "../lib/canonical.ts";
 import { CdpClient } from "../lib/cdp-client.ts";
+import {
+  assertGridControlRunning,
+  gridControlReady,
+  gridControlRunning,
+} from "../lib/dom-virtualized-grid-control.ts";
 
 const root = new URL("../", import.meta.url);
 const sourceCommit = Deno.args.find((value) => value.startsWith("--source-commit="))?.slice(16) ??
@@ -159,10 +164,46 @@ async function click(client: CdpClient, sessionId: string, selector: string): Pr
   }, sessionId);
 }
 
+async function setNativeTarget(
+  client: CdpClient,
+  sessionId: string,
+  value: string,
+): Promise<Record<string, unknown>> {
+  await client.send("Runtime.evaluate", {
+    expression:
+      `(() => { const select=document.querySelector('#target'); const descriptor=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value'); if(!select||!descriptor?.set) throw new Error('native select setter unavailable'); descriptor.set.call(select,${
+        JSON.stringify(value)
+      }); select.dispatchEvent(new Event('input',{bubbles:true})); select.dispatchEvent(new Event('change',{bubbles:true})); })()`,
+  }, sessionId);
+  return await waitForState(
+    client,
+    sessionId,
+    (state) => gridControlReady(state, value),
+    2_000,
+  );
+}
+
+async function clickStartAndRequireRunning(
+  client: CdpClient,
+  sessionId: string,
+): Promise<Record<string, unknown>> {
+  await client.send("Runtime.evaluate", {
+    expression:
+      `(() => { const button=document.querySelector('#start'); if(!button||button.disabled) throw new Error('Start control unavailable'); HTMLElement.prototype.click.call(button); })()`,
+  }, sessionId);
+  try {
+    return await waitForState(client, sessionId, gridControlRunning, 2_000);
+  } catch {
+    const state = await pageState(client, sessionId);
+    assertGridControlRunning(state);
+    throw new Error("unreachable Running transition state");
+  }
+}
+
 async function pageState(client: CdpClient, sessionId: string) {
   const evaluated = await client.send("Runtime.evaluate", {
     expression:
-      `(() => { const grid=document.querySelector('#grid'); const rect=grid.getBoundingClientRect(); const rows=[...grid.children]; return {status:document.querySelector('#status').textContent.trim(),result:document.querySelector('#result').textContent.trim(),startDisabled:document.querySelector('#start').disabled,cancelDisabled:document.querySelector('#cancel').disabled,mountedRows:rows.length,role:grid.getAttribute('role'),rowCount:grid.getAttribute('aria-rowcount'),selectedCount:grid.querySelectorAll('[aria-selected="true"]').length,activeDescendant:grid.getAttribute('aria-activedescendant'),focusedRow:document.activeElement?.dataset.rowId||null,selectedRow:grid.querySelector('[aria-selected="true"]')?.dataset.rowId||null,activeElement:document.activeElement?.id||null,workerActive:document.documentElement.dataset.gridWorkerActive||"false",layout:{innerWidth,innerHeight,devicePixelRatio,gridWidth:rect.width,gridHeight:rect.height,clientWidth:grid.clientWidth,clientHeight:grid.clientHeight,visibleRowCapacity:grid.clientHeight/24,scrollHeight:grid.scrollHeight,rowHeights:rows.map(row=>row.getBoundingClientRect().height)}}; })()`,
+      `(() => { const grid=document.querySelector('#grid'); const rect=grid.getBoundingClientRect(); const rows=[...grid.children]; return {status:document.querySelector('#status').textContent.trim(),result:document.querySelector('#result').textContent.trim(),startDisabled:document.querySelector('#start').disabled,cancelDisabled:document.querySelector('#cancel').disabled,selectedTarget:document.querySelector('#target').value,runnerInitialized:document.documentElement.dataset.gridRunnerInitialized||"false",mountedRows:rows.length,role:grid.getAttribute('role'),rowCount:grid.getAttribute('aria-rowcount'),selectedCount:grid.querySelectorAll('[aria-selected="true"]').length,activeDescendant:grid.getAttribute('aria-activedescendant'),focusedRow:document.activeElement?.dataset.rowId||null,selectedRow:grid.querySelector('[aria-selected="true"]')?.dataset.rowId||null,activeElement:document.activeElement?.id||null,workerActive:document.documentElement.dataset.gridWorkerActive||"false",layout:{innerWidth,innerHeight,devicePixelRatio,gridWidth:rect.width,gridHeight:rect.height,clientWidth:grid.clientWidth,clientHeight:grid.clientHeight,visibleRowCapacity:grid.clientHeight/24,scrollHeight:grid.scrollHeight,rowHeights:rows.map(row=>row.getBoundingClientRect().height)}}; })()`,
     returnByValue: true,
   }, sessionId);
   return (evaluated.result as { value: Record<string, unknown> }).value;
@@ -560,7 +601,9 @@ try {
     const initialState = await waitForState(
       client,
       sessionId,
-      (state) => state.status === "Ready. No worker is running.",
+      (state) =>
+        state.status === "Ready. No worker is running." &&
+        state.runnerInitialized === "true" && state.startDisabled === false,
     );
     const layout = initialState.layout as Record<string, unknown>;
     if (
@@ -571,18 +614,13 @@ try {
     ) {
       throw new Error(`${scenario.id} viewport/DPR/layout mismatch: ${JSON.stringify(layout)}`);
     }
-    await client.send("Runtime.evaluate", {
-      expression: `(() => { const select=document.querySelector('#target'); select.value=${
-        JSON.stringify(scenario.target)
-      }; select.dispatchEvent(new Event('change',{bubbles:true})); })()`,
-    }, sessionId);
-    await click(client, sessionId, "#start");
+    await setNativeTarget(client, sessionId, scenario.target);
+    await clickStartAndRequireRunning(client, sessionId);
     let finalState;
     if (
       scenario.action === "cancel" || scenario.action === "pagehide" ||
       scenario.action === "restart"
     ) {
-      await waitForState(client, sessionId, (state) => String(state.status).startsWith("Running "));
       const attachDeadline = Date.now() + 2_000;
       while (workerAttachTasks.length === 0 && Date.now() < attachDeadline) {
         await new Promise((resolve) => setTimeout(resolve, 10));
@@ -603,10 +641,8 @@ try {
           (state) => String(state.status).startsWith("Canceled."),
         );
         if (scenario.action === "restart") {
-          await client.send("Runtime.evaluate", {
-            expression: "document.querySelector('#target').value='wasm-linear-controlled'",
-          }, sessionId);
-          await click(client, sessionId, "#start");
+          await setNativeTarget(client, sessionId, "wasm-linear-controlled");
+          await clickStartAndRequireRunning(client, sessionId);
           await client.send("Runtime.evaluate", {
             expression: "globalThis.__gridDemoTest.injectWrongToken()",
           }, sessionId);
