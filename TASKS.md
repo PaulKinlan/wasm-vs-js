@@ -69,11 +69,11 @@ Tasks are ordered by dependency. A checked box means the exact acceptance criter
 
 ### API and storage
 
-- [ ] Implement closed-schema `POST /v1/runs` with streaming byte cap before JSON parsing.
+- [x] Implement closed-schema `POST /v1/runs` with streaming byte cap before JSON parsing.
 - [ ] Implement reporter authorization, idempotency, durable rate limits, and timestamp bounds.
-- [ ] Implement immutable KV run/part/dedupe/index/summary records in one bounded atomic commit.
+- [x] Implement immutable KV run/part/dedupe/index/summary records in one bounded atomic commit.
 - [ ] Measure key/value/check/mutation/serialized-byte headroom.
-- [ ] Implement bounded run list/detail, summaries, and health APIs.
+- [x] Implement bounded run list/detail, summaries, and health APIs.
 - [ ] Implement versioned reconciliation from raw runs.
 
 ### Operations
