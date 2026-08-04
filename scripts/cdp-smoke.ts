@@ -209,6 +209,32 @@ try {
     `demos=${summary.demos} unattended=${summary.unattended} catalog=${summary.catalog} v2=${summary.v2} (expect 38/37/38/20)`,
   );
 
+  // --- check 2b: catalog page (/benchmarks/) renders JS-driven content, zero console errors
+  const catErrorsBefore = consoleErrors.length;
+  await send("Page.navigate", { url: `${realBase}/benchmarks/` });
+  let catalogRendered = false;
+  try {
+    await waitFor(
+      async () => {
+        const n = await evaluate(
+          `document.querySelectorAll("#catalog-list tr, #catalog-list article, #catalog-list li").length`,
+        );
+        return typeof n === "number" && n > 0;
+      },
+      20_000,
+      "catalog JS render",
+    );
+    catalogRendered = true;
+  } catch { /* reported below */ }
+  const catNewErrors = consoleErrors.slice(catErrorsBefore);
+  report(
+    "catalog-page",
+    catalogRendered && catNewErrors.length === 0,
+    `rendered=${catalogRendered} consoleErrors=${catNewErrors.length}${
+      catNewErrors.length ? " [" + catNewErrors.join(" | ").slice(0, 160) + "]" : ""
+    }`,
+  );
+
   // --- check 2: every card demo route returns 200 -----------------------------
   const routeResult = await evaluate(`(async () => {
     const hrefs = [...document.querySelectorAll("a.btn-pg-link")].map((a) => a.getAttribute("href"));

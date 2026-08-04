@@ -301,6 +301,10 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/demo-assets/audio/manifest.json",
     "application/json; charset=utf-8",
   ]],
+  ["/workload-catalog-routes.generated.js", [
+    "public/workload-catalog-routes.generated.js",
+    "text/javascript; charset=utf-8",
+  ]],
   ["/workload-catalog.js", ["public/workload-catalog.js", "text/javascript; charset=utf-8"]],
   ["/crypto-file-integrity-demo.js", [
     "public/crypto-file-integrity-demo.js",
