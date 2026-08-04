@@ -235,6 +235,14 @@ try {
     }`,
   );
 
+  // card-run checks below expect the homepage — navigate back
+  await send("Page.navigate", { url: `${realBase}/` });
+  await waitFor(
+    async () => (await evaluate(`document.readyState`)) === "complete",
+    20_000,
+    "homepage reload",
+  );
+
   // --- check 2: every card demo route returns 200 -----------------------------
   const routeResult = await evaluate(`(async () => {
     const hrefs = [...document.querySelectorAll("a.btn-pg-link")].map((a) => a.getAttribute("href"));
