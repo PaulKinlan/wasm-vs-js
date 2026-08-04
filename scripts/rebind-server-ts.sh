@@ -31,6 +31,14 @@ run v2neural-a  deno run --allow-all scripts/build-v2-neural.ts artifacts $C
 WASM_VS_JS_COMMIT=$C run v2neural-r deno run --allow-all scripts/build-v2-neural.ts records $C
 WASM_VS_JS_COMMIT=$C run jt-records deno run --allow-all scripts/build-v1-json-telemetry-records.ts
 run trad        deno run --allow-all scripts/build-traditional-demos.ts --source-commit=$C
+echo "$C" > public/artifacts/crypto-authenticated-stream/source-commit.txt
+run crypto      deno run --allow-all scripts/build-crypto-authenticated-stream.ts
+run pcap        deno run --allow-all scripts/build-base-network-pcap-decode.ts --source-commit=$C
+run audio       deno run --allow-all scripts/build-audio.ts --source-commit=$C
+run audio-res   deno run --allow-all scripts/build-audio-results.ts --source-commit=$C
+run audio-web   deno run --allow-all scripts/build-base-audio-webaudio-effects.ts --source-commit=$C --write
+run archive     deno run --allow-all scripts/build-v1-archive.ts --source-commit=$C
+WASM_VS_JS_COMMIT=$C run v2text-rec deno run --allow-all scripts/build-v2-text-records.ts
 # Surgical traditional-demos retained-evidence rebind (do NOT run the collector — broken+destructive)
 echo "$C" > artifacts/demos/traditional/source-commit.txt
 TREE=$(git rev-parse HEAD^{tree})
