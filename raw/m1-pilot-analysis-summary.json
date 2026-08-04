@@ -1,0 +1,31 @@
+{
+  "timestamp": "2026-08-04T15:01:38.309Z",
+  "analyses": [
+    {
+      "stratum": "cold",
+      "totalAttempts": 2,
+      "successfulAttempts": 2,
+      "pairsExtracted": 0,
+      "meanLogRatio": null,
+      "medianLogRatio": null,
+      "precisionPct": null,
+      "bonferroniPrecisionMet": false,
+      "jsMedianMs": null,
+      "wasmMedianMs": null,
+      "ratioGeometricMean": null
+    },
+    {
+      "stratum": "warm",
+      "totalAttempts": 60,
+      "successfulAttempts": 60,
+      "pairsExtracted": 0,
+      "meanLogRatio": null,
+      "medianLogRatio": null,
+      "precisionPct": null,
+      "bonferroniPrecisionMet": false,
+      "jsMedianMs": null,
+      "wasmMedianMs": null,
+      "ratioGeometricMean": null
+    }
+  ]
+}
