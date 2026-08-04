@@ -71,6 +71,9 @@ const PLAYGROUND_WORKLOADS = [
       "Imports a sales CSV, creates indexes, and runs eight joins, group-bys, and window queries.",
     explanation:
       "Heavy SQL parsing, query planning, and B-tree traversal in both JS (AlaSQL) and Wasm (SQLite).",
+    // AlaSQL compiles queries via eval-class primitives and the site CSP has
+    // no 'unsafe-eval', so the JS side cannot run in this page's worker.
+    manual: "The JS (AlaSQL) target needs a CSP relaxation — use the demo page for details.",
   },
   {
     slug: "document-pdf-viewer-v1",
