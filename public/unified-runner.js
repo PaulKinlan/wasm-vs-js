@@ -146,6 +146,10 @@ const WORKLOAD_CONFIGS = {
     protocol: "pcap",
     tokenType: "string",
   },
+  "network-http2-quic-state": {
+    workerScript: "/network-http2-quic-state-worker.js",
+    protocol: "quic-state",
+  },
   "numeric-polybench-panel-v1": {
     workerScript: "/polybench-panel-worker.js",
     protocol: "polybench",
@@ -291,6 +295,8 @@ function formatTargetPayload(slug, target) {
       return { target: isWasm ? "wasmgc-controlled" : "js-controlled" };
     case "pcap":
       return { target: isWasm ? "wasm-linear-controlled" : "js-controlled" };
+    case "quic-state":
+      return { target: isWasm ? "wasm" : "js" };
     case "polybench":
       return { target: isWasm ? "wasm" : "javascript", kernel: "all" };
     case "telemetry":

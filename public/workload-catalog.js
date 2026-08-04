@@ -27,6 +27,7 @@ const WORKLOAD_DEMO_ROUTES = {
   "graphics.gltf-viewer.v1": "/benchmarks/base-gltf-viewer/",
   "ml.keyword-spotting.v1": "/benchmarks/ml-keyword-spotting-v1/",
   "ml.numeric-kernels.v1": "/benchmarks/ml-numeric-kernels-v1/",
+  "network.http2-quic-state.v1": "/demos/base/network-http2-quic-state/",
   "network.pcap-decode.v1": "/demos/network.pcap-decode.v1/",
   "numeric.fft-spectral-filter.v1": "/benchmarks/numeric-fft-spectral-filter-v1/",
   "numeric.polybench-panel.v1": "/demos/numeric.polybench-panel.v1/",

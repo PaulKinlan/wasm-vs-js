@@ -399,6 +399,16 @@ const PLAYGROUND_WORKLOADS = [
       "In-memory sorting/filtering pipelines, DOM row recycling, and pagination view rendering.",
   },
   {
+    slug: "network-http2-quic-state",
+    title: "HTTP/2 & QUIC Protocol State Machine",
+    category: "Networking",
+    route: "/demos/base/network-http2-quic-state/",
+    description:
+      "Parses frames and state transitions for HTTP/2, HPACK, QUIC, and QPACK connection streams.",
+    explanation:
+      "Stream framing, header table compression/decompression, and packet state machine updates.",
+  },
+  {
     slug: "dom-virtualized-scrolling",
     title: "Virtualized DOM List Scrolling",
     category: "DOM & Web UI",
