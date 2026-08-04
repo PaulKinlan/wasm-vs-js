@@ -167,10 +167,13 @@ for (const stage of staticStages) await runStage(stage);
 // Phase A: readers and every writer, all concurrent (write sets verified
 // pairwise disjoint and unread by the reader flock — see header comment).
 await Promise.all([
+  // The light flock is only ~35 core-seconds of work; 12 workers finish it
+  // in ~3s while leaving cores for the heavy single-file stages and writer
+  // lanes (uncapped, the flock's 32 workers inflate every heavy chain ~1.5x).
   runStage({
     name: "test-readers",
     args: ["test", "--parallel", ...testArgs, ...readerTests],
-    env: testEnv,
+    env: { ...testEnv, DENO_JOBS: "12" },
   }),
   ...HEAVY_READERS.map((file) =>
     runStage({
