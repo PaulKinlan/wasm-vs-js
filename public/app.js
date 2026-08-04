@@ -27,7 +27,7 @@ function renderMetrics(data) {
     dds[1].textContent = "38";
     dds[2].textContent = "37";
     dds[3].textContent = "20";
-    dds[4].textContent = "648 Passed";
+    dds[4].textContent = "647 Passed";
   } else if (dds.length >= 4) {
     const values = [data.runCount || "38", data.pairedBlockCount || "28", "sum-u32", "Controlled"];
     dds.forEach((item, index) => {
