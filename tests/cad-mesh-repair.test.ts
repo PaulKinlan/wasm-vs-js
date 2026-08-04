@@ -345,7 +345,8 @@ async function exists(url: URL) {
 }
 
 Deno.test("cad mesh public route is closed and runnable assets are explicit", async () => {
-  const source = await Deno.readTextFile(new URL("server.ts", root));
+  const source = (await Deno.readTextFile(new URL("server.ts", root))) +
+    (await Deno.readTextFile(new URL("routes.generated.ts", root)));
   for (
     const route of [
       "/benchmarks/cad-mesh-repair-v1/",

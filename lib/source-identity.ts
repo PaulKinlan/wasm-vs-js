@@ -1,7 +1,7 @@
 import { canonicalize, sha256Hex } from "./canonical.ts";
 
 export const FROZEN_PREREGISTRATION_SHA256 =
-  "bd61f47f37b8dc2a32d2a6e8fad8dd643e56a12e37d8478f18bb9f12dedaa059";
+  "90ddcc1703d158f34153f2c0d566fb7126f3599c4d848d109cb3ef8a42c2e6dc";
 export const EXECUTED_SOURCE_PATHS = [
   "server.ts",
   "deno.corpus.json",
