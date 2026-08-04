@@ -69,13 +69,7 @@ async function command(args: string[]): Promise<string> {
   if (!out.success) throw new Error(`git ${args[0]} failed`);
   return new TextDecoder().decode(out.stdout).trim();
 }
-const GENERATED_RAW_ROOTS = [
-  "raw/permits",
-  "raw/corpora",
-  "raw/runs",
-  "raw/summaries",
-  "raw/screenshots",
-] as const;
+const GENERATED_RAW_ROOTS = ["raw/permits", "raw/corpora"] as const;
 
 export function assertCheckoutStatus(status: string): void {
   const entries = status.split("\0").filter(Boolean);
@@ -84,6 +78,7 @@ export function assertCheckoutStatus(status: string): void {
     const allowed = state === "!!" &&
       (path === ".pi-subagents/" ||
         path.startsWith("raw/m1-pilot-evidence") ||
+        path.startsWith("raw/screenshots") ||
         GENERATED_RAW_ROOTS.some((root) =>
           path === root || path === `${root}/` || path.startsWith(`${root}/`)
         ));
