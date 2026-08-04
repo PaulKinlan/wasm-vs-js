@@ -349,6 +349,16 @@ const PLAYGROUND_WORKLOADS = [
     explanation: "Text parsing, character scanning, and string building.",
   },
   {
+    slug: "dom-dependent-form-validation",
+    title: "Dependent Form Validation Workflow",
+    category: "DOM & Web UI",
+    route: "/benchmarks/dom-dependent-form-validation/",
+    description:
+      "Validates a multi-field form with field dependencies, custom regex rules, and cross-field constraints across 240 input actions.",
+    explanation:
+      "Cross-field dependency graph resolution, constraint checking, and DOM error state updates.",
+  },
+  {
     slug: "simulation-rigid-body-2d-v1",
     title: "2D Rigid-Body Physics Engine",
     category: "Simulation",

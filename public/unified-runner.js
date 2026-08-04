@@ -183,6 +183,10 @@ const WORKLOAD_CONFIGS = {
     workerScript: "/demos/base/text.regex-log-scan.v1/worker.js",
     protocol: "text-regex",
   },
+  "dom-dependent-form-validation": {
+    workerScript: "/benchmarks/dom-dependent-form-validation/worker.js",
+    protocol: "form-validation",
+  },
 };
 
 // Map target name per protocol family
@@ -279,6 +283,8 @@ function formatTargetPayload(slug, target) {
       };
     case "text-regex":
       return { variant: isWasm ? "wasm-linear-controlled" : "js-controlled" };
+    case "form-validation":
+      return { type: "run", target: isWasm ? "wasm" : "javascript" };
     case "virtualized-grid":
       return {
         type: "start",
