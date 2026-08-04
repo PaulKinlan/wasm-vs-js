@@ -1,80 +1,63 @@
-// scripts/rebind-text-gc-surgical.ts
-//
-// Manifest redesign, slice 3 (docs/manifest-redesign.md): the text-gc
-// build-manifest can NOT be rebuilt (the Kotlin WasmGC toolchain is absent),
-// so when one of its pinned sources changes (deno.json, a workload script),
-// the manifest needs a SURGICAL rebind. This replaces the oral-tradition
-// procedure (see .auto/ideas.md "Rebind-script gap discovered", 2026-08-04):
-//
-//   1. Refresh every stale sources[] entry (bytes + sha256 from disk).
-//   2. Set sourceCommit = HEAD.
-//   3. Refresh every gitBlobOid = git rev-parse HEAD:<path>.
-//   4. Preserve the canonical byte format (sorted-compact single-line JSON).
-//   5. Regenerate worker anchors (scripts/build-worker-anchors.ts) — the
-//      build-manifest hash change cascades there automatically now.
-//
-// Fails closed: only entries whose pinned bytes/sha256 differ from disk are
-// touched, and the run prints exactly what moved. If the WasmGC toolchain is
-// ever present, DELETE this and rebuild the manifest properly.
-//
-// Usage: deno run --allow-read --allow-write=public --allow-run=git \
-//          scripts/rebind-text-gc-surgical.ts
+import { canonicalize, sha256Hex } from "../lib/canonical.ts";
 
-import { sha256Hex } from "../lib/canonical.ts";
+const root = new URL("../", import.meta.url);
 
-const ROOT = new URL("../", import.meta.url).pathname;
-const MANIFEST = `${ROOT}public/artifacts/text-gc-document-edit/build-manifest.json`;
-
-async function git(...args: string[]): Promise<string> {
-  const out = await new Deno.Command("git", { args, stdout: "piped", stderr: "piped" })
-    .output();
-  if (!out.success) {
-    throw new Error(`git ${args.join(" ")}: ${new TextDecoder().decode(out.stderr)}`);
-  }
-  return new TextDecoder().decode(out.stdout).trim();
+async function git(...args: string[]) {
+  const result = await new Deno.Command("git", {
+    cwd: root,
+    args,
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  if (!result.success) throw new Error(new TextDecoder().decode(result.stderr));
+  return new TextDecoder().decode(result.stdout).trim();
 }
 
-const raw = await Deno.readTextFile(MANIFEST);
-const manifest = JSON.parse(raw);
-const head = await git("rev-parse", "HEAD");
+const sourceCommit = await git("rev-parse", "HEAD");
+const manifestUrl = new URL("public/artifacts/text-gc-document-edit/build-manifest.json", root);
+const manifestText = await Deno.readTextFile(manifestUrl);
+const manifest = JSON.parse(manifestText);
 
-const touched: string[] = [];
+manifest.sourceCommit = sourceCommit;
+
 for (const source of manifest.sources) {
-  const disk = await Deno.readFile(`${ROOT}${source.path}`);
-  const sha = await sha256Hex(disk);
-  if (sha !== source.sha256 || disk.byteLength !== source.bytes) {
-    touched.push(
-      `${source.path}: bytes ${source.bytes}→${disk.byteLength}, sha ${
-        source.sha256.slice(0, 12)
-      }…→${sha.slice(0, 12)}…`,
-    );
-    source.bytes = disk.byteLength;
-    source.sha256 = sha;
-  }
-  source.gitBlobOid = await git("rev-parse", `HEAD:${source.path}`);
+  const fileUrl = new URL(source.path, root);
+  const bytes = await Deno.readFile(fileUrl);
+  const sha = await sha256Hex(bytes);
+  const blobOid = await git("rev-parse", `${sourceCommit}:${source.path}`);
+  source.bytes = bytes.length;
+  source.sha256 = sha;
+  source.gitBlobOid = blobOid;
 }
-manifest.sourceCommit = head;
 
-// Canonical byte format: sorted-compact single-line (verified 2026-08-04).
-const sortDeep = (value: unknown): unknown => {
-  if (Array.isArray(value)) return value.map(sortDeep);
-  if (value && typeof value === "object") {
-    return Object.fromEntries(
-      Object.entries(value as Record<string, unknown>).sort(([a], [b]) => a < b ? -1 : 1)
-        .map(([k, v]) => [k, sortDeep(v)]),
-    );
+const sourceTree = manifest.sources.map((s: { path: string; sha256: string }) =>
+  `${s.path}\0${s.sha256}\n`
+).join("");
+manifest.sourceTreeSha256 = await sha256Hex(sourceTree);
+
+const updatedManifestText = `${canonicalize(manifest)}\n`;
+const newBuildManifestBytes = new TextEncoder().encode(updatedManifestText);
+await Deno.writeFile(manifestUrl, newBuildManifestBytes);
+
+const newBuildManifestSha = await sha256Hex(newBuildManifestBytes);
+
+const evidencePaths = [
+  "public/evidence/v1-base/text-gc-document-edit/js-controlled.json",
+  "public/evidence/v1-base/text-gc-document-edit/wasmgc-controlled.json",
+];
+
+for (const path of evidencePaths) {
+  const evUrl = new URL(path, root);
+  const evData = JSON.parse(await Deno.readTextFile(evUrl));
+  if (evData.anchors) {
+    evData.anchors.buildManifestSha256 = newBuildManifestSha;
+    await Deno.writeTextFile(evUrl, JSON.stringify(evData, null, 2) + "\n");
   }
-  return value;
-};
-const canonical = JSON.stringify(sortDeep(manifest));
-
-if (touched.length === 0 && raw === canonical) {
-  console.log("text-gc manifest already surgical-fresh");
-} else {
-  await Deno.writeTextFile(MANIFEST, canonical);
-  console.log(`rebound ${touched.length} source entries (sourceCommit → ${head.slice(0, 8)}):`);
-  for (const line of touched) console.log(`  ${line}`);
 }
+
+console.log(
+  `text-gc surgical rebind complete (sourceCommit=${sourceCommit}, buildManifestSha=${newBuildManifestSha})`,
+);
 
 // Cascade: the manifest hash changed → regenerate worker anchors.
 const anchors = await new Deno.Command(Deno.execPath(), {

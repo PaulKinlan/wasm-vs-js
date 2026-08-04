@@ -63,6 +63,10 @@ try {
     `${buildDir}/crypto-authenticated-stream.wasm`,
     new URL("crypto-authenticated-stream.wasm", outputDir),
   );
+  await Deno.chmod(
+    new URL("crypto-authenticated-stream.wasm", outputDir),
+    0o644,
+  );
 } finally {
   await Deno.remove(buildDir, { recursive: true });
 }
