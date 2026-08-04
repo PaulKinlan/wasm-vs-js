@@ -145,7 +145,7 @@ function renderRuns(container, data) {
   });
 }
 
-function renderRunDetail(container, run) {
+function renderDetail(container, run) {
   const sections = [
     {
       label: "Run identity",
@@ -239,7 +239,7 @@ async function openRunDetail(runId) {
 
   try {
     const run = await fetchJson(`${API_BASE}/runs/${encodeURIComponent(runId)}`);
-    renderRunDetail(detailContainer, run);
+    renderDetail(detailContainer, run);
   } catch (e) {
     renderError(detailContainer, e instanceof Error ? e.message : "Failed to load run");
   }
@@ -252,8 +252,8 @@ async function loadAll() {
   document.getElementById("filter-cache").value = state.cache;
   document.getElementById("filter-limit").value = String(state.limit);
 
-  const matrixEl = document.getElementById("matrix-container");
-  const runsEl = document.getElementById("runs-container");
+  const matrixEl = document.getElementById("results-matrix");
+  const runsEl = document.getElementById("results-runs");
   const summaryEl = document.getElementById("summary-container");
 
   // Fetch summaries
