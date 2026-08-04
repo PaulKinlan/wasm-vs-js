@@ -4,7 +4,21 @@
 //
 // Usage: deno run --allow-read scripts/analyze-m1-pilot.ts [evidence-cold.json] [evidence-warm.json]
 
-import { glob } from "jsr:@std/fs@1";
+async function findEvidence(pattern: string): Promise<string[]> {
+  const parts = pattern.split("/");
+  const dir = parts.slice(0, -1).join("/");
+  const filePattern = parts[parts.length - 1].replace(/\./g, "\\.").replace(/\*/g, ".*");
+  const regex = new RegExp(`^${filePattern}$`);
+  const results: string[] = [];
+  try {
+    for (const entry of Deno.readDirSync(dir)) {
+      if (entry.isFile && regex.test(entry.name)) {
+        results.push(`${dir}/${entry.name}`);
+      }
+    }
+  } catch { /* dir not found */ }
+  return results.sort();
+}
 
 // ── Types ──
 
@@ -182,10 +196,10 @@ async function main(): Promise<void> {
   const args = Deno.args;
   const coldFiles = args.length > 0 && args[0] !== ""
     ? [args[0]]
-    : [...await glob("raw/m1-pilot-evidence-cold-*.json")].sort();
+    : [...await findEvidence("raw/m1-pilot-evidence-cold-*.json")].sort();
   const warmFiles = args.length > 1 && args[1] !== ""
     ? [args[1]]
-    : [...await glob("raw/m1-pilot-evidence-warm-*.json")].sort();
+    : [...await findEvidence("raw/m1-pilot-evidence-warm-*.json")].sort();
 
   const analyses: StratumAnalysis[] = [];
 
