@@ -164,10 +164,12 @@ function renderEntry(entry) {
     actions.append(runBtn);
   } else {
     const blockedBadge = element(
-      "span",
-      "📋 Proposal — no demo yet",
+      "a",
+      "📋 Documented Proposal Blocker",
       "badge-blocked-catalog",
     );
+    blockedBadge.href = "/data/base-implementation-status.v1.json";
+    blockedBadge.title = "View technical blocker qualification record";
     actions.append(blockedBadge);
   }
 
