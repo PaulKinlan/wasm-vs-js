@@ -2,9 +2,11 @@
 # Full server.ts rebind cascade for wasm-vs-js. Run from the repo root AFTER
 # committing the server.ts change. Usage: scripts/rebind-server-ts.sh
 set -e
-cd /home/paulkinlan/wasm-vs-js
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$REPO_ROOT"
 C=$(git rev-parse HEAD)
-PCM=/home/paulkinlan/wasm-vs-js/public/artifacts/base-ml-keyword-spotting/fixture.pcm16le
+PCM="$REPO_ROOT/public/artifacts/base-ml-keyword-spotting/fixture.pcm16le"
 echo "HEAD=$C"
 echo "$C" > artifacts/base/server-ssr-template/source-commit.txt
 run() { local label=$1; shift; echo -n "$label: "; if "$@" > /tmp/rebind-last.log 2>&1; then echo ok; else echo FAIL; tail -3 /tmp/rebind-last.log; fi }
