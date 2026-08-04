@@ -225,7 +225,10 @@ Deno.test("public mode exposes only the explicit demo, source, artifact, and man
   );
   assertEquals(stableModule.headers.get("cache-control"), "no-store");
   const addressedModule = await handler(new Request(`http://127.0.0.1${contentAddressedModule}`));
-  assertEquals(addressedModule.headers.get("cache-control"), "public, max-age=31536000, immutable");
+  // no-store everywhere (2026-08-05): the edge cache truncates long CSP
+  // headers on cached objects (platform bug). Even genuinely content-addressed
+  // routes stay no-store until the platform fix / slice-4 redesign.
+  assertEquals(addressedModule.headers.get("cache-control"), "no-store");
   for (const route of ["/telemetry-worker.js", "/telemetry-module-loader.js"]) {
     const module = await handler(new Request(`http://127.0.0.1${route}`));
     assertEquals(module.headers.get("cache-control"), "no-store");
