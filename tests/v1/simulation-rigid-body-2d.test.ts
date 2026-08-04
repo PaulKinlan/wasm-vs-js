@@ -10,7 +10,6 @@ import {
 } from "../../benchmarks/v1/simulation-rigid-body-2d/fixture.js";
 import {
   compareRigidBodyResults,
-  instantiateRigidBodyWasm,
   runRigidBodyJavaScript,
   runRigidBodyWasm,
 } from "../../benchmarks/v1/simulation-rigid-body-2d/engine.js";
@@ -115,55 +114,81 @@ Deno.test("oriented rigid-body implementation is reproducible, differential, com
     await sha256Hex(catalogBefore),
     "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
   );
-  // Spawn the reproducible build, then run the JS-side physics while the
-  // builder works in its own process. The build rewrites the artifact in
-  // place, so everything that touches wasm bytes still happens after the
-  // build promise resolves; only pure-JS computation moves earlier.
+  // Snapshot the committed artifact, then spawn the reproducible build and
+  // run every physics check against the snapshot while the builder works in
+  // its own process. The build is expected to reproduce the snapshot exactly;
+  // the post-build equality check below proves it. This is strictly stronger
+  // than testing the post-build bytes alone: it also catches run-to-run
+  // nondeterminism and a stale on-disk artifact, and it mirrors the snapshot
+  // pattern the audio provenance test uses.
+  const wasmBytes = await Deno.readFile(new URL("rigid-body-2d.wasm", artifact));
   const build = spawnBuild();
   const fixture = generateRigidBodyFixture();
-  let jsAllocations = 0;
-  const js = runRigidBodyJavaScript(fixture, { onAllocate: () => jsAllocations++ });
-  const seedRuns = [];
+  // Hand the wasm half of the physics to a worker (same unmodified engine;
+  // instrumentation callbacks run in-worker, only results cross back), so it
+  // overlaps the builder and the JS physics below on a real thread.
+  const seedJobs = [];
   for (let seed = 1; seed <= 8; seed += 1) {
-    const seedFixture = controlledTwoBodyFixture(Math.imul(seed, 0x9e3779b9), seed % 2 === 0);
-    const options = { timesteps: 12, checkpointEvery: 3, allowTestFixture: true };
-    seedRuns.push({
+    seedJobs.push({
       seed,
-      fixture: seedFixture,
-      options,
-      js: runRigidBodyJavaScript(seedFixture, options),
+      fixture: controlledTwoBodyFixture(Math.imul(seed, 0x9e3779b9), seed % 2 === 0),
+      options: { timesteps: 12, checkpointEvery: 3, allowTestFixture: true },
     });
   }
-  await finishBuild(build);
-  assertEquals(
-    await sha256Hex(await Deno.readFile(new URL("catalog/workloads.v1.json", root))),
-    await sha256Hex(catalogBefore),
-  );
-  const wasmBytes = await Deno.readFile(new URL("rigid-body-2d.wasm", artifact));
+  const worker = new Worker(new URL("./rigid-wasm-worker.ts", import.meta.url), { type: "module" });
+  const wasmHalf = new Promise<{
+    seedResults: ReturnType<typeof runRigidBodyWasm>[];
+    big: ReturnType<typeof runRigidBodyWasm>;
+    wasmAllocations: number;
+    boundaries: string[];
+  }>((resolve, reject) => {
+    worker.onmessage = (event) => resolve(event.data);
+    worker.onerror = (event) => reject(event.error ?? new Error(event.message));
+  });
+  worker.postMessage({
+    wasmBytes,
+    seeds: seedJobs.map(({ fixture, options }) => ({ fixture, options })),
+    bigFixture: fixture,
+  });
+  let jsAllocations = 0;
+  const js = runRigidBodyJavaScript(fixture, { onAllocate: () => jsAllocations++ });
+  const seedRuns = seedJobs.map(({ seed, fixture: seedFixture, options }) => ({
+    seed,
+    fixture: seedFixture,
+    options,
+    js: runRigidBodyJavaScript(seedFixture, options),
+  }));
   const module = await WebAssembly.compile(wasmBytes);
   assertEquals(WebAssembly.Module.imports(module), []);
   const exportNames = WebAssembly.Module.exports(module).map(({ name }) => name);
   for (const name of ["memory", "fixture_ptr", "result_ptr", "run"]) {
     assert(exportNames.includes(name));
   }
-  const wasm = await instantiateRigidBodyWasm(wasmBytes);
-  for (const { seed, fixture: seedFixture, options, js: seedJs } of seedRuns) {
-    const linear = runRigidBodyWasm(seedFixture, wasm, options);
-    const comparison = compareRigidBodyResults(seedJs, linear, 0, 0);
-    assert(comparison.passed, `oriented scene ${seed}: ${JSON.stringify(comparison)}`);
-    assertEquals(seedJs.counters.rotatedManifoldTests, linear.counters.rotatedManifoldTests);
-    assertEquals(seedJs.counters.angularContactImpulses, linear.counters.angularContactImpulses);
-    assertEquals(seedJs.counters.jointImpulses, linear.counters.jointImpulses);
+  const { seedResults, big: linear, wasmAllocations, boundaries } = await wasmHalf;
+  worker.terminate();
+  for (const [index, { seed, js: seedJs }] of seedRuns.entries()) {
+    const seedLinear = seedResults[index];
+    const seedComparison = compareRigidBodyResults(seedJs, seedLinear, 0, 0);
+    assert(seedComparison.passed, `oriented scene ${seed}: ${JSON.stringify(seedComparison)}`);
+    assertEquals(seedJs.counters.rotatedManifoldTests, seedLinear.counters.rotatedManifoldTests);
+    assertEquals(
+      seedJs.counters.angularContactImpulses,
+      seedLinear.counters.angularContactImpulses,
+    );
+    assertEquals(seedJs.counters.jointImpulses, seedLinear.counters.jointImpulses);
   }
-  let wasmAllocations = 0;
-  const boundaries: string[] = [];
-  const linear = runRigidBodyWasm(fixture, wasm, {
-    onAllocate: () => wasmAllocations++,
-    onBoundary: (name: string) => boundaries.push(name),
-  });
   const comparison = compareRigidBodyResults(js, linear);
   assert(comparison.passed, JSON.stringify(comparison));
   assertEquals(comparison.maximumAbsoluteError, 0);
+  await finishBuild(build);
+  assertEquals(
+    await sha256Hex(await Deno.readFile(new URL("catalog/workloads.v1.json", root))),
+    await sha256Hex(catalogBefore),
+  );
+  assertEquals(
+    await sha256Hex(await Deno.readFile(new URL("rigid-body-2d.wasm", artifact))),
+    await sha256Hex(wasmBytes),
+  );
   assertEquals(js.checkpoints.length, 18_000);
   assertEquals(linear.checkpoints.length, 18_000);
   assertEquals(js.counters.timesteps, 1_800);
