@@ -26,7 +26,18 @@ async function readJson(path: string): Promise<Record<string, unknown>> {
 
 async function collectFiles(root: string, current = root): Promise<string[]> {
   const files: string[] = [];
-  for await (const entry of Deno.readDir(current)) {
+  let entries: Deno.DirEntry[];
+  try {
+    entries = await Array.fromAsync(Deno.readDir(current));
+  } catch (error) {
+    // Artifact builders scratch in transient dirs (e.g. .build/) inside the
+    // walked trees and remove them when finished. A directory that vanishes
+    // mid-walk held no committed files, so skipping it cannot hide a
+    // recipe-only violation — but an untolerated NotFound flakes the gate.
+    if (error instanceof Deno.errors.NotFound) return files;
+    throw error;
+  }
+  for (const entry of entries) {
     const path = `${current}/${entry.name}`;
     if (entry.isDirectory) files.push(...await collectFiles(root, path));
     else if (entry.isFile) files.push(path.slice(root.length + 1));
