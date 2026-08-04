@@ -29,7 +29,7 @@ function corpus(blocks = [attempt("committed", 0)]) {
     permitDigest: "b".repeat(64),
     sourceManifestSha256: "c".repeat(64),
     chromePackageManifestSha256: "d".repeat(64),
-    preregistrationSha256: "d13aed9404ec289046f885f79a1d7b9f04923d2264de22b1fee60a4e7a8d6f61",
+    preregistrationSha256: "bd61f47f37b8dc2a32d2a6e8fad8dd643e56a12e37d8478f18bb9f12dedaa059",
     planned: 120,
     attempted: blocks.length,
     committed: blocks.filter((b) => b.status === "committed").length,

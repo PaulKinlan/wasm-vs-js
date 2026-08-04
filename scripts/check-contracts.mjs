@@ -364,7 +364,7 @@ const corpus = {
   experimentId: "m1-chrome-sum-u32-v1",
   permitDigest: hash,
   sourceManifestSha256: hash,
-  preregistrationSha256: "d13aed9404ec289046f885f79a1d7b9f04923d2264de22b1fee60a4e7a8d6f61",
+  preregistrationSha256: "bd61f47f37b8dc2a32d2a6e8fad8dd643e56a12e37d8478f18bb9f12dedaa059",
   planned: 120,
   attempted: 1,
   committed: 1,
