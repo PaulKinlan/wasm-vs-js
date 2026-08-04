@@ -39,6 +39,13 @@ run audio-reg   deno run --allow-all scripts/build-audio-demo-registry.ts
 run audio-pages deno run --allow-all scripts/build-audio-demo-pages.ts
 run audio-web   deno run --allow-all scripts/build-base-audio-webaudio-effects.ts --source-commit=$C --write
 run archive     deno run --allow-all scripts/build-v1-archive.ts --source-commit=$C
+run crypto-file deno run --allow-all scripts/build-base-crypto-file-integrity.ts
+run crypto-stream deno run --allow-all scripts/build-crypto-authenticated-stream.ts
+run image-demos deno run --allow-all scripts/build-image-demos.ts
+run text-gc-surg deno run --allow-all scripts/rebind-text-gc-surgical.ts
+run anchors     deno run --allow-read --allow-write=public scripts/build-worker-anchors.ts
+run schemas     deno run --allow-all scripts/build-schemas.ts
+run routes      deno run --allow-all scripts/build-routes.ts
 WASM_VS_JS_COMMIT=$C run v2text-rec deno run --allow-all scripts/build-v2-text-records.ts
 # Surgical traditional-demos retained-evidence rebind (do NOT run the collector — broken+destructive)
 echo "$C" > artifacts/demos/traditional/source-commit.txt
