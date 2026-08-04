@@ -70,9 +70,7 @@ const sourcePaths = [
   "benchmarks/base/dom-todomvc-journey/runtime-entry.js",
   "benchmarks/base/dom-todomvc-journey/todomvc.wat",
   "public/benchmarks/base-dom-todomvc-journey/index.html",
-  "public/benchmarks/base-dom-todomvc-journey/controller.js",
   "public/benchmarks/base-dom-todomvc-journey/worker.js",
-  "public/benchmarks/base-dom-todomvc-journey/styles.css",
   "lib/base-todomvc-gate.ts",
   "lib/base-todomvc-network.ts",
   "schemas/base-workload-implementation.schema.json",
@@ -237,16 +235,8 @@ const routeByPath = new Map([
   ],
   ["public/benchmarks/base-dom-todomvc-journey/index.html", ROUTE],
   [
-    "public/benchmarks/base-dom-todomvc-journey/controller.js",
-    "/benchmarks/base-dom-todomvc-journey/controller.js",
-  ],
-  [
     "public/benchmarks/base-dom-todomvc-journey/worker.js",
     "/benchmarks/base-dom-todomvc-journey/worker.js",
-  ],
-  [
-    "public/benchmarks/base-dom-todomvc-journey/styles.css",
-    "/benchmarks/base-dom-todomvc-journey/styles.css",
   ],
   [
     "schemas/base-workload-implementation.schema.json",

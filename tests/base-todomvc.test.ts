@@ -222,9 +222,7 @@ Deno.test("TodoMVC route is explicit, read-only, accessible, and lifecycle bound
   const handler = createHandler(null, "public");
   const routes = [
     "/benchmarks/base-dom-todomvc-journey/",
-    "/benchmarks/base-dom-todomvc-journey/controller.js",
     "/benchmarks/base-dom-todomvc-journey/worker.js",
-    "/benchmarks/base-dom-todomvc-journey/styles.css",
     "/benchmarks/base/dom-todomvc-journey/engine.js",
     "/benchmarks/base/dom-todomvc-journey/fixture.js",
     "/artifacts/base-dom-todomvc-journey/runtime.js",
@@ -251,23 +249,12 @@ Deno.test("TodoMVC route is explicit, read-only, accessible, and lifecycle bound
   const html = await Deno.readTextFile("public/benchmarks/base-dom-todomvc-journey/index.html");
   assert(html.includes('href="#main"'));
   assert(html.includes('role="status"'));
-  assert(html.includes('aria-label="Todo filters"'));
-  assert(html.includes("No performance claim."));
-  const controller = await Deno.readTextFile(
-    "public/benchmarks/base-dom-todomvc-journey/controller.js",
-  );
-  for (
-    const required of [
-      "requestAnimationFrame(next)",
-      "setSelectionRange",
-      "pagehide",
-      "injectStaleMessage",
-      "worker?.terminate()",
-      "physicalMutations",
-      "completeCanonicalDom",
-      "canonicalDom: domResult.dom",
-    ]
-  ) assert(controller.includes(required), required);
+  assert(html.includes('/unified-runner.js'));
+  assert(html.includes('data-workload="base-dom-todomvc-journey"'));
+  assert(html.includes('id="perf-reporting"'));
+  assert(html.includes("Exact output is verified before any timing"));
+  assert(!html.includes("No performance claim"));
+  assert(!html.includes("aria-label=\"Todo filters\""));
   const worker = await Deno.readTextFile("public/benchmarks/base-dom-todomvc-journey/worker.js");
   assert(worker.includes('fetch(route, { cache: "no-store" })'));
   assert(worker.includes("raw byte hash mismatch"));
