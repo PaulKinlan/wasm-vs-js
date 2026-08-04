@@ -12,7 +12,7 @@
 //
 // Usage: deno run --allow-run --allow-read --allow-write --allow-env --allow-net=127.0.0.1 scripts/scan-writers.mjs [testfile ...]
 
-const TRACKED_TREES = ["public/artifacts", "public/evidence", "benchmarks", "catalog", "raw"];
+const TRACKED_TREES = ["public", "benchmarks", "catalog", "raw"];
 const TEST_ARGS = [
   "test",
   "--allow-env=PORT,HOST,SERVER_MODE,WASM_VS_JS_COMMIT",
