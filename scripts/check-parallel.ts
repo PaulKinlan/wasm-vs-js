@@ -214,6 +214,24 @@ await Promise.all([
       args: ["test", ...testArgs, ...SUM_U32_PAIR],
       env: testEnv,
     })
+  ).then(() =>
+    // Fresh-profile CDP smoke: homepage summary, every card route 200, and
+    // three representative cards run to Complete in a real browser. Chained
+    // after the sum-u32 pair so the smoke's fast card never fetches the wasm
+    // mid-rewrite; everything else it touches is read-only in-gate.
+    runStage({
+      name: "smoke-cdp",
+      args: [
+        "run",
+        "--allow-env=PORT,HOST,SERVER_MODE",
+        "--allow-net=127.0.0.1",
+        "--allow-read",
+        "--allow-write",
+        "--allow-run",
+        "scripts/cdp-smoke.ts",
+        "--base=http://127.0.0.1:0",
+      ],
+    })
   ),
   // The light flock is ~35 core-seconds; 6 workers finish it in ~10-11s,
   // co-critical with the rigid writer lane (tuning curve measured
