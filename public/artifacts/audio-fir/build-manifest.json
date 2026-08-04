@@ -5,8 +5,8 @@
   "entryId": "audio.fir.v1",
   "benchmarkSlug": "audio-fir",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "c259acf8a02c46bb4d0655b89783dd8cf4670312",
-  "sourceSha256": "30454fce9e4fe99fbf695cef3e34f397fda49385f62b81c6428ed25d66ff1568",
+  "sourceCommit": "e620116ec285e0bd77b90f69afbd7ff5b89a2d71",
+  "sourceSha256": "22d3003cd06e52ace265b778756c2d493ab536834483e491ae136e9c6c14a197",
   "fullSourceGraph": [
     {
       "path": "benchmarks/audio-fft/benchmark.json",
@@ -115,8 +115,13 @@
     },
     {
       "path": "scripts/build-audio.ts",
-      "bytes": 12567,
-      "sha256": "73a2875d6d1760a23ba48a96c06e1f68d2f68820e9b566530285e61c75f8df16"
+      "bytes": 12221,
+      "sha256": "017585ee5f9eb26cea5c739ee87ad2fee01156eeb2acc75495530d506b6123f1"
+    },
+    {
+      "path": "scripts/build-audio-slug-worker.ts",
+      "bytes": 3108,
+      "sha256": "e6d1b6e60904b6c08cafd32e4e115d4d8577a86d0b4e3401cb6b7c27309b2ee6"
     },
     {
       "path": "scripts/build-audio-results.ts",
@@ -182,19 +187,19 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/audio-fir/fixture-manifest.json",
-      "sha256": "99f5d5b04514e7c50f3239e6f5f8e1bde6902c7b7dda9f875dd5698342da37d9"
+      "sha256": "a82c319d6329dda01bf4f2e147425c4c6a6bbfbceb43cafd0a3dbcf72c22e753"
     },
     "input": {
       "path": "public/artifacts/audio-fir/input-manifest.json",
-      "sha256": "3394d58f07533da5945bcf3ae8dcc63f55b39d17309c24e54e7cb020bd62da17"
+      "sha256": "85b02d11207279f138b3471e237bbf237e8b2b74d22e3dfb619ae3bad71445e8"
     },
     "reference": {
       "path": "public/artifacts/audio-fir/reference-manifest.json",
-      "sha256": "eb14c13f56454f306fa7981d1fe3fc62ab2383e8e3e0a21c6a49fbdf9e7bdab2"
+      "sha256": "a9dbdb9f3c5908dc24460c1889b32f09f475a7dae5eeae0fe6be0004e638b461"
     },
     "output": {
       "path": "public/artifacts/audio-fir/output-manifest.json",
-      "sha256": "dbebea1f624be9193a96a28119400a5dfe07b1f27a964b8caeacad1b74eb4f8e"
+      "sha256": "734e20ad979e7be86eff9b2874fd72a940ae1956e4479d7c37da3d23c82d8b4c"
     }
   },
   "referenceArtifact": {
@@ -236,7 +241,7 @@
       "--allow-write=public/artifacts/audio-fft,public/artifacts/audio-fir,public/artifacts/audio-stft",
       "--allow-run=git",
       "scripts/build-audio.ts",
-      "--source-commit=c259acf8a02c46bb4d0655b89783dd8cf4670312"
+      "--source-commit=e620116ec285e0bd77b90f69afbd7ff5b89a2d71"
     ],
     "toolchain": [
       {
