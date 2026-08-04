@@ -91,13 +91,14 @@ async function assembleWat(name: string, path: string): Promise<Uint8Array<Array
   return new Uint8Array(built.buffer);
 }
 
-const writtenJsonPaths: string[] = [];
+const pendingJson: { tmp: URL; final: URL; tmpPath: string }[] = [];
 
 // Atomic publication: build outputs are rewritten in place on every run with
-// byte-identical content, but a plain writeFile is not atomic, so a
-// concurrent reader (another test file running in parallel) can observe a
-// torn file. Temp-write + rename is atomic on POSIX, so readers only ever
-// see complete bytes.
+// byte-identical content, but neither writeFile nor the deno fmt pass below
+// is atomic, so a concurrent reader (another test file running in parallel)
+// can observe torn or pre-fmt bytes. JSON is written to a temp path, fmt
+// rewrites the temp path (invisible to readers), and a final rename — atomic
+// on POSIX — publishes only complete, fmt-clean bytes.
 async function writeAtomic(url: URL, bytes: Uint8Array): Promise<void> {
   const tmp = new URL(`${url.href}.tmp-${Deno.pid}`);
   await Deno.writeFile(tmp, bytes);
@@ -105,22 +106,29 @@ async function writeAtomic(url: URL, bytes: Uint8Array): Promise<void> {
 }
 
 async function writeJson(dir: URL, name: string, value: unknown): Promise<void> {
-  await writeAtomic(new URL(name, dir), new TextEncoder().encode(`${canonicalize(value)}\n`));
-  writtenJsonPaths.push(`${new URL(dir, root).pathname.replace(/\/$/, "")}/${name}`);
+  const final = new URL(name, dir);
+  const tmp = new URL(`${final.href}.tmp-${Deno.pid}.json`);
+  await Deno.writeFile(tmp, new TextEncoder().encode(`${canonicalize(value)}\n`));
+  pendingJson.push({
+    tmp,
+    final,
+    tmpPath: `${new URL(dir, root).pathname.replace(/\/$/, "")}/${name}.tmp-${Deno.pid}.json`,
+  });
 }
 
 // Format every written JSON artifact with the pinned toolchain's own
 // formatter so `deno fmt --check` passes by construction and rebuilds remain
 // byte-reproducible.
 async function fmtWrittenJson(): Promise<void> {
-  if (writtenJsonPaths.length === 0) return;
+  if (pendingJson.length === 0) return;
   const command = new Deno.Command(Deno.execPath(), {
-    args: ["fmt", ...writtenJsonPaths],
+    args: ["fmt", ...pendingJson.map(({ tmpPath }) => tmpPath)],
     stdout: "piped",
     stderr: "piped",
   });
   const result = await command.output();
   if (!result.success) throw new Error(new TextDecoder().decode(result.stderr));
+  for (const { tmp, final } of pendingJson) await Deno.rename(tmp, final);
 }
 
 // Records-mode reference: the hash is taken from the git TREE at the
