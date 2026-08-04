@@ -1,3 +1,5 @@
+import wabtFactory from "wabt";
+
 // M2 T4: JS↔Wasm boundary-crossing microbenchmarks.
 // Measures call overhead, copy cost, and batching effects at the JS/Wasm boundary.
 // These are diagnostic cells — they isolate boundary cost, not computation.
@@ -117,9 +119,22 @@ let wasmInstance: WebAssembly.Instance | null = null;
 
 async function getWasm(): Promise<WebAssembly.Instance> {
   if (wasmInstance) return wasmInstance;
-  const wabtModule = await WebAssembly.compile(
-    new TextEncoder().encode(T4_WAT),
-  );
+  const wabt = await wabtFactory();
+  const module = wabt.parseWat("t4-boundary.wat", T4_WAT, {
+    exceptions: false,
+    threads: false,
+    simd: false,
+  });
+  module.resolveNames();
+  module.validate();
+  const binary = module.toBinary({
+    canonicalize_lebs: true,
+    relocatable: false,
+    write_debug_names: false,
+  });
+  module.destroy();
+  const wasmBytes = new Uint8Array(binary.buffer);
+  const wabtModule = await WebAssembly.compile(wasmBytes);
   wasmInstance = await WebAssembly.instantiate(wabtModule);
   return wasmInstance;
 }
