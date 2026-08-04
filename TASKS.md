@@ -90,10 +90,10 @@ Tasks are ordered by dependency. A checked box means the exact acceptance criter
 ## M4 — public results explorer
 
 - [ ] Implement AI Focus token layer and editorial/dashboard widths.
-- [ ] Add URL-backed filters and stable result/run routes.
-- [ ] Add workload × environment matrix and chart/table pairs.
-- [ ] Add raw-run, build, environment, correctness, capability, exclusion, and artifact inspectors.
-- [ ] Avoid winner copy and colour-only status.
+- [x] Add URL-backed filters and stable result/run routes.
+- [x] Add workload × environment matrix and chart/table pairs.
+- [x] Add raw-run, build, environment, correctness, capability, exclusion, and artifact inspectors.
+- [x] Avoid winner copy and colour-only status.
 - [ ] Deploy exact reviewed source.
 - [ ] Validate live routes, headers, ingestion denial, desktop/mobile controls, console/network, and cleanup.
 
