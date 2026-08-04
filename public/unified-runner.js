@@ -287,6 +287,7 @@ function formatTargetPayload(slug, target) {
     case "sqlite-notebook":
       // manifest + shellChecks are merged in from the async prepared payload.
       return {
+        type: "run",
         target: isWasm ? "linear-wasm-controlled" : "javascript-controlled",
         queryId: null,
         exact: false,

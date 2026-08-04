@@ -244,9 +244,17 @@ self.addEventListener("message", async ({ data }) => {
     }
     const jsCounters = workload.workCounters("javascript");
     const wasmCounters = workload.workCounters("wasm-linear");
+    // Counter identity is order-insensitive: the pinned manifest stores keys
+    // sorted, while the runtime object uses insertion order.
+    const canonicalCounters = (counters) =>
+      JSON.stringify(
+        Object.fromEntries(
+          Object.entries(counters).sort(([a], [b]) => (a < b ? -1 : 1)),
+        ),
+      );
     if (
-      JSON.stringify(jsCounters) !== JSON.stringify(outputManifest.counters.javascript) ||
-      JSON.stringify(wasmCounters) !== JSON.stringify(outputManifest.counters.wasmLinear)
+      canonicalCounters(jsCounters) !== canonicalCounters(outputManifest.counters.javascript) ||
+      canonicalCounters(wasmCounters) !== canonicalCounters(outputManifest.counters.wasmLinear)
     ) {
       throw new Error("exact operative counter mismatch");
     }
