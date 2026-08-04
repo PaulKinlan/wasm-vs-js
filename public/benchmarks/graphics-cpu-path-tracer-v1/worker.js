@@ -34,7 +34,7 @@ self.onmessage = async (event) => {
   let target = event.data?.target || "javascript";
   if (target === "wasm" || target === "wasm-linear-controlled") target = "wasm-linear";
   if (target === "js" || target === "js-controlled") target = "javascript";
-  let mode = event.data?.mode || "preview";
+  const mode = event.data?.mode || "preview";
   const trust = event.data?.trust;
   try {
     if (

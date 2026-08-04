@@ -120,7 +120,7 @@ self.onmessage = async (event) => {
   let target = event.data?.target || "javascript";
   if (target === "wasm-linear" || target === "wasm-linear-controlled") target = "wasm";
   if (target === "js" || target === "js-controlled") target = "javascript";
-  let mode = event.data?.mode || "bounded";
+  const mode = event.data?.mode || "bounded";
   if (
     !Number.isInteger(token) || !new Set(["javascript", "wasm"]).has(target) ||
     !new Set(["bounded", "exact"]).has(mode)
