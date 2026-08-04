@@ -41,8 +41,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 93078,
-      "sha256": "489392e50f3b99076a6290d397be847bfa62c97f4c0bba3f166d7d304eb7e187"
+      "bytes": 93168,
+      "sha256": "8ba36612f3fed733d0b878b702cbd8a8d0009190d627cebc15251e461f0cef6d"
     },
     {
       "path": "tests/base-server-ssr-template.test.ts",
