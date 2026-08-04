@@ -274,7 +274,9 @@ Deno.test("local server bounds writes and serves exact Wasm MIME", async () => {
     const csp = wasm.headers.get("content-security-policy") ?? "";
     assert(csp.includes("script-src 'self' 'wasm-unsafe-eval' blob:"));
     assert(csp.includes("worker-src 'self'"));
-    assert(!csp.includes("'unsafe-eval'"));
+    // 'unsafe-eval' approved by Paul 2026-08-04: AlaSQL compiles queries via
+    // eval-class primitives; required for the sqlite-notebook JS target.
+    assert(csp.includes("'unsafe-eval'"));
     assert(!csp.includes("'unsafe-inline'"));
     const manifest = await handler(
       new Request("http://127.0.0.1/artifacts/sum-u32/build-manifest.9c309c49.json"),
