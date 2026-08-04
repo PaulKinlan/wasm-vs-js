@@ -145,7 +145,6 @@ export const KERNEL_ADAPTERS = {
       }
       const callables = {};
       for (const key of ["c", "cpp", "rs"]) {
-        const cfg = mods.manifest.engines.find((e) => e.key === key);
         const inst = mods.engines[key].instances.gemm.instance;
         const mem = inst.exports.memory;
         const aOff = 0, bOff = M * K * 4, c0Off = (M * K + K * N) * 4;
@@ -188,7 +187,7 @@ export const KERNEL_ADAPTERS = {
   },
 };
 
-let cache = new Map();
+const cache = new Map();
 
 async function fetchBytes(base, path) {
   const res = await fetch(`${base}/${path}`, { cache: "no-store" });
