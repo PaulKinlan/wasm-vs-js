@@ -59,10 +59,34 @@ batch at a time:
   numeric-fft-spectral-filter-v1, serialization-protobuf-gateway,
   simulation-rigid-body-2d-v1, tooling-c-to-wasm-compile-v1, base-gltf-viewer,
   base-dom-todomvc-journey (wave 1), image demos (already unified)
-- **DO NOT TOUCH**: regex-automata-duel-demo and vdom-diff-patch-demo
-  (traditional-demo.js — retained browser evidence is byte-frozen and the
-  collector is broken; page changes would require a surgical evidence rebind.
-  Out of scope until the collector is fixed.)
+- **Audio retained evidence**: the frozen audio browser-validation records
+  byte-bind the OLD audio-fft/fir/stft page bytes (tests/audio-demo.test.ts
+  compares pins against frozen pageHashes). Any audio page edit MUST either
+  re-record the browser validation or update the evidence semantics in the
+  same change — a cosmetic-only page edit that leaves the frozen record
+  pointing at old bytes fails the gate (learned 2026-08-05, reverted).
+- **Do NOT touch** regex-automata-duel-demo or vdom-diff-patch-demo
+  (frozen evidence).
+
+## Wave 1b — Unified header + navigation (Paul, 2026-08-05)
+
+"Make the headers and nav better and consistent across all pages. I find it
+really hard to navigate fwd, back and across the site."
+
+Design (align with Paul before mass-rolling):
+
+1. **One shared header on every page** (homepage, /benchmarks/ catalog, every
+   benchmark/demo page, evidence, experiments, data): brand "Wasm vs
+   JavaScript benchmark" linking to /, plus primary nav:
+   Playground (/) · Catalog (/benchmarks/) · Experiment · Evidence · Data v1.
+   Current page highlighted.
+2. **Breadcrumbs on every workload page**: Catalog › <Category> › <Workload>
+   — this is the "back/across" affordance; browser back is not site nav.
+3. **Implementation**: shared CSS + a static HTML snippet (CSP-friendly, no
+   JS dependency for chrome). To keep 30+ pages in sync, generate/verify the
+   snippet with a script + freshness gate (routes.generated.ts precedent).
+4. Older-generation pages (todomvc-era sans/boxed header) get restyled to
+   the standard shell as part of their wave-1/wave-2 conversion.
 
 ## Hard constraints (the repo's invariants)
 
