@@ -5,9 +5,6 @@
 //          --server-port=8787 --attempts=5 --stratum=cold
 
 import { CdpClient } from "../lib/cdp-client.ts";
-import { KvRunStore } from "../lib/kv-store.ts";
-import { validRun } from "../tests/fixture.ts";
-import { canonicalize, hashCanonicalEnvelope, sha256Hex } from "../lib/canonical.ts";
 
 // ── Config ──
 
@@ -239,7 +236,7 @@ async function cleanupChrome(
 
 async function main(): Promise<void> {
   console.log("Launching owned Chrome...");
-  const { process, wsUrl, profileDir, cdpPort } = await launchChrome();
+  const { process, profileDir, cdpPort } = await launchChrome();
   const browserInfo = await collectBrowserInfo(cdpPort);
   console.log(`Chrome: ${browserInfo.product}`);
 
@@ -285,7 +282,9 @@ async function main(): Promise<void> {
     // Close the page tab
     try {
       await fetch(`http://127.0.0.1:${cdpPort}/json/close/${tab.id}`, { method: "PUT" });
-    } catch {}
+    } catch {
+      // ignore errors closing tab
+    }
     await cleanupChrome(process, profileDir);
     console.log("Chrome cleaned up.");
   }
