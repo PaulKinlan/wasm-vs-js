@@ -389,6 +389,16 @@ const PLAYGROUND_WORKLOADS = [
       "Recursive tree traversal, structural node moves, and attribute modification cascades.",
   },
   {
+    slug: "dom-table-sort-filter-pagination",
+    title: "Table Sort, Filter & Pagination",
+    category: "DOM & Web UI",
+    route: "/benchmarks/dom-table-sort-filter-pagination/",
+    description:
+      "Processes 120 interactive sort, filter, pagination, and cell editing actions over 5,000 table rows.",
+    explanation:
+      "In-memory sorting/filtering pipelines, DOM row recycling, and pagination view rendering.",
+  },
+  {
     slug: "simulation-rigid-body-2d-v1",
     title: "2D Rigid-Body Physics Engine",
     category: "Simulation",

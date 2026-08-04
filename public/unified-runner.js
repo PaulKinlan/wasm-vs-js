@@ -199,6 +199,10 @@ const WORKLOAD_CONFIGS = {
     workerScript: "/benchmarks/dom-nested-tree-mutation/worker.js",
     protocol: "nested-tree",
   },
+  "dom-table-sort-filter-pagination": {
+    workerScript: "/benchmarks/dom-table-sort-filter-pagination/worker.js",
+    protocol: "table-sort",
+  },
 };
 
 // Map target name per protocol family
@@ -299,6 +303,7 @@ function formatTargetPayload(slug, target) {
     case "grid-movement":
     case "keyed-list":
     case "nested-tree":
+    case "table-sort":
       return { type: "run", target: isWasm ? "wasm" : "javascript" };
     case "virtualized-grid":
       return {
