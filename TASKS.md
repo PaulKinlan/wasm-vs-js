@@ -47,15 +47,15 @@ Tasks are ordered by dependency. A checked box means the exact acceptance criter
 - [x] Build an inspectable static page with lifecycle, samples, sizes, provenance, correctness, and unavailable states.
 - [x] Add a fail-closed public read-only evidence mode with stable acceptance routes, no raw records or server-side ingestion, and permanent mutation denial.
 - [x] Add a non-persistent hosted `/run` journey that hash-binds the executed JS/Wasm bytes, runs heavy scored work in a terminated same-origin module worker, validates every batched invocation, and labels all output exploratory.
-- [ ] Deploy the exact reviewed read-only evidence source and bind the approved stable domain without provisioning a database.
-- [ ] Validate keyboard, mobile/desktop layout, dark/reduced-motion/forced-colour states.
+- [x] Deploy the exact reviewed read-only evidence source and bind the approved stable domain without provisioning a database.
+- [x] Validate keyboard, mobile/desktop layout, dark/reduced-motion/forced-colour states.
 - [ ] Independently review and accept the exact M1 commit.
 
 ## M2 — families, optimized tracks, and boundaries
 
 - [x] Freeze and publish workload-catalog v1 as an exact 38-row denominator (P0=12/P1=12/P2=14) with closed rights/oracle/equivalence/mode/phase contracts and explicit 0/38 catalog implementation coverage.
 - [ ] Add T1 primitive family without presenting tiny intervals before calibration.
-- [ ] Add representative T2 numeric, parsing, compression, image, and graph kernels.
+- [x] Add representative T2 numeric, parsing, compression, image, and graph kernels.
 - [ ] Add T4 JS→Wasm, Wasm→JS, round-trip, copy, string, refs, callbacks, and batching tests.
 - [ ] Add Track B optimization logs and independent JS/Wasm improvements.
 - [ ] Add reviewed WasmGC and hybrid implementations where the workload has a meaningful equivalent; otherwise publish the missing-cell reason.
