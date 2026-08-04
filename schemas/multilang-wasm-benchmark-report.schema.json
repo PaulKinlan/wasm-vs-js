@@ -12,6 +12,10 @@
   "properties": {
     "schemaVersion": { "type": "string", "const": "1.0.0" },
     "generatedAt": { "type": "string" },
+    "toolchains": {
+      "type": "object",
+      "description": "Toolchain invocation summary per compiler family (informational)."
+    },
     "workloads": {
       "type": "array",
       "items": {
@@ -32,7 +36,6 @@
                 "toolchain",
                 "binarySizeBytes",
                 "coldInstantiateMs",
-                "warmExecutionMs",
                 "memoryPageCount",
                 "importsCount",
                 "exportsCount"
@@ -42,7 +45,10 @@
                 "toolchain": { "type": "string" },
                 "binarySizeBytes": { "type": "number" },
                 "coldInstantiateMs": { "type": "number" },
-                "warmExecutionMs": { "type": "number" },
+                "warmExecutionMs": {
+                  "anyOf": [{ "type": "number" }, { "type": "null" }],
+                  "description": "Measured warm execution; absent when no comparable workload exists (footprint-only rows)."
+                },
                 "memoryPageCount": { "type": "number" },
                 "importsCount": { "type": "number" },
                 "exportsCount": { "type": "number" },

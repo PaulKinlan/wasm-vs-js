@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="description"
+      content="The same two kernels written in JavaScript, raw WAT, AssemblyScript, C, C++, Rust, and Dart (WasmGC), compiled to WebAssembly and compared side by side.">
+    <title>Multi-Language WebAssembly Kernels · Wasm vs JavaScript</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="/benchmarks/multilang-wasm/runner.js"></script>
+  </head>
+  <body data-workload="multilang-wasm" data-demo="multilang-wasm">
+    <a class="skip" href="#main">Skip to main content</a>
+    <header class="masthead">
+      <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
+      <a href="/benchmarks/">Browse Catalog</a>
+      <a href="/experiments/">Experiment</a>
+      <a href="/evidence/">Evidence</a>
+      <strong>data v1</strong>
+    </header>
+    <main id="main">
+      <header>
+        <p class="eyebrow">Compiler &amp; Language Workload · 7 Implementations of 2 Kernels</p>
+        <h1>Multi-Language WebAssembly Kernels</h1>
+        <p class="lede">
+          The same two kernels — a u32 array reduction and an FFT butterfly — written in
+          JavaScript, raw WAT, AssemblyScript, C, C++, Rust, and Dart (WasmGC), compiled to
+          WebAssembly where applicable, and compared side by side on this machine.
+        </p>
+      </header>
+
+      <section class="demo-panel" aria-labelledby="run-heading">
+        <h2 id="run-heading">Run Benchmark Loop</h2>
+        <form id="demo-form">
+          <div class="controls">
+            <label for="target">
+              <span>Target Engine</span>
+              <select id="target" name="target" disabled>
+                <option value="all" selected>Compare All Implementations</option>
+              </select>
+            </label>
+            <label for="iterations">
+              <span>Loop Iterations</span>
+              <select id="iterations" name="iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10">10 iterations</option>
+                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                <option value="50">50 iterations</option>
+                <option value="100">100 iterations (Sustained loop)</option>
+              </select>
+            </label>
+            <button id="start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="status" role="status" aria-live="polite">
+          Ready. Select loop iterations, then click Start.
+        </p>
+        <div id="perf-reporting" class="detail-grid" hidden></div>
+      </section>
+
+      <section aria-labelledby="source-heading">
+        <h2 id="source-heading">Source Comparison</h2>
+        <p>
+          Every implementation runs the identical algorithm: <code>sum_u32</code> reduces 1,000
+          u32 integers; <code>fft_butterfly</code> runs a radix-2 Cooley–Tukey butterfly over 512
+          float pairs. The linear-memory variants (WAT, AssemblyScript, C, C++, Rust) operate on
+          raw memory pointers. The Dart variant is a WasmGC module that consumes the same data
+          zero-copy through <code>dart:js_interop</code> typed-array views. C/C++/AssemblyScript/
+          Rust/WAT use an f32 polynomial sin/cos (wasm32 has no hardware trig); JavaScript and
+          Dart use f64 <code>Math.sin</code>/<code>Math.cos</code> — disclosed per variant.
+        </p>
+        <div class="table-wrap">
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th>Language</th>
+                <th>Kernel Source</th>
+                <th>Compiler / Toolchain</th>
+                <th>Artifact</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>JavaScript</strong></td>
+                <td><a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/bc89e2c372c5e9f6dcb467f1d8d48a1165e7dcfa/scripts/build-multilang-wasm-benchmark.ts">build script (JS baselines)</a></td>
+                <td>V8 JIT (in-browser)</td>
+                <td>n/a — source only</td>
+              </tr>
+              <tr>
+                <td><strong>Raw WAT</strong></td>
+                <td><a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/bc89e2c372c5e9f6dcb467f1d8d48a1165e7dcfa/benchmarks/sum-u32/sum-u32.wat">sum-u32.wat</a></td>
+                <td>Handwritten WAT → wasm (pinned artifact)</td>
+                <td><a class="commit-link" href="/artifacts/multilang-wasm-benchmark/sum_wat.wasm">sum_wat.wasm</a> (96 B)</td>
+              </tr>
+              <tr>
+                <td><strong>AssemblyScript</strong></td>
+                <td><a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/bc89e2c372c5e9f6dcb467f1d8d48a1165e7dcfa/benchmarks/multilang-wasm/sum_u32.ts">sum_u32.ts</a> · <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/bc89e2c372c5e9f6dcb467f1d8d48a1165e7dcfa/benchmarks/multilang-wasm/fft_kernel.ts">fft_kernel.ts</a></td>
+                <td><code>asc -O3 --bindings none</code></td>
+                <td><a class="commit-link" href="/artifacts/multilang-wasm-benchmark/sum_asc.wasm">sum_asc.wasm</a> · <a class="commit-link" href="/artifacts/multilang-wasm-benchmark/fft_asc.wasm">fft_asc.wasm</a></td>
+              </tr>
+              <tr>
+                <td><strong>C / Wasm</strong></td>
+                <td><a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/bc89e2c372c5e9f6dcb467f1d8d48a1165e7dcfa/benchmarks/multilang-wasm/sum_u32.c">sum_u32.c</a> · <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/bc89e2c372c5e9f6dcb467f1d8d48a1165e7dcfa/benchmarks/multilang-wasm/fft_kernel.c">fft_kernel.c</a></td>
+                <td><code>clang --target=wasm32 -O3 -nostdlib</code></td>
+                <td><a class="commit-link" href="/artifacts/multilang-wasm-benchmark/sum_c.wasm">sum_c.wasm</a> · <a class="commit-link" href="/artifacts/multilang-wasm-benchmark/fft_c.wasm">fft_c.wasm</a></td>
+              </tr>
+              <tr>
+                <td><strong>C++ / Wasm</strong></td>
+                <td><a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/bc89e2c372c5e9f6dcb467f1d8d48a1165e7dcfa/benchmarks/multilang-wasm/sum_u32.cpp">sum_u32.cpp</a> · <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/bc89e2c372c5e9f6dcb467f1d8d48a1165e7dcfa/benchmarks/multilang-wasm/fft_kernel.cpp">fft_kernel.cpp</a></td>
+                <td><code>clang++ --target=wasm32 -O3 -nostdlib</code></td>
+                <td><a class="commit-link" href="/artifacts/multilang-wasm-benchmark/sum_cpp.wasm">sum_cpp.wasm</a> · <a class="commit-link" href="/artifacts/multilang-wasm-benchmark/fft_cpp.wasm">fft_cpp.wasm</a></td>
+              </tr>
+              <tr>
+                <td><strong>Rust / Wasm</strong></td>
+                <td><a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/bc89e2c372c5e9f6dcb467f1d8d48a1165e7dcfa/benchmarks/multilang-wasm/sum_u32.rs">sum_u32.rs</a> · <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/bc89e2c372c5e9f6dcb467f1d8d48a1165e7dcfa/benchmarks/multilang-wasm/fft_kernel.rs">fft_kernel.rs</a></td>
+                <td><code>rustc --target wasm32-unknown-unknown -O</code> (no_std cdylib)</td>
+                <td><a class="commit-link" href="/artifacts/multilang-wasm-benchmark/sum_rs.wasm">sum_rs.wasm</a> · <a class="commit-link" href="/artifacts/multilang-wasm-benchmark/fft_rs.wasm">fft_rs.wasm</a></td>
+              </tr>
+              <tr>
+                <td><strong>Dart / WasmGC</strong></td>
+                <td><a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/bc89e2c372c5e9f6dcb467f1d8d48a1165e7dcfa/benchmarks/multilang-wasm/fft_kernel.dart">fft_kernel.dart</a></td>
+                <td><code>dart compile wasm</code> (dart2wasm, WasmGC)</td>
+                <td><a class="commit-link" href="/artifacts/multilang-wasm-benchmark/fft_dart.wasm">fft_dart.wasm</a> + <a class="commit-link" href="/artifacts/multilang-wasm-benchmark/fft_dart.mjs">glue</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section aria-labelledby="footprint-heading">
+        <h2 id="footprint-heading">Cold Start &amp; Runtime Footprint</h2>
+        <p>
+          Managed WasmGC runtimes carry real cost: the Dart module is ~39.7 KB with 380 imports
+          and its instantiation glue; the prebuilt Kotlin/Wasm document-edit module is ~37 KB with
+          216 imports. By contrast the linear-memory kernels are 94–2,479 bytes with zero imports.
+          Measured cold-instantiation and per-workload warm timings are in the
+          <a href="/benchmarks/multilang-wasm-benchmark.md">static report</a> and the
+          <a href="/data/multilang-wasm-benchmark-report.v1.json">JSON report</a>.
+        </p>
+      </section>
+
+      <section aria-labelledby="evidence-heading">
+        <h2 id="evidence-heading">Provenance</h2>
+        <ul class="demo-links">
+          <li><a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/bc89e2c372c5e9f6dcb467f1d8d48a1165e7dcfa/scripts/build-multilang-wasm-benchmark.ts">Build recipe (compilers + benchmark loop)</a></li>
+          <li><a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/bc89e2c372c5e9f6dcb467f1d8d48a1165e7dcfa/tests/multilang-wasm-benchmark.test.ts">Correctness + WasmGC evidence tests</a></li>
+          <li><a class="commit-link" href="/data/multilang-wasm-benchmark-report.v1.json">Measured report JSON</a> · <a class="commit-link" href="/benchmarks/multilang-wasm-benchmark.md">Markdown report</a></li>
+          <li>Dart SDK: <code>dart compile wasm</code> (Dart 3.12.2, dart2wasm). Rust: rustc 1.97.0 with <code>wasm32-unknown-unknown</code>.</li>
+        </ul>
+        <p class="no-js-note">JavaScript is off. Sources, artifacts, and measured reports remain
+          available through the links above.</p>
+      </section>
+    </main>
+  </body>
+</html>
