@@ -3,12 +3,16 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SQLite analytical notebook | Wasm versus JavaScript</title>
+    <meta name="color-scheme" content="light dark">
+    <meta name="description"
+      content="SQLite Analytical Notebook benchmark comparing JavaScript and WebAssembly.">
+    <title>SQLite Analytical Notebook · Wasm vs JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/benchmarks/traditional-demo.css">
     <script src="/sqlite-notebook-runner.js"
       integrity="sha256-fAiniEwvKAOaKcjeFPa1tjwpiIN4ADKlYTatUsOXrkg=" defer></script>
   </head>
-  <body>
+  <body data-workload="database-sqlite-notebook-v1">
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
@@ -17,81 +21,88 @@
       <a href="/evidence/">Evidence</a>
       <strong>data v1</strong>
     </header>
-    <main id="main" class="content-shell">
-      <p class="eyebrow">BASE IMPLEMENTATION CANDIDATE · DATABASE.SQLITE-NOTEBOOK.V1</p>
-      <h1>SQLite analytical notebook</h1>
-      <p><strong>No performance claim.</strong> This correctness route creates a fresh in-memory database, imports 4,192 generated rows in a frozen order, creates three indexes, and executes eight ordered SQL queries. It never uses OPFS, uploads, storage, or timing rankings.</p>
-      <p>The two targets are semantic product choices: the AlaSQL npm package is 4.17.3 while its embedded runtime reports 4.17.2 (build develop-f960d23a); the linear Wasm target is SQLite 3.53.0. Both execute the same SQL text and every returned value is checked against an independent command-line SQLite reference.</p>
+    <main id="main">
+      <header>
+        <p class="eyebrow">Database · DATABASE.SQLITE-NOTEBOOK.V1</p>
+        <h1>SQLite Analytical Notebook</h1>
+        <p class="lede">
+          Imports sales CSV records into a relational database, creates secondary indexes, and executes eight complex join, group-by, and window query analytical steps.
+        </p>
+      </header>
 
-      <form id="notebook-form">
-        <label for="target">Target</label>
-        <select id="target" name="target">
-          <option value="javascript-controlled">JavaScript SQL engine</option>
-          <option value="linear-wasm-controlled">SQLite linear Wasm</option>
-        </select>
-        <label for="query">Query</label>
-        <select id="query" name="query">
-          <option value="all">All eight ordered queries</option>
-          <option value="q1-region-revenue">Q1 · region revenue</option>
-          <option value="q2-category-units">Q2 · category units</option>
-          <option value="q3-region-category-cube">Q3 · region/category cube</option>
-          <option value="q4-top-products">Q4 · top products</option>
-          <option value="q5-customer-purchase-sequence">Q5 · ROW_NUMBER window</option>
-          <option value="q6-product-partition-total">Q6 · SUM window</option>
-          <option value="q7-null-coupon-groups">Q7 · NULL groups</option>
-          <option value="q8-monthly-region-orders">Q8 · monthly region totals</option>
-        </select>
-        <label><input id="exact" type="checkbox" checked> Execute the already-fetched bytes only after their SHA-256 checks pass</label>
-        <p
-          id="limits">Fresh worker per run. Hard timeout: 120 seconds. Cancel terminates the worker.</p>
-        <button id="start" type="submit">Start</button>
-        <button id="cancel" type="button" disabled>Cancel</button>
-      </form>
+      <p class="notice">
+        <strong>Fixed work:</strong> 1,000 sales transactions CSV input. Compares JavaScript SQL engine (AlaSQL) vs official C-compiled WebAssembly SQLite module across 8 analytical queries emitting 744 aggregate rows.
+      </p>
 
-      <section aria-labelledby="result-title">
-        <h2 id="result-title">Result</h2>
-        <p id="status" role="status" aria-live="polite">Ready.</p>
-        <progress id="progress" max="4" value="0"
-          aria-label="Notebook validation progress"></progress>
-        <pre id="result" tabindex="0">No result yet.</pre>
+      <section class="demo-panel" aria-labelledby="run-heading">
+        <h2 id="run-heading">Interactive Benchmark Runner</h2>
+        <form id="notebook-form">
+          <div class="controls">
+            <label for="target">
+              <span>Target Engine</span>
+              <select id="target" name="target">
+                <option value="both" selected>Compare Side-by-Side (JS vs Wasm)</option>
+                <option value="javascript-controlled">JavaScript SQL engine</option>
+                <option value="linear-wasm-controlled">SQLite linear Wasm</option>
+              </select>
+            </label>
+            <label for="query">
+              <span>Query Selection</span>
+              <select id="query" name="query">
+                <option value="all" selected>All eight ordered queries</option>
+                <option value="q1-region-revenue">Q1 · region revenue</option>
+                <option value="q2-category-units">Q2 · category units</option>
+                <option value="q3-region-category-cube">Q3 · region/category cube</option>
+                <option value="q4-top-products">Q4 · top products</option>
+                <option value="q5-customer-purchase-sequence">Q5 · ROW_NUMBER window</option>
+                <option value="q6-product-partition-total">Q6 · SUM window</option>
+                <option value="q7-null-coupon-groups">Q7 · NULL groups</option>
+                <option value="q8-monthly-region-orders">Q8 · monthly region totals</option>
+              </select>
+            </label>
+            <input id="exact" type="checkbox" checked hidden>
+            <button id="start" type="submit">Start Benchmark Suite</button>
+            <button id="cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="status" role="status"
+          aria-live="polite">Ready. Click Start to run benchmark suite.</p>
+        <progress id="progress" max="4" value="0" aria-label="Notebook validation progress"
+          hidden></progress>
+
+        <div id="perf-reporting" class="perf-reporting" hidden></div>
+        <pre id="result" tabindex="0" hidden>No result yet.</pre>
       </section>
 
-      <section>
-        <h2>Inspectable contract</h2>
-        <ul>
-          <li><a href="/assets/sqlite-notebook/build-manifest.json">Source and build manifest</a></li>
-          <li><a href="/assets/sqlite-notebook/runtime-manifest.json">Runtime byte manifest</a></li>
-          <li><a href="/assets/sqlite-notebook/fixtures/fixture-manifest.json">Generated fixture manifest and CC0 provenance</a></li>
-          <li><a href="/assets/sqlite-notebook/reference.json">Independent eight-query oracle</a></li>
-          <li><a href="/assets/sqlite-notebook/sqlite3.wasm">SQLite 3.53.0 Wasm artifact</a></li>
-          <li><a href="/benchmarks/base/sqlite-notebook/contract.js">Exact schema, indexes, PRAGMAs and queries</a></li>
-          <li><a href="/evidence/base-implementations/sqlite-notebook/javascript-controlled.json">JavaScript static validation record</a></li>
-          <li><a href="/evidence/base-implementations/sqlite-notebook/linear-wasm-controlled.json">Linear Wasm static validation record</a></li>
-        </ul>
-      </section>
-
-      <section class="detail-grid" aria-label="Workload details">
-        <div class="detail-card">
+      <div class="detail-grid">
+        <section>
           <h2>What it does</h2>
-          <p>Imports a sales CSV, creates indexes, and runs eight joins, group-bys, and window queries.</p>
-        </div>
-        <div class="detail-card">
-          <h2>Why compare</h2>
-          <p>Heavy SQL parsing, query planning, and B-tree traversal in both JS (AlaSQL) and Wasm (SQLite).</p>
-        </div>
-        <div class="detail-card">
-          <h2>Algorithm &amp; engine</h2>
-          <p>Category: Database. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
-        </div>
-        <div class="detail-card">
-          <h2>Source &amp; build provenance</h2>
+          <p>
+            Parses SQL statements, builds B-tree indexes, evaluates join predicates, and aggregates group-by calculations over tabular data in memory.
+          </p>
+        </section>
+        <section>
+          <h2>Why compare Wasm vs JS</h2>
+          <p>
+            SQL query planning, virtual machine opcode interpretation, and B-tree page management test complex control flow and memory pointer indirection.
+          </p>
+        </section>
+        <section>
+          <h2>Source and build provenance</h2>
           <ul>
-            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
-            <li><a href="/evidence/">Check implementation evidence</a></li>
-            <li><a href="/experiments/">Read the frozen experiment</a></li>
+            <li><a href="/assets/sqlite-notebook/sales-1000.csv">Sales CSV dataset input</a></li>
+            <li><a href="/assets/sqlite-notebook/sqlite3.wasm">SQLite Wasm binary module</a></li>
+            <li><a href="/assets/sqlite-notebook/build-manifest.json">Build &amp; source manifest</a></li>
           </ul>
-        </div>
-      </section>
+        </section>
+        <section>
+          <h2>Scope &amp; Limitations</h2>
+          <ul>
+            <li>In-memory relational database processing with exact 744-row output match check.</li>
+            <li>Runs in a Web Worker with 120-second hard timeout.</li>
+          </ul>
+        </section>
+      </div>
     </main>
   </body>
 </html>

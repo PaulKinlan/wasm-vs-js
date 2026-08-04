@@ -39,13 +39,16 @@ form.addEventListener("submit", (event) => {
   output.textContent = "";
   progress.value = 0;
   status.textContent = "Generating the registered fixture in a fresh worker.";
+  const startTime = performance.now();
   worker.addEventListener("message", ({ data }) => {
     if (!active || data?.token !== token || token !== generation) return;
     if (data.type === "progress") {
       progress.value = data.value;
       status.textContent = data.message;
-    } else if (data.type === "complete") cleanup("Complete.", data.text);
-    else if (data.type === "error") cleanup(`Stopped: ${data.message}`);
+    } else if (data.type === "complete") {
+      const elapsed = (performance.now() - startTime).toFixed(2);
+      cleanup(`Complete in ${elapsed} ms.`, data.text);
+    } else if (data.type === "error") cleanup(`Stopped: ${data.message}`);
   });
   worker.addEventListener("error", (error) => {
     if (active?.token === token && token === generation) {

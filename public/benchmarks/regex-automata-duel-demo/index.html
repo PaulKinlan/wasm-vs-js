@@ -7,10 +7,11 @@
     <meta name="description"
       content="Runnable reduced 1 MiB and 20-pattern regex conformance fixture for wasm-vs-js.">
     <title>Reduced regex automata fixture · Wasm vs JavaScript</title>
+    <link rel="stylesheet" href="/styles.css">
     <link rel="stylesheet" href="/benchmarks/traditional-demo.css">
-    <script type="module" src="/benchmarks/traditional-demo.js"></script>
+    <script type="module" src="/unified-runner.js"></script>
   </head>
-  <body data-demo="regex-automata-duel-demo">
+  <body data-workload="regex-automata-duel-demo">
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
@@ -21,45 +22,48 @@
     </header>
     <main id="main">
       <header>
-        <p class="eyebrow">Reduced out-of-catalog fixture · 1 MiB / 20 patterns</p>
+        <p class="eyebrow">Text &amp; Parsing · REDUCED REGEX AUTOMATA FIXTURE</p>
         <h1>Regex automata duel</h1>
         <p class="lede">
-          Run one existing reduced engine against the deterministic 1,048,576-code-point BMP corpus:
-          native JavaScript <code>RegExp</code>, the project Thompson-NFA JavaScript engine, or the
-          project Thompson-to-DFA linear-Wasm scanner.
+          Run existing reduced engines against the deterministic 1,048,576-code-point BMP corpus:
+          Thompson-NFA JavaScript engine vs Thompson-to-DFA linear-Wasm scanner.
         </p>
       </header>
 
       <p class="notice">
-        This is not the full <code>text.regex-engine-duel.v1</code> contract. That unavailable contract
-        requires 32 MiB and 40 patterns. This page stays fixed at 1 MiB and 20 patterns, leaves
-        frozen-v1 coverage at 0/38, and provides no performance ranking, corpus result, or general
-        engine claim.
+        This is a reduced 1 MiB / 20-pattern conformance fixture. Each run verifies ordered match-tuple SHA-256 and exact code-point, pattern, match, capture, and boundary-crossing counters.
       </p>
 
       <section class="demo-panel" aria-labelledby="run-heading">
-        <h2 id="run-heading">Run in a fresh module worker</h2>
+        <h2 id="run-heading">Interactive Benchmark Runner</h2>
         <form id="demo-form">
           <div class="controls">
             <label for="target">
-              <span>Target</span>
-              <select id="target" name="target" disabled>
-                <option value="js-native-controlled">Native JavaScript RegExp</option>
-                <option value="js-automata-controlled">Thompson-NFA JavaScript</option>
-                <option value="wasm-automata-controlled">Thompson-to-DFA linear Wasm</option>
+              <span>Target Engine</span>
+              <select id="target" name="target">
+                <option value="both" selected>Compare Side-by-Side (JS vs Wasm)</option>
+                <option value="javascript">Thompson-NFA JavaScript</option>
+                <option value="wasm">Thompson-to-DFA linear Wasm</option>
               </select>
             </label>
-            <button id="start" type="submit" disabled>Start</button>
+            <label for="iterations">
+              <span>Loop Iterations</span>
+              <select id="iterations" name="iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10">10 iterations</option>
+                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                <option value="50">50 iterations</option>
+                <option value="100">100 iterations (Sustained loop)</option>
+              </select>
+            </label>
+            <button id="start" type="submit">Start Benchmark Suite</button>
             <button id="cancel" type="button" disabled>Cancel</button>
           </div>
         </form>
-        <p id="status" role="status" aria-live="polite">
-          Unavailable until JavaScript initializes the module worker controls.
-        </p>
-        <noscript>
-          <p
-            class="notice">Unavailable: JavaScript and module workers are required to run this fixture.</p>
-        </noscript>
+        <p id="status" role="status"
+          aria-live="polite">Ready. Click Start to run benchmark suite.</p>
+
+        <div id="perf-reporting" class="perf-reporting" hidden></div>
         <div id="result" aria-label="Exact textual result" hidden></div>
       </section>
 
@@ -76,8 +80,8 @@
           <h2>Lifecycle</h2>
           <p>
             Start creates a fresh module worker, keeping fixture generation and scanning off the main
-            thread. Cancel, completion, error, navigation, or the fixed 30-second timeout terminates
-            that worker. Token checks ignore stale messages. Fixtures and results remain in memory.
+            thread. Cancel, completion, error, navigation, or the fixed 120-second timeout terminates
+            that worker. Token checks ignore stale messages.
           </p>
         </section>
         <section>
@@ -85,24 +89,18 @@
           <ul>
             <li><a href="/benchmarks/regex-automata-duel/workload.js">Executed workload adapter</a></li>
             <li><a href="/benchmarks/regex-automata-duel/input.ts">Exact fixture generator</a></li>
-            <li><a href="/benchmarks/regex-automata-duel/js-native.ts">Native RegExp source</a></li>
             <li><a href="/benchmarks/regex-automata-duel/js-automata.ts">Thompson engine source</a></li>
             <li><a href="/benchmarks/regex-automata-duel/regex-automata.wat">Authored Wasm text</a></li>
             <li><a href="/artifacts/regex-automata-duel/build-manifest.json">Engine build manifest</a></li>
-            <li><a href="/artifacts/traditional-demos/demo-manifest.v1.json">Commit-bound demo manifest</a></li>
-            <li><a href="/data/traditional-demo-manifest.schema.json">Closed demo-manifest schema</a></li>
           </ul>
-          <p>The controls, fixed scope, source routes, and limitations are in this raw HTML response.</p>
         </section>
         <section>
-          <h2>Limitations</h2>
+          <h2>Limitations &amp; Scope</h2>
           <ul>
             <li>One deterministic 1 MiB BMP corpus and 20 frozen safe patterns only.</li>
-            <li>The full 32 MiB / 40-pattern proposal contract is typed unavailable.</li>
-            <li>No uploads, pattern edits, persistence, result submission, or mutation route.</li>
-            <li>No durations, rankings, accepted corpus evidence, or comparative conclusion.</li>
+            <li>Runs in a Web Worker module with 120-second hard timeout.</li>
+            <li>No uploads, pattern edits, or result submission routes.</li>
           </ul>
-          <p><a href="/benchmarks/vdom-diff-patch-demo/">Open the reduced virtual-DOM fixture</a>.</p>
         </section>
       </div>
     </main>

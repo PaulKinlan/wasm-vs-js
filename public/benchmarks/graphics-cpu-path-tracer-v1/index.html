@@ -3,13 +3,15 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="build-manifest-sha256"
-      content="bb2f3f5e934a409d4723112f29bcdb29496ab652e036ae90058a1c2ece88d7b8">
-    <title>CPU path tracer | Wasm versus JavaScript</title>
+    <meta name="color-scheme" content="light dark">
+    <meta name="description"
+      content="CPU Ray-Tracing Path Tracer benchmark comparing JavaScript and WebAssembly.">
+    <title>CPU Ray-Tracing Path Tracer · Wasm vs JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
-    <script type="module" src="/benchmarks/graphics-cpu-path-tracer-v1/runner.js"></script>
+    <link rel="stylesheet" href="/benchmarks/traditional-demo.css">
+    <script type="module" src="/unified-runner.js"></script>
   </head>
-  <body>
+  <body data-workload="graphics-cpu-path-tracer-v1">
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
@@ -19,45 +21,80 @@
       <strong>data v1</strong>
     </header>
     <main id="main">
-      <p class="eyebrow">RUNNABLE CORRECTNESS DEMO · GRAPHICS.CPU-PATH-TRACER.V1</p>
-      <h1>Fixed CPU path tracer</h1>
-      <p><strong>No performance claim.</strong> A fresh worker renders a project-generated Cornell-box product scene. The controlled pair shares the scalar BVH, xorshift32 sequence, four-bounce path rules, strict-f32 policy, tone map and complete RGBA oracle.</p>
-      <form>
-    <label>Target <select name="target"><option value="javascript">JavaScript controlled</option><option value="wasm-linear">Linear Wasm controlled</option></select></label>
-    <label>Work <select name="mode"><option value="preview">Bounded preview: 64×64 × 4 spp</option><option value="exact">Exact catalog contract: 512×512 × 64 spp</option></select></label>
-    <p>Exact mode executes 16,777,216 primary samples. It verifies raw source, manifest and artifact bytes before accepting the complete framebuffer hash. It stops after 150 seconds.</p>
-    <button id="start" type="submit">Start</button> <button id="cancel" type="button" disabled>Cancel</button>
-    <label class="sr-only" for="progress">Run progress</label><progress id="progress" max="1">Not started</progress>
-  </form>
-      <p id="status" role="status" aria-live="polite">Ready.</p>
-      <pre id="output" tabindex="0">No result yet.</pre>
-      <canvas width="64" height="64" role="img"
-        aria-label="Rendered path tracer framebuffer; exact pixel checkpoints are listed in the text result"></canvas>
-      <h2>Fixed contract</h2>
-      <p>One thread performs complete ray generation, fixed-order BVH traversal, Lambert integration and framebuffer quantization. Canvas presentation happens after validation. The page does not upload, store or rank results. Threads, SharedArrayBuffer and SIMD are separate unavailable variants.</p>
+      <header>
+        <p class="eyebrow">Graphics &amp; Rendering · GRAPHICS.CPU-PATH-TRACER.V1</p>
+        <h1>CPU Ray-Tracing Path Tracer</h1>
+        <p class="lede">
+          Renders a deterministic 512×512 product preview at 64 samples per pixel using Monte Carlo integration, BSDF sampling, and ray-sphere/box intersection on the CPU.
+        </p>
+      </header>
 
-      <section class="detail-grid" aria-label="Workload details">
-        <div class="detail-card">
-          <h2>What it does</h2>
-          <p>Renders a deterministic 512×512 product preview at 64 samples per pixel.</p>
-        </div>
-        <div class="detail-card">
-          <h2>Why compare</h2>
-          <p>Ray-scene intersection, BSDF sampling, and Monte Carlo integration on the CPU.</p>
-        </div>
-        <div class="detail-card">
-          <h2>Algorithm &amp; engine</h2>
-          <p>Category: Graphics & Rendering. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
-        </div>
-        <div class="detail-card">
-          <h2>Source &amp; build provenance</h2>
-          <ul>
-            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
-            <li><a href="/evidence/">Check implementation evidence</a></li>
-            <li><a href="/experiments/">Read the frozen experiment</a></li>
-          </ul>
-        </div>
+      <p class="notice">
+        <strong>Fixed work:</strong> 512×512 frame resolution, 64 rays per pixel, 4 ray bounces max depth. Both JavaScript and WebAssembly compute identical Monte Carlo pixel radiance arrays.
+      </p>
+
+      <section class="demo-panel" aria-labelledby="run-heading">
+        <h2 id="run-heading">Interactive Benchmark Runner</h2>
+        <form id="demo-form">
+          <div class="controls">
+            <label for="target">
+              <span>Target Engine</span>
+              <select id="target" name="target">
+                <option value="both" selected>Compare Side-by-Side (JS vs Wasm)</option>
+                <option value="javascript">JavaScript controlled</option>
+                <option value="wasm">Linear Wasm controlled</option>
+              </select>
+            </label>
+            <label for="iterations">
+              <span>Loop Iterations</span>
+              <select id="iterations" name="iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10">10 iterations</option>
+                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                <option value="50">50 iterations</option>
+                <option value="100">100 iterations (Sustained loop)</option>
+              </select>
+            </label>
+            <button id="start" type="submit">Start Benchmark Suite</button>
+            <button id="cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="status" role="status"
+          aria-live="polite">Ready. Click Start to run benchmark suite.</p>
+
+        <div id="perf-reporting" class="perf-reporting" hidden></div>
+        <div id="result" aria-label="Exact textual result" hidden></div>
       </section>
+
+      <div class="detail-grid">
+        <section>
+          <h2>What it does</h2>
+          <p>
+            Traces 16.7 million light transport paths across 512×512 pixels with diffuse BSDF materials and point light sources.
+          </p>
+        </section>
+        <section>
+          <h2>Why compare Wasm vs JS</h2>
+          <p>
+            Tight math loops involving transcendental functions (`Math.sin`, `Math.cos`, `Math.sqrt`), vector dot/cross products, and random number generation test raw FPU pipeline throughput.
+          </p>
+        </section>
+        <section>
+          <h2>Source and build provenance</h2>
+          <ul>
+            <li><a href="/benchmarks/base-v1/graphics-cpu-path-tracer/engine.js">Executed workload engine</a></li>
+            <li><a href="/benchmarks/graphics-cpu-path-tracer-v1/worker.js">Worker harness</a></li>
+            <li><a href="/artifacts/graphics-cpu-path-tracer-v1/build-manifest.json">Engine build manifest</a></li>
+          </ul>
+        </section>
+        <section>
+          <h2>Scope &amp; Limitations</h2>
+          <ul>
+            <li>Deterministic random seed initialization across both targets.</li>
+            <li>Runs in a dedicated background Web Worker to keep main thread fluid.</li>
+          </ul>
+        </section>
+      </div>
     </main>
   </body>
 </html>

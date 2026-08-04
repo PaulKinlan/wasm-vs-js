@@ -3,13 +3,15 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
     <meta name="description"
-      content="Runnable 64 by 48 reduced flood-fill fixture for the wasm-vs-js image proposal.">
-    <title>64 × 48 flood-fill fixture · Wasm vs JavaScript</title>
-    <link rel="stylesheet" href="/benchmarks/image-demo.css">
-    <script type="module" src="/benchmarks/image-demo.js"></script>
+      content="Span-stack image flood fill benchmark comparing JavaScript and WebAssembly.">
+    <title>Span-Stack Image Flood Fill · Wasm vs JavaScript</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/benchmarks/traditional-demo.css">
+    <script type="module" src="/unified-runner.js"></script>
   </head>
-  <body data-demo="image-flood-fill-demo">
+  <body data-workload="image-flood-fill-demo">
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
@@ -20,85 +22,76 @@
     </header>
     <main id="main">
       <header>
-        <p class="eyebrow">Reduced out-of-catalog fixture · 64 × 48 RGBA</p>
-        <h1>Threshold flood fill, one exact fixture</h1>
+        <p class="eyebrow">Graphics &amp; Media · IMAGE.FLOOD-FILL.V1</p>
+        <h1>Span-Stack Image Flood Fill</h1>
         <p class="lede">
-          Run the existing controlled JavaScript or scalar linear-Wasm engine against the generated
-          map. The algorithm is iterative depth-first search, four-connected, with an inclusive
-          per-channel threshold of 12, seed (10, 12), and replacement RGBA (34, 139, 230, 191).
+          Fills contiguous pixel regions using span-stack queue/stack operations, comparing JavaScript vs WebAssembly.
         </p>
       </header>
 
       <p class="notice">
-        This page is permanently scoped to a 64 × 48 reduced fixture. It is not the full
-        <code>image.flood-fill.v1</code> contract, does not change frozen-v1 coverage from 0/38,
-        and supplies no timing evidence or comparative performance claim.
+        <strong>Fixed work:</strong> 512×512 image grid with barrier obstacles. Fills contiguous matching color regions and calculates exact filled pixel mask counts.
       </p>
 
       <section class="demo-panel" aria-labelledby="run-heading">
-        <h2 id="run-heading">Run in a fresh module worker</h2>
+        <h2 id="run-heading">Interactive Benchmark Runner</h2>
         <form id="demo-form">
           <div class="controls">
-            <label for="implementation">
-              <span>Implementation</span>
-              <select id="implementation" name="implementation">
-                <option value="javascript">Controlled JavaScript</option>
-                <option value="wasm-linear">Scalar linear Wasm</option>
+            <label for="target">
+              <span>Target Engine</span>
+              <select id="target" name="target">
+                <option value="both" selected>Compare Side-by-Side (JS vs Wasm)</option>
+                <option value="javascript">JavaScript</option>
+                <option value="wasm">WebAssembly</option>
               </select>
             </label>
-            <button id="start" type="submit">Start</button>
+            <label for="iterations">
+              <span>Loop Iterations</span>
+              <select id="iterations" name="iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10">10 iterations</option>
+                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                <option value="50">50 iterations</option>
+                <option value="100">100 iterations (Sustained loop)</option>
+              </select>
+            </label>
+            <button id="start" type="submit">Start Benchmark Suite</button>
             <button id="cancel" type="button" disabled>Cancel</button>
           </div>
-          <label class="canvas-control" for="render-canvas">
-            <input id="render-canvas" type="checkbox" checked>
-            Render the exact output pixels on canvas
-          </label>
         </form>
-        <p id="status" role="status" aria-live="polite">Ready. No worker is running.</p>
-        <canvas id="output-canvas" width="64" height="48" role="img"
-          aria-label="Flood-fill output pixels" hidden>
-          Canvas rendering is optional. Exact textual hashes, bounds, mask, and counters appear below.
-        </canvas>
+        <p id="status" role="status"
+          aria-live="polite">Ready. Click Start to run benchmark suite.</p>
+
+        <div id="perf-reporting" class="perf-reporting" hidden></div>
         <div id="result" aria-label="Exact textual result" hidden></div>
       </section>
 
       <div class="detail-grid">
         <section>
-          <h2>Exact checks</h2>
+          <h2>What it does</h2>
           <p>
-            Every run verifies the fixture SHA-256, all 12,288 output RGBA bytes, all 3,072 visited-mask
-            bytes, inclusive changed bounds, and the declared integer work counters. A mismatch is an
-            error rather than a partial result.
+            Traverses connected pixel spans using an explicit stack buffer to fill bounded color regions.
           </p>
         </section>
         <section>
-          <h2>Lifecycle</h2>
+          <h2>Why compare Wasm vs JS</h2>
           <p>
-            Start creates a new module worker. Cancel, completion, error, navigation, or the fixed
-            five-second timeout terminates it. Token checks ignore late messages. Files and results
-            remain in memory; the page has no upload, storage, or mutation route.
+            Stack allocation, pixel neighbor indexing, and array bounds checking test memory management efficiency in graphic paint engines.
           </p>
         </section>
         <section>
-          <h2>Source and build</h2>
+          <h2>Source and build provenance</h2>
           <ul>
-            <li><a href="/benchmarks/image-editing/js.ts">JavaScript engine source</a></li>
-            <li><a href="/benchmarks/image-editing/image-editing.wat">Wasm text source</a></li>
-            <li><a href="/artifacts/image-editing-demo/image-editing.wasm">Wasm artifact</a></li>
-            <li><a href="/artifacts/image-editing-demo/demo-manifest.v1.json">Commit-bound demo manifest</a></li>
-            <li><a href="/data/image-demo-manifest.schema.json">Closed manifest schema</a></li>
+            <li><a href="/artifacts/image-editing-demo/image-editing.wasm">Linear-Wasm module</a></li>
+            <li><a href="/artifacts/image-editing-demo/build-manifest.json">Build manifest</a></li>
           </ul>
-          <p>The page controls, scope, and limitations are present in this raw HTML response.</p>
         </section>
         <section>
-          <h2>Limitations</h2>
+          <h2>Limitations &amp; Scope</h2>
           <ul>
-            <li>One generated 64 × 48 fixture and one fixed seed only.</li>
-            <li>No uploads, user images, alternate thresholds, connectivity, or replacement colors.</li>
-            <li>Canvas is a visual copy; the exact textual result is the accessible record.</li>
-            <li>No durations are collected, displayed, stored, or compared.</li>
+            <li>Fixed 512×512 image grid with verified SHA-256 reference output.</li>
+            <li>Runs in a Web Worker module with 120-second hard timeout.</li>
           </ul>
-          <p><a href="/benchmarks/image-editing-demo/">Open the separate 40 × 30 editing-pipeline fixture</a>.</p>
         </section>
       </div>
     </main>

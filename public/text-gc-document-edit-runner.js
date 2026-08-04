@@ -44,13 +44,18 @@ form.addEventListener("submit", (event) => {
   progress.value = 0;
   output.textContent = "No result retained while work is in progress.";
   status.textContent = "Loading the frozen 10,000-edit fixture in a fresh worker.";
+  const startTime = performance.now();
   worker.addEventListener("message", (event) => {
     if (!active || active.runGeneration !== runGeneration || event.data?.token !== token) return;
     if (event.data.type === "progress") {
       progress.value = event.data.value;
       status.textContent = event.data.message;
     } else if (event.data.type === "complete") {
-      cleanup("Complete. Exact output and structural checks passed.", event.data.text);
+      const elapsed = (performance.now() - startTime).toFixed(2);
+      cleanup(
+        `Complete in ${elapsed} ms. Exact output and structural checks passed.`,
+        event.data.text,
+      );
     } else if (event.data.type === "unsupported") {
       cleanup(`Unavailable in this browser: ${event.data.message}`);
     } else if (event.data.type === "error") {

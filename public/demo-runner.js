@@ -72,6 +72,17 @@ function renderResult(message) {
     `frozen tolerances and passed every structural invariant.`;
 
   elements.hashes.replaceChildren();
+  if (message.executionMs !== undefined) {
+    const timeRow = document.createElement("tr");
+    const timeName = document.createElement("th");
+    timeName.scope = "row";
+    timeName.textContent = "Execution Time";
+    const timeVal = document.createElement("td");
+    timeVal.setAttribute("colspan", "2");
+    timeVal.innerHTML = `<strong>${message.executionMs.toFixed(2)} ms</strong>`;
+    timeRow.append(timeName, timeVal);
+    elements.hashes.append(timeRow);
+  }
   for (
     const [label, actual, expected] of [
       ["Input SHA-256", message.inputSha256, identity.frozenHashes.inputSha256],
@@ -156,6 +167,8 @@ elements.start.addEventListener("click", () => {
 
   const runWorker = new Worker("/demo-worker.js", { type: "module" });
   worker = runWorker;
+  const startTime = performance.now();
+
   timeoutId = setTimeout(() => {
     finish(`Timed out after ${identity.timeoutMs / 1000} seconds; the worker was terminated.`);
   }, identity.timeoutMs);
@@ -168,8 +181,13 @@ elements.start.addEventListener("click", () => {
       return;
     }
     if (message.type === "completed") {
-      renderResult(message);
-      finish("Run complete. All reported evidence comes from this page's worker run.");
+      const executionMs = performance.now() - startTime;
+      renderResult({ ...message, executionMs });
+      finish(
+        `Run complete in ${
+          executionMs.toFixed(2)
+        } ms. All reported evidence comes from this page's worker run.`,
+      );
       return;
     }
     if (message.type === "failed") {

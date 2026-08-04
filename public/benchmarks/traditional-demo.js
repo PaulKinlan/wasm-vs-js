@@ -8,7 +8,7 @@ const DEMOS = Object.freeze({
     worker: "/benchmarks/vdom-diff-patch-demo/worker.js",
   }),
 });
-const TIMEOUT_MS = 30_000;
+const TIMEOUT_MS = 120_000;
 const demoId = document.body.dataset.demo;
 const demo = DEMOS[demoId];
 if (!demo) throw new Error("page demo identifier is not allowlisted");
@@ -78,6 +78,9 @@ function showResult(payload) {
   const facts = document.createElement("dl");
   facts.className = "result-grid";
   appendFact(facts, "Target", payload.targetLabel);
+  if (payload.executionMs !== undefined) {
+    appendFact(facts, "Execution Time", `${payload.executionMs.toFixed(2)} ms`);
+  }
   appendFact(facts, "Reduced fixture", payload.fixtureLabel);
   appendFact(facts, "Input SHA-256", payload.inputSha256);
   for (const [label, value] of Object.entries(payload.oracles)) appendFact(facts, label, value);
@@ -151,6 +154,7 @@ form.addEventListener("submit", (event) => {
   retireActive();
   const token = `${++sequence}:${crypto.randomUUID()}`;
   const worker = new Worker(demo.worker, { type: "module" });
+  const startTime = performance.now();
   const timeout = setTimeout(() => {
     if (!active || active.token !== token) return;
     retireActive();
@@ -165,6 +169,7 @@ form.addEventListener("submit", (event) => {
   worker.addEventListener("message", async (messageEvent) => {
     if (!active || active.token !== token || messageEvent.data?.token !== token) return;
     const message = messageEvent.data;
+    const executionMs = performance.now() - startTime;
     retireActive();
     setRunning(false);
     if (message.type !== "result") {
@@ -172,7 +177,8 @@ form.addEventListener("submit", (event) => {
       return;
     }
     try {
-      showResult(await validateBrowserDOM(message.result));
+      const validated = await validateBrowserDOM(message.result);
+      showResult({ ...validated, executionMs });
     } catch (error) {
       fail(`Run failed: ${error instanceof Error ? error.message : "DOM validation failed"}`);
     }
