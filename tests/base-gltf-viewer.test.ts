@@ -205,6 +205,39 @@ Deno.test("glTF parser accepts the exact Draco product model and rejects malform
   assertThrows(() => validateGltfContract("{}"));
 });
 
+// Wasm half of the 600-frame differential run, executed on a worker thread
+// (inline source so this pinned file stays the only source-graph entry):
+// it is independent of the JS render below, and both are sync CPU.
+const WASM_HALF_WORKER_SOURCE = `
+self.onmessage = async (event) => {
+  const m = event.data;
+  const { instance } = await WebAssembly.instantiate(m.wasmBytes, {});
+  const ex = instance.exports;
+  const memory = new Uint8Array(ex.memory.buffer);
+  const base = Number(ex.heap_ptr());
+  const state = { cursor: 0 };
+  const copy = (value) => {
+    state.cursor = (state.cursor + 7) & ~7;
+    const off = state.cursor;
+    memory.set(new Uint8Array(value.buffer, value.byteOffset, value.byteLength), base + off);
+    state.cursor += value.byteLength;
+    return off;
+  };
+  const p = copy(m.positions), n = copy(m.normals), u = copy(m.texcoords),
+    i = copy(m.indices), t = copy(m.texture), a = copy(m.animation);
+  const j = copy(m.json);
+  const validate = Number(ex.validate_gltf(j, m.json.length));
+  const run = Number(
+    ex.run(
+      p, n, u, i, t, a, m.vertexCount, m.indexCount,
+      m.allocations, m.apiCalls, m.wasmBoundaryCrossings,
+    ),
+  );
+  const output = memory.slice(Number(ex.output_ptr()), Number(ex.output_ptr()) + m.outputBytes);
+  self.postMessage({ validate, run, output });
+};
+`;
+
 Deno.test("complete 600-frame JS and material-Wasm outputs equal the retained oracle", async () => {
   const [decoded, wasmDecoded] = await Promise.all([decode("javascript"), decode("wasm")]);
   const mesh = quantizeDecodedMesh(decoded);
@@ -212,54 +245,43 @@ Deno.test("complete 600-frame JS and material-Wasm outputs equal the retained or
     new URL("fixtures/base/graphics-gltf-viewer/base-color-64.rgba", root),
   );
   const animation = makeAnimationTable();
-  const js = runJavaScript(mesh, texture, animation, decoded.metrics);
   const wasmBytes = await Deno.readFile(
     new URL("public/artifacts/base-gltf-viewer/viewer.wasm", root),
   );
-  const { instance } = await WebAssembly.instantiate(wasmBytes, {});
-  const ex = instance.exports as never as Record<string, CallableFunction> & {
-    memory: WebAssembly.Memory;
-  };
-  const memory = new Uint8Array(ex.memory.buffer),
-    base = Number(ex.heap_ptr()),
-    copy = (value: ArrayBufferView, state = { cursor: 0 }) => {
-      state.cursor = (state.cursor + 7) & ~7;
-      const off = state.cursor;
-      memory.set(new Uint8Array(value.buffer, value.byteOffset, value.byteLength), base + off);
-      state.cursor += value.byteLength;
-      return off;
-    };
-  const state = { cursor: 0 };
-  const p = copy(mesh.positions, state),
-    n = copy(mesh.normals, state),
-    u = copy(mesh.texcoords, state),
-    i = copy(mesh.indices, state),
-    t = copy(texture, state),
-    a = copy(animation, state);
   const json = new TextEncoder().encode(
-      await Deno.readTextFile(new URL("fixtures/base/graphics-gltf-viewer/Avocado.gltf", root)),
-    ),
-    j = copy(json, state);
-  assertEquals(Number(ex.validate_gltf(j, json.length)), 0);
-  assertEquals(
-    Number(
-      ex.run(
-        p,
-        n,
-        u,
-        i,
-        t,
-        a,
-        mesh.vertexCount,
-        mesh.indices.length,
-        wasmDecoded.metrics.allocations,
-        wasmDecoded.metrics.apiCalls,
-        wasmDecoded.metrics.wasmBoundaryCrossings,
-      ),
-    ),
-    0,
+    await Deno.readTextFile(new URL("fixtures/base/graphics-gltf-viewer/Avocado.gltf", root)),
   );
-  const wasm = memory.slice(Number(ex.output_ptr()), Number(ex.output_ptr()) + OUTPUT_BYTES);
+  const worker = new Worker(
+    `data:text/javascript;base64,${btoa(WASM_HALF_WORKER_SOURCE)}`,
+    { type: "module" },
+  );
+  const wasmHalf = new Promise<{ validate: number; run: number; output: Uint8Array }>(
+    (resolve, reject) => {
+      worker.onmessage = (event) => resolve(event.data);
+      worker.onerror = (event) => reject(event.error ?? new Error(event.message));
+    },
+  );
+  worker.postMessage({
+    wasmBytes,
+    positions: mesh.positions,
+    normals: mesh.normals,
+    texcoords: mesh.texcoords,
+    indices: mesh.indices,
+    texture,
+    animation,
+    json,
+    vertexCount: mesh.vertexCount,
+    indexCount: mesh.indices.length,
+    allocations: wasmDecoded.metrics.allocations,
+    apiCalls: wasmDecoded.metrics.apiCalls,
+    wasmBoundaryCrossings: wasmDecoded.metrics.wasmBoundaryCrossings,
+    outputBytes: OUTPUT_BYTES,
+  });
+  const js = runJavaScript(mesh, texture, animation, decoded.metrics);
+  const { validate, run, output: wasm } = await wasmHalf;
+  worker.terminate();
+  assertEquals(validate, 0);
+  assertEquals(run, 0);
   const oracle = await Deno.readFile(
     new URL("public/artifacts/base-gltf-viewer/reference-output.bin", root),
   );
