@@ -4,7 +4,7 @@
   "immutable": true,
   "generator": {
     "source": "benchmarks/v1/server-ssr-template/workload.js",
-    "revision": "39d75fc15c486468a94716bd7785e1c1878730bd",
+    "revision": "9aa8be4598b56f7dcb28c085c14601dd0f801a19",
     "seed": "0x53535231",
     "records": 1000
   },
