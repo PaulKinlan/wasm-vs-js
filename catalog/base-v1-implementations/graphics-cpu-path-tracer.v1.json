@@ -25,7 +25,7 @@
   ],
   "artifactManifest": {
     "path": "public/artifacts/graphics-cpu-path-tracer-v1/build-manifest.json",
-    "sha256": "2d41041d1a99b1ec1d96de4c9b2d970c1fe21b5429b66cc23eddd7460ec9eff2"
+    "sha256": "8e2972bd7ee982d88657aa9e2cb4a3a92df22cb840ec632ca0c3cfe20139bed5"
   },
   "demoRoute": "/benchmarks/graphics-cpu-path-tracer-v1/",
   "acceptedCoverage": false
