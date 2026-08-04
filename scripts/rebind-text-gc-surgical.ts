@@ -44,7 +44,9 @@ for (const source of manifest.sources) {
   const sha = await sha256Hex(disk);
   if (sha !== source.sha256 || disk.byteLength !== source.bytes) {
     touched.push(
-      `${source.path}: bytes ${source.bytes}→${disk.byteLength}, sha ${source.sha256.slice(0, 12)}…→${sha.slice(0, 12)}…`,
+      `${source.path}: bytes ${source.bytes}→${disk.byteLength}, sha ${
+        source.sha256.slice(0, 12)
+      }…→${sha.slice(0, 12)}…`,
     );
     source.bytes = disk.byteLength;
     source.sha256 = sha;
