@@ -26,7 +26,7 @@ form.addEventListener("submit", (event) => {
   const run = { token, worker, timeout: 0 };
   const startTime = performance.now();
   run.timeout = setTimeout(() => {
-    if (active === run) cleanup(run, "Stopped: the 120 second exact-run timeout expired.");
+    if (active === run) cleanup(run, "Stopped: the 30 second exact-run timeout expired.");
   }, TIMEOUT_MS);
   active = run;
   start.disabled = true;

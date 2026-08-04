@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="description"
-      content="1,000-node / 250-edit virtual-DOM diff and patch benchmark comparing JavaScript and WebAssembly.">
-    <title>Virtual-DOM Diff & Patch · Wasm vs JavaScript</title>
+      content="1,000-node / 250-edit reduced virtual-DOM fixture for wasm-vs-js.">
+    <title>Reduced virtual-DOM fixture · Wasm vs JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
     <link rel="stylesheet" href="/benchmarks/traditional-demo.css">
-    <script type="module" src="/unified-runner.js"></script>
+    <script type="module" src="/benchmarks/traditional-demo.js"></script>
   </head>
-  <body data-workload="vdom-diff-patch-demo">
+  <body data-demo="vdom-diff-patch-demo" data-workload="vdom-diff-patch-demo">
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
@@ -22,27 +22,32 @@
     </header>
     <main id="main">
       <header>
-        <p class="eyebrow">DOM &amp; Web UI · VDOM.DIFF-PATCH.V1</p>
-        <h1>Virtual-DOM Diff &amp; Patch</h1>
+        <p class="eyebrow">Reduced out-of-catalog fixture · 1,000 nodes / 250 edits</p>
+        <h1>Virtual-DOM diff and patch</h1>
         <p class="lede">
-          Diffs 1,000 tree nodes with 250 edits to calculate DOM update patches, comparing JavaScript vs linear WebAssembly.
+          Run one existing reduced VDOM engine against the deterministic 1,000-node tree and
+          250-edit transformation: hand-written JavaScript VDOM engine or authored linear-Wasm VDOM
+          engine. Both targets calculate exact element insertion, attribute modification, tag replacement,
+          reorder, and deletion patch lists.
         </p>
       </header>
 
       <p class="notice">
-        <strong>Fixed work:</strong> 1,000-node tree and 250-edit transformation. Both engines calculate exact element insertion, attribute modification, tag replacement, reorder, and deletion patch lists.
+        This is not the full <code>dom.vdom-diff-patch.v1</code> contract. That unavailable contract
+        requires 10,000 nodes and 2,000 edits. This page stays fixed at 1,000 nodes and 250 edits, leaves
+        frozen-v1 coverage at 0/38, and provides no performance ranking, corpus result, or general
+        engine claim.
       </p>
 
       <section class="demo-panel" aria-labelledby="run-heading">
-        <h2 id="run-heading">Interactive Benchmark Runner</h2>
+        <h2 id="run-heading">Run in a fresh module worker</h2>
         <form id="demo-form">
           <div class="controls">
             <label for="target">
               <span>Target Engine</span>
-              <select id="target" name="target">
-                <option value="both" selected>Compare Side-by-Side (JS vs Wasm)</option>
-                <option value="javascript">JavaScript VDOM</option>
-                <option value="wasm">Linear Wasm VDOM</option>
+              <select id="target" name="target" disabled>
+                <option value="js-vdom-controlled">Hand-written JavaScript VDOM</option>
+                <option value="wasm-vdom-controlled">Authored linear-Wasm VDOM</option>
               </select>
             </label>
             <label for="iterations">
@@ -55,43 +60,63 @@
                 <option value="100">100 iterations (Sustained loop)</option>
               </select>
             </label>
-            <button id="start" type="submit">Start Benchmark Suite</button>
+            <button id="start" type="submit" disabled>Start Benchmark Suite</button>
             <button id="cancel" type="button" disabled>Cancel</button>
           </div>
         </form>
-        <p id="status" role="status"
-          aria-live="polite">Ready. Click Start to run benchmark suite.</p>
-
+        <p id="status" role="status" aria-live="polite">
+          Unavailable until JavaScript initializes the module worker controls.
+        </p>
+        <noscript>
+          <p class="notice">Unavailable: JavaScript and module workers are required to run this fixture.</p>
+        </noscript>
         <div id="perf-reporting" class="perf-reporting" hidden></div>
         <div id="result" aria-label="Exact textual result" hidden></div>
       </section>
 
+      <div id="vdom-mount" hidden></div>
+
       <div class="detail-grid">
         <section>
-          <h2>What it does</h2>
+          <h2>Exact checks</h2>
           <p>
-            Traverses depth-bounded 1,000-node virtual DOM trees, identifies structural mutations, and generates patch commands for DOM updates.
+            Each run verifies the complete patch-tuple SHA-256 and exact node, depth, attribute,
+            tag-replacement, reorder, insertion, and deletion counters. In addition, the main thread
+            mounts real <code>DOMHostAdapter</code> elements into a hidden sandbox, applies the worker's
+            patch list, and asserts that the resulting canonical browser DOM string and SHA-256 match the
+            worker's expected output.
           </p>
         </section>
         <section>
-          <h2>Why compare Wasm vs JS</h2>
+          <h2>Lifecycle</h2>
           <p>
-            Recursive tree diffing and string/attribute comparisons measure garbage collection overhead, memory allocation speed, and structural traversal performance.
+            Start creates a fresh module worker, keeping fixture generation and diffing off the main
+            thread. Cancel, completion, error, navigation, or the fixed 120-second timeout terminates
+            that worker. Token checks ignore stale messages.
           </p>
         </section>
         <section>
-          <h2>Source and build provenance</h2>
+          <h2>Source and build</h2>
           <ul>
             <li><a href="/benchmarks/vdom-diff-patch-demo/workload.js">Executed workload adapter</a></li>
+            <li><a href="/benchmarks/vdom-diff-patch-demo/input.js">Exact fixture generator</a></li>
+            <li><a href="/benchmarks/vdom-diff-patch-demo/engine.js">JavaScript VDOM engine source</a></li>
+            <li><a href="/benchmarks/vdom-diff-patch-demo/vdom-diff-patch.wat">Authored Wasm text</a></li>
             <li><a href="/artifacts/vdom-diff-patch/build-manifest.json">Engine build manifest</a></li>
+            <li><a href="/artifacts/traditional-demos/demo-manifest.v1.json">Commit-bound demo manifest</a></li>
+            <li><a href="/data/traditional-demo-manifest.schema.json">Closed demo-manifest schema</a></li>
           </ul>
+          <p>The controls, fixed scope, source routes, and limitations are in this raw HTML response.</p>
         </section>
         <section>
           <h2>Limitations &amp; Scope</h2>
           <ul>
-            <li>Deterministic 1,000-node tree and 250-edit fixture.</li>
-            <li>Runs in a Web Worker module with 120-second hard timeout.</li>
+            <li>One deterministic 1,000-node tree and 250-edit fixture only.</li>
+            <li>The full 10,000-node / 2,000-edit proposal contract is typed unavailable.</li>
+            <li>No uploads, tree edits, persistence, result submission, or mutation route.</li>
+            <li>No durations, rankings, accepted corpus evidence, or comparative conclusion.</li>
           </ul>
+          <p><a href="/benchmarks/regex-automata-duel-demo/">Open the reduced regex automata fixture</a>.</p>
         </section>
       </div>
     </main>
