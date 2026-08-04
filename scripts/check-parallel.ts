@@ -204,15 +204,19 @@ await Promise.all([
     args: ["test", "--parallel", ...testArgs, ...readerTests],
     env: { ...testEnv, DENO_JOBS: "6" },
   }),
-  ...HEAVY_READERS.map((file) =>
-    runStage({
+  ...HEAVY_READERS.map(async (file) => {
+    // Stagger: the t=0 startup storm (12 deno processes type-checking) inflates
+    // the critical rigid chain; these lanes have ~1s of slack before they would
+    // become the binder, so a delayed start costs no wall time.
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+    await runStage({
       name: `test-heavy-${
         file.replace(/^tests\//, "").replace(/\.test\.ts$/, "").replaceAll("/", "-")
       }`,
       args: ["test", ...testArgs, file],
       env: testEnv,
-    })
-  ),
+    });
+  }),
   runStage({
     name: "test-rigid-writer",
     args: ["test", ...testArgs, RIGID_WRITER],
