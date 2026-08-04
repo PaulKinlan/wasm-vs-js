@@ -15,7 +15,10 @@ async function sha256(bytes) {
 }
 
 async function fetchBytes(path) {
-  const response = await fetch(`/${path}`);
+  // Registration manifests record repo-relative paths (public/...), but the
+  // server mounts the public tree at the root.
+  const servedPath = path.startsWith("public/") ? path.slice("public/".length) : path;
+  const response = await fetch(`/${servedPath}`);
   if (!response.ok) throw new Error(`${path} returned ${response.status}`);
   return new Uint8Array(await response.arrayBuffer());
 }

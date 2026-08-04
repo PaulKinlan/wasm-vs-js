@@ -153,6 +153,9 @@ const PLAYGROUND_WORKLOADS = [
     route: "/benchmarks/ml-keyword-spotting-v1/",
     description: "Processes 60 seconds of audio in 20 ms hops and detects spoken commands.",
     explanation: "Convolutional and dense-layer inference over streaming mel-spectrogram features.",
+    // This demo requires user-selected local PCM fixture files, so it cannot
+    // run unattended in the playground loop.
+    manual: "Requires local audio fixture files — run it from the demo page.",
   },
   {
     slug: "ml-numeric-kernels-v1",
@@ -346,14 +349,34 @@ async function runBenchmarkForCard(config, cardEl, iterations = 30) {
   const statusEl = cardEl.querySelector(".playground-status");
   const metricsEl = cardEl.querySelector(".playground-metrics");
 
+  if (config.manual) {
+    statusEl.textContent = "➜ Manual demo";
+    statusEl.className = "playground-status idle";
+    metricsEl.innerHTML =
+      `<p class="notice">${config.manual} <a href="${config.route}">Open the demo page →</a></p>`;
+    return { slug: config.slug, title: config.title, passed: true, skipped: true };
+  }
+
   statusEl.textContent = `Running JS (${iterations}× loop)...`;
   statusEl.className = "playground-status running";
 
   try {
-    const jsStats = await executeWorkerLoop(config.slug, "javascript", iterations);
-
-    statusEl.textContent = `Running Wasm (${iterations}× loop)...`;
-    const wasmStats = await executeWorkerLoop(config.slug, "wasm", iterations);
+    let jsStats;
+    let wasmStats;
+    if (config.slug === "dom-virtualized-grid-v1") {
+      // The paced trace enforces ±20 ms slots; a loaded main thread can blow
+      // the tolerance, so allow one retry before reporting an error.
+      try {
+        jsStats = await executeWorkerLoop(config.slug, "javascript", iterations);
+        wasmStats = await executeWorkerLoop(config.slug, "wasm", iterations);
+      } catch (firstErr) {
+        jsStats = await executeWorkerLoop(config.slug, "javascript", iterations);
+        wasmStats = await executeWorkerLoop(config.slug, "wasm", iterations);
+      }
+    } else {
+      jsStats = await executeWorkerLoop(config.slug, "javascript", iterations);
+      wasmStats = await executeWorkerLoop(config.slug, "wasm", iterations);
+    }
 
     statusEl.textContent = "✓ Complete";
     statusEl.className = "playground-status passed";
@@ -434,6 +457,7 @@ function initPlaygroundUI() {
 
       let completed = 0;
       let passedCount = 0;
+      let skippedCount = 0;
       const resultsSummary = [];
 
       for (const config of PLAYGROUND_WORKLOADS) {
@@ -446,7 +470,8 @@ function initPlaygroundUI() {
         const res = await runBenchmarkForCard(config, card, iterations);
 
         resultsSummary.push(res);
-        if (res.passed) passedCount++;
+        if (res.skipped) skippedCount++;
+        else if (res.passed) passedCount++;
         completed++;
 
         if (progressBar) {
@@ -457,7 +482,8 @@ function initPlaygroundUI() {
 
       if (progressText) {
         progressText.textContent =
-          `✓ Full Benchmark Suite Complete: ${passedCount} / ${PLAYGROUND_WORKLOADS.length} workloads executed across ${iterations} iterations!`;
+          `✓ Full Benchmark Suite Complete: ${passedCount} / ${PLAYGROUND_WORKLOADS.length} workloads executed across ${iterations} iterations` +
+          (skippedCount > 0 ? ` (${skippedCount} manual-only demo skipped)` : "") + "!";
       }
       runAllBtn.disabled = false;
     });

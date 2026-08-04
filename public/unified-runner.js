@@ -29,18 +29,22 @@ const WORKLOAD_CONFIGS = {
   "vdom-diff-patch-demo": {
     workerScript: "/benchmarks/vdom-diff-patch-demo/worker.js",
     protocol: "traditional-vdom",
+    tokenType: "string",
   },
   "image-editing-demo": {
+    tokenType: "string",
     workerScript: "/benchmarks/image-demo-worker.js",
     protocol: "image-editing",
   },
   "image-flood-fill-demo": {
     workerScript: "/benchmarks/image-demo-worker.js",
     protocol: "image-flood-fill",
+    tokenType: "string",
   },
   "regex-automata-duel-demo": {
     workerScript: "/benchmarks/regex-automata-duel-demo/worker.js",
     protocol: "traditional-regex",
+    tokenType: "string",
   },
   "game-canvas-arcade": {
     workerScript: "/demos/game-family/worker.js",
@@ -72,6 +76,7 @@ const WORKLOAD_CONFIGS = {
   "database-sqlite-notebook-v1": {
     workerScript: "/sqlite-notebook-worker.js",
     protocol: "sqlite-notebook",
+    iterationTimeoutMs: 300000,
   },
   "document-pdf-viewer-v1": {
     workerScript: "/benchmarks/document-pdf-viewer-v1/worker.js",
@@ -104,6 +109,7 @@ const WORKLOAD_CONFIGS = {
   "dom-virtualized-grid-v1": {
     workerScript: "/benchmarks/dom-virtualized-grid-v1/grid-worker.js",
     protocol: "virtualized-grid",
+    ackEvents: true,
   },
   "ml-keyword-spotting-v1": {
     workerScript: "/base-ml-keyword-spotting-worker.js",
@@ -136,6 +142,7 @@ const WORKLOAD_CONFIGS = {
   "network-pcap-decode-v1": {
     workerScript: "/pcap-decode-worker.js",
     protocol: "pcap",
+    tokenType: "string",
   },
   "numeric-polybench-panel-v1": {
     workerScript: "/polybench-panel-worker.js",
@@ -152,6 +159,7 @@ const WORKLOAD_CONFIGS = {
   "text-gc-document-edit-v1": {
     workerScript: "/text-gc-document-edit-worker.js",
     protocol: "document-edit",
+    tokenType: "string",
   },
   "base-audio-webaudio-effects-v1": {
     workerScript: "/base-audio-effects-worker.js",
@@ -191,7 +199,7 @@ function formatTargetPayload(slug, target) {
         mode: "validation",
       };
     case "traditional-vdom":
-      return { type: "run", target: isWasm ? "wasm-vdom-controlled" : "js-vdom-controlled" };
+      return { type: "run", target: isWasm ? "wasm-linear-controlled" : "js-controlled" };
     case "traditional-regex":
       return {
         type: "run",
@@ -200,14 +208,16 @@ function formatTargetPayload(slug, target) {
     case "image-editing":
       return {
         type: "run",
+        demoId: slug,
         route: "/benchmarks/image-editing-demo/",
-        target: isWasm ? "wasm" : "javascript",
+        target: isWasm ? "wasm-linear" : "javascript",
       };
     case "image-flood-fill":
       return {
         type: "run",
+        demoId: slug,
         route: "/benchmarks/image-flood-fill-demo/",
-        target: isWasm ? "wasm" : "javascript",
+        target: isWasm ? "wasm-linear" : "javascript",
       };
     case "game-family":
       return {
@@ -227,28 +237,87 @@ function formatTargetPayload(slug, target) {
       return { type: "start", variantId: isWasm ? "wasm-linear-controlled" : "js-controlled" };
     case "crypto-stream":
       return { variant: isWasm ? "wasm-linear-controlled" : "js-controlled", mode: "bounded" };
-    case "keyword-spotting":
     case "file-integrity":
+      // The worker's own defaults are outside its registered sets, so the
+      // playground must name a registered fixture explicitly.
+      return {
+        target: isWasm ? "wasm-linear-controlled" : "js-controlled",
+        kind: "seeded-pseudorandom",
+        byteLength: 1 << 20,
+        schedule: 1024,
+      };
     case "protobuf":
       return { target: isWasm ? "wasm-linear-controlled" : "js-controlled" };
+    case "keyword-spotting":
+      // Requires user-selected local PCM files; playground marks this manual.
+      return { target: isWasm ? "wasm-linear" : "javascript", mode: "exact", files: [] };
     case "pdf-viewer":
+      return { type: "start", target: isWasm ? "wasm-linear" : "javascript" };
     case "server-ssr":
     case "spectral-filter":
-      return { type: "start", target: isWasm ? "wasm-linear" : "javascript" };
+      return {
+        type: "start",
+        target: isWasm ? "wasm-linear-controlled" : "js-controlled",
+      };
+    case "audio-effects":
+      return { target: isWasm ? "wasm-linear" : "javascript" };
+    case "document-edit":
+      return { target: isWasm ? "wasmgc-controlled" : "js-controlled" };
+    case "pcap":
+      return { target: isWasm ? "wasm-linear-controlled" : "js-controlled" };
+    case "polybench":
+      return { target: isWasm ? "wasm" : "javascript", kernel: "all" };
+    case "telemetry":
+      return {
+        values: {
+          variant: isWasm ? "wasm-linear-controlled" : "js-controlled",
+          mode: "bounded",
+          records: 1000,
+        },
+      };
+    case "virtualized-grid":
+      return {
+        type: "start",
+        variantId: isWasm ? "wasm-linear-controlled" : "js-controlled",
+      };
     case "rigid-body":
       return { type: "run", target: isWasm ? "wasm" : "javascript" };
     case "c-to-wasm":
       return { target: isWasm ? "wasm" : "javascript", program: "fibonacci" };
     case "sqlite-notebook":
-      return { type: "run", query: "SELECT * FROM sales;", target: isWasm ? "wasm" : "javascript" };
+      // manifest + shellChecks are merged in from the async prepared payload.
+      return {
+        target: isWasm ? "linear-wasm-controlled" : "javascript-controlled",
+        queryId: null,
+        exact: false,
+      };
     case "archive-zip":
       return { target: isWasm ? "wasm" : "javascript", mode: "full" };
     case "path-tracer":
-      return { target: isWasm ? "wasm" : "javascript", mode: "bounded" };
+      // "preview" (64×64 @ 4spp) is the only non-exact mode the worker accepts.
+      return { target: isWasm ? "wasm" : "javascript", mode: "preview" };
     case "gltf-viewer":
       return { type: "run", target: isWasm ? "wasm" : "javascript" };
     case "demo":
-      return { slug, target: isWasm ? "wasm" : "javascript", mode: "bounded" };
+      return { slug, target: isWasm ? "wasm-linear" : "javascript", mode: "bounded" };
+    case "text-family": {
+      const variant = isWasm ? "wasm-linear-controlled" : "js-controlled";
+      if (slug === "text-diff-patch") {
+        return {
+          values: {
+            variant,
+            base: "alpha\nbravo\ncharlie\ndelta\n",
+            target: "alpha\nbravo changed\ncharlie\n",
+          },
+        };
+      }
+      return {
+        values: {
+          variant,
+          source: "# Playground probe\n\nA **small** deterministic markdown document.\n",
+        },
+      };
+    }
     default:
       return { target: isWasm ? "wasm" : "javascript" };
   }
@@ -259,6 +328,22 @@ async function executeWorkerLoop(slug, target, iterations = 30) {
   const config = WORKLOAD_CONFIGS[slug];
   if (!config || !config.workerScript) {
     throw new Error(`Worker configuration missing for ${slug}`);
+  }
+
+  // Fetch + hash the sqlite notebook runtime manifest the way the demo page's
+  // runner does, producing the manifest/shellChecks fields the worker requires.
+  async function prepareSqliteRuntime() {
+    const response = await fetch("/assets/sqlite-notebook/runtime-manifest.json", {
+      cache: "no-store",
+    });
+    if (!response.ok) throw new Error(`runtime manifest returned ${response.status}`);
+    const manifestBytes = new Uint8Array(await response.arrayBuffer());
+    const digest = await crypto.subtle.digest("SHA-256", manifestBytes);
+    const manifestHash = Array.from(new Uint8Array(digest))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+    const manifest = JSON.parse(new TextDecoder().decode(manifestBytes));
+    return { manifest, shellChecks: [`runtime-manifest:${manifestHash}`] };
   }
 
   // sum-u32 handles multi-iteration batches inside hosted-runner-worker
@@ -316,8 +401,17 @@ async function executeWorkerLoop(slug, target, iterations = 30) {
     "dom-virtualized-grid-v1",
     "graphics-cpu-path-tracer-v1",
     "base-gltf-viewer",
+    "database-sqlite-notebook-v1",
   ];
   const loopCount = heavyWorkloads.includes(slug) ? Math.min(iterations, 5) : iterations;
+  const iterationTimeoutMs = config.iterationTimeoutMs || 120000;
+
+  // Some workers expect caller-prepared, fetch-derived payload fields (e.g.
+  // the sqlite notebook's verified runtime manifest + shell checks). Prepare
+  // once per card run; both target passes reuse it.
+  if (config.protocol === "sqlite-notebook" && !config.prepared) {
+    config.prepared = await prepareSqliteRuntime();
+  }
 
   const durations = [];
   let lastResult = null;
@@ -331,18 +425,28 @@ async function executeWorkerLoop(slug, target, iterations = 30) {
         return reject(err);
       }
 
-      const token = Math.floor(Math.random() * 1000000);
+      const token = config.tokenType === "string"
+        ? crypto.randomUUID()
+        : Math.floor(Math.random() * 1000000);
       const startTime = performance.now();
 
       // Generous 120-second timeout per iteration to avoid premature termination
       const timeoutTimer = setTimeout(() => {
         worker.terminate();
         reject(new Error(`Iteration ${i + 1} timed out after 120 seconds`));
-      }, 120000);
+      }, iterationTimeoutMs);
 
       worker.addEventListener("message", (event) => {
         const msg = event.data;
         if (!msg) return;
+        // Interactive trace workers (virtualized grid) pace actions and wait
+        // for the driver to acknowledge each event before continuing.
+        if (
+          config.ackEvents && msg.type === "event" && msg.actionIndex !== undefined
+        ) {
+          worker.postMessage({ type: "ack", token: msg.token, actionIndex: msg.actionIndex });
+          return;
+        }
         if (msg.token !== undefined && msg.token !== token) return;
 
         if (
@@ -369,7 +473,7 @@ async function executeWorkerLoop(slug, target, iterations = 30) {
       });
 
       const payload = formatTargetPayload(slug, target);
-      worker.postMessage({ token, ...payload });
+      worker.postMessage({ token, ...payload, ...(config.prepared || {}) });
     });
 
     durations.push(iterationMs);
