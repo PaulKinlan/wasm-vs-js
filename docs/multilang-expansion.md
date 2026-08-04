@@ -113,8 +113,10 @@ f32 fround-accumulation vs f64, etc.) exactly as the FFT rows do today.
   Multi-Language Comparison section on the ml-gemm page (browser-verified: JS 3.6ms / C 2.7 /
   C++ 2.7 / Rust 2.7 / Dart-WasmGC 111.8 at 128³ — the f32-emulation penalty disclosed).
   Gate green; branch feat/multilang-expansion-plan pushed.
-- **Wave 2** — text-diff-patch, text-regex-log-scan, numeric-polybench-panel,
-  audio-fir, audio-stft.
+- **Wave 2 (in progress, 2026-08-05)** — text-diff-patch DONE (Myers diff kernels in
+  C/C++/Rust/Dart, bit-identical to the oracle, comparison section live on the demo page;
+  JS 0.12 / C 0.035 / C++ 0.035 / Rust 0.015 / Dart 0.185ms browser-measured). Remaining:
+  text-regex-log-scan, numeric-polybench-panel, audio-fir, audio-stft.
 - **Wave 3** — ml-dense-mlp, image-editing, flood-fill, crypto-file-integrity,
   simulation-nbody-cloth.
 - **Wave 4** — serialization-json-telemetry, database-olap-chart, network-pcap-decode,
