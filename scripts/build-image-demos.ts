@@ -139,7 +139,7 @@ const manifest = {
   catalogV1Coverage: "0/38",
   authoritativePerformanceEvidence: false,
   sourceRepository: "https://github.com/PaulKinlan/wasm-vs-js",
-  sourceCommit: "0e95dcd3206037703fdf89ae8ff0ca8464124224",
+  sourceCommit: "202ec76274e5ad933cf381484cca0053dec127f1",
   build: {
     command:
       "deno run --allow-read=. --allow-write=public/artifacts/image-editing-demo,public/benchmarks/image-demo-js-engine.js --allow-run scripts/build-image-demos.ts",

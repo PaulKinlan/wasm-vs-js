@@ -31,7 +31,7 @@ Deno.test("image demo manifest is closed, exact, reproducible, and bound to the 
   const manifest = JSON.parse(await Deno.readTextFile(MANIFEST_PATH));
   const validate = new Ajv2020({ strict: true, allErrors: true }).compile(schema);
   assert(validate(manifest), JSON.stringify(validate.errors));
-  assertEquals(manifest.sourceCommit, "db8ee77bd8e5c9cb4da21deb2e3806a78d3a21ef");
+  assertEquals(manifest.sourceCommit, "202ec76274e5ad933cf381484cca0053dec127f1");
   assertEquals(manifest.catalogV1Coverage, "0/38");
   assertEquals(manifest.authoritativePerformanceEvidence, false);
   assert(!JSON.stringify(manifest).includes("placeholder"));
