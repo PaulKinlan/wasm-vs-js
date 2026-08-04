@@ -201,7 +201,8 @@ function emitRoutesTs(routes: Array<readonly [string, string, string, boolean?]>
   return lines.join("\n");
 }
 
-function emitCatalogRoutesJs(cardRoutes: Map<string, string>): string {
+function emitCatalogRoutesJs(cardRoutesUnsorted: Map<string, string>): string {
+  const cardRoutes = new Map([...cardRoutesUnsorted].sort((a, b) => a[0] < b[0] ? -1 : 1));
   const catalogIds = loadCatalogIds();
   const missing: string[] = [];
   const lines = [
@@ -280,6 +281,7 @@ function main(): void {
   const routes = scanPages();
   const cardRoutes = parseCardRoutes();
 
+  routes.sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);
   const routesTs = emitRoutesTs(routes);
   const catalogJs = emitCatalogRoutesJs(cardRoutes);
 
