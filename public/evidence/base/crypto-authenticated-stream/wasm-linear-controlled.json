@@ -3,10 +3,10 @@
   "status": "implementation-validation",
   "workloadId": "crypto.authenticated-stream.v1",
   "variantId": "wasm-linear-controlled",
-  "sourceCommit": "5be2a7023efed57d5ea631094f2072154ee40919",
+  "sourceCommit": "202ec76274e5ad933cf381484cca0053dec127f1",
   "buildManifest": {
     "path": "public/artifacts/crypto-authenticated-stream/build-manifest.json",
-    "sha256": "35b8061bbe3207dcc391c9e2359a00c2d312d812c06edfe289a2f2c2e0a75139"
+    "sha256": "b7133227effd2f95bf5f5ee636d3563c24c46dd2b8d1f12cfe46ae05177990c7"
   },
   "result": {
     "workloadId": "crypto.authenticated-stream.v1",
