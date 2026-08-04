@@ -1945,13 +1945,11 @@ function createHandler(
       return response(request.method === "HEAD" ? null : Uint8Array.from(bytes), {
         headers: {
           "content-type": contentType,
-          "cache-control": url.pathname.startsWith("/artifacts/") ||
-              (url.pathname.startsWith("/benchmarks/") &&
-                url.pathname !==
-                  "/benchmarks/v1/serialization-json-telemetry/workload.js") ||
-              url.pathname.startsWith("/evidence/v1/")
-            ? "public, max-age=31536000, immutable"
-            : "no-store",
+          // no-store everywhere: the edge cache truncates long CSP headers on
+          // cached objects (platform bug, 2026-08-05) and immutable caching of
+          // non-content-addressed URLs caused stale-page incidents (#298).
+          // Restore immutable caching only with slice-4 hash-addressed URLs.
+          "cache-control": "no-store",
         },
       });
     } catch {
