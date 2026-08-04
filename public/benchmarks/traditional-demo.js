@@ -8,7 +8,7 @@ const DEMOS = Object.freeze({
     worker: "/benchmarks/vdom-diff-patch-demo/worker.js",
   }),
 });
-const TIMEOUT_MS = 120_000; // default 30_000
+const TIMEOUT_MS = 30_000;
 const demoId = document.body.dataset.demo;
 const demo = DEMOS[demoId];
 if (!demo) throw new Error("page demo identifier is not allowlisted");
