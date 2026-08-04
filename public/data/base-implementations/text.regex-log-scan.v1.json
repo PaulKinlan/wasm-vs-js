@@ -89,7 +89,7 @@
     "reducedFixture": false
   },
   "implementation": {
-    "sourceCommit": "825c9bf7e85a65b8a9c65db14de21c4025c25d86",
+    "sourceCommit": "984edc8811f41bfd5dd429b9d4eb81b81e7f6a52",
     "buildManifest": "/artifacts/text-regex-log-scan/build-manifest.json",
     "artifact": "/artifacts/text-regex-log-scan/text-regex-log-scan.wasm",
     "canonicalOutput": "/artifacts/text-regex-log-scan/ordered-captures.bin",
