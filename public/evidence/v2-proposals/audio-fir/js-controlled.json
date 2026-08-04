@@ -271,27 +271,27 @@
     "manifests": {
       "fixture": {
         "path": "public/artifacts/audio-fir/fixture-manifest.json",
-        "sha256": "da39dc63e1f591e66d954d2f9b7a8cbfcd6ff4922afc3544df2f6cd32c0c128e",
+        "sha256": "963a7ac41c43361f8eecbde6530387f7fe0f7807c21a5f4d5e2b3e9329c82538",
         "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/9d4367489c74da5a698cec6b26d8db8c2edc28d3/public/artifacts/audio-fir/fixture-manifest.json"
       },
       "input": {
         "path": "public/artifacts/audio-fir/input-manifest.json",
-        "sha256": "a7cdf95cae25bfb0b8466795f616b842426b28025deae41055cc938a62f80617",
+        "sha256": "8c26fff2afc6ea8582b07031579a350c3b7ee2c03f926ff4b00769f19b1a9095",
         "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/9d4367489c74da5a698cec6b26d8db8c2edc28d3/public/artifacts/audio-fir/input-manifest.json"
       },
       "reference": {
         "path": "public/artifacts/audio-fir/reference-manifest.json",
-        "sha256": "279eeee0f9c0ad473969c74694f8d0e303060b5c5272d040a7fb80ba307bb236",
+        "sha256": "632bec62ad760b11c222a3e502b8e0edd19247827181ead32cfc5b5879a3f29d",
         "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/9d4367489c74da5a698cec6b26d8db8c2edc28d3/public/artifacts/audio-fir/reference-manifest.json"
       },
       "output": {
         "path": "public/artifacts/audio-fir/output-manifest.json",
-        "sha256": "6796aed4e0ea9e98679dcd040b49c092d5cb2d8ea3a1fa3a88a3646b35a4b09d",
+        "sha256": "5babac6c998b94e2f60d2b2d603bc24277c0aa1782be7280b24cfce1686b7da0",
         "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/9d4367489c74da5a698cec6b26d8db8c2edc28d3/public/artifacts/audio-fir/output-manifest.json"
       },
       "build": {
         "path": "public/artifacts/audio-fir/build-manifest.json",
-        "sha256": "27f7f1e704290ab9a2f2a351c8b230471278ca3649cab54951c29a2829a3d858",
+        "sha256": "2f589a621f4d616d03a7422803983574b7e81a0d23039da53162ed3c39d51693",
         "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/9d4367489c74da5a698cec6b26d8db8c2edc28d3/public/artifacts/audio-fir/build-manifest.json"
       }
     },
@@ -465,7 +465,7 @@
       "complete-output-bound",
       "structural-invariants"
     ],
-    "outputManifestSha256": "6796aed4e0ea9e98679dcd040b49c092d5cb2d8ea3a1fa3a88a3646b35a4b09d"
+    "outputManifestSha256": "5babac6c998b94e2f60d2b2d603bc24277c0aa1782be7280b24cfce1686b7da0"
   },
   "performanceClaims": []
 }

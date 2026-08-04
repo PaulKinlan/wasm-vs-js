@@ -22,7 +22,7 @@
         "/artifacts/audio-fft/output-manifest.json",
         "/artifacts/audio-fft/reference-manifest.json"
       ],
-      "buildManifestSha256": "bc7bfa7a5b2ee0f91dbf6bca0c46326006e8fdacade4ee6ec04be88c2ba3fdda",
+      "buildManifestSha256": "6415dd8bceaf7c45fae8615a7717896035a189bf3d264659c7bddc1f113e6cdd",
       "frozenHashes": {
         "inputSha256": "f312693f97034ff558b541f771564e9adcc077174d84202351199e3d18fc8b01",
         "outputSha256": "f6285cd3244f76eed0a041f30dbfa43ef8dc49012ec92b77514edc569aadad6e",
@@ -53,7 +53,7 @@
         "/artifacts/audio-fir/output-manifest.json",
         "/artifacts/audio-fir/reference-manifest.json"
       ],
-      "buildManifestSha256": "27f7f1e704290ab9a2f2a351c8b230471278ca3649cab54951c29a2829a3d858",
+      "buildManifestSha256": "2f589a621f4d616d03a7422803983574b7e81a0d23039da53162ed3c39d51693",
       "frozenHashes": {
         "inputSha256": "b90d5d472e7f58e18d544f32dbc7449143608939f4a8c18641d6e7eae1752b56",
         "outputSha256": "e4b89ba6d65fa9ac3aa5f1b30da32343e54cc81a9ee9d6f84eaf8b38e823fb5f",
@@ -84,7 +84,7 @@
         "/artifacts/audio-stft/output-manifest.json",
         "/artifacts/audio-stft/reference-manifest.json"
       ],
-      "buildManifestSha256": "c9319d3bc14c0963c8d4b3b3324da30fad24e8a6f5466ccc7aa8a27a111b3de5",
+      "buildManifestSha256": "5e1de2f2f2c1376e2714d35adde6d42329bfefa7b733e5dc27f99fa9a9223e38",
       "frozenHashes": {
         "inputSha256": "dfabd66f9e5272f76915165b663cb6c5cb37896454eb6ac02ea13d2f241f326a",
         "outputSha256": "b06a278c83d9eeff309fafd64b617a54e958665e2ef2d498194da6c1e75d97ba",

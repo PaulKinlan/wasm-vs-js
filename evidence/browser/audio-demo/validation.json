@@ -25,9 +25,9 @@
     "mode": "public-read-only"
   },
   "pageHashes": {
-    "audio-fft": "c51a43b88a91e83b97ed6c7ec8cab928dabb7a948c5528818531e321cce1b2c2",
-    "audio-fir": "c2547a95cd64c29e5e085f295dfdfd07ce6cd81beba9c20579bd115f3950bcd4",
-    "audio-stft": "9294ae7749250baa31056a063373e5cb4ae291ba72c8af551f405af1f9d480f6"
+    "audio-fft": "e177ccb2930e05cbc78818e93de866adaa2d5467396a0e8d4981efdbbbf730ab",
+    "audio-fir": "d7a17dd682fb1eb074a4165e4028bdf1232e290577faec7d1901063fc1bc96c7",
+    "audio-stft": "c0021b5107eb583832848752ba7addef9810f61f32b0b19a7fb8c149b808a707"
   },
   "runs": [
     {
@@ -46,7 +46,7 @@
           "work-counters: passed"
         ],
         "contractItems": [
-          "build manifest bytes match accepted-record pin: verified — bc7bfa7a5b2ee0f91dbf6bca0c46326006e8fdacade4ee6ec04be88c2ba3fdda",
+          "build manifest bytes match accepted-record pin: verified — 6415dd8bceaf7c45fae8615a7717896035a189bf3d264659c7bddc1f113e6cdd",
           "subordinate manifest bytes: verified — 4/4 raw manifest byte hashes equal the build-manifest recorded hashes",
           "served engine modules: verified — 7/7 modules hash-verified and anchored to the accepted-commit source graph",
           "reference artifact hash: verified — 0432b81e06b48343… hashed from served bytes; agreement across reference-manifest, build-manifest, registry, and served constants",
@@ -91,7 +91,7 @@
           "work-counters: passed"
         ],
         "contractItems": [
-          "build manifest bytes match accepted-record pin: verified — bc7bfa7a5b2ee0f91dbf6bca0c46326006e8fdacade4ee6ec04be88c2ba3fdda",
+          "build manifest bytes match accepted-record pin: verified — 6415dd8bceaf7c45fae8615a7717896035a189bf3d264659c7bddc1f113e6cdd",
           "subordinate manifest bytes: verified — 4/4 raw manifest byte hashes equal the build-manifest recorded hashes",
           "served engine modules: verified — 7/7 modules hash-verified and anchored to the accepted-commit source graph",
           "reference artifact hash: verified — 0432b81e06b48343… hashed from served bytes; agreement across reference-manifest, build-manifest, registry, and served constants",
@@ -135,7 +135,7 @@
           "structural-invariants: passed"
         ],
         "contractItems": [
-          "build manifest bytes match accepted-record pin: verified — 27f7f1e704290ab9a2f2a351c8b230471278ca3649cab54951c29a2829a3d858",
+          "build manifest bytes match accepted-record pin: verified — 2f589a621f4d616d03a7422803983574b7e81a0d23039da53162ed3c39d51693",
           "subordinate manifest bytes: verified — 4/4 raw manifest byte hashes equal the build-manifest recorded hashes",
           "served engine modules: verified — 7/7 modules hash-verified and anchored to the accepted-commit source graph",
           "reference artifact hash: verified — 3146faf58d2eecd4… hashed from served bytes; agreement across reference-manifest, build-manifest, registry, and served constants",
@@ -179,7 +179,7 @@
           "structural-invariants: passed"
         ],
         "contractItems": [
-          "build manifest bytes match accepted-record pin: verified — 27f7f1e704290ab9a2f2a351c8b230471278ca3649cab54951c29a2829a3d858",
+          "build manifest bytes match accepted-record pin: verified — 2f589a621f4d616d03a7422803983574b7e81a0d23039da53162ed3c39d51693",
           "subordinate manifest bytes: verified — 4/4 raw manifest byte hashes equal the build-manifest recorded hashes",
           "served engine modules: verified — 7/7 modules hash-verified and anchored to the accepted-commit source graph",
           "reference artifact hash: verified — 3146faf58d2eecd4… hashed from served bytes; agreement across reference-manifest, build-manifest, registry, and served constants",
@@ -223,7 +223,7 @@
           "structural-invariants: passed"
         ],
         "contractItems": [
-          "build manifest bytes match accepted-record pin: verified — c9319d3bc14c0963c8d4b3b3324da30fad24e8a6f5466ccc7aa8a27a111b3de5",
+          "build manifest bytes match accepted-record pin: verified — 5e1de2f2f2c1376e2714d35adde6d42329bfefa7b733e5dc27f99fa9a9223e38",
           "subordinate manifest bytes: verified — 4/4 raw manifest byte hashes equal the build-manifest recorded hashes",
           "served engine modules: verified — 7/7 modules hash-verified and anchored to the accepted-commit source graph",
           "reference artifact hash: verified — 3bae7479e79489d8… hashed from served bytes; agreement across reference-manifest, build-manifest, registry, and served constants",
@@ -267,7 +267,7 @@
           "structural-invariants: passed"
         ],
         "contractItems": [
-          "build manifest bytes match accepted-record pin: verified — c9319d3bc14c0963c8d4b3b3324da30fad24e8a6f5466ccc7aa8a27a111b3de5",
+          "build manifest bytes match accepted-record pin: verified — 5e1de2f2f2c1376e2714d35adde6d42329bfefa7b733e5dc27f99fa9a9223e38",
           "subordinate manifest bytes: verified — 4/4 raw manifest byte hashes equal the build-manifest recorded hashes",
           "served engine modules: verified — 7/7 modules hash-verified and anchored to the accepted-commit source graph",
           "reference artifact hash: verified — 3bae7479e79489d8… hashed from served bytes; agreement across reference-manifest, build-manifest, registry, and served constants",
