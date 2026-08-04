@@ -140,7 +140,7 @@ function measure(
   name: string,
   fn: () => number,
   iterations: number,
-): Promise<BoundaryResult> {
+): BoundaryResult {
   // Warmup
   for (let i = 0; i < T4_WARMUP; i++) {
     fn();
@@ -195,24 +195,24 @@ export async function runT4BoundarySuite(): Promise<{
   // 1. JS no-op baseline (pure JS function call overhead)
   {
     const jsNoop = () => 1;
-    results.push(await measure("js-noop", jsNoop, T4_ITERATIONS));
+    results.push(measure("js-noop", jsNoop, T4_ITERATIONS));
   }
 
   // 2. Wasm no-op (single boundary crossing, no args)
-  results.push(await measure("wasm-noop", noop, T4_ITERATIONS));
+  results.push(measure("wasm-noop", noop, T4_ITERATIONS));
 
   // 3. Wasm with 2 i32 args
-  results.push(await measure("wasm-add-2args", () => add(1, 2), T4_ITERATIONS));
+  results.push(measure("wasm-add-2args", () => add(1, 2), T4_ITERATIONS));
 
   // 4. JS function with 2 args baseline
   {
     const jsAdd = (a: number, b: number) => a + b;
-    results.push(await measure("js-add-2args", () => jsAdd(1, 2), T4_ITERATIONS));
+    results.push(measure("js-add-2args", () => jsAdd(1, 2), T4_ITERATIONS));
   }
 
   // 5. Wasm batch (100 internal iterations, single boundary crossing)
   results.push(
-    await measure("wasm-batch-100", () => batchCalls(100), T4_ITERATIONS / 10),
+    measure("wasm-batch-100", () => batchCalls(100), T4_ITERATIONS / 10),
   );
 
   // 6. JS batch (100 iterations for comparison)
@@ -225,7 +225,7 @@ export async function runT4BoundarySuite(): Promise<{
       return sum;
     };
     results.push(
-      await measure("js-batch-100", () => jsBatch(100), T4_ITERATIONS / 10),
+      measure("js-batch-100", () => jsBatch(100), T4_ITERATIONS / 10),
     );
   }
 
@@ -237,7 +237,7 @@ export async function runT4BoundarySuite(): Promise<{
     const dstOff = 16384; // Different region
     // Note: the WAT copy function uses byte addressing, so pass byte offsets
     results.push(
-      await measure(
+      measure(
         "wasm-copy-1024i32",
         () => {
           copyFn(srcOff * 4, dstOff * 4, 1024);
@@ -253,7 +253,7 @@ export async function runT4BoundarySuite(): Promise<{
     const src = new Uint32Array(1024);
     const dst = new Uint32Array(1024);
     results.push(
-      await measure(
+      measure(
         "js-copy-1024i32",
         () => {
           dst.set(src);

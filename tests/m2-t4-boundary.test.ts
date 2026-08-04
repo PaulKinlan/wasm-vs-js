@@ -2,11 +2,7 @@
 // Verifies the WAT compiles, exports are present, measurements produce valid results.
 
 import { assert, assertEquals } from "./assert.ts";
-import {
-  BoundaryResult,
-  runT4BoundarySuite,
-  T4_ITERATIONS,
-} from "../benchmarks/t4-boundary-crossings/workload.ts";
+import { runT4BoundarySuite } from "../benchmarks/t4-boundary-crossings/workload.ts";
 
 Deno.test({
   name: "t4-boundary: suite produces 8 results",
