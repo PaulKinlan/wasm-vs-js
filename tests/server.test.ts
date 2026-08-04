@@ -60,7 +60,9 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
   const experimentBody = await experiment.json();
   assertEquals(experimentBody.status, "preregistered-not-authorized");
   assertEquals(experimentBody.permitEnvelope.state, "template-only-not-consumed");
-  assert(evidence.headers.get("cache-control")?.includes("immutable"));
+  // no-store policy (2026-08-05): edge cache truncates long CSP headers on
+  // cached objects (platform bug); immutable returns with slice-4 hash URLs.
+  assert(evidence.headers.get("cache-control")?.includes("no-store"));
   const packageBody = await evidence.json();
   assertEquals(packageBody.claims.performanceClaimAccepted, false);
   assertEquals(packageBody.runtimeValidation.retainedBrowserArtifacts, false);
@@ -270,7 +272,7 @@ Deno.test("local server bounds writes and serves exact Wasm MIME", async () => {
     const wasm = await handler(new Request("http://127.0.0.1/artifacts/sum-u32/sum-u32.wasm"));
     assertEquals(wasm.status, 200);
     assertEquals(wasm.headers.get("content-type"), "application/wasm");
-    assert(wasm.headers.get("cache-control")?.includes("immutable"));
+    assert(wasm.headers.get("cache-control")?.includes("no-store"));
     const csp = wasm.headers.get("content-security-policy") ?? "";
     assert(csp.includes("script-src 'self' 'wasm-unsafe-eval' blob:"));
     assert(csp.includes("worker-src 'self'"));
@@ -283,7 +285,7 @@ Deno.test("local server bounds writes and serves exact Wasm MIME", async () => {
     );
     assertEquals(manifest.status, 200);
     assertEquals(manifest.headers.get("content-type"), "application/json; charset=utf-8");
-    assert(manifest.headers.get("cache-control")?.includes("immutable"));
+    assert(manifest.headers.get("cache-control")?.includes("no-store"));
     assertEquals(
       new Uint8Array(await manifest.arrayBuffer()),
       await Deno.readFile("public/artifacts/sum-u32/build-manifest.9c309c49.json"),
