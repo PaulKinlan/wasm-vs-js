@@ -92,7 +92,7 @@
   "artifacts": {
     "buildManifest": {
       "path": "public/artifacts/base-server-ssr-template/build-manifest.json",
-      "sha256": "e888be5ef2493224162838ccfffbe73467db7ed8044c0f44cdc77a5af595fc13"
+      "sha256": "4c5758fc8f78f70dd84f43ebbcce5f3b3a85c39420e6c233509c25adac67a407"
     },
     "fixtureManifest": {
       "path": "public/artifacts/base-server-ssr-template/fixture-manifest.json",
