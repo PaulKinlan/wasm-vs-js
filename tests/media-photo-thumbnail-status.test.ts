@@ -374,5 +374,5 @@ Deno.test("media photo package does not redistribute fixture or claim a runnable
   const server = await Deno.readTextFile("server.ts");
   assert(!server.includes("media-photo-thumbnail-v1"));
   const publicIndex = await Deno.readTextFile("public/benchmarks/index.html");
-  assert(publicIndex.includes("38 proposed workloads; 28 runnable implementations"));
+  assert(publicIndex.includes("38 proposed workloads; 23 runnable browser demos"));
 });

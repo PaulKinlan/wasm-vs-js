@@ -136,10 +136,10 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
   assert(livePage.includes("worker fetches the build manifest"));
   const catalogPage = await (await handler(new Request("http://127.0.0.1/benchmarks/"))).text();
   assert(catalogPage.includes("38-WORKLOAD DENOMINATOR"));
-  assert(catalogPage.includes("28/38 catalog workloads implemented and runnable"));
+  assert(catalogPage.includes("23/38 catalog workloads have runnable browser demos"));
   assert(catalogPage.includes("v2 proposal implementation inventory"));
-  assert(catalogPage.includes("Runnable demos: 12"));
-  assert(catalogPage.includes("8 full proposal-validation routes and 4 reduced-fixture routes"));
+  assert(catalogPage.includes("Runnable demos: 14"));
+  assert(catalogPage.includes("10 full proposal-validation routes and 4 reduced-fixture routes"));
   for (
     const path of [
       "/run.html",

@@ -100,11 +100,11 @@ Deno.test("workload catalog exposes exact totals, filters, and honest implementa
   assert(page.includes("P0 harness/calibration"));
   assert(page.includes("P1 representative applications"));
   assert(page.includes("P2 breadth/stress"));
-  assert(page.includes("38 proposed workloads; 28 runnable implementations"));
-  assert(page.includes("28/38 catalog workloads implemented and runnable"));
+  assert(page.includes("38 proposed workloads; 23 runnable browser demos"));
+  assert(page.includes("23/38 catalog workloads have runnable browser demos"));
   assert(page.includes("v2 proposal implementation inventory"));
-  assert(page.includes("Runnable demos: 12"));
-  assert(page.includes("8 full proposal-validation routes and 4 reduced-fixture routes"));
+  assert(page.includes("Runnable demos: 14"));
+  assert(page.includes("10 full proposal-validation routes and 4 reduced-fixture routes"));
   assertEquals(page.match(/data-v2-id=/g)?.length, 20);
   assert(page.includes('role="search"'));
   assert(page.includes('aria-live="polite"'));
