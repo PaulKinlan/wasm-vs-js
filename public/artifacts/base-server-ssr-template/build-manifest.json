@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "workloadId": "server.ssr-template.v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "0369c075971aa7805d455eeebd4277b113f6bd02",
+  "sourceCommit": "37eb12636a751c479a9f2e2c91edcc3f432b65db",
   "sources": [
     {
       "path": "benchmarks/v1/server-ssr-template/workload.js",
@@ -41,8 +41,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 80776,
-      "sha256": "d90aa008b50f07ea90659c0d9bf177e5ca421d1d94ce15b11dee98d8f3e2ff51"
+      "bytes": 80983,
+      "sha256": "b53f7754b866da4c26b8bb45cebb00ac55101ac8a7544ed3802d5208fae3deba"
     },
     {
       "path": "tests/base-server-ssr-template.test.ts",
