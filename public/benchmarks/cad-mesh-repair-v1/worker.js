@@ -3,7 +3,7 @@ import {
   repairMeshJavaScript,
   repairMeshWasm,
 } from "/benchmarks/base/cad-mesh-repair/engine.js";
-import { WORKER_ANCHORS } from "/worker-anchors.generated.js";
+import { WORKER_ANCHORS } from "../../worker-anchors.generated.js";
 
 const EXPECTED = Object.freeze({
   ...WORKER_ANCHORS["cad-mesh-repair"],

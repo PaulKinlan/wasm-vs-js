@@ -1,6 +1,6 @@
 import { runPcapJavaScript } from "../benchmarks/base/network-pcap-decode/engine.js";
 
-import { WORKER_ANCHORS } from "/worker-anchors.generated.js";
+import { WORKER_ANCHORS } from "./worker-anchors.generated.js";
 
 const EXPECTED = Object.freeze({ ...WORKER_ANCHORS["pcap-decode"] });
 function hex(bytes) {

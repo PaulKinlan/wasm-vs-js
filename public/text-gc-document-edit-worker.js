@@ -1,4 +1,4 @@
-import { WORKER_ANCHORS } from "/worker-anchors.generated.js";
+import { WORKER_ANCHORS } from "./worker-anchors.generated.js";
 
 const EXPECTED = Object.freeze({
   ...WORKER_ANCHORS["text-gc-document-edit"],

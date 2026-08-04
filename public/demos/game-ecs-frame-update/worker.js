@@ -8,7 +8,7 @@ import {
   generateEcsFixture,
 } from "../../../benchmarks/v1/game-ecs-frame-update/fixture.js";
 
-import { WORKER_ANCHORS } from "/worker-anchors.generated.js";
+import { WORKER_ANCHORS } from "../../../worker-anchors.generated.js";
 
 const EXPECTED = Object.freeze({
   wasmSha256: WORKER_ANCHORS["game-ecs-frame-update"].wasmSha256,
