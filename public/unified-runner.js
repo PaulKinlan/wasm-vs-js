@@ -277,6 +277,8 @@ function formatTargetPayload(slug, target) {
           records: 1000,
         },
       };
+    case "text-regex":
+      return { variant: isWasm ? "wasm-linear-controlled" : "js-controlled" };
     case "virtualized-grid":
       return {
         type: "start",

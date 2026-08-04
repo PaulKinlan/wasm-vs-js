@@ -369,6 +369,15 @@ const PLAYGROUND_WORKLOADS = [
       "Lexical analysis, AST parsing, symbol resolution, and WebAssembly binary codegen.",
   },
   {
+    slug: "text-regex-log-scan",
+    title: "100 MB Log File Regex Scan",
+    category: "Text & Parsing",
+    route: "/demos/base/text.regex-log-scan.v1/",
+    description:
+      "Scans a 100 MB server log corpus for multi-field timestamp, IP, and status patterns.",
+    explanation: "Stream tokenization, character-class matching, and capture group extraction.",
+  },
+  {
     slug: "simulation-nbody-cloth",
     title: "N-Body Particle & Cloth Simulation",
     category: "Simulation",
