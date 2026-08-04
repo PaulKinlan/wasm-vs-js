@@ -66,23 +66,16 @@ function renderResult(message) {
     ? "WebAssembly (linear memory)"
     : "JavaScript";
   const modeLabel = message.mode === "exact-contract" ? "exact contract" : "bounded";
+  const timingText = message.executionMs !== undefined
+    ? ` Execution time: ${message.executionMs.toFixed(2)} ms.`
+    : "";
   elements.summary.textContent =
-    `${identity.title} completed on the ${targetLabel} engine in ${modeLabel} mode. ` +
+    `${identity.title} completed on the ${targetLabel} engine in ${modeLabel} mode.` +
+    `${timingText} ` +
     `Variant ${message.variantId}; output matched the pinned f64 reference within the ` +
     `frozen tolerances and passed every structural invariant.`;
 
   elements.hashes.replaceChildren();
-  if (message.executionMs !== undefined) {
-    const timeRow = document.createElement("tr");
-    const timeName = document.createElement("th");
-    timeName.scope = "row";
-    timeName.textContent = "Execution Time";
-    const timeVal = document.createElement("td");
-    timeVal.setAttribute("colspan", "2");
-    timeVal.innerHTML = `<strong>${message.executionMs.toFixed(2)} ms</strong>`;
-    timeRow.append(timeName, timeVal);
-    elements.hashes.append(timeRow);
-  }
   for (
     const [label, actual, expected] of [
       ["Input SHA-256", message.inputSha256, identity.frozenHashes.inputSha256],

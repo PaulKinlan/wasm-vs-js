@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "contractId": "audio-demo-clean-cache-reproduction-v1",
-  "started": "2026-08-03T12:16:44.208Z",
-  "finished": "2026-08-03T12:16:45.633Z",
+  "started": "2026-08-04T08:11:41.098Z",
+  "finished": "2026-08-04T08:11:43.589Z",
   "denoVersion": "2.9.0",
   "cacheDirectory": "fresh temporary DENO_DIR (created and removed by this script)",
   "lockfile": "scripts/audio-demo-assets.lock",
