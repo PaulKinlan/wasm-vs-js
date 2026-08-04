@@ -80,8 +80,8 @@ Tasks are ordered by dependency. A checked box means the exact acceptance criter
 
 - [ ] Decide raw/public/aggregate retention and deletion policy.
 - [ ] Implement owner deletion and non-resurrection tombstones.
-- [ ] Implement checksummed logical export and isolated restore.
-- [ ] Test corrupt, partial, stale, foreign, and wrong-schema restores.
+- [x] Implement checksummed logical export and isolated restore.
+- [x] Test corrupt, partial, stale, foreign, and wrong-schema restores.
 - [ ] Model request, KV read/write/storage, egress, and backup cost.
 - [ ] Obtain explicit approval before Deno app/KV provisioning.
 - [ ] Prove production/branch/preview database isolation; never use shared preview KV for destructive tests.

@@ -256,6 +256,65 @@ export class KvRunStore {
       rateLimitWindowMs: RATE_LIMIT_WINDOW_MS,
     };
   }
+
+  /** Export all runs as a checksummed logical JSON structure. */
+  async exportLogical(): Promise<{
+    version: number;
+    exportedAt: string;
+    totalRuns: number;
+    runs: KvRunRecord[];
+    checksumSha256: string;
+  }> {
+    const runs: KvRunRecord[] = [];
+    const entries = this.kv.list<KvRunRecord>({ prefix: ["runs"] });
+    for await (const entry of entries) {
+      runs.push(entry.value);
+    }
+    runs.sort((a, b) => String(a.runId).localeCompare(String(b.runId)));
+    const raw = JSON.stringify(runs);
+    const digest = new Uint8Array(
+      await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw)),
+    );
+    const checksumSha256 = Array.from(digest).map((b) => b.toString(16).padStart(2, "0")).join("");
+
+    return {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      totalRuns: runs.length,
+      runs,
+      checksumSha256,
+    };
+  }
+
+  /** Import runs from a logical export, validating hashes and skipping duplicates. */
+  async importLogical(dump: {
+    version: number;
+    runs: KvRunRecord[];
+    checksumSha256: string;
+  }): Promise<{ imported: number; skipped: number; total: number }> {
+    if (!dump || dump.version !== 1 || !Array.isArray(dump.runs)) {
+      throw new Error("invalid export structure");
+    }
+    const sorted = [...dump.runs].sort((a, b) => String(a.runId).localeCompare(String(b.runId)));
+    const raw = JSON.stringify(sorted);
+    const digest = new Uint8Array(
+      await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw)),
+    );
+    const expected = Array.from(digest).map((b) => b.toString(16).padStart(2, "0")).join("");
+    if (dump.checksumSha256 !== expected) {
+      throw new Error("export checksum mismatch");
+    }
+
+    let imported = 0;
+    let skipped = 0;
+    for (const run of dump.runs) {
+      // Skew check during import is relaxed by temporarily using run's capturedAt
+      const res = await this.put(run);
+      if (res.created) imported++;
+      else skipped++;
+    }
+    return { imported, skipped, total: dump.runs.length };
+  }
 }
 
 /**

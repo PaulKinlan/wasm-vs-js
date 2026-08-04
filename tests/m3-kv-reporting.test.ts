@@ -108,7 +108,7 @@ Deno.test({
       await store.put(run);
     } catch (e) {
       caught = true;
-      assert(e.message.includes("skew"));
+      assert((e as Error).message.includes("skew"));
     }
     assert(caught, "should reject future timestamp");
 
@@ -497,6 +497,37 @@ Deno.test({
     assertEquals(response!.status, 403);
 
     kv.close();
+  },
+});
+
+Deno.test({
+  name: "kv-store: exportLogical and importLogical roundtrip",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const kv1 = await makeKv();
+    const store1 = new KvRunStore(kv1);
+    const run = await validRun({ capturedAt: new Date().toISOString() });
+    await store1.put(run);
+
+    const dump = await store1.exportLogical();
+    assertEquals(dump.version, 1);
+    assertEquals(dump.totalRuns, 1);
+    assert(dump.checksumSha256.length === 64);
+
+    const kv2 = await makeKv();
+    const store2 = new KvRunStore(kv2);
+    const importRes = await store2.importLogical(dump);
+    assertEquals(importRes.imported, 1);
+    assertEquals(importRes.skipped, 0);
+
+    const runId = String(run.runId);
+    const retrieved = await store2.get(runId);
+    assert(retrieved !== null);
+    assertEquals(retrieved!.runId, runId);
+
+    kv1.close();
+    kv2.close();
   },
 });
 
