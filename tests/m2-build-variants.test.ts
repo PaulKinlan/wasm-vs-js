@@ -2,7 +2,11 @@
 // Verifies all variants compile, produce valid binaries, and export correctly.
 
 import { assert, assertEquals } from "./assert.ts";
-import { runBuildVariantSuite, BUILD_VARIANTS, getSumU32Wat } from "../benchmarks/build-variants/workload.ts";
+import {
+  BUILD_VARIANTS,
+  getSumU32Wat,
+  runBuildVariantSuite,
+} from "../benchmarks/build-variants/workload.ts";
 
 Deno.test({
   name: "build-variants: suite produces results for all configured variants",
@@ -22,7 +26,10 @@ Deno.test({
     const report = await runBuildVariantSuite();
     for (const r of report.results) {
       assert(r.valid, `variant ${r.variant} did not produce valid binary`);
-      assert(r.exportedFunctions.includes("sum_u32"), `variant ${r.variant} missing sum_u32 export`);
+      assert(
+        r.exportedFunctions.includes("sum_u32"),
+        `variant ${r.variant} missing sum_u32 export`,
+      );
     }
   },
 });
@@ -40,7 +47,9 @@ Deno.test({
     // Debug names should be larger than default (canonical)
     assert(
       debugVariant!.wasmBytes >= defaultVariant!.wasmBytes,
-      `debug-names (${debugVariant!.wasmBytes}B) should be >= default (${defaultVariant!.wasmBytes}B)`,
+      `debug-names (${debugVariant!.wasmBytes}B) should be >= default (${
+        defaultVariant!.wasmBytes
+      }B)`,
     );
   },
 });
@@ -57,7 +66,9 @@ Deno.test({
     // Relocatable adds relocation entries, increasing size
     assert(
       relocatableVariant!.wasmBytes >= defaultVariant!.wasmBytes,
-      `relocatable (${relocatableVariant!.wasmBytes}B) should be >= default (${defaultVariant!.wasmBytes}B)`,
+      `relocatable (${relocatableVariant!.wasmBytes}B) should be >= default (${
+        defaultVariant!.wasmBytes
+      }B)`,
     );
   },
 });
@@ -74,7 +85,9 @@ Deno.test({
     // Non-canonical LEB128 uses more bytes for the same values
     assert(
       nonCanonical!.wasmBytes >= defaultVariant!.wasmBytes,
-      `non-canonical-lebs (${nonCanonical!.wasmBytes}B) should be >= default (${defaultVariant!.wasmBytes}B)`,
+      `non-canonical-lebs (${nonCanonical!.wasmBytes}B) should be >= default (${
+        defaultVariant!.wasmBytes
+      }B)`,
     );
   },
 });

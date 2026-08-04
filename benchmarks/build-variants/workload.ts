@@ -135,7 +135,7 @@ export async function runBuildVariantSuite(): Promise<VariantReport> {
     try {
       const result = await compileVariant(SUM_U32_WAT, variant);
       results.push(result);
-    } catch (e) {
+    } catch {
       results.push({
         variant: variant.name,
         wasmBytes: 0,
