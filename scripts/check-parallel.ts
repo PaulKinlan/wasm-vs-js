@@ -91,7 +91,17 @@ interface Stage {
   name: string;
   args: string[];
   env?: Record<string, string>;
+  cores?: string;
 }
+
+// CPU partitioning (Linux-only): with ~33 runnable threads on 32 cores,
+// bursty oversubscription inflates every long chain ~1.5x. Pinning each lane
+// to a dedicated core set keeps chains near their isolated times. Skipped
+// automatically off-Linux or below 32 cores.
+const TASKSET = Deno.build.os === "linux" && navigator.hardwareConcurrency >= 32
+  ? await new Deno.Command("which", { args: ["taskset"], stdout: "null", stderr: "null" })
+    .output().then(({ success }) => success)
+  : false;
 
 // Readers that fetch audio/sum-u32/small-writer artifact bytes over HTTP
 // routes. They must run after every writer has finished, so they get their
@@ -136,8 +146,9 @@ if (missing.length > 0) {
 
 async function runStage(stage: Stage): Promise<void> {
   const stageStart = performance.now();
-  const child = new Deno.Command(Deno.execPath(), {
-    args: stage.args,
+  const pinned = TASKSET && stage.cores;
+  const child = new Deno.Command(pinned ? "taskset" : Deno.execPath(), {
+    args: pinned ? ["-c", stage.cores!, Deno.execPath(), ...stage.args] : stage.args,
     env: stage.env,
     stdout: "inherit",
     stderr: "inherit",
@@ -151,8 +162,9 @@ async function runStage(stage: Stage): Promise<void> {
   console.error(`check-parallel: ${stage.name} ok (${elapsed}s)`);
 }
 
+// `task build` writes public/artifacts and must finish first; every other
+// static stage is read-only on the repo and runs concurrently.
 const staticStages: Stage[] = [
-  { name: "build", args: ["task", "build"] },
   { name: "fmt", args: ["fmt", "--check"] },
   { name: "lint", args: ["lint"] },
   { name: "typecheck", args: ["task", "typecheck"] },
@@ -162,18 +174,20 @@ const staticStages: Stage[] = [
 ];
 
 const started = performance.now();
-for (const stage of staticStages) await runStage(stage);
+await runStage({ name: "build", args: ["task", "build"] });
+await Promise.all(staticStages.map(runStage));
 
 // Phase A: readers and every writer, all concurrent (write sets verified
 // pairwise disjoint and unread by the reader flock — see header comment).
 await Promise.all([
-  // The light flock is only ~35 core-seconds of work; 12 workers finish it
-  // in ~3s while leaving cores for the heavy single-file stages and writer
-  // lanes (uncapped, the flock's 32 workers inflate every heavy chain ~1.5x).
+  // The light flock is only ~35 core-seconds of work; 12 workers on their
+  // own cores finish it in ~4s while the heavy single-file stages and the
+  // writer lanes run on dedicated sets (see TASKSET comment above).
   runStage({
     name: "test-readers",
     args: ["test", "--parallel", ...testArgs, ...readerTests],
     env: { ...testEnv, DENO_JOBS: "12" },
+    cores: "3-14",
   }),
   ...HEAVY_READERS.map((file) =>
     runStage({
@@ -182,10 +196,23 @@ await Promise.all([
       }`,
       args: ["test", ...testArgs, file],
       env: testEnv,
+      // gltf's 10s chain is the longest reader-side item: dedicated cores.
+      // The remaining heavy stages share an 8-core pool.
+      cores: file === "tests/base-gltf-viewer.test.ts" ? "0-2" : "15-22",
     })
   ),
-  runStage({ name: "test-rigid-writer", args: ["test", ...testArgs, RIGID_WRITER], env: testEnv }),
-  runStage({ name: "test-audio-writer", args: ["test", ...testArgs, AUDIO_WRITER], env: testEnv }),
+  runStage({
+    name: "test-rigid-writer",
+    args: ["test", ...testArgs, RIGID_WRITER],
+    env: testEnv,
+    cores: "23-26",
+  }),
+  runStage({
+    name: "test-audio-writer",
+    args: ["test", ...testArgs, AUDIO_WRITER],
+    env: testEnv,
+    cores: "27-30",
+  }),
   runStage({
     name: "test-writers-small",
     args: ["test", "--parallel", ...testArgs, ...SMALL_WRITERS, RIGID_READER],
