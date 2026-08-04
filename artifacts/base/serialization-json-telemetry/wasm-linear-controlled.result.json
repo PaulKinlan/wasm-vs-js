@@ -4,7 +4,7 @@
   "status": "candidate-validation-passed",
   "source": {
     "repository": "https://github.com/PaulKinlan/wasm-vs-js",
-    "commit": "8004c2fc3a178e1706d8bd0dd90abd73cace62b8"
+    "commit": "89a37a5989de6733b2e37e8d575648980bc9a3c5"
   },
   "workload": {
     "entryId": "serialization.json-telemetry.v1",
@@ -17,26 +17,26 @@
       "path": "benchmarks/v1/serialization-json-telemetry/registration.v1.json",
       "bytes": 3626,
       "sha256": "e3506ae8cb013a0257756324ec8eb69bc724d858ef906588a73299c5d6710d4e",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8004c2fc3a178e1706d8bd0dd90abd73cace62b8/benchmarks/v1/serialization-json-telemetry/registration.v1.json"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/89a37a5989de6733b2e37e8d575648980bc9a3c5/benchmarks/v1/serialization-json-telemetry/registration.v1.json"
     },
     "catalog": {
       "path": "catalog/workloads.v1.json",
       "bytes": 110208,
       "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8004c2fc3a178e1706d8bd0dd90abd73cace62b8/catalog/workloads.v1.json"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/89a37a5989de6733b2e37e8d575648980bc9a3c5/catalog/workloads.v1.json"
     },
     "sources": [
       {
         "path": "benchmarks/v1/serialization-json-telemetry/workload.js",
         "bytes": 11159,
         "sha256": "54e2ee54b225d8454664dc6a24f5fa178ee0652ccf0e7e01eea93b17f29530f8",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8004c2fc3a178e1706d8bd0dd90abd73cace62b8/benchmarks/v1/serialization-json-telemetry/workload.js"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/89a37a5989de6733b2e37e8d575648980bc9a3c5/benchmarks/v1/serialization-json-telemetry/workload.js"
       },
       {
         "path": "benchmarks/v1/serialization-json-telemetry/telemetry.c",
         "bytes": 6369,
         "sha256": "8ce3f16fcdcd795689ac1c55b373880ca0bc20ab16f5719507bb19080e0dcf85",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8004c2fc3a178e1706d8bd0dd90abd73cace62b8/benchmarks/v1/serialization-json-telemetry/telemetry.c"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/89a37a5989de6733b2e37e8d575648980bc9a3c5/benchmarks/v1/serialization-json-telemetry/telemetry.c"
       }
     ],
     "manifests": [
@@ -44,69 +44,69 @@
         "path": "public/artifacts/serialization-json-telemetry/build-manifest.json",
         "bytes": 2224,
         "sha256": "e332ca10094fa7b75d53216912ee2c375983e962226fec7f2471402f0cee88f2",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8004c2fc3a178e1706d8bd0dd90abd73cace62b8/public/artifacts/serialization-json-telemetry/build-manifest.json"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/89a37a5989de6733b2e37e8d575648980bc9a3c5/public/artifacts/serialization-json-telemetry/build-manifest.json"
       },
       {
         "path": "public/artifacts/serialization-json-telemetry/fixture-manifest.json",
         "bytes": 2243,
         "sha256": "89a1039bd30c2ab72499102e653a7ae44a4c9c0c731408223afe2d7df6cb31cf",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8004c2fc3a178e1706d8bd0dd90abd73cace62b8/public/artifacts/serialization-json-telemetry/fixture-manifest.json"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/89a37a5989de6733b2e37e8d575648980bc9a3c5/public/artifacts/serialization-json-telemetry/fixture-manifest.json"
       },
       {
         "path": "public/artifacts/serialization-json-telemetry/input-manifest.json",
         "bytes": 602,
         "sha256": "0cfe5e4dbf3ce2bee9e047a32688a6b5f48ea64dcb120cb24ac9ddfa90a34fb0",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8004c2fc3a178e1706d8bd0dd90abd73cace62b8/public/artifacts/serialization-json-telemetry/input-manifest.json"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/89a37a5989de6733b2e37e8d575648980bc9a3c5/public/artifacts/serialization-json-telemetry/input-manifest.json"
       },
       {
         "path": "public/artifacts/serialization-json-telemetry/output-manifest.json",
         "bytes": 4010,
         "sha256": "3acf258af1cf022c3b6af581107e16324222e551ae3c16f05d522782399bf387",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8004c2fc3a178e1706d8bd0dd90abd73cace62b8/public/artifacts/serialization-json-telemetry/output-manifest.json"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/89a37a5989de6733b2e37e8d575648980bc9a3c5/public/artifacts/serialization-json-telemetry/output-manifest.json"
       }
     ],
     "artifact": {
       "path": "public/artifacts/serialization-json-telemetry/telemetry.wasm",
       "bytes": 7509,
       "sha256": "8d03d4fedbbef99659d95e8930a3db6757eb460d73301c9e95c9eafbfe330c42",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8004c2fc3a178e1706d8bd0dd90abd73cace62b8/public/artifacts/serialization-json-telemetry/telemetry.wasm"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/89a37a5989de6733b2e37e8d575648980bc9a3c5/public/artifacts/serialization-json-telemetry/telemetry.wasm"
     },
     "buildRecipe": {
       "path": "scripts/build-v1-json-telemetry.ts",
       "bytes": 5893,
       "sha256": "38d17c9c50a8e4b3f127608f2ae21f566137823fd7d301120f0c88b5f5750831",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8004c2fc3a178e1706d8bd0dd90abd73cace62b8/scripts/build-v1-json-telemetry.ts"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/89a37a5989de6733b2e37e8d575648980bc9a3c5/scripts/build-v1-json-telemetry.ts"
     },
     "demo": [
       {
         "path": "public/demos/serialization.json-telemetry.v1/index.html",
         "bytes": 3675,
         "sha256": "7e3eadd7a7ab50041d14f944b990a21538dee47cbf92b192a546c16bd8310899",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8004c2fc3a178e1706d8bd0dd90abd73cace62b8/public/demos/serialization.json-telemetry.v1/index.html"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/89a37a5989de6733b2e37e8d575648980bc9a3c5/public/demos/serialization.json-telemetry.v1/index.html"
       },
       {
         "path": "public/telemetry-demo.js",
         "bytes": 2261,
         "sha256": "f70024528312fe700769096010583897bc952913dd22c9d1cac5c5466b2c8c68",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8004c2fc3a178e1706d8bd0dd90abd73cace62b8/public/telemetry-demo.js"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/89a37a5989de6733b2e37e8d575648980bc9a3c5/public/telemetry-demo.js"
       },
       {
         "path": "public/telemetry-worker.js",
         "bytes": 6142,
         "sha256": "fd1d42643f351e4eebb349806978f17623aa65eeb0d19e068eccf2c1a87ef5e4",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8004c2fc3a178e1706d8bd0dd90abd73cace62b8/public/telemetry-worker.js"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/89a37a5989de6733b2e37e8d575648980bc9a3c5/public/telemetry-worker.js"
       },
       {
         "path": "public/telemetry-module-loader.js",
         "bytes": 1325,
         "sha256": "be4597255d4657f3b5b2e89a5461e3196a441f297dfd26cd59a42db4c6e5dcb1",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8004c2fc3a178e1706d8bd0dd90abd73cace62b8/public/telemetry-module-loader.js"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/89a37a5989de6733b2e37e8d575648980bc9a3c5/public/telemetry-module-loader.js"
       },
       {
         "path": "server.ts",
         "bytes": 97201,
         "sha256": "4f2ed906ea6f82a4e90cfaa5a7de93aa97c614863a076a396b36ac4af6e27f9b",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8004c2fc3a178e1706d8bd0dd90abd73cace62b8/server.ts"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/89a37a5989de6733b2e37e8d575648980bc9a3c5/server.ts"
       }
     ]
   },
