@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="/styles.css">
     <link rel="stylesheet" href="/benchmarks/traditional-demo.css">
     <script type="module" src="/benchmarks/traditional-demo.js"></script>
+    <script type="module" src="/unified-runner.js"></script>
   </head>
   <body data-demo="regex-automata-duel-demo" data-workload="regex-automata-duel-demo">
     <a class="skip" href="#main">Skip to main content</a>
@@ -45,6 +46,7 @@
             <label for="target">
               <span>Target Engine</span>
               <select id="target" name="target" disabled>
+                <option value="both" selected>Compare Side-by-Side (JS vs Wasm)</option>
                 <option value="js-native-controlled">Native JavaScript RegExp</option>
                 <option value="js-automata-controlled">Thompson-NFA JavaScript</option>
                 <option value="wasm-automata-controlled">Thompson-to-DFA linear Wasm</option>
@@ -65,7 +67,7 @@
           </div>
         </form>
         <p id="status" role="status" aria-live="polite">
-          Unavailable until JavaScript initializes the module worker controls.
+          Unavailable: JavaScript and module workers are required to run this fixture.
         </p>
         <noscript>
           <p

@@ -261,10 +261,68 @@ async function executeWorkerLoop(slug, target, iterations = 30) {
     throw new Error(`Worker configuration missing for ${slug}`);
   }
 
+  // sum-u32 handles multi-iteration batches inside hosted-runner-worker
+  if (slug === "sum-u32") {
+    const isWasm = target === "wasm" || target === "wasm-linear" ||
+      target === "wasm-linear-controlled";
+    return new Promise((resolve, reject) => {
+      let worker;
+      try {
+        worker = new Worker(config.workerScript, { type: "module" });
+      } catch (err) {
+        return reject(err);
+      }
+      const timer = setTimeout(() => {
+        worker.terminate();
+        reject(new Error("sum-u32 worker timed out after 120s"));
+      }, 120000);
+
+      worker.onmessage = (event) => {
+        const msg = event.data;
+        if (msg?.type === "complete") {
+          clearTimeout(timer);
+          worker.terminate();
+          const res = msg.result;
+          const coldMs = isWasm ? res.lifecycle.wasmFirstExecuteMs : res.lifecycle.jsFirstExecuteMs;
+          const stats = isWasm ? res.wasm : res.js;
+          resolve({
+            coldMs: coldMs || stats.medianMs,
+            warmMedianMs: stats.medianMs,
+            minMs: Math.min(...stats.samples),
+            maxMs: Math.max(...stats.samples),
+            samples: stats.samples,
+            iterations: stats.count,
+            lastResult: res,
+          });
+        } else if (msg?.type === "error") {
+          clearTimeout(timer);
+          worker.terminate();
+          reject(new Error(msg.message || "sum-u32 worker error"));
+        }
+      };
+
+      worker.onerror = (err) => {
+        clearTimeout(timer);
+        worker.terminate();
+        reject(err);
+      };
+
+      worker.postMessage({ iterations, order: "js-first", serviceWorkerControlled: false });
+    });
+  }
+
+  // Heavy workloads run a capped count to stay fast
+  const heavyWorkloads = [
+    "dom-virtualized-grid-v1",
+    "graphics-cpu-path-tracer-v1",
+    "base-gltf-viewer",
+  ];
+  const loopCount = heavyWorkloads.includes(slug) ? Math.min(iterations, 5) : iterations;
+
   const durations = [];
   let lastResult = null;
 
-  for (let i = 0; i < iterations; i++) {
+  for (let i = 0; i < loopCount; i++) {
     const iterationMs = await new Promise((resolve, reject) => {
       let worker;
       try {

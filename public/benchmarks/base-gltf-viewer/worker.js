@@ -116,7 +116,11 @@ async function runWasm(mesh, texture, animation, gltfText, wasmBytes, decoderMet
 }
 
 self.onmessage = async (event) => {
-  const { token, target, mode } = event.data ?? {};
+  const token = event.data?.token;
+  let target = event.data?.target || "javascript";
+  if (target === "wasm-linear" || target === "wasm-linear-controlled") target = "wasm";
+  if (target === "js" || target === "js-controlled") target = "javascript";
+  let mode = event.data?.mode || "bounded";
   if (
     !Number.isInteger(token) || !new Set(["javascript", "wasm"]).has(target) ||
     !new Set(["bounded", "exact"]).has(mode)

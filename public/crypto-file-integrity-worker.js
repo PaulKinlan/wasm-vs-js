@@ -20,7 +20,13 @@ async function fetchBytes(path) {
 const decode = (bytes) => JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
 
 self.onmessage = async (event) => {
-  const { token, target, kind, byteLength, schedule } = event.data ?? {};
+  const token = event.data?.token;
+  let target = event.data?.target || "js-controlled";
+  if (target === "wasm" || target === "wasm-linear") target = "wasm-linear-controlled";
+  if (target === "javascript" || target === "js") target = "js-controlled";
+  const kind = event.data?.kind || "dense-high-entropy";
+  const byteLength = event.data?.byteLength || 65536;
+  const schedule = event.data?.schedule || 8192;
   try {
     if (
       !Number.isSafeInteger(token) ||

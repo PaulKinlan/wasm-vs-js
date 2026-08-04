@@ -263,8 +263,11 @@ self.onmessage = ({ data }) => {
     }
     return;
   }
-  if (data.type !== "start") return;
-  const { token, variantId } = data;
+  if (data.type !== "start" && data.type !== "run") return;
+  const token = data.token;
+  let variantId = data.variantId || data.target || "js-controlled";
+  if (variantId === "javascript" || variantId === "js") variantId = "js-controlled";
+  if (variantId === "wasm" || variantId === "wasm-linear") variantId = "wasm-linear-controlled";
   if (!VARIANTS.includes(variantId)) {
     self.postMessage({ type: "error", token, message: "Target is not in the fixed allowlist." });
     return;

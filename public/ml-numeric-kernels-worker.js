@@ -114,7 +114,12 @@ async function wasmOutputs(bytes, fixtures) {
 self.addEventListener("message", async ({ data }) => {
   const token = data?.token;
   try {
-    const { kernel, dtype, target } = data.values;
+    const values = data?.values || {};
+    const kernel = values.kernel || "gemm";
+    const dtype = values.dtype || "f32";
+    let target = values.target || data?.target || "javascript";
+    if (target === "wasm" || target === "wasm-linear-controlled") target = "wasm-linear";
+    if (target === "js" || target === "js-controlled") target = "javascript";
     if (
       !["gemm", "conv", "softmax"].includes(kernel) || !["f32", "i8"].includes(dtype) ||
       !["javascript", "wasm-linear"].includes(target)

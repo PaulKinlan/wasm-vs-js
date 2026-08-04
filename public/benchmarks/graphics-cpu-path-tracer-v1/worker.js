@@ -30,7 +30,12 @@ function evidenceEquals(left, right) {
   return JSON.stringify(stableValue(left)) === JSON.stringify(stableValue(right));
 }
 self.onmessage = async (event) => {
-  const { token, target, mode, trust } = event.data ?? {};
+  const token = event.data?.token;
+  let target = event.data?.target || "javascript";
+  if (target === "wasm" || target === "wasm-linear-controlled") target = "wasm-linear";
+  if (target === "js" || target === "js-controlled") target = "javascript";
+  let mode = event.data?.mode || "preview";
+  const trust = event.data?.trust;
   try {
     if (
       !Number.isInteger(token) || !["javascript", "wasm-linear"].includes(target) ||
