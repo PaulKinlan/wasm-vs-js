@@ -1,6 +1,6 @@
 export const ORACLE = 145_417_951;
-export const MIN_ITERATIONS = 5;
-export const MAX_ITERATIONS = 50;
+export const MIN_ITERATIONS = 1;
+export const MAX_ITERATIONS = 100;
 export const MAX_BATCH_SIZE = 4096;
 const DIGEST_SEED = 0x811c9dc5;
 const DIGEST_MULTIPLIER = 0x01000193;

@@ -60,8 +60,8 @@ Deno.test("scored batch rejects an earlier wrong output even when its final outp
 });
 
 Deno.test("hosted statistics and fixed-work counters are exact and iteration controls are bounded", async () => {
-  assertEquals(boundedIterations("5"), 5);
-  assertEquals(boundedIterations("50"), 50);
+  assertEquals(boundedIterations("1"), 1);
+  assertEquals(boundedIterations("100"), 100);
   assertEquals(summarizeSamples([5, 1, 4, 2, 3]), {
     count: 5,
     medianMs: 3,
@@ -76,6 +76,6 @@ Deno.test("hosted statistics and fixed-work counters are exact and iteration con
     loads: 131_072,
     boundaryCrossings: 2,
   });
-  await assertRejects(() => Promise.resolve(boundedIterations(4)), "Iterations must be");
-  await assertRejects(() => Promise.resolve(boundedIterations(51)), "Iterations must be");
+  await assertRejects(() => Promise.resolve(boundedIterations(0)), "Iterations must be");
+  await assertRejects(() => Promise.resolve(boundedIterations(101)), "Iterations must be");
 });
