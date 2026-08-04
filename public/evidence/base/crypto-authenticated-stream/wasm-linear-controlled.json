@@ -6,7 +6,7 @@
   "sourceCommit": "202ec76274e5ad933cf381484cca0053dec127f1",
   "buildManifest": {
     "path": "public/artifacts/crypto-authenticated-stream/build-manifest.json",
-    "sha256": "e58a3a5533657c2e2bf530c0bc714fba20937f50bc7e17d0791324b6ab40a200"
+    "sha256": "b7133227effd2f95bf5f5ee636d3563c24c46dd2b8d1f12cfe46ae05177990c7"
   },
   "result": {
     "workloadId": "crypto.authenticated-stream.v1",
