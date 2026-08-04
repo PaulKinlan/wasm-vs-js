@@ -214,12 +214,13 @@ async function runBenchmarkAttempt(
       60_000,
     );
 
-    const result = ((runResult as Record<string, unknown>)?.result ?? {}) as Record<
+    const cdpObj = ((runResult as Record<string, unknown>)?.result ?? {}) as Record<
       string,
       unknown
     >;
-    const resultText = String(result.text ?? "");
-    const success = resultText !== "TIMEOUT" && !resultText.includes("Error");
+    const evalVal = (cdpObj.value ?? {}) as Record<string, unknown>;
+    const resultText = String(evalVal.text ?? "");
+    const success = resultText === "OK";
 
     // Take screenshot
     const screenshot = await cdp.send("Page.captureScreenshot", { format: "png" });
@@ -233,7 +234,7 @@ async function runBenchmarkAttempt(
     return {
       attempt,
       success,
-      timings: result.timings as Record<string, unknown> | undefined,
+      timings: evalVal.timings as Record<string, unknown> | undefined,
       screenshotPath,
       error: success ? undefined : resultText,
     };
