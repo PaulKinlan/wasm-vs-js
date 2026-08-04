@@ -22,19 +22,19 @@
     </header>
     <main id="main">
       <header>
-        <p class="eyebrow">Graphics &amp; Media · IMAGE.FLOOD-FILL.V1</p>
+        <p class="eyebrow">Reduced out-of-catalog fixture · image.flood-fill.v1</p>
         <h1>Span-Stack Image Flood Fill</h1>
         <p class="lede">
-          Fills contiguous pixel regions using span-stack queue/stack operations, comparing JavaScript vs WebAssembly.
+          Fills contiguous pixel regions on a 64 × 48 image grid using span-stack queue/stack operations, comparing JavaScript vs WebAssembly.
         </p>
       </header>
 
       <p class="notice">
-        <strong>Fixed work:</strong> 512×512 image grid with barrier obstacles. Fills contiguous matching color regions and calculates exact filled pixel mask counts.
+        <strong>Fixed work:</strong> 64 × 48 image grid with barrier obstacles. Fills contiguous matching color regions and calculates exact filled pixel mask counts. Reduced fixture for image.flood-fill.v1 with no timing evidence or comparative performance claim.
       </p>
 
       <section class="demo-panel" aria-labelledby="run-heading">
-        <h2 id="run-heading">Interactive Benchmark Runner</h2>
+        <h2 id="run-heading">Run in a fresh module worker</h2>
         <form id="demo-form">
           <div class="controls">
             <label for="target">
@@ -85,11 +85,12 @@
             <li><a href="/artifacts/image-editing-demo/image-editing.wasm">Linear-Wasm module</a></li>
             <li><a href="/artifacts/image-editing-demo/build-manifest.json">Build manifest</a></li>
           </ul>
+          <p>The controls, fixed scope, source routes, and limitations are in this raw HTML response.</p>
         </section>
         <section>
           <h2>Limitations &amp; Scope</h2>
           <ul>
-            <li>Fixed 512×512 image grid with verified SHA-256 reference output.</li>
+            <li>Fixed 64 × 48 image grid with verified SHA-256 reference output.</li>
             <li>Runs in a Web Worker module with 120-second hard timeout.</li>
           </ul>
         </section>
