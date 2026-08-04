@@ -471,25 +471,29 @@ async function runBenchmarkForCard(config, cardEl, iterations = 30) {
     return { slug: config.slug, title: config.title, passed: true, skipped: true };
   }
 
-  statusEl.textContent = `Running JS (${iterations}× loop)...`;
+  statusEl.textContent = `Running JS — starting…`;
   statusEl.className = "playground-status running";
 
   try {
     let jsStats;
     let wasmStats;
+    // Surface per-iteration progress so long cards never sit silent.
+    const report = (label) => ({ iteration, total }) => {
+      statusEl.textContent = `Running ${label} — iteration ${iteration}/${total}…`;
+    };
     if (config.slug === "dom-virtualized-grid-v1") {
       // The paced trace enforces ±20 ms slots; a loaded main thread can blow
       // the tolerance, so allow one retry before reporting an error.
       try {
-        jsStats = await executeWorkerLoop(config.slug, "javascript", iterations);
-        wasmStats = await executeWorkerLoop(config.slug, "wasm", iterations);
+        jsStats = await executeWorkerLoop(config.slug, "javascript", iterations, report("JS"));
+        wasmStats = await executeWorkerLoop(config.slug, "wasm", iterations, report("Wasm"));
       } catch {
-        jsStats = await executeWorkerLoop(config.slug, "javascript", iterations);
-        wasmStats = await executeWorkerLoop(config.slug, "wasm", iterations);
+        jsStats = await executeWorkerLoop(config.slug, "javascript", iterations, report("JS"));
+        wasmStats = await executeWorkerLoop(config.slug, "wasm", iterations, report("Wasm"));
       }
     } else {
-      jsStats = await executeWorkerLoop(config.slug, "javascript", iterations);
-      wasmStats = await executeWorkerLoop(config.slug, "wasm", iterations);
+      jsStats = await executeWorkerLoop(config.slug, "javascript", iterations, report("JS"));
+      wasmStats = await executeWorkerLoop(config.slug, "wasm", iterations, report("Wasm"));
     }
 
     statusEl.textContent = "✓ Complete";

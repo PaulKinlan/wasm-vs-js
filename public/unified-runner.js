@@ -366,7 +366,7 @@ function formatTargetPayload(slug, target) {
 }
 
 // Executes a worker for N iterations with generous 120-second timeout
-async function executeWorkerLoop(slug, target, iterations = 30) {
+async function executeWorkerLoop(slug, target, iterations = 30, onProgress = () => {}) {
   const config = WORKLOAD_CONFIGS[slug];
   if (!config || !config.workerScript) {
     throw new Error(`Worker configuration missing for ${slug}`);
@@ -519,6 +519,7 @@ async function executeWorkerLoop(slug, target, iterations = 30) {
     });
 
     durations.push(iterationMs);
+    onProgress({ iteration: i + 1, total: loopCount, target });
   }
 
   const coldMs = durations[0];
