@@ -399,6 +399,16 @@ const PLAYGROUND_WORKLOADS = [
       "In-memory sorting/filtering pipelines, DOM row recycling, and pagination view rendering.",
   },
   {
+    slug: "dom-virtualized-scrolling",
+    title: "Virtualized DOM List Scrolling",
+    category: "DOM & Web UI",
+    route: "/benchmarks/dom-virtualized-scrolling/",
+    description:
+      "Simulates 1,800 scroll offset and viewport resize events over 100,000 variable-height rows, computing visible item index windows.",
+    explanation:
+      "Binary search row indexing, variable height calculations, and virtual window DOM recycling.",
+  },
+  {
     slug: "simulation-rigid-body-2d-v1",
     title: "2D Rigid-Body Physics Engine",
     category: "Simulation",

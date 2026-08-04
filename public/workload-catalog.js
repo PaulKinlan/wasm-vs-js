@@ -48,6 +48,7 @@ const WORKLOAD_DEMO_ROUTES = {
   "dom.nested-tree-mutation.v1": "/benchmarks/dom-nested-tree-mutation/",
   "dom.table-sort-filter-pagination.v1": "/benchmarks/dom-table-sort-filter-pagination/",
   "dom.vdom-diff-patch.v1": "/benchmarks/vdom-diff-patch-demo/",
+  "dom.virtualized-scrolling.v1": "/benchmarks/dom-virtualized-scrolling/",
   "game.canvas-arcade.v1": "/demos/game-canvas-arcade/",
   "game.canvas-entity-pathfinding.v1": "/demos/game-canvas-entity-pathfinding/",
   "game.dom-tactics-grid.v1": "/demos/game-dom-tactics-grid/",

@@ -203,6 +203,10 @@ const WORKLOAD_CONFIGS = {
     workerScript: "/benchmarks/dom-table-sort-filter-pagination/worker.js",
     protocol: "table-sort",
   },
+  "dom-virtualized-scrolling": {
+    workerScript: "/benchmarks/dom-virtualized-scrolling/worker.js",
+    protocol: "virtualized-scrolling",
+  },
 };
 
 // Map target name per protocol family
@@ -304,6 +308,7 @@ function formatTargetPayload(slug, target) {
     case "keyed-list":
     case "nested-tree":
     case "table-sort":
+    case "virtualized-scrolling":
       return { type: "run", target: isWasm ? "wasm" : "javascript" };
     case "virtualized-grid":
       return {
