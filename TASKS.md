@@ -34,11 +34,11 @@ Tasks are ordered by dependency. A checked box means the exact acceptance criter
 
 - [x] Freeze the exact M1 Chrome source/build/input/browser/cache/statistics/stopping contract and single-use bounded permit envelope; this does not instantiate browser authorization.
 - [x] Implement reviewed-source foundations for atomic single-use permits, manifest-bound local-only collection, exact Chrome/profile ownership, CDP connection, cache attestation, host/Chrome provenance, immutable artifact hashing, atomic pair commitment, and fail-closed public isolation; no real browser launch is implied.
-- [ ] Launch exact owned Chrome process/profile for cold runs.
+- [x] Launch exact owned Chrome process/profile for cold runs.
 - [x] Implement explicit validation/cold/warm protocol states and retain resource timing; owned-launch cache verification remains below.
 - [x] Alternate paired order with retained seed/block identity.
-- [ ] Run a separately labelled pilot, then collect the cold/warm schedules at frozen attempted-launch checkpoints 20/30/40/50/60; analyze committed pairs only when at least 20 exist, stop at 3% Bonferroni-protected exact order-statistic precision, or terminate each stratum after its fixed 60-attempt cap as inconclusive when precision is absent (including fewer than 20 committed pairs).
-- [ ] Retain browser version, flags, console/network, assertions, screenshots, and exact cleanup.
+- [x] Run a separately labelled pilot, then collect the cold/warm schedules at frozen attempted-launch checkpoints 20/30/40/50/60; analyze committed pairs only when at least 20 exist, stop at 3% Bonferroni-protected exact order-statistic precision, or terminate each stratum after its fixed 60-attempt cap as inconclusive when precision is absent (including fewer than 20 committed pairs).
+- [x] Retain browser version, flags, console/network, assertions, screenshots, and exact cleanup.
 
 ### Results
 
@@ -56,12 +56,12 @@ Tasks are ordered by dependency. A checked box means the exact acceptance criter
 - [x] Freeze and publish workload-catalog v1 as an exact 38-row denominator (P0=12/P1=12/P2=14) with closed rights/oracle/equivalence/mode/phase contracts and explicit 0/38 catalog implementation coverage.
 - [ ] Add T1 primitive family without presenting tiny intervals before calibration.
 - [x] Add representative T2 numeric, parsing, compression, image, and graph kernels.
-- [ ] Add T4 JS→Wasm, Wasm→JS, round-trip, copy, string, refs, callbacks, and batching tests.
+- [x] Add T4 JS→Wasm, Wasm→JS, round-trip, copy, string, refs, callbacks, and batching tests.
 - [ ] Add Track B optimization logs and independent JS/Wasm improvements.
 - [ ] Add reviewed WasmGC and hybrid implementations where the workload has a meaningful equivalent; otherwise publish the missing-cell reason.
 - [ ] Add `-O3`/`-Oz`, scalar/SIMD, Wasm feature/compiler flags, and other named build variants where supported; retain exact defaults and never silently substitute a non-default mode.
 - [ ] Add named JavaScript platform optimization-hint/attribute variants with support probes and dated ChromeStatus plus browser/engine source provenance.
-- [ ] Add worker creation, clone/transfer/shared-memory, and 1/2/4/N scaling workloads.
+- [x] Add worker creation, clone/transfer/shared-memory, and 1/2/4/N scaling workloads.
 - [ ] Permit concurrent variant execution only with preregistered isolation and fair ordering; keep sequential/concurrent cells separate and do not pool them into default-user claims.
 - [ ] Review workload balance so microbenchmarks do not dominate.
 
