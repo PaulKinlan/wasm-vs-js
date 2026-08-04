@@ -212,6 +212,10 @@ Deno.test("public pages contain no inline script, inline style, or remote asset"
         "",
       )
       .replaceAll(
+        "https://github.com/PaulKinlan/wasm-vs-js/blob/5303921420656fd6e37a333814b2132610dfce48/PLAN.md",
+        "",
+      )
+      .replaceAll(
         /https:\/\/github\.com\/PaulKinlan\/wasm-vs-js\/commit\/[a-f0-9]+/g,
         "",
       )
