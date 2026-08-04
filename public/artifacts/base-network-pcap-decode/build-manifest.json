@@ -4,8 +4,8 @@
   "supplementalContract": "benchmarks/base/network-pcap-decode/implementation-contract.v1.json",
   "catalogMutation": false,
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "0b0bc13a0754eb8aefa1bf808e06080d028b02ac",
-  "sourceSha256": "147b34389700f636fbac7c7824e641184867a61eb8113bfb0581549203fd1938",
+  "sourceCommit": "6fe8a857022e54778ac1e3269095aa2bbd274f15",
+  "sourceSha256": "2bb2a794e26856b2a39960e18cee715236bda8093b0a5aef0319e6365a32347b",
   "variants": [
     "js-controlled",
     "wasm-linear-controlled"
@@ -144,8 +144,8 @@
     },
     {
       "path": "deno.json",
-      "bytes": 1831,
-      "sha256": "17e6674c81fdaee7dfc52ed1bd28baeec70fb0715f839b92defe1e84545b08eb"
+      "bytes": 2022,
+      "sha256": "5552fd19ee82e45258a61d50c07777a56f1c8bf6dc759aad6adb01c7241e8cca"
     },
     {
       "path": "deno.lock",
