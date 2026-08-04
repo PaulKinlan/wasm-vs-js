@@ -202,7 +202,7 @@ await Promise.all([
   runStage({
     name: "test-readers",
     args: ["test", "--parallel", ...testArgs, ...readerTests],
-    env: { ...testEnv, DENO_JOBS: "8" },
+    env: { ...testEnv, DENO_JOBS: "6" },
   }),
   ...HEAVY_READERS.map((file) =>
     runStage({
