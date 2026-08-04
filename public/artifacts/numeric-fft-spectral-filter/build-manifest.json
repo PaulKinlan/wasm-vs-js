@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "984edc8811f41bfd5dd429b9d4eb81b81e7f6a52",
-  "sourceSha256": "57562f5cf3e754d1d0ba078ae718d018c0d64fcdf1720e5243f3231e2b2d78eb",
+  "sourceCommit": "3fc5d9a756f074aa3fa75bf24585b8915619dc24",
+  "sourceSha256": "7774256d91e4ceab86d770d9fb6e44336c86f0a5dfbbe30f52ccf2a1cc9e99f5",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 93090,
-      "sha256": "fcf1e35696539c7771b74c3ab69ceafe7c2489e347fd005bf0dcc542f25846ce"
+      "bytes": 93253,
+      "sha256": "67f32ad514fe33fcd19fe284442ee24138dc3eba7616b7cdfc2d46dde3a2f16e"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "f90b20bf23af4de4a6e19858c9a97ddbf39203f343d91abda8758ee6fa5791f9"
+      "sha256": "f5b584f25c507bb59e1f938569bc8f5e8ca65c7719ed97c17dfa23dc2c053032"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "cf8fd3fb2d22a0dafa65064643dadb3e45745694fd5af29be7c292ea5d9a7740"
+      "sha256": "a2d0769d0c45e187da98c534478b4058ed6609d0fb6c10cecf412a8477b7fb39"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=984edc8811f41bfd5dd429b9d4eb81b81e7f6a52"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=3fc5d9a756f074aa3fa75bf24585b8915619dc24"
   }
 }
