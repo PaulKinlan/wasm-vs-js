@@ -28,8 +28,10 @@ the bytes; the gate checks freshness.
 ## Slices (in dependency order)
 
 ### Slice 1 — Generated worker anchors (owner: integrator)
+
 Six workers hardcode `EXPECTED` anchor objects (pcap-decode, text-gc,
 cad-mesh-repair, regex-automata-duel, vdom-diff-patch, game-ecs-frame-update).
+
 - `scripts/build-worker-anchors.ts` scans the workers for anchor objects, maps each
   key to its artifact file (convention: fetchAnchored URLs in the same worker),
   recomputes sha256 from disk bytes, and emits
@@ -41,10 +43,12 @@ cad-mesh-repair, regex-automata-duel, vdom-diff-patch, game-ecs-frame-update).
   `wasm-linear` stale-target bug (#298).
 
 ### Slice 2 — Preregistration canonical hash unification (owner: Gemini)
+
 The frozen preregistration canonical sha256 lives in FOUR sites:
 `lib/source-identity.ts` (FROZEN_PREREGISTRATION_SHA256),
 `lib/preregistration.ts` (EXPECTED.canonicalSha256),
 `schemas/corpus.schema.json` (`const`), corpus test/script fixtures.
+
 - `lib/preregistration.ts` becomes the single exported constant; source-identity
   imports it.
 - The schema `const` is generated: `scripts/build-schemas.ts` emits
@@ -54,6 +58,7 @@ The frozen preregistration canonical sha256 lives in FOUR sites:
 - Fixtures import from the module rather than repeating the literal.
 
 ### Slice 3 — Evidence-record regeneration policy
+
 Surgical string-patching of evidence records is forbidden (diverges from builder
 output; canonical formats corrupt). Rule, to be encoded in AGENTS.md and the rebind
 script: evidence/manifest files are ONLY ever written by their builder
@@ -65,6 +70,7 @@ gitBlobOid + entry bytes/sha) gets scripted as
 `scripts/rebind-text-gc-surgical.ts` so it stops being oral tradition.
 
 ### Slice 4 (deferred) — Content-addressed serving
+
 Routes serve `/artifacts/<slug>/<file>` with an integrity hash computed at server
 startup from disk (not a hardcoded table), and pages reference assets by
 content-addressed query (`?v=<hash>`) generated at page-build time. Larger;
@@ -73,7 +79,7 @@ only worth it after slices 1–3 show residual pain.
 ## Non-goals
 
 - No change to the frozen preregistered-experiment semantics: the preregistration
-  file itself stays frozen and byte-pinned; only its *consumers'* duplicate
+  file itself stays frozen and byte-pinned; only its _consumers'_ duplicate
   constants are unified.
 - No relaxation of fail-closed verification: generated files are freshness-gated,
   so a stale generation fails the gate exactly like a stale hand-pin does today.
