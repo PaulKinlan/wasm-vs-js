@@ -3,7 +3,7 @@
   "catalogId": "dom.todomvc-journey.v1",
   "implementationId": "dom.todomvc-journey.v1.controlled-v1",
   "status": "implementation-candidate",
-  "sourceCommit": "82852d694cc811379447efd161868a3672e8f981",
+  "sourceCommit": "08ba6914cc4487d9a76a8b0eee8edcbf1e8939e1",
   "frozenCatalog": {
     "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
     "immutable": true,
@@ -60,26 +60,14 @@
     {
       "path": "public/benchmarks/base-dom-todomvc-journey/index.html",
       "route": "/benchmarks/base-dom-todomvc-journey/",
-      "bytes": 4973,
-      "sha256": "e8ce3f44c0be752966c6ec7ec303a77fa6380e4fe8e57f4b84b73e7ba71be41b"
-    },
-    {
-      "path": "public/benchmarks/base-dom-todomvc-journey/controller.js",
-      "route": "/benchmarks/base-dom-todomvc-journey/controller.js",
-      "bytes": 10491,
-      "sha256": "81ff9d3460f52df871134375b342520fabecb64f3918bda84da8eaa52f686238"
+      "bytes": 5249,
+      "sha256": "859863feea22ee1d3051a0db94c70e672ac7c963f4f38a79ae0b974761f80a41"
     },
     {
       "path": "public/benchmarks/base-dom-todomvc-journey/worker.js",
       "route": "/benchmarks/base-dom-todomvc-journey/worker.js",
       "bytes": 3589,
       "sha256": "15c65a2679db8715bbb5d7343f605e8b52410a47f23c770381647e37246e3749"
-    },
-    {
-      "path": "public/benchmarks/base-dom-todomvc-journey/styles.css",
-      "route": "/benchmarks/base-dom-todomvc-journey/styles.css",
-      "bytes": 2983,
-      "sha256": "6fd1ae6e510421f82be5642bd6ff7f20209f678a16062d061999d56ce88309ca"
     },
     {
       "path": "schemas/base-workload-implementation.schema.json",
@@ -120,8 +108,8 @@
     {
       "path": "public/artifacts/base-dom-todomvc-journey/build-manifest.json",
       "route": "/artifacts/base-dom-todomvc-journey/build-manifest.json",
-      "bytes": 7118,
-      "sha256": "0dec093528e7ca040c9078adc208a4154e2f7be36c5809e34ec004a632aea51b"
+      "bytes": 6487,
+      "sha256": "288212017160f3c14dcb3858159d3fa8fdff633ed883a0c3c677cb8883842d7b"
     }
   ],
   "limitations": [
