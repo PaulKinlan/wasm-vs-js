@@ -30,7 +30,7 @@
     "sourceManifestSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "chromePackageManifestSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "preregistrationSha256": {
-      "const": "bd61f47f37b8dc2a32d2a6e8fad8dd643e56a12e37d8478f18bb9f12dedaa059"
+      "const": "90ddcc1703d158f34153f2c0d566fb7126f3599c4d848d109cb3ef8a42c2e6dc"
     },
     "planned": { "const": 120 },
     "attempted": { "type": "integer", "minimum": 0, "maximum": 120 },
