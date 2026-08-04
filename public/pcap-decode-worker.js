@@ -1,10 +1,8 @@
 import { runPcapJavaScript } from "../benchmarks/base/network-pcap-decode/engine.js";
 
-const EXPECTED = {
-  fixture: "8683e2fc95f0b8940b9dc2c867e08adeccf1a66445d7bf98785ea600ff6d9034",
-  output: "749c83f435cfc7965a5e13a9fdc7a90772a2c44f9899ce15e041fe0d47a562f3",
-  wasm: "37ee977839172da08b9b7f2dca782694b9c6cdd41c06673b6a011efce972f521",
-};
+import { WORKER_ANCHORS } from "/worker-anchors.generated.js";
+
+const EXPECTED = Object.freeze({ ...WORKER_ANCHORS["pcap-decode"] });
 function hex(bytes) {
   return Array.from(bytes, (value) => value.toString(16).padStart(2, "0")).join("");
 }

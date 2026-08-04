@@ -64,24 +64,23 @@ function expectBothReject(input: string) {
   assert(wasmRejected, "WasmGC target must reject invalid fixture");
 }
 
-Deno.test("playground worker EXPECTED anchors match the served artifact bytes", async () => {
-  const expected: Record<string, [string, string]> = {
-    fixture: ["fixture.v1.txt", "public/artifacts/text-gc-document-edit/"],
-    fixtureManifest: ["fixture-manifest.json", "public/artifacts/text-gc-document-edit/"],
-    reference: ["reference.json", "public/artifacts/text-gc-document-edit/"],
-    buildManifest: ["build-manifest.json", "public/artifacts/text-gc-document-edit/"],
-    js: ["workload.js", "benchmarks/v1/text-gc-document-edit/"],
-    wasm: ["text-gc-document-edit.wasm", "public/artifacts/text-gc-document-edit/"],
-  };
-  for (const [key, [file, dir]] of Object.entries(expected)) {
-    const m = workerSource.match(new RegExp(`${key}: "([0-9a-f]{64})"`));
-    assert(m, `worker EXPECTED.${key} anchor missing`);
-    const bytes = await Deno.readFile(new URL(dir + file, root));
-    assert(
-      (await sha256Hex(bytes)) === m[1],
-      `worker EXPECTED.${key} stale: pinned ${m[1]} vs served ${await sha256Hex(bytes)}`,
-    );
-  }
+Deno.test("playground worker consumes generated anchors + inline oracle anchor matches", () => {
+  // File-byte anchors moved to public/worker-anchors.generated.js (slice 1) —
+  // byte-matching is covered by tests/worker-anchors.test.ts. Here: the worker
+  // must consume the generated block, and its one remaining inline anchor
+  // (canonical — a runtime oracle digest) must match the fixture manifest.
+  assert(
+    workerSource.includes('WORKER_ANCHORS["text-gc-document-edit"]'),
+    "worker must consume the generated anchor block",
+  );
+  const m = workerSource.match(/canonical: "([0-9a-f]{64})"/);
+  assert(m, "worker EXPECTED.canonical anchor missing");
+  assert(
+    fixtureManifest.oracle.outputSha256 === m[1],
+    `worker EXPECTED.canonical stale: pinned ${
+      m[1]
+    } vs oracle ${fixtureManifest.oracle.outputSha256}`,
+  );
 });
 
 Deno.test("text.gc-document-edit runs the exact 10,000-edit fixture in both targets", async () => {

@@ -58,6 +58,23 @@ async function fetchAll(
   return bad;
 }
 
+Deno.test("generated worker anchors are fresh (build-worker-anchors --check)", async () => {
+  const out = await new Deno.Command(Deno.execPath(), {
+    args: [
+      "run",
+      "--allow-read=.",
+      "scripts/build-worker-anchors.ts",
+      "--check",
+    ],
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  assert(
+    out.success,
+    `generated worker anchors drifted: ${new TextDecoder().decode(out.stderr)}`,
+  );
+});
+
 Deno.test("generated route tables are fresh (build-routes --check)", async () => {
   const out = await new Deno.Command(Deno.execPath(), {
     args: [

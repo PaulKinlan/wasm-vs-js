@@ -1,14 +1,8 @@
+import { WORKER_ANCHORS } from "/worker-anchors.generated.js";
+
 const EXPECTED = Object.freeze({
-  fixture: "45b117b798a6b35f42a3b5a541f5112bb7100510735e17650fee11ee6c8d6075",
-  fixtureManifest: "8b4145b0d91f6eb086e7c3cabe1bf1bb9a647c9e7771ad0f824005141ebe5681",
-  reference: "4b38bffbe6c4f9787a4d629ccbd363ebc52318195f5141dde55011333582b695",
-  buildManifest: "9fbc8cf6b35583523c6eeb04ca416fc5efae7122411f89c0e69b754a562f18f8",
-  js: "466731002f3c005583c26592f4495cb80cc42639e40b1f0c6de236f7676eb443",
-  wasm: "4a3083a510acc7f26fc4bd1877c87321545931b0b05580db2d5efdbc3d3582b5",
-  kotlinGlue: "a4994be989542f4cc826fc2b782974b83ca81b55614eee22553cc064fc4bcb23",
-  kotlinImports: "10be918973da81e5a576212ecae8c17a6b423e13015aeb92f899c7d781b5e111",
-  kotlinBuiltins: "5265daba0f4204a469f87b09f6a63ebfc59555441e4fcc98f8b2006115048451",
-  canonical: "40e55287bfd9486ef258602766e7c839e2ad77ba7f52b843117607132a6fd0c4",
+  ...WORKER_ANCHORS["text-gc-document-edit"],
+  canonical: "40e55287bfd9486ef258602766e7c839e2ad77ba7f52b843117607132a6fd0c4", // runtime oracle digest — pins execution, not bytes
 });
 const decoder = new TextDecoder("utf-8", { fatal: true });
 const encoder = new TextEncoder();

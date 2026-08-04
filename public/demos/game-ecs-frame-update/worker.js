@@ -8,9 +8,11 @@ import {
   generateEcsFixture,
 } from "../../../benchmarks/v1/game-ecs-frame-update/fixture.js";
 
+import { WORKER_ANCHORS } from "/worker-anchors.generated.js";
+
 const EXPECTED = Object.freeze({
+  wasmSha256: WORKER_ANCHORS["game-ecs-frame-update"].wasmSha256,
   fixtureSha256: "9ad7ed255f244425f3da0d281f7dffcaa8a8923e03907d5ac0bf0322968df769",
-  wasmSha256: "e76d6c13392a6cb2d570d14c03de0147528a84267b7d527a84209f3b7d79b12f",
   semanticDigest: "fe967b61",
   finalStateDigest: "4f0cc1ca",
   finalStateSha256: "c514e7e9f50a62707af610bca1bf222ff88061ccbf55aa711bcdc1929adc4210",

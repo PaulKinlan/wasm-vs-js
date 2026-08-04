@@ -1374,6 +1374,10 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/text-gc-document-edit-runner.js",
     "text/javascript; charset=utf-8",
   ]],
+  ["/worker-anchors.generated.js", [
+    "public/worker-anchors.generated.js",
+    "text/javascript; charset=utf-8",
+  ]],
   ["/text-gc-document-edit-worker.js", [
     "public/text-gc-document-edit-worker.js",
     "text/javascript; charset=utf-8",
