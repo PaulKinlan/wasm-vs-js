@@ -9,7 +9,6 @@ const requiredFiles = [
   "benchmarks/sum-u32/benchmark.json",
   "public/artifacts/sum-u32/build-manifest.json",
   "public/index.html",
-  "public/run.html",
   "schemas/benchmark.schema.json",
   "schemas/run.schema.json",
 ];
