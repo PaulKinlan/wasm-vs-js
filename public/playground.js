@@ -348,6 +348,36 @@ const PLAYGROUND_WORKLOADS = [
     description: "Parses Markdown documents into sanitized HTML syntax trees.",
     explanation: "Text parsing, character scanning, and string building.",
   },
+  {
+    slug: "simulation-rigid-body-2d-v1",
+    title: "2D Rigid-Body Physics Engine",
+    category: "Simulation",
+    route: "/benchmarks/simulation-rigid-body-2d-v1/",
+    description:
+      "Simulates 18,000 constraint state updates, contacts, and joint anchors in a 2D physics scene.",
+    explanation:
+      "Impulse-based constraint solver, broadphase collision detection, and numerical integration.",
+  },
+  {
+    slug: "tooling-c-to-wasm-compile-v1",
+    title: "C-to-Wasm Compiler Pipeline",
+    category: "Tooling & Compilers",
+    route: "/benchmarks/tooling-c-to-wasm-compile-v1/",
+    description:
+      "Compiles C source code fixtures into WebAssembly modules using a lightweight C compiler.",
+    explanation:
+      "Lexical analysis, AST parsing, symbol resolution, and WebAssembly binary codegen.",
+  },
+  {
+    slug: "simulation-nbody-cloth",
+    title: "N-Body Particle & Cloth Simulation",
+    category: "Simulation",
+    route: "/demos/simulation-nbody-cloth/",
+    description:
+      "Simulates gravitational N-body particle dynamics and cloth spring mesh deformation.",
+    explanation:
+      "Verlet integration, spring-damper constraint iteration, and pair-wise particle forces.",
+  },
 ];
 
 async function runBenchmarkForCard(config, cardEl, iterations = 30) {

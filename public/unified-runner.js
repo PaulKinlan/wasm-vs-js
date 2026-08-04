@@ -283,9 +283,9 @@ function formatTargetPayload(slug, target) {
         variantId: isWasm ? "wasm-linear-controlled" : "js-controlled",
       };
     case "rigid-body":
-      return { type: "run", target: isWasm ? "wasm" : "javascript" };
+      return { type: "run", target: isWasm ? "wasm-linear" : "javascript" };
     case "c-to-wasm":
-      return { target: isWasm ? "wasm" : "javascript", program: "fibonacci" };
+      return { target: isWasm ? "wasm" : "javascript", program: "01" };
     case "sqlite-notebook":
       // manifest + shellChecks are merged in from the async prepared payload.
       return {
