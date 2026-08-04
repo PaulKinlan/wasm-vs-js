@@ -140,9 +140,9 @@ function measure(variant: JsVariant, iterations: number): JsVariantResult {
 
 function probeEngineInfo(): JsVariantReport["engineInfo"] {
   // V8 version from Deno
-  const v8Version = (Deno as Record<string, unknown>).version?.deno ??
+  const v8Version = Deno.version?.v8 ??
       typeof navigator !== "undefined"
-    ? (navigator as Record<string, unknown>)?.userAgent ?? "unknown"
+    ? String(navigator?.userAgent ?? "unknown")
     : "unknown";
 
   return {
@@ -156,7 +156,7 @@ function probeEngineInfo(): JsVariantReport["engineInfo"] {
 
 // ── Suite ──
 
-export async function runJsVariantSuite(): Promise<JsVariantReport> {
+export function runJsVariantSuite(): JsVariantReport {
   const variants = makeVariants();
   const results = variants.map((v) => measure(v, JS_VARIANT_ITERATIONS));
 
