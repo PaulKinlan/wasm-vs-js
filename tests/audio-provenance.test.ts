@@ -30,6 +30,7 @@ async function gitBytes(commit: string, path: string): Promise<Uint8Array> {
 Deno.test("audio build is reproducible with exact source graph, toolchain, lock, flags, and fixed memory", async () => {
   const before = new Map<string, Uint8Array>();
   let implementationCommit = "";
+  const manifests = [];
   for (const slug of slugs) {
     for (
       const name of [
@@ -48,6 +49,7 @@ Deno.test("audio build is reproducible with exact source graph, toolchain, lock,
     const manifest = JSON.parse(
       await Deno.readTextFile(`public/artifacts/${slug}/build-manifest.json`),
     );
+    manifests.push(manifest);
     implementationCommit ||= manifest.sourceCommit;
     assertEquals(manifest.sourceCommit, implementationCommit);
     assertEquals(manifest.build.toolchain.map((tool: { name: string }) => tool.name), [
@@ -64,16 +66,14 @@ Deno.test("audio build is reproducible with exact source graph, toolchain, lock,
       manifest.variants["wasm-linear-controlled"].features.maximumPages,
     );
     assertEquals(manifest.variants["wasm-linear-controlled"].features.memoryGrowth, false);
-    for (const source of manifest.fullSourceGraph) {
-      assertEquals(
-        await sha256Hex(await gitBytes(implementationCommit, source.path)),
-        source.sha256,
-      );
-      assertEquals(await sha256Hex(await Deno.readFile(source.path)), source.sha256);
-    }
   }
 
-  const result = await new Deno.Command(Deno.execPath(), {
+  // Artifact snapshot is complete; everything the builder rewrites has been
+  // captured. Spawn the builder, then verify the source graph while it works:
+  // git show reads the object store and the graphed paths are all source
+  // files (verified: none live under public/artifacts or public/evidence),
+  // so neither side can observe the other's writes.
+  const build = new Deno.Command(Deno.execPath(), {
     args: [
       "run",
       "--allow-read=.",
@@ -84,7 +84,19 @@ Deno.test("audio build is reproducible with exact source graph, toolchain, lock,
     ],
     stdout: "piped",
     stderr: "piped",
-  }).output();
+  }).spawn();
+  await Promise.all(
+    manifests.flatMap((manifest) =>
+      manifest.fullSourceGraph.map(async (source: { path: string; sha256: string }) => {
+        assertEquals(
+          await sha256Hex(await gitBytes(implementationCommit, source.path)),
+          source.sha256,
+        );
+        assertEquals(await sha256Hex(await Deno.readFile(source.path)), source.sha256);
+      })
+    ),
+  );
+  const result = await build.output();
   assert(result.success, new TextDecoder().decode(result.stderr));
   for (const [path, expected] of before) {
     assertEquals(await sha256Hex(await Deno.readFile(path)), await sha256Hex(expected));
