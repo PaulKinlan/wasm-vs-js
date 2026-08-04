@@ -32,6 +32,8 @@ WASM_VS_JS_COMMIT=$C run v2neural-r deno run --allow-all scripts/build-v2-neural
 WASM_VS_JS_COMMIT=$C run jt-records deno run --allow-all scripts/build-v1-json-telemetry-records.ts
 run trad        deno run --allow-all scripts/build-traditional-demos.ts --source-commit=$C
 run pcap        deno run --allow-all scripts/build-base-network-pcap-decode.ts --source-commit=$C
+run audio-reg   deno run --allow-all scripts/build-audio-demo-registry.ts
+run audio-pages deno run --allow-all scripts/build-audio-demo-pages.ts
 run audio-web   deno run --allow-all scripts/build-base-audio-webaudio-effects.ts --source-commit=$C --write
 run archive     deno run --allow-all scripts/build-v1-archive.ts --source-commit=$C
 WASM_VS_JS_COMMIT=$C run v2text-rec deno run --allow-all scripts/build-v2-text-records.ts
