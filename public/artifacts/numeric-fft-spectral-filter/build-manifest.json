@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "5472fd1132c048664c8b48815972391c108135cb",
-  "sourceSha256": "3c38284592e7d4d249f6930dc84c92767894d67be5b227e4159cf59c0e330c71",
+  "sourceCommit": "82852d694cc811379447efd161868a3672e8f981",
+  "sourceSha256": "1a1626fc66951314548863bf72d7b7f180f6e6336b754fe013aca4ff0ca37099",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 80995,
-      "sha256": "3370f0a96c672bc2a58fee1b40ed4729195718bed7942bdd0ae1f1305681d793"
+      "bytes": 81138,
+      "sha256": "8295dc37fbe4cd09a8733c0f943894256419e9c4d8fe34b6e83062deb538f810"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "78530c61fbfa98b9520b95e3d16de6f99573766a3ab62826623e38cb648da5b1"
+      "sha256": "e38e76a4dd104561ac45367c50070eb380f4976e0a71457a2cfb962e8c342d05"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "a1f6d1a83e9fbde3e322735bf8117fc003d93906e27ed49720952c521968b2fc"
+      "sha256": "0b351385c41f263cc1ecff496c6d49a7e116d8ced9540b89e28dea2160bf280b"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=5472fd1132c048664c8b48815972391c108135cb"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=82852d694cc811379447efd161868a3672e8f981"
   }
 }
