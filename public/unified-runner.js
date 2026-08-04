@@ -337,9 +337,9 @@ function formatTargetPayload(slug, target) {
       return { target: isWasm ? "wasm" : "javascript", mode: "full" };
     case "path-tracer":
       // "preview" (64×64 @ 4spp) is the only non-exact mode the worker accepts.
-      return { target: isWasm ? "wasm" : "javascript", mode: "preview" };
+      return { target: isWasm ? "wasm-linear" : "javascript", mode: "preview" };
     case "gltf-viewer":
-      return { type: "run", target: isWasm ? "wasm" : "javascript" };
+      return { type: "run", target: isWasm ? "wasm" : "javascript", mode: "bounded" };
     case "demo":
       return { slug, target: isWasm ? "wasm-linear" : "javascript", mode: "bounded" };
     case "text-family": {
