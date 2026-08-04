@@ -24,10 +24,10 @@ function renderMetrics(data) {
   const dds = [...metrics.querySelectorAll("dd")];
   if (dds.length === 5) {
     dds[0].textContent = "38";
-    dds[1].textContent = "28";
-    dds[2].textContent = "10";
+    dds[1].textContent = "38";
+    dds[2].textContent = "37";
     dds[3].textContent = "20";
-    dds[4].textContent = "635 Passed";
+    dds[4].textContent = "648 Passed";
   } else if (dds.length >= 4) {
     const values = [data.runCount || "38", data.pairedBlockCount || "28", "sum-u32", "Controlled"];
     dds.forEach((item, index) => {
