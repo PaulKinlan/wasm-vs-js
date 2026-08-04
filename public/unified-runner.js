@@ -187,6 +187,10 @@ const WORKLOAD_CONFIGS = {
     workerScript: "/benchmarks/dom-dependent-form-validation/worker.js",
     protocol: "form-validation",
   },
+  "dom-grid-movement": {
+    workerScript: "/benchmarks/dom-grid-movement/worker.js",
+    protocol: "grid-movement",
+  },
 };
 
 // Map target name per protocol family
@@ -284,6 +288,7 @@ function formatTargetPayload(slug, target) {
     case "text-regex":
       return { variant: isWasm ? "wasm-linear-controlled" : "js-controlled" };
     case "form-validation":
+    case "grid-movement":
       return { type: "run", target: isWasm ? "wasm" : "javascript" };
     case "virtualized-grid":
       return {

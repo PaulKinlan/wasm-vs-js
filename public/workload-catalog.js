@@ -43,6 +43,7 @@ const WORKLOAD_DEMO_ROUTES = {
   "audio.fir.v1": "/benchmarks/audio-fir/",
   "audio.stft.v1": "/benchmarks/audio-stft/",
   "dom.dependent-form-validation.v1": "/benchmarks/dom-dependent-form-validation/",
+  "dom.grid-movement.v1": "/benchmarks/dom-grid-movement/",
   "dom.vdom-diff-patch.v1": "/benchmarks/vdom-diff-patch-demo/",
   "game.canvas-arcade.v1": "/demos/game-canvas-arcade/",
   "game.canvas-entity-pathfinding.v1": "/demos/game-canvas-entity-pathfinding/",

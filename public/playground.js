@@ -359,6 +359,16 @@ const PLAYGROUND_WORKLOADS = [
       "Cross-field dependency graph resolution, constraint checking, and DOM error state updates.",
   },
   {
+    slug: "dom-grid-movement",
+    title: "DOM Grid Movement Engine",
+    category: "DOM & Web UI",
+    route: "/benchmarks/dom-grid-movement/",
+    description:
+      "Executes 3,600 directional movements across an entity grid, updating spatial position and checking collisions.",
+    explanation:
+      "Grid coordinate transforms, collision/boundary checks, and spatial layout position updates.",
+  },
+  {
     slug: "simulation-rigid-body-2d-v1",
     title: "2D Rigid-Body Physics Engine",
     category: "Simulation",
