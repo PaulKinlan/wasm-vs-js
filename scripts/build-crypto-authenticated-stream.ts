@@ -19,6 +19,17 @@ async function command(name: string, args: string[]) {
   return new TextDecoder().decode(output.stdout).trim();
 }
 
+async function commandBytes(name: string, args: string[]) {
+  const output = await new Deno.Command(name, {
+    args,
+    cwd: root.pathname,
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  if (!output.success) throw new Error(new TextDecoder().decode(output.stderr));
+  return output.stdout;
+}
+
 const buildDir = new URL(".build/", outputDir).pathname;
 await Deno.remove(buildDir, { recursive: true }).catch((error) => {
   if (!(error instanceof Deno.errors.NotFound)) throw error;
@@ -77,7 +88,9 @@ const sourcePaths = [
   "deno.lock",
 ];
 const sources = await Promise.all(sourcePaths.map(async (path) => {
-  const bytes = await Deno.readFile(new URL(path, root));
+  const bytes = sourceCommit !== "working-tree-uncommitted"
+    ? await commandBytes("git", ["show", `${sourceCommit}:${path}`])
+    : await Deno.readFile(new URL(path, root));
   return { path, bytes: bytes.length, sha256: await sha256Hex(bytes) };
 }));
 const wasm = await Deno.readFile(new URL("crypto-authenticated-stream.wasm", outputDir));

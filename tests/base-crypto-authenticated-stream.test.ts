@@ -193,7 +193,7 @@ Deno.test("pinned source graph and builder reproduce every public artifact byte"
       "run",
       "--allow-read=.",
       "--allow-write=public/artifacts/crypto-authenticated-stream,public/evidence/base/crypto-authenticated-stream",
-      "--allow-run=clang,wasm-ld",
+      "--allow-run=clang,wasm-ld,git",
       "scripts/build-crypto-authenticated-stream.ts",
     ],
     cwd: root.pathname,
