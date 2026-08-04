@@ -27,3 +27,12 @@ Publish testable work early. Pause only for secrets, production-resource creatio
 Browser validation must exercise visible controls and retain browser version, launch arguments, routes, console/network evidence, assertions, screenshots, and exact owned-process/profile cleanup. Never globally kill Chrome.
 
 Never accept submitted executable benchmark code. Ingestion accepts only closed, versioned result records. Bound request bodies before parsing, authenticate writes, apply durable abuse controls, and never trust CORS as authorization.
+
+## Deployment protocol
+
+Production deploys happen ONLY via the GitHub integration on pushes to
+`main`. Never run `deno deploy` CLI against the production project: CLI
+deploys shadow the integration deploy and (2026-08-05 incident) the CLI
+fails on files >~5MB, so a CLI deploy with `--ignore` silently drops large
+artifacts from production (gltf-viewer reference-output.bin, ml-gemm
+reference.f64 404'd until a main push restored them).
