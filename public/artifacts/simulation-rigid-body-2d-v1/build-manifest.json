@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "registrationId": "simulation-rigid-body-2d-v1-controlled",
-  "sourceCommit": "529d6bf2161d375d93fbf3ddb756553a6f2d125d",
+  "sourceCommit": "61224b6d85d010b695ccd29cd6cee7dc7fb9491f",
   "toolchain": {
     "deno": "2.9.0",
     "clang": "clang version 22.1.8",
@@ -97,16 +97,16 @@
     "bytes": 8520,
     "sha256": "080aa9d954e80a97946a07733e857d69edce0963361792dc876ef00c2dc79520"
   },
-  "fixtureManifestSha256": "a2c9995a14798ec48e375338f205006d1cac5e17bbd340ae7a82e8d70531e76d",
+  "fixtureManifestSha256": "4d943d3e3f68ade8203645d8a73485e05928d6a2480aa92550eedf4a4b68dba2",
   "outputManifestSha256": "4c131c6597b8a2f354ceb6b387728f22c0b2d877470962580b273c2f54f86444",
   "resultRecords": [
     {
       "path": "public/evidence/v1-base/simulation-rigid-body-2d-v1/js-controlled.json",
-      "sha256": "93377f9b7a4e61afe1f3107950ef75798b18e0e3fda344ea269a51d3984866b0"
+      "sha256": "382d9d97f5cb73c95246a3204432d86ce239cd6c919d7d11b31f55432ff77471"
     },
     {
       "path": "public/evidence/v1-base/simulation-rigid-body-2d-v1/wasm-linear-controlled.json",
-      "sha256": "736c357b7b2e63b3de7a65db5abd26d5b04077f4db41ccce1fa8b3405affc8e7"
+      "sha256": "0fd5c0bf84ed9bcd0f847bb6866d0e74a01301eecbf64e5d29b677814aaec2a0"
     }
   ]
 }
