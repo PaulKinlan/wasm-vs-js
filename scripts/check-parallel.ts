@@ -20,7 +20,17 @@
 //   only reader is its browser-collector test (held out of the reader
 //   flock but concurrent here); the sum-u32 pair stays sequential because
 //   traditional-web-build reads the sum-u32 manifest that build.test
-//   rewrites.
+//   rewrites, and starts only after the planning/contract statics that
+//   read the same manifest. Race-freedom covers directory mutations too
+//   (walker/writer audit, 2026-08-04): recursive-walk tests tolerate
+//   transient builder scratch dirs vanishing mid-walk.
+// - HEAVY_READERS (>5s isolated) run as single-file stages: deno test
+//   --parallel packs multiple files per worker, so heavy files left in
+//   the flock carried sequential queue-mates. They are staggered 1.2s
+//   past the t=0 type-check storm (A/B-validated ~0.25s).
+// - The read-only static stages (fmt/lint/typecheck/planning/contract/
+//   catalog) overlap phase A after `task build`; all are --allow-read
+//   only.
 // - Phase B runs the TAIL_READERS (server/public-mode/inspectability),
 //   which fetch writer-owned artifact bytes over HTTP routes and therefore
 //   run only after every writer has finished.
@@ -91,17 +101,11 @@ interface Stage {
   name: string;
   args: string[];
   env?: Record<string, string>;
-  cores?: string;
 }
 
-// CPU partitioning (Linux-only): with ~33 runnable threads on 32 cores,
-// bursty oversubscription inflates every long chain ~1.5x. Pinning each lane
-// to a dedicated core set keeps chains near their isolated times. Skipped
-// automatically off-Linux or below 32 cores.
-const TASKSET = Deno.build.os === "linux" && navigator.hardwareConcurrency >= 32
-  ? await new Deno.Command("which", { args: ["taskset"], stdout: "null", stderr: "null" })
-    .output().then(({ success }) => success)
-  : false;
+// Note: taskset CPU pinning was tried and REJECTED (2026-08-04) — each deno
+// process brings several V8 background threads, so pinned core sets
+// oversubscribe ~3x and every long chain gets slower. Do not re-add.
 
 // Readers that fetch audio/sum-u32/small-writer artifact bytes over HTTP
 // routes. They must run after every writer has finished, so they get their
@@ -146,9 +150,8 @@ if (missing.length > 0) {
 
 async function runStage(stage: Stage): Promise<void> {
   const stageStart = performance.now();
-  const pinned = TASKSET && stage.cores;
-  const child = new Deno.Command(pinned ? "taskset" : Deno.execPath(), {
-    args: pinned ? ["-c", stage.cores!, Deno.execPath(), ...stage.args] : stage.args,
+  const child = new Deno.Command(Deno.execPath(), {
+    args: stage.args,
     env: stage.env,
     stdout: "inherit",
     stderr: "inherit",
@@ -196,9 +199,10 @@ await Promise.all([
       env: testEnv,
     })
   ),
-  // The light flock is only ~35 core-seconds of work; 12 workers on their
-  // own cores finish it in ~4s while the heavy single-file stages and the
-  // writer lanes run on dedicated sets (see TASKSET comment above).
+  // The light flock is ~35 core-seconds; 6 workers finish it in ~10-11s,
+  // co-critical with the rigid writer lane (tuning curve measured
+  // 2026-08-04: 12 jobs -> 13.9s wall, 8 -> 12.9s, 6 -> 12.2s; the rigid
+  // physics chain is bandwidth-sensitive and prefers fewer flock threads).
   runStage({
     name: "test-readers",
     args: ["test", "--parallel", ...testArgs, ...readerTests],
