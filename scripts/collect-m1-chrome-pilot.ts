@@ -158,8 +158,10 @@ async function runBenchmarkAttempt(
     }
 
     // Submit the form via JS evaluation
-    const runResult = await cdp.send("Runtime.evaluate", {
-      expression: `
+    const runResult = await cdp.send(
+      "Runtime.evaluate",
+      {
+        expression: `
         (async () => {
           const form = document.getElementById('hosted-runner-form');
           const iterationsInput = form.querySelector('[name="iterations"]');
@@ -205,9 +207,12 @@ async function runBenchmarkAttempt(
           return { text: 'TIMEOUT' };
         })()
       `,
-      awaitPromise: true,
-      returnByValue: true,
-    });
+        awaitPromise: true,
+        returnByValue: true,
+      },
+      undefined,
+      60_000,
+    );
 
     const result = ((runResult as Record<string, unknown>)?.result ?? {}) as Record<
       string,
