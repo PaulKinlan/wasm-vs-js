@@ -18,7 +18,9 @@
   },
   "fmt": {
     "exclude": [
-      "public/artifacts/"
+      "public/artifacts/",
+      "routes.generated.ts",
+      "public/workload-catalog-routes.generated.js"
     ],
     "lineWidth": 100,
     "proseWrap": "preserve"

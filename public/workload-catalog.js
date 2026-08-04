@@ -1,3 +1,5 @@
+import { WORKLOAD_DEMO_ROUTES } from "./workload-catalog-routes.generated.js";
+
 const list = document.querySelector("#catalog-list");
 const statusLine = document.querySelector("#catalog-status-line");
 const domainTotals = document.querySelector("#domain-totals");
@@ -9,58 +11,6 @@ const status = document.querySelector("#catalog-status");
 // Verified against the playground card routes (2026-08-04): every entry serves
 // HTTP 200. Workloads without a playground demo are intentionally absent — they
 // render the no-demo badge instead of a broken link.
-const WORKLOAD_DEMO_ROUTES = {
-  // Frozen v1 catalog workloads with playground demos (23).
-  "archive.zip-workspace.v1": "/benchmarks/archive-zip-workspace-v1/",
-  "audio.webaudio-effects.v1": "/benchmarks/base/audio-webaudio-effects-v1/",
-  "cad.mesh-repair.v1": "/benchmarks/cad-mesh-repair-v1/",
-  "cad.parametric-bracket.v1": "/demos/cad-parametric-bracket/",
-  "crypto.authenticated-stream.v1": "/benchmarks/crypto-authenticated-stream/",
-  "crypto.file-integrity.v1": "/demos/crypto.file-integrity.v1/",
-  "database.olap-chart.v1": "/benchmarks/database-olap-chart/",
-  "database.sqlite-notebook.v1": "/benchmarks/database-sqlite-notebook-v1/",
-  "document.pdf-viewer.v1": "/benchmarks/document-pdf-viewer-v1/",
-  "dom.todomvc-journey.v1": "/benchmarks/base-dom-todomvc-journey/",
-  "dom.virtualized-grid.v1": "/benchmarks/dom-virtualized-grid-v1/",
-  "game.ecs-frame-update.v1": "/demos/game-ecs-frame-update/",
-  "graphics.cpu-path-tracer.v1": "/benchmarks/graphics-cpu-path-tracer-v1/",
-  "graphics.gltf-viewer.v1": "/benchmarks/base-gltf-viewer/",
-  "ml.keyword-spotting.v1": "/benchmarks/ml-keyword-spotting-v1/",
-  "ml.numeric-kernels.v1": "/benchmarks/ml-numeric-kernels-v1/",
-  "network.http2-quic-state.v1": "/demos/base/network-http2-quic-state/",
-  "network.pcap-decode.v1": "/demos/network.pcap-decode.v1/",
-  "numeric.fft-spectral-filter.v1": "/benchmarks/numeric-fft-spectral-filter-v1/",
-  "numeric.polybench-panel.v1": "/demos/numeric.polybench-panel.v1/",
-  "serialization.json-telemetry.v1": "/demos/serialization.json-telemetry.v1/",
-  "serialization.protobuf-gateway.v1": "/benchmarks/serialization-protobuf-gateway/",
-  "server.ssr-template.v1": "/demos/server.ssr-template.v1/",
-  "simulation.nbody-cloth.v1": "/demos/simulation-nbody-cloth/",
-  "simulation.rigid-body-2d.v1": "/benchmarks/simulation-rigid-body-2d-v1/",
-  "text.gc-document-edit.v1": "/demos/text.gc-document-edit.v1/",
-  "text.regex-log-scan.v1": "/demos/base/text.regex-log-scan.v1/",
-  "tooling.c-to-wasm-compile.v1": "/benchmarks/tooling-c-to-wasm-compile-v1/",
-  // v2 proposal workloads with playground demos (14).
-  "audio.fft.v1": "/benchmarks/audio-fft/",
-  "audio.fir.v1": "/benchmarks/audio-fir/",
-  "audio.stft.v1": "/benchmarks/audio-stft/",
-  "dom.dependent-form-validation.v1": "/benchmarks/dom-dependent-form-validation/",
-  "dom.grid-movement.v1": "/benchmarks/dom-grid-movement/",
-  "dom.keyed-list-mutation.v1": "/benchmarks/dom-keyed-list-mutation/",
-  "dom.nested-tree-mutation.v1": "/benchmarks/dom-nested-tree-mutation/",
-  "dom.table-sort-filter-pagination.v1": "/benchmarks/dom-table-sort-filter-pagination/",
-  "dom.vdom-diff-patch.v1": "/benchmarks/vdom-diff-patch-demo/",
-  "dom.virtualized-scrolling.v1": "/benchmarks/dom-virtualized-scrolling/",
-  "game.canvas-arcade.v1": "/demos/game-canvas-arcade/",
-  "game.canvas-entity-pathfinding.v1": "/demos/game-canvas-entity-pathfinding/",
-  "game.dom-tactics-grid.v1": "/demos/game-dom-tactics-grid/",
-  "image.editing-pipeline.v1": "/benchmarks/image-editing-demo/",
-  "image.flood-fill.v1": "/benchmarks/image-flood-fill-demo/",
-  "ml.dense-mlp.v1": "/benchmarks/ml-dense-mlp/",
-  "ml.gemm.v1": "/benchmarks/ml-gemm/",
-  "text.diff-patch.v1": "/demos/text.diff-patch.v1/",
-  "text.markdown-cms.v1": "/demos/text.markdown-cms.v1/",
-  "text.regex-engine-duel.v1": "/benchmarks/regex-automata-duel-demo/",
-};
 
 function element(name, text, className) {
   const node = document.createElement(name);

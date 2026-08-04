@@ -4,6 +4,7 @@ import { CorpusCoordinator } from "./lib/corpus-store.ts";
 import { collectorRouteHashes } from "./lib/source-identity.ts";
 import { IMAGE_DEMO_ROUTES } from "./lib/image-demo-registry.ts";
 import { TRADITIONAL_DEMO_ROUTES } from "./lib/traditional-demo-registry.ts";
+import { GENERATED_ROUTES } from "./routes.generated.ts";
 
 type ServerMode = "local" | "public";
 
@@ -193,22 +194,6 @@ const routes = new Map<string, [string, string, boolean?]>([
   ]],
   ["/benchmarks", ["public/benchmarks/index.html", "text/html; charset=utf-8"]],
   ["/benchmarks/", ["public/benchmarks/index.html", "text/html; charset=utf-8"]],
-  ["/benchmarks/cad-mesh-repair-v1", [
-    "public/benchmarks/cad-mesh-repair-v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/cad-mesh-repair-v1/", [
-    "public/benchmarks/cad-mesh-repair-v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/cad-mesh-repair-v1/demo.js", [
-    "public/benchmarks/cad-mesh-repair-v1/demo.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/benchmarks/cad-mesh-repair-v1/worker.js", [
-    "public/benchmarks/cad-mesh-repair-v1/worker.js",
-    "text/javascript; charset=utf-8",
-  ]],
   ["/benchmarks/base/cad-mesh-repair/engine.js", [
     "benchmarks/base/cad-mesh-repair/engine.js",
     "text/javascript; charset=utf-8",
@@ -229,22 +214,6 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/artifacts/cad-mesh-repair-v1/validation-evidence.json",
     "application/json; charset=utf-8",
   ]],
-  ["/benchmarks/graphics-cpu-path-tracer-v1", [
-    "public/benchmarks/graphics-cpu-path-tracer-v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/graphics-cpu-path-tracer-v1/", [
-    "public/benchmarks/graphics-cpu-path-tracer-v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/graphics-cpu-path-tracer-v1/runner.js", [
-    "public/benchmarks/graphics-cpu-path-tracer-v1/runner.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/benchmarks/graphics-cpu-path-tracer-v1/worker.js", [
-    "public/benchmarks/graphics-cpu-path-tracer-v1/worker.js",
-    "text/javascript; charset=utf-8",
-  ]],
   ["/benchmarks/base-v1/graphics-cpu-path-tracer/engine.js", [
     "benchmarks/base-v1/graphics-cpu-path-tracer/engine.js",
     "text/javascript; charset=utf-8",
@@ -264,14 +233,6 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/artifacts/graphics-cpu-path-tracer-v1/build-manifest.json", [
     "public/artifacts/graphics-cpu-path-tracer-v1/build-manifest.json",
     "application/json; charset=utf-8",
-  ]],
-  ["/benchmarks/ml-keyword-spotting-v1", [
-    "public/benchmarks/ml-keyword-spotting-v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/ml-keyword-spotting-v1/", [
-    "public/benchmarks/ml-keyword-spotting-v1/index.html",
-    "text/html; charset=utf-8",
   ]],
   ["/base-ml-keyword-spotting-demo.js", [
     "public/base-ml-keyword-spotting-demo.js",
@@ -341,14 +302,6 @@ const routes = new Map<string, [string, string, boolean?]>([
     "application/json; charset=utf-8",
   ]],
   ["/workload-catalog.js", ["public/workload-catalog.js", "text/javascript; charset=utf-8"]],
-  ["/demos/crypto.file-integrity.v1", [
-    "public/demos/crypto.file-integrity.v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/demos/crypto.file-integrity.v1/", [
-    "public/demos/crypto.file-integrity.v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
   ["/crypto-file-integrity-demo.js", [
     "public/crypto-file-integrity-demo.js",
     "text/javascript; charset=utf-8",
@@ -393,22 +346,6 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/data/base-implementation-status.schema.json",
     "application/schema+json; charset=utf-8",
   ]],
-  ["/demos/game-ecs-frame-update", [
-    "public/demos/game-ecs-frame-update/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/demos/game-ecs-frame-update/", [
-    "public/demos/game-ecs-frame-update/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/demos/game-ecs-frame-update/demo.js", [
-    "public/demos/game-ecs-frame-update/demo.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/demos/game-ecs-frame-update/worker.js", [
-    "public/demos/game-ecs-frame-update/worker.js",
-    "text/javascript; charset=utf-8",
-  ]],
   ["/benchmarks/v1/game-ecs-frame-update/fixture.js", [
     "benchmarks/v1/game-ecs-frame-update/fixture.js",
     "text/javascript; charset=utf-8",
@@ -452,22 +389,6 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/data/game-ecs-frame-update-implementation.v1.schema.json", [
     "schemas/game-ecs-frame-update-implementation.v1.schema.json",
     "application/schema+json; charset=utf-8",
-  ]],
-  ["/demos/text.diff-patch.v1", [
-    "public/demos/text.diff-patch.v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/demos/text.diff-patch.v1/", [
-    "public/demos/text.diff-patch.v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/demos/text.markdown-cms.v1", [
-    "public/demos/text.markdown-cms.v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/demos/text.markdown-cms.v1/", [
-    "public/demos/text.markdown-cms.v1/index.html",
-    "text/html; charset=utf-8",
   ]],
   ["/text-demo.js", ["public/text-demo.js", "text/javascript; charset=utf-8"]],
   ["/text-diff-patch-worker.js", [
@@ -592,14 +513,6 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/demos/game-ecs-frame-update/index.html",
     "text/html; charset=utf-8",
   ]],
-  ["/benchmarks/cad-mesh-repair", [
-    "public/demos/cad-mesh-repair-v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/cad-mesh-repair/", [
-    "public/demos/cad-mesh-repair-v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
   ["/benchmarks/crypto-file-integrity", [
     "public/demos/crypto.file-integrity.v1/index.html",
     "text/html; charset=utf-8",
@@ -680,38 +593,6 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/benchmarks/vdom-diff-patch-demo/index.html",
     "text/html; charset=utf-8",
   ]],
-  ["/benchmarks/cad-parametric-bracket", [
-    "public/benchmarks/base/cad-parametric-bracket/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/cad-parametric-bracket/", [
-    "public/benchmarks/base/cad-parametric-bracket/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/database-olap-chart", [
-    "public/benchmarks/base/database-olap-chart/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/database-olap-chart/", [
-    "public/benchmarks/base/database-olap-chart/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/graphics-gltf-viewer", [
-    "public/benchmarks/base/graphics-gltf-viewer/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/graphics-gltf-viewer/", [
-    "public/benchmarks/base/graphics-gltf-viewer/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/simulation-nbody", [
-    "public/benchmarks/base/simulation-nbody/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/simulation-nbody/", [
-    "public/benchmarks/base/simulation-nbody/index.html",
-    "text/html; charset=utf-8",
-  ]],
   ["/data/workloads.v1.json", [
     "public/data/workloads.v1.json",
     "application/json; charset=utf-8",
@@ -740,37 +621,13 @@ const routes = new Map<string, [string, string, boolean?]>([
     "benchmarks/sum-u32/workload.js",
     "text/javascript; charset=utf-8",
   ]],
-  ["/benchmarks/ml-gemm/", [
-    "public/benchmarks/ml-gemm/index.html",
-    "text/html; charset=utf-8",
-  ]],
   ["/benchmarks/ml-gemm/index.html", [
     "public/benchmarks/ml-gemm/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/ml-gemm/neural-gemm-runner.js", [
-    "public/benchmarks/ml-gemm/neural-gemm-runner.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/benchmarks/ml-gemm/neural-gemm-worker.js", [
-    "public/benchmarks/ml-gemm/neural-gemm-worker.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/benchmarks/ml-dense-mlp/", [
-    "public/benchmarks/ml-dense-mlp/index.html",
     "text/html; charset=utf-8",
   ]],
   ["/benchmarks/ml-dense-mlp/index.html", [
     "public/benchmarks/ml-dense-mlp/index.html",
     "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/ml-dense-mlp/neural-mlp-runner.js", [
-    "public/benchmarks/ml-dense-mlp/neural-mlp-runner.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/benchmarks/ml-dense-mlp/neural-mlp-worker.js", [
-    "public/benchmarks/ml-dense-mlp/neural-mlp-worker.js",
-    "text/javascript; charset=utf-8",
   ]],
   ["/benchmarks/v2/ml-gemm/workload.js", [
     "benchmarks/v2/ml-gemm/workload.js",
@@ -856,22 +713,6 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/artifacts/sum-u32/build-manifest.9c309c49.json",
     "application/json; charset=utf-8",
   ]],
-  ["/demos/cad-parametric-bracket", [
-    "public/demos/cad-parametric-bracket/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/demos/cad-parametric-bracket/", [
-    "public/demos/cad-parametric-bracket/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/demos/cad-parametric-bracket/demo.js", [
-    "public/demos/cad-parametric-bracket/demo.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/demos/cad-parametric-bracket/worker.js", [
-    "public/demos/cad-parametric-bracket/worker.js",
-    "text/javascript; charset=utf-8",
-  ]],
   ["/benchmarks/base/cad-parametric-bracket/contract.js", [
     "benchmarks/base/cad-parametric-bracket/contract.js",
     "text/javascript; charset=utf-8",
@@ -907,14 +748,6 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/evidence/base-catalog/cad-parametric-bracket/wasm-linear-controlled.json", [
     "public/evidence/base-catalog/cad-parametric-bracket/wasm-linear-controlled.json",
     "application/json; charset=utf-8",
-  ]],
-  ["/benchmarks/crypto-authenticated-stream", [
-    "public/benchmarks/crypto-authenticated-stream/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/crypto-authenticated-stream/", [
-    "public/benchmarks/crypto-authenticated-stream/index.html",
-    "text/html; charset=utf-8",
   ]],
   ["/crypto-authenticated-stream-demo.js", [
     "public/crypto-authenticated-stream-demo.js",
@@ -960,22 +793,6 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/evidence/base/crypto-authenticated-stream/wasm-linear-controlled.json",
     "application/json; charset=utf-8",
   ]],
-  ["/benchmarks/database-olap-chart", [
-    "public/benchmarks/database-olap-chart/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/database-olap-chart/", [
-    "public/benchmarks/database-olap-chart/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/database-olap-chart/runner.js", [
-    "public/benchmarks/database-olap-chart/runner.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/benchmarks/database-olap-chart/worker.js", [
-    "public/benchmarks/database-olap-chart/worker.js",
-    "text/javascript; charset=utf-8",
-  ]],
   ["/benchmarks/base/database-olap-chart/engine.js", [
     "benchmarks/base/database-olap-chart/engine.js",
     "text/javascript; charset=utf-8",
@@ -1011,14 +828,6 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/evidence/base/database-olap-chart/correctness-record.json", [
     "public/evidence/base/database-olap-chart/correctness-record.json",
     "application/json; charset=utf-8",
-  ]],
-  ["/benchmarks/database-sqlite-notebook-v1", [
-    "public/benchmarks/database-sqlite-notebook-v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/database-sqlite-notebook-v1/", [
-    "public/benchmarks/database-sqlite-notebook-v1/index.html",
-    "text/html; charset=utf-8",
   ]],
   ["/sqlite-notebook-runner.js", [
     "public/sqlite-notebook-runner.js",
@@ -1092,22 +901,6 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/evidence/base-implementations/sqlite-notebook/linear-wasm-controlled.json",
     "application/json; charset=utf-8",
   ]],
-  ["/benchmarks/document-pdf-viewer-v1", [
-    "public/benchmarks/document-pdf-viewer-v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/document-pdf-viewer-v1/", [
-    "public/benchmarks/document-pdf-viewer-v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/document-pdf-viewer-v1/runner.js", [
-    "public/benchmarks/document-pdf-viewer-v1/runner.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/benchmarks/document-pdf-viewer-v1/worker.js", [
-    "public/benchmarks/document-pdf-viewer-v1/worker.js",
-    "text/javascript; charset=utf-8",
-  ]],
   ["/benchmarks/base/document-pdf-viewer/engine.js", [
     "benchmarks/base/document-pdf-viewer/engine.js",
     "text/javascript; charset=utf-8",
@@ -1119,10 +912,6 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/artifacts/document-pdf-viewer/pdf-engine.wasm", [
     "public/artifacts/document-pdf-viewer/pdf-engine.wasm",
     "application/wasm",
-  ]],
-  ["/artifacts/document-pdf-viewer/pdfbase-5x7-v1.bin", [
-    "public/artifacts/document-pdf-viewer/pdfbase-5x7-v1.bin",
-    "application/octet-stream",
   ]],
   ["/artifacts/document-pdf-viewer/implementation-contract.v1.json", [
     "public/artifacts/document-pdf-viewer/implementation-contract.v1.json",
@@ -1143,26 +932,6 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/evidence/base/document-pdf-viewer/validation.json", [
     "public/evidence/base/document-pdf-viewer/validation.json",
     "application/json; charset=utf-8",
-  ]],
-  ["/benchmarks/base-dom-todomvc-journey", [
-    "public/benchmarks/base-dom-todomvc-journey/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/base-dom-todomvc-journey/", [
-    "public/benchmarks/base-dom-todomvc-journey/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/base-dom-todomvc-journey/controller.js", [
-    "public/benchmarks/base-dom-todomvc-journey/controller.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/benchmarks/base-dom-todomvc-journey/worker.js", [
-    "public/benchmarks/base-dom-todomvc-journey/worker.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/benchmarks/base-dom-todomvc-journey/styles.css", [
-    "public/benchmarks/base-dom-todomvc-journey/styles.css",
-    "text/css; charset=utf-8",
   ]],
   ["/benchmarks/base/dom-todomvc-journey/benchmark.json", [
     "benchmarks/base/dom-todomvc-journey/benchmark.json",
@@ -1220,122 +989,6 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/evidence/base/dom-todomvc-journey/wasm-linear-controlled.json",
     "application/json; charset=utf-8",
   ]],
-  ["/benchmarks/dom-dependent-form-validation", [
-    "public/benchmarks/dom-dependent-form-validation/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-dependent-form-validation/", [
-    "public/benchmarks/dom-dependent-form-validation/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-dependent-form-validation/engine.js", [
-    "public/benchmarks/dom-dependent-form-validation/engine.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-dependent-form-validation/worker.js", [
-    "public/benchmarks/dom-dependent-form-validation/worker.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-grid-movement", [
-    "public/benchmarks/dom-grid-movement/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-grid-movement/", [
-    "public/benchmarks/dom-grid-movement/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-grid-movement/engine.js", [
-    "public/benchmarks/dom-grid-movement/engine.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-grid-movement/worker.js", [
-    "public/benchmarks/dom-grid-movement/worker.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-nested-tree-mutation", [
-    "public/benchmarks/dom-nested-tree-mutation/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-nested-tree-mutation/", [
-    "public/benchmarks/dom-nested-tree-mutation/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-nested-tree-mutation/engine.js", [
-    "public/benchmarks/dom-nested-tree-mutation/engine.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-nested-tree-mutation/worker.js", [
-    "public/benchmarks/dom-nested-tree-mutation/worker.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-keyed-list-mutation", [
-    "public/benchmarks/dom-keyed-list-mutation/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-keyed-list-mutation/", [
-    "public/benchmarks/dom-keyed-list-mutation/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-keyed-list-mutation/engine.js", [
-    "public/benchmarks/dom-keyed-list-mutation/engine.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-keyed-list-mutation/worker.js", [
-    "public/benchmarks/dom-keyed-list-mutation/worker.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-table-sort-filter-pagination", [
-    "public/benchmarks/dom-table-sort-filter-pagination/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-table-sort-filter-pagination/", [
-    "public/benchmarks/dom-table-sort-filter-pagination/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-table-sort-filter-pagination/engine.js", [
-    "public/benchmarks/dom-table-sort-filter-pagination/engine.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-table-sort-filter-pagination/worker.js", [
-    "public/benchmarks/dom-table-sort-filter-pagination/worker.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-virtualized-scrolling", [
-    "public/benchmarks/dom-virtualized-scrolling/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-virtualized-scrolling/", [
-    "public/benchmarks/dom-virtualized-scrolling/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-virtualized-scrolling/engine.js", [
-    "public/benchmarks/dom-virtualized-scrolling/engine.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-virtualized-scrolling/worker.js", [
-    "public/benchmarks/dom-virtualized-scrolling/worker.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-virtualized-grid-v1", [
-    "public/benchmarks/dom-virtualized-grid-v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-virtualized-grid-v1/", [
-    "public/benchmarks/dom-virtualized-grid-v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-virtualized-grid-v1/grid.css", [
-    "public/benchmarks/dom-virtualized-grid-v1/grid.css",
-    "text/css; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-virtualized-grid-v1/grid-runner.js", [
-    "public/benchmarks/dom-virtualized-grid-v1/grid-runner.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/benchmarks/dom-virtualized-grid-v1/grid-worker.js", [
-    "public/benchmarks/dom-virtualized-grid-v1/grid-worker.js",
-    "text/javascript; charset=utf-8",
-  ]],
   ["/benchmarks/base/dom-virtualized-grid/engine.js", [
     "benchmarks/base/dom-virtualized-grid/engine.js",
     "text/javascript; charset=utf-8",
@@ -1371,14 +1024,6 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/data/base-implementation-candidates.v1.json", [
     "catalog/base-implementation-candidates.v1.json",
     "application/json; charset=utf-8",
-  ]],
-  ["/benchmarks/ml-numeric-kernels-v1", [
-    "public/benchmarks/ml-numeric-kernels-v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/ml-numeric-kernels-v1/", [
-    "public/benchmarks/ml-numeric-kernels-v1/index.html",
-    "text/html; charset=utf-8",
   ]],
   ["/ml-numeric-kernels-demo.js", [
     "public/ml-numeric-kernels-demo.js",
@@ -1440,14 +1085,6 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/evidence/base-implementations/ml.numeric-kernels.v1/wasm-linear-controlled-scalar.json",
     "application/json; charset=utf-8",
   ]],
-  ["/demos/base/network-http2-quic-state", [
-    "public/demos/base/network-http2-quic-state/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/demos/base/network-http2-quic-state/", [
-    "public/demos/base/network-http2-quic-state/index.html",
-    "text/html; charset=utf-8",
-  ]],
   ["/network-http2-quic-state-demo.js", [
     "public/network-http2-quic-state-demo.js",
     "text/javascript; charset=utf-8",
@@ -1488,22 +1125,6 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/evidence/base-v1/network-http2-quic-state/linear-wasm-controlled.json",
     "application/json; charset=utf-8",
   ]],
-  ["/benchmarks/numeric-fft-spectral-filter-v1", [
-    "public/benchmarks/numeric-fft-spectral-filter-v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/numeric-fft-spectral-filter-v1/", [
-    "public/benchmarks/numeric-fft-spectral-filter-v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/numeric-fft-spectral-filter-v1/demo.js", [
-    "public/benchmarks/numeric-fft-spectral-filter-v1/demo.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/benchmarks/numeric-fft-spectral-filter-v1/worker.js", [
-    "public/benchmarks/numeric-fft-spectral-filter-v1/worker.js",
-    "text/javascript; charset=utf-8",
-  ]],
   ["/benchmarks/base/numeric-fft-spectral-filter/workload.js", [
     "benchmarks/base/numeric-fft-spectral-filter/workload.js",
     "text/javascript; charset=utf-8",
@@ -1531,14 +1152,6 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/evidence/base-v1/numeric-fft-spectral-filter/wasm-linear-controlled.json", [
     "public/evidence/base-v1/numeric-fft-spectral-filter/wasm-linear-controlled.json",
     "application/json; charset=utf-8",
-  ]],
-  ["/demos/numeric.polybench-panel.v1", [
-    "public/demos/numeric.polybench-panel.v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/demos/numeric.polybench-panel.v1/", [
-    "public/demos/numeric.polybench-panel.v1/index.html",
-    "text/html; charset=utf-8",
   ]],
   ["/polybench-panel-demo.js", [
     "public/polybench-panel-demo.js",
@@ -1584,14 +1197,6 @@ const routes = new Map<string, [string, string, boolean?]>([
     "schemas/base-correctness-record.schema.json",
     "application/schema+json; charset=utf-8",
   ]],
-  ["/demos/serialization.json-telemetry.v1", [
-    "public/demos/serialization.json-telemetry.v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/demos/serialization.json-telemetry.v1/", [
-    "public/demos/serialization.json-telemetry.v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
   ["/telemetry-demo.js", ["public/telemetry-demo.js", "text/javascript; charset=utf-8"]],
   ["/telemetry-worker.js", ["public/telemetry-worker.js", "text/javascript; charset=utf-8"]],
   ["/telemetry-module-loader.js", [
@@ -1629,22 +1234,6 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/artifacts/serialization-json-telemetry/output-manifest.json",
     "application/json; charset=utf-8",
   ]],
-  ["/benchmarks/serialization-protobuf-gateway", [
-    "public/benchmarks/serialization-protobuf-gateway/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/serialization-protobuf-gateway/", [
-    "public/benchmarks/serialization-protobuf-gateway/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/serialization-protobuf-gateway/protobuf-runner.js", [
-    "public/benchmarks/serialization-protobuf-gateway/protobuf-runner.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/benchmarks/serialization-protobuf-gateway/protobuf-worker.js", [
-    "public/benchmarks/serialization-protobuf-gateway/protobuf-worker.js",
-    "text/javascript; charset=utf-8",
-  ]],
   ["/benchmarks/base/serialization-protobuf-gateway/workload.js", [
     "benchmarks/base/serialization-protobuf-gateway/workload.js",
     "text/javascript; charset=utf-8",
@@ -1668,14 +1257,6 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/artifacts/serialization-protobuf-gateway/build-manifest.json", [
     "public/artifacts/serialization-protobuf-gateway/build-manifest.json",
     "application/json; charset=utf-8",
-  ]],
-  ["/demos/server.ssr-template.v1", [
-    "public/demos/server.ssr-template.v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/demos/server.ssr-template.v1/", [
-    "public/demos/server.ssr-template.v1/index.html",
-    "text/html; charset=utf-8",
   ]],
   ["/base-server-ssr-demo.js", [
     "public/base-server-ssr-demo.js",
@@ -1716,22 +1297,6 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/artifacts/base-server-ssr-template/output-manifest.json", [
     "public/artifacts/base-server-ssr-template/output-manifest.json",
     "application/json; charset=utf-8",
-  ]],
-  ["/demos/simulation-nbody-cloth", [
-    "public/demos/simulation-nbody-cloth/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/demos/simulation-nbody-cloth/", [
-    "public/demos/simulation-nbody-cloth/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/demos/simulation-nbody-cloth/demo.js", [
-    "public/demos/simulation-nbody-cloth/demo.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/demos/simulation-nbody-cloth/worker.js", [
-    "public/demos/simulation-nbody-cloth/worker.js",
-    "text/javascript; charset=utf-8",
   ]],
   ["/benchmarks/base/simulation-nbody/contract.js", [
     "benchmarks/base/simulation-nbody/contract.js",
@@ -1777,22 +1342,6 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/evidence/base-catalog/simulation-nbody-cloth/wasm-linear-controlled.json",
     "application/json; charset=utf-8",
   ]],
-  ["/benchmarks/simulation-rigid-body-2d-v1", [
-    "public/benchmarks/simulation-rigid-body-2d-v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/simulation-rigid-body-2d-v1/", [
-    "public/benchmarks/simulation-rigid-body-2d-v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/simulation-rigid-body-2d-v1/runner.js", [
-    "public/benchmarks/simulation-rigid-body-2d-v1/runner.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/benchmarks/simulation-rigid-body-2d-v1/worker.js", [
-    "public/benchmarks/simulation-rigid-body-2d-v1/worker.js",
-    "text/javascript; charset=utf-8",
-  ]],
   ["/benchmarks/v1/simulation-rigid-body-2d/engine.js", [
     "benchmarks/v1/simulation-rigid-body-2d/engine.js",
     "text/javascript; charset=utf-8",
@@ -1821,14 +1370,6 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/data/v1-base-implementation-status.v1.json",
     "application/json; charset=utf-8",
   ]],
-  ["/demos/text.gc-document-edit.v1", [
-    "public/demos/text.gc-document-edit.v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/demos/text.gc-document-edit.v1/", [
-    "public/demos/text.gc-document-edit.v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
   ["/text-gc-document-edit-runner.js", [
     "public/text-gc-document-edit-runner.js",
     "text/javascript; charset=utf-8",
@@ -1839,26 +1380,6 @@ const routes = new Map<string, [string, string, boolean?]>([
   ]],
   ["/benchmarks/v1/text-gc-document-edit/workload.js", [
     "benchmarks/v1/text-gc-document-edit/workload.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/demos/base/text.regex-log-scan.v1", [
-    "public/demos/base/text.regex-log-scan.v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/demos/base/text.regex-log-scan.v1/", [
-    "public/demos/base/text.regex-log-scan.v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/demos/base/text.regex-log-scan.v1/demo.js", [
-    "public/demos/base/text.regex-log-scan.v1/demo.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/demos/base/text.regex-log-scan.v1/worker.js", [
-    "public/demos/base/text.regex-log-scan.v1/worker.js",
-    "text/javascript; charset=utf-8",
-  ]],
-  ["/demos/base/text.regex-log-scan.v1/identity.js", [
-    "public/demos/base/text.regex-log-scan.v1/identity.js",
     "text/javascript; charset=utf-8",
   ]],
   ["/benchmarks/text-regex-log-scan/input.js", [
@@ -1909,14 +1430,6 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/evidence/base/text.regex-log-scan.v1/wasm-linear-controlled.json",
     "application/json; charset=utf-8",
   ]],
-  ["/benchmarks/archive-zip-workspace-v1", [
-    "public/benchmarks/archive-zip-workspace-v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/archive-zip-workspace-v1/", [
-    "public/benchmarks/archive-zip-workspace-v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
   ["/archive-zip-demo.js", ["public/archive-zip-demo.js", "text/javascript; charset=utf-8"]],
   ["/archive-zip-worker.js", ["public/archive-zip-worker.js", "text/javascript; charset=utf-8"]],
   ["/benchmarks/v1/archive-zip-workspace/engine.js", [
@@ -1946,14 +1459,6 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/evidence/v1-implementations/archive-zip-workspace-v1/wasm-linear-controlled.json", [
     "public/evidence/v1-implementations/archive-zip-workspace-v1/wasm-linear-controlled.json",
     "application/json; charset=utf-8",
-  ]],
-  ["/benchmarks/base/audio-webaudio-effects-v1", [
-    "public/benchmarks/base/audio-webaudio-effects-v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/base/audio-webaudio-effects-v1/", [
-    "public/benchmarks/base/audio-webaudio-effects-v1/index.html",
-    "text/html; charset=utf-8",
   ]],
   ["/base-audio-effects-demo.js", [
     "public/base-audio-effects-demo.js",
@@ -2012,12 +1517,14 @@ const routes = new Map<string, [string, string, boolean?]>([
   ]],
 ]);
 
-for (const path of ["/demos/network.pcap-decode.v1", "/demos/network.pcap-decode.v1/"]) {
-  routes.set(path, [
-    "public/demos/network.pcap-decode.v1/index.html",
-    "text/html; charset=utf-8",
-  ]);
+// Generated demo-page + companion-asset routes (scripts/build-routes.ts).
+// Filesystem-derived; any overlap with the hand-maintained table above is a
+// hard error instead of the old silent last-wins.
+for (const [path, value] of GENERATED_ROUTES) {
+  if (routes.has(path)) throw new Error(`duplicate route (manual vs generated): ${path}`);
+  routes.set(path, [value[0], value[1], value[2]]);
 }
+
 routes.set("/pcap-decode-demo.js", [
   "public/pcap-decode-demo.js",
   "text/javascript; charset=utf-8",
@@ -2165,14 +1672,6 @@ for (const route of [...IMAGE_DEMO_ROUTES, ...TRADITIONAL_DEMO_ROUTES]) {
   routes.set(route.path, [route.file, route.contentType]);
 }
 
-for (
-  const slug of ["game-canvas-arcade", "game-canvas-entity-pathfinding", "game-dom-tactics-grid"]
-) {
-  for (const path of [`/demos/${slug}`, `/demos/${slug}/`]) {
-    if (routes.has(path)) throw new Error(`duplicate demo route: ${path}`);
-    routes.set(path, [`public/demos/${slug}/index.html`, "text/html; charset=utf-8"]);
-  }
-}
 routes.set("/artifacts/game-v2-controlled-family/game-family.wasm", [
   "public/artifacts/game-v2-controlled-family/game-family.wasm",
   "application/wasm",

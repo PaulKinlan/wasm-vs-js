@@ -26,6 +26,12 @@ const buildManifest = JSON.parse(
   await Deno.readTextFile(new URL("build-manifest.json", artifact)),
 );
 
+// The playground worker hardcodes this exact anchor chain — keep it bound to
+// the served bytes so a surgical manifest rebind can never leave it stale.
+const workerSource = await Deno.readTextFile(
+  new URL("public/text-gc-document-edit-worker.js", root),
+);
+
 function wasmResult(input = fixture) {
   return JSON.parse(runDocumentFixture(input));
 }
@@ -57,6 +63,26 @@ function expectBothReject(input: string) {
   assert(jsRejected, "JavaScript target must reject invalid fixture");
   assert(wasmRejected, "WasmGC target must reject invalid fixture");
 }
+
+Deno.test("playground worker EXPECTED anchors match the served artifact bytes", async () => {
+  const expected: Record<string, [string, string]> = {
+    fixture: ["fixture.v1.txt", "public/artifacts/text-gc-document-edit/"],
+    fixtureManifest: ["fixture-manifest.json", "public/artifacts/text-gc-document-edit/"],
+    reference: ["reference.json", "public/artifacts/text-gc-document-edit/"],
+    buildManifest: ["build-manifest.json", "public/artifacts/text-gc-document-edit/"],
+    js: ["workload.js", "benchmarks/v1/text-gc-document-edit/"],
+    wasm: ["text-gc-document-edit.wasm", "public/artifacts/text-gc-document-edit/"],
+  };
+  for (const [key, [file, dir]] of Object.entries(expected)) {
+    const m = workerSource.match(new RegExp(`${key}: "([0-9a-f]{64})"`));
+    assert(m, `worker EXPECTED.${key} anchor missing`);
+    const bytes = await Deno.readFile(new URL(dir + file, root));
+    assert(
+      (await sha256Hex(bytes)) === m[1],
+      `worker EXPECTED.${key} stale: pinned ${m[1]} vs served ${await sha256Hex(bytes)}`,
+    );
+  }
+});
 
 Deno.test("text.gc-document-edit runs the exact 10,000-edit fixture in both targets", async () => {
   const parsed = parseFixture(fixture);
