@@ -103,6 +103,7 @@ const testArgs = [
   "--no-lock",
   "--allow-env=PORT,HOST,SERVER_MODE,WASM_VS_JS_COMMIT",
   "--allow-net=127.0.0.1",
+  "--allow-import=127.0.0.1",
   "--allow-read",
   "--allow-write",
   "--allow-run",
