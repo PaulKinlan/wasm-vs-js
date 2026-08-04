@@ -1,6 +1,6 @@
 {
   "authoritativePerformanceEvidence": false,
-  "buildManifestSha256": "7f0b6d13d669900314d79b2cbd634e489c83235517303d18079d52388dc7bd12",
+  "buildManifestSha256": "928f3e5ab2825a0c4fd0bec5158f562d8768df37dbfddcaa94339a9bd5b6a557",
   "completeOutputSha256": {
     "convF32": "83737bad2b5d604cbd3bca1ad98bead0194b169fff62a88e7aff3434b420c59d",
     "convI8": "63b5a99ca52d627e35e890def9f88b53fa0800c51de276a58d3174528868d075",
@@ -25,9 +25,9 @@
   },
   "fixtureSha256": "89296e267c286e7d66a2497525d6294d4abe96528ebbab2ef5095a09140d8318",
   "frozenCatalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
-  "outputManifestSha256": "d153da6d61d13c55aa5052c4ac3d8c69bca0708f7b147a2edb0ce91e081fedd3",
+  "outputManifestSha256": "feb126df404abbe77020291336cc684ea0053205cc7a70e34501227f46a30b72",
   "schemaVersion": 1,
-  "sourceCommit": "b3b4a5ff142e96ca5743acbab1a3659bd63ed0eb",
+  "sourceCommit": "a10931aa7fd99c620402864cfd670555d9d0b511",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
   "sourceSha256": "ce878781ac8da089985349de5e5a9aec19a49d66bcc101dbbddbbabd624c3b5c",
   "status": "correctness-validation-package",
