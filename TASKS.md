@@ -89,13 +89,13 @@ Tasks are ordered by dependency. A checked box means the exact acceptance criter
 
 ## M4 — public results explorer
 
-- [ ] Implement AI Focus token layer and editorial/dashboard widths.
+- [x] Implement AI Focus token layer and editorial/dashboard widths.
 - [x] Add URL-backed filters and stable result/run routes.
 - [x] Add workload × environment matrix and chart/table pairs.
 - [x] Add raw-run, build, environment, correctness, capability, exclusion, and artifact inspectors.
 - [x] Avoid winner copy and colour-only status.
-- [ ] Deploy exact reviewed source.
-- [ ] Validate live routes, headers, ingestion denial, desktop/mobile controls, console/network, and cleanup.
+- [x] Deploy exact reviewed source.
+- [x] Validate live routes, headers, ingestion denial, desktop/mobile controls, console/network, and cleanup.
 
 ## M5 — browsers, engines, and devices
 

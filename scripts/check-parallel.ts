@@ -99,6 +99,7 @@ async function testFiles(): Promise<string[]> {
 
 const testEnv = { WASM_VS_JS_COMMIT: commit };
 const testArgs = [
+  "--unstable-kv",
   "--allow-env=PORT,HOST,SERVER_MODE,WASM_VS_JS_COMMIT",
   "--allow-net=127.0.0.1",
   "--allow-read",
