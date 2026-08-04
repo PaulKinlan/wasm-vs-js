@@ -11,15 +11,17 @@
 // - WRITER_TESTS rebuild artifacts in place (identical bytes, but non-atomic
 //   writes) and must never run concurrently with a test that reads the same
 //   artifact. Identified empirically via per-file mtime scan (2026-08-03).
-// - Phase A runs the read-only test files under `deno test --parallel`,
-//   concurrently with the rigid-body writer (its only reader is the
-//   browser-collector test, held out for phase B) and the audio writer
-//   (permission-scoped to public/artifacts/audio-{fft,fir,stft}; its only
-//   readers are the TAIL_READERS, held out for phase C).
-// - Phase B runs the small writers (each writes a disjoint per-lane
-//   artifact dir), the sum-u32 writer/reader pair (sequential, they share
-//   sum-u32), and the rigid-body reader.
-// - Phase C runs the TAIL_READERS (server/public-mode/inspectability),
+// - Phase A runs everything except the TAIL_READERS: read-only test files
+//   under `deno test --parallel`, concurrently with every writer. Writer
+//   write sets were captured empirically (mtime scan, 2026-08-03): each
+//   writer touches only its own lane's artifact/evidence/registration
+//   paths, pairwise disjoint, and no reader-phase test reads any of them
+//   (verified by grep against the captured sets). The rigid-body writer's
+//   only reader is its browser-collector test (held out of the reader
+//   flock but concurrent here); the sum-u32 pair stays sequential because
+//   traditional-web-build reads the sum-u32 manifest that build.test
+//   rewrites.
+// - Phase B runs the TAIL_READERS (server/public-mode/inspectability),
 //   which fetch writer-owned artifact bytes over HTTP routes and therefore
 //   run only after every writer has finished.
 // - New test files default to the parallel reader phase. If a flake ever
@@ -143,10 +145,8 @@ const staticStages: Stage[] = [
 const started = performance.now();
 for (const stage of staticStages) await runStage(stage);
 
-// Phase A: parallel readers, concurrent with the rigid-body writer and the
-// audio writer. The audio writer's subprocess is permission-scoped to
-// public/artifacts/audio-{fft,fir,stft}; the only tests reading those bytes
-// are the TAIL_READERS, which are held out.
+// Phase A: readers and every writer, all concurrent (write sets verified
+// pairwise disjoint and unread by the reader flock — see header comment).
 await Promise.all([
   runStage({
     name: "test-readers",
@@ -155,11 +155,6 @@ await Promise.all([
   }),
   runStage({ name: "test-rigid-writer", args: ["test", ...testArgs, RIGID_WRITER], env: testEnv }),
   runStage({ name: "test-audio-writer", args: ["test", ...testArgs, AUDIO_WRITER], env: testEnv }),
-]);
-
-// Phase B: small writers + rigid reader, and the sum-u32 pair — two disjoint
-// groups, run concurrently.
-await Promise.all([
   runStage({
     name: "test-writers-small",
     args: ["test", "--parallel", ...testArgs, ...SMALL_WRITERS, RIGID_READER],
@@ -172,7 +167,7 @@ await Promise.all([
   }),
 ]);
 
-// Phase C: route-level readers of writer-owned artifact bytes, alone.
+// Phase B: route-level readers of writer-owned artifact bytes, alone.
 await runStage({
   name: "test-tail-readers",
   args: ["test", "--parallel", ...testArgs, ...TAIL_READERS],
