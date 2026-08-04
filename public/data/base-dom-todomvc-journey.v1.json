@@ -3,7 +3,7 @@
   "catalogId": "dom.todomvc-journey.v1",
   "implementationId": "dom.todomvc-journey.v1.controlled-v1",
   "status": "implementation-candidate",
-  "sourceCommit": "fc8ef5c35cd5b8f6fe5ab5e78d55194681729717",
+  "sourceCommit": "50181d4dee2d261b47bde4093d4d952928a28f52",
   "frozenCatalog": {
     "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
     "immutable": true,
@@ -121,7 +121,7 @@
       "path": "public/artifacts/base-dom-todomvc-journey/build-manifest.json",
       "route": "/artifacts/base-dom-todomvc-journey/build-manifest.json",
       "bytes": 7118,
-      "sha256": "66e0138769a6566728d5bc6d179ba44f2fa10f662b067a2c73a199139ea97912"
+      "sha256": "b014c3ca42c1aad21a1dd593ea68d3791ccd9d8e3f7c2568a4292b5e78e660a6"
     }
   ],
   "limitations": [
