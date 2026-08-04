@@ -189,7 +189,7 @@
       {
         "role": "shared-support",
         "path": "deno.json",
-        "sha256": "5552fd19ee82e45258a61d50c07777a56f1c8bf6dc759aad6adb01c7241e8cca",
+        "sha256": "395d5541fd604585144ba08c6bf7ce6b534581e66b65408fdf5790c72fc10dc7",
         "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/9d4367489c74da5a698cec6b26d8db8c2edc28d3/deno.json"
       },
       {
