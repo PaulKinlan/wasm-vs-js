@@ -19,7 +19,6 @@ const publicCopyFiles = [
   "public/inspectability.js",
   "public/v2-results.js",
   "public/hosted-runner.js",
-  "public/homepage-runner.js",
   "public/playground.js",
   "public/workload-catalog.js",
 ];

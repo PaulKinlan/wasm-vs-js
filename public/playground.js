@@ -369,7 +369,7 @@ async function runBenchmarkForCard(config, cardEl, iterations = 30) {
       try {
         jsStats = await executeWorkerLoop(config.slug, "javascript", iterations);
         wasmStats = await executeWorkerLoop(config.slug, "wasm", iterations);
-      } catch (firstErr) {
+      } catch {
         jsStats = await executeWorkerLoop(config.slug, "javascript", iterations);
         wasmStats = await executeWorkerLoop(config.slug, "wasm", iterations);
       }
