@@ -5,7 +5,7 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "1bcdf2c4d561164a79df1d0cba58e7a2952a82f9",
+  "sourceCommit": "6e51898cd6385e870f7850db49c767da1e57d76a",
   "sourceSha256": "0ab96df755cce935fa8879c9663927cd760109760dd91f2a7aed23dd847a752f",
   "fullSourceGraph": [
     {
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "9fbd993797642eecac092a2520e5254705a8c2568106c55eb877a7b0c12affc4"
+      "sha256": "a56e4f35447ea702ac2a38e524ce99b2d3ac50d5fee29e50b0e7e48d8edd4510"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "fa3abdd94399111e9d005c25aeee21f83d84e3afc78f52cf2e815865d9727cc0"
+      "sha256": "eea58ee8dbe8c3c12f222e446fcacd04f0fec7479f99de7166ed357fea3d1ee6"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=1bcdf2c4d561164a79df1d0cba58e7a2952a82f9"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=6e51898cd6385e870f7850db49c767da1e57d76a"
   }
 }
