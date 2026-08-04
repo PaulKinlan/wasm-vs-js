@@ -4,7 +4,7 @@
   "implementationId": "dom.todomvc-journey.v1.controlled-v1",
   "variantId": "js-controlled",
   "status": "static-validation-passed-browser-pending",
-  "sourceCommit": "d9a49a82fa9941645c0b7e70256e3281a9cc24bb",
+  "sourceCommit": "342d6856de590f563dd29d59572405bee23fa843",
   "fixtureSha256": "3685e7c3f03ad7589aaf04073fba1af461847daa9c5d7339a98025e0e24e1208",
   "oracleSha256": "678c59b64f50579777b04603d2a0f3d0b1e3a1f4167711441440f8b3a88b00be",
   "semanticOutputSha256": "6877d79f8495afe8a709cb24836caeca370c03023253e5a974a696f657778dde",
