@@ -9,7 +9,6 @@ const addFormats = (addFormatsModule as unknown as { default?: typeof addFormats
 
 Deno.test("results and runner pages expose evidence limits and accessible controls", async () => {
   const index = await Deno.readTextFile("public/index.html");
-  const runner = await Deno.readTextFile("public/run.html");
   const evidence = await Deno.readTextFile("public/evidence/index.html");
   const app = await Deno.readTextFile("public/app.js");
   const css = await Deno.readTextFile("public/styles.css");
@@ -25,31 +24,19 @@ Deno.test("results and runner pages expose evidence limits and accessible contro
   );
   assert(index.includes("Complete trajectories"));
   assert(index.includes("<caption>"));
-  assert(runner.includes("Pilot tool, not accepted evidence"));
-  assert(runner.includes("Exact environment JSON"));
-  assert(runner.includes('aria-live="polite"'));
   assert(css.includes("prefers-reduced-motion"));
   assert(css.includes("forced-colors"));
   assert(css.includes("overflow-x: auto"));
   assert(!index.includes("Wasm wins"));
 });
 
-Deno.test("hosted runner is accessible, bounded, and has no mutation or persistence surface", async () => {
-  const page = await Deno.readTextFile("public/run/index.html");
+Deno.test("hosted runner scripts are accessible, bounded, and have no mutation or persistence surface", async () => {
   const script = await Deno.readTextFile("public/hosted-runner.js");
   const core = await Deno.readTextFile("public/hosted-runner-core.js");
   const probes = await Deno.readTextFile("public/provenance-probes.js");
   const worker = await Deno.readTextFile("public/hosted-runner-worker.js");
   const hostedWorkload = await Deno.readTextFile("public/benchmarks/sum-u32/workload.js");
   const sourceWorkload = await Deno.readTextFile("benchmarks/sum-u32/workload.js");
-  assert(page.includes("Status: exploratory"));
-  assert(page.includes('id="start-live-run"'));
-  assert(page.includes('role="status"'));
-  assert(page.includes('aria-live="polite"'));
-  assert(page.includes('min="5" max="50"'));
-  assert(page.includes("The page does not upload or save the result"));
-  assert(page.includes("stay in memory and disappear when the tab closes"));
-  assert(page.includes("worker-src 'self'"));
   assert(script.includes("new Worker"));
   assert(script.includes("worker.terminate"));
   assert(script.includes("Correctness and fixed work"));
@@ -189,8 +176,6 @@ Deno.test("public pages contain no inline script, inline style, or remote asset"
   for (
     const path of [
       "public/index.html",
-      "public/run.html",
-      "public/run/index.html",
       "public/benchmarks/index.html",
       "public/benchmarks/regex-automata-duel-demo/index.html",
       "public/benchmarks/vdom-diff-patch-demo/index.html",

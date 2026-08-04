@@ -136,9 +136,6 @@ async function boundedJson(request: Request): Promise<unknown> {
 
 const routes = new Map<string, [string, string, boolean?]>([
   ["/", ["public/index.html", "text/html; charset=utf-8"]],
-  ["/run", ["public/run.html", "text/html; charset=utf-8", true]],
-  ["/run/", ["public/run/index.html", "text/html; charset=utf-8"]],
-  ["/run.html", ["public/run.html", "text/html; charset=utf-8", true]],
   ["/evidence", ["public/evidence/index.html", "text/html; charset=utf-8"]],
   ["/evidence/", ["public/evidence/index.html", "text/html; charset=utf-8"]],
   ["/evidence/v1", ["public/evidence/index.html", "text/html; charset=utf-8"]],
@@ -1984,9 +1981,16 @@ function createHandler(
       const run = await store!.get(url.pathname.slice("/api/runs/".length));
       return run ? json(run) : json({ error: "not found" }, 404);
     }
-    const route = serverMode === "public" && url.pathname === "/run"
-      ? ["public/run/index.html", "text/html; charset=utf-8"] as [string, string, boolean?]
-      : routes.get(url.pathname);
+    // Retired /run/ runner — the homepage playground's sum-u32 card supersedes it.
+    const retiredRun = url.pathname === "/run" || url.pathname === "/run/" ||
+      url.pathname === "/run.html";
+    if (retiredRun) {
+      return new Response(null, {
+        status: 302,
+        headers: { location: "/#workload-sum-u32" },
+      });
+    }
+    const route = routes.get(url.pathname);
     if (!route || (serverMode === "public" && route[2])) {
       return json({ error: "not found" }, 404);
     }

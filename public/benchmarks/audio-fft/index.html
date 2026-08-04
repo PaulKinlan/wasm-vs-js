@@ -12,8 +12,9 @@
     <link rel="stylesheet" href="/styles.css">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <script type="module" src="/demo-runner.js"></script>
+    <script type="module" src="/unified-runner.js"></script>
   </head>
-  <body>
+  <body data-workload="audio-fft" data-demo="audio-fft">
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
@@ -28,10 +29,43 @@
         <h1 id="demo-title">Radix-2 complex FFT</h1>
         <p
           class="lede">Thirty-two radix-2 transforms over 4,096 interleaved complex samples each, in strict-f32 frozen order. Both engines run the same algorithm with the same frozen twiddle table; the fixture is one exactly representable real impulse per transform.</p>
-        <p class="notice"><strong>Scope.</strong> This page runs one contract iteration in a fresh
-          worker and reports correctness, oracle, and work-counter evidence. It collects no
-          performance claims, uploads nothing, and stores nothing. The authoritative validation
-          records live under <a href="/evidence/v2-proposals/">v2 proposal evidence</a>.</p>
+        <p class="notice"><strong>Scope.</strong> The benchmark loop below times both engines
+          side-by-side. The correctness section runs one contract iteration in a fresh worker and
+          reports oracle, work-counter, and hash evidence — timing and correctness never mix. The
+          page uploads and stores nothing; the authoritative validation records live under
+          <a href="/evidence/v2-proposals/">v2 proposal evidence</a>.</p>
+      </section>
+
+      <section class="demo-panel" aria-labelledby="run-heading">
+        <h2 id="run-heading">Run Benchmark Loop</h2>
+        <form id="demo-form">
+          <div class="controls">
+            <label for="target">
+              <span>Target Engine</span>
+              <select id="target" name="target" disabled>
+                <option value="both" selected>Compare Side-by-Side (JS vs Wasm)</option>
+                <option value="javascript">JavaScript Engine</option>
+                <option value="wasm">WebAssembly Engine</option>
+              </select>
+            </label>
+            <label for="iterations">
+              <span>Loop Iterations</span>
+              <select id="iterations" name="iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10">10 iterations</option>
+                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                <option value="50">50 iterations</option>
+                <option value="100">100 iterations (Sustained loop)</option>
+              </select>
+            </label>
+            <button id="start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="status" role="status" aria-live="polite">
+          Ready. Select target and loop iterations, then click Start.
+        </p>
+        <div id="perf-reporting" class="detail-grid" hidden></div>
       </section>
 
       <section aria-labelledby="identity-title">
@@ -88,7 +122,7 @@
       </section>
 
       <section aria-labelledby="run-title">
-        <h2 id="run-title">Run the contract</h2>
+        <h2 id="run-title">Correctness evidence — run the contract</h2>
         <p class="no-js-note">JavaScript is off. The identity, dimensions, evidence, and source
           links on this page are complete without it; running the engines requires JavaScript and
           WebAssembly.</p>

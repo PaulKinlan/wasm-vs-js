@@ -2,13 +2,15 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
-    <title>TodoMVC 100-item correctness journey | Wasm versus JavaScript</title>
-    <link rel="stylesheet" href="/benchmarks/base-dom-todomvc-journey/styles.css">
-    <script type="module" src="/benchmarks/base-dom-todomvc-journey/controller.js"></script>
+    <meta name="description"
+      content="TodoMVC 100-item journey benchmark measuring DOM mutation and virtual-dom reconciliation in JavaScript and linear WebAssembly.">
+    <title>TodoMVC 100-item journey · Wasm vs JavaScript</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="/unified-runner.js"></script>
   </head>
-  <body>
+  <body data-workload="base-dom-todomvc-journey" data-demo="base-dom-todomvc-journey">
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
@@ -17,53 +19,72 @@
       <a href="/evidence/">Evidence</a>
       <strong>data v1</strong>
     </header>
-    <noscript>
-      <p
-        class="notice"><strong>JavaScript is required for this local correctness demo.</strong> The fixture, limits, source, and artifacts remain available from the links below.</p>
-    </noscript>
-    <main id="main" tabindex="-1" data-implementation-id="dom.todomvc-journey.v1.controlled-v1">
-      <p class="eyebrow">BASE CATALOG CANDIDATE · DOM.TODOMVC-JOURNEY.V1</p>
-      <h1>TodoMVC 100-item journey</h1>
-      <p
-        class="lede">This route applies 150 typed commands to the real DOM: 100 adds, 34 completions, three filters, ten removals, and three edits. It checks the final 90 items, accessible names and states, focus, selection, node reuse, and physical mutations.</p>
-      <p
-        class="notice"><strong>No performance claim.</strong> The page records no duration, stores nothing, uploads nothing, and ranks neither target. Browser evidence is pending an independently owned Chrome run.</p>
+    <main id="main">
+      <header>
+        <p class="eyebrow">DOM &amp; Web UI Workload · 150 Typed Commands · 100 Items</p>
+        <h1>TodoMVC 100-item journey</h1>
+        <p class="lede">
+          Applies 150 typed commands to the real DOM — 100 adds, 34 completions, three filters, ten
+          removals, and three edits — then checks the final 90 items, accessible names and states,
+          focus, selection, node reuse, and physical mutations. Both engines run the identical
+          controlled journey; exact output is verified before any timing.
+        </p>
+      </header>
 
-      <section class="panel" aria-labelledby="controls-title">
-        <h2 id="controls-title">Run the frozen trace</h2>
-        <div class="controls">
-          <label for="target">Controlled target</label>
-          <select id="target">
-            <option value="js-controlled">JavaScript controlled</option>
-            <option value="wasm-linear-controlled">Linear Wasm controlled</option>
-          </select>
-          <button id="start" type="button" disabled>Start</button>
-          <button id="cancel" type="button" disabled>Cancel</button>
-        </div>
-        <p id="status" role="status"
-          aria-live="polite">Ready. A fresh worker has a 30-second limit.</p>
+      <section class="demo-panel" aria-labelledby="run-heading">
+        <h2 id="run-heading">Run Benchmark Loop</h2>
+        <form id="demo-form">
+          <div class="controls">
+            <label for="target">
+              <span>Target Engine</span>
+              <select id="target" name="target" disabled>
+                <option value="both" selected>Compare Side-by-Side (JS vs Wasm)</option>
+                <option value="javascript">JavaScript Engine</option>
+                <option value="wasm">WebAssembly Engine</option>
+              </select>
+            </label>
+            <label for="iterations">
+              <span>Loop Iterations</span>
+              <select id="iterations" name="iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10">10 iterations</option>
+                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                <option value="50">50 iterations</option>
+                <option value="100">100 iterations (Sustained loop)</option>
+              </select>
+            </label>
+            <button id="start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="status" role="status" aria-live="polite">
+          Ready. Select target and loop iterations, then click Start.
+        </p>
+        <div id="perf-reporting" class="detail-grid" hidden></div>
       </section>
 
-      <section class="todo-app panel" aria-labelledby="todos-title">
-        <div class="todo-heading">
-          <h2 id="todos-title">Physical DOM result</h2>
-          <output id="todo-count">0 items</output>
-        </div>
-        <nav aria-label="Todo filters">
-          <button type="button" data-filter="0" aria-pressed="true">All</button>
-          <button type="button" data-filter="1" aria-pressed="false">Active</button>
-          <button type="button" data-filter="2" aria-pressed="false">Completed</button>
-        </nav>
-        <ul id="todo-list"></ul>
+      <section aria-labelledby="what-heading">
+        <h2 id="what-heading">What it does</h2>
+        <p>
+          Adds, completes, filters, edits, and removes 100 todos through a full TodoMVC interaction —
+          real DOM mutation, event dispatch, and virtual-dom reconciliation under realistic user
+          input. Each run is the same frozen 150-command trace with the same fixture; the worker
+          verifies the complete canonical DOM, accessible names and states, focus, selection, node
+          reuse, and physical mutations before timing.
+        </p>
       </section>
 
-      <section class="panel" aria-labelledby="result-title">
-        <h2 id="result-title">Exact result</h2>
-        <pre id="result" tabindex="0">No run yet.</pre>
+      <section aria-labelledby="why-heading">
+        <h2 id="why-heading">Why compare Wasm vs JS</h2>
+        <p>
+          DOM mutation, event dispatch, and virtual-dom reconciliation are where JavaScript engines
+          and Wasm-backed implementations genuinely differ. The journey measures the full cost:
+          state transitions, typed-command decode, and the physical DOM writes each target performs.
+        </p>
       </section>
 
-      <section class="panel" aria-labelledby="inspect-title">
-        <h2 id="inspect-title">Inspect the package</h2>
+      <section aria-labelledby="inspect-heading">
+        <h2 id="inspect-heading">Inspect the package</h2>
         <ul>
           <li><a href="/data/base-dom-todomvc-journey.v1.json">Supplemental registration</a></li>
           <li><a href="/artifacts/base-dom-todomvc-journey/fixture.json">Frozen labels and action trace</a></li>
@@ -73,27 +94,13 @@
         </ul>
       </section>
 
-      <section class="detail-grid" aria-label="Workload details">
-        <div class="detail-card">
-          <h2>What it does</h2>
-          <p>Adds, completes, filters, edits, and removes 100 todos through a full TodoMVC interaction.</p>
-        </div>
-        <div class="detail-card">
-          <h2>Why compare</h2>
-          <p>DOM mutation, event dispatch, and virtual-dom reconciliation under realistic user interaction.</p>
-        </div>
-        <div class="detail-card">
-          <h2>Algorithm &amp; engine</h2>
-          <p>Category: DOM & Web UI. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
-        </div>
-        <div class="detail-card">
-          <h2>Source &amp; build provenance</h2>
-          <ul>
-            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
-            <li><a href="/evidence/">Check implementation evidence</a></li>
-            <li><a href="/experiments/">Read the frozen experiment</a></li>
-          </ul>
-        </div>
+      <section aria-labelledby="provenance-heading">
+        <h2 id="provenance-heading">Source &amp; build provenance</h2>
+        <ul>
+          <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+          <li><a href="/evidence/">Check implementation evidence</a></li>
+          <li><a href="/experiments/">Read the frozen experiment</a></li>
+        </ul>
       </section>
     </main>
   </body>

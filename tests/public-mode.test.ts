@@ -36,8 +36,6 @@ Deno.test("actual public task starts without commit env permission and ignores s
     assertEquals("localCheckoutCommit" in health, false);
     for (
       const path of [
-        "/run",
-        "/run/",
         "/hosted-runner.js",
         "/provenance-probes.js",
         "/hosted-runner-core.js",
@@ -63,6 +61,11 @@ Deno.test("actual public task starts without commit env permission and ignores s
       ]
     ) {
       assertEquals((await fetch(`http://127.0.0.1:${port}${path}`)).status, 200);
+    }
+    for (const path of ["/run", "/run/", "/run.html"]) {
+      const res = await fetch(`http://127.0.0.1:${port}${path}`, { redirect: "manual" });
+      assertEquals(res.status, 302);
+      assertEquals(res.headers.get("location"), "/#workload-sum-u32");
     }
     const ledger = JSON.parse(
       await Deno.readTextFile("catalog/v2-proposal-implementation-status.v1.json"),
