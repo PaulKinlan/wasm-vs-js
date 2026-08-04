@@ -1246,6 +1246,22 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/benchmarks/dom-grid-movement/worker.js",
     "text/javascript; charset=utf-8",
   ]],
+  ["/benchmarks/dom-nested-tree-mutation", [
+    "public/benchmarks/dom-nested-tree-mutation/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-nested-tree-mutation/", [
+    "public/benchmarks/dom-nested-tree-mutation/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-nested-tree-mutation/engine.js", [
+    "public/benchmarks/dom-nested-tree-mutation/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-nested-tree-mutation/worker.js", [
+    "public/benchmarks/dom-nested-tree-mutation/worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
   ["/benchmarks/dom-keyed-list-mutation", [
     "public/benchmarks/dom-keyed-list-mutation/index.html",
     "text/html; charset=utf-8",
