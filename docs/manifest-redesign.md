@@ -27,7 +27,7 @@ the bytes; the gate checks freshness.
 
 ## Slices (in dependency order)
 
-### Slice 1 — Generated worker anchors (owner: integrator)
+### Slice 1 — Generated worker anchors (owner: integrator) — DONE (d2248793)
 
 Six workers hardcode `EXPECTED` anchor objects (pcap-decode, text-gc,
 cad-mesh-repair, regex-automata-duel, vdom-diff-patch, game-ecs-frame-update).
@@ -42,7 +42,7 @@ cad-mesh-repair, regex-automata-duel, vdom-diff-patch, game-ecs-frame-update).
 - Kills the class that produced Paul's text-gc report and the path-tracer
   `wasm-linear` stale-target bug (#298).
 
-### Slice 2 — Preregistration canonical hash unification (owner: Gemini)
+### Slice 2 — Preregistration canonical hash unification (owner: Gemini) — DONE (882c0765)
 
 The frozen preregistration canonical sha256 lives in FOUR sites:
 `lib/source-identity.ts` (FROZEN_PREREGISTRATION_SHA256),
