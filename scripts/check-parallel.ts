@@ -186,16 +186,51 @@ await runStage({ name: "build", args: ["task", "build"] });
 
 // Phase A: readers and every writer, all concurrent (write sets verified
 // pairwise disjoint and unread by the reader flock — see header comment).
-await Promise.all([
-  ...staticStages.map(runStage),
-  // Gated on the manifest-reading statics (see comment above).
-  Promise.all(manifestReaderStatics.map(runStage)).then(() =>
+const sumU32Pair = Promise.all(manifestReaderStatics.map(runStage)).then(() =>
+  runStage({
+    name: "test-sum-u32-pair",
+    args: ["test", ...testArgs, ...SUM_U32_PAIR],
+    env: testEnv,
+  })
+);
+const audioWriter = runStage({
+  name: "test-audio-writer",
+  args: ["test", ...testArgs, AUDIO_WRITER],
+  env: testEnv,
+});
+const smallWriters = runStage({
+  name: "test-writers-small",
+  args: ["test", "--parallel", ...testArgs, ...SMALL_WRITERS, RIGID_READER],
+  env: testEnv,
+});
+const buildRecords = (async () => {
+  await new Promise((resolve) => setTimeout(resolve, 1200));
+  await runStage({
+    name: "test-heavy-v2-ml-neural-build-records",
+    args: ["test", ...testArgs, "tests/v2/ml-neural-build-records.test.ts"],
+    env: testEnv,
+  });
+})();
+// Tail readers fetch only v2-ledger routes: audio-{fft,fir,stft} artifacts and
+// evidence, sum-u32, traditional-demos, game-v2 bytes (grep-verified against
+// the writer write sets; rigid-body is a v1 demo and absent from the ledger).
+// Their true dependencies all finish ~1s before the rigid writer, so the tail
+// hides under the rigid tail instead of adding a serial phase after it.
+const tailReaders = Promise.all([audioWriter, smallWriters, sumU32Pair, buildRecords])
+  .then(() =>
     runStage({
-      name: "test-sum-u32-pair",
-      args: ["test", ...testArgs, ...SUM_U32_PAIR],
+      name: "test-tail-readers",
+      args: ["test", "--parallel", ...testArgs, ...TAIL_READERS],
       env: testEnv,
     })
-  ),
+  );
+await Promise.all([
+  ...staticStages.map(runStage),
+  sumU32Pair,
+  audioWriter,
+  smallWriters,
+  buildRecords,
+  tailReaders,
   // The light flock is only ~35 core-seconds of work; 12 workers on their
   // own cores finish it in ~4s while the heavy single-file stages and the
   // writer lanes run on dedicated sets (see TASKSET comment above).
@@ -204,42 +239,28 @@ await Promise.all([
     args: ["test", "--parallel", ...testArgs, ...readerTests],
     env: { ...testEnv, DENO_JOBS: "6" },
   }),
-  ...HEAVY_READERS.map(async (file) => {
-    // Stagger: the t=0 startup storm (12 deno processes type-checking) inflates
-    // the critical rigid chain; these lanes have ~1s of slack before they would
-    // become the binder, so a delayed start costs no wall time.
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-    await runStage({
-      name: `test-heavy-${
-        file.replace(/^tests\//, "").replace(/\.test\.ts$/, "").replaceAll("/", "-")
-      }`,
-      args: ["test", ...testArgs, file],
-      env: testEnv,
-    });
-  }),
+  ...HEAVY_READERS.filter((file) => !file.includes("build-records")).map(
+    async (file) => {
+      // Stagger: the t=0 startup storm (12 deno processes type-checking)
+      // inflates the critical rigid chain; these lanes have ~1s of slack
+      // before they would become the binder, so a delayed start costs no
+      // wall time.
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+      await runStage({
+        name: `test-heavy-${
+          file.replace(/^tests\//, "").replace(/\.test\.ts$/, "").replaceAll("/", "-")
+        }`,
+        args: ["test", ...testArgs, file],
+        env: testEnv,
+      });
+    },
+  ),
   runStage({
     name: "test-rigid-writer",
     args: ["test", ...testArgs, RIGID_WRITER],
     env: testEnv,
   }),
-  runStage({
-    name: "test-audio-writer",
-    args: ["test", ...testArgs, AUDIO_WRITER],
-    env: testEnv,
-  }),
-  runStage({
-    name: "test-writers-small",
-    args: ["test", "--parallel", ...testArgs, ...SMALL_WRITERS, RIGID_READER],
-    env: testEnv,
-  }),
 ]);
-
-// Phase B: route-level readers of writer-owned artifact bytes, alone.
-await runStage({
-  name: "test-tail-readers",
-  args: ["test", "--parallel", ...testArgs, ...TAIL_READERS],
-  env: testEnv,
-});
 
 console.error(
   `check-parallel: all stages ok in ${((performance.now() - started) / 1000).toFixed(1)}s`,
