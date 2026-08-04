@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "5b73345d0cbf07ea6394801e0ffcb166320d8f20",
-  "sourceSha256": "a869337928543977f746c9d06d1ddac59c29dfbd4f8d463c78f66e6dac5c76b7",
+  "sourceCommit": "a267ad4c8e9d449464d6e53b69768faa86d69b9b",
+  "sourceSha256": "7db707b295df36b5d83a501bc718476efc5981c4a77319bdf05d04c2b5fb2ac8",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 80668,
-      "sha256": "572994c102426e57755eac191833630478ceda702b7e83e7dccf62c015e6dea9"
+      "bytes": 80788,
+      "sha256": "35f689bf8f13127fd590ebfc4f17ae60340eb6ca59f7efb7c9abd79802b953d1"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "5f1cf4181f45c62d777daed03c17c79ce79c08e62222675a57d2b4787d34e443"
+      "sha256": "1307219d18522e8d54ea66c1c7e5b2879de43f35ee40d00cfec52795846b0895"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "ba0da1bacdee3651ad21c701b133462bf150c5399ac593cf061714ef36fc3160"
+      "sha256": "40a0ddf0b9e8ff76b60557c38d0fb1aa6f630b4b7f25f207fe43bf79a8299668"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=5b73345d0cbf07ea6394801e0ffcb166320d8f20"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=a267ad4c8e9d449464d6e53b69768faa86d69b9b"
   }
 }
