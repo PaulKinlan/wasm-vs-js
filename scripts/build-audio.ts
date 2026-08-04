@@ -1,14 +1,12 @@
-import wabtFactory from "wabt";
 import { brotliCompressSync, constants, gzipSync } from "node:zlib";
 import { sha256Hex } from "../lib/canonical.ts";
-import { canonicalF32Bytes } from "../benchmarks/audio-shared/canonical.ts";
-import { generatePinnedF64Reference } from "../benchmarks/audio-shared/reference.ts";
-import { AUDIO_COUNTERS, prepareAudioHarness } from "../lib/audio-workloads.ts";
+import { AUDIO_COUNTERS } from "../lib/audio-workloads.ts";
 import {
   AUDIO_FROZEN_HASHES,
   AUDIO_MEMORY_PAGES,
   type AudioSlug,
 } from "../benchmarks/audio-shared/constants.ts";
+import type { SlugResult } from "./build-audio-slug-worker.ts";
 
 const root = new URL("../", import.meta.url);
 const repository = "https://github.com/PaulKinlan/wasm-vs-js";
@@ -52,6 +50,7 @@ const sourcePaths = [
   "benchmarks/audio-shared/manifest-contract.ts",
   "lib/audio-workloads.ts",
   "scripts/build-audio.ts",
+  "scripts/build-audio-slug-worker.ts",
   "scripts/build-audio-results.ts",
   "deno.json",
   "deno.lock",
@@ -83,7 +82,6 @@ const sourceIdentity = sources.map(({ path, sha256 }) => `${path}\0${sha256}\n`)
 const sourceSha256 = await sha256Hex(sourceIdentity);
 const lockSha256 = sources.find((source) => source.path === "deno.lock")!.sha256;
 
-const wabt = await wabtFactory();
 const gzipOptions = { level: 9 } as const;
 const brotliOptions = {
   params: {
@@ -102,44 +100,40 @@ async function writeJson(url: URL, value: unknown): Promise<Uint8Array> {
   return bytes;
 }
 
+// Per-slug wat compile, pinned f64 reference generation, and controlled
+// harness runs are independent sync-CPU work: fan them out to one worker
+// thread per slug (see build-audio-slug-worker.ts). All writes below stay on
+// this thread in the original deterministic order.
+function runSlug(slug: AudioSlug): Promise<SlugResult> {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(new URL("./build-audio-slug-worker.ts", import.meta.url), {
+      type: "module",
+    });
+    worker.onmessage = (event: MessageEvent<SlugResult>) => {
+      worker.terminate();
+      resolve(event.data);
+    };
+    worker.onerror = (event) => {
+      worker.terminate();
+      reject(event.error ?? new Error(event.message));
+    };
+    worker.postMessage({ slug });
+  });
+}
+const slugResults = new Map(
+  await Promise.all(
+    slugs.map(async (slug) => [slug, await runSlug(slug)] as const),
+  ),
+);
+
 for (const slug of slugs) {
-  const watPath = `benchmarks/${slug}/${slug}.wat`;
-  const wat = await Deno.readTextFile(new URL(watPath, root));
-  const parsed = wabt.parseWat(`${slug}.wat`, wat, {
-    exceptions: false,
-    threads: false,
-    simd: false,
-    bulk_memory: false,
-    memory64: false,
-  });
-  parsed.resolveNames();
-  parsed.validate();
-  const binary = parsed.toBinary({
-    canonicalize_lebs: true,
-    relocatable: false,
-    write_debug_names: false,
-  });
-  parsed.destroy();
-  const wasm = new Uint8Array(binary.buffer);
+  const result = slugResults.get(slug)!;
+  const { wasm, referenceBytes, referenceSha256, jsResult, wasmResult } = result;
   const outputDir = new URL(`public/artifacts/${slug}/`, root);
   await Deno.mkdir(outputDir, { recursive: true });
   await Deno.writeFile(new URL(`${slug}.wasm`, outputDir), wasm);
 
-  const referenceOutput = generatePinnedF64Reference(slug);
-  const referenceBytes = canonicalF32Bytes(referenceOutput);
-  const referenceSha256 = await sha256Hex(referenceBytes);
-  if (referenceSha256 !== AUDIO_FROZEN_HASHES[slug].referenceSha256) {
-    throw new Error(`${slug} pinned f64 reference hash mismatch`);
-  }
   await Deno.writeFile(new URL("reference-output.f32le", outputDir), referenceBytes);
-
-  const jsHarness = await prepareAudioHarness(slug, "javascript");
-  const jsResult = await jsHarness.runIteration(referenceOutput);
-  const wasmHarness = await prepareAudioHarness(slug, "wasm-linear", wasm);
-  const wasmResult = await wasmHarness.runIteration(referenceOutput, jsResult.output);
-  if (jsResult.outputSha256 !== wasmResult.outputSha256) {
-    throw new Error(`${slug} strict JS/Wasm semantic hash mismatch`);
-  }
 
   const descriptorPath = `benchmarks/${slug}/benchmark.json`;
   const descriptor = JSON.parse(await Deno.readTextFile(new URL(descriptorPath, root)));
@@ -200,7 +194,7 @@ for (const slug of slugs) {
     serialization: "canonical-little-endian-f32-signed-zero-normalized-positive",
     artifact: `public/artifacts/${slug}/reference-output.f32le`,
     byteLength: referenceBytes.byteLength,
-    components: referenceOutput.length,
+    components: referenceBytes.byteLength / 4,
     sha256: referenceSha256,
     tolerance: {
       mode: "absolute-and-relative-hybrid",
@@ -291,7 +285,7 @@ for (const slug of slugs) {
         )!.sha256,
       },
       "wasm-linear-controlled": {
-        source: watPath,
+        source: `benchmarks/${slug}/${slug}.wat`,
         artifact: `public/artifacts/${slug}/${slug}.wasm`,
         artifactSha256: wasmHash,
         rawBytes: wasm.byteLength,
