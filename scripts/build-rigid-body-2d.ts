@@ -46,52 +46,72 @@ async function command(name: string, args: string[]) {
   return new TextDecoder().decode(output.stdout).trim();
 }
 
+// The 1800-timestep JS reference run (~7s of sync CPU) is independent of
+// the clang/wasm-ld compile: start both up front, the compile as a promise
+// chain and the physics on a worker thread, and join them below.
 const buildDir = new URL(".build/", artifactDir);
-await Deno.remove(buildDir, { recursive: true }).catch((error) => {
-  if (!(error instanceof Deno.errors.NotFound)) throw error;
-});
-await Deno.mkdir(buildDir, { recursive: true });
-try {
-  await command("clang", [
-    "--target=wasm32-unknown-unknown",
-    "-O3",
-    "-nostdlib",
-    "-ffreestanding",
-    "-fno-builtin",
-    "-ffp-contract=off",
-    "-fno-fast-math",
-    "-c",
-    "benchmarks/v1/simulation-rigid-body-2d/rigid-body-2d.c",
-    "-o",
-    new URL("rigid-body-2d.o", buildDir).pathname,
-  ]);
-  await command("wasm-ld", [
-    "--no-entry",
-    "--export-memory",
-    "--export=fixture_ptr",
-    "--export=result_ptr",
-    "--export=run",
-    "--initial-memory=2097152",
-    "--max-memory=2097152",
-    "--stack-first",
-    new URL("rigid-body-2d.o", buildDir).pathname,
-    "-o",
-    new URL("rigid-body-2d.wasm", buildDir).pathname,
-  ]);
-  await Deno.writeFile(
-    new URL("rigid-body-2d.wasm", artifactDir),
-    await Deno.readFile(new URL("rigid-body-2d.wasm", buildDir)),
-  );
-} finally {
-  await Deno.remove(buildDir, { recursive: true });
-}
+const compilePromise = (async () => {
+  await Deno.remove(buildDir, { recursive: true }).catch((error) => {
+    if (!(error instanceof Deno.errors.NotFound)) throw error;
+  });
+  await Deno.mkdir(buildDir, { recursive: true });
+  try {
+    await command("clang", [
+      "--target=wasm32-unknown-unknown",
+      "-O3",
+      "-nostdlib",
+      "-ffreestanding",
+      "-fno-builtin",
+      "-ffp-contract=off",
+      "-fno-fast-math",
+      "-c",
+      "benchmarks/v1/simulation-rigid-body-2d/rigid-body-2d.c",
+      "-o",
+      new URL("rigid-body-2d.o", buildDir).pathname,
+    ]);
+    await command("wasm-ld", [
+      "--no-entry",
+      "--export-memory",
+      "--export=fixture_ptr",
+      "--export=result_ptr",
+      "--export=run",
+      "--initial-memory=2097152",
+      "--max-memory=2097152",
+      "--stack-first",
+      new URL("rigid-body-2d.o", buildDir).pathname,
+      "-o",
+      new URL("rigid-body-2d.wasm", buildDir).pathname,
+    ]);
+    await Deno.writeFile(
+      new URL("rigid-body-2d.wasm", artifactDir),
+      await Deno.readFile(new URL("rigid-body-2d.wasm", buildDir)),
+    );
+  } finally {
+    await Deno.remove(buildDir, { recursive: true });
+  }
+})();
 
 const fixture = generateRigidBodyFixture();
 await Deno.writeFile(new URL("fixture.bin", artifactDir), fixture);
+const jsPromise = new Promise<ReturnType<typeof runRigidBodyJavaScript>>((resolve, reject) => {
+  const worker = new Worker(new URL("./build-rigid-body-2d-physics-worker.ts", import.meta.url), {
+    type: "module",
+  });
+  worker.onmessage = (event) => {
+    worker.terminate();
+    resolve(event.data);
+  };
+  worker.onerror = (event) => {
+    worker.terminate();
+    reject(event.error ?? new Error(event.message));
+  };
+  worker.postMessage({ fixture });
+});
+await compilePromise;
 const wasmBytes = await Deno.readFile(new URL("rigid-body-2d.wasm", artifactDir));
 const wasm = await instantiateRigidBodyWasm(wasmBytes);
-const js = runRigidBodyJavaScript(fixture);
 const wasmResult = runRigidBodyWasm(fixture, wasm);
+const js = await jsPromise;
 const comparison = compareRigidBodyResults(js, wasmResult);
 const fixtureView = new DataView(fixture.buffer, fixture.byteOffset, fixture.byteLength);
 let initialEnergy = 0;
@@ -131,6 +151,7 @@ const paths = [
   "benchmarks/v1/simulation-rigid-body-2d/engine.js",
   "benchmarks/v1/simulation-rigid-body-2d/rigid-body-2d.c",
   "scripts/build-rigid-body-2d.ts",
+  "scripts/build-rigid-body-2d-physics-worker.ts",
   "schemas/simulation-rigid-body-2d-contract.schema.json",
   "schemas/simulation-rigid-body-2d-fixture-manifest.schema.json",
   "schemas/simulation-rigid-body-2d-output-manifest.schema.json",
