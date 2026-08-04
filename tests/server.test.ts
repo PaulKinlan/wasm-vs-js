@@ -88,8 +88,6 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
   }
   for (
     const path of [
-      "/run",
-      "/run/",
       "/hosted-runner.js",
       "/provenance-probes.js",
       "/hosted-runner-core.js",
@@ -133,9 +131,15 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
   ) {
     assertEquals((await handler(new Request(`http://127.0.0.1${path}`))).status, 200);
   }
-  const livePage = await (await handler(new Request("http://127.0.0.1/run"))).text();
-  assert(livePage.includes("Status: exploratory"));
-  assert(livePage.includes("worker fetches the build manifest"));
+    for (const path of ["/run", "/run/", "/run.html"]) {
+      const res = await handler(new Request(`http://127.0.0.1${path}`));
+      assertEquals(res.status, 302);
+      assertEquals(res.headers.get("location"), "/#workload-sum-u32");
+    }
+
+  const runRedirect = await handler(new Request("http://127.0.0.1/run"));
+  assertEquals(runRedirect.status, 302);
+  assertEquals(runRedirect.headers.get("location"), "/#workload-sum-u32");
   const catalogPage = await (await handler(new Request("http://127.0.0.1/benchmarks/"))).text();
   assert(catalogPage.includes("38-WORKLOAD DENOMINATOR"));
   assert(catalogPage.includes("23/38 catalog workloads have runnable browser demos"));
@@ -144,7 +148,6 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
   assert(catalogPage.includes("10 full proposal-validation routes and 4 reduced-fixture routes"));
   for (
     const path of [
-      "/run.html",
       "/runner.js",
       "/raw/runs/example.json",
       "/source/9c309c4941d1b8550c15f8549f95a5636a634ef6/server.ts",

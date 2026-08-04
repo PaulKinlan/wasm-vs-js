@@ -38,13 +38,12 @@ M1 has one accepted implementation slice: `sum-u32`, a controlled JavaScript/lin
 - [M1 implementation evidence](public/evidence/v1/acceptance.json)
 - [Public source/build inspectability manifest](public/data/sum-u32-inspectability.v1.json) and [closed schema](schemas/public-inspectability.schema.json)
 - [Frozen M1 Chrome preregistration](experiments/m1-chrome-sum-u32-v1/preregistration.json) and [closed schema](schemas/preregistration.schema.json)
-- [Hosted exploratory runner](public/run/index.html)
 - [Public read-only deployment procedure](docs/public-deployment.md)
 
 The public application is [wasm-vs-js.paulkinlan-ea.deno.net](https://wasm-vs-js.paulkinlan-ea.deno.net/).
 
 - `/benchmarks/` contains 38 proposed workloads: P0=12, P1=12, and P2=14. 23/38 catalog workloads have runnable browser demos in the playground; the remaining 15 are documented proposals.
-- `/run/` hash-verifies the JavaScript and 96-byte Wasm artifacts, runs them in a same-origin module worker, and displays the result in memory. The page uploads and stores nothing.
+- `/run/`, `/run`, and `/run.html` now 302-redirect to `/#workload-sum-u32` — the homepage playground's sum-u32 card supersedes the retired standalone runner (the page was removed; playground.js is the runner entry point). The page uploads and stores nothing.
 - `/evidence/` records the accepted implementation and the limits of an unverified Chrome 150 attestation whose browser artifacts were not retained. Its source/build panel links the exact commit, executed JavaScript, authored WAT, build recipe, lockfile, versioned build manifest, and compiled Wasm with SHA-256 values.
 - `/evidence/v2-proposals/` renders each of the six audio proposal records from its own commit-pinned provenance. Direct JSON links remain in the HTML when JavaScript is disabled or a panel cannot load.
 - Inspectability files use exact route entries. `sum-u32` exposes `/benchmarks/sum-u32/benchmark.json`, `/benchmarks/sum-u32/workload.js`, `/artifacts/sum-u32/sum-u32.wasm`, `/artifacts/sum-u32/build-manifest.json`, and `/artifacts/sum-u32/build-manifest.9c309c49.json`. Each of `audio-fft`, `audio-fir`, and `audio-stft` exposes exactly five named manifests (`fixture`, `input`, `reference`, `output`, and `build`), its named Wasm file, `reference-output.f32le`, and the `js-controlled` and `wasm-linear-controlled` result JSON files.

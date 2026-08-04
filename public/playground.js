@@ -8,7 +8,7 @@ const PLAYGROUND_WORKLOADS = [
     slug: "sum-u32",
     title: "Modulo-2³² Integer Sum",
     category: "Compute Kernel",
-    route: "/run/",
+    route: "/#workload-sum-u32",
     description: "Sums 1,000,000 integers with 32-bit overflow wrapping.",
     explanation: "Basic 32-bit integer arithmetic loop performance.",
   },
@@ -531,6 +531,7 @@ function initPlaygroundUI() {
   PLAYGROUND_WORKLOADS.forEach((config) => {
     const card = document.createElement("div");
     card.className = "playground-card";
+    card.id = `workload-${config.slug}`;
     card.dataset.slug = config.slug;
 
     card.innerHTML = `
@@ -569,6 +570,15 @@ function initPlaygroundUI() {
         btn.textContent = `Run Test Loop (${iter}×)`;
       });
     });
+  }
+
+
+  // Hash deep-link: scroll to a workload card (e.g. /#workload-sum-u32).
+  if (location.hash) {
+    const target = document.getElementById(location.hash.slice(1));
+    if (target) {
+      requestAnimationFrame(() => target.scrollIntoView({ block: "start" }));
+    }
   }
 
   if (runAllBtn) {
