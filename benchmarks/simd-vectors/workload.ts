@@ -143,14 +143,14 @@ export type SimdReport = {
 
 // ── Compile Wasm ──
 
-let simdInstance: WebAssembly.Instance | null = null;
+let simdCache: { instance: WebAssembly.Instance; bytes: number } | null = null;
 
 async function getSimdWasm(): Promise<{
   instance: WebAssembly.Instance;
   bytes: number;
 }> {
-  if (simdInstance) {
-    return { instance: simdInstance, bytes: 0 };
+  if (simdCache) {
+    return simdCache;
   }
   const wabt = await wabtFactory();
   const mod = wabt.parseWat("simd-vectors.wat", SIMD_WAT, {
@@ -168,8 +168,9 @@ async function getSimdWasm(): Promise<{
   mod.destroy();
   const wasmBytes = new Uint8Array(binary.buffer);
   const compiled = await WebAssembly.compile(wasmBytes);
-  simdInstance = await WebAssembly.instantiate(compiled);
-  return { instance: simdInstance, bytes: wasmBytes.byteLength };
+  const instance = await WebAssembly.instantiate(compiled);
+  simdCache = { instance, bytes: wasmBytes.byteLength };
+  return simdCache;
 }
 
 // ── Benchmark helpers ──
