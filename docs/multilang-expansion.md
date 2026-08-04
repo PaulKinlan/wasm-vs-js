@@ -107,8 +107,12 @@ f32 fround-accumulation vs f64, etc.) exactly as the FFT rows do today.
 
 ## Waves
 
-- **Wave 1** — machinery + ml-gemm (GEMM in C/C++/Rust/Dart + comparison section on
-  the ml-gemm page). Proves the shared runner + oracle reuse + Dart f32 handling.
+- **Wave 1 — DONE (2026-08-05)** — shared `public/multilang-runner.js` (manifest-driven,
+  per-kernel adapters, standard controls) + GEMM in C/C++/Rust/Dart, all four variants
+  bit-identical to the strict-f32 oracle; report rows, artifact routes, tests, and the
+  Multi-Language Comparison section on the ml-gemm page (browser-verified: JS 3.6ms / C 2.7 /
+  C++ 2.7 / Rust 2.7 / Dart-WasmGC 111.8 at 128³ — the f32-emulation penalty disclosed).
+  Gate green; branch feat/multilang-expansion-plan pushed.
 - **Wave 2** — text-diff-patch, text-regex-log-scan, numeric-polybench-panel,
   audio-fir, audio-stft.
 - **Wave 3** — ml-dense-mlp, image-editing, flood-fill, crypto-file-integrity,
