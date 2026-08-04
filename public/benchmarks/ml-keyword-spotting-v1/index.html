@@ -18,8 +18,8 @@
     <main id="main" class="demo-shell">
       <p class="eyebrow">RUNNABLE CORRECTNESS DEMO · ML.KEYWORD-SPOTTING.V1</p>
       <h1>Speech Commands keyword spotting</h1>
-      <p><strong>No performance claim.</strong> This route processes the exact recipe-only 60-second Speech Commands v2 subset locally. Files never leave this page and are not stored.</p>
-      <p>The dataset cannot be redistributed here. Acquire the pinned test archive using the public <a href="/artifacts/base-ml-keyword-spotting/fixture-manifest.json">fixture manifest</a>, extract its files, then select the directory. A run is refused unless all 60 WAV byte hashes match.</p>
+      <p><strong>No performance claim.</strong> This route processes the exact pinned 60-second Speech Commands v2 subset locally. Audio is never uploaded or stored.</p>
+      <p>This page bundles the pinned 60-second fixture (Speech Commands v2 test subset, <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>: Warden, P. (2018), “Speech Commands: A Dataset for Limited-Vocabulary Speech Recognition”), hash-verified against the public <a href="/artifacts/base-ml-keyword-spotting/fixture-manifest.json">fixture manifest</a> before every run. Alternatively, acquire the pinned test archive yourself, extract its files, and select the directory — a local run is refused unless all 60 WAV byte hashes match.</p>
       <form id="kws-form">
         <label for="target">Controlled target</label>
         <select
@@ -32,7 +32,8 @@
           aria-describedby="file-help">
         <p
           id="file-help">Select the extracted test-set directory. Exactly the prescribed 60 files are read; unrelated files are ignored.</p>
-        <button id="start" type="submit">Start</button>
+        <button id="start" type="submit">Start with local files</button>
+        <button id="start-bundled" type="button">Start with the bundled fixture</button>
         <button id="cancel" type="button" disabled>Cancel</button>
       </form>
       <h2>Result</h2>

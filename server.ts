@@ -299,6 +299,10 @@ const routes = new Map<string, [string, string, boolean?]>([
     "benchmarks/base/ml-keyword-spotting/speech-commands-subset.v1.json",
     "application/json; charset=utf-8",
   ]],
+  ["/artifacts/base-ml-keyword-spotting/fixture.pcm16le", [
+    "public/artifacts/base-ml-keyword-spotting/fixture.pcm16le",
+    "application/octet-stream",
+  ]],
   ["/artifacts/base-ml-keyword-spotting/model-checkpoint.v1.json", [
     "benchmarks/base/ml-keyword-spotting/model-checkpoint.v1.json",
     "application/json; charset=utf-8",

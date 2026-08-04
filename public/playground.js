@@ -159,9 +159,8 @@ const PLAYGROUND_WORKLOADS = [
     route: "/benchmarks/ml-keyword-spotting-v1/",
     description: "Processes 60 seconds of audio in 20 ms hops and detects spoken commands.",
     explanation: "Convolutional and dense-layer inference over streaming mel-spectrogram features.",
-    // This demo requires user-selected local PCM fixture files, so it cannot
-    // run unattended in the playground loop.
-    manual: "Requires local audio fixture files — run it from the demo page.",
+    // The pinned fixture is bundled (CC BY 4.0 with attribution; owner-approved
+    // 2026-08-04), so the worker fetches and hash-verifies it automatically.
   },
   {
     slug: "ml-numeric-kernels-v1",

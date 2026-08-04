@@ -105,31 +105,49 @@ self.addEventListener("message", async (event) => {
       "/artifacts/base-ml-keyword-spotting/fixture-manifest.json",
     );
     const exact = await exactContract();
-    const bySuffix = new Map();
-    for (const selected of files) {
-      const normalizedPath = selected.path.replaceAll("\\", "/");
+    let pcmBytes;
+    if (files.length === 0) {
+      // Bundled pinned fixture: the exact normalized 60-second PCM16LE derived
+      // from the pinned Speech Commands v2 test archive (CC BY 4.0, redistributed
+      // with attribution; owner-approved 2026-08-04). The combined hash pin in the
+      // fixture manifest transitively binds all 60 source WAVs through the pinned
+      // normalization rule.
+      const bundled = await fetch("/artifacts/base-ml-keyword-spotting/fixture.pcm16le");
+      if (!bundled.ok) throw new Error("bundled fixture unavailable");
+      pcmBytes = new Uint8Array(await bundled.arrayBuffer());
+      if (
+        pcmBytes.byteLength !== 1920000 ||
+        await sha256Hex(pcmBytes) !== fixture.json.normalizedPcmSha256
+      ) {
+        throw new Error("bundled fixture PCM hash mismatch");
+      }
+    } else {
+      const bySuffix = new Map();
+      for (const selected of files) {
+        const normalizedPath = selected.path.replaceAll("\\", "/");
+        for (const entry of fixture.json.files) {
+          if (normalizedPath.endsWith(entry.path)) bySuffix.set(entry.path, selected.bytes);
+        }
+      }
+      pcmBytes = new Uint8Array(1920000);
+      let pcmOffset = 0;
       for (const entry of fixture.json.files) {
-        if (normalizedPath.endsWith(entry.path)) bySuffix.set(entry.path, selected.bytes);
+        const selected = bySuffix.get(entry.path);
+        if (!selected) throw new Error(`missing prescribed file: ${entry.path}`);
+        const raw = new Uint8Array(selected);
+        if (raw.length !== entry.wavBytes || await sha256Hex(raw) !== entry.wavSha256) {
+          throw new Error(`WAV hash mismatch: ${entry.path}`);
+        }
+        const normalized = parseWav(selected);
+        if (await sha256Hex(normalized) !== entry.normalizedPcmSha256) {
+          throw new Error(`normalized PCM mismatch: ${entry.path}`);
+        }
+        pcmBytes.set(normalized, pcmOffset);
+        pcmOffset += normalized.length;
       }
-    }
-    const pcmBytes = new Uint8Array(1920000);
-    let pcmOffset = 0;
-    for (const entry of fixture.json.files) {
-      const selected = bySuffix.get(entry.path);
-      if (!selected) throw new Error(`missing prescribed file: ${entry.path}`);
-      const raw = new Uint8Array(selected);
-      if (raw.length !== entry.wavBytes || await sha256Hex(raw) !== entry.wavSha256) {
-        throw new Error(`WAV hash mismatch: ${entry.path}`);
+      if (await sha256Hex(pcmBytes) !== fixture.json.normalizedPcmSha256) {
+        throw new Error("combined 60-second PCM hash mismatch");
       }
-      const normalized = parseWav(selected);
-      if (await sha256Hex(normalized) !== entry.normalizedPcmSha256) {
-        throw new Error(`normalized PCM mismatch: ${entry.path}`);
-      }
-      pcmBytes.set(normalized, pcmOffset);
-      pcmOffset += normalized.length;
-    }
-    if (await sha256Hex(pcmBytes) !== fixture.json.normalizedPcmSha256) {
-      throw new Error("combined 60-second PCM hash mismatch");
     }
     const pcm = new Int16Array(pcmBytes.buffer);
     const results = {};

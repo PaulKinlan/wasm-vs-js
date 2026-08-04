@@ -17,30 +17,37 @@ function cleanup() {
   clearTimeout(timer);
   timer = 0;
   start.disabled = false;
+  const bundled = document.querySelector("#start-bundled");
+  if (bundled) bundled.disabled = false;
   cancel.disabled = true;
 }
 function stop(message) {
   cleanup();
   status.textContent = message;
 }
-form.addEventListener("submit", async (event) => {
-  event.preventDefault();
+const startBundled = document.querySelector("#start-bundled");
+async function beginRun(useBundled) {
   cleanup();
   const runToken = token;
-  status.textContent = "Reading and validating the prescribed local files…";
+  status.textContent = useBundled
+    ? "Loading and validating the bundled pinned fixture…"
+    : "Reading and validating the prescribed local files…";
   progress.value = 0;
   result.textContent = "No result yet.";
   start.disabled = true;
+  if (startBundled) startBundled.disabled = true;
   cancel.disabled = false;
-  const selected = [...files.files].map((file) => ({
-    path: file.webkitRelativePath || file.name,
-    name: file.name,
-    bytes: file.arrayBuffer(),
-  }));
   const transferred = [];
-  for (const entry of selected) {
-    const bytes = await entry.bytes;
-    transferred.push({ path: entry.path, name: entry.name, bytes });
+  if (!useBundled) {
+    const selected = [...files.files].map((file) => ({
+      path: file.webkitRelativePath || file.name,
+      name: file.name,
+      bytes: file.arrayBuffer(),
+    }));
+    for (const entry of selected) {
+      const bytes = await entry.bytes;
+      transferred.push({ path: entry.path, name: entry.name, bytes });
+    }
   }
   if (runToken !== token) return;
   worker = new Worker("/base-ml-keyword-spotting-worker.js", { type: "module" });
@@ -79,6 +86,14 @@ form.addEventListener("submit", async (event) => {
       stop("Timed out.");
     }
   }, 120000);
+}
+form.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (files.files.length === 0) return;
+  beginRun(false);
 });
+if (startBundled) {
+  startBundled.addEventListener("click", () => beginRun(true));
+}
 cancel.addEventListener("click", () => stop("Cancelled. The worker was terminated."));
 self.addEventListener("pagehide", cleanup);

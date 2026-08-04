@@ -251,7 +251,7 @@ function formatTargetPayload(slug, target) {
     case "protobuf":
       return { target: isWasm ? "wasm-linear-controlled" : "js-controlled" };
     case "keyword-spotting":
-      // Requires user-selected local PCM files; playground marks this manual.
+      // Empty files: the worker fetches and hash-verifies the bundled pinned fixture.
       return { target: isWasm ? "wasm-linear" : "javascript", mode: "exact", files: [] };
     case "pdf-viewer":
       return { type: "start", target: isWasm ? "wasm-linear" : "javascript" };
