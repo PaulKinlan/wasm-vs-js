@@ -33,11 +33,14 @@ const schemaNames = [
   "simulation-rigid-body-2d-result.schema.json",
 ];
 
-async function build() {
+// Spawn the builder synchronously so it works in its own process while the
+// test's synchronous JS physics below blocks this event loop. An async spawn
+// would not actually start the child until the physics finished.
+function spawnBuild() {
   const pinned = JSON.parse(
-    await Deno.readTextFile(new URL("build-manifest.json", artifact)),
+    Deno.readTextFileSync(new URL("build-manifest.json", artifact)),
   ).sourceCommit;
-  const command = new Deno.Command(Deno.execPath(), {
+  return new Deno.Command(Deno.execPath(), {
     cwd: root,
     args: [
       "run",
@@ -50,8 +53,11 @@ async function build() {
     ],
     stdout: "piped",
     stderr: "piped",
-  });
-  const output = await command.output();
+  }).spawn();
+}
+
+async function finishBuild(child: Deno.ChildProcess) {
+  const output = await child.output();
   assert(output.success, new TextDecoder().decode(output.stderr));
 }
 function controlledTwoBodyFixture(seed: number, joint = false) {
@@ -109,7 +115,26 @@ Deno.test("oriented rigid-body implementation is reproducible, differential, com
     await sha256Hex(catalogBefore),
     "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
   );
-  await build();
+  // Spawn the reproducible build, then run the JS-side physics while the
+  // builder works in its own process. The build rewrites the artifact in
+  // place, so everything that touches wasm bytes still happens after the
+  // build promise resolves; only pure-JS computation moves earlier.
+  const build = spawnBuild();
+  const fixture = generateRigidBodyFixture();
+  let jsAllocations = 0;
+  const js = runRigidBodyJavaScript(fixture, { onAllocate: () => jsAllocations++ });
+  const seedRuns = [];
+  for (let seed = 1; seed <= 8; seed += 1) {
+    const seedFixture = controlledTwoBodyFixture(Math.imul(seed, 0x9e3779b9), seed % 2 === 0);
+    const options = { timesteps: 12, checkpointEvery: 3, allowTestFixture: true };
+    seedRuns.push({
+      seed,
+      fixture: seedFixture,
+      options,
+      js: runRigidBodyJavaScript(seedFixture, options),
+    });
+  }
+  await finishBuild(build);
   assertEquals(
     await sha256Hex(await Deno.readFile(new URL("catalog/workloads.v1.json", root))),
     await sha256Hex(catalogBefore),
@@ -122,20 +147,14 @@ Deno.test("oriented rigid-body implementation is reproducible, differential, com
     assert(exportNames.includes(name));
   }
   const wasm = await instantiateRigidBodyWasm(wasmBytes);
-  for (let seed = 1; seed <= 8; seed += 1) {
-    const fixture = controlledTwoBodyFixture(Math.imul(seed, 0x9e3779b9), seed % 2 === 0);
-    const options = { timesteps: 12, checkpointEvery: 3, allowTestFixture: true };
-    const js = runRigidBodyJavaScript(fixture, options),
-      linear = runRigidBodyWasm(fixture, wasm, options);
-    const comparison = compareRigidBodyResults(js, linear, 0, 0);
+  for (const { seed, fixture: seedFixture, options, js: seedJs } of seedRuns) {
+    const linear = runRigidBodyWasm(seedFixture, wasm, options);
+    const comparison = compareRigidBodyResults(seedJs, linear, 0, 0);
     assert(comparison.passed, `oriented scene ${seed}: ${JSON.stringify(comparison)}`);
-    assertEquals(js.counters.rotatedManifoldTests, linear.counters.rotatedManifoldTests);
-    assertEquals(js.counters.angularContactImpulses, linear.counters.angularContactImpulses);
-    assertEquals(js.counters.jointImpulses, linear.counters.jointImpulses);
+    assertEquals(seedJs.counters.rotatedManifoldTests, linear.counters.rotatedManifoldTests);
+    assertEquals(seedJs.counters.angularContactImpulses, linear.counters.angularContactImpulses);
+    assertEquals(seedJs.counters.jointImpulses, linear.counters.jointImpulses);
   }
-  const fixture = generateRigidBodyFixture();
-  let jsAllocations = 0;
-  const js = runRigidBodyJavaScript(fixture, { onAllocate: () => jsAllocations++ });
   let wasmAllocations = 0;
   const boundaries: string[] = [];
   const linear = runRigidBodyWasm(fixture, wasm, {
