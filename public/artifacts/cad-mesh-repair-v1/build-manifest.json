@@ -4,8 +4,8 @@
   "status": "supplemental-validation-package",
   "source": {
     "repository": "https://github.com/PaulKinlan/wasm-vs-js",
-    "commit": "b2897bcd4f49b017030222dd493e64f64f10f8a6",
-    "commitUrl": "https://github.com/PaulKinlan/wasm-vs-js/commit/b2897bcd4f49b017030222dd493e64f64f10f8a6"
+    "commit": "56676cc563e23d592caf2dd87123878fe446edf9",
+    "commitUrl": "https://github.com/PaulKinlan/wasm-vs-js/commit/56676cc563e23d592caf2dd87123878fe446edf9"
   },
   "sourceGraph": {
     "nodes": [
@@ -169,7 +169,7 @@
     "deno": "2.9.0",
     "clang": "clang version 22.1.8",
     "linker": "LLD 22.1.8",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts --allow-run=clang,wasm-ld,git scripts/build-cad-mesh-repair.ts --source-commit=b2897bcd4f49b017030222dd493e64f64f10f8a6",
+    "command": "deno run --allow-read=. --allow-write=public/artifacts --allow-run=clang,wasm-ld,git scripts/build-cad-mesh-repair.ts --source-commit=56676cc563e23d592caf2dd87123878fe446edf9",
     "flags": [
       "--target=wasm32-unknown-unknown",
       "-O3",

@@ -5,7 +5,7 @@
   "registrationId": "simulation-rigid-body-2d-v1-controlled",
   "variantId": "js-controlled",
   "executionTarget": "javascript",
-  "sourceCommit": "b2897bcd4f49b017030222dd493e64f64f10f8a6",
+  "sourceCommit": "56676cc563e23d592caf2dd87123878fe446edf9",
   "fixtureSha256": "8ea94bb93e6eafaaa9824750da76da143e8676a8bb8db22074f3abe354a90e42",
   "artifactSha256": null,
   "referenceSha256": "ec1518e2d98240fe9202e5d48b609943230eb5e076aa30da97cd8f31b79c4498",
