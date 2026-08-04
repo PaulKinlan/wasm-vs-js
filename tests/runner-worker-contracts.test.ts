@@ -22,7 +22,7 @@ async function withLocalServer<T>(fn: (origin: string) => Promise<T>): Promise<T
     const store = new LocalRunStore(tempDir);
     await store.initialize();
     const handler = createHandler(store, "local");
-    const server = Deno.serve({ port: 0, handler });
+    const server = Deno.serve({ port: 0, hostname: "127.0.0.1", handler });
     const addr = server.addr as Deno.NetAddr;
     const origin = `http://127.0.0.1:${addr.port}`;
     try {
