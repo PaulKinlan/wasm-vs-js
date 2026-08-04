@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "workloadId": "graphics.gltf-viewer.v1",
   "status": "passed",
-  "sourceCommit": "32c7e8f2a97c9bd898bf2f75e77d2e6ec8c243c0",
+  "sourceCommit": "106f4dbfb2b10e7f4df4f3c868e104aaa7c0d1e4",
   "input": {
     "decodedMeshSha256": "b4e03bea9c76a08a6cc8d62ad1320af25ef7e5c594015b6b8396b9efc8aa5f54",
     "asmJsWasmDecodedMeshEqual": true
