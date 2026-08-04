@@ -163,6 +163,12 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/favicon.svg", ["public/favicon.svg", "image/svg+xml"]],
   ["/app.js", ["public/app.js", "text/javascript; charset=utf-8"]],
   ["/playground.js", ["public/playground.js", "text/javascript; charset=utf-8"]],
+  ["/results-explorer.js", [
+    "public/results-explorer.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/results", ["public/results/index.html", "text/html; charset=utf-8"]],
+  ["/results/", ["public/results/index.html", "text/html; charset=utf-8"]],
   ["/unified-runner.js", ["public/unified-runner.js", "text/javascript; charset=utf-8"]],
   ["/inspectability.js", ["public/inspectability.js", "text/javascript; charset=utf-8"]],
   ["/v2-results.js", ["public/v2-results.js", "text/javascript; charset=utf-8"]],

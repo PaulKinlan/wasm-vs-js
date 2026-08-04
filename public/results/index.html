@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="description"
+      content="Interactive results explorer for Wasm vs JavaScript benchmark runs with workload matrix, filters, and raw-run inspectors.">
+    <title>Results Explorer · Wasm vs JavaScript</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to main content</a>
+    <header class="masthead">
+      <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
+      <a href="/benchmarks/">Browse Catalog</a>
+      <a href="/experiments/">Experiment</a>
+      <a href="/evidence/">Evidence</a>
+      <strong>results</strong>
+    </header>
+    <main id="main" class="dashboard">
+      <section class="intro narrative">
+        <p class="eyebrow">M4 · results explorer</p>
+        <h1>Benchmark results explorer</h1>
+        <p class="lede">
+          Inspect collected benchmark runs across workloads, targets, and cache states. Filter by
+          workload or target using the controls below — the URL hash updates for sharing. No
+          performance conclusions are drawn here; this is an inspection surface for raw run data.
+        </p>
+        <p class="notice">
+          <strong>No accepted corpus claim.</strong> Results shown are individual run records from
+          the local KV store. Statistical comparison requires the M1 pilot corpus and preregistered
+          stopping rules.
+        </p>
+      </section>
+
+      <section aria-labelledby="filter-title">
+        <h2 id="filter-title">Filters</h2>
+        <form id="results-filter-form" class="results-filters">
+          <label>
+            Workload
+            <select id="filter-benchmark" name="benchmark">
+              <option value="">All workloads</option>
+            </select>
+          </label>
+          <label>
+            Target
+            <select id="filter-target" name="target">
+              <option value="">All targets</option>
+              <option value="javascript">JavaScript</option>
+              <option value="wasm-linear">Linear Wasm</option>
+            </select>
+          </label>
+          <label>
+            Cache state
+            <select id="filter-cache" name="cache">
+              <option value="">All cache states</option>
+              <option value="cold">Cold</option>
+              <option value="warm">Warm</option>
+              <option value="validation">Validation</option>
+            </select>
+          </label>
+          <label>
+            Page size
+            <select id="filter-limit" name="limit">
+              <option value="20">20</option>
+              <option value="50" selected>50</option>
+              <option value="100">100</option>
+            </select>
+          </label>
+          <button type="submit">Apply filters</button>
+          <button type="button" id="filter-clear">Clear filters</button>
+        </form>
+      </section>
+
+      <section aria-labelledby="matrix-title" id="matrix-section">
+        <h2 id="matrix-title">Workload × target matrix</h2>
+        <p>
+          Sample counts per workload and target. Cells show the number of collected runs, not
+          performance conclusions. Empty cells indicate no data collected.
+        </p>
+        <div id="matrix-container" class="matrix-wrap">
+          <p class="loading-notice">Loading matrix…</p>
+        </div>
+      </section>
+
+      <section aria-labelledby="runs-title" id="runs-section">
+        <h2 id="runs-title">Run records</h2>
+        <p>
+          Individual run records with correctness status, workload, target, and captured-at
+          timestamp. Click a row to inspect the full JSON record.
+        </p>
+        <div id="runs-container" class="runs-wrap">
+          <p class="loading-notice">Loading runs…</p>
+        </div>
+      </section>
+
+      <section aria-labelledby="detail-title" id="detail-section" hidden>
+        <h2 id="detail-title">Run detail inspector</h2>
+        <button type="button" id="detail-close">Close inspector</button>
+        <div id="detail-container" class="detail-wrap"></div>
+      </section>
+
+      <section aria-labelledby="summary-title">
+        <h2 id="summary-title">Aggregate counts</h2>
+        <div id="summary-container" class="summary-wrap">
+          <p class="loading-notice">Loading summary…</p>
+        </div>
+      </section>
+
+      <section class="detail-grid" aria-label="Explorer details">
+        <div class="detail-card">
+          <h2>What this shows</h2>
+          <p>
+            Individual benchmark run records from the local KV store, with workload, target, cache
+            state, and correctness status.
+          </p>
+        </div>
+        <div class="detail-card">
+          <h2>What this does not show</h2>
+          <p>
+            Performance conclusions, timing comparisons, or competitive declarations. Those require the M1
+            pilot corpus with preregistered stopping rules and statistical analysis.
+          </p>
+        </div>
+        <div class="detail-card">
+          <h2>Data source</h2>
+          <p>
+            Runs are stored via <code>POST /v1/runs</code> in Deno KV. The explorer fetches from
+            <code>GET /v1/runs</code> with URL hash-backed filters for shareable views.
+          </p>
+        </div>
+        <div class="detail-card">
+          <h2>API endpoints</h2>
+          <ul>
+            <li><a href="/v1/runs?limit=5">GET /v1/runs</a></li>
+            <li><a href="/v1/summaries">GET /v1/summaries</a></li>
+            <li><a href="/v1/health">GET /v1/health</a></li>
+            <li><a href="/v1/headroom">GET /v1/headroom</a></li>
+          </ul>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="/results-explorer.js"></script>
+  </body>
+</html>
