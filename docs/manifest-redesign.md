@@ -57,7 +57,7 @@ The frozen preregistration canonical sha256 lives in FOUR sites:
   literal.
 - Fixtures import from the module rather than repeating the literal.
 
-### Slice 3 — Evidence-record regeneration policy
+### Slice 3 — Evidence-record regeneration policy — DONE (a141f9f3)
 
 Surgical string-patching of evidence records is forbidden (diverges from builder
 output; canonical formats corrupt). Rule, to be encoded in AGENTS.md and the rebind
