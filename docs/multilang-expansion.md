@@ -1,0 +1,128 @@
+# Multi-Language Expansion Program (Paul directive, 2026-08-05)
+
+> "what I really want is every benchmark we have to have this multilang support and comparison"
+
+Every **kernel-capable** benchmark must offer the same comparison the multi-language
+kernel demo provides: the identical algorithm written in JavaScript, raw WAT,
+AssemblyScript, C, C++, Rust, and Dart (WasmGC), compiled to WebAssembly where
+applicable, with an in-browser side-by-side run and commit-pinned source for each
+implementation. Hand-written WAT files are kept wherever they exist — they are a
+first-class variant, not a stepping stone.
+
+The reference implementation is the shipped
+[`multilang-wasm` demo](/benchmarks/multilang-wasm/): kernels `sum_u32` + `fft_butterfly`
+across 7 engines, real measured report, WasmGC evidence tests, build manifest with
+source graph + hashes, artifact routes, production-deployed.
+
+## Scope criterion
+
+A benchmark gets the full multi-language treatment when its **computational core is
+an algorithm expressible in any language** — i.e. the workload's cost is dominated by
+its own arithmetic/state logic, not by a host API or a third-party engine. Benchmarks
+whose essence is DOM interaction, browser APIs, or a vendored library engine get a
+documented exclusion (and may still expose an optional "compute core" comparison where
+one exists).
+
+### Kernel-capable (waves below)
+| Workload | Core kernel | Notes |
+|---|---|---|
+| ml-gemm | GEMM, strict f32 | Wave 1 — classic; frozen i/j/k order |
+| ml-dense-mlp | Dense MLP inference | Wave 1/2 — frozen GELU exists |
+| text-diff-patch | Myers diff/apply | Wave 1/2 |
+| text-regex-log-scan | Regex engine core | Naive + Thompson NFA variants |
+| numeric-polybench-panel | Polybench kernels | Per-kernel variants |
+| image-editing / flood-fill | Pixel kernels (blur, fill) | Wave 2 |
+| audio-fir / audio-stft | DSP FIR/STFT | FFT already done; reuse |
+| crypto-file-integrity | SHA-256 | Wave 2 |
+| serialization-json-telemetry | JSON parse/stringify | Wave 2 |
+| simulation-nbody-cloth | N-body step | Wave 2 |
+| database-olap-chart | Aggregation | Wave 2 |
+| network-pcap-decode | Packet parse | Wave 2 |
+| game-ecs-frame-update | ECS systems | Wave 2 |
+| numeric-fft-spectral-filter | FFT | Already covered by multilang FFT |
+
+### Documented exclusions (DOM / platform / library-bound)
+todomvc-journey, dom-virtualized-grid, dom-grid-movement, dom-keyed-list-mutation,
+dom-nested-tree-mutation, dom-table-sort-filter-pagination, dom-dependent-form-validation,
+dom-virtualized-scrolling, graphics-gltf-viewer, document-pdf-viewer,
+database-sqlite-notebook, ml-keyword-spotting (model-bound), server-ssr-template,
+audio-webaudio-effects (API-bound), media/opus/zstd/quantized-inference (vendored engines),
+tooling-c-to-wasm-compile (meta).
+
+## Architecture (shared machinery — build once, reuse per workload)
+
+### Source layout
+```
+benchmarks/multilang-wasm/<workload>/           # one dir per kernel family
+  <kernel>.c  <kernel>.cpp  <kernel>.rs  <kernel>.dart  <kernel>.ts  <kernel>.wat(if authored)
+```
+
+### Shared build framework
+`scripts/build-multilang-<workload>.ts` follows the reference
+`scripts/build-multilang-wasm-benchmark.ts`:
+1. compile C/C++ (`clang/clang++ --target=wasm32 -O3 -nostdlib`), Rust
+   (`rustc --target wasm32-unknown-unknown -O --crate-type cdylib`, no_std),
+   AssemblyScript (`asc -O3`), Dart (`dart compile wasm --no-source-maps` + generated
+   glue with the `// deno-lint-ignore-file` header);
+2. run every variant against the workload's **existing oracle** (same fixed work,
+   same frozen order, same tolerances) — no new oracles;
+3. measure cold instantiate + warm median in-process; every number real;
+4. emit `build-manifest.json` (source graph + artifact hashes) and the workload's
+   report rows.
+
+### Shared browser runner
+Extract the reference runner (`public/benchmarks/multilang-wasm/runner.js`) into
+`public/multilang-runner.js`, driven by a per-workload
+`public/benchmarks/multilang-wasm/<workload>.manifest.json`:
+```jsonc
+{
+  "workloadId": "ml.gemm.v1",
+  "kernels": [{ "name": "gemm", "inputs": { ... } }],
+  "engines": [
+    { "key": "js",  "kind": "js" },
+    { "key": "c",   "kind": "linear", "file": "gemm_c.wasm", "offset": 0 },
+    { "key": "rs",  "kind": "linear", "file": "gemm_rs.wasm", "offset": 0 },
+    { "key": "dart","kind": "dart",   "file": "gemm_dart.wasm", "glue": "gemm_dart.mjs" }
+  ],
+  "sources": [{ "language": "Rust", "path": "benchmarks/multilang-wasm/ml-gemm/gemm.rs" }]
+}
+```
+The runner renders the standard shell + multi-engine tables + commit-pinned source
+links. The workload's existing page gains a "Multi-language comparison" section.
+
+### Semantics disclosure (critical)
+Dart has no f32 primitive. For strict-f32 kernels (GEMM, MLP), the Dart variant must
+either replicate f32 rounding in f64 (documented cost) or disclose looser accumulation.
+Every variant row states its exact arithmetic (f32 polynomial vs f64 library trig,
+f32 fround-accumulation vs f64, etc.) exactly as the FFT rows do today.
+
+## Waves
+
+- **Wave 1** — machinery + ml-gemm (GEMM in C/C++/Rust/Dart + comparison section on
+  the ml-gemm page). Proves the shared runner + oracle reuse + Dart f32 handling.
+- **Wave 2** — text-diff-patch, text-regex-log-scan, numeric-polybench-panel,
+  audio-fir, audio-stft.
+- **Wave 3** — ml-dense-mlp, image-editing, flood-fill, crypto-file-integrity,
+  simulation-nbody-cloth.
+- **Wave 4** — serialization-json-telemetry, database-olap-chart, network-pcap-decode,
+  game-ecs-frame-update.
+
+Parallelization: independent workloads can be sharded across agents (each wave = one
+branch per workload, MASTER integrates). The gate (`deno task check`) must stay green
+per merge; new artifacts add server.ts routes (rebind cascade required).
+
+## Constraints & risks
+
+- **Deploy file-size limit (~5MB/file via `deno deploy` CLI)**: every new multilang
+  artifact is small (<40KB) — fine. The two pre-existing >5MB evidence files
+  (base-gltf-viewer/reference-output.bin 21MB, ml-gemm/reference.f64 8MB) currently
+  block full CLI deploys; tracked separately (see deploy notes) — MASTER's dashboard
+  channel or redirect routes.
+- **Frozen evidence**: never touch frozen v1 records or traditional-demos retained
+  evidence; multilang additions are additive (new variants/artifacts/sections).
+- **Oracles**: reuse existing workload oracles; never weaken tolerances to fit a
+  variant.
+- **WAT**: keep every existing WAT file; author new WAT only where it adds value
+  (tiny kernels like sum_u32).
+- **Gate**: `deno task check` green per merge; server.ts route changes → run
+  `scripts/rebind-server-ts.sh`.
