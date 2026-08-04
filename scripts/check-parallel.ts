@@ -245,6 +245,7 @@ await runStage({
   env: testEnv,
 });
 
-console.error(
-  `check-parallel: all stages ok in ${((performance.now() - started) / 1000).toFixed(1)}s`,
-);
+const totalSeconds = (performance.now() - started) / 1000;
+console.error(`check-parallel: all stages ok in ${totalSeconds.toFixed(1)}s`);
+// Machine-readable for the autoresearch harness.
+console.log(`METRIC total_s=${totalSeconds.toFixed(1)}`);
