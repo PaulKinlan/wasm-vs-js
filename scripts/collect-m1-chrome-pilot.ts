@@ -127,9 +127,21 @@ async function collectBrowserInfo(cdpPort: number): Promise<{
 type AttemptResult = {
   attempt: number;
   success: boolean;
-  jsMs?: number;
-  wasmMs?: number;
-  oracle?: boolean;
+  timings?: {
+    js: {
+      firstScored: string | null;
+      median: string | null;
+      p95: string | null;
+      count: string | null;
+    };
+    wasm: {
+      firstScored: string | null;
+      median: string | null;
+      p95: string | null;
+      count: string | null;
+    };
+    trajectorySamples: number;
+  };
   error?: string;
   screenshotPath?: string;
 };
@@ -171,15 +183,40 @@ async function runBenchmarkAttempt(
           // Wait for result to appear (up to 30s)
           for (let i = 0; i < 60; i++) {
             await new Promise(r => setTimeout(r, 500));
-            const resultEl = document.querySelector('[id*="result"], .result, .summary, pre, [data-result]');
-            if (resultEl && resultEl.textContent.length > 50) {
+            const results = document.getElementById('live-results');
+            if (results && !results.hidden) {
+              // Extract timing from rendered tables
+              const tables = results.querySelectorAll('table');
+              let jsFirst = null, jsMedian = null, jsP95 = null, jsCount = null;
+              let wasmFirst = null, wasmMedian = null, wasmP95 = null, wasmCount = null;
+              let trajectory = [];
+              for (const table of tables) {
+                const rows = table.querySelectorAll('tbody tr');
+                for (const row of rows) {
+                  const cells = [...row.querySelectorAll('td')].map(td => td.textContent.trim());
+                  if (cells[0]?.includes('JavaScript')) {
+                    [jsFirst, jsMedian, jsP95, jsCount] = cells.slice(1);
+                  }
+                  if (cells[0]?.includes('Wasm')) {
+                    [wasmFirst, wasmMedian, wasmP95, wasmCount] = cells.slice(1);
+                  }
+                  if (cells[0]?.match(/^\d+$/)) {
+                    trajectory.push({ iter: cells[0], js: cells[1], wasm: cells[2] });
+                  }
+                }
+              }
               return {
-                text: resultEl.textContent.slice(0, 2000),
-                bodyText: document.body.innerText.slice(0, 3000),
+                text: 'OK',
+                timings: {
+                  js: { firstScored: jsFirst, median: jsMedian, p95: jsP95, count: jsCount },
+                  wasm: { firstScored: wasmFirst, median: wasmMedian, p95: wasmP95, count: wasmCount },
+                  trajectorySamples: trajectory.length,
+                  trajectory: trajectory.slice(0, 5),
+                },
               };
             }
           }
-          return { text: 'TIMEOUT', bodyText: document.body.innerText.slice(0, 500) };
+          return { text: 'TIMEOUT' };
         })()
       `,
       awaitPromise: true,
@@ -205,6 +242,7 @@ async function runBenchmarkAttempt(
     return {
       attempt,
       success,
+      timings,
       screenshotPath,
       error: success ? undefined : resultText,
     };
