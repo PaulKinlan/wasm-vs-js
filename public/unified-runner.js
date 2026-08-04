@@ -1,7 +1,7 @@
 // Unified Benchmark Runner & Performance Reporting Module
 // Standardized execution harness, graphs, tables, and worker controls for all benchmark detail pages.
 
-const WORKLOAD_CONFIGS = {
+export const WORKLOAD_CONFIGS = {
   "sum-u32": {
     workerScript: "/hosted-runner-worker.js",
     protocol: "sum-u32",
@@ -214,7 +214,7 @@ const WORKLOAD_CONFIGS = {
 };
 
 // Map target name per protocol family
-function formatTargetPayload(slug, target) {
+export function formatTargetPayload(slug, target) {
   const isWasm = target === "wasm" || target === "wasm-linear" ||
     target === "wasm-linear-controlled";
   const config = WORKLOAD_CONFIGS[slug] || {};
@@ -763,10 +763,12 @@ function initUnifiedRunner() {
   startBtn.disabled = false;
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initUnifiedRunner);
-} else {
-  initUnifiedRunner();
+if (typeof document !== "undefined") {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initUnifiedRunner);
+  } else {
+    initUnifiedRunner();
+  }
 }
 
-export { executeWorkerLoop, renderPerformanceReport, WORKLOAD_CONFIGS };
+export { executeWorkerLoop, renderPerformanceReport };
