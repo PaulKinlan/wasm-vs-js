@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "a96e7e581a96d98a49ea3508372cc249a6ca7609",
-  "sourceSha256": "32fbeecee6144cba1b4a944c025dee7bc5004dd623c3bb31a8661a5b3f17c6f8",
+  "sourceCommit": "5472fd1132c048664c8b48815972391c108135cb",
+  "sourceSha256": "3c38284592e7d4d249f6930dc84c92767894d67be5b227e4159cf59c0e330c71",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 80901,
-      "sha256": "80ae42b09e7ef4040697eadc19a2ad2a877bde606dcafa3d2473a4eb9933c553"
+      "bytes": 80995,
+      "sha256": "3370f0a96c672bc2a58fee1b40ed4729195718bed7942bdd0ae1f1305681d793"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "7e89fd6fba5355fd2715214f88824542c45a2e15bcd7a342ffcb74c86aae1b5c"
+      "sha256": "78530c61fbfa98b9520b95e3d16de6f99573766a3ab62826623e38cb648da5b1"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "e9d4f281b267d5fc36a248a1a0e2ba638ade822502fd17301d1a3709ffb96e00"
+      "sha256": "a1f6d1a83e9fbde3e322735bf8117fc003d93906e27ed49720952c521968b2fc"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=a96e7e581a96d98a49ea3508372cc249a6ca7609"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=5472fd1132c048664c8b48815972391c108135cb"
   }
 }

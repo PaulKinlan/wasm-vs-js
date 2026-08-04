@@ -11,7 +11,7 @@
     <title>ML GEMM · Wasm vs JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
   </head>
-  <body>
+  <body data-multilang-manifest="/benchmarks/multilang-wasm/ml-gemm.manifest.json">
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
@@ -60,6 +60,43 @@
         <div id="result-content"></div>
       </section>
 
+      <section class="demo-panel" aria-labelledby="multilang-heading">
+        <h2 id="multilang-heading">Multi-Language Comparison</h2>
+        <p>
+          The same strict-f32 GEMM kernel (C = C0 + A·B, frozen i/j/k order, 128×128×128)
+          written in JavaScript, C, C++, Rust, and Dart (WasmGC). All variants are bit-identical
+          to the JS <code>Math.fround</code> oracle (test-verified); Dart/WasmGC emulates f32 with
+          per-op fround since Dart has no f32 primitive — that overhead is real and disclosed.
+          Sources:
+          <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/tree/main/benchmarks/multilang-wasm/ml-gemm">gemm.c · gemm.cpp · gemm.rs · gemm.dart</a>.
+        </p>
+        <form id="demo-form">
+          <div class="controls">
+            <label for="target">
+              <span>Target Engine</span>
+              <select id="target" name="target" disabled>
+                <option value="all" selected>Compare All Implementations</option>
+              </select>
+            </label>
+            <label for="iterations">
+              <span>Loop Iterations</span>
+              <select id="iterations" name="iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10">10 iterations</option>
+                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                <option value="50">50 iterations</option>
+                <option value="100">100 iterations (Sustained loop)</option>
+              </select>
+            </label>
+            <button id="start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="status" role="status"
+          aria-live="polite">Ready. Select loop iterations, then click Start.</p>
+        <div id="perf-reporting" class="detail-grid" hidden></div>
+      </section>
+
       <section class="detail-grid" aria-label="Workload details">
         <div class="detail-card">
           <h2>What it does</h2>
@@ -84,5 +121,6 @@
       </section>
     </main>
     <script type="module" src="/benchmarks/ml-gemm/neural-gemm-runner.js"></script>
+    <script type="module" src="/multilang-runner.js"></script>
   </body>
 </html>
