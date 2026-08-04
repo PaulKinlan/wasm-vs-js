@@ -540,14 +540,14 @@ function renderPerformanceReport(container, jsStats, wasmStats, iterations) {
   } ms</span>
         </div>
         <div class="perf-bar-track">
-          <div class="perf-bar js-cold" style="width: ${jsColdPct}%" title="Cold Start: ${
+          <div class="perf-bar js-cold" data-pct="${jsColdPct}" title="Cold Start: ${
     jsStats.coldMs.toFixed(2)
   } ms">
             <span>Cold: ${jsStats.coldMs.toFixed(1)}ms</span>
           </div>
         </div>
         <div class="perf-bar-track">
-          <div class="perf-bar js-warm" style="width: ${jsWarmPct}%" title="Warm Median: ${
+          <div class="perf-bar js-warm" data-pct="${jsWarmPct}" title="Warm Median: ${
     jsWarm.toFixed(2)
   } ms">
             <span>Warm: ${jsWarm.toFixed(1)}ms</span>
@@ -563,14 +563,14 @@ function renderPerformanceReport(container, jsStats, wasmStats, iterations) {
   } ms</span>
         </div>
         <div class="perf-bar-track">
-          <div class="perf-bar wasm-cold" style="width: ${wasmColdPct}%" title="Cold Start: ${
+          <div class="perf-bar wasm-cold" data-pct="${wasmColdPct}" title="Cold Start: ${
     wasmStats.coldMs.toFixed(2)
   } ms">
             <span>Cold: ${wasmStats.coldMs.toFixed(1)}ms</span>
           </div>
         </div>
         <div class="perf-bar-track">
-          <div class="perf-bar wasm-warm" style="width: ${wasmWarmPct}%" title="Warm Median: ${
+          <div class="perf-bar wasm-warm" data-pct="${wasmWarmPct}" title="Warm Median: ${
     wasmWarm.toFixed(2)
   } ms">
             <span>Warm: ${wasmWarm.toFixed(1)}ms</span>
@@ -617,6 +617,9 @@ function renderPerformanceReport(container, jsStats, wasmStats, iterations) {
   `;
 
   container.innerHTML = speedupBadgeHtml + graphHtml + tableHtml;
+  container.querySelectorAll(".perf-bar[data-pct]").forEach((bar) => {
+    bar.style.width = `${bar.dataset.pct}%`;
+  });
   container.hidden = false;
 }
 
