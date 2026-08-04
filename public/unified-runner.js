@@ -77,6 +77,8 @@ const WORKLOAD_CONFIGS = {
     workerScript: "/sqlite-notebook-worker.js",
     protocol: "sqlite-notebook",
     iterationTimeoutMs: 300000,
+    // The worker drives AlaSQL via importScripts, which module workers forbid.
+    workerType: "classic",
   },
   "document-pdf-viewer-v1": {
     workerScript: "/benchmarks/document-pdf-viewer-v1/worker.js",
@@ -421,7 +423,7 @@ async function executeWorkerLoop(slug, target, iterations = 30) {
     const iterationMs = await new Promise((resolve, reject) => {
       let worker;
       try {
-        worker = new Worker(config.workerScript, { type: "module" });
+        worker = new Worker(config.workerScript, { type: config.workerType || "module" });
       } catch (err) {
         return reject(err);
       }

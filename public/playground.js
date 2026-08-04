@@ -422,16 +422,20 @@ function initPlaygroundUI() {
     card.innerHTML = `
       <div class="pg-card-header">
         <span class="pg-cat-badge">${config.category}</span>
-        <span class="playground-status idle">Idle</span>
+        <span class="playground-status idle">${config.manual ? "➜ Manual demo" : "Idle"}</span>
       </div>
       <h3>${config.title}</h3>
       <p class="pg-desc"><strong>What it does:</strong> ${config.description}</p>
       <p class="pg-expl"><strong>Why compare:</strong> ${config.explanation}</p>
-      <div class="playground-metrics"><p class="muted">Select iterations and click "Run Test Loop" to measure timing.</p></div>
+      <div class="playground-metrics">${
+      config.manual
+        ? `<p class="notice">${config.manual} <a href="${config.route}">Open the demo page →</a></p>`
+        : `<p class="muted">Select iterations and click "Run Test Loop" to measure timing.</p>`
+    }</div>
       <div class="pg-card-actions">
-        <button type="button" class="btn-pg-run">Run Test Loop (${
-      iterSelect ? iterSelect.value : 30
-    }×)</button>
+        <button type="button" class="btn-pg-run">${
+      config.manual ? "Show Demo Info" : `Run Test Loop (${iterSelect ? iterSelect.value : 30}×)`
+    }</button>
         <a href="${config.route}" class="btn-pg-link">Inspect Demo Details →</a>
       </div>
     `;
