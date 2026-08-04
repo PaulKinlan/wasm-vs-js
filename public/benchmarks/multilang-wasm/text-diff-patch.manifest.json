@@ -8,6 +8,12 @@
     { "key": "c", "label": "C / Wasm", "kind": "linear", "lang": "c", "offset": 0 },
     { "key": "cpp", "label": "C++ / Wasm", "kind": "linear", "lang": "cpp", "offset": 0 },
     { "key": "rs", "label": "Rust / Wasm", "kind": "linear", "lang": "rs", "offset": 0 },
-    { "key": "dart", "label": "Dart / WasmGC", "kind": "dart", "file": "myers_diff_dart.wasm", "glue": "myers_diff_dart.mjs" }
+    {
+      "key": "dart",
+      "label": "Dart / WasmGC",
+      "kind": "dart",
+      "file": "myers_diff_dart.wasm",
+      "glue": "myers_diff_dart.mjs"
+    }
   ]
 }

@@ -170,27 +170,52 @@ for (const extra of ["fft_dart.wasm.map", "fft_dart.support.js"]) {
 
 console.log("Compiling text-diff-patch myers_diff variants (C/C++/Rust/Dart)...");
 await run("clang", [
-  "--target=wasm32", "-O3", "-nostdlib",
-  "-Wl,--no-entry", "-Wl,--export-all", "-Wl,--initial-memory=16777216",
-  "-o", `${artifactsDir}/myers_diff_c.wasm`, `${rootDir}/benchmarks/multilang-wasm/text-diff-patch/myers_diff.c`,
+  "--target=wasm32",
+  "-O3",
+  "-nostdlib",
+  "-Wl,--no-entry",
+  "-Wl,--export-all",
+  "-Wl,--initial-memory=16777216",
+  "-o",
+  `${artifactsDir}/myers_diff_c.wasm`,
+  `${rootDir}/benchmarks/multilang-wasm/text-diff-patch/myers_diff.c`,
 ], "compile myers_diff C");
 await run("clang++", [
-  "--target=wasm32", "-O3", "-nostdlib",
-  "-Wl,--no-entry", "-Wl,--export-all", "-Wl,--initial-memory=16777216",
-  "-o", `${artifactsDir}/myers_diff_cpp.wasm`, `${rootDir}/benchmarks/multilang-wasm/text-diff-patch/myers_diff.cpp`,
+  "--target=wasm32",
+  "-O3",
+  "-nostdlib",
+  "-Wl,--no-entry",
+  "-Wl,--export-all",
+  "-Wl,--initial-memory=16777216",
+  "-o",
+  `${artifactsDir}/myers_diff_cpp.wasm`,
+  `${rootDir}/benchmarks/multilang-wasm/text-diff-patch/myers_diff.cpp`,
 ], "compile myers_diff C++");
 await run("rustc", [
-  "--target=wasm32-unknown-unknown", "-O", "--crate-type", "cdylib",
-  "-C", "link-arg=--initial-memory=16777216", "-C", "strip=symbols",
-  "-o", `${artifactsDir}/myers_diff_rs.wasm`, `${rootDir}/benchmarks/multilang-wasm/text-diff-patch/myers_diff.rs`,
+  "--target=wasm32-unknown-unknown",
+  "-O",
+  "--crate-type",
+  "cdylib",
+  "-C",
+  "link-arg=--initial-memory=16777216",
+  "-C",
+  "strip=symbols",
+  "-o",
+  `${artifactsDir}/myers_diff_rs.wasm`,
+  `${rootDir}/benchmarks/multilang-wasm/text-diff-patch/myers_diff.rs`,
 ], "compile myers_diff Rust");
 await run("dart", [
-  "compile", "wasm", "--no-source-maps",
+  "compile",
+  "wasm",
+  "--no-source-maps",
   `${rootDir}/benchmarks/multilang-wasm/text-diff-patch/myers_diff.dart`,
-  "-o", `${artifactsDir}/myers_diff_dart.wasm`,
+  "-o",
+  `${artifactsDir}/myers_diff_dart.wasm`,
 ], "compile myers_diff Dart WasmGC");
 for (const extra of ["myers_diff_dart.wasm.map", "myers_diff_dart.support.js"]) {
-  try { await Deno.remove(`${artifactsDir}/${extra}`); } catch { /* absent */ }
+  try {
+    await Deno.remove(`${artifactsDir}/${extra}`);
+  } catch { /* absent */ }
 }
 {
   const gluePath = `${artifactsDir}/myers_diff_dart.mjs`;
@@ -646,7 +671,10 @@ function makeMyersInputs() {
   const base = new Uint32Array(MYERS_LEN);
   for (let i = 0; i < MYERS_LEN; i++) base[i] = i;
   let st = 0xd1ff2026;
-  const rnd = () => { st = (st * 1664525 + 1013904223) >>> 0; return st / 4294967296; };
+  const rnd = () => {
+    st = (st * 1664525 + 1013904223) >>> 0;
+    return st / 4294967296;
+  };
   const t: number[] = [];
   for (let i = 0; i < MYERS_LEN; i++) t.push(base[i]);
   for (let e = 0; e < MYERS_EDITS; e++) {
@@ -661,14 +689,21 @@ function makeMyersInputs() {
 
 // JS oracle (exact mirror of workload.js myersDiff) — shared with the report.
 function jsMyersDiff(
-  base: Uint32Array, target: Uint32Array,
-  outOp: Uint32Array, outX: Uint32Array, outY: Uint32Array,
+  base: Uint32Array,
+  target: Uint32Array,
+  outOp: Uint32Array,
+  outX: Uint32Array,
+  outY: Uint32Array,
 ): { count: number; editDistance: number; frontierSteps: number } {
   let prefix = 0;
-  while (prefix < base.length && prefix < target.length && base[prefix] === target[prefix]) prefix++;
+  while (prefix < base.length && prefix < target.length && base[prefix] === target[prefix]) {
+    prefix++;
+  }
   let suffix = 0;
-  while (suffix < base.length - prefix && suffix < target.length - prefix &&
-    base[base.length - 1 - suffix] === target[target.length - 1 - suffix]) suffix++;
+  while (
+    suffix < base.length - prefix && suffix < target.length - prefix &&
+    base[base.length - 1 - suffix] === target[target.length - 1 - suffix]
+  ) suffix++;
   const n = base.length - prefix - suffix;
   const m = target.length - prefix - suffix;
   const reverse: Array<[number, number, number]> = [];
@@ -694,9 +729,16 @@ function jsMyersDiff(
         if (k === -d || (k !== d && v[offset + k - 1] < v[offset + k + 1])) x = v[offset + k + 1];
         else x = v[offset + k - 1] + 1;
         let y = x - k;
-        while (x < n && y < m && base[prefix + x] === target[prefix + y]) { x++; y++; }
+        while (x < n && y < m && base[prefix + x] === target[prefix + y]) {
+          x++;
+          y++;
+        }
         v[offset + k] = x;
-        if (x >= n && y >= m) { trace.push(v.slice()); editDistance = d; break outer; }
+        if (x >= n && y >= m) {
+          trace.push(v.slice());
+          editDistance = d;
+          break outer;
+        }
       }
       trace.push(v.slice());
     }
@@ -709,17 +751,25 @@ function jsMyersDiff(
       const previousX = prior[offset + previousK];
       const previousY = previousX - previousK;
       while (x > previousX && y > previousY) {
-        x--; y--;
+        x--;
+        y--;
         reverse.push([0, prefix + x, prefix + y]);
       }
-      if (down) { y--; reverse.push([2, prefix + x, prefix + y]); }
-      else { x--; reverse.push([1, prefix + x, prefix + y]); }
+      if (down) {
+        y--;
+        reverse.push([2, prefix + x, prefix + y]);
+      } else {
+        x--;
+        reverse.push([1, prefix + x, prefix + y]);
+      }
     }
   }
   for (let index = prefix - 1; index >= 0; index--) reverse.push([0, index, index]);
   const ops = reverse.reverse();
   for (let i = 0; i < ops.length; i++) {
-    outOp[i] = ops[i][0]; outX[i] = ops[i][1]; outY[i] = ops[i][2];
+    outOp[i] = ops[i][0];
+    outX[i] = ops[i][1];
+    outY[i] = ops[i][2];
   }
   return { count: ops.length, editDistance, frontierSteps };
 }
@@ -733,9 +783,15 @@ for (const key of myersLinear) {
 }
 const { kernels: myersDart } = await instantiateDartGlue<{
   myers_diff: (
-    base: Uint32Array, target: Uint32Array,
-    outOp: Uint32Array, outX: Uint32Array, outY: Uint32Array,
-    scratch: Uint32Array, cap: number, ed: Uint32Array, fs: Uint32Array,
+    base: Uint32Array,
+    target: Uint32Array,
+    outOp: Uint32Array,
+    outX: Uint32Array,
+    outY: Uint32Array,
+    scratch: Uint32Array,
+    cap: number,
+    ed: Uint32Array,
+    fs: Uint32Array,
   ) => number;
 }>("myers_diff_dart.mjs", "myers_diff_dart.wasm");
 
@@ -755,10 +811,32 @@ function myersLinearFn(key: string): () => void {
     new Uint32Array(mem.buffer, baseOff, base.length).set(base);
     new Uint32Array(mem.buffer, targetOff, target.length).set(target);
     (inst.exports.myers_diff as (
-      b: number, bl: number, t: number, tl: number, o: number, x: number, y: number,
-      cap: number, s: number, su: number, ed: number, fs: number,
-    ) => number)(baseOff, base.length, targetOff, target.length, opOff, xOff, yOff, cap,
-      scratchOff, vstride * (max + 2), edOff, fsOff);
+      b: number,
+      bl: number,
+      t: number,
+      tl: number,
+      o: number,
+      x: number,
+      y: number,
+      cap: number,
+      s: number,
+      su: number,
+      ed: number,
+      fs: number,
+    ) => number)(
+      baseOff,
+      base.length,
+      targetOff,
+      target.length,
+      opOff,
+      xOff,
+      yOff,
+      cap,
+      scratchOff,
+      vstride * (max + 2),
+      edOff,
+      fsOff,
+    );
   };
 }
 
@@ -788,9 +866,17 @@ const myersVariants: Record<string, number> = {};
     const max = base.length + target.length;
     const vstride = 2 * max + 1;
     const cap = base.length + target.length + 1;
-    myersDart.myers_diff(base, target, new Uint32Array(cap), new Uint32Array(cap),
-      new Uint32Array(cap), new Uint32Array(vstride * (max + 2)), cap,
-      new Uint32Array(1), new Uint32Array(1));
+    myersDart.myers_diff(
+      base,
+      target,
+      new Uint32Array(cap),
+      new Uint32Array(cap),
+      new Uint32Array(cap),
+      new Uint32Array(vstride * (max + 2)),
+      cap,
+      new Uint32Array(1),
+      new Uint32Array(1),
+    );
   };
   for (let i = 0; i < 10; i++) dartFn();
   t0 = performance.now();
@@ -1104,8 +1190,7 @@ const report = {
           memoryPageCount: 2,
           importsCount: countImports(myersBytes.dart),
           exportsCount: 9,
-          notes:
-            "WasmGC; Uint32List views over zero-copy JS typed arrays — bit-identical output.",
+          notes: "WasmGC; Uint32List views over zero-copy JS typed arrays — bit-identical output.",
         },
       ],
     },
@@ -1306,10 +1391,18 @@ All variants are bit-identical to the JS myersDiff oracle (ops + editDistance + 
 | Language / Toolchain           | Binary Size (bytes) | Warm Execution (ms) | vs JS |
 | ------------------------------ | ------------------- | ------------------- | ----- |
 | **JavaScript** (oracle)        | 0 B                 | ${myersVariants.js} ms        | 1.00× |
-| **C / Wasm** (Clang)           | ${myersBytes.c.byteLength} B              | ${myersVariants.c} ms         | ${(myersVariants.js / myersVariants.c).toFixed(2)}× |
-| **C++ / Wasm** (Clang++)       | ${myersBytes.cpp.byteLength} B              | ${myersVariants.cpp} ms        | ${(myersVariants.js / myersVariants.cpp).toFixed(2)}× |
-| **Rust / Wasm** (rustc)        | ${myersBytes.rs.byteLength} B              | ${myersVariants.rs} ms         | ${(myersVariants.js / myersVariants.rs).toFixed(2)}× |
-| **Dart / WasmGC** (dart2wasm)  | ${myersBytes.dart.byteLength} B             | ${myersVariants.dart} ms       | ${(myersVariants.js / myersVariants.dart).toFixed(2)}× |
+| **C / Wasm** (Clang)           | ${myersBytes.c.byteLength} B              | ${myersVariants.c} ms         | ${
+  (myersVariants.js / myersVariants.c).toFixed(2)
+}× |
+| **C++ / Wasm** (Clang++)       | ${myersBytes.cpp.byteLength} B              | ${myersVariants.cpp} ms        | ${
+  (myersVariants.js / myersVariants.cpp).toFixed(2)
+}× |
+| **Rust / Wasm** (rustc)        | ${myersBytes.rs.byteLength} B              | ${myersVariants.rs} ms         | ${
+  (myersVariants.js / myersVariants.rs).toFixed(2)
+}× |
+| **Dart / WasmGC** (dart2wasm)  | ${myersBytes.dart.byteLength} B             | ${myersVariants.dart} ms       | ${
+  (myersVariants.js / myersVariants.dart).toFixed(2)
+}× |
 
 ### 4. Strict-f32 GEMM (\`ml-gemm\`, one 128×128×128 product, 200 warm iterations)
 
