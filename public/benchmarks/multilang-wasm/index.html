@@ -84,43 +84,43 @@
             <tbody>
               <tr>
                 <td><strong>JavaScript</strong></td>
-                <td><a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/9585e04c/scripts/build-multilang-wasm-benchmark.ts">build script (JS baselines)</a></td>
+                <td><a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/bc89e2c372c5e9f6dcb467f1d8d48a1165e7dcfa/scripts/build-multilang-wasm-benchmark.ts">build script (JS baselines)</a></td>
                 <td>V8 JIT (in-browser)</td>
                 <td>n/a — source only</td>
               </tr>
               <tr>
                 <td><strong>Raw WAT</strong></td>
-                <td><a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/9585e04c/benchmarks/sum-u32/sum-u32.wat">sum-u32.wat</a></td>
+                <td><a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/bc89e2c372c5e9f6dcb467f1d8d48a1165e7dcfa/benchmarks/sum-u32/sum-u32.wat">sum-u32.wat</a></td>
                 <td>Handwritten WAT → wasm (pinned artifact)</td>
                 <td><a class="commit-link" href="/artifacts/multilang-wasm-benchmark/sum_wat.wasm">sum_wat.wasm</a> (96 B)</td>
               </tr>
               <tr>
                 <td><strong>AssemblyScript</strong></td>
-                <td><a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/9585e04c/benchmarks/multilang-wasm/sum_u32.ts">sum_u32.ts</a> · <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/9585e04c/benchmarks/multilang-wasm/fft_kernel.ts">fft_kernel.ts</a></td>
+                <td><a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/bc89e2c372c5e9f6dcb467f1d8d48a1165e7dcfa/benchmarks/multilang-wasm/sum_u32.ts">sum_u32.ts</a> · <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/bc89e2c372c5e9f6dcb467f1d8d48a1165e7dcfa/benchmarks/multilang-wasm/fft_kernel.ts">fft_kernel.ts</a></td>
                 <td><code>asc -O3 --bindings none</code></td>
                 <td><a class="commit-link" href="/artifacts/multilang-wasm-benchmark/sum_asc.wasm">sum_asc.wasm</a> · <a class="commit-link" href="/artifacts/multilang-wasm-benchmark/fft_asc.wasm">fft_asc.wasm</a></td>
               </tr>
               <tr>
                 <td><strong>C / Wasm</strong></td>
-                <td><a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/9585e04c/benchmarks/multilang-wasm/sum_u32.c">sum_u32.c</a> · <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/9585e04c/benchmarks/multilang-wasm/fft_kernel.c">fft_kernel.c</a></td>
+                <td><a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/bc89e2c372c5e9f6dcb467f1d8d48a1165e7dcfa/benchmarks/multilang-wasm/sum_u32.c">sum_u32.c</a> · <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/bc89e2c372c5e9f6dcb467f1d8d48a1165e7dcfa/benchmarks/multilang-wasm/fft_kernel.c">fft_kernel.c</a></td>
                 <td><code>clang --target=wasm32 -O3 -nostdlib</code></td>
                 <td><a class="commit-link" href="/artifacts/multilang-wasm-benchmark/sum_c.wasm">sum_c.wasm</a> · <a class="commit-link" href="/artifacts/multilang-wasm-benchmark/fft_c.wasm">fft_c.wasm</a></td>
               </tr>
               <tr>
                 <td><strong>C++ / Wasm</strong></td>
-                <td><a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/9585e04c/benchmarks/multilang-wasm/sum_u32.cpp">sum_u32.cpp</a> · <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/9585e04c/benchmarks/multilang-wasm/fft_kernel.cpp">fft_kernel.cpp</a></td>
+                <td><a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/bc89e2c372c5e9f6dcb467f1d8d48a1165e7dcfa/benchmarks/multilang-wasm/sum_u32.cpp">sum_u32.cpp</a> · <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/bc89e2c372c5e9f6dcb467f1d8d48a1165e7dcfa/benchmarks/multilang-wasm/fft_kernel.cpp">fft_kernel.cpp</a></td>
                 <td><code>clang++ --target=wasm32 -O3 -nostdlib</code></td>
                 <td><a class="commit-link" href="/artifacts/multilang-wasm-benchmark/sum_cpp.wasm">sum_cpp.wasm</a> · <a class="commit-link" href="/artifacts/multilang-wasm-benchmark/fft_cpp.wasm">fft_cpp.wasm</a></td>
               </tr>
               <tr>
                 <td><strong>Rust / Wasm</strong></td>
-                <td><a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/9585e04c/benchmarks/multilang-wasm/sum_u32.rs">sum_u32.rs</a> · <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/9585e04c/benchmarks/multilang-wasm/fft_kernel.rs">fft_kernel.rs</a></td>
+                <td><a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/bc89e2c372c5e9f6dcb467f1d8d48a1165e7dcfa/benchmarks/multilang-wasm/sum_u32.rs">sum_u32.rs</a> · <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/bc89e2c372c5e9f6dcb467f1d8d48a1165e7dcfa/benchmarks/multilang-wasm/fft_kernel.rs">fft_kernel.rs</a></td>
                 <td><code>rustc --target wasm32-unknown-unknown -O</code> (no_std cdylib)</td>
                 <td><a class="commit-link" href="/artifacts/multilang-wasm-benchmark/sum_rs.wasm">sum_rs.wasm</a> · <a class="commit-link" href="/artifacts/multilang-wasm-benchmark/fft_rs.wasm">fft_rs.wasm</a></td>
               </tr>
               <tr>
                 <td><strong>Dart / WasmGC</strong></td>
-                <td><a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/9585e04c/benchmarks/multilang-wasm/fft_kernel.dart">fft_kernel.dart</a></td>
+                <td><a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/bc89e2c372c5e9f6dcb467f1d8d48a1165e7dcfa/benchmarks/multilang-wasm/fft_kernel.dart">fft_kernel.dart</a></td>
                 <td><code>dart compile wasm</code> (dart2wasm, WasmGC)</td>
                 <td><a class="commit-link" href="/artifacts/multilang-wasm-benchmark/fft_dart.wasm">fft_dart.wasm</a> + <a class="commit-link" href="/artifacts/multilang-wasm-benchmark/fft_dart.mjs">glue</a></td>
               </tr>
@@ -144,8 +144,8 @@
       <section aria-labelledby="evidence-heading">
         <h2 id="evidence-heading">Provenance</h2>
         <ul class="demo-links">
-          <li><a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/9585e04c/scripts/build-multilang-wasm-benchmark.ts">Build recipe (compilers + benchmark loop)</a></li>
-          <li><a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/9585e04c/tests/multilang-wasm-benchmark.test.ts">Correctness + WasmGC evidence tests</a></li>
+          <li><a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/bc89e2c372c5e9f6dcb467f1d8d48a1165e7dcfa/scripts/build-multilang-wasm-benchmark.ts">Build recipe (compilers + benchmark loop)</a></li>
+          <li><a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/blob/bc89e2c372c5e9f6dcb467f1d8d48a1165e7dcfa/tests/multilang-wasm-benchmark.test.ts">Correctness + WasmGC evidence tests</a></li>
           <li><a class="commit-link" href="/data/multilang-wasm-benchmark-report.v1.json">Measured report JSON</a> · <a class="commit-link" href="/benchmarks/multilang-wasm-benchmark.md">Markdown report</a></li>
           <li>Dart SDK: <code>dart compile wasm</code> (Dart 3.12.2, dart2wasm). Rust: rustc 1.97.0 with <code>wasm32-unknown-unknown</code>.</li>
         </ul>
