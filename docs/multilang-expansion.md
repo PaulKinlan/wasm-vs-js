@@ -24,24 +24,26 @@ documented exclusion (and may still expose an optional "compute core" comparison
 one exists).
 
 ### Kernel-capable (waves below)
-| Workload | Core kernel | Notes |
-|---|---|---|
-| ml-gemm | GEMM, strict f32 | Wave 1 — classic; frozen i/j/k order |
-| ml-dense-mlp | Dense MLP inference | Wave 1/2 — frozen GELU exists |
-| text-diff-patch | Myers diff/apply | Wave 1/2 |
-| text-regex-log-scan | Regex engine core | Naive + Thompson NFA variants |
-| numeric-polybench-panel | Polybench kernels | Per-kernel variants |
-| image-editing / flood-fill | Pixel kernels (blur, fill) | Wave 2 |
-| audio-fir / audio-stft | DSP FIR/STFT | FFT already done; reuse |
-| crypto-file-integrity | SHA-256 | Wave 2 |
-| serialization-json-telemetry | JSON parse/stringify | Wave 2 |
-| simulation-nbody-cloth | N-body step | Wave 2 |
-| database-olap-chart | Aggregation | Wave 2 |
-| network-pcap-decode | Packet parse | Wave 2 |
-| game-ecs-frame-update | ECS systems | Wave 2 |
-| numeric-fft-spectral-filter | FFT | Already covered by multilang FFT |
+
+| Workload                     | Core kernel                | Notes                                |
+| ---------------------------- | -------------------------- | ------------------------------------ |
+| ml-gemm                      | GEMM, strict f32           | Wave 1 — classic; frozen i/j/k order |
+| ml-dense-mlp                 | Dense MLP inference        | Wave 1/2 — frozen GELU exists        |
+| text-diff-patch              | Myers diff/apply           | Wave 1/2                             |
+| text-regex-log-scan          | Regex engine core          | Naive + Thompson NFA variants        |
+| numeric-polybench-panel      | Polybench kernels          | Per-kernel variants                  |
+| image-editing / flood-fill   | Pixel kernels (blur, fill) | Wave 2                               |
+| audio-fir / audio-stft       | DSP FIR/STFT               | FFT already done; reuse              |
+| crypto-file-integrity        | SHA-256                    | Wave 2                               |
+| serialization-json-telemetry | JSON parse/stringify       | Wave 2                               |
+| simulation-nbody-cloth       | N-body step                | Wave 2                               |
+| database-olap-chart          | Aggregation                | Wave 2                               |
+| network-pcap-decode          | Packet parse               | Wave 2                               |
+| game-ecs-frame-update        | ECS systems                | Wave 2                               |
+| numeric-fft-spectral-filter  | FFT                        | Already covered by multilang FFT     |
 
 ### Documented exclusions (DOM / platform / library-bound)
+
 todomvc-journey, dom-virtualized-grid, dom-grid-movement, dom-keyed-list-mutation,
 dom-nested-tree-mutation, dom-table-sort-filter-pagination, dom-dependent-form-validation,
 dom-virtualized-scrolling, graphics-gltf-viewer, document-pdf-viewer,
@@ -52,14 +54,17 @@ tooling-c-to-wasm-compile (meta).
 ## Architecture (shared machinery — build once, reuse per workload)
 
 ### Source layout
+
 ```
 benchmarks/multilang-wasm/<workload>/           # one dir per kernel family
   <kernel>.c  <kernel>.cpp  <kernel>.rs  <kernel>.dart  <kernel>.ts  <kernel>.wat(if authored)
 ```
 
 ### Shared build framework
+
 `scripts/build-multilang-<workload>.ts` follows the reference
 `scripts/build-multilang-wasm-benchmark.ts`:
+
 1. compile C/C++ (`clang/clang++ --target=wasm32 -O3 -nostdlib`), Rust
    (`rustc --target wasm32-unknown-unknown -O --crate-type cdylib`, no_std),
    AssemblyScript (`asc -O3`), Dart (`dart compile wasm --no-source-maps` + generated
@@ -71,9 +76,11 @@ benchmarks/multilang-wasm/<workload>/           # one dir per kernel family
    report rows.
 
 ### Shared browser runner
+
 Extract the reference runner (`public/benchmarks/multilang-wasm/runner.js`) into
 `public/multilang-runner.js`, driven by a per-workload
 `public/benchmarks/multilang-wasm/<workload>.manifest.json`:
+
 ```jsonc
 {
   "workloadId": "ml.gemm.v1",
@@ -87,10 +94,12 @@ Extract the reference runner (`public/benchmarks/multilang-wasm/runner.js`) into
   "sources": [{ "language": "Rust", "path": "benchmarks/multilang-wasm/ml-gemm/gemm.rs" }]
 }
 ```
+
 The runner renders the standard shell + multi-engine tables + commit-pinned source
 links. The workload's existing page gains a "Multi-language comparison" section.
 
 ### Semantics disclosure (critical)
+
 Dart has no f32 primitive. For strict-f32 kernels (GEMM, MLP), the Dart variant must
 either replicate f32 rounding in f64 (documented cost) or disclose looser accumulation.
 Every variant row states its exact arithmetic (f32 polynomial vs f64 library trig,

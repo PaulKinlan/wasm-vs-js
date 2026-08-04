@@ -1839,6 +1839,11 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "fft_rs.wasm",
       "fft_dart.wasm",
       "fft_dart.mjs",
+      "gemm_c.wasm",
+      "gemm_cpp.wasm",
+      "gemm_rs.wasm",
+      "gemm_dart.wasm",
+      "gemm_dart.mjs",
     ]
   ) {
     const type = file.endsWith(".wasm") ? "application/wasm" : "text/javascript; charset=utf-8";

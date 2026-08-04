@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "a267ad4c8e9d449464d6e53b69768faa86d69b9b",
-  "sourceSha256": "7db707b295df36b5d83a501bc718476efc5981c4a77319bdf05d04c2b5fb2ac8",
+  "sourceCommit": "a96e7e581a96d98a49ea3508372cc249a6ca7609",
+  "sourceSha256": "32fbeecee6144cba1b4a944c025dee7bc5004dd623c3bb31a8661a5b3f17c6f8",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 80788,
-      "sha256": "35f689bf8f13127fd590ebfc4f17ae60340eb6ca59f7efb7c9abd79802b953d1"
+      "bytes": 80901,
+      "sha256": "80ae42b09e7ef4040697eadc19a2ad2a877bde606dcafa3d2473a4eb9933c553"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "1307219d18522e8d54ea66c1c7e5b2879de43f35ee40d00cfec52795846b0895"
+      "sha256": "7e89fd6fba5355fd2715214f88824542c45a2e15bcd7a342ffcb74c86aae1b5c"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "40a0ddf0b9e8ff76b60557c38d0fb1aa6f630b4b7f25f207fe43bf79a8299668"
+      "sha256": "e9d4f281b267d5fc36a248a1a0e2ba638ade822502fd17301d1a3709ffb96e00"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=a267ad4c8e9d449464d6e53b69768faa86d69b9b"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=a96e7e581a96d98a49ea3508372cc249a6ca7609"
   }
 }
