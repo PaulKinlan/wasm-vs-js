@@ -187,7 +187,6 @@ await Promise.all([
     name: "test-readers",
     args: ["test", "--parallel", ...testArgs, ...readerTests],
     env: { ...testEnv, DENO_JOBS: "12" },
-    cores: "3-14",
   }),
   ...HEAVY_READERS.map((file) =>
     runStage({
@@ -196,22 +195,17 @@ await Promise.all([
       }`,
       args: ["test", ...testArgs, file],
       env: testEnv,
-      // gltf's 10s chain is the longest reader-side item: dedicated cores.
-      // The remaining heavy stages share an 8-core pool.
-      cores: file === "tests/base-gltf-viewer.test.ts" ? "0-2" : "15-22",
     })
   ),
   runStage({
     name: "test-rigid-writer",
     args: ["test", ...testArgs, RIGID_WRITER],
     env: testEnv,
-    cores: "23-26",
   }),
   runStage({
     name: "test-audio-writer",
     args: ["test", ...testArgs, AUDIO_WRITER],
     env: testEnv,
-    cores: "27-30",
   }),
   runStage({
     name: "test-writers-small",
