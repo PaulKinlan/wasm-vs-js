@@ -102,13 +102,32 @@ const TAIL_READERS = [
   "tests/server.test.ts",
 ];
 
+// Read-only files whose isolated runtime exceeds ~5s (measured 2026-08-04).
+// deno test --parallel packs several files per worker process, so a heavy
+// file's worker also runs its queue-mates sequentially and the lane wall
+// becomes (heavy file + queue-mates) instead of just the heavy file. Each
+// heavy file gets its own single-file stage; the light flock keeps the
+// --parallel pool.
+const HEAVY_READERS = [
+  "tests/audio-corruption-gate.test.ts",
+  "tests/audio-f64-gates.test.ts",
+  "tests/audio-harness-fft.test.ts",
+  "tests/audio-harness-stft.test.ts",
+  "tests/base-gltf-viewer.test.ts",
+  "tests/corpus-operation-dispatch.test.ts",
+  "tests/v2/ml-neural-allocations.test.ts",
+  "tests/v2/ml-neural-build-records.test.ts",
+  "tests/v2/ml-neural-counters-phases.test.ts",
+];
+
 const writers = new Set(WRITER_TESTS);
 const allTests = await testFiles();
 const readerTests = allTests.filter((f) =>
-  !writers.has(f) && f !== RIGID_READER && !TAIL_READERS.includes(f)
+  !writers.has(f) && f !== RIGID_READER && !TAIL_READERS.includes(f) &&
+  !HEAVY_READERS.includes(f)
 );
-const missing = [...WRITER_TESTS, RIGID_READER, ...TAIL_READERS].filter((f) =>
-  !allTests.includes(f)
+const missing = [...WRITER_TESTS, RIGID_READER, ...TAIL_READERS, ...HEAVY_READERS].filter(
+  (f) => !allTests.includes(f),
 );
 if (missing.length > 0) {
   console.error(`check-parallel: expected test files not found on disk: ${missing.join(", ")}`);
@@ -153,6 +172,15 @@ await Promise.all([
     args: ["test", "--parallel", ...testArgs, ...readerTests],
     env: testEnv,
   }),
+  ...HEAVY_READERS.map((file) =>
+    runStage({
+      name: `test-heavy-${
+        file.replace(/^tests\//, "").replace(/\.test\.ts$/, "").replaceAll("/", "-")
+      }`,
+      args: ["test", ...testArgs, file],
+      env: testEnv,
+    })
+  ),
   runStage({ name: "test-rigid-writer", args: ["test", ...testArgs, RIGID_WRITER], env: testEnv }),
   runStage({ name: "test-audio-writer", args: ["test", ...testArgs, AUDIO_WRITER], env: testEnv }),
   runStage({
