@@ -6,35 +6,49 @@ const priority = document.querySelector("#catalog-priority");
 const domain = document.querySelector("#catalog-domain");
 const status = document.querySelector("#catalog-status");
 
+// Verified against the playground card routes (2026-08-04): every entry serves
+// HTTP 200. Workloads without a playground demo are intentionally absent — they
+// render the no-demo badge instead of a broken link.
 const WORKLOAD_DEMO_ROUTES = {
+  // Frozen v1 catalog workloads with playground demos (23).
+  "archive.zip-workspace.v1": "/benchmarks/archive-zip-workspace-v1/",
+  "audio.webaudio-effects.v1": "/benchmarks/base/audio-webaudio-effects-v1/",
+  "cad.mesh-repair.v1": "/benchmarks/cad-mesh-repair-v1/",
+  "cad.parametric-bracket.v1": "/demos/cad-parametric-bracket/",
+  "crypto.authenticated-stream.v1": "/benchmarks/crypto-authenticated-stream/",
+  "crypto.file-integrity.v1": "/demos/crypto.file-integrity.v1/",
+  "database.olap-chart.v1": "/benchmarks/database-olap-chart/",
+  "database.sqlite-notebook.v1": "/benchmarks/database-sqlite-notebook-v1/",
+  "document.pdf-viewer.v1": "/benchmarks/document-pdf-viewer-v1/",
+  "dom.todomvc-journey.v1": "/benchmarks/base-dom-todomvc-journey/",
+  "dom.virtualized-grid.v1": "/benchmarks/dom-virtualized-grid-v1/",
+  "game.ecs-frame-update.v1": "/demos/game-ecs-frame-update/",
+  "graphics.cpu-path-tracer.v1": "/benchmarks/graphics-cpu-path-tracer-v1/",
+  "graphics.gltf-viewer.v1": "/benchmarks/base-gltf-viewer/",
+  "ml.keyword-spotting.v1": "/benchmarks/ml-keyword-spotting-v1/",
+  "ml.numeric-kernels.v1": "/benchmarks/ml-numeric-kernels-v1/",
+  "network.pcap-decode.v1": "/demos/network.pcap-decode.v1/",
+  "numeric.fft-spectral-filter.v1": "/benchmarks/numeric-fft-spectral-filter-v1/",
+  "numeric.polybench-panel.v1": "/demos/numeric.polybench-panel.v1/",
+  "serialization.json-telemetry.v1": "/demos/serialization.json-telemetry.v1/",
+  "serialization.protobuf-gateway.v1": "/benchmarks/serialization-protobuf-gateway/",
+  "server.ssr-template.v1": "/demos/server.ssr-template.v1/",
+  "text.gc-document-edit.v1": "/demos/text.gc-document-edit.v1/",
+  // v2 proposal workloads with playground demos (14).
   "audio.fft.v1": "/benchmarks/audio-fft/",
   "audio.fir.v1": "/benchmarks/audio-fir/",
   "audio.stft.v1": "/benchmarks/audio-stft/",
-  "ml.gemm.v1": "/benchmarks/ml-gemm/",
+  "dom.vdom-diff-patch.v1": "/benchmarks/vdom-diff-patch-demo/",
+  "game.canvas-arcade.v1": "/demos/game-canvas-arcade/",
+  "game.canvas-entity-pathfinding.v1": "/demos/game-canvas-entity-pathfinding/",
+  "game.dom-tactics-grid.v1": "/demos/game-dom-tactics-grid/",
+  "image.editing-pipeline.v1": "/benchmarks/image-editing-demo/",
+  "image.flood-fill.v1": "/benchmarks/image-flood-fill-demo/",
   "ml.dense-mlp.v1": "/benchmarks/ml-dense-mlp/",
-  "cad.parametric-bracket.v1": "/benchmarks/cad-parametric-bracket/",
-  "cad.mesh-repair.v1": "/benchmarks/cad-mesh-repair/",
-  "database.olap-chart.v1": "/benchmarks/database-olap-chart/",
-  "database.sqlite-notebook.v1": "/benchmarks/sqlite-notebook/",
-  "document.pdf-viewer.v1": "/benchmarks/document-pdf-viewer/",
-  "dom.todomvc-journey.v1": "/benchmarks/dom-todomvc-journey/",
-  "dom.virtualized-grid.v1": "/benchmarks/dom-virtualized-grid/",
-  "archive.zip-workspace.v1": "/benchmarks/archive-zip-workspace/",
-  "crypto.authenticated-stream.v1": "/benchmarks/crypto-authenticated-stream/",
-  "crypto.file-integrity.v1": "/benchmarks/crypto-file-integrity/",
-  "graphics.cpu-path-tracer.v1": "/benchmarks/graphics-cpu-path-tracer/",
-  "graphics.gltf-viewer.v1": "/benchmarks/graphics-gltf-viewer/",
-  "simulation.nbody-cloth.v1": "/benchmarks/simulation-nbody/",
-  "simulation.rigid-body-2d.v1": "/benchmarks/simulation-rigid-body-2d/",
-  "game.ecs-frame-update.v1": "/benchmarks/game-ecs-frame-update/",
-  "game.canvas-arcade.v1": "/benchmarks/game-canvas-arcade/",
-  "game.canvas-entity-pathfinding.v1": "/benchmarks/game-canvas-entity-pathfinding/",
-  "game.dom-tactics-grid.v1": "/benchmarks/game-dom-tactics-grid/",
-  "text.diff-patch.v1": "/benchmarks/text-diff-patch/",
-  "text.markdown-cms.v1": "/benchmarks/text-markdown-cms/",
-  "text.gc-document-edit.v1": "/benchmarks/text-gc-document-edit/",
-  "text.regex-log-scan.v1": "/benchmarks/text-regex-log-scan/",
-  "tooling.c-to-wasm-compile.v1": "/benchmarks/tooling-c-to-wasm-compile/",
+  "ml.gemm.v1": "/benchmarks/ml-gemm/",
+  "text.diff-patch.v1": "/demos/text.diff-patch.v1/",
+  "text.markdown-cms.v1": "/demos/text.markdown-cms.v1/",
+  "text.regex-engine-duel.v1": "/benchmarks/regex-automata-duel-demo/",
 };
 
 function element(name, text, className) {
@@ -140,7 +154,7 @@ function renderEntry(entry) {
   } else {
     const blockedBadge = element(
       "span",
-      "🔒 Documented Blocker (See Record)",
+      "📋 Proposal — no demo yet",
       "badge-blocked-catalog",
     );
     actions.append(blockedBadge);
@@ -192,10 +206,13 @@ try {
       (status.value === "all" || entry.status === status.value);
   });
   list.replaceChildren(...visible.map(renderEntry));
+  const demoCount = visible.filter((entry) => WORKLOAD_DEMO_ROUTES[entry.id]).length;
   statusLine.textContent =
     `Showing ${visible.length} of ${catalog.entries.length} workloads. Proposed: ${
       catalog.entries.filter((entry) => entry.status === "proposed").length
-    }. Implemented catalog entries: ${catalog.implementationCoverage.implementedCatalogEntries}.`;
+    }. With runnable demos: ${demoCount}. Accepted into the frozen corpus: ${
+      catalog.implementationCoverage.implementedCatalogEntries
+    } of 38 (acceptance has not run yet — demos are not accepted evidence).`;
 } catch (error) {
   statusLine.textContent = `Catalog unavailable: ${
     error instanceof Error ? error.message : "unknown error"
