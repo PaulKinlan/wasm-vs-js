@@ -206,9 +206,11 @@ await Promise.all([
   }),
   ...HEAVY_READERS.map(async (file) => {
     // Stagger: the t=0 startup storm (12 deno processes type-checking) inflates
-    // the critical rigid chain; these lanes have ~1s of slack before they would
-    // become the binder, so a delayed start costs no wall time.
-    await new Promise((resolve) => setTimeout(resolve, 1200));
+    // the critical rigid chain; these lanes have slack before they would become
+    // the binder, so a delayed start costs no wall time. Short lanes (build-records
+    // ~5.5s, f64-gates ~8s) have 4-6s of slack and start deeper into the window.
+    const short = file.includes("build-records") || file.includes("f64-gates");
+    await new Promise((resolve) => setTimeout(resolve, short ? 3000 : 1200));
     await runStage({
       name: `test-heavy-${
         file.replace(/^tests\//, "").replace(/\.test\.ts$/, "").replaceAll("/", "-")
