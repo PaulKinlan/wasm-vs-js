@@ -127,21 +127,7 @@ async function collectBrowserInfo(cdpPort: number): Promise<{
 type AttemptResult = {
   attempt: number;
   success: boolean;
-  timings?: {
-    js: {
-      firstScored: string | null;
-      median: string | null;
-      p95: string | null;
-      count: string | null;
-    };
-    wasm: {
-      firstScored: string | null;
-      median: string | null;
-      p95: string | null;
-      count: string | null;
-    };
-    trajectorySamples: number;
-  };
+  timings?: Record<string, unknown>;
   error?: string;
   screenshotPath?: string;
 };
@@ -242,7 +228,7 @@ async function runBenchmarkAttempt(
     return {
       attempt,
       success,
-      timings,
+      timings: result.timings as Record<string, unknown> | undefined,
       screenshotPath,
       error: success ? undefined : resultText,
     };
