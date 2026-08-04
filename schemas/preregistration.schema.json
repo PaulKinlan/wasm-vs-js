@@ -21,7 +21,7 @@
       },
       "buildManifest": {
         "path": "public/artifacts/sum-u32/build-manifest.json",
-        "sha256": "9e49ef5203dc41c3ed92118a40fe350966851bd309f1cd7c5b571477bb43ecfa"
+        "sha256": "b09e46aecc704b86be466476e492e2475b279b7aee8f86f8bb251ed5adbeecb5"
       },
       "input": {
         "sha256": "4f0516549fc9d6952c8d42d642927dd5c43a8c01d03c286e0c80da919bfaf9d7",

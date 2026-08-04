@@ -24,7 +24,7 @@ const EXPECTED = {
   benchmarkPath: "../benchmarks/sum-u32/benchmark.json",
   benchmarkSha256: "d5a7c9459e5bbed3a64d521af393d30d572b1034184a249f14265e2a0a99ff0a",
   manifestPath: "../public/artifacts/sum-u32/build-manifest.json",
-  manifestSha256: "9e49ef5203dc41c3ed92118a40fe350966851bd309f1cd7c5b571477bb43ecfa",
+  manifestSha256: "b09e46aecc704b86be466476e492e2475b279b7aee8f86f8bb251ed5adbeecb5",
   javascriptPath: "../benchmarks/sum-u32/workload.js",
   javascriptSha256: "4d8379672c1b51b0b315d2bee119880694e5a4f6412ef59b7fe2593ef6b179b7",
   wasmPath: "../public/artifacts/sum-u32/sum-u32.wasm",

@@ -285,7 +285,8 @@ Deno.test("all generated package records satisfy the fully closed exact schema",
 });
 
 Deno.test("supplemental source routes are explicit and frozen-catalog-independent", async () => {
-  const server = await Deno.readTextFile("server.ts");
+  const server = (await Deno.readTextFile("server.ts")) +
+    (await Deno.readTextFile("routes.generated.ts"));
   for (
     const path of [
       "/benchmarks/base/audio-webaudio-effects-v1/",
