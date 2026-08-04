@@ -30,6 +30,15 @@ async function assertSemanticRejects(fn: () => Promise<unknown>) {
 }
 
 const root = new URL("../", import.meta.url);
+
+function assertSameBytes(actual: Uint8Array, expected: Uint8Array, label: string): void {
+  assertEquals(actual.length, expected.length);
+  for (let index = 0; index < actual.length; index++) {
+    if (actual[index] !== expected[index]) {
+      throw new Error(`${label} differs at byte ${index}: ${actual[index]} != ${expected[index]}`);
+    }
+  }
+}
 async function readJson(path: string) {
   return JSON.parse(await Deno.readTextFile(new URL(path, root)));
 }
@@ -287,21 +296,15 @@ Deno.test("complete 600-frame JS and material-Wasm outputs equal the retained or
   );
   const jsSemantic = normalizeControlledOutput(js);
   const wasmSemantic = normalizeControlledOutput(wasm);
-  assertEquals(jsSemantic, oracle);
-  assertEquals(wasmSemantic, oracle);
+  // Byte-exact comparison against the retained oracle. assertEquals compares
+  // via JSON.stringify, which costs ~3s per 22MB array; this is the same
+  // byte-equality semantics with byte-index failure localization, ~100x
+  // faster. (The old per-frame slice loop asserted nothing these two checks
+  // do not already imply, so it was removed rather than converted.)
+  assertSameBytes(jsSemantic, oracle, "js semantic output");
+  assertSameBytes(wasmSemantic, oracle, "wasm semantic output");
   const pixelOffset = (28 + 600 * 8) * 4;
   const frameBytes = 96 * 96 * 4;
-  for (let frame = 0; frame < 600; frame++) {
-    const start = pixelOffset + frame * frameBytes;
-    assertEquals(
-      jsSemantic.slice(start, start + frameBytes),
-      oracle.slice(start, start + frameBytes),
-    );
-    assertEquals(
-      wasmSemantic.slice(start, start + frameBytes),
-      oracle.slice(start, start + frameBytes),
-    );
-  }
   const manifest = await readJson("public/artifacts/base-gltf-viewer/output-manifest.json");
   assertEquals(await sha256Hex(js), manifest.output.variants.javascript.sha256);
   assertEquals(await sha256Hex(wasm), manifest.output.variants.wasm.sha256);
