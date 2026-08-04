@@ -93,8 +93,19 @@ async function assembleWat(name: string, path: string): Promise<Uint8Array<Array
 
 const writtenJsonPaths: string[] = [];
 
+// Atomic publication: build outputs are rewritten in place on every run with
+// byte-identical content, but a plain writeFile is not atomic, so a
+// concurrent reader (another test file running in parallel) can observe a
+// torn file. Temp-write + rename is atomic on POSIX, so readers only ever
+// see complete bytes.
+async function writeAtomic(url: URL, bytes: Uint8Array): Promise<void> {
+  const tmp = new URL(`${url.href}.tmp-${Deno.pid}`);
+  await Deno.writeFile(tmp, bytes);
+  await Deno.rename(tmp, url);
+}
+
 async function writeJson(dir: URL, name: string, value: unknown): Promise<void> {
-  await Deno.writeTextFile(new URL(name, dir), `${canonicalize(value)}\n`);
+  await writeAtomic(new URL(name, dir), new TextEncoder().encode(`${canonicalize(value)}\n`));
   writtenJsonPaths.push(`${new URL(dir, root).pathname.replace(/\/$/, "")}/${name}`);
 }
 
@@ -291,9 +302,9 @@ async function buildGemmArtifacts(): Promise<void> {
 
   // All oracle checks passed; only now persist artifacts (no partial state
   // from a failed build can be picked up by a later records run).
-  await Deno.writeFile(new URL("ml-gemm.wasm", outDir), wasm);
-  await Deno.writeFile(new URL("reference.f64", outDir), bytesOf(reference));
-  await Deno.writeFile(new URL("bounds.f32", outDir), bytesOf(bound));
+  await writeAtomic(new URL("ml-gemm.wasm", outDir), wasm);
+  await writeAtomic(new URL("reference.f64", outDir), bytesOf(reference));
+  await writeAtomic(new URL("bounds.f32", outDir), bytesOf(bound));
 
   const matrixDigests: string[] = [];
   for (let t = 0; t < gemm.BATCH; t += 1) {
@@ -537,9 +548,9 @@ async function buildMlpArtifacts(): Promise<void> {
   assertValidationMeasured("ml-dense-mlp wasm-linear-controlled", wasmTimings);
 
   // All oracle checks passed; only now persist artifacts.
-  await Deno.writeFile(new URL("ml-dense-mlp.wasm", outDir), wasm);
-  await Deno.writeFile(new URL("reference.f64", outDir), referenceBytes);
-  await Deno.writeFile(new URL("bounds.f32", outDir), boundBytes);
+  await writeAtomic(new URL("ml-dense-mlp.wasm", outDir), wasm);
+  await writeAtomic(new URL("reference.f64", outDir), referenceBytes);
+  await writeAtomic(new URL("bounds.f32", outDir), boundBytes);
 
   const layerDigests: string[] = [];
   for (const layer of wasmLayers) layerDigests.push(await digestOf(layer));
