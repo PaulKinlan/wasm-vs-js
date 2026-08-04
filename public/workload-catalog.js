@@ -210,9 +210,7 @@ try {
   statusLine.textContent =
     `Showing ${visible.length} of ${catalog.entries.length} workloads. Proposed: ${
       catalog.entries.filter((entry) => entry.status === "proposed").length
-    }. With runnable demos: ${demoCount}. Accepted into the frozen corpus: ${
-      catalog.implementationCoverage.implementedCatalogEntries
-    } of 38 (acceptance has not run yet — demos are not accepted evidence).`;
+    }. With runnable demos: ${demoCount}. Accepted into the frozen corpus: ${catalog.implementationCoverage.implementedCatalogEntries} of 38 (acceptance has not run yet — demos are not accepted evidence).`;
 } catch (error) {
   statusLine.textContent = `Catalog unavailable: ${
     error instanceof Error ? error.message : "unknown error"
