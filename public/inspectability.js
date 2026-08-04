@@ -29,7 +29,7 @@ const LOCAL_DOWNLOADS = new Map([
     "/artifacts/audio-fft/reference-output.f32le",
   ],
   [
-    `public/artifacts/audio-fir/build-manifest.json|27f7f1e7042916076a84d95e42b63bc20c58e7d22fbe95c36f4f41d6a8f2efdd1e`,
+    `public/artifacts/audio-fir/build-manifest.json|27f7f1e704290ab9a2f2a351c8b230471278ca3649cab54951c29a2829a3d8581e`,
     "/artifacts/audio-fir/build-manifest.json",
   ],
   [
