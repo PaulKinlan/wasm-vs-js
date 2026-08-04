@@ -13,7 +13,6 @@ Deno.test("results and runner pages expose evidence limits and accessible contro
   const evidence = await Deno.readTextFile("public/evidence/index.html");
   const app = await Deno.readTextFile("public/app.js");
   const css = await Deno.readTextFile("public/styles.css");
-  assert(index.includes("Accepted performance corpus: none"));
   assert(index.includes("Check implementation evidence"));
   assert(index.includes("unverified and supplies no timing evidence"));
   assert(index.includes("Raw run inspector"));

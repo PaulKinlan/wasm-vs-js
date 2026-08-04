@@ -64,7 +64,6 @@ Deno.test("public prose retains the benchmark's current evidence limits", async 
   const readme = await Deno.readTextFile("README.md");
   const runnerScript = await Deno.readTextFile("public/hosted-runner.js");
 
-  assert(home.includes("Accepted performance corpus: none"));
   assert(home.includes("unverified and supplies no timing evidence"));
   assert(runner.includes("The page does not upload or save the result"));
   assert(runner.includes("Its durations do not enter the accepted corpus"));

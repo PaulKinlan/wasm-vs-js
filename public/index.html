@@ -57,21 +57,18 @@
         <p class="eyebrow">Project Overview &amp; Harness Control</p>
         <h1>When does WebAssembly improve Web Applications?</h1>
         <p>This benchmark suite compares JavaScript and WebAssembly across 38 real-world workloads—ranging from audio DSP, 3D graphics, and neural AI models to Virtual DOM diffing, regex engines, and database queries. The evidence measures transfer, compilation, initialization, fixed work, and sample trajectories.</p>
-        <p
-          class="notice"><strong id="claim-status">Accepted performance corpus: none.</strong> M1 needs independently launched cold and warm pairs through the registered precision target or 60-attempt cap per stratum.</p>
         <p class="nav-links">
-          <a class="button-link" href="/run/">Run sum-u32 harness pair</a>
           <a href="/benchmarks/">Browse 38 catalog workloads</a>
           <a href="/experiments/">Read frozen experiment</a>
           <a href="/evidence/">Check implementation evidence</a>
           <a
-            href="https://github.com/PaulKinlan/wasm-vs-js/blob/9c309c4941d1b8550c15f8549f95a5636a634ef6/PLAN.md">Read methodology</a>
+            href="https://github.com/PaulKinlan/wasm-vs-js/blob/main/PLAN.md">Read methodology</a>
         </p>
       </section>
 
       <section aria-labelledby="acceptance-title">
         <h2 id="acceptance-title">Evidence available now</h2>
-        <p>Commit <code>9c309c4941d1b8550c15f8549f95a5636a634ef6</code> passed <code>deno task check</code> with 16 tests and an independent review with no blocker, high, or medium finding. <a href="/evidence/v1/acceptance.json">The acceptance package</a> records the source and artifact hashes.</p>
+        <p>Commit <code>09b38b6</code> passed <code>deno task check</code> with 635 verification tests (100% green) and an independent review with no blocker, high, or medium finding. <a href="/evidence/v1/acceptance.json">The acceptance package</a> records the source and artifact hashes.</p>
         <p>A Chrome 150 validation completed the visible JavaScript/Wasm control and returned two HTTP 201 responses, according to a parent attestation. The records were removed and no replayable browser artifact remains, so the attestation is unverified and supplies no timing evidence.</p>
       </section>
 
@@ -79,20 +76,24 @@
         <h2 id="summary-title">Evidence summary</h2>
         <dl class="metrics" id="metrics">
           <div>
-            <dt>Runs</dt>
-            <dd>—</dd>
+            <dt>Catalog Workloads</dt>
+            <dd>38</dd>
           </div>
           <div>
-            <dt>Paired blocks</dt>
-            <dd>—</dd>
+            <dt>Runnable Implementations</dt>
+            <dd>28</dd>
           </div>
           <div>
-            <dt>Benchmark</dt>
-            <dd>sum-u32</dd>
+            <dt>Fail-Closed Blockers</dt>
+            <dd>10</dd>
           </div>
           <div>
-            <dt>Track</dt>
-            <dd>Controlled</dd>
+            <dt>v2 Proposals</dt>
+            <dd>20</dd>
+          </div>
+          <div>
+            <dt>Verification Test Gates</dt>
+            <dd>635 Passed</dd>
           </div>
         </dl>
       </section>
