@@ -26,8 +26,8 @@
     },
     {
       "path": "public/base-server-ssr-demo.js",
-      "bytes": 2124,
-      "sha256": "f1164985745470ff8512f62a169ac1ccd830dcda0d551f40c8722885f67b947e"
+      "bytes": 2123,
+      "sha256": "ef4df4022a4b2710a8839d0982f7500157e9131ee5a0ecac5f677c718dd58c4f"
     },
     {
       "path": "public/base-server-ssr-worker.js",
@@ -42,7 +42,7 @@
     {
       "path": "server.ts",
       "bytes": 93078,
-      "sha256": "b088eeaf440e03617fab6971af436736cafc41e78e915f4725d2deb165e96406"
+      "sha256": "489392e50f3b99076a6290d397be847bfa62c97f4c0bba3f166d7d304eb7e187"
     },
     {
       "path": "tests/base-server-ssr-template.test.ts",
