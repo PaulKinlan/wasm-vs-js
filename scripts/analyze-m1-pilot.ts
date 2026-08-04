@@ -4,7 +4,7 @@
 //
 // Usage: deno run --allow-read scripts/analyze-m1-pilot.ts [evidence-cold.json] [evidence-warm.json]
 
-async function findEvidence(pattern: string): Promise<string[]> {
+function findEvidence(pattern: string): string[] {
   const parts = pattern.split("/");
   const dir = parts.slice(0, -1).join("/");
   const filePattern = parts[parts.length - 1].replace(/\./g, "\\.").replace(/\*/g, ".*");

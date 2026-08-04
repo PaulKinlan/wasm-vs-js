@@ -1,10 +1,7 @@
 // M2 Track B: JavaScript optimization-hint variant tests.
 
 import { assert, assertEquals } from "./assert.ts";
-import {
-  JS_VARIANT_ITERATIONS,
-  runJsVariantSuite,
-} from "../benchmarks/js-optimization-variants/workload.ts";
+import { runJsVariantSuite } from "../benchmarks/js-optimization-variants/workload.ts";
 
 Deno.test({
   name: "js-variants: suite produces 6 variant results",
