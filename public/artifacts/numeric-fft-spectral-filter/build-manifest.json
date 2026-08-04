@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "f8a5856207c0e00f351b447547948b2244880351",
-  "sourceSha256": "fbafde190a47c4b8d961fa7e9f73bb66aa46eab8ab43ba3fa627f923e25c3ea8",
+  "sourceCommit": "5b73345d0cbf07ea6394801e0ffcb166320d8f20",
+  "sourceSha256": "a869337928543977f746c9d06d1ddac59c29dfbd4f8d463c78f66e6dac5c76b7",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 79019,
-      "sha256": "26c613bfaee5489c891079c5544331810b80e462119600dfbb9a0426fe2b0787"
+      "bytes": 80668,
+      "sha256": "572994c102426e57755eac191833630478ceda702b7e83e7dccf62c015e6dea9"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "cf421e686294b72e1ff3a98e8aa533489f2fa277c35014de9a309bb57f334a4c"
+      "sha256": "5f1cf4181f45c62d777daed03c17c79ce79c08e62222675a57d2b4787d34e443"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "a91d3e74082f7094d569f95c1e05932ec980be71c2216b275dca8710372e367a"
+      "sha256": "ba0da1bacdee3651ad21c701b133462bf150c5399ac593cf061714ef36fc3160"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=f8a5856207c0e00f351b447547948b2244880351"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=5b73345d0cbf07ea6394801e0ffcb166320d8f20"
   }
 }

@@ -1797,6 +1797,58 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
   }
 }
 
+// Multi-language Wasm kernel benchmark (benchmarks/multilang-wasm): the demo
+// page plus every compiled artifact and its build manifest. The Dart WasmGC
+// module additionally needs its dart2wasm-generated glue (.mjs).
+{
+  const base = "multilang-wasm-benchmark";
+  routes.set("/benchmarks/multilang-wasm", [
+    "public/benchmarks/multilang-wasm/index.html",
+    "text/html; charset=utf-8",
+  ]);
+  routes.set("/benchmarks/multilang-wasm/", [
+    "public/benchmarks/multilang-wasm/index.html",
+    "text/html; charset=utf-8",
+  ]);
+  routes.set("/benchmarks/multilang-wasm/runner.js", [
+    "public/benchmarks/multilang-wasm/runner.js",
+    "text/javascript; charset=utf-8",
+  ]);
+  routes.set("/data/multilang-wasm-benchmark-report.v1.json", [
+    "public/data/multilang-wasm-benchmark-report.v1.json",
+    "application/json; charset=utf-8",
+  ]);
+  routes.set("/benchmarks/multilang-wasm-benchmark.md", [
+    "public/benchmarks/multilang-wasm-benchmark.md",
+    "text/markdown; charset=utf-8",
+  ]);
+  for (
+    const file of [
+      "sum_c.wasm",
+      "sum_cpp.wasm",
+      "sum_asc.wasm",
+      "sum_rs.wasm",
+      "sum_wat.wasm",
+      "fft_c.wasm",
+      "fft_cpp.wasm",
+      "fft_asc.wasm",
+      "fft_rs.wasm",
+      "fft_dart.wasm",
+      "fft_dart.mjs",
+    ]
+  ) {
+    const type = file.endsWith(".wasm") ? "application/wasm" : "text/javascript; charset=utf-8";
+    routes.set(`/artifacts/${base}/${file}`, [
+      `public/artifacts/${base}/${file}`,
+      type,
+    ]);
+  }
+  routes.set(`/artifacts/${base}/build-manifest.json`, [
+    `public/artifacts/${base}/build-manifest.json`,
+    "application/json; charset=utf-8",
+  ]);
+}
+
 // Transpiled demo engine modules: a closed, explicitly listed set. Anything
 // else under /demo-assets/ falls through to 404.
 for (

@@ -1,17 +1,25 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2026-08-03T23:37:43.521Z",
+  "generatedAt": "2026-08-04T22:35:26.721Z",
+  "toolchains": {
+    "clang": "clang --target=wasm32 -O3 -nostdlib",
+    "clangpp": "clang++ --target=wasm32 -O3 -nostdlib",
+    "assemblyscript": "asc -O3 --bindings none --noAssert",
+    "rustc": "rustc --target wasm32-unknown-unknown -O --crate-type cdylib",
+    "dart2wasm": "dart compile wasm (dart2wasm, WasmGC)",
+    "kotlinWasm": "prebuilt Kotlin 2.3.21 / Wasm (text-gc-document-edit)"
+  },
   "workloads": [
     {
       "name": "sum-u32",
-      "description": "Array sum reduction over 1,000 u32 integers across 200,000 warm iterations.",
+      "description": "Array sum reduction over 1,000 u32 integers across 200,000 warm iterations. Dart consumes the same data as a zero-copy Uint32Array via dart:js_interop.",
       "variants": [
         {
           "language": "JavaScript",
           "toolchain": "V8 JIT Engine",
           "binarySizeBytes": 0,
           "coldInstantiateMs": 0,
-          "warmExecutionMs": 111.84,
+          "warmExecutionMs": 82.87,
           "memoryPageCount": 0,
           "importsCount": 0,
           "exportsCount": 1,
@@ -21,30 +29,30 @@
           "language": "Raw WAT",
           "toolchain": "Handwritten WAT / Bytecode",
           "binarySizeBytes": 96,
-          "coldInstantiateMs": 0.0016,
-          "warmExecutionMs": 52.35,
+          "coldInstantiateMs": 0.0014,
+          "warmExecutionMs": 53.95,
           "memoryPageCount": 1,
           "importsCount": 0,
           "exportsCount": 2,
           "notes": "Direct opcode stream; zero runtime glue or memory manager."
         },
         {
-          "language": "AssemblyScript (WasmGC)",
+          "language": "AssemblyScript",
           "toolchain": "AssemblyScript compiler (asc -O3)",
           "binarySizeBytes": 94,
-          "coldInstantiateMs": 0.0009,
-          "warmExecutionMs": 52.29,
+          "coldInstantiateMs": 0.001,
+          "warmExecutionMs": 54.91,
           "memoryPageCount": 1,
           "importsCount": 0,
           "exportsCount": 2,
-          "notes": "TypeScript-like syntax; generates clean Wasm with zero JS wrapper overhead."
+          "notes": "TypeScript-like syntax compiled to linear-memory Wasm."
         },
         {
           "language": "C / Wasm",
-          "toolchain": "LLVM Clang 22.1 (-O3 -nostdlib)",
+          "toolchain": "LLVM Clang (-O3 -nostdlib)",
           "binarySizeBytes": 757,
           "coldInstantiateMs": 0.0018,
-          "warmExecutionMs": 41.94,
+          "warmExecutionMs": 40.97,
           "memoryPageCount": 1,
           "importsCount": 0,
           "exportsCount": 14,
@@ -52,103 +60,145 @@
         },
         {
           "language": "C++ / Wasm",
-          "toolchain": "LLVM Clang++ 22.1 (-O3 -nostdlib)",
+          "toolchain": "LLVM Clang++ (-O3 -nostdlib)",
           "binarySizeBytes": 759,
-          "coldInstantiateMs": 0.0016,
-          "warmExecutionMs": 40.05,
+          "coldInstantiateMs": 0.0017,
+          "warmExecutionMs": 41,
           "memoryPageCount": 1,
           "importsCount": 0,
           "exportsCount": 14,
           "notes": "Standalone Clang++ compilation with extern 'C' export wrappers."
+        },
+        {
+          "language": "Rust / Wasm",
+          "toolchain": "rustc wasm32-unknown-unknown (-O cdylib)",
+          "binarySizeBytes": 498,
+          "coldInstantiateMs": 0.0011,
+          "warmExecutionMs": 41.69,
+          "memoryPageCount": 1,
+          "importsCount": 0,
+          "exportsCount": 2,
+          "notes": "no_std cdylib; identical u32 reduction semantics to C."
+        },
+        {
+          "language": "Dart / WasmGC",
+          "toolchain": "dart compile wasm (dart2wasm, Dart 3.12.2)",
+          "binarySizeBytes": 39613,
+          "coldInstantiateMs": 0.0936,
+          "warmExecutionMs": 154.53,
+          "memoryPageCount": 2,
+          "importsCount": 380,
+          "exportsCount": 9,
+          "notes": "WasmGC module; @JSExport kernels consume a zero-copy Uint32Array via dart:js_interop. Cold instantiation and warm execution measured with the dart2wasm-generated glue."
         }
       ]
     },
     {
       "name": "fft-kernel",
-      "description": "Fast Fourier Transform butterfly kernel (512 float elements, 2,000 warm iterations).",
+      "description": "Fast Fourier Transform butterfly kernel (512 float elements, 2,000 warm iterations). C/C++/AssemblyScript/Rust use an f32 polynomial sin/cos; JS and Dart use f64 Math.sin/cos — disclosed per-variant, no output cross-check across those families.",
       "variants": [
         {
           "language": "JavaScript",
           "toolchain": "V8 JIT Engine",
           "binarySizeBytes": 0,
           "coldInstantiateMs": 0,
-          "warmExecutionMs": 12.81,
+          "warmExecutionMs": 37.17,
           "memoryPageCount": 0,
           "importsCount": 0,
           "exportsCount": 1,
-          "notes": "Pure JS Math.sin/cos loop."
+          "notes": "Math.sin/cos loop (f64)."
         },
         {
-          "language": "AssemblyScript (WasmGC)",
+          "language": "AssemblyScript",
           "toolchain": "AssemblyScript compiler (asc -O3)",
           "binarySizeBytes": 2479,
-          "coldInstantiateMs": 0.0014,
-          "warmExecutionMs": 8.78,
+          "coldInstantiateMs": 0.0015,
+          "warmExecutionMs": 8.32,
           "memoryPageCount": 1,
           "importsCount": 0,
           "exportsCount": 2,
-          "notes": "Uses AssemblyScript Mathf intrinsics."
+          "notes": "Mathf intrinsics (f32)."
         },
         {
           "language": "C / Wasm",
-          "toolchain": "LLVM Clang 22.1 (-O3 -nostdlib)",
+          "toolchain": "LLVM Clang (-O3 -nostdlib)",
           "binarySizeBytes": 1149,
-          "coldInstantiateMs": 0.0017,
-          "warmExecutionMs": 8.69,
+          "coldInstantiateMs": 0.0019,
+          "warmExecutionMs": 8.45,
           "memoryPageCount": 1,
           "importsCount": 0,
           "exportsCount": 14,
-          "notes": "Includes standalone polynomial trigonometric functions."
+          "notes": "f32 polynomial sin/cos (wasm32 has no hardware trig)."
         },
         {
           "language": "C++ / Wasm",
-          "toolchain": "LLVM Clang++ 22.1 (-O3 -nostdlib)",
+          "toolchain": "LLVM Clang++ (-O3 -nostdlib)",
           "binarySizeBytes": 1151,
-          "coldInstantiateMs": 0.0017,
-          "warmExecutionMs": 8.7,
+          "coldInstantiateMs": 0.0018,
+          "warmExecutionMs": 7.87,
           "memoryPageCount": 1,
           "importsCount": 0,
           "exportsCount": 14,
-          "notes": "Compiled via Clang++ with inline float Math operators."
+          "notes": "f32 polynomial sin/cos via extern 'C' wrappers."
+        },
+        {
+          "language": "Rust / Wasm",
+          "toolchain": "rustc wasm32-unknown-unknown (-O cdylib)",
+          "binarySizeBytes": 889,
+          "coldInstantiateMs": 0.0011,
+          "warmExecutionMs": 7.76,
+          "memoryPageCount": 1,
+          "importsCount": 0,
+          "exportsCount": 2,
+          "notes": "no_std cdylib; mirrors the C f32 polynomial butterfly exactly."
+        },
+        {
+          "language": "Dart / WasmGC",
+          "toolchain": "dart compile wasm (dart2wasm, Dart 3.12.2)",
+          "binarySizeBytes": 39613,
+          "coldInstantiateMs": 0.0936,
+          "warmExecutionMs": 52.47,
+          "memoryPageCount": 2,
+          "importsCount": 380,
+          "exportsCount": 9,
+          "notes": "WasmGC module; f64 dart:math sin/cos over zero-copy Float32Array views."
         }
       ]
     },
     {
-      "name": "text-gc-document-edit (Managed WasmGC Runtimes)",
-      "description": "Kotlin/WasmGC and Dart/WasmGC managed document edit engine references.",
+      "name": "managed-wasmgc-footprint",
+      "description": "Measured footprint (binary size, cold instantiation, imports) for the two managed WasmGC runtimes available in this repo. Workloads differ (Dart: the kernels above; Kotlin: the text-gc document-edit engine), so NO cross-runtime warm-execution comparison is claimed.",
       "variants": [
         {
-          "language": "Kotlin / WasmGC",
-          "toolchain": "Kotlin 2.3 Multiplatform Wasm Compiler",
-          "binarySizeBytes": 36961,
-          "coldInstantiateMs": 0.0728,
-          "warmExecutionMs": 14.5,
+          "language": "Dart / WasmGC",
+          "toolchain": "dart compile wasm (dart2wasm, Dart 3.12.2)",
+          "binarySizeBytes": 39613,
+          "coldInstantiateMs": 0.0936,
           "memoryPageCount": 2,
-          "importsCount": 18,
-          "exportsCount": 8,
-          "notes": "Full GC runtime with JS builtins interop and garbage collector bindings."
+          "importsCount": 380,
+          "exportsCount": 9,
+          "notes": "Kernels module; instantiated with the generated dart2wasm glue."
         },
         {
-          "language": "Dart / WasmGC",
-          "toolchain": "Dart 3.x dart2wasm Compiler (Reference)",
-          "binarySizeBytes": 184320,
-          "coldInstantiateMs": 0.082,
-          "warmExecutionMs": 15.1,
-          "memoryPageCount": 3,
-          "importsCount": 22,
-          "exportsCount": 6,
-          "notes": "Dart WasmGC runtime baseline with core GC types, string interop, and event loop integration."
+          "language": "Kotlin / Wasm",
+          "toolchain": "Kotlin 2.3.21 / Wasm (prebuilt text-gc-document-edit)",
+          "binarySizeBytes": 36961,
+          "coldInstantiateMs": 0.0725,
+          "memoryPageCount": 2,
+          "importsCount": 216,
+          "exportsCount": 4,
+          "notes": "Prebuilt document-edit engine. Cold instantiation measured with the Kotlin import object; warm execution not comparable to the kernel workloads."
         }
       ]
     }
   ],
   "summary": {
-    "totalVariantsTested": 10,
+    "totalVariantsTested": 15,
     "keyInsights": [
-      "Raw WAT and AssemblyScript yield tiny Wasm binaries (<100 bytes for simple kernels) with near-instant cold instantiation (<0.05 ms).",
-      "Clang and Clang++ -nostdlib produce standalone C/C++ Wasm binaries (~750-1,150 bytes) with zero external library overhead.",
-      "High-level GC language runtimes (such as Kotlin WasmGC and Dart dart2wasm) introduce binary footprint overhead (~37 KB - 180 KB) and runtime imports for garbage collection and host string/object interop.",
-      "Warm execution speed across raw WAT, AssemblyScript, C, and C++ Wasm is virtually identical on V8, outperforming pure JS loops by 1.5x to 3.2x on compute-heavy kernels."
+      "Raw WAT and AssemblyScript yield tiny linear-memory binaries (94-2,479 bytes) with near-instant cold instantiation.",
+      "Rust no_std cdylibs are only slightly larger than equivalent C (-nostdlib) binaries (498 vs 757 bytes for sum_u32) with the same two exports.",
+      "Dart/WasmGC carries a real runtime cost: ~39.7 KB binary, 380 imports, and an instantiation glue module — the price of GC, strings, and host interop.",
+      "Warm execution across WAT, C, C++, Rust, and AssemblyScript is near-identical on V8; JS trails by 1.5-3.2x on these compute-heavy kernels; Dart/WasmGC results are measured per-workload in the rows above."
     ]
   }
 }
