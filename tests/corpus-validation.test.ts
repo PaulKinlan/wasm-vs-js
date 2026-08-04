@@ -1,4 +1,5 @@
 import { assertEquals } from "./assert.ts";
+import { FROZEN_PREREGISTRATION_CANONICAL_SHA256 } from "../lib/preregistration.ts";
 import { validateCorpusSemantics } from "../lib/corpus-validation.ts";
 import { COLLECTOR_ROUTES, collectorRouteHashes } from "../lib/source-identity.ts";
 const preregistration = JSON.parse(
@@ -29,7 +30,7 @@ function corpus(blocks = [attempt("committed", 0)]) {
     permitDigest: "b".repeat(64),
     sourceManifestSha256: "c".repeat(64),
     chromePackageManifestSha256: "d".repeat(64),
-    preregistrationSha256: "90ddcc1703d158f34153f2c0d566fb7126f3599c4d848d109cb3ef8a42c2e6dc",
+    preregistrationSha256: FROZEN_PREREGISTRATION_CANONICAL_SHA256,
     planned: 120,
     attempted: blocks.length,
     committed: blocks.filter((b) => b.status === "committed").length,

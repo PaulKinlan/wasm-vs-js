@@ -19,8 +19,12 @@ const schema = JSON.parse(
 );
 const validateSchema = ajv.compile(schema);
 
+export const FROZEN_PREREGISTRATION_CANONICAL_SHA256 =
+  "90ddcc1703d158f34153f2c0d566fb7126f3599c4d848d109cb3ef8a42c2e6dc";
+export const FROZEN_PREREGISTRATION_SHA256 = FROZEN_PREREGISTRATION_CANONICAL_SHA256;
+
 const EXPECTED = {
-  canonicalSha256: "90ddcc1703d158f34153f2c0d566fb7126f3599c4d848d109cb3ef8a42c2e6dc",
+  canonicalSha256: FROZEN_PREREGISTRATION_CANONICAL_SHA256,
   benchmarkPath: "../benchmarks/sum-u32/benchmark.json",
   benchmarkSha256: "d5a7c9459e5bbed3a64d521af393d30d572b1034184a249f14265e2a0a99ff0a",
   manifestPath: "../public/artifacts/sum-u32/build-manifest.json",

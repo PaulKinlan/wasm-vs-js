@@ -23,54 +23,137 @@
     "status"
   ],
   "properties": {
-    "schemaVersion": { "const": 1 },
-    "corpusId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$" },
-    "experimentId": { "const": "m1-chrome-sum-u32-v1" },
-    "permitDigest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-    "sourceManifestSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-    "chromePackageManifestSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "schemaVersion": {
+      "const": 1
+    },
+    "corpusId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+    },
+    "experimentId": {
+      "const": "m1-chrome-sum-u32-v1"
+    },
+    "permitDigest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "sourceManifestSha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "chromePackageManifestSha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
     "preregistrationSha256": {
       "const": "90ddcc1703d158f34153f2c0d566fb7126f3599c4d848d109cb3ef8a42c2e6dc"
     },
-    "planned": { "const": 120 },
-    "attempted": { "type": "integer", "minimum": 0, "maximum": 120 },
-    "committed": { "type": "integer", "minimum": 0, "maximum": 120 },
-    "failed": { "type": "integer", "minimum": 0, "maximum": 120 },
-    "blocked": { "type": "integer", "minimum": 0, "maximum": 120 },
-    "unstarted": { "type": "integer", "minimum": 0, "maximum": 120 },
-    "blocks": { "type": "array", "maxItems": 120, "items": { "$ref": "#/$defs/attempt" } },
+    "planned": {
+      "const": 120
+    },
+    "attempted": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 120
+    },
+    "committed": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 120
+    },
+    "failed": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 120
+    },
+    "blocked": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 120
+    },
+    "unstarted": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 120
+    },
+    "blocks": {
+      "type": "array",
+      "maxItems": 120,
+      "items": {
+        "$ref": "#/$defs/attempt"
+      }
+    },
     "prelaunchFailures": {
       "type": "array",
       "maxItems": 1,
-      "items": { "$ref": "#/$defs/prelaunchFailure" }
+      "items": {
+        "$ref": "#/$defs/prelaunchFailure"
+      }
     },
     "strata": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["cold", "warm"],
+      "required": [
+        "cold",
+        "warm"
+      ],
       "properties": {
-        "cold": { "$ref": "#/$defs/stratum" },
-        "warm": { "$ref": "#/$defs/stratum" }
+        "cold": {
+          "$ref": "#/$defs/stratum"
+        },
+        "warm": {
+          "$ref": "#/$defs/stratum"
+        }
       }
     },
     "stop": {
       "oneOf": [
-        { "type": "null" },
+        {
+          "type": "null"
+        },
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["scheduleIndex", "blockId", "category", "reason", "artifactSha256"],
+          "required": [
+            "scheduleIndex",
+            "blockId",
+            "category",
+            "reason",
+            "artifactSha256"
+          ],
           "properties": {
-            "scheduleIndex": { "type": "integer", "minimum": 0, "maximum": 119 },
-            "blockId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$" },
-            "category": { "const": "blocked-containment" },
-            "reason": { "type": "string", "minLength": 1, "maxLength": 1024 },
-            "artifactSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+            "scheduleIndex": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 119
+            },
+            "blockId": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+            },
+            "category": {
+              "const": "blocked-containment"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "artifactSha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
           }
         }
       ]
     },
-    "status": { "enum": ["precision-met", "cap-inconclusive", "containment-blocked"] }
+    "status": {
+      "enum": [
+        "precision-met",
+        "cap-inconclusive",
+        "containment-blocked"
+      ]
+    }
   },
   "$defs": {
     "attempt": {
@@ -89,17 +172,40 @@
         "sha256"
       ],
       "properties": {
-        "blockId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$" },
-        "scheduleIndex": { "type": "integer", "minimum": 0, "maximum": 119 },
-        "stratum": { "enum": ["cold", "warm"] },
+        "blockId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+        },
+        "scheduleIndex": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 119
+        },
+        "stratum": {
+          "enum": [
+            "cold",
+            "warm"
+          ]
+        },
         "order": {
           "type": "array",
           "minItems": 2,
           "maxItems": 2,
           "uniqueItems": true,
-          "items": { "enum": ["js-controlled", "wasm-linear-controlled"] }
+          "items": {
+            "enum": [
+              "js-controlled",
+              "wasm-linear-controlled"
+            ]
+          }
         },
-        "status": { "enum": ["committed", "failed", "blocked"] },
+        "status": {
+          "enum": [
+            "committed",
+            "failed",
+            "blocked"
+          ]
+        },
         "category": {
           "enum": [
             "committed",
@@ -110,10 +216,31 @@
             "blocked-provenance"
           ]
         },
-        "reason": { "type": ["string", "null"], "maxLength": 1024 },
-        "jsMedianMs": { "type": ["number", "null"], "exclusiveMinimum": 0 },
-        "wasmMedianMs": { "type": ["number", "null"], "exclusiveMinimum": 0 },
-        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 1024
+        },
+        "jsMedianMs": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "exclusiveMinimum": 0
+        },
+        "wasmMedianMs": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "exclusiveMinimum": 0
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
       }
     },
     "prelaunchFailure": {
@@ -131,17 +258,36 @@
         "artifactSha256"
       ],
       "properties": {
-        "blockId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$" },
-        "scheduleIndex": { "type": "integer", "minimum": 0, "maximum": 119 },
-        "stratum": { "enum": ["cold", "warm"] },
+        "blockId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"
+        },
+        "scheduleIndex": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 119
+        },
+        "stratum": {
+          "enum": [
+            "cold",
+            "warm"
+          ]
+        },
         "order": {
           "type": "array",
           "minItems": 2,
           "maxItems": 2,
           "uniqueItems": true,
-          "items": { "enum": ["js-controlled", "wasm-linear-controlled"] }
+          "items": {
+            "enum": [
+              "js-controlled",
+              "wasm-linear-controlled"
+            ]
+          }
         },
-        "attempted": { "const": false },
+        "attempted": {
+          "const": false
+        },
         "category": {
           "enum": [
             "failed-correctness",
@@ -151,21 +297,61 @@
             "blocked-provenance"
           ]
         },
-        "reason": { "type": "string", "minLength": 1, "maxLength": 1024 },
-        "cleanupLifecycle": { "enum": ["verified-no-owned-launch", "unresolved-cleanup"] },
-        "artifactSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "cleanupLifecycle": {
+          "enum": [
+            "verified-no-owned-launch",
+            "unresolved-cleanup"
+          ]
+        },
+        "artifactSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
       }
     },
     "stratum": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["attempted", "committed", "failed", "blocked", "terminal"],
+      "required": [
+        "attempted",
+        "committed",
+        "failed",
+        "blocked",
+        "terminal"
+      ],
       "properties": {
-        "attempted": { "type": "integer", "minimum": 0, "maximum": 60 },
-        "committed": { "type": "integer", "minimum": 0, "maximum": 60 },
-        "failed": { "type": "integer", "minimum": 0, "maximum": 60 },
-        "blocked": { "type": "integer", "minimum": 0, "maximum": 60 },
-        "terminal": { "enum": ["continue", "precision-met", "cap-inconclusive"] }
+        "attempted": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 60
+        },
+        "committed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 60
+        },
+        "failed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 60
+        },
+        "blocked": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 60
+        },
+        "terminal": {
+          "enum": [
+            "continue",
+            "precision-met",
+            "cap-inconclusive"
+          ]
+        }
       }
     }
   }

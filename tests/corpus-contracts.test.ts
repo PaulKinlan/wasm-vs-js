@@ -1,4 +1,5 @@
-import { assertEquals, assertRejects } from "./assert.ts";
+import { assert, assertEquals, assertRejects } from "./assert.ts";
+import { FROZEN_PREREGISTRATION_CANONICAL_SHA256 } from "../lib/preregistration.ts";
 import {
   assertAttemptRecordSchema,
   assertBenchmarkSchema,
@@ -15,6 +16,19 @@ import {
   assertSourceManifestSchema,
   assertStageOwnerSchema,
 } from "../lib/corpus-contracts.ts";
+
+Deno.test("corpus schema is fresh (build-schemas --check)", async () => {
+  const command = new Deno.Command(Deno.execPath(), {
+    args: ["run", "--allow-read=.", "scripts/build-schemas.ts", "--check"],
+    stdout: "piped",
+    stderr: "piped",
+  });
+  const result = await command.output();
+  assert(
+    result.success,
+    new TextDecoder().decode(result.stderr) || new TextDecoder().decode(result.stdout),
+  );
+});
 
 Deno.test("permit receipt and Chrome package manifests are closed", async () => {
   assertPermitReceiptSchema({
@@ -126,7 +140,7 @@ Deno.test("corpus schema accepts typed per-stratum accounting and rejects omitte
     permitDigest: "a".repeat(64),
     sourceManifestSha256: "b".repeat(64),
     chromePackageManifestSha256: "c".repeat(64),
-    preregistrationSha256: "90ddcc1703d158f34153f2c0d566fb7126f3599c4d848d109cb3ef8a42c2e6dc",
+    preregistrationSha256: FROZEN_PREREGISTRATION_CANONICAL_SHA256,
     planned: 120,
     attempted: 1,
     committed: 1,
@@ -270,7 +284,7 @@ Deno.test("collection preflight manifests and lifecycle artifacts use closed sch
     permitDigest: "a".repeat(64),
     sourceManifestSha256: "b".repeat(64),
     chromePackageManifestSha256: "c".repeat(64),
-    preregistrationSha256: "90ddcc1703d158f34153f2c0d566fb7126f3599c4d848d109cb3ef8a42c2e6dc",
+    preregistrationSha256: FROZEN_PREREGISTRATION_CANONICAL_SHA256,
     planned: 120,
     attempted: 0,
     committed: 0,

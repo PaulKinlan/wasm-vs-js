@@ -1,4 +1,5 @@
 import Ajv2020 from "ajv2020";
+import { FROZEN_PREREGISTRATION_CANONICAL_SHA256 } from "../lib/preregistration.ts";
 import { validateBenchmark, validateRun } from "../lib/contracts.ts";
 import { validateCorpusSemantics } from "../lib/corpus-validation.ts";
 import {
@@ -364,7 +365,7 @@ const corpus = {
   experimentId: "m1-chrome-sum-u32-v1",
   permitDigest: hash,
   sourceManifestSha256: hash,
-  preregistrationSha256: "90ddcc1703d158f34153f2c0d566fb7126f3599c4d848d109cb3ef8a42c2e6dc",
+  preregistrationSha256: FROZEN_PREREGISTRATION_CANONICAL_SHA256,
   planned: 120,
   attempted: 1,
   committed: 1,
