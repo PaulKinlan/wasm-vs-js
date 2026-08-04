@@ -67,8 +67,17 @@ const SUM_U32_PAIR = [
   "tests/build.test.ts",
   "tests/traditional-web-build.test.ts",
 ];
+// image-editing-build rebuilds benchmarks/image-editing/{artifacts,fixtures};
+// image-demos reads benchmarks/image-editing/artifacts/image-editing.wasm
+// (scan-writers.mjs finding, 2026-08-04 — the build test was misclassified
+// as a flock reader). Same sequential-pair pattern as sum-u32.
+const IMAGE_PAIR = [
+  "tests/image-editing-build.test.ts",
+  "tests/image-demos.test.ts",
+];
 const SMALL_WRITERS = WRITER_TESTS.filter((f) =>
-  f !== RIGID_WRITER && f !== AUDIO_WRITER && !SUM_U32_PAIR.includes(f)
+  f !== RIGID_WRITER && f !== AUDIO_WRITER && !SUM_U32_PAIR.includes(f) &&
+  !IMAGE_PAIR.includes(f)
 );
 
 const commit = new TextDecoder().decode(
@@ -138,9 +147,15 @@ const writers = new Set(WRITER_TESTS);
 const allTests = await testFiles();
 const readerTests = allTests.filter((f) =>
   !writers.has(f) && f !== RIGID_READER && !TAIL_READERS.includes(f) &&
-  !HEAVY_READERS.includes(f)
+  !HEAVY_READERS.includes(f) && !IMAGE_PAIR.includes(f)
 );
-const missing = [...WRITER_TESTS, RIGID_READER, ...TAIL_READERS, ...HEAVY_READERS].filter(
+const missing = [
+  ...WRITER_TESTS,
+  RIGID_READER,
+  ...TAIL_READERS,
+  ...HEAVY_READERS,
+  ...IMAGE_PAIR,
+].filter(
   (f) => !allTests.includes(f),
 );
 if (missing.length > 0) {
@@ -234,6 +249,11 @@ await Promise.all([
   runStage({
     name: "test-writers-small",
     args: ["test", "--parallel", ...testArgs, ...SMALL_WRITERS, RIGID_READER],
+    env: testEnv,
+  }),
+  runStage({
+    name: "test-image-editing-pair",
+    args: ["test", ...testArgs, ...IMAGE_PAIR],
     env: testEnv,
   }),
 ]);
