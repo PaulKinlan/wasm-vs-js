@@ -119,6 +119,172 @@ export const KERNEL_ADAPTERS = {
     },
   },
 
+  // --- text-diff-patch: Myers O(ND) diff (mirrors v2 workload.js myersDiff) ----
+  "text.diff-patch.v1": {
+    kernels: ["myers_diff"],
+    build(mods) {
+      const LEN = 512, EDITS = 30;
+      function inputs() {
+        const base = new Uint32Array(LEN);
+        for (let i = 0; i < LEN; i++) base[i] = i;
+        const t = [];
+        for (let i = 0; i < LEN; i++) t.push(base[i]);
+        let st = 0xd1ff2026;
+        const rnd = () => {
+          st = (st * 1664525 + 1013904223) >>> 0;
+          return st / 4294967296;
+        };
+        for (let e = 0; e < EDITS; e++) {
+          const pos = Math.floor(rnd() * (t.length + 1));
+          if (rnd() < 0.5) t.splice(pos, 0, 0xffff0000 + e);
+          else if (t.length > 0) t.splice(Math.min(pos, t.length - 1), 1);
+        }
+        const target = new Uint32Array(t.length);
+        target.set(t);
+        return { base, target };
+      }
+      function layout(base, target) {
+        const max = base.length + target.length;
+        const vstride = 2 * max + 1;
+        const cap = base.length + target.length + 1;
+        return { max, vstride, cap };
+      }
+      const callables = {};
+      for (const key of ["c", "cpp", "rs"]) {
+        const inst = mods.engines[key].instances.myers_diff.instance;
+        const mem = inst.exports.memory;
+        callables[key] = {
+          myers_diff: () => {
+            const { base, target } = inputs();
+            const { max, vstride, cap } = layout(base, target);
+            const baseOff = 0, targetOff = 4096, scratchOff = 8192;
+            const scratchBytes = vstride * (max + 2) * 4;
+            const opOff = scratchOff + scratchBytes;
+            const xOff = opOff + cap * 4, yOff = xOff + cap * 4;
+            const edOff = yOff + cap * 4, fsOff = edOff + 4;
+            new Uint32Array(mem.buffer, baseOff, base.length).set(base);
+            new Uint32Array(mem.buffer, targetOff, target.length).set(target);
+            inst.exports.myers_diff(
+              baseOff,
+              base.length,
+              targetOff,
+              target.length,
+              opOff,
+              xOff,
+              yOff,
+              cap,
+              scratchOff,
+              vstride * (max + 2),
+              edOff,
+              fsOff,
+            );
+          },
+        };
+      }
+      callables.js = {
+        myers_diff: () => {
+          const { base, target } = inputs();
+          const { max, cap } = layout(base, target);
+          const outOp = new Uint32Array(cap),
+            outX = new Uint32Array(cap),
+            outY = new Uint32Array(cap);
+          const offset = max;
+          const v = new Int32Array(2 * max + 1);
+          let prefix = 0;
+          while (
+            prefix < base.length && prefix < target.length && base[prefix] === target[prefix]
+          ) prefix++;
+          let suffix = 0;
+          while (
+            suffix < base.length - prefix && suffix < target.length - prefix &&
+            base[base.length - 1 - suffix] === target[target.length - 1 - suffix]
+          ) suffix++;
+          const n = base.length - prefix - suffix, m = target.length - prefix - suffix;
+          const rev = [];
+          for (let index = 0; index < suffix; index++) {
+            rev.push([0, base.length - 1 - index, target.length - 1 - index]);
+          }
+          let ed = 0;
+          if (n === 0) {
+            for (let y = m - 1; y >= 0; y--) rev.push([2, prefix, prefix + y]);
+            ed = m;
+          } else if (m === 0) {
+            for (let x = n - 1; x >= 0; x--) rev.push([1, prefix + x, prefix]);
+            ed = n;
+          } else {
+            v[offset + 1] = 0;
+            const trace = [];
+            outer: for (let d = 0; d <= max; d++) {
+              for (let k = -d; k <= d; k += 2) {
+                let x = (k === -d || (k !== d && v[offset + k - 1] < v[offset + k + 1]))
+                  ? v[offset + k + 1]
+                  : v[offset + k - 1] + 1;
+                let y = x - k;
+                while (x < n && y < m && base[prefix + x] === target[prefix + y]) {
+                  x++;
+                  y++;
+                }
+                v[offset + k] = x;
+                if (x >= n && y >= m) {
+                  trace.push(v.slice());
+                  ed = d;
+                  break outer;
+                }
+              }
+              trace.push(v.slice());
+            }
+            let x = n, y = m;
+            for (let d = ed; d > 0; d--) {
+              const prior = trace[d - 1];
+              const k = x - y;
+              const down = k === -d || (k !== d && prior[offset + k - 1] < prior[offset + k + 1]);
+              const previousK = down ? k + 1 : k - 1;
+              const previousX = prior[offset + previousK];
+              const previousY = previousX - previousK;
+              while (x > previousX && y > previousY) {
+                x--;
+                y--;
+                rev.push([0, prefix + x, prefix + y]);
+              }
+              if (down) {
+                y--;
+                rev.push([2, prefix + x, prefix + y]);
+              } else {
+                x--;
+                rev.push([1, prefix + x, prefix + y]);
+              }
+            }
+          }
+          for (let index = prefix - 1; index >= 0; index--) rev.push([0, index, index]);
+          rev.reverse();
+          for (let i = 0; i < rev.length; i++) {
+            outOp[i] = rev[i][0];
+            outX[i] = rev[i][1];
+            outY[i] = rev[i][2];
+          }
+        },
+      };
+      callables.dart = {
+        myers_diff: () => {
+          const { base, target } = inputs();
+          const { max, vstride, cap } = layout(base, target);
+          mods.engines.dart.kernels.myers_diff(
+            base,
+            target,
+            new Uint32Array(cap),
+            new Uint32Array(cap),
+            new Uint32Array(cap),
+            new Uint32Array(vstride * (max + 2)),
+            cap,
+            new Uint32Array(1),
+            new Uint32Array(1),
+          );
+        },
+      };
+      return callables;
+    },
+  },
+
   // --- ml-gemm: strict-f32 GEMM (mirrors benchmarks/v2/ml-gemm) -------------
   "ml.gemm.v1": {
     kernels: ["gemm"],
@@ -389,7 +555,22 @@ export async function initMultilangRunner(manifestPath, opts = {}) {
 }
 
 if (typeof document !== "undefined" && document.body?.dataset?.multilangManifest) {
-  const init = () => initMultilangRunner(document.body.dataset.multilangManifest);
+  const init = () =>
+    initMultilangRunner(document.body.dataset.multilangManifest, {
+      form: document.querySelector(document.body.dataset.multilangForm || "#demo-form") ||
+        undefined,
+      start: document.querySelector(document.body.dataset.multilangStart || "#start") || undefined,
+      cancel: document.querySelector(document.body.dataset.multilangCancel || "#cancel") ||
+        undefined,
+      status: document.querySelector(document.body.dataset.multilangStatus || "#status") ||
+        undefined,
+      reporting:
+        document.querySelector(document.body.dataset.multilangReporting || "#perf-reporting") ||
+        undefined,
+      iterations:
+        document.querySelector(document.body.dataset.multilangIterations || "#iterations") ||
+        undefined,
+    });
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);
   } else {
