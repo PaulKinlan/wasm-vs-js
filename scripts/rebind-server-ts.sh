@@ -23,6 +23,7 @@ run polybench   deno run --allow-all scripts/build-base-polybench.ts --source-co
 run ssr         deno run --allow-all scripts/build-base-server-ssr-template.ts
 run nbody       deno run --allow-all scripts/build-base-simulation-nbody.ts --source-commit=$C
 run rigid       deno run --allow-all scripts/build-rigid-body-2d.ts --source-commit=$C
+run game        deno run --allow-all scripts/build-game-family.ts --source-commit=$C
 run logscan     deno run --allow-all scripts/build-text-regex-log-scan.ts --source-commit=$C
 run telemetry   deno run --allow-all scripts/build-v1-json-telemetry.ts --source-commit=$C
 run sqlite      deno run --allow-all scripts/build-sqlite-notebook-evidence.ts $C

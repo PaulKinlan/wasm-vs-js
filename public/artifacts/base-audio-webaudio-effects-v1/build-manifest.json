@@ -3,7 +3,7 @@
   "entryId": "audio.webaudio-effects.v1",
   "implementationId": "audio-webaudio-effects-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "44aae7d230a6bd0400530e731f6b1f37b030a281",
+  "sourceCommit": "a25e507fb68dc5d199524feebfe413d4e6003495",
   "sourceSha256": "8c6502b6b95ce7e67d3b20c571bcff23b3584e87d53b4377bf64ae8f0df17385",
   "frozenCatalog": {
     "path": "catalog/workloads.v1.json",
