@@ -52,10 +52,10 @@ const SIMD_WAT = `(module
     f32.add
     local.get $sum_v
     f32x4.extract_lane 2
-    f32x4.add
+    f32.add
     local.get $sum_v
     f32x4.extract_lane 3
-    f32x4.add)
+    f32.add)
   ;; Scalar f32 dot product for correctness comparison
   (func (export "dot_scalar") (param $a i32) (param $b i32) (param $len i32) (result f32)
     (local $i i32)
