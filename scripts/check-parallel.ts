@@ -162,24 +162,40 @@ async function runStage(stage: Stage): Promise<void> {
   console.error(`check-parallel: ${stage.name} ok (${elapsed}s)`);
 }
 
-// `task build` writes public/artifacts and must finish first; every other
-// static stage is read-only on the repo and runs concurrently.
+// `task build` writes public/artifacts and must finish first. Every static
+// stage is read-only (fmt --check/lint/typecheck/planning/contract/catalog all
+// run with --allow-read only) so they overlap phase A — with one hazard pair:
+// planning and contract read public/artifacts/sum-u32/build-manifest.json,
+// which the sum-u32 writer pair rewrites. The pair therefore starts only
+// after those two statics finish (~0.7s; the pair ends ~3s in, far from the
+// critical path). lint reads committed .js under public/artifacts but no gate
+// writer rewrites .js files there.
 const staticStages: Stage[] = [
   { name: "fmt", args: ["fmt", "--check"] },
   { name: "lint", args: ["lint"] },
   { name: "typecheck", args: ["task", "typecheck"] },
+  { name: "catalog", args: ["task", "catalog"] },
+];
+const manifestReaderStatics: Stage[] = [
   { name: "planning", args: ["run", "--allow-read=.", "scripts/check-planning.mjs"] },
   { name: "contract", args: ["task", "contract"], env: testEnv },
-  { name: "catalog", args: ["task", "catalog"] },
 ];
 
 const started = performance.now();
 await runStage({ name: "build", args: ["task", "build"] });
-await Promise.all(staticStages.map(runStage));
 
 // Phase A: readers and every writer, all concurrent (write sets verified
 // pairwise disjoint and unread by the reader flock — see header comment).
 await Promise.all([
+  ...staticStages.map(runStage),
+  // Gated on the manifest-reading statics (see comment above).
+  Promise.all(manifestReaderStatics.map(runStage)).then(() =>
+    runStage({
+      name: "test-sum-u32-pair",
+      args: ["test", ...testArgs, ...SUM_U32_PAIR],
+      env: testEnv,
+    })
+  ),
   // The light flock is only ~35 core-seconds of work; 12 workers on their
   // own cores finish it in ~4s while the heavy single-file stages and the
   // writer lanes run on dedicated sets (see TASKSET comment above).
@@ -210,11 +226,6 @@ await Promise.all([
   runStage({
     name: "test-writers-small",
     args: ["test", "--parallel", ...testArgs, ...SMALL_WRITERS, RIGID_READER],
-    env: testEnv,
-  }),
-  runStage({
-    name: "test-sum-u32-pair",
-    args: ["test", ...testArgs, ...SUM_U32_PAIR],
     env: testEnv,
   }),
 ]);
