@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "3fc5d9a756f074aa3fa75bf24585b8915619dc24",
-  "sourceSha256": "7774256d91e4ceab86d770d9fb6e44336c86f0a5dfbbe30f52ccf2a1cc9e99f5",
+  "sourceCommit": "727e49ec37c6769ec8a5a6ff3b99320ee5fadb7c",
+  "sourceSha256": "a3af58ebe4f3822a6d3e1a83a55f0f10314511d4f9a5ef0d64d49c6ffd3a6a0c",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 93253,
-      "sha256": "67f32ad514fe33fcd19fe284442ee24138dc3eba7616b7cdfc2d46dde3a2f16e"
+      "bytes": 96336,
+      "sha256": "4bd91bc229192cf9732437a0b69a5fa7cc0a6a63fa8aad26d54ab55e3ff7f842"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "f5b584f25c507bb59e1f938569bc8f5e8ca65c7719ed97c17dfa23dc2c053032"
+      "sha256": "4e8c0f6ba6910a391f721395492eb880bf713f49d735dbd421c714431cf16a22"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "a2d0769d0c45e187da98c534478b4058ed6609d0fb6c10cecf412a8477b7fb39"
+      "sha256": "ffadfa9571d8d0a83406827318a869cfd8c7aaf34b6382b689194d0662072884"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=3fc5d9a756f074aa3fa75bf24585b8915619dc24"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=727e49ec37c6769ec8a5a6ff3b99320ee5fadb7c"
   }
 }
