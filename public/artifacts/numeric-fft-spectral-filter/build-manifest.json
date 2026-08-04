@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "6d841fc004b349ad69cf97b8c6bfac86e0ccd27a",
-  "sourceSha256": "fbafde190a47c4b8d961fa7e9f73bb66aa46eab8ab43ba3fa627f923e25c3ea8",
+  "sourceCommit": "528c393d0fa77b2c02fab68daa5f28809dd72b11",
+  "sourceSha256": "8d57d52fc8991e64ec08948b4df7f666b3d0cda3dad0d6c3a0a2690cf06512aa",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 79019,
-      "sha256": "26c613bfaee5489c891079c5544331810b80e462119600dfbb9a0426fe2b0787"
+      "bytes": 79160,
+      "sha256": "497e84c971f8da9733edf9a0a3eac61a65b634697cb605085ee8d2186feae965"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "1a62eb0eb0bb5f323ab4dcd490d3e1111c75155347ebe4e67071c210de6cc8be"
+      "sha256": "aa7f7c3a36f2c8db5d8391fe922b1b74d787b2a867bf3528612d9bc272a41048"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "0c0afd9673b981b3163a880564126d2590d58779778c43d0175569763b36a4fc"
+      "sha256": "6f7177c063382719ea5feeb648b615e1971ee8ad8fbbd0e323d764285d78f977"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=6d841fc004b349ad69cf97b8c6bfac86e0ccd27a"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=528c393d0fa77b2c02fab68daa5f28809dd72b11"
   }
 }
