@@ -29,23 +29,23 @@
         <p
           class="lede">The catalog names kernels, components, applications, browser journeys, and server tasks before implementation begins. Each row fixes the intended work, oracle family, target modes, phases, rights state, and blockers.</p>
         <p
-          class="notice"><strong>Catalog status: 23/38 catalog workloads have runnable browser demos in the playground; the remaining 15 are documented proposals.</strong> All demos execute directly in browser workers; 37 of the 38 playground demos run unattended in Run-All, and the virtualized-grid demo runs interactively from its own page because its paced trace needs an idle page.</p>
+          class="notice"><strong>Catalog status: 23/38 catalog workloads have runnable browser demos in the playground; the remaining 15 are documented proposals.</strong> Every demo runs locally in your browser; nothing is uploaded.</p>
       </section>
 
       <section class="proposal-inventory" aria-labelledby="base-candidates-title">
-        <p class="eyebrow">Supplemental base implementation candidates</p>
-        <h2 id="base-candidates-title">Static candidates do not change accepted coverage</h2>
-        <p>The <code>dom.virtualized-grid.v1</code> candidate executes the exact 100,000-row, 300-event contract in JavaScript and material linear Wasm. Static output, counter, fixture, and provenance checks pass. Retained parent-controlled browser evidence and independent review remain pending, so frozen-v1 <em>accepted performance-evidence</em> coverage stays <strong>0/38</strong> — demos prove a workload runs, but only the not-yet-collected accepted corpus counts toward that figure.</p>
+        <p class="eyebrow">Under review</p>
+        <h2 id="base-candidates-title">Candidates pending accepted-evidence review</h2>
+        <p>The <code>dom.virtualized-grid.v1</code> candidate passes static correctness checks and is under review for accepted-evidence status.</p>
         <p><a href="/benchmarks/dom-virtualized-grid-v1/">Run the virtualized-grid correctness demo</a> · <a href="/evidence/base/dom-virtualized-grid-v1/candidate.json">Inspect the candidate record</a> · <a href="/data/base-implementation-candidates.v1.json">Inspect the supplemental ledger</a></p>
       </section>
 
       <section class="proposal-inventory" aria-labelledby="v2-inventory-title">
-        <p class="eyebrow">Separate from frozen catalog v1</p>
+        <p class="eyebrow">Growing the catalog</p>
         <h2 id="v2-inventory-title">v2 proposal implementation inventory</h2>
         <p
           class="lede">The repository contains <strong>20 v2 proposal definitions</strong>. Fourteen IDs have tested JavaScript and Wasm workload engines; six remain definition-only. Three audio, two ML, three game, and two text IDs have full proposal-validation demos, while four separate pages expose reduced image, regex, and virtual-DOM fixtures.</p>
         <p
-          class="notice"><strong>Runnable demos: 14 — 10 full proposal-validation routes and 4 reduced-fixture routes.</strong> No v2 package contains authoritative performance results, and these pages do not change frozen-v1 accepted performance-evidence coverage: <strong>0/38</strong> (the accepted corpus is not yet collected).</p>
+          class="notice"><strong>Runnable demos: 14 — 10 full proposal-validation routes and 4 reduced-fixture routes.</strong> No v2 package contains authoritative performance results.</p>
         <dl class="metrics v2-inventory-metrics">
           <div>
             <dt>Proposal definitions</dt>

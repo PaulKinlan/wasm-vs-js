@@ -379,6 +379,16 @@ const PLAYGROUND_WORKLOADS = [
       "Keyed reconciliation algorithms, DOM node reordering, and text node mutation benchmarks.",
   },
   {
+    slug: "dom-nested-tree-mutation",
+    title: "Nested DOM Tree Mutation Engine",
+    category: "DOM & Web UI",
+    route: "/benchmarks/dom-nested-tree-mutation/",
+    description:
+      "Executes 1,200 subtree insertions, node moves, replacements, attribute updates, and deletions on a nested DOM tree.",
+    explanation:
+      "Recursive tree traversal, structural node moves, and attribute modification cascades.",
+  },
+  {
     slug: "simulation-rigid-body-2d-v1",
     title: "2D Rigid-Body Physics Engine",
     category: "Simulation",

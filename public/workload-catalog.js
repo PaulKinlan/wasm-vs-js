@@ -45,6 +45,7 @@ const WORKLOAD_DEMO_ROUTES = {
   "dom.dependent-form-validation.v1": "/benchmarks/dom-dependent-form-validation/",
   "dom.grid-movement.v1": "/benchmarks/dom-grid-movement/",
   "dom.keyed-list-mutation.v1": "/benchmarks/dom-keyed-list-mutation/",
+  "dom.nested-tree-mutation.v1": "/benchmarks/dom-nested-tree-mutation/",
   "dom.vdom-diff-patch.v1": "/benchmarks/vdom-diff-patch-demo/",
   "game.canvas-arcade.v1": "/demos/game-canvas-arcade/",
   "game.canvas-entity-pathfinding.v1": "/demos/game-canvas-entity-pathfinding/",

@@ -195,6 +195,10 @@ const WORKLOAD_CONFIGS = {
     workerScript: "/benchmarks/dom-keyed-list-mutation/worker.js",
     protocol: "keyed-list",
   },
+  "dom-nested-tree-mutation": {
+    workerScript: "/benchmarks/dom-nested-tree-mutation/worker.js",
+    protocol: "nested-tree",
+  },
 };
 
 // Map target name per protocol family
@@ -294,6 +298,7 @@ function formatTargetPayload(slug, target) {
     case "form-validation":
     case "grid-movement":
     case "keyed-list":
+    case "nested-tree":
       return { type: "run", target: isWasm ? "wasm" : "javascript" };
     case "virtualized-grid":
       return {
