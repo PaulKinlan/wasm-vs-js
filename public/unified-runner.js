@@ -191,6 +191,10 @@ const WORKLOAD_CONFIGS = {
     workerScript: "/benchmarks/dom-grid-movement/worker.js",
     protocol: "grid-movement",
   },
+  "dom-keyed-list-mutation": {
+    workerScript: "/benchmarks/dom-keyed-list-mutation/worker.js",
+    protocol: "keyed-list",
+  },
 };
 
 // Map target name per protocol family
@@ -289,6 +293,7 @@ function formatTargetPayload(slug, target) {
       return { variant: isWasm ? "wasm-linear-controlled" : "js-controlled" };
     case "form-validation":
     case "grid-movement":
+    case "keyed-list":
       return { type: "run", target: isWasm ? "wasm" : "javascript" };
     case "virtualized-grid":
       return {

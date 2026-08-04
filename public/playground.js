@@ -369,6 +369,16 @@ const PLAYGROUND_WORKLOADS = [
       "Grid coordinate transforms, collision/boundary checks, and spatial layout position updates.",
   },
   {
+    slug: "dom-keyed-list-mutation",
+    title: "Keyed List DOM Mutation Engine",
+    category: "DOM & Web UI",
+    route: "/benchmarks/dom-keyed-list-mutation/",
+    description:
+      "Performs 2,000 keyed list insertions, removals, reorders, swaps, and text updates on a dynamic DOM list.",
+    explanation:
+      "Keyed reconciliation algorithms, DOM node reordering, and text node mutation benchmarks.",
+  },
+  {
     slug: "simulation-rigid-body-2d-v1",
     title: "2D Rigid-Body Physics Engine",
     category: "Simulation",
