@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "status": "passed",
   "workloadId": "game.ecs-frame-update.v1",
-  "sourceCommit": "1a2a7dceaa9e0f504dce650e16dabc28deb3be9d",
+  "sourceCommit": "3915bff5383a1797486a02b9bc39e9d5b4761021",
   "fixture": {
     "bytes": 81016,
     "sha256": "9ad7ed255f244425f3da0d281f7dffcaa8a8923e03907d5ac0bf0322968df769"
