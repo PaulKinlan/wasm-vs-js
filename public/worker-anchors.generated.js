@@ -15,7 +15,7 @@ export const WORKER_ANCHORS = Object.freeze({
     wasm: "37ee977839172da08b9b7f2dca782694b9c6cdd41c06673b6a011efce972f521",
   }),
   "text-gc-document-edit": Object.freeze({
-    buildManifest: "eb15a3c6ba7f7238e9672970a73daf3ddba4973e33da2d1501b26e0915ea8bef",
+    buildManifest: "955ec1119c7b596288e86a40d2efd79ed1403872cffe205d31d4ac560b6db80d",
     fixture: "45b117b798a6b35f42a3b5a541f5112bb7100510735e17650fee11ee6c8d6075",
     fixtureManifest: "8b4145b0d91f6eb086e7c3cabe1bf1bb9a647c9e7771ad0f824005141ebe5681",
     js: "466731002f3c005583c26592f4495cb80cc42639e40b1f0c6de236f7676eb443",
