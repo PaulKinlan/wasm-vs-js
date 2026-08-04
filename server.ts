@@ -1214,6 +1214,86 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/evidence/base/dom-todomvc-journey/wasm-linear-controlled.json",
     "application/json; charset=utf-8",
   ]],
+  ["/benchmarks/dom-dependent-form-validation", [
+    "public/benchmarks/dom-dependent-form-validation/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-dependent-form-validation/", [
+    "public/benchmarks/dom-dependent-form-validation/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-dependent-form-validation/engine.js", [
+    "public/benchmarks/dom-dependent-form-validation/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-dependent-form-validation/worker.js", [
+    "public/benchmarks/dom-dependent-form-validation/worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-grid-movement", [
+    "public/benchmarks/dom-grid-movement/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-grid-movement/", [
+    "public/benchmarks/dom-grid-movement/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-grid-movement/engine.js", [
+    "public/benchmarks/dom-grid-movement/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-grid-movement/worker.js", [
+    "public/benchmarks/dom-grid-movement/worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-keyed-list-mutation", [
+    "public/benchmarks/dom-keyed-list-mutation/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-keyed-list-mutation/", [
+    "public/benchmarks/dom-keyed-list-mutation/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-keyed-list-mutation/engine.js", [
+    "public/benchmarks/dom-keyed-list-mutation/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-keyed-list-mutation/worker.js", [
+    "public/benchmarks/dom-keyed-list-mutation/worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-table-sort-filter-pagination", [
+    "public/benchmarks/dom-table-sort-filter-pagination/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-table-sort-filter-pagination/", [
+    "public/benchmarks/dom-table-sort-filter-pagination/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-table-sort-filter-pagination/engine.js", [
+    "public/benchmarks/dom-table-sort-filter-pagination/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-table-sort-filter-pagination/worker.js", [
+    "public/benchmarks/dom-table-sort-filter-pagination/worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-virtualized-scrolling", [
+    "public/benchmarks/dom-virtualized-scrolling/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-virtualized-scrolling/", [
+    "public/benchmarks/dom-virtualized-scrolling/index.html",
+    "text/html; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-virtualized-scrolling/engine.js", [
+    "public/benchmarks/dom-virtualized-scrolling/engine.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/dom-virtualized-scrolling/worker.js", [
+    "public/benchmarks/dom-virtualized-scrolling/worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
   ["/benchmarks/dom-virtualized-grid-v1", [
     "public/benchmarks/dom-virtualized-grid-v1/index.html",
     "text/html; charset=utf-8",
