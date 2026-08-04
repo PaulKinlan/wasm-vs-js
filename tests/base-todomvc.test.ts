@@ -249,12 +249,12 @@ Deno.test("TodoMVC route is explicit, read-only, accessible, and lifecycle bound
   const html = await Deno.readTextFile("public/benchmarks/base-dom-todomvc-journey/index.html");
   assert(html.includes('href="#main"'));
   assert(html.includes('role="status"'));
-  assert(html.includes('/unified-runner.js'));
+  assert(html.includes("/unified-runner.js"));
   assert(html.includes('data-workload="base-dom-todomvc-journey"'));
   assert(html.includes('id="perf-reporting"'));
   assert(html.toLowerCase().includes("exact output is verified before any timing"));
   assert(!html.includes("No performance claim"));
-  assert(!html.includes("aria-label=\"Todo filters\""));
+  assert(!html.includes('aria-label="Todo filters"'));
   const worker = await Deno.readTextFile("public/benchmarks/base-dom-todomvc-journey/worker.js");
   assert(worker.includes('fetch(route, { cache: "no-store" })'));
   assert(worker.includes("raw byte hash mismatch"));

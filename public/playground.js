@@ -572,7 +572,6 @@ function initPlaygroundUI() {
     });
   }
 
-
   // Hash deep-link: scroll to a workload card (e.g. /#workload-sum-u32).
   if (location.hash) {
     const target = document.getElementById(location.hash.slice(1));

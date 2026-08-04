@@ -131,11 +131,11 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
   ) {
     assertEquals((await handler(new Request(`http://127.0.0.1${path}`))).status, 200);
   }
-    for (const path of ["/run", "/run/", "/run.html"]) {
-      const res = await handler(new Request(`http://127.0.0.1${path}`));
-      assertEquals(res.status, 302);
-      assertEquals(res.headers.get("location"), "/#workload-sum-u32");
-    }
+  for (const path of ["/run", "/run/", "/run.html"]) {
+    const res = await handler(new Request(`http://127.0.0.1${path}`));
+    assertEquals(res.status, 302);
+    assertEquals(res.headers.get("location"), "/#workload-sum-u32");
+  }
 
   const runRedirect = await handler(new Request("http://127.0.0.1/run"));
   assertEquals(runRedirect.status, 302);
