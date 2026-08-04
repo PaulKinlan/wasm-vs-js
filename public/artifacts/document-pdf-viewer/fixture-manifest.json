@@ -20,6 +20,6 @@
   },
   "generator": {
     "path": "scripts/build-document-pdf-viewer.ts",
-    "sourceCommit": "59f626571b5a5afb8af3b67f7676f044aca4938e"
+    "sourceCommit": "420351728a92d20303cc69af8465e13776c5a7d7"
   }
 }

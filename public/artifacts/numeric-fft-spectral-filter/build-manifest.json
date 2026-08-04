@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "59f626571b5a5afb8af3b67f7676f044aca4938e",
-  "sourceSha256": "9871dc5e96c185dac92b0f218d6bad248ef61ad7850a6bbc952414f55ea7844d",
+  "sourceCommit": "420351728a92d20303cc69af8465e13776c5a7d7",
+  "sourceSha256": "c628473e2f9e6ceddbfcead4fb7b897b2075636e7c5315081a0d10898b04b20d",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -60,8 +60,8 @@
     },
     {
       "path": "deno.lock",
-      "bytes": 1630,
-      "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2"
+      "bytes": 1658,
+      "sha256": "f8b9d5758eef1e7aaf7168859c207c06c6bed08ba80ac0f655791a1a2c2d3e35"
     }
   ],
   "frozenCatalog": {
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "cc73e3b127459bcdc788244af6cf0633e353f661706f0a2572401b8c6ae246bc"
+      "sha256": "da2669d7f0494349e236759c81931538e4ff2fa4cb61e474027a7892bfc123d5"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "50fa37c29f419c05fd40ca6a9be834add1353de1941ea4e8b61a249200a809d3"
+      "sha256": "a50d672c6053e7128d1b433459ab3de009a043cacf89fea44c2a02239b94b2f8"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=59f626571b5a5afb8af3b67f7676f044aca4938e"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=420351728a92d20303cc69af8465e13776c5a7d7"
   }
 }
