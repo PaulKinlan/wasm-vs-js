@@ -2140,7 +2140,7 @@ const ecsVariants: Record<string, number> = {};
       instance: WebAssembly.Instance;
     };
     const mem = mod.instance.exports.memory as WebAssembly.Memory;
-    const inOff = mod.instance.exports.input_ptr() as number;
+    const inOff = (mod.instance.exports.input_ptr as () => number)();
     const fn = () => {
       new Uint8Array(mem.buffer, inOff, ecsFixture.length).set(ecsFixture);
       (mod.instance.exports.run as (l: number) => number)(ecsFixture.length);
