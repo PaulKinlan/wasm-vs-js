@@ -13,7 +13,7 @@ async function startServer() {
       // Local mode eagerly initializes its run store under raw/ at startup;
       // grant exactly that directory, nothing broader.
       "--allow-write=raw",
-      "--allow-env=PORT,HOST,SERVER_MODE,WASM_VS_JS_COMMIT",
+      "--allow-env=PORT,HOST,SERVER_MODE,WASM_VS_JS_COMMIT,WASM_VS_JS_REPORTER_TOKEN",
       "server.ts",
     ],
     env: {
