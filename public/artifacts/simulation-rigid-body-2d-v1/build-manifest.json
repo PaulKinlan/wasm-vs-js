@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "registrationId": "simulation-rigid-body-2d-v1-controlled",
-  "sourceCommit": "592e4817dbad350619a8587fd81b3cb47bf75e51",
+  "sourceCommit": "2d57d8b62976c80d53ad8ba4a290b217b82aa1d8",
   "toolchain": {
     "deno": "2.9.0",
     "clang": "clang version 22.1.8",
@@ -69,7 +69,7 @@
     },
     {
       "path": "public/benchmarks/simulation-rigid-body-2d-v1/index.html",
-      "sha256": "fa0e4ab5b49cdd4138206e738506a252dc23345adabea22b6bb6fa298bafc421"
+      "sha256": "69da7dc92c64e68cf6ee6d708cb8451637d5a1945983f5bd28a4f12f00e9a84b"
     },
     {
       "path": "public/benchmarks/simulation-rigid-body-2d-v1/runner.js",
@@ -81,11 +81,11 @@
     },
     {
       "path": "server.ts",
-      "sha256": "a1e4d2bdab380970303886d1b326a9a05eb10f137e7847084c840ef9ff88b3e4"
+      "sha256": "7da901894c15f442ffda29d9a1594f1fff2a3de9ba141345adb8e2d238e5664a"
     },
     {
       "path": "deno.json",
-      "sha256": "1e439fe47deecb16a7528be9220f543fd5587b82181819e5cb967877ec407cc0"
+      "sha256": "395d5541fd604585144ba08c6bf7ce6b534581e66b65408fdf5790c72fc10dc7"
     },
     {
       "path": "deno.lock",
@@ -97,16 +97,16 @@
     "bytes": 8520,
     "sha256": "080aa9d954e80a97946a07733e857d69edce0963361792dc876ef00c2dc79520"
   },
-  "fixtureManifestSha256": "4300df881ad50759ee590b3f2d8d0db95e7920ddd53c0e5bcb64dd00463419e2",
+  "fixtureManifestSha256": "2cda1c03503b3e63009bbb630d25648bf5cedc913e918238025a99a487af5928",
   "outputManifestSha256": "4c131c6597b8a2f354ceb6b387728f22c0b2d877470962580b273c2f54f86444",
   "resultRecords": [
     {
       "path": "public/evidence/v1-base/simulation-rigid-body-2d-v1/js-controlled.json",
-      "sha256": "3a4d0721770a9d878308748854819b853b5f608d37fc2f0c0d7abef05e404ef8"
+      "sha256": "07e6a2ca9c71b16b13c714c208ab8e2041ca08685c09112e6ad2eb6720131b37"
     },
     {
       "path": "public/evidence/v1-base/simulation-rigid-body-2d-v1/wasm-linear-controlled.json",
-      "sha256": "8e026916d399a487282009b832c0daafa23f9b2b6cda9273e43d3f509cfed679"
+      "sha256": "69bbc45858b57a4eca2096256aefc47c1bf2b3a054250848afc41311c5a8a27e"
     }
   ]
 }

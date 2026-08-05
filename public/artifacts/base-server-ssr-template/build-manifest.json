@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "workloadId": "server.ssr-template.v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "592e4817dbad350619a8587fd81b3cb47bf75e51",
+  "sourceCommit": "2d57d8b62976c80d53ad8ba4a290b217b82aa1d8",
   "sources": [
     {
       "path": "benchmarks/v1/server-ssr-template/workload.js",
@@ -41,8 +41,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 82014,
-      "sha256": "a1e4d2bdab380970303886d1b326a9a05eb10f137e7847084c840ef9ff88b3e4"
+      "bytes": 81233,
+      "sha256": "7da901894c15f442ffda29d9a1594f1fff2a3de9ba141345adb8e2d238e5664a"
     },
     {
       "path": "tests/base-server-ssr-template.test.ts",
@@ -51,8 +51,8 @@
     },
     {
       "path": "deno.json",
-      "bytes": 2497,
-      "sha256": "1e439fe47deecb16a7528be9220f543fd5587b82181819e5cb967877ec407cc0"
+      "bytes": 2104,
+      "sha256": "395d5541fd604585144ba08c6bf7ce6b534581e66b65408fdf5790c72fc10dc7"
     },
     {
       "path": "deno.lock",
