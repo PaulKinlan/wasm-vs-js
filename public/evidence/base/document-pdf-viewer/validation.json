@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "workloadId": "document.pdf-viewer.v1",
-  "sourceCommit": "0422f27094dec30bf2b8c290ecf4397781ffda18",
+  "sourceCommit": "ab4932cf6552ca7bc93f3454b71b9f1222e54af2",
   "status": "passed-static",
   "fixture": {
     "path": "public/artifacts/document-pdf-viewer/report-100-pages.pdf",
