@@ -2,6 +2,7 @@
 // Runs JS vs Wasm benchmarks in multi-iteration loops to measure cold vs warm execution performance.
 
 import { executeWorkerLoop, renderPerformanceReport } from "./unified-runner.js";
+import { loadEngines, runWorkload } from "./multilang-runner.js";
 
 const PLAYGROUND_WORKLOADS = [
   {
@@ -19,6 +20,7 @@ const PLAYGROUND_WORKLOADS = [
     route: "/benchmarks/audio-fft/",
     description: "Transforms 4,096 audio frequency samples using Fast Fourier Transform.",
     explanation: "Used in audio equalizers, visualization, and spectral filtering.",
+    manifest: "/benchmarks/multilang-wasm/audio-fft.manifest.json",
   },
   {
     slug: "audio-fir",
@@ -27,6 +29,7 @@ const PLAYGROUND_WORKLOADS = [
     route: "/benchmarks/audio-fir/",
     description: "Applies a 256-tap Finite Impulse Response filter to an audio stream.",
     explanation: "Heavy inner product multiply-accumulate operations.",
+    manifest: "/benchmarks/multilang-wasm/audio-fir.manifest.json",
   },
   {
     slug: "audio-stft",
@@ -35,6 +38,7 @@ const PLAYGROUND_WORKLOADS = [
     route: "/benchmarks/audio-stft/",
     description: "Computes audio spectrograms across overlapping window frames.",
     explanation: "Used for real-time speech, audio analysis, and spectrogram rendering.",
+    manifest: "/benchmarks/multilang-wasm/audio-stft.manifest.json",
   },
   {
     slug: "ml-gemm",
@@ -43,6 +47,7 @@ const PLAYGROUND_WORKLOADS = [
     route: "/benchmarks/ml-gemm/",
     description: "Multiplies large 512×512 floating-point matrices in f32.",
     explanation: "Essential for machine learning models, 3D graphics, and physics.",
+    manifest: "/benchmarks/multilang-wasm/ml-gemm.manifest.json",
   },
   {
     slug: "ml-dense-mlp",
@@ -51,6 +56,7 @@ const PLAYGROUND_WORKLOADS = [
     route: "/benchmarks/ml-dense-mlp/",
     description: "Evaluates a 9-layer neural network (147,456 weights) with GELU activation.",
     explanation: "Used in on-device AI inference and deep learning models.",
+    manifest: "/benchmarks/multilang-wasm/ml-dense-mlp.manifest.json",
   },
   {
     slug: "cad-mesh-repair-v1",
@@ -210,6 +216,7 @@ const PLAYGROUND_WORKLOADS = [
     description: "Verifies downloaded assets with SHA-256 using fixed chunk schedules.",
     explanation:
       "Block-level hash compression and streaming digest updates over file-sized inputs.",
+    manifest: "/benchmarks/multilang-wasm/crypto-file-integrity.manifest.json",
   },
   {
     slug: "game-dom-tactics-grid",
@@ -248,6 +255,7 @@ const PLAYGROUND_WORKLOADS = [
     description: "Runs GEMM, Cholesky decomposition, stencil, and Jacobi-2D notebook kernels.",
     explanation:
       "Dense linear algebra and iterative stencil solvers from the PolyBench benchmark suite.",
+    manifest: "/benchmarks/multilang-wasm/numeric-polybench-panel.manifest.json",
   },
   {
     slug: "serialization-json-telemetry-v1",
@@ -257,6 +265,7 @@ const PLAYGROUND_WORKLOADS = [
     description:
       "Parses nested multilingual events, runs fixed aggregates, and serializes a canonical summary.",
     explanation: "Streaming JSON tokenizer, tree construction, and canonical re-serialization.",
+    manifest: "/benchmarks/multilang-wasm/serialization-json-telemetry.manifest.json",
   },
   {
     slug: "server-ssr-template-v1",
@@ -339,6 +348,7 @@ const PLAYGROUND_WORKLOADS = [
     route: "/demos/text.diff-patch.v1/",
     description: "Calculates Myers line-by-line diffs across multi-line text files.",
     explanation: "Dynamic programming matrix allocation and string comparisons.",
+    manifest: "/benchmarks/multilang-wasm/text-diff-patch.manifest.json",
   },
   {
     slug: "text-markdown-cms",
@@ -446,6 +456,18 @@ const PLAYGROUND_WORKLOADS = [
     description:
       "Scans a 100 MB server log corpus for multi-field timestamp, IP, and status patterns.",
     explanation: "Stream tokenization, character-class matching, and capture group extraction.",
+    manifest: "/benchmarks/multilang-wasm/text-regex-log-scan.manifest.json",
+  },
+  {
+    slug: "multilang-wasm",
+    title: "Multi-Language Kernels: Sum + FFT",
+    category: "Compute Kernel",
+    route: "/benchmarks/multilang-wasm/",
+    description:
+      "Runs the same kernels across JavaScript, WAT, AssemblyScript, C, C++, Rust, and Dart (WasmGC).",
+    explanation:
+      "The reference multi-language comparison: byte-semantics-identical kernels across seven engines.",
+    manifest: "/benchmarks/multilang-wasm/multilang-wasm.manifest.json",
   },
   {
     slug: "simulation-nbody-cloth",
@@ -456,8 +478,43 @@ const PLAYGROUND_WORKLOADS = [
       "Simulates gravitational N-body particle dynamics and cloth spring mesh deformation.",
     explanation:
       "Verlet integration, spring-damper constraint iteration, and pair-wise particle forces.",
+    manifest: "/benchmarks/multilang-wasm/simulation-nbody-cloth.manifest.json",
   },
 ];
+
+async function runMultilangBenchmark(config, cardEl, iterations) {
+  const statusEl = cardEl.querySelector(".playground-status");
+  const metricsEl = cardEl.querySelector(".playground-metrics");
+  statusEl.textContent = "Loading engines…";
+  statusEl.className = "playground-status running";
+  try {
+    const manifest = await (await fetch(config.manifest, { cache: "no-store" })).json();
+    await loadEngines(manifest);
+    const resultsByKernel = {};
+    for (const kernel of manifest.kernels) {
+      statusEl.textContent =
+        `Running ${kernel} — all ${manifest.engines.length} engines (${iterations}× loop)…`;
+      resultsByKernel[kernel] = await runWorkload(manifest, kernel, iterations, (msg) => {
+        statusEl.textContent = msg;
+      });
+    }
+    statusEl.textContent = "✓ Complete";
+    statusEl.className = "playground-status passed";
+    renderMultilangReport(metricsEl, manifest, resultsByKernel, iterations, config.route);
+    return { slug: config.slug, title: config.title, passed: true, multilang: resultsByKernel };
+  } catch (err) {
+    console.error(`Multilang benchmark error [${config.slug}]:`, err);
+    statusEl.textContent = "✕ Error";
+    statusEl.className = "playground-status failed";
+    metricsEl.innerHTML = `<p class="notice warning">Run error: ${err.message || String(err)}</p>`;
+    return {
+      slug: config.slug,
+      title: config.title,
+      passed: false,
+      error: err.message || String(err),
+    };
+  }
+}
 
 async function runBenchmarkForCard(config, cardEl, iterations = 30) {
   const statusEl = cardEl.querySelector(".playground-status");
@@ -469,6 +526,10 @@ async function runBenchmarkForCard(config, cardEl, iterations = 30) {
     metricsEl.innerHTML =
       `<p class="notice">${config.manual} <a href="${config.route}">Open the demo page →</a></p>`;
     return { slug: config.slug, title: config.title, passed: true, skipped: true };
+  }
+
+  if (config.manifest) {
+    return runMultilangBenchmark(config, cardEl, iterations);
   }
 
   statusEl.textContent = `Running JS — starting…`;
@@ -514,6 +575,50 @@ async function runBenchmarkForCard(config, cardEl, iterations = 30) {
       error: err.message || String(err),
     };
   }
+}
+
+function renderMultilangReport(metricsEl, manifest, resultsByKernel, iterations, pageRoute) {
+  const rows = [];
+  const engines = [];
+  for (const kernel of manifest.kernels) {
+    for (const res of resultsByKernel[kernel] ?? []) {
+      if (!engines.includes(res.key)) engines.push(res.key);
+      rows.push({
+        kernel,
+        key: res.key,
+        label: res.label,
+        medianMs: res.medianMs,
+        minMs: res.minMs,
+        maxMs: res.maxMs,
+        bytes: res.bytes ?? 0,
+      });
+    }
+  }
+  const fmt = (ms) => (Number.isFinite(ms) ? `${ms.toFixed(2)} ms` : "—");
+  const th =
+    "text-align:left;padding:0.3rem 0.5rem;border-bottom:1px solid var(--rule);white-space:nowrap;";
+  metricsEl.innerHTML = `
+    <p class="muted">All ${engines.length} engines · ${iterations}× loop · median of ${iterations} samples per engine.</p>
+    <table style="width:100%;border-collapse:collapse;font-size:0.82rem;margin:0.4rem 0;">
+      <thead><tr>${
+    ["Engine", "Kernel", "Median", "Min", "Max", "Wasm bytes"].map((h) =>
+      `<th style="${th};font-weight:600;">${h}</th>`
+    ).join("")
+  }</tr></thead>
+      <tbody>${
+    rows.map((r) => `
+        <tr>
+          <td style="${th}"><strong>${r.label}</strong></td>
+          <td style="${th}">${r.kernel}</td>
+          <td style="${th}">${fmt(r.medianMs)}</td>
+          <td style="${th}">${fmt(r.minMs)}</td>
+          <td style="${th}">${fmt(r.maxMs)}</td>
+          <td style="${th}">${r.bytes > 0 ? r.bytes.toLocaleString() : "—"}</td>
+        </tr>`).join("")
+  }
+      </tbody>
+    </table>
+    <p class="muted">Full comparison + commit-pinned sources: <a href="${pageRoute}">open the multi-language page →</a></p>`;
 }
 
 function initPlaygroundUI() {
