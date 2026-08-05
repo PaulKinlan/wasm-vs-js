@@ -471,7 +471,10 @@ Deno.test("runner uses a fresh worker, typed-only host commands, timeout, stale 
     await Deno.readTextFile("public/artifacts/dom-virtualized-grid-v1/output-manifest.json"),
   );
   assert(html.includes('aria-rowcount="100000"'));
-  assert(html.includes("No performance claim."));
+  assert(html.includes("/unified-runner.js"));
+  assert(html.includes('data-workload="dom-virtualized-grid-v1"'));
+  assert(html.includes("Run Benchmark Loop"));
+  assert(html.includes("Correctness evidence"));
   assert(runner.includes("new Worker("));
   assert(runner.includes("runToken !== token"));
   assert(runner.includes("pagehide"));

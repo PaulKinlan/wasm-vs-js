@@ -2,13 +2,13 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
-    <title>FFT spectral filter correctness demo | Wasm versus JavaScript</title>
+    <title>2^20-sample FFT spectral filter · Wasm vs JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
-    <script type="module" src="/benchmarks/numeric-fft-spectral-filter-v1/demo.js"></script>
+    <script type="module" src="/unified-runner.js"></script>
   </head>
-  <body>
+  <body data-workload="numeric-fft-spectral-filter-v1" data-demo="numeric-fft-spectral-filter-v1">
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
@@ -17,56 +17,59 @@
       <a href="/evidence/">Evidence</a>
       <strong>data v1</strong>
     </header>
-    <main id="main" class="shell">
-      <p class="eyebrow">Supplemental correctness demo · numeric.fft-spectral-filter.v1</p>
-      <h1>2<sup>20</sup>-sample FFT spectral filter</h1>
-      <p><strong>No performance claim.</strong> This worker runs the complete frozen Hann-window, forward FFT, spectral gain and inverse FFT pipeline. It hashes all 2,097,152 output components. Nothing is stored or uploaded.</p>
-      <section class="panel" aria-labelledby="controls-heading">
-        <h2 id="controls-heading">Run one controlled target</h2>
-        <label for="target">Target</label>
-        <select id="target">
-          <option value="js-controlled">JavaScript controlled</option>
-          <option value="wasm-linear-controlled">Linear Wasm controlled</option>
-        </select>
-        <div
-          class="controls"><button id="start" type="button" disabled>Start</button><button id="cancel" type="button" disabled>Cancel</button></div>
-        <label for="progress">Pipeline progress</label>
-        <progress id="progress" max="4"></progress>
-        <p id="status" role="status"
-          aria-live="polite">Ready. The worker timeout is 120 seconds.</p>
+    <main id="main">
+      <header>
+        <p class="eyebrow">Numerical &amp; Signal Processing Workload · 2^20 Samples · numeric.fft-spectral-filter.v1</p>
+        <h1>2^20-sample FFT spectral filter</h1>
+        <p class="lede">Runs the complete frozen Hann-window, forward FFT, spectral gain, and inverse FFT pipeline and hashes all 2,097,152 output components. Exact output is verified before any timing; the page stores and uploads nothing.</p>
+      </header>
+      <section class="demo-panel" aria-labelledby="run-heading">
+        <h2 id="run-heading">Run Benchmark Loop</h2>
+        <form id="demo-form">
+          <div class="controls">
+            <label for="target"><span>Target Engine</span>
+              <select id="target" name="target" disabled>
+                <option value="both" selected>Compare Side-by-Side (JS vs Wasm)</option>
+                <option value="javascript">JavaScript Engine</option>
+                <option value="wasm">WebAssembly Engine</option>
+              </select></label>
+            <label for="iterations"><span>Loop Iterations</span>
+              <select id="iterations" name="iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10">10 iterations</option>
+                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                <option value="50">50 iterations</option>
+                <option value="100">100 iterations (Sustained loop)</option>
+              </select></label>
+            <button id="start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="status" role="status" aria-live="polite">Ready. Select target and loop iterations, then click Start.</p>
+        <div id="perf-reporting" class="detail-grid" hidden></div>
       </section>
-      <section class="panel" aria-labelledby="result-heading">
-        <h2 id="result-heading">Accessible result</h2>
-        <pre id="result" tabindex="0">No run yet.</pre>
+      <section aria-labelledby="what-heading">
+        <h2 id="what-heading">What it does</h2>
+        <p>Runs the frozen workload with a complete oracle; exact output is verified before any timing.</p>
       </section>
-      <section class="panel">
-        <h2>Frozen work</h2>
-        <p>The pair shares one generated signal, 1,048,576 Hann coefficients, stage-major f32 twiddles, fixed radix-2 bit reversal, mirrored gains of 1, 0.5 and 0.25, and f32 inverse scaling. Each target performs 20,971,520 butterflies.</p>
-        <p><a href="/artifacts/numeric-fft-spectral-filter/build-manifest.json">Build and source manifest</a> · <a href="/artifacts/numeric-fft-spectral-filter/fixture-manifest.json">Fixture hashes</a> · <a href="/artifacts/numeric-fft-spectral-filter/output-manifest.json">Oracle and complete-output hashes</a></p>
+      <section aria-labelledby="why-heading">
+        <h2 id="why-heading">Why compare Wasm vs JS</h2>
+        <p>Scalar kernel inner loops are exactly where a linear-memory Wasm target differs from the JavaScript engine.</p>
       </section>
-
-      <section class="detail-grid" aria-label="Workload details">
-        <div class="detail-card">
-          <h2>What it does</h2>
-          <p>Windows, transforms, filters, and inverse-transforms a multi-channel sensor trace.</p>
-        </div>
-        <div class="detail-card">
-          <h2>Why compare</h2>
-          <p>Overlap-add FFT convolution and frequency-domain mask application for signal conditioning.</p>
-        </div>
-        <div class="detail-card">
-          <h2>Algorithm &amp; engine</h2>
-          <p>Category: Numeric & Scientific. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
-        </div>
-        <div class="detail-card">
-          <h2>Source &amp; build provenance</h2>
-          <ul>
-            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
-            <li><a href="/evidence/">Check implementation evidence</a></li>
-            <li><a href="/experiments/">Read the frozen experiment</a></li>
-          </ul>
-        </div>
+      <section aria-labelledby="correctness-heading">
+        <h2 id="correctness-heading">Correctness evidence — run the filter</h2>
+        <p class="muted">The benchmark loop above times both engines. This section runs the frozen workload through either engine and validates the exact output — timing and correctness never mix.</p>
+        <div class="controls"><button id="sf-start" type="button">Start</button><button id="sf-cancel" type="button" disabled>Cancel</button></div><p id="sf-status" role="status" aria-live="polite">Ready.</p><pre id="sf-result" tabindex="0">No result yet.</pre>
+      </section>
+      <section aria-labelledby="provenance-heading">
+        <h2 id="provenance-heading">Source &amp; build provenance</h2>
+        <ul>
+          <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+          <li><a href="/evidence/">Check implementation evidence</a></li>
+          <li><a href="/experiments/">Read the frozen experiment</a></li>
+        </ul>
       </section>
     </main>
+    <script type="module" src="/benchmarks/numeric-fft-spectral-filter-v1/demo.js"></script>
   </body>
 </html>

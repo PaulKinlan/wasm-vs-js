@@ -1,8 +1,8 @@
 const form = document.querySelector("form"),
-  start = document.querySelector("#start"),
-  cancel = document.querySelector("#cancel"),
-  status = document.querySelector("#status"),
-  output = document.querySelector("#output"),
+  start = document.querySelector("#pt-start"),
+  cancel = document.querySelector("#pt-cancel"),
+  status = document.querySelector("#pt-status"),
+  output = document.querySelector("#pt-output"),
   canvas = document.querySelector("canvas"),
   progress = document.querySelector("progress");
 let worker = null, token = 0, timer = null;

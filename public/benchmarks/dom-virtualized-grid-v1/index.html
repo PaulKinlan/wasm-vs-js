@@ -2,14 +2,15 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
-    <title>100,000-row virtualized grid | Wasm versus JavaScript</title>
+    <meta name="description"
+      content="100,000-row virtualized grid benchmark: 300 trace events with paint-acknowledged scroll in JavaScript and linear WebAssembly.">
+    <title>100,000-row virtualized grid · Wasm vs JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
-    <link rel="stylesheet" href="/benchmarks/dom-virtualized-grid-v1/grid.css">
-    <script type="module" src="/benchmarks/dom-virtualized-grid-v1/grid-runner.js"></script>
+    <script type="module" src="/unified-runner.js"></script>
   </head>
-  <body>
+  <body data-workload="dom-virtualized-grid-v1" data-demo="dom-virtualized-grid-v1">
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
@@ -18,61 +19,115 @@
       <a href="/evidence/">Evidence</a>
       <strong>data v1</strong>
     </header>
-    <main id="main" class="shell" data-workload-id="dom.virtualized-grid.v1">
-      <p><a href="/benchmarks/">← Benchmark inventory</a></p>
-      <p class="eyebrow">FROZEN BASE IMPLEMENTATION CANDIDATE · DOM.VIRTUALIZED-GRID.V1</p>
-      <h1>100,000-row virtualized grid</h1>
-      <p
-        class="notice"><strong>No performance claim.</strong> A fresh worker schedules 300 trace events from 0 through 29,900 ms. Each slot must stay within ±20 ms of its 100 ms offset, and adjacent events must remain 80–120 ms apart. Each event transfers one typed command batch; the host applies its scroll offset and commands, waits for a browser paint, and then acknowledges the event. A missed slot rejects the run. Nothing is uploaded or stored.</p>
-      <section class="panel" aria-labelledby="controls-title">
-        <h2 id="controls-title">Run exact fixed work</h2>
-        <label for="target">Controlled target</label>
-        <select id="target">
-          <option value="js-controlled">JavaScript controlled</option>
-          <option value="wasm-linear-controlled">Linear Wasm controlled</option>
-        </select>
-        <button id="start" type="button">Start</button>
-        <button id="cancel" type="button" disabled>Cancel</button>
-        <p id="status" role="status" aria-live="polite">Ready. No worker is running.</p>
-      </section>
-      <section class="panel" aria-labelledby="grid-title">
-        <h2 id="grid-title">Applied host DOM</h2>
-        <div id="grid" class="virtual-grid" role="grid" aria-label="Virtualized benchmark rows"
-          aria-rowcount="100000" tabindex="0"></div>
-      </section>
-      <section class="panel" aria-labelledby="result-title">
-        <h2 id="result-title">Exact textual result</h2>
-        <pre id="result" tabindex="0">No result yet.</pre>
-      </section>
-      <section class="panel">
-        <h2>Fixed contract</h2>
-        <p>100,000 seeded rows; 300 events at 100 ms trace cadence; 960×480 CSS-pixel viewport; DPR 2; 24 px rows; 20 visible rows; four-row overscan; at most 28 mounted row nodes.</p>
-        <p><a href="/artifacts/dom-virtualized-grid-v1/implementation-contract.v1.json">Implementation contract</a> · <a href="/artifacts/dom-virtualized-grid-v1/build-manifest.json">Build manifest</a> · <a href="/artifacts/dom-virtualized-grid-v1/output-manifest.json">Oracle manifest</a></p>
+    <main id="main">
+      <header>
+        <p class="eyebrow">DOM &amp; Web UI Workload · 100,000 Rows · 300 Events · dom.virtualized-grid.v1</p>
+        <h1>100,000-row virtualized grid</h1>
+        <p class="lede">
+          A fresh worker schedules 300 trace events from 0 through 29,900 ms. Each slot must stay
+          within ±20 ms of its 100 ms offset, and adjacent events must remain 80–120 ms apart. Each
+          event transfers one typed command batch; the host applies its scroll offset and commands,
+          waits for a browser paint, and then acknowledges the event. A missed slot rejects the run.
+          Both targets run the identical trace; exact scheduling + DOM output is verified before any
+          timing. The page uploads and stores nothing.
+        </p>
+      </header>
+
+      <section class="demo-panel" aria-labelledby="run-heading">
+        <h2 id="run-heading">Run Benchmark Loop</h2>
+        <form id="demo-form">
+          <div class="controls">
+            <label for="target">
+              <span>Target Engine</span>
+              <select id="target" name="target" disabled>
+                <option value="both" selected>Compare Side-by-Side (JS vs Wasm)</option>
+                <option value="javascript">JavaScript Engine</option>
+                <option value="wasm">WebAssembly Engine</option>
+              </select>
+            </label>
+            <label for="iterations">
+              <span>Loop Iterations</span>
+              <select id="iterations" name="iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10">10 iterations</option>
+                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                <option value="50">50 iterations</option>
+                <option value="100">100 iterations (Sustained loop)</option>
+              </select>
+            </label>
+            <button id="start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="status" role="status" aria-live="polite">
+          Ready. Select target and loop iterations, then click Start.
+        </p>
+        <div id="perf-reporting" class="detail-grid" hidden></div>
       </section>
 
-      <section class="detail-grid" aria-label="Workload details">
-        <div class="detail-card">
-          <h2>What it does</h2>
-          <p>Scrolls, filters, sorts, and edits 100,000 rows over a recorded interaction trace.</p>
+      <section aria-labelledby="what-heading">
+        <h2 id="what-heading">What it does</h2>
+        <p>
+          Virtualized scrolling over 100,000 seeded rows with a strict paint-acknowledged event
+          cadence — the workload behind infinite feeds and data grids.
+        </p>
+      </section>
+
+      <section aria-labelledby="why-heading">
+        <h2 id="why-heading">Why compare Wasm vs JS</h2>
+        <p>
+          Scheduling typed command batches, scroll math, and DOM mounting under a hard timing budget
+          is exactly where a Wasm implementation and the JS engine's own paths genuinely differ.
+        </p>
+      </section>
+
+      <section aria-labelledby="contract-heading">
+        <h2 id="contract-heading">Fixed contract</h2>
+        <p>
+          100,000 seeded rows; 300 events at 100 ms trace cadence; 960×480 CSS-pixel viewport; DPR 2;
+          24 px rows; 20 visible rows; four-row overscan; at most 28 mounted row nodes.
+        </p>
+        <ul>
+          <li><a href="/artifacts/dom-virtualized-grid-v1/implementation-contract.v1.json">Implementation contract</a></li>
+          <li><a href="/artifacts/dom-virtualized-grid-v1/build-manifest.json">Build manifest</a></li>
+          <li><a href="/artifacts/dom-virtualized-grid-v1/output-manifest.json">Oracle manifest</a></li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="correctness-heading">
+        <h2 id="correctness-heading">Correctness evidence — run the trace</h2>
+        <p class="muted">
+          The benchmark loop above times both engines. This section runs the frozen 300-event trace
+          through either engine and validates the applied host DOM + exact result — timing and
+          correctness never mix.
+        </p>
+        <div class="controls">
+          <label for="vg-target">Controlled target
+            <select id="vg-target">
+              <option value="js-controlled">JavaScript controlled</option>
+              <option value="wasm-linear-controlled">Linear Wasm controlled</option>
+            </select>
+          </label>
+          <button id="vg-start" type="button">Start</button>
+          <button id="vg-cancel" type="button" disabled>Cancel</button>
         </div>
-        <div class="detail-card">
-          <h2>Why compare</h2>
-          <p>Windowed DOM rendering, sort-index maintenance, and efficient recycle-pool management.</p>
-        </div>
-        <div class="detail-card">
-          <h2>Algorithm &amp; engine</h2>
-          <p>Category: DOM & Web UI. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
-        </div>
-        <div class="detail-card">
-          <h2>Source &amp; build provenance</h2>
-          <ul>
-            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
-            <li><a href="/evidence/">Check implementation evidence</a></li>
-            <li><a href="/experiments/">Read the frozen experiment</a></li>
-          </ul>
-        </div>
+        <p id="vg-status" role="status" aria-live="polite">Ready. No worker is running.</p>
+        <h3>Applied host DOM</h3>
+        <div id="vg-grid" class="virtual-grid" role="grid" aria-label="Virtualized benchmark rows"
+          aria-rowcount="100000" tabindex="0"></div>
+        <h3>Exact textual result</h3>
+        <pre id="vg-result" tabindex="0">No result yet.</pre>
+      </section>
+
+      <section aria-labelledby="provenance-heading">
+        <h2 id="provenance-heading">Source &amp; build provenance</h2>
+        <ul>
+          <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+          <li><a href="/evidence/">Check implementation evidence</a></li>
+          <li><a href="/experiments/">Read the frozen experiment</a></li>
+        </ul>
       </section>
     </main>
-    <noscript><p class="shell notice"><strong>JavaScript is required to run this local correctness demo.</strong> The exact contract above remains readable.</p></noscript>
+    <script type="module" src="/benchmarks/dom-virtualized-grid-v1/grid-runner.js"></script>
   </body>
 </html>
