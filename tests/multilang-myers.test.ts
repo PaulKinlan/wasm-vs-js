@@ -29,14 +29,21 @@ function genPair(len: number, edits: number) {
 
 // Exact mirror of benchmarks/v2/text-diff-patch/workload.js myersDiff.
 function oracleJS(
-  base: Uint32Array, target: Uint32Array,
-  outOp: Uint32Array, outX: Uint32Array, outY: Uint32Array,
+  base: Uint32Array,
+  target: Uint32Array,
+  outOp: Uint32Array,
+  outX: Uint32Array,
+  outY: Uint32Array,
 ): { count: number; editDistance: number; frontierSteps: number } {
   let prefix = 0;
-  while (prefix < base.length && prefix < target.length && base[prefix] === target[prefix]) prefix++;
+  while (prefix < base.length && prefix < target.length && base[prefix] === target[prefix]) {
+    prefix++;
+  }
   let suffix = 0;
-  while (suffix < base.length - prefix && suffix < target.length - prefix &&
-    base[base.length - 1 - suffix] === target[target.length - 1 - suffix]) suffix++;
+  while (
+    suffix < base.length - prefix && suffix < target.length - prefix &&
+    base[base.length - 1 - suffix] === target[target.length - 1 - suffix]
+  ) suffix++;
   const n = base.length - prefix - suffix;
   const m = target.length - prefix - suffix;
   const reverse: Array<[number, number, number]> = [];
@@ -62,9 +69,16 @@ function oracleJS(
         if (k === -d || (k !== d && v[offset + k - 1] < v[offset + k + 1])) x = v[offset + k + 1];
         else x = v[offset + k - 1] + 1;
         let y = x - k;
-        while (x < n && y < m && base[prefix + x] === target[prefix + y]) { x++; y++; }
+        while (x < n && y < m && base[prefix + x] === target[prefix + y]) {
+          x++;
+          y++;
+        }
         v[offset + k] = x;
-        if (x >= n && y >= m) { trace.push(v.slice()); editDistance = d; break outer; }
+        if (x >= n && y >= m) {
+          trace.push(v.slice());
+          editDistance = d;
+          break outer;
+        }
       }
       trace.push(v.slice());
     }
@@ -77,24 +91,34 @@ function oracleJS(
       const previousX = prior[offset + previousK];
       const previousY = previousX - previousK;
       while (x > previousX && y > previousY) {
-        x--; y--;
+        x--;
+        y--;
         reverse.push([0, prefix + x, prefix + y]);
       }
-      if (down) { y--; reverse.push([2, prefix + x, prefix + y]); }
-      else { x--; reverse.push([1, prefix + x, prefix + y]); }
+      if (down) {
+        y--;
+        reverse.push([2, prefix + x, prefix + y]);
+      } else {
+        x--;
+        reverse.push([1, prefix + x, prefix + y]);
+      }
     }
   }
   for (let index = prefix - 1; index >= 0; index--) reverse.push([0, index, index]);
   const ops = reverse.reverse();
   for (let i = 0; i < ops.length; i++) {
-    outOp[i] = ops[i][0]; outX[i] = ops[i][1]; outY[i] = ops[i][2];
+    outOp[i] = ops[i][0];
+    outX[i] = ops[i][1];
+    outY[i] = ops[i][2];
   }
   return { count: ops.length, editDistance, frontierSteps };
 }
 
 function assertBitIdentical(
   label: string,
-  got: Array<[number, number, number]>, ed: number, fs: number,
+  got: Array<[number, number, number]>,
+  ed: number,
+  fs: number,
   ref: { count: number; editDistance: number; frontierSteps: number },
   refOps: Array<[number, number, number]>,
 ): void {
@@ -126,7 +150,8 @@ Deno.test(
     ] as const;
     for (const [file, label] of linear) {
       const mod = (await WebAssembly.instantiate(
-        await Deno.readFile(`${ARTIFACTS}/${file}`), {},
+        await Deno.readFile(`${ARTIFACTS}/${file}`),
+        {},
       )) as unknown as { instance: WebAssembly.Instance };
       const mem = mod.instance.exports.memory as WebAssembly.Memory;
       const max = base.length + target.length;
@@ -139,10 +164,32 @@ Deno.test(
       new Uint32Array(mem.buffer, baseOff, base.length).set(base);
       new Uint32Array(mem.buffer, targetOff, target.length).set(target);
       const count = (mod.instance.exports.myers_diff as (
-        b: number, bl: number, t: number, tl: number, o: number, x: number, y: number,
-        c: number, s: number, su: number, ed: number, fs: number,
-      ) => number)(baseOff, base.length, targetOff, target.length, opOff, xOff, yOff, cap,
-        scratchOff, vstride * (max + 2), edOff, fsOff);
+        b: number,
+        bl: number,
+        t: number,
+        tl: number,
+        o: number,
+        x: number,
+        y: number,
+        c: number,
+        s: number,
+        su: number,
+        ed: number,
+        fs: number,
+      ) => number)(
+        baseOff,
+        base.length,
+        targetOff,
+        target.length,
+        opOff,
+        xOff,
+        yOff,
+        cap,
+        scratchOff,
+        vstride * (max + 2),
+        edOff,
+        fsOff,
+      );
       const op = new Uint32Array(mem.buffer, opOff, cap);
       const gx = new Uint32Array(mem.buffer, xOff, cap);
       const gy = new Uint32Array(mem.buffer, yOff, cap);
@@ -155,14 +202,22 @@ Deno.test(
 
     // Dart/WasmGC
     const dartGlue = await import(`file://${ARTIFACTS}/myers_diff_dart.mjs`);
-    const dartApp = await dartGlue.compile(await Deno.readFile(`${ARTIFACTS}/myers_diff_dart.wasm`));
+    const dartApp = await dartGlue.compile(
+      await Deno.readFile(`${ARTIFACTS}/myers_diff_dart.wasm`),
+    );
     const dartInst = await dartApp.instantiate({});
     dartInst.invokeMain();
     const kernels = (globalThis as Record<string, unknown>).dartKernels as {
       myers_diff: (
-        base: Uint32Array, target: Uint32Array,
-        outOp: Uint32Array, outX: Uint32Array, outY: Uint32Array,
-        scratch: Uint32Array, cap: number, ed: Uint32Array, fs: Uint32Array,
+        base: Uint32Array,
+        target: Uint32Array,
+        outOp: Uint32Array,
+        outX: Uint32Array,
+        outY: Uint32Array,
+        scratch: Uint32Array,
+        cap: number,
+        ed: Uint32Array,
+        fs: Uint32Array,
       ) => number;
     };
     assert(kernels && typeof kernels.myers_diff === "function", "dartKernels not published");
@@ -171,7 +226,15 @@ Deno.test(
     const dOp = new Uint32Array(cap), dX = new Uint32Array(cap), dY = new Uint32Array(cap);
     const dEd = new Uint32Array(1), dFs = new Uint32Array(1);
     const dCount = kernels.myers_diff(
-      base, target, dOp, dX, dY, new Uint32Array(vstride * (max + 2)), cap, dEd, dFs,
+      base,
+      target,
+      dOp,
+      dX,
+      dY,
+      new Uint32Array(vstride * (max + 2)),
+      cap,
+      dEd,
+      dFs,
     );
     const dGot: Array<[number, number, number]> = [];
     for (let i = 0; i < dCount; i++) dGot.push([dOp[i], dX[i], dY[i]]);
@@ -181,7 +244,11 @@ Deno.test(
 
 Deno.test("multilang-myers: Dart artifact is a WasmGC module", async () => {
   const bytes = await Deno.readFile(`${ARTIFACTS}/myers_diff_dart.wasm`);
-  const mod = new (WebAssembly.Module as unknown as new (b: Uint8Array, o?: unknown) => WebAssembly.Module)(bytes, JS_STRING_BUILTINS);
+  const mod =
+    new (WebAssembly.Module as unknown as new (b: Uint8Array, o?: unknown) => WebAssembly.Module)(
+      bytes,
+      JS_STRING_BUILTINS,
+    );
   assert(
     WebAssembly.Module.imports(mod).some((i) => i.module === "dart2wasm"),
     "missing dart2wasm runtime imports",
