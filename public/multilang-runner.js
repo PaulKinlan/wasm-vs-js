@@ -1360,7 +1360,7 @@ async function fetchBytes(base, path) {
   return new Uint8Array(await res.arrayBuffer());
 }
 
-async function loadEngines(manifest) {
+export async function loadEngines(manifest) {
   if (cache.has(manifest.workloadId)) return cache.get(manifest.workloadId);
   const out = { manifest, engines: {} };
   const base = manifest.artifactsBase;
@@ -1426,7 +1426,7 @@ function benchmarkOne(fn, iterations) {
   };
 }
 
-async function runWorkload(manifest, kernel, iterations, onProgress) {
+export async function runWorkload(manifest, kernel, iterations, onProgress) {
   const mods = await loadEngines(manifest);
   const adapter = KERNEL_ADAPTERS[manifest.workloadId];
   if (!adapter || !adapter.kernels.includes(kernel)) {
