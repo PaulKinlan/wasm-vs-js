@@ -9,7 +9,7 @@
     "launchArguments": [
       "--headless=new",
       "--remote-debugging-port=0",
-      "--user-data-dir=/tmp/audio-demo-browser-b0381b81163ca72d",
+      "--user-data-dir=/tmp/audio-demo-browser-c92f8cded9aacf35",
       "--no-first-run",
       "--no-default-browser-check",
       "--disable-sync",
@@ -21,21 +21,21 @@
   },
   "server": {
     "task": "public",
-    "base": "http://127.0.0.1:44369",
+    "base": "http://127.0.0.1:39739",
     "mode": "public-read-only"
   },
   "pageHashes": {
-    "audio-fft": "4ddce630ae2d2169d5ddaf7149fed8734b7ff25a231c169393afae5b71879a8b",
-    "audio-fir": "31db96c99483ff3dc34cd1f4d4c103a068c87e19763e890c183a5b8e8d81d780",
-    "audio-stft": "9d8b475da9a80f51ca698f8a2eae871713e36c4422f261137e0d96bd883ac8b1"
+    "audio-fft": "e886bcac41aa29cbe08cc10754cfab478c5f3f11b12b9a861c0b01466f79eaa4",
+    "audio-fir": "fb0aefad31616be0376b2a22dbae7dc959ebaa08499f8910a4e4efac6b1dcd7a",
+    "audio-stft": "637fe54f912a74252226c861ad856763372589ea2e361835fede3e1f09211f3c"
   },
   "runs": [
     {
-      "route": "http://127.0.0.1:44369/benchmarks/audio-fft/",
+      "route": "http://127.0.0.1:39739/benchmarks/audio-fft/",
       "engine": "javascript",
       "mode": "exact-contract",
       "assertions": {
-        "status": "Run complete in 72.66 ms. All reported evidence comes from this page's worker run.",
+        "status": "Run complete in 81.92 ms. All reported evidence comes from this page's worker run.",
         "hashVerdicts": [
           "matches frozen hash",
           "matches frozen hash"
@@ -64,7 +64,7 @@
           "registry frozen hashes: verified — registry frozen hashes equal the served constants module values for all three demos"
         ],
         "counterRows": 8,
-        "variantSummary": "Radix-2 complex FFT completed on the JavaScript engine in exact contract mode. Execution time: 72.66 ms. Variant js-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
+        "variantSummary": "Radix-2 complex FFT completed on the JavaScript engine in exact contract mode. Execution time: 81.92 ms. Variant js-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
       },
       "checks": {
         "statusComplete": true,
@@ -76,11 +76,11 @@
       }
     },
     {
-      "route": "http://127.0.0.1:44369/benchmarks/audio-fft/",
+      "route": "http://127.0.0.1:39739/benchmarks/audio-fft/",
       "engine": "wasm-linear",
       "mode": "exact-contract",
       "assertions": {
-        "status": "Run complete in 64.07 ms. All reported evidence comes from this page's worker run.",
+        "status": "Run complete in 70.42 ms. All reported evidence comes from this page's worker run.",
         "hashVerdicts": [
           "matches frozen hash",
           "matches frozen hash"
@@ -109,7 +109,7 @@
           "registry frozen hashes: verified — registry frozen hashes equal the served constants module values for all three demos"
         ],
         "counterRows": 8,
-        "variantSummary": "Radix-2 complex FFT completed on the WebAssembly (linear memory) engine in exact contract mode. Execution time: 64.07 ms. Variant wasm-linear-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
+        "variantSummary": "Radix-2 complex FFT completed on the WebAssembly (linear memory) engine in exact contract mode. Execution time: 70.42 ms. Variant wasm-linear-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
       },
       "checks": {
         "statusComplete": true,
@@ -121,11 +121,11 @@
       }
     },
     {
-      "route": "http://127.0.0.1:44369/benchmarks/audio-fir/",
+      "route": "http://127.0.0.1:39739/benchmarks/audio-fir/",
       "engine": "javascript",
       "mode": "exact-contract",
       "assertions": {
-        "status": "Run complete in 78.01 ms. All reported evidence comes from this page's worker run.",
+        "status": "Run complete in 78.26 ms. All reported evidence comes from this page's worker run.",
         "hashVerdicts": [
           "matches frozen hash",
           "matches frozen hash"
@@ -153,7 +153,7 @@
           "registry frozen hashes: verified — registry frozen hashes equal the served constants module values for all three demos"
         ],
         "counterRows": 8,
-        "variantSummary": "Finite impulse response convolution completed on the JavaScript engine in exact contract mode. Execution time: 78.01 ms. Variant js-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
+        "variantSummary": "Finite impulse response convolution completed on the JavaScript engine in exact contract mode. Execution time: 78.26 ms. Variant js-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
       },
       "checks": {
         "statusComplete": true,
@@ -165,11 +165,11 @@
       }
     },
     {
-      "route": "http://127.0.0.1:44369/benchmarks/audio-fir/",
+      "route": "http://127.0.0.1:39739/benchmarks/audio-fir/",
       "engine": "wasm-linear",
       "mode": "exact-contract",
       "assertions": {
-        "status": "Run complete in 81.62 ms. All reported evidence comes from this page's worker run.",
+        "status": "Run complete in 82.16 ms. All reported evidence comes from this page's worker run.",
         "hashVerdicts": [
           "matches frozen hash",
           "matches frozen hash"
@@ -197,7 +197,7 @@
           "registry frozen hashes: verified — registry frozen hashes equal the served constants module values for all three demos"
         ],
         "counterRows": 8,
-        "variantSummary": "Finite impulse response convolution completed on the WebAssembly (linear memory) engine in exact contract mode. Execution time: 81.62 ms. Variant wasm-linear-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
+        "variantSummary": "Finite impulse response convolution completed on the WebAssembly (linear memory) engine in exact contract mode. Execution time: 82.16 ms. Variant wasm-linear-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
       },
       "checks": {
         "statusComplete": true,
@@ -209,11 +209,11 @@
       }
     },
     {
-      "route": "http://127.0.0.1:44369/benchmarks/audio-stft/",
+      "route": "http://127.0.0.1:39739/benchmarks/audio-stft/",
       "engine": "javascript",
       "mode": "exact-contract",
       "assertions": {
-        "status": "Run complete in 102.19 ms. All reported evidence comes from this page's worker run.",
+        "status": "Run complete in 100.93 ms. All reported evidence comes from this page's worker run.",
         "hashVerdicts": [
           "matches frozen hash",
           "matches frozen hash"
@@ -241,7 +241,7 @@
           "registry frozen hashes: verified — registry frozen hashes equal the served constants module values for all three demos"
         ],
         "counterRows": 8,
-        "variantSummary": "Short-time Fourier transform spectrogram completed on the JavaScript engine in exact contract mode. Execution time: 102.19 ms. Variant js-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
+        "variantSummary": "Short-time Fourier transform spectrogram completed on the JavaScript engine in exact contract mode. Execution time: 100.93 ms. Variant js-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
       },
       "checks": {
         "statusComplete": true,
@@ -253,11 +253,11 @@
       }
     },
     {
-      "route": "http://127.0.0.1:44369/benchmarks/audio-stft/",
+      "route": "http://127.0.0.1:39739/benchmarks/audio-stft/",
       "engine": "wasm-linear",
       "mode": "exact-contract",
       "assertions": {
-        "status": "Run complete in 90.61 ms. All reported evidence comes from this page's worker run.",
+        "status": "Run complete in 88.78 ms. All reported evidence comes from this page's worker run.",
         "hashVerdicts": [
           "matches frozen hash",
           "matches frozen hash"
@@ -285,7 +285,7 @@
           "registry frozen hashes: verified — registry frozen hashes equal the served constants module values for all three demos"
         ],
         "counterRows": 8,
-        "variantSummary": "Short-time Fourier transform spectrogram completed on the WebAssembly (linear memory) engine in exact contract mode. Execution time: 90.61 ms. Variant wasm-linear-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
+        "variantSummary": "Short-time Fourier transform spectrogram completed on the WebAssembly (linear memory) engine in exact contract mode. Execution time: 88.78 ms. Variant wasm-linear-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
       },
       "checks": {
         "statusComplete": true,
@@ -297,7 +297,7 @@
       }
     },
     {
-      "route": "http://127.0.0.1:44369/benchmarks/audio-stft/",
+      "route": "http://127.0.0.1:39739/benchmarks/audio-stft/",
       "engine": "javascript",
       "mode": "lifecycle",
       "checks": {
@@ -309,7 +309,7 @@
       }
     },
     {
-      "route": "http://127.0.0.1:44369/benchmarks/audio-stft/",
+      "route": "http://127.0.0.1:39739/benchmarks/audio-stft/",
       "engine": "javascript",
       "mode": "lifecycle-injection",
       "checks": {
@@ -323,5 +323,5 @@
   ],
   "networkScope": "page and worker-script requests; worker-internal fetches are proven byte-exactly by the per-run exact-contract assertions, which hash the raw served bytes of all five manifests (the build manifest anchored to its accepted-record pin via the registry), all seven engine modules, the registry (the same response that drives execution), the runner, the worker, the Wasm artifact, and the reference artifact; page bytes are anchored to the non-served reviewed pins in tests/audio-demo-page-pins.json",
   "consoleEvents": 16,
-  "networkEvents": 77
+  "networkEvents": 109
 }

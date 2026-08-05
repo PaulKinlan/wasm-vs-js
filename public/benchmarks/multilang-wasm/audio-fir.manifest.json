@@ -1,0 +1,19 @@
+{
+  "workloadId": "audio.fir.v1",
+  "kernelLabel": "FIR direct convolution — 16,384 samples × 256 taps",
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": ["fir"],
+  "engines": [
+    { "key": "js", "label": "JavaScript", "kind": "js" },
+    { "key": "c", "label": "C / Wasm", "kind": "linear", "lang": "c", "offset": 0 },
+    { "key": "cpp", "label": "C++ / Wasm", "kind": "linear", "lang": "cpp", "offset": 0 },
+    { "key": "rs", "label": "Rust / Wasm", "kind": "linear", "lang": "rs", "offset": 0 },
+    {
+      "key": "dart",
+      "label": "Dart / WasmGC",
+      "kind": "dart",
+      "file": "fir_dart.wasm",
+      "glue": "fir_dart.mjs"
+    }
+  ]
+}
