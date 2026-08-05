@@ -89,6 +89,7 @@
           fixture through either engine and verifies the raw manifest, complete tensors,
           detections, and target-specific work counters — timing and correctness never mix.
         </p>
+        <form id="kws-contract-form">
         <div class="controls">
           <label for="kws-target">Controlled target
             <select id="kws-target">
@@ -113,6 +114,7 @@
           <button id="kws-start-bundled" type="button">Start with the bundled fixture</button>
           <button id="kws-cancel" type="button" disabled>Cancel</button>
         </div>
+        </form>
         <p id="kws-status" role="status" aria-live="polite">Ready.</p>
         <progress id="kws-progress" max="3000" value="0"><span>0 of 3000 hops</span></progress>
         <pre id="kws-result" tabindex="0">No result yet.</pre>
