@@ -34,7 +34,7 @@ const collectorAssets = await collectorRouteHashes();
 // This server-held digest is outside the browser runtime graph. The runtime-manifest builder
 // updates it only after hashing the page, runner, worker, and every runtime dependency.
 const SQLITE_NOTEBOOK_RUNTIME_MANIFEST_SHA256 =
-  "eba49499cdc2c0ed1606a4179dc402fbdcb272cd966476fa1c67328c2302f68c";
+  "6b21ed69ffe8aa10f1ec7972f0e0e02a4c9f9309e35c8d3ebf5792a5ac313c1a";
 
 async function sha256Hex(bytes: Uint8Array): Promise<string> {
   return [...new Uint8Array(await crypto.subtle.digest("SHA-256", Uint8Array.from(bytes)))]
