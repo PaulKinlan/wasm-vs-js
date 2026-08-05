@@ -3,7 +3,11 @@
   "contractId": "audio-demo-registry-v1",
   "status": "proposal-validation-only",
   "authoritativePerformanceEvidence": false,
+<<<<<<< HEAD
   "sourceCommit": "ef83ad93a97379860d2aba553c060a2445cd12c4",
+=======
+  "sourceCommit": "a9f126d347f2ef3e362b1c0b8027d7293e654fdd",
+>>>>>>> 84fc2ea7 (rebind pass 2)
   "runnerSha256": "973730cb7beeb62df7d13af0788ee34688bd1b813f11adc4da8f483140143355",
   "workerSha256": "4bd92df0c250ede2ea5e16f78a82d08263a5d56e59f43070386a69cfafe1351c",
   "assetsManifestSha256": "373e98f859c59af68a2fab79f2f2333ab43dabbf94c54df952eda07129a9f49e",
@@ -22,7 +26,11 @@
         "/artifacts/audio-fft/output-manifest.json",
         "/artifacts/audio-fft/reference-manifest.json"
       ],
+<<<<<<< HEAD
       "buildManifestSha256": "108236ac07e356b2caf9a8478cca938d862c0659399b3e56c3ada0c3f0f03be5",
+=======
+      "buildManifestSha256": "5737f64cd81bfb31ba9bf2aa3190354b8e54c3e81c0395edcc1fd7d8e67707d1",
+>>>>>>> 84fc2ea7 (rebind pass 2)
       "frozenHashes": {
         "inputSha256": "f312693f97034ff558b541f771564e9adcc077174d84202351199e3d18fc8b01",
         "outputSha256": "f6285cd3244f76eed0a041f30dbfa43ef8dc49012ec92b77514edc569aadad6e",
@@ -53,7 +61,11 @@
         "/artifacts/audio-fir/output-manifest.json",
         "/artifacts/audio-fir/reference-manifest.json"
       ],
+<<<<<<< HEAD
       "buildManifestSha256": "77c5ba7ff3285a145eae0fd06af3f7c31ba6989bf8ce2fcf8411547015959251",
+=======
+      "buildManifestSha256": "a2b5ca49442ed3ea7cdb7d6745268fe4f7ac987fa312929aca0250907e63ac37",
+>>>>>>> 84fc2ea7 (rebind pass 2)
       "frozenHashes": {
         "inputSha256": "b90d5d472e7f58e18d544f32dbc7449143608939f4a8c18641d6e7eae1752b56",
         "outputSha256": "e4b89ba6d65fa9ac3aa5f1b30da32343e54cc81a9ee9d6f84eaf8b38e823fb5f",
@@ -84,7 +96,11 @@
         "/artifacts/audio-stft/output-manifest.json",
         "/artifacts/audio-stft/reference-manifest.json"
       ],
+<<<<<<< HEAD
       "buildManifestSha256": "775399a887386f8f858c2b8ce294d8d6ac5176608a8d0bdbd976b63b4a6eabc5",
+=======
+      "buildManifestSha256": "551f2a396ce91acf050978bfeaf2c626e8fc5f9ad8c4a2d0b2e7c227a1b8780f",
+>>>>>>> 84fc2ea7 (rebind pass 2)
       "frozenHashes": {
         "inputSha256": "dfabd66f9e5272f76915165b663cb6c5cb37896454eb6ac02ea13d2f241f326a",
         "outputSha256": "b06a278c83d9eeff309fafd64b617a54e958665e2ef2d498194da6c1e75d97ba",

@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "ef83ad93a97379860d2aba553c060a2445cd12c4",
-  "sourceSha256": "58ebf9ac7198d26452b438455b4c9c7367cb30bb0ee9240abcf8954ee4177f01",
+  "sourceCommit": "24f0e748592e5b1546573bd1603f820826cb45b9",
+  "sourceSha256": "302352226d36e65f31b6fc6b6aaaf227c61140d1bf93c1b850675e38eeaba7cf",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 84309,
-      "sha256": "4e665f8d98fca0feb95ceba70d43d8f53d0333bab243f9c689a5c62f330064e6"
+      "bytes": 84690,
+      "sha256": "fd0a255c4b2ddac6c2f9722c025ea268e437caadb81c38297cddcbd5e6f00087"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "34b8c1b6ad0fd09eed11eb2efa371aeaeba22756957b686ecd589fa13638e3ac"
+      "sha256": "88c39d649448ca6e6969b023e4aefa118a2b8055543ada9749685682c6a0ef43"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "b277dd0663fb9cebecc5c60a9fd732358d36f68960e2bd98d8b4df8034b3521e"
+      "sha256": "36c3347803446cefcdebe1c01b9a4f1580ca4815f288ec460d91954c22d2198a"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=ef83ad93a97379860d2aba553c060a2445cd12c4"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=24f0e748592e5b1546573bd1603f820826cb45b9"
   }
 }
