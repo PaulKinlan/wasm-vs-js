@@ -1,21 +1,37 @@
 {
   "workloadId": "numeric.polybench-panel.v1",
-  "kernelLabel": "PolyBench Panel (GEMM, Cholesky, Stencil-5, Jacobi-2D) — double precision (f64)",
+  "kernelLabel": "PolyBench Panel (GEMM, Cholesky, Stencil-5, Jacobi-2D) \u2014 double precision (f64)",
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
-  "kernels": ["polybench"],
+  "kernels": [
+    "polybench"
+  ],
   "engines": [
-    { "key": "js", "label": "JavaScript", "kind": "js" },
     {
-      "key": "wat",
-      "label": "WAT / Wasm",
+      "key": "js",
+      "label": "JavaScript",
+      "kind": "js"
+    },
+    {
+      "key": "c",
+      "label": "C / Wasm",
       "kind": "linear",
-      "lang": "wat",
-      "file": "polybench-panel.wasm",
+      "lang": "c",
       "offset": 0
     },
-    { "key": "c", "label": "C / Wasm", "kind": "linear", "lang": "c", "offset": 0 },
-    { "key": "cpp", "label": "C++ / Wasm", "kind": "linear", "lang": "cpp", "offset": 0 },
-    { "key": "rs", "label": "Rust / Wasm", "kind": "linear", "lang": "rs", "offset": 0 },
+    {
+      "key": "cpp",
+      "label": "C++ / Wasm",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 0
+    },
+    {
+      "key": "rs",
+      "label": "Rust / Wasm",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 0
+    },
     {
       "key": "dart",
       "label": "Dart / WasmGC",
