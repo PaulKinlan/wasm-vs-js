@@ -88,14 +88,6 @@ console.log(`Found ${evidenceFiles.length} evidence records to seed`);
 
 // ── Create and POST run records ──
 
-async function sha256Hex(obj: unknown): Promise<string> {
-  const canonical = JSON.stringify(obj, Object.keys(obj as Record<string, unknown>).sort());
-  const digest = new Uint8Array(
-    await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonical)),
-  );
-  return [...digest].map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
 let posted = 0;
 let failed = 0;
 
