@@ -79,7 +79,7 @@ function probeBinary(
 
 // ── Build matrix from local probes ──
 
-export async function probeBrowserMatrix(): Promise<BrowserMatrix> {
+export function probeBrowserMatrix(): BrowserMatrix {
   const cells: MatrixCell[] = [];
   const notes: string[] = [];
 
