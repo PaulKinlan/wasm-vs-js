@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "a97444fd188ba0787e692d591e338998ca40915f",
-  "sourceSha256": "dbe51bbdce7dc7b31ffcdd79e0fffe20fb8e76b0b0ad0b92dba663c794a02773",
+  "sourceCommit": "50f98510c019d2e88f036d9b84d36327f461b767",
+  "sourceSha256": "a756c4292b637e02bab436e100d4c97aec034ffa47920c7bb5d5cc0d7a43b791",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 83577,
-      "sha256": "8e54132b04baf489787b2c286f401848c370558fd2116cb95215e7b8ab95ca3c"
+      "bytes": 83795,
+      "sha256": "c19e0827b0754ea11a2dc1cfa89e1d51946a4a1c45aa726edde5dcc1d316b2c4"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "15748fc8e02650e45691d4258ff504e75407576f7d80afaaba40ab0c3a1f78ba"
+      "sha256": "c1448deee871829a703def994b6fac687cc39a80ca70f5e0a05a5db98869a01d"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "522bdf765193d97502f26dd9e06583488addddd0be6c1c02c17f1b3eb34d7052"
+      "sha256": "9a85c306820e80ab2e9017e20de8a7d10a5095a17794a1dc6ebaef6ff8ef1918"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=a97444fd188ba0787e692d591e338998ca40915f"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=50f98510c019d2e88f036d9b84d36327f461b767"
   }
 }
