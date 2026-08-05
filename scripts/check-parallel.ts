@@ -235,14 +235,16 @@ await Promise.all([
       ],
     })
   ),
-  // The light flock is ~35 core-seconds; 6 workers finish it in ~10-11s,
-  // co-critical with the rigid writer lane (tuning curve measured
-  // 2026-08-04: 12 jobs -> 13.9s wall, 8 -> 12.9s, 6 -> 12.2s; the rigid
-  // physics chain is bandwidth-sensitive and prefers fewer flock threads).
+  // The light flock grew to ~90 core-seconds (contract suite, route codegen,
+  // M1-M4 reader tests); 6 workers made it the gate binder. Re-tuned
+  // 2026-08-05: standalone flock 11.9s @6 / 10.4s @8 (interleaved, 2 pairs);
+  // in-gate ~14.3s @8 vs ~15.5s @6 on a quiet machine. The rigid physics
+  // chain is bandwidth-sensitive, so 8 balances flock shrink vs lane inflation
+  // (at 10 the rigid lane starts inflating for <0.1s total gain).
   runStage({
     name: "test-readers",
     args: ["test", "--parallel", ...testArgs, ...readerTests],
-    env: { ...testEnv, DENO_JOBS: "6" },
+    env: { ...testEnv, DENO_JOBS: "8" },
   }),
   ...HEAVY_READERS.map(async (file) => {
     // Stagger: the t=0 startup storm (12 deno processes type-checking) inflates
