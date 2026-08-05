@@ -256,9 +256,26 @@ await Promise.all([
     // per contract; m2-js-variants builds variants) move to a 4s start so their
     // process/IO bursts miss the rigid lane's bandwidth-critical early phase —
     // measured 2026-08-05: 1.2s start inflated rigid 13.0 -> 13.6-14.0.
+    // Wave split: the 10s+ DFT/GEMM hogs start at 1.2s; the lighter heavies
+    // (7.6-9.6s) start at 3s; the server-spawning contract heavies at 4s. The
+    // staggered start halves the concurrent hog density during the rigid lane's
+    // bandwidth-critical early phase (measured: each added heavy inflates the
+    // rigid lane ~+0.25s, so density reduction should recover some of it).
     const isServerHeavy = file.endsWith("runner-worker-contracts.test.ts") ||
       file.endsWith("m2-js-variants.test.ts");
-    await new Promise((resolve) => setTimeout(resolve, isServerHeavy ? 4000 : 1200));
+    const heavyTime = {
+      "tests/audio-corruption-gate.test.ts": 9.6,
+      "tests/audio-f64-gates.test.ts": 7.6,
+      "tests/audio-harness-fft.test.ts": 10.0,
+      "tests/audio-harness-stft.test.ts": 7.4,
+      "tests/base-gltf-viewer.test.ts": 1.4,
+      "tests/corpus-operation-dispatch.test.ts": 10.3,
+      "tests/v2/ml-neural-allocations.test.ts": 10.2,
+      "tests/v2/ml-neural-build-records.test.ts": 5.0,
+      "tests/v2/ml-neural-counters-phases.test.ts": 10.2,
+    }[file] ?? 6;
+    const stagger = isServerHeavy ? 4000 : (heavyTime >= 10 ? 1200 : 3000);
+    await new Promise((resolve) => setTimeout(resolve, stagger));
     await runStage({
       name: `test-heavy-${
         file.replace(/^tests\//, "").replace(/\.test\.ts$/, "").replaceAll("/", "-")
