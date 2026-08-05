@@ -31,7 +31,7 @@
     "output": "public/artifacts/archive-zip-workspace-v1/output-manifest.json"
   },
   "schemaVersion": 1,
-  "sourceCommit": "c4acbf783273279dd2405f21224727446a52ec92",
+  "sourceCommit": "ec3f6e92f2226fbadcea5aa05ebe5ed4ca4ef766",
   "sourceGraph": [
     {
       "bytes": 19539,
@@ -64,9 +64,9 @@
       "sha256": "67e13259f2d7fcaf5be29c343526f48bcc9cee47e224f436896bd0a51b485e44"
     },
     {
-      "bytes": 2522,
+      "bytes": 2523,
       "path": "deno.json",
-      "sha256": "f5fb1c8c24db5bdce7f2e322c41e64306acc05150b44f69b43ff47b5287adf08"
+      "sha256": "1fb796ab0a517cac5b34d6b0225dc1316f7dae952460c45fec46acbe9d71ec5b"
     },
     {
       "bytes": 1630,
@@ -74,7 +74,7 @@
       "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2"
     }
   ],
-  "sourceGraphSha256": "c5d712dea9b1e362a4125054a87598108c632ff8272b5998e16730a257b6e502",
+  "sourceGraphSha256": "090c37120941abcc7bfb04329298d9533b675a39d6e2e2b9ed925f0d80b2bac1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
   "workloadId": "archive.zip-workspace.v1"
 }
