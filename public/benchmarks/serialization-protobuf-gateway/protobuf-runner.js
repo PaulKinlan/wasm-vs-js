@@ -1,8 +1,8 @@
 const form = document.querySelector("form");
-const start = document.querySelector("#protobuf-start");
-const cancel = document.querySelector("#protobuf-cancel");
-const status = document.querySelector("#protobuf-status");
-const output = document.querySelector("#protobuf-output");
+const start = document.querySelector("#start");
+const cancel = document.querySelector("#cancel");
+const status = document.querySelector("#status");
+const output = document.querySelector("#output");
 let worker = null, timer = 0, token = 0;
 function cleanup() {
   if (worker) worker.terminate();

@@ -2,15 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="color-scheme" content="light dark">
-    <meta name="description"
-      content="Protocol Buffers gateway benchmark: 10,000 frozen messages decoded and re-serialized in JavaScript and linear WebAssembly.">
-    <title>Protobuf gateway · Wasm vs JavaScript</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Protobuf gateway correctness demo | Wasm versus JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
-    <script type="module" src="/unified-runner.js"></script>
   </head>
-  <body data-workload="serialization-protobuf-gateway" data-demo="serialization-protobuf-gateway">
+  <body>
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
@@ -19,127 +15,45 @@
       <a href="/evidence/">Evidence</a>
       <strong>data v1</strong>
     </header>
-    <main id="main">
-      <header>
-        <p class="eyebrow">Serialization Workload · 10,000 Messages · serialization.protobuf-gateway.v1</p>
-        <h1>Protobuf gateway</h1>
-        <p class="lede">
-          Generates exactly 10,000 frozen protobuf messages, decodes every message, applies one fixed
-          filter, and constructs the complete canonical ProtoJSON response in a fresh worker. Both
-          engines run the identical workload; exact canonical output is verified before any timing.
-          The page uploads and stores nothing.
-        </p>
-      </header>
+    <main id="main" class="shell">
+      <p class="eyebrow">BASE CANDIDATE · SERIALIZATION.PROTOBUF-GATEWAY.V1</p>
+      <h1>Protobuf gateway</h1>
+      <p><strong>No performance claim.</strong> This correctness route generates exactly 10,000 frozen protobuf messages, decodes every message, applies one fixed filter, and constructs the complete canonical ProtoJSON response in a fresh worker. Nothing is uploaded or stored.</p>
+      <form>
+        <fieldset><legend>Controlled target</legend><label>Engine <select name="target"><option value="both">JavaScript and linear Wasm</option><option value="javascript">JavaScript only</option><option value="wasm">Linear Wasm only</option></select></label><label>Validation <select name="mode"><option value="exact">Exact contract</option><option value="default">Output oracle</option></select></label><button id="start" type="submit">Start</button><button id="cancel" type="button" disabled>Cancel</button></fieldset>
+      </form>
+      <p id="status" role="status" aria-live="polite">Ready.</p>
+      <h2>Text result</h2>
+      <pre id="output">No result yet.</pre>
+      <h2>What is admitted</h2>
+      <p>The frozen schema covers uint64, strings, booleans, double, enum, repeated strings, map&lt;string,sint64&gt;, bytes, oneof, int32, and float. The corpus exercises duplicate singular, map, and oneof fields; unknown wire types 0, 1, 2, and 5; defaults; values above JavaScript’s safe integer range; non-finite numbers; multilingual UTF-8; base64; and JSON escaping. Unknown fields are counted and omitted from ProtoJSON.</p>
+      <p>The Wasm target performs wire decoding, filtering, duplicate and oneof resolution, map sorting, UTF-8 output construction, number formatting, JSON escaping, and base64 inside fixed 32 MiB linear memory. It does not call a JavaScript reducer or host JSON serializer.</p>
+      <p><a href="/benchmarks/base/serialization-protobuf-gateway/implementation-contract.v1.json">Exact supplemental contract</a> · <a href="/artifacts/serialization-protobuf-gateway/build-manifest.json">Build manifest</a> · <a href="/artifacts/serialization-protobuf-gateway/output-manifest.json">Output oracle</a></p>
 
-      <section class="demo-panel" aria-labelledby="run-heading">
-        <h2 id="run-heading">Run Benchmark Loop</h2>
-        <form id="demo-form">
-          <div class="controls">
-            <label for="target">
-              <span>Target Engine</span>
-              <select id="target" name="target" disabled>
-                <option value="both" selected>Compare Side-by-Side (JS vs Wasm)</option>
-                <option value="javascript">JavaScript Engine</option>
-                <option value="wasm">WebAssembly Engine</option>
-              </select>
-            </label>
-            <label for="iterations">
-              <span>Loop Iterations</span>
-              <select id="iterations" name="iterations">
-                <option value="1">1 iteration (Cold start only)</option>
-                <option value="10">10 iterations</option>
-                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
-                <option value="50">50 iterations</option>
-                <option value="100">100 iterations (Sustained loop)</option>
-              </select>
-            </label>
-            <button id="start" type="submit" disabled>Start Benchmark Suite</button>
-            <button id="cancel" type="button" disabled>Cancel</button>
-          </div>
-        </form>
-        <p id="status" role="status" aria-live="polite">
-          Ready. Select target and loop iterations, then click Start.
-        </p>
-        <div id="perf-reporting" class="detail-grid" hidden></div>
-      </section>
-
-      <section aria-labelledby="what-heading">
-        <h2 id="what-heading">What it does</h2>
-        <p>
-          Decodes Protocol Buffer messages, filters records, and emits ProtoJSON responses — varint
-          decoding, field-tag dispatch, and JSON serialization of nested message types.
-        </p>
-      </section>
-
-      <section aria-labelledby="why-heading">
-        <h2 id="why-heading">Why compare Wasm vs JS</h2>
-        <p>
-          Wire decoding + JSON serialization is where a linear-memory Wasm target (fixed 32 MiB,
-          no host serializer) genuinely differs from the JavaScript engine's own paths.
-        </p>
-      </section>
-
-      <section aria-labelledby="admitted-heading">
-        <h2 id="admitted-heading">What is admitted</h2>
-        <p>
-          The frozen schema covers uint64, strings, booleans, double, enum, repeated strings,
-          map&lt;string,sint64&gt;, bytes, oneof, int32, and float. The corpus exercises duplicate
-          singular, map, and oneof fields; unknown wire types 0, 1, 2, and 5; defaults; values above
-          JavaScript's safe integer range; non-finite numbers; multilingual UTF-8; base64; and JSON
-          escaping. Unknown fields are counted and omitted from ProtoJSON.
-        </p>
-        <p>
-          The Wasm target performs wire decoding, filtering, duplicate and oneof resolution, map
-          sorting, UTF-8 output construction, number formatting, JSON escaping, and base64 inside
-          fixed 32 MiB linear memory. It does not call a JavaScript reducer or host JSON serializer.
-        </p>
-      </section>
-
-      <section aria-labelledby="correctness-heading">
-        <h2 id="correctness-heading">Correctness evidence — run the contract</h2>
-        <p class="muted">
-          The benchmark loop above times both engines. This section runs the frozen protobuf
-          contract through either engine and validates the canonical ProtoJSON output — timing and
-          correctness never mix.
-        </p>
-        <form id="protobuf-contract-form">
-          <fieldset>
-            <legend>Controlled target</legend>
-            <div class="controls">
-              <label>Engine
-                <select id="protobuf-target" name="target">
-                  <option value="both">JavaScript and linear Wasm</option>
-                  <option value="javascript">JavaScript only</option>
-                  <option value="wasm">Linear Wasm only</option>
-                </select>
-              </label>
-              <label>Validation
-                <select id="protobuf-mode" name="mode">
-                  <option value="exact">Exact contract</option>
-                  <option value="default">Output oracle</option>
-                </select>
-              </label>
-              <button id="protobuf-start" type="submit">Start</button>
-              <button id="protobuf-cancel" type="button" disabled>Cancel</button>
-            </div>
-          </fieldset>
-        </form>
-        <p id="protobuf-status" role="status" aria-live="polite">Ready.</p>
-        <h3>Text result</h3>
-        <pre id="protobuf-output">No result yet.</pre>
-      </section>
-
-      <section aria-labelledby="provenance-heading">
-        <h2 id="provenance-heading">Source &amp; build provenance</h2>
-        <ul>
-          <li><a href="/benchmarks/base/serialization-protobuf-gateway/implementation-contract.v1.json">Exact supplemental contract</a></li>
-          <li><a href="/artifacts/serialization-protobuf-gateway/build-manifest.json">Build manifest</a></li>
-          <li><a href="/artifacts/serialization-protobuf-gateway/output-manifest.json">Output oracle</a></li>
-          <li><a href="/benchmarks/">Browse the workload catalog</a></li>
-          <li><a href="/evidence/">Check implementation evidence</a></li>
-        </ul>
+      <section class="detail-grid" aria-label="Workload details">
+        <div class="detail-card">
+          <h2>What it does</h2>
+          <p>Decodes Protocol Buffer messages, filters records, and emits ProtoJSON responses.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Why compare</h2>
+          <p>Varint decoding, field-tag dispatch, and JSON serialization of nested message types.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Algorithm &amp; engine</h2>
+          <p>Category: Serialization. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Source &amp; build provenance</h2>
+          <ul>
+            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+            <li><a href="/evidence/">Check implementation evidence</a></li>
+            <li><a href="/experiments/">Read the frozen experiment</a></li>
+          </ul>
+        </div>
       </section>
     </main>
-    <script type="module" src="/benchmarks/serialization-protobuf-gateway/protobuf-runner.js"></script>
+    <script type="module"
+      src="/benchmarks/serialization-protobuf-gateway/protobuf-runner.js"></script>
   </body>
 </html>
