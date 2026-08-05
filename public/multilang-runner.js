@@ -649,7 +649,7 @@ export const KERNEL_ADAPTERS = {
       const callables = {};
       callables.js = { polybench: jsPolybench };
 
-      for (const key of ["wat", "c", "cpp", "rs"]) {
+      for (const key of ["c", "cpp", "rs"]) {
         const inst = mods.engines[key].instances.polybench.instance;
         const mem = inst.exports.memory;
         const exports = inst.exports;
