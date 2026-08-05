@@ -1849,6 +1849,7 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "text-diff-patch.manifest.json",
       "text-regex-log-scan.manifest.json",
       "crypto-file-integrity.manifest.json",
+      "database-olap-chart.manifest.json",
       "ml-gemm.manifest.json",
       "multilang-wasm.manifest.json",
       "game-ecs-frame-update.manifest.json",
@@ -1922,6 +1923,11 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "ecs_frame_update_rs.wasm",
       "ecs_frame_update_dart.wasm",
       "ecs_frame_update_dart.mjs",
+      "olap_c.wasm",
+      "olap_cpp.wasm",
+      "olap_rs.wasm",
+      "olap_dart.wasm",
+      "olap_dart.mjs",
     ]
   ) {
     const type = file.endsWith(".wasm") ? "application/wasm" : "text/javascript; charset=utf-8";

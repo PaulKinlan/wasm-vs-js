@@ -84,6 +84,194 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
     },
   },
 
+  // --- database-olap-chart: OLAP chart aggregation (mirrors workload.js
+  //     runOlapJavaScript — region/category filter, stable merge sort, u64
+  //     category aggregates, FNV-1a filter digest; 5 queries over 10,000 rows)
+  "database.olap-chart.v1": {
+    kernels: ["olap"],
+    build(mods) {
+      const ROWS = 10000, QUERIES = 5, CATEGORIES = 16, TOP = 8, ROW_WORDS = 6, QUERY_WORDS = 6;
+      const HEADER_WORDS = 8, OUTPUT_WORDS_PER_QUERY = 112;
+      const OUTPUT_WORDS = OUTPUT_WORDS_PER_QUERY * QUERIES;
+      const SEED = 0x91e10da5;
+      const QUERY_TRACE = [
+        [0xff, 0xffff, 0, 0, 0, 1],
+        [0x55, 0x0f0f, 30, 1, 0, 2],
+        [0xaa, 0xf0f0, 55, 0, 1, 3],
+        [0x0f, 0x3333, 20, 1, 1, 4],
+        [0xf0, 0xcccc, 70, 0, 0, 5],
+      ];
+      function next(value) {
+        value ^= value << 13;
+        value ^= value >>> 17;
+        value ^= value << 5;
+        return value >>> 0;
+      }
+      // Bit-exact mirror of generateOlapFixture() (benchmarks/base/database-olap-chart/fixture.js).
+      function makeFixture() {
+        const words = new Uint32Array(HEADER_WORDS + ROWS * ROW_WORDS + QUERIES * QUERY_WORDS);
+        words.set([0x50414c4f, 1, ROWS, QUERIES, CATEGORIES, TOP, ROW_WORDS, QUERY_WORDS]);
+        let state = SEED;
+        for (let row = 0; row < ROWS; row += 1) {
+          state = next(state);
+          const region = state & 7;
+          const category = (state >>> 4) & 15;
+          const year = 2020 + ((state >>> 9) % 5);
+          state = next(state);
+          const units = 1 + (state % 250);
+          state = next(state);
+          const revenueCents = (500 + (state % 50000)) * units;
+          const values = [row, region, category, year, units, revenueCents >>> 0];
+          for (let column = 0; column < ROW_WORDS; column += 1) {
+            words[HEADER_WORDS + column * ROWS + row] = values[column];
+          }
+        }
+        let offset = HEADER_WORDS + ROWS * ROW_WORDS;
+        for (const query of QUERY_TRACE) {
+          words.set(query, offset);
+          offset += QUERY_WORDS;
+        }
+        return new Uint8Array(words.buffer);
+      }
+      function column(words, columnIndex, row) {
+        return words[HEADER_WORDS + columnIndex * ROWS + row];
+      }
+      function key(words, row, sortColumn) {
+        return column(words, sortColumn === 0 ? 5 : 4, row);
+      }
+      function before(words, left, right, sortColumn, descending) {
+        const a = key(words, left, sortColumn), b = key(words, right, sortColumn);
+        if (a !== b) return descending ? a > b : a < b;
+        return left < right;
+      }
+      function stableMergeSort(words, indexes, temp, sortColumn, descending, counters) {
+        for (let width = 1; width < indexes.length; width *= 2) {
+          for (let left = 0; left < indexes.length; left += width * 2) {
+            const mid = Math.min(left + width, indexes.length);
+            const right = Math.min(left + width * 2, indexes.length);
+            let i = left, j = mid, out = left;
+            while (i < mid && j < right) {
+              counters.sortComparisons += 1;
+              if (before(words, indexes[i], indexes[j], sortColumn, descending)) {
+                temp[out++] = indexes[i++];
+              } else temp[out++] = indexes[j++];
+            }
+            while (i < mid) temp[out++] = indexes[i++];
+            while (j < right) temp[out++] = indexes[j++];
+            for (let k = left; k < right; k += 1) indexes[k] = temp[k];
+          }
+        }
+      }
+      function add64(lowWords, highWords, index, value) {
+        const previous = lowWords[index];
+        const next = (previous + (value >>> 0)) >>> 0;
+        lowWords[index] = next;
+        highWords[index] = (highWords[index] + (next < previous ? 1 : 0)) >>> 0;
+      }
+      // Bit-exact mirror of runOlapJavaScript(): returns { output, counters }.
+      function runOlap(fixture) {
+        const words = new Uint32Array(fixture.buffer);
+        const output = new Uint32Array(OUTPUT_WORDS);
+        const counters = {
+          queries: QUERIES,
+          rowsVisited: 0,
+          predicateChecks: 0,
+          matchedRows: 0,
+          sortComparisons: 0,
+          aggregateRows: 0,
+          chartBins: QUERIES * CATEGORIES,
+          outputRows: QUERIES * TOP,
+          outputWords: OUTPUT_WORDS,
+        };
+        const queryStart = HEADER_WORDS + ROWS * ROW_WORDS;
+        for (let q = 0; q < QUERIES; q += 1) {
+          const query = queryStart + q * QUERY_WORDS;
+          const regionMask = words[query], categoryMask = words[query + 1];
+          const minUnits = words[query + 2], descending = words[query + 3];
+          const sortColumn = words[query + 4], controlRevision = words[query + 5];
+          const indexes = new Uint32Array(ROWS);
+          const temp = new Uint32Array(ROWS);
+          let matched = 0;
+          const count = new Uint32Array(CATEGORIES);
+          const unitsLo = new Uint32Array(CATEGORIES), unitsHi = new Uint32Array(CATEGORIES);
+          const revenueLo = new Uint32Array(CATEGORIES), revenueHi = new Uint32Array(CATEGORIES);
+          let filterDigest = 0x811c9dc5;
+          for (let row = 0; row < ROWS; row += 1) {
+            counters.rowsVisited += 1;
+            counters.predicateChecks += 3;
+            const region = column(words, 1, row), category = column(words, 2, row);
+            const units = column(words, 4, row);
+            if (
+              ((regionMask >>> region) & 1) === 0 || ((categoryMask >>> category) & 1) === 0 ||
+              units < minUnits
+            ) continue;
+            indexes[matched++] = row;
+            counters.matchedRows += 1;
+            counters.aggregateRows += 1;
+            filterDigest = Math.imul((filterDigest ^ (row >>> 0)) >>> 0, 0x01000193) >>> 0;
+            count[category] += 1;
+            add64(unitsLo, unitsHi, category, units);
+            add64(revenueLo, revenueHi, category, column(words, 5, row));
+          }
+          const selected = indexes.subarray(0, matched);
+          stableMergeSort(words, selected, temp, sortColumn, descending !== 0, counters);
+          let out = q * OUTPUT_WORDS_PER_QUERY;
+          output[out++] = q;
+          output[out++] = matched;
+          output[out++] = sortColumn;
+          output[out++] = descending;
+          output[out++] = filterDigest;
+          output[out++] = TOP;
+          output[out++] = CATEGORIES;
+          output[out++] = controlRevision;
+          for (let i = 0; i < TOP; i += 1) {
+            const row = selected[i];
+            output[out++] = row;
+            output[out++] = column(words, 4, row);
+            output[out++] = column(words, 5, row);
+          }
+          for (let bin = 0; bin < CATEGORIES; bin += 1) {
+            output[out++] = count[bin];
+            output[out++] = unitsLo[bin];
+            output[out++] = unitsHi[bin];
+            output[out++] = revenueLo[bin];
+            output[out++] = revenueHi[bin];
+          }
+        }
+        return { output, counters };
+      }
+      const fixture = makeFixture();
+      const fixture32 = new Uint32Array(fixture.buffer);
+
+      const callables = {};
+      for (const key of ["c", "cpp", "rs"]) {
+        const inst = mods.engines[key].instances.olap.instance;
+        const mem = inst.exports.memory;
+        callables[key] = {
+          olap: () => {
+            const inPtr = inst.exports.input_ptr();
+            new Uint32Array(mem.buffer, inPtr, fixture32.length).set(fixture32);
+            inst.exports.run(fixture.length);
+          },
+        };
+      }
+      callables.js = {
+        olap: () => {
+          runOlap(fixture);
+        },
+      };
+      callables.dart = {
+        olap: () => {
+          const kernels = mods.engines.dart.kernels;
+          const input = new Uint32Array(fixture32.buffer.slice(0));
+          const result = new Uint32Array(OUTPUT_WORDS);
+          kernels.run(input, result, fixture.length);
+        },
+      };
+      return callables;
+    },
+  },
+
   // --- audio-fir: FIR direct convolution (mirrors audio-fir/workload.ts)
   "audio.fir.v1": {
     kernels: ["fir"],
