@@ -8,7 +8,7 @@ const ROOT = "/artifacts/serialization-protobuf-gateway/";
 const EXPECTED = {
   "fixture-manifest.json": "4b71993a213860b1972696a7dbc3d8d51a5984e436c06495acd0952682eee421",
   "output-manifest.json": "cc0a8e47fdac91129fa228ee6a87b38aab61a03ecadbc0d82e7e3563bda01adc",
-  "build-manifest.json": "7a477ceec803b3792768bcf0bad10b2bf3a19c8602ea12f671a81ec723c1d440",
+  "build-manifest.json": "25edbc62aa828879e05ac56c8e655be1550b921c2bf594b6b09a33ffc4699e7f",
   "serialization-protobuf-gateway.wasm":
     "fc1aadc10019f26472b9f0d98d51103cdb86941ed32767189d959a244e6fd938",
   "implementation-contract.v1.json":
