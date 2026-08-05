@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "workloadId": "database.olap-chart.v1",
-  "sourceCommit": "eb55aa653554fb424bfd575ab5dc45550773ed8f",
+  "sourceCommit": "b9a5e5aeb2f47aeee48c2f2d4ea460eafd58ad8d",
   "command": "deno run --allow-read=. --allow-write=public/artifacts,public/evidence --allow-run=clang,wasm-ld scripts/build-base-olap.ts --source-commit=<commit>",
   "flags": [
     "--target=wasm32-unknown-unknown",
