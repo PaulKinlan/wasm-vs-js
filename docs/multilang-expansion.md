@@ -117,8 +117,10 @@ f32 fround-accumulation vs f64, etc.) exactly as the FFT rows do today.
   C/C++/Rust/Dart, bit-identical to the oracle, comparison section live on the demo page;
   JS 0.12 / C 0.035 / C++ 0.035 / Rust 0.015 / Dart 0.185ms browser-measured). Remaining:
   text-regex-log-scan DONE (C/C++/Dart bit-identical; Rust flagged in-progress), numeric-polybench-panel, audio-fir, audio-stft.
-- **Wave 3** — ml-dense-mlp, image-editing, flood-fill, crypto-file-integrity,
-  simulation-nbody-cloth.
+- **Wave 3 (in progress, 2026-08-05)** — ml-dense-mlp DONE (mlp_forward in C/C++/Rust/Dart,
+  bit-identical to the mlpControlled oracle on the full 32×512×8 shape; comparison section
+  live; JS 4.8 / C 2.4 / C++ 2.4 / Rust 2.4 / Dart 73.4ms browser-measured). Remaining:
+  image-editing, flood-fill, crypto-file-integrity, simulation-nbody-cloth.
 - **Wave 4** — serialization-json-telemetry, database-olap-chart, network-pcap-decode,
   game-ecs-frame-update.
 
