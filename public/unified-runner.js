@@ -656,11 +656,66 @@ function renderPerformanceReport(container, jsStats, wasmStats, iterations) {
     </div>
   `;
 
-  container.innerHTML = speedupBadgeHtml + graphHtml + tableHtml;
+  const lifecycleHtml = renderLifecycleBreakdown(jsStats, wasmStats);
+
+  container.innerHTML = speedupBadgeHtml + graphHtml + tableHtml + lifecycleHtml;
   container.querySelectorAll(".perf-bar[data-pct]").forEach((bar) => {
     bar.style.width = `${bar.dataset.pct}%`;
   });
   container.hidden = false;
+}
+
+// Render a phase value that is either a number (ms) or a typed unavailable
+// object { status, reason } — never zero-substituted.
+function lifecyclePhaseCell(value) {
+  if (value && typeof value === "object") {
+    if (value.status === "unavailable") return `${value.status}: ${value.reason}`;
+    if (value.status === "supported-value" && typeof value.ms === "number") {
+      return `${value.ms.toFixed(3)} ms`;
+    }
+  }
+  if (typeof value === "number") return `${value.toFixed(3)} ms`;
+  return "not collected";
+}
+
+// Cold-start phase breakdown for the playground report. Rendered from the
+// retained lifecycle block when the run carried one; otherwise the phase cells
+// are marked "not collected" — never invented. Cold = first pre-JIT run;
+// the phases below are what that first run cost, broken out so a Wasm-vs-JS
+// difference can be traced to transfer, compile, instantiate, or first execute.
+function renderLifecycleBreakdown(jsStats, wasmStats) {
+  const jsLifecycle = jsStats?.lastResult?.lifecycle;
+  const wasmLifecycle = wasmStats?.lastResult?.lifecycle;
+  if (!jsLifecycle && !wasmLifecycle) return "";
+  const row = (label, jsValue, wasmValue) =>
+    `<tr><td>${label}</td><td>${lifecyclePhaseCell(jsValue)}</td><td>${
+      lifecyclePhaseCell(wasmValue)
+    }</td></tr>`;
+  return `<div class="table-wrap lifecycle-breakdown">
+    <table class="results-table">
+      <caption>First-use lifecycle breakdown · cold = first pre-JIT run</caption>
+      <thead><tr><th>Phase</th><th>JavaScript</th><th>WebAssembly</th></tr></thead>
+      <tbody>
+        ${
+    row("Manifest transfer", jsLifecycle?.manifestTransferMs, wasmLifecycle?.manifestTransferMs)
+  }
+        ${
+    row(
+      "Manifest network (Resource Timing)",
+      jsLifecycle?.manifestNetworkMs,
+      wasmLifecycle?.manifestNetworkMs,
+    )
+  }
+        ${row("Module transfer", jsLifecycle?.jsTransferMs, wasmLifecycle?.wasmTransferMs)}
+        ${
+    row("Module network (Resource Timing)", jsLifecycle?.jsNetworkMs, wasmLifecycle?.wasmNetworkMs)
+  }
+        ${row("Compile", "—", wasmLifecycle?.wasmCompileMs)}
+        ${row("Instantiate", "—", wasmLifecycle?.wasmInstantiateMs)}
+        ${row("First execute", jsLifecycle?.jsFirstExecuteMs, wasmLifecycle?.wasmFirstExecuteMs)}
+      </tbody>
+    </table>
+  </div>`;
 }
 
 // Auto-initialize benchmark detail page runner

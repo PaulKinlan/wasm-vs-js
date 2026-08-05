@@ -33,6 +33,18 @@ function ms(value) {
   return `${value.toFixed(3)} ms`;
 }
 
+// Render a phase value that is either a number (ms) or a typed unavailable
+// object { status, reason } — never zero-substituted.
+function phase(value) {
+  if (value && typeof value === "object" && value.status === "unavailable") {
+    return `${value.status}: ${value.reason}`;
+  }
+  if (value && typeof value === "object" && value.status === "supported-value") {
+    return `${value.ms.toFixed(3)} ms`;
+  }
+  return ms(value);
+}
+
 function appendDefinition(parent, rows) {
   const list = document.createElement("dl");
   list.className = "result-facts";
@@ -338,11 +350,13 @@ function renderResult(data) {
       `Build manifest transfer (${data.lifecycle.manifestBytes} bytes)`,
       ms(data.lifecycle.manifestTransferMs),
     ],
+    ["Build manifest network (Resource Timing)", phase(data.lifecycle.manifestNetworkMs)],
     ["Build manifest decode + JSON parse", ms(data.lifecycle.manifestDecodeParseMs)],
     [
       `JavaScript workload transfer (${data.lifecycle.jsBytes} bytes)`,
       ms(data.lifecycle.jsTransferMs),
     ],
+    ["JavaScript network (Resource Timing)", phase(data.lifecycle.jsNetworkMs)],
     ["JavaScript SHA-256 verification", ms(data.lifecycle.jsHashVerifyMs)],
     [
       "Verified JavaScript module import (combined)",
@@ -362,6 +376,7 @@ function renderResult(data) {
       `Wasm transfer (${data.lifecycle.wasmBytes} bytes)`,
       ms(data.lifecycle.wasmTransferMs),
     ],
+    ["Wasm network (Resource Timing)", phase(data.lifecycle.wasmNetworkMs)],
     ["Wasm SHA-256 verification", ms(data.lifecycle.wasmHashVerifyMs)],
     ["Wasm compile", ms(data.lifecycle.wasmCompileMs)],
     ["Wasm instantiate", ms(data.lifecycle.wasmInstantiateMs)],

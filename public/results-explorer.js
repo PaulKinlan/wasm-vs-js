@@ -185,6 +185,46 @@ function renderDetail(container, run) {
   }
   html += "</dl>";
 
+  // First-use lifecycle breakdown (present only in hosted-runner retained runs).
+  if (run.lifecycle && typeof run.lifecycle === "object") {
+    const lc = run.lifecycle;
+    const cell = (value) => {
+      if (value && typeof value === "object") {
+        if (value.status === "unavailable") return `${value.status}: ${value.reason}`;
+        if (value.status === "supported-value" && typeof value.ms === "number") {
+          return `${value.ms.toFixed(3)} ms`;
+        }
+      }
+      if (typeof value === "number") return `${value.toFixed(3)} ms`;
+      return "not collected";
+    };
+    const rows = [
+      ["Manifest transfer", lc.manifestTransferMs],
+      ["Manifest network (Resource Timing)", lc.manifestNetworkMs],
+      ["JS transfer", lc.jsTransferMs],
+      ["JS network (Resource Timing)", lc.jsNetworkMs],
+      ["Wasm transfer", lc.wasmTransferMs],
+      ["Wasm network (Resource Timing)", lc.wasmNetworkMs],
+      ["Wasm compile", lc.wasmCompileMs],
+      ["Wasm instantiate", lc.wasmInstantiateMs],
+      ["First JS execute", lc.jsFirstExecuteMs],
+      ["First Wasm execute", lc.wasmFirstExecuteMs],
+    ];
+    html += "<h3>First-use lifecycle breakdown</h3>";
+    html += '<table class="data-samples"><thead><tr>';
+    html += '<th scope="col">Phase</th><th scope="col">Duration / availability</th>';
+    html += "</tr></thead><tbody>";
+    for (const [label, value] of rows) {
+      html += `<tr><td>${escapeHtml(label)}</td><td>${escapeHtml(cell(value))}</td></tr>`;
+    }
+    html += "</tbody></table>";
+  } else {
+    html +=
+      '<p class="detail-note">No first-use lifecycle breakdown in this record — the M3 reporting ' +
+      "schema does not retain phase timings. Run the workload in the browser playground or the " +
+      "/run hosted journey to see transfer / compile / instantiate / first-execute phases.</p>";
+  }
+
   // Raw samples
   if (run.samples && Array.isArray(run.samples)) {
     html += `<h3>Samples (${run.samples.length})</h3>`;

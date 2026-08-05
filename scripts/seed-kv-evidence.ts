@@ -49,13 +49,17 @@ const evidenceFiles: EvidenceRecord[] = [];
 // Map the common fields; skip anything unmappable.
 function extractEvidence(path: string): EvidenceRecord | null {
   const entry = { name: path.split("/").pop() ?? path, path };
-  if (!entry.name.endsWith(".json") || entry.name.includes("schema") || entry.name === "index.html") {
+  if (
+    !entry.name.endsWith(".json") || entry.name.includes("schema") || entry.name === "index.html"
+  ) {
     return null;
   }
   let data: Record<string, unknown>;
   try {
     data = JSON.parse(Deno.readTextFileSync(entry.path));
-  } catch { return null; }
+  } catch {
+    return null;
+  }
   const workloadId = (data.workloadId ?? data.frozenCatalogId ??
     (typeof data.workload === "object" && data.workload !== null
       ? (data.workload as Record<string, unknown>).id
@@ -68,8 +72,9 @@ function extractEvidence(path: string): EvidenceRecord | null {
   const explicitTarget = (data.executionTarget ?? data.target) as string | undefined;
   const target = explicitTarget ??
     (variantId && String(variantId).includes("wasm") ? "wasm-linear" : "javascript");
-  const status = (data.status ?? (data.correctness as Record<string, unknown> | undefined)?.status ??
-    (data.result as Record<string, unknown> | undefined)?.status) as string | undefined;
+  const status =
+    (data.status ?? (data.correctness as Record<string, unknown> | undefined)?.status ??
+      (data.result as Record<string, unknown> | undefined)?.status) as string | undefined;
   // Skip only explicit failure/blocked states; correctness-only and candidate
   // records are valid evidence of the workload running.
   if (status && /fail|block|error|denied|abort/i.test(String(status))) return null;
@@ -79,7 +84,10 @@ function extractEvidence(path: string): EvidenceRecord | null {
     variantId: variantId ?? "correctness",
     target,
     benchmark: workloadId,
-    result: (data.result ?? data.correctness ?? { status: status ?? "passed" }) as Record<string, unknown>,
+    result: (data.result ?? data.correctness ?? { status: status ?? "passed" }) as Record<
+      string,
+      unknown
+    >,
   };
 }
 

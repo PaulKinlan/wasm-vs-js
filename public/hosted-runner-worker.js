@@ -2,6 +2,7 @@ import {
   calibrateBatch,
   expectedBatchDigest,
   fixedWorkCounters,
+  networkPhaseFromEntry,
   ORACLE,
   runScoredPair,
   summarizeSamples,
@@ -88,6 +89,15 @@ function resourceTimingEvidence() {
         "transferSize uses Resource Timing semantics (including synthetic accounting). Zero can mean local cache, and a controlling Service Worker can also affect delivery; this run does not attest a cold/warm cache state.",
     };
   });
+}
+
+// Network phase derived from Resource Timing: fetchStart -> responseEnd. This is
+// the same-origin HTTP portion of a cold start (request send + server + body
+// headers), separate from the manual fetch() wrapper duration (which also
+// includes body read). Typed unavailable — never zero-substituted (repo rule).
+function networkPhaseForRoute(route) {
+  const entry = performance.getEntriesByName(`${location.origin}${route}`, "resource").at(-1);
+  return networkPhaseFromEntry(entry);
 }
 
 function cacheDisclosure(resources, serviceWorkerControlled) {
@@ -243,8 +253,10 @@ async function executeRun(iterations, order, serviceWorkerControlled) {
       manifestTransferMs: manifestFetch.durationMs,
       manifestBytes: manifestFetch.bytes,
       manifestDecodeParseMs,
+      manifestNetworkMs: networkPhaseForRoute("/artifacts/sum-u32/build-manifest.json"),
       jsTransferMs: jsFetch.durationMs,
       jsBytes: jsFetch.bytes,
+      jsNetworkMs: networkPhaseForRoute("/benchmarks/sum-u32/workload.js"),
       jsHashVerifyMs,
       jsVerifiedModuleImportMs,
       jsModuleParseMs: {
@@ -259,6 +271,7 @@ async function executeRun(iterations, order, serviceWorkerControlled) {
       },
       wasmTransferMs: wasmFetch.durationMs,
       wasmBytes: wasmFetch.bytes,
+      wasmNetworkMs: networkPhaseForRoute("/artifacts/sum-u32/sum-u32.wasm"),
       wasmHashVerifyMs,
       wasmCompileMs,
       wasmInstantiateMs,
