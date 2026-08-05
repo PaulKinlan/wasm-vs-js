@@ -251,8 +251,16 @@ await Promise.all([
   ...HEAVY_READERS.map(async (file) => {
     // Stagger: the t=0 startup storm (12 deno processes type-checking) inflates
     // the critical rigid chain; these lanes have ~1s of slack before they would
-    // become the binder, so a delayed start costs no wall time.
-    await new Promise((resolve) => setTimeout(resolve, 1200));
+    // become the binder, so a delayed start costs no wall time. The two
+    // server-spawning contract heavies (runner-worker-contracts spawns a server
+    // per contract; m2-js-variants builds variants) move to a 4s start so their
+    // process/IO bursts miss the rigid lane's bandwidth-critical early phase —
+    // measured 2026-08-05: 1.2s start inflated rigid 13.0 -> 13.6-14.0.
+    const isServerHeavy = file.endsWith("runner-worker-contracts.test.ts") ||
+      file.endsWith("m2-js-variants.test.ts");
+    await new Promise((resolve) =>
+      setTimeout(resolve, isServerHeavy ? 4000 : 1200)
+    );
     await runStage({
       name: `test-heavy-${
         file.replace(/^tests\//, "").replace(/\.test\.ts$/, "").replaceAll("/", "-")
