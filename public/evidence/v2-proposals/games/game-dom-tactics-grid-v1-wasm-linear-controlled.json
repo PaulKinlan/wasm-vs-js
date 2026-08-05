@@ -7,7 +7,7 @@
     "file": {
       "path": "catalog/workloads.v2.proposed.json",
       "sha256": "d1e014cc7d6db799e1a04618b8961a3a5e6ead66e5a1fcdcf1e2301c87c66ac9",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/15f28b7714acdb26f23cdab37e44b93b91c1cff0/catalog/workloads.v2.proposed.json"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ee994a5ed12ae5fe339e25132187e852d4ac34ed/catalog/workloads.v2.proposed.json"
     }
   },
   "workloadContract": {
@@ -15,7 +15,7 @@
     "file": {
       "path": "benchmarks/v2/shared/workload-contract.js",
       "sha256": "c2c816ec5177a190999b9a030bc992519935301684f1bb884281440e08a43155",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/15f28b7714acdb26f23cdab37e44b93b91c1cff0/benchmarks/v2/shared/workload-contract.js"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ee994a5ed12ae5fe339e25132187e852d4ac34ed/benchmarks/v2/shared/workload-contract.js"
     }
   },
   "resultContract": {
@@ -23,12 +23,12 @@
     "file": {
       "path": "schemas/workload-result-v2-proposal.schema.json",
       "sha256": "64fa72510b1e775c8d4b968ad4aacfd9b0e1ae3cf199156b958476857cd8d39a",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/15f28b7714acdb26f23cdab37e44b93b91c1cff0/schemas/workload-result-v2-proposal.schema.json"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ee994a5ed12ae5fe339e25132187e852d4ac34ed/schemas/workload-result-v2-proposal.schema.json"
     }
   },
   "source": {
     "repository": "https://github.com/PaulKinlan/wasm-vs-js",
-    "commit": "15f28b7714acdb26f23cdab37e44b93b91c1cff0"
+    "commit": "ee994a5ed12ae5fe339e25132187e852d4ac34ed"
   },
   "workload": {
     "entryId": "game.dom-tactics-grid.v1",
@@ -46,106 +46,106 @@
         "role": "javascript-authored",
         "path": "benchmarks/v2/game-family/engine.js",
         "sha256": "ede0f172e52434a81579f7a22a42b1f794981df2aa6c0749a897d3b117dc3d6a",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/15f28b7714acdb26f23cdab37e44b93b91c1cff0/benchmarks/v2/game-family/engine.js"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ee994a5ed12ae5fe339e25132187e852d4ac34ed/benchmarks/v2/game-family/engine.js"
       },
       {
         "role": "shared-support",
         "path": "benchmarks/v2/game-family/fixtures.js",
         "sha256": "7081a0a7895ce9a5deffb911c212de5b10aa0084200e454a6b7aad619b946af0",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/15f28b7714acdb26f23cdab37e44b93b91c1cff0/benchmarks/v2/game-family/fixtures.js"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ee994a5ed12ae5fe339e25132187e852d4ac34ed/benchmarks/v2/game-family/fixtures.js"
       },
       {
         "role": "wasm-authored",
         "path": "benchmarks/v2/game-family/game-family.c",
         "sha256": "4714f2fac3d40bd71aa89e73a8263f03e50239c7e2b760d8b4f932434742e32e",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/15f28b7714acdb26f23cdab37e44b93b91c1cff0/benchmarks/v2/game-family/game-family.c"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ee994a5ed12ae5fe339e25132187e852d4ac34ed/benchmarks/v2/game-family/game-family.c"
       },
       {
         "role": "shared-support",
         "path": "benchmarks/v2/game-family/implementation-contract.v1.json",
         "sha256": "f110c3fd642fe61ef8bb899cf5e6f53adabff529a2d60bf00a43cbbfa72304f7",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/15f28b7714acdb26f23cdab37e44b93b91c1cff0/benchmarks/v2/game-family/implementation-contract.v1.json"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ee994a5ed12ae5fe339e25132187e852d4ac34ed/benchmarks/v2/game-family/implementation-contract.v1.json"
       },
       {
         "role": "shared-support",
         "path": "scripts/build-game-family.ts",
         "sha256": "6c15e87ee363f5cf13e34485760ae47096f0ab0bec8ef1526d2e00786b1e1819",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/15f28b7714acdb26f23cdab37e44b93b91c1cff0/scripts/build-game-family.ts"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ee994a5ed12ae5fe339e25132187e852d4ac34ed/scripts/build-game-family.ts"
       },
       {
         "role": "shared-support",
         "path": "benchmarks/v2/shared/workload-contract.js",
         "sha256": "c2c816ec5177a190999b9a030bc992519935301684f1bb884281440e08a43155",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/15f28b7714acdb26f23cdab37e44b93b91c1cff0/benchmarks/v2/shared/workload-contract.js"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ee994a5ed12ae5fe339e25132187e852d4ac34ed/benchmarks/v2/shared/workload-contract.js"
       },
       {
         "role": "shared-support",
         "path": "benchmarks/v2/shared/provenance-contract.js",
         "sha256": "767262a28f8a88a86acd0de3456d17be9184554ea270ac9f30a2df279a1aac29",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/15f28b7714acdb26f23cdab37e44b93b91c1cff0/benchmarks/v2/shared/provenance-contract.js"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ee994a5ed12ae5fe339e25132187e852d4ac34ed/benchmarks/v2/shared/provenance-contract.js"
       },
       {
         "role": "shared-support",
         "path": "catalog/workloads.v2.proposed.json",
         "sha256": "d1e014cc7d6db799e1a04618b8961a3a5e6ead66e5a1fcdcf1e2301c87c66ac9",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/15f28b7714acdb26f23cdab37e44b93b91c1cff0/catalog/workloads.v2.proposed.json"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ee994a5ed12ae5fe339e25132187e852d4ac34ed/catalog/workloads.v2.proposed.json"
       },
       {
         "role": "shared-support",
         "path": "schemas/workload-result-v2-proposal.schema.json",
         "sha256": "64fa72510b1e775c8d4b968ad4aacfd9b0e1ae3cf199156b958476857cd8d39a",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/15f28b7714acdb26f23cdab37e44b93b91c1cff0/schemas/workload-result-v2-proposal.schema.json"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ee994a5ed12ae5fe339e25132187e852d4ac34ed/schemas/workload-result-v2-proposal.schema.json"
       },
       {
         "role": "shared-support",
         "path": "deno.json",
         "sha256": "1fb796ab0a517cac5b34d6b0225dc1316f7dae952460c45fec46acbe9d71ec5b",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/15f28b7714acdb26f23cdab37e44b93b91c1cff0/deno.json"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ee994a5ed12ae5fe339e25132187e852d4ac34ed/deno.json"
       },
       {
         "role": "shared-support",
         "path": "deno.lock",
         "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/15f28b7714acdb26f23cdab37e44b93b91c1cff0/deno.lock"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ee994a5ed12ae5fe339e25132187e852d4ac34ed/deno.lock"
       }
     ],
     "generator": {
       "path": "scripts/build-game-family.ts",
       "sha256": "6c15e87ee363f5cf13e34485760ae47096f0ab0bec8ef1526d2e00786b1e1819",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/15f28b7714acdb26f23cdab37e44b93b91c1cff0/scripts/build-game-family.ts"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ee994a5ed12ae5fe339e25132187e852d4ac34ed/scripts/build-game-family.ts"
     },
     "reference": {
       "path": "benchmarks/v2/game-family/engine.js",
       "sha256": "ede0f172e52434a81579f7a22a42b1f794981df2aa6c0749a897d3b117dc3d6a",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/15f28b7714acdb26f23cdab37e44b93b91c1cff0/benchmarks/v2/game-family/engine.js"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ee994a5ed12ae5fe339e25132187e852d4ac34ed/benchmarks/v2/game-family/engine.js"
     },
     "oracle": {
       "path": "public/artifacts/game-v2-controlled-family/output-manifest.json",
       "sha256": "8191907c367a69230e57fff3724035eade207d6f22958fd5e3bd08f93f348e6a",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/15f28b7714acdb26f23cdab37e44b93b91c1cff0/public/artifacts/game-v2-controlled-family/output-manifest.json"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ee994a5ed12ae5fe339e25132187e852d4ac34ed/public/artifacts/game-v2-controlled-family/output-manifest.json"
     },
     "manifests": {
       "fixture": {
         "path": "public/artifacts/game-v2-controlled-family/fixture-manifest.json",
         "sha256": "8d47ad23d9ce48bad81c174788a330523e28ff4bb222e4df3d9929d95eb5c8f3",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/15f28b7714acdb26f23cdab37e44b93b91c1cff0/public/artifacts/game-v2-controlled-family/fixture-manifest.json"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ee994a5ed12ae5fe339e25132187e852d4ac34ed/public/artifacts/game-v2-controlled-family/fixture-manifest.json"
       },
       "input": {
         "path": "public/artifacts/game-v2-controlled-family/input-manifest.json",
         "sha256": "a79b77ed8b3589cecf31849a89b2875ef86a831b6fcadb3b501034972ba42fee",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/15f28b7714acdb26f23cdab37e44b93b91c1cff0/public/artifacts/game-v2-controlled-family/input-manifest.json"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ee994a5ed12ae5fe339e25132187e852d4ac34ed/public/artifacts/game-v2-controlled-family/input-manifest.json"
       },
       "output": {
         "path": "public/artifacts/game-v2-controlled-family/output-manifest.json",
         "sha256": "8191907c367a69230e57fff3724035eade207d6f22958fd5e3bd08f93f348e6a",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/15f28b7714acdb26f23cdab37e44b93b91c1cff0/public/artifacts/game-v2-controlled-family/output-manifest.json"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ee994a5ed12ae5fe339e25132187e852d4ac34ed/public/artifacts/game-v2-controlled-family/output-manifest.json"
       }
     },
     "build": {
       "recipe": {
         "path": "scripts/build-game-family.ts",
         "sha256": "6c15e87ee363f5cf13e34485760ae47096f0ab0bec8ef1526d2e00786b1e1819",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/15f28b7714acdb26f23cdab37e44b93b91c1cff0/scripts/build-game-family.ts"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ee994a5ed12ae5fe339e25132187e852d4ac34ed/scripts/build-game-family.ts"
       },
       "cwd": ".",
       "command": [
@@ -155,13 +155,13 @@
         "--allow-write=public/artifacts/game-v2-controlled-family,public/evidence/v2-proposals/games",
         "--allow-run=git,clang,wasm-ld",
         "scripts/build-game-family.ts",
-        "--source-commit=15f28b7714acdb26f23cdab37e44b93b91c1cff0"
+        "--source-commit=ee994a5ed12ae5fe339e25132187e852d4ac34ed"
       ],
       "locks": [
         {
           "path": "deno.lock",
           "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2",
-          "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/15f28b7714acdb26f23cdab37e44b93b91c1cff0/deno.lock"
+          "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ee994a5ed12ae5fe339e25132187e852d4ac34ed/deno.lock"
         }
       ],
       "toolchain": [
@@ -211,14 +211,14 @@
         "id": "game-dom-tactics-grid-wasm-linear-controlled",
         "path": "public/artifacts/game-v2-controlled-family/game-family.wasm",
         "sha256": "cf66f17a4d828a33e611c84bca1523c9f2603121ee87ab41301b0febc44fe63d",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/15f28b7714acdb26f23cdab37e44b93b91c1cff0/public/artifacts/game-v2-controlled-family/game-family.wasm",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ee994a5ed12ae5fe339e25132187e852d4ac34ed/public/artifacts/game-v2-controlled-family/game-family.wasm",
         "mediaType": "application/wasm"
       },
       {
         "id": "game-dom-tactics-grid-fixture",
         "path": "public/artifacts/game-v2-controlled-family/game-dom-tactics-grid-v1.bin",
         "sha256": "93ea1b049be33d4a2d1fcf08d58e433181195b24c03e36326bfecd328c3a5262",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/15f28b7714acdb26f23cdab37e44b93b91c1cff0/public/artifacts/game-v2-controlled-family/game-dom-tactics-grid-v1.bin",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ee994a5ed12ae5fe339e25132187e852d4ac34ed/public/artifacts/game-v2-controlled-family/game-dom-tactics-grid-v1.bin",
         "mediaType": "application/octet-stream"
       }
     ]
