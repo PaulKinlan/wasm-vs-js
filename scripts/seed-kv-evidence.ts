@@ -15,8 +15,21 @@ const sourceCommit = "adb69836" + "0".repeat(32); // Use the deploy commit (padd
 
 // ── Collect evidence files ──
 
-import { walk } from "jsr:@std/fs@1";
 import { hashCanonicalEnvelope } from "../lib/canonical.ts";
+
+// Recursive .json walker (native Deno — avoids pulling jsr:@std/fs into the
+// repo lockfile, which previously made fresh checkouts rewrite deno.lock
+// mid-gate and fail the provenance contract).
+async function* jsonFiles(root: string): AsyncGenerator<string> {
+  for await (const entry of Deno.readDir(root)) {
+    const path = `${root}/${entry.name}`;
+    if (entry.isDirectory) {
+      yield* jsonFiles(path);
+    } else if (entry.isFile && entry.name.endsWith(".json")) {
+      yield path;
+    }
+  }
+}
 
 type EvidenceRecord = {
   path: string;
@@ -30,7 +43,8 @@ type EvidenceRecord = {
 const evidenceFiles: EvidenceRecord[] = [];
 
 // Base evidence
-for await (const entry of walk("public/evidence/base", { includeDirs: false, exts: [".json"] })) {
+for await (const path of jsonFiles("public/evidence/base")) {
+  const entry = { name: path.split("/").pop() ?? path, path };
   if (!entry.name.endsWith(".json") || entry.name.includes("schema")) continue;
   try {
     const data = JSON.parse(await Deno.readTextFile(entry.path));
@@ -50,9 +64,9 @@ for await (const entry of walk("public/evidence/base", { includeDirs: false, ext
 
 // V2 proposal evidence
 for await (
-  const entry of walk("public/evidence/v2-proposals", { includeDirs: false, exts: [".json"] })
+  const path of jsonFiles("public/evidence/v2-proposals")
 ) {
-  if (!entry.name.endsWith(".json") || entry.name.includes("schema")) continue;
+  const entry = { name: path.split("/").pop() ?? path, path };
   try {
     const data = JSON.parse(await Deno.readTextFile(entry.path));
     if (data.correctness && data.workload) {
