@@ -1621,6 +1621,240 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
     },
   },
 
+  // --- image-editing: integer-only pixel kernels (mirrors
+  // benchmarks/image-editing: flood fill + luma Gaussian pipeline on the
+  // pinned repo fixtures, exact oracle semantics, counters included) -------
+  "image-editing.v1": {
+    kernels: ["flood_fill", "luma_gaussian_pipeline"],
+    build(mods) {
+      const FLOOD_W = 64, FLOOD_H = 48, PIPE_W = 40, PIPE_H = 30;
+      const SRC = 0, OUT = 16384, MASK = 32768;
+      function nextXor(state) {
+        state ^= state << 13;
+        state ^= state >>> 17;
+        state ^= state << 5;
+        return state >>> 0;
+      }
+      function setPx(rgba, width, x, y, r, g, b, a) {
+        const o = (y * width + x) * 4;
+        rgba[o] = r;
+        rgba[o + 1] = g;
+        rgba[o + 2] = b;
+        rgba[o + 3] = a;
+      }
+      function floodFixture() {
+        const width = FLOOD_W, height = FLOOD_H;
+        const rgba = new Uint8Array(width * height * 4);
+        let state = 0x34c2a91d;
+        for (let y = 0; y < height; y += 1) {
+          for (let x = 0; x < width; x += 1) {
+            state = nextXor(state);
+            const v = state % 9;
+            setPx(
+              rgba,
+              width,
+              x,
+              y,
+              72 + v,
+              110 + ((v * 3) % 9),
+              144 + ((v * 5) % 9),
+              220 + (v % 5),
+            );
+          }
+        }
+        for (let x = 5; x < width - 5; x += 1) {
+          if (x !== Math.floor(width / 2)) setPx(rgba, width, x, 8, 205, 54, 62, 255);
+        }
+        for (let y = 8; y < height - 6; y += 1) {
+          setPx(rgba, width, 5, y, 205, 54, 62, 255);
+          if (y !== Math.floor(height / 2)) setPx(rgba, width, width - 6, y, 205, 54, 62, 255);
+        }
+        for (let x = 5; x < width - 5; x += 1) setPx(rgba, width, x, height - 7, 205, 54, 62, 255);
+        const innerLeft = Math.floor(width / 3), innerRight = width - innerLeft - 1;
+        const innerTop = Math.floor(height / 3), innerBottom = height - innerTop - 1;
+        for (let x = innerLeft; x <= innerRight; x += 1) {
+          if (x !== innerLeft + 2) setPx(rgba, width, x, innerTop, 18, 24, 31, 255);
+          setPx(rgba, width, x, innerBottom, 18, 24, 31, 255);
+        }
+        for (let y = innerTop; y <= innerBottom; y += 1) {
+          setPx(rgba, width, innerLeft, y, 18, 24, 31, 255);
+          setPx(rgba, width, innerRight, y, 18, 24, 31, 255);
+        }
+        for (let y = 2; y < Math.min(height - 2, 12); y += 1) {
+          for (let x = width - 14; x < width - 2; x += 1) {
+            if ((x + y) % 3 === 0) setPx(rgba, width, x, y, 0, 0, 0, 0);
+          }
+        }
+        return rgba;
+      }
+      function pipeFixture() {
+        const width = PIPE_W, height = PIPE_H;
+        const rgba = new Uint8Array(width * height * 4);
+        let state = 0x8f31d4c7;
+        for (let y = 0; y < height; y += 1) {
+          for (let x = 0; x < width; x += 1) {
+            state = nextXor(state);
+            const noise = state & 31;
+            setPx(
+              rgba,
+              width,
+              x,
+              y,
+              (x * 5 + y * 3 + noise) & 255,
+              (x * 2 + y * 7 + ((noise * 3) & 63)) & 255,
+              (x * 9 + y + ((noise * 5) & 127)) & 255,
+              255,
+            );
+          }
+        }
+        return rgba;
+      }
+      const flood = floodFixture();
+      const photo = pipeFixture();
+
+      // JS kernels maintain the same ABI work counters as the Wasm variants
+      // (exact oracle semantics — the comparison stays apples-to-apples).
+      function jsFlood() {
+        const width = FLOOD_W, height = FLOOD_H;
+        const pixels = width * height;
+        const output = new Uint8Array(flood);
+        const visited = new Uint8Array(pixels);
+        const stack = new Uint32Array(pixels);
+        let readBytes = 4, writeBytes = 0, neighborTests = 0;
+        let stackPushes = 0, stackPops = 0, maxFrontier = 0, stackSize = 0;
+        let visitedPixels = 0, changedPixels = 0, operations = 4;
+        const seedIndex = 12 * width + 10;
+        const so = seedIndex * 4;
+        const seedR = flood[so],
+          seedG = flood[so + 1],
+          seedB = flood[so + 2],
+          seedA = flood[so + 3];
+        if (seedR === 34 && seedG === 139 && seedB === 230 && seedA === 191) return output;
+        const push = (index) => {
+          visited[index] = 1;
+          stack[stackSize] = index;
+          stackSize += 1;
+          stackPushes += 1;
+          writeBytes += 5;
+          if (stackSize > maxFrontier) maxFrontier = stackSize;
+        };
+        const tryPush = (index) => {
+          neighborTests += 1;
+          operations += 1;
+          readBytes += 1;
+          if (visited[index] === 0) push(index);
+        };
+        push(seedIndex);
+        while (stackSize !== 0) {
+          stackSize -= 1;
+          const index = stack[stackSize];
+          stackPops += 1;
+          visitedPixels += 1;
+          readBytes += 8;
+          const o = index * 4;
+          let maximum = Math.abs(flood[o] - seedR);
+          let d = Math.abs(flood[o + 1] - seedG);
+          if (d > maximum) maximum = d;
+          d = Math.abs(flood[o + 2] - seedB);
+          if (d > maximum) maximum = d;
+          d = Math.abs(flood[o + 3] - seedA);
+          if (d > maximum) maximum = d;
+          operations += 8;
+          if (maximum <= 12) {
+            output[o] = 34;
+            output[o + 1] = 139;
+            output[o + 2] = 230;
+            output[o + 3] = 191;
+            changedPixels += 1;
+            writeBytes += 4;
+            const x = index % width, y = Math.floor(index / width);
+            if (y > 0) tryPush(index - width);
+            if (x + 1 < width) tryPush(index + 1);
+            if (y + 1 < height) tryPush(index + width);
+            if (x > 0) tryPush(index - 1);
+          }
+        }
+        return output;
+      }
+      function jsPipeline() {
+        const width = PIPE_W, height = PIPE_H;
+        const pixels = width * height;
+        const output = new Uint8Array(pixels * 4);
+        const luma = new Uint8Array(pixels);
+        const horizontal = new Uint16Array(pixels);
+        for (let index = 0; index < pixels; index += 1) {
+          const o = index * 4;
+          luma[index] = (77 * photo[o] + 150 * photo[o + 1] + 29 * photo[o + 2] + 128) >> 8;
+        }
+        for (let index = 0; index < pixels; index += 1) {
+          const x = index % width;
+          const left = x === 0 ? index : index - 1;
+          const right = x + 1 >= width ? index : index + 1;
+          horizontal[index] = luma[left] + 2 * luma[index] + luma[right];
+        }
+        for (let index = 0; index < pixels; index += 1) {
+          const y = Math.floor(index / width);
+          const top = y === 0 ? index : index - width;
+          const bottom = y + 1 >= height ? index : index + width;
+          const value = (horizontal[top] + 2 * horizontal[index] + horizontal[bottom] + 8) >> 4;
+          const o = index * 4;
+          output[o] = value;
+          output[o + 1] = value;
+          output[o + 2] = value;
+          output[o + 3] = photo[o + 3];
+        }
+        return output;
+      }
+
+      const callables = { js: { flood_fill: jsFlood, luma_gaussian_pipeline: jsPipeline } };
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        const floodInst = mods.engines[key].instances.flood_fill.instance;
+        const pipeInst = mods.engines[key].instances.luma_gaussian_pipeline.instance;
+        const floodMem = new Uint8Array(floodInst.exports.memory.buffer);
+        const pipeMem = new Uint8Array(pipeInst.exports.memory.buffer);
+        callables[key] = {
+          flood_fill: () => {
+            floodMem.set(flood, SRC);
+            floodMem.set(flood, OUT);
+            floodMem.fill(0, MASK, MASK + FLOOD_W * FLOOD_H);
+            floodInst.exports.flood_fill(FLOOD_W, FLOOD_H, 10, 12);
+          },
+          luma_gaussian_pipeline: () => {
+            pipeMem.set(photo, SRC);
+            pipeInst.exports.luma_gaussian_pipeline(PIPE_W, PIPE_H);
+          },
+        };
+      }
+      const dk = mods.engines.dart.kernels;
+      callables.dart = {
+        flood_fill: () => {
+          dk.flood_fill(
+            flood,
+            new Uint8Array(flood),
+            new Uint8Array(FLOOD_W * FLOOD_H),
+            new Uint32Array(9),
+            FLOOD_W,
+            FLOOD_H,
+            10,
+            12,
+          );
+        },
+        luma_gaussian_pipeline: () => {
+          dk.luma_gaussian_pipeline(
+            photo,
+            new Uint8Array(photo.byteLength),
+            new Uint8Array(PIPE_W * PIPE_H),
+            new Uint16Array(PIPE_W * PIPE_H),
+            new Uint32Array(9),
+            PIPE_W,
+            PIPE_H,
+          );
+        },
+      };
+      return callables;
+    },
+  },
+
   // --- ml-gemm: strict-f32 GEMM (mirrors benchmarks/v2/ml-gemm) -------------
   "ml.gemm.v1": {
     kernels: ["gemm"],
