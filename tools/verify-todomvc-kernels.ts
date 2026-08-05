@@ -13,11 +13,13 @@ const oracleVersions = oracle.versions;
 const oracleFilter = oracle.summary.filter;
 const oracleCounters = { ...oracle.counters };
 
-for (const [file, label] of [
-  ["todomvc_engine_c.wasm", "C"],
-  ["todomvc_engine_cpp.wasm", "C++"],
-  ["todomvc_engine_rs.wasm", "Rust"],
-] as const) {
+for (
+  const [file, label] of [
+    ["todomvc_engine_c.wasm", "C"],
+    ["todomvc_engine_cpp.wasm", "C++"],
+    ["todomvc_engine_rs.wasm", "Rust"],
+  ] as const
+) {
   const mod = (await WebAssembly.instantiate(
     await Deno.readFile(`${ARTIFACTS}/${file}`),
     {},
@@ -48,7 +50,9 @@ for (const [file, label] of [
   if (JSON.stringify(versions) !== JSON.stringify(oracleVersions)) {
     throw new Error(`${label}: versions mismatch`);
   }
-  if (filter !== oracleFilter) throw new Error(`${label}: filter mismatch (kernel=${filter} oracle=${oracleFilter})`);
+  if (filter !== oracleFilter) {
+    throw new Error(`${label}: filter mismatch (kernel=${filter} oracle=${oracleFilter})`);
+  }
   const counters = {
     actions: (mod.instance.exports.counter_actions as () => number)(),
     adds: (mod.instance.exports.counter_adds as () => number)(),
@@ -64,9 +68,13 @@ for (const [file, label] of [
       throw new Error(`${label}: counter ${k} ${v} != ${oracleCounters[k]}`);
     }
   }
-  console.log(`${label}: BIT-IDENTICAL (commands=${commands.length}, alive=${
-    flags.filter((f) => (f & 1) !== 0).length
-  }, completed=${flags.filter((f) => (f & 2) !== 0).length}, counters=${JSON.stringify(counters)})`);
+  console.log(
+    `${label}: BIT-IDENTICAL (commands=${commands.length}, alive=${
+      flags.filter((f) => (f & 1) !== 0).length
+    }, completed=${flags.filter((f) => (f & 2) !== 0).length}, counters=${
+      JSON.stringify(counters)
+    })`,
+  );
 }
 console.log("ALL LINEAR KERNELS BIT-IDENTICAL");
 
@@ -98,9 +106,13 @@ console.log("ALL LINEAR KERNELS BIT-IDENTICAL");
   const fl = Array.from(state.slice(0, 100));
   const ver = Array.from(state.slice(100, 200));
   const flt = state[200];
-  if (JSON.stringify(cmd) !== JSON.stringify(oracleCommands)) throw new Error("Dart: commands mismatch");
+  if (JSON.stringify(cmd) !== JSON.stringify(oracleCommands)) {
+    throw new Error("Dart: commands mismatch");
+  }
   if (JSON.stringify(fl) !== JSON.stringify(oracleFlags)) throw new Error("Dart: flags mismatch");
-  if (JSON.stringify(ver) !== JSON.stringify(oracleVersions)) throw new Error("Dart: versions mismatch");
+  if (JSON.stringify(ver) !== JSON.stringify(oracleVersions)) {
+    throw new Error("Dart: versions mismatch");
+  }
   if (flt !== oracleFilter) throw new Error(`Dart: filter mismatch`);
   const counters = {
     actions: kernels.counter_actions(),

@@ -37,21 +37,31 @@ Deno.test(
       const cmdOff = encoded.byteLength + 1024;
       const stateOff = cmdOff + encoded.byteLength + 1024;
       new Int32Array(mem.buffer, inOff, encoded.length).set(encoded);
-      const ret = (mod.instance.exports.run as (c: number, i: number, o: number, s: number) => number)(
-        count,
-        inOff,
-        cmdOff,
-        stateOff,
-      );
+      const ret =
+        (mod.instance.exports.run as (c: number, i: number, o: number, s: number) => number)(
+          count,
+          inOff,
+          cmdOff,
+          stateOff,
+        );
       assert(ret === count, `${label}: run returned ${ret}`);
       const commands = Array.from(new Int32Array(mem.buffer, cmdOff, encoded.length));
       const flags = Array.from(new Uint8Array(mem.buffer, stateOff, 100));
       const versions = Array.from(new Uint8Array(mem.buffer, stateOff + 100, 100));
       const filter = new Uint8Array(mem.buffer, stateOff + 200, 1)[0];
-      assert(JSON.stringify(commands) === JSON.stringify(oracleCommands), `${label}: commands mismatch`);
+      assert(
+        JSON.stringify(commands) === JSON.stringify(oracleCommands),
+        `${label}: commands mismatch`,
+      );
       assert(JSON.stringify(flags) === JSON.stringify(oracleFlags), `${label}: flags mismatch`);
-      assert(JSON.stringify(versions) === JSON.stringify(oracleVersions), `${label}: versions mismatch`);
-      assert(filter === oracleFilter, `${label}: filter mismatch (kernel=${filter} oracle=${oracleFilter})`);
+      assert(
+        JSON.stringify(versions) === JSON.stringify(oracleVersions),
+        `${label}: versions mismatch`,
+      );
+      assert(
+        filter === oracleFilter,
+        `${label}: filter mismatch (kernel=${filter} oracle=${oracleFilter})`,
+      );
       const counters = {
         actions: (mod.instance.exports.counter_actions as () => number)(),
         adds: (mod.instance.exports.counter_adds as () => number)(),
@@ -90,7 +100,12 @@ Deno.test(
     assert(kernels && typeof kernels.run === "function", "dartKernels not published");
     const out = new Uint8Array(encoded.byteLength * 2 + 2048);
     const state = new Uint8Array(512);
-    const ret = kernels.run(new Uint8Array(encoded.buffer, encoded.byteOffset, encoded.byteLength), encoded.length / 4, out, state);
+    const ret = kernels.run(
+      new Uint8Array(encoded.buffer, encoded.byteOffset, encoded.byteLength),
+      encoded.length / 4,
+      out,
+      state,
+    );
     assert(ret === encoded.length / 4, `Dart run returned ${ret}`);
     const commands = Array.from(new Int32Array(out.buffer, out.byteOffset, encoded.length));
     const flags = Array.from(state.subarray(0, 100));
@@ -99,7 +114,10 @@ Deno.test(
     assert(JSON.stringify(commands) === JSON.stringify(oracleCommands), "Dart: commands mismatch");
     assert(JSON.stringify(flags) === JSON.stringify(oracleFlags), "Dart: flags mismatch");
     assert(JSON.stringify(versions) === JSON.stringify(oracleVersions), "Dart: versions mismatch");
-    assert(filter === oracleFilter, `Dart: filter mismatch (kernel=${filter} oracle=${oracleFilter})`);
+    assert(
+      filter === oracleFilter,
+      `Dart: filter mismatch (kernel=${filter} oracle=${oracleFilter})`,
+    );
     const counters = {
       actions: kernels.counter_actions(),
       adds: kernels.counter_adds(),
@@ -120,10 +138,15 @@ Deno.test("multilang-todomvc: report contains a measured base-dom-todomvc-journe
   const report = JSON.parse(
     await Deno.readTextFile(`${rootDir}/public/data/multilang-wasm-benchmark-report.v1.json`),
   );
-  const workload = report.workloads.find((w: { name: string }) => w.name === "base-dom-todomvc-journey");
+  const workload = report.workloads.find((w: { name: string }) =>
+    w.name === "base-dom-todomvc-journey"
+  );
   assert(workload, "report missing base-dom-todomvc-journey workload");
   assert(workload.variants.length === 5, `expected 5 variants, got ${workload.variants.length}`);
   for (const variant of workload.variants) {
-    assert(Number.isFinite(variant.warmExecutionMs), `${variant.language} lacks measured warmExecutionMs`);
+    assert(
+      Number.isFinite(variant.warmExecutionMs),
+      `${variant.language} lacks measured warmExecutionMs`,
+    );
   }
 });

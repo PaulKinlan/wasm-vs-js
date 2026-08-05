@@ -2349,8 +2349,14 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
         const versions = new Uint8Array(TODO_COUNT);
         let filter = FILTER.ALL;
         const counters = {
-          actions: 0, adds: 0, toggles: 0, filters: 0, removes: 0, edits: 0,
-          stateWrites: 0, commandsEmitted: 0,
+          actions: 0,
+          adds: 0,
+          toggles: 0,
+          filters: 0,
+          removes: 0,
+          edits: 0,
+          stateWrites: 0,
+          commandsEmitted: 0,
         };
         const commands = new Int32Array(encoded.length);
         for (let offset = 0; offset < encoded.length; offset += 4) {
