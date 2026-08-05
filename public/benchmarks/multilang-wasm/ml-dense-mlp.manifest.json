@@ -1,0 +1,19 @@
+{
+  "workloadId": "ml.dense-mlp.v1",
+  "kernelLabel": "Dense MLP forward — 4 hidden + 1 projection (16×128)",
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": ["mlp_forward"],
+  "engines": [
+    { "key": "js", "label": "JavaScript", "kind": "js" },
+    { "key": "c", "label": "C / Wasm", "kind": "linear", "lang": "c", "offset": 0 },
+    { "key": "cpp", "label": "C++ / Wasm", "kind": "linear", "lang": "cpp", "offset": 0 },
+    { "key": "rs", "label": "Rust / Wasm", "kind": "linear", "lang": "rs", "offset": 0 },
+    {
+      "key": "dart",
+      "label": "Dart / WasmGC",
+      "kind": "dart",
+      "file": "mlp_forward_dart.wasm",
+      "glue": "mlp_forward_dart.mjs"
+    }
+  ]
+}
