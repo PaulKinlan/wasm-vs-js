@@ -9,14 +9,14 @@
       "source": "public/benchmarks/database-sqlite-notebook-v1/index.html",
       "path": "/benchmarks/database-sqlite-notebook-v1/",
       "bytes": 5126,
-      "sha256": "79a301a0872ec88fa3d9ebe08fe319087effd694dea03f98c0c6d2937d569889"
+      "sha256": "84eabc1b1f46402a4c015bc4277af625468006aaa9f1c8f0d1d469fc31055006"
     },
     {
       "id": "runner",
       "source": "public/sqlite-notebook-runner.js",
       "path": "/sqlite-notebook-runner.js",
-      "bytes": 7096,
-      "sha256": "c3a10ac10fcd33dec18073b20fc0d8240e180ae28cde084867e5d49855dff70d"
+      "bytes": 7238,
+      "sha256": "27c71253426365ef45618fddcaa2db854b87d75daab2c3847916056d9db18a0e"
     },
     {
       "id": "worker",
