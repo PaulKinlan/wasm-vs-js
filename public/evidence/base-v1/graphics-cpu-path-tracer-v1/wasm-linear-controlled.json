@@ -4,7 +4,7 @@
   "catalogId": "graphics.cpu-path-tracer.v1",
   "registrationId": "base-v1.graphics.cpu-path-tracer.v1.controlled.v1",
   "variant": "wasm-linear-controlled",
-  "sourceCommit": "aa1d13511f9f4499dc9f934a18eae044fd5f4e15",
+  "sourceCommit": "ef83ad93a97379860d2aba553c060a2445cd12c4",
   "input": {
     "width": 512,
     "height": 512,
@@ -35,7 +35,7 @@
   },
   "buildManifest": {
     "path": "public/artifacts/graphics-cpu-path-tracer-v1/build-manifest.json",
-    "sha256": "7c8c0a4750822d24956db0a77423fefe15415bf89255c23a731ddb8ac7e84c5a"
+    "sha256": "7a461bc84a800cb970af2190857147c3b7c3da381189c7f6f0f110bc00b63c8b"
   },
   "performanceClaims": []
 }
