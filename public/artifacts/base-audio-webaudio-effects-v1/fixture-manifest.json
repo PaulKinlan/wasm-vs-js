@@ -9,7 +9,7 @@
     "source": "generated solely by the committed project generator; no recorded audio or third-party IR"
   },
   "generator": {
-    "revision": "98709b5fb26033618c997ea29d3825a9507b936a",
+    "revision": "592e4817dbad350619a8587fd81b3cb47bf75e51",
     "seed": "0x51f15e5d",
     "sampleRate": 48000,
     "frames": 2880000,
