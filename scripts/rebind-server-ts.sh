@@ -40,6 +40,11 @@ run audio-rec   deno run --allow-all scripts/build-audio-results.ts --source-com
 run audio-reg   deno run --allow-all scripts/build-audio-demo-registry.ts
 run audio-pages deno run --allow-all scripts/build-audio-demo-pages.ts
 run audio-web   deno run --allow-all scripts/build-base-audio-webaudio-effects.ts --source-commit=$C --write
+# Re-key the LOCAL_DOWNLOADS audio build-manifest pins LAST: the audio
+# re-record steps above re-stamp the manifests internally, so their hashes
+# only settle after all audio builders have run. The sum-u32 entries are
+# frozen (accepted-implementation stamp) and must NOT be re-keyed.
+run audio-pins  deno run --allow-read=public/artifacts,public/inspectability.js --allow-write=public/inspectability.js scripts/rebind-local-downloads.ts
 run archive     deno run --allow-all scripts/build-v1-archive.ts --source-commit=$C
 run crypto-file deno run --allow-all scripts/build-base-crypto-file-integrity.ts
 run crypto-stream deno run --allow-all scripts/build-crypto-authenticated-stream.ts
