@@ -48,7 +48,9 @@ for (const slug of SLUGS) {
   const pattern = new RegExp(
     `(public/artifacts/${slug}/build-manifest\\.json\\|)[0-9a-f]{64}`,
   );
-  if (!pattern.test(updated)) throw new Error(`LOCAL_DOWNLOADS missing ${slug} build-manifest entry`);
+  if (!pattern.test(updated)) {
+    throw new Error(`LOCAL_DOWNLOADS missing ${slug} build-manifest entry`);
+  }
   const replaced = updated.replace(pattern, `$1${key.split("|")[1]}`);
   if (replaced !== updated) changed = true;
   updated = replaced;
