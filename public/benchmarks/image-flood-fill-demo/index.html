@@ -11,7 +11,16 @@
     <link rel="stylesheet" href="/benchmarks/traditional-demo.css">
     <script type="module" src="/unified-runner.js"></script>
   </head>
-  <body data-workload="image-flood-fill-demo">
+  <body
+    data-workload="image-flood-fill-demo"
+    data-multilang-manifest="/benchmarks/multilang-wasm/image-editing.manifest.json"
+    data-multilang-form="#ml-form"
+    data-multilang-start="#ml-start"
+    data-multilang-cancel="#ml-cancel"
+    data-multilang-status="#ml-status"
+    data-multilang-reporting="#ml-reporting"
+    data-multilang-iterations="#ml-iterations"
+  >
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
@@ -66,6 +75,42 @@
         <div id="result" aria-label="Exact textual result" hidden></div>
       </section>
 
+      <section class="demo-panel" aria-labelledby="ml-heading">
+        <h2 id="ml-heading">Language comparison — flood fill and luma Gaussian kernels</h2>
+        <p>
+          The same two integer-only pixel kernels — the 64 × 48 flood fill above and the 40 × 30
+          luma + 3-tap Gaussian pipeline from the image-editing proposal — compiled from five
+          languages (C, C++, Rust, AssemblyScript, Dart/WasmGC) next to the JavaScript oracle.
+          Every variant is verified bit-identical to the oracle in the repo test suite — output
+          pixels, visited mask, and the ABI work counters — before any timing is shown.
+        </p>
+        <p class="provenance">
+          Sources:
+          <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/tree/main/benchmarks/multilang-wasm/image-editing">image_kernels.c · .cpp · .rs · .ts · .dart</a>.
+        </p>
+        <form id="ml-form">
+          <div class="controls">
+            <label for="ml-target"><span>Target Engine</span>
+              <select id="ml-target" name="target" disabled>
+                <option value="all" selected>Compare All Implementations</option>
+              </select></label>
+            <label for="ml-iterations"><span>Loop Iterations</span>
+              <select id="ml-iterations" name="iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10">10 iterations</option>
+                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                <option value="50">50 iterations</option>
+                <option value="100">100 iterations (Sustained loop)</option>
+              </select></label>
+            <button id="ml-start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="ml-cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="ml-status" role="status"
+          aria-live="polite">Ready. Select loop iterations, then click Start.</p>
+        <div id="ml-reporting" class="detail-grid" hidden></div>
+      </section>
+
       <div class="detail-grid">
         <section>
           <h2>What it does</h2>
@@ -96,5 +141,6 @@
         </section>
       </div>
     </main>
+    <script type="module" src="/multilang-runner.js"></script>
   </body>
 </html>
