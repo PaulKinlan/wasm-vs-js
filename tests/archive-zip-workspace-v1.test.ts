@@ -445,7 +445,8 @@ Deno.test("archive v1 public routes are explicit, readable and mutation-closed",
     await (await handler(new Request("http://127.0.0.1/benchmarks/archive-zip-workspace-v1/")))
       .text();
   assert(html.includes("ZIP workspace validation"));
-  assert(html.includes("No performance claim"));
+  assert(html.includes("/unified-runner.js"));
+  assert(html.includes("Correctness evidence"));
   assert(html.includes("Bounded: 1,000 entries"));
   assert(html.includes("Full contract: exactly 10,000 entries"));
   assert(html.includes("extracts four selected paths"));
