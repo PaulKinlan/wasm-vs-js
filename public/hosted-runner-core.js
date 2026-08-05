@@ -166,3 +166,55 @@ export function fixedWorkCounters(inputLength, inputBytes, batchSize) {
     boundaryCrossings: batchSize,
   };
 }
+
+// Cold-start phase helpers (pure, deno-testable).
+
+// Derive the network phase of a cold start from a Resource Timing-style entry:
+// fetchStart -> responseEnd per Resource Timing semantics. This is the
+// same-origin HTTP portion of the transfer, separate from the manual fetch()
+// wrapper duration (which also includes reading the body). Unsupported or
+// malformed entries are typed "unavailable" with a reason — never zero.
+export function networkPhaseFromEntry(entry) {
+  if (!entry || typeof entry.fetchStart !== "number" || typeof entry.responseEnd !== "number") {
+    return {
+      status: "unavailable",
+      reason: "No Resource Timing entry retained for this asset.",
+    };
+  }
+  const ms = entry.responseEnd - entry.fetchStart;
+  if (!Number.isFinite(ms) || ms < 0) {
+    return {
+      status: "unavailable",
+      reason: "Resource Timing entry had a non-finite or negative network duration.",
+    };
+  }
+  return { status: "supported-value", ms, scope: "same-origin-resource-timing" };
+}
+
+// Build the cold-start phase breakdown map used by the report renderers and the
+// results explorer. Every phase is either a number (ms) or a typed unavailable
+// object { status, reason }. Pure and deterministic for testing.
+export function coldStartBreakdown({
+  manifestTransferMs,
+  manifestNetwork,
+  jsTransferMs,
+  jsNetwork,
+  wasmTransferMs,
+  wasmNetwork,
+  wasmCompileMs,
+  wasmInstantiateMs,
+  jsFirstExecuteMs,
+  wasmFirstExecuteMs,
+} = {}) {
+  return {
+    manifest: { transferMs: manifestTransferMs ?? null, network: manifestNetwork ?? null },
+    javascript: { transferMs: jsTransferMs ?? null, network: jsNetwork ?? null },
+    wasm: {
+      transferMs: wasmTransferMs ?? null,
+      network: wasmNetwork ?? null,
+      compileMs: wasmCompileMs ?? null,
+      instantiateMs: wasmInstantiateMs ?? null,
+    },
+    firstExecuteMs: { javascript: jsFirstExecuteMs ?? null, wasm: wasmFirstExecuteMs ?? null },
+  };
+}

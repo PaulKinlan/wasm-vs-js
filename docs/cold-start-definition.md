@@ -4,6 +4,14 @@
 ("First scored median" under the Cold cache filter), and the results explorer's cache-state
 filter. They share one definition, set by the collector, not by prose. This page states it.
 
+## What "cold" means
+
+Cold is the **first, pre-JIT run**: the very first execution before the engine's optimizing
+compiler (V8 Turbofan, and similar in other engines) has warmed up on the workload's hot
+code. Warm, by contrast, is what loop runs measure — iterations after the first, where the
+engine has had a chance to optimize. The suite keeps these separate on purpose: the first-run
+number is the cost a user pays on first load; the loop number is the steady-state cost.
+
 ## The short answer
 
 A cold measurement starts before any benchmark code exists in the engine and ends after the
@@ -19,13 +27,23 @@ first scored iteration. It includes every phase needed to get there:
 5. **The first scored execution of each variant** (`jsFirstExecuteMs`,
    `wasmFirstExecuteMs`).
 
+Each of these phases is also reported with a **network phase** derived from the Resource
+Timing API (`fetchStart` → `responseEnd`): `manifestNetworkMs`, `jsNetworkMs`, and
+`wasmNetworkMs`. The network phase is the same-origin HTTP portion of the transfer (request
+send, server round-trip, headers) and is **separate from the manual fetch() wrapper duration**,which also includes reading the body bytes into memory. This split is what lets a
+Wasm-vs-JS cold-start difference be diagnosed: is the gap in the bytes on the wire, in
+compile, in instantiate, or in the first execution? File size shows up in the network and
+transfer phases; engine work shows up in compile/instantiate/first-execute.
+
 Two phases are recorded as **unavailable, not zero**: `jsModuleParseMs` and
 `jsModuleEvaluationMs`. Standard browser APIs cannot isolate parse or evaluation duration
 from module import, so the collector says so. An unavailable phase is never folded into a
-number and never reported as 0 ms.
+number and never reported as 0 ms. The same typed-unavailable rule applies to any network
+phase when no Resource Timing entry is retained for the asset.
 
 Every phase above is a named field in the `lifecycle` block of each retained run record;
-the collector source is `public/hosted-runner-worker.js`.
+the collector source is `public/hosted-runner-worker.js` and the pure phase helpers live in
+`public/hosted-runner-core.js`.
 
 ## What "warm" means by contrast
 
@@ -53,6 +71,9 @@ block-launch-no-timing`). Cold and warm are never averaged into each other.
   current browser with whatever cache state it already has, so it shows first-iteration cost
   — worker setup, compile, and instantiate included — without the fresh-profile guarantee of
   the experiment strata. It is a demonstration of the lifecycle, not experiment evidence.
+  Below the readout, the report now renders a **First-use lifecycle breakdown** table
+  (transfer, network, compile, instantiate, first execute per engine) so the cold number can
+  be traced to its phases. The hosted-runner result page shows the same breakdown per run.
 - **Workload matrix, "First scored median"** (`/`): the median of iteration-0 durations
   across the retained runs of that cell, filtered to the cache state you select
   (`lib/summary.ts`: `firstIterationMedianMs`). The "All-sample median" column beside it
@@ -60,7 +81,9 @@ block-launch-no-timing`). Cold and warm are never averaged into each other.
   cell.
 - **Results explorer cache filter** (`/results/`): filters run records by the protocol
   state they were collected under — validation, cold, or warm — as recorded in each record's
-  `cacheState`.
+  `cacheState`. The run detail inspector renders the first-use lifecycle breakdown when a
+  record retains it (hosted-runner runs) and states plainly when the M3 reporting schema
+  does not carry phase timings.
 - **Full run records**: each record carries the complete `lifecycle` block, the resource
   timing evidence, and the cache disclosure, so any summary number can be traced back to the
   phases that produced it.
