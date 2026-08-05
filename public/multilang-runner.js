@@ -481,294 +481,566 @@ export const KERNEL_ADAPTERS = {
     },
   },
 
-  // --- audio-fft: radix-2 FFT butterfly (reuses the multilang-wasm fft kernels)
-  "audio.fft.v1": {
-    kernels: ["fft"],
+  // --- serialization-json-telemetry: JSON telemetry parser (mirrors v1 telemetry.c)
+  "serialization.json-telemetry.v1": {
+    kernels: ["telemetry"],
     build(mods) {
-      const LEN = 512;
-      function inputs() {
-        const real = new Float32Array(LEN), imag = new Float32Array(LEN);
-        for (let i = 0; i < LEN; i++) {
-          real[i] = Math.sin(i * 0.1);
-          imag[i] = Math.cos(i * 0.1);
+      const RECORDS = 1000;
+      const ENC = new TextEncoder();
+      const regions = ["ap", "eu", "na", "sa"], kinds = ["click", "purchase", "view"];
+      const labels = ["Café", "東京", "مرحبا", "🚀"], tags = ["α", "数据", "mañana", "🧪"];
+      const regionBytes = regions.map((x) => ENC.encode(x));
+      const kindBytes = kinds.map((x) => ENC.encode(x));
+      const labelBytes = labels.map((x) => ENC.encode(x));
+      const tagBytes = tags.map((x) => ENC.encode(x));
+      function fixture() {
+        let st = 0x7e1e2026;
+        const xorshift = () => {
+          st ^= st << 13;
+          st ^= st >>> 17;
+          st ^= st << 5;
+          return st >>> 0;
+        };
+        const parts = [];
+        let total = 1;
+        for (let i = 0; i < RECORDS; i++) {
+          const r = regions[xorshift() % 4], k = kinds[xorshift() % 3];
+          const ok = (xorshift() & 1) === 1, v = xorshift() % 10000;
+          const l = labels[xorshift() % 4], t = tags[xorshift() % 4];
+          const s = `${i ? "," : ""}{"id":${i},"ts":${
+            1700000000 + i
+          },"region":"${r}","kind":"${k}","ok":${ok},"value":${v},"meta":{"label":"${l}","tag":"${t}"}}`;
+          const b = ENC.encode(s);
+          parts.push(b);
+          total += b.length;
         }
-        return { real, imag };
+        const out = new Uint8Array(total + 1);
+        let o = 0;
+        out[o++] = 0x5b;
+        for (const b of parts) {
+          out.set(b, o);
+          o += b.length;
+        }
+        out[o] = 0x5d;
+        return out;
       }
-      function jsFft(real, imag) {
-        for (let step = 1; step < LEN; step <<= 1) {
-          const angle = -Math.PI / step, wReal = Math.cos(angle), wImag = Math.sin(angle);
-          for (let i = 0; i < LEN; i += step << 1) {
-            let cwR = 1.0, cwI = 0.0;
-            for (let j = 0; j < step; j++) {
-              const u = i + j, v = i + j + step;
-              const tr = real[v] * cwR - imag[v] * cwI;
-              const ti = real[v] * cwI + imag[v] * cwR;
-              real[v] = real[u] - tr;
-              imag[v] = imag[u] - ti;
-              real[u] += tr;
-              imag[u] += ti;
-              const nwR = cwR * wReal - cwI * wImag, nwI = cwR * wImag + cwI * wReal;
-              cwR = nwR;
-              cwI = nwI;
+      function jsParse(bytes) {
+        // Faithful mirror of the C telemetry parser: same fields, same
+        // vocabularies, same summary work (id/ts/value uints, region/kind/
+        // label/tag options, boolean, counters).
+        let at = 0, count = 0, okCount = 0, errCount = 0, valueSum = 0;
+        const isDigit = (b) => b >= 0x30 && b <= 0x39;
+        const expect = (s) => {
+          for (let i = 0; i < s.length; i++) {
+            if (bytes[at] !== s.charCodeAt(i)) return false;
+            at++;
+          }
+          return true;
+        };
+        const uint = () => {
+          let v = 0;
+          while (at < bytes.length && isDigit(bytes[at])) {
+            v = v * 10 + (bytes[at] - 0x30);
+            at++;
+          }
+          return v;
+        };
+        const opt = (vocab) => {
+          at++; // "
+          for (let i = 0; i < vocab.length; i++) {
+            const saved = at;
+            let ok = true;
+            for (let j = 0; j < vocab[i].length; j++) {
+              if (bytes[at + j] !== vocab[i][j]) {
+                ok = false;
+                break;
+              }
+            }
+            if (ok && bytes[at + vocab[i].length] === 0x22) {
+              at += vocab[i].length + 1;
+              return i;
+            }
+            at = saved;
+          }
+          return -1;
+        };
+        at++; // [
+        while (at < bytes.length && bytes[at] !== 0x5d) {
+          if (count) at++; // ,
+          expect('{"id":');
+          uint();
+          expect(',"ts":');
+          uint();
+          expect(',"region":');
+          opt(regionBytes);
+          expect(',"kind":');
+          opt(kindBytes);
+          expect(',"ok":');
+          const ok = bytes[at] === 0x74;
+          at += ok ? 4 : 5;
+          expect(',"value":');
+          valueSum += uint();
+          expect(',"meta":{"label":');
+          opt(labelBytes);
+          expect(',"tag":');
+          opt(tagBytes);
+          expect("}}");
+          count++;
+          okCount += ok ? 1 : 0;
+          errCount += ok ? 0 : 1;
+        }
+        return { count, okCount, errCount, valueSum };
+      }
+      const callables = {};
+      for (const key of ["wat", "asc", "c", "cpp", "rs"]) {
+        const cfg = mods.manifest.engines.find((e) => e.key === key);
+        const { instances } = mods.engines[key];
+        const call = {};
+        if (instances.sum) {
+          call.sum = () => {
+            const arr = new Uint32Array(1000);
+            for (let i = 0; i < 1000; i++) arr[i] = (i % 100) + 1;
+            new Uint32Array(instances.sum.instance.exports.memory.buffer, cfg.offset, 1000).set(
+              arr,
+            );
+            return instances.sum.instance.exports.sum_u32(cfg.offset, 1000);
+          };
+        }
+        if (instances.fft) {
+          call.fft = () => {
+            const real = new Float32Array(512);
+            const imag = new Float32Array(512);
+            for (let i = 0; i < 512; i++) {
+              real[i] = Math.sin(i * 0.1);
+              imag[i] = Math.cos(i * 0.1);
+            }
+            const mem = instances.fft.instance.exports.memory;
+            new Float32Array(mem.buffer, cfg.offset, 512).set(real);
+            new Float32Array(mem.buffer, cfg.offset + 512 * 4, 512).set(imag);
+            instances.fft.instance.exports.fft_butterfly(cfg.offset, cfg.offset + 512 * 4, 512);
+            return real[17] + imag[29];
+          };
+        }
+        callables[key] = call;
+      }
+      const { kernels } = mods.engines.dart;
+      callables.js = {
+        sum: () => {
+          const arr = new Uint32Array(1000);
+          for (let i = 0; i < 1000; i++) arr[i] = (i % 100) + 1;
+          let s = 0;
+          for (let i = 0; i < 1000; i++) s += arr[i];
+          return s;
+        },
+        fft: () => {
+          const real = new Float32Array(512);
+          const imag = new Float32Array(512);
+          for (let i = 0; i < 512; i++) {
+            real[i] = Math.sin(i * 0.1);
+            imag[i] = Math.cos(i * 0.1);
+          }
+          for (let step = 1; step < 512; step <<= 1) {
+            const angle = -Math.PI / step;
+            const wReal = Math.cos(angle);
+            const wImag = Math.sin(angle);
+            for (let i = 0; i < 512; i += step << 1) {
+              let cwR = 1.0, cwI = 0.0;
+              for (let j = 0; j < step; j++) {
+                const u = i + j, v = i + j + step;
+                const tr = real[v] * cwR - imag[v] * cwI;
+                const ti = real[v] * cwI + imag[v] * cwR;
+                real[v] = real[u] - tr;
+                imag[v] = imag[u] - ti;
+                real[u] += tr;
+                imag[u] += ti;
+                const nwR = cwR * wReal - cwI * wImag;
+                const nwI = cwR * wImag + cwI * wReal;
+                cwR = nwR;
+                cwI = nwI;
+              }
             }
           }
+          return real[17] + imag[29];
+        },
+      };
+      callables.dart = {
+        sum: () => {
+          const arr = new Uint32Array(1000);
+          for (let i = 0; i < 1000; i++) arr[i] = (i % 100) + 1;
+          return kernels.sum_u32(arr);
+        },
+        fft: () => {
+          const real = new Float32Array(512);
+          const imag = new Float32Array(512);
+          for (let i = 0; i < 512; i++) {
+            real[i] = Math.sin(i * 0.1);
+            imag[i] = Math.cos(i * 0.1);
+          }
+          kernels.fft_butterfly(real, imag, 512);
+          return real[17] + imag[29];
+        },
+      };
+      return callables;
+    },
+  },
+
+  // --- text-diff-patch: Myers O(ND) diff (mirrors v2 workload.js myersDiff) ----
+  "text.diff-patch.v1": {
+    kernels: ["myers_diff"],
+    build(mods) {
+      const LEN = 512, EDITS = 30;
+      function inputs() {
+        const base = new Uint32Array(LEN);
+        for (let i = 0; i < LEN; i++) base[i] = i;
+        const t = [];
+        for (let i = 0; i < LEN; i++) t.push(base[i]);
+        let st = 0xd1ff2026;
+        const rnd = () => {
+          st = (st * 1664525 + 1013904223) >>> 0;
+          return st / 4294967296;
+        };
+        for (let e = 0; e < EDITS; e++) {
+          const pos = Math.floor(rnd() * (t.length + 1));
+          if (rnd() < 0.5) t.splice(pos, 0, 0xffff0000 + e);
+          else if (t.length > 0) t.splice(Math.min(pos, t.length - 1), 1);
         }
+        const target = new Uint32Array(t.length);
+        target.set(t);
+        return { base, target };
+      }
+      function layout(base, target) {
+        const max = base.length + target.length;
+        const vstride = 2 * max + 1;
+        const cap = base.length + target.length + 1;
+        return { max, vstride, cap };
       }
       const callables = {};
       for (const key of ["c", "cpp", "rs"]) {
-        const cfg = mods.manifest.engines.find((e) => e.key === key);
-        const inst = mods.engines[key].instances.fft.instance;
+        const inst = mods.engines[key].instances.myers_diff.instance;
         const mem = inst.exports.memory;
         callables[key] = {
-          fft: () => {
-            const { real, imag } = inputs();
-            new Float32Array(mem.buffer, cfg.offset, LEN).set(real);
-            new Float32Array(mem.buffer, cfg.offset + LEN * 4, LEN).set(imag);
-            inst.exports.fft_butterfly(cfg.offset, cfg.offset + LEN * 4, LEN);
+          myers_diff: () => {
+            const { base, target } = inputs();
+            const { max, vstride, cap } = layout(base, target);
+            const baseOff = 0, targetOff = 4096, scratchOff = 8192;
+            const scratchBytes = vstride * (max + 2) * 4;
+            const opOff = scratchOff + scratchBytes;
+            const xOff = opOff + cap * 4, yOff = xOff + cap * 4;
+            const edOff = yOff + cap * 4, fsOff = edOff + 4;
+            new Uint32Array(mem.buffer, baseOff, base.length).set(base);
+            new Uint32Array(mem.buffer, targetOff, target.length).set(target);
+            inst.exports.myers_diff(
+              baseOff,
+              base.length,
+              targetOff,
+              target.length,
+              opOff,
+              xOff,
+              yOff,
+              cap,
+              scratchOff,
+              vstride * (max + 2),
+              edOff,
+              fsOff,
+            );
           },
         };
       }
       callables.js = {
-        fft: () => {
-          const { real, imag } = inputs();
-          jsFft(real, imag);
-        },
-      };
-      callables.dart = {
-        fft: () => {
-          const { real, imag } = inputs();
-          mods.engines.dart.kernels.fft_butterfly(real, imag, LEN);
-        },
-      };
-      return callables;
-    },
-  },
-
-  // --- audio-fir: FIR direct convolution (mirrors audio-fir/workload.ts)
-  "audio.fir.v1": {
-    kernels: ["fir"],
-    build(mods) {
-      const SAMPLES = 16384, TAPS = 256;
-      const xorshift = (state) => {
-        state ^= state << 13;
-        state >>>= 0;
-        state ^= state >>> 17;
-        state ^= state << 5;
-        state >>>= 0;
-        return state;
-      };
-      function signal() {
-        let st = 0xa1b2c3d4;
-        const d = new Float32Array(SAMPLES);
-        for (let i = 0; i < SAMPLES; i++) {
-          st = xorshift(st);
-          d[i] = Math.fround((st / 0x1_0000_0000) * 2 - 1);
-        }
-        return d;
-      }
-      function taps() {
-        const h = new Float32Array(TAPS);
-        const fc = 0.25, center = Math.fround((TAPS - 1) / 2);
-        for (let i = 0; i < TAPS; i++) {
-          const nn = Math.fround(i - center);
-          let sinc;
-          if (nn === 0) sinc = Math.fround(2 * fc);
-          else {
-            const arg = Math.fround(Math.fround(2 * Math.PI * fc) * nn);
-            sinc = Math.fround(Math.fround(Math.sin(arg)) / Math.fround(Math.PI * nn));
+        myers_diff: () => {
+          const { base, target } = inputs();
+          const { max, cap } = layout(base, target);
+          const outOp = new Uint32Array(cap),
+            outX = new Uint32Array(cap),
+            outY = new Uint32Array(cap);
+          const offset = max;
+          const v = new Int32Array(2 * max + 1);
+          let prefix = 0;
+          while (
+            prefix < base.length && prefix < target.length && base[prefix] === target[prefix]
+          ) prefix++;
+          let suffix = 0;
+          while (
+            suffix < base.length - prefix && suffix < target.length - prefix &&
+            base[base.length - 1 - suffix] === target[target.length - 1 - suffix]
+          ) suffix++;
+          const n = base.length - prefix - suffix, m = target.length - prefix - suffix;
+          const rev = [];
+          for (let index = 0; index < suffix; index++) {
+            rev.push([0, base.length - 1 - index, target.length - 1 - index]);
           }
-          const w = Math.fround(
-            0.5 -
-              Math.fround(
-                0.5 *
-                  Math.fround(
-                    Math.cos(Math.fround(Math.fround(2 * Math.PI * i) / Math.fround(TAPS - 1))),
-                  ),
-              ),
-          );
-          h[i] = Math.fround(sinc * w);
-        }
-        return h;
-      }
-      function jsFir(sig, tp) {
-        const out = new Float32Array(sig.length + tp.length - 1);
-        for (let i = 0; i < sig.length; i++) {
-          const sample = sig[i];
-          for (let j = 0; j < tp.length; j++) {
-            out[i + j] = Math.fround(out[i + j] + Math.fround(sample * tp[j]));
-          }
-        }
-        return out;
-      }
-      const callables = {};
-      for (const key of ["c", "cpp", "rs"]) {
-        const inst = mods.engines[key].instances.fir.instance;
-        const mem = inst.exports.memory;
-        callables[key] = {
-          fir: () => {
-            const sig = signal(), tp = taps();
-            const inOff = 0, tapsOff = sig.byteLength, outOff = tapsOff + tp.byteLength;
-            new Float32Array(mem.buffer, inOff, sig.length).set(sig);
-            new Float32Array(mem.buffer, tapsOff, tp.length).set(tp);
-            inst.exports.fir(inOff, tapsOff, outOff, sig.length, tp.length);
-          },
-        };
-      }
-      callables.js = { fir: () => jsFir(signal(), taps()) };
-      callables.dart = {
-        fir: () =>
-          mods.engines.dart.kernels.fir(
-            signal(),
-            taps(),
-            new Float32Array(SAMPLES + TAPS - 1),
-            SAMPLES,
-            TAPS,
-          ),
-      };
-      return callables;
-    },
-  },
-
-  // --- audio-stft: STFT (mirrors audio-stft/workload.ts stftInto + fftRadix2)
-  "audio.stft.v1": {
-    kernels: ["stft"],
-    build(mods) {
-      const SAMPLES = 8192, FRAME = 1024, HOP = 256;
-      const FRAMES = 1 + Math.floor((SAMPLES - FRAME) / HOP);
-      const xorshift = (state) => {
-        state ^= state << 13;
-        state >>>= 0;
-        state ^= state >>> 17;
-        state ^= state << 5;
-        state >>>= 0;
-        return state;
-      };
-      function signal() {
-        let st = 0x13579bdf;
-        const d = new Float32Array(SAMPLES);
-        for (let i = 0; i < SAMPLES; i++) {
-          st = xorshift(st);
-          d[i] = Math.fround((st / 0x1_0000_0000) * 2 - 1);
-        }
-        return d;
-      }
-      function window() {
-        const w = new Float32Array(FRAME);
-        for (let i = 0; i < FRAME; i++) {
-          w[i] = Math.fround(
-            0.5 -
-              Math.fround(
-                0.5 *
-                  Math.fround(
-                    Math.cos(Math.fround(Math.fround(2 * Math.PI * i) / Math.fround(FRAME - 1))),
-                  ),
-              ),
-          );
-        }
-        return w;
-      }
-      function twiddle() {
-        // Mirrors audio-fft generateTwiddleTable: stage-structured entries.
-        const stages = Math.log2(FRAME);
-        const t = new Float32Array((FRAME - 1) * 2);
-        let idx = 0;
-        for (let stage = 0; stage < stages; stage++) {
-          const halfLen = 1 << stage;
-          for (let j = 0; j < halfLen; j++) {
-            const angle = -Math.PI * j / halfLen;
-            t[idx++] = Math.fround(Math.cos(angle));
-            t[idx++] = Math.fround(Math.sin(angle));
-          }
-        }
-        return t;
-      }
-      function fft(data, n, tw) {
-        for (let i = 1, j = 0; i < n; i++) {
-          let bit = n >> 1;
-          for (; j & bit; bit >>= 1) j ^= bit;
-          j ^= bit;
-          if (i < j) {
-            const ri = i * 2, rj = j * 2;
-            let t = data[ri];
-            data[ri] = data[rj];
-            data[rj] = t;
-            t = data[ri + 1];
-            data[ri + 1] = data[rj + 1];
-            data[rj + 1] = t;
-          }
-        }
-        let twIdx = 0;
-        for (let len = 2; len <= n; len <<= 1) {
-          const halfLen = len >> 1;
-          for (let i = 0; i < n; i += len) {
-            let twp = twIdx;
-            for (let j = 0; j < halfLen; j++) {
-              const wCos = tw[twp], wSin = tw[twp + 1];
-              const u = i + j, v = u + halfLen;
-              const rv = data[v * 2], iv = data[v * 2 + 1];
-              const tr = rv * wCos - iv * wSin;
-              const ti = rv * wSin + iv * wCos;
-              data[v * 2] = data[u * 2] - tr;
-              data[v * 2 + 1] = data[u * 2 + 1] - ti;
-              data[u * 2] += tr;
-              data[u * 2 + 1] += ti;
-              twp += 2;
+          let ed = 0;
+          if (n === 0) {
+            for (let y = m - 1; y >= 0; y--) rev.push([2, prefix, prefix + y]);
+            ed = m;
+          } else if (m === 0) {
+            for (let x = n - 1; x >= 0; x--) rev.push([1, prefix + x, prefix]);
+            ed = n;
+          } else {
+            v[offset + 1] = 0;
+            const trace = [];
+            outer: for (let d = 0; d <= max; d++) {
+              for (let k = -d; k <= d; k += 2) {
+                let x = (k === -d || (k !== d && v[offset + k - 1] < v[offset + k + 1]))
+                  ? v[offset + k + 1]
+                  : v[offset + k - 1] + 1;
+                let y = x - k;
+                while (x < n && y < m && base[prefix + x] === target[prefix + y]) {
+                  x++;
+                  y++;
+                }
+                v[offset + k] = x;
+                if (x >= n && y >= m) {
+                  trace.push(v.slice());
+                  ed = d;
+                  break outer;
+                }
+              }
+              trace.push(v.slice());
+            }
+            let x = n, y = m;
+            for (let d = ed; d > 0; d--) {
+              const prior = trace[d - 1];
+              const k = x - y;
+              const down = k === -d || (k !== d && prior[offset + k - 1] < prior[offset + k + 1]);
+              const previousK = down ? k + 1 : k - 1;
+              const previousX = prior[offset + previousK];
+              const previousY = previousX - previousK;
+              while (x > previousX && y > previousY) {
+                x--;
+                y--;
+                rev.push([0, prefix + x, prefix + y]);
+              }
+              if (down) {
+                y--;
+                rev.push([2, prefix + x, prefix + y]);
+              } else {
+                x--;
+                rev.push([1, prefix + x, prefix + y]);
+              }
             }
           }
-          twIdx += 2;
-        }
-      }
-      function jsStft(sig, win, tw) {
-        const spec = new Float32Array(FRAMES * FRAME * 2);
-        const scratch = new Float32Array(FRAME * 2);
-        for (let frame = 0; frame < FRAMES; frame++) {
-          const offset = frame * HOP;
-          for (let i = 0; i < FRAME; i++) {
-            scratch[i * 2] = Math.fround(sig[offset + i] * win[i]);
-            scratch[i * 2 + 1] = 0;
+          for (let index = prefix - 1; index >= 0; index--) rev.push([0, index, index]);
+          rev.reverse();
+          for (let i = 0; i < rev.length; i++) {
+            outOp[i] = rev[i][0];
+            outX[i] = rev[i][1];
+            outY[i] = rev[i][2];
           }
-          fft(scratch, FRAME, tw);
-          spec.set(scratch, frame * FRAME * 2);
+        },
+      };
+      callables.dart = {
+        myers_diff: () => {
+          const { base, target } = inputs();
+          const { max, vstride, cap } = layout(base, target);
+          mods.engines.dart.kernels.myers_diff(
+            base,
+            target,
+            new Uint32Array(cap),
+            new Uint32Array(cap),
+            new Uint32Array(cap),
+            new Uint32Array(vstride * (max + 2)),
+            cap,
+            new Uint32Array(1),
+            new Uint32Array(1),
+          );
+        },
+      };
+      return callables;
+    },
+  },
+
+  // --- text-regex-log-scan: log pattern matcher (mirrors workload.js scanControlled)
+  "text.regex-log-scan.v1": {
+    kernels: ["scan_log"],
+    build(mods) {
+      const RECORDS = 640, EVENT_INTERVAL = 10;
+      const PREFIXES = [
+        "http://",
+        "https://",
+        "ws://",
+        "wss://",
+        "ftp://",
+        "asset://",
+        "api://",
+        "cdn://",
+        "ip=",
+        "client-ip:",
+        "source-ip:",
+        "dest-ip:",
+        "peer-ip:",
+        "origin-ip:",
+        "status=",
+        "code=",
+        "http-status:",
+        "response-status:",
+        "result-status:",
+        "status-code:",
+      ];
+      const MATCHERS = [1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3];
+      function corpus() {
+        const RECORD_BYTES = 256;
+        const bytes = new Uint8Array(RECORDS * RECORD_BYTES);
+        const filler = new TextEncoder().encode("日志 café 東京 🚀 запись record ");
+        bytes.fill(0x20);
+        for (let record = 0; record < RECORDS; record++) {
+          const offset = record * RECORD_BYTES;
+          bytes.set(filler, offset);
+          const label = new TextEncoder().encode(String(record).padStart(6, "0"));
+          bytes.set(label, offset + filler.byteLength);
+          if (record % EVENT_INTERVAL === 0) {
+            const eventIndex = record / EVENT_INTERVAL;
+            const pi = eventIndex % 20;
+            let v = (0x5a17c0de ^ eventIndex ^ Math.imul(pi + 1, 0x9e3779b1)) >>> 0;
+            v ^= v << 13;
+            v ^= v >>> 17;
+            v ^= v << 5;
+            v >>>= 0;
+            let token;
+            if (MATCHERS[pi] === 1) {
+              token = `${PREFIXES[pi]}node-${
+                v.toString(16).padStart(8, "0")
+              }.example.test/path/${eventIndex}`;
+            } else if (MATCHERS[pi] === 2) {
+              token = `${PREFIXES[pi]}${1 + (v & 0xfe)}.${(v >>> 8) & 0xff}.${(v >>> 16) & 0xff}.${
+                (v >>> 24) & 0xff
+              }`;
+            } else token = `${PREFIXES[pi]}${100 + (v % 500)}`;
+            bytes.set(new TextEncoder().encode(token), offset + 64);
+          }
+          bytes[offset + RECORD_BYTES - 1] = 0x0a;
         }
-        return spec;
+        return bytes;
       }
       const callables = {};
+      const CAP = 5000;
       for (const key of ["c", "cpp", "rs"]) {
-        const inst = mods.engines[key].instances.stft.instance;
+        const inst = mods.engines[key].instances.scan_log.instance;
         const mem = inst.exports.memory;
         callables[key] = {
-          stft: () => {
-            const sig = signal(), win = window(), tw = twiddle();
-            let off = 0;
-            const inOff = off;
-            off += sig.byteLength;
-            const winOff = off;
-            off += win.byteLength;
-            const twOff = off;
-            off += tw.byteLength;
-            const scratchOff = off;
-            off += FRAME * 2 * 4;
-            const specOff = off;
-            new Float32Array(mem.buffer, inOff, sig.length).set(sig);
-            new Float32Array(mem.buffer, winOff, win.length).set(win);
-            new Float32Array(mem.buffer, twOff, tw.length).set(tw);
-            inst.exports.stft(inOff, sig.length, FRAME, HOP, winOff, twOff, scratchOff, specOff);
+          scan_log: () => {
+            const bytes = corpus();
+            const dataOff = 4096, scratchOff = 2097152;
+            const idOff = scratchOff + 256 * 5 * 4;
+            const stOff = idOff + CAP * 4, enOff = stOff + CAP * 4;
+            const csOff = enOff + CAP * 4, pcOff = csOff + 4, tcOff = pcOff + 4;
+            new Uint8Array(mem.buffer, dataOff, bytes.length).set(bytes);
+            inst.exports.scan_log(
+              dataOff,
+              bytes.length,
+              idOff,
+              stOff,
+              enOff,
+              CAP,
+              scratchOff,
+              csOff,
+              pcOff,
+              tcOff,
+            );
           },
         };
       }
-      callables.js = { stft: () => jsStft(signal(), window(), twiddle()) };
+      callables.js = {
+        scan_log: () => {
+          const bytes = corpus();
+          const buckets = Array.from({ length: 256 }, () => []);
+          for (let i = 0; i < 20; i++) buckets[PREFIXES[i].charCodeAt(0)].push(i);
+          const isUrlTail = (b) =>
+            (b >= 97 && b <= 122) || (b >= 48 && b <= 57) || b === 46 || b === 47 || b === 95 ||
+            b === 45;
+          for (let start = 0; start < bytes.length; start++) {
+            for (const pi of buckets[bytes[start]]) {
+              const prefix = PREFIXES[pi];
+              let matched = true;
+              for (let i = 0; i < prefix.length; i++) {
+                if (start + i >= bytes.length) {
+                  matched = false;
+                  break;
+                }
+                if (bytes[start + i] !== prefix.charCodeAt(i)) {
+                  matched = false;
+                  break;
+                }
+              }
+              if (!matched) continue;
+              const cursor = start + prefix.length;
+              let end = -1;
+              if (MATCHERS[pi] === 1) {
+                const s0 = cursor;
+                let c = cursor;
+                while (c < bytes.length && c - s0 < 96) {
+                  if (!isUrlTail(bytes[c])) break;
+                  c++;
+                }
+                if (c === s0) end = -1;
+                else if (c - s0 === 96 && c < bytes.length && isUrlTail(bytes[c])) end = -1;
+                else end = c;
+              } else if (MATCHERS[pi] === 2) {
+                let c = cursor;
+                let failed = false;
+                for (let octet = 0; octet < 4; octet++) {
+                  const s1 = c;
+                  let value = 0;
+                  while (c < bytes.length && c - s1 < 3) {
+                    const b = bytes[c];
+                    if (b < 48 || b > 57) break;
+                    value = value * 10 + b - 48;
+                    c++;
+                  }
+                  const digits = c - s1;
+                  if (digits === 0 || value > 255 || (digits > 1 && bytes[s1] === 48)) {
+                    failed = true;
+                    break;
+                  }
+                  if (octet < 3) {
+                    if (c >= bytes.length) {
+                      failed = true;
+                      break;
+                    }
+                    if (bytes[c] !== 46) {
+                      failed = true;
+                      break;
+                    }
+                    c++;
+                  }
+                }
+                if (!failed) {
+                  if (c < bytes.length) {
+                    if (bytes[c] >= 48 && bytes[c] <= 57 || bytes[c] === 46) end = -1;
+                    else end = c;
+                  } else end = c;
+                }
+              } else {
+                if (cursor + 3 <= bytes.length) {
+                  const value = (bytes[cursor] - 48) * 100 + (bytes[cursor + 1] - 48) * 10 +
+                    (bytes[cursor + 2] - 48);
+                  if (value >= 100 && value <= 599) {
+                    const ep = cursor + 3;
+                    if (ep >= bytes.length || bytes[ep] < 48 || bytes[ep] > 57) end = ep;
+                  }
+                }
+              }
+              if (end >= 0) { /* counted */ }
+            }
+          }
+        },
+      };
       callables.dart = {
-        stft: () =>
-          mods.engines.dart.kernels.stft(
-            signal(),
-            signal().length,
-            FRAME,
-            HOP,
-            window(),
-            twiddle(),
-            new Float32Array(FRAME * 2),
-            new Float32Array(FRAMES * FRAME * 2),
-          ),
+        scan_log: () => {
+          const bytes = corpus();
+          mods.engines.dart.kernels.scan_log(
+            bytes,
+            bytes.length,
+            new Uint32Array(CAP),
+            new Uint32Array(CAP),
+            new Uint32Array(CAP),
+            CAP,
+            new Uint32Array(256 * 5),
+            new Uint32Array(1),
+            new Uint32Array(1),
+            new Uint32Array(1),
+          );
+        },
       };
       return callables;
     },
