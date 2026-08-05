@@ -254,7 +254,9 @@ async function cleanupUnit(
       // is gone and no processes remain, the cleanup has effectively
       // succeeded — treat the vanished cgroup as empty rather than failing
       // the whole evidence collection.
-      const recheck = await showUnit(command, ledger.unit).catch(() => ({} as Record<string, string>));
+      const recheck = await showUnit(command, ledger.unit).catch(
+        () => ({} as Record<string, string>),
+      );
       if (recheck.LoadState === "not-found") {
         return {
           cleaned: true,
