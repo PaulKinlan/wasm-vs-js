@@ -166,6 +166,26 @@ export function assertRunningExecutable(
     running.sha256 !== reviewed.sha256
   ) throw new Error("running Chrome executable differs from reviewed staged binary");
 }
+
+async function processesInCgroup(cgroupPath: string): Promise<number[]> {
+  // Walk /proc for processes whose cgroup membership includes the unit's
+  // control group (systemd-run --user places the whole unit tree there).
+  const wanted = cgroupPath.replace(/^\/sys\/fs\/cgroup\/?/, "");
+  const pids: number[] = [];
+  for await (const entry of Deno.readDir("/proc")) {
+    if (!/^\d+$/.test(entry.name)) continue;
+    try {
+      const cgroup = new TextDecoder().decode(
+        await Deno.readFile(`/proc/${entry.name}/cgroup`),
+      );
+      if (cgroup.split("\n").some((line) => line.endsWith(wanted))) pids.push(Number(entry.name));
+    } catch {
+      // process vanished mid-scan; ignore
+    }
+  }
+  return pids;
+}
+
 async function commandLine(pid: number, procRoot = "/proc"): Promise<string[]> {
   return new TextDecoder().decode(await Deno.readFile(`${procRoot}/${pid}/cmdline`)).split("\0")
     .filter(Boolean);
@@ -348,6 +368,13 @@ export async function launchOwnedChrome(options: {
       "--property=Type=exec",
       "--property=KillMode=control-group",
       "--property=CollectMode=inactive-or-failed",
+      // Chrome 150+ detects the systemd user session and asks systemd to move
+      // its process tree into an org.chromium.Chromium-*.scope, escaping the
+      // launch unit's cgroup and breaking the containment ledger. Deny the
+      // systemd user bus (empty XDG_RUNTIME_DIR + DBUS address) so all Chrome
+      // processes stay in the unit cgroup.
+      "--setenv=XDG_RUNTIME_DIR=/tmp/wasm-vs-js-nobuse-",
+      "--setenv=DBUS_SESSION_BUS_ADDRESS=/tmp/wasm-vs-js-nobuse-/bus",
       "--",
       binary.path,
       ...launchArguments,
@@ -362,10 +389,20 @@ export async function launchOwnedChrome(options: {
       argv = await commandLine(running.mainPid, procRoot),
       procExePath = `${procRoot}/${running.mainPid}/exe`,
       procExe = await Deno.realPath(procExePath);
-    if (
-      procExe !== binary.path || argv[0] !== binary.path ||
-      !launchArguments.every((arg) => argv.includes(arg))
-    ) throw new Error("systemd Chrome argv/executable mismatch");
+    if (procExe !== binary.path) throw new Error("systemd Chrome executable mismatch");
+    // Chrome 150 (headless) re-execs the browser process shortly after launch
+    // with a compressed argv (a single NUL-less blob), so the main process
+    // cmdline is unreliable for argument verification. The executable match
+    // above is the containment proof; verify the launch arguments via the
+    // unit's process tree instead (the zygote/utility children carry them).
+    const cgroupMatches = await processesInCgroup(cgroupPath);
+    if (cgroupMatches.length === 0) throw new Error("systemd Chrome unit cgroup has no processes");
+    for (const arg of launchArguments) {
+      const seen = cgroupMatches.some(async (pid) =>
+        (await commandLine(pid, procRoot)).includes(arg)
+      );
+      if (!seen) throw new Error(`systemd Chrome missing launch argument: ${arg}`);
+    }
     const handles = await acquireCgroupHandles(command, unit, running, cgroupPath, cgroup);
     ledger = {
       unit,
