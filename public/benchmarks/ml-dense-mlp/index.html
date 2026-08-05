@@ -10,7 +10,17 @@
     <link rel="stylesheet" href="/styles.css">
     <script type="module" src="/unified-runner.js"></script>
   </head>
-  <body data-workload="ml-dense-mlp" data-demo="ml-dense-mlp">
+  <body
+    data-workload="ml-dense-mlp"
+    data-demo="ml-dense-mlp"
+    data-multilang-manifest="/benchmarks/multilang-wasm/ml-dense-mlp.manifest.json"
+    data-multilang-form="#ml-form"
+    data-multilang-start="#ml-start"
+    data-multilang-cancel="#ml-cancel"
+    data-multilang-status="#ml-status"
+    data-multilang-reporting="#ml-reporting"
+    data-multilang-iterations="#ml-iterations"
+  >
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
@@ -128,7 +138,42 @@
           <li><a href="/experiments/">Read the frozen experiment</a></li>
         </ul>
       </section>
+
+      <section class="demo-panel" aria-labelledby="ml-heading">
+        <h2 id="ml-heading">Multi-Language Comparison</h2>
+        <p>
+          The same dense MLP forward pass (4 hidden + 1 projection layers, 16×128; strict f32
+          linear layers with the frozen f64 GELU-tanh activation) written in JavaScript, C, C++,
+          Rust, and Dart (WasmGC). All variants are bit-identical to the workload's
+          <code>mlpControlled</code> oracle on the FULL contract shape 32×512×8 (test-verified).
+          Dart's f64 GELU is native-exact; its linear layers use per-op fround (no f32 primitive)
+          — disclosed. Sources:
+          <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/tree/main/benchmarks/multilang-wasm/ml-dense-mlp">mlp_forward.c · .cpp · .rs · .dart</a>.
+        </p>
+        <form id="ml-form">
+          <div class="controls">
+            <label for="ml-target"><span>Target Engine</span>
+              <select id="ml-target" name="target" disabled>
+                <option value="all" selected>Compare All Implementations</option>
+              </select></label>
+            <label for="ml-iterations"><span>Loop Iterations</span>
+              <select id="ml-iterations" name="iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10">10 iterations</option>
+                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                <option value="50">50 iterations</option>
+                <option value="100">100 iterations (Sustained loop)</option>
+              </select></label>
+            <button id="ml-start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="ml-cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="ml-status" role="status"
+          aria-live="polite">Ready. Select loop iterations, then click Start.</p>
+        <div id="ml-reporting" class="detail-grid" hidden></div>
+      </section>
     </main>
     <script type="module" src="/benchmarks/ml-dense-mlp/neural-mlp-runner.js"></script>
+    <script type="module" src="/multilang-runner.js"></script>
   </body>
 </html>

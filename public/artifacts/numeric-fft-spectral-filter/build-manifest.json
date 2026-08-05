@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "b795a119e9cf4256876aad5d89b137f572da37db",
-  "sourceSha256": "c064ef48325cf96de901d43fd2203af24bd8b0c98e96ca3613d5bc8c0740ad3e",
+  "sourceCommit": "003d4cc741df6be93950a1090caccf9d1fb57578",
+  "sourceSha256": "e40f87bc8fd1b89fee821dd2fbaefd003e8fc0b2c8be644c68df3b27e762df82",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 82014,
-      "sha256": "f2eaed94e01ddaba670a6ecff7c9f84eeb73379fe5d514aa96ee28150251a8e2"
+      "bytes": 83271,
+      "sha256": "15166f1fa210c99f0708d79d3bae0c1b80dff0622cf93b3725ea4a8210a71aeb"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "5c17a7ecce04abd45666f643ac7c21746ebfcee44b98835ce4d66718bcf3ac18"
+      "sha256": "af3ca51ec71d5ced5a1068b9557387d765a043b2479145ce1fea501ad15c12a8"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "08ae102daf621c7961a8f2c3153bf505550e769c906b6550fb8661eddef38f66"
+      "sha256": "093c610ebf4fb019b2f70022cd28da1264e9e202c7c32b0ed8e19e14c9d38a08"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=b795a119e9cf4256876aad5d89b137f572da37db"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=003d4cc741df6be93950a1090caccf9d1fb57578"
   }
 }
