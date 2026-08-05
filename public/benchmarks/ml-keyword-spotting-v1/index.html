@@ -90,30 +90,30 @@
           detections, and target-specific work counters — timing and correctness never mix.
         </p>
         <form id="kws-contract-form">
-        <div class="controls">
-          <label for="kws-target">Controlled target
+          <div class="controls">
+            <label for="kws-target">Controlled target
             <select id="kws-target">
               <option value="both">JavaScript and linear Wasm</option>
               <option value="javascript">JavaScript</option>
               <option value="wasm-linear">Linear Wasm</option>
             </select>
           </label>
-          <label for="kws-mode">Validation mode
+            <label for="kws-mode">Validation mode
             <select id="kws-mode">
               <option value="exact">Exact tensors, detections, and counters</option>
             </select>
           </label>
-          <label for="kws-files">Speech Commands test-set directory
+            <label for="kws-files">Speech Commands test-set directory
             <input id="kws-files" type="file" webkitdirectory multiple required
               aria-describedby="kws-file-help">
           </label>
-          <p id="kws-file-help" class="hint">Select the extracted test-set directory. Exactly the
+            <p id="kws-file-help" class="hint">Select the extracted test-set directory. Exactly the
             prescribed 60 files are read; unrelated files are ignored. The bundled fixture is
             hash-verified against the fixture manifest before every run.</p>
-          <button id="kws-start" type="submit">Start with local files</button>
-          <button id="kws-start-bundled" type="button">Start with the bundled fixture</button>
-          <button id="kws-cancel" type="button" disabled>Cancel</button>
-        </div>
+            <button id="kws-start" type="submit">Start with local files</button>
+            <button id="kws-start-bundled" type="button">Start with the bundled fixture</button>
+            <button id="kws-cancel" type="button" disabled>Cancel</button>
+          </div>
         </form>
         <p id="kws-status" role="status" aria-live="polite">Ready.</p>
         <progress id="kws-progress" max="3000" value="0"><span>0 of 3000 hops</span></progress>
