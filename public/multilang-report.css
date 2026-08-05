@@ -1,0 +1,19 @@
+/* Multi-language suite report (playground) — CSP-safe styles.
+ * Kept OUT of styles.css: evidence records pin styles.css in their source
+ * graph, so changing it cascades into re-pinning evidence. New file, no
+ * cascade. */
+.mlr-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  margin: 0.4rem 0;
+}
+.mlr-th {
+  text-align: left;
+  padding: 0.3rem 0.5rem;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+.mlr-th-header {
+  font-weight: 600;
+}

@@ -187,6 +187,7 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/results", ["public/results/index.html", "text/html; charset=utf-8"]],
   ["/results/", ["public/results/index.html", "text/html; charset=utf-8"]],
   ["/unified-runner.js", ["public/unified-runner.js", "text/javascript; charset=utf-8"]],
+  ["/multilang-report.css", ["public/multilang-report.css", "text/css; charset=utf-8"]],
   ["/multilang-runner.js", ["public/multilang-runner.js", "text/javascript; charset=utf-8"]],
   ["/inspectability.js", ["public/inspectability.js", "text/javascript; charset=utf-8"]],
   ["/v2-results.js", ["public/v2-results.js", "text/javascript; charset=utf-8"]],

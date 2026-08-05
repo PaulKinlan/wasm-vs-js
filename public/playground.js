@@ -595,25 +595,23 @@ function renderMultilangReport(metricsEl, manifest, resultsByKernel, iterations,
     }
   }
   const fmt = (ms) => (Number.isFinite(ms) ? `${ms.toFixed(2)} ms` : "—");
-  const th =
-    "text-align:left;padding:0.3rem 0.5rem;border-bottom:1px solid var(--rule);white-space:nowrap;";
   metricsEl.innerHTML = `
     <p class="muted">All ${engines.length} engines · ${iterations}× loop · median of ${iterations} samples per engine.</p>
-    <table style="width:100%;border-collapse:collapse;font-size:0.82rem;margin:0.4rem 0;">
+    <table class="mlr-table">
       <thead><tr>${
     ["Engine", "Kernel", "Median", "Min", "Max", "Wasm bytes"].map((h) =>
-      `<th style="${th};font-weight:600;">${h}</th>`
+      `<th class="mlr-th mlr-th-header">${h}</th>`
     ).join("")
   }</tr></thead>
       <tbody>${
     rows.map((r) => `
         <tr>
-          <td style="${th}"><strong>${r.label}</strong></td>
-          <td style="${th}">${r.kernel}</td>
-          <td style="${th}">${fmt(r.medianMs)}</td>
-          <td style="${th}">${fmt(r.minMs)}</td>
-          <td style="${th}">${fmt(r.maxMs)}</td>
-          <td style="${th}">${r.bytes > 0 ? r.bytes.toLocaleString() : "—"}</td>
+          <td class="mlr-th"><strong>${r.label}</strong></td>
+          <td class="mlr-th">${r.kernel}</td>
+          <td class="mlr-th">${fmt(r.medianMs)}</td>
+          <td class="mlr-th">${fmt(r.minMs)}</td>
+          <td class="mlr-th">${fmt(r.maxMs)}</td>
+          <td class="mlr-th">${r.bytes > 0 ? r.bytes.toLocaleString() : "—"}</td>
         </tr>`).join("")
   }
       </tbody>
