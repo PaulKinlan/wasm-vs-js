@@ -4,8 +4,8 @@
   "authoritativePerformanceEvidence": false,
   "entryId": "multilang-wasm-benchmark",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "4358319fdf89013fe91d6ea44544af97b96d894c",
-  "sourceSha256": "27dea606486ea5cbc374a76c17adbd42346f187059d0e1f09e9ffd9243f82c8e",
+  "sourceCommit": "b9caf8896608e23d6163794e564d03b6d6fa4d15",
+  "sourceSha256": "160ce3d8abb8254505133064d9449d7b1bb07e9d189ada0fe563bc79ffcd1435",
   "fullSourceGraph": [
     {
       "path": "benchmarks/multilang-wasm/sum_u32.c",
@@ -111,6 +111,26 @@
       "path": "benchmarks/multilang-wasm/serialization-json-telemetry/telemetry.dart",
       "bytes": 6276,
       "sha256": "00f6f80b66e6476ec29e2a9542ac1a874dd4352c69ab9117ea805ed4cef3db50"
+    },
+    {
+      "path": "benchmarks/multilang-wasm/database-olap-chart/olap.c",
+      "bytes": 4653,
+      "sha256": "a5a40cb0c8e60b7b662862c149bc02874bc4c039d2b583a88bd65b3864537799"
+    },
+    {
+      "path": "benchmarks/multilang-wasm/database-olap-chart/olap.cpp",
+      "bytes": 4671,
+      "sha256": "0296c62300ef5d924c9f4a3749c2e9faf00f38b4751c2d8967b7dcba9814b190"
+    },
+    {
+      "path": "benchmarks/multilang-wasm/database-olap-chart/olap.rs",
+      "bytes": 6814,
+      "sha256": "4522f9d0b1781940260b8f41052324981654f7c54c9feac6fedf56b8a5d45ae7"
+    },
+    {
+      "path": "benchmarks/multilang-wasm/database-olap-chart/olap.dart",
+      "bytes": 5250,
+      "sha256": "8429916aabcc1d0034fa5a850e6bce2227e87e3ef47866405d2e62896aa49e9d"
     },
     {
       "path": "benchmarks/multilang-wasm/text-diff-patch/myers_diff.c",
@@ -234,8 +254,8 @@
     },
     {
       "path": "scripts/build-multilang-wasm-benchmark.ts",
-      "bytes": 145158,
-      "sha256": "abb5cd291dde30fa7fd5935141f5cedb403d44465efb15bbcb82a0677d62c150"
+      "bytes": 152105,
+      "sha256": "2279bebfffbf2576091444fdc04e5264e80df149f2e724123ea565534c119e90"
     },
     {
       "path": "tests/multilang-wasm-benchmark.test.ts",
@@ -407,7 +427,7 @@
     {
       "path": "public/artifacts/multilang-wasm-benchmark/stft_rs.wasm",
       "bytes": 4747,
-      "sha256": "6527bcace425b3c36a62d0bf8e92ffaa62f73556f9499df6e318b3ce81ebb3f4"
+      "sha256": "377685bfd75aaec48c135c46cd63307e17cb2da38ae8e1c446c8efe715d35c59"
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/stft_dart.wasm",
@@ -457,7 +477,7 @@
     {
       "path": "public/artifacts/multilang-wasm-benchmark/myers_diff_rs.wasm",
       "bytes": 6110,
-      "sha256": "44d6297a76d309032672ce87e117a575b21953c8b8a4daa7dcb0814642e8edb8"
+      "sha256": "087b5eadd9d6b13e2c022fb99c5ce78d15764f5b4e3923b9fcdf3b97f72c4191"
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/myers_diff_dart.wasm",
@@ -482,7 +502,7 @@
     {
       "path": "public/artifacts/multilang-wasm-benchmark/scan_log_rs.wasm",
       "bytes": 6746,
-      "sha256": "ab5d7105bf3ac3f6615ea7a17c1ffd95b7af2669f8a887e4589db8dec8345f1d"
+      "sha256": "010d43ec9e04b085e2484871f21aabe6b0e9f0bf0a0c4176e47f509e46decbf9"
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/scan_log_dart.wasm",
@@ -507,7 +527,7 @@
     {
       "path": "public/artifacts/multilang-wasm-benchmark/sha256_rs.wasm",
       "bytes": 5189,
-      "sha256": "2c91acf52c4b7487ce21e91e3a66f568b03ec4f42fd767ac1cee437e6a19787e"
+      "sha256": "83939c15ce0699ea87df627172d9ac242936a224416b71bd5833bc0ce0b55854"
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/sha256_dart.wasm",
@@ -527,5 +547,5 @@
     "rustc": "rustc --target wasm32-unknown-unknown -O --crate-type cdylib (no_std)",
     "dart2wasm": "dart compile wasm (Dart SDK, WasmGC + js-string builtins)"
   },
-  "generatedAt": "2026-08-05T14:10:35.623Z"
+  "generatedAt": "2026-08-05T14:19:12.753Z"
 }

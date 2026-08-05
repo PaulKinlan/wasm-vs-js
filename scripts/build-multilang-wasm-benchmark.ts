@@ -4140,7 +4140,6 @@ const manifestSources = [
   "tests/multilang-scanlog.test.ts",
   "tests/multilang-mlp.test.ts",
   "tests/multilang-json.test.ts",
-  "tests/multilang-olap.test.ts",
   "tests/multilang-polybench.test.ts",
   "tests/multilang-audio.test.ts",
   "tests/multilang-sha256.test.ts",
