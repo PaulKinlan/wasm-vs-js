@@ -2120,7 +2120,7 @@ const olapVariants: Record<string, number> = {};
       instance: WebAssembly.Instance;
     };
     const mem = mod.instance.exports.memory as WebAssembly.Memory;
-    const inPtr = mod.instance.exports.input_ptr() as number;
+    const inPtr = (mod.instance.exports.input_ptr as unknown as () => number)();
     const fn = () => {
       new Uint32Array(mem.buffer, inPtr, olapFixture.length / 4).set(new Uint32Array(olapFixture.buffer));
       (mod.instance.exports.run as (l: number) => number)(olapFixture.length);
