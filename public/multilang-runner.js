@@ -760,8 +760,6 @@ export const KERNEL_ADAPTERS = {
     },
   },
 
-
-
   // --- game-ecs-frame-update: ECS systems update (mirrors workload.js
   //     runEcsJavaScript — control velocity, wall-bounce movement, 128x128 grid
   //     collision, animation speed-class, FNV-1a state/checkpoint digests)
