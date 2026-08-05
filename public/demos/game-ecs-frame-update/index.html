@@ -8,8 +8,19 @@
       content="Run the frozen 10,000-entity, 1,000-frame ECS correctness workload in JavaScript or linear WebAssembly.">
     <link rel="stylesheet" href="/styles.css">
     <script type="module" src="/demos/game-ecs-frame-update/demo.js"></script>
+    <script type="module" src="/multilang-runner.js"></script>
   </head>
-  <body>
+  <body
+    data-workload="game-ecs-frame-update"
+    data-demo="game-ecs-frame-update"
+    data-multilang-manifest="/benchmarks/multilang-wasm/game-ecs-frame-update.manifest.json"
+    data-multilang-form="#ml-form"
+    data-multilang-start="#ml-start"
+    data-multilang-cancel="#ml-cancel"
+    data-multilang-status="#ml-status"
+    data-multilang-reporting="#ml-reporting"
+    data-multilang-iterations="#ml-iterations"
+  >
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
@@ -65,6 +76,39 @@
             <li><a href="/experiments/">Read the frozen experiment</a></li>
           </ul>
         </div>
+      </section>
+      <section class="demo-panel" aria-labelledby="ml-heading">
+        <h2 id="ml-heading">Multi-Language Comparison</h2>
+        <p>
+          The same ECS frame-update kernel (control velocity deltas, wall-bounce movement, 128×128 grid
+          collision, animation speed-class, FNV-1a state/checkpoint digests) written in JavaScript, C,
+          C++, Rust, and Dart (WasmGC), compared side by side. Variants are test-verified bit-identical
+          to the workload oracle on the 1,024-entity / 300-frame comparison shape. Integer workload: no
+          float emulation, so Dart/WasmGC carries no fround penalty here — its cost is GC'd
+          <code>List&lt;int&gt;</code> state vs linear-memory arrays. Sources:
+          <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/tree/main/benchmarks/multilang-wasm/game-ecs-frame-update">ecs_frame_update.c · ecs_frame_update.cpp · ecs_frame_update.rs · ecs_frame_update.dart</a>.
+        </p>
+        <form id="ml-form">
+          <div class="controls">
+            <label for="ml-target"><span>Target Engine</span>
+              <select id="ml-target" name="target" disabled>
+                <option value="all" selected>Compare All Implementations</option>
+              </select></label>
+            <label for="ml-iterations"><span>Loop Iterations</span>
+              <select id="ml-iterations" name="iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10">10 iterations</option>
+                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                <option value="50">50 iterations</option>
+                <option value="100">100 iterations (Sustained loop)</option>
+              </select></label>
+            <button id="ml-start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="ml-cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="ml-status" role="status"
+          aria-live="polite">Ready. Select loop iterations, then click Start.</p>
+        <div id="ml-reporting" class="detail-grid" hidden></div>
       </section>
     </main>
   </body>

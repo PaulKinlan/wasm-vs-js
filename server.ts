@@ -1851,6 +1851,7 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "crypto-file-integrity.manifest.json",
       "ml-gemm.manifest.json",
       "multilang-wasm.manifest.json",
+      "game-ecs-frame-update.manifest.json",
     ]
   ) {
     routes.set(`/benchmarks/multilang-wasm/${file}`, [
@@ -1916,6 +1917,11 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "sha256_rs.wasm",
       "sha256_dart.wasm",
       "sha256_dart.mjs",
+      "ecs_frame_update_c.wasm",
+      "ecs_frame_update_cpp.wasm",
+      "ecs_frame_update_rs.wasm",
+      "ecs_frame_update_dart.wasm",
+      "ecs_frame_update_dart.mjs",
     ]
   ) {
     const type = file.endsWith(".wasm") ? "application/wasm" : "text/javascript; charset=utf-8";

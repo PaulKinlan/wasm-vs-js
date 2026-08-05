@@ -760,6 +760,261 @@ export const KERNEL_ADAPTERS = {
     },
   },
 
+
+
+  // --- game-ecs-frame-update: ECS systems update (mirrors workload.js
+  //     runEcsJavaScript — control velocity, wall-bounce movement, 128x128 grid
+  //     collision, animation speed-class, FNV-1a state/checkpoint digests)
+  "game.ecs-frame-update.v1": {
+    kernels: ["ecs_frame_update"],
+    build(mods) {
+      const ENTITIES = 1024, FRAMES = 300;
+      const GRID_WIDTH = 128, GRID_CELLS = 16384, CELL_SHIFT = 9;
+      const CHECKPOINT_INTERVAL = 100;
+      const ECS_MAGIC = 0x31435345;
+      const PRIME = 0x01000193;
+
+      // Seeded fixture generator (mirrors benchmarks/v1/.../fixture.js xorshift32).
+      function makeFixture() {
+        let state = 0x6ec5f17d >>> 0;
+        const xorshift = () => {
+          state ^= state << 13;
+          state ^= state >>> 17;
+          state ^= state << 5;
+          return state >>> 0;
+        };
+        const bytes = new Uint8Array(16 + ENTITIES * 8 + FRAMES);
+        const view = new DataView(bytes.buffer);
+        view.setUint32(0, ECS_MAGIC, true);
+        view.setUint32(4, ENTITIES, true);
+        view.setUint32(8, FRAMES, true);
+        view.setUint32(12, state >>> 0, true);
+        let offset = 16;
+        for (let e = 0; e < ENTITIES; e++) {
+          state = xorshift();
+          view.setUint16(offset, state & 0xffff, true);
+          state = xorshift();
+          view.setUint16(offset + 2, state & 0xffff, true);
+          state = xorshift();
+          bytes[offset + 4] = (state % 33) - 16;
+          state = xorshift();
+          bytes[offset + 5] = (state % 33) - 16;
+          state = xorshift();
+          bytes[offset + 6] = state & 3;
+          state = xorshift();
+          bytes[offset + 7] = 1 + (state % 8);
+          offset += 8;
+        }
+        for (let f = 0; f < FRAMES; f++) {
+          state = xorshift();
+          bytes[16 + ENTITIES * 8 + f] = state & 0xff;
+        }
+        return bytes;
+      }
+      const fixture = makeFixture();
+
+      // JS oracle — mirrors benchmarks/v1/game-ecs-frame-update/engine.js
+      // runEcsJavaScript EXACTLY (FNV-1a mix, wall-bounce movement, grid
+      // collision with the 4 cross-cell neighbours, speed-class animation).
+      const mix = (hash, value) => Math.imul((hash ^ (value >>> 0)) >>> 0, PRIME) >>> 0;
+      const hex = (v) => (v >>> 0).toString(16).padStart(8, "0");
+      const clampVelocity = (v) => (v < -16 ? -16 : v > 16 ? 16 : v);
+      const delta = (bits) => (bits === 3 ? 0 : bits - 1);
+      function runEcs() {
+        const view = new DataView(fixture.buffer, fixture.byteOffset, fixture.byteLength);
+        const entities = view.getUint32(4, true);
+        const frames = view.getUint32(8, true);
+        const xs = new Uint16Array(entities), ys = new Uint16Array(entities);
+        const vxs = new Int8Array(entities), vys = new Int8Array(entities);
+        const animations = new Uint8Array(entities), radii = new Uint8Array(entities);
+        const head = new Int32Array(GRID_CELLS), next = new Int32Array(entities);
+        let offset = 16;
+        for (let e = 0; e < entities; e++) {
+          xs[e] = view.getUint16(offset, true);
+          ys[e] = view.getUint16(offset + 2, true);
+          vxs[e] = view.getInt8(offset + 4);
+          vys[e] = view.getInt8(offset + 5);
+          animations[e] = view.getUint8(offset + 6);
+          radii[e] = view.getUint8(offset + 7);
+          offset += 8;
+        }
+        const traceOffset = 16 + entities * 8;
+        let movementUpdates = 0, controlMutations = 0, pairTests = 0, collisions = 0;
+        let animationUpdates = 0, stateMutations = 0, checkpointCount = 0;
+        let checkpointDigest = 0x5f356495;
+        const processPair = (l, r) => {
+          pairTests += 1;
+          const reach = radii[l] + radii[r];
+          const dx = xs[l] - xs[r], dy = ys[l] - ys[r];
+          if (dx < -reach || dx > reach || dy < -reach || dy > reach) return;
+          const lvx = vxs[l], lvy = vys[l];
+          vxs[l] = vxs[r];
+          vys[l] = vys[r];
+          vxs[r] = lvx;
+          vys[r] = lvy;
+          collisions += 1;
+          stateMutations += 4;
+        };
+        const processCrossCells = (lc, rc) => {
+          for (let l = head[lc]; l >= 0; l = next[l]) {
+            for (let r = head[rc]; r >= 0; r = next[r]) processPair(l, r);
+          }
+        };
+        const canonicalState = () => {
+          let digest = 0x7f4a7c15;
+          for (let e = 0; e < entities; e++) {
+            const values = [
+              xs[e],
+              ys[e],
+              vxs[e] & 0xff,
+              vys[e] & 0xff,
+              animations[e],
+              radii[e],
+            ];
+            digest = mix(digest, e);
+            for (let i = 0; i < 6; i++) digest = mix(digest, values[i]);
+          }
+          return digest;
+        };
+        for (let frame = 0; frame < frames; frame++) {
+          const control = fixture[traceOffset + frame];
+          const sel = frame % 257;
+          const cX = delta(control & 3), cY = delta((control >>> 2) & 3);
+          for (let e = 0; e < entities; e++) {
+            if (e % 257 === sel) {
+              vxs[e] = clampVelocity(vxs[e] + cX);
+              vys[e] = clampVelocity(vys[e] + cY);
+              controlMutations += 2;
+              stateMutations += 2;
+            }
+            let x = xs[e] + vxs[e], y = ys[e] + vys[e];
+            if (x < 0) {
+              x = -x;
+              vxs[e] = -vxs[e];
+              stateMutations += 1;
+            } else if (x > 0xffff) {
+              x = 0x1fffe - x;
+              vxs[e] = -vxs[e];
+              stateMutations += 1;
+            }
+            if (y < 0) {
+              y = -y;
+              vys[e] = -vys[e];
+              stateMutations += 1;
+            } else if (y > 0xffff) {
+              y = 0x1fffe - y;
+              vys[e] = -vys[e];
+              stateMutations += 1;
+            }
+            xs[e] = x;
+            ys[e] = y;
+            movementUpdates += 1;
+            stateMutations += 2;
+          }
+          head.fill(-1);
+          for (let e = 0; e < entities; e++) {
+            const cell = (ys[e] >>> CELL_SHIFT) * GRID_WIDTH + (xs[e] >>> CELL_SHIFT);
+            next[e] = head[cell];
+            head[cell] = e;
+          }
+          for (let cy = 0; cy < GRID_WIDTH; cy++) {
+            for (let cx = 0; cx < GRID_WIDTH; cx++) {
+              const cell = cy * GRID_WIDTH + cx;
+              for (let l = head[cell]; l >= 0; l = next[l]) {
+                for (let r = next[l]; r >= 0; r = next[r]) processPair(l, r);
+              }
+              if (cx + 1 < GRID_WIDTH) processCrossCells(cell, cell + 1);
+              if (cy + 1 < GRID_WIDTH && cx > 0) processCrossCells(cell, cell + GRID_WIDTH - 1);
+              if (cy + 1 < GRID_WIDTH) processCrossCells(cell, cell + GRID_WIDTH);
+              if (cy + 1 < GRID_WIDTH && cx + 1 < GRID_WIDTH) {
+                processCrossCells(cell, cell + GRID_WIDTH + 1);
+              }
+            }
+          }
+          const cAnim = (control >>> 4) & 1;
+          for (let e = 0; e < entities; e++) {
+            const speed = (Math.abs(vxs[e]) + Math.abs(vys[e])) & 3;
+            animations[e] = (animations[e] + 1 + speed + cAnim) & 0xff;
+            animationUpdates += 1;
+            stateMutations += 1;
+          }
+          if ((frame + 1) % CHECKPOINT_INTERVAL === 0 || frame + 1 === frames) {
+            const stateDigest = canonicalState();
+            checkpointDigest = mix(checkpointDigest, frame + 1);
+            checkpointDigest = mix(checkpointDigest, stateDigest);
+            checkpointDigest = mix(checkpointDigest, pairTests);
+            checkpointCount += 1;
+          }
+        }
+        const stateDigest = canonicalState();
+        return {
+          stateDigest: hex(stateDigest),
+          checkpointDigest: hex(checkpointDigest),
+          pairTests,
+          collisions,
+          animationUpdates,
+          controlMutations,
+          stateMutations,
+        };
+      }
+      const keyOf = (r) =>
+        `${r.stateDigest}:${r.checkpointDigest}:${r.pairTests}:${r.collisions}:` +
+        `${r.animationUpdates}:${r.controlMutations}:${r.stateMutations}`;
+      const expected = keyOf(runEcs());
+
+      const callables = {};
+      for (const key of ["c", "cpp", "rs"]) {
+        const inst = mods.engines[key].instances.ecs_frame_update.instance;
+        const mem = inst.exports.memory;
+        callables[key] = {
+          ecs_frame_update: () => {
+            const input = new Uint8Array(mem.buffer, inst.exports.input_ptr(), fixture.length);
+            input.set(fixture);
+            if (inst.exports.run(fixture.length) !== 0) throw new Error(`${key} ecs run failed`);
+            const w = new Uint32Array(mem.buffer, inst.exports.result_ptr(), 128);
+            return keyOf({
+              stateDigest: hex(w[0]),
+              checkpointDigest: hex(w[1]),
+              pairTests: w[23],
+              collisions: w[24],
+              animationUpdates: w[25],
+              controlMutations: w[27],
+              stateMutations: w[28],
+            });
+          },
+        };
+      }
+      callables.js = {
+        ecs_frame_update: () => keyOf(runEcs()),
+      };
+      callables.dart = {
+        ecs_frame_update: () => {
+          const result = new Uint32Array(128 + ENTITIES * 6);
+          mods.engines.dart.kernels.run(fixture, result);
+          return keyOf({
+            stateDigest: hex(result[0]),
+            checkpointDigest: hex(result[1]),
+            pairTests: result[23],
+            collisions: result[24],
+            animationUpdates: result[25],
+            controlMutations: result[27],
+            stateMutations: result[28],
+          });
+        },
+      };
+      // One-time bit-identity guard: every engine must produce the oracle key
+      // or the run fails loudly (no silent exclusion / fabricated equivalence).
+      for (const key of Object.keys(callables)) {
+        const got = callables[key].ecs_frame_update();
+        if (got !== expected) {
+          throw new Error(
+            `ecs_frame_update ${key} digest mismatch: got=${got} expected=${expected}`,
+          );
+        }
+      }
+      return callables;
+    },
+  },
   // --- ml-dense-mlp: dense MLP forward (mirrors workload.js mlpControlled)
   "ml.dense-mlp.v1": {
     kernels: ["mlp_forward"],
