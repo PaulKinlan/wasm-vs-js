@@ -4,8 +4,8 @@
   "authoritativePerformanceEvidence": false,
   "entryId": "multilang-wasm-benchmark",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "b9caf8896608e23d6163794e564d03b6d6fa4d15",
-  "sourceSha256": "160ce3d8abb8254505133064d9449d7b1bb07e9d189ada0fe563bc79ffcd1435",
+  "sourceCommit": "19c91bcbe4f39436063ecd3e2d48182618776a36",
+  "sourceSha256": "99d81d32c3da7c918da727ef728b67ae3f914253af04efc60120777c1fafd785",
   "fullSourceGraph": [
     {
       "path": "benchmarks/multilang-wasm/sum_u32.c",
@@ -254,8 +254,8 @@
     },
     {
       "path": "scripts/build-multilang-wasm-benchmark.ts",
-      "bytes": 152105,
-      "sha256": "2279bebfffbf2576091444fdc04e5264e80df149f2e724123ea565534c119e90"
+      "bytes": 156121,
+      "sha256": "6038a673c6930a6d06b659d5afd4310b62ad2707c56281af2feebec04ce6f2ac"
     },
     {
       "path": "tests/multilang-wasm-benchmark.test.ts",
@@ -427,7 +427,7 @@
     {
       "path": "public/artifacts/multilang-wasm-benchmark/stft_rs.wasm",
       "bytes": 4747,
-      "sha256": "377685bfd75aaec48c135c46cd63307e17cb2da38ae8e1c446c8efe715d35c59"
+      "sha256": "c6d72b275a13a887055e7c7cde951b8a58a2e2fd8d11801dce9724b50be03c2f"
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/stft_dart.wasm",
@@ -477,7 +477,7 @@
     {
       "path": "public/artifacts/multilang-wasm-benchmark/myers_diff_rs.wasm",
       "bytes": 6110,
-      "sha256": "087b5eadd9d6b13e2c022fb99c5ce78d15764f5b4e3923b9fcdf3b97f72c4191"
+      "sha256": "a327751cea976f1e47a28619fc6f27f863edc9d316e8a32845562f03c4a37b54"
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/myers_diff_dart.wasm",
@@ -502,7 +502,7 @@
     {
       "path": "public/artifacts/multilang-wasm-benchmark/scan_log_rs.wasm",
       "bytes": 6746,
-      "sha256": "010d43ec9e04b085e2484871f21aabe6b0e9f0bf0a0c4176e47f509e46decbf9"
+      "sha256": "e8b0172aff09433dcfc21118d4286b8d272db1a911df53574333968579177b24"
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/scan_log_dart.wasm",
@@ -527,7 +527,7 @@
     {
       "path": "public/artifacts/multilang-wasm-benchmark/sha256_rs.wasm",
       "bytes": 5189,
-      "sha256": "83939c15ce0699ea87df627172d9ac242936a224416b71bd5833bc0ce0b55854"
+      "sha256": "89c64e05612a15480ed7f71dcd259b56b4acb0c1eed4a710d8afd3ef4638d260"
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/sha256_dart.wasm",
@@ -547,5 +547,5 @@
     "rustc": "rustc --target wasm32-unknown-unknown -O --crate-type cdylib (no_std)",
     "dart2wasm": "dart compile wasm (Dart SDK, WasmGC + js-string builtins)"
   },
-  "generatedAt": "2026-08-05T14:19:12.753Z"
+  "generatedAt": "2026-08-05T14:23:16.575Z"
 }
