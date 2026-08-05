@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "1d217ff4e5ac3930e4c976792aa9e74644b72f3c",
-  "sourceSha256": "6a828e14669ead69427dbb8b82d73378345d87a06568c3f207efe353afe579ac",
+  "sourceCommit": "a4cdf9034530514875f2df3f728b80023f2da8a7",
+  "sourceSha256": "310c1357f83ba15e2c6ce12f8540bec2d074aabde26282afe794b5229bfddc2f",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 83271,
-      "sha256": "15166f1fa210c99f0708d79d3bae0c1b80dff0622cf93b3725ea4a8210a71aeb"
+      "bytes": 83439,
+      "sha256": "a13d8673237e1a899ff14098dd602fbc9080760e1b2793fac506435d5cf8f8db"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "9f427d4bd767d8657004a24209ccedd26a41d5e7e0e1fa214d9d19639638d04e"
+      "sha256": "6b6885fa7af86a617a638c0fecd5f63640012a5627602444ebc3c04a8644f0c7"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "a6fe941f842da2004f7586b70614465fc8cfac1c8b37dc3d6d101ad1d252644b"
+      "sha256": "5c00076b5ba90beb2acb74fffddec39f20b224a3dfded68635b6885547d5c4c7"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=1d217ff4e5ac3930e4c976792aa9e74644b72f3c"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=a4cdf9034530514875f2df3f728b80023f2da8a7"
   }
 }
