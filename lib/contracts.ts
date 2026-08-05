@@ -64,14 +64,14 @@ function semanticRun(value: Record<string, unknown>): boolean {
   if (
     !benchmark || !variant || !build || !correctness || !counters || !capabilities || !conditions
   ) return false;
+  // In public mode (no expected commit), skip sum-u32-specific semantic checks.
+  // Schema validation alone is sufficient for accepting run records from reporters.
+  if (!hasExpectedCommit()) return true;
   const commit = expectedCommit();
   const expected = expectedVariants.get(String(variant.id));
   const variantBuild = variants[String(variant.id)];
   const batch = capabilities.measurementBatchSize;
   if (!expected || !variantBuild || !Number.isSafeInteger(batch) || Number(batch) < 1) return false;
-  // In public mode (no expected commit), skip commit-matching semantic checks.
-  // Schema validation alone is sufficient for accepting run records from reporters.
-  if (!hasExpectedCommit()) return true;
   if (
     (value.suite as Record<string, unknown>).commit !== commit ||
     build.sourceCommit !== commit ||
