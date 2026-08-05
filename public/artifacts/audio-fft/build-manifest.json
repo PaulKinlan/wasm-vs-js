@@ -5,8 +5,8 @@
   "entryId": "audio.fft.v1",
   "benchmarkSlug": "audio-fft",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "d6bbf1fb3a72b49832603def901462136c7a28de",
-  "sourceSha256": "6d7d5e52ad1329c93ac98affc811a19af274546139da7ce935bbb0943bf602d4",
+  "sourceCommit": "c4acbf783273279dd2405f21224727446a52ec92",
+  "sourceSha256": "0e8f5fb27678fa77e3841b6818e1a05946108f2d3f378c888fe152d9745003b3",
   "fullSourceGraph": [
     {
       "path": "benchmarks/audio-fft/benchmark.json",
@@ -130,8 +130,8 @@
     },
     {
       "path": "deno.json",
-      "bytes": 2497,
-      "sha256": "1e439fe47deecb16a7528be9220f543fd5587b82181819e5cb967877ec407cc0"
+      "bytes": 2522,
+      "sha256": "f5fb1c8c24db5bdce7f2e322c41e64306acc05150b44f69b43ff47b5287adf08"
     },
     {
       "path": "deno.lock",
@@ -187,19 +187,19 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/audio-fft/fixture-manifest.json",
-      "sha256": "170f4a0f7f42649772299b8af96aa9b39437ad646d41fc62a9320a296c74fd84"
+      "sha256": "67a8a792cfdd2868070391420d6ebe0922c1ed6459e51cdbdf86f1784d57c672"
     },
     "input": {
       "path": "public/artifacts/audio-fft/input-manifest.json",
-      "sha256": "efad0afb9bd3924325e08a1a485d0fb10272d2f26edc2eac12488d771143bfa9"
+      "sha256": "f1821662c402ae057f910b9b3f43af3c9e9684b420ef669cd0576efba3b3b953"
     },
     "reference": {
       "path": "public/artifacts/audio-fft/reference-manifest.json",
-      "sha256": "ec587ad2fd36c5110257d00648d54264ed912404c91c496bdafb5b072e92d082"
+      "sha256": "b0a61b82ca6a0d7acc5cf278eb16b3904d5e98af41132c35b0f52b0fe24ee6cf"
     },
     "output": {
       "path": "public/artifacts/audio-fft/output-manifest.json",
-      "sha256": "3ec71a7a6c1bf215f52912cba4dfb02d541c959c48e1fc8abb31d00f8fd35b85"
+      "sha256": "e3ad5de3eb8bb054921c7da91db00524881e7c06f33e3d586620f4ee4e7d3487"
     }
   },
   "referenceArtifact": {
@@ -241,7 +241,7 @@
       "--allow-write=public/artifacts/audio-fft,public/artifacts/audio-fir,public/artifacts/audio-stft",
       "--allow-run=git",
       "scripts/build-audio.ts",
-      "--source-commit=d6bbf1fb3a72b49832603def901462136c7a28de"
+      "--source-commit=c4acbf783273279dd2405f21224727446a52ec92"
     ],
     "toolchain": [
       {
