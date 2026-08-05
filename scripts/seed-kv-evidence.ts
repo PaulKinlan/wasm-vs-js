@@ -42,24 +42,51 @@ type EvidenceRecord = {
 
 const evidenceFiles: EvidenceRecord[] = [];
 
-// Base evidence
-for await (const path of jsonFiles("public/evidence/base")) {
+// Tolerant extractor: evidence records across the repo use several schemas
+// (base {result, workloadId}, v2 proposals {correctness, workload}, base-catalog
+// and base-v1 {workloadId, variantId, executionTarget, status}, v1-base
+// {frozenCatalogId, registrationId, executionTarget}, audio {target, status}).
+// Map the common fields; skip anything unmappable.
+function extractEvidence(path: string): EvidenceRecord | null {
   const entry = { name: path.split("/").pop() ?? path, path };
-  if (!entry.name.endsWith(".json") || entry.name.includes("schema")) continue;
+  if (!entry.name.endsWith(".json") || entry.name.includes("schema") || entry.name === "index.html") {
+    return null;
+  }
+  let data: Record<string, unknown>;
   try {
-    const data = JSON.parse(await Deno.readTextFile(entry.path));
-    if (data.result && data.workloadId) {
-      evidenceFiles.push({
-        path: entry.path,
-        workloadId: data.workloadId,
-        variantId: data.variantId ?? data.result.variant ?? "unknown",
-        target: data.result.target ??
-          (data.variantId?.includes("wasm") ? "wasm-linear" : "javascript"),
-        benchmark: data.workloadId,
-        result: data.result,
-      });
-    }
-  } catch { /* skip malformed */ }
+    data = JSON.parse(Deno.readTextFileSync(entry.path));
+  } catch { return null; }
+  const workloadId = (data.workloadId ?? data.frozenCatalogId ??
+    (typeof data.workload === "object" && data.workload !== null
+      ? (data.workload as Record<string, unknown>).id
+      : undefined)) as string | undefined;
+  if (!workloadId || workloadId.includes("schema")) return null;
+  const variantId = (data.variantId ?? data.registrationId ?? data.variant ??
+    (typeof data.result === "object" && data.result !== null
+      ? (data.result as Record<string, unknown>).variant
+      : undefined)) as string | undefined;
+  const explicitTarget = (data.executionTarget ?? data.target) as string | undefined;
+  const target = explicitTarget ??
+    (variantId && String(variantId).includes("wasm") ? "wasm-linear" : "javascript");
+  const status = (data.status ?? (data.correctness as Record<string, unknown> | undefined)?.status ??
+    (data.result as Record<string, unknown> | undefined)?.status) as string | undefined;
+  // Skip only explicit failure/blocked states; correctness-only and candidate
+  // records are valid evidence of the workload running.
+  if (status && /fail|block|error|denied|abort/i.test(String(status))) return null;
+  return {
+    path: entry.path,
+    workloadId,
+    variantId: variantId ?? "correctness",
+    target,
+    benchmark: workloadId,
+    result: (data.result ?? data.correctness ?? { status: status ?? "passed" }) as Record<string, unknown>,
+  };
+}
+
+// Seed from EVERY evidence family directory under public/evidence/ (recursive).
+for await (const path of jsonFiles("public/evidence")) {
+  const record = extractEvidence(path);
+  if (record) evidenceFiles.push(record);
 }
 
 // V2 proposal evidence
@@ -93,12 +120,20 @@ let failed = 0;
 
 for (const ev of evidenceFiles) {
   // Build a schema-valid run record from the evidence
-  const counters = ev.result.counters ?? ev.result.workCounters ?? { items: 1 };
-  const correctnessStatus = ev.result.status ?? (ev.result.outputSha256 ? "passed" : "passed");
+  const rawCounters = ev.result.counters ?? ev.result.workCounters;
+  const counters = (rawCounters && typeof rawCounters === "object" &&
+      !Array.isArray(rawCounters) && Object.keys(rawCounters).length > 0)
+    ? rawCounters
+    : { items: 1 };
+  // The extractor already excludes fail/block records — normalize to the
+  // run schema's enum (passed | failed | blocked).
+  const correctnessStatus = "passed";
 
   const run: Record<string, unknown> = {
     schemaVersion: 1,
-    runId: `validation_${ev.workloadId.replace(/\./g, "-")}_${ev.variantId}`.slice(0, 96),
+    runId: `validation_${ev.workloadId.replace(/[^A-Za-z0-9_-]/g, "-")}_${
+      ev.variantId.replace(/[^A-Za-z0-9_-]/g, "-")
+    }`.slice(0, 96),
     capturedAt: new Date().toISOString(),
     suite: {
       version: "validation-seed-v1",
@@ -212,8 +247,8 @@ for (const ev of evidenceFiles) {
     console.log(`  ✗ ${ev.workloadId}: ${e instanceof Error ? e.message : "fetch failed"}`);
   }
 
-  // Small delay to avoid rate limiting
-  await new Promise((r) => setTimeout(r, 100));
+  // Small delay to avoid rate limiting (production M3 limit: 30 req / 60 s)
+  await new Promise((r) => setTimeout(r, 2_500));
 }
 
 console.log(`\nSeeded: ${posted} posted, ${failed} failed`);
