@@ -493,7 +493,12 @@ Deno.test({
 
     // GET /v1/runs is the Results Explorer's read path — public mode must serve it.
     const getRequest = new Request("https://example.test/v1/runs", { method: "GET" });
-    const getResponse = await handleReportingRoute(getRequest, new URL(getRequest.url), config, "public");
+    const getResponse = await handleReportingRoute(
+      getRequest,
+      new URL(getRequest.url),
+      config,
+      "public",
+    );
     assert(getResponse !== null);
     assertEquals(getResponse!.status, 200);
 
