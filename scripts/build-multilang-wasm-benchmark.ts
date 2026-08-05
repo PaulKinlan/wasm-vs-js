@@ -2249,14 +2249,14 @@ const nbodyVariants: Record<string, number> = {};
 {
   const jsFn = () => jsNbody(nbodyFixture());
   for (let i = 0; i < 5; i++) jsFn();
-  let tA = performance.now();
+  const tA = performance.now();
   for (let i = 0; i < NBODY_ITERATIONS; i++) jsFn();
   nbodyVariants.js = Number((performance.now() - tA).toFixed(2));
 
   for (const key of nbodyLinear) {
     const fn = nbodyLinearFn(key);
     for (let i = 0; i < 5; i++) fn();
-    let tA = performance.now();
+    const tA = performance.now();
     for (let i = 0; i < NBODY_ITERATIONS; i++) fn();
     nbodyVariants[key] = Number((performance.now() - tA).toFixed(2));
   }
@@ -2283,7 +2283,7 @@ const nbodyVariants: Record<string, number> = {};
     );
   };
   for (let i = 0; i < 5; i++) dartFn();
-  let tB = performance.now();
+  const tB = performance.now();
   for (let i = 0; i < NBODY_ITERATIONS; i++) dartFn();
   nbodyVariants.dart = Number((performance.now() - tB).toFixed(2));
 }
