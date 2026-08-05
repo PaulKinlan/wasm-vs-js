@@ -612,6 +612,118 @@ export const KERNEL_ADAPTERS = {
       return callables;
     },
   },
+
+  // --- simulation-nbody-cloth: O(N²) gravitational leapfrog (mirrors engine.js simulate)
+  "simulation.nbody-cloth.v1": {
+    kernels: ["nbody_step"],
+    build(mods) {
+      // Reduced fixed shape for fast warm medians (full contract is 1024x120).
+      const N = 128, STEPS = 30, DT = 0.01, GRAVITY = 0.0001, SOFT2 = 0.0001;
+      // First N bodies of the workload's frozen xorshift32(0x31c0ffee) stream
+      // (fixture.js mirror): mass, px, py, pz, vx, vy, vz.
+      function makeFixture() {
+        let state = 0x31c0ffee;
+        const xorshift = () => {
+          state ^= state << 13;
+          state ^= state >>> 17;
+          state ^= state << 5;
+          return state >>> 0;
+        };
+        const unit = (v) => v / 0x100000000;
+        const mass = new Float64Array(N), px = new Float64Array(N), py = new Float64Array(N),
+          pz = new Float64Array(N), vx = new Float64Array(N), vy = new Float64Array(N),
+          vz = new Float64Array(N);
+        for (let i = 0; i < N; i++) {
+          state = xorshift(); mass[i] = 0.5 + unit(state) * 1.5;
+          state = xorshift(); px[i] = unit(state) * 2 - 1;
+          state = xorshift(); py[i] = unit(state) * 2 - 1;
+          state = xorshift(); pz[i] = unit(state) * 2 - 1;
+          state = xorshift(); vx[i] = (unit(state) * 2 - 1) * 0.001;
+          state = xorshift(); vy[i] = (unit(state) * 2 - 1) * 0.001;
+          state = xorshift(); vz[i] = (unit(state) * 2 - 1) * 0.001;
+        }
+        return { mass, px, py, pz, vx, vy, vz };
+      }
+      function jsStep(f) {
+        const ax = new Float64Array(N), ay = new Float64Array(N), az = new Float64Array(N);
+        const accelerations = () => {
+          for (let i = 0; i < N; i++) {
+            let sx = 0, sy = 0, sz = 0;
+            const x = f.px[i], y = f.py[i], z = f.pz[i];
+            for (let j = 0; j < N; j++) {
+              if (i === j) continue;
+              const dx = f.px[j] - x, dy = f.py[j] - y, dz = f.pz[j] - z;
+              const inv = 1 / Math.sqrt(dx * dx + dy * dy + dz * dz + SOFT2);
+              const scale = GRAVITY * f.mass[j] * inv * inv * inv;
+              sx += dx * scale;
+              sy += dy * scale;
+              sz += dz * scale;
+            }
+            ax[i] = sx;
+            ay[i] = sy;
+            az[i] = sz;
+          }
+        };
+        accelerations();
+        for (let step = 1; step <= STEPS; step++) {
+          for (let i = 0; i < N; i++) {
+            f.vx[i] += ax[i] * DT * 0.5;
+            f.vy[i] += ay[i] * DT * 0.5;
+            f.vz[i] += az[i] * DT * 0.5;
+            f.px[i] += f.vx[i] * DT;
+            f.py[i] += f.vy[i] * DT;
+            f.pz[i] += f.vz[i] * DT;
+          }
+          accelerations();
+          for (let i = 0; i < N; i++) {
+            f.vx[i] += ax[i] * DT * 0.5;
+            f.vy[i] += ay[i] * DT * 0.5;
+            f.vz[i] += az[i] * DT * 0.5;
+          }
+        }
+      }
+      const callables = {};
+      for (const key of ["c", "cpp", "rs"]) {
+        const inst = mods.engines[key].instances.nbody_step.instance;
+        const mem = inst.exports.memory;
+        const bytesPer = N * 8;
+        const off = (k) => k * bytesPer;
+        callables[key] = {
+          nbody_step: () => {
+            const f = makeFixture();
+            new Float64Array(mem.buffer, off(0), N).set(f.mass);
+            new Float64Array(mem.buffer, off(1), N).set(f.px);
+            new Float64Array(mem.buffer, off(2), N).set(f.py);
+            new Float64Array(mem.buffer, off(3), N).set(f.pz);
+            new Float64Array(mem.buffer, off(4), N).set(f.vx);
+            new Float64Array(mem.buffer, off(5), N).set(f.vy);
+            new Float64Array(mem.buffer, off(6), N).set(f.vz);
+            inst.exports.nbody_step(
+              off(0), off(1), off(2), off(3), off(4), off(5), off(6),
+              off(7), off(8), off(9), off(10),
+              N, STEPS, DT, GRAVITY, SOFT2,
+            );
+          },
+        };
+      }
+      callables.js = {
+        nbody_step: () => jsStep(makeFixture()),
+      };
+      callables.dart = {
+        nbody_step: () => {
+          const f = makeFixture();
+          mods.engines.dart.kernels.nbody_step(
+            f.mass, f.px, f.py, f.pz, f.vx, f.vy, f.vz,
+            new Float64Array(N), new Float64Array(N), new Float64Array(N),
+            new Float64Array(N * 6),
+            N, STEPS, DT, GRAVITY, SOFT2,
+          );
+        },
+      };
+      return callables;
+    },
+  },
+
   // --- ml-dense-mlp: dense MLP forward (mirrors workload.js mlpControlled)
   "ml.dense-mlp.v1": {
     kernels: ["mlp_forward"],

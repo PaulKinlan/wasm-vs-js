@@ -1,0 +1,19 @@
+{
+  "workloadId": "simulation.nbody-cloth.v1",
+  "kernelLabel": "N-body gravitational step — 128 bodies × 30 timesteps",
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": ["nbody_step"],
+  "engines": [
+    { "key": "js", "label": "JavaScript", "kind": "js" },
+    { "key": "c", "label": "C / Wasm", "kind": "linear", "lang": "c", "offset": 0 },
+    { "key": "cpp", "label": "C++ / Wasm", "kind": "linear", "lang": "cpp", "offset": 0 },
+    { "key": "rs", "label": "Rust / Wasm", "kind": "linear", "lang": "rs", "offset": 0 },
+    {
+      "key": "dart",
+      "label": "Dart / WasmGC",
+      "kind": "dart",
+      "file": "nbody_step_dart.wasm",
+      "glue": "nbody_step_dart.mjs"
+    }
+  ]
+}
