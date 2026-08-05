@@ -2425,7 +2425,6 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
     },
   },
 };
-};
 
 const cache = new Map();
 
