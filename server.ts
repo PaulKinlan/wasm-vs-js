@@ -188,6 +188,18 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/results/", ["public/results/index.html", "text/html; charset=utf-8"]],
   ["/unified-runner.js", ["public/unified-runner.js", "text/javascript; charset=utf-8"]],
   ["/multilang-report.css", ["public/multilang-report.css", "text/css; charset=utf-8"]],
+  ["/iframe-benchmark-bridge.js", [
+    "public/iframe-benchmark-bridge.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/dom-hosts/todomvc-ops.js", [
+    "public/dom-hosts/todomvc-ops.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/dom-hosts/base-dom-todomvc-journey.js", [
+    "public/dom-hosts/base-dom-todomvc-journey.js",
+    "text/javascript; charset=utf-8",
+  ]],
   ["/multilang-runner.js", ["public/multilang-runner.js", "text/javascript; charset=utf-8"]],
   ["/inspectability.js", ["public/inspectability.js", "text/javascript; charset=utf-8"]],
   ["/v2-results.js", ["public/v2-results.js", "text/javascript; charset=utf-8"]],

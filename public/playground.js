@@ -2,6 +2,7 @@
 // Runs JS vs Wasm benchmarks in multi-iteration loops to measure cold vs warm execution performance.
 
 import { executeWorkerLoop, renderPerformanceReport } from "./unified-runner.js";
+import { runIframeDomBenchmark } from "./iframe-benchmark-bridge.js";
 import { loadEngines, runWorkload } from "./multilang-runner.js";
 
 const PLAYGROUND_WORKLOADS = [
@@ -99,6 +100,9 @@ const PLAYGROUND_WORKLOADS = [
       "Adds, completes, filters, edits, and removes 100 todos through a full TodoMVC interaction.",
     explanation:
       "DOM mutation, event dispatch, and virtual-dom reconciliation under realistic user interaction.",
+    // Real-DOM iframe mode: the demo page renders an actual TodoMVC UI and
+    // applies the frozen 150-command trace to the real DOM (not a worker).
+    domIframe: true,
   },
   {
     slug: "archive-zip-workspace-v1",
@@ -538,6 +542,46 @@ async function runBenchmarkForCard(config, cardEl, iterations = 30) {
   try {
     let jsStats;
     let wasmStats;
+    // Real-DOM iframe mode: the demo page renders an actual UI in the iframe
+    // and applies the frozen trace to the real DOM, then posts results back.
+    if (config.domIframe) {
+      const result = await runIframeDomBenchmark({
+        route: config.route,
+        iterations,
+        targets: ["js", "wasm"],
+        onProgress: ({ target, iteration, total }) => {
+          statusEl.textContent = `Running ${
+            target === "js" ? "JS" : "Wasm"
+          } (real DOM) — iteration ${iteration}/${total}…`;
+        },
+      });
+      jsStats = result.perTarget.js ??
+        { coldMs: 0, warmMedianMs: 0, minMs: 0, maxMs: 0, samples: [], iterations: 0 };
+      wasmStats = result.perTarget.wasm ??
+        { coldMs: 0, warmMedianMs: 0, minMs: 0, maxMs: 0, samples: [], iterations: 0 };
+      statusEl.textContent = "✓ Complete (real DOM)";
+      statusEl.className = "playground-status passed";
+      renderPerformanceReport(metricsEl, jsStats, wasmStats, iterations);
+      const domNote = document.createElement("p");
+      domNote.className = "notice";
+      domNote.textContent = result.detail?.note ??
+        "Real-DOM iframe run: the demo page applied the frozen trace to an actual rendered UI.";
+      metricsEl.append(domNote);
+      if ((result.consoleErrors ?? []).length > 0) {
+        const errNote = document.createElement("p");
+        errNote.className = "notice warning";
+        errNote.textContent = `Console errors observed: ${result.consoleErrors.join("; ")}`;
+        metricsEl.append(errNote);
+      }
+      return {
+        slug: config.slug,
+        title: config.title,
+        passed: true,
+        jsStats,
+        wasmStats,
+        mode: "real-dom-iframe",
+      };
+    }
     // Surface per-iteration progress so long cards never sit silent.
     const report = (label) => ({ iteration, total }) => {
       statusEl.textContent = `Running ${label} — iteration ${iteration}/${total}…`;
