@@ -75,9 +75,6 @@ export async function handleReportingRoute(
     if (request.method !== "GET") {
       return json({ error: "method denied" }, 405);
     }
-    if (serverMode === "public") {
-      return json({ error: "run records are not exposed by the public service" }, 403);
-    }
     if (!config.kvStore) {
       return json({ error: "KV store unavailable" }, 503);
     }
@@ -200,11 +197,8 @@ async function handlePostRuns(
 async function handleGetRuns(
   url: URL,
   config: ReportingConfig,
-  serverMode: "local" | "public",
+  _serverMode: "local" | "public",
 ): Promise<Response> {
-  if (serverMode === "public") {
-    return json({ error: "run records are not exposed by the public service" }, 403);
-  }
   if (!config.kvStore) {
     return json({ error: "KV store unavailable" }, 503);
   }

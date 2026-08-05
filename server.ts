@@ -1,6 +1,8 @@
 import { LocalRunStore } from "./lib/run-store.ts";
 import { generateSummary } from "./lib/summary.ts";
 import { CorpusCoordinator } from "./lib/corpus-store.ts";
+import { KvRunStore } from "./lib/kv-store.ts";
+import { handleReportingRoute, type ReportingConfig } from "./lib/reporting-api.ts";
 import { collectorRouteHashes } from "./lib/source-identity.ts";
 import { IMAGE_DEMO_ROUTES } from "./lib/image-demo-registry.ts";
 import { TRADITIONAL_DEMO_ROUTES } from "./lib/traditional-demo-registry.ts";
@@ -26,6 +28,23 @@ if (defaultStore) await defaultStore.initialize();
 const defaultCorpus = mode === "local"
   ? new CorpusCoordinator(new URL("raw/corpora/", root).pathname)
   : null;
+
+// Initialize KV store for M3 reporting API if available
+// Deno Deploy provides Deno.openKv(); local mode may not unless --unstable-kv
+let reportingKv: Deno.Kv | null = null;
+let reportingStore: KvRunStore | null = null;
+try {
+  if (typeof Deno.openKv === "function") {
+    reportingKv = await Deno.openKv();
+    reportingStore = new KvRunStore(reportingKv);
+  }
+} catch {
+  // KV not available (local mode without --unstable-kv flag)
+}
+const reportingConfig: ReportingConfig = {
+  kvStore: reportingStore,
+  reporterToken: Deno.env.get("WASM_VS_JS_REPORTER_TOKEN") ?? null,
+};
 const port = Number(Deno.env.get("PORT") ?? "8787");
 const host = Deno.env.get("HOST") ?? (mode === "public" ? "0.0.0.0" : "127.0.0.1");
 const MAX_BODY = 512 * 1024;
@@ -1946,6 +1965,19 @@ function createHandler(
   if (serverMode === "local" && !store) throw new Error("local store required");
   return async function handler(request: Request): Promise<Response> {
     const url = new URL(request.url);
+
+    // M3 reporting API: handle /v1/ routes before the public read-only block.
+    // POST /v1/runs is the only non-GET allowed in public mode (schema-validated ingestion).
+    if (url.pathname.startsWith("/v1/")) {
+      const response = await handleReportingRoute(
+        request,
+        url,
+        reportingConfig,
+        serverMode,
+      );
+      if (response) return response;
+    }
+
     if (serverMode === "public" && request.method !== "GET" && request.method !== "HEAD") {
       return json({ error: "public service is permanently read-only" }, 403);
     }
