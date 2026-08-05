@@ -342,6 +342,15 @@ try {
   console.log(allOk ? "SMOKE OK" : `SMOKE FAILED (${results.filter((r) => !r.ok).length} checks)`);
   Deno.exit(allOk ? 0 : 1);
 } finally {
+  await cleanupBrowser();
+}
+
+// CDP lifecycle: always disconnect the browser and kill the server, even when
+// the process is terminated by SIGINT/SIGTERM (Deno's default handler skips the
+// finally block and leaks the headless chrome — the 2026-08-05 OOM incident
+// left 4 orphaned cdp-smoke trees running for hours). SIGKILL cannot be caught;
+// the chrome-sweep timer (journal scripts/sweep-orphans.sh) reaps those.
+async function cleanupBrowser() {
   try {
     await cdp?.send("Browser.close", {}, undefined, 5_000);
   } catch { /* closing */ }
@@ -363,3 +372,14 @@ try {
   await server?.status.catch(() => {});
   await Deno.remove(profile, { recursive: true }).catch(() => {});
 }
+
+let cleaning = false;
+async function teardownOnSignal(signal: string) {
+  if (cleaning) return;
+  cleaning = true;
+  console.error(`\n${signal}: tearing down CDP browser + server`);
+  await cleanupBrowser();
+  Deno.exit(130);
+}
+Deno.addSignalListener("SIGINT", () => { void teardownOnSignal("SIGINT"); });
+Deno.addSignalListener("SIGTERM", () => { void teardownOnSignal("SIGTERM"); });
