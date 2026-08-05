@@ -4,7 +4,6 @@ const rootDir = new URL("../", import.meta.url).pathname.replace(/\/$/, "");
 const ARTIFACTS = `${rootDir}/public/artifacts/multilang-wasm-benchmark`;
 
 // V8's js-string builtins option is not in the TS WebAssembly types.
-const JS_STRING_BUILTINS = { builtins: ["js-string"] } as unknown as WebAssembly.ModuleImports;
 
 const PREFIXES = [
   "http://",
