@@ -23,10 +23,12 @@ export const PROTOBUF_CFT = {
 } as const;
 
 export const PROTOBUF_ROUTE_HASHES = {
-  "/benchmarks/serialization-protobuf-gateway/": "cc10e133f6f3b3a69c14440a747f0db3e5901743ccab9d5d28dc4679e59b9b79",
+  "/benchmarks/serialization-protobuf-gateway/":
+    "cc10e133f6f3b3a69c14440a747f0db3e5901743ccab9d5d28dc4679e59b9b79",
   "/benchmarks/serialization-protobuf-gateway/protobuf-runner.js":
     "84dff9ccdf4f71b4fcbc1652236e75e00cea7f5a9780e4384ba35e3b38cb38df",
-  "/benchmarks/serialization-protobuf-gateway/protobuf-worker.js": "b4beef870bc003ea042fbe8744ef2515372f2825defed9018cf6f45fca876efe",
+  "/benchmarks/serialization-protobuf-gateway/protobuf-worker.js":
+    "b4beef870bc003ea042fbe8744ef2515372f2825defed9018cf6f45fca876efe",
   "/benchmarks/base/serialization-protobuf-gateway/workload.js":
     "f344d7a5e084b792a5354f8edd805893377dd65814ba14528f63b10b153b9214",
   "/benchmarks/base/serialization-protobuf-gateway/implementation-contract.v1.json":
