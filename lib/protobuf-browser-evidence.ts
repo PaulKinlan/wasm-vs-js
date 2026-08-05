@@ -1,8 +1,8 @@
 import { sha256Hex } from "./canonical.ts";
 
 export const PROTOBUF_SOURCE = {
-  commit: "ae8e0c9f96052d302a4470299695ce996580080a",
-  tree: "b44fd9f301954789fc572a2006f7cf968622967f",
+  commit: "788891fc7bfa448e2b6d6c04f62dc6e5fa320dce",
+  tree: "4321a09f62b5c94a70d7dcf5daa454a10ac67ae6",
   workload: "serialization.protobuf-gateway.v1",
 } as const;
 
@@ -24,9 +24,9 @@ export const PROTOBUF_CFT = {
 
 export const PROTOBUF_ROUTE_HASHES = {
   "/benchmarks/serialization-protobuf-gateway/":
-    "ec3d9f3196d2a8df78adf9df492ef35cac63bd949a82a79529d46a5a110a7609",
+    "e6ae66ee1267d2ad5d670c850af11728a8ae8b7577c98e18867080859cce2704",
   "/benchmarks/serialization-protobuf-gateway/protobuf-runner.js":
-    "84dff9ccdf4f71b4fcbc1652236e75e00cea7f5a9780e4384ba35e3b38cb38df",
+    "79ed576790161631bff18905e8cd9e07286b8b41833187b7622f083edc2bb444",
   "/benchmarks/serialization-protobuf-gateway/protobuf-worker.js":
     "e145533fffcebfc59a2589680f3142d0449e414c1ac86f6a7b8b8fb6abf56705",
   "/benchmarks/base/serialization-protobuf-gateway/workload.js":
@@ -40,8 +40,8 @@ export const PROTOBUF_ROUTE_HASHES = {
   "/artifacts/serialization-protobuf-gateway/output-manifest.json":
     "cc0a8e47fdac91129fa228ee6a87b38aab61a03ecadbc0d82e7e3563bda01adc",
   "/artifacts/serialization-protobuf-gateway/build-manifest.json":
-    "7a477ceec803b3792768bcf0bad10b2bf3a19c8602ea12f671a81ec723c1d440",
-  "/styles.css": "70e73af276a14dc39b7863f586ee6aca89c2e986dffed32e71cf799ef35e3a6b",
+    "29c60d70b21d4297ef4c5c1fdfb6e19f429c7b3899f0d285c2040d41048ab0d8",
+  "/styles.css": "cd79145627a450d2ae478a7dee1b394df146bf43f4fc9fe7e22fd5f501c9ac39",
   "/favicon.ico": "ee6c407626f2432b805e7c07252226f0b7852a591f1562fbbb0f31e0f786dffc",
 } as const;
 
