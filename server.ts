@@ -1850,6 +1850,10 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "myers_diff_rs.wasm",
       "myers_diff_dart.wasm",
       "myers_diff_dart.mjs",
+      "scan_log_c.wasm",
+      "scan_log_cpp.wasm",
+      "scan_log_dart.wasm",
+      "scan_log_dart.mjs",
     ]
   ) {
     const type = file.endsWith(".wasm") ? "application/wasm" : "text/javascript; charset=utf-8";
