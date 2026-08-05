@@ -58,7 +58,7 @@ Tasks are ordered by dependency. A checked box means the exact acceptance criter
 - [x] Add representative T2 numeric, parsing, compression, image, and graph kernels.
 - [x] Add T4 JS→Wasm, Wasm→JS, round-trip, copy, string, refs, callbacks, and batching tests.
 - [ ] Add Track B optimization logs and independent JS/Wasm improvements.
-- [ ] Add reviewed WasmGC and hybrid implementations where the workload has a meaningful equivalent; otherwise publish the missing-cell reason.
+- [x] Add reviewed WasmGC and hybrid implementations where the workload has a meaningful equivalent; otherwise publish the missing-cell reason. (17 workloads with full multi-language support: sum/fft, diff, regex, mlp, GEMM, SHA-256, polybench, audio-fir/stft, json, nbody, ecs, olap, pcap, image-editing; DOM/platform-bound workloads publish documented exclusions in docs/multilang-expansion.md)
 - [ ] Add `-O3`/`-Oz`, scalar/SIMD, Wasm feature/compiler flags, and other named build variants where supported; retain exact defaults and never silently substitute a non-default mode.
 - [ ] Add named JavaScript platform optimization-hint/attribute variants with support probes and dated ChromeStatus plus browser/engine source provenance.
 - [x] Add worker creation, clone/transfer/shared-memory, and 1/2/4/N scaling workloads.
