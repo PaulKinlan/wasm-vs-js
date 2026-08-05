@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "workloadId": "graphics.gltf-viewer.v1",
   "status": "static-validation-passed-browser-pending",
-  "sourceCommit": "bb9f360b132a402ac63bbc2f3338cc6801c7e541",
+  "sourceCommit": "bcbf035de093de766f496985857e846752e67f71",
   "assertions": {
     "catalogImmutable": true,
     "rightsAudited": true,
