@@ -167,23 +167,22 @@ export function assertRunningExecutable(
   ) throw new Error("running Chrome executable differs from reviewed staged binary");
 }
 
-async function processesInCgroup(cgroupPath: string): Promise<number[]> {
-  // Walk /proc for processes whose cgroup membership includes the unit's
-  // control group (systemd-run --user places the whole unit tree there).
-  const wanted = cgroupPath.replace(/^\/sys\/fs\/cgroup\/?/, "");
-  const pids: number[] = [];
-  for await (const entry of Deno.readDir("/proc")) {
-    if (!/^\d+$/.test(entry.name)) continue;
-    try {
-      const cgroup = new TextDecoder().decode(
-        await Deno.readFile(`/proc/${entry.name}/cgroup`),
-      );
-      if (cgroup.split("\n").some((line) => line.endsWith(wanted))) pids.push(Number(entry.name));
-    } catch {
-      // process vanished mid-scan; ignore
-    }
+async function processesInCgroup(
+  cgroupPath: string,
+  cgroupDev: number,
+  cgroupIno: number,
+): Promise<number[]> {
+  // Read the unit's cgroup.procs via its authenticated identity (systemd-run
+  // --user places the whole unit tree there). Avoids a /proc walk, which is
+  // both slower and needs unrestricted /proc permissions.
+  const identity = await cgroupIdentity(cgroupPath);
+  if (identity.dev !== cgroupDev || identity.ino !== cgroupIno) {
+    throw new Error("unit cgroup identity changed during argument verification");
   }
-  return pids;
+  const text = await Deno.readTextFile(`${cgroupPath}/cgroup.procs`);
+  return text.split(/\s+/).filter(Boolean).map(Number).filter((pid) =>
+    Number.isSafeInteger(pid) && pid > 1
+  );
 }
 
 async function commandLine(pid: number, procRoot = "/proc"): Promise<string[]> {
@@ -268,7 +267,6 @@ async function cleanupUnit(
     }
     const deadline = Date.now() + 5_000;
     let remaining: number[] = [];
-    let cgroupGone = false;
     while (Date.now() < deadline) {
       try {
         remaining = await readCgroupMembers(ledger);
@@ -277,7 +275,6 @@ async function cleanupUnit(
         // The cgroup was unlinked mid-drain (systemd --collect after the
         // kill): a vanished cgroup means no members remain by definition.
         if (error instanceof Error && error.message.includes("ENODEV")) {
-          cgroupGone = true;
           remaining = [];
           break;
         }
@@ -426,7 +423,7 @@ export async function launchOwnedChrome(options: {
     // cmdline is unreliable for argument verification. The executable match
     // above is the containment proof; verify the launch arguments via the
     // unit's process tree instead (the zygote/utility children carry them).
-    const cgroupMatches = await processesInCgroup(cgroupPath);
+    const cgroupMatches = await processesInCgroup(cgroupPath, cgroup.dev, cgroup.ino);
     if (cgroupMatches.length === 0) throw new Error("systemd Chrome unit cgroup has no processes");
     for (const arg of launchArguments) {
       const seen = cgroupMatches.some(async (pid) =>
