@@ -40,7 +40,7 @@ export const PROTOBUF_ROUTE_HASHES = {
   "/artifacts/serialization-protobuf-gateway/output-manifest.json":
     "cc0a8e47fdac91129fa228ee6a87b38aab61a03ecadbc0d82e7e3563bda01adc",
   "/artifacts/serialization-protobuf-gateway/build-manifest.json":
-    "7a477ceec803b3792768bcf0bad10b2bf3a19c8602ea12f671a81ec723c1d440",
+    "29c60d70b21d4297ef4c5c1fdfb6e19f429c7b3899f0d285c2040d41048ab0d8",
   "/styles.css": "70e73af276a14dc39b7863f586ee6aca89c2e986dffed32e71cf799ef35e3a6b",
   "/favicon.ico": "ee6c407626f2432b805e7c07252226f0b7852a591f1562fbbb0f31e0f786dffc",
 } as const;
