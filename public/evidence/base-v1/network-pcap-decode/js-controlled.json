@@ -4,7 +4,7 @@
   "workloadId": "network.pcap-decode.v1",
   "variantId": "js-controlled",
   "target": "javascript",
-  "sourceCommit": "11554cbc25746486b3eaed999f33b601f45b29eb",
+  "sourceCommit": "2d57d8b62976c80d53ad8ba4a290b217b82aa1d8",
   "performanceClaims": [],
   "input": {
     "bytes": 663,
@@ -54,6 +54,6 @@
   },
   "buildManifest": {
     "path": "public/artifacts/base-network-pcap-decode/build-manifest.json",
-    "sha256": "2b37e9d51731c27ab27c536f178594a2e7fc2beacb3a6c66e9bedea19ffa2ded"
+    "sha256": "97e6d51dbfc0e80f38780626e9bd7f21038e653964367b4c886d5186a4e4fcf1"
   }
 }
