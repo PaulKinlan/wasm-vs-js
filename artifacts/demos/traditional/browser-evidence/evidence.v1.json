@@ -28,7 +28,11 @@
   },
   "cleanup": {
     "browser": {
-      "exit": { "code": 0, "signal": null, "success": true },
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "success": true
+      },
       "launcher": {
         "executable": "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome",
         "parentPid": 1308698,
@@ -113,7 +117,11 @@
       "removed": true
     },
     "server": {
-      "exit": { "code": 143, "signal": "SIGTERM", "success": false },
+      "exit": {
+        "code": 143,
+        "signal": "SIGTERM",
+        "success": false
+      },
       "launcher": {
         "executable": "/home/paulkinlan/.local/share/mise/installs/deno/2.9.0/bin/deno",
         "parentPid": 1308698,
@@ -130,7 +138,10 @@
   "scenarios": [
     {
       "action": "complete",
-      "assertions": ["visible Start control completed", "oracle and exact work counters matched"],
+      "assertions": [
+        "visible Start control completed",
+        "oracle and exact work counters matched"
+      ],
       "console": [],
       "exceptions": [],
       "finalStatus": "1 MiB / 20-pattern reduced regex fixture completed; oracle and work counters match exactly.",
@@ -214,7 +225,10 @@
     },
     {
       "action": "complete",
-      "assertions": ["visible Start control completed", "oracle and exact work counters matched"],
+      "assertions": [
+        "visible Start control completed",
+        "oracle and exact work counters matched"
+      ],
       "console": [],
       "exceptions": [],
       "finalStatus": "1 MiB / 20-pattern reduced regex fixture completed; oracle and work counters match exactly.",
@@ -287,7 +301,10 @@
     },
     {
       "action": "complete",
-      "assertions": ["visible Start control completed", "oracle and exact work counters matched"],
+      "assertions": [
+        "visible Start control completed",
+        "oracle and exact work counters matched"
+      ],
       "console": [],
       "exceptions": [],
       "finalStatus": "1 MiB / 20-pattern reduced regex fixture completed; oracle and work counters match exactly.",
@@ -637,9 +654,13 @@
     }
   ],
   "schemaVersion": 1,
-  "server": { "launcherPid": 1308712, "mode": "public", "origin": "http://127.0.0.1:35627" },
+  "server": {
+    "launcherPid": 1308712,
+    "mode": "public",
+    "origin": "http://127.0.0.1:35627"
+  },
   "source": {
-    "commit": "",
-    "tree": "^{tree}"
+    "commit": "694ab550ae866134a08596bc9d932aea577ebece",
+    "tree": "8ca7122c86830eaa6601cdb971bdb88935cd6832"
   }
 }
