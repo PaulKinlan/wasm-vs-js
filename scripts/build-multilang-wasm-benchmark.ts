@@ -2114,8 +2114,12 @@ const NBODY_ITERATIONS = 60;
 const NBODY_DT = 0.01, NBODY_GRAVITY = 0.0001, NBODY_SOFT2 = 0.0001;
 
 function nbodyFixture(n = NBODY_N) {
-  const mass = new Float64Array(n), px = new Float64Array(n), py = new Float64Array(n),
-    pz = new Float64Array(n), vx = new Float64Array(n), vy = new Float64Array(n),
+  const mass = new Float64Array(n),
+    px = new Float64Array(n),
+    py = new Float64Array(n),
+    pz = new Float64Array(n),
+    vx = new Float64Array(n),
+    vy = new Float64Array(n),
     vz = new Float64Array(n);
   let st = 0x31c0ffee;
   const xorshift = () => {
@@ -2126,21 +2130,37 @@ function nbodyFixture(n = NBODY_N) {
   };
   const unit = (v: number) => v / 0x1_0000_0000;
   for (let i = 0; i < n; i++) {
-    st = xorshift(); mass[i] = 0.5 + unit(st) * 1.5;
-    st = xorshift(); px[i] = unit(st) * 2 - 1;
-    st = xorshift(); py[i] = unit(st) * 2 - 1;
-    st = xorshift(); pz[i] = unit(st) * 2 - 1;
-    st = xorshift(); vx[i] = (unit(st) * 2 - 1) * 0.001;
-    st = xorshift(); vy[i] = (unit(st) * 2 - 1) * 0.001;
-    st = xorshift(); vz[i] = (unit(st) * 2 - 1) * 0.001;
+    st = xorshift();
+    mass[i] = 0.5 + unit(st) * 1.5;
+    st = xorshift();
+    px[i] = unit(st) * 2 - 1;
+    st = xorshift();
+    py[i] = unit(st) * 2 - 1;
+    st = xorshift();
+    pz[i] = unit(st) * 2 - 1;
+    st = xorshift();
+    vx[i] = (unit(st) * 2 - 1) * 0.001;
+    st = xorshift();
+    vy[i] = (unit(st) * 2 - 1) * 0.001;
+    st = xorshift();
+    vz[i] = (unit(st) * 2 - 1) * 0.001;
   }
   return { mass, px, py, pz, vx, vy, vz };
 }
 
-function jsNbody(f: {
-  mass: Float64Array; px: Float64Array; py: Float64Array; pz: Float64Array;
-  vx: Float64Array; vy: Float64Array; vz: Float64Array;
-}, n = NBODY_N, steps = NBODY_STEPS) {
+function jsNbody(
+  f: {
+    mass: Float64Array;
+    px: Float64Array;
+    py: Float64Array;
+    pz: Float64Array;
+    vx: Float64Array;
+    vy: Float64Array;
+    vz: Float64Array;
+  },
+  n = NBODY_N,
+  steps = NBODY_STEPS,
+) {
   const ax = new Float64Array(n), ay = new Float64Array(n), az = new Float64Array(n);
   const accelerations = () => {
     for (let i = 0; i < n; i++) {
@@ -2205,9 +2225,22 @@ function nbodyLinearFn(key: string): () => void {
     new Float64Array(mem.buffer, off(5), NBODY_N).set(f.vy);
     new Float64Array(mem.buffer, off(6), NBODY_N).set(f.vz);
     (inst.exports.nbody_step as (...args: number[]) => void)(
-      off(0), off(1), off(2), off(3), off(4), off(5), off(6),
-      off(7), off(8), off(9), off(10),
-      NBODY_N, NBODY_STEPS, NBODY_DT, NBODY_GRAVITY, NBODY_SOFT2,
+      off(0),
+      off(1),
+      off(2),
+      off(3),
+      off(4),
+      off(5),
+      off(6),
+      off(7),
+      off(8),
+      off(9),
+      off(10),
+      NBODY_N,
+      NBODY_STEPS,
+      NBODY_DT,
+      NBODY_GRAVITY,
+      NBODY_SOFT2,
     );
   };
 }
@@ -2231,10 +2264,22 @@ const nbodyVariants: Record<string, number> = {};
   const dartFn = () => {
     const f = nbodyFixture();
     nbodyDart.nbody_step(
-      f.mass, f.px, f.py, f.pz, f.vx, f.vy, f.vz,
-      new Float64Array(NBODY_N), new Float64Array(NBODY_N), new Float64Array(NBODY_N),
+      f.mass,
+      f.px,
+      f.py,
+      f.pz,
+      f.vx,
+      f.vy,
+      f.vz,
+      new Float64Array(NBODY_N),
+      new Float64Array(NBODY_N),
+      new Float64Array(NBODY_N),
       new Float64Array(NBODY_N * 6),
-      NBODY_N, NBODY_STEPS, NBODY_DT, NBODY_GRAVITY, NBODY_SOFT2,
+      NBODY_N,
+      NBODY_STEPS,
+      NBODY_DT,
+      NBODY_GRAVITY,
+      NBODY_SOFT2,
     );
   };
   for (let i = 0; i < 5; i++) dartFn();
@@ -3071,7 +3116,8 @@ const report = {
           memoryPageCount: 2,
           importsCount: countImports(nbodyBytes.dart),
           exportsCount: 9,
-          notes: "WasmGC; native f64 doubles, same IEEE op order — bit-identical, no emulation cost.",
+          notes:
+            "WasmGC; native f64 doubles, same IEEE op order — bit-identical, no emulation cost.",
         },
       ],
     },
