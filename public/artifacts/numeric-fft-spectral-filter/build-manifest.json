@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "b795a119e9cf4256876aad5d89b137f572da37db",
-  "sourceSha256": "c064ef48325cf96de901d43fd2203af24bd8b0c98e96ca3613d5bc8c0740ad3e",
+  "sourceCommit": "4328f892cf424e9da95db9b7dcd488523739af8e",
+  "sourceSha256": "c6f433a6d9fc1dfc5304155fc4daa30d00a5af0726fad23549a3f61fdbea9f02",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -55,8 +55,8 @@
     },
     {
       "path": "deno.json",
-      "bytes": 2497,
-      "sha256": "1e439fe47deecb16a7528be9220f543fd5587b82181819e5cb967877ec407cc0"
+      "bytes": 2511,
+      "sha256": "6e7d4ada141dace47aaa5de4c42deadea84462a049ec9f5e3273b425f0943b41"
     },
     {
       "path": "deno.lock",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "5c17a7ecce04abd45666f643ac7c21746ebfcee44b98835ce4d66718bcf3ac18"
+      "sha256": "b9f06571bbb6b89f930aba184097d137903e4107e8739e4fa98e35dc7cecf335"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "08ae102daf621c7961a8f2c3153bf505550e769c906b6550fb8661eddef38f66"
+      "sha256": "76fb44de5a81ecfd138038e7a66a67ec20659009f69db925d8937c04dc9c8e0d"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=b795a119e9cf4256876aad5d89b137f572da37db"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=4328f892cf424e9da95db9b7dcd488523739af8e"
   }
 }
