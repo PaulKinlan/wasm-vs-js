@@ -258,9 +258,7 @@ await Promise.all([
     // measured 2026-08-05: 1.2s start inflated rigid 13.0 -> 13.6-14.0.
     const isServerHeavy = file.endsWith("runner-worker-contracts.test.ts") ||
       file.endsWith("m2-js-variants.test.ts");
-    await new Promise((resolve) =>
-      setTimeout(resolve, isServerHeavy ? 4000 : 1200)
-    );
+    await new Promise((resolve) => setTimeout(resolve, isServerHeavy ? 4000 : 1200));
     await runStage({
       name: `test-heavy-${
         file.replace(/^tests\//, "").replace(/\.test\.ts$/, "").replaceAll("/", "-")
