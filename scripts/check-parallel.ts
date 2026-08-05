@@ -141,6 +141,8 @@ const HEAVY_READERS = [
   "tests/audio-harness-stft.test.ts",
   "tests/base-gltf-viewer.test.ts",
   "tests/corpus-operation-dispatch.test.ts",
+  "tests/m2-js-variants.test.ts",
+  "tests/runner-worker-contracts.test.ts",
   "tests/v2/ml-neural-allocations.test.ts",
   "tests/v2/ml-neural-build-records.test.ts",
   "tests/v2/ml-neural-counters-phases.test.ts",
