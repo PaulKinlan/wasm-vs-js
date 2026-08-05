@@ -1,6 +1,6 @@
 import { assert } from "./assert.ts";
 import { generateFixture } from "../benchmarks/base/simulation-nbody/fixture.js";
-import { decodeResult, runJavaScript } from "../benchmarks/base/simulation-nbody/engine.js";
+import { runJavaScript } from "../benchmarks/base/simulation-nbody/engine.js";
 import {
   BODY_COUNT,
   DT,
