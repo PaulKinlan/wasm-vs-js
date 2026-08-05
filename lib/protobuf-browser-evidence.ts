@@ -24,9 +24,9 @@ export const PROTOBUF_CFT = {
 
 export const PROTOBUF_ROUTE_HASHES = {
   "/benchmarks/serialization-protobuf-gateway/":
-    "ec3d9f3196d2a8df78adf9df492ef35cac63bd949a82a79529d46a5a110a7609",
+    "e6ae66ee1267d2ad5d670c850af11728a8ae8b7577c98e18867080859cce2704",
   "/benchmarks/serialization-protobuf-gateway/protobuf-runner.js":
-    "84dff9ccdf4f71b4fcbc1652236e75e00cea7f5a9780e4384ba35e3b38cb38df",
+    "79ed576790161631bff18905e8cd9e07286b8b41833187b7622f083edc2bb444",
   "/benchmarks/serialization-protobuf-gateway/protobuf-worker.js":
     "e145533fffcebfc59a2589680f3142d0449e414c1ac86f6a7b8b8fb6abf56705",
   "/benchmarks/base/serialization-protobuf-gateway/workload.js":

@@ -4,13 +4,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
-    <title>Authenticated stream demo | Wasm versus JavaScript</title>
     <meta name="description"
-      content="Run the frozen 10,000-frame ChaCha20-Poly1305 base workload in controlled JavaScript or linear WebAssembly.">
+      content="Authenticated stream benchmark: RFC 8439 ChaCha20-Poly1305 over 10,000 frames in JavaScript and linear WebAssembly.">
+    <title>Authenticated message stream · Wasm vs JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
-    <script type="module" src="/crypto-authenticated-stream-demo.js"></script>
+    <script type="module" src="/unified-runner.js"></script>
   </head>
-  <body>
+  <body data-workload="crypto-authenticated-stream" data-demo="crypto-authenticated-stream">
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
@@ -19,53 +19,120 @@
       <a href="/evidence/">Evidence</a>
       <strong>data v1</strong>
     </header>
-    <main id="main" class="narrative" tabindex="-1">
-      <p class="eyebrow">Runnable correctness demo · crypto.authenticated-stream.v1</p>
-      <h1>Authenticated message stream</h1>
-      <p
-        class="notice"><strong>No performance or constant-time claim.</strong> The full mode seals, verifies, and opens exactly 10,000 generated frames with RFC 8439 ChaCha20-Poly1305. It stores and uploads nothing.</p>
-      <form id="demo-form">
-        <fieldset>
-          <legend>Controlled target</legend>
-          <label
-            for="variant">Engine<select id="variant" name="variant"><option value="js-controlled">JavaScript controlled</option><option value="wasm-linear-controlled">Linear Wasm controlled</option></select></label>
-          <label
-            for="mode">Work contract<select id="mode" name="mode"><option value="bounded">Bounded preview · 256 frames</option><option value="exact">Full exact contract · 10,000 frames</option></select></label>
-        </fieldset>
-        <p id="limits"
-          class="hint">A fresh module worker runs each attempt. The worker is terminated after 120 seconds, on Cancel, or when the page is hidden.</p>
-        <div
-          class="actions"><button id="start" type="submit">Start</button><button id="cancel" type="button" disabled>Cancel</button></div>
-      </form>
-      <h2>Correctness result</h2>
-      <p id="status" role="status" aria-live="polite">Ready.</p>
-      <pre id="output" class="demo-output" tabindex="0">No result yet.</pre>
-      <h2>Exact contract</h2>
-      <p>The two targets use the same fixed key, unique 96-bit nonce schedule, associated data, payload generator, frame sizes, seal/open order, transcript oracle, and work counters. Changed tags are rejected before plaintext is returned. WebCrypto, native crypto, random payloads, SIMD, threads, uploads, persistence, and performance ranking are excluded.</p>
-      <p><a href="/artifacts/crypto-authenticated-stream/build-manifest.json">Build manifest</a> · <a href="/artifacts/crypto-authenticated-stream/output-manifest.json">Complete oracle</a> · <a href="/benchmarks/base/crypto-authenticated-stream/registration.v1.json">Supplemental registration</a></p>
+    <main id="main">
+      <header>
+        <p class="eyebrow">Cryptography Workload · 10,000 Frames · crypto.authenticated-stream.v1</p>
+        <h1>Authenticated message stream</h1>
+        <p class="lede">
+          Seals, verifies, and opens exactly 10,000 generated frames with RFC 8439 ChaCha20-Poly1305.
+          Both targets run the identical frozen stream; exact transcript output is verified before any timing. The page uploads and stores nothing.
+        </p>
+      </header>
 
-      <section class="detail-grid" aria-label="Workload details">
-        <div class="detail-card">
-          <h2>What it does</h2>
-          <p>Encrypts, verifies, and decrypts 10,000 deterministic message frames with AEAD.</p>
-        </div>
-        <div class="detail-card">
-          <h2>Why compare</h2>
-          <p>ChaCha20 keystream generation and Poly1305 MAC computation over structured frames.</p>
-        </div>
-        <div class="detail-card">
-          <h2>Algorithm &amp; engine</h2>
-          <p>Category: Cryptography. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
-        </div>
-        <div class="detail-card">
-          <h2>Source &amp; build provenance</h2>
-          <ul>
-            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
-            <li><a href="/evidence/">Check implementation evidence</a></li>
-            <li><a href="/experiments/">Read the frozen experiment</a></li>
-          </ul>
-        </div>
+      <section class="demo-panel" aria-labelledby="run-heading">
+        <h2 id="run-heading">Run Benchmark Loop</h2>
+        <form id="demo-form">
+          <div class="controls">
+            <label for="target">
+              <span>Target Engine</span>
+              <select id="target" name="target" disabled>
+                <option value="both" selected>Compare Side-by-Side (JS vs Wasm)</option>
+                <option value="javascript">JavaScript Engine</option>
+                <option value="wasm">WebAssembly Engine</option>
+              </select>
+            </label>
+            <label for="iterations">
+              <span>Loop Iterations</span>
+              <select id="iterations" name="iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10">10 iterations</option>
+                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                <option value="50">50 iterations</option>
+                <option value="100">100 iterations (Sustained loop)</option>
+              </select>
+            </label>
+            <button id="start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="status" role="status" aria-live="polite">
+          Ready. Select target and loop iterations, then click Start.
+        </p>
+        <div id="perf-reporting" class="detail-grid" hidden></div>
+      </section>
+
+      <section aria-labelledby="what-heading">
+        <h2 id="what-heading">What it does</h2>
+        <p>
+          Encrypts, verifies, and decrypts 10,000 deterministic message frames with AEAD — ChaCha20
+          keystream generation and Poly1305 MAC computation over structured frames.
+        </p>
+      </section>
+
+      <section aria-labelledby="why-heading">
+        <h2 id="why-heading">Why compare Wasm vs JS</h2>
+        <p>
+          Authenticated-encryption inner loops are exactly where a linear-memory Wasm implementation
+          can differ from the JavaScript engine's own crypto paths — with a strict AEAD contract the
+          comparison stays honest.
+        </p>
+      </section>
+
+      <section aria-labelledby="exact-heading">
+        <h2 id="exact-heading">Exact contract</h2>
+        <p>
+          The two targets use the same fixed key, unique 96-bit nonce schedule, associated data,
+          payload generator, frame sizes, seal/open order, transcript oracle, and work counters.
+          Changed tags are rejected before plaintext is returned. WebCrypto, native crypto, random
+          payloads, SIMD, threads, uploads, persistence, and performance ranking are excluded.
+        </p>
+        <ul>
+          <li><a href="/artifacts/crypto-authenticated-stream/build-manifest.json">Build manifest</a></li>
+          <li><a href="/artifacts/crypto-authenticated-stream/output-manifest.json">Complete oracle</a></li>
+          <li><a href="/benchmarks/base/crypto-authenticated-stream/registration.v1.json">Supplemental registration</a></li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="correctness-heading">
+        <h2 id="correctness-heading">Correctness evidence — run the contract</h2>
+        <p class="muted">
+          The benchmark loop above times both engines. This section runs the frozen AEAD contract
+          through either engine and reports the transcript oracle + work counters — timing and
+          correctness never mix.
+        </p>
+        <form id="crypto-contract-form">
+          <div class="controls">
+            <label for="crypto-variant">Engine
+              <select id="crypto-variant" name="variant">
+                <option value="js-controlled">JavaScript controlled</option>
+                <option value="wasm-linear-controlled">Linear Wasm controlled</option>
+              </select>
+            </label>
+            <label for="crypto-mode">Work contract
+              <select id="crypto-mode" name="mode">
+                <option value="bounded">Bounded preview · 256 frames</option>
+                <option value="exact">Full exact contract · 10,000 frames</option>
+              </select>
+            </label>
+            <button id="crypto-start" type="submit">Start</button>
+            <button id="crypto-cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="crypto-status" role="status" aria-live="polite">Ready.</p>
+        <pre id="crypto-output" class="demo-output" tabindex="0">No result yet.</pre>
+        <p class="hint">A fresh module worker runs each attempt. The worker is terminated after 120
+          seconds, on Cancel, or when the page is hidden.</p>
+      </section>
+
+      <section aria-labelledby="provenance-heading">
+        <h2 id="provenance-heading">Source &amp; build provenance</h2>
+        <ul>
+          <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+          <li><a href="/evidence/">Check implementation evidence</a></li>
+          <li><a href="/experiments/">Read the frozen experiment</a></li>
+        </ul>
       </section>
     </main>
+    <script type="module" src="/crypto-authenticated-stream-demo.js"></script>
   </body>
 </html>

@@ -265,6 +265,9 @@ Deno.test("demo lifecycle uses fresh workers, tokens, timeout, cancellation and 
     new URL("public/benchmarks/crypto-authenticated-stream/index.html", root),
   );
   assert(page.includes('role="status"'));
-  assert(page.includes("No performance or constant-time claim."));
-  assert(page.includes("stores and uploads nothing"));
+  assert(page.includes("/unified-runner.js"));
+  assert(page.includes('data-workload="crypto-authenticated-stream"'));
+  assert(page.includes("Run Benchmark Loop"));
+  assert(page.includes("Correctness evidence"));
+  assert(page.includes("exact transcript output is verified before any timing"));
 });

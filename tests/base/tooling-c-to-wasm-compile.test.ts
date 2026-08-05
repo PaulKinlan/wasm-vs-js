@@ -303,7 +303,10 @@ Deno.test("demo lifecycle is bounded, stale-safe, accessible and non-persistent"
     new URL("public/benchmarks/tooling-c-to-wasm-compile-v1/worker.js", root),
   );
   assert(html.includes('role="status"'));
-  assert(html.includes("No performance claim"));
+  assert(html.includes("/unified-runner.js"));
+  assert(html.includes('data-workload="tooling-c-to-wasm-compile-v1"'));
+  assert(html.includes("Run Benchmark Loop"));
+  assert(html.includes("Correctness evidence"));
   assert(runner.includes("new Worker"));
   assert(runner.includes("worker.terminate()"));
   assert(runner.includes("runToken !== token"));

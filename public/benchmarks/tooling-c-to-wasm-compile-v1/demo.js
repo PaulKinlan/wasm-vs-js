@@ -1,10 +1,10 @@
-const form = document.querySelector("#compiler-form");
-const program = document.querySelector("#program");
-const target = document.querySelector("#target");
-const start = document.querySelector("#start");
-const cancel = document.querySelector("#cancel");
-const status = document.querySelector("#status");
-const result = document.querySelector("#result");
+const form = document.querySelector("#demo-compiler-form");
+const program = document.querySelector("#demo-program");
+const target = document.querySelector("#demo-target");
+const start = document.querySelector("#demo-start");
+const cancel = document.querySelector("#demo-cancel");
+const status = document.querySelector("#demo-status");
+const result = document.querySelector("#demo-result");
 for (let index = 1; index <= 20; index += 1) {
   const id = String(index).padStart(2, "0");
   program.add(new Option(`Program ${id}`, id));
