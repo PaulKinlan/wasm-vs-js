@@ -1,17 +1,16 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob:; worker-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'"
-    >
-    <title>ML Dense MLP · Wasm vs JavaScript</title>
+    <meta name="description"
+      content="Dense MLP benchmark: 32 inputs × 512 width × 9 layers in strict-f32 JavaScript and linear WebAssembly.">
+    <title>Dense MLP · Wasm vs JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="/unified-runner.js"></script>
   </head>
-  <body>
+  <body data-workload="ml-dense-mlp" data-demo="ml-dense-mlp">
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
@@ -20,66 +19,114 @@
       <a href="/evidence/">Evidence</a>
       <strong>data v1</strong>
     </header>
-    <main id="main" class="narrative hosted-runner">
-      <p class="eyebrow">Runnable v2 proposal demo · ml.dense-mlp.v1</p>
-      <h1>Dense MLP: 32 inputs × 512 width × 9 layers</h1>
-      <p class="notice">
-        <strong>Status: exploratory.</strong> This tab runs the controlled JS and linear-Wasm
-        variants of a strict-f32 dense MLP locally. No upload, no storage, no accepted corpus claim.
-      </p>
-      <p>
-        The worker generates deterministic input (xorshift32 seed 0x5a17c0de), runs both variants in
-        a fresh module worker, and validates every output element against the committed f64
-        reference and propagated f32 bounds across all layers.
-      </p>
-      <form id="neural-form">
-        <fieldset>
-          <legend>Protocol</legend>
-          <label>Target<select name="target" id="target-select">
-              <option value="both">Both (JS + Wasm)</option>
-              <option value="js">JavaScript only</option>
-              <option value="wasm">Wasm only</option>
-            </select></label>
-          <label>Mode<select name="mode" id="mode-select">
-              <option value="default">Default (bounded)</option>
-              <option value="exact">Exact full-contract</option>
-            </select></label>
-        </fieldset>
-        <button id="start-btn" type="submit">Start</button>
-        <button id="cancel-btn" type="button" hidden>Cancel</button>
-      </form>
-      <section aria-labelledby="progress-title" class="run-progress">
-        <h2 id="progress-title">Progress</h2>
-        <label for="run-progress" class="sr-only">Run progress</label>
-        <progress id="run-progress" value="0" max="1" aria-labelledby="progress-title"></progress>
-        <ol id="phase-log" aria-live="polite"></ol>
-      </section>
-      <section id="result-section" hidden aria-labelledby="result-title">
-        <h2 id="result-title">Result</h2>
-        <div id="result-content"></div>
+    <main id="main">
+      <header>
+        <p class="eyebrow">Machine Learning Workload · 32 × 512 × 9 · ml.dense-mlp.v1</p>
+        <h1>Dense MLP: 32 inputs × 512 width × 9 layers</h1>
+        <p class="lede">
+          Runs the controlled JS and linear-Wasm variants of a strict-f32 dense MLP: deterministic
+          input (xorshift32 seed 0x5a17c0de), fresh module worker, and every output element validated
+          against the committed f64 reference and propagated f32 bounds across all layers. Exact
+          output is verified before any timing; nothing is uploaded or stored.
+        </p>
+      </header>
+
+      <section class="demo-panel" aria-labelledby="run-heading">
+        <h2 id="run-heading">Run Benchmark Loop</h2>
+        <form id="demo-form">
+          <div class="controls">
+            <label for="target">
+              <span>Target Engine</span>
+              <select id="target" name="target" disabled>
+                <option value="both" selected>Compare Side-by-Side (JS vs Wasm)</option>
+                <option value="javascript">JavaScript Engine</option>
+                <option value="wasm">WebAssembly Engine</option>
+              </select>
+            </label>
+            <label for="iterations">
+              <span>Loop Iterations</span>
+              <select id="iterations" name="iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10">10 iterations</option>
+                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                <option value="50">50 iterations</option>
+                <option value="100">100 iterations (Sustained loop)</option>
+              </select>
+            </label>
+            <button id="start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="status" role="status" aria-live="polite">
+          Ready. Select target and loop iterations, then click Start.
+        </p>
+        <div id="perf-reporting" class="detail-grid" hidden></div>
       </section>
 
-      <section class="detail-grid" aria-label="Workload details">
-        <div class="detail-card">
-          <h2>What it does</h2>
-          <p>Evaluates a 9-layer neural network (147,456 weights) with GELU activation.</p>
-        </div>
-        <div class="detail-card">
-          <h2>Why compare</h2>
-          <p>Used in on-device AI inference and deep learning models.</p>
-        </div>
-        <div class="detail-card">
-          <h2>Algorithm &amp; engine</h2>
-          <p>Category: Neural & AI. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
-        </div>
-        <div class="detail-card">
-          <h2>Source &amp; build provenance</h2>
-          <ul>
-            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
-            <li><a href="/evidence/">Check implementation evidence</a></li>
-            <li><a href="/experiments/">Read the frozen experiment</a></li>
-          </ul>
-        </div>
+      <section aria-labelledby="what-heading">
+        <h2 id="what-heading">What it does</h2>
+        <p>
+          Dense feed-forward inference: matrix multiply + bias + activation across nine 512-wide
+          layers, in strict-f32 with a committed f64 reference oracle.
+        </p>
+      </section>
+
+      <section aria-labelledby="why-heading">
+        <h2 id="why-heading">Why compare Wasm vs JS</h2>
+        <p>
+          Dense linear algebra is the canonical Wasm-versus-JS kernel: contiguous memory access and
+          tight inner loops where a linear-memory implementation can differ from the engine's own
+          paths.
+        </p>
+      </section>
+
+      <section aria-labelledby="correctness-heading">
+        <h2 id="correctness-heading">Correctness evidence — run the neural contract</h2>
+        <p class="muted">
+          The benchmark loop above times both engines. This section runs the strict-f32 MLP contract
+          and reports the per-layer f64-reference validation — timing and correctness never mix.
+        </p>
+        <form id="neural-form">
+          <fieldset>
+            <legend>Protocol</legend>
+            <div class="controls">
+              <label>Target
+                <select name="target" id="target-select">
+                  <option value="both">Both (JS + Wasm)</option>
+                  <option value="js">JavaScript only</option>
+                  <option value="wasm">Wasm only</option>
+                </select>
+              </label>
+              <label>Mode
+                <select name="mode" id="mode-select">
+                  <option value="default">Default (bounded)</option>
+                  <option value="exact">Exact full-contract</option>
+                </select>
+              </label>
+              <button id="start-btn" type="submit">Start</button>
+              <button id="cancel-btn" type="button" hidden>Cancel</button>
+            </div>
+          </fieldset>
+        </form>
+        <section aria-labelledby="progress-title" class="run-progress">
+          <h3 id="progress-title">Progress</h3>
+          <label for="run-progress" class="sr-only">Run progress</label>
+          <progress id="run-progress" value="0" max="1" aria-labelledby="progress-title"></progress>
+          <ol id="phase-log" aria-live="polite"></ol>
+        </section>
+        <section id="result-section" hidden aria-labelledby="result-title">
+          <h3 id="result-title">Result</h3>
+          <div id="result-content"></div>
+        </section>
+      </section>
+
+      <section aria-labelledby="provenance-heading">
+        <h2 id="provenance-heading">Source &amp; build provenance</h2>
+        <ul>
+          <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+          <li><a href="/evidence/">Check implementation evidence</a></li>
+          <li><a href="/experiments/">Read the frozen experiment</a></li>
+        </ul>
       </section>
     </main>
     <script type="module" src="/benchmarks/ml-dense-mlp/neural-mlp-runner.js"></script>

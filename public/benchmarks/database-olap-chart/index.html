@@ -2,13 +2,15 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
-    <title>OLAP chart controlled workload | Wasm versus JavaScript</title>
+    <meta name="description"
+      content="OLAP chart trace benchmark: 10,000 columnar rows, five filters, sorts, and aggregations in JavaScript and linear WebAssembly.">
+    <title>Five-query OLAP chart trace · Wasm vs JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
-    <script type="module" src="/benchmarks/database-olap-chart/runner.js"></script>
+    <script type="module" src="/unified-runner.js"></script>
   </head>
-  <body>
+  <body data-workload="database-olap-chart" data-demo="database-olap-chart">
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
@@ -17,53 +19,110 @@
       <a href="/evidence/">Evidence</a>
       <strong>data v1</strong>
     </header>
-    <main id="main" class="shell">
-      <p class="eyebrow">Runnable correctness demo · database.olap-chart.v1</p>
-      <h1>Five-query OLAP chart trace</h1>
-      <p><strong>No performance claim.</strong> Each Start executes the complete frozen trace: 10,000 columnar rows, five filters, five stable sorts, five aggregations, and five canonical chart models in a fresh worker. The selected query changes only which completed chart model is displayed. Nothing is stored or uploaded.</p>
-      <section class="panel" aria-labelledby="controls-heading">
-        <h2 id="controls-heading">Controlled target</h2>
-        <form id="controls">
-          <label>Engine <select id="target"><option value="js-controlled">JavaScript controlled</option><option value="wasm-linear-controlled">Linear Wasm controlled</option></select></label>
-          <label>Chart model to display <select id="query"><option value="0">Query 1</option><option value="1">Query 2</option><option value="2">Query 3</option><option value="3">Query 4</option><option value="4">Query 5</option></select></label>
-          <button id="start" type="submit">Start complete five-query trace</button>
-          <button id="cancel" type="button" disabled>Cancel</button>
+    <main id="main">
+      <header>
+        <p class="eyebrow">Database Workload · 10,000 Rows · Five Queries · database.olap-chart.v1</p>
+        <h1>Five-query OLAP chart trace</h1>
+        <p class="lede">
+          Executes the complete frozen trace — 10,000 columnar rows, five filters, five stable sorts,
+          five aggregations, and five canonical chart models — in both engines. Exact canonical
+          output is verified before any timing. The page stores and uploads nothing.
+        </p>
+      </header>
+
+      <section class="demo-panel" aria-labelledby="run-heading">
+        <h2 id="run-heading">Run Benchmark Loop</h2>
+        <form id="demo-form">
+          <div class="controls">
+            <label for="target">
+              <span>Target Engine</span>
+              <select id="target" name="target" disabled>
+                <option value="both" selected>Compare Side-by-Side (JS vs Wasm)</option>
+                <option value="javascript">JavaScript Engine</option>
+                <option value="wasm">WebAssembly Engine</option>
+              </select>
+            </label>
+            <label for="iterations">
+              <span>Loop Iterations</span>
+              <select id="iterations" name="iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10">10 iterations</option>
+                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                <option value="50">50 iterations</option>
+                <option value="100">100 iterations (Sustained loop)</option>
+              </select>
+            </label>
+            <button id="start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="cancel" type="button" disabled>Cancel</button>
+          </div>
         </form>
-        <p id="status" role="status"
-          aria-live="polite">Ready. The worker stops after 15 seconds.</p>
-      </section>
-      <section class="panel" aria-labelledby="chart-heading">
-        <h2 id="chart-heading">Separate chart rendering</h2>
-        <p>The bars below are rendered after correctness validation and are not part of compute work.</p>
-        <div id="chart" role="img" aria-label="No chart model yet"></div>
-      </section>
-      <section class="panel" aria-labelledby="result-heading">
-        <h2 id="result-heading">Accessible canonical result</h2>
-        <pre id="result" tabindex="0">No result yet.</pre>
+        <p id="status" role="status" aria-live="polite">
+          Ready. Select target and loop iterations, then click Start.
+        </p>
+        <div id="perf-reporting" class="detail-grid" hidden></div>
       </section>
 
-      <section class="detail-grid" aria-label="Workload details">
-        <div class="detail-card">
-          <h2>What it does</h2>
-          <p>Filters, sorts, and aggregates columns while a chart user changes controls interactively.</p>
-        </div>
-        <div class="detail-card">
-          <h2>Why compare</h2>
-          <p>Columnar scan, predicate pushdown, and hash aggregation over tabular data.</p>
-        </div>
-        <div class="detail-card">
-          <h2>Algorithm &amp; engine</h2>
-          <p>Category: Database. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
-        </div>
-        <div class="detail-card">
-          <h2>Source &amp; build provenance</h2>
-          <ul>
-            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
-            <li><a href="/evidence/">Check implementation evidence</a></li>
-            <li><a href="/experiments/">Read the frozen experiment</a></li>
-          </ul>
-        </div>
+      <section aria-labelledby="what-heading">
+        <h2 id="what-heading">What it does</h2>
+        <p>
+          Filters, sorts, and aggregates columns while a chart user changes controls interactively —
+          columnar scan, predicate pushdown, and hash aggregation over tabular data.
+        </p>
+      </section>
+
+      <section aria-labelledby="why-heading">
+        <h2 id="why-heading">Why compare Wasm vs JS</h2>
+        <p>
+          Columnar data processing is a classic Wasm-versus-JS battleground: contiguous typed-array
+          scans and aggregation kernels behave differently across the two runtimes.
+        </p>
+      </section>
+
+      <section aria-labelledby="correctness-heading">
+        <h2 id="correctness-heading">Correctness evidence — run the trace</h2>
+        <p class="muted">
+          The benchmark loop above times both engines. This section runs the complete frozen
+          five-query trace through either engine and validates the canonical chart models + result —
+          timing and correctness never mix.
+        </p>
+        <form id="olap-controls">
+          <div class="controls">
+            <label>Engine
+              <select id="olap-target">
+                <option value="js-controlled">JavaScript controlled</option>
+                <option value="wasm-linear-controlled">Linear Wasm controlled</option>
+              </select>
+            </label>
+            <label>Chart model to display
+              <select id="olap-query">
+                <option value="0">Query 1</option>
+                <option value="1">Query 2</option>
+                <option value="2">Query 3</option>
+                <option value="3">Query 4</option>
+                <option value="4">Query 5</option>
+              </select>
+            </label>
+            <button id="olap-start" type="submit">Start complete five-query trace</button>
+            <button id="olap-cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="olap-status" role="status" aria-live="polite">Ready. The worker stops after 15 seconds.</p>
+        <h3>Separate chart rendering</h3>
+        <p>The bars below are rendered after correctness validation and are not part of compute work.</p>
+        <div id="olap-chart" role="img" aria-label="No chart model yet"></div>
+        <h3>Accessible canonical result</h3>
+        <pre id="olap-result" tabindex="0">No result yet.</pre>
+      </section>
+
+      <section aria-labelledby="provenance-heading">
+        <h2 id="provenance-heading">Source &amp; build provenance</h2>
+        <ul>
+          <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+          <li><a href="/evidence/">Check implementation evidence</a></li>
+          <li><a href="/experiments/">Read the frozen experiment</a></li>
+        </ul>
       </section>
     </main>
+    <script type="module" src="/benchmarks/database-olap-chart/runner.js"></script>
   </body>
 </html>
