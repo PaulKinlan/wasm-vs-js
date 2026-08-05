@@ -1854,6 +1854,7 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "ml-gemm.manifest.json",
       "multilang-wasm.manifest.json",
       "game-ecs-frame-update.manifest.json",
+      "base-dom-todomvc-journey.manifest.json",
     ]
   ) {
     routes.set(`/benchmarks/multilang-wasm/${file}`, [
@@ -1929,6 +1930,13 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "olap_rs.wasm",
       "olap_dart.wasm",
       "olap_dart.mjs",
+      "pcap_decode_c.wasm",
+      "pcap_decode_cpp.wasm",
+      "todomvc_engine_c.wasm",
+      "todomvc_engine_cpp.wasm",
+      "todomvc_engine_rs.wasm",
+      "todomvc_engine_dart.wasm",
+      "todomvc_engine_dart.mjs",
     ]
   ) {
     const type = file.endsWith(".wasm") ? "application/wasm" : "text/javascript; charset=utf-8";

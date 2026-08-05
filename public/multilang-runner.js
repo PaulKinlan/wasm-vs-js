@@ -2317,6 +2317,114 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
       return callables;
     },
   },
+  // --- dom.todomvc-journey.v1: TodoMVC 100-item state machine (mirrors engine.js
+  //     TodoJsEngine + the frozen todomvc.wat; the engine the homepage suite
+  //     runs in a worker — the real DOM journey is the page-level runner) -----
+  "dom.todomvc-journey.v1": {
+    kernels: ["todomvc_engine"],
+    build(mods) {
+      const TODO_COUNT = 100;
+      const ACTION = { ADD: 1, TOGGLE: 2, FILTER: 3, EDIT: 4, REMOVE: 5 };
+      const FILTER = { ALL: 0, ACTIVE: 1, COMPLETED: 2 };
+      // Frozen canonical trace (mirror of fixture.js generateActionTrace/
+      // encodeActionTrace): 100 adds, 34 toggles, 3 filters, 10 removes, 3 edits.
+      function fixture() {
+        const actions = [];
+        for (let id = 0; id < TODO_COUNT; id += 1) actions.push([ACTION.ADD, id, 0, 0]);
+        for (let id = 0; id < TODO_COUNT; id += 3) actions.push([ACTION.TOGGLE, id, 1, 0]);
+        actions.push([ACTION.FILTER, 0, FILTER.COMPLETED, 0]);
+        actions.push([ACTION.FILTER, 0, FILTER.ACTIVE, 0]);
+        actions.push([ACTION.FILTER, 0, FILTER.ALL, 0]);
+        for (let id = 0; id < TODO_COUNT; id += 10) actions.push([ACTION.REMOVE, id, 0, 0]);
+        actions.push([ACTION.EDIT, 5, 1, 0]);
+        actions.push([ACTION.EDIT, 55, 1, 0]);
+        actions.push([ACTION.EDIT, 95, 1, 1]);
+        const encoded = new Int32Array(actions.length * 4);
+        actions.forEach((a, i) => encoded.set(a, i * 4));
+        return encoded;
+      }
+      // Exact mirror of engine.js TodoJsEngine.run/apply.
+      function jsEngine(encoded) {
+        const flags = new Uint8Array(TODO_COUNT);
+        const versions = new Uint8Array(TODO_COUNT);
+        let filter = FILTER.ALL;
+        const counters = {
+          actions: 0, adds: 0, toggles: 0, filters: 0, removes: 0, edits: 0,
+          stateWrites: 0, commandsEmitted: 0,
+        };
+        const commands = new Int32Array(encoded.length);
+        for (let offset = 0; offset < encoded.length; offset += 4) {
+          const opcode = encoded[offset], id = encoded[offset + 1];
+          const value = encoded[offset + 2], focus = encoded[offset + 3];
+          if (opcode === ACTION.ADD) {
+            if ((flags[id] & 1) !== 0) throw new Error("duplicate add");
+            flags[id] = 1;
+            versions[id] = 0;
+            counters.adds += 1;
+            counters.stateWrites += 2;
+          } else if (opcode === ACTION.TOGGLE) {
+            if ((flags[id] & 1) === 0) throw new Error("toggle missing");
+            flags[id] ^= 2;
+            counters.toggles += 1;
+            counters.stateWrites += 1;
+          } else if (opcode === ACTION.FILTER) {
+            if (![FILTER.ALL, FILTER.ACTIVE, FILTER.COMPLETED].includes(value)) {
+              throw new Error("invalid filter");
+            }
+            filter = value;
+            counters.filters += 1;
+            counters.stateWrites += 1;
+          } else if (opcode === ACTION.EDIT) {
+            if ((flags[id] & 1) === 0 || value !== 1) throw new Error("invalid edit");
+            versions[id] = value;
+            counters.edits += 1;
+            counters.stateWrites += 1;
+          } else if (opcode === ACTION.REMOVE) {
+            if ((flags[id] & 1) === 0) throw new Error("remove missing");
+            flags[id] = 0;
+            counters.removes += 1;
+            counters.stateWrites += 1;
+          } else {
+            throw new Error("unknown opcode");
+          }
+          commands.set([opcode, id, value, focus], offset);
+          counters.actions += 1;
+          counters.commandsEmitted += 1;
+        }
+        return { commands, flags, versions, filter, counters };
+      }
+      const callables = {};
+      for (const key of ["c", "cpp", "rs"]) {
+        const inst = mods.engines[key].instances.todomvc_engine.instance;
+        const mem = inst.exports.memory;
+        callables[key] = {
+          todomvc_engine: () => {
+            const encoded = fixture();
+            const count = encoded.length / 4;
+            const inOff = 0, cmdOff = encoded.byteLength + 1024;
+            const stateOff = cmdOff + encoded.byteLength + 1024;
+            new Int32Array(mem.buffer, inOff, encoded.length).set(encoded);
+            const ret = inst.exports.run(count, inOff, cmdOff, stateOff);
+            if (ret !== count) throw new Error(`todomvc_engine ${key} run failed (${ret})`);
+          },
+        };
+      }
+      callables.js = { todomvc_engine: () => jsEngine(fixture()) };
+      callables.dart = {
+        todomvc_engine: () => {
+          const encoded = fixture();
+          const count = encoded.length / 4;
+          const input = new Uint8Array(encoded.buffer.slice(0));
+          const commands = new Uint8Array(encoded.byteLength);
+          const state = new Uint8Array(TODO_COUNT * 2 + 1);
+          const ret = mods.engines.dart.kernels.run(input, count, commands, state);
+          if (ret !== count) throw new Error(`todomvc_engine dart run failed (${ret})`);
+        },
+      };
+      return callables;
+    },
+  },
+};
 };
 
 const cache = new Map();

@@ -1,0 +1,19 @@
+{
+  "workloadId": "dom.todomvc-journey.v1",
+  "kernelLabel": "TodoMVC 100-item state machine — frozen 150-action trace",
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": ["todomvc_engine"],
+  "engines": [
+    { "key": "js", "label": "JavaScript", "kind": "js" },
+    { "key": "c", "label": "C / Wasm", "kind": "linear", "lang": "c", "offset": 0 },
+    { "key": "cpp", "label": "C++ / Wasm", "kind": "linear", "lang": "cpp", "offset": 0 },
+    { "key": "rs", "label": "Rust / Wasm", "kind": "linear", "lang": "rs", "offset": 0 },
+    {
+      "key": "dart",
+      "label": "Dart / WasmGC",
+      "kind": "dart",
+      "file": "todomvc_engine_dart.wasm",
+      "glue": "todomvc_engine_dart.mjs"
+    }
+  ]
+}

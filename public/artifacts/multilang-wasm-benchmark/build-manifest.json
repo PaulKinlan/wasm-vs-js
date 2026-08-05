@@ -4,8 +4,8 @@
   "authoritativePerformanceEvidence": false,
   "entryId": "multilang-wasm-benchmark",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "10a8f2cad78e74802057f2d6b0ccb77507d74cac",
-  "sourceSha256": "c007f80c589b4e2616bffbb7d3f81816a672afb93ade69456972b12b54df3249",
+  "sourceCommit": "aa1d13511f9f4499dc9f934a18eae044fd5f4e15",
+  "sourceSha256": "a4bb77031012fc9eae8f6dc92ae806a17fda8291d472d258292d281d7326b307",
   "fullSourceGraph": [
     {
       "path": "benchmarks/multilang-wasm/sum_u32.c",
@@ -133,6 +133,26 @@
       "sha256": "8429916aabcc1d0034fa5a850e6bce2227e87e3ef47866405d2e62896aa49e9d"
     },
     {
+      "path": "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.c",
+      "bytes": 3842,
+      "sha256": "8233adc72de88160a62cf0c47f987e1b1b5195aef656c7fb9181d5885e426453"
+    },
+    {
+      "path": "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.cpp",
+      "bytes": 2908,
+      "sha256": "7c133b4167ebf13e08499e49e158d9793e02c6c35049665d9fd097812fdaf0ae"
+    },
+    {
+      "path": "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.rs",
+      "bytes": 4302,
+      "sha256": "c7378ede76c73e529c9e6ab1bc80e5d62dc67448de8f2a8804eb4f129df23830"
+    },
+    {
+      "path": "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.dart",
+      "bytes": 3659,
+      "sha256": "ea7332ec465c07bde55741e73c117f13034bbd2711660eef3a3dfb5cbe695d38"
+    },
+    {
       "path": "benchmarks/multilang-wasm/text-diff-patch/myers_diff.c",
       "bytes": 5326,
       "sha256": "395503cf9c81d16424d6be2a92d95189f164d7ee34bb1746076535da1cc12361"
@@ -254,8 +274,8 @@
     },
     {
       "path": "scripts/build-multilang-wasm-benchmark.ts",
-      "bytes": 168839,
-      "sha256": "36f16f89382b3c14704ad8114fb601feed6bc12b5b80b7ba881877228eab852f"
+      "bytes": 178021,
+      "sha256": "967dd5f3032c1e1dc71a8e9ce75e2ea1e18efbc6b1c55ba9aa36aac45ac5a91f"
     },
     {
       "path": "tests/multilang-wasm-benchmark.test.ts",
@@ -427,7 +447,7 @@
     {
       "path": "public/artifacts/multilang-wasm-benchmark/stft_rs.wasm",
       "bytes": 4751,
-      "sha256": "ee7de5f5b18496bc0feb9e74f705ef7110d3f433f812226d1c0e4ba3b58bc640"
+      "sha256": "7d3dd71eb850a1ac6ca9823a6236c21a85fa19a054021ec83aa2053d901bd215"
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/stft_dart.wasm",
@@ -476,8 +496,8 @@
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/myers_diff_rs.wasm",
-      "bytes": 6114,
-      "sha256": "045401dcbae96ec960546c4c50ded9960ba805ee4251ccaa219593822525da95"
+      "bytes": 6110,
+      "sha256": "0f6edf051d3d2f13b43e86e75e543d5ee10a9d10459f1184e4dbd66088d4a5da"
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/myers_diff_dart.wasm",
@@ -502,7 +522,7 @@
     {
       "path": "public/artifacts/multilang-wasm-benchmark/scan_log_rs.wasm",
       "bytes": 6750,
-      "sha256": "b3ab66de7c7341269657ed771d606a4cf88b5bf0693dc4b7f57b99c232b855e6"
+      "sha256": "92c09bdce283d0ec774032b8b9a4ba24acbad0a6427bfe54bfeebc199a2dbce3"
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/scan_log_dart.wasm",
@@ -527,7 +547,7 @@
     {
       "path": "public/artifacts/multilang-wasm-benchmark/sha256_rs.wasm",
       "bytes": 5193,
-      "sha256": "fe6c656d93bd8f70495f9f09ee1b600de840243b3c0cbf374b5bf3462f2a0e32"
+      "sha256": "a59d2bd92f7d7c6b60c862a50ea850f5e035713c7f8cd0ccd4e61b3d3cab4264"
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/sha256_dart.wasm",
@@ -547,5 +567,5 @@
     "rustc": "rustc --target wasm32-unknown-unknown -O --crate-type cdylib (no_std)",
     "dart2wasm": "dart compile wasm (Dart SDK, WasmGC + js-string builtins)"
   },
-  "generatedAt": "2026-08-05T15:07:44.962Z"
+  "generatedAt": "2026-08-05T22:03:28.976Z"
 }
