@@ -1940,6 +1940,7 @@ const todomvcEncoded = (() => {
 function runTodoEngine(encoded: Int32Array): void {
   const flags = new Uint8Array(100), versions = new Uint8Array(100);
   let filter = 0;
+  const seenFilters = new Set<number>();
   const commands = new Int32Array(encoded.length);
   for (let offset = 0; offset < encoded.length; offset += 4) {
     const opcode = encoded[offset], id = encoded[offset + 1];
@@ -1954,6 +1955,7 @@ function runTodoEngine(encoded: Int32Array): void {
     } else if (opcode === 3) {
       if (value > 2) throw new Error("invalid filter");
       filter = value;
+      seenFilters.add(filter);
     } else if (opcode === 4) {
       if ((flags[id] & 1) === 0 || value !== 1) throw new Error("invalid edit");
       versions[id] = value;
@@ -1965,6 +1967,7 @@ function runTodoEngine(encoded: Int32Array): void {
     }
     commands.set([opcode, id, value, encoded[offset + 3]], offset);
   }
+  if (seenFilters.size < 3) throw new Error("todomvc trace did not exercise all three filters");
 }
 
 const todomvcVariants: Record<string, number> = {};
