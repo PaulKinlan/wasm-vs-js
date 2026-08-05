@@ -481,6 +481,636 @@ export const KERNEL_ADAPTERS = {
     },
   },
 
+  // --- serialization-json-telemetry: JSON telemetry parser (mirrors v1 telemetry.c)
+  "serialization.json-telemetry.v1": {
+    kernels: ["telemetry"],
+    build(mods) {
+      const RECORDS = 1000;
+      const ENC = new TextEncoder();
+      const regions = ["ap", "eu", "na", "sa"], kinds = ["click", "purchase", "view"];
+      const labels = ["Café", "東京", "مرحبا", "🚀"], tags = ["α", "数据", "mañana", "🧪"];
+      const regionBytes = regions.map((x) => ENC.encode(x));
+      const kindBytes = kinds.map((x) => ENC.encode(x));
+      const labelBytes = labels.map((x) => ENC.encode(x));
+      const tagBytes = tags.map((x) => ENC.encode(x));
+      function fixture() {
+        let st = 0x7e1e2026;
+        const xorshift = () => {
+          st ^= st << 13;
+          st ^= st >>> 17;
+          st ^= st << 5;
+          return st >>> 0;
+        };
+        const parts = [];
+        let total = 1;
+        for (let i = 0; i < RECORDS; i++) {
+          const r = regions[xorshift() % 4], k = kinds[xorshift() % 3];
+          const ok = (xorshift() & 1) === 1, v = xorshift() % 10000;
+          const l = labels[xorshift() % 4], t = tags[xorshift() % 4];
+          const s = `${i ? "," : ""}{"id":${i},"ts":${
+            1700000000 + i
+          },"region":"${r}","kind":"${k}","ok":${ok},"value":${v},"meta":{"label":"${l}","tag":"${t}"}}`;
+          const b = ENC.encode(s);
+          parts.push(b);
+          total += b.length;
+        }
+        const out = new Uint8Array(total + 1);
+        let o = 0;
+        out[o++] = 0x5b;
+        for (const b of parts) {
+          out.set(b, o);
+          o += b.length;
+        }
+        out[o] = 0x5d;
+        return out;
+      }
+      function jsParse(bytes) {
+        // Faithful mirror of the C telemetry parser: same fields, same
+        // vocabularies, same summary work (id/ts/value uints, region/kind/
+        // label/tag options, boolean, counters).
+        let at = 0, count = 0, okCount = 0, errCount = 0, valueSum = 0;
+        const isDigit = (b) => b >= 0x30 && b <= 0x39;
+        const expect = (s) => {
+          for (let i = 0; i < s.length; i++) {
+            if (bytes[at] !== s.charCodeAt(i)) return false;
+            at++;
+          }
+          return true;
+        };
+        const uint = () => {
+          let v = 0;
+          while (at < bytes.length && isDigit(bytes[at])) {
+            v = v * 10 + (bytes[at] - 0x30);
+            at++;
+          }
+          return v;
+        };
+        const opt = (vocab) => {
+          at++; // "
+          for (let i = 0; i < vocab.length; i++) {
+            const saved = at;
+            let ok = true;
+            for (let j = 0; j < vocab[i].length; j++) {
+              if (bytes[at + j] !== vocab[i][j]) {
+                ok = false;
+                break;
+              }
+            }
+            if (ok && bytes[at + vocab[i].length] === 0x22) {
+              at += vocab[i].length + 1;
+              return i;
+            }
+            at = saved;
+          }
+          return -1;
+        };
+        at++; // [
+        while (at < bytes.length && bytes[at] !== 0x5d) {
+          if (count) at++; // ,
+          expect('{"id":');
+          uint();
+          expect(',"ts":');
+          uint();
+          expect(',"region":');
+          opt(regionBytes);
+          expect(',"kind":');
+          opt(kindBytes);
+          expect(',"ok":');
+          const ok = bytes[at] === 0x74;
+          at += ok ? 4 : 5;
+          expect(',"value":');
+          valueSum += uint();
+          expect(',"meta":{"label":');
+          opt(labelBytes);
+          expect(',"tag":');
+          opt(tagBytes);
+          expect("}}");
+          count++;
+          okCount += ok ? 1 : 0;
+          errCount += ok ? 0 : 1;
+        }
+        return { count, okCount, errCount, valueSum };
+      }
+      const callables = {};
+      for (const key of ["wat", "asc", "c", "cpp", "rs"]) {
+        const cfg = mods.manifest.engines.find((e) => e.key === key);
+        const { instances } = mods.engines[key];
+        const call = {};
+        if (instances.sum) {
+          call.sum = () => {
+            const arr = new Uint32Array(1000);
+            for (let i = 0; i < 1000; i++) arr[i] = (i % 100) + 1;
+            new Uint32Array(instances.sum.instance.exports.memory.buffer, cfg.offset, 1000).set(
+              arr,
+            );
+            return instances.sum.instance.exports.sum_u32(cfg.offset, 1000);
+          };
+        }
+        if (instances.fft) {
+          call.fft = () => {
+            const real = new Float32Array(512);
+            const imag = new Float32Array(512);
+            for (let i = 0; i < 512; i++) {
+              real[i] = Math.sin(i * 0.1);
+              imag[i] = Math.cos(i * 0.1);
+            }
+            const mem = instances.fft.instance.exports.memory;
+            new Float32Array(mem.buffer, cfg.offset, 512).set(real);
+            new Float32Array(mem.buffer, cfg.offset + 512 * 4, 512).set(imag);
+            instances.fft.instance.exports.fft_butterfly(cfg.offset, cfg.offset + 512 * 4, 512);
+            return real[17] + imag[29];
+          };
+        }
+        callables[key] = call;
+      }
+      const { kernels } = mods.engines.dart;
+      callables.js = {
+        sum: () => {
+          const arr = new Uint32Array(1000);
+          for (let i = 0; i < 1000; i++) arr[i] = (i % 100) + 1;
+          let s = 0;
+          for (let i = 0; i < 1000; i++) s += arr[i];
+          return s;
+        },
+        fft: () => {
+          const real = new Float32Array(512);
+          const imag = new Float32Array(512);
+          for (let i = 0; i < 512; i++) {
+            real[i] = Math.sin(i * 0.1);
+            imag[i] = Math.cos(i * 0.1);
+          }
+          for (let step = 1; step < 512; step <<= 1) {
+            const angle = -Math.PI / step;
+            const wReal = Math.cos(angle);
+            const wImag = Math.sin(angle);
+            for (let i = 0; i < 512; i += step << 1) {
+              let cwR = 1.0, cwI = 0.0;
+              for (let j = 0; j < step; j++) {
+                const u = i + j, v = i + j + step;
+                const tr = real[v] * cwR - imag[v] * cwI;
+                const ti = real[v] * cwI + imag[v] * cwR;
+                real[v] = real[u] - tr;
+                imag[v] = imag[u] - ti;
+                real[u] += tr;
+                imag[u] += ti;
+                const nwR = cwR * wReal - cwI * wImag;
+                const nwI = cwR * wImag + cwI * wReal;
+                cwR = nwR;
+                cwI = nwI;
+              }
+            }
+          }
+          return real[17] + imag[29];
+        },
+      };
+      callables.dart = {
+        sum: () => {
+          const arr = new Uint32Array(1000);
+          for (let i = 0; i < 1000; i++) arr[i] = (i % 100) + 1;
+          return kernels.sum_u32(arr);
+        },
+        fft: () => {
+          const real = new Float32Array(512);
+          const imag = new Float32Array(512);
+          for (let i = 0; i < 512; i++) {
+            real[i] = Math.sin(i * 0.1);
+            imag[i] = Math.cos(i * 0.1);
+          }
+          kernels.fft_butterfly(real, imag, 512);
+          return real[17] + imag[29];
+        },
+      };
+      return callables;
+    },
+  },
+
+  // --- text-diff-patch: Myers O(ND) diff (mirrors v2 workload.js myersDiff) ----
+  "text.diff-patch.v1": {
+    kernels: ["myers_diff"],
+    build(mods) {
+      const LEN = 512, EDITS = 30;
+      function inputs() {
+        const base = new Uint32Array(LEN);
+        for (let i = 0; i < LEN; i++) base[i] = i;
+        const t = [];
+        for (let i = 0; i < LEN; i++) t.push(base[i]);
+        let st = 0xd1ff2026;
+        const rnd = () => {
+          st = (st * 1664525 + 1013904223) >>> 0;
+          return st / 4294967296;
+        };
+        for (let e = 0; e < EDITS; e++) {
+          const pos = Math.floor(rnd() * (t.length + 1));
+          if (rnd() < 0.5) t.splice(pos, 0, 0xffff0000 + e);
+          else if (t.length > 0) t.splice(Math.min(pos, t.length - 1), 1);
+        }
+        const target = new Uint32Array(t.length);
+        target.set(t);
+        return { base, target };
+      }
+      function layout(base, target) {
+        const max = base.length + target.length;
+        const vstride = 2 * max + 1;
+        const cap = base.length + target.length + 1;
+        return { max, vstride, cap };
+      }
+      const callables = {};
+      for (const key of ["c", "cpp", "rs"]) {
+        const inst = mods.engines[key].instances.myers_diff.instance;
+        const mem = inst.exports.memory;
+        callables[key] = {
+          myers_diff: () => {
+            const { base, target } = inputs();
+            const { max, vstride, cap } = layout(base, target);
+            const baseOff = 0, targetOff = 4096, scratchOff = 8192;
+            const scratchBytes = vstride * (max + 2) * 4;
+            const opOff = scratchOff + scratchBytes;
+            const xOff = opOff + cap * 4, yOff = xOff + cap * 4;
+            const edOff = yOff + cap * 4, fsOff = edOff + 4;
+            new Uint32Array(mem.buffer, baseOff, base.length).set(base);
+            new Uint32Array(mem.buffer, targetOff, target.length).set(target);
+            inst.exports.myers_diff(
+              baseOff,
+              base.length,
+              targetOff,
+              target.length,
+              opOff,
+              xOff,
+              yOff,
+              cap,
+              scratchOff,
+              vstride * (max + 2),
+              edOff,
+              fsOff,
+            );
+          },
+        };
+      }
+      callables.js = {
+        myers_diff: () => {
+          const { base, target } = inputs();
+          const { max, cap } = layout(base, target);
+          const outOp = new Uint32Array(cap),
+            outX = new Uint32Array(cap),
+            outY = new Uint32Array(cap);
+          const offset = max;
+          const v = new Int32Array(2 * max + 1);
+          let prefix = 0;
+          while (
+            prefix < base.length && prefix < target.length && base[prefix] === target[prefix]
+          ) prefix++;
+          let suffix = 0;
+          while (
+            suffix < base.length - prefix && suffix < target.length - prefix &&
+            base[base.length - 1 - suffix] === target[target.length - 1 - suffix]
+          ) suffix++;
+          const n = base.length - prefix - suffix, m = target.length - prefix - suffix;
+          const rev = [];
+          for (let index = 0; index < suffix; index++) {
+            rev.push([0, base.length - 1 - index, target.length - 1 - index]);
+          }
+          let ed = 0;
+          if (n === 0) {
+            for (let y = m - 1; y >= 0; y--) rev.push([2, prefix, prefix + y]);
+            ed = m;
+          } else if (m === 0) {
+            for (let x = n - 1; x >= 0; x--) rev.push([1, prefix + x, prefix]);
+            ed = n;
+          } else {
+            v[offset + 1] = 0;
+            const trace = [];
+            outer: for (let d = 0; d <= max; d++) {
+              for (let k = -d; k <= d; k += 2) {
+                let x = (k === -d || (k !== d && v[offset + k - 1] < v[offset + k + 1]))
+                  ? v[offset + k + 1]
+                  : v[offset + k - 1] + 1;
+                let y = x - k;
+                while (x < n && y < m && base[prefix + x] === target[prefix + y]) {
+                  x++;
+                  y++;
+                }
+                v[offset + k] = x;
+                if (x >= n && y >= m) {
+                  trace.push(v.slice());
+                  ed = d;
+                  break outer;
+                }
+              }
+              trace.push(v.slice());
+            }
+            let x = n, y = m;
+            for (let d = ed; d > 0; d--) {
+              const prior = trace[d - 1];
+              const k = x - y;
+              const down = k === -d || (k !== d && prior[offset + k - 1] < prior[offset + k + 1]);
+              const previousK = down ? k + 1 : k - 1;
+              const previousX = prior[offset + previousK];
+              const previousY = previousX - previousK;
+              while (x > previousX && y > previousY) {
+                x--;
+                y--;
+                rev.push([0, prefix + x, prefix + y]);
+              }
+              if (down) {
+                y--;
+                rev.push([2, prefix + x, prefix + y]);
+              } else {
+                x--;
+                rev.push([1, prefix + x, prefix + y]);
+              }
+            }
+          }
+          for (let index = prefix - 1; index >= 0; index--) rev.push([0, index, index]);
+          rev.reverse();
+          for (let i = 0; i < rev.length; i++) {
+            outOp[i] = rev[i][0];
+            outX[i] = rev[i][1];
+            outY[i] = rev[i][2];
+          }
+        },
+      };
+      callables.dart = {
+        myers_diff: () => {
+          const { base, target } = inputs();
+          const { max, vstride, cap } = layout(base, target);
+          mods.engines.dart.kernels.myers_diff(
+            base,
+            target,
+            new Uint32Array(cap),
+            new Uint32Array(cap),
+            new Uint32Array(cap),
+            new Uint32Array(vstride * (max + 2)),
+            cap,
+            new Uint32Array(1),
+            new Uint32Array(1),
+          );
+        },
+      };
+      return callables;
+    },
+  },
+
+  // --- text-regex-log-scan: log pattern matcher (mirrors workload.js scanControlled)
+  "text.regex-log-scan.v1": {
+    kernels: ["scan_log"],
+    build(mods) {
+      const RECORDS = 640, EVENT_INTERVAL = 10;
+      const PREFIXES = [
+        "http://",
+        "https://",
+        "ws://",
+        "wss://",
+        "ftp://",
+        "asset://",
+        "api://",
+        "cdn://",
+        "ip=",
+        "client-ip:",
+        "source-ip:",
+        "dest-ip:",
+        "peer-ip:",
+        "origin-ip:",
+        "status=",
+        "code=",
+        "http-status:",
+        "response-status:",
+        "result-status:",
+        "status-code:",
+      ];
+      const MATCHERS = [1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3];
+      function corpus() {
+        const RECORD_BYTES = 256;
+        const bytes = new Uint8Array(RECORDS * RECORD_BYTES);
+        const filler = new TextEncoder().encode("日志 café 東京 🚀 запись record ");
+        bytes.fill(0x20);
+        for (let record = 0; record < RECORDS; record++) {
+          const offset = record * RECORD_BYTES;
+          bytes.set(filler, offset);
+          const label = new TextEncoder().encode(String(record).padStart(6, "0"));
+          bytes.set(label, offset + filler.byteLength);
+          if (record % EVENT_INTERVAL === 0) {
+            const eventIndex = record / EVENT_INTERVAL;
+            const pi = eventIndex % 20;
+            let v = (0x5a17c0de ^ eventIndex ^ Math.imul(pi + 1, 0x9e3779b1)) >>> 0;
+            v ^= v << 13;
+            v ^= v >>> 17;
+            v ^= v << 5;
+            v >>>= 0;
+            let token;
+            if (MATCHERS[pi] === 1) {
+              token = `${PREFIXES[pi]}node-${
+                v.toString(16).padStart(8, "0")
+              }.example.test/path/${eventIndex}`;
+            } else if (MATCHERS[pi] === 2) {
+              token = `${PREFIXES[pi]}${1 + (v & 0xfe)}.${(v >>> 8) & 0xff}.${(v >>> 16) & 0xff}.${
+                (v >>> 24) & 0xff
+              }`;
+            } else token = `${PREFIXES[pi]}${100 + (v % 500)}`;
+            bytes.set(new TextEncoder().encode(token), offset + 64);
+          }
+          bytes[offset + RECORD_BYTES - 1] = 0x0a;
+        }
+        return bytes;
+      }
+      const callables = {};
+      const CAP = 5000;
+      for (const key of ["c", "cpp", "rs"]) {
+        const inst = mods.engines[key].instances.scan_log.instance;
+        const mem = inst.exports.memory;
+        callables[key] = {
+          scan_log: () => {
+            const bytes = corpus();
+            const dataOff = 4096, scratchOff = 2097152;
+            const idOff = scratchOff + 256 * 5 * 4;
+            const stOff = idOff + CAP * 4, enOff = stOff + CAP * 4;
+            const csOff = enOff + CAP * 4, pcOff = csOff + 4, tcOff = pcOff + 4;
+            new Uint8Array(mem.buffer, dataOff, bytes.length).set(bytes);
+            inst.exports.scan_log(
+              dataOff,
+              bytes.length,
+              idOff,
+              stOff,
+              enOff,
+              CAP,
+              scratchOff,
+              csOff,
+              pcOff,
+              tcOff,
+            );
+          },
+        };
+      }
+      callables.js = {
+        scan_log: () => {
+          const bytes = corpus();
+          const buckets = Array.from({ length: 256 }, () => []);
+          for (let i = 0; i < 20; i++) buckets[PREFIXES[i].charCodeAt(0)].push(i);
+          const isUrlTail = (b) =>
+            (b >= 97 && b <= 122) || (b >= 48 && b <= 57) || b === 46 || b === 47 || b === 95 ||
+            b === 45;
+          for (let start = 0; start < bytes.length; start++) {
+            for (const pi of buckets[bytes[start]]) {
+              const prefix = PREFIXES[pi];
+              let matched = true;
+              for (let i = 0; i < prefix.length; i++) {
+                if (start + i >= bytes.length) {
+                  matched = false;
+                  break;
+                }
+                if (bytes[start + i] !== prefix.charCodeAt(i)) {
+                  matched = false;
+                  break;
+                }
+              }
+              if (!matched) continue;
+              const cursor = start + prefix.length;
+              let end = -1;
+              if (MATCHERS[pi] === 1) {
+                const s0 = cursor;
+                let c = cursor;
+                while (c < bytes.length && c - s0 < 96) {
+                  if (!isUrlTail(bytes[c])) break;
+                  c++;
+                }
+                if (c === s0) end = -1;
+                else if (c - s0 === 96 && c < bytes.length && isUrlTail(bytes[c])) end = -1;
+                else end = c;
+              } else if (MATCHERS[pi] === 2) {
+                let c = cursor;
+                let failed = false;
+                for (let octet = 0; octet < 4; octet++) {
+                  const s1 = c;
+                  let value = 0;
+                  while (c < bytes.length && c - s1 < 3) {
+                    const b = bytes[c];
+                    if (b < 48 || b > 57) break;
+                    value = value * 10 + b - 48;
+                    c++;
+                  }
+                  const digits = c - s1;
+                  if (digits === 0 || value > 255 || (digits > 1 && bytes[s1] === 48)) {
+                    failed = true;
+                    break;
+                  }
+                  if (octet < 3) {
+                    if (c >= bytes.length) {
+                      failed = true;
+                      break;
+                    }
+                    if (bytes[c] !== 46) {
+                      failed = true;
+                      break;
+                    }
+                    c++;
+                  }
+                }
+                if (!failed) {
+                  if (c < bytes.length) {
+                    if (bytes[c] >= 48 && bytes[c] <= 57 || bytes[c] === 46) end = -1;
+                    else end = c;
+                  } else end = c;
+                }
+              } else {
+                if (cursor + 3 <= bytes.length) {
+                  const value = (bytes[cursor] - 48) * 100 + (bytes[cursor + 1] - 48) * 10 +
+                    (bytes[cursor + 2] - 48);
+                  if (value >= 100 && value <= 599) {
+                    const ep = cursor + 3;
+                    if (ep >= bytes.length || bytes[ep] < 48 || bytes[ep] > 57) end = ep;
+                  }
+                }
+              }
+              if (end >= 0) { /* counted */ }
+            }
+          }
+        },
+      };
+      callables.dart = {
+        scan_log: () => {
+          const bytes = corpus();
+          mods.engines.dart.kernels.scan_log(
+            bytes,
+            bytes.length,
+            new Uint32Array(CAP),
+            new Uint32Array(CAP),
+            new Uint32Array(CAP),
+            CAP,
+            new Uint32Array(256 * 5),
+            new Uint32Array(1),
+            new Uint32Array(1),
+            new Uint32Array(1),
+          );
+        },
+      };
+      return callables;
+    },
+  },
+
+  // --- serialization-json-telemetry: JSON telemetry parser (mirrors v1 telemetry.c)
+  "serialization.json-telemetry.v1": {
+    kernels: ["telemetry"],
+    build(mods) {
+      const RECORDS = 1000;
+      const ENC = new TextEncoder();
+      const regions = ["ap", "eu", "na", "sa"], kinds = ["click", "purchase", "view"];
+      const labels = ["Café", "東京", "مرحبا", "🚀"], tags = ["α", "数据", "mañana", "🧪"];
+      const regionBytes = regions.map((x) => ENC.encode(x));
+      const kindBytes = kinds.map((x) => ENC.encode(x));
+      const labelBytes = labels.map((x) => ENC.encode(x));
+      const tagBytes = tags.map((x) => ENC.encode(x));
+      function fixture() {
+        let st = 0x7e1e2026;
+        const xorshift = () => {
+          st ^= st << 13;
+          st ^= st >>> 17;
+          st ^= st << 5;
+          return st >>> 0;
+        };
+        const parts = [];
+        let total = 1;
+        for (let i = 0; i < RECORDS; i++) {
+          const r = regions[xorshift() % 4], k = kinds[xorshift() % 3];
+          const ok = (xorshift() & 1) === 1, v = xorshift() % 10000;
+          const l = labels[xorshift() % 4], t = tags[xorshift() % 4];
+          const s = `${i ? "," : ""}{"id":${i},"ts":${
+            1700000000 + i
+          },"region":"${r}","kind":"${k}","ok":${ok},"value":${v},"meta":{"label":"${l}","tag":"${t}"}}`;
+          const b = ENC.encode(s);
+          parts.push(b);
+          total += b.length;
+        }
+        const out = new Uint8Array(total + 1);
+        let o = 0;
+        out[o++] = 0x5b;
+        for (const b of parts) {
+          out.set(b, o);
+          o += b.length;
+        }
+        out[o] = 0x5d;
+        return out;
+      }
+      const callables = {};
+      for (const key of ["c", "cpp", "rs"]) {
+        const inst = mods.engines[key].instances.telemetry.instance;
+        const mem = inst.exports.memory;
+        callables[key] = {
+          telemetry: () => {
+            const bytes = fixture();
+            const inOff = 0, outOff = bytes.byteLength + 1024, outCap = 4096;
+            new Uint8Array(mem.buffer, inOff, bytes.length).set(bytes);
+            inst.exports.process(inOff, bytes.length, outOff, outCap);
+          },
+        };
+      }
+      callables.js = { telemetry: () => jsParse(fixture()) };
+      callables.dart = {
+        telemetry: () =>
+          mods.engines.dart.kernels.process(fixture(), RECORDS * 100, new Uint8Array(4096), 4096),
+      };
+      return callables;
+    },
+  },
+
   // --- ml-dense-mlp: dense MLP forward (mirrors workload.js mlpControlled)
   "ml.dense-mlp.v1": {
     kernels: ["mlp_forward"],
