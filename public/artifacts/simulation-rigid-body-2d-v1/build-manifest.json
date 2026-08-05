@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "registrationId": "simulation-rigid-body-2d-v1-controlled",
-  "sourceCommit": "46fa01c34c56042acf77a2a5d348489c1e1eb9c9",
+  "sourceCommit": "dd0759e7550ce49149e2c2b5cc7697387ebcdd6e",
   "toolchain": {
     "deno": "2.9.0",
     "clang": "clang version 22.1.8",
@@ -69,11 +69,11 @@
     },
     {
       "path": "public/benchmarks/simulation-rigid-body-2d-v1/index.html",
-      "sha256": "cf30358d215547523c09f539029eb38aeda3dc0029f8613c03f1b27b40aab6fb"
+      "sha256": "fa0e4ab5b49cdd4138206e738506a252dc23345adabea22b6bb6fa298bafc421"
     },
     {
       "path": "public/benchmarks/simulation-rigid-body-2d-v1/runner.js",
-      "sha256": "3719fcf16e92ca8b2a51c0ad82f5379a2bbc0bdbb75a4c0099630ac7cc40e4ca"
+      "sha256": "15df231a249d128c76faa19fae638da1e033558a16168a0d3edde000fc879b6f"
     },
     {
       "path": "public/benchmarks/simulation-rigid-body-2d-v1/worker.js",
@@ -81,7 +81,7 @@
     },
     {
       "path": "server.ts",
-      "sha256": "3c42d46330fb64ebe8a2cc8785f7961d4ca33d0a96e8c416c4d3d4235ad3324c"
+      "sha256": "b53f7754b866da4c26b8bb45cebb00ac55101ac8a7544ed3802d5208fae3deba"
     },
     {
       "path": "deno.json",
@@ -97,16 +97,16 @@
     "bytes": 8520,
     "sha256": "080aa9d954e80a97946a07733e857d69edce0963361792dc876ef00c2dc79520"
   },
-  "fixtureManifestSha256": "ec3b3f6c322699caa07781c1ed3109308a5712ef9767f978f65d65d69481994f",
+  "fixtureManifestSha256": "e43bf503ccb139f56b163048ebba16947fa0c550bface1fbb15f01c7e1e5a93f",
   "outputManifestSha256": "4c131c6597b8a2f354ceb6b387728f22c0b2d877470962580b273c2f54f86444",
   "resultRecords": [
     {
       "path": "public/evidence/v1-base/simulation-rigid-body-2d-v1/js-controlled.json",
-      "sha256": "c0d576574f5f7e2f02752a1d3fb4f5867a79422d233506f1eb5290ec7feccfb1"
+      "sha256": "66745dbc1f164ecc41cc3aaa760a2800227f617c18febbf43de14ed609ca0652"
     },
     {
       "path": "public/evidence/v1-base/simulation-rigid-body-2d-v1/wasm-linear-controlled.json",
-      "sha256": "9da6d244ac58ee3b6cfbb51af3ae2e0c8f714e128814a9d1de30fb442b4fdf2f"
+      "sha256": "b510c6850568e3a983a5d9c1a56c38786bc3626ee3aa8b91914486f50443525a"
     }
   ]
 }

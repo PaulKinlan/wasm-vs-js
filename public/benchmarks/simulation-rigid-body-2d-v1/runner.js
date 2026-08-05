@@ -1,10 +1,10 @@
-const form = document.querySelector("#demo-form");
-const target = document.querySelector("#target");
-const start = document.querySelector("#start");
-const cancel = document.querySelector("#cancel");
-const progress = document.querySelector("#progress");
-const status = document.querySelector("#status");
-const result = document.querySelector("#result");
+const form = document.querySelector("#rb-demo-form");
+const target = document.querySelector("#rb-target");
+const start = document.querySelector("#rb-start");
+const cancel = document.querySelector("#rb-cancel");
+const progress = document.querySelector("#rb-progress");
+const status = document.querySelector("#rb-status");
+const result = document.querySelector("#rb-result");
 
 let worker = null;
 let timeout = 0;

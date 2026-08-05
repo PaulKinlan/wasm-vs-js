@@ -1,13 +1,14 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>glTF viewer base workload | Wasm versus JavaScript</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>Avocado glTF decode, animation and picking · Wasm vs JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
-    <link rel="stylesheet" href="/benchmarks/base-gltf-viewer/style.css">
+    <script type="module" src="/unified-runner.js"></script>
   </head>
-  <body>
+  <body data-workload="base-gltf-viewer" data-demo="base-gltf-viewer">
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
@@ -17,92 +18,56 @@
       <strong>data v1</strong>
     </header>
     <main id="main">
-      <p class="eyebrow">Frozen base workload · graphics.gltf-viewer.v1</p>
-      <h1>Avocado glTF decode, animation and picking</h1>
-      <p>
-        <strong>No performance claim.</strong> A fresh worker decodes the CC0 Avocado Draco mesh,
-        executes 600 fixed animation frames, culls every triangle, runs 12 picks, and checks all
-        600 96×96 CPU raster frames. The canvas displays the first frame only after the complete
-        output matches the registered SHA-256.
-      </p>
-      <form class="controls">
-        <label>Controlled target<select name="target">
-            <option value="javascript">JavaScript with Draco asm.js</option>
-            <option value="wasm">Linear Wasm with Draco Wasm</option>
-          </select></label>
-        <label>Validation mode<select name="mode">
-            <option value="bounded">Registered output</option>
-            <option value="exact">Exact served-byte provenance</option>
-          </select></label>
-        <div class="actions">
-          <button id="start" type="submit">Start</button>
-          <button id="cancel" type="button" disabled>Cancel</button>
-        </div><label for="progress">Run progress</label><progress id="progress" max="100" value="0">
-        </progress>
-      </form>
-      <div class="viewer-grid">
-        <section>
-          <h2>Validation result</h2>
-          <p id="status" role="status" aria-live="polite">Ready.</p>
-          <pre id="output">No result yet.</pre>
-        </section>
-        <section>
-          <h2>CPU reference</h2>
-          <canvas
-            class="preview"
-            width="96"
-            height="96"
-            aria-label="First validated CPU raster frame"
-          ></canvas>
-        </section>
-      </div>
-      <section>
-        <h2>Fixed scope</h2>
-        <p>
-          The controlled renderer uses the model's base-color texture, opaque single-sided material,
-          fixed camera, integer transforms, triangle culling, picking, and 600 retained CPU rasters.
-          Metallic/roughness, tangent-space normal mapping, GPU upload, shader compilation, and
-          driver output remain a separately unavailable product baseline; they do not become zero
-          and do not enter this output.
-        </p>
-        <p>
-          The JavaScript target executes Google's Draco 1.5.7 asm.js decoder. The Wasm target
-          executes the distinct Draco 1.5.7 linear-Wasm payload and an authored linear-Wasm frame
-          engine. Both validate all 406 decoded vertices, 2,046 indices, 600 frame summaries, 12
-          picks, and six pixel buffers. The worker uploads nothing and stores nothing.
-        </p>
-        <p>
-          <a href="/artifacts/base-gltf-viewer/implementation-contract.v1.json"
-          >Implementation contract</a> · <a href="/artifacts/base-gltf-viewer/fixture-manifest.json"
-          >fixture and rights manifest</a> · <a
-            href="/artifacts/base-gltf-viewer/build-manifest.json"
-          >build manifest</a> · <a
-            href="/evidence/base-workloads/graphics-gltf-viewer/static-validation.json"
-          >static validation</a>
-        </p>
+      <header>
+        <p class="eyebrow">Graphics &amp; Rendering Workload · CC0 Avocado · graphics.gltf-viewer.v1</p>
+        <h1>Avocado glTF decode, animation and picking</h1>
+        <p class="lede">A fresh worker decodes the CC0 Avocado Draco mesh, runs its animation, and performs ray picking. The controlled pair shares the exact decode + animation + picking trace; exact output is verified before any timing. The page uploads and stores nothing.</p>
+      </header>
+      <section class="demo-panel" aria-labelledby="run-heading">
+        <h2 id="run-heading">Run Benchmark Loop</h2>
+        <form id="demo-form">
+          <div class="controls">
+            <label for="target"><span>Target Engine</span>
+              <select id="target" name="target" disabled>
+                <option value="both" selected>Compare Side-by-Side (JS vs Wasm)</option>
+                <option value="javascript">JavaScript Engine</option>
+                <option value="wasm">WebAssembly Engine</option>
+              </select></label>
+            <label for="iterations"><span>Loop Iterations</span>
+              <select id="iterations" name="iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10">10 iterations</option>
+                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                <option value="50">50 iterations</option>
+                <option value="100">100 iterations (Sustained loop)</option>
+              </select></label>
+            <button id="start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="status" role="status" aria-live="polite">Ready. Select target and loop iterations, then click Start.</p>
+        <div id="perf-reporting" class="detail-grid" hidden></div>
       </section>
-
-      <section class="detail-grid" aria-label="Workload details">
-        <div class="detail-card">
-          <h2>What it does</h2>
-          <p>Loads a product model, decodes Draco compression, animates 600 frames, and picks objects.</p>
-        </div>
-        <div class="detail-card">
-          <h2>Why compare</h2>
-          <p>Binary asset parsing, mesh decoding, and matrix-transform animation on the CPU.</p>
-        </div>
-        <div class="detail-card">
-          <h2>Algorithm &amp; engine</h2>
-          <p>Category: Graphics & Rendering. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
-        </div>
-        <div class="detail-card">
-          <h2>Source &amp; build provenance</h2>
-          <ul>
-            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
-            <li><a href="/evidence/">Check implementation evidence</a></li>
-            <li><a href="/experiments/">Read the frozen experiment</a></li>
-          </ul>
-        </div>
+      <section aria-labelledby="what-heading">
+        <h2 id="what-heading">What it does</h2>
+        <p>Runs the frozen workload with a complete oracle; exact output is verified before any timing.</p>
+      </section>
+      <section aria-labelledby="why-heading">
+        <h2 id="why-heading">Why compare Wasm vs JS</h2>
+        <p>Scalar kernel inner loops are exactly where a linear-memory Wasm target differs from the JavaScript engine.</p>
+      </section>
+      <section aria-labelledby="correctness-heading">
+        <h2 id="correctness-heading">Correctness evidence — run the decode</h2>
+        <p class="muted">The benchmark loop above times both engines. This section runs the frozen workload through either engine and validates the exact output — timing and correctness never mix.</p>
+        <div class="controls"><button id="gltf-start" type="button">Start</button><button id="gltf-cancel" type="button" disabled>Cancel</button></div><p id="gltf-status" role="status" aria-live="polite">Ready.</p><pre id="gltf-output" tabindex="0">No result yet.</pre>
+      </section>
+      <section aria-labelledby="provenance-heading">
+        <h2 id="provenance-heading">Source &amp; build provenance</h2>
+        <ul>
+          <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+          <li><a href="/evidence/">Check implementation evidence</a></li>
+          <li><a href="/experiments/">Read the frozen experiment</a></li>
+        </ul>
       </section>
     </main>
     <script type="module" src="/benchmarks/base-gltf-viewer/demo.js"></script>

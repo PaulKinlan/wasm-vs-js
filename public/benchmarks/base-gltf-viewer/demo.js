@@ -1,8 +1,8 @@
 const form = document.querySelector("form"),
-  start = document.querySelector("#start"),
-  cancel = document.querySelector("#cancel");
-const status = document.querySelector("#status"),
-  output = document.querySelector("#output"),
+  start = document.querySelector("#gltf-start"),
+  cancel = document.querySelector("#gltf-cancel");
+const status = document.querySelector("#gltf-status"),
+  output = document.querySelector("#gltf-output"),
   progress = document.querySelector("progress");
 const canvas = document.querySelector("canvas"), ctx = canvas.getContext("2d");
 let worker = null, token = 0, timer = 0;
