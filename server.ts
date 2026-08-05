@@ -1848,6 +1848,7 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "numeric-polybench-panel.manifest.json",
       "text-diff-patch.manifest.json",
       "text-regex-log-scan.manifest.json",
+      "crypto-file-integrity.manifest.json",
       "ml-gemm.manifest.json",
       "multilang-wasm.manifest.json",
     ]
@@ -1905,6 +1906,11 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "stft_rs.wasm",
       "stft_dart.wasm",
       "stft_dart.mjs",
+      "sha256_c.wasm",
+      "sha256_cpp.wasm",
+      "sha256_rs.wasm",
+      "sha256_dart.wasm",
+      "sha256_dart.mjs",
     ]
   ) {
     const type = file.endsWith(".wasm") ? "application/wasm" : "text/javascript; charset=utf-8";

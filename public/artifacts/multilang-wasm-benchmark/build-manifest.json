@@ -5,7 +5,7 @@
   "entryId": "multilang-wasm-benchmark",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
   "sourceCommit": "78a0c1b8b3084b35e04c18e230d274f7308a8721",
-  "sourceSha256": "6f18825f408f0f7b08735dadc20309e117cf704f8d006894bba617939c087457",
+  "sourceSha256": "a789837d111e6e055eb54e4ceaf6433f86e2d61c30e60733825892cf4f18d529",
   "fullSourceGraph": [
     {
       "path": "benchmarks/multilang-wasm/sum_u32.c",
@@ -71,26 +71,6 @@
       "path": "benchmarks/multilang-wasm/ml-gemm/gemm.dart",
       "bytes": 1473,
       "sha256": "fa8415725946e14931158a63c73b7a7e01eba970f449942dffa3d55e228d2e22"
-    },
-    {
-      "path": "benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.c",
-      "bytes": 3359,
-      "sha256": "ba068a4cc1fe789c554b9b44c0c9489696fe861428d4567ab367f84d3f2384c0"
-    },
-    {
-      "path": "benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.cpp",
-      "bytes": 3448,
-      "sha256": "c150ec36332b93a45e1e94b40b1b06662fe57270c7b5e15d2b86350b8ad2ef07"
-    },
-    {
-      "path": "benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.rs",
-      "bytes": 3466,
-      "sha256": "ca4fc4f6ccbf251382e9490caa6b1f02e090bcb9bc94e9e363a0955bef8bc03c"
-    },
-    {
-      "path": "benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.dart",
-      "bytes": 3347,
-      "sha256": "b37bbaf2af14be1c3056edbe53266123abcadd6ba3706d5adf16d128a65d503a"
     },
     {
       "path": "benchmarks/multilang-wasm/text-diff-patch/myers_diff.c",
@@ -193,9 +173,29 @@
       "sha256": "107b5def3b76280322c3b44909392d67d4e54c35db796190544b5a21e59f4d8d"
     },
     {
+      "path": "benchmarks/multilang-wasm/crypto-file-integrity/sha256.c",
+      "bytes": 3380,
+      "sha256": "b2e204f539093a52fb6b242d101f5e168a4ee741fb6a574b9f1da6168790b4f9"
+    },
+    {
+      "path": "benchmarks/multilang-wasm/crypto-file-integrity/sha256.cpp",
+      "bytes": 4053,
+      "sha256": "9c3863c15bcbc12cf8e402371e11c9e8dc5771ffa338cf4982bc2da15160fa4e"
+    },
+    {
+      "path": "benchmarks/multilang-wasm/crypto-file-integrity/sha256.rs",
+      "bytes": 5016,
+      "sha256": "525e5ae4443fd1fc7d30bde66d0a22789306d67dc2046782e892dcaf59301dcc"
+    },
+    {
+      "path": "benchmarks/multilang-wasm/crypto-file-integrity/sha256.dart",
+      "bytes": 4796,
+      "sha256": "9682fcd96c7aaf51c9627da271a8b7c0644abc26cab3da6b90565242c416c6e1"
+    },
+    {
       "path": "scripts/build-multilang-wasm-benchmark.ts",
-      "bytes": 107047,
-      "sha256": "1b6d7e12e824d2fdd0311b0f99c3de04169eb48fdf968feb58973be81beba3d3"
+      "bytes": 107903,
+      "sha256": "0cb17f62cb04016e087c0278465e31b98dc68b205df87231863305b0a3324035"
     },
     {
       "path": "tests/multilang-wasm-benchmark.test.ts",
@@ -218,11 +218,6 @@
       "sha256": "e464fc21a817d2198af392d970cd935da619b72c0af548f74ff2d270ed104cae"
     },
     {
-      "path": "tests/multilang-mlp.test.ts",
-      "bytes": 6360,
-      "sha256": "eeee3ce461aed409598ae45533b567f0d57a75761c0c0423e2cee6b0edcf27d6"
-    },
-    {
       "path": "tests/multilang-polybench.test.ts",
       "bytes": 7677,
       "sha256": "ffb2e638e26bdd1ee1caaa658e7759c9cfc69133d6d99973b6cee9cba2129670"
@@ -231,6 +226,11 @@
       "path": "tests/multilang-audio.test.ts",
       "bytes": 5626,
       "sha256": "331341f9b3dde8de95c410812bc13c256604aed22c687d67c070e56656a4b3aa"
+    },
+    {
+      "path": "tests/multilang-sha256.test.ts",
+      "bytes": 5672,
+      "sha256": "d1ab976ba387ba228510c95f851f9ab85ad71874bebba0da14a54eefa630a603"
     },
     {
       "path": "schemas/multilang-wasm-benchmark-report.schema.json",
@@ -356,8 +356,8 @@
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/stft_rs.wasm",
-      "bytes": 4775,
-      "sha256": "bf62ff2917315869120b366cc45fdbb0b092c7b9e4169a86bbbdb6b6f25ca114"
+      "bytes": 4747,
+      "sha256": "ef39aff5338640e1f3f41e98f26861b4a70992839110ccac156e361515d55a32"
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/stft_dart.wasm",
@@ -406,8 +406,8 @@
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/myers_diff_rs.wasm",
-      "bytes": 6138,
-      "sha256": "edd4d95e85507721ef53fa01f6b8e1f9d6ca6a9232a6114b6612d3bdf0e145ac"
+      "bytes": 6110,
+      "sha256": "40c873470935cf926ae01ff81ad5e45884a8e568ee5b7f6877d291d57b0c784f"
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/myers_diff_dart.wasm",
@@ -431,8 +431,8 @@
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/scan_log_rs.wasm",
-      "bytes": 6774,
-      "sha256": "c7dcc1f0e6cd28c59e3e7fa60a68d2bd3d3f9400bb6fbfe0939aa0f2354ea8c3"
+      "bytes": 6750,
+      "sha256": "213fc57c71abeb7701fd8cb684624f206bce2bb7cd0e0e1fc3c9465b150891dc"
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/scan_log_dart.wasm",
@@ -443,6 +443,31 @@
       "path": "public/artifacts/multilang-wasm-benchmark/scan_log_dart.mjs",
       "bytes": 11914,
       "sha256": "16ce5abf3958d1b00fe3b0e1804c09816765e11f1e2ef239391a7299624575ee"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/sha256_c.wasm",
+      "bytes": 3197,
+      "sha256": "44ca695a207d0eade35cde333be8cc3504f8b84d3e1a38f2cac155d364120284"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/sha256_cpp.wasm",
+      "bytes": 3244,
+      "sha256": "96f1a2b8b81f1d22cefa957c3a76219f0e3b200390d33e47c636c30c3bb55942"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/sha256_rs.wasm",
+      "bytes": 5193,
+      "sha256": "10843622521bec93d2413a13768c8cacddcf3052573033ecd8357fd0f52193d3"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/sha256_dart.wasm",
+      "bytes": 53795,
+      "sha256": "07471ac1f5e420891cdfdd348252d9b2e78e1d56631f02f112a420c8c9ec9d4a"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/sha256_dart.mjs",
+      "bytes": 15631,
+      "sha256": "01191540c61cc2a1abec054fa169addecb9d425c12678bcf901cee2036debad2"
     }
   ],
   "toolchains": {
@@ -452,5 +477,5 @@
     "rustc": "rustc --target wasm32-unknown-unknown -O --crate-type cdylib (no_std)",
     "dart2wasm": "dart compile wasm (Dart SDK, WasmGC + js-string builtins)"
   },
-  "generatedAt": "2026-08-05T12:18:12.195Z"
+  "generatedAt": "2026-08-05T12:25:23.935Z"
 }
