@@ -88,6 +88,59 @@
     cleanup();
   }
 
+  async function runEngines(engines, runToken, prepared) {
+    const blocks = [];
+    for (const engine of engines) {
+      if (runToken !== token) return blocks;
+      workerUrl = prepared.url;
+      worker = new Worker(workerUrl);
+      const ownedWorker = worker;
+      const engineResult = await new Promise((resolve) => {
+        let settled = false;
+        const finish = (value) => {
+          if (!settled) {
+            settled = true;
+            resolve(value);
+          }
+        };
+        ownedWorker.addEventListener("message", (message) => {
+          if (runToken !== token || ownedWorker !== worker || message.data.token !== runToken) {
+            return;
+          }
+          if (message.data.type === "progress") {
+            status.textContent = `[${engine}] ${message.data.label}`;
+            progress.value = message.data.value;
+            return;
+          }
+          if (message.data.type === "error") finish({ ok: false, message: message.data.message });
+          if (message.data.type === "result") finish({ ok: true, output: message.data.result });
+        });
+        ownedWorker.addEventListener(
+          "error",
+          (error) => finish({ ok: false, message: error.message || "Worker error" }),
+        );
+        ownedWorker.postMessage({
+          type: "run",
+          token: runToken,
+          target: engine,
+          queryId: query.value === "all" ? null : query.value,
+          exact: exact.checked,
+          manifest: prepared.manifest,
+          shellChecks: prepared.shellChecks,
+          base: location.origin,
+        });
+      });
+      if (!engineResult.ok) {
+        setFailure(engineResult.message || "Worker error");
+        return blocks;
+      }
+      blocks.push({ engine, output: engineResult.output });
+      worker.terminate();
+      worker = null;
+    }
+    return blocks;
+  }
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     cleanup();
@@ -109,54 +162,32 @@
       URL.revokeObjectURL(prepared.url);
       return;
     }
-    workerUrl = prepared.url;
-    worker = new Worker(workerUrl);
-    const ownedWorker = worker;
-    ownedWorker.addEventListener("message", (message) => {
-      if (runToken !== token || ownedWorker !== worker || message.data.token !== runToken) return;
-      if (message.data.type === "progress") {
-        status.textContent = message.data.label;
-        progress.value = message.data.value;
-        return;
-      }
-      if (message.data.type === "error") {
-        setFailure(message.data.message);
-        return;
-      }
-      if (message.data.type === "result") {
-        const output = message.data.result;
-        status.textContent = "Complete. Every returned value matched the independent reference.";
-        progress.value = 4;
-        result.textContent = [
-          `Variant: ${output.variant}`,
-          `Engine: ${output.engine.engine} ${output.engine.version}`,
-          `Queries: ${output.results.length}`,
-          `Canonical output SHA-256: ${output.sha256}`,
-          `Counters: ${JSON.stringify(output.counters, null, 2)}`,
-          `Executed-byte checks: ${output.exactChecks.join("; ")}`,
-          "",
-          JSON.stringify(output.results, null, 2),
-        ].join("\n");
-        cleanup();
-      }
-    });
-    ownedWorker.addEventListener("error", (error) => {
-      if (runToken !== token || ownedWorker !== worker) return;
-      setFailure(error.message || "Worker error");
-    });
     timeout = setTimeout(() => {
-      if (runToken !== token || ownedWorker !== worker) return;
+      if (runToken !== token) return;
       setFailure(`Stopped after ${TIMEOUT_MS / 1000} seconds`);
     }, TIMEOUT_MS);
-    ownedWorker.postMessage({
-      type: "run",
-      token: runToken,
-      target: target.value,
-      queryId: query.value === "all" ? null : query.value,
-      exact: exact.checked,
-      manifest: prepared.manifest,
-      shellChecks: prepared.shellChecks,
-    });
+    const engines = target.value === "both"
+      ? ["javascript-controlled", "linear-wasm-controlled"]
+      : [target.value];
+    const blocks = await runEngines(engines, runToken, prepared);
+    if (runToken !== token) return;
+    if (blocks.length > 0) {
+      status.textContent = "Complete. Every returned value matched the independent reference.";
+      progress.value = 4;
+      result.textContent = blocks.map((block) =>
+        [
+          `Variant: ${block.output.variant}`,
+          `Engine: ${block.engine} · ${block.output.engine.engine} ${block.output.engine.version}`,
+          `Queries: ${block.output.results.length}`,
+          `Canonical output SHA-256: ${block.output.sha256}`,
+          `Counters: ${JSON.stringify(block.output.counters, null, 2)}`,
+          `Executed-byte checks: ${block.output.exactChecks.join("; ")}`,
+          "",
+          JSON.stringify(block.output.results, null, 2),
+        ].join("\n")
+      ).join("\n\n==============================\n\n");
+      cleanup();
+    }
   });
 
   cancel.addEventListener("click", () => {
