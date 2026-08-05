@@ -2,11 +2,15 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Keyword spotting stream | Wasm versus JavaScript</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="description"
+      content="Speech Commands keyword-spotting benchmark: the pinned 60-second v2 subset through the fixed-point feature pipeline in JavaScript and linear WebAssembly.">
+    <title>Speech Commands keyword spotting · Wasm vs JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="/unified-runner.js"></script>
   </head>
-  <body>
+  <body data-workload="ml-keyword-spotting-v1" data-demo="ml-keyword-spotting-v1">
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
@@ -15,55 +19,113 @@
       <a href="/evidence/">Evidence</a>
       <strong>data v1</strong>
     </header>
-    <main id="main" class="demo-shell">
-      <p class="eyebrow">RUNNABLE CORRECTNESS DEMO · ML.KEYWORD-SPOTTING.V1</p>
-      <h1>Speech Commands keyword spotting</h1>
-      <p><strong>No performance claim.</strong> This route processes the exact pinned 60-second Speech Commands v2 subset locally. Audio is never uploaded or stored.</p>
-      <p>This page bundles the pinned 60-second fixture (Speech Commands v2 test subset, <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>: Warden, P. (2018), “Speech Commands: A Dataset for Limited-Vocabulary Speech Recognition”), hash-verified against the public <a href="/artifacts/base-ml-keyword-spotting/fixture-manifest.json">fixture manifest</a> before every run. Alternatively, acquire the pinned test archive yourself, extract its files, and select the directory — a local run is refused unless all 60 WAV byte hashes match.</p>
-      <form id="kws-form">
-        <label for="target">Controlled target</label>
-        <select
-          id="target"><option value="both">JavaScript and linear Wasm</option><option value="javascript">JavaScript</option><option value="wasm-linear">Linear Wasm</option></select>
-        <label for="mode">Validation mode</label>
-        <select
-          id="mode"><option value="exact">Exact tensors, detections, and counters</option></select>
-        <label for="files">Speech Commands test-set directory</label>
-        <input id="files" type="file" webkitdirectory multiple required
-          aria-describedby="file-help">
-        <p
-          id="file-help">Select the extracted test-set directory. Exactly the prescribed 60 files are read; unrelated files are ignored.</p>
-        <button id="start" type="submit">Start with local files</button>
-        <button id="start-bundled" type="button">Start with the bundled fixture</button>
-        <button id="cancel" type="button" disabled>Cancel</button>
-      </form>
-      <h2>Result</h2>
-      <p id="status" role="status" aria-live="polite">Ready.</p>
-      <progress id="progress" max="3000" value="0"><span>0 of 3000 hops</span></progress>
-      <pre id="result" tabindex="0">No result yet.</pre>
-      <h2>What runs</h2>
-      <p>Both targets perform the complete fixed-point Hann, 512-point FFT, ten-coefficient feature pipeline, trained 49×10 DS-CNN, and stable detection policy for all 3,000 hops. Every run verifies the raw manifest, checkpoint, source, artifact, complete tensors, detections, and target-specific work counters.</p>
+    <main id="main">
+      <header>
+        <p class="eyebrow">Machine Learning Workload · 3,000 Hops · ml.keyword-spotting.v1</p>
+        <h1>Speech Commands keyword spotting</h1>
+        <p class="lede">
+          Processes the exact pinned 60-second Speech Commands v2 subset through the complete
+          fixed-point Hann, 512-point FFT, ten-coefficient feature pipeline, trained 49×10 DS-CNN,
+          and stable detection policy for all 3,000 hops. Both targets run the identical pipeline;
+          exact tensors, detections, and counters are verified before any timing. Audio is never
+          uploaded or stored.
+        </p>
+      </header>
 
-      <section class="detail-grid" aria-label="Workload details">
-        <div class="detail-card">
-          <h2>What it does</h2>
-          <p>Processes 60 seconds of audio in 20 ms hops and detects spoken commands.</p>
+      <section class="demo-panel" aria-labelledby="run-heading">
+        <h2 id="run-heading">Run Benchmark Loop</h2>
+        <form id="demo-form">
+          <div class="controls">
+            <label for="target">
+              <span>Target Engine</span>
+              <select id="target" name="target" disabled>
+                <option value="both" selected>Compare Side-by-Side (JS vs Wasm)</option>
+                <option value="javascript">JavaScript Engine</option>
+                <option value="wasm">WebAssembly Engine</option>
+              </select>
+            </label>
+            <label for="iterations">
+              <span>Loop Iterations</span>
+              <select id="iterations" name="iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10">10 iterations</option>
+                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                <option value="50">50 iterations</option>
+                <option value="100">100 iterations (Sustained loop)</option>
+              </select>
+            </label>
+            <button id="start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="status" role="status" aria-live="polite">
+          Ready. Select target and loop iterations, then click Start.
+        </p>
+        <div id="perf-reporting" class="detail-grid" hidden></div>
+      </section>
+
+      <section aria-labelledby="what-heading">
+        <h2 id="what-heading">What it does</h2>
+        <p>
+          Fixed-point keyword-spotting over the pinned 60-second Speech Commands v2 subset:
+          Hann window, 512-point FFT, ten-coefficient features, a trained 49×10 DS-CNN, and a
+          stable detection policy across 3,000 hops.
+        </p>
+      </section>
+
+      <section aria-labelledby="why-heading">
+        <h2 id="why-heading">Why compare Wasm vs JS</h2>
+        <p>
+          Fixed-point FFT + CNN inference over 3,000 hops is exactly where a linear-memory Wasm
+          target differs from the JavaScript engine — with a strict tensor oracle the comparison
+          stays honest.
+        </p>
+      </section>
+
+      <section aria-labelledby="correctness-heading">
+        <h2 id="correctness-heading">Correctness evidence — run the keyword contract</h2>
+        <p class="muted">
+          The benchmark loop above times both engines. This section runs the pinned 60-second
+          fixture through either engine and verifies the raw manifest, complete tensors,
+          detections, and target-specific work counters — timing and correctness never mix.
+        </p>
+        <div class="controls">
+          <label for="kws-target">Controlled target
+            <select id="kws-target">
+              <option value="both">JavaScript and linear Wasm</option>
+              <option value="javascript">JavaScript</option>
+              <option value="wasm-linear">Linear Wasm</option>
+            </select>
+          </label>
+          <label for="kws-mode">Validation mode
+            <select id="kws-mode">
+              <option value="exact">Exact tensors, detections, and counters</option>
+            </select>
+          </label>
+          <label for="kws-files">Speech Commands test-set directory
+            <input id="kws-files" type="file" webkitdirectory multiple required
+              aria-describedby="kws-file-help">
+          </label>
+          <p id="kws-file-help" class="hint">Select the extracted test-set directory. Exactly the
+            prescribed 60 files are read; unrelated files are ignored. The bundled fixture is
+            hash-verified against the fixture manifest before every run.</p>
+          <button id="kws-start" type="submit">Start with local files</button>
+          <button id="kws-start-bundled" type="button">Start with the bundled fixture</button>
+          <button id="kws-cancel" type="button" disabled>Cancel</button>
         </div>
-        <div class="detail-card">
-          <h2>Why compare</h2>
-          <p>Convolutional and dense-layer inference over streaming mel-spectrogram features.</p>
-        </div>
-        <div class="detail-card">
-          <h2>Algorithm &amp; engine</h2>
-          <p>Category: Neural & AI. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
-        </div>
-        <div class="detail-card">
-          <h2>Source &amp; build provenance</h2>
-          <ul>
-            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
-            <li><a href="/evidence/">Check implementation evidence</a></li>
-            <li><a href="/experiments/">Read the frozen experiment</a></li>
-          </ul>
-        </div>
+        <p id="kws-status" role="status" aria-live="polite">Ready.</p>
+        <progress id="kws-progress" max="3000" value="0"><span>0 of 3000 hops</span></progress>
+        <pre id="kws-result" tabindex="0">No result yet.</pre>
+      </section>
+
+      <section aria-labelledby="provenance-heading">
+        <h2 id="provenance-heading">Source &amp; build provenance</h2>
+        <ul>
+          <li><a href="/artifacts/base-ml-keyword-spotting/fixture-manifest.json">Bundled fixture manifest</a></li>
+          <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+          <li><a href="/evidence/">Check implementation evidence</a></li>
+          <li><a href="/experiments/">Read the frozen experiment</a></li>
+        </ul>
       </section>
     </main>
     <script type="module" src="/base-ml-keyword-spotting-demo.js"></script>

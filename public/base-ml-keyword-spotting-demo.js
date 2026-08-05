@@ -1,12 +1,12 @@
-const form = document.querySelector("#kws-form");
-const files = document.querySelector("#files");
-const target = document.querySelector("#target");
-const mode = document.querySelector("#mode");
-const start = document.querySelector("#start");
-const cancel = document.querySelector("#cancel");
-const status = document.querySelector("#status");
-const progress = document.querySelector("#progress");
-const result = document.querySelector("#result");
+const form = document.querySelector("#kws-contract-form");
+const files = document.querySelector("#kws-files");
+const target = document.querySelector("#kws-target");
+const mode = document.querySelector("#kws-mode");
+const start = document.querySelector("#kws-start");
+const cancel = document.querySelector("#kws-cancel");
+const status = document.querySelector("#kws-status");
+const progress = document.querySelector("#kws-progress");
+const result = document.querySelector("#kws-result");
 let worker = null;
 let token = 0;
 let timer = 0;
@@ -17,7 +17,7 @@ function cleanup() {
   clearTimeout(timer);
   timer = 0;
   start.disabled = false;
-  const bundled = document.querySelector("#start-bundled");
+  const bundled = document.querySelector("#kws-start-bundled");
   if (bundled) bundled.disabled = false;
   cancel.disabled = true;
 }
@@ -25,7 +25,7 @@ function stop(message) {
   cleanup();
   status.textContent = message;
 }
-const startBundled = document.querySelector("#start-bundled");
+const startBundled = document.querySelector("#kws-start-bundled");
 async function beginRun(useBundled) {
   cleanup();
   const runToken = token;
