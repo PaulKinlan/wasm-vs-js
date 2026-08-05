@@ -5,7 +5,7 @@
   "entryId": "audio.fir.v1",
   "benchmarkSlug": "audio-fir",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "ac59174249d1771b7d6c7940048a43c296733c39",
+  "sourceCommit": "a97444fd188ba0787e692d591e338998ca40915f",
   "sourceSha256": "35b44bccd0d0a98f43c5827567a2955e1c27b3eb708229035af9335117589ef5",
   "fullSourceGraph": [
     {
@@ -187,19 +187,19 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/audio-fir/fixture-manifest.json",
-      "sha256": "be1b66187dff430c7ce6be5aedeca60033d30487def832695f58aec0bec9918b"
+      "sha256": "7c54326e3ab55b7eea0371b0d750c55e1017ff8e041f8a2b2abd0b05154eefb1"
     },
     "input": {
       "path": "public/artifacts/audio-fir/input-manifest.json",
-      "sha256": "047c6ee4f428f82a3b1be5c81b493fd311b5d851ebe248d5d36d25fe677e1915"
+      "sha256": "70c444bbd1da93a9dbff8458a8c27afcef579341f01c7c3f1f688d18fbfafe89"
     },
     "reference": {
       "path": "public/artifacts/audio-fir/reference-manifest.json",
-      "sha256": "79ea14554af8f1924c8e5f99578313eef319d640cac6fbfccd9146f9b969fae7"
+      "sha256": "f960422dc8cd5f7aeaa671104ea989142fb8ef7ea6ee502dcd77b0bcb1e0f409"
     },
     "output": {
       "path": "public/artifacts/audio-fir/output-manifest.json",
-      "sha256": "20f24460c547e210785d29f1ef8dcaac1aa954e510e4e5b9b95359a43233521f"
+      "sha256": "048c791a3e89caa27113947aa33aff0398d5444fb91423f5a804cdf8f2ed9191"
     }
   },
   "referenceArtifact": {
@@ -241,7 +241,7 @@
       "--allow-write=public/artifacts/audio-fft,public/artifacts/audio-fir,public/artifacts/audio-stft",
       "--allow-run=git",
       "scripts/build-audio.ts",
-      "--source-commit=ac59174249d1771b7d6c7940048a43c296733c39"
+      "--source-commit=a97444fd188ba0787e692d591e338998ca40915f"
     ],
     "toolchain": [
       {
