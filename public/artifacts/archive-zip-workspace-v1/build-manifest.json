@@ -31,7 +31,7 @@
     "output": "public/artifacts/archive-zip-workspace-v1/output-manifest.json"
   },
   "schemaVersion": 1,
-  "sourceCommit": "aa572d658c52c2d8a8a1d988b81cfbe96e51c855",
+  "sourceCommit": "3381a040bc857ed8faa87638cca5f6866ba583fb",
   "sourceGraph": [
     {
       "bytes": 19539,
@@ -49,9 +49,9 @@
       "sha256": "81cad4b4ddef4ed5060d68030217ae4c91b0aa7111255c35552cdfd6187507a0"
     },
     {
-      "bytes": 6114,
+      "bytes": 6050,
       "path": "public/benchmarks/archive-zip-workspace-v1/index.html",
-      "sha256": "716ea44ee82a3f75e4c3c07f28c2181615dd86a39420cb38ea26dbed645bc428"
+      "sha256": "1aa111e61abe03d0ae0db69639b4f55cda45b3d6ff29b6e7ec57f53179b9d4bd"
     },
     {
       "bytes": 2761,
@@ -74,7 +74,7 @@
       "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2"
     }
   ],
-  "sourceGraphSha256": "090c37120941abcc7bfb04329298d9533b675a39d6e2e2b9ed925f0d80b2bac1",
+  "sourceGraphSha256": "cc704e14b2320595d5fa3121e44850fc613f88f6157e21d95a90d82d756ef097",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
   "workloadId": "archive.zip-workspace.v1"
 }
