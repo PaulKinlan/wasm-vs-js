@@ -70,9 +70,9 @@ Tasks are ordered by dependency. A checked box means the exact acceptance criter
 ### API and storage
 
 - [x] Implement closed-schema `POST /v1/runs` with streaming byte cap before JSON parsing.
-- [ ] Implement reporter authorization, idempotency, durable rate limits, and timestamp bounds.
+- [x] Implement reporter authorization, idempotency, durable rate limits, and timestamp bounds.
 - [x] Implement immutable KV run/part/dedupe/index/summary records in one bounded atomic commit.
-- [ ] Measure key/value/check/mutation/serialized-byte headroom.
+- [x] Measure key/value/check/mutation/serialized-byte headroom.
 - [x] Implement bounded run list/detail, summaries, and health APIs.
 - [ ] Implement versioned reconciliation from raw runs.
 
@@ -83,7 +83,7 @@ Tasks are ordered by dependency. A checked box means the exact acceptance criter
 - [x] Implement checksummed logical export and isolated restore.
 - [x] Test corrupt, partial, stale, foreign, and wrong-schema restores.
 - [ ] Model request, KV read/write/storage, egress, and backup cost.
-- [ ] Obtain explicit approval before Deno app/KV provisioning.
+- [x] Obtain explicit approval before Deno app/KV provisioning.
 - [ ] Prove production/branch/preview database isolation; never use shared preview KV for destructive tests.
 - [ ] Independently review security, privacy, recovery, and exact production source.
 
