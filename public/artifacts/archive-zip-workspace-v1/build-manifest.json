@@ -31,7 +31,7 @@
     "output": "public/artifacts/archive-zip-workspace-v1/output-manifest.json"
   },
   "schemaVersion": 1,
-  "sourceCommit": "9b11f4c576e983434ab10f8aacd28b34e2da2573",
+  "sourceCommit": "f736b6afeb6d010c1fea27792695a8053b871f71",
   "sourceGraph": [
     {
       "bytes": 19539,
