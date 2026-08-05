@@ -36,6 +36,7 @@ WASM_VS_JS_COMMIT=$C run jt-records deno run --allow-all scripts/build-v1-json-t
 run trad        deno run --allow-all scripts/build-traditional-demos.ts --source-commit=$C
 run pcap        deno run --allow-all scripts/build-base-network-pcap-decode.ts --source-commit=$C
 run audio-slugs deno run --allow-all scripts/build-audio.ts --source-commit=$C
+run audio-rec   deno run --allow-all scripts/build-audio-results.ts --source-commit=$C
 run audio-reg   deno run --allow-all scripts/build-audio-demo-registry.ts
 run audio-pages deno run --allow-all scripts/build-audio-demo-pages.ts
 run audio-web   deno run --allow-all scripts/build-base-audio-webaudio-effects.ts --source-commit=$C --write
