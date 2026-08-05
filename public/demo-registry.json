@@ -3,7 +3,7 @@
   "contractId": "audio-demo-registry-v1",
   "status": "proposal-validation-only",
   "authoritativePerformanceEvidence": false,
-  "sourceCommit": "f795e6a74a17efeb4a3b075a24ba69c6eb54657b",
+  "sourceCommit": "6444398fc2fd02c65b5b8969637df6d31b52c85b",
   "runnerSha256": "973730cb7beeb62df7d13af0788ee34688bd1b813f11adc4da8f483140143355",
   "workerSha256": "4bd92df0c250ede2ea5e16f78a82d08263a5d56e59f43070386a69cfafe1351c",
   "assetsManifestSha256": "373e98f859c59af68a2fab79f2f2333ab43dabbf94c54df952eda07129a9f49e",
@@ -22,7 +22,7 @@
         "/artifacts/audio-fft/output-manifest.json",
         "/artifacts/audio-fft/reference-manifest.json"
       ],
-      "buildManifestSha256": "6df5aa09fd4d91246e84f5244ec3f3e8bbdb2f7d0f7686c05646895eee4f7b31",
+      "buildManifestSha256": "93809d9f2b1909a4749ce6b2b149b218e744f556bb4d8618f615527ebe1f9b24",
       "frozenHashes": {
         "inputSha256": "f312693f97034ff558b541f771564e9adcc077174d84202351199e3d18fc8b01",
         "outputSha256": "f6285cd3244f76eed0a041f30dbfa43ef8dc49012ec92b77514edc569aadad6e",
@@ -53,7 +53,7 @@
         "/artifacts/audio-fir/output-manifest.json",
         "/artifacts/audio-fir/reference-manifest.json"
       ],
-      "buildManifestSha256": "292ad0d6c8c7ca7526cdc70e97825c2eee9312658b3bb5cb946dada34ca951d3",
+      "buildManifestSha256": "a1804ebc415f3b82685cd7fe9b946068e35e0295cf1aa069c2b49650657808e3",
       "frozenHashes": {
         "inputSha256": "b90d5d472e7f58e18d544f32dbc7449143608939f4a8c18641d6e7eae1752b56",
         "outputSha256": "e4b89ba6d65fa9ac3aa5f1b30da32343e54cc81a9ee9d6f84eaf8b38e823fb5f",
@@ -84,7 +84,7 @@
         "/artifacts/audio-stft/output-manifest.json",
         "/artifacts/audio-stft/reference-manifest.json"
       ],
-      "buildManifestSha256": "b3149a47312a165c13e6ca6679e40a99f71b1335392afb1cb0be65de2efc8342",
+      "buildManifestSha256": "702e113154440624cf777a785490bc686c19161baa7e126a84a807d7a9c9b5c4",
       "frozenHashes": {
         "inputSha256": "dfabd66f9e5272f76915165b663cb6c5cb37896454eb6ac02ea13d2f241f326a",
         "outputSha256": "b06a278c83d9eeff309fafd64b617a54e958665e2ef2d498194da6c1e75d97ba",
