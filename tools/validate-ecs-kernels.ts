@@ -41,11 +41,13 @@ const expected = {
 };
 
 let allOk = true;
-for (const [key, path] of [
-  ["C", "/tmp/ecs-test/ecs_c.wasm"],
-  ["C++", "/tmp/ecs-test/ecs_cpp.wasm"],
-  ["Rust", "/tmp/ecs-test/ecs_rs.wasm"],
-]) {
+for (
+  const [key, path] of [
+    ["C", "/tmp/ecs-test/ecs_c.wasm"],
+    ["C++", "/tmp/ecs-test/ecs_cpp.wasm"],
+    ["Rust", "/tmp/ecs-test/ecs_rs.wasm"],
+  ]
+) {
   const got = await runLinear(await Deno.readFile(path), fixture);
   const ok = JSON.stringify(got) === JSON.stringify(expected);
   allOk = allOk && ok;
@@ -80,7 +82,9 @@ const dartOk = JSON.stringify(dartGot) === JSON.stringify(expected);
 console.log(`Dart/WasmGC: ${dartOk ? "BIT-IDENTICAL" : "MISMATCH"}`);
 if (!dartOk) {
   for (const k of Object.keys(expected)) {
-    if (dartGot[k] !== expected[k]) console.log(`  ${k}: got=${dartGot[k]} expected=${expected[k]}`);
+    if (dartGot[k] !== expected[k]) {
+      console.log(`  ${k}: got=${dartGot[k]} expected=${expected[k]}`);
+    }
   }
 }
 console.log(dartOk && allOk ? "ALL VARIANT BIT-IDENTICAL ✓" : "FAILURES ✗");

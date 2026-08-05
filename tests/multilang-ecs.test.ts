@@ -51,9 +51,16 @@ async function assertLinearBitIdentical(label: string, bytes: Uint8Array): Promi
     instance: WebAssembly.Instance;
   };
   const mem = mod.instance.exports.memory as WebAssembly.Memory;
-  const input = new Uint8Array(mem.buffer, (mod.instance.exports.input_ptr as () => number)(), fixture.length);
+  const input = new Uint8Array(
+    mem.buffer,
+    (mod.instance.exports.input_ptr as () => number)(),
+    fixture.length,
+  );
   input.set(fixture);
-  assert((mod.instance.exports.run as (l: number) => number)(fixture.length) === 0, `${label} run != 0`);
+  assert(
+    (mod.instance.exports.run as (l: number) => number)(fixture.length) === 0,
+    `${label} run != 0`,
+  );
   const w = new Uint32Array(mem.buffer, (mod.instance.exports.result_ptr as () => number)(), 128);
   const got = keyOf({
     stateDigest: hex(w[0]),
@@ -108,7 +115,9 @@ Deno.test("multilang-ecs: report contains a measured game-ecs-frame-update workl
     assert(typeof variant.warmExecutionMs === "number", `${variant.language} must be measured`);
   }
   const languages = wl.variants.map((v: { language: string }) => v.language);
-  for (const expectedLang of ["Rust / Wasm", "Dart / WasmGC", "C / Wasm", "C++ / Wasm", "JavaScript"]) {
+  for (
+    const expectedLang of ["Rust / Wasm", "Dart / WasmGC", "C / Wasm", "C++ / Wasm", "JavaScript"]
+  ) {
     assert(languages.includes(expectedLang), `game-ecs-frame-update missing ${expectedLang}`);
   }
 });

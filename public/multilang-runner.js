@@ -715,7 +715,12 @@ export const KERNEL_ADAPTERS = {
           let digest = 0x7f4a7c15;
           for (let e = 0; e < entities; e++) {
             const values = [
-              xs[e], ys[e], vxs[e] & 0xff, vys[e] & 0xff, animations[e], radii[e],
+              xs[e],
+              ys[e],
+              vxs[e] & 0xff,
+              vys[e] & 0xff,
+              animations[e],
+              radii[e],
             ];
             digest = mix(digest, e);
             for (let i = 0; i < 6; i++) digest = mix(digest, values[i]);
