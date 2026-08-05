@@ -4,8 +4,8 @@
   "authoritativePerformanceEvidence": false,
   "entryId": "multilang-wasm-benchmark",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "78a0c1b8b3084b35e04c18e230d274f7308a8721",
-  "sourceSha256": "a789837d111e6e055eb54e4ceaf6433f86e2d61c30e60733825892cf4f18d529",
+  "sourceCommit": "5da4667d3e798cd633753378fe64228975d9984d",
+  "sourceSha256": "f1adb91c9aea8e757b5ae8b532b1b8f372938ea78bb2966795ffaa288b2902bc",
   "fullSourceGraph": [
     {
       "path": "benchmarks/multilang-wasm/sum_u32.c",
@@ -194,8 +194,8 @@
     },
     {
       "path": "scripts/build-multilang-wasm-benchmark.ts",
-      "bytes": 107903,
-      "sha256": "0cb17f62cb04016e087c0278465e31b98dc68b205df87231863305b0a3324035"
+      "bytes": 107893,
+      "sha256": "f49612e54f30ca02ce209f28b8fcceffb5dec8fc35d4ecbf3d3d244fd681dc74"
     },
     {
       "path": "tests/multilang-wasm-benchmark.test.ts",
@@ -477,5 +477,5 @@
     "rustc": "rustc --target wasm32-unknown-unknown -O --crate-type cdylib (no_std)",
     "dart2wasm": "dart compile wasm (Dart SDK, WasmGC + js-string builtins)"
   },
-  "generatedAt": "2026-08-05T12:25:23.935Z"
+  "generatedAt": "2026-08-05T12:29:33.407Z"
 }
