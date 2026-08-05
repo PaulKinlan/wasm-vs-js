@@ -1,0 +1,12 @@
+{
+  "workloadId": "text.regex-log-scan.v1",
+  "kernelLabel": "log-scan pattern matcher — 640 records, 64 events",
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": ["scan_log"],
+  "engines": [
+    { "key": "js", "label": "JavaScript", "kind": "js" },
+    { "key": "c", "label": "C / Wasm", "kind": "linear", "lang": "c", "offset": 0 },
+    { "key": "cpp", "label": "C++ / Wasm", "kind": "linear", "lang": "cpp", "offset": 0 },
+    { "key": "dart", "label": "Dart / WasmGC", "kind": "dart", "file": "scan_log_dart.wasm", "glue": "scan_log_dart.mjs" }
+  ]
+}

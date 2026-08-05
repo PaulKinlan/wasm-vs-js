@@ -285,6 +285,202 @@ export const KERNEL_ADAPTERS = {
     },
   },
 
+  // --- text-regex-log-scan: log pattern matcher (mirrors workload.js scanControlled)
+  "text.regex-log-scan.v1": {
+    kernels: ["scan_log"],
+    build(mods) {
+      const RECORDS = 640, EVENT_INTERVAL = 10;
+      const PREFIXES = [
+        "http://",
+        "https://",
+        "ws://",
+        "wss://",
+        "ftp://",
+        "asset://",
+        "api://",
+        "cdn://",
+        "ip=",
+        "client-ip:",
+        "source-ip:",
+        "dest-ip:",
+        "peer-ip:",
+        "origin-ip:",
+        "status=",
+        "code=",
+        "http-status:",
+        "response-status:",
+        "result-status:",
+        "status-code:",
+      ];
+      const MATCHERS = [1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3];
+      function corpus() {
+        const RECORD_BYTES = 256;
+        const bytes = new Uint8Array(RECORDS * RECORD_BYTES);
+        const filler = new TextEncoder().encode("日志 café 東京 🚀 запись record ");
+        bytes.fill(0x20);
+        for (let record = 0; record < RECORDS; record++) {
+          const offset = record * RECORD_BYTES;
+          bytes.set(filler, offset);
+          const label = new TextEncoder().encode(String(record).padStart(6, "0"));
+          bytes.set(label, offset + filler.byteLength);
+          if (record % EVENT_INTERVAL === 0) {
+            const eventIndex = record / EVENT_INTERVAL;
+            const pi = eventIndex % 20;
+            let v = (0x5a17c0de ^ eventIndex ^ Math.imul(pi + 1, 0x9e3779b1)) >>> 0;
+            v ^= v << 13;
+            v ^= v >>> 17;
+            v ^= v << 5;
+            v >>>= 0;
+            let token;
+            if (MATCHERS[pi] === 1) {
+              token = `${PREFIXES[pi]}node-${
+                v.toString(16).padStart(8, "0")
+              }.example.test/path/${eventIndex}`;
+            } else if (MATCHERS[pi] === 2) {
+              token = `${PREFIXES[pi]}${1 + (v & 0xfe)}.${(v >>> 8) & 0xff}.${(v >>> 16) & 0xff}.${
+                (v >>> 24) & 0xff
+              }`;
+            } else token = `${PREFIXES[pi]}${100 + (v % 500)}`;
+            bytes.set(new TextEncoder().encode(token), offset + 64);
+          }
+          bytes[offset + RECORD_BYTES - 1] = 0x0a;
+        }
+        return bytes;
+      }
+      const callables = {};
+      const CAP = 5000;
+      for (const key of ["c", "cpp"]) {
+        const inst = mods.engines[key].instances.scan_log.instance;
+        const mem = inst.exports.memory;
+        callables[key] = {
+          scan_log: () => {
+            const bytes = corpus();
+            const dataOff = 4096, scratchOff = 1 << 20;
+            const idOff = scratchOff + 256 * 5 * 4;
+            const stOff = idOff + CAP * 4, enOff = stOff + CAP * 4;
+            const csOff = enOff + CAP * 4, pcOff = csOff + 4, tcOff = pcOff + 4;
+            new Uint8Array(mem.buffer, dataOff, bytes.length).set(bytes);
+            inst.exports.scan_log(
+              dataOff,
+              bytes.length,
+              idOff,
+              stOff,
+              enOff,
+              CAP,
+              scratchOff,
+              csOff,
+              pcOff,
+              tcOff,
+            );
+          },
+        };
+      }
+      callables.js = {
+        scan_log: () => {
+          const bytes = corpus();
+          const buckets = Array.from({ length: 256 }, () => []);
+          for (let i = 0; i < 20; i++) buckets[PREFIXES[i].charCodeAt(0)].push(i);
+          const isUrlTail = (b) =>
+            (b >= 97 && b <= 122) || (b >= 48 && b <= 57) || b === 46 || b === 47 || b === 95 ||
+            b === 45;
+          for (let start = 0; start < bytes.length; start++) {
+            for (const pi of buckets[bytes[start]]) {
+              const prefix = PREFIXES[pi];
+              let matched = true;
+              for (let i = 0; i < prefix.length; i++) {
+                if (start + i >= bytes.length) {
+                  matched = false;
+                  break;
+                }
+                if (bytes[start + i] !== prefix.charCodeAt(i)) {
+                  matched = false;
+                  break;
+                }
+              }
+              if (!matched) continue;
+              const cursor = start + prefix.length;
+              let end = -1;
+              if (MATCHERS[pi] === 1) {
+                const s0 = cursor;
+                let c = cursor;
+                while (c < bytes.length && c - s0 < 96) {
+                  if (!isUrlTail(bytes[c])) break;
+                  c++;
+                }
+                if (c === s0) end = -1;
+                else if (c - s0 === 96 && c < bytes.length && isUrlTail(bytes[c])) end = -1;
+                else end = c;
+              } else if (MATCHERS[pi] === 2) {
+                let c = cursor;
+                let failed = false;
+                for (let octet = 0; octet < 4; octet++) {
+                  const s1 = c;
+                  let value = 0;
+                  while (c < bytes.length && c - s1 < 3) {
+                    const b = bytes[c];
+                    if (b < 48 || b > 57) break;
+                    value = value * 10 + b - 48;
+                    c++;
+                  }
+                  const digits = c - s1;
+                  if (digits === 0 || value > 255 || (digits > 1 && bytes[s1] === 48)) {
+                    failed = true;
+                    break;
+                  }
+                  if (octet < 3) {
+                    if (c >= bytes.length) {
+                      failed = true;
+                      break;
+                    }
+                    if (bytes[c] !== 46) {
+                      failed = true;
+                      break;
+                    }
+                    c++;
+                  }
+                }
+                if (!failed) {
+                  if (c < bytes.length) {
+                    if (bytes[c] >= 48 && bytes[c] <= 57 || bytes[c] === 46) end = -1;
+                    else end = c;
+                  } else end = c;
+                }
+              } else {
+                if (cursor + 3 <= bytes.length) {
+                  const value = (bytes[cursor] - 48) * 100 + (bytes[cursor + 1] - 48) * 10 +
+                    (bytes[cursor + 2] - 48);
+                  if (value >= 100 && value <= 599) {
+                    const ep = cursor + 3;
+                    if (ep >= bytes.length || bytes[ep] < 48 || bytes[ep] > 57) end = ep;
+                  }
+                }
+              }
+              if (end >= 0) { /* counted */ }
+            }
+          }
+        },
+      };
+      callables.dart = {
+        scan_log: () => {
+          const bytes = corpus();
+          mods.engines.dart.kernels.scan_log(
+            bytes,
+            bytes.length,
+            new Uint32Array(CAP),
+            new Uint32Array(CAP),
+            new Uint32Array(CAP),
+            CAP,
+            new Uint32Array(256 * 5),
+            new Uint32Array(1),
+            new Uint32Array(1),
+            new Uint32Array(1),
+          );
+        },
+      };
+      return callables;
+    },
+  },
+
   // --- ml-gemm: strict-f32 GEMM (mirrors benchmarks/v2/ml-gemm) -------------
   "ml.gemm.v1": {
     kernels: ["gemm"],

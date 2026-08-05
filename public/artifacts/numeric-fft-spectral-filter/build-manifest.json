@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "712951f3a6ce82a68774d1c8e0065dd4a5ea5c9b",
-  "sourceSha256": "5d6ed3157cbd5668e0b0cdd4dbda4db6e67897cebb64e27f3f65a3be195cf57e",
+  "sourceCommit": "0422f27094dec30bf2b8c290ecf4397781ffda18",
+  "sourceSha256": "6fd1ae1d107505805b26c6c1dee095fd73e36d6e4aca1c3f610cb917623c8ed1",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 81126,
-      "sha256": "35842aa9e96addc00e637f599ef59fc747763ac84b802f146b820b2d5e1680e0"
+      "bytes": 81245,
+      "sha256": "ec8bb18709271e5c70b0573f9203264d9fb659efabc51bbf6de05a02fce58c4a"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "7ce757a9f7cc66f30c87a180d52153fcda55fac5381d7507a7fe5f96331b874c"
+      "sha256": "c667cee2a198ac8a58e48f1c59c85292325fd42065793d0ca8af6af8d9c27a14"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "3d6c99e210281bdded08bbf20250aea474382e8aae7ebcab4ef0ac95a3124a34"
+      "sha256": "99d7f4461d5ce6ac2d5ae4e13f6e15ca29c5b2ce59b58d4c6c83d6c87a329e6b"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=712951f3a6ce82a68774d1c8e0065dd4a5ea5c9b"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=0422f27094dec30bf2b8c290ecf4397781ffda18"
   }
 }
