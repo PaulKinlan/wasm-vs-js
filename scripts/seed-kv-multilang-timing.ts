@@ -17,7 +17,8 @@ const report = JSON.parse(
 const manifestResp = await fetch(
   "https://wasm-vs-js.paulkinlan-ea.deno.net/artifacts/sum-u32/build-manifest.json",
 );
-const manifest = await manifestResp.json(); void manifest;
+const manifest = await manifestResp.json();
+void manifest;
 const sourceCommit = "a".repeat(40);
 
 function variantToTarget(language: string): string {
