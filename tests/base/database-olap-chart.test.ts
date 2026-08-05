@@ -371,8 +371,10 @@ Deno.test("runner lifecycle owns fresh workers, timeout, stale-token, cancel, an
     const text of [
       'role="status"',
       'aria-live="polite"',
-      "No performance claim",
-      "Nothing is stored or uploaded",
+      // standard-shell copy (consistency wave 2): lede carries the disclosures
+      "Exact canonical",
+      "output is verified before any timing",
+      "stores and uploads nothing",
       "five canonical chart models",
     ]
   ) assert(page.includes(text));
