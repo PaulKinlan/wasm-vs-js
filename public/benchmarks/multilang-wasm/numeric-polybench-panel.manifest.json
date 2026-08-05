@@ -5,7 +5,14 @@
   "kernels": ["polybench"],
   "engines": [
     { "key": "js", "label": "JavaScript", "kind": "js" },
-    { "key": "wat", "label": "WAT / Wasm", "kind": "linear", "lang": "wat", "file": "polybench-panel.wasm", "offset": 0 },
+    {
+      "key": "wat",
+      "label": "WAT / Wasm",
+      "kind": "linear",
+      "lang": "wat",
+      "file": "polybench-panel.wasm",
+      "offset": 0
+    },
     { "key": "c", "label": "C / Wasm", "kind": "linear", "lang": "c", "offset": 0 },
     { "key": "cpp", "label": "C++ / Wasm", "kind": "linear", "lang": "cpp", "offset": 0 },
     { "key": "rs", "label": "Rust / Wasm", "kind": "linear", "lang": "rs", "offset": 0 },
