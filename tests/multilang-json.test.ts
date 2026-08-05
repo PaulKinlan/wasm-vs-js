@@ -26,13 +26,17 @@ Deno.test(
     ] as const;
     for (const [file, label] of linear) {
       const mod = (await WebAssembly.instantiate(
-        await Deno.readFile(`${ARTIFACTS}/${file}`), {},
+        await Deno.readFile(`${ARTIFACTS}/${file}`),
+        {},
       )) as unknown as { instance: WebAssembly.Instance };
       const mem = mod.instance.exports.memory as WebAssembly.Memory;
       const inOff = 0, outOff = fixture.byteLength + 1024, outCap = 4096;
       new Uint8Array(mem.buffer, inOff, fixture.length).set(fixture);
       const ret = (mod.instance.exports.process as (
-        i: number, l: number, o: number, c: number,
+        i: number,
+        l: number,
+        o: number,
+        c: number,
       ) => number)(inOff, fixture.length, outOff, outCap);
       const out = new Uint8Array(mem.buffer, outOff, ret);
       const text = new TextDecoder().decode(out);
@@ -66,7 +70,9 @@ Deno.test("multilang-json: report contains a measured serialization-json-telemet
   const report = JSON.parse(
     await Deno.readTextFile(`${rootDir}/public/data/multilang-wasm-benchmark-report.v1.json`),
   );
-  const wl = report.workloads.find((w: { name: string }) => w.name === "serialization-json-telemetry");
+  const wl = report.workloads.find((w: { name: string }) =>
+    w.name === "serialization-json-telemetry"
+  );
   assert(wl, "serialization-json-telemetry workload missing from report");
   assert(wl.variants.length >= 5, "serialization-json-telemetry needs 5 variants");
   for (const variant of wl.variants) {
