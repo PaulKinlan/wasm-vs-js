@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "2d57d8b62976c80d53ad8ba4a290b217b82aa1d8",
-  "sourceSha256": "9a488f9bf29cd8565d8558d38631d22c299e2c882c39d2e4710781ae21d5597a",
+  "sourceCommit": "3be5ac5ac7065365619493080637e0ea9698d4cf",
+  "sourceSha256": "b859d7e8fa02246fc56ab9db57612ab06406dfdf6f47e4fd570950dfbda6101d",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,13 +50,13 @@
     },
     {
       "path": "server.ts",
-      "bytes": 81233,
-      "sha256": "7da901894c15f442ffda29d9a1594f1fff2a3de9ba141345adb8e2d238e5664a"
+      "bytes": 82014,
+      "sha256": "2cd9f07ec1248e4ce1e8bc883782b2f531e4bb1dcbcbf748f04805bc10a2a52e"
     },
     {
       "path": "deno.json",
-      "bytes": 2104,
-      "sha256": "395d5541fd604585144ba08c6bf7ce6b534581e66b65408fdf5790c72fc10dc7"
+      "bytes": 2497,
+      "sha256": "1e439fe47deecb16a7528be9220f543fd5587b82181819e5cb967877ec407cc0"
     },
     {
       "path": "deno.lock",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "2e5bffab626963426a0dc23221d8e0d4db50daab766658a3570ebd8b81f56266"
+      "sha256": "4552ced53eb54187a05e17f10513a95e7ae99debff567c077b5b99ed4a0c56ad"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "7c26360bdbd7583e557724993d86699ad8d6f49b39c9fdb71d6fdf58b2cc8887"
+      "sha256": "588278e7458ac3c0743f383fb4005ccfb11c1fc41555ae5ae1acabed1b71660d"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=2d57d8b62976c80d53ad8ba4a290b217b82aa1d8"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=3be5ac5ac7065365619493080637e0ea9698d4cf"
   }
 }

@@ -7,7 +7,7 @@
     "file": {
       "path": "catalog/workloads.v2.proposed.json",
       "sha256": "d1e014cc7d6db799e1a04618b8961a3a5e6ead66e5a1fcdcf1e2301c87c66ac9",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/2d57d8b62976c80d53ad8ba4a290b217b82aa1d8/catalog/workloads.v2.proposed.json"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3be5ac5ac7065365619493080637e0ea9698d4cf/catalog/workloads.v2.proposed.json"
     }
   },
   "workloadContract": {
@@ -15,7 +15,7 @@
     "file": {
       "path": "benchmarks/v2/shared/workload-contract.js",
       "sha256": "c2c816ec5177a190999b9a030bc992519935301684f1bb884281440e08a43155",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/2d57d8b62976c80d53ad8ba4a290b217b82aa1d8/benchmarks/v2/shared/workload-contract.js"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3be5ac5ac7065365619493080637e0ea9698d4cf/benchmarks/v2/shared/workload-contract.js"
     }
   },
   "resultContract": {
@@ -23,12 +23,12 @@
     "file": {
       "path": "schemas/workload-result-v2-proposal.schema.json",
       "sha256": "64fa72510b1e775c8d4b968ad4aacfd9b0e1ae3cf199156b958476857cd8d39a",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/2d57d8b62976c80d53ad8ba4a290b217b82aa1d8/schemas/workload-result-v2-proposal.schema.json"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3be5ac5ac7065365619493080637e0ea9698d4cf/schemas/workload-result-v2-proposal.schema.json"
     }
   },
   "source": {
     "repository": "https://github.com/PaulKinlan/wasm-vs-js",
-    "commit": "2d57d8b62976c80d53ad8ba4a290b217b82aa1d8"
+    "commit": "3be5ac5ac7065365619493080637e0ea9698d4cf"
   },
   "workload": {
     "entryId": "text.diff-patch.v1",
@@ -46,75 +46,75 @@
         "role": "javascript-authored",
         "path": "benchmarks/v2/text-diff-patch/workload.js",
         "sha256": "c859a02d24afb5446e17153d6ec7e3fb92087cd777c880fe0a000f0c132b3070",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/2d57d8b62976c80d53ad8ba4a290b217b82aa1d8/benchmarks/v2/text-diff-patch/workload.js"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3be5ac5ac7065365619493080637e0ea9698d4cf/benchmarks/v2/text-diff-patch/workload.js"
       },
       {
         "role": "wasm-authored",
         "path": "benchmarks/v2/text-diff-patch/text-diff-patch.wat",
         "sha256": "d4daeb73733f794acafdeacaa84c567166bee6d842355f38d1435eabd688b771",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/2d57d8b62976c80d53ad8ba4a290b217b82aa1d8/benchmarks/v2/text-diff-patch/text-diff-patch.wat"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3be5ac5ac7065365619493080637e0ea9698d4cf/benchmarks/v2/text-diff-patch/text-diff-patch.wat"
       },
       {
         "role": "shared-support",
         "path": "scripts/build-v2-text.ts",
         "sha256": "de7c5de75c2b9e5310d0d02092903965921219fd842f0003c3a9ea595f3cb466",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/2d57d8b62976c80d53ad8ba4a290b217b82aa1d8/scripts/build-v2-text.ts"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3be5ac5ac7065365619493080637e0ea9698d4cf/scripts/build-v2-text.ts"
       },
       {
         "role": "shared-support",
         "path": "scripts/build-v2-text-records.ts",
         "sha256": "2b6d31b43f18212c99ae673ab713962609791e737f13c5cba51d023ac969272d",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/2d57d8b62976c80d53ad8ba4a290b217b82aa1d8/scripts/build-v2-text-records.ts"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3be5ac5ac7065365619493080637e0ea9698d4cf/scripts/build-v2-text-records.ts"
       },
       {
         "role": "shared-support",
         "path": "deno.json",
-        "sha256": "395d5541fd604585144ba08c6bf7ce6b534581e66b65408fdf5790c72fc10dc7",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/2d57d8b62976c80d53ad8ba4a290b217b82aa1d8/deno.json"
+        "sha256": "1e439fe47deecb16a7528be9220f543fd5587b82181819e5cb967877ec407cc0",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3be5ac5ac7065365619493080637e0ea9698d4cf/deno.json"
       }
     ],
     "generator": {
       "path": "benchmarks/v2/text-diff-patch/workload.js",
       "sha256": "c859a02d24afb5446e17153d6ec7e3fb92087cd777c880fe0a000f0c132b3070",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/2d57d8b62976c80d53ad8ba4a290b217b82aa1d8/benchmarks/v2/text-diff-patch/workload.js"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3be5ac5ac7065365619493080637e0ea9698d4cf/benchmarks/v2/text-diff-patch/workload.js"
     },
     "reference": {
       "path": "benchmarks/v2/text-diff-patch/workload.js",
       "sha256": "c859a02d24afb5446e17153d6ec7e3fb92087cd777c880fe0a000f0c132b3070",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/2d57d8b62976c80d53ad8ba4a290b217b82aa1d8/benchmarks/v2/text-diff-patch/workload.js"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3be5ac5ac7065365619493080637e0ea9698d4cf/benchmarks/v2/text-diff-patch/workload.js"
     },
     "oracle": {
       "path": "public/artifacts/text-diff-patch/output-manifest.json",
       "sha256": "39dcf1037152fa428a0b1386a16877cd7d8ad60a1875bfce2cf76eace077991d",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/2d57d8b62976c80d53ad8ba4a290b217b82aa1d8/public/artifacts/text-diff-patch/output-manifest.json"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3be5ac5ac7065365619493080637e0ea9698d4cf/public/artifacts/text-diff-patch/output-manifest.json"
     },
     "manifests": {
       "fixture": {
         "path": "public/artifacts/text-diff-patch/fixture-manifest.json",
         "sha256": "3951f92c02f1fe264929f476ede17e2c81db76626cd88a520db1ac0016db2da8",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/2d57d8b62976c80d53ad8ba4a290b217b82aa1d8/public/artifacts/text-diff-patch/fixture-manifest.json"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3be5ac5ac7065365619493080637e0ea9698d4cf/public/artifacts/text-diff-patch/fixture-manifest.json"
       },
       "input": {
         "path": "public/artifacts/text-diff-patch/input-manifest.json",
         "sha256": "2d51a60a03ab970035ed0216317644f9f4730393eff03f0cf2f2534c5d629767",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/2d57d8b62976c80d53ad8ba4a290b217b82aa1d8/public/artifacts/text-diff-patch/input-manifest.json"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3be5ac5ac7065365619493080637e0ea9698d4cf/public/artifacts/text-diff-patch/input-manifest.json"
       },
       "output": {
         "path": "public/artifacts/text-diff-patch/output-manifest.json",
         "sha256": "39dcf1037152fa428a0b1386a16877cd7d8ad60a1875bfce2cf76eace077991d",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/2d57d8b62976c80d53ad8ba4a290b217b82aa1d8/public/artifacts/text-diff-patch/output-manifest.json"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3be5ac5ac7065365619493080637e0ea9698d4cf/public/artifacts/text-diff-patch/output-manifest.json"
       },
       "build": {
         "path": "public/artifacts/text-diff-patch/build-manifest.json",
-        "sha256": "f172e182c03b7e08b28cd9afa05f7d2864d6423c74c11e5ebc893d1fd1094645",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/2d57d8b62976c80d53ad8ba4a290b217b82aa1d8/public/artifacts/text-diff-patch/build-manifest.json"
+        "sha256": "146d7edd1854229043dd8932713d1eff088c0c532e0fb803d5f8ea231f1ce635",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3be5ac5ac7065365619493080637e0ea9698d4cf/public/artifacts/text-diff-patch/build-manifest.json"
       }
     },
     "build": {
       "recipe": {
         "path": "scripts/build-v2-text-records.ts",
         "sha256": "2b6d31b43f18212c99ae673ab713962609791e737f13c5cba51d023ac969272d",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/2d57d8b62976c80d53ad8ba4a290b217b82aa1d8/scripts/build-v2-text-records.ts"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3be5ac5ac7065365619493080637e0ea9698d4cf/scripts/build-v2-text-records.ts"
       },
       "cwd": ".",
       "command": [
@@ -130,7 +130,7 @@
         {
           "path": "deno.lock",
           "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2",
-          "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/2d57d8b62976c80d53ad8ba4a290b217b82aa1d8/deno.lock"
+          "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3be5ac5ac7065365619493080637e0ea9698d4cf/deno.lock"
         }
       ],
       "toolchain": [
@@ -162,7 +162,7 @@
       "environment": [
         {
           "name": "WASM_VS_JS_COMMIT",
-          "value": "2d57d8b62976c80d53ad8ba4a290b217b82aa1d8"
+          "value": "3be5ac5ac7065365619493080637e0ea9698d4cf"
         }
       ]
     },
@@ -171,14 +171,14 @@
         "id": "text-diff-patch-javascript-source",
         "path": "benchmarks/v2/text-diff-patch/workload.js",
         "sha256": "c859a02d24afb5446e17153d6ec7e3fb92087cd777c880fe0a000f0c132b3070",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/2d57d8b62976c80d53ad8ba4a290b217b82aa1d8/benchmarks/v2/text-diff-patch/workload.js",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3be5ac5ac7065365619493080637e0ea9698d4cf/benchmarks/v2/text-diff-patch/workload.js",
         "mediaType": "text/javascript"
       },
       {
         "id": "text-diff-patch-wasm-artifact",
         "path": "public/artifacts/text-diff-patch/text-diff-patch.wasm",
         "sha256": "7a1400174c9f3cd4dab2b9d486123066d8165d084c178634555631b355991aef",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/2d57d8b62976c80d53ad8ba4a290b217b82aa1d8/public/artifacts/text-diff-patch/text-diff-patch.wasm",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3be5ac5ac7065365619493080637e0ea9698d4cf/public/artifacts/text-diff-patch/text-diff-patch.wasm",
         "mediaType": "application/wasm"
       }
     ]
