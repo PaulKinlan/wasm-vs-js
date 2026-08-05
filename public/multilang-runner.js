@@ -524,7 +524,7 @@ export const KERNEL_ADAPTERS = {
         out[o] = 0x5d;
         return out;
       }
-      function jsParse(bytes) {
+            function jsParse(bytes) {
         // Faithful mirror of the C telemetry parser: same fields, same
         // vocabularies, same summary work (id/ts/value uints, region/kind/
         // label/tag options, boolean, counters).
@@ -592,98 +592,26 @@ export const KERNEL_ADAPTERS = {
         return { count, okCount, errCount, valueSum };
       }
       const callables = {};
-      for (const key of ["wat", "asc", "c", "cpp", "rs"]) {
-        const cfg = mods.manifest.engines.find((e) => e.key === key);
-        const { instances } = mods.engines[key];
-        const call = {};
-        if (instances.sum) {
-          call.sum = () => {
-            const arr = new Uint32Array(1000);
-            for (let i = 0; i < 1000; i++) arr[i] = (i % 100) + 1;
-            new Uint32Array(instances.sum.instance.exports.memory.buffer, cfg.offset, 1000).set(
-              arr,
-            );
-            return instances.sum.instance.exports.sum_u32(cfg.offset, 1000);
-          };
-        }
-        if (instances.fft) {
-          call.fft = () => {
-            const real = new Float32Array(512);
-            const imag = new Float32Array(512);
-            for (let i = 0; i < 512; i++) {
-              real[i] = Math.sin(i * 0.1);
-              imag[i] = Math.cos(i * 0.1);
-            }
-            const mem = instances.fft.instance.exports.memory;
-            new Float32Array(mem.buffer, cfg.offset, 512).set(real);
-            new Float32Array(mem.buffer, cfg.offset + 512 * 4, 512).set(imag);
-            instances.fft.instance.exports.fft_butterfly(cfg.offset, cfg.offset + 512 * 4, 512);
-            return real[17] + imag[29];
-          };
-        }
-        callables[key] = call;
+      for (const key of ["c", "cpp", "rs"]) {
+        const inst = mods.engines[key].instances.telemetry.instance;
+        const mem = inst.exports.memory;
+        callables[key] = {
+          telemetry: () => {
+            const bytes = fixture();
+            const inOff = 0, outOff = bytes.byteLength + 1024, outCap = 4096;
+            new Uint8Array(mem.buffer, inOff, bytes.length).set(bytes);
+            inst.exports.process(inOff, bytes.length, outOff, outCap);
+          },
+        };
       }
-      const { kernels } = mods.engines.dart;
-      callables.js = {
-        sum: () => {
-          const arr = new Uint32Array(1000);
-          for (let i = 0; i < 1000; i++) arr[i] = (i % 100) + 1;
-          let s = 0;
-          for (let i = 0; i < 1000; i++) s += arr[i];
-          return s;
-        },
-        fft: () => {
-          const real = new Float32Array(512);
-          const imag = new Float32Array(512);
-          for (let i = 0; i < 512; i++) {
-            real[i] = Math.sin(i * 0.1);
-            imag[i] = Math.cos(i * 0.1);
-          }
-          for (let step = 1; step < 512; step <<= 1) {
-            const angle = -Math.PI / step;
-            const wReal = Math.cos(angle);
-            const wImag = Math.sin(angle);
-            for (let i = 0; i < 512; i += step << 1) {
-              let cwR = 1.0, cwI = 0.0;
-              for (let j = 0; j < step; j++) {
-                const u = i + j, v = i + j + step;
-                const tr = real[v] * cwR - imag[v] * cwI;
-                const ti = real[v] * cwI + imag[v] * cwR;
-                real[v] = real[u] - tr;
-                imag[v] = imag[u] - ti;
-                real[u] += tr;
-                imag[u] += ti;
-                const nwR = cwR * wReal - cwI * wImag;
-                const nwI = cwR * wImag + cwI * wReal;
-                cwR = nwR;
-                cwI = nwI;
-              }
-            }
-          }
-          return real[17] + imag[29];
-        },
-      };
+      callables.js = { telemetry: () => jsParse(fixture()) };
       callables.dart = {
-        sum: () => {
-          const arr = new Uint32Array(1000);
-          for (let i = 0; i < 1000; i++) arr[i] = (i % 100) + 1;
-          return kernels.sum_u32(arr);
-        },
-        fft: () => {
-          const real = new Float32Array(512);
-          const imag = new Float32Array(512);
-          for (let i = 0; i < 512; i++) {
-            real[i] = Math.sin(i * 0.1);
-            imag[i] = Math.cos(i * 0.1);
-          }
-          kernels.fft_butterfly(real, imag, 512);
-          return real[17] + imag[29];
-        },
+        telemetry: () =>
+          mods.engines.dart.kernels.process(fixture(), RECORDS * 100, new Uint8Array(4096), 4096),
       };
       return callables;
     },
   },
-
   // --- ml-dense-mlp: dense MLP forward (mirrors workload.js mlpControlled)
   "ml.dense-mlp.v1": {
     kernels: ["mlp_forward"],
