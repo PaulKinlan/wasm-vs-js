@@ -481,6 +481,299 @@ export const KERNEL_ADAPTERS = {
     },
   },
 
+  // --- audio-fft: radix-2 FFT butterfly (reuses the multilang-wasm fft kernels)
+  "audio.fft.v1": {
+    kernels: ["fft"],
+    build(mods) {
+      const LEN = 512;
+      function inputs() {
+        const real = new Float32Array(LEN), imag = new Float32Array(LEN);
+        for (let i = 0; i < LEN; i++) {
+          real[i] = Math.sin(i * 0.1);
+          imag[i] = Math.cos(i * 0.1);
+        }
+        return { real, imag };
+      }
+      function jsFft(real, imag) {
+        for (let step = 1; step < LEN; step <<= 1) {
+          const angle = -Math.PI / step, wReal = Math.cos(angle), wImag = Math.sin(angle);
+          for (let i = 0; i < LEN; i += step << 1) {
+            let cwR = 1.0, cwI = 0.0;
+            for (let j = 0; j < step; j++) {
+              const u = i + j, v = i + j + step;
+              const tr = real[v] * cwR - imag[v] * cwI;
+              const ti = real[v] * cwI + imag[v] * cwR;
+              real[v] = real[u] - tr;
+              imag[v] = imag[u] - ti;
+              real[u] += tr;
+              imag[u] += ti;
+              const nwR = cwR * wReal - cwI * wImag, nwI = cwR * wImag + cwI * wReal;
+              cwR = nwR;
+              cwI = nwI;
+            }
+          }
+        }
+      }
+      const callables = {};
+      for (const key of ["c", "cpp", "rs"]) {
+        const cfg = mods.manifest.engines.find((e) => e.key === key);
+        const inst = mods.engines[key].instances.fft.instance;
+        const mem = inst.exports.memory;
+        callables[key] = {
+          fft: () => {
+            const { real, imag } = inputs();
+            new Float32Array(mem.buffer, cfg.offset, LEN).set(real);
+            new Float32Array(mem.buffer, cfg.offset + LEN * 4, LEN).set(imag);
+            inst.exports.fft_butterfly(cfg.offset, cfg.offset + LEN * 4, LEN);
+          },
+        };
+      }
+      callables.js = {
+        fft: () => {
+          const { real, imag } = inputs();
+          jsFft(real, imag);
+        },
+      };
+      callables.dart = {
+        fft: () => {
+          const { real, imag } = inputs();
+          mods.engines.dart.kernels.fft_butterfly(real, imag, LEN);
+        },
+      };
+      return callables;
+    },
+  },
+
+  // --- audio-fir: FIR direct convolution (mirrors audio-fir/workload.ts)
+  "audio.fir.v1": {
+    kernels: ["fir"],
+    build(mods) {
+      const SAMPLES = 16384, TAPS = 256;
+      const xorshift = (state) => {
+        state ^= state << 13;
+        state >>>= 0;
+        state ^= state >>> 17;
+        state ^= state << 5;
+        state >>>= 0;
+        return state;
+      };
+      function signal() {
+        let st = 0xa1b2c3d4;
+        const d = new Float32Array(SAMPLES);
+        for (let i = 0; i < SAMPLES; i++) {
+          st = xorshift(st);
+          d[i] = Math.fround((st / 0x1_0000_0000) * 2 - 1);
+        }
+        return d;
+      }
+      function taps() {
+        const h = new Float32Array(TAPS);
+        const fc = 0.25, center = Math.fround((TAPS - 1) / 2);
+        for (let i = 0; i < TAPS; i++) {
+          const nn = Math.fround(i - center);
+          let sinc;
+          if (nn === 0) sinc = Math.fround(2 * fc);
+          else {
+            const arg = Math.fround(Math.fround(2 * Math.PI * fc) * nn);
+            sinc = Math.fround(Math.fround(Math.sin(arg)) / Math.fround(Math.PI * nn));
+          }
+          const w = Math.fround(
+            0.5 -
+              Math.fround(
+                0.5 *
+                  Math.fround(
+                    Math.cos(Math.fround(Math.fround(2 * Math.PI * i) / Math.fround(TAPS - 1))),
+                  ),
+              ),
+          );
+          h[i] = Math.fround(sinc * w);
+        }
+        return h;
+      }
+      function jsFir(sig, tp) {
+        const out = new Float32Array(sig.length + tp.length - 1);
+        for (let i = 0; i < sig.length; i++) {
+          const sample = sig[i];
+          for (let j = 0; j < tp.length; j++) {
+            out[i + j] = Math.fround(out[i + j] + Math.fround(sample * tp[j]));
+          }
+        }
+        return out;
+      }
+      const callables = {};
+      for (const key of ["c", "cpp", "rs"]) {
+        const inst = mods.engines[key].instances.fir.instance;
+        const mem = inst.exports.memory;
+        callables[key] = {
+          fir: () => {
+            const sig = signal(), tp = taps();
+            const inOff = 0, tapsOff = sig.byteLength, outOff = tapsOff + tp.byteLength;
+            new Float32Array(mem.buffer, inOff, sig.length).set(sig);
+            new Float32Array(mem.buffer, tapsOff, tp.length).set(tp);
+            inst.exports.fir(inOff, tapsOff, outOff, sig.length, tp.length);
+          },
+        };
+      }
+      callables.js = { fir: () => jsFir(signal(), taps()) };
+      callables.dart = {
+        fir: () =>
+          mods.engines.dart.kernels.fir(
+            signal(),
+            taps(),
+            new Float32Array(SAMPLES + TAPS - 1),
+            SAMPLES,
+            TAPS,
+          ),
+      };
+      return callables;
+    },
+  },
+
+  // --- audio-stft: STFT (mirrors audio-stft/workload.ts stftInto + fftRadix2)
+  "audio.stft.v1": {
+    kernels: ["stft"],
+    build(mods) {
+      const SAMPLES = 8192, FRAME = 1024, HOP = 256;
+      const FRAMES = 1 + Math.floor((SAMPLES - FRAME) / HOP);
+      const xorshift = (state) => {
+        state ^= state << 13;
+        state >>>= 0;
+        state ^= state >>> 17;
+        state ^= state << 5;
+        state >>>= 0;
+        return state;
+      };
+      function signal() {
+        let st = 0x13579bdf;
+        const d = new Float32Array(SAMPLES);
+        for (let i = 0; i < SAMPLES; i++) {
+          st = xorshift(st);
+          d[i] = Math.fround((st / 0x1_0000_0000) * 2 - 1);
+        }
+        return d;
+      }
+      function window() {
+        const w = new Float32Array(FRAME);
+        for (let i = 0; i < FRAME; i++) {
+          w[i] = Math.fround(
+            0.5 -
+              Math.fround(
+                0.5 *
+                  Math.fround(
+                    Math.cos(Math.fround(Math.fround(2 * Math.PI * i) / Math.fround(FRAME - 1))),
+                  ),
+              ),
+          );
+        }
+        return w;
+      }
+      function twiddle() {
+        // Mirrors audio-fft generateTwiddleTable: stage-structured entries.
+        const stages = Math.log2(FRAME);
+        const t = new Float32Array((FRAME - 1) * 2);
+        let idx = 0;
+        for (let stage = 0; stage < stages; stage++) {
+          const halfLen = 1 << stage;
+          for (let j = 0; j < halfLen; j++) {
+            const angle = -Math.PI * j / halfLen;
+            t[idx++] = Math.fround(Math.cos(angle));
+            t[idx++] = Math.fround(Math.sin(angle));
+          }
+        }
+        return t;
+      }
+      function fft(data, n, tw) {
+        for (let i = 1, j = 0; i < n; i++) {
+          let bit = n >> 1;
+          for (; j & bit; bit >>= 1) j ^= bit;
+          j ^= bit;
+          if (i < j) {
+            const ri = i * 2, rj = j * 2;
+            let t = data[ri];
+            data[ri] = data[rj];
+            data[rj] = t;
+            t = data[ri + 1];
+            data[ri + 1] = data[rj + 1];
+            data[rj + 1] = t;
+          }
+        }
+        let twIdx = 0;
+        for (let len = 2; len <= n; len <<= 1) {
+          const halfLen = len >> 1;
+          for (let i = 0; i < n; i += len) {
+            let twp = twIdx;
+            for (let j = 0; j < halfLen; j++) {
+              const wCos = tw[twp], wSin = tw[twp + 1];
+              const u = i + j, v = u + halfLen;
+              const rv = data[v * 2], iv = data[v * 2 + 1];
+              const tr = rv * wCos - iv * wSin;
+              const ti = rv * wSin + iv * wCos;
+              data[v * 2] = data[u * 2] - tr;
+              data[v * 2 + 1] = data[u * 2 + 1] - ti;
+              data[u * 2] += tr;
+              data[u * 2 + 1] += ti;
+              twp += 2;
+            }
+          }
+          twIdx += 2;
+        }
+      }
+      function jsStft(sig, win, tw) {
+        const spec = new Float32Array(FRAMES * FRAME * 2);
+        const scratch = new Float32Array(FRAME * 2);
+        for (let frame = 0; frame < FRAMES; frame++) {
+          const offset = frame * HOP;
+          for (let i = 0; i < FRAME; i++) {
+            scratch[i * 2] = Math.fround(sig[offset + i] * win[i]);
+            scratch[i * 2 + 1] = 0;
+          }
+          fft(scratch, FRAME, tw);
+          spec.set(scratch, frame * FRAME * 2);
+        }
+        return spec;
+      }
+      const callables = {};
+      for (const key of ["c", "cpp", "rs"]) {
+        const inst = mods.engines[key].instances.stft.instance;
+        const mem = inst.exports.memory;
+        callables[key] = {
+          stft: () => {
+            const sig = signal(), win = window(), tw = twiddle();
+            let off = 0;
+            const inOff = off;
+            off += sig.byteLength;
+            const winOff = off;
+            off += win.byteLength;
+            const twOff = off;
+            off += tw.byteLength;
+            const scratchOff = off;
+            off += FRAME * 2 * 4;
+            const specOff = off;
+            new Float32Array(mem.buffer, inOff, sig.length).set(sig);
+            new Float32Array(mem.buffer, winOff, win.length).set(win);
+            new Float32Array(mem.buffer, twOff, tw.length).set(tw);
+            inst.exports.stft(inOff, sig.length, FRAME, HOP, winOff, twOff, scratchOff, specOff);
+          },
+        };
+      }
+      callables.js = { stft: () => jsStft(signal(), window(), twiddle()) };
+      callables.dart = {
+        stft: () =>
+          mods.engines.dart.kernels.stft(
+            signal(),
+            signal().length,
+            FRAME,
+            HOP,
+            window(),
+            twiddle(),
+            new Float32Array(FRAME * 2),
+            new Float32Array(FRAMES * FRAME * 2),
+          ),
+      };
+      return callables;
+    },
+  },
+
   // --- ml-dense-mlp: dense MLP forward (mirrors workload.js mlpControlled)
   "ml.dense-mlp.v1": {
     kernels: ["mlp_forward"],
