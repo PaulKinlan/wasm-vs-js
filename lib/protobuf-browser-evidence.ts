@@ -2,7 +2,7 @@ import { sha256Hex } from "./canonical.ts";
 
 export const PROTOBUF_SOURCE = {
   commit: "7a30660591956b0db7ba64b2e051ad90344473ac",
-  tree: "1cb13c7ecfed1e9600e20f0f42faf9a9621eae82",
+  tree: "968560ca3abb902a490420c77469c8a6555d4a9d",
   workload: "serialization.protobuf-gateway.v1",
 } as const;
 
