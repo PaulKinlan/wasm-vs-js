@@ -101,7 +101,7 @@ const testEnv = { WASM_VS_JS_COMMIT: commit };
 const testArgs = [
   "--unstable-kv",
   "--no-lock",
-  "--allow-env=PORT,HOST,SERVER_MODE,WASM_VS_JS_COMMIT",
+  "--allow-env=PORT,HOST,SERVER_MODE,WASM_VS_JS_COMMIT,WASM_VS_JS_REPORTER_TOKEN",
   "--allow-net=127.0.0.1",
   "--allow-import=127.0.0.1",
   "--allow-read",
@@ -227,7 +227,7 @@ await Promise.all([
       name: "smoke-cdp",
       args: [
         "run",
-        "--allow-env=PORT,HOST,SERVER_MODE",
+        "--allow-env=PORT,HOST,SERVER_MODE,WASM_VS_JS_REPORTER_TOKEN",
         "--allow-net=127.0.0.1",
         "--allow-read",
         "--allow-write",
