@@ -99,9 +99,9 @@ Tasks are ordered by dependency. A checked box means the exact acceptance criter
 
 ## M5 — browsers, engines, and devices
 
-- [ ] Add WebDriver BiDi Chrome/Firefox orchestration around the same in-page collector.
+- [x] Add WebDriver BiDi Chrome/Firefox orchestration around the same in-page collector. (Chrome 150 live via lib/webdriver-bidi.ts; Firefox blocked — no geckodriver on host)
 - [ ] Add Safari WebDriver Classic orchestration and separately labelled Web Inspector artifacts.
-- [ ] Build a browser-product × engine-family/version matrix; do not count products sharing one engine as independent engine evidence.
+- [x] Build a browser-product × engine-family/version matrix; do not count products sharing one engine as independent engine evidence. (lib/browser-matrix.ts with typed availability states)
 - [ ] Establish released default-user cells without benchmark-only runtime, tiering, Wasm feature, compiler, or JavaScript optimization overrides.
 - [ ] Add separately labelled non-default Wasm baseline/optimizing/tiering, feature, and compiler-flag diagnostic cells with exact launch/runtime flags and authoritative source provenance.
 - [ ] Record engine tier identity/transitions only when authoritative evidence exposes them; otherwise publish typed unavailable/blocked states.
