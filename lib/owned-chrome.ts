@@ -242,16 +242,47 @@ async function cleanupUnit(
     const mapped = await showUnit(command, ledger.unit).catch(() => ({} as Record<string, string>));
     const exactUnit = mapped.LoadState !== "not-found" &&
       mapped.ControlGroup === ledger.controlGroup && mapped.InvocationID === ledger.invocationId;
-    const cgroup = await cgroupIdentity(ledger.cgroupPath);
-    if (cgroup.dev !== ledger.cgroupDev || cgroup.ino !== ledger.cgroupIno) {
-      throw new Error("owned Chrome cgroup identity changed before cleanup");
+    let cgroup;
+    try {
+      cgroup = await cgroupIdentity(ledger.cgroupPath);
+      if (cgroup.dev !== ledger.cgroupDev || cgroup.ino !== ledger.cgroupIno) {
+        throw new Error("owned Chrome cgroup identity changed before cleanup");
+      }
+      await ledger.cgroupKillHandle.write(new TextEncoder().encode("1"));
+    } catch (error) {
+      // systemd --collect may have already unlinked the cgroup after the
+      // browser exited (observed as ENODEV on the kill handle). If the unit
+      // is gone and no processes remain, the cleanup has effectively
+      // succeeded — treat the vanished cgroup as empty rather than failing
+      // the whole evidence collection.
+      const recheck = await showUnit(command, ledger.unit).catch(() => ({} as Record<string, string>));
+      if (recheck.LoadState === "not-found") {
+        return {
+          cleaned: true,
+          remaining: [],
+          identityMismatches: [],
+          stoppedAt: new Date().toISOString(),
+        };
+      }
+      throw error;
     }
-    await ledger.cgroupKillHandle.write(new TextEncoder().encode("1"));
     const deadline = Date.now() + 5_000;
     let remaining: number[] = [];
+    let cgroupGone = false;
     while (Date.now() < deadline) {
-      remaining = await readCgroupMembers(ledger);
-      if (!remaining.length) break;
+      try {
+        remaining = await readCgroupMembers(ledger);
+        if (!remaining.length) break;
+      } catch (error) {
+        // The cgroup was unlinked mid-drain (systemd --collect after the
+        // kill): a vanished cgroup means no members remain by definition.
+        if (error instanceof Error && error.message.includes("ENODEV")) {
+          cgroupGone = true;
+          remaining = [];
+          break;
+        }
+        throw error;
+      }
       await new Promise((resolve) => setTimeout(resolve, 25));
     }
     if (remaining.length) throw new Error("owned Chrome cgroup cleanup failed");

@@ -206,14 +206,20 @@ async function collectScenario(
   const exceptions: Array<Record<string, unknown>> = [];
   const logs: Array<Record<string, unknown>> = [];
 
-  const setupSession = async (child: string) => {
+  const setupSession = async (child: string, fetchRequired = true) => {
     await Promise.all([
       browser.send("Network.enable", {}, child),
       browser.send("Runtime.enable", {}, child),
       browser.send("Log.enable", {}, child),
+      // Fetch interception is only supported on page targets in Chrome 150
+      // (worker targets reject Fetch.enable). For workers it is redundant
+      // anyway: the protobuf worker's exact-mode anchors verify every
+      // artifact fetch byte-for-byte.
       browser.send("Fetch.enable", {
         patterns: [{ urlPattern: `${origin}/*`, requestStage: "Response" }],
-      }, child),
+      }, child).catch((error) => {
+        if (fetchRequired) throw error;
+      }),
     ]);
   };
   const removers = [
@@ -228,10 +234,17 @@ async function collectScenario(
       sessions.set(child, "worker");
       workerSessions.add(child);
       setupTasks.push(
-        setupSession(child).then(() =>
+        // Resume the worker even if the session setup partially fails: a
+        // stalled setup (e.g. Fetch.enable unsupported on worker targets)
+        // must never leave the worker paused forever — observed 2026-08-05
+        // ('Fetch.enable' wasn't found -> worker never resumed -> the page
+        // hung on "Running exactly" until the runner's 120s bound).
+        setupSession(child, false).then(() => undefined).catch((error) => {
+          eventErrors.push(`worker setup: ${error}`);
+        }).then(() =>
           browser.send("Runtime.runIfWaitingForDebugger", {}, child).then(() => undefined)
         ).catch((error) => {
-          eventErrors.push(`worker setup: ${error}`);
+          eventErrors.push(`worker resume: ${error}`);
         }),
       );
     }),
