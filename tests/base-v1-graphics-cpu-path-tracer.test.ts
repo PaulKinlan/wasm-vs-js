@@ -333,9 +333,9 @@ Deno.test("demo lifecycle is fresh-worker, bounded, stale-safe, and non-persiste
   for (
     const text of [
       "aria-live",
-      "No performance claim",
+      "/unified-runner.js",
+      "Correctness evidence",
       "does not upload, store or rank",
-      "512×512 × 64 spp",
     ]
   ) {
     assert(page.includes(text), text);

@@ -333,7 +333,8 @@ Deno.test("demo routes are closed and lifecycle controls are present", async () 
   );
   assert(page.includes('aria-live="polite"'));
   assert(page.includes("Nothing is stored or uploaded"));
-  assert(page.includes("No performance claim"));
+  assert(page.includes("/unified-runner.js"));
+  assert(page.includes("Correctness evidence"));
 });
 
 Deno.test("generated manifests bind raw fixture fields, complete output and exact source graph", async () => {
