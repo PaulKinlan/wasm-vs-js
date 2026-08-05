@@ -9,21 +9,21 @@
       "source": "public/benchmarks/database-sqlite-notebook-v1/index.html",
       "path": "/benchmarks/database-sqlite-notebook-v1/",
       "bytes": 5126,
-      "sha256": "0b852ed4e05aa84a790da05c241be07b73bae45f18ea96f082f1e667da87c326"
+      "sha256": "84eabc1b1f46402a4c015bc4277af625468006aaa9f1c8f0d1d469fc31055006"
     },
     {
       "id": "runner",
       "source": "public/sqlite-notebook-runner.js",
       "path": "/sqlite-notebook-runner.js",
-      "bytes": 6083,
-      "sha256": "7c08a7884c2f28039a29c8de14f6b5b63c298883780032a56136ad52c397ae48"
+      "bytes": 7238,
+      "sha256": "27c71253426365ef45618fddcaa2db854b87d75daab2c3847916056d9db18a0e"
     },
     {
       "id": "worker",
       "source": "public/sqlite-notebook-worker.js",
       "path": "/sqlite-notebook-worker.js",
-      "bytes": 4828,
-      "sha256": "b92b7507bbd5ffa6d69328f0dd8b58a10a80423fe08b16b7f63dbb2465d91bdb"
+      "bytes": 5046,
+      "sha256": "b37a9994fa2ec4421eec7d95664d467d44a2e45b7c28b33ea139ea3e1a75ae02"
     },
     {
       "id": "contract",

@@ -3,8 +3,11 @@ async function sha256(bytes) {
     .map((value) => value.toString(16).padStart(2, "0")).join("");
 }
 
+// Blob workers have no page origin — the runner passes it in so absolute paths resolve.
+let FETCH_BASE = "";
 async function fetchBytes(path) {
-  const response = await fetch(path, { cache: "no-store" });
+  const url = FETCH_BASE ? new URL(path, FETCH_BASE).href : path;
+  const response = await fetch(url, { cache: "no-store" });
   if (!response.ok) throw new Error(`${path} returned ${response.status}`);
   return new Uint8Array(await response.arrayBuffer());
 }
@@ -45,7 +48,8 @@ function blobUrl(bytes, type = "text/javascript") {
 
 self.addEventListener("message", async (message) => {
   if (message.data?.type !== "run") return;
-  const { token, target, queryId, exact, manifest, shellChecks } = message.data;
+  const { token, target, queryId, exact, manifest, shellChecks, base } = message.data;
+  FETCH_BASE = base || FETCH_BASE;
   const progress = (value, label) => self.postMessage({ type: "progress", token, value, label });
   const objectUrls = [];
   try {
