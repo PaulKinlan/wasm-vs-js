@@ -1,18 +1,10 @@
 {
   "schemaVersion": 1,
   "purpose": "Non-served trust root for the audio demo serving graph: page and registry byte hashes, reviewed at the accepted commit.",
-<<<<<<< HEAD
-  "registrySha256": "018366e7e47c631c4d5491de94072e82f484430f9f01a807010707beb6eafb0d",
+  "registrySha256": "a5768ca14c2741b5b8c4784b4ca3c51a669af2d40dc5913d38650a6396cec954",
   "pages": {
-    "audio-fft": "4e7a5c51c9aa804db5dc76b479ce98283467052adb1adf738b703a63fdad78f7",
-    "audio-fir": "ce9ae559fe189f816495be281d7cc288ab8ec750be6b1c44d30ac3384c3ce69e",
-    "audio-stft": "b664da2a48f42f4b4a5134284465c7c6f64b2072ea5a86765cb7d5dca458ca07"
-=======
-  "registrySha256": "2c235e1b7807dd2f082cec137eae40c24493598cada89efe34d2b845b6f5aba3",
-  "pages": {
-    "audio-fft": "9779157c4eb2fea18de0ad6093f5180012683b4f618b49d054d1f570bcfdeee7",
-    "audio-fir": "ce6d8948cb4194ac5e287a0167b3fed9e84d04f0a2004ba9ccac373e991d68c2",
-    "audio-stft": "2a8e692a213e4cdf1007786fe4d971fea48efd7f3ec2b49384552694036cca75"
->>>>>>> 84fc2ea7 (rebind pass 2)
+    "audio-fft": "85ef8ac08f731fbf1ccaaed1d51e8a1d8bfd69c48d3d0ff1cb646a5e0315b174",
+    "audio-fir": "3412d6f90a79f6fe0c40e18ae436439fe877421245fd59c05327ff1df01f48d6",
+    "audio-stft": "621da1e22ba2f6c4202c753d26006783583832b8b7a76a239ae54286c1809209"
   }
 }
