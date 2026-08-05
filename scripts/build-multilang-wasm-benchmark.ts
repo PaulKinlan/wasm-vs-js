@@ -2124,7 +2124,7 @@ const stftBytes = {
 //    30 warm iterations)
 // ---------------------------------------------------------------------------
 const OLAP_ITERATIONS = 30;
-const { runOlapJavaScript: olapOracle, OUTPUT_WORDS: OLAP_OUTPUT_WORDS } = await import(
+const { runOlapJavaScript: olapOracle } = await import(
   `${rootDir}/benchmarks/base/database-olap-chart/engine.js`
 );
 const { generateOlapFixture: olapGenFixture } = await import(
