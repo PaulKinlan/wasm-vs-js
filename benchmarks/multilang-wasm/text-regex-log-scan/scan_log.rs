@@ -14,6 +14,7 @@ const PATTERN_COUNT: u32 = 20;
 const MAX_BUCKET: u32 = 4;
 // matcher ids: 1 = url-tail, 2 = ipv4, 3 = status
 // Flat prefix bytes (each row zero-padded to 16) + per-pattern lens.
+#[used]
 static PATTERN_PREFIX_BYTES: [u8; 320] = [
         b'h', b't', b't', b'p', b':', b'/', b'/', 0, 0, 0, 0, 0, 0, 0, 0, 0,
         b'h', b't', b't', b'p', b's', b':', b'/', b'/', 0, 0, 0, 0, 0, 0, 0, 0,
@@ -36,9 +37,11 @@ static PATTERN_PREFIX_BYTES: [u8; 320] = [
         b'r', b'e', b's', b'u', b'l', b't', b'-', b's', b't', b'a', b't', b'u', b's', b':', 0, 0,
         b's', b't', b'a', b't', b'u', b's', b'-', b'c', b'o', b'd', b'e', b':', 0, 0, 0, 0,
 ];
+#[used]
 static PATTERN_LENS: [u8; 20] = [
     7, 8, 5, 6, 6, 8, 6, 6, 3, 10, 10, 8, 8, 10, 7, 5, 12, 16, 14, 12,
 ];
+#[used]
 static PATTERN_MATCHERS: [u8; 20] = [
     1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3,
 ];

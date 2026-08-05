@@ -4,8 +4,8 @@
   "authoritativePerformanceEvidence": false,
   "entryId": "multilang-wasm-benchmark",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "2754aabe238652674d959d439ebcd20ab19b5118",
-  "sourceSha256": "14758b9c9a7e55397521ee16121cd92cd6f5a0ab29ac72a30b0a328359f74e69",
+  "sourceCommit": "a200b5deb6c149ef1b7471ec67cd4ff3306f8e42",
+  "sourceSha256": "c473a4b7d5439ff4f8fc086d54bb563633178d2f6c54888c71743fc07da9e827",
   "fullSourceGraph": [
     {
       "path": "benchmarks/multilang-wasm/sum_u32.c",
@@ -103,14 +103,79 @@
       "sha256": "263938097469b9188ba397007443bbf8b2a32c5b251e31c9bd22eca1e94692f5"
     },
     {
+      "path": "benchmarks/multilang-wasm/text-regex-log-scan/scan_log.rs",
+      "bytes": 10611,
+      "sha256": "039568032383126956cbb43b429a0bc26825bac519d82506ceab55f6d02503b8"
+    },
+    {
       "path": "benchmarks/multilang-wasm/text-regex-log-scan/scan_log.dart",
       "bytes": 6342,
       "sha256": "3f4d21d0e64c147929dd8f1582e8aa97b9b12aefbf2331e5624b92bc8d2434be"
     },
     {
+      "path": "benchmarks/multilang-wasm/numeric-polybench-panel/polybench.c",
+      "bytes": 1601,
+      "sha256": "5fca541d7bae0c3a6a5d8e497cda5fee948ce608462bc2bdd6d48fadef29b299"
+    },
+    {
+      "path": "benchmarks/multilang-wasm/numeric-polybench-panel/polybench.cpp",
+      "bytes": 1634,
+      "sha256": "2c0da83853f2e7bcbeefbb13302ea7fd2bd0db311fd5f768eff60c5a9a068b81"
+    },
+    {
+      "path": "benchmarks/multilang-wasm/numeric-polybench-panel/polybench.rs",
+      "bytes": 2422,
+      "sha256": "1d2da562fef99bd1c17d500e92c38487d71f81da7ea2bc5034f5a25c406244ad"
+    },
+    {
+      "path": "benchmarks/multilang-wasm/numeric-polybench-panel/polybench.dart",
+      "bytes": 2573,
+      "sha256": "e9b48f40d7b9756c0795476fdf89b2a7bb210c195bfc8a39d59e8115e7173d90"
+    },
+    {
+      "path": "benchmarks/multilang-wasm/audio-fir/fir.c",
+      "bytes": 600,
+      "sha256": "42fc6f6d95081069a92dfb5b9d367e292d31c81c9cc685557f3043698594ccff"
+    },
+    {
+      "path": "benchmarks/multilang-wasm/audio-fir/fir.cpp",
+      "bytes": 633,
+      "sha256": "7b53e657245596ce3c6d99ccdf45d3a511c0f4c95f0528a83d6f112a430bacf4"
+    },
+    {
+      "path": "benchmarks/multilang-wasm/audio-fir/fir.rs",
+      "bytes": 812,
+      "sha256": "596f77aa1fc9eb6bde097789e506cad20c359d4f8d02510e349b74e40b8628ab"
+    },
+    {
+      "path": "benchmarks/multilang-wasm/audio-fir/fir.dart",
+      "bytes": 956,
+      "sha256": "74185498e21a693478619fa50bf95615458d56582dc54a82eb6bbddb4094e3c2"
+    },
+    {
+      "path": "benchmarks/multilang-wasm/audio-stft/stft.c",
+      "bytes": 2188,
+      "sha256": "2390b1b31111435ea8bbaa720ba112d5cfd19cf2bd80368bf01d874d8febc0e2"
+    },
+    {
+      "path": "benchmarks/multilang-wasm/audio-stft/stft.cpp",
+      "bytes": 2221,
+      "sha256": "1f867d7518e3166afc336dd924c570a5a7ae90719df8eeebb5740505dcb6bb92"
+    },
+    {
+      "path": "benchmarks/multilang-wasm/audio-stft/stft.rs",
+      "bytes": 3101,
+      "sha256": "96eafd75b99ffdef080e36ee9cd427115b2d15d0f674cdb1a3e733b4fb2fe846"
+    },
+    {
+      "path": "benchmarks/multilang-wasm/audio-stft/stft.dart",
+      "bytes": 2658,
+      "sha256": "107b5def3b76280322c3b44909392d67d4e54c35db796190544b5a21e59f4d8d"
+    },
+    {
       "path": "scripts/build-multilang-wasm-benchmark.ts",
-      "bytes": 70267,
-      "sha256": "4115c1052d56f46663d2f3de0f25f044ad43ef9ca5f644b0704702b7b2d9fffe"
+      "bytes": 96385,
+      "sha256": "35162da1a69706ee9327bc102f374b8a8e80f6ed41040eb212545c9f75df94ba"
     },
     {
       "path": "tests/multilang-wasm-benchmark.test.ts",
@@ -124,13 +189,23 @@
     },
     {
       "path": "tests/multilang-myers.test.ts",
-      "bytes": 9837,
-      "sha256": "a63efffa4e4f8157997fb6a9230593b97efe09754a3b874ea033f58091c622ef"
+      "bytes": 10302,
+      "sha256": "9f3b80aa76cf92465e1663bc9b75bcc4e724dca58d373c6e8425615476bbd11a"
     },
     {
       "path": "tests/multilang-scanlog.test.ts",
-      "bytes": 9768,
-      "sha256": "ca8cc28cd47071e03307355f591075f08a8e141623e76d99a3034bb6058771ce"
+      "bytes": 10538,
+      "sha256": "e464fc21a817d2198af392d970cd935da619b72c0af548f74ff2d270ed104cae"
+    },
+    {
+      "path": "tests/multilang-polybench.test.ts",
+      "bytes": 7677,
+      "sha256": "ffb2e638e26bdd1ee1caaa658e7759c9cfc69133d6d99973b6cee9cba2129670"
+    },
+    {
+      "path": "tests/multilang-audio.test.ts",
+      "bytes": 5626,
+      "sha256": "331341f9b3dde8de95c410812bc13c256604aed22c687d67c070e56656a4b3aa"
     },
     {
       "path": "schemas/multilang-wasm-benchmark-report.schema.json",
@@ -193,6 +268,156 @@
       "path": "public/artifacts/multilang-wasm-benchmark/fft_dart.mjs",
       "bytes": 11989,
       "sha256": "3ad97bd3fd109c4033f45e921939c20325cf0dc543567ac1e65bf3dc89e60e44"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/polybench_c.wasm",
+      "bytes": 2675,
+      "sha256": "8d6561e8a62e341feb66eac0ff8ca20fd7b09a513317dbf87315a6bd88dd4cdc"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/polybench_cpp.wasm",
+      "bytes": 2677,
+      "sha256": "a3c86fd9b877730bda2c30e885d7b73a10656a7553c1ef8f8188ad1574b8b753"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/polybench_rs.wasm",
+      "bytes": 2128,
+      "sha256": "f625f8f727fb51b72a7aa8d6a079aaa4280f72310074faa0b0022e5599876240"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/polybench_dart.wasm",
+      "bytes": 42265,
+      "sha256": "df5a365a13511dd3709a6b38e9fb7515e05dc559cab30ebb827c52f3d3791f4d"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/polybench_dart.mjs",
+      "bytes": 12136,
+      "sha256": "f55eff125b48a19374467aaa3c758ebfa13d8a6aafe4dd318a4f1b8ece00fac8"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/fir_c.wasm",
+      "bytes": 846,
+      "sha256": "5a5449093a00aaeee65d7cc25bb6201fbe23803b0a7c99583c05e763ccaef210"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/fir_cpp.wasm",
+      "bytes": 848,
+      "sha256": "31d937f43b0c86e71ec1363b5e8c5ccf8eaf1cbb7daace0f49753747d2935265"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/fir_rs.wasm",
+      "bytes": 323,
+      "sha256": "e8668d87a16528be78169356b59ac2b50b7d371ecb693671758f3bb834f902fe"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/fir_dart.wasm",
+      "bytes": 38981,
+      "sha256": "c2079b05422b8709116b247510bf25a4d925243c60dea0d6c0e3ab735c5b0c13"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/fir_dart.mjs",
+      "bytes": 11786,
+      "sha256": "e9f87c3a7c342d35b16589e84951cdebe4ffc37d510cdfe0956f6a006410f4ee"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/stft_c.wasm",
+      "bytes": 1734,
+      "sha256": "2f688b026ed02f058c91d48a83d1773c031a891e37e091f6966d9e2d1aba7bfe"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/stft_cpp.wasm",
+      "bytes": 1736,
+      "sha256": "f5952342fa0dec9b307c9dde689f4e8800a5592a929333dc2992a4d2fcf82fd0"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/stft_rs.wasm",
+      "bytes": 4763,
+      "sha256": "f92c16c6751deebfb7c7088b84e764a6d04ea459bf62b320fb93cae574719a46"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/stft_dart.wasm",
+      "bytes": 40254,
+      "sha256": "c4e59de31983076115d56bde38f4a6e9d97d5401fa224046f855678b40a19a0f"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/stft_dart.mjs",
+      "bytes": 11804,
+      "sha256": "1099683b0e89e05d71a7657ba4d53ba4a27112ccf3f3effd96a3114f9ecd0d94"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/gemm_c.wasm",
+      "bytes": 1186,
+      "sha256": "c602989ef066a205399272cd321723d1fa0ede014502ec0c6582abeaea470166"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/gemm_cpp.wasm",
+      "bytes": 1188,
+      "sha256": "8462fa410d2b830de9590f0b36c4a97030d6d2c62b636a7771ac549ee869d367"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/gemm_rs.wasm",
+      "bytes": 926,
+      "sha256": "bf69769ff0d5f609b160c7fb27a20c374b2bd4b230b898de836f5525ee0aa392"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/gemm_dart.wasm",
+      "bytes": 39079,
+      "sha256": "4ba6b363e4a8c7f271e8834b14bcd698f6456b1bba83d0c85cc4d238f9a3168a"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/gemm_dart.mjs",
+      "bytes": 11798,
+      "sha256": "7f937b1c6afd472751acf3b8ea24bd3fbf8a9c764b73fcb2e5fec65729cbc639"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/myers_diff_c.wasm",
+      "bytes": 3077,
+      "sha256": "cd4a0dc33476533c91a3e4bb8d041f6910d530885e8a491ad2872036fb70ac3e"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/myers_diff_cpp.wasm",
+      "bytes": 3079,
+      "sha256": "c8735a342b44196fd4b2ebdcffcddc6524ad125a4c3835658ab9ca15c1084af0"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/myers_diff_rs.wasm",
+      "bytes": 6122,
+      "sha256": "cddaae76bb56d9bff8ba86bcd25fe044479d5c415e1292d8178b060cae7d7fd4"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/myers_diff_dart.wasm",
+      "bytes": 44023,
+      "sha256": "e7e68090a86398409c4119f6ce1920736b0f8854cce4aca452c2f39eecb04e86"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/myers_diff_dart.mjs",
+      "bytes": 11991,
+      "sha256": "bc35495e27fe36061c4b4afb9565bf3659485cb67d92c0f00ea681c1fe75b1ba"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/scan_log_c.wasm",
+      "bytes": 3972,
+      "sha256": "0c5746cfb0db0109a74b931148f85715242a61f353f14582e24c975a220977f1"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/scan_log_cpp.wasm",
+      "bytes": 3974,
+      "sha256": "67fe1546a20032d3de20b3a3ff8c5ee344dec346dde91ed4096b3e2050e82671"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/scan_log_rs.wasm",
+      "bytes": 6762,
+      "sha256": "440d161988864d758cf09fe5ab588d32f8caa24d7ee2465058e07cc3562f00fc"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/scan_log_dart.wasm",
+      "bytes": 41385,
+      "sha256": "ee37bab8e7f59e7bed4ab17bda1c2ece05470ff1d199baa96089bfea102d0a7e"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/scan_log_dart.mjs",
+      "bytes": 11914,
+      "sha256": "16ce5abf3958d1b00fe3b0e1804c09816765e11f1e2ef239391a7299624575ee"
     }
   ],
   "toolchains": {
@@ -202,5 +427,5 @@
     "rustc": "rustc --target wasm32-unknown-unknown -O --crate-type cdylib (no_std)",
     "dart2wasm": "dart compile wasm (Dart SDK, WasmGC + js-string builtins)"
   },
-  "generatedAt": "2026-08-05T00:03:52.313Z"
+  "generatedAt": "2026-08-05T00:37:07.666Z"
 }

@@ -1826,6 +1826,20 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
   ]);
   for (
     const file of [
+      "numeric-polybench-panel.manifest.json",
+      "text-diff-patch.manifest.json",
+      "text-regex-log-scan.manifest.json",
+      "ml-gemm.manifest.json",
+      "multilang-wasm.manifest.json",
+    ]
+  ) {
+    routes.set(`/benchmarks/multilang-wasm/${file}`, [
+      `public/benchmarks/multilang-wasm/${file}`,
+      "application/json; charset=utf-8",
+    ]);
+  }
+  for (
+    const file of [
       "sum_c.wasm",
       "sum_cpp.wasm",
       "sum_asc.wasm",
@@ -1849,8 +1863,24 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "myers_diff_dart.mjs",
       "scan_log_c.wasm",
       "scan_log_cpp.wasm",
+      "scan_log_rs.wasm",
       "scan_log_dart.wasm",
       "scan_log_dart.mjs",
+      "polybench_c.wasm",
+      "polybench_cpp.wasm",
+      "polybench_rs.wasm",
+      "polybench_dart.wasm",
+      "polybench_dart.mjs",
+      "fir_c.wasm",
+      "fir_cpp.wasm",
+      "fir_rs.wasm",
+      "fir_dart.wasm",
+      "fir_dart.mjs",
+      "stft_c.wasm",
+      "stft_cpp.wasm",
+      "stft_rs.wasm",
+      "stft_dart.wasm",
+      "stft_dart.mjs",
     ]
   ) {
     const type = file.endsWith(".wasm") ? "application/wasm" : "text/javascript; charset=utf-8";
