@@ -548,6 +548,251 @@ export const KERNEL_ADAPTERS = {
     },
   },
 
+  // --- crypto.file-integrity.v1 (SHA-256) ----------------------------------
+  "crypto.file-integrity.v1": {
+    kernels: ["sha256"],
+    build(mods) {
+      const FIXTURE_BYTES = 1 << 20; // 1 MiB — smallest registered fixture size
+      const CHUNK = 65536; // 64 KiB — registered mid schedule
+      const FIXTURE_SEED = 0x6d2b79f5;
+
+      // Seeded xorshift generator (mirrors benchmarks/base/crypto-file-integrity/workload.js).
+      function makeFixture() {
+        const out = new Uint8Array(FIXTURE_BYTES);
+        let state = FIXTURE_SEED >>> 0;
+        for (let offset = 0; offset < out.length;) {
+          state ^= state << 13;
+          state ^= state >>> 17;
+          state ^= state << 5;
+          state >>>= 0;
+          for (let i = 0; i < 4 && offset < out.length; i++, offset++) {
+            out[offset] = state >>> (i * 8);
+          }
+        }
+        return out;
+      }
+      const fixture = makeFixture();
+
+      // JS oracle — mirrors benchmarks/base/crypto-file-integrity/sha256.js
+      // (ControlledSha256: same K table, block buffering, u64 bit length).
+      const K256 = new Uint32Array([
+        0x428a2f98,
+        0x71374491,
+        0xb5c0fbcf,
+        0xe9b5dba5,
+        0x3956c25b,
+        0x59f111f1,
+        0x923f82a4,
+        0xab1c5ed5,
+        0xd807aa98,
+        0x12835b01,
+        0x243185be,
+        0x550c7dc3,
+        0x72be5d74,
+        0x80deb1fe,
+        0x9bdc06a7,
+        0xc19bf174,
+        0xe49b69c1,
+        0xefbe4786,
+        0x0fc19dc6,
+        0x240ca1cc,
+        0x2de92c6f,
+        0x4a7484aa,
+        0x5cb0a9dc,
+        0x76f988da,
+        0x983e5152,
+        0xa831c66d,
+        0xb00327c8,
+        0xbf597fc7,
+        0xc6e00bf3,
+        0xd5a79147,
+        0x06ca6351,
+        0x14292967,
+        0x27b70a85,
+        0x2e1b2138,
+        0x4d2c6dfc,
+        0x53380d13,
+        0x650a7354,
+        0x766a0abb,
+        0x81c2c92e,
+        0x92722c85,
+        0xa2bfe8a1,
+        0xa81a664b,
+        0xc24b8b70,
+        0xc76c51a3,
+        0xd192e819,
+        0xd6990624,
+        0xf40e3585,
+        0x106aa070,
+        0x19a4c116,
+        0x1e376c08,
+        0x2748774c,
+        0x34b0bcb5,
+        0x391c0cb3,
+        0x4ed8aa4a,
+        0x5b9cca4f,
+        0x682e6ff3,
+        0x748f82ee,
+        0x78a5636f,
+        0x84c87814,
+        0x8cc70208,
+        0x90befffa,
+        0xa4506ceb,
+        0xbef9a3f7,
+        0xc67178f2,
+      ]);
+      const rotr = (x, n) => (x >>> n) | (x << (32 - n));
+      function jsSha256(bytes) {
+        const state = new Uint32Array(8);
+        state.set([
+          0x6a09e667,
+          0xbb67ae85,
+          0x3c6ef372,
+          0xa54ff53a,
+          0x510e527f,
+          0x9b05688c,
+          0x1f83d9ab,
+          0x5be0cd19,
+        ]);
+        const block = new Uint8Array(64);
+        const words = new Uint32Array(64);
+        let blockLen = 0;
+        let total = 0;
+        const compress = () => {
+          for (let i = 0; i < 16; i++) {
+            const j = i * 4;
+            words[i] =
+              ((block[j] << 24) | (block[j + 1] << 16) | (block[j + 2] << 8) | block[j + 3]) >>> 0;
+          }
+          for (let i = 16; i < 64; i++) {
+            const x = words[i - 15], y = words[i - 2];
+            const s0 = rotr(x, 7) ^ rotr(x, 18) ^ (x >>> 3);
+            const s1 = rotr(y, 17) ^ rotr(y, 19) ^ (y >>> 10);
+            words[i] = (words[i - 16] + s0 + words[i - 7] + s1) >>> 0;
+          }
+          let [a, b, c, d, e, f, g, h] = state;
+          for (let i = 0; i < 64; i++) {
+            const s1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
+            const ch = (e & f) ^ (~e & g);
+            const t1 = (h + s1 + ch + K256[i] + words[i]) >>> 0;
+            const s0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22);
+            const maj = (a & b) ^ (a & c) ^ (b & c);
+            const t2 = (s0 + maj) >>> 0;
+            h = g;
+            g = f;
+            f = e;
+            e = (d + t1) >>> 0;
+            d = c;
+            c = b;
+            b = a;
+            a = (t1 + t2) >>> 0;
+          }
+          state[0] = (state[0] + a) >>> 0;
+          state[1] = (state[1] + b) >>> 0;
+          state[2] = (state[2] + c) >>> 0;
+          state[3] = (state[3] + d) >>> 0;
+          state[4] = (state[4] + e) >>> 0;
+          state[5] = (state[5] + f) >>> 0;
+          state[6] = (state[6] + g) >>> 0;
+          state[7] = (state[7] + h) >>> 0;
+        };
+        for (let off = 0; off < bytes.length; off += CHUNK) {
+          const end = Math.min(bytes.length, off + CHUNK);
+          total += end - off;
+          let offset = off;
+          while (offset < end) {
+            const take = Math.min(64 - blockLen, end - offset);
+            for (let i = 0; i < take; i++) block[blockLen + i] = bytes[offset + i];
+            blockLen += take;
+            offset += take;
+            if (blockLen === 64) {
+              compress();
+              blockLen = 0;
+            }
+          }
+        }
+        const bitLength = BigInt(total) * 8n;
+        block[blockLen++] = 0x80;
+        if (blockLen > 56) {
+          block.fill(0, blockLen);
+          compress();
+          blockLen = 0;
+        }
+        block.fill(0, blockLen, 56);
+        for (let i = 0; i < 8; i++) block[63 - i] = Number((bitLength >> BigInt(i * 8)) & 255n);
+        compress();
+        const out = new Uint8Array(32);
+        for (let i = 0; i < 8; i++) {
+          const x = state[i];
+          out[i * 4] = x >>> 24;
+          out[i * 4 + 1] = x >>> 16;
+          out[i * 4 + 2] = x >>> 8;
+          out[i * 4 + 3] = x;
+        }
+        return out;
+      }
+      const expected = jsSha256(fixture);
+      const hexBytes = (b) => [...b].map((v) => v.toString(16).padStart(2, "0")).join("");
+      // Linear engines: input base is probed above each module's statics (rustc
+      // places the digest/state near the top of its default 17-page memory, so a
+      // fixed low offset would be overwritten by the 1 MiB input — the C/C++
+      // modules place statics low and probe to 128 KiB, matching the workload).
+      function linearBase(inst) {
+        inst.exports.sha256_reset();
+        const digestPtr = inst.exports.sha256_finish();
+        return Math.ceil((digestPtr + 64) / 65536) * 65536;
+      }
+      const callables = {};
+      for (const key of ["c", "cpp", "rs"]) {
+        const inst = mods.engines[key].instances.sha256.instance;
+        const mem = inst.exports.memory;
+        const base = linearBase(inst);
+        callables[key] = {
+          sha256: () => {
+            if (mem.buffer.byteLength < base + fixture.length) {
+              mem.grow(Math.ceil((base + fixture.length - mem.buffer.byteLength) / 65536));
+            }
+            new Uint8Array(mem.buffer, base, fixture.length).set(fixture);
+            inst.exports.sha256_reset();
+            for (let off = 0; off < fixture.length; off += CHUNK) {
+              inst.exports.sha256_update(base + off, Math.min(CHUNK, fixture.length - off));
+            }
+            return hexBytes(new Uint8Array(mem.buffer, inst.exports.sha256_finish(), 32));
+          },
+        };
+      }
+      callables.js = {
+        sha256: () => hexBytes(jsSha256(fixture)),
+      };
+      callables.dart = {
+        sha256: () => {
+          const kernels = mods.engines.dart.kernels;
+          kernels.sha256_reset();
+          for (let off = 0; off < fixture.length; off += CHUNK) {
+            kernels.sha256_update(
+              fixture.subarray(off, Math.min(off + CHUNK, fixture.length)),
+              Math.min(CHUNK, fixture.length - off),
+            );
+          }
+          const out = new Uint8Array(32);
+          kernels.sha256_finish(out);
+          return hexBytes(out);
+        },
+      };
+      // One-time bit-identity guard: every engine must produce the oracle digest
+      // or the run fails loudly (no silent exclusion / fabricated equivalence).
+      for (const key of Object.keys(callables)) {
+        const got = callables[key].sha256();
+        if (got !== hexBytes(expected)) {
+          throw new Error(
+            `sha256 ${key} digest mismatch: got=${got} expected=${hexBytes(expected)}`,
+          );
+        }
+      }
+      return callables;
+    },
+  },
+
   // --- numeric.polybench-panel.v1 -------------------------------------------
   "numeric.polybench-panel.v1": {
     kernels: ["polybench"],

@@ -1,0 +1,19 @@
+{
+  "workloadId": "crypto.file-integrity.v1",
+  "kernelLabel": "SHA-256 — 1 MiB seeded fixture, 64 KiB chunks",
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": ["sha256"],
+  "engines": [
+    { "key": "js", "label": "JavaScript", "kind": "js" },
+    { "key": "c", "label": "C / Wasm", "kind": "linear", "lang": "c", "offset": 131072 },
+    { "key": "cpp", "label": "C++ / Wasm", "kind": "linear", "lang": "cpp", "offset": 131072 },
+    { "key": "rs", "label": "Rust / Wasm", "kind": "linear", "lang": "rs", "offset": 131072 },
+    {
+      "key": "dart",
+      "label": "Dart / WasmGC",
+      "kind": "dart",
+      "file": "sha256_dart.wasm",
+      "glue": "sha256_dart.mjs"
+    }
+  ]
+}
