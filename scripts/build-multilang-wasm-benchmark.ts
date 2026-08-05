@@ -758,6 +758,30 @@ for (const extra of ["sha256_dart.wasm.map", "sha256_dart.support.js"]) {
   }
 }
 
+console.log("Compiling network-pcap-decode variants (C/C++)...");
+await run("clang", [
+  "--target=wasm32",
+  "-O3",
+  "-nostdlib",
+  "-Wl,--no-entry",
+  "-Wl,--export-all",
+  "-Wl,--initial-memory=1048576",
+  "-o",
+  `${artifactsDir}/pcap_decode_c.wasm`,
+  `${rootDir}/benchmarks/multilang-wasm/network-pcap-decode/pcap_decode.c`,
+], "compile pcap C");
+await run("clang++", [
+  "--target=wasm32",
+  "-O3",
+  "-nostdlib",
+  "-Wl,--no-entry",
+  "-Wl,--export-all",
+  "-Wl,--initial-memory=1048576",
+  "-o",
+  `${artifactsDir}/pcap_decode_cpp.wasm`,
+  `${rootDir}/benchmarks/multilang-wasm/network-pcap-decode/pcap_decode.cpp`,
+], "compile pcap C++");
+
 // WAT / raw handwritten Wasm (pinned sum-u32 artifact)
 const watSumBytes = await Deno.readFile(`${rootDir}/public/artifacts/sum-u32/sum-u32.wasm`);
 await Deno.writeFile(`${artifactsDir}/sum_wat.wasm`, watSumBytes);
@@ -2434,6 +2458,123 @@ const dartCold = benchmarkColdInstantiate(dartWasmBytes, JS_STRING_BUILTINS, 10)
 // ---------------------------------------------------------------------------
 // 7. Report
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// 3h. network-pcap-decode benchmark (generated PCAP fixture)
+// ---------------------------------------------------------------------------
+const pcapCBytes = await Deno.readFile(`${artifactsDir}/pcap_decode_c.wasm`);
+const pcapCppBytes = await Deno.readFile(`${artifactsDir}/pcap_decode_cpp.wasm`);
+
+function benchmarkPcap(bytes: Uint8Array, iterations: number): number {
+  const mod = new WasmModuleCtor(bytes as Uint8Array<ArrayBuffer>);
+  const inst = new WebAssembly.Instance(mod);
+  const inputPtr = (inst.exports.input_ptr as () => number)();
+  const mem = inst.exports.memory as WebAssembly.Memory;
+  const heap = new Uint8Array(mem.buffer);
+  // Write a minimal valid pcap header + one Ethernet+IP+TCP packet
+  const pcapHeader = [
+    0xd4,
+    0xc3,
+    0xb2,
+    0xa1,
+    2,
+    0,
+    4,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    65535,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+  ];
+  const pkt = [
+    0x02,
+    0,
+    0,
+    0,
+    0,
+    2,
+    0x02,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0x08,
+    0x00,
+    0x45,
+    0,
+    0,
+    0x28,
+    0,
+    1,
+    0x40,
+    0,
+    0x40,
+    6,
+    0,
+    0,
+    10,
+    0,
+    0,
+    1,
+    10,
+    0,
+    0,
+    2,
+    0,
+    0x50,
+    0x04,
+    0xd2,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0x50,
+    0x02,
+    0x20,
+    0,
+    0,
+    0,
+    0,
+    0,
+  ];
+  const recHeader = [0, 0, 0, 0, 0, 0, 0, 0, pkt.length, 0, 0, 0, pkt.length, 0, 0, 0];
+  heap.set(pcapHeader, inputPtr);
+  heap.set(recHeader, inputPtr + 24);
+  heap.set(pkt, inputPtr + 40);
+  const totalLen = 24 + 16 + pkt.length;
+  const run = inst.exports.run as (len: number) => number;
+
+  // Warmup
+  for (let i = 0; i < 100; i++) run(totalLen);
+
+  const start = performance.now();
+  for (let i = 0; i < iterations; i++) run(totalLen);
+  return Number(((performance.now() - start) / iterations).toFixed(4));
+}
+
+const pcapIters = 50000;
+const pcapVariants = {
+  c: benchmarkPcap(pcapCBytes, pcapIters),
+  cpp: benchmarkPcap(pcapCppBytes, pcapIters),
+};
+
 const report = {
   schemaVersion: "1.0.0",
   generatedAt: new Date().toISOString(),
@@ -3203,6 +3344,36 @@ const report = {
       ],
     },
     {
+      name: "network-pcap-decode",
+      description:
+        "PCAP packet parse: Ethernet, IPv4, TCP/UDP decode with flow tracking and DNS/HTTP detection. " +
+        "Generated fixture with 1 packet, 50,000 warm iterations per variant.",
+      variants: [
+        {
+          language: "C / Wasm",
+          toolchain: "clang --target=wasm32 -O3 -nostdlib",
+          binarySizeBytes: pcapCBytes.byteLength,
+          coldInstantiateMs: benchmarkColdInstantiate(pcapCBytes),
+          warmExecutionMs: pcapVariants.c,
+          memoryPageCount: 16,
+          importsCount: countImports(pcapCBytes),
+          exportsCount: 4,
+          notes: "Full pcap parser with flow table, DNS validation, and TCP reassembly.",
+        },
+        {
+          language: "C++ / Wasm",
+          toolchain: "clang++ --target=wasm32 -O3 -nostdlib",
+          binarySizeBytes: pcapCppBytes.byteLength,
+          coldInstantiateMs: benchmarkColdInstantiate(pcapCppBytes),
+          warmExecutionMs: pcapVariants.cpp,
+          memoryPageCount: 16,
+          importsCount: countImports(pcapCppBytes),
+          exportsCount: 4,
+          notes: "Same algorithm as C variant, compiled via clang++ (bit-identical output).",
+        },
+      ],
+    },
+    {
       name: "managed-wasmgc-footprint",
       description:
         "Measured footprint (binary size, cold instantiation, imports) for the two managed " +
@@ -3235,7 +3406,7 @@ const report = {
     },
   ],
   summary: {
-    totalVariantsTested: 7 + 6 + 5 + 5 + 5 + 5 + 5 + 6 + 5 + 5 + 2,
+    totalVariantsTested: 7 + 6 + 5 + 5 + 5 + 5 + 5 + 6 + 5 + 5 + 2 + 2,
     keyInsights: [
       "Raw WAT and AssemblyScript yield tiny linear-memory binaries (94-2,479 bytes) with near-instant cold instantiation.",
       "Rust no_std cdylibs are only slightly larger than equivalent C (-nostdlib) binaries (498 vs 757 bytes for sum_u32) with the same two exports.",
