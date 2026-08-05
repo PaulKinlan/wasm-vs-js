@@ -4,12 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="build-manifest-sha256"
-      content="0a954d5a334ca0a62b365bb4721b39abaa963efbca4bf61d887dab6bb379e24b">
+      content="cd5d41d88f60fc68a36631c449ea60a7ec781af5990df9d33924228c4a048ff1">
     <title>CPU path tracer | Wasm versus JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
-    <script type="module" src="/benchmarks/graphics-cpu-path-tracer-v1/runner.js"></script>
+    <script type="module" src="/unified-runner.js"></script>
   </head>
-  <body>
+  <body data-workload="graphics-cpu-path-tracer-v1" data-demo="graphics-cpu-path-tracer-v1">
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
@@ -19,22 +19,69 @@
       <strong>data v1</strong>
     </header>
     <main id="main">
-      <p class="eyebrow">RUNNABLE CORRECTNESS DEMO · GRAPHICS.CPU-PATH-TRACER.V1</p>
-      <h1>Fixed CPU path tracer</h1>
-      <p><strong>No performance claim.</strong> A fresh worker renders a project-generated Cornell-box product scene. The controlled pair shares the scalar BVH, xorshift32 sequence, four-bounce path rules, strict-f32 policy, tone map and complete RGBA oracle.</p>
-      <form>
-    <label>Target <select name="target"><option value="javascript">JavaScript controlled</option><option value="wasm-linear">Linear Wasm controlled</option></select></label>
-    <label>Work <select name="mode"><option value="preview">Bounded preview: 64×64 × 4 spp</option><option value="exact">Exact catalog contract: 512×512 × 64 spp</option></select></label>
-    <p>Exact mode executes 16,777,216 primary samples. It verifies raw source, manifest and artifact bytes before accepting the complete framebuffer hash. It stops after 150 seconds.</p>
-    <button id="start" type="submit">Start</button> <button id="cancel" type="button" disabled>Cancel</button>
-    <label class="sr-only" for="progress">Run progress</label><progress id="progress" max="1">Not started</progress>
-  </form>
-      <p id="status" role="status" aria-live="polite">Ready.</p>
-      <pre id="output" tabindex="0">No result yet.</pre>
-      <canvas width="64" height="64" role="img"
-        aria-label="Rendered path tracer framebuffer; exact pixel checkpoints are listed in the text result"></canvas>
-      <h2>Fixed contract</h2>
-      <p>One thread performs complete ray generation, fixed-order BVH traversal, Lambert integration and framebuffer quantization. Canvas presentation happens after validation. The page does not upload, store or rank results. Threads, SharedArrayBuffer and SIMD are separate unavailable variants.</p>
-    </main>
+      <header>
+        <p class="eyebrow">Graphics &amp; Rendering Workload · Cornell Box · graphics.cpu-path-tracer.v1</p>
+        <h1>Fixed CPU path tracer</h1>
+        <p class="lede">A fresh worker renders a project-generated Cornell-box product scene. The controlled pair shares the scalar BVH, xorshift32 sequence, four-bounce path rules, strict-f32 policy, tone map, and complete RGBA oracle over a 512×512 frame at 64 samples per pixel. Exact output is verified before any timing; the page does not upload, store or rank.</p>
+      </header>
+      <section class="demo-panel" aria-labelledby="run-heading">
+        <h2 id="run-heading">Run Benchmark Loop</h2>
+        <form id="demo-form">
+          <div class="controls">
+            <label for="target"><span>Target Engine</span>
+              <select id="target" name="target" disabled>
+                <option value="both" selected>Compare Side-by-Side (JS vs Wasm)</option>
+                <option value="javascript">JavaScript Engine</option>
+                <option value="wasm">WebAssembly Engine</option>
+              </select></label>
+            <label for="iterations"><span>Loop Iterations</span>
+              <select id="iterations" name="iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10">10 iterations</option>
+                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                <option value="50">50 iterations</option>
+                <option value="100">100 iterations (Sustained loop)</option>
+              </select></label>
+            <button id="start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="status" role="status" aria-live="polite">Ready. Select target and loop iterations, then click Start.</p>
+        <div id="perf-reporting" class="detail-grid" hidden></div>
+      </section>
+      <section aria-labelledby="what-heading">
+        <h2 id="what-heading">What it does</h2>
+        <p>Renders the frozen Cornell-box scene with a scalar BVH, four-bounce paths, strict-f32, tone mapping, and a complete RGBA oracle.</p>
+      </section>
+      <section aria-labelledby="why-heading">
+        <h2 id="why-heading">Why compare Wasm vs JS</h2>
+        <p>BVH traversal, ray-triangle intersection, and strict-f32 pixel accumulation are where a linear-memory Wasm target genuinely differs from the JavaScript engine.</p>
+      </section>
+      <section aria-labelledby="contract-heading">
+        <h2 id="contract-heading">Fixed contract</h2>
+        <p>One thread performs complete ray generation, fixed-order BVH traversal, Lambert integration and framebuffer quantization. Canvas presentation happens after validation. Threads, SharedArrayBuffer and SIMD are separate unavailable variants.</p>
+      </section>
+      <section aria-labelledby="correctness-heading">
+        <h2 id="correctness-heading">Correctness evidence — run the render</h2>
+        <p class="muted">The benchmark loop above times both engines. This section runs the frozen render through either engine and validates the complete framebuffer hash — timing and correctness never mix.</p>
+        <div class="controls">
+          <label>Target <select id="pt-target" name="target"><option value="javascript">JavaScript controlled</option><option value="wasm-linear">Linear Wasm controlled</option></select></label>
+          <label>Work <select id="pt-mode" name="mode"><option value="preview">Bounded preview: 64×64 × 4 spp</option><option value="exact">Exact catalog contract: 512×512 × 64 spp</option></select></label>
+          <button id="pt-start" type="submit">Start</button> <button id="pt-cancel" type="button" disabled>Cancel</button>
+          <label class="sr-only" for="pt-progress">Run progress</label><progress id="pt-progress" max="1">Not started</progress>
+        </div>
+        <p id="pt-status" role="status" aria-live="polite">Ready.</p>
+        <pre id="pt-output" tabindex="0">No result yet.</pre>
+        <canvas width="64" height="64" role="img" aria-label="Rendered path tracer framebuffer; exact pixel checkpoints are listed in the text result"></canvas>
+      </section>
+      <section aria-labelledby="provenance-heading">
+        <h2 id="provenance-heading">Source &amp; build provenance</h2>
+        <ul>
+          <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+          <li><a href="/evidence/">Check implementation evidence</a></li>
+          <li><a href="/experiments/">Read the frozen experiment</a></li>
+        </ul>
+      </section>
+    </main></main>
   </body>
 </html>

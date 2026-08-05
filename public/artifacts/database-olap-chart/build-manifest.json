@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "workloadId": "database.olap-chart.v1",
-  "sourceCommit": "4d9cacca7e9902bf3b7028d73f7c4a9eb08c87ab",
+  "sourceCommit": "0046d05217e98b3a3f7c8b267d94ebd86e0b64dd",
   "command": "deno run --allow-read=. --allow-write=public/artifacts,public/evidence --allow-run=clang,wasm-ld scripts/build-base-olap.ts --source-commit=<commit>",
   "flags": [
     "--target=wasm32-unknown-unknown",
@@ -52,8 +52,8 @@
     },
     {
       "path": "public/benchmarks/database-olap-chart/runner.js",
-      "bytes": 3641,
-      "sha256": "79aa31bf6969669bda597f8765684c7efadaff8e8fda9ddf553e231a28b67d3f"
+      "bytes": 3681,
+      "sha256": "a193fc67872b117fa56700c8536cf01dd4a880c63221b6edc44f3b34b0c73dde"
     },
     {
       "path": "scripts/build-base-olap.ts",
@@ -72,8 +72,8 @@
     },
     {
       "path": "deno.json",
-      "bytes": 2104,
-      "sha256": "395d5541fd604585144ba08c6bf7ce6b534581e66b65408fdf5790c72fc10dc7"
+      "bytes": 2497,
+      "sha256": "1e439fe47deecb16a7528be9220f543fd5587b82181819e5cb967877ec407cc0"
     },
     {
       "path": "deno.lock",
