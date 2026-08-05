@@ -168,6 +168,13 @@ if (missing.length > 0) {
   Deno.exit(2);
 }
 
+// Per-stage kill timeout: a wedged stage (wedged test server, stuck Chrome,
+// deadlocked deno) would otherwise hang the gate forever — observed once
+// (2026-08-05, a 900s hang during an A/B under a load spike). 300s is ~2.3x
+// the longest normal stage (the corpus dispatch heavy runs ~130s) so it only
+// fires on true hangs.
+const STAGE_TIMEOUT_MS = 300_000;
+
 async function runStage(stage: Stage): Promise<void> {
   const stageStart = performance.now();
   const child = new Deno.Command(Deno.execPath(), {
@@ -176,11 +183,22 @@ async function runStage(stage: Stage): Promise<void> {
     stdout: "inherit",
     stderr: "inherit",
   }).spawn();
+  const timer = setTimeout(() => {
+    console.error(
+      `check-parallel: ${stage.name} TIMED OUT after ${STAGE_TIMEOUT_MS / 1000}s — killing`,
+    );
+    child.kill("SIGKILL");
+  }, STAGE_TIMEOUT_MS);
   const status = await child.status;
+  clearTimeout(timer);
   const elapsed = ((performance.now() - stageStart) / 1000).toFixed(1);
   if (!status.success) {
-    console.error(`check-parallel: ${stage.name} FAILED in ${elapsed}s (exit ${status.code})`);
-    Deno.exit(status.code);
+    console.error(
+      `check-parallel: ${stage.name} FAILED in ${elapsed}s (exit ${status.code})${
+        status.signal ? `, signal ${status.signal}` : ""
+      }`,
+    );
+    Deno.exit(status.code ?? 2);
   }
   console.error(`check-parallel: ${stage.name} ok (${elapsed}s)`);
 }
