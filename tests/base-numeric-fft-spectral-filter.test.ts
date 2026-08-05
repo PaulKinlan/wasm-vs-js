@@ -332,7 +332,7 @@ Deno.test("demo routes are closed and lifecycle controls are present", async () 
     "public/benchmarks/numeric-fft-spectral-filter-v1/index.html",
   );
   assert(page.includes('aria-live="polite"'));
-  assert(page.includes("Nothing is stored or uploaded"));
+  assert(page.includes("stores and uploads nothing"));
   assert(page.includes("/unified-runner.js"));
   assert(page.includes("Correctness evidence"));
 });
