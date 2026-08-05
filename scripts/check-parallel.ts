@@ -204,7 +204,37 @@ const manifestReaderStatics: Stage[] = [
   { name: "contract", args: ["task", "contract"], env: testEnv },
 ];
 
+// /tmp is a tmpfs with a per-user usrquota shared across every session. When
+// the quota margin is exhausted, poppler/collector outputs truncate silently
+// mid-write (Errno 122) and the pdf-viewer/collector gates fail with
+// 'Poppler raster length mismatch' style errors — bitten twice (2026-08-05).
+// Probe the write path (sized to the largest poppler output, the 6MB raster)
+// before the stages so quota exhaustion fails fast and explicitly.
+async function probeTempWrites() {
+  const dir = Deno.env.get("TMPDIR") ?? "/tmp";
+  const path = `${dir}/wvj-gate-quota-probe-${Deno.pid}`;
+  const chunk = new Uint8Array(6 * 1024 * 1024);
+  chunk.fill(7);
+  try {
+    await Deno.writeFile(path, chunk);
+    const back = await Deno.readFile(path);
+    if (back.length !== chunk.length) {
+      throw new Error(`write truncated: ${back.length}/${chunk.length} bytes`);
+    }
+  } catch (error) {
+    console.error("check-parallel: /tmp write probe FAILED — per-user usrquota exhausted?");
+    console.error(`  ${error instanceof Error ? error.message : String(error)}`);
+    console.error(
+      "  Free space: free stale dirs under /tmp (other sessions' research dirs count against the shared quota).",
+    );
+    Deno.exit(2);
+  } finally {
+    await Deno.remove(path).catch(() => {});
+  }
+}
+
 const started = performance.now();
+await probeTempWrites();
 await runStage({ name: "build", args: ["task", "build"] });
 
 // Phase A: readers and every writer, all concurrent (write sets verified
