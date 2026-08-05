@@ -144,3 +144,9 @@ Tasks are ordered by dependency. A checked box means the exact acceptance criter
 - [ ] Never encode unsupported evidence as zero.
 - [ ] Never silently exclude a run.
 - [ ] Never provision, deploy, spend, use credentials, or mutate production resources without the required approval.
+
+## Reported issues / queue (Paul, 2026-08-05)
+
+- [ ] **TodoMVC page consistency**: /benchmarks/base-dom-todomvc-journey/ looks inconsistent with the other benchmark pages — needs the standard unified template, a results chart, and (engine-level) multi-language comparison. The homepage worker run is engine-only (no DOM) — the page must disclose this, and the engine (100-item state machine, already has todomvc.wasm) should gain C/C++/Rust/Dart variants like the other workloads.
+- [ ] **Benchmark-page consistency program**: audit every /benchmarks/<workload>/ page against the standard template (unified runner shell + results chart + multi-language comparison where the workload is expressible). DOM/platform-bound workloads get the standard shell + chart + an honest in-page note instead of a missing comparison.
+- [ ] **CSP header truncation (verify only)**: 'styl' directive seen in browser console was the Deno Deploy header-truncation bug (fixed via no-store; header now serves full `style-src 'self'`). Confirm no cached-edge truncation remains on any route.
