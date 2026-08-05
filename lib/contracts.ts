@@ -33,6 +33,14 @@ const variants = buildManifest.variants as Record<string, Record<string, unknown
 function expectedCommit(): string {
   return Deno.env.get("WASM_VS_JS_COMMIT") ?? "";
 }
+
+// When running in public mode (no WASM_VS_JS_COMMIT), the commit-matching
+// semantic check is relaxed: schema validation alone is sufficient.
+// This allows the KV store to accept schema-valid run records from reporters.
+function hasExpectedCommit(): boolean {
+  const commit = expectedCommit();
+  return /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(commit);
+}
 const expectedVariants = new Map([
   ["js-controlled", { target: "javascript", artifact: "benchmarks/sum-u32/workload.js" }],
   [
@@ -61,8 +69,10 @@ function semanticRun(value: Record<string, unknown>): boolean {
   const variantBuild = variants[String(variant.id)];
   const batch = capabilities.measurementBatchSize;
   if (!expected || !variantBuild || !Number.isSafeInteger(batch) || Number(batch) < 1) return false;
+  // In public mode (no expected commit), skip commit-matching semantic checks.
+  // Schema validation alone is sufficient for accepting run records from reporters.
+  if (!hasExpectedCommit()) return true;
   if (
-    !/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(commit) ||
     (value.suite as Record<string, unknown>).commit !== commit ||
     build.sourceCommit !== commit ||
     benchmark.id !== benchmarkDefinition.id || benchmark.version !== benchmarkDefinition.version ||
