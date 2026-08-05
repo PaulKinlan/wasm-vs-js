@@ -21,7 +21,7 @@
 // Per-workload call adapters live in KERNEL_ADAPTERS below (manifests are
 // data-only); each adapter exposes the timed callable for its kernel.
 
-export const KERNEL_ADAPTERS = {  // --- audio-fft: radix-2 FFT butterfly (reuses the multilang-wasm fft kernels)
+export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses the multilang-wasm fft kernels)
   "audio.fft.v1": {
     kernels: ["fft"],
     build(mods) {
