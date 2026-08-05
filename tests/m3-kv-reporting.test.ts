@@ -484,17 +484,34 @@ Deno.test({
 });
 
 Deno.test({
-  name: "reporting-api: public mode denies run records",
+  name: "reporting-api: public mode is read-only (GET allowed, ingestion denied)",
   sanitizeOps: false,
   sanitizeResources: false,
   async fn() {
     const kv = await makeKv();
     const config = makeConfig(kv);
 
-    const request = new Request("https://example.test/v1/runs", { method: "GET" });
-    const response = await handleReportingRoute(request, new URL(request.url), config, "public");
-    assert(response !== null);
-    assertEquals(response!.status, 403);
+    // GET /v1/runs is the Results Explorer's read path — public mode must serve it.
+    const getRequest = new Request("https://example.test/v1/runs", { method: "GET" });
+    const getResponse = await handleReportingRoute(getRequest, new URL(getRequest.url), config, "public");
+    assert(getResponse !== null);
+    assertEquals(getResponse!.status, 200);
+
+    // Ingestion is reporter-authenticated: a wrong/missing token is denied.
+    const authedConfig = makeConfig(kv, "reporter-secret");
+    const postRequest = new Request("https://example.test/v1/runs", {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: "Bearer wrong-token" },
+      body: JSON.stringify({}),
+    });
+    const postResponse = await handleReportingRoute(
+      postRequest,
+      new URL(postRequest.url),
+      authedConfig,
+      "public",
+    );
+    assert(postResponse !== null);
+    assertEquals(postResponse!.status, 401);
 
     kv.close();
   },
