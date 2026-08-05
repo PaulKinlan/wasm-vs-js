@@ -126,6 +126,20 @@ Parallelization: independent workloads can be sharded across agents (each wave =
 branch per workload, MASTER integrates). The gate (`deno task check`) must stay green
 per merge; new artifacts add server.ts routes (rebind cascade required).
 
+## Backlog / known issues
+
+- **Rust scan_log kernel (text-regex-log-scan) — in-progress.** The wasm build misbehaves
+  in a kernel-specific way (myers_diff's Rust is fine): slice-based versions panic with
+  empty-message/no-location panics (identical code works in a probe build); a raw-pointer
+  rewrite diverges on prefix-comparison counts despite the pattern tables being
+  wasm-verified correct (probe exports confirm all 20 prefixes + lengths). Trace notes:
+  /tmp scan_dbg/scan_ab/scan_trace probes were used during the 2026-08-05 session; the
+  C/C++/Dart reference is committed and bit-identical, so the fix is mechanical once the
+  root cause (suspected const/slice codegen quirk on wasm32-unknown-unknown) is pinned.
+  Suggested next steps: test the slice version built with `-C debug-assertions=off` and
+  `-C overflow-checks=off`; or compare the wasm disassembly of the working dbg3 probe vs
+  the failing scan_log from the same build.
+
 ## Constraints & risks
 
 - **Deploy file-size limit (~5MB/file via `deno deploy` CLI)**: every new multilang
