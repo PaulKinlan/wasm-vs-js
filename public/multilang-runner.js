@@ -524,7 +524,7 @@ export const KERNEL_ADAPTERS = {
         out[o] = 0x5d;
         return out;
       }
-            function jsParse(bytes) {
+      function jsParse(bytes) {
         // Faithful mirror of the C telemetry parser: same fields, same
         // vocabularies, same summary work (id/ts/value uints, region/kind/
         // label/tag options, boolean, counters).
