@@ -1,16 +1,13 @@
 import { assert } from "./assert.ts";
 import { generateFixture } from "../benchmarks/base/simulation-nbody/fixture.js";
-import {
-  runJavaScript,
-  decodeResult,
-} from "../benchmarks/base/simulation-nbody/engine.js";
+import { decodeResult, runJavaScript } from "../benchmarks/base/simulation-nbody/engine.js";
 import {
   BODY_COUNT,
-  TIMESTEPS,
   DT,
   GRAVITY,
-  SOFTENING_SQUARED,
   OUTPUT_HEADER_BYTES,
+  SOFTENING_SQUARED,
+  TIMESTEPS,
 } from "../benchmarks/base/simulation-nbody/contract.js";
 
 const rootDir = new URL("../", import.meta.url).pathname.replace(/\/$/, "");
@@ -42,9 +39,22 @@ async function runLinearKernel(file: string): Promise<Float64Array> {
   // layout: mass, px, py, pz, vx, vy, vz, ax, ay, az, out
   new Uint8Array(mem.buffer, 0, 11 * bytesPer).set(fixture.subarray(64, 64 + 7 * bytesPer));
   (instance.exports.nbody_step as (...args: number[]) => void)(
-    off(0), off(1), off(2), off(3), off(4), off(5), off(6),
-    off(7), off(8), off(9), off(10),
-    N, TIMESTEPS, DT, GRAVITY, SOFTENING_SQUARED,
+    off(0),
+    off(1),
+    off(2),
+    off(3),
+    off(4),
+    off(5),
+    off(6),
+    off(7),
+    off(8),
+    off(9),
+    off(10),
+    N,
+    TIMESTEPS,
+    DT,
+    GRAVITY,
+    SOFTENING_SQUARED,
   );
   return new Float64Array(mem.buffer, off(10), N * 6).slice();
 }
@@ -66,11 +76,13 @@ Deno.test(
   "multilang-nbody: C, C++, Rust, and Dart/WasmGC nbody_step kernels are bit-identical to the engine oracle at full contract shape",
   async () => {
     const ref = engineFinalState();
-    for (const [file, label] of [
-      ["nbody_step_c.wasm", "C"],
-      ["nbody_step_cpp.wasm", "C++"],
-      ["nbody_step_rs.wasm", "Rust"],
-    ] as const) {
+    for (
+      const [file, label] of [
+        ["nbody_step_c.wasm", "C"],
+        ["nbody_step_cpp.wasm", "C++"],
+        ["nbody_step_rs.wasm", "Rust"],
+      ] as const
+    ) {
       assertBitIdentical(label, await runLinearKernel(file), ref);
     }
 
@@ -106,9 +118,22 @@ Deno.test(
     const at = (o: number) => new Float64Array(fixture.buffer, 64 + o * N * 8, N);
     const out = new Float64Array(N * 6);
     kernels.nbody_step(
-      at(0), at(1), at(2), at(3), at(4), at(5), at(6),
-      new Float64Array(N), new Float64Array(N), new Float64Array(N),
-      out, N, TIMESTEPS, DT, GRAVITY, SOFTENING_SQUARED,
+      at(0),
+      at(1),
+      at(2),
+      at(3),
+      at(4),
+      at(5),
+      at(6),
+      new Float64Array(N),
+      new Float64Array(N),
+      new Float64Array(N),
+      out,
+      N,
+      TIMESTEPS,
+      DT,
+      GRAVITY,
+      SOFTENING_SQUARED,
     );
     assertBitIdentical("Dart/WasmGC", out, ref);
   },

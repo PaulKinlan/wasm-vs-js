@@ -630,17 +630,28 @@ export const KERNEL_ADAPTERS = {
           return state >>> 0;
         };
         const unit = (v) => v / 0x100000000;
-        const mass = new Float64Array(N), px = new Float64Array(N), py = new Float64Array(N),
-          pz = new Float64Array(N), vx = new Float64Array(N), vy = new Float64Array(N),
+        const mass = new Float64Array(N),
+          px = new Float64Array(N),
+          py = new Float64Array(N),
+          pz = new Float64Array(N),
+          vx = new Float64Array(N),
+          vy = new Float64Array(N),
           vz = new Float64Array(N);
         for (let i = 0; i < N; i++) {
-          state = xorshift(); mass[i] = 0.5 + unit(state) * 1.5;
-          state = xorshift(); px[i] = unit(state) * 2 - 1;
-          state = xorshift(); py[i] = unit(state) * 2 - 1;
-          state = xorshift(); pz[i] = unit(state) * 2 - 1;
-          state = xorshift(); vx[i] = (unit(state) * 2 - 1) * 0.001;
-          state = xorshift(); vy[i] = (unit(state) * 2 - 1) * 0.001;
-          state = xorshift(); vz[i] = (unit(state) * 2 - 1) * 0.001;
+          state = xorshift();
+          mass[i] = 0.5 + unit(state) * 1.5;
+          state = xorshift();
+          px[i] = unit(state) * 2 - 1;
+          state = xorshift();
+          py[i] = unit(state) * 2 - 1;
+          state = xorshift();
+          pz[i] = unit(state) * 2 - 1;
+          state = xorshift();
+          vx[i] = (unit(state) * 2 - 1) * 0.001;
+          state = xorshift();
+          vy[i] = (unit(state) * 2 - 1) * 0.001;
+          state = xorshift();
+          vz[i] = (unit(state) * 2 - 1) * 0.001;
         }
         return { mass, px, py, pz, vx, vy, vz };
       }
@@ -699,9 +710,22 @@ export const KERNEL_ADAPTERS = {
             new Float64Array(mem.buffer, off(5), N).set(f.vy);
             new Float64Array(mem.buffer, off(6), N).set(f.vz);
             inst.exports.nbody_step(
-              off(0), off(1), off(2), off(3), off(4), off(5), off(6),
-              off(7), off(8), off(9), off(10),
-              N, STEPS, DT, GRAVITY, SOFT2,
+              off(0),
+              off(1),
+              off(2),
+              off(3),
+              off(4),
+              off(5),
+              off(6),
+              off(7),
+              off(8),
+              off(9),
+              off(10),
+              N,
+              STEPS,
+              DT,
+              GRAVITY,
+              SOFT2,
             );
           },
         };
@@ -713,10 +737,22 @@ export const KERNEL_ADAPTERS = {
         nbody_step: () => {
           const f = makeFixture();
           mods.engines.dart.kernels.nbody_step(
-            f.mass, f.px, f.py, f.pz, f.vx, f.vy, f.vz,
-            new Float64Array(N), new Float64Array(N), new Float64Array(N),
+            f.mass,
+            f.px,
+            f.py,
+            f.pz,
+            f.vx,
+            f.vy,
+            f.vz,
+            new Float64Array(N),
+            new Float64Array(N),
+            new Float64Array(N),
             new Float64Array(N * 6),
-            N, STEPS, DT, GRAVITY, SOFT2,
+            N,
+            STEPS,
+            DT,
+            GRAVITY,
+            SOFT2,
           );
         },
       };
