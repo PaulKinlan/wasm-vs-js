@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "e4516a0d3986c3739dfa09786827e84cf6529e53",
-  "sourceSha256": "dbe51bbdce7dc7b31ffcdd79e0fffe20fb8e76b0b0ad0b92dba663c794a02773",
+  "sourceCommit": "096e1467c3f11480bf0cb5648b3ccf51ff8cc3fa",
+  "sourceSha256": "a756c4292b637e02bab436e100d4c97aec034ffa47920c7bb5d5cc0d7a43b791",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 83577,
-      "sha256": "8e54132b04baf489787b2c286f401848c370558fd2116cb95215e7b8ab95ca3c"
+      "bytes": 83795,
+      "sha256": "c19e0827b0754ea11a2dc1cfa89e1d51946a4a1c45aa726edde5dcc1d316b2c4"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "9034144c047b6863abac0a3140d88b336e8440260373cfc12a0868799dd58c8a"
+      "sha256": "d72ec848c2decd07833f65162c9508e1a1e1749686517340ad881c6115f6f307"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "24bafcbb79b8cd068ccefb45a40f11640d5c3aa98d533171b4b63b93b15e31a8"
+      "sha256": "218259d119585c11772b21c186c6daf25a2e5a2a9fd6a15703e35053e563dc95"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=e4516a0d3986c3739dfa09786827e84cf6529e53"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=096e1467c3f11480bf0cb5648b3ccf51ff8cc3fa"
   }
 }
