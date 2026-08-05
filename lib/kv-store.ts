@@ -74,7 +74,12 @@ export class KvRunStore {
       throw new Error(`capturedAt skew ${skew}ms exceeds ${TIMESTAMP_MAX_AGE_MS}ms tolerance`);
     }
 
-    // 5. Idempotency check — read existing dedupe entry
+    // 5. Non-resurrection check — reject if payload is tombstoned
+    if (await this.isTombstoned(run.payloadSha256)) {
+      throw new Error("run payload is tombstoned (non-resurrection)");
+    }
+
+    // 6. Idempotency check — read existing dedupe entry
     const dedupeKey = ["runs_dedupe", run.payloadSha256];
     const existing = await this.kv.get<{ runId: string }>(dedupeKey);
     if (existing.value) {
@@ -314,6 +319,67 @@ export class KvRunStore {
       else skipped++;
     }
     return { imported, skipped, total: dump.runs.length };
+  }
+
+  /**
+   * Delete a run and place a non-resurrection tombstone.
+   * The tombstone prevents the same payloadSha256 from being re-inserted.
+   * Atomic: run + dedupe + index removed, tombstone written in one commit.
+   */
+  async delete(runId: string): Promise<{ deleted: boolean; tombstoned: boolean }> {
+    const runKey = ["runs", runId];
+    const run = await this.kv.get<KvRunRecord>(runKey);
+    if (!run.value) return { deleted: false, tombstoned: false };
+
+    const payloadSha256 = String(run.value.payloadSha256);
+    const dedupeKey = ["runs_dedupe", payloadSha256];
+    const tombstoneKey = ["runs_tombstone", runId];
+
+    // Find index entries for this run
+    const indexEntries: Array<{ key: Deno.KvKey }> = [];
+    const bid = String(run.value.benchmark?.id ?? "");
+    const target = String(run.value.variant?.target ?? "");
+    const cacheState = String(run.value.variant?.cacheState ?? "");
+    if (bid) {
+      const prefix = ["runs_by_benchmark", bid, target, cacheState, runId];
+      indexEntries.push({ key: prefix });
+    }
+
+    // Atomic: delete run + dedupe + index, write tombstone
+    const atomic = this.kv.atomic()
+      .delete(runKey)
+      .delete(dedupeKey);
+    for (const { key } of indexEntries) {
+      atomic.delete(key);
+    }
+    atomic.set(tombstoneKey, {
+      runId,
+      payloadSha256,
+      deletedAt: new Date().toISOString(),
+    });
+
+    const result = await atomic.commit();
+    if (!result.ok) throw new Error("tombstone commit failed");
+
+    // Decrement summary counter
+    const countKey = ["summaries", "total_count"];
+    const current = await this.kv.get<number>(countKey);
+    const newCount = Math.max(0, (current.value ?? 1) - 1);
+    await this.kv.set(countKey, newCount);
+
+    return { deleted: true, tombstoned: true };
+  }
+
+  /**
+   * Check if a payload hash is tombstoned (non-resurrection check).
+   */
+  async isTombstoned(payloadSha256: string): Promise<boolean> {
+    const entries = this.kv.list({ prefix: ["runs_tombstone"] });
+    for await (const entry of entries) {
+      const val = entry.value as Record<string, unknown>;
+      if (val.payloadSha256 === payloadSha256) return true;
+    }
+    return false;
   }
 }
 

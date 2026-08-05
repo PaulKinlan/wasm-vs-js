@@ -74,15 +74,15 @@ Tasks are ordered by dependency. A checked box means the exact acceptance criter
 - [x] Implement immutable KV run/part/dedupe/index/summary records in one bounded atomic commit.
 - [x] Measure key/value/check/mutation/serialized-byte headroom.
 - [x] Implement bounded run list/detail, summaries, and health APIs.
-- [ ] Implement versioned reconciliation from raw runs.
+- [x] Implement versioned reconciliation from raw runs.
 
 ### Operations
 
-- [ ] Decide raw/public/aggregate retention and deletion policy.
-- [ ] Implement owner deletion and non-resurrection tombstones.
+- [x] Decide raw/public/aggregate retention and deletion policy.
+- [x] Implement owner deletion and non-resurrection tombstones.
 - [x] Implement checksummed logical export and isolated restore.
 - [x] Test corrupt, partial, stale, foreign, and wrong-schema restores.
-- [ ] Model request, KV read/write/storage, egress, and backup cost.
+- [x] Model request, KV read/write/storage, egress, and backup cost.
 - [x] Obtain explicit approval before Deno app/KV provisioning.
 - [ ] Prove production/branch/preview database isolation; never use shared preview KV for destructive tests.
 - [ ] Independently review security, privacy, recovery, and exact production source.
