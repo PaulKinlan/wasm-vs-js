@@ -208,12 +208,12 @@ const manifestReaderStatics: Stage[] = [
 // the quota margin is exhausted, poppler/collector outputs truncate silently
 // mid-write (Errno 122) and the pdf-viewer/collector gates fail with
 // 'Poppler raster length mismatch' style errors — bitten twice (2026-08-05).
-// Probe the write path (sized to the largest poppler output, the 6MB raster)
-// before the stages so quota exhaustion fails fast and explicitly.
+// Probe the write path (20MB: the poppler raster 6MB + the clang rebuild object
+// files in temp checkouts — the largest transient /tmp need in the gate).
 async function probeTempWrites() {
   const dir = Deno.env.get("TMPDIR") ?? "/tmp";
   const path = `${dir}/wvj-gate-quota-probe-${Deno.pid}`;
-  const chunk = new Uint8Array(6 * 1024 * 1024);
+  const chunk = new Uint8Array(20 * 1024 * 1024);
   chunk.fill(7);
   try {
     await Deno.writeFile(path, chunk);
