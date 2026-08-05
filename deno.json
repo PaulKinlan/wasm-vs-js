@@ -26,7 +26,8 @@
       "public/benchmarks/graphics-cpu-path-tracer-v1/index.html",
       "public/benchmarks/graphics-cpu-path-tracer-v1/index.template.html",
       "public/benchmarks/numeric-fft-spectral-filter-v1/index.html",
-      "public/benchmarks/simulation-rigid-body-2d-v1/index.html"
+      "public/benchmarks/simulation-rigid-body-2d-v1/index.html",
+      "raw/"
     ],
     "lineWidth": 100,
     "proseWrap": "preserve"
