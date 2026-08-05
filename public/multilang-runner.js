@@ -349,13 +349,13 @@ export const KERNEL_ADAPTERS = {
       }
       const callables = {};
       const CAP = 5000;
-      for (const key of ["c", "cpp"]) {
+      for (const key of ["c", "cpp", "rs"]) {
         const inst = mods.engines[key].instances.scan_log.instance;
         const mem = inst.exports.memory;
         callables[key] = {
           scan_log: () => {
             const bytes = corpus();
-            const dataOff = 4096, scratchOff = 1 << 20;
+            const dataOff = 4096, scratchOff = 2097152;
             const idOff = scratchOff + 256 * 5 * 4;
             const stOff = idOff + CAP * 4, enOff = stOff + CAP * 4;
             const csOff = enOff + CAP * 4, pcOff = csOff + 4, tcOff = pcOff + 4;
@@ -544,6 +544,157 @@ export const KERNEL_ADAPTERS = {
           mods.engines.dart.kernels.gemm(a, b, c0, new Float32Array(M * N), M, N, K);
         },
       };
+      return callables;
+    },
+  },
+
+  // --- numeric.polybench-panel.v1 -------------------------------------------
+  "numeric.polybench-panel.v1": {
+    kernels: ["polybench"],
+    build(mods) {
+      const NI = 20, NJ = 25, NK = 30, N_CHOLESKY = 40, N_GRID = 30, STEPS = 20;
+      function makeGemmFixture() {
+        const a = new Float64Array(NI * NK);
+        const b = new Float64Array(NK * NJ);
+        const c = new Float64Array(NI * NJ);
+        for (let i = 0; i < NI; i++) {
+          for (let k = 0; k < NK; k++) a[i * NK + k] = (i * (k + 1) % NK) / NK;
+        }
+        for (let k = 0; k < NK; k++) {
+          for (let j = 0; j < NJ; j++) b[k * NJ + j] = (k * (j + 2) % NJ) / NJ;
+        }
+        for (let i = 0; i < NI; i++) {
+          for (let j = 0; j < NJ; j++) c[i * NJ + j] = (i * j + 1) % NI / NI;
+        }
+        return { a, b, c, alpha: 1.5, beta: 1.2 };
+      }
+      function makeCholeskyFixture() {
+        const n = N_CHOLESKY;
+        const lower = new Float64Array(n * n);
+        const a = new Float64Array(n * n);
+        for (let i = 0; i < n; i++) {
+          for (let j = 0; j <= i; j++) lower[i * n + j] = 1 - (j % n) / n;
+          lower[i * n + i] = 1;
+        }
+        for (let i = 0; i < n; i++) {
+          for (let j = 0; j < n; j++) {
+            let sum = 0;
+            for (let k = 0; k < n; k++) sum += lower[i * n + k] * lower[j * n + k];
+            a[i * n + j] = sum;
+          }
+        }
+        return { a, n };
+      }
+      function makeGridFixture() {
+        const n = N_GRID;
+        const a = new Float64Array(n * n);
+        const b = new Float64Array(n * n);
+        for (let i = 0; i < n; i++) {
+          for (let j = 0; j < n; j++) {
+            a[i * n + j] = (i * (j + 2) + 2) / n;
+            b[i * n + j] = (i * (j + 3) + 3) / n;
+          }
+        }
+        return { a, b, n };
+      }
+
+      function jsPolybench() {
+        const gf = makeGemmFixture();
+        const cf = makeCholeskyFixture();
+        const jf = makeGridFixture();
+
+        // GEMM
+        const gemmOut = gf.c.slice();
+        for (let i = 0; i < NI; i++) {
+          for (let j = 0; j < NJ; j++) gemmOut[i * NJ + j] *= gf.beta;
+          for (let k = 0; k < NK; k++) {
+            for (let j = 0; j < NJ; j++) {
+              gemmOut[i * NJ + j] += gf.alpha * gf.a[i * NK + k] * gf.b[k * NJ + j];
+            }
+          }
+        }
+
+        // Cholesky
+        const cholA = cf.a.slice();
+        const n = cf.n;
+        for (let i = 0; i < n; i++) {
+          for (let j = 0; j <= i; j++) {
+            let sum = cholA[i * n + j];
+            for (let k = 0; k < j; k++) sum -= cholA[i * n + k] * cholA[j * n + k];
+            cholA[i * n + j] = i === j ? Math.sqrt(sum) : sum / cholA[j * n + j];
+          }
+          for (let j = i + 1; j < n; j++) cholA[i * n + j] = 0;
+        }
+
+        // Jacobi2D
+        const ja = jf.a.slice();
+        const jb = jf.b.slice();
+        const jn = jf.n;
+        for (let t = 0; t < STEPS; t++) {
+          for (let i = 1; i < jn - 1; i++) {
+            for (let j = 1; j < jn - 1; j++) {
+              const p = i * jn + j;
+              jb[p] = 0.2 * (ja[p] + ja[p - 1] + ja[p + 1] + ja[p - jn] + ja[p + jn]);
+            }
+          }
+          for (let i = 1; i < jn - 1; i++) {
+            for (let j = 1; j < jn - 1; j++) {
+              const p = i * jn + j;
+              ja[p] = 0.2 * (jb[p] + jb[p - 1] + jb[p + 1] + jb[p - jn] + jb[p + jn]);
+            }
+          }
+        }
+      }
+
+      const callables = {};
+      callables.js = { polybench: jsPolybench };
+
+      for (const key of ["wat", "c", "cpp", "rs"]) {
+        const inst = mods.engines[key].instances.polybench.instance;
+        const mem = inst.exports.memory;
+        const exports = inst.exports;
+        callables[key] = {
+          polybench: () => {
+            const gf = makeGemmFixture();
+            const cf = makeCholeskyFixture();
+            const jf = makeGridFixture();
+
+            // GEMM
+            const aOff = 0;
+            const bOff = gf.a.byteLength;
+            const cOff = bOff + gf.b.byteLength;
+            new Float64Array(mem.buffer, aOff, gf.a.length).set(gf.a);
+            new Float64Array(mem.buffer, bOff, gf.b.length).set(gf.b);
+            new Float64Array(mem.buffer, cOff, gf.c.length).set(gf.c);
+            exports.gemm(aOff, bOff, cOff, NI, NJ, NK, gf.alpha, gf.beta);
+
+            // Cholesky
+            const cholOff = cOff + gf.c.byteLength;
+            new Float64Array(mem.buffer, cholOff, cf.a.length).set(cf.a);
+            exports.cholesky(cholOff, cf.n);
+
+            // Jacobi2D
+            const gridAOff = cholOff + cf.a.byteLength;
+            const gridBOff = gridAOff + jf.a.byteLength;
+            new Float64Array(mem.buffer, gridAOff, jf.a.length).set(jf.a);
+            new Float64Array(mem.buffer, gridBOff, jf.b.length).set(jf.b);
+            exports.jacobi2d(gridAOff, gridBOff, jf.n, STEPS);
+          },
+        };
+      }
+
+      callables.dart = {
+        polybench: () => {
+          const gf = makeGemmFixture();
+          const cf = makeCholeskyFixture();
+          const jf = makeGridFixture();
+          const k = mods.engines.dart.kernels;
+          k.gemm(gf.a, gf.b, gf.c, NI, NJ, NK, gf.alpha, gf.beta);
+          k.cholesky(cf.a, cf.n);
+          k.jacobi2d(jf.a, jf.b, jf.n, STEPS);
+        },
+      };
+
       return callables;
     },
   },

@@ -193,8 +193,8 @@ function assertBitIdentical(
   tc: number,
   ref: { matches: Array<[number, number, number]>; cs: number; pc: number; tc: number },
 ): void {
-  assert(cs === ref.cs, `${label} candidateStarts mismatch`);
-  assert(pc === ref.pc, `${label} prefixComparisons mismatch`);
+  assert(cs === ref.cs, `${label} candidateStarts mismatch: got=${cs} ref=${ref.cs}`);
+  assert(pc === ref.pc, `${label} prefixComparisons mismatch: got=${pc} ref=${ref.pc}`);
   assert(tc === ref.tc, `${label} tailComparisons mismatch`);
   assert(matches.length === ref.matches.length, `${label} match count mismatch`);
   for (let i = 0; i < matches.length; i++) {
@@ -217,6 +217,7 @@ Deno.test(
     const linear = [
       ["scan_log_c.wasm", "C"],
       ["scan_log_cpp.wasm", "C++"],
+      ["scan_log_rs.wasm", "Rust"],
     ] as const;
     for (const [file, label] of linear) {
       const mod = (await WebAssembly.instantiate(
@@ -224,7 +225,7 @@ Deno.test(
         {},
       )) as unknown as { instance: WebAssembly.Instance };
       const mem = mod.instance.exports.memory as WebAssembly.Memory;
-      const dataOff = 4096, scratchOff = 1 << 20;
+      const dataOff = 4096, scratchOff = 2097152;
       const cap = 1000;
       const idOff = scratchOff + 256 * 5 * 4;
       const stOff = idOff + cap * 4, enOff = stOff + cap * 4;
@@ -316,7 +317,7 @@ Deno.test("multilang-scanlog: report contains a measured text-regex-log-scan wor
     assert(typeof variant.warmExecutionMs === "number", `${variant.language} must be measured`);
   }
   const languages = wl.variants.map((v: { language: string }) => v.language);
-  for (const expected of ["Dart / WasmGC", "C / Wasm", "C++ / Wasm", "JavaScript"]) {
+  for (const expected of ["Dart / WasmGC", "C / Wasm", "C++ / Wasm", "Rust / Wasm", "JavaScript"]) {
     assert(languages.includes(expected), `text-regex-log-scan missing ${expected}`);
   }
 });
