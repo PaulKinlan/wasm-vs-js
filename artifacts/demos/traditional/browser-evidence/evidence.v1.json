@@ -660,12 +660,7 @@
     "origin": "http://127.0.0.1:35627"
   },
   "source": {
-<<<<<<< HEAD
-    "commit": "af4e237b47a7fae223f9d83fac1435019bd01078",
-    "tree": "0509cb2c9937c94640cf4d8e2e980a46bd85d06a"
-=======
-    "commit": "a9f126d347f2ef3e362b1c0b8027d7293e654fdd",
-    "tree": "8f82bdb898b5bae4d8cc871ed34a2baa4b60216a"
->>>>>>> 84fc2ea7 (rebind pass 2)
+    "commit": "bb56fdc6859a5f9539b554224259bffbd86b0b5e",
+    "tree": "bd28bd0442a384137fed6b95113746bfea2f2f1d"
   }
 }

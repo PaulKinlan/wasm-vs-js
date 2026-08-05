@@ -18,7 +18,7 @@ const LOCAL_DOWNLOADS = new Map([
   ],
   [
 <<<<<<< HEAD
-    `public/artifacts/audio-fft/build-manifest.json|8c84f3833fb3325c662a7da779dc90b01cc3f3fa8adbae19833e7b9ac9f28ef5`,
+    `public/artifacts/audio-fft/build-manifest.json|db79ebfb760cbcbcd677ec6856fba0a85f15003163b8cc7e60f8bf3c8ef46eaf`,
 =======
     `public/artifacts/audio-fft/build-manifest.json|5737f64cd81bfb31ba9bf2aa3190354b8e54c3e81c0395edcc1fd7d8e67707d1`,
 >>>>>>> 84fc2ea7 (rebind pass 2)
@@ -34,7 +34,7 @@ const LOCAL_DOWNLOADS = new Map([
   ],
   [
 <<<<<<< HEAD
-    `public/artifacts/audio-fir/build-manifest.json|05831052c079f1016771f5863f757f8d99fe1b25c976fc89f4a62a1499b49ad3`,
+    `public/artifacts/audio-fir/build-manifest.json|0038ba954ed71823b80798adbe87fecb0f83b7bfca3d70cc1f1dd9fdb49b41d0`,
 =======
     `public/artifacts/audio-fir/build-manifest.json|a2b5ca49442ed3ea7cdb7d6745268fe4f7ac987fa312929aca0250907e63ac37`,
 >>>>>>> 84fc2ea7 (rebind pass 2)
@@ -50,7 +50,7 @@ const LOCAL_DOWNLOADS = new Map([
   ],
   [
 <<<<<<< HEAD
-    `public/artifacts/audio-stft/build-manifest.json|30084c9ac3d38d56b4003436aa949214f24c5e63da0ef0bc15102e5f4922280f`,
+    `public/artifacts/audio-stft/build-manifest.json|ffc60f5e577f0bd6b7b8f15f56f0af08fc2ac5ec2b88870ea2fc3166b5587213`,
 =======
     `public/artifacts/audio-stft/build-manifest.json|551f2a396ce91acf050978bfeaf2c626e8fc5f9ad8c4a2d0b2e7c227a1b8780f`,
 >>>>>>> 84fc2ea7 (rebind pass 2)
