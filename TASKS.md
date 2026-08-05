@@ -19,7 +19,7 @@ Tasks are ordered by dependency. A checked box means the exact acceptance criter
 - [x] Implement capability probes and typed metric availability.
 - [x] Implement portable phase marks and raw-sample collection.
 - [x] Calibrate clock quantum, harness overhead, and one shared fixed batch size.
-- [x] Preserve first-use lifecycle metrics, the first scored post-calibration iteration, the full scored trajectory, validation, and failure reasons.
+- [x] Preserve first-use lifecycle metrics, the first scored post-calibration iteration, the full scored trajectory, validation, and failure reasons. (Phase list and cold/warm protocol states: `docs/cold-start-definition.md`.)
 
 ### First workload
 
@@ -35,7 +35,7 @@ Tasks are ordered by dependency. A checked box means the exact acceptance criter
 - [x] Freeze the exact M1 Chrome source/build/input/browser/cache/statistics/stopping contract and single-use bounded permit envelope; this does not instantiate browser authorization.
 - [x] Implement reviewed-source foundations for atomic single-use permits, manifest-bound local-only collection, exact Chrome/profile ownership, CDP connection, cache attestation, host/Chrome provenance, immutable artifact hashing, atomic pair commitment, and fail-closed public isolation; no real browser launch is implied.
 - [x] Launch exact owned Chrome process/profile for cold runs.
-- [x] Implement explicit validation/cold/warm protocol states and retain resource timing; owned-launch cache verification remains below.
+- [x] Implement explicit validation/cold/warm protocol states and retain resource timing; owned-launch cache verification remains below. (State definitions: `docs/cold-start-definition.md`.)
 - [x] Alternate paired order with retained seed/block identity.
 - [x] Run a separately labelled pilot, then collect the cold/warm schedules at frozen attempted-launch checkpoints 20/30/40/50/60; analyze committed pairs only when at least 20 exist, stop at 3% Bonferroni-protected exact order-statistic precision, or terminate each stratum after its fixed 60-attempt cap as inconclusive when precision is absent (including fewer than 20 committed pairs).
 - [x] Retain browser version, flags, console/network, assertions, screenshots, and exact cleanup.

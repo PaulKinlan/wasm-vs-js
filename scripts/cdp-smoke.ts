@@ -381,5 +381,9 @@ async function teardownOnSignal(signal: string) {
   await cleanupBrowser();
   Deno.exit(130);
 }
-Deno.addSignalListener("SIGINT", () => { void teardownOnSignal("SIGINT"); });
-Deno.addSignalListener("SIGTERM", () => { void teardownOnSignal("SIGTERM"); });
+Deno.addSignalListener("SIGINT", () => {
+  void teardownOnSignal("SIGINT");
+});
+Deno.addSignalListener("SIGTERM", () => {
+  void teardownOnSignal("SIGTERM");
+});
