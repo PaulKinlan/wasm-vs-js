@@ -34,7 +34,13 @@ Deno.test("composedStagePlan: full plan for a page with all three stages", () =>
       multilangManifest: "/m.json",
       trackBRoot: "#track-b-root",
     }),
-    { primary: true, multilangManifest: "/m.json", trackBRoot: "#track-b-root" },
+    {
+      primary: true,
+      multilangManifest: "/m.json",
+      trackBRoot: "#track-b-root",
+      libcmp: false,
+      libcmpEngines: [],
+    },
   );
 });
 
@@ -79,4 +85,35 @@ Deno.test("contract: one control runs every stage on a composed page", () => {
   assert(plan.multilangManifest, "multilang stage must run");
   assert(plan.trackBRoot, "track-b stage must run");
   assert(!shouldAutoBindMultilang(pageMeta), "no second control");
+});
+
+Deno.test("composedStagePlan: detects the library-comparison stage from the page attribute", () => {
+  const plan = composedStagePlan({ workload: "archive-zip-workspace-v1", libcmp: true });
+  assertEquals(plan.libcmp, true);
+  assertEquals(composedStagePlan({ workload: "x" }).libcmp, false);
+});
+
+Deno.test("composedStagePlan: passes through the declared library engines", () => {
+  const engines = [
+    {
+      key: "js",
+      label: "JavaScript engine",
+      source: "/benchmarks/v1/archive-zip-workspace/engine.js",
+    },
+    {
+      key: "wasm",
+      label: "WebAssembly engine",
+      source: "/benchmarks/v1/archive-zip-workspace/archive_zip.c",
+    },
+  ];
+  const plan = composedStagePlan({
+    workload: "archive-zip-workspace-v1",
+    libcmp: true,
+    libcmpEngines: engines,
+  });
+  assertEquals(plan.libcmpEngines.length, 2);
+  assertEquals(plan.libcmpEngines[0].key, "js");
+  assertEquals(plan.libcmpEngines[1].key, "wasm");
+  // non-array input is coerced to an empty list (invalid JSON -> no stage)
+  assertEquals(composedStagePlan({ workload: "x", libcmpEngines: "garbage" }).libcmpEngines, []);
 });
