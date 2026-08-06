@@ -10,7 +10,9 @@
     <link rel="stylesheet" href="/styles.css">
     <script type="module" src="/unified-runner.js"></script>
   </head>
-  <body data-workload="tooling-c-to-wasm-compile-v1" data-demo="tooling-c-to-wasm-compile-v1">
+  <body data-workload="tooling-c-to-wasm-compile-v1" data-demo="tooling-c-to-wasm-compile-v1"
+    data-libcmp="true"
+    data-libcmp-engines='[{"key": "js", "label": "JavaScript engine", "source": "/benchmarks/base/tooling-c-to-wasm-compile/compiler-js.js"}, {"key": "wasm", "label": "WebAssembly engine", "source": "/benchmarks/base/tooling-c-to-wasm-compile/compiler-wasm.c"}]'>
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>

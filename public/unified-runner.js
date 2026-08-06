@@ -728,6 +728,8 @@ export function composedStagePlan(meta = {}) {
     primary: Boolean(meta.workload || meta.demo),
     multilangManifest: meta.multilangManifest ?? null,
     trackBRoot: meta.trackBRoot ?? null,
+    libcmp: Boolean(meta.libcmp),
+    libcmpEngines: Array.isArray(meta.libcmpEngines) ? meta.libcmpEngines : [],
   };
   return plan;
 }
@@ -739,15 +741,27 @@ function composedStagePlanFromDom() {
     : document.querySelector("#trackb-root")
     ? "#trackb-root"
     : null;
+  let libcmpEngines = [];
+  if (body?.dataset?.libcmpEngines) {
+    try {
+      libcmpEngines = JSON.parse(body.dataset.libcmpEngines);
+    } catch {
+      libcmpEngines = [];
+    }
+  }
   return composedStagePlan({
     workload: body?.dataset?.workload,
     demo: body?.dataset?.demo,
     multilangManifest: body?.dataset?.multilangManifest ?? null,
     trackBRoot,
+    libcmp: body?.dataset?.libcmp,
+    libcmpEngines,
   });
 }
 
-async function runComposedStages({ workloadSlug, iterations, statusEl, reportingEl }) {
+async function runComposedStages(
+  { workloadSlug, iterations, statusEl, reportingEl, primaryStats = null },
+) {
   const plan = composedStagePlanFromDom();
   // ONE results flow: every additional stage (multi-language, Track B) renders
   // as a labeled sub-block of the SAME run output inside the primary reporting
@@ -787,7 +801,84 @@ async function runComposedStages({ workloadSlug, iterations, statusEl, reporting
     await initTrackB(tbBox, workloadSlug);
     statusEl.textContent = "✓ Track B optimized variants rendered.";
   }
+  if (plan.libcmp && plan.libcmpEngines.length > 0) {
+    statusEl.textContent = "Library comparison: running engine pair…";
+    const box = stageBlock("libcmp", "Library comparison (engines, not reimplementations)");
+    const p = document.createElement("p");
+    p.className = "notice";
+    p.textContent = "Each engine below is a real implementation (a library or a port of one). " +
+      "This compares engines against each other, not independent language " +
+      "reimplementations of a single algorithm.";
+    box.appendChild(p);
+    const rows = [];
+    for (const engine of plan.libcmpEngines) {
+      let medianMs = null;
+      if (primaryStats) {
+        if (engine.key === "js" && primaryStats.jsStats?.medianMs != null) {
+          medianMs = primaryStats.jsStats.medianMs;
+        } else if (engine.key === "wasm" && primaryStats.wasmStats?.medianMs != null) {
+          medianMs = primaryStats.wasmStats.medianMs;
+        }
+      }
+      if (medianMs == null) {
+        const target = engine.key === "wasm" ? "wasm" : "javascript";
+        statusEl.textContent = `Library comparison: running ${engine.label}…`;
+        try {
+          const stats = await executeWorkerLoop(workloadSlug, target, iterations, statusEl);
+          medianMs = stats.medianMs;
+        } catch (err) {
+          medianMs = null;
+          rows.push({
+            label: engine.label,
+            medianMs: null,
+            sourceBytes: 0,
+            error: err instanceof Error ? err.message : String(err),
+          });
+          continue;
+        }
+      }
+      let sourceBytes = 0;
+      if (engine.source) {
+        try {
+          const resp = await fetch(engine.source, { cache: "no-store" });
+          if (resp.ok) sourceBytes = (await resp.arrayBuffer()).byteLength;
+        } catch {
+          sourceBytes = 0;
+        }
+      }
+      rows.push({ label: engine.label, medianMs, sourceBytes, error: "" });
+    }
+    box.appendChild(renderLibCmpTable(rows));
+    statusEl.textContent = "✓ Library comparison complete.";
+  }
 }
+
+function renderLibCmpTable(rows) {
+  const table = document.createElement("table");
+  table.className = "mlr-table";
+  table.innerHTML = "<thead><tr>" +
+    ["Engine", "Median (this run)", "Source size", "Notes"]
+      .map((h) => `<th class="mlr-th mlr-th-header">${h}</th>`)
+      .join("") +
+    "</tr></thead><tbody>" +
+    rows
+      .map((r) =>
+        `<tr>` +
+        `<td class="mlr-th"><strong>${r.label}</strong></td>` +
+        `<td class="mlr-th">${r.medianMs != null ? `${r.medianMs.toFixed(3)} ms` : "—"}</td>` +
+        `<td class="mlr-th">${
+          r.sourceBytes > 0 ? `${r.sourceBytes.toLocaleString()} B` : "—"
+        }</td>` +
+        `<td class="mlr-th">${r.error ? `engine unavailable: ${r.error}` : ""}</td>` +
+        `</tr>`
+      )
+      .join("") +
+    "</tbody>";
+  return table;
+}
+
+let lastJsStats = null;
+let lastWasmStats = null;
 
 function initUnifiedRunner() {
   const workloadSlug = document.body.dataset.workload || document.body.dataset.demo;
@@ -827,6 +918,7 @@ function initUnifiedRunner() {
       if (chosenTarget === "javascript") {
         statusEl.textContent = `Running JavaScript (${iterations}× loop)...`;
         const jsStats = await executeWorkerLoop(workloadSlug, "javascript", iterations);
+        lastJsStats = jsStats;
         statusEl.textContent = `✓ JavaScript completed in ${
           jsStats.warmMedianMs.toFixed(2)
         } ms (median).`;
@@ -840,6 +932,7 @@ function initUnifiedRunner() {
       } else if (chosenTarget === "wasm" || chosenTarget === "wasm-linear") {
         statusEl.textContent = `Running WebAssembly (${iterations}× loop)...`;
         const wasmStats = await executeWorkerLoop(workloadSlug, "wasm", iterations);
+        lastWasmStats = wasmStats;
         statusEl.textContent = `✓ WebAssembly completed in ${
           wasmStats.warmMedianMs.toFixed(2)
         } ms (median).`;
@@ -854,9 +947,11 @@ function initUnifiedRunner() {
         // Compare Side-by-Side (JS vs Wasm)
         statusEl.textContent = `Running JavaScript benchmark (${iterations}× loop)...`;
         const jsStats = await executeWorkerLoop(workloadSlug, "javascript", iterations);
+        lastJsStats = jsStats;
 
         statusEl.textContent = `Running WebAssembly benchmark (${iterations}× loop)...`;
         const wasmStats = await executeWorkerLoop(workloadSlug, "wasm", iterations);
+        lastWasmStats = wasmStats;
 
         statusEl.textContent = `✓ Benchmark suite completed across ${iterations} iterations.`;
         if (reportingEl) {
@@ -868,7 +963,13 @@ function initUnifiedRunner() {
       // the multi-language comparison and the Track B optimized variants from
       // the same run control (Paul directive 2026-08-06).
       try {
-        await runComposedStages({ workloadSlug, iterations, statusEl, reportingEl });
+        await runComposedStages({
+          workloadSlug,
+          iterations,
+          statusEl,
+          reportingEl,
+          primaryStats: { jsStats: lastJsStats, wasmStats: lastWasmStats },
+        });
       } catch (composedErr) {
         statusEl.textContent = `Additional stages error: ${
           composedErr instanceof Error ? composedErr.message : String(composedErr)

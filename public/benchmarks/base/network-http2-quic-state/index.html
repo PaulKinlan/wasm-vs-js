@@ -6,7 +6,8 @@
     <title>HTTP/2 and QUIC state demo | Wasm versus JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
   </head>
-  <body data-workload="network-http2-quic-state">
+  <body data-workload="network-http2-quic-state" data-libcmp="true"
+    data-libcmp-engines='[{"key": "js", "label": "JavaScript engine", "source": "/benchmarks/v1/network-http2-quic-state/engine.js"}, {"key": "wasm", "label": "WebAssembly engine", "source": "/benchmarks/v1/network-http2-quic-state/network-http2-quic-state.c"}]'>
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
