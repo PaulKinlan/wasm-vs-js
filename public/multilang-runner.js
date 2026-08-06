@@ -2579,7 +2579,6 @@ function renderTables(container, manifest, resultsByKernel, iterations) {
 export async function runMultilangComparison(manifestPath, {
   iterations = 30,
   onStatus = () => {},
-  onError = () => {},
   shouldCancel = () => false,
   reportingEl = null,
 } = {}) {
@@ -2608,7 +2607,7 @@ export function shouldAutoBindMultilang(meta = {}) {
   return Boolean(meta.multilangManifest);
 }
 
-export async function initMultilangRunner(manifestPath, opts = {}) {
+export function initMultilangRunner(manifestPath, opts = {}) {
   const form = opts.form ?? document.querySelector("#demo-form");
   const iterationsSelect = opts.iterations ?? document.querySelector("#iterations");
   const startBtn = opts.start ?? document.querySelector("#start");
