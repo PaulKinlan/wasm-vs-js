@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "f8015483d443138bfadf1181f150b7801015a757",
-  "sourceSha256": "3c574b52b1ca4052c62e529b362ff39f03977fdc0cdb6fd3fb67de55dde2f97b",
+  "sourceCommit": "e3b4693cfa1078a85cab83cc5b77323106271161",
+  "sourceSha256": "3e2b70dbd172392086ee66657500b544dfcf2432007ef900fd46fee3c4c654fa",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 87939,
-      "sha256": "4dcd7f424fd6416b40b1b9f2ea67d64a0de367d5c44f834796ab53eb6831c2b1"
+      "bytes": 87341,
+      "sha256": "03a62314a5074ccfd93f5d0781b7be650b52e930b43714c85ac37c948c6762a1"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "28df15b19efde3faa08a9721ac3ecf0abbece9f455fe23b5896e8edf89117996"
+      "sha256": "753d2826b948c1fed6f973452572599116c766b21bc43882cef987554cd13883"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "b5ae978dd279d1645c34934f084486db3e88a19aff5990ff53e31b4e27c4e095"
+      "sha256": "3396e40e7509c15a82c1324baa3e4a993d94d83b5694ba0e4d81622fabdb21b4"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=f8015483d443138bfadf1181f150b7801015a757"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=e3b4693cfa1078a85cab83cc5b77323106271161"
   }
 }

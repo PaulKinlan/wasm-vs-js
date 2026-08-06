@@ -4,8 +4,8 @@
   "contractId": "numeric.polybench-panel.v1-supplemental-contract-v1",
   "track": "controlled",
   "repository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "implementationCommit": "f8015483d443138bfadf1181f150b7801015a757",
-  "sourceTreeSha256": "754807b09e07c9634355653fbfb01e8b3e1b8adc3c1013f9cfe4e283f6e37268",
+  "implementationCommit": "e3b4693cfa1078a85cab83cc5b77323106271161",
+  "sourceTreeSha256": "0cb80be836ac02fc0ffb3428311c52909369e415dd6311ff9d4f60e1ad021eba",
   "sourceGraph": [
     {
       "path": "benchmarks/base/numeric-polybench-panel/contract.json",
@@ -44,13 +44,13 @@
     },
     {
       "path": "public/benchmarks/numeric.polybench-panel.v1/index.html",
-      "bytes": 5289,
-      "sha256": "135c580468b07d5b6965a57f2c103fe81e851d0314def8c067a93a67cc78139e"
+      "bytes": 6936,
+      "sha256": "6c879d5ffa2958284f8d5bcc5e45efbb7d4a15b6cafcefdb4b928f83e2f59120"
     },
     {
       "path": "public/polybench-panel-demo.js",
-      "bytes": 2216,
-      "sha256": "f40c3f03d621d4e08c2e03ac44a6c92abcde2e802430026b836fe7db803c006f"
+      "bytes": 2228,
+      "sha256": "e3ad5fb47e00bc1b7d73be921ad15b0959fa01022cd26992dcd5d78eca2b4519"
     },
     {
       "path": "public/polybench-panel-worker.js",
@@ -69,21 +69,21 @@
     },
     {
       "path": "scripts/build-base-polybench.ts",
-      "bytes": 13152,
-      "sha256": "21bd5f0d57487941be61206bb1f51f56bd845cfbfdc2b0977a6f0f3f769082c9"
+      "bytes": 13157,
+      "sha256": "77211ae01d6f2288d67173da8b50aadd3b9dfc542789de3c670fd3293b68401a"
     },
     {
       "path": "server.ts",
-      "bytes": 87939,
-      "sha256": "4dcd7f424fd6416b40b1b9f2ea67d64a0de367d5c44f834796ab53eb6831c2b1"
+      "bytes": 87341,
+      "sha256": "03a62314a5074ccfd93f5d0781b7be650b52e930b43714c85ac37c948c6762a1"
     },
     {
       "path": "tests/base/polybench-panel.test.ts",
-      "bytes": 14331,
-      "sha256": "f8aae8675b68230c5219c3cfebdf32fddebb76178c78df13257d650c9276b71b"
+      "bytes": 14341,
+      "sha256": "1ff4318d25c40a1cd5469e41944ba89a5a6f66d7a69065c7ffe12e64a3fd231f"
     }
   ],
-  "reproducibleCommand": "deno task --config deno.polybench.json build:base-polybench --source-commit f8015483d443138bfadf1181f150b7801015a757",
+  "reproducibleCommand": "deno task --config deno.polybench.json build:base-polybench --source-commit e3b4693cfa1078a85cab83cc5b77323106271161",
   "toolchain": {
     "deno": "2.9.0",
     "wabt": "1.0.37",
