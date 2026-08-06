@@ -4570,7 +4570,7 @@ async function kernelSourceBytes(manifest, kernel, lang, explicitSource) {
   const dir = (manifest._path ?? "").split("/").pop()?.replace(/\.manifest\.json$/, "") ?? "";
   if (explicitSource === "") return 0; // declared source-less engine (e.g. hand-written WAT)
   const candidates = explicitSource
-    ? [`/benchmarks/${explicitSource.replace(/^benchmarks\//, "multilang-wasm/")}`]
+    ? [`/benchmarks/${explicitSource.replace(/^benchmarks\//, "")}`]
     : [
         `/benchmarks/multilang-wasm/${kernel}.${ext}`,
         dir ? `/benchmarks/multilang-wasm/${dir}/${kernel}.${ext}` : "",
