@@ -287,7 +287,6 @@ const routes = new Map<string, [string, string, boolean?]>([
     "application/json; charset=utf-8",
   ]],
   ["/track-b-optimizations.md", ["docs/track-b-optimizations.md", "text/markdown; charset=utf-8"]],
-  ["/benchmarks/multilang-wasm/sum-u32.manifest.json", ["public/benchmarks/multilang-wasm/sum-u32.manifest.json", "application/json; charset=utf-8"]],
   ["/multilang-runner.js", ["public/multilang-runner.js", "text/javascript; charset=utf-8"]],
   ["/inspectability.js", ["public/inspectability.js", "text/javascript; charset=utf-8"]],
   ["/v2-results.js", ["public/v2-results.js", "text/javascript; charset=utf-8"]],
