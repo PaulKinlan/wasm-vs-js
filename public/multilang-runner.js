@@ -82,7 +82,52 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
       };
       return callables;
     },
+  },  // --- cad-parametric-bracket: B-rep + scan-band tessellation (oracle: engine.js runJavaScript)
+  "cad.parametric-bracket.v1": {
+    kernels: ["bracket"],
+    async build(mods) {
+      const INPUT_BYTES = 128;
+      function fixture() {
+        const bytes = new Uint8Array(INPUT_BYTES);
+        const view = new DataView(bytes.buffer);
+        view.setUint32(0, 0x31425243, true);
+        view.setUint32(4, 1, true);
+        view.setUint32(8, 2, true);
+        view.setUint32(12, 8, true);
+        view.setUint32(16, 32, true);
+        view.setFloat64(24, 80, true);
+        view.setFloat64(32, 40, true);
+        view.setFloat64(40, 12, true);
+        view.setFloat64(48, 5, true);
+        view.setFloat64(56, 4, true);
+        view.setFloat64(64, 20, true);
+        view.setFloat64(72, 20, true);
+        view.setFloat64(80, 60, true);
+        view.setFloat64(88, 20, true);
+        return bytes;
+      }
+      const callables = {};
+      for (const key of ["c", "cpp"]) {
+        const inst = mods.engines[key].instances.bracket.instance;
+        callables[key] = {
+          bracket: () => {
+            const input = fixture();
+            const mem = inst.exports.memory;
+            new Uint8Array(mem.buffer, inst.exports.input_ptr(), INPUT_BYTES).set(input);
+            inst.exports.run();
+          },
+        };
+      }
+      const { runJavaScript } = await import("/benchmarks/base/cad-parametric-bracket/engine.js");
+      callables.js = {
+        bracket: () => {
+          runJavaScript(fixture());
+        },
+      };
+      return callables;
+    },
   },
+
   // --- cad-mesh-repair: STL quantize/weld/orient/simplify (mirrors engine.js
   //     repairMeshJavaScript + the frozen mesh-repair.c)
   "cad.mesh-repair.v1": {
@@ -2658,46 +2703,268 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
       return callables;
     },
   },
-  // --- cad-parametric-bracket: B-rep + scan-band tessellation (oracle: engine.js runJavaScript)
-  "cad.parametric-bracket.v1": {
-    kernels: ["bracket"],
-    async build(mods) {
-      const INPUT_BYTES = 128;
-      function fixture() {
-        const bytes = new Uint8Array(INPUT_BYTES);
-        const view = new DataView(bytes.buffer);
-        view.setUint32(0, 0x31425243, true);
-        view.setUint32(4, 1, true);
-        view.setUint32(8, 2, true);
-        view.setUint32(12, 8, true);
-        view.setUint32(16, 32, true);
-        view.setFloat64(24, 80, true);
-        view.setFloat64(32, 40, true);
-        view.setFloat64(40, 12, true);
-        view.setFloat64(48, 5, true);
-        view.setFloat64(56, 4, true);
-        view.setFloat64(64, 20, true);
-        view.setFloat64(72, 20, true);
-        view.setFloat64(80, 60, true);
-        view.setFloat64(88, 20, true);
-        return bytes;
+  // --- ml-numeric-kernels: GEMM/Conv/Softmax f32+i8 (frozen shapes) ----------
+  "ml.numeric-kernels.v1": {
+    kernels: ["numeric"],
+    build(mods) {
+      const SEED = 0x6d6c6b31;
+      function xorshift32(state) {
+        state ^= state << 13;
+        state ^= state >>> 17;
+        state ^= state << 5;
+        return state >>> 0;
+      }
+      function stream(length, kind, salt) {
+        const out = kind === "f32" ? new Float32Array(length) : new Int8Array(length);
+        let state = (SEED ^ salt) >>> 0;
+        for (let i = 0; i < length; i++) {
+          state = xorshift32(state);
+          out[i] = kind === "f32"
+            ? Math.fround(((state >>> 8) / 0x1000000) * 2 - 1)
+            : ((state % 15) - 7);
+        }
+        return out;
+      }
+      function inputs() {
+        return {
+          gemmF32A: stream(72, "f32", 1),
+          gemmF32B: stream(63, "f32", 2),
+          gemmI8A: stream(72, "i8", 3),
+          gemmI8B: stream(63, "i8", 4),
+          convF32Input: stream(192, "f32", 5),
+          convF32Weights: stream(108, "f32", 6),
+          convI8Input: stream(192, "i8", 7),
+          convI8Weights: stream(108, "i8", 8),
+          softmaxF32Input: stream(128, "f32", 9),
+          softmaxI8Input: stream(128, "i8", 10),
+        };
+      }
+      function jsNumeric(fx) {
+        const a = fx.gemmF32A, b = fx.gemmF32B, out = new Float32Array(56);
+        for (let i = 0; i < 8; i++) {
+          for (let j = 0; j < 7; j++) {
+            let acc = Math.fround(0);
+            for (let k = 0; k < 9; k++) {
+              acc = Math.fround(acc + Math.fround(a[i * 9 + k] * b[k * 7 + j]));
+            }
+            out[i * 7 + j] = acc + 0;
+          }
+        }
+        return out;
+      }
+      function jsConv(fx) {
+        const inp = fx.convF32Input, w = fx.convF32Weights, out = new Float32Array(256);
+        for (let y = 0; y < 8; y++) {
+          for (let x = 0; x < 8; x++) {
+            for (let o = 0; o < 4; o++) {
+              let acc = Math.fround(0);
+              for (let ky = 0; ky < 3; ky++) {
+                for (let kx = 0; kx < 3; kx++) {
+                  const iy = y + ky - 1, ix = x + kx - 1;
+                  if (iy < 0 || ix < 0 || iy >= 8 || ix >= 8) continue;
+                  for (let c = 0; c < 3; c++) {
+                    acc = Math.fround(
+                      acc +
+                        Math.fround(
+                          inp[(iy * 8 + ix) * 3 + c] * w[((ky * 3 + kx) * 3 + c) * 4 + o],
+                        ),
+                    );
+                  }
+                }
+              }
+              out[(y * 8 + x) * 4 + o] = acc + 0;
+            }
+          }
+        }
+        return out;
+      }
+      function jsSoftmax(fx) {
+        const inp = fx.softmaxF32Input, out = new Float32Array(128);
+        const expApprox = (value) => {
+          const x = Math.fround(Math.max(-8, Math.min(0, value)));
+          let y = Math.fround(1 + Math.fround(x / 256));
+          for (let i = 0; i < 8; i++) y = Math.fround(y * y);
+          return y;
+        };
+        for (let r = 0; r < 8; r++) {
+          const base = r * 16;
+          let max = inp[base];
+          for (let c = 1; c < 16; c++) if (inp[base + c] > max) max = inp[base + c];
+          let sum = Math.fround(0);
+          for (let c = 0; c < 16; c++) {
+            const e = expApprox(Math.fround(inp[base + c] - max));
+            out[base + c] = e;
+            sum = Math.fround(sum + e);
+          }
+          for (let c = 0; c < 16; c++) out[base + c] = Math.fround(out[base + c] / sum) + 0;
+        }
+        return out;
       }
       const callables = {};
-      for (const key of ["c", "cpp"]) {
-        const inst = mods.engines[key].instances.bracket.instance;
+      for (const key of ["cpp", "rs"]) {
+        const inst = mods.engines[key].instances.numeric.instance;
+        const mem = inst.exports.memory;
+        const inA = 0, inB = 1024, inW = 2048, out = 8192;
         callables[key] = {
-          bracket: () => {
-            const input = fixture();
-            const mem = inst.exports.memory;
-            new Uint8Array(mem.buffer, inst.exports.input_ptr(), INPUT_BYTES).set(input);
-            inst.exports.run();
+          numeric: () => {
+            const fx = inputs();
+            new Float32Array(mem.buffer, inA, 72).set(fx.gemmF32A);
+            new Float32Array(mem.buffer, inB, 63).set(fx.gemmF32B);
+            inst.exports.gemm_f32(inA, inB, out);
+            new Int8Array(mem.buffer, inA, 72).set(fx.gemmI8A);
+            new Int8Array(mem.buffer, inB, 63).set(fx.gemmI8B);
+            inst.exports.gemm_i8(inA, inB, out);
+            new Float32Array(mem.buffer, inA, 192).set(fx.convF32Input);
+            new Float32Array(mem.buffer, inW, 108).set(fx.convF32Weights);
+            inst.exports.conv_f32(inA, inW, out);
+            new Int8Array(mem.buffer, inA, 192).set(fx.convI8Input);
+            new Int8Array(mem.buffer, inW, 108).set(fx.convI8Weights);
+            inst.exports.conv_i8(inA, inW, out);
+            new Float32Array(mem.buffer, inA, 128).set(fx.softmaxF32Input);
+            inst.exports.softmax_f32(inA, out);
+            new Int8Array(mem.buffer, inA, 128).set(fx.softmaxI8Input);
+            inst.exports.softmax_i8(inA, out);
           },
         };
       }
-      const { runJavaScript } = await import("/benchmarks/base/cad-parametric-bracket/engine.js");
       callables.js = {
-        bracket: () => {
-          runJavaScript(fixture());
+        numeric: () => {
+          const fx = inputs();
+          jsNumeric(fx);
+          jsConv(fx);
+          jsSoftmax(fx);
+        },
+      };
+      callables.dart = {
+        numeric: () => {
+          const fx = inputs();
+          mods.engines.dart.kernels.gemmF32(fx.gemmF32A, fx.gemmF32B, new Float32Array(56));
+          mods.engines.dart.kernels.convF32(
+            fx.convF32Input,
+            fx.convF32Weights,
+            new Float32Array(256),
+          );
+          mods.engines.dart.kernels.softmaxF32(fx.softmaxF32Input, new Float32Array(128));
+        },
+      };
+      return callables;
+    },
+  },
+
+  // --- crypto-authenticated-stream: ChaCha20-Poly1305 seal/open -------------
+  "crypto.authenticated-stream.v1": {
+    kernels: ["crypto"],
+    async build(mods) {
+      const KEY = Uint8Array.from({ length: 32 }, (_, i) => 0x80 + i);
+      const SESSION = Uint8Array.from([
+        0x57,
+        0x41,
+        0x53,
+        0x4d,
+        0x2d,
+        0x56,
+        0x45,
+        0x52,
+        0x53,
+        0x49,
+        0x4f,
+        0x4e,
+      ]);
+      const FRAME_SIZES = [0, 1, 15, 16, 17, 31, 32, 63, 64, 65, 127, 128, 255, 256, 511, 1024];
+      function xorshift32(value) {
+        value ^= value << 13;
+        value ^= value >>> 17;
+        value ^= value << 5;
+        return value >>> 0;
+      }
+      function frameAt(index) {
+        const size = FRAME_SIZES[index % FRAME_SIZES.length];
+        const plaintext = new Uint8Array(size);
+        let state = (0x6d2b79f5 ^ Math.imul(index + 1, 0x9e3779b1)) >>> 0;
+        for (let off = 0; off < size; off++) {
+          state = xorshift32(state);
+          plaintext[off] = state >>> 24;
+        }
+        const nonce = new Uint8Array(12);
+        nonce.set([0x43, 0x41, 0x53, 0x31]);
+        new DataView(nonce.buffer).setBigUint64(4, BigInt(index), true);
+        const aad = new Uint8Array(24);
+        const view = new DataView(aad.buffer);
+        view.setUint32(0, index, true);
+        view.setUint32(4, size, true);
+        view.setUint32(8, index % 7, true);
+        aad.set(SESSION, 12);
+        return { index, plaintext, nonce, aad };
+      }
+      const FRAMES = [0, 1, 5, 31, 64, 127, 1024];
+      let sealJavaScript = null;
+      {
+        // Lazy-load the workload's JS oracle for the reference engine.
+        const mod = await import("/benchmarks/base/crypto-authenticated-stream/engine.js");
+        sealJavaScript = mod.sealJavaScript;
+      }
+      const callables = {};
+      for (const key of ["c", "cpp", "rs"]) {
+        const inst = mods.engines[key].instances.crypto.instance;
+        const mem = inst.exports.memory;
+        const keyOff = 0, nonceOff = 64, aadOff = 96, plainOff = 256, ctOff = 8192, tagOff = 16384;
+        callables[key] = {
+          crypto: () => {
+            for (const idx of FRAMES) {
+              const f = frameAt(idx);
+              mem.set(KEY, keyOff);
+              mem.set(f.nonce, nonceOff);
+              mem.set(f.aad, aadOff);
+              mem.set(f.plaintext, plainOff);
+              inst.exports.seal(
+                keyOff,
+                nonceOff,
+                aadOff,
+                f.aad.length,
+                plainOff,
+                f.plaintext.length,
+                ctOff,
+                tagOff,
+              );
+              inst.exports.open(
+                keyOff,
+                nonceOff,
+                aadOff,
+                f.aad.length,
+                ctOff,
+                f.plaintext.length,
+                tagOff,
+                plainOff + 4096,
+              );
+            }
+          },
+        };
+      }
+      callables.js = {
+        crypto: () => {
+          for (const idx of FRAMES) {
+            const f = frameAt(idx);
+            sealJavaScript(KEY, f.nonce, f.aad, f.plaintext);
+          }
+        },
+      };
+      callables.dart = {
+        crypto: () => {
+          for (const idx of FRAMES) {
+            const f = frameAt(idx);
+            const ct = new Uint8Array(f.plaintext.length);
+            const tag = new Uint8Array(16);
+            mods.engines.dart.kernels.seal(
+              KEY,
+              f.nonce,
+              f.aad,
+              f.aad.length,
+              f.plaintext,
+              f.plaintext.length,
+              ct,
+              tag,
+            );
+          }
         },
       };
       return callables;
