@@ -196,7 +196,10 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/dom-hosts/todomvc-ops.js",
     "text/javascript; charset=utf-8",
   ]],
-  ["/dom-hosts/dom-virtualized-grid-host.js", ["public/dom-hosts/dom-virtualized-grid-host.js", "text/javascript; charset=utf-8"]],
+  ["/dom-hosts/dom-virtualized-grid-host.js", [
+    "public/dom-hosts/dom-virtualized-grid-host.js",
+    "text/javascript; charset=utf-8",
+  ]],
   ["/dom-hosts/dom-host-factory.js", [
     "public/dom-hosts/dom-host-factory.js",
     "text/javascript; charset=utf-8",
