@@ -31,15 +31,16 @@
         </p>
       </header>
       <section id="track-b-root" hidden></section>
-      <p class="muted">Program spec and logs: <a href="/track-b-optimizations.md">docs/track-b-optimizations.md</a>.</p>
+      <p
+        class="muted">Program spec and logs: <a href="/track-b-optimizations.md">docs/track-b-optimizations.md</a>.</p>
     </main>
     <script type="module">
-      import { initTrackB } from "/track-b.js";
-      initTrackB("#track-b-root").catch((error) => {
-        const root = document.querySelector("#track-b-root");
-        root.hidden = false;
-        root.textContent = `Track B failed to load: ${error.message}`;
-      });
+    import { initTrackB } from "/track-b.js";
+    initTrackB("#track-b-root").catch((error) => {
+      const root = document.querySelector("#track-b-root");
+      root.hidden = false;
+      root.textContent = `Track B failed to load: ${error.message}`;
+    });
     </script>
   </body>
 </html>

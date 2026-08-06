@@ -200,21 +200,60 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/dom-hosts/base-dom-todomvc-journey.js",
     "text/javascript; charset=utf-8",
   ]],
-      ["/src/multilang-wasm/track-b/sum_u32_opt.c", ["benchmarks/multilang-wasm/track-b/sum_u32_opt.c", "text/plain; charset=utf-8"]],
-  ["/src/multilang-wasm/track-b/sum_u32_opt.js", ["benchmarks/multilang-wasm/track-b/sum_u32_opt.js", "text/plain; charset=utf-8"]],
-  ["/src/multilang-wasm/track-b/fft_opt.c", ["benchmarks/multilang-wasm/track-b/fft_opt.c", "text/plain; charset=utf-8"]],
-  ["/src/multilang-wasm/track-b/fft_opt.js", ["benchmarks/multilang-wasm/track-b/fft_opt.js", "text/plain; charset=utf-8"]],
-  ["/src/multilang-wasm/track-b/gemm_simd.c", ["benchmarks/multilang-wasm/track-b/gemm_simd.c", "text/plain; charset=utf-8"]],
-  ["/src/multilang-wasm/track-b/gemm_opt.js", ["benchmarks/multilang-wasm/track-b/gemm_opt.js", "text/plain; charset=utf-8"]],
-  ["/src/multilang-wasm/track-b/scan_log_opt.c", ["benchmarks/multilang-wasm/track-b/scan_log_opt.c", "text/plain; charset=utf-8"]],
-  ["/src/multilang-wasm/track-b/scan_log_opt.js", ["benchmarks/multilang-wasm/track-b/scan_log_opt.js", "text/plain; charset=utf-8"]],
-  ["/src/multilang-wasm/sum_u32.c", ["benchmarks/multilang-wasm/sum_u32.c", "text/plain; charset=utf-8"]],
-  ["/src/multilang-wasm/fft_kernel.c", ["benchmarks/multilang-wasm/fft_kernel.c", "text/plain; charset=utf-8"]],
-  ["/src/multilang-wasm/ml-gemm/gemm.c", ["benchmarks/multilang-wasm/ml-gemm/gemm.c", "text/plain; charset=utf-8"]],
-  ["/src/multilang-wasm/text-regex-log-scan/scan_log.c", ["benchmarks/multilang-wasm/text-regex-log-scan/scan_log.c", "text/plain; charset=utf-8"]],
+  ["/src/multilang-wasm/track-b/sum_u32_opt.c", [
+    "benchmarks/multilang-wasm/track-b/sum_u32_opt.c",
+    "text/plain; charset=utf-8",
+  ]],
+  ["/src/multilang-wasm/track-b/sum_u32_opt.js", [
+    "benchmarks/multilang-wasm/track-b/sum_u32_opt.js",
+    "text/plain; charset=utf-8",
+  ]],
+  ["/src/multilang-wasm/track-b/fft_opt.c", [
+    "benchmarks/multilang-wasm/track-b/fft_opt.c",
+    "text/plain; charset=utf-8",
+  ]],
+  ["/src/multilang-wasm/track-b/fft_opt.js", [
+    "benchmarks/multilang-wasm/track-b/fft_opt.js",
+    "text/plain; charset=utf-8",
+  ]],
+  ["/src/multilang-wasm/track-b/gemm_simd.c", [
+    "benchmarks/multilang-wasm/track-b/gemm_simd.c",
+    "text/plain; charset=utf-8",
+  ]],
+  ["/src/multilang-wasm/track-b/gemm_opt.js", [
+    "benchmarks/multilang-wasm/track-b/gemm_opt.js",
+    "text/plain; charset=utf-8",
+  ]],
+  ["/src/multilang-wasm/track-b/scan_log_opt.c", [
+    "benchmarks/multilang-wasm/track-b/scan_log_opt.c",
+    "text/plain; charset=utf-8",
+  ]],
+  ["/src/multilang-wasm/track-b/scan_log_opt.js", [
+    "benchmarks/multilang-wasm/track-b/scan_log_opt.js",
+    "text/plain; charset=utf-8",
+  ]],
+  ["/src/multilang-wasm/sum_u32.c", [
+    "benchmarks/multilang-wasm/sum_u32.c",
+    "text/plain; charset=utf-8",
+  ]],
+  ["/src/multilang-wasm/fft_kernel.c", [
+    "benchmarks/multilang-wasm/fft_kernel.c",
+    "text/plain; charset=utf-8",
+  ]],
+  ["/src/multilang-wasm/ml-gemm/gemm.c", [
+    "benchmarks/multilang-wasm/ml-gemm/gemm.c",
+    "text/plain; charset=utf-8",
+  ]],
+  ["/src/multilang-wasm/text-regex-log-scan/scan_log.c", [
+    "benchmarks/multilang-wasm/text-regex-log-scan/scan_log.c",
+    "text/plain; charset=utf-8",
+  ]],
   ["/track-b.js", ["public/track-b.js", "text/javascript; charset=utf-8"]],
   ["/track-b.css", ["public/track-b.css", "text/css; charset=utf-8"]],
-  ["/data/track-b-report.v1.json", ["public/data/track-b-report.v1.json", "application/json; charset=utf-8"]],
+  ["/data/track-b-report.v1.json", [
+    "public/data/track-b-report.v1.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/track-b-optimizations.md", ["docs/track-b-optimizations.md", "text/markdown; charset=utf-8"]],
   ["/multilang-runner.js", ["public/multilang-runner.js", "text/javascript; charset=utf-8"]],
   ["/inspectability.js", ["public/inspectability.js", "text/javascript; charset=utf-8"]],
