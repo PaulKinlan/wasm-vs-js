@@ -113,30 +113,30 @@ if (document.body?.dataset?.unifiedRunnerActive) {
   // the static visual render; the worker run + result rendering defer.
   if (start) start.disabled = false;
 } else {
-start?.addEventListener("click", () => {
-  token += 1;
-  status.textContent = "Running in a dedicated worker…";
-  output.textContent = "Waiting for deterministic output.";
-  start.disabled = true;
-  cancel.disabled = false;
-  worker.postMessage({ type: "start", token, workloadId, variantId: target.value });
-  timer = setTimeout(
-    () =>
-      finishError(
-        "Timed out after 15 seconds; the worker was terminated and its token invalidated.",
-      ),
-    15000,
-  );
-});
+  start?.addEventListener("click", () => {
+    token += 1;
+    status.textContent = "Running in a dedicated worker…";
+    output.textContent = "Waiting for deterministic output.";
+    start.disabled = true;
+    cancel.disabled = false;
+    worker.postMessage({ type: "start", token, workloadId, variantId: target.value });
+    timer = setTimeout(
+      () =>
+        finishError(
+          "Timed out after 15 seconds; the worker was terminated and its token invalidated.",
+        ),
+      15000,
+    );
+  });
 
-cancel?.addEventListener("click", () => {
-  token += 1;
-  stopWorker();
-  status.textContent = "Cancelled; late output from the invalidated token will be ignored.";
-  output.textContent = "No result was accepted.";
-  start.disabled = false;
-  cancel.disabled = true;
-});
+  cancel?.addEventListener("click", () => {
+    token += 1;
+    stopWorker();
+    status.textContent = "Cancelled; late output from the invalidated token will be ignored.";
+    output.textContent = "No result was accepted.";
+    start.disabled = false;
+    cancel.disabled = true;
+  });
 }
 
 makeWorker();

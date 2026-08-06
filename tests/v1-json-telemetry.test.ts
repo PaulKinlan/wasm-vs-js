@@ -338,7 +338,9 @@ Deno.test("demo lifecycle source uses fresh workers, stale-token rejection, boun
       "crypto",
     ].filter((value) => value !== "crypto")
   ) assert(source.includes(required), required);
-  const page = await Deno.readTextFile("public/benchmarks/serialization.json-telemetry.v1/index.html");
+  const page = await Deno.readTextFile(
+    "public/benchmarks/serialization.json-telemetry.v1/index.html",
+  );
   for (
     const required of [
       "Nothing is uploaded, stored, or ranked",

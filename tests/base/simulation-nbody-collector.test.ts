@@ -348,7 +348,8 @@ Deno.test("N-body browser evidence schema is closed over source, raw responses, 
   });
   rejected((value) => value.scenarios[0].executedAssets.pop());
   rejected((value) =>
-    value.scenarios[0].executedAssets[0].sourcePath = "public/benchmarks/simulation-nbody-cloth/demo.js"
+    value.scenarios[0].executedAssets[0].sourcePath =
+      "public/benchmarks/simulation-nbody-cloth/demo.js"
   );
   rejected((value) => (value as Record<string, unknown>).invented = true);
 });

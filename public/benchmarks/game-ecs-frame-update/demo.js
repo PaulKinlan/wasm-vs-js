@@ -44,46 +44,48 @@ if (document.body?.dataset?.unifiedRunnerActive) {
   // unified-runner.js owns the run control (composed flow).
   if (document.querySelector("#start")) document.querySelector("#start").disabled = false;
 } else {
-form.addEventListener("submit", (event) => {
-  event.preventDefault();
-  cleanup();
-  const runToken = token;
-  const selectedTarget = target.value;
-  start.disabled = true;
-  cancel.disabled = false;
-  target.disabled = true;
-  status.textContent = `Running ${selectedTarget}; 10,000 entities × 1,000 frames.`;
-  output.textContent = "Worker is running the fixed contract.";
-  const runWorker = new Worker("/benchmarks/game-ecs-frame-update/worker.js", { type: "module" });
-  worker = runWorker;
-  timeout = setTimeout(() => {
-    if (worker !== runWorker || token !== runToken) return;
-    fail("Stopped after the 120 second limit.");
-  }, TIMEOUT_MS);
-  runWorker.addEventListener("message", (messageEvent) => {
-    if (worker !== runWorker || token !== runToken || messageEvent.data?.token !== runToken) return;
-    if (messageEvent.data.type === "error") {
-      fail(messageEvent.data.message || "Worker failed.");
-      return;
-    }
-    if (messageEvent.data.type !== "result") return;
-    const result = messageEvent.data.result;
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
     cleanup();
-    status.textContent =
-      "Complete. The exact fixture, full state, checkpoints, and counters passed.";
-    output.textContent = formatResult(result);
+    const runToken = token;
+    const selectedTarget = target.value;
+    start.disabled = true;
+    cancel.disabled = false;
+    target.disabled = true;
+    status.textContent = `Running ${selectedTarget}; 10,000 entities × 1,000 frames.`;
+    output.textContent = "Worker is running the fixed contract.";
+    const runWorker = new Worker("/benchmarks/game-ecs-frame-update/worker.js", { type: "module" });
+    worker = runWorker;
+    timeout = setTimeout(() => {
+      if (worker !== runWorker || token !== runToken) return;
+      fail("Stopped after the 120 second limit.");
+    }, TIMEOUT_MS);
+    runWorker.addEventListener("message", (messageEvent) => {
+      if (worker !== runWorker || token !== runToken || messageEvent.data?.token !== runToken) {
+        return;
+      }
+      if (messageEvent.data.type === "error") {
+        fail(messageEvent.data.message || "Worker failed.");
+        return;
+      }
+      if (messageEvent.data.type !== "result") return;
+      const result = messageEvent.data.result;
+      cleanup();
+      status.textContent =
+        "Complete. The exact fixture, full state, checkpoints, and counters passed.";
+      output.textContent = formatResult(result);
+    });
+    runWorker.addEventListener("error", () => {
+      if (worker !== runWorker || token !== runToken) return;
+      fail("Worker failed before producing a result.");
+    });
+    runWorker.postMessage({ type: "start", token: runToken, variantId: selectedTarget });
   });
-  runWorker.addEventListener("error", () => {
-    if (worker !== runWorker || token !== runToken) return;
-    fail("Worker failed before producing a result.");
+  cancel.addEventListener("click", () => {
+    if (!worker) return;
+    cleanup();
+    status.textContent = "Cancelled. The worker was terminated.";
+    output.textContent = "No result retained.";
   });
-  runWorker.postMessage({ type: "start", token: runToken, variantId: selectedTarget });
-});
-cancel.addEventListener("click", () => {
-  if (!worker) return;
-  cleanup();
-  status.textContent = "Cancelled. The worker was terminated.";
-  output.textContent = "No result retained.";
-});
-addEventListener("pagehide", cleanup, { once: true });
+  addEventListener("pagehide", cleanup, { once: true });
 }

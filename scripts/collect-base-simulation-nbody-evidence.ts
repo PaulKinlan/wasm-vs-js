@@ -56,7 +56,8 @@ export const COLLECTOR_SOURCE_PATHS = [
 export const EXECUTED_ROUTE_PATHS: Readonly<Record<string, string>> = Object.freeze({
   "/benchmarks/simulation-nbody-cloth/": "public/benchmarks/simulation-nbody-cloth/index.html",
   "/benchmarks/simulation-nbody-cloth/demo.js": "public/benchmarks/simulation-nbody-cloth/demo.js",
-  "/benchmarks/simulation-nbody-cloth/worker.js": "public/benchmarks/simulation-nbody-cloth/worker.js",
+  "/benchmarks/simulation-nbody-cloth/worker.js":
+    "public/benchmarks/simulation-nbody-cloth/worker.js",
   "/benchmarks/base/simulation-nbody/contract.js": "benchmarks/base/simulation-nbody/contract.js",
   "/benchmarks/base/simulation-nbody/fixture.js": "benchmarks/base/simulation-nbody/fixture.js",
   "/benchmarks/base/simulation-nbody/engine.js": "benchmarks/base/simulation-nbody/engine.js",
