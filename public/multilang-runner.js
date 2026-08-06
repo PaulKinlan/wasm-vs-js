@@ -2428,6 +2428,8 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
         },
       };
       return callables;
+    },
+  },
 
   // --- cad-mesh-repair: STL quantize/weld/orient/simplify (mirrors engine.js
   //     repairMeshJavaScript + the frozen mesh-repair.c)
