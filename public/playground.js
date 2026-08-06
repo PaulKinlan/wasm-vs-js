@@ -653,6 +653,7 @@ function renderMultilangReport(metricsEl, manifest, resultsByKernel, iterations,
         minMs: res.minMs,
         maxMs: res.maxMs,
         bytes: res.bytes ?? 0,
+        sourceBytes: res.sourceBytes ?? 0,
       });
     }
   }
@@ -661,7 +662,7 @@ function renderMultilangReport(metricsEl, manifest, resultsByKernel, iterations,
     <p class="muted">All ${engines.length} engines · ${iterations}× loop · median of ${iterations} samples per engine.</p>
     <table class="mlr-table">
       <thead><tr>${
-    ["Engine", "Kernel", "Median", "Min", "Max", "Wasm bytes"].map((h) =>
+    ["Engine", "Kernel", "Median", "Min", "Max", "Wasm bytes", "Source bytes"].map((h) =>
       `<th class="mlr-th mlr-th-header">${h}</th>`
     ).join("")
   }</tr></thead>
@@ -674,6 +675,7 @@ function renderMultilangReport(metricsEl, manifest, resultsByKernel, iterations,
           <td class="mlr-th">${fmt(r.minMs)}</td>
           <td class="mlr-th">${fmt(r.maxMs)}</td>
           <td class="mlr-th">${r.bytes > 0 ? r.bytes.toLocaleString() : "—"}</td>
+          <td class="mlr-th">${r.sourceBytes > 0 ? r.sourceBytes.toLocaleString() : "—"}</td>
         </tr>`).join("")
   }
       </tbody>

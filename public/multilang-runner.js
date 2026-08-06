@@ -2506,7 +2506,39 @@ function benchmarkOne(fn, iterations) {
   };
 }
 
-export async function runWorkload(manifest, kernel, iterations, onProgress) {
+export // Source-size lookup: each kernel's source file (e.g. <kernel>.c) lives either
+// flat in benchmarks/multilang-wasm/ (sum/fft) or in a per-workload subdir
+// (<dir>/<kernel>.c). Try both; return bytes or 0 (kept honest as "—").
+const sourceSizeCache = new Map();
+async function kernelSourceBytes(manifest, kernel, lang) {
+  const ext = lang === "js" ? "ts" : lang;
+  const dir = (manifest.url?.pathname ?? "").split("/").filter(Boolean).slice(-2, -1)[0] ?? "";
+  const candidates = [
+    `/benchmarks/multilang-wasm/${kernel}.${ext}`,
+    dir ? `/benchmarks/multilang-wasm/${dir}/${kernel}.${ext}` : "",
+  ].filter(Boolean);
+  for (const path of candidates) {
+    if (sourceSizeCache.has(path)) {
+      const n = sourceSizeCache.get(path);
+      if (n > 0) return n;
+      continue;
+    }
+    try {
+      const resp = await fetch(path, { cache: "no-store" });
+      if (resp.ok) {
+        const bytes = (await resp.arrayBuffer()).byteLength;
+        sourceSizeCache.set(path, bytes);
+        return bytes;
+      }
+      sourceSizeCache.set(path, 0);
+    } catch {
+      sourceSizeCache.set(path, 0);
+    }
+  }
+  return 0;
+}
+
+async function runWorkload(manifest, kernel, iterations, onProgress) {
   const mods = await loadEngines(manifest);
   const adapter = KERNEL_ADAPTERS[manifest.workloadId];
   if (!adapter || !adapter.kernels.includes(kernel)) {
@@ -2519,10 +2551,13 @@ export async function runWorkload(manifest, kernel, iterations, onProgress) {
     if (!fn) continue; // engine not applicable to this kernel (e.g. WAT sum-only)
     onProgress(`${engine.label}: ${kernel}...`);
     const stats = benchmarkOne(fn, iterations);
+    const bytes = mods.engines[engine.key]?.bytes?.byteLength ?? 0;
+    const sourceBytes = await kernelSourceBytes(manifest, kernel, engine.lang ?? engine.key);
     results.push({
       key: engine.key,
       label: engine.label,
-      bytes: mods.engines[engine.key]?.bytes?.byteLength ?? 0,
+      bytes,
+      sourceBytes,
       ...stats,
     });
   }
@@ -2539,7 +2574,9 @@ function renderTables(container, manifest, resultsByKernel, iterations) {
       .map((r) => {
         const ratio = (r.medianMs / jsMs).toFixed(2);
         const pct = Math.max(2, (r.medianMs / max) * 100);
-        const size = r.key === "js" ? "n/a (source)" : `${r.bytes} B`;
+        const wasmSize = r.bytes > 0 ? `${r.bytes} B` : "";
+        const srcSize = r.sourceBytes > 0 ? `src ${r.sourceBytes} B` : "";
+        const size = [wasmSize, srcSize].filter(Boolean).join(" · ") || "—";
         return `
         <tr>
           <td><strong>${r.label}</strong></td>
