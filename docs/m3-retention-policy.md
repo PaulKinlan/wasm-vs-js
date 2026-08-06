@@ -33,7 +33,7 @@
 - **Rate:** 30 POST requests per minute per client IP (durable rate limit).
 - **Headroom:** `GET /v1/headroom` reports live key count and byte estimate.
 
-## Default decisions (pending Paul's explicit confirmation)
+## Default decisions (CONFIRMED by Paul 2026-08-06 — "defaults look good, KV store already added")
 
 1. Raw run retention period: **indefinite** (default; Paul may set a TTL).
 2. Public run detail exposure: **full record** (default; Paul may restrict
