@@ -10,72 +10,72 @@
   "status": "implementation-candidate",
   "source": {
     "repository": "https://github.com/PaulKinlan/wasm-vs-js",
-    "commit": "f52a8296649d7181a269c4964e5e6cc8183dd635",
+    "commit": "1b08994a33a575f6d3ac66b2680611d096f925c2",
     "references": [
       {
         "path": "benchmarks/v1/game-ecs-frame-update/fixture.js",
         "sha256": "9201f7ac4a33eb6b79139d648d47fb9cdc2c3b86a84833e3fbee43ba4bd860a5",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f52a8296649d7181a269c4964e5e6cc8183dd635/benchmarks/v1/game-ecs-frame-update/fixture.js"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/1b08994a33a575f6d3ac66b2680611d096f925c2/benchmarks/v1/game-ecs-frame-update/fixture.js"
       },
       {
         "path": "benchmarks/v1/game-ecs-frame-update/engine.js",
         "sha256": "b676849d13e658445c9621af9a29156c9bae5767216c02714ab2cb1608dac3b1",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f52a8296649d7181a269c4964e5e6cc8183dd635/benchmarks/v1/game-ecs-frame-update/engine.js"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/1b08994a33a575f6d3ac66b2680611d096f925c2/benchmarks/v1/game-ecs-frame-update/engine.js"
       },
       {
         "path": "benchmarks/v1/game-ecs-frame-update/ecs-frame-update.c",
         "sha256": "817cb7a508007f003a98262c88e30d9f59a53a9f92d0b9ac747dd28e1289f899",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f52a8296649d7181a269c4964e5e6cc8183dd635/benchmarks/v1/game-ecs-frame-update/ecs-frame-update.c"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/1b08994a33a575f6d3ac66b2680611d096f925c2/benchmarks/v1/game-ecs-frame-update/ecs-frame-update.c"
       },
       {
         "path": "benchmarks/v1/game-ecs-frame-update/implementation-contract.v1.json",
         "sha256": "a46282dd0b70e8acf5d3e7d342d316a721e92a14fe9d5b20ba86302d5c2d9370",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f52a8296649d7181a269c4964e5e6cc8183dd635/benchmarks/v1/game-ecs-frame-update/implementation-contract.v1.json"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/1b08994a33a575f6d3ac66b2680611d096f925c2/benchmarks/v1/game-ecs-frame-update/implementation-contract.v1.json"
       },
       {
         "path": "scripts/build-base-game-ecs-frame-update.ts",
         "sha256": "52dc5cd98800d46f76c605f7e8712bf35d229cee7d8ecfda46917ac56ab070e2",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f52a8296649d7181a269c4964e5e6cc8183dd635/scripts/build-base-game-ecs-frame-update.ts"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/1b08994a33a575f6d3ac66b2680611d096f925c2/scripts/build-base-game-ecs-frame-update.ts"
       },
       {
         "path": "schemas/game-ecs-frame-update-implementation.v1.schema.json",
         "sha256": "0ed7ab3a458ed60158cfdde07958974ed487136c460855fb6265679fbe9f3c35",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f52a8296649d7181a269c4964e5e6cc8183dd635/schemas/game-ecs-frame-update-implementation.v1.schema.json"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/1b08994a33a575f6d3ac66b2680611d096f925c2/schemas/game-ecs-frame-update-implementation.v1.schema.json"
       },
       {
         "path": "public/benchmarks/game-ecs-frame-update/index.html",
         "sha256": "e9b595049f39eb2f3b849435bc3a17b7c75807a9432f64a828d6525eb8567eea",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f52a8296649d7181a269c4964e5e6cc8183dd635/public/benchmarks/game-ecs-frame-update/index.html"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/1b08994a33a575f6d3ac66b2680611d096f925c2/public/benchmarks/game-ecs-frame-update/index.html"
       },
       {
         "path": "public/benchmarks/game-ecs-frame-update/demo.js",
         "sha256": "8b814dc89ce2dd6d7b4b28b8b2aa6b472b7d01322b961a62f67617a98e096d6a",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f52a8296649d7181a269c4964e5e6cc8183dd635/public/benchmarks/game-ecs-frame-update/demo.js"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/1b08994a33a575f6d3ac66b2680611d096f925c2/public/benchmarks/game-ecs-frame-update/demo.js"
       },
       {
         "path": "public/benchmarks/game-ecs-frame-update/worker.js",
         "sha256": "4f357fff4bf3b1c2ed4cba3277eaa1bdc2c2e50f6b952508c516230322b421c8",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f52a8296649d7181a269c4964e5e6cc8183dd635/public/benchmarks/game-ecs-frame-update/worker.js"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/1b08994a33a575f6d3ac66b2680611d096f925c2/public/benchmarks/game-ecs-frame-update/worker.js"
       },
       {
         "path": "server.ts",
         "sha256": "03a62314a5074ccfd93f5d0781b7be650b52e930b43714c85ac37c948c6762a1",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f52a8296649d7181a269c4964e5e6cc8183dd635/server.ts"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/1b08994a33a575f6d3ac66b2680611d096f925c2/server.ts"
       },
       {
         "path": "catalog/workloads.v1.json",
         "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f52a8296649d7181a269c4964e5e6cc8183dd635/catalog/workloads.v1.json"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/1b08994a33a575f6d3ac66b2680611d096f925c2/catalog/workloads.v1.json"
       },
       {
         "path": "deno.json",
         "sha256": "1fb796ab0a517cac5b34d6b0225dc1316f7dae952460c45fec46acbe9d71ec5b",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f52a8296649d7181a269c4964e5e6cc8183dd635/deno.json"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/1b08994a33a575f6d3ac66b2680611d096f925c2/deno.json"
       },
       {
         "path": "deno.lock",
         "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f52a8296649d7181a269c4964e5e6cc8183dd635/deno.lock"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/1b08994a33a575f6d3ac66b2680611d096f925c2/deno.lock"
       }
     ]
   },
