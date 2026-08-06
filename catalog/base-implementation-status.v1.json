@@ -21,7 +21,7 @@
       "buildManifestSha256": "fc1c6f75c2266418f8c2f86201c93296af82832bcf89bb7f0311fd351dafbfe2",
       "validation": "/evidence/base/crypto.file-integrity.v1/validation.json",
       "validationSha256": "3a9bbdeaf8c38eb899b0d631ff84ece1d2eb9325dbd0286b2cd9a44c70ff5421",
-      "demoRoute": "/demos/crypto.file-integrity.v1/",
+      "demoRoute": "/benchmarks/crypto.file-integrity.v1/",
       "performanceStatus": "unavailable-not-collected"
     }
   ],

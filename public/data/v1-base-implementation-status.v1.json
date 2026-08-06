@@ -38,14 +38,14 @@
       },
       "buildManifest": {
         "path": "public/artifacts/text-gc-document-edit/build-manifest.json",
-        "sha256": "098f1ef23f868f8f59bed93bd0e8c2947d303196d6258a5a9d4e15be2d9bf50a"
+        "sha256": "8434f9c964be3089892a9917e8839d926c5a78229a41137a1fdaedba8bd0b453"
       },
       "records": [
         "public/evidence/v1-base/text-gc-document-edit/js-controlled.json",
         "public/evidence/v1-base/text-gc-document-edit/wasmgc-controlled.json"
       ],
       "interactiveDemo": {
-        "route": "/demos/text.gc-document-edit.v1/",
+        "route": "/benchmarks/text.gc-document-edit.v1/",
         "status": "implemented-awaiting-browser-evidence"
       },
       "browserEvidence": {
