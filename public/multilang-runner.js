@@ -82,7 +82,7 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
       };
       return callables;
     },
-  },  // --- cad-parametric-bracket: B-rep + scan-band tessellation (oracle: engine.js runJavaScript)
+  }, // --- cad-parametric-bracket: B-rep + scan-band tessellation (oracle: engine.js runJavaScript)
   "cad.parametric-bracket.v1": {
     kernels: ["bracket"],
     async build(mods) {
