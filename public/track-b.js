@@ -71,7 +71,11 @@ function perfBars(workload) {
   const wrap = el("div", "trackb-bars");
   for (const lang of workload.languages) {
     const row = el("div", "trackb-bar-row");
-    const label = el("span", "trackb-bar-label", lang.language);
+    const label = el(
+      "span",
+      "trackb-bar-label",
+      lang.correctness ? `${lang.language} (${lang.correctness})` : lang.language,
+    );
     const track = el("div", "trackb-bar-track");
     const maxMs = Math.max(lang.baselineMs, lang.optimizedMs, 1e-9);
     const baseBar = el("div", "trackb-bar trackb-bar-base");

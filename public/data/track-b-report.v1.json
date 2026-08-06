@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "program": "track-b",
-  "generatedAt": "2026-08-06T08:51:23.041Z",
+  "generatedAt": "2026-08-06T08:52:01.931Z",
   "trackANote": "Track A baselines are frozen, controlled workloads and are NEVER modified. Track B variants are independent optimizations, explicitly non-default, and never pooled with Track A claims.",
   "workloads": [
     {
@@ -15,13 +15,13 @@
       "languages": [
         {
           "language": "JavaScript",
-          "baselineMs": 0.3968921250000001,
-          "optimizedMs": 0.34542055000000005
+          "baselineMs": 0.3969612499999998,
+          "optimizedMs": 0.34328949999999947
         },
         {
           "language": "C / Wasm",
-          "baselineMs": 0.19858382500000005,
-          "optimizedMs": 0.1531326000000007
+          "baselineMs": 0.19874812499999878,
+          "optimizedMs": 0.1523180499999995
         }
       ],
       "sources": {
@@ -45,13 +45,13 @@
       "languages": [
         {
           "language": "JavaScript",
-          "baselineMs": 0.011473650000000172,
-          "optimizedMs": 0.014058849999999741
+          "baselineMs": 0.011419366666666519,
+          "optimizedMs": 0.018362633333333635
         },
         {
           "language": "C / Wasm",
-          "baselineMs": 0.011513050000000172,
-          "optimizedMs": 0.012002316666665062
+          "baselineMs": 0.011525083333333441,
+          "optimizedMs": 0.0117566833333323
         }
       ],
       "sources": {
@@ -75,13 +75,15 @@
       "languages": [
         {
           "language": "JavaScript",
-          "baselineMs": 0.39518792499999905,
-          "optimizedMs": 0.15948607500000095
+          "baselineMs": 0.40076392500000113,
+          "optimizedMs": 0.15941219999999987,
+          "correctness": "within-tolerance (max abs Δ 0.0e+0)"
         },
         {
           "language": "C / Wasm",
-          "baselineMs": 0.0743044000000026,
-          "optimizedMs": 0.0752083749999997
+          "baselineMs": 0.07385704999999802,
+          "optimizedMs": 0.07588839999999948,
+          "correctness": "bit-identical"
         }
       ],
       "sources": {
@@ -105,13 +107,13 @@
       "languages": [
         {
           "language": "JavaScript",
-          "baselineMs": 0.19266417499999874,
-          "optimizedMs": 0.13861819999999908
+          "baselineMs": 0.19222207499999797,
+          "optimizedMs": 0.13907382499999982
         },
         {
           "language": "C / Wasm",
-          "baselineMs": 0.08571417500000109,
-          "optimizedMs": 0.0866637250000025
+          "baselineMs": 0.08583414999999946,
+          "optimizedMs": 0.08697204999999997
         }
       ],
       "sources": {

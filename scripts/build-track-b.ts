@@ -309,8 +309,18 @@ async function measureGemm() {
       "C: B-transpose for cache locality (contiguous b_row reads) + pointer-walked A row. Accumulation order UNCHANGED (strict f32, t ascending) → bit-identical to Track A.",
     ],
     languages: [
-      { language: "JavaScript", baselineMs: jsBaseMs, optimizedMs: jsOptMs },
-      { language: "C / Wasm", baselineMs: cBaseMs, optimizedMs: cOptMs },
+      {
+        language: "JavaScript",
+        baselineMs: jsBaseMs,
+        optimizedMs: jsOptMs,
+        correctness: `within-tolerance (max abs Δ ${maxAbs.toExponential(1)})`,
+      },
+      {
+        language: "C / Wasm",
+        baselineMs: cBaseMs,
+        optimizedMs: cOptMs,
+        correctness: "bit-identical",
+      },
     ],
     sources: {
       javascript: ["benchmarks/multilang-wasm/track-b/gemm_opt.js"],
