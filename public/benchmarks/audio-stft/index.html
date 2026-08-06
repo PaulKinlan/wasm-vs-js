@@ -19,12 +19,6 @@
     data-workload="audio-stft"
     data-demo="audio-stft"
     data-multilang-manifest="/benchmarks/multilang-wasm/audio-stft.manifest.json"
-    data-multilang-form="#ml-form"
-    data-multilang-start="#ml-start"
-    data-multilang-cancel="#ml-cancel"
-    data-multilang-status="#ml-status"
-    data-multilang-reporting="#ml-reporting"
-    data-multilang-iterations="#ml-iterations"
   >
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
@@ -223,46 +217,16 @@
         </ul>
         <h3>Sources (pinned commit)</h3>
         <ul class="demo-links">
-          <li><a href="https://github.com/PaulKinlan/wasm-vs-js/blob/240446d1450b2d0440bf9848d33a746dcaf5814a/benchmarks/audio-stft/workload.ts">Engine source (JavaScript)</a></li>
-          <li><a href="https://github.com/PaulKinlan/wasm-vs-js/blob/240446d1450b2d0440bf9848d33a746dcaf5814a/benchmarks/audio-stft/audio-stft.wat">Kernel source (WAT)</a></li>
-          <li><a href="https://github.com/PaulKinlan/wasm-vs-js/blob/240446d1450b2d0440bf9848d33a746dcaf5814a/benchmarks/audio-stft/benchmark.json">Workload contract</a></li>
-          <li><a href="https://github.com/PaulKinlan/wasm-vs-js/blob/240446d1450b2d0440bf9848d33a746dcaf5814a/benchmarks/audio-shared/oracle.ts">Oracle implementation</a></li>
+          <li><a href="https://github.com/PaulKinlan/wasm-vs-js/blob/c5d7aa265224f55614ca211ac1d3b123fb860e8e/benchmarks/audio-stft/workload.ts">Engine source (JavaScript)</a></li>
+          <li><a href="https://github.com/PaulKinlan/wasm-vs-js/blob/c5d7aa265224f55614ca211ac1d3b123fb860e8e/benchmarks/audio-stft/audio-stft.wat">Kernel source (WAT)</a></li>
+          <li><a href="https://github.com/PaulKinlan/wasm-vs-js/blob/c5d7aa265224f55614ca211ac1d3b123fb860e8e/benchmarks/audio-stft/benchmark.json">Workload contract</a></li>
+          <li><a href="https://github.com/PaulKinlan/wasm-vs-js/blob/c5d7aa265224f55614ca211ac1d3b123fb860e8e/benchmarks/audio-shared/oracle.ts">Oracle implementation</a></li>
         </ul>
         <h3>How the run works</h3>
         <ul class="demo-links">
           <li>The JavaScript engine and the 752-byte linear-Wasm engine run the identical window-and-transform pipeline; the Wasm engine writes through a fixed scratch region with zero redundant clears.</li>
           <li>The oracle compares all 761,856 output components against the pinned f64 reference (absolute 5e-6, relative 1e-5) and checks per-frame conjugate symmetry, inverse reconstruction, chirp peak-bin tracking within 1.1 bins, and eight exact work counters.</li>
         </ul>
-      </section>
-      <section class="demo-panel" aria-labelledby="ml-heading">
-        <h2 id="ml-heading">Multi-Language Comparison</h2>
-        <p>
-          The same short-time Fourier transform (1,024-frame, 256-hop) kernel written in JavaScript, C, C++, Rust, and Dart (WasmGC),
-          compared side by side. Variants are test-verified bit-identical to the workload oracle.
-          Dart's strict-f32 path uses per-op Math.fround (no f32 primitive) — disclosed. Sources:
-          <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/tree/main/benchmarks/multilang-wasm/audio-audio-stft">stft.c · stft.cpp · stft.rs · stft.dart</a>.
-        </p>
-        <form id="ml-form">
-          <div class="controls">
-            <label for="ml-target"><span>Target Engine</span>
-              <select id="ml-target" name="target" disabled>
-                <option value="all" selected>Compare All Implementations</option>
-              </select></label>
-            <label for="ml-iterations"><span>Loop Iterations</span>
-              <select id="ml-iterations" name="iterations">
-                <option value="1">1 iteration (Cold start only)</option>
-                <option value="10">10 iterations</option>
-                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
-                <option value="50">50 iterations</option>
-                <option value="100">100 iterations (Sustained loop)</option>
-              </select></label>
-            <button id="ml-start" type="submit" disabled>Start Benchmark Suite</button>
-            <button id="ml-cancel" type="button" disabled>Cancel</button>
-          </div>
-        </form>
-        <p id="ml-status" role="status"
-          aria-live="polite">Ready. Select loop iterations, then click Start.</p>
-        <div id="ml-reporting" class="detail-grid" hidden></div>
       </section>
     </main>
     <script type="application/json" id="workload-identity">
@@ -276,7 +240,7 @@
         "outputSha256": "b06a278c83d9eeff309fafd64b617a54e958665e2ef2d498194da6c1e75d97ba",
         "referenceSha256": "3bae7479e79489d8f97d07bcbd31439e338f7f7f2978d6acfc2cc46cb8412d7a"
       },
-      "registrySha256": "2a6b5c2827353d458b7e2d12b2c37425e5fdc0c8fa27e3c5b551c85477ab29cf"
+      "registrySha256": "8696c74386dbe4e1aa9d70a1f008296403ffd97a0db333698d93addf81b8e1cb"
     }
     </script>
   </body>

@@ -19,12 +19,6 @@
     data-workload="audio-fft"
     data-demo="audio-fft"
     data-multilang-manifest="/benchmarks/multilang-wasm/audio-fft.manifest.json"
-    data-multilang-form="#ml-form"
-    data-multilang-start="#ml-start"
-    data-multilang-cancel="#ml-cancel"
-    data-multilang-status="#ml-status"
-    data-multilang-reporting="#ml-reporting"
-    data-multilang-iterations="#ml-iterations"
   >
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
@@ -219,46 +213,16 @@
         </ul>
         <h3>Sources (pinned commit)</h3>
         <ul class="demo-links">
-          <li><a href="https://github.com/PaulKinlan/wasm-vs-js/blob/240446d1450b2d0440bf9848d33a746dcaf5814a/benchmarks/audio-fft/workload.ts">Engine source (JavaScript)</a></li>
-          <li><a href="https://github.com/PaulKinlan/wasm-vs-js/blob/240446d1450b2d0440bf9848d33a746dcaf5814a/benchmarks/audio-fft/audio-fft.wat">Kernel source (WAT)</a></li>
-          <li><a href="https://github.com/PaulKinlan/wasm-vs-js/blob/240446d1450b2d0440bf9848d33a746dcaf5814a/benchmarks/audio-fft/benchmark.json">Workload contract</a></li>
-          <li><a href="https://github.com/PaulKinlan/wasm-vs-js/blob/240446d1450b2d0440bf9848d33a746dcaf5814a/benchmarks/audio-shared/oracle.ts">Oracle implementation</a></li>
+          <li><a href="https://github.com/PaulKinlan/wasm-vs-js/blob/c5d7aa265224f55614ca211ac1d3b123fb860e8e/benchmarks/audio-fft/workload.ts">Engine source (JavaScript)</a></li>
+          <li><a href="https://github.com/PaulKinlan/wasm-vs-js/blob/c5d7aa265224f55614ca211ac1d3b123fb860e8e/benchmarks/audio-fft/audio-fft.wat">Kernel source (WAT)</a></li>
+          <li><a href="https://github.com/PaulKinlan/wasm-vs-js/blob/c5d7aa265224f55614ca211ac1d3b123fb860e8e/benchmarks/audio-fft/benchmark.json">Workload contract</a></li>
+          <li><a href="https://github.com/PaulKinlan/wasm-vs-js/blob/c5d7aa265224f55614ca211ac1d3b123fb860e8e/benchmarks/audio-shared/oracle.ts">Oracle implementation</a></li>
         </ul>
         <h3>How the run works</h3>
         <ul class="demo-links">
           <li>The JavaScript engine (<code>fftRadix2</code>) and the 528-byte linear-Wasm engine run the identical radix-2 decimation-in-time butterfly with identical f32 rounding at every step.</li>
           <li>The oracle compares all 262,144 output components against a pinned scalar-f64 direct-DFT reference (absolute 1e-6, relative 1e-5), checks f64 anchor bins 0 and n/2 per transform, inverse-transform reconstruction, conjugate symmetry, and eight exact work counters.</li>
         </ul>
-      </section>
-      <section class="demo-panel" aria-labelledby="ml-heading">
-        <h2 id="ml-heading">Multi-Language Comparison</h2>
-        <p>
-          The same radix-2 complex FFT (4,096 samples per transform) kernel written in JavaScript, C, C++, Rust, and Dart (WasmGC),
-          compared side by side. Variants are test-verified bit-identical to the workload oracle.
-          Dart's strict-f32 path uses per-op Math.fround (no f32 primitive) — disclosed. Sources:
-          <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/tree/main/benchmarks/multilang-wasm/audio-audio-fft">fft_kernel.c · .cpp · .rs · .dart</a>.
-        </p>
-        <form id="ml-form">
-          <div class="controls">
-            <label for="ml-target"><span>Target Engine</span>
-              <select id="ml-target" name="target" disabled>
-                <option value="all" selected>Compare All Implementations</option>
-              </select></label>
-            <label for="ml-iterations"><span>Loop Iterations</span>
-              <select id="ml-iterations" name="iterations">
-                <option value="1">1 iteration (Cold start only)</option>
-                <option value="10">10 iterations</option>
-                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
-                <option value="50">50 iterations</option>
-                <option value="100">100 iterations (Sustained loop)</option>
-              </select></label>
-            <button id="ml-start" type="submit" disabled>Start Benchmark Suite</button>
-            <button id="ml-cancel" type="button" disabled>Cancel</button>
-          </div>
-        </form>
-        <p id="ml-status" role="status"
-          aria-live="polite">Ready. Select loop iterations, then click Start.</p>
-        <div id="ml-reporting" class="detail-grid" hidden></div>
       </section>
     </main>
     <script type="application/json" id="workload-identity">
@@ -272,7 +236,7 @@
         "outputSha256": "f6285cd3244f76eed0a041f30dbfa43ef8dc49012ec92b77514edc569aadad6e",
         "referenceSha256": "0432b81e06b48343754d26ae074cad984524cdbeb73bea0ba0539d8a726b9498"
       },
-      "registrySha256": "2a6b5c2827353d458b7e2d12b2c37425e5fdc0c8fa27e3c5b551c85477ab29cf"
+      "registrySha256": "8696c74386dbe4e1aa9d70a1f008296403ffd97a0db333698d93addf81b8e1cb"
     }
     </script>
   </body>

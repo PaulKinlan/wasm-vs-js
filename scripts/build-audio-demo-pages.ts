@@ -77,12 +77,6 @@ const TEMPLATE = `<!doctype html>
       data-workload="{slug}"
       data-demo="{slug}"
       data-multilang-manifest="/benchmarks/multilang-wasm/{slug}.manifest.json"
-      data-multilang-form="#ml-form"
-      data-multilang-start="#ml-start"
-      data-multilang-cancel="#ml-cancel"
-      data-multilang-status="#ml-status"
-      data-multilang-reporting="#ml-reporting"
-      data-multilang-iterations="#ml-iterations"
     >
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
@@ -230,35 +224,7 @@ const TEMPLATE = `<!doctype html>
 {what_items}
         </ul>
       </section>
-      <section class="demo-panel" aria-labelledby="ml-heading">
-        <h2 id="ml-heading">Multi-Language Comparison</h2>
-        <p>
-          The same {ml_desc} kernel written in JavaScript, C, C++, Rust, and Dart (WasmGC),
-          compared side by side. Variants are test-verified bit-identical to the workload oracle.
-          Dart's strict-f32 path uses per-op Math.fround (no f32 primitive) — disclosed. Sources:
-          <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/tree/main/benchmarks/multilang-wasm/audio-{slug}">{ml_sources}</a>.
-        </p>
-        <form id="ml-form">
-          <div class="controls">
-            <label for="ml-target"><span>Target Engine</span>
-              <select id="ml-target" name="target" disabled>
-                <option value="all" selected>Compare All Implementations</option>
-              </select></label>
-            <label for="ml-iterations"><span>Loop Iterations</span>
-              <select id="ml-iterations" name="iterations">
-                <option value="1">1 iteration (Cold start only)</option>
-                <option value="10">10 iterations</option>
-                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
-                <option value="50">50 iterations</option>
-                <option value="100">100 iterations (Sustained loop)</option>
-              </select></label>
-            <button id="ml-start" type="submit" disabled>Start Benchmark Suite</button>
-            <button id="ml-cancel" type="button" disabled>Cancel</button>
-          </div>
-        </form>
-        <p id="ml-status" role="status" aria-live="polite">Ready. Select loop iterations, then click Start.</p>
-        <div id="ml-reporting" class="detail-grid" hidden></div>
-      </section>
+
 
     </main>
     <script type="application/json" id="workload-identity">{identity_json}</script>
