@@ -2326,7 +2326,7 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
         }
         callables[key] = call;
       }
-      const { kernels } = mods.engines.dart;
+      const { kernels } = mods.engines.dart ?? { kernels: {} };
       callables.js = {
         sum: () => {
           const arr = new Uint32Array(1000);
@@ -2366,7 +2366,7 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
           return real[17] + imag[29];
         },
       };
-      callables.dart = {
+      if (mods.engines.dart) callables.dart = {
         sum: () => {
           const arr = new Uint32Array(1000);
           for (let i = 0; i < 1000; i++) arr[i] = (i % 100) + 1;
