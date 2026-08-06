@@ -391,15 +391,15 @@ const routes = new Map<string, [string, string, boolean?]>([
     "benchmarks/base/ml-keyword-spotting/model-checkpoint.v1.json",
     "application/json; charset=utf-8",
   ]],
-  ["/demos/game-family/demo.js", [
+  ["/benchmarks/game-family/demo.js", [
     "public/benchmarks/game-family/demo.js",
     "text/javascript; charset=utf-8",
   ]],
-  ["/demos/game-family/worker.js", [
+  ["/benchmarks/game-family/worker.js", [
     "public/benchmarks/game-family/worker.js",
     "text/javascript; charset=utf-8",
   ]],
-  ["/demos/game-family/styles.css", [
+  ["/benchmarks/game-family/styles.css", [
     "public/benchmarks/game-family/styles.css",
     "text/css; charset=utf-8",
   ]],
@@ -578,27 +578,11 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/benchmarks/text.markdown-cms.v1/index.html",
     "text/html; charset=utf-8",
   ]],
-  ["/demos/text-markdown-cms", [
-    "public/benchmarks/text.markdown-cms.v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/demos/text-markdown-cms/", [
-    "public/benchmarks/text.markdown-cms.v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
   ["/benchmarks/text-diff-patch", [
     "public/benchmarks/text.diff-patch.v1/index.html",
     "text/html; charset=utf-8",
   ]],
   ["/benchmarks/text-diff-patch/", [
-    "public/benchmarks/text.diff-patch.v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/demos/text-diff-patch", [
-    "public/benchmarks/text.diff-patch.v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/demos/text-diff-patch/", [
     "public/benchmarks/text.diff-patch.v1/index.html",
     "text/html; charset=utf-8",
   ]],
