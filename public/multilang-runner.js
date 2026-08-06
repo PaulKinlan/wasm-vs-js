@@ -26,6 +26,41 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
   //     engine.js parseReport / pdf-engine.c; frozen 100-page report fixture) ------
   // --- simulation.rigid-body-2d.v1: 500-body 2D physics (mirrors engine.js
   //     runRigidBodyJavaScript + the frozen rigid-body-2d.c) -----------------
+  // --- cad-parametric-bracket: B-rep + scan-band tessellation (oracle: engine.js runJavaScript)
+  "graphics-cpu-path-tracer.v1": {
+    kernels: ["render"],
+    async build(mods) {
+      const W = 16, H = 16, SPP = 4;
+      const callables = {};
+      for (const key of ["c", "cpp", "rs"]) {
+        const inst = mods.engines[key].instances.render.instance;
+        callables[key] = {
+          render: () => {
+            const status = Number(inst.exports.render(W, H, SPP));
+            if (status !== 0) throw new Error(`path_tracer ${key} render failed (${status})`);
+          },
+        };
+      }
+      const { renderJavaScript } = await import(
+        "/benchmarks/base-v1/graphics-cpu-path-tracer/engine.js"
+      );
+      callables.js = {
+        render: () => {
+          renderJavaScript(W, H, SPP);
+        },
+      };
+      const pathFb = new Uint8Array(W * H * 4);
+      const pathCt = new Int32Array(9);
+      callables.dart = {
+        render: () => {
+          const status = Number(mods.engines.dart.kernels.render(W, H, SPP, pathFb, pathCt));
+          if (status !== 0) throw new Error(`path_tracer dart render failed (${status})`);
+        },
+      };
+      return callables;
+    },
+  },
+
   "simulation.rigid-body-2d.v1": {
     kernels: ["rigid_engine"],
     async build(mods) {
