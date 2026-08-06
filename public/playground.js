@@ -157,10 +157,10 @@ const PLAYGROUND_WORKLOADS = [
       "Scrolls, filters, sorts, and edits 100,000 rows over a recorded interaction trace.",
     explanation:
       "Windowed DOM rendering, sort-index maintenance, and efficient recycle-pool management.",
-    // The worker replays a wall-clock-paced interaction trace with ±20 ms
-    // slot validation; inside a shared playground page the pacing blows the
-    // tolerance, so this one stays on its own demo page.
-    manual: "Runs a real-time paced trace that needs an idle page — use the demo page.",
+    // Real-DOM iframe mode: the host replays the SAME 300-action trace at
+    // max throughput (no wall-clock pacing) against a real rendered grid DOM;
+    // the page keeps the paced human-realistic demo.
+    domIframe: true,
   },
   {
     slug: "ml-keyword-spotting-v1",

@@ -8,9 +8,11 @@
       content="100,000-row virtualized grid benchmark: 300 trace events with paint-acknowledged scroll in JavaScript and linear WebAssembly.">
     <title>100,000-row virtualized grid · Wasm vs JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="/iframe-benchmark-bridge.js"></script>
     <script type="module" src="/unified-runner.js"></script>
   </head>
-  <body data-workload="dom-virtualized-grid-v1" data-demo="dom-virtualized-grid-v1">
+  <body data-workload="dom-virtualized-grid-v1" data-demo="dom-virtualized-grid-v1"
+      data-dom-host="/dom-hosts/dom-virtualized-grid-host.js">
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>

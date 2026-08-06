@@ -16,6 +16,11 @@ import * as nestedTree from "../public/benchmarks/dom-nested-tree-mutation/engin
 import * as tableSort from "../public/benchmarks/dom-table-sort-filter-pagination/engine.js";
 import * as formValidation from "../public/benchmarks/dom-dependent-form-validation/engine.js";
 import * as virtualized from "../public/benchmarks/dom-virtualized-scrolling/engine.js";
+import * as gridEngine from "../benchmarks/base/dom-virtualized-grid/engine.js";
+import {
+  materializeActions as materializeGridActions,
+  replayReference as replayGridReference,
+} from "../public/dom-hosts/dom-virtualized-grid-host.js";
 
 const HOST_MODULES = [
   "../public/dom-hosts/dom-grid-movement-host.js",
@@ -24,6 +29,7 @@ const HOST_MODULES = [
   "../public/dom-hosts/dom-table-sort-filter-pagination-host.js",
   "../public/dom-hosts/dom-dependent-form-validation-host.js",
   "../public/dom-hosts/dom-virtualized-scrolling-host.js",
+  "../public/dom-hosts/dom-virtualized-grid-host.js",
 ] as const;
 
 for (const mod of HOST_MODULES) {
@@ -96,6 +102,50 @@ enginePair(
   virtualized.runVirtualizedScrollingWasm,
   1800,
 );
+
+// ── Virtualized Data Grid (the host's materialize + plain-data replay) ─────
+
+Deno.test("dom orchestration: virtualized-grid host materializes the frozen 300-action trace", () => {
+  const fixture = gridEngine.generateFixture();
+  const actions = materializeGridActions(gridEngine, fixture);
+  assertEquals(actions.length, 300);
+  // Deterministic across materializations.
+  const again = materializeGridActions(gridEngine, fixture);
+  assertEquals(JSON.stringify(actions), JSON.stringify(again));
+  // Each action carries a non-empty command batch ending in the layout terminator.
+  for (const action of actions) {
+    if (!(action.commands instanceof Uint32Array) || action.commands.length < 6) {
+      throw new Error("action commands malformed");
+    }
+    if (action.commands[action.commands.length - 6] !== 7) {
+      throw new Error("action commands omit the layout terminator");
+    }
+  }
+});
+
+Deno.test("dom orchestration: virtualized-grid plain-data replay matches the command stream", () => {
+  const fixture = gridEngine.generateFixture();
+  const actions = materializeGridActions(gridEngine, fixture);
+  const reference = replayGridReference(actions);
+  // Sanity: the frozen trace exercises every command family at least once.
+  assertEquals(reference.physicalCreates > 0, true);
+  assertEquals(reference.physicalPlacements > 0, true);
+  assertEquals(reference.layoutReads, actions.length);
+  assertEquals(reference.mountedCount > 0, true);
+});
+
+Deno.test("dom orchestration: virtualized-grid js and wasm engines are deterministic and equivalent", async () => {
+  const fixture = gridEngine.generateFixture();
+  const js1 = JSON.stringify(gridEngine.normalizeForEquivalence(gridEngine.runJavaScript(fixture)));
+  const js2 = JSON.stringify(gridEngine.normalizeForEquivalence(gridEngine.runJavaScript(fixture)));
+  assertEquals(js1, js2);
+  const wasmBytes = await Deno.readFile("public/artifacts/dom-virtualized-grid-v1/grid.wasm");
+  const exports = await gridEngine.instantiateGridWasm(wasmBytes);
+  const wasm1 = JSON.stringify(gridEngine.normalizeForEquivalence(gridEngine.runWasm(exports, fixture)));
+  const wasm2 = JSON.stringify(gridEngine.normalizeForEquivalence(gridEngine.runWasm(exports, fixture)));
+  assertEquals(wasm1, wasm2);
+  if (js1 !== wasm1) throw new Error("virtualized-grid js and wasm summaries must match");
+});
 
 // Record the equivalence finding (the host factory surfaces this in the
 // detail payload). This documents the current state — it does NOT assert
