@@ -122,7 +122,7 @@
       "additionalProperties": false,
       "required": ["route", "status"],
       "properties": {
-        "route": { "enum": ["/demos/text.gc-document-edit.v1/", "/benchmarks/text.gc-document-edit.v1/"] },
+        "route": { "const": "/demos/text.gc-document-edit.v1/" },
         "status": { "const": "implemented-awaiting-browser-evidence" }
       }
     }

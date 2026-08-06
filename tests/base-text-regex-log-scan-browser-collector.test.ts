@@ -143,7 +143,7 @@ function validEvidence() {
     workload: {
       id: "text.regex-log-scan.v1",
       registrationId: "text.regex-log-scan.v1-controlled-registration-v1",
-      route: "/benchmarks/base/text.regex-log-scan.v1/",
+      route: "/demos/base/text.regex-log-scan.v1/",
       implementationSourceCommit: H40,
       inputBytes: 104_857_600,
       patterns: 20,
@@ -311,7 +311,7 @@ Deno.test("base regex collector retains redirect hops and rejects every unexpect
 
   assertEquals(
     classifyExecutedScriptUrl(`${origin}/demos/base/text.regex-log-scan.v1/demo.js`, origin),
-    { kind: "asset", route: "/benchmarks/base/text.regex-log-scan.v1/demo.js" },
+    { kind: "asset", route: "/demos/base/text.regex-log-scan.v1/demo.js" },
   );
   for (
     const url of [

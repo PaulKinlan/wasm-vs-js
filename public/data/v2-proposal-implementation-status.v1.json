@@ -847,7 +847,7 @@
       },
       "interactiveDemo": {
         "status": "runnable-public",
-        "route": "/benchmarks/game-canvas-arcade/",
+        "route": "/demos/game-canvas-arcade/",
         "unavailableReason": null
       },
       "authoritativePerformanceResults": {
@@ -958,7 +958,7 @@
       },
       "interactiveDemo": {
         "status": "runnable-public",
-        "route": "/benchmarks/game-canvas-entity-pathfinding/",
+        "route": "/demos/game-canvas-entity-pathfinding/",
         "unavailableReason": null
       },
       "authoritativePerformanceResults": {
@@ -1069,7 +1069,7 @@
       },
       "interactiveDemo": {
         "status": "runnable-public",
-        "route": "/benchmarks/game-dom-tactics-grid/",
+        "route": "/demos/game-dom-tactics-grid/",
         "unavailableReason": null
       },
       "authoritativePerformanceResults": {
@@ -1478,7 +1478,7 @@
       },
       "interactiveDemo": {
         "status": "runnable-public",
-        "route": "/benchmarks/text.diff-patch.v1/",
+        "route": "/demos/text.diff-patch.v1/",
         "unavailableReason": null
       },
       "authoritativePerformanceResults": {
@@ -1573,7 +1573,7 @@
       },
       "interactiveDemo": {
         "status": "runnable-public",
-        "route": "/benchmarks/text.markdown-cms.v1/",
+        "route": "/demos/text.markdown-cms.v1/",
         "unavailableReason": null
       },
       "authoritativePerformanceResults": {

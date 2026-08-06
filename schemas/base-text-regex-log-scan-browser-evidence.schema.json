@@ -107,7 +107,7 @@
           "const": "text.regex-log-scan.v1-controlled-registration-v1"
         },
         "route": {
-          "enum": ["/(?:demos|benchmarks)/base/text.regex-log-scan.v1/", "/benchmarks/base/text.regex-log-scan.v1/"]
+          "const": "/demos/base/text.regex-log-scan.v1/"
         },
         "implementationSourceCommit": {
           "$ref": "#/$defs/gitIdentity"
@@ -1128,10 +1128,10 @@
                   "type": "object",
                   "properties": {
                     "route": {
-                      "enum": ["/(?:demos|benchmarks)/base/text.regex-log-scan.v1/", "/benchmarks/base/text.regex-log-scan.v1/"]
+                      "const": "/demos/base/text.regex-log-scan.v1/"
                     },
                     "sourcePath": {
-                      "const": "public/benchmarks/base/text.regex-log-scan.v1/index.html"
+                      "const": "public/demos/base/text.regex-log-scan.v1/index.html"
                     },
                     "role": {
                       "const": "document"
@@ -1176,10 +1176,10 @@
                   "type": "object",
                   "properties": {
                     "route": {
-                      "enum": ["/(?:demos|benchmarks)/base/text.regex-log-scan.v1/demo.js", "/benchmarks/base/text.regex-log-scan.v1/demo.js"]
+                      "const": "/demos/base/text.regex-log-scan.v1/demo.js"
                     },
                     "sourcePath": {
-                      "const": "public/benchmarks/base/text.regex-log-scan.v1/demo.js"
+                      "const": "public/demos/base/text.regex-log-scan.v1/demo.js"
                     },
                     "role": {
                       "const": "script"
@@ -1200,10 +1200,10 @@
                   "type": "object",
                   "properties": {
                     "route": {
-                      "enum": ["/(?:demos|benchmarks)/base/text.regex-log-scan.v1/worker.js", "/benchmarks/base/text.regex-log-scan.v1/worker.js"]
+                      "const": "/demos/base/text.regex-log-scan.v1/worker.js"
                     },
                     "sourcePath": {
-                      "const": "public/benchmarks/base/text.regex-log-scan.v1/worker.js"
+                      "const": "public/demos/base/text.regex-log-scan.v1/worker.js"
                     },
                     "role": {
                       "const": "script"
@@ -1224,10 +1224,10 @@
                   "type": "object",
                   "properties": {
                     "route": {
-                      "enum": ["/(?:demos|benchmarks)/base/text.regex-log-scan.v1/identity.js", "/benchmarks/base/text.regex-log-scan.v1/identity.js"]
+                      "const": "/demos/base/text.regex-log-scan.v1/identity.js"
                     },
                     "sourcePath": {
-                      "const": "public/benchmarks/base/text.regex-log-scan.v1/identity.js"
+                      "const": "public/demos/base/text.regex-log-scan.v1/identity.js"
                     },
                     "role": {
                       "const": "script"
@@ -1448,10 +1448,10 @@
                   "type": "object",
                   "properties": {
                     "route": {
-                      "enum": ["/(?:demos|benchmarks)/base/text.regex-log-scan.v1/demo.js", "/benchmarks/base/text.regex-log-scan.v1/demo.js"]
+                      "const": "/demos/base/text.regex-log-scan.v1/demo.js"
                     },
                     "sourcePath": {
-                      "const": "public/benchmarks/base/text.regex-log-scan.v1/demo.js"
+                      "const": "public/demos/base/text.regex-log-scan.v1/demo.js"
                     },
                     "contexts": {
                       "const": [
@@ -1471,10 +1471,10 @@
                   "type": "object",
                   "properties": {
                     "route": {
-                      "enum": ["/(?:demos|benchmarks)/base/text.regex-log-scan.v1/worker.js", "/benchmarks/base/text.regex-log-scan.v1/worker.js"]
+                      "const": "/demos/base/text.regex-log-scan.v1/worker.js"
                     },
                     "sourcePath": {
-                      "const": "public/benchmarks/base/text.regex-log-scan.v1/worker.js"
+                      "const": "public/demos/base/text.regex-log-scan.v1/worker.js"
                     },
                     "contexts": {
                       "const": [
@@ -1494,10 +1494,10 @@
                   "type": "object",
                   "properties": {
                     "route": {
-                      "enum": ["/(?:demos|benchmarks)/base/text.regex-log-scan.v1/identity.js", "/benchmarks/base/text.regex-log-scan.v1/identity.js"]
+                      "const": "/demos/base/text.regex-log-scan.v1/identity.js"
                     },
                     "sourcePath": {
-                      "const": "public/benchmarks/base/text.regex-log-scan.v1/identity.js"
+                      "const": "public/demos/base/text.regex-log-scan.v1/identity.js"
                     },
                     "contexts": {
                       "const": [

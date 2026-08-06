@@ -385,7 +385,7 @@ Deno.test("collector binds clean source, exact fetched bytes, Chrome identity, l
   );
   assertEquals(Object.keys(FETCHED_ASSETS).length, 10);
   assertEquals(
-    FETCHED_ASSETS["/benchmarks/crypto.file-integrity.v1/"],
+    FETCHED_ASSETS["/demos/crypto.file-integrity.v1/"],
     "public/benchmarks/crypto.file-integrity.v1/index.html",
   );
   assertEquals(

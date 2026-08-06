@@ -45,7 +45,7 @@
         "public/evidence/v1-base/text-gc-document-edit/wasmgc-controlled.json"
       ],
       "interactiveDemo": {
-        "route": "/benchmarks/text.gc-document-edit.v1/",
+        "route": "/demos/text.gc-document-edit.v1/",
         "status": "implemented-awaiting-browser-evidence"
       },
       "browserEvidence": {

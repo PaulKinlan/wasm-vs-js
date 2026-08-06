@@ -47,13 +47,13 @@ function scenario(id: string, target: string, action: string) {
     ? "timeout-shortening"
     : "pagehide-dispatch";
   const shellRoutes = [
-    "/benchmarks/simulation-nbody-cloth/",
+    "/demos/simulation-nbody-cloth/",
     "/styles.css",
-    "/benchmarks/simulation-nbody-cloth/demo.js",
+    "/demos/simulation-nbody-cloth/demo.js",
   ];
   const completeRoutes = [
     ...shellRoutes,
-    "/benchmarks/simulation-nbody-cloth/worker.js",
+    "/demos/simulation-nbody-cloth/worker.js",
     "/benchmarks/base/simulation-nbody/contract.js",
     "/benchmarks/base/simulation-nbody/fixture.js",
     "/benchmarks/base/simulation-nbody/engine.js",
@@ -76,7 +76,7 @@ function scenario(id: string, target: string, action: string) {
     id,
     target,
     action,
-    route: "/benchmarks/simulation-nbody-cloth/",
+    route: "/demos/simulation-nbody-cloth/",
     cdpBoundBeforeNavigation: true,
     lifecycleInjection: { kind, expression: injectionExpression },
     finalState: {
@@ -91,7 +91,7 @@ function scenario(id: string, target: string, action: string) {
     network: assetRoutes.map((route) => ({
       url: `http://127.0.0.1:1234${route}`,
       method: "GET",
-      type: route === "/benchmarks/simulation-nbody-cloth/" ? "Document" : "Script",
+      type: route === "/demos/simulation-nbody-cloth/" ? "Document" : "Script",
       status: 200,
       mimeType: route.endsWith(".wasm") ? "application/wasm" : "text/javascript",
       fromDiskCache: false,
@@ -359,9 +359,9 @@ Deno.test("N-body collector binds every served executable body and contains no r
     "/benchmarks/base/simulation-nbody/contract.js",
     "/benchmarks/base/simulation-nbody/engine.js",
     "/benchmarks/base/simulation-nbody/fixture.js",
-    "/benchmarks/simulation-nbody-cloth/",
-    "/benchmarks/simulation-nbody-cloth/demo.js",
-    "/benchmarks/simulation-nbody-cloth/worker.js",
+    "/demos/simulation-nbody-cloth/",
+    "/demos/simulation-nbody-cloth/demo.js",
+    "/demos/simulation-nbody-cloth/worker.js",
     "/styles.css",
   ]);
   const source = await Deno.readTextFile("scripts/collect-base-simulation-nbody-evidence.ts");

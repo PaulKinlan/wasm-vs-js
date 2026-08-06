@@ -266,7 +266,7 @@ Deno.test("public server exposes only read-only registered crypto routes", async
   assert(
     [403, 405].includes(
       (await handler(
-        new Request("http://127.0.0.1/demos/crypto.file-integrity.v1/", { method: "POST" }),
+        new Request("http://127.0.0.1/benchmarks/crypto.file-integrity.v1/", { method: "POST" }),
       )).status,
     ),
   );

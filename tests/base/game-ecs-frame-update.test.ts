@@ -187,7 +187,12 @@ Deno.test("source-only build reproduces the fixture, Wasm, and exact output mani
 Deno.test("registration provenance and evidence bind exact Git bytes and complete-state results", async () => {
   const registration = JSON.parse(await Deno.readTextFile(registrationPath));
   for (const reference of registration.source.references) {
-    const disk = await Deno.readFile(reference.path);
+    // 2026-08-06: /demos/ moved to /benchmarks/; the retained registration pins the
+    // old paths + commit, so resolve the disk file at the new location when present.
+    const diskPath = (await Deno.stat(reference.path).catch(() => null))
+      ? reference.path
+      : reference.path.replace("public/demos/", "public/benchmarks/");
+    const disk = await Deno.readFile(diskPath);
     const tree = await command("git", [
       "show",
       `${registration.source.commit}:${reference.path}`,

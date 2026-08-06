@@ -249,10 +249,10 @@
             ],
             "properties": {
               "route": {
-                "enum": ["/demos/crypto.file-integrity.v1/", "/benchmarks/crypto.file-integrity.v1/"]
+                "const": "/demos/crypto.file-integrity.v1/"
               },
               "sourcePath": {
-                "const": "public/benchmarks/crypto.file-integrity.v1/index.html"
+                "const": "public/demos/crypto.file-integrity.v1/index.html"
               }
             },
             "type": "object"
@@ -3147,7 +3147,7 @@
         },
         "sourcePath": {
           "enum": [
-            "public/benchmarks/crypto.file-integrity.v1/index.html",
+            "public/demos/crypto.file-integrity.v1/index.html",
             "public/styles.css",
             "public/crypto-file-integrity-demo.js",
             "public/crypto-file-integrity-worker.js",
