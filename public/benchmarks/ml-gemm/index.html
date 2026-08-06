@@ -10,6 +10,7 @@
     >
     <title>ML GEMM · Wasm vs JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/track-b.css">
   </head>
   <body data-multilang-manifest="/benchmarks/multilang-wasm/ml-gemm.manifest.json">
     <a class="skip" href="#main">Skip to main content</a>
@@ -119,8 +120,15 @@
           </ul>
         </div>
       </section>
+      <section id="track-b-root" hidden aria-labelledby="trackb-heading">
+        <h2 id="trackb-heading">Track A vs Track B — independent optimization</h2>
+      </section>
     </main>
     <script type="module" src="/benchmarks/ml-gemm/neural-gemm-runner.js"></script>
     <script type="module" src="/multilang-runner.js"></script>
+    <script type="module">
+      import { initTrackB } from "/track-b.js";
+      initTrackB("#track-b-root", "ml-gemm").catch(() => {});
+    </script>
   </body>
 </html>

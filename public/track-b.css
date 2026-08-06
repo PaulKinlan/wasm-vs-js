@@ -1,0 +1,85 @@
+/* Track B comparison page styles (CSP-safe — no inline styles; bar widths are
+ * set via CSSOM which style-src 'self' permits). Kept OUT of styles.css:
+ * evidence records pin styles.css in their source graph. */
+.trackb-note {
+  max-width: 46rem;
+}
+.trackb-card {
+  border: 1px solid var(--rule, #888);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin: 1.25rem 0;
+}
+.trackb-title {
+  margin: 0 0 0.4rem;
+}
+.trackb-log {
+  margin: 0.25rem 0 0.75rem;
+  padding-left: 1.25rem;
+  font-size: 0.9rem;
+}
+.trackb-subhead {
+  margin: 0.75rem 0 0.25rem;
+}
+.trackb-bar-row {
+  display: grid;
+  grid-template-columns: 9rem minmax(8rem, 1fr) 15rem;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0.3rem 0;
+  font-size: 0.85rem;
+}
+.trackb-bar-track {
+  position: relative;
+  height: 1.4rem;
+  background: var(--rule, #ddd);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.trackb-bar {
+  position: absolute;
+  top: 0;
+  height: 100%;
+}
+.trackb-bar-base {
+  left: 0;
+  background: #4a6fa5;
+  opacity: 0.9;
+}
+.trackb-bar-opt {
+  left: 0;
+  background: #2e7d32;
+  opacity: 0.75;
+  height: 50%;
+}
+.trackb-bar-delta {
+  white-space: nowrap;
+}
+.trackb-diff {
+  font-family: ui-monospace, monospace;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  overflow-x: auto;
+}
+.trackb-diff-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+.trackb-src {
+  white-space: pre;
+  padding: 0 0.4rem;
+}
+.trackb-src.del {
+  background: #3a1d1d;
+  color: #e0b4b4;
+}
+.trackb-src.add {
+  background: #16351c;
+  color: #b8e0c0;
+}
+.trackb-diff-meta {
+  font-size: 0.75rem;
+  color: var(--muted, #888);
+  margin: 0.4rem 0 0.2rem;
+}

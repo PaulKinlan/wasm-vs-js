@@ -8,7 +8,12 @@
       content="The same two kernels written in JavaScript, raw WAT, AssemblyScript, C, C++, Rust, and Dart (WasmGC), compiled to WebAssembly and compared side by side.">
     <title>Multi-Language WebAssembly Kernels · Wasm vs JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/track-b.css">
     <script type="module" src="/multilang-runner.js"></script>
+    <script type="module">
+      import { initTrackB } from "/track-b.js";
+      initTrackB("#track-b-root").catch(() => {});
+    </script>
   </head>
   <body data-workload="multilang-wasm" data-demo="multilang-wasm"
     data-multilang-manifest="/benchmarks/multilang-wasm/multilang-wasm.manifest.json">
@@ -152,6 +157,9 @@
         </ul>
         <p class="no-js-note">JavaScript is off. Sources, artifacts, and measured reports remain
           available through the links above.</p>
+      </section>
+      <section id="track-b-root" hidden aria-labelledby="trackb-heading">
+        <h2 id="trackb-heading">Track A vs Track B — independent optimization</h2>
       </section>
     </main>
   </body>
