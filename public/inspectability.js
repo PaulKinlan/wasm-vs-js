@@ -17,7 +17,7 @@ const LOCAL_DOWNLOADS = new Map([
     "/artifacts/sum-u32/sum-u32.wasm",
   ],
   [
-    `public/artifacts/audio-fft/build-manifest.json|3d7a6a54b33e1007a6594c698398fd9011c898abd7aa44fce9efb56a6a620cd1`,
+    `public/artifacts/audio-fft/build-manifest.json|f88cc6664d3707643f0ae6f1b41225ff2a1a7072a0d596f8b9c9ad21c2e1a330`,
     "/artifacts/audio-fft/build-manifest.json",
   ],
   [
@@ -29,7 +29,7 @@ const LOCAL_DOWNLOADS = new Map([
     "/artifacts/audio-fft/reference-output.f32le",
   ],
   [
-    `public/artifacts/audio-fir/build-manifest.json|30c8b7424b1fddaae2214c1096ff4c62f617c4b0ac0f7e4452ee1072ca2f41ed`,
+    `public/artifacts/audio-fir/build-manifest.json|48ed89e1da6c098e1ace39520eb921314cf2ad5af1abce3006287973bf80aca2`,
     "/artifacts/audio-fir/build-manifest.json",
   ],
   [
@@ -41,7 +41,7 @@ const LOCAL_DOWNLOADS = new Map([
     "/artifacts/audio-fir/reference-output.f32le",
   ],
   [
-    `public/artifacts/audio-stft/build-manifest.json|511586d13fdaf95df17d0d9d7771685dcc1b9a187cce9d3f485b7b7531e15091`,
+    `public/artifacts/audio-stft/build-manifest.json|0b7ffc872eddded7e4aa0db04afb74e0d5b7f7c8d54a99ed8cd153aed94262d7`,
     "/artifacts/audio-stft/build-manifest.json",
   ],
   [
