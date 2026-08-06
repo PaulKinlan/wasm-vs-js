@@ -100,10 +100,6 @@ function fetchText(url) {
   });
 }
 
-function isC(code) {
-  return code.endsWith(".c") || code.endsWith(".cpp") || code.endsWith(".rs");
-}
-
 export async function initTrackB(root, filterId) {
   const report = await (await fetch(REPORT, { cache: "no-store" })).json();
   const container = typeof root === "string" ? document.querySelector(root) : root;
