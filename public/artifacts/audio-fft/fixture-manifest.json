@@ -15,5 +15,5 @@
     "mapping": "xorshift32 seed 0x9e3779b9; three words per transform select one of four quarter-frame impulse positions, sign, and power-of-two exponent [-2,2]; imaginary and remaining fields are canonical +0"
   },
   "serialization": "canonical little-endian f32 fields in catalog-declared order",
-  "sourceCommit": "14b7f1ef1b98769c1bca61bce798515a7a4325f8"
+  "sourceCommit": "b6ce15003e852402fe7333a6d96759d052235db9"
 }
