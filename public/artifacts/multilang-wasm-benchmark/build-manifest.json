@@ -4,8 +4,8 @@
   "authoritativePerformanceEvidence": false,
   "entryId": "multilang-wasm-benchmark",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "8eefa72b20f1fc6f71991fdf9468d10875280f53",
-  "sourceSha256": "aacb80e64921d5aaef6ec4574015246035ca59b6c858ed7fbfd8a93c53cf00f9",
+  "sourceCommit": "f1b33f6f813a3b74c9b611258941d345f7e5b015",
+  "sourceSha256": "1ccf65767dfa66c41be0935be551d51503bb8f402ebc7f3a24d2a1d57a050b9d",
   "fullSourceGraph": [
     {
       "path": "benchmarks/multilang-wasm/sum_u32.c",
@@ -71,26 +71,6 @@
       "path": "benchmarks/multilang-wasm/ml-gemm/gemm.dart",
       "bytes": 1473,
       "sha256": "fa8415725946e14931158a63c73b7a7e01eba970f449942dffa3d55e228d2e22"
-    },
-    {
-      "path": "benchmarks/multilang-wasm/cad-mesh-repair/mesh_repair.c",
-      "bytes": 6213,
-      "sha256": "2c3924659315ce1fd95aec1179b26c277fc123c1e2d6d641e5c6328e5402d84f"
-    },
-    {
-      "path": "benchmarks/multilang-wasm/cad-mesh-repair/mesh_repair.cpp",
-      "bytes": 6289,
-      "sha256": "a034aeb5f3434f3255c7288ec765236ab3a84c613b09e0668e788a6a08802500"
-    },
-    {
-      "path": "benchmarks/multilang-wasm/cad-mesh-repair/mesh_repair.rs",
-      "bytes": 9744,
-      "sha256": "493f00e6f2ec62dfd66658b30ad81769c405c87406e9a233dc2d57db0b917d60"
-    },
-    {
-      "path": "benchmarks/multilang-wasm/cad-mesh-repair/mesh_repair.dart",
-      "bytes": 7011,
-      "sha256": "e09dcbbd37d762c5f2e3762162943de922a3e9986d8425e5fa2c1c480381dde0"
     },
     {
       "path": "benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.c",
@@ -294,8 +274,8 @@
     },
     {
       "path": "scripts/build-multilang-wasm-benchmark.ts",
-      "bytes": 185538,
-      "sha256": "21806c603bb4ed53f8e8fbbc3840cb152fd3ba87f5560b5d6435883be80ec55f"
+      "bytes": 182905,
+      "sha256": "e4f14a6cc85d8d87ab6fe6322755d84c8baba0ee443dd8b4a1659a45be67f8fb"
     },
     {
       "path": "tests/multilang-wasm-benchmark.test.ts",
@@ -467,7 +447,7 @@
     {
       "path": "public/artifacts/multilang-wasm-benchmark/stft_rs.wasm",
       "bytes": 4743,
-      "sha256": "0f40147047c4d77d18a7e0e41534c2332d2463044b946cc73c909762b2fecd87"
+      "sha256": "382d95f97635cb47a3cb4ddec29a4ea4834a93aace7b0d8c2f569e550b5433c4"
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/stft_dart.wasm",
@@ -505,31 +485,6 @@
       "sha256": "7f937b1c6afd472751acf3b8ea24bd3fbf8a9c764b73fcb2e5fec65729cbc639"
     },
     {
-      "path": "public/artifacts/multilang-wasm-benchmark/mesh_repair_c.wasm",
-      "bytes": 5336,
-      "sha256": "8322ba75b5b519b2168ae8b0854b1dbef8f103728380229e700cce236ecacbef"
-    },
-    {
-      "path": "public/artifacts/multilang-wasm-benchmark/mesh_repair_cpp.wasm",
-      "bytes": 5148,
-      "sha256": "52d08c0b279f1e175709b6222d4605ee6cd587aa9bee175e9cb5227aefd21a91"
-    },
-    {
-      "path": "public/artifacts/multilang-wasm-benchmark/mesh_repair_rs.wasm",
-      "bytes": 604292,
-      "sha256": "70a2deac9f996dd834a8736f931cfdceb37a273d866db8ba744e29f52ca17602"
-    },
-    {
-      "path": "public/artifacts/multilang-wasm-benchmark/mesh_repair_dart.wasm",
-      "bytes": 46072,
-      "sha256": "adc1ad7fdbaceb9d7a290734e5be8d1987fa95edb5a038287dab268f4478ea62"
-    },
-    {
-      "path": "public/artifacts/multilang-wasm-benchmark/mesh_repair_dart.mjs",
-      "bytes": 12370,
-      "sha256": "7eccb0173d3526157f9631c1a4f7a2469e889a76ebf9d77de5f4bbfbe43cf7ba"
-    },
-    {
       "path": "public/artifacts/multilang-wasm-benchmark/myers_diff_c.wasm",
       "bytes": 3077,
       "sha256": "cd4a0dc33476533c91a3e4bb8d041f6910d530885e8a491ad2872036fb70ac3e"
@@ -542,7 +497,7 @@
     {
       "path": "public/artifacts/multilang-wasm-benchmark/myers_diff_rs.wasm",
       "bytes": 6106,
-      "sha256": "46dd498df2da0825a4977ae09d3be06bfea6977c5f6bd4c6cce6f4c54cddcd69"
+      "sha256": "ec87abe3dfa8cbae2617211f8e601b1e4389ed29f86f239725093dc8088dc1e1"
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/myers_diff_dart.wasm",
@@ -567,7 +522,7 @@
     {
       "path": "public/artifacts/multilang-wasm-benchmark/scan_log_rs.wasm",
       "bytes": 6746,
-      "sha256": "9770413eba14bd9547e6abe9ae01d10bd20925dd82cdc71820963c5ff5bc1a8c"
+      "sha256": "fe650bcbac38c2ff1a4ce3d7b27424c93d89c9e4e5cae9a2be510bf639fc5ee0"
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/scan_log_dart.wasm",
@@ -592,7 +547,7 @@
     {
       "path": "public/artifacts/multilang-wasm-benchmark/sha256_rs.wasm",
       "bytes": 5189,
-      "sha256": "ae928bc84178bfcee88153846d3a186a3b440786d0326d938ef45af2bc21258f"
+      "sha256": "a06aed117066f3d225dbad40f92e9765ab882fd6f7497414952abbda94a01215"
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/sha256_dart.wasm",
@@ -612,5 +567,5 @@
     "rustc": "rustc --target wasm32-unknown-unknown -O --crate-type cdylib (no_std)",
     "dart2wasm": "dart compile wasm (Dart SDK, WasmGC + js-string builtins)"
   },
-  "generatedAt": "2026-08-06T15:40:03.581Z"
+  "generatedAt": "2026-08-06T15:58:54.687Z"
 }
