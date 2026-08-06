@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "3381a040bc857ed8faa87638cca5f6866ba583fb",
-  "sourceSha256": "0b66e4374880da8f8b0f769c373e941d23be93307cebfe6f0c2ba20bc69f9be7",
+  "sourceCommit": "abd5157414953f78d1bea13e3e223f8c7f78755e",
+  "sourceSha256": "e6cc18ffac809ce2812388d5c0539ab99760fbe9e38337c8874ebc113a05d100",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 84690,
-      "sha256": "35cad7d3055205a5d7c83135c9481fb6097ee033fe1aa4f58baa9a1345234ec6"
+      "bytes": 86572,
+      "sha256": "4b714ae6e1810406d02364edf7475d970936976f6200e557d738246599d867f4"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "d6164501df98a0f185b2724b0732cc152810c62b4d789dfa0df1195c6cbd945a"
+      "sha256": "26e929dc470b890d1b2029c8470b587bcff644e3cc030007e2069dc3d2ec47fc"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "990a45dcad1784a8a4527443dc123a037e5cc6ad99ae0a4dfa0046084a95a645"
+      "sha256": "13acb56f40fb4c5bd7bc9695f6f4ff80c681846b421260fd99e05380146ddfb9"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=3381a040bc857ed8faa87638cca5f6866ba583fb"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=abd5157414953f78d1bea13e3e223f8c7f78755e"
   }
 }
