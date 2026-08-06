@@ -1,0 +1,13 @@
+{
+  "workloadId": "cad.mesh-repair.v1",
+  "kernelLabel": "STL mesh repair — quantize, weld, orient, simplify",
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": ["mesh_repair"],
+  "engines": [
+    { "key": "js", "label": "JavaScript", "kind": "js" },
+    { "key": "c", "label": "C / Wasm", "kind": "linear", "lang": "c" },
+    { "key": "cpp", "label": "C++ / Wasm", "kind": "linear", "lang": "cpp" },
+    { "key": "rs", "label": "Rust / Wasm", "kind": "linear", "lang": "rs" },
+    { "key": "dart", "label": "Dart / WasmGC", "kind": "dart", "file": "mesh_repair_dart.wasm", "glue": "mesh_repair_dart.mjs" }
+  ]
+}
