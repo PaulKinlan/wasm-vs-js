@@ -808,7 +808,6 @@ async function renderReportedComparison(flowEl, manifestPath) {
   flowEl.appendChild(wrap);
 }
 
-
 // Static Track B pre-render: pages with a track-b section show the committed
 // A-vs-B comparison immediately (Paul directive 2026-08-06).
 async function renderReportedTrackB(flowEl, workloadSlug) {
@@ -816,7 +815,8 @@ async function renderReportedTrackB(flowEl, workloadSlug) {
   if (!resp.ok) return;
   const report = await resp.json();
   const entry = report.workloads?.find((w) =>
-    w.workloadId === workloadSlug || w.workloadId?.includes(workloadSlug) || workloadSlug.includes(w.workloadId ?? "")
+    w.workloadId === workloadSlug || w.workloadId?.includes(workloadSlug) ||
+    workloadSlug.includes(w.workloadId ?? "")
   );
   if (!entry?.languages || entry.languages.length === 0) return;
   const previous = flowEl.querySelector(`[data-stage="trackb"]`);
@@ -829,7 +829,8 @@ async function renderReportedTrackB(flowEl, workloadSlug) {
   wrap.appendChild(h);
   const note = document.createElement("p");
   note.className = "notice";
-  note.textContent = "Track A baselines are frozen and never modified; Track B variants are independent optimizations. Click Run to re-measure.";
+  note.textContent =
+    "Track A baselines are frozen and never modified; Track B variants are independent optimizations. Click Run to re-measure.";
   wrap.appendChild(note);
   const table = document.createElement("table");
   table.className = "mlr-table";
@@ -838,7 +839,8 @@ async function renderReportedTrackB(flowEl, workloadSlug) {
     entry.languages.map((l) => {
       const a = l.baselineMs, b = l.optimizedMs;
       const delta = (typeof a === "number" && typeof b === "number" && a > 0)
-        ? ((b - a) / a * 100).toFixed(1) + "%" : "—";
+        ? ((b - a) / a * 100).toFixed(1) + "%"
+        : "—";
       return `<tr><td class="mlr-th"><strong>${l.language}</strong></td>` +
         `<td class="mlr-th">${typeof a === "number" ? a.toFixed(2) + " ms" : "—"}</td>` +
         `<td class="mlr-th">${typeof b === "number" ? b.toFixed(2) + " ms" : "—"}</td>` +
@@ -1106,7 +1108,8 @@ if (typeof document !== "undefined") {
         const flowEl = document.querySelector("#perf-reporting") ?? document.querySelector("#main");
         if (flowEl) renderReportedComparison(flowEl, mlManifest).catch(() => {});
       }
-      const trackBRoot = document.querySelector("#track-b-root") ?? document.querySelector("#trackb-root");
+      const trackBRoot = document.querySelector("#track-b-root") ??
+        document.querySelector("#trackb-root");
       if (trackBRoot && document.body?.dataset?.workload) {
         renderReportedTrackB(trackBRoot, document.body.dataset.workload).catch(() => {});
       }
