@@ -4,8 +4,8 @@
   "workloadId": "numeric.polybench-panel.v1",
   "contractId": "numeric.polybench-panel.v1-supplemental-contract-v1",
   "repository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "implementationCommit": "c7dc0d0ee0b1f8a98784ece111ce29dff450c141",
-  "sourceTreeSha256": "782aab6daad185243d86ed0dd9496b130748d076f709354df326f0e8a5f343b2",
+  "implementationCommit": "a87c6ae3fe3d16eb9ea78533095d41c0c8524413",
+  "sourceTreeSha256": "754807b09e07c9634355653fbfb01e8b3e1b8adc3c1013f9cfe4e283f6e37268",
   "status": "passed-independent-complete-output-correctness",
   "targets": [
     "javascript-controlled",

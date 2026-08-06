@@ -16,6 +16,6 @@
     "path": "public/artifacts/base-simulation-nbody/fixture.bin",
     "bytes": 57408,
     "sha256": "00e9acbf97192d53c3013fff1667c7a335551661dd95db04bc3237e704803112",
-    "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/c7dc0d0ee0b1f8a98784ece111ce29dff450c141/public/artifacts/base-simulation-nbody/fixture.bin"
+    "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/a87c6ae3fe3d16eb9ea78533095d41c0c8524413/public/artifacts/base-simulation-nbody/fixture.bin"
   }
 }
