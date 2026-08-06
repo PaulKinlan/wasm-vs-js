@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "workloadId": "graphics.gltf-viewer.v1",
-  "sourceCommit": "3dc83b0a64afd6f51ac97a625366ff7a1d9eb4b3",
+  "sourceCommit": "8b7d8589b785d36cf9018f40bbefc3033f1f8295",
   "toolchain": {
     "deno": "2.9.0",
     "clang": "22.1.8",
@@ -20,103 +20,103 @@
       "path": "benchmarks/base/graphics-gltf-viewer/engine.js",
       "bytes": 11797,
       "sha256": "04fb6cc947222f2af5a077b0982ad201300823beb9424c1492729c9b891cfadb",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3dc83b0a64afd6f51ac97a625366ff7a1d9eb4b3/benchmarks/base/graphics-gltf-viewer/engine.js"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8b7d8589b785d36cf9018f40bbefc3033f1f8295/benchmarks/base/graphics-gltf-viewer/engine.js"
     },
     {
       "path": "benchmarks/base/graphics-gltf-viewer/viewer.c",
       "bytes": 9247,
       "sha256": "10722f3acf2d391ba0045d73a5c89aadab20a00989faefe46b58de6d247a7fa1",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3dc83b0a64afd6f51ac97a625366ff7a1d9eb4b3/benchmarks/base/graphics-gltf-viewer/viewer.c"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8b7d8589b785d36cf9018f40bbefc3033f1f8295/benchmarks/base/graphics-gltf-viewer/viewer.c"
     },
     {
       "path": "scripts/decode-gltf-draco.cjs",
       "bytes": 4535,
       "sha256": "8f87cebb75fb456a6e54d6cfa66a01d15c77d99bf49631aac411b8b4eda63459",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3dc83b0a64afd6f51ac97a625366ff7a1d9eb4b3/scripts/decode-gltf-draco.cjs"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8b7d8589b785d36cf9018f40bbefc3033f1f8295/scripts/decode-gltf-draco.cjs"
     },
     {
       "path": "scripts/build-base-gltf-viewer.ts",
       "bytes": 19167,
       "sha256": "c21c715873a2352c6bdbdf7c521824e084ccf80cdbca75c16e3cd5f60c323a0a",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3dc83b0a64afd6f51ac97a625366ff7a1d9eb4b3/scripts/build-base-gltf-viewer.ts"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8b7d8589b785d36cf9018f40bbefc3033f1f8295/scripts/build-base-gltf-viewer.ts"
     },
     {
       "path": "public/benchmarks/base-gltf-viewer/worker.js",
       "bytes": 9692,
       "sha256": "1a31129d7bc07b0115ba88c7f76e20f030f248cb83a3431fc8f91e710bd0a00d",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3dc83b0a64afd6f51ac97a625366ff7a1d9eb4b3/public/benchmarks/base-gltf-viewer/worker.js"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8b7d8589b785d36cf9018f40bbefc3033f1f8295/public/benchmarks/base-gltf-viewer/worker.js"
     },
     {
       "path": "public/benchmarks/base-gltf-viewer/decoder-worker.js",
       "bytes": 4713,
       "sha256": "385b4e72d80814c018d61b0fbcf24d6cd285efee8da41a9acfd160ef9b0d58f3",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3dc83b0a64afd6f51ac97a625366ff7a1d9eb4b3/public/benchmarks/base-gltf-viewer/decoder-worker.js"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8b7d8589b785d36cf9018f40bbefc3033f1f8295/public/benchmarks/base-gltf-viewer/decoder-worker.js"
     },
     {
       "path": "public/benchmarks/base-gltf-viewer/demo.js",
       "bytes": 3141,
       "sha256": "b0677a6bc830759d861ba830f94ecf021e059def0ae73867aceb5241dcb834fc",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3dc83b0a64afd6f51ac97a625366ff7a1d9eb4b3/public/benchmarks/base-gltf-viewer/demo.js"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8b7d8589b785d36cf9018f40bbefc3033f1f8295/public/benchmarks/base-gltf-viewer/demo.js"
     },
     {
       "path": "public/benchmarks/base-gltf-viewer/index.html",
       "bytes": 4406,
       "sha256": "c073ff8e4cde888dbd94e82d056aefbc2139e5c3cdc434f5e59df26475c8b9e5",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3dc83b0a64afd6f51ac97a625366ff7a1d9eb4b3/public/benchmarks/base-gltf-viewer/index.html"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8b7d8589b785d36cf9018f40bbefc3033f1f8295/public/benchmarks/base-gltf-viewer/index.html"
     },
     {
       "path": "public/benchmarks/base-gltf-viewer/style.css",
       "bytes": 561,
       "sha256": "161863c4f2180037e4f983ba1c211e899e7d1876452c0719133636f5366945f9",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3dc83b0a64afd6f51ac97a625366ff7a1d9eb4b3/public/benchmarks/base-gltf-viewer/style.css"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8b7d8589b785d36cf9018f40bbefc3033f1f8295/public/benchmarks/base-gltf-viewer/style.css"
     },
     {
       "path": "schemas/base-gltf-fixture-manifest.schema.json",
       "bytes": 5575,
       "sha256": "2718b2a42ab99802c0366c99489dfb77e34a3f1463b64c748383dca9089d78b2",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3dc83b0a64afd6f51ac97a625366ff7a1d9eb4b3/schemas/base-gltf-fixture-manifest.schema.json"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8b7d8589b785d36cf9018f40bbefc3033f1f8295/schemas/base-gltf-fixture-manifest.schema.json"
     },
     {
       "path": "schemas/base-gltf-build-manifest.schema.json",
       "bytes": 10269,
       "sha256": "ee5d648333b1a2a70fea436e59f3e9351fb3cc7aff91f76288cfbdd27cb54a3e",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3dc83b0a64afd6f51ac97a625366ff7a1d9eb4b3/schemas/base-gltf-build-manifest.schema.json"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8b7d8589b785d36cf9018f40bbefc3033f1f8295/schemas/base-gltf-build-manifest.schema.json"
     },
     {
       "path": "schemas/base-gltf-output-manifest.schema.json",
       "bytes": 9254,
       "sha256": "99b5d1f34a4c685a28e7bdfa6ae5d4f763c4893d6a6ab50b5cee90150ed0d99c",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3dc83b0a64afd6f51ac97a625366ff7a1d9eb4b3/schemas/base-gltf-output-manifest.schema.json"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8b7d8589b785d36cf9018f40bbefc3033f1f8295/schemas/base-gltf-output-manifest.schema.json"
     },
     {
       "path": "schemas/base-gltf-evidence.schema.json",
       "bytes": 2293,
       "sha256": "bbe5239a38f3de285baedb1aa689c53639703309a8ca969f621a3c1ebca20e80",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3dc83b0a64afd6f51ac97a625366ff7a1d9eb4b3/schemas/base-gltf-evidence.schema.json"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8b7d8589b785d36cf9018f40bbefc3033f1f8295/schemas/base-gltf-evidence.schema.json"
     },
     {
       "path": "tests/base-gltf-viewer.test.ts",
       "bytes": 22224,
       "sha256": "768cb61334a55739606f49cb04c5078c5c0d6c53966d2fc2f604928760423b7a",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3dc83b0a64afd6f51ac97a625366ff7a1d9eb4b3/tests/base-gltf-viewer.test.ts"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8b7d8589b785d36cf9018f40bbefc3033f1f8295/tests/base-gltf-viewer.test.ts"
     },
     {
       "path": "server.ts",
       "bytes": 86850,
       "sha256": "590fc7119d50b73cd1bc96e2a2315001b6e80a6041cc80f659bc6977cd6517ab",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3dc83b0a64afd6f51ac97a625366ff7a1d9eb4b3/server.ts"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8b7d8589b785d36cf9018f40bbefc3033f1f8295/server.ts"
     },
     {
       "path": "deno.json",
       "bytes": 2523,
       "sha256": "1fb796ab0a517cac5b34d6b0225dc1316f7dae952460c45fec46acbe9d71ec5b",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3dc83b0a64afd6f51ac97a625366ff7a1d9eb4b3/deno.json"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8b7d8589b785d36cf9018f40bbefc3033f1f8295/deno.json"
     },
     {
       "path": "deno.lock",
       "bytes": 1630,
       "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2",
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/3dc83b0a64afd6f51ac97a625366ff7a1d9eb4b3/deno.lock"
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/8b7d8589b785d36cf9018f40bbefc3033f1f8295/deno.lock"
     }
   ],
   "artifacts": [
@@ -173,7 +173,7 @@
     {
       "path": "public/artifacts/base-gltf-viewer/output-manifest.json",
       "bytes": 3795,
-      "sha256": "08cff1a1db40df0f30dfc85317ab533686ea684fc398dfb8e967f33fd3baa4bf"
+      "sha256": "72ec2cf8d28724439e220941cfc68fa610374cfa98fb9ecaa776cf6d8eff639a"
     }
   ]
 }
