@@ -3392,7 +3392,6 @@ const meshBytes = {
   dart: await Deno.readFile(`${artifactsDir}/mesh_repair_dart.wasm`),
 };
 
-
 // ---------------------------------------------------------------------------
 // 3c. crypto-file-integrity SHA-256 benchmark (1 MiB seeded fixture, 64 KiB
 //     chunks — smallest registered fixture + registered mid schedule)
@@ -4277,8 +4276,7 @@ const report = {
 
     {
       name: "cad-mesh-repair",
-      description:
-        "STL mesh repair pipeline: strict-f32 coordinate quantization (scale 10000, " +
+      description: "STL mesh repair pipeline: strict-f32 coordinate quantization (scale 10000, " +
         "round-half-away-from-zero), vertex welding, degenerate-face removal, winding " +
         "orientation, manifold edge validation, vertex simplification, target-face selection, " +
         "and exact planar signed-volume check. Frozen fixture: 32x32 grid STL (2112 source " +

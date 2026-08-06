@@ -38,7 +38,9 @@ Deno.test("cad-mesh-repair: C++ kernel is bit-identical to the JS oracle", async
     "public/artifacts/multilang-wasm-benchmark/mesh_repair_cpp.wasm",
   );
   assertEquals(cpp.length, js.length);
-  for (let i = 0; i < js.length; i++) assert(cpp[i] === js[i], `C++ word ${i}: ${cpp[i]} != ${js[i]}`);
+  for (let i = 0; i < js.length; i++) {
+    assert(cpp[i] === js[i], `C++ word ${i}: ${cpp[i]} != ${js[i]}`);
+  }
 });
 
 Deno.test("cad-mesh-repair: Rust kernel is bit-identical to the JS oracle", async () => {
@@ -47,7 +49,9 @@ Deno.test("cad-mesh-repair: Rust kernel is bit-identical to the JS oracle", asyn
     "public/artifacts/multilang-wasm-benchmark/mesh_repair_rs.wasm",
   );
   assertEquals(rs.length, js.length);
-  for (let i = 0; i < js.length; i++) assert(rs[i] === js[i], `Rust word ${i}: ${rs[i]} != ${js[i]}`);
+  for (let i = 0; i < js.length; i++) {
+    assert(rs[i] === js[i], `Rust word ${i}: ${rs[i]} != ${js[i]}`);
+  }
 });
 
 Deno.test("cad-mesh-repair: Dart kernel is bit-identical to the JS oracle", async () => {
@@ -69,7 +73,9 @@ Deno.test("cad-mesh-repair: Dart kernel is bit-identical to the JS oracle", asyn
   const out = new Int32Array(65536);
   const ret = kernels.meshRepair(fixture, out);
   assertEquals(ret, js.length);
-  for (let i = 0; i < js.length; i++) assert(out[i] === js[i], `Dart word ${i}: ${out[i]} != ${js[i]}`);
+  for (let i = 0; i < js.length; i++) {
+    assert(out[i] === js[i], `Dart word ${i}: ${out[i]} != ${js[i]}`);
+  }
 });
 
 Deno.test("cad-mesh-repair: header sanity (magic + word count)", () => {

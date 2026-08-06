@@ -8,6 +8,12 @@
     { "key": "c", "label": "C / Wasm", "kind": "linear", "lang": "c" },
     { "key": "cpp", "label": "C++ / Wasm", "kind": "linear", "lang": "cpp" },
     { "key": "rs", "label": "Rust / Wasm", "kind": "linear", "lang": "rs" },
-    { "key": "dart", "label": "Dart / WasmGC", "kind": "dart", "file": "mesh_repair_dart.wasm", "glue": "mesh_repair_dart.mjs" }
+    {
+      "key": "dart",
+      "label": "Dart / WasmGC",
+      "kind": "dart",
+      "file": "mesh_repair_dart.wasm",
+      "glue": "mesh_repair_dart.mjs"
+    }
   ]
 }

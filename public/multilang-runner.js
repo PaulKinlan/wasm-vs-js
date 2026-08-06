@@ -2496,16 +2496,30 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
                 break;
               }
             }
-            if (id < 0) { id = vertices.length / 3; vertices.push(x, y, z); }
+            if (id < 0) {
+              id = vertices.length / 3;
+              vertices.push(x, y, z);
+            }
             ids[p] = id;
           }
-          if (ids[0] === ids[1] || ids[1] === ids[2] || ids[0] === ids[2]) { removed++; continue; }
+          if (ids[0] === ids[1] || ids[1] === ids[2] || ids[0] === ids[2]) {
+            removed++;
+            continue;
+          }
           const ax = vertices[ids[0] * 3], ay = vertices[ids[0] * 3 + 1];
           const bx = vertices[ids[1] * 3], by = vertices[ids[1] * 3 + 1];
           const cx = vertices[ids[2] * 3], cy = vertices[ids[2] * 3 + 1];
           const nz = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
-          if (nz === 0) { removed++; continue; }
-          if (nz < 0) { const sw = ids[1]; ids[1] = ids[2]; ids[2] = sw; flipped++; }
+          if (nz === 0) {
+            removed++;
+            continue;
+          }
+          if (nz < 0) {
+            const sw = ids[1];
+            ids[1] = ids[2];
+            ids[2] = sw;
+            flipped++;
+          }
           faces.push(ids[0], ids[1], ids[2]);
         }
         const cleanFaceCount = faces.length / 3;
@@ -2534,10 +2548,18 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
           let next = -1;
           for (let c = 0; c < simplifiedVertices.length / 3; c++) {
             simplificationWeldComparisons++;
-            if (simplifiedVertices[c * 3] === x && simplifiedVertices[c * 3 + 1] === y &&
-                simplifiedVertices[c * 3 + 2] === z) { next = c; break; }
+            if (
+              simplifiedVertices[c * 3] === x && simplifiedVertices[c * 3 + 1] === y &&
+              simplifiedVertices[c * 3 + 2] === z
+            ) {
+              next = c;
+              break;
+            }
           }
-          if (next < 0) { next = simplifiedVertices.length / 3; simplifiedVertices.push(x, y, z); }
+          if (next < 0) {
+            next = simplifiedVertices.length / 3;
+            simplifiedVertices.push(x, y, z);
+          }
           remap[id] = next;
         }
         const targetFaces = cleanFaceCount / 2;
@@ -2569,18 +2591,42 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
         let signedVolumeSixQuantized = 0;
         for (let i = 0; i < selectedFaceCount; i++) {
           const a = selected[i * 3], b = selected[i * 3 + 1], c = selected[i * 3 + 2];
-          const ax = simplifiedVertices[a * 3], ay = simplifiedVertices[a * 3 + 1], az = simplifiedVertices[a * 3 + 2];
-          const bx = simplifiedVertices[b * 3], by = simplifiedVertices[b * 3 + 1], bz = simplifiedVertices[b * 3 + 2];
-          const cx = simplifiedVertices[c * 3], cy = simplifiedVertices[c * 3 + 1], cz = simplifiedVertices[c * 3 + 2];
-          signedVolumeSixQuantized += ax * (by * cz - bz * cy) - ay * (bx * cz - bz * cx) + az * (bx * cy - by * cx);
+          const ax = simplifiedVertices[a * 3],
+            ay = simplifiedVertices[a * 3 + 1],
+            az = simplifiedVertices[a * 3 + 2];
+          const bx = simplifiedVertices[b * 3],
+            by = simplifiedVertices[b * 3 + 1],
+            bz = simplifiedVertices[b * 3 + 2];
+          const cx = simplifiedVertices[c * 3],
+            cy = simplifiedVertices[c * 3 + 1],
+            cz = simplifiedVertices[c * 3 + 2];
+          signedVolumeSixQuantized += ax * (by * cz - bz * cy) - ay * (bx * cz - bz * cx) +
+            az * (bx * cy - by * cx);
         }
-        if (signedVolumeSixQuantized !== 0) throw new Error("fixture volume policy requires a planar open mesh");
+        if (signedVolumeSixQuantized !== 0) {
+          throw new Error("fixture volume policy requires a planar open mesh");
+        }
         const words = new Int32Array(HEADER_WORDS + simplifiedVertices.length + selected.length);
         words.set([
-          0x4d455348, 2, count, vertices.length / 3, cleanFaceCount, targetFaces, removed, flipped,
-          count * 3, uniqueEdges, selectedFaceCount, simplifiedVertices.length / 3,
-          signedVolumeSixQuantized, selectedFaceCount, vertexWeldComparisons,
-          simplificationWeldComparisons, cleanEdgeComparisons, simplifiedEdgeComparisons, 0,
+          0x4d455348,
+          2,
+          count,
+          vertices.length / 3,
+          cleanFaceCount,
+          targetFaces,
+          removed,
+          flipped,
+          count * 3,
+          uniqueEdges,
+          selectedFaceCount,
+          simplifiedVertices.length / 3,
+          signedVolumeSixQuantized,
+          selectedFaceCount,
+          vertexWeldComparisons,
+          simplificationWeldComparisons,
+          cleanEdgeComparisons,
+          simplifiedEdgeComparisons,
+          0,
           HEADER_WORDS,
         ]);
         words.set(simplifiedVertices, HEADER_WORDS);
