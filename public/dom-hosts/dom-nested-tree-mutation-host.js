@@ -15,7 +15,7 @@ export function createTodomvcHost() {
   return createModelDomHost({
     slug: "dom-nested-tree-mutation",
     label: "DOM Nested-Tree Mutation Engine",
-    loadEngine: () => import("/benchmarks/dom-nested-tree-mutation/engine.js"),
+    loadEngine: () => import("../benchmarks/dom-nested-tree-mutation/engine.js"),
     generateActions: (engine) => engine.generateNestedTreeActions(),
 
     renderDom: () => {

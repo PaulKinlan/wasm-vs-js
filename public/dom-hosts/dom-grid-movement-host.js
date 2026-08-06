@@ -31,7 +31,7 @@ export function createTodomvcHost() {
   return createModelDomHost({
     slug: "dom-grid-movement",
     label: "DOM Grid Movement Engine",
-    loadEngine: () => import("/benchmarks/dom-grid-movement/engine.js"),
+    loadEngine: () => import("../benchmarks/dom-grid-movement/engine.js"),
     generateActions: (engine) => engine.generateGridActions(),
 
     renderDom: () => {

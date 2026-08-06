@@ -47,7 +47,7 @@ export function createTodomvcHost() {
   return createModelDomHost({
     slug: "dom-dependent-form-validation",
     label: "DOM Dependent Form-Validation Engine",
-    loadEngine: () => import("/benchmarks/dom-dependent-form-validation/engine.js"),
+    loadEngine: () => import("../benchmarks/dom-dependent-form-validation/engine.js"),
     generateActions: (engine) => engine.generateFormActions(),
 
     renderDom: () => {

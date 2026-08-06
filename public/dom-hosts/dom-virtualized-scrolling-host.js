@@ -43,7 +43,7 @@ export function createTodomvcHost() {
   return createModelDomHost({
     slug: "dom-virtualized-scrolling",
     label: "DOM Virtualized-Scrolling Engine",
-    loadEngine: () => import("/benchmarks/dom-virtualized-scrolling/engine.js"),
+    loadEngine: () => import("../benchmarks/dom-virtualized-scrolling/engine.js"),
     generateActions: (engine) => engine.generateScrollActions(),
 
     renderDom: () => {

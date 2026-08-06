@@ -27,7 +27,7 @@ export function createTodomvcHost() {
   return createModelDomHost({
     slug: "dom-table-sort-filter-pagination",
     label: "DOM Table Sort/Filter/Pagination Engine",
-    loadEngine: () => import("/benchmarks/dom-table-sort-filter-pagination/engine.js"),
+    loadEngine: () => import("../benchmarks/dom-table-sort-filter-pagination/engine.js"),
     generateActions: (engine) => engine.generateTableActions(),
 
     renderDom: () => {

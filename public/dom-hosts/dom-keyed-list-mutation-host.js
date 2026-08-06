@@ -14,7 +14,7 @@ export function createTodomvcHost() {
   return createModelDomHost({
     slug: "dom-keyed-list-mutation",
     label: "DOM Keyed-List Mutation Engine",
-    loadEngine: () => import("/benchmarks/dom-keyed-list-mutation/engine.js"),
+    loadEngine: () => import("../benchmarks/dom-keyed-list-mutation/engine.js"),
     generateActions: (engine) => engine.generateKeyedListActions(),
 
     renderDom: () => {

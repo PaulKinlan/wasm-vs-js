@@ -68,7 +68,7 @@ export async function createModelDomHost(spec) {
     return { totalMs, engineMs, model };
   }
 
-  async function run({ iterations = 30, targets = ["js", "wasm"], onProgress = () => {} }) {
+  function run({ iterations = 30, targets = ["js", "wasm"], onProgress = () => {} }) {
     const dom = spec.renderDom();
     try {
       const consoleErrors = [];
@@ -94,7 +94,7 @@ export async function createModelDomHost(spec) {
       } finally {
         globalThis.removeEventListener("error", onError);
       }
-      return {
+      return Promise.resolve({
         perTarget,
         consoleErrors,
         detail: {
@@ -118,7 +118,7 @@ export async function createModelDomHost(spec) {
           note:
             "Exploratory in-browser measurement; engine compute is the JS-vs-Wasm comparison, DOM application is shared JS. Layout/paint not forced.",
         },
-      };
+      });
     } finally {
       dom.root.remove();
     }
