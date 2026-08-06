@@ -310,7 +310,7 @@ Deno.test("base regex collector retains redirect hops and rejects every unexpect
   assert(violations.some((message) => message.includes("unexpected request URL/method")));
 
   assertEquals(
-    classifyExecutedScriptUrl(`${origin}/demos/base/text.regex-log-scan.v1/demo.js`, origin),
+    classifyExecutedScriptUrl(`${origin}/benchmarks/base/text.regex-log-scan.v1/demo.js`, origin),
     { kind: "asset", route: "/benchmarks/base/text.regex-log-scan.v1/demo.js" },
   );
   for (

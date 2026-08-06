@@ -154,7 +154,7 @@
       "required": ["route", "status", "timeoutMs", "persistence", "upload", "ranking"],
       "properties": {
         "route": {
-          "enum": ["/demos/game-ecs-frame-update/", "/benchmarks/game-ecs-frame-update/"]
+          "enum": ["/benchmarks/game-ecs-frame-update/", "/benchmarks/game-ecs-frame-update/"]
         },
         "status": { "const": "runnable-correctness" },
         "timeoutMs": { "const": 120000 },

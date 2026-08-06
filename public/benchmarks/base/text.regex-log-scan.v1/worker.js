@@ -64,7 +64,7 @@ self.addEventListener("message", async ({ data }) => {
       const [path, identityKey] of [
         ["benchmarks/text-regex-log-scan/input.js", "inputModule"],
         ["benchmarks/text-regex-log-scan/workload.js", "workloadModule"],
-        ["public/demos/base/text.regex-log-scan.v1/worker.js", "workerModule"],
+        ["public/benchmarks/base/text.regex-log-scan.v1/worker.js", "workerModule"],
       ]
     ) {
       const source = build.sources.find((entry) => entry.path === path);

@@ -159,7 +159,7 @@
       "properties": {
         "id": { "const": "text.gc-document-edit.v1" },
         "registrationId": { "const": "text.gc-document-edit.v1-supplemental-registration-v1" },
-        "route": { "const": "/demos/text.gc-document-edit.v1/" },
+        "route": { "const": "/benchmarks/text.gc-document-edit.v1/" },
         "initialNodes": { "const": 256 },
         "operations": { "const": 10000 },
         "inserts": { "const": 3334 },

@@ -108,7 +108,7 @@
       "properties": {
         "route": {
           "enum": [
-            "/demos/server.ssr-template.v1/",
+            "/benchmarks/server.ssr-template.v1/",
             "/styles.css",
             "/base-server-ssr-demo.js",
             "/base-server-ssr-worker.js",
@@ -124,7 +124,7 @@
         },
         "path": {
           "enum": [
-            "public/demos/server.ssr-template.v1/index.html",
+            "public/benchmarks/server.ssr-template.v1/index.html",
             "public/styles.css",
             "public/base-server-ssr-demo.js",
             "public/base-server-ssr-worker.js",
@@ -266,7 +266,7 @@
             },
             {
               "const": {
-                "path": "public/demos/server.ssr-template.v1/index.html",
+                "path": "public/benchmarks/server.ssr-template.v1/index.html",
                 "bytes": 2645,
                 "sha256": "2500082356df37117e7cef681b878b278e5e34d8d7013617c0293d4542e08acb",
                 "packageCommitBytesMatch": true
@@ -315,8 +315,8 @@
           "prefixItems": [
             {
               "const": {
-                "route": "/demos/server.ssr-template.v1/",
-                "path": "public/demos/server.ssr-template.v1/index.html",
+                "route": "/benchmarks/server.ssr-template.v1/",
+                "path": "public/benchmarks/server.ssr-template.v1/index.html",
                 "contentType": "text/html",
                 "bytes": 2645,
                 "sha256": "2500082356df37117e7cef681b878b278e5e34d8d7013617c0293d4542e08acb",
@@ -700,7 +700,7 @@
           "prefixItems": [
             {
               "const": {
-                "route": "/demos/server.ssr-template.v1/",
+                "route": "/benchmarks/server.ssr-template.v1/",
                 "bytes": 2645,
                 "sha256": "2500082356df37117e7cef681b878b278e5e34d8d7013617c0293d4542e08acb"
               }
@@ -1607,7 +1607,7 @@
         },
         "route": {
           "enum": [
-            "/demos/server.ssr-template.v1/",
+            "/benchmarks/server.ssr-template.v1/",
             "/styles.css",
             "/base-server-ssr-demo.js",
             "/base-server-ssr-worker.js",
@@ -6084,14 +6084,14 @@
       "type": "object",
       "properties": {
         "route": {
-          "const": "/demos/server.ssr-template.v1/"
+          "const": "/benchmarks/server.ssr-template.v1/"
         },
         "url": {
           "type": "string",
-          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/demos/server\\.ssr-template\\.v1/\\?evidence-mode=(normal|wrong-token|stale|cancel|timeout|pagehide)$"
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/benchmarks/server\\.ssr-template\\.v1/\\?evidence-mode=(normal|wrong-token|stale|cancel|timeout|pagehide)$"
         },
         "sourcePath": {
-          "const": "public/demos/server.ssr-template.v1/index.html"
+          "const": "public/benchmarks/server.ssr-template.v1/index.html"
         },
         "bodyBytes": {
           "const": 2645

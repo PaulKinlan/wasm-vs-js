@@ -124,7 +124,7 @@
                   "properties": {
                     "path": {
                       "enum": [
-                        "public/demos/serialization.json-telemetry.v1/index.html",
+                        "public/benchmarks/serialization.json-telemetry.v1/index.html",
                         "public/benchmarks/serialization.json-telemetry.v1/index.html"
                       ]
                     }

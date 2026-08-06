@@ -208,7 +208,9 @@ Deno.test("visible output, controls, console, and network schemas reject semanti
   assertVisibleControls(controls);
 
   const html = await Deno.readTextFile("public/benchmarks/crypto.file-integrity.v1/index.html");
-  const wrappedTargetLabel = html.match(/<label\s+for="target">([\s\S]*?)<\/label>/)?.[1] ?? "";
+  const wrappedTargetLabel = (html.match(/<label\s+for="target">[\s\S]*?<\/label>/g) ?? []).find(
+    (label) => label.includes("Engine<select"),
+  ) ?? "";
   assert(
     wrappedTargetLabel.includes("Engine<select") &&
       wrappedTargetLabel.includes("Hand-written JavaScript SHA-256") &&
