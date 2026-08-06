@@ -2366,23 +2366,25 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
           return real[17] + imag[29];
         },
       };
-      if (mods.engines.dart) callables.dart = {
-        sum: () => {
-          const arr = new Uint32Array(1000);
-          for (let i = 0; i < 1000; i++) arr[i] = (i % 100) + 1;
-          return kernels.sum_u32(arr);
-        },
-        fft: () => {
-          const real = new Float32Array(512);
-          const imag = new Float32Array(512);
-          for (let i = 0; i < 512; i++) {
-            real[i] = Math.sin(i * 0.1);
-            imag[i] = Math.cos(i * 0.1);
-          }
-          kernels.fft_butterfly(real, imag, 512);
-          return real[17] + imag[29];
-        },
-      };
+      if (mods.engines.dart) {
+        callables.dart = {
+          sum: () => {
+            const arr = new Uint32Array(1000);
+            for (let i = 0; i < 1000; i++) arr[i] = (i % 100) + 1;
+            return kernels.sum_u32(arr);
+          },
+          fft: () => {
+            const real = new Float32Array(512);
+            const imag = new Float32Array(512);
+            for (let i = 0; i < 512; i++) {
+              real[i] = Math.sin(i * 0.1);
+              imag[i] = Math.cos(i * 0.1);
+            }
+            kernels.fft_butterfly(real, imag, 512);
+            return real[17] + imag[29];
+          },
+        };
+      }
       return callables;
     },
   },
@@ -4572,9 +4574,9 @@ async function kernelSourceBytes(manifest, kernel, lang, explicitSource) {
   const candidates = explicitSource
     ? [`/benchmarks/${explicitSource.replace(/^benchmarks\//, "")}`]
     : [
-        `/benchmarks/multilang-wasm/${kernel}.${ext}`,
-        dir ? `/benchmarks/multilang-wasm/${dir}/${kernel}.${ext}` : "",
-      ].filter(Boolean);
+      `/benchmarks/multilang-wasm/${kernel}.${ext}`,
+      dir ? `/benchmarks/multilang-wasm/${dir}/${kernel}.${ext}` : "",
+    ].filter(Boolean);
   for (const path of candidates) {
     if (sourceSizeCache.has(path)) {
       const n = sourceSizeCache.get(path);
@@ -4610,7 +4612,12 @@ export async function runWorkload(manifest, kernel, iterations, onProgress) {
     onProgress(`${engine.label}: ${kernel}...`);
     const stats = benchmarkOne(fn, iterations);
     const bytes = mods.engines[engine.key]?.bytes?.byteLength ?? 0;
-    const sourceBytes = await kernelSourceBytes(manifest, kernel, engine.lang ?? engine.key, engine.source);
+    const sourceBytes = await kernelSourceBytes(
+      manifest,
+      kernel,
+      engine.lang ?? engine.key,
+      engine.source,
+    );
     results.push({
       key: engine.key,
       label: engine.label,
