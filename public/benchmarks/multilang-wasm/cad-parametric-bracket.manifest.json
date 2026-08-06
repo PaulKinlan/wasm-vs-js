@@ -2,10 +2,42 @@
   "workloadId": "cad.parametric-bracket.v1",
   "kernelLabel": "Parametric bracket B-rep + scan-band tessellation",
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
-  "kernels": ["bracket"],
+  "kernels": [
+    "bracket"
+  ],
   "engines": [
-    { "key": "js", "label": "JavaScript", "kind": "js" },
-    { "key": "c", "label": "C / Wasm", "kind": "linear", "lang": "c", "offset": 0 },
-    { "key": "cpp", "label": "C++ / Wasm", "kind": "linear", "lang": "cpp", "offset": 0 }
+    {
+      "key": "js",
+      "label": "JavaScript",
+      "kind": "js"
+    },
+    {
+      "key": "c",
+      "label": "C / Wasm",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 0
+    },
+    {
+      "key": "cpp",
+      "label": "C++ / Wasm",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 0
+    },
+    {
+      "key": "rs",
+      "label": "Rust / Wasm",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 0
+    },
+    {
+      "key": "dart",
+      "label": "Dart / WasmGC",
+      "kind": "dart",
+      "file": "bracket_dart.wasm",
+      "glue": "bracket_dart.mjs"
+    }
   ]
 }

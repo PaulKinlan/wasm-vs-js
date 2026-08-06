@@ -1,0 +1,19 @@
+{
+  "workloadId": "graphics-cpu-path-tracer.v1",
+  "kernelLabel": "Cornell-box ray tracer — 16×16, 4 spp",
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": ["render"],
+  "engines": [
+    { "key": "js", "label": "JavaScript", "kind": "js" },
+    { "key": "c", "label": "C / Wasm", "kind": "linear", "lang": "c", "offset": 0 },
+    { "key": "cpp", "label": "C++ / Wasm", "kind": "linear", "lang": "cpp", "offset": 0 },
+    { "key": "rs", "label": "Rust / Wasm", "kind": "linear", "lang": "rs", "offset": 0 },
+    {
+      "key": "dart",
+      "label": "Dart / WasmGC",
+      "kind": "dart",
+      "file": "path_tracer_dart.wasm",
+      "glue": "path_tracer_dart.mjs"
+    }
+  ]
+}
