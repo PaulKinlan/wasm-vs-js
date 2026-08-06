@@ -2512,7 +2512,7 @@ function benchmarkOne(fn, iterations) {
 const sourceSizeCache = new Map();
 async function kernelSourceBytes(manifest, kernel, lang) {
   const ext = lang === "js" ? "ts" : lang;
-  const dir = (manifest.url?.pathname ?? "").split("/").filter(Boolean).slice(-2, -1)[0] ?? "";
+  const dir = (manifest._path ?? "").split("/").filter(Boolean).slice(-2, -1)[0] ?? "";
   const candidates = [
     `/benchmarks/multilang-wasm/${kernel}.${ext}`,
     dir ? `/benchmarks/multilang-wasm/${dir}/${kernel}.${ext}` : "",
@@ -2620,6 +2620,7 @@ export async function runMultilangComparison(manifestPath, {
   reportingEl = null,
 } = {}) {
   const manifest = await (await fetch(manifestPath, { cache: "no-store" })).json();
+  manifest._path = manifestPath;
   await loadEngines(manifest);
   const results = {};
   for (const kernel of KERNEL_ADAPTERS[manifest.workloadId].kernels) {

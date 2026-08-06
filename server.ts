@@ -1593,6 +1593,34 @@ const routes = new Map<string, [string, string, boolean?]>([
     true,
   ]],
 ]);
+// Multi-language kernel sources (commit-pinned on the comparison pages).
+// The source files live in benchmarks/multilang-wasm/ (not under public/);
+// serve them so the runner can fetch per-kernel source sizes + the pages can
+// link commit-pinned source.
+for (const ext of [".c", ".cpp", ".rs", ".dart", ".ts", ".wat"]) {
+  for (const entry of Array.from(Deno.readDirSync("benchmarks/multilang-wasm"))) {
+    if (!entry.isFile || !entry.name.endsWith(ext)) continue;
+    const urlPath = `/benchmarks/multilang-wasm/${entry.name}`;
+    if (routes.has(urlPath)) continue;
+    routes.set(urlPath, [`benchmarks/multilang-wasm/${entry.name}`, "text/plain; charset=utf-8"]);
+  }
+  for (const dirEntry of Array.from(Deno.readDirSync("benchmarks/multilang-wasm"))) {
+    if (!dirEntry.isDirectory) continue;
+    try {
+      for (const f of Array.from(Deno.readDirSync(`benchmarks/multilang-wasm/${dirEntry.name}`))) {
+        if (!f.isFile || !f.name.endsWith(ext)) continue;
+        const urlPath = `/benchmarks/multilang-wasm/${dirEntry.name}/${f.name}`;
+        if (routes.has(urlPath)) continue;
+        routes.set(urlPath, [
+          `benchmarks/multilang-wasm/${dirEntry.name}/${f.name}`,
+          "text/plain; charset=utf-8",
+        ]);
+      }
+    } catch { /* skip unreadable */ }
+  }
+}
+
+
 
 // Generated demo-page + companion-asset routes (scripts/build-routes.ts).
 // Filesystem-derived; any overlap with the hand-maintained table above is a
