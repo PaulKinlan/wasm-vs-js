@@ -9,8 +9,16 @@
 import { createModelDomHost } from "./dom-host-factory.js";
 
 const FIELDS = [
-  "email", "password", "confirmPassword", "age", "country", "zipCode",
-  "phone", "agreeTerms", "cardNumber", "cvv",
+  "email",
+  "password",
+  "confirmPassword",
+  "age",
+  "country",
+  "zipCode",
+  "phone",
+  "agreeTerms",
+  "cardNumber",
+  "cvv",
 ];
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -24,10 +32,14 @@ function evaluateRules(formState) {
   if (formState.confirmPassword && formState.confirmPassword !== formState.password) {
     errors.confirmPassword = "Passwords do not match";
   }
-  if (formState.age && (Number.isNaN(parseInt(formState.age, 10)) || parseInt(formState.age, 10) < 18)) {
+  if (
+    formState.age && (Number.isNaN(parseInt(formState.age, 10)) || parseInt(formState.age, 10) < 18)
+  ) {
     errors.age = "Must be at least 18";
   }
-  if (formState.agreeTerms && formState.agreeTerms !== "true") errors.agreeTerms = "Must agree to terms";
+  if (formState.agreeTerms && formState.agreeTerms !== "true") {
+    errors.agreeTerms = "Must agree to terms";
+  }
   return errors;
 }
 
@@ -99,11 +111,15 @@ export async function createTodomvcHost() {
 
     verifyDom: (state, reference) => {
       if (state.activeErrorCount !== reference.activeErrorCount) {
-        throw new Error(`form DOM drift: ${state.activeErrorCount} errors != reference ${reference.activeErrorCount}`);
+        throw new Error(
+          `form DOM drift: ${state.activeErrorCount} errors != reference ${reference.activeErrorCount}`,
+        );
       }
     },
 
     runModel: (engine, actions, target) =>
-      target === "wasm" ? engine.runFormValidationWasm(actions) : engine.runFormValidationJS(actions),
+      target === "wasm"
+        ? engine.runFormValidationWasm(actions)
+        : engine.runFormValidationJS(actions),
   });
 }

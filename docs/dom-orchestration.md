@@ -68,18 +68,18 @@ message shape (`public/dom-hosts/todomvc-ops.js` `validateStartMessage` /
 
 ## Workload matrix
 
-| Workload                         | Route                                           | iframe host                             | status                            |
-| -------------------------------- | ----------------------------------------------- | --------------------------------------- | --------------------------------- |
-| base-dom-todomvc-journey         | `/benchmarks/base-dom-todomvc-journey/`         | `dom-hosts/base-dom-todomvc-journey.js` | **wired + live host**             |
-| dom-virtualized-grid-v1          | `/benchmarks/dom-virtualized-grid-v1/`          | —                                       | pending host (paced-trace driver) |
-| dom-grid-movement                | `/benchmarks/dom-grid-movement/`                | `dom-hosts/dom-grid-movement-host.js`    | **wired + live host**             |
-| dom-keyed-list-mutation          | `/benchmarks/dom-keyed-list-mutation/`          | `dom-hosts/dom-keyed-list-mutation-host.js` | **wired + live host**          |
-| dom-nested-tree-mutation         | `/benchmarks/dom-nested-tree-mutation/`         | `dom-hosts/dom-nested-tree-mutation-host.js` | **wired + live host**          |
-| dom-table-sort-filter-pagination | `/benchmarks/dom-table-sort-filter-pagination/` | `dom-hosts/dom-table-sort-filter-pagination-host.js` | **wired + live host** |
-| dom-dependent-form-validation    | `/benchmarks/dom-dependent-form-validation/`    | `dom-hosts/dom-dependent-form-validation-host.js` | **wired + live host** |
-| dom-virtualized-scrolling        | `/benchmarks/dom-virtualized-scrolling/`        | `dom-hosts/dom-virtualized-scrolling-host.js` | **wired + live host**        |
-| game-dom-tactics-grid            | `/demos/game-family/`                           | —                                       | documented (game-family demo page, separate shell — not a /benchmarks/ DOM page) |
-| image flood-fill / editing       | `/benchmarks/image-*-demo/`                     | —                                       | documented (pixel/canvas work, not a DOM-interaction journey; already has the in-page multilang comparison) |
+| Workload                         | Route                                           | iframe host                                          | status                                                                                                      |
+| -------------------------------- | ----------------------------------------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| base-dom-todomvc-journey         | `/benchmarks/base-dom-todomvc-journey/`         | `dom-hosts/base-dom-todomvc-journey.js`              | **wired + live host**                                                                                       |
+| dom-virtualized-grid-v1          | `/benchmarks/dom-virtualized-grid-v1/`          | —                                                    | pending host (paced-trace driver)                                                                           |
+| dom-grid-movement                | `/benchmarks/dom-grid-movement/`                | `dom-hosts/dom-grid-movement-host.js`                | **wired + live host**                                                                                       |
+| dom-keyed-list-mutation          | `/benchmarks/dom-keyed-list-mutation/`          | `dom-hosts/dom-keyed-list-mutation-host.js`          | **wired + live host**                                                                                       |
+| dom-nested-tree-mutation         | `/benchmarks/dom-nested-tree-mutation/`         | `dom-hosts/dom-nested-tree-mutation-host.js`         | **wired + live host**                                                                                       |
+| dom-table-sort-filter-pagination | `/benchmarks/dom-table-sort-filter-pagination/` | `dom-hosts/dom-table-sort-filter-pagination-host.js` | **wired + live host**                                                                                       |
+| dom-dependent-form-validation    | `/benchmarks/dom-dependent-form-validation/`    | `dom-hosts/dom-dependent-form-validation-host.js`    | **wired + live host**                                                                                       |
+| dom-virtualized-scrolling        | `/benchmarks/dom-virtualized-scrolling/`        | `dom-hosts/dom-virtualized-scrolling-host.js`        | **wired + live host**                                                                                       |
+| game-dom-tactics-grid            | `/demos/game-family/`                           | —                                                    | documented (game-family demo page, separate shell — not a /benchmarks/ DOM page)                            |
+| image flood-fill / editing       | `/benchmarks/image-*-demo/`                     | —                                                    | documented (pixel/canvas work, not a DOM-interaction journey; already has the in-page multilang comparison) |
 
 Each pending workload needs a host module that renders its own UI and applies
 its frozen trace with real DOM APIs, mirroring the todomvc host. The protocol

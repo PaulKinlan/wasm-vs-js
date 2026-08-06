@@ -51,7 +51,8 @@ export async function createTodomvcHost() {
         nodes.get(String(action.parentTargetId)).append(li);
         nodes.set(String(action.id), li);
       } else if (
-        action.op === "remove_node" && action.targetNodeId > 0 && nodes.has(String(action.targetNodeId))
+        action.op === "remove_node" && action.targetNodeId > 0 &&
+        nodes.has(String(action.targetNodeId))
       ) {
         nodes.get(String(action.targetNodeId)).remove();
         nodes.delete(String(action.targetNodeId));
@@ -66,7 +67,8 @@ export async function createTodomvcHost() {
       } else if (action.op === "update_attr" && nodes.has(String(action.targetNodeId))) {
         nodes.get(String(action.targetNodeId)).setAttribute(action.attrName, action.attrValue);
       } else if (
-        action.op === "replace_node" && action.targetNodeId > 0 && nodes.has(String(action.targetNodeId))
+        action.op === "replace_node" && action.targetNodeId > 0 &&
+        nodes.has(String(action.targetNodeId))
       ) {
         const el = nodes.get(String(action.targetNodeId));
         el.textContent = `replaced-${action.targetNodeId}`;
@@ -82,7 +84,9 @@ export async function createTodomvcHost() {
         if (a.op === "insert_child" && exists.has(String(a.parentTargetId))) {
           exists.add(String(a.id));
           nodeCount += 1;
-        } else if (a.op === "remove_node" && a.targetNodeId > 0 && exists.has(String(a.targetNodeId))) {
+        } else if (
+          a.op === "remove_node" && a.targetNodeId > 0 && exists.has(String(a.targetNodeId))
+        ) {
           exists.delete(String(a.targetNodeId));
           nodeCount -= 1;
         }
@@ -94,11 +98,15 @@ export async function createTodomvcHost() {
 
     verifyDom: (state, reference) => {
       if (state.nodeCount !== reference.nodeCount) {
-        throw new Error(`nested-tree DOM drift: ${state.nodeCount} nodes != reference ${reference.nodeCount}`);
+        throw new Error(
+          `nested-tree DOM drift: ${state.nodeCount} nodes != reference ${reference.nodeCount}`,
+        );
       }
     },
 
     runModel: (engine, actions, target) =>
-      target === "wasm" ? engine.runNestedTreeMutationWasm(actions) : engine.runNestedTreeMutationJS(actions),
+      target === "wasm"
+        ? engine.runNestedTreeMutationWasm(actions)
+        : engine.runNestedTreeMutationJS(actions),
   });
 }

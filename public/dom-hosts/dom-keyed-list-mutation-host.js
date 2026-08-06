@@ -93,7 +93,9 @@ export async function createTodomvcHost() {
         } else if (a.op === "swap" && keys.length >= 2) {
           const i1 = a.key % keys.length;
           const i2 = a.targetKey % keys.length;
-          const t = keys[i1]; keys[i1] = keys[i2]; keys[i2] = t;
+          const t = keys[i1];
+          keys[i1] = keys[i2];
+          keys[i2] = t;
         } else if (a.op === "move" && keys.length >= 2) {
           const idx = keys.indexOf(a.key);
           if (idx !== -1) {
@@ -113,14 +115,20 @@ export async function createTodomvcHost() {
 
     verifyDom: (state, reference) => {
       if (state.count !== reference.count) {
-        throw new Error(`keyed-list DOM drift: ${state.count} items != reference ${reference.count}`);
+        throw new Error(
+          `keyed-list DOM drift: ${state.count} items != reference ${reference.count}`,
+        );
       }
       if (state.keySum !== reference.keySum) {
-        throw new Error(`keyed-list DOM drift: keySum ${state.keySum} != reference ${reference.keySum}`);
+        throw new Error(
+          `keyed-list DOM drift: keySum ${state.keySum} != reference ${reference.keySum}`,
+        );
       }
     },
 
     runModel: (engine, actions, target) =>
-      target === "wasm" ? engine.runKeyedListMutationWasm(actions) : engine.runKeyedListMutationJS(actions),
+      target === "wasm"
+        ? engine.runKeyedListMutationWasm(actions)
+        : engine.runKeyedListMutationJS(actions),
   });
 }

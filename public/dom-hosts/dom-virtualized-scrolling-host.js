@@ -82,7 +82,11 @@ export async function createTodomvcHost() {
       const { windowEl, prefixSums, state } = dom;
       const scrollTop = action.type === "resize" ? 0 : action.scrollTop;
       const viewportHeight = action.viewportHeight ?? VIEWPORT;
-      const { startIndex, endIndex, visibleCount } = visibleWindow(prefixSums, scrollTop, viewportHeight);
+      const { startIndex, endIndex, visibleCount } = visibleWindow(
+        prefixSums,
+        scrollTop,
+        viewportHeight,
+      );
       const keep = new Set();
       for (let i = startIndex; i < endIndex; i += 1) keep.add(i);
       for (const row of [...windowEl.children]) {
@@ -127,6 +131,8 @@ export async function createTodomvcHost() {
     },
 
     runModel: (engine, actions, target) =>
-      target === "wasm" ? engine.runVirtualizedScrollingWasm(actions) : engine.runVirtualizedScrollingJS(actions),
+      target === "wasm"
+        ? engine.runVirtualizedScrollingWasm(actions)
+        : engine.runVirtualizedScrollingJS(actions),
   });
 }

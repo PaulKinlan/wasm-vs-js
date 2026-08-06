@@ -54,27 +54,92 @@ function enginePair(
   });
 }
 
-enginePair("grid-movement", grid.generateGridActions, grid.runGridMovementJS, grid.runGridMovementWasm, 3600);
-enginePair("keyed-list", keyedList.generateKeyedListActions, keyedList.runKeyedListMutationJS, keyedList.runKeyedListMutationWasm, 2000);
-enginePair("nested-tree", nestedTree.generateNestedTreeActions, nestedTree.runNestedTreeMutationJS, nestedTree.runNestedTreeMutationWasm, 1200);
-enginePair("table-sort", tableSort.generateTableActions, tableSort.runTableSortFilterJS, tableSort.runTableSortFilterWasm, 120);
-enginePair("form-validation", formValidation.generateFormActions, formValidation.runFormValidationJS, formValidation.runFormValidationWasm, 240);
-enginePair("virtualized-scrolling", virtualized.generateScrollActions, virtualized.runVirtualizedScrollingJS, virtualized.runVirtualizedScrollingWasm, 1800);
+enginePair(
+  "grid-movement",
+  grid.generateGridActions,
+  grid.runGridMovementJS,
+  grid.runGridMovementWasm,
+  3600,
+);
+enginePair(
+  "keyed-list",
+  keyedList.generateKeyedListActions,
+  keyedList.runKeyedListMutationJS,
+  keyedList.runKeyedListMutationWasm,
+  2000,
+);
+enginePair(
+  "nested-tree",
+  nestedTree.generateNestedTreeActions,
+  nestedTree.runNestedTreeMutationJS,
+  nestedTree.runNestedTreeMutationWasm,
+  1200,
+);
+enginePair(
+  "table-sort",
+  tableSort.generateTableActions,
+  tableSort.runTableSortFilterJS,
+  tableSort.runTableSortFilterWasm,
+  120,
+);
+enginePair(
+  "form-validation",
+  formValidation.generateFormActions,
+  formValidation.runFormValidationJS,
+  formValidation.runFormValidationWasm,
+  240,
+);
+enginePair(
+  "virtualized-scrolling",
+  virtualized.generateScrollActions,
+  virtualized.runVirtualizedScrollingJS,
+  virtualized.runVirtualizedScrollingWasm,
+  1800,
+);
 
 // Record the equivalence finding (the host factory surfaces this in the
 // detail payload). This documents the current state — it does NOT assert
 // equality where the engines genuinely diverge.
 Deno.test("dom orchestration: engine equivalence status (finding record)", () => {
   const findings = [
-    ["grid-movement", grid.runGridMovementJS(grid.generateGridActions()), grid.runGridMovementWasm(grid.generateGridActions())],
-    ["keyed-list", keyedList.runKeyedListMutationJS(keyedList.generateKeyedListActions()), keyedList.runKeyedListMutationWasm(keyedList.generateKeyedListActions())],
-    ["nested-tree", nestedTree.runNestedTreeMutationJS(nestedTree.generateNestedTreeActions()), nestedTree.runNestedTreeMutationWasm(nestedTree.generateNestedTreeActions())],
-    ["table-sort", tableSort.runTableSortFilterJS(tableSort.generateTableActions()), tableSort.runTableSortFilterWasm(tableSort.generateTableActions())],
-    ["form-validation", formValidation.runFormValidationJS(formValidation.generateFormActions()), formValidation.runFormValidationWasm(formValidation.generateFormActions())],
-    ["virtualized-scrolling", virtualized.runVirtualizedScrollingJS(virtualized.generateScrollActions()), virtualized.runVirtualizedScrollingWasm(virtualized.generateScrollActions())],
+    [
+      "grid-movement",
+      grid.runGridMovementJS(grid.generateGridActions()),
+      grid.runGridMovementWasm(grid.generateGridActions()),
+    ],
+    [
+      "keyed-list",
+      keyedList.runKeyedListMutationJS(keyedList.generateKeyedListActions()),
+      keyedList.runKeyedListMutationWasm(keyedList.generateKeyedListActions()),
+    ],
+    [
+      "nested-tree",
+      nestedTree.runNestedTreeMutationJS(nestedTree.generateNestedTreeActions()),
+      nestedTree.runNestedTreeMutationWasm(nestedTree.generateNestedTreeActions()),
+    ],
+    [
+      "table-sort",
+      tableSort.runTableSortFilterJS(tableSort.generateTableActions()),
+      tableSort.runTableSortFilterWasm(tableSort.generateTableActions()),
+    ],
+    [
+      "form-validation",
+      formValidation.runFormValidationJS(formValidation.generateFormActions()),
+      formValidation.runFormValidationWasm(formValidation.generateFormActions()),
+    ],
+    [
+      "virtualized-scrolling",
+      virtualized.runVirtualizedScrollingJS(virtualized.generateScrollActions()),
+      virtualized.runVirtualizedScrollingWasm(virtualized.generateScrollActions()),
+    ],
   ] as const;
-  const diverging = findings.filter(([, js, wasm]) => JSON.stringify(js) !== JSON.stringify(wasm)).map(([label]) => label);
+  const diverging = findings.filter(([, js, wasm]) => JSON.stringify(js) !== JSON.stringify(wasm))
+    .map(([label]) => label);
   // Deterministic engines are required; equivalence is recorded (divergence is
   // expected for several workloads and is surfaced by the hosts, not asserted).
-  console.log(`dom-orchestration finding: engine-pair equivalence diverges for: ${diverging.join(", ") || "none"}`);
+  console.log(
+    `dom-orchestration finding: engine-pair equivalence diverges for: ${
+      diverging.join(", ") || "none"
+    }`,
+  );
 });

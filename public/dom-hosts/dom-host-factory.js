@@ -105,19 +105,16 @@ export async function createModelDomHost(spec) {
           actionsApplied: actions.length,
           engine: "js|wasm-linear (model) + shared JS DOM host",
           enginesEquivalent: summariesEqual,
-          ...(summariesEqual
-            ? {}
-            : {
-                engineDivergence: {
-                  note:
-                    "The workload's JS and wasm-linear engine variants produce different model " +
-                    "summaries (the repo never asserted their equivalence). The DOM application " +
-                    "is a shared JS host and is verified against the workload's intended semantics; " +
-                    "the JS-vs-Wasm timing comparison is exploratory and flagged accordingly.",
-                  js: jsSummary,
-                  wasm: wasmSummary,
-                },
-              }),
+          ...(summariesEqual ? {} : {
+            engineDivergence: {
+              note: "The workload's JS and wasm-linear engine variants produce different model " +
+                "summaries (the repo never asserted their equivalence). The DOM application " +
+                "is a shared JS host and is verified against the workload's intended semantics; " +
+                "the JS-vs-Wasm timing comparison is exploratory and flagged accordingly.",
+              js: jsSummary,
+              wasm: wasmSummary,
+            },
+          }),
           note:
             "Exploratory in-browser measurement; engine compute is the JS-vs-Wasm comparison, DOM application is shared JS. Layout/paint not forced.",
         },

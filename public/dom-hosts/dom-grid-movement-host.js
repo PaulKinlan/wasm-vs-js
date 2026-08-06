@@ -14,11 +14,16 @@ const ENTITIES = 128;
 
 function directionDelta(dir) {
   switch (dir) {
-    case "up": return { dx: 0, dy: -1 };
-    case "down": return { dx: 0, dy: 1 };
-    case "left": return { dx: -1, dy: 0 };
-    case "right": return { dx: 1, dy: 0 };
-    default: return { dx: 0, dy: 0 };
+    case "up":
+      return { dx: 0, dy: -1 };
+    case "down":
+      return { dx: 0, dy: 1 };
+    case "left":
+      return { dx: -1, dy: 0 };
+    case "right":
+      return { dx: 1, dy: 0 };
+    default:
+      return { dx: 0, dy: 0 };
   }
 }
 
@@ -73,7 +78,10 @@ export async function createTodomvcHost() {
       const ny = Math.max(0, Math.min(GRID_W - 1, top / 10 + dy)) * 10;
       let occupied = false;
       for (let j = 0; j < cells.length; j += 1) {
-        if (j !== action.entityId && cells[j].style.left === `${nx}px` && cells[j].style.top === `${ny}px`) {
+        if (
+          j !== action.entityId && cells[j].style.left === `${nx}px` &&
+          cells[j].style.top === `${ny}px`
+        ) {
           occupied = true;
           break;
         }
@@ -87,14 +95,20 @@ export async function createTodomvcHost() {
     },
 
     computeReference: (actions) => {
-      const pos = new Array(ENTITIES).fill(0).map((_, i) => [(i * 3) % GRID_W, Math.floor((i * 3) / GRID_W)]);
+      const pos = new Array(ENTITIES).fill(0).map((
+        _,
+        i,
+      ) => [(i * 3) % GRID_W, Math.floor((i * 3) / GRID_W)]);
       for (const a of actions) {
         const e = pos[a.entityId];
         const { dx, dy } = directionDelta(a.dir);
         const nx = Math.max(0, Math.min(GRID_W - 1, e[0] + dx));
         const ny = Math.max(0, Math.min(GRID_W - 1, e[1] + dy));
         const occupied = pos.some((p, j) => j !== a.entityId && p[0] === nx && p[1] === ny);
-        if (!occupied) { e[0] = nx; e[1] = ny; }
+        if (!occupied) {
+          e[0] = nx;
+          e[1] = ny;
+        }
       }
       return { posSum: pos.reduce((acc, p) => acc + p[0] + p[1] * GRID_W, 0) };
     },
@@ -109,7 +123,9 @@ export async function createTodomvcHost() {
 
     verifyDom: (state, reference) => {
       if (state.posSum !== reference.posSum) {
-        throw new Error(`grid DOM drift: rendered posSum ${state.posSum} != reference ${reference.posSum}`);
+        throw new Error(
+          `grid DOM drift: rendered posSum ${state.posSum} != reference ${reference.posSum}`,
+        );
       }
     },
 

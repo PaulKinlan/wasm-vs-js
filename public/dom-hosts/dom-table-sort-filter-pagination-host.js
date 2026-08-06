@@ -87,9 +87,14 @@ export async function createTodomvcHost() {
       };
       reset();
       return {
-        root, table, tbody, data, rowEls,
+        root,
+        table,
+        tbody,
+        data,
+        rowEls,
         state: () => ({ filtered, currentPage, pageSize }),
-        reset, applyVisibility,
+        reset,
+        applyVisibility,
       };
     },
 
@@ -165,14 +170,20 @@ export async function createTodomvcHost() {
 
     verifyDom: (state, reference) => {
       if (state.pageSize !== reference.pageSize) {
-        throw new Error(`table DOM drift: ${state.pageSize} visible != reference ${reference.pageSize}`);
+        throw new Error(
+          `table DOM drift: ${state.pageSize} visible != reference ${reference.pageSize}`,
+        );
       }
       if (state.pageScoreSum !== reference.pageScoreSum) {
-        throw new Error(`table DOM drift: page score sum ${state.pageScoreSum} != reference ${reference.pageScoreSum}`);
+        throw new Error(
+          `table DOM drift: page score sum ${state.pageScoreSum} != reference ${reference.pageScoreSum}`,
+        );
       }
     },
 
     runModel: (engine, actions, target) =>
-      target === "wasm" ? engine.runTableSortFilterWasm(actions) : engine.runTableSortFilterJS(actions),
+      target === "wasm"
+        ? engine.runTableSortFilterWasm(actions)
+        : engine.runTableSortFilterJS(actions),
   });
 }
