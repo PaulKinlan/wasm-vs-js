@@ -2506,7 +2506,7 @@ function benchmarkOne(fn, iterations) {
   };
 }
 
-export // Source-size lookup: each kernel's source file (e.g. <kernel>.c) lives either
+// Source-size lookup: each kernel's source file (e.g. <kernel>.c) lives either
 // flat in benchmarks/multilang-wasm/ (sum/fft) or in a per-workload subdir
 // (<dir>/<kernel>.c). Try both; return bytes or 0 (kept honest as "—").
 const sourceSizeCache = new Map();
@@ -2538,7 +2538,7 @@ async function kernelSourceBytes(manifest, kernel, lang) {
   return 0;
 }
 
-async function runWorkload(manifest, kernel, iterations, onProgress) {
+export async function runWorkload(manifest, kernel, iterations, onProgress) {
   const mods = await loadEngines(manifest);
   const adapter = KERNEL_ADAPTERS[manifest.workloadId];
   if (!adapter || !adapter.kernels.includes(kernel)) {
