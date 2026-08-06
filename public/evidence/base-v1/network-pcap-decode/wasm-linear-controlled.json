@@ -4,7 +4,7 @@
   "workloadId": "network.pcap-decode.v1",
   "variantId": "wasm-linear-controlled",
   "target": "wasm-linear",
-  "sourceCommit": "9a09ede218065773ae121a08dd9bb09a8ffd74d2",
+  "sourceCommit": "ee76f2597361e965c3161d5b9638d5df5e547c75",
   "performanceClaims": [],
   "input": {
     "bytes": 663,
@@ -54,6 +54,6 @@
   },
   "buildManifest": {
     "path": "public/artifacts/base-network-pcap-decode/build-manifest.json",
-    "sha256": "c4dea3cecb9d4da9448bd06d631cf41e9fba6b9582bf76ffa09bf42a966cf388"
+    "sha256": "dabe3fbe21e9a6777758efb5ed730bec3a5736bddb6e0a6f804608bb36d61c64"
   }
 }
