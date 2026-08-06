@@ -1,6 +1,6 @@
 # Multi-Language WebAssembly Benchmark Report
 
-Generated: 2026-08-06T15:35:14.928Z
+Generated: 2026-08-06T15:40:03.498Z
 
 ## Overview
 
@@ -12,24 +12,24 @@ This report quantifies the overhead, binary footprint, cold instantiation latenc
 
 | Language / Toolchain           | Binary Size (bytes) | Cold Instantiation (ms) | Warm Execution (ms) | Speedup vs JS |
 | ------------------------------ | ------------------- | ----------------------- | ------------------- | ------------- |
-| **JavaScript** (V8 JIT)        | 0 B                 | 0.00 ms                 | 82.43 ms            | 1.00×         |
-| **Raw WAT** (Handwritten)      | 96 B                | 0.0013 ms               | 54.08 ms            | 1.52×         |
-| **AssemblyScript** (asc -O3)   | 94 B                | 0.001 ms                | 54.04 ms            | 1.53×         |
-| **C / Wasm** (Clang -nostdlib) | 757 B               | 0.0018 ms               | 40.46 ms            | 2.04×         |
-| **C++ / Wasm** (Clang++ -O3)   | 759 B               | 0.0017 ms               | 41.84 ms            | 1.97×         |
-| **Rust / Wasm** (rustc -O)     | 498 B               | 0.0011 ms               | 40.45 ms            | 2.04×         |
-| **Dart / WasmGC** (dart2wasm)  | 39613 B             | 0.0965 ms               | 147.93 ms           | 0.56×         |
+| **JavaScript** (V8 JIT)        | 0 B                 | 0.00 ms                 | 82.79 ms            | 1.00×         |
+| **Raw WAT** (Handwritten)      | 96 B                | 0.0013 ms               | 53.65 ms            | 1.54×         |
+| **AssemblyScript** (asc -O3)   | 94 B                | 0.001 ms                | 53.44 ms            | 1.55×         |
+| **C / Wasm** (Clang -nostdlib) | 757 B               | 0.0018 ms               | 40.74 ms            | 2.03×         |
+| **C++ / Wasm** (Clang++ -O3)   | 759 B               | 0.0019 ms               | 40.31 ms            | 2.05×         |
+| **Rust / Wasm** (rustc -O)     | 498 B               | 0.0011 ms               | 40.34 ms            | 2.05×         |
+| **Dart / WasmGC** (dart2wasm)  | 39613 B             | 0.0954 ms               | 148.16 ms           | 0.56×         |
 
 ### 2. Fast Fourier Transform Butterfly (`fft-kernel`, 512 elements, 2,000 iterations)
 
 | Language / Toolchain           | Binary Size (bytes) | Cold Instantiation (ms) | Warm Execution (ms) | Speedup vs JS |
 | ------------------------------ | ------------------- | ----------------------- | ------------------- | ------------- |
-| **JavaScript** (V8 JIT)        | 0 B                 | 0.00 ms                 | 36.26 ms            | 1.00×         |
-| **AssemblyScript** (asc -O3)   | 2479 B              | 0.0015 ms               | 8.33 ms             | 4.35×         |
-| **C / Wasm** (Clang -nostdlib) | 1149 B              | 0.0018 ms               | 8.09 ms             | 4.48×         |
-| **C++ / Wasm** (Clang++ -O3)   | 1151 B              | 0.0018 ms               | 7.83 ms             | 4.63×         |
-| **Rust / Wasm** (rustc -O)     | 889 B               | 0.0012 ms               | 7.77 ms             | 4.67×         |
-| **Dart / WasmGC** (dart2wasm)  | 39613 B             | 0.0965 ms               | 51.6 ms             | 0.70×         |
+| **JavaScript** (V8 JIT)        | 0 B                 | 0.00 ms                 | 36.36 ms            | 1.00×         |
+| **AssemblyScript** (asc -O3)   | 2479 B              | 0.0015 ms               | 8.38 ms             | 4.34×         |
+| **C / Wasm** (Clang -nostdlib) | 1149 B              | 0.0018 ms               | 8.09 ms             | 4.49×         |
+| **C++ / Wasm** (Clang++ -O3)   | 1151 B              | 0.0018 ms               | 7.81 ms             | 4.66×         |
+| **Rust / Wasm** (rustc -O)     | 889 B               | 0.0011 ms               | 7.76 ms             | 4.69×         |
+| **Dart / WasmGC** (dart2wasm)  | 39613 B             | 0.0954 ms               | 51.88 ms            | 0.70×         |
 
 ### 3. Myers Diff (`text-diff-patch`, 512-line base, 30 interleaved edits, 60 warm iterations)
 
@@ -37,11 +37,11 @@ All variants are bit-identical to the JS myersDiff oracle (ops + editDistance + 
 
 | Language / Toolchain          | Binary Size (bytes) | Warm Execution (ms) | vs JS |
 | ----------------------------- | ------------------- | ------------------- | ----- |
-| **JavaScript** (oracle)       | 0 B                 | 2.71 ms             | 1.00× |
-| **C / Wasm** (Clang)          | 3077 B              | 2.06 ms             | 1.32× |
-| **C++ / Wasm** (Clang++)      | 3079 B              | 2.05 ms             | 1.32× |
-| **Rust / Wasm** (rustc)       | 6110 B              | 0.72 ms             | 3.76× |
-| **Dart / WasmGC** (dart2wasm) | 44023 B             | 21.24 ms            | 0.13× |
+| **JavaScript** (oracle)       | 0 B                 | 4.2 ms              | 1.00× |
+| **C / Wasm** (Clang)          | 3077 B              | 2.36 ms             | 1.78× |
+| **C++ / Wasm** (Clang++)      | 3079 B              | 2.04 ms             | 2.06× |
+| **Rust / Wasm** (rustc)       | 6106 B              | 0.78 ms             | 5.38× |
+| **Dart / WasmGC** (dart2wasm) | 44023 B             | 20.99 ms            | 0.20× |
 
 ### 4. Strict-f32 GEMM (`ml-gemm`, one 128×128×128 product, 200 warm iterations)
 
@@ -49,11 +49,11 @@ All variants are bit-identical to the JS Math.fround oracle (test-verified). Dar
 
 | Language / Toolchain           | Binary Size (bytes) | Warm Execution (ms) | vs JS |
 | ------------------------------ | ------------------- | ------------------- | ----- |
-| **JavaScript** (fround oracle) | 0 B                 | 729.38 ms           | 1.00× |
-| **C / Wasm** (Clang)           | 1186 B              | 267.49 ms           | 2.73× |
-| **C++ / Wasm** (Clang++)       | 1188 B              | 267.24 ms           | 2.73× |
-| **Rust / Wasm** (rustc)        | 926 B               | 267.18 ms           | 2.73× |
-| **Dart / WasmGC** (dart2wasm)  | 39079 B             | 12210.12 ms         | 0.06× |
+| **JavaScript** (fround oracle) | 0 B                 | 731 ms              | 1.00× |
+| **C / Wasm** (Clang)           | 1186 B              | 267.34 ms           | 2.73× |
+| **C++ / Wasm** (Clang++)       | 1188 B              | 267.34 ms           | 2.73× |
+| **Rust / Wasm** (rustc)        | 926 B               | 267.64 ms           | 2.73× |
+| **Dart / WasmGC** (dart2wasm)  | 39079 B             | 11781.52 ms         | 0.06× |
 
 ### 5. FIPS-180-4 SHA-256 (`crypto-file-integrity`, 1 MiB seeded fixture, 64 KiB chunks, 30 warm iterations)
 
@@ -61,18 +61,18 @@ All variants are bit-identical to the oracle digest (test-verified, incl. paddin
 
 | Language / Toolchain              | Binary Size (bytes) | Warm Execution (ms) | vs JS |
 | --------------------------------- | ------------------- | ------------------- | ----- |
-| **JavaScript** (ControlledSha256) | 0 B                 | 460.1 ms            | 1.00× |
-| **C / Wasm** (Clang)              | 3197 B              | 104.55 ms           | 4.40× |
-| **C++ / Wasm** (Clang++)          | 3244 B              | 104.63 ms           | 4.40× |
-| **Rust / Wasm** (rustc)           | 5193 B              | 107.23 ms           | 4.29× |
-| **Dart / WasmGC** (dart2wasm)     | 53795 B             | 420.4 ms            | 1.09× |
+| **JavaScript** (ControlledSha256) | 0 B                 | 470.9 ms            | 1.00× |
+| **C / Wasm** (Clang)              | 3197 B              | 104.98 ms           | 4.49× |
+| **C++ / Wasm** (Clang++)          | 3244 B              | 105.08 ms           | 4.48× |
+| **Rust / Wasm** (rustc)           | 5189 B              | 107.63 ms           | 4.38× |
+| **Dart / WasmGC** (dart2wasm)     | 53795 B             | 426.57 ms           | 1.10× |
 
 ### 4. Managed WasmGC Runtime Footprint (measured — workloads differ, no warm comparison)
 
 | Language / Toolchain          | Binary Size (bytes) | Cold Instantiation (ms) | Imports |
 | ----------------------------- | ------------------- | ----------------------- | ------- |
-| **Dart / WasmGC** (dart2wasm) | 39613 B             | 0.0965 ms               | 380     |
-| **Kotlin / Wasm** (prebuilt)  | 36961 B (~37 KB)    | 0.0798 ms               | 216     |
+| **Dart / WasmGC** (dart2wasm) | 39613 B             | 0.0954 ms               | 380     |
+| **Kotlin / Wasm** (prebuilt)  | 36961 B (~37 KB)    | 0.0801 ms               | 216     |
 
 ## Key Insights & Toolchain Overhead Analysis
 
