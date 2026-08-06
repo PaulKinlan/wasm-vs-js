@@ -17,3 +17,17 @@
 .mlr-th-header {
   font-weight: 600;
 }
+
+/* Results boxes must stay inside their cards: the nowrap table cells
+ * otherwise blow out the container (Paul 2026-08-06). */
+.stage-result,
+.mlr-table {
+  max-width: 100%;
+}
+.stage-result {
+  overflow-x: auto;
+}
+.mlr-table {
+  display: block;
+  overflow-x: auto;
+}

@@ -10,6 +10,7 @@ const PLAYGROUND_WORKLOADS = [
     slug: "sum-u32",
     title: "Modulo-2³² Integer Sum",
     category: "Compute Kernel",
+    manifest: "/benchmarks/multilang-wasm/sum-u32.manifest.json",
     route: "/#workload-sum-u32",
     description: "Sums 1,000,000 integers with 32-bit overflow wrapping.",
     explanation: "Basic 32-bit integer arithmetic loop performance.",
