@@ -13,7 +13,6 @@
   </head>
   <body
     data-multilang-manifest="/benchmarks/multilang-wasm/serialization-json-telemetry.manifest.json"
-    data-multilang-reporting="#ml-reporting"
     data-workload="serialization-json-telemetry-v1">
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
@@ -83,18 +82,6 @@
       <h2>Controlled grammar</h2>
       <p>Both targets use authored byte-state machines rather than <code>JSON.parse</code>. They accept one compact UTF-8 array with fixed key order, unsigned decimal integers, booleans, a nested metadata object, four regions, three event kinds, and the registered multilingual label and tag vocabulary. The <a href="/artifacts/serialization-json-telemetry/fixture-manifest.json">fixture manifest</a> records all raw byte hashes; the <a href="/artifacts/serialization-json-telemetry/output-manifest.json">output manifest</a> records all canonical summaries and counters.</p>
 
-      <section class="demo-panel" aria-labelledby="ml-heading">
-        <h2 id="ml-heading">Multi-Language Comparison</h2>
-        <p>
-          The same byte-level JSON telemetry parser (frozen vocabulary of regions / kinds /
-          labels / tags as UTF-8 tables, canonical summary output; 1,000-record reduced fixture)
-          written in JavaScript, C, C++, Rust, and Dart (WasmGC). All variants are bit-identical
-          to the workload's <code>runTelemetryJS</code> oracle (summary bytes + counters,
-          test-verified). Sources:
-          <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/tree/main/benchmarks/multilang-wasm/serialization-json-telemetry">telemetry.c · .cpp · .rs · .dart</a>.
-        </p>
-        <div id="ml-reporting" class="detail-grid" hidden></div>
-      </section>
     </main>
     <script type="module" src="/multilang-runner.js"></script>
   </body>

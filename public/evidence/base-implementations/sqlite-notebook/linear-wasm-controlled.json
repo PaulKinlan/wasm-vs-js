@@ -3,7 +3,7 @@
   "workloadId": "database.sqlite-notebook.v1",
   "implementationId": "database.sqlite-notebook.controlled.v1",
   "status": "static-validation-package",
-  "sourceCommit": "f6aa427d99ed74fd6803955758eef7432a77cc73",
+  "sourceCommit": "32ca08189c858d2a0635175662016ea2726574b3",
   "sourceTreeSha256": "ab6438ee92e946f2556cd8dfd9712b44ece3f5deebdb53b4cd7a7d2bd4a40b9d",
   "buildManifest": "public/artifacts/sqlite-notebook/build-manifest.json",
   "fixtureManifest": "public/artifacts/sqlite-notebook/fixtures/fixture-manifest.json",

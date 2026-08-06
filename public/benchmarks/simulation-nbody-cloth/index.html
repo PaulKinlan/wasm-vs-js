@@ -12,7 +12,6 @@
   <body
     data-workload="simulation-nbody-cloth"
     data-multilang-manifest="/benchmarks/multilang-wasm/simulation-nbody-cloth.manifest.json"
-    data-multilang-reporting="#ml-reporting"
   >
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
@@ -99,18 +98,6 @@
         </ul>
       </section>
 
-      <section class="demo-panel" aria-labelledby="ml-heading">
-        <h2 id="ml-heading">Multi-Language Comparison</h2>
-        <p>
-          The same N-body leapfrog step (128 bodies × 30 timesteps for fast warm medians) written
-          in JavaScript, C, C++, Rust, and Dart (WasmGC). All variants are bit-identical to the
-          workload engine's oracle on the FULL contract shape 1024×120 (test-verified). Dart's
-          doubles are native f64 with the same IEEE operation order — no emulation overhead here.
-          Sources:
-          <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/tree/main/benchmarks/multilang-wasm/simulation-nbody-cloth">nbody.c · .cpp · .rs · .dart</a>.
-        </p>
-        <div id="ml-reporting" class="detail-grid" hidden></div>
-      </section>
     </main>
     <script type="module" src="/unified-runner.js"></script>
     <script type="module" src="/multilang-runner.js"></script>

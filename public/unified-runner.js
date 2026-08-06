@@ -749,25 +749,42 @@ function composedStagePlanFromDom() {
 
 async function runComposedStages({ workloadSlug, iterations, statusEl, reportingEl }) {
   const plan = composedStagePlanFromDom();
+  // ONE results flow: every additional stage (multi-language, Track B) renders
+  // as a labeled sub-block of the SAME run output inside the primary reporting
+  // element — not a separate page section (Paul directive 2026-08-06).
+  const flowEl = reportingEl ?? document.querySelector("#main") ?? document.body;
+  const stageBlock = (stage, heading) => {
+    const previous = flowEl.querySelector(`[data-stage="${stage}"]`);
+    if (previous) previous.remove();
+    const wrap = document.createElement("section");
+    wrap.dataset.stage = stage;
+    wrap.className = "stage-result";
+    const h = document.createElement("h3");
+    h.textContent = heading;
+    wrap.appendChild(h);
+    const box = document.createElement("div");
+    wrap.appendChild(box);
+    flowEl.appendChild(wrap);
+    return box;
+  };
   if (plan.multilangManifest) {
     statusEl.textContent = "Multi-language comparison: loading engines…";
     const { runMultilangComparison } = await import("/multilang-runner.js");
-    const mlReporting = document.querySelector(
-      document.body.dataset.multilangReporting || "#ml-reporting",
-    ) || reportingEl;
+    const mlBox = stageBlock("multilang", "Multi-language comparison");
     await runMultilangComparison(plan.multilangManifest, {
       iterations,
       onStatus: (m) => {
         statusEl.textContent = m;
       },
-      reportingEl: mlReporting,
+      reportingEl: mlBox,
     });
     statusEl.textContent = "✓ Multi-language comparison complete.";
   }
   if (plan.trackBRoot) {
     statusEl.textContent = "Track B: loading optimized variants…";
     const { initTrackB } = await import("/track-b.js");
-    await initTrackB(plan.trackBRoot, workloadSlug);
+    const tbBox = stageBlock("trackb", "Track A vs Track B — independent optimization");
+    await initTrackB(tbBox, workloadSlug);
     statusEl.textContent = "✓ Track B optimized variants rendered.";
   }
 }

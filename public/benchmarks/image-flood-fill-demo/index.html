@@ -14,7 +14,6 @@
   <body
     data-workload="image-flood-fill-demo"
     data-multilang-manifest="/benchmarks/multilang-wasm/image-editing.manifest.json"
-    data-multilang-reporting="#ml-reporting"
   >
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
@@ -70,21 +69,6 @@
         <div id="result" aria-label="Exact textual result" hidden></div>
       </section>
 
-      <section class="demo-panel" aria-labelledby="ml-heading">
-        <h2 id="ml-heading">Language comparison — flood fill and luma Gaussian kernels</h2>
-        <p>
-          The same two integer-only pixel kernels — the 64 × 48 flood fill above and the 40 × 30
-          luma + 3-tap Gaussian pipeline from the image-editing proposal — compiled from five
-          languages (C, C++, Rust, AssemblyScript, Dart/WasmGC) next to the JavaScript oracle.
-          Every variant is verified bit-identical to the oracle in the repo test suite — output
-          pixels, visited mask, and the ABI work counters — before any timing is shown.
-        </p>
-        <p class="provenance">
-          Sources:
-          <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/tree/main/benchmarks/multilang-wasm/image-editing">image_kernels.c · .cpp · .rs · .ts · .dart</a>.
-        </p>
-        <div id="ml-reporting" class="detail-grid" hidden></div>
-      </section>
 
       <div class="detail-grid">
         <section>

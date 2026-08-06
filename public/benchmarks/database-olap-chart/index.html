@@ -14,7 +14,6 @@
     data-workload="database-olap-chart"
     data-demo="database-olap-chart"
     data-multilang-manifest="/benchmarks/multilang-wasm/database-olap-chart.manifest.json"
-    data-multilang-reporting="#ml-reporting"
   >
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
@@ -128,20 +127,6 @@
           <li><a href="/evidence/">Check implementation evidence</a></li>
           <li><a href="/experiments/">Read the frozen experiment</a></li>
         </ul>
-      </section>
-      <section class="demo-panel" aria-labelledby="ml-heading">
-        <h2 id="ml-heading">Multi-Language Comparison</h2>
-        <p>
-          The same OLAP chart aggregation — five frozen queries (region/category filter, stable
-          merge sort, u64 category aggregates, FNV-1a filter digest) over 10,000 seeded rows —
-          written in JavaScript, C, C++, Rust, and Dart (WasmGC). All variants are test-verified
-          bit-identical to the workload's <code>runOlapJavaScript</code> oracle on the FULL
-          10,000-row fixture (output words + counters). Pure u32/u64 — Dart's 64-bit ints make
-          the u64 accumulation native, so no f32 emulation penalty. Sources:
-          <a class="commit-link"
-            href="https://github.com/PaulKinlan/wasm-vs-js/tree/main/benchmarks/multilang-wasm/database-olap-chart">olap.c · olap.cpp · olap.rs · olap.dart</a>.
-        </p>
-        <div id="ml-reporting" class="detail-grid" hidden></div>
       </section>
     </main>
     <script type="module" src="/benchmarks/database-olap-chart/runner.js"></script>

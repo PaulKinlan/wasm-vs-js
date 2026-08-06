@@ -14,7 +14,6 @@
     data-workload="ml-dense-mlp"
     data-demo="ml-dense-mlp"
     data-multilang-manifest="/benchmarks/multilang-wasm/ml-dense-mlp.manifest.json"
-    data-multilang-reporting="#ml-reporting"
   >
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
@@ -134,19 +133,6 @@
         </ul>
       </section>
 
-      <section class="demo-panel" aria-labelledby="ml-heading">
-        <h2 id="ml-heading">Multi-Language Comparison</h2>
-        <p>
-          The same dense MLP forward pass (4 hidden + 1 projection layers, 16×128; strict f32
-          linear layers with the frozen f64 GELU-tanh activation) written in JavaScript, C, C++,
-          Rust, and Dart (WasmGC). All variants are bit-identical to the workload's
-          <code>mlpControlled</code> oracle on the FULL contract shape 32×512×8 (test-verified).
-          Dart's f64 GELU is native-exact; its linear layers use per-op fround (no f32 primitive)
-          — disclosed. Sources:
-          <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/tree/main/benchmarks/multilang-wasm/ml-dense-mlp">mlp_forward.c · .cpp · .rs · .dart</a>.
-        </p>
-        <div id="ml-reporting" class="detail-grid" hidden></div>
-      </section>
     </main>
     <script type="module" src="/benchmarks/ml-dense-mlp/neural-mlp-runner.js"></script>
     <script type="module" src="/multilang-runner.js"></script>
