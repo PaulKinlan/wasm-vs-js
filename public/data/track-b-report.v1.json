@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "program": "track-b",
-  "generatedAt": "2026-08-06T08:42:53.854Z",
+  "generatedAt": "2026-08-06T08:51:23.041Z",
   "trackANote": "Track A baselines are frozen, controlled workloads and are NEVER modified. Track B variants are independent optimizations, explicitly non-default, and never pooled with Track A claims.",
   "workloads": [
     {
       "workloadId": "sum-u32",
-      "label": "Modulo-2\u00b3\u00b2 Integer Sum",
+      "label": "Modulo-2³² Integer Sum",
       "correctness": "bit-identical",
       "optimizationLog": [
         "JS + C: 4-way loop unroll with independent accumulators (u32 addition is associative mod 2^32; result bit-identical).",
@@ -15,22 +15,22 @@
       "languages": [
         {
           "language": "JavaScript",
-          "baselineMs": 0.39930400000000005,
-          "optimizedMs": 0.3440016249999999
+          "baselineMs": 0.3968921250000001,
+          "optimizedMs": 0.34542055000000005
         },
         {
           "language": "C / Wasm",
-          "baselineMs": 0.19874730000000085,
-          "optimizedMs": 0.15196827500000012
+          "baselineMs": 0.19858382500000005,
+          "optimizedMs": 0.1531326000000007
         }
       ],
       "sources": {
         "javascript": [
-          "/src/multilang-wasm/track-b/sum_u32_opt.js"
+          "benchmarks/multilang-wasm/track-b/sum_u32_opt.js"
         ],
         "c": [
-          "/src/multilang-wasm/sum_u32.c",
-          "/src/multilang-wasm/track-b/sum_u32_opt.c"
+          "benchmarks/multilang-wasm/sum_u32.c",
+          "benchmarks/multilang-wasm/track-b/sum_u32_opt.c"
         ]
       }
     },
@@ -39,58 +39,58 @@
       "label": "Radix-2 FFT butterfly (512)",
       "correctness": "bit-identical",
       "optimizationLog": [
-        "JS: twiddle-sequence cache \u2014 the per-step complex-multiply advance is computed once and reused across all i blocks (same float ops, same order \u2192 bit-identical).",
-        "C: pointer-hoisted butterflies \u2014 real[v]/imag[v] read into locals once per j (op order unchanged)."
+        "JS: twiddle-sequence cache — the per-step complex-multiply advance computed once and reused (same float ops, same order → bit-identical). NEGATIVE RESULT: measured ~+25% slower in V8 (Float64Array allocation per step + lookup indirection outweigh the saved multiplies at LEN=512). Recorded honestly — not all optimizations win.",
+        "C: pointer-hoisted butterflies — real[v]/imag[v] read into locals once per j (op order unchanged)."
       ],
       "languages": [
         {
           "language": "JavaScript",
-          "baselineMs": 0.011390833333333223,
-          "optimizedMs": 0.014283949999999853
+          "baselineMs": 0.011473650000000172,
+          "optimizedMs": 0.014058849999999741
         },
         {
           "language": "C / Wasm",
-          "baselineMs": 0.0118638833333326,
-          "optimizedMs": 0.012142083333333175
+          "baselineMs": 0.011513050000000172,
+          "optimizedMs": 0.012002316666665062
         }
       ],
       "sources": {
         "javascript": [
-          "/src/multilang-wasm/track-b/fft_opt.js"
+          "benchmarks/multilang-wasm/track-b/fft_opt.js"
         ],
         "c": [
-          "/src/multilang-wasm/fft_kernel.c",
-          "/src/multilang-wasm/track-b/fft_opt.c"
+          "benchmarks/multilang-wasm/fft_kernel.c",
+          "benchmarks/multilang-wasm/track-b/fft_opt.c"
         ]
       }
     },
     {
       "workloadId": "ml-gemm",
-      "label": "strict-f32 GEMM (64\u00d764\u00d764)",
+      "label": "strict-f32 GEMM (64×64×64)",
       "correctness": "bit-identical",
       "optimizationLog": [
-        "JS: row-preload + 4-way unrolled inner loop WITHOUT per-op Math.fround (f64 accumulation; final write to Float32Array). Rounding differs from Track A \u2014 disclosed, verified within tolerance.",
-        "C: B-transpose for cache locality (contiguous b_row reads) + pointer-walked A row. Accumulation order UNCHANGED (strict f32, t ascending) \u2192 bit-identical to Track A."
+        "JS: row-preload + 4-way unrolled inner loop WITHOUT per-op Math.fround (f64 accumulation; final write to Float32Array). Rounding differs from Track A — disclosed, verified within tolerance.",
+        "C: B-transpose for cache locality (contiguous b_row reads) + pointer-walked A row. Accumulation order UNCHANGED (strict f32, t ascending) → bit-identical to Track A."
       ],
       "languages": [
         {
           "language": "JavaScript",
-          "baselineMs": 0.3942301750000013,
-          "optimizedMs": 0.15828094999999962
+          "baselineMs": 0.39518792499999905,
+          "optimizedMs": 0.15948607500000095
         },
         {
           "language": "C / Wasm",
-          "baselineMs": 0.07367677500000128,
-          "optimizedMs": 0.07553227500000048
+          "baselineMs": 0.0743044000000026,
+          "optimizedMs": 0.0752083749999997
         }
       ],
       "sources": {
         "javascript": [
-          "/src/multilang-wasm/track-b/gemm_opt.js"
+          "benchmarks/multilang-wasm/track-b/gemm_opt.js"
         ],
         "c": [
-          "/src/multilang-wasm/ml-gemm/gemm.c",
-          "/src/multilang-wasm/track-b/gemm_simd.c"
+          "benchmarks/multilang-wasm/ml-gemm/gemm.c",
+          "benchmarks/multilang-wasm/track-b/gemm_simd.c"
         ]
       }
     },
@@ -99,28 +99,28 @@
       "label": "20-pattern log scan (300 records)",
       "correctness": "bit-identical",
       "optimizationLog": [
-        "JS + C: split-loop bounds handling \u2014 a bounds-free fast path when the prefix fits (the baseline's check never fired there, so the comparison count is identical), checked loop only for the tail.",
+        "JS + C: split-loop bounds handling — a bounds-free fast path when the prefix fits (the baseline's check never fired there, so the comparison count is identical), checked loop only for the tail.",
         "C: pointer-walk prefix compare; JS: direct Uint8Array reads."
       ],
       "languages": [
         {
           "language": "JavaScript",
-          "baselineMs": 0.18949982499999862,
-          "optimizedMs": 0.1393990500000001
+          "baselineMs": 0.19266417499999874,
+          "optimizedMs": 0.13861819999999908
         },
         {
           "language": "C / Wasm",
-          "baselineMs": 0.08587829999999883,
-          "optimizedMs": 0.0864023000000003
+          "baselineMs": 0.08571417500000109,
+          "optimizedMs": 0.0866637250000025
         }
       ],
       "sources": {
         "javascript": [
-          "/src/multilang-wasm/track-b/scan_log_opt.js"
+          "benchmarks/multilang-wasm/track-b/scan_log_opt.js"
         ],
         "c": [
-          "/src/multilang-wasm/text-regex-log-scan/scan_log.c",
-          "/src/multilang-wasm/track-b/scan_log_opt.c"
+          "benchmarks/multilang-wasm/text-regex-log-scan/scan_log.c",
+          "benchmarks/multilang-wasm/track-b/scan_log_opt.c"
         ]
       }
     }

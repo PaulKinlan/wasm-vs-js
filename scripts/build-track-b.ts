@@ -209,7 +209,7 @@ async function measureFft() {
     label: "Radix-2 FFT butterfly (512)",
     correctness: "bit-identical",
     optimizationLog: [
-      "JS: twiddle-sequence cache — the per-step complex-multiply advance is computed once and reused across all i blocks (same float ops, same order → bit-identical).",
+      "JS: twiddle-sequence cache — the per-step complex-multiply advance computed once and reused (same float ops, same order → bit-identical). NEGATIVE RESULT: measured ~+25% slower in V8 (Float64Array allocation per step + lookup indirection outweigh the saved multiplies at LEN=512). Recorded honestly — not all optimizations win.",
       "C: pointer-hoisted butterflies — real[v]/imag[v] read into locals once per j (op order unchanged).",
     ],
     languages: [
