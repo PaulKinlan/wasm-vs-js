@@ -256,13 +256,13 @@ Deno.test("text demo source exposes worker cancellation, timeout, stale-token gu
   assert(controller.includes("message.data?.token !== active.token"));
   assert(controller.includes("output.textContent"));
   for (const id of ["text.diff-patch.v1", "text.markdown-cms.v1"]) {
-    const html = await Deno.readTextFile(`public/demos/${id}/index.html`);
+    const html = await Deno.readTextFile(`public/benchmarks/${id}/index.html`);
     assert(html.includes("No performance claim."));
     assert(html.includes("does not upload or store"));
     assert(html.includes('aria-live="polite"'));
     assert(html.includes("Start") && html.includes("Cancel"));
   }
-  const markdown = await Deno.readTextFile("public/demos/text.markdown-cms.v1/index.html");
+  const markdown = await Deno.readTextFile("public/benchmarks/text.markdown-cms.v1/index.html");
   assert(markdown.includes("Raw HTML permits only"));
   assert(markdown.includes("40,960 UTF-8 bytes"));
   assert(markdown.includes("4,096 non-empty lines"));

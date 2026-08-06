@@ -183,9 +183,9 @@ Deno.test("public pages contain no inline script, inline style, or remote asset"
       "public/evidence/index.html",
       "public/experiments/index.html",
       "public/evidence/v2-proposals/index.html",
-      "public/demos/game-canvas-arcade/index.html",
-      "public/demos/game-canvas-entity-pathfinding/index.html",
-      "public/demos/game-dom-tactics-grid/index.html",
+      "public/benchmarks/game-canvas-arcade/index.html",
+      "public/benchmarks/game-canvas-entity-pathfinding/index.html",
+      "public/benchmarks/game-dom-tactics-grid/index.html",
     ]
   ) {
     const html = await Deno.readTextFile(path);

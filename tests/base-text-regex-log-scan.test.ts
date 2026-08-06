@@ -186,7 +186,7 @@ Deno.test("base regex artifact, evidence records, routes, and lifecycle source a
     await Deno.readTextFile("public/artifacts/text-regex-log-scan/build-manifest.json"),
   );
   const { IDENTITY } = await import(
-    `../public/demos/base/text.regex-log-scan.v1/identity.js?test=${Date.now()}`
+    `../public/benchmarks/base/text.regex-log-scan.v1/identity.js?test=${Date.now()}`
   );
   const identityPaths: Record<string, string> = {
     registration: "public/data/base-implementations/text.regex-log-scan.v1.json",
@@ -197,7 +197,7 @@ Deno.test("base regex artifact, evidence records, routes, and lifecycle source a
     captures: "public/artifacts/text-regex-log-scan/ordered-captures.bin",
     inputModule: "benchmarks/text-regex-log-scan/input.js",
     workloadModule: "benchmarks/text-regex-log-scan/workload.js",
-    workerModule: "public/demos/base/text.regex-log-scan.v1/worker.js",
+    workerModule: "public/benchmarks/base/text.regex-log-scan.v1/worker.js",
   };
   for (const [name, path] of Object.entries(identityPaths)) {
     assertEquals(await sha256Hex(await Deno.readFile(path)), IDENTITY.rawSha256[name]);
@@ -241,10 +241,10 @@ Deno.test("base regex artifact, evidence records, routes, and lifecycle source a
   const handler = createHandler(null, "public");
   for (
     const path of [
-      "/demos/base/text.regex-log-scan.v1/",
-      "/demos/base/text.regex-log-scan.v1/demo.js",
-      "/demos/base/text.regex-log-scan.v1/worker.js",
-      "/demos/base/text.regex-log-scan.v1/identity.js",
+      "/benchmarks/base/text.regex-log-scan.v1/",
+      "/benchmarks/base/text.regex-log-scan.v1/demo.js",
+      "/benchmarks/base/text.regex-log-scan.v1/worker.js",
+      "/benchmarks/base/text.regex-log-scan.v1/identity.js",
       "/benchmarks/text-regex-log-scan/input.js",
       "/benchmarks/text-regex-log-scan/workload.js",
       "/data/base-implementations/text.regex-log-scan.v1.json",
@@ -262,13 +262,13 @@ Deno.test("base regex artifact, evidence records, routes, and lifecycle source a
     403,
   );
 
-  const demo = await Deno.readTextFile("public/demos/base/text.regex-log-scan.v1/demo.js");
+  const demo = await Deno.readTextFile("public/benchmarks/base/text.regex-log-scan.v1/demo.js");
   assert(demo.includes('new Worker("./worker.js", { type: "module" })'));
   assert(demo.includes("120_000"));
   assert(demo.includes('addEventListener("pagehide", cleanup)'));
   assert(demo.includes("ownedWorker") && demo.includes("runToken !== token"));
   assert(demo.includes("worker.terminate()"));
-  const html = await Deno.readTextFile("public/demos/base/text.regex-log-scan.v1/index.html");
+  const html = await Deno.readTextFile("public/benchmarks/base/text.regex-log-scan.v1/index.html");
   assert(html.includes("No performance claim."));
   assert(html.includes("Nothing is uploaded or stored."));
   assert(html.includes("104,857,600 input bytes"));

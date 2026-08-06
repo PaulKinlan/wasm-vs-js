@@ -82,7 +82,7 @@ Deno.test("unicode editor registration rejects recipe, counting, claim, route, a
   winner.performanceClaims = ["Wasm wins"];
   assertInvalid(winner);
   const route = cloneRegistration();
-  route.publicRoutes = ["/demos/text.unicode-editor.v1/"];
+  route.publicRoutes = ["/benchmarks/text.unicode-editor.v1/"];
   assertInvalid(route);
   const artifact = cloneRegistration();
   artifact.publicArtifacts = ["public/unicode.wasm"];

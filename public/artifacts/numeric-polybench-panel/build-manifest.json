@@ -43,7 +43,7 @@
       "sha256": "f3477b948269e4d287407950306093532dfa073b6d780bd263076cadc3faf9a8"
     },
     {
-      "path": "public/demos/numeric.polybench-panel.v1/index.html",
+      "path": "public/benchmarks/numeric.polybench-panel.v1/index.html",
       "bytes": 5289,
       "sha256": "135c580468b07d5b6965a57f2c103fe81e851d0314def8c067a93a67cc78139e"
     },

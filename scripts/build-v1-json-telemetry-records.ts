@@ -40,7 +40,7 @@ const manifests = await Promise.all([
 const artifact = await ref("public/artifacts/serialization-json-telemetry/telemetry.wasm");
 const buildRecipe = await ref("scripts/build-v1-json-telemetry.ts");
 const demo = await Promise.all([
-  ref("public/demos/serialization.json-telemetry.v1/index.html"),
+  ref("public/benchmarks/serialization.json-telemetry.v1/index.html"),
   ref("public/telemetry-demo.js"),
   ref("public/telemetry-worker.js"),
   ref("public/telemetry-module-loader.js"),

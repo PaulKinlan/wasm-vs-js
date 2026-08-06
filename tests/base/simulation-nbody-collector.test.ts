@@ -47,13 +47,13 @@ function scenario(id: string, target: string, action: string) {
     ? "timeout-shortening"
     : "pagehide-dispatch";
   const shellRoutes = [
-    "/demos/simulation-nbody-cloth/",
+    "/benchmarks/simulation-nbody-cloth/",
     "/styles.css",
-    "/demos/simulation-nbody-cloth/demo.js",
+    "/benchmarks/simulation-nbody-cloth/demo.js",
   ];
   const completeRoutes = [
     ...shellRoutes,
-    "/demos/simulation-nbody-cloth/worker.js",
+    "/benchmarks/simulation-nbody-cloth/worker.js",
     "/benchmarks/base/simulation-nbody/contract.js",
     "/benchmarks/base/simulation-nbody/fixture.js",
     "/benchmarks/base/simulation-nbody/engine.js",
@@ -76,7 +76,7 @@ function scenario(id: string, target: string, action: string) {
     id,
     target,
     action,
-    route: "/demos/simulation-nbody-cloth/",
+    route: "/benchmarks/simulation-nbody-cloth/",
     cdpBoundBeforeNavigation: true,
     lifecycleInjection: { kind, expression: injectionExpression },
     finalState: {
@@ -91,7 +91,7 @@ function scenario(id: string, target: string, action: string) {
     network: assetRoutes.map((route) => ({
       url: `http://127.0.0.1:1234${route}`,
       method: "GET",
-      type: route === "/demos/simulation-nbody-cloth/" ? "Document" : "Script",
+      type: route === "/benchmarks/simulation-nbody-cloth/" ? "Document" : "Script",
       status: 200,
       mimeType: route.endsWith(".wasm") ? "application/wasm" : "text/javascript",
       fromDiskCache: false,
@@ -348,7 +348,7 @@ Deno.test("N-body browser evidence schema is closed over source, raw responses, 
   });
   rejected((value) => value.scenarios[0].executedAssets.pop());
   rejected((value) =>
-    value.scenarios[0].executedAssets[0].sourcePath = "public/demos/simulation-nbody-cloth/demo.js"
+    value.scenarios[0].executedAssets[0].sourcePath = "public/benchmarks/simulation-nbody-cloth/demo.js"
   );
   rejected((value) => (value as Record<string, unknown>).invented = true);
 });
@@ -359,9 +359,9 @@ Deno.test("N-body collector binds every served executable body and contains no r
     "/benchmarks/base/simulation-nbody/contract.js",
     "/benchmarks/base/simulation-nbody/engine.js",
     "/benchmarks/base/simulation-nbody/fixture.js",
-    "/demos/simulation-nbody-cloth/",
-    "/demos/simulation-nbody-cloth/demo.js",
-    "/demos/simulation-nbody-cloth/worker.js",
+    "/benchmarks/simulation-nbody-cloth/",
+    "/benchmarks/simulation-nbody-cloth/demo.js",
+    "/benchmarks/simulation-nbody-cloth/worker.js",
     "/styles.css",
   ]);
   const source = await Deno.readTextFile("scripts/collect-base-simulation-nbody-evidence.ts");

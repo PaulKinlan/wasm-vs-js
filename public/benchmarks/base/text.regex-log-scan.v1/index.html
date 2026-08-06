@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>100 MiB regex log scan | Wasm versus JavaScript</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="./demo.js"></script>
+  </head>
+  <body
+    data-multilang-manifest="/benchmarks/multilang-wasm/text-regex-log-scan.manifest.json"
+    data-multilang-form="#ml-form"
+    data-multilang-start="#ml-start"
+    data-multilang-cancel="#ml-cancel"
+    data-multilang-status="#ml-status"
+    data-multilang-reporting="#ml-reporting"
+    data-multilang-iterations="#ml-iterations"
+   data-workload="text-regex-log-scan">
+    <a class="skip" href="#main">Skip to main content</a>
+    <header class="masthead">
+      <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
+      <a href="/benchmarks/">Browse Catalog</a>
+      <a href="/experiments/">Experiment</a>
+      <a href="/evidence/">Evidence</a>
+      <strong>data v1</strong>
+    </header>
+    <main id="main" class="page-shell">
+      <section class="demo-panel" aria-labelledby="run-heading">
+        <h2 id="run-heading">Run Benchmark Loop</h2>
+        <form id="demo-form">
+          <div class="controls">
+            <label for="target">
+              <span>Target Engine</span>
+              <select id="target" name="target">
+                <option value="both" selected>Compare Side-by-Side (JS vs Wasm)</option>
+                <option value="javascript">JavaScript Engine</option>
+                <option value="wasm">WebAssembly Engine</option>
+              </select>
+            </label>
+            <label for="iterations">
+              <span>Loop Iterations</span>
+              <select id="iterations" name="iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10">10 iterations</option>
+                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                <option value="50">50 iterations</option>
+                <option value="100">100 iterations (Sustained loop)</option>
+              </select>
+            </label>
+            <button id="start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="status" role="status" aria-live="polite">
+          Ready. Select target and loop iterations, then click Start.
+        </p>
+        <div id="perf-reporting" class="detail-grid" hidden></div>
+      </section>
+
+      <p class="eyebrow">FULL BASE CONTRACT · TEXT.REGEX-LOG-SCAN.V1</p>
+      <h1>Scan 100 MiB with 20 safe patterns</h1>
+      <p><strong>No performance claim.</strong> A fresh worker generates the registered 100 MiB multilingual log, extracts every URL, IPv4 address, and status code, then checks the complete ordered-capture hash and structural counters. Nothing is uploaded or stored.</p>
+      <section class="panel" aria-labelledby="controls-title">
+        <h2 id="controls-title">Controlled target</h2>
+        <form id="run-form">
+          <label for="engine">Engine</label>
+          <select id="engine" name="engine">
+            <option value="js-controlled">JavaScript controlled</option>
+            <option value="wasm-linear-controlled">Linear Wasm controlled</option>
+          </select>
+          <p
+            id="limits">Exact registered work: 104,857,600 input bytes, 20 frozen patterns, 2,097,152,000 logical pattern-bytes, one iteration. The worker stops after 120 seconds.</p>
+          <div
+            class="button-row"><button id="rl-start" type="submit">Start</button><button id="rl-cancel" type="button" disabled>Cancel</button></div>
+        </form>
+        <progress id="progress" max="4" value="0" aria-label="Run progress"></progress>
+        <p id="rl-status" role="status" aria-live="polite">Ready.</p>
+        <pre id="result" tabindex="0">No result yet.</pre>
+      </section>
+      <section>
+        <h2>Registered semantics and evidence</h2>
+        <p>The bounded set automaton uses byte-exact UTF-8 input, ASCII patterns, strict IPv4 octets, status codes from 100 through 599, and URL tails limited to 96 bytes. Captures retain byte offsets and overlap across different patterns.</p>
+        <ul>
+          <li><a href="/data/base-implementations/text.regex-log-scan.v1.json">Supplemental registration</a></li>
+          <li><a href="/artifacts/text-regex-log-scan/build-manifest.json">Build manifest</a></li>
+          <li><a href="/artifacts/text-regex-log-scan/ordered-captures.bin">Canonical capture artifact</a></li>
+          <li><a href="/evidence/base/text.regex-log-scan.v1/wasm-linear-controlled.json">Wasm correctness record</a></li>
+        </ul>
+        <p>This is separate from the 1 MiB regex automata duel, which remains a reduced fixture and does not count as this base contract.</p>
+      </section>
+
+      <section class="demo-panel" aria-labelledby="ml-heading">
+        <h2 id="ml-heading">Multi-Language Comparison</h2>
+        <p>
+          The same log-scan pattern matcher over the 20 fixed SAFE_PATTERNS (url-tail / ipv4 /
+          status classes with first-byte dispatch; 640-record reduced corpus, 64 events) written
+          in JavaScript, C, C++, and Dart (WasmGC). All variants are bit-identical to the JS
+          <code>scanControlled</code> oracle — same matches, same candidateStarts /
+          prefixComparisons / tailComparisons counters (test-verified). Rust is documented
+          in-progress. Sources:
+          <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/tree/main/benchmarks/multilang-wasm/text-regex-log-scan">scan_log.c · .cpp · .dart</a>.
+        </p>
+        <form id="ml-form">
+          <div class="controls">
+            <label for="ml-target"><span>Target Engine</span>
+              <select id="ml-target" name="target" disabled>
+                <option value="all" selected>Compare All Implementations</option>
+              </select></label>
+            <label for="ml-iterations"><span>Loop Iterations</span>
+              <select id="ml-iterations" name="iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10">10 iterations</option>
+                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                <option value="50">50 iterations</option>
+                <option value="100">100 iterations (Sustained loop)</option>
+              </select></label>
+            <button id="ml-start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="ml-cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="ml-status" role="status"
+          aria-live="polite">Ready. Select loop iterations, then click Start.</p>
+        <div id="ml-reporting" class="detail-grid" hidden></div>
+      </section>
+    </main>
+    <script type="module" src="/unified-runner.js"></script>
+    <script type="module" src="/multilang-runner.js"></script>
+  </body>
+</html>

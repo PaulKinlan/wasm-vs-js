@@ -4,14 +4,14 @@ import { assertJsonTelemetryEvidenceRelationships } from "../lib/json-telemetry-
 
 const SCRIPT = "scripts/collect-v1-json-telemetry-browser-evidence.ts";
 const WORKLOAD = "serialization.json-telemetry.v1";
-const DEMO_ROUTE = "/demos/serialization.json-telemetry.v1/";
+const DEMO_ROUTE = "/benchmarks/serialization.json-telemetry.v1/";
 const CFT_PRODUCT = "Chrome/150.0.7871.24";
 const CFT_SHA256 = "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355";
 const DENO_VERSION = "2.9.0";
 const WORKLOAD_PATH = "benchmarks/v1/serialization-json-telemetry/workload.js";
 const WORKLOAD_SHA256 = "54e2ee54b225d8454664dc6a24f5fa178ee0652ccf0e7e01eea93b17f29530f8";
 const SOURCE_PATHS = [
-  "public/demos/serialization.json-telemetry.v1/index.html",
+  "public/benchmarks/serialization.json-telemetry.v1/index.html",
   "public/styles.css",
   "public/favicon.svg",
   "public/telemetry-demo.js",
@@ -286,7 +286,7 @@ const executableBytes = requestedExecutableBytes.length;
 
 const sourcePathFor = (urlValue: string): string | null => {
   const path = new URL(urlValue).pathname;
-  if (path === DEMO_ROUTE) return "public/demos/serialization.json-telemetry.v1/index.html";
+  if (path === DEMO_ROUTE) return "public/benchmarks/serialization.json-telemetry.v1/index.html";
   if (path === "/styles.css") return "public/styles.css";
   if (path === "/favicon.ico" || path === "/favicon.svg") return "public/favicon.svg";
   if (path === "/telemetry-demo.js") return "public/telemetry-demo.js";

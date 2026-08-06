@@ -29,7 +29,7 @@ const EXPECTED_EXECUTABLE_SHA256 =
   "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355";
 const EVIDENCE_ID = "server-ssr-template-chrome-150-browser-evidence-v1";
 const EXPECTED_PACKAGE_COMMIT = "9fbb8aa0b631e8f0ed9ca9197d4acacdb5aa6692";
-const ROUTE = "/demos/server.ssr-template.v1/";
+const ROUTE = "/benchmarks/server.ssr-template.v1/";
 const COLLECTOR_PATH = "scripts/collect-base-server-ssr-evidence.ts";
 const ATTESTATION_PATHS = new Set([
   "schemas/base-server-ssr-browser-evidence.schema.json",
@@ -166,7 +166,7 @@ if (
 ) throw new Error("registration, package pin, and package source commit are not cross-bound");
 
 const ASSETS = [
-  [ROUTE, "public/demos/server.ssr-template.v1/index.html", "text/html"],
+  [ROUTE, "public/benchmarks/server.ssr-template.v1/index.html", "text/html"],
   ["/styles.css", "public/styles.css", "text/css"],
   ["/base-server-ssr-demo.js", "public/base-server-ssr-demo.js", "text/javascript"],
   ["/base-server-ssr-worker.js", "public/base-server-ssr-worker.js", "text/javascript"],

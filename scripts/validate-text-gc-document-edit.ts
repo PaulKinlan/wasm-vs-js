@@ -149,7 +149,7 @@ const status = {
       "public/evidence/v1-base/text-gc-document-edit/wasmgc-controlled.json",
     ],
     interactiveDemo: {
-      route: "/demos/text.gc-document-edit.v1/",
+      route: "/benchmarks/text.gc-document-edit.v1/",
       status: "implemented-awaiting-browser-evidence",
     },
     browserEvidence: {

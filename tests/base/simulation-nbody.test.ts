@@ -143,13 +143,13 @@ Deno.test("N-body Wasm memory is fixed and repeat runs clear all state", async (
 });
 
 Deno.test("N-body demo lifecycle is fresh-worker, token-bound, cancellable, bounded and non-persistent", async () => {
-  const demo = await Deno.readTextFile("public/demos/simulation-nbody-cloth/demo.js");
-  assert(demo.includes('new Worker("/demos/simulation-nbody-cloth/worker.js"'));
+  const demo = await Deno.readTextFile("public/benchmarks/simulation-nbody-cloth/demo.js");
+  assert(demo.includes('new Worker("/benchmarks/simulation-nbody-cloth/worker.js"'));
   assert(demo.includes("worker !== owned") && demo.includes("token !== runToken"));
   assert(demo.includes("worker?.terminate()") && demo.includes("30_000"));
   assert(demo.includes('addEventListener("pagehide"'));
   assert(!/(localStorage|sessionStorage|indexedDB|fetch\s*\()/u.test(demo));
-  const page = await Deno.readTextFile("public/demos/simulation-nbody-cloth/index.html");
+  const page = await Deno.readTextFile("public/benchmarks/simulation-nbody-cloth/index.html");
   assert(page.includes('role="status"') && page.includes('aria-live="polite"'));
   assert(page.includes("No performance claim.") && page.includes("stores and uploads nothing"));
 });
@@ -158,8 +158,8 @@ Deno.test("N-body public routes are closed, typed, and mutation-safe", async () 
   const handler = createHandler(null, "public");
   for (
     const path of [
-      "/demos/simulation-nbody-cloth/",
-      "/demos/simulation-nbody-cloth/worker.js",
+      "/benchmarks/simulation-nbody-cloth/",
+      "/benchmarks/simulation-nbody-cloth/worker.js",
       "/benchmarks/base/simulation-nbody/engine.js",
       "/artifacts/base-simulation-nbody/nbody.wasm",
       "/evidence/base-catalog/simulation-nbody-cloth/js-controlled.json",

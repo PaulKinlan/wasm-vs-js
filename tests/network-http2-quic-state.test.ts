@@ -154,7 +154,7 @@ Deno.test("public handler exposes only the declared demo and artifact routes", a
   const handler = createHandler(null, "public");
   for (
     const path of [
-      "/demos/base/network-http2-quic-state/",
+      "/benchmarks/base/network-http2-quic-state/",
       "/network-http2-quic-state-demo.js",
       "/network-http2-quic-state-worker.js",
       "/benchmarks/v1/network-http2-quic-state/engine.js",
@@ -188,7 +188,7 @@ Deno.test("demo lifecycle owns worker cancellation, timeout, stale token and pag
     ]
   ) {
     if (required === "aria-live") {
-      const page = await Deno.readTextFile("public/demos/base/network-http2-quic-state/index.html");
+      const page = await Deno.readTextFile("public/benchmarks/base/network-http2-quic-state/index.html");
       assert(page.includes(required));
     } else assert(source.includes(required));
   }

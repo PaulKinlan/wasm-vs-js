@@ -369,17 +369,17 @@ Deno.test("Wasm memory is fixed and repeat runs clear complete output state", as
 });
 
 Deno.test("bracket demo lifecycle is fresh-worker, cancellable, token-bound and non-persistent", async () => {
-  const demo = await Deno.readTextFile("public/demos/cad-parametric-bracket/demo.js");
-  assert(demo.includes('new Worker("/demos/cad-parametric-bracket/worker.js"'));
+  const demo = await Deno.readTextFile("public/benchmarks/cad-parametric-bracket/demo.js");
+  assert(demo.includes('new Worker("/benchmarks/cad-parametric-bracket/worker.js"'));
   assert(demo.includes("worker !== owned") && demo.includes("token !== runToken"));
   assert(demo.includes("worker?.terminate()") && demo.includes("10_000"));
   assert(demo.includes('addEventListener("pagehide"'));
   assert(demo.includes("oracleVerified") && demo.includes("Frozen exact-output oracle verified"));
-  const worker = await Deno.readTextFile("public/demos/cad-parametric-bracket/worker.js");
+  const worker = await Deno.readTextFile("public/benchmarks/cad-parametric-bracket/worker.js");
   assert(worker.includes('crypto.subtle.digest("SHA-256"'));
   assert(worker.includes("completeOutputSha256 !== manifest.completeOutputSha256"));
   assert(!/(localStorage|sessionStorage|indexedDB)/u.test(demo));
-  const page = await Deno.readTextFile("public/demos/cad-parametric-bracket/index.html");
+  const page = await Deno.readTextFile("public/benchmarks/cad-parametric-bracket/index.html");
   assert(page.includes('role="status"') && page.includes('aria-live="polite"'));
   assert(page.includes("No performance claim.") && page.includes("stores and uploads nothing"));
 });
@@ -388,8 +388,8 @@ Deno.test("bracket routes are closed, typed and mutation-safe", async () => {
   const handler = createHandler(null, "public");
   for (
     const path of [
-      "/demos/cad-parametric-bracket/",
-      "/demos/cad-parametric-bracket/worker.js",
+      "/benchmarks/cad-parametric-bracket/",
+      "/benchmarks/cad-parametric-bracket/worker.js",
       "/benchmarks/base/cad-parametric-bracket/engine.js",
       "/artifacts/base-cad-parametric-bracket/bracket.wasm",
       "/evidence/base-catalog/cad-parametric-bracket/js-controlled.json",

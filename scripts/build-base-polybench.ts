@@ -54,7 +54,7 @@ const sourcePaths = [
   "deno.lock",
   "deno.polybench.json",
   "evidence/base/numeric-polybench-panel/prior-art-verification.json",
-  "public/demos/numeric.polybench-panel.v1/index.html",
+  "public/benchmarks/numeric.polybench-panel.v1/index.html",
   "public/polybench-panel-demo.js",
   "public/polybench-panel-worker.js",
   "schemas/base-correctness-record.schema.json",

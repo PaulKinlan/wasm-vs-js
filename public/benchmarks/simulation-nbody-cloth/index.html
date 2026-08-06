@@ -24,6 +24,38 @@
       <strong>data v1</strong>
     </header>
     <main id="main">
+      <section class="demo-panel" aria-labelledby="run-heading">
+        <h2 id="run-heading">Run Benchmark Loop</h2>
+        <form id="demo-form">
+          <div class="controls">
+            <label for="target">
+              <span>Target Engine</span>
+              <select id="target" name="target">
+                <option value="both" selected>Compare Side-by-Side (JS vs Wasm)</option>
+                <option value="javascript">JavaScript Engine</option>
+                <option value="wasm">WebAssembly Engine</option>
+              </select>
+            </label>
+            <label for="iterations">
+              <span>Loop Iterations</span>
+              <select id="iterations" name="iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10">10 iterations</option>
+                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                <option value="50">50 iterations</option>
+                <option value="100">100 iterations (Sustained loop)</option>
+              </select>
+            </label>
+            <button id="nb-start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="nb-cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="nb-status" role="status" aria-live="polite">
+          Ready. Select target and loop iterations, then click Start.
+        </p>
+        <div id="perf-reporting" class="detail-grid" hidden></div>
+      </section>
+
       <header>
         <p
           class="eyebrow">Simulation Workload · 1024 bodies × 120 timesteps · simulation.nbody-cloth.v1</p>
@@ -78,6 +110,7 @@
         <div id="ml-reporting" class="detail-grid" hidden></div>
       </section>
     </main>
+    <script type="module" src="/unified-runner.js"></script>
     <script type="module" src="/multilang-runner.js"></script>
   </body>
 </html>

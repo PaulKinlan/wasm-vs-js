@@ -214,9 +214,9 @@ Deno.test("public routes are closed, readable, and the demo owns worker lifecycl
   const handler = createHandler(null, "public");
   for (
     const path of [
-      "/demos/game-ecs-frame-update/",
-      "/demos/game-ecs-frame-update/demo.js",
-      "/demos/game-ecs-frame-update/worker.js",
+      "/benchmarks/game-ecs-frame-update/",
+      "/benchmarks/game-ecs-frame-update/demo.js",
+      "/benchmarks/game-ecs-frame-update/worker.js",
       "/benchmarks/v1/game-ecs-frame-update/engine.js",
       "/benchmarks/v1/game-ecs-frame-update/fixture.js",
       "/artifacts/game-ecs-frame-update-v1/ecs-frame-update.wasm",
@@ -235,18 +235,18 @@ Deno.test("public routes are closed, readable, and the demo owns worker lifecycl
       .status,
     404,
   );
-  const page = await Deno.readTextFile("public/demos/game-ecs-frame-update/index.html");
+  const page = await Deno.readTextFile("public/benchmarks/game-ecs-frame-update/index.html");
   assert(page.includes("10,000 entities over 1,000 frames"));
   assert(page.includes("No performance claim."));
   assert(page.includes("Nothing is uploaded or stored."));
   assert(!page.includes("<script>"));
-  const runner = await Deno.readTextFile("public/demos/game-ecs-frame-update/demo.js");
+  const runner = await Deno.readTextFile("public/benchmarks/game-ecs-frame-update/demo.js");
   for (
     const required of ["new Worker", "120_000", "terminate()", "pagehide", "token !== runToken"]
   ) {
     assert(runner.includes(required));
   }
-  const worker = await Deno.readTextFile("public/demos/game-ecs-frame-update/worker.js");
+  const worker = await Deno.readTextFile("public/benchmarks/game-ecs-frame-update/worker.js");
   for (const required of ["complete state SHA-256", "27_086_270", "8_538", "wasmSha256"]) {
     assert(worker.includes(required));
   }

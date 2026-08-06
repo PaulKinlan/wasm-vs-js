@@ -47,17 +47,17 @@ export const WORKLOAD_CONFIGS = {
     tokenType: "string",
   },
   "game-canvas-arcade": {
-    workerScript: "/demos/game-family/worker.js",
+    workerScript: "/benchmarks/game-family/worker.js",
     protocol: "game-family",
     workloadId: "game.canvas-arcade.v1",
   },
   "game-canvas-entity-pathfinding": {
-    workerScript: "/demos/game-family/worker.js",
+    workerScript: "/benchmarks/game-family/worker.js",
     protocol: "game-family",
     workloadId: "game.canvas-entity-pathfinding.v1",
   },
   "game-dom-tactics-grid": {
-    workerScript: "/demos/game-family/worker.js",
+    workerScript: "/benchmarks/game-family/worker.js",
     protocol: "game-family",
     workloadId: "game.dom-tactics-grid.v1",
   },
@@ -130,7 +130,7 @@ export const WORKLOAD_CONFIGS = {
     protocol: "protobuf",
   },
   "cad-parametric-bracket": {
-    workerScript: "/demos/cad-parametric-bracket/worker.js",
+    workerScript: "/benchmarks/cad-parametric-bracket/worker.js",
     protocol: "bracket",
   },
   "crypto-file-integrity-v1": {
@@ -138,7 +138,7 @@ export const WORKLOAD_CONFIGS = {
     protocol: "file-integrity",
   },
   "game-ecs-frame-update": {
-    workerScript: "/demos/game-ecs-frame-update/worker.js",
+    workerScript: "/benchmarks/game-ecs-frame-update/worker.js",
     protocol: "ecs-frame",
   },
   "network-pcap-decode-v1": {
@@ -172,7 +172,7 @@ export const WORKLOAD_CONFIGS = {
     protocol: "audio-effects",
   },
   "simulation-nbody-cloth": {
-    workerScript: "/demos/simulation-nbody-cloth/worker.js",
+    workerScript: "/benchmarks/simulation-nbody-cloth/worker.js",
     protocol: "nbody-cloth",
   },
   "simulation-rigid-body-2d-v1": {
@@ -184,7 +184,7 @@ export const WORKLOAD_CONFIGS = {
     protocol: "c-to-wasm",
   },
   "text-regex-log-scan": {
-    workerScript: "/demos/base/text.regex-log-scan.v1/worker.js",
+    workerScript: "/benchmarks/base/text.regex-log-scan.v1/worker.js",
     protocol: "text-regex",
   },
   "dom-dependent-form-validation": {

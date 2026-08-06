@@ -76,9 +76,9 @@ const sourcePaths = [
   "benchmarks/text-regex-log-scan/text-regex-log-scan.wat",
   "benchmarks/text-regex-log-scan/registration.json",
   "scripts/build-text-regex-log-scan.ts",
-  "public/demos/base/text.regex-log-scan.v1/index.html",
-  "public/demos/base/text.regex-log-scan.v1/demo.js",
-  "public/demos/base/text.regex-log-scan.v1/worker.js",
+  "public/benchmarks/base/text.regex-log-scan.v1/index.html",
+  "public/benchmarks/base/text.regex-log-scan.v1/demo.js",
+  "public/benchmarks/base/text.regex-log-scan.v1/worker.js",
   "schemas/base-workload-registration.schema.json",
   "schemas/base-workload-correctness-record.schema.json",
   "tests/base-text-regex-log-scan.test.ts",
@@ -135,7 +135,7 @@ const buildManifest = {
   },
   build: {
     command:
-      "deno run --allow-read=. --allow-write=public/artifacts,public/evidence,public/data,public/demos/base/text.regex-log-scan.v1 scripts/build-text-regex-log-scan.ts",
+      "deno run --allow-read=. --allow-write=public/artifacts,public/evidence,public/data,public/benchmarks/base/text.regex-log-scan.v1 scripts/build-text-regex-log-scan.ts",
     toolchains: [`Deno ${Deno.version.deno}`, "wabt 1.0.37"],
     flags: ["canonicalize_lebs=true", "write_debug_names=false", "fixed memory 1800 pages"],
     lockfile: {
@@ -153,7 +153,7 @@ const publicRegistration = {
     buildManifest: "/artifacts/text-regex-log-scan/build-manifest.json",
     artifact: "/artifacts/text-regex-log-scan/text-regex-log-scan.wasm",
     canonicalOutput: "/artifacts/text-regex-log-scan/ordered-captures.bin",
-    demo: "/demos/base/text.regex-log-scan.v1/",
+    demo: "/benchmarks/base/text.regex-log-scan.v1/",
     evidence: [
       "/evidence/base/text.regex-log-scan.v1/js-controlled.json",
       "/evidence/base/text.regex-log-scan.v1/wasm-linear-controlled.json",
@@ -245,7 +245,7 @@ const identityText =
     JSON.stringify(identity.sourceCommit)
   },\n  "rawSha256": {\n${identityEntries}\n  },\n};\n`;
 await Deno.writeTextFile(
-  new URL("public/demos/base/text.regex-log-scan.v1/identity.js", root),
+  new URL("public/benchmarks/base/text.regex-log-scan.v1/identity.js", root),
   identityText,
 );
 console.log(

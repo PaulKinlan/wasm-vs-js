@@ -22,7 +22,7 @@ export const WORKERS: Record<string, string> = {
   "pcap-decode": "public/pcap-decode-worker.js",
   "text-gc-document-edit": "public/text-gc-document-edit-worker.js",
   "cad-mesh-repair": "public/benchmarks/cad-mesh-repair-v1/worker.js",
-  "game-ecs-frame-update": "public/demos/game-ecs-frame-update/worker.js",
+  "game-ecs-frame-update": "public/benchmarks/game-ecs-frame-update/worker.js",
 };
 
 /** Generated key → anchor key → artifact file the anchor pins (route path under public/). */

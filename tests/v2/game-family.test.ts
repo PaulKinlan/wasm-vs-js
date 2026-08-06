@@ -358,8 +358,8 @@ Deno.test("game builder reproduces committed artifacts and records from its exac
 });
 
 Deno.test("runnable pages use fixed worker controls, real replay traces, accessible text, and no-JS fallback", async () => {
-  const demo = await Deno.readTextFile("public/demos/game-family/demo.js");
-  const worker = await Deno.readTextFile("public/demos/game-family/worker.js");
+  const demo = await Deno.readTextFile("public/benchmarks/game-family/demo.js");
+  const worker = await Deno.readTextFile("public/benchmarks/game-family/worker.js");
   assert(demo.includes("data.token !== token"));
   assert(demo.includes("worker?.terminate()"));
   assert(demo.includes("result.replay"));
@@ -369,7 +369,7 @@ Deno.test("runnable pages use fixed worker controls, real replay traces, accessi
   for (
     const slug of ["game-canvas-arcade", "game-canvas-entity-pathfinding", "game-dom-tactics-grid"]
   ) {
-    const html = await Deno.readTextFile(`public/demos/${slug}/index.html`);
+    const html = await Deno.readTextFile(`public/benchmarks/${slug}/index.html`);
     assert(html.includes("Proposal-validation demo, not a performance result."));
     assert(html.includes("<noscript>"));
     assert(html.includes('id="start" type="button" disabled'));

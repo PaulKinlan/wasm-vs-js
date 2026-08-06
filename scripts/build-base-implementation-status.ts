@@ -38,7 +38,7 @@ const ledger = {
         new URL("public/evidence/base/crypto.file-integrity.v1/validation.json", root),
       ),
     ),
-    demoRoute: "/demos/crypto.file-integrity.v1/",
+    demoRoute: "/benchmarks/crypto.file-integrity.v1/",
     performanceStatus: "unavailable-not-collected",
   }],
   remainingIds: catalog.entries.map((entry: { id: string }) => entry.id),

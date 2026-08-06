@@ -2,9 +2,9 @@ import { canonicalize, sha256Hex } from "./canonical.ts";
 
 const WORKLOAD_PATH = "benchmarks/v1/serialization-json-telemetry/workload.js";
 const WORKLOAD_SHA256 = "54e2ee54b225d8454664dc6a24f5fa178ee0652ccf0e7e01eea93b17f29530f8";
-const DEMO_ROUTE = "/demos/serialization.json-telemetry.v1/";
+const DEMO_ROUTE = "/benchmarks/serialization.json-telemetry.v1/";
 const SOURCE_PATHS = [
-  "public/demos/serialization.json-telemetry.v1/index.html",
+  "public/benchmarks/serialization.json-telemetry.v1/index.html",
   "public/styles.css",
   "public/favicon.svg",
   "public/telemetry-demo.js",
@@ -150,7 +150,7 @@ function expectedResourceType(path: string): string {
   return "Fetch";
 }
 function expectedSourcePath(path: string): string | null {
-  if (path === DEMO_ROUTE) return "public/demos/serialization.json-telemetry.v1/index.html";
+  if (path === DEMO_ROUTE) return "public/benchmarks/serialization.json-telemetry.v1/index.html";
   if (path === "/styles.css") return "public/styles.css";
   if (path === "/telemetry-demo.js") return "public/telemetry-demo.js";
   if (path === "/telemetry-worker.js") return "public/telemetry-worker.js";

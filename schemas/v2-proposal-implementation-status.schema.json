@@ -418,7 +418,7 @@
               "oneOf": [
                 {
                   "type": "string",
-                  "pattern": "^/(?:demos/[a-z0-9.-]+|benchmarks/audio-(?:fft|fir|stft))/$"
+                  "pattern": "^/(?:demos/[a-z0-9.-]+|benchmarks/[a-z0-9.-]+(?:/base/[a-z0-9.-]+)?)/$"
                 },
                 {
                   "type": "null"

@@ -204,7 +204,7 @@ Deno.test("public mode exposes only the explicit demo, source, artifact, and man
   const contentAddressedModule =
     "/benchmarks/v1/serialization-json-telemetry/workload.54e2ee54b225d8454664dc6a24f5fa178ee0652ccf0e7e01eea93b17f29530f8.js";
   const routes = [
-    "/demos/serialization.json-telemetry.v1/",
+    "/benchmarks/serialization.json-telemetry.v1/",
     "/telemetry-demo.js",
     "/telemetry-worker.js",
     "/telemetry-module-loader.js",
@@ -338,7 +338,7 @@ Deno.test("demo lifecycle source uses fresh workers, stale-token rejection, boun
       "crypto",
     ].filter((value) => value !== "crypto")
   ) assert(source.includes(required), required);
-  const page = await Deno.readTextFile("public/demos/serialization.json-telemetry.v1/index.html");
+  const page = await Deno.readTextFile("public/benchmarks/serialization.json-telemetry.v1/index.html");
   for (
     const required of [
       "Nothing is uploaded, stored, or ranked",

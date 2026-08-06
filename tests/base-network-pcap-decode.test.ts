@@ -347,7 +347,7 @@ Deno.test("public server exposes the closed PCAP demo package read-only", async 
   const handler = createHandler(null, "public");
   for (
     const path of [
-      "/demos/network.pcap-decode.v1/",
+      "/benchmarks/network.pcap-decode.v1/",
       "/pcap-decode-demo.js",
       "/pcap-decode-worker.js",
       "/benchmarks/base/network-pcap-decode/engine.js",
@@ -379,7 +379,7 @@ Deno.test("demo lifecycle uses fresh workers, cancellation, stale rejection, tim
   assert(runner.includes("generation !== runGeneration"));
   assert(runner.includes("TIMEOUT_MS"));
   assert(runner.includes('addEventListener("pagehide"'));
-  const page = await Deno.readTextFile("public/demos/network.pcap-decode.v1/index.html");
+  const page = await Deno.readTextFile("public/benchmarks/network.pcap-decode.v1/index.html");
   assert(page.includes('aria-live="polite"'));
   assert(page.includes("No performance claim"));
   assert(page.includes("does not upload, retain, or rank"));

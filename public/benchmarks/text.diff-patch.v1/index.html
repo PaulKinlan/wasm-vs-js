@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>Unicode line diff demo | Wasm versus JavaScript</title>
+    <meta name="description"
+      content="Run the text.diff-patch.v1 controlled JavaScript or authored linear-WebAssembly engine on bounded text.">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="/unified-runner.js"></script>
+    <script type="module" src="/text-demo.js"></script>
+    <script type="module" src="/multilang-runner.js"></script>
+  </head>
+  <body
+    data-multilang-manifest="/benchmarks/multilang-wasm/text-diff-patch.manifest.json"
+    data-multilang-reporting="#ml-reporting"
+   data-workload="text-diff-patch">
+    <a class="skip" href="#main">Skip to main content</a>
+    <header class="masthead">
+      <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
+      <a href="/benchmarks/">Browse Catalog</a>
+      <a href="/experiments/">Experiment</a>
+      <a href="/evidence/">Evidence</a>
+      <strong>data v1</strong>
+    </header>
+    <main id="main" class="narrative" tabindex="-1">
+      <section class="demo-panel" aria-labelledby="run-heading">
+        <h2 id="run-heading">Run Benchmark Loop</h2>
+        <form id="demo-form">
+          <div class="controls">
+            <label for="target">
+              <span>Target Engine</span>
+              <select id="target" name="target">
+                <option value="both" selected>Compare Side-by-Side (JS vs Wasm)</option>
+                <option value="javascript">JavaScript Engine</option>
+                <option value="wasm">WebAssembly Engine</option>
+              </select>
+            </label>
+            <label for="iterations">
+              <span>Loop Iterations</span>
+              <select id="iterations" name="iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10">10 iterations</option>
+                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                <option value="50">50 iterations</option>
+                <option value="100">100 iterations (Sustained loop)</option>
+              </select>
+            </label>
+            <button id="td-start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="td-cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="td-status" role="status" aria-live="polite">
+          Ready. Select target and loop iterations, then click Start.
+        </p>
+        <div id="perf-reporting" class="detail-grid" hidden></div>
+      </section>
+
+      <p class="eyebrow">Runnable correctness demo · text.diff-patch.v1</p>
+      <h1>Unicode line diff and patch</h1>
+      <p
+        class="notice"><strong>No performance claim.</strong> This bounded demo runs one target in a worker and checks that its canonical script recreates the target. It does not upload or store the source or result.</p>
+      <form data-worker="/text-diff-patch-worker.js">
+        <fieldset><legend>Controlled target</legend><label for="variant">Engine<select id="variant" name="variant"><option value="js-controlled">JavaScript controlled</option><option value="wasm-linear-controlled">Linear Wasm controlled</option></select></label></fieldset>
+        <p id="limits"
+          class="hint">Each document accepts at most 16,384 UTF-8 bytes and 512 lines. The worker stops after 10 seconds.</p>
+        <div class="demo-grid">
+          <label
+            for="base">Base document<textarea id="base" name="base" rows="10" maxlength="16384" aria-describedby="limits" required>Café
+東京
+old line
+🚀</textarea></label>
+          <label
+            for="target">Target document<textarea id="td-target-doc" name="target" rows="10" maxlength="16384" aria-describedby="limits" required>Café
+東京
+new line
+🚀</textarea></label>
+        </div>
+        <div
+          class="actions"><button id="td-start" type="submit">Start</button><button id="td-cancel" type="button" disabled>Cancel</button></div>
+      </form>
+      <h2>Text result</h2>
+      <p id="td-status" aria-live="polite">Ready.</p>
+
+      <section class="demo-panel" aria-labelledby="ml-heading">
+        <h2 id="ml-heading">Multi-Language Comparison</h2>
+        <p>
+          The same Myers O(ND) diff kernel (prefix/suffix trim, trace backtrack, interned line
+          IDs; 512-line base, 30 interleaved edits) written in JavaScript, C, C++, Rust, and Dart
+          (WasmGC). All variants are bit-identical to the JS <code>myersDiff</code> oracle —
+          same operations, same <code>editDistance</code>, same <code>frontierSteps</code>
+          (test-verified). Sources:
+          <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/tree/main/benchmarks/multilang-wasm/text-diff-patch">myers_diff.c · .cpp · .rs · .dart</a>.
+        </p>
+        <div id="ml-reporting" class="detail-grid" hidden></div>
+      </section>
+
+      <pre id="output" class="demo-output" tabindex="0">No result yet.</pre>
+      <h2>What runs</h2>
+      <p>Both targets intern UTF-8 lines, execute Myers O(ND), choose deletion before insertion on a tied frontier, encode the complete script, apply it, and compare every output line. The Wasm option fetches the authored <a href="/artifacts/text-diff-patch/text-diff-patch.wasm">linear-memory artifact</a>.</p>
+    </main>
+  </body>
+</html>

@@ -1,7 +1,7 @@
 const form = document.querySelector("#demo-form");
-const start = document.querySelector("#start");
-const cancel = document.querySelector("#cancel");
-const status = document.querySelector("#status");
+const start = document.querySelector("#h2q-start");
+const cancel = document.querySelector("#h2q-cancel");
+const status = document.querySelector("#h2q-status");
 const result = document.querySelector("#result");
 let worker = null;
 let token = 0;
@@ -39,7 +39,7 @@ form.addEventListener("submit", (event) => {
   worker.onerror = () => {
     if (runToken === token) cleanup("Worker failed.");
   };
-  worker.postMessage({ token: runToken, target: document.querySelector("#target").value });
+  worker.postMessage({ token: runToken, target: document.querySelector("#h2q-target").value });
   timer = setTimeout(() => cleanup("Stopped after the 10 second limit."), 10_000);
 });
 cancel.addEventListener("click", () => cleanup("Cancelled."));

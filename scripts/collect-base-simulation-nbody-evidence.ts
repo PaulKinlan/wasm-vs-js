@@ -8,7 +8,7 @@ import {
 } from "../benchmarks/base/simulation-nbody/contract.js";
 
 const root = new URL("../", import.meta.url);
-const workloadRoute = "/demos/simulation-nbody-cloth/";
+const workloadRoute = "/benchmarks/simulation-nbody-cloth/";
 export const CFT_PRODUCT = "Chrome/150.0.7871.24";
 export const CFT_EXECUTABLE_SHA256 =
   "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355";
@@ -44,9 +44,9 @@ export const COLLECTOR_SOURCE_PATHS = [
   "benchmarks/base/simulation-nbody/contract.js",
   "benchmarks/base/simulation-nbody/fixture.js",
   "benchmarks/base/simulation-nbody/engine.js",
-  "public/demos/simulation-nbody-cloth/index.html",
-  "public/demos/simulation-nbody-cloth/demo.js",
-  "public/demos/simulation-nbody-cloth/worker.js",
+  "public/benchmarks/simulation-nbody-cloth/index.html",
+  "public/benchmarks/simulation-nbody-cloth/demo.js",
+  "public/benchmarks/simulation-nbody-cloth/worker.js",
   "public/styles.css",
   "public/artifacts/base-simulation-nbody/nbody.wasm",
   "public/artifacts/base-simulation-nbody/build-manifest.json",
@@ -54,9 +54,9 @@ export const COLLECTOR_SOURCE_PATHS = [
 ] as const;
 
 export const EXECUTED_ROUTE_PATHS: Readonly<Record<string, string>> = Object.freeze({
-  "/demos/simulation-nbody-cloth/": "public/demos/simulation-nbody-cloth/index.html",
-  "/demos/simulation-nbody-cloth/demo.js": "public/demos/simulation-nbody-cloth/demo.js",
-  "/demos/simulation-nbody-cloth/worker.js": "public/demos/simulation-nbody-cloth/worker.js",
+  "/benchmarks/simulation-nbody-cloth/": "public/benchmarks/simulation-nbody-cloth/index.html",
+  "/benchmarks/simulation-nbody-cloth/demo.js": "public/benchmarks/simulation-nbody-cloth/demo.js",
+  "/benchmarks/simulation-nbody-cloth/worker.js": "public/benchmarks/simulation-nbody-cloth/worker.js",
   "/benchmarks/base/simulation-nbody/contract.js": "benchmarks/base/simulation-nbody/contract.js",
   "/benchmarks/base/simulation-nbody/fixture.js": "benchmarks/base/simulation-nbody/fixture.js",
   "/benchmarks/base/simulation-nbody/engine.js": "benchmarks/base/simulation-nbody/engine.js",
@@ -79,13 +79,13 @@ const SHELL_ROUTE_PATHS = Object.freeze(
   [
     workloadRoute,
     "/styles.css",
-    "/demos/simulation-nbody-cloth/demo.js",
+    "/benchmarks/simulation-nbody-cloth/demo.js",
   ] as const,
 );
 const COMPLETE_ROUTE_PATHS = Object.freeze(
   [
     ...SHELL_ROUTE_PATHS,
-    "/demos/simulation-nbody-cloth/worker.js",
+    "/benchmarks/simulation-nbody-cloth/worker.js",
     "/benchmarks/base/simulation-nbody/contract.js",
     "/benchmarks/base/simulation-nbody/fixture.js",
     "/benchmarks/base/simulation-nbody/engine.js",

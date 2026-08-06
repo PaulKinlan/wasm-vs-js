@@ -272,7 +272,7 @@ Deno.test("public route set serves complete raw outputs, source, artifacts, and 
     await store.initialize();
     const handler = createHandler(store, "public");
     const routes = [
-      ["/demos/numeric.polybench-panel.v1/", "text/html"],
+      ["/benchmarks/numeric.polybench-panel.v1/", "text/html"],
       ["/polybench-panel-demo.js", "text/javascript"],
       ["/polybench-panel-worker.js", "text/javascript"],
       ["/benchmarks/base/numeric-polybench-panel/workload.js", "text/javascript"],
@@ -330,7 +330,7 @@ Deno.test("demo uses independent retained outputs with bounded fresh-worker life
   assert(worker.includes("expectedDescriptor.route"));
   assert(worker.includes("validateStructure"));
   assert(!worker.includes("compareNumeric(targetOutput, jsOutput)"));
-  const html = await Deno.readTextFile("public/demos/numeric.polybench-panel.v1/index.html");
+  const html = await Deno.readTextFile("public/benchmarks/numeric.polybench-panel.v1/index.html");
   assert(html.includes("No performance claim."));
   assert(html.includes('role="status"'));
   assert(html.includes('for="progress"'));

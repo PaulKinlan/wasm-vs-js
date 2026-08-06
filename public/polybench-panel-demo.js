@@ -1,7 +1,7 @@
 const form = document.querySelector("form");
-const start = document.querySelector("#start");
-const cancel = document.querySelector("#cancel");
-const status = document.querySelector("#status");
+const start = document.querySelector("#pb-start");
+const cancel = document.querySelector("#pb-cancel");
+const status = document.querySelector("#pb-status");
 const output = document.querySelector("#output");
 const progress = document.querySelector("#progress");
 let active = null;
@@ -58,7 +58,7 @@ form.addEventListener("submit", (event) => {
   };
   worker.postMessage({
     token,
-    target: document.querySelector("#target").value,
+    target: document.querySelector("#pb-target").value,
     kernel: document.querySelector("#kernel").value,
   });
 });

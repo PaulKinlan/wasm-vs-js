@@ -117,7 +117,7 @@
       "properties": {
         "path": {
           "enum": [
-            "public/demos/numeric.polybench-panel.v1/index.html",
+            "public/benchmarks/numeric.polybench-panel.v1/index.html",
             "public/polybench-panel-demo.js",
             "public/polybench-panel-worker.js",
             "benchmarks/base/numeric-polybench-panel/workload.js",
@@ -185,7 +185,7 @@
               "$ref": "#/$defs/sourceFile",
               "properties": {
                 "path": {
-                  "const": "public/demos/numeric.polybench-panel.v1/index.html"
+                  "const": "public/benchmarks/numeric.polybench-panel.v1/index.html"
                 }
               },
               "type": "object"
@@ -1005,7 +1005,7 @@
           ]
         },
         "route": {
-          "const": "/demos/numeric.polybench-panel.v1/"
+          "enum": ["/demos/numeric.polybench-panel.v1/", "/benchmarks/numeric.polybench-panel.v1/"]
         },
         "target": {
           "enum": [

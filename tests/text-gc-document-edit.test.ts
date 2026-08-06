@@ -290,7 +290,7 @@ Deno.test("text.gc-document-edit fixture, source tree, and artifacts match manif
 Deno.test("text.gc-document-edit public routes are explicit and read-only", async () => {
   const handler = createHandler(null, "public");
   const routes = [
-    ["/demos/text.gc-document-edit.v1/", "text/html"],
+    ["/benchmarks/text.gc-document-edit.v1/", "text/html"],
     ["/text-gc-document-edit-runner.js", "text/javascript"],
     ["/text-gc-document-edit-worker.js", "text/javascript"],
     ["/benchmarks/v1/text-gc-document-edit/workload.js", "text/javascript"],

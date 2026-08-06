@@ -1,7 +1,7 @@
 const form = document.querySelector("form");
-const start = document.querySelector("#start");
-const cancel = document.querySelector("#cancel");
-const status = document.querySelector("#status");
+const start = document.querySelector("#pbw-start");
+const cancel = document.querySelector("#pbw-cancel");
+const status = document.querySelector("#pbw-status");
 const output = document.querySelector("#output");
 let worker = null, timer = 0, token = 0;
 function cleanup() {

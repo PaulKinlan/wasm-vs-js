@@ -96,7 +96,7 @@ Deno.test("public server exposes immutable blocker evidence but no fake demo", a
   for (
     const path of [
       "/benchmarks/ml-quantized-image-inference-v1/",
-      "/demos/ml.quantized-image-inference.v1/",
+      "/benchmarks/ml.quantized-image-inference.v1/",
       "/artifacts/ml-quantized-image-inference/model.wasm",
     ]
   ) {

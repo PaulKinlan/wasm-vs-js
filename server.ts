@@ -392,15 +392,15 @@ const routes = new Map<string, [string, string, boolean?]>([
     "application/json; charset=utf-8",
   ]],
   ["/demos/game-family/demo.js", [
-    "public/demos/game-family/demo.js",
+    "public/benchmarks/game-family/demo.js",
     "text/javascript; charset=utf-8",
   ]],
   ["/demos/game-family/worker.js", [
-    "public/demos/game-family/worker.js",
+    "public/benchmarks/game-family/worker.js",
     "text/javascript; charset=utf-8",
   ]],
   ["/demos/game-family/styles.css", [
-    "public/demos/game-family/styles.css",
+    "public/benchmarks/game-family/styles.css",
     "text/css; charset=utf-8",
   ]],
   ["/benchmarks/v2/game-family/engine.js", [
@@ -571,115 +571,83 @@ const routes = new Map<string, [string, string, boolean?]>([
 
   // Friendly route aliases to prevent 404s when navigating or entering URLs
   ["/benchmarks/text-markdown-cms", [
-    "public/demos/text.markdown-cms.v1/index.html",
+    "public/benchmarks/text.markdown-cms.v1/index.html",
     "text/html; charset=utf-8",
   ]],
   ["/benchmarks/text-markdown-cms/", [
-    "public/demos/text.markdown-cms.v1/index.html",
+    "public/benchmarks/text.markdown-cms.v1/index.html",
     "text/html; charset=utf-8",
   ]],
   ["/demos/text-markdown-cms", [
-    "public/demos/text.markdown-cms.v1/index.html",
+    "public/benchmarks/text.markdown-cms.v1/index.html",
     "text/html; charset=utf-8",
   ]],
   ["/demos/text-markdown-cms/", [
-    "public/demos/text.markdown-cms.v1/index.html",
+    "public/benchmarks/text.markdown-cms.v1/index.html",
     "text/html; charset=utf-8",
   ]],
   ["/benchmarks/text-diff-patch", [
-    "public/demos/text.diff-patch.v1/index.html",
+    "public/benchmarks/text.diff-patch.v1/index.html",
     "text/html; charset=utf-8",
   ]],
   ["/benchmarks/text-diff-patch/", [
-    "public/demos/text.diff-patch.v1/index.html",
+    "public/benchmarks/text.diff-patch.v1/index.html",
     "text/html; charset=utf-8",
   ]],
   ["/demos/text-diff-patch", [
-    "public/demos/text.diff-patch.v1/index.html",
+    "public/benchmarks/text.diff-patch.v1/index.html",
     "text/html; charset=utf-8",
   ]],
   ["/demos/text-diff-patch/", [
-    "public/demos/text.diff-patch.v1/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/game-canvas-arcade", [
-    "public/demos/game-canvas-arcade/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/game-canvas-arcade/", [
-    "public/demos/game-canvas-arcade/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/game-canvas-entity-pathfinding", [
-    "public/demos/game-canvas-entity-pathfinding/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/game-canvas-entity-pathfinding/", [
-    "public/demos/game-canvas-entity-pathfinding/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/game-dom-tactics-grid", [
-    "public/demos/game-dom-tactics-grid/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/game-dom-tactics-grid/", [
-    "public/demos/game-dom-tactics-grid/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/game-ecs-frame-update", [
-    "public/demos/game-ecs-frame-update/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/game-ecs-frame-update/", [
-    "public/demos/game-ecs-frame-update/index.html",
+    "public/benchmarks/text.diff-patch.v1/index.html",
     "text/html; charset=utf-8",
   ]],
   ["/benchmarks/crypto-file-integrity", [
-    "public/demos/crypto.file-integrity.v1/index.html",
+    "public/benchmarks/crypto.file-integrity.v1/index.html",
     "text/html; charset=utf-8",
   ]],
   ["/benchmarks/crypto-file-integrity/", [
-    "public/demos/crypto.file-integrity.v1/index.html",
+    "public/benchmarks/crypto.file-integrity.v1/index.html",
     "text/html; charset=utf-8",
   ]],
   ["/benchmarks/network-pcap-decode", [
-    "public/demos/network.pcap-decode.v1/index.html",
+    "public/benchmarks/network.pcap-decode.v1/index.html",
     "text/html; charset=utf-8",
   ]],
   ["/benchmarks/network-pcap-decode/", [
-    "public/demos/network.pcap-decode.v1/index.html",
+    "public/benchmarks/network.pcap-decode.v1/index.html",
     "text/html; charset=utf-8",
   ]],
   ["/benchmarks/numeric-polybench-panel", [
-    "public/demos/numeric.polybench-panel.v1/index.html",
+    "public/benchmarks/numeric.polybench-panel.v1/index.html",
     "text/html; charset=utf-8",
   ]],
   ["/benchmarks/numeric-polybench-panel/", [
-    "public/demos/numeric.polybench-panel.v1/index.html",
+    "public/benchmarks/numeric.polybench-panel.v1/index.html",
     "text/html; charset=utf-8",
   ]],
   ["/benchmarks/serialization-json-telemetry", [
-    "public/demos/serialization.json-telemetry.v1/index.html",
+    "public/benchmarks/serialization.json-telemetry.v1/index.html",
     "text/html; charset=utf-8",
   ]],
   ["/benchmarks/serialization-json-telemetry/", [
-    "public/demos/serialization.json-telemetry.v1/index.html",
+    "public/benchmarks/serialization.json-telemetry.v1/index.html",
     "text/html; charset=utf-8",
   ]],
   ["/benchmarks/server-ssr-template", [
-    "public/demos/server.ssr-template.v1/index.html",
+    "public/benchmarks/server.ssr-template.v1/index.html",
     "text/html; charset=utf-8",
   ]],
   ["/benchmarks/server-ssr-template/", [
-    "public/demos/server.ssr-template.v1/index.html",
+    "public/benchmarks/server.ssr-template.v1/index.html",
     "text/html; charset=utf-8",
   ]],
   ["/benchmarks/text-gc-document-edit", [
-    "public/demos/text.gc-document-edit.v1/index.html",
+    "public/benchmarks/text.gc-document-edit.v1/index.html",
     "text/html; charset=utf-8",
   ]],
   ["/benchmarks/text-gc-document-edit/", [
-    "public/demos/text.gc-document-edit.v1/index.html",
+    "public/benchmarks/text.gc-document-edit.v1/index.html",
     "text/html; charset=utf-8",
   ]],
   ["/benchmarks/image-editing", [
@@ -2198,6 +2166,14 @@ function createHandler(
       });
     }
     const route = routes.get(url.pathname);
+    // /demos/* moved to /benchmarks/* (2026-08-06, Paul: "move all demos to be
+    // benchmarks"). Preserve inbound links: redirect anything not explicitly routed.
+    if (!route && url.pathname.startsWith("/demos/")) {
+      return new Response(null, {
+        status: 302,
+        headers: { location: `/benchmarks/${url.pathname.slice("/demos/".length)}` },
+      });
+    }
     if (!route || (serverMode === "public" && route[2])) {
       return json({ error: "not found" }, 404);
     }

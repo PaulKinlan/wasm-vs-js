@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>DOM tactics grid deterministic trace</title>
+    <link rel="stylesheet" href="/benchmarks/game-family/styles.css">
+    <script type="module" src="/unified-runner.js"></script>
+    <script type="module" src="/benchmarks/game-family/demo.js"></script>
+  </head>
+  <body data-workload="game-dom-tactics-grid"
+    <a class="skip" href="#main">Skip to main content</a>
+    <header class="masthead">
+      <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
+      <a href="/benchmarks/">Browse Catalog</a>
+      <a href="/experiments/">Experiment</a>
+      <a href="/evidence/">Evidence</a>
+      <strong>data v1</strong>
+    </header>
+    <noscript><p class="shell notice"><strong>JavaScript is required to run this local worker validation demo.</strong> No computation, storage, or upload occurs while scripting is disabled.</p></noscript>
+    <main id="main" class="shell" data-workload-id="game.dom-tactics-grid.v1">
+      <section class="demo-panel" aria-labelledby="run-heading">
+        <h2 id="run-heading">Run Benchmark Loop</h2>
+        <form id="demo-form">
+          <div class="controls">
+            <label for="target">
+              <span>Target Engine</span>
+              <select id="target" name="target">
+                <option value="both" selected>Compare Side-by-Side (JS vs Wasm)</option>
+                <option value="javascript">JavaScript Engine</option>
+                <option value="wasm">WebAssembly Engine</option>
+              </select>
+            </label>
+            <label for="iterations">
+              <span>Loop Iterations</span>
+              <select id="iterations" name="iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10">10 iterations</option>
+                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                <option value="50">50 iterations</option>
+                <option value="100">100 iterations (Sustained loop)</option>
+              </select>
+            </label>
+            <button id="start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="status" role="status" aria-live="polite">
+          Ready. Select target and loop iterations, then click Start.
+        </p>
+        <div id="perf-reporting" class="detail-grid" hidden></div>
+      </section>
+
+      <p><a href="/benchmarks/">← Benchmark inventory</a></p>
+      <p class="eyebrow">Proposal-validation demo · game.dom-tactics-grid.v1</p>
+      <h1>DOM tactics grid deterministic trace</h1>
+      <p
+        class="notice"><strong>Proposal-validation demo, not a performance result.</strong> It collects no duration, stores nothing, and uploads nothing. The visual is an enhancement; the complete accepted output appears as text.</p>
+      <section class="panel" aria-labelledby="controls-title">
+        <h2 id="controls-title">Run exact fixed work</h2>
+        <div
+          class="controls"><label>Target<select id="target"><option value="js-controlled">JavaScript controlled</option><option value="wasm-linear-controlled">Linear Wasm controlled reducer</option></select></label><button id="start" type="button" disabled>Start</button><button id="cancel" type="button" disabled>Cancel</button></div>
+        <p id="status" role="status"
+          aria-live="polite">Ready. Computation runs in a dedicated worker with a 15-second timeout.</p>
+      </section>
+      <section class="panel">
+        <h2>Visual enhancement</h2>
+        <div id="grid" class="grid" aria-hidden="true"></div>
+      </section>
+      <section class="panel">
+        <h2>Accessible result</h2>
+        <pre id="result" tabindex="0">No run yet.</pre>
+      </section>
+
+      <section class="detail-grid" aria-label="Workload details">
+        <div class="detail-card">
+          <h2>What it does</h2>
+          <p>Runs turn-based movement, range calculation, and AI pathfinding on a tactics grid.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Why compare</h2>
+          <p>Grid traversal, BFS flood-fill, and heuristic-based decision trees for game AI.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Algorithm &amp; engine</h2>
+          <p>Category: Game Simulation. Runs identical controlled work in both JavaScript and linear WebAssembly.</p>
+        </div>
+        <div class="detail-card">
+          <h2>Source &amp; build provenance</h2>
+          <ul>
+            <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+            <li><a href="/evidence/">Check implementation evidence</a></li>
+            <li><a href="/experiments/">Read the frozen experiment</a></li>
+          </ul>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

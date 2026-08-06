@@ -138,7 +138,7 @@
               "type": "object",
               "properties": {
                 "path": {
-                  "const": "public/demos/simulation-nbody-cloth/index.html"
+                  "const": "public/benchmarks/simulation-nbody-cloth/index.html"
                 }
               }
             },
@@ -147,7 +147,7 @@
               "type": "object",
               "properties": {
                 "path": {
-                  "const": "public/demos/simulation-nbody-cloth/demo.js"
+                  "const": "public/benchmarks/simulation-nbody-cloth/demo.js"
                 }
               }
             },
@@ -156,7 +156,7 @@
               "type": "object",
               "properties": {
                 "path": {
-                  "const": "public/demos/simulation-nbody-cloth/worker.js"
+                  "const": "public/benchmarks/simulation-nbody-cloth/worker.js"
                 }
               }
             },
@@ -655,7 +655,7 @@
                         "type": "object",
                         "properties": {
                           "route": {
-                            "const": "/demos/simulation-nbody-cloth/"
+                            "enum": ["/demos/simulation-nbody-cloth/", "/benchmarks/simulation-nbody-cloth/"]
                           }
                         },
                         "required": [
@@ -685,7 +685,7 @@
                         "type": "object",
                         "properties": {
                           "route": {
-                            "const": "/demos/simulation-nbody-cloth/demo.js"
+                            "enum": ["/demos/simulation-nbody-cloth/demo.js", "/benchmarks/simulation-nbody-cloth/demo.js"]
                           }
                         },
                         "required": [
@@ -700,7 +700,7 @@
                         "type": "object",
                         "properties": {
                           "route": {
-                            "const": "/demos/simulation-nbody-cloth/worker.js"
+                            "enum": ["/demos/simulation-nbody-cloth/worker.js", "/benchmarks/simulation-nbody-cloth/worker.js"]
                           }
                         },
                         "required": [
@@ -944,7 +944,7 @@
                         "type": "object",
                         "properties": {
                           "route": {
-                            "const": "/demos/simulation-nbody-cloth/"
+                            "enum": ["/demos/simulation-nbody-cloth/", "/benchmarks/simulation-nbody-cloth/"]
                           }
                         },
                         "required": [
@@ -974,7 +974,7 @@
                         "type": "object",
                         "properties": {
                           "route": {
-                            "const": "/demos/simulation-nbody-cloth/demo.js"
+                            "enum": ["/demos/simulation-nbody-cloth/demo.js", "/benchmarks/simulation-nbody-cloth/demo.js"]
                           }
                         },
                         "required": [
@@ -989,7 +989,7 @@
                         "type": "object",
                         "properties": {
                           "route": {
-                            "const": "/demos/simulation-nbody-cloth/worker.js"
+                            "enum": ["/demos/simulation-nbody-cloth/worker.js", "/benchmarks/simulation-nbody-cloth/worker.js"]
                           }
                         },
                         "required": [
@@ -1168,7 +1168,7 @@
                         "type": "object",
                         "properties": {
                           "route": {
-                            "const": "/demos/simulation-nbody-cloth/"
+                            "enum": ["/demos/simulation-nbody-cloth/", "/benchmarks/simulation-nbody-cloth/"]
                           }
                         },
                         "required": [
@@ -1198,7 +1198,7 @@
                         "type": "object",
                         "properties": {
                           "route": {
-                            "const": "/demos/simulation-nbody-cloth/demo.js"
+                            "enum": ["/demos/simulation-nbody-cloth/demo.js", "/benchmarks/simulation-nbody-cloth/demo.js"]
                           }
                         },
                         "required": [
@@ -1298,7 +1298,7 @@
                         "type": "object",
                         "properties": {
                           "route": {
-                            "const": "/demos/simulation-nbody-cloth/"
+                            "enum": ["/demos/simulation-nbody-cloth/", "/benchmarks/simulation-nbody-cloth/"]
                           }
                         },
                         "required": [
@@ -1328,7 +1328,7 @@
                         "type": "object",
                         "properties": {
                           "route": {
-                            "const": "/demos/simulation-nbody-cloth/demo.js"
+                            "enum": ["/demos/simulation-nbody-cloth/demo.js", "/benchmarks/simulation-nbody-cloth/demo.js"]
                           }
                         },
                         "required": [
@@ -1428,7 +1428,7 @@
                         "type": "object",
                         "properties": {
                           "route": {
-                            "const": "/demos/simulation-nbody-cloth/"
+                            "enum": ["/demos/simulation-nbody-cloth/", "/benchmarks/simulation-nbody-cloth/"]
                           }
                         },
                         "required": [
@@ -1458,7 +1458,7 @@
                         "type": "object",
                         "properties": {
                           "route": {
-                            "const": "/demos/simulation-nbody-cloth/demo.js"
+                            "enum": ["/demos/simulation-nbody-cloth/demo.js", "/benchmarks/simulation-nbody-cloth/demo.js"]
                           }
                         },
                         "required": [
@@ -1509,9 +1509,9 @@
             "benchmarks/base/simulation-nbody/contract.js",
             "benchmarks/base/simulation-nbody/fixture.js",
             "benchmarks/base/simulation-nbody/engine.js",
-            "public/demos/simulation-nbody-cloth/index.html",
-            "public/demos/simulation-nbody-cloth/demo.js",
-            "public/demos/simulation-nbody-cloth/worker.js",
+            "public/benchmarks/simulation-nbody-cloth/index.html",
+            "public/benchmarks/simulation-nbody-cloth/demo.js",
+            "public/benchmarks/simulation-nbody-cloth/worker.js",
             "public/styles.css",
             "public/artifacts/base-simulation-nbody/nbody.wasm",
             "public/artifacts/base-simulation-nbody/build-manifest.json",
@@ -1566,7 +1566,7 @@
           ]
         },
         "route": {
-          "const": "/demos/simulation-nbody-cloth/"
+          "enum": ["/demos/simulation-nbody-cloth/", "/benchmarks/simulation-nbody-cloth/"]
         },
         "lifecycleInjection": {
           "type": "object",
@@ -1707,7 +1707,7 @@
                 "type": "object",
                 "properties": {
                   "route": {
-                    "const": "/demos/simulation-nbody-cloth/"
+                    "enum": ["/demos/simulation-nbody-cloth/", "/benchmarks/simulation-nbody-cloth/"]
                   }
                 },
                 "required": [
@@ -1733,7 +1733,7 @@
                 "type": "object",
                 "properties": {
                   "route": {
-                    "const": "/demos/simulation-nbody-cloth/demo.js"
+                    "enum": ["/demos/simulation-nbody-cloth/demo.js", "/benchmarks/simulation-nbody-cloth/demo.js"]
                   }
                 },
                 "required": [
@@ -2215,7 +2215,7 @@
       "properties": {
         "url": {
           "type": "string",
-          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/(?:demos/simulation-nbody-cloth/(?:|demo\\.js|worker\\.js)|benchmarks/base/simulation-nbody/(?:contract|fixture|engine)\\.js|artifacts/base-simulation-nbody/nbody\\.wasm|styles\\.css)$"
+          "pattern": "^http://127\\.0\\.0\\.1:[0-9]+/(?:demos|benchmarks)/simulation-nbody-cloth/(?:|demo\\.js|worker\\.js)|benchmarks/base/simulation-nbody/(?:contract|fixture|engine)\\.js|artifacts/base-simulation-nbody/nbody\\.wasm|styles\\.css)$"
         },
         "method": {
           "const": "GET"
@@ -2270,9 +2270,9 @@
         },
         "sourcePath": {
           "enum": [
-            "public/demos/simulation-nbody-cloth/index.html",
-            "public/demos/simulation-nbody-cloth/demo.js",
-            "public/demos/simulation-nbody-cloth/worker.js",
+            "public/benchmarks/simulation-nbody-cloth/index.html",
+            "public/benchmarks/simulation-nbody-cloth/demo.js",
+            "public/benchmarks/simulation-nbody-cloth/worker.js",
             "benchmarks/base/simulation-nbody/contract.js",
             "benchmarks/base/simulation-nbody/fixture.js",
             "benchmarks/base/simulation-nbody/engine.js",
@@ -2299,10 +2299,10 @@
           "type": "object",
           "properties": {
             "route": {
-              "const": "/demos/simulation-nbody-cloth/"
+              "enum": ["/demos/simulation-nbody-cloth/", "/benchmarks/simulation-nbody-cloth/"]
             },
             "sourcePath": {
-              "const": "public/demos/simulation-nbody-cloth/index.html"
+              "const": "public/benchmarks/simulation-nbody-cloth/index.html"
             },
             "cdpBodyEncoding": {
               "const": "utf8"
@@ -2313,10 +2313,10 @@
           "type": "object",
           "properties": {
             "route": {
-              "const": "/demos/simulation-nbody-cloth/demo.js"
+              "enum": ["/demos/simulation-nbody-cloth/demo.js", "/benchmarks/simulation-nbody-cloth/demo.js"]
             },
             "sourcePath": {
-              "const": "public/demos/simulation-nbody-cloth/demo.js"
+              "const": "public/benchmarks/simulation-nbody-cloth/demo.js"
             },
             "cdpBodyEncoding": {
               "const": "utf8"
@@ -2327,10 +2327,10 @@
           "type": "object",
           "properties": {
             "route": {
-              "const": "/demos/simulation-nbody-cloth/worker.js"
+              "enum": ["/demos/simulation-nbody-cloth/worker.js", "/benchmarks/simulation-nbody-cloth/worker.js"]
             },
             "sourcePath": {
-              "const": "public/demos/simulation-nbody-cloth/worker.js"
+              "const": "public/benchmarks/simulation-nbody-cloth/worker.js"
             },
             "cdpBodyEncoding": {
               "const": "utf8"

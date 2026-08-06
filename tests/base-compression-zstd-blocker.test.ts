@@ -76,7 +76,7 @@ Deno.test("blocked base zstd workload exposes no implementation or demo surface"
   const paths = [
     "benchmarks/v1/compression-zstd-roundtrip",
     "public/artifacts/compression-zstd-roundtrip",
-    "public/demos/compression.zstd-gzip-roundtrip.v1",
+    "public/benchmarks/compression.zstd-gzip-roundtrip.v1",
   ];
   for (const path of paths) {
     let exists = true;

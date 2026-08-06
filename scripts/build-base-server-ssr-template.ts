@@ -105,7 +105,7 @@ const sourcePaths = [
   "schemas/v1-implementation-registration.schema.json",
   "public/base-server-ssr-demo.js",
   "public/base-server-ssr-worker.js",
-  "public/demos/server.ssr-template.v1/index.html",
+  "public/benchmarks/server.ssr-template.v1/index.html",
   "server.ts",
   "tests/base-server-ssr-template.test.ts",
   "deno.json",

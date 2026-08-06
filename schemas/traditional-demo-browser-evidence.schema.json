@@ -265,7 +265,7 @@
           "properties": {
             "path": {
               "type": "string",
-              "pattern": "^artifacts/demos/traditional/browser-evidence/screenshots/[a-z0-9-]+\\.png$"
+              "pattern": "^artifacts/(?:demos|benchmarks)/traditional/browser-evidence/screenshots/[a-z0-9-]+\\.png$"
             },
             "bytes": { "type": "integer", "minimum": 1 },
             "sha256": { "$ref": "#/$defs/sha256" }

@@ -190,7 +190,7 @@
         "buildManifest": { "const": "/artifacts/text-regex-log-scan/build-manifest.json" },
         "artifact": { "const": "/artifacts/text-regex-log-scan/text-regex-log-scan.wasm" },
         "canonicalOutput": { "const": "/artifacts/text-regex-log-scan/ordered-captures.bin" },
-        "demo": { "const": "/demos/base/text.regex-log-scan.v1/" },
+        "demo": { "enum": ["/(?:demos|benchmarks)/base/text.regex-log-scan.v1/", "/benchmarks/base/text.regex-log-scan.v1/"] },
         "evidence": {
           "const": [
             "/evidence/base/text.regex-log-scan.v1/js-controlled.json",

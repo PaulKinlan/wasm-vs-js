@@ -86,7 +86,7 @@ Deno.test("blocked base video workload exposes no implementation or demo surface
   const paths = [
     "benchmarks/v1/media-video-transcode",
     "public/artifacts/media-video-transcode",
-    "public/demos/media.video-transcode.v1",
+    "public/benchmarks/media.video-transcode.v1",
     "public/benchmarks/media-video-transcode-v1",
   ];
   for (const path of paths) {

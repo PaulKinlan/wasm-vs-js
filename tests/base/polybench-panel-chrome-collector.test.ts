@@ -70,7 +70,7 @@ function state(options: {
 }
 
 const sourcePaths = [
-  "public/demos/numeric.polybench-panel.v1/index.html",
+  "public/benchmarks/numeric.polybench-panel.v1/index.html",
   "public/polybench-panel-demo.js",
   "public/polybench-panel-worker.js",
   "benchmarks/base/numeric-polybench-panel/workload.js",
@@ -176,7 +176,7 @@ function scenarioBase(id: string): Json {
   return {
     id,
     kind: "lifecycle",
-    route: "/demos/numeric.polybench-panel.v1/",
+    route: "/benchmarks/numeric.polybench-panel.v1/",
     target: null,
     finalState: {
       status: finalStatus,
