@@ -371,7 +371,9 @@ const PLAYGROUND_WORKLOADS = [
       "Validates a multi-field form with field dependencies, custom regex rules, and cross-field constraints across 240 input actions.",
     explanation:
       "Cross-field dependency graph resolution, constraint checking, and DOM error state updates.",
-  },
+
+    // Real-DOM iframe mode: the demo page renders the workload in the real DOM.
+    domIframe: true,  },
   {
     slug: "dom-grid-movement",
     title: "DOM Grid Movement Engine",
@@ -381,7 +383,9 @@ const PLAYGROUND_WORKLOADS = [
       "Executes 3,600 directional movements across an entity grid, updating spatial position and checking collisions.",
     explanation:
       "Grid coordinate transforms, collision/boundary checks, and spatial layout position updates.",
-  },
+
+    // Real-DOM iframe mode: the demo page renders the workload in the real DOM.
+    domIframe: true,  },
   {
     slug: "dom-keyed-list-mutation",
     title: "Keyed List DOM Mutation Engine",
@@ -391,7 +395,9 @@ const PLAYGROUND_WORKLOADS = [
       "Performs 2,000 keyed list insertions, removals, reorders, swaps, and text updates on a dynamic DOM list.",
     explanation:
       "Keyed reconciliation algorithms, DOM node reordering, and text node mutation benchmarks.",
-  },
+
+    // Real-DOM iframe mode: the demo page renders the workload in the real DOM.
+    domIframe: true,  },
   {
     slug: "dom-nested-tree-mutation",
     title: "Nested DOM Tree Mutation Engine",
@@ -401,7 +407,9 @@ const PLAYGROUND_WORKLOADS = [
       "Executes 1,200 subtree insertions, node moves, replacements, attribute updates, and deletions on a nested DOM tree.",
     explanation:
       "Recursive tree traversal, structural node moves, and attribute modification cascades.",
-  },
+
+    // Real-DOM iframe mode: the demo page renders the workload in the real DOM.
+    domIframe: true,  },
   {
     slug: "dom-table-sort-filter-pagination",
     title: "Table Sort, Filter & Pagination",
@@ -411,7 +419,9 @@ const PLAYGROUND_WORKLOADS = [
       "Processes 120 interactive sort, filter, pagination, and cell editing actions over 5,000 table rows.",
     explanation:
       "In-memory sorting/filtering pipelines, DOM row recycling, and pagination view rendering.",
-  },
+
+    // Real-DOM iframe mode: the demo page renders the workload in the real DOM.
+    domIframe: true,  },
   {
     slug: "network-http2-quic-state",
     title: "HTTP/2 & QUIC Protocol State Machine",
@@ -431,7 +441,9 @@ const PLAYGROUND_WORKLOADS = [
       "Simulates 1,800 scroll offset and viewport resize events over 100,000 variable-height rows, computing visible item index windows.",
     explanation:
       "Binary search row indexing, variable height calculations, and virtual window DOM recycling.",
-  },
+
+    // Real-DOM iframe mode: the demo page renders the workload in the real DOM.
+    domIframe: true,  },
   {
     slug: "simulation-rigid-body-2d-v1",
     title: "2D Rigid-Body Physics Engine",

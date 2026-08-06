@@ -6,8 +6,9 @@
 > DOM, so the suite runner loads each DOM demo page inside an iframe and
 > orchestrates a real in-page benchmark.
 
-Status: **protocol + bridge + TodoMVC host implemented; other DOM workloads
-pending hosts.**
+Status: **protocol + bridge + shared host factory + 7 real-DOM hosts wired and live
+(todomvc + the six DOM benchmark pages); virtualized-grid pinned (rebind path
+documented); tactics-grid and image/flood-fill documented as separate families.**
 
 ## Why an iframe
 
@@ -71,19 +72,28 @@ message shape (`public/dom-hosts/todomvc-ops.js` `validateStartMessage` /
 | -------------------------------- | ----------------------------------------------- | --------------------------------------- | --------------------------------- |
 | base-dom-todomvc-journey         | `/benchmarks/base-dom-todomvc-journey/`         | `dom-hosts/base-dom-todomvc-journey.js` | **wired + live host**             |
 | dom-virtualized-grid-v1          | `/benchmarks/dom-virtualized-grid-v1/`          | —                                       | pending host (paced-trace driver) |
-| dom-grid-movement                | `/benchmarks/dom-grid-movement/`                | —                                       | pending host                      |
-| dom-keyed-list-mutation          | `/benchmarks/dom-keyed-list-mutation/`          | —                                       | pending host                      |
-| dom-nested-tree-mutation         | `/benchmarks/dom-nested-tree-mutation/`         | —                                       | pending host                      |
-| dom-table-sort-filter-pagination | `/benchmarks/dom-table-sort-filter-pagination/` | —                                       | pending host                      |
-| dom-dependent-form-validation    | `/benchmarks/dom-dependent-form-validation/`    | —                                       | pending host                      |
-| dom-virtualized-scrolling        | `/benchmarks/dom-virtualized-scrolling/`        | —                                       | pending host                      |
-| game-dom-tactics-grid            | `/demos/game-family/`                           | —                                       | pending host                      |
-| image flood-fill / editing       | `/benchmarks/image-*-demo/`                     | —                                       | pending host (pixel work, canvas) |
+| dom-grid-movement                | `/benchmarks/dom-grid-movement/`                | `dom-hosts/dom-grid-movement-host.js`    | **wired + live host**             |
+| dom-keyed-list-mutation          | `/benchmarks/dom-keyed-list-mutation/`          | `dom-hosts/dom-keyed-list-mutation-host.js` | **wired + live host**          |
+| dom-nested-tree-mutation         | `/benchmarks/dom-nested-tree-mutation/`         | `dom-hosts/dom-nested-tree-mutation-host.js` | **wired + live host**          |
+| dom-table-sort-filter-pagination | `/benchmarks/dom-table-sort-filter-pagination/` | `dom-hosts/dom-table-sort-filter-pagination-host.js` | **wired + live host** |
+| dom-dependent-form-validation    | `/benchmarks/dom-dependent-form-validation/`    | `dom-hosts/dom-dependent-form-validation-host.js` | **wired + live host** |
+| dom-virtualized-scrolling        | `/benchmarks/dom-virtualized-scrolling/`        | `dom-hosts/dom-virtualized-scrolling-host.js` | **wired + live host**        |
+| game-dom-tactics-grid            | `/demos/game-family/`                           | —                                       | documented (game-family demo page, separate shell — not a /benchmarks/ DOM page) |
+| image flood-fill / editing       | `/benchmarks/image-*-demo/`                     | —                                       | documented (pixel/canvas work, not a DOM-interaction journey; already has the in-page multilang comparison) |
 
 Each pending workload needs a host module that renders its own UI and applies
 its frozen trace with real DOM APIs, mirroring the todomvc host. The protocol
 and the `domIframe` card flag make flipping a new host on a one-line change in
 `public/playground.js`.
+
+## Pinned page (needs rebind, not edited)
+
+`dom-virtualized-grid-v1`'s `index.html` is in its build-manifest's content-hash
+source graph (every served raw byte is bound). Editing it requires the rebind
+cascade (`scripts/rebind-server-ts.sh` for the server-ts/route pins) plus
+re-running `scripts/validate-dom-virtualized-grid-browser.ts` to re-record the
+browser validation evidence. Until then it is driven by the existing worker
+protocol (engine-only) and is **not** part of the real-DOM iframe set.
 
 ## CSP
 

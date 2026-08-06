@@ -196,7 +196,35 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/dom-hosts/todomvc-ops.js",
     "text/javascript; charset=utf-8",
   ]],
-  ["/dom-hosts/base-dom-todomvc-journey.js", [
+  ["/dom-hosts/dom-host-factory.js", [
+    "public/dom-hosts/dom-host-factory.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/dom-hosts/dom-grid-movement-host.js", [
+    "public/dom-hosts/dom-grid-movement-host.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/dom-hosts/dom-keyed-list-mutation-host.js", [
+    "public/dom-hosts/dom-keyed-list-mutation-host.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/dom-hosts/dom-nested-tree-mutation-host.js", [
+    "public/dom-hosts/dom-nested-tree-mutation-host.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/dom-hosts/dom-table-sort-filter-pagination-host.js", [
+    "public/dom-hosts/dom-table-sort-filter-pagination-host.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/dom-hosts/dom-dependent-form-validation-host.js", [
+    "public/dom-hosts/dom-dependent-form-validation-host.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/dom-hosts/dom-virtualized-scrolling-host.js", [
+    "public/dom-hosts/dom-virtualized-scrolling-host.js",
+    "text/javascript; charset=utf-8",
+  ]],
+["/dom-hosts/base-dom-todomvc-journey.js", [
     "public/dom-hosts/base-dom-todomvc-journey.js",
     "text/javascript; charset=utf-8",
   ]],

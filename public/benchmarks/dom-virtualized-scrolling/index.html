@@ -8,9 +8,10 @@
       content="Virtualized DOM Scrolling benchmark measuring binary search row indexing, variable height calculations, and DOM node recycling.">
     <title>Virtualized DOM Scrolling · Wasm vs JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="/iframe-benchmark-bridge.js"></script>
     <script type="module" src="/unified-runner.js"></script>
   </head>
-  <body data-workload="dom-virtualized-scrolling" data-demo="dom-virtualized-scrolling">
+  <body data-workload="dom-virtualized-scrolling" data-dom-host="/dom-hosts/dom-virtualized-scrolling-host.js" data-demo="dom-virtualized-scrolling">
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>

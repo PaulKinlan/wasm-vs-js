@@ -8,10 +8,11 @@
       content="Table Sort, Filter, and Pagination benchmark measuring multi-column sorting, text filtering, and pagination over 5,000 rows.">
     <title>Table Sort, Filter &amp; Pagination · Wasm vs JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="/iframe-benchmark-bridge.js"></script>
     <script type="module" src="/unified-runner.js"></script>
   </head>
   <body data-workload="dom-table-sort-filter-pagination"
-    data-demo="dom-table-sort-filter-pagination">
+    data-dom-host="/dom-hosts/dom-table-sort-filter-pagination-host.js" data-demo="dom-table-sort-filter-pagination">
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
