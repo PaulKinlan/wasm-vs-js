@@ -141,8 +141,12 @@ Deno.test("dom orchestration: virtualized-grid js and wasm engines are determini
   assertEquals(js1, js2);
   const wasmBytes = await Deno.readFile("public/artifacts/dom-virtualized-grid-v1/grid.wasm");
   const exports = await gridEngine.instantiateGridWasm(wasmBytes);
-  const wasm1 = JSON.stringify(gridEngine.normalizeForEquivalence(gridEngine.runWasm(exports, fixture)));
-  const wasm2 = JSON.stringify(gridEngine.normalizeForEquivalence(gridEngine.runWasm(exports, fixture)));
+  const wasm1 = JSON.stringify(
+    gridEngine.normalizeForEquivalence(gridEngine.runWasm(exports, fixture)),
+  );
+  const wasm2 = JSON.stringify(
+    gridEngine.normalizeForEquivalence(gridEngine.runWasm(exports, fixture)),
+  );
   assertEquals(wasm1, wasm2);
   if (js1 !== wasm1) throw new Error("virtualized-grid js and wasm summaries must match");
 });

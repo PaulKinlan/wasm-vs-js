@@ -218,16 +218,18 @@ export async function createTodomvcHost() {
     }),
 
     verifyDom: (state, reference) => {
-      for (const key of [
-        "physicalCreates",
-        "physicalReuses",
-        "physicalUpdates",
-        "physicalPlacements",
-        "physicalHides",
-        "focusOperations",
-        "layoutReads",
-        "mountedCount",
-      ]) {
+      for (
+        const key of [
+          "physicalCreates",
+          "physicalReuses",
+          "physicalUpdates",
+          "physicalPlacements",
+          "physicalHides",
+          "focusOperations",
+          "layoutReads",
+          "mountedCount",
+        ]
+      ) {
         if (state[key] !== reference[key]) {
           throw new Error(
             `virtualized-grid DOM drift: ${key} ${state[key]} != reference ${reference[key]}`,
