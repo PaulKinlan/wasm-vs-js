@@ -1,0 +1,19 @@
+{
+  "workloadId": "document.pdf-viewer.v1",
+  "kernelLabel": "PDF parser — 100-page report (object table, font/ToUnicode, content, raster)",
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": ["pdf_parse"],
+  "engines": [
+    { "key": "js", "label": "JavaScript", "kind": "js" },
+    { "key": "c", "label": "C / Wasm", "kind": "linear", "lang": "c", "offset": 0 },
+    { "key": "cpp", "label": "C++ / Wasm", "kind": "linear", "lang": "cpp", "offset": 0 },
+    { "key": "rs", "label": "Rust / Wasm", "kind": "linear", "lang": "rs", "offset": 0 },
+    {
+      "key": "dart",
+      "label": "Dart / WasmGC",
+      "kind": "dart",
+      "file": "pdf_engine_dart.wasm",
+      "glue": "pdf_engine_dart.mjs"
+    }
+  ]
+}
