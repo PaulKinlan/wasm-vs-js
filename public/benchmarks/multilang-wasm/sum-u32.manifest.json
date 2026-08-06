@@ -20,8 +20,7 @@
    "offset": 0,
    "kernels": [
     "sum"
-   ],
-   "source": "benchmarks/multilang-wasm/sum_u32.wat"
+   ]
   },
   {
    "key": "asc",

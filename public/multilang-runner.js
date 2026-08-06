@@ -4568,11 +4568,12 @@ const sourceSizeCache = new Map();
 async function kernelSourceBytes(manifest, kernel, lang, explicitSource) {
   const ext = lang === "js" ? "ts" : lang;
   const dir = (manifest._path ?? "").split("/").pop()?.replace(/\.manifest\.json$/, "") ?? "";
-  const candidates = [
-    ...(explicitSource ? [`/benchmarks/${explicitSource.replace(/^benchmarks\//, "multilang-wasm/")}`] : []),
-    `/benchmarks/multilang-wasm/${kernel}.${ext}`,
-    dir ? `/benchmarks/multilang-wasm/${dir}/${kernel}.${ext}` : "",
-  ].filter(Boolean);
+  const candidates = explicitSource
+    ? [`/benchmarks/${explicitSource.replace(/^benchmarks\//, "multilang-wasm/")}`]
+    : [
+        `/benchmarks/multilang-wasm/${kernel}.${ext}`,
+        dir ? `/benchmarks/multilang-wasm/${dir}/${kernel}.${ext}` : "",
+      ].filter(Boolean);
   for (const path of candidates) {
     if (sourceSizeCache.has(path)) {
       const n = sourceSizeCache.get(path);
