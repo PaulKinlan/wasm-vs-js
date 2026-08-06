@@ -1620,8 +1620,6 @@ for (const ext of [".c", ".cpp", ".rs", ".dart", ".ts", ".wat"]) {
   }
 }
 
-
-
 // Generated demo-page + companion-asset routes (scripts/build-routes.ts).
 // Filesystem-derived; any overlap with the hand-maintained table above is a
 // hard error instead of the old silent last-wins.
