@@ -131,3 +131,11 @@ markup retained but inert, primary control runs everything):
 Special cases (unchanged): benchmarks/multilang-wasm (multilang hub — its own
 form is the single control), benchmarks/ml-gemm (bespoke neural runner; already
 has primary + multilang + Track B sections).
+
+## Wave-2 update (2026-08-06)
+
+- All workload pages moved from `/demos/` to `/benchmarks/` (game-family set, text/markdown/crypto/polybench/pcap/ssr/nbody/http2-quic/regex demos + base/ set). The old `/demos/*` URLs 302-redirect to `/benchmarks/*` (server.ts prefix redirect; standing gate: no silent 404s, inbound links preserved).
+- 16 additional pages converted to the unified shell + composed run (data-workload + unified-runner.js + the standard #demo-form/#perf-reporting, with the bespoke correctness forms kept as secondary sections; bespoke runners deferred via data-unified-runner-active).
+- 46/51 `/benchmarks/` pages now load unified-runner.js. Evidence-pinned pages (audio family, sqlite-notebook, archive-zip, gltf, pdf-viewer, todomvc, virtualized-grid, numeric-fft, rigid-body) are NOT byte-edited — they keep their pins; the composed flow notes apply via their existing data attributes where present.
+- REMOVED 4 duplicate manual game routes (generated routes now cover them). routes.generated.ts regenerated (155 routes). Catalog/data/evidence route fields + source refs updated to the moved paths; registrations re-recorded where their referenced files were edited (game-ecs).
+- KNOWN REMAINING: the browser-evidence schema fixtures + collector tests that model retained `/demos/`-route evidence still need the both-forms reconciliation (schemas accept `/demos/` for immutable evidence; the collector served-asset checks need `/benchmarks/`). Gate is 10 tests short of green; the fix is mechanical (schema both-form acceptance without breaking fixture `.const` readers).
