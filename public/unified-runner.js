@@ -759,7 +759,6 @@ function composedStagePlanFromDom() {
   });
 }
 
-
 // Static multi-language pre-render (Paul directive 2026-08-06): every benchmark
 // page shows its measured multi-language comparison IMMEDIATELY (from the
 // committed report), not only after clicking Run. Run refreshes the numbers.
@@ -767,12 +766,15 @@ async function renderReportedComparison(flowEl, manifestPath) {
   const manifestResp = await fetch(manifestPath, { cache: "no-store" });
   if (!manifestResp.ok) return;
   const manifest = await manifestResp.json();
-  const reportResp = await fetch("/data/multilang-wasm-benchmark-report.v1.json", { cache: "no-store" });
+  const reportResp = await fetch("/data/multilang-wasm-benchmark-report.v1.json", {
+    cache: "no-store",
+  });
   if (!reportResp.ok) return;
   const report = await reportResp.json();
   const entry = report.workloads?.find((w) =>
     manifest.kernels?.length === 1 &&
-    (w.name === manifest.workloadId || w.name === manifestPath.split("/").pop().replace(".manifest.json", ""))
+    (w.name === manifest.workloadId ||
+      w.name === manifestPath.split("/").pop().replace(".manifest.json", ""))
   );
   const variants = entry?.variants;
   if (!variants || variants.length === 0) return;
@@ -794,8 +796,12 @@ async function renderReportedComparison(flowEl, manifestPath) {
     "<thead><tr><th class='mlr-th mlr-th-header'>Engine</th><th class='mlr-th mlr-th-header'>Warm median</th><th class='mlr-th mlr-th-header'>Wasm bytes</th><th class='mlr-th mlr-th-header'>Toolchain</th></tr></thead><tbody>" +
     variants.map((v) =>
       `<tr><td class="mlr-th"><strong>${v.language}</strong></td>` +
-      `<td class="mlr-th">${typeof v.warmExecutionMs === "number" ? v.warmExecutionMs.toFixed(2) + " ms" : "—"}</td>` +
-      `<td class="mlr-th">${v.binarySizeBytes > 0 ? v.binarySizeBytes.toLocaleString() : "—"}</td>` +
+      `<td class="mlr-th">${
+        typeof v.warmExecutionMs === "number" ? v.warmExecutionMs.toFixed(2) + " ms" : "—"
+      }</td>` +
+      `<td class="mlr-th">${
+        v.binarySizeBytes > 0 ? v.binarySizeBytes.toLocaleString() : "—"
+      }</td>` +
       `<td class="mlr-th">${v.toolchain ?? "—"}</td></tr>`
     ).join("") + "</tbody>";
   wrap.appendChild(table);
