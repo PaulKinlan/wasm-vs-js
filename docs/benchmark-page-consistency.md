@@ -95,3 +95,39 @@ ml = multi-language comparison present; excl = documented exclusion; pin = manif
 - Add the remaining kernel candidates (cad-mesh, crypto-authenticated-stream, ml-numeric-kernels)
   to the multilang expansion waves.
 - Re-run the gate after any page edit that touches a manifest-sourced page (rebind cascade).
+
+## Unified "Run Everything" flow (wave 1, 2026-08-06)
+
+Paul directive: the core JS-vs-Wasm run, the multi-language comparison, and the
+optimized variants should all run from ONE control, consistently across pages.
+
+Implementation (JS-driven, works on every page without HTML edits):
+
+- `public/unified-runner.js` sets `data-unified-runner-active`; after the primary
+  JS-vs-Wasm stage its composed runner sequences (a) the multi-language comparison
+  (all engines, via the page's `data-multilang-manifest` + reporting section) and
+  (b) the Track B optimized variants (when the page has a `#track-b-root` section).
+  `composedStagePlan()` is the pure, testable plan.
+- `public/multilang-runner.js` exports `runMultilangComparison()` (used by the
+  composed runner) and `shouldAutoBindMultilang()`; the auto-bind skips when the
+  unified runner is active, so no second control binds.
+- `public/track-b.js` `initTrackB()` renders the optimized-variant comparison.
+
+Converted to a single run control (secondary `#ml-form` removed, results section kept):
+
+- benchmarks/ml-dense-mlp, benchmarks/database-olap-chart,
+  benchmarks/image-flood-fill-demo, benchmarks/simulation-nbody-cloth,
+  demos/text.diff-patch.v1, demos/serialization.json-telemetry.v1,
+  demos/crypto.file-integrity.v1
+
+Composed flow active via JS (no byte edits — evidence-pinned; secondary form
+markup retained but inert, primary control runs everything):
+
+- benchmarks/audio-fft, audio-fir, audio-stft (audio pins),
+  benchmarks/base-dom-todomvc-journey (manifest-sourced),
+  demos/base/text.regex-log-scan.v1, demos/numeric.polybench-panel.v1,
+  demos/game-ecs-frame-update
+
+Special cases (unchanged): benchmarks/multilang-wasm (multilang hub — its own
+form is the single control), benchmarks/ml-gemm (bespoke neural runner; already
+has primary + multilang + Track B sections).

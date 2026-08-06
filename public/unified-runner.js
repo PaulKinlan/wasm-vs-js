@@ -719,6 +719,59 @@ function renderLifecycleBreakdown(jsStats, wasmStats) {
 }
 
 // Auto-initialize benchmark detail page runner
+// ── Unified "Run Everything" flow ────────────────────────────────────────
+// One run control drives every stage the page supports: the primary JS-vs-Wasm
+// pair, then the multi-language comparison (all engines), then the Track B
+// optimized variants. Pure plan helper (testable without a DOM).
+export function composedStagePlan(meta = {}) {
+  const plan = {
+    primary: Boolean(meta.workload || meta.demo),
+    multilangManifest: meta.multilangManifest ?? null,
+    trackBRoot: meta.trackBRoot ?? null,
+  };
+  return plan;
+}
+
+function composedStagePlanFromDom() {
+  const body = document.body;
+  const trackBRoot = document.querySelector("#track-b-root")
+    ? "#track-b-root"
+    : document.querySelector("#trackb-root")
+    ? "#trackb-root"
+    : null;
+  return composedStagePlan({
+    workload: body?.dataset?.workload,
+    demo: body?.dataset?.demo,
+    multilangManifest: body?.dataset?.multilangManifest ?? null,
+    trackBRoot,
+  });
+}
+
+async function runComposedStages({ workloadSlug, iterations, statusEl, reportingEl }) {
+  const plan = composedStagePlanFromDom();
+  if (plan.multilangManifest) {
+    statusEl.textContent = "Multi-language comparison: loading engines…";
+    const { runMultilangComparison } = await import("/multilang-runner.js");
+    const mlReporting = document.querySelector(
+      document.body.dataset.multilangReporting || "#ml-reporting",
+    ) || reportingEl;
+    await runMultilangComparison(plan.multilangManifest, {
+      iterations,
+      onStatus: (m) => {
+        statusEl.textContent = m;
+      },
+      reportingEl: mlReporting,
+    });
+    statusEl.textContent = "✓ Multi-language comparison complete.";
+  }
+  if (plan.trackBRoot) {
+    statusEl.textContent = "Track B: loading optimized variants…";
+    const { initTrackB } = await import("/track-b.js");
+    await initTrackB(plan.trackBRoot, workloadSlug);
+    statusEl.textContent = "✓ Track B optimized variants rendered.";
+  }
+}
+
 function initUnifiedRunner() {
   const workloadSlug = document.body.dataset.workload || document.body.dataset.demo;
   if (!workloadSlug) return;
@@ -793,6 +846,18 @@ function initUnifiedRunner() {
           renderPerformanceReport(reportingEl, jsStats, wasmStats, iterations);
         }
       }
+
+      // Unified "Run Everything": after the primary stage (any target), sequence
+      // the multi-language comparison and the Track B optimized variants from
+      // the same run control (Paul directive 2026-08-06).
+      try {
+        await runComposedStages({ workloadSlug, iterations, statusEl, reportingEl });
+      } catch (composedErr) {
+        statusEl.textContent = `Additional stages error: ${
+          composedErr instanceof Error ? composedErr.message : String(composedErr)
+        }`;
+      }
+      statusEl.textContent = "✓ Full benchmark suite complete.";
     } catch (err) {
       statusEl.textContent = `Error: ${err.message || String(err)}`;
     } finally {
@@ -820,6 +885,19 @@ function initUnifiedRunner() {
 }
 
 if (typeof document !== "undefined") {
+  // Marker for the unified composed flow: multilang-runner.js skips its own
+  // auto-bind when this flag is present, so the primary run control sequences
+  // every stage (primary + multilang + Track B). Set before DOMContentLoaded so
+  // other deferred module scripts can read it (module scripts run in order
+  // before DOMContentLoaded fires).
+  if (document.body) {
+    document.body.dataset.unifiedRunnerActive = "1";
+  } else {
+    document.addEventListener("DOMContentLoaded", () => {
+      document.body.dataset.unifiedRunnerActive = "1";
+    }, { once: true });
+  }
+
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initUnifiedRunner);
   } else {

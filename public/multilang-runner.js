@@ -2572,6 +2572,42 @@ function renderTables(container, manifest, resultsByKernel, iterations) {
   container.hidden = false;
 }
 
+// Run every engine in a multilang manifest and render the comparison tables.
+// Used both by initMultilangRunner (form-bound standalone pages) and by the
+// unified composed runner (unified-runner.js sequences this after the primary
+// JS-vs-Wasm stage so ONE run control drives everything).
+export async function runMultilangComparison(manifestPath, {
+  iterations = 30,
+  onStatus = () => {},
+  onError = () => {},
+  shouldCancel = () => false,
+  reportingEl = null,
+} = {}) {
+  const manifest = await (await fetch(manifestPath, { cache: "no-store" })).json();
+  await loadEngines(manifest);
+  const results = {};
+  for (const kernel of KERNEL_ADAPTERS[manifest.workloadId].kernels) {
+    if (shouldCancel()) throw new Error("cancelled");
+    onStatus(`Running ${kernel} (${iterations}× loop)...`);
+    results[kernel] = await runWorkload(manifest, kernel, iterations, onStatus);
+    if (shouldCancel()) throw new Error("cancelled");
+  }
+  if (reportingEl) {
+    reportingEl.hidden = false;
+    renderTables(reportingEl, manifest, results, iterations);
+  }
+  return results;
+}
+
+// The unified composed runner (unified-runner.js) sets data-unified-runner-active
+// on pages that load the primary JS-vs-Wasm runner. On those pages the multilang
+// stage is sequenced by the primary run control, so the multilang runner must NOT
+// auto-bind a second form.
+export function shouldAutoBindMultilang(meta = {}) {
+  if (meta.unifiedRunnerActive) return false;
+  return Boolean(meta.multilangManifest);
+}
+
 export async function initMultilangRunner(manifestPath, opts = {}) {
   const form = opts.form ?? document.querySelector("#demo-form");
   const iterationsSelect = opts.iterations ?? document.querySelector("#iterations");
@@ -2581,7 +2617,6 @@ export async function initMultilangRunner(manifestPath, opts = {}) {
   const reportingEl = opts.reporting ?? document.querySelector("#perf-reporting");
   if (!form || !startBtn || !statusEl || !reportingEl) return;
 
-  const manifest = await (await fetch(manifestPath, { cache: "no-store" })).json();
   let active = false;
   let cancelled = false;
 
@@ -2598,19 +2633,15 @@ export async function initMultilangRunner(manifestPath, opts = {}) {
     const iterations = parseInt(iterationsSelect?.value ?? "30", 10);
 
     try {
-      statusEl.textContent = "Loading engines...";
-      await loadEngines(manifest);
-
-      const results = {};
-      for (const kernel of KERNEL_ADAPTERS[manifest.workloadId].kernels) {
-        statusEl.textContent = `Running ${kernel} (${iterations}× loop)...`;
-        results[kernel] = await runWorkload(manifest, kernel, iterations, (m) => {
+      await runMultilangComparison(manifestPath, {
+        iterations,
+        onStatus: (m) => {
           statusEl.textContent = m;
-        });
-        if (cancelled) throw new Error("cancelled");
-      }
+        },
+        shouldCancel: () => cancelled,
+        reportingEl,
+      });
       statusEl.textContent = "✓ Benchmark suite completed.";
-      renderTables(reportingEl, manifest, results, iterations);
     } catch (err) {
       if (err.message !== "cancelled") {
         statusEl.textContent = `Error: ${err.message || String(err)}`;
@@ -2634,22 +2665,34 @@ export async function initMultilangRunner(manifestPath, opts = {}) {
 }
 
 if (typeof document !== "undefined" && document.body?.dataset?.multilangManifest) {
-  const init = () =>
-    initMultilangRunner(document.body.dataset.multilangManifest, {
-      form: document.querySelector(document.body.dataset.multilangForm || "#demo-form") ||
-        undefined,
-      start: document.querySelector(document.body.dataset.multilangStart || "#start") || undefined,
-      cancel: document.querySelector(document.body.dataset.multilangCancel || "#cancel") ||
-        undefined,
-      status: document.querySelector(document.body.dataset.multilangStatus || "#status") ||
-        undefined,
-      reporting:
-        document.querySelector(document.body.dataset.multilangReporting || "#perf-reporting") ||
-        undefined,
-      iterations:
-        document.querySelector(document.body.dataset.multilangIterations || "#iterations") ||
-        undefined,
-    });
+  const init = () => {
+    // Pages with the unified composed runner (primary JS-vs-Wasm + sequenced
+    // multilang + Track B stages from ONE run control) must not double-bind a
+    // second multilang form. The composed runner drives the multilang stage.
+    if (
+      shouldAutoBindMultilang({
+        unifiedRunnerActive: Boolean(document.body?.dataset?.unifiedRunnerActive),
+        multilangManifest: document.body?.dataset?.multilangManifest,
+      })
+    ) {
+      initMultilangRunner(document.body.dataset.multilangManifest, {
+        form: document.querySelector(document.body.dataset.multilangForm || "#demo-form") ||
+          undefined,
+        start: document.querySelector(document.body.dataset.multilangStart || "#start") ||
+          undefined,
+        cancel: document.querySelector(document.body.dataset.multilangCancel || "#cancel") ||
+          undefined,
+        status: document.querySelector(document.body.dataset.multilangStatus || "#status") ||
+          undefined,
+        reporting:
+          document.querySelector(document.body.dataset.multilangReporting || "#perf-reporting") ||
+          undefined,
+        iterations:
+          document.querySelector(document.body.dataset.multilangIterations || "#iterations") ||
+          undefined,
+      });
+    }
+  };
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);
   } else {
