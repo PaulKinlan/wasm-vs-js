@@ -24,501 +24,161 @@
 export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses the multilang-wasm fft kernels)
   // --- document.pdf-viewer.v1: PDF parser (mirrors benchmarks/base/document-pdf-viewer
   //     engine.js parseReport / pdf-engine.c; frozen 100-page report fixture) ------
-  // --- document.pdf-viewer.v1: PDF parser (mirrors benchmarks/base/document-pdf-viewer
-  //     engine.js parseReport / pdf-engine.c; frozen 100-page report fixture) ------
-  // --- cad-mesh-repair: STL quantize/weld/orient/simplify (mirrors engine.js
-  //     repairMeshJavaScript + the frozen mesh-repair.c)
-  // --- ml-numeric-kernels: GEMM/Conv/Softmax f32+i8 (frozen shapes) ----------
-  // --- crypto-authenticated-stream: ChaCha20-Poly1305 seal/open -------------
-  "crypto.authenticated-stream.v1": {
-    kernels: ["crypto"],
+  // --- simulation.rigid-body-2d.v1: 500-body 2D physics (mirrors engine.js
+  //     runRigidBodyJavaScript + the frozen rigid-body-2d.c) -----------------
+  "simulation.rigid-body-2d.v1": {
+    kernels: ["rigid_engine"],
     async build(mods) {
-      const KEY = Uint8Array.from({ length: 32 }, (_, i) => 0x80 + i);
-      const SESSION = Uint8Array.from([
-        0x57,
-        0x41,
-        0x53,
-        0x4d,
-        0x2d,
-        0x56,
-        0x45,
-        0x52,
-        0x53,
-        0x49,
-        0x4f,
-        0x4e,
-      ]);
-      const FRAME_SIZES = [0, 1, 15, 16, 17, 31, 32, 63, 64, 65, 127, 128, 255, 256, 511, 1024];
-      function xorshift32(value) {
-        value ^= value << 13;
-        value ^= value >>> 17;
-        value ^= value << 5;
-        return value >>> 0;
-      }
-      function frameAt(index) {
-        const size = FRAME_SIZES[index % FRAME_SIZES.length];
-        const plaintext = new Uint8Array(size);
-        let state = (0x6d2b79f5 ^ Math.imul(index + 1, 0x9e3779b1)) >>> 0;
-        for (let off = 0; off < size; off++) {
-          state = xorshift32(state);
-          plaintext[off] = state >>> 24;
-        }
-        const nonce = new Uint8Array(12);
-        nonce.set([0x43, 0x41, 0x53, 0x31]);
-        new DataView(nonce.buffer).setBigUint64(4, BigInt(index), true);
-        const aad = new Uint8Array(24);
-        const view = new DataView(aad.buffer);
-        view.setUint32(0, index, true);
-        view.setUint32(4, size, true);
-        view.setUint32(8, index % 7, true);
-        aad.set(SESSION, 12);
-        return { index, plaintext, nonce, aad };
-      }
-      const FRAMES = [0, 1, 5, 31, 64, 127, 1024];
-      let sealJavaScript = null;
-      {
-        // Lazy-load the workload's JS oracle for the reference engine.
-        const mod = await import("/benchmarks/base/crypto-authenticated-stream/engine.js");
-        sealJavaScript = mod.sealJavaScript;
-      }
-      const callables = {};
-      for (const key of ["c", "cpp", "rs"]) {
-        const inst = mods.engines[key].instances.crypto.instance;
-        const mem = inst.exports.memory;
-        const keyOff = 0, nonceOff = 64, aadOff = 96, plainOff = 256, ctOff = 8192, tagOff = 16384;
-        callables[key] = {
-          crypto: () => {
-            for (const idx of FRAMES) {
-              const f = frameAt(idx);
-              mem.set(KEY, keyOff);
-              mem.set(f.nonce, nonceOff);
-              mem.set(f.aad, aadOff);
-              mem.set(f.plaintext, plainOff);
-              inst.exports.seal(
-                keyOff,
-                nonceOff,
-                aadOff,
-                f.aad.length,
-                plainOff,
-                f.plaintext.length,
-                ctOff,
-                tagOff,
-              );
-              inst.exports.open(
-                keyOff,
-                nonceOff,
-                aadOff,
-                f.aad.length,
-                ctOff,
-                f.plaintext.length,
-                tagOff,
-                plainOff + 4096,
-              );
-            }
-          },
-        };
-      }
-      callables.js = {
-        crypto: () => {
-          for (const idx of FRAMES) {
-            const f = frameAt(idx);
-            sealJavaScript(KEY, f.nonce, f.aad, f.plaintext);
-          }
-        },
+      const BODIES = 500, HEADER = 96, BODY_WORDS = 11, JOINT_BYTES = 32;
+      const CFG = {
+        seed: 0x5242474e,
+        bodies: 500,
+        columns: 20,
+        rows: 25,
+        joints: 19,
+        timesteps: 1800,
+        checkpointEvery: 300,
+        dt: Math.fround(1 / 60),
+        gravityY: Math.fround(-9.8),
+        velocityIterations: 6,
+        positionIterations: 64,
+        warmStart: false,
+        spacingX: Math.fround(0.9),
+        spacingY: Math.fround(0.9),
+        restitution: Math.fround(0),
+        friction: Math.fround(0.35),
+        linearDamping: Math.fround(0.05),
+        angularDamping: Math.fround(0.05),
+        torqueSteps: 120,
+        jointStiffness: Math.fround(0.8),
       };
-      callables.dart = {
-        crypto: () => {
-          for (const idx of FRAMES) {
-            const f = frameAt(idx);
-            const ct = new Uint8Array(f.plaintext.length);
-            const tag = new Uint8Array(16);
-            mods.engines.dart.kernels.seal(
-              KEY,
-              f.nonce,
-              f.aad,
-              f.aad.length,
-              f.plaintext,
-              f.plaintext.length,
-              ct,
-              tag,
-            );
-          }
-        },
+      const STEPS = 120, EVERY = 60; // reduced shape for the browser comparison
+      const STATE = BODIES * 6;
+      const xorshift32 = (st) => {
+        let v = st >>> 0;
+        v ^= v << 13;
+        v ^= v >>> 17;
+        v ^= v << 5;
+        return v >>> 0;
       };
-      return callables;
-    },
-  },
-
-  "ml.numeric-kernels.v1": {
-    kernels: ["numeric"],
-    build(mods) {
-      const SEED = 0x6d6c6b31;
-      function xorshift32(state) {
-        state ^= state << 13;
-        state ^= state >>> 17;
-        state ^= state << 5;
-        return state >>> 0;
-      }
-      function stream(length, kind, salt) {
-        const out = kind === "f32" ? new Float32Array(length) : new Int8Array(length);
-        let state = (SEED ^ salt) >>> 0;
-        for (let i = 0; i < length; i++) {
-          state = xorshift32(state);
-          out[i] = kind === "f32"
-            ? Math.fround(((state >>> 8) / 0x1000000) * 2 - 1)
-            : ((state % 15) - 7);
-        }
-        return out;
-      }
-      function inputs() {
-        return {
-          gemmF32A: stream(72, "f32", 1),
-          gemmF32B: stream(63, "f32", 2),
-          gemmI8A: stream(72, "i8", 3),
-          gemmI8B: stream(63, "i8", 4),
-          convF32Input: stream(192, "f32", 5),
-          convF32Weights: stream(108, "f32", 6),
-          convI8Input: stream(192, "i8", 7),
-          convI8Weights: stream(108, "i8", 8),
-          softmaxF32Input: stream(128, "f32", 9),
-          softmaxI8Input: stream(128, "i8", 10),
-        };
-      }
-      function jsNumeric(fx) {
-        const a = fx.gemmF32A, b = fx.gemmF32B, out = new Float32Array(56);
-        for (let i = 0; i < 8; i++) {
-          for (let j = 0; j < 7; j++) {
-            let acc = Math.fround(0);
-            for (let k = 0; k < 9; k++) {
-              acc = Math.fround(acc + Math.fround(a[i * 9 + k] * b[k * 7 + j]));
-            }
-            out[i * 7 + j] = acc + 0;
-          }
-        }
-        return out;
-      }
-      function jsConv(fx) {
-        const inp = fx.convF32Input, w = fx.convF32Weights, out = new Float32Array(256);
-        for (let y = 0; y < 8; y++) {
-          for (let x = 0; x < 8; x++) {
-            for (let o = 0; o < 4; o++) {
-              let acc = Math.fround(0);
-              for (let ky = 0; ky < 3; ky++) {
-                for (let kx = 0; kx < 3; kx++) {
-                  const iy = y + ky - 1, ix = x + kx - 1;
-                  if (iy < 0 || ix < 0 || iy >= 8 || ix >= 8) continue;
-                  for (let c = 0; c < 3; c++) {
-                    acc = Math.fround(
-                      acc +
-                        Math.fround(
-                          inp[(iy * 8 + ix) * 3 + c] * w[((ky * 3 + kx) * 3 + c) * 4 + o],
-                        ),
-                    );
-                  }
-                }
-              }
-              out[(y * 8 + x) * 4 + o] = acc + 0;
-            }
-          }
-        }
-        return out;
-      }
-      function jsSoftmax(fx) {
-        const inp = fx.softmaxF32Input, out = new Float32Array(128);
-        const expApprox = (value) => {
-          const x = Math.fround(Math.max(-8, Math.min(0, value)));
-          let y = Math.fround(1 + Math.fround(x / 256));
-          for (let i = 0; i < 8; i++) y = Math.fround(y * y);
-          return y;
-        };
-        for (let r = 0; r < 8; r++) {
-          const base = r * 16;
-          let max = inp[base];
-          for (let c = 1; c < 16; c++) if (inp[base + c] > max) max = inp[base + c];
-          let sum = Math.fround(0);
-          for (let c = 0; c < 16; c++) {
-            const e = expApprox(Math.fround(inp[base + c] - max));
-            out[base + c] = e;
-            sum = Math.fround(sum + e);
-          }
-          for (let c = 0; c < 16; c++) out[base + c] = Math.fround(out[base + c] / sum) + 0;
-        }
-        return out;
-      }
-      const callables = {};
-      for (const key of ["cpp", "rs"]) {
-        const inst = mods.engines[key].instances.numeric.instance;
-        const mem = inst.exports.memory;
-        const inA = 0, inB = 1024, inW = 2048, out = 8192;
-        callables[key] = {
-          numeric: () => {
-            const fx = inputs();
-            new Float32Array(mem.buffer, inA, 72).set(fx.gemmF32A);
-            new Float32Array(mem.buffer, inB, 63).set(fx.gemmF32B);
-            inst.exports.gemm_f32(inA, inB, out);
-            new Int8Array(mem.buffer, inA, 72).set(fx.gemmI8A);
-            new Int8Array(mem.buffer, inB, 63).set(fx.gemmI8B);
-            inst.exports.gemm_i8(inA, inB, out);
-            new Float32Array(mem.buffer, inA, 192).set(fx.convF32Input);
-            new Float32Array(mem.buffer, inW, 108).set(fx.convF32Weights);
-            inst.exports.conv_f32(inA, inW, out);
-            new Int8Array(mem.buffer, inA, 192).set(fx.convI8Input);
-            new Int8Array(mem.buffer, inW, 108).set(fx.convI8Weights);
-            inst.exports.conv_i8(inA, inW, out);
-            new Float32Array(mem.buffer, inA, 128).set(fx.softmaxF32Input);
-            inst.exports.softmax_f32(inA, out);
-            new Int8Array(mem.buffer, inA, 128).set(fx.softmaxI8Input);
-            inst.exports.softmax_i8(inA, out);
-          },
-        };
-      }
-      callables.js = {
-        numeric: () => {
-          const fx = inputs();
-          jsNumeric(fx);
-          jsConv(fx);
-          jsSoftmax(fx);
-        },
-      };
-      callables.dart = {
-        numeric: () => {
-          const fx = inputs();
-          mods.engines.dart.kernels.gemmF32(fx.gemmF32A, fx.gemmF32B, new Float32Array(56));
-          mods.engines.dart.kernels.convF32(
-            fx.convF32Input,
-            fx.convF32Weights,
-            new Float32Array(256),
-          );
-          mods.engines.dart.kernels.softmaxF32(fx.softmaxF32Input, new Float32Array(128));
-        },
-      };
-      return callables;
-    },
-  },
-
-  "cad.mesh-repair.v1": {
-    kernels: ["mesh_repair"],
-    build(mods) {
-      const SCALE = Math.fround(10000);
-      const HEADER_WORDS = 20;
-      function quantize(value) {
-        if (!Number.isFinite(value) || Math.abs(value) > 100000) return 0x7fffffff;
-        const product = Math.fround(Math.fround(value) * SCALE);
-        const adjusted = Math.fround(product + (product < 0 ? -0.5 : 0.5));
-        return Math.trunc(adjusted);
-      }
       function fixture() {
-        const GRID = 32, VALID = GRID * GRID * 2, DEGENERATE = 64;
-        const count = VALID + DEGENERATE;
-        const bytes = new Uint8Array(84 + count * 50);
-        const enc = new TextEncoder();
-        bytes.set(enc.encode("wasm-vs-js cad.mesh-repair.v1 generated grid seed 0x4d455348"), 0);
+        const c = CFG;
+        const bytes = new Uint8Array(HEADER + c.bodies * BODY_WORDS * 4 + c.joints * JOINT_BYTES);
         const view = new DataView(bytes.buffer);
-        view.setUint32(80, count, true);
-        let face = 0;
-        const emit = (v, reverse = false) => {
-          const at = 84 + face * 50;
-          const order = reverse ? [0, 2, 1] : [0, 1, 2];
-          for (let i = 0; i < 3; i++) {
-            view.setFloat32(at + 12 + i * 12, v[order[i]][0], true);
-            view.setFloat32(at + 12 + i * 12 + 4, v[order[i]][1], true);
-            view.setFloat32(at + 12 + i * 12 + 8, v[order[i]][2], true);
-          }
-          face++;
-        };
-        for (let y = 0; y < GRID; y++) {
-          for (let x = 0; x < GRID; x++) {
-            const a = [x, y, 0], b = [x + 1, y, 0], c = [x + 1, y + 1, 0], d = [x, y + 1, 0];
-            const cell = y * GRID + x;
-            emit([a, b, c], cell % 5 === 0);
-            emit([a, c, d], cell % 7 === 0);
-          }
+        bytes.set(new TextEncoder().encode("RB2D-V2\0"), 0);
+        view.setUint32(8, 2, true);
+        view.setUint32(12, c.bodies, true);
+        view.setUint32(16, c.joints, true);
+        view.setUint32(20, c.timesteps, true);
+        view.setUint32(24, c.velocityIterations, true);
+        view.setUint32(28, c.positionIterations, true);
+        view.setUint32(32, c.checkpointEvery, true);
+        view.setUint32(36, c.seed, true);
+        view.setFloat32(40, c.dt, true);
+        view.setFloat32(44, c.gravityY, true);
+        view.setFloat32(48, c.restitution, true);
+        view.setFloat32(52, c.friction, true);
+        view.setUint32(56, c.warmStart ? 1 : 0, true);
+        view.setFloat32(60, c.linearDamping, true);
+        view.setFloat32(64, c.angularDamping, true);
+        view.setUint32(68, c.torqueSteps, true);
+        view.setFloat32(72, c.jointStiffness, true);
+        let state = c.seed;
+        const halfX = new Float32Array(c.bodies), halfY = new Float32Array(c.bodies);
+        for (let id = 0; id < c.bodies; id += 1) {
+          state = xorshift32(state);
+          const jitterX = Math.fround((((state >>> 8) & 0xffff) / 0xffff - 0.5) * 0.002);
+          state = xorshift32(state);
+          const jitterY = Math.fround((((state >>> 8) & 0xffff) / 0xffff) * 0.001);
+          const column = id % c.columns;
+          const row = Math.floor(id / c.columns);
+          const offset = HEADER + id * BODY_WORDS * 4;
+          const hx = Math.fround(0.42 + (id % 3) * 0.015);
+          const hy = Math.fround(0.42 + (id % 5) * 0.008);
+          halfX[id] = hx;
+          halfY[id] = hy;
+          const x = Math.fround(Math.fround(Math.fround(column - 9.5) * c.spacingX) + jitterX);
+          const y = Math.fround(Math.fround(hy + Math.fround(row * c.spacingY)) + jitterY);
+          state = xorshift32(state);
+          const angle = Math.fround((((state >>> 9) & 0x7fff) / 0x7fff - 0.5) * 0.06);
+          state = xorshift32(state);
+          const vx = Math.fround((((state >>> 9) & 0x7fff) / 0x7fff - 0.5) * 0.004);
+          state = xorshift32(state);
+          const omega = Math.fround((((state >>> 9) & 0x7fff) / 0x7fff - 0.5) * 0.012);
+          const mass = Math.fround(1 + (id % 4) * 0.25);
+          const inertia = Math.fround(Math.fround(mass / 3) * Math.fround(hx * hx + hy * hy));
+          state = xorshift32(state);
+          const torque = Math.fround((((state >>> 10) & 0x3fff) / 0x3fff - 0.5) * 0.001);
+          view.setFloat32(offset, x, true);
+          view.setFloat32(offset + 4, y, true);
+          view.setFloat32(offset + 8, angle, true);
+          view.setFloat32(offset + 12, vx, true);
+          view.setFloat32(offset + 16, 0, true);
+          view.setFloat32(offset + 20, omega, true);
+          view.setFloat32(offset + 24, Math.fround(1 / mass), true);
+          view.setFloat32(offset + 28, Math.fround(1 / inertia), true);
+          view.setFloat32(offset + 32, hx, true);
+          view.setFloat32(offset + 36, hy, true);
+          view.setFloat32(offset + 40, torque, true);
         }
-        for (let i = 0; i < DEGENERATE; i++) {
-          const x = i % GRID, y = Math.floor(i / GRID);
-          emit([[x, y, 0], [x, y, 0], [x, y, 0]]);
+        const top = c.bodies - c.columns;
+        const jointOffset = HEADER + c.bodies * BODY_WORDS * 4;
+        for (let joint = 0; joint < c.joints; joint += 1) {
+          const a = top + joint, b = top + joint + 1;
+          const offset = jointOffset + joint * JOINT_BYTES;
+          view.setUint32(offset, a, true);
+          view.setUint32(offset + 4, b, true);
+          view.setFloat32(offset + 8, halfX[a], true);
+          view.setFloat32(offset + 12, 0, true);
+          view.setFloat32(offset + 16, -halfX[b], true);
+          view.setFloat32(offset + 20, 0, true);
+          view.setFloat32(offset + 24, Math.fround(c.spacingX - halfX[a] - halfX[b]), true);
+          view.setFloat32(offset + 28, c.jointStiffness, true);
         }
         return bytes;
       }
-      function jsRepair(bytes) {
-        const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-        const count = view.getUint32(80, true);
-        const vertices = [], faces = [], ids = new Int32Array(3);
-        let removed = 0, flipped = 0, vertexWeldComparisons = 0;
-        for (let f = 0; f < count; f++) {
-          const at = 84 + f * 50 + 12;
-          for (let p = 0; p < 3; p++) {
-            const x = quantize(view.getFloat32(at + p * 12, true));
-            const y = quantize(view.getFloat32(at + p * 12 + 4, true));
-            const z = quantize(view.getFloat32(at + p * 12 + 8, true));
-            let id = -1;
-            for (let c = 0; c < vertices.length / 3; c++) {
-              vertexWeldComparisons++;
-              if (vertices[c * 3] === x && vertices[c * 3 + 1] === y && vertices[c * 3 + 2] === z) {
-                id = c;
-                break;
-              }
-            }
-            if (id < 0) {
-              id = vertices.length / 3;
-              vertices.push(x, y, z);
-            }
-            ids[p] = id;
-          }
-          if (ids[0] === ids[1] || ids[1] === ids[2] || ids[0] === ids[2]) {
-            removed++;
-            continue;
-          }
-          const ax = vertices[ids[0] * 3], ay = vertices[ids[0] * 3 + 1];
-          const bx = vertices[ids[1] * 3], by = vertices[ids[1] * 3 + 1];
-          const cx = vertices[ids[2] * 3], cy = vertices[ids[2] * 3 + 1];
-          const nz = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
-          if (nz === 0) {
-            removed++;
-            continue;
-          }
-          if (nz < 0) {
-            const sw = ids[1];
-            ids[1] = ids[2];
-            ids[2] = sw;
-            flipped++;
-          }
-          faces.push(ids[0], ids[1], ids[2]);
+      const digest = (arr) => {
+        let h = 7;
+        for (let i = 0; i < arr.length; i += 997) {
+          h = (Math.imul(h, 31) + (arr[i] >>> 0)) >>> 0;
         }
-        const cleanFaceCount = faces.length / 3;
-        if (cleanFaceCount % 2 !== 0) throw new Error("clean face count must be paired");
-        const sameEdge = (a, b, c, d) => (a === c && b === d) || (a === d && b === c);
-        let cleanEdgeComparisons = 0;
-        for (let i = 0; i < cleanFaceCount; i++) {
-          for (let e = 0; e < 3; e++) {
-            const a = faces[i * 3 + e], b = faces[i * 3 + (e + 1) % 3];
-            let incidence = 0;
-            for (let j = 0; j < cleanFaceCount; j++) {
-              for (let q = 0; q < 3; q++) {
-                cleanEdgeComparisons++;
-                if (sameEdge(a, b, faces[j * 3 + q], faces[j * 3 + (q + 1) % 3])) incidence++;
-              }
-            }
-            if (incidence > 2) throw new Error("non-manifold edge");
-          }
-        }
-        const simplifiedVertices = [], remap = [];
-        let simplificationWeldComparisons = 0;
-        for (let id = 0; id < vertices.length / 3; id++) {
-          const ox = vertices[id * 3];
-          const x = Math.abs(Math.trunc(ox / 10000)) % 2 === 1 ? ox - 10000 : ox;
-          const y = vertices[id * 3 + 1], z = vertices[id * 3 + 2];
-          let next = -1;
-          for (let c = 0; c < simplifiedVertices.length / 3; c++) {
-            simplificationWeldComparisons++;
-            if (
-              simplifiedVertices[c * 3] === x && simplifiedVertices[c * 3 + 1] === y &&
-              simplifiedVertices[c * 3 + 2] === z
-            ) {
-              next = c;
-              break;
-            }
-          }
-          if (next < 0) {
-            next = simplifiedVertices.length / 3;
-            simplifiedVertices.push(x, y, z);
-          }
-          remap[id] = next;
-        }
-        const targetFaces = cleanFaceCount / 2;
-        const selected = [];
-        for (let i = 0; i < cleanFaceCount; i++) {
-          const a = remap[faces[i * 3]], b = remap[faces[i * 3 + 1]], c = remap[faces[i * 3 + 2]];
-          if (a !== b && b !== c && a !== c) selected.push(a, b, c);
-        }
-        const selectedFaceCount = selected.length / 3;
-        if (selectedFaceCount !== targetFaces) throw new Error("target face count mismatch");
-        let uniqueEdges = 0, simplifiedEdgeComparisons = 0;
-        for (let i = 0; i < selectedFaceCount; i++) {
-          for (let e = 0; e < 3; e++) {
-            const a = selected[i * 3 + e], b = selected[i * 3 + (e + 1) % 3];
-            let incidence = 0, seen = false;
-            for (let j = 0; j < selectedFaceCount; j++) {
-              for (let q = 0; q < 3; q++) {
-                simplifiedEdgeComparisons++;
-                if (sameEdge(a, b, selected[j * 3 + q], selected[j * 3 + (q + 1) % 3])) {
-                  incidence++;
-                  if (j < i || (j === i && q < e)) seen = true;
-                }
-              }
-            }
-            if (incidence > 2) throw new Error("simplified non-manifold edge");
-            if (!seen) uniqueEdges++;
-          }
-        }
-        let signedVolumeSixQuantized = 0;
-        for (let i = 0; i < selectedFaceCount; i++) {
-          const a = selected[i * 3], b = selected[i * 3 + 1], c = selected[i * 3 + 2];
-          const ax = simplifiedVertices[a * 3],
-            ay = simplifiedVertices[a * 3 + 1],
-            az = simplifiedVertices[a * 3 + 2];
-          const bx = simplifiedVertices[b * 3],
-            by = simplifiedVertices[b * 3 + 1],
-            bz = simplifiedVertices[b * 3 + 2];
-          const cx = simplifiedVertices[c * 3],
-            cy = simplifiedVertices[c * 3 + 1],
-            cz = simplifiedVertices[c * 3 + 2];
-          signedVolumeSixQuantized += ax * (by * cz - bz * cy) - ay * (bx * cz - bz * cx) +
-            az * (bx * cy - by * cx);
-        }
-        if (signedVolumeSixQuantized !== 0) {
-          throw new Error("fixture volume policy requires a planar open mesh");
-        }
-        const words = new Int32Array(HEADER_WORDS + simplifiedVertices.length + selected.length);
-        words.set([
-          0x4d455348,
-          2,
-          count,
-          vertices.length / 3,
-          cleanFaceCount,
-          targetFaces,
-          removed,
-          flipped,
-          count * 3,
-          uniqueEdges,
-          selectedFaceCount,
-          simplifiedVertices.length / 3,
-          signedVolumeSixQuantized,
-          selectedFaceCount,
-          vertexWeldComparisons,
-          simplificationWeldComparisons,
-          cleanEdgeComparisons,
-          simplifiedEdgeComparisons,
-          0,
-          HEADER_WORDS,
-        ]);
-        words.set(simplifiedVertices, HEADER_WORDS);
-        words.set(selected, HEADER_WORDS + simplifiedVertices.length);
-        return words;
-      }
+        return h;
+      };
+      const { runRigidBodyJavaScript } = await import(
+        "/benchmarks/v1/simulation-rigid-body-2d/engine.js"
+      );
+      const bytes = fixture();
+      const oracle = runRigidBodyJavaScript(bytes, { timesteps: STEPS, checkpointEvery: EVERY });
+      const oracleDigest = digest(oracle.checkpoints);
       const callables = {};
       for (const key of ["c", "cpp", "rs"]) {
-        const inst = mods.engines[key].instances.mesh_repair.instance;
+        const inst = mods.engines[key].instances.rigid_engine.instance;
         const mem = inst.exports.memory;
         callables[key] = {
-          mesh_repair: () => {
-            const input = fixture();
-            const inPtr = Number(inst.exports.input_ptr());
-            new Uint8Array(mem.buffer, inPtr, input.length).set(input);
-            const ret = Number(inst.exports.run(input.length));
-            if (ret <= 0) throw new Error(`mesh_repair ${key} run failed (${ret})`);
+          rigid_engine: () => {
+            const fp = inst.exports.fixture_ptr();
+            new Uint8Array(mem.buffer, fp, bytes.byteLength).set(bytes);
+            const code = inst.exports.run(STEPS, EVERY);
+            if (code !== 0) throw new Error(`rigid ${key} run failed (${code})`);
+            const rp = inst.exports.result_ptr();
+            const cp = new Float32Array(mem.buffer, rp + 64, (STEPS / EVERY) * STATE);
+            const d = digest(cp);
+            if (d !== oracleDigest) throw new Error(`rigid ${key} output mismatch vs oracle`);
+            return d;
           },
         };
       }
-      callables.js = { mesh_repair: () => jsRepair(fixture()) };
       callables.dart = {
-        mesh_repair: () => {
-          const input = fixture();
-          const outWords = new Int32Array(65536);
-          const ret = mods.engines.dart.kernels.meshRepair(input, outWords);
-          if (ret <= 0) throw new Error(`mesh_repair dart run failed (${ret})`);
+        rigid_engine: () => {
+          const ret = mods.engines.dart.kernels.run(bytes, STEPS, EVERY);
+          if (ret !== 0) throw new Error(`rigid dart run failed (${ret})`);
+          const cp = new Float32Array(mods.engines.dart.kernels.checkpoints());
+          const d = digest(cp);
+          if (d !== oracleDigest) throw new Error("rigid dart output mismatch vs oracle");
+          return d;
         },
       };
+      callables.js = { rigid_engine: () => oracleDigest };
       return callables;
     },
   },
@@ -1948,62 +1608,229 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
     },
   },
 
-  "audio.fft.v1": {
-    kernels: ["fft"],
+  // --- cad-mesh-repair: STL quantize/weld/orient/simplify (mirrors engine.js
+  //     repairMeshJavaScript + the frozen mesh-repair.c)
+  "cad.mesh-repair.v1": {
+    kernels: ["mesh_repair"],
     build(mods) {
-      const LEN = 512;
-      function inputs() {
-        const real = new Float32Array(LEN), imag = new Float32Array(LEN);
-        for (let i = 0; i < LEN; i++) {
-          real[i] = Math.sin(i * 0.1);
-          imag[i] = Math.cos(i * 0.1);
-        }
-        return { real, imag };
+      const SCALE = Math.fround(10000);
+      const HEADER_WORDS = 20;
+      function quantize(value) {
+        if (!Number.isFinite(value) || Math.abs(value) > 100000) return 0x7fffffff;
+        const product = Math.fround(Math.fround(value) * SCALE);
+        const adjusted = Math.fround(product + (product < 0 ? -0.5 : 0.5));
+        return Math.trunc(adjusted);
       }
-      function jsFft(real, imag) {
-        for (let step = 1; step < LEN; step <<= 1) {
-          const angle = -Math.PI / step, wReal = Math.cos(angle), wImag = Math.sin(angle);
-          for (let i = 0; i < LEN; i += step << 1) {
-            let cwR = 1.0, cwI = 0.0;
-            for (let j = 0; j < step; j++) {
-              const u = i + j, v = i + j + step;
-              const tr = real[v] * cwR - imag[v] * cwI;
-              const ti = real[v] * cwI + imag[v] * cwR;
-              real[v] = real[u] - tr;
-              imag[v] = imag[u] - ti;
-              real[u] += tr;
-              imag[u] += ti;
-              const nwR = cwR * wReal - cwI * wImag, nwI = cwR * wImag + cwI * wReal;
-              cwR = nwR;
-              cwI = nwI;
-            }
+      function fixture() {
+        const GRID = 32, VALID = GRID * GRID * 2, DEGENERATE = 64;
+        const count = VALID + DEGENERATE;
+        const bytes = new Uint8Array(84 + count * 50);
+        const enc = new TextEncoder();
+        bytes.set(enc.encode("wasm-vs-js cad.mesh-repair.v1 generated grid seed 0x4d455348"), 0);
+        const view = new DataView(bytes.buffer);
+        view.setUint32(80, count, true);
+        let face = 0;
+        const emit = (v, reverse = false) => {
+          const at = 84 + face * 50;
+          const order = reverse ? [0, 2, 1] : [0, 1, 2];
+          for (let i = 0; i < 3; i++) {
+            view.setFloat32(at + 12 + i * 12, v[order[i]][0], true);
+            view.setFloat32(at + 12 + i * 12 + 4, v[order[i]][1], true);
+            view.setFloat32(at + 12 + i * 12 + 8, v[order[i]][2], true);
+          }
+          face++;
+        };
+        for (let y = 0; y < GRID; y++) {
+          for (let x = 0; x < GRID; x++) {
+            const a = [x, y, 0], b = [x + 1, y, 0], c = [x + 1, y + 1, 0], d = [x, y + 1, 0];
+            const cell = y * GRID + x;
+            emit([a, b, c], cell % 5 === 0);
+            emit([a, c, d], cell % 7 === 0);
           }
         }
+        for (let i = 0; i < DEGENERATE; i++) {
+          const x = i % GRID, y = Math.floor(i / GRID);
+          emit([[x, y, 0], [x, y, 0], [x, y, 0]]);
+        }
+        return bytes;
+      }
+      function jsRepair(bytes) {
+        const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+        const count = view.getUint32(80, true);
+        const vertices = [], faces = [], ids = new Int32Array(3);
+        let removed = 0, flipped = 0, vertexWeldComparisons = 0;
+        for (let f = 0; f < count; f++) {
+          const at = 84 + f * 50 + 12;
+          for (let p = 0; p < 3; p++) {
+            const x = quantize(view.getFloat32(at + p * 12, true));
+            const y = quantize(view.getFloat32(at + p * 12 + 4, true));
+            const z = quantize(view.getFloat32(at + p * 12 + 8, true));
+            let id = -1;
+            for (let c = 0; c < vertices.length / 3; c++) {
+              vertexWeldComparisons++;
+              if (vertices[c * 3] === x && vertices[c * 3 + 1] === y && vertices[c * 3 + 2] === z) {
+                id = c;
+                break;
+              }
+            }
+            if (id < 0) {
+              id = vertices.length / 3;
+              vertices.push(x, y, z);
+            }
+            ids[p] = id;
+          }
+          if (ids[0] === ids[1] || ids[1] === ids[2] || ids[0] === ids[2]) {
+            removed++;
+            continue;
+          }
+          const ax = vertices[ids[0] * 3], ay = vertices[ids[0] * 3 + 1];
+          const bx = vertices[ids[1] * 3], by = vertices[ids[1] * 3 + 1];
+          const cx = vertices[ids[2] * 3], cy = vertices[ids[2] * 3 + 1];
+          const nz = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
+          if (nz === 0) {
+            removed++;
+            continue;
+          }
+          if (nz < 0) {
+            const sw = ids[1];
+            ids[1] = ids[2];
+            ids[2] = sw;
+            flipped++;
+          }
+          faces.push(ids[0], ids[1], ids[2]);
+        }
+        const cleanFaceCount = faces.length / 3;
+        if (cleanFaceCount % 2 !== 0) throw new Error("clean face count must be paired");
+        const sameEdge = (a, b, c, d) => (a === c && b === d) || (a === d && b === c);
+        let cleanEdgeComparisons = 0;
+        for (let i = 0; i < cleanFaceCount; i++) {
+          for (let e = 0; e < 3; e++) {
+            const a = faces[i * 3 + e], b = faces[i * 3 + (e + 1) % 3];
+            let incidence = 0;
+            for (let j = 0; j < cleanFaceCount; j++) {
+              for (let q = 0; q < 3; q++) {
+                cleanEdgeComparisons++;
+                if (sameEdge(a, b, faces[j * 3 + q], faces[j * 3 + (q + 1) % 3])) incidence++;
+              }
+            }
+            if (incidence > 2) throw new Error("non-manifold edge");
+          }
+        }
+        const simplifiedVertices = [], remap = [];
+        let simplificationWeldComparisons = 0;
+        for (let id = 0; id < vertices.length / 3; id++) {
+          const ox = vertices[id * 3];
+          const x = Math.abs(Math.trunc(ox / 10000)) % 2 === 1 ? ox - 10000 : ox;
+          const y = vertices[id * 3 + 1], z = vertices[id * 3 + 2];
+          let next = -1;
+          for (let c = 0; c < simplifiedVertices.length / 3; c++) {
+            simplificationWeldComparisons++;
+            if (
+              simplifiedVertices[c * 3] === x && simplifiedVertices[c * 3 + 1] === y &&
+              simplifiedVertices[c * 3 + 2] === z
+            ) {
+              next = c;
+              break;
+            }
+          }
+          if (next < 0) {
+            next = simplifiedVertices.length / 3;
+            simplifiedVertices.push(x, y, z);
+          }
+          remap[id] = next;
+        }
+        const targetFaces = cleanFaceCount / 2;
+        const selected = [];
+        for (let i = 0; i < cleanFaceCount; i++) {
+          const a = remap[faces[i * 3]], b = remap[faces[i * 3 + 1]], c = remap[faces[i * 3 + 2]];
+          if (a !== b && b !== c && a !== c) selected.push(a, b, c);
+        }
+        const selectedFaceCount = selected.length / 3;
+        if (selectedFaceCount !== targetFaces) throw new Error("target face count mismatch");
+        let uniqueEdges = 0, simplifiedEdgeComparisons = 0;
+        for (let i = 0; i < selectedFaceCount; i++) {
+          for (let e = 0; e < 3; e++) {
+            const a = selected[i * 3 + e], b = selected[i * 3 + (e + 1) % 3];
+            let incidence = 0, seen = false;
+            for (let j = 0; j < selectedFaceCount; j++) {
+              for (let q = 0; q < 3; q++) {
+                simplifiedEdgeComparisons++;
+                if (sameEdge(a, b, selected[j * 3 + q], selected[j * 3 + (q + 1) % 3])) {
+                  incidence++;
+                  if (j < i || (j === i && q < e)) seen = true;
+                }
+              }
+            }
+            if (incidence > 2) throw new Error("simplified non-manifold edge");
+            if (!seen) uniqueEdges++;
+          }
+        }
+        let signedVolumeSixQuantized = 0;
+        for (let i = 0; i < selectedFaceCount; i++) {
+          const a = selected[i * 3], b = selected[i * 3 + 1], c = selected[i * 3 + 2];
+          const ax = simplifiedVertices[a * 3],
+            ay = simplifiedVertices[a * 3 + 1],
+            az = simplifiedVertices[a * 3 + 2];
+          const bx = simplifiedVertices[b * 3],
+            by = simplifiedVertices[b * 3 + 1],
+            bz = simplifiedVertices[b * 3 + 2];
+          const cx = simplifiedVertices[c * 3],
+            cy = simplifiedVertices[c * 3 + 1],
+            cz = simplifiedVertices[c * 3 + 2];
+          signedVolumeSixQuantized += ax * (by * cz - bz * cy) - ay * (bx * cz - bz * cx) +
+            az * (bx * cy - by * cx);
+        }
+        if (signedVolumeSixQuantized !== 0) {
+          throw new Error("fixture volume policy requires a planar open mesh");
+        }
+        const words = new Int32Array(HEADER_WORDS + simplifiedVertices.length + selected.length);
+        words.set([
+          0x4d455348,
+          2,
+          count,
+          vertices.length / 3,
+          cleanFaceCount,
+          targetFaces,
+          removed,
+          flipped,
+          count * 3,
+          uniqueEdges,
+          selectedFaceCount,
+          simplifiedVertices.length / 3,
+          signedVolumeSixQuantized,
+          selectedFaceCount,
+          vertexWeldComparisons,
+          simplificationWeldComparisons,
+          cleanEdgeComparisons,
+          simplifiedEdgeComparisons,
+          0,
+          HEADER_WORDS,
+        ]);
+        words.set(simplifiedVertices, HEADER_WORDS);
+        words.set(selected, HEADER_WORDS + simplifiedVertices.length);
+        return words;
       }
       const callables = {};
       for (const key of ["c", "cpp", "rs"]) {
-        const cfg = mods.manifest.engines.find((e) => e.key === key);
-        const inst = mods.engines[key].instances.fft.instance;
+        const inst = mods.engines[key].instances.mesh_repair.instance;
         const mem = inst.exports.memory;
         callables[key] = {
-          fft: () => {
-            const { real, imag } = inputs();
-            new Float32Array(mem.buffer, cfg.offset, LEN).set(real);
-            new Float32Array(mem.buffer, cfg.offset + LEN * 4, LEN).set(imag);
-            inst.exports.fft_butterfly(cfg.offset, cfg.offset + LEN * 4, LEN);
+          mesh_repair: () => {
+            const input = fixture();
+            const inPtr = Number(inst.exports.input_ptr());
+            new Uint8Array(mem.buffer, inPtr, input.length).set(input);
+            const ret = Number(inst.exports.run(input.length));
+            if (ret <= 0) throw new Error(`mesh_repair ${key} run failed (${ret})`);
           },
         };
       }
-      callables.js = {
-        fft: () => {
-          const { real, imag } = inputs();
-          jsFft(real, imag);
-        },
-      };
+      callables.js = { mesh_repair: () => jsRepair(fixture()) };
       callables.dart = {
-        fft: () => {
-          const { real, imag } = inputs();
-          mods.engines.dart.kernels.fft_butterfly(real, imag, LEN);
+        mesh_repair: () => {
+          const input = fixture();
+          const outWords = new Int32Array(65536);
+          const ret = mods.engines.dart.kernels.meshRepair(input, outWords);
+          if (ret <= 0) throw new Error(`mesh_repair dart run failed (${ret})`);
         },
       };
       return callables;
@@ -4093,165 +3920,6 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
     },
   },
 
-  // --- simulation.rigid-body-2d.v1: 500-body 2D physics (mirrors engine.js
-  //     runRigidBodyJavaScript + the frozen rigid-body-2d.c) -----------------
-  "simulation.rigid-body-2d.v1": {
-    kernels: ["rigid_engine"],
-    async build(mods) {
-      const BODIES = 500, HEADER = 96, BODY_WORDS = 11, JOINT_BYTES = 32;
-      const CFG = {
-        seed: 0x5242474e,
-        bodies: 500,
-        columns: 20,
-        rows: 25,
-        joints: 19,
-        timesteps: 1800,
-        checkpointEvery: 300,
-        dt: Math.fround(1 / 60),
-        gravityY: Math.fround(-9.8),
-        velocityIterations: 6,
-        positionIterations: 64,
-        warmStart: false,
-        spacingX: Math.fround(0.9),
-        spacingY: Math.fround(0.9),
-        restitution: Math.fround(0),
-        friction: Math.fround(0.35),
-        linearDamping: Math.fround(0.05),
-        angularDamping: Math.fround(0.05),
-        torqueSteps: 120,
-        jointStiffness: Math.fround(0.8),
-      };
-      const STEPS = 120, EVERY = 60; // reduced shape for the browser comparison
-      const STATE = BODIES * 6;
-      const xorshift32 = (st) => {
-        let v = st >>> 0;
-        v ^= v << 13;
-        v ^= v >>> 17;
-        v ^= v << 5;
-        return v >>> 0;
-      };
-      function fixture() {
-        const c = CFG;
-        const bytes = new Uint8Array(HEADER + c.bodies * BODY_WORDS * 4 + c.joints * JOINT_BYTES);
-        const view = new DataView(bytes.buffer);
-        bytes.set(new TextEncoder().encode("RB2D-V2\0"), 0);
-        view.setUint32(8, 2, true);
-        view.setUint32(12, c.bodies, true);
-        view.setUint32(16, c.joints, true);
-        view.setUint32(20, c.timesteps, true);
-        view.setUint32(24, c.velocityIterations, true);
-        view.setUint32(28, c.positionIterations, true);
-        view.setUint32(32, c.checkpointEvery, true);
-        view.setUint32(36, c.seed, true);
-        view.setFloat32(40, c.dt, true);
-        view.setFloat32(44, c.gravityY, true);
-        view.setFloat32(48, c.restitution, true);
-        view.setFloat32(52, c.friction, true);
-        view.setUint32(56, c.warmStart ? 1 : 0, true);
-        view.setFloat32(60, c.linearDamping, true);
-        view.setFloat32(64, c.angularDamping, true);
-        view.setUint32(68, c.torqueSteps, true);
-        view.setFloat32(72, c.jointStiffness, true);
-        let state = c.seed;
-        const halfX = new Float32Array(c.bodies), halfY = new Float32Array(c.bodies);
-        for (let id = 0; id < c.bodies; id += 1) {
-          state = xorshift32(state);
-          const jitterX = Math.fround((((state >>> 8) & 0xffff) / 0xffff - 0.5) * 0.002);
-          state = xorshift32(state);
-          const jitterY = Math.fround((((state >>> 8) & 0xffff) / 0xffff) * 0.001);
-          const column = id % c.columns;
-          const row = Math.floor(id / c.columns);
-          const offset = HEADER + id * BODY_WORDS * 4;
-          const hx = Math.fround(0.42 + (id % 3) * 0.015);
-          const hy = Math.fround(0.42 + (id % 5) * 0.008);
-          halfX[id] = hx;
-          halfY[id] = hy;
-          const x = Math.fround(Math.fround(Math.fround(column - 9.5) * c.spacingX) + jitterX);
-          const y = Math.fround(Math.fround(hy + Math.fround(row * c.spacingY)) + jitterY);
-          state = xorshift32(state);
-          const angle = Math.fround((((state >>> 9) & 0x7fff) / 0x7fff - 0.5) * 0.06);
-          state = xorshift32(state);
-          const vx = Math.fround((((state >>> 9) & 0x7fff) / 0x7fff - 0.5) * 0.004);
-          state = xorshift32(state);
-          const omega = Math.fround((((state >>> 9) & 0x7fff) / 0x7fff - 0.5) * 0.012);
-          const mass = Math.fround(1 + (id % 4) * 0.25);
-          const inertia = Math.fround(Math.fround(mass / 3) * Math.fround(hx * hx + hy * hy));
-          state = xorshift32(state);
-          const torque = Math.fround((((state >>> 10) & 0x3fff) / 0x3fff - 0.5) * 0.001);
-          view.setFloat32(offset, x, true);
-          view.setFloat32(offset + 4, y, true);
-          view.setFloat32(offset + 8, angle, true);
-          view.setFloat32(offset + 12, vx, true);
-          view.setFloat32(offset + 16, 0, true);
-          view.setFloat32(offset + 20, omega, true);
-          view.setFloat32(offset + 24, Math.fround(1 / mass), true);
-          view.setFloat32(offset + 28, Math.fround(1 / inertia), true);
-          view.setFloat32(offset + 32, hx, true);
-          view.setFloat32(offset + 36, hy, true);
-          view.setFloat32(offset + 40, torque, true);
-        }
-        const top = c.bodies - c.columns;
-        const jointOffset = HEADER + c.bodies * BODY_WORDS * 4;
-        for (let joint = 0; joint < c.joints; joint += 1) {
-          const a = top + joint, b = top + joint + 1;
-          const offset = jointOffset + joint * JOINT_BYTES;
-          view.setUint32(offset, a, true);
-          view.setUint32(offset + 4, b, true);
-          view.setFloat32(offset + 8, halfX[a], true);
-          view.setFloat32(offset + 12, 0, true);
-          view.setFloat32(offset + 16, -halfX[b], true);
-          view.setFloat32(offset + 20, 0, true);
-          view.setFloat32(offset + 24, Math.fround(c.spacingX - halfX[a] - halfX[b]), true);
-          view.setFloat32(offset + 28, c.jointStiffness, true);
-        }
-        return bytes;
-      }
-      const digest = (arr) => {
-        let h = 7;
-        for (let i = 0; i < arr.length; i += 997) {
-          h = (Math.imul(h, 31) + (arr[i] >>> 0)) >>> 0;
-        }
-        return h;
-      };
-      const { runRigidBodyJavaScript } = await import(
-        "/benchmarks/v1/simulation-rigid-body-2d/engine.js"
-      );
-      const bytes = fixture();
-      const oracle = runRigidBodyJavaScript(bytes, { timesteps: STEPS, checkpointEvery: EVERY });
-      const oracleDigest = digest(oracle.checkpoints);
-      const callables = {};
-      for (const key of ["c", "cpp", "rs"]) {
-        const inst = mods.engines[key].instances.rigid_engine.instance;
-        const mem = inst.exports.memory;
-        callables[key] = {
-          rigid_engine: () => {
-            const fp = inst.exports.fixture_ptr();
-            new Uint8Array(mem.buffer, fp, bytes.byteLength).set(bytes);
-            const code = inst.exports.run(STEPS, EVERY);
-            if (code !== 0) throw new Error(`rigid ${key} run failed (${code})`);
-            const rp = inst.exports.result_ptr();
-            const cp = new Float32Array(mem.buffer, rp + 64, (STEPS / EVERY) * STATE);
-            const d = digest(cp);
-            if (d !== oracleDigest) throw new Error(`rigid ${key} output mismatch vs oracle`);
-            return d;
-          },
-        };
-      }
-      callables.dart = {
-        rigid_engine: () => {
-          const ret = mods.engines.dart.kernels.run(bytes, STEPS, EVERY);
-          if (ret !== 0) throw new Error(`rigid dart run failed (${ret})`);
-          const cp = new Float32Array(mods.engines.dart.kernels.checkpoints());
-          const d = digest(cp);
-          if (d !== oracleDigest) throw new Error("rigid dart output mismatch vs oracle");
-          return d;
-        },
-      };
-      callables.js = { rigid_engine: () => oracleDigest };
-      return callables;
-    },
-  },
-
   // --- numeric.polybench-panel.v1 -------------------------------------------
   "numeric.polybench-panel.v1": {
     kernels: ["polybench"],
@@ -4515,6 +4183,273 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
       return callables;
     },
   },
+  // --- ml-numeric-kernels: GEMM/Conv/Softmax f32+i8 (frozen shapes) ----------
+  "ml.numeric-kernels.v1": {
+    kernels: ["numeric"],
+    build(mods) {
+      const SEED = 0x6d6c6b31;
+      function xorshift32(state) {
+        state ^= state << 13;
+        state ^= state >>> 17;
+        state ^= state << 5;
+        return state >>> 0;
+      }
+      function stream(length, kind, salt) {
+        const out = kind === "f32" ? new Float32Array(length) : new Int8Array(length);
+        let state = (SEED ^ salt) >>> 0;
+        for (let i = 0; i < length; i++) {
+          state = xorshift32(state);
+          out[i] = kind === "f32"
+            ? Math.fround(((state >>> 8) / 0x1000000) * 2 - 1)
+            : ((state % 15) - 7);
+        }
+        return out;
+      }
+      function inputs() {
+        return {
+          gemmF32A: stream(72, "f32", 1),
+          gemmF32B: stream(63, "f32", 2),
+          gemmI8A: stream(72, "i8", 3),
+          gemmI8B: stream(63, "i8", 4),
+          convF32Input: stream(192, "f32", 5),
+          convF32Weights: stream(108, "f32", 6),
+          convI8Input: stream(192, "i8", 7),
+          convI8Weights: stream(108, "i8", 8),
+          softmaxF32Input: stream(128, "f32", 9),
+          softmaxI8Input: stream(128, "i8", 10),
+        };
+      }
+      function jsNumeric(fx) {
+        const a = fx.gemmF32A, b = fx.gemmF32B, out = new Float32Array(56);
+        for (let i = 0; i < 8; i++) {
+          for (let j = 0; j < 7; j++) {
+            let acc = Math.fround(0);
+            for (let k = 0; k < 9; k++) {
+              acc = Math.fround(acc + Math.fround(a[i * 9 + k] * b[k * 7 + j]));
+            }
+            out[i * 7 + j] = acc + 0;
+          }
+        }
+        return out;
+      }
+      function jsConv(fx) {
+        const inp = fx.convF32Input, w = fx.convF32Weights, out = new Float32Array(256);
+        for (let y = 0; y < 8; y++) {
+          for (let x = 0; x < 8; x++) {
+            for (let o = 0; o < 4; o++) {
+              let acc = Math.fround(0);
+              for (let ky = 0; ky < 3; ky++) {
+                for (let kx = 0; kx < 3; kx++) {
+                  const iy = y + ky - 1, ix = x + kx - 1;
+                  if (iy < 0 || ix < 0 || iy >= 8 || ix >= 8) continue;
+                  for (let c = 0; c < 3; c++) {
+                    acc = Math.fround(
+                      acc +
+                        Math.fround(
+                          inp[(iy * 8 + ix) * 3 + c] * w[((ky * 3 + kx) * 3 + c) * 4 + o],
+                        ),
+                    );
+                  }
+                }
+              }
+              out[(y * 8 + x) * 4 + o] = acc + 0;
+            }
+          }
+        }
+        return out;
+      }
+      function jsSoftmax(fx) {
+        const inp = fx.softmaxF32Input, out = new Float32Array(128);
+        const expApprox = (value) => {
+          const x = Math.fround(Math.max(-8, Math.min(0, value)));
+          let y = Math.fround(1 + Math.fround(x / 256));
+          for (let i = 0; i < 8; i++) y = Math.fround(y * y);
+          return y;
+        };
+        for (let r = 0; r < 8; r++) {
+          const base = r * 16;
+          let max = inp[base];
+          for (let c = 1; c < 16; c++) if (inp[base + c] > max) max = inp[base + c];
+          let sum = Math.fround(0);
+          for (let c = 0; c < 16; c++) {
+            const e = expApprox(Math.fround(inp[base + c] - max));
+            out[base + c] = e;
+            sum = Math.fround(sum + e);
+          }
+          for (let c = 0; c < 16; c++) out[base + c] = Math.fround(out[base + c] / sum) + 0;
+        }
+        return out;
+      }
+      const callables = {};
+      for (const key of ["cpp", "rs"]) {
+        const inst = mods.engines[key].instances.numeric.instance;
+        const mem = inst.exports.memory;
+        const inA = 0, inB = 1024, inW = 2048, out = 8192;
+        callables[key] = {
+          numeric: () => {
+            const fx = inputs();
+            new Float32Array(mem.buffer, inA, 72).set(fx.gemmF32A);
+            new Float32Array(mem.buffer, inB, 63).set(fx.gemmF32B);
+            inst.exports.gemm_f32(inA, inB, out);
+            new Int8Array(mem.buffer, inA, 72).set(fx.gemmI8A);
+            new Int8Array(mem.buffer, inB, 63).set(fx.gemmI8B);
+            inst.exports.gemm_i8(inA, inB, out);
+            new Float32Array(mem.buffer, inA, 192).set(fx.convF32Input);
+            new Float32Array(mem.buffer, inW, 108).set(fx.convF32Weights);
+            inst.exports.conv_f32(inA, inW, out);
+            new Int8Array(mem.buffer, inA, 192).set(fx.convI8Input);
+            new Int8Array(mem.buffer, inW, 108).set(fx.convI8Weights);
+            inst.exports.conv_i8(inA, inW, out);
+            new Float32Array(mem.buffer, inA, 128).set(fx.softmaxF32Input);
+            inst.exports.softmax_f32(inA, out);
+            new Int8Array(mem.buffer, inA, 128).set(fx.softmaxI8Input);
+            inst.exports.softmax_i8(inA, out);
+          },
+        };
+      }
+      callables.js = {
+        numeric: () => {
+          const fx = inputs();
+          jsNumeric(fx);
+          jsConv(fx);
+          jsSoftmax(fx);
+        },
+      };
+      callables.dart = {
+        numeric: () => {
+          const fx = inputs();
+          mods.engines.dart.kernels.gemmF32(fx.gemmF32A, fx.gemmF32B, new Float32Array(56));
+          mods.engines.dart.kernels.convF32(
+            fx.convF32Input,
+            fx.convF32Weights,
+            new Float32Array(256),
+          );
+          mods.engines.dart.kernels.softmaxF32(fx.softmaxF32Input, new Float32Array(128));
+        },
+      };
+      return callables;
+    },
+  },
+
+  // --- crypto-authenticated-stream: ChaCha20-Poly1305 seal/open -------------
+  "crypto.authenticated-stream.v1": {
+    kernels: ["crypto"],
+    async build(mods) {
+      const KEY = Uint8Array.from({ length: 32 }, (_, i) => 0x80 + i);
+      const SESSION = Uint8Array.from([
+        0x57,
+        0x41,
+        0x53,
+        0x4d,
+        0x2d,
+        0x56,
+        0x45,
+        0x52,
+        0x53,
+        0x49,
+        0x4f,
+        0x4e,
+      ]);
+      const FRAME_SIZES = [0, 1, 15, 16, 17, 31, 32, 63, 64, 65, 127, 128, 255, 256, 511, 1024];
+      function xorshift32(value) {
+        value ^= value << 13;
+        value ^= value >>> 17;
+        value ^= value << 5;
+        return value >>> 0;
+      }
+      function frameAt(index) {
+        const size = FRAME_SIZES[index % FRAME_SIZES.length];
+        const plaintext = new Uint8Array(size);
+        let state = (0x6d2b79f5 ^ Math.imul(index + 1, 0x9e3779b1)) >>> 0;
+        for (let off = 0; off < size; off++) {
+          state = xorshift32(state);
+          plaintext[off] = state >>> 24;
+        }
+        const nonce = new Uint8Array(12);
+        nonce.set([0x43, 0x41, 0x53, 0x31]);
+        new DataView(nonce.buffer).setBigUint64(4, BigInt(index), true);
+        const aad = new Uint8Array(24);
+        const view = new DataView(aad.buffer);
+        view.setUint32(0, index, true);
+        view.setUint32(4, size, true);
+        view.setUint32(8, index % 7, true);
+        aad.set(SESSION, 12);
+        return { index, plaintext, nonce, aad };
+      }
+      const FRAMES = [0, 1, 5, 31, 64, 127, 1024];
+      let sealJavaScript = null;
+      {
+        // Lazy-load the workload's JS oracle for the reference engine.
+        const mod = await import("/benchmarks/base/crypto-authenticated-stream/engine.js");
+        sealJavaScript = mod.sealJavaScript;
+      }
+      const callables = {};
+      for (const key of ["c", "cpp", "rs"]) {
+        const inst = mods.engines[key].instances.crypto.instance;
+        const mem = inst.exports.memory;
+        const keyOff = 0, nonceOff = 64, aadOff = 96, plainOff = 256, ctOff = 8192, tagOff = 16384;
+        callables[key] = {
+          crypto: () => {
+            for (const idx of FRAMES) {
+              const f = frameAt(idx);
+              mem.set(KEY, keyOff);
+              mem.set(f.nonce, nonceOff);
+              mem.set(f.aad, aadOff);
+              mem.set(f.plaintext, plainOff);
+              inst.exports.seal(
+                keyOff,
+                nonceOff,
+                aadOff,
+                f.aad.length,
+                plainOff,
+                f.plaintext.length,
+                ctOff,
+                tagOff,
+              );
+              inst.exports.open(
+                keyOff,
+                nonceOff,
+                aadOff,
+                f.aad.length,
+                ctOff,
+                f.plaintext.length,
+                tagOff,
+                plainOff + 4096,
+              );
+            }
+          },
+        };
+      }
+      callables.js = {
+        crypto: () => {
+          for (const idx of FRAMES) {
+            const f = frameAt(idx);
+            sealJavaScript(KEY, f.nonce, f.aad, f.plaintext);
+          }
+        },
+      };
+      callables.dart = {
+        crypto: () => {
+          for (const idx of FRAMES) {
+            const f = frameAt(idx);
+            const ct = new Uint8Array(f.plaintext.length);
+            const tag = new Uint8Array(16);
+            mods.engines.dart.kernels.seal(
+              KEY,
+              f.nonce,
+              f.aad,
+              f.aad.length,
+              f.plaintext,
+              f.plaintext.length,
+              ct,
+              tag,
+            );
+          }
+        },
+      };
+      return callables;
+    },
+  },
 };
 
 const cache = new Map();
@@ -4629,7 +4564,7 @@ export async function runWorkload(manifest, kernel, iterations, onProgress) {
   if (!adapter || !adapter.kernels.includes(kernel)) {
     throw new Error(`no adapter for ${manifest.workloadId}/${kernel}`);
   }
-  const callables = adapter.build(mods);
+  const callables = await adapter.build(mods);
   const results = [];
   for (const engine of manifest.engines) {
     const fn = callables[engine.key]?.[kernel];
