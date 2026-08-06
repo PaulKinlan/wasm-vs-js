@@ -2430,230 +2430,46 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
       return callables;
     },
   },
-
-  // --- cad-mesh-repair: STL quantize/weld/orient/simplify (mirrors engine.js
-  //     repairMeshJavaScript + the frozen mesh-repair.c)
-  "cad.mesh-repair.v1": {
-    kernels: ["mesh_repair"],
-    build(mods) {
-      const SCALE = Math.fround(10000);
-      const HEADER_WORDS = 20;
-      function quantize(value) {
-        if (!Number.isFinite(value) || Math.abs(value) > 100000) return 0x7fffffff;
-        const product = Math.fround(Math.fround(value) * SCALE);
-        const adjusted = Math.fround(product + (product < 0 ? -0.5 : 0.5));
-        return Math.trunc(adjusted);
-      }
+  // --- cad-parametric-bracket: B-rep + scan-band tessellation (oracle: engine.js runJavaScript)
+  "cad.parametric-bracket.v1": {
+    kernels: ["bracket"],
+    async build(mods) {
+      const INPUT_BYTES = 128;
       function fixture() {
-        const GRID = 32, VALID = GRID * GRID * 2, DEGENERATE = 64;
-        const count = VALID + DEGENERATE;
-        const bytes = new Uint8Array(84 + count * 50);
-        const enc = new TextEncoder();
-        bytes.set(enc.encode("wasm-vs-js cad.mesh-repair.v1 generated grid seed 0x4d455348"), 0);
+        const bytes = new Uint8Array(INPUT_BYTES);
         const view = new DataView(bytes.buffer);
-        view.setUint32(80, count, true);
-        let face = 0;
-        const emit = (v, reverse = false) => {
-          const at = 84 + face * 50;
-          const order = reverse ? [0, 2, 1] : [0, 1, 2];
-          for (let i = 0; i < 3; i++) {
-            view.setFloat32(at + 12 + i * 12, v[order[i]][0], true);
-            view.setFloat32(at + 12 + i * 12 + 4, v[order[i]][1], true);
-            view.setFloat32(at + 12 + i * 12 + 8, v[order[i]][2], true);
-          }
-          face++;
-        };
-        for (let y = 0; y < GRID; y++) {
-          for (let x = 0; x < GRID; x++) {
-            const a = [x, y, 0], b = [x + 1, y, 0], c = [x + 1, y + 1, 0], d = [x, y + 1, 0];
-            const cell = y * GRID + x;
-            emit([a, b, c], cell % 5 === 0);
-            emit([a, c, d], cell % 7 === 0);
-          }
-        }
-        for (let i = 0; i < DEGENERATE; i++) {
-          const x = i % GRID, y = Math.floor(i / GRID);
-          emit([[x, y, 0], [x, y, 0], [x, y, 0]]);
-        }
+        view.setUint32(0, 0x31425243, true);
+        view.setUint32(4, 1, true);
+        view.setUint32(8, 2, true);
+        view.setUint32(12, 8, true);
+        view.setUint32(16, 32, true);
+        view.setFloat64(24, 80, true);
+        view.setFloat64(32, 40, true);
+        view.setFloat64(40, 12, true);
+        view.setFloat64(48, 5, true);
+        view.setFloat64(56, 4, true);
+        view.setFloat64(64, 20, true);
+        view.setFloat64(72, 20, true);
+        view.setFloat64(80, 60, true);
+        view.setFloat64(88, 20, true);
         return bytes;
       }
-      function jsRepair(bytes) {
-        const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-        const count = view.getUint32(80, true);
-        const vertices = [], faces = [], ids = new Int32Array(3);
-        let removed = 0, flipped = 0, vertexWeldComparisons = 0;
-        for (let f = 0; f < count; f++) {
-          const at = 84 + f * 50 + 12;
-          for (let p = 0; p < 3; p++) {
-            const x = quantize(view.getFloat32(at + p * 12, true));
-            const y = quantize(view.getFloat32(at + p * 12 + 4, true));
-            const z = quantize(view.getFloat32(at + p * 12 + 8, true));
-            let id = -1;
-            for (let c = 0; c < vertices.length / 3; c++) {
-              vertexWeldComparisons++;
-              if (vertices[c * 3] === x && vertices[c * 3 + 1] === y && vertices[c * 3 + 2] === z) {
-                id = c;
-                break;
-              }
-            }
-            if (id < 0) {
-              id = vertices.length / 3;
-              vertices.push(x, y, z);
-            }
-            ids[p] = id;
-          }
-          if (ids[0] === ids[1] || ids[1] === ids[2] || ids[0] === ids[2]) {
-            removed++;
-            continue;
-          }
-          const ax = vertices[ids[0] * 3], ay = vertices[ids[0] * 3 + 1];
-          const bx = vertices[ids[1] * 3], by = vertices[ids[1] * 3 + 1];
-          const cx = vertices[ids[2] * 3], cy = vertices[ids[2] * 3 + 1];
-          const nz = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
-          if (nz === 0) {
-            removed++;
-            continue;
-          }
-          if (nz < 0) {
-            const sw = ids[1];
-            ids[1] = ids[2];
-            ids[2] = sw;
-            flipped++;
-          }
-          faces.push(ids[0], ids[1], ids[2]);
-        }
-        const cleanFaceCount = faces.length / 3;
-        if (cleanFaceCount % 2 !== 0) throw new Error("clean face count must be paired");
-        const sameEdge = (a, b, c, d) => (a === c && b === d) || (a === d && b === c);
-        let cleanEdgeComparisons = 0;
-        for (let i = 0; i < cleanFaceCount; i++) {
-          for (let e = 0; e < 3; e++) {
-            const a = faces[i * 3 + e], b = faces[i * 3 + (e + 1) % 3];
-            let incidence = 0;
-            for (let j = 0; j < cleanFaceCount; j++) {
-              for (let q = 0; q < 3; q++) {
-                cleanEdgeComparisons++;
-                if (sameEdge(a, b, faces[j * 3 + q], faces[j * 3 + (q + 1) % 3])) incidence++;
-              }
-            }
-            if (incidence > 2) throw new Error("non-manifold edge");
-          }
-        }
-        const simplifiedVertices = [], remap = [];
-        let simplificationWeldComparisons = 0;
-        for (let id = 0; id < vertices.length / 3; id++) {
-          const ox = vertices[id * 3];
-          const x = Math.abs(Math.trunc(ox / 10000)) % 2 === 1 ? ox - 10000 : ox;
-          const y = vertices[id * 3 + 1], z = vertices[id * 3 + 2];
-          let next = -1;
-          for (let c = 0; c < simplifiedVertices.length / 3; c++) {
-            simplificationWeldComparisons++;
-            if (
-              simplifiedVertices[c * 3] === x && simplifiedVertices[c * 3 + 1] === y &&
-              simplifiedVertices[c * 3 + 2] === z
-            ) {
-              next = c;
-              break;
-            }
-          }
-          if (next < 0) {
-            next = simplifiedVertices.length / 3;
-            simplifiedVertices.push(x, y, z);
-          }
-          remap[id] = next;
-        }
-        const targetFaces = cleanFaceCount / 2;
-        const selected = [];
-        for (let i = 0; i < cleanFaceCount; i++) {
-          const a = remap[faces[i * 3]], b = remap[faces[i * 3 + 1]], c = remap[faces[i * 3 + 2]];
-          if (a !== b && b !== c && a !== c) selected.push(a, b, c);
-        }
-        const selectedFaceCount = selected.length / 3;
-        if (selectedFaceCount !== targetFaces) throw new Error("target face count mismatch");
-        let uniqueEdges = 0, simplifiedEdgeComparisons = 0;
-        for (let i = 0; i < selectedFaceCount; i++) {
-          for (let e = 0; e < 3; e++) {
-            const a = selected[i * 3 + e], b = selected[i * 3 + (e + 1) % 3];
-            let incidence = 0, seen = false;
-            for (let j = 0; j < selectedFaceCount; j++) {
-              for (let q = 0; q < 3; q++) {
-                simplifiedEdgeComparisons++;
-                if (sameEdge(a, b, selected[j * 3 + q], selected[j * 3 + (q + 1) % 3])) {
-                  incidence++;
-                  if (j < i || (j === i && q < e)) seen = true;
-                }
-              }
-            }
-            if (incidence > 2) throw new Error("simplified non-manifold edge");
-            if (!seen) uniqueEdges++;
-          }
-        }
-        let signedVolumeSixQuantized = 0;
-        for (let i = 0; i < selectedFaceCount; i++) {
-          const a = selected[i * 3], b = selected[i * 3 + 1], c = selected[i * 3 + 2];
-          const ax = simplifiedVertices[a * 3],
-            ay = simplifiedVertices[a * 3 + 1],
-            az = simplifiedVertices[a * 3 + 2];
-          const bx = simplifiedVertices[b * 3],
-            by = simplifiedVertices[b * 3 + 1],
-            bz = simplifiedVertices[b * 3 + 2];
-          const cx = simplifiedVertices[c * 3],
-            cy = simplifiedVertices[c * 3 + 1],
-            cz = simplifiedVertices[c * 3 + 2];
-          signedVolumeSixQuantized += ax * (by * cz - bz * cy) - ay * (bx * cz - bz * cx) +
-            az * (bx * cy - by * cx);
-        }
-        if (signedVolumeSixQuantized !== 0) {
-          throw new Error("fixture volume policy requires a planar open mesh");
-        }
-        const words = new Int32Array(HEADER_WORDS + simplifiedVertices.length + selected.length);
-        words.set([
-          0x4d455348,
-          2,
-          count,
-          vertices.length / 3,
-          cleanFaceCount,
-          targetFaces,
-          removed,
-          flipped,
-          count * 3,
-          uniqueEdges,
-          selectedFaceCount,
-          simplifiedVertices.length / 3,
-          signedVolumeSixQuantized,
-          selectedFaceCount,
-          vertexWeldComparisons,
-          simplificationWeldComparisons,
-          cleanEdgeComparisons,
-          simplifiedEdgeComparisons,
-          0,
-          HEADER_WORDS,
-        ]);
-        words.set(simplifiedVertices, HEADER_WORDS);
-        words.set(selected, HEADER_WORDS + simplifiedVertices.length);
-        return words;
-      }
       const callables = {};
-      for (const key of ["c", "cpp", "rs"]) {
-        const inst = mods.engines[key].instances.mesh_repair.instance;
-        const mem = inst.exports.memory;
+      for (const key of ["c", "cpp"]) {
+        const inst = mods.engines[key].instances.bracket.instance;
         callables[key] = {
-          mesh_repair: () => {
+          bracket: () => {
             const input = fixture();
-            const inPtr = Number(inst.exports.input_ptr());
-            new Uint8Array(mem.buffer, inPtr, input.length).set(input);
-            const ret = Number(inst.exports.run(input.length));
-            if (ret <= 0) throw new Error(`mesh_repair ${key} run failed (${ret})`);
+            const mem = inst.exports.memory;
+            new Uint8Array(mem.buffer, inst.exports.input_ptr(), INPUT_BYTES).set(input);
+            inst.exports.run();
           },
         };
       }
-      callables.js = { mesh_repair: () => jsRepair(fixture()) };
-      callables.dart = {
-        mesh_repair: () => {
-          const input = fixture();
-          const outWords = new Int32Array(65536);
-          const ret = mods.engines.dart.kernels.meshRepair(input, outWords);
-          if (ret <= 0) throw new Error(`mesh_repair dart run failed (${ret})`);
+      const { runJavaScript } = await import("/benchmarks/base/cad-parametric-bracket/engine.js");
+      callables.js = {
+        bracket: () => {
+          runJavaScript(fixture());
         },
       };
       return callables;
@@ -2773,7 +2589,7 @@ export async function runWorkload(manifest, kernel, iterations, onProgress) {
   if (!adapter || !adapter.kernels.includes(kernel)) {
     throw new Error(`no adapter for ${manifest.workloadId}/${kernel}`);
   }
-  const callables = adapter.build(mods);
+  const callables = await adapter.build(mods);
   const results = [];
   for (const engine of manifest.engines) {
     const fn = callables[engine.key]?.[kernel];
