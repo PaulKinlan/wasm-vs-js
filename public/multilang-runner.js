@@ -4565,10 +4565,11 @@ function benchmarkOne(fn, iterations) {
 // flat in benchmarks/multilang-wasm/ (sum/fft) or in a per-workload subdir
 // (<dir>/<kernel>.c). Try both; return bytes or 0 (kept honest as "—").
 const sourceSizeCache = new Map();
-async function kernelSourceBytes(manifest, kernel, lang) {
+async function kernelSourceBytes(manifest, kernel, lang, explicitSource) {
   const ext = lang === "js" ? "ts" : lang;
   const dir = (manifest._path ?? "").split("/").pop()?.replace(/\.manifest\.json$/, "") ?? "";
   const candidates = [
+    ...(explicitSource ? [`/benchmarks/${explicitSource.replace(/^benchmarks\//, "multilang-wasm/")}`] : []),
     `/benchmarks/multilang-wasm/${kernel}.${ext}`,
     dir ? `/benchmarks/multilang-wasm/${dir}/${kernel}.${ext}` : "",
   ].filter(Boolean);
@@ -4607,7 +4608,7 @@ export async function runWorkload(manifest, kernel, iterations, onProgress) {
     onProgress(`${engine.label}: ${kernel}...`);
     const stats = benchmarkOne(fn, iterations);
     const bytes = mods.engines[engine.key]?.bytes?.byteLength ?? 0;
-    const sourceBytes = await kernelSourceBytes(manifest, kernel, engine.lang ?? engine.key);
+    const sourceBytes = await kernelSourceBytes(manifest, kernel, engine.lang ?? engine.key, engine.source);
     results.push({
       key: engine.key,
       label: engine.label,
