@@ -39,7 +39,7 @@ function visibleWindow(prefixSums, scrollTop, viewportHeight) {
   return { startIndex, endIndex, visibleCount: Math.max(1, endIndex - startIndex) };
 }
 
-export async function createTodomvcHost() {
+export function createTodomvcHost() {
   return createModelDomHost({
     slug: "dom-virtualized-scrolling",
     label: "DOM Virtualized-Scrolling Engine",

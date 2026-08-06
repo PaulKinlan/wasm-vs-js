@@ -82,7 +82,7 @@ async function importModule(bytes) {
 
 // ── Real-DOM TodoMVC host ──────────────────────────────────────────────────
 
-export async function createTodomvcHost() {
+export function createTodomvcHost() {
   const { fetched } = await loadExactPackage();
   const runtime = await importModule(fetched.get("/artifacts/base-dom-todomvc-journey/runtime.js"));
   const fixture = await importModule(

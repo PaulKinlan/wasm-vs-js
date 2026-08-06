@@ -10,7 +10,7 @@ import { createModelDomHost } from "./dom-host-factory.js";
 
 const INITIAL_ITEMS = 1000;
 
-export async function createTodomvcHost() {
+export function createTodomvcHost() {
   return createModelDomHost({
     slug: "dom-keyed-list-mutation",
     label: "DOM Keyed-List Mutation Engine",

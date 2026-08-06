@@ -43,7 +43,7 @@ function evaluateRules(formState) {
   return errors;
 }
 
-export async function createTodomvcHost() {
+export function createTodomvcHost() {
   return createModelDomHost({
     slug: "dom-dependent-form-validation",
     label: "DOM Dependent Form-Validation Engine",

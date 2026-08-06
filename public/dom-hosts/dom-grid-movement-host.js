@@ -27,7 +27,7 @@ function directionDelta(dir) {
   }
 }
 
-export async function createTodomvcHost() {
+export function createTodomvcHost() {
   return createModelDomHost({
     slug: "dom-grid-movement",
     label: "DOM Grid Movement Engine",

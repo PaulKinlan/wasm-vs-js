@@ -11,7 +11,7 @@ import { createModelDomHost } from "./dom-host-factory.js";
 
 const INITIAL_NODES = 500;
 
-export async function createTodomvcHost() {
+export function createTodomvcHost() {
   return createModelDomHost({
     slug: "dom-nested-tree-mutation",
     label: "DOM Nested-Tree Mutation Engine",
@@ -43,7 +43,7 @@ export async function createTodomvcHost() {
     },
 
     applyAction: (dom, action) => {
-      const { tree, nodes } = dom;
+      const { nodes } = dom;
       if (action.op === "insert_child" && nodes.has(String(action.parentTargetId))) {
         const li = document.createElement("li");
         li.dataset.id = String(action.id);

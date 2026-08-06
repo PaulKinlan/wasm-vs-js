@@ -23,7 +23,7 @@ function seededRows() {
   }));
 }
 
-export async function createTodomvcHost() {
+export function createTodomvcHost() {
   return createModelDomHost({
     slug: "dom-table-sort-filter-pagination",
     label: "DOM Table Sort/Filter/Pagination Engine",
