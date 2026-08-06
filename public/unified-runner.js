@@ -759,6 +759,49 @@ function composedStagePlanFromDom() {
   });
 }
 
+
+// Static multi-language pre-render (Paul directive 2026-08-06): every benchmark
+// page shows its measured multi-language comparison IMMEDIATELY (from the
+// committed report), not only after clicking Run. Run refreshes the numbers.
+async function renderReportedComparison(flowEl, manifestPath) {
+  const manifestResp = await fetch(manifestPath, { cache: "no-store" });
+  if (!manifestResp.ok) return;
+  const manifest = await manifestResp.json();
+  const reportResp = await fetch("/data/multilang-wasm-benchmark-report.v1.json", { cache: "no-store" });
+  if (!reportResp.ok) return;
+  const report = await reportResp.json();
+  const entry = report.workloads?.find((w) =>
+    manifest.kernels?.length === 1 &&
+    (w.name === manifest.workloadId || w.name === manifestPath.split("/").pop().replace(".manifest.json", ""))
+  );
+  const variants = entry?.variants;
+  if (!variants || variants.length === 0) return;
+  const previous = flowEl.querySelector(`[data-stage="multilang"]`);
+  if (previous) previous.remove();
+  const wrap = document.createElement("section");
+  wrap.dataset.stage = "multilang";
+  wrap.className = "stage-result";
+  const h = document.createElement("h3");
+  h.textContent = "Multi-language comparison (committed measured results)";
+  wrap.appendChild(h);
+  const note = document.createElement("p");
+  note.className = "notice";
+  note.textContent = "Shown from the committed report; click Run to re-measure in this browser.";
+  wrap.appendChild(note);
+  const table = document.createElement("table");
+  table.className = "mlr-table";
+  table.innerHTML =
+    "<thead><tr><th class='mlr-th mlr-th-header'>Engine</th><th class='mlr-th mlr-th-header'>Warm median</th><th class='mlr-th mlr-th-header'>Wasm bytes</th><th class='mlr-th mlr-th-header'>Toolchain</th></tr></thead><tbody>" +
+    variants.map((v) =>
+      `<tr><td class="mlr-th"><strong>${v.language}</strong></td>` +
+      `<td class="mlr-th">${typeof v.warmExecutionMs === "number" ? v.warmExecutionMs.toFixed(2) + " ms" : "—"}</td>` +
+      `<td class="mlr-th">${v.binarySizeBytes > 0 ? v.binarySizeBytes.toLocaleString() : "—"}</td>` +
+      `<td class="mlr-th">${v.toolchain ?? "—"}</td></tr>`
+    ).join("") + "</tbody>";
+  wrap.appendChild(table);
+  flowEl.appendChild(wrap);
+}
+
 async function runComposedStages(
   { workloadSlug, iterations, statusEl, reportingEl, primaryStats = null },
 ) {
@@ -1012,6 +1055,11 @@ if (typeof document !== "undefined") {
     document.body.dataset.unifiedRunnerActive = "1";
   } else {
     document.addEventListener("DOMContentLoaded", () => {
+      const mlManifest = document.body?.dataset?.multilangManifest;
+      if (mlManifest) {
+        const flowEl = document.querySelector("#perf-reporting") ?? document.querySelector("#main");
+        if (flowEl) renderReportedComparison(flowEl, mlManifest).catch(() => {});
+      }
       document.body.dataset.unifiedRunnerActive = "1";
     }, { once: true });
   }
