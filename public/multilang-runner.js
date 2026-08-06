@@ -24,6 +24,505 @@
 export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses the multilang-wasm fft kernels)
   // --- document.pdf-viewer.v1: PDF parser (mirrors benchmarks/base/document-pdf-viewer
   //     engine.js parseReport / pdf-engine.c; frozen 100-page report fixture) ------
+  // --- document.pdf-viewer.v1: PDF parser (mirrors benchmarks/base/document-pdf-viewer
+  //     engine.js parseReport / pdf-engine.c; frozen 100-page report fixture) ------
+  // --- cad-mesh-repair: STL quantize/weld/orient/simplify (mirrors engine.js
+  //     repairMeshJavaScript + the frozen mesh-repair.c)
+  // --- ml-numeric-kernels: GEMM/Conv/Softmax f32+i8 (frozen shapes) ----------
+  // --- crypto-authenticated-stream: ChaCha20-Poly1305 seal/open -------------
+  "crypto.authenticated-stream.v1": {
+    kernels: ["crypto"],
+    async build(mods) {
+      const KEY = Uint8Array.from({ length: 32 }, (_, i) => 0x80 + i);
+      const SESSION = Uint8Array.from([
+        0x57,
+        0x41,
+        0x53,
+        0x4d,
+        0x2d,
+        0x56,
+        0x45,
+        0x52,
+        0x53,
+        0x49,
+        0x4f,
+        0x4e,
+      ]);
+      const FRAME_SIZES = [0, 1, 15, 16, 17, 31, 32, 63, 64, 65, 127, 128, 255, 256, 511, 1024];
+      function xorshift32(value) {
+        value ^= value << 13;
+        value ^= value >>> 17;
+        value ^= value << 5;
+        return value >>> 0;
+      }
+      function frameAt(index) {
+        const size = FRAME_SIZES[index % FRAME_SIZES.length];
+        const plaintext = new Uint8Array(size);
+        let state = (0x6d2b79f5 ^ Math.imul(index + 1, 0x9e3779b1)) >>> 0;
+        for (let off = 0; off < size; off++) {
+          state = xorshift32(state);
+          plaintext[off] = state >>> 24;
+        }
+        const nonce = new Uint8Array(12);
+        nonce.set([0x43, 0x41, 0x53, 0x31]);
+        new DataView(nonce.buffer).setBigUint64(4, BigInt(index), true);
+        const aad = new Uint8Array(24);
+        const view = new DataView(aad.buffer);
+        view.setUint32(0, index, true);
+        view.setUint32(4, size, true);
+        view.setUint32(8, index % 7, true);
+        aad.set(SESSION, 12);
+        return { index, plaintext, nonce, aad };
+      }
+      const FRAMES = [0, 1, 5, 31, 64, 127, 1024];
+      let sealJavaScript = null;
+      {
+        // Lazy-load the workload's JS oracle for the reference engine.
+        const mod = await import("/benchmarks/base/crypto-authenticated-stream/engine.js");
+        sealJavaScript = mod.sealJavaScript;
+      }
+      const callables = {};
+      for (const key of ["c", "cpp", "rs"]) {
+        const inst = mods.engines[key].instances.crypto.instance;
+        const mem = inst.exports.memory;
+        const keyOff = 0, nonceOff = 64, aadOff = 96, plainOff = 256, ctOff = 8192, tagOff = 16384;
+        callables[key] = {
+          crypto: () => {
+            for (const idx of FRAMES) {
+              const f = frameAt(idx);
+              mem.set(KEY, keyOff);
+              mem.set(f.nonce, nonceOff);
+              mem.set(f.aad, aadOff);
+              mem.set(f.plaintext, plainOff);
+              inst.exports.seal(
+                keyOff,
+                nonceOff,
+                aadOff,
+                f.aad.length,
+                plainOff,
+                f.plaintext.length,
+                ctOff,
+                tagOff,
+              );
+              inst.exports.open(
+                keyOff,
+                nonceOff,
+                aadOff,
+                f.aad.length,
+                ctOff,
+                f.plaintext.length,
+                tagOff,
+                plainOff + 4096,
+              );
+            }
+          },
+        };
+      }
+      callables.js = {
+        crypto: () => {
+          for (const idx of FRAMES) {
+            const f = frameAt(idx);
+            sealJavaScript(KEY, f.nonce, f.aad, f.plaintext);
+          }
+        },
+      };
+      callables.dart = {
+        crypto: () => {
+          for (const idx of FRAMES) {
+            const f = frameAt(idx);
+            const ct = new Uint8Array(f.plaintext.length);
+            const tag = new Uint8Array(16);
+            mods.engines.dart.kernels.seal(
+              KEY,
+              f.nonce,
+              f.aad,
+              f.aad.length,
+              f.plaintext,
+              f.plaintext.length,
+              ct,
+              tag,
+            );
+          }
+        },
+      };
+      return callables;
+    },
+  },
+
+  "ml.numeric-kernels.v1": {
+    kernels: ["numeric"],
+    build(mods) {
+      const SEED = 0x6d6c6b31;
+      function xorshift32(state) {
+        state ^= state << 13;
+        state ^= state >>> 17;
+        state ^= state << 5;
+        return state >>> 0;
+      }
+      function stream(length, kind, salt) {
+        const out = kind === "f32" ? new Float32Array(length) : new Int8Array(length);
+        let state = (SEED ^ salt) >>> 0;
+        for (let i = 0; i < length; i++) {
+          state = xorshift32(state);
+          out[i] = kind === "f32"
+            ? Math.fround(((state >>> 8) / 0x1000000) * 2 - 1)
+            : ((state % 15) - 7);
+        }
+        return out;
+      }
+      function inputs() {
+        return {
+          gemmF32A: stream(72, "f32", 1),
+          gemmF32B: stream(63, "f32", 2),
+          gemmI8A: stream(72, "i8", 3),
+          gemmI8B: stream(63, "i8", 4),
+          convF32Input: stream(192, "f32", 5),
+          convF32Weights: stream(108, "f32", 6),
+          convI8Input: stream(192, "i8", 7),
+          convI8Weights: stream(108, "i8", 8),
+          softmaxF32Input: stream(128, "f32", 9),
+          softmaxI8Input: stream(128, "i8", 10),
+        };
+      }
+      function jsNumeric(fx) {
+        const a = fx.gemmF32A, b = fx.gemmF32B, out = new Float32Array(56);
+        for (let i = 0; i < 8; i++) {
+          for (let j = 0; j < 7; j++) {
+            let acc = Math.fround(0);
+            for (let k = 0; k < 9; k++) {
+              acc = Math.fround(acc + Math.fround(a[i * 9 + k] * b[k * 7 + j]));
+            }
+            out[i * 7 + j] = acc + 0;
+          }
+        }
+        return out;
+      }
+      function jsConv(fx) {
+        const inp = fx.convF32Input, w = fx.convF32Weights, out = new Float32Array(256);
+        for (let y = 0; y < 8; y++) {
+          for (let x = 0; x < 8; x++) {
+            for (let o = 0; o < 4; o++) {
+              let acc = Math.fround(0);
+              for (let ky = 0; ky < 3; ky++) {
+                for (let kx = 0; kx < 3; kx++) {
+                  const iy = y + ky - 1, ix = x + kx - 1;
+                  if (iy < 0 || ix < 0 || iy >= 8 || ix >= 8) continue;
+                  for (let c = 0; c < 3; c++) {
+                    acc = Math.fround(
+                      acc +
+                        Math.fround(
+                          inp[(iy * 8 + ix) * 3 + c] * w[((ky * 3 + kx) * 3 + c) * 4 + o],
+                        ),
+                    );
+                  }
+                }
+              }
+              out[(y * 8 + x) * 4 + o] = acc + 0;
+            }
+          }
+        }
+        return out;
+      }
+      function jsSoftmax(fx) {
+        const inp = fx.softmaxF32Input, out = new Float32Array(128);
+        const expApprox = (value) => {
+          const x = Math.fround(Math.max(-8, Math.min(0, value)));
+          let y = Math.fround(1 + Math.fround(x / 256));
+          for (let i = 0; i < 8; i++) y = Math.fround(y * y);
+          return y;
+        };
+        for (let r = 0; r < 8; r++) {
+          const base = r * 16;
+          let max = inp[base];
+          for (let c = 1; c < 16; c++) if (inp[base + c] > max) max = inp[base + c];
+          let sum = Math.fround(0);
+          for (let c = 0; c < 16; c++) {
+            const e = expApprox(Math.fround(inp[base + c] - max));
+            out[base + c] = e;
+            sum = Math.fround(sum + e);
+          }
+          for (let c = 0; c < 16; c++) out[base + c] = Math.fround(out[base + c] / sum) + 0;
+        }
+        return out;
+      }
+      const callables = {};
+      for (const key of ["cpp", "rs"]) {
+        const inst = mods.engines[key].instances.numeric.instance;
+        const mem = inst.exports.memory;
+        const inA = 0, inB = 1024, inW = 2048, out = 8192;
+        callables[key] = {
+          numeric: () => {
+            const fx = inputs();
+            new Float32Array(mem.buffer, inA, 72).set(fx.gemmF32A);
+            new Float32Array(mem.buffer, inB, 63).set(fx.gemmF32B);
+            inst.exports.gemm_f32(inA, inB, out);
+            new Int8Array(mem.buffer, inA, 72).set(fx.gemmI8A);
+            new Int8Array(mem.buffer, inB, 63).set(fx.gemmI8B);
+            inst.exports.gemm_i8(inA, inB, out);
+            new Float32Array(mem.buffer, inA, 192).set(fx.convF32Input);
+            new Float32Array(mem.buffer, inW, 108).set(fx.convF32Weights);
+            inst.exports.conv_f32(inA, inW, out);
+            new Int8Array(mem.buffer, inA, 192).set(fx.convI8Input);
+            new Int8Array(mem.buffer, inW, 108).set(fx.convI8Weights);
+            inst.exports.conv_i8(inA, inW, out);
+            new Float32Array(mem.buffer, inA, 128).set(fx.softmaxF32Input);
+            inst.exports.softmax_f32(inA, out);
+            new Int8Array(mem.buffer, inA, 128).set(fx.softmaxI8Input);
+            inst.exports.softmax_i8(inA, out);
+          },
+        };
+      }
+      callables.js = {
+        numeric: () => {
+          const fx = inputs();
+          jsNumeric(fx);
+          jsConv(fx);
+          jsSoftmax(fx);
+        },
+      };
+      callables.dart = {
+        numeric: () => {
+          const fx = inputs();
+          mods.engines.dart.kernels.gemmF32(fx.gemmF32A, fx.gemmF32B, new Float32Array(56));
+          mods.engines.dart.kernels.convF32(
+            fx.convF32Input,
+            fx.convF32Weights,
+            new Float32Array(256),
+          );
+          mods.engines.dart.kernels.softmaxF32(fx.softmaxF32Input, new Float32Array(128));
+        },
+      };
+      return callables;
+    },
+  },
+
+  "cad.mesh-repair.v1": {
+    kernels: ["mesh_repair"],
+    build(mods) {
+      const SCALE = Math.fround(10000);
+      const HEADER_WORDS = 20;
+      function quantize(value) {
+        if (!Number.isFinite(value) || Math.abs(value) > 100000) return 0x7fffffff;
+        const product = Math.fround(Math.fround(value) * SCALE);
+        const adjusted = Math.fround(product + (product < 0 ? -0.5 : 0.5));
+        return Math.trunc(adjusted);
+      }
+      function fixture() {
+        const GRID = 32, VALID = GRID * GRID * 2, DEGENERATE = 64;
+        const count = VALID + DEGENERATE;
+        const bytes = new Uint8Array(84 + count * 50);
+        const enc = new TextEncoder();
+        bytes.set(enc.encode("wasm-vs-js cad.mesh-repair.v1 generated grid seed 0x4d455348"), 0);
+        const view = new DataView(bytes.buffer);
+        view.setUint32(80, count, true);
+        let face = 0;
+        const emit = (v, reverse = false) => {
+          const at = 84 + face * 50;
+          const order = reverse ? [0, 2, 1] : [0, 1, 2];
+          for (let i = 0; i < 3; i++) {
+            view.setFloat32(at + 12 + i * 12, v[order[i]][0], true);
+            view.setFloat32(at + 12 + i * 12 + 4, v[order[i]][1], true);
+            view.setFloat32(at + 12 + i * 12 + 8, v[order[i]][2], true);
+          }
+          face++;
+        };
+        for (let y = 0; y < GRID; y++) {
+          for (let x = 0; x < GRID; x++) {
+            const a = [x, y, 0], b = [x + 1, y, 0], c = [x + 1, y + 1, 0], d = [x, y + 1, 0];
+            const cell = y * GRID + x;
+            emit([a, b, c], cell % 5 === 0);
+            emit([a, c, d], cell % 7 === 0);
+          }
+        }
+        for (let i = 0; i < DEGENERATE; i++) {
+          const x = i % GRID, y = Math.floor(i / GRID);
+          emit([[x, y, 0], [x, y, 0], [x, y, 0]]);
+        }
+        return bytes;
+      }
+      function jsRepair(bytes) {
+        const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+        const count = view.getUint32(80, true);
+        const vertices = [], faces = [], ids = new Int32Array(3);
+        let removed = 0, flipped = 0, vertexWeldComparisons = 0;
+        for (let f = 0; f < count; f++) {
+          const at = 84 + f * 50 + 12;
+          for (let p = 0; p < 3; p++) {
+            const x = quantize(view.getFloat32(at + p * 12, true));
+            const y = quantize(view.getFloat32(at + p * 12 + 4, true));
+            const z = quantize(view.getFloat32(at + p * 12 + 8, true));
+            let id = -1;
+            for (let c = 0; c < vertices.length / 3; c++) {
+              vertexWeldComparisons++;
+              if (vertices[c * 3] === x && vertices[c * 3 + 1] === y && vertices[c * 3 + 2] === z) {
+                id = c;
+                break;
+              }
+            }
+            if (id < 0) {
+              id = vertices.length / 3;
+              vertices.push(x, y, z);
+            }
+            ids[p] = id;
+          }
+          if (ids[0] === ids[1] || ids[1] === ids[2] || ids[0] === ids[2]) {
+            removed++;
+            continue;
+          }
+          const ax = vertices[ids[0] * 3], ay = vertices[ids[0] * 3 + 1];
+          const bx = vertices[ids[1] * 3], by = vertices[ids[1] * 3 + 1];
+          const cx = vertices[ids[2] * 3], cy = vertices[ids[2] * 3 + 1];
+          const nz = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
+          if (nz === 0) {
+            removed++;
+            continue;
+          }
+          if (nz < 0) {
+            const sw = ids[1];
+            ids[1] = ids[2];
+            ids[2] = sw;
+            flipped++;
+          }
+          faces.push(ids[0], ids[1], ids[2]);
+        }
+        const cleanFaceCount = faces.length / 3;
+        if (cleanFaceCount % 2 !== 0) throw new Error("clean face count must be paired");
+        const sameEdge = (a, b, c, d) => (a === c && b === d) || (a === d && b === c);
+        let cleanEdgeComparisons = 0;
+        for (let i = 0; i < cleanFaceCount; i++) {
+          for (let e = 0; e < 3; e++) {
+            const a = faces[i * 3 + e], b = faces[i * 3 + (e + 1) % 3];
+            let incidence = 0;
+            for (let j = 0; j < cleanFaceCount; j++) {
+              for (let q = 0; q < 3; q++) {
+                cleanEdgeComparisons++;
+                if (sameEdge(a, b, faces[j * 3 + q], faces[j * 3 + (q + 1) % 3])) incidence++;
+              }
+            }
+            if (incidence > 2) throw new Error("non-manifold edge");
+          }
+        }
+        const simplifiedVertices = [], remap = [];
+        let simplificationWeldComparisons = 0;
+        for (let id = 0; id < vertices.length / 3; id++) {
+          const ox = vertices[id * 3];
+          const x = Math.abs(Math.trunc(ox / 10000)) % 2 === 1 ? ox - 10000 : ox;
+          const y = vertices[id * 3 + 1], z = vertices[id * 3 + 2];
+          let next = -1;
+          for (let c = 0; c < simplifiedVertices.length / 3; c++) {
+            simplificationWeldComparisons++;
+            if (
+              simplifiedVertices[c * 3] === x && simplifiedVertices[c * 3 + 1] === y &&
+              simplifiedVertices[c * 3 + 2] === z
+            ) {
+              next = c;
+              break;
+            }
+          }
+          if (next < 0) {
+            next = simplifiedVertices.length / 3;
+            simplifiedVertices.push(x, y, z);
+          }
+          remap[id] = next;
+        }
+        const targetFaces = cleanFaceCount / 2;
+        const selected = [];
+        for (let i = 0; i < cleanFaceCount; i++) {
+          const a = remap[faces[i * 3]], b = remap[faces[i * 3 + 1]], c = remap[faces[i * 3 + 2]];
+          if (a !== b && b !== c && a !== c) selected.push(a, b, c);
+        }
+        const selectedFaceCount = selected.length / 3;
+        if (selectedFaceCount !== targetFaces) throw new Error("target face count mismatch");
+        let uniqueEdges = 0, simplifiedEdgeComparisons = 0;
+        for (let i = 0; i < selectedFaceCount; i++) {
+          for (let e = 0; e < 3; e++) {
+            const a = selected[i * 3 + e], b = selected[i * 3 + (e + 1) % 3];
+            let incidence = 0, seen = false;
+            for (let j = 0; j < selectedFaceCount; j++) {
+              for (let q = 0; q < 3; q++) {
+                simplifiedEdgeComparisons++;
+                if (sameEdge(a, b, selected[j * 3 + q], selected[j * 3 + (q + 1) % 3])) {
+                  incidence++;
+                  if (j < i || (j === i && q < e)) seen = true;
+                }
+              }
+            }
+            if (incidence > 2) throw new Error("simplified non-manifold edge");
+            if (!seen) uniqueEdges++;
+          }
+        }
+        let signedVolumeSixQuantized = 0;
+        for (let i = 0; i < selectedFaceCount; i++) {
+          const a = selected[i * 3], b = selected[i * 3 + 1], c = selected[i * 3 + 2];
+          const ax = simplifiedVertices[a * 3],
+            ay = simplifiedVertices[a * 3 + 1],
+            az = simplifiedVertices[a * 3 + 2];
+          const bx = simplifiedVertices[b * 3],
+            by = simplifiedVertices[b * 3 + 1],
+            bz = simplifiedVertices[b * 3 + 2];
+          const cx = simplifiedVertices[c * 3],
+            cy = simplifiedVertices[c * 3 + 1],
+            cz = simplifiedVertices[c * 3 + 2];
+          signedVolumeSixQuantized += ax * (by * cz - bz * cy) - ay * (bx * cz - bz * cx) +
+            az * (bx * cy - by * cx);
+        }
+        if (signedVolumeSixQuantized !== 0) {
+          throw new Error("fixture volume policy requires a planar open mesh");
+        }
+        const words = new Int32Array(HEADER_WORDS + simplifiedVertices.length + selected.length);
+        words.set([
+          0x4d455348,
+          2,
+          count,
+          vertices.length / 3,
+          cleanFaceCount,
+          targetFaces,
+          removed,
+          flipped,
+          count * 3,
+          uniqueEdges,
+          selectedFaceCount,
+          simplifiedVertices.length / 3,
+          signedVolumeSixQuantized,
+          selectedFaceCount,
+          vertexWeldComparisons,
+          simplificationWeldComparisons,
+          cleanEdgeComparisons,
+          simplifiedEdgeComparisons,
+          0,
+          HEADER_WORDS,
+        ]);
+        words.set(simplifiedVertices, HEADER_WORDS);
+        words.set(selected, HEADER_WORDS + simplifiedVertices.length);
+        return words;
+      }
+      const callables = {};
+      for (const key of ["c", "cpp", "rs"]) {
+        const inst = mods.engines[key].instances.mesh_repair.instance;
+        const mem = inst.exports.memory;
+        callables[key] = {
+          mesh_repair: () => {
+            const input = fixture();
+            const inPtr = Number(inst.exports.input_ptr());
+            new Uint8Array(mem.buffer, inPtr, input.length).set(input);
+            const ret = Number(inst.exports.run(input.length));
+            if (ret <= 0) throw new Error(`mesh_repair ${key} run failed (${ret})`);
+          },
+        };
+      }
+      callables.js = { mesh_repair: () => jsRepair(fixture()) };
+      callables.dart = {
+        mesh_repair: () => {
+          const input = fixture();
+          const outWords = new Int32Array(65536);
+          const ret = mods.engines.dart.kernels.meshRepair(input, outWords);
+          if (ret <= 0) throw new Error(`mesh_repair dart run failed (${ret})`);
+        },
+      };
+      return callables;
+    },
+  },
+
   "document.pdf-viewer.v1": {
     kernels: ["pdf_parse"],
     build(mods) {
@@ -1449,229 +1948,1381 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
     },
   },
 
-  // --- cad-mesh-repair: STL quantize/weld/orient/simplify (mirrors engine.js
-  //     repairMeshJavaScript + the frozen mesh-repair.c)
-  "cad.mesh-repair.v1": {
-    kernels: ["mesh_repair"],
+  "document.pdf-viewer.v1": {
+    kernels: ["pdf_parse"],
     build(mods) {
-      const SCALE = Math.fround(10000);
-      const HEADER_WORDS = 20;
-      function quantize(value) {
-        if (!Number.isFinite(value) || Math.abs(value) > 100000) return 0x7fffffff;
-        const product = Math.fround(Math.fround(value) * SCALE);
-        const adjusted = Math.fround(product + (product < 0 ? -0.5 : 0.5));
-        return Math.trunc(adjusted);
-      }
-      function fixture() {
-        const GRID = 32, VALID = GRID * GRID * 2, DEGENERATE = 64;
-        const count = VALID + DEGENERATE;
-        const bytes = new Uint8Array(84 + count * 50);
-        const enc = new TextEncoder();
-        bytes.set(enc.encode("wasm-vs-js cad.mesh-repair.v1 generated grid seed 0x4d455348"), 0);
-        const view = new DataView(bytes.buffer);
-        view.setUint32(80, count, true);
-        let face = 0;
-        const emit = (v, reverse = false) => {
-          const at = 84 + face * 50;
-          const order = reverse ? [0, 2, 1] : [0, 1, 2];
-          for (let i = 0; i < 3; i++) {
-            view.setFloat32(at + 12 + i * 12, v[order[i]][0], true);
-            view.setFloat32(at + 12 + i * 12 + 4, v[order[i]][1], true);
-            view.setFloat32(at + 12 + i * 12 + 8, v[order[i]][2], true);
-          }
-          face++;
+      // Sync JS mirror of the frozen parser (same algorithm as pdf-engine.c).
+      function pdfMirror(input) {
+        const W = 1224, H = 1584;
+        const inp = (at) => input[at];
+        const ws = (c) => c === 0 || c === 9 || c === 10 || c === 12 || c === 13 || c === 32;
+        const digit = (c) => c >= 48 && c <= 57;
+        const delim = (c) =>
+          ws(c) || c === 47 || c === 60 || c === 62 || c === 91 || c === 93 || c === 40 ||
+          c === 41 || c === 37;
+        const S = {
+          input,
+          len: input.length,
+          offs: new Uint32Array(512),
+          ends: new Uint32Array(512),
+          ocount: 0,
+          ptext: [],
+          pcodes: [],
+          plen: [],
+          px: [],
+          py: [],
+          pfont: [],
+          umap: new Uint8Array(256),
+          uval: new Uint8Array(256),
+          grows: Array.from({ length: 256 }, () => new Uint8Array(7)),
+          gw: new Uint32Array(256),
+          hp: [],
+          hits: 0,
+          counters: new Uint32Array(9),
         };
-        for (let y = 0; y < GRID; y++) {
-          for (let x = 0; x < GRID; x++) {
-            const a = [x, y, 0], b = [x + 1, y, 0], c = [x + 1, y + 1, 0], d = [x, y + 1, 0];
-            const cell = y * GRID + x;
-            emit([a, b, c], cell % 5 === 0);
-            emit([a, c, d], cell % 7 === 0);
-          }
-        }
-        for (let i = 0; i < DEGENERATE; i++) {
-          const x = i % GRID, y = Math.floor(i / GRID);
-          emit([[x, y, 0], [x, y, 0], [x, y, 0]]);
-        }
-        return bytes;
-      }
-      function jsRepair(bytes) {
-        const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-        const count = view.getUint32(80, true);
-        const vertices = [], faces = [], ids = new Int32Array(3);
-        let removed = 0, flipped = 0, vertexWeldComparisons = 0;
-        for (let f = 0; f < count; f++) {
-          const at = 84 + f * 50 + 12;
-          for (let p = 0; p < 3; p++) {
-            const x = quantize(view.getFloat32(at + p * 12, true));
-            const y = quantize(view.getFloat32(at + p * 12 + 4, true));
-            const z = quantize(view.getFloat32(at + p * 12 + 8, true));
-            let id = -1;
-            for (let c = 0; c < vertices.length / 3; c++) {
-              vertexWeldComparisons++;
-              if (vertices[c * 3] === x && vertices[c * 3 + 1] === y && vertices[c * 3 + 2] === z) {
-                id = c;
-                break;
-              }
+        const skipWs = (state, at) => {
+          while (at.v < state.len) {
+            if (ws(inp(at.v))) {
+              at.v++;
+              continue;
             }
-            if (id < 0) {
-              id = vertices.length / 3;
-              vertices.push(x, y, z);
+            if (inp(at.v) === 37) {
+              while (at.v < state.len && inp(at.v) !== 10 && inp(at.v) !== 13) at.v++;
+              continue;
             }
-            ids[p] = id;
+            break;
           }
-          if (ids[0] === ids[1] || ids[1] === ids[2] || ids[0] === ids[2]) {
-            removed++;
-            continue;
+        };
+        const lit = (at, end, t) => {
+          if (at + t.length > end) return false;
+          for (let i = 0; i < t.length; i++) if (inp(at + i) !== t[i]) return false;
+          return true;
+        };
+        const findR = (at, end, t) => {
+          const n = t.length;
+          for (; at + n <= end; at++) if (lit(at, end, t)) return at;
+          return 0xffffffff;
+        };
+        const readU = (at, end, v) => {
+          skipWs(at, end);
+          if (at.v >= end || !digit(inp(at.v))) return false;
+          let r = 0;
+          while (at.v < end && digit(inp(at.v))) {
+            const n = r * 10 + inp(at.v) - 48;
+            if (n < r) return false;
+            r = n;
+            at.v++;
           }
-          const ax = vertices[ids[0] * 3], ay = vertices[ids[0] * 3 + 1];
-          const bx = vertices[ids[1] * 3], by = vertices[ids[1] * 3 + 1];
-          const cx = vertices[ids[2] * 3], cy = vertices[ids[2] * 3 + 1];
-          const nz = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
-          if (nz === 0) {
-            removed++;
-            continue;
+          v.v = r;
+          return true;
+        };
+        const readI = (at, end, v) => {
+          skipWs(at, end);
+          let neg = false;
+          if (at.v < end && inp(at.v) === 45) {
+            neg = true;
+            at.v++;
           }
-          if (nz < 0) {
-            const sw = ids[1];
-            ids[1] = ids[2];
-            ids[2] = sw;
-            flipped++;
-          }
-          faces.push(ids[0], ids[1], ids[2]);
-        }
-        const cleanFaceCount = faces.length / 3;
-        if (cleanFaceCount % 2 !== 0) throw new Error("clean face count must be paired");
-        const sameEdge = (a, b, c, d) => (a === c && b === d) || (a === d && b === c);
-        let cleanEdgeComparisons = 0;
-        for (let i = 0; i < cleanFaceCount; i++) {
-          for (let e = 0; e < 3; e++) {
-            const a = faces[i * 3 + e], b = faces[i * 3 + (e + 1) % 3];
-            let incidence = 0;
-            for (let j = 0; j < cleanFaceCount; j++) {
-              for (let q = 0; q < 3; q++) {
-                cleanEdgeComparisons++;
-                if (sameEdge(a, b, faces[j * 3 + q], faces[j * 3 + (q + 1) % 3])) incidence++;
-              }
+          const n = { v: 0 };
+          if (!readU(at, end, n) || n.v > 0x7fffffff) return false;
+          v.v = neg ? -n.v : n.v;
+          return true;
+        };
+        const mtok = (at, end, t) => {
+          skipWs(at, end);
+          if (!lit(at.v, end, t)) return false;
+          if (at.v + t.length < end && !delim(inp(at.v + t.length))) return false;
+          at.v += t.length;
+          return true;
+        };
+        const keyAt = (at, end, k) =>
+          lit(at, end, k) && (at === 0 || delim(inp(at - 1))) &&
+          (at + k.length === end || delim(inp(at + k.length)));
+        const findK = (start, end, k) => {
+          for (let at = start; at + k.length <= end; at++) if (keyAt(at, end, k)) return at;
+          return 0xffffffff;
+        };
+        const findDK = (start, end, k) => {
+          const cur = { v: start };
+          skipWs(cur, end);
+          if (!lit(cur.v, end, [60, 60])) return 0xffffffff;
+          let depth = 0;
+          while (cur.v < end) {
+            if (inp(cur.v) === 37) {
+              while (cur.v < end && inp(cur.v) !== 10 && inp(cur.v) !== 13) cur.v++;
+              continue;
             }
-            if (incidence > 2) throw new Error("non-manifold edge");
-          }
-        }
-        const simplifiedVertices = [], remap = [];
-        let simplificationWeldComparisons = 0;
-        for (let id = 0; id < vertices.length / 3; id++) {
-          const ox = vertices[id * 3];
-          const x = Math.abs(Math.trunc(ox / 10000)) % 2 === 1 ? ox - 10000 : ox;
-          const y = vertices[id * 3 + 1], z = vertices[id * 3 + 2];
-          let next = -1;
-          for (let c = 0; c < simplifiedVertices.length / 3; c++) {
-            simplificationWeldComparisons++;
-            if (
-              simplifiedVertices[c * 3] === x && simplifiedVertices[c * 3 + 1] === y &&
-              simplifiedVertices[c * 3 + 2] === z
-            ) {
-              next = c;
-              break;
-            }
-          }
-          if (next < 0) {
-            next = simplifiedVertices.length / 3;
-            simplifiedVertices.push(x, y, z);
-          }
-          remap[id] = next;
-        }
-        const targetFaces = cleanFaceCount / 2;
-        const selected = [];
-        for (let i = 0; i < cleanFaceCount; i++) {
-          const a = remap[faces[i * 3]], b = remap[faces[i * 3 + 1]], c = remap[faces[i * 3 + 2]];
-          if (a !== b && b !== c && a !== c) selected.push(a, b, c);
-        }
-        const selectedFaceCount = selected.length / 3;
-        if (selectedFaceCount !== targetFaces) throw new Error("target face count mismatch");
-        let uniqueEdges = 0, simplifiedEdgeComparisons = 0;
-        for (let i = 0; i < selectedFaceCount; i++) {
-          for (let e = 0; e < 3; e++) {
-            const a = selected[i * 3 + e], b = selected[i * 3 + (e + 1) % 3];
-            let incidence = 0, seen = false;
-            for (let j = 0; j < selectedFaceCount; j++) {
-              for (let q = 0; q < 3; q++) {
-                simplifiedEdgeComparisons++;
-                if (sameEdge(a, b, selected[j * 3 + q], selected[j * 3 + (q + 1) % 3])) {
-                  incidence++;
-                  if (j < i || (j === i && q < e)) seen = true;
+            if (inp(cur.v) === 40) {
+              let sd = 1;
+              cur.v++;
+              while (cur.v < end && sd !== 0) {
+                if (inp(cur.v) === 92) {
+                  cur.v += cur.v + 1 < end ? 2 : 1;
+                  continue;
                 }
+                if (inp(cur.v) === 40) sd++;
+                else if (inp(cur.v) === 41) sd--;
+                cur.v++;
               }
+              if (sd !== 0) return 0xffffffff;
+              continue;
             }
-            if (incidence > 2) throw new Error("simplified non-manifold edge");
-            if (!seen) uniqueEdges++;
+            if (lit(cur.v, end, [60, 60])) {
+              depth++;
+              cur.v += 2;
+              continue;
+            }
+            if (lit(cur.v, end, [62, 62])) {
+              if (depth === 0) return 0xffffffff;
+              depth--;
+              cur.v += 2;
+              if (depth === 0) return 0xffffffff;
+              continue;
+            }
+            if (depth === 1 && keyAt(cur.v, end, k)) return cur.v;
+            cur.v++;
           }
+          return 0xffffffff;
+        };
+        const dictAfter = (start, end, k, ds, de) => {
+          const at = findDK(start, end, k);
+          if (at === 0xffffffff) return false;
+          const cur = { v: at + k.length };
+          skipWs(cur, end);
+          if (!lit(cur.v, end, [60, 60])) return false;
+          ds.v = cur.v;
+          let depth = 0;
+          while (cur.v < end) {
+            if (inp(cur.v) === 40) {
+              let sd = 1;
+              cur.v++;
+              while (cur.v < end && sd !== 0) {
+                if (inp(cur.v) === 92) {
+                  cur.v += cur.v + 1 < end ? 2 : 1;
+                  continue;
+                }
+                if (inp(cur.v) === 40) sd++;
+                else if (inp(cur.v) === 41) sd--;
+                cur.v++;
+              }
+              if (sd !== 0) return false;
+              continue;
+            }
+            if (lit(cur.v, end, [60, 60])) {
+              depth++;
+              cur.v += 2;
+              continue;
+            }
+            if (lit(cur.v, end, [62, 62])) {
+              if (depth === 0) return false;
+              depth--;
+              cur.v += 2;
+              if (depth === 0) {
+                de.v = cur.v;
+                return true;
+              }
+              continue;
+            }
+            cur.v++;
+          }
+          return false;
+        };
+        const dRef = (start, end, k, id) => {
+          const at = findDK(start, end, k);
+          if (at === 0xffffffff) return false;
+          const cur = { v: at + k.length }, g = { v: 0 };
+          return readU(cur, end, id) && readU(cur, end, g) && g.v === 0 && mtok(cur, end, [82]);
+        };
+        const refA = (start, end, k, id) => {
+          const at = findK(start, end, k);
+          if (at === 0xffffffff) return false;
+          const cur = { v: at + k.length }, g = { v: 0 };
+          return readU(cur, end, id) && readU(cur, end, g) && g.v === 0 && mtok(cur, end, [82]);
+        };
+        const objRange = (id, s, e) => {
+          if (id === 0 || id > S.ocount) return false;
+          const o = S.offs[id], en = S.ends[id];
+          if (o === 0 || en <= o) return false;
+          s.v = o;
+          e.v = en;
+          return true;
+        };
+        const objHas = (id, k, n) => {
+          const s = { v: 0 }, e = { v: 0 };
+          if (!objRange(id, s, e)) return false;
+          const at = findK(s.v, e.v, k);
+          if (at === 0xffffffff) return false;
+          const cur = { v: at + k.length };
+          skipWs(cur, e.v);
+          return keyAt(cur.v, e.v, n);
+        };
+        const streamRange = (id, s, e) => {
+          const os = { v: 0 }, oe = { v: 0 }, at = { v: 0 }, len = { v: 0 };
+          if (!objRange(id, os, oe)) return false;
+          const la = findK(os.v, oe.v, [47, 76, 101, 110, 103, 116, 104]),
+            sa = findR(os.v, oe.v, [115, 116, 114, 101, 97, 109]);
+          if (la === 0xffffffff || sa === 0xffffffff) return false;
+          at.v = la + 7;
+          if (!readU(at, oe.v, len)) return false;
+          at.v = sa + 6;
+          if (at.v < oe.v && inp(at.v) === 13) at.v++;
+          if (at.v >= oe.v || inp(at.v) !== 10 || at.v + len.v > oe.v) return false;
+          at.v++;
+          s.v = at.v;
+          e.v = at.v + len.v;
+          at.v += len.v;
+          if (at.v < oe.v && inp(at.v) === 13) at.v++;
+          if (at.v < oe.v && inp(at.v) === 10) at.v++;
+          return lit(at.v, oe.v, [101, 110, 100, 115, 116, 114, 101, 97, 109]);
+        };
+        const hx = (c) =>
+          c >= 48 && c <= 57
+            ? c - 48
+            : c >= 97 && c <= 102
+            ? c - 97 + 10
+            : c >= 65 && c <= 70
+            ? c - 65 + 10
+            : -1;
+        const toUni = (id) => {
+          const s = { v: 0 }, e = { v: 0 };
+          if (
+            !streamRange(id, s, e) ||
+            findR(s.v, e.v, [98, 101, 103, 105, 110, 99, 109, 97, 112]) === 0xffffffff ||
+            findR(s.v, e.v, [101, 110, 100, 99, 109, 97, 112]) === 0xffffffff
+          ) return false;
+          let at = s.v;
+          const end = e.v;
+          let mappings = 0;
+          while (at + 11 <= end) {
+            if (inp(at) !== 60 || inp(at + 3) !== 62) {
+              at++;
+              continue;
+            }
+            const a = hx(inp(at + 1)), b = hx(inp(at + 2));
+            const p = { v: at + 4 };
+            skipWs(p, end);
+            if (a < 0 || b < 0 || p.v + 6 > end || inp(p.v) !== 60 || inp(p.v + 5) !== 62) {
+              at++;
+              continue;
+            }
+            const h0 = hx(inp(p.v + 1)),
+              h1 = hx(inp(p.v + 2)),
+              h2 = hx(inp(p.v + 3)),
+              h3 = hx(inp(p.v + 4));
+            const code = a * 16 + b, scalar = h0 * 4096 + h1 * 256 + h2 * 16 + h3;
+            if (h0 < 0 || h1 < 0 || h2 < 0 || h3 < 0 || scalar > 127 || S.uval[code] !== 0) {
+              return false;
+            }
+            S.umap[code] = scalar;
+            S.uval[code] = 1;
+            mappings++;
+            at = p.v + 6;
+          }
+          return mappings > 0;
+        };
+        const sameName = (at, len, o, ol) => {
+          if (len !== ol) return false;
+          for (let i = 0; i < len; i++) if (inp(at + i) !== inp(o + i)) return false;
+          return true;
+        };
+        const charProc = (cs, ce, na, nl, id) => {
+          const cur = { v: cs };
+          while (cur.v < ce) {
+            skipWs(cur, ce);
+            if (cur.v >= ce || inp(cur.v) !== 47) return false;
+            cur.v++;
+            const start = cur.v;
+            while (cur.v < ce && !delim(inp(cur.v))) cur.v++;
+            const len = cur.v - start;
+            const obj = { v: 0 }, g = { v: 0 };
+            if (!readU(cur, ce, obj) || !readU(cur, ce, g) || g.v !== 0 || !mtok(cur, ce, [82])) {
+              return false;
+            }
+            if (sameName(start, len, na, nl)) {
+              id.v = obj.v;
+              return true;
+            }
+          }
+          return false;
+        };
+        const charProcParse = (id, code) => {
+          const s = { v: 0 }, e = { v: 0 }, at = { v: 0 };
+          if (!streamRange(id, s, e)) return false;
+          at.v = s.v;
+          const end = e.v;
+          const n = { v: 0 };
+          for (let i = 0; i < 6; i++) if (!readI(at, end, n)) return false;
+          if (!mtok(at, end, [100, 49])) return false;
+          while (true) {
+            skipWs(at, end);
+            if (at.v === end) return true;
+            const x = { v: 0 }, y = { v: 0 }, w = { v: 0 }, h = { v: 0 };
+            if (
+              !readI(at, end, x) || !readI(at, end, y) || !readI(at, end, w) ||
+              !readI(at, end, h) || !mtok(at, end, [114, 101]) || !mtok(at, end, [102])
+            ) return false;
+            if (x.v < 0 || x.v > 4 || y.v < 0 || y.v > 6 || w.v !== 1 || h.v !== 1) return false;
+            S.grows[code][6 - y.v] |= 1 << (4 - x.v);
+          }
+        };
+        const font = (id) => {
+          const s = { v: 0 }, e = { v: 0 }, tu = { v: 0 };
+          if (
+            !objRange(id, s, e) ||
+            !objHas(id, [47, 84, 121, 112, 101], [47, 70, 111, 110, 116]) ||
+            !objHas(id, [47, 83, 117, 98, 116, 121, 112, 101], [47, 84, 121, 112, 101, 51]) ||
+            findR(s.v, e.v, [
+                47,
+                70,
+                111,
+                110,
+                116,
+                77,
+                97,
+                116,
+                114,
+                105,
+                120,
+                32,
+                91,
+                48,
+                46,
+                49,
+                50,
+                53,
+                32,
+                48,
+                32,
+                48,
+                32,
+                48,
+                46,
+                49,
+                50,
+                53,
+                32,
+                48,
+                32,
+                48,
+                93,
+              ]) === 0xffffffff ||
+            !refA(s.v, e.v, [47, 84, 111, 85, 110, 105, 99, 111, 100, 101], tu) || !toUni(tu.v)
+          ) return false;
+          let cp = findK(s.v, e.v, [47, 67, 104, 97, 114, 80, 114, 111, 99, 115]);
+          if (cp === 0xffffffff) return false;
+          cp = findR(cp, e.v, [60, 60]);
+          if (cp === 0xffffffff) return false;
+          const cpEnd = findR(cp + 2, e.v, [62, 62]);
+          if (cpEnd === 0xffffffff) return false;
+          cp += 2;
+          let diffs = findK(s.v, e.v, [47, 68, 105, 102, 102, 101, 114, 101, 110, 99, 101, 115]);
+          if (diffs === 0xffffffff) return false;
+          diffs = findR(diffs, e.v, [91]);
+          if (diffs === 0xffffffff) return false;
+          const dEnd = findR(diffs + 1, e.v, [93]);
+          if (dEnd === 0xffffffff) return false;
+          const cur = { v: diffs + 1 };
+          let code = 0xffffffff;
+          while (cur.v < dEnd) {
+            skipWs(cur, dEnd);
+            if (cur.v >= dEnd) break;
+            if (digit(inp(cur.v))) {
+              const cv = { v: 0 };
+              if (!readU(cur, dEnd, cv) || cv.v > 255) return false;
+              code = cv.v;
+            } else if (inp(cur.v) === 47) {
+              cur.v++;
+              const name = cur.v;
+              while (cur.v < dEnd && !delim(inp(cur.v))) cur.v++;
+              const proc = { v: 0 };
+              if (
+                code > 255 || !charProc(cp, cpEnd, name, cur.v - name, proc) ||
+                !charProcParse(proc.v, code)
+              ) return false;
+              code++;
+            } else return false;
+          }
+          const first = { v: 0 }, last = { v: 0 };
+          const fa = findK(s.v, e.v, [47, 70, 105, 114, 115, 116, 67, 104, 97, 114]),
+            la = findK(s.v, e.v, [47, 76, 97, 115, 116, 67, 104, 97, 114]);
+          if (fa === 0xffffffff || la === 0xffffffff) return false;
+          const fc = { v: fa + 10 }, lc = { v: la + 9 };
+          if (
+            !readU(fc, e.v, first) || !readU(lc, e.v, last) || first.v > last.v || last.v > 255
+          ) return false;
+          let wids = findK(s.v, e.v, [47, 87, 105, 100, 116, 104, 115]);
+          wids = wids === 0xffffffff ? wids : findR(wids, e.v, [91]);
+          if (wids === 0xffffffff) return false;
+          const wc = { v: wids + 1 };
+          for (let c = first.v; c <= last.v; c++) {
+            const w = { v: 0 };
+            if (!readU(wc, e.v, w)) return false;
+            S.gw[c] = w.v;
+          }
+          skipWs(wc, e.v);
+          return wc.v < e.v && inp(wc.v) === 93;
+        };
+        const content = (id, page) => {
+          const s = { v: 0 }, e = { v: 0 }, at = { v: 0 };
+          if (!streamRange(id, s, e)) return false;
+          at.v = s.v;
+          const end = e.v;
+          if (!mtok(at, end, [66, 84])) return false;
+          skipWs(at, end);
+          if (at.v >= end || inp(at.v) !== 47) return false;
+          at.v++;
+          const fs = { v: 0 }, x = { v: 0 }, y = { v: 0 };
+          if (
+            !mtok(at, end, [70, 49]) || !readU(at, end, fs) || !mtok(at, end, [84, 102]) ||
+            !readU(at, end, x) || !readU(at, end, y) || !mtok(at, end, [84, 100])
+          ) return false;
+          S.pfont[page] = fs.v;
+          S.px[page] = x.v;
+          S.py[page] = y.v;
+          skipWs(at, end);
+          if (at.v >= end || inp(at.v) !== 40) return false;
+          at.v++;
+          let length = 0;
+          const pt = [], pc = [];
+          while (at.v < end && inp(at.v) !== 41) {
+            let code = inp(at.v);
+            at.v++;
+            if (code === 92) {
+              if (at.v >= end) return false;
+              code = inp(at.v);
+              at.v++;
+            }
+            if (length >= 96 || S.uval[code] === 0) return false;
+            pc.push(code);
+            pt.push(S.umap[code]);
+            length++;
+          }
+          if (at.v >= end) return false;
+          const closes = inp(at.v) === 41;
+          at.v++;
+          if (!closes || !mtok(at, end, [84, 106]) || !mtok(at, end, [69, 84])) return false;
+          skipWs(at, end);
+          if (at.v !== end) return false;
+          S.ptext[page] = pt;
+          S.pcodes[page] = pc;
+          S.plen[page] = length;
+          return true;
+        };
+        if (input.length < 128 || !lit(0, input.length, [37, 80, 68, 70, 45, 49, 46, 55, 10])) {
+          return -1;
         }
-        let signedVolumeSixQuantized = 0;
-        for (let i = 0; i < selectedFaceCount; i++) {
-          const a = selected[i * 3], b = selected[i * 3 + 1], c = selected[i * 3 + 2];
-          const ax = simplifiedVertices[a * 3],
-            ay = simplifiedVertices[a * 3 + 1],
-            az = simplifiedVertices[a * 3 + 2];
-          const bx = simplifiedVertices[b * 3],
-            by = simplifiedVertices[b * 3 + 1],
-            bz = simplifiedVertices[b * 3 + 2];
-          const cx = simplifiedVertices[c * 3],
-            cy = simplifiedVertices[c * 3 + 1],
-            cz = simplifiedVertices[c * 3 + 2];
-          signedVolumeSixQuantized += ax * (by * cz - bz * cy) - ay * (bx * cz - bz * cx) +
-            az * (bx * cy - by * cx);
+        const sx0 = input.length > 64 ? input.length - 64 : 0;
+        let sx = findR(sx0, input.length, [115, 116, 97, 114, 116, 120, 114, 101, 102]);
+        const xref = { v: 0 };
+        if (sx === 0xffffffff) return -2;
+        sx += 9;
+        const sc = { v: sx };
+        if (
+          !readU(sc, input.length, xref) || xref.v >= input.length ||
+          !lit(xref.v, input.length, [120, 114, 101, 102])
+        ) return -3;
+        const at = { v: xref.v + 4 }, first = { v: 0 }, size = { v: 0 };
+        if (
+          !readU(at, input.length, first) || first.v !== 0 || !readU(at, input.length, size) ||
+          size.v < 2 || size.v > 512
+        ) return -4;
+        S.ocount = size.v - 1;
+        for (let id = 0; id < size.v; id++) {
+          const off = { v: 0 }, gen = { v: 0 };
+          if (!readU(at, input.length, off) || !readU(at, input.length, gen)) return -5;
+          skipWs(at, input.length);
+          const state = inp(at.v);
+          at.v++;
+          while (at.v < input.length && inp(at.v) !== 10) at.v++;
+          if (at.v < input.length) at.v++;
+          if (id === 0) { if (state !== 102 || gen.v !== 65535) return -6; }
+          else if (state !== 110 || gen.v !== 0 || off.v === 0 || off.v >= xref.v) return -7;
+          else S.offs[id] = off.v;
         }
-        if (signedVolumeSixQuantized !== 0) {
-          throw new Error("fixture volume policy requires a planar open mesh");
+        if (!lit(at.v, input.length, [116, 114, 97, 105, 108, 101, 114])) return -8;
+        const tEnd = findR(at.v, input.length, [115, 116, 97, 114, 116, 120, 114, 101, 102]);
+        const sk0 = findK(at.v, tEnd, [47, 83, 105, 122, 101]),
+          rk0 = findK(at.v, tEnd, [47, 82, 111, 111, 116]);
+        const ts = { v: 0 }, root = { v: 0 }, rg = { v: 0 };
+        if (tEnd === 0xffffffff || sk0 === 0xffffffff || rk0 === 0xffffffff) return -9;
+        const sk = { v: sk0 + 5 }, rk = { v: rk0 + 5 };
+        if (
+          !readU(sk, tEnd, ts) || ts.v !== size.v || !readU(rk, tEnd, root) ||
+          !readU(rk, tEnd, rg) || rg.v !== 0 || !mtok(rk, tEnd, [82]) || root.v === 0 ||
+          root.v >= size.v
+        ) return -10;
+        for (let id = 1; id < size.v; id++) {
+          const p = { v: S.offs[id] }, fid = { v: 0 }, gen = { v: 0 };
+          if (
+            !readU(p, xref.v, fid) || fid.v !== id || !readU(p, xref.v, gen) || gen.v !== 0 ||
+            !mtok(p, xref.v, [111, 98, 106])
+          ) return -11;
+          const next = id + 1 < size.v ? S.offs[id + 1] : xref.v;
+          const close = findR(p.v, next, [101, 110, 100, 111, 98, 106]);
+          if (close === 0xffffffff) return -12;
+          S.offs[id] = p.v;
+          S.ends[id] = close;
         }
-        const words = new Int32Array(HEADER_WORDS + simplifiedVertices.length + selected.length);
-        words.set([
-          0x4d455348,
-          2,
-          count,
-          vertices.length / 3,
-          cleanFaceCount,
-          targetFaces,
-          removed,
-          flipped,
-          count * 3,
-          uniqueEdges,
-          selectedFaceCount,
-          simplifiedVertices.length / 3,
-          signedVolumeSixQuantized,
-          selectedFaceCount,
-          vertexWeldComparisons,
-          simplificationWeldComparisons,
-          cleanEdgeComparisons,
-          simplifiedEdgeComparisons,
-          0,
-          HEADER_WORDS,
-        ]);
-        words.set(simplifiedVertices, HEADER_WORDS);
-        words.set(selected, HEADER_WORDS + simplifiedVertices.length);
-        return words;
+        const rs = { v: 0 }, re = { v: 0 }, pr = { v: 0 };
+        if (
+          !objRange(root.v, rs, re) ||
+          !objHas(root.v, [47, 84, 121, 112, 101], [47, 67, 97, 116, 97, 108, 111, 103]) ||
+          !refA(rs.v, re.v, [47, 80, 97, 103, 101, 115], pr)
+        ) return -13;
+        const ps = { v: 0 }, pe = { v: 0 }, cnt = { v: 0 };
+        if (
+          !objRange(pr.v, ps, pe) ||
+          !objHas(pr.v, [47, 84, 121, 112, 101], [47, 80, 97, 103, 101, 115])
+        ) return -14;
+        const ca = findK(ps.v, pe.v, [47, 67, 111, 117, 110, 116]);
+        let kids = findK(ps.v, pe.v, [47, 75, 105, 100, 115]);
+        if (ca === 0xffffffff || kids === 0xffffffff) return -15;
+        const cc = { v: ca + 6 };
+        if (!readU(cc, pe.v, cnt) || cnt.v === 0 || cnt.v > 128) return -16;
+        kids = findR(kids, pe.v, [91]);
+        if (kids === 0xffffffff) return -17;
+        const kc = { v: kids + 1 };
+        let sharedFont = 0;
+        for (let page = 0; page < cnt.v; page++) {
+          const pid = { v: 0 }, gen = { v: 0 };
+          if (
+            !readU(kc, pe.v, pid) || !readU(kc, pe.v, gen) || gen.v !== 0 || !mtok(kc, pe.v, [82])
+          ) return -18;
+          const ps2 = { v: 0 },
+            pe2 = { v: 0 },
+            par = { v: 0 },
+            cont = { v: 0 },
+            fnt = { v: 0 },
+            rs2 = { v: 0 },
+            re2 = { v: 0 },
+            fs2 = { v: 0 },
+            fe2 = { v: 0 };
+          if (
+            !objRange(pid.v, ps2, pe2) ||
+            !objHas(pid.v, [47, 84, 121, 112, 101], [47, 80, 97, 103, 101]) ||
+            !refA(ps2.v, pe2.v, [47, 80, 97, 114, 101, 110, 116], par) || par.v !== pr.v ||
+            findR(ps2.v, pe2.v, [
+                47,
+                77,
+                101,
+                100,
+                105,
+                97,
+                66,
+                111,
+                120,
+                32,
+                91,
+                48,
+                32,
+                48,
+                32,
+                54,
+                49,
+                50,
+                32,
+                55,
+                57,
+                50,
+                93,
+              ]) === 0xffffffff ||
+            !dictAfter(ps2.v, pe2.v, [47, 82, 101, 115, 111, 117, 114, 99, 101, 115], rs2, re2) ||
+            !dictAfter(rs2.v, re2.v, [47, 70, 111, 110, 116], fs2, fe2) ||
+            !dRef(fs2.v, fe2.v, [47, 70, 49], fnt) ||
+            !refA(ps2.v, pe2.v, [47, 67, 111, 110, 116, 101, 110, 116, 115], cont)
+          ) return -19;
+          if (page === 0) {
+            sharedFont = fnt.v;
+            if (!font(fnt.v)) return -20;
+          } else if (fnt.v !== sharedFont) return -21;
+          if (!content(cont.v, page)) return -22;
+        }
+        skipWs(kc, pe.v);
+        if (kc.v >= pe.v || inp(kc.v) !== 93) return -23;
+        let glyphs = 0, comparisons = 0;
+        for (let page = 0; page < cnt.v; page++) {
+          let found = false;
+          const plen = S.plen[page];
+          for (let i = 0; i + 6 <= plen; i++) {
+            comparisons++;
+            if (
+              S.ptext[page][i] === 78 && S.ptext[page][i + 1] === 69 &&
+              S.ptext[page][i + 2] === 69 && S.ptext[page][i + 3] === 68 &&
+              S.ptext[page][i + 4] === 76 && S.ptext[page][i + 5] === 69
+            ) found = true;
+          }
+          if (found) S.hp.push(page + 1);
+          glyphs += plen;
+        }
+        S.counters[0] = S.ocount;
+        S.counters[1] = cnt.v;
+        S.counters[2] = glyphs;
+        S.counters[3] = comparisons;
+        S.counters[4] = 0;
+        S.counters[5] = W;
+        S.counters[6] = H;
+        S.counters[7] = 1;
+        S.counters[8] = W * H * 4;
+        return 0;
+      }
+
+      const PDF_FIXTURE_B64 = [
+        "JVBERi0xLjcKJVBERkJhc2UgZ2VuZXJhdGVkIHJlcG9ydAoxIDAgb2JqCjw8IC9UeXBlIC9DYXRhbG9n",
+        "IC9QYWdlcyA0IDAgUiA+PgplbmRvYmoKMiAwIG9iago8PCAvUHJvZHVjZXIgKFBERkJhc2UgcmVwb3Np",
+        "dG9yeS1vd25lZCBUeXBlMyBmaXh0dXJlIGdlbmVyYXRvcikgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5",
+        "cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUzIC9Gb250QkJveCBbMCAwIDYgN10gL0ZvbnRNYXRyaXggWzAu",
+        "MTI1IDAgMCAwLjEyNSAwIDBdIC9FbmNvZGluZyA8PCAvVHlwZSAvRW5jb2RpbmcgL0Jhc2VFbmNvZGlu",
+        "ZyAvV2luQW5zaUVuY29kaW5nIC9EaWZmZXJlbmNlcyBbIDMyIC9zcGFjZSA0OCAvemVybyA0OSAvb25l",
+        "IDUwIC90d28gNTEgL3RocmVlIDUyIC9mb3VyIDUzIC9maXZlIDU0IC9zaXggNTUgL3NldmVuIDU2IC9l",
+        "aWdodCA1NyAvbmluZSA2NSAvQSA2NiAvQiA2NyAvQyA2OCAvRCA2OSAvRSA3MSAvRyA3MiAvSCA3NSAv",
+        "SyA3NiAvTCA3NyAvTSA3OCAvTiA3OSAvTyA4MCAvUCA4MiAvUiA4NCAvVCA4NSAvVV0gPj4gL0NoYXJQ",
+        "cm9jcyA8PCAvLm5vdGRlZiAyMDUgMCBSIC9zcGFjZSAyMDYgMCBSIC96ZXJvIDIwNyAwIFIgL29uZSAy",
+        "MDggMCBSIC90d28gMjA5IDAgUiAvdGhyZWUgMjEwIDAgUiAvZm91ciAyMTEgMCBSIC9maXZlIDIxMiAw",
+        "IFIgL3NpeCAyMTMgMCBSIC9zZXZlbiAyMTQgMCBSIC9laWdodCAyMTUgMCBSIC9uaW5lIDIxNiAwIFIg",
+        "L0EgMjE3IDAgUiAvQiAyMTggMCBSIC9DIDIxOSAwIFIgL0QgMjIwIDAgUiAvRSAyMjEgMCBSIC9HIDIy",
+        "MiAwIFIgL0ggMjIzIDAgUiAvSyAyMjQgMCBSIC9MIDIyNSAwIFIgL00gMjI2IDAgUiAvTiAyMjcgMCBS",
+        "IC9PIDIyOCAwIFIgL1AgMjI5IDAgUiAvUiAyMzAgMCBSIC9UIDIzMSAwIFIgL1UgMjMyIDAgUiA+PiAv",
+        "Rmlyc3RDaGFyIDMyIC9MYXN0Q2hhciAxMjYgL1dpZHRocyBbNiA2IDYgNiA2IDYgNiA2IDYgNiA2IDYg",
+        "NiA2IDYgNiA2IDYgNiA2IDYgNiA2IDYgNiA2IDYgNiA2IDYgNiA2IDYgNiA2IDYgNiA2IDYgNiA2IDYg",
+        "NiA2IDYgNiA2IDYgNiA2IDYgNiA2IDYgNiA2IDYgNiA2IDYgNiA2IDYgNiA2IDYgNiA2IDYgNiA2IDYg",
+        "NiA2IDYgNiA2IDYgNiA2IDYgNiA2IDYgNiA2IDYgNiA2IDYgNiA2IDYgNiA2XSAvVG9Vbmljb2RlIDIz",
+        "MyAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9Db3VudCAxMDAgL0tpZHMgWzUg",
+        "MCBSIDcgMCBSIDkgMCBSIDExIDAgUiAxMyAwIFIgMTUgMCBSIDE3IDAgUiAxOSAwIFIgMjEgMCBSIDIz",
+        "IDAgUiAyNSAwIFIgMjcgMCBSIDI5IDAgUiAzMSAwIFIgMzMgMCBSIDM1IDAgUiAzNyAwIFIgMzkgMCBS",
+        "IDQxIDAgUiA0MyAwIFIgNDUgMCBSIDQ3IDAgUiA0OSAwIFIgNTEgMCBSIDUzIDAgUiA1NSAwIFIgNTcg",
+        "MCBSIDU5IDAgUiA2MSAwIFIgNjMgMCBSIDY1IDAgUiA2NyAwIFIgNjkgMCBSIDcxIDAgUiA3MyAwIFIg",
+        "NzUgMCBSIDc3IDAgUiA3OSAwIFIgODEgMCBSIDgzIDAgUiA4NSAwIFIgODcgMCBSIDg5IDAgUiA5MSAw",
+        "IFIgOTMgMCBSIDk1IDAgUiA5NyAwIFIgOTkgMCBSIDEwMSAwIFIgMTAzIDAgUiAxMDUgMCBSIDEwNyAw",
+        "IFIgMTA5IDAgUiAxMTEgMCBSIDExMyAwIFIgMTE1IDAgUiAxMTcgMCBSIDExOSAwIFIgMTIxIDAgUiAx",
+        "MjMgMCBSIDEyNSAwIFIgMTI3IDAgUiAxMjkgMCBSIDEzMSAwIFIgMTMzIDAgUiAxMzUgMCBSIDEzNyAw",
+        "IFIgMTM5IDAgUiAxNDEgMCBSIDE0MyAwIFIgMTQ1IDAgUiAxNDcgMCBSIDE0OSAwIFIgMTUxIDAgUiAx",
+        "NTMgMCBSIDE1NSAwIFIgMTU3IDAgUiAxNTkgMCBSIDE2MSAwIFIgMTYzIDAgUiAxNjUgMCBSIDE2NyAw",
+        "IFIgMTY5IDAgUiAxNzEgMCBSIDE3MyAwIFIgMTc1IDAgUiAxNzcgMCBSIDE3OSAwIFIgMTgxIDAgUiAx",
+        "ODMgMCBSIDE4NSAwIFIgMTg3IDAgUiAxODkgMCBSIDE5MSAwIFIgMTkzIDAgUiAxOTUgMCBSIDE5NyAw",
+        "IFIgMTk5IDAgUiAyMDEgMCBSIDIwMyAwIFJdID4+CmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9QYWdl",
+        "IC9QYXJlbnQgNCAwIFIgL01lZGlhQm94IFswIDAgNjEyIDc5Ml0gL1Jlc291cmNlcyA8PCAvRm9udCA8",
+        "PCAvRjEgMyAwIFIgPj4gPj4gL0NvbnRlbnRzIDYgMCBSID4+CmVuZG9iago2IDAgb2JqCjw8IC9MZW5n",
+        "dGggNjUgPj4Kc3RyZWFtCkJUIC9GMSAxNiBUZiAzNiA3NTAgVGQgKFJFUE9SVCBQQUdFIDAwMSBET0NV",
+        "TUVOVCBCRU5DSE1BUkspIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKNyAwIG9iago8PCAvVHlwZSAvUGFn",
+        "ZSAvUGFyZW50IDQgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9SZXNvdXJjZXMgPDwgL0ZvbnQg",
+        "PDwgL0YxIDMgMCBSID4+ID4+IC9Db250ZW50cyA4IDAgUiA+PgplbmRvYmoKOCAwIG9iago8PCAvTGVu",
+        "Z3RoIDY1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgMzYgNzUwIFRkIChSRVBPUlQgUEFHRSAwMDIgRE9D",
+        "VU1FTlQgQkVOQ0hNQVJLKSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjkgMCBvYmoKPDwgL1R5cGUgL1Bh",
+        "Z2UgL1BhcmVudCA0IDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250",
+        "IDw8IC9GMSAzIDAgUiA+PiA+PiAvQ29udGVudHMgMTAgMCBSID4+CmVuZG9iagoxMCAwIG9iago8PCAv",
+        "TGVuZ3RoIDY1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgMzYgNzUwIFRkIChSRVBPUlQgUEFHRSAwMDMg",
+        "RE9DVU1FTlQgQkVOQ0hNQVJLKSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjExIDAgb2JqCjw8IC9UeXBl",
+        "IC9QYWdlIC9QYXJlbnQgNCAwIFIgL01lZGlhQm94IFswIDAgNjEyIDc5Ml0gL1Jlc291cmNlcyA8PCAv",
+        "Rm9udCA8PCAvRjEgMyAwIFIgPj4gPj4gL0NvbnRlbnRzIDEyIDAgUiA+PgplbmRvYmoKMTIgMCBvYmoK",
+        "PDwgL0xlbmd0aCA2NSA+PgpzdHJlYW0KQlQgL0YxIDE2IFRmIDM2IDc1MCBUZCAoUkVQT1JUIFBBR0Ug",
+        "MDA0IERPQ1VNRU5UIEJFTkNITUFSSykgVGogRVQKZW5kc3RyZWFtCmVuZG9iagoxMyAwIG9iago8PCAv",
+        "VHlwZSAvUGFnZSAvUGFyZW50IDQgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9SZXNvdXJjZXMg",
+        "PDwgL0ZvbnQgPDwgL0YxIDMgMCBSID4+ID4+IC9Db250ZW50cyAxNCAwIFIgPj4KZW5kb2JqCjE0IDAg",
+        "b2JqCjw8IC9MZW5ndGggNjUgPj4Kc3RyZWFtCkJUIC9GMSAxNiBUZiAzNiA3NTAgVGQgKFJFUE9SVCBQ",
+        "QUdFIDAwNSBET0NVTUVOVCBCRU5DSE1BUkspIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKMTUgMCBvYmoK",
+        "PDwgL1R5cGUgL1BhZ2UgL1BhcmVudCA0IDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3Vy",
+        "Y2VzIDw8IC9Gb250IDw8IC9GMSAzIDAgUiA+PiA+PiAvQ29udGVudHMgMTYgMCBSID4+CmVuZG9iagox",
+        "NiAwIG9iago8PCAvTGVuZ3RoIDY1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgMzYgNzUwIFRkIChSRVBP",
+        "UlQgUEFHRSAwMDYgRE9DVU1FTlQgQkVOQ0hNQVJLKSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjE3IDAg",
+        "b2JqCjw8IC9UeXBlIC9QYWdlIC9QYXJlbnQgNCAwIFIgL01lZGlhQm94IFswIDAgNjEyIDc5Ml0gL1Jl",
+        "c291cmNlcyA8PCAvRm9udCA8PCAvRjEgMyAwIFIgPj4gPj4gL0NvbnRlbnRzIDE4IDAgUiA+PgplbmRv",
+        "YmoKMTggMCBvYmoKPDwgL0xlbmd0aCA2NSA+PgpzdHJlYW0KQlQgL0YxIDE2IFRmIDM2IDc1MCBUZCAo",
+        "UkVQT1JUIFBBR0UgMDA3IERPQ1VNRU5UIEJFTkNITUFSSykgVGogRVQKZW5kc3RyZWFtCmVuZG9iagox",
+        "OSAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDQgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJd",
+        "IC9SZXNvdXJjZXMgPDwgL0ZvbnQgPDwgL0YxIDMgMCBSID4+ID4+IC9Db250ZW50cyAyMCAwIFIgPj4K",
+        "ZW5kb2JqCjIwIDAgb2JqCjw8IC9MZW5ndGggNjUgPj4Kc3RyZWFtCkJUIC9GMSAxNiBUZiAzNiA3NTAg",
+        "VGQgKFJFUE9SVCBQQUdFIDAwOCBET0NVTUVOVCBCRU5DSE1BUkspIFRqIEVUCmVuZHN0cmVhbQplbmRv",
+        "YmoKMjEgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCA0IDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIg",
+        "NzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSAzIDAgUiA+PiA+PiAvQ29udGVudHMgMjIgMCBS",
+        "ID4+CmVuZG9iagoyMiAwIG9iago8PCAvTGVuZ3RoIDY1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgMzYg",
+        "NzUwIFRkIChSRVBPUlQgUEFHRSAwMDkgRE9DVU1FTlQgQkVOQ0hNQVJLKSBUaiBFVAplbmRzdHJlYW0K",
+        "ZW5kb2JqCjIzIDAgb2JqCjw8IC9UeXBlIC9QYWdlIC9QYXJlbnQgNCAwIFIgL01lZGlhQm94IFswIDAg",
+        "NjEyIDc5Ml0gL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgMyAwIFIgPj4gPj4gL0NvbnRlbnRzIDI0",
+        "IDAgUiA+PgplbmRvYmoKMjQgMCBvYmoKPDwgL0xlbmd0aCA3MiA+PgpzdHJlYW0KQlQgL0YxIDE2IFRm",
+        "IDM2IDc1MCBUZCAoUkVQT1JUIFBBR0UgMDEwIERPQ1VNRU5UIEJFTkNITUFSSyBORUVETEUpIFRqIEVU",
+        "CmVuZHN0cmVhbQplbmRvYmoKMjUgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCA0IDAgUiAvTWVk",
+        "aWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSAzIDAgUiA+PiA+PiAv",
+        "Q29udGVudHMgMjYgMCBSID4+CmVuZG9iagoyNiAwIG9iago8PCAvTGVuZ3RoIDY1ID4+CnN0cmVhbQpC",
+        "VCAvRjEgMTYgVGYgMzYgNzUwIFRkIChSRVBPUlQgUEFHRSAwMTEgRE9DVU1FTlQgQkVOQ0hNQVJLKSBU",
+        "aiBFVAplbmRzdHJlYW0KZW5kb2JqCjI3IDAgb2JqCjw8IC9UeXBlIC9QYWdlIC9QYXJlbnQgNCAwIFIg",
+        "L01lZGlhQm94IFswIDAgNjEyIDc5Ml0gL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgMyAwIFIgPj4g",
+        "Pj4gL0NvbnRlbnRzIDI4IDAgUiA+PgplbmRvYmoKMjggMCBvYmoKPDwgL0xlbmd0aCA2NSA+PgpzdHJl",
+        "YW0KQlQgL0YxIDE2IFRmIDM2IDc1MCBUZCAoUkVQT1JUIFBBR0UgMDEyIERPQ1VNRU5UIEJFTkNITUFS",
+        "SykgVGogRVQKZW5kc3RyZWFtCmVuZG9iagoyOSAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDQg",
+        "MCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9SZXNvdXJjZXMgPDwgL0ZvbnQgPDwgL0YxIDMgMCBS",
+        "ID4+ID4+IC9Db250ZW50cyAzMCAwIFIgPj4KZW5kb2JqCjMwIDAgb2JqCjw8IC9MZW5ndGggNjUgPj4K",
+        "c3RyZWFtCkJUIC9GMSAxNiBUZiAzNiA3NTAgVGQgKFJFUE9SVCBQQUdFIDAxMyBET0NVTUVOVCBCRU5D",
+        "SE1BUkspIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKMzEgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVu",
+        "dCA0IDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSAz",
+        "IDAgUiA+PiA+PiAvQ29udGVudHMgMzIgMCBSID4+CmVuZG9iagozMiAwIG9iago8PCAvTGVuZ3RoIDY1",
+        "ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgMzYgNzUwIFRkIChSRVBPUlQgUEFHRSAwMTQgRE9DVU1FTlQg",
+        "QkVOQ0hNQVJLKSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjMzIDAgb2JqCjw8IC9UeXBlIC9QYWdlIC9Q",
+        "YXJlbnQgNCAwIFIgL01lZGlhQm94IFswIDAgNjEyIDc5Ml0gL1Jlc291cmNlcyA8PCAvRm9udCA8PCAv",
+        "RjEgMyAwIFIgPj4gPj4gL0NvbnRlbnRzIDM0IDAgUiA+PgplbmRvYmoKMzQgMCBvYmoKPDwgL0xlbmd0",
+        "aCA2NSA+PgpzdHJlYW0KQlQgL0YxIDE2IFRmIDM2IDc1MCBUZCAoUkVQT1JUIFBBR0UgMDE1IERPQ1VN",
+        "RU5UIEJFTkNITUFSSykgVGogRVQKZW5kc3RyZWFtCmVuZG9iagozNSAwIG9iago8PCAvVHlwZSAvUGFn",
+        "ZSAvUGFyZW50IDQgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9SZXNvdXJjZXMgPDwgL0ZvbnQg",
+        "PDwgL0YxIDMgMCBSID4+ID4+IC9Db250ZW50cyAzNiAwIFIgPj4KZW5kb2JqCjM2IDAgb2JqCjw8IC9M",
+        "ZW5ndGggNjUgPj4Kc3RyZWFtCkJUIC9GMSAxNiBUZiAzNiA3NTAgVGQgKFJFUE9SVCBQQUdFIDAxNiBE",
+        "T0NVTUVOVCBCRU5DSE1BUkspIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKMzcgMCBvYmoKPDwgL1R5cGUg",
+        "L1BhZ2UgL1BhcmVudCA0IDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9G",
+        "b250IDw8IC9GMSAzIDAgUiA+PiA+PiAvQ29udGVudHMgMzggMCBSID4+CmVuZG9iagozOCAwIG9iago8",
+        "PCAvTGVuZ3RoIDY1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgMzYgNzUwIFRkIChSRVBPUlQgUEFHRSAw",
+        "MTcgRE9DVU1FTlQgQkVOQ0hNQVJLKSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjM5IDAgb2JqCjw8IC9U",
+        "eXBlIC9QYWdlIC9QYXJlbnQgNCAwIFIgL01lZGlhQm94IFswIDAgNjEyIDc5Ml0gL1Jlc291cmNlcyA8",
+        "PCAvRm9udCA8PCAvRjEgMyAwIFIgPj4gPj4gL0NvbnRlbnRzIDQwIDAgUiA+PgplbmRvYmoKNDAgMCBv",
+        "YmoKPDwgL0xlbmd0aCA2NSA+PgpzdHJlYW0KQlQgL0YxIDE2IFRmIDM2IDc1MCBUZCAoUkVQT1JUIFBB",
+        "R0UgMDE4IERPQ1VNRU5UIEJFTkNITUFSSykgVGogRVQKZW5kc3RyZWFtCmVuZG9iago0MSAwIG9iago8",
+        "PCAvVHlwZSAvUGFnZSAvUGFyZW50IDQgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9SZXNvdXJj",
+        "ZXMgPDwgL0ZvbnQgPDwgL0YxIDMgMCBSID4+ID4+IC9Db250ZW50cyA0MiAwIFIgPj4KZW5kb2JqCjQy",
+        "IDAgb2JqCjw8IC9MZW5ndGggNjUgPj4Kc3RyZWFtCkJUIC9GMSAxNiBUZiAzNiA3NTAgVGQgKFJFUE9S",
+        "VCBQQUdFIDAxOSBET0NVTUVOVCBCRU5DSE1BUkspIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKNDMgMCBv",
+        "YmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCA0IDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVz",
+        "b3VyY2VzIDw8IC9Gb250IDw8IC9GMSAzIDAgUiA+PiA+PiAvQ29udGVudHMgNDQgMCBSID4+CmVuZG9i",
+        "ago0NCAwIG9iago8PCAvTGVuZ3RoIDcyID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgMzYgNzUwIFRkIChS",
+        "RVBPUlQgUEFHRSAwMjAgRE9DVU1FTlQgQkVOQ0hNQVJLIE5FRURMRSkgVGogRVQKZW5kc3RyZWFtCmVu",
+        "ZG9iago0NSAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDQgMCBSIC9NZWRpYUJveCBbMCAwIDYx",
+        "MiA3OTJdIC9SZXNvdXJjZXMgPDwgL0ZvbnQgPDwgL0YxIDMgMCBSID4+ID4+IC9Db250ZW50cyA0NiAw",
+        "IFIgPj4KZW5kb2JqCjQ2IDAgb2JqCjw8IC9MZW5ndGggNjUgPj4Kc3RyZWFtCkJUIC9GMSAxNiBUZiAz",
+        "NiA3NTAgVGQgKFJFUE9SVCBQQUdFIDAyMSBET0NVTUVOVCBCRU5DSE1BUkspIFRqIEVUCmVuZHN0cmVh",
+        "bQplbmRvYmoKNDcgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCA0IDAgUiAvTWVkaWFCb3ggWzAg",
+        "MCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSAzIDAgUiA+PiA+PiAvQ29udGVudHMg",
+        "NDggMCBSID4+CmVuZG9iago0OCAwIG9iago8PCAvTGVuZ3RoIDY1ID4+CnN0cmVhbQpCVCAvRjEgMTYg",
+        "VGYgMzYgNzUwIFRkIChSRVBPUlQgUEFHRSAwMjIgRE9DVU1FTlQgQkVOQ0hNQVJLKSBUaiBFVAplbmRz",
+        "dHJlYW0KZW5kb2JqCjQ5IDAgb2JqCjw8IC9UeXBlIC9QYWdlIC9QYXJlbnQgNCAwIFIgL01lZGlhQm94",
+        "IFswIDAgNjEyIDc5Ml0gL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgMyAwIFIgPj4gPj4gL0NvbnRl",
+        "bnRzIDUwIDAgUiA+PgplbmRvYmoKNTAgMCBvYmoKPDwgL0xlbmd0aCA2NSA+PgpzdHJlYW0KQlQgL0Yx",
+        "IDE2IFRmIDM2IDc1MCBUZCAoUkVQT1JUIFBBR0UgMDIzIERPQ1VNRU5UIEJFTkNITUFSSykgVGogRVQK",
+        "ZW5kc3RyZWFtCmVuZG9iago1MSAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDQgMCBSIC9NZWRp",
+        "YUJveCBbMCAwIDYxMiA3OTJdIC9SZXNvdXJjZXMgPDwgL0ZvbnQgPDwgL0YxIDMgMCBSID4+ID4+IC9D",
+        "b250ZW50cyA1MiAwIFIgPj4KZW5kb2JqCjUyIDAgb2JqCjw8IC9MZW5ndGggNjUgPj4Kc3RyZWFtCkJU",
+        "IC9GMSAxNiBUZiAzNiA3NTAgVGQgKFJFUE9SVCBQQUdFIDAyNCBET0NVTUVOVCBCRU5DSE1BUkspIFRq",
+        "IEVUCmVuZHN0cmVhbQplbmRvYmoKNTMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCA0IDAgUiAv",
+        "TWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSAzIDAgUiA+PiA+",
+        "PiAvQ29udGVudHMgNTQgMCBSID4+CmVuZG9iago1NCAwIG9iago8PCAvTGVuZ3RoIDY1ID4+CnN0cmVh",
+        "bQpCVCAvRjEgMTYgVGYgMzYgNzUwIFRkIChSRVBPUlQgUEFHRSAwMjUgRE9DVU1FTlQgQkVOQ0hNQVJL",
+        "KSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjU1IDAgb2JqCjw8IC9UeXBlIC9QYWdlIC9QYXJlbnQgNCAw",
+        "IFIgL01lZGlhQm94IFswIDAgNjEyIDc5Ml0gL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgMyAwIFIg",
+        "Pj4gPj4gL0NvbnRlbnRzIDU2IDAgUiA+PgplbmRvYmoKNTYgMCBvYmoKPDwgL0xlbmd0aCA2NSA+Pgpz",
+        "dHJlYW0KQlQgL0YxIDE2IFRmIDM2IDc1MCBUZCAoUkVQT1JUIFBBR0UgMDI2IERPQ1VNRU5UIEJFTkNI",
+        "TUFSSykgVGogRVQKZW5kc3RyZWFtCmVuZG9iago1NyAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50",
+        "IDQgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9SZXNvdXJjZXMgPDwgL0ZvbnQgPDwgL0YxIDMg",
+        "MCBSID4+ID4+IC9Db250ZW50cyA1OCAwIFIgPj4KZW5kb2JqCjU4IDAgb2JqCjw8IC9MZW5ndGggNjUg",
+        "Pj4Kc3RyZWFtCkJUIC9GMSAxNiBUZiAzNiA3NTAgVGQgKFJFUE9SVCBQQUdFIDAyNyBET0NVTUVOVCBC",
+        "RU5DSE1BUkspIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKNTkgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1Bh",
+        "cmVudCA0IDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9G",
+        "MSAzIDAgUiA+PiA+PiAvQ29udGVudHMgNjAgMCBSID4+CmVuZG9iago2MCAwIG9iago8PCAvTGVuZ3Ro",
+        "IDY1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgMzYgNzUwIFRkIChSRVBPUlQgUEFHRSAwMjggRE9DVU1F",
+        "TlQgQkVOQ0hNQVJLKSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjYxIDAgb2JqCjw8IC9UeXBlIC9QYWdl",
+        "IC9QYXJlbnQgNCAwIFIgL01lZGlhQm94IFswIDAgNjEyIDc5Ml0gL1Jlc291cmNlcyA8PCAvRm9udCA8",
+        "PCAvRjEgMyAwIFIgPj4gPj4gL0NvbnRlbnRzIDYyIDAgUiA+PgplbmRvYmoKNjIgMCBvYmoKPDwgL0xl",
+        "bmd0aCA2NSA+PgpzdHJlYW0KQlQgL0YxIDE2IFRmIDM2IDc1MCBUZCAoUkVQT1JUIFBBR0UgMDI5IERP",
+        "Q1VNRU5UIEJFTkNITUFSSykgVGogRVQKZW5kc3RyZWFtCmVuZG9iago2MyAwIG9iago8PCAvVHlwZSAv",
+        "UGFnZSAvUGFyZW50IDQgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9SZXNvdXJjZXMgPDwgL0Zv",
+        "bnQgPDwgL0YxIDMgMCBSID4+ID4+IC9Db250ZW50cyA2NCAwIFIgPj4KZW5kb2JqCjY0IDAgb2JqCjw8",
+        "IC9MZW5ndGggNzIgPj4Kc3RyZWFtCkJUIC9GMSAxNiBUZiAzNiA3NTAgVGQgKFJFUE9SVCBQQUdFIDAz",
+        "MCBET0NVTUVOVCBCRU5DSE1BUksgTkVFRExFKSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjY1IDAgb2Jq",
+        "Cjw8IC9UeXBlIC9QYWdlIC9QYXJlbnQgNCAwIFIgL01lZGlhQm94IFswIDAgNjEyIDc5Ml0gL1Jlc291",
+        "cmNlcyA8PCAvRm9udCA8PCAvRjEgMyAwIFIgPj4gPj4gL0NvbnRlbnRzIDY2IDAgUiA+PgplbmRvYmoK",
+        "NjYgMCBvYmoKPDwgL0xlbmd0aCA2NSA+PgpzdHJlYW0KQlQgL0YxIDE2IFRmIDM2IDc1MCBUZCAoUkVQ",
+        "T1JUIFBBR0UgMDMxIERPQ1VNRU5UIEJFTkNITUFSSykgVGogRVQKZW5kc3RyZWFtCmVuZG9iago2NyAw",
+        "IG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDQgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9S",
+        "ZXNvdXJjZXMgPDwgL0ZvbnQgPDwgL0YxIDMgMCBSID4+ID4+IC9Db250ZW50cyA2OCAwIFIgPj4KZW5k",
+        "b2JqCjY4IDAgb2JqCjw8IC9MZW5ndGggNjUgPj4Kc3RyZWFtCkJUIC9GMSAxNiBUZiAzNiA3NTAgVGQg",
+        "KFJFUE9SVCBQQUdFIDAzMiBET0NVTUVOVCBCRU5DSE1BUkspIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoK",
+        "NjkgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCA0IDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzky",
+        "XSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSAzIDAgUiA+PiA+PiAvQ29udGVudHMgNzAgMCBSID4+",
+        "CmVuZG9iago3MCAwIG9iago8PCAvTGVuZ3RoIDY1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgMzYgNzUw",
+        "IFRkIChSRVBPUlQgUEFHRSAwMzMgRE9DVU1FTlQgQkVOQ0hNQVJLKSBUaiBFVAplbmRzdHJlYW0KZW5k",
+        "b2JqCjcxIDAgb2JqCjw8IC9UeXBlIC9QYWdlIC9QYXJlbnQgNCAwIFIgL01lZGlhQm94IFswIDAgNjEy",
+        "IDc5Ml0gL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgMyAwIFIgPj4gPj4gL0NvbnRlbnRzIDcyIDAg",
+        "UiA+PgplbmRvYmoKNzIgMCBvYmoKPDwgL0xlbmd0aCA2NSA+PgpzdHJlYW0KQlQgL0YxIDE2IFRmIDM2",
+        "IDc1MCBUZCAoUkVQT1JUIFBBR0UgMDM0IERPQ1VNRU5UIEJFTkNITUFSSykgVGogRVQKZW5kc3RyZWFt",
+        "CmVuZG9iago3MyAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDQgMCBSIC9NZWRpYUJveCBbMCAw",
+        "IDYxMiA3OTJdIC9SZXNvdXJjZXMgPDwgL0ZvbnQgPDwgL0YxIDMgMCBSID4+ID4+IC9Db250ZW50cyA3",
+        "NCAwIFIgPj4KZW5kb2JqCjc0IDAgb2JqCjw8IC9MZW5ndGggNjUgPj4Kc3RyZWFtCkJUIC9GMSAxNiBU",
+        "ZiAzNiA3NTAgVGQgKFJFUE9SVCBQQUdFIDAzNSBET0NVTUVOVCBCRU5DSE1BUkspIFRqIEVUCmVuZHN0",
+        "cmVhbQplbmRvYmoKNzUgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCA0IDAgUiAvTWVkaWFCb3gg",
+        "WzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSAzIDAgUiA+PiA+PiAvQ29udGVu",
+        "dHMgNzYgMCBSID4+CmVuZG9iago3NiAwIG9iago8PCAvTGVuZ3RoIDY1ID4+CnN0cmVhbQpCVCAvRjEg",
+        "MTYgVGYgMzYgNzUwIFRkIChSRVBPUlQgUEFHRSAwMzYgRE9DVU1FTlQgQkVOQ0hNQVJLKSBUaiBFVApl",
+        "bmRzdHJlYW0KZW5kb2JqCjc3IDAgb2JqCjw8IC9UeXBlIC9QYWdlIC9QYXJlbnQgNCAwIFIgL01lZGlh",
+        "Qm94IFswIDAgNjEyIDc5Ml0gL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgMyAwIFIgPj4gPj4gL0Nv",
+        "bnRlbnRzIDc4IDAgUiA+PgplbmRvYmoKNzggMCBvYmoKPDwgL0xlbmd0aCA2NSA+PgpzdHJlYW0KQlQg",
+        "L0YxIDE2IFRmIDM2IDc1MCBUZCAoUkVQT1JUIFBBR0UgMDM3IERPQ1VNRU5UIEJFTkNITUFSSykgVGog",
+        "RVQKZW5kc3RyZWFtCmVuZG9iago3OSAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDQgMCBSIC9N",
+        "ZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9SZXNvdXJjZXMgPDwgL0ZvbnQgPDwgL0YxIDMgMCBSID4+ID4+",
+        "IC9Db250ZW50cyA4MCAwIFIgPj4KZW5kb2JqCjgwIDAgb2JqCjw8IC9MZW5ndGggNjUgPj4Kc3RyZWFt",
+        "CkJUIC9GMSAxNiBUZiAzNiA3NTAgVGQgKFJFUE9SVCBQQUdFIDAzOCBET0NVTUVOVCBCRU5DSE1BUksp",
+        "IFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKODEgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCA0IDAg",
+        "UiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSAzIDAgUiA+",
+        "PiA+PiAvQ29udGVudHMgODIgMCBSID4+CmVuZG9iago4MiAwIG9iago8PCAvTGVuZ3RoIDY1ID4+CnN0",
+        "cmVhbQpCVCAvRjEgMTYgVGYgMzYgNzUwIFRkIChSRVBPUlQgUEFHRSAwMzkgRE9DVU1FTlQgQkVOQ0hN",
+        "QVJLKSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjgzIDAgb2JqCjw8IC9UeXBlIC9QYWdlIC9QYXJlbnQg",
+        "NCAwIFIgL01lZGlhQm94IFswIDAgNjEyIDc5Ml0gL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgMyAw",
+        "IFIgPj4gPj4gL0NvbnRlbnRzIDg0IDAgUiA+PgplbmRvYmoKODQgMCBvYmoKPDwgL0xlbmd0aCA3MiA+",
+        "PgpzdHJlYW0KQlQgL0YxIDE2IFRmIDM2IDc1MCBUZCAoUkVQT1JUIFBBR0UgMDQwIERPQ1VNRU5UIEJF",
+        "TkNITUFSSyBORUVETEUpIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKODUgMCBvYmoKPDwgL1R5cGUgL1Bh",
+        "Z2UgL1BhcmVudCA0IDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250",
+        "IDw8IC9GMSAzIDAgUiA+PiA+PiAvQ29udGVudHMgODYgMCBSID4+CmVuZG9iago4NiAwIG9iago8PCAv",
+        "TGVuZ3RoIDY1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgMzYgNzUwIFRkIChSRVBPUlQgUEFHRSAwNDEg",
+        "RE9DVU1FTlQgQkVOQ0hNQVJLKSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjg3IDAgb2JqCjw8IC9UeXBl",
+        "IC9QYWdlIC9QYXJlbnQgNCAwIFIgL01lZGlhQm94IFswIDAgNjEyIDc5Ml0gL1Jlc291cmNlcyA8PCAv",
+        "Rm9udCA8PCAvRjEgMyAwIFIgPj4gPj4gL0NvbnRlbnRzIDg4IDAgUiA+PgplbmRvYmoKODggMCBvYmoK",
+        "PDwgL0xlbmd0aCA2NSA+PgpzdHJlYW0KQlQgL0YxIDE2IFRmIDM2IDc1MCBUZCAoUkVQT1JUIFBBR0Ug",
+        "MDQyIERPQ1VNRU5UIEJFTkNITUFSSykgVGogRVQKZW5kc3RyZWFtCmVuZG9iago4OSAwIG9iago8PCAv",
+        "VHlwZSAvUGFnZSAvUGFyZW50IDQgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9SZXNvdXJjZXMg",
+        "PDwgL0ZvbnQgPDwgL0YxIDMgMCBSID4+ID4+IC9Db250ZW50cyA5MCAwIFIgPj4KZW5kb2JqCjkwIDAg",
+        "b2JqCjw8IC9MZW5ndGggNjUgPj4Kc3RyZWFtCkJUIC9GMSAxNiBUZiAzNiA3NTAgVGQgKFJFUE9SVCBQ",
+        "QUdFIDA0MyBET0NVTUVOVCBCRU5DSE1BUkspIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKOTEgMCBvYmoK",
+        "PDwgL1R5cGUgL1BhZ2UgL1BhcmVudCA0IDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3Vy",
+        "Y2VzIDw8IC9Gb250IDw8IC9GMSAzIDAgUiA+PiA+PiAvQ29udGVudHMgOTIgMCBSID4+CmVuZG9iago5",
+        "MiAwIG9iago8PCAvTGVuZ3RoIDY1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgMzYgNzUwIFRkIChSRVBP",
+        "UlQgUEFHRSAwNDQgRE9DVU1FTlQgQkVOQ0hNQVJLKSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjkzIDAg",
+        "b2JqCjw8IC9UeXBlIC9QYWdlIC9QYXJlbnQgNCAwIFIgL01lZGlhQm94IFswIDAgNjEyIDc5Ml0gL1Jl",
+        "c291cmNlcyA8PCAvRm9udCA8PCAvRjEgMyAwIFIgPj4gPj4gL0NvbnRlbnRzIDk0IDAgUiA+PgplbmRv",
+        "YmoKOTQgMCBvYmoKPDwgL0xlbmd0aCA2NSA+PgpzdHJlYW0KQlQgL0YxIDE2IFRmIDM2IDc1MCBUZCAo",
+        "UkVQT1JUIFBBR0UgMDQ1IERPQ1VNRU5UIEJFTkNITUFSSykgVGogRVQKZW5kc3RyZWFtCmVuZG9iago5",
+        "NSAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDQgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJd",
+        "IC9SZXNvdXJjZXMgPDwgL0ZvbnQgPDwgL0YxIDMgMCBSID4+ID4+IC9Db250ZW50cyA5NiAwIFIgPj4K",
+        "ZW5kb2JqCjk2IDAgb2JqCjw8IC9MZW5ndGggNjUgPj4Kc3RyZWFtCkJUIC9GMSAxNiBUZiAzNiA3NTAg",
+        "VGQgKFJFUE9SVCBQQUdFIDA0NiBET0NVTUVOVCBCRU5DSE1BUkspIFRqIEVUCmVuZHN0cmVhbQplbmRv",
+        "YmoKOTcgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCA0IDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIg",
+        "NzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSAzIDAgUiA+PiA+PiAvQ29udGVudHMgOTggMCBS",
+        "ID4+CmVuZG9iago5OCAwIG9iago8PCAvTGVuZ3RoIDY1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgMzYg",
+        "NzUwIFRkIChSRVBPUlQgUEFHRSAwNDcgRE9DVU1FTlQgQkVOQ0hNQVJLKSBUaiBFVAplbmRzdHJlYW0K",
+        "ZW5kb2JqCjk5IDAgb2JqCjw8IC9UeXBlIC9QYWdlIC9QYXJlbnQgNCAwIFIgL01lZGlhQm94IFswIDAg",
+        "NjEyIDc5Ml0gL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgMyAwIFIgPj4gPj4gL0NvbnRlbnRzIDEw",
+        "MCAwIFIgPj4KZW5kb2JqCjEwMCAwIG9iago8PCAvTGVuZ3RoIDY1ID4+CnN0cmVhbQpCVCAvRjEgMTYg",
+        "VGYgMzYgNzUwIFRkIChSRVBPUlQgUEFHRSAwNDggRE9DVU1FTlQgQkVOQ0hNQVJLKSBUaiBFVAplbmRz",
+        "dHJlYW0KZW5kb2JqCjEwMSAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDQgMCBSIC9NZWRpYUJv",
+        "eCBbMCAwIDYxMiA3OTJdIC9SZXNvdXJjZXMgPDwgL0ZvbnQgPDwgL0YxIDMgMCBSID4+ID4+IC9Db250",
+        "ZW50cyAxMDIgMCBSID4+CmVuZG9iagoxMDIgMCBvYmoKPDwgL0xlbmd0aCA2NSA+PgpzdHJlYW0KQlQg",
+        "L0YxIDE2IFRmIDM2IDc1MCBUZCAoUkVQT1JUIFBBR0UgMDQ5IERPQ1VNRU5UIEJFTkNITUFSSykgVGog",
+        "RVQKZW5kc3RyZWFtCmVuZG9iagoxMDMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCA0IDAgUiAv",
+        "TWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSAzIDAgUiA+PiA+",
+        "PiAvQ29udGVudHMgMTA0IDAgUiA+PgplbmRvYmoKMTA0IDAgb2JqCjw8IC9MZW5ndGggNzIgPj4Kc3Ry",
+        "ZWFtCkJUIC9GMSAxNiBUZiAzNiA3NTAgVGQgKFJFUE9SVCBQQUdFIDA1MCBET0NVTUVOVCBCRU5DSE1B",
+        "UksgTkVFRExFKSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjEwNSAwIG9iago8PCAvVHlwZSAvUGFnZSAv",
+        "UGFyZW50IDQgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9SZXNvdXJjZXMgPDwgL0ZvbnQgPDwg",
+        "L0YxIDMgMCBSID4+ID4+IC9Db250ZW50cyAxMDYgMCBSID4+CmVuZG9iagoxMDYgMCBvYmoKPDwgL0xl",
+        "bmd0aCA2NSA+PgpzdHJlYW0KQlQgL0YxIDE2IFRmIDM2IDc1MCBUZCAoUkVQT1JUIFBBR0UgMDUxIERP",
+        "Q1VNRU5UIEJFTkNITUFSSykgVGogRVQKZW5kc3RyZWFtCmVuZG9iagoxMDcgMCBvYmoKPDwgL1R5cGUg",
+        "L1BhZ2UgL1BhcmVudCA0IDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9G",
+        "b250IDw8IC9GMSAzIDAgUiA+PiA+PiAvQ29udGVudHMgMTA4IDAgUiA+PgplbmRvYmoKMTA4IDAgb2Jq",
+        "Cjw8IC9MZW5ndGggNjUgPj4Kc3RyZWFtCkJUIC9GMSAxNiBUZiAzNiA3NTAgVGQgKFJFUE9SVCBQQUdF",
+        "IDA1MiBET0NVTUVOVCBCRU5DSE1BUkspIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKMTA5IDAgb2JqCjw8",
+        "IC9UeXBlIC9QYWdlIC9QYXJlbnQgNCAwIFIgL01lZGlhQm94IFswIDAgNjEyIDc5Ml0gL1Jlc291cmNl",
+        "cyA8PCAvRm9udCA8PCAvRjEgMyAwIFIgPj4gPj4gL0NvbnRlbnRzIDExMCAwIFIgPj4KZW5kb2JqCjEx",
+        "MCAwIG9iago8PCAvTGVuZ3RoIDY1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgMzYgNzUwIFRkIChSRVBP",
+        "UlQgUEFHRSAwNTMgRE9DVU1FTlQgQkVOQ0hNQVJLKSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjExMSAw",
+        "IG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDQgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9S",
+        "ZXNvdXJjZXMgPDwgL0ZvbnQgPDwgL0YxIDMgMCBSID4+ID4+IC9Db250ZW50cyAxMTIgMCBSID4+CmVu",
+        "ZG9iagoxMTIgMCBvYmoKPDwgL0xlbmd0aCA2NSA+PgpzdHJlYW0KQlQgL0YxIDE2IFRmIDM2IDc1MCBU",
+        "ZCAoUkVQT1JUIFBBR0UgMDU0IERPQ1VNRU5UIEJFTkNITUFSSykgVGogRVQKZW5kc3RyZWFtCmVuZG9i",
+        "agoxMTMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCA0IDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIg",
+        "NzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSAzIDAgUiA+PiA+PiAvQ29udGVudHMgMTE0IDAg",
+        "UiA+PgplbmRvYmoKMTE0IDAgb2JqCjw8IC9MZW5ndGggNjUgPj4Kc3RyZWFtCkJUIC9GMSAxNiBUZiAz",
+        "NiA3NTAgVGQgKFJFUE9SVCBQQUdFIDA1NSBET0NVTUVOVCBCRU5DSE1BUkspIFRqIEVUCmVuZHN0cmVh",
+        "bQplbmRvYmoKMTE1IDAgb2JqCjw8IC9UeXBlIC9QYWdlIC9QYXJlbnQgNCAwIFIgL01lZGlhQm94IFsw",
+        "IDAgNjEyIDc5Ml0gL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgMyAwIFIgPj4gPj4gL0NvbnRlbnRz",
+        "IDExNiAwIFIgPj4KZW5kb2JqCjExNiAwIG9iago8PCAvTGVuZ3RoIDY1ID4+CnN0cmVhbQpCVCAvRjEg",
+        "MTYgVGYgMzYgNzUwIFRkIChSRVBPUlQgUEFHRSAwNTYgRE9DVU1FTlQgQkVOQ0hNQVJLKSBUaiBFVApl",
+        "bmRzdHJlYW0KZW5kb2JqCjExNyAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDQgMCBSIC9NZWRp",
+        "YUJveCBbMCAwIDYxMiA3OTJdIC9SZXNvdXJjZXMgPDwgL0ZvbnQgPDwgL0YxIDMgMCBSID4+ID4+IC9D",
+        "b250ZW50cyAxMTggMCBSID4+CmVuZG9iagoxMTggMCBvYmoKPDwgL0xlbmd0aCA2NSA+PgpzdHJlYW0K",
+        "QlQgL0YxIDE2IFRmIDM2IDc1MCBUZCAoUkVQT1JUIFBBR0UgMDU3IERPQ1VNRU5UIEJFTkNITUFSSykg",
+        "VGogRVQKZW5kc3RyZWFtCmVuZG9iagoxMTkgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCA0IDAg",
+        "UiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSAzIDAgUiA+",
+        "PiA+PiAvQ29udGVudHMgMTIwIDAgUiA+PgplbmRvYmoKMTIwIDAgb2JqCjw8IC9MZW5ndGggNjUgPj4K",
+        "c3RyZWFtCkJUIC9GMSAxNiBUZiAzNiA3NTAgVGQgKFJFUE9SVCBQQUdFIDA1OCBET0NVTUVOVCBCRU5D",
+        "SE1BUkspIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKMTIxIDAgb2JqCjw8IC9UeXBlIC9QYWdlIC9QYXJl",
+        "bnQgNCAwIFIgL01lZGlhQm94IFswIDAgNjEyIDc5Ml0gL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEg",
+        "MyAwIFIgPj4gPj4gL0NvbnRlbnRzIDEyMiAwIFIgPj4KZW5kb2JqCjEyMiAwIG9iago8PCAvTGVuZ3Ro",
+        "IDY1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgMzYgNzUwIFRkIChSRVBPUlQgUEFHRSAwNTkgRE9DVU1F",
+        "TlQgQkVOQ0hNQVJLKSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjEyMyAwIG9iago8PCAvVHlwZSAvUGFn",
+        "ZSAvUGFyZW50IDQgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9SZXNvdXJjZXMgPDwgL0ZvbnQg",
+        "PDwgL0YxIDMgMCBSID4+ID4+IC9Db250ZW50cyAxMjQgMCBSID4+CmVuZG9iagoxMjQgMCBvYmoKPDwg",
+        "L0xlbmd0aCA3MiA+PgpzdHJlYW0KQlQgL0YxIDE2IFRmIDM2IDc1MCBUZCAoUkVQT1JUIFBBR0UgMDYw",
+        "IERPQ1VNRU5UIEJFTkNITUFSSyBORUVETEUpIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKMTI1IDAgb2Jq",
+        "Cjw8IC9UeXBlIC9QYWdlIC9QYXJlbnQgNCAwIFIgL01lZGlhQm94IFswIDAgNjEyIDc5Ml0gL1Jlc291",
+        "cmNlcyA8PCAvRm9udCA8PCAvRjEgMyAwIFIgPj4gPj4gL0NvbnRlbnRzIDEyNiAwIFIgPj4KZW5kb2Jq",
+        "CjEyNiAwIG9iago8PCAvTGVuZ3RoIDY1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgMzYgNzUwIFRkIChS",
+        "RVBPUlQgUEFHRSAwNjEgRE9DVU1FTlQgQkVOQ0hNQVJLKSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjEy",
+        "NyAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDQgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJd",
+        "IC9SZXNvdXJjZXMgPDwgL0ZvbnQgPDwgL0YxIDMgMCBSID4+ID4+IC9Db250ZW50cyAxMjggMCBSID4+",
+        "CmVuZG9iagoxMjggMCBvYmoKPDwgL0xlbmd0aCA2NSA+PgpzdHJlYW0KQlQgL0YxIDE2IFRmIDM2IDc1",
+        "MCBUZCAoUkVQT1JUIFBBR0UgMDYyIERPQ1VNRU5UIEJFTkNITUFSSykgVGogRVQKZW5kc3RyZWFtCmVu",
+        "ZG9iagoxMjkgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCA0IDAgUiAvTWVkaWFCb3ggWzAgMCA2",
+        "MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSAzIDAgUiA+PiA+PiAvQ29udGVudHMgMTMw",
+        "IDAgUiA+PgplbmRvYmoKMTMwIDAgb2JqCjw8IC9MZW5ndGggNjUgPj4Kc3RyZWFtCkJUIC9GMSAxNiBU",
+        "ZiAzNiA3NTAgVGQgKFJFUE9SVCBQQUdFIDA2MyBET0NVTUVOVCBCRU5DSE1BUkspIFRqIEVUCmVuZHN0",
+        "cmVhbQplbmRvYmoKMTMxIDAgb2JqCjw8IC9UeXBlIC9QYWdlIC9QYXJlbnQgNCAwIFIgL01lZGlhQm94",
+        "IFswIDAgNjEyIDc5Ml0gL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgMyAwIFIgPj4gPj4gL0NvbnRl",
+        "bnRzIDEzMiAwIFIgPj4KZW5kb2JqCjEzMiAwIG9iago8PCAvTGVuZ3RoIDY1ID4+CnN0cmVhbQpCVCAv",
+        "RjEgMTYgVGYgMzYgNzUwIFRkIChSRVBPUlQgUEFHRSAwNjQgRE9DVU1FTlQgQkVOQ0hNQVJLKSBUaiBF",
+        "VAplbmRzdHJlYW0KZW5kb2JqCjEzMyAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDQgMCBSIC9N",
+        "ZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9SZXNvdXJjZXMgPDwgL0ZvbnQgPDwgL0YxIDMgMCBSID4+ID4+",
+        "IC9Db250ZW50cyAxMzQgMCBSID4+CmVuZG9iagoxMzQgMCBvYmoKPDwgL0xlbmd0aCA2NSA+PgpzdHJl",
+        "YW0KQlQgL0YxIDE2IFRmIDM2IDc1MCBUZCAoUkVQT1JUIFBBR0UgMDY1IERPQ1VNRU5UIEJFTkNITUFS",
+        "SykgVGogRVQKZW5kc3RyZWFtCmVuZG9iagoxMzUgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCA0",
+        "IDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSAzIDAg",
+        "UiA+PiA+PiAvQ29udGVudHMgMTM2IDAgUiA+PgplbmRvYmoKMTM2IDAgb2JqCjw8IC9MZW5ndGggNjUg",
+        "Pj4Kc3RyZWFtCkJUIC9GMSAxNiBUZiAzNiA3NTAgVGQgKFJFUE9SVCBQQUdFIDA2NiBET0NVTUVOVCBC",
+        "RU5DSE1BUkspIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKMTM3IDAgb2JqCjw8IC9UeXBlIC9QYWdlIC9Q",
+        "YXJlbnQgNCAwIFIgL01lZGlhQm94IFswIDAgNjEyIDc5Ml0gL1Jlc291cmNlcyA8PCAvRm9udCA8PCAv",
+        "RjEgMyAwIFIgPj4gPj4gL0NvbnRlbnRzIDEzOCAwIFIgPj4KZW5kb2JqCjEzOCAwIG9iago8PCAvTGVu",
+        "Z3RoIDY1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgMzYgNzUwIFRkIChSRVBPUlQgUEFHRSAwNjcgRE9D",
+        "VU1FTlQgQkVOQ0hNQVJLKSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjEzOSAwIG9iago8PCAvVHlwZSAv",
+        "UGFnZSAvUGFyZW50IDQgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9SZXNvdXJjZXMgPDwgL0Zv",
+        "bnQgPDwgL0YxIDMgMCBSID4+ID4+IC9Db250ZW50cyAxNDAgMCBSID4+CmVuZG9iagoxNDAgMCBvYmoK",
+        "PDwgL0xlbmd0aCA2NSA+PgpzdHJlYW0KQlQgL0YxIDE2IFRmIDM2IDc1MCBUZCAoUkVQT1JUIFBBR0Ug",
+        "MDY4IERPQ1VNRU5UIEJFTkNITUFSSykgVGogRVQKZW5kc3RyZWFtCmVuZG9iagoxNDEgMCBvYmoKPDwg",
+        "L1R5cGUgL1BhZ2UgL1BhcmVudCA0IDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2Vz",
+        "IDw8IC9Gb250IDw8IC9GMSAzIDAgUiA+PiA+PiAvQ29udGVudHMgMTQyIDAgUiA+PgplbmRvYmoKMTQy",
+        "IDAgb2JqCjw8IC9MZW5ndGggNjUgPj4Kc3RyZWFtCkJUIC9GMSAxNiBUZiAzNiA3NTAgVGQgKFJFUE9S",
+        "VCBQQUdFIDA2OSBET0NVTUVOVCBCRU5DSE1BUkspIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKMTQzIDAg",
+        "b2JqCjw8IC9UeXBlIC9QYWdlIC9QYXJlbnQgNCAwIFIgL01lZGlhQm94IFswIDAgNjEyIDc5Ml0gL1Jl",
+        "c291cmNlcyA8PCAvRm9udCA8PCAvRjEgMyAwIFIgPj4gPj4gL0NvbnRlbnRzIDE0NCAwIFIgPj4KZW5k",
+        "b2JqCjE0NCAwIG9iago8PCAvTGVuZ3RoIDcyID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgMzYgNzUwIFRk",
+        "IChSRVBPUlQgUEFHRSAwNzAgRE9DVU1FTlQgQkVOQ0hNQVJLIE5FRURMRSkgVGogRVQKZW5kc3RyZWFt",
+        "CmVuZG9iagoxNDUgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCA0IDAgUiAvTWVkaWFCb3ggWzAg",
+        "MCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSAzIDAgUiA+PiA+PiAvQ29udGVudHMg",
+        "MTQ2IDAgUiA+PgplbmRvYmoKMTQ2IDAgb2JqCjw8IC9MZW5ndGggNjUgPj4Kc3RyZWFtCkJUIC9GMSAx",
+        "NiBUZiAzNiA3NTAgVGQgKFJFUE9SVCBQQUdFIDA3MSBET0NVTUVOVCBCRU5DSE1BUkspIFRqIEVUCmVu",
+        "ZHN0cmVhbQplbmRvYmoKMTQ3IDAgb2JqCjw8IC9UeXBlIC9QYWdlIC9QYXJlbnQgNCAwIFIgL01lZGlh",
+        "Qm94IFswIDAgNjEyIDc5Ml0gL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgMyAwIFIgPj4gPj4gL0Nv",
+        "bnRlbnRzIDE0OCAwIFIgPj4KZW5kb2JqCjE0OCAwIG9iago8PCAvTGVuZ3RoIDY1ID4+CnN0cmVhbQpC",
+        "VCAvRjEgMTYgVGYgMzYgNzUwIFRkIChSRVBPUlQgUEFHRSAwNzIgRE9DVU1FTlQgQkVOQ0hNQVJLKSBU",
+        "aiBFVAplbmRzdHJlYW0KZW5kb2JqCjE0OSAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDQgMCBS",
+        "IC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9SZXNvdXJjZXMgPDwgL0ZvbnQgPDwgL0YxIDMgMCBSID4+",
+        "ID4+IC9Db250ZW50cyAxNTAgMCBSID4+CmVuZG9iagoxNTAgMCBvYmoKPDwgL0xlbmd0aCA2NSA+Pgpz",
+        "dHJlYW0KQlQgL0YxIDE2IFRmIDM2IDc1MCBUZCAoUkVQT1JUIFBBR0UgMDczIERPQ1VNRU5UIEJFTkNI",
+        "TUFSSykgVGogRVQKZW5kc3RyZWFtCmVuZG9iagoxNTEgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVu",
+        "dCA0IDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSAz",
+        "IDAgUiA+PiA+PiAvQ29udGVudHMgMTUyIDAgUiA+PgplbmRvYmoKMTUyIDAgb2JqCjw8IC9MZW5ndGgg",
+        "NjUgPj4Kc3RyZWFtCkJUIC9GMSAxNiBUZiAzNiA3NTAgVGQgKFJFUE9SVCBQQUdFIDA3NCBET0NVTUVO",
+        "VCBCRU5DSE1BUkspIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKMTUzIDAgb2JqCjw8IC9UeXBlIC9QYWdl",
+        "IC9QYXJlbnQgNCAwIFIgL01lZGlhQm94IFswIDAgNjEyIDc5Ml0gL1Jlc291cmNlcyA8PCAvRm9udCA8",
+        "PCAvRjEgMyAwIFIgPj4gPj4gL0NvbnRlbnRzIDE1NCAwIFIgPj4KZW5kb2JqCjE1NCAwIG9iago8PCAv",
+        "TGVuZ3RoIDY1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgMzYgNzUwIFRkIChSRVBPUlQgUEFHRSAwNzUg",
+        "RE9DVU1FTlQgQkVOQ0hNQVJLKSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjE1NSAwIG9iago8PCAvVHlw",
+        "ZSAvUGFnZSAvUGFyZW50IDQgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9SZXNvdXJjZXMgPDwg",
+        "L0ZvbnQgPDwgL0YxIDMgMCBSID4+ID4+IC9Db250ZW50cyAxNTYgMCBSID4+CmVuZG9iagoxNTYgMCBv",
+        "YmoKPDwgL0xlbmd0aCA2NSA+PgpzdHJlYW0KQlQgL0YxIDE2IFRmIDM2IDc1MCBUZCAoUkVQT1JUIFBB",
+        "R0UgMDc2IERPQ1VNRU5UIEJFTkNITUFSSykgVGogRVQKZW5kc3RyZWFtCmVuZG9iagoxNTcgMCBvYmoK",
+        "PDwgL1R5cGUgL1BhZ2UgL1BhcmVudCA0IDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3Vy",
+        "Y2VzIDw8IC9Gb250IDw8IC9GMSAzIDAgUiA+PiA+PiAvQ29udGVudHMgMTU4IDAgUiA+PgplbmRvYmoK",
+        "MTU4IDAgb2JqCjw8IC9MZW5ndGggNjUgPj4Kc3RyZWFtCkJUIC9GMSAxNiBUZiAzNiA3NTAgVGQgKFJF",
+        "UE9SVCBQQUdFIDA3NyBET0NVTUVOVCBCRU5DSE1BUkspIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKMTU5",
+        "IDAgb2JqCjw8IC9UeXBlIC9QYWdlIC9QYXJlbnQgNCAwIFIgL01lZGlhQm94IFswIDAgNjEyIDc5Ml0g",
+        "L1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgMyAwIFIgPj4gPj4gL0NvbnRlbnRzIDE2MCAwIFIgPj4K",
+        "ZW5kb2JqCjE2MCAwIG9iago8PCAvTGVuZ3RoIDY1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgMzYgNzUw",
+        "IFRkIChSRVBPUlQgUEFHRSAwNzggRE9DVU1FTlQgQkVOQ0hNQVJLKSBUaiBFVAplbmRzdHJlYW0KZW5k",
+        "b2JqCjE2MSAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDQgMCBSIC9NZWRpYUJveCBbMCAwIDYx",
+        "MiA3OTJdIC9SZXNvdXJjZXMgPDwgL0ZvbnQgPDwgL0YxIDMgMCBSID4+ID4+IC9Db250ZW50cyAxNjIg",
+        "MCBSID4+CmVuZG9iagoxNjIgMCBvYmoKPDwgL0xlbmd0aCA2NSA+PgpzdHJlYW0KQlQgL0YxIDE2IFRm",
+        "IDM2IDc1MCBUZCAoUkVQT1JUIFBBR0UgMDc5IERPQ1VNRU5UIEJFTkNITUFSSykgVGogRVQKZW5kc3Ry",
+        "ZWFtCmVuZG9iagoxNjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCA0IDAgUiAvTWVkaWFCb3gg",
+        "WzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSAzIDAgUiA+PiA+PiAvQ29udGVu",
+        "dHMgMTY0IDAgUiA+PgplbmRvYmoKMTY0IDAgb2JqCjw8IC9MZW5ndGggNzIgPj4Kc3RyZWFtCkJUIC9G",
+        "MSAxNiBUZiAzNiA3NTAgVGQgKFJFUE9SVCBQQUdFIDA4MCBET0NVTUVOVCBCRU5DSE1BUksgTkVFRExF",
+        "KSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjE2NSAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDQg",
+        "MCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9SZXNvdXJjZXMgPDwgL0ZvbnQgPDwgL0YxIDMgMCBS",
+        "ID4+ID4+IC9Db250ZW50cyAxNjYgMCBSID4+CmVuZG9iagoxNjYgMCBvYmoKPDwgL0xlbmd0aCA2NSA+",
+        "PgpzdHJlYW0KQlQgL0YxIDE2IFRmIDM2IDc1MCBUZCAoUkVQT1JUIFBBR0UgMDgxIERPQ1VNRU5UIEJF",
+        "TkNITUFSSykgVGogRVQKZW5kc3RyZWFtCmVuZG9iagoxNjcgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1Bh",
+        "cmVudCA0IDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9G",
+        "MSAzIDAgUiA+PiA+PiAvQ29udGVudHMgMTY4IDAgUiA+PgplbmRvYmoKMTY4IDAgb2JqCjw8IC9MZW5n",
+        "dGggNjUgPj4Kc3RyZWFtCkJUIC9GMSAxNiBUZiAzNiA3NTAgVGQgKFJFUE9SVCBQQUdFIDA4MiBET0NV",
+        "TUVOVCBCRU5DSE1BUkspIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKMTY5IDAgb2JqCjw8IC9UeXBlIC9Q",
+        "YWdlIC9QYXJlbnQgNCAwIFIgL01lZGlhQm94IFswIDAgNjEyIDc5Ml0gL1Jlc291cmNlcyA8PCAvRm9u",
+        "dCA8PCAvRjEgMyAwIFIgPj4gPj4gL0NvbnRlbnRzIDE3MCAwIFIgPj4KZW5kb2JqCjE3MCAwIG9iago8",
+        "PCAvTGVuZ3RoIDY1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgMzYgNzUwIFRkIChSRVBPUlQgUEFHRSAw",
+        "ODMgRE9DVU1FTlQgQkVOQ0hNQVJLKSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjE3MSAwIG9iago8PCAv",
+        "VHlwZSAvUGFnZSAvUGFyZW50IDQgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9SZXNvdXJjZXMg",
+        "PDwgL0ZvbnQgPDwgL0YxIDMgMCBSID4+ID4+IC9Db250ZW50cyAxNzIgMCBSID4+CmVuZG9iagoxNzIg",
+        "MCBvYmoKPDwgL0xlbmd0aCA2NSA+PgpzdHJlYW0KQlQgL0YxIDE2IFRmIDM2IDc1MCBUZCAoUkVQT1JU",
+        "IFBBR0UgMDg0IERPQ1VNRU5UIEJFTkNITUFSSykgVGogRVQKZW5kc3RyZWFtCmVuZG9iagoxNzMgMCBv",
+        "YmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCA0IDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVz",
+        "b3VyY2VzIDw8IC9Gb250IDw8IC9GMSAzIDAgUiA+PiA+PiAvQ29udGVudHMgMTc0IDAgUiA+PgplbmRv",
+        "YmoKMTc0IDAgb2JqCjw8IC9MZW5ndGggNjUgPj4Kc3RyZWFtCkJUIC9GMSAxNiBUZiAzNiA3NTAgVGQg",
+        "KFJFUE9SVCBQQUdFIDA4NSBET0NVTUVOVCBCRU5DSE1BUkspIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoK",
+        "MTc1IDAgb2JqCjw8IC9UeXBlIC9QYWdlIC9QYXJlbnQgNCAwIFIgL01lZGlhQm94IFswIDAgNjEyIDc5",
+        "Ml0gL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgMyAwIFIgPj4gPj4gL0NvbnRlbnRzIDE3NiAwIFIg",
+        "Pj4KZW5kb2JqCjE3NiAwIG9iago8PCAvTGVuZ3RoIDY1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgMzYg",
+        "NzUwIFRkIChSRVBPUlQgUEFHRSAwODYgRE9DVU1FTlQgQkVOQ0hNQVJLKSBUaiBFVAplbmRzdHJlYW0K",
+        "ZW5kb2JqCjE3NyAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDQgMCBSIC9NZWRpYUJveCBbMCAw",
+        "IDYxMiA3OTJdIC9SZXNvdXJjZXMgPDwgL0ZvbnQgPDwgL0YxIDMgMCBSID4+ID4+IC9Db250ZW50cyAx",
+        "NzggMCBSID4+CmVuZG9iagoxNzggMCBvYmoKPDwgL0xlbmd0aCA2NSA+PgpzdHJlYW0KQlQgL0YxIDE2",
+        "IFRmIDM2IDc1MCBUZCAoUkVQT1JUIFBBR0UgMDg3IERPQ1VNRU5UIEJFTkNITUFSSykgVGogRVQKZW5k",
+        "c3RyZWFtCmVuZG9iagoxNzkgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCA0IDAgUiAvTWVkaWFC",
+        "b3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSAzIDAgUiA+PiA+PiAvQ29u",
+        "dGVudHMgMTgwIDAgUiA+PgplbmRvYmoKMTgwIDAgb2JqCjw8IC9MZW5ndGggNjUgPj4Kc3RyZWFtCkJU",
+        "IC9GMSAxNiBUZiAzNiA3NTAgVGQgKFJFUE9SVCBQQUdFIDA4OCBET0NVTUVOVCBCRU5DSE1BUkspIFRq",
+        "IEVUCmVuZHN0cmVhbQplbmRvYmoKMTgxIDAgb2JqCjw8IC9UeXBlIC9QYWdlIC9QYXJlbnQgNCAwIFIg",
+        "L01lZGlhQm94IFswIDAgNjEyIDc5Ml0gL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgMyAwIFIgPj4g",
+        "Pj4gL0NvbnRlbnRzIDE4MiAwIFIgPj4KZW5kb2JqCjE4MiAwIG9iago8PCAvTGVuZ3RoIDY1ID4+CnN0",
+        "cmVhbQpCVCAvRjEgMTYgVGYgMzYgNzUwIFRkIChSRVBPUlQgUEFHRSAwODkgRE9DVU1FTlQgQkVOQ0hN",
+        "QVJLKSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjE4MyAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50",
+        "IDQgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9SZXNvdXJjZXMgPDwgL0ZvbnQgPDwgL0YxIDMg",
+        "MCBSID4+ID4+IC9Db250ZW50cyAxODQgMCBSID4+CmVuZG9iagoxODQgMCBvYmoKPDwgL0xlbmd0aCA3",
+        "MiA+PgpzdHJlYW0KQlQgL0YxIDE2IFRmIDM2IDc1MCBUZCAoUkVQT1JUIFBBR0UgMDkwIERPQ1VNRU5U",
+        "IEJFTkNITUFSSyBORUVETEUpIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKMTg1IDAgb2JqCjw8IC9UeXBl",
+        "IC9QYWdlIC9QYXJlbnQgNCAwIFIgL01lZGlhQm94IFswIDAgNjEyIDc5Ml0gL1Jlc291cmNlcyA8PCAv",
+        "Rm9udCA8PCAvRjEgMyAwIFIgPj4gPj4gL0NvbnRlbnRzIDE4NiAwIFIgPj4KZW5kb2JqCjE4NiAwIG9i",
+        "ago8PCAvTGVuZ3RoIDY1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgMzYgNzUwIFRkIChSRVBPUlQgUEFH",
+        "RSAwOTEgRE9DVU1FTlQgQkVOQ0hNQVJLKSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjE4NyAwIG9iago8",
+        "PCAvVHlwZSAvUGFnZSAvUGFyZW50IDQgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9SZXNvdXJj",
+        "ZXMgPDwgL0ZvbnQgPDwgL0YxIDMgMCBSID4+ID4+IC9Db250ZW50cyAxODggMCBSID4+CmVuZG9iagox",
+        "ODggMCBvYmoKPDwgL0xlbmd0aCA2NSA+PgpzdHJlYW0KQlQgL0YxIDE2IFRmIDM2IDc1MCBUZCAoUkVQ",
+        "T1JUIFBBR0UgMDkyIERPQ1VNRU5UIEJFTkNITUFSSykgVGogRVQKZW5kc3RyZWFtCmVuZG9iagoxODkg",
+        "MCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCA0IDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAv",
+        "UmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSAzIDAgUiA+PiA+PiAvQ29udGVudHMgMTkwIDAgUiA+Pgpl",
+        "bmRvYmoKMTkwIDAgb2JqCjw8IC9MZW5ndGggNjUgPj4Kc3RyZWFtCkJUIC9GMSAxNiBUZiAzNiA3NTAg",
+        "VGQgKFJFUE9SVCBQQUdFIDA5MyBET0NVTUVOVCBCRU5DSE1BUkspIFRqIEVUCmVuZHN0cmVhbQplbmRv",
+        "YmoKMTkxIDAgb2JqCjw8IC9UeXBlIC9QYWdlIC9QYXJlbnQgNCAwIFIgL01lZGlhQm94IFswIDAgNjEy",
+        "IDc5Ml0gL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgMyAwIFIgPj4gPj4gL0NvbnRlbnRzIDE5MiAw",
+        "IFIgPj4KZW5kb2JqCjE5MiAwIG9iago8PCAvTGVuZ3RoIDY1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYg",
+        "MzYgNzUwIFRkIChSRVBPUlQgUEFHRSAwOTQgRE9DVU1FTlQgQkVOQ0hNQVJLKSBUaiBFVAplbmRzdHJl",
+        "YW0KZW5kb2JqCjE5MyAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFyZW50IDQgMCBSIC9NZWRpYUJveCBb",
+        "MCAwIDYxMiA3OTJdIC9SZXNvdXJjZXMgPDwgL0ZvbnQgPDwgL0YxIDMgMCBSID4+ID4+IC9Db250ZW50",
+        "cyAxOTQgMCBSID4+CmVuZG9iagoxOTQgMCBvYmoKPDwgL0xlbmd0aCA2NSA+PgpzdHJlYW0KQlQgL0Yx",
+        "IDE2IFRmIDM2IDc1MCBUZCAoUkVQT1JUIFBBR0UgMDk1IERPQ1VNRU5UIEJFTkNITUFSSykgVGogRVQK",
+        "ZW5kc3RyZWFtCmVuZG9iagoxOTUgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCA0IDAgUiAvTWVk",
+        "aWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSAzIDAgUiA+PiA+PiAv",
+        "Q29udGVudHMgMTk2IDAgUiA+PgplbmRvYmoKMTk2IDAgb2JqCjw8IC9MZW5ndGggNjUgPj4Kc3RyZWFt",
+        "CkJUIC9GMSAxNiBUZiAzNiA3NTAgVGQgKFJFUE9SVCBQQUdFIDA5NiBET0NVTUVOVCBCRU5DSE1BUksp",
+        "IFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKMTk3IDAgb2JqCjw8IC9UeXBlIC9QYWdlIC9QYXJlbnQgNCAw",
+        "IFIgL01lZGlhQm94IFswIDAgNjEyIDc5Ml0gL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgMyAwIFIg",
+        "Pj4gPj4gL0NvbnRlbnRzIDE5OCAwIFIgPj4KZW5kb2JqCjE5OCAwIG9iago8PCAvTGVuZ3RoIDY1ID4+",
+        "CnN0cmVhbQpCVCAvRjEgMTYgVGYgMzYgNzUwIFRkIChSRVBPUlQgUEFHRSAwOTcgRE9DVU1FTlQgQkVO",
+        "Q0hNQVJLKSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjE5OSAwIG9iago8PCAvVHlwZSAvUGFnZSAvUGFy",
+        "ZW50IDQgMCBSIC9NZWRpYUJveCBbMCAwIDYxMiA3OTJdIC9SZXNvdXJjZXMgPDwgL0ZvbnQgPDwgL0Yx",
+        "IDMgMCBSID4+ID4+IC9Db250ZW50cyAyMDAgMCBSID4+CmVuZG9iagoyMDAgMCBvYmoKPDwgL0xlbmd0",
+        "aCA2NSA+PgpzdHJlYW0KQlQgL0YxIDE2IFRmIDM2IDc1MCBUZCAoUkVQT1JUIFBBR0UgMDk4IERPQ1VN",
+        "RU5UIEJFTkNITUFSSykgVGogRVQKZW5kc3RyZWFtCmVuZG9iagoyMDEgMCBvYmoKPDwgL1R5cGUgL1Bh",
+        "Z2UgL1BhcmVudCA0IDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250",
+        "IDw8IC9GMSAzIDAgUiA+PiA+PiAvQ29udGVudHMgMjAyIDAgUiA+PgplbmRvYmoKMjAyIDAgb2JqCjw8",
+        "IC9MZW5ndGggNjUgPj4Kc3RyZWFtCkJUIC9GMSAxNiBUZiAzNiA3NTAgVGQgKFJFUE9SVCBQQUdFIDA5",
+        "OSBET0NVTUVOVCBCRU5DSE1BUkspIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKMjAzIDAgb2JqCjw8IC9U",
+        "eXBlIC9QYWdlIC9QYXJlbnQgNCAwIFIgL01lZGlhQm94IFswIDAgNjEyIDc5Ml0gL1Jlc291cmNlcyA8",
+        "PCAvRm9udCA8PCAvRjEgMyAwIFIgPj4gPj4gL0NvbnRlbnRzIDIwNCAwIFIgPj4KZW5kb2JqCjIwNCAw",
+        "IG9iago8PCAvTGVuZ3RoIDcyID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgMzYgNzUwIFRkIChSRVBPUlQg",
+        "UEFHRSAxMDAgRE9DVU1FTlQgQkVOQ0hNQVJLIE5FRURMRSkgVGogRVQKZW5kc3RyZWFtCmVuZG9iagoy",
+        "MDUgMCBvYmoKPDwgL0xlbmd0aCAxNSA+PgpzdHJlYW0KNiAwIDAgMCA2IDcgZDEKZW5kc3RyZWFtCmVu",
+        "ZG9iagoyMDYgMCBvYmoKPDwgL0xlbmd0aCAxNSA+PgpzdHJlYW0KNiAwIDAgMCA2IDcgZDEKZW5kc3Ry",
+        "ZWFtCmVuZG9iagoyMDcgMCBvYmoKPDwgL0xlbmd0aCAyNjIgPj4Kc3RyZWFtCjYgMCAwIDAgNiA3IGQx",
+        "CjEgNiAxIDEgcmUgZgoyIDYgMSAxIHJlIGYKMyA2IDEgMSByZSBmCjAgNSAxIDEgcmUgZgo0IDUgMSAx",
+        "IHJlIGYKMCA0IDEgMSByZSBmCjMgNCAxIDEgcmUgZgo0IDQgMSAxIHJlIGYKMCAzIDEgMSByZSBmCjIg",
+        "MyAxIDEgcmUgZgo0IDMgMSAxIHJlIGYKMCAyIDEgMSByZSBmCjEgMiAxIDEgcmUgZgo0IDIgMSAxIHJl",
+        "IGYKMCAxIDEgMSByZSBmCjQgMSAxIDEgcmUgZgoxIDAgMSAxIHJlIGYKMiAwIDEgMSByZSBmCjMgMCAx",
+        "IDEgcmUgZgplbmRzdHJlYW0KZW5kb2JqCjIwOCAwIG9iago8PCAvTGVuZ3RoIDE0NSA+PgpzdHJlYW0K",
+        "NiAwIDAgMCA2IDcgZDEKMiA2IDEgMSByZSBmCjEgNSAxIDEgcmUgZgoyIDUgMSAxIHJlIGYKMiA0IDEg",
+        "MSByZSBmCjIgMyAxIDEgcmUgZgoyIDIgMSAxIHJlIGYKMiAxIDEgMSByZSBmCjEgMCAxIDEgcmUgZgoy",
+        "IDAgMSAxIHJlIGYKMyAwIDEgMSByZSBmCmVuZHN0cmVhbQplbmRvYmoKMjA5IDAgb2JqCjw8IC9MZW5n",
+        "dGggMTk3ID4+CnN0cmVhbQo2IDAgMCAwIDYgNyBkMQoxIDYgMSAxIHJlIGYKMiA2IDEgMSByZSBmCjMg",
+        "NiAxIDEgcmUgZgowIDUgMSAxIHJlIGYKNCA1IDEgMSByZSBmCjQgNCAxIDEgcmUgZgozIDMgMSAxIHJl",
+        "IGYKMiAyIDEgMSByZSBmCjEgMSAxIDEgcmUgZgowIDAgMSAxIHJlIGYKMSAwIDEgMSByZSBmCjIgMCAx",
+        "IDEgcmUgZgozIDAgMSAxIHJlIGYKNCAwIDEgMSByZSBmCmVuZHN0cmVhbQplbmRvYmoKMjEwIDAgb2Jq",
+        "Cjw8IC9MZW5ndGggMjEwID4+CnN0cmVhbQo2IDAgMCAwIDYgNyBkMQowIDYgMSAxIHJlIGYKMSA2IDEg",
+        "MSByZSBmCjIgNiAxIDEgcmUgZgozIDYgMSAxIHJlIGYKNCA1IDEgMSByZSBmCjQgNCAxIDEgcmUgZgox",
+        "IDMgMSAxIHJlIGYKMiAzIDEgMSByZSBmCjMgMyAxIDEgcmUgZgo0IDIgMSAxIHJlIGYKNCAxIDEgMSBy",
+        "ZSBmCjAgMCAxIDEgcmUgZgoxIDAgMSAxIHJlIGYKMiAwIDEgMSByZSBmCjMgMCAxIDEgcmUgZgplbmRz",
+        "dHJlYW0KZW5kb2JqCjIxMSAwIG9iago8PCAvTGVuZ3RoIDE5NyA+PgpzdHJlYW0KNiAwIDAgMCA2IDcg",
+        "ZDEKMyA2IDEgMSByZSBmCjIgNSAxIDEgcmUgZgozIDUgMSAxIHJlIGYKMSA0IDEgMSByZSBmCjMgNCAx",
+        "IDEgcmUgZgowIDMgMSAxIHJlIGYKMyAzIDEgMSByZSBmCjAgMiAxIDEgcmUgZgoxIDIgMSAxIHJlIGYK",
+        "MiAyIDEgMSByZSBmCjMgMiAxIDEgcmUgZgo0IDIgMSAxIHJlIGYKMyAxIDEgMSByZSBmCjMgMCAxIDEg",
+        "cmUgZgplbmRzdHJlYW0KZW5kb2JqCjIxMiAwIG9iago8PCAvTGVuZ3RoIDIzNiA+PgpzdHJlYW0KNiAw",
+        "IDAgMCA2IDcgZDEKMCA2IDEgMSByZSBmCjEgNiAxIDEgcmUgZgoyIDYgMSAxIHJlIGYKMyA2IDEgMSBy",
+        "ZSBmCjQgNiAxIDEgcmUgZgowIDUgMSAxIHJlIGYKMCA0IDEgMSByZSBmCjEgNCAxIDEgcmUgZgoyIDQg",
+        "MSAxIHJlIGYKMyA0IDEgMSByZSBmCjQgMyAxIDEgcmUgZgo0IDIgMSAxIHJlIGYKMCAxIDEgMSByZSBm",
+        "CjQgMSAxIDEgcmUgZgoxIDAgMSAxIHJlIGYKMiAwIDEgMSByZSBmCjMgMCAxIDEgcmUgZgplbmRzdHJl",
+        "YW0KZW5kb2JqCjIxMyAwIG9iago8PCAvTGVuZ3RoIDIxMCA+PgpzdHJlYW0KNiAwIDAgMCA2IDcgZDEK",
+        "MiA2IDEgMSByZSBmCjMgNiAxIDEgcmUgZgoxIDUgMSAxIHJlIGYKMCA0IDEgMSByZSBmCjAgMyAxIDEg",
+        "cmUgZgoxIDMgMSAxIHJlIGYKMiAzIDEgMSByZSBmCjMgMyAxIDEgcmUgZgowIDIgMSAxIHJlIGYKNCAy",
+        "IDEgMSByZSBmCjAgMSAxIDEgcmUgZgo0IDEgMSAxIHJlIGYKMSAwIDEgMSByZSBmCjIgMCAxIDEgcmUg",
+        "ZgozIDAgMSAxIHJlIGYKZW5kc3RyZWFtCmVuZG9iagoyMTQgMCBvYmoKPDwgL0xlbmd0aCAxNTggPj4K",
+        "c3RyZWFtCjYgMCAwIDAgNiA3IGQxCjAgNiAxIDEgcmUgZgoxIDYgMSAxIHJlIGYKMiA2IDEgMSByZSBm",
+        "CjMgNiAxIDEgcmUgZgo0IDYgMSAxIHJlIGYKNCA1IDEgMSByZSBmCjMgNCAxIDEgcmUgZgoyIDMgMSAx",
+        "IHJlIGYKMSAyIDEgMSByZSBmCjEgMSAxIDEgcmUgZgoxIDAgMSAxIHJlIGYKZW5kc3RyZWFtCmVuZG9i",
+        "agoyMTUgMCBvYmoKPDwgL0xlbmd0aCAyMzYgPj4Kc3RyZWFtCjYgMCAwIDAgNiA3IGQxCjEgNiAxIDEg",
+        "cmUgZgoyIDYgMSAxIHJlIGYKMyA2IDEgMSByZSBmCjAgNSAxIDEgcmUgZgo0IDUgMSAxIHJlIGYKMCA0",
+        "IDEgMSByZSBmCjQgNCAxIDEgcmUgZgoxIDMgMSAxIHJlIGYKMiAzIDEgMSByZSBmCjMgMyAxIDEgcmUg",
+        "ZgowIDIgMSAxIHJlIGYKNCAyIDEgMSByZSBmCjAgMSAxIDEgcmUgZgo0IDEgMSAxIHJlIGYKMSAwIDEg",
+        "MSByZSBmCjIgMCAxIDEgcmUgZgozIDAgMSAxIHJlIGYKZW5kc3RyZWFtCmVuZG9iagoyMTYgMCBvYmoK",
+        "PDwgL0xlbmd0aCAyMjMgPj4Kc3RyZWFtCjYgMCAwIDAgNiA3IGQxCjEgNiAxIDEgcmUgZgoyIDYgMSAx",
+        "IHJlIGYKMyA2IDEgMSByZSBmCjAgNSAxIDEgcmUgZgo0IDUgMSAxIHJlIGYKMCA0IDEgMSByZSBmCjQg",
+        "NCAxIDEgcmUgZgoxIDMgMSAxIHJlIGYKMiAzIDEgMSByZSBmCjMgMyAxIDEgcmUgZgo0IDMgMSAxIHJl",
+        "IGYKNCAyIDEgMSByZSBmCjMgMSAxIDEgcmUgZgowIDAgMSAxIHJlIGYKMSAwIDEgMSByZSBmCjIgMCAx",
+        "IDEgcmUgZgplbmRzdHJlYW0KZW5kb2JqCjIxNyAwIG9iago8PCAvTGVuZ3RoIDI0OSA+PgpzdHJlYW0K",
+        "NiAwIDAgMCA2IDcgZDEKMSA2IDEgMSByZSBmCjIgNiAxIDEgcmUgZgozIDYgMSAxIHJlIGYKMCA1IDEg",
+        "MSByZSBmCjQgNSAxIDEgcmUgZgowIDQgMSAxIHJlIGYKNCA0IDEgMSByZSBmCjAgMyAxIDEgcmUgZgox",
+        "IDMgMSAxIHJlIGYKMiAzIDEgMSByZSBmCjMgMyAxIDEgcmUgZgo0IDMgMSAxIHJlIGYKMCAyIDEgMSBy",
+        "ZSBmCjQgMiAxIDEgcmUgZgowIDEgMSAxIHJlIGYKNCAxIDEgMSByZSBmCjAgMCAxIDEgcmUgZgo0IDAg",
+        "MSAxIHJlIGYKZW5kc3RyZWFtCmVuZG9iagoyMTggMCBvYmoKPDwgL0xlbmd0aCAyNzUgPj4Kc3RyZWFt",
+        "CjYgMCAwIDAgNiA3IGQxCjAgNiAxIDEgcmUgZgoxIDYgMSAxIHJlIGYKMiA2IDEgMSByZSBmCjMgNiAx",
+        "IDEgcmUgZgowIDUgMSAxIHJlIGYKNCA1IDEgMSByZSBmCjAgNCAxIDEgcmUgZgo0IDQgMSAxIHJlIGYK",
+        "MCAzIDEgMSByZSBmCjEgMyAxIDEgcmUgZgoyIDMgMSAxIHJlIGYKMyAzIDEgMSByZSBmCjAgMiAxIDEg",
+        "cmUgZgo0IDIgMSAxIHJlIGYKMCAxIDEgMSByZSBmCjQgMSAxIDEgcmUgZgowIDAgMSAxIHJlIGYKMSAw",
+        "IDEgMSByZSBmCjIgMCAxIDEgcmUgZgozIDAgMSAxIHJlIGYKZW5kc3RyZWFtCmVuZG9iagoyMTkgMCBv",
+        "YmoKPDwgL0xlbmd0aCAxODQgPj4Kc3RyZWFtCjYgMCAwIDAgNiA3IGQxCjEgNiAxIDEgcmUgZgoyIDYg",
+        "MSAxIHJlIGYKMyA2IDEgMSByZSBmCjQgNiAxIDEgcmUgZgowIDUgMSAxIHJlIGYKMCA0IDEgMSByZSBm",
+        "CjAgMyAxIDEgcmUgZgowIDIgMSAxIHJlIGYKMCAxIDEgMSByZSBmCjEgMCAxIDEgcmUgZgoyIDAgMSAx",
+        "IHJlIGYKMyAwIDEgMSByZSBmCjQgMCAxIDEgcmUgZgplbmRzdHJlYW0KZW5kb2JqCjIyMCAwIG9iago8",
+        "PCAvTGVuZ3RoIDI0OSA+PgpzdHJlYW0KNiAwIDAgMCA2IDcgZDEKMCA2IDEgMSByZSBmCjEgNiAxIDEg",
+        "cmUgZgoyIDYgMSAxIHJlIGYKMyA2IDEgMSByZSBmCjAgNSAxIDEgcmUgZgo0IDUgMSAxIHJlIGYKMCA0",
+        "IDEgMSByZSBmCjQgNCAxIDEgcmUgZgowIDMgMSAxIHJlIGYKNCAzIDEgMSByZSBmCjAgMiAxIDEgcmUg",
+        "Zgo0IDIgMSAxIHJlIGYKMCAxIDEgMSByZSBmCjQgMSAxIDEgcmUgZgowIDAgMSAxIHJlIGYKMSAwIDEg",
+        "MSByZSBmCjIgMCAxIDEgcmUgZgozIDAgMSAxIHJlIGYKZW5kc3RyZWFtCmVuZG9iagoyMjEgMCBvYmoK",
+        "PDwgL0xlbmd0aCAyNDkgPj4Kc3RyZWFtCjYgMCAwIDAgNiA3IGQxCjAgNiAxIDEgcmUgZgoxIDYgMSAx",
+        "IHJlIGYKMiA2IDEgMSByZSBmCjMgNiAxIDEgcmUgZgo0IDYgMSAxIHJlIGYKMCA1IDEgMSByZSBmCjAg",
+        "NCAxIDEgcmUgZgowIDMgMSAxIHJlIGYKMSAzIDEgMSByZSBmCjIgMyAxIDEgcmUgZgozIDMgMSAxIHJl",
+        "IGYKMCAyIDEgMSByZSBmCjAgMSAxIDEgcmUgZgowIDAgMSAxIHJlIGYKMSAwIDEgMSByZSBmCjIgMCAx",
+        "IDEgcmUgZgozIDAgMSAxIHJlIGYKNCAwIDEgMSByZSBmCmVuZHN0cmVhbQplbmRvYmoKMjIyIDAgb2Jq",
+        "Cjw8IC9MZW5ndGggMjM2ID4+CnN0cmVhbQo2IDAgMCAwIDYgNyBkMQoxIDYgMSAxIHJlIGYKMiA2IDEg",
+        "MSByZSBmCjMgNiAxIDEgcmUgZgo0IDYgMSAxIHJlIGYKMCA1IDEgMSByZSBmCjAgNCAxIDEgcmUgZgow",
+        "IDMgMSAxIHJlIGYKMiAzIDEgMSByZSBmCjMgMyAxIDEgcmUgZgo0IDMgMSAxIHJlIGYKMCAyIDEgMSBy",
+        "ZSBmCjQgMiAxIDEgcmUgZgowIDEgMSAxIHJlIGYKNCAxIDEgMSByZSBmCjEgMCAxIDEgcmUgZgoyIDAg",
+        "MSAxIHJlIGYKMyAwIDEgMSByZSBmCmVuZHN0cmVhbQplbmRvYmoKMjIzIDAgb2JqCjw8IC9MZW5ndGgg",
+        "MjM2ID4+CnN0cmVhbQo2IDAgMCAwIDYgNyBkMQowIDYgMSAxIHJlIGYKNCA2IDEgMSByZSBmCjAgNSAx",
+        "IDEgcmUgZgo0IDUgMSAxIHJlIGYKMCA0IDEgMSByZSBmCjQgNCAxIDEgcmUgZgowIDMgMSAxIHJlIGYK",
+        "MSAzIDEgMSByZSBmCjIgMyAxIDEgcmUgZgozIDMgMSAxIHJlIGYKNCAzIDEgMSByZSBmCjAgMiAxIDEg",
+        "cmUgZgo0IDIgMSAxIHJlIGYKMCAxIDEgMSByZSBmCjQgMSAxIDEgcmUgZgowIDAgMSAxIHJlIGYKNCAw",
+        "IDEgMSByZSBmCmVuZHN0cmVhbQplbmRvYmoKMjI0IDAgb2JqCjw8IC9MZW5ndGggMTk3ID4+CnN0cmVh",
+        "bQo2IDAgMCAwIDYgNyBkMQowIDYgMSAxIHJlIGYKNCA2IDEgMSByZSBmCjAgNSAxIDEgcmUgZgozIDUg",
+        "MSAxIHJlIGYKMCA0IDEgMSByZSBmCjIgNCAxIDEgcmUgZgowIDMgMSAxIHJlIGYKMSAzIDEgMSByZSBm",
+        "CjAgMiAxIDEgcmUgZgoyIDIgMSAxIHJlIGYKMCAxIDEgMSByZSBmCjMgMSAxIDEgcmUgZgowIDAgMSAx",
+        "IHJlIGYKNCAwIDEgMSByZSBmCmVuZHN0cmVhbQplbmRvYmoKMjI1IDAgb2JqCjw8IC9MZW5ndGggMTU4",
+        "ID4+CnN0cmVhbQo2IDAgMCAwIDYgNyBkMQowIDYgMSAxIHJlIGYKMCA1IDEgMSByZSBmCjAgNCAxIDEg",
+        "cmUgZgowIDMgMSAxIHJlIGYKMCAyIDEgMSByZSBmCjAgMSAxIDEgcmUgZgowIDAgMSAxIHJlIGYKMSAw",
+        "IDEgMSByZSBmCjIgMCAxIDEgcmUgZgozIDAgMSAxIHJlIGYKNCAwIDEgMSByZSBmCmVuZHN0cmVhbQpl",
+        "bmRvYmoKMjI2IDAgb2JqCjw8IC9MZW5ndGggMjQ5ID4+CnN0cmVhbQo2IDAgMCAwIDYgNyBkMQowIDYg",
+        "MSAxIHJlIGYKNCA2IDEgMSByZSBmCjAgNSAxIDEgcmUgZgoxIDUgMSAxIHJlIGYKMyA1IDEgMSByZSBm",
+        "CjQgNSAxIDEgcmUgZgowIDQgMSAxIHJlIGYKMiA0IDEgMSByZSBmCjQgNCAxIDEgcmUgZgowIDMgMSAx",
+        "IHJlIGYKMiAzIDEgMSByZSBmCjQgMyAxIDEgcmUgZgowIDIgMSAxIHJlIGYKNCAyIDEgMSByZSBmCjAg",
+        "MSAxIDEgcmUgZgo0IDEgMSAxIHJlIGYKMCAwIDEgMSByZSBmCjQgMCAxIDEgcmUgZgplbmRzdHJlYW0K",
+        "ZW5kb2JqCjIyNyAwIG9iago8PCAvTGVuZ3RoIDIzNiA+PgpzdHJlYW0KNiAwIDAgMCA2IDcgZDEKMCA2",
+        "IDEgMSByZSBmCjQgNiAxIDEgcmUgZgowIDUgMSAxIHJlIGYKMSA1IDEgMSByZSBmCjQgNSAxIDEgcmUg",
+        "ZgowIDQgMSAxIHJlIGYKMiA0IDEgMSByZSBmCjQgNCAxIDEgcmUgZgowIDMgMSAxIHJlIGYKMyAzIDEg",
+        "MSByZSBmCjQgMyAxIDEgcmUgZgowIDIgMSAxIHJlIGYKNCAyIDEgMSByZSBmCjAgMSAxIDEgcmUgZgo0",
+        "IDEgMSAxIHJlIGYKMCAwIDEgMSByZSBmCjQgMCAxIDEgcmUgZgplbmRzdHJlYW0KZW5kb2JqCjIyOCAw",
+        "IG9iago8PCAvTGVuZ3RoIDIyMyA+PgpzdHJlYW0KNiAwIDAgMCA2IDcgZDEKMSA2IDEgMSByZSBmCjIg",
+        "NiAxIDEgcmUgZgozIDYgMSAxIHJlIGYKMCA1IDEgMSByZSBmCjQgNSAxIDEgcmUgZgowIDQgMSAxIHJl",
+        "IGYKNCA0IDEgMSByZSBmCjAgMyAxIDEgcmUgZgo0IDMgMSAxIHJlIGYKMCAyIDEgMSByZSBmCjQgMiAx",
+        "IDEgcmUgZgowIDEgMSAxIHJlIGYKNCAxIDEgMSByZSBmCjEgMCAxIDEgcmUgZgoyIDAgMSAxIHJlIGYK",
+        "MyAwIDEgMSByZSBmCmVuZHN0cmVhbQplbmRvYmoKMjI5IDAgb2JqCjw8IC9MZW5ndGggMjEwID4+CnN0",
+        "cmVhbQo2IDAgMCAwIDYgNyBkMQowIDYgMSAxIHJlIGYKMSA2IDEgMSByZSBmCjIgNiAxIDEgcmUgZgoz",
+        "IDYgMSAxIHJlIGYKMCA1IDEgMSByZSBmCjQgNSAxIDEgcmUgZgowIDQgMSAxIHJlIGYKNCA0IDEgMSBy",
+        "ZSBmCjAgMyAxIDEgcmUgZgoxIDMgMSAxIHJlIGYKMiAzIDEgMSByZSBmCjMgMyAxIDEgcmUgZgowIDIg",
+        "MSAxIHJlIGYKMCAxIDEgMSByZSBmCjAgMCAxIDEgcmUgZgplbmRzdHJlYW0KZW5kb2JqCjIzMCAwIG9i",
+        "ago8PCAvTGVuZ3RoIDI0OSA+PgpzdHJlYW0KNiAwIDAgMCA2IDcgZDEKMCA2IDEgMSByZSBmCjEgNiAx",
+        "IDEgcmUgZgoyIDYgMSAxIHJlIGYKMyA2IDEgMSByZSBmCjAgNSAxIDEgcmUgZgo0IDUgMSAxIHJlIGYK",
+        "MCA0IDEgMSByZSBmCjQgNCAxIDEgcmUgZgowIDMgMSAxIHJlIGYKMSAzIDEgMSByZSBmCjIgMyAxIDEg",
+        "cmUgZgozIDMgMSAxIHJlIGYKMCAyIDEgMSByZSBmCjIgMiAxIDEgcmUgZgowIDEgMSAxIHJlIGYKMyAx",
+        "IDEgMSByZSBmCjAgMCAxIDEgcmUgZgo0IDAgMSAxIHJlIGYKZW5kc3RyZWFtCmVuZG9iagoyMzEgMCBv",
+        "YmoKPDwgL0xlbmd0aCAxNTggPj4Kc3RyZWFtCjYgMCAwIDAgNiA3IGQxCjAgNiAxIDEgcmUgZgoxIDYg",
+        "MSAxIHJlIGYKMiA2IDEgMSByZSBmCjMgNiAxIDEgcmUgZgo0IDYgMSAxIHJlIGYKMiA1IDEgMSByZSBm",
+        "CjIgNCAxIDEgcmUgZgoyIDMgMSAxIHJlIGYKMiAyIDEgMSByZSBmCjIgMSAxIDEgcmUgZgoyIDAgMSAx",
+        "IHJlIGYKZW5kc3RyZWFtCmVuZG9iagoyMzIgMCBvYmoKPDwgL0xlbmd0aCAyMTAgPj4Kc3RyZWFtCjYg",
+        "MCAwIDAgNiA3IGQxCjAgNiAxIDEgcmUgZgo0IDYgMSAxIHJlIGYKMCA1IDEgMSByZSBmCjQgNSAxIDEg",
+        "cmUgZgowIDQgMSAxIHJlIGYKNCA0IDEgMSByZSBmCjAgMyAxIDEgcmUgZgo0IDMgMSAxIHJlIGYKMCAy",
+        "IDEgMSByZSBmCjQgMiAxIDEgcmUgZgowIDEgMSAxIHJlIGYKNCAxIDEgMSByZSBmCjEgMCAxIDEgcmUg",
+        "ZgoyIDAgMSAxIHJlIGYKMyAwIDEgMSByZSBmCmVuZHN0cmVhbQplbmRvYmoKMjMzIDAgb2JqCjw8IC9M",
+        "ZW5ndGggNjQ3ID4+CnN0cmVhbQovQ0lESW5pdCAvUHJvY1NldCBmaW5kcmVzb3VyY2UgYmVnaW4KMTIg",
+        "ZGljdCBiZWdpbgpiZWdpbmNtYXAKL0NJRFN5c3RlbUluZm8gPDwgL1JlZ2lzdHJ5IChQREZCYXNlKSAv",
+        "T3JkZXJpbmcgKFVuaWNvZGUpIC9TdXBwbGVtZW50IDAgPj4gZGVmCi9DTWFwTmFtZSAvUERGQmFzZVVu",
+        "aWNvZGUgZGVmCi9DTWFwVHlwZSAyIGRlZgoxIGJlZ2luY29kZXNwYWNlcmFuZ2UKPDAwPiA8N2Y+CmVu",
+        "ZGNvZGVzcGFjZXJhbmdlCjI3IGJlZ2luYmZjaGFyCjwyMD4gPDAwMjA+CjwzMD4gPDAwMzA+CjwzMT4g",
+        "PDAwMzE+CjwzMj4gPDAwMzI+CjwzMz4gPDAwMzM+CjwzND4gPDAwMzQ+CjwzNT4gPDAwMzU+CjwzNj4g",
+        "PDAwMzY+CjwzNz4gPDAwMzc+CjwzOD4gPDAwMzg+CjwzOT4gPDAwMzk+Cjw0MT4gPDAwNDE+Cjw0Mj4g",
+        "PDAwNDI+Cjw0Mz4gPDAwNDM+Cjw0ND4gPDAwNDQ+Cjw0NT4gPDAwNDU+Cjw0Nz4gPDAwNDc+Cjw0OD4g",
+        "PDAwNDg+Cjw0Yj4gPDAwNGI+Cjw0Yz4gPDAwNGM+Cjw0ZD4gPDAwNGQ+Cjw0ZT4gPDAwNGU+Cjw0Zj4g",
+        "PDAwNGY+Cjw1MD4gPDAwNTA+Cjw1Mj4gPDAwNTI+Cjw1ND4gPDAwNTQ+Cjw1NT4gPDAwNTU+CmVuZGJm",
+        "Y2hhcgplbmRjbWFwCkNNYXBOYW1lIGN1cnJlbnRkaWN0IC9DTWFwIGRlZmluZXJlc291cmNlIHBvcApl",
+        "bmQKZW5kCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDIzNAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAw",
+        "MDAwMzUgMDAwMDAgbiAKMDAwMDAwMDA4NCAwMDAwMCBuIAowMDAwMDAwMTY2IDAwMDAwIG4gCjAwMDAw",
+        "MDExNTYgMDAwMDAgbiAKMDAwMDAwMTk1OCAwMDAwMCBuIAowMDAwMDAyMDg0IDAwMDAwIG4gCjAwMDAw",
+        "MDIxOTkgMDAwMDAgbiAKMDAwMDAwMjMyNSAwMDAwMCBuIAowMDAwMDAyNDQwIDAwMDAwIG4gCjAwMDAw",
+        "MDI1NjcgMDAwMDAgbiAKMDAwMDAwMjY4MyAwMDAwMCBuIAowMDAwMDAyODExIDAwMDAwIG4gCjAwMDAw",
+        "MDI5MjcgMDAwMDAgbiAKMDAwMDAwMzA1NSAwMDAwMCBuIAowMDAwMDAzMTcxIDAwMDAwIG4gCjAwMDAw",
+        "MDMyOTkgMDAwMDAgbiAKMDAwMDAwMzQxNSAwMDAwMCBuIAowMDAwMDAzNTQzIDAwMDAwIG4gCjAwMDAw",
+        "MDM2NTkgMDAwMDAgbiAKMDAwMDAwMzc4NyAwMDAwMCBuIAowMDAwMDAzOTAzIDAwMDAwIG4gCjAwMDAw",
+        "MDQwMzEgMDAwMDAgbiAKMDAwMDAwNDE0NyAwMDAwMCBuIAowMDAwMDA0Mjc1IDAwMDAwIG4gCjAwMDAw",
+        "MDQzOTggMDAwMDAgbiAKMDAwMDAwNDUyNiAwMDAwMCBuIAowMDAwMDA0NjQyIDAwMDAwIG4gCjAwMDAw",
+        "MDQ3NzAgMDAwMDAgbiAKMDAwMDAwNDg4NiAwMDAwMCBuIAowMDAwMDA1MDE0IDAwMDAwIG4gCjAwMDAw",
+        "MDUxMzAgMDAwMDAgbiAKMDAwMDAwNTI1OCAwMDAwMCBuIAowMDAwMDA1Mzc0IDAwMDAwIG4gCjAwMDAw",
+        "MDU1MDIgMDAwMDAgbiAKMDAwMDAwNTYxOCAwMDAwMCBuIAowMDAwMDA1NzQ2IDAwMDAwIG4gCjAwMDAw",
+        "MDU4NjIgMDAwMDAgbiAKMDAwMDAwNTk5MCAwMDAwMCBuIAowMDAwMDA2MTA2IDAwMDAwIG4gCjAwMDAw",
+        "MDYyMzQgMDAwMDAgbiAKMDAwMDAwNjM1MCAwMDAwMCBuIAowMDAwMDA2NDc4IDAwMDAwIG4gCjAwMDAw",
+        "MDY1OTQgMDAwMDAgbiAKMDAwMDAwNjcyMiAwMDAwMCBuIAowMDAwMDA2ODQ1IDAwMDAwIG4gCjAwMDAw",
+        "MDY5NzMgMDAwMDAgbiAKMDAwMDAwNzA4OSAwMDAwMCBuIAowMDAwMDA3MjE3IDAwMDAwIG4gCjAwMDAw",
+        "MDczMzMgMDAwMDAgbiAKMDAwMDAwNzQ2MSAwMDAwMCBuIAowMDAwMDA3NTc3IDAwMDAwIG4gCjAwMDAw",
+        "MDc3MDUgMDAwMDAgbiAKMDAwMDAwNzgyMSAwMDAwMCBuIAowMDAwMDA3OTQ5IDAwMDAwIG4gCjAwMDAw",
+        "MDgwNjUgMDAwMDAgbiAKMDAwMDAwODE5MyAwMDAwMCBuIAowMDAwMDA4MzA5IDAwMDAwIG4gCjAwMDAw",
+        "MDg0MzcgMDAwMDAgbiAKMDAwMDAwODU1MyAwMDAwMCBuIAowMDAwMDA4NjgxIDAwMDAwIG4gCjAwMDAw",
+        "MDg3OTcgMDAwMDAgbiAKMDAwMDAwODkyNSAwMDAwMCBuIAowMDAwMDA5MDQxIDAwMDAwIG4gCjAwMDAw",
+        "MDkxNjkgMDAwMDAgbiAKMDAwMDAwOTI5MiAwMDAwMCBuIAowMDAwMDA5NDIwIDAwMDAwIG4gCjAwMDAw",
+        "MDk1MzYgMDAwMDAgbiAKMDAwMDAwOTY2NCAwMDAwMCBuIAowMDAwMDA5NzgwIDAwMDAwIG4gCjAwMDAw",
+        "MDk5MDggMDAwMDAgbiAKMDAwMDAxMDAyNCAwMDAwMCBuIAowMDAwMDEwMTUyIDAwMDAwIG4gCjAwMDAw",
+        "MTAyNjggMDAwMDAgbiAKMDAwMDAxMDM5NiAwMDAwMCBuIAowMDAwMDEwNTEyIDAwMDAwIG4gCjAwMDAw",
+        "MTA2NDAgMDAwMDAgbiAKMDAwMDAxMDc1NiAwMDAwMCBuIAowMDAwMDEwODg0IDAwMDAwIG4gCjAwMDAw",
+        "MTEwMDAgMDAwMDAgbiAKMDAwMDAxMTEyOCAwMDAwMCBuIAowMDAwMDExMjQ0IDAwMDAwIG4gCjAwMDAw",
+        "MTEzNzIgMDAwMDAgbiAKMDAwMDAxMTQ4OCAwMDAwMCBuIAowMDAwMDExNjE2IDAwMDAwIG4gCjAwMDAw",
+        "MTE3MzkgMDAwMDAgbiAKMDAwMDAxMTg2NyAwMDAwMCBuIAowMDAwMDExOTgzIDAwMDAwIG4gCjAwMDAw",
+        "MTIxMTEgMDAwMDAgbiAKMDAwMDAxMjIyNyAwMDAwMCBuIAowMDAwMDEyMzU1IDAwMDAwIG4gCjAwMDAw",
+        "MTI0NzEgMDAwMDAgbiAKMDAwMDAxMjU5OSAwMDAwMCBuIAowMDAwMDEyNzE1IDAwMDAwIG4gCjAwMDAw",
+        "MTI4NDMgMDAwMDAgbiAKMDAwMDAxMjk1OSAwMDAwMCBuIAowMDAwMDEzMDg3IDAwMDAwIG4gCjAwMDAw",
+        "MTMyMDMgMDAwMDAgbiAKMDAwMDAxMzMzMSAwMDAwMCBuIAowMDAwMDEzNDQ3IDAwMDAwIG4gCjAwMDAw",
+        "MTM1NzYgMDAwMDAgbiAKMDAwMDAxMzY5MyAwMDAwMCBuIAowMDAwMDEzODIzIDAwMDAwIG4gCjAwMDAw",
+        "MTM5NDAgMDAwMDAgbiAKMDAwMDAxNDA3MCAwMDAwMCBuIAowMDAwMDE0MTk0IDAwMDAwIG4gCjAwMDAw",
+        "MTQzMjQgMDAwMDAgbiAKMDAwMDAxNDQ0MSAwMDAwMCBuIAowMDAwMDE0NTcxIDAwMDAwIG4gCjAwMDAw",
+        "MTQ2ODggMDAwMDAgbiAKMDAwMDAxNDgxOCAwMDAwMCBuIAowMDAwMDE0OTM1IDAwMDAwIG4gCjAwMDAw",
+        "MTUwNjUgMDAwMDAgbiAKMDAwMDAxNTE4MiAwMDAwMCBuIAowMDAwMDE1MzEyIDAwMDAwIG4gCjAwMDAw",
+        "MTU0MjkgMDAwMDAgbiAKMDAwMDAxNTU1OSAwMDAwMCBuIAowMDAwMDE1Njc2IDAwMDAwIG4gCjAwMDAw",
+        "MTU4MDYgMDAwMDAgbiAKMDAwMDAxNTkyMyAwMDAwMCBuIAowMDAwMDE2MDUzIDAwMDAwIG4gCjAwMDAw",
+        "MTYxNzAgMDAwMDAgbiAKMDAwMDAxNjMwMCAwMDAwMCBuIAowMDAwMDE2NDE3IDAwMDAwIG4gCjAwMDAw",
+        "MTY1NDcgMDAwMDAgbiAKMDAwMDAxNjY3MSAwMDAwMCBuIAowMDAwMDE2ODAxIDAwMDAwIG4gCjAwMDAw",
+        "MTY5MTggMDAwMDAgbiAKMDAwMDAxNzA0OCAwMDAwMCBuIAowMDAwMDE3MTY1IDAwMDAwIG4gCjAwMDAw",
+        "MTcyOTUgMDAwMDAgbiAKMDAwMDAxNzQxMiAwMDAwMCBuIAowMDAwMDE3NTQyIDAwMDAwIG4gCjAwMDAw",
+        "MTc2NTkgMDAwMDAgbiAKMDAwMDAxNzc4OSAwMDAwMCBuIAowMDAwMDE3OTA2IDAwMDAwIG4gCjAwMDAw",
+        "MTgwMzYgMDAwMDAgbiAKMDAwMDAxODE1MyAwMDAwMCBuIAowMDAwMDE4MjgzIDAwMDAwIG4gCjAwMDAw",
+        "MTg0MDAgMDAwMDAgbiAKMDAwMDAxODUzMCAwMDAwMCBuIAowMDAwMDE4NjQ3IDAwMDAwIG4gCjAwMDAw",
+        "MTg3NzcgMDAwMDAgbiAKMDAwMDAxODg5NCAwMDAwMCBuIAowMDAwMDE5MDI0IDAwMDAwIG4gCjAwMDAw",
+        "MTkxNDggMDAwMDAgbiAKMDAwMDAxOTI3OCAwMDAwMCBuIAowMDAwMDE5Mzk1IDAwMDAwIG4gCjAwMDAw",
+        "MTk1MjUgMDAwMDAgbiAKMDAwMDAxOTY0MiAwMDAwMCBuIAowMDAwMDE5NzcyIDAwMDAwIG4gCjAwMDAw",
+        "MTk4ODkgMDAwMDAgbiAKMDAwMDAyMDAxOSAwMDAwMCBuIAowMDAwMDIwMTM2IDAwMDAwIG4gCjAwMDAw",
+        "MjAyNjYgMDAwMDAgbiAKMDAwMDAyMDM4MyAwMDAwMCBuIAowMDAwMDIwNTEzIDAwMDAwIG4gCjAwMDAw",
+        "MjA2MzAgMDAwMDAgbiAKMDAwMDAyMDc2MCAwMDAwMCBuIAowMDAwMDIwODc3IDAwMDAwIG4gCjAwMDAw",
+        "MjEwMDcgMDAwMDAgbiAKMDAwMDAyMTEyNCAwMDAwMCBuIAowMDAwMDIxMjU0IDAwMDAwIG4gCjAwMDAw",
+        "MjEzNzEgMDAwMDAgbiAKMDAwMDAyMTUwMSAwMDAwMCBuIAowMDAwMDIxNjI1IDAwMDAwIG4gCjAwMDAw",
+        "MjE3NTUgMDAwMDAgbiAKMDAwMDAyMTg3MiAwMDAwMCBuIAowMDAwMDIyMDAyIDAwMDAwIG4gCjAwMDAw",
+        "MjIxMTkgMDAwMDAgbiAKMDAwMDAyMjI0OSAwMDAwMCBuIAowMDAwMDIyMzY2IDAwMDAwIG4gCjAwMDAw",
+        "MjI0OTYgMDAwMDAgbiAKMDAwMDAyMjYxMyAwMDAwMCBuIAowMDAwMDIyNzQzIDAwMDAwIG4gCjAwMDAw",
+        "MjI4NjAgMDAwMDAgbiAKMDAwMDAyMjk5MCAwMDAwMCBuIAowMDAwMDIzMTA3IDAwMDAwIG4gCjAwMDAw",
+        "MjMyMzcgMDAwMDAgbiAKMDAwMDAyMzM1NCAwMDAwMCBuIAowMDAwMDIzNDg0IDAwMDAwIG4gCjAwMDAw",
+        "MjM2MDEgMDAwMDAgbiAKMDAwMDAyMzczMSAwMDAwMCBuIAowMDAwMDIzODQ4IDAwMDAwIG4gCjAwMDAw",
+        "MjM5NzggMDAwMDAgbiAKMDAwMDAyNDEwMiAwMDAwMCBuIAowMDAwMDI0MjMyIDAwMDAwIG4gCjAwMDAw",
+        "MjQzNDkgMDAwMDAgbiAKMDAwMDAyNDQ3OSAwMDAwMCBuIAowMDAwMDI0NTk2IDAwMDAwIG4gCjAwMDAw",
+        "MjQ3MjYgMDAwMDAgbiAKMDAwMDAyNDg0MyAwMDAwMCBuIAowMDAwMDI0OTczIDAwMDAwIG4gCjAwMDAw",
+        "MjUwOTAgMDAwMDAgbiAKMDAwMDAyNTIyMCAwMDAwMCBuIAowMDAwMDI1MzM3IDAwMDAwIG4gCjAwMDAw",
+        "MjU0NjcgMDAwMDAgbiAKMDAwMDAyNTU4NCAwMDAwMCBuIAowMDAwMDI1NzE0IDAwMDAwIG4gCjAwMDAw",
+        "MjU4MzEgMDAwMDAgbiAKMDAwMDAyNTk2MSAwMDAwMCBuIAowMDAwMDI2MDc4IDAwMDAwIG4gCjAwMDAw",
+        "MjYyMDggMDAwMDAgbiAKMDAwMDAyNjMyNSAwMDAwMCBuIAowMDAwMDI2NDU1IDAwMDAwIG4gCjAwMDAw",
+        "MjY1NzkgMDAwMDAgbiAKMDAwMDAyNjY0NSAwMDAwMCBuIAowMDAwMDI2NzExIDAwMDAwIG4gCjAwMDAw",
+        "MjcwMjUgMDAwMDAgbiAKMDAwMDAyNzIyMiAwMDAwMCBuIAowMDAwMDI3NDcxIDAwMDAwIG4gCjAwMDAw",
+        "Mjc3MzMgMDAwMDAgbiAKMDAwMDAyNzk4MiAwMDAwMCBuIAowMDAwMDI4MjcwIDAwMDAwIG4gCjAwMDAw",
+        "Mjg1MzIgMDAwMDAgbiAKMDAwMDAyODc0MiAwMDAwMCBuIAowMDAwMDI5MDMwIDAwMDAwIG4gCjAwMDAw",
+        "MjkzMDUgMDAwMDAgbiAKMDAwMDAyOTYwNiAwMDAwMCBuIAowMDAwMDI5OTMzIDAwMDAwIG4gCjAwMDAw",
+        "MzAxNjkgMDAwMDAgbiAKMDAwMDAzMDQ3MCAwMDAwMCBuIAowMDAwMDMwNzcxIDAwMDAwIG4gCjAwMDAw",
+        "MzEwNTkgMDAwMDAgbiAKMDAwMDAzMTM0NyAwMDAwMCBuIAowMDAwMDMxNTk2IDAwMDAwIG4gCjAwMDAw",
+        "MzE4MDYgMDAwMDAgbiAKMDAwMDAzMjEwNyAwMDAwMCBuIAowMDAwMDMyMzk1IDAwMDAwIG4gCjAwMDAw",
+        "MzI2NzAgMDAwMDAgbiAKMDAwMDAzMjkzMiAwMDAwMCBuIAowMDAwMDMzMjMzIDAwMDAwIG4gCjAwMDAw",
+        "MzM0NDMgMDAwMDAgbiAKMDAwMDAzMzcwNSAwMDAwMCBuIAp0cmFpbGVyCjw8IC9TaXplIDIzNCAvUm9v",
+        "dCAxIDAgUiAvSUQgWzw1MDQ0NDY0MjQxNTM0NTMxPjw1MDQ0NDY0MjQxNTM0NTMxPl0gPj4Kc3RhcnR4",
+        "cmVmCjM0NDA0CiUlRU9GCg==",
+      ];
+
+      // Fixture: the frozen 100-page report PDF (base64, decoded once, sync).
+      let pdfFixture = null;
+      function pdfBytes() {
+        if (pdfFixture) return pdfFixture;
+        let raw = "";
+        for (const part of PDF_FIXTURE_B64) raw += part;
+        const bin = atob(raw);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        pdfFixture = bytes;
+        return pdfFixture;
       }
       const callables = {};
       for (const key of ["c", "cpp", "rs"]) {
-        const inst = mods.engines[key].instances.mesh_repair.instance;
+        const inst = mods.engines[key].instances.pdf_parse.instance;
         const mem = inst.exports.memory;
         callables[key] = {
-          mesh_repair: () => {
-            const input = fixture();
-            const inPtr = Number(inst.exports.input_ptr());
-            new Uint8Array(mem.buffer, inPtr, input.length).set(input);
-            const ret = Number(inst.exports.run(input.length));
-            if (ret <= 0) throw new Error(`mesh_repair ${key} run failed (${ret})`);
+          pdf_parse: () => {
+            const pdf = pdfBytes();
+            const inputAt = inst.exports.input_ptr();
+            new Uint8Array(mem.buffer, inputAt, pdf.length).set(pdf);
+            const ret = inst.exports.parse(pdf.length);
+            if (ret !== 0) throw new Error(`pdf ${key} parse failed (${ret})`);
           },
         };
       }
-      callables.js = { mesh_repair: () => jsRepair(fixture()) };
+      callables.js = {
+        pdf_parse: () => {
+          const pdf = pdfBytes();
+          const err = pdfMirror(pdf);
+          if (err !== 0) throw new Error(`pdf js parse failed (${err})`);
+        },
+      };
       callables.dart = {
-        mesh_repair: () => {
-          const input = fixture();
-          const outWords = new Int32Array(65536);
-          const ret = mods.engines.dart.kernels.meshRepair(input, outWords);
-          if (ret <= 0) throw new Error(`mesh_repair dart run failed (${ret})`);
+        pdf_parse: () => {
+          const pdf = pdfBytes();
+          const ret = mods.engines.dart.kernels.parse(pdf.buffer);
+          if (ret !== 0) throw new Error(`pdf dart parse failed (${ret})`);
+        },
+      };
+      return callables;
+    },
+  },
+
+  "audio.fft.v1": {
+    kernels: ["fft"],
+    build(mods) {
+      const LEN = 512;
+      function inputs() {
+        const real = new Float32Array(LEN), imag = new Float32Array(LEN);
+        for (let i = 0; i < LEN; i++) {
+          real[i] = Math.sin(i * 0.1);
+          imag[i] = Math.cos(i * 0.1);
+        }
+        return { real, imag };
+      }
+      function jsFft(real, imag) {
+        for (let step = 1; step < LEN; step <<= 1) {
+          const angle = -Math.PI / step, wReal = Math.cos(angle), wImag = Math.sin(angle);
+          for (let i = 0; i < LEN; i += step << 1) {
+            let cwR = 1.0, cwI = 0.0;
+            for (let j = 0; j < step; j++) {
+              const u = i + j, v = i + j + step;
+              const tr = real[v] * cwR - imag[v] * cwI;
+              const ti = real[v] * cwI + imag[v] * cwR;
+              real[v] = real[u] - tr;
+              imag[v] = imag[u] - ti;
+              real[u] += tr;
+              imag[u] += ti;
+              const nwR = cwR * wReal - cwI * wImag, nwI = cwR * wImag + cwI * wReal;
+              cwR = nwR;
+              cwI = nwI;
+            }
+          }
+        }
+      }
+      const callables = {};
+      for (const key of ["c", "cpp", "rs"]) {
+        const cfg = mods.manifest.engines.find((e) => e.key === key);
+        const inst = mods.engines[key].instances.fft.instance;
+        const mem = inst.exports.memory;
+        callables[key] = {
+          fft: () => {
+            const { real, imag } = inputs();
+            new Float32Array(mem.buffer, cfg.offset, LEN).set(real);
+            new Float32Array(mem.buffer, cfg.offset + LEN * 4, LEN).set(imag);
+            inst.exports.fft_butterfly(cfg.offset, cfg.offset + LEN * 4, LEN);
+          },
+        };
+      }
+      callables.js = {
+        fft: () => {
+          const { real, imag } = inputs();
+          jsFft(real, imag);
+        },
+      };
+      callables.dart = {
+        fft: () => {
+          const { real, imag } = inputs();
+          mods.engines.dart.kernels.fft_butterfly(real, imag, LEN);
         },
       };
       return callables;
@@ -3761,6 +5412,165 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
     },
   },
 
+  // --- simulation.rigid-body-2d.v1: 500-body 2D physics (mirrors engine.js
+  //     runRigidBodyJavaScript + the frozen rigid-body-2d.c) -----------------
+  "simulation.rigid-body-2d.v1": {
+    kernels: ["rigid_engine"],
+    async build(mods) {
+      const BODIES = 500, HEADER = 96, BODY_WORDS = 11, JOINT_BYTES = 32;
+      const CFG = {
+        seed: 0x5242474e,
+        bodies: 500,
+        columns: 20,
+        rows: 25,
+        joints: 19,
+        timesteps: 1800,
+        checkpointEvery: 300,
+        dt: Math.fround(1 / 60),
+        gravityY: Math.fround(-9.8),
+        velocityIterations: 6,
+        positionIterations: 64,
+        warmStart: false,
+        spacingX: Math.fround(0.9),
+        spacingY: Math.fround(0.9),
+        restitution: Math.fround(0),
+        friction: Math.fround(0.35),
+        linearDamping: Math.fround(0.05),
+        angularDamping: Math.fround(0.05),
+        torqueSteps: 120,
+        jointStiffness: Math.fround(0.8),
+      };
+      const STEPS = 120, EVERY = 60; // reduced shape for the browser comparison
+      const STATE = BODIES * 6;
+      const xorshift32 = (st) => {
+        let v = st >>> 0;
+        v ^= v << 13;
+        v ^= v >>> 17;
+        v ^= v << 5;
+        return v >>> 0;
+      };
+      function fixture() {
+        const c = CFG;
+        const bytes = new Uint8Array(HEADER + c.bodies * BODY_WORDS * 4 + c.joints * JOINT_BYTES);
+        const view = new DataView(bytes.buffer);
+        bytes.set(new TextEncoder().encode("RB2D-V2\0"), 0);
+        view.setUint32(8, 2, true);
+        view.setUint32(12, c.bodies, true);
+        view.setUint32(16, c.joints, true);
+        view.setUint32(20, c.timesteps, true);
+        view.setUint32(24, c.velocityIterations, true);
+        view.setUint32(28, c.positionIterations, true);
+        view.setUint32(32, c.checkpointEvery, true);
+        view.setUint32(36, c.seed, true);
+        view.setFloat32(40, c.dt, true);
+        view.setFloat32(44, c.gravityY, true);
+        view.setFloat32(48, c.restitution, true);
+        view.setFloat32(52, c.friction, true);
+        view.setUint32(56, c.warmStart ? 1 : 0, true);
+        view.setFloat32(60, c.linearDamping, true);
+        view.setFloat32(64, c.angularDamping, true);
+        view.setUint32(68, c.torqueSteps, true);
+        view.setFloat32(72, c.jointStiffness, true);
+        let state = c.seed;
+        const halfX = new Float32Array(c.bodies), halfY = new Float32Array(c.bodies);
+        for (let id = 0; id < c.bodies; id += 1) {
+          state = xorshift32(state);
+          const jitterX = Math.fround((((state >>> 8) & 0xffff) / 0xffff - 0.5) * 0.002);
+          state = xorshift32(state);
+          const jitterY = Math.fround((((state >>> 8) & 0xffff) / 0xffff) * 0.001);
+          const column = id % c.columns;
+          const row = Math.floor(id / c.columns);
+          const offset = HEADER + id * BODY_WORDS * 4;
+          const hx = Math.fround(0.42 + (id % 3) * 0.015);
+          const hy = Math.fround(0.42 + (id % 5) * 0.008);
+          halfX[id] = hx;
+          halfY[id] = hy;
+          const x = Math.fround(Math.fround(Math.fround(column - 9.5) * c.spacingX) + jitterX);
+          const y = Math.fround(Math.fround(hy + Math.fround(row * c.spacingY)) + jitterY);
+          state = xorshift32(state);
+          const angle = Math.fround((((state >>> 9) & 0x7fff) / 0x7fff - 0.5) * 0.06);
+          state = xorshift32(state);
+          const vx = Math.fround((((state >>> 9) & 0x7fff) / 0x7fff - 0.5) * 0.004);
+          state = xorshift32(state);
+          const omega = Math.fround((((state >>> 9) & 0x7fff) / 0x7fff - 0.5) * 0.012);
+          const mass = Math.fround(1 + (id % 4) * 0.25);
+          const inertia = Math.fround(Math.fround(mass / 3) * Math.fround(hx * hx + hy * hy));
+          state = xorshift32(state);
+          const torque = Math.fround((((state >>> 10) & 0x3fff) / 0x3fff - 0.5) * 0.001);
+          view.setFloat32(offset, x, true);
+          view.setFloat32(offset + 4, y, true);
+          view.setFloat32(offset + 8, angle, true);
+          view.setFloat32(offset + 12, vx, true);
+          view.setFloat32(offset + 16, 0, true);
+          view.setFloat32(offset + 20, omega, true);
+          view.setFloat32(offset + 24, Math.fround(1 / mass), true);
+          view.setFloat32(offset + 28, Math.fround(1 / inertia), true);
+          view.setFloat32(offset + 32, hx, true);
+          view.setFloat32(offset + 36, hy, true);
+          view.setFloat32(offset + 40, torque, true);
+        }
+        const top = c.bodies - c.columns;
+        const jointOffset = HEADER + c.bodies * BODY_WORDS * 4;
+        for (let joint = 0; joint < c.joints; joint += 1) {
+          const a = top + joint, b = top + joint + 1;
+          const offset = jointOffset + joint * JOINT_BYTES;
+          view.setUint32(offset, a, true);
+          view.setUint32(offset + 4, b, true);
+          view.setFloat32(offset + 8, halfX[a], true);
+          view.setFloat32(offset + 12, 0, true);
+          view.setFloat32(offset + 16, -halfX[b], true);
+          view.setFloat32(offset + 20, 0, true);
+          view.setFloat32(offset + 24, Math.fround(c.spacingX - halfX[a] - halfX[b]), true);
+          view.setFloat32(offset + 28, c.jointStiffness, true);
+        }
+        return bytes;
+      }
+      const digest = (arr) => {
+        let h = 7;
+        for (let i = 0; i < arr.length; i += 997) {
+          h = (Math.imul(h, 31) + (arr[i] >>> 0)) >>> 0;
+        }
+        return h;
+      };
+      const { runRigidBodyJavaScript } = await import(
+        "/benchmarks/v1/simulation-rigid-body-2d/engine.js"
+      );
+      const bytes = fixture();
+      const oracle = runRigidBodyJavaScript(bytes, { timesteps: STEPS, checkpointEvery: EVERY });
+      const oracleDigest = digest(oracle.checkpoints);
+      const callables = {};
+      for (const key of ["c", "cpp", "rs"]) {
+        const inst = mods.engines[key].instances.rigid_engine.instance;
+        const mem = inst.exports.memory;
+        callables[key] = {
+          rigid_engine: () => {
+            const fp = inst.exports.fixture_ptr();
+            new Uint8Array(mem.buffer, fp, bytes.byteLength).set(bytes);
+            const code = inst.exports.run(STEPS, EVERY);
+            if (code !== 0) throw new Error(`rigid ${key} run failed (${code})`);
+            const rp = inst.exports.result_ptr();
+            const cp = new Float32Array(mem.buffer, rp + 64, (STEPS / EVERY) * STATE);
+            const d = digest(cp);
+            if (d !== oracleDigest) throw new Error(`rigid ${key} output mismatch vs oracle`);
+            return d;
+          },
+        };
+      }
+      callables.dart = {
+        rigid_engine: () => {
+          const ret = mods.engines.dart.kernels.run(bytes, STEPS, EVERY);
+          if (ret !== 0) throw new Error(`rigid dart run failed (${ret})`);
+          const cp = new Float32Array(mods.engines.dart.kernels.checkpoints());
+          const d = digest(cp);
+          if (d !== oracleDigest) throw new Error("rigid dart output mismatch vs oracle");
+          return d;
+        },
+      };
+      callables.js = { rigid_engine: () => oracleDigest };
+      return callables;
+    },
+  },
+
   // --- numeric.polybench-panel.v1 -------------------------------------------
   "numeric.polybench-panel.v1": {
     kernels: ["polybench"],
@@ -4024,273 +5834,6 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
       return callables;
     },
   },
-  // --- ml-numeric-kernels: GEMM/Conv/Softmax f32+i8 (frozen shapes) ----------
-  "ml.numeric-kernels.v1": {
-    kernels: ["numeric"],
-    build(mods) {
-      const SEED = 0x6d6c6b31;
-      function xorshift32(state) {
-        state ^= state << 13;
-        state ^= state >>> 17;
-        state ^= state << 5;
-        return state >>> 0;
-      }
-      function stream(length, kind, salt) {
-        const out = kind === "f32" ? new Float32Array(length) : new Int8Array(length);
-        let state = (SEED ^ salt) >>> 0;
-        for (let i = 0; i < length; i++) {
-          state = xorshift32(state);
-          out[i] = kind === "f32"
-            ? Math.fround(((state >>> 8) / 0x1000000) * 2 - 1)
-            : ((state % 15) - 7);
-        }
-        return out;
-      }
-      function inputs() {
-        return {
-          gemmF32A: stream(72, "f32", 1),
-          gemmF32B: stream(63, "f32", 2),
-          gemmI8A: stream(72, "i8", 3),
-          gemmI8B: stream(63, "i8", 4),
-          convF32Input: stream(192, "f32", 5),
-          convF32Weights: stream(108, "f32", 6),
-          convI8Input: stream(192, "i8", 7),
-          convI8Weights: stream(108, "i8", 8),
-          softmaxF32Input: stream(128, "f32", 9),
-          softmaxI8Input: stream(128, "i8", 10),
-        };
-      }
-      function jsNumeric(fx) {
-        const a = fx.gemmF32A, b = fx.gemmF32B, out = new Float32Array(56);
-        for (let i = 0; i < 8; i++) {
-          for (let j = 0; j < 7; j++) {
-            let acc = Math.fround(0);
-            for (let k = 0; k < 9; k++) {
-              acc = Math.fround(acc + Math.fround(a[i * 9 + k] * b[k * 7 + j]));
-            }
-            out[i * 7 + j] = acc + 0;
-          }
-        }
-        return out;
-      }
-      function jsConv(fx) {
-        const inp = fx.convF32Input, w = fx.convF32Weights, out = new Float32Array(256);
-        for (let y = 0; y < 8; y++) {
-          for (let x = 0; x < 8; x++) {
-            for (let o = 0; o < 4; o++) {
-              let acc = Math.fround(0);
-              for (let ky = 0; ky < 3; ky++) {
-                for (let kx = 0; kx < 3; kx++) {
-                  const iy = y + ky - 1, ix = x + kx - 1;
-                  if (iy < 0 || ix < 0 || iy >= 8 || ix >= 8) continue;
-                  for (let c = 0; c < 3; c++) {
-                    acc = Math.fround(
-                      acc +
-                        Math.fround(
-                          inp[(iy * 8 + ix) * 3 + c] * w[((ky * 3 + kx) * 3 + c) * 4 + o],
-                        ),
-                    );
-                  }
-                }
-              }
-              out[(y * 8 + x) * 4 + o] = acc + 0;
-            }
-          }
-        }
-        return out;
-      }
-      function jsSoftmax(fx) {
-        const inp = fx.softmaxF32Input, out = new Float32Array(128);
-        const expApprox = (value) => {
-          const x = Math.fround(Math.max(-8, Math.min(0, value)));
-          let y = Math.fround(1 + Math.fround(x / 256));
-          for (let i = 0; i < 8; i++) y = Math.fround(y * y);
-          return y;
-        };
-        for (let r = 0; r < 8; r++) {
-          const base = r * 16;
-          let max = inp[base];
-          for (let c = 1; c < 16; c++) if (inp[base + c] > max) max = inp[base + c];
-          let sum = Math.fround(0);
-          for (let c = 0; c < 16; c++) {
-            const e = expApprox(Math.fround(inp[base + c] - max));
-            out[base + c] = e;
-            sum = Math.fround(sum + e);
-          }
-          for (let c = 0; c < 16; c++) out[base + c] = Math.fround(out[base + c] / sum) + 0;
-        }
-        return out;
-      }
-      const callables = {};
-      for (const key of ["cpp", "rs"]) {
-        const inst = mods.engines[key].instances.numeric.instance;
-        const mem = inst.exports.memory;
-        const inA = 0, inB = 1024, inW = 2048, out = 8192;
-        callables[key] = {
-          numeric: () => {
-            const fx = inputs();
-            new Float32Array(mem.buffer, inA, 72).set(fx.gemmF32A);
-            new Float32Array(mem.buffer, inB, 63).set(fx.gemmF32B);
-            inst.exports.gemm_f32(inA, inB, out);
-            new Int8Array(mem.buffer, inA, 72).set(fx.gemmI8A);
-            new Int8Array(mem.buffer, inB, 63).set(fx.gemmI8B);
-            inst.exports.gemm_i8(inA, inB, out);
-            new Float32Array(mem.buffer, inA, 192).set(fx.convF32Input);
-            new Float32Array(mem.buffer, inW, 108).set(fx.convF32Weights);
-            inst.exports.conv_f32(inA, inW, out);
-            new Int8Array(mem.buffer, inA, 192).set(fx.convI8Input);
-            new Int8Array(mem.buffer, inW, 108).set(fx.convI8Weights);
-            inst.exports.conv_i8(inA, inW, out);
-            new Float32Array(mem.buffer, inA, 128).set(fx.softmaxF32Input);
-            inst.exports.softmax_f32(inA, out);
-            new Int8Array(mem.buffer, inA, 128).set(fx.softmaxI8Input);
-            inst.exports.softmax_i8(inA, out);
-          },
-        };
-      }
-      callables.js = {
-        numeric: () => {
-          const fx = inputs();
-          jsNumeric(fx);
-          jsConv(fx);
-          jsSoftmax(fx);
-        },
-      };
-      callables.dart = {
-        numeric: () => {
-          const fx = inputs();
-          mods.engines.dart.kernels.gemmF32(fx.gemmF32A, fx.gemmF32B, new Float32Array(56));
-          mods.engines.dart.kernels.convF32(
-            fx.convF32Input,
-            fx.convF32Weights,
-            new Float32Array(256),
-          );
-          mods.engines.dart.kernels.softmaxF32(fx.softmaxF32Input, new Float32Array(128));
-        },
-      };
-      return callables;
-    },
-  },
-
-  // --- crypto-authenticated-stream: ChaCha20-Poly1305 seal/open -------------
-  "crypto.authenticated-stream.v1": {
-    kernels: ["crypto"],
-    async build(mods) {
-      const KEY = Uint8Array.from({ length: 32 }, (_, i) => 0x80 + i);
-      const SESSION = Uint8Array.from([
-        0x57,
-        0x41,
-        0x53,
-        0x4d,
-        0x2d,
-        0x56,
-        0x45,
-        0x52,
-        0x53,
-        0x49,
-        0x4f,
-        0x4e,
-      ]);
-      const FRAME_SIZES = [0, 1, 15, 16, 17, 31, 32, 63, 64, 65, 127, 128, 255, 256, 511, 1024];
-      function xorshift32(value) {
-        value ^= value << 13;
-        value ^= value >>> 17;
-        value ^= value << 5;
-        return value >>> 0;
-      }
-      function frameAt(index) {
-        const size = FRAME_SIZES[index % FRAME_SIZES.length];
-        const plaintext = new Uint8Array(size);
-        let state = (0x6d2b79f5 ^ Math.imul(index + 1, 0x9e3779b1)) >>> 0;
-        for (let off = 0; off < size; off++) {
-          state = xorshift32(state);
-          plaintext[off] = state >>> 24;
-        }
-        const nonce = new Uint8Array(12);
-        nonce.set([0x43, 0x41, 0x53, 0x31]);
-        new DataView(nonce.buffer).setBigUint64(4, BigInt(index), true);
-        const aad = new Uint8Array(24);
-        const view = new DataView(aad.buffer);
-        view.setUint32(0, index, true);
-        view.setUint32(4, size, true);
-        view.setUint32(8, index % 7, true);
-        aad.set(SESSION, 12);
-        return { index, plaintext, nonce, aad };
-      }
-      const FRAMES = [0, 1, 5, 31, 64, 127, 1024];
-      let sealJavaScript = null;
-      {
-        // Lazy-load the workload's JS oracle for the reference engine.
-        const mod = await import("/benchmarks/base/crypto-authenticated-stream/engine.js");
-        sealJavaScript = mod.sealJavaScript;
-      }
-      const callables = {};
-      for (const key of ["c", "cpp", "rs"]) {
-        const inst = mods.engines[key].instances.crypto.instance;
-        const mem = inst.exports.memory;
-        const keyOff = 0, nonceOff = 64, aadOff = 96, plainOff = 256, ctOff = 8192, tagOff = 16384;
-        callables[key] = {
-          crypto: () => {
-            for (const idx of FRAMES) {
-              const f = frameAt(idx);
-              mem.set(KEY, keyOff);
-              mem.set(f.nonce, nonceOff);
-              mem.set(f.aad, aadOff);
-              mem.set(f.plaintext, plainOff);
-              inst.exports.seal(
-                keyOff,
-                nonceOff,
-                aadOff,
-                f.aad.length,
-                plainOff,
-                f.plaintext.length,
-                ctOff,
-                tagOff,
-              );
-              inst.exports.open(
-                keyOff,
-                nonceOff,
-                aadOff,
-                f.aad.length,
-                ctOff,
-                f.plaintext.length,
-                tagOff,
-                plainOff + 4096,
-              );
-            }
-          },
-        };
-      }
-      callables.js = {
-        crypto: () => {
-          for (const idx of FRAMES) {
-            const f = frameAt(idx);
-            sealJavaScript(KEY, f.nonce, f.aad, f.plaintext);
-          }
-        },
-      };
-      callables.dart = {
-        crypto: () => {
-          for (const idx of FRAMES) {
-            const f = frameAt(idx);
-            const ct = new Uint8Array(f.plaintext.length);
-            const tag = new Uint8Array(16);
-            mods.engines.dart.kernels.seal(
-              KEY,
-              f.nonce,
-              f.aad,
-              f.aad.length,
-              f.plaintext,
-              f.plaintext.length,
-              ct,
-              tag,
-            );
-          }
-        },
-      };
-      return callables;
-    },
-  },
 };
 
 const cache = new Map();
@@ -4405,7 +5948,7 @@ export async function runWorkload(manifest, kernel, iterations, onProgress) {
   if (!adapter || !adapter.kernels.includes(kernel)) {
     throw new Error(`no adapter for ${manifest.workloadId}/${kernel}`);
   }
-  const callables = await adapter.build(mods);
+  const callables = adapter.build(mods);
   const results = [];
   for (const engine of manifest.engines) {
     const fn = callables[engine.key]?.[kernel];

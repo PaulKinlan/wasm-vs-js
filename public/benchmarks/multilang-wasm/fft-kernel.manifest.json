@@ -1,0 +1,20 @@
+{
+  "workloadId": "multilang-wasm",
+  "kernelLabel": "Radix-2 FFT \u2014 512 floats (7 engines)",
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": ["fft"],
+  "engines": [
+    { "key": "js", "label": "JavaScript", "kind": "js" },
+    { "key": "asc", "label": "AssemblyScript", "kind": "linear", "lang": "asc", "offset": 1024 },
+    { "key": "c", "label": "C / Wasm", "kind": "linear", "lang": "c", "offset": 1024 },
+    { "key": "cpp", "label": "C++ / Wasm", "kind": "linear", "lang": "cpp", "offset": 1024 },
+    { "key": "rs", "label": "Rust / Wasm", "kind": "linear", "lang": "rs", "offset": 1024 },
+    {
+      "key": "dart",
+      "label": "Dart / WasmGC",
+      "kind": "dart",
+      "file": "fft_dart.wasm",
+      "glue": "fft_dart.mjs"
+    }
+  ]
+}
