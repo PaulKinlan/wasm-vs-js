@@ -2512,7 +2512,7 @@ function benchmarkOne(fn, iterations) {
 const sourceSizeCache = new Map();
 async function kernelSourceBytes(manifest, kernel, lang) {
   const ext = lang === "js" ? "ts" : lang;
-  const dir = (manifest._path ?? "").split("/").filter(Boolean).slice(-2, -1)[0] ?? "";
+  const dir = (manifest._path ?? "").split("/").pop()?.replace(/\.manifest\.json$/, "") ?? "";
   const candidates = [
     `/benchmarks/multilang-wasm/${kernel}.${ext}`,
     dir ? `/benchmarks/multilang-wasm/${dir}/${kernel}.${ext}` : "",
