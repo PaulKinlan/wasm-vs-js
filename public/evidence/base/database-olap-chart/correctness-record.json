@@ -3,7 +3,7 @@
   "recordId": "database.olap-chart.v1.controlled-a1.correctness",
   "workloadId": "database.olap-chart.v1",
   "status": "passed-correctness-only",
-  "sourceCommit": "b8104ccfec5a87df7cf884f86fd7d39458c0ee02",
+  "sourceCommit": "b69754245dcebddb2b4709b259487461bc56a37d",
   "fixtureSha256": "5cf987b48dffafc4d11f11f23d25c2064e631a8ac8070ef89fdb2090751b9e8c",
   "wasmSha256": "d8961ca2376da7f5fc571b89235d3986fa80e27d557c832ba86d025d8077acd8",
   "completeOutputDigest": "e26a152f",
