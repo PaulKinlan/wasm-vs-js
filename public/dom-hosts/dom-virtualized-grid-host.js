@@ -238,7 +238,7 @@ export async function createTodomvcHost() {
       }
     },
 
-    runModel: (mod, traceActions, target) =>
+    runModel: (mod, _traceActions, target) =>
       target === "wasm"
         ? mod.normalizeForEquivalence(mod.runWasm(wasmExports, fixture))
         : mod.normalizeForEquivalence(mod.runJavaScript(fixture)),
