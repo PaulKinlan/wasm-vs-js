@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "59c835622ad14deb4411497281fb8f494a038172",
-  "sourceSha256": "a665e131fa2aa4d393754eabc40dc3235e33839f1c152903b95124eb07526e24",
+  "sourceCommit": "966808b11c7a9b26ce6544b1b6a0ad216ea91dbd",
+  "sourceSha256": "0a2b44f2bc08e55f0ce062939a51d98c99ef723b8579269944a718cbcfc39513",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 88165,
-      "sha256": "83ab7c07b26fc7b31ab7ace4e570a92702e4c7b3c555f1e35813df65620db48c"
+      "bytes": 89331,
+      "sha256": "a35768c24404f3b3ee70415da356d64fc32f557d0e50249b78b3b7531f1a4513"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "5ca17c8b7e26266c6519974cbc26721304ceb083db1f777124fbcd87b432d60b"
+      "sha256": "3c41532f1b6faad870f47d37ee4c41c5b7da7a6ca63a16106b1b30dc0de96f6c"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "996c781c6953affea56735df16e54e629ec5db2642d88e9a0b9347e7ca634eeb"
+      "sha256": "0369d1eed4898f66bee08b618a5b6132bedd7ab5e27da04217de9e3f0dd975b5"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=59c835622ad14deb4411497281fb8f494a038172"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=966808b11c7a9b26ce6544b1b6a0ad216ea91dbd"
   }
 }
