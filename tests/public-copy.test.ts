@@ -65,8 +65,8 @@ Deno.test("public prose retains the benchmark's current evidence limits", async 
   assert(evidence.includes("Accepted performance corpus: none"));
   assert(evidence.includes("Chrome 150 attestation: unverified"));
   assert(proposalEvidence.includes("Performance claims: none."));
-  assert(catalog.includes("38 proposed workloads; 23 runnable browser demos"));
-  assert(catalog.includes("23/38 catalog workloads have runnable browser demos"));
+  assert(catalog.includes("38 proposed workloads; 49 runnable browser demos"));
+  assert(catalog.includes("49 runnable browser demos across 38 proposed workloads"));
   assert(catalog.includes("v2 proposal implementation inventory"));
   assert(catalog.includes("Runnable demos: 14"));
   assert(catalog.includes("10 full proposal-validation routes and 4 reduced-fixture routes"));
