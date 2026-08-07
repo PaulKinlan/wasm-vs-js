@@ -123,14 +123,29 @@ export function runIframeDomBenchmark({
   targets = ["js", "wasm"],
   timeoutMs = 240000,
   onProgress = () => {},
+  visible = false,
+  container = null,
 }) {
   return new Promise((resolve, reject) => {
     const token = crypto.randomUUID();
     let startRetry = null;
     const iframe = document.createElement("iframe");
     iframe.src = route;
-    iframe.setAttribute("aria-hidden", "true");
-    iframe.style.display = "none"; // CSSOM property assignment — CSP-safe
+    if (visible) {
+      // Visible mode (benchmark-page real-DOM stage): the iframe is shown so
+      // the user can watch the real UI being driven. CSSOM property
+      // assignment — CSP-safe (no inline styles).
+      iframe.style.display = "block";
+      iframe.style.width = "420px";
+      iframe.style.height = "420px";
+      iframe.style.border = "1px solid #888";
+      iframe.style.marginTop = "12px";
+      iframe.style.borderRadius = "6px";
+      iframe.setAttribute("title", "Real DOM under test — the frozen action trace is applied to this rendered UI");
+    } else {
+      iframe.style.display = "none"; // CSSOM property assignment — CSP-safe
+      iframe.setAttribute("aria-hidden", "true");
+    }
     iframe.setAttribute("data-wvj-bridge", "1");
     iframe.addEventListener("load", () => {
       const targetWindow = iframe.contentWindow;
@@ -196,6 +211,6 @@ export function runIframeDomBenchmark({
       iframe.remove();
     }
 
-    document.body.append(iframe);
+    (container ?? document.body).append(iframe);
   });
 }

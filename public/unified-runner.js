@@ -895,9 +895,12 @@ async function runComposedStages(
     const iframeNote = document.createElement("p");
     iframeNote.className = "notice";
     iframeNote.textContent =
-      "Real-DOM iframe run: the demo page loaded itself in a hidden same-origin iframe, rendered an actual UI, and applied the frozen action trace with real DOM APIs (createElement/appendChild/classList/focus).";
+      "Real-DOM iframe run: the page loaded itself in the VISIBLE iframe below, rendered an actual UI, and applied the frozen action trace with real DOM APIs (createElement/appendChild/classList/focus). The host verifies the rendered DOM against the oracle. Why the different scopes? The primary run measures the engine worker (including per-iteration evidence hashing); this stage measures the full render-and-drive journey in the real DOM; the multi-language section measures the bare kernel — three different scopes, shown honestly side by side.";
     const domBox = stageBlock("real-dom", "Real-DOM iframe run");
     domBox.appendChild(iframeNote);
+    const iframeContainer = document.createElement("div");
+    iframeContainer.setAttribute("data-wvj-visible-host", "1");
+    domBox.appendChild(iframeContainer);
     statusEl.textContent = "Real-DOM run: loading the demo page in an iframe…";
     const { runIframeDomBenchmark } = await import("/iframe-benchmark-bridge.js");
     try {
@@ -906,6 +909,8 @@ async function runComposedStages(
         iterations,
         targets: ["js", "wasm"],
         timeoutMs: 240000,
+        visible: true,
+        container: iframeContainer,
         onProgress: ({ target, iteration, total }) => {
           statusEl.textContent = `Real-DOM run: ${
             target === "js" ? "JS" : "Wasm"
