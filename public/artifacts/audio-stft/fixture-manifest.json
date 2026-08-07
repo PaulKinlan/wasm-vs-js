@@ -15,5 +15,5 @@
     "mapping": "unchanged 20-8000 Hz chirp plus xorshift32 seed 0x13579bdf noise ratio, multiplied by exact f32 power-of-two scale 0.125"
   },
   "serialization": "canonical little-endian f32 fields in catalog-declared order",
-  "sourceCommit": "5d28bf8458b8a17b9ada9a0c969a99188caaf290"
+  "sourceCommit": "96dd3059ccbc4f6caf9e8cea699ea91b26a831ca"
 }
