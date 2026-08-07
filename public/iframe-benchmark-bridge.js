@@ -141,7 +141,10 @@ export function runIframeDomBenchmark({
       iframe.style.border = "1px solid #888";
       iframe.style.marginTop = "12px";
       iframe.style.borderRadius = "6px";
-      iframe.setAttribute("title", "Real DOM under test — the frozen action trace is applied to this rendered UI");
+      iframe.setAttribute(
+        "title",
+        "Real DOM under test — the frozen action trace is applied to this rendered UI",
+      );
     } else {
       iframe.style.display = "none"; // CSSOM property assignment — CSP-safe
       iframe.setAttribute("aria-hidden", "true");
