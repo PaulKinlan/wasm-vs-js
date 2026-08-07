@@ -4573,9 +4573,11 @@ function benchmarkOne(fn, iterations) {
 // flat in benchmarks/multilang-wasm/ (sum/fft) or in a per-workload subdir
 // (<dir>/<kernel>.c). Try both; return bytes or 0 (kept honest as "—").
 const sourceSizeCache = new Map();
-async function kernelSourceBytes(manifest, kernel, lang, explicitSource) {
-  const ext = lang === "js" ? "ts" : lang;
-  const dir = (manifest._path ?? "").split("/").pop()?.replace(/\.manifest\.json$/, "") ?? "";
+async function kernelSourceBytes(manifest, _kernel, lang, explicitSource) {
+  // Only explicit sources are probed (declared per-engine); no fallback
+  // guessing that could 404.
+  void manifest;
+  void lang;
   if (!explicitSource || explicitSource === "") return 0;
   const candidates = [`/benchmarks/${explicitSource.replace(/^benchmarks\//, "")}`];
   for (const path of candidates) {
