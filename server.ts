@@ -187,14 +187,38 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/results", ["public/results/index.html", "text/html; charset=utf-8"]],
   ["/results/", ["public/results/index.html", "text/html; charset=utf-8"]],
   ["/unified-runner.js", ["public/unified-runner.js", "text/javascript; charset=utf-8"]],
-  ["/dom-hosts/base-dom-todomvc-journey.js", ["public/dom-hosts/base-dom-todomvc-journey.js", "text/javascript; charset=utf-8"]],
-  ["/iframe-benchmark-bridge.js", ["public/iframe-benchmark-bridge.js", "text/javascript; charset=utf-8"]],
-  ["/artifacts/multilang-wasm-benchmark/todomvc_engine_c.wasm", ["public/artifacts/multilang-wasm-benchmark/todomvc_engine_c.wasm", "application/wasm"]],
-  ["/artifacts/multilang-wasm-benchmark/todomvc_engine_cpp.wasm", ["public/artifacts/multilang-wasm-benchmark/todomvc_engine_cpp.wasm", "application/wasm"]],
-  ["/artifacts/multilang-wasm-benchmark/todomvc_engine_rs.wasm", ["public/artifacts/multilang-wasm-benchmark/todomvc_engine_rs.wasm", "application/wasm"]],
-  ["/artifacts/multilang-wasm-benchmark/todomvc_engine_dart.wasm", ["public/artifacts/multilang-wasm-benchmark/todomvc_engine_dart.wasm", "application/wasm"]],
-  ["/artifacts/multilang-wasm-benchmark/todomvc_engine_dart.mjs", ["public/artifacts/multilang-wasm-benchmark/todomvc_engine_dart.mjs", "text/javascript; charset=utf-8"]],
-  ["/dom-hosts/todomvc-ops.js", ["public/dom-hosts/todomvc-ops.js", "text/javascript; charset=utf-8"]],
+  ["/dom-hosts/base-dom-todomvc-journey.js", [
+    "public/dom-hosts/base-dom-todomvc-journey.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/iframe-benchmark-bridge.js", [
+    "public/iframe-benchmark-bridge.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/artifacts/multilang-wasm-benchmark/todomvc_engine_c.wasm", [
+    "public/artifacts/multilang-wasm-benchmark/todomvc_engine_c.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/multilang-wasm-benchmark/todomvc_engine_cpp.wasm", [
+    "public/artifacts/multilang-wasm-benchmark/todomvc_engine_cpp.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/multilang-wasm-benchmark/todomvc_engine_rs.wasm", [
+    "public/artifacts/multilang-wasm-benchmark/todomvc_engine_rs.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/multilang-wasm-benchmark/todomvc_engine_dart.wasm", [
+    "public/artifacts/multilang-wasm-benchmark/todomvc_engine_dart.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/multilang-wasm-benchmark/todomvc_engine_dart.mjs", [
+    "public/artifacts/multilang-wasm-benchmark/todomvc_engine_dart.mjs",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/dom-hosts/todomvc-ops.js", [
+    "public/dom-hosts/todomvc-ops.js",
+    "text/javascript; charset=utf-8",
+  ]],
   ["/multilang-runner.js", ["public/multilang-runner.js", "text/javascript; charset=utf-8"]],
   ["/inspectability.js", ["public/inspectability.js", "text/javascript; charset=utf-8"]],
   ["/v2-results.js", ["public/v2-results.js", "text/javascript; charset=utf-8"]],
@@ -306,6 +330,18 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/demos/game-family/worker.js", [
     "public/demos/game-family/worker.js",
     "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/game-family/demo.js", [
+    "public/benchmarks/game-family/demo.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/game-family/worker.js", [
+    "public/benchmarks/game-family/worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/game-family/styles.css", [
+    "public/benchmarks/game-family/styles.css",
+    "text/css; charset=utf-8",
   ]],
   ["/demos/game-family/styles.css", [
     "public/demos/game-family/styles.css",
@@ -510,38 +546,6 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/demos/text.diff-patch.v1/index.html",
     "text/html; charset=utf-8",
   ]],
-  ["/benchmarks/game-canvas-arcade", [
-    "public/demos/game-canvas-arcade/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/game-canvas-arcade/", [
-    "public/demos/game-canvas-arcade/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/game-canvas-entity-pathfinding", [
-    "public/demos/game-canvas-entity-pathfinding/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/game-canvas-entity-pathfinding/", [
-    "public/demos/game-canvas-entity-pathfinding/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/game-dom-tactics-grid", [
-    "public/demos/game-dom-tactics-grid/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/game-dom-tactics-grid/", [
-    "public/demos/game-dom-tactics-grid/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/game-ecs-frame-update", [
-    "public/demos/game-ecs-frame-update/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/game-ecs-frame-update/", [
-    "public/demos/game-ecs-frame-update/index.html",
-    "text/html; charset=utf-8",
-  ]],
   ["/benchmarks/crypto-file-integrity", [
     "public/demos/crypto.file-integrity.v1/index.html",
     "text/html; charset=utf-8",
@@ -641,14 +645,6 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/data/sum-u32-inspectability.v1.json", [
     "public/data/sum-u32-inspectability.v1.json",
     "application/json; charset=utf-8",
-  ]],
-  ["/benchmarks/sum-u32/benchmark.json", [
-    "benchmarks/sum-u32/benchmark.json",
-    "application/json; charset=utf-8",
-  ]],
-  ["/benchmarks/sum-u32/workload.js", [
-    "benchmarks/sum-u32/workload.js",
-    "text/javascript; charset=utf-8",
   ]],
   ["/benchmarks/ml-gemm/index.html", [
     "public/benchmarks/ml-gemm/index.html",
@@ -1553,6 +1549,48 @@ const routes = new Map<string, [string, string, boolean?]>([
 // Generated demo-page + companion-asset routes (scripts/build-routes.ts).
 // Filesystem-derived; any overlap with the hand-maintained table above is a
 // hard error instead of the old silent last-wins.
+// Multi-language kernel sources (commit-pinned on the comparison pages).
+// The source files live in benchmarks/multilang-wasm/ (not under public/);
+// serve them so the runner can fetch per-kernel source sizes + the pages can
+// link commit-pinned source. Flat aliases cover stale cached runners that
+// probe /benchmarks/multilang-wasm/todomvc_engine.* (flat).
+for (const ext of [".c", ".cpp", ".rs", ".dart", ".ts", ".wat"]) {
+  for (const entry of Array.from(Deno.readDirSync("benchmarks/multilang-wasm"))) {
+    if (!entry.isFile || !entry.name.endsWith(ext)) continue;
+    const urlPath = `/benchmarks/multilang-wasm/${entry.name}`;
+    if (routes.has(urlPath)) continue;
+    routes.set(urlPath, [`benchmarks/multilang-wasm/${entry.name}`, "text/plain; charset=utf-8"]);
+  }
+  for (const dirEntry of Array.from(Deno.readDirSync("benchmarks/multilang-wasm"))) {
+    if (!dirEntry.isDirectory) continue;
+    try {
+      for (const f of Array.from(Deno.readDirSync(`benchmarks/multilang-wasm/${dirEntry.name}`))) {
+        if (!f.isFile || !f.name.endsWith(ext)) continue;
+        const urlPath = `/benchmarks/multilang-wasm/${dirEntry.name}/${f.name}`;
+        if (routes.has(urlPath)) continue;
+        routes.set(urlPath, [
+          `benchmarks/multilang-wasm/${dirEntry.name}/${f.name}`,
+          "text/plain; charset=utf-8",
+        ]);
+      }
+    } catch { /* skip unreadable */ }
+  }
+}
+for (
+  const name of [
+    "todomvc_engine.ts",
+    "todomvc_engine.c",
+    "todomvc_engine.cpp",
+    "todomvc_engine.rs",
+    "todomvc_engine.dart",
+  ]
+) {
+  routes.set(`/benchmarks/multilang-wasm/${name}`, [
+    `benchmarks/multilang-wasm/base-dom-todomvc-journey/${name}`,
+    "text/plain; charset=utf-8",
+  ]);
+}
+
 for (const [path, value] of GENERATED_ROUTES) {
   if (routes.has(path)) throw new Error(`duplicate route (manual vs generated): ${path}`);
   routes.set(path, [value[0], value[1], value[2]]);

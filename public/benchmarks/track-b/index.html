@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="description"
+      content="Track A vs Track B: independent optimizations of the Wasm vs JavaScript benchmark kernels, side by side — source diff and runtime improvement per language.">
+    <title>Track B optimizations · Wasm vs JavaScript</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/track-b.css">
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to main content</a>
+    <header class="masthead">
+      <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
+      <a href="/benchmarks/">Browse Catalog</a>
+      <a href="/results/">Results</a>
+      <a href="/experiments/">Experiment</a>
+      <a href="/evidence/">Evidence</a>
+    </header>
+    <main id="main">
+      <header>
+        <p class="eyebrow">Track B · Independent Optimizations</p>
+        <h1>Track A vs Track B — side by side</h1>
+        <p class="lede">
+          Every workload below keeps its frozen Track A baseline untouched and adds an
+          independently optimized Track B variant. Compare the source difference and the
+          runtime improvement per language. Track B results are explicitly non-default and
+          never pooled with Track A claims.
+        </p>
+      </header>
+      <section id="track-b-root" hidden></section>
+      <p
+        class="muted">Program spec and logs: <a href="/track-b-optimizations.md">docs/track-b-optimizations.md</a>.</p>
+    </main>
+    <script type="module">
+    import { initTrackB } from "/track-b.js";
+    initTrackB("#track-b-root").catch((error) => {
+      const root = document.querySelector("#track-b-root");
+      root.hidden = false;
+      root.textContent = `Track B failed to load: ${error.message}`;
+    });
+    </script>
+  </body>
+</html>

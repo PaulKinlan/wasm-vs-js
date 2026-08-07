@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="description"
+      content="N-body simulation benchmark: 1024 bodies × 120 gravitational timesteps in controlled JavaScript and linear WebAssembly.">
+    <title>N-Body Simulation · Wasm vs JavaScript</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body
+    data-workload="simulation-nbody-cloth"
+    data-multilang-manifest="/benchmarks/multilang-wasm/simulation-nbody-cloth.manifest.json"
+  >
+    <a class="skip" href="#main">Skip to main content</a>
+    <header class="masthead">
+      <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
+      <a href="/benchmarks/">Browse Catalog</a>
+      <a href="/results/">Results</a>
+      <a href="/experiments/">Experiment</a>
+      <a href="/evidence/">Evidence</a>
+      <strong>data v1</strong>
+    </header>
+    <main id="main">
+      <section class="demo-panel" aria-labelledby="run-heading">
+        <h2 id="run-heading">Run Benchmark Loop</h2>
+        <form id="demo-form">
+          <div class="controls">
+            <label for="target">
+              <span>Target Engine</span>
+              <select id="target" name="target">
+                <option value="both" selected>Compare Side-by-Side (JS vs Wasm)</option>
+                <option value="javascript">JavaScript Engine</option>
+                <option value="wasm">WebAssembly Engine</option>
+              </select>
+            </label>
+            <label for="iterations">
+              <span>Loop Iterations</span>
+              <select id="iterations" name="iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10">10 iterations</option>
+                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                <option value="50">50 iterations</option>
+                <option value="100">100 iterations (Sustained loop)</option>
+              </select>
+            </label>
+            <button id="nb-start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="nb-cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="nb-status" role="status" aria-live="polite">
+          Ready. Select target and loop iterations, then click Start.
+        </p>
+        <div id="perf-reporting" class="detail-grid" hidden></div>
+        <p
+          class="notice"><strong>No performance claim.</strong> The loop above times both engines; the N-body demo runs fresh workers, stores and uploads nothing.</p>
+      </section>
+
+      <header>
+        <p
+          class="eyebrow">Simulation Workload · 1024 bodies × 120 timesteps · simulation.nbody-cloth.v1</p>
+        <h1>N-Body: 1024-body gravitational simulation, 120 leapfrog timesteps</h1>
+        <p class="lede">
+          O(N²) pairwise gravitational accelerations with softened Newtonian force, integrated with
+          a leapfrog Kick-Drift-Kick scheme. The frozen input corpus is seeded (xorshift32
+          <code>0x31c0ffee</code>), and every variant's final state is verified bit-for-bit
+          against the committed engine reference before any timing. Nothing is uploaded or stored.
+        </p>
+      </header>
+
+      <section aria-labelledby="what-heading">
+        <h2 id="what-heading">What it does</h2>
+        <p>
+          Each acceleration evaluation is the full O(N²) pairwise loop: for every body, a sum over
+          all other bodies of <code>G·m<sub>j</sub>·r̂/r²</code> with a fixed softening
+          (<code>ε² = 0.0001</code>), in IEEE f64 with a scalar accumulation order. The leapfrog
+          integrator (half-kick, drift, half-kick) advances the system for 120 timesteps with
+          <code>dt = 0.01</code>.
+        </p>
+      </section>
+
+      <section aria-labelledby="why-heading">
+        <h2 id="why-heading">Why compare Wasm vs JS</h2>
+        <p>
+          N-body is the canonical O(N²) compute-bound kernel: dense f64 memory traffic and a tight
+          inner loop dominated by the reciprocal-square-root, where a linear-memory Wasm
+          implementation can differ sharply from the engine's own scalar paths.
+        </p>
+      </section>
+
+      <section aria-labelledby="provenance-heading">
+        <h2 id="provenance-heading">Source &amp; build provenance</h2>
+        <ul>
+          <li><a href="/benchmarks/">Browse the workload catalog</a></li>
+          <li><a href="/evidence/">Check implementation evidence</a></li>
+          <li><a href="/experiments/">Read the frozen experiment</a></li>
+        </ul>
+      </section>
+    </main>
+    <script type="module" src="/unified-runner.js"></script>
+    <script type="module" src="/multilang-runner.js"></script>
+  </body>
+</html>

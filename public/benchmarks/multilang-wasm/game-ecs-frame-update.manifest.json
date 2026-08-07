@@ -1,0 +1,48 @@
+{
+  "workloadId": "game.ecs-frame-update.v1",
+  "kernelLabel": "ECS frame update \u2014 1,024 entities, 300 frames (grid collision + FNV-1a digests)",
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": [
+    "ecs_frame_update"
+  ],
+  "engines": [
+    {
+      "key": "js",
+      "label": "JavaScript",
+      "kind": "js",
+      "source": ""
+    },
+    {
+      "key": "c",
+      "label": "C / Wasm",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 0,
+      "source": "benchmarks/multilang-wasm/game-ecs-frame-update/ecs_frame_update.c"
+    },
+    {
+      "key": "cpp",
+      "label": "C++ / Wasm",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 0,
+      "source": "benchmarks/multilang-wasm/game-ecs-frame-update/ecs_frame_update.cpp"
+    },
+    {
+      "key": "rs",
+      "label": "Rust / Wasm",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 0,
+      "source": "benchmarks/multilang-wasm/game-ecs-frame-update/ecs_frame_update.rs"
+    },
+    {
+      "key": "dart",
+      "label": "Dart / WasmGC",
+      "kind": "dart",
+      "file": "ecs_frame_update_dart.wasm",
+      "glue": "ecs_frame_update_dart.mjs",
+      "source": "benchmarks/multilang-wasm/game-ecs-frame-update/ecs_frame_update.dart"
+    }
+  ]
+}
