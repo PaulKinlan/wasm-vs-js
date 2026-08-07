@@ -690,10 +690,6 @@ const routes = new Map<string, [string, string, boolean?]>([
     "benchmarks/sum-u32/benchmark.json",
     "application/json; charset=utf-8",
   ]],
-  ["/benchmarks/sum-u32/workload.js", [
-    "benchmarks/sum-u32/workload.js",
-    "text/javascript; charset=utf-8",
-  ]],
   ["/benchmarks/ml-gemm/index.html", [
     "public/benchmarks/ml-gemm/index.html",
     "text/html; charset=utf-8",
