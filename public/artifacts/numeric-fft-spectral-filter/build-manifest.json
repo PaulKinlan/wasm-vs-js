@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "7cdf41dde6d0dd8a880284a83ec293f9cbce85ba",
-  "sourceSha256": "f12acd7676f036308bea6e77a1703da86d6b9499eb7aee955fdf6d4e1973c418",
+  "sourceCommit": "7f40202718c78fc8a547d02328b654225cc8163c",
+  "sourceSha256": "2031555346b7ea847f2825409727871f985fdd551f3ccd3d9c7b225cd84cdf22",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -60,8 +60,8 @@
     },
     {
       "path": "deno.lock",
-      "bytes": 155573,
-      "sha256": "077bfaec91c4a7c6c2ad4aab22dec23e9007e584b3c579e8d11205d2d27f701e"
+      "bytes": 1630,
+      "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2"
     }
   ],
   "frozenCatalog": {
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "58ace13be9cce1147e993bfa877f14a7f038a7632288c9518dea9f51df114683"
+      "sha256": "420490e6711037ab2e9d142cd51df7bd8646cb1a6cd57dfe554d7a30a5f82afa"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "8d442dced8600696c9a9dc15817fd2719c1d4fd60f66f8e18e7590b5598441ad"
+      "sha256": "401409b54f937aba1a64dee45ab2214de0c149760ffcbb98a651cb1f1e2210f6"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=7cdf41dde6d0dd8a880284a83ec293f9cbce85ba"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=7f40202718c78fc8a547d02328b654225cc8163c"
   }
 }
