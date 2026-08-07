@@ -2027,7 +2027,7 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "telemetry_cpp.wasm",
       "telemetry_dart.mjs",
       "telemetry_dart.wasm",
-      "telemetry_rs.wasm"
+      "telemetry_rs.wasm",
     ]
   ) {
     const type = file.endsWith(".wasm") ? "application/wasm" : "text/javascript; charset=utf-8";
