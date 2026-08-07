@@ -187,14 +187,38 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/results", ["public/results/index.html", "text/html; charset=utf-8"]],
   ["/results/", ["public/results/index.html", "text/html; charset=utf-8"]],
   ["/unified-runner.js", ["public/unified-runner.js", "text/javascript; charset=utf-8"]],
-  ["/dom-hosts/base-dom-todomvc-journey.js", ["public/dom-hosts/base-dom-todomvc-journey.js", "text/javascript; charset=utf-8"]],
-  ["/iframe-benchmark-bridge.js", ["public/iframe-benchmark-bridge.js", "text/javascript; charset=utf-8"]],
-  ["/artifacts/multilang-wasm-benchmark/todomvc_engine_c.wasm", ["public/artifacts/multilang-wasm-benchmark/todomvc_engine_c.wasm", "application/wasm"]],
-  ["/artifacts/multilang-wasm-benchmark/todomvc_engine_cpp.wasm", ["public/artifacts/multilang-wasm-benchmark/todomvc_engine_cpp.wasm", "application/wasm"]],
-  ["/artifacts/multilang-wasm-benchmark/todomvc_engine_rs.wasm", ["public/artifacts/multilang-wasm-benchmark/todomvc_engine_rs.wasm", "application/wasm"]],
-  ["/artifacts/multilang-wasm-benchmark/todomvc_engine_dart.wasm", ["public/artifacts/multilang-wasm-benchmark/todomvc_engine_dart.wasm", "application/wasm"]],
-  ["/artifacts/multilang-wasm-benchmark/todomvc_engine_dart.mjs", ["public/artifacts/multilang-wasm-benchmark/todomvc_engine_dart.mjs", "text/javascript; charset=utf-8"]],
-  ["/dom-hosts/todomvc-ops.js", ["public/dom-hosts/todomvc-ops.js", "text/javascript; charset=utf-8"]],
+  ["/dom-hosts/base-dom-todomvc-journey.js", [
+    "public/dom-hosts/base-dom-todomvc-journey.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/iframe-benchmark-bridge.js", [
+    "public/iframe-benchmark-bridge.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/artifacts/multilang-wasm-benchmark/todomvc_engine_c.wasm", [
+    "public/artifacts/multilang-wasm-benchmark/todomvc_engine_c.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/multilang-wasm-benchmark/todomvc_engine_cpp.wasm", [
+    "public/artifacts/multilang-wasm-benchmark/todomvc_engine_cpp.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/multilang-wasm-benchmark/todomvc_engine_rs.wasm", [
+    "public/artifacts/multilang-wasm-benchmark/todomvc_engine_rs.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/multilang-wasm-benchmark/todomvc_engine_dart.wasm", [
+    "public/artifacts/multilang-wasm-benchmark/todomvc_engine_dart.wasm",
+    "application/wasm",
+  ]],
+  ["/artifacts/multilang-wasm-benchmark/todomvc_engine_dart.mjs", [
+    "public/artifacts/multilang-wasm-benchmark/todomvc_engine_dart.mjs",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/dom-hosts/todomvc-ops.js", [
+    "public/dom-hosts/todomvc-ops.js",
+    "text/javascript; charset=utf-8",
+  ]],
   ["/multilang-runner.js", ["public/multilang-runner.js", "text/javascript; charset=utf-8"]],
   ["/inspectability.js", ["public/inspectability.js", "text/javascript; charset=utf-8"]],
   ["/v2-results.js", ["public/v2-results.js", "text/javascript; charset=utf-8"]],
@@ -1580,7 +1604,15 @@ for (const ext of [".c", ".cpp", ".rs", ".dart", ".ts", ".wat"]) {
     } catch { /* skip unreadable */ }
   }
 }
-for (const name of ["todomvc_engine.ts", "todomvc_engine.c", "todomvc_engine.cpp", "todomvc_engine.rs", "todomvc_engine.dart"]) {
+for (
+  const name of [
+    "todomvc_engine.ts",
+    "todomvc_engine.c",
+    "todomvc_engine.cpp",
+    "todomvc_engine.rs",
+    "todomvc_engine.dart",
+  ]
+) {
   routes.set(`/benchmarks/multilang-wasm/${name}`, [
     `benchmarks/multilang-wasm/base-dom-todomvc-journey/${name}`,
     "text/plain; charset=utf-8",
