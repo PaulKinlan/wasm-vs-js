@@ -36,8 +36,8 @@
     },
     {
       "path": "public/benchmarks/server.ssr-template.v1/index.html",
-      "bytes": 4707,
-      "sha256": "bc97cb748732e6d29084a8950b86004d189b243d7674ad444697ad8ec35211ec"
+      "bytes": 4695,
+      "sha256": "56df2430d29c413223fc67e50de3374ecfd840f39222e9966a15990e3c747363"
     },
     {
       "path": "server.ts",

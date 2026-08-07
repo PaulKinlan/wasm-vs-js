@@ -1,9 +1,10 @@
 const root = document.querySelector("main[data-workload-id]");
 const workloadId = root?.dataset.workloadId;
-const start = document.querySelector("#start");
-const cancel = document.querySelector("#cancel");
-const target = document.querySelector("#target");
-const status = document.querySelector("#status");
+const workerForm = document.querySelector("form[data-worker]");
+const start = workerForm?.querySelector("#game-start") ?? document.querySelector("#start");
+const cancel = workerForm?.querySelector("#game-cancel") ?? document.querySelector("#cancel");
+const target = workerForm?.querySelector("#game-target") ?? document.querySelector("#target");
+const status = document.querySelector("#game-status") ?? document.querySelector("#status");
 const output = document.querySelector("#result");
 const canvas = document.querySelector("canvas");
 const grid = document.querySelector("#grid");
