@@ -2014,7 +2014,7 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "todomvc_engine_rs.wasm",
       "todomvc_engine_dart.wasm",
       "todomvc_engine_dart.mjs",
-    ,
+      ,
       "bracket_c.wasm",
       "bracket_cpp.wasm",
       "crypto_c.wasm",
@@ -2055,7 +2055,7 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "rigid_dart.wasm",
       "rigid_rs.wasm",
       "scan_log_opt_c.wasm",
-      "sum_u32_opt_c.wasm"
+      "sum_u32_opt_c.wasm",
     ]
   ) {
     const type = file.endsWith(".wasm") ? "application/wasm" : "text/javascript; charset=utf-8";

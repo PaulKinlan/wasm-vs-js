@@ -1,40 +1,40 @@
 {
- "workloadId": "ml.numeric-kernels.v1",
- "kernelLabel": "ML numeric kernels \u2014 GEMM/Conv/Softmax f32+i8 (frozen shapes)",
- "artifactsBase": "/artifacts/multilang-wasm-benchmark",
- "kernels": [
-  "numeric"
- ],
- "engines": [
-  {
-   "key": "js",
-   "label": "JavaScript",
-   "kind": "js",
-   "source": ""
-  },
-  {
-   "key": "cpp",
-   "label": "C++ / Wasm",
-   "kind": "linear",
-   "lang": "cpp",
-   "offset": 1024,
-   "source": "benchmarks/multilang-wasm/ml-numeric-kernels/numeric_kernels.cpp"
-  },
-  {
-   "key": "rs",
-   "label": "Rust / Wasm",
-   "kind": "linear",
-   "lang": "rs",
-   "offset": 1024,
-   "source": "benchmarks/multilang-wasm/ml-numeric-kernels/numeric_kernels.rs"
-  },
-  {
-   "key": "dart",
-   "label": "Dart / WasmGC",
-   "kind": "dart",
-   "file": "numeric_kernels_dart.wasm",
-   "glue": "numeric_kernels_dart.mjs",
-   "source": "benchmarks/multilang-wasm/ml-numeric-kernels/numeric_kernels.dart"
-  }
- ]
+  "workloadId": "ml.numeric-kernels.v1",
+  "kernelLabel": "ML numeric kernels \u2014 GEMM/Conv/Softmax f32+i8 (frozen shapes)",
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": [
+    "numeric"
+  ],
+  "engines": [
+    {
+      "key": "js",
+      "label": "JavaScript",
+      "kind": "js",
+      "source": ""
+    },
+    {
+      "key": "cpp",
+      "label": "C++ / Wasm",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 1024,
+      "source": "benchmarks/multilang-wasm/ml-numeric-kernels/numeric_kernels.cpp"
+    },
+    {
+      "key": "rs",
+      "label": "Rust / Wasm",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 1024,
+      "source": "benchmarks/multilang-wasm/ml-numeric-kernels/numeric_kernels.rs"
+    },
+    {
+      "key": "dart",
+      "label": "Dart / WasmGC",
+      "kind": "dart",
+      "file": "numeric_kernels_dart.wasm",
+      "glue": "numeric_kernels_dart.mjs",
+      "source": "benchmarks/multilang-wasm/ml-numeric-kernels/numeric_kernels.dart"
+    }
+  ]
 }

@@ -1,68 +1,68 @@
 {
- "workloadId": "multilang-wasm",
- "kernelLabel": "sum-u32 + fft-kernel (1000 u32 / 512 floats)",
- "artifactsBase": "/artifacts/multilang-wasm-benchmark",
- "kernels": [
-  "sum",
-  "fft"
- ],
- "engines": [
-  {
-   "key": "js",
-   "label": "JavaScript",
-   "kind": "js",
-   "source": ""
-  },
-  {
-   "key": "wat",
-   "label": "Raw WAT",
-   "kind": "linear",
-   "lang": "wat",
-   "offset": 0,
-   "kernels": [
-    "sum"
-   ],
-   "source": ""
-  },
-  {
-   "key": "asc",
-   "label": "AssemblyScript",
-   "kind": "linear",
-   "lang": "asc",
-   "offset": 1024,
-   "source": ""
-  },
-  {
-   "key": "c",
-   "label": "C / Wasm",
-   "kind": "linear",
-   "lang": "c",
-   "offset": 1024,
-   "source": ""
-  },
-  {
-   "key": "cpp",
-   "label": "C++ / Wasm",
-   "kind": "linear",
-   "lang": "cpp",
-   "offset": 1024,
-   "source": ""
-  },
-  {
-   "key": "rs",
-   "label": "Rust / Wasm",
-   "kind": "linear",
-   "lang": "rs",
-   "offset": 1024,
-   "source": ""
-  },
-  {
-   "key": "dart",
-   "label": "Dart / WasmGC",
-   "kind": "dart",
-   "file": "fft_dart.wasm",
-   "glue": "fft_dart.mjs",
-   "source": ""
-  }
- ]
+  "workloadId": "multilang-wasm",
+  "kernelLabel": "sum-u32 + fft-kernel (1000 u32 / 512 floats)",
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": [
+    "sum",
+    "fft"
+  ],
+  "engines": [
+    {
+      "key": "js",
+      "label": "JavaScript",
+      "kind": "js",
+      "source": ""
+    },
+    {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "kernels": [
+        "sum"
+      ],
+      "source": ""
+    },
+    {
+      "key": "asc",
+      "label": "AssemblyScript",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 1024,
+      "source": ""
+    },
+    {
+      "key": "c",
+      "label": "C / Wasm",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 1024,
+      "source": ""
+    },
+    {
+      "key": "cpp",
+      "label": "C++ / Wasm",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 1024,
+      "source": ""
+    },
+    {
+      "key": "rs",
+      "label": "Rust / Wasm",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 1024,
+      "source": ""
+    },
+    {
+      "key": "dart",
+      "label": "Dart / WasmGC",
+      "kind": "dart",
+      "file": "fft_dart.wasm",
+      "glue": "fft_dart.mjs",
+      "source": ""
+    }
+  ]
 }

@@ -1,48 +1,48 @@
 {
- "workloadId": "ml.dense-mlp.v1",
- "kernelLabel": "Dense MLP forward \u2014 4 hidden + 1 projection (16\u00d7128)",
- "artifactsBase": "/artifacts/multilang-wasm-benchmark",
- "kernels": [
-  "mlp_forward"
- ],
- "engines": [
-  {
-   "key": "js",
-   "label": "JavaScript",
-   "kind": "js",
-   "source": ""
-  },
-  {
-   "key": "c",
-   "label": "C / Wasm",
-   "kind": "linear",
-   "lang": "c",
-   "offset": 0,
-   "source": "benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.c"
-  },
-  {
-   "key": "cpp",
-   "label": "C++ / Wasm",
-   "kind": "linear",
-   "lang": "cpp",
-   "offset": 0,
-   "source": "benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.cpp"
-  },
-  {
-   "key": "rs",
-   "label": "Rust / Wasm",
-   "kind": "linear",
-   "lang": "rs",
-   "offset": 0,
-   "source": "benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.rs"
-  },
-  {
-   "key": "dart",
-   "label": "Dart / WasmGC",
-   "kind": "dart",
-   "file": "mlp_forward_dart.wasm",
-   "glue": "mlp_forward_dart.mjs",
-   "source": "benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.dart"
-  }
- ]
+  "workloadId": "ml.dense-mlp.v1",
+  "kernelLabel": "Dense MLP forward \u2014 4 hidden + 1 projection (16\u00d7128)",
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": [
+    "mlp_forward"
+  ],
+  "engines": [
+    {
+      "key": "js",
+      "label": "JavaScript",
+      "kind": "js",
+      "source": ""
+    },
+    {
+      "key": "c",
+      "label": "C / Wasm",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 0,
+      "source": "benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.c"
+    },
+    {
+      "key": "cpp",
+      "label": "C++ / Wasm",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 0,
+      "source": "benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.cpp"
+    },
+    {
+      "key": "rs",
+      "label": "Rust / Wasm",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 0,
+      "source": "benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.rs"
+    },
+    {
+      "key": "dart",
+      "label": "Dart / WasmGC",
+      "kind": "dart",
+      "file": "mlp_forward_dart.wasm",
+      "glue": "mlp_forward_dart.mjs",
+      "source": "benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.dart"
+    }
+  ]
 }

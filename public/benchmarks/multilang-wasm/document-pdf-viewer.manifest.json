@@ -1,48 +1,48 @@
 {
- "workloadId": "document.pdf-viewer.v1",
- "kernelLabel": "PDF parser \u2014 100-page report (object table, font/ToUnicode, content, raster)",
- "artifactsBase": "/artifacts/multilang-wasm-benchmark",
- "kernels": [
-  "pdf_parse"
- ],
- "engines": [
-  {
-   "key": "js",
-   "label": "JavaScript",
-   "kind": "js",
-   "source": ""
-  },
-  {
-   "key": "c",
-   "label": "C / Wasm",
-   "kind": "linear",
-   "lang": "c",
-   "offset": 0,
-   "source": ""
-  },
-  {
-   "key": "cpp",
-   "label": "C++ / Wasm",
-   "kind": "linear",
-   "lang": "cpp",
-   "offset": 0,
-   "source": "benchmarks/multilang-wasm/document-pdf-viewer/pdf_engine.cpp"
-  },
-  {
-   "key": "rs",
-   "label": "Rust / Wasm",
-   "kind": "linear",
-   "lang": "rs",
-   "offset": 0,
-   "source": "benchmarks/multilang-wasm/document-pdf-viewer/pdf_engine.rs"
-  },
-  {
-   "key": "dart",
-   "label": "Dart / WasmGC",
-   "kind": "dart",
-   "file": "pdf_engine_dart.wasm",
-   "glue": "pdf_engine_dart.mjs",
-   "source": "benchmarks/multilang-wasm/document-pdf-viewer/pdf_engine.dart"
-  }
- ]
+  "workloadId": "document.pdf-viewer.v1",
+  "kernelLabel": "PDF parser \u2014 100-page report (object table, font/ToUnicode, content, raster)",
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": [
+    "pdf_parse"
+  ],
+  "engines": [
+    {
+      "key": "js",
+      "label": "JavaScript",
+      "kind": "js",
+      "source": ""
+    },
+    {
+      "key": "c",
+      "label": "C / Wasm",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 0,
+      "source": ""
+    },
+    {
+      "key": "cpp",
+      "label": "C++ / Wasm",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 0,
+      "source": "benchmarks/multilang-wasm/document-pdf-viewer/pdf_engine.cpp"
+    },
+    {
+      "key": "rs",
+      "label": "Rust / Wasm",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 0,
+      "source": "benchmarks/multilang-wasm/document-pdf-viewer/pdf_engine.rs"
+    },
+    {
+      "key": "dart",
+      "label": "Dart / WasmGC",
+      "kind": "dart",
+      "file": "pdf_engine_dart.wasm",
+      "glue": "pdf_engine_dart.mjs",
+      "source": "benchmarks/multilang-wasm/document-pdf-viewer/pdf_engine.dart"
+    }
+  ]
 }
