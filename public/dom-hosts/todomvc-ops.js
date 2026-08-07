@@ -119,8 +119,9 @@ export function validateStartMessage(data) {
   const targets = Array.isArray(data.targets) && data.targets.length > 0
     ? data.targets
     : ["js", "wasm"];
+  const ALLOWED_TARGETS = new Set(["js", "wasm", "c", "cpp", "rs", "dart"]);
   for (const target of targets) {
-    if (target !== "js" && target !== "wasm") {
+    if (!ALLOWED_TARGETS.has(target)) {
       return { ok: false, reason: `invalid target ${target}` };
     }
   }

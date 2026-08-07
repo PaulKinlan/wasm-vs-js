@@ -200,6 +200,19 @@ export async function createTodomvcHost() {
     }
   }
 
+  // Multi-language engines (c/cpp/rs/dart) drive the SAME real DOM: the
+  // state-machine engine computes the model, the shared host applies the
+  // frozen trace to the rendered UI (Paul directive 2026-08-07: measure the
+  // WASM->JS->DOM interaction for every language).
+  async function runMultilangEngineOnce(engineKey) {
+    const { runKernelOnce } = await import("/multilang-runner.js");
+    await runKernelOnce(
+      "/benchmarks/multilang-wasm/base-dom-todomvc-journey.manifest.json",
+      "todomvc_engine",
+      engineKey,
+    );
+  }
+
   // One iteration: reset the UI, run the chosen engine, apply the full
   // command stream to the real DOM, measure the whole journey, verify counts.
   async function runIteration(target, ui) {
@@ -208,7 +221,9 @@ export async function createTodomvcHost() {
     const engineStart = performance.now();
     const result = target === "wasm"
       ? runtime.runWasm(await runtime.instantiateTodoWasm(todomvcWasmBytes), encoded)
-      : runtime.runJavaScript(encoded);
+      : target === "js"
+      ? runtime.runJavaScript(encoded)
+      : (await runMultilangEngineOnce(target), { summary: "multi-language engine" });
     const engineMs = performance.now() - engineStart;
     for (const item of plan) applyOp(ui, item);
     const totalMs = performance.now() - start;

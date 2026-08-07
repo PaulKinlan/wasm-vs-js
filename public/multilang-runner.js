@@ -4720,6 +4720,25 @@ export async function runMultilangComparison(manifestPath, {
   return results;
 }
 
+// One-shot engine invocation for the real-DOM host: load the manifest,
+// build the adapter, and run ONE kernel call on ONE engine. Returns the
+// per-call timing + the engine's result (throws if the engine fails).
+export async function runKernelOnce(manifestPath, kernel, engineKey) {
+  const manifest = await (await fetch(manifestPath, { cache: "no-store" })).json();
+  manifest._path = manifestPath;
+  const mods = await loadEngines(manifest);
+  const adapter = KERNEL_ADAPTERS[manifest.workloadId];
+  if (!adapter || !adapter.kernels.includes(kernel)) {
+    throw new Error(`no adapter for ${manifest.workloadId}/${kernel}`);
+  }
+  const callables = await adapter.build(mods);
+  const fn = callables[engineKey]?.[kernel];
+  if (!fn) throw new Error(`engine ${engineKey} unavailable for ${kernel}`);
+  const t0 = performance.now();
+  fn();
+  return { engineMs: performance.now() - t0, key: engineKey };
+}
+
 // The unified composed runner (unified-runner.js) sets data-unified-runner-active
 // on pages that load the primary JS-vs-Wasm runner. On those pages the multilang
 // stage is sequenced by the primary run control, so the multilang runner must NOT

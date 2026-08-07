@@ -903,11 +903,27 @@ async function runComposedStages(
     domBox.appendChild(iframeContainer);
     statusEl.textContent = "Real-DOM run: loading the demo page in an iframe…";
     const { runIframeDomBenchmark } = await import("/iframe-benchmark-bridge.js");
+    let realDomTargets = ["js", "wasm"];
+    // Multi-language engines drive the SAME real DOM (Paul directive
+    // 2026-08-07): include every engine from the page's multilang manifest
+    // so the WASM->JS->DOM interaction is measured per language.
+    const mlManifestPath = document.body?.dataset?.multilangManifest;
+    if (mlManifestPath) {
+      try {
+        const mlManifest = await (await fetch(mlManifestPath, { cache: "no-store" })).json();
+        const engineKeys = (mlManifest.engines ?? [])
+          .map((e) => e.key)
+          .filter((k) => ["c", "cpp", "rs", "dart"].includes(k));
+        realDomTargets = [...realDomTargets, ...engineKeys];
+      } catch {
+        // keep js+wasm if the manifest is unavailable
+      }
+    }
     try {
       const result = await runIframeDomBenchmark({
         route: `${globalThis.location.pathname}${globalThis.location.search}`,
         iterations,
-        targets: ["js", "wasm"],
+        targets: realDomTargets,
         timeoutMs: 240000,
         visible: true,
         container: iframeContainer,
@@ -919,18 +935,26 @@ async function runComposedStages(
       });
       const jsStats = result.perTarget.js;
       const wasmStats = result.perTarget.wasm;
-      if (jsStats && wasmStats) {
-        const t = document.createElement("table");
-        t.className = "mlr-table";
-        t.innerHTML =
-          "<thead><tr><th class='mlr-th mlr-th-header'>Engine</th><th class='mlr-th mlr-th-header'>1st Run (Cold)</th><th class='mlr-th mlr-th-header'>Median (Warm)</th><th class='mlr-th mlr-th-header'>Fastest (Min)</th><th class='mlr-th mlr-th-header'>Slowest (Max)</th><th class='mlr-th mlr-th-header'>Speedup Ratio</th></tr></thead><tbody>" +
+      const engineLabels = {
+        c: "C / Wasm (real DOM)",
+        cpp: "C++ / Wasm (real DOM)",
+        rs: "Rust / Wasm (real DOM)",
+        dart: "Dart / WasmGC (real DOM)",
+      };
+      const rows = [];
+      if (jsStats) {
+        rows.push(
           `<tr><td class="mlr-th"><strong>JavaScript (real DOM)</strong></td><td class="mlr-th">${
             jsStats.coldMs.toFixed(2)
           } ms</td><td class="mlr-th">${
             jsStats.warmMedianMs.toFixed(2)
           } ms</td><td class="mlr-th">${jsStats.minMs.toFixed(2)} ms</td><td class="mlr-th">${
             jsStats.maxMs.toFixed(2)
-          } ms</td><td class="mlr-th"><strong>1.00× (Baseline)</strong></td></tr>` +
+          } ms</td><td class="mlr-th"><strong>1.00× (Baseline)</strong></td></tr>`,
+        );
+      }
+      if (wasmStats) {
+        rows.push(
           `<tr><td class="mlr-th"><strong>WebAssembly (real DOM)</strong></td><td class="mlr-th">${
             wasmStats.coldMs.toFixed(2)
           } ms</td><td class="mlr-th">${
@@ -938,9 +962,30 @@ async function runComposedStages(
           } ms</td><td class="mlr-th">${wasmStats.minMs.toFixed(2)} ms</td><td class="mlr-th">${
             wasmStats.maxMs.toFixed(2)
           } ms</td><td class="mlr-th"><strong>${
-            (jsStats.warmMedianMs / wasmStats.warmMedianMs).toFixed(2)
-          }×</strong></td></tr>` +
-          "</tbody>";
+            jsStats ? (jsStats.warmMedianMs / wasmStats.warmMedianMs).toFixed(2) : "—"
+          }×</strong></td></tr>`,
+        );
+      }
+      // Multi-language engines that drove the SAME DOM (Paul directive 2026-08-07).
+      for (const key of ["c", "cpp", "rs", "dart"]) {
+        const stats = result.perTarget[key];
+        if (!stats) continue;
+        rows.push(
+          `<tr><td class="mlr-th"><strong>${engineLabels[key]}</strong></td><td class="mlr-th">${
+            stats.coldMs.toFixed(2)
+          } ms</td><td class="mlr-th">${stats.warmMedianMs.toFixed(2)} ms</td><td class="mlr-th">${
+            stats.minMs.toFixed(2)
+          } ms</td><td class="mlr-th">${stats.maxMs.toFixed(2)} ms</td><td class="mlr-th"><strong>${
+            jsStats ? (jsStats.warmMedianMs / stats.warmMedianMs).toFixed(2) : "—"
+          }×</strong></td></tr>`,
+        );
+      }
+      if (rows.length > 0) {
+        const t = document.createElement("table");
+        t.className = "mlr-table";
+        t.innerHTML =
+          "<thead><tr><th class='mlr-th mlr-th-header'>Engine</th><th class='mlr-th mlr-th-header'>1st Run (Cold)</th><th class='mlr-th mlr-th-header'>Median (Warm)</th><th class='mlr-th mlr-th-header'>Fastest (Min)</th><th class='mlr-th mlr-th-header'>Slowest (Max)</th><th class='mlr-th mlr-th-header'>Speedup Ratio</th></tr></thead><tbody>" +
+          rows.join("") + "</tbody>";
         domBox.appendChild(t);
       }
       if (result.detail?.note) {
