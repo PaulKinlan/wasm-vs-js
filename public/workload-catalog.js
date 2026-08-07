@@ -179,3 +179,23 @@ try {
     error instanceof Error ? error.message : "unknown error"
   }`;
 }
+
+// Dynamically count catalog entries with demos so the page never lies.
+(function updateCounts() {
+  const demoRoutes = WORKLOAD_DEMO_ROUTES;
+  const totalEntries = document.querySelectorAll("[data-catalog-entry]").length;
+  const entriesWithDemos = new Set();
+  for (const key of Object.keys(demoRoutes)) {
+    // Extract slug from playground route keys
+    entriesWithDemos.add(key);
+  }
+  let withDemos = 0;
+  document.querySelectorAll("[data-catalog-entry]").forEach(function(el) {
+    const slug = el.dataset.catalogEntry;
+    if (slug && demoRoutes[slug]) withDemos++;
+  });
+  const statusEl = document.getElementById("catalog-status-dynamic");
+  const countEl = document.getElementById("demo-count");
+  if (statusEl) statusEl.textContent = withDemos + "/" + totalEntries + " catalog workloads have runnable browser demos";
+  if (countEl) countEl.textContent = withDemos;
+})();
