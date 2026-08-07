@@ -93,7 +93,7 @@
   "schemaVersion": 1,
   "sourceCommit": "supplied by a future runner from the exact checked-out commit",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceSha256": "0489540426cd716700a106eb22a62002b03372976a5966db33dcb0aec2fd1461",
+  "sourceSha256": "6807c66ceb70947d153bbdcdcba194d8ca6ab7765f6de3fdb4d1f691756a42d2",
   "sources": [
     {
       "bytes": 3095,
@@ -141,9 +141,9 @@
       "sha256": "dfd64dd29110bb99c7ed8027018975585223497cc452df32ab6b68f52f30c924"
     },
     {
-      "bytes": 2523,
+      "bytes": 2442,
       "path": "deno.json",
-      "sha256": "1fb796ab0a517cac5b34d6b0225dc1316f7dae952460c45fec46acbe9d71ec5b"
+      "sha256": "60725a78ea2f7d809819a61b76ef217cb3c3a5f5a64216112545ac7bb9a28e24"
     }
   ],
   "status": "proposal-out-of-catalog",

@@ -44,6 +44,10 @@
   },
   "deploy": {
     "org": "paulkinlan-ea",
-    "app": "wasm-vs-js"
+    "app": "wasm-vs-js",
+    "runtime": {
+      "type": "dynamic",
+      "entrypoint": "deploy.ts"
+    }
   }
 }
