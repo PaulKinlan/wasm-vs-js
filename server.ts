@@ -546,38 +546,6 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/demos/text.diff-patch.v1/index.html",
     "text/html; charset=utf-8",
   ]],
-  ["/benchmarks/game-canvas-arcade", [
-    "public/demos/game-canvas-arcade/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/game-canvas-arcade/", [
-    "public/demos/game-canvas-arcade/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/game-canvas-entity-pathfinding", [
-    "public/demos/game-canvas-entity-pathfinding/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/game-canvas-entity-pathfinding/", [
-    "public/demos/game-canvas-entity-pathfinding/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/game-dom-tactics-grid", [
-    "public/demos/game-dom-tactics-grid/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/game-dom-tactics-grid/", [
-    "public/demos/game-dom-tactics-grid/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/game-ecs-frame-update", [
-    "public/demos/game-ecs-frame-update/index.html",
-    "text/html; charset=utf-8",
-  ]],
-  ["/benchmarks/game-ecs-frame-update/", [
-    "public/demos/game-ecs-frame-update/index.html",
-    "text/html; charset=utf-8",
-  ]],
   ["/benchmarks/crypto-file-integrity", [
     "public/demos/crypto.file-integrity.v1/index.html",
     "text/html; charset=utf-8",
@@ -677,14 +645,6 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/data/sum-u32-inspectability.v1.json", [
     "public/data/sum-u32-inspectability.v1.json",
     "application/json; charset=utf-8",
-  ]],
-  ["/benchmarks/sum-u32/benchmark.json", [
-    "benchmarks/sum-u32/benchmark.json",
-    "application/json; charset=utf-8",
-  ]],
-  ["/benchmarks/sum-u32/workload.js", [
-    "benchmarks/sum-u32/workload.js",
-    "text/javascript; charset=utf-8",
   ]],
   ["/benchmarks/ml-gemm/index.html", [
     "public/benchmarks/ml-gemm/index.html",
