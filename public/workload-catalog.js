@@ -190,12 +190,15 @@ try {
     entriesWithDemos.add(key);
   }
   let withDemos = 0;
-  document.querySelectorAll("[data-catalog-entry]").forEach(function(el) {
+  document.querySelectorAll("[data-catalog-entry]").forEach(function (el) {
     const slug = el.dataset.catalogEntry;
     if (slug && demoRoutes[slug]) withDemos++;
   });
   const statusEl = document.getElementById("catalog-status-dynamic");
   const countEl = document.getElementById("demo-count");
-  if (statusEl) statusEl.textContent = withDemos + "/" + totalEntries + " catalog workloads have runnable browser demos";
+  if (statusEl) {
+    statusEl.textContent = withDemos + "/" + totalEntries +
+      " catalog workloads have runnable browser demos";
+  }
   if (countEl) countEl.textContent = withDemos;
 })();
