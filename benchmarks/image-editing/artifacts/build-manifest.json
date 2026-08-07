@@ -45,7 +45,7 @@
   "lockfiles": [
     {
       "name": "deno.lock",
-      "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2"
+      "sha256": "71d58652028fd82beb0d830f4d71ecb73e4e14c8447d4fff0f30ffff7dc17009"
     }
   ],
   "oracle": {
