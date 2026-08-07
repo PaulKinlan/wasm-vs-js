@@ -142,7 +142,7 @@ Deno.test("public server is fail-closed read-only and exposes only sanitized evi
   assertEquals(runRedirect.headers.get("location"), "/#workload-sum-u32");
   const catalogPage = await (await handler(new Request("http://127.0.0.1/benchmarks/"))).text();
   assert(catalogPage.includes("38-WORKLOAD DENOMINATOR"));
-  assert(catalogPage.includes("23/38 catalog workloads have runnable browser demos"));
+  assert(catalogPage.includes("49 runnable browser demos across 38 proposed workloads"));
   assert(catalogPage.includes("v2 proposal implementation inventory"));
   assert(catalogPage.includes("Runnable demos: 14"));
   assert(catalogPage.includes("10 full proposal-validation routes and 4 reduced-fixture routes"));
