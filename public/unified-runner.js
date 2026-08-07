@@ -854,6 +854,7 @@ async function runComposedStages(
   { workloadSlug, iterations, statusEl, reportingEl, primaryStats = null },
 ) {
   const plan = composedStagePlanFromDom();
+  plan.domHost = document.body?.dataset?.domHost || "";
   // ONE results flow: every additional stage (multi-language, Track B) renders
   // as a labeled sub-block of the SAME run output inside the primary reporting
   // element — not a separate page section (Paul directive 2026-08-06).
@@ -884,6 +885,58 @@ async function runComposedStages(
       reportingEl: mlBox,
     });
     statusEl.textContent = "✓ Multi-language comparison complete.";
+  }
+  if (plan.domHost) {
+    // Real-DOM stage (Paul directive 2026-08-06): DOM-family pages must
+    // actually drive a rendered UI — not just run the model engine. The page
+    // loads itself in a hidden same-origin iframe; the iframe registers its
+    // dom host (data-dom-host) and applies the frozen action trace to the
+    // real DOM with real DOM APIs.
+    const iframeNote = document.createElement("p");
+    iframeNote.className = "notice";
+    iframeNote.textContent = "Real-DOM iframe run: the demo page loaded itself in a hidden same-origin iframe, rendered an actual UI, and applied the frozen action trace with real DOM APIs (createElement/appendChild/classList/focus).";
+    const domBox = stageBlock("real-dom", "Real-DOM iframe run");
+    domBox.appendChild(iframeNote);
+    statusEl.textContent = "Real-DOM run: loading the demo page in an iframe…";
+    const { runIframeDomBenchmark } = await import("/iframe-benchmark-bridge.js");
+    try {
+      const result = await runIframeDomBenchmark({
+        route: `${window.location.pathname}${window.location.search}`,
+        iterations,
+        targets: ["js", "wasm"],
+        timeoutMs: 240000,
+        onProgress: ({ target, iteration, total }) => {
+          statusEl.textContent = `Real-DOM run: ${target === "js" ? "JS" : "Wasm"} — iteration ${iteration}/${total}…`;
+        },
+      });
+      const jsStats = result.perTarget.js;
+      const wasmStats = result.perTarget.wasm;
+      if (jsStats && wasmStats) {
+        const t = document.createElement("table");
+        t.className = "mlr-table";
+        t.innerHTML =
+          "<thead><tr><th class='mlr-th mlr-th-header'>Engine</th><th class='mlr-th mlr-th-header'>1st Run (Cold)</th><th class='mlr-th mlr-th-header'>Median (Warm)</th><th class='mlr-th mlr-th-header'>Fastest (Min)</th><th class='mlr-th mlr-th-header'>Slowest (Max)</th><th class='mlr-th mlr-th-header'>Speedup Ratio</th></tr></thead><tbody>" +
+          `<tr><td class="mlr-th"><strong>JavaScript (real DOM)</strong></td><td class="mlr-th">${jsStats.coldMs.toFixed(2)} ms</td><td class="mlr-th">${jsStats.warmMedianMs.toFixed(2)} ms</td><td class="mlr-th">${jsStats.minMs.toFixed(2)} ms</td><td class="mlr-th">${jsStats.maxMs.toFixed(2)} ms</td><td class="mlr-th"><strong>1.00× (Baseline)</strong></td></tr>` +
+          `<tr><td class="mlr-th"><strong>WebAssembly (real DOM)</strong></td><td class="mlr-th">${wasmStats.coldMs.toFixed(2)} ms</td><td class="mlr-th">${wasmStats.warmMedianMs.toFixed(2)} ms</td><td class="mlr-th">${wasmStats.minMs.toFixed(2)} ms</td><td class="mlr-th">${wasmStats.maxMs.toFixed(2)} ms</td><td class="mlr-th"><strong>${(jsStats.warmMedianMs / wasmStats.warmMedianMs).toFixed(2)}×</strong></td></tr>` +
+          "</tbody>";
+        domBox.appendChild(t);
+      }
+      if (result.detail?.note) {
+        const note = document.createElement("p");
+        note.className = "notice";
+        note.textContent = result.detail.note;
+        domBox.appendChild(note);
+      }
+      statusEl.textContent = "✓ Real-DOM iframe run complete.";
+    } catch (domErr) {
+      const note = document.createElement("p");
+      note.className = "notice";
+      note.textContent = `Real-DOM run unavailable: ${
+        domErr instanceof Error ? domErr.message : String(domErr)
+      }`;
+      domBox.appendChild(note);
+      statusEl.textContent = "Real-DOM run unavailable (shown honestly).";
+    }
   }
   if (plan.trackBRoot) {
     statusEl.textContent = "Track B: loading optimized variants…";

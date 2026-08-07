@@ -124,7 +124,7 @@ export function validateStartMessage(data) {
       return { ok: false, reason: `invalid target ${target}` };
     }
   }
-  return { ok: true, targets };
+  return { ok: true, targets, iterations: data.iterations, token: data.token };
 }
 
 export function validateResultMessage(data) {

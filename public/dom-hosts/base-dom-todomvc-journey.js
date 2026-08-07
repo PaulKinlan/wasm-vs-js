@@ -100,8 +100,8 @@ export async function createTodomvcHost() {
     throw new Error(`plan shape drifted: ${JSON.stringify(planSummary)}`);
   }
 
-  const wasmModule = await WebAssembly.compile(
-    fetched.get("/artifacts/base-dom-todomvc-journey/todomvc.wasm"),
+  const todomvcWasmBytes = fetched.get(
+    "/artifacts/base-dom-todomvc-journey/todomvc.wasm",
   );
 
   // ── The rendered TodoMVC UI (real DOM) ──
@@ -133,8 +133,7 @@ export async function createTodomvcHost() {
     return { root, list, filterAll, filterActive, filterCompleted };
   }
 
-  function resetUi(ui, filterState) {
-    ui.list.replaceChildren();
+  function selectFilter(ui, filterState) {
     ui.filterAll.classList.remove("selected");
     ui.filterActive.classList.remove("selected");
     ui.filterCompleted.classList.remove("selected");
@@ -142,6 +141,11 @@ export async function createTodomvcHost() {
     else if (filterState === 1) ui.filterActive.classList.add("selected");
     else ui.filterCompleted.classList.add("selected");
     ui.root.dataset.filter = String(filterState);
+  }
+
+  function resetUi(ui, filterState) {
+    ui.list.replaceChildren();
+    selectFilter(ui, filterState);
   }
 
   function applyOp(ui, item) {
@@ -184,7 +188,9 @@ export async function createTodomvcHost() {
       return;
     }
     if (op === "filter") {
-      resetUi(ui, item.value);
+      // A filter never wipes the list — it updates the selected filter and
+      // hides/shows the existing items (matching real TodoMVC behavior).
+      selectFilter(ui, item.value);
       for (const child of ui.list.querySelectorAll("li[data-id]")) {
         const completed = child.classList.contains("completed");
         if (item.value === 1 && completed) child.classList.add("wvj-hidden");
@@ -201,7 +207,7 @@ export async function createTodomvcHost() {
     resetUi(ui, 0);
     const engineStart = performance.now();
     const result = target === "wasm"
-      ? runtime.runWasm(await runtime.instantiateTodoWasm(wasmModule), encoded)
+      ? runtime.runWasm(await runtime.instantiateTodoWasm(todomvcWasmBytes), encoded)
       : runtime.runJavaScript(encoded);
     const engineMs = performance.now() - engineStart;
     for (const item of plan) applyOp(ui, item);

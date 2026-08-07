@@ -51,11 +51,14 @@ export async function registerIframeHost() {
     return { registered: false, reason: "host has no run()" };
   }
 
+  const processedTokens = new Set();
   globalThis.addEventListener("message", (event) => {
     if (event.origin !== location.origin) return;
     const validated = validateStartMessage(event.data);
     if (!validated.ok) return;
     const { token, iterations, targets } = validated;
+    if (processedTokens.has(token)) return; // parent retries until we ack
+    processedTokens.add(token);
     const config = event.data.config ?? {};
 
     run.run({
@@ -69,11 +72,15 @@ export async function registerIframeHost() {
       },
       config,
     }).then((result) => {
-      if (
-        !validateResultMessage({ type: "wvj-benchmark-result", token, perTarget: result.perTarget })
-          .ok
-      ) {
-        throw new Error("host produced an invalid result shape");
+      const check = validateResultMessage({
+        type: "wvj-benchmark-result",
+        token,
+        perTarget: result.perTarget,
+      });
+      if (!check.ok) {
+        throw new Error(
+          `host produced an invalid result shape: ${check.reason} perTarget=${JSON.stringify(Object.keys(result.perTarget ?? {}))}`,
+        );
       }
       event.source?.postMessage(
         { type: "wvj-benchmark-result", token, ...result },
@@ -117,6 +124,7 @@ export function runIframeDomBenchmark({
 }) {
   return new Promise((resolve, reject) => {
     const token = crypto.randomUUID();
+    let startRetry = null;
     const iframe = document.createElement("iframe");
     iframe.src = route;
     iframe.setAttribute("aria-hidden", "true");
@@ -129,10 +137,18 @@ export function runIframeDomBenchmark({
         reject(new Error("iframe contentWindow unavailable"));
         return;
       }
-      targetWindow.postMessage(
-        { type: "wvj-benchmark-start", token, iterations, targets, config: {} },
-        location.origin,
-      );
+      const postStart = () => {
+        targetWindow.postMessage(
+          { type: "wvj-benchmark-start", token, iterations, targets, config: {} },
+          location.origin,
+        );
+      };
+      postStart();
+      // The child registers its host asynchronously (load + hash-verify +
+      // wasm compile) — the first start message may arrive before the child's
+      // listener exists. Retry until the child acks (progress/result/error)
+      // or the run times out. The child dedupes by token.
+      startRetry = setInterval(postStart, 750);
     });
 
     const timer = setTimeout(() => {
@@ -143,7 +159,16 @@ export function runIframeDomBenchmark({
     const onMessage = (event) => {
       if (event.origin !== location.origin) return;
       const data = event.data;
-      if (!data || data.token !== token) return;
+      if (!data) return;
+      // Child errors are fatal regardless of token (load failures use
+      // token "__load__"; run failures carry the run token). Surfacing them
+      // turns silent hangs into honest, visible failures.
+      if (data.type === "wvj-benchmark-error") {
+        cleanup();
+        reject(new Error(data.message || "iframe benchmark failed"));
+        return;
+      }
+      if (data.token !== token) return;
       if (data.type === "wvj-benchmark-progress") {
         onProgress(data);
         return;
@@ -159,15 +184,12 @@ export function runIframeDomBenchmark({
         resolve(data);
         return;
       }
-      if (data.type === "wvj-benchmark-error") {
-        cleanup();
-        reject(new Error(data.message || "iframe benchmark failed"));
-      }
     };
     globalThis.addEventListener("message", onMessage);
 
     function cleanup() {
       clearTimeout(timer);
+      if (startRetry) clearInterval(startRetry);
       globalThis.removeEventListener("message", onMessage);
       iframe.remove();
     }

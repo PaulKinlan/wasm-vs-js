@@ -192,6 +192,10 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/iframe-benchmark-bridge.js",
     "text/javascript; charset=utf-8",
   ]],
+  ["/dom-hosts/base-dom-todomvc-journey.js", [
+    "public/dom-hosts/base-dom-todomvc-journey.js",
+    "text/javascript; charset=utf-8",
+  ]],
   ["/dom-hosts/todomvc-ops.js", [
     "public/dom-hosts/todomvc-ops.js",
     "text/javascript; charset=utf-8",
