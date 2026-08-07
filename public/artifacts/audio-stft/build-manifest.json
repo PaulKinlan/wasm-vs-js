@@ -5,8 +5,8 @@
   "entryId": "audio.stft.v1",
   "benchmarkSlug": "audio-stft",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "fe262106c409f3c9527be141dfd1ae0f73cd033e",
-  "sourceSha256": "35b44bccd0d0a98f43c5827567a2955e1c27b3eb708229035af9335117589ef5",
+  "sourceCommit": "5d28bf8458b8a17b9ada9a0c969a99188caaf290",
+  "sourceSha256": "55653b3abe4ed722bef662e08c9fb4974664e6e74cd957115f56c84a1f89fd6a",
   "fullSourceGraph": [
     {
       "path": "benchmarks/audio-fft/benchmark.json",
@@ -135,8 +135,8 @@
     },
     {
       "path": "deno.lock",
-      "bytes": 1630,
-      "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2"
+      "bytes": 54996,
+      "sha256": "71d58652028fd82beb0d830f4d71ecb73e4e14c8447d4fff0f30ffff7dc17009"
     },
     {
       "path": "catalog/workloads.v2.proposed.json",
@@ -187,19 +187,19 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/audio-stft/fixture-manifest.json",
-      "sha256": "b1df4258b0d9919ae07a3037099e5744190e7d0dfb9bf1a2767797a3598c2a2c"
+      "sha256": "6bfb8b1616ae602ab991fbdee593816675e933fdce06ede3b301c0e090f7f752"
     },
     "input": {
       "path": "public/artifacts/audio-stft/input-manifest.json",
-      "sha256": "a5053039d325d722ff30b704fa8209946060b65ecddc3d20cfbaa306993eecbe"
+      "sha256": "bed31e58e2a0c8f2b5ac242cd76a76fced244f301ba0e282da9588ccffef836d"
     },
     "reference": {
       "path": "public/artifacts/audio-stft/reference-manifest.json",
-      "sha256": "7af3c12667f4b312830af257ede83188a5908a63060f2138f485a1450af644af"
+      "sha256": "d63b6c283d4c150fd34622085b6c98ae9614198f806f93c68e03039121f57dc4"
     },
     "output": {
       "path": "public/artifacts/audio-stft/output-manifest.json",
-      "sha256": "cf2ea4f8f247dc387b33a7f973bf90969c04884233ba5d8de22120b2d61678a2"
+      "sha256": "58be83c18c0d65138f54f5b91efd5d9f146b8627fca0d1dab85b2bcab3affa1d"
     }
   },
   "referenceArtifact": {
@@ -241,7 +241,7 @@
       "--allow-write=public/artifacts/audio-fft,public/artifacts/audio-fir,public/artifacts/audio-stft",
       "--allow-run=git",
       "scripts/build-audio.ts",
-      "--source-commit=fe262106c409f3c9527be141dfd1ae0f73cd033e"
+      "--source-commit=5d28bf8458b8a17b9ada9a0c969a99188caaf290"
     ],
     "toolchain": [
       {
@@ -277,7 +277,7 @@
     "lockfiles": [
       {
         "path": "deno.lock",
-        "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2"
+        "sha256": "71d58652028fd82beb0d830f4d71ecb73e4e14c8447d4fff0f30ffff7dc17009"
       }
     ],
     "environment": [
