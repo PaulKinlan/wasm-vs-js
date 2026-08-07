@@ -988,6 +988,12 @@ function initUnifiedRunner() {
 
   if (!form || !startBtn || !statusEl) return;
 
+  // The template ships the controls disabled (progressive enhancement for
+  // no-JS); the runner enables them once wired (Paul: why is Target Engine disabled?).
+  startBtn.disabled = false;
+  if (targetSelect) targetSelect.disabled = false;
+  if (iterationsSelect) iterationsSelect.disabled = false;
+
   let activeRun = false;
 
   form.addEventListener("submit", async (event) => {

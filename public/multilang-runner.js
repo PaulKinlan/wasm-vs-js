@@ -4549,14 +4549,20 @@ function median(values) {
 }
 
 function benchmarkOne(fn, iterations) {
+  // 1st run (cold): the first invocation on the freshly-instantiated engine,
+  // matching the primary runner's cold-start column.
+  let t0 = performance.now();
+  fn();
+  const coldMs = performance.now() - t0;
   for (let i = 0; i < 50; i++) fn(); // warm-up (JIT + wasm tiering)
   const samples = [];
   for (let i = 0; i < iterations; i++) {
-    const t0 = performance.now();
+    t0 = performance.now();
     fn();
     samples.push(performance.now() - t0);
   }
   return {
+    coldMs,
     medianMs: median(samples),
     minMs: Math.min(...samples),
     maxMs: Math.max(...samples),
@@ -4637,7 +4643,7 @@ function renderTables(container, manifest, resultsByKernel, iterations) {
     const max = Math.max(...results.map((r) => r.medianMs), 1);
     const rows = results
       .map((r) => {
-        const ratio = (r.medianMs / jsMs).toFixed(2);
+        const ratio = (jsMs / r.medianMs).toFixed(2); // speedup vs JS baseline
         const pct = Math.max(2, (r.medianMs / max) * 100);
         const wasmSize = r.bytes > 0 ? `${r.bytes} B` : "";
         const srcSize = r.sourceBytes > 0 ? `src ${r.sourceBytes} B` : "";
@@ -4646,10 +4652,13 @@ function renderTables(container, manifest, resultsByKernel, iterations) {
         <tr>
           <td><strong>${r.label}</strong></td>
           <td>${size}</td>
-          <td>${r.medianMs.toFixed(3)} ms</td>
-          <td>${ratio}×</td>
+          <td>${typeof r.coldMs === "number" ? r.coldMs.toFixed(2) : "—"} ms</td>
+          <td>${r.medianMs.toFixed(2)} ms</td>
+          <td>${r.minMs.toFixed(2)} ms</td>
+          <td>${r.maxMs.toFixed(2)} ms</td>
+          <td>${r.key === "js" ? "<strong>1.00× (Baseline)</strong>" : `<strong>${ratio}×</strong>`}</td>
           <td><div class="perf-bar-track"><div class="perf-bar multilang-bar" data-pct="${pct}" title="${
-          r.medianMs.toFixed(3)
+          r.medianMs.toFixed(2)
         } ms"></div></div></td>
         </tr>`;
       })
@@ -4659,7 +4668,7 @@ function renderTables(container, manifest, resultsByKernel, iterations) {
       <div class="table-wrap">
         <table class="results-table">
           <caption>${kernelLabel} — ${iterations}× warm loop, local run</caption>
-          <thead><tr><th>Implementation</th><th>Binary Size</th><th>Warm Median</th><th>vs JS</th><th></th></tr></thead>
+          <thead><tr><th>Implementation</th><th>Binary Size</th><th>1st Run (Cold)</th><th>Median (${iterations}× Warm)</th><th>Fastest (Min)</th><th>Slowest (Max)</th><th>Speedup Ratio</th><th></th></tr></thead>
           <tbody>${rows}</tbody>
         </table>
       </div>`;
