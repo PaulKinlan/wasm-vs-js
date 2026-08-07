@@ -47,17 +47,17 @@ export const WORKLOAD_CONFIGS = {
     tokenType: "string",
   },
   "game-canvas-arcade": {
-    workerScript: "/demos/game-family/worker.js",
+    workerScript: "/benchmarks/game-family/worker.js",
     protocol: "game-family",
     workloadId: "game.canvas-arcade.v1",
   },
   "game-canvas-entity-pathfinding": {
-    workerScript: "/demos/game-family/worker.js",
+    workerScript: "/benchmarks/game-family/worker.js",
     protocol: "game-family",
     workloadId: "game.canvas-entity-pathfinding.v1",
   },
   "game-dom-tactics-grid": {
-    workerScript: "/demos/game-family/worker.js",
+    workerScript: "/benchmarks/game-family/worker.js",
     protocol: "game-family",
     workloadId: "game.dom-tactics-grid.v1",
   },
@@ -130,7 +130,7 @@ export const WORKLOAD_CONFIGS = {
     protocol: "protobuf",
   },
   "cad-parametric-bracket": {
-    workerScript: "/demos/cad-parametric-bracket/worker.js",
+    workerScript: "/benchmarks/cad-parametric-bracket/worker.js",
     protocol: "bracket",
   },
   "crypto-file-integrity-v1": {
@@ -138,7 +138,7 @@ export const WORKLOAD_CONFIGS = {
     protocol: "file-integrity",
   },
   "game-ecs-frame-update": {
-    workerScript: "/demos/game-ecs-frame-update/worker.js",
+    workerScript: "/benchmarks/game-ecs-frame-update/worker.js",
     protocol: "ecs-frame",
   },
   "network-pcap-decode-v1": {
@@ -172,7 +172,7 @@ export const WORKLOAD_CONFIGS = {
     protocol: "audio-effects",
   },
   "simulation-nbody-cloth": {
-    workerScript: "/demos/simulation-nbody-cloth/worker.js",
+    workerScript: "/benchmarks/simulation-nbody-cloth/worker.js",
     protocol: "nbody-cloth",
   },
   "simulation-rigid-body-2d-v1": {
@@ -184,7 +184,7 @@ export const WORKLOAD_CONFIGS = {
     protocol: "c-to-wasm",
   },
   "text-regex-log-scan": {
-    workerScript: "/demos/base/text.regex-log-scan.v1/worker.js",
+    workerScript: "/benchmarks/base/text.regex-log-scan.v1/worker.js",
     protocol: "text-regex",
   },
   "dom-dependent-form-validation": {
@@ -656,14 +656,452 @@ function renderPerformanceReport(container, jsStats, wasmStats, iterations) {
     </div>
   `;
 
-  container.innerHTML = speedupBadgeHtml + graphHtml + tableHtml;
+  const lifecycleHtml = renderLifecycleBreakdown(jsStats, wasmStats);
+
+  container.innerHTML = speedupBadgeHtml + graphHtml + tableHtml + lifecycleHtml;
   container.querySelectorAll(".perf-bar[data-pct]").forEach((bar) => {
     bar.style.width = `${bar.dataset.pct}%`;
   });
   container.hidden = false;
 }
 
+// Render a phase value that is either a number (ms) or a typed unavailable
+// object { status, reason } — never zero-substituted.
+function lifecyclePhaseCell(value) {
+  if (value && typeof value === "object") {
+    if (value.status === "unavailable") return `${value.status}: ${value.reason}`;
+    if (value.status === "supported-value" && typeof value.ms === "number") {
+      return `${value.ms.toFixed(3)} ms`;
+    }
+  }
+  if (typeof value === "number") return `${value.toFixed(3)} ms`;
+  return "not collected";
+}
+
+// Cold-start phase breakdown for the playground report. Rendered from the
+// retained lifecycle block when the run carried one; otherwise the phase cells
+// are marked "not collected" — never invented. Cold = first pre-JIT run;
+// the phases below are what that first run cost, broken out so a Wasm-vs-JS
+// difference can be traced to transfer, compile, instantiate, or first execute.
+function renderLifecycleBreakdown(jsStats, wasmStats) {
+  const jsLifecycle = jsStats?.lastResult?.lifecycle;
+  const wasmLifecycle = wasmStats?.lastResult?.lifecycle;
+  if (!jsLifecycle && !wasmLifecycle) return "";
+  const row = (label, jsValue, wasmValue) =>
+    `<tr><td>${label}</td><td>${lifecyclePhaseCell(jsValue)}</td><td>${
+      lifecyclePhaseCell(wasmValue)
+    }</td></tr>`;
+  return `<div class="table-wrap lifecycle-breakdown">
+    <table class="results-table">
+      <caption>First-use lifecycle breakdown · cold = first pre-JIT run</caption>
+      <thead><tr><th>Phase</th><th>JavaScript</th><th>WebAssembly</th></tr></thead>
+      <tbody>
+        ${
+    row("Manifest transfer", jsLifecycle?.manifestTransferMs, wasmLifecycle?.manifestTransferMs)
+  }
+        ${
+    row(
+      "Manifest network (Resource Timing)",
+      jsLifecycle?.manifestNetworkMs,
+      wasmLifecycle?.manifestNetworkMs,
+    )
+  }
+        ${row("Module transfer", jsLifecycle?.jsTransferMs, wasmLifecycle?.wasmTransferMs)}
+        ${
+    row("Module network (Resource Timing)", jsLifecycle?.jsNetworkMs, wasmLifecycle?.wasmNetworkMs)
+  }
+        ${row("Compile", "—", wasmLifecycle?.wasmCompileMs)}
+        ${row("Instantiate", "—", wasmLifecycle?.wasmInstantiateMs)}
+        ${row("First execute", jsLifecycle?.jsFirstExecuteMs, wasmLifecycle?.wasmFirstExecuteMs)}
+      </tbody>
+    </table>
+  </div>`;
+}
+
 // Auto-initialize benchmark detail page runner
+// ── Unified "Run Everything" flow ────────────────────────────────────────
+// One run control drives every stage the page supports: the primary JS-vs-Wasm
+// pair, then the multi-language comparison (all engines), then the Track B
+// optimized variants. Pure plan helper (testable without a DOM).
+export function composedStagePlan(meta = {}) {
+  const plan = {
+    primary: Boolean(meta.workload || meta.demo),
+    multilangManifest: meta.multilangManifest ?? null,
+    trackBRoot: meta.trackBRoot ?? null,
+    libcmp: Boolean(meta.libcmp),
+    libcmpEngines: Array.isArray(meta.libcmpEngines) ? meta.libcmpEngines : [],
+  };
+  return plan;
+}
+
+function composedStagePlanFromDom() {
+  const body = document.body;
+  const trackBRoot = document.querySelector("#track-b-root")
+    ? "#track-b-root"
+    : document.querySelector("#trackb-root")
+    ? "#trackb-root"
+    : null;
+  let libcmpEngines = [];
+  if (body?.dataset?.libcmpEngines) {
+    try {
+      libcmpEngines = JSON.parse(body.dataset.libcmpEngines);
+    } catch {
+      libcmpEngines = [];
+    }
+  }
+  return composedStagePlan({
+    workload: body?.dataset?.workload,
+    demo: body?.dataset?.demo,
+    multilangManifest: body?.dataset?.multilangManifest ?? null,
+    trackBRoot,
+    libcmp: body?.dataset?.libcmp,
+    libcmpEngines,
+  });
+}
+
+// Static multi-language pre-render (Paul directive 2026-08-06): every benchmark
+// page shows its measured multi-language comparison IMMEDIATELY (from the
+// committed report), not only after clicking Run. Run refreshes the numbers.
+async function renderReportedComparison(flowEl, manifestPath) {
+  const manifestResp = await fetch(manifestPath, { cache: "no-store" });
+  if (!manifestResp.ok) return;
+  const manifest = await manifestResp.json();
+  const reportResp = await fetch("/data/multilang-wasm-benchmark-report.v1.json", {
+    cache: "no-store",
+  });
+  if (!reportResp.ok) return;
+  const report = await reportResp.json();
+  const entry = report.workloads?.find((w) =>
+    manifest.kernels?.length === 1 &&
+    (w.name === manifest.workloadId ||
+      w.name === manifestPath.split("/").pop().replace(".manifest.json", ""))
+  );
+  const variants = entry?.variants;
+  if (!variants || variants.length === 0) return;
+  const previous = flowEl.querySelector(`[data-stage="multilang"]`);
+  if (previous) previous.remove();
+  const wrap = document.createElement("section");
+  wrap.dataset.stage = "multilang";
+  wrap.className = "stage-result";
+  const h = document.createElement("h3");
+  h.textContent = "Multi-language comparison (committed measured results)";
+  wrap.appendChild(h);
+  const note = document.createElement("p");
+  note.className = "notice";
+  note.textContent = "Shown from the committed report; click Run to re-measure in this browser.";
+  wrap.appendChild(note);
+  const table = document.createElement("table");
+  table.className = "mlr-table";
+  table.innerHTML =
+    "<thead><tr><th class='mlr-th mlr-th-header'>Engine</th><th class='mlr-th mlr-th-header'>Warm median</th><th class='mlr-th mlr-th-header'>Wasm bytes</th><th class='mlr-th mlr-th-header'>Toolchain</th></tr></thead><tbody>" +
+    variants.map((v) =>
+      `<tr><td class="mlr-th"><strong>${v.language}</strong></td>` +
+      `<td class="mlr-th">${
+        typeof v.warmExecutionMs === "number" ? v.warmExecutionMs.toFixed(2) + " ms" : "—"
+      }</td>` +
+      `<td class="mlr-th">${
+        v.binarySizeBytes > 0 ? v.binarySizeBytes.toLocaleString() : "—"
+      }</td>` +
+      `<td class="mlr-th">${v.toolchain ?? "—"}</td></tr>`
+    ).join("") + "</tbody>";
+  wrap.appendChild(table);
+  flowEl.appendChild(wrap);
+}
+
+// Static Track B pre-render: pages with a track-b section show the committed
+// A-vs-B comparison immediately (Paul directive 2026-08-06).
+async function renderReportedTrackB(flowEl, workloadSlug) {
+  const resp = await fetch("/data/track-b-report.v1.json", { cache: "no-store" });
+  if (!resp.ok) return;
+  const report = await resp.json();
+  const entry = report.workloads?.find((w) =>
+    w.workloadId === workloadSlug || w.workloadId?.includes(workloadSlug) ||
+    workloadSlug.includes(w.workloadId ?? "")
+  );
+  if (!entry?.languages || entry.languages.length === 0) return;
+  const previous = flowEl.querySelector(`[data-stage="trackb"]`);
+  if (previous) previous.remove();
+  const wrap = document.createElement("section");
+  wrap.dataset.stage = "trackb";
+  wrap.className = "stage-result";
+  const h = document.createElement("h3");
+  h.textContent = "Track A vs Track B — independent optimization (committed measured results)";
+  wrap.appendChild(h);
+  const note = document.createElement("p");
+  note.className = "notice";
+  note.textContent =
+    "Track A baselines are frozen and never modified; Track B variants are independent optimizations. Click Run to re-measure.";
+  wrap.appendChild(note);
+  const table = document.createElement("table");
+  table.className = "mlr-table";
+  table.innerHTML =
+    "<thead><tr><th class='mlr-th mlr-th-header'>Engine</th><th class='mlr-th mlr-th-header'>Baseline (A)</th><th class='mlr-th mlr-th-header'>Optimized (B)</th><th class='mlr-th mlr-th-header'>Delta</th></tr></thead><tbody>" +
+    entry.languages.map((l) => {
+      const a = l.baselineMs, b = l.optimizedMs;
+      const delta = (typeof a === "number" && typeof b === "number" && a > 0)
+        ? ((b - a) / a * 100).toFixed(1) + "%"
+        : "—";
+      return `<tr><td class="mlr-th"><strong>${l.language}</strong></td>` +
+        `<td class="mlr-th">${typeof a === "number" ? a.toFixed(2) + " ms" : "—"}</td>` +
+        `<td class="mlr-th">${typeof b === "number" ? b.toFixed(2) + " ms" : "—"}</td>` +
+        `<td class="mlr-th">${delta}</td></tr>`;
+    }).join("") + "</tbody>";
+  wrap.appendChild(table);
+  flowEl.appendChild(wrap);
+}
+
+async function runComposedStages(
+  { workloadSlug, iterations, statusEl, reportingEl, primaryStats = null },
+) {
+  const plan = composedStagePlanFromDom();
+  plan.domHost = document.body?.dataset?.domHost || "";
+  // ONE results flow: every additional stage (multi-language, Track B) renders
+  // as a labeled sub-block of the SAME run output inside the primary reporting
+  // element — not a separate page section (Paul directive 2026-08-06).
+  const flowEl = reportingEl ?? document.querySelector("#main") ?? document.body;
+  const stageBlock = (stage, heading) => {
+    const previous = flowEl.querySelector(`[data-stage="${stage}"]`);
+    if (previous) previous.remove();
+    const wrap = document.createElement("section");
+    wrap.dataset.stage = stage;
+    wrap.className = "stage-result";
+    const h = document.createElement("h3");
+    h.textContent = heading;
+    wrap.appendChild(h);
+    const box = document.createElement("div");
+    wrap.appendChild(box);
+    flowEl.appendChild(wrap);
+    return box;
+  };
+  if (plan.multilangManifest) {
+    statusEl.textContent = "Multi-language comparison: loading engines…";
+    const { runMultilangComparison } = await import("/multilang-runner.js");
+    const mlBox = stageBlock("multilang", "Multi-language comparison");
+    await runMultilangComparison(plan.multilangManifest, {
+      iterations,
+      onStatus: (m) => {
+        statusEl.textContent = m;
+      },
+      reportingEl: mlBox,
+    });
+    statusEl.textContent = "✓ Multi-language comparison complete.";
+  }
+  if (plan.domHost) {
+    // Real-DOM stage (Paul directive 2026-08-06): DOM-family pages must
+    // actually drive a rendered UI — not just run the model engine. The page
+    // loads itself in a hidden same-origin iframe; the iframe registers its
+    // dom host (data-dom-host) and applies the frozen action trace to the
+    // real DOM with real DOM APIs.
+    const iframeNote = document.createElement("p");
+    iframeNote.className = "notice";
+    iframeNote.textContent =
+      "Real-DOM iframe run: the page loaded itself in the VISIBLE iframe below, rendered an actual UI, and applied the frozen action trace with real DOM APIs (createElement/appendChild/classList/focus). The host verifies the rendered DOM against the oracle. Why the different scopes? The primary run measures the engine worker (including per-iteration evidence hashing); this stage measures the full render-and-drive journey in the real DOM; the multi-language section measures the bare kernel — three different scopes, shown honestly side by side.";
+    const domBox = stageBlock("real-dom", "Real-DOM iframe run");
+    domBox.appendChild(iframeNote);
+    const iframeContainer = document.createElement("div");
+    iframeContainer.setAttribute("data-wvj-visible-host", "1");
+    domBox.appendChild(iframeContainer);
+    statusEl.textContent = "Real-DOM run: loading the demo page in an iframe…";
+    const { runIframeDomBenchmark } = await import("/iframe-benchmark-bridge.js");
+    let realDomTargets = ["js", "wasm"];
+    // Multi-language engines drive the SAME real DOM (Paul directive
+    // 2026-08-07): include every engine from the page's multilang manifest
+    // so the WASM->JS->DOM interaction is measured per language.
+    const mlManifestPath = document.body?.dataset?.multilangManifest;
+    if (mlManifestPath) {
+      try {
+        const mlManifest = await (await fetch(mlManifestPath, { cache: "no-store" })).json();
+        const engineKeys = (mlManifest.engines ?? [])
+          .map((e) => e.key)
+          .filter((k) => ["c", "cpp", "rs", "dart"].includes(k));
+        realDomTargets = [...realDomTargets, ...engineKeys];
+      } catch {
+        // keep js+wasm if the manifest is unavailable
+      }
+    }
+    try {
+      const result = await runIframeDomBenchmark({
+        route: `${globalThis.location.pathname}${globalThis.location.search}`,
+        iterations,
+        targets: realDomTargets,
+        timeoutMs: 240000,
+        visible: true,
+        keepAlive: true,
+        container: iframeContainer,
+        onProgress: ({ target, iteration, total }) => {
+          statusEl.textContent = `Real-DOM run: ${
+            target === "js" ? "JS" : "Wasm"
+          } — iteration ${iteration}/${total}…`;
+        },
+      });
+      // Scroll the kept iframe to show the rendered TodoMVC UI (Paul:
+      // the DOM is rendered at the bottom of the self-loaded page, but
+      // the iframe's viewport shows the page chrome by default).
+      const iframeEl = iframeContainer.querySelector('iframe[data-wvj-bridge]');
+      if (iframeEl && iframeEl.contentDocument) {
+        const host = iframeEl.contentDocument.querySelector('#wvj-todomvc-host');
+        if (host) {
+          iframeEl.contentWindow?.scrollTo(0, host.offsetTop - 8);
+        }
+      }
+      const jsStats = result.perTarget.js;
+      const wasmStats = result.perTarget.wasm;
+      const engineLabels = {
+        c: "C / Wasm (real DOM)",
+        cpp: "C++ / Wasm (real DOM)",
+        rs: "Rust / Wasm (real DOM)",
+        dart: "Dart / WasmGC (real DOM)",
+      };
+      const rows = [];
+      if (jsStats) {
+        rows.push(
+          `<tr><td class="mlr-th"><strong>JavaScript (real DOM)</strong></td><td class="mlr-th">${
+            jsStats.coldMs.toFixed(2)
+          } ms</td><td class="mlr-th">${
+            jsStats.warmMedianMs.toFixed(2)
+          } ms</td><td class="mlr-th">${jsStats.minMs.toFixed(2)} ms</td><td class="mlr-th">${
+            jsStats.maxMs.toFixed(2)
+          } ms</td><td class="mlr-th"><strong>1.00× (Baseline)</strong></td></tr>`,
+        );
+      }
+      if (wasmStats) {
+        rows.push(
+          `<tr><td class="mlr-th"><strong>WebAssembly (real DOM)</strong></td><td class="mlr-th">${
+            wasmStats.coldMs.toFixed(2)
+          } ms</td><td class="mlr-th">${
+            wasmStats.warmMedianMs.toFixed(2)
+          } ms</td><td class="mlr-th">${wasmStats.minMs.toFixed(2)} ms</td><td class="mlr-th">${
+            wasmStats.maxMs.toFixed(2)
+          } ms</td><td class="mlr-th"><strong>${
+            jsStats ? (jsStats.warmMedianMs / wasmStats.warmMedianMs).toFixed(2) : "—"
+          }×</strong></td></tr>`,
+        );
+      }
+      // Multi-language engines that drove the SAME DOM (Paul directive 2026-08-07).
+      for (const key of ["c", "cpp", "rs", "dart"]) {
+        const stats = result.perTarget[key];
+        if (!stats) continue;
+        rows.push(
+          `<tr><td class="mlr-th"><strong>${engineLabels[key]}</strong></td><td class="mlr-th">${
+            stats.coldMs.toFixed(2)
+          } ms</td><td class="mlr-th">${stats.warmMedianMs.toFixed(2)} ms</td><td class="mlr-th">${
+            stats.minMs.toFixed(2)
+          } ms</td><td class="mlr-th">${stats.maxMs.toFixed(2)} ms</td><td class="mlr-th"><strong>${
+            jsStats ? (jsStats.warmMedianMs / stats.warmMedianMs).toFixed(2) : "—"
+          }×</strong></td></tr>`,
+        );
+      }
+      if (rows.length > 0) {
+        const t = document.createElement("table");
+        t.className = "mlr-table";
+        t.innerHTML =
+          "<thead><tr><th class='mlr-th mlr-th-header'>Engine</th><th class='mlr-th mlr-th-header'>1st Run (Cold)</th><th class='mlr-th mlr-th-header'>Median (Warm)</th><th class='mlr-th mlr-th-header'>Fastest (Min)</th><th class='mlr-th mlr-th-header'>Slowest (Max)</th><th class='mlr-th mlr-th-header'>Speedup Ratio</th></tr></thead><tbody>" +
+          rows.join("") + "</tbody>";
+        domBox.appendChild(t);
+      }
+      if (result.detail?.note) {
+        const note = document.createElement("p");
+        note.className = "notice";
+        note.textContent = result.detail.note;
+        domBox.appendChild(note);
+      }
+      statusEl.textContent = "✓ Real-DOM iframe run complete.";
+    } catch (domErr) {
+      const note = document.createElement("p");
+      note.className = "notice";
+      note.textContent = `Real-DOM run unavailable: ${
+        domErr instanceof Error ? domErr.message : String(domErr)
+      }`;
+      domBox.appendChild(note);
+      statusEl.textContent = "Real-DOM run unavailable (shown honestly).";
+    }
+  }
+  if (plan.trackBRoot) {
+    statusEl.textContent = "Track B: loading optimized variants…";
+    const { initTrackB } = await import("/track-b.js");
+    const tbBox = stageBlock("trackb", "Track A vs Track B — independent optimization");
+    await initTrackB(tbBox, workloadSlug);
+    statusEl.textContent = "✓ Track B optimized variants rendered.";
+  }
+  if (plan.libcmp && plan.libcmpEngines.length > 0) {
+    statusEl.textContent = "Library comparison: running engine pair…";
+    const box = stageBlock("libcmp", "Library comparison (engines, not reimplementations)");
+    const p = document.createElement("p");
+    p.className = "notice";
+    p.textContent = "Each engine below is a real implementation (a library or a port of one). " +
+      "This compares engines against each other, not independent language " +
+      "reimplementations of a single algorithm.";
+    box.appendChild(p);
+    const rows = [];
+    for (const engine of plan.libcmpEngines) {
+      let medianMs = null;
+      if (primaryStats) {
+        if (engine.key === "js" && primaryStats.jsStats?.medianMs != null) {
+          medianMs = primaryStats.jsStats.medianMs;
+        } else if (engine.key === "wasm" && primaryStats.wasmStats?.medianMs != null) {
+          medianMs = primaryStats.wasmStats.medianMs;
+        }
+      }
+      if (medianMs == null) {
+        const target = engine.key === "wasm" ? "wasm" : "javascript";
+        statusEl.textContent = `Library comparison: running ${engine.label}…`;
+        try {
+          const stats = await executeWorkerLoop(workloadSlug, target, iterations, statusEl);
+          medianMs = stats.medianMs;
+        } catch (err) {
+          medianMs = null;
+          rows.push({
+            label: engine.label,
+            medianMs: null,
+            sourceBytes: 0,
+            error: err instanceof Error ? err.message : String(err),
+          });
+          continue;
+        }
+      }
+      let sourceBytes = 0;
+      if (engine.source) {
+        try {
+          const resp = await fetch(engine.source, { cache: "no-store" });
+          if (resp.ok) sourceBytes = (await resp.arrayBuffer()).byteLength;
+        } catch {
+          sourceBytes = 0;
+        }
+      }
+      rows.push({ label: engine.label, medianMs, sourceBytes, error: "" });
+    }
+    box.appendChild(renderLibCmpTable(rows));
+    statusEl.textContent = "✓ Library comparison complete.";
+  }
+}
+
+function renderLibCmpTable(rows) {
+  const table = document.createElement("table");
+  table.className = "mlr-table";
+  table.innerHTML = "<thead><tr>" +
+    ["Engine", "Median (this run)", "Source size", "Notes"]
+      .map((h) => `<th class="mlr-th mlr-th-header">${h}</th>`)
+      .join("") +
+    "</tr></thead><tbody>" +
+    rows
+      .map((r) =>
+        `<tr>` +
+        `<td class="mlr-th"><strong>${r.label}</strong></td>` +
+        `<td class="mlr-th">${r.medianMs != null ? `${r.medianMs.toFixed(3)} ms` : "—"}</td>` +
+        `<td class="mlr-th">${
+          r.sourceBytes > 0 ? `${r.sourceBytes.toLocaleString()} B` : "—"
+        }</td>` +
+        `<td class="mlr-th">${r.error ? `engine unavailable: ${r.error}` : ""}</td>` +
+        `</tr>`
+      )
+      .join("") +
+    "</tbody>";
+  return table;
+}
+
+let lastJsStats = null;
+let lastWasmStats = null;
+
 function initUnifiedRunner() {
   const workloadSlug = document.body.dataset.workload || document.body.dataset.demo;
   if (!workloadSlug) return;
@@ -680,6 +1118,41 @@ function initUnifiedRunner() {
     document.querySelector("#result");
 
   if (!form || !startBtn || !statusEl) return;
+
+  // The template ships the controls disabled (progressive enhancement for
+  // no-JS); the runner enables them once wired (Paul: why is Target Engine disabled?).
+  startBtn.disabled = false;
+  if (targetSelect) targetSelect.disabled = false;
+  if (iterationsSelect) iterationsSelect.disabled = false;
+
+  // Multi-language engines become selectable targets: "All engines" plus each
+  // individual engine from the page's manifest (Paul: should the target framework
+  // include multilang? — yes).
+  const mlManifestPath = document.body?.dataset?.multilangManifest;
+  if (targetSelect && mlManifestPath) {
+    fetch(mlManifestPath, { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((manifest) => {
+        if (!manifest || !targetSelect || !Array.isArray(manifest.engines)) return;
+        const has = (v) => [...targetSelect.options].some((o) => o.value === v);
+        if (!has("ml:all")) {
+          const all = document.createElement("option");
+          all.value = "ml:all";
+          all.textContent = "Multi-Language Comparison (All Engines)";
+          targetSelect.appendChild(all);
+        }
+        for (const engine of manifest.engines) {
+          const v = `ml:${engine.key}`;
+          if (!has(v)) {
+            const opt = document.createElement("option");
+            opt.value = v;
+            opt.textContent = `${engine.label} (multi-language)`;
+            targetSelect.appendChild(opt);
+          }
+        }
+      })
+      .catch(() => {});
+  }
 
   let activeRun = false;
 
@@ -699,9 +1172,43 @@ function initUnifiedRunner() {
     statusEl.textContent = `Running benchmark suite (${iterations}× loop)...`;
 
     try {
-      if (chosenTarget === "javascript") {
+      if (chosenTarget.startsWith("ml:")) {
+        // Target the multi-language comparison directly (Paul: the target
+        // framework should include the multilang engines).
+        const engineFilter = chosenTarget === "ml:all" ? null : chosenTarget.slice(3);
+        const manifestPath = document.body?.dataset?.multilangManifest;
+        if (!manifestPath) throw new Error("no multi-language manifest for this page");
+        statusEl.textContent = engineFilter
+          ? `Running ${engineFilter} engine (${iterations}× loop)...`
+          : `Running all multi-language engines (${iterations}× loop)...`;
+        const { runMultilangComparison } = await import("/multilang-runner.js");
+        const previous = reportingEl?.querySelector(`[data-stage="multilang"]`);
+        if (previous) previous.remove();
+        const wrap = document.createElement("section");
+        wrap.dataset.stage = "multilang";
+        wrap.className = "stage-result";
+        const h = document.createElement("h3");
+        h.textContent = engineFilter
+          ? `Multi-language comparison — ${engineFilter} engine only`
+          : "Multi-language comparison";
+        wrap.appendChild(h);
+        const box = document.createElement("div");
+        wrap.appendChild(box);
+        reportingEl?.appendChild(wrap);
+        if (reportingEl) reportingEl.hidden = false;
+        await runMultilangComparison(manifestPath, {
+          iterations,
+          engineFilter,
+          onStatus: (m) => {
+            statusEl.textContent = m;
+          },
+          reportingEl: box,
+        });
+        statusEl.textContent = "✓ Multi-language comparison complete.";
+      } else if (chosenTarget === "javascript") {
         statusEl.textContent = `Running JavaScript (${iterations}× loop)...`;
         const jsStats = await executeWorkerLoop(workloadSlug, "javascript", iterations);
+        lastJsStats = jsStats;
         statusEl.textContent = `✓ JavaScript completed in ${
           jsStats.warmMedianMs.toFixed(2)
         } ms (median).`;
@@ -715,6 +1222,7 @@ function initUnifiedRunner() {
       } else if (chosenTarget === "wasm" || chosenTarget === "wasm-linear") {
         statusEl.textContent = `Running WebAssembly (${iterations}× loop)...`;
         const wasmStats = await executeWorkerLoop(workloadSlug, "wasm", iterations);
+        lastWasmStats = wasmStats;
         statusEl.textContent = `✓ WebAssembly completed in ${
           wasmStats.warmMedianMs.toFixed(2)
         } ms (median).`;
@@ -729,15 +1237,40 @@ function initUnifiedRunner() {
         // Compare Side-by-Side (JS vs Wasm)
         statusEl.textContent = `Running JavaScript benchmark (${iterations}× loop)...`;
         const jsStats = await executeWorkerLoop(workloadSlug, "javascript", iterations);
+        lastJsStats = jsStats;
 
         statusEl.textContent = `Running WebAssembly benchmark (${iterations}× loop)...`;
         const wasmStats = await executeWorkerLoop(workloadSlug, "wasm", iterations);
+        lastWasmStats = wasmStats;
 
         statusEl.textContent = `✓ Benchmark suite completed across ${iterations} iterations.`;
         if (reportingEl) {
           renderPerformanceReport(reportingEl, jsStats, wasmStats, iterations);
         }
       }
+
+      // Unified "Run Everything": after the primary stage (any target), sequence
+      // the multi-language comparison and the Track B optimized variants from
+      // the same run control (Paul directive 2026-08-06). When the target IS a
+      // multi-language engine, that stage already ran above — don't duplicate it.
+      if (!chosenTarget.startsWith("ml:")) {
+        try {
+          await runComposedStages({
+            workloadSlug,
+            iterations,
+            statusEl,
+            reportingEl,
+            primaryStats: { jsStats: lastJsStats, wasmStats: lastWasmStats },
+          });
+        } catch (composedErr) {
+          statusEl.textContent = `Additional stages error: ${
+            composedErr instanceof Error ? composedErr.message : String(composedErr)
+          }`;
+        }
+      }
+      statusEl.textContent = chosenTarget.startsWith("ml:")
+        ? "✓ Benchmark suite complete."
+        : "✓ Full benchmark suite complete.";
     } catch (err) {
       statusEl.textContent = `Error: ${err.message || String(err)}`;
     } finally {
@@ -765,6 +1298,29 @@ function initUnifiedRunner() {
 }
 
 if (typeof document !== "undefined") {
+  // Marker for the unified composed flow: multilang-runner.js skips its own
+  // auto-bind when this flag is present, so the primary run control sequences
+  // every stage (primary + multilang + Track B). Set before DOMContentLoaded so
+  // other deferred module scripts can read it (module scripts run in order
+  // before DOMContentLoaded fires).
+  if (document.body) {
+    document.body.dataset.unifiedRunnerActive = "1";
+  } else {
+    document.addEventListener("DOMContentLoaded", () => {
+      const mlManifest = document.body?.dataset?.multilangManifest;
+      if (mlManifest) {
+        const flowEl = document.querySelector("#perf-reporting") ?? document.querySelector("#main");
+        if (flowEl) renderReportedComparison(flowEl, mlManifest).catch(() => {});
+      }
+      const trackBRoot = document.querySelector("#track-b-root") ??
+        document.querySelector("#trackb-root");
+      if (trackBRoot && document.body?.dataset?.workload) {
+        renderReportedTrackB(trackBRoot, document.body.dataset.workload).catch(() => {});
+      }
+      document.body.dataset.unifiedRunnerActive = "1";
+    }, { once: true });
+  }
+
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initUnifiedRunner);
   } else {
