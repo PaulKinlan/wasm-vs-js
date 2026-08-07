@@ -1003,8 +1003,7 @@ function initUnifiedRunner() {
       .then((r) => (r.ok ? r.json() : null))
       .then((manifest) => {
         if (!manifest || !targetSelect || !Array.isArray(manifest.engines)) return;
-        const has = (v) =>
-          [...targetSelect.options].some((o) => o.value === v);
+        const has = (v) => [...targetSelect.options].some((o) => o.value === v);
         if (!has("ml:all")) {
           const all = document.createElement("option");
           all.value = "ml:all";
@@ -1123,18 +1122,20 @@ function initUnifiedRunner() {
       // the multi-language comparison and the Track B optimized variants from
       // the same run control (Paul directive 2026-08-06). When the target IS a
       // multi-language engine, that stage already ran above — don't duplicate it.
-      if (!chosenTarget.startsWith("ml:")) try {
-        await runComposedStages({
-          workloadSlug,
-          iterations,
-          statusEl,
-          reportingEl,
-          primaryStats: { jsStats: lastJsStats, wasmStats: lastWasmStats },
-        });
-      } catch (composedErr) {
-        statusEl.textContent = `Additional stages error: ${
-          composedErr instanceof Error ? composedErr.message : String(composedErr)
-        }`;
+      if (!chosenTarget.startsWith("ml:")) {
+        try {
+          await runComposedStages({
+            workloadSlug,
+            iterations,
+            statusEl,
+            reportingEl,
+            primaryStats: { jsStats: lastJsStats, wasmStats: lastWasmStats },
+          });
+        } catch (composedErr) {
+          statusEl.textContent = `Additional stages error: ${
+            composedErr instanceof Error ? composedErr.message : String(composedErr)
+          }`;
+        }
       }
       statusEl.textContent = chosenTarget.startsWith("ml:")
         ? "✓ Benchmark suite complete."
