@@ -1,0 +1,48 @@
+{
+  "workloadId": "dom.todomvc-journey.v1",
+  "kernelLabel": "TodoMVC 100-item state machine \u2014 frozen 150-action trace",
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": [
+    "todomvc_engine"
+  ],
+  "engines": [
+    {
+      "key": "js",
+      "label": "JavaScript",
+      "kind": "js",
+      "source": ""
+    },
+    {
+      "key": "c",
+      "label": "C / Wasm",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 0,
+      "source": "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.c"
+    },
+    {
+      "key": "cpp",
+      "label": "C++ / Wasm",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 0,
+      "source": "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.cpp"
+    },
+    {
+      "key": "rs",
+      "label": "Rust / Wasm",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 0,
+      "source": "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.rs"
+    },
+    {
+      "key": "dart",
+      "label": "Dart / WasmGC",
+      "kind": "dart",
+      "file": "todomvc_engine_dart.wasm",
+      "glue": "todomvc_engine_dart.mjs",
+      "source": "benchmarks/multilang-wasm/base-dom-todomvc-journey/todomvc_engine.dart"
+    }
+  ]
+}
