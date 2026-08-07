@@ -278,7 +278,8 @@ export async function createTodomvcHost() {
         },
       };
     } finally {
-      ui.root.remove();
+      // Keep the final rendered DOM visible after a successful run so
+      // the user can inspect it. Errors still clean up to avoid stale state.
     }
   }
 

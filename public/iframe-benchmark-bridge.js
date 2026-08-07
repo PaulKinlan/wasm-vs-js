@@ -200,7 +200,7 @@ export function runIframeDomBenchmark({
           reject(new Error(`invalid result message: ${validated.reason}`));
           return;
         }
-        cleanup();
+        cleanupKeepIframe();
         resolve(data);
         return;
       }
@@ -212,6 +212,12 @@ export function runIframeDomBenchmark({
       if (startRetry) clearInterval(startRetry);
       globalThis.removeEventListener("message", onMessage);
       iframe.remove();
+    }
+
+    function cleanupKeepIframe() {
+      clearTimeout(timer);
+      if (startRetry) clearInterval(startRetry);
+      globalThis.removeEventListener("message", onMessage);
     }
 
     (container ?? document.body).append(iframe);
