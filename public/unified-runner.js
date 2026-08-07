@@ -894,7 +894,8 @@ async function runComposedStages(
     // real DOM with real DOM APIs.
     const iframeNote = document.createElement("p");
     iframeNote.className = "notice";
-    iframeNote.textContent = "Real-DOM iframe run: the demo page loaded itself in a hidden same-origin iframe, rendered an actual UI, and applied the frozen action trace with real DOM APIs (createElement/appendChild/classList/focus).";
+    iframeNote.textContent =
+      "Real-DOM iframe run: the demo page loaded itself in a hidden same-origin iframe, rendered an actual UI, and applied the frozen action trace with real DOM APIs (createElement/appendChild/classList/focus).";
     const domBox = stageBlock("real-dom", "Real-DOM iframe run");
     domBox.appendChild(iframeNote);
     statusEl.textContent = "Real-DOM run: loading the demo page in an iframe…";
@@ -906,7 +907,9 @@ async function runComposedStages(
         targets: ["js", "wasm"],
         timeoutMs: 240000,
         onProgress: ({ target, iteration, total }) => {
-          statusEl.textContent = `Real-DOM run: ${target === "js" ? "JS" : "Wasm"} — iteration ${iteration}/${total}…`;
+          statusEl.textContent = `Real-DOM run: ${
+            target === "js" ? "JS" : "Wasm"
+          } — iteration ${iteration}/${total}…`;
         },
       });
       const jsStats = result.perTarget.js;
@@ -916,8 +919,22 @@ async function runComposedStages(
         t.className = "mlr-table";
         t.innerHTML =
           "<thead><tr><th class='mlr-th mlr-th-header'>Engine</th><th class='mlr-th mlr-th-header'>1st Run (Cold)</th><th class='mlr-th mlr-th-header'>Median (Warm)</th><th class='mlr-th mlr-th-header'>Fastest (Min)</th><th class='mlr-th mlr-th-header'>Slowest (Max)</th><th class='mlr-th mlr-th-header'>Speedup Ratio</th></tr></thead><tbody>" +
-          `<tr><td class="mlr-th"><strong>JavaScript (real DOM)</strong></td><td class="mlr-th">${jsStats.coldMs.toFixed(2)} ms</td><td class="mlr-th">${jsStats.warmMedianMs.toFixed(2)} ms</td><td class="mlr-th">${jsStats.minMs.toFixed(2)} ms</td><td class="mlr-th">${jsStats.maxMs.toFixed(2)} ms</td><td class="mlr-th"><strong>1.00× (Baseline)</strong></td></tr>` +
-          `<tr><td class="mlr-th"><strong>WebAssembly (real DOM)</strong></td><td class="mlr-th">${wasmStats.coldMs.toFixed(2)} ms</td><td class="mlr-th">${wasmStats.warmMedianMs.toFixed(2)} ms</td><td class="mlr-th">${wasmStats.minMs.toFixed(2)} ms</td><td class="mlr-th">${wasmStats.maxMs.toFixed(2)} ms</td><td class="mlr-th"><strong>${(jsStats.warmMedianMs / wasmStats.warmMedianMs).toFixed(2)}×</strong></td></tr>` +
+          `<tr><td class="mlr-th"><strong>JavaScript (real DOM)</strong></td><td class="mlr-th">${
+            jsStats.coldMs.toFixed(2)
+          } ms</td><td class="mlr-th">${
+            jsStats.warmMedianMs.toFixed(2)
+          } ms</td><td class="mlr-th">${jsStats.minMs.toFixed(2)} ms</td><td class="mlr-th">${
+            jsStats.maxMs.toFixed(2)
+          } ms</td><td class="mlr-th"><strong>1.00× (Baseline)</strong></td></tr>` +
+          `<tr><td class="mlr-th"><strong>WebAssembly (real DOM)</strong></td><td class="mlr-th">${
+            wasmStats.coldMs.toFixed(2)
+          } ms</td><td class="mlr-th">${
+            wasmStats.warmMedianMs.toFixed(2)
+          } ms</td><td class="mlr-th">${wasmStats.minMs.toFixed(2)} ms</td><td class="mlr-th">${
+            wasmStats.maxMs.toFixed(2)
+          } ms</td><td class="mlr-th"><strong>${
+            (jsStats.warmMedianMs / wasmStats.warmMedianMs).toFixed(2)
+          }×</strong></td></tr>` +
           "</tbody>";
         domBox.appendChild(t);
       }

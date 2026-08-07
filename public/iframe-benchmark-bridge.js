@@ -79,7 +79,9 @@ export async function registerIframeHost() {
       });
       if (!check.ok) {
         throw new Error(
-          `host produced an invalid result shape: ${check.reason} perTarget=${JSON.stringify(Object.keys(result.perTarget ?? {}))}`,
+          `host produced an invalid result shape: ${check.reason} perTarget=${
+            JSON.stringify(Object.keys(result.perTarget ?? {}))
+          }`,
         );
       }
       event.source?.postMessage(
