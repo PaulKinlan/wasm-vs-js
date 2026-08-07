@@ -855,7 +855,6 @@ async function runComposedStages(
 ) {
   const plan = composedStagePlanFromDom();
   plan.domHost = document.body?.dataset?.domHost || "";
-  console.log("[composedStages] domHost:", plan.domHost, "mlManifest:", plan.multilangManifest);
   // ONE results flow: every additional stage (multi-language, Track B) renders
   // as a labeled sub-block of the SAME run output inside the primary reporting
   // element — not a separate page section (Paul directive 2026-08-06).
@@ -887,7 +886,6 @@ async function runComposedStages(
     });
     statusEl.textContent = "✓ Multi-language comparison complete.";
   }
-  console.log("[composedStages] checking domHost:", !!plan.domHost, "value:", plan.domHost);
   if (plan.domHost) {
     // Real-DOM stage (Paul directive 2026-08-06): DOM-family pages must
     // actually drive a rendered UI — not just run the model engine. The page
