@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "91fd1b8020614d9957a135ef30fd0ef1b5cd8b08",
-  "sourceSha256": "2031555346b7ea847f2825409727871f985fdd551f3ccd3d9c7b225cd84cdf22",
+  "sourceCommit": "a7794c387781509ea057787588fcb72269a8e4e5",
+  "sourceSha256": "eaabe4d6aeb49b31e0bd5788553f51ca602fd5a9f7a655553100f2735beea5b9",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 85452,
-      "sha256": "092121c23521056223d150d054e2e41410cadf6b8f1569b53130894dc5a1e697"
+      "bytes": 87479,
+      "sha256": "30f595f724231e16ed35b13ea46d158e9d3c6872e09fc09678368fb375c74005"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "2eaae294b016cbfd0fe4a9f0ffa178ba2b851016c0894326e9b4cb8c5c427b4a"
+      "sha256": "4dabb646d7de14f80decb858e623afa601f0b8a3a329e8d5a66e82b0d28f0602"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "6ad452ff7d4679a6c8e79a8252243d5598a0fadb32c0bf27350e62f082fb3d89"
+      "sha256": "0f12d551d2f842ee1e017088e13edafb081f3f95c0426b00c0a5ef59228247f1"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=91fd1b8020614d9957a135ef30fd0ef1b5cd8b08"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=a7794c387781509ea057787588fcb72269a8e4e5"
   }
 }
