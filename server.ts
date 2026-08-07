@@ -331,6 +331,18 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/demos/game-family/worker.js",
     "text/javascript; charset=utf-8",
   ]],
+  ["/benchmarks/game-family/demo.js", [
+    "public/benchmarks/game-family/demo.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/game-family/worker.js", [
+    "public/benchmarks/game-family/worker.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/benchmarks/game-family/styles.css", [
+    "public/benchmarks/game-family/styles.css",
+    "text/css; charset=utf-8",
+  ]],
   ["/demos/game-family/styles.css", [
     "public/demos/game-family/styles.css",
     "text/css; charset=utf-8",
