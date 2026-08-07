@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <title>DOM tactics grid deterministic trace</title>
-    <link rel="stylesheet" href="/benchmarks/game-family/styles.css">
+    <link rel="stylesheet" href="/styles.css">
     <script type="module" src="/unified-runner.js"></script>
-    <script type="module" src="/benchmarks/game-family/demo.js"></script>
   </head>
   <body data-workload="game-dom-tactics-grid"
     <a class="skip" href="#main">Skip to main content</a>
@@ -57,13 +56,6 @@
       <h1>DOM tactics grid deterministic trace</h1>
       <p
         class="notice"><strong>Proposal-validation demo, not a performance result.</strong> It collects no duration, stores nothing, and uploads nothing. The visual is an enhancement; the complete accepted output appears as text.</p>
-      <section class="panel" aria-labelledby="controls-title">
-        <h2 id="controls-title">Run exact fixed work</h2>
-        <div
-          class="controls"><label>Target<select id="target"><option value="js-controlled">JavaScript controlled</option><option value="wasm-linear-controlled">Linear Wasm controlled reducer</option></select></label><button id="start" type="button" disabled>Start</button><button id="cancel" type="button" disabled>Cancel</button></div>
-        <p id="status" role="status"
-          aria-live="polite">Ready. Computation runs in a dedicated worker with a 15-second timeout.</p>
-      </section>
       <section class="panel">
         <h2>Visual enhancement</h2>
         <div id="grid" class="grid" aria-hidden="true"></div>

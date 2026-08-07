@@ -12,7 +12,8 @@
     <script type="module" src="/benchmarks/traditional-demo.js"></script>
     <script type="module" src="/unified-runner.js"></script>
   </head>
-  <body data-demo="vdom-diff-patch-demo" data-workload="vdom-diff-patch-demo">
+  <body data-demo="vdom-diff-patch-demo" data-workload="vdom-diff-patch-demo" data-libcmp="true"
+    data-libcmp-engines='[{"key": "js", "label": "Hand-written JavaScript VDOM engine", "source": "/benchmarks/vdom-diff-patch-demo/engine.js"}, {"key": "wasm", "label": "Authored linear-Wasm VDOM engine", "source": "/benchmarks/vdom-diff-patch-demo/vdom-diff-patch.wat"}]'>
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
@@ -22,16 +23,19 @@
       <strong>data v1</strong>
     </header>
     <main id="main">
-      <header>
+      <section class="hero" aria-labelledby="demo-title">
         <p class="eyebrow">Reduced out-of-catalog fixture · 1,000 nodes / 250 edits</p>
-        <h1>Virtual-DOM diff and patch</h1>
+        <h1 id="demo-title">Virtual-DOM diff and patch</h1>
         <p class="lede">
           Run one existing reduced VDOM engine against the deterministic 1,000-node tree and
           250-edit transformation: hand-written JavaScript VDOM engine or authored linear-Wasm VDOM
           engine. Both targets calculate exact element insertion, attribute modification, tag replacement,
           reorder, and deletion patch lists.
         </p>
-      </header>
+        <p class="notice"><strong>One run, every engine.</strong> Start runs the two VDOM engines
+          side-by-side and then the library comparison — the honest engine comparison for this
+          workload (a single engine pair, not reimplemented kernels).</p>
+      </section>
 
       <p class="notice">
         This is not the full <code>dom.vdom-diff-patch.v1</code> contract. That unavailable contract
@@ -126,6 +130,14 @@
         class="notice">Engine-level comparison: JS virtual-DOM diff and the equivalent Wasm implementation — the engine pair this workload compares. This traditional demo compares its
       existing engines head-to-head; a full same-algorithm C/C++/Rust/Dart port is a tracked follow-up
       (the cores here are large traditional implementations).</p>
+      <section class="demo-panel" aria-labelledby="libcmp-heading">
+        <h2 id="libcmp-heading">Library comparison</h2>
+        <p>
+          The two real VDOM engines — hand-written JavaScript and the authored linear-Wasm engine —
+          compared as engines, not reimplementations of a single algorithm. This is this workload's
+          honest equivalent of the multi-language comparison on other pages.
+        </p>
+      </section>
     </main>
   </body>
 </html>
