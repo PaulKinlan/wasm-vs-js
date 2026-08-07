@@ -994,6 +994,36 @@ function initUnifiedRunner() {
   if (targetSelect) targetSelect.disabled = false;
   if (iterationsSelect) iterationsSelect.disabled = false;
 
+  // Multi-language engines become selectable targets: "All engines" plus each
+  // individual engine from the page's manifest (Paul: should the target framework
+  // include multilang? — yes).
+  const mlManifestPath = document.body?.dataset?.multilangManifest;
+  if (targetSelect && mlManifestPath) {
+    fetch(mlManifestPath, { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((manifest) => {
+        if (!manifest || !targetSelect || !Array.isArray(manifest.engines)) return;
+        const has = (v) =>
+          [...targetSelect.options].some((o) => o.value === v);
+        if (!has("ml:all")) {
+          const all = document.createElement("option");
+          all.value = "ml:all";
+          all.textContent = "Multi-Language Comparison (All Engines)";
+          targetSelect.appendChild(all);
+        }
+        for (const engine of manifest.engines) {
+          const v = `ml:${engine.key}`;
+          if (!has(v)) {
+            const opt = document.createElement("option");
+            opt.value = v;
+            opt.textContent = `${engine.label} (multi-language)`;
+            targetSelect.appendChild(opt);
+          }
+        }
+      })
+      .catch(() => {});
+  }
+
   let activeRun = false;
 
   form.addEventListener("submit", async (event) => {
@@ -1012,7 +1042,40 @@ function initUnifiedRunner() {
     statusEl.textContent = `Running benchmark suite (${iterations}× loop)...`;
 
     try {
-      if (chosenTarget === "javascript") {
+      if (chosenTarget.startsWith("ml:")) {
+        // Target the multi-language comparison directly (Paul: the target
+        // framework should include the multilang engines).
+        const engineFilter = chosenTarget === "ml:all" ? null : chosenTarget.slice(3);
+        const manifestPath = document.body?.dataset?.multilangManifest;
+        if (!manifestPath) throw new Error("no multi-language manifest for this page");
+        statusEl.textContent = engineFilter
+          ? `Running ${engineFilter} engine (${iterations}× loop)...`
+          : `Running all multi-language engines (${iterations}× loop)...`;
+        const { runMultilangComparison } = await import("/multilang-runner.js");
+        const previous = reportingEl?.querySelector(`[data-stage="multilang"]`);
+        if (previous) previous.remove();
+        const wrap = document.createElement("section");
+        wrap.dataset.stage = "multilang";
+        wrap.className = "stage-result";
+        const h = document.createElement("h3");
+        h.textContent = engineFilter
+          ? `Multi-language comparison — ${engineFilter} engine only`
+          : "Multi-language comparison";
+        wrap.appendChild(h);
+        const box = document.createElement("div");
+        wrap.appendChild(box);
+        reportingEl?.appendChild(wrap);
+        if (reportingEl) reportingEl.hidden = false;
+        await runMultilangComparison(manifestPath, {
+          iterations,
+          engineFilter,
+          onStatus: (m) => {
+            statusEl.textContent = m;
+          },
+          reportingEl: box,
+        });
+        statusEl.textContent = "✓ Multi-language comparison complete.";
+      } else if (chosenTarget === "javascript") {
         statusEl.textContent = `Running JavaScript (${iterations}× loop)...`;
         const jsStats = await executeWorkerLoop(workloadSlug, "javascript", iterations);
         lastJsStats = jsStats;
@@ -1058,8 +1121,9 @@ function initUnifiedRunner() {
 
       // Unified "Run Everything": after the primary stage (any target), sequence
       // the multi-language comparison and the Track B optimized variants from
-      // the same run control (Paul directive 2026-08-06).
-      try {
+      // the same run control (Paul directive 2026-08-06). When the target IS a
+      // multi-language engine, that stage already ran above — don't duplicate it.
+      if (!chosenTarget.startsWith("ml:")) try {
         await runComposedStages({
           workloadSlug,
           iterations,
@@ -1072,7 +1136,9 @@ function initUnifiedRunner() {
           composedErr instanceof Error ? composedErr.message : String(composedErr)
         }`;
       }
-      statusEl.textContent = "✓ Full benchmark suite complete.";
+      statusEl.textContent = chosenTarget.startsWith("ml:")
+        ? "✓ Benchmark suite complete."
+        : "✓ Full benchmark suite complete.";
     } catch (err) {
       statusEl.textContent = `Error: ${err.message || String(err)}`;
     } finally {

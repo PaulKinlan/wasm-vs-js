@@ -4604,7 +4604,13 @@ async function kernelSourceBytes(manifest, kernel, lang, explicitSource) {
   return 0;
 }
 
-export async function runWorkload(manifest, kernel, iterations, onProgress) {
+export async function runWorkload(
+  manifest,
+  kernel,
+  iterations,
+  onProgress,
+  engineFilter = null,
+) {
   const mods = await loadEngines(manifest);
   const adapter = KERNEL_ADAPTERS[manifest.workloadId];
   if (!adapter || !adapter.kernels.includes(kernel)) {
@@ -4613,6 +4619,7 @@ export async function runWorkload(manifest, kernel, iterations, onProgress) {
   const callables = await adapter.build(mods);
   const results = [];
   for (const engine of manifest.engines) {
+    if (engineFilter && engine.key !== engineFilter) continue; // target the one engine
     const fn = callables[engine.key]?.[kernel];
     if (!fn) continue; // engine not applicable to this kernel (e.g. WAT sum-only)
     onProgress(`${engine.label}: ${kernel}...`);
@@ -4694,6 +4701,7 @@ export async function runMultilangComparison(manifestPath, {
   onStatus = () => {},
   shouldCancel = () => false,
   reportingEl = null,
+  engineFilter = null, // null = all engines; "c" | "rs" | ... = that engine only
 } = {}) {
   const manifest = await (await fetch(manifestPath, { cache: "no-store" })).json();
   manifest._path = manifestPath;
@@ -4702,7 +4710,7 @@ export async function runMultilangComparison(manifestPath, {
   for (const kernel of KERNEL_ADAPTERS[manifest.workloadId].kernels) {
     if (shouldCancel()) throw new Error("cancelled");
     onStatus(`Running ${kernel} (${iterations}× loop)...`);
-    results[kernel] = await runWorkload(manifest, kernel, iterations, onStatus);
+    results[kernel] = await runWorkload(manifest, kernel, iterations, onStatus, engineFilter);
     if (shouldCancel()) throw new Error("cancelled");
   }
   if (reportingEl) {
