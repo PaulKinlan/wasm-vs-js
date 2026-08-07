@@ -902,7 +902,7 @@ async function runComposedStages(
     const { runIframeDomBenchmark } = await import("/iframe-benchmark-bridge.js");
     try {
       const result = await runIframeDomBenchmark({
-        route: `${window.location.pathname}${window.location.search}`,
+        route: `${globalThis.location.pathname}${globalThis.location.search}`,
         iterations,
         targets: ["js", "wasm"],
         timeoutMs: 240000,
