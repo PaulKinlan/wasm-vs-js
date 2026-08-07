@@ -8,9 +8,22 @@
       content="TodoMVC 100-item journey benchmark measuring DOM mutation and virtual-dom reconciliation in JavaScript and linear WebAssembly.">
     <title>TodoMVC 100-item journey · Wasm vs JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="/iframe-benchmark-bridge.js"></script>
     <script type="module" src="/unified-runner.js"></script>
+    <script type="module" src="/multilang-runner.js"></script>
   </head>
-  <body data-workload="base-dom-todomvc-journey" data-demo="base-dom-todomvc-journey">
+    <body
+    data-workload="base-dom-todomvc-journey"
+    data-demo="base-dom-todomvc-journey"
+    data-dom-host="/dom-hosts/base-dom-todomvc-journey.js"
+    data-multilang-manifest="/benchmarks/multilang-wasm/base-dom-todomvc-journey.manifest.json"
+    data-multilang-form="#ml-form"
+    data-multilang-start="#ml-start"
+    data-multilang-cancel="#ml-cancel"
+    data-multilang-status="#ml-status"
+    data-multilang-reporting="#ml-reporting"
+    data-multilang-iterations="#ml-iterations"
+  >
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
