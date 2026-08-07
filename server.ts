@@ -1961,7 +1961,7 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "todomvc_engine_cpp.wasm",
       "todomvc_engine_dart.mjs",
       "todomvc_engine_dart.wasm",
-      "todomvc_engine_rs.wasm"
+      "todomvc_engine_rs.wasm",
       "bracket_c.wasm",
       "bracket_cpp.wasm",
       "bracket_dart.mjs",
