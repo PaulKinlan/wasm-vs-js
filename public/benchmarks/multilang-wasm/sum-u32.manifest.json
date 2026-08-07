@@ -1,0 +1,67 @@
+{
+  "workloadId": "multilang-wasm",
+  "kernelLabel": "Modulo-2\u00b3\u00b2 integer sum \u2014 1M values",
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": [
+    "sum"
+  ],
+  "engines": [
+    {
+      "key": "js",
+      "label": "JavaScript",
+      "kind": "js",
+      "source": "benchmarks/multilang-wasm/sum_u32.ts"
+    },
+    {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "kernels": [
+        "sum"
+      ],
+      "source": ""
+    },
+    {
+      "key": "asc",
+      "label": "AssemblyScript",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 1024,
+      "source": "benchmarks/multilang-wasm/sum_u32.ts"
+    },
+    {
+      "key": "c",
+      "label": "C / Wasm",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 1024,
+      "source": "benchmarks/multilang-wasm/sum_u32.c"
+    },
+    {
+      "key": "cpp",
+      "label": "C++ / Wasm",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 1024,
+      "source": "benchmarks/multilang-wasm/sum_u32.cpp"
+    },
+    {
+      "key": "rs",
+      "label": "Rust / Wasm",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 1024,
+      "source": "benchmarks/multilang-wasm/sum_u32.rs"
+    },
+    {
+      "key": "dart",
+      "label": "Dart / WasmGC",
+      "kind": "dart",
+      "file": "fft_dart.wasm",
+      "glue": "fft_dart.mjs",
+      "source": "benchmarks/multilang-wasm/fft_kernel.dart"
+    }
+  ]
+}
