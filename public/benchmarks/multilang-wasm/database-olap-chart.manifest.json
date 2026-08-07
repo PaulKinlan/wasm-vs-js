@@ -1,19 +1,48 @@
 {
-  "workloadId": "database.olap-chart.v1",
-  "kernelLabel": "OLAP chart aggregation — 5 queries over 10,000 rows",
-  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
-  "kernels": ["olap"],
-  "engines": [
-    { "key": "js", "label": "JavaScript", "kind": "js" },
-    { "key": "c", "label": "C / Wasm", "kind": "linear", "lang": "c", "offset": 0 },
-    { "key": "cpp", "label": "C++ / Wasm", "kind": "linear", "lang": "cpp", "offset": 0 },
-    { "key": "rs", "label": "Rust / Wasm", "kind": "linear", "lang": "rs", "offset": 0 },
-    {
-      "key": "dart",
-      "label": "Dart / WasmGC",
-      "kind": "dart",
-      "file": "olap_dart.wasm",
-      "glue": "olap_dart.mjs"
-    }
-  ]
+ "workloadId": "database.olap-chart.v1",
+ "kernelLabel": "OLAP chart aggregation \u2014 5 queries over 10,000 rows",
+ "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+ "kernels": [
+  "olap"
+ ],
+ "engines": [
+  {
+   "key": "js",
+   "label": "JavaScript",
+   "kind": "js",
+   "source": ""
+  },
+  {
+   "key": "c",
+   "label": "C / Wasm",
+   "kind": "linear",
+   "lang": "c",
+   "offset": 0,
+   "source": "benchmarks/multilang-wasm/database-olap-chart/olap.c"
+  },
+  {
+   "key": "cpp",
+   "label": "C++ / Wasm",
+   "kind": "linear",
+   "lang": "cpp",
+   "offset": 0,
+   "source": "benchmarks/multilang-wasm/database-olap-chart/olap.cpp"
+  },
+  {
+   "key": "rs",
+   "label": "Rust / Wasm",
+   "kind": "linear",
+   "lang": "rs",
+   "offset": 0,
+   "source": "benchmarks/multilang-wasm/database-olap-chart/olap.rs"
+  },
+  {
+   "key": "dart",
+   "label": "Dart / WasmGC",
+   "kind": "dart",
+   "file": "olap_dart.wasm",
+   "glue": "olap_dart.mjs",
+   "source": "benchmarks/multilang-wasm/database-olap-chart/olap.dart"
+  }
+ ]
 }

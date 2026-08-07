@@ -1,19 +1,48 @@
 {
-  "workloadId": "text.diff-patch.v1",
-  "kernelLabel": "Myers O(ND) diff — 512-line base, 30 interleaved edits",
-  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
-  "kernels": ["myers_diff"],
-  "engines": [
-    { "key": "js", "label": "JavaScript", "kind": "js" },
-    { "key": "c", "label": "C / Wasm", "kind": "linear", "lang": "c", "offset": 0 },
-    { "key": "cpp", "label": "C++ / Wasm", "kind": "linear", "lang": "cpp", "offset": 0 },
-    { "key": "rs", "label": "Rust / Wasm", "kind": "linear", "lang": "rs", "offset": 0 },
-    {
-      "key": "dart",
-      "label": "Dart / WasmGC",
-      "kind": "dart",
-      "file": "myers_diff_dart.wasm",
-      "glue": "myers_diff_dart.mjs"
-    }
-  ]
+ "workloadId": "text.diff-patch.v1",
+ "kernelLabel": "Myers O(ND) diff \u2014 512-line base, 30 interleaved edits",
+ "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+ "kernels": [
+  "myers_diff"
+ ],
+ "engines": [
+  {
+   "key": "js",
+   "label": "JavaScript",
+   "kind": "js",
+   "source": ""
+  },
+  {
+   "key": "c",
+   "label": "C / Wasm",
+   "kind": "linear",
+   "lang": "c",
+   "offset": 0,
+   "source": "benchmarks/multilang-wasm/text-diff-patch/myers_diff.c"
+  },
+  {
+   "key": "cpp",
+   "label": "C++ / Wasm",
+   "kind": "linear",
+   "lang": "cpp",
+   "offset": 0,
+   "source": "benchmarks/multilang-wasm/text-diff-patch/myers_diff.cpp"
+  },
+  {
+   "key": "rs",
+   "label": "Rust / Wasm",
+   "kind": "linear",
+   "lang": "rs",
+   "offset": 0,
+   "source": "benchmarks/multilang-wasm/text-diff-patch/myers_diff.rs"
+  },
+  {
+   "key": "dart",
+   "label": "Dart / WasmGC",
+   "kind": "dart",
+   "file": "myers_diff_dart.wasm",
+   "glue": "myers_diff_dart.mjs",
+   "source": "benchmarks/multilang-wasm/text-diff-patch/myers_diff.dart"
+  }
+ ]
 }

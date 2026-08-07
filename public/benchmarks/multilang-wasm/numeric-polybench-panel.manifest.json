@@ -1,43 +1,48 @@
 {
-  "workloadId": "numeric.polybench-panel.v1",
-  "kernelLabel": "PolyBench Panel (GEMM, Cholesky, Stencil-5, Jacobi-2D) \u2014 double precision (f64)",
-  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
-  "kernels": [
-    "polybench"
-  ],
-  "engines": [
-    {
-      "key": "js",
-      "label": "JavaScript",
-      "kind": "js"
-    },
-    {
-      "key": "c",
-      "label": "C / Wasm",
-      "kind": "linear",
-      "lang": "c",
-      "offset": 0
-    },
-    {
-      "key": "cpp",
-      "label": "C++ / Wasm",
-      "kind": "linear",
-      "lang": "cpp",
-      "offset": 0
-    },
-    {
-      "key": "rs",
-      "label": "Rust / Wasm",
-      "kind": "linear",
-      "lang": "rs",
-      "offset": 0
-    },
-    {
-      "key": "dart",
-      "label": "Dart / WasmGC",
-      "kind": "dart",
-      "file": "polybench_dart.wasm",
-      "glue": "polybench_dart.mjs"
-    }
-  ]
+ "workloadId": "numeric.polybench-panel.v1",
+ "kernelLabel": "PolyBench Panel (GEMM, Cholesky, Stencil-5, Jacobi-2D) \u2014 double precision (f64)",
+ "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+ "kernels": [
+  "polybench"
+ ],
+ "engines": [
+  {
+   "key": "js",
+   "label": "JavaScript",
+   "kind": "js",
+   "source": ""
+  },
+  {
+   "key": "c",
+   "label": "C / Wasm",
+   "kind": "linear",
+   "lang": "c",
+   "offset": 0,
+   "source": "benchmarks/multilang-wasm/numeric-polybench-panel/polybench.c"
+  },
+  {
+   "key": "cpp",
+   "label": "C++ / Wasm",
+   "kind": "linear",
+   "lang": "cpp",
+   "offset": 0,
+   "source": "benchmarks/multilang-wasm/numeric-polybench-panel/polybench.cpp"
+  },
+  {
+   "key": "rs",
+   "label": "Rust / Wasm",
+   "kind": "linear",
+   "lang": "rs",
+   "offset": 0,
+   "source": "benchmarks/multilang-wasm/numeric-polybench-panel/polybench.rs"
+  },
+  {
+   "key": "dart",
+   "label": "Dart / WasmGC",
+   "kind": "dart",
+   "file": "polybench_dart.wasm",
+   "glue": "polybench_dart.mjs",
+   "source": "benchmarks/multilang-wasm/numeric-polybench-panel/polybench.dart"
+  }
+ ]
 }

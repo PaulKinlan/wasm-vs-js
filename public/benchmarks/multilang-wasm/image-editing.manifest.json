@@ -1,64 +1,77 @@
 {
-  "workloadId": "image-editing.v1",
-  "kernelLabel": "Flood fill 64×48 + luma Gaussian pipeline 40×30 (integer-only)",
-  "kernelLabels": {
-    "flood_fill": "Flood fill — 64×48, seed (10,12), threshold 12",
-    "luma_gaussian_pipeline": "Luma + 3-tap Gaussian pipeline — 40×30"
+ "workloadId": "image-editing.v1",
+ "kernelLabel": "Flood fill 64\u00d748 + luma Gaussian pipeline 40\u00d730 (integer-only)",
+ "kernelLabels": {
+  "flood_fill": "Flood fill \u2014 64\u00d748, seed (10,12), threshold 12",
+  "luma_gaussian_pipeline": "Luma + 3-tap Gaussian pipeline \u2014 40\u00d730"
+ },
+ "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+ "kernels": [
+  "flood_fill",
+  "luma_gaussian_pipeline"
+ ],
+ "engines": [
+  {
+   "key": "js",
+   "label": "JavaScript",
+   "kind": "js",
+   "source": ""
   },
-  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
-  "kernels": ["flood_fill", "luma_gaussian_pipeline"],
-  "engines": [
-    { "key": "js", "label": "JavaScript", "kind": "js" },
-    {
-      "key": "c",
-      "label": "C / Wasm",
-      "kind": "linear",
-      "lang": "c",
-      "offset": 0,
-      "files": {
-        "flood_fill": "image_kernels_c.wasm",
-        "luma_gaussian_pipeline": "image_kernels_c.wasm"
-      }
-    },
-    {
-      "key": "cpp",
-      "label": "C++ / Wasm",
-      "kind": "linear",
-      "lang": "cpp",
-      "offset": 0,
-      "files": {
-        "flood_fill": "image_kernels_cpp.wasm",
-        "luma_gaussian_pipeline": "image_kernels_cpp.wasm"
-      }
-    },
-    {
-      "key": "rs",
-      "label": "Rust / Wasm",
-      "kind": "linear",
-      "lang": "rs",
-      "offset": 0,
-      "files": {
-        "flood_fill": "image_kernels_rs.wasm",
-        "luma_gaussian_pipeline": "image_kernels_rs.wasm"
-      }
-    },
-    {
-      "key": "asc",
-      "label": "AssemblyScript",
-      "kind": "linear",
-      "lang": "asc",
-      "offset": 0,
-      "files": {
-        "flood_fill": "image_kernels_asc.wasm",
-        "luma_gaussian_pipeline": "image_kernels_asc.wasm"
-      }
-    },
-    {
-      "key": "dart",
-      "label": "Dart / WasmGC",
-      "kind": "dart",
-      "file": "image_kernels_dart.wasm",
-      "glue": "image_kernels_dart.mjs"
-    }
-  ]
+  {
+   "key": "c",
+   "label": "C / Wasm",
+   "kind": "linear",
+   "lang": "c",
+   "offset": 0,
+   "files": {
+    "flood_fill": "image_kernels_c.wasm",
+    "luma_gaussian_pipeline": "image_kernels_c.wasm"
+   },
+   "source": ""
+  },
+  {
+   "key": "cpp",
+   "label": "C++ / Wasm",
+   "kind": "linear",
+   "lang": "cpp",
+   "offset": 0,
+   "files": {
+    "flood_fill": "image_kernels_cpp.wasm",
+    "luma_gaussian_pipeline": "image_kernels_cpp.wasm"
+   },
+   "source": ""
+  },
+  {
+   "key": "rs",
+   "label": "Rust / Wasm",
+   "kind": "linear",
+   "lang": "rs",
+   "offset": 0,
+   "files": {
+    "flood_fill": "image_kernels_rs.wasm",
+    "luma_gaussian_pipeline": "image_kernels_rs.wasm"
+   },
+   "source": ""
+  },
+  {
+   "key": "asc",
+   "label": "AssemblyScript",
+   "kind": "linear",
+   "lang": "asc",
+   "offset": 0,
+   "files": {
+    "flood_fill": "image_kernels_asc.wasm",
+    "luma_gaussian_pipeline": "image_kernels_asc.wasm"
+   },
+   "source": ""
+  },
+  {
+   "key": "dart",
+   "label": "Dart / WasmGC",
+   "kind": "dart",
+   "file": "image_kernels_dart.wasm",
+   "glue": "image_kernels_dart.mjs",
+   "source": ""
+  }
+ ]
 }

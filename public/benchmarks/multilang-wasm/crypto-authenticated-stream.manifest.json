@@ -1,19 +1,48 @@
 {
-  "workloadId": "crypto.authenticated-stream.v1",
-  "kernelLabel": "ChaCha20-Poly1305 authenticated stream — seal + open",
-  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
-  "kernels": ["crypto"],
-  "engines": [
-    { "key": "js", "label": "JavaScript", "kind": "js" },
-    { "key": "c", "label": "C / Wasm", "kind": "linear", "lang": "c", "offset": 4096 },
-    { "key": "cpp", "label": "C++ / Wasm", "kind": "linear", "lang": "cpp", "offset": 4096 },
-    { "key": "rs", "label": "Rust / Wasm", "kind": "linear", "lang": "rs", "offset": 4096 },
-    {
-      "key": "dart",
-      "label": "Dart / WasmGC",
-      "kind": "dart",
-      "file": "crypto_dart.wasm",
-      "glue": "crypto_dart.mjs"
-    }
-  ]
+ "workloadId": "crypto.authenticated-stream.v1",
+ "kernelLabel": "ChaCha20-Poly1305 authenticated stream \u2014 seal + open",
+ "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+ "kernels": [
+  "crypto"
+ ],
+ "engines": [
+  {
+   "key": "js",
+   "label": "JavaScript",
+   "kind": "js",
+   "source": ""
+  },
+  {
+   "key": "c",
+   "label": "C / Wasm",
+   "kind": "linear",
+   "lang": "c",
+   "offset": 4096,
+   "source": "benchmarks/multilang-wasm/crypto-authenticated-stream/crypto.c"
+  },
+  {
+   "key": "cpp",
+   "label": "C++ / Wasm",
+   "kind": "linear",
+   "lang": "cpp",
+   "offset": 4096,
+   "source": "benchmarks/multilang-wasm/crypto-authenticated-stream/crypto.cpp"
+  },
+  {
+   "key": "rs",
+   "label": "Rust / Wasm",
+   "kind": "linear",
+   "lang": "rs",
+   "offset": 4096,
+   "source": "benchmarks/multilang-wasm/crypto-authenticated-stream/crypto.rs"
+  },
+  {
+   "key": "dart",
+   "label": "Dart / WasmGC",
+   "kind": "dart",
+   "file": "crypto_dart.wasm",
+   "glue": "crypto_dart.mjs",
+   "source": "benchmarks/multilang-wasm/crypto-authenticated-stream/crypto.dart"
+  }
+ ]
 }
