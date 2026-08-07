@@ -1,7 +1,7 @@
 {
-  "browserPid": 1553202,
-  "serverPid": 1553201,
-  "closedAt": "2026-08-07T20:14:16.739Z",
+  "browserPid": 1554482,
+  "serverPid": 1554481,
+  "closedAt": "2026-08-07T20:14:45.860Z",
   "browserExit": "sigterm-after-grace",
   "serverExit": "sigterm",
   "profileRemoved": true
