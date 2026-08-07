@@ -4,8 +4,8 @@
   "contractId": "numeric.polybench-panel.v1-supplemental-contract-v1",
   "track": "controlled",
   "repository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "implementationCommit": "7f89421a3ba6d015d0d7c252a901becb7a3da66a",
-  "sourceTreeSha256": "e212d248c6b7af5e78b15de04f55b89767da30b5634d5ea79db0d0d5f5d410ca",
+  "implementationCommit": "fc9da9218a729fef9718e651d276b14d3927e811",
+  "sourceTreeSha256": "06bd4e8b1df7411ed5307a2dfbfe3af747064eee027b0ec773083863cda8e9cd",
   "sourceGraph": [
     {
       "path": "benchmarks/base/numeric-polybench-panel/contract.json",
@@ -29,8 +29,8 @@
     },
     {
       "path": "deno.lock",
-      "bytes": 54996,
-      "sha256": "71d58652028fd82beb0d830f4d71ecb73e4e14c8447d4fff0f30ffff7dc17009"
+      "bytes": 155573,
+      "sha256": "077bfaec91c4a7c6c2ad4aab22dec23e9007e584b3c579e8d11205d2d27f701e"
     },
     {
       "path": "deno.polybench.json",
@@ -74,8 +74,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 86405,
-      "sha256": "31e90e812e3b42db62fb2d007e2eecda44ab6cae0bf7f5bec918b137c9c8e26a"
+      "bytes": 85452,
+      "sha256": "092121c23521056223d150d054e2e41410cadf6b8f1569b53130894dc5a1e697"
     },
     {
       "path": "tests/base/polybench-panel.test.ts",
@@ -83,7 +83,7 @@
       "sha256": "f8aae8675b68230c5219c3cfebdf32fddebb76178c78df13257d650c9276b71b"
     }
   ],
-  "reproducibleCommand": "deno task --config deno.polybench.json build:base-polybench --source-commit 7f89421a3ba6d015d0d7c252a901becb7a3da66a",
+  "reproducibleCommand": "deno task --config deno.polybench.json build:base-polybench --source-commit fc9da9218a729fef9718e651d276b14d3927e811",
   "toolchain": {
     "deno": "2.9.0",
     "wabt": "1.0.37",
@@ -106,8 +106,8 @@
     ],
     "lockfile": {
       "path": "deno.lock",
-      "bytes": 54996,
-      "sha256": "71d58652028fd82beb0d830f4d71ecb73e4e14c8447d4fff0f30ffff7dc17009"
+      "bytes": 155573,
+      "sha256": "077bfaec91c4a7c6c2ad4aab22dec23e9007e584b3c579e8d11205d2d27f701e"
     }
   },
   "artifacts": {
