@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "f61a60b57759b1f5c16928e13e5a7ba9549009f4",
-  "sourceSha256": "bd003b154e5351c8c1a25c786a8ac320cd499c30a5daa222f577047eb5fb760a",
+  "sourceCommit": "ac10608c724ff114183a29f4dc1fcad44bf6c5bf",
+  "sourceSha256": "a665e131fa2aa4d393754eabc40dc3235e33839f1c152903b95124eb07526e24",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 88022,
-      "sha256": "3c6aaf6116d391637b4bc87cd9b65d003a8779963d57c9526517969c9e188184"
+      "bytes": 88165,
+      "sha256": "83ab7c07b26fc7b31ab7ace4e570a92702e4c7b3c555f1e35813df65620db48c"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "9e9212e286f6e3de35d3ccc3c687a03f0a856d31cd5f620fdb84c1c8d4fe9b78"
+      "sha256": "fb20b647fa29b2fdc902a2f446bf89861e90f6f75b55f2cca902b440351e15c9"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "9bf82e44cbc5c7fd0658a9d1c6e73ce7c6bbd0948aca3c3be7286b671d7cabe4"
+      "sha256": "719c2e65fb0b92539aa69b9e66b539478fa2dae2ce2d6ee622de446c810df291"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=f61a60b57759b1f5c16928e13e5a7ba9549009f4"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=ac10608c724ff114183a29f4dc1fcad44bf6c5bf"
   }
 }
