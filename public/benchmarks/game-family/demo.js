@@ -1,8 +1,8 @@
 const root = document.querySelector("main[data-workload-id]");
 const workloadId = root?.dataset.workloadId;
 const workerForm = document.querySelector("form[data-worker]");
-const start = workerForm?.querySelector("#game-start") ?? document.querySelector("#start");
-const cancel = workerForm?.querySelector("#game-cancel") ?? document.querySelector("#cancel");
+const start = workerForm?.querySelector("#start") ?? document.querySelector("#start");
+const cancel = workerForm?.querySelector("#cancel") ?? document.querySelector("#cancel");
 const target = workerForm?.querySelector("#game-target") ?? document.querySelector("#target");
 const status = document.querySelector("#game-status") ?? document.querySelector("#status");
 const output = document.querySelector("#result");
