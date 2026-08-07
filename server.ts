@@ -2055,6 +2055,11 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "rigid_rs.wasm",
       "scan_log_opt_c.wasm",
       "sum_u32_opt_c.wasm",
+      "path_tracer_c.wasm",
+      "path_tracer_cpp.wasm",
+      "path_tracer_dart.mjs",
+      "path_tracer_dart.wasm",
+      "path_tracer_rs.wasm",
     ]
   ) {
     const type = file.endsWith(".wasm") ? "application/wasm" : "text/javascript; charset=utf-8";
