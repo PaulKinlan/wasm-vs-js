@@ -4656,7 +4656,9 @@ function renderTables(container, manifest, resultsByKernel, iterations) {
           <td>${r.medianMs.toFixed(2)} ms</td>
           <td>${r.minMs.toFixed(2)} ms</td>
           <td>${r.maxMs.toFixed(2)} ms</td>
-          <td>${r.key === "js" ? "<strong>1.00× (Baseline)</strong>" : `<strong>${ratio}×</strong>`}</td>
+          <td>${
+          r.key === "js" ? "<strong>1.00× (Baseline)</strong>" : `<strong>${ratio}×</strong>`
+        }</td>
           <td><div class="perf-bar-track"><div class="perf-bar multilang-bar" data-pct="${pct}" title="${
           r.medianMs.toFixed(2)
         } ms"></div></div></td>
