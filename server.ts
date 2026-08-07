@@ -108,7 +108,7 @@ const securityHeaders = {
   "referrer-policy": "no-referrer",
   "permissions-policy": "camera=(), microphone=(), geolocation=()",
   "content-security-policy":
-    "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob: 'unsafe-eval'; worker-src 'self' blob:; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
+    "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob: 'unsafe-eval'; worker-src 'self' blob:; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'self'; form-action 'self'",
 };
 
 function response(body: BodyInit | null, init: ResponseInit = {}): Response {
@@ -1553,6 +1553,40 @@ const routes = new Map<string, [string, string, boolean?]>([
 // Generated demo-page + companion-asset routes (scripts/build-routes.ts).
 // Filesystem-derived; any overlap with the hand-maintained table above is a
 // hard error instead of the old silent last-wins.
+// Multi-language kernel sources (commit-pinned on the comparison pages).
+// The source files live in benchmarks/multilang-wasm/ (not under public/);
+// serve them so the runner can fetch per-kernel source sizes + the pages can
+// link commit-pinned source. Flat aliases cover stale cached runners that
+// probe /benchmarks/multilang-wasm/todomvc_engine.* (flat).
+for (const ext of [".c", ".cpp", ".rs", ".dart", ".ts", ".wat"]) {
+  for (const entry of Array.from(Deno.readDirSync("benchmarks/multilang-wasm"))) {
+    if (!entry.isFile || !entry.name.endsWith(ext)) continue;
+    const urlPath = `/benchmarks/multilang-wasm/${entry.name}`;
+    if (routes.has(urlPath)) continue;
+    routes.set(urlPath, [`benchmarks/multilang-wasm/${entry.name}`, "text/plain; charset=utf-8"]);
+  }
+  for (const dirEntry of Array.from(Deno.readDirSync("benchmarks/multilang-wasm"))) {
+    if (!dirEntry.isDirectory) continue;
+    try {
+      for (const f of Array.from(Deno.readDirSync(`benchmarks/multilang-wasm/${dirEntry.name}`))) {
+        if (!f.isFile || !f.name.endsWith(ext)) continue;
+        const urlPath = `/benchmarks/multilang-wasm/${dirEntry.name}/${f.name}`;
+        if (routes.has(urlPath)) continue;
+        routes.set(urlPath, [
+          `benchmarks/multilang-wasm/${dirEntry.name}/${f.name}`,
+          "text/plain; charset=utf-8",
+        ]);
+      }
+    } catch { /* skip unreadable */ }
+  }
+}
+for (const name of ["todomvc_engine.ts", "todomvc_engine.c", "todomvc_engine.cpp", "todomvc_engine.rs", "todomvc_engine.dart"]) {
+  routes.set(`/benchmarks/multilang-wasm/${name}`, [
+    `benchmarks/multilang-wasm/base-dom-todomvc-journey/${name}`,
+    "text/plain; charset=utf-8",
+  ]);
+}
+
 for (const [path, value] of GENERATED_ROUTES) {
   if (routes.has(path)) throw new Error(`duplicate route (manual vs generated): ${path}`);
   routes.set(path, [value[0], value[1], value[2]]);
@@ -1847,51 +1881,6 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
     "public/data/multilang-wasm-benchmark-report.v1.json",
     "application/json; charset=utf-8",
   ]);
-// Multi-language kernel sources (commit-pinned on the comparison pages).
-// The source files live in benchmarks/multilang-wasm/ (not under public/);
-// serve them so the runner can fetch per-kernel source sizes + the pages can
-// link commit-pinned source.
-for (const ext of [".c", ".cpp", ".rs", ".dart", ".ts", ".wat"]) {
-  for (const entry of Array.from(Deno.readDirSync("benchmarks/multilang-wasm"))) {
-    if (!entry.isFile || !entry.name.endsWith(ext)) continue;
-    const urlPath = `/benchmarks/multilang-wasm/${entry.name}`;
-    if (routes.has(urlPath)) continue;
-    routes.set(urlPath, [`benchmarks/multilang-wasm/${entry.name}`, "text/plain; charset=utf-8"]);
-  }
-  for (const dirEntry of Array.from(Deno.readDirSync("benchmarks/multilang-wasm"))) {
-    if (!dirEntry.isDirectory) continue;
-    try {
-      for (const f of Array.from(Deno.readDirSync(`benchmarks/multilang-wasm/${dirEntry.name}`))) {
-        if (!f.isFile || !f.name.endsWith(ext)) continue;
-        const urlPath = `/benchmarks/multilang-wasm/${dirEntry.name}/${f.name}`;
-        if (routes.has(urlPath)) continue;
-        routes.set(urlPath, [
-          `benchmarks/multilang-wasm/${dirEntry.name}/${f.name}`,
-          "text/plain; charset=utf-8",
-        ]);
-      }
-    } catch { /* skip unreadable */ }
-  }
-}
-
-
-
-// Generated demo-page + companion-asset routes (scripts/build-routes.ts).
-// Filesystem-derived; any overlap with the hand-maintained table above is a
-// hard error instead of the old silent last-wins.
-for (const [path, value] of GENERATED_ROUTES) {
-  if (routes.has(path)) throw new Error(`duplicate route (manual vs generated): ${path}`);
-  routes.set(path, [value[0], value[1], value[2]]);
-
-  // Flat aliases for the todomvc engine sources: stale cached runners probe
-  // /benchmarks/multilang-wasm/todomvc_engine.* (flat) — serve the real
-  // per-workload files so those probes return 200 instead of 404.
-  for (const name of ["todomvc_engine.ts", "todomvc_engine.c", "todomvc_engine.cpp", "todomvc_engine.rs", "todomvc_engine.dart"]) {
-    const flat = `benchmarks/multilang-wasm/${name}`;
-    const real = `benchmarks/multilang-wasm/base-dom-todomvc-journey/${name}`;
-    routes.set(`/benchmarks/multilang-wasm/${name}`, [real, "text/plain; charset=utf-8"]);
-  }
-
   routes.set("/benchmarks/multilang-wasm-benchmark.md", [
     "public/benchmarks/multilang-wasm-benchmark.md",
     "text/markdown; charset=utf-8",
