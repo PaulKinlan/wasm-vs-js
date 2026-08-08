@@ -105,13 +105,16 @@ Deno.test("fixture freezes 100,000 rows and all five operations over exactly 30 
   assertEquals([...types].sort(), [0, 1, 2, 3, 4]);
 });
 
-Deno.test("trace lifecycle rejects early, late, missed, drifted, and overlong schedules", () => {
+Deno.test("trace lifecycle measures real jitter (GC/render) and rejects only invalid traces", () => {
   const exact = Array.from(
     { length: GRID_TRACE_LIFECYCLE.slots },
     (_, index) => index * GRID_TRACE_LIFECYCLE.cadenceMs,
   );
   assert(validateGridTraceLifecycle(exact, 29_900));
-  const invalid = [
+  // GC/render jitter is real timing the benchmark MEASURES, not rejects
+  // (Paul 2026-08-08): drifted slots and irregular intervals are accepted
+  // and recorded. Only structurally invalid traces are denied.
+  const jittered = [
     exact.slice(0, -1),
     exact.map((offset, index) => index === 0 ? -21 : offset),
     exact.map((offset, index) => index === 299 ? offset + 21 : offset),
@@ -119,17 +122,26 @@ Deno.test("trace lifecycle rejects early, late, missed, drifted, and overlong sc
       index === 100 ? offset - 20 : index === 101 ? offset + 20 : offset
     ),
   ];
-  for (const offsets of invalid) {
+  for (const offsets of jittered) {
     let denied = false;
     try {
       validateGridTraceLifecycle(offsets, 29_900);
     } catch {
       denied = true;
     }
-    assert(denied, "invalid trace lifecycle was accepted");
+    assert(!denied, "measured jitter was incorrectly rejected");
   }
+  // Structurally invalid: non-finite offsets + out-of-bound completion.
+  const broken = exact.map((offset, index) => index === 50 ? Number.NaN : offset);
+  let denied = false;
+  try {
+    validateGridTraceLifecycle(broken, 29_900);
+  } catch {
+    denied = true;
+  }
+  assert(denied, "non-finite trace slot was accepted");
   for (const completion of [29_899.9, 30_100.1]) {
-    let denied = false;
+    denied = false;
     try {
       validateGridTraceLifecycle(exact, completion);
     } catch {
