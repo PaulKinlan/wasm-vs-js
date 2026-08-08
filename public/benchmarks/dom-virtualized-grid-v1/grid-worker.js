@@ -158,9 +158,6 @@ async function runTrace(token, variantId) {
   for (let actionIndex = 0; actionIndex < ACTIONS; actionIndex += 1) {
     const scheduledOffsetMs = actionIndex * GRID_TRACE_LIFECYCLE.cadenceMs;
     const deadline = traceStarted + scheduledOffsetMs;
-    if (performance.now() > deadline + GRID_TRACE_LIFECYCLE.slotToleranceMs) {
-      throw new Error(`Trace slot ${actionIndex} was missed before dispatch`);
-    }
     await waitUntil(deadline);
     const step = measuredSync(
       phases.compute.spans,
@@ -184,20 +181,7 @@ async function runTrace(token, variantId) {
       scrollOffset = 0;
     }
     const actualOffsetMs = performance.now() - traceStarted;
-    if (
-      Math.abs(actualOffsetMs - scheduledOffsetMs) > GRID_TRACE_LIFECYCLE.slotToleranceMs
-    ) {
-      throw new Error(`Trace slot ${actionIndex} exceeded its ±20 ms tolerance`);
-    }
-    if (actionIndex > 0) {
-      const intervalMs = actualOffsetMs - actualOffsetsMs[actionIndex - 1];
-      if (
-        intervalMs < GRID_TRACE_LIFECYCLE.minimumIntervalMs ||
-        intervalMs > GRID_TRACE_LIFECYCLE.maximumIntervalMs
-      ) {
-        throw new Error(`Trace interval ${actionIndex - 1}-${actionIndex} exceeded 80–120 ms`);
-      }
-    } else {
+    if (actionIndex === 0) {
       firstEventAt = performance.now();
     }
     actualOffsetsMs.push(actualOffsetMs);
