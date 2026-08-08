@@ -1,0 +1,853 @@
+{
+  "generatedAt": "2026-08-07T23:49:05.603Z",
+  "base": "https://wasm-vs-js.paulkinlan-ea.deno.net",
+  "pages": {
+    "archive-zip-workspace-v1": {
+      "slug": "archive-zip-workspace-v1",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "audio-fft": {
+      "slug": "audio-fft",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {
+        "multilang": {
+          "heading": "Multi-language comparison",
+          "rows": [
+            [
+              "JavaScript",
+              "—",
+              "0.81 ms",
+              "0.03 ms",
+              "0.02 ms",
+              "0.06 ms"
+            ],
+            [
+              "C / Wasm",
+              "1149 B",
+              "0.10 ms",
+              "0.02 ms",
+              "0.01 ms",
+              "0.03 ms"
+            ],
+            [
+              "C++ / Wasm",
+              "1151 B",
+              "0.06 ms",
+              "0.02 ms",
+              "0.01 ms",
+              "0.03 ms"
+            ],
+            [
+              "Rust / Wasm",
+              "889 B",
+              "0.06 ms",
+              "0.02 ms",
+              "0.02 ms",
+              "0.03 ms"
+            ],
+            [
+              "Dart / WasmGC",
+              "39613 B",
+              "0.52 ms",
+              "0.03 ms",
+              "0.03 ms",
+              "0.04 ms"
+            ]
+          ],
+          "notice": "All timings are measured in this browser tab for this session. They are\n      exploratory and depend on engine, device, and load. Per-variant arithmetic semantics are\n      disclosed in the report."
+        }
+      },
+      "runClicked": true
+    },
+    "audio-fir": {
+      "slug": "audio-fir",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {
+        "multilang": {
+          "heading": "Multi-language comparison",
+          "rows": [
+            [
+              "JavaScript",
+              "—",
+              "4.77 ms",
+              "2.83 ms",
+              "2.79 ms",
+              "3.48 ms"
+            ],
+            [
+              "C / Wasm",
+              "846 B",
+              "3.23 ms",
+              "0.97 ms",
+              "0.96 ms",
+              "1.11 ms"
+            ],
+            [
+              "C++ / Wasm",
+              "848 B",
+              "3.09 ms",
+              "0.97 ms",
+              "0.96 ms",
+              "1.03 ms"
+            ],
+            [
+              "Rust / Wasm",
+              "323 B",
+              "3.13 ms",
+              "1.10 ms",
+              "1.09 ms",
+              "1.25 ms"
+            ],
+            [
+              "Dart / WasmGC",
+              "38981 B",
+              "254.96 ms",
+              "121.08 ms",
+              "120.18 ms",
+              "126.18 ms"
+            ]
+          ],
+          "notice": "All timings are measured in this browser tab for this session. They are\n      exploratory and depend on engine, device, and load. Per-variant arithmetic semantics are\n      disclosed in the report."
+        }
+      },
+      "runClicked": true
+    },
+    "audio-stft": {
+      "slug": "audio-stft",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {
+        "multilang": {
+          "heading": "Multi-language comparison",
+          "rows": [
+            [
+              "JavaScript",
+              "—",
+              "4.51 ms",
+              "0.55 ms",
+              "0.54 ms",
+              "0.66 ms"
+            ],
+            [
+              "C / Wasm",
+              "1734 B",
+              "0.84 ms",
+              "0.25 ms",
+              "0.23 ms",
+              "0.26 ms"
+            ],
+            [
+              "C++ / Wasm",
+              "1736 B",
+              "0.72 ms",
+              "0.24 ms",
+              "0.24 ms",
+              "0.32 ms"
+            ],
+            [
+              "Rust / Wasm",
+              "4747 B",
+              "0.82 ms",
+              "0.32 ms",
+              "0.32 ms",
+              "0.49 ms"
+            ],
+            [
+              "Dart / WasmGC",
+              "40254 B",
+              "47.09 ms",
+              "22.21 ms",
+              "21.94 ms",
+              "24.46 ms"
+            ]
+          ],
+          "notice": "All timings are measured in this browser tab for this session. They are\n      exploratory and depend on engine, device, and load. Per-variant arithmetic semantics are\n      disclosed in the report."
+        }
+      },
+      "runClicked": true
+    },
+    "base-dom-todomvc-journey": {
+      "slug": "base-dom-todomvc-journey",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {
+        "multilang": {
+          "heading": "Multi-language comparison",
+          "rows": [
+            [
+              "JavaScript",
+              "—",
+              "0.19 ms",
+              "0.01 ms",
+              "0.00 ms",
+              "0.02 ms"
+            ],
+            [
+              "C / Wasm",
+              "1608 B",
+              "0.11 ms",
+              "0.01 ms",
+              "0.00 ms",
+              "0.01 ms"
+            ],
+            [
+              "C++ / Wasm",
+              "1610 B",
+              "0.04 ms",
+              "0.01 ms",
+              "0.00 ms",
+              "0.05 ms"
+            ],
+            [
+              "Rust / Wasm",
+              "917 B",
+              "0.04 ms",
+              "0.00 ms",
+              "0.00 ms",
+              "0.01 ms"
+            ],
+            [
+              "Dart / WasmGC",
+              "45825 B",
+              "0.29 ms",
+              "0.03 ms",
+              "0.02 ms",
+              "0.03 ms"
+            ]
+          ],
+          "notice": "All timings are measured in this browser tab for this session. They are\n      exploratory and depend on engine, device, and load. Per-variant arithmetic semantics are\n      disclosed in the report."
+        },
+        "real-dom": {
+          "heading": "Real-DOM iframe run",
+          "rows": [
+            [
+              "JavaScript (real DOM)",
+              "1.32 ms",
+              "0.65 ms",
+              "0.54 ms",
+              "1.32 ms",
+              "1.00× (Baseline)"
+            ],
+            [
+              "WebAssembly (real DOM)",
+              "2.50 ms",
+              "0.63 ms",
+              "0.57 ms",
+              "3.29 ms",
+              "1.03×"
+            ],
+            [
+              "C / Wasm (real DOM)",
+              "240.41 ms",
+              "42.23 ms",
+              "25.64 ms",
+              "240.41 ms",
+              "0.02×"
+            ],
+            [
+              "C++ / Wasm (real DOM)",
+              "32.88 ms",
+              "58.88 ms",
+              "28.02 ms",
+              "133.77 ms",
+              "0.01×"
+            ],
+            [
+              "Rust / Wasm (real DOM)",
+              "61.12 ms",
+              "46.02 ms",
+              "24.46 ms",
+              "107.98 ms",
+              "0.01×"
+            ],
+            [
+              "Dart / WasmGC (real DOM)",
+              "37.04 ms",
+              "34.63 ms",
+              "23.82 ms",
+              "74.30 ms",
+              "0.02×"
+            ]
+          ],
+          "notice": "Real-DOM iframe run: the page loaded itself in the VISIBLE iframe below, rendered an actual UI, and applied the frozen action trace with real DOM APIs (createElement/appendChild/classList/focus). The "
+        },
+        "real-dom-iframe-state": {
+          "visible": "block",
+          "items": 90,
+          "completed": 30,
+          "host": true
+        }
+      },
+      "runClicked": true
+    },
+    "base-gltf-viewer": {
+      "slug": "base-gltf-viewer",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "base/network-http2-quic-state": {
+      "slug": "base/network-http2-quic-state",
+      "status": "",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": false
+    },
+    "base/text.regex-log-scan.v1": {
+      "slug": "base/text.regex-log-scan.v1",
+      "status": "Error: served raw-byte hash mismatch: registration",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "cad-mesh-repair-v1": {
+      "slug": "cad-mesh-repair-v1",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "cad-parametric-bracket": {
+      "slug": "cad-parametric-bracket",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {
+        "multilang": {
+          "heading": "Multi-language comparison",
+          "rows": [
+            [
+              "JavaScript",
+              "—",
+              "30.99 ms",
+              "11.68 ms",
+              "10.99 ms",
+              "12.69 ms"
+            ],
+            [
+              "C / Wasm",
+              "23956 B · src 24651 B",
+              "0.63 ms",
+              "0.03 ms",
+              "0.02 ms",
+              "0.07 ms"
+            ],
+            [
+              "C++ / Wasm",
+              "24344 B · src 24684 B",
+              "0.77 ms",
+              "0.03 ms",
+              "0.02 ms",
+              "0.07 ms"
+            ]
+          ],
+          "notice": "All timings are measured in this browser tab for this session. They are\n      exploratory and depend on engine, device, and load. Per-variant arithmetic semantics are\n      disclosed in the report."
+        }
+      },
+      "runClicked": true
+    },
+    "crypto-authenticated-stream": {
+      "slug": "crypto-authenticated-stream",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "crypto.file-integrity.v1": {
+      "slug": "crypto.file-integrity.v1",
+      "status": "",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": false
+    },
+    "database-olap-chart": {
+      "slug": "database-olap-chart",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "database-sqlite-notebook-v1": {
+      "slug": "database-sqlite-notebook-v1",
+      "status": "Complete. Every returned value matched the independent reference.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "document-pdf-viewer-v1": {
+      "slug": "document-pdf-viewer-v1",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "dom-dependent-form-validation": {
+      "slug": "dom-dependent-form-validation",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "dom-grid-movement": {
+      "slug": "dom-grid-movement",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "dom-keyed-list-mutation": {
+      "slug": "dom-keyed-list-mutation",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "dom-nested-tree-mutation": {
+      "slug": "dom-nested-tree-mutation",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "dom-table-sort-filter-pagination": {
+      "slug": "dom-table-sort-filter-pagination",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "dom-virtualized-grid-v1": {
+      "slug": "dom-virtualized-grid-v1",
+      "status": "Error: Trace slot 75 exceeded its ±20 ms tolerance",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "dom-virtualized-scrolling": {
+      "slug": "dom-virtualized-scrolling",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "game-canvas-arcade": {
+      "slug": "game-canvas-arcade",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "game-canvas-entity-pathfinding": {
+      "slug": "game-canvas-entity-pathfinding",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "game-dom-tactics-grid": {
+      "slug": "game-dom-tactics-grid",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "game-ecs-frame-update": {
+      "slug": "game-ecs-frame-update",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {
+        "multilang": {
+          "heading": "Multi-language comparison",
+          "rows": [
+            [
+              "JavaScript",
+              "—",
+              "49.36 ms",
+              "28.35 ms",
+              "27.34 ms",
+              "30.68 ms"
+            ],
+            [
+              "C / Wasm",
+              "4109 B · src 8800 B",
+              "7.04 ms",
+              "7.20 ms",
+              "7.00 ms",
+              "7.55 ms"
+            ],
+            [
+              "C++ / Wasm",
+              "4114 B · src 9576 B",
+              "7.12 ms",
+              "7.13 ms",
+              "6.91 ms",
+              "7.59 ms"
+            ],
+            [
+              "Rust / Wasm",
+              "111694 B · src 10657 B",
+              "30.98 ms",
+              "31.30 ms",
+              "29.51 ms",
+              "33.01 ms"
+            ],
+            [
+              "Dart / WasmGC",
+              "58121 B · src 8673 B",
+              "89.64 ms",
+              "84.32 ms",
+              "82.43 ms",
+              "87.11 ms"
+            ]
+          ],
+          "notice": "All timings are measured in this browser tab for this session. They are\n      exploratory and depend on engine, device, and load. Per-variant arithmetic semantics are\n      disclosed in the report."
+        }
+      },
+      "runClicked": true
+    },
+    "graphics-cpu-path-tracer-v1": {
+      "slug": "graphics-cpu-path-tracer-v1",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "image-editing-demo": {
+      "slug": "image-editing-demo",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "image-flood-fill-demo": {
+      "slug": "image-flood-fill-demo",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "ml-dense-mlp": {
+      "slug": "ml-dense-mlp",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {
+        "multilang": {
+          "heading": "Multi-language comparison",
+          "rows": [
+            [
+              "JavaScript",
+              "—",
+              "10.89 ms",
+              "4.84 ms",
+              "4.50 ms",
+              "5.74 ms"
+            ],
+            [
+              "C / Wasm",
+              "1972 B",
+              "2.98 ms",
+              "1.30 ms",
+              "1.26 ms",
+              "1.35 ms"
+            ],
+            [
+              "C++ / Wasm",
+              "1974 B",
+              "3.53 ms",
+              "1.29 ms",
+              "1.27 ms",
+              "1.33 ms"
+            ],
+            [
+              "Rust / Wasm",
+              "1461 B",
+              "2.70 ms",
+              "1.31 ms",
+              "1.30 ms",
+              "1.38 ms"
+            ],
+            [
+              "Dart / WasmGC",
+              "40779 B",
+              "68.98 ms",
+              "38.07 ms",
+              "37.80 ms",
+              "40.67 ms"
+            ]
+          ],
+          "notice": "All timings are measured in this browser tab for this session. They are\n      exploratory and depend on engine, device, and load. Per-variant arithmetic semantics are\n      disclosed in the report."
+        }
+      },
+      "runClicked": true
+    },
+    "ml-gemm": {
+      "slug": "ml-gemm",
+      "status": "✓ Benchmark suite completed.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "ml-keyword-spotting-v1": {
+      "slug": "ml-keyword-spotting-v1",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "ml-numeric-kernels-v1": {
+      "slug": "ml-numeric-kernels-v1",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "multilang-wasm": {
+      "slug": "multilang-wasm",
+      "status": "✓ Benchmark suite completed.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "network.pcap-decode.v1": {
+      "slug": "network.pcap-decode.v1",
+      "status": "",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": false
+    },
+    "numeric-fft-spectral-filter-v1": {
+      "slug": "numeric-fft-spectral-filter-v1",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "numeric.polybench-panel.v1": {
+      "slug": "numeric.polybench-panel.v1",
+      "status": "",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": false
+    },
+    "regex-automata-duel-demo": {
+      "slug": "regex-automata-duel-demo",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "serialization-protobuf-gateway": {
+      "slug": "serialization-protobuf-gateway",
+      "status": "Failed: /artifacts/serialization-protobuf-gateway/build-manifest.json hash mismatch",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "serialization.json-telemetry.v1": {
+      "slug": "serialization.json-telemetry.v1",
+      "status": "",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": false
+    },
+    "server.ssr-template.v1": {
+      "slug": "server.ssr-template.v1",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {
+        "libcmp": {
+          "heading": "Library comparison (engines, not reimplementations)",
+          "rows": [
+            [
+              "JavaScript engine",
+              "—",
+              "—",
+              "engine unavailable: onProgress is not a function"
+            ],
+            [
+              "WebAssembly engine",
+              "—",
+              "—",
+              "engine unavailable: onProgress is not a function"
+            ]
+          ],
+          "notice": "Each engine below is a real implementation (a library or a port of one). This compares engines against each other, not independent language reimplementations of a single algorithm."
+        }
+      },
+      "runClicked": true
+    },
+    "simulation-nbody-cloth": {
+      "slug": "simulation-nbody-cloth",
+      "status": "",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": false
+    },
+    "simulation-rigid-body-2d-v1": {
+      "slug": "simulation-rigid-body-2d-v1",
+      "status": "Running JavaScript benchmark (30× loop)...",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "sum-u32": {
+      "slug": "sum-u32",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {
+        "multilang": {
+          "heading": "Multi-language comparison",
+          "rows": [
+            [
+              "JavaScript",
+              "src 176 B",
+              "0.04 ms",
+              "0.00 ms",
+              "0.00 ms",
+              "0.01 ms"
+            ],
+            [
+              "Raw WAT",
+              "96 B",
+              "0.10 ms",
+              "0.00 ms",
+              "0.00 ms",
+              "0.01 ms"
+            ],
+            [
+              "AssemblyScript",
+              "94 B · src 176 B",
+              "0.04 ms",
+              "0.00 ms",
+              "0.00 ms",
+              "0.01 ms"
+            ],
+            [
+              "C / Wasm",
+              "757 B · src 218 B",
+              "0.02 ms",
+              "0.00 ms",
+              "0.00 ms",
+              "0.01 ms"
+            ],
+            [
+              "C++ / Wasm",
+              "759 B · src 244 B",
+              "0.12 ms",
+              "0.00 ms",
+              "0.00 ms",
+              "0.03 ms"
+            ],
+            [
+              "Rust / Wasm",
+              "498 B · src 412 B",
+              "0.13 ms",
+              "0.00 ms",
+              "0.00 ms",
+              "0.01 ms"
+            ],
+            [
+              "Dart / WasmGC",
+              "39613 B · src 2557 B",
+              "0.29 ms",
+              "0.01 ms",
+              "0.01 ms",
+              "0.02 ms"
+            ]
+          ],
+          "notice": "All timings are measured in this browser tab for this session. They are\n      exploratory and depend on engine, device, and load. Per-variant arithmetic semantics are\n      disclosed in the report."
+        }
+      },
+      "runClicked": true
+    },
+    "text.diff-patch.v1": {
+      "slug": "text.diff-patch.v1",
+      "status": "",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": false
+    },
+    "text.gc-document-edit.v1": {
+      "slug": "text.gc-document-edit.v1",
+      "status": "",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": false
+    },
+    "text.markdown-cms.v1": {
+      "slug": "text.markdown-cms.v1",
+      "status": "",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": false
+    },
+    "tooling-c-to-wasm-compile-v1": {
+      "slug": "tooling-c-to-wasm-compile-v1",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    },
+    "vdom-diff-patch-demo": {
+      "slug": "vdom-diff-patch-demo",
+      "status": "✓ Full benchmark suite complete.",
+      "consoleErrors": 0,
+      "network404s": [],
+      "stages": {},
+      "runClicked": true
+    }
+  }
+}
