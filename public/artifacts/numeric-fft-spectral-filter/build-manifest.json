@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "7a17390bed5fa807351f129d5c4b4363fb701b0e",
-  "sourceSha256": "e0760658faaa02b004b4f346cdcafb34bff2517c2cb129b89f50ac13ac654fc3",
+  "sourceCommit": "9c01ddd98ec5ce726b27003879b8acc045661c1e",
+  "sourceSha256": "f769ba6df155345d60fe951b8e25f4bc16a6ab30a70f74f88d6865e9b1a39a62",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -30,8 +30,8 @@
     },
     {
       "path": "public/benchmarks/numeric-fft-spectral-filter-v1/index.html",
-      "bytes": 4400,
-      "sha256": "c68702f13474a0122ef4048dbc31af0ac6e62ab45768bccc681966e82048382e"
+      "bytes": 6364,
+      "sha256": "f5895553d5110ef6d9da0de8b04accae9b444f6dd9e11898255f996127fe7407"
     },
     {
       "path": "public/benchmarks/numeric-fft-spectral-filter-v1/demo.js",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "00e059ab45c4857673e13f6fdd3ebdb2af2c537af8f1cc75b658e8055be28eeb"
+      "sha256": "d94f4f7b6dbafcba5ddb33707e48e03d8ea2ac90abcec2d4dc25eb44fa6aa7eb"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "cc82bc60479188d125d9e943167011e5cf942504898beb1e8c9a53e0b5176323"
+      "sha256": "a3a904a1f5cfa923f397e33a7c495eab29a831c5821669c40cecdc13e274f96c"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=7a17390bed5fa807351f129d5c4b4363fb701b0e"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=9c01ddd98ec5ce726b27003879b8acc045661c1e"
   }
 }

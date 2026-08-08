@@ -5,7 +5,7 @@
   "entryId": "audio.stft.v1",
   "benchmarkSlug": "audio-stft",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "7a17390bed5fa807351f129d5c4b4363fb701b0e",
+  "sourceCommit": "9c01ddd98ec5ce726b27003879b8acc045661c1e",
   "sourceSha256": "35b44bccd0d0a98f43c5827567a2955e1c27b3eb708229035af9335117589ef5",
   "fullSourceGraph": [
     {
@@ -187,19 +187,19 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/audio-stft/fixture-manifest.json",
-      "sha256": "4b58587159d9255e3834f2645a282da6c8e6ddb30e74e9b1d44b5ea6d5478f2a"
+      "sha256": "cd177472682bfe41df236876c055c19f1e781e3c242a492fa6b7cfc5bb2cbe6a"
     },
     "input": {
       "path": "public/artifacts/audio-stft/input-manifest.json",
-      "sha256": "9624c3cafc5817dfc69cd27d43e071b724efc95b8cf6a766c38ad4a223d92830"
+      "sha256": "e0d3d52e99df2e3d2b045a8804ed9dfc0ea1afb53c06c892fd981f0c81b4e54e"
     },
     "reference": {
       "path": "public/artifacts/audio-stft/reference-manifest.json",
-      "sha256": "20bd24df61f9ac89f1d31d7b92cca90cba47300c3dd05907aba0906db89d6f0f"
+      "sha256": "5856b31f5873c257d1d72b7ad6b247e65028577377e0177752d81af2b632c0c1"
     },
     "output": {
       "path": "public/artifacts/audio-stft/output-manifest.json",
-      "sha256": "714a053f2574016e3a42f80e32e8e754026a043d73101c5159f159aca33999cb"
+      "sha256": "6680cd3bf394ff34e4486c4b7cd70d761edc0e2a04ac19eb4d3151367bbb34a1"
     }
   },
   "referenceArtifact": {
@@ -241,7 +241,7 @@
       "--allow-write=public/artifacts/audio-fft,public/artifacts/audio-fir,public/artifacts/audio-stft",
       "--allow-run=git",
       "scripts/build-audio.ts",
-      "--source-commit=7a17390bed5fa807351f129d5c4b4363fb701b0e"
+      "--source-commit=9c01ddd98ec5ce726b27003879b8acc045661c1e"
     ],
     "toolchain": [
       {
