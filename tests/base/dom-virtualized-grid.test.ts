@@ -114,13 +114,15 @@ Deno.test("trace lifecycle measures real jitter (GC/render) and rejects only inv
   // GC/render jitter is real timing the benchmark MEASURES, not rejects
   // (Paul 2026-08-08): drifted slots and irregular intervals are accepted
   // and recorded. Only structurally invalid traces are denied.
+  // 300-slot traces with real GC/render jitter (early, late, drifted slots,
+  // irregular intervals) are measured and recorded, never rejected.
   const jittered = [
-    exact.slice(0, -1),
     exact.map((offset, index) => index === 0 ? -21 : offset),
     exact.map((offset, index) => index === 299 ? offset + 21 : offset),
     exact.map((offset, index) =>
       index === 100 ? offset - 20 : index === 101 ? offset + 20 : offset
     ),
+    exact.map((offset, index) => index === 150 ? offset + 85 : offset),
   ];
   for (const offsets of jittered) {
     let denied = false;
@@ -131,7 +133,16 @@ Deno.test("trace lifecycle measures real jitter (GC/render) and rejects only inv
     }
     assert(!denied, "measured jitter was incorrectly rejected");
   }
-  // Structurally invalid: non-finite offsets + out-of-bound completion.
+  // Structurally invalid: wrong slot count, non-finite offsets, out-of-bound
+  // completion.
+  const truncated = exact.slice(0, -1);
+  denied = false;
+  try {
+    validateGridTraceLifecycle(truncated, 29_900);
+  } catch {
+    denied = true;
+  }
+  assert(denied, "truncated (299-slot) trace was accepted");
   const broken = exact.map((offset, index) => index === 50 ? Number.NaN : offset);
   let denied = false;
   try {
