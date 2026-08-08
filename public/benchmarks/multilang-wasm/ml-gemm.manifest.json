@@ -1,48 +1,48 @@
 {
- "workloadId": "ml.gemm.v1",
- "kernelLabel": "strict-f32 GEMM \u2014 128\u00d7128\u00d7128 product (frozen i/j/k order)",
- "artifactsBase": "/artifacts/multilang-wasm-benchmark",
- "kernels": [
-  "gemm"
- ],
- "engines": [
-  {
-   "key": "js",
-   "label": "JavaScript",
-   "kind": "js",
-   "source": ""
-  },
-  {
-   "key": "c",
-   "label": "C / Wasm",
-   "kind": "linear",
-   "lang": "c",
-   "offset": 0,
-   "source": "benchmarks/multilang-wasm/ml-gemm/gemm.c"
-  },
-  {
-   "key": "cpp",
-   "label": "C++ / Wasm",
-   "kind": "linear",
-   "lang": "cpp",
-   "offset": 0,
-   "source": "benchmarks/multilang-wasm/ml-gemm/gemm.cpp"
-  },
-  {
-   "key": "rs",
-   "label": "Rust / Wasm",
-   "kind": "linear",
-   "lang": "rs",
-   "offset": 0,
-   "source": "benchmarks/multilang-wasm/ml-gemm/gemm.rs"
-  },
-  {
-   "key": "dart",
-   "label": "Dart / WasmGC",
-   "kind": "dart",
-   "file": "gemm_dart.wasm",
-   "glue": "gemm_dart.mjs",
-   "source": "benchmarks/multilang-wasm/ml-gemm/gemm.dart"
-  }
- ]
+  "workloadId": "ml.gemm.v1",
+  "kernelLabel": "strict-f32 GEMM \u2014 128\u00d7128\u00d7128 product (frozen i/j/k order)",
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": [
+    "gemm"
+  ],
+  "engines": [
+    {
+      "key": "js",
+      "label": "JavaScript",
+      "kind": "js",
+      "source": ""
+    },
+    {
+      "key": "c",
+      "label": "C / Wasm",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 0,
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm.c"
+    },
+    {
+      "key": "cpp",
+      "label": "C++ / Wasm",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 0,
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm.cpp"
+    },
+    {
+      "key": "rs",
+      "label": "Rust / Wasm",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 0,
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm.rs"
+    },
+    {
+      "key": "dart",
+      "label": "Dart / WasmGC",
+      "kind": "dart",
+      "file": "gemm_dart.wasm",
+      "glue": "gemm_dart.mjs",
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm.dart"
+    }
+  ]
 }
