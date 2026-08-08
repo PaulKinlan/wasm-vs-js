@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { LocalRunStore } from "./lib/run-store.ts";
 import { generateSummary } from "./lib/summary.ts";
 import { CorpusCoordinator } from "./lib/corpus-store.ts";
@@ -1549,6 +1550,54 @@ const routes = new Map<string, [string, string, boolean?]>([
 // Generated demo-page + companion-asset routes (scripts/build-routes.ts).
 // Filesystem-derived; any overlap with the hand-maintained table above is a
 // hard error instead of the old silent last-wins.
+// Flat aliases for EVERY multilang kernel: stale cached runners probe
+// /benchmarks/multilang-wasm/<kernel>.<ext> (flat) for every workload's
+// kernels — map them to the real per-workload files so those probes return
+// 200 instead of 404.
+{
+  const flatToReal = new Map<string, string>();
+  const extSet = new Set([".c", ".cpp", ".rs", ".dart", ".ts", ".wat"]);
+  const addFlat = (name: string, real: string) => {
+    if (!flatToReal.has(name)) flatToReal.set(name, real);
+  };
+  // 1. Files that exist flat are already served by the walk above.
+  // 2. For every per-workload source file, register a flat alias keyed by the
+  //    kernel stem when the flat path does not exist on disk.
+  for (const dirEntry of Array.from(Deno.readDirSync("benchmarks/multilang-wasm"))) {
+    if (!dirEntry.isDirectory) continue;
+    try {
+      for (const f of Array.from(Deno.readDirSync(`benchmarks/multilang-wasm/${dirEntry.name}`))) {
+        if (!f.isFile) continue;
+        const ext = "." + f.name.split(".").pop();
+        if (!extSet.has(ext)) continue;
+        const flat = `benchmarks/multilang-wasm/${f.name}`;
+        if (!existsSync(flat)) {
+          addFlat(`/benchmarks/multilang-wasm/${f.name}`, `benchmarks/multilang-wasm/${dirEntry.name}/${f.name}`);
+        }
+      }
+    } catch { /* skip unreadable */ }
+  }
+  // 3. Kernel-stem aliases for kernels whose file stem differs (e.g. kernel
+  //    "fft" -> fft_kernel.c, "numeric" -> numeric_kernels.cpp).
+  const kernelToStem: Record<string, string> = {
+    fft: "fft_kernel", render: "path_tracer", nbody_step: "nbody",
+    pdf_parse: "pdf_engine", flood_fill: "image_kernels", luma_gaussian_pipeline: "image_kernels",
+    numeric: "numeric_kernels", sum: "sum_u32",
+  };
+  for (const [kernel, stem] of Object.entries(kernelToStem)) {
+    for (const ext of [".c", ".cpp", ".rs", ".dart", ".ts", ".wat"]) {
+      const flat = `benchmarks/multilang-wasm/${kernel}${ext}`;
+      const real = `benchmarks/multilang-wasm/${stem}${ext}`;
+      if (!existsSync(flat) && existsSync(real)) {
+        addFlat(`/benchmarks/multilang-wasm/${kernel}${ext}`, real);
+      }
+    }
+  }
+  for (const [urlPath, real] of flatToReal) {
+    if (!routes.has(urlPath)) routes.set(urlPath, [real, "text/plain; charset=utf-8"]);
+  }
+}
+
 // Multi-language kernel sources (commit-pinned on the comparison pages).
 // The source files live in benchmarks/multilang-wasm/ (not under public/);
 // serve them so the runner can fetch per-kernel source sizes + the pages can
