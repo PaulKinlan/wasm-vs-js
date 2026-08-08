@@ -136,7 +136,7 @@ Deno.test("trace lifecycle measures real jitter (GC/render) and rejects only inv
   // Structurally invalid: wrong slot count, non-finite offsets, out-of-bound
   // completion.
   const truncated = exact.slice(0, -1);
-  denied = false;
+  let denied = false;
   try {
     validateGridTraceLifecycle(truncated, 29_900);
   } catch {
@@ -144,7 +144,7 @@ Deno.test("trace lifecycle measures real jitter (GC/render) and rejects only inv
   }
   assert(denied, "truncated (299-slot) trace was accepted");
   const broken = exact.map((offset, index) => index === 50 ? Number.NaN : offset);
-  let denied = false;
+  denied = false;
   try {
     validateGridTraceLifecycle(broken, 29_900);
   } catch {
