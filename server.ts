@@ -1572,7 +1572,10 @@ const routes = new Map<string, [string, string, boolean?]>([
         if (!extSet.has(ext)) continue;
         const flat = `benchmarks/multilang-wasm/${f.name}`;
         if (!existsSync(flat)) {
-          addFlat(`/benchmarks/multilang-wasm/${f.name}`, `benchmarks/multilang-wasm/${dirEntry.name}/${f.name}`);
+          addFlat(
+            `/benchmarks/multilang-wasm/${f.name}`,
+            `benchmarks/multilang-wasm/${dirEntry.name}/${f.name}`,
+          );
         }
       }
     } catch { /* skip unreadable */ }
@@ -1580,9 +1583,14 @@ const routes = new Map<string, [string, string, boolean?]>([
   // 3. Kernel-stem aliases for kernels whose file stem differs (e.g. kernel
   //    "fft" -> fft_kernel.c, "numeric" -> numeric_kernels.cpp).
   const kernelToStem: Record<string, string> = {
-    fft: "fft_kernel", render: "path_tracer", nbody_step: "nbody",
-    pdf_parse: "pdf_engine", flood_fill: "image_kernels", luma_gaussian_pipeline: "image_kernels",
-    numeric: "numeric_kernels", sum: "sum_u32",
+    fft: "fft_kernel",
+    render: "path_tracer",
+    nbody_step: "nbody",
+    pdf_parse: "pdf_engine",
+    flood_fill: "image_kernels",
+    luma_gaussian_pipeline: "image_kernels",
+    numeric: "numeric_kernels",
+    sum: "sum_u32",
   };
   for (const [kernel, stem] of Object.entries(kernelToStem)) {
     for (const ext of [".c", ".cpp", ".rs", ".dart", ".ts", ".wat"]) {
