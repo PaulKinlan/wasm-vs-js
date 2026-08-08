@@ -1918,7 +1918,7 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "ml-gemm.manifest.json",
       "ml-dense-mlp.manifest.json",
       "multilang-wasm.manifest.json",
-"text-regex-log-scan.manifest.json",
+      "text-regex-log-scan.manifest.json",
       "crypto-file-integrity.manifest.json",
       "ml-gemm.manifest.json",
       "multilang-wasm.manifest.json",
