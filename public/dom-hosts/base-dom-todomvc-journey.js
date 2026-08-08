@@ -130,6 +130,17 @@ export async function createTodomvcHost() {
     footer.append(filterAll, filterActive, filterCompleted);
     root.append(footer);
     document.body.append(root);
+    // The host UI must be VISIBLE inside the iframe (Paul: "see the DOM
+    // working"). It's appended after the page content, so pin it to the top
+    // of the iframe viewport and make the page chrome recede behind it.
+    root.style.position = "fixed";
+    root.style.top = "0";
+    root.style.left = "0";
+    root.style.right = "0";
+    root.style.zIndex = "9999";
+    root.style.background = "#fff";
+    root.style.padding = "12px";
+    root.style.borderBottom = "1px solid #ccc";
     return { root, list, filterAll, filterActive, filterCompleted };
   }
 
