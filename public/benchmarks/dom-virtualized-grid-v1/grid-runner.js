@@ -224,7 +224,8 @@ start.addEventListener("click", () => {
   runStarted = performance.now();
   worker = new Worker("/benchmarks/dom-virtualized-grid-v1/grid-worker.js", { type: "module" });
   document.documentElement.dataset.gridWorkerActive = "true";
-  status.textContent = "Running 300 trace slots at 100 ms cadence (measuring real GC/render jitter)…";
+  status.textContent =
+    "Running 300 trace slots at 100 ms cadence (measuring real GC/render jitter)…";
   output.textContent = "Waiting for 300 rendered events.";
   start.disabled = true;
   cancel.disabled = false;
