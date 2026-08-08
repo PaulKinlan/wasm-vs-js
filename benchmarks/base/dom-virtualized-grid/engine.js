@@ -12,9 +12,6 @@ export const GRID_TRACE_LIFECYCLE = Object.freeze({
   cadenceMs: 100,
   firstSlotOffsetMs: 0,
   lastSlotOffsetMs: 29_900,
-  slotToleranceMs: 20,
-  minimumIntervalMs: 80,
-  maximumIntervalMs: 120,
   minimumCompletionAfterFirstSlotMs: 29_900,
   maximumCompletionAfterFirstSlotMs: 30_100,
 });

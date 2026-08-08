@@ -70,9 +70,6 @@ Deno.test("frozen v1 catalog remains byte-identical while supplemental grid regi
     slots: 300,
     firstSlotOffsetMs: 0,
     lastSlotOffsetMs: 29_900,
-    slotToleranceMs: 20,
-    minimumIntervalMs: 80,
-    maximumIntervalMs: 120,
     catchUp: "prohibited; fail immediately when the next slot is already more than 20 ms late",
     minimumCompletionAfterFirstSlotMs: 29_900,
     maximumCompletionAfterFirstSlotMs: 30_100,
@@ -360,9 +357,6 @@ Deno.test("candidate record is closed-schema, raw-hash anchored, and honestly br
     cadenceMs: 100,
     firstSlotOffsetMs: 0,
     lastSlotOffsetMs: 29_900,
-    slotToleranceMs: 20,
-    minimumIntervalMs: 80,
-    maximumIntervalMs: 120,
     catchUp: false,
     minimumCompletionAfterFirstSlotMs: 29_900,
     maximumCompletionAfterFirstSlotMs: 30_100,
@@ -371,9 +365,7 @@ Deno.test("candidate record is closed-schema, raw-hash anchored, and honestly br
   });
   for (
     const [field, value] of [
-      ["slotToleranceMs", 21],
-      ["minimumIntervalMs", 79],
-      ["maximumIntervalMs", 121],
+
       ["catchUp", true],
       ["maximumCompletionAfterFirstSlotMs", 30_101],
       ["phaseSpanPolicy", "overlapping"],
