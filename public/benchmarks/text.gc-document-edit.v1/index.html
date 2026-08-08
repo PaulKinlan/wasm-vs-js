@@ -43,11 +43,11 @@
                 <option value="100">100 iterations (Sustained loop)</option>
               </select>
             </label>
-            <button id="tge-start" type="submit" disabled>Start Benchmark Suite</button>
-            <button id="tge-cancel" type="button" disabled>Cancel</button>
+            <button id="start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="cancel" type="button" disabled>Cancel</button>
           </div>
         </form>
-        <p id="tge-status" role="status" aria-live="polite">
+        <p id="tge-correct-status" role="status" aria-live="polite">
           Ready. Select target and loop iterations, then click Start.
         </p>
         <div id="perf-reporting" class="detail-grid" hidden></div>
@@ -61,10 +61,10 @@
         <fieldset><legend>Target</legend><label for="target">Engine<select id="target" name="target"><option value="js-controlled">JavaScript objects and ordered child arrays</option><option value="wasmgc-controlled">Kotlin 2.3.21 WasmGC objects, lists, and strings</option></select></label></fieldset>
         <p class="hint">The worker checks every canonical output byte, stable node identity, reachability, ordered child links, and exact structural counters. It stops after 120 seconds. Unsupported WasmGC is reported as unavailable, never as zero.</p>
         <label for="progress">Run progress</label><progress id="progress" max="100">Not started</progress>
-        <div class="actions"><button id="tge-start" type="submit">Start</button><button id="tge-cancel" type="button" disabled>Cancel</button></div>
+        <div class="actions"><button id="tge-correct-start" type="submit">Start</button><button id="tge-correct-cancel" type="button" disabled>Cancel</button></div>
       </form>
       <h2>Result</h2>
-      <p id="tge-status" role="status" aria-live="polite">Ready.</p>
+      <p id="tge-correct-status" role="status" aria-live="polite">Ready.</p>
       <pre id="output" class="demo-output" tabindex="0">No result yet.</pre>
       <h2>Implementation boundary</h2>
       <p>The JavaScript target owns a Map-backed object graph. The WasmGC target executes the same edit machine inside a <a href="/artifacts/text-gc-document-edit/text-gc-document-edit.wasm">Kotlin-generated WasmGC module</a> using managed node objects, mutable child lists, and strings. The memory models intentionally differ and remain a semantic product choice. Portable runtime GC events and internal allocation totals are unavailable.</p>

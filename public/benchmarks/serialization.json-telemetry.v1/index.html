@@ -45,11 +45,11 @@
                 <option value="100">100 iterations (Sustained loop)</option>
               </select>
             </label>
-            <button id="tel-start" type="submit" disabled>Start Benchmark Suite</button>
-            <button id="tel-cancel" type="button" disabled>Cancel</button>
+            <button id="start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="cancel" type="button" disabled>Cancel</button>
           </div>
         </form>
-        <p id="tel-status" role="status" aria-live="polite">
+        <p id="tel-correct-status" role="status" aria-live="polite">
           Ready. Select target and loop iterations, then click Start.
         </p>
         <div id="perf-reporting" class="detail-grid" hidden></div>
@@ -74,10 +74,10 @@
         <label class="sr-only" for="progress">Run progress</label>
         <progress id="progress" max="1">Run progress</progress>
         <div
-          class="actions"><button id="tel-start" type="submit">Start</button><button id="tel-cancel" type="button" disabled>Cancel</button></div>
+          class="actions"><button id="tel-correct-start" type="submit">Start</button><button id="tel-correct-cancel" type="button" disabled>Cancel</button></div>
       </form>
       <h2>Result</h2>
-      <p id="tel-status" role="status" aria-live="polite">Ready.</p>
+      <p id="tel-correct-status" role="status" aria-live="polite">Ready.</p>
       <pre id="output" class="demo-output" tabindex="0">No result yet.</pre>
       <h2>Controlled grammar</h2>
       <p>Both targets use authored byte-state machines rather than <code>JSON.parse</code>. They accept one compact UTF-8 array with fixed key order, unsigned decimal integers, booleans, a nested metadata object, four regions, three event kinds, and the registered multilingual label and tag vocabulary. The <a href="/artifacts/serialization-json-telemetry/fixture-manifest.json">fixture manifest</a> records all raw byte hashes; the <a href="/artifacts/serialization-json-telemetry/output-manifest.json">output manifest</a> records all canonical summaries and counters.</p>

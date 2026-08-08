@@ -1,7 +1,10 @@
 const form = document.querySelector("form[data-worker]");
-const start = document.querySelector("#start");
-const cancel = document.querySelector("#cancel");
-const status = document.querySelector("#status");
+const start = document.document.querySelector("form[data-worker] button[type=submit]") ??
+  document.querySelector("#start");
+const cancel = document.document.querySelector("form[data-worker] button[type=button]") ??
+  document.querySelector("#cancel");
+const status = document.document.querySelector("form[data-worker]")?.nextElementSibling ??
+  document.querySelector("#status");
 const output = document.querySelector("#output");
 const TIMEOUT_MS = 10_000;
 let active = null;

@@ -46,11 +46,11 @@
                 <option value="100">100 iterations (Sustained loop)</option>
               </select>
             </label>
-            <button id="td-start" type="submit" disabled>Start Benchmark Suite</button>
-            <button id="td-cancel" type="button" disabled>Cancel</button>
+            <button id="start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="cancel" type="button" disabled>Cancel</button>
           </div>
         </form>
-        <p id="td-status" role="status" aria-live="polite">
+        <p id="td-correct-status" role="status" aria-live="polite">
           Ready. Select target and loop iterations, then click Start.
         </p>
         <div id="perf-reporting" class="detail-grid" hidden></div>
@@ -77,10 +77,10 @@ new line
 🚀</textarea></label>
         </div>
         <div
-          class="actions"><button id="td-start" type="submit">Start</button><button id="td-cancel" type="button" disabled>Cancel</button></div>
+          class="actions"><button id="td-correct-start" type="submit">Start</button><button id="td-correct-cancel" type="button" disabled>Cancel</button></div>
       </form>
       <h2>Text result</h2>
-      <p id="td-status" aria-live="polite">Ready.</p>
+      <p id="td-correct-status" aria-live="polite">Ready.</p>
 
       <pre id="output" class="demo-output" tabindex="0">No result yet.</pre>
       <h2>What runs</h2>

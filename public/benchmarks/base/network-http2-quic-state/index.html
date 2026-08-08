@@ -39,11 +39,11 @@
                 <option value="100">100 iterations (Sustained loop)</option>
               </select>
             </label>
-            <button id="h2q-start" type="submit" disabled>Start Benchmark Suite</button>
-            <button id="h2q-cancel" type="button" disabled>Cancel</button>
+            <button id="start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="cancel" type="button" disabled>Cancel</button>
           </div>
         </form>
-        <p id="h2q-status" role="status" aria-live="polite">
+        <p id="h2q-correct-status" role="status" aria-live="polite">
           Ready. Select target and loop iterations, then click Start.
         </p>
         <div id="perf-reporting" class="detail-grid" hidden></div>
@@ -57,11 +57,11 @@
         <label for="target">Controlled target</label>
         <select id="h2q-target"
           name="target"><option value="js">JavaScript controlled</option><option value="wasm">Linear Wasm controlled</option></select>
-        <button id="h2q-start" type="submit">Start</button>
-        <button id="h2q-cancel" type="button" disabled>Cancel</button>
+        <button id="h2q-correct-start" type="submit">Start</button>
+        <button id="h2q-correct-cancel" type="button" disabled>Cancel</button>
       </form>
       <h2>State result</h2>
-      <p id="h2q-status" role="status" aria-live="polite">Ready.</p>
+      <p id="h2q-correct-status" role="status" aria-live="polite">Ready.</p>
       <pre id="result" tabindex="0">No result yet.</pre>
       <h2>Fixed scope</h2>
       <p>HTTP/2: SETTINGS, HEADERS, CONTINUATION, DATA, WINDOW_UPDATE and RST_STREAM; HPACK static, literal incremental and dynamic indexing. QUIC: STREAM, ACK, MAX_DATA, RESET_STREAM and CONNECTION_CLOSE; QPACK capacity, insert and duplicate instructions. Malformed and truncated inputs are separately tested.</p>

@@ -52,11 +52,11 @@
                 <option value="100">100 iterations (Sustained loop)</option>
               </select>
             </label>
-            <button id="pcap-start" type="submit" disabled>Start Benchmark Suite</button>
-            <button id="pcap-cancel" type="button" disabled>Cancel</button>
+            <button id="start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="cancel" type="button" disabled>Cancel</button>
           </div>
         </form>
-        <p id="pcap-status" role="status" aria-live="polite">
+        <p id="pcap-correct-status" role="status" aria-live="polite">
           Ready. Select target and loop iterations, then click Start.
         </p>
         <div id="perf-reporting" class="detail-grid" hidden></div>
@@ -84,12 +84,12 @@
           </label>
         </fieldset>
         <div class="actions">
-          <button id="pcap-start" type="submit">Start</button>
-          <button id="pcap-cancel" type="button" disabled>Cancel</button>
+          <button id="pcap-correct-start" type="submit">Start</button>
+          <button id="pcap-correct-cancel" type="button" disabled>Cancel</button>
         </div>
       </form>
       <h2>Correctness result</h2>
-      <p id="pcap-status" aria-live="polite">Ready.</p>
+      <p id="pcap-correct-status" aria-live="polite">Ready.</p>
       <pre id="output" class="demo-output" tabindex="0">No result yet.</pre>
       <h2>Inspect the package</h2>
       <ul>

@@ -44,11 +44,11 @@
                 <option value="100">100 iterations (Sustained loop)</option>
               </select>
             </label>
-            <button id="pb-start" type="submit" disabled>Start Benchmark Suite</button>
-            <button id="pb-cancel" type="button" disabled>Cancel</button>
+            <button id="start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="cancel" type="button" disabled>Cancel</button>
           </div>
         </form>
-        <p id="pb-status" role="status" aria-live="polite">
+        <p id="pb-correct-status" role="status" aria-live="polite">
           Ready. Select target and loop iterations, then click Start.
         </p>
         <div id="perf-reporting" class="detail-grid" hidden></div>
@@ -64,11 +64,11 @@
         <label for="kernel">Kernel</label>
         <select
           id="kernel"><option value="all">All four</option><option value="gemm">GEMM 20×25×30</option><option value="cholesky">Cholesky 40×40</option><option value="stencil">One 30×30 stencil sweep</option><option value="jacobi2d">Jacobi-2D 30×30 × 20 timesteps</option></select>
-        <div><button id="pb-start" type="submit">Start</button><button id="pb-cancel" type="button" disabled>Cancel</button></div>
+        <div><button id="pb-correct-start" type="submit">Start</button><button id="pb-correct-cancel" type="button" disabled>Cancel</button></div>
       </form>
       <label for="progress">Completed kernels</label>
       <progress id="progress" max="4"></progress>
-      <p id="pb-status" role="status" aria-live="polite">Ready.</p>
+      <p id="pb-correct-status" role="status" aria-live="polite">Ready.</p>
       <h2>Correctness result</h2>
       <pre id="output">No result yet.</pre>
 

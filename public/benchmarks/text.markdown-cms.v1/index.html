@@ -43,11 +43,11 @@
                 <option value="100">100 iterations (Sustained loop)</option>
               </select>
             </label>
-            <button id="td-start" type="submit" disabled>Start Benchmark Suite</button>
-            <button id="td-cancel" type="button" disabled>Cancel</button>
+            <button id="start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="cancel" type="button" disabled>Cancel</button>
           </div>
         </form>
-        <p id="td-status" role="status" aria-live="polite">
+        <p id="md-correct-status" role="status" aria-live="polite">
           Ready. Select target and loop iterations, then click Start.
         </p>
         <div id="perf-reporting" class="detail-grid" hidden></div>
@@ -69,10 +69,10 @@ Paragraph with &amp; and &lt; characters.</textarea></label>
         <p id="limits"
           class="hint">Source accepts at most 40,960 UTF-8 bytes and 4,096 non-empty lines. Raw HTML permits only attribute-free <code>em</code> and <code>strong</code> elements without nested markup. Links permit only <code>https://example.test/</code> and <code>https://docs.example.test/</code>; figure sources permit only <code>https://images.example.test/</code>. The worker stops after 10 seconds.</p>
         <div
-          class="actions"><button id="td-start" type="submit">Start</button><button id="td-cancel" type="button" disabled>Cancel</button></div>
+          class="actions"><button id="md-correct-start" type="submit">Start</button><button id="md-correct-cancel" type="button" disabled>Cancel</button></div>
       </form>
       <h2>Text result</h2>
-      <p id="td-status" aria-live="polite">Ready.</p>
+      <p id="md-correct-status" aria-live="polite">Ready.</p>
       <pre id="output" class="demo-output" tabindex="0">No result yet.</pre>
       <h2>What runs</h2>
       <p>The fixed grammar parses headings, paragraphs, raw HTML, whole-line links, and figures. It then creates table-of-contents anchors, checks the URL and element allowlists, and serializes escaped canonical HTML. The Wasm option performs those stages in authored <a href="/artifacts/text-markdown-cms/text-markdown-cms.wasm">linear-memory code</a>.</p>

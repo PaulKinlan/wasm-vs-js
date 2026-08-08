@@ -46,11 +46,11 @@
                 <option value="100">100 iterations (Sustained loop)</option>
               </select>
             </label>
-            <button id="cfi-start" type="submit" disabled>Start Benchmark Suite</button>
-            <button id="cfi-cancel" type="button" disabled>Cancel</button>
+            <button id="start" type="submit" disabled>Start Benchmark Suite</button>
+            <button id="cancel" type="button" disabled>Cancel</button>
           </div>
         </form>
-        <p id="cfi-status" role="status" aria-live="polite">
+        <p id="cfi-correct-status" role="status" aria-live="polite">
           Ready. Select target and loop iterations, then click Start.
         </p>
         <div id="perf-reporting" class="detail-grid" hidden></div>
@@ -77,10 +77,10 @@
         <p
           class="hint">The frozen registration contains 2 fixture kinds × 3 sizes × 3 schedules × 2 targets. The 256 MiB whole-buffer Wasm case may grow linear memory to 4,098 pages. Every run stops after 180 seconds.</p>
         <div
-          class="actions"><button id="cfi-start" type="submit">Start</button><button id="cfi-cancel" type="button" disabled>Cancel</button></div>
+          class="actions"><button id="cfi-correct-start" type="submit">Start</button><button id="cfi-correct-cancel" type="button" disabled>Cancel</button></div>
       </form>
       <h2>Digest result</h2>
-      <p id="cfi-status" aria-live="polite">Ready.</p>
+      <p id="cfi-correct-status" aria-live="polite">Ready.</p>
       <pre id="output" class="demo-output" tabindex="0">No result yet.</pre>
 
       <h2>Inspect the contract</h2>
