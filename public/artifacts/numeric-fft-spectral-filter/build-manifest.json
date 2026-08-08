@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "4c5e3afe7f3f441a475076311788fd004ca6bb7d",
-  "sourceSha256": "f769ba6df155345d60fe951b8e25f4bc16a6ab30a70f74f88d6865e9b1a39a62",
+  "sourceCommit": "0a8935f3e8e5bdc9bb28bb0942069c3478a3e358",
+  "sourceSha256": "a587d70a03d1e621c8cb6b7345278bb496a95963517d66ea6c47c21fdddde425",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 87481,
-      "sha256": "34d561ebb9a2dfb07e5c490071c6828dbb7b59c70931930606384e2396ef4e39"
+      "bytes": 88513,
+      "sha256": "d119a1862db96d9d74697c80350e62f32fd1eac5e4a26ac29e4ea2681294f506"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "1e62ac7f6897c582aa8ef1b1b3a01cdc2bbae58343d64c8223a8af347c043b30"
+      "sha256": "1f839f69449a5e938232546968ea08b119a0206529a9bf362b3378036531109d"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "6209b30adb3f47364560c863651db2cb4a5f2a84cdb2c353bdc28cde2c2dd274"
+      "sha256": "80ae6d4834bce26fcbc8beaa0eb1797b3c3a1c1d05888862d9003cb3e92ae8cb"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=4c5e3afe7f3f441a475076311788fd004ca6bb7d"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=0a8935f3e8e5bdc9bb28bb0942069c3478a3e358"
   }
 }
