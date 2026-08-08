@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "workloadId": "server.ssr-template.v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "66c6ee2c39eeb65dd43dab51ba50c59d59a5d1ed",
+  "sourceCommit": "6ccf3c949c939b094f7ac9b8505a7953e6377df7",
   "sources": [
     {
       "path": "benchmarks/v1/server-ssr-template/workload.js",
