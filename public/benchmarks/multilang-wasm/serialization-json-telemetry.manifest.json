@@ -1,48 +1,48 @@
 {
-  "workloadId": "serialization.json-telemetry.v1",
-  "kernelLabel": "JSON telemetry parse \u2014 1,000 records, frozen vocabulary",
-  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
-  "kernels": [
-    "telemetry"
-  ],
-  "engines": [
-    {
-      "key": "js",
-      "label": "JavaScript",
-      "kind": "js",
-      "source": ""
-    },
-    {
-      "key": "c",
-      "label": "C / Wasm",
-      "kind": "linear",
-      "lang": "c",
-      "offset": 0,
-      "source": "benchmarks/multilang-wasm/serialization-json-telemetry/telemetry.c"
-    },
-    {
-      "key": "cpp",
-      "label": "C++ / Wasm",
-      "kind": "linear",
-      "lang": "cpp",
-      "offset": 0,
-      "source": "benchmarks/multilang-wasm/serialization-json-telemetry/telemetry.cpp"
-    },
-    {
-      "key": "rs",
-      "label": "Rust / Wasm",
-      "kind": "linear",
-      "lang": "rs",
-      "offset": 0,
-      "source": "benchmarks/multilang-wasm/serialization-json-telemetry/telemetry.rs"
-    },
-    {
-      "key": "dart",
-      "label": "Dart / WasmGC",
-      "kind": "dart",
-      "file": "telemetry_dart.wasm",
-      "glue": "telemetry_dart.mjs",
-      "source": "benchmarks/multilang-wasm/serialization-json-telemetry/telemetry.dart"
-    }
-  ]
+ "workloadId": "serialization.json-telemetry.v1",
+ "kernelLabel": "JSON telemetry parse \u2014 1,000 records, frozen vocabulary",
+ "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+ "kernels": [
+  "telemetry"
+ ],
+ "engines": [
+  {
+   "key": "js",
+   "label": "JavaScript",
+   "kind": "js",
+   "source": ""
+  },
+  {
+   "key": "c",
+   "label": "C / Wasm",
+   "kind": "linear",
+   "lang": "c",
+   "offset": 0,
+   "source": "benchmarks/multilang-wasm/serialization-json-telemetry/telemetry.c"
+  },
+  {
+   "key": "cpp",
+   "label": "C++ / Wasm",
+   "kind": "linear",
+   "lang": "cpp",
+   "offset": 0,
+   "source": "benchmarks/multilang-wasm/serialization-json-telemetry/telemetry.cpp"
+  },
+  {
+   "key": "rs",
+   "label": "Rust / Wasm",
+   "kind": "linear",
+   "lang": "rs",
+   "offset": 0,
+   "source": "benchmarks/multilang-wasm/serialization-json-telemetry/telemetry.rs"
+  },
+  {
+   "key": "dart",
+   "label": "Dart / WasmGC",
+   "kind": "dart",
+   "file": "telemetry_dart.wasm",
+   "glue": "telemetry_dart.mjs",
+   "source": "benchmarks/multilang-wasm/serialization-json-telemetry/telemetry.dart"
+  }
+ ]
 }

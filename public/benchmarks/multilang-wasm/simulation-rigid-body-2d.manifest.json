@@ -1,48 +1,48 @@
 {
-  "workloadId": "simulation.rigid-body-2d.v1",
-  "kernelLabel": "500-body 2D physics \u2014 SAT collision, joints, torque (6 checkpoints)",
-  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
-  "kernels": [
-    "rigid_engine"
-  ],
-  "engines": [
-    {
-      "key": "js",
-      "label": "JavaScript",
-      "kind": "js",
-      "source": ""
-    },
-    {
-      "key": "c",
-      "label": "C / Wasm",
-      "kind": "linear",
-      "lang": "c",
-      "offset": 0,
-      "source": "benchmarks/multilang-wasm/simulation-rigid-body-2d/rigid_engine.c"
-    },
-    {
-      "key": "cpp",
-      "label": "C++ / Wasm",
-      "kind": "linear",
-      "lang": "cpp",
-      "offset": 0,
-      "source": "benchmarks/multilang-wasm/simulation-rigid-body-2d/rigid_engine.cpp"
-    },
-    {
-      "key": "rs",
-      "label": "Rust / Wasm",
-      "kind": "linear",
-      "lang": "rs",
-      "offset": 0,
-      "source": "benchmarks/multilang-wasm/simulation-rigid-body-2d/rigid_engine.rs"
-    },
-    {
-      "key": "dart",
-      "label": "Dart / WasmGC",
-      "kind": "dart",
-      "file": "rigid_dart.wasm",
-      "glue": "rigid_dart.mjs",
-      "source": "benchmarks/multilang-wasm/simulation-rigid-body-2d/rigid_engine.dart"
-    }
-  ]
+ "workloadId": "simulation.rigid-body-2d.v1",
+ "kernelLabel": "500-body 2D physics \u2014 SAT collision, joints, torque (6 checkpoints)",
+ "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+ "kernels": [
+  "rigid_engine"
+ ],
+ "engines": [
+  {
+   "key": "js",
+   "label": "JavaScript",
+   "kind": "js",
+   "source": ""
+  },
+  {
+   "key": "c",
+   "label": "C / Wasm",
+   "kind": "linear",
+   "lang": "c",
+   "offset": 0,
+   "source": "benchmarks/multilang-wasm/simulation-rigid-body-2d/rigid_engine.c"
+  },
+  {
+   "key": "cpp",
+   "label": "C++ / Wasm",
+   "kind": "linear",
+   "lang": "cpp",
+   "offset": 0,
+   "source": "benchmarks/multilang-wasm/simulation-rigid-body-2d/rigid_engine.cpp"
+  },
+  {
+   "key": "rs",
+   "label": "Rust / Wasm",
+   "kind": "linear",
+   "lang": "rs",
+   "offset": 0,
+   "source": "benchmarks/multilang-wasm/simulation-rigid-body-2d/rigid_engine.rs"
+  },
+  {
+   "key": "dart",
+   "label": "Dart / WasmGC",
+   "kind": "dart",
+   "file": "rigid_dart.wasm",
+   "glue": "rigid_dart.mjs",
+   "source": "benchmarks/multilang-wasm/simulation-rigid-body-2d/rigid_engine.dart"
+  }
+ ]
 }

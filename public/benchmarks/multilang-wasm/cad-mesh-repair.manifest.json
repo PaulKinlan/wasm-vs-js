@@ -1,45 +1,45 @@
 {
-  "workloadId": "cad.mesh-repair.v1",
-  "kernelLabel": "STL mesh repair \u2014 quantize, weld, orient, simplify",
-  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
-  "kernels": [
-    "mesh_repair"
-  ],
-  "engines": [
-    {
-      "key": "js",
-      "label": "JavaScript",
-      "kind": "js",
-      "source": ""
-    },
-    {
-      "key": "c",
-      "label": "C / Wasm",
-      "kind": "linear",
-      "lang": "c",
-      "source": "benchmarks/multilang-wasm/cad-mesh-repair/mesh_repair.c"
-    },
-    {
-      "key": "cpp",
-      "label": "C++ / Wasm",
-      "kind": "linear",
-      "lang": "cpp",
-      "source": "benchmarks/multilang-wasm/cad-mesh-repair/mesh_repair.cpp"
-    },
-    {
-      "key": "rs",
-      "label": "Rust / Wasm",
-      "kind": "linear",
-      "lang": "rs",
-      "source": "benchmarks/multilang-wasm/cad-mesh-repair/mesh_repair.rs"
-    },
-    {
-      "key": "dart",
-      "label": "Dart / WasmGC",
-      "kind": "dart",
-      "file": "mesh_repair_dart.wasm",
-      "glue": "mesh_repair_dart.mjs",
-      "source": "benchmarks/multilang-wasm/cad-mesh-repair/mesh_repair.dart"
-    }
-  ]
+ "workloadId": "cad.mesh-repair.v1",
+ "kernelLabel": "STL mesh repair \u2014 quantize, weld, orient, simplify",
+ "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+ "kernels": [
+  "mesh_repair"
+ ],
+ "engines": [
+  {
+   "key": "js",
+   "label": "JavaScript",
+   "kind": "js",
+   "source": ""
+  },
+  {
+   "key": "c",
+   "label": "C / Wasm",
+   "kind": "linear",
+   "lang": "c",
+   "source": "benchmarks/multilang-wasm/cad-mesh-repair/mesh_repair.c"
+  },
+  {
+   "key": "cpp",
+   "label": "C++ / Wasm",
+   "kind": "linear",
+   "lang": "cpp",
+   "source": "benchmarks/multilang-wasm/cad-mesh-repair/mesh_repair.cpp"
+  },
+  {
+   "key": "rs",
+   "label": "Rust / Wasm",
+   "kind": "linear",
+   "lang": "rs",
+   "source": "benchmarks/multilang-wasm/cad-mesh-repair/mesh_repair.rs"
+  },
+  {
+   "key": "dart",
+   "label": "Dart / WasmGC",
+   "kind": "dart",
+   "file": "mesh_repair_dart.wasm",
+   "glue": "mesh_repair_dart.mjs",
+   "source": "benchmarks/multilang-wasm/cad-mesh-repair/mesh_repair.dart"
+  }
+ ]
 }

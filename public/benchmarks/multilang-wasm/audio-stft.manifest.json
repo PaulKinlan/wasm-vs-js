@@ -1,19 +1,48 @@
 {
-  "workloadId": "audio.stft.v1",
-  "kernelLabel": "STFT — 8,192 samples, 1,024-frame, 256-hop, frozen twiddle",
-  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
-  "kernels": ["stft"],
-  "engines": [
-    { "key": "js", "label": "JavaScript", "kind": "js" },
-    { "key": "c", "label": "C / Wasm", "kind": "linear", "lang": "c", "offset": 0 },
-    { "key": "cpp", "label": "C++ / Wasm", "kind": "linear", "lang": "cpp", "offset": 0 },
-    { "key": "rs", "label": "Rust / Wasm", "kind": "linear", "lang": "rs", "offset": 0 },
-    {
-      "key": "dart",
-      "label": "Dart / WasmGC",
-      "kind": "dart",
-      "file": "stft_dart.wasm",
-      "glue": "stft_dart.mjs"
-    }
-  ]
+ "workloadId": "audio.stft.v1",
+ "kernelLabel": "STFT \u2014 8,192 samples, 1,024-frame, 256-hop, frozen twiddle",
+ "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+ "kernels": [
+  "stft"
+ ],
+ "engines": [
+  {
+   "key": "js",
+   "label": "JavaScript",
+   "kind": "js",
+   "source": ""
+  },
+  {
+   "key": "c",
+   "label": "C / Wasm",
+   "kind": "linear",
+   "lang": "c",
+   "offset": 0,
+   "source": "benchmarks/multilang-wasm/audio-stft/stft.c"
+  },
+  {
+   "key": "cpp",
+   "label": "C++ / Wasm",
+   "kind": "linear",
+   "lang": "cpp",
+   "offset": 0,
+   "source": "benchmarks/multilang-wasm/audio-stft/stft.cpp"
+  },
+  {
+   "key": "rs",
+   "label": "Rust / Wasm",
+   "kind": "linear",
+   "lang": "rs",
+   "offset": 0,
+   "source": "benchmarks/multilang-wasm/audio-stft/stft.rs"
+  },
+  {
+   "key": "dart",
+   "label": "Dart / WasmGC",
+   "kind": "dart",
+   "file": "stft_dart.wasm",
+   "glue": "stft_dart.mjs",
+   "source": "benchmarks/multilang-wasm/audio-stft/stft.dart"
+  }
+ ]
 }
