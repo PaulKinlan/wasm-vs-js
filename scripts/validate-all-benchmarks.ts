@@ -211,8 +211,8 @@ await Deno.writeTextFile(OUT, JSON.stringify(logs, null, 2));
 console.log("LOGS WRITTEN:", OUT);
 try {
   await cdp.close();
-} catch {
-  // ignore close errors
+} catch (err) {
+  console.error("close err", err);
 }
 browser.kill();
 try {
