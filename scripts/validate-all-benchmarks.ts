@@ -211,7 +211,9 @@ await Deno.writeTextFile(OUT, JSON.stringify(logs, null, 2));
 console.log("LOGS WRITTEN:", OUT);
 try {
   await cdp.close();
-} catch {}
+} catch {
+  // ignore close errors
+}
 browser.kill();
 try {
   Deno.removeSync(profile, { recursive: true });
