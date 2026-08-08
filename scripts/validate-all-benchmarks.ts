@@ -217,4 +217,6 @@ try {
 browser.kill();
 try {
   Deno.removeSync(profile, { recursive: true });
-} catch {}
+} catch (cleanupErr) {
+  console.error("profile cleanup failed", cleanupErr);
+}
