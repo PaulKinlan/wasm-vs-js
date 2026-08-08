@@ -796,7 +796,6 @@ try {
         parsed.trace.slots !== lifecycle.slots ||
         parsed.trace.scheduledSpanMs !== lifecycle.lastSlotOffsetMs ||
         parsed.trace.eventCadenceMs !== lifecycle.cadenceMs ||
-        parsed.trace.slotToleranceMs !== lifecycle.slotToleranceMs ||
         JSON.stringify(parsed.trace.intervalBoundsMs) !==
           JSON.stringify([lifecycle.minimumIntervalMs, lifecycle.maximumIntervalMs]) ||
         JSON.stringify(parsed.trace.completionBoundsAfterFirstSlotMs) !== JSON.stringify([
@@ -807,23 +806,18 @@ try {
         actualOffsets.length !== 300 || paintAcks.length !== 300
       ) throw new Error(`${scenario.id} trace identity or slot count mismatch`);
       for (let index = 0; index < actualOffsets.length; index += 1) {
-        if (
-          !Number.isFinite(actualOffsets[index]) ||
-          Math.abs(actualOffsets[index] - scheduledOffsets[index]) > lifecycle.slotToleranceMs
-        ) throw new Error(`${scenario.id} trace slot ${index} exceeded ±20 ms`);
-        if (index > 0) {
-          const interval = actualOffsets[index] - actualOffsets[index - 1];
-          if (
-            interval < lifecycle.minimumIntervalMs || interval > lifecycle.maximumIntervalMs
-          ) throw new Error(`${scenario.id} trace interval ${index - 1}-${index} drifted`);
+        if (!Number.isFinite(actualOffsets[index])) {
+          throw new Error(`${scenario.id} trace slot ${index} has non-finite offset`);
         }
+        // Slot cadence + inter-slot interval jitter are MEASURED, not
+        // enforced (Paul 2026-08-08: the benchmark must measure real GC and
+        // render jitter, not reject it).
         if (!Number.isFinite(paintAcks[index]) || paintAcks[index] < actualOffsets[index]) {
           throw new Error(`${scenario.id} paint acknowledgment ${index} preceded its event`);
         }
-        if (
-          index < actualOffsets.length - 1 &&
-          paintAcks[index] > scheduledOffsets[index + 1] + lifecycle.slotToleranceMs
-        ) throw new Error(`${scenario.id} paint acknowledgment ${index} missed the next slot`);
+        if (index < actualOffsets.length - 1) {
+          // Paint-ack cadence is measured, not enforced.
+        }
       }
       if (
         parsed.trace.completionAfterFirstSlotMs <

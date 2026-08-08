@@ -215,8 +215,7 @@ async function runTrace(token, variantId) {
       scheduledSpanMs: GRID_TRACE_LIFECYCLE.lastSlotOffsetMs,
       eventCadenceMs: GRID_TRACE_LIFECYCLE.cadenceMs,
 
-      intervalBoundsMs: [
-      ],
+      intervalBoundsMs: [],
       completionBoundsAfterFirstSlotMs: [
         GRID_TRACE_LIFECYCLE.minimumCompletionAfterFirstSlotMs,
         GRID_TRACE_LIFECYCLE.maximumCompletionAfterFirstSlotMs,

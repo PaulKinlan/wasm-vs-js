@@ -365,7 +365,6 @@ Deno.test("candidate record is closed-schema, raw-hash anchored, and honestly br
   });
   for (
     const [field, value] of [
-
       ["catchUp", true],
       ["maximumCompletionAfterFirstSlotMs", 30_101],
       ["phaseSpanPolicy", "overlapping"],
