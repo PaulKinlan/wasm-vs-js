@@ -451,9 +451,9 @@ const PLAYGROUND_WORKLOADS = [
     slug: "simulation-nbody-cloth",
     title: "N-Body Particle & Cloth Simulation",
     category: "Simulation",
-    route: "/demos/simulation-nbody-cloth/",
+    route: "/benchmarks/simulation-nbody-cloth/",
     description:
-      "Simulates gravitational N-body particle dynamics and cloth spring mesh deformation.",
+      "Simulates gravitational N-body particle dynamics (full benchmark suite with performance output and multi-language comparison).",
     explanation:
       "Verlet integration, spring-damper constraint iteration, and pair-wise particle forces.",
   },

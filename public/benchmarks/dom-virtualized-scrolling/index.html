@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="description"
-      content="Virtualized DOM Scrolling benchmark measuring binary search row indexing, variable height calculations, and DOM node recycling.">
+      content="Virtualized DOM Scrolling benchmark: 1,800 scroll/viewport actions over 100,000 variable-height rows, driving a REAL virtualized DOM list — binary search row indexing, variable height calculations, and DOM node recycling, JS vs Wasm.">
     <title>Virtualized DOM Scrolling · Wasm vs JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
     <script type="module" src="/unified-runner.js"></script>
+    <script type="module" src="/iframe-benchmark-bridge.js"></script>
   </head>
-  <body data-workload="dom-virtualized-scrolling" data-demo="dom-virtualized-scrolling">
+  <body data-workload="dom-virtualized-scrolling" data-demo="dom-virtualized-scrolling"
+    data-dom-host="/dom-hosts/base-dom-virtualized-scrolling.js">
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
@@ -26,7 +28,10 @@
         <h1>Virtualized DOM List Scrolling Engine</h1>
         <p class="lede">
           Simulates 1,800 scroll position offsets and viewport resize events over 100,000 variable-height rows,
-          computing visible item index windows and DOM node recycling.
+          computing visible item index windows and DOM node recycling — and applies the trace to a
+          <strong>real virtualized DOM list</strong> (rows created, recycled and repositioned with real DOM APIs
+          in the visible iframe below). The Wasm arm runs a real compiled kernel
+          (<code>/artifacts/dom-virtualized-scrolling/dom_vscroll.wasm</code>) over linear memory.
         </p>
       </header>
 

@@ -18,6 +18,11 @@
       <strong>data v1</strong>
     </header>
     <main id="main" class="content-narrow">
+      <p class="notice">
+        <strong>This is the controlled correctness demo.</strong> For the full benchmark suite — performance
+        output, JS-vs-Wasm comparison and the C/C++/Rust/Dart multi-language section — run the
+        <a href="/benchmarks/simulation-nbody-cloth/">N-Body benchmark page</a>.
+      </p>
       <p class="eyebrow">Runnable correctness demo · simulation.nbody-cloth.v1</p>
       <h1>Direct N-body leapfrog validation</h1>
       <p><strong>No performance claim.</strong> A fresh worker advances 1,024 seeded bodies through exactly 120 direct all-pairs leapfrog timesteps. The run keeps five complete state checkpoints and checks the frozen energy envelope. It stores and uploads nothing.</p>

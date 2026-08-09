@@ -192,6 +192,14 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/dom-hosts/base-dom-todomvc-journey.js",
     "text/javascript; charset=utf-8",
   ]],
+  ["/dom-hosts/base-dom-virtualized-scrolling.js", [
+    "public/dom-hosts/base-dom-virtualized-scrolling.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/artifacts/dom-virtualized-scrolling/dom_vscroll.wasm", [
+    "public/artifacts/dom-virtualized-scrolling/dom_vscroll.wasm",
+    "application/wasm",
+  ]],
   ["/iframe-benchmark-bridge.js", [
     "public/iframe-benchmark-bridge.js",
     "text/javascript; charset=utf-8",

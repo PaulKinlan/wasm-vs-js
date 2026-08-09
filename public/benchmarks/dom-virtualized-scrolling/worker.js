@@ -1,5 +1,6 @@
 import {
   generateScrollActions,
+  instantiateVscrollWasm,
   runVirtualizedScrollingJS,
   runVirtualizedScrollingWasm,
 } from "./engine.js";
@@ -9,13 +10,18 @@ self.addEventListener("message", (event) => {
   if (!message || message.type !== "run") return;
   const { token, target } = message;
 
-  try {
+  (async () => {
     const actions = generateScrollActions();
     let result;
-    if (target === "javascript" || target === "js-controlled") {
+    if (target === "javascript") {
       result = runVirtualizedScrollingJS(actions);
+    } else if (target === "wasm") {
+      // REAL Wasm kernel: the visible-window computation runs in linear
+      // memory inside the compiled module (see dom_vscroll.c).
+      const instance = await instantiateVscrollWasm();
+      result = runVirtualizedScrollingWasm(actions, instance);
     } else {
-      result = runVirtualizedScrollingWasm(actions);
+      throw new Error(`unknown target: ${target}`);
     }
     self.postMessage({
       type: "complete",
@@ -26,11 +32,11 @@ self.addEventListener("message", (event) => {
         checkpoints: actions.length,
       },
     });
-  } catch (error) {
+  })().catch((error) => {
     self.postMessage({
       type: "error",
       token,
-      message: error instanceof Error ? error.message : "Worker error",
+      message: error instanceof Error ? error.message : String(error),
     });
-  }
+  });
 });

@@ -20,7 +20,7 @@ export const WORKLOAD_DEMO_ROUTES = {
   "numeric.fft-spectral-filter.v1": "/benchmarks/numeric-fft-spectral-filter-v1/",
   "numeric.polybench-panel.v1": "/demos/numeric.polybench-panel.v1/",
   "serialization.protobuf-gateway.v1": "/benchmarks/serialization-protobuf-gateway/",
-  "simulation.nbody-cloth.v1": "/demos/simulation-nbody-cloth/",
+  "simulation.nbody-cloth.v1": "/benchmarks/simulation-nbody-cloth/",
   "simulation.rigid-body-2d.v1": "/benchmarks/simulation-rigid-body-2d-v1/",
   "text.gc-document-edit.v1": "/demos/text.gc-document-edit.v1/",
   "text.regex-log-scan.v1": "/demos/base/text.regex-log-scan.v1/",
