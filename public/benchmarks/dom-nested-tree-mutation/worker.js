@@ -1,7 +1,8 @@
 import {
   generateNestedTreeActions,
+  instantiateNestedTreeWasm,
   runNestedTreeMutationJS,
-  runNestedTreeMutationWasm,
+  runNestedTreeMutationWasmSteps,
 } from "./engine.js";
 
 self.addEventListener("message", (event) => {
@@ -9,28 +10,28 @@ self.addEventListener("message", (event) => {
   if (!message || message.type !== "run") return;
   const { token, target } = message;
 
-  try {
+  (async () => {
     const actions = generateNestedTreeActions();
     let result;
     if (target === "javascript" || target === "js-controlled") {
       result = runNestedTreeMutationJS(actions);
+    } else if (target === "wasm") {
+      // REAL Wasm kernel (dom_nested_tree.c).
+      const instance = await instantiateNestedTreeWasm();
+      result = runNestedTreeMutationWasmSteps(actions, instance);
     } else {
-      result = runNestedTreeMutationWasm(actions);
+      throw new Error(`unknown target: ${target}`);
     }
     self.postMessage({
       type: "complete",
       token,
-      result: {
-        target,
-        ...result,
-        checkpoints: actions.length,
-      },
+      result: { target, ...result, checkpoints: actions.length },
     });
-  } catch (error) {
+  })().catch((error) => {
     self.postMessage({
       type: "error",
       token,
-      message: error instanceof Error ? error.message : "Worker error",
+      message: error instanceof Error ? error.message : String(error),
     });
-  }
+  });
 });

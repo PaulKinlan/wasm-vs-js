@@ -204,6 +204,14 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/dom-hosts/base-dom-keyed-list-mutation.js",
     "text/javascript; charset=utf-8",
   ]],
+  ["/dom-hosts/base-dom-nested-tree-mutation.js", [
+    "public/dom-hosts/base-dom-nested-tree-mutation.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/artifacts/dom-nested-tree-mutation/dom_nested_tree.wasm", [
+    "public/artifacts/dom-nested-tree-mutation/dom_nested_tree.wasm",
+    "application/wasm",
+  ]],
   ["/artifacts/dom-keyed-list-mutation/dom_keyed_list.wasm", [
     "public/artifacts/dom-keyed-list-mutation/dom_keyed_list.wasm",
     "application/wasm",
