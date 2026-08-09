@@ -1,0 +1,63 @@
+{
+  "workloadId": "dom.grid-movement.v1",
+  "kernelLabel": "Grid movement trace \u2014 128 entities \u00d7 3,600 moves (integer-only)",
+  "kernelLabels": {
+    "grid_trace": "Grid movement \u2014 128 entities, 3,600 frozen moves on a 64\u00d764 board"
+  },
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": [
+    "grid_trace"
+  ],
+  "engines": [
+    {
+      "key": "js",
+      "label": "JavaScript",
+      "kind": "js",
+      "source": "benchmarks/multilang-wasm/dom-grid-movement/grid_kernel.ts"
+    },
+    {
+      "key": "c",
+      "label": "C / Wasm",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 0,
+      "files": {
+        "grid_trace": "grid_kernel_c.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/dom-grid-movement/grid_kernel.c"
+    },
+    {
+      "key": "cpp",
+      "label": "C++ / Wasm",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 0,
+      "files": {
+        "grid_trace": "grid_kernel_cpp.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/dom-grid-movement/grid_kernel.cpp"
+    },
+    {
+      "key": "rs",
+      "label": "Rust / Wasm",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 0,
+      "files": {
+        "grid_trace": "grid_kernel_rs.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/dom-grid-movement/grid_kernel.rs"
+    },
+    {
+      "key": "asc",
+      "label": "AssemblyScript",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "grid_trace": "grid_kernel_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/dom-grid-movement/grid_kernel.ts"
+    }
+  ]
+}

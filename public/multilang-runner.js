@@ -3645,6 +3645,71 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
     },
   },
 
+  // --- dom.grid-movement.v1: grid movement compute core (mirrors
+  // benchmarks/multilang-wasm/dom-grid-movement/grid_kernel.*; the frozen
+  // 3,600-action trace is generated inside each kernel from seed 0xc001d00d) --
+  "dom.grid-movement.v1": {
+    kernels: ["grid_trace"],
+    build(mods) {
+      const RES_OFFSET = 16384;
+      const jsCallable = () => {
+        // JS reference (runGridMovementJS) — returns the oracle for sanity.
+        const directions = ["up", "down", "left", "right"];
+        let seed = 0xc001d00d >>> 0;
+        const rand = () => {
+          seed = (seed ^ (seed << 13)) >>> 0;
+          seed = (seed ^ (seed >> 17)) >>> 0;
+          seed = (seed ^ (seed << 5)) >>> 0;
+          return seed / 4294967296;
+        };
+        const entities = new Array(128).fill(null).map((_, i) => ({
+          id: i,
+          x: (i * 3) % 64,
+          y: Math.floor((i * 3) / 64),
+        }));
+        for (let i = 0; i < 3600; i++) {
+          const entityId = Math.floor(rand() * 128);
+          const dir = directions[Math.floor(rand() * 4)];
+          const e = entities[entityId];
+          let nx = e.x, ny = e.y;
+          if (dir === "up") ny = Math.max(0, e.y - 1);
+          else if (dir === "down") ny = Math.min(63, e.y + 1);
+          else if (dir === "left") nx = Math.max(0, e.x - 1);
+          else nx = Math.min(63, e.x + 1);
+          let occupied = false;
+          for (let j = 0; j < 128; j++) {
+            if (j !== e.id && entities[j].x === nx && entities[j].y === ny) {
+              occupied = true;
+              break;
+            }
+          }
+          if (!occupied) {
+            e.x = nx;
+            e.y = ny;
+          }
+        }
+        return entities.reduce((acc, e) => acc + e.x + e.y * 64, 0);
+      };
+      const callables = { js: { grid_trace: jsCallable } };
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        const inst = mods.engines[key].instances.grid_trace.instance;
+        const mem = new Int32Array(inst.exports.memory.buffer);
+        callables[key] = {
+          grid_trace: () => {
+            const sum = Number(inst.exports.grid_trace());
+            if (mem[RES_OFFSET / 4] !== 2869 || mem[RES_OFFSET / 4 + 1] !== 731) {
+              throw new Error(`grid_trace ${key} counters drifted from the frozen oracle`);
+            }
+            if (sum !== 33583) {
+              throw new Error(`grid_trace ${key} finalPosSum drifted from the frozen oracle`);
+            }
+          },
+        };
+      }
+      return callables;
+    },
+  },
+
   // --- ml-gemm: strict-f32 GEMM (mirrors benchmarks/v2/ml-gemm) -------------
   "ml.gemm.v1": {
     kernels: ["gemm"],
