@@ -155,6 +155,20 @@ function createGridDom({ container }) {
     grid.scrollTop = top;
   }
 
+  /** Reveal the mounted rows after the run so the rendered UI is inspectable
+   * (the trace's final event may leave the viewport at scrollTop 0 while the
+   * mounted rows sit at their absolute positions in the 100k-row space). */
+  function revealMounted() {
+    let minY = Infinity;
+    for (const slot of slots) {
+      if (slot && slot.isConnected) {
+        const y = parseFloat(slot.style.transform.replace("translateY(", "").replace("px)", ""));
+        if (!Number.isNaN(y) && y < minY) minY = y;
+      }
+    }
+    if (Number.isFinite(minY)) grid.scrollTop = Math.max(0, minY - 4);
+  }
+
   function verify(expectedCounters) {
     let ok = true;
     let firstBad = "";
@@ -168,7 +182,7 @@ function createGridDom({ container }) {
     return { ok, firstBad, mountedRows: grid.children.length };
   }
 
-  return { grid, applyCommands, scrollTo, verify, actual };
+  return { grid, applyCommands, scrollTo, revealMounted, verify, actual };
 }
 
 export function createTodomvcHost() {
@@ -239,7 +253,8 @@ export function createTodomvcHost() {
         const expected = completed.value.counters;
         const verified = dom.verify(expected);
         const ms = performance.now() - t0;
-        if (!keep) dom.grid.remove();
+        if (keep) dom.revealMounted();
+        else dom.grid.remove();
         return { ms, verified, domOps: dom.actual.physicalCreates + dom.actual.physicalReuses };
       };
 
