@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "purpose": "Non-served trust root for the audio demo serving graph: page and registry byte hashes, reviewed at the accepted commit.",
-  "registrySha256": "ec41d0414a3b29dd153b2209734b9bceac7c109703ca55f2d5e892f5648a9ef8",
+  "registrySha256": "f942110cf6e791b674209d6c180fc9988fce130de998c761c0606e385486d3ab",
   "pages": {
-    "audio-fft": "6dc2640b72a3664e5ca8849d4e3ac912ffac7b75602e6a1af32a77c81d53f8a7",
-    "audio-fir": "1330f01565629df8873b400057bd0a0319a4b17849e6c29baf01fdf14c2e707e",
-    "audio-stft": "560927091d13b81f9d965ce8b437982adffe6da45b0428ba9e51bf7adddb4530"
+    "audio-fft": "4ab92696d85baeb9afa42b276b8a86467e65d2f53923d85c47d5076da36073a5",
+    "audio-fir": "fd613165f347aae1ac73b0b2a8e6d053c191e8671220c13ebcbd8e2e70378358",
+    "audio-stft": "1843894766b233d4c1dc1f85de29de109c0ce71bbcd44a69ebddef960e50e8f7"
   }
 }
