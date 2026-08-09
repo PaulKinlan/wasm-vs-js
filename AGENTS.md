@@ -56,9 +56,10 @@ is not the demo. Every DOM-family benchmark MUST:
 
 - Drive a rendered UI through real DOM APIs (createElement / appendChild /
   classList / focus / canvas) via the real-DOM stage: the page carries a
-  `data-dom-host` attribute naming a module under `/dom-hosts/`, the
-  unified-runner loads `/iframe-benchmark-bridge.js`, and the frozen action
-  trace is applied to a visible iframe on the page.
+  `data-dom-host` attribute naming a module under `/dom-hosts/`, the page
+  imports `/iframe-benchmark-bridge.js` (child side) and the unified-runner
+  imports it dynamically (parent side), and the frozen action trace is
+  applied to a visible iframe on the page.
 - Keep the final rendered UI visible in the iframe after the run, pinned to
   the top of the iframe viewport — the rendered result is inspectable
   evidence, not a hidden side effect.
