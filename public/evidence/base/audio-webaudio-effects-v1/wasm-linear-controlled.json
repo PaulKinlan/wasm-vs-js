@@ -6,7 +6,7 @@
   "entryId": "audio.webaudio-effects.v1",
   "implementationId": "audio-webaudio-effects-controlled-v1",
   "target": "wasm-linear",
-  "sourceCommit": "004b86176730efb7285929e5d9bff64e0b3e562d",
+  "sourceCommit": "51eb09dc700d9237ec61e7eee849f8413589245b",
   "completeOutputSha256": "fba0623a3af7679b1e95b79c7f454c38e1ac2123de5ebf3a7a86bc43bff16550",
   "oracle": {
     "absoluteTolerance": 0.00002,
