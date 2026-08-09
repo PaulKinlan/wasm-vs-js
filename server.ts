@@ -196,6 +196,14 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/dom-hosts/base-dom-virtualized-scrolling.js",
     "text/javascript; charset=utf-8",
   ]],
+  ["/dom-hosts/base-dom-grid-movement.js", [
+    "public/dom-hosts/base-dom-grid-movement.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/artifacts/dom-grid-movement/dom_grid.wasm", [
+    "public/artifacts/dom-grid-movement/dom_grid.wasm",
+    "application/wasm",
+  ]],
   ["/artifacts/dom-virtualized-scrolling/dom_vscroll.wasm", [
     "public/artifacts/dom-virtualized-scrolling/dom_vscroll.wasm",
     "application/wasm",

@@ -1,17 +1,26 @@
-import { generateGridActions, runGridMovementJS, runGridMovementWasm } from "./engine.js";
+import {
+  generateGridActions,
+  instantiateGridWasm,
+  runGridMovementJS,
+  runGridMovementWasm,
+} from "./engine.js";
 
 self.addEventListener("message", (event) => {
   const message = event.data;
   if (!message || message.type !== "run") return;
   const { token, target } = message;
 
-  try {
+  (async () => {
     const actions = generateGridActions();
     let result;
     if (target === "javascript" || target === "js-controlled") {
       result = runGridMovementJS(actions);
+    } else if (target === "wasm") {
+      // REAL Wasm kernel: the model trace runs in linear memory (dom_grid.c).
+      const instance = await instantiateGridWasm();
+      result = runGridMovementWasm(actions, instance);
     } else {
-      result = runGridMovementWasm(actions);
+      throw new Error(`unknown target: ${target}`);
     }
     self.postMessage({
       type: "complete",
@@ -22,11 +31,11 @@ self.addEventListener("message", (event) => {
         checkpoints: actions.length,
       },
     });
-  } catch (error) {
+  })().catch((error) => {
     self.postMessage({
       type: "error",
       token,
-      message: error instanceof Error ? error.message : "Worker error",
+      message: error instanceof Error ? error.message : String(error),
     });
-  }
+  });
 });
