@@ -262,6 +262,7 @@ export function runDomTraceOnce({
   computeWindows, // () => windows[] — JS or Wasm backed, runs INSIDE the timed region
   container,
   build = buildVirtualizedList,
+  keep = false, // keep the final list in the DOM (visible inspection after the run)
 }) {
   const list = build({ container });
   const t0 = performance.now();
@@ -274,6 +275,6 @@ export function runDomTraceOnce({
   const lastWin = windows[windows.length - 1];
   const verified = list.verifyFinal(lastWin);
   const ms = performance.now() - t0;
-  list.viewport.remove();
-  return { ms, domOps, verified };
+  if (!keep) list.viewport.remove();
+  return { ms, domOps, verified, list: keep ? list : null };
 }

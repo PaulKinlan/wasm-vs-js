@@ -82,18 +82,18 @@ export function createTodomvcHost() {
 
       // One measured pass: window computation (JS or the REAL Wasm kernel) +
       // full DOM application, timed together so the comparison is honest.
-      const measuredPass = async (target) => {
+      const measuredPass = async (target, { keep = false } = {}) => {
         if (target === "wasm") {
           // The kernel executes inside the timed region: linear-memory writes
           // (prefix sums + actions) + compute_windows + reading results.
           const computeWindows = () => runVirtualizedScrollingWasm(actions, wasmInstance).windows;
-          return await runDomTraceOnce({ actions, computeWindows, container });
+          return await runDomTraceOnce({ actions, computeWindows, container, keep });
         }
         const computeWindows = () =>
           actions.map((action) =>
             computeWindowJS(prefixSums, action.scrollTop, action.viewportHeight)
           );
-        return await runDomTraceOnce({ actions, computeWindows, container });
+        return await runDomTraceOnce({ actions, computeWindows, container, keep });
       };
 
       const perTarget = {};
@@ -103,7 +103,8 @@ export function createTodomvcHost() {
         await measuredPass(target);
         const runs = [];
         for (let iteration = 1; iteration <= iterations; iteration++) {
-          const { ms, verified } = await measuredPass(target);
+          const isLast = iteration === iterations && target === targets[targets.length - 1];
+          const { ms, verified } = await measuredPass(target, { keep: isLast });
           if (!verified.ok) {
             throw new Error(
               `real-DOM verification failed (${target}): ${JSON.stringify(verified)}`,
