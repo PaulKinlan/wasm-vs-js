@@ -208,6 +208,14 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/dom-hosts/base-dom-nested-tree-mutation.js",
     "text/javascript; charset=utf-8",
   ]],
+  ["/dom-hosts/base-dom-table-sort-filter-pagination.js", [
+    "public/dom-hosts/base-dom-table-sort-filter-pagination.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/artifacts/dom-table-sort-filter-pagination/dom_table_sort.wasm", [
+    "public/artifacts/dom-table-sort-filter-pagination/dom_table_sort.wasm",
+    "application/wasm",
+  ]],
   ["/artifacts/dom-nested-tree-mutation/dom_nested_tree.wasm", [
     "public/artifacts/dom-nested-tree-mutation/dom_nested_tree.wasm",
     "application/wasm",
