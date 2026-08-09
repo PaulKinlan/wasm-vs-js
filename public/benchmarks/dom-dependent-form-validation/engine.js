@@ -357,6 +357,7 @@ export function buildFormValidateDom({ container }) {
 
 /** One full trace pass over the real DOM form. */
 export function runFormDomTraceOnce({
+  actions,
   computeSteps, // () => { steps, formState, activeErrorCount }
   container,
   keep = false,
@@ -365,7 +366,7 @@ export function runFormDomTraceOnce({
   const t0 = performance.now();
   const { steps, formState, activeErrorCount } = computeSteps();
   const ops = { n: 0 };
-  for (let i = 0; i < steps.length; i++) dom.applyStep(steps[i], "", ops);
+  for (let i = 0; i < steps.length; i++) dom.applyStep(steps[i], actions[i]?.value ?? "", ops);
   const verified = dom.verifyFinal(formState, activeErrorCount);
   const ms = performance.now() - t0;
   if (!keep) dom.form.remove();
