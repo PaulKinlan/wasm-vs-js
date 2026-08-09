@@ -216,6 +216,10 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/dom-hosts/base-dom-dependent-form-validation.js",
     "text/javascript; charset=utf-8",
   ]],
+  ["/dom-hosts/base-vdom-diff-patch.js", [
+    "public/dom-hosts/base-vdom-diff-patch.js",
+    "text/javascript; charset=utf-8",
+  ]],
   ["/artifacts/dom-dependent-form-validation/dom_form_validate.wasm", [
     "public/artifacts/dom-dependent-form-validation/dom_form_validate.wasm",
     "application/wasm",
