@@ -1,0 +1,147 @@
+==============================================================================
+WASM-VS-JS — FULL DEMO AUDIT (every benchmark driven end-to-end)
+Method: headless Chrome → every benchmark page → set iterations=1 → click
+'Start Benchmark Suite' → wait for completion → record primary perf output,
+multi-language stage, real-DOM iframe stage, UI shell, console errors.
+Target: live site https://wasm-vs-js.paulkinlan-ea.deno.net · 9 Aug 2026
+==============================================================================
+
+TOTALS (49 runnable benchmark pages)
+  ✓ Complete benchmark run:        48 of 49
+  ✓ Primary performance output:    45 of 49
+  ✓ Multi-language stage ran:      25 of 49
+  ✓ Real-DOM iframe stage ran:     2 of 11 DOM workloads
+  ✗ DOM workloads with NO real DOM: 9 of 11
+  ✗ Legacy extra stylesheets:      7 pages
+  ✗ Console errors at load:        9 pages
+
+------------------------------------------------------------------------------
+TIER 1 — FULL UNIFIED SHELL: perf output + multi-language comparison (25)
+------------------------------------------------------------------------------
+  audio-fft                          ⚡ WebAssembly is 1.16× faster than JavaScript / JavaScript / Cold Star
+  audio-fir                          ⏱️ JavaScript and WebAssembly have Equal Performance / JavaScript / Co
+  audio-stft                         ⚡ WebAssembly is 1.18× faster than JavaScript / JavaScript / Cold Star
+  base-dom-todomvc-journey           ⚡ JavaScript is 1.16× faster than WebAssembly / JavaScript / Cold Star
+  cad-mesh-repair-v1                 ⚡ (recheck: completes; perf + multilang — 20.9s run)    
+  cad-parametric-bracket             ⚡ WebAssembly is 1.55× faster than JavaScript / JavaScript / Cold Star
+  crypto-authenticated-stream        ⚡ WebAssembly is 2.14× faster than JavaScript / JavaScript / Cold Star
+  crypto.file-integrity.v1           ⚡ JavaScript is 1.37× faster than WebAssembly / JavaScript / Cold Star
+  database-olap-chart                ⚡ WebAssembly is 1.18× faster than JavaScript / JavaScript / Cold Star
+  document-pdf-viewer-v1             ⏱️ JavaScript and WebAssembly have Equal Performance / JavaScript / Co
+  game-ecs-frame-update              ⚡ WebAssembly is 1.32× faster than JavaScript / JavaScript / Cold Star
+  graphics-cpu-path-tracer-v1        ⚡ WebAssembly is 1.27× faster than JavaScript / JavaScript / Cold Star
+  image-flood-fill-demo              ⚡ WebAssembly is 1.23× faster than JavaScript / JavaScript / Cold Star
+  ml-dense-mlp                       ⚡ WebAssembly is 1.15× faster than JavaScript / JavaScript / Cold Star
+  ml-gemm                            ⚡ gemm multilang ran (JS 12.91→3.61 ms warm; C/Rust/Dart rows; custom labels)  
+  ml-numeric-kernels-v1              ⚡ JavaScript is 1.16× faster than WebAssembly / JavaScript / Cold Star
+  network.pcap-decode.v1             ⚡ WebAssembly is 1.47× faster than JavaScript / JavaScript / Cold Star
+          ⚡ JS 1.19× faster than Wasm (167.8ms vs 199.7ms cold — base/ path)  
+  numeric-fft-spectral-filter-v1     ⚡ JavaScript is 1.23× faster than WebAssembly / JavaScript / Cold Star
+  numeric.polybench-panel.v1         ⚡ JavaScript is 1.30× faster than WebAssembly / JavaScript / Cold Star
+  serialization.json-telemetry.v1    ⚡ JavaScript is 1.14× faster than WebAssembly / JavaScript / Cold Star
+  simulation-nbody-cloth             ⚡ JavaScript is 1.14× faster than WebAssembly / JavaScript / Cold Star
+  simulation-rigid-body-2d-v1        ⚡ WebAssembly is 2.45× faster than JavaScript / JavaScript / Cold Star
+  sum-u32                            ⚡ WebAssembly is 32.22× faster than JavaScript / JavaScript / Cold Sta
+  text.diff-patch.v1                 ⚡ JavaScript is 1.08× faster than WebAssembly / JavaScript / Cold Star
+
+------------------------------------------------------------------------------
+TIER 2 — PERF OUTPUT BUT NO MULTI-LANGUAGE (20)
+------------------------------------------------------------------------------
+  archive-zip-workspace-v1           ⏱️ JavaScript and WebAssembly have Equal Performance / JavaScript / Co
+  base-gltf-viewer                   ⚡ WebAssembly is 1.15× faster than JavaScript / JavaScript / Cold Star
+  dom-dependent-form-validation      ⚡ JavaScript is 1.23× faster than WebAssembly / JavaScript / Cold Star  ← DOM workload, no real DOM
+  dom-grid-movement                  ⚡ WebAssembly is 1.22× faster than JavaScript / JavaScript / Cold Star  ← DOM workload, no real DOM
+  dom-keyed-list-mutation            ⚡ JavaScript is 2.50× faster than WebAssembly / JavaScript / Cold Star  ← DOM workload, no real DOM
+  dom-nested-tree-mutation           ⚡ WebAssembly is 1.63× faster than JavaScript / JavaScript / Cold Star  ← DOM workload, no real DOM
+  dom-table-sort-filter-pagination   ⏱️ JavaScript and WebAssembly have Equal Performance / JavaScript / Co  ← DOM workload, no real DOM
+  dom-virtualized-grid-v1            ⏱️ JavaScript and WebAssembly have Equal Performance / JavaScript / Co  ← DOM workload, no real DOM
+  dom-virtualized-scrolling          ⚡ JavaScript is 1.12× faster than WebAssembly / JavaScript / Cold Star
+  game-canvas-arcade                 ⚡ JavaScript is 1.61× faster than WebAssembly / JavaScript Cold Start:
+  game-canvas-entity-pathfinding     ⚡ WebAssembly is 1.24× faster than JavaScript / JavaScript Cold Start:
+  game-dom-tactics-grid              ⚡ JavaScript is 1.25× faster than WebAssembly / JavaScript / Cold Star  ← DOM workload, no real DOM
+  image-editing-demo                 ⚡ WebAssembly is 2.65× faster than JavaScript / JavaScript / Cold Star
+  ml-keyword-spotting-v1             ⚡ WebAssembly is 1.48× faster than JavaScript / JavaScript / Cold Star
+  regex-automata-duel-demo           ⚡ WebAssembly is 1.74× faster than JavaScript / JavaScript / Cold Star
+  server.ssr-template.v1             ⚡ JavaScript is 1.06× faster than WebAssembly / JavaScript / Cold Star
+  text.gc-document-edit.v1           ⚡ WebAssembly is 2.04× faster than JavaScript / JavaScript / Cold Star  ← DOM workload, no real DOM
+  text.markdown-cms.v1               ⏱️ JavaScript and WebAssembly have Equal Performance / JavaScript / Co
+  tooling-c-to-wasm-compile-v1       ⏱️ JavaScript and WebAssembly have Equal Performance / JavaScript / Co
+  vdom-diff-patch-demo               ⚡ JavaScript is 2.94× faster than WebAssembly / JavaScript / Cold Star  ← DOM workload, no real DOM
+
+------------------------------------------------------------------------------
+TIER 3 — COMPLETES BUT NON-STANDARD REPORTING (3)
+------------------------------------------------------------------------------
+  database-sqlite-notebook-v1     correctness run completes; results shown in the notebook panel, no perf-reporting section
+  serialization-protobuf-gateway   correctness-only by design ("no performance claim")
+  base/audio-webaudio-effects-v1   legacy runner, correctness-only ("matched the committed oracle"), no perf display
+
+------------------------------------------------------------------------------
+DOM WORKLOADS — the critical finding
+------------------------------------------------------------------------------
+Only 2 of 11 DOM workloads drive a real rendered UI in an iframe:
+  ✓ base-dom-todomvc-journey    (real-DOM iframe stage, JS+Wasm+C/C++/Rust/Dart)
+  ✓ dom-virtualized-scrolling   (real-DOM iframe stage, JS+Wasm — fixed today)
+The other 9 compute DOM *math* but never touch the DOM (their engines contain
+no createElement/appendChild/canvas/document usage) and have no iframe stage:
+  ✗ dom-dependent-form-validation
+  ✗ dom-grid-movement
+  ✗ dom-keyed-list-mutation
+  ✗ dom-nested-tree-mutation
+  ✗ dom-table-sort-filter-pagination
+  ✗ dom-virtualized-grid-v1
+  ✗ game-dom-tactics-grid
+  ✗ text.gc-document-edit.v1
+  ✗ vdom-diff-patch-demo
+
+------------------------------------------------------------------------------
+UI CONSISTENCY
+------------------------------------------------------------------------------
+Legacy extra stylesheets (7): database-sqlite-notebook-v1(['/benchmarks/traditional-demo.css']), document-pdf-viewer-v1(['/benchmarks/traditional-demo.css']), game-canvas-arcade(['/benchmarks/game-family/styles.css']), game-canvas-entity-pathfinding(['/benchmarks/game-family/styles.css']), image-flood-fill-demo(['/benchmarks/traditional-demo.css']), regex-automata-duel-demo(['/benchmarks/traditional-demo.css']), vdom-diff-patch-demo(['/benchmarks/traditional-demo.css'])
+Console errors at load (9): base-gltf-viewer, crypto.file-integrity.v1, network.pcap-decode.v1, numeric.polybench-panel.v1, serialization.json-telemetry.v1, simulation-rigid-body-2d-v1, text.diff-patch.v1, text.gc-document-edit.v1, text.markdown-cms.v1
+  (all are legacy demo-script TypeErrors — e.g. base-gltf-viewer demo.js
+   getContext on null — pre-existing, not caught by the gate smoke test)
+
+PERFORMANCE HEADLINES (JS vs Wasm warm-median, 1-iteration audit config)
+------------------------------------------------------------------------------
+  audio-fft                          ⚡ WebAssembly is 1.16× faster than JavaScript / JavaScript / Cold Start: 508.41 ms / Warm Median: 508.41 ms / WebAssembly / Cold Start: 438.39 ms / Warm Median: 438.39 ms
+  audio-fir                          ⏱️ JavaScript and WebAssembly have Equal Performance / JavaScript / Cold Start: 521.59 ms / Warm Median: 521.59 ms / WebAssembly / Cold Start: 506.42 ms / Warm Median: 506.42 ms
+  audio-stft                         ⚡ WebAssembly is 1.18× faster than JavaScript / JavaScript / Cold Start: 964.78 ms / Warm Median: 964.78 ms / WebAssembly / Cold Start: 816.19 ms / Warm Median: 816.19 ms
+  base-dom-todomvc-journey           ⚡ JavaScript is 1.16× faster than WebAssembly / JavaScript / Cold Start: 409.89 ms / Warm Median: 409.89 ms / WebAssembly / Cold Start: 476.70 ms / Warm Median: 476.70 ms
+  cad-parametric-bracket             ⚡ WebAssembly is 1.55× faster than JavaScript / JavaScript / Cold Start: 267.07 ms / Warm Median: 267.07 ms / WebAssembly / Cold Start: 171.95 ms / Warm Median: 171.95 ms
+  crypto-authenticated-stream        ⚡ WebAssembly is 2.14× faster than JavaScript / JavaScript / Cold Start: 249.53 ms / Warm Median: 249.53 ms / WebAssembly / Cold Start: 116.40 ms / Warm Median: 116.40 ms
+  crypto.file-integrity.v1           ⚡ JavaScript is 1.37× faster than WebAssembly / JavaScript / Cold Start: 169.13 ms / Warm Median: 169.13 ms / WebAssembly / Cold Start: 231.80 ms / Warm Median: 231.80 ms
+  database-olap-chart                ⚡ WebAssembly is 1.18× faster than JavaScript / JavaScript / Cold Start: 478.38 ms / Warm Median: 478.38 ms / WebAssembly / Cold Start: 405.54 ms / Warm Median: 405.54 ms
+  document-pdf-viewer-v1             ⏱️ JavaScript and WebAssembly have Equal Performance / JavaScript / Cold Start: 245.24 ms / Warm Median: 245.24 ms / WebAssembly / Cold Start: 247.62 ms / Warm Median: 247.62 ms
+  game-ecs-frame-update              ⚡ WebAssembly is 1.32× faster than JavaScript / JavaScript / Cold Start: 636.43 ms / Warm Median: 636.43 ms / WebAssembly / Cold Start: 482.97 ms / Warm Median: 482.97 ms
+  graphics-cpu-path-tracer-v1        ⚡ WebAssembly is 1.27× faster than JavaScript / JavaScript / Cold Start: 240.31 ms / Warm Median: 240.31 ms / WebAssembly / Cold Start: 189.88 ms / Warm Median: 189.88 ms
+  image-flood-fill-demo              ⚡ WebAssembly is 1.23× faster than JavaScript / JavaScript / Cold Start: 240.63 ms / Warm Median: 240.63 ms / WebAssembly / Cold Start: 195.98 ms / Warm Median: 195.98 ms
+  ml-dense-mlp                       ⚡ WebAssembly is 1.15× faster than JavaScript / JavaScript / Cold Start: 738.34 ms / Warm Median: 738.34 ms / WebAssembly / Cold Start: 640.09 ms / Warm Median: 640.09 ms
+  ml-numeric-kernels-v1              ⚡ JavaScript is 1.16× faster than WebAssembly / JavaScript / Cold Start: 145.52 ms / Warm Median: 145.52 ms / WebAssembly / Cold Start: 169.53 ms / Warm Median: 169.53 ms
+  network.pcap-decode.v1             ⚡ WebAssembly is 1.47× faster than JavaScript / JavaScript / Cold Start: 213.47 ms / Warm Median: 213.47 ms / WebAssembly / Cold Start: 145.16 ms / Warm Median: 145.16 ms
+  numeric-fft-spectral-filter-v1     ⚡ JavaScript is 1.23× faster than WebAssembly / JavaScript / Cold Start: 374.95 ms / Warm Median: 374.95 ms / WebAssembly / Cold Start: 460.84 ms / Warm Median: 460.84 ms
+  numeric.polybench-panel.v1         ⚡ JavaScript is 1.30× faster than WebAssembly / JavaScript / Cold Start: 304.48 ms / Warm Median: 304.48 ms / WebAssembly / Cold Start: 393.80 ms / Warm Median: 393.80 ms
+  serialization.json-telemetry.v1    ⚡ JavaScript is 1.14× faster than WebAssembly / JavaScript / Cold Start: 179.18 ms / Warm Median: 179.18 ms / WebAssembly / Cold Start: 204.44 ms / Warm Median: 204.44 ms
+  simulation-nbody-cloth             ⚡ JavaScript is 1.14× faster than WebAssembly / JavaScript / Cold Start: 576.60 ms / Warm Median: 576.60 ms / WebAssembly / Cold Start: 654.23 ms / Warm Median: 654.23 ms
+  simulation-rigid-body-2d-v1        ⚡ WebAssembly is 2.45× faster than JavaScript / JavaScript / Cold Start: 8463.11 ms / Warm Median: 8463.11 ms / WebAssembly / Cold Start: 3459.50 ms / Warm Median: 3459.50 ms
+  sum-u32                            ⚡ WebAssembly is 32.22× faster than JavaScript / JavaScript / Cold Start: 0.95 ms / Warm Median: 437.44 ms / WebAssembly / Cold Start: 0.10 ms / Warm Median: 13.58 ms
+  text.diff-patch.v1                 ⚡ JavaScript is 1.08× faster than WebAssembly / JavaScript / Cold Start: 94.59 ms / Warm Median: 94.59 ms / WebAssembly / Cold Start: 101.30 ms / Warm Median: 101.30 ms
+  archive-zip-workspace-v1           ⏱️ JavaScript and WebAssembly have Equal Performance / JavaScript / Cold Start: 271.89 ms / Warm Median: 271.89 ms / WebAssembly / Cold Start: 268.88 ms / Warm Median: 268.88 ms
+  base-gltf-viewer                   ⚡ WebAssembly is 1.15× faster than JavaScript / JavaScript / Cold Start: 524.03 ms / Warm Median: 524.03 ms / WebAssembly / Cold Start: 455.24 ms / Warm Median: 455.24 ms
+  dom-dependent-form-validation      ⚡ JavaScript is 1.23× faster than WebAssembly / JavaScript / Cold Start: 106.74 ms / Warm Median: 106.74 ms / WebAssembly / Cold Start: 132.17 ms / Warm Median: 132.17 ms
+  dom-grid-movement                  ⚡ WebAssembly is 1.22× faster than JavaScript / JavaScript / Cold Start: 85.65 ms / Warm Median: 85.65 ms / WebAssembly / Cold Start: 70.32 ms / Warm Median: 70.32 ms
+  dom-keyed-list-mutation            ⚡ JavaScript is 2.50× faster than WebAssembly / JavaScript / Cold Start: 62.83 ms / Warm Median: 62.83 ms / WebAssembly / Cold Start: 157.64 ms / Warm Median: 157.64 ms
+  dom-nested-tree-mutation           ⚡ WebAssembly is 1.63× faster than JavaScript / JavaScript / Cold Start: 114.32 ms / Warm Median: 114.32 ms / WebAssembly / Cold Start: 70.05 ms / Warm Median: 70.05 ms
+  dom-table-sort-filter-pagination   ⏱️ JavaScript and WebAssembly have Equal Performance / JavaScript / Cold Start: 100.01 ms / Warm Median: 100.01 ms / WebAssembly / Cold Start: 97.41 ms / Warm Median: 97.41 ms
+  dom-virtualized-grid-v1            ⏱️ JavaScript and WebAssembly have Equal Performance / JavaScript / Cold Start: 30381.13 ms / Warm Median: 30381.13 ms / WebAssembly / Cold Start: 31337.75 ms / Warm Median: 31337.75 ms
+  dom-virtualized-scrolling          ⚡ JavaScript is 1.12× faster than WebAssembly / JavaScript / Cold Start: 125.49 ms / Warm Median: 125.49 ms / WebAssembly / Cold Start: 140.67 ms / Warm Median: 140.67 ms
+  game-canvas-arcade                 ⚡ JavaScript is 1.61× faster than WebAssembly / JavaScript Cold Start: 134.94 ms / Warm Median: 134.94 ms / WebAssembly Cold Start: 218.22 ms / Warm Median: 218.22 ms
+  game-canvas-entity-pathfinding     ⚡ WebAssembly is 1.24× faster than JavaScript / JavaScript Cold Start: 300.86 ms / Warm Median: 300.86 ms / WebAssembly Cold Start: 243.27 ms / Warm Median: 243.27 ms
+  game-dom-tactics-grid              ⚡ JavaScript is 1.25× faster than WebAssembly / JavaScript / Cold Start: 181.83 ms / Warm Median: 181.83 ms / WebAssembly / Cold Start: 226.27 ms / Warm Median: 226.27 ms
+  image-editing-demo                 ⚡ WebAssembly is 2.65× faster than JavaScript / JavaScript / Cold Start: 1020.60 ms / Warm Median: 1020.60 ms / WebAssembly / Cold Start: 384.57 ms / Warm Median: 384.57 ms
+  ml-keyword-spotting-v1             ⚡ WebAssembly is 1.48× faster than JavaScript / JavaScript / Cold Start: 1417.02 ms / Warm Median: 1417.02 ms / WebAssembly / Cold Start: 958.04 ms / Warm Median: 958.04 ms
+  regex-automata-duel-demo           ⚡ WebAssembly is 1.74× faster than JavaScript / JavaScript / Cold Start: 1423.45 ms / Warm Median: 1423.45 ms / WebAssembly / Cold Start: 819.00 ms / Warm Median: 819.00 ms
+  server.ssr-template.v1             ⚡ JavaScript is 1.06× faster than WebAssembly / JavaScript / Cold Start: 1040.39 ms / Warm Median: 1040.39 ms / WebAssembly / Cold Start: 1112.33 ms / Warm Median: 1112.33 ms
+  text.gc-document-edit.v1           ⚡ WebAssembly is 2.04× faster than JavaScript / JavaScript / Cold Start: 2328.61 ms / Warm Median: 2328.61 ms / WebAssembly / Cold Start: 1140.23 ms / Warm Median: 1140.23 ms
+  text.markdown-cms.v1               ⏱️ JavaScript and WebAssembly have Equal Performance / JavaScript / Cold Start: 113.88 ms / Warm Median: 113.88 ms / WebAssembly / Cold Start: 110.18 ms / Warm Median: 110.18 ms
+  tooling-c-to-wasm-compile-v1       ⏱️ JavaScript and WebAssembly have Equal Performance / JavaScript / Cold Start: 155.24 ms / Warm Median: 155.24 ms / WebAssembly / Cold Start: 153.55 ms / Warm Median: 153.55 ms
+  vdom-diff-patch-demo               ⚡ JavaScript is 2.94× faster than WebAssembly / JavaScript / Cold Start: 216.48 ms / Warm Median: 216.48 ms / WebAssembly / Cold Start: 637.62 ms / Warm Median: 637.62 ms
