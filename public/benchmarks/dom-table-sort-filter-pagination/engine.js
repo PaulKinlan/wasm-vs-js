@@ -373,7 +373,6 @@ export function buildTableSortDom({ container, rows }) {
   container.append(table);
 
   const byId = new Map(rows.map((r) => [r.id, r]));
-  let currentIds = [];
 
   function renderRow(id) {
     const r = byId.get(id);
@@ -391,7 +390,6 @@ export function buildTableSortDom({ container, rows }) {
   }
 
   function rebuild(ids) {
-    currentIds = ids;
     tbody.replaceChildren(...ids.map(renderRow));
   }
 
@@ -410,7 +408,7 @@ export function buildTableSortDom({ container, rows }) {
     domOpsRef.n += ids ? ids.length : 0;
   }
 
-  function verifyFinal(finalIds, expectedRows) {
+  function verifyFinal(finalIds) {
     const rendered = [...tbody.querySelectorAll("tr[data-wvj-table-row]")].map((tr) => ({
       id: Number(tr.dataset.id),
       cells: [...tr.children].map((td) => td.textContent),
@@ -439,7 +437,6 @@ export function buildTableSortDom({ container, rows }) {
 
 /** One full trace pass over the real DOM table. */
 export function runTableSortDomTraceOnce({
-  actions,
   computeSteps, // () => { steps, slices, rows, finalIds }
   container,
   keep = false,
@@ -453,7 +450,7 @@ export function runTableSortDomTraceOnce({
   const t0 = performance.now();
   const ops = { n: 0 };
   for (let i = 0; i < steps.length; i++) dom.applyStep(steps[i], slices, i, ops);
-  const verified = dom.verifyFinal(finalIds, rows);
+  const verified = dom.verifyFinal(finalIds);
   const ms = performance.now() - t0;
   if (!keep) dom.table.remove();
   return { ms, domOps: ops.n, verified, table: keep ? dom.table : null, rows: finalIds.length };

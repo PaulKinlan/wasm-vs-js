@@ -170,7 +170,7 @@ export async function instantiateFormValidateWasm() {
   return instance;
 }
 
-function packFormAction(action, index) {
+function packFormAction(action) {
   const f = FV_FIELDS.indexOf(action.field);
   const len = action.value.length;
   return (f & 0xff) | (((action.type === "input" ? 0 : 1) & 0xff) << 8) | ((len & 0xff) << 16);
@@ -182,7 +182,7 @@ export function runFormValidationWasmSteps(actions, instance) {
   const mem32 = new Int32Array(instance.exports.memory.buffer);
   const actView = new Uint32Array(mem8.buffer, FV_ACT_B, actions.length);
   for (let i = 0; i < actions.length; i++) {
-    actView[i] = packFormAction(actions[i], i);
+    actView[i] = packFormAction(actions[i]);
     const val = actions[i].value;
     for (let j = 0; j < val.length; j++) mem8[FV_VAL_B + i * 32 + j] = val.charCodeAt(j);
     mem8[FV_VAL_B + i * 32 + val.length] = 0;
@@ -357,7 +357,6 @@ export function buildFormValidateDom({ container }) {
 
 /** One full trace pass over the real DOM form. */
 export function runFormDomTraceOnce({
-  actions,
   computeSteps, // () => { steps, formState, activeErrorCount }
   container,
   keep = false,
@@ -366,7 +365,7 @@ export function runFormDomTraceOnce({
   const t0 = performance.now();
   const { steps, formState, activeErrorCount } = computeSteps();
   const ops = { n: 0 };
-  for (let i = 0; i < steps.length; i++) dom.applyStep(steps[i], actions[i]?.value ?? "", ops);
+  for (let i = 0; i < steps.length; i++) dom.applyStep(steps[i], "", ops);
   const verified = dom.verifyFinal(formState, activeErrorCount);
   const ms = performance.now() - t0;
   if (!keep) dom.form.remove();

@@ -259,7 +259,6 @@ export function buildGridDom({ container, entityCount = GRID_ENTITIES, cellSize 
  * region (JS or Wasm) and returns { steps, entities } — steps drive the DOM
  * moves, entities verify the final state. */
 export function runGridDomTraceOnce({
-  actions,
   computeSteps, // () => { steps: [{entityId,x,y}], entities: [{x,y}] }
   container,
   build = buildGridDom,

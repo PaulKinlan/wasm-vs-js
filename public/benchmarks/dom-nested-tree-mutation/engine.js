@@ -180,7 +180,7 @@ const ntOpsValue = {
   replace_node: 4,
 };
 
-function packNestedTreeAction(action, index) {
+function packNestedTreeAction(action) {
   const id = action.id;
   const target = action.targetNodeId;
   const parent = action.parentTargetId;
@@ -200,7 +200,7 @@ export function runNestedTreeMutationWasmSteps(actions, instance) {
     mem[NT_NODES_B / 4 + i * 3 + 2] = 0;
   }
   const actView = new Uint32Array(mem.buffer, NT_ACT_B, actions.length);
-  for (let i = 0; i < actions.length; i++) actView[i] = packNestedTreeAction(actions[i], i);
+  for (let i = 0; i < actions.length; i++) actView[i] = packNestedTreeAction(actions[i]);
   const stepCount = instance.exports.run_trace(
     NT_NODES_B,
     NT_ACT_B,
@@ -356,7 +356,6 @@ export function buildNestedTreeDom({ container }) {
   root.style.color = "#d8e2f2";
 
   const byId = new Map();
-  const nodeEls = new Map(); // id -> { li, ul }
 
   function makeLi(id) {
     const li = document.createElement("li");
@@ -377,7 +376,7 @@ export function buildNestedTreeDom({ container }) {
     const parentId = id === 0 ? -1 : Math.floor((id - 1) / 3);
     byId.set(id, { id, parentId, attrVer: 0, replaced: false, ...makeLi(id) });
   }
-  for (const [id, node] of byId) {
+  for (const [, node] of byId) {
     if (node.parentId === -1) {
       root.append(node.li);
     } else {
@@ -473,7 +472,6 @@ export function buildNestedTreeDom({ container }) {
 
 /** One full trace pass over the real DOM tree. */
 export function runNestedTreeDomTraceOnce({
-  actions,
   computeSteps, // () => { steps, nodes }
   container,
   keep = false,

@@ -391,7 +391,6 @@ export function buildKeyedListDom({ container }) {
 
 /** One full trace pass over the real DOM. */
 export function runKeyedListDomTraceOnce({
-  actions,
   computeSteps, // () => { steps, items }
   container,
   keep = false,
