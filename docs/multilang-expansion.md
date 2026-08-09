@@ -44,12 +44,32 @@ one exists).
 
 ### Documented exclusions (DOM / platform / library-bound)
 
+DOM workloads (real-DOM stage is their language comparison — see the 2026-08-09
+audit sweep, all 11 DOM pages drive a rendered UI in a visible iframe):
 todomvc-journey, dom-virtualized-grid, dom-grid-movement, dom-keyed-list-mutation,
 dom-nested-tree-mutation, dom-table-sort-filter-pagination, dom-dependent-form-validation,
-dom-virtualized-scrolling, graphics-gltf-viewer, document-pdf-viewer,
-database-sqlite-notebook, ml-keyword-spotting (model-bound), server-ssr-template,
-audio-webaudio-effects (API-bound), media/opus/zstd/quantized-inference (vendored engines),
-tooling-c-to-wasm-compile (meta).
+dom-virtualized-scrolling, game-dom-tactics-grid, text.gc-document-edit.v1,
+vdom-diff-patch-demo.
+
+Platform/API-bound: graphics-gltf-viewer, database-sqlite-notebook (vendored SQL engine),
+network-http2-quic-state (browser network APIs), audio-webaudio-effects (Web Audio API),
+game-canvas-arcade + game-canvas-entity-pathfinding (canvas-rendering game loops),
+ml-keyword-spotting (model-bound), server-ssr-template (SSR pipeline).
+
+Vendored/library-bound: archive-zip-workspace-v1 (zip engine), media/opus/zstd/
+quantized-inference (vendored engines), serialization-protobuf-gateway (protobuf lib),
+text.markdown-cms.v1 (markdown parser lib).
+
+Meta / special: tooling-c-to-wasm-compile (meta — compiles C in-browser),
+regex-automata-duel-demo (duel between JS automata and native RegExp; the regex
+multilang lane lives in text-regex-log-scan), image-editing-demo (frozen
+reduced-fixture page — contract test pins "no timing evidence or comparative
+performance claim"; the image-editing/flood-fill kernels run multilang on the
+image-flood-fill-demo page), track-b (non-benchmark track index).
+
+Every excluded page above either ships the real-DOM stage (its languages are
+compared there) or is platform/library/meta-bound. No silent omissions: the
+2026-08-09 audit list maps 1:1 to the kernel-capable rows + this exclusion list.
 
 ## Architecture (shared machinery — build once, reuse per workload)
 

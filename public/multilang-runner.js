@@ -4679,7 +4679,10 @@ function renderTables(container, manifest, resultsByKernel, iterations) {
         </table>
       </div>`;
   });
-  container.innerHTML = tables.join("") +
+  const heading = container.querySelector("h2, h3")
+    ? ""
+    : `<h3 class="multilang-heading">Multi-language comparison</h3>`;
+  container.innerHTML = heading + tables.join("") +
     `<p class="notice">All timings are measured in this browser tab for this session. They are
       exploratory and depend on engine, device, and load. Per-variant arithmetic semantics are
       disclosed in the report.</p>`;
