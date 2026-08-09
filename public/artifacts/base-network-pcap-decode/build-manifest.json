@@ -4,7 +4,7 @@
   "supplementalContract": "benchmarks/base/network-pcap-decode/implementation-contract.v1.json",
   "catalogMutation": false,
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "6099a2a4ef98cfef9f7e6e0b31b904857f62057f",
+  "sourceCommit": "09c7a29368a2d0d30a628f95c78cd65788f61bff",
   "sourceSha256": "61429c4258deae7eb968e9aa3990ca7653fce0b2e8f3b3370c908879389f9147",
   "variants": [
     "js-controlled",
