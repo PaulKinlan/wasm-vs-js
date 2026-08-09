@@ -257,7 +257,7 @@ export function buildVirtualizedList({ container, rowCount = VSCROLL_ROW_COUNT }
 }
 
 /** One full trace pass over the real DOM. Returns timing + verification. */
-export async function runDomTraceOnce({
+export function runDomTraceOnce({
   actions,
   computeWindows, // () => windows[] — JS or Wasm backed, runs INSIDE the timed region
   container,
