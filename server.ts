@@ -200,6 +200,14 @@ const routes = new Map<string, [string, string, boolean?]>([
     "public/dom-hosts/base-dom-grid-movement.js",
     "text/javascript; charset=utf-8",
   ]],
+  ["/dom-hosts/base-dom-keyed-list-mutation.js", [
+    "public/dom-hosts/base-dom-keyed-list-mutation.js",
+    "text/javascript; charset=utf-8",
+  ]],
+  ["/artifacts/dom-keyed-list-mutation/dom_keyed_list.wasm", [
+    "public/artifacts/dom-keyed-list-mutation/dom_keyed_list.wasm",
+    "application/wasm",
+  ]],
   ["/artifacts/dom-grid-movement/dom_grid.wasm", [
     "public/artifacts/dom-grid-movement/dom_grid.wasm",
     "application/wasm",

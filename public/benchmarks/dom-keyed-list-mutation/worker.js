@@ -1,7 +1,8 @@
 import {
   generateKeyedListActions,
+  instantiateKeyedListWasm,
   runKeyedListMutationJS,
-  runKeyedListMutationWasm,
+  runKeyedListMutationWasmSteps,
 } from "./engine.js";
 
 self.addEventListener("message", (event) => {
@@ -9,13 +10,17 @@ self.addEventListener("message", (event) => {
   if (!message || message.type !== "run") return;
   const { token, target } = message;
 
-  try {
+  (async () => {
     const actions = generateKeyedListActions();
     let result;
     if (target === "javascript" || target === "js-controlled") {
       result = runKeyedListMutationJS(actions);
+    } else if (target === "wasm") {
+      // REAL Wasm kernel (dom_keyed_list.c) — totals identical to the JS model.
+      const instance = await instantiateKeyedListWasm();
+      result = runKeyedListMutationWasmSteps(actions, instance);
     } else {
-      result = runKeyedListMutationWasm(actions);
+      throw new Error(`unknown target: ${target}`);
     }
     self.postMessage({
       type: "complete",
@@ -26,11 +31,11 @@ self.addEventListener("message", (event) => {
         checkpoints: actions.length,
       },
     });
-  } catch (error) {
+  })().catch((error) => {
     self.postMessage({
       type: "error",
       token,
-      message: error instanceof Error ? error.message : "Worker error",
+      message: error instanceof Error ? error.message : String(error),
     });
-  }
+  });
 });
