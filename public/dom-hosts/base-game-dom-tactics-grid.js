@@ -171,7 +171,7 @@ export function createTodomvcHost() {
 
       const wasmExports = targets.includes("wasm") ? await fetchWasm() : null;
 
-      const measuredPass = async (target, { keep = false } = {}) => {
+      const measuredPass = (target, { keep = false } = {}) => {
         const dom = buildTacticsGridDom({ container });
         const t0 = performance.now();
         const result = target === "wasm"
