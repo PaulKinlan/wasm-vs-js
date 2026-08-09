@@ -209,7 +209,7 @@ export function createTodomvcHost() {
         ? await instantiateGridWasm(await fetchBytes(WASM_URL))
         : null;
 
-      const measuredPass = async (target, { keep = false } = {}) => {
+      const measuredPass = (target, { keep = false } = {}) => {
         const dom = createGridDom({ container });
         const t0 = performance.now();
         const execution = target === "wasm"
