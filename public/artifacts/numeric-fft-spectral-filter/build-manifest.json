@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "09c7a29368a2d0d30a628f95c78cd65788f61bff",
-  "sourceSha256": "679e82181141e070019544c226d64ec4b5ce5e34d9d0421520f51835ee3d2238",
+  "sourceCommit": "1708756130f50b73590e2c58c39359a5a2689422",
+  "sourceSha256": "91f40fa02ab2a53d02126cf8f7bf470526bf61a6fc554122724c37f752054200",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 93071,
-      "sha256": "ca1408586be066fa4ce5b1ef1cd14c76657061d14bd4c06da24bfefb290c86c1"
+      "bytes": 93218,
+      "sha256": "c18018b1b147805863800aa7c33a4fb719156b5091197a13c93ca548ea5430c7"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "f573e629c4a76c4e454dea2540d5ef02ef2eeb2e441a21ffbf41136d03ed0b6d"
+      "sha256": "28f581f41c48c7485f27d34fbdb1e0a33737b5e482fc675a9ba8a8a03f4c6fb5"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "9872d14112364ac79ed37aeed1a40ff9ff44b560d476ded60ec535134a22009c"
+      "sha256": "ed2f79a8712bf28f38416c41a5d9b5b3fc2b9b41dcc2ef30d5db37d3f4a8d0d3"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=09c7a29368a2d0d30a628f95c78cd65788f61bff"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=1708756130f50b73590e2c58c39359a5a2689422"
   }
 }
