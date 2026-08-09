@@ -9,10 +9,8 @@
     <title>Image Gaussian Blur Pipeline · Wasm vs JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
     <script type="module" src="/unified-runner.js"></script>
-    <script type="module" src="/multilang-runner.js"></script>
   </head>
-  <body data-workload="image-editing-demo" data-demo="image-editing-demo"
-    data-multilang-manifest="/benchmarks/multilang-wasm/image-editing.manifest.json">
+  <body data-workload="image-editing-demo">
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
@@ -31,14 +29,11 @@
       </header>
 
       <p class="notice">
-          <strong>Fixed work:</strong> 40 × 30 pixel buffer convolution with separable Gaussian kernel and a
-          64 × 48 flood fill. Both engines calculate exact output pixel byte arrays and verify alpha-channel
-          preservation. Reduced fixture for image.editing-pipeline.v1. The multi-language section compares
-          C, C++, Rust, AssemblyScript and Dart Wasm kernels on the same pipeline.
-        </p>
+        <strong>Fixed work:</strong> 40 × 30 pixel buffer convolution with separable Gaussian kernel. Both engines calculate exact output pixel byte arrays and verify alpha-channel preservation. Reduced fixture for image.editing-pipeline.v1 with no timing evidence or comparative performance claim.
+      </p>
 
       <section class="demo-panel" aria-labelledby="run-heading">
-        <h2 id="run-heading">Run Benchmark Suite</h2>
+        <h2 id="run-heading">Run in a fresh module worker</h2>
         <form id="demo-form">
           <div class="controls">
             <label for="target">
