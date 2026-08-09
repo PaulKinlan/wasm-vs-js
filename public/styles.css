@@ -1279,3 +1279,133 @@ html.js .js-only[hidden] {
   border: 1px solid #f0c8c0;
   border-radius: 0.25rem;
 }
+
+/* ── Benchmark demo shell (consolidated from traditional-demo.css so every
+   demo page shares the same shell styling via /styles.css alone) ─────────── */
+.lede {
+  max-width: 72ch;
+  margin-block: 1.5rem 0;
+  color: var(--muted);
+  font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+}
+
+.demo-panel,
+.detail-grid > section {
+  border: 1px solid var(--rule);
+  background: var(--raised);
+}
+
+.demo-panel {
+  padding: clamp(1.2rem, 4vw, 2rem);
+  box-shadow: 0.35rem 0.35rem 0 var(--rule);
+  margin-block: 1rem 0;
+}
+
+.demo-panel .controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.8rem;
+}
+
+.demo-panel label {
+  display: grid;
+  flex: 1 1 22rem;
+  gap: 0.35rem;
+}
+
+.demo-panel select,
+.demo-panel button {
+  font: inherit;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--page);
+  color: var(--ink);
+}
+
+.demo-panel button {
+  background: var(--accent);
+  color: var(--page);
+  border-color: var(--accent);
+  cursor: pointer;
+}
+
+.demo-panel button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.demo-panel #status {
+  min-height: 1.5em;
+  margin-block: 0.75rem 0;
+  color: var(--muted);
+}
+
+.perf-reporting {
+  margin-top: 1.25rem;
+}
+
+.perf-reporting .detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.perf-bar-group {
+  margin-bottom: 1.25rem;
+}
+
+.perf-bar-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.35rem;
+  font-size: 0.92rem;
+}
+
+.perf-bar-track {
+  height: 0.6rem;
+  border-radius: 3px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.perf-bar {
+  height: 100%;
+  background: var(--accent);
+}
+
+.perf-graph-card {
+  margin: 1.5rem 0;
+  padding: 1.25rem;
+  border: 1px solid var(--rule);
+  background: var(--raised);
+}
+
+.perf-title {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.95rem;
+}
+
+.results-table th,
+.results-table td {
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--rule);
+  text-align: left;
+}
+
+.results-table th {
+  background: var(--surface);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
