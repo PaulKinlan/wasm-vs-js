@@ -146,7 +146,7 @@ export function createTodomvcHost() {
         const runs = [];
         for (let iteration = 1; iteration <= iterations; iteration++) {
           const isLast = iteration === iterations && target === targets[targets.length - 1];
-          const { ms, verified, domOps } = await measuredPass(target, { keep: isLast });
+          const { ms, verified } = await measuredPass(target, { keep: isLast });
           if (!verified.ok) {
             throw new Error(`real-DOM verification failed (${target}): ${verified.firstBad}`);
           }
