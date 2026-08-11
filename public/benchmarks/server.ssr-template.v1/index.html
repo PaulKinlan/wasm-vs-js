@@ -7,8 +7,10 @@
     <link rel="stylesheet" href="/styles.css">
     <script type="module" src="/unified-runner.js"></script>
     <script type="module" src="/base-server-ssr-demo.js"></script>
+    <script type="module" src="/multilang-runner.js"></script>
   </head>
   <body data-workload="server-ssr-template-v1" data-libcmp="true"
+    data-multilang-manifest="/benchmarks/multilang-wasm/server-ssr-template-v1.manifest.json"
     data-libcmp-engines='[{"key": "js", "label": "JavaScript engine", "source": "/benchmarks/v1/server-ssr-template/workload.js"}, {"key": "wasm", "label": "WebAssembly engine", "source": "/benchmarks/v1/server-ssr-template/server-ssr-template.c"}]'>
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">

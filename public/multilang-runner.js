@@ -5522,6 +5522,119 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
       return callables;
     },
   },
+
+  // --- server.ssr-template.v1: 1,000-record catalog SSR renderer (mirrors
+  //     benchmarks/multilang-wasm/server-ssr-template/server_ssr_kernel.*;
+  //     adapter fetches the frozen 91,442-byte server-ssr-template-v1-multilang/
+  //     fixture.bin, copies it into each engine's linear memory at
+  //     FIXTURE_OFFSET, and each kernel parses + renders every response body
+  //     bit-identical to renderJavaScript() in benchmarks/v1/server-ssr-template/
+  //     workload.js. Counters + output FNV-1a are pinned against
+  //     renderJavaScript() on the same fixture bytes.
+  "server.ssr-template.v1": {
+    kernels: ["ssr_render"],
+    async build(mods) {
+      const FIXTURE_OFFSET = 3145728;
+      const RES_OFFSET = 3932160;
+      const ORACLE = Object.freeze({
+        responses: 1000,
+        parsedFields: 7000,
+        templateTokens: 23000,
+        textEscapes: 2000,
+        attributeEscapes: 1000,
+        urlEscapes: 2000,
+        integerFormats: 4000,
+        dateFormats: 2000,
+        inputBytes: 91442,
+        outputBytes: 426192,
+        outputFnv1a: 0x7c5fa247,
+      });
+      const fixtureRes = await fetch(
+        "/artifacts/server-ssr-template-v1-multilang/fixture.bin",
+        { cache: "no-store" },
+      );
+      if (!fixtureRes.ok) {
+        throw new Error(
+          `ssr_render: fixture fetch returned ${fixtureRes.status}`,
+        );
+      }
+      const fixtureBytes = new Uint8Array(await fixtureRes.arrayBuffer());
+      const { renderJavaScript } = await import(
+        "/benchmarks/v1/server-ssr-template/workload.js"
+      );
+      const jsCallable = () => {
+        const r = renderJavaScript(fixtureBytes);
+        if (
+          r.counters.responses !== ORACLE.responses ||
+          r.counters["parsed-fields"] !== ORACLE.parsedFields ||
+          r.counters["template-tokens"] !== ORACLE.templateTokens ||
+          r.counters["text-escapes"] !== ORACLE.textEscapes ||
+          r.counters["attribute-escapes"] !== ORACLE.attributeEscapes ||
+          r.counters["url-escapes"] !== ORACLE.urlEscapes ||
+          r.counters["integer-formats"] !== ORACLE.integerFormats ||
+          r.counters["date-formats"] !== ORACLE.dateFormats ||
+          r.counters["input-bytes"] !== ORACLE.inputBytes ||
+          r.counters["output-bytes"] !== ORACLE.outputBytes
+        ) {
+          throw new Error(
+            `ssr_render JS counters drifted from the frozen oracle`,
+          );
+        }
+        let fnv = 0x811c9dc5 >>> 0;
+        for (let i = 0; i < r.output.length; i++) {
+          fnv = (fnv ^ r.output[i]) >>> 0;
+          fnv = Math.imul(fnv, 0x01000193) >>> 0;
+        }
+        if (fnv !== ORACLE.outputFnv1a) {
+          throw new Error(
+            `ssr_render JS output FNV-1a drifted from the frozen oracle`,
+          );
+        }
+      };
+      const callables = { js: { ssr_render: jsCallable } };
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        const inst = mods.engines[key].instances.ssr_render.instance;
+        callables[key] = {
+          ssr_render: () => {
+            const memU8 = new Uint8Array(inst.exports.memory.buffer);
+            memU8.set(fixtureBytes, FIXTURE_OFFSET);
+            const ret = Number(
+              inst.exports.ssr_render(fixtureBytes.byteLength),
+            );
+            if (ret !== 0) {
+              throw new Error(
+                `ssr_render ${key} run failed with status ${ret}`,
+              );
+            }
+            const view = new Uint32Array(inst.exports.memory.buffer);
+            const base = RES_OFFSET / 4;
+            if (
+              view[base] !== ORACLE.responses ||
+              view[base + 1] !== ORACLE.parsedFields ||
+              view[base + 2] !== ORACLE.templateTokens ||
+              view[base + 3] !== ORACLE.textEscapes ||
+              view[base + 4] !== ORACLE.attributeEscapes ||
+              view[base + 5] !== ORACLE.urlEscapes ||
+              view[base + 6] !== ORACLE.integerFormats ||
+              view[base + 7] !== ORACLE.dateFormats ||
+              view[base + 8] !== ORACLE.inputBytes ||
+              view[base + 9] !== ORACLE.outputBytes
+            ) {
+              throw new Error(
+                `ssr_render ${key} counters drifted from the frozen oracle`,
+              );
+            }
+            if ((view[base + 10] >>> 0) !== ORACLE.outputFnv1a) {
+              throw new Error(
+                `ssr_render ${key} output FNV-1a drifted from the frozen oracle`,
+              );
+            }
+          },
+        };
+      }
+      return callables;
+    },
+  },
 };
 
 const cache = new Map();
