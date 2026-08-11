@@ -188,6 +188,7 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/results", ["public/results/index.html", "text/html; charset=utf-8"]],
   ["/results/", ["public/results/index.html", "text/html; charset=utf-8"]],
   ["/unified-runner.js", ["public/unified-runner.js", "text/javascript; charset=utf-8"]],
+  ["/home-multilang.js", ["public/home-multilang.js", "text/javascript; charset=utf-8"]],
   ["/dom-hosts/base-dom-todomvc-journey.js", [
     "public/dom-hosts/base-dom-todomvc-journey.js",
     "text/javascript; charset=utf-8",

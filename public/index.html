@@ -162,9 +162,47 @@
           <li>Paired ratios and exact intervals appear only after the fresh-launch gate commits enough valid pairs.</li>
         </ul>
       </section>
+
+      <section class="method" aria-labelledby="multilang-title">
+        <h2 id="multilang-title">Multi-language comparison (run it here)</h2>
+        <p class="lede">
+          The same frozen sum-u32 kernel, implemented identically in JavaScript, WAT,
+          AssemblyScript, C, C++, Rust, and Dart/WasmGC — compiled to WebAssembly and
+          measured side by side in this tab.
+        </p>
+        <section class="demo-panel" aria-labelledby="multilang-run-heading">
+          <h3 id="multilang-run-heading">Run the comparison</h3>
+          <form id="multilang-form">
+            <div class="controls">
+              <label for="multilang-iterations">
+                <span>Loop Iterations</span>
+                <select id="multilang-iterations" name="iterations">
+                  <option value="1">1 iteration (Cold start only)</option>
+                  <option value="10">10 iterations</option>
+                  <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                  <option value="100">100 iterations (Sustained loop)</option>
+                </select>
+              </label>
+              <button id="multilang-start" type="submit">Start Multi-language Comparison</button>
+              <button id="multilang-cancel" type="button" disabled>Cancel</button>
+            </div>
+          </form>
+          <p id="multilang-status" role="status" aria-live="polite">
+            Ready. Select loop iterations, then click Start.
+          </p>
+          <div id="multilang-reporting" class="perf-reporting" hidden></div>
+        </section>
+        <p class="notice">
+          All timings are exploratory measurements taken in this browser tab; the
+          arithmetic is verified bit-identical to the committed oracle before any
+          timing is shown.
+        </p>
+      </section>
+
       <p id="load-status" class="sr-status" role="status" aria-live="polite"></p>
     </main>
     <script type="module" src="/app.js"></script>
     <script type="module" src="/playground.js"></script>
+    <script type="module" src="/home-multilang.js"></script>
   </body>
 </html>
