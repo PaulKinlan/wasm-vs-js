@@ -1,0 +1,63 @@
+{
+  "workloadId": "game.canvas-arcade.v1",
+  "kernelLabel": "Canvas arcade — 3,600-frame deterministic replay (game-canvas-arcade-v1.bin)",
+  "kernelLabels": {
+    "arcade_trace": "Canvas arcade — 3,600 frames of ship/asteroid updates, collisions, and HUD"
+  },
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": [
+    "arcade_trace"
+  ],
+  "engines": [
+    {
+      "key": "js",
+      "label": "JavaScript",
+      "kind": "js",
+      "source": "benchmarks/v2/game-family/engine.js"
+    },
+    {
+      "key": "c",
+      "label": "C / Wasm",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 0,
+      "files": {
+        "arcade_trace": "arcade_kernel_c.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/game-canvas-arcade/arcade_kernel.c"
+    },
+    {
+      "key": "cpp",
+      "label": "C++ / Wasm",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 0,
+      "files": {
+        "arcade_trace": "arcade_kernel_cpp.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/game-canvas-arcade/arcade_kernel.cpp"
+    },
+    {
+      "key": "rs",
+      "label": "Rust / Wasm",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 0,
+      "files": {
+        "arcade_trace": "arcade_kernel_rs.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/game-canvas-arcade/arcade_kernel.rs"
+    },
+    {
+      "key": "asc",
+      "label": "AssemblyScript",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "arcade_trace": "arcade_kernel_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/game-canvas-arcade/arcade_kernel.ts"
+    }
+  ]
+}

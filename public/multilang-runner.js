@@ -4202,6 +4202,100 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
     },
   },
 
+  // --- game.canvas-arcade.v1: 3,600-frame canvas arcade replay (mirrors
+  //     benchmarks/multilang-wasm/game-canvas-arcade/arcade_kernel.*; the
+  //     adapter fetches the frozen 14,424-byte arcade fixture
+  //     (game-v2-controlled-family/game-canvas-arcade-v1.bin, seed 0x6d2b79f5),
+  //     copies it into each engine's linear memory at FIXTURE_OFFSET, and each
+  //     kernel replays the 3,600-frame engine bit-identical to run_arcade() in
+  //     benchmarks/v2/game-family/game-family.c and arcade() in engine.js.
+  //     Counters + digests are pinned against runGameJavaScript("game.canvas-arcade.v1").
+  "game.canvas-arcade.v1": {
+    kernels: ["arcade_trace"],
+    async build(mods) {
+      const FIXTURE_OFFSET = 65536;
+      const RES_OFFSET = 131072;
+      // Pinned oracle from runGameJavaScript("game.canvas-arcade.v1") — see
+      // tests/v2/game-family.test.ts and benchmarks/v2/game-family/engine.js.
+      const ORACLE = Object.freeze({
+        semantic: 0x585a29e5,
+        state: 0x87695460,
+        draw: 0xf3a03070,
+        audio: 0x8b4cb497,
+        entityUpdates: 169501,
+        collisionTests: 169501,
+        drawCommands: 180301,
+        audioEvents: 91,
+      });
+      const fixtureRes = await fetch(
+        "/artifacts/game-v2-controlled-family/game-canvas-arcade-v1.bin",
+        { cache: "no-store" },
+      );
+      if (!fixtureRes.ok) {
+        throw new Error(`arcade_trace: fixture fetch returned ${fixtureRes.status}`);
+      }
+      const fixtureBytes = new Uint8Array(await fixtureRes.arrayBuffer());
+      const { runGameJavaScript } = await import(
+        "/benchmarks/v2/game-family/engine.js"
+      );
+      const jsCallable = () => {
+        const r = runGameJavaScript("game.canvas-arcade.v1", fixtureBytes);
+        if (
+          r.counters.entityUpdates !== ORACLE.entityUpdates ||
+          r.counters.collisionTests !== ORACLE.collisionTests ||
+          r.counters.drawCommands !== ORACLE.drawCommands ||
+          r.counters.audioEvents !== ORACLE.audioEvents
+        ) {
+          throw new Error(`arcade_trace JS counters drifted from the frozen oracle`);
+        }
+        if (
+          r.oracle.finalStateDigest !== "87695460" ||
+          r.oracle.drawCommandStreamDigest !== "f3a03070" ||
+          r.oracle.audioEventStreamDigest !== "8b4cb497"
+        ) {
+          throw new Error(`arcade_trace JS digests drifted from the frozen oracle`);
+        }
+      };
+      const callables = { js: { arcade_trace: jsCallable } };
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        const inst = mods.engines[key].instances.arcade_trace.instance;
+        callables[key] = {
+          arcade_trace: () => {
+            const memU8 = new Uint8Array(inst.exports.memory.buffer);
+            memU8.set(fixtureBytes, FIXTURE_OFFSET);
+            const ret = Number(inst.exports.arcade_trace(fixtureBytes.byteLength));
+            if (ret !== 0) {
+              throw new Error(`arcade_trace ${key} run failed with status ${ret}`);
+            }
+            const view = new Uint32Array(inst.exports.memory.buffer);
+            const base = RES_OFFSET / 4;
+            if (
+              (view[base] >>> 0) !== ORACLE.semantic ||
+              (view[base + 1] >>> 0) !== ORACLE.state ||
+              (view[base + 2] >>> 0) !== ORACLE.draw ||
+              (view[base + 3] >>> 0) !== ORACLE.audio
+            ) {
+              throw new Error(
+                `arcade_trace ${key} digests drifted from the frozen oracle`,
+              );
+            }
+            if (
+              view[base + 4] !== ORACLE.entityUpdates ||
+              view[base + 5] !== ORACLE.collisionTests ||
+              view[base + 6] !== ORACLE.drawCommands ||
+              view[base + 7] !== ORACLE.audioEvents
+            ) {
+              throw new Error(
+                `arcade_trace ${key} counters drifted from the frozen oracle`,
+              );
+            }
+          },
+        };
+      }
+      return callables;
+    },
+  },
+
   // --- ml-gemm: strict-f32 GEMM (mirrors benchmarks/v2/ml-gemm) -------------
   "ml.gemm.v1": {
     kernels: ["gemm"],
