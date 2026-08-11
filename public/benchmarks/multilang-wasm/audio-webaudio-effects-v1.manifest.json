@@ -1,0 +1,45 @@
+{
+  "workloadId": "audio.webaudio-effects.v1",
+  "kernelLabels": {
+    "audio_dsp": "WebAudio effects rack — 48 kHz stereo biquad → soft-knee compressor → 16-tap convolution, reduced 48,000-frame fixture, strict f32"
+  },
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": ["audio_dsp"],
+  "engines": [
+    {
+      "id": "js",
+      "label": "JavaScript (V8)",
+      "language": "JavaScript",
+      "variantId": "js-v8",
+      "artifact": null
+    },
+    {
+      "id": "c",
+      "label": "C (Clang)",
+      "language": "C",
+      "variantId": "c-clang",
+      "artifact": "audio_dsp_kernel_c.wasm"
+    },
+    {
+      "id": "cpp",
+      "label": "C++ (Clang)",
+      "language": "C++",
+      "variantId": "cpp-clang",
+      "artifact": "audio_dsp_kernel_cpp.wasm"
+    },
+    {
+      "id": "rs",
+      "label": "Rust (rustc)",
+      "language": "Rust",
+      "variantId": "rs-rustc",
+      "artifact": "audio_dsp_kernel_rs.wasm"
+    },
+    {
+      "id": "asc",
+      "label": "AssemblyScript (asc)",
+      "language": "AssemblyScript",
+      "variantId": "asc-asc",
+      "artifact": "audio_dsp_kernel_asc.wasm"
+    }
+  ]
+}

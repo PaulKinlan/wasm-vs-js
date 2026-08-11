@@ -9,8 +9,13 @@
       content="Run the complete frozen audio.webaudio-effects.v1 controlled JavaScript or linear-WebAssembly DSP chain.">
     <link rel="stylesheet" href="/styles.css">
     <script type="module" src="/base-audio-effects-demo.js"></script>
+    <script type="module" src="/multilang-runner.js"></script>
   </head>
-  <body>
+  <body data-multilang-form="#multilang-form" data-multilang-start="#multilang-start"
+    data-multilang-cancel="#multilang-cancel" data-multilang-status="#multilang-status"
+    data-multilang-reporting="#multilang-reporting" data-multilang-heading="false"
+    data-multilang-iterations="#multilang-iterations"
+    data-multilang-manifest="/benchmarks/multilang-wasm/audio-webaudio-effects-v1.manifest.json">
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
@@ -45,6 +50,29 @@
       <pre id="output" class="demo-output" tabindex="0">No result yet.</pre>
       <h2>What runs</h2>
       <p>Both controlled targets execute the same owned scalar DSP and strict-f32 operation order over every sample. Native WebAudio nodes are a separate host-product baseline and do not run here. Inspect the <a href="/artifacts/base-audio-webaudio-effects-v1/build-manifest.json">build manifest</a>, <a href="/artifacts/base-audio-webaudio-effects-v1/fixture-manifest.json">fixture manifest</a>, and <a href="/artifacts/base-audio-webaudio-effects-v1/output-manifest.json">complete-output oracle</a>.</p>
+      <section class="demo-panel" aria-labelledby="multilang-run-heading">
+        <h2 id="multilang-run-heading">Multi-language comparison</h2>
+        <p
+          class="lede">The same exact 48,000-frame DSP chain in strict f32 (transposed-DF2 biquad → peak-envelope soft-knee compressor → 16-tap convolution), implemented identically in JavaScript, C, C++, Rust, and AssemblyScript — compiled to WebAssembly and measured side by side.</p>
+        <form id="multilang-form">
+          <div class="controls">
+            <label for="multilang-iterations">
+              <span>Loop Iterations</span>
+              <select id="multilang-iterations" name="iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10">10 iterations</option>
+                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                <option value="100">100 iterations (Sustained loop)</option>
+              </select>
+            </label>
+            <button id="multilang-start" type="submit">Start Multi-language Comparison</button>
+            <button id="multilang-cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="multilang-status" role="status"
+          aria-live="polite">Ready. Select loop iterations, then click Start.</p>
+        <div id="multilang-reporting" class="perf-reporting" hidden></div>
+      </section>
     </main>
   </body>
 </html>

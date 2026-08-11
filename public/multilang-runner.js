@@ -3710,6 +3710,61 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
     },
   },
 
+  "audio.webaudio-effects.v1": {
+    kernels: ["audio_dsp"],
+    build(mods) {
+      const RES_OFFSET = 3145728;
+      const callables = {
+        js: {
+          audio_dsp: async () => {
+            // JS reference implementation running on the reduced 48,000-frame fixture
+            const m = await import("./benchmarks/base/audio-webaudio-effects/workload.js");
+            const fix = m.generateFixture(48000);
+            const out = m.processJavaScript(fix);
+            const outBytes = new Uint8Array(48015 * 8);
+            const dv = new DataView(outBytes.buffer);
+            for (let i = 0; i < 48015; i++) {
+              let l = out.left[i];
+              if (l === 0) l = 0;
+              let r = out.right[i];
+              if (r === 0) r = 0;
+              dv.setFloat32(i * 8, l, true);
+              dv.setFloat32(i * 8 + 4, r, true);
+            }
+            let fnv = 0x811c9dc5;
+            for (let i = 0; i < outBytes.length; i++) {
+              fnv = Math.imul((fnv ^ outBytes[i]) >>> 0, 0x01000193) >>> 0;
+            }
+            const hash = fnv >>> 0;
+            if (hash !== 3299433303) throw new Error("JS FNV drift");
+            return hash;
+          },
+        },
+      };
+      for (const key of Object.keys(mods.engines).filter((k) => k !== "js" && k !== "dart")) {
+        const inst = mods.engines[key].instances.audio_dsp.instance;
+        const mem = new Uint32Array(inst.exports.memory.buffer);
+        callables[key] = {
+          audio_dsp: () => {
+            const fnv = inst.exports.audio_dsp() >>> 0;
+            if (
+              mem[RES_OFFSET / 4] !== 750 ||
+              mem[RES_OFFSET / 4 + 1] !== 748 ||
+              mem[RES_OFFSET / 4 + 2] !== 2 ||
+              mem[RES_OFFSET / 4 + 3] !== 30
+            ) {
+              throw new Error(`audio_dsp ${key} counters drifted from the frozen oracle`);
+            }
+            if (fnv !== 3299433303) {
+              throw new Error(`audio_dsp ${key} FNV drifted from the frozen oracle`);
+            }
+          },
+        };
+      }
+      return callables;
+    },
+  },
+
   // --- dom.keyed-list-mutation.v1: keyed list mutation compute core (mirrors
   // benchmarks/multilang-wasm/dom-keyed-list-mutation/keyed_list_kernel.*; the
   // frozen 2,000-action trace is generated inside each kernel from seed
