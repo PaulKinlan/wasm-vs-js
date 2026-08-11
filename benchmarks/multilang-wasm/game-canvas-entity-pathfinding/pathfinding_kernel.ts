@@ -58,8 +58,12 @@ function absolute(v: i32): u32 {
   return v < 0 ? (<u32> -v) : (<u32> v);
 }
 
-function astarGGet(i: u32): i32 { return load<i32>(ASTAR_G + (<usize> i) * 4); }
-function astarGSet(i: u32, v: i32): void { store<i32>(ASTAR_G + (<usize> i) * 4, v); }
+function astarGGet(i: u32): i32 {
+  return load<i32>(ASTAR_G + (<usize> i) * 4);
+}
+function astarGSet(i: u32, v: i32): void {
+  store<i32>(ASTAR_G + (<usize> i) * 4, v);
+}
 function astarParentGet(i: u32): i32 {
   return load<i32>(ASTAR_PARENT + (<usize> i) * 4);
 }
@@ -102,11 +106,15 @@ function entityYGet(i: u32): u16 {
 function entityYSet(i: u32, v: u16): void {
   store<u16>(ENTITY_Y + (<usize> i) * 2, v);
 }
-function entityVxGet(i: u32): i8 { return load<i8>(ENTITY_VX + (<usize> i)); }
+function entityVxGet(i: u32): i8 {
+  return load<i8>(ENTITY_VX + (<usize> i));
+}
 function entityVxSet(i: u32, v: i8): void {
   store<i8>(ENTITY_VX + (<usize> i), v);
 }
-function entityVyGet(i: u32): i8 { return load<i8>(ENTITY_VY + (<usize> i)); }
+function entityVyGet(i: u32): i8 {
+  return load<i8>(ENTITY_VY + (<usize> i));
+}
 function entityVySet(i: u32, v: i8): void {
   store<i8>(ENTITY_VY + (<usize> i), v);
 }
@@ -226,7 +234,7 @@ export function pathfinding_trace(fixture_len: u32): i32 {
         if (i == 0) { if (y > 0) signedNext = <i32> node - 256; }
         else if (i == 1) { if (x > 0) signedNext = <i32> node - 1; }
         else if (i == 2) { if (x < 255) signedNext = <i32> node + 1; }
-        else { if (y < 255) signedNext = <i32> node + 256; }
+        else if (y < 255) signedNext = <i32> node + 256;
         if (signedNext < 0) continue;
         const next = <u32> signedNext;
         if (fixtureAt(mapOffset + next) != 0 || astarClosedGet(next) == stamp) {
