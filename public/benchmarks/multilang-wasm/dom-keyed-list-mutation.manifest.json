@@ -1,0 +1,63 @@
+{
+  "workloadId": "dom.keyed-list-mutation.v1",
+  "kernelLabel": "Keyed list mutation trace \u2014 1,000 items \u00d7 2,000 frozen ops (integer-only)",
+  "kernelLabels": {
+    "keyed_list_trace": "Keyed list mutation \u2014 1,000 items, 2,000 frozen insert/remove/swap/update/move ops"
+  },
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": [
+    "keyed_list_trace"
+  ],
+  "engines": [
+    {
+      "key": "js",
+      "label": "JavaScript",
+      "kind": "js",
+      "source": "benchmarks/multilang-wasm/dom-keyed-list-mutation/keyed_list_kernel.ts"
+    },
+    {
+      "key": "c",
+      "label": "C / Wasm",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 0,
+      "files": {
+        "keyed_list_trace": "keyed_list_kernel_c.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/dom-keyed-list-mutation/keyed_list_kernel.c"
+    },
+    {
+      "key": "cpp",
+      "label": "C++ / Wasm",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 0,
+      "files": {
+        "keyed_list_trace": "keyed_list_kernel_cpp.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/dom-keyed-list-mutation/keyed_list_kernel.cpp"
+    },
+    {
+      "key": "rs",
+      "label": "Rust / Wasm",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 0,
+      "files": {
+        "keyed_list_trace": "keyed_list_kernel_rs.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/dom-keyed-list-mutation/keyed_list_kernel.rs"
+    },
+    {
+      "key": "asc",
+      "label": "AssemblyScript",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "keyed_list_trace": "keyed_list_kernel_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/dom-keyed-list-mutation/keyed_list_kernel.ts"
+    }
+  ]
+}

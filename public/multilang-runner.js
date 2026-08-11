@@ -3710,6 +3710,82 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
     },
   },
 
+  // --- dom.keyed-list-mutation.v1: keyed list mutation compute core (mirrors
+  // benchmarks/multilang-wasm/dom-keyed-list-mutation/keyed_list_kernel.*; the
+  // frozen 2,000-action trace is generated inside each kernel from seed
+  // 0x1a2b3c4d) ------------------------------------------------------------
+  "dom.keyed-list-mutation.v1": {
+    kernels: ["keyed_list_trace"],
+    build(mods) {
+      const RES_OFFSET = 16384;
+      const jsCallable = () => {
+        // JS reference (runKeyedListMutationJS) — returns the oracle for sanity.
+        const ops = ["insert", "remove", "swap", "update", "move"];
+        let seed = 0x1a2b3c4d >>> 0;
+        const rand = () => {
+          seed = (seed ^ (seed << 13)) >>> 0;
+          seed = (seed ^ (seed >> 17)) >>> 0;
+          seed = (seed ^ (seed << 5)) >>> 0;
+          return seed / 4294967296;
+        };
+        const items = new Array(1000).fill(0).map((_, i) => ({ key: i, text: `Item ${i}` }));
+        for (let i = 0; i < 2000; i++) {
+          const op = ops[Math.floor(rand() * ops.length)];
+          const key = Math.floor(rand() * 1000);
+          const targetKey = Math.floor(rand() * 1000);
+          const text = `Item ${Math.floor(rand() * 10000)}`;
+          if (op === "insert") {
+            items.push({ key, text });
+          } else if (op === "remove") {
+            const idx = items.findIndex((it) => it.key === key);
+            if (idx !== -1) items.splice(idx, 1);
+          } else if (op === "swap" && items.length >= 2) {
+            const i1 = key % items.length;
+            const i2 = targetKey % items.length;
+            const t = items[i1];
+            items[i1] = items[i2];
+            items[i2] = t;
+          } else if (op === "update") {
+            const idx = items.findIndex((it) => it.key === key);
+            if (idx !== -1) items[idx].text = text;
+          } else if (op === "move" && items.length >= 2) {
+            const idx = items.findIndex((it) => it.key === key);
+            if (idx !== -1) {
+              const [moved] = items.splice(idx, 1);
+              const targetIdx = targetKey % items.length;
+              items.splice(targetIdx, 0, moved);
+            }
+          }
+        }
+        return items.reduce((acc, it) => acc + it.key, 0);
+      };
+      const callables = { js: { keyed_list_trace: jsCallable } };
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        const inst = mods.engines[key].instances.keyed_list_trace.instance;
+        const mem = new Int32Array(inst.exports.memory.buffer);
+        callables[key] = {
+          keyed_list_trace: () => {
+            const sum = Number(inst.exports.keyed_list_trace());
+            if (
+              mem[RES_OFFSET / 4] !== 1853 || mem[RES_OFFSET / 4 + 1] !== 375 ||
+              mem[RES_OFFSET / 4 + 2] !== 1059 || mem[RES_OFFSET / 4 + 3] !== 520890
+            ) {
+              throw new Error(
+                `keyed_list_trace ${key} counters drifted from the frozen oracle`,
+              );
+            }
+            if (sum !== 520890) {
+              throw new Error(
+                `keyed_list_trace ${key} finalKeySum drifted from the frozen oracle`,
+              );
+            }
+          },
+        };
+      }
+      return callables;
+    },
+  },
+
   // --- ml-gemm: strict-f32 GEMM (mirrors benchmarks/v2/ml-gemm) -------------
   "ml.gemm.v1": {
     kernels: ["gemm"],
