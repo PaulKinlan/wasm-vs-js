@@ -47,17 +47,6 @@
         "markdown_cms_render": "markdown_cms_kernel_rs.wasm"
       },
       "source": "benchmarks/multilang-wasm/text-markdown-cms/markdown_cms_kernel.rs"
-    },
-    {
-      "key": "asc",
-      "label": "AssemblyScript",
-      "kind": "linear",
-      "lang": "asc",
-      "offset": 0,
-      "files": {
-        "markdown_cms_render": "markdown_cms_kernel_asc.wasm"
-      },
-      "source": "benchmarks/multilang-wasm/text-markdown-cms/markdown_cms_kernel.ts"
     }
   ]
 }

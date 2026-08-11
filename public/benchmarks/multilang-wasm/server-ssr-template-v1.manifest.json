@@ -47,17 +47,6 @@
         "ssr_render": "server_ssr_kernel_rs.wasm"
       },
       "source": "benchmarks/multilang-wasm/server-ssr-template/server_ssr_kernel.rs"
-    },
-    {
-      "key": "asc",
-      "label": "AssemblyScript",
-      "kind": "linear",
-      "lang": "asc",
-      "offset": 0,
-      "files": {
-        "ssr_render": "server_ssr_kernel_asc.wasm"
-      },
-      "source": "benchmarks/multilang-wasm/server-ssr-template/server_ssr_kernel.ts"
     }
   ]
 }

@@ -162,13 +162,3 @@ Deno.test("multilang server-ssr-template: Rust kernel matches the JS oracle exac
   assertOracle("Rust", r);
 });
 
-Deno.test("multilang server-ssr-template: AssemblyScript kernel matches the JS oracle exactly", async () => {
-  const fixture = await readFixture();
-  const r = runKernel(
-    await loadWasm("server_ssr_kernel_asc.wasm", {
-      env: { abort: () => {} },
-    }),
-    fixture,
-  );
-  assertOracle("AS", r);
-});

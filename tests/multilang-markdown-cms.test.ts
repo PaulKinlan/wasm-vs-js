@@ -194,13 +194,3 @@ Deno.test("multilang markdown-cms: Rust kernel matches the JS oracle exactly", a
   assertOracle("Rust", r);
 });
 
-Deno.test("multilang markdown-cms: AssemblyScript kernel matches the JS oracle exactly", async () => {
-  const fixture = await readFixture();
-  const r = runKernel(
-    await loadWasm("markdown_cms_kernel_asc.wasm", {
-      env: { abort: () => {} },
-    }),
-    fixture,
-  );
-  assertOracle("AS", r);
-});
