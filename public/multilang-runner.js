@@ -3965,6 +3965,146 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
     },
   },
 
+  // --- dom.vdom-diff-patch.v1: virtual-DOM diff compute core (mirrors
+  // benchmarks/multilang-wasm/vdom-diff-patch/vdom_kernel.*; the frozen
+  // 1,000-node treeA + treeB from SplitMix64 seed 3976273958 is generated
+  // inside each kernel; 100 op-6 reorder / 100 op-2 attr / 50 op-1 text
+  // patches ⇒ 250 patches — verified against the JS engine's SplitMix64
+  // fixture + createVDOMPatches). Adapter computes the same FNV-1a canonical
+  // and patch-stream digests in JS from generateVDOMFixture and compares
+  // bit-identically. -----------------------------------------------------
+  "dom.vdom-diff-patch.v1": {
+    kernels: ["vdom_diff_trace"],
+    async build(mods) {
+      const RES_OFFSET = 16384;
+      const engine = await import(
+        "/benchmarks/vdom-diff-patch-demo/engine.js"
+      );
+      const fixture = engine.generateVDOMFixture();
+      const mapA = new Map(fixture.treeA.map((n) => [n.id, n]));
+      // JS FNV-1a mirror (identical byte encoding to the linear kernels).
+      const makeFnv = () => {
+        let h = 0x811c9dc5 >>> 0;
+        return {
+          mixByte(b) {
+            h = Math.imul((h ^ (b & 0xff)) >>> 0, 0x01000193) >>> 0;
+          },
+          mixU16(v) {
+            this.mixByte(v & 0xff);
+            this.mixByte((v >>> 8) & 0xff);
+          },
+          mixI16(v) {
+            const u = v & 0xffff;
+            this.mixByte(u & 0xff);
+            this.mixByte((u >>> 8) & 0xff);
+          },
+          get() {
+            return h >>> 0;
+          },
+        };
+      };
+      const mapB = new Map(fixture.treeB.map((n) => [n.id, n]));
+      const treeFnv = makeFnv();
+      const walkTree = (id) => {
+        const n = mapB.get(id);
+        treeFnv.mixU16(n.id);
+        treeFnv.mixI16(n.tag);
+        treeFnv.mixI16(n.key);
+        treeFnv.mixI16(n.attrKey);
+        treeFnv.mixI16(n.attrVal);
+        treeFnv.mixI16(n.textId);
+        treeFnv.mixU16(n.children.length);
+        for (const c of n.children) treeFnv.mixU16(c);
+        for (const c of n.children) walkTree(c);
+      };
+      walkTree(0);
+      const oracleTreeBFnv = treeFnv.get();
+      const op1 = [], op2 = [], op6 = [];
+      for (const nb of fixture.treeB) {
+        const na = mapA.get(nb.id);
+        if (nb.tag === -1) {
+          if (na.textId !== nb.textId) op1.push({ nodeId: nb.id, targetId: nb.textId });
+        } else {
+          if (na.attrKey !== nb.attrKey || na.attrVal !== nb.attrVal) {
+            op2.push({ nodeId: nb.id, attrKey: nb.attrKey, attrVal: nb.attrVal });
+          }
+          if (JSON.stringify(na.children) !== JSON.stringify(nb.children)) {
+            op6.push({
+              nodeId: nb.id,
+              childCount: nb.children.length,
+              childIds: [...nb.children],
+            });
+          }
+        }
+      }
+      const patchFnv = makeFnv();
+      for (const p of op1) {
+        patchFnv.mixByte(1);
+        patchFnv.mixU16(p.nodeId);
+        patchFnv.mixI16(p.targetId);
+        patchFnv.mixI16(-1);
+        patchFnv.mixI16(-1);
+        patchFnv.mixI16(-1);
+      }
+      for (const p of op2) {
+        patchFnv.mixByte(2);
+        patchFnv.mixU16(p.nodeId);
+        patchFnv.mixI16(-1);
+        patchFnv.mixI16(p.attrKey);
+        patchFnv.mixI16(p.attrVal);
+        patchFnv.mixI16(-1);
+      }
+      for (const p of op6) {
+        patchFnv.mixByte(6);
+        patchFnv.mixU16(p.nodeId);
+        patchFnv.mixI16(p.childCount);
+        patchFnv.mixI16(-1);
+        patchFnv.mixI16(-1);
+        patchFnv.mixI16(p.childCount);
+        patchFnv.mixU16(p.childCount);
+        for (const c of p.childIds) patchFnv.mixU16(c);
+      }
+      const oraclePatchFnv = patchFnv.get();
+      const patchesExpected = op1.length + op2.length + op6.length;
+      const op1Expected = op1.length;
+      const op2Expected = op2.length;
+      const op6Expected = op6.length;
+      const jsCallable = () => {
+        // JS reference: rerun the JS diff and verify counters + digests match the oracle.
+        const rerun = engine.createVDOMPatches(fixture.treeA, fixture.treeB);
+        if (rerun.patchesGenerated !== patchesExpected) {
+          throw new Error(`vdom_diff_trace JS patch count drifted from the oracle`);
+        }
+      };
+      const callables = { js: { vdom_diff_trace: jsCallable } };
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        const inst = mods.engines[key].instances.vdom_diff_trace.instance;
+        const mem = new Uint32Array(inst.exports.memory.buffer);
+        callables[key] = {
+          vdom_diff_trace: () => {
+            const ret = Number(inst.exports.vdom_diff_trace());
+            const base = RES_OFFSET / 4;
+            if (
+              mem[base] !== patchesExpected || mem[base + 1] !== op1Expected ||
+              mem[base + 2] !== op2Expected || mem[base + 3] !== op6Expected
+            ) {
+              throw new Error(`vdom_diff_trace ${key} counters drifted from the frozen oracle`);
+            }
+            if (mem[base + 4] !== oracleTreeBFnv || mem[base + 5] !== oraclePatchFnv) {
+              throw new Error(`vdom_diff_trace ${key} FNV digests drifted from the JS oracle`);
+            }
+            if (ret !== patchesExpected) {
+              throw new Error(
+                `vdom_diff_trace ${key} return value drifted from the frozen oracle`,
+              );
+            }
+          },
+        };
+      }
+      return callables;
+    },
+  },
+
   // --- ml-gemm: strict-f32 GEMM (mirrors benchmarks/v2/ml-gemm) -------------
   "ml.gemm.v1": {
     kernels: ["gemm"],

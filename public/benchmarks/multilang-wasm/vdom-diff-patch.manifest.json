@@ -1,0 +1,63 @@
+{
+  "workloadId": "dom.vdom-diff-patch.v1",
+  "kernelLabel": "Virtual-DOM diff and patch — 1,000 nodes / 250 frozen edits (SplitMix64 seed 3976273958)",
+  "kernelLabels": {
+    "vdom_diff_trace": "Virtual-DOM diff — 1,000 nodes, 250 patches (100 reorder / 100 attr / 50 text)"
+  },
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": [
+    "vdom_diff_trace"
+  ],
+  "engines": [
+    {
+      "key": "js",
+      "label": "JavaScript",
+      "kind": "js",
+      "source": "benchmarks/multilang-wasm/vdom-diff-patch/vdom_kernel.ts"
+    },
+    {
+      "key": "c",
+      "label": "C / Wasm",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 0,
+      "files": {
+        "vdom_diff_trace": "vdom_kernel_c.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/vdom-diff-patch/vdom_kernel.c"
+    },
+    {
+      "key": "cpp",
+      "label": "C++ / Wasm",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 0,
+      "files": {
+        "vdom_diff_trace": "vdom_kernel_cpp.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/vdom-diff-patch/vdom_kernel.cpp"
+    },
+    {
+      "key": "rs",
+      "label": "Rust / Wasm",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 0,
+      "files": {
+        "vdom_diff_trace": "vdom_kernel_rs.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/vdom-diff-patch/vdom_kernel.rs"
+    },
+    {
+      "key": "asc",
+      "label": "AssemblyScript",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "vdom_diff_trace": "vdom_kernel_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/vdom-diff-patch/vdom_kernel.ts"
+    }
+  ]
+}
