@@ -5635,6 +5635,117 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
       return callables;
     },
   },
+
+  // --- regex-automata-duel-demo: 20 frozen safe patterns × 1 MiB BMP corpus
+  //     (mirrors benchmarks/multilang-wasm/regex-automata-duel/
+  //     regex_scan_kernel.*; adapter fetches the frozen 1,163,248-byte
+  //     regex-automata-duel-multilang/fixture.bin — magic 'RXA1' plus the 20
+  //     precompiled Thompson→DFA tables baked from js-automata.ts. Every
+  //     kernel walks each DFA over the corpus, mixing (patternId,startCP,
+  //     endCP) tuples into an FNV-1a stream, and reports counters + digest at
+  //     RES_OFFSET. Pinned against scanJSAutomata() on the same corpus.
+  "regex-automata-duel-demo": {
+    kernels: ["regex_scan"],
+    async build(mods) {
+      const FIXTURE_OFFSET = 3145728;
+      const RES_OFFSET = 5242880;
+      const ORACLE = Object.freeze({
+        matchesFound: 141605,
+        patternsExecuted: 20,
+        codePointsSearched: 20971520,
+        capturesExtracted: 1623,
+        boundaryCrossings: 20,
+        inputBytes: 1163248,
+        corpusBytes: 1048576,
+        tupleFnv1a: 0xa5be957f,
+      });
+      const fixtureRes = await fetch(
+        "/artifacts/regex-automata-duel-multilang/fixture.bin",
+        { cache: "no-store" },
+      );
+      if (!fixtureRes.ok) {
+        throw new Error(
+          `regex_scan: fixture fetch returned ${fixtureRes.status}`,
+        );
+      }
+      const fixtureBytes = new Uint8Array(await fixtureRes.arrayBuffer());
+      const engineMod = await import(
+        "/benchmarks/regex-automata-duel-demo/engine.js"
+      );
+      const { generateRegexFixture, scanJSAutomata } = engineMod;
+      const jsCallable = async () => {
+        const jsFixture = generateRegexFixture();
+        const r = await scanJSAutomata(jsFixture);
+        if (
+          r.matchesFound !== ORACLE.matchesFound ||
+          r.patternsExecuted !== ORACLE.patternsExecuted ||
+          r.codePointsSearched !== ORACLE.codePointsSearched ||
+          r.capturesExtracted !== ORACLE.capturesExtracted
+        ) {
+          throw new Error(
+            `regex_scan JS counters drifted from the frozen oracle`,
+          );
+        }
+        const bytes = new Uint8Array(r.matches.length * 12);
+        const view = new DataView(bytes.buffer);
+        for (let i = 0; i < r.matches.length; i++) {
+          const m = r.matches[i];
+          view.setUint32(i * 12, m.patternId, true);
+          view.setUint32(i * 12 + 4, m.startCP, true);
+          view.setUint32(i * 12 + 8, m.endCP, true);
+        }
+        let fnv = 0x811c9dc5 >>> 0;
+        for (let i = 0; i < bytes.length; i++) {
+          fnv = (fnv ^ bytes[i]) >>> 0;
+          fnv = Math.imul(fnv, 0x01000193) >>> 0;
+        }
+        if (fnv !== ORACLE.tupleFnv1a) {
+          throw new Error(
+            `regex_scan JS tuple FNV-1a drifted from the frozen oracle`,
+          );
+        }
+      };
+      const callables = { js: { regex_scan: jsCallable } };
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        const inst = mods.engines[key].instances.regex_scan.instance;
+        callables[key] = {
+          regex_scan: () => {
+            const memU8 = new Uint8Array(inst.exports.memory.buffer);
+            memU8.set(fixtureBytes, FIXTURE_OFFSET);
+            const ret = Number(
+              inst.exports.regex_scan(fixtureBytes.byteLength),
+            );
+            if (ret !== 0) {
+              throw new Error(
+                `regex_scan ${key} run failed with status ${ret}`,
+              );
+            }
+            const view = new Uint32Array(inst.exports.memory.buffer);
+            const base = RES_OFFSET / 4;
+            if (
+              view[base] !== ORACLE.matchesFound ||
+              view[base + 1] !== ORACLE.patternsExecuted ||
+              view[base + 2] !== ORACLE.codePointsSearched ||
+              view[base + 3] !== ORACLE.capturesExtracted ||
+              view[base + 4] !== ORACLE.boundaryCrossings ||
+              view[base + 5] !== ORACLE.inputBytes ||
+              view[base + 6] !== ORACLE.corpusBytes
+            ) {
+              throw new Error(
+                `regex_scan ${key} counters drifted from the frozen oracle`,
+              );
+            }
+            if ((view[base + 7] >>> 0) !== ORACLE.tupleFnv1a) {
+              throw new Error(
+                `regex_scan ${key} tuple FNV-1a drifted from the frozen oracle`,
+              );
+            }
+          },
+        };
+      }
+      return callables;
+    },
+  },
 };
 
 const cache = new Map();

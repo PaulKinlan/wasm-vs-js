@@ -1,0 +1,63 @@
+{
+  "workloadId": "regex-automata-duel-demo",
+  "kernelLabel": "20 frozen safe patterns × 1 MiB BMP corpus — DFA scan over the precompiled Thompson→DFA tables (regex-automata-duel-multilang/fixture.bin)",
+  "kernelLabels": {
+    "regex_scan": "Regex automata duel — 20-DFA scan over the 1,048,576-byte BMP corpus"
+  },
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": [
+    "regex_scan"
+  ],
+  "engines": [
+    {
+      "key": "js",
+      "label": "JavaScript",
+      "kind": "js",
+      "source": "benchmarks/regex-automata-duel/js-automata.ts"
+    },
+    {
+      "key": "c",
+      "label": "C / Wasm",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 0,
+      "files": {
+        "regex_scan": "regex_scan_kernel_c.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/regex-automata-duel/regex_scan_kernel.c"
+    },
+    {
+      "key": "cpp",
+      "label": "C++ / Wasm",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 0,
+      "files": {
+        "regex_scan": "regex_scan_kernel_cpp.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/regex-automata-duel/regex_scan_kernel.cpp"
+    },
+    {
+      "key": "rs",
+      "label": "Rust / Wasm",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 0,
+      "files": {
+        "regex_scan": "regex_scan_kernel_rs.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/regex-automata-duel/regex_scan_kernel.rs"
+    },
+    {
+      "key": "asc",
+      "label": "AssemblyScript",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "regex_scan": "regex_scan_kernel_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/regex-automata-duel/regex_scan_kernel.ts"
+    }
+  ]
+}
