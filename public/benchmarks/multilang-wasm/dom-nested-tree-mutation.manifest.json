@@ -1,0 +1,63 @@
+{
+  "workloadId": "dom.nested-tree-mutation.v1",
+  "kernelLabel": "Nested tree mutation trace \u2014 500 nodes \u00d7 1,200 frozen ops (integer-only)",
+  "kernelLabels": {
+    "nested_tree_trace": "Nested tree mutation \u2014 500 nodes, 1,200 frozen insert/remove/move/update/replace ops"
+  },
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": [
+    "nested_tree_trace"
+  ],
+  "engines": [
+    {
+      "key": "js",
+      "label": "JavaScript",
+      "kind": "js",
+      "source": "benchmarks/multilang-wasm/dom-nested-tree-mutation/nested_tree_kernel.ts"
+    },
+    {
+      "key": "c",
+      "label": "C / Wasm",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 0,
+      "files": {
+        "nested_tree_trace": "nested_tree_kernel_c.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/dom-nested-tree-mutation/nested_tree_kernel.c"
+    },
+    {
+      "key": "cpp",
+      "label": "C++ / Wasm",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 0,
+      "files": {
+        "nested_tree_trace": "nested_tree_kernel_cpp.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/dom-nested-tree-mutation/nested_tree_kernel.cpp"
+    },
+    {
+      "key": "rs",
+      "label": "Rust / Wasm",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 0,
+      "files": {
+        "nested_tree_trace": "nested_tree_kernel_rs.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/dom-nested-tree-mutation/nested_tree_kernel.rs"
+    },
+    {
+      "key": "asc",
+      "label": "AssemblyScript",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "nested_tree_trace": "nested_tree_kernel_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/dom-nested-tree-mutation/nested_tree_kernel.ts"
+    }
+  ]
+}

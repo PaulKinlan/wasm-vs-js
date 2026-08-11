@@ -3786,6 +3786,91 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
     },
   },
 
+  // --- dom.nested-tree-mutation.v1: nested tree mutation compute core
+  // (mirrors benchmarks/multilang-wasm/dom-nested-tree-mutation/
+  // nested_tree_kernel.*; the frozen 1,200-action trace is generated inside
+  // each kernel from seed 0x5e6f7788) --------------------------------------
+  "dom.nested-tree-mutation.v1": {
+    kernels: ["nested_tree_trace"],
+    build(mods) {
+      const RES_OFFSET = 16384;
+      const jsCallable = () => {
+        // JS reference (runNestedTreeMutationJS) — returns the oracle for sanity.
+        const ops = [
+          "insert_child",
+          "remove_node",
+          "move_subtree",
+          "update_attr",
+          "replace_node",
+        ];
+        let seed = 0x5e6f7788 >>> 0;
+        const rand = () => {
+          seed = (seed ^ (seed << 13)) >>> 0;
+          seed = (seed ^ (seed >> 17)) >>> 0;
+          seed = (seed ^ (seed << 5)) >>> 0;
+          return seed / 4294967296;
+        };
+        const nodesMap = new Map();
+        for (let i = 0; i < 500; i++) {
+          nodesMap.set(i, { id: i, parentId: i === 0 ? null : Math.floor((i - 1) / 3) });
+        }
+        for (let i = 0; i < 1200; i++) {
+          const op = ops[Math.floor(rand() * ops.length)];
+          const targetNodeId = Math.floor(rand() * 400);
+          const parentTargetId = Math.floor(rand() * 400);
+          rand();
+          rand();
+          const id = i + 500;
+          if (op === "insert_child" && nodesMap.has(parentTargetId)) {
+            nodesMap.set(id, { id, parentId: parentTargetId });
+          } else if (
+            op === "remove_node" && targetNodeId > 0 && nodesMap.has(targetNodeId)
+          ) {
+            nodesMap.delete(targetNodeId);
+          } else if (
+            op === "move_subtree" && targetNodeId > 0 && nodesMap.has(targetNodeId) &&
+            nodesMap.has(parentTargetId) && targetNodeId !== parentTargetId
+          ) {
+            nodesMap.get(targetNodeId).parentId = parentTargetId;
+          } else if (op === "update_attr") {
+            // attrUpdates counter only; no state change we need to model here.
+          } else if (
+            op === "replace_node" && targetNodeId > 0 && nodesMap.has(targetNodeId)
+          ) {
+            // replace flag only; no state change we need to model here.
+          }
+        }
+        let idSum = 0;
+        for (const [, n] of nodesMap) idSum += n.id;
+        return idSum;
+      };
+      const callables = { js: { nested_tree_trace: jsCallable } };
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        const inst = mods.engines[key].instances.nested_tree_trace.instance;
+        const mem = new Int32Array(inst.exports.memory.buffer);
+        callables[key] = {
+          nested_tree_trace: () => {
+            const sum = Number(inst.exports.nested_tree_trace());
+            if (
+              mem[RES_OFFSET / 4] !== 644 || mem[RES_OFFSET / 4 + 1] !== 199 ||
+              mem[RES_OFFSET / 4 + 2] !== 495 || mem[RES_OFFSET / 4 + 3] !== 272047
+            ) {
+              throw new Error(
+                `nested_tree_trace ${key} counters drifted from the frozen oracle`,
+              );
+            }
+            if (sum !== 272047) {
+              throw new Error(
+                `nested_tree_trace ${key} finalNodeIdSum drifted from the frozen oracle`,
+              );
+            }
+          },
+        };
+      }
+      return callables;
+    },
+  },
+
   // --- ml-gemm: strict-f32 GEMM (mirrors benchmarks/v2/ml-gemm) -------------
   "ml.gemm.v1": {
     kernels: ["gemm"],
