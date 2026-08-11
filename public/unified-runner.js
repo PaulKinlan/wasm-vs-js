@@ -883,6 +883,7 @@ async function runComposedStages(
         statusEl.textContent = m;
       },
       reportingEl: mlBox,
+      heading: false,
     });
     statusEl.textContent = "✓ Multi-language comparison complete.";
   }

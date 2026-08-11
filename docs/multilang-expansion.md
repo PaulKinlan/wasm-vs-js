@@ -44,32 +44,33 @@ one exists).
 
 ### Documented exclusions (DOM / platform / library-bound)
 
-DOM workloads (real-DOM stage is their language comparison — see the 2026-08-09
-audit sweep, all 11 DOM pages drive a rendered UI in a visible iframe):
-todomvc-journey, dom-virtualized-grid, dom-grid-movement, dom-keyed-list-mutation,
-dom-nested-tree-mutation, dom-table-sort-filter-pagination, dom-dependent-form-validation,
-dom-virtualized-scrolling, game-dom-tactics-grid, text.gc-document-edit.v1,
-vdom-diff-patch-demo.
+### Documented exclusions (platform / library-bound) — 2026-08-11 update
 
-Platform/API-bound: graphics-gltf-viewer, database-sqlite-notebook (vendored SQL engine),
-network-http2-quic-state (browser network APIs), audio-webaudio-effects (Web Audio API),
-game-canvas-arcade + game-canvas-entity-pathfinding (canvas-rendering game loops),
-ml-keyword-spotting (model-bound), server-ssr-template (SSR pipeline).
+The 2026-08-11 implementation wave (Opus/Gemini worker batches) shipped real
+multi-language kernels (JS + C + C++ + Rust + AssemblyScript unless noted) for
+previously excluded workloads: all 11 DOM workloads, vdom-diff-patch-demo,
+server-ssr-template, serialization-protobuf-gateway, text.markdown-cms,
+regex-automata-duel-demo, game-canvas-arcade, game-canvas-entity-pathfinding,
+text.gc-document-edit.v1. Those are now in the kernel-capable table, not the
+exclusion list.
 
-Vendored/library-bound: archive-zip-workspace-v1 (zip engine), media/opus/zstd/
-quantized-inference (vendored engines), serialization-protobuf-gateway (protobuf lib),
-text.markdown-cms.v1 (markdown parser lib).
+Still excluded (no computable core, or meta/frozen):
+- Platform/API-bound: graphics-gltf-viewer, database-sqlite-notebook (vendored
+  SQL engine), network-http2-quic-state (browser network APIs),
+  audio-webaudio-effects (Web Audio API — DSP core port pending),
+  ml-keyword-spotting (model-bound DS-CNN port pending).
+- Vendored/library-bound: archive-zip-workspace-v1 (zip inflate port pending),
+  media/opus/zstd/quantized-inference (vendored engines).
+- Meta/special: tooling-c-to-wasm-compile (meta — compiles C in-browser),
+  image-editing-demo (frozen reduced-fixture page — contract test pins "no
+  timing evidence or comparative performance claim"; the image-editing kernels
+  run multilang on the image-flood-fill-demo page), track-b (non-benchmark
+  track index).
 
-Meta / special: tooling-c-to-wasm-compile (meta — compiles C in-browser),
-regex-automata-duel-demo (duel between JS automata and native RegExp; the regex
-multilang lane lives in text-regex-log-scan), image-editing-demo (frozen
-reduced-fixture page — contract test pins "no timing evidence or comparative
-performance claim"; the image-editing/flood-fill kernels run multilang on the
-image-flood-fill-demo page), track-b (non-benchmark track index).
-
-Every excluded page above either ships the real-DOM stage (its languages are
-compared there) or is platform/library/meta-bound. No silent omissions: the
-2026-08-09 audit list maps 1:1 to the kernel-capable rows + this exclusion list.
+Note: the server-ssr-template and text-markdown-cms AssemblyScript kernels
+were dropped after the 2026-08-11 VLM pass (counters matched but full-output
+bytes drifted from the oracle — honest absence, per the project rule). Their
+manifests ship JS/C/C++/Rust.
 
 ## Architecture (shared machinery — build once, reuse per workload)
 

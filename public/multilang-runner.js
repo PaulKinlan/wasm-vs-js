@@ -6129,7 +6129,7 @@ export async function runWorkload(
   return results;
 }
 
-function renderTables(container, manifest, resultsByKernel, iterations) {
+function renderTables(container, manifest, resultsByKernel, iterations, { heading = true } = {}) {
   const tables = manifest.kernels.map((kernel) => {
     const results = resultsByKernel[kernel];
     const js = results.find((r) => r.key === "js");
@@ -6169,10 +6169,12 @@ function renderTables(container, manifest, resultsByKernel, iterations) {
         </table>
       </div>`;
   });
-  const heading = container.querySelector("h2, h3")
+  const headingHtml = !heading
     ? ""
-    : `<h3 class="multilang-heading">Multi-language comparison</h3>`;
-  container.innerHTML = heading + tables.join("") +
+    : (container.querySelector("h2, h3")
+      ? ""
+      : `<h3 class="multilang-heading">Multi-language comparison</h3>`);
+  container.innerHTML = headingHtml + tables.join("") +
     `<p class="notice">All timings are measured in this browser tab for this session. They are
       exploratory and depend on engine, device, and load. Per-variant arithmetic semantics are
       disclosed in the report.</p>`;
@@ -6192,6 +6194,7 @@ export async function runMultilangComparison(manifestPath, {
   shouldCancel = () => false,
   reportingEl = null,
   engineFilter = null, // null = all engines; "c" | "rs" | ... = that engine only
+  heading = true, // standalone pages emit their own heading; composed runner supplies one
 } = {}) {
   const manifest = await (await fetch(manifestPath, { cache: "no-store" })).json();
   manifest._path = manifestPath;
@@ -6205,7 +6208,7 @@ export async function runMultilangComparison(manifestPath, {
   }
   if (reportingEl) {
     reportingEl.hidden = false;
-    renderTables(reportingEl, manifest, results, iterations);
+    renderTables(reportingEl, manifest, results, iterations, { heading });
   }
   return results;
 }
