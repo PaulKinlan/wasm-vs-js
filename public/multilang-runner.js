@@ -3871,6 +3871,53 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
     },
   },
 
+  // --- dom.table-sort-filter-pagination.v1: table sort/filter/paginate compute
+  // core (mirrors benchmarks/multilang-wasm/dom-table-sort-filter-pagination/
+  // table_sort_kernel.*; the frozen 120-action trace is generated inside each
+  // kernel from seed 0x31415926 and applied to 5,000 rows with JS-string-order
+  // stable sort) ---------------------------------------------------------
+  "dom.table-sort-filter-pagination.v1": {
+    kernels: ["table_sort_trace"],
+    async build(mods) {
+      const RES_OFFSET = 40000;
+      const { generateTableActions, runTableSortFilterJS } = await import(
+        "/benchmarks/dom-table-sort-filter-pagination/engine.js"
+      );
+      const jsCallable = () => {
+        const r = runTableSortFilterJS(generateTableActions());
+        if (
+          r.filteredCount !== 1000 || r.totalSorts !== 44 || r.totalFilters !== 40 ||
+          r.pageSize !== 50 || r.pageScoreSum !== 24888
+        ) {
+          throw new Error(`table_sort_trace JS counters drifted from the frozen oracle`);
+        }
+      };
+      const callables = { js: { table_sort_trace: jsCallable } };
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        const inst = mods.engines[key].instances.table_sort_trace.instance;
+        const mem = new Int32Array(inst.exports.memory.buffer);
+        callables[key] = {
+          table_sort_trace: () => {
+            const sum = Number(inst.exports.table_sort_trace());
+            if (
+              mem[RES_OFFSET / 4] !== 1000 || mem[RES_OFFSET / 4 + 1] !== 44 ||
+              mem[RES_OFFSET / 4 + 2] !== 40 || mem[RES_OFFSET / 4 + 3] !== 50 ||
+              mem[RES_OFFSET / 4 + 4] !== 24888
+            ) {
+              throw new Error(`table_sort_trace ${key} counters drifted from the frozen oracle`);
+            }
+            if (sum !== 24888) {
+              throw new Error(
+                `table_sort_trace ${key} pageScoreSum drifted from the frozen oracle`,
+              );
+            }
+          },
+        };
+      }
+      return callables;
+    },
+  },
+
   // --- ml-gemm: strict-f32 GEMM (mirrors benchmarks/v2/ml-gemm) -------------
   "ml.gemm.v1": {
     kernels: ["gemm"],

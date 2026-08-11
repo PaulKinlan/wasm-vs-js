@@ -1,0 +1,63 @@
+{
+  "workloadId": "dom.table-sort-filter-pagination.v1",
+  "kernelLabel": "Table sort/filter/paginate trace \u2014 5,000 rows \u00d7 120 frozen sort/filter/paginate/edit ops (integer-only)",
+  "kernelLabels": {
+    "table_sort_trace": "Table sort/filter/paginate \u2014 5,000 rows, 120 frozen sort/filter/paginate/edit ops"
+  },
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": [
+    "table_sort_trace"
+  ],
+  "engines": [
+    {
+      "key": "js",
+      "label": "JavaScript",
+      "kind": "js",
+      "source": "benchmarks/multilang-wasm/dom-table-sort-filter-pagination/table_sort_kernel.ts"
+    },
+    {
+      "key": "c",
+      "label": "C / Wasm",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 0,
+      "files": {
+        "table_sort_trace": "table_sort_kernel_c.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/dom-table-sort-filter-pagination/table_sort_kernel.c"
+    },
+    {
+      "key": "cpp",
+      "label": "C++ / Wasm",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 0,
+      "files": {
+        "table_sort_trace": "table_sort_kernel_cpp.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/dom-table-sort-filter-pagination/table_sort_kernel.cpp"
+    },
+    {
+      "key": "rs",
+      "label": "Rust / Wasm",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 0,
+      "files": {
+        "table_sort_trace": "table_sort_kernel_rs.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/dom-table-sort-filter-pagination/table_sort_kernel.rs"
+    },
+    {
+      "key": "asc",
+      "label": "AssemblyScript",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "table_sort_trace": "table_sort_kernel_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/dom-table-sort-filter-pagination/table_sort_kernel.ts"
+    }
+  ]
+}
