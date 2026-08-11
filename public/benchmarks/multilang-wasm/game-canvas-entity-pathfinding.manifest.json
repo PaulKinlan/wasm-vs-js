@@ -1,0 +1,63 @@
+{
+  "workloadId": "game.canvas-entity-pathfinding.v1",
+  "kernelLabel": "Canvas entity + pathfinding — 128 A* requests + 1,800 frames × 4,096 entities (game-canvas-entity-pathfinding-v1.bin)",
+  "kernelLabels": {
+    "pathfinding_trace": "Canvas entity + pathfinding — 128 A* paths + 1,800-frame ECS on 256×256 grid"
+  },
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": [
+    "pathfinding_trace"
+  ],
+  "engines": [
+    {
+      "key": "js",
+      "label": "JavaScript",
+      "kind": "js",
+      "source": "benchmarks/v2/game-family/engine.js"
+    },
+    {
+      "key": "c",
+      "label": "C / Wasm",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 0,
+      "files": {
+        "pathfinding_trace": "pathfinding_kernel_c.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/game-canvas-entity-pathfinding/pathfinding_kernel.c"
+    },
+    {
+      "key": "cpp",
+      "label": "C++ / Wasm",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 0,
+      "files": {
+        "pathfinding_trace": "pathfinding_kernel_cpp.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/game-canvas-entity-pathfinding/pathfinding_kernel.cpp"
+    },
+    {
+      "key": "rs",
+      "label": "Rust / Wasm",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 0,
+      "files": {
+        "pathfinding_trace": "pathfinding_kernel_rs.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/game-canvas-entity-pathfinding/pathfinding_kernel.rs"
+    },
+    {
+      "key": "asc",
+      "label": "AssemblyScript",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "pathfinding_trace": "pathfinding_kernel_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/game-canvas-entity-pathfinding/pathfinding_kernel.ts"
+    }
+  ]
+}

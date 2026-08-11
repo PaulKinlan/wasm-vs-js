@@ -4296,6 +4296,125 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
     },
   },
 
+  // --- game.canvas-entity-pathfinding.v1: 128 A* paths + 1,800-frame ECS on
+  //     256×256 grid (mirrors benchmarks/multilang-wasm/
+  //     game-canvas-entity-pathfinding/pathfinding_kernel.*; adapter fetches
+  //     the frozen 106,552-byte game-canvas-entity-pathfinding-v1.bin fixture
+  //     (seed 0x8f4c21a7), copies it into each engine's linear memory at
+  //     FIXTURE_OFFSET, and each kernel runs the pathfinding + ECS loop
+  //     bit-identical to run_pathfinding() in benchmarks/v2/game-family/
+  //     game-family.c and pathfinding() in engine.js. Counters + digests are
+  //     pinned against runGameJavaScript("game.canvas-entity-pathfinding.v1").
+  "game.canvas-entity-pathfinding.v1": {
+    kernels: ["pathfinding_trace"],
+    async build(mods) {
+      const FIXTURE_OFFSET = 3145728;
+      const RES_OFFSET = 3276800;
+      // Pinned oracle from runGameJavaScript("game.canvas-entity-pathfinding.v1").
+      const ORACLE = Object.freeze({
+        semantic: 0xfe0377bf,
+        path: 0x55c75f61,
+        tie: 0x8108145d,
+        ecs: 0xc497aa94,
+        animation: 0x569ffa98,
+        draw: 0x992a9d1d,
+        audio: 0xd1fcc811,
+        systemUpdates: 7372800,
+        pathNodesExpanded: 974592,
+        frontierOperations: 2213135,
+        drawCommands: 7372800,
+        audioEvents: 1,
+      });
+      const fixtureRes = await fetch(
+        "/artifacts/game-v2-controlled-family/game-canvas-entity-pathfinding-v1.bin",
+        { cache: "no-store" },
+      );
+      if (!fixtureRes.ok) {
+        throw new Error(
+          `pathfinding_trace: fixture fetch returned ${fixtureRes.status}`,
+        );
+      }
+      const fixtureBytes = new Uint8Array(await fixtureRes.arrayBuffer());
+      const { runGameJavaScript } = await import(
+        "/benchmarks/v2/game-family/engine.js"
+      );
+      const jsCallable = () => {
+        const r = runGameJavaScript(
+          "game.canvas-entity-pathfinding.v1",
+          fixtureBytes,
+        );
+        if (
+          r.counters.systemUpdates !== ORACLE.systemUpdates ||
+          r.counters.pathNodesExpanded !== ORACLE.pathNodesExpanded ||
+          r.counters.frontierOperations !== ORACLE.frontierOperations ||
+          r.counters.drawCommands !== ORACLE.drawCommands ||
+          r.counters.audioEvents !== ORACLE.audioEvents
+        ) {
+          throw new Error(
+            `pathfinding_trace JS counters drifted from the frozen oracle`,
+          );
+        }
+        if (
+          r.oracle.pathNodeSequenceDigest !== "55c75f61" ||
+          r.oracle.tieBreakDigest !== "8108145d" ||
+          r.oracle.ecsCheckpointDigest !== "c497aa94" ||
+          r.oracle.animationCommandStreamDigest !== "569ffa98" ||
+          r.oracle.drawCommandStreamDigest !== "992a9d1d" ||
+          r.oracle.audioEventStreamDigest !== "d1fcc811"
+        ) {
+          throw new Error(
+            `pathfinding_trace JS digests drifted from the frozen oracle`,
+          );
+        }
+      };
+      const callables = { js: { pathfinding_trace: jsCallable } };
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        const inst = mods.engines[key].instances.pathfinding_trace.instance;
+        callables[key] = {
+          pathfinding_trace: () => {
+            const memU8 = new Uint8Array(inst.exports.memory.buffer);
+            memU8.set(fixtureBytes, FIXTURE_OFFSET);
+            const ret = Number(
+              inst.exports.pathfinding_trace(fixtureBytes.byteLength),
+            );
+            if (ret !== 0) {
+              throw new Error(
+                `pathfinding_trace ${key} run failed with status ${ret}`,
+              );
+            }
+            const view = new Uint32Array(inst.exports.memory.buffer);
+            const base = RES_OFFSET / 4;
+            if (
+              (view[base] >>> 0) !== ORACLE.semantic ||
+              (view[base + 1] >>> 0) !== ORACLE.path ||
+              (view[base + 2] >>> 0) !== ORACLE.tie ||
+              (view[base + 3] >>> 0) !== ORACLE.ecs ||
+              (view[base + 4] >>> 0) !== ORACLE.animation ||
+              (view[base + 5] >>> 0) !== ORACLE.draw ||
+              (view[base + 6] >>> 0) !== ORACLE.audio
+            ) {
+              throw new Error(
+                `pathfinding_trace ${key} digests drifted from the frozen oracle`,
+              );
+            }
+            if (
+              view[base + 7] !== ORACLE.systemUpdates ||
+              view[base + 8] !== ORACLE.pathNodesExpanded ||
+              view[base + 9] !== ORACLE.frontierOperations ||
+              view[base + 10] !== ORACLE.drawCommands ||
+              view[base + 11] !== ORACLE.audioEvents
+            ) {
+              throw new Error(
+                `pathfinding_trace ${key} counters drifted from the frozen oracle`,
+              );
+            }
+          },
+        };
+      }
+      return callables;
+    },
+  },
+
   // --- ml-gemm: strict-f32 GEMM (mirrors benchmarks/v2/ml-gemm) -------------
   "ml.gemm.v1": {
     kernels: ["gemm"],
