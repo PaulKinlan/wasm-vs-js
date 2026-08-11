@@ -55,6 +55,7 @@ text.gc-document-edit.v1. Those are now in the kernel-capable table, not the
 exclusion list.
 
 Still excluded (no computable core, or meta/frozen):
+
 - Platform/API-bound: graphics-gltf-viewer, database-sqlite-notebook (vendored
   SQL engine), network-http2-quic-state (browser network APIs),
   audio-webaudio-effects (Web Audio API — DSP core port pending),
