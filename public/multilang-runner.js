@@ -3597,7 +3597,7 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
       }
 
       const callables = { js: { flood_fill: jsFlood, luma_gaussian_pipeline: jsPipeline } };
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of Object.keys(mods.engines).filter((k) => k !== "js" && k !== "dart")) {
         const floodInst = mods.engines[key].instances.flood_fill.instance;
         const pipeInst = mods.engines[key].instances.luma_gaussian_pipeline.instance;
         const floodMem = new Uint8Array(floodInst.exports.memory.buffer);
@@ -3691,7 +3691,7 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
         return entities.reduce((acc, e) => acc + e.x + e.y * 64, 0);
       };
       const callables = { js: { grid_trace: jsCallable } };
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of Object.keys(mods.engines).filter((k) => k !== "js" && k !== "dart")) {
         const inst = mods.engines[key].instances.grid_trace.instance;
         const mem = new Int32Array(inst.exports.memory.buffer);
         callables[key] = {
@@ -3760,7 +3760,7 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
         return items.reduce((acc, it) => acc + it.key, 0);
       };
       const callables = { js: { keyed_list_trace: jsCallable } };
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of Object.keys(mods.engines).filter((k) => k !== "js" && k !== "dart")) {
         const inst = mods.engines[key].instances.keyed_list_trace.instance;
         const mem = new Int32Array(inst.exports.memory.buffer);
         callables[key] = {
@@ -3845,7 +3845,7 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
         return idSum;
       };
       const callables = { js: { nested_tree_trace: jsCallable } };
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of Object.keys(mods.engines).filter((k) => k !== "js" && k !== "dart")) {
         const inst = mods.engines[key].instances.nested_tree_trace.instance;
         const mem = new Int32Array(inst.exports.memory.buffer);
         callables[key] = {
@@ -3893,7 +3893,7 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
         }
       };
       const callables = { js: { table_sort_trace: jsCallable } };
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of Object.keys(mods.engines).filter((k) => k !== "js" && k !== "dart")) {
         const inst = mods.engines[key].instances.table_sort_trace.instance;
         const mem = new Int32Array(inst.exports.memory.buffer);
         callables[key] = {
@@ -3939,7 +3939,7 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
         }
       };
       const callables = { js: { form_validate_trace: jsCallable } };
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of Object.keys(mods.engines).filter((k) => k !== "js" && k !== "dart")) {
         const inst = mods.engines[key].instances.form_validate_trace.instance;
         const mem = new Int32Array(inst.exports.memory.buffer);
         callables[key] = {
@@ -4079,7 +4079,7 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
         }
       };
       const callables = { js: { vdom_diff_trace: jsCallable } };
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of Object.keys(mods.engines).filter((k) => k !== "js" && k !== "dart")) {
         const inst = mods.engines[key].instances.vdom_diff_trace.instance;
         const mem = new Uint32Array(inst.exports.memory.buffer);
         callables[key] = {
@@ -4163,7 +4163,7 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
         }
       };
       const callables = { js: { gc_document_edit_trace: jsCallable } };
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of Object.keys(mods.engines).filter((k) => k !== "js" && k !== "dart")) {
         const inst = mods.engines[key].instances.gc_document_edit_trace.instance;
         callables[key] = {
           gc_document_edit_trace: () => {
@@ -4259,7 +4259,7 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
         }
       };
       const callables = { js: { arcade_trace: jsCallable } };
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of Object.keys(mods.engines).filter((k) => k !== "js" && k !== "dart")) {
         const inst = mods.engines[key].instances.arcade_trace.instance;
         callables[key] = {
           arcade_trace: () => {
@@ -4370,7 +4370,7 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
         }
       };
       const callables = { js: { pathfinding_trace: jsCallable } };
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of Object.keys(mods.engines).filter((k) => k !== "js" && k !== "dart")) {
         const inst = mods.engines[key].instances.pathfinding_trace.instance;
         callables[key] = {
           pathfinding_trace: () => {
@@ -4503,7 +4503,7 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
         }
       };
       const callables = { js: { grid_trace: jsCallable } };
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of Object.keys(mods.engines).filter((k) => k !== "js" && k !== "dart")) {
         const inst = mods.engines[key].instances.grid_trace.instance;
         callables[key] = {
           grid_trace: () => {
@@ -4634,7 +4634,7 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
         }
       };
       const callables = { js: { tactics_trace: jsCallable } };
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of Object.keys(mods.engines).filter((k) => k !== "js" && k !== "dart")) {
         const inst = mods.engines[key].instances.tactics_trace.instance;
         callables[key] = {
           tactics_trace: () => {
@@ -5594,7 +5594,7 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
         }
       };
       const callables = { js: { ssr_render: jsCallable } };
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of Object.keys(mods.engines).filter((k) => k !== "js" && k !== "dart")) {
         const inst = mods.engines[key].instances.ssr_render.instance;
         callables[key] = {
           ssr_render: () => {
@@ -5694,7 +5694,7 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
         }
       };
       const callables = { js: { protobuf_gateway: jsCallable } };
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of Object.keys(mods.engines).filter((k) => k !== "js" && k !== "dart")) {
         const inst = mods.engines[key].instances.protobuf_gateway.instance;
         callables[key] = {
           protobuf_gateway: () => {
@@ -5819,7 +5819,7 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
         }
       };
       const callables = { js: { markdown_cms_render: jsCallable } };
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of Object.keys(mods.engines).filter((k) => k !== "js" && k !== "dart")) {
         const inst = mods.engines[key].instances.markdown_cms_render.instance;
         callables[key] = {
           markdown_cms_render: () => {
@@ -5931,7 +5931,7 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
         }
       };
       const callables = { js: { regex_scan: jsCallable } };
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of Object.keys(mods.engines).filter((k) => k !== "js" && k !== "dart")) {
         const inst = mods.engines[key].instances.regex_scan.instance;
         callables[key] = {
           regex_scan: () => {
