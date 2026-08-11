@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "493a8ba357911b94c1dd70efa7e3694c4b30cb89",
-  "sourceSha256": "6fae22ef2a322a03bbb9c59e5a888db0e06f067f3f50b46a1d59912b8adcf383",
+  "sourceCommit": "833b119bb3e3303366636f8641b9339d2a3cddfe",
+  "sourceSha256": "94ceb98cb7c844cc9655e8548b6cbec871122136d1d9e5316801ded258a8b405",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 94397,
-      "sha256": "4c155e0b1030da1b1e09b67e10642d98c58adbd7db0f6a871fa12c687add0f5d"
+      "bytes": 94743,
+      "sha256": "06f7a91ed943dce0c8a0cc1da1a72fccdc7eb931beb74462d49d04f1e09443f9"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "5405f33bf92b5d3cb41f51942d777a15fe2309acba8ce70b6586b3130b2953f1"
+      "sha256": "9c20cf96fde65a05d64275f1bb35051531e630aec1734729921c25575fc497ec"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "a4a688f40582d944e95327d1ccb7dc3b0327926a11ef646cc31e71cd1f7eafd6"
+      "sha256": "56e5944eabc93c4867559080b85ebd618caab5f38af2685345ab6742f7661449"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=493a8ba357911b94c1dd70efa7e3694c4b30cb89"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=833b119bb3e3303366636f8641b9339d2a3cddfe"
   }
 }
