@@ -32,12 +32,6 @@ function get32(p: usize): u32 {
 // Global "at" state for writers
 let global_at: u32 = 0;
 
-function append8(out: usize, cap: u32, v: u32): bool {
-  if (global_at >= cap) return false;
-  store<u8>(out + global_at, (v & 255) as u8);
-  global_at++;
-  return true;
-}
 function append16(out: usize, cap: u32, v: u32): bool {
   if (global_at + 2 > cap) return false;
   set16(out + global_at, v);
@@ -251,7 +245,7 @@ function deflate_fixed(in_ptr: usize, n: u32, out_ptr: usize, cap: u32): u32 {
   while (pos < n && bw_ok) {
     let best: u32 = 0;
     let best_dist: u32 = 0;
-    let earliest: u32 = pos > 1024 ? pos - 1024 : 0;
+    const earliest: u32 = pos > 1024 ? pos - 1024 : 0;
     let candidate: u32 = pos;
     while (candidate > earliest) {
       candidate--;
@@ -270,7 +264,7 @@ function deflate_fixed(in_ptr: usize, n: u32, out_ptr: usize, cap: u32): u32 {
     if (best >= 3) {
       let li: u32 = 28;
       for (let k: u32 = 0; k < 29; k++) {
-        let max = LENGTH_BASE[k] as u32 + ((1 << LENGTH_EXTRA[k]) - 1);
+        const max = LENGTH_BASE[k] as u32 + ((1 << LENGTH_EXTRA[k]) - 1);
         if (best <= max) {
           li = k;
           break;
@@ -321,8 +315,8 @@ function br_read(width: u32): u32 {
     br_at++;
     br_bits += 8;
   }
-  let mask = (1 << width) - 1;
-  let v = br_acc & mask;
+  const mask = (1 << width) - 1;
+  const v = br_acc & mask;
   br_acc >>= width;
   br_bits -= width;
   return v;
@@ -351,7 +345,7 @@ function inflate_fixed(in_ptr: usize, n: u32, out_ptr: usize, expected: u32): bo
   if (br_read(1) != 1 || br_read(2) != 1) return false;
   let at: u32 = 0;
   while (true) {
-    let s = decode_symbol();
+    const s = decode_symbol();
     if (s == 256) break;
     if (s < 0) return false;
     if (s < 256) {
@@ -361,11 +355,11 @@ function inflate_fixed(in_ptr: usize, n: u32, out_ptr: usize, expected: u32): bo
       continue;
     }
     if (s > 285) return false;
-    let li = (s as u32) - 257;
-    let len = (LENGTH_BASE[li] as u32) + br_read(LENGTH_EXTRA[li] as u32);
-    let dc = reverse_bits(br_read(5), 5);
+    const li = (s as u32) - 257;
+    const len = (LENGTH_BASE[li] as u32) + br_read(LENGTH_EXTRA[li] as u32);
+    const dc = reverse_bits(br_read(5), 5);
     if (dc >= 30) return false;
-    let dist = (DIST_BASE[dc] as u32) + br_read(DIST_EXTRA[dc] as u32);
+    const dist = (DIST_BASE[dc] as u32) + br_read(DIST_EXTRA[dc] as u32);
     if (dist > at || at + len > expected) return false;
     for (let i: u32 = 0; i < len; i++) {
       store<u8>(out_ptr + at, load<u8>(out_ptr + at - dist));
@@ -484,7 +478,7 @@ const STR_TOKYO: StaticArray<u8> = [47, 230, 157, 177, 228, 186, 172]; // /Êù±‰∫
 
 function path_for(index: u32, out_ptr: usize): u32 {
   let at: u32 = 0;
-  let family = index & 3;
+  const family = index & 3;
   if (family == 0) at = path_text(out_ptr, at, STR_SRC);
   else if (family == 1) at = path_text(out_ptr, at, STR_DATA);
   else if (family == 2) at = path_text(out_ptr, at, STR_ASSETS);
@@ -495,7 +489,7 @@ function path_for(index: u32, out_ptr: usize): u32 {
 
   store<u8>(out_ptr + at, 47);
   at++; // '/'
-  let group = index / 100;
+  const group = index / 100;
   store<u8>(out_ptr + at, 48 + ((group / 100) % 10) as u8);
   at++;
   store<u8>(out_ptr + at, 48 + ((group / 10) % 10) as u8);
@@ -534,9 +528,9 @@ function path_for(index: u32, out_ptr: usize): u32 {
 }
 
 function content_for(index: u32, out_ptr: usize): u32 {
-  let n = 48 + (index % 113);
+  const n = 48 + (index % 113);
   let state = 0x9e3779b9 ^ index;
-  let f = index & 3;
+  const f = index & 3;
   for (let i: u32 = 0; i < (n as u32); i++) {
     state ^= state << 13;
     state ^= state >>> 17;
@@ -573,27 +567,27 @@ function fnv1a32(bytes: usize, length: u32): u32 {
 }
 
 export function zip_build(): u32 {
-  let archive_bytes: usize = ARCHIVE_OFFSET;
-  let extracted_bytes: usize = EXTRACTED_OFFSET;
-  let listing_bytes: usize = LISTING_OFFSET;
-  let counters: usize = RES_OFFSET;
+  const archive_bytes: usize = ARCHIVE_OFFSET;
+  const extracted_bytes: usize = EXTRACTED_OFFSET;
+  const listing_bytes: usize = LISTING_OFFSET;
+  const counters: usize = RES_OFFSET;
 
-  let local_offsets: usize = INTERNAL_OFFSET;
-  let crcs: usize = INTERNAL_OFFSET + 4000;
-  let compressed_sizes: usize = INTERNAL_OFFSET + 8000;
-  let plain_sizes: usize = INTERNAL_OFFSET + 12000;
-  let name_sizes: usize = INTERNAL_OFFSET + 16000;
+  const local_offsets: usize = INTERNAL_OFFSET;
+  const crcs: usize = INTERNAL_OFFSET + 4000;
+  const compressed_sizes: usize = INTERNAL_OFFSET + 8000;
+  const plain_sizes: usize = INTERNAL_OFFSET + 12000;
+  const name_sizes: usize = INTERNAL_OFFSET + 16000;
 
   for (let i: u32 = 0; i < 18; i++) store<u32>(counters + i * 4, 0);
 
-  let archive_cap: u32 = 1048576;
-  let extract_cap: u32 = 1048576;
-  let listing_cap: u32 = 1048576;
-  let entry_count = BOUNDED_ENTRY_COUNT;
+  const archive_cap: u32 = 1048576;
+  const extract_cap: u32 = 1048576;
+  const listing_cap: u32 = 1048576;
+  const entry_count = BOUNDED_ENTRY_COUNT;
 
-  let name: usize = INTERNAL_OFFSET + 20000;
-  let plain: usize = INTERNAL_OFFSET + 20100;
-  let compressed: usize = INTERNAL_OFFSET + 20300;
+  const name: usize = INTERNAL_OFFSET + 20000;
+  const plain: usize = INTERNAL_OFFSET + 20100;
+  const compressed: usize = INTERNAL_OFFSET + 20300;
 
   global_at = 0;
   let input_total: u32 = 0;
@@ -602,10 +596,10 @@ export function zip_build(): u32 {
   def_matched_bytes = 0;
 
   for (let i: u32 = 0; i < entry_count; i++) {
-    let nl = path_for(i, name);
-    let pl = content_for(i, plain);
-    let cl = deflate_fixed(plain, pl, compressed, 256);
-    let crc = crc32_bytes(plain, pl);
+    const nl = path_for(i, name);
+    const pl = content_for(i, plain);
+    const cl = deflate_fixed(plain, pl, compressed, 256);
+    const crc = crc32_bytes(plain, pl);
     if (cl == 0) return 1;
 
     store<u32>(local_offsets + i * 4, global_at);
@@ -631,9 +625,9 @@ export function zip_build(): u32 {
     ) return 2;
     input_total += pl;
   }
-  let central = global_at;
+  const central = global_at;
   for (let i: u32 = 0; i < entry_count; i++) {
-    let nl = path_for(i, name);
+    const nl = path_for(i, name);
     if (
       !append32(archive_bytes, archive_cap, 0x02014b50) ||
       !append16(archive_bytes, archive_cap, 0x0314) ||
@@ -655,7 +649,7 @@ export function zip_build(): u32 {
       !append_bytes(archive_bytes, archive_cap, name, nl)
     ) return 3;
   }
-  let central_size = global_at - central;
+  const central_size = global_at - central;
   if (
     !append32(archive_bytes, archive_cap, 0x06054b50) ||
     !append16(archive_bytes, archive_cap, 0) ||
@@ -667,7 +661,7 @@ export function zip_build(): u32 {
     !append16(archive_bytes, archive_cap, 0)
   ) return 4;
 
-  let archive_len = global_at;
+  const archive_len = global_at;
   store<u32>(counters, entry_count);
   store<u32>(counters + 4, input_total);
   store<u32>(counters + 8, input_total);
@@ -679,23 +673,23 @@ export function zip_build(): u32 {
   store<u32>(counters + 32, entry_count);
   store<u32>(counters + 36, 0);
 
-  let e = archive_len - 22;
-  let count = get16(archive_bytes + e + 8);
-  let coff = get32(archive_bytes + e + 16);
+  const e = archive_len - 22;
+  const count = get16(archive_bytes + e + 8);
+  const coff = get32(archive_bytes + e + 16);
 
   let cur = coff;
   global_at = 0; // for listing
   let eat: u32 = 0;
   let exbytes: u32 = 0;
 
-  let plain2: usize = INTERNAL_OFFSET + 20700;
+  const plain2: usize = INTERNAL_OFFSET + 20700;
 
   for (let i: u32 = 0; i < count; i++) {
-    let crc = get32(archive_bytes + cur + 16);
-    let cs = get32(archive_bytes + cur + 20);
-    let ps = get32(archive_bytes + cur + 24);
-    let nl = get16(archive_bytes + cur + 28);
-    let lo = get32(archive_bytes + cur + 42);
+    const crc = get32(archive_bytes + cur + 16);
+    const cs = get32(archive_bytes + cur + 20);
+    const ps = get32(archive_bytes + cur + 24);
+    const nl = get16(archive_bytes + cur + 28);
+    const lo = get32(archive_bytes + cur + 42);
 
     if (
       !append16(listing_bytes, listing_cap, nl) ||
@@ -705,10 +699,10 @@ export function zip_build(): u32 {
       !append32(listing_bytes, listing_cap, crc)
     ) return 5;
 
-    let data = lo + 30 + nl;
+    const data = lo + 30 + nl;
     if (selected_slot(i) >= 0) {
       if (!inflate_fixed(archive_bytes + data, cs, plain2, ps)) return 6;
-      let prev_at = global_at;
+      const prev_at = global_at;
       global_at = eat;
       if (
         !append32(extracted_bytes, extract_cap, i) ||
