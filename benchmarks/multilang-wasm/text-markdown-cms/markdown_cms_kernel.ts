@@ -44,9 +44,6 @@ function outByteRaw(v: u8): void {
   store<u8>(OUTPUT_OFFSET + (<usize> outAt), v);
   outAt++;
 }
-function outByte(v: u32): void {
-  outByteRaw(<u8> v);
-}
 function litString(s: string): void {
   for (let i = 0; i < s.length; i++) outByteRaw(<u8> s.charCodeAt(i));
 }
