@@ -6,7 +6,7 @@
   "entryId": "audio.webaudio-effects.v1",
   "implementationId": "audio-webaudio-effects-controlled-v1",
   "target": "javascript",
-  "sourceCommit": "8b981d7e24adf8f001f6a8a4796ad75e12c61228",
+  "sourceCommit": "e3be16de8ca5c6a9c612a66c8df063b2f02c670d",
   "completeOutputSha256": "fba0623a3af7679b1e95b79c7f454c38e1ac2123de5ebf3a7a86bc43bff16550",
   "oracle": {
     "absoluteTolerance": 0.00002,

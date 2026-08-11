@@ -22,7 +22,7 @@
   "anchors": {
     "fixtureSha256": "45b117b798a6b35f42a3b5a541f5112bb7100510735e17650fee11ee6c8d6075",
     "fixtureManifestSha256": "8b4145b0d91f6eb086e7c3cabe1bf1bb9a647c9e7771ad0f824005141ebe5681",
-    "buildManifestSha256": "152f3347a02f3c5c993c0c7451bf273f54b30e2cdca68eb4223319d651b7b215",
+    "buildManifestSha256": "b834d977d5b66e99126abd3a66f98e4ef1726ae4bfcb7708624790d97cde5303",
     "referenceSha256": "4b38bffbe6c4f9787a4d629ccbd363ebc52318195f5141dde55011333582b695"
   },
   "gcDiagnostics": {

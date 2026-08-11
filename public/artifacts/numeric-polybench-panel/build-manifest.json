@@ -4,8 +4,8 @@
   "contractId": "numeric.polybench-panel.v1-supplemental-contract-v1",
   "track": "controlled",
   "repository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "implementationCommit": "8b981d7e24adf8f001f6a8a4796ad75e12c61228",
-  "sourceTreeSha256": "480688a2bed7b4e53e3c9d87e32b17a3c8f81df780b37c7b9e50189300aa44c7",
+  "implementationCommit": "e3be16de8ca5c6a9c612a66c8df063b2f02c670d",
+  "sourceTreeSha256": "83a2a42214f654e82e6621b4c310407831b54c94bfbaf3e89eaca45ec3cf9868",
   "sourceGraph": [
     {
       "path": "benchmarks/base/numeric-polybench-panel/contract.json",
@@ -29,8 +29,8 @@
     },
     {
       "path": "deno.lock",
-      "bytes": 1630,
-      "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2"
+      "bytes": 6048,
+      "sha256": "6096fd28d3d67a7f257969678d76a37f244c7114d309db6a5acc1ec461bd7948"
     },
     {
       "path": "deno.polybench.json",
@@ -74,8 +74,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 97126,
-      "sha256": "0a6191a787a69459ac4eef3d7dc638ea68ac52f30521838597beba89016e6336"
+      "bytes": 97287,
+      "sha256": "c4325fc5962adff42141e7d2c68a57944ccb37c7ed9baaf1ab153dee892fcd85"
     },
     {
       "path": "tests/base/polybench-panel.test.ts",
@@ -83,7 +83,7 @@
       "sha256": "f8aae8675b68230c5219c3cfebdf32fddebb76178c78df13257d650c9276b71b"
     }
   ],
-  "reproducibleCommand": "deno task --config deno.polybench.json build:base-polybench --source-commit 8b981d7e24adf8f001f6a8a4796ad75e12c61228",
+  "reproducibleCommand": "deno task --config deno.polybench.json build:base-polybench --source-commit e3be16de8ca5c6a9c612a66c8df063b2f02c670d",
   "toolchain": {
     "deno": "2.9.0",
     "wabt": "1.0.37",
@@ -106,8 +106,8 @@
     ],
     "lockfile": {
       "path": "deno.lock",
-      "bytes": 1630,
-      "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2"
+      "bytes": 6048,
+      "sha256": "6096fd28d3d67a7f257969678d76a37f244c7114d309db6a5acc1ec461bd7948"
     }
   },
   "artifacts": {
