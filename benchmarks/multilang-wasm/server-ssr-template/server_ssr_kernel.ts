@@ -25,21 +25,25 @@ let cur: u32 = 0;
 let curFailed: bool = false;
 
 function fixtureAt(off: u32): u8 {
-  return load<u8>(FIXTURE_OFFSET + (<usize>off));
+  return load<u8>(FIXTURE_OFFSET + (<usize> off));
 }
 function readU32Le(off: u32): u32 {
-  return (<u32>fixtureAt(off)) |
-    ((<u32>fixtureAt(off + 1)) << 8) |
-    ((<u32>fixtureAt(off + 2)) << 16) |
-    ((<u32>fixtureAt(off + 3)) << 24);
+  return (<u32> fixtureAt(off)) |
+    ((<u32> fixtureAt(off + 1)) << 8) |
+    ((<u32> fixtureAt(off + 2)) << 16) |
+    ((<u32> fixtureAt(off + 3)) << 24);
 }
-function fnvReset(): void { fnv = 0x811c9dc5; }
-function fnvMixByte(b: u8): void { fnv = ((fnv ^ (<u32>b)) * 0x01000193) >>> 0; }
+function fnvReset(): void {
+  fnv = 0x811c9dc5;
+}
+function fnvMixByte(b: u8): void {
+  fnv = ((fnv ^ (<u32> b)) * 0x01000193) >>> 0;
+}
 
 function outByte(v: u32): void {
   if (outFailed) return;
-  store<u8>(OUTPUT_OFFSET + (<usize>outAt), <u8>v);
-  fnvMixByte(<u8>v);
+  store<u8>(OUTPUT_OFFSET + (<usize> outAt), <u8> v);
+  fnvMixByte(<u8> v);
   outAt++;
 }
 function outU32Le(v: u32): void {
@@ -49,10 +53,10 @@ function outU32Le(v: u32): void {
   outByte((v >>> 24) & 0xff);
 }
 function outOverwriteU32Le(at: u32, v: u32): void {
-  store<u8>(OUTPUT_OFFSET + (<usize>at), <u8>(v & 0xff));
-  store<u8>(OUTPUT_OFFSET + (<usize>at) + 1, <u8>((v >>> 8) & 0xff));
-  store<u8>(OUTPUT_OFFSET + (<usize>at) + 2, <u8>((v >>> 16) & 0xff));
-  store<u8>(OUTPUT_OFFSET + (<usize>at) + 3, <u8>((v >>> 24) & 0xff));
+  store<u8>(OUTPUT_OFFSET + (<usize> at), <u8> (v & 0xff));
+  store<u8>(OUTPUT_OFFSET + (<usize> at) + 1, <u8> ((v >>> 8) & 0xff));
+  store<u8>(OUTPUT_OFFSET + (<usize> at) + 2, <u8> ((v >>> 16) & 0xff));
+  store<u8>(OUTPUT_OFFSET + (<usize> at) + 3, <u8> ((v >>> 24) & 0xff));
 }
 // Static ASCII literals from a fixed memory region below FIXTURE_OFFSET.
 // We store each literal's bytes at a fixed offset and emit them via outByte.
@@ -60,40 +64,59 @@ function outOverwriteU32Le(at: u32, v: u32): void {
 // literal as a series of outByte calls.
 
 function litAmp(): void {
-  outByte(38); outByte(97); outByte(109); outByte(112); outByte(59);
+  outByte(38);
+  outByte(97);
+  outByte(109);
+  outByte(112);
+  outByte(59);
 }
 function litLt(): void {
-  outByte(38); outByte(108); outByte(116); outByte(59);
+  outByte(38);
+  outByte(108);
+  outByte(116);
+  outByte(59);
 }
 function litGt(): void {
-  outByte(38); outByte(103); outByte(116); outByte(59);
+  outByte(38);
+  outByte(103);
+  outByte(116);
+  outByte(59);
 }
 function litQuot(): void {
-  outByte(38); outByte(113); outByte(117); outByte(111); outByte(116); outByte(59);
+  outByte(38);
+  outByte(113);
+  outByte(117);
+  outByte(111);
+  outByte(116);
+  outByte(59);
 }
 function litApos(): void {
-  outByte(38); outByte(35); outByte(51); outByte(57); outByte(59);
+  outByte(38);
+  outByte(35);
+  outByte(51);
+  outByte(57);
+  outByte(59);
 }
 
 // Emit a compile-time ASCII string one byte at a time. The compiler unrolls
 // this at -O3 into a straight-line sequence of outByte calls.
 // @ts-ignore: decorator
-@inline
+
 function litString(s: string): void {
-  for (let i = 0; i < s.length; i++) outByte(<u32>s.charCodeAt(i));
+  for (let i = 0; i < s.length; i++) outByte(<u32> s.charCodeAt(i));
 }
 
 function writeDecimal(value: u32, minimum: u32): void {
   const digits = new StaticArray<u8>(10);
   let n: u32 = 0;
   do {
-    digits[n] = <u8>(48 + (value % 10));
+    digits[n] = <u8> (48 + (value % 10));
     n++;
     value = value / 10;
   } while (value != 0 || n < minimum);
   while (n > 0) {
     n--;
-    outByte(<u32>digits[n]);
+    outByte(<u32> digits[n]);
   }
 }
 function writeTextEscaped(off: u32, n: u32): void {
@@ -102,7 +125,7 @@ function writeTextEscaped(off: u32, n: u32): void {
     if (c == 38) litAmp();
     else if (c == 60) litLt();
     else if (c == 62) litGt();
-    else outByte(<u32>c);
+    else outByte(<u32> c);
   }
 }
 function writeAttrEscaped(off: u32, n: u32): void {
@@ -113,7 +136,7 @@ function writeAttrEscaped(off: u32, n: u32): void {
     else if (c == 62) litGt();
     else if (c == 34) litQuot();
     else if (c == 39) litApos();
-    else outByte(<u32>c);
+    else outByte(<u32> c);
   }
 }
 function isUnreserved(c: u8): bool {
@@ -123,13 +146,13 @@ function isUnreserved(c: u8): bool {
 function writeUrlComponent(off: u32, n: u32): void {
   for (let i: u32 = 0; i < n; i++) {
     const c = fixtureAt(off + i);
-    if (isUnreserved(c)) outByte(<u32>c);
+    if (isUnreserved(c)) outByte(<u32> c);
     else {
       outByte(37);
       const hi = c >> 4;
       const lo = c & 15;
-      outByte(hi < 10 ? <u32>(48 + hi) : <u32>(65 + hi - 10));
-      outByte(lo < 10 ? <u32>(48 + lo) : <u32>(65 + lo - 10));
+      outByte(hi < 10 ? <u32> (48 + hi) : <u32> (65 + hi - 10));
+      outByte(lo < 10 ? <u32> (48 + lo) : <u32> (65 + lo - 10));
     }
   }
 }
@@ -155,17 +178,26 @@ function writePrice(cents: u32): void {
 function validUtf8(off: u32, n: u32): bool {
   let i: u32 = 0;
   while (i < n) {
-    const c = <u32>fixtureAt(off + i);
+    const c = <u32> fixtureAt(off + i);
     i++;
     if (c < 0x80) continue;
     let need: u32 = 0, min: u32 = 0, value: u32 = 0;
-    if ((c & 0xe0) == 0xc0) { need = 1; min = 0x80; value = c & 0x1f; }
-    else if ((c & 0xf0) == 0xe0) { need = 2; min = 0x800; value = c & 0x0f; }
-    else if ((c & 0xf8) == 0xf0) { need = 3; min = 0x10000; value = c & 0x07; }
-    else return false;
+    if ((c & 0xe0) == 0xc0) {
+      need = 1;
+      min = 0x80;
+      value = c & 0x1f;
+    } else if ((c & 0xf0) == 0xe0) {
+      need = 2;
+      min = 0x800;
+      value = c & 0x0f;
+    } else if ((c & 0xf8) == 0xf0) {
+      need = 3;
+      min = 0x10000;
+      value = c & 0x07;
+    } else return false;
     if (i + need > n) return false;
     for (let j: u32 = 0; j < need; j++) {
-      const d = <u32>fixtureAt(off + i);
+      const d = <u32> fixtureAt(off + i);
       i++;
       if ((d & 0xc0) != 0x80) return false;
       value = (value << 6) | (d & 0x3f);
@@ -177,7 +209,10 @@ function validUtf8(off: u32, n: u32): bool {
   return true;
 }
 function parseU32(end: u32): u32 {
-  if (curFailed || cur > end || end - cur < 4) { curFailed = true; return 0; }
+  if (curFailed || cur > end || end - cur < 4) {
+    curFailed = true;
+    return 0;
+  }
   const v = readU32Le(cur);
   cur += 4;
   return v;
@@ -191,48 +226,58 @@ function parseString(end: u32): u32 {
     curFailed = true;
     return 0;
   }
-  if (!validUtf8(cur, length)) { curFailed = true; return 0; }
+  if (!validUtf8(cur, length)) {
+    curFailed = true;
+    return 0;
+  }
   lastStringOff = cur;
   cur += length;
   return length;
 }
 
 function renderRecord(
-  productId: u32, userId: u32, priceCents: u32, dateYmd: u32,
-  nameOff: u32, nameN: u32, userOff: u32, userN: u32,
-  slugOff: u32, slugN: u32,
+  productId: u32,
+  userId: u32,
+  priceCents: u32,
+  dateYmd: u32,
+  nameOff: u32,
+  nameN: u32,
+  userOff: u32,
+  userN: u32,
+  slugOff: u32,
+  slugN: u32,
 ): bool {
-  litString("<!doctype html><html lang=\"en\"><body><article data-product=\"");
+  litString('<!doctype html><html lang="en"><body><article data-product="');
   writeDecimal(productId, 1);
   cIntegerFormats++;
-  litString("\"><h1>");
+  litString('"><h1>');
   writeTextEscaped(nameOff, nameN);
   cTextEscapes++;
-  litString("</h1><p data-user=\"");
+  litString('</h1><p data-user="');
   writeDecimal(userId, 1);
   cIntegerFormats++;
-  litString("\" aria-label=\"Catalog for ");
+  litString('" aria-label="Catalog for ');
   writeAttrEscaped(userOff, userN);
   cAttributeEscapes++;
-  litString("\">Hello, ");
+  litString('">Hello, ');
   writeTextEscaped(userOff, userN);
   cTextEscapes++;
-  litString(".</p><p class=\"price\" data-cents=\"");
+  litString('.</p><p class="price" data-cents="');
   writeDecimal(priceCents, 1);
   cIntegerFormats++;
-  litString("\">USD ");
+  litString('">USD ');
   writePrice(priceCents);
   cIntegerFormats++;
-  litString("</p><a href=\"/catalog/");
+  litString('</p><a href="/catalog/');
   writeUrlComponent(slugOff, slugN);
   cUrlEscapes++;
   litString("?for=");
   writeUrlComponent(userOff, userN);
   cUrlEscapes++;
-  litString("\">Open</a><time datetime=\"");
+  litString('">Open</a><time datetime="');
   if (!writeDate(dateYmd)) return false;
   cDateFormats++;
-  litString("\">");
+  litString('">');
   if (!writeDate(dateYmd)) return false;
   cDateFormats++;
   litString("</time></article></body></html>");
@@ -277,10 +322,20 @@ export function ssr_render(fixtureLen: u32): i32 {
     const lengthAt = outAt;
     outU32Le(0);
     const start = outAt;
-    if (!renderRecord(
-      productId, userId, priceCents, dateYmd,
-      nameOff, nameN, userOff, userN, slugOff, slugN,
-    )) return -6;
+    if (
+      !renderRecord(
+        productId,
+        userId,
+        priceCents,
+        dateYmd,
+        nameOff,
+        nameN,
+        userOff,
+        userN,
+        slugOff,
+        slugN,
+      )
+    ) return -6;
     const bodyLen = outAt - start;
     outOverwriteU32Le(lengthAt, bodyLen);
   }
@@ -289,7 +344,7 @@ export function ssr_render(fixtureLen: u32): i32 {
 
   fnvReset();
   for (let i: u32 = 0; i < outAt; i++) {
-    fnvMixByte(load<u8>(OUTPUT_OFFSET + (<usize>i)));
+    fnvMixByte(load<u8>(OUTPUT_OFFSET + (<usize> i)));
   }
 
   store<u32>(RES_OFFSET, RECORDS);

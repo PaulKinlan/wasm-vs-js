@@ -11,30 +11,34 @@ const RES_OFFSET: usize = 5242880;
 const FIXTURE_MAGIC: u32 = 0x31415852;
 
 function fixtureAt(off: u32): u8 {
-  return load<u8>(FIXTURE_OFFSET + (<usize>off));
+  return load<u8>(FIXTURE_OFFSET + (<usize> off));
 }
 function readU32Le(off: u32): u32 {
-  return (<u32>fixtureAt(off)) |
-    ((<u32>fixtureAt(off + 1)) << 8) |
-    ((<u32>fixtureAt(off + 2)) << 16) |
-    ((<u32>fixtureAt(off + 3)) << 24);
+  return (<u32> fixtureAt(off)) |
+    ((<u32> fixtureAt(off + 1)) << 8) |
+    ((<u32> fixtureAt(off + 2)) << 16) |
+    ((<u32> fixtureAt(off + 3)) << 24);
 }
 function readI16Le(off: u32): i32 {
-  const lo = <u32>fixtureAt(off);
-  const hi = <u32>fixtureAt(off + 1);
+  const lo = <u32> fixtureAt(off);
+  const hi = <u32> fixtureAt(off + 1);
   const combined = lo | (hi << 8);
   // Sign-extend from 16 bits to i32.
-  return <i32>(<i16>combined);
+  return <i32> (<i16> combined);
 }
 
 let fnv: u32 = 0;
-function fnvReset(): void { fnv = 0x811c9dc5; }
-function fnvMixByte(b: u8): void { fnv = ((fnv ^ (<u32>b)) * 0x01000193) >>> 0; }
+function fnvReset(): void {
+  fnv = 0x811c9dc5;
+}
+function fnvMixByte(b: u8): void {
+  fnv = ((fnv ^ (<u32> b)) * 0x01000193) >>> 0;
+}
 function fnvMixU32(v: u32): void {
-  fnvMixByte(<u8>(v & 0xff));
-  fnvMixByte(<u8>((v >>> 8) & 0xff));
-  fnvMixByte(<u8>((v >>> 16) & 0xff));
-  fnvMixByte(<u8>((v >>> 24) & 0xff));
+  fnvMixByte(<u8> (v & 0xff));
+  fnvMixByte(<u8> ((v >>> 8) & 0xff));
+  fnvMixByte(<u8> ((v >>> 16) & 0xff));
+  fnvMixByte(<u8> ((v >>> 24) & 0xff));
 }
 
 function isValidEnd(corpusOff: u32, corpusLen: u32, end: u32): bool {
@@ -44,8 +48,10 @@ function isValidEnd(corpusOff: u32, corpusLen: u32, end: u32): bool {
     if (c == 10 || c == 13) return true;
   }
   if (corpusLen >= 2 && end == corpusLen - 2) {
-    if (fixtureAt(corpusOff + end) == 13 &&
-        fixtureAt(corpusOff + end + 1) == 10) {
+    if (
+      fixtureAt(corpusOff + end) == 13 &&
+      fixtureAt(corpusOff + end + 1) == 10
+    ) {
       return true;
     }
   }
@@ -103,40 +109,42 @@ export function regex_scan(fixtureLen: u32): i32 {
       let cursor = search;
       let state: i32 = 0;
       let best: i32 = -1;
-      if (fixtureAt(acceptOff + (<u32>state)) != 0) {
+      if (fixtureAt(acceptOff + (<u32> state)) != 0) {
         const valid = anchorEnd != 0 ? isValidEnd(corpusOff, corpusLen, cursor) : true;
-        if (valid) best = <i32>cursor;
+        if (valid) best = <i32> cursor;
       }
       while (cursor < corpusLen) {
         const code = fixtureAt(corpusOff + cursor);
         if (code >= 128) break;
-        if (best == <i32>cursor &&
-            fixtureAt(commitOff + (<u32>state) * 128 + (<u32>code)) != 0) {
+        if (
+          best == <i32> cursor &&
+          fixtureAt(commitOff + (<u32> state) * 128 + (<u32> code)) != 0
+        ) {
           break;
         }
-        const next = readI16Le(tableOff + ((<u32>state) * 128 + (<u32>code)) * 2);
+        const next = readI16Le(tableOff + ((<u32> state) * 128 + (<u32> code)) * 2);
         if (next < 0) break;
         state = next;
         cursor++;
-        if (fixtureAt(acceptOff + (<u32>state)) != 0) {
+        if (fixtureAt(acceptOff + (<u32> state)) != 0) {
           const valid = anchorEnd != 0 ? isValidEnd(corpusOff, corpusLen, cursor) : true;
-          if (valid) best = <i32>cursor;
+          if (valid) best = <i32> cursor;
         }
       }
-      if (best >= <i32>search) {
+      if (best >= <i32> search) {
         fnvMixU32(patternId);
         fnvMixU32(search);
-        fnvMixU32(<u32>best);
+        fnvMixU32(<u32> best);
         matchesFound++;
         patternMatches++;
-        if ((<u32>best) > search) search = <u32>best;
+        if ((<u32> best) > search) search = <u32> best;
         else search++;
       } else {
         if (anchorStart != 0) break;
         search++;
       }
     }
-    capturesExtracted += patternMatches * (<u32>captureGroups);
+    capturesExtracted += patternMatches * (<u32> captureGroups);
   }
 
   store<u32>(RES_OFFSET, matchesFound);
