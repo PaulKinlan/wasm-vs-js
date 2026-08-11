@@ -4415,6 +4415,149 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
     },
   },
 
+  // --- dom.virtualized-grid.v1: 300-event virtualized-grid replay on 100,000
+  //     rows (mirrors benchmarks/multilang-wasm/dom-virtualized-grid/
+  //     grid_trace_kernel.*; adapter fetches the frozen 1,604,864-byte
+  //     dom-virtualized-grid-v1/fixture.bin, copies it into each engine's
+  //     linear memory at FIXTURE_OFFSET, and each kernel replays the trace
+  //     bit-identical to createJavaScriptGridExecution() in
+  //     benchmarks/base/dom-virtualized-grid/engine.js. Counters + digests
+  //     are pinned against runJavaScript() on the same fixture bytes.
+  "dom.virtualized-grid.v1": {
+    kernels: ["grid_trace"],
+    async build(mods) {
+      const FIXTURE_OFFSET = 3145728;
+      const RES_OFFSET = 5242880;
+      // Pinned oracle from runJavaScript() on the frozen fixture.
+      const ORACLE = Object.freeze({
+        commandDigest: 0x83889fa4,
+        rowsScanned: 700000,
+        comparisons: 3279951,
+        events: 300,
+        commands: 4252,
+        physicalCreates: 28,
+        physicalReuses: 3764,
+        physicalUpdates: 2,
+        physicalPlacements: 92,
+        physicalHides: 64,
+        focusOperations: 2,
+        layoutReads: 300,
+        finalStart: 60318,
+        finalEnd: 60346,
+        finalVisibleLength: 28,
+        focused: 10524,
+        selected: 10524,
+        filteredLength: 100000,
+      });
+      const fixtureRes = await fetch(
+        "/artifacts/dom-virtualized-grid-v1/fixture.bin",
+        { cache: "no-store" },
+      );
+      if (!fixtureRes.ok) {
+        throw new Error(
+          `grid_trace: fixture fetch returned ${fixtureRes.status}`,
+        );
+      }
+      const fixtureBytes = new Uint8Array(await fixtureRes.arrayBuffer());
+      const { runJavaScript } = await import(
+        "/benchmarks/base/dom-virtualized-grid/engine.js"
+      );
+      const jsCallable = () => {
+        const r = runJavaScript(fixtureBytes);
+        if (
+          r.counters.rowsScanned !== ORACLE.rowsScanned ||
+          r.counters.comparisons !== ORACLE.comparisons ||
+          r.counters.events !== ORACLE.events ||
+          r.counters.commands !== ORACLE.commands ||
+          r.counters.physicalCreates !== ORACLE.physicalCreates ||
+          r.counters.physicalReuses !== ORACLE.physicalReuses ||
+          r.counters.physicalUpdates !== ORACLE.physicalUpdates ||
+          r.counters.physicalPlacements !== ORACLE.physicalPlacements ||
+          r.counters.physicalHides !== ORACLE.physicalHides ||
+          r.counters.focusOperations !== ORACLE.focusOperations ||
+          r.counters.layoutReads !== ORACLE.layoutReads
+        ) {
+          throw new Error(
+            `grid_trace JS counters drifted from the frozen oracle`,
+          );
+        }
+        if (r.commandDigest !== "83889fa4") {
+          throw new Error(
+            `grid_trace JS commandDigest drifted from the frozen oracle`,
+          );
+        }
+        const fin = r.final;
+        if (
+          fin.start !== ORACLE.finalStart ||
+          fin.end !== ORACLE.finalEnd ||
+          fin.visibleLength !== ORACLE.finalVisibleLength ||
+          fin.focused !== ORACLE.focused ||
+          fin.selected !== ORACLE.selected ||
+          fin.filteredLength !== ORACLE.filteredLength
+        ) {
+          throw new Error(
+            `grid_trace JS final checkpoint drifted from the frozen oracle`,
+          );
+        }
+      };
+      const callables = { js: { grid_trace: jsCallable } };
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        const inst = mods.engines[key].instances.grid_trace.instance;
+        callables[key] = {
+          grid_trace: () => {
+            const memU8 = new Uint8Array(inst.exports.memory.buffer);
+            memU8.set(fixtureBytes, FIXTURE_OFFSET);
+            const ret = Number(
+              inst.exports.grid_trace(fixtureBytes.byteLength),
+            );
+            if (ret !== 0) {
+              throw new Error(
+                `grid_trace ${key} run failed with status ${ret}`,
+              );
+            }
+            const view = new Uint32Array(inst.exports.memory.buffer);
+            const base = RES_OFFSET / 4;
+            if ((view[base] >>> 0) !== ORACLE.commandDigest) {
+              throw new Error(
+                `grid_trace ${key} commandDigest drifted from the frozen oracle`,
+              );
+            }
+            if (
+              view[base + 1] !== ORACLE.rowsScanned ||
+              view[base + 2] !== ORACLE.comparisons ||
+              view[base + 3] !== ORACLE.events ||
+              view[base + 4] !== ORACLE.commands ||
+              view[base + 5] !== ORACLE.physicalCreates ||
+              view[base + 6] !== ORACLE.physicalReuses ||
+              view[base + 7] !== ORACLE.physicalUpdates ||
+              view[base + 8] !== ORACLE.physicalPlacements ||
+              view[base + 9] !== ORACLE.physicalHides ||
+              view[base + 10] !== ORACLE.focusOperations ||
+              view[base + 11] !== ORACLE.layoutReads
+            ) {
+              throw new Error(
+                `grid_trace ${key} counters drifted from the frozen oracle`,
+              );
+            }
+            if (
+              view[base + 12] !== ORACLE.finalStart ||
+              view[base + 13] !== ORACLE.finalEnd ||
+              view[base + 14] !== ORACLE.finalVisibleLength ||
+              view[base + 15] !== ORACLE.focused ||
+              view[base + 16] !== ORACLE.selected ||
+              view[base + 17] !== ORACLE.filteredLength
+            ) {
+              throw new Error(
+                `grid_trace ${key} final checkpoint drifted from the frozen oracle`,
+              );
+            }
+          },
+        };
+      }
+      return callables;
+    },
+  },
+
   // --- game.dom-tactics-grid.v1: 60-turn / 240-action tactics loop on 64×64
   //     grid (mirrors benchmarks/multilang-wasm/game-dom-tactics-grid/
   //     tactics_kernel.*; adapter fetches the frozen 7,064-byte

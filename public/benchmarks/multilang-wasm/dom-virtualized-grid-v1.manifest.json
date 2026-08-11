@@ -1,0 +1,63 @@
+{
+  "workloadId": "dom.virtualized-grid.v1",
+  "kernelLabel": "100,000-row virtualized grid — 300-event trace over 100,000 rows (dom-virtualized-grid-v1/fixture.bin)",
+  "kernelLabels": {
+    "grid_trace": "Virtualized grid — 300 events replay with stable merge sort + filter + virtualization reconcile"
+  },
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": [
+    "grid_trace"
+  ],
+  "engines": [
+    {
+      "key": "js",
+      "label": "JavaScript",
+      "kind": "js",
+      "source": "benchmarks/base/dom-virtualized-grid/engine.js"
+    },
+    {
+      "key": "c",
+      "label": "C / Wasm",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 0,
+      "files": {
+        "grid_trace": "grid_trace_kernel_c.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/dom-virtualized-grid/grid_trace_kernel.c"
+    },
+    {
+      "key": "cpp",
+      "label": "C++ / Wasm",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 0,
+      "files": {
+        "grid_trace": "grid_trace_kernel_cpp.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/dom-virtualized-grid/grid_trace_kernel.cpp"
+    },
+    {
+      "key": "rs",
+      "label": "Rust / Wasm",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 0,
+      "files": {
+        "grid_trace": "grid_trace_kernel_rs.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/dom-virtualized-grid/grid_trace_kernel.rs"
+    },
+    {
+      "key": "asc",
+      "label": "AssemblyScript",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "grid_trace": "grid_trace_kernel_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/dom-virtualized-grid/grid_trace_kernel.ts"
+    }
+  ]
+}
