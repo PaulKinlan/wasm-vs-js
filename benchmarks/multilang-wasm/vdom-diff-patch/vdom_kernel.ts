@@ -54,7 +54,9 @@ function nextIntRange(min: i32, max: i32): i32 {
   return min + <i32> (nextUint32() % span);
 }
 
-function fnvReset(): void { fnv = 0x811c9dc5; }
+function fnvReset(): void {
+  fnv = 0x811c9dc5;
+}
 function fnvMixByte(b: u8): void {
   fnv ^= <u32> b;
   fnv = fnv * 0x01000193;
@@ -69,28 +71,60 @@ function fnvMixI16(v: i16): void {
   fnvMixByte(<u8> ((u >> 8) & 0xff));
 }
 
-function getTag(id: i32): i16 { return load<i16>(A_TAG_OFFSET + <usize> id * 2); }
-function setTag(id: i32, v: i16): void { store<i16>(A_TAG_OFFSET + <usize> id * 2, v); }
-function getKey(id: i32): i16 { return load<i16>(A_KEY_OFFSET + <usize> id * 2); }
-function setKey(id: i32, v: i16): void { store<i16>(A_KEY_OFFSET + <usize> id * 2, v); }
-function getAttrKey(id: i32): i16 { return load<i16>(A_ATTR_KEY_OFFSET + <usize> id * 2); }
-function setAttrKey(id: i32, v: i16): void { store<i16>(A_ATTR_KEY_OFFSET + <usize> id * 2, v); }
-function getAttrVal(id: i32): i16 { return load<i16>(A_ATTR_VAL_OFFSET + <usize> id * 2); }
-function setAttrVal(id: i32, v: i16): void { store<i16>(A_ATTR_VAL_OFFSET + <usize> id * 2, v); }
-function getTextId(id: i32): i16 { return load<i16>(A_TEXT_ID_OFFSET + <usize> id * 2); }
-function setTextId(id: i32, v: i16): void { store<i16>(A_TEXT_ID_OFFSET + <usize> id * 2, v); }
-function getChildCount(id: i32): u16 { return load<u16>(A_CHILD_COUNT_OFFSET + <usize> id * 2); }
-function setChildCount(id: i32, v: u16): void { store<u16>(A_CHILD_COUNT_OFFSET + <usize> id * 2, v); }
+function getTag(id: i32): i16 {
+  return load<i16>(A_TAG_OFFSET + <usize> id * 2);
+}
+function setTag(id: i32, v: i16): void {
+  store<i16>(A_TAG_OFFSET + <usize> id * 2, v);
+}
+function getKey(id: i32): i16 {
+  return load<i16>(A_KEY_OFFSET + <usize> id * 2);
+}
+function setKey(id: i32, v: i16): void {
+  store<i16>(A_KEY_OFFSET + <usize> id * 2, v);
+}
+function getAttrKey(id: i32): i16 {
+  return load<i16>(A_ATTR_KEY_OFFSET + <usize> id * 2);
+}
+function setAttrKey(id: i32, v: i16): void {
+  store<i16>(A_ATTR_KEY_OFFSET + <usize> id * 2, v);
+}
+function getAttrVal(id: i32): i16 {
+  return load<i16>(A_ATTR_VAL_OFFSET + <usize> id * 2);
+}
+function setAttrVal(id: i32, v: i16): void {
+  store<i16>(A_ATTR_VAL_OFFSET + <usize> id * 2, v);
+}
+function getTextId(id: i32): i16 {
+  return load<i16>(A_TEXT_ID_OFFSET + <usize> id * 2);
+}
+function setTextId(id: i32, v: i16): void {
+  store<i16>(A_TEXT_ID_OFFSET + <usize> id * 2, v);
+}
+function getChildCount(id: i32): u16 {
+  return load<u16>(A_CHILD_COUNT_OFFSET + <usize> id * 2);
+}
+function setChildCount(id: i32, v: u16): void {
+  store<u16>(A_CHILD_COUNT_OFFSET + <usize> id * 2, v);
+}
 function getChild(id: i32, slot: i32): u16 {
   return load<u16>(A_CHILDREN_OFFSET + (<usize> id * MAX_CHILDREN + <usize> slot) * 2);
 }
 function setChild(id: i32, slot: i32, v: u16): void {
   store<u16>(A_CHILDREN_OFFSET + (<usize> id * MAX_CHILDREN + <usize> slot) * 2, v);
 }
-function getHas(base: usize, id: i32): u8 { return load<u8>(base + <usize> id); }
-function setHas(base: usize, id: i32, v: u8): void { store<u8>(base + <usize> id, v); }
-function getItem(idx: i32): u16 { return load<u16>(ITEMS_OFFSET + <usize> idx * 2); }
-function setItem(idx: i32, v: u16): void { store<u16>(ITEMS_OFFSET + <usize> idx * 2, v); }
+function getHas(base: usize, id: i32): u8 {
+  return load<u8>(base + <usize> id);
+}
+function setHas(base: usize, id: i32, v: u8): void {
+  store<u8>(base + <usize> id, v);
+}
+function getItem(idx: i32): u16 {
+  return load<u16>(ITEMS_OFFSET + <usize> idx * 2);
+}
+function setItem(idx: i32, v: u16): void {
+  store<u16>(ITEMS_OFFSET + <usize> idx * 2, v);
+}
 
 function generateTreeA(): void {
   setTag(0, 0);
@@ -140,7 +174,10 @@ function filterShuffleMark(predicate: i32, take: i32, flagsBase: usize): void {
     if (predicate === 0) keep = getChildCount(id) >= 2;
     else if (predicate === 1) keep = getTag(id) !== -1;
     else keep = getTag(id) === -1;
-    if (keep) { setItem(len, <u16> id); len++; }
+    if (keep) {
+      setItem(len, <u16> id);
+      len++;
+    }
   }
   shuffle(len);
   const limit = take < len ? take : len;
