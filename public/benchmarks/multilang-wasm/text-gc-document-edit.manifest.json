@@ -1,0 +1,63 @@
+{
+  "workloadId": "text.gc-document-edit.v1",
+  "kernelLabel": "GC-rich document edit — 256 initial nodes + 10,000 frozen edits (fixture.v1.txt)",
+  "kernelLabels": {
+    "gc_document_edit_trace": "GC-rich document edit — 3,334 inserts / 3,333 deletes / 3,333 reparents"
+  },
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": [
+    "gc_document_edit_trace"
+  ],
+  "engines": [
+    {
+      "key": "js",
+      "label": "JavaScript",
+      "kind": "js",
+      "source": "benchmarks/v1/text-gc-document-edit/workload.js"
+    },
+    {
+      "key": "c",
+      "label": "C / Wasm",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 0,
+      "files": {
+        "gc_document_edit_trace": "gc_document_kernel_c.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/text-gc-document-edit/gc_document_kernel.c"
+    },
+    {
+      "key": "cpp",
+      "label": "C++ / Wasm",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 0,
+      "files": {
+        "gc_document_edit_trace": "gc_document_kernel_cpp.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/text-gc-document-edit/gc_document_kernel.cpp"
+    },
+    {
+      "key": "rs",
+      "label": "Rust / Wasm",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 0,
+      "files": {
+        "gc_document_edit_trace": "gc_document_kernel_rs.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/text-gc-document-edit/gc_document_kernel.rs"
+    },
+    {
+      "key": "asc",
+      "label": "AssemblyScript",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "gc_document_edit_trace": "gc_document_kernel_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/text-gc-document-edit/gc_document_kernel.ts"
+    }
+  ]
+}

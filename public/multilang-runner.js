@@ -4105,6 +4105,103 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
     },
   },
 
+  // --- text.gc-document-edit.v1: GC-rich document edit compute core
+  // (mirrors benchmarks/multilang-wasm/text-gc-document-edit/
+  // gc_document_kernel.*; the adapter fetches the frozen 10,000-edit fixture
+  // (fixture.v1.txt), copies it into each engine's linear memory at
+  // FIXTURE_OFFSET (byte length passed in), and each kernel runs parseFixture
+  // + executeFixture and writes counters + FNV-1a canonical digest to a fixed
+  // offset. Counters and digest are pinned against reference.json). ---------
+  "text.gc-document-edit.v1": {
+    kernels: ["gc_document_edit_trace"],
+    async build(mods) {
+      const FIXTURE_OFFSET = 196608;
+      const RES_OFFSET = 524288;
+      // Pinned oracle from public/artifacts/text-gc-document-edit/reference.json
+      // and the C/C++/Rust/AS kernels (canonical FNV-1a computed identically
+      // in every language). Any drift throws.
+      const ORACLE = Object.freeze({
+        inserts: 3334,
+        deletes: 3333,
+        reparents: 3333,
+        finalNodes: 257,
+        childInsertions: 6922,
+        childRemovals: 6666,
+        parentWrites: 10255,
+        canonicalFnv: 0x6acfb345,
+      });
+      const fixtureRes = await fetch(
+        "/artifacts/text-gc-document-edit/fixture.v1.txt",
+        { cache: "no-store" },
+      );
+      if (!fixtureRes.ok) {
+        throw new Error(
+          `gc_document_edit_trace: fixture fetch returned ${fixtureRes.status}`,
+        );
+      }
+      const fixtureText = await fixtureRes.text();
+      const fixtureBytes = new TextEncoder().encode(fixtureText);
+      const [{ executeFixture }] = await Promise.all([
+        import("/benchmarks/v1/text-gc-document-edit/workload.js"),
+      ]);
+      const jsCallable = () => {
+        const r = executeFixture(fixtureText, "js-controlled");
+        if (
+          r.counters.inserts !== ORACLE.inserts ||
+          r.counters.deletes !== ORACLE.deletes ||
+          r.counters.reparents !== ORACLE.reparents ||
+          r.counters["final-nodes"] !== ORACLE.finalNodes ||
+          r.counters["child-insertions"] !== ORACLE.childInsertions ||
+          r.counters["child-removals"] !== ORACLE.childRemovals ||
+          r.counters["parent-writes"] !== ORACLE.parentWrites
+        ) {
+          throw new Error(
+            `gc_document_edit_trace JS counters drifted from the frozen oracle`,
+          );
+        }
+      };
+      const callables = { js: { gc_document_edit_trace: jsCallable } };
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        const inst = mods.engines[key].instances.gc_document_edit_trace.instance;
+        callables[key] = {
+          gc_document_edit_trace: () => {
+            const memU8 = new Uint8Array(inst.exports.memory.buffer);
+            memU8.set(fixtureBytes, FIXTURE_OFFSET);
+            const ret = Number(
+              inst.exports.gc_document_edit_trace(fixtureBytes.byteLength),
+            );
+            const view = new Uint32Array(inst.exports.memory.buffer);
+            const base = RES_OFFSET / 4;
+            if (
+              view[base] !== ORACLE.inserts ||
+              view[base + 1] !== ORACLE.deletes ||
+              view[base + 2] !== ORACLE.reparents ||
+              view[base + 3] !== ORACLE.finalNodes ||
+              view[base + 4] !== ORACLE.childInsertions ||
+              view[base + 5] !== ORACLE.childRemovals ||
+              view[base + 6] !== ORACLE.parentWrites
+            ) {
+              throw new Error(
+                `gc_document_edit_trace ${key} counters drifted from the frozen oracle`,
+              );
+            }
+            if ((view[base + 7] >>> 0) !== ORACLE.canonicalFnv) {
+              throw new Error(
+                `gc_document_edit_trace ${key} canonical FNV drifted from the frozen oracle`,
+              );
+            }
+            if (ret !== ORACLE.finalNodes) {
+              throw new Error(
+                `gc_document_edit_trace ${key} return value drifted from the frozen oracle`,
+              );
+            }
+          },
+        };
+      }
+      return callables;
+    },
+  },
+
   // --- ml-gemm: strict-f32 GEMM (mirrors benchmarks/v2/ml-gemm) -------------
   "ml.gemm.v1": {
     kernels: ["gemm"],
