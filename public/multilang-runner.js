@@ -4069,9 +4069,11 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
       const op1Expected = op1.length;
       const op2Expected = op2.length;
       const op6Expected = op6.length;
-      const jsCallable = () => {
-        // JS reference: rerun the JS diff and verify counters + digests match the oracle.
-        const rerun = engine.createVDOMPatches(fixture.treeA, fixture.treeB);
+      const jsCallable = async () => {
+        // JS reference: rerun the JS diff via the exported diffVDOMTrees and
+        // verify the patch count matches the oracle (createVDOMPatches is
+        // internal to engine.js, not exported).
+        const rerun = await engine.diffVDOMTrees(fixture.treeA, fixture.treeB);
         if (rerun.patchesGenerated !== patchesExpected) {
           throw new Error(`vdom_diff_trace JS patch count drifted from the oracle`);
         }
@@ -5996,7 +5998,13 @@ export async function loadEngines(manifest) {
       // engine pins a file per kernel via engine.files.
       const file = engine.files?.[kernel] ?? `${kernel}_${engine.lang}.wasm`;
       const bytes = await fetchBytes(base, file);
-      const instance = new WebAssembly.Instance(new WebAssembly.Module(bytes));
+      // Some AssemblyScript kernels emit an env.abort import (bounds-check
+      // safety). Pass a benign import object so they instantiate; abort is
+      // never invoked by a correct kernel.
+      const instance = new WebAssembly.Instance(
+        new WebAssembly.Module(bytes),
+        { env: { abort: () => {} } },
+      );
       byKernel[engine.key][kernel] = { instance, bytes };
     }
   }

@@ -1266,6 +1266,8 @@ function initUnifiedRunner() {
           statusEl.textContent = `Additional stages error: ${
             composedErr instanceof Error ? composedErr.message : String(composedErr)
           }`;
+          // The composed-stage failure must not be masked by a success banner.
+          throw composedErr;
         }
       }
       statusEl.textContent = chosenTarget.startsWith("ml:")

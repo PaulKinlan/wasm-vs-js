@@ -7,7 +7,10 @@
     <link rel="stylesheet" href="/styles.css">
     <script type="module" src="/multilang-runner.js"></script>
   </head>
-  <body data-workload="serialization-protobuf-gateway"
+  <body data-multilang-form="#multilang-form" data-multilang-start="#multilang-start"
+    data-multilang-cancel="#multilang-cancel" data-multilang-status="#multilang-status"
+    data-multilang-reporting="#multilang-reporting"
+    data-multilang-iterations="#multilang-iterations" data-workload="serialization-protobuf-gateway"
     data-multilang-manifest="/benchmarks/multilang-wasm/serialization-protobuf-gateway.manifest.json">
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
@@ -53,6 +56,30 @@
             <li><a href="/experiments/">Read the frozen experiment</a></li>
           </ul>
         </div>
+      </section>
+
+      <section class="demo-panel" aria-labelledby="multilang-run-heading">
+        <h2 id="multilang-run-heading">Multi-language comparison</h2>
+        <p
+          class="lede">The same frozen protobuf gateway core (10,000 messages: decode, filter, ProtoJSON), implemented identically in JavaScript, C, C++, Rust, and AssemblyScript — compiled to WebAssembly and measured side by side in this tab.</p>
+        <form id="multilang-form">
+          <div class="controls">
+            <label for="multilang-iterations">
+              <span>Loop Iterations</span>
+              <select id="multilang-iterations" name="iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10">10 iterations</option>
+                <option value="30" selected>30 iterations (Warm-up &amp; JIT)</option>
+                <option value="100">100 iterations (Sustained loop)</option>
+              </select>
+            </label>
+            <button id="multilang-start" type="submit">Start Multi-language Comparison</button>
+            <button id="multilang-cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="multilang-status" role="status"
+          aria-live="polite">Ready. Select loop iterations, then click Start.</p>
+        <div id="multilang-reporting" class="perf-reporting" hidden></div>
       </section>
     </main>
     <script type="module"
