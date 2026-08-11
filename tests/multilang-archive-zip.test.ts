@@ -47,7 +47,7 @@ for (const engine of manifest.engines) {
     };
     const adapter = KERNEL_ADAPTERS["archive.zip-workspace.v1"];
     const callables: any = await adapter.build(mods);
-    
+
     // Will throw on verification failure
     callables[engine.key].zip_build();
   });
