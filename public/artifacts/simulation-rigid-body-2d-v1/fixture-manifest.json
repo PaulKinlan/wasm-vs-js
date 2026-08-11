@@ -3,7 +3,7 @@
   "registrationId": "simulation-rigid-body-2d-v1-controlled",
   "frozenCatalogId": "simulation.rigid-body-2d.v1",
   "frozenCatalogSha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
-  "sourceCommit": "132109acd2ed8d5ffc3a1419184fb1a7834c0b07",
+  "sourceCommit": "2e2dc094fdb3a87650deaf12658d86bb0c7ab721",
   "fixture": {
     "path": "public/artifacts/simulation-rigid-body-2d-v1/fixture.bin",
     "bytes": 22704,
