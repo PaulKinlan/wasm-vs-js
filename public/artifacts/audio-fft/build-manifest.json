@@ -5,7 +5,7 @@
   "entryId": "audio.fft.v1",
   "benchmarkSlug": "audio-fft",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "2e2dc094fdb3a87650deaf12658d86bb0c7ab721",
+  "sourceCommit": "b46fec9a35fb9f49e32f0106676dcef5571fcdc9",
   "sourceSha256": "35b44bccd0d0a98f43c5827567a2955e1c27b3eb708229035af9335117589ef5",
   "fullSourceGraph": [
     {
@@ -187,19 +187,19 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/audio-fft/fixture-manifest.json",
-      "sha256": "75b53b0ce6714f8e37b6c47b7d4b88d7284834bb816349c31e4a9aef0b6e936c"
+      "sha256": "34c4739c6a8df1bb028d65f0e3d4ea972380523c0090ef43d2b6c3a0d3d4fff8"
     },
     "input": {
       "path": "public/artifacts/audio-fft/input-manifest.json",
-      "sha256": "7c3ac749f41ea8b15fadb1fa933b17168fa7102b0908adea9ca930306f061c52"
+      "sha256": "ca5054e29f899958de3a2b0e5fae79fe493ac7e2834d0d3d6ecd80bd1242d92f"
     },
     "reference": {
       "path": "public/artifacts/audio-fft/reference-manifest.json",
-      "sha256": "0ef384f0019d2f2e92b35df91dfc2624d22df78ef5f5554d6029a7ee625c8d73"
+      "sha256": "4288960a49135f6f677fcc5574592df8d0342a343fc49506e3d5284ab7985be0"
     },
     "output": {
       "path": "public/artifacts/audio-fft/output-manifest.json",
-      "sha256": "5d7cd26ceb893dfd80fb97fa9b74705eef8c46ef8bf8321289260fe1b69562fb"
+      "sha256": "1780cde494945c70f6f3dc8b51d717dc8c0344f7def0a65e8ffaf6a973aeadad"
     }
   },
   "referenceArtifact": {
@@ -241,7 +241,7 @@
       "--allow-write=public/artifacts/audio-fft,public/artifacts/audio-fir,public/artifacts/audio-stft",
       "--allow-run=git",
       "scripts/build-audio.ts",
-      "--source-commit=2e2dc094fdb3a87650deaf12658d86bb0c7ab721"
+      "--source-commit=b46fec9a35fb9f49e32f0106676dcef5571fcdc9"
     ],
     "toolchain": [
       {

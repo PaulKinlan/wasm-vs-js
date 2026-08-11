@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "2e2dc094fdb3a87650deaf12658d86bb0c7ab721",
-  "sourceSha256": "05d10f64a37670a70cc5e15007b52c52b669461d902757005c71a5df8d0e5f2b",
+  "sourceCommit": "b46fec9a35fb9f49e32f0106676dcef5571fcdc9",
+  "sourceSha256": "99ce8d003fa354ed21753393b9977e4a8a42c84f2d4be1b1d0d8c32c4a6e8112",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 96940,
-      "sha256": "0df2c0ff8f4101bd00bd619d089b3ff72576733c5a2c386905684309cc7c0409"
+      "bytes": 97126,
+      "sha256": "0a6191a787a69459ac4eef3d7dc638ea68ac52f30521838597beba89016e6336"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "c5a9cded9891866fffa6606cc819ae7aa859b19c1b5d65d3b0299bfcffcf70a6"
+      "sha256": "77396dd3a22f574f5a6d98d55d6b076b80cdc1d27a5bda87fab69f74496de3f2"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "8c57126425bf8cd59816ee3c87203a46fa38e709204f85908a4f53022a39a02b"
+      "sha256": "f7ffcd10f19b8cf69e1b0b46c9eda17ae6897965a087e91dd877627288f269ec"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=2e2dc094fdb3a87650deaf12658d86bb0c7ab721"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=b46fec9a35fb9f49e32f0106676dcef5571fcdc9"
   }
 }
