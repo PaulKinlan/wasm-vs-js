@@ -1,45 +1,63 @@
 {
   "workloadId": "audio.webaudio-effects.v1",
+  "kernelLabel": "WebAudio effects rack — 48 kHz stereo biquad → soft-knee compressor → 16-tap convolution, reduced 48,000-frame fixture, strict f32",
   "kernelLabels": {
     "audio_dsp": "WebAudio effects rack — 48 kHz stereo biquad → soft-knee compressor → 16-tap convolution, reduced 48,000-frame fixture, strict f32"
   },
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
-  "kernels": ["audio_dsp"],
+  "kernels": [
+    "audio_dsp"
+  ],
   "engines": [
     {
-      "id": "js",
-      "label": "JavaScript (V8)",
-      "language": "JavaScript",
-      "variantId": "js-v8",
-      "artifact": null
+      "key": "js",
+      "label": "JavaScript",
+      "kind": "js",
+      "source": "benchmarks/multilang-wasm/audio-webaudio-effects/audio_dsp_kernel.ts"
     },
     {
-      "id": "c",
-      "label": "C (Clang)",
-      "language": "C",
-      "variantId": "c-clang",
-      "artifact": "audio_dsp_kernel_c.wasm"
+      "key": "c",
+      "label": "C / Wasm",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 0,
+      "files": {
+        "audio_dsp": "audio_dsp_kernel_c.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/audio-webaudio-effects/audio_dsp_kernel.c"
     },
     {
-      "id": "cpp",
-      "label": "C++ (Clang)",
-      "language": "C++",
-      "variantId": "cpp-clang",
-      "artifact": "audio_dsp_kernel_cpp.wasm"
+      "key": "cpp",
+      "label": "C++ / Wasm",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 0,
+      "files": {
+        "audio_dsp": "audio_dsp_kernel_cpp.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/audio-webaudio-effects/audio_dsp_kernel.cpp"
     },
     {
-      "id": "rs",
-      "label": "Rust (rustc)",
-      "language": "Rust",
-      "variantId": "rs-rustc",
-      "artifact": "audio_dsp_kernel_rs.wasm"
+      "key": "rs",
+      "label": "Rust / Wasm",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 0,
+      "files": {
+        "audio_dsp": "audio_dsp_kernel_rs.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/audio-webaudio-effects/audio_dsp_kernel.rs"
     },
     {
-      "id": "asc",
-      "label": "AssemblyScript (asc)",
-      "language": "AssemblyScript",
-      "variantId": "asc-asc",
-      "artifact": "audio_dsp_kernel_asc.wasm"
+      "key": "asc",
+      "label": "AssemblyScript / Wasm",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "audio_dsp": "audio_dsp_kernel_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/audio-webaudio-effects/audio_dsp_kernel.ts"
     }
   ]
 }
