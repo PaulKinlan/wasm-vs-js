@@ -21,7 +21,7 @@ async function run() {
   try {
     const { runMultilangComparison } = await import("/multilang-runner.js");
     const iterations = Number(iterationsSelect.value);
-    const results = await runMultilangComparison(MANIFEST, {
+    await runMultilangComparison(MANIFEST, {
       iterations,
       onStatus: (message) => {
         statusEl.textContent = message;
