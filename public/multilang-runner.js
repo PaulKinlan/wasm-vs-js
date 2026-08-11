@@ -5636,6 +5636,133 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
     },
   },
 
+  // --- text.markdown-cms.v1: 500-document Markdown CMS render pipeline
+  //     (mirrors benchmarks/multilang-wasm/text-markdown-cms/
+  //     markdown_cms_kernel.*; adapter fetches the frozen 10,978,068-byte
+  //     text-markdown-cms-multilang/fixture.bin — magic 'MCF1' plus 500
+  //     [u32 length, bytes] framed documents produced by
+  //     serializeMarkdownCorpus(). Each kernel parses the fixed grammar
+  //     (H1/H2/paragraph/link/figure/raw), runs the URL + raw-HTML
+  //     allowlists, and emits the TOC-first canonical HTML byte-for-byte
+  //     bit-identical to renderMarkdown() into a shared output buffer.
+  //     Counters + output FNV-1a are pinned against renderMarkdown() on
+  //     the same fixture bytes.
+  "text.markdown-cms.v1": {
+    kernels: ["markdown_cms_render"],
+    async build(mods) {
+      const FIXTURE_OFFSET = 3145728;
+      const RES_OFFSET = 28311552;
+      const ORACLE = Object.freeze({
+        documents: 500,
+        inputBytes: 10_976_060,
+        tokens: 2997,
+        astNodes: 5996,
+        transforms: 1001,
+        sanitizerChecks: 1000,
+        outputBytes: 11_057_325,
+        rejected: 499,
+        outputFnv1a: 0xe5a7f519,
+      });
+      const fixtureRes = await fetch(
+        "/artifacts/text-markdown-cms-multilang/fixture.bin",
+        { cache: "no-store" },
+      );
+      if (!fixtureRes.ok) {
+        throw new Error(
+          `markdown_cms_render: fixture fetch returned ${fixtureRes.status}`,
+        );
+      }
+      const fixtureBytes = new Uint8Array(await fixtureRes.arrayBuffer());
+      const { generateMarkdownFixture, renderMarkdown } = await import(
+        "/benchmarks/v2/text-markdown-cms/workload.js"
+      );
+      const jsCallable = () => {
+        const { documents } = generateMarkdownFixture();
+        let totalInputBytes = 0;
+        let totalTokens = 0;
+        let totalAstNodes = 0;
+        let totalTransforms = 0;
+        let totalSanitizer = 0;
+        let totalOutputBytes = 0;
+        let totalRejected = 0;
+        let fnv = 0x811c9dc5 >>> 0;
+        for (const doc of documents) {
+          const r = renderMarkdown(doc);
+          totalInputBytes += r.counters["input-bytes"];
+          totalTokens += r.counters.tokens;
+          totalAstNodes += r.counters["ast-nodes"];
+          totalTransforms += r.counters.transforms;
+          totalSanitizer += r.counters["sanitizer-checks"];
+          totalOutputBytes += r.counters["output-bytes"];
+          totalRejected += r.rejected;
+          for (let i = 0; i < r.outputBytes.length; i++) {
+            fnv = (fnv ^ r.outputBytes[i]) >>> 0;
+            fnv = Math.imul(fnv, 0x01000193) >>> 0;
+          }
+        }
+        if (
+          documents.length !== ORACLE.documents ||
+          totalInputBytes !== ORACLE.inputBytes ||
+          totalTokens !== ORACLE.tokens ||
+          totalAstNodes !== ORACLE.astNodes ||
+          totalTransforms !== ORACLE.transforms ||
+          totalSanitizer !== ORACLE.sanitizerChecks ||
+          totalOutputBytes !== ORACLE.outputBytes ||
+          totalRejected !== ORACLE.rejected
+        ) {
+          throw new Error(
+            `markdown_cms_render JS counters drifted from the frozen oracle`,
+          );
+        }
+        if (fnv !== ORACLE.outputFnv1a) {
+          throw new Error(
+            `markdown_cms_render JS output FNV-1a drifted from the frozen oracle`,
+          );
+        }
+      };
+      const callables = { js: { markdown_cms_render: jsCallable } };
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        const inst = mods.engines[key].instances.markdown_cms_render.instance;
+        callables[key] = {
+          markdown_cms_render: () => {
+            const memU8 = new Uint8Array(inst.exports.memory.buffer);
+            memU8.set(fixtureBytes, FIXTURE_OFFSET);
+            const ret = Number(
+              inst.exports.markdown_cms_render(fixtureBytes.byteLength),
+            );
+            if (ret !== 0) {
+              throw new Error(
+                `markdown_cms_render ${key} run failed with status ${ret}`,
+              );
+            }
+            const view = new Uint32Array(inst.exports.memory.buffer);
+            const base = RES_OFFSET / 4;
+            if (
+              view[base] !== ORACLE.documents ||
+              view[base + 1] !== ORACLE.inputBytes ||
+              view[base + 2] !== ORACLE.tokens ||
+              view[base + 3] !== ORACLE.astNodes ||
+              view[base + 4] !== ORACLE.transforms ||
+              view[base + 5] !== ORACLE.sanitizerChecks ||
+              view[base + 6] !== ORACLE.outputBytes ||
+              view[base + 7] !== ORACLE.rejected
+            ) {
+              throw new Error(
+                `markdown_cms_render ${key} counters drifted from the frozen oracle`,
+              );
+            }
+            if ((view[base + 8] >>> 0) !== ORACLE.outputFnv1a) {
+              throw new Error(
+                `markdown_cms_render ${key} output FNV-1a drifted from the frozen oracle`,
+              );
+            }
+          },
+        };
+      }
+      return callables;
+    },
+  },
+
   // --- regex-automata-duel-demo: 20 frozen safe patterns × 1 MiB BMP corpus
   //     (mirrors benchmarks/multilang-wasm/regex-automata-duel/
   //     regex_scan_kernel.*; adapter fetches the frozen 1,163,248-byte
