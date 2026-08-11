@@ -1,0 +1,63 @@
+{
+  "workloadId": "serialization.protobuf-gateway.v1",
+  "kernelLabel": "10,000-message protobuf gateway — decode + filter every frozen wire message (serialization-protobuf-gateway-multilang/fixture.bin)",
+  "kernelLabels": {
+    "protobuf_gateway": "Protobuf gateway — 10,000-message wire decode + active/status/id%3 filter with varint, zigzag, and map-entry dispatch"
+  },
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": [
+    "protobuf_gateway"
+  ],
+  "engines": [
+    {
+      "key": "js",
+      "label": "JavaScript",
+      "kind": "js",
+      "source": "benchmarks/base/serialization-protobuf-gateway/workload.js"
+    },
+    {
+      "key": "c",
+      "label": "C / Wasm",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 0,
+      "files": {
+        "protobuf_gateway": "protobuf_gateway_kernel_c.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/serialization-protobuf-gateway/protobuf_gateway_kernel.c"
+    },
+    {
+      "key": "cpp",
+      "label": "C++ / Wasm",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 0,
+      "files": {
+        "protobuf_gateway": "protobuf_gateway_kernel_cpp.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/serialization-protobuf-gateway/protobuf_gateway_kernel.cpp"
+    },
+    {
+      "key": "rs",
+      "label": "Rust / Wasm",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 0,
+      "files": {
+        "protobuf_gateway": "protobuf_gateway_kernel_rs.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/serialization-protobuf-gateway/protobuf_gateway_kernel.rs"
+    },
+    {
+      "key": "asc",
+      "label": "AssemblyScript",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "protobuf_gateway": "protobuf_gateway_kernel_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/serialization-protobuf-gateway/protobuf_gateway_kernel.ts"
+    }
+  ]
+}

@@ -5636,6 +5636,102 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
     },
   },
 
+  // --- serialization.protobuf-gateway.v1: 10,000-message protobuf gateway
+  //     decode + filter (mirrors benchmarks/multilang-wasm/
+  //     serialization-protobuf-gateway/protobuf_gateway_kernel.*; adapter
+  //     fetches the frozen 1,534,122-byte
+  //     serialization-protobuf-gateway-multilang/fixture.bin — the framed
+  //     wire output of generateFixture()). Every kernel walks each
+  //     message's tags/varints, decodes fields 1..11 exactly like
+  //     decodeMessage(), applies the (active && status!=3 && id%3==0)
+  //     filter, and mixes a 48-byte per-message summary
+  //     (id_lo, id_hi, active, status, name_len, tag_count, map_count,
+  //      payload_len, choice_kind, note_len, code_bits, filter_pass) into
+  //     an FNV-1a stream. Counters + summary digest are pinned against a
+  //     wire-level record-oriented decode of the same fixture.
+  "serialization.protobuf-gateway.v1": {
+    kernels: ["protobuf_gateway"],
+    async build(mods) {
+      const FIXTURE_OFFSET = 3145728;
+      const RES_OFFSET = 6291456;
+      const ORACLE = Object.freeze({
+        messages: 10000,
+        fields: 170294,
+        varintBytes: 474984,
+        unknownFields: 40000,
+        filtered: 1703,
+        wireBytes: 1534122,
+        summaryFnv1a: 0x184d983e,
+      });
+      const fixtureRes = await fetch(
+        "/artifacts/serialization-protobuf-gateway-multilang/fixture.bin",
+        { cache: "no-store" },
+      );
+      if (!fixtureRes.ok) {
+        throw new Error(
+          `protobuf_gateway: fixture fetch returned ${fixtureRes.status}`,
+        );
+      }
+      const fixtureBytes = new Uint8Array(await fixtureRes.arrayBuffer());
+      const { runJavaScript } = await import(
+        "/benchmarks/base/serialization-protobuf-gateway/workload.js"
+      );
+      const jsCallable = () => {
+        const r = runJavaScript(fixtureBytes);
+        if (
+          r.counters.messages !== ORACLE.messages ||
+          r.counters.fields !== ORACLE.fields ||
+          r.counters.varintBytes !== ORACLE.varintBytes ||
+          r.counters.unknownFields !== ORACLE.unknownFields ||
+          r.counters.filteredMessages !== ORACLE.filtered ||
+          r.counters.wireBytes !== ORACLE.wireBytes
+        ) {
+          throw new Error(
+            `protobuf_gateway JS counters drifted from the frozen oracle`,
+          );
+        }
+      };
+      const callables = { js: { protobuf_gateway: jsCallable } };
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        const inst = mods.engines[key].instances.protobuf_gateway.instance;
+        callables[key] = {
+          protobuf_gateway: () => {
+            const memU8 = new Uint8Array(inst.exports.memory.buffer);
+            memU8.set(fixtureBytes, FIXTURE_OFFSET);
+            const ret = Number(
+              inst.exports.protobuf_gateway(fixtureBytes.byteLength),
+            );
+            if (ret !== 0) {
+              throw new Error(
+                `protobuf_gateway ${key} run failed with status ${ret}`,
+              );
+            }
+            const view = new Uint32Array(inst.exports.memory.buffer);
+            const base = RES_OFFSET / 4;
+            if (
+              view[base] !== ORACLE.messages ||
+              view[base + 1] !== ORACLE.fields ||
+              view[base + 2] !== ORACLE.varintBytes ||
+              view[base + 3] !== ORACLE.unknownFields ||
+              view[base + 4] !== ORACLE.filtered ||
+              view[base + 5] !== ORACLE.wireBytes
+            ) {
+              throw new Error(
+                `protobuf_gateway ${key} counters drifted from the frozen oracle`,
+              );
+            }
+            if ((view[base + 6] >>> 0) !== ORACLE.summaryFnv1a) {
+              throw new Error(
+                `protobuf_gateway ${key} summary FNV-1a drifted from the frozen oracle`,
+              );
+            }
+          },
+        };
+      }
+      return callables;
+    },
+  },
+
   // --- text.markdown-cms.v1: 500-document Markdown CMS render pipeline
   //     (mirrors benchmarks/multilang-wasm/text-markdown-cms/
   //     markdown_cms_kernel.*; adapter fetches the frozen 10,978,068-byte
