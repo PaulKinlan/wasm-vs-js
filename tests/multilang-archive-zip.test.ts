@@ -1,4 +1,4 @@
-import { assertEquals } from "https://deno.land/std@0.224.0/testing/asserts.ts";
+import { assertEquals } from "./assert.ts";
 import {
   BOUNDED_ENTRY_COUNT,
   runJavaScript,
