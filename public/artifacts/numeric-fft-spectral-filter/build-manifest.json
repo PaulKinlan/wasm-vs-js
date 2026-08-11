@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "d3c4c243baa348c32326b370976840676458c0b7",
-  "sourceSha256": "84f9ac7feb24a7b2212510599a032ae2fa999ac8243ec95b471cd4c99136a5ad",
+  "sourceCommit": "493a8ba357911b94c1dd70efa7e3694c4b30cb89",
+  "sourceSha256": "6fae22ef2a322a03bbb9c59e5a888db0e06f067f3f50b46a1d59912b8adcf383",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 93994,
-      "sha256": "8a81edb38e727b3ed4cc8f12c26361ef03cf60b92752b68c724e81c937f19e0d"
+      "bytes": 94397,
+      "sha256": "4c155e0b1030da1b1e09b67e10642d98c58adbd7db0f6a871fa12c687add0f5d"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "7314b0c9f0ffc201dcfb905c2bda2e2dbedd2a6bac22f056cc8962a95f50aeee"
+      "sha256": "5405f33bf92b5d3cb41f51942d777a15fe2309acba8ce70b6586b3130b2953f1"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "8cd552c961186a649abd4b58b1b2c64001d3e788b8f35a14155c1cd816357185"
+      "sha256": "a4a688f40582d944e95327d1ccb7dc3b0327926a11ef646cc31e71cd1f7eafd6"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=d3c4c243baa348c32326b370976840676458c0b7"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=493a8ba357911b94c1dd70efa7e3694c4b30cb89"
   }
 }
