@@ -4415,6 +4415,128 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
     },
   },
 
+  // --- game.dom-tactics-grid.v1: 60-turn / 240-action tactics loop on 64×64
+  //     grid (mirrors benchmarks/multilang-wasm/game-dom-tactics-grid/
+  //     tactics_kernel.*; adapter fetches the frozen 7,064-byte
+  //     game-dom-tactics-grid-v1.bin fixture (seed 0x7c3a19e5), copies it
+  //     into each engine's linear memory at FIXTURE_OFFSET, and each kernel
+  //     runs the tactics loop bit-identical to run_tactics() in
+  //     benchmarks/v2/game-family/game-family.c and tactics() in engine.js.
+  //     Counters + digests are pinned against
+  //     runGameJavaScript("game.dom-tactics-grid.v1").
+  "game.dom-tactics-grid.v1": {
+    kernels: ["tactics_trace"],
+    async build(mods) {
+      const FIXTURE_OFFSET = 3145728;
+      const RES_OFFSET = 3276800;
+      // Pinned oracle from runGameJavaScript("game.dom-tactics-grid.v1").
+      const ORACLE = Object.freeze({
+        semantic: 0x5081f3e4,
+        unit: 0xadaea4e5,
+        occupancy: 0x8d730f69,
+        initiative: 0x67cf2fa8,
+        objective: 0xdc971318,
+        dom: 0xea6127a1,
+        focus: 0x103c75c2,
+        accessibility: 0xe819fe54,
+        turns: 60,
+        pathNodesExpanded: 95614,
+        lineOfSightTests: 450,
+        stateUpdates: 81,
+        domMutations: 423,
+      });
+      const fixtureRes = await fetch(
+        "/artifacts/game-v2-controlled-family/game-dom-tactics-grid-v1.bin",
+        { cache: "no-store" },
+      );
+      if (!fixtureRes.ok) {
+        throw new Error(
+          `tactics_trace: fixture fetch returned ${fixtureRes.status}`,
+        );
+      }
+      const fixtureBytes = new Uint8Array(await fixtureRes.arrayBuffer());
+      const { runGameJavaScript } = await import(
+        "/benchmarks/v2/game-family/engine.js"
+      );
+      const jsCallable = () => {
+        const r = runGameJavaScript(
+          "game.dom-tactics-grid.v1",
+          fixtureBytes,
+        );
+        if (
+          r.counters.turns !== ORACLE.turns ||
+          r.counters.pathNodesExpanded !== ORACLE.pathNodesExpanded ||
+          r.counters.lineOfSightTests !== ORACLE.lineOfSightTests ||
+          r.counters.stateUpdates !== ORACLE.stateUpdates ||
+          r.counters.domMutations !== ORACLE.domMutations
+        ) {
+          throw new Error(
+            `tactics_trace JS counters drifted from the frozen oracle`,
+          );
+        }
+        if (
+          r.oracle.finalUnitDigest !== "adaea4e5" ||
+          r.oracle.finalOccupancyDigest !== "8d730f69" ||
+          r.oracle.finalInitiativeDigest !== "67cf2fa8" ||
+          r.oracle.finalObjectiveDigest !== "dc971318" ||
+          r.oracle.canonicalDomDigest !== "ea6127a1" ||
+          r.oracle.focusStateDigest !== "103c75c2" ||
+          r.oracle.accessibilityStateDigest !== "e819fe54"
+        ) {
+          throw new Error(
+            `tactics_trace JS digests drifted from the frozen oracle`,
+          );
+        }
+      };
+      const callables = { js: { tactics_trace: jsCallable } };
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        const inst = mods.engines[key].instances.tactics_trace.instance;
+        callables[key] = {
+          tactics_trace: () => {
+            const memU8 = new Uint8Array(inst.exports.memory.buffer);
+            memU8.set(fixtureBytes, FIXTURE_OFFSET);
+            const ret = Number(
+              inst.exports.tactics_trace(fixtureBytes.byteLength),
+            );
+            if (ret !== 0) {
+              throw new Error(
+                `tactics_trace ${key} run failed with status ${ret}`,
+              );
+            }
+            const view = new Uint32Array(inst.exports.memory.buffer);
+            const base = RES_OFFSET / 4;
+            if (
+              (view[base] >>> 0) !== ORACLE.semantic ||
+              (view[base + 1] >>> 0) !== ORACLE.unit ||
+              (view[base + 2] >>> 0) !== ORACLE.occupancy ||
+              (view[base + 3] >>> 0) !== ORACLE.initiative ||
+              (view[base + 4] >>> 0) !== ORACLE.objective ||
+              (view[base + 5] >>> 0) !== ORACLE.dom ||
+              (view[base + 6] >>> 0) !== ORACLE.focus ||
+              (view[base + 7] >>> 0) !== ORACLE.accessibility
+            ) {
+              throw new Error(
+                `tactics_trace ${key} digests drifted from the frozen oracle`,
+              );
+            }
+            if (
+              view[base + 8] !== ORACLE.turns ||
+              view[base + 9] !== ORACLE.pathNodesExpanded ||
+              view[base + 10] !== ORACLE.lineOfSightTests ||
+              view[base + 11] !== ORACLE.stateUpdates ||
+              view[base + 12] !== ORACLE.domMutations
+            ) {
+              throw new Error(
+                `tactics_trace ${key} counters drifted from the frozen oracle`,
+              );
+            }
+          },
+        };
+      }
+      return callables;
+    },
+  },
+
   // --- ml-gemm: strict-f32 GEMM (mirrors benchmarks/v2/ml-gemm) -------------
   "ml.gemm.v1": {
     kernels: ["gemm"],

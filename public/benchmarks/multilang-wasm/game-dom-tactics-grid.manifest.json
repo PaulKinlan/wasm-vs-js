@@ -1,0 +1,63 @@
+{
+  "workloadId": "game.dom-tactics-grid.v1",
+  "kernelLabel": "DOM tactics grid — 60 turns × 240 actions on 64×64 map (game-dom-tactics-grid-v1.bin)",
+  "kernelLabels": {
+    "tactics_trace": "DOM tactics grid — 60-turn 240-action loop with BFS movement + LOS attacks on 64×64 map"
+  },
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": [
+    "tactics_trace"
+  ],
+  "engines": [
+    {
+      "key": "js",
+      "label": "JavaScript",
+      "kind": "js",
+      "source": "benchmarks/v2/game-family/engine.js"
+    },
+    {
+      "key": "c",
+      "label": "C / Wasm",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 0,
+      "files": {
+        "tactics_trace": "tactics_kernel_c.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/game-dom-tactics-grid/tactics_kernel.c"
+    },
+    {
+      "key": "cpp",
+      "label": "C++ / Wasm",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 0,
+      "files": {
+        "tactics_trace": "tactics_kernel_cpp.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/game-dom-tactics-grid/tactics_kernel.cpp"
+    },
+    {
+      "key": "rs",
+      "label": "Rust / Wasm",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 0,
+      "files": {
+        "tactics_trace": "tactics_kernel_rs.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/game-dom-tactics-grid/tactics_kernel.rs"
+    },
+    {
+      "key": "asc",
+      "label": "AssemblyScript",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "tactics_trace": "tactics_kernel_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/game-dom-tactics-grid/tactics_kernel.ts"
+    }
+  ]
+}

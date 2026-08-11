@@ -1,0 +1,270 @@
+// tactics_kernel.cpp — multilang compute core for game.dom-tactics-grid.v1.
+//
+// Same ABI as tactics_kernel.c: the adapter writes the frozen 7,064-byte
+// tactics fixture at FIXTURE_OFFSET and passes the byte length; this kernel
+// runs the 60-turn / 240-action loop bit-identical to run_tactics() in
+// benchmarks/v2/game-family/game-family.c and tactics() in engine.js, then
+// writes counters + digests to RES_OFFSET.
+
+// FIXTURE and RES offsets sit past every language's .bss window:
+// C/C++ .bss ends well before 1 MiB, Rust's __data_end lands near 2.9 MiB,
+// and AS's fixed-offset arrays occupy < 1 MiB. 3 MiB is safely past all
+// three.
+constexpr unsigned int FIXTURE_OFFSET = 3145728u;  // 3 MiB
+constexpr unsigned int RES_OFFSET = 3276800u;      // 3 MiB + 128 KiB
+
+using u32 = unsigned int;
+using i32 = int;
+using u16 = unsigned short;
+using i16 = short;
+using i8 = signed char;
+using u8 = unsigned char;
+
+static u16 bfs_queue[4096];
+static u16 bfs_seen[4096];
+static i16 bfs_parent[4096];
+static i16 occupancy[4096];
+static u8 unit_hp[128];
+static u8 unit_team[128];
+static u16 unit_position[128];
+
+static u8 fixture_at(u32 off) {
+  return *(reinterpret_cast<u8 *>(FIXTURE_OFFSET) + off);
+}
+static u32 read16(u32 at) {
+  return static_cast<u32>(fixture_at(at)) | (static_cast<u32>(fixture_at(at + 1)) << 8);
+}
+static u32 read32(u32 at) { return read16(at) | (read16(at + 2) << 16); }
+static u32 mix(u32 h, u32 v) { return (h ^ v) * 16777619u; }
+static u32 absolute(i32 v) {
+  return v < 0 ? static_cast<u32>(-v) : static_cast<u32>(v);
+}
+
+static u16 tactics_stamp;
+static u32 tactics_state;
+static u32 tactics_expanded;
+static u32 tactics_los;
+
+static int tactics_path(u32 start, u32 goal, u32 map_offset) {
+  tactics_stamp++;
+  u32 head = 0, tail = 1;
+  bfs_queue[0] = static_cast<u16>(start);
+  bfs_seen[start] = tactics_stamp;
+  bfs_parent[start] = -1;
+  while (head < tail) {
+    u32 node = bfs_queue[head++];
+    tactics_expanded++;
+    if (node == goal) break;
+    const u32 x = node & 63u, y = node >> 6;
+    i32 candidates[4] = {
+      y > 0u ? static_cast<i32>(node) - 64 : -1,
+      x > 0u ? static_cast<i32>(node) - 1 : -1,
+      x < 63u ? static_cast<i32>(node) + 1 : -1,
+      y < 63u ? static_cast<i32>(node) + 64 : -1,
+    };
+    for (u32 i = 0; i < 4u; i++) {
+      i32 signed_next = candidates[i];
+      if (signed_next < 0) continue;
+      const u32 next = static_cast<u32>(signed_next);
+      if (
+        bfs_seen[next] == tactics_stamp || fixture_at(map_offset + next) == 3 ||
+        (occupancy[next] >= 0 && next != goal)
+      ) continue;
+      bfs_seen[next] = tactics_stamp;
+      bfs_parent[next] = static_cast<i16>(node);
+      bfs_queue[tail++] = static_cast<u16>(next);
+    }
+  }
+  if (bfs_seen[goal] != tactics_stamp) return 0;
+  i32 node = static_cast<i32>(goal);
+  while (node >= 0) {
+    tactics_state = mix(tactics_state, static_cast<u32>(node));
+    node = bfs_parent[static_cast<u32>(node)];
+  }
+  return 1;
+}
+
+static int tactics_los_visible(u32 start, u32 goal, u32 map_offset) {
+  i32 x0 = static_cast<i32>(start & 63u), y0 = static_cast<i32>(start >> 6);
+  const i32 x1 = static_cast<i32>(goal & 63u), y1 = static_cast<i32>(goal >> 6);
+  const i32 dx = static_cast<i32>(absolute(x1 - x0)), sx = x0 < x1 ? 1 : -1;
+  const i32 dy = -static_cast<i32>(absolute(y1 - y0)), sy = y0 < y1 ? 1 : -1;
+  i32 error = dx + dy;
+  for (;;) {
+    tactics_los++;
+    u32 node = static_cast<u32>(x0 + y0 * 64);
+    if (node != start && node != goal && fixture_at(map_offset + node) == 3) return 0;
+    if (x0 == x1 && y0 == y1) return 1;
+    const i32 twice = 2 * error;
+    if (twice >= dy) { error += dy; x0 += sx; }
+    if (twice <= dx) { error += dx; y0 += sy; }
+  }
+}
+
+extern "C" __attribute__((export_name("tactics_trace")))
+int tactics_trace(u32 fixture_len) {
+  if (fixture_len != 7064u) return 1;
+  if (read32(0) != 64u || read32(8) != 128u) return 2;
+
+  for (u32 cell = 0; cell < 4096u; cell++) {
+    bfs_seen[cell] = 0;
+    occupancy[cell] = -1;
+  }
+
+  const u32 map_offset = 24u;
+  const u32 unit_offset = map_offset + 4096u;
+  const u32 action_offset = unit_offset + 128u * 8u;
+
+  for (u32 unit = 0; unit < 128u; unit++) {
+    const u32 at = unit_offset + unit * 8u;
+    unit_position[unit] = static_cast<u16>(read16(at) + read16(at + 2u) * 64u);
+    unit_hp[unit] = fixture_at(at + 4u);
+    unit_team[unit] = fixture_at(at + 5u) & 1u;
+    if (occupancy[unit_position[unit]] < 0) {
+      occupancy[unit_position[unit]] = static_cast<i16>(unit);
+    }
+  }
+
+  tactics_stamp = 0;
+  tactics_state = 0x5d7219afu;
+  tactics_expanded = 0;
+  tactics_los = 0;
+  u32 turns = 0, updates = 0, mutations = 0;
+  u32 selected = unit_position[0], focused = selected, initiative = 0;
+
+  u32 final_unit_digest = 0, final_occupancy_digest = 0;
+  u32 final_initiative_digest = 0, final_objective_digest = 0;
+  u32 final_dom_digest = 0, final_focus_digest = 0;
+  u32 final_accessibility_digest = 0;
+
+  for (u32 action = 0; action < 240u; action++) {
+    const u32 at = action_offset + action * 8u;
+    const u32 type = fixture_at(at), unit = fixture_at(at + 1u);
+    const u32 from = read16(at + 2u);
+    const u32 target = read16(at + 4u);
+    const u32 turn_id = read16(at + 6u);
+
+    if (action % 4u == 0u) {
+      turns++;
+      initiative = (turn_id * 7u) & 127u;
+      mutations++;
+    }
+    if (type == 0u) {
+      selected = unit_position[unit];
+      focused = selected;
+      updates++;
+      mutations += 2u;
+    }
+    if (
+      type == 1u && tactics_path(unit_position[unit], target, map_offset) &&
+      (occupancy[target] < 0 || occupancy[target] == static_cast<i16>(unit))
+    ) {
+      if (occupancy[unit_position[unit]] == static_cast<i16>(unit)) {
+        occupancy[unit_position[unit]] = -1;
+      }
+      unit_position[unit] = static_cast<u16>(target);
+      occupancy[target] = static_cast<i16>(unit);
+      selected = target;
+      focused = target;
+      updates++;
+      mutations += 3u;
+    }
+    if ((type == 2u || type == 4u) && tactics_los_visible(from, target, map_offset)) {
+      const i32 target_unit = occupancy[target];
+      if (target_unit >= 0) {
+        const u32 damage = type == 4u ? 3u : 1u;
+        unit_hp[target_unit] = unit_hp[target_unit] > damage
+          ? static_cast<u8>(unit_hp[target_unit] - damage)
+          : 0;
+        updates++;
+        mutations++;
+      }
+    }
+    if (type == 3u) {
+      initiative = (initiative + 1u) & 127u;
+      mutations++;
+    }
+    tactics_state = mix(
+      tactics_state,
+      type ^ unit ^ unit_hp[unit] ^ unit_position[unit] ^ selected ^ turn_id
+    );
+
+    if ((action + 1u) % 4u == 0u) {
+      u32 unit_digest = 0x9216d5d9u;
+      u32 occupancy_digest = 0x8979fb1bu;
+      u32 initiative_digest = mix(0xd1310ba6u, initiative);
+      u32 objective_digest = 0x98dfb5acu;
+      u32 dom_digest = 0x2ffd72dbu;
+      u32 focus_digest = mix(0xd01adfb7u, focused);
+      u32 accessibility_digest = 0xb8e1afedu;
+      u32 objectives0 = 0, objectives1 = 0;
+      for (u32 i = 0; i < 128u; i++) {
+        unit_digest = mix(
+          mix(mix(unit_digest, i), unit_position[i]),
+          unit_hp[i] ^ (static_cast<u32>(unit_team[i]) << 8)
+        );
+        initiative_digest = mix(initiative_digest, (i + initiative) & 127u);
+        if (fixture_at(map_offset + unit_position[i]) == 2u && unit_hp[i] > 0u) {
+          if (unit_team[i]) objectives1++;
+          else objectives0++;
+        }
+      }
+      objective_digest = mix(mix(objective_digest, objectives0), objectives1);
+      for (u32 cell = 0; cell < 4096u; cell++) {
+        const i32 occupant = occupancy[cell];
+        const u32 is_selected = cell == selected ? 1u : 0u;
+        const u32 is_focused = cell == focused ? 1u : 0u;
+        occupancy_digest = mix(
+          occupancy_digest,
+          occupant < 0 ? 0xffffffffu : static_cast<u32>(occupant)
+        );
+        dom_digest = mix(
+          mix(mix(dom_digest, cell), fixture_at(map_offset + cell)),
+          static_cast<u32>(occupant + 1) ^ (is_selected << 16) ^ (is_focused << 17)
+        );
+        const u32 unit_state = occupant < 0
+          ? 0u
+          : static_cast<u32>(
+              unit_hp[occupant] ^ (static_cast<u32>(unit_team[occupant]) << 8)
+            );
+        accessibility_digest = mix(
+          mix(accessibility_digest, 0x67726964u),
+          is_selected ^ (is_focused << 1) ^ (unit_state << 2)
+        );
+      }
+
+      tactics_state = mix(tactics_state, unit_digest);
+      tactics_state = mix(tactics_state, occupancy_digest);
+      tactics_state = mix(tactics_state, initiative_digest);
+      tactics_state = mix(tactics_state, objective_digest);
+      tactics_state = mix(tactics_state, dom_digest);
+      tactics_state = mix(tactics_state, focus_digest);
+      tactics_state = mix(tactics_state, accessibility_digest);
+      mutations += 2u;
+
+      final_unit_digest = unit_digest;
+      final_occupancy_digest = occupancy_digest;
+      final_initiative_digest = initiative_digest;
+      final_objective_digest = objective_digest;
+      final_dom_digest = dom_digest;
+      final_focus_digest = focus_digest;
+      final_accessibility_digest = accessibility_digest;
+    }
+  }
+
+  u32 *results = reinterpret_cast<u32 *>(RES_OFFSET);
+  results[0] = tactics_state;
+  results[1] = final_unit_digest;
+  results[2] = final_occupancy_digest;
+  results[3] = final_initiative_digest;
+  results[4] = final_objective_digest;
+  results[5] = final_dom_digest;
+  results[6] = final_focus_digest;
+  results[7] = final_accessibility_digest;
+  results[8] = turns;
+  results[9] = tactics_expanded;
+  results[10] = tactics_los;
+  results[11] = updates;
+  results[12] = mutations;
+  return 0;
+}
