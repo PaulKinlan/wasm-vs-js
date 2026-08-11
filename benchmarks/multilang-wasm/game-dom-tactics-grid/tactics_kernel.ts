@@ -157,8 +157,14 @@ function tacticsLosVisible(start: u32, goal: u32, mapOffset: u32): bool {
     if (node != start && node != goal && fixtureAt(mapOffset + node) == 3) return false;
     if (x0 == x1 && y0 == y1) return true;
     const twice: i32 = 2 * error;
-    if (twice >= dy) { error += dy; x0 += sx; }
-    if (twice <= dx) { error += dx; y0 += sy; }
+    if (twice >= dy) {
+      error += dy;
+      x0 += sx;
+    }
+    if (twice <= dx) {
+      error += dx;
+      y0 += sy;
+    }
   }
 }
 

@@ -26,7 +26,7 @@ const SLOT_SELECTED: usize = 2000000 + 28 * 12;
 const SLOT_POSITIONS: usize = 2000000 + 28 * 16;
 // Reconcile scratch buffers (raw load/store, no runtime allocation).
 const VISIBLE_SCRATCH: usize = 2000000 + 28 * 20; // 28 u32
-const USED_SCRATCH: usize = 2000000 + 28 * 24;    // 28 u32
+const USED_SCRATCH: usize = 2000000 + 28 * 24; // 28 u32
 
 // FIXTURE and RES offsets sit past every language's .bss window.
 const FIXTURE_OFFSET: usize = 3145728;
@@ -266,7 +266,10 @@ function reconcile(actionIndex: u32): void {
     const row: u32 = visibleScratchGet(position);
     let slot: i32 = -1;
     for (let candidate: u32 = 0; candidate < slotCount; candidate++) {
-      if (slotRowsGet(candidate) == row) { slot = <i32> candidate; break; }
+      if (slotRowsGet(candidate) == row) {
+        slot = <i32> candidate;
+        break;
+      }
     }
     const isSelected: u32 = row == selected ? 1 : 0;
     if (slot < 0) {
@@ -274,7 +277,10 @@ function reconcile(actionIndex: u32): void {
         if (
           visibleIndexOf(slotRowsGet(candidate), visibleLength) < 0 &&
           usedScratchGet(candidate) == 0
-        ) { slot = <i32> candidate; break; }
+        ) {
+          slot = <i32> candidate;
+          break;
+        }
       }
       if (slot < 0) {
         if (slotCount >= MAX_MOUNTED) return;
