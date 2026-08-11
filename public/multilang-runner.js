@@ -6093,17 +6093,25 @@ function median(values) {
   return sorted[Math.floor(sorted.length / 2)];
 }
 
-function benchmarkOne(fn, iterations) {
+async function runOnce(fn) {
+  // A callable may be async (e.g. audio's JS reference imports the workload);
+  // await it so the wall-clock timer covers the whole computation, not just
+  // the synchronous prefix up to the first `await`.
+  const maybe = fn();
+  if (maybe && typeof maybe.then === "function") await maybe;
+}
+
+async function benchmarkOne(fn, iterations) {
   // 1st run (cold): the first invocation on the freshly-instantiated engine,
   // matching the primary runner's cold-start column.
   let t0 = performance.now();
-  fn();
+  await runOnce(fn);
   const coldMs = performance.now() - t0;
-  for (let i = 0; i < 50; i++) fn(); // warm-up (JIT + wasm tiering)
+  for (let i = 0; i < 50; i++) await runOnce(fn); // warm-up (JIT + wasm tiering)
   const samples = [];
   for (let i = 0; i < iterations; i++) {
     t0 = performance.now();
-    fn();
+    await runOnce(fn);
     samples.push(performance.now() - t0);
   }
   return {
@@ -6165,7 +6173,7 @@ export async function runWorkload(
     const fn = callables[engine.key]?.[kernel];
     if (!fn) continue; // engine not applicable to this kernel (e.g. WAT sum-only)
     onProgress(`${engine.label}: ${kernel}...`);
-    const stats = benchmarkOne(fn, iterations);
+    const stats = await benchmarkOne(fn, iterations);
     const bytes = mods.engines[engine.key]?.bytes?.byteLength ?? 0;
     const sourceBytes = await kernelSourceBytes(
       manifest,
