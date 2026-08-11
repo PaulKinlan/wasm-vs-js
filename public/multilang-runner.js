@@ -21,7 +21,90 @@
 // Per-workload call adapters live in KERNEL_ADAPTERS below (manifests are
 // data-only); each adapter exposes the timed callable for its kernel.
 
-export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses the multilang-wasm fft kernels)
+export const KERNEL_ADAPTERS = {
+  "archive.zip-workspace.v1": {
+    kernels: ["zip_build"],
+    async build(mods) {
+      const callables = {};
+
+      if (mods.js) {
+        const { runJavaScript, BOUNDED_ENTRY_COUNT } = await import(mods.js.source);
+        // Simple FNV-1a 32-bit for JS verification
+        const fnv1a32 = (bytes) => {
+          let hash = 2166136261;
+          for (let i = 0; i < bytes.length; i++) {
+            hash ^= bytes[i];
+            hash = Math.imul(hash, 16777619);
+          }
+          return hash >>> 0;
+        };
+
+        callables.js = {
+          zip_build: () => {
+            const res = runJavaScript(BOUNDED_ENTRY_COUNT);
+            if (res.counters.entries !== 1000) throw new Error("JS model entries != 1000");
+            const arcFnv = fnv1a32(res.archive);
+            const extFnv = fnv1a32(res.extracted);
+            if (arcFnv !== 0xe0265a32) {
+              throw new Error(`JS archive FNV drift: ${arcFnv.toString(16)}`);
+            }
+            if (extFnv !== 0x3e7ffce3) {
+              throw new Error(`JS extracted FNV drift: ${extFnv.toString(16)}`);
+            }
+          },
+        };
+      }
+
+      const JS_COUNTERS = [
+        "entries",
+        "inputBytes",
+        "crcBytes",
+        "deflateLiterals",
+        "deflateMatches",
+        "deflateMatchedBytes",
+        "deflateEndSymbols",
+        "localHeaders",
+        "centralHeaders",
+        "zip64Records",
+        "listedEntries",
+        "extractedEntries",
+        "extractedBytes",
+        "boundaryCrossings",
+      ];
+
+      const RES_OFFSET = 3145728;
+
+      for (const [key, engine] of Object.entries(mods)) {
+        if (key === "js" || key === "dart") continue;
+        const memory = engine.memories?.zip_build || engine.exports.memory;
+        if (!memory) throw new Error(`Engine ${key} missing memory export for zip_build`);
+        const { zip_build } = engine.exports;
+        if (typeof zip_build !== "function") {
+          throw new Error(`Engine ${key} missing zip_build export`);
+        }
+
+        callables[key] = {
+          zip_build: () => {
+            const status = zip_build();
+            if (status !== 0) throw new Error(`${key} zip_build failed: ${status}`);
+            const mem = new Uint32Array(memory.buffer);
+            const res = mem.subarray(RES_OFFSET / 4, (RES_OFFSET / 4) + 18);
+
+            if (res[0] !== 1000) throw new Error(`${key} counter[0] entries mismatch`);
+            if (res[15] !== 0xe0265a32) {
+              throw new Error(`${key} archive FNV drift: ${res[15].toString(16)}`);
+            }
+            if (res[16] !== 0x3e7ffce3) {
+              throw new Error(`${key} extracted FNV drift: ${res[16].toString(16)}`);
+            }
+          },
+        };
+      }
+
+      return callables;
+    },
+  },
+  // --- audio-fft: radix-2 FFT butterfly (reuses the multilang-wasm fft kernels)
   // --- document.pdf-viewer.v1: PDF parser (mirrors benchmarks/base/document-pdf-viewer
   //     engine.js parseReport / pdf-engine.c; frozen 100-page report fixture) ------
   // --- simulation.rigid-body-2d.v1: 500-body 2D physics (mirrors engine.js
