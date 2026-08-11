@@ -161,4 +161,3 @@ Deno.test("multilang server-ssr-template: Rust kernel matches the JS oracle exac
   const r = runKernel(await loadWasm("server_ssr_kernel_rs.wasm"), fixture);
   assertOracle("Rust", r);
 });
-
