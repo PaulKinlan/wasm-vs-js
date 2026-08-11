@@ -6242,6 +6242,7 @@ export function shouldAutoBindMultilang(meta = {}) {
 }
 
 export function initMultilangRunner(manifestPath, opts = {}) {
+  const heading = opts.heading ?? true;
   const form = opts.form ?? document.querySelector("#demo-form");
   const iterationsSelect = opts.iterations ?? document.querySelector("#iterations");
   const startBtn = opts.start ?? document.querySelector("#start");
@@ -6273,6 +6274,7 @@ export function initMultilangRunner(manifestPath, opts = {}) {
         },
         shouldCancel: () => cancelled,
         reportingEl,
+        heading,
       });
       statusEl.textContent = "✓ Benchmark suite completed.";
     } catch (err) {
@@ -6323,6 +6325,9 @@ if (typeof document !== "undefined" && document.body?.dataset?.multilangManifest
         iterations:
           document.querySelector(document.body.dataset.multilangIterations || "#iterations") ||
           undefined,
+        // Pages that ship their own section heading (e.g. protobuf-gateway's
+        // dedicated H2) suppress the renderTables duplicate.
+        heading: document.body.dataset.multilangHeading !== "false",
       });
     }
   };
