@@ -128,7 +128,10 @@ function process_block(
   for (let i: i32 = 0; i < frames; i++) {
     const sample: f32 = load<f32>(input_ptr + ((offset + i) as usize) * 4);
     const filtered: f32 = (B0 * sample) + load<f32>(state_ptr + STATE_Z1);
-    store<f32>(state_ptr + STATE_Z1, ((B1 * sample) - (A1 * filtered)) + load<f32>(state_ptr + STATE_Z2));
+    store<f32>(
+      state_ptr + STATE_Z1,
+      ((B1 * sample) - (A1 * filtered)) + load<f32>(state_ptr + STATE_Z2),
+    );
     store<f32>(state_ptr + STATE_Z2, (B2 * sample) - (A2 * filtered));
 
     const magnitude: f32 = f_abs(filtered);
