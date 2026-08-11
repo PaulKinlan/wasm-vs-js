@@ -1,0 +1,63 @@
+{
+  "workloadId": "dom.dependent-form-validation.v1",
+  "kernelLabel": "Dependent form validation trace \u2014 10 fields \u00d7 240 frozen input/blur ops (per-rule validation)",
+  "kernelLabels": {
+    "form_validate_trace": "Dependent form validation \u2014 10 fields, 240 frozen input/blur ops, 5 per-rule checks (email/password/confirm/age/terms)"
+  },
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": [
+    "form_validate_trace"
+  ],
+  "engines": [
+    {
+      "key": "js",
+      "label": "JavaScript",
+      "kind": "js",
+      "source": "benchmarks/multilang-wasm/dom-dependent-form-validation/form_validate_kernel.ts"
+    },
+    {
+      "key": "c",
+      "label": "C / Wasm",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 0,
+      "files": {
+        "form_validate_trace": "form_validate_kernel_c.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/dom-dependent-form-validation/form_validate_kernel.c"
+    },
+    {
+      "key": "cpp",
+      "label": "C++ / Wasm",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 0,
+      "files": {
+        "form_validate_trace": "form_validate_kernel_cpp.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/dom-dependent-form-validation/form_validate_kernel.cpp"
+    },
+    {
+      "key": "rs",
+      "label": "Rust / Wasm",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 0,
+      "files": {
+        "form_validate_trace": "form_validate_kernel_rs.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/dom-dependent-form-validation/form_validate_kernel.rs"
+    },
+    {
+      "key": "asc",
+      "label": "AssemblyScript",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "form_validate_trace": "form_validate_kernel_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/dom-dependent-form-validation/form_validate_kernel.ts"
+    }
+  ]
+}

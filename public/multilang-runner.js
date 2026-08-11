@@ -3918,6 +3918,53 @@ export const KERNEL_ADAPTERS = { // --- audio-fft: radix-2 FFT butterfly (reuses
     },
   },
 
+  // --- dom.dependent-form-validation.v1: dependent form validation compute
+  // core (mirrors benchmarks/multilang-wasm/dom-dependent-form-validation/
+  // form_validate_kernel.*; the frozen 240-action trace is generated inside
+  // each kernel from seed 0x2468ace0 and applied to 10 fields with per-rule
+  // email/password/confirm/age/terms validation) --------------------------
+  "dom.dependent-form-validation.v1": {
+    kernels: ["form_validate_trace"],
+    async build(mods) {
+      const RES_OFFSET = 16384;
+      const { generateFormActions, runFormValidationJS } = await import(
+        "/benchmarks/dom-dependent-form-validation/engine.js"
+      );
+      const jsCallable = () => {
+        const r = runFormValidationJS(generateFormActions());
+        if (
+          r.totalErrors !== 449 || r.activeErrorCount !== 1 || r.totalValidations !== 240
+        ) {
+          throw new Error(`form_validate_trace JS counters drifted from the frozen oracle`);
+        }
+      };
+      const callables = { js: { form_validate_trace: jsCallable } };
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        const inst = mods.engines[key].instances.form_validate_trace.instance;
+        const mem = new Int32Array(inst.exports.memory.buffer);
+        callables[key] = {
+          form_validate_trace: () => {
+            const total = Number(inst.exports.form_validate_trace());
+            if (
+              mem[RES_OFFSET / 4] !== 449 || mem[RES_OFFSET / 4 + 1] !== 1 ||
+              mem[RES_OFFSET / 4 + 2] !== 240
+            ) {
+              throw new Error(
+                `form_validate_trace ${key} counters drifted from the frozen oracle`,
+              );
+            }
+            if (total !== 449) {
+              throw new Error(
+                `form_validate_trace ${key} totalErrors drifted from the frozen oracle`,
+              );
+            }
+          },
+        };
+      }
+      return callables;
+    },
+  },
+
   // --- ml-gemm: strict-f32 GEMM (mirrors benchmarks/v2/ml-gemm) -------------
   "ml.gemm.v1": {
     kernels: ["gemm"],
