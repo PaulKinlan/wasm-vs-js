@@ -4,7 +4,9 @@
     "kws_run": "Keyword spotting — quantized DS-CNN inference, 300 frozen hops (Hann Q15 → FFT → log-mel → DCT → int8 CNN)"
   },
   "artifactsBase": "/artifacts/multilang-wasm-benchmark/",
-  "kernels": ["kws_run"],
+  "kernels": [
+    "kws_run"
+  ],
   "engines": [
     {
       "key": "js",
@@ -13,7 +15,8 @@
       "files": {
         "kws_run": ""
       },
-      "source": "base/ml-keyword-spotting/engine.js"
+      "source": "base/ml-keyword-spotting/engine.js",
+      "label": "JavaScript"
     },
     {
       "key": "c",
