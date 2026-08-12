@@ -3,6 +3,62 @@
 
 import { executeWorkerLoop, renderPerformanceReport } from "./unified-runner.js";
 
+// Every workload card with a multi-language comparison lane: slug -> manifest.
+// Cards absent from this map have no multilang core (vendored/platform/meta).
+const MULTILANG_MANIFESTS = {
+  "sum-u32": "/benchmarks/multilang-wasm/sum-u32.manifest.json",
+  "audio-fft": "/benchmarks/multilang-wasm/audio-fft.manifest.json",
+  "audio-fir": "/benchmarks/multilang-wasm/audio-fir.manifest.json",
+  "audio-stft": "/benchmarks/multilang-wasm/audio-stft.manifest.json",
+  "ml-gemm": "/benchmarks/multilang-wasm/ml-gemm.manifest.json",
+  "ml-dense-mlp": "/benchmarks/multilang-wasm/ml-dense-mlp.manifest.json",
+  "cad-mesh-repair-v1": "/benchmarks/multilang-wasm/cad-mesh-repair.manifest.json",
+  "document-pdf-viewer-v1": "/benchmarks/multilang-wasm/document-pdf-viewer.manifest.json",
+  "base-dom-todomvc-journey": "/benchmarks/multilang-wasm/base-dom-todomvc-journey.manifest.json",
+  "archive-zip-workspace-v1": "/benchmarks/multilang-wasm/archive-zip-workspace-v1.manifest.json",
+  "crypto-authenticated-stream":
+    "/benchmarks/multilang-wasm/crypto-authenticated-stream.manifest.json",
+  "graphics-cpu-path-tracer-v1":
+    "/benchmarks/multilang-wasm/graphics-cpu-path-tracer.manifest.json",
+  "database-olap-chart": "/benchmarks/multilang-wasm/database-olap-chart.manifest.json",
+  "dom-virtualized-grid-v1": "/benchmarks/multilang-wasm/dom-virtualized-grid-v1.manifest.json",
+  "ml-keyword-spotting-v1": "/benchmarks/multilang-wasm/ml-keyword-spotting-v1.manifest.json",
+  "ml-numeric-kernels-v1": "/benchmarks/multilang-wasm/ml-numeric-kernels.manifest.json",
+  "numeric-fft-spectral-filter-v1": "/benchmarks/multilang-wasm/fft-kernel.manifest.json",
+  "serialization-protobuf-gateway":
+    "/benchmarks/multilang-wasm/serialization-protobuf-gateway.manifest.json",
+  "cad-parametric-bracket": "/benchmarks/multilang-wasm/cad-parametric-bracket.manifest.json",
+  "crypto-file-integrity-v1": "/benchmarks/multilang-wasm/crypto-file-integrity.manifest.json",
+  "game-dom-tactics-grid": "/benchmarks/multilang-wasm/game-dom-tactics-grid.manifest.json",
+  "game-ecs-frame-update": "/benchmarks/multilang-wasm/game-ecs-frame-update.manifest.json",
+  "serialization-json-telemetry-v1":
+    "/benchmarks/multilang-wasm/serialization-json-telemetry.manifest.json",
+  "server-ssr-template-v1": "/benchmarks/multilang-wasm/server-ssr-template-v1.manifest.json",
+  "text-gc-document-edit-v1": "/benchmarks/multilang-wasm/text-gc-document-edit.manifest.json",
+  "base-audio-webaudio-effects-v1":
+    "/benchmarks/multilang-wasm/audio-webaudio-effects-v1.manifest.json",
+  "vdom-diff-patch-demo": "/benchmarks/multilang-wasm/vdom-diff-patch.manifest.json",
+  "image-editing-demo": "/benchmarks/multilang-wasm/image-editing.manifest.json",
+  "image-flood-fill-demo": "/benchmarks/multilang-wasm/image-editing.manifest.json",
+  "regex-automata-duel-demo": "/benchmarks/multilang-wasm/regex-automata-duel-demo.manifest.json",
+  "game-canvas-arcade": "/benchmarks/multilang-wasm/game-canvas-arcade.manifest.json",
+  "game-canvas-entity-pathfinding":
+    "/benchmarks/multilang-wasm/game-canvas-entity-pathfinding.manifest.json",
+  "text-diff-patch": "/benchmarks/multilang-wasm/text-diff-patch.manifest.json",
+  "text-markdown-cms": "/benchmarks/multilang-wasm/text-markdown-cms.manifest.json",
+  "dom-dependent-form-validation":
+    "/benchmarks/multilang-wasm/dom-dependent-form-validation.manifest.json",
+  "dom-grid-movement": "/benchmarks/multilang-wasm/dom-grid-movement.manifest.json",
+  "dom-keyed-list-mutation": "/benchmarks/multilang-wasm/dom-keyed-list-mutation.manifest.json",
+  "dom-nested-tree-mutation": "/benchmarks/multilang-wasm/dom-nested-tree-mutation.manifest.json",
+  "dom-table-sort-filter-pagination":
+    "/benchmarks/multilang-wasm/dom-table-sort-filter-pagination.manifest.json",
+  "simulation-rigid-body-2d-v1":
+    "/benchmarks/multilang-wasm/simulation-rigid-body-2d.manifest.json",
+  "text-regex-log-scan": "/benchmarks/multilang-wasm/text-regex-log-scan.manifest.json",
+  "simulation-nbody-cloth": "/benchmarks/multilang-wasm/simulation-nbody-cloth.manifest.json",
+};
+
 const PLAYGROUND_WORKLOADS = [
   {
     slug: "sum-u32",
@@ -147,10 +203,6 @@ const PLAYGROUND_WORKLOADS = [
       "Scrolls, filters, sorts, and edits 100,000 rows over a recorded interaction trace.",
     explanation:
       "Windowed DOM rendering, sort-index maintenance, and efficient recycle-pool management.",
-    // The worker replays a wall-clock-paced interaction trace with ±20 ms
-    // slot validation; inside a shared playground page the pacing blows the
-    // tolerance, so this one stays on its own demo page.
-    manual: "Runs a real-time paced trace that needs an idle page — use the demo page.",
   },
   {
     slug: "ml-keyword-spotting-v1",
@@ -496,12 +548,46 @@ async function runBenchmarkForCard(config, cardEl, iterations = 30) {
       wasmStats = await executeWorkerLoop(config.slug, "wasm", iterations, report("Wasm"));
     }
 
+    renderPerformanceReport(metricsEl, jsStats, wasmStats, iterations);
+
+    // Multi-language comparison stage (Paul directive 2026-08-12: multilang is
+    // critical to the product — the suite run must show it, not just the pages).
+    const mlManifest = MULTILANG_MANIFESTS[config.slug];
+    let mlResult = { passed: true, skipped: !mlManifest };
+    if (mlManifest) {
+      statusEl.textContent = "Running multi-language comparison…";
+      try {
+        const mlBox = document.createElement("div");
+        mlBox.className = "playground-multilang";
+        metricsEl.appendChild(mlBox);
+        const mlHeader = document.createElement("h4");
+        mlHeader.textContent = "Multi-language comparison";
+        mlBox.appendChild(mlHeader);
+        const mlReporting = document.createElement("div");
+        mlBox.appendChild(mlReporting);
+        const { runMultilangComparison } = await import("/multilang-runner.js");
+        await runMultilangComparison(mlManifest, {
+          iterations: Math.min(iterations, 3), // suite tractability; demo pages run the full loop
+          onStatus: (m) => {
+            statusEl.textContent = m;
+          },
+          reportingEl: mlReporting,
+          heading: false,
+        });
+        mlResult = { passed: true, skipped: false };
+      } catch (mlErr) {
+        mlResult = { passed: false, skipped: false, error: mlErr.message || String(mlErr) };
+        const errEl = document.createElement("p");
+        errEl.className = "notice warning";
+        errEl.textContent = `Multi-language run error: ${mlResult.error}`;
+        metricsEl.appendChild(errEl);
+      }
+    }
+
     statusEl.textContent = "✓ Complete";
     statusEl.className = "playground-status passed";
 
-    renderPerformanceReport(metricsEl, jsStats, wasmStats, iterations);
-
-    return { slug: config.slug, title: config.title, passed: true, jsStats, wasmStats };
+    return { slug: config.slug, title: config.title, passed: true, jsStats, wasmStats, mlResult };
   } catch (err) {
     console.error(`Benchmark error [${config.slug}]:`, err);
     statusEl.textContent = "✕ Error";
@@ -602,7 +688,7 @@ function initPlaygroundUI() {
 
         resultsSummary.push(res);
         if (res.skipped) skippedCount++;
-        else if (res.passed) passedCount++;
+        else if (res.passed && res.mlResult?.passed !== false) passedCount++;
         completed++;
 
         if (progressBar) {
