@@ -4,7 +4,7 @@ export const IDENTITY = {
   "sourceCommit": "3fc5d9a756f074aa3fa75bf24585b8915619dc24",
   "rawSha256": {
     "registration": "e01d7682f4e2e0c466d90a6769e832af88562fd9af79ac5fb50022a99cbd46fb",
-    "buildManifest": "1efd724a3cc37587dc3ddb2445f3f353658913f50568f8013addd809ece73785",
+    "buildManifest": "63363a32c97c243186e3a03dfaf9044a10a98abfbdee02b235af9b3a3a492d1c",
     "inputManifest": "546b40c57f1a75db3b4f37feb8b38d5a3b75054de997394abdaa578953c9924a",
     "outputManifest": "e7599e0e453ec6059269073533a28cf6ab37c39109eee3792e8065cb6ec562ac",
     "wasm": "7c9e86f13085de36a1a4a4c5f93162f5b5fb0b96b1d36dfc01b5775a0d832fbe",

@@ -79,6 +79,7 @@ const sourcePaths = [
   "public/demos/base/text.regex-log-scan.v1/index.html",
   "public/demos/base/text.regex-log-scan.v1/demo.js",
   "public/demos/base/text.regex-log-scan.v1/worker.js",
+  "public/benchmarks/base/text.regex-log-scan.v1/worker.js",
   "schemas/base-workload-registration.schema.json",
   "schemas/base-workload-correctness-record.schema.json",
   "tests/base-text-regex-log-scan.test.ts",
