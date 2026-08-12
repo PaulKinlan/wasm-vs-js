@@ -11,23 +11,6 @@ const manifest = JSON.parse(
   ),
 );
 
-const JS_COUNTERS = [
-  "entries",
-  "inputBytes",
-  "crcBytes",
-  "deflateLiterals",
-  "deflateMatches",
-  "deflateMatchedBytes",
-  "deflateEndSymbols",
-  "localHeaders",
-  "centralHeaders",
-  "zip64Records",
-  "listedEntries",
-  "extractedEntries",
-  "extractedBytes",
-  "boundaryCrossings",
-];
-
 Deno.test("archive.zip-workspace multilang - JS sanity", () => {
   const result = runJavaScript(BOUNDED_ENTRY_COUNT);
   assertEquals(result.counters.entries, 1000);
@@ -46,7 +29,9 @@ for (const engine of manifest.engines) {
       [engine.key]: { exports: inst.exports, memories: { zip_build: inst.exports.memory } },
     };
     const adapter = KERNEL_ADAPTERS["archive.zip-workspace.v1"];
-    const callables: any = await adapter.build(mods);
+    const callables = await adapter.build(mods) as unknown as {
+      [key: string]: { zip_build: () => void };
+    };
 
     // Will throw on verification failure
     callables[engine.key].zip_build();

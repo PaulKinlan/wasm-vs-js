@@ -55,23 +55,6 @@ export const KERNEL_ADAPTERS = {
         };
       }
 
-      const JS_COUNTERS = [
-        "entries",
-        "inputBytes",
-        "crcBytes",
-        "deflateLiterals",
-        "deflateMatches",
-        "deflateMatchedBytes",
-        "deflateEndSymbols",
-        "localHeaders",
-        "centralHeaders",
-        "zip64Records",
-        "listedEntries",
-        "extractedEntries",
-        "extractedBytes",
-        "boundaryCrossings",
-      ];
-
       const RES_OFFSET = 3145728;
 
       for (const [key, engine] of Object.entries(mods)) {
