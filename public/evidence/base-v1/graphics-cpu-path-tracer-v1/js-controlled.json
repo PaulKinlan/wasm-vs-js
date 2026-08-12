@@ -4,7 +4,7 @@
   "catalogId": "graphics.cpu-path-tracer.v1",
   "registrationId": "base-v1.graphics.cpu-path-tracer.v1.controlled.v1",
   "variant": "js-controlled",
-  "sourceCommit": "ead07195f353eccb449a9e06c16f8b58c638cd7f",
+  "sourceCommit": "0f18300f1448a3bec331ae286a85be4fdc6e76e1",
   "input": {
     "width": 512,
     "height": 512,
@@ -35,7 +35,7 @@
   },
   "buildManifest": {
     "path": "public/artifacts/graphics-cpu-path-tracer-v1/build-manifest.json",
-    "sha256": "cd162aeea6fa359e4dde1a2dbbad994ac6e25618a6179a75733758b7a63648bc"
+    "sha256": "902d93044abde0ae9bfab846ee96a22c18bacebe172bc4aa21b0f59f486a062b"
   },
   "performanceClaims": []
 }

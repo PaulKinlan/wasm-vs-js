@@ -34,21 +34,21 @@
     "artifacts": [
       {
         "id": "ml-gemm-javascript-source",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ead07195f353eccb449a9e06c16f8b58c638cd7f/benchmarks/v2/ml-gemm/workload.js",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/0f18300f1448a3bec331ae286a85be4fdc6e76e1/benchmarks/v2/ml-gemm/workload.js",
         "mediaType": "text/javascript",
         "path": "benchmarks/v2/ml-gemm/workload.js",
         "sha256": "d2dbc04bf3146adc1533cf2913eef44004dc6d0b5fba14a81f47bc5fbc60d030"
       },
       {
         "id": "ml-gemm-reference-f64",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ead07195f353eccb449a9e06c16f8b58c638cd7f/artifacts/v2/ml-gemm/reference.f64",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/0f18300f1448a3bec331ae286a85be4fdc6e76e1/artifacts/v2/ml-gemm/reference.f64",
         "mediaType": "application/octet-stream",
         "path": "artifacts/v2/ml-gemm/reference.f64",
         "sha256": "a9b58b56aa5aaa81ea9b37ab34c938132f225c25312618a924a27f43792b2aa7"
       },
       {
         "id": "ml-gemm-bounds-f32",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ead07195f353eccb449a9e06c16f8b58c638cd7f/artifacts/v2/ml-gemm/bounds.f32",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/0f18300f1448a3bec331ae286a85be4fdc6e76e1/artifacts/v2/ml-gemm/bounds.f32",
         "mediaType": "application/octet-stream",
         "path": "artifacts/v2/ml-gemm/bounds.f32",
         "sha256": "9009e9e677f37e32cddefd6ab8192b4c99ffee3a31d154372c04d6de7639f278"
@@ -67,7 +67,7 @@
       ],
       "cwd": ".",
       "environment": [
-        { "name": "WASM_VS_JS_COMMIT", "value": "ead07195f353eccb449a9e06c16f8b58c638cd7f" }
+        { "name": "WASM_VS_JS_COMMIT", "value": "0f18300f1448a3bec331ae286a85be4fdc6e76e1" }
       ],
       "flags": {
         "compiler": ["wabt canonicalize_lebs=true", "write_debug_names=false"],
@@ -81,13 +81,13 @@
       },
       "locks": [
         {
-          "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ead07195f353eccb449a9e06c16f8b58c638cd7f/deno.lock",
+          "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/0f18300f1448a3bec331ae286a85be4fdc6e76e1/deno.lock",
           "path": "deno.lock",
           "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2"
         }
       ],
       "recipe": {
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ead07195f353eccb449a9e06c16f8b58c638cd7f/scripts/build-v2-neural.ts",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/0f18300f1448a3bec331ae286a85be4fdc6e76e1/scripts/build-v2-neural.ts",
         "path": "scripts/build-v2-neural.ts",
         "sha256": "1758df53932cb21780740f55fed3db1599b8fde833ae72745fd7632d04cdfef5"
       },
@@ -97,64 +97,64 @@
       ]
     },
     "generator": {
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ead07195f353eccb449a9e06c16f8b58c638cd7f/benchmarks/v2/shared/generator.js",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/0f18300f1448a3bec331ae286a85be4fdc6e76e1/benchmarks/v2/shared/generator.js",
       "path": "benchmarks/v2/shared/generator.js",
       "sha256": "c6f95cbd14eb172ed5496d504bd9772e1e2a315f9bfa903704b404f4d6b94f30"
     },
     "manifests": {
       "fixture": {
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ead07195f353eccb449a9e06c16f8b58c638cd7f/artifacts/v2/ml-gemm/fixture-manifest.json",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/0f18300f1448a3bec331ae286a85be4fdc6e76e1/artifacts/v2/ml-gemm/fixture-manifest.json",
         "path": "artifacts/v2/ml-gemm/fixture-manifest.json",
         "sha256": "de7aa2212593676168fe6add38621022811dcd2c6f22aac540eb42a2c091833e"
       },
       "input": {
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ead07195f353eccb449a9e06c16f8b58c638cd7f/artifacts/v2/ml-gemm/input-manifest.json",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/0f18300f1448a3bec331ae286a85be4fdc6e76e1/artifacts/v2/ml-gemm/input-manifest.json",
         "path": "artifacts/v2/ml-gemm/input-manifest.json",
         "sha256": "29bf0704af046bcbbcf9ccce2a95ae6f6c81ffec8733894b5ba312aadd1b2027"
       },
       "output": {
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ead07195f353eccb449a9e06c16f8b58c638cd7f/artifacts/v2/ml-gemm/output-manifest.json",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/0f18300f1448a3bec331ae286a85be4fdc6e76e1/artifacts/v2/ml-gemm/output-manifest.json",
         "path": "artifacts/v2/ml-gemm/output-manifest.json",
         "sha256": "b5460e6241fb5676e651d0c80cdfe0f5732e6f5d64c00bdbcfce48b1647d5e64"
       }
     },
     "oracle": {
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ead07195f353eccb449a9e06c16f8b58c638cd7f/artifacts/v2/ml-gemm/output-manifest.json",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/0f18300f1448a3bec331ae286a85be4fdc6e76e1/artifacts/v2/ml-gemm/output-manifest.json",
       "path": "artifacts/v2/ml-gemm/output-manifest.json",
       "sha256": "b5460e6241fb5676e651d0c80cdfe0f5732e6f5d64c00bdbcfce48b1647d5e64"
     },
     "reference": {
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ead07195f353eccb449a9e06c16f8b58c638cd7f/lib/v2/neural.ts",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/0f18300f1448a3bec331ae286a85be4fdc6e76e1/lib/v2/neural.ts",
       "path": "lib/v2/neural.ts",
       "sha256": "dda55b176b26d55605fa2370c5ff7082c7277bed9bdd6383db4eb8702c7c739a"
     },
     "sources": [
       {
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ead07195f353eccb449a9e06c16f8b58c638cd7f/benchmarks/v2/ml-gemm/workload.js",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/0f18300f1448a3bec331ae286a85be4fdc6e76e1/benchmarks/v2/ml-gemm/workload.js",
         "path": "benchmarks/v2/ml-gemm/workload.js",
         "role": "javascript-authored",
         "sha256": "d2dbc04bf3146adc1533cf2913eef44004dc6d0b5fba14a81f47bc5fbc60d030"
       },
       {
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ead07195f353eccb449a9e06c16f8b58c638cd7f/benchmarks/v2/ml-gemm/ml-gemm.wat",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/0f18300f1448a3bec331ae286a85be4fdc6e76e1/benchmarks/v2/ml-gemm/ml-gemm.wat",
         "path": "benchmarks/v2/ml-gemm/ml-gemm.wat",
         "role": "wasm-authored",
         "sha256": "2840fd8041e649be046eaaf753679b439fe51e498b6662758a15e61f1b02a73c"
       },
       {
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ead07195f353eccb449a9e06c16f8b58c638cd7f/deno.json",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/0f18300f1448a3bec331ae286a85be4fdc6e76e1/deno.json",
         "path": "deno.json",
         "role": "shared-support",
         "sha256": "1fb796ab0a517cac5b34d6b0225dc1316f7dae952460c45fec46acbe9d71ec5b"
       },
       {
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ead07195f353eccb449a9e06c16f8b58c638cd7f/benchmarks/v2/shared/allocations.js",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/0f18300f1448a3bec331ae286a85be4fdc6e76e1/benchmarks/v2/shared/allocations.js",
         "path": "benchmarks/v2/shared/allocations.js",
         "role": "shared-support",
         "sha256": "24eccf431792664186a59c7424bc9ff29b4dabc87d92db42848c6ff9b32523cc"
       },
       {
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ead07195f353eccb449a9e06c16f8b58c638cd7f/lib/v2/manifest-evidence.ts",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/0f18300f1448a3bec331ae286a85be4fdc6e76e1/lib/v2/manifest-evidence.ts",
         "path": "lib/v2/manifest-evidence.ts",
         "role": "shared-support",
         "sha256": "568dd127837eaf2b3b281ea550dfc0442d37257f7c747b20f5ebcad18fc56eda"
@@ -164,7 +164,7 @@
   "resultContract": {
     "contractId": "workload-result-v2-proposal-v1",
     "file": {
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ead07195f353eccb449a9e06c16f8b58c638cd7f/schemas/workload-result-v2-proposal.schema.json",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/0f18300f1448a3bec331ae286a85be4fdc6e76e1/schemas/workload-result-v2-proposal.schema.json",
       "path": "schemas/workload-result-v2-proposal.schema.json",
       "sha256": "64fa72510b1e775c8d4b968ad4aacfd9b0e1ae3cf199156b958476857cd8d39a"
     }
@@ -187,7 +187,7 @@
     ]
   },
   "source": {
-    "commit": "ead07195f353eccb449a9e06c16f8b58c638cd7f",
+    "commit": "0f18300f1448a3bec331ae286a85be4fdc6e76e1",
     "repository": "https://github.com/PaulKinlan/wasm-vs-js"
   },
   "status": "proposal-validation-only",
@@ -204,7 +204,7 @@
   "workloadCatalog": {
     "catalogId": "workload-catalog-v2-proposal",
     "file": {
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ead07195f353eccb449a9e06c16f8b58c638cd7f/catalog/workloads.v2.proposed.json",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/0f18300f1448a3bec331ae286a85be4fdc6e76e1/catalog/workloads.v2.proposed.json",
       "path": "catalog/workloads.v2.proposed.json",
       "sha256": "d1e014cc7d6db799e1a04618b8961a3a5e6ead66e5a1fcdcf1e2301c87c66ac9"
     }
@@ -212,7 +212,7 @@
   "workloadContract": {
     "contractId": "v2-workload-contract-v1",
     "file": {
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/ead07195f353eccb449a9e06c16f8b58c638cd7f/benchmarks/v2/shared/workload-contract.js",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/0f18300f1448a3bec331ae286a85be4fdc6e76e1/benchmarks/v2/shared/workload-contract.js",
       "path": "benchmarks/v2/shared/workload-contract.js",
       "sha256": "c2c816ec5177a190999b9a030bc992519935301684f1bb884281440e08a43155"
     }
