@@ -46,7 +46,7 @@ await Deno.writeTextFile(
   identityText,
 );
 console.log(
-  `rebind regex-log-scan identity: registration ${rawSha256.registration.slice(0, 12)}… workerModule ${
-    rawSha256.workerModule.slice(0, 12)
-  }…`,
+  `rebind regex-log-scan identity: registration ${
+    rawSha256.registration.slice(0, 12)
+  }… workerModule ${rawSha256.workerModule.slice(0, 12)}…`,
 );
