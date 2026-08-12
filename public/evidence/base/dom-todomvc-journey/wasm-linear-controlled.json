@@ -4,7 +4,7 @@
   "implementationId": "dom.todomvc-journey.v1.controlled-v1",
   "variantId": "wasm-linear-controlled",
   "status": "static-validation-passed-browser-pending",
-  "sourceCommit": "b67851aaf94fa49ae9754abc8ff6e5f178436295",
+  "sourceCommit": "4ca6b3a19feae6f5620e0afc23c8c36bf56fb868",
   "fixtureSha256": "3685e7c3f03ad7589aaf04073fba1af461847daa9c5d7339a98025e0e24e1208",
   "oracleSha256": "678c59b64f50579777b04603d2a0f3d0b1e3a1f4167711441440f8b3a88b00be",
   "semanticOutputSha256": "6877d79f8495afe8a709cb24836caeca370c03023253e5a974a696f657778dde",
