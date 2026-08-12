@@ -79,6 +79,19 @@ Paul directed removing the last five from the multilang scope for now:
 
 Still excluded as before: media/opus/zstd/quantized-inference (vendored engines).
 
+### Known-broken multilang lanes — removed from pages + playground (2026-08-12)
+
+Four pre-existing multilang lanes failed verification (they predate the 20-page
+verified program): document-pdf-viewer ("pdf js parse failed (-3)"),
+crypto-authenticated-stream ("mem.set is not a function"), numeric-fft-spectral-filter
+/fft-kernel (adapter on the wrong mods interface), simulation-rigid-body-2d
+(manifest artifact naming → rigid_engine_c.wasm 404; the rigid_*.wasm artifacts
+exist). Per honest absence their data-multilang-manifest attrs were removed from
+the pages and the playground map; the pages keep their primary JS-vs-Wasm runs.
+Repair candidates (in order of tractability): rigid (add files pinning),
+fft-kernel (rewrite the adapter on the loadEngines interface), crypto (fix the
+memory view), pdf (debug the js parse).
+
 Note: the server-ssr-template and text-markdown-cms AssemblyScript kernels
 were dropped after the 2026-08-11 VLM pass (counters matched but full-output
 bytes drifted from the oracle — honest absence, per the project rule). Their

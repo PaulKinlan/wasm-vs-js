@@ -13,18 +13,14 @@ const MULTILANG_MANIFESTS = {
   "ml-gemm": "/benchmarks/multilang-wasm/ml-gemm.manifest.json",
   "ml-dense-mlp": "/benchmarks/multilang-wasm/ml-dense-mlp.manifest.json",
   "cad-mesh-repair-v1": "/benchmarks/multilang-wasm/cad-mesh-repair.manifest.json",
-  "document-pdf-viewer-v1": "/benchmarks/multilang-wasm/document-pdf-viewer.manifest.json",
   "base-dom-todomvc-journey": "/benchmarks/multilang-wasm/base-dom-todomvc-journey.manifest.json",
   "archive-zip-workspace-v1": "/benchmarks/multilang-wasm/archive-zip-workspace-v1.manifest.json",
-  "crypto-authenticated-stream":
-    "/benchmarks/multilang-wasm/crypto-authenticated-stream.manifest.json",
   "graphics-cpu-path-tracer-v1":
     "/benchmarks/multilang-wasm/graphics-cpu-path-tracer.manifest.json",
   "database-olap-chart": "/benchmarks/multilang-wasm/database-olap-chart.manifest.json",
   "dom-virtualized-grid-v1": "/benchmarks/multilang-wasm/dom-virtualized-grid-v1.manifest.json",
   "ml-keyword-spotting-v1": "/benchmarks/multilang-wasm/ml-keyword-spotting-v1.manifest.json",
   "ml-numeric-kernels-v1": "/benchmarks/multilang-wasm/ml-numeric-kernels.manifest.json",
-  "numeric-fft-spectral-filter-v1": "/benchmarks/multilang-wasm/fft-kernel.manifest.json",
   "serialization-protobuf-gateway":
     "/benchmarks/multilang-wasm/serialization-protobuf-gateway.manifest.json",
   "cad-parametric-bracket": "/benchmarks/multilang-wasm/cad-parametric-bracket.manifest.json",
@@ -53,8 +49,6 @@ const MULTILANG_MANIFESTS = {
   "dom-nested-tree-mutation": "/benchmarks/multilang-wasm/dom-nested-tree-mutation.manifest.json",
   "dom-table-sort-filter-pagination":
     "/benchmarks/multilang-wasm/dom-table-sort-filter-pagination.manifest.json",
-  "simulation-rigid-body-2d-v1":
-    "/benchmarks/multilang-wasm/simulation-rigid-body-2d.manifest.json",
   "text-regex-log-scan": "/benchmarks/multilang-wasm/text-regex-log-scan.manifest.json",
   "simulation-nbody-cloth": "/benchmarks/multilang-wasm/simulation-nbody-cloth.manifest.json",
 };
