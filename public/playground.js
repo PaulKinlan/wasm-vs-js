@@ -551,7 +551,7 @@ async function runBenchmarkForCard(config, cardEl, iterations = 30) {
     renderPerformanceReport(metricsEl, jsStats, wasmStats, iterations);
 
     // Multi-language comparison stage (Paul directive 2026-08-12: multilang is
-    // critical to the product — the suite run must show it, not just the pages).
+    // critical to the product — the suite run must show it, not only the pages).
     const mlManifest = MULTILANG_MANIFESTS[config.slug];
     let mlResult = { passed: true, skipped: !mlManifest };
     if (mlManifest) {
