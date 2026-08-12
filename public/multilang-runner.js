@@ -5682,16 +5682,17 @@ export const KERNEL_ADAPTERS = {
       const callables = {};
       for (const key of ["c", "cpp", "rs"]) {
         const inst = mods.engines[key].instances.crypto.instance;
-        const mem = inst.exports.memory;
         const keyOff = 0, nonceOff = 64, aadOff = 96, plainOff = 256, ctOff = 8192, tagOff = 16384;
         callables[key] = {
           crypto: () => {
+            // Re-fetch the buffer after each call in case the kernel grew memory.
+            const mem = () => new Uint8Array(inst.exports.memory.buffer);
             for (const idx of FRAMES) {
               const f = frameAt(idx);
-              mem.set(KEY, keyOff);
-              mem.set(f.nonce, nonceOff);
-              mem.set(f.aad, aadOff);
-              mem.set(f.plaintext, plainOff);
+              mem().set(KEY, keyOff);
+              mem().set(f.nonce, nonceOff);
+              mem().set(f.aad, aadOff);
+              mem().set(f.plaintext, plainOff);
               inst.exports.seal(
                 keyOff,
                 nonceOff,
