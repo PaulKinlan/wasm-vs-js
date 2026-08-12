@@ -54,19 +54,30 @@ regex-automata-duel-demo, game-canvas-arcade, game-canvas-entity-pathfinding,
 text.gc-document-edit.v1. Those are now in the kernel-capable table, not the
 exclusion list.
 
-Still excluded (no computable core, or meta/frozen):
+### Removed from multilang scope — 2026-08-12 (Paul's decision)
 
-- Platform/API-bound: graphics-gltf-viewer, database-sqlite-notebook (vendored
-  SQL engine), network-http2-quic-state (browser network APIs),
-  audio-webaudio-effects (Web Audio API — DSP core port pending),
-  ml-keyword-spotting (model-bound DS-CNN port pending).
-- Vendored/library-bound: archive-zip-workspace-v1 (zip inflate port pending),
-  media/opus/zstd/quantized-inference (vendored engines).
-- Meta/special: tooling-c-to-wasm-compile (meta — compiles C in-browser),
-  image-editing-demo (frozen reduced-fixture page — contract test pins "no
-  timing evidence or comparative performance claim"; the image-editing kernels
-  run multilang on the image-flood-fill-demo page), track-b (non-benchmark
-  track index).
+The 2026-08-12 wave shipped the remaining tractable cores: audio-webaudio-effects
+(DSP rack, live), ml-keyword-spotting (quantized DS-CNN, live), archive-zip-workspace
+(fixed-deflate builder, live), and image-editing-demo itself (the image-editing
+kernels now run multilang on BOTH image-flood-fill-demo and image-editing-demo,
+6 engines incl. Dart / WasmGC). That closes the program at 20 pages (home + 19
+workloads).
+
+Paul directed removing the last five from the multilang scope for now:
+
+- **graphics-gltf-viewer** — no lane. Future option if reopened: the scene-graph
+  matrix pipeline (node transforms, bounding boxes, skinning blends over a pinned
+  rig); Draco decode stays vendored.
+- **database-sqlite-notebook-v1** — no lane. Future option if reopened: the
+  notebook's OLAP aggregation kernels (grouped sum/avg/count/order over a pinned
+  dataset, mirroring database-olap-chart).
+- **network-http2-quic-state** — no lane. Future option if reopened: a QUIC
+  congestion-control/loss-recovery simulation (RFC 9002-style, pinned packet-event
+  fixture), honestly labeled as the algorithm, not the browser stack.
+- **tooling-c-to-wasm-compile** — no lane (meta — the page IS the toolchain demo).
+- **track-b** — no lane (non-benchmark track index).
+
+Still excluded as before: media/opus/zstd/quantized-inference (vendored engines).
 
 Note: the server-ssr-template and text-markdown-cms AssemblyScript kernels
 were dropped after the 2026-08-11 VLM pass (counters matched but full-output
