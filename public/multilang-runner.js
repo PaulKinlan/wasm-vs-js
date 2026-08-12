@@ -22,6 +22,115 @@
 // data-only); each adapter exposes the timed callable for its kernel.
 
 export const KERNEL_ADAPTERS = {
+  "ml.keyword-spotting.v1": {
+    kernels: ["kws_run"],
+    build(mods) {
+      const PCM_OFFSET = 1048576;
+      const RES_OFFSET = 6291456;
+      const callables = {
+        js: {
+          kws_run: async () => {
+            const { runJavaScript } = await import(
+              "./benchmarks/base/ml-keyword-spotting/engine.js"
+            );
+            const req = await fetch("/artifacts/base-ml-keyword-spotting/fixture.pcm16le");
+            const buf = await req.arrayBuffer();
+            // We need 300 hops, which consume 96640 samples (193280 bytes).
+            // But we can just run the full engine and slice.
+            // Actually, the multilang benchmark tests the 300-hop kernel.
+            // Our JS callable will run the full runJavaScript and assert the FNV of the first 300 hops.
+            const pcm = new Int16Array(buf);
+            const res = runJavaScript(pcm);
+            const fnv1a32 = (bytes) => {
+              let hash = 0x811c9dc5;
+              for (let i = 0; i < bytes.length; i++) {
+                hash = Math.imul((hash ^ bytes[i]) >>> 0, 0x01000193) >>> 0;
+              }
+              return hash >>> 0;
+            };
+            const sliceFeatures = new Uint8Array(
+              res.features.buffer,
+              res.features.byteOffset,
+              300 * 10,
+            );
+            const sliceScores = new Uint8Array(
+              res.scores.buffer,
+              res.scores.byteOffset,
+              300 * 12 * 4,
+            );
+            let detectCount = 0;
+            for (let i = 0; i < res.detections.length; i += 3) {
+              if (res.detections[i] < 300) detectCount++;
+            }
+            const sliceDetections = new Uint8Array(
+              res.detections.buffer,
+              res.detections.byteOffset,
+              detectCount * 12,
+            );
+
+            const featFnv = fnv1a32(sliceFeatures);
+            const scoreFnv = fnv1a32(sliceScores);
+            const detFnv = fnv1a32(sliceDetections);
+            if (featFnv !== 0x5d815c70 || scoreFnv !== 0xee979533 || detFnv !== 0x86652900) {
+              throw new Error(
+                `KWS JS FNV drift: ${featFnv.toString(16)}/${scoreFnv.toString(16)}/${
+                  detFnv.toString(16)
+                }`,
+              );
+            }
+          },
+        },
+      };
+
+      let pcmBytes;
+
+      for (const key of Object.keys(mods.engines).filter((k) => k !== "js")) {
+        const inst = mods.engines[key].instances.kws_run.instance;
+        callables[key] = {
+          kws_run: async () => {
+            if (!pcmBytes) {
+              const req = await fetch("/artifacts/base-ml-keyword-spotting/fixture.pcm16le");
+              const buf = await req.arrayBuffer();
+              pcmBytes = new Uint8Array(buf);
+            }
+            const memView = new Uint8Array(inst.exports.memory.buffer);
+            memView.set(pcmBytes.subarray(0, 193280), PCM_OFFSET);
+
+            const status = Number(inst.exports.kws_run());
+            if (status !== 0) {
+              throw new Error(`kws_run ${key} failed with status ${status}`);
+            }
+
+            const mem = new Uint32Array(inst.exports.memory.buffer);
+            const base = (RES_OFFSET + 3072) / 4;
+            if (
+              mem[base] !== 300 || mem[base + 1] !== 300 || mem[base + 2] !== 144000 ||
+              mem[base + 3] !== 300 || mem[base + 4] !== 691200 || mem[base + 5] !== 76800 ||
+              mem[base + 6] !== 3000 || mem[base + 7] !== 12000000 || mem[base + 8] !== 10800000 ||
+              mem[base + 9] !== 9600000 || mem[base + 10] !== 300000 || mem[base + 11] !== 28800 ||
+              mem[base + 12] !== 3600 || mem[base + 13] !== 3000 || mem[base + 14] !== 193280 ||
+              mem[base + 15] !== 17448 || mem[base + 16] !== 12
+            ) {
+              throw new Error(`KWS ${key} counter mismatch`);
+            }
+
+            const fnvBase = (RES_OFFSET + 3200) / 4;
+            if (
+              mem[fnvBase] !== 0x5d815c70 || mem[fnvBase + 1] !== 0xee979533 ||
+              mem[fnvBase + 2] !== 0x86652900
+            ) {
+              throw new Error(
+                `KWS ${key} FNV mismatch: ${mem[fnvBase].toString(16)}/${
+                  mem[fnvBase + 1].toString(16)
+                }/${mem[fnvBase + 2].toString(16)}`,
+              );
+            }
+          },
+        };
+      }
+      return callables;
+    },
+  },
   "archive.zip-workspace.v1": {
     kernels: ["zip_build"],
     build(mods) {

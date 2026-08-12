@@ -1,0 +1,55 @@
+{
+  "workloadId": "ml.keyword-spotting.v1",
+  "kernelLabels": {
+    "kws_run": "Keyword spotting — quantized DS-CNN inference, 300 frozen hops (Hann Q15 → FFT → log-mel → DCT → int8 CNN)"
+  },
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark/",
+  "kernels": ["kws_run"],
+  "engines": [
+    {
+      "key": "js",
+      "kind": "js",
+      "lang": "JavaScript (V8/SpiderMonkey/JSC)",
+      "files": {
+        "kws_run": ""
+      },
+      "source": "base/ml-keyword-spotting/engine.js"
+    },
+    {
+      "key": "c",
+      "kind": "linear",
+      "lang": "C (Clang)",
+      "files": {
+        "kws_run": "kws_kernel_c.wasm"
+      },
+      "source": "multilang-wasm/ml-keyword-spotting/kws_kernel.c"
+    },
+    {
+      "key": "cpp",
+      "kind": "linear",
+      "lang": "C++ (Clang++)",
+      "files": {
+        "kws_run": "kws_kernel_cpp.wasm"
+      },
+      "source": "multilang-wasm/ml-keyword-spotting/kws_kernel.cpp"
+    },
+    {
+      "key": "rs",
+      "kind": "linear",
+      "lang": "Rust (rustc)",
+      "files": {
+        "kws_run": "kws_kernel_rs.wasm"
+      },
+      "source": "multilang-wasm/ml-keyword-spotting/kws_kernel.rs"
+    },
+    {
+      "key": "asc",
+      "kind": "linear",
+      "lang": "AssemblyScript",
+      "files": {
+        "kws_run": "kws_kernel_asc.wasm"
+      },
+      "source": "multilang-wasm/ml-keyword-spotting/kws_kernel.ts"
+    }
+  ]
+}
