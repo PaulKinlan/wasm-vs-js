@@ -25,7 +25,8 @@
       "files": {
         "kws_run": "kws_kernel_c.wasm"
       },
-      "source": "multilang-wasm/ml-keyword-spotting/kws_kernel.c"
+      "source": "multilang-wasm/ml-keyword-spotting/kws_kernel.c",
+      "label": "C / Wasm"
     },
     {
       "key": "cpp",
@@ -34,7 +35,8 @@
       "files": {
         "kws_run": "kws_kernel_cpp.wasm"
       },
-      "source": "multilang-wasm/ml-keyword-spotting/kws_kernel.cpp"
+      "source": "multilang-wasm/ml-keyword-spotting/kws_kernel.cpp",
+      "label": "C++ / Wasm"
     },
     {
       "key": "rs",
@@ -43,7 +45,8 @@
       "files": {
         "kws_run": "kws_kernel_rs.wasm"
       },
-      "source": "multilang-wasm/ml-keyword-spotting/kws_kernel.rs"
+      "source": "multilang-wasm/ml-keyword-spotting/kws_kernel.rs",
+      "label": "Rust / Wasm"
     },
     {
       "key": "asc",
@@ -52,7 +55,8 @@
       "files": {
         "kws_run": "kws_kernel_asc.wasm"
       },
-      "source": "multilang-wasm/ml-keyword-spotting/kws_kernel.ts"
+      "source": "multilang-wasm/ml-keyword-spotting/kws_kernel.ts",
+      "label": "AssemblyScript / Wasm"
     }
   ]
 }
