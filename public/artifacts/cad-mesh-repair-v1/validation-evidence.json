@@ -4,7 +4,7 @@
   "status": "proposal-validation-only",
   "buildManifest": {
     "path": "public/artifacts/cad-mesh-repair-v1/build-manifest.json",
-    "sha256": "2651d488e23feb33cb921a1bf4e019ff4237c4cb195da760836bea9419123be3"
+    "sha256": "8604b6cd27b15ebb6562715459a7e3651eff694817b3eb8179669796f8863488"
   },
   "contract": {
     "path": "benchmarks/base/cad-mesh-repair/implementation-contract.v1.json",
