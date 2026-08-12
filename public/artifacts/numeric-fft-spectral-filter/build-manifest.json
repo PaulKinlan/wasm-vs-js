@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "3832fb17cc2db8c383eb65044eedab49a77567dd",
-  "sourceSha256": "181b25ec80cf33619854ffaa464987e44e4eb347c4d2b58ae9f1228f888e5303",
+  "sourceCommit": "5211015754072e550ee1f7b6035567ea9745d9b3",
+  "sourceSha256": "a4da50ed089cccbaaf474809fa993b731194db91916abfaa12196072bd8285f3",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 97287,
-      "sha256": "c4325fc5962adff42141e7d2c68a57944ccb37c7ed9baaf1ab153dee892fcd85"
+      "bytes": 97446,
+      "sha256": "53ca54cac8875aed89f4ffde7c2a449904497f8d47e7524cb9a5f2a6321766ce"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "fcde1f10f998cc22cf9207b084b6f6f204d220e9f7906f098c5aa813e6a8cfc3"
+      "sha256": "4eccee833b99ea5790e5d97cdf53c7666c1b6b90c044760de380f06e8cf724a3"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "765c62bce26afce8073f02095a2ecdad888da784cdfd71e6aec22b0e49253d3e"
+      "sha256": "b1ae32125f3f0696da4bd6cc0716708ac5bf90994cf61e05a92daa3a829d7ffc"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=3832fb17cc2db8c383eb65044eedab49a77567dd"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=5211015754072e550ee1f7b6035567ea9745d9b3"
   }
 }

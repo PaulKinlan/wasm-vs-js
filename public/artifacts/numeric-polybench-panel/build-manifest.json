@@ -4,8 +4,8 @@
   "contractId": "numeric.polybench-panel.v1-supplemental-contract-v1",
   "track": "controlled",
   "repository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "implementationCommit": "3832fb17cc2db8c383eb65044eedab49a77567dd",
-  "sourceTreeSha256": "b6a397610f08335ed74003aae7db1faae74e0eec51516aa8a8b3163aa8c73601",
+  "implementationCommit": "5211015754072e550ee1f7b6035567ea9745d9b3",
+  "sourceTreeSha256": "a53916ca5a9e22baefe351202b6c6b7b88dcee00fed529676d751f36323aae6d",
   "sourceGraph": [
     {
       "path": "benchmarks/base/numeric-polybench-panel/contract.json",
@@ -74,8 +74,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 97287,
-      "sha256": "c4325fc5962adff42141e7d2c68a57944ccb37c7ed9baaf1ab153dee892fcd85"
+      "bytes": 97446,
+      "sha256": "53ca54cac8875aed89f4ffde7c2a449904497f8d47e7524cb9a5f2a6321766ce"
     },
     {
       "path": "tests/base/polybench-panel.test.ts",
@@ -83,7 +83,7 @@
       "sha256": "f8aae8675b68230c5219c3cfebdf32fddebb76178c78df13257d650c9276b71b"
     }
   ],
-  "reproducibleCommand": "deno task --config deno.polybench.json build:base-polybench --source-commit 3832fb17cc2db8c383eb65044eedab49a77567dd",
+  "reproducibleCommand": "deno task --config deno.polybench.json build:base-polybench --source-commit 5211015754072e550ee1f7b6035567ea9745d9b3",
   "toolchain": {
     "deno": "2.9.0",
     "wabt": "1.0.37",
