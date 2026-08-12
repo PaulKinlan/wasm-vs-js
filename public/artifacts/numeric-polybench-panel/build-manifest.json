@@ -4,7 +4,7 @@
   "contractId": "numeric.polybench-panel.v1-supplemental-contract-v1",
   "track": "controlled",
   "repository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "implementationCommit": "275f8cec6b569c098575efcccde676c94fed1a52",
+  "implementationCommit": "dbfc7304df152a9f3332fd19bde68c692e2c85ce",
   "sourceTreeSha256": "a53916ca5a9e22baefe351202b6c6b7b88dcee00fed529676d751f36323aae6d",
   "sourceGraph": [
     {
@@ -83,7 +83,7 @@
       "sha256": "f8aae8675b68230c5219c3cfebdf32fddebb76178c78df13257d650c9276b71b"
     }
   ],
-  "reproducibleCommand": "deno task --config deno.polybench.json build:base-polybench --source-commit 275f8cec6b569c098575efcccde676c94fed1a52",
+  "reproducibleCommand": "deno task --config deno.polybench.json build:base-polybench --source-commit dbfc7304df152a9f3332fd19bde68c692e2c85ce",
   "toolchain": {
     "deno": "2.9.0",
     "wabt": "1.0.37",
