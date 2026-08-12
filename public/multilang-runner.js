@@ -24,75 +24,65 @@
 export const KERNEL_ADAPTERS = {
   "archive.zip-workspace.v1": {
     kernels: ["zip_build"],
-    async build(mods) {
-      const callables = {};
-
-      if (mods.js) {
-        const { runJavaScript, BOUNDED_ENTRY_COUNT } = await import(mods.js.source);
-        // Simple FNV-1a 32-bit for JS verification
-        const fnv1a32 = (bytes) => {
-          let hash = 2166136261;
-          for (let i = 0; i < bytes.length; i++) {
-            hash ^= bytes[i];
-            hash = Math.imul(hash, 16777619);
-          }
-          return hash >>> 0;
-        };
-
-        callables.js = {
-          zip_build: () => {
+    build(mods) {
+      const RES_OFFSET = 3145728;
+      const callables = {
+        js: {
+          zip_build: async () => {
+            // JS reference (runJavaScript bounded 1,000-entry path) — returns
+            // the oracle for sanity; the FNV digests are pinned below.
+            const { runJavaScript, BOUNDED_ENTRY_COUNT } = await import(
+              "./benchmarks/v1/archive-zip-workspace/engine.js"
+            );
             const res = runJavaScript(BOUNDED_ENTRY_COUNT);
-            if (res.counters.entries !== 1000) throw new Error("JS model entries != 1000");
+            const fnv1a32 = (bytes) => {
+              let hash = 0x811c9dc5;
+              for (let i = 0; i < bytes.length; i++) {
+                hash = Math.imul((hash ^ bytes[i]) >>> 0, 0x01000193) >>> 0;
+              }
+              return hash >>> 0;
+            };
             const arcFnv = fnv1a32(res.archive);
             const extFnv = fnv1a32(res.extracted);
-            if (arcFnv !== 0xe0265a32) {
-              throw new Error(`JS archive FNV drift: ${arcFnv.toString(16)}`);
-            }
-            if (extFnv !== 0x3e7ffce3) {
-              throw new Error(`JS extracted FNV drift: ${extFnv.toString(16)}`);
+            if (arcFnv !== 0xe0265a32 || extFnv !== 0x3e7ffce3) {
+              throw new Error(`archive JS FNV drift: ${arcFnv.toString(16)}/${extFnv.toString(16)}`);
             }
           },
-        };
-      }
-
-      const RES_OFFSET = 3145728;
-
-      for (const [key, engine] of Object.entries(mods)) {
-        if (key === "js" || key === "dart") continue;
-        const memory = engine.memories?.zip_build || engine.exports.memory;
-        if (!memory) throw new Error(`Engine ${key} missing memory export for zip_build`);
-        const { zip_build } = engine.exports;
-        if (typeof zip_build !== "function") {
-          throw new Error(`Engine ${key} missing zip_build export`);
-        }
-
+        },
+      };
+      for (const key of Object.keys(mods.engines).filter((k) => k !== "js" && k !== "dart")) {
+        const inst = mods.engines[key].instances.zip_build.instance;
         callables[key] = {
           zip_build: () => {
-            const status = zip_build();
-            if (status !== 0) throw new Error(`${key} zip_build failed: ${status}`);
-            const mem = new Uint32Array(memory.buffer);
-            const res = mem.subarray(RES_OFFSET / 4, (RES_OFFSET / 4) + 18);
-
-            if (res[0] !== 1000) throw new Error(`${key} counter[0] entries mismatch`);
-            if (res[15] !== 0xe0265a32) {
-              throw new Error(`${key} archive FNV drift: ${res[15].toString(16)}`);
+            const status = Number(inst.exports.zip_build());
+            if (status !== 0) {
+              throw new Error(`zip_build ${key} failed with status ${status}`);
             }
-            if (res[16] !== 0x3e7ffce3) {
-              throw new Error(`${key} extracted FNV drift: ${res[16].toString(16)}`);
+            // Re-fetch after the call: the Rust kernel memory_grow()s, which
+            // detaches any view created before the run.
+            const mem = new Uint32Array(inst.exports.memory.buffer);
+            const base = RES_OFFSET / 4;
+            // Kernel counter layout (zip_kernel.c): 0 entries, 1 inputBytes,
+            // 2 crcBytes, 3 deflateLiterals, 4 deflateMatches, 5 deflateMatchedBytes,
+            // 6 deflateEndSymbols, 7 localHeaders, 8 centralHeaders, 9 zip64Records,
+            // 10 listedEntries, 11 extractedEntries, 12 extractedBytes, 13/14 0.
+            if (
+              mem[base] !== 1000 || mem[base + 1] !== 103184 || mem[base + 2] !== 103184 ||
+              mem[base + 3] !== 42558 || mem[base + 4] !== 750 || mem[base + 5] !== 60626 ||
+              mem[base + 6] !== 1000 || mem[base + 7] !== 1000 || mem[base + 8] !== 1000 ||
+              mem[base + 9] !== 0 || mem[base + 10] !== 1000 || mem[base + 11] !== 4 ||
+              mem[base + 12] !== 303 || mem[base + 13] !== 0 || mem[base + 14] !== 0 ||
+              mem[base + 15] !== 0xe0265a32 || mem[base + 16] !== 0x3e7ffce3
+            ) {
+              throw new Error(`zip_build ${key} counters/FNV drifted from the frozen oracle`);
             }
           },
         };
       }
-
       return callables;
     },
   },
-  // --- audio-fft: radix-2 FFT butterfly (reuses the multilang-wasm fft kernels)
-  // --- document.pdf-viewer.v1: PDF parser (mirrors benchmarks/base/document-pdf-viewer
-  //     engine.js parseReport / pdf-engine.c; frozen 100-page report fixture) ------
-  // --- simulation.rigid-body-2d.v1: 500-body 2D physics (mirrors engine.js
-  //     runRigidBodyJavaScript + the frozen rigid-body-2d.c) -----------------
-  // --- cad-parametric-bracket: B-rep + scan-band tessellation (oracle: engine.js runJavaScript)
+
   "graphics-cpu-path-tracer.v1": {
     kernels: ["render"],
     async build(mods) {

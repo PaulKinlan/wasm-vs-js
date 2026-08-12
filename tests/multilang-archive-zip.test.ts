@@ -25,9 +25,14 @@ for (const engine of manifest.engines) {
     const mod = new WebAssembly.Module(bytes);
     const inst = new WebAssembly.Instance(mod, { env: { abort: () => {} } });
 
+    // loadEngines-shaped mods (the same shape runMultilangComparison passes).
     const mods = {
-      [engine.key]: { exports: inst.exports, memories: { zip_build: inst.exports.memory } },
-    };
+      engines: {
+        [engine.key]: {
+          instances: { zip_build: { instance: inst } },
+        },
+      },
+    } as unknown as Parameters<typeof adapter.build>[0];
     const adapter = KERNEL_ADAPTERS["archive.zip-workspace.v1"];
     const callables = await adapter.build(mods) as unknown as {
       [key: string]: { zip_build: () => void };
