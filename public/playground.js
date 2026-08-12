@@ -575,6 +575,10 @@ async function runBenchmarkForCard(config, cardEl, iterations = 30) {
           heading: false,
         });
         mlResult = { passed: true, skipped: false };
+        // Release the cached wasm instances before the next card; the suite
+        // holds ~42 comparisons and the engines would exhaust tab memory.
+        const mlRunner = await import("/multilang-runner.js");
+        if (typeof mlRunner.clearEngineCache === "function") mlRunner.clearEngineCache();
       } catch (mlErr) {
         mlResult = { passed: false, skipped: false, error: mlErr.message || String(mlErr) };
         const errEl = document.createElement("p");

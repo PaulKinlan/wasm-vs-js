@@ -6197,6 +6197,13 @@ export const KERNEL_ADAPTERS = {
 
 const cache = new Map();
 
+/** Drop the engine-instance cache so wasm memories are released (the
+ * playground suite runs ~42 comparisons back to back; without eviction the
+ * cached multi-MB engines exhaust the tab's memory mid-suite). */
+export function clearEngineCache() {
+  cache.clear();
+}
+
 async function fetchBytes(base, path) {
   const res = await fetch(`${base}/${path}`, { cache: "no-store" });
   if (!res.ok) throw new Error(`${path} returned ${res.status}`);
