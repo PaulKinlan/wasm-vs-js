@@ -3,7 +3,7 @@
   "kernelLabels": {
     "kws_run": "Keyword spotting — quantized DS-CNN inference, 300 frozen hops (Hann Q15 → FFT → log-mel → DCT → int8 CNN)"
   },
-  "artifactsBase": "/artifacts/multilang-wasm-benchmark/",
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
     "kws_run"
   ],
