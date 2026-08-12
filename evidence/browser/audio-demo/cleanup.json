@@ -1,7 +1,7 @@
 {
-  "browserPid": 1550330,
-  "serverPid": 1550329,
-  "closedAt": "2026-08-12T00:02:48.896Z",
+  "browserPid": 1553087,
+  "serverPid": 1553086,
+  "closedAt": "2026-08-12T00:04:04.626Z",
   "browserExit": "cdp-browser-close",
   "serverExit": "sigterm",
   "profileRemoved": true
