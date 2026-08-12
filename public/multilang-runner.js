@@ -45,7 +45,9 @@ export const KERNEL_ADAPTERS = {
             const arcFnv = fnv1a32(res.archive);
             const extFnv = fnv1a32(res.extracted);
             if (arcFnv !== 0xe0265a32 || extFnv !== 0x3e7ffce3) {
-              throw new Error(`archive JS FNV drift: ${arcFnv.toString(16)}/${extFnv.toString(16)}`);
+              throw new Error(
+                `archive JS FNV drift: ${arcFnv.toString(16)}/${extFnv.toString(16)}`,
+              );
             }
           },
         },
