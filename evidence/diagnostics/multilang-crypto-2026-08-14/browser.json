@@ -1,0 +1,38 @@
+{
+  "timestamp": "2026-08-13T23:10:02.700Z",
+  "sourceCommit": "473048c9c9e315eda4382c188fd2771612201a33",
+  "route": "http://127.0.0.1:39583/benchmarks/crypto-authenticated-stream/",
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/150.0.7871.114",
+    "revision": "@f405107495a07cb1bfcf687d4af8d91117098db6",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+    "jsVersion": "15.0.245.15"
+  },
+  "launchArgs": [
+    "--headless=new",
+    "--remote-debugging-port=0",
+    "--user-data-dir=/tmp/wvj-crypto-audit-60e8589f1a825312",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-sync",
+    "--disable-crash-reporter",
+    "--disable-breakpad",
+    "--window-size=1440,1200",
+    "about:blank"
+  ],
+  "status": "one-shot diagnostic completed for JS/C/C++/Rust/Dart",
+  "visible": {
+    "status": "Ready. Select target and loop iterations, then click Start.",
+    "diagnostic": "One-shot multilang adapter diagnostic (not benchmark acceptance)\njs: completed\nc: completed\ncpp: completed\nrs: completed\ndart: completed"
+  },
+  "consoleErrors": [],
+  "failedRequests": [],
+  "errorResponses": [],
+  "screenshot": "evidence/diagnostics/multilang-crypto-2026-08-14/browser.png",
+  "postRunVerification": {
+    "timestamp": "2026-08-14T00:19:19+01:00",
+    "profilePathAbsent": true,
+    "serverPortNotListening": true
+  }
+}

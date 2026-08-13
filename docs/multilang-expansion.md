@@ -79,7 +79,7 @@ Paul directed removing the last five from the multilang scope for now:
 
 Still excluded as before: media/opus/zstd/quantized-inference (vendored engines).
 
-### Known-broken multilang lanes — status (2026-08-12)
+### Known-broken multilang lanes — status (updated 2026-08-14)
 
 Four pre-existing multilang lanes failed verification (they predate the 20-page
 verified program). Status:
@@ -88,10 +88,15 @@ verified program). Status:
   → rigid_c.wasm; the artifacts existed). BUT the kernel's run() is pathologically
   slow in-browser (minutes per single call) — needs a perf investigation before
   the lane can re-enable. Removed from pages + playground map until then.
-- **crypto-authenticated-stream** — adapter mem.set on the WebAssembly.Memory
-  object FIXED (buffer view, re-fetched per call); kernel returns sane values
-  (seal → 128-byte ciphertext). Verification pending (entangled with the rigid
-  probe's hang). Removed from pages + playground map until verified.
+- **crypto-authenticated-stream** — adapter `mem.set` on the `WebAssembly.Memory`
+  object is fixed by using a fresh buffer view. A 2026-08-14 Chrome 150 diagnostic
+  completed one adapter call for JavaScript, C, C++, Rust, and Dart with no console,
+  request, or HTTP errors; the retained JSON and screenshot are in
+  `evidence/diagnostics/multilang-crypto-2026-08-14/`. A separate composed
+  one-iteration attempt exceeded the audit's 180-second bound before reporting
+  completion; that attempt produced no acceptance artifact. The functional page
+  and playground wiring therefore remain disabled until the warm-up/runtime cost
+  is bounded and the visible journey passes.
 - **numeric-fft-spectral-filter / fft-kernel** — tangled manifest (workloadId
   collides with the aggregate multilang-wasm.manifest; adapter expects a 'wat'
   engine the manifest lacks). Removed from pages + playground map.
