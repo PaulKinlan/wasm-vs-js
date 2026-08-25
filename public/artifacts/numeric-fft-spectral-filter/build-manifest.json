@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "f66e75359e94193bb9bb2680c9f8d3f9eb427014",
-  "sourceSha256": "d9ac81c3ebb8a5b49730253be83ee92365249422369a32b6840aa69b13a0f847",
+  "sourceCommit": "555a047c97d430c30c476cbe386d3489c9a33e6e",
+  "sourceSha256": "142da140664e288d841d1bb753bdd901d337dbf879bc8c4a210849766648ac0f",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 97446,
-      "sha256": "53ca54cac8875aed89f4ffde7c2a449904497f8d47e7524cb9a5f2a6321766ce"
+      "bytes": 97968,
+      "sha256": "1eb8032cdc074eb2ef6bb5f79c6b02663372753f5c730c4d7b6136a8cb83d4a1"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "854851f1ecff7599a4a606c765d75453332120b3cb958eccc850a460275106b7"
+      "sha256": "cce3076bdefd6651d4c218600afa2d27bd61bac7f1ef70aea132ee26d7781ba8"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "85225654358a80209c512795388e22d9b8cf7a57660fb5349d778454e85ceca8"
+      "sha256": "7d6cb56de2e6e092a2f05663e4ec340c971e88d8f30b3778b5d7d1a3f7ac56b0"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=f66e75359e94193bb9bb2680c9f8d3f9eb427014"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=555a047c97d430c30c476cbe386d3489c9a33e6e"
   }
 }

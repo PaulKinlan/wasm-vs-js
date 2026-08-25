@@ -39,21 +39,21 @@
     "artifacts": [
       {
         "id": "ml-dense-mlp-javascript-source",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f66e75359e94193bb9bb2680c9f8d3f9eb427014/benchmarks/v2/ml-dense-mlp/workload.js",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/555a047c97d430c30c476cbe386d3489c9a33e6e/benchmarks/v2/ml-dense-mlp/workload.js",
         "mediaType": "text/javascript",
         "path": "benchmarks/v2/ml-dense-mlp/workload.js",
         "sha256": "0ee215642683219d04258213a29ac3dd1b785e52eaa7509e4695bc02cdec56a4"
       },
       {
         "id": "ml-dense-mlp-reference-f64",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f66e75359e94193bb9bb2680c9f8d3f9eb427014/artifacts/v2/ml-dense-mlp/reference.f64",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/555a047c97d430c30c476cbe386d3489c9a33e6e/artifacts/v2/ml-dense-mlp/reference.f64",
         "mediaType": "application/octet-stream",
         "path": "artifacts/v2/ml-dense-mlp/reference.f64",
         "sha256": "a1d23f3381e391ab38a83da4bf4e7dbcb1a42cbf51a79278efdf20dbe46ef2a4"
       },
       {
         "id": "ml-dense-mlp-bounds-f32",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f66e75359e94193bb9bb2680c9f8d3f9eb427014/artifacts/v2/ml-dense-mlp/bounds.f32",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/555a047c97d430c30c476cbe386d3489c9a33e6e/artifacts/v2/ml-dense-mlp/bounds.f32",
         "mediaType": "application/octet-stream",
         "path": "artifacts/v2/ml-dense-mlp/bounds.f32",
         "sha256": "058372fcc320716352573db38138f0708974ba74767ce2960604864b0e35b58a"
@@ -72,7 +72,7 @@
       ],
       "cwd": ".",
       "environment": [
-        { "name": "WASM_VS_JS_COMMIT", "value": "f66e75359e94193bb9bb2680c9f8d3f9eb427014" }
+        { "name": "WASM_VS_JS_COMMIT", "value": "555a047c97d430c30c476cbe386d3489c9a33e6e" }
       ],
       "flags": {
         "compiler": ["wabt canonicalize_lebs=true", "write_debug_names=false"],
@@ -86,13 +86,13 @@
       },
       "locks": [
         {
-          "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f66e75359e94193bb9bb2680c9f8d3f9eb427014/deno.lock",
+          "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/555a047c97d430c30c476cbe386d3489c9a33e6e/deno.lock",
           "path": "deno.lock",
           "sha256": "e468ccbdd168f790d69e2d180a264a52602ca8a06fe9f7a84fca2ca717c123b2"
         }
       ],
       "recipe": {
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f66e75359e94193bb9bb2680c9f8d3f9eb427014/scripts/build-v2-neural.ts",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/555a047c97d430c30c476cbe386d3489c9a33e6e/scripts/build-v2-neural.ts",
         "path": "scripts/build-v2-neural.ts",
         "sha256": "1758df53932cb21780740f55fed3db1599b8fde833ae72745fd7632d04cdfef5"
       },
@@ -102,70 +102,70 @@
       ]
     },
     "generator": {
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f66e75359e94193bb9bb2680c9f8d3f9eb427014/benchmarks/v2/shared/generator.js",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/555a047c97d430c30c476cbe386d3489c9a33e6e/benchmarks/v2/shared/generator.js",
       "path": "benchmarks/v2/shared/generator.js",
       "sha256": "c6f95cbd14eb172ed5496d504bd9772e1e2a315f9bfa903704b404f4d6b94f30"
     },
     "manifests": {
       "fixture": {
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f66e75359e94193bb9bb2680c9f8d3f9eb427014/artifacts/v2/ml-dense-mlp/fixture-manifest.json",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/555a047c97d430c30c476cbe386d3489c9a33e6e/artifacts/v2/ml-dense-mlp/fixture-manifest.json",
         "path": "artifacts/v2/ml-dense-mlp/fixture-manifest.json",
         "sha256": "a2c6b424e464a0b10f0c80c99a6e95519ddc15e1bb586985d5195f319ef7cde8"
       },
       "input": {
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f66e75359e94193bb9bb2680c9f8d3f9eb427014/artifacts/v2/ml-dense-mlp/input-manifest.json",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/555a047c97d430c30c476cbe386d3489c9a33e6e/artifacts/v2/ml-dense-mlp/input-manifest.json",
         "path": "artifacts/v2/ml-dense-mlp/input-manifest.json",
         "sha256": "d53faf162f626df4bbe77f28f097dbe3746ebd64cba2bb324bf96809a3a5143d"
       },
       "output": {
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f66e75359e94193bb9bb2680c9f8d3f9eb427014/artifacts/v2/ml-dense-mlp/output-manifest.json",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/555a047c97d430c30c476cbe386d3489c9a33e6e/artifacts/v2/ml-dense-mlp/output-manifest.json",
         "path": "artifacts/v2/ml-dense-mlp/output-manifest.json",
         "sha256": "05c9824016802db7a31aff05b6be0f436121cd611a0bd443f23b26e676670a88"
       }
     },
     "oracle": {
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f66e75359e94193bb9bb2680c9f8d3f9eb427014/artifacts/v2/ml-dense-mlp/output-manifest.json",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/555a047c97d430c30c476cbe386d3489c9a33e6e/artifacts/v2/ml-dense-mlp/output-manifest.json",
       "path": "artifacts/v2/ml-dense-mlp/output-manifest.json",
       "sha256": "05c9824016802db7a31aff05b6be0f436121cd611a0bd443f23b26e676670a88"
     },
     "reference": {
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f66e75359e94193bb9bb2680c9f8d3f9eb427014/lib/v2/neural.ts",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/555a047c97d430c30c476cbe386d3489c9a33e6e/lib/v2/neural.ts",
       "path": "lib/v2/neural.ts",
       "sha256": "dda55b176b26d55605fa2370c5ff7082c7277bed9bdd6383db4eb8702c7c739a"
     },
     "sources": [
       {
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f66e75359e94193bb9bb2680c9f8d3f9eb427014/benchmarks/v2/ml-dense-mlp/workload.js",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/555a047c97d430c30c476cbe386d3489c9a33e6e/benchmarks/v2/ml-dense-mlp/workload.js",
         "path": "benchmarks/v2/ml-dense-mlp/workload.js",
         "role": "javascript-authored",
         "sha256": "0ee215642683219d04258213a29ac3dd1b785e52eaa7509e4695bc02cdec56a4"
       },
       {
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f66e75359e94193bb9bb2680c9f8d3f9eb427014/benchmarks/v2/ml-dense-mlp/ml-dense-mlp.wat",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/555a047c97d430c30c476cbe386d3489c9a33e6e/benchmarks/v2/ml-dense-mlp/ml-dense-mlp.wat",
         "path": "benchmarks/v2/ml-dense-mlp/ml-dense-mlp.wat",
         "role": "wasm-authored",
         "sha256": "eaafe9513d255221e1dbebdb85be3286a0806a82876c5967680df815550be4b0"
       },
       {
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f66e75359e94193bb9bb2680c9f8d3f9eb427014/deno.json",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/555a047c97d430c30c476cbe386d3489c9a33e6e/deno.json",
         "path": "deno.json",
         "role": "shared-support",
         "sha256": "1fb796ab0a517cac5b34d6b0225dc1316f7dae952460c45fec46acbe9d71ec5b"
       },
       {
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f66e75359e94193bb9bb2680c9f8d3f9eb427014/benchmarks/v2/shared/allocations.js",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/555a047c97d430c30c476cbe386d3489c9a33e6e/benchmarks/v2/shared/allocations.js",
         "path": "benchmarks/v2/shared/allocations.js",
         "role": "shared-support",
         "sha256": "24eccf431792664186a59c7424bc9ff29b4dabc87d92db42848c6ff9b32523cc"
       },
       {
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f66e75359e94193bb9bb2680c9f8d3f9eb427014/lib/v2/manifest-evidence.ts",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/555a047c97d430c30c476cbe386d3489c9a33e6e/lib/v2/manifest-evidence.ts",
         "path": "lib/v2/manifest-evidence.ts",
         "role": "shared-support",
         "sha256": "568dd127837eaf2b3b281ea550dfc0442d37257f7c747b20f5ebcad18fc56eda"
       },
       {
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f66e75359e94193bb9bb2680c9f8d3f9eb427014/benchmarks/v2/ml-dense-mlp/frozen-transcendentals.js",
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/555a047c97d430c30c476cbe386d3489c9a33e6e/benchmarks/v2/ml-dense-mlp/frozen-transcendentals.js",
         "path": "benchmarks/v2/ml-dense-mlp/frozen-transcendentals.js",
         "role": "javascript-authored",
         "sha256": "d4f12721304638a0f860c14e47ba581fd391282c156524e99454548a53d997fd"
@@ -175,7 +175,7 @@
   "resultContract": {
     "contractId": "workload-result-v2-proposal-v1",
     "file": {
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f66e75359e94193bb9bb2680c9f8d3f9eb427014/schemas/workload-result-v2-proposal.schema.json",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/555a047c97d430c30c476cbe386d3489c9a33e6e/schemas/workload-result-v2-proposal.schema.json",
       "path": "schemas/workload-result-v2-proposal.schema.json",
       "sha256": "64fa72510b1e775c8d4b968ad4aacfd9b0e1ae3cf199156b958476857cd8d39a"
     }
@@ -205,7 +205,7 @@
     ]
   },
   "source": {
-    "commit": "f66e75359e94193bb9bb2680c9f8d3f9eb427014",
+    "commit": "555a047c97d430c30c476cbe386d3489c9a33e6e",
     "repository": "https://github.com/PaulKinlan/wasm-vs-js"
   },
   "status": "proposal-validation-only",
@@ -222,7 +222,7 @@
   "workloadCatalog": {
     "catalogId": "workload-catalog-v2-proposal",
     "file": {
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f66e75359e94193bb9bb2680c9f8d3f9eb427014/catalog/workloads.v2.proposed.json",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/555a047c97d430c30c476cbe386d3489c9a33e6e/catalog/workloads.v2.proposed.json",
       "path": "catalog/workloads.v2.proposed.json",
       "sha256": "d1e014cc7d6db799e1a04618b8961a3a5e6ead66e5a1fcdcf1e2301c87c66ac9"
     }
@@ -230,7 +230,7 @@
   "workloadContract": {
     "contractId": "v2-workload-contract-v1",
     "file": {
-      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/f66e75359e94193bb9bb2680c9f8d3f9eb427014/benchmarks/v2/shared/workload-contract.js",
+      "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/555a047c97d430c30c476cbe386d3489c9a33e6e/benchmarks/v2/shared/workload-contract.js",
       "path": "benchmarks/v2/shared/workload-contract.js",
       "sha256": "c2c816ec5177a190999b9a030bc992519935301684f1bb884281440e08a43155"
     }
