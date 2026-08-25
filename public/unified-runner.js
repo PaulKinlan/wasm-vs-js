@@ -1249,6 +1249,416 @@ async function runComposedStages(
     box.appendChild(renderLibCmpTable(rows));
     statusEl.textContent = "✓ Library comparison complete.";
   }
+
+  // Render the Master Unified Benchmark Matrix & Explorer
+  renderMasterUnifiedExplorer({
+    flowEl,
+    workloadSlug,
+    primaryStats,
+    multilangResults,
+    domResults,
+    manifest: multilangManifest,
+    iterations,
+  });
+}
+
+// Master Unified Benchmark Matrix & Explorer (Paul directive 2026-08-25):
+// Consolidates all tested engines (JavaScript, Raw WAT, C, C++, Rust, Dart,
+// AssemblyScript) into ONE unified master explorer table with segregated
+// dimensions for pure algorithmic compute, worker/DOM pipeline overhead,
+// asset downloads & caching, and total end-to-end time. Includes interactive
+// filter tabs, a stacked visual breakdown chart, and raw CSV data export.
+function renderMasterUnifiedExplorer({
+  flowEl,
+  workloadSlug,
+  primaryStats,
+  multilangResults,
+  domResults,
+  manifest,
+  iterations,
+}) {
+  const previous = flowEl.querySelector(`[data-stage="master-explorer"]`);
+  if (previous) previous.remove();
+
+  const wrap = document.createElement("section");
+  wrap.dataset.stage = "master-explorer";
+  wrap.className = "stage-result master-explorer-section";
+
+  const heading = document.createElement("h2");
+  heading.textContent = "Unified Multi-Language Benchmark Explorer";
+  wrap.appendChild(heading);
+
+  const intro = document.createElement("p");
+  intro.className = "notice";
+  intro.innerHTML =
+    "<strong>Complete lifecycle breakdown:</strong> Compares every language implementation across all phases — asset download &amp; caching, module compilation, pure algorithmic compute, and full worker/DOM pipeline overhead. Filter views using the buttons below or export raw CSV data.";
+  wrap.appendChild(intro);
+
+  const TOOLCHAIN_MAP = {
+    js: "V8 JIT (in-browser)",
+    wat: "Handwritten WAT → wasm",
+    as: "asc -O3 --bindings none --noAssert",
+    asc: "asc -O3 --bindings none --noAssert",
+    assemblyscript: "asc -O3 --bindings none --noAssert",
+    c: "clang --target=wasm32 -O3 -nostdlib",
+    cpp: "clang++ --target=wasm32 -O3 -nostdlib",
+    rs: "rustc --target wasm32-unknown-unknown -O --crate-type cdylib",
+    dart: "dart compile wasm (dart2wasm, WasmGC)",
+    kt: "kotlinc-wasm",
+  };
+
+  const records = [];
+  const resources = typeof performance !== "undefined" && performance.getEntriesByType
+    ? performance.getEntriesByType("resource")
+    : [];
+
+  const findResource = (pattern) => {
+    if (!pattern) return null;
+    const match = resources.find((r) => r.name.includes(pattern));
+    if (!match) return null;
+    return {
+      name: match.name.split("/").pop()?.split("?")[0] || match.name,
+      transferBytes: match.transferSize || 0,
+      decodedBytes: match.decodedBodySize || 0,
+      durationMs: match.duration || 0,
+      isCached: (match.transferSize === 0 && match.decodedBodySize > 0) || match.duration < 2,
+    };
+  };
+
+  const kernels = manifest?.kernels || (multilangResults ? Object.keys(multilangResults) : []);
+  const primaryKernel = kernels[0] || "kernel";
+  const kernelResults = multilangResults?.[primaryKernel] || [];
+
+  if (manifest?.engines && manifest.engines.length > 0) {
+    for (const eng of manifest.engines) {
+      const ml = kernelResults.find((r) => r.key === eng.key);
+      const resFile = eng.file || (eng.lang ? `${primaryKernel}_${eng.lang}.wasm` : null);
+      const res = findResource(resFile) || findResource(eng.key);
+
+      const isJs = eng.key === "js";
+      const isLinearWasm = eng.key === "c" || eng.key === "cpp" || eng.key === "rs" ||
+        eng.key === "wat";
+
+      const algoMs = typeof ml?.medianMs === "number"
+        ? ml.medianMs
+        : isJs
+        ? primaryStats?.jsStats?.computeMedianMs
+        : primaryStats?.wasmStats?.computeMedianMs;
+
+      const domMs = domResults?.perTarget?.[eng.key]?.warmMedianMs ?? null;
+
+      let pipelineOverheadMs = null;
+      if (isJs && primaryStats?.jsStats?.warmMedianMs && algoMs) {
+        pipelineOverheadMs = Math.max(0, primaryStats.jsStats.warmMedianMs - algoMs);
+      } else if (isLinearWasm && primaryStats?.wasmStats?.warmMedianMs && algoMs) {
+        pipelineOverheadMs = Math.max(0, primaryStats.wasmStats.warmMedianMs - algoMs);
+      }
+
+      const coldMs = isJs && primaryStats?.jsStats
+        ? primaryStats.jsStats.coldMs
+        : isLinearWasm && primaryStats?.wasmStats
+        ? primaryStats.wasmStats.coldMs
+        : ml?.coldMs ?? domMs ?? algoMs;
+
+      const warmMs = domMs ??
+        (isJs && primaryStats?.jsStats
+          ? primaryStats.jsStats.warmMedianMs
+          : isLinearWasm && primaryStats?.wasmStats
+          ? primaryStats.wasmStats.warmMedianMs
+          : ml?.medianMs ?? algoMs);
+
+      records.push({
+        key: eng.key,
+        label: eng.label,
+        toolchain: TOOLCHAIN_MAP[eng.lang || eng.key] || eng.kind || "—",
+        source: eng.source ||
+          (eng.key === "wat" ? "benchmarks/v2/ml-dense-mlp/ml-dense-mlp.wat" : null),
+        download: res,
+        algoComputeMs: algoMs,
+        pipelineOverheadMs: pipelineOverheadMs,
+        domMs: domMs,
+        coldMs: coldMs,
+        warmMedianMs: warmMs,
+        minMs: ml?.minMs ?? warmMs,
+        maxMs: ml?.maxMs ?? warmMs,
+      });
+    }
+  } else {
+    if (primaryStats?.jsStats) {
+      records.push({
+        key: "js",
+        label: "JavaScript",
+        toolchain: "V8 JIT (in-browser)",
+        source: null,
+        download: findResource("worker"),
+        algoComputeMs: primaryStats.jsStats.computeMedianMs,
+        pipelineOverheadMs: primaryStats.jsStats.computeMedianMs
+          ? Math.max(0, primaryStats.jsStats.warmMedianMs - primaryStats.jsStats.computeMedianMs)
+          : null,
+        domMs: domResults?.perTarget?.js?.warmMedianMs ?? null,
+        coldMs: primaryStats.jsStats.coldMs,
+        warmMedianMs: primaryStats.jsStats.warmMedianMs,
+        minMs: primaryStats.jsStats.minMs,
+        maxMs: primaryStats.jsStats.maxMs,
+      });
+    }
+    if (primaryStats?.wasmStats) {
+      records.push({
+        key: "wasm",
+        label: "WebAssembly",
+        toolchain: "wasm32 (linear)",
+        source: null,
+        download: findResource(".wasm"),
+        algoComputeMs: primaryStats.wasmStats.computeMedianMs,
+        pipelineOverheadMs: primaryStats.wasmStats.computeMedianMs
+          ? Math.max(
+            0,
+            primaryStats.wasmStats.warmMedianMs - primaryStats.wasmStats.computeMedianMs,
+          )
+          : null,
+        domMs: domResults?.perTarget?.wasm?.warmMedianMs ?? null,
+        coldMs: primaryStats.wasmStats.coldMs,
+        warmMedianMs: primaryStats.wasmStats.warmMedianMs,
+        minMs: primaryStats.wasmStats.minMs,
+        maxMs: primaryStats.wasmStats.maxMs,
+      });
+    }
+  }
+
+  const jsWarm = records.find((r) => r.key === "js")?.warmMedianMs || 1;
+  for (const r of records) {
+    r.speedupRatio = (typeof r.warmMedianMs === "number" && r.warmMedianMs > 0)
+      ? (jsWarm / r.warmMedianMs).toFixed(2) + "×"
+      : "—";
+  }
+
+  // Filter Buttons
+  const filterWrap = document.createElement("div");
+  filterWrap.className = "results-filters";
+  filterWrap.innerHTML = `
+    <button type="button" class="active" data-view="all">All Dimensions &amp; Breakdown</button>
+    <button type="button" data-view="compute">Pure Algorithmic Compute</button>
+    <button type="button" data-view="pipeline">Pipeline &amp; Real-DOM Overhead</button>
+    <button type="button" data-view="network">Asset Downloads &amp; Network</button>
+  `;
+  wrap.appendChild(filterWrap);
+
+  // Visual Breakdown Stacked Chart
+  const chartWrap = document.createElement("div");
+  chartWrap.className = "perf-graph-card";
+  const maxTime = Math.max(...records.map((r) => r.warmMedianMs || 0), 1);
+
+  let chartBars = "";
+  for (const r of records) {
+    const compute = r.algoComputeMs || 0;
+    const overhead = (r.domMs ?? r.pipelineOverheadMs) || 0;
+    const total = r.warmMedianMs || (compute + overhead) || 1;
+    const computePct = Math.min(100, Math.max(5, (compute / maxTime) * 100));
+    const overheadPct = overhead > 0 ? Math.min(100, (overhead / maxTime) * 100) : 0;
+
+    chartBars += `
+      <div class="perf-bar-group" data-engine="${r.key}">
+        <div class="perf-bar-label">
+          <strong>${r.label}</strong>
+          <span class="muted">${total.toFixed(2)} ms total (Compute: ${compute.toFixed(2)} ms${
+      overhead > 0 ? `, Overhead: ${overhead.toFixed(2)} ms` : ""
+    })</span>
+        </div>
+        <div class="perf-bar-track">
+          <div class="perf-bar js-warm" data-pct="${computePct}" title="${r.label} Compute: ${
+      compute.toFixed(2)
+    } ms">
+            <span>${compute.toFixed(1)}ms</span>
+          </div>
+          ${
+      overhead > 0
+        ? `<div class="perf-bar wasm-warm" data-pct="${overheadPct}" title="${r.label} Overhead: ${
+          overhead.toFixed(2)
+        } ms"><span>+${overhead.toFixed(1)}ms overhead</span></div>`
+        : ""
+    }
+        </div>
+      </div>
+    `;
+  }
+  chartWrap.innerHTML =
+    `<h3 class="perf-title">Execution Breakdown by Engine (ms)</h3>${chartBars}`;
+  wrap.appendChild(chartWrap);
+
+  // Master Table
+  const tableWrap = document.createElement("div");
+  tableWrap.className = "table-wrap";
+  const table = document.createElement("table");
+  table.className = "results-table";
+
+  const rows = records.map((r) => {
+    let srcHtml = "—";
+    if (r.source) {
+      const name = r.source.split("/").pop();
+      srcHtml =
+        `<a class="commit-link" href="/${r.source}" target="_blank" rel="noopener">${name}</a>`;
+    } else if (r.key === "js") {
+      srcHtml = `<span class="muted">JS baseline</span>`;
+    }
+
+    const dl = r.download;
+    const dlStatus = dl
+      ? (dl.isCached ? "⚡ Cache (0 B)" : `🌐 Network (${(dl.transferBytes / 1024).toFixed(1)} KB)`)
+      : "—";
+    const dlLatency = dl && dl.durationMs > 0 ? `${dl.durationMs.toFixed(1)} ms` : "< 1 ms";
+    const dlCell = dl
+      ? `<div>${dlStatus}</div><div><small class="muted">${dlLatency}</small></div>`
+      : "—";
+
+    const computeCell = typeof r.algoComputeMs === "number"
+      ? `${r.algoComputeMs.toFixed(2)} ms`
+      : "—";
+    const overheadCell = typeof r.domMs === "number"
+      ? `<div>${r.domMs.toFixed(2)} ms</div><div><small class="muted">Real DOM</small></div>`
+      : typeof r.pipelineOverheadMs === "number"
+      ? `<div>${
+        r.pipelineOverheadMs.toFixed(2)
+      } ms</div><div><small class="muted">Worker pipe</small></div>`
+      : "—";
+
+    const coldCell = typeof r.coldMs === "number" ? `${r.coldMs.toFixed(2)} ms` : "—";
+    const warmCell = typeof r.warmMedianMs === "number" ? `${r.warmMedianMs.toFixed(2)} ms` : "—";
+
+    return `
+      <tr data-engine="${r.key}">
+        <td><strong>${r.label}</strong></td>
+        <td><div>${srcHtml}</div><div><small><code>${r.toolchain}</code></small></div></td>
+        <td class="col-download">${dlCell}</td>
+        <td class="col-compute"><strong>${computeCell}</strong></td>
+        <td class="col-overhead">${overheadCell}</td>
+        <td>${coldCell}</td>
+        <td><strong>${warmCell}</strong></td>
+        <td><strong>${r.speedupRatio}</strong></td>
+      </tr>
+    `;
+  }).join("");
+
+  table.innerHTML = `
+    <caption>Unified Multi-Language Benchmark Comparison (${iterations}× iterations)</caption>
+    <thead>
+      <tr>
+        <th>Engine &amp; Language</th>
+        <th>Source &amp; Toolchain</th>
+        <th class="col-download">Download &amp; Cache</th>
+        <th class="col-compute">Pure Algorithmic Compute</th>
+        <th class="col-overhead">Pipeline / DOM Overhead</th>
+        <th>1st Run (Cold)</th>
+        <th>Median (Warm)</th>
+        <th>Speedup Ratio</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  `;
+  tableWrap.appendChild(table);
+  wrap.appendChild(tableWrap);
+
+  // CSV Data Export
+  const csvLines = [
+    [
+      "Engine",
+      "Language",
+      "Toolchain",
+      "DownloadStatus",
+      "WireBytes",
+      "LatencyMs",
+      "AlgorithmicComputeMs",
+      "PipelineOrDomOverheadMs",
+      "ColdMs",
+      "WarmMedianMs",
+      "SpeedupRatio",
+    ].join(","),
+  ];
+  for (const r of records) {
+    csvLines.push([
+      `"${r.label}"`,
+      `"${r.key}"`,
+      `"${r.toolchain}"`,
+      `"${r.download?.isCached ? "Cached" : "Network"}"`,
+      r.download?.transferBytes ?? 0,
+      r.download?.durationMs?.toFixed(2) ?? 0,
+      r.algoComputeMs?.toFixed(2) ?? "",
+      (r.domMs ?? r.pipelineOverheadMs)?.toFixed(2) ?? "",
+      r.coldMs?.toFixed(2) ?? "",
+      r.warmMedianMs?.toFixed(2) ?? "",
+      `"${r.speedupRatio}"`,
+    ].join(","));
+  }
+  const csvString = csvLines.join("\n");
+
+  const exportWrap = document.createElement("div");
+  exportWrap.className = "table-wrap";
+  exportWrap.innerHTML = `
+    <div class="results-filters">
+      <button type="button" class="copy-csv-btn">📋 Copy Raw CSV Data</button>
+      <button type="button" class="download-csv-btn">💾 Download CSV File</button>
+    </div>
+    <details>
+      <summary>View Raw Tabular Data</summary>
+      <pre><code>${csvString}</code></pre>
+    </details>
+  `;
+  wrap.appendChild(exportWrap);
+
+  // Wire Filter Clicks
+  const filterButtons = filterWrap.querySelectorAll("button[data-view]");
+  filterButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      filterButtons.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      const mode = btn.dataset.view;
+      table.querySelectorAll(".col-download").forEach((c) => {
+        c.hidden = mode === "compute" || mode === "pipeline";
+      });
+      table.querySelectorAll(".col-compute").forEach((c) => {
+        c.hidden = mode === "network" || mode === "pipeline";
+      });
+      table.querySelectorAll(".col-overhead").forEach((c) => {
+        c.hidden = mode === "network" || mode === "compute";
+      });
+    });
+  });
+
+  // Wire Copy CSV
+  const copyBtn = exportWrap.querySelector(".copy-csv-btn");
+  if (copyBtn) {
+    copyBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(csvString);
+        copyBtn.textContent = "✓ CSV Copied to Clipboard!";
+        setTimeout(() => {
+          copyBtn.textContent = "📋 Copy Raw CSV Data";
+        }, 2500);
+      } catch {
+        copyBtn.textContent = "Failed to copy";
+      }
+    });
+  }
+
+  // Wire Download CSV
+  const dlBtn = exportWrap.querySelector(".download-csv-btn");
+  if (dlBtn) {
+    dlBtn.addEventListener("click", () => {
+      const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${workloadSlug || "benchmark"}-results.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  // Set bar widths via CSSOM
+  wrap.querySelectorAll(".perf-bar[data-pct]").forEach((bar) => {
+    bar.style.width = `${bar.dataset.pct}%`;
+  });
+
+  flowEl.prepend(wrap);
 }
 
 function renderLibCmpTable(rows) {
