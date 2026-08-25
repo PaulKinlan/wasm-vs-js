@@ -23,6 +23,8 @@ const ENGINE_ALIASES: Record<string, string> = { asc: "as", assemblyscript: "as"
 
 export interface PageCoverage {
   slug: string;
+  /** Path under /benchmarks/ or /demos/ — the key a twin is found by. */
+  pathKey: string;
   route: string;
   title: string;
   /** Engines the page's multi-language manifest actually ships. */
@@ -36,11 +38,18 @@ export interface PageCoverage {
   scopes: string[];
   duplicateOf: string | null;
   /**
-   * Whether the page loads the unified runner at all. Thirteen of the sixteen
-   * /demos/ pages show a workload running without measuring it, while their
-   * /benchmarks/ twin measures it.
+   * Whether the page loads any runner that times the workload. Thirteen of the
+   * sixteen /demos/ pages show a workload running without timing it, while
+   * their /benchmarks/ twin times it.
    */
   measured: boolean;
+  /**
+   * Whether it uses the standard /unified-runner.js. Six benchmark pages time
+   * their workload through a bespoke runner instead, which AGENTS.md treats as
+   * a template-conformance gap: they get none of the shared scope separation,
+   * confidence intervals or break-even analysis.
+   */
+  standardRunner: boolean;
 }
 
 function normaliseEngine(key: string): string {
@@ -106,8 +115,8 @@ export async function buildCoverage(): Promise<{
     if (!html) continue;
     const rel = file.slice(`${ROOT}public`.length);
     const route = rel.replace(/index\.html$/, "");
-    const slug = attr(html, "data-workload") ?? attr(html, "data-demo") ??
-      route.replace(/^\/(benchmarks|demos)\//, "").replace(/\/$/, "");
+    const pathKey = route.replace(/^\/(benchmarks|demos)\//, "").replace(/\/$/, "");
+    const slug = attr(html, "data-workload") ?? attr(html, "data-demo") ?? pathKey;
     if (!slug) continue;
 
     const manifestPath = attr(html, "data-multilang-manifest");
@@ -127,22 +136,29 @@ export async function buildCoverage(): Promise<{
       }
     }
 
-    const measured = html.includes("unified-runner.js");
+    const standardRunner = html.includes("/unified-runner.js");
+    // Any script whose name ends in -runner.js times the workload; several
+    // pages predate the standard runner and ship their own.
+    const measured = standardRunner || /src="[^"]*-runner\.js"/.test(html);
     const domHost = attr(html, "data-dom-host");
-    const scopes = ["delivery", "pipeline"];
-    if (engines.length > 0) scopes.unshift("kernel");
-    if (domHost) scopes.push("domJourney");
+    const scopes: string[] = [];
+    if (measured) {
+      scopes.push("delivery", "pipeline");
+      if (engines.length > 0) scopes.unshift("kernel");
+      if (domHost) scopes.push("domJourney");
+    }
 
     // Two kinds of duplication: a byte-identical page, and two routes for the
     // same workload slug. Both are reported.
     const key = html.trim();
     const identicalTo = bodies.has(key) ? bodies.get(key)! : null;
     if (!identicalTo) bodies.set(key, route);
-    const sameSlug = pages.find((existing) => existing.slug === slug);
-    const duplicateOf = identicalTo ?? (sameSlug ? sameSlug.route : null);
+    const samePath = pages.find((existing) => existing.pathKey === pathKey);
+    const duplicateOf = identicalTo ?? (samePath ? samePath.route : null);
 
     pages.push({
       slug,
+      pathKey,
       route,
       title: titleOf(html, slug),
       engines,
@@ -152,6 +168,7 @@ export async function buildCoverage(): Promise<{
       scopes,
       duplicateOf,
       measured,
+      standardRunner,
     });
   }
 
@@ -165,7 +182,8 @@ export async function buildCoverage(): Promise<{
     withDomStage: pages.filter((p) => p.domHost).length,
     duplicates: pages.filter((p) => p.duplicateOf).length,
     unmeasuredPages: pages.filter((p) => !p.measured).length,
-    distinctWorkloads: new Set(pages.map((p) => p.slug)).size,
+    bespokeRunnerPages: pages.filter((p) => p.measured && !p.standardRunner).length,
+    distinctWorkloads: new Set(pages.map((p) => p.pathKey)).size,
   };
 
   // `generatedAt` is deliberately null: a timestamp would make this file
@@ -194,7 +212,8 @@ if (import.meta.main) {
         `${coverage.summary.fullyCovered} with all ${TARGET_ENGINES.length} engines, ` +
         `${coverage.summary.withDomStage} with a real-DOM stage, ` +
         `${coverage.summary.duplicates} duplicate routes, ` +
-        `${coverage.summary.unmeasuredPages} pages that measure nothing`,
+        `${coverage.summary.unmeasuredPages} pages that measure nothing, ` +
+        `${coverage.summary.bespokeRunnerPages} on a bespoke runner`,
     );
   }
 }

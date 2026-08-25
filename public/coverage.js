@@ -88,8 +88,14 @@ async function main() {
     summaryCard(
       "Pages that measure nothing",
       s.unmeasuredPages,
-      "Pages that show a workload running without loading the runner. Most have a twin " +
-        "under /benchmarks/ that does measure it.",
+      "Pages that show a workload running without timing it. Most have a twin under " +
+        "/benchmarks/ that does.",
+    ),
+    summaryCard(
+      "On a bespoke runner",
+      s.bespokeRunnerPages,
+      "Pages that time their workload through their own runner rather than the standard one, " +
+        "so they get no scope separation, confidence intervals or break-even analysis.",
     ),
   ].join("");
 
@@ -146,12 +152,34 @@ async function main() {
     </tr>`
   ).join("");
 
+  // Pages that time their workload through a runner of their own.
+  const bespokeHost = document.querySelector("#bespoke-body");
+  if (bespokeHost) {
+    const bespoke = pages.filter((p) => p.measured && !p.standardRunner);
+    bespokeHost.innerHTML = bespoke.map((p) =>
+      `<tr>
+        <td><a href="${esc(p.route)}"><code>${esc(p.route)}</code></a></td>
+        <td>${esc(p.title)}</td>
+        <td>${
+        p.engines.length > 0
+          ? `${p.engines.length} languages, kernel scope only`
+          : '<span class="muted">no kernel comparison either</span>'
+      }</td>
+      </tr>`
+    ).join("");
+    document.querySelector("#bespoke-intro").textContent = bespoke.length === 0
+      ? "Every measured page uses the standard runner."
+      : `${bespoke.length} pages time their workload through a runner of their own. They report ` +
+        "whatever their own runner reports — no scope separation, no confidence intervals, no " +
+        "break-even analysis, and no shared definition of what 'warm' means.";
+  }
+
   // Pages with no runner at all, whether or not they duplicate another route.
   const unmeasured = pages.filter((p) => !p.measured);
   const host = document.querySelector("#unmeasured-body");
   if (host) {
     host.innerHTML = unmeasured.map((p) => {
-      const twin = pages.find((o) => o.slug === p.slug && o.measured);
+      const twin = pages.find((o) => o.pathKey === p.pathKey && o.measured);
       return `<tr>
         <td><a href="${esc(p.route)}"><code>${esc(p.route)}</code></a></td>
         <td>${esc(p.title)}</td>
@@ -166,7 +194,8 @@ async function main() {
       ? "Every page measures its workload."
       : `${unmeasured.length} pages show a workload running without loading the runner. ` +
         `${
-          unmeasured.filter((p) => pages.some((o) => o.slug === p.slug && o.measured)).length
+          unmeasured.filter((p) => pages.some((o) => o.pathKey === p.pathKey && o.measured))
+            .length
         } of them have a measured twin; the rest produce no timing evidence anywhere.`;
   }
 }

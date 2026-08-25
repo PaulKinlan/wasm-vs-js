@@ -12,6 +12,7 @@
   "pages": [
     {
       "slug": "archive-zip-workspace-v1",
+      "pathKey": "archive-zip-workspace-v1",
       "route": "/benchmarks/archive-zip-workspace-v1/",
       "title": "ZIP workspace",
       "engines": [
@@ -33,10 +34,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "audio-fft",
+      "pathKey": "audio-fft",
       "route": "/benchmarks/audio-fft/",
       "title": "Radix-2 complex FFT demo",
       "engines": [
@@ -58,10 +61,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "audio-fir",
+      "pathKey": "audio-fir",
       "route": "/benchmarks/audio-fir/",
       "title": "Direct 256-tap FIR convolution demo",
       "engines": [
@@ -83,10 +88,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "audio-stft",
+      "pathKey": "audio-stft",
       "route": "/benchmarks/audio-stft/",
       "title": "Short-time Fourier transform demo",
       "engines": [
@@ -108,10 +115,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "base-dom-todomvc-journey",
+      "pathKey": "base-dom-todomvc-journey",
       "route": "/benchmarks/base-dom-todomvc-journey/",
       "title": "TodoMVC 100-item journey",
       "engines": [
@@ -134,10 +143,12 @@
         "domJourney"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "base-gltf-viewer",
+      "pathKey": "base-gltf-viewer",
       "route": "/benchmarks/base-gltf-viewer/",
       "title": "Avocado glTF decode, animation and picking",
       "engines": [],
@@ -149,10 +160,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "base/audio-webaudio-effects-v1",
+      "pathKey": "base/audio-webaudio-effects-v1",
       "route": "/benchmarks/base/audio-webaudio-effects-v1/",
       "title": "WebAudio effects rack correctness demo | Wasm versus JavaScript",
       "engines": [
@@ -174,10 +187,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": false
+      "measured": true,
+      "standardRunner": false
     },
     {
       "slug": "network-http2-quic-state",
+      "pathKey": "base/network-http2-quic-state",
       "route": "/benchmarks/base/network-http2-quic-state/",
       "title": "HTTP/2 and QUIC state demo | Wasm versus JavaScript",
       "engines": [],
@@ -189,10 +204,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "text-regex-log-scan",
+      "pathKey": "base/text.regex-log-scan.v1",
       "route": "/benchmarks/base/text.regex-log-scan.v1/",
       "title": "100 MiB regex log scan | Wasm versus JavaScript",
       "engines": [
@@ -214,10 +231,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "cad-mesh-repair-v1",
+      "pathKey": "cad-mesh-repair-v1",
       "route": "/benchmarks/cad-mesh-repair-v1/",
       "title": "3D Mesh Quantization &amp; Repair",
       "engines": [
@@ -239,10 +258,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "cad-parametric-bracket",
+      "pathKey": "cad-parametric-bracket",
       "route": "/benchmarks/cad-parametric-bracket/",
       "title": "Parametric bracket correctness demo | Wasm versus JavaScript",
       "engines": [
@@ -264,10 +285,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "crypto-authenticated-stream",
+      "pathKey": "crypto-authenticated-stream",
       "route": "/benchmarks/crypto-authenticated-stream/",
       "title": "Authenticated message stream",
       "engines": [
@@ -289,10 +312,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "crypto-file-integrity-v1",
+      "pathKey": "crypto.file-integrity.v1",
       "route": "/benchmarks/crypto.file-integrity.v1/",
       "title": "SHA-256 file integrity demo | Wasm versus JavaScript",
       "engines": [
@@ -314,10 +339,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "database-olap-chart",
+      "pathKey": "database-olap-chart",
       "route": "/benchmarks/database-olap-chart/",
       "title": "Five-query OLAP chart trace",
       "engines": [
@@ -339,10 +366,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "database-sqlite-notebook-v1",
+      "pathKey": "database-sqlite-notebook-v1",
       "route": "/benchmarks/database-sqlite-notebook-v1/",
       "title": "SQLite Analytical Notebook",
       "engines": [],
@@ -354,10 +383,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": false
+      "measured": true,
+      "standardRunner": false
     },
     {
       "slug": "document-pdf-viewer-v1",
+      "pathKey": "document-pdf-viewer-v1",
       "route": "/benchmarks/document-pdf-viewer-v1/",
       "title": "PDF Document Parsing & Rendering",
       "engines": [],
@@ -369,10 +400,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "dom-dependent-form-validation",
+      "pathKey": "dom-dependent-form-validation",
       "route": "/benchmarks/dom-dependent-form-validation/",
       "title": "Dependent Form Validation",
       "engines": [
@@ -395,10 +428,12 @@
         "domJourney"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "dom-grid-movement",
+      "pathKey": "dom-grid-movement",
       "route": "/benchmarks/dom-grid-movement/",
       "title": "DOM Grid Movement Engine",
       "engines": [
@@ -421,10 +456,12 @@
         "domJourney"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "dom-keyed-list-mutation",
+      "pathKey": "dom-keyed-list-mutation",
       "route": "/benchmarks/dom-keyed-list-mutation/",
       "title": "Keyed List DOM Mutation",
       "engines": [
@@ -447,10 +484,12 @@
         "domJourney"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "dom-nested-tree-mutation",
+      "pathKey": "dom-nested-tree-mutation",
       "route": "/benchmarks/dom-nested-tree-mutation/",
       "title": "Nested DOM Tree Mutation",
       "engines": [
@@ -473,10 +512,12 @@
         "domJourney"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "dom-table-sort-filter-pagination",
+      "pathKey": "dom-table-sort-filter-pagination",
       "route": "/benchmarks/dom-table-sort-filter-pagination/",
       "title": "Table Sort, Filter &amp; Pagination",
       "engines": [
@@ -499,10 +540,12 @@
         "domJourney"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "dom-virtualized-grid-v1",
+      "pathKey": "dom-virtualized-grid-v1",
       "route": "/benchmarks/dom-virtualized-grid-v1/",
       "title": "100,000-row virtualized grid",
       "engines": [
@@ -525,10 +568,12 @@
         "domJourney"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "dom-virtualized-scrolling",
+      "pathKey": "dom-virtualized-scrolling",
       "route": "/benchmarks/dom-virtualized-scrolling/",
       "title": "Virtualized DOM Scrolling",
       "engines": [],
@@ -541,10 +586,12 @@
         "domJourney"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "game-canvas-arcade",
+      "pathKey": "game-canvas-arcade",
       "route": "/benchmarks/game-canvas-arcade/",
       "title": "Canvas Arcade Engine",
       "engines": [
@@ -566,10 +613,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "game-canvas-entity-pathfinding",
+      "pathKey": "game-canvas-entity-pathfinding",
       "route": "/benchmarks/game-canvas-entity-pathfinding/",
       "title": "Canvas Entity Pathfinding Engine",
       "engines": [
@@ -591,10 +640,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "game-dom-tactics-grid",
+      "pathKey": "game-dom-tactics-grid",
       "route": "/benchmarks/game-dom-tactics-grid/",
       "title": "DOM Tactics Grid Engine",
       "engines": [
@@ -617,10 +668,12 @@
         "domJourney"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "game-ecs-frame-update",
+      "pathKey": "game-ecs-frame-update",
       "route": "/benchmarks/game-ecs-frame-update/",
       "title": "10,000-entity ECS correctness demo | Wasm versus JavaScript",
       "engines": [
@@ -642,10 +695,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "graphics-cpu-path-tracer-v1",
+      "pathKey": "graphics-cpu-path-tracer-v1",
       "route": "/benchmarks/graphics-cpu-path-tracer-v1/",
       "title": "CPU path tracer | Wasm versus JavaScript",
       "engines": [
@@ -667,10 +722,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "image-editing-demo",
+      "pathKey": "image-editing-demo",
       "route": "/benchmarks/image-editing-demo/",
       "title": "Image Gaussian Blur Pipeline",
       "engines": [
@@ -692,10 +749,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "image-flood-fill-demo",
+      "pathKey": "image-flood-fill-demo",
       "route": "/benchmarks/image-flood-fill-demo/",
       "title": "Span-Stack Image Flood Fill",
       "engines": [
@@ -717,10 +776,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "ml-dense-mlp",
+      "pathKey": "ml-dense-mlp",
       "route": "/benchmarks/ml-dense-mlp/",
       "title": "Dense MLP",
       "engines": [
@@ -742,10 +803,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "ml-gemm",
+      "pathKey": "ml-gemm",
       "route": "/benchmarks/ml-gemm/",
       "title": "ML GEMM",
       "engines": [
@@ -767,10 +830,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": false
+      "measured": true,
+      "standardRunner": false
     },
     {
       "slug": "ml-keyword-spotting-v1",
+      "pathKey": "ml-keyword-spotting-v1",
       "route": "/benchmarks/ml-keyword-spotting-v1/",
       "title": "Speech Commands keyword spotting",
       "engines": [
@@ -792,10 +857,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "ml-numeric-kernels-v1",
+      "pathKey": "ml-numeric-kernels-v1",
       "route": "/benchmarks/ml-numeric-kernels-v1/",
       "title": "ML numeric kernels",
       "engines": [
@@ -817,10 +884,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "multilang-wasm",
+      "pathKey": "multilang-wasm",
       "route": "/benchmarks/multilang-wasm/",
       "title": "Multi-Language WebAssembly Kernels",
       "engines": [
@@ -841,10 +910,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": false
+      "measured": true,
+      "standardRunner": false
     },
     {
       "slug": "network-pcap-decode-v1",
+      "pathKey": "network.pcap-decode.v1",
       "route": "/benchmarks/network.pcap-decode.v1/",
       "title": "PCAP protocol decode demo | Wasm versus JavaScript",
       "engines": [
@@ -866,10 +937,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "numeric-fft-spectral-filter-v1",
+      "pathKey": "numeric-fft-spectral-filter-v1",
       "route": "/benchmarks/numeric-fft-spectral-filter-v1/",
       "title": "2^20-sample FFT spectral filter",
       "engines": [],
@@ -881,10 +954,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "numeric-polybench-panel-v1",
+      "pathKey": "numeric.polybench-panel.v1",
       "route": "/benchmarks/numeric.polybench-panel.v1/",
       "title": "PolyBench numeric panel | Wasm versus JavaScript",
       "engines": [
@@ -906,10 +981,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "regex-automata-duel-demo",
+      "pathKey": "regex-automata-duel-demo",
       "route": "/benchmarks/regex-automata-duel-demo/",
       "title": "Reduced regex automata fixture",
       "engines": [
@@ -931,10 +1008,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "serialization-protobuf-gateway",
+      "pathKey": "serialization-protobuf-gateway",
       "route": "/benchmarks/serialization-protobuf-gateway/",
       "title": "Protobuf gateway correctness demo | Wasm versus JavaScript",
       "engines": [
@@ -956,10 +1035,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": false
+      "measured": true,
+      "standardRunner": false
     },
     {
       "slug": "serialization-json-telemetry-v1",
+      "pathKey": "serialization.json-telemetry.v1",
       "route": "/benchmarks/serialization.json-telemetry.v1/",
       "title": "JSON telemetry demo | Wasm versus JavaScript",
       "engines": [
@@ -981,10 +1062,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "server-ssr-template-v1",
+      "pathKey": "server.ssr-template.v1",
       "route": "/benchmarks/server.ssr-template.v1/",
       "title": "Server-side template correctness demo | Wasm versus JavaScript",
       "engines": [
@@ -1006,10 +1089,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "simulation-nbody-cloth",
+      "pathKey": "simulation-nbody-cloth",
       "route": "/benchmarks/simulation-nbody-cloth/",
       "title": "N-Body Simulation",
       "engines": [
@@ -1031,10 +1116,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "simulation-rigid-body-2d-v1",
+      "pathKey": "simulation-rigid-body-2d-v1",
       "route": "/benchmarks/simulation-rigid-body-2d-v1/",
       "title": "500-box rigid-body settlement",
       "engines": [
@@ -1056,10 +1143,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "sum-u32",
+      "pathKey": "sum-u32",
       "route": "/benchmarks/sum-u32/",
       "title": "Modulo-2³² Integer Sum",
       "engines": [
@@ -1080,10 +1169,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "text-diff-patch",
+      "pathKey": "text.diff-patch.v1",
       "route": "/benchmarks/text.diff-patch.v1/",
       "title": "Unicode line diff demo | Wasm versus JavaScript",
       "engines": [
@@ -1105,10 +1196,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "text-gc-document-edit-v1",
+      "pathKey": "text.gc-document-edit.v1",
       "route": "/benchmarks/text.gc-document-edit.v1/",
       "title": "GC-rich document edit demo | Wasm versus JavaScript",
       "engines": [
@@ -1131,10 +1224,12 @@
         "domJourney"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "text-markdown-cms",
+      "pathKey": "text.markdown-cms.v1",
       "route": "/benchmarks/text.markdown-cms.v1/",
       "title": "Markdown CMS demo | Wasm versus JavaScript",
       "engines": [
@@ -1156,10 +1251,12 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "tooling-c-to-wasm-compile-v1",
+      "pathKey": "tooling-c-to-wasm-compile-v1",
       "route": "/benchmarks/tooling-c-to-wasm-compile-v1/",
       "title": "Compile C to Wasm",
       "engines": [],
@@ -1171,25 +1268,26 @@
         "pipeline"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "track-b",
+      "pathKey": "track-b",
       "route": "/benchmarks/track-b/",
       "title": "Track B optimizations",
       "engines": [],
       "missingEngines": [],
       "manifestPath": null,
       "domHost": null,
-      "scopes": [
-        "delivery",
-        "pipeline"
-      ],
+      "scopes": [],
       "duplicateOf": null,
-      "measured": false
+      "measured": false,
+      "standardRunner": false
     },
     {
       "slug": "vdom-diff-patch-demo",
+      "pathKey": "vdom-diff-patch-demo",
       "route": "/benchmarks/vdom-diff-patch-demo/",
       "title": "Reduced virtual-DOM fixture",
       "engines": [
@@ -1212,25 +1310,26 @@
         "domJourney"
       ],
       "duplicateOf": null,
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "base/network-http2-quic-state",
+      "pathKey": "base/network-http2-quic-state",
       "route": "/demos/base/network-http2-quic-state/",
       "title": "HTTP/2 and QUIC state demo | Wasm versus JavaScript",
       "engines": [],
       "missingEngines": [],
       "manifestPath": null,
       "domHost": null,
-      "scopes": [
-        "delivery",
-        "pipeline"
-      ],
-      "duplicateOf": null,
-      "measured": false
+      "scopes": [],
+      "duplicateOf": "/benchmarks/base/network-http2-quic-state/",
+      "measured": false,
+      "standardRunner": false
     },
     {
       "slug": "base/text.regex-log-scan.v1",
+      "pathKey": "base/text.regex-log-scan.v1",
       "route": "/demos/base/text.regex-log-scan.v1/",
       "title": "100 MiB regex log scan | Wasm versus JavaScript",
       "engines": [
@@ -1251,26 +1350,27 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null,
-      "measured": false
+      "duplicateOf": "/benchmarks/base/text.regex-log-scan.v1/",
+      "measured": true,
+      "standardRunner": false
     },
     {
       "slug": "cad-parametric-bracket",
+      "pathKey": "cad-parametric-bracket",
       "route": "/demos/cad-parametric-bracket/",
       "title": "Parametric bracket correctness demo | Wasm versus JavaScript",
       "engines": [],
       "missingEngines": [],
       "manifestPath": null,
       "domHost": null,
-      "scopes": [
-        "delivery",
-        "pipeline"
-      ],
+      "scopes": [],
       "duplicateOf": "/benchmarks/cad-parametric-bracket/",
-      "measured": false
+      "measured": false,
+      "standardRunner": false
     },
     {
       "slug": "crypto.file-integrity.v1",
+      "pathKey": "crypto.file-integrity.v1",
       "route": "/demos/crypto.file-integrity.v1/",
       "title": "SHA-256 file integrity demo | Wasm versus JavaScript",
       "engines": [
@@ -1291,11 +1391,13 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null,
-      "measured": false
+      "duplicateOf": "/benchmarks/crypto.file-integrity.v1/",
+      "measured": true,
+      "standardRunner": false
     },
     {
       "slug": "game-canvas-arcade",
+      "pathKey": "game-canvas-arcade",
       "route": "/demos/game-canvas-arcade/",
       "title": "Canvas Arcade Engine",
       "engines": [
@@ -1317,10 +1419,12 @@
         "pipeline"
       ],
       "duplicateOf": "/benchmarks/game-canvas-arcade/",
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "game-canvas-entity-pathfinding",
+      "pathKey": "game-canvas-entity-pathfinding",
       "route": "/demos/game-canvas-entity-pathfinding/",
       "title": "Canvas Entity Pathfinding Engine",
       "engines": [
@@ -1342,10 +1446,12 @@
         "pipeline"
       ],
       "duplicateOf": "/benchmarks/game-canvas-entity-pathfinding/",
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "game-dom-tactics-grid",
+      "pathKey": "game-dom-tactics-grid",
       "route": "/demos/game-dom-tactics-grid/",
       "title": "DOM Tactics Grid Engine",
       "engines": [
@@ -1368,40 +1474,40 @@
         "domJourney"
       ],
       "duplicateOf": "/benchmarks/game-dom-tactics-grid/",
-      "measured": true
+      "measured": true,
+      "standardRunner": true
     },
     {
       "slug": "game-ecs-frame-update",
+      "pathKey": "game-ecs-frame-update",
       "route": "/demos/game-ecs-frame-update/",
       "title": "10,000-entity ECS correctness demo | Wasm versus JavaScript",
       "engines": [],
       "missingEngines": [],
       "manifestPath": null,
       "domHost": null,
-      "scopes": [
-        "delivery",
-        "pipeline"
-      ],
+      "scopes": [],
       "duplicateOf": "/benchmarks/game-ecs-frame-update/",
-      "measured": false
+      "measured": false,
+      "standardRunner": false
     },
     {
       "slug": "network.pcap-decode.v1",
+      "pathKey": "network.pcap-decode.v1",
       "route": "/demos/network.pcap-decode.v1/",
       "title": "PCAP protocol decode demo | Wasm versus JavaScript",
       "engines": [],
       "missingEngines": [],
       "manifestPath": null,
       "domHost": null,
-      "scopes": [
-        "delivery",
-        "pipeline"
-      ],
-      "duplicateOf": null,
-      "measured": false
+      "scopes": [],
+      "duplicateOf": "/benchmarks/network.pcap-decode.v1/",
+      "measured": false,
+      "standardRunner": false
     },
     {
       "slug": "numeric.polybench-panel.v1",
+      "pathKey": "numeric.polybench-panel.v1",
       "route": "/demos/numeric.polybench-panel.v1/",
       "title": "PolyBench numeric panel | Wasm versus JavaScript",
       "engines": [
@@ -1422,56 +1528,55 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null,
-      "measured": false
+      "duplicateOf": "/benchmarks/numeric.polybench-panel.v1/",
+      "measured": true,
+      "standardRunner": false
     },
     {
       "slug": "serialization.json-telemetry.v1",
+      "pathKey": "serialization.json-telemetry.v1",
       "route": "/demos/serialization.json-telemetry.v1/",
       "title": "JSON telemetry demo | Wasm versus JavaScript",
       "engines": [],
       "missingEngines": [],
       "manifestPath": null,
       "domHost": null,
-      "scopes": [
-        "delivery",
-        "pipeline"
-      ],
-      "duplicateOf": null,
-      "measured": false
+      "scopes": [],
+      "duplicateOf": "/benchmarks/serialization.json-telemetry.v1/",
+      "measured": false,
+      "standardRunner": false
     },
     {
       "slug": "server.ssr-template.v1",
+      "pathKey": "server.ssr-template.v1",
       "route": "/demos/server.ssr-template.v1/",
       "title": "Server-side template correctness demo | Wasm versus JavaScript",
       "engines": [],
       "missingEngines": [],
       "manifestPath": null,
       "domHost": null,
-      "scopes": [
-        "delivery",
-        "pipeline"
-      ],
-      "duplicateOf": null,
-      "measured": false
+      "scopes": [],
+      "duplicateOf": "/benchmarks/server.ssr-template.v1/",
+      "measured": false,
+      "standardRunner": false
     },
     {
       "slug": "simulation-nbody-cloth",
+      "pathKey": "simulation-nbody-cloth",
       "route": "/demos/simulation-nbody-cloth/",
       "title": "Direct N-body leapfrog validation",
       "engines": [],
       "missingEngines": [],
       "manifestPath": null,
       "domHost": null,
-      "scopes": [
-        "delivery",
-        "pipeline"
-      ],
+      "scopes": [],
       "duplicateOf": "/benchmarks/simulation-nbody-cloth/",
-      "measured": false
+      "measured": false,
+      "standardRunner": false
     },
     {
       "slug": "text.diff-patch.v1",
+      "pathKey": "text.diff-patch.v1",
       "route": "/demos/text.diff-patch.v1/",
       "title": "Unicode line diff demo | Wasm versus JavaScript",
       "engines": [
@@ -1492,11 +1597,13 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null,
-      "measured": false
+      "duplicateOf": "/benchmarks/text.diff-patch.v1/",
+      "measured": true,
+      "standardRunner": false
     },
     {
       "slug": "text.gc-document-edit.v1",
+      "pathKey": "text.gc-document-edit.v1",
       "route": "/demos/text.gc-document-edit.v1/",
       "title": "GC-rich document edit demo | Wasm versus JavaScript",
       "engines": [],
@@ -1507,23 +1614,23 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null,
-      "measured": false
+      "duplicateOf": "/benchmarks/text.gc-document-edit.v1/",
+      "measured": true,
+      "standardRunner": false
     },
     {
       "slug": "text.markdown-cms.v1",
+      "pathKey": "text.markdown-cms.v1",
       "route": "/demos/text.markdown-cms.v1/",
       "title": "Markdown CMS demo | Wasm versus JavaScript",
       "engines": [],
       "missingEngines": [],
       "manifestPath": null,
       "domHost": null,
-      "scopes": [
-        "delivery",
-        "pipeline"
-      ],
-      "duplicateOf": null,
-      "measured": false
+      "scopes": [],
+      "duplicateOf": "/benchmarks/text.markdown-cms.v1/",
+      "measured": false,
+      "standardRunner": false
     }
   ],
   "summary": {
@@ -1532,8 +1639,9 @@
     "withoutMultilang": 17,
     "fullyCovered": 2,
     "withDomStage": 12,
-    "duplicates": 6,
-    "unmeasuredPages": 19,
-    "distinctWorkloads": 61
+    "duplicates": 16,
+    "unmeasuredPages": 9,
+    "bespokeRunnerPages": 10,
+    "distinctWorkloads": 51
   }
 }
