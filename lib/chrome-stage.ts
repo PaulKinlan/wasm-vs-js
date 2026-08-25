@@ -190,8 +190,12 @@ async function ownerSnapshot(path: string): Promise<{
 
 async function assertStageDirectory(path: string, expectedMode: number) {
   const info = await Deno.lstat(path);
+  const resolved = await Deno.realPath(path);
+  const matches = resolved === path ||
+    (Deno.build.os === "darwin" &&
+      (resolved === `/private${path}` || path === `/private${resolved}`));
   if (
-    info.isSymlink || !info.isDirectory || await Deno.realPath(path) !== path ||
+    info.isSymlink || !info.isDirectory || !matches ||
     numberIdentity(info.uid, "stage uid") !== await expectedUid() ||
     permissionMode(info, "staged Chrome directory") !== expectedMode
   ) throw new Error("unsafe staged Chrome directory");

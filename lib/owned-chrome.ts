@@ -85,7 +85,11 @@ function numeric(value: number | bigint | null | undefined, label: string): numb
 }
 async function cgroupIdentity(path: string) {
   const info = await Deno.lstat(path);
-  if (info.isSymlink || !info.isDirectory || await Deno.realPath(path) !== path) {
+  const resolved = await Deno.realPath(path);
+  const matches = resolved === path ||
+    (Deno.build.os === "darwin" &&
+      (resolved === `/private${path}` || path === `/private${resolved}`));
+  if (info.isSymlink || !info.isDirectory || !matches) {
     throw new Error("unsafe cgroup identity");
   }
   return { dev: numeric(info.dev, "cgroup dev"), ino: numeric(info.ino, "cgroup inode") };

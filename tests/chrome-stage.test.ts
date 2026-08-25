@@ -286,7 +286,9 @@ Deno.test("descriptor-bound lifecycle writes and stage cleanup reject pathname r
 
     const savedRoot = `${stage.root}.saved`;
     setStageRemovalRaceHookForTest(async (current) => {
+      await Deno.chmod(current.root, 0o700);
       await Deno.rename(current.root, savedRoot);
+      await Deno.chmod(savedRoot, 0o500);
       await Deno.symlink(foreignTree, current.root);
     });
     await assertRejects(
@@ -296,7 +298,9 @@ Deno.test("descriptor-bound lifecycle writes and stage cleanup reject pathname r
     assertEquals(await Deno.readTextFile(`${foreignTree}/keep`), "keep");
     setStageRemovalRaceHookForTest();
     await Deno.remove(stage.root);
+    await Deno.chmod(savedRoot, 0o700);
     await Deno.rename(savedRoot, stage.root);
+    await Deno.chmod(stage.root, 0o500);
     await removeStagedChrome(stage);
     stage = undefined;
   } finally {

@@ -3,7 +3,11 @@ import { assertLaunchManifestSchema, assertPairedBlockSchema } from "./corpus-co
 
 async function assertPrivateDirectory(path: string): Promise<void> {
   const info = await Deno.lstat(path);
-  if (info.isSymlink || !info.isDirectory || await Deno.realPath(path) !== path) {
+  const resolved = await Deno.realPath(path);
+  const matches = resolved === path ||
+    (Deno.build.os === "darwin" &&
+      (resolved === `/private${path}` || path === `/private${resolved}`));
+  if (info.isSymlink || !info.isDirectory || !matches) {
     throw new Error(`unsafe immutable artifact directory: ${path}`);
   }
   if (info.mode !== null && (info.mode & 0o077) !== 0) {
@@ -13,12 +17,21 @@ async function assertPrivateDirectory(path: string): Promise<void> {
 async function ensurePrivateTree(directory: string): Promise<void> {
   const cwd = await Deno.realPath(Deno.cwd());
   const absolute = directory.startsWith("/") ? directory : `${cwd}/${directory}`;
+  const isDarwin = Deno.build.os === "darwin";
   const anchor = absolute.startsWith(`${cwd}/raw/permits/`) || absolute === `${cwd}/raw/permits`
     ? `${cwd}/raw/permits`
     : absolute.startsWith(`${cwd}/raw/corpora/`) || absolute === `${cwd}/raw/corpora`
     ? `${cwd}/raw/corpora`
     : absolute.startsWith("/tmp/")
     ? `/tmp/${absolute.slice(5).split("/")[0]}`
+    : (isDarwin && absolute.startsWith("/private/tmp/"))
+    ? `/private/tmp/${absolute.slice(13).split("/")[0]}`
+    : (isDarwin && absolute.includes("/folders/") && absolute.includes("/T/"))
+    ? absolute.slice(
+      0,
+      absolute.indexOf("/T/") + 3 +
+        absolute.slice(absolute.indexOf("/T/") + 3).split("/")[0].length,
+    )
     : (() => {
       throw new Error("immutable artifact root denied");
     })();

@@ -96,25 +96,46 @@ export function probeBrowserMatrix(): BrowserMatrix {
       },
     });
   } else {
-    // Check for puppeteer Chrome
-    const pChrome =
-      "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome";
-    try {
-      const vResult = new Deno.Command(pChrome, { args: ["--version"], stdout: "piped" })
-        .outputSync();
-      if (vResult.success) {
-        cells.push({
-          product: KNOWN_PRODUCTS[0],
-          automationProtocol: "CDP",
-          availability: {
-            state: "available",
-            binary: pChrome,
-            version: new TextDecoder().decode(vResult.stdout).trim(),
-          },
-        });
-        notes.push("Chrome available via CDP only (no chromedriver); BiDi requires chromedriver");
+    // Check for installed or puppeteer Chrome
+    const candidateChromeBins = [
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "/home/paulkinlan/.cache/puppeteer/chrome/linux-150.0.7871.24/chrome-linux64/chrome",
+      "/home/paulkinlan/.local/bin/google-chrome-stable",
+      "/usr/bin/google-chrome-stable",
+      "/usr/bin/google-chrome",
+      "/usr/bin/chromium",
+    ];
+    let foundChrome: { path: string; version: string } | null = null;
+    for (const p of candidateChromeBins) {
+      try {
+        const vResult = new Deno.Command(p, { args: ["--version"], stdout: "piped" }).outputSync();
+        if (vResult.success) {
+          foundChrome = { path: p, version: new TextDecoder().decode(vResult.stdout).trim() };
+          break;
+        }
+      } catch { /* try next candidate */ }
+    }
+    if (!foundChrome) {
+      for (const bin of ["google-chrome", "google-chrome-stable", "chromium", "chrome"]) {
+        const probed = probeBinary(bin);
+        if (probed.found && probed.path) {
+          foundChrome = { path: probed.path, version: probed.version ?? "unknown" };
+          break;
+        }
       }
-    } catch {
+    }
+    if (foundChrome) {
+      cells.push({
+        product: KNOWN_PRODUCTS[0],
+        automationProtocol: "CDP",
+        availability: {
+          state: "available",
+          binary: foundChrome.path,
+          version: foundChrome.version,
+        },
+      });
+      notes.push("Chrome available via CDP only (no chromedriver); BiDi requires chromedriver");
+    } else {
       cells.push({
         product: KNOWN_PRODUCTS[0],
         automationProtocol: "none",

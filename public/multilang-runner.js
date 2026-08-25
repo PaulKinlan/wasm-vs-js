@@ -417,14 +417,15 @@ export const KERNEL_ADAPTERS = {
           hits: 0,
           counters: new Uint32Array(9),
         };
-        const skipWs = (state, at) => {
-          while (at.v < state.len) {
+        const skipWs = (at, end) => {
+          const limit = typeof end === "number" ? end : S.len;
+          while (at.v < limit) {
             if (ws(inp(at.v))) {
               at.v++;
               continue;
             }
             if (inp(at.v) === 37) {
-              while (at.v < state.len && inp(at.v) !== 10 && inp(at.v) !== 13) at.v++;
+              while (at.v < limit && inp(at.v) !== 10 && inp(at.v) !== 13) at.v++;
               continue;
             }
             break;
@@ -2463,7 +2464,9 @@ export const KERNEL_ADAPTERS = {
     build(mods) {
       const callables = {};
       for (const key of ["wat", "asc", "c", "cpp", "rs"]) {
+        if (!mods.engines[key]) continue;
         const cfg = mods.manifest.engines.find((e) => e.key === key);
+        if (!cfg) continue;
         const { instances } = mods.engines[key];
         const call = {};
         if (instances.sum) {
@@ -2534,13 +2537,16 @@ export const KERNEL_ADAPTERS = {
         },
       };
       if (mods.engines.dart) {
-        callables.dart = {
-          sum: () => {
+        const dartCall = {};
+        if (kernels.sum_u32) {
+          dartCall.sum = () => {
             const arr = new Uint32Array(1000);
             for (let i = 0; i < 1000; i++) arr[i] = (i % 100) + 1;
             return kernels.sum_u32(arr);
-          },
-          fft: () => {
+          };
+        }
+        if (kernels.fft_butterfly) {
+          dartCall.fft = () => {
             const real = new Float32Array(512);
             const imag = new Float32Array(512);
             for (let i = 0; i < 512; i++) {
@@ -2549,8 +2555,9 @@ export const KERNEL_ADAPTERS = {
             }
             kernels.fft_butterfly(real, imag, 512);
             return real[17] + imag[29];
-          },
-        };
+          };
+        }
+        callables.dart = dartCall;
       }
       return callables;
     },

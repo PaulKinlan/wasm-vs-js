@@ -337,13 +337,15 @@ export async function processIdentity(
   try {
     const stat = await Deno.readTextFile(`${procRoot}/${pid}/stat`);
     const fields = stat.slice(stat.lastIndexOf(")") + 2).trim().split(" ");
+    const executable = await Deno.realPath(`${procRoot}/${pid}/exe`)
+      .catch(() => Deno.readLink(`${procRoot}/${pid}/exe`));
     const identity = {
       pid,
       parentPid: Number(fields[1]),
       processGroupId: Number(fields[2]),
       sessionId: Number(fields[3]),
       startTimeTicks: fields[19],
-      executable: await Deno.realPath(`${procRoot}/${pid}/exe`),
+      executable,
     };
     if (
       !Number.isSafeInteger(identity.parentPid) || identity.parentPid < 0 ||
@@ -411,6 +413,14 @@ function mergeIdentities(
   return [...byPid.values()].sort((a, b) => a.pid - b.pid);
 }
 
+function samePath(a: string, b: string): boolean {
+  if (a === b) return true;
+  if (Deno.build.os === "darwin") {
+    if (a === `/private${b}` || b === `/private${a}`) return true;
+  }
+  return false;
+}
+
 export async function acquireOwnedSession(
   launcherPid: number,
   chromeExecutable: string,
@@ -418,12 +428,15 @@ export async function acquireOwnedSession(
   procRoot = "/proc",
 ): Promise<OwnedSessionLedger> {
   const deadline = Date.now() + timeoutMs;
-  const expectedLauncher = await Deno.realPath("/usr/bin/setsid");
+  const expectedLauncher = await Deno.realPath("/usr/bin/setsid")
+    .catch(() => "/usr/bin/setsid");
   let launcher: ProcessIdentity | null = null;
   let retained: ProcessIdentity[] = [];
   while (Date.now() < deadline) {
     const candidateLauncher = await processIdentity(launcherPid, procRoot);
-    if (candidateLauncher?.executable === expectedLauncher) launcher ??= candidateLauncher;
+    if (candidateLauncher && samePath(candidateLauncher.executable, expectedLauncher)) {
+      launcher ??= candidateLauncher;
+    }
     if (!launcher) {
       await new Promise((resolve) => setTimeout(resolve, 10));
       continue;
@@ -431,7 +444,7 @@ export async function acquireOwnedSession(
     const descendants = await ownedProcesses(launcherPid, procRoot);
     retained = mergeIdentities(retained, descendants);
     const chrome = descendants.find((identity) =>
-      identity.executable === chromeExecutable && identity.sessionId === identity.pid
+      samePath(identity.executable, chromeExecutable) && identity.sessionId === identity.pid
     );
     if (chrome) {
       const members = (await processSnapshot(procRoot)).filter((identity) =>

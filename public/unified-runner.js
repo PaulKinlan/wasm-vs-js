@@ -935,12 +935,14 @@ async function runComposedStages(
           } — iteration ${iteration}/${total}…`;
         },
       });
-      // Scroll the kept iframe to show the rendered TodoMVC UI (Paul:
-      // the DOM is rendered at the bottom of the self-loaded page, but
-      // the iframe's viewport shows the page chrome by default).
+      // Scroll the kept iframe to show the rendered DOM UI (the DOM
+      // is rendered at the bottom of the self-loaded page, but the
+      // iframe viewport shows the page chrome by default).
       const iframeEl = iframeContainer.querySelector("iframe[data-wvj-bridge]");
       if (iframeEl && iframeEl.contentDocument) {
-        const host = iframeEl.contentDocument.querySelector("#wvj-todomvc-host");
+        const host = iframeEl.contentDocument.querySelector(
+          "[data-wvj-dom-host], #wvj-dom-host, #wvj-todomvc-host",
+        );
         if (host) {
           iframeEl.contentWindow?.scrollTo(0, host.offsetTop - 8);
         }

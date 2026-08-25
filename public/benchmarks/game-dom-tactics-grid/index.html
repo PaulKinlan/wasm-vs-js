@@ -11,9 +11,9 @@
     <script type="module" src="/multilang-runner.js"></script>
   </head>
   <body data-workload="game-dom-tactics-grid"
-    data-multilang-manifest="/benchmarks/multilang-wasm/game-dom-tactics-grid.manifest.json"
-    <a class="skip" href="#main"
-    data-dom-host="/dom-hosts/base-game-dom-tactics-grid.js">Skip to main content</a>
+    data-dom-host="/dom-hosts/base-game-dom-tactics-grid.js"
+    data-multilang-manifest="/benchmarks/multilang-wasm/game-dom-tactics-grid.manifest.json">
+    <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
       <a href="/benchmarks/">Browse Catalog</a>
@@ -63,9 +63,11 @@
       <section class="panel" aria-labelledby="controls-title">
         <h2 id="controls-title">Run exact fixed work</h2>
         <form data-worker="/benchmarks/game-family/worker.js">
-          <div class="controls"><label>Target<select id="game-target"><option value="js-controlled">JavaScript controlled</option><option value="wasm-linear-controlled">Linear Wasm controlled reducer</option></select></label><button id="start" type="button" disabled>Start</button><button id="game-cancel" type="button" disabled>Cancel</button></div>
+          <div
+            class="controls"><label>Target<select id="game-target"><option value="js-controlled">JavaScript controlled</option><option value="wasm-linear-controlled">Linear Wasm controlled reducer</option></select></label><button id="start" type="button" disabled>Start</button><button id="game-cancel" type="button" disabled>Cancel</button></div>
         </form>
-        <p id="game-status" role="status" aria-live="polite">Ready. Computation runs in a dedicated worker with a 15-second timeout.</p>
+        <p id="game-status" role="status"
+          aria-live="polite">Ready. Computation runs in a dedicated worker with a 15-second timeout.</p>
       </section>
 
       <section class="panel">

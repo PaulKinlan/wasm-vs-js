@@ -1,6 +1,6 @@
 import { hashCanonicalEnvelope } from "../lib/canonical.ts";
 
-const expectedCommit = Deno.env.get("WASM_VS_JS_COMMIT") ?? "";
+const expectedCommit = Deno.env.get("WASM_VS_JS_COMMIT") || "0".repeat(40);
 const manifest = JSON.parse(
   await Deno.readTextFile("public/artifacts/sum-u32/build-manifest.json"),
 );

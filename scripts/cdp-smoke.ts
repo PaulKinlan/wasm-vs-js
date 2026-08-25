@@ -23,7 +23,36 @@ import { CdpClient } from "../lib/cdp-client.ts";
 
 const LIVE_BASE = "https://wasm-vs-js.paulkinlan-ea.deno.net";
 const REPO = new URL("..", import.meta.url).pathname;
-const CHROME = "/usr/bin/chromium";
+function findChrome(): string {
+  const env = Deno.env.get("CHROME_BIN");
+  if (env) return env;
+  const candidates = [
+    "/usr/bin/chromium",
+    "/usr/bin/google-chrome",
+    "/usr/bin/google-chrome-stable",
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  ];
+  for (const c of candidates) {
+    try {
+      if (Deno.statSync(c).isFile) return c;
+    } catch {
+      // ignore candidate not found
+    }
+  }
+  for (const bin of ["chromium", "google-chrome", "google-chrome-stable", "chrome"]) {
+    try {
+      const res = new Deno.Command("which", { args: [bin], stdout: "piped" }).outputSync();
+      if (res.success) {
+        const path = new TextDecoder().decode(res.stdout).trim();
+        if (path) return path;
+      }
+    } catch {
+      // ignore command error
+    }
+  }
+  return "/usr/bin/chromium";
+}
+const CHROME = findChrome();
 
 const baseArg = Deno.args.find((a) => a.startsWith("--base="));
 const BASE = (baseArg ? baseArg.slice("--base=".length) : Deno.env.get("SMOKE_BASE") ?? LIVE_BASE)

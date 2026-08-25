@@ -58,6 +58,7 @@ def main():
             exact(cst, cdev, cino)
             if cst.st_uid != os.getuid() or stat.S_IMODE(cst.st_mode) != child_mode:
                 die("unsafe child ownership or mode")
+            os.fchmod(child, 0o700)
         finally:
             os.close(child)
         tomb = ".removed-" + uuid.uuid4().hex

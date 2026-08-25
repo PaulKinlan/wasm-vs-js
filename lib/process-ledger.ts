@@ -52,7 +52,11 @@ async function currentUid(): Promise<number> {
 async function directoryIdentity(path: string): Promise<{ dev: number; ino: number }> {
   const info = await Deno.lstat(path);
   if (info.isSymlink || !info.isDirectory) throw new Error(`unsafe directory: ${path}`);
-  if (await Deno.realPath(path) !== path) {
+  const resolved = await Deno.realPath(path);
+  const matches = resolved === path ||
+    (Deno.build.os === "darwin" &&
+      (resolved === `/private${path}` || path === `/private${resolved}`));
+  if (!matches) {
     throw new Error(`directory containment mismatch: ${path}`);
   }
   return { dev: numeric(info.dev, "directory dev"), ino: numeric(info.ino, "directory inode") };
@@ -84,11 +88,22 @@ export async function executableSnapshot(path: string): Promise<FileIdentity> {
   return { path: resolved, ...identity, sha256: await sha256Hex(bytes) };
 }
 export async function attestAndRestrictTemporaryRoot(): Promise<void> {
-  const tmp = await Deno.lstat("/tmp");
-  if (tmp.isSymlink || !tmp.isDirectory || await Deno.realPath("/tmp") !== "/tmp") {
-    throw new Error("unsafe temporary root");
+  const isDarwin = Deno.build.os === "darwin";
+  const realTmp = await Deno.realPath("/tmp");
+  if (isDarwin) {
+    if (realTmp !== "/private/tmp") {
+      throw new Error("unsafe temporary root");
+    }
+  } else {
+    const tmp = await Deno.lstat("/tmp");
+    if (tmp.isSymlink || !tmp.isDirectory || realTmp !== "/tmp") {
+      throw new Error("unsafe temporary root");
+    }
   }
   await Deno.permissions.revoke({ name: "read", path: "/tmp" });
+  if (isDarwin) {
+    await Deno.permissions.revoke({ name: "read", path: "/private/tmp" });
+  }
   const status = await Deno.permissions.query({ name: "read", path: "/tmp" });
   if (status.state === "granted") throw new Error("temporary root read permission was not revoked");
 }
