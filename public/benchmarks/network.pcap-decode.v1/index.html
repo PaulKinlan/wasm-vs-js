@@ -29,6 +29,14 @@
       <strong>data v1</strong>
     </header>
     <main id="main" class="narrative" tabindex="-1">
+      <header>
+        <p class="eyebrow">Networking · Layered Packet Capture · network.pcap-decode.v1</p>
+        <h1>Classic PCAP Protocol Decode</h1>
+        <p class="lede">
+          Parses Ethernet, IPv4, TCP reassembly, UDP, DNS label compression, and HTTP/1.1 framing from packet capture records.
+        </p>
+      </header>
+
       <section class="demo-panel" aria-labelledby="run-heading">
         <h2 id="run-heading">Run Benchmark Loop</h2>
         <form id="demo-form">
@@ -61,58 +69,60 @@
         <div id="perf-reporting" class="detail-grid" hidden></div>
       </section>
 
-      <p class="eyebrow">Runnable correctness demo · network.pcap-decode.v1</p>
-      <h1>Classic PCAP protocol decode</h1>
-      <p class="notice">
-        <strong>No performance claim.</strong> This demo parses an eight-record project-generated
-        capture in a fresh worker. It does not upload, retain, or rank a result.
-      </p>
-      <p>
-        The fixed capture exercises Ethernet, IPv4, contiguous TCP reassembly, UDP, DNS label
-        compression, HTTP/1.1 request and response framing, and three malformed dispositions. It
-        contains reserved documentation addresses and no captured user traffic.
-      </p>
-      <form data-pcap-demo>
-        <fieldset>
-          <legend>Controlled target</legend>
-          <label for="target">Engine
-            <select id="target" name="target">
-              <option value="js-controlled">JavaScript controlled</option>
-              <option value="wasm-linear-controlled">Linear Wasm controlled</option>
-            </select>
-          </label>
-        </fieldset>
-        <div class="actions">
-          <button id="pcap-correct-start" type="submit">Start</button>
-          <button id="pcap-correct-cancel" type="button" disabled>Cancel</button>
-        </div>
-      </form>
-      <h2>Correctness result</h2>
-      <p id="pcap-correct-status" aria-live="polite">Ready.</p>
-      <pre id="output" class="demo-output" tabindex="0">No result yet.</pre>
-      <h2>Inspect the package</h2>
-      <ul>
-        <li>
-          <a href="/artifacts/base-network-pcap-decode/fixture-manifest.json"
-          >Fixture and rights manifest</a>
-        </li>
-        <li>
-          <a href="/artifacts/base-network-pcap-decode/output-manifest.json"
-          >Complete-output oracle</a>
-        </li>
-        <li>
-          <a href="/artifacts/base-network-pcap-decode/build-manifest.json"
-          >Build and source provenance</a>
-        </li>
-        <li>
-          <a href="/evidence/base-v1/network-pcap-decode/js-controlled.json"
-          >JavaScript validation record</a>
-        </li>
-        <li>
-          <a href="/evidence/base-v1/network-pcap-decode/wasm-linear-controlled.json"
-          >Wasm validation record</a>
-        </li>
-      </ul>
+      <section class="panel" aria-labelledby="pcap-heading">
+        <h2 id="pcap-heading">Correctness evidence</h2>
+        <p class="notice">
+          <strong>No performance claim.</strong> This demo parses an eight-record project-generated
+          capture in a fresh worker. It does not upload, retain, or rank a result.
+        </p>
+        <p>
+          The fixed capture exercises Ethernet, IPv4, contiguous TCP reassembly, UDP, DNS label
+          compression, HTTP/1.1 request and response framing, and three malformed dispositions. It
+          contains reserved documentation addresses and no captured user traffic.
+        </p>
+        <form data-pcap-demo>
+          <fieldset>
+            <legend>Controlled target</legend>
+            <label for="pcap-target">Engine
+              <select id="pcap-target" name="target">
+                <option value="js-controlled">JavaScript controlled</option>
+                <option value="wasm-linear-controlled">Linear Wasm controlled</option>
+              </select>
+            </label>
+          </fieldset>
+          <div class="actions">
+            <button id="pcap-correct-start" type="submit">Start</button>
+            <button id="pcap-correct-cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <h2>Correctness result</h2>
+        <p id="pcap-correct-status" aria-live="polite">Ready.</p>
+        <pre id="output" class="demo-output" tabindex="0">No result yet.</pre>
+        <h2>Inspect the package</h2>
+        <ul>
+          <li>
+            <a href="/artifacts/base-network-pcap-decode/fixture-manifest.json"
+            >Fixture and rights manifest</a>
+          </li>
+          <li>
+            <a href="/artifacts/base-network-pcap-decode/output-manifest.json"
+            >Complete-output oracle</a>
+          </li>
+          <li>
+            <a href="/artifacts/base-network-pcap-decode/build-manifest.json"
+            >Build and source provenance</a>
+          </li>
+          <li>
+            <a href="/evidence/base-v1/network-pcap-decode/js-controlled.json"
+            >JavaScript validation record</a>
+          </li>
+          <li>
+            <a href="/evidence/base-v1/network-pcap-decode/wasm-linear-controlled.json"
+            >Wasm validation record</a>
+          </li>
+        </ul>
+      </section>
+
       <section class="demo-panel" aria-labelledby="ml-heading">
         <h2 id="ml-heading">Multi-Language Comparison</h2>
         <p>

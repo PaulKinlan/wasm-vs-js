@@ -19,6 +19,14 @@
       <strong>data v1</strong>
     </header>
     <main id="main">
+      <header>
+        <p class="eyebrow">CAD &amp; Engineering · 5,804 Triangles · cad.parametric-bracket.v1</p>
+        <h1>Parametric Bracket Build</h1>
+        <p class="lede">
+          Constructs an 80 × 40 × 12 mm bracket with B-rep loops, through cylinders, edge fillets, and tessellates a 5,804-triangle boundary representation.
+        </p>
+      </header>
+
       <section class="demo-panel" aria-labelledby="run-heading">
         <h2 id="run-heading">Run Benchmark Loop</h2>
         <form id="demo-form">
@@ -51,24 +59,25 @@
         <div id="perf-reporting" class="detail-grid" hidden></div>
       </section>
 
-      <p class="eyebrow">Runnable correctness demo · cad.parametric-bracket.v1</p>
-      <h1>Box, holes, fillets and tessellation</h1>
-      <p><strong>No performance claim.</strong> A fresh worker constructs the fixed 80 × 40 × 12 mm bracket. The selected target must emit the complete B-rep loops and 5,804-triangle closed tessellation. This page stores and uploads nothing.</p>
-      <form id="controls">
-        <label for="target">Controlled target</label>
-        <select id="cpb-target">
-          <option value="js-controlled">JavaScript controlled</option>
-          <option value="wasm-linear-controlled">Linear Wasm controlled</option>
-        </select>
-        <button id="cpb-start" type="submit">Start</button>
-        <button id="cpb-cancel" type="button" disabled>Cancel</button>
-      </form>
-      <h2>Correctness result</h2>
-      <p id="cpb-status" role="status" aria-live="polite">Ready.</p>
-      <pre id="result">No completed result.</pre>
-      <h2>Fixed work</h2>
-      <p>Both targets build one box, subtract two through cylinders, fillet four outer edges, construct a genus-2 boundary representation and tessellate it with the same scan-band policy. SIMD, threads, tail calls, exception handling and OCCT are separate variants.</p>
-      <p><a href="/evidence/base-catalog/cad-parametric-bracket/js-controlled.json">JavaScript validation record</a> · <a href="/evidence/base-catalog/cad-parametric-bracket/wasm-linear-controlled.json">Wasm validation record</a></p>
+      <section class="panel" aria-labelledby="cpb-heading">
+        <h2 id="cpb-heading">Correctness evidence</h2>
+        <p><strong>No performance claim.</strong> A fresh worker constructs the fixed 80 × 40 × 12 mm bracket. The selected target must emit the complete B-rep loops and 5,804-triangle closed tessellation. This page stores and uploads nothing.</p>
+        <form id="controls">
+          <label for="cpb-target">Controlled target</label>
+          <select id="cpb-target">
+            <option value="js-controlled">JavaScript controlled</option>
+            <option value="wasm-linear-controlled">Linear Wasm controlled</option>
+          </select>
+          <button id="cpb-start" type="submit">Start</button>
+          <button id="cpb-cancel" type="button" disabled>Cancel</button>
+        </form>
+        <h3>Correctness result</h3>
+        <p id="cpb-status" role="status" aria-live="polite">Ready.</p>
+        <pre id="result">No completed result.</pre>
+        <h3>Fixed work</h3>
+        <p>Both targets build one box, subtract two through cylinders, fillet four outer edges, construct a genus-2 boundary representation and tessellate it with the same scan-band policy. SIMD, threads, tail calls, exception handling and OCCT are separate variants.</p>
+        <p><a href="/evidence/base-catalog/cad-parametric-bracket/js-controlled.json">JavaScript validation record</a> · <a href="/evidence/base-catalog/cad-parametric-bracket/wasm-linear-controlled.json">Wasm validation record</a></p>
+      </section>
 
       <section class="detail-grid" aria-label="Workload details">
         <div class="detail-card">

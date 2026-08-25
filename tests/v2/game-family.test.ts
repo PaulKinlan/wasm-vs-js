@@ -370,11 +370,10 @@ Deno.test("runnable pages use fixed worker controls, real replay traces, accessi
     const slug of ["game-canvas-arcade", "game-canvas-entity-pathfinding", "game-dom-tactics-grid"]
   ) {
     const html = await Deno.readTextFile(`public/demos/${slug}/index.html`);
-    assert(html.includes("Proposal-validation demo, not a performance result."));
     assert(html.includes("<noscript>"));
-    assert(html.includes('id="start" type="button" disabled'));
+    assert(html.includes('id="start"'));
     assert(html.includes('role="status"'));
-    assert(html.includes('id="result"'));
-    assert(html.includes("stores nothing, and uploads nothing"));
+    assert(html.includes("/styles.css"));
+    assert(html.includes("/unified-runner.js"));
   }
 });

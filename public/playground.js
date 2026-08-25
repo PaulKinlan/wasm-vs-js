@@ -251,7 +251,7 @@ const PLAYGROUND_WORKLOADS = [
     slug: "cad-parametric-bracket",
     title: "Parametric Bracket Build",
     category: "CAD & Engineering",
-    route: "/demos/cad-parametric-bracket/",
+    route: "/benchmarks/cad-parametric-bracket/",
     description:
       "Builds boxes, cylinders, boolean holes, fillets, and tessellates a parametric bracket.",
     explanation:
@@ -261,7 +261,7 @@ const PLAYGROUND_WORKLOADS = [
     slug: "crypto-file-integrity-v1",
     title: "SHA-256 File Integrity",
     category: "Cryptography",
-    route: "/demos/crypto.file-integrity.v1/",
+    route: "/benchmarks/crypto.file-integrity.v1/",
     description: "Verifies downloaded assets with SHA-256 using fixed chunk schedules.",
     explanation:
       "Block-level hash compression and streaming digest updates over file-sized inputs.",
@@ -270,7 +270,7 @@ const PLAYGROUND_WORKLOADS = [
     slug: "game-dom-tactics-grid",
     title: "DOM Tactics Grid",
     category: "Game Simulation",
-    route: "/demos/game-dom-tactics-grid/",
+    route: "/benchmarks/game-dom-tactics-grid/",
     description:
       "Runs turn-based movement, range calculation, and AI pathfinding on a tactics grid.",
     explanation: "Grid traversal, BFS flood-fill, and heuristic-based decision trees for game AI.",
@@ -279,7 +279,7 @@ const PLAYGROUND_WORKLOADS = [
     slug: "game-ecs-frame-update",
     title: "Game-Frame ECS Update",
     category: "Game Simulation",
-    route: "/demos/game-ecs-frame-update/",
+    route: "/benchmarks/game-ecs-frame-update/",
     description:
       "Updates movement, collision broadphase, and animation state for 10,000 entities per frame.",
     explanation:
@@ -289,7 +289,7 @@ const PLAYGROUND_WORKLOADS = [
     slug: "network-pcap-decode-v1",
     title: "PCAP Protocol Decode",
     category: "Networking",
-    route: "/demos/network.pcap-decode.v1/",
+    route: "/benchmarks/network.pcap-decode.v1/",
     description:
       "Parses Ethernet, IP, TCP, DNS, and HTTP records from a capture into a flow table.",
     explanation:
@@ -299,7 +299,7 @@ const PLAYGROUND_WORKLOADS = [
     slug: "numeric-polybench-panel-v1",
     title: "PolyBench Numeric Panel",
     category: "Numeric & Scientific",
-    route: "/demos/numeric.polybench-panel.v1/",
+    route: "/benchmarks/numeric.polybench-panel.v1/",
     description: "Runs GEMM, Cholesky decomposition, stencil, and Jacobi-2D notebook kernels.",
     explanation:
       "Dense linear algebra and iterative stencil solvers from the PolyBench benchmark suite.",
@@ -308,7 +308,7 @@ const PLAYGROUND_WORKLOADS = [
     slug: "serialization-json-telemetry-v1",
     title: "JSON Telemetry Pipeline",
     category: "Serialization",
-    route: "/demos/serialization.json-telemetry.v1/",
+    route: "/benchmarks/serialization.json-telemetry.v1/",
     description:
       "Parses nested multilingual events, runs fixed aggregates, and serializes a canonical summary.",
     explanation: "Streaming JSON tokenizer, tree construction, and canonical re-serialization.",
@@ -317,7 +317,7 @@ const PLAYGROUND_WORKLOADS = [
     slug: "server-ssr-template-v1",
     title: "Template & SSR Endpoint",
     category: "Server & SSR",
-    route: "/demos/server.ssr-template.v1/",
+    route: "/benchmarks/server.ssr-template.v1/",
     description: "Renders 1,000 personalized catalog HTML responses from a template engine.",
     explanation:
       "String interpolation, partial composition, and HTML escaping at server-render scale.",
@@ -326,7 +326,7 @@ const PLAYGROUND_WORKLOADS = [
     slug: "text-gc-document-edit-v1",
     title: "GC-Rich Document Editor",
     category: "Text & Parsing",
-    route: "/demos/text.gc-document-edit.v1/",
+    route: "/benchmarks/text.gc-document-edit.v1/",
     description: "Parses a tree and executes 10,000 insert, delete, and reparent operations.",
     explanation: "Piece-table or rope-based document model with garbage-collection-aware editing.",
   },
@@ -374,7 +374,7 @@ const PLAYGROUND_WORKLOADS = [
     slug: "game-canvas-arcade",
     title: "Canvas Arcade Game Engine",
     category: "Game Simulation",
-    route: "/demos/game-canvas-arcade/",
+    route: "/benchmarks/game-canvas-arcade/",
     description:
       "Simulates arcade game physics, collision detection, and audio state across 60 frames.",
     explanation: "Object state updates and 2D collision detection loops.",
@@ -383,7 +383,7 @@ const PLAYGROUND_WORKLOADS = [
     slug: "game-canvas-entity-pathfinding",
     title: "Canvas Entity Pathfinding",
     category: "Game Simulation",
-    route: "/demos/game-canvas-entity-pathfinding/",
+    route: "/benchmarks/game-canvas-entity-pathfinding/",
     description: "Runs A* pathfinding for 128 game entities on a grid map with ECS updates.",
     explanation: "Priority queue heap operations and grid traversal.",
   },
@@ -391,7 +391,7 @@ const PLAYGROUND_WORKLOADS = [
     slug: "text-diff-patch",
     title: "Unicode Line Diff & Patch",
     category: "Text & Parsing",
-    route: "/demos/text.diff-patch.v1/",
+    route: "/benchmarks/text.diff-patch.v1/",
     description: "Calculates Myers line-by-line diffs across multi-line text files.",
     explanation: "Dynamic programming matrix allocation and string comparisons.",
   },
@@ -399,7 +399,7 @@ const PLAYGROUND_WORKLOADS = [
     slug: "text-markdown-cms",
     title: "Markdown CMS Render Pipeline",
     category: "Text & Parsing",
-    route: "/demos/text.markdown-cms.v1/",
+    route: "/benchmarks/text.markdown-cms.v1/",
     description: "Parses Markdown documents into sanitized HTML syntax trees.",
     explanation: "Text parsing, character scanning, and string building.",
   },
@@ -457,7 +457,7 @@ const PLAYGROUND_WORKLOADS = [
     slug: "network-http2-quic-state",
     title: "HTTP/2 & QUIC Protocol State Machine",
     category: "Networking",
-    route: "/demos/base/network-http2-quic-state/",
+    route: "/benchmarks/base/network-http2-quic-state/",
     description:
       "Parses frames and state transitions for HTTP/2, HPACK, QUIC, and QPACK connection streams.",
     explanation:
@@ -497,7 +497,7 @@ const PLAYGROUND_WORKLOADS = [
     slug: "text-regex-log-scan",
     title: "100 MB Log File Regex Scan",
     category: "Text & Parsing",
-    route: "/demos/base/text.regex-log-scan.v1/",
+    route: "/benchmarks/base/text.regex-log-scan.v1/",
     description:
       "Scans a 100 MB server log corpus for multi-field timestamp, IP, and status patterns.",
     explanation: "Stream tokenization, character-class matching, and capture group extraction.",

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>HTTP/2 and QUIC state demo | Wasm versus JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="/unified-runner.js"></script>
   </head>
   <body data-workload="network-http2-quic-state" data-libcmp="true"
     data-libcmp-engines='[{"key": "js", "label": "JavaScript engine", "source": "/benchmarks/v1/network-http2-quic-state/engine.js"}, {"key": "wasm", "label": "WebAssembly engine", "source": "/benchmarks/v1/network-http2-quic-state/network-http2-quic-state.c"}]'>
@@ -17,6 +18,14 @@
       <strong>data v1</strong>
     </header>
     <main id="main" class="content-shell">
+      <header>
+        <p class="eyebrow">Networking · Protocols &amp; Framing · network.http2-quic-state.v1</p>
+        <h1>HTTP/2, HPACK, QUIC and QPACK Fixed Trace</h1>
+        <p class="lede">
+          Parses HTTP/2 frames, HPACK compression tables, QUIC packet state, and QPACK instruction vectors across recorded network streams.
+        </p>
+      </header>
+
       <section class="demo-panel" aria-labelledby="run-heading">
         <h2 id="run-heading">Run Benchmark Loop</h2>
         <form id="demo-form">
@@ -49,22 +58,23 @@
         <div id="perf-reporting" class="detail-grid" hidden></div>
       </section>
 
-      <p class="eyebrow">Base workload candidate · network.http2-quic-state.v1</p>
-      <h1>HTTP/2, HPACK, QUIC and QPACK fixed trace</h1>
-      <p><strong>No performance claim.</strong> This correctness demo parses six project-owned binary records and reports the complete state/event vector. It opens no sockets and stores or uploads nothing.</p>
-      <p>This is an unreviewed implementation candidate and does not yet change frozen v1 coverage from 0/38.</p>
-      <form id="demo-form">
-        <label for="target">Controlled target</label>
-        <select id="h2q-target"
-          name="target"><option value="js">JavaScript controlled</option><option value="wasm">Linear Wasm controlled</option></select>
-        <button id="h2q-correct-start" type="submit">Start</button>
-        <button id="h2q-correct-cancel" type="button" disabled>Cancel</button>
-      </form>
-      <h2>State result</h2>
-      <p id="h2q-correct-status" role="status" aria-live="polite">Ready.</p>
-      <pre id="result" tabindex="0">No result yet.</pre>
-      <h2>Fixed scope</h2>
-      <p>HTTP/2: SETTINGS, HEADERS, CONTINUATION, DATA, WINDOW_UPDATE and RST_STREAM; HPACK static, literal incremental and dynamic indexing. QUIC: STREAM, ACK, MAX_DATA, RESET_STREAM and CONNECTION_CLOSE; QPACK capacity, insert and duplicate instructions. Malformed and truncated inputs are separately tested.</p>
+      <section class="panel" aria-labelledby="h2q-heading">
+        <h2 id="h2q-heading">Correctness evidence</h2>
+        <p><strong>No performance claim.</strong> This correctness demo parses six project-owned binary records and reports the complete state/event vector. It opens no sockets and stores or uploads nothing.</p>
+        <p>This is an unreviewed implementation candidate and does not yet change frozen v1 coverage from 0/38.</p>
+        <form id="h2q-form">
+          <label for="h2q-target">Controlled target</label>
+          <select id="h2q-target"
+            name="target"><option value="js">JavaScript controlled</option><option value="wasm">Linear Wasm controlled</option></select>
+          <button id="h2q-correct-start" type="submit">Start</button>
+          <button id="h2q-correct-cancel" type="button" disabled>Cancel</button>
+        </form>
+        <h2>State result</h2>
+        <p id="h2q-correct-status" role="status" aria-live="polite">Ready.</p>
+        <pre id="result" tabindex="0">No result yet.</pre>
+        <h2>Fixed scope</h2>
+        <p>HTTP/2: SETTINGS, HEADERS, CONTINUATION, DATA, WINDOW_UPDATE and RST_STREAM; HPACK static, literal incremental and dynamic indexing. QUIC: STREAM, ACK, MAX_DATA, RESET_STREAM and CONNECTION_CLOSE; QPACK capacity, insert and duplicate instructions. Malformed and truncated inputs are separately tested.</p>
+      </section>
     </main>
     <script type="module" src="/unified-runner.js"></script>
     <script type="module" src="/network-http2-quic-state-demo.js"></script>

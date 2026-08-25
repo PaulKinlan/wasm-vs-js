@@ -6,6 +6,7 @@
     <meta name="color-scheme" content="light dark">
     <title>100 MiB regex log scan | Wasm versus JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="/unified-runner.js"></script>
     <script type="module" src="./demo.js"></script>
   </head>
   <body
@@ -20,6 +21,14 @@
       <strong>data v1</strong>
     </header>
     <main id="main" class="page-shell">
+      <header>
+        <p class="eyebrow">Text &amp; Parsing · 100 MiB Log Scan · text.regex-log-scan.v1</p>
+        <h1>Scan 100 MiB with 20 Safe Patterns</h1>
+        <p class="lede">
+          Scans a 100 MiB multilingual log stream extracting URLs, IPv4 addresses, and status codes using regular expression automata.
+        </p>
+      </header>
+
       <section class="demo-panel" aria-labelledby="run-heading">
         <h2 id="run-heading">Run Benchmark Loop</h2>
         <form id="demo-form">
@@ -52,11 +61,9 @@
         <div id="perf-reporting" class="detail-grid" hidden></div>
       </section>
 
-      <p class="eyebrow">FULL BASE CONTRACT · TEXT.REGEX-LOG-SCAN.V1</p>
-      <h1>Scan 100 MiB with 20 safe patterns</h1>
-      <p><strong>No performance claim.</strong> A fresh worker generates the registered 100 MiB multilingual log, extracts every URL, IPv4 address, and status code, then checks the complete ordered-capture hash and structural counters. Nothing is uploaded or stored.</p>
       <section class="panel" aria-labelledby="controls-title">
-        <h2 id="controls-title">Controlled target</h2>
+        <h2 id="controls-title">Correctness evidence</h2>
+        <p><strong>No performance claim.</strong> A fresh worker generates the registered 100 MiB multilingual log, extracts every URL, IPv4 address, and status code, then checks the complete ordered-capture hash and structural counters. Nothing is uploaded or stored.</p>
         <form id="run-form">
           <label for="engine">Engine</label>
           <select id="engine" name="engine">

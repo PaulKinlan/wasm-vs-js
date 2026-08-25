@@ -4,13 +4,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
-    <title>DOM tactics grid deterministic trace</title>
+    <meta name="description"
+      content="DOM Tactics Grid benchmark measuring turn-based movement, range calculation, and AI pathfinding driving the real DOM.">
+    <title>DOM Tactics Grid Engine · Wasm vs JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
     <script type="module" src="/unified-runner.js"></script>
     <script type="module" src="/iframe-benchmark-bridge.js"></script>
     <script type="module" src="/multilang-runner.js"></script>
   </head>
-  <body data-workload="game-dom-tactics-grid"
+  <body data-workload="game-dom-tactics-grid" data-demo="game-dom-tactics-grid"
     data-dom-host="/dom-hosts/base-game-dom-tactics-grid.js"
     data-multilang-manifest="/benchmarks/multilang-wasm/game-dom-tactics-grid.manifest.json">
     <a class="skip" href="#main">Skip to main content</a>
@@ -21,8 +23,17 @@
       <a href="/evidence/">Evidence</a>
       <strong>data v1</strong>
     </header>
-    <noscript><p class="shell notice"><strong>JavaScript is required to run this local worker validation demo.</strong> No computation, storage, or upload occurs while scripting is disabled.</p></noscript>
-    <main id="main" class="shell" data-workload-id="game.dom-tactics-grid.v1">
+    <noscript><p class="shell notice"><strong>JavaScript is required to run this benchmark.</strong> No computation, storage, or upload occurs while scripting is disabled.</p></noscript>
+    <main id="main">
+      <header>
+        <p class="eyebrow">DOM &amp; Web UI Workload · 60 Turns × 240 Actions on 64×64 Grid</p>
+        <h1>DOM Tactics Grid Engine</h1>
+        <p class="lede">
+          Runs turn-based movement, range calculation, and AI pathfinding on a 64×64 tactics grid,
+          driving real DOM highlights and visual states across 60 turns.
+        </p>
+      </header>
+
       <section class="demo-panel" aria-labelledby="run-heading">
         <h2 id="run-heading">Run Benchmark Loop</h2>
         <form id="demo-form">
@@ -55,38 +66,14 @@
         <div id="perf-reporting" class="detail-grid" hidden></div>
       </section>
 
-      <p><a href="/benchmarks/">← Benchmark inventory</a></p>
-      <p class="eyebrow">Proposal-validation demo · game.dom-tactics-grid.v1</p>
-      <h1>DOM tactics grid deterministic trace</h1>
-      <p
-        class="notice"><strong>Proposal-validation demo, not a performance result.</strong> It collects no duration, stores nothing, and uploads nothing. The visual is an enhancement; the complete accepted output appears as text.</p>
-      <section class="panel" aria-labelledby="controls-title">
-        <h2 id="controls-title">Run exact fixed work</h2>
-        <form data-worker="/benchmarks/game-family/worker.js">
-          <div
-            class="controls"><label>Target<select id="game-target"><option value="js-controlled">JavaScript controlled</option><option value="wasm-linear-controlled">Linear Wasm controlled reducer</option></select></label><button id="start" type="button" disabled>Start</button><button id="game-cancel" type="button" disabled>Cancel</button></div>
-        </form>
-        <p id="game-status" role="status"
-          aria-live="polite">Ready. Computation runs in a dedicated worker with a 15-second timeout.</p>
-      </section>
-
-      <section class="panel">
-        <h2>Visual enhancement</h2>
-        <div id="grid" class="grid" aria-hidden="true"></div>
-      </section>
-      <section class="panel">
-        <h2>Accessible result</h2>
-        <pre id="result" tabindex="0">No run yet.</pre>
-      </section>
-
       <section class="detail-grid" aria-label="Workload details">
         <div class="detail-card">
           <h2>What it does</h2>
-          <p>Runs turn-based movement, range calculation, and AI pathfinding on a tactics grid.</p>
+          <p>Runs turn-based movement, range calculation, and AI pathfinding for 128 units on a 64×64 tactics grid.</p>
         </div>
         <div class="detail-card">
           <h2>Why compare</h2>
-          <p>Grid traversal, BFS flood-fill, and heuristic-based decision trees for game AI.</p>
+          <p>Evaluates grid traversal, BFS flood-fill, and heuristic-based decision trees for game AI driving DOM mutations.</p>
         </div>
         <div class="detail-card">
           <h2>Algorithm &amp; engine</h2>
