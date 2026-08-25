@@ -109,13 +109,13 @@ function renderEntry(entry) {
   const actions = element("div", undefined, "catalog-actions");
   const route = WORKLOAD_DEMO_ROUTES[entry.id];
   if (route) {
-    const runBtn = element("a", "⚡ Run Benchmark Demo", "btn-run-catalog");
+    const runBtn = element("a", "Run benchmark", "btn-run-catalog");
     runBtn.href = route;
     actions.append(runBtn);
   } else {
     const blockedBadge = element(
       "a",
-      "📋 Documented Proposal Blocker",
+      "Documented proposal blocker",
       "badge-blocked-catalog",
     );
     blockedBadge.href = "/data/base-implementation-status.v1.json";

@@ -3,8 +3,8 @@
 // Every number here is derived from the shipped pages and manifests by
 // scripts/build-coverage.ts. Nothing on this page is authored by hand.
 
-import { SCOPE_ORDER, SCOPES } from "/measurement-model.js";
-import { icon } from "/benchmark-report.js";
+import { SCOPE_ORDER, SCOPES } from "./measurement-model.js";
+import { icon } from "./benchmark-report.js";
 
 const ENGINE_LABELS = {
   js: "JavaScript",
@@ -85,6 +85,12 @@ async function main() {
       s.duplicates,
       "Routes serving a workload another route already serves.",
     ),
+    summaryCard(
+      "Pages that measure nothing",
+      s.unmeasuredPages,
+      "Pages that show a workload running without loading the runner. Most have a twin " +
+        "under /benchmarks/ that does measure it.",
+    ),
   ].join("");
 
   // Language matrix.
@@ -132,11 +138,37 @@ async function main() {
       "two pages to keep in step, and two places a fix has to land.";
   document.querySelector("#dupes-body").innerHTML = dupes.map((p) =>
     `<tr>
-      <td><a href="${esc(p.route)}"><code>${esc(p.route)}</code></a></td>
+      <td><a href="${esc(p.route)}"><code>${esc(p.route)}</code></a>${
+      p.measured ? "" : ' <span class="muted">(measures nothing)</span>'
+    }</td>
       <td>${esc(p.slug)}</td>
       <td><a href="${esc(p.duplicateOf)}"><code>${esc(p.duplicateOf)}</code></a></td>
     </tr>`
   ).join("");
+
+  // Pages with no runner at all, whether or not they duplicate another route.
+  const unmeasured = pages.filter((p) => !p.measured);
+  const host = document.querySelector("#unmeasured-body");
+  if (host) {
+    host.innerHTML = unmeasured.map((p) => {
+      const twin = pages.find((o) => o.slug === p.slug && o.measured);
+      return `<tr>
+        <td><a href="${esc(p.route)}"><code>${esc(p.route)}</code></a></td>
+        <td>${esc(p.title)}</td>
+        <td>${
+        twin
+          ? `<a href="${esc(twin.route)}"><code>${esc(twin.route)}</code></a>`
+          : '<span class="muted">none — this workload has no measured page</span>'
+      }</td>
+      </tr>`;
+    }).join("");
+    document.querySelector("#unmeasured-intro").textContent = unmeasured.length === 0
+      ? "Every page measures its workload."
+      : `${unmeasured.length} pages show a workload running without loading the runner. ` +
+        `${
+          unmeasured.filter((p) => pages.some((o) => o.slug === p.slug && o.measured)).length
+        } of them have a measured twin; the rest produce no timing evidence anywhere.`;
+  }
 }
 
 main().catch((err) => {

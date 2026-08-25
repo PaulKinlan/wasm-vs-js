@@ -408,6 +408,22 @@ export function fmtMs(value, digits = 2) {
 }
 
 /** @param {number | null | undefined} value @returns {string} */
+/**
+ * A resource fetch duration, or null when the browser did not report one.
+ *
+ * Chrome reports `responseEnd` before `startTime` for worker script loads
+ * (initiatorType "other"), producing a negative duration — the delivery table
+ * printed "-2.46 ms" for every worker fetch. A non-positive duration is a
+ * missing measurement, not a fast one.
+ * @param {ResourceLike | null | undefined} entry
+ * @returns {number | null}
+ */
+export function fetchDurationMs(entry) {
+  const d = entry?.duration;
+  return typeof d === "number" && Number.isFinite(d) && d > 0 ? d : null;
+}
+
+/** @param {number | null | undefined} value @returns {string} */
 export function fmtBytes(value) {
   if (typeof value !== "number" || !Number.isFinite(value) || value < 0) return "—";
   if (value === 0) return "0 B";

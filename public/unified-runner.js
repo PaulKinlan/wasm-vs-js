@@ -7,6 +7,7 @@
 import {
   classifyDelivery,
   contamination,
+  fetchDurationMs,
   fmtBytes,
   fmtMs,
   networkCost,
@@ -15,7 +16,7 @@ import {
   SCOPE_ORDER,
   SCOPES,
   summarize,
-} from "/measurement-model.js";
+} from "./measurement-model.js";
 import {
   amortizationChartSvg,
   barChartSvg,
@@ -26,7 +27,7 @@ import {
   scopeLegendHtml,
   scopeTableHtml,
   toCsv,
-} from "/benchmark-report.js";
+} from "./benchmark-report.js";
 
 export const WORKLOAD_CONFIGS = {
   "sum-u32": {
@@ -489,7 +490,13 @@ async function withResourceWindow(fn) {
  * Returns the legacy `coldMs`/`warmMedianMs`/`samples` fields that
  * playground.js still reads, plus scoped summaries the report renders from.
  */
-async function executeWorkerLoop(slug, target, iterations = 30, onProgress = () => {}) {
+async function executeWorkerLoop(
+  slug,
+  target,
+  iterations = 30,
+  /** @type {(p: { phase: string, target: string, iteration: number, total: number }) => void} */
+  onProgress = () => {},
+) {
   const config = WORKLOAD_CONFIGS[slug];
   if (!config || !config.workerScript) {
     throw new Error(`Worker configuration missing for ${slug}`);
@@ -691,7 +698,7 @@ async function executeWorkerLoop(slug, target, iterations = 30, onProgress = () 
       fullUrl: r.name,
       transferBytes: r.transferSize || 0,
       decodedBytes: r.decodedBodySize || 0,
-      durationMs: r.duration || 0,
+      durationMs: fetchDurationMs(r),
       delivery: classifyDelivery(r),
     })),
     lastResult,
@@ -1026,16 +1033,19 @@ async function runComposedStages(
   };
   if (plan.multilangManifest) {
     statusEl.textContent = "Multi-language comparison: loading engines…";
-    const { runMultilangComparison } = await import("/multilang-runner.js");
+    const { runMultilangComparison } = await import("./multilang-runner.js");
     const mlBox = stageBlock("multilang", "Multi-language comparison");
     multilangResults = await runMultilangComparison(plan.multilangManifest, {
       iterations,
       onStatus: (m) => {
         statusEl.textContent = `Multi-language: ${m}`;
       },
-      reportingEl: mlBox,
+      // No table here: the explorer's kernel-scope table renders these same
+      // measurements once, with confidence intervals and a shared baseline.
+      reportingEl: null,
       heading: false,
     });
+    mlBox.closest("[data-stage]")?.remove();
     try {
       const r = await fetch(plan.multilangManifest, { cache: "no-store" });
       if (r.ok) multilangManifest = await r.json();
@@ -1060,7 +1070,7 @@ async function runComposedStages(
     iframeContainer.setAttribute("data-wvj-visible-host", "1");
     domBox.appendChild(iframeContainer);
     statusEl.textContent = "Real-DOM run: loading the demo page in an iframe…";
-    const { runIframeDomBenchmark } = await import("/iframe-benchmark-bridge.js");
+    const { runIframeDomBenchmark } = await import("./iframe-benchmark-bridge.js");
     let realDomTargets = ["js", "wasm"];
     // Multi-language engines drive the SAME real DOM (Paul directive
     // 2026-08-07): include every engine from the page's multilang manifest
@@ -1095,10 +1105,14 @@ async function runComposedStages(
       // Scroll the kept iframe to show the rendered DOM UI (the DOM
       // is rendered at the bottom of the self-loaded page, but the
       // iframe viewport shows the page chrome by default).
-      const iframeEl = iframeContainer.querySelector("iframe[data-wvj-bridge]");
+      const iframeEl = /** @type {HTMLIFrameElement | null} */ (
+        iframeContainer.querySelector("iframe[data-wvj-bridge]")
+      );
       if (iframeEl && iframeEl.contentDocument) {
-        const host = iframeEl.contentDocument.querySelector(
-          "[data-wvj-dom-host], #wvj-dom-host, #wvj-todomvc-host",
+        const host = /** @type {HTMLElement | null} */ (
+          iframeEl.contentDocument.querySelector(
+            "[data-wvj-dom-host], #wvj-dom-host, #wvj-todomvc-host",
+          )
         );
         if (host) {
           iframeEl.contentWindow?.scrollTo(0, host.offsetTop - 8);
@@ -1165,7 +1179,7 @@ async function runComposedStages(
         note.textContent = result.detail.note;
         domBox.appendChild(note);
       }
-      statusEl.textContent = "✓ Real-DOM iframe run complete.";
+      statusEl.textContent = "Real-DOM iframe run complete.";
     } catch (domErr) {
       const note = document.createElement("p");
       note.className = "notice";
@@ -1178,10 +1192,10 @@ async function runComposedStages(
   }
   if (plan.trackBRoot) {
     statusEl.textContent = "Track B: loading optimized variants…";
-    const { initTrackB } = await import("/track-b.js");
+    const { initTrackB } = await import("./track-b.js");
     const tbBox = stageBlock("trackb", "Track A vs Track B — independent optimization");
     await initTrackB(tbBox, workloadSlug);
-    statusEl.textContent = "✓ Track B optimized variants rendered.";
+    statusEl.textContent = "Track B optimized variants rendered.";
   }
   if (plan.libcmp && plan.libcmpEngines.length > 0) {
     statusEl.textContent = "Library comparison: running engine pair…";
@@ -1234,7 +1248,7 @@ async function runComposedStages(
       rows.push({ label: engine.label, medianMs, sourceBytes, error: "" });
     }
     box.appendChild(renderLibCmpTable(rows));
-    statusEl.textContent = "✓ Library comparison complete.";
+    statusEl.textContent = "Library comparison complete.";
   }
 
   // Every engine the page measured, segmented by scope.
@@ -1618,20 +1632,36 @@ function renderLibCmpTable(rows) {
 let lastJsStats = null;
 let lastWasmStats = null;
 
+/**
+ * `document.querySelector` is typed as returning `Element`, but every call site
+ * below needs a specific element's properties (value, disabled, options).
+ * @template {HTMLElement} T
+ * @param {string} selector
+ * @returns {T | null}
+ */
+function q(selector) {
+  return /** @type {T | null} */ (document.querySelector(selector));
+}
+
 function initUnifiedRunner() {
   const workloadSlug = document.body.dataset.workload || document.body.dataset.demo;
   if (!workloadSlug) return;
 
-  const form = document.querySelector("#demo-form") || document.querySelector("form");
-  const targetSelect = document.querySelector("#target");
-  const iterationsSelect = document.querySelector("#iterations") ||
-    document.querySelector("#pg-iterations");
-  const startBtn = document.querySelector("#start") ||
-    document.querySelector("button[type='submit']");
-  const cancelBtn = document.querySelector("#cancel");
-  const statusEl = document.querySelector("#status");
-  const reportingEl = document.querySelector("#perf-reporting") ||
-    document.querySelector("#result");
+  const form = /** @type {HTMLFormElement | null} */ (
+    q("#demo-form") ?? q("form")
+  );
+  const targetSelect = /** @type {HTMLSelectElement | null} */ (q("#target"));
+  const iterationsSelect = /** @type {HTMLSelectElement | null} */ (
+    q("#iterations") ?? q("#pg-iterations")
+  );
+  const startBtn = /** @type {HTMLButtonElement | null} */ (
+    q("#start") ?? q("button[type='submit']")
+  );
+  const cancelBtn = /** @type {HTMLButtonElement | null} */ (q("#cancel"));
+  const statusEl = /** @type {HTMLElement | null} */ (q("#status"));
+  const reportingEl = /** @type {HTMLElement | null} */ (
+    q("#perf-reporting") ?? q("#result")
+  );
 
   if (!form || !startBtn || !statusEl) return;
 
@@ -1646,6 +1676,18 @@ function initUnifiedRunner() {
     "#ml-status, #ml-reporting, #multilang-status, #multilang-reporting",
   );
   orphanMlControls.forEach((el) => el.remove());
+
+  // A page's static multi-language section describes the same comparison the
+  // run now produces with live numbers. Keep the prose, drop the empty shell
+  // it wrapped, and move it below the results so the run output leads.
+  const staticMlSection = /** @type {HTMLElement | null} */ (
+    document.querySelector(
+      'section[aria-labelledby="ml-heading"], section[aria-labelledby="multilang-run-heading"]',
+    )
+  );
+  if (staticMlSection && !staticMlSection.querySelector("table")) {
+    staticMlSection.dataset.wvjSecondary = "1";
+  }
 
   // The template ships the controls disabled (progressive enhancement for
   // no-JS); the runner enables them once wired (Paul: why is Target Engine disabled?).
@@ -1709,7 +1751,7 @@ function initUnifiedRunner() {
         statusEl.textContent = engineFilter
           ? `Running ${engineFilter} engine (${iterations}× loop)...`
           : `Running all multi-language engines (${iterations}× loop)...`;
-        const { runMultilangComparison } = await import("/multilang-runner.js");
+        const { runMultilangComparison } = await import("./multilang-runner.js");
         const previous = reportingEl?.querySelector(`[data-stage="multilang"]`);
         if (previous) previous.remove();
         const wrap = document.createElement("section");
@@ -1732,12 +1774,12 @@ function initUnifiedRunner() {
           },
           reportingEl: box,
         });
-        statusEl.textContent = "✓ Multi-language comparison complete.";
+        statusEl.textContent = "Multi-language comparison complete.";
       } else if (chosenTarget === "javascript") {
         statusEl.textContent = `Running JavaScript (${iterations}× loop)...`;
         const jsStats = await executeWorkerLoop(workloadSlug, "javascript", iterations);
         lastJsStats = jsStats;
-        statusEl.textContent = `✓ JavaScript completed in ${
+        statusEl.textContent = `JavaScript completed in ${
           jsStats.warmMedianMs.toFixed(2)
         } ms (median).`;
         if (reportingEl) {
@@ -1751,7 +1793,7 @@ function initUnifiedRunner() {
         statusEl.textContent = `Running WebAssembly (${iterations}× loop)...`;
         const wasmStats = await executeWorkerLoop(workloadSlug, "wasm", iterations);
         lastWasmStats = wasmStats;
-        statusEl.textContent = `✓ WebAssembly completed in ${
+        statusEl.textContent = `WebAssembly completed in ${
           wasmStats.warmMedianMs.toFixed(2)
         } ms (median).`;
         if (reportingEl) {
@@ -1771,9 +1813,9 @@ function initUnifiedRunner() {
         const wasmStats = await executeWorkerLoop(workloadSlug, "wasm", iterations);
         lastWasmStats = wasmStats;
 
-        statusEl.textContent = `✓ Benchmark suite completed across ${iterations} iterations.`;
+        statusEl.textContent = `Benchmark suite completed across ${iterations} iterations.`;
         if (reportingEl) {
-          renderPerformanceReport(reportingEl, jsStats, wasmStats, iterations);
+          renderPerformanceReport(reportingEl, jsStats, wasmStats);
         }
       }
 
@@ -1799,8 +1841,8 @@ function initUnifiedRunner() {
         }
       }
       statusEl.textContent = chosenTarget.startsWith("ml:")
-        ? "✓ Benchmark suite complete."
-        : "✓ Full benchmark suite complete.";
+        ? "Benchmark suite complete."
+        : "Full benchmark suite complete.";
     } catch (err) {
       statusEl.textContent = `Error: ${err.message || String(err)}`;
     } finally {

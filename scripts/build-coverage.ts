@@ -35,6 +35,12 @@ export interface PageCoverage {
   /** Scopes the page can produce evidence for. */
   scopes: string[];
   duplicateOf: string | null;
+  /**
+   * Whether the page loads the unified runner at all. Thirteen of the sixteen
+   * /demos/ pages show a workload running without measuring it, while their
+   * /benchmarks/ twin measures it.
+   */
+  measured: boolean;
 }
 
 function normaliseEngine(key: string): string {
@@ -121,6 +127,7 @@ export async function buildCoverage(): Promise<{
       }
     }
 
+    const measured = html.includes("unified-runner.js");
     const domHost = attr(html, "data-dom-host");
     const scopes = ["delivery", "pipeline"];
     if (engines.length > 0) scopes.unshift("kernel");
@@ -144,6 +151,7 @@ export async function buildCoverage(): Promise<{
       domHost,
       scopes,
       duplicateOf,
+      measured,
     });
   }
 
@@ -156,6 +164,7 @@ export async function buildCoverage(): Promise<{
     fullyCovered: pages.filter((p) => p.engines.length > 0 && p.missingEngines.length === 0).length,
     withDomStage: pages.filter((p) => p.domHost).length,
     duplicates: pages.filter((p) => p.duplicateOf).length,
+    unmeasuredPages: pages.filter((p) => !p.measured).length,
     distinctWorkloads: new Set(pages.map((p) => p.slug)).size,
   };
 
@@ -184,7 +193,8 @@ if (import.meta.main) {
         `${coverage.summary.withMultilang} with multi-language, ` +
         `${coverage.summary.fullyCovered} with all ${TARGET_ENGINES.length} engines, ` +
         `${coverage.summary.withDomStage} with a real-DOM stage, ` +
-        `${coverage.summary.duplicates} duplicate pages`,
+        `${coverage.summary.duplicates} duplicate routes, ` +
+        `${coverage.summary.unmeasuredPages} pages that measure nothing`,
     );
   }
 }

@@ -23,6 +23,17 @@ import { validateResultMessage, validateStartMessage } from "./dom-hosts/todomvc
 // Pages opt in by loading this module and declaring
 //   <body data-dom-host="/dom-hosts/<workload>-host.js">
 // The bridge dynamic-imports the host, then listens for start messages.
+/**
+ * `event.source` is typed as `MessageEventSource`, which includes MessagePort,
+ * whose two-argument postMessage takes a transfer list rather than a target
+ * origin. Every source here is the parent window.
+ * @param {MessageEvent} event
+ * @returns {Window | null}
+ */
+function parentWindow(event) {
+  return /** @type {Window | null} */ (event.source);
+}
+
 export async function registerIframeHost() {
   const hostPath = document.body?.dataset?.domHost || "";
   if (!hostPath) return { registered: false, reason: "no data-dom-host declared" };
@@ -65,7 +76,7 @@ export async function registerIframeHost() {
       iterations,
       targets,
       onProgress: ({ target, iteration, total }) => {
-        event.source?.postMessage(
+        parentWindow(event)?.postMessage(
           { type: "wvj-benchmark-progress", token, target, iteration, total },
           event.origin,
         );
@@ -84,12 +95,12 @@ export async function registerIframeHost() {
           }`,
         );
       }
-      event.source?.postMessage(
+      parentWindow(event)?.postMessage(
         { type: "wvj-benchmark-result", token, ...result },
         event.origin,
       );
     }).catch((error) => {
-      event.source?.postMessage(
+      parentWindow(event)?.postMessage(
         {
           type: "wvj-benchmark-error",
           token,
@@ -115,8 +126,15 @@ if (typeof globalThis !== "undefined" && document?.body?.dataset?.domHost) {
 
 // ── Parent side: run a DOM workload inside an iframe ───────────────────────
 
-// Creates a hidden same-origin iframe for the workload page, posts the start
-// message, and resolves with the child's result (or rejects on error/timeout).
+/**
+ * Creates a same-origin iframe for the workload page, posts the start message,
+ * and resolves with the child's result (or rejects on error/timeout).
+ *
+ * @param {{ route: string, iterations?: number, targets?: string[],
+ *           timeoutMs?: number,
+ *           onProgress?: (p: { target: string, iteration: number, total: number }) => void,
+ *           visible?: boolean, keepAlive?: boolean, container?: HTMLElement | null }} options
+ */
 export function runIframeDomBenchmark({
   route,
   iterations = 30,

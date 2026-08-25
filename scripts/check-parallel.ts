@@ -197,7 +197,25 @@ const staticStages: Stage[] = [
   { name: "fmt", args: ["fmt", "--check"] },
   { name: "lint", args: ["lint"] },
   { name: "typecheck", args: ["task", "typecheck"] },
+  // `deno check` does not check plain .js by default, so the runner modules
+  // shipped with three undefined identifiers and every run on every page ended
+  // with "multilangResults is not defined". checkJs over the runner modules
+  // catches that class of defect at gate time. Invoked directly rather than
+  // as a deno.json task: every artifact manifest pins the deno.json sha256.
+  {
+    name: "runner-checkjs",
+    args: [
+      "check",
+      "--config",
+      "tsconfig.runners.json",
+      "public/measurement-model.js",
+      "public/benchmark-report.js",
+      "public/unified-runner.js",
+      "public/coverage.js",
+    ],
+  },
   { name: "catalog", args: ["task", "catalog"] },
+  { name: "coverage", args: ["run", "--allow-read=.", "scripts/build-coverage.ts", "--check"] },
 ];
 const manifestReaderStatics: Stage[] = [
   { name: "planning", args: ["run", "--allow-read=.", "scripts/check-planning.mjs"] },

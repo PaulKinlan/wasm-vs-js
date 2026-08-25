@@ -32,7 +32,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "audio-fft",
@@ -56,7 +57,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "audio-fir",
@@ -80,7 +82,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "audio-stft",
@@ -104,7 +107,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "base-dom-todomvc-journey",
@@ -129,7 +133,8 @@
         "pipeline",
         "domJourney"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "base-gltf-viewer",
@@ -143,7 +148,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "base/audio-webaudio-effects-v1",
@@ -167,7 +173,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": false
     },
     {
       "slug": "network-http2-quic-state",
@@ -181,7 +188,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "text-regex-log-scan",
@@ -205,7 +213,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "cad-mesh-repair-v1",
@@ -229,7 +238,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "cad-parametric-bracket",
@@ -253,7 +263,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "crypto-authenticated-stream",
@@ -277,7 +288,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "crypto-file-integrity-v1",
@@ -301,7 +313,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "database-olap-chart",
@@ -325,7 +338,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "database-sqlite-notebook-v1",
@@ -339,7 +353,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": false
     },
     {
       "slug": "document-pdf-viewer-v1",
@@ -353,7 +368,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "dom-dependent-form-validation",
@@ -378,7 +394,8 @@
         "pipeline",
         "domJourney"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "dom-grid-movement",
@@ -403,7 +420,8 @@
         "pipeline",
         "domJourney"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "dom-keyed-list-mutation",
@@ -428,7 +446,8 @@
         "pipeline",
         "domJourney"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "dom-nested-tree-mutation",
@@ -453,7 +472,8 @@
         "pipeline",
         "domJourney"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "dom-table-sort-filter-pagination",
@@ -478,7 +498,8 @@
         "pipeline",
         "domJourney"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "dom-virtualized-grid-v1",
@@ -503,7 +524,8 @@
         "pipeline",
         "domJourney"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "dom-virtualized-scrolling",
@@ -518,7 +540,8 @@
         "pipeline",
         "domJourney"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "game-canvas-arcade",
@@ -542,7 +565,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "game-canvas-entity-pathfinding",
@@ -566,7 +590,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "game-dom-tactics-grid",
@@ -591,7 +616,8 @@
         "pipeline",
         "domJourney"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "game-ecs-frame-update",
@@ -615,7 +641,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "graphics-cpu-path-tracer-v1",
@@ -639,7 +666,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "image-editing-demo",
@@ -663,7 +691,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "image-flood-fill-demo",
@@ -687,7 +716,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "ml-dense-mlp",
@@ -711,7 +741,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "ml-gemm",
@@ -735,7 +766,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": false
     },
     {
       "slug": "ml-keyword-spotting-v1",
@@ -759,7 +791,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "ml-numeric-kernels-v1",
@@ -783,7 +816,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "multilang-wasm",
@@ -806,7 +840,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": false
     },
     {
       "slug": "network-pcap-decode-v1",
@@ -830,7 +865,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "numeric-fft-spectral-filter-v1",
@@ -844,7 +880,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "numeric-polybench-panel-v1",
@@ -868,7 +905,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "regex-automata-duel-demo",
@@ -892,7 +930,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "serialization-protobuf-gateway",
@@ -916,7 +955,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": false
     },
     {
       "slug": "serialization-json-telemetry-v1",
@@ -940,7 +980,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "server-ssr-template-v1",
@@ -964,7 +1005,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "simulation-nbody-cloth",
@@ -988,7 +1030,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "simulation-rigid-body-2d-v1",
@@ -1012,7 +1055,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "sum-u32",
@@ -1035,7 +1079,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "text-diff-patch",
@@ -1059,7 +1104,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "text-gc-document-edit-v1",
@@ -1084,7 +1130,8 @@
         "pipeline",
         "domJourney"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "text-markdown-cms",
@@ -1108,7 +1155,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "tooling-c-to-wasm-compile-v1",
@@ -1122,7 +1170,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "track-b",
@@ -1136,7 +1185,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": false
     },
     {
       "slug": "vdom-diff-patch-demo",
@@ -1161,7 +1211,8 @@
         "pipeline",
         "domJourney"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": true
     },
     {
       "slug": "base/network-http2-quic-state",
@@ -1175,7 +1226,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": false
     },
     {
       "slug": "base/text.regex-log-scan.v1",
@@ -1199,7 +1251,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": false
     },
     {
       "slug": "cad-parametric-bracket",
@@ -1213,7 +1266,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": "/benchmarks/cad-parametric-bracket/"
+      "duplicateOf": "/benchmarks/cad-parametric-bracket/",
+      "measured": false
     },
     {
       "slug": "crypto.file-integrity.v1",
@@ -1237,7 +1291,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": false
     },
     {
       "slug": "game-canvas-arcade",
@@ -1261,7 +1316,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": "/benchmarks/game-canvas-arcade/"
+      "duplicateOf": "/benchmarks/game-canvas-arcade/",
+      "measured": true
     },
     {
       "slug": "game-canvas-entity-pathfinding",
@@ -1285,7 +1341,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": "/benchmarks/game-canvas-entity-pathfinding/"
+      "duplicateOf": "/benchmarks/game-canvas-entity-pathfinding/",
+      "measured": true
     },
     {
       "slug": "game-dom-tactics-grid",
@@ -1310,7 +1367,8 @@
         "pipeline",
         "domJourney"
       ],
-      "duplicateOf": "/benchmarks/game-dom-tactics-grid/"
+      "duplicateOf": "/benchmarks/game-dom-tactics-grid/",
+      "measured": true
     },
     {
       "slug": "game-ecs-frame-update",
@@ -1324,7 +1382,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": "/benchmarks/game-ecs-frame-update/"
+      "duplicateOf": "/benchmarks/game-ecs-frame-update/",
+      "measured": false
     },
     {
       "slug": "network.pcap-decode.v1",
@@ -1338,7 +1397,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": false
     },
     {
       "slug": "numeric.polybench-panel.v1",
@@ -1362,7 +1422,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": false
     },
     {
       "slug": "serialization.json-telemetry.v1",
@@ -1376,7 +1437,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": false
     },
     {
       "slug": "server.ssr-template.v1",
@@ -1390,7 +1452,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": false
     },
     {
       "slug": "simulation-nbody-cloth",
@@ -1404,7 +1467,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": "/benchmarks/simulation-nbody-cloth/"
+      "duplicateOf": "/benchmarks/simulation-nbody-cloth/",
+      "measured": false
     },
     {
       "slug": "text.diff-patch.v1",
@@ -1428,7 +1492,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": false
     },
     {
       "slug": "text.gc-document-edit.v1",
@@ -1442,7 +1507,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": false
     },
     {
       "slug": "text.markdown-cms.v1",
@@ -1456,7 +1522,8 @@
         "delivery",
         "pipeline"
       ],
-      "duplicateOf": null
+      "duplicateOf": null,
+      "measured": false
     }
   ],
   "summary": {
@@ -1466,6 +1533,7 @@
     "fullyCovered": 2,
     "withDomStage": 12,
     "duplicates": 6,
+    "unmeasuredPages": 19,
     "distinctWorkloads": 61
   }
 }

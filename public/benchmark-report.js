@@ -13,13 +13,14 @@ import {
   amortizedTotalMs,
   breakEven,
   classifyDelivery,
+  fetchDurationMs,
   fmtBytes,
   fmtMs,
   fmtRatio,
   ratio,
   SCOPE_ORDER,
   SCOPES,
-} from "/measurement-model.js";
+} from "./measurement-model.js";
 
 // ── Icons ─────────────────────────────────────────────────────────────────
 
@@ -79,12 +80,20 @@ function axisTicks(max, count = 4) {
  *
  * @param {{ label: string, valueMs: number|null, lowMs?: number|null,
  *           highMs?: number|null, kind?: string }[]} rows
- * @param {{ title?: string, caption?: string }} [opts]
+ * @param {{ title?: string, caption?: string, scale?: "auto"|"linear"|"log" }} [opts]
  */
-export function barChartSvg(rows, { title = "", caption = "" } = {}) {
+export function barChartSvg(rows, { title = "", caption = "", scale = "auto" } = {}) {
   const usable = rows.filter((r) => typeof r.valueMs === "number" && Number.isFinite(r.valueMs));
   if (usable.length === 0) return "";
-  const max = niceMax(Math.max(...usable.map((r) => Math.max(r.valueMs, r.highMs ?? 0))));
+  const rawMax = Math.max(...usable.map((r) => Math.max(r.valueMs, r.highMs ?? 0)));
+  const rawMin = Math.min(...usable.map((r) => r.valueMs));
+  // A linear axis is unreadable when one engine is 30x another: Dart/WasmGC at
+  // 73 ms next to C at 2.4 ms squashed every fast engine into the same stub.
+  // Above a 25x spread the axis goes logarithmic, and the caption says so.
+  const useLog = scale === "log" ||
+    (scale === "auto" && rawMin > 0 && rawMax / rawMin >= 25);
+  const max = useLog ? rawMax : niceMax(rawMax);
+  const logMin = useLog ? 10 ** Math.floor(Math.log10(rawMin)) : 0;
   const rowH = 30;
   const labelW = 168;
   const valueW = 96;
@@ -93,9 +102,23 @@ export function barChartSvg(rows, { title = "", caption = "" } = {}) {
   const plotW = 420;
   const width = labelW + plotW + valueW;
   const height = padTop + rows.length * rowH + padBottom;
-  const x = (v) => labelW + (v / max) * plotW;
+  const x = (v) => {
+    if (!useLog) return labelW + (v / max) * plotW;
+    const clamped = Math.max(v, logMin);
+    const span = Math.log10(max) - Math.log10(logMin);
+    return labelW + ((Math.log10(clamped) - Math.log10(logMin)) / span) * plotW;
+  };
 
-  const grid = axisTicks(max).map((t) =>
+  const ticks = useLog
+    ? (() => {
+      const out = [];
+      for (let t = logMin; t <= max * 1.0001; t *= 10) out.push(t);
+      if (out[out.length - 1] < max) out.push(max);
+      return out;
+    })()
+    : axisTicks(max);
+
+  const grid = ticks.map((t) =>
     `<line class="wvj-grid" x1="${x(t).toFixed(1)}" y1="${padTop - 8}" ` +
     `x2="${x(t).toFixed(1)}" y2="${padTop + rows.length * rowH}"/>` +
     `<text class="wvj-axis-label" x="${x(t).toFixed(1)}" ` +
@@ -138,12 +161,18 @@ export function barChartSvg(rows, { title = "", caption = "" } = {}) {
       `dominant-baseline="middle">${fmtMs(r.valueMs)}</text>`;
   }).join("");
 
+  const scaleNote = useLog
+    ? "Logarithmic axis: the fastest and slowest engines here differ by more than 25x, " +
+      "which a linear axis renders as one long bar and several stubs."
+    : "";
+  const fullCaption = [caption, scaleNote].filter(Boolean).join(" ");
+
   return `<figure class="wvj-chart">` +
     (title ? `<figcaption class="wvj-chart-title">${esc(title)}</figcaption>` : "") +
     `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${
       esc(title || "bar chart")
     }" preserveAspectRatio="xMinYMin meet">${grid}${bars}</svg>` +
-    (caption ? `<p class="wvj-chart-caption">${esc(caption)}</p>` : "") +
+    (fullCaption ? `<p class="wvj-chart-caption">${esc(fullCaption)}</p>` : "") +
     `</figure>`;
 }
 
@@ -361,7 +390,11 @@ export function deliveryTableHtml(rows) {
         <td>${icon(d.kind === "cache" ? "cache" : "network")} ${esc(d.label)}</td>
         <td class="num">${fmtBytes(e.transferSize)}</td>
         <td class="num">${fmtBytes(e.decodedBodySize)}</td>
-        <td class="num">${fmtMs(e.duration)}</td>
+        <td class="num">${
+        fetchDurationMs(e) === null
+          ? '<span class="muted">not reported</span>'
+          : fmtMs(fetchDurationMs(e))
+      }</td>
       </tr>`;
     })
   ).join("");

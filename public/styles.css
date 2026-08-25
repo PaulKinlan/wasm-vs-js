@@ -1729,3 +1729,12 @@ html.js .js-only[hidden] {
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* A demo route that has a measured benchmark twin says so. */
+.wvj-canonical-banner {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.85rem;
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
+  font-size: 0.88rem;
+}

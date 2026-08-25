@@ -29,7 +29,7 @@ async function run() {
       shouldCancel: () => cancelled,
       reportingEl,
     });
-    statusEl.textContent = "✓ Multi-language comparison complete.";
+    statusEl.textContent = "Multi-language comparison complete.";
   } catch (error) {
     statusEl.textContent = cancelled
       ? "Comparison cancelled."

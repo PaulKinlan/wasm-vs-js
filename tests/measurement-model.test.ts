@@ -4,6 +4,7 @@ import {
   breakEven,
   classifyDelivery,
   contamination,
+  fetchDurationMs,
   fmtBytes,
   fmtMs,
   fmtRatio,
@@ -236,4 +237,25 @@ Deno.test("formatters scale units", () => {
   assertEquals(fmtMs(0.002), "2.0 µs");
   assertEquals(fmtBytes(2048), "2.0 KB");
   assertEquals(fmtBytes(2 * 1024 * 1024), "2.00 MB");
+});
+
+Deno.test("fetchDurationMs rejects the negative durations Chrome reports for worker loads", () => {
+  // Observed on Chrome: a worker script fetch reports responseEnd before
+  // startTime, so duration is negative. The delivery table printed "-2.46 ms".
+  assertEquals(fetchDurationMs({ duration: -2.445 }), null);
+  assertEquals(fetchDurationMs({ duration: 0 }), null);
+  assertEquals(fetchDurationMs({}), null);
+  assertEquals(fetchDurationMs(null), null);
+  assertEquals(fetchDurationMs({ duration: 4.5 }), 4.5);
+});
+
+Deno.test("networkCost ignores non-positive durations when unioning intervals", () => {
+  const cost = networkCost([
+    { startTime: 10, duration: -2.4, transferSize: 8844, decodedBodySize: 8544 },
+    { startTime: 20, duration: 5, transferSize: 100, decodedBodySize: 100 },
+  ]);
+  assertEquals(cost.wallMs, 5);
+  // The bytes still count: the resource was transferred even though the
+  // browser did not report a usable duration for it.
+  assertEquals(cost.transferBytes, 8944);
 });

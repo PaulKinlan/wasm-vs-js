@@ -6496,7 +6496,7 @@ function renderTables(container, manifest, resultsByKernel, iterations, { headin
   const contextBadgeHtml = `
     <div class="execution-context-badge">
       <p class="notice">
-        <strong>⚡ Execution Level: In-Page Function Kernel (Isolated Compute)</strong> — Measures direct in-memory function calls in the main thread without worker messaging, memory serialization, or network overhead.
+        <strong>Kernel compute scope</strong> — direct in-memory calls on a pre-instantiated engine in the main thread. No worker messaging, no serialization, no network.
       </p>
     </div>
   `;
@@ -6524,13 +6524,21 @@ function renderTables(container, manifest, resultsByKernel, iterations, { headin
 // Used both by initMultilangRunner (form-bound standalone pages) and by the
 // unified composed runner (unified-runner.js sequences this after the primary
 // JS-vs-Wasm stage so ONE run control drives everything).
+/**
+ * @param {string} manifestPath
+ * @param {{ iterations?: number, onStatus?: (message: string) => void,
+ *           shouldCancel?: () => boolean, reportingEl?: HTMLElement | null,
+ *           engineFilter?: string | null, heading?: boolean }} [options]
+ */
 export async function runMultilangComparison(manifestPath, {
   iterations = 30,
   onStatus = () => {},
   shouldCancel = () => false,
   reportingEl = null,
-  engineFilter = null, // null = all engines; "c" | "rs" | ... = that engine only
-  heading = true, // standalone pages emit their own heading; composed runner supplies one
+  // null = all engines; "c" | "rs" | ... = that engine only
+  engineFilter = null,
+  // standalone pages emit their own heading; the composed runner supplies one
+  heading = true,
 } = {}) {
   const manifest = await (await fetch(manifestPath, { cache: "no-store" })).json();
   manifest._path = manifestPath;
@@ -6612,7 +6620,7 @@ export function initMultilangRunner(manifestPath, opts = {}) {
         reportingEl,
         heading,
       });
-      statusEl.textContent = "✓ Benchmark suite completed.";
+      statusEl.textContent = "Benchmark suite completed.";
     } catch (err) {
       if (err.message !== "cancelled") {
         statusEl.textContent = `Error: ${err.message || String(err)}`;

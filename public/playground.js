@@ -591,7 +591,7 @@ async function runBenchmarkForCard(config, cardEl, iterations = 30) {
       }
     }
 
-    statusEl.textContent = "✓ Complete";
+    statusEl.textContent = "Complete";
     statusEl.className = "playground-status passed";
 
     return { slug: config.slug, title: config.title, passed: true, jsStats, wasmStats, mlResult };
@@ -706,7 +706,7 @@ function initPlaygroundUI() {
 
       if (progressText) {
         progressText.textContent =
-          `✓ Full Benchmark Suite Complete: ${passedCount} / ${PLAYGROUND_WORKLOADS.length} workloads executed across ${iterations} iterations` +
+          `Full Benchmark Suite Complete: ${passedCount} / ${PLAYGROUND_WORKLOADS.length} workloads executed across ${iterations} iterations` +
           (skippedCount > 0 ? ` (${skippedCount} manual-only demo skipped)` : "") + "!";
       }
       runAllBtn.disabled = false;
