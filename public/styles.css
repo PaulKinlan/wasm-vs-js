@@ -1738,3 +1738,55 @@ html.js .js-only[hidden] {
   background: var(--surface);
   font-size: 0.88rem;
 }
+
+/* Real-DOM stage: the rendered UI under test, visible while it is driven. */
+.wvj-dom-frame {
+  display: block;
+  width: 100%;
+  height: min(70vh, 32rem);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--raised);
+}
+.dom-live-frame {
+  margin-top: 0.5rem;
+}
+.dom-live-caption {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0;
+  padding: 0.5rem 0.75rem;
+  border-left: 3px solid var(--rule);
+  background: var(--surface);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+.dom-live-caption[data-engine] {
+  border-left-color: var(--series-wasm);
+}
+.dom-live-caption[data-engine="js"] {
+  border-left-color: var(--series-js);
+}
+.dom-live-caption[data-engine]::before {
+  content: "";
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: currentColor;
+  animation: wvj-pulse 1.1s ease-in-out infinite;
+}
+@keyframes wvj-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dom-live-caption[data-engine]::before {
+    animation: none;
+  }
+}

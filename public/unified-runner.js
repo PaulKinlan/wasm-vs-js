@@ -1066,10 +1066,23 @@ async function runComposedStages(
       "Real-DOM iframe run: the page loaded itself in the VISIBLE iframe below, rendered an actual UI, and applied the frozen action trace with real DOM APIs (createElement/appendChild/classList/focus). The host verifies the rendered DOM against the oracle. Why the different scopes? The primary run measures the engine worker (including per-iteration evidence hashing); this stage measures the full render-and-drive journey in the real DOM; the multi-language section measures the bare kernel — three different scopes, shown honestly side by side.";
     const domBox = stageBlock("real-dom", "Real-DOM iframe run");
     domBox.appendChild(iframeNote);
+    const liveCaption = document.createElement("p");
+    liveCaption.className = "dom-live-caption";
+    liveCaption.textContent = "Loading the page into the frame below…";
+    domBox.appendChild(liveCaption);
     const iframeContainer = document.createElement("div");
     iframeContainer.setAttribute("data-wvj-visible-host", "1");
+    iframeContainer.className = "dom-live-frame";
     domBox.appendChild(iframeContainer);
     statusEl.textContent = "Real-DOM run: loading the demo page in an iframe…";
+    const engineLabels = {
+      js: "JavaScript",
+      wasm: "WebAssembly",
+      c: "C / Wasm",
+      cpp: "C++ / Wasm",
+      rs: "Rust / Wasm",
+      dart: "Dart / WasmGC",
+    };
     const { runIframeDomBenchmark } = await import("./iframe-benchmark-bridge.js");
     let realDomTargets = ["js", "wasm"];
     // Multi-language engines drive the SAME real DOM (Paul directive
@@ -1097,35 +1110,18 @@ async function runComposedStages(
         keepAlive: true,
         container: iframeContainer,
         onProgress: ({ target, iteration, total }) => {
-          statusEl.textContent = `Real-DOM run: ${
-            target === "js" ? "JS" : "Wasm"
-          } — iteration ${iteration}/${total}…`;
+          const label = engineLabels[target] ?? (target === "js" ? "JavaScript" : "WebAssembly");
+          liveCaption.textContent =
+            `Driving the real DOM now: ${label} — journey ${iteration} of ${total}`;
+          liveCaption.dataset.engine = target;
+          statusEl.textContent = `Real-DOM run: ${label} — iteration ${iteration}/${total}…`;
         },
       });
-      // Scroll the kept iframe to show the rendered DOM UI (the DOM
-      // is rendered at the bottom of the self-loaded page, but the
-      // iframe viewport shows the page chrome by default).
-      const iframeEl = /** @type {HTMLIFrameElement | null} */ (
-        iframeContainer.querySelector("iframe[data-wvj-bridge]")
-      );
-      if (iframeEl && iframeEl.contentDocument) {
-        const host = /** @type {HTMLElement | null} */ (
-          iframeEl.contentDocument.querySelector(
-            "[data-wvj-dom-host], #wvj-dom-host, #wvj-todomvc-host",
-          )
-        );
-        if (host) {
-          iframeEl.contentWindow?.scrollTo(0, host.offsetTop - 8);
-        }
-      }
+      liveCaption.textContent =
+        "Run complete. The frame below holds the final rendered DOM, left in place as evidence.";
+      delete liveCaption.dataset.engine;
       const jsStats = result.perTarget.js;
       const wasmStats = result.perTarget.wasm;
-      const engineLabels = {
-        c: "C / Wasm (real DOM)",
-        cpp: "C++ / Wasm (real DOM)",
-        rs: "Rust / Wasm (real DOM)",
-        dart: "Dart / WasmGC (real DOM)",
-      };
       const rows = [];
       if (jsStats) {
         rows.push(
@@ -1156,7 +1152,9 @@ async function runComposedStages(
         const stats = result.perTarget[key];
         if (!stats) continue;
         rows.push(
-          `<tr><td class="mlr-th"><strong>${engineLabels[key]}</strong></td><td class="mlr-th">${
+          `<tr><td class="mlr-th"><strong>${
+            engineLabels[key]
+          } (real DOM)</strong></td><td class="mlr-th">${
             stats.coldMs.toFixed(2)
           } ms</td><td class="mlr-th">${stats.warmMedianMs.toFixed(2)} ms</td><td class="mlr-th">${
             stats.minMs.toFixed(2)
@@ -1742,7 +1740,18 @@ function initUnifiedRunner() {
     statusEl.textContent = `Running benchmark suite (${iterations}× loop)...`;
 
     try {
-      if (chosenTarget.startsWith("ml:")) {
+      const hasWorkerPair = Boolean(WORKLOAD_CONFIGS[workloadSlug]?.workerScript);
+      if (!hasWorkerPair && !chosenTarget.startsWith("ml:")) {
+        // Kernel-scope-only page: no JS/Wasm worker pair exists, but the
+        // multi-language lane does. Run what the page actually has instead of
+        // failing on the stage it does not.
+        if (!document.body?.dataset?.multilangManifest) {
+          throw new Error(
+            `${workloadSlug} has neither a worker pair nor a multi-language manifest`,
+          );
+        }
+        statusEl.textContent = `Running the kernel comparison (${iterations} samples)...`;
+      } else if (chosenTarget.startsWith("ml:")) {
         // Target the multi-language comparison directly (Paul: the target
         // framework should include the multilang engines).
         const engineFilter = chosenTarget === "ml:all" ? null : chosenTarget.slice(3);

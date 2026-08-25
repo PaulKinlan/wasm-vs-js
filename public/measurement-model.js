@@ -387,10 +387,12 @@ export function contamination(timedMs, networkWallMs) {
   if (typeof timedMs !== "number" || !(timedMs > 0)) return { status: "unavailable" };
   const net = typeof networkWallMs === "number" && networkWallMs > 0 ? networkWallMs : 0;
   const fraction = Math.min(1, net / timedMs);
+  // Below 2% the notice rendered as "0% of the window was network", which
+  // reads as a warning about nothing. That is clean.
   let severity = "clean";
   if (fraction >= 0.5) severity = "dominated";
   else if (fraction >= 0.15) severity = "material";
-  else if (fraction > 0) severity = "minor";
+  else if (fraction >= 0.02) severity = "minor";
   return { status: "ok", fraction, networkWallMs: net, timedMs, severity };
 }
 

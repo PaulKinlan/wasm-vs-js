@@ -216,6 +216,13 @@ Deno.test("contamination grades how much of a timed region was network", () => {
   assertEquals(contamination(0, 10).status, "unavailable");
 });
 
+Deno.test("contamination treats a sub-2% share as clean", () => {
+  // Otherwise the page rendered a warning reading "0% of the window was network".
+  assertEquals(contamination(100, 0.4).severity, "clean");
+  assertEquals(contamination(100, 1.9).severity, "clean");
+  assertEquals(contamination(100, 2.1).severity, "minor");
+});
+
 Deno.test("contamination caps the fraction at 1", () => {
   const c = contamination(10, 500);
   assertEquals(c.status, "ok");

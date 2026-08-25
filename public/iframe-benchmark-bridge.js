@@ -127,6 +127,30 @@ if (typeof globalThis !== "undefined" && document?.body?.dataset?.domHost) {
 // ── Parent side: run a DOM workload inside an iframe ───────────────────────
 
 /**
+ * Scroll the child document so the rendered DOM host is at the top of the
+ * iframe viewport. Safe to call on every progress message: it is a no-op
+ * until the host element exists, and idempotent afterwards.
+ * @param {HTMLIFrameElement} iframe
+ */
+function revealHost(iframe) {
+  try {
+    const doc = iframe.contentDocument;
+    if (!doc) return;
+    const host = /** @type {HTMLElement | null} */ (
+      doc.querySelector("[data-wvj-dom-host], #wvj-dom-host, #wvj-todomvc-host")
+    );
+    if (!host) return;
+    const target = Math.max(0, host.offsetTop - 8);
+    if (Math.abs((iframe.contentWindow?.scrollY ?? 0) - target) > 4) {
+      iframe.contentWindow?.scrollTo(0, target);
+    }
+  } catch {
+    // Cross-document access can throw during navigation; the next progress
+    // message retries.
+  }
+}
+
+/**
  * Creates a same-origin iframe for the workload page, posts the start message,
  * and resolves with the child's result (or rejects on error/timeout).
  *
@@ -152,14 +176,10 @@ export function runIframeDomBenchmark({
     iframe.src = route;
     if (visible) {
       // Visible mode (benchmark-page real-DOM stage): the iframe is shown so
-      // the user can watch the real UI being driven. CSSOM property
-      // assignment — CSP-safe (no inline styles).
-      iframe.style.display = "block";
-      iframe.style.width = "420px";
-      iframe.style.height = "420px";
-      iframe.style.border = "1px solid #888";
-      iframe.style.marginTop = "12px";
-      iframe.style.borderRadius = "6px";
+      // the user can watch the real UI being driven. Sizing lives in
+      // styles.css (.wvj-dom-frame) rather than a fixed 420x420 box, so the
+      // rendered UI gets the width the page has and stays legible.
+      iframe.className = "wvj-dom-frame";
       iframe.setAttribute(
         "title",
         "Real DOM under test — the frozen action trace is applied to this rendered UI",
@@ -209,6 +229,11 @@ export function runIframeDomBenchmark({
       }
       if (data.token !== token) return;
       if (data.type === "wvj-benchmark-progress") {
+        // The host renders its UI at the bottom of the self-loaded page, so
+        // the iframe viewport shows page chrome by default. Pin the rendered
+        // UI in view as soon as it exists and keep it there for every engine,
+        // instead of scrolling to it once the run is already over.
+        revealHost(iframe);
         onProgress(data);
         return;
       }
