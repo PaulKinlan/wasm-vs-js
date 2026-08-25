@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Coverage · Wasm vs JavaScript benchmark</title>
+    <link rel="icon" href="/favicon.svg" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="brand">
+      <a class="brand-name" href="/">Wasm vs JavaScript benchmark</a>
+      <nav aria-label="Primary">
+        <a href="/benchmarks/">Browse catalog</a>
+        <a href="/coverage/">Coverage</a>
+        <a href="/experiments/">Experiment</a>
+        <a href="/evidence/">Evidence</a>
+        <a href="/data/workloads.v1.json">Data v1</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <p class="eyebrow">Suite status</p>
+      <h1>What every page measures — and what it does not</h1>
+
+      <p>
+        Each benchmark page can produce evidence at up to four scopes, and can compare up to
+        seven language implementations of its kernel. Almost none produce all of it. This page
+        reads the shipped pages and manifests directly and reports the gaps, because a gap that
+        is not listed reads as coverage.
+      </p>
+
+      <section aria-labelledby="scopes-heading">
+        <h2 id="scopes-heading">The four scopes</h2>
+        <dl id="scope-glossary" class="scope-glossary"></dl>
+      </section>
+
+      <section aria-labelledby="summary-heading">
+        <h2 id="summary-heading">Summary</h2>
+        <div id="coverage-summary" class="decision-grid"></div>
+      </section>
+
+      <section aria-labelledby="engines-heading">
+        <h2 id="engines-heading">Language coverage per workload</h2>
+        <p>
+          A filled cell means the workload ships a measured implementation in that language and
+          the runner times it against the same oracle. An empty cell means no artifact exists.
+          AssemblyScript and Dart are the two most commonly absent — in most workloads a manifest
+          carries one or the other, never both.
+        </p>
+        <div class="table-wrap">
+          <table class="results-table" id="engine-matrix">
+            <caption>Language coverage by page</caption>
+            <thead id="engine-matrix-head"></thead>
+            <tbody id="engine-matrix-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section aria-labelledby="scope-coverage-heading">
+        <h2 id="scope-coverage-heading">Scope coverage per workload</h2>
+        <p>
+          A page without a real-DOM stage cannot answer what its engine costs when it drives a
+          rendered UI. A page without a multi-language manifest has no kernel-scope evidence at
+          all, so its only comparison is the worker pipeline, where fixed per-task overhead
+          dominates.
+        </p>
+        <div class="table-wrap">
+          <table class="results-table" id="scope-matrix">
+            <caption>Measurement scopes by page</caption>
+            <thead id="scope-matrix-head"></thead>
+            <tbody id="scope-matrix-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section aria-labelledby="dupes-heading">
+        <h2 id="dupes-heading">Duplicated pages</h2>
+        <p id="dupes-intro"></p>
+        <div class="table-wrap">
+          <table class="results-table" id="dupes-table">
+            <caption>Routes serving a workload that another route already serves</caption>
+            <thead>
+              <tr>
+                <th scope="col">Route</th>
+                <th scope="col">Workload</th>
+                <th scope="col">Already served by</th>
+              </tr>
+            </thead>
+            <tbody id="dupes-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/coverage.js"></script>
+  </body>
+</html>

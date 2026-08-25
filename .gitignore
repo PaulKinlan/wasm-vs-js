@@ -1,6 +1,8 @@
 .DS_Store
 .build/
-coverage/
+# deno test --coverage output at the repo root only; public/coverage/ is a
+# shipped page and must not be swallowed by this rule.
+/coverage/
 dist/
 node_modules/
 .pi-subagents/
