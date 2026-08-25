@@ -249,7 +249,10 @@ await Promise.all([
       name: "smoke-cdp",
       args: [
         "run",
-        "--allow-env=PORT,HOST,SERVER_MODE,WASM_VS_JS_REPORTER_TOKEN",
+        // cdp-smoke reads CHROME_BIN before falling back to well-known paths;
+        // without the grant the stage died on NotCapable before launching a
+        // browser, so the one stage that drives real pages never ran.
+        "--allow-env=PORT,HOST,SERVER_MODE,WASM_VS_JS_REPORTER_TOKEN,CHROME_BIN",
         "--allow-net=127.0.0.1",
         "--allow-read",
         "--allow-write",
