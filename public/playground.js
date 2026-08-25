@@ -51,6 +51,15 @@ const MULTILANG_MANIFESTS = {
     "/benchmarks/multilang-wasm/dom-table-sort-filter-pagination.manifest.json",
   "text-regex-log-scan": "/benchmarks/multilang-wasm/text-regex-log-scan.manifest.json",
   "simulation-nbody-cloth": "/benchmarks/multilang-wasm/simulation-nbody-cloth.manifest.json",
+  "crypto-authenticated-stream":
+    "/benchmarks/multilang-wasm/crypto-authenticated-stream.manifest.json",
+  "document-pdf-viewer-v1": "/benchmarks/multilang-wasm/document-pdf-viewer.manifest.json",
+  "network-pcap-decode-v1": "/benchmarks/multilang-wasm/network-pcap-decode.manifest.json",
+  "numeric-fft-spectral-filter-v1":
+    "/benchmarks/multilang-wasm/numeric-fft-spectral-filter.manifest.json",
+  "numeric-polybench-panel-v1": "/benchmarks/multilang-wasm/numeric-polybench-panel.manifest.json",
+  "simulation-rigid-body-2d-v1":
+    "/benchmarks/multilang-wasm/simulation-rigid-body-2d.manifest.json",
 };
 
 const PLAYGROUND_WORKLOADS = [

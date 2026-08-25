@@ -778,7 +778,10 @@ async function renderReportedComparison(flowEl, manifestPath) {
   );
   const variants = entry?.variants;
   if (!variants || variants.length === 0) return;
-  const previous = flowEl.querySelector(`[data-stage="multilang"]`);
+  const mlSection = document.querySelector('section[aria-labelledby="ml-heading"]') ||
+    document.querySelector('section[aria-labelledby="multilang-run-heading"]');
+  const targetHost = mlSection || flowEl;
+  const previous = targetHost.querySelector(`[data-stage="multilang"]`);
   if (previous) previous.remove();
   const wrap = document.createElement("section");
   wrap.dataset.stage = "multilang";
@@ -793,19 +796,37 @@ async function renderReportedComparison(flowEl, manifestPath) {
   const table = document.createElement("table");
   table.className = "mlr-table";
   table.innerHTML =
-    "<thead><tr><th class='mlr-th mlr-th-header'>Engine</th><th class='mlr-th mlr-th-header'>Warm median</th><th class='mlr-th mlr-th-header'>Wasm bytes</th><th class='mlr-th mlr-th-header'>Toolchain</th></tr></thead><tbody>" +
-    variants.map((v) =>
-      `<tr><td class="mlr-th"><strong>${v.language}</strong></td>` +
-      `<td class="mlr-th">${
-        typeof v.warmExecutionMs === "number" ? v.warmExecutionMs.toFixed(2) + " ms" : "—"
-      }</td>` +
-      `<td class="mlr-th">${
-        v.binarySizeBytes > 0 ? v.binarySizeBytes.toLocaleString() : "—"
-      }</td>` +
-      `<td class="mlr-th">${v.toolchain ?? "—"}</td></tr>`
-    ).join("") + "</tbody>";
+    "<thead><tr><th class='mlr-th mlr-th-header'>Engine</th><th class='mlr-th mlr-th-header'>Source &amp; Toolchain</th><th class='mlr-th mlr-th-header'>Warm median</th><th class='mlr-th mlr-th-header'>Wasm bytes</th></tr></thead><tbody>" +
+    variants.map((v) => {
+      const engine = manifest.engines?.find((e) =>
+        e.label === v.language ||
+        e.key === v.language.toLowerCase().split("/")[0].trim() ||
+        (v.language.includes("C++") && e.key === "cpp") ||
+        (v.language.includes("Rust") && e.key === "rs") ||
+        (v.language.includes("Dart") && e.key === "dart") ||
+        (v.language.includes("WAT") && e.key === "wat") ||
+        (v.language.includes("AssemblyScript") && e.key === "as") ||
+        (v.language.includes("C ") && e.key === "c")
+      );
+      let srcLink = "";
+      if (engine?.source) {
+        const name = engine.source.split("/").pop();
+        srcLink =
+          `<a class="commit-link" href="/${engine.source}" target="_blank" rel="noopener">${name}</a>`;
+      }
+      return `<tr><td class="mlr-th"><strong>${v.language}</strong></td>` +
+        `<td class="mlr-th">${srcLink ? `<div>${srcLink}</div>` : ""}<div><small><code>${
+          v.toolchain ?? "—"
+        }</code></small></div></td>` +
+        `<td class="mlr-th">${
+          typeof v.warmExecutionMs === "number" ? v.warmExecutionMs.toFixed(2) + " ms" : "—"
+        }</td>` +
+        `<td class="mlr-th">${
+          v.binarySizeBytes > 0 ? v.binarySizeBytes.toLocaleString() + " B" : "—"
+        }</td></tr>`;
+    }).join("") + "</tbody>";
   wrap.appendChild(table);
-  flowEl.appendChild(wrap);
+  targetHost.appendChild(wrap);
 }
 
 // Static Track B pre-render: pages with a track-b section show the committed
@@ -880,7 +901,7 @@ async function runComposedStages(
     await runMultilangComparison(plan.multilangManifest, {
       iterations,
       onStatus: (m) => {
-        statusEl.textContent = m;
+        statusEl.textContent = `Multi-language: ${m}`;
       },
       reportingEl: mlBox,
       heading: false,
@@ -1121,6 +1142,18 @@ function initUnifiedRunner() {
     document.querySelector("#result");
 
   if (!form || !startBtn || !statusEl) return;
+
+  // Suppress/remove any secondary multi-language run form (#ml-form, #multilang-form)
+  // so the single primary run loop at the top is the ONLY run control on the page,
+  // running JS, Wasm, and all multi-language engines sequentially (Paul directive).
+  const duplicateMlForms = document.querySelectorAll(
+    "form#ml-form, form#multilang-form",
+  );
+  duplicateMlForms.forEach((f) => f.remove());
+  const orphanMlControls = document.querySelectorAll(
+    "#ml-status, #ml-reporting, #multilang-status, #multilang-reporting",
+  );
+  orphanMlControls.forEach((el) => el.remove());
 
   // The template ships the controls disabled (progressive enhancement for
   // no-JS); the runner enables them once wired (Paul: why is Target Engine disabled?).

@@ -6374,6 +6374,19 @@ export async function runWorkload(
   return results;
 }
 
+export const TOOLCHAIN_COMMANDS = {
+  js: "V8 JIT (in-browser)",
+  wat: "Handwritten WAT → wasm",
+  as: "asc -O3 --bindings none --noAssert",
+  asc: "asc -O3 --bindings none --noAssert",
+  assemblyscript: "asc -O3 --bindings none --noAssert",
+  c: "clang --target=wasm32 -O3 -nostdlib",
+  cpp: "clang++ --target=wasm32 -O3 -nostdlib",
+  rs: "rustc --target wasm32-unknown-unknown -O --crate-type cdylib",
+  dart: "dart compile wasm (dart2wasm, WasmGC)",
+  kt: "kotlinc-native / wasm (WasmGC)",
+};
+
 function renderTables(container, manifest, resultsByKernel, iterations, { heading = true } = {}) {
   const tables = manifest.kernels.map((kernel) => {
     const results = resultsByKernel[kernel];
@@ -6382,14 +6395,31 @@ function renderTables(container, manifest, resultsByKernel, iterations, { headin
     const max = Math.max(...results.map((r) => r.medianMs), 1);
     const rows = results
       .map((r) => {
-        const ratio = (jsMs / r.medianMs).toFixed(2); // speedup vs JS baseline
+        const ratio = r.medianMs > 0 ? (jsMs / r.medianMs).toFixed(2) : (jsMs === 0 ? "1.00" : "—"); // speedup vs JS baseline
         const pct = Math.max(2, (r.medianMs / max) * 100);
-        const wasmSize = r.bytes > 0 ? `${r.bytes} B` : "";
-        const srcSize = r.sourceBytes > 0 ? `src ${r.sourceBytes} B` : "";
+        const wasmSize = r.bytes > 0 ? `${r.bytes.toLocaleString()} B` : "";
+        const srcSize = r.sourceBytes > 0 ? `src ${r.sourceBytes.toLocaleString()} B` : "";
         const size = [wasmSize, srcSize].filter(Boolean).join(" · ") || "—";
+        const engineCfg = manifest.engines?.find((e) => e.key === r.key);
+        const toolchain = TOOLCHAIN_COMMANDS[engineCfg?.lang ?? r.key] ?? engineCfg?.toolchain ??
+          "—";
+        let sourceHtml = "";
+        const srcPath = engineCfg?.source ||
+          (r.key === "wat" ? "benchmarks/multilang-wasm/sum.wat" : "");
+        if (srcPath) {
+          const srcName = srcPath.split("/").pop();
+          sourceHtml =
+            `<a class="commit-link" href="/${srcPath}" target="_blank" rel="noopener" title="View ${srcName}">${srcName}</a>`;
+        } else if (r.key === "js") {
+          sourceHtml = `<span class="muted">JS baseline</span>`;
+        }
         return `
         <tr>
           <td><strong>${r.label}</strong></td>
+          <td>
+            ${sourceHtml ? `<div>${sourceHtml}</div>` : ""}
+            <div><small><code>${toolchain}</code></small></div>
+          </td>
           <td>${size}</td>
           <td>${typeof r.coldMs === "number" ? r.coldMs.toFixed(2) : "—"} ms</td>
           <td>${r.medianMs.toFixed(2)} ms</td>
@@ -6409,7 +6439,7 @@ function renderTables(container, manifest, resultsByKernel, iterations, { headin
       <div class="table-wrap">
         <table class="results-table">
           <caption>${kernelLabel} — ${iterations}× warm loop, local run</caption>
-          <thead><tr><th>Implementation</th><th>Binary Size</th><th>1st Run (Cold)</th><th>Median (${iterations}× Warm)</th><th>Fastest (Min)</th><th>Slowest (Max)</th><th>Speedup Ratio</th><th></th></tr></thead>
+          <thead><tr><th>Implementation</th><th>Source &amp; Toolchain</th><th>Binary Size</th><th>1st Run (Cold)</th><th>Median (${iterations}× Warm)</th><th>Fastest (Min)</th><th>Slowest (Max)</th><th>Speedup Ratio</th><th></th></tr></thead>
           <tbody>${rows}</tbody>
         </table>
       </div>`;
