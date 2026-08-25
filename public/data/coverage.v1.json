@@ -74,11 +74,11 @@
         "c",
         "cpp",
         "rs",
+        "as",
         "dart"
       ],
       "missingEngines": [
-        "wat",
-        "as"
+        "wat"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/audio-fir.manifest.json",
       "domHost": null,

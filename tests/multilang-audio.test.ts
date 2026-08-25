@@ -25,7 +25,7 @@ function assertBitIdentical(label: string, got: Float32Array, ref: Float32Array)
 }
 
 Deno.test(
-  "multilang-audio: C, C++, Rust, and Dart/WasmGC FIR kernels match JS oracle",
+  "multilang-audio: C, C++, Rust, AssemblyScript, and Dart/WasmGC FIR kernels match JS oracle",
   async () => {
     const input = genFirSignal(2048);
     const taps = genFirTaps(64);
@@ -35,12 +35,15 @@ Deno.test(
       ["fir_c.wasm", "C"],
       ["fir_cpp.wasm", "C++"],
       ["fir_rs.wasm", "Rust"],
+      ["fir_asc.wasm", "AssemblyScript"],
     ] as const;
 
     for (const [file, label] of linear) {
       const mod = (await WebAssembly.instantiate(
         await Deno.readFile(`${ARTIFACTS}/${file}`),
-        {},
+        // AssemblyScript emits an env.abort import for bounds safety; a
+        // correct kernel never calls it.
+        { env: { abort: () => {} } },
       )) as unknown as { instance: WebAssembly.Instance };
       const mem = mod.instance.exports.memory as WebAssembly.Memory;
       const exports = mod.instance.exports as Record<string, (...args: unknown[]) => unknown>;

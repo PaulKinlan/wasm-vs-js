@@ -4,8 +4,8 @@
   "authoritativePerformanceEvidence": false,
   "entryId": "multilang-wasm-benchmark",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "837f37d888342bdeab835ed545146b1f722d10a8",
-  "sourceSha256": "203d670fb01354bd52a485fa349519f105cce5e4039af24458ff6041b6e4441f",
+  "sourceCommit": "330172666b0b7db8e493d7f69a9d952e55820024",
+  "sourceSha256": "9cd09f196360a1f2bcb9b769a8897eb33fe1ce82e0fbcb4dd589ef1d5e780d82",
   "fullSourceGraph": [
     {
       "path": "benchmarks/multilang-wasm/sum_u32.c",
@@ -168,6 +168,11 @@
       "sha256": "596f77aa1fc9eb6bde097789e506cad20c359d4f8d02510e349b74e40b8628ab"
     },
     {
+      "path": "benchmarks/multilang-wasm/audio-fir/fir.ts",
+      "bytes": 1059,
+      "sha256": "18e889e77ac42aecd7bd700fd22f55177c99f620c536e05b54901bc3e1288af3"
+    },
+    {
       "path": "benchmarks/multilang-wasm/audio-fir/fir.dart",
       "bytes": 956,
       "sha256": "74185498e21a693478619fa50bf95615458d56582dc54a82eb6bbddb4094e3c2"
@@ -214,8 +219,8 @@
     },
     {
       "path": "scripts/build-multilang-wasm-benchmark.ts",
-      "bytes": 119843,
-      "sha256": "b366d46b15c5fd7ab6c71b475969462254d39bdd74c3f8dd4e89aefb00a50f37"
+      "bytes": 120958,
+      "sha256": "214c4849e3b33d21f5aa0a82bcf800156b543fe3ed518bd5f2c5826c596e88de"
     },
     {
       "path": "tests/multilang-wasm-benchmark.test.ts",
@@ -358,6 +363,11 @@
       "path": "public/artifacts/multilang-wasm-benchmark/fir_rs.wasm",
       "bytes": 323,
       "sha256": "e8668d87a16528be78169356b59ac2b50b7d371ecb693671758f3bb834f902fe"
+    },
+    {
+      "path": "public/artifacts/multilang-wasm-benchmark/fir_asc.wasm",
+      "bytes": 198,
+      "sha256": "a907a523ca8dc0c1a27239c6ae5893870d9dfa78323fa935d8ec4020ba53b30c"
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/fir_dart.wasm",
@@ -507,5 +517,5 @@
     "rustc": "rustc --target wasm32-unknown-unknown -O --crate-type cdylib (no_std)",
     "dart2wasm": "dart compile wasm (Dart SDK, WasmGC + js-string builtins)"
   },
-  "generatedAt": "2026-08-25T23:50:07.386Z"
+  "generatedAt": "2026-08-25T23:57:15.368Z"
 }

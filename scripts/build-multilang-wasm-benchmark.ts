@@ -421,6 +421,24 @@ await run("rustc", [
   `${artifactsDir}/fir_rs.wasm`,
   `${rootDir}/benchmarks/multilang-wasm/audio-fir/fir.rs`,
 ], "compile fir Rust");
+await run("npx", [
+  "--yes",
+  "-p",
+  "assemblyscript",
+  "asc",
+  `${rootDir}/benchmarks/multilang-wasm/audio-fir/fir.ts`,
+  "-O3",
+  "--bindings",
+  "none",
+  "--noAssert",
+  // The report measures the full 131,072-sample signal (workload.ts SAMPLES),
+  // which needs ~17 pages for input + taps + output. 256 matches the C and
+  // Rust builds' --initial-memory=16777216.
+  "--initialMemory",
+  "256",
+  "-o",
+  `${artifactsDir}/fir_asc.wasm`,
+], "compile FIR AssemblyScript");
 await run("dart", [
   "compile",
   "wasm",
@@ -1751,9 +1769,11 @@ const firVariants: Record<string, number> = {};
   for (let i = 0; i < FIR_ITERATIONS; i++) jsFn();
   firVariants.js = Number((performance.now() - t0).toFixed(2));
 
-  for (const key of ["c", "cpp", "rs"] as const) {
+  for (const key of ["c", "cpp", "rs", "asc"] as const) {
     const bytes = await Deno.readFile(`${artifactsDir}/fir_${key}.wasm`);
-    const mod = (await WebAssembly.instantiate(bytes, {})) as unknown as {
+    const mod = (await WebAssembly.instantiate(bytes, {
+      env: { abort: () => {} },
+    })) as unknown as {
       instance: WebAssembly.Instance;
     };
     const mem = mod.instance.exports.memory as WebAssembly.Memory;
@@ -1794,6 +1814,7 @@ const firBytes = {
   c: await Deno.readFile(`${artifactsDir}/fir_c.wasm`),
   cpp: await Deno.readFile(`${artifactsDir}/fir_cpp.wasm`),
   rs: await Deno.readFile(`${artifactsDir}/fir_rs.wasm`),
+  asc: await Deno.readFile(`${artifactsDir}/fir_asc.wasm`),
   dart: await Deno.readFile(`${artifactsDir}/fir_dart.wasm`),
 };
 
@@ -2926,6 +2947,17 @@ const report = {
           notes: "no_std cdylib direct convolution.",
         },
         {
+          language: "AssemblyScript / Wasm",
+          toolchain: "asc -O3 --bindings none --noAssert",
+          binarySizeBytes: firBytes.asc.byteLength,
+          coldInstantiateMs: benchmarkColdInstantiate(firBytes.asc),
+          warmExecutionMs: firVariants.asc,
+          memoryPageCount: 256,
+          importsCount: countImports(firBytes.asc),
+          exportsCount: 2,
+          notes: "Direct f32 convolution in linear memory.",
+        },
+        {
           language: "Dart / WasmGC",
           toolchain: "dart compile wasm (dart2wasm, Dart 3.12.2)",
           binarySizeBytes: firBytes.dart.byteLength,
@@ -3244,6 +3276,7 @@ const manifestSources = [
   "benchmarks/multilang-wasm/audio-fir/fir.c",
   "benchmarks/multilang-wasm/audio-fir/fir.cpp",
   "benchmarks/multilang-wasm/audio-fir/fir.rs",
+  "benchmarks/multilang-wasm/audio-fir/fir.ts",
   "benchmarks/multilang-wasm/audio-fir/fir.dart",
   "benchmarks/multilang-wasm/audio-stft/stft.c",
   "benchmarks/multilang-wasm/audio-stft/stft.cpp",
@@ -3293,6 +3326,7 @@ const manifestArtifacts = [
   "fir_c.wasm",
   "fir_cpp.wasm",
   "fir_rs.wasm",
+  "fir_asc.wasm",
   "fir_dart.wasm",
   "fir_dart.mjs",
   "stft_c.wasm",
