@@ -831,7 +831,7 @@
       ],
       "duplicateOf": null,
       "measured": true,
-      "standardRunner": false
+      "standardRunner": true
     },
     {
       "slug": "ml-keyword-spotting-v1",
@@ -911,7 +911,7 @@
       ],
       "duplicateOf": null,
       "measured": true,
-      "standardRunner": false
+      "standardRunner": true
     },
     {
       "slug": "network-pcap-decode-v1",
@@ -1641,7 +1641,7 @@
     "withDomStage": 12,
     "duplicates": 16,
     "unmeasuredPages": 9,
-    "bespokeRunnerPages": 10,
+    "bespokeRunnerPages": 8,
     "distinctWorkloads": 51
   }
 }
