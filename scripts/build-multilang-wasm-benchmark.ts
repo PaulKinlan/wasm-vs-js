@@ -599,6 +599,21 @@ await run("rustc", [
   `${artifactsDir}/gemm_rs.wasm`,
   `${rootDir}/benchmarks/multilang-wasm/ml-gemm/gemm.rs`,
 ], "compile GEMM Rust");
+await run("npx", [
+  "--yes",
+  "-p",
+  "assemblyscript",
+  "asc",
+  `${rootDir}/benchmarks/multilang-wasm/ml-gemm/gemm.ts`,
+  "-O3",
+  "--bindings",
+  "none",
+  "--noAssert",
+  "--initialMemory",
+  "16",
+  "-o",
+  `${artifactsDir}/gemm_asc.wasm`,
+], "compile GEMM AssemblyScript");
 await run("dart", [
   "compile",
   "wasm",
@@ -900,7 +915,7 @@ function jsGemmF32(a: Float32Array, b: Float32Array, c0: Float32Array, out: Floa
   }
 }
 
-const gemmLinear = ["c", "cpp", "rs"] as const;
+const gemmLinear = ["c", "cpp", "rs", "asc"] as const;
 const gemmMods: Record<string, WebAssembly.Instance> = {};
 for (const key of gemmLinear) {
   gemmMods[key] = await instantiateLinear(await Deno.readFile(`${artifactsDir}/gemm_${key}.wasm`));
@@ -2124,6 +2139,7 @@ const gemmBytes = {
   c: await Deno.readFile(`${artifactsDir}/gemm_c.wasm`),
   cpp: await Deno.readFile(`${artifactsDir}/gemm_cpp.wasm`),
   rs: await Deno.readFile(`${artifactsDir}/gemm_rs.wasm`),
+  asc: await Deno.readFile(`${artifactsDir}/gemm_asc.wasm`),
   dart: await Deno.readFile(`${artifactsDir}/gemm_dart.wasm`),
 };
 
@@ -2696,6 +2712,17 @@ const report = {
           notes: "f32 arithmetic — bit-identical to the fround oracle.",
         },
         {
+          language: "AssemblyScript / Wasm",
+          toolchain: "asc -O3 --bindings none --noAssert",
+          binarySizeBytes: gemmBytes.asc.byteLength,
+          coldInstantiateMs: benchmarkColdInstantiate(gemmBytes.asc),
+          warmExecutionMs: gemmVariants.asc,
+          memoryPageCount: 16,
+          importsCount: countImports(gemmBytes.asc),
+          exportsCount: 2,
+          notes: "f32 arithmetic — bit-identical to the fround oracle.",
+        },
+        {
           language: "Dart / WasmGC",
           toolchain: "dart compile wasm (dart2wasm, Dart 3.12.2)",
           binarySizeBytes: gemmBytes.dart.byteLength,
@@ -3132,6 +3159,9 @@ All variants are bit-identical to the JS Math.fround oracle (test-verified). Dar
 | **Rust / Wasm** (rustc)        | ${gemmBytes.rs.byteLength} B              | ${gemmVariants.rs} ms         | ${
   (gemmVariants.js / gemmVariants.rs).toFixed(2)
 }× |
+| **AssemblyScript / Wasm** (asc) | ${gemmBytes.asc.byteLength} B             | ${gemmVariants.asc} ms        | ${
+  (gemmVariants.js / gemmVariants.asc).toFixed(2)
+}× |
 | **Dart / WasmGC** (dart2wasm)  | ${gemmBytes.dart.byteLength} B             | ${gemmVariants.dart} ms       | ${
   (gemmVariants.js / gemmVariants.dart).toFixed(2)
 }× |
@@ -3273,6 +3303,7 @@ const manifestArtifacts = [
   "gemm_c.wasm",
   "gemm_cpp.wasm",
   "gemm_rs.wasm",
+  "gemm_asc.wasm",
   "gemm_dart.wasm",
   "gemm_dart.mjs",
   "myers_diff_c.wasm",

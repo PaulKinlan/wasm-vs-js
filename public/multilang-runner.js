@@ -4974,7 +4974,8 @@ export const KERNEL_ADAPTERS = {
         return { a, b, c0 };
       }
       const callables = {};
-      for (const key of ["c", "cpp", "rs"]) {
+      for (const key of ["c", "cpp", "rs", "as"]) {
+        if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.gemm.instance;
         const mem = inst.exports.memory;
         const aOff = 0, bOff = M * K * 4, c0Off = (M * K + K * N) * 4;

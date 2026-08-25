@@ -37,6 +37,17 @@
       "source": "benchmarks/multilang-wasm/ml-gemm/gemm.rs"
     },
     {
+      "key": "as",
+      "label": "AssemblyScript / Wasm",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "gemm": "gemm_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm.ts"
+    },
+    {
       "key": "dart",
       "label": "Dart / WasmGC",
       "kind": "dart",

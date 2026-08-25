@@ -816,11 +816,11 @@
         "c",
         "cpp",
         "rs",
+        "as",
         "dart"
       ],
       "missingEngines": [
-        "wat",
-        "as"
+        "wat"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/ml-gemm.manifest.json",
       "domHost": null,

@@ -2107,6 +2107,7 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "gemm_c.wasm",
       "gemm_cpp.wasm",
       "gemm_rs.wasm",
+      "gemm_asc.wasm",
       "gemm_dart.wasm",
       "gemm_dart.mjs",
       "myers_diff_c.wasm",

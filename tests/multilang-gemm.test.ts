@@ -48,7 +48,7 @@ function assertBitIdentical(label: string, got: Float32Array, ref: Float32Array)
 }
 
 Deno.test(
-  "multilang-gemm: C, C++, Rust, and Dart/WasmGC GEMM kernels are bit-identical to the JS fround oracle",
+  "multilang-gemm: C, C++, Rust, AssemblyScript, and Dart/WasmGC GEMM kernels are bit-identical to the JS fround oracle",
   async () => {
     const { a, b, c0 } = makeInputs();
     const ref = oracle(a, b, c0);
@@ -57,6 +57,7 @@ Deno.test(
       ["gemm_c.wasm", "C"],
       ["gemm_cpp.wasm", "C++"],
       ["gemm_rs.wasm", "Rust"],
+      ["gemm_asc.wasm", "AssemblyScript"],
     ] as const;
     for (const [file, label] of linear) {
       const mod = (await WebAssembly.instantiate(
@@ -137,13 +138,13 @@ Deno.test("multilang-gemm: Dart artifact is a WasmGC module", async () => {
   assert(false, "no type section found");
 });
 
-Deno.test("multilang-gemm: report contains a measured ml-gemm workload with 5+ variants", async () => {
+Deno.test("multilang-gemm: report contains a measured ml-gemm workload with 6+ variants", async () => {
   const report = JSON.parse(
     await Deno.readTextFile(`${rootDir}/public/data/multilang-wasm-benchmark-report.v1.json`),
   );
   const gemm = report.workloads.find((w: { name: string }) => w.name === "ml-gemm");
   assert(gemm, "ml-gemm workload missing from report");
-  assert(gemm.variants.length >= 5, "ml-gemm needs 5+ variants");
+  assert(gemm.variants.length >= 6, "ml-gemm needs 6+ variants");
   for (const variant of gemm.variants) {
     assert(
       typeof variant.warmExecutionMs === "number",
@@ -151,7 +152,16 @@ Deno.test("multilang-gemm: report contains a measured ml-gemm workload with 5+ v
     );
   }
   const languages = gemm.variants.map((v: { language: string }) => v.language);
-  for (const expected of ["Rust / Wasm", "Dart / WasmGC", "C / Wasm", "C++ / Wasm", "JavaScript"]) {
+  for (
+    const expected of [
+      "Rust / Wasm",
+      "Dart / WasmGC",
+      "C / Wasm",
+      "C++ / Wasm",
+      "AssemblyScript / Wasm",
+      "JavaScript",
+    ]
+  ) {
     assert(languages.includes(expected), `ml-gemm missing ${expected}`);
   }
 });
