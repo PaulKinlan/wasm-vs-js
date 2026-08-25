@@ -94,7 +94,11 @@ export async function assertGeneratedTreeSafe(path: string): Promise<void> {
     if (error instanceof Deno.errors.NotFound) return;
     throw error;
   }
-  if (root.isSymlink || !root.isDirectory || await Deno.realPath(path) !== path) {
+  const resolved = await Deno.realPath(path);
+  const matches = resolved === path ||
+    (Deno.build.os === "darwin" &&
+      (resolved === `/private${path}` || path === `/private${resolved}`));
+  if (root.isSymlink || !root.isDirectory || !matches) {
     throw new Error(`unsafe generated raw root: ${path}`);
   }
   async function visit(directory: string): Promise<void> {

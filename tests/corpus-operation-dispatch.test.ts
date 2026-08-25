@@ -67,7 +67,9 @@ async function runWithRestrictedPermissions(
     `--allow-read=${readPaths.join(",")}`,
     "--allow-env=WASM_VS_JS_COMMIT",
   ];
-  if (allowPreflight) permissionArgs.push("--allow-run=/usr/bin/git,/usr/bin/uname");
+  if (allowPreflight) {
+    permissionArgs.push("--allow-run=git,/usr/bin/git,uname,/usr/bin/uname");
+  }
   return await new Deno.Command(Deno.execPath(), {
     args: [
       "run",
