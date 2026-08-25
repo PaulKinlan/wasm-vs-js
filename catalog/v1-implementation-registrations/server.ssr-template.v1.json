@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "workloadId": "server.ssr-template.v1",
-  "sourceCommit": "1583a0e5681d431e3f7fe41f26bffeb391235906",
+  "sourceCommit": "c54fcbed83c31e3936055838effa07bfe5b7435f",
   "frozenCatalog": {
     "path": "catalog/workloads.v1.json",
     "sha256": "6665664f984683e5b7d3fdc8c1602198124844704c224a526d48be2f02edf9d4",
@@ -92,11 +92,11 @@
   "artifacts": {
     "buildManifest": {
       "path": "public/artifacts/base-server-ssr-template/build-manifest.json",
-      "sha256": "a25ef03512966834e41f329531975972e40b3e405664857c40c1792ededf0cca"
+      "sha256": "3c81ba2cc3cf928afdc2458201b0210183e61b92ebc9cbcc3aa34a482c1e481e"
     },
     "fixtureManifest": {
       "path": "public/artifacts/base-server-ssr-template/fixture-manifest.json",
-      "sha256": "8cb1f9222752cc4a7bdfb9cf09420f8516c9a59a1bb2012e208fb147d6fbb26a"
+      "sha256": "b436ae67d07011493cfb1c8c3429f026581340b644c7b6bb98de4dcaff583a85"
     },
     "outputManifest": {
       "path": "public/artifacts/base-server-ssr-template/output-manifest.json",
