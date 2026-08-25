@@ -1,0 +1,1471 @@
+{
+  "generatedAt": null,
+  "targetEngines": [
+    "js",
+    "wat",
+    "as",
+    "c",
+    "cpp",
+    "rs",
+    "dart"
+  ],
+  "pages": [
+    {
+      "slug": "archive-zip-workspace-v1",
+      "route": "/benchmarks/archive-zip-workspace-v1/",
+      "title": "ZIP workspace",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "as"
+      ],
+      "missingEngines": [
+        "wat",
+        "dart"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/archive-zip-workspace-v1.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "audio-fft",
+      "route": "/benchmarks/audio-fft/",
+      "title": "Radix-2 complex FFT demo",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "missingEngines": [
+        "wat",
+        "as"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/audio-fft.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "audio-fir",
+      "route": "/benchmarks/audio-fir/",
+      "title": "Direct 256-tap FIR convolution demo",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "missingEngines": [
+        "wat",
+        "as"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/audio-fir.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "audio-stft",
+      "route": "/benchmarks/audio-stft/",
+      "title": "Short-time Fourier transform demo",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "missingEngines": [
+        "wat",
+        "as"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/audio-stft.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "base-dom-todomvc-journey",
+      "route": "/benchmarks/base-dom-todomvc-journey/",
+      "title": "TodoMVC 100-item journey",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "missingEngines": [
+        "wat",
+        "as"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/base-dom-todomvc-journey.manifest.json",
+      "domHost": "/dom-hosts/base-dom-todomvc-journey.js",
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline",
+        "domJourney"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "base-gltf-viewer",
+      "route": "/benchmarks/base-gltf-viewer/",
+      "title": "Avocado glTF decode, animation and picking",
+      "engines": [],
+      "missingEngines": [],
+      "manifestPath": null,
+      "domHost": null,
+      "scopes": [
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "base/audio-webaudio-effects-v1",
+      "route": "/benchmarks/base/audio-webaudio-effects-v1/",
+      "title": "WebAudio effects rack correctness demo | Wasm versus JavaScript",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "as"
+      ],
+      "missingEngines": [
+        "wat",
+        "dart"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/audio-webaudio-effects-v1.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "network-http2-quic-state",
+      "route": "/benchmarks/base/network-http2-quic-state/",
+      "title": "HTTP/2 and QUIC state demo | Wasm versus JavaScript",
+      "engines": [],
+      "missingEngines": [],
+      "manifestPath": null,
+      "domHost": null,
+      "scopes": [
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "text-regex-log-scan",
+      "route": "/benchmarks/base/text.regex-log-scan.v1/",
+      "title": "100 MiB regex log scan | Wasm versus JavaScript",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "missingEngines": [
+        "wat",
+        "as"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/text-regex-log-scan.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "cad-mesh-repair-v1",
+      "route": "/benchmarks/cad-mesh-repair-v1/",
+      "title": "3D Mesh Quantization &amp; Repair",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "missingEngines": [
+        "wat",
+        "as"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/cad-mesh-repair.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "cad-parametric-bracket",
+      "route": "/benchmarks/cad-parametric-bracket/",
+      "title": "Parametric bracket correctness demo | Wasm versus JavaScript",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "missingEngines": [
+        "wat",
+        "as"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/cad-parametric-bracket.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "crypto-authenticated-stream",
+      "route": "/benchmarks/crypto-authenticated-stream/",
+      "title": "Authenticated message stream",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "missingEngines": [
+        "wat",
+        "as"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/crypto-authenticated-stream.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "crypto-file-integrity-v1",
+      "route": "/benchmarks/crypto.file-integrity.v1/",
+      "title": "SHA-256 file integrity demo | Wasm versus JavaScript",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "missingEngines": [
+        "wat",
+        "as"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/crypto-file-integrity.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "database-olap-chart",
+      "route": "/benchmarks/database-olap-chart/",
+      "title": "Five-query OLAP chart trace",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "missingEngines": [
+        "wat",
+        "as"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/database-olap-chart.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "database-sqlite-notebook-v1",
+      "route": "/benchmarks/database-sqlite-notebook-v1/",
+      "title": "SQLite Analytical Notebook",
+      "engines": [],
+      "missingEngines": [],
+      "manifestPath": null,
+      "domHost": null,
+      "scopes": [
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "document-pdf-viewer-v1",
+      "route": "/benchmarks/document-pdf-viewer-v1/",
+      "title": "PDF Document Parsing & Rendering",
+      "engines": [],
+      "missingEngines": [],
+      "manifestPath": null,
+      "domHost": null,
+      "scopes": [
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "dom-dependent-form-validation",
+      "route": "/benchmarks/dom-dependent-form-validation/",
+      "title": "Dependent Form Validation",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "as"
+      ],
+      "missingEngines": [
+        "wat",
+        "dart"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/dom-dependent-form-validation.manifest.json",
+      "domHost": "/dom-hosts/base-dom-dependent-form-validation.js",
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline",
+        "domJourney"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "dom-grid-movement",
+      "route": "/benchmarks/dom-grid-movement/",
+      "title": "DOM Grid Movement Engine",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "as"
+      ],
+      "missingEngines": [
+        "wat",
+        "dart"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/dom-grid-movement.manifest.json",
+      "domHost": "/dom-hosts/base-dom-grid-movement.js",
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline",
+        "domJourney"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "dom-keyed-list-mutation",
+      "route": "/benchmarks/dom-keyed-list-mutation/",
+      "title": "Keyed List DOM Mutation",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "as"
+      ],
+      "missingEngines": [
+        "wat",
+        "dart"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/dom-keyed-list-mutation.manifest.json",
+      "domHost": "/dom-hosts/base-dom-keyed-list-mutation.js",
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline",
+        "domJourney"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "dom-nested-tree-mutation",
+      "route": "/benchmarks/dom-nested-tree-mutation/",
+      "title": "Nested DOM Tree Mutation",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "as"
+      ],
+      "missingEngines": [
+        "wat",
+        "dart"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/dom-nested-tree-mutation.manifest.json",
+      "domHost": "/dom-hosts/base-dom-nested-tree-mutation.js",
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline",
+        "domJourney"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "dom-table-sort-filter-pagination",
+      "route": "/benchmarks/dom-table-sort-filter-pagination/",
+      "title": "Table Sort, Filter &amp; Pagination",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "as"
+      ],
+      "missingEngines": [
+        "wat",
+        "dart"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/dom-table-sort-filter-pagination.manifest.json",
+      "domHost": "/dom-hosts/base-dom-table-sort-filter-pagination.js",
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline",
+        "domJourney"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "dom-virtualized-grid-v1",
+      "route": "/benchmarks/dom-virtualized-grid-v1/",
+      "title": "100,000-row virtualized grid",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "as"
+      ],
+      "missingEngines": [
+        "wat",
+        "dart"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/dom-virtualized-grid-v1.manifest.json",
+      "domHost": "/dom-hosts/base-dom-virtualized-grid.js",
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline",
+        "domJourney"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "dom-virtualized-scrolling",
+      "route": "/benchmarks/dom-virtualized-scrolling/",
+      "title": "Virtualized DOM Scrolling",
+      "engines": [],
+      "missingEngines": [],
+      "manifestPath": null,
+      "domHost": "/dom-hosts/base-dom-virtualized-scrolling.js",
+      "scopes": [
+        "delivery",
+        "pipeline",
+        "domJourney"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "game-canvas-arcade",
+      "route": "/benchmarks/game-canvas-arcade/",
+      "title": "Canvas Arcade Engine",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "as"
+      ],
+      "missingEngines": [
+        "wat",
+        "dart"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/game-canvas-arcade.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "game-canvas-entity-pathfinding",
+      "route": "/benchmarks/game-canvas-entity-pathfinding/",
+      "title": "Canvas Entity Pathfinding Engine",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "as"
+      ],
+      "missingEngines": [
+        "wat",
+        "dart"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/game-canvas-entity-pathfinding.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "game-dom-tactics-grid",
+      "route": "/benchmarks/game-dom-tactics-grid/",
+      "title": "DOM Tactics Grid Engine",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "as"
+      ],
+      "missingEngines": [
+        "wat",
+        "dart"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/game-dom-tactics-grid.manifest.json",
+      "domHost": "/dom-hosts/base-game-dom-tactics-grid.js",
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline",
+        "domJourney"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "game-ecs-frame-update",
+      "route": "/benchmarks/game-ecs-frame-update/",
+      "title": "10,000-entity ECS correctness demo | Wasm versus JavaScript",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "missingEngines": [
+        "wat",
+        "as"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/game-ecs-frame-update.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "graphics-cpu-path-tracer-v1",
+      "route": "/benchmarks/graphics-cpu-path-tracer-v1/",
+      "title": "CPU path tracer | Wasm versus JavaScript",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "missingEngines": [
+        "wat",
+        "as"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/graphics-cpu-path-tracer.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "image-editing-demo",
+      "route": "/benchmarks/image-editing-demo/",
+      "title": "Image Gaussian Blur Pipeline",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "as",
+        "dart"
+      ],
+      "missingEngines": [
+        "wat"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/image-editing.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "image-flood-fill-demo",
+      "route": "/benchmarks/image-flood-fill-demo/",
+      "title": "Span-Stack Image Flood Fill",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "as",
+        "dart"
+      ],
+      "missingEngines": [
+        "wat"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/image-editing.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "ml-dense-mlp",
+      "route": "/benchmarks/ml-dense-mlp/",
+      "title": "Dense MLP",
+      "engines": [
+        "js",
+        "wat",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "missingEngines": [
+        "as"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/ml-dense-mlp.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "ml-gemm",
+      "route": "/benchmarks/ml-gemm/",
+      "title": "ML GEMM",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "missingEngines": [
+        "wat",
+        "as"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/ml-gemm.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "ml-keyword-spotting-v1",
+      "route": "/benchmarks/ml-keyword-spotting-v1/",
+      "title": "Speech Commands keyword spotting",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "as"
+      ],
+      "missingEngines": [
+        "wat",
+        "dart"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/ml-keyword-spotting-v1.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "ml-numeric-kernels-v1",
+      "route": "/benchmarks/ml-numeric-kernels-v1/",
+      "title": "ML numeric kernels",
+      "engines": [
+        "js",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "missingEngines": [
+        "wat",
+        "as",
+        "c"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/ml-numeric-kernels.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "multilang-wasm",
+      "route": "/benchmarks/multilang-wasm/",
+      "title": "Multi-Language WebAssembly Kernels",
+      "engines": [
+        "js",
+        "wat",
+        "as",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "missingEngines": [],
+      "manifestPath": "/benchmarks/multilang-wasm/multilang-wasm.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "network-pcap-decode-v1",
+      "route": "/benchmarks/network.pcap-decode.v1/",
+      "title": "PCAP protocol decode demo | Wasm versus JavaScript",
+      "engines": [
+        "js",
+        "c",
+        "cpp"
+      ],
+      "missingEngines": [
+        "wat",
+        "as",
+        "rs",
+        "dart"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/network-pcap-decode.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "numeric-fft-spectral-filter-v1",
+      "route": "/benchmarks/numeric-fft-spectral-filter-v1/",
+      "title": "2^20-sample FFT spectral filter",
+      "engines": [],
+      "missingEngines": [],
+      "manifestPath": null,
+      "domHost": null,
+      "scopes": [
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "numeric-polybench-panel-v1",
+      "route": "/benchmarks/numeric.polybench-panel.v1/",
+      "title": "PolyBench numeric panel | Wasm versus JavaScript",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "missingEngines": [
+        "wat",
+        "as"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/numeric-polybench-panel.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "regex-automata-duel-demo",
+      "route": "/benchmarks/regex-automata-duel-demo/",
+      "title": "Reduced regex automata fixture",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "as"
+      ],
+      "missingEngines": [
+        "wat",
+        "dart"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/regex-automata-duel-demo.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "serialization-protobuf-gateway",
+      "route": "/benchmarks/serialization-protobuf-gateway/",
+      "title": "Protobuf gateway correctness demo | Wasm versus JavaScript",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "as"
+      ],
+      "missingEngines": [
+        "wat",
+        "dart"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/serialization-protobuf-gateway.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "serialization-json-telemetry-v1",
+      "route": "/benchmarks/serialization.json-telemetry.v1/",
+      "title": "JSON telemetry demo | Wasm versus JavaScript",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "missingEngines": [
+        "wat",
+        "as"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/serialization-json-telemetry.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "server-ssr-template-v1",
+      "route": "/benchmarks/server.ssr-template.v1/",
+      "title": "Server-side template correctness demo | Wasm versus JavaScript",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs"
+      ],
+      "missingEngines": [
+        "wat",
+        "as",
+        "dart"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/server-ssr-template-v1.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "simulation-nbody-cloth",
+      "route": "/benchmarks/simulation-nbody-cloth/",
+      "title": "N-Body Simulation",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "missingEngines": [
+        "wat",
+        "as"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/simulation-nbody-cloth.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "simulation-rigid-body-2d-v1",
+      "route": "/benchmarks/simulation-rigid-body-2d-v1/",
+      "title": "500-box rigid-body settlement",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "missingEngines": [
+        "wat",
+        "as"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/simulation-rigid-body-2d.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "sum-u32",
+      "route": "/benchmarks/sum-u32/",
+      "title": "Modulo-2³² Integer Sum",
+      "engines": [
+        "js",
+        "wat",
+        "as",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "missingEngines": [],
+      "manifestPath": "/benchmarks/multilang-wasm/sum-u32.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "text-diff-patch",
+      "route": "/benchmarks/text.diff-patch.v1/",
+      "title": "Unicode line diff demo | Wasm versus JavaScript",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "missingEngines": [
+        "wat",
+        "as"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/text-diff-patch.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "text-gc-document-edit-v1",
+      "route": "/benchmarks/text.gc-document-edit.v1/",
+      "title": "GC-rich document edit demo | Wasm versus JavaScript",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "as"
+      ],
+      "missingEngines": [
+        "wat",
+        "dart"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/text-gc-document-edit.manifest.json",
+      "domHost": "/dom-hosts/base-text-gc-document-edit.js",
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline",
+        "domJourney"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "text-markdown-cms",
+      "route": "/benchmarks/text.markdown-cms.v1/",
+      "title": "Markdown CMS demo | Wasm versus JavaScript",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs"
+      ],
+      "missingEngines": [
+        "wat",
+        "as",
+        "dart"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/text-markdown-cms.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "tooling-c-to-wasm-compile-v1",
+      "route": "/benchmarks/tooling-c-to-wasm-compile-v1/",
+      "title": "Compile C to Wasm",
+      "engines": [],
+      "missingEngines": [],
+      "manifestPath": null,
+      "domHost": null,
+      "scopes": [
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "track-b",
+      "route": "/benchmarks/track-b/",
+      "title": "Track B optimizations",
+      "engines": [],
+      "missingEngines": [],
+      "manifestPath": null,
+      "domHost": null,
+      "scopes": [
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "vdom-diff-patch-demo",
+      "route": "/benchmarks/vdom-diff-patch-demo/",
+      "title": "Reduced virtual-DOM fixture",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "as"
+      ],
+      "missingEngines": [
+        "wat",
+        "dart"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/vdom-diff-patch.manifest.json",
+      "domHost": "/dom-hosts/base-vdom-diff-patch.js",
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline",
+        "domJourney"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "base/network-http2-quic-state",
+      "route": "/demos/base/network-http2-quic-state/",
+      "title": "HTTP/2 and QUIC state demo | Wasm versus JavaScript",
+      "engines": [],
+      "missingEngines": [],
+      "manifestPath": null,
+      "domHost": null,
+      "scopes": [
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "base/text.regex-log-scan.v1",
+      "route": "/demos/base/text.regex-log-scan.v1/",
+      "title": "100 MiB regex log scan | Wasm versus JavaScript",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "missingEngines": [
+        "wat",
+        "as"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/text-regex-log-scan.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "cad-parametric-bracket",
+      "route": "/demos/cad-parametric-bracket/",
+      "title": "Parametric bracket correctness demo | Wasm versus JavaScript",
+      "engines": [],
+      "missingEngines": [],
+      "manifestPath": null,
+      "domHost": null,
+      "scopes": [
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": "/benchmarks/cad-parametric-bracket/"
+    },
+    {
+      "slug": "crypto.file-integrity.v1",
+      "route": "/demos/crypto.file-integrity.v1/",
+      "title": "SHA-256 file integrity demo | Wasm versus JavaScript",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "missingEngines": [
+        "wat",
+        "as"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/crypto-file-integrity.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "game-canvas-arcade",
+      "route": "/demos/game-canvas-arcade/",
+      "title": "Canvas Arcade Engine",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "as"
+      ],
+      "missingEngines": [
+        "wat",
+        "dart"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/game-canvas-arcade.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": "/benchmarks/game-canvas-arcade/"
+    },
+    {
+      "slug": "game-canvas-entity-pathfinding",
+      "route": "/demos/game-canvas-entity-pathfinding/",
+      "title": "Canvas Entity Pathfinding Engine",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "as"
+      ],
+      "missingEngines": [
+        "wat",
+        "dart"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/game-canvas-entity-pathfinding.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": "/benchmarks/game-canvas-entity-pathfinding/"
+    },
+    {
+      "slug": "game-dom-tactics-grid",
+      "route": "/demos/game-dom-tactics-grid/",
+      "title": "DOM Tactics Grid Engine",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "as"
+      ],
+      "missingEngines": [
+        "wat",
+        "dart"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/game-dom-tactics-grid.manifest.json",
+      "domHost": "/dom-hosts/base-game-dom-tactics-grid.js",
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline",
+        "domJourney"
+      ],
+      "duplicateOf": "/benchmarks/game-dom-tactics-grid/"
+    },
+    {
+      "slug": "game-ecs-frame-update",
+      "route": "/demos/game-ecs-frame-update/",
+      "title": "10,000-entity ECS correctness demo | Wasm versus JavaScript",
+      "engines": [],
+      "missingEngines": [],
+      "manifestPath": null,
+      "domHost": null,
+      "scopes": [
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": "/benchmarks/game-ecs-frame-update/"
+    },
+    {
+      "slug": "network.pcap-decode.v1",
+      "route": "/demos/network.pcap-decode.v1/",
+      "title": "PCAP protocol decode demo | Wasm versus JavaScript",
+      "engines": [],
+      "missingEngines": [],
+      "manifestPath": null,
+      "domHost": null,
+      "scopes": [
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "numeric.polybench-panel.v1",
+      "route": "/demos/numeric.polybench-panel.v1/",
+      "title": "PolyBench numeric panel | Wasm versus JavaScript",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "missingEngines": [
+        "wat",
+        "as"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/numeric-polybench-panel.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "serialization.json-telemetry.v1",
+      "route": "/demos/serialization.json-telemetry.v1/",
+      "title": "JSON telemetry demo | Wasm versus JavaScript",
+      "engines": [],
+      "missingEngines": [],
+      "manifestPath": null,
+      "domHost": null,
+      "scopes": [
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "server.ssr-template.v1",
+      "route": "/demos/server.ssr-template.v1/",
+      "title": "Server-side template correctness demo | Wasm versus JavaScript",
+      "engines": [],
+      "missingEngines": [],
+      "manifestPath": null,
+      "domHost": null,
+      "scopes": [
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "simulation-nbody-cloth",
+      "route": "/demos/simulation-nbody-cloth/",
+      "title": "Direct N-body leapfrog validation",
+      "engines": [],
+      "missingEngines": [],
+      "manifestPath": null,
+      "domHost": null,
+      "scopes": [
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": "/benchmarks/simulation-nbody-cloth/"
+    },
+    {
+      "slug": "text.diff-patch.v1",
+      "route": "/demos/text.diff-patch.v1/",
+      "title": "Unicode line diff demo | Wasm versus JavaScript",
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "missingEngines": [
+        "wat",
+        "as"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/text-diff-patch.manifest.json",
+      "domHost": null,
+      "scopes": [
+        "kernel",
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "text.gc-document-edit.v1",
+      "route": "/demos/text.gc-document-edit.v1/",
+      "title": "GC-rich document edit demo | Wasm versus JavaScript",
+      "engines": [],
+      "missingEngines": [],
+      "manifestPath": null,
+      "domHost": null,
+      "scopes": [
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    },
+    {
+      "slug": "text.markdown-cms.v1",
+      "route": "/demos/text.markdown-cms.v1/",
+      "title": "Markdown CMS demo | Wasm versus JavaScript",
+      "engines": [],
+      "missingEngines": [],
+      "manifestPath": null,
+      "domHost": null,
+      "scopes": [
+        "delivery",
+        "pipeline"
+      ],
+      "duplicateOf": null
+    }
+  ],
+  "summary": {
+    "pages": 67,
+    "withMultilang": 50,
+    "withoutMultilang": 17,
+    "fullyCovered": 2,
+    "withDomStage": 12,
+    "duplicates": 6,
+    "distinctWorkloads": 61
+  }
+}

@@ -1,5 +1,32 @@
 // Unified Benchmark Runner & Performance Reporting Module
 // Standardized execution harness, graphs, tables, and worker controls for all benchmark detail pages.
+//
+// Every measurement this module produces carries a scope (see
+// /measurement-model.js). Ratios are computed inside one scope only.
+
+import {
+  classifyDelivery,
+  contamination,
+  fmtBytes,
+  fmtMs,
+  networkCost,
+  ratio,
+  resourcesInWindow,
+  SCOPE_ORDER,
+  SCOPES,
+  summarize,
+} from "/measurement-model.js";
+import {
+  amortizationChartSvg,
+  barChartSvg,
+  csvExportElement,
+  decisionPanelHtml,
+  deliveryTableHtml,
+  icon,
+  scopeLegendHtml,
+  scopeTableHtml,
+  toCsv,
+} from "/benchmark-report.js";
 
 export const WORKLOAD_CONFIGS = {
   "sum-u32": {
@@ -365,15 +392,109 @@ export function formatTargetPayload(slug, target) {
   }
 }
 
-// Executes a worker for N iterations with generous 120-second timeout
+// ── Worker measurement ────────────────────────────────────────────────────
+//
+// The previous implementation constructed a `new Worker()` inside the timed
+// region of every iteration, and the workers re-fetch their .wasm and fixtures
+// on each run. So every sample carried worker boot + module fetch + compile +
+// instantiate, "cold" meant the first of N equally cold iterations, and the
+// warm median was the median of those same contaminated samples. On
+// ml-dense-mlp that reported 76.83 ms for JavaScript against 4.89 ms measured
+// on the same kernel by the multi-language lane.
+//
+// Now: first use is measured once, on its own worker, and reported as the
+// delivery scope. Steady state is measured on a single reused worker after
+// discarded warm-up runs, and reported as the pipeline scope. Neither number
+// is folded into the other.
+
+const WARMUP_RUNS = 2;
+const REUSE_PROBE_TIMEOUT_MS = 20000;
+
+function isWasmTarget(target) {
+  return target === "wasm" || target === "wasm-linear" || target === "wasm-linear-controlled";
+}
+
+function makeToken(config) {
+  return config.tokenType === "string" ? crypto.randomUUID() : Math.floor(Math.random() * 1000000);
+}
+
+/**
+ * Post one task to an existing worker and resolve when it reports completion.
+ * Listeners are attached per task and removed on settle, so one worker can
+ * serve many sequential tasks.
+ */
+function postTask(worker, payload, config, timeoutMs) {
+  return new Promise((resolve, reject) => {
+    const token = makeToken(config);
+    let settled = false;
+    const finish = (fn, value) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      worker.removeEventListener("message", onMessage);
+      worker.removeEventListener("error", onError);
+      fn(value);
+    };
+    const timer = setTimeout(
+      () => finish(reject, new Error(`worker task timed out after ${timeoutMs} ms`)),
+      timeoutMs,
+    );
+    const startTime = performance.now();
+    const onMessage = (event) => {
+      const msg = event.data;
+      if (!msg) return;
+      // Interactive trace workers pace actions and wait for an ack per event.
+      if (config.ackEvents && msg.type === "event" && msg.actionIndex !== undefined) {
+        worker.postMessage({ type: "ack", token: msg.token, actionIndex: msg.actionIndex });
+        return;
+      }
+      if (msg.token !== undefined && msg.token !== token) return;
+      if (
+        msg.type === "completed" || msg.type === "done" || msg.type === "complete" ||
+        msg.type === "result" || msg.ok === true
+      ) {
+        finish(resolve, { ms: performance.now() - startTime, result: msg.result ?? null });
+      } else if (msg.type === "failed" || msg.type === "error" || msg.ok === false) {
+        finish(
+          reject,
+          new Error(msg.message || msg.error || msg.detail || "worker execution failed"),
+        );
+      }
+    };
+    const onError = (err) => finish(reject, new Error(err.message || "worker error event"));
+    worker.addEventListener("message", onMessage);
+    worker.addEventListener("error", onError);
+    worker.postMessage({ token, ...payload });
+  });
+}
+
+function spawnWorker(config) {
+  return new Worker(config.workerScript, { type: config.workerType || "module" });
+}
+
+/** Resource entries recorded while `fn` ran, attributed by start time. */
+async function withResourceWindow(fn) {
+  const start = performance.now();
+  const value = await fn();
+  const end = performance.now();
+  const entries = typeof performance !== "undefined" && performance.getEntriesByType
+    ? resourcesInWindow(performance.getEntriesByType("resource"), start, end)
+    : [];
+  return { value, entries, windowMs: end - start };
+}
+
+/**
+ * Measure one workload/target pair.
+ *
+ * Returns the legacy `coldMs`/`warmMedianMs`/`samples` fields that
+ * playground.js still reads, plus scoped summaries the report renders from.
+ */
 async function executeWorkerLoop(slug, target, iterations = 30, onProgress = () => {}) {
   const config = WORKLOAD_CONFIGS[slug];
   if (!config || !config.workerScript) {
     throw new Error(`Worker configuration missing for ${slug}`);
   }
 
-  // Fetch + hash the sqlite notebook runtime manifest the way the demo page's
-  // runner does, producing the manifest/shellChecks fields the worker requires.
   async function prepareSqliteRuntime() {
     const response = await fetch("/assets/sqlite-notebook/runtime-manifest.json", {
       cache: "no-store",
@@ -388,11 +509,10 @@ async function executeWorkerLoop(slug, target, iterations = 30, onProgress = () 
     return { manifest, shellChecks: [`runtime-manifest:${manifestHash}`] };
   }
 
-  // sum-u32 handles multi-iteration batches inside hosted-runner-worker
+  // sum-u32 batches its own iterations inside hosted-runner-worker.
   if (slug === "sum-u32") {
-    const isWasm = target === "wasm" || target === "wasm-linear" ||
-      target === "wasm-linear-controlled";
-    return new Promise((resolve, reject) => {
+    const wasm = isWasmTarget(target);
+    const res = await new Promise((resolve, reject) => {
       let worker;
       try {
         worker = new Worker(config.workerScript, { type: "module" });
@@ -403,471 +523,322 @@ async function executeWorkerLoop(slug, target, iterations = 30, onProgress = () 
         worker.terminate();
         reject(new Error("sum-u32 worker timed out after 120s"));
       }, 120000);
-
       worker.onmessage = (event) => {
         const msg = event.data;
         if (msg?.type === "complete") {
           clearTimeout(timer);
           worker.terminate();
-          const res = msg.result;
-          const coldMs = isWasm ? res.lifecycle.wasmFirstExecuteMs : res.lifecycle.jsFirstExecuteMs;
-          const stats = isWasm ? res.wasm : res.js;
-          resolve({
-            coldMs: coldMs || stats.medianMs,
-            warmMedianMs: stats.medianMs,
-            minMs: Math.min(...stats.samples),
-            maxMs: Math.max(...stats.samples),
-            samples: stats.samples,
-            iterations: stats.count,
-            lastResult: res,
-          });
+          resolve(msg.result);
         } else if (msg?.type === "error") {
           clearTimeout(timer);
           worker.terminate();
           reject(new Error(msg.message || "sum-u32 worker error"));
         }
       };
-
       worker.onerror = (err) => {
         clearTimeout(timer);
         worker.terminate();
         reject(err);
       };
-
       worker.postMessage({ iterations, order: "js-first", serviceWorkerControlled: false });
     });
+    const stats = wasm ? res.wasm : res.js;
+    const firstMs = wasm ? res.lifecycle?.wasmFirstExecuteMs : res.lifecycle?.jsFirstExecuteMs;
+    const pipeline = summarize(stats.samples, { scope: "pipeline", label: target });
+    return {
+      coldMs: firstMs ?? stats.medianMs,
+      warmMedianMs: stats.medianMs,
+      minMs: Math.min(...stats.samples),
+      maxMs: Math.max(...stats.samples),
+      samples: stats.samples,
+      iterations: stats.count,
+      pipelineSummary: pipeline,
+      kernelSummary: null,
+      firstUse: {
+        totalMs: firstMs ?? null,
+        network: networkCost([]),
+        entries: [],
+      },
+      workerReuse: "batched-in-worker",
+      contamination: contamination(pipeline?.p50Ms, 0),
+      networkAssets: [],
+      lastResult: res,
+    };
   }
 
-  // Heavy workloads run a capped count to stay fast
+  // Heavy workloads run fewer timed samples; the reduction is reported, not silent.
   const heavyWorkloads = [
     "dom-virtualized-grid-v1",
     "graphics-cpu-path-tracer-v1",
     "base-gltf-viewer",
     "database-sqlite-notebook-v1",
   ];
-  const loopCount = heavyWorkloads.includes(slug) ? Math.min(iterations, 5) : iterations;
+  const isHeavy = heavyWorkloads.includes(slug);
+  const timedRuns = isHeavy ? Math.min(iterations, 5) : iterations;
   const iterationTimeoutMs = config.iterationTimeoutMs || 120000;
 
-  // Some workers expect caller-prepared, fetch-derived payload fields (e.g.
-  // the sqlite notebook's verified runtime manifest + shell checks). Prepare
-  // once per card run; both target passes reuse it.
   if (config.protocol === "sqlite-notebook" && !config.prepared) {
     config.prepared = await prepareSqliteRuntime();
   }
+  const payload = { ...formatTargetPayload(slug, target), ...(config.prepared || {}) };
 
-  // Track network resources loaded during this execution run
-  const resourceStartIndex = typeof performance !== "undefined" && performance.getEntriesByType
-    ? performance.getEntriesByType("resource").length
-    : 0;
-
-  const durations = [];
-  const computeDurations = [];
-  let lastResult = null;
-
-  for (let i = 0; i < loopCount; i++) {
-    const iterationMs = await new Promise((resolve, reject) => {
-      let worker;
-      try {
-        worker = new Worker(config.workerScript, { type: config.workerType || "module" });
-      } catch (err) {
-        return reject(err);
-      }
-
-      const token = config.tokenType === "string"
-        ? crypto.randomUUID()
-        : Math.floor(Math.random() * 1000000);
-      const startTime = performance.now();
-
-      // Generous 120-second timeout per iteration to avoid premature termination
-      const timeoutTimer = setTimeout(() => {
-        worker.terminate();
-        reject(new Error(`Iteration ${i + 1} timed out after 120 seconds`));
-      }, iterationTimeoutMs);
-
-      worker.addEventListener("message", (event) => {
-        const msg = event.data;
-        if (!msg) return;
-        // Interactive trace workers (virtualized grid) pace actions and wait
-        // for the driver to acknowledge each event before continuing.
-        if (
-          config.ackEvents && msg.type === "event" && msg.actionIndex !== undefined
-        ) {
-          worker.postMessage({ type: "ack", token: msg.token, actionIndex: msg.actionIndex });
-          return;
-        }
-        if (msg.token !== undefined && msg.token !== token) return;
-
-        if (
-          msg.type === "completed" || msg.type === "done" ||
-          msg.type === "complete" || msg.type === "result" ||
-          msg.ok === true
-        ) {
-          clearTimeout(timeoutTimer);
-          const time = performance.now() - startTime;
-          worker.terminate();
-          if (msg.result) {
-            lastResult = msg.result;
-            const computeTime = extractComputeMs(msg.result, target);
-            if (typeof computeTime === "number" && !isNaN(computeTime)) {
-              computeDurations.push(computeTime);
-            }
-          }
-          resolve(time);
-        } else if (msg.type === "failed" || msg.type === "error" || msg.ok === false) {
-          clearTimeout(timeoutTimer);
-          worker.terminate();
-          reject(new Error(msg.message || msg.error || msg.detail || "Worker execution failed"));
-        }
-      });
-
-      worker.addEventListener("error", (err) => {
-        clearTimeout(timeoutTimer);
-        worker.terminate();
-        reject(new Error(err.message || "Worker error event"));
-      });
-
-      const payload = formatTargetPayload(slug, target);
-      worker.postMessage({ token, ...payload, ...(config.prepared || {}) });
-    });
-
-    durations.push(iterationMs);
-    onProgress({ iteration: i + 1, total: loopCount, target });
+  // ── First use: one worker, one task, everything counted ─────────────────
+  onProgress({ phase: "first-use", target, iteration: 0, total: timedRuns });
+  const firstWorker = spawnWorker(config);
+  let firstUseMs = null;
+  let firstResult = null;
+  let firstEntries = [];
+  try {
+    const measured = await withResourceWindow(() =>
+      postTask(firstWorker, payload, config, iterationTimeoutMs)
+    );
+    firstUseMs = measured.value.ms;
+    firstResult = measured.value.result;
+    firstEntries = measured.entries;
+  } finally {
+    firstWorker.terminate();
   }
 
-  // Collect any network resources requested by this run (wasm, worker, data fixtures)
-  const allResources = typeof performance !== "undefined" && performance.getEntriesByType
-    ? performance.getEntriesByType("resource")
-    : [];
-  const newResources = allResources.slice(resourceStartIndex);
-  const relevantResources = newResources.filter((r) =>
-    r.name.includes(".wasm") ||
-    r.name.includes("worker") ||
-    r.name.includes(".f64") ||
-    r.name.includes(".f32") ||
-    r.name.includes(".bin") ||
-    r.name.includes(".pcap") ||
-    r.name.includes(".json") ||
-    r.name.includes("/artifacts/") ||
-    r.name.includes("/benchmarks/") ||
-    r.name.includes("/dom-hosts/")
-  );
+  // ── Steady state: one reused worker, warm-ups discarded ─────────────────
+  const durations = [];
+  const computeDurations = [];
+  let lastResult = firstResult;
+  let workerReuse = "reused";
+  let warmEntries = [];
 
-  const networkAssets = relevantResources.map((r) => ({
-    name: r.name.split("/").pop()?.split("?")[0] || r.name,
-    fullUrl: r.name,
-    transferBytes: r.transferSize || 0,
-    decodedBytes: r.decodedBodySize || 0,
-    durationMs: r.duration || 0,
-    isCached: (r.transferSize === 0 && r.decodedBodySize > 0) || r.duration < 2,
-  }));
+  const warmWindow = await withResourceWindow(async () => {
+    let worker = spawnWorker(config);
+    try {
+      for (let i = 0; i < WARMUP_RUNS; i++) {
+        try {
+          await postTask(
+            worker,
+            payload,
+            config,
+            i === 0 ? REUSE_PROBE_TIMEOUT_MS : iterationTimeoutMs,
+          );
+        } catch (err) {
+          // A worker that will not serve a second task is a one-shot worker.
+          // Fall back to a fresh worker per iteration and say so in the report
+          // rather than silently reporting boot cost as steady-state cost.
+          if (i > 0) {
+            workerReuse = "respawned-per-iteration";
+            break;
+          }
+          throw err;
+        }
+      }
+      for (let i = 0; i < timedRuns; i++) {
+        if (workerReuse === "respawned-per-iteration") {
+          worker.terminate();
+          worker = spawnWorker(config);
+        }
+        const { ms, result } = await postTask(worker, payload, config, iterationTimeoutMs);
+        durations.push(ms);
+        if (result) {
+          lastResult = result;
+          const computeTime = extractComputeMs(result, target);
+          if (typeof computeTime === "number" && Number.isFinite(computeTime)) {
+            computeDurations.push(computeTime);
+          }
+        }
+        onProgress({ phase: "steady", iteration: i + 1, total: timedRuns, target });
+      }
+    } finally {
+      worker.terminate();
+    }
+  });
+  warmEntries = warmWindow.entries;
 
-  const coldMs = durations[0];
-  const warmMsList = durations.slice(1);
-  const sortedWarm = [...warmMsList].sort((a, b) => a - b);
-  const warmMedianMs = sortedWarm.length > 0
-    ? sortedWarm[Math.floor(sortedWarm.length / 2)]
-    : coldMs;
-  const minMs = Math.min(...durations);
-  const maxMs = Math.max(...durations);
-
-  const sortedCompute = [...computeDurations].sort((a, b) => a - b);
-  const computeMedianMs = sortedCompute.length > 0
-    ? sortedCompute[Math.floor(sortedCompute.length / 2)]
-    : null;
+  const pipelineSummary = summarize(durations, { scope: "pipeline", label: target });
+  const kernelSummary = summarize(computeDurations, {
+    scope: "kernel",
+    label: target,
+    note: "reported by the worker for its own compute region",
+  });
+  const warmNetwork = networkCost(warmEntries);
+  const firstNetwork = networkCost(firstEntries);
 
   return {
-    coldMs,
-    warmMedianMs,
-    minMs,
-    maxMs,
+    // Legacy fields — playground.js and older callers read these.
+    coldMs: firstUseMs,
+    warmMedianMs: pipelineSummary ? pipelineSummary.p50Ms : firstUseMs,
+    minMs: pipelineSummary ? pipelineSummary.minMs : firstUseMs,
+    maxMs: pipelineSummary ? pipelineSummary.maxMs : firstUseMs,
     samples: durations,
-    computeColdMs: computeDurations.length > 0 ? computeDurations[0] : null,
-    computeMedianMs,
+    computeMedianMs: kernelSummary ? kernelSummary.p50Ms : null,
     computeSamples: computeDurations.length > 0 ? computeDurations : null,
     iterations: durations.length,
-    networkAssets,
+    // Scoped measurements.
+    pipelineSummary,
+    kernelSummary,
+    firstUse: {
+      totalMs: firstUseMs,
+      network: firstNetwork,
+      entries: firstEntries,
+    },
+    workerReuse,
+    reducedSampleCount: isHeavy && iterations > timedRuns
+      ? { requested: iterations, taken: timedRuns, reason: "heavy workload" }
+      : null,
+    contamination: contamination(
+      pipelineSummary?.p50Ms,
+      warmNetwork.wallMs / Math.max(1, durations.length),
+    ),
+    warmNetwork,
+    networkAssets: warmEntries.map((r) => ({
+      name: r.name.split("/").pop()?.split("?")[0] || r.name,
+      fullUrl: r.name,
+      transferBytes: r.transferSize || 0,
+      decodedBytes: r.decodedBodySize || 0,
+      durationMs: r.duration || 0,
+      delivery: classifyDelivery(r),
+    })),
     lastResult,
   };
 }
 
-// Safely extract worker-internal pure compute measurement if reported
+/**
+ * Pull the worker's own report of its compute region, if it publishes one.
+ *
+ * Only fields the worker contract actually defines are read. An absent
+ * measurement returns null so the kernel scope stays empty rather than
+ * borrowing the pipeline number.
+ */
 function extractComputeMs(res, target) {
   if (!res || typeof res !== "object") return null;
-  const isWasm = target.includes("wasm");
-  if (isWasm) {
-    if (typeof res.wasm?.ms === "number") return res.wasm.ms;
-    if (typeof res.wasm?.ms === "string" && !isNaN(parseFloat(res.wasm.ms))) {
-      return parseFloat(res.wasm.ms);
-    }
-  } else {
-    if (typeof res.js?.ms === "number") return res.js.ms;
-    if (typeof res.js?.ms === "string" && !isNaN(parseFloat(res.js.ms))) {
-      return parseFloat(res.js.ms);
+  const branch = isWasmTarget(target) ? res.wasm : res.js;
+  const candidates = [
+    branch?.ms,
+    res.computeMs,
+    res.executionMs,
+    res.durationMs,
+    res.ms,
+  ];
+  for (const c of candidates) {
+    if (typeof c === "number" && Number.isFinite(c)) return c;
+    if (typeof c === "string") {
+      const n = parseFloat(c);
+      if (Number.isFinite(n)) return n;
     }
   }
-  if (typeof res.computeMs === "number") return res.computeMs;
-  if (typeof res.executionMs === "number") return res.executionMs;
-  if (typeof res.durationMs === "number") return res.durationMs;
-  if (typeof res.ms === "number") return res.ms;
-  if (typeof res.ms === "string" && !isNaN(parseFloat(res.ms))) return parseFloat(res.ms);
   return null;
 }
 
-// Render clean, visual comparative bar graph & statistics table
-function renderPerformanceReport(container, jsStats, wasmStats, iterations) {
-  const jsWarm = jsStats.warmMedianMs;
-  const wasmWarm = wasmStats.warmMedianMs;
-  const ratio = (jsWarm / wasmWarm).toFixed(2);
+// ── Primary report ────────────────────────────────────────────────────────
+//
+// One table per scope. The pipeline table and the kernel table never share a
+// ratio column, because they do not measure the same thing.
 
-  let speedupBadgeHtml = "";
-  if (parseFloat(ratio) > 1.05) {
-    speedupBadgeHtml =
-      `<div class="speedup-badge wasm-wins">⚡ WebAssembly is <strong>${ratio}× faster</strong> than JavaScript</div>`;
-  } else if (parseFloat(ratio) < 0.95) {
-    const jsRatio = (1 / parseFloat(ratio)).toFixed(2);
-    speedupBadgeHtml =
-      `<div class="speedup-badge js-wins">⚡ JavaScript is <strong>${jsRatio}× faster</strong> than WebAssembly</div>`;
-  } else {
-    speedupBadgeHtml =
-      `<div class="speedup-badge tie">⏱️ JavaScript and WebAssembly have <strong>Equal Performance</strong></div>`;
+/** Build the per-scope row set for the JS/Wasm primary pair. */
+export function primaryScopeRows(jsStats, wasmStats) {
+  return {
+    pipeline: [
+      { label: "JavaScript", summary: jsStats?.pipelineSummary ?? null, toolchain: "V8 JIT" },
+      {
+        label: "WebAssembly",
+        summary: wasmStats?.pipelineSummary ?? null,
+        toolchain: "wasm32 linear memory",
+      },
+    ],
+    kernel: [
+      { label: "JavaScript", summary: jsStats?.kernelSummary ?? null, toolchain: "V8 JIT" },
+      {
+        label: "WebAssembly",
+        summary: wasmStats?.kernelSummary ?? null,
+        toolchain: "wasm32 linear memory",
+      },
+    ],
+  };
+}
+
+function firstUseRowsHtml(jsStats, wasmStats) {
+  const rows = [
+    { label: "JavaScript", stats: jsStats },
+    { label: "WebAssembly", stats: wasmStats },
+  ].filter((r) => r.stats?.firstUse);
+  if (rows.length === 0) return "";
+  const body = rows.map((r) => {
+    const fu = r.stats.firstUse;
+    const net = fu.network;
+    return `<tr>
+      <th scope="row">${r.label}</th>
+      <td class="num">${fmtMs(fu.totalMs)}</td>
+      <td class="num">${fmtMs(net.wallMs)}</td>
+      <td class="num">${fmtBytes(net.transferBytes)}</td>
+      <td class="num">${fmtBytes(net.decodedBytes)}</td>
+      <td class="num">${net.count} <small class="muted">(${net.cacheHits} cached)</small></td>
+    </tr>`;
+  }).join("");
+  return `<div class="table-wrap">
+    <table class="results-table">
+      <caption>First use — one task on a freshly spawned worker, everything counted</caption>
+      <thead><tr>
+        <th scope="col">Engine</th>
+        <th scope="col">First task, end to end</th>
+        <th scope="col">of which network</th>
+        <th scope="col">Wire bytes</th>
+        <th scope="col">Decoded bytes</th>
+        <th scope="col">Requests</th>
+      </tr></thead>
+      <tbody>${body}</tbody>
+    </table>
+  </div>`;
+}
+
+function methodNoteHtml(jsStats, wasmStats) {
+  const notes = [];
+  const reuse = wasmStats?.workerReuse ?? jsStats?.workerReuse;
+  if (reuse === "respawned-per-iteration") {
+    notes.push(
+      "This workload's worker serves one task and exits, so each steady-state sample includes a " +
+        "fresh worker boot and module load. The pipeline numbers below are an upper bound on the " +
+        "task cost, not a steady-state cost.",
+    );
+  } else if (reuse === "reused") {
+    notes.push(
+      `Steady-state samples ran on a single reused worker after ${WARMUP_RUNS} discarded warm-up ` +
+        "tasks, so worker boot and module load are charged to first use and not to each sample.",
+    );
   }
-
-  // Calculate bar width percentages relative to max time
-  const maxTime = Math.max(jsStats.coldMs, jsWarm, wasmStats.coldMs, wasmWarm, 1);
-  const jsColdPct = Math.max(5, Math.min(100, (jsStats.coldMs / maxTime) * 100));
-  const jsWarmPct = Math.max(5, Math.min(100, (jsWarm / maxTime) * 100));
-  const wasmColdPct = Math.max(5, Math.min(100, (wasmStats.coldMs / maxTime) * 100));
-  const wasmWarmPct = Math.max(5, Math.min(100, (wasmWarm / maxTime) * 100));
-
-  const graphHtml = `
-    <div class="perf-graph-card">
-      <h3 class="perf-title">Execution Timing Comparison (ms)</h3>
-      
-      <div class="perf-bar-group">
-        <div class="perf-bar-label">
-          <strong>JavaScript</strong>
-          <span class="muted">Cold Start: ${jsStats.coldMs.toFixed(2)} ms | Warm Median: ${
-    jsWarm.toFixed(2)
-  } ms</span>
-        </div>
-        <div class="perf-bar-track">
-          <div class="perf-bar js-cold" data-pct="${jsColdPct}" title="Cold Start: ${
-    jsStats.coldMs.toFixed(2)
-  } ms">
-            <span>Cold: ${jsStats.coldMs.toFixed(1)}ms</span>
-          </div>
-        </div>
-        <div class="perf-bar-track">
-          <div class="perf-bar js-warm" data-pct="${jsWarmPct}" title="Warm Median: ${
-    jsWarm.toFixed(2)
-  } ms">
-            <span>Warm: ${jsWarm.toFixed(1)}ms</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="perf-bar-group">
-        <div class="perf-bar-label">
-          <strong>WebAssembly</strong>
-          <span class="muted">Cold Start: ${wasmStats.coldMs.toFixed(2)} ms | Warm Median: ${
-    wasmWarm.toFixed(2)
-  } ms</span>
-        </div>
-        <div class="perf-bar-track">
-          <div class="perf-bar wasm-cold" data-pct="${wasmColdPct}" title="Cold Start: ${
-    wasmStats.coldMs.toFixed(2)
-  } ms">
-            <span>Cold: ${wasmStats.coldMs.toFixed(1)}ms</span>
-          </div>
-        </div>
-        <div class="perf-bar-track">
-          <div class="perf-bar wasm-warm" data-pct="${wasmWarmPct}" title="Warm Median: ${
-    wasmWarm.toFixed(2)
-  } ms">
-            <span>Warm: ${wasmWarm.toFixed(1)}ms</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  const hasCompute = typeof jsStats?.computeMedianMs === "number" ||
-    typeof wasmStats?.computeMedianMs === "number";
-  const computeTh = hasCompute ? `<th>Raw Compute (Worker)</th>` : "";
-  const jsComputeTd = hasCompute
-    ? `<td>${
-      typeof jsStats?.computeMedianMs === "number"
-        ? jsStats.computeMedianMs.toFixed(2) + " ms"
-        : "—"
-    }</td>`
-    : "";
-  const wasmComputeTd = hasCompute
-    ? `<td>${
-      typeof wasmStats?.computeMedianMs === "number"
-        ? wasmStats.computeMedianMs.toFixed(2) + " ms"
-        : "—"
-    }</td>`
-    : "";
-
-  const tableHtml = `
-    <div class="execution-context-badge">
-      <p class="notice">
-        <strong>📦 Execution Level: Web Worker Pipeline (End-to-End)</strong> — Measures complete worker task dispatch, asset loading, memory transfers, compute execution, and oracle validation.
-      </p>
-    </div>
-    <div class="table-wrap">
-      <table class="results-table">
-        <caption>Benchmark Suite Loop Execution Results (${iterations}× iterations)</caption>
-        <thead>
-          <tr>
-            <th>Target Engine</th>
-            <th>1st Run (Cold)</th>
-            <th>Median (${iterations}× Warm)</th>
-            ${computeTh}
-            <th>Fastest (Min)</th>
-            <th>Slowest (Max)</th>
-            <th>Speedup Ratio</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>JavaScript</strong></td>
-            <td>${jsStats.coldMs.toFixed(2)} ms</td>
-            <td>${jsWarm.toFixed(2)} ms</td>
-            ${jsComputeTd}
-            <td>${jsStats.minMs.toFixed(2)} ms</td>
-            <td>${jsStats.maxMs.toFixed(2)} ms</td>
-            <td>1.00× (Baseline)</td>
-          </tr>
-          <tr>
-            <td><strong>WebAssembly</strong></td>
-            <td>${wasmStats.coldMs.toFixed(2)} ms</td>
-            <td>${wasmWarm.toFixed(2)} ms</td>
-            ${wasmComputeTd}
-            <td>${wasmStats.minMs.toFixed(2)} ms</td>
-            <td>${wasmStats.maxMs.toFixed(2)} ms</td>
-            <td><strong>${ratio}×</strong></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  `;
-
-  const lifecycleHtml = renderLifecycleBreakdown(jsStats, wasmStats);
-
-  const metricsGuideHtml = `
-    <p class="notice">
-      <strong>Reading the metrics:</strong>
-      <strong>1st Run (Cold)</strong> measures initial pre-JIT execution before engine optimizations.
-      <strong>Median (${iterations}× Warm)</strong> reflects steady-state throughput after JIT tier-up.
-      ${
-    hasCompute
-      ? "<strong>Raw Compute</strong> isolates pure algorithm execution inside the worker from message transfer overhead. "
-      : ""
+  const reduced = jsStats?.reducedSampleCount ?? wasmStats?.reducedSampleCount;
+  if (reduced) {
+    notes.push(
+      `Sample count reduced from ${reduced.requested} to ${reduced.taken} (${reduced.reason}).`,
+    );
   }
-      <strong>Fastest (Min) / Slowest (Max)</strong> show execution variance and GC pauses.
-    </p>
-  `;
+  if (notes.length === 0) return "";
+  return `<p class="notice">${icon("info")} ${notes.map((n) => n).join(" ")}</p>`;
+}
 
-  container.innerHTML = speedupBadgeHtml + graphHtml + tableHtml + lifecycleHtml + metricsGuideHtml;
-  container.querySelectorAll(".perf-bar[data-pct]").forEach((bar) => {
-    bar.style.width = `${bar.dataset.pct}%`;
-  });
+/**
+ * Render the primary JS-vs-Wasm result: decision panel, scope legend, one
+ * table per available scope, delivery detail, and charts.
+ */
+/**
+ * Render the primary JS-vs-Wasm evidence: what the run cost on first use, and
+ * what it fetched to get there.
+ *
+ * The scope tables, charts and decision panel are drawn by the unified
+ * explorer after every stage has reported — rendering them here as well
+ * produced two "Task pipeline" tables, and a decision panel built before the
+ * multi-language lane had contributed any kernel-scope evidence.
+ */
+function renderPerformanceReport(container, jsStats, wasmStats) {
+  const rows = primaryScopeRows(jsStats, wasmStats);
+  const available = [];
+  if (jsStats?.firstUse || wasmStats?.firstUse) available.push("delivery");
+  if (rows.kernel.some((r) => r.summary)) available.push("kernel");
+  if (rows.pipeline.some((r) => r.summary)) available.push("pipeline");
+
+  container.innerHTML = scopeLegendHtml(available) +
+    methodNoteHtml(jsStats, wasmStats) +
+    firstUseRowsHtml(jsStats, wasmStats) +
+    deliveryTableHtml([
+      { label: "JavaScript", entries: jsStats?.firstUse?.entries ?? [] },
+      { label: "WebAssembly", entries: wasmStats?.firstUse?.entries ?? [] },
+    ]);
   container.hidden = false;
-}
-
-// Render a phase value that is either a number (ms) or a typed unavailable
-// object { status, reason } — never zero-substituted.
-function lifecyclePhaseCell(value) {
-  if (value && typeof value === "object") {
-    if (value.status === "unavailable") return `${value.status}: ${value.reason}`;
-    if (value.status === "supported-value" && typeof value.ms === "number") {
-      return `${value.ms.toFixed(3)} ms`;
-    }
-  }
-  if (typeof value === "number") return `${value.toFixed(3)} ms`;
-  return "not collected";
-}
-
-// Cold-start phase breakdown for the playground report. Rendered from the
-// retained lifecycle block when the run carried one; otherwise the phase cells
-// are marked "not collected" — never invented. Also renders the Universal
-// Asset Downloads, Caching & Resource Timing Audit from browser performance entries.
-function renderLifecycleBreakdown(jsStats, wasmStats) {
-  const parts = [];
-  const jsLifecycle = jsStats?.lastResult?.lifecycle;
-  const wasmLifecycle = wasmStats?.lastResult?.lifecycle;
-  if (jsLifecycle || wasmLifecycle) {
-    const row = (label, jsValue, wasmValue) =>
-      `<tr><td>${label}</td><td>${lifecyclePhaseCell(jsValue)}</td><td>${
-        lifecyclePhaseCell(wasmValue)
-      }</td></tr>`;
-    parts.push(`<div class="table-wrap lifecycle-breakdown">
-      <table class="results-table">
-        <caption>First-use lifecycle breakdown · cold = first pre-JIT run</caption>
-        <thead><tr><th>Phase</th><th>JavaScript</th><th>WebAssembly</th></tr></thead>
-        <tbody>
-          ${
-      row("Manifest transfer", jsLifecycle?.manifestTransferMs, wasmLifecycle?.manifestTransferMs)
-    }
-          ${
-      row(
-        "Manifest network (Resource Timing)",
-        jsLifecycle?.manifestNetworkMs,
-        wasmLifecycle?.manifestNetworkMs,
-      )
-    }
-          ${row("Module transfer", jsLifecycle?.jsTransferMs, wasmLifecycle?.wasmTransferMs)}
-          ${
-      row(
-        "Module network (Resource Timing)",
-        jsLifecycle?.jsNetworkMs,
-        wasmLifecycle?.wasmNetworkMs,
-      )
-    }
-          ${row("Compile", "—", wasmLifecycle?.wasmCompileMs)}
-          ${row("Instantiate", "—", wasmLifecycle?.wasmInstantiateMs)}
-          ${row("First execute", jsLifecycle?.jsFirstExecuteMs, wasmLifecycle?.wasmFirstExecuteMs)}
-        </tbody>
-      </table>
-    </div>`);
-  }
-
-  // Universal Asset Downloads, Caching & Resource Timing Audit
-  const jsAssets = jsStats?.networkAssets ?? [];
-  const wasmAssets = wasmStats?.networkAssets ?? [];
-  const assetsMap = new Map();
-  for (const a of [...jsAssets, ...wasmAssets]) {
-    if (!assetsMap.has(a.name)) assetsMap.set(a.name, a);
-  }
-  const assets = Array.from(assetsMap.values());
-  if (assets.length > 0) {
-    const rows = assets.map((a) => {
-      const statusText = a.isCached
-        ? `⚡ Browser Cache (0 B wire transfer)`
-        : `🌐 Network Fetch (${(a.transferBytes / 1024).toFixed(1)} KB wire)`;
-      const decoded = a.decodedBytes > 0 ? `${(a.decodedBytes / 1024).toFixed(1)} KB` : "—";
-      const duration = a.durationMs > 0 ? `${a.durationMs.toFixed(2)} ms` : "< 1 ms";
-      return `<tr><td><code>${a.name}</code></td><td>${statusText}</td><td>${decoded}</td><td>${duration}</td></tr>`;
-    }).join("");
-
-    parts.push(`<div class="table-wrap">
-      <table class="results-table">
-        <caption>Asset Downloads, Caching &amp; Network Resource Timing</caption>
-        <thead>
-          <tr>
-            <th>Asset / Resource</th>
-            <th>Delivery &amp; Cache Status</th>
-            <th>Decoded Size</th>
-            <th>Fetch Latency</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>`);
-  }
-
-  return parts.join("");
 }
 
 // Auto-initialize benchmark detail page runner
@@ -1028,6 +999,13 @@ async function runComposedStages(
 ) {
   const plan = composedStagePlanFromDom();
   plan.domHost = document.body?.dataset?.domHost || "";
+  // Results each stage produces, collected for the unified explorer. These
+  // were previously referenced at the call site without ever being declared,
+  // so every composed run threw `multilangResults is not defined` and the
+  // explorer never rendered.
+  let multilangResults = null;
+  let multilangManifest = null;
+  let domResults = null;
   // ONE results flow: every additional stage (multi-language, Track B) renders
   // as a labeled sub-block of the SAME run output inside the primary reporting
   // element — not a separate page section (Paul directive 2026-08-06).
@@ -1050,7 +1028,7 @@ async function runComposedStages(
     statusEl.textContent = "Multi-language comparison: loading engines…";
     const { runMultilangComparison } = await import("/multilang-runner.js");
     const mlBox = stageBlock("multilang", "Multi-language comparison");
-    await runMultilangComparison(plan.multilangManifest, {
+    multilangResults = await runMultilangComparison(plan.multilangManifest, {
       iterations,
       onStatus: (m) => {
         statusEl.textContent = `Multi-language: ${m}`;
@@ -1058,7 +1036,13 @@ async function runComposedStages(
       reportingEl: mlBox,
       heading: false,
     });
-    statusEl.textContent = "✓ Multi-language comparison complete.";
+    try {
+      const r = await fetch(plan.multilangManifest, { cache: "no-store" });
+      if (r.ok) multilangManifest = await r.json();
+    } catch {
+      multilangManifest = null;
+    }
+    statusEl.textContent = "Multi-language comparison complete.";
   }
   if (plan.domHost) {
     // Real-DOM stage (Paul directive 2026-08-06): DOM-family pages must
@@ -1094,7 +1078,7 @@ async function runComposedStages(
       }
     }
     try {
-      const result = await runIframeDomBenchmark({
+      const result = domResults = await runIframeDomBenchmark({
         route: `${globalThis.location.pathname}${globalThis.location.search}`,
         iterations,
         targets: realDomTargets,
@@ -1212,18 +1196,21 @@ async function runComposedStages(
     for (const engine of plan.libcmpEngines) {
       let medianMs = null;
       if (primaryStats) {
-        if (engine.key === "js" && primaryStats.jsStats?.medianMs != null) {
-          medianMs = primaryStats.jsStats.medianMs;
-        } else if (engine.key === "wasm" && primaryStats.wasmStats?.medianMs != null) {
-          medianMs = primaryStats.wasmStats.medianMs;
+        if (engine.key === "js" && primaryStats.jsStats?.pipelineSummary) {
+          medianMs = primaryStats.jsStats.pipelineSummary.p50Ms;
+        } else if (engine.key === "wasm" && primaryStats.wasmStats?.pipelineSummary) {
+          medianMs = primaryStats.wasmStats.pipelineSummary.p50Ms;
         }
       }
       if (medianMs == null) {
         const target = engine.key === "wasm" ? "wasm" : "javascript";
         statusEl.textContent = `Library comparison: running ${engine.label}…`;
         try {
-          const stats = await executeWorkerLoop(workloadSlug, target, iterations, statusEl);
-          medianMs = stats.medianMs;
+          const stats = await executeWorkerLoop(workloadSlug, target, iterations);
+          // `medianMs` was read here; executeWorkerLoop has never returned a
+          // field by that name, so every library-comparison row printed an em
+          // dash regardless of what the engine actually measured.
+          medianMs = stats.pipelineSummary?.p50Ms ?? stats.warmMedianMs ?? null;
         } catch (err) {
           medianMs = null;
           rows.push({
@@ -1250,8 +1237,8 @@ async function runComposedStages(
     statusEl.textContent = "✓ Library comparison complete.";
   }
 
-  // Render the Master Unified Benchmark Matrix & Explorer
-  renderMasterUnifiedExplorer({
+  // Every engine the page measured, segmented by scope.
+  renderUnifiedExplorer({
     flowEl,
     workloadSlug,
     primaryStats,
@@ -1262,13 +1249,165 @@ async function runComposedStages(
   });
 }
 
-// Master Unified Benchmark Matrix & Explorer (Paul directive 2026-08-25):
-// Consolidates all tested engines (JavaScript, Raw WAT, C, C++, Rust, Dart,
-// AssemblyScript) into ONE unified master explorer table with segregated
-// dimensions for pure algorithmic compute, worker/DOM pipeline overhead,
-// asset downloads & caching, and total end-to-end time. Includes interactive
-// filter tabs, a stacked visual breakdown chart, and raw CSV data export.
-function renderMasterUnifiedExplorer({
+// ── Unified explorer ──────────────────────────────────────────────────────
+//
+// One place to see every engine the page measured, segmented by scope.
+//
+// The previous version built a single "warm median" column from
+// `domMs ?? workerMs ?? kernelMs` and divided it by the JavaScript row, so a
+// real-DOM journey time was reported as a speedup over a bare kernel time. It
+// also filled the Min column from the median when a sample had no min, and
+// attributed downloads by URL substring, where `findResource("c")` matched
+// nearly every request on the page. None of that happens here: each scope is
+// its own table with its own baseline, and a scope with no data is absent
+// rather than borrowed from a neighbour.
+
+const ENGINE_TOOLCHAINS = {
+  js: "V8 JIT (in-browser)",
+  wat: "Handwritten WAT → wasm",
+  as: "asc -O3 --bindings none --noAssert",
+  asc: "asc -O3 --bindings none --noAssert",
+  c: "clang --target=wasm32 -O3 -nostdlib",
+  cpp: "clang++ --target=wasm32 -O3 -nostdlib",
+  rs: "rustc --target wasm32-unknown-unknown -O --crate-type cdylib",
+  dart: "dart compile wasm (dart2wasm, WasmGC)",
+  kt: "kotlinc-wasm",
+  wasm: "wasm32 linear memory",
+};
+
+const DOM_ENGINE_LABELS = {
+  js: "JavaScript",
+  wasm: "WebAssembly",
+  c: "C / Wasm",
+  cpp: "C++ / Wasm",
+  rs: "Rust / Wasm",
+  dart: "Dart / WasmGC",
+};
+
+/**
+ * Assemble the explorer's rows, one list per scope.
+ *
+ * Pure: takes measurements in, returns rows out, touches no DOM. Kept
+ * exported so the row assembly is unit-testable without a browser — the
+ * `multilangResults is not defined` defect shipped precisely because this
+ * logic had no test that executed it.
+ */
+export function buildExplorerRows({
+  primaryStats,
+  multilangResults,
+  domResults,
+  manifest,
+}) {
+  /** @type {Record<string, any[]>} */
+  const byScope = { kernel: [], pipeline: [], domJourney: [] };
+
+  // Kernel scope: the multi-language lane measures a pre-instantiated engine
+  // in-page after warm-up, which is exactly the kernel scope.
+  const kernels = manifest?.kernels ?? Object.keys(multilangResults ?? {});
+  const primaryKernel = kernels[0] ?? null;
+  const kernelRows = primaryKernel ? (multilangResults?.[primaryKernel] ?? []) : [];
+  for (const r of kernelRows) {
+    byScope.kernel.push({
+      key: r.key,
+      label: r.label,
+      toolchain: ENGINE_TOOLCHAINS[r.key] ?? "—",
+      source: manifest?.engines?.find((e) => e.key === r.key)?.source ?? null,
+      bytes: r.bytes || null,
+      summary: summarize(r.samples ?? [], { scope: "kernel", label: r.label }),
+    });
+  }
+  // When the page has no multi-language lane, the workers' self-reported
+  // compute regions are the only kernel-scope evidence available.
+  if (byScope.kernel.length === 0) {
+    for (
+      const [key, label, stats] of [
+        ["js", "JavaScript", primaryStats?.jsStats],
+        ["wasm", "WebAssembly", primaryStats?.wasmStats],
+      ]
+    ) {
+      if (stats?.kernelSummary) {
+        byScope.kernel.push({
+          key,
+          label,
+          toolchain: ENGINE_TOOLCHAINS[key],
+          source: null,
+          bytes: null,
+          summary: stats.kernelSummary,
+        });
+      }
+    }
+  }
+
+  // Pipeline scope: the primary worker lane.
+  for (
+    const [key, label, stats] of [
+      ["js", "JavaScript", primaryStats?.jsStats],
+      ["wasm", "WebAssembly", primaryStats?.wasmStats],
+    ]
+  ) {
+    if (stats?.pipelineSummary) {
+      byScope.pipeline.push({
+        key,
+        label,
+        toolchain: ENGINE_TOOLCHAINS[key],
+        source: null,
+        bytes: null,
+        summary: stats.pipelineSummary,
+        note: stats.workerReuse === "respawned-per-iteration"
+          ? "includes a worker boot per sample"
+          : "",
+      });
+    }
+  }
+
+  // Real-DOM scope: every engine that drove the same rendered UI.
+  for (const [key, stats] of Object.entries(domResults?.perTarget ?? {})) {
+    if (!stats) continue;
+    byScope.domJourney.push({
+      key,
+      label: DOM_ENGINE_LABELS[key] ?? key,
+      toolchain: ENGINE_TOOLCHAINS[key] ?? "—",
+      source: null,
+      bytes: null,
+      summary: summarize(stats.samples ?? [], {
+        scope: "domJourney",
+        label: DOM_ENGINE_LABELS[key] ?? key,
+      }) ?? (typeof stats.warmMedianMs === "number"
+        ? summarize([stats.warmMedianMs], {
+          scope: "domJourney",
+          label: DOM_ENGINE_LABELS[key] ?? key,
+          note: "host reported a median only",
+        })
+        : null),
+    });
+  }
+
+  return byScope;
+}
+
+/** Flatten scoped rows into the long-format records the CSV writes. */
+export function explorerCsvRecords(byScope) {
+  const out = [];
+  for (const scope of SCOPE_ORDER) {
+    const rows = byScope[scope] ?? [];
+    const present = rows.filter((r) => r.summary);
+    if (present.length === 0) continue;
+    const baseline = present.find((r) => r.key === "js") ?? present[0];
+    for (const r of rows) {
+      out.push({
+        scope,
+        label: r.label,
+        toolchain: r.toolchain,
+        bytes: r.bytes,
+        summary: r.summary,
+        ratio: r === baseline || !r.summary ? null : ratio(baseline.summary, r.summary),
+      });
+    }
+  }
+  return out;
+}
+
+function renderUnifiedExplorer({
   flowEl,
   workloadSlug,
   primaryStats,
@@ -1277,386 +1416,177 @@ function renderMasterUnifiedExplorer({
   manifest,
   iterations,
 }) {
-  const previous = flowEl.querySelector(`[data-stage="master-explorer"]`);
+  const previous = flowEl.querySelector(`[data-stage="explorer"]`);
   if (previous) previous.remove();
 
+  const byScope = buildExplorerRows({ primaryStats, multilangResults, domResults, manifest });
+  const available = SCOPE_ORDER.filter((id) => (byScope[id] ?? []).some((r) => r.summary));
+  if (available.length === 0) return;
+
   const wrap = document.createElement("section");
-  wrap.dataset.stage = "master-explorer";
-  wrap.className = "stage-result master-explorer-section";
+  wrap.dataset.stage = "explorer";
+  wrap.className = "stage-result explorer-section";
+
+  // Best kernel engine drives both the decision panel and the amortization view.
+  const kernelRows = (byScope.kernel ?? []).filter((r) => r.summary);
+  const jsKernel = kernelRows.find((r) => r.key === "js");
+  const bestWasmKernel = kernelRows
+    .filter((r) => r.key !== "js")
+    .sort((a, b) => a.summary.p50Ms - b.summary.p50Ms)[0];
+  const pipelineRows = (byScope.pipeline ?? []).filter((r) => r.summary);
+  const jsPipeline = pipelineRows.find((r) => r.key === "js");
+  const wasmPipeline = pipelineRows.find((r) => r.key === "wasm");
+
+  // The decision panel is drawn here, not in the primary report, because only
+  // at this point has every lane — worker, multi-language, real DOM — reported.
+  const decision = document.createElement("div");
+  decision.innerHTML = decisionPanelHtml({
+    workloadLabel: document.title.split("·")[0].trim() || workloadSlug || "This workload",
+    kernel: jsKernel && bestWasmKernel
+      ? {
+        baseline: jsKernel.summary,
+        best: bestWasmKernel.summary,
+        bestLabel: bestWasmKernel.label,
+      }
+      : null,
+    pipeline: jsPipeline && wasmPipeline
+      ? {
+        baseline: jsPipeline.summary,
+        best: wasmPipeline.summary,
+        bestLabel: wasmPipeline.label,
+      }
+      : null,
+    delivery: {
+      baselineMs: primaryStats?.jsStats?.firstUse?.totalMs ?? null,
+      candidateMs: primaryStats?.wasmStats?.firstUse?.totalMs ?? null,
+      candidateBytes: primaryStats?.wasmStats?.firstUse?.network?.decodedBytes ?? null,
+    },
+    contamination: primaryStats?.wasmStats?.contamination ??
+      primaryStats?.jsStats?.contamination,
+  });
+  if (decision.innerHTML.trim()) wrap.appendChild(decision);
 
   const heading = document.createElement("h2");
-  heading.textContent = "Unified Multi-Language Benchmark Explorer";
+  heading.textContent = "Every engine, every scope";
   wrap.appendChild(heading);
 
   const intro = document.createElement("p");
   intro.className = "notice";
-  intro.innerHTML =
-    "<strong>Complete lifecycle breakdown:</strong> Compares every language implementation across all phases — asset download &amp; caching, module compilation, pure algorithmic compute, and full worker/DOM pipeline overhead. Filter views using the buttons below or export raw CSV data.";
+  intro.textContent =
+    "One table per scope. Each table has its own baseline and its own ratio column, because the " +
+    "tables do not time the same amount of work. Comparing a number across two tables is a " +
+    "category error and the runner will not do it for you.";
   wrap.appendChild(intro);
 
-  const TOOLCHAIN_MAP = {
-    js: "V8 JIT (in-browser)",
-    wat: "Handwritten WAT → wasm",
-    as: "asc -O3 --bindings none --noAssert",
-    asc: "asc -O3 --bindings none --noAssert",
-    assemblyscript: "asc -O3 --bindings none --noAssert",
-    c: "clang --target=wasm32 -O3 -nostdlib",
-    cpp: "clang++ --target=wasm32 -O3 -nostdlib",
-    rs: "rustc --target wasm32-unknown-unknown -O --crate-type cdylib",
-    dart: "dart compile wasm (dart2wasm, WasmGC)",
-    kt: "kotlinc-wasm",
-  };
-
-  const records = [];
-  const resources = typeof performance !== "undefined" && performance.getEntriesByType
-    ? performance.getEntriesByType("resource")
-    : [];
-
-  const findResource = (pattern) => {
-    if (!pattern) return null;
-    const match = resources.find((r) => r.name.includes(pattern));
-    if (!match) return null;
-    return {
-      name: match.name.split("/").pop()?.split("?")[0] || match.name,
-      transferBytes: match.transferSize || 0,
-      decodedBytes: match.decodedBodySize || 0,
-      durationMs: match.duration || 0,
-      isCached: (match.transferSize === 0 && match.decodedBodySize > 0) || match.duration < 2,
-    };
-  };
-
-  const kernels = manifest?.kernels || (multilangResults ? Object.keys(multilangResults) : []);
-  const primaryKernel = kernels[0] || "kernel";
-  const kernelResults = multilangResults?.[primaryKernel] || [];
-
-  if (manifest?.engines && manifest.engines.length > 0) {
-    for (const eng of manifest.engines) {
-      const ml = kernelResults.find((r) => r.key === eng.key);
-      const resFile = eng.file || (eng.lang ? `${primaryKernel}_${eng.lang}.wasm` : null);
-      const res = findResource(resFile) || findResource(eng.key);
-
-      const isJs = eng.key === "js";
-      const isLinearWasm = eng.key === "c" || eng.key === "cpp" || eng.key === "rs" ||
-        eng.key === "wat";
-
-      const algoMs = typeof ml?.medianMs === "number"
-        ? ml.medianMs
-        : isJs
-        ? primaryStats?.jsStats?.computeMedianMs
-        : primaryStats?.wasmStats?.computeMedianMs;
-
-      const domMs = domResults?.perTarget?.[eng.key]?.warmMedianMs ?? null;
-
-      let pipelineOverheadMs = null;
-      if (isJs && primaryStats?.jsStats?.warmMedianMs && algoMs) {
-        pipelineOverheadMs = Math.max(0, primaryStats.jsStats.warmMedianMs - algoMs);
-      } else if (isLinearWasm && primaryStats?.wasmStats?.warmMedianMs && algoMs) {
-        pipelineOverheadMs = Math.max(0, primaryStats.wasmStats.warmMedianMs - algoMs);
-      }
-
-      const coldMs = isJs && primaryStats?.jsStats
-        ? primaryStats.jsStats.coldMs
-        : isLinearWasm && primaryStats?.wasmStats
-        ? primaryStats.wasmStats.coldMs
-        : ml?.coldMs ?? domMs ?? algoMs;
-
-      const warmMs = domMs ??
-        (isJs && primaryStats?.jsStats
-          ? primaryStats.jsStats.warmMedianMs
-          : isLinearWasm && primaryStats?.wasmStats
-          ? primaryStats.wasmStats.warmMedianMs
-          : ml?.medianMs ?? algoMs);
-
-      records.push({
-        key: eng.key,
-        label: eng.label,
-        toolchain: TOOLCHAIN_MAP[eng.lang || eng.key] || eng.kind || "—",
-        source: eng.source ||
-          (eng.key === "wat" ? "benchmarks/v2/ml-dense-mlp/ml-dense-mlp.wat" : null),
-        download: res,
-        algoComputeMs: algoMs,
-        pipelineOverheadMs: pipelineOverheadMs,
-        domMs: domMs,
-        coldMs: coldMs,
-        warmMedianMs: warmMs,
-        minMs: ml?.minMs ?? warmMs,
-        maxMs: ml?.maxMs ?? warmMs,
-      });
-    }
-  } else {
-    if (primaryStats?.jsStats) {
-      records.push({
-        key: "js",
-        label: "JavaScript",
-        toolchain: "V8 JIT (in-browser)",
-        source: null,
-        download: findResource("worker"),
-        algoComputeMs: primaryStats.jsStats.computeMedianMs,
-        pipelineOverheadMs: primaryStats.jsStats.computeMedianMs
-          ? Math.max(0, primaryStats.jsStats.warmMedianMs - primaryStats.jsStats.computeMedianMs)
-          : null,
-        domMs: domResults?.perTarget?.js?.warmMedianMs ?? null,
-        coldMs: primaryStats.jsStats.coldMs,
-        warmMedianMs: primaryStats.jsStats.warmMedianMs,
-        minMs: primaryStats.jsStats.minMs,
-        maxMs: primaryStats.jsStats.maxMs,
-      });
-    }
-    if (primaryStats?.wasmStats) {
-      records.push({
-        key: "wasm",
-        label: "WebAssembly",
-        toolchain: "wasm32 (linear)",
-        source: null,
-        download: findResource(".wasm"),
-        algoComputeMs: primaryStats.wasmStats.computeMedianMs,
-        pipelineOverheadMs: primaryStats.wasmStats.computeMedianMs
-          ? Math.max(
-            0,
-            primaryStats.wasmStats.warmMedianMs - primaryStats.wasmStats.computeMedianMs,
-          )
-          : null,
-        domMs: domResults?.perTarget?.wasm?.warmMedianMs ?? null,
-        coldMs: primaryStats.wasmStats.coldMs,
-        warmMedianMs: primaryStats.wasmStats.warmMedianMs,
-        minMs: primaryStats.wasmStats.minMs,
-        maxMs: primaryStats.wasmStats.maxMs,
-      });
-    }
+  if (kernelRows.length > 1) {
+    const chartHost = document.createElement("div");
+    chartHost.innerHTML = barChartSvg(
+      kernelRows.map((r) => ({
+        label: r.label,
+        valueMs: r.summary.p50Ms,
+        lowMs: r.summary.ci95?.lowMs ?? null,
+        highMs: r.summary.ci95?.highMs ?? null,
+        kind: r.key === "js" ? "js" : "wasm",
+      })),
+      {
+        title: "Kernel compute across every language",
+        caption: "Same algorithm, same input, pre-instantiated engines, warmed up before timing. " +
+          "Whiskers are 95% confidence intervals for the median.",
+      },
+    );
+    wrap.appendChild(chartHost);
   }
 
-  const jsWarm = records.find((r) => r.key === "js")?.warmMedianMs || 1;
-  for (const r of records) {
-    r.speedupRatio = (typeof r.warmMedianMs === "number" && r.warmMedianMs > 0)
-      ? (jsWarm / r.warmMedianMs).toFixed(2) + "×"
-      : "—";
+  if (pipelineRows.length > 1) {
+    const pipeHost = document.createElement("div");
+    pipeHost.innerHTML = barChartSvg(
+      pipelineRows.map((r) => ({
+        label: r.label,
+        valueMs: r.summary.p50Ms,
+        lowMs: r.summary.ci95?.lowMs ?? null,
+        highMs: r.summary.ci95?.highMs ?? null,
+        kind: r.key === "js" ? "js" : "wasm",
+      })),
+      {
+        title: "Task pipeline — median per complete task",
+        caption:
+          "Worker dispatch, serialization, compute, result transfer and oracle validation. " +
+          "Whiskers are 95% confidence intervals for the median.",
+      },
+    );
+    wrap.appendChild(pipeHost);
   }
 
-  // Filter Buttons
-  const filterWrap = document.createElement("div");
-  filterWrap.className = "results-filters";
-  filterWrap.innerHTML = `
-    <button type="button" class="active" data-view="all">All Dimensions &amp; Breakdown</button>
-    <button type="button" data-view="compute">Pure Algorithmic Compute</button>
-    <button type="button" data-view="pipeline">Pipeline &amp; Real-DOM Overhead</button>
-    <button type="button" data-view="network">Asset Downloads &amp; Network</button>
-  `;
-  wrap.appendChild(filterWrap);
-
-  // Visual Breakdown Stacked Chart
-  const chartWrap = document.createElement("div");
-  chartWrap.className = "perf-graph-card";
-  const maxTime = Math.max(...records.map((r) => r.warmMedianMs || 0), 1);
-
-  let chartBars = "";
-  for (const r of records) {
-    const compute = r.algoComputeMs || 0;
-    const overhead = (r.domMs ?? r.pipelineOverheadMs) || 0;
-    const total = r.warmMedianMs || (compute + overhead) || 1;
-    const computePct = Math.min(100, Math.max(5, (compute / maxTime) * 100));
-    const overheadPct = overhead > 0 ? Math.min(100, (overhead / maxTime) * 100) : 0;
-
-    chartBars += `
-      <div class="perf-bar-group" data-engine="${r.key}">
-        <div class="perf-bar-label">
-          <strong>${r.label}</strong>
-          <span class="muted">${total.toFixed(2)} ms total (Compute: ${compute.toFixed(2)} ms${
-      overhead > 0 ? `, Overhead: ${overhead.toFixed(2)} ms` : ""
-    })</span>
-        </div>
-        <div class="perf-bar-track">
-          <div class="perf-bar js-warm" data-pct="${computePct}" title="${r.label} Compute: ${
-      compute.toFixed(2)
-    } ms">
-            <span>${compute.toFixed(1)}ms</span>
-          </div>
-          ${
-      overhead > 0
-        ? `<div class="perf-bar wasm-warm" data-pct="${overheadPct}" title="${r.label} Overhead: ${
-          overhead.toFixed(2)
-        } ms"><span>+${overhead.toFixed(1)}ms overhead</span></div>`
-        : ""
-    }
-        </div>
-      </div>
-    `;
-  }
-  chartWrap.innerHTML =
-    `<h3 class="perf-title">Execution Breakdown by Engine (ms)</h3>${chartBars}`;
-  wrap.appendChild(chartWrap);
-
-  // Master Table
-  const tableWrap = document.createElement("div");
-  tableWrap.className = "table-wrap";
-  const table = document.createElement("table");
-  table.className = "results-table";
-
-  const rows = records.map((r) => {
-    let srcHtml = "—";
-    if (r.source) {
-      const name = r.source.split("/").pop();
-      srcHtml =
-        `<a class="commit-link" href="/${r.source}" target="_blank" rel="noopener">${name}</a>`;
-    } else if (r.key === "js") {
-      srcHtml = `<span class="muted">JS baseline</span>`;
-    }
-
-    const dl = r.download;
-    const dlStatus = dl
-      ? (dl.isCached ? "⚡ Cache (0 B)" : `🌐 Network (${(dl.transferBytes / 1024).toFixed(1)} KB)`)
-      : "—";
-    const dlLatency = dl && dl.durationMs > 0 ? `${dl.durationMs.toFixed(1)} ms` : "< 1 ms";
-    const dlCell = dl
-      ? `<div>${dlStatus}</div><div><small class="muted">${dlLatency}</small></div>`
-      : "—";
-
-    const computeCell = typeof r.algoComputeMs === "number"
-      ? `${r.algoComputeMs.toFixed(2)} ms`
-      : "—";
-    const overheadCell = typeof r.domMs === "number"
-      ? `<div>${r.domMs.toFixed(2)} ms</div><div><small class="muted">Real DOM</small></div>`
-      : typeof r.pipelineOverheadMs === "number"
-      ? `<div>${
-        r.pipelineOverheadMs.toFixed(2)
-      } ms</div><div><small class="muted">Worker pipe</small></div>`
-      : "—";
-
-    const coldCell = typeof r.coldMs === "number" ? `${r.coldMs.toFixed(2)} ms` : "—";
-    const warmCell = typeof r.warmMedianMs === "number" ? `${r.warmMedianMs.toFixed(2)} ms` : "—";
-
-    return `
-      <tr data-engine="${r.key}">
-        <td><strong>${r.label}</strong></td>
-        <td><div>${srcHtml}</div><div><small><code>${r.toolchain}</code></small></div></td>
-        <td class="col-download">${dlCell}</td>
-        <td class="col-compute"><strong>${computeCell}</strong></td>
-        <td class="col-overhead">${overheadCell}</td>
-        <td>${coldCell}</td>
-        <td><strong>${warmCell}</strong></td>
-        <td><strong>${r.speedupRatio}</strong></td>
-      </tr>
-    `;
-  }).join("");
-
-  table.innerHTML = `
-    <caption>Unified Multi-Language Benchmark Comparison (${iterations}× iterations)</caption>
-    <thead>
-      <tr>
-        <th>Engine &amp; Language</th>
-        <th>Source &amp; Toolchain</th>
-        <th class="col-download">Download &amp; Cache</th>
-        <th class="col-compute">Pure Algorithmic Compute</th>
-        <th class="col-overhead">Pipeline / DOM Overhead</th>
-        <th>1st Run (Cold)</th>
-        <th>Median (Warm)</th>
-        <th>Speedup Ratio</th>
-      </tr>
-    </thead>
-    <tbody>${rows}</tbody>
-  `;
-  tableWrap.appendChild(table);
-  wrap.appendChild(tableWrap);
-
-  // CSV Data Export
-  const csvLines = [
-    [
-      "Engine",
-      "Language",
-      "Toolchain",
-      "DownloadStatus",
-      "WireBytes",
-      "LatencyMs",
-      "AlgorithmicComputeMs",
-      "PipelineOrDomOverheadMs",
-      "ColdMs",
-      "WarmMedianMs",
-      "SpeedupRatio",
-    ].join(","),
-  ];
-  for (const r of records) {
-    csvLines.push([
-      `"${r.label}"`,
-      `"${r.key}"`,
-      `"${r.toolchain}"`,
-      `"${r.download?.isCached ? "Cached" : "Network"}"`,
-      r.download?.transferBytes ?? 0,
-      r.download?.durationMs?.toFixed(2) ?? 0,
-      r.algoComputeMs?.toFixed(2) ?? "",
-      (r.domMs ?? r.pipelineOverheadMs)?.toFixed(2) ?? "",
-      r.coldMs?.toFixed(2) ?? "",
-      r.warmMedianMs?.toFixed(2) ?? "",
-      `"${r.speedupRatio}"`,
-    ].join(","));
-  }
-  const csvString = csvLines.join("\n");
-
-  const exportWrap = document.createElement("div");
-  exportWrap.className = "table-wrap";
-  exportWrap.innerHTML = `
-    <div class="results-filters">
-      <button type="button" class="copy-csv-btn">📋 Copy Raw CSV Data</button>
-      <button type="button" class="download-csv-btn">💾 Download CSV File</button>
-    </div>
-    <details>
-      <summary>View Raw Tabular Data</summary>
-      <pre><code>${csvString}</code></pre>
-    </details>
-  `;
-  wrap.appendChild(exportWrap);
-
-  // Wire Filter Clicks
-  const filterButtons = filterWrap.querySelectorAll("button[data-view]");
-  filterButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      filterButtons.forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      const mode = btn.dataset.view;
-      table.querySelectorAll(".col-download").forEach((c) => {
-        c.hidden = mode === "compute" || mode === "pipeline";
-      });
-      table.querySelectorAll(".col-compute").forEach((c) => {
-        c.hidden = mode === "network" || mode === "pipeline";
-      });
-      table.querySelectorAll(".col-overhead").forEach((c) => {
-        c.hidden = mode === "network" || mode === "compute";
-      });
-    });
-  });
-
-  // Wire Copy CSV
-  const copyBtn = exportWrap.querySelector(".copy-csv-btn");
-  if (copyBtn) {
-    copyBtn.addEventListener("click", async () => {
-      try {
-        await navigator.clipboard.writeText(csvString);
-        copyBtn.textContent = "✓ CSV Copied to Clipboard!";
-        setTimeout(() => {
-          copyBtn.textContent = "📋 Copy Raw CSV Data";
-        }, 2500);
-      } catch {
-        copyBtn.textContent = "Failed to copy";
-      }
-    });
+  const domRows = (byScope.domJourney ?? []).filter((r) => r.summary);
+  if (domRows.length > 1) {
+    const domHost = document.createElement("div");
+    domHost.innerHTML = barChartSvg(
+      domRows.map((r) => ({
+        label: r.label,
+        valueMs: r.summary.p50Ms,
+        lowMs: r.summary.ci95?.lowMs ?? null,
+        highMs: r.summary.ci95?.highMs ?? null,
+        kind: r.key === "js" ? "js" : "wasm",
+      })),
+      {
+        title: "Real-DOM journey — median per rendered journey",
+        caption:
+          "Each engine drove the same rendered UI through real DOM APIs in the iframe above.",
+      },
+    );
+    wrap.appendChild(domHost);
   }
 
-  // Wire Download CSV
-  const dlBtn = exportWrap.querySelector(".download-csv-btn");
-  if (dlBtn) {
-    dlBtn.addEventListener("click", () => {
-      const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${workloadSlug || "benchmark"}-results.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-    });
+  if (jsKernel && bestWasmKernel) {
+    const amortHost = document.createElement("div");
+    amortHost.innerHTML = amortizationChartSvg(
+      [jsKernel, bestWasmKernel].map((r) => ({
+        label: r.label,
+        deliveryMs: r.key === "js"
+          ? (primaryStats?.jsStats?.firstUse?.totalMs ?? 0)
+          : (primaryStats?.wasmStats?.firstUse?.totalMs ?? 0),
+        perMs: r.summary.p50Ms,
+        kind: r.key === "js" ? "js" : "wasm",
+      })),
+      {
+        title: `Cumulative time: JavaScript against ${bestWasmKernel.label}`,
+        caption:
+          "The marked point is where the compiled engine has repaid the cost of shipping and " +
+          "compiling it. Left of that point, JavaScript finishes the work sooner.",
+      },
+    );
+    wrap.appendChild(amortHost);
   }
 
-  // Set bar widths via CSSOM
-  wrap.querySelectorAll(".perf-bar[data-pct]").forEach((bar) => {
-    bar.style.width = `${bar.dataset.pct}%`;
-  });
+  const tables = document.createElement("div");
+  tables.innerHTML = available
+    .map((scopeId) =>
+      scopeTableHtml({
+        scopeId,
+        rows: byScope[scopeId],
+        baselineLabel: (byScope[scopeId].find((r) => r.key === "js")?.label) ?? "JavaScript",
+        iterations,
+      })
+    )
+    .join("");
+  wrap.appendChild(tables);
+
+  const missing = SCOPE_ORDER.filter((id) => !available.includes(id) && id !== "delivery");
+  if (missing.length > 0) {
+    const note = document.createElement("p");
+    note.className = "notice";
+    note.textContent = `Not measured on this page: ${
+      missing.map((id) => SCOPES[id].label).join(", ")
+    }. An absent scope is left absent rather than filled from another scope's numbers.`;
+    wrap.appendChild(note);
+  }
+
+  wrap.appendChild(
+    csvExportElement(
+      toCsv(explorerCsvRecords(byScope)),
+      `${workloadSlug || "benchmark"}-results.csv`,
+    ),
+  );
 
   flowEl.prepend(wrap);
 }

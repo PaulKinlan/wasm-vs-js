@@ -1,0 +1,145 @@
+// Coverage page — renders public/data/coverage.v1.json.
+//
+// Every number here is derived from the shipped pages and manifests by
+// scripts/build-coverage.ts. Nothing on this page is authored by hand.
+
+import { SCOPE_ORDER, SCOPES } from "/measurement-model.js";
+import { icon } from "/benchmark-report.js";
+
+const ENGINE_LABELS = {
+  js: "JavaScript",
+  wat: "WAT",
+  as: "AssemblyScript",
+  c: "C",
+  cpp: "C++",
+  rs: "Rust",
+  dart: "Dart/WasmGC",
+  kt: "Kotlin",
+};
+
+function esc(s) {
+  return String(s ?? "").replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c],
+  );
+}
+
+function cell(present) {
+  return present
+    ? `<td class="cov-yes" title="measured">${icon("check")}<span class="sr-only">yes</span></td>`
+    : `<td class="cov-no" title="no artifact">—</td>`;
+}
+
+function summaryCard(label, value, detail) {
+  return `<div class="decision-card">
+    <h4>${esc(label)}</h4>
+    <p class="decision-number">${esc(String(value))}</p>
+    <p class="decision-detail">${esc(detail)}</p>
+  </div>`;
+}
+
+async function main() {
+  const resp = await fetch("/data/coverage.v1.json", { cache: "no-store" });
+  if (!resp.ok) {
+    document.querySelector("#coverage-summary").textContent =
+      `Coverage data unavailable (${resp.status}).`;
+    return;
+  }
+  const data = await resp.json();
+  const engines = data.targetEngines;
+  const pages = data.pages;
+  const s = data.summary;
+
+  document.querySelector("#scope-glossary").innerHTML = SCOPE_ORDER.map((id) => {
+    const sc = SCOPES[id];
+    return `<div><dt>${esc(sc.label)}</dt><dd>${esc(sc.question)}
+      <br><small class="muted"><strong>Counts:</strong> ${esc(sc.includes)}
+      <strong>Excludes:</strong> ${esc(sc.excludes)}</small></dd></div>`;
+  }).join("");
+
+  document.querySelector("#coverage-summary").innerHTML = [
+    summaryCard(
+      "Pages",
+      s.pages,
+      `${s.distinctWorkloads} distinct workloads across ${s.pages} routes.`,
+    ),
+    summaryCard(
+      "With a kernel comparison",
+      `${s.withMultilang}/${s.pages}`,
+      "Pages that ship a multi-language manifest, so a kernel-scope comparison is possible.",
+    ),
+    summaryCard(
+      "All seven languages",
+      `${s.fullyCovered}/${s.pages}`,
+      `Pages measuring every one of ${engines.length}: ${
+        engines.map((e) => ENGINE_LABELS[e] ?? e).join(", ")
+      }.`,
+    ),
+    summaryCard(
+      "With a real-DOM stage",
+      `${s.withDomStage}/${s.pages}`,
+      "Pages that drive a rendered UI through real DOM APIs rather than computing a model.",
+    ),
+    summaryCard(
+      "Duplicate routes",
+      s.duplicates,
+      "Routes serving a workload another route already serves.",
+    ),
+  ].join("");
+
+  // Language matrix.
+  document.querySelector("#engine-matrix-head").innerHTML = `<tr>
+    <th scope="col">Page</th>
+    ${engines.map((e) => `<th scope="col">${esc(ENGINE_LABELS[e] ?? e)}</th>`).join("")}
+    <th scope="col">Missing</th>
+  </tr>`;
+  const withMl = pages.filter((p) => p.engines.length > 0);
+  document.querySelector("#engine-matrix-body").innerHTML = withMl.map((p) =>
+    `<tr>
+      <th scope="row"><a href="${esc(p.route)}">${esc(p.title)}</a>
+        <br><small class="muted"><code>${esc(p.route)}</code></small></th>
+      ${engines.map((e) => cell(p.engines.includes(e))).join("")}
+      <td>${
+      p.missingEngines.length === 0
+        ? "<strong>complete</strong>"
+        : esc(p.missingEngines.map((e) => ENGINE_LABELS[e] ?? e).join(", "))
+    }</td>
+    </tr>`
+  ).join("") +
+    (pages.length > withMl.length
+      ? `<tr><th scope="row" colspan="${engines.length + 2}"><em>${
+        pages.length - withMl.length
+      } pages ship no multi-language manifest and have no kernel-scope evidence.</em></th></tr>`
+      : "");
+
+  // Scope matrix.
+  document.querySelector("#scope-matrix-head").innerHTML = `<tr>
+    <th scope="col">Page</th>
+    ${SCOPE_ORDER.map((id) => `<th scope="col">${esc(SCOPES[id].label)}</th>`).join("")}
+  </tr>`;
+  document.querySelector("#scope-matrix-body").innerHTML = pages.map((p) =>
+    `<tr>
+      <th scope="row"><a href="${esc(p.route)}">${esc(p.title)}</a></th>
+      ${SCOPE_ORDER.map((id) => cell(p.scopes.includes(id))).join("")}
+    </tr>`
+  ).join("");
+
+  // Duplicates.
+  const dupes = pages.filter((p) => p.duplicateOf);
+  document.querySelector("#dupes-intro").textContent = dupes.length === 0
+    ? "No route duplicates another. Every workload is served from one page."
+    : `${dupes.length} routes serve a workload that another route already serves. Each pair means ` +
+      "two pages to keep in step, and two places a fix has to land.";
+  document.querySelector("#dupes-body").innerHTML = dupes.map((p) =>
+    `<tr>
+      <td><a href="${esc(p.route)}"><code>${esc(p.route)}</code></a></td>
+      <td>${esc(p.slug)}</td>
+      <td><a href="${esc(p.duplicateOf)}"><code>${esc(p.duplicateOf)}</code></a></td>
+    </tr>`
+  ).join("");
+}
+
+main().catch((err) => {
+  const el = document.querySelector("#coverage-summary");
+  if (el) el.textContent = `Coverage page failed: ${err.message}`;
+});

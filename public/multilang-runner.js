@@ -6341,6 +6341,9 @@ async function benchmarkOne(fn, iterations) {
     medianMs: median(samples),
     minMs: Math.min(...samples),
     maxMs: Math.max(...samples),
+    // Retained so the report can compute a confidence interval rather than
+    // presenting a bare median as if it were exact.
+    samples,
   };
 }
 

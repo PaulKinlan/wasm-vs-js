@@ -15,18 +15,22 @@ import {
 const WORKLOAD = "dom-table-sort-filter-pagination";
 
 function median(values) {
-  if (values.length === 0) return 0;
+  if (values.length === 0) return null;
   const sorted = [...values].sort((a, b) => a - b);
   return sorted[Math.floor(sorted.length / 2)];
 }
 
 function statsFor(runs) {
+  if (!runs || runs.length === 0) return null;
   const sorted = [...runs].sort((a, b) => a - b);
   return {
     coldMs: runs[0],
     warmMedianMs: median(runs),
     minMs: sorted[0],
     maxMs: sorted[sorted.length - 1],
+    // The parent computes confidence intervals from these; a median alone
+    // cannot say whether a difference was measured or observed once.
+    samples: sorted,
   };
 }
 
