@@ -455,7 +455,13 @@ async function executeWorkerLoop(slug, target, iterations = 30, onProgress = () 
     config.prepared = await prepareSqliteRuntime();
   }
 
+  // Track network resources loaded during this execution run
+  const resourceStartIndex = typeof performance !== "undefined" && performance.getEntriesByType
+    ? performance.getEntriesByType("resource").length
+    : 0;
+
   const durations = [];
+  const computeDurations = [];
   let lastResult = null;
 
   for (let i = 0; i < loopCount; i++) {
@@ -499,7 +505,13 @@ async function executeWorkerLoop(slug, target, iterations = 30, onProgress = () 
           clearTimeout(timeoutTimer);
           const time = performance.now() - startTime;
           worker.terminate();
-          if (msg.result) lastResult = msg.result;
+          if (msg.result) {
+            lastResult = msg.result;
+            const computeTime = extractComputeMs(msg.result, target);
+            if (typeof computeTime === "number" && !isNaN(computeTime)) {
+              computeDurations.push(computeTime);
+            }
+          }
           resolve(time);
         } else if (msg.type === "failed" || msg.type === "error" || msg.ok === false) {
           clearTimeout(timeoutTimer);
@@ -522,6 +534,33 @@ async function executeWorkerLoop(slug, target, iterations = 30, onProgress = () 
     onProgress({ iteration: i + 1, total: loopCount, target });
   }
 
+  // Collect any network resources requested by this run (wasm, worker, data fixtures)
+  const allResources = typeof performance !== "undefined" && performance.getEntriesByType
+    ? performance.getEntriesByType("resource")
+    : [];
+  const newResources = allResources.slice(resourceStartIndex);
+  const relevantResources = newResources.filter((r) =>
+    r.name.includes(".wasm") ||
+    r.name.includes("worker") ||
+    r.name.includes(".f64") ||
+    r.name.includes(".f32") ||
+    r.name.includes(".bin") ||
+    r.name.includes(".pcap") ||
+    r.name.includes(".json") ||
+    r.name.includes("/artifacts/") ||
+    r.name.includes("/benchmarks/") ||
+    r.name.includes("/dom-hosts/")
+  );
+
+  const networkAssets = relevantResources.map((r) => ({
+    name: r.name.split("/").pop()?.split("?")[0] || r.name,
+    fullUrl: r.name,
+    transferBytes: r.transferSize || 0,
+    decodedBytes: r.decodedBodySize || 0,
+    durationMs: r.duration || 0,
+    isCached: (r.transferSize === 0 && r.decodedBodySize > 0) || r.duration < 2,
+  }));
+
   const coldMs = durations[0];
   const warmMsList = durations.slice(1);
   const sortedWarm = [...warmMsList].sort((a, b) => a - b);
@@ -531,15 +570,47 @@ async function executeWorkerLoop(slug, target, iterations = 30, onProgress = () 
   const minMs = Math.min(...durations);
   const maxMs = Math.max(...durations);
 
+  const sortedCompute = [...computeDurations].sort((a, b) => a - b);
+  const computeMedianMs = sortedCompute.length > 0
+    ? sortedCompute[Math.floor(sortedCompute.length / 2)]
+    : null;
+
   return {
     coldMs,
     warmMedianMs,
     minMs,
     maxMs,
     samples: durations,
+    computeColdMs: computeDurations.length > 0 ? computeDurations[0] : null,
+    computeMedianMs,
+    computeSamples: computeDurations.length > 0 ? computeDurations : null,
     iterations: durations.length,
+    networkAssets,
     lastResult,
   };
+}
+
+// Safely extract worker-internal pure compute measurement if reported
+function extractComputeMs(res, target) {
+  if (!res || typeof res !== "object") return null;
+  const isWasm = target.includes("wasm");
+  if (isWasm) {
+    if (typeof res.wasm?.ms === "number") return res.wasm.ms;
+    if (typeof res.wasm?.ms === "string" && !isNaN(parseFloat(res.wasm.ms))) {
+      return parseFloat(res.wasm.ms);
+    }
+  } else {
+    if (typeof res.js?.ms === "number") return res.js.ms;
+    if (typeof res.js?.ms === "string" && !isNaN(parseFloat(res.js.ms))) {
+      return parseFloat(res.js.ms);
+    }
+  }
+  if (typeof res.computeMs === "number") return res.computeMs;
+  if (typeof res.executionMs === "number") return res.executionMs;
+  if (typeof res.durationMs === "number") return res.durationMs;
+  if (typeof res.ms === "number") return res.ms;
+  if (typeof res.ms === "string" && !isNaN(parseFloat(res.ms))) return parseFloat(res.ms);
+  return null;
 }
 
 // Render clean, visual comparative bar graph & statistics table
@@ -620,7 +691,30 @@ function renderPerformanceReport(container, jsStats, wasmStats, iterations) {
     </div>
   `;
 
+  const hasCompute = typeof jsStats?.computeMedianMs === "number" ||
+    typeof wasmStats?.computeMedianMs === "number";
+  const computeTh = hasCompute ? `<th>Raw Compute (Worker)</th>` : "";
+  const jsComputeTd = hasCompute
+    ? `<td>${
+      typeof jsStats?.computeMedianMs === "number"
+        ? jsStats.computeMedianMs.toFixed(2) + " ms"
+        : "—"
+    }</td>`
+    : "";
+  const wasmComputeTd = hasCompute
+    ? `<td>${
+      typeof wasmStats?.computeMedianMs === "number"
+        ? wasmStats.computeMedianMs.toFixed(2) + " ms"
+        : "—"
+    }</td>`
+    : "";
+
   const tableHtml = `
+    <div class="execution-context-badge">
+      <p class="notice">
+        <strong>📦 Execution Level: Web Worker Pipeline (End-to-End)</strong> — Measures complete worker task dispatch, asset loading, memory transfers, compute execution, and oracle validation.
+      </p>
+    </div>
     <div class="table-wrap">
       <table class="results-table">
         <caption>Benchmark Suite Loop Execution Results (${iterations}× iterations)</caption>
@@ -629,6 +723,7 @@ function renderPerformanceReport(container, jsStats, wasmStats, iterations) {
             <th>Target Engine</th>
             <th>1st Run (Cold)</th>
             <th>Median (${iterations}× Warm)</th>
+            ${computeTh}
             <th>Fastest (Min)</th>
             <th>Slowest (Max)</th>
             <th>Speedup Ratio</th>
@@ -639,6 +734,7 @@ function renderPerformanceReport(container, jsStats, wasmStats, iterations) {
             <td><strong>JavaScript</strong></td>
             <td>${jsStats.coldMs.toFixed(2)} ms</td>
             <td>${jsWarm.toFixed(2)} ms</td>
+            ${jsComputeTd}
             <td>${jsStats.minMs.toFixed(2)} ms</td>
             <td>${jsStats.maxMs.toFixed(2)} ms</td>
             <td>1.00× (Baseline)</td>
@@ -647,6 +743,7 @@ function renderPerformanceReport(container, jsStats, wasmStats, iterations) {
             <td><strong>WebAssembly</strong></td>
             <td>${wasmStats.coldMs.toFixed(2)} ms</td>
             <td>${wasmWarm.toFixed(2)} ms</td>
+            ${wasmComputeTd}
             <td>${wasmStats.minMs.toFixed(2)} ms</td>
             <td>${wasmStats.maxMs.toFixed(2)} ms</td>
             <td><strong>${ratio}×</strong></td>
@@ -663,6 +760,11 @@ function renderPerformanceReport(container, jsStats, wasmStats, iterations) {
       <strong>Reading the metrics:</strong>
       <strong>1st Run (Cold)</strong> measures initial pre-JIT execution before engine optimizations.
       <strong>Median (${iterations}× Warm)</strong> reflects steady-state throughput after JIT tier-up.
+      ${
+    hasCompute
+      ? "<strong>Raw Compute</strong> isolates pure algorithm execution inside the worker from message transfer overhead. "
+      : ""
+  }
       <strong>Fastest (Min) / Slowest (Max)</strong> show execution variance and GC pauses.
     </p>
   `;
@@ -689,42 +791,83 @@ function lifecyclePhaseCell(value) {
 
 // Cold-start phase breakdown for the playground report. Rendered from the
 // retained lifecycle block when the run carried one; otherwise the phase cells
-// are marked "not collected" — never invented. Cold = first pre-JIT run;
-// the phases below are what that first run cost, broken out so a Wasm-vs-JS
-// difference can be traced to transfer, compile, instantiate, or first execute.
+// are marked "not collected" — never invented. Also renders the Universal
+// Asset Downloads, Caching & Resource Timing Audit from browser performance entries.
 function renderLifecycleBreakdown(jsStats, wasmStats) {
+  const parts = [];
   const jsLifecycle = jsStats?.lastResult?.lifecycle;
   const wasmLifecycle = wasmStats?.lastResult?.lifecycle;
-  if (!jsLifecycle && !wasmLifecycle) return "";
-  const row = (label, jsValue, wasmValue) =>
-    `<tr><td>${label}</td><td>${lifecyclePhaseCell(jsValue)}</td><td>${
-      lifecyclePhaseCell(wasmValue)
-    }</td></tr>`;
-  return `<div class="table-wrap lifecycle-breakdown">
-    <table class="results-table">
-      <caption>First-use lifecycle breakdown · cold = first pre-JIT run</caption>
-      <thead><tr><th>Phase</th><th>JavaScript</th><th>WebAssembly</th></tr></thead>
-      <tbody>
-        ${
-    row("Manifest transfer", jsLifecycle?.manifestTransferMs, wasmLifecycle?.manifestTransferMs)
+  if (jsLifecycle || wasmLifecycle) {
+    const row = (label, jsValue, wasmValue) =>
+      `<tr><td>${label}</td><td>${lifecyclePhaseCell(jsValue)}</td><td>${
+        lifecyclePhaseCell(wasmValue)
+      }</td></tr>`;
+    parts.push(`<div class="table-wrap lifecycle-breakdown">
+      <table class="results-table">
+        <caption>First-use lifecycle breakdown · cold = first pre-JIT run</caption>
+        <thead><tr><th>Phase</th><th>JavaScript</th><th>WebAssembly</th></tr></thead>
+        <tbody>
+          ${
+      row("Manifest transfer", jsLifecycle?.manifestTransferMs, wasmLifecycle?.manifestTransferMs)
+    }
+          ${
+      row(
+        "Manifest network (Resource Timing)",
+        jsLifecycle?.manifestNetworkMs,
+        wasmLifecycle?.manifestNetworkMs,
+      )
+    }
+          ${row("Module transfer", jsLifecycle?.jsTransferMs, wasmLifecycle?.wasmTransferMs)}
+          ${
+      row(
+        "Module network (Resource Timing)",
+        jsLifecycle?.jsNetworkMs,
+        wasmLifecycle?.wasmNetworkMs,
+      )
+    }
+          ${row("Compile", "—", wasmLifecycle?.wasmCompileMs)}
+          ${row("Instantiate", "—", wasmLifecycle?.wasmInstantiateMs)}
+          ${row("First execute", jsLifecycle?.jsFirstExecuteMs, wasmLifecycle?.wasmFirstExecuteMs)}
+        </tbody>
+      </table>
+    </div>`);
   }
-        ${
-    row(
-      "Manifest network (Resource Timing)",
-      jsLifecycle?.manifestNetworkMs,
-      wasmLifecycle?.manifestNetworkMs,
-    )
+
+  // Universal Asset Downloads, Caching & Resource Timing Audit
+  const jsAssets = jsStats?.networkAssets ?? [];
+  const wasmAssets = wasmStats?.networkAssets ?? [];
+  const assetsMap = new Map();
+  for (const a of [...jsAssets, ...wasmAssets]) {
+    if (!assetsMap.has(a.name)) assetsMap.set(a.name, a);
   }
-        ${row("Module transfer", jsLifecycle?.jsTransferMs, wasmLifecycle?.wasmTransferMs)}
-        ${
-    row("Module network (Resource Timing)", jsLifecycle?.jsNetworkMs, wasmLifecycle?.wasmNetworkMs)
+  const assets = Array.from(assetsMap.values());
+  if (assets.length > 0) {
+    const rows = assets.map((a) => {
+      const statusText = a.isCached
+        ? `⚡ Browser Cache (0 B wire transfer)`
+        : `🌐 Network Fetch (${(a.transferBytes / 1024).toFixed(1)} KB wire)`;
+      const decoded = a.decodedBytes > 0 ? `${(a.decodedBytes / 1024).toFixed(1)} KB` : "—";
+      const duration = a.durationMs > 0 ? `${a.durationMs.toFixed(2)} ms` : "< 1 ms";
+      return `<tr><td><code>${a.name}</code></td><td>${statusText}</td><td>${decoded}</td><td>${duration}</td></tr>`;
+    }).join("");
+
+    parts.push(`<div class="table-wrap">
+      <table class="results-table">
+        <caption>Asset Downloads, Caching &amp; Network Resource Timing</caption>
+        <thead>
+          <tr>
+            <th>Asset / Resource</th>
+            <th>Delivery &amp; Cache Status</th>
+            <th>Decoded Size</th>
+            <th>Fetch Latency</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`);
   }
-        ${row("Compile", "—", wasmLifecycle?.wasmCompileMs)}
-        ${row("Instantiate", "—", wasmLifecycle?.wasmInstantiateMs)}
-        ${row("First execute", jsLifecycle?.jsFirstExecuteMs, wasmLifecycle?.wasmFirstExecuteMs)}
-      </tbody>
-    </table>
-  </div>`;
+
+  return parts.join("");
 }
 
 // Auto-initialize benchmark detail page runner

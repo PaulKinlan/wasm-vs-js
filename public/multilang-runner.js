@@ -6489,13 +6489,28 @@ function renderTables(container, manifest, resultsByKernel, iterations, { headin
     : (container.querySelector("h2, h3")
       ? ""
       : `<h3 class="multilang-heading">Multi-language comparison</h3>`);
-  container.innerHTML = headingHtml + tables.join("") +
-    `<p class="notice">
-      <strong>Scope note:</strong> The multi-language comparison isolates the pure mathematical kernel (${
-      manifest.kernelLabel ?? "inner compute loop"
-    }) across compiled language toolchains in tab memory, distinct from the primary benchmark's end-to-end Web Worker model.
-      All timings are measured in this browser tab for this session and are exploratory.
-    </p>`;
+
+  const contextBadgeHtml = `
+    <div class="execution-context-badge">
+      <p class="notice">
+        <strong>⚡ Execution Level: In-Page Function Kernel (Isolated Compute)</strong> — Measures direct in-memory function calls in the main thread without worker messaging, memory serialization, or network overhead.
+      </p>
+    </div>
+  `;
+
+  const comparisonExplanationHtml = `
+    <p class="notice">
+      <strong>Why do these numbers differ from the primary benchmark above?</strong>
+      The primary benchmark measures the realistic <strong>Web Worker Pipeline</strong> (task dispatch, asset retrieval, inputs serialization, full model dimensions, and oracle validation).
+      This multi-language comparison isolates the pure <strong>arithmetic CPU kernel</strong> (${
+    manifest.kernelLabel ?? "inner compute loop"
+  }) across compiled language toolchains in main-thread memory.
+      Both numbers are essential: the pipeline captures real-world application latency, while this table isolates raw compiler and execution efficiency.
+    </p>
+  `;
+
+  container.innerHTML = headingHtml + contextBadgeHtml + tables.join("") +
+    comparisonExplanationHtml;
   container.querySelectorAll(".perf-bar[data-pct]").forEach((bar) => {
     bar.style.width = `${bar.dataset.pct}%`; // CSSOM — CSP style-src 'self'
   });
