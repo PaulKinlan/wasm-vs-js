@@ -658,7 +658,16 @@ function renderPerformanceReport(container, jsStats, wasmStats, iterations) {
 
   const lifecycleHtml = renderLifecycleBreakdown(jsStats, wasmStats);
 
-  container.innerHTML = speedupBadgeHtml + graphHtml + tableHtml + lifecycleHtml;
+  const metricsGuideHtml = `
+    <p class="notice">
+      <strong>Reading the metrics:</strong>
+      <strong>1st Run (Cold)</strong> measures initial pre-JIT execution before engine optimizations.
+      <strong>Median (${iterations}× Warm)</strong> reflects steady-state throughput after JIT tier-up.
+      <strong>Fastest (Min) / Slowest (Max)</strong> show execution variance and GC pauses.
+    </p>
+  `;
+
+  container.innerHTML = speedupBadgeHtml + graphHtml + tableHtml + lifecycleHtml + metricsGuideHtml;
   container.querySelectorAll(".perf-bar[data-pct]").forEach((bar) => {
     bar.style.width = `${bar.dataset.pct}%`;
   });

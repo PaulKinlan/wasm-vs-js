@@ -13,6 +13,15 @@
       "source": ""
     },
     {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "url": "/artifacts/v2/ml-dense-mlp/ml-dense-mlp.wasm",
+      "source": "benchmarks/v2/ml-dense-mlp/ml-dense-mlp.wat"
+    },
+    {
       "key": "c",
       "label": "C / Wasm",
       "kind": "linear",

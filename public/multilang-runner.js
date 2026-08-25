@@ -3536,6 +3536,44 @@ export const KERNEL_ADAPTERS = {
           },
         };
       }
+      if (mods.engines.wat) {
+        const inst = mods.engines.wat.instances.mlp_forward?.instance;
+        if (inst) {
+          const exp = inst.exports;
+          const mem = exp.memory;
+          callables.wat = {
+            mlp_forward: () => {
+              const { x, w, bias } = inputs();
+              const heap = new Float32Array(mem.buffer);
+              const xOff = 0, wOff = xOff + B * W * 4, biasOff = wOff + LAYERS * W * W * 4;
+              const sAOff = biasOff + LAYERS * W * 4,
+                sBOff = sAOff + B * W * 4,
+                yOff = sBOff + B * W * 4;
+              heap.set(x, xOff / 4);
+              heap.set(w, wOff / 4);
+              heap.set(bias, biasOff / 4);
+              if (exp.mlp_forward) {
+                exp.mlp_forward(xOff, wOff, biasOff, sAOff, sBOff, yOff, B, W, HIDDEN);
+              } else if (exp.linear_f32 && exp.gelu_f32) {
+                let inOff = xOff;
+                for (let layer = 0; layer < LAYERS; layer++) {
+                  const outOff = layer === LAYERS - 1 ? yOff : layer % 2 === 0 ? sAOff : sBOff;
+                  exp.linear_f32(
+                    inOff,
+                    wOff + layer * W * W * 4,
+                    biasOff + layer * W * 4,
+                    outOff,
+                    B,
+                    W,
+                  );
+                  if (layer < LAYERS - 1) exp.gelu_f32(outOff, B * W);
+                  inOff = outOff;
+                }
+              }
+            },
+          };
+        }
+      }
       callables.js = {
         mlp_forward: () => {
           const { x, w, bias } = inputs();
@@ -6234,7 +6272,9 @@ export async function loadEngines(manifest) {
       // Linear engines use one wasm per kernel: <kernel>_<lang>.wasm unless the
       // engine pins a file per kernel via engine.files.
       const file = engine.files?.[kernel] ?? `${kernel}_${engine.lang}.wasm`;
-      const bytes = await fetchBytes(base, file);
+      const bytes = engine.url
+        ? new Uint8Array(await (await fetch(engine.url, { cache: "no-store" })).arrayBuffer())
+        : await fetchBytes(base, file);
       // Some AssemblyScript kernels emit an env.abort import (bounds-check
       // safety). Pass a benign import object so they instantiate; abort is
       // never invoked by a correct kernel.
@@ -6450,9 +6490,12 @@ function renderTables(container, manifest, resultsByKernel, iterations, { headin
       ? ""
       : `<h3 class="multilang-heading">Multi-language comparison</h3>`);
   container.innerHTML = headingHtml + tables.join("") +
-    `<p class="notice">All timings are measured in this browser tab for this session. They are
-      exploratory and depend on engine, device, and load. Per-variant arithmetic semantics are
-      disclosed in the report.</p>`;
+    `<p class="notice">
+      <strong>Scope note:</strong> The multi-language comparison isolates the pure mathematical kernel (${
+      manifest.kernelLabel ?? "inner compute loop"
+    }) across compiled language toolchains in tab memory, distinct from the primary benchmark's end-to-end Web Worker model.
+      All timings are measured in this browser tab for this session and are exploratory.
+    </p>`;
   container.querySelectorAll(".perf-bar[data-pct]").forEach((bar) => {
     bar.style.width = `${bar.dataset.pct}%`; // CSSOM — CSP style-src 'self'
   });
