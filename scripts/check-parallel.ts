@@ -206,6 +206,10 @@ const staticStages: Stage[] = [
     name: "runner-checkjs",
     args: [
       "check",
+      // A second --config re-resolves npm deps and rewrites deno.lock, which
+      // then fails every hash-pinned manifest test in the same run. The test
+      // stages below use --no-lock for the same reason.
+      "--no-lock",
       "--config",
       "tsconfig.runners.json",
       "public/measurement-model.js",
