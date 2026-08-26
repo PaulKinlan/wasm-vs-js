@@ -31,6 +31,7 @@ const DEFAULT_PAGES = [
   "ml-dense-mlp",
   "ml-gemm",
   "ml-numeric-kernels-v1",
+  "multilang-wasm",
   "numeric.polybench-panel.v1",
   "serialization.json-telemetry.v1",
   "simulation-nbody-cloth",

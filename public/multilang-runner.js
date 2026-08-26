@@ -83,6 +83,59 @@ export function requireEngineAgreement(label, probes, expected) {
   return agreed;
 }
 
+/**
+ * The four-term f32 Taylor sine the linear-memory FFT kernels use, in place of
+ * libm (see fft_kernel.c's sinf_custom).
+ *
+ * Two adapters compare against those kernels, and both had reimplemented the
+ * twiddle factors with Math.sin/Math.cos in f64 — computing a different
+ * transform and reporting the difference in cost as a language difference.
+ * One definition, so a third adapter cannot drift the same way.
+ */
+const F32_PI = Math.fround(3.14159265358979323846);
+const F32_HALF_PI = Math.fround(1.57079632679489661923);
+const F32_TWO_PI = Math.fround(2 * F32_PI);
+
+export function taylorSinF32(x) {
+  const fr = Math.fround;
+  while (x > F32_PI) x = fr(x - F32_TWO_PI);
+  while (x < -F32_PI) x = fr(x + F32_TWO_PI);
+  const x2 = fr(x * x), x3 = fr(x * x2), x5 = fr(x3 * x2), x7 = fr(x5 * x2);
+  return fr(fr(fr(x - fr(x3 / fr(6))) + fr(x5 / fr(120))) - fr(x7 / fr(5040)));
+}
+
+export function taylorCosF32(x) {
+  return taylorSinF32(Math.fround(x + F32_HALF_PI));
+}
+
+/**
+ * The kernels' radix-2 butterfly in strict f32, over interleaved real/imag
+ * arrays. Shared for the same reason as the sine above.
+ */
+export function fftButterflyF32(real, imag, length) {
+  const fr = Math.fround;
+  for (let step = 1; step < length; step <<= 1) {
+    const angle = fr(-F32_PI / fr(step));
+    const wReal = taylorCosF32(angle), wImag = taylorSinF32(angle);
+    for (let i = 0; i < length; i += step << 1) {
+      let cwR = fr(1), cwI = fr(0);
+      for (let j = 0; j < step; j++) {
+        const u = i + j, v = i + j + step;
+        const tr = fr(fr(real[v] * cwR) - fr(imag[v] * cwI));
+        const ti = fr(fr(real[v] * cwI) + fr(imag[v] * cwR));
+        real[v] = fr(real[u] - tr);
+        imag[v] = fr(imag[u] - ti);
+        real[u] = fr(real[u] + tr);
+        imag[u] = fr(imag[u] + ti);
+        const nwR = fr(fr(cwR * wReal) - fr(cwI * wImag));
+        const nwI = fr(fr(cwR * wImag) + fr(cwI * wReal));
+        cwR = nwR;
+        cwI = nwI;
+      }
+    }
+  }
+}
+
 export const KERNEL_ADAPTERS = {
   "ml.keyword-spotting.v1": {
     kernels: ["kws_run"],
@@ -1909,40 +1962,9 @@ export const KERNEL_ADAPTERS = {
       // computing a different transform from the four engines it was being
       // compared against — a different answer at a different cost, reported as
       // a language difference. It now runs the same series in the same
-      // precision, and agreement is checked below.
-      const fr = Math.fround;
-      const PI = fr(3.14159265358979323846);
-      const HALF_PI = fr(1.57079632679489661923);
-      const TWO_PI = fr(2 * PI);
-      function sinf(x) {
-        while (x > PI) x = fr(x - TWO_PI);
-        while (x < -PI) x = fr(x + TWO_PI);
-        const x2 = fr(x * x), x3 = fr(x * x2), x5 = fr(x3 * x2), x7 = fr(x5 * x2);
-        return fr(fr(fr(x - fr(x3 / fr(6))) + fr(x5 / fr(120))) - fr(x7 / fr(5040)));
-      }
-      const cosf = (x) => sinf(fr(x + HALF_PI));
-      function jsFft(real, imag) {
-        for (let step = 1; step < LEN; step <<= 1) {
-          const angle = fr(-PI / fr(step));
-          const wReal = cosf(angle), wImag = sinf(angle);
-          for (let i = 0; i < LEN; i += step << 1) {
-            let cwR = fr(1), cwI = fr(0);
-            for (let j = 0; j < step; j++) {
-              const u = i + j, v = i + j + step;
-              const tr = fr(fr(real[v] * cwR) - fr(imag[v] * cwI));
-              const ti = fr(fr(real[v] * cwI) + fr(imag[v] * cwR));
-              real[v] = fr(real[u] - tr);
-              imag[v] = fr(imag[u] - ti);
-              real[u] = fr(real[u] + tr);
-              imag[u] = fr(imag[u] + ti);
-              const nwR = fr(fr(cwR * wReal) - fr(cwI * wImag));
-              const nwI = fr(fr(cwR * wImag) + fr(cwI * wReal));
-              cwR = nwR;
-              cwI = nwI;
-            }
-          }
-        }
-      }
+      // precision, and agreement is checked below. The butterfly itself lives
+      // in fftButterflyF32 so the two adapters that need it share one copy.
+      const jsFft = (real, imag) => fftButterflyF32(real, imag, LEN);
       const spectrumDigest = (real, imag) => {
         const bytes = new Uint8Array(LEN * 8);
         bytes.set(new Uint8Array(real.buffer, real.byteOffset, LEN * 4), 0);
@@ -2822,7 +2844,29 @@ export const KERNEL_ADAPTERS = {
   "multilang-wasm": {
     kernels: ["sum", "fft"],
     build(mods) {
+      const LEN = 512, COUNT = 1000;
+      const sumInput = () => {
+        const values = new Uint32Array(COUNT);
+        for (let i = 0; i < COUNT; i++) values[i] = (i % 100) + 1;
+        return values;
+      };
+      const fftInput = () => {
+        const real = new Float32Array(LEN), imag = new Float32Array(LEN);
+        for (let i = 0; i < LEN; i++) {
+          real[i] = Math.sin(i * 0.1);
+          imag[i] = Math.cos(i * 0.1);
+        }
+        return { real, imag };
+      };
+      const spectrumDigest = (real, imag) => {
+        const bytes = new Uint8Array(LEN * 8);
+        bytes.set(new Uint8Array(real.buffer, real.byteOffset, LEN * 4), 0);
+        bytes.set(new Uint8Array(imag.buffer, imag.byteOffset, LEN * 4), LEN * 4);
+        return fnv1aBytes(bytes);
+      };
       const callables = {};
+      const sumProbes = {};
+      const fftProbes = {};
       for (const key of ["wat", "asc", "c", "cpp", "rs"]) {
         if (!mods.engines[key]) continue;
         const cfg = mods.manifest.engines.find((e) => e.key === key);
@@ -2830,28 +2874,31 @@ export const KERNEL_ADAPTERS = {
         const { instances } = mods.engines[key];
         const call = {};
         if (instances.sum) {
+          const exports = instances.sum.instance.exports;
           call.sum = () => {
-            const arr = new Uint32Array(1000);
-            for (let i = 0; i < 1000; i++) arr[i] = (i % 100) + 1;
-            new Uint32Array(instances.sum.instance.exports.memory.buffer, cfg.offset, 1000).set(
-              arr,
-            );
-            return instances.sum.instance.exports.sum_u32(cfg.offset, 1000);
+            new Uint32Array(exports.memory.buffer, cfg.offset, COUNT).set(sumInput());
+            return Number(exports.sum_u32(cfg.offset, COUNT));
           };
+          sumProbes[key] = () => call.sum() >>> 0;
         }
         if (instances.fft) {
-          call.fft = () => {
-            const real = new Float32Array(512);
-            const imag = new Float32Array(512);
-            for (let i = 0; i < 512; i++) {
-              real[i] = Math.sin(i * 0.1);
-              imag[i] = Math.cos(i * 0.1);
-            }
-            const mem = instances.fft.instance.exports.memory;
-            new Float32Array(mem.buffer, cfg.offset, 512).set(real);
-            new Float32Array(mem.buffer, cfg.offset + 512 * 4, 512).set(imag);
-            instances.fft.instance.exports.fft_butterfly(cfg.offset, cfg.offset + 512 * 4, 512);
-            return real[17] + imag[29];
+          const exports = instances.fft.instance.exports;
+          const run = () => {
+            const { real, imag } = fftInput();
+            new Float32Array(exports.memory.buffer, cfg.offset, LEN).set(real);
+            new Float32Array(exports.memory.buffer, cfg.offset + LEN * 4, LEN).set(imag);
+            exports.fft_butterfly(cfg.offset, cfg.offset + LEN * 4, LEN);
+          };
+          call.fft = run;
+          fftProbes[key] = () => {
+            run();
+            // The old callable returned real[17] + imag[29] read from the
+            // local input arrays, which the kernel never touched — a value
+            // computed from the input, reported as the result. The spectrum
+            // is read back out of the module's own memory.
+            return fnv1aBytes(
+              new Uint8Array(exports.memory.buffer, cfg.offset, LEN * 8).slice(),
+            );
           };
         }
         callables[key] = call;
@@ -2859,66 +2906,47 @@ export const KERNEL_ADAPTERS = {
       const { kernels } = mods.engines.dart ?? { kernels: {} };
       callables.js = {
         sum: () => {
-          const arr = new Uint32Array(1000);
-          for (let i = 0; i < 1000; i++) arr[i] = (i % 100) + 1;
-          let s = 0;
-          for (let i = 0; i < 1000; i++) s += arr[i];
-          return s;
+          const values = sumInput();
+          let total = 0;
+          for (let i = 0; i < COUNT; i++) total += values[i];
+          return total;
         },
+        // This had the same defect as audio.fft.v1: Math.sin/Math.cos in f64
+        // against kernels using a four-term f32 Taylor series, so it computed
+        // a different transform and the difference in cost was reported as a
+        // language difference. Both now call the one shared butterfly.
         fft: () => {
-          const real = new Float32Array(512);
-          const imag = new Float32Array(512);
-          for (let i = 0; i < 512; i++) {
-            real[i] = Math.sin(i * 0.1);
-            imag[i] = Math.cos(i * 0.1);
-          }
-          for (let step = 1; step < 512; step <<= 1) {
-            const angle = -Math.PI / step;
-            const wReal = Math.cos(angle);
-            const wImag = Math.sin(angle);
-            for (let i = 0; i < 512; i += step << 1) {
-              let cwR = 1.0, cwI = 0.0;
-              for (let j = 0; j < step; j++) {
-                const u = i + j, v = i + j + step;
-                const tr = real[v] * cwR - imag[v] * cwI;
-                const ti = real[v] * cwI + imag[v] * cwR;
-                real[v] = real[u] - tr;
-                imag[v] = imag[u] - ti;
-                real[u] += tr;
-                imag[u] += ti;
-                const nwR = cwR * wReal - cwI * wImag;
-                const nwI = cwR * wImag + cwI * wReal;
-                cwR = nwR;
-                cwI = nwI;
-              }
-            }
-          }
-          return real[17] + imag[29];
+          const { real, imag } = fftInput();
+          fftButterflyF32(real, imag, LEN);
         },
+      };
+      sumProbes.js = () => callables.js.sum() >>> 0;
+      fftProbes.js = () => {
+        const { real, imag } = fftInput();
+        fftButterflyF32(real, imag, LEN);
+        return spectrumDigest(real, imag);
       };
       if (mods.engines.dart) {
         const dartCall = {};
         if (kernels.sum_u32) {
-          dartCall.sum = () => {
-            const arr = new Uint32Array(1000);
-            for (let i = 0; i < 1000; i++) arr[i] = (i % 100) + 1;
-            return kernels.sum_u32(arr);
-          };
+          dartCall.sum = () => Number(kernels.sum_u32(sumInput()));
+          sumProbes.dart = () => dartCall.sum() >>> 0;
         }
         if (kernels.fft_butterfly) {
           dartCall.fft = () => {
-            const real = new Float32Array(512);
-            const imag = new Float32Array(512);
-            for (let i = 0; i < 512; i++) {
-              real[i] = Math.sin(i * 0.1);
-              imag[i] = Math.cos(i * 0.1);
-            }
-            kernels.fft_butterfly(real, imag, 512);
-            return real[17] + imag[29];
+            const { real, imag } = fftInput();
+            kernels.fft_butterfly(real, imag, LEN);
+          };
+          fftProbes.dart = () => {
+            const { real, imag } = fftInput();
+            kernels.fft_butterfly(real, imag, LEN);
+            return spectrumDigest(real, imag);
           };
         }
         callables.dart = dartCall;
       }
+      requireEngineAgreement("multilang-wasm sum", sumProbes);
+      requireEngineAgreement("multilang-wasm fft", fftProbes);
       return callables;
     },
   },

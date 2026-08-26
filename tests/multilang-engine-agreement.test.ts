@@ -138,18 +138,28 @@ Deno.test("audio.fft.v1: every engine computes the same spectrum", async () => {
   );
 });
 
-Deno.test("audio.fft.v1: the JavaScript engine uses the kernels' own sin, not libm", () => {
-  const at = RUNNER.indexOf('"audio.fft.v1": {');
-  assert(at !== -1, "fft adapter not found");
-  const block = RUNNER.slice(at, at + 5000);
+Deno.test("every JavaScript FFT uses the kernels' own sin, not libm", () => {
+  // The defect appeared independently in two hand-written copies of the same
+  // routine, so there is now one: taylorSinF32/fftButterflyF32 at module
+  // level. Both adapters must call it, and neither may build twiddle factors
+  // from libm.
   assert(
-    /function sinf\(/.test(block),
-    "the JavaScript FFT must build twiddle factors the same way the kernels do",
+    /export function taylorSinF32\(/.test(RUNNER),
+    "the shared Taylor sine must exist",
   );
-  assert(
-    !/Math\.cos\(angle\)|Math\.sin\(angle\)/.test(block),
-    "the JavaScript FFT must not take its twiddle factors from libm",
-  );
+  for (const id of ["audio.fft.v1", "multilang-wasm"]) {
+    const at = RUNNER.indexOf(`"${id}": {`);
+    assert(at !== -1, `${id} adapter not found`);
+    const block = RUNNER.slice(at, at + 6000);
+    assert(
+      /fftButterflyF32\(/.test(block),
+      `${id} must run the shared strict-f32 butterfly`,
+    );
+    assert(
+      !/Math\.cos\(angle\)|Math\.sin\(angle\)/.test(block),
+      `${id} must not take its twiddle factors from libm`,
+    );
+  }
 });
 
 // --- ml.gemm.v1 -------------------------------------------------------------
