@@ -44,14 +44,15 @@
       </p>
 
       <section class="demo-panel" aria-labelledby="run-heading">
-        <h2 id="run-heading">Run Benchmark Loop</h2>
+        <h2 id="run-heading">Run in a fresh module worker</h2>
         <form id="demo-form">
           <div class="controls">
             <label for="target">
               <span>Target Engine</span>
               <select id="target" name="target" disabled>
-                <option value="js-controlled" selected>Hand-written JavaScript VDOM</option>
-                <option value="wasm-linear-controlled">Authored linear-Wasm VDOM</option>
+                <option value="both" selected>Compare Side-by-Side (JS vs Wasm)</option>
+                <option value="js-vdom-controlled">Hand-written JavaScript VDOM</option>
+                <option value="wasm-vdom-controlled">Authored linear-Wasm VDOM</option>
               </select>
             </label>
             <label for="iterations">
@@ -82,14 +83,6 @@
       <div id="vdom-mount" hidden></div>
 
       <div class="detail-cards">
-        <section aria-labelledby="what-heading">
-          <h2 id="what-heading">What it does</h2>
-          <p>Diffs 1,000 tree nodes with 250 edits to calculate DOM update patches.</p>
-        </section>
-        <section aria-labelledby="why-heading">
-          <h2 id="why-heading">Why compare Wasm vs JS</h2>
-          <p>Used by modern UI frameworks like React and Vue to update the DOM efficiently.</p>
-        </section>
         <section>
           <h2>Exact checks</h2>
           <p>
@@ -109,7 +102,7 @@
           </p>
         </section>
         <section>
-          <h2>Source &amp; build provenance</h2>
+          <h2>Source and build</h2>
           <ul>
             <li><a href="/benchmarks/vdom-diff-patch-demo/workload.js">Executed workload adapter</a></li>
             <li><a href="/benchmarks/vdom-diff-patch-demo/input.js">Exact fixture generator</a></li>
@@ -122,7 +115,7 @@
           <p>The controls, fixed scope, source routes, and limitations are in this raw HTML response.</p>
         </section>
         <section>
-          <h2>Limitations &amp; scope</h2>
+          <h2>Limitations &amp; Scope</h2>
           <ul>
             <li>One deterministic 1,000-node tree and 250-edit fixture only.</li>
             <li>The full 10,000-node / 2,000-edit proposal contract is typed unavailable.</li>
