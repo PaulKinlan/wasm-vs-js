@@ -40,9 +40,6 @@
       "scripts/",
       "server.ts",
       "tests/"
-    ],
-    "exclude": [
-      "public/artifacts/"
     ]
   },
   "deploy": {
