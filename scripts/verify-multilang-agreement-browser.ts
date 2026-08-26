@@ -21,6 +21,7 @@ const DEFAULT_PAGES = [
   "audio-fft",
   "audio-fir",
   "audio-stft",
+  "crypto-authenticated-stream",
   "database-olap-chart",
   "graphics-cpu-path-tracer-v1",
   "ml-dense-mlp",

@@ -6113,36 +6113,65 @@ export const KERNEL_ADAPTERS = {
       }
       const FRAMES = [0, 1, 5, 31, 64, 127, 1024];
       let sealJavaScript = null;
+      let openJavaScript = null;
       {
         // Lazy-load the workload's JS oracle for the reference engine.
         const mod = await import("/benchmarks/base/crypto-authenticated-stream/engine.js");
         sealJavaScript = mod.sealJavaScript;
+        openJavaScript = mod.openJavaScript;
       }
+      /** Ciphertext, tag and recovered plaintext of every frame, in order. */
+      const concatDigest = (parts) => {
+        let total = 0;
+        for (const part of parts) total += part.byteLength;
+        const bytes = new Uint8Array(total);
+        let offset = 0;
+        for (const part of parts) {
+          bytes.set(new Uint8Array(part.buffer, part.byteOffset, part.byteLength), offset);
+          offset += part.byteLength;
+        }
+        return fnv1aBytes(bytes);
+      };
+      // Every engine seals and opens each frame. The Wasm engines already did
+      // both; JavaScript and Dart sealed only, so they were doing roughly half
+      // the work they were being compared against — the tag verification and
+      // the second stream pass were missing on exactly the engines a reader
+      // would compare Wasm to.
+      //
+      // open() reports authentication failure through its return value, which
+      // was discarded. An engine whose tag check failed decrypted nothing and
+      // would still have been timed, and timed as the fastest.
       const callables = {};
+      const probes = {};
       for (const key of ["c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.crypto.instance;
         const keyOff = 0, nonceOff = 64, aadOff = 96, plainOff = 256, ctOff = 8192, tagOff = 16384;
-        callables[key] = {
-          crypto: () => {
-            // Re-fetch the buffer after each call in case the kernel grew memory.
-            const mem = () => new Uint8Array(inst.exports.memory.buffer);
-            for (const idx of FRAMES) {
-              const f = frameAt(idx);
-              mem().set(KEY, keyOff);
-              mem().set(f.nonce, nonceOff);
-              mem().set(f.aad, aadOff);
-              mem().set(f.plaintext, plainOff);
-              inst.exports.seal(
-                keyOff,
-                nonceOff,
-                aadOff,
-                f.aad.length,
-                plainOff,
-                f.plaintext.length,
-                ctOff,
-                tagOff,
-              );
+        const openOff = plainOff + 4096;
+        const run = (collect) => {
+          // Re-fetch the buffer after each call in case the kernel grew memory.
+          const mem = () => new Uint8Array(inst.exports.memory.buffer);
+          for (const idx of FRAMES) {
+            const f = frameAt(idx);
+            mem().set(KEY, keyOff);
+            mem().set(f.nonce, nonceOff);
+            mem().set(f.aad, aadOff);
+            mem().set(f.plaintext, plainOff);
+            inst.exports.seal(
+              keyOff,
+              nonceOff,
+              aadOff,
+              f.aad.length,
+              plainOff,
+              f.plaintext.length,
+              ctOff,
+              tagOff,
+            );
+            if (collect) {
+              collect(mem().slice(ctOff, ctOff + f.plaintext.length));
+              collect(mem().slice(tagOff, tagOff + 16));
+            }
+            const opened = Number(
               inst.exports.open(
                 keyOff,
                 nonceOff,
@@ -6151,39 +6180,90 @@ export const KERNEL_ADAPTERS = {
                 ctOff,
                 f.plaintext.length,
                 tagOff,
-                plainOff + 4096,
-              );
+                openOff,
+              ),
+            );
+            if (opened < 0) {
+              throw new Error(`crypto ${key} failed to authenticate frame ${idx}`);
             }
-          },
+            if (collect) collect(mem().slice(openOff, openOff + f.plaintext.length));
+          }
+        };
+        callables[key] = { crypto: () => run(null) };
+        probes[key] = () => {
+          const parts = [];
+          run((bytes) => parts.push(bytes));
+          return concatDigest(parts);
         };
       }
-      callables.js = {
-        crypto: () => {
-          for (const idx of FRAMES) {
-            const f = frameAt(idx);
-            sealJavaScript(KEY, f.nonce, f.aad, f.plaintext);
+      const jsRun = (collect) => {
+        for (const idx of FRAMES) {
+          const f = frameAt(idx);
+          const { ciphertext, tag } = sealJavaScript(KEY, f.nonce, f.aad, f.plaintext);
+          const opened = openJavaScript(KEY, f.nonce, f.aad, ciphertext, tag);
+          if (opened === null) {
+            throw new Error(`crypto js failed to authenticate frame ${idx}`);
           }
-        },
+          if (collect) {
+            collect(ciphertext);
+            collect(tag);
+            collect(opened);
+          }
+        }
       };
-      callables.dart = {
-        crypto: () => {
-          for (const idx of FRAMES) {
-            const f = frameAt(idx);
-            const ct = new Uint8Array(f.plaintext.length);
-            const tag = new Uint8Array(16);
-            mods.engines.dart.kernels.seal(
+      callables.js = { crypto: () => jsRun(null) };
+      probes.js = () => {
+        const parts = [];
+        jsRun((bytes) => parts.push(bytes));
+        return concatDigest(parts);
+      };
+      const dartRun = (collect) => {
+        for (const idx of FRAMES) {
+          const f = frameAt(idx);
+          const ct = new Uint8Array(f.plaintext.length);
+          const tag = new Uint8Array(16);
+          const out = new Uint8Array(f.plaintext.length);
+          mods.engines.dart.kernels.seal(
+            KEY,
+            f.nonce,
+            f.aad,
+            f.aad.length,
+            f.plaintext,
+            f.plaintext.length,
+            ct,
+            tag,
+          );
+          const opened = Number(
+            mods.engines.dart.kernels.open(
               KEY,
               f.nonce,
               f.aad,
               f.aad.length,
-              f.plaintext,
-              f.plaintext.length,
               ct,
+              f.plaintext.length,
               tag,
-            );
+              out,
+            ),
+          );
+          if (opened < 0) {
+            throw new Error(`crypto dart failed to authenticate frame ${idx}`);
           }
-        },
+          if (collect) {
+            collect(ct);
+            collect(tag);
+            collect(out);
+          }
+        }
       };
+      callables.dart = { crypto: () => dartRun(null) };
+      if (mods.engines.dart) {
+        probes.dart = () => {
+          const parts = [];
+          dartRun((bytes) => parts.push(bytes));
+          return concatDigest(parts);
+        };
+      }
+      requireEngineAgreement("crypto.authenticated-stream.v1", probes);
       return callables;
     },
   },
