@@ -5,7 +5,7 @@
   "registrationId": "simulation-rigid-body-2d-v1-controlled",
   "variantId": "wasm-linear-controlled",
   "executionTarget": "wasm-linear",
-  "sourceCommit": "ebfab581784b8869a498aaff2fe86ca032eebd99",
+  "sourceCommit": "6c5a1a095a7c78ca1ed81bba48e99b0e7595fdd7",
   "fixtureSha256": "8ea94bb93e6eafaaa9824750da76da143e8676a8bb8db22074f3abe354a90e42",
   "artifactSha256": "080aa9d954e80a97946a07733e857d69edce0963361792dc876ef00c2dc79520",
   "referenceSha256": "ec1518e2d98240fe9202e5d48b609943230eb5e076aa30da97cd8f31b79c4498",
