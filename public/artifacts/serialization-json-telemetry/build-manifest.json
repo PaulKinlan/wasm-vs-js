@@ -71,8 +71,8 @@
     },
     {
       "path": "deno.json",
-      "bytes": 2523,
-      "sha256": "1fb796ab0a517cac5b34d6b0225dc1316f7dae952460c45fec46acbe9d71ec5b"
+      "bytes": 2573,
+      "sha256": "fcd4ad49afc28378847ae8a2be0703ffcc61095e47af8f6b37f7952fbcd30017"
     },
     {
       "path": "deno.lock",
