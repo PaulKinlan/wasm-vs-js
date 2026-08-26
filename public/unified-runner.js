@@ -425,7 +425,7 @@ function makeToken(config) {
  * Listeners are attached per task and removed on settle, so one worker can
  * serve many sequential tasks.
  */
-function postTask(worker, payload, config, timeoutMs) {
+function postTask(worker, payload, config, timeoutMs, phaseLabel = "task") {
   return new Promise((resolve, reject) => {
     const token = makeToken(config);
     let settled = false;
@@ -437,11 +437,21 @@ function postTask(worker, payload, config, timeoutMs) {
       worker.removeEventListener("error", onError);
       fn(value);
     };
+    const startTime = performance.now();
     const timer = setTimeout(
-      () => finish(reject, new Error(`worker task timed out after ${timeoutMs} ms`)),
+      () =>
+        finish(
+          reject,
+          // Which phase, and how long it had actually been running. "worker
+          // task timed out after 20000 ms" said neither, which is why a run
+          // that died in the reuse probe looked like a run that never started.
+          new Error(
+            `worker ${phaseLabel} timed out after ${timeoutMs} ms ` +
+              `(${Math.round(performance.now() - startTime)} ms elapsed)`,
+          ),
+        ),
       timeoutMs,
     );
-    const startTime = performance.now();
     const onMessage = (event) => {
       const msg = event.data;
       if (!msg) return;
@@ -618,7 +628,7 @@ async function executeWorkerLoop(
     const measured = await withResourceWindow(async () => {
       const worker = spawnWorker(config);
       try {
-        return await postTask(worker, payload, config, iterationTimeoutMs);
+        return await postTask(worker, payload, config, iterationTimeoutMs, "first use");
       } finally {
         worker.terminate();
       }
@@ -638,8 +648,29 @@ async function executeWorkerLoop(
   const computeDurations = [];
   let lastResult = firstResult;
   let workerReuse = "reused";
+  let reuseProbeFailure = null;
   let warmEntries = [];
 
+  // The reuse probe asks one question: will this worker serve a second task?
+  // It used a flat 20 s, which is shorter than a single task on the slower
+  // workloads — dom-virtualized-grid-v1 takes about 30 s — so the probe could
+  // not pass however healthy the worker was. And a failure on the first
+  // warm-up rethrew instead of taking the respawn fallback the next lines
+  // describe, so the whole benchmark ended with "worker task timed out after
+  // 20000 ms" and no indication of which phase had failed. That workload could
+  // never complete a run.
+  //
+  // First use has already timed one real task by this point, so the probe is
+  // given room against that observation rather than against a constant, and a
+  // probe failure now degrades to respawn-per-iteration exactly as a later
+  // failure does.
+  const probeTimeoutMs = Math.min(
+    iterationTimeoutMs,
+    Math.max(
+      REUSE_PROBE_TIMEOUT_MS,
+      Math.ceil((firstUseMs ?? 0) * 2) + REUSE_PROBE_TIMEOUT_MS,
+    ),
+  );
   const warmWindow = await withResourceWindow(async () => {
     let worker = spawnWorker(config);
     try {
@@ -649,17 +680,16 @@ async function executeWorkerLoop(
             worker,
             payload,
             config,
-            i === 0 ? REUSE_PROBE_TIMEOUT_MS : iterationTimeoutMs,
+            i === 0 ? probeTimeoutMs : iterationTimeoutMs,
+            i === 0 ? "reuse probe" : "warm-up",
           );
         } catch (err) {
           // A worker that will not serve a second task is a one-shot worker.
           // Fall back to a fresh worker per iteration and say so in the report
           // rather than silently reporting boot cost as steady-state cost.
-          if (i > 0) {
-            workerReuse = "respawned-per-iteration";
-            break;
-          }
-          throw err;
+          workerReuse = "respawned-per-iteration";
+          reuseProbeFailure = err instanceof Error ? err.message : String(err);
+          break;
         }
       }
       for (let i = 0; i < timedRuns; i++) {
@@ -667,7 +697,13 @@ async function executeWorkerLoop(
           worker.terminate();
           worker = spawnWorker(config);
         }
-        const { ms, result } = await postTask(worker, payload, config, iterationTimeoutMs);
+        const { ms, result } = await postTask(
+          worker,
+          payload,
+          config,
+          iterationTimeoutMs,
+          `timed run ${i + 1}/${timedRuns}`,
+        );
         durations.push(ms);
         if (result) {
           lastResult = result;
@@ -715,6 +751,9 @@ async function executeWorkerLoop(
       entries: firstEntries,
     },
     workerReuse,
+    // Why the worker was respawned, when it was. Silence here is what made
+    // "worker task timed out" unexplainable from the page.
+    reuseProbeFailure,
     reducedSampleCount: isHeavy && iterations > timedRuns
       ? { requested: iterations, taken: timedRuns, reason: "heavy workload" }
       : null,
