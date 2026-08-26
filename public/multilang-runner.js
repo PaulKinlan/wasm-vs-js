@@ -2527,32 +2527,47 @@ export const KERNEL_ADAPTERS = {
         }
         return out;
       }
+      const OUT_LEN = SAMPLES + TAPS - 1;
       const callables = {};
+      const probes = {};
       for (const key of ["c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.fir.instance;
         const mem = inst.exports.memory;
-        callables[key] = {
-          fir: () => {
-            const sig = signal(), tp = taps();
-            const inOff = 0, tapsOff = sig.byteLength, outOff = tapsOff + tp.byteLength;
-            new Float32Array(mem.buffer, inOff, sig.length).set(sig);
-            new Float32Array(mem.buffer, tapsOff, tp.length).set(tp);
-            inst.exports.fir(inOff, tapsOff, outOff, sig.length, tp.length);
-          },
+        const run = () => {
+          const sig = signal(), tp = taps();
+          const inOff = 0, tapsOff = sig.byteLength, outOff = tapsOff + tp.byteLength;
+          new Float32Array(mem.buffer, inOff, sig.length).set(sig);
+          new Float32Array(mem.buffer, tapsOff, tp.length).set(tp);
+          inst.exports.fir(inOff, tapsOff, outOff, sig.length, tp.length);
+          return outOff;
         };
+        callables[key] = { fir: run };
+        probes[key] = () => fnv1aBytes(new Uint8Array(mem.buffer, run(), OUT_LEN * 4));
       }
       callables.js = { fir: () => jsFir(signal(), taps()) };
+      probes.js = () => {
+        const out = jsFir(signal(), taps());
+        return fnv1aBytes(new Uint8Array(out.buffer, out.byteOffset, out.byteLength));
+      };
       callables.dart = {
         fir: () =>
           mods.engines.dart.kernels.fir(
             signal(),
             taps(),
-            new Float32Array(SAMPLES + TAPS - 1),
+            new Float32Array(OUT_LEN),
             SAMPLES,
             TAPS,
           ),
       };
+      if (mods.engines.dart) {
+        probes.dart = () => {
+          const out = new Float32Array(OUT_LEN);
+          mods.engines.dart.kernels.fir(signal(), taps(), out, SAMPLES, TAPS);
+          return fnv1aBytes(new Uint8Array(out.buffer, out.byteOffset, out.byteLength));
+        };
+      }
+      requireEngineAgreement("audio.fir.v1", probes);
       return callables;
     },
   },
@@ -2612,6 +2627,18 @@ export const KERNEL_ADAPTERS = {
         }
         return t;
       }
+      // The twiddle table is stage-structured: stage s holds 2^s cosine/sine
+      // pairs, so a stage consumes halfLen*2 entries and the next stage starts
+      // that far along (see fft_radix2 in audio-stft/stft.c). This advanced by
+      // 2 per stage instead, so from the second stage on the JavaScript engine
+      // applied twiddle factors belonging to an earlier stage: not a rounding
+      // difference from the Wasm engines but a different, incorrect transform,
+      // timed and reported as JavaScript's cost for the same work.
+      //
+      // The butterfly is also written in strict f32. Storing an f64 product
+      // into a Float32Array rounds once at the store, where the Wasm kernels
+      // round at every operation.
+      const fr = Math.fround;
       function fft(data, n, tw) {
         for (let i = 1, j = 0; i < n; i++) {
           let bit = n >> 1;
@@ -2634,18 +2661,19 @@ export const KERNEL_ADAPTERS = {
             let twp = twIdx;
             for (let j = 0; j < halfLen; j++) {
               const wCos = tw[twp], wSin = tw[twp + 1];
-              const u = i + j, v = u + halfLen;
-              const rv = data[v * 2], iv = data[v * 2 + 1];
-              const tr = rv * wCos - iv * wSin;
-              const ti = rv * wSin + iv * wCos;
-              data[v * 2] = data[u * 2] - tr;
-              data[v * 2 + 1] = data[u * 2 + 1] - ti;
-              data[u * 2] += tr;
-              data[u * 2 + 1] += ti;
               twp += 2;
+              const even = (i + j) * 2, odd = (i + j + halfLen) * 2;
+              const evenRe = data[even], evenIm = data[even + 1];
+              const oddRe = data[odd], oddIm = data[odd + 1];
+              const tr = fr(fr(wCos * oddRe) - fr(wSin * oddIm));
+              const ti = fr(fr(wCos * oddIm) + fr(wSin * oddRe));
+              data[even] = fr(evenRe + tr);
+              data[even + 1] = fr(evenIm + ti);
+              data[odd] = fr(evenRe - tr);
+              data[odd + 1] = fr(evenIm - ti);
             }
           }
-          twIdx += 2;
+          twIdx += halfLen * 2;
         }
       }
       function jsStft(sig, win, tw) {
@@ -2663,31 +2691,37 @@ export const KERNEL_ADAPTERS = {
         return spec;
       }
       const callables = {};
+      const probes = {};
       for (const key of ["c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.stft.instance;
         const mem = inst.exports.memory;
-        callables[key] = {
-          stft: () => {
-            const sig = signal(), win = window(), tw = twiddle();
-            let off = 0;
-            const inOff = off;
-            off += sig.byteLength;
-            const winOff = off;
-            off += win.byteLength;
-            const twOff = off;
-            off += tw.byteLength;
-            const scratchOff = off;
-            off += FRAME * 2 * 4;
-            const specOff = off;
-            new Float32Array(mem.buffer, inOff, sig.length).set(sig);
-            new Float32Array(mem.buffer, winOff, win.length).set(win);
-            new Float32Array(mem.buffer, twOff, tw.length).set(tw);
-            inst.exports.stft(inOff, sig.length, FRAME, HOP, winOff, twOff, scratchOff, specOff);
-          },
+        const run = () => {
+          const sig = signal(), win = window(), tw = twiddle();
+          let off = 0;
+          const inOff = off;
+          off += sig.byteLength;
+          const winOff = off;
+          off += win.byteLength;
+          const twOff = off;
+          off += tw.byteLength;
+          const scratchOff = off;
+          off += FRAME * 2 * 4;
+          const specOff = off;
+          new Float32Array(mem.buffer, inOff, sig.length).set(sig);
+          new Float32Array(mem.buffer, winOff, win.length).set(win);
+          new Float32Array(mem.buffer, twOff, tw.length).set(tw);
+          inst.exports.stft(inOff, sig.length, FRAME, HOP, winOff, twOff, scratchOff, specOff);
+          return specOff;
         };
+        callables[key] = { stft: run };
+        probes[key] = () => fnv1aBytes(new Uint8Array(mem.buffer, run(), FRAMES * FRAME * 2 * 4));
       }
       callables.js = { stft: () => jsStft(signal(), window(), twiddle()) };
+      probes.js = () => {
+        const spec = jsStft(signal(), window(), twiddle());
+        return fnv1aBytes(new Uint8Array(spec.buffer, spec.byteOffset, spec.byteLength));
+      };
       callables.dart = {
         stft: () =>
           mods.engines.dart.kernels.stft(
@@ -2701,6 +2735,24 @@ export const KERNEL_ADAPTERS = {
             new Float32Array(FRAMES * FRAME * 2),
           ),
       };
+      if (mods.engines.dart) {
+        probes.dart = () => {
+          const spec = new Float32Array(FRAMES * FRAME * 2);
+          const sig = signal();
+          mods.engines.dart.kernels.stft(
+            sig,
+            sig.length,
+            FRAME,
+            HOP,
+            window(),
+            twiddle(),
+            new Float32Array(FRAME * 2),
+            spec,
+          );
+          return fnv1aBytes(new Uint8Array(spec.buffer, spec.byteOffset, spec.byteLength));
+        };
+      }
+      requireEngineAgreement("audio.stft.v1", probes);
       return callables;
     },
   },

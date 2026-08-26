@@ -139,7 +139,7 @@ Deno.test("audio.fft.v1: every engine computes the same spectrum", async () => {
 });
 
 Deno.test("audio.fft.v1: the JavaScript engine uses the kernels' own sin, not libm", () => {
-  const at = RUNNER.indexOf('"audio.fft.v1"');
+  const at = RUNNER.indexOf('"audio.fft.v1": {');
   assert(at !== -1, "fft adapter not found");
   const block = RUNNER.slice(at, at + 5000);
   assert(
@@ -220,4 +220,45 @@ Deno.test("requireEngineAgreement refuses a comparison whose engines differ", as
     threw = (error as Error).message;
   }
   assert(/disagree/.test(threw), `disagreement was not refused: ${threw}`);
+});
+
+// --- audio.stft.v1 ----------------------------------------------------------
+
+Deno.test("audio.stft.v1: the JavaScript engine walks the twiddle table per stage", () => {
+  const at = RUNNER.indexOf('"audio.stft.v1": {');
+  assert(at !== -1, "stft adapter not found");
+  const block = RUNNER.slice(at, at + 8000);
+  // The table is stage-structured: stage s holds 2^s pairs, so the next stage
+  // begins halfLen*2 entries along. Advancing by 2 made every stage after the
+  // first read twiddles belonging to an earlier stage — a different transform,
+  // not a rounding difference.
+  assert(
+    /twIdx \+= halfLen \* 2;/.test(block),
+    "the JavaScript STFT must advance the twiddle index by the stage's width",
+  );
+  assert(
+    !/twIdx \+= 2;/.test(block),
+    "the JavaScript STFT must not advance the twiddle index by one pair per stage",
+  );
+  assert(
+    /const tr = fr\(/.test(block),
+    "the JavaScript STFT butterfly must round at every operation, as the kernels do",
+  );
+});
+
+Deno.test("every adapter that compares engines states the comparison", () => {
+  // Each lane fixed in this sweep must call the guard. The check is on the
+  // adapter text because the alternative — running the browser harness here —
+  // is what the browser gate already does.
+  for (const id of ["audio.fft.v1", "audio.fir.v1", "audio.stft.v1", "ml.gemm.v1"]) {
+    // Anchored on the adapter form: the module's header comment quotes
+    // "ml.gemm.v1" as an example manifest, and a bare id match found that.
+    const at = RUNNER.indexOf(`"${id}": {`);
+    assert(at !== -1, `${id} adapter not found`);
+    const block = RUNNER.slice(at, at + 12000);
+    assert(
+      block.includes(`requireEngineAgreement("${id}"`),
+      `${id} must require its engines to agree before any of them is timed`,
+    );
+  }
 });
