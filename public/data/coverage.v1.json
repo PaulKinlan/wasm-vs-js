@@ -661,11 +661,11 @@
         "c",
         "cpp",
         "rs",
-        "asc"
+        "asc",
+        "dart"
       ],
       "missingEngines": [
-        "wat",
-        "dart"
+        "wat"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/game-dom-tactics-grid.manifest.json",
       "domHost": "/dom-hosts/base-game-dom-tactics-grid.js",

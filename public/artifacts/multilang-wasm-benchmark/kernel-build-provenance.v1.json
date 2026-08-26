@@ -5,8 +5,8 @@
     "clang": "clang version 22.1.8",
     "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
   },
-  "kernelCount": 151,
-  "reproducesCommittedBytes": 34,
+  "kernelCount": 152,
+  "reproducesCommittedBytes": 35,
   "doesNotReproduceCommittedBytes": 117,
   "kernels": [
     {
@@ -1664,6 +1664,18 @@
       "artifactBytes": 3317,
       "reproducesCommittedBytes": false,
       "command": "clang++ --target=wasm32 -O3 -nostdlib -fno-exceptions -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/tactics_kernel_cpp.wasm benchmarks/multilang-wasm/game-dom-tactics-grid/tactics_kernel.cpp"
+    },
+    {
+      "workload": "game-dom-tactics-grid",
+      "engine": "dart",
+      "lang": "dart",
+      "source": "benchmarks/multilang-wasm/game-dom-tactics-grid/tactics_kernel.dart",
+      "sourceSha256": "002a5c5ad6d44104f547c0fe571879dc3de744392bbe66ff8dff03b6c8df2bf8",
+      "artifact": "tactics_kernel_dart.wasm",
+      "artifactSha256": "cd09646f05c4afbe1a7a6516f75794560124e9fa1f1d42d051ea1387b87ce8f5",
+      "artifactBytes": 56044,
+      "reproducesCommittedBytes": true,
+      "command": "dart compile wasm --no-source-maps benchmarks/multilang-wasm/game-dom-tactics-grid/tactics_kernel.dart -o <out>/tactics_kernel_dart.wasm"
     },
     {
       "workload": "game-dom-tactics-grid",

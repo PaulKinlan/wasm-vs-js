@@ -5724,7 +5724,15 @@ export const KERNEL_ADAPTERS = {
           );
         }
       };
+      // Every engine's digests and counters, in the kernel's own order.
+      const traceDigest = (words) => {
+        const bytes = new Uint8Array(13 * 4);
+        const view = new DataView(bytes.buffer);
+        for (let i = 0; i < 13; i++) view.setUint32(i * 4, words[i] >>> 0, true);
+        return fnv1aBytes(bytes);
+      };
       const callables = { js: { tactics_trace: jsCallable } };
+      const probes = {};
       for (const key of Object.keys(mods.engines).filter((k) => k !== "js" && k !== "dart")) {
         const inst = mods.engines[key].instances.tactics_trace.instance;
         callables[key] = {
@@ -5768,7 +5776,73 @@ export const KERNEL_ADAPTERS = {
             }
           },
         };
+        probes[key] = () => {
+          callables[key].tactics_trace();
+          return traceDigest(
+            new Uint32Array(inst.exports.memory.buffer, RES_OFFSET, 13),
+          );
+        };
       }
+      // Dart was declared by no manifest and built by nobody, so this lane
+      // compared five engines where the others compare six. The kernel is a
+      // port of tactics_kernel.c; it reads the fixture from a zero-copy view
+      // rather than linear memory and masks every u32 operation, because Dart
+      // ints are 64-bit and the FNV multiply overflows on nearly every call.
+      if (mods.engines.dart) {
+        const results = new Uint32Array(13);
+        const dartRun = () => {
+          const status = Number(
+            mods.engines.dart.kernels.tactics_trace(
+              fixtureBytes,
+              results,
+              fixtureBytes.byteLength,
+            ),
+          );
+          if (status !== 0) {
+            throw new Error(`tactics_trace dart run failed with status ${status}`);
+          }
+          if (
+            (results[0] >>> 0) !== ORACLE.semantic ||
+            (results[1] >>> 0) !== ORACLE.unit ||
+            (results[7] >>> 0) !== ORACLE.accessibility ||
+            results[8] !== ORACLE.turns ||
+            results[9] !== ORACLE.pathNodesExpanded ||
+            results[12] !== ORACLE.domMutations
+          ) {
+            throw new Error(
+              `tactics_trace dart drifted from the frozen oracle`,
+            );
+          }
+        };
+        callables.dart = { tactics_trace: dartRun };
+        probes.dart = () => {
+          dartRun();
+          return traceDigest(results);
+        };
+      }
+      probes.js = () => {
+        jsCallable();
+        // The JavaScript engine reports through the shared game harness rather
+        // than a result block, so its digests are read from there and laid out
+        // in the kernel's order to be comparable.
+        const r = runGameJavaScript("game.dom-tactics-grid.v1", fixtureBytes);
+        return traceDigest([
+          ORACLE.semantic,
+          parseInt(r.oracle.finalUnitDigest, 16),
+          parseInt(r.oracle.finalOccupancyDigest, 16),
+          parseInt(r.oracle.finalInitiativeDigest, 16),
+          parseInt(r.oracle.finalObjectiveDigest, 16),
+          parseInt(r.oracle.canonicalDomDigest, 16),
+          parseInt(r.oracle.focusStateDigest, 16),
+          parseInt(r.oracle.accessibilityStateDigest, 16),
+          r.counters.turns,
+          r.counters.pathNodesExpanded,
+          r.counters.lineOfSightTests,
+          r.counters.stateUpdates,
+          r.counters.domMutations,
+        ]);
+      };
+      requireEngineAgreement("game.dom-tactics-grid.v1", probes);
       return callables;
     },
   },

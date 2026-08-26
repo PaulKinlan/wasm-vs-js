@@ -2274,6 +2274,8 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "pathfinding_kernel_cpp.wasm",
       "pathfinding_kernel_rs.wasm",
       "tactics_kernel_asc.wasm",
+      "tactics_kernel_dart.mjs",
+      "tactics_kernel_dart.wasm",
       "tactics_kernel_c.wasm",
       "tactics_kernel_cpp.wasm",
       "tactics_kernel_rs.wasm",

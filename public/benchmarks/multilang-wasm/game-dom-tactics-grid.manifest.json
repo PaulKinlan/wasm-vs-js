@@ -1,8 +1,8 @@
 {
   "workloadId": "game.dom-tactics-grid.v1",
-  "kernelLabel": "DOM tactics grid — 60 turns × 240 actions on 64×64 map (game-dom-tactics-grid-v1.bin)",
+  "kernelLabel": "DOM tactics grid \u2014 60 turns \u00d7 240 actions on 64\u00d764 map (game-dom-tactics-grid-v1.bin)",
   "kernelLabels": {
-    "tactics_trace": "DOM tactics grid — 60-turn 240-action loop with BFS movement + LOS attacks on 64×64 map"
+    "tactics_trace": "DOM tactics grid \u2014 60-turn 240-action loop with BFS movement + LOS attacks on 64\u00d764 map"
   },
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
@@ -58,6 +58,15 @@
         "tactics_trace": "tactics_kernel_asc.wasm"
       },
       "source": "benchmarks/multilang-wasm/game-dom-tactics-grid/tactics_kernel.ts"
+    },
+    {
+      "key": "dart",
+      "label": "Dart / WasmGC",
+      "kind": "dart",
+      "lang": "dart",
+      "file": "tactics_kernel_dart.wasm",
+      "glue": "tactics_kernel_dart.mjs",
+      "source": "benchmarks/multilang-wasm/game-dom-tactics-grid/tactics_kernel.dart"
     }
   ]
 }
