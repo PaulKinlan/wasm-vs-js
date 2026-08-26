@@ -381,7 +381,23 @@ export const KERNEL_ADAPTERS = {
           return d;
         },
       };
-      callables.js = { rigid_engine: () => oracleDigest };
+      // This used to be `() => oracleDigest` — a closure returning the digest
+      // computed once at build time. The JavaScript row performed no
+      // simulation at all inside the timed region, so it measured a constant
+      // return while every Wasm engine ran 120 timesteps of 500 bodies. It now
+      // runs the same simulation and digests its own checkpoints, matching
+      // what the Wasm callables do.
+      callables.js = {
+        rigid_engine: () => {
+          const result = runRigidBodyJavaScript(bytes, {
+            timesteps: STEPS,
+            checkpointEvery: EVERY,
+          });
+          const d = digest(result.checkpoints);
+          if (d !== oracleDigest) throw new Error("rigid js output mismatch vs oracle");
+          return d;
+        },
+      };
       return callables;
     },
   },
