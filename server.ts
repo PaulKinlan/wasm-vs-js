@@ -8,6 +8,7 @@ import { collectorRouteHashes } from "./lib/source-identity.ts";
 import { IMAGE_DEMO_ROUTES } from "./lib/image-demo-registry.ts";
 import { TRADITIONAL_DEMO_ROUTES } from "./lib/traditional-demo-registry.ts";
 import { GENERATED_ROUTES } from "./routes.generated.ts";
+import { CANONICAL_DEMO_REDIRECTS } from "./lib/canonical-demo-redirects.ts";
 
 type ServerMode = "local" | "public";
 
@@ -2466,40 +2467,7 @@ function createHandler(
     // source graphs, which read from disk rather than over HTTP. Their sibling
     // assets (demo.js, worker.js, styles.css) keep their own routes, because
     // build manifests and retained evidence reference those URLs directly.
-    const CANONICAL_DEMO_REDIRECTS = new Map<string, string>([
-      ["/demos/base/network-http2-quic-state", "/benchmarks/base/network-http2-quic-state/"],
-      ["/demos/base/network-http2-quic-state/", "/benchmarks/base/network-http2-quic-state/"],
-      ["/demos/base/text.regex-log-scan.v1", "/benchmarks/base/text.regex-log-scan.v1/"],
-      ["/demos/base/text.regex-log-scan.v1/", "/benchmarks/base/text.regex-log-scan.v1/"],
-      ["/demos/cad-parametric-bracket", "/benchmarks/cad-parametric-bracket/"],
-      ["/demos/cad-parametric-bracket/", "/benchmarks/cad-parametric-bracket/"],
-      ["/demos/crypto.file-integrity.v1", "/benchmarks/crypto.file-integrity.v1/"],
-      ["/demos/crypto.file-integrity.v1/", "/benchmarks/crypto.file-integrity.v1/"],
-      ["/demos/game-canvas-arcade", "/benchmarks/game-canvas-arcade/"],
-      ["/demos/game-canvas-arcade/", "/benchmarks/game-canvas-arcade/"],
-      ["/demos/game-canvas-entity-pathfinding", "/benchmarks/game-canvas-entity-pathfinding/"],
-      ["/demos/game-canvas-entity-pathfinding/", "/benchmarks/game-canvas-entity-pathfinding/"],
-      ["/demos/game-dom-tactics-grid", "/benchmarks/game-dom-tactics-grid/"],
-      ["/demos/game-dom-tactics-grid/", "/benchmarks/game-dom-tactics-grid/"],
-      ["/demos/game-ecs-frame-update", "/benchmarks/game-ecs-frame-update/"],
-      ["/demos/game-ecs-frame-update/", "/benchmarks/game-ecs-frame-update/"],
-      ["/demos/network.pcap-decode.v1", "/benchmarks/network.pcap-decode.v1/"],
-      ["/demos/network.pcap-decode.v1/", "/benchmarks/network.pcap-decode.v1/"],
-      ["/demos/numeric.polybench-panel.v1", "/benchmarks/numeric.polybench-panel.v1/"],
-      ["/demos/numeric.polybench-panel.v1/", "/benchmarks/numeric.polybench-panel.v1/"],
-      ["/demos/serialization.json-telemetry.v1", "/benchmarks/serialization.json-telemetry.v1/"],
-      ["/demos/serialization.json-telemetry.v1/", "/benchmarks/serialization.json-telemetry.v1/"],
-      ["/demos/server.ssr-template.v1", "/benchmarks/server.ssr-template.v1/"],
-      ["/demos/server.ssr-template.v1/", "/benchmarks/server.ssr-template.v1/"],
-      ["/demos/simulation-nbody-cloth", "/benchmarks/simulation-nbody-cloth/"],
-      ["/demos/simulation-nbody-cloth/", "/benchmarks/simulation-nbody-cloth/"],
-      ["/demos/text.diff-patch.v1", "/benchmarks/text.diff-patch.v1/"],
-      ["/demos/text.diff-patch.v1/", "/benchmarks/text.diff-patch.v1/"],
-      ["/demos/text.gc-document-edit.v1", "/benchmarks/text.gc-document-edit.v1/"],
-      ["/demos/text.gc-document-edit.v1/", "/benchmarks/text.gc-document-edit.v1/"],
-      ["/demos/text.markdown-cms.v1", "/benchmarks/text.markdown-cms.v1/"],
-      ["/demos/text.markdown-cms.v1/", "/benchmarks/text.markdown-cms.v1/"],
-    ]);
+    // Retired /demos/ routes; table in lib/canonical-demo-redirects.ts.
 
     // Retired /run/ runner — the homepage playground's sum-u32 card supersedes it.
     const retiredRun = url.pathname === "/run" || url.pathname === "/run/" ||

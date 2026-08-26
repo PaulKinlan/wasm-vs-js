@@ -6,9 +6,16 @@
 // The demo routes now redirect permanently to their /benchmarks/ twin. This
 // test holds that migration in place: every redirect must resolve to a page
 // that exists and actually runs the workload.
+//
+// It is driven by the redirect table itself rather than by the coverage
+// report. The report no longer lists the retired routes — they are stubs the
+// server never serves, and counting them made it claim eight benchmarks
+// measured nothing. The table is what the server acts on, so the table is what
+// gets checked.
 
 import { assert } from "./assert.ts";
 import { createHandler } from "../server.ts";
+import { CANONICAL_DEMO_REDIRECTS } from "../lib/canonical-demo-redirects.ts";
 
 interface CoveragePage {
   route: string;
@@ -21,55 +28,58 @@ const coverage: { pages: CoveragePage[] } = JSON.parse(
   await Deno.readTextFile(new URL("../public/data/coverage.v1.json", import.meta.url)),
 );
 
-const demoPages = coverage.pages.filter((p) => p.route.startsWith("/demos/"));
 const benchmarkPages = coverage.pages.filter((p) => p.route.startsWith("/benchmarks/"));
+/** Every retired route paired with the benchmark route it redirects to. */
+const REDIRECTS = [...CANONICAL_DEMO_REDIRECTS];
 
-function twinOf(page: CoveragePage): CoveragePage | undefined {
-  return benchmarkPages.find((b) => b.pathKey === page.pathKey);
+function targetPage(route: string): CoveragePage | undefined {
+  return benchmarkPages.find((b) => b.route === route);
 }
 
-Deno.test("every demo page has a benchmark twin that measures the workload", () => {
-  assert(demoPages.length > 0, "coverage lists no demo pages");
-  for (const page of demoPages) {
-    const twin = twinOf(page);
-    assert(twin, `${page.route} has no /benchmarks/ twin`);
-    assert(twin.measured, `${twin.route} does not measure its workload`);
+Deno.test("every redirect lands on a page that measures the workload", () => {
+  assert(REDIRECTS.length > 0, "the redirect table is empty");
+  for (const [from, to] of REDIRECTS) {
+    const page = targetPage(to);
+    assert(page, `${from} redirects to ${to}, which is not a coverage page`);
+    assert(page.measured, `${to} does not measure its workload`);
     assert(
-      twin.standardRunner,
-      `${twin.route} does not use the standard runner, so it cannot be canonical`,
+      page.standardRunner,
+      `${to} does not use the standard runner, so it cannot be canonical`,
     );
   }
 });
 
+Deno.test("the coverage report does not count retired routes as pages", () => {
+  const stubs = coverage.pages.filter((p) => p.route.startsWith("/demos/"));
+  assert(
+    stubs.length === 0,
+    `coverage lists ${stubs.length} retired /demos/ route(s) as pages: ` +
+      stubs.map((p) => p.route).join(", "),
+  );
+});
+
 Deno.test("every demo route redirects permanently to its canonical benchmark", async () => {
   const handler = createHandler(null, "public", null);
-  for (const page of demoPages) {
-    const twin = twinOf(page)!;
-    for (const path of [page.route, page.route.replace(/\/$/, "")]) {
-      const response = await handler(new Request(`http://localhost${path}`));
-      await response.body?.cancel();
-      assert(response.status === 301, `${path} returned ${response.status}, not a redirect`);
-      assert(
-        response.headers.get("location") === twin.route,
-        `${path} redirected to ${response.headers.get("location")}, want ${twin.route}`,
-      );
-    }
+  for (const [from, to] of REDIRECTS) {
+    const response = await handler(new Request(`http://localhost${from}`));
+    await response.body?.cancel();
+    assert(response.status === 301, `${from} returned ${response.status}, not a redirect`);
+    assert(
+      response.headers.get("location") === to,
+      `${from} redirected to ${response.headers.get("location")}, want ${to}`,
+    );
   }
 });
 
 Deno.test("every redirect target is a live page", async () => {
   const handler = createHandler(null, "public", null);
-  const seen = new Set<string>();
-  for (const page of demoPages) {
-    const twin = twinOf(page)!;
-    if (seen.has(twin.route)) continue;
-    seen.add(twin.route);
-    const response = await handler(new Request(`http://localhost${twin.route}`));
-    assert(response.status === 200, `${twin.route} returned ${response.status}`);
+  for (const to of new Set(REDIRECTS.map(([, target]) => target))) {
+    const response = await handler(new Request(`http://localhost${to}`));
+    assert(response.status === 200, `${to} returned ${response.status}`);
     const body = await response.text();
     assert(
       body.includes("/unified-runner.js"),
-      `${twin.route} does not load the standard runner`,
+      `${to} does not load the standard runner`,
     );
   }
 });
@@ -78,15 +88,15 @@ Deno.test("a redirecting route still denies mutation methods", async () => {
   // A 301 answered for POST would let a mutation attempt past the method
   // check every other route enforces.
   const handler = createHandler(null, "public", null);
-  for (const page of demoPages) {
+  for (const [from] of REDIRECTS) {
     for (const method of ["POST", "PUT", "DELETE"]) {
       const response = await handler(
-        new Request(`http://localhost${page.route}`, { method }),
+        new Request(`http://localhost${from}`, { method }),
       );
       await response.body?.cancel();
       assert(
         [403, 405].includes(response.status),
-        `${method} ${page.route} returned ${response.status}`,
+        `${method} ${from} returned ${response.status}`,
       );
     }
   }

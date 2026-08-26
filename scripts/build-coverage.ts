@@ -7,6 +7,7 @@
 // between 3 and 7 engines each, AssemblyScript and Dart are mutually exclusive
 // in 37 of them, and nothing in the UI said so. AGENTS.md requires every
 // benchmark to either ship the comparison or carry a documented exclusion; a
+import { isRedirectedDemoRoute } from "../lib/canonical-demo-redirects.ts";
 // gap nobody can see is neither.
 //
 // Usage:
@@ -104,6 +105,7 @@ export async function buildCoverage(): Promise<{
   summary: Record<string, number>;
 }> {
   const pages: PageCoverage[] = [];
+  const redirected: string[] = [];
   // Byte-identical page bodies keyed by content, so duplicated demo/benchmark
   // pairs are reported rather than counted twice.
   const bodies = new Map<string, string>();
@@ -117,6 +119,14 @@ export async function buildCoverage(): Promise<{
     if (!html) continue;
     const rel = file.slice(`${ROOT}public`.length);
     const route = rel.replace(/index\.html$/, "");
+    // A retired /demos/ route still has its HTML on disk, but the server
+    // answers it with a 301 and the file is never served. Counting those
+    // stubs made the summary report eight "pages that measure nothing" that
+    // were really eight redirects to pages that measure fine.
+    if (isRedirectedDemoRoute(route)) {
+      redirected.push(route);
+      continue;
+    }
     const pathKey = route.replace(/^\/(benchmarks|demos)\//, "").replace(/\/$/, "");
     const slug = attr(html, "data-workload") ?? attr(html, "data-demo") ?? pathKey;
     if (!slug) continue;
@@ -186,6 +196,9 @@ export async function buildCoverage(): Promise<{
     unmeasuredPages: pages.filter((p) => !p.measured).length,
     bespokeRunnerPages: pages.filter((p) => p.measured && !p.standardRunner).length,
     distinctWorkloads: new Set(pages.map((p) => p.pathKey)).size,
+    // Retired routes, excluded from every count above. Reported so the folded
+    // /demos/ tree stays visible rather than silently vanishing.
+    redirectedRoutes: redirected.length,
   };
 
   // `generatedAt` is deliberately null: a timestamp would make this file
@@ -215,6 +228,7 @@ if (import.meta.main) {
         `${coverage.summary.withDomStage} with a real-DOM stage, ` +
         `${coverage.summary.duplicates} duplicate routes, ` +
         `${coverage.summary.unmeasuredPages} pages that measure nothing, ` +
+        `${coverage.summary.redirectedRoutes} retired routes redirected, ` +
         `${coverage.summary.bespokeRunnerPages} on a bespoke runner`,
     );
   }
