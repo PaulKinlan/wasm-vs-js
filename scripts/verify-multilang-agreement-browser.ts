@@ -29,6 +29,8 @@ const DEFAULT_PAGES = [
   "ml-gemm",
   "ml-numeric-kernels-v1",
   "numeric.polybench-panel.v1",
+  "serialization.json-telemetry.v1",
+  "simulation-nbody-cloth",
   "text.diff-patch.v1",
 ];
 

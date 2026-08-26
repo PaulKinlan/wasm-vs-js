@@ -3458,6 +3458,12 @@ export const KERNEL_ADAPTERS = {
         // vocabularies, same summary work (id/ts/value uints, region/kind/
         // label/tag options, boolean, counters).
         let at = 0, count = 0, okCount = 0, errCount = 0, valueSum = 0;
+        // The kernels also tally region and kind and format a JSON summary.
+        // This counted neither and produced no summary, so it did the parse
+        // without the bookkeeping it was being compared against — and left
+        // nothing whose bytes could be checked against theirs.
+        const regionCounts = [0, 0, 0, 0];
+        const kindCounts = [0, 0, 0];
         const isDigit = (b) => b >= 0x30 && b <= 0x39;
         const expect = (s) => {
           for (let i = 0; i < s.length; i++) {
@@ -3501,9 +3507,11 @@ export const KERNEL_ADAPTERS = {
           expect(',"ts":');
           uint();
           expect(',"region":');
-          opt(regionBytes);
+          const regionIndex = opt(regionBytes);
+          if (regionIndex >= 0) regionCounts[regionIndex]++;
           expect(',"kind":');
-          opt(kindBytes);
+          const kindIndex = opt(kindBytes);
+          if (kindIndex >= 0) kindCounts[kindIndex]++;
           expect(',"ok":');
           const ok = bytes[at] === 0x74;
           at += ok ? 4 : 5;
@@ -3518,9 +3526,29 @@ export const KERNEL_ADAPTERS = {
           okCount += ok ? 1 : 0;
           errCount += ok ? 0 : 1;
         }
-        return { count, okCount, errCount, valueSum };
+        // Key order is the kernels' order, which is alphabetical;
+        // JSON.stringify then reproduces their bytes exactly.
+        const summary = JSON.stringify({
+          count,
+          errorCount: errCount,
+          kind: {
+            click: kindCounts[0],
+            purchase: kindCounts[1],
+            view: kindCounts[2],
+          },
+          okCount,
+          region: {
+            ap: regionCounts[0],
+            eu: regionCounts[1],
+            na: regionCounts[2],
+            sa: regionCounts[3],
+          },
+          valueSum,
+        });
+        return { count, okCount, errCount, valueSum, summary };
       }
       const callables = {};
+      const probes = {};
       // The payload used to be written at offset 0, on top of each kernel's
       // own static data. C and C++ keep their UTF-8 option tables there, so
       // the payload destroyed the very tables the parser compares against and
@@ -3531,31 +3559,51 @@ export const KERNEL_ADAPTERS = {
       for (const key of ["c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.telemetry.instance;
-        callables[key] = {
-          telemetry: () => {
-            const bytes = fixture();
-            const inOff = INPUT_BASE;
-            const outOff = inOff + bytes.byteLength + 1024;
-            const outCap = 4096;
-            const mem = inst.exports.memory;
-            const need = outOff + outCap;
-            if (mem.buffer.byteLength < need) {
-              mem.grow(Math.ceil((need - mem.buffer.byteLength) / 65536));
-            }
-            new Uint8Array(inst.exports.memory.buffer, inOff, bytes.length).set(bytes);
-            const written = inst.exports.process(inOff, bytes.length, outOff, outCap);
-            // A rejection must never be reported as a timing.
-            if (written <= 0) {
-              throw new Error(`telemetry ${key}: process() rejected the payload (${written})`);
-            }
-          },
+        const run = () => {
+          const bytes = fixture();
+          const inOff = INPUT_BASE;
+          const outOff = inOff + bytes.byteLength + 1024;
+          const outCap = 4096;
+          const mem = inst.exports.memory;
+          const need = outOff + outCap;
+          if (mem.buffer.byteLength < need) {
+            mem.grow(Math.ceil((need - mem.buffer.byteLength) / 65536));
+          }
+          new Uint8Array(inst.exports.memory.buffer, inOff, bytes.length).set(bytes);
+          const written = Number(inst.exports.process(inOff, bytes.length, outOff, outCap));
+          // A rejection must never be reported as a timing.
+          if (written <= 0) {
+            throw new Error(`telemetry ${key}: process() rejected the payload (${written})`);
+          }
+          return { outOff, written };
+        };
+        callables[key] = { telemetry: run };
+        probes[key] = () => {
+          const { outOff, written } = run();
+          return fnv1aBytes(
+            new Uint8Array(inst.exports.memory.buffer, outOff, written).slice(),
+          );
         };
       }
       callables.js = { telemetry: () => jsParse(fixture()) };
+      probes.js = () => fnv1aBytes(ENC.encode(jsParse(fixture()).summary));
       callables.dart = {
         telemetry: () =>
           mods.engines.dart.kernels.process(fixture(), RECORDS * 100, new Uint8Array(4096), 4096),
       };
+      if (mods.engines.dart) {
+        probes.dart = () => {
+          const out = new Uint8Array(4096);
+          const written = Number(
+            mods.engines.dart.kernels.process(fixture(), RECORDS * 100, out, 4096),
+          );
+          if (written <= 0) {
+            throw new Error(`telemetry dart: process() rejected the payload (${written})`);
+          }
+          return fnv1aBytes(out.subarray(0, written));
+        };
+      }
+      requireEngineAgreement("serialization.json-telemetry.v1", probes);
       return callables;
     },
   },
@@ -3640,46 +3688,81 @@ export const KERNEL_ADAPTERS = {
           }
         }
       }
+      /** Positions and velocities after the last step, in a fixed order. */
+      const stateDigest = (px, py, pz, vx, vy, vz) => {
+        const views = [px, py, pz, vx, vy, vz];
+        let total = 0;
+        for (const view of views) total += view.byteLength;
+        const bytes = new Uint8Array(total);
+        let offset = 0;
+        for (const view of views) {
+          bytes.set(new Uint8Array(view.buffer, view.byteOffset, view.byteLength), offset);
+          offset += view.byteLength;
+        }
+        return fnv1aBytes(bytes);
+      };
       const callables = {};
+      const probes = {};
       for (const key of ["c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.nbody_step.instance;
         const mem = inst.exports.memory;
         const bytesPer = N * 8;
         const off = (k) => k * bytesPer;
-        callables[key] = {
-          nbody_step: () => {
-            const f = makeFixture();
-            new Float64Array(mem.buffer, off(0), N).set(f.mass);
-            new Float64Array(mem.buffer, off(1), N).set(f.px);
-            new Float64Array(mem.buffer, off(2), N).set(f.py);
-            new Float64Array(mem.buffer, off(3), N).set(f.pz);
-            new Float64Array(mem.buffer, off(4), N).set(f.vx);
-            new Float64Array(mem.buffer, off(5), N).set(f.vy);
-            new Float64Array(mem.buffer, off(6), N).set(f.vz);
-            inst.exports.nbody_step(
-              off(0),
-              off(1),
-              off(2),
-              off(3),
-              off(4),
-              off(5),
-              off(6),
-              off(7),
-              off(8),
-              off(9),
-              off(10),
-              N,
-              STEPS,
-              DT,
-              GRAVITY,
-              SOFT2,
-            );
-          },
+        {
+          const need = off(11);
+          if (mem.buffer.byteLength < need) {
+            mem.grow(Math.ceil((need - mem.buffer.byteLength) / 65536));
+          }
+        }
+        const run = () => {
+          const f = makeFixture();
+          new Float64Array(mem.buffer, off(0), N).set(f.mass);
+          new Float64Array(mem.buffer, off(1), N).set(f.px);
+          new Float64Array(mem.buffer, off(2), N).set(f.py);
+          new Float64Array(mem.buffer, off(3), N).set(f.pz);
+          new Float64Array(mem.buffer, off(4), N).set(f.vx);
+          new Float64Array(mem.buffer, off(5), N).set(f.vy);
+          new Float64Array(mem.buffer, off(6), N).set(f.vz);
+          inst.exports.nbody_step(
+            off(0),
+            off(1),
+            off(2),
+            off(3),
+            off(4),
+            off(5),
+            off(6),
+            off(7),
+            off(8),
+            off(9),
+            off(10),
+            N,
+            STEPS,
+            DT,
+            GRAVITY,
+            SOFT2,
+          );
+        };
+        callables[key] = { nbody_step: run };
+        probes[key] = () => {
+          run();
+          return stateDigest(
+            new Float64Array(mem.buffer, off(1), N),
+            new Float64Array(mem.buffer, off(2), N),
+            new Float64Array(mem.buffer, off(3), N),
+            new Float64Array(mem.buffer, off(4), N),
+            new Float64Array(mem.buffer, off(5), N),
+            new Float64Array(mem.buffer, off(6), N),
+          );
         };
       }
       callables.js = {
         nbody_step: () => jsStep(makeFixture()),
+      };
+      probes.js = () => {
+        const f = makeFixture();
+        jsStep(f);
+        return stateDigest(f.px, f.py, f.pz, f.vx, f.vy, f.vz);
       };
       callables.dart = {
         nbody_step: () => {
@@ -3704,6 +3787,31 @@ export const KERNEL_ADAPTERS = {
           );
         },
       };
+      if (mods.engines.dart) {
+        probes.dart = () => {
+          const f = makeFixture();
+          mods.engines.dart.kernels.nbody_step(
+            f.mass,
+            f.px,
+            f.py,
+            f.pz,
+            f.vx,
+            f.vy,
+            f.vz,
+            new Float64Array(N),
+            new Float64Array(N),
+            new Float64Array(N),
+            new Float64Array(N * 6),
+            N,
+            STEPS,
+            DT,
+            GRAVITY,
+            SOFT2,
+          );
+          return stateDigest(f.px, f.py, f.pz, f.vx, f.vy, f.vz);
+        };
+      }
+      requireEngineAgreement("simulation.nbody-cloth.v1", probes);
       return callables;
     },
   },
