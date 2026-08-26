@@ -921,7 +921,18 @@ async function renderReportedComparison(flowEl, manifestPath) {
   wrap.appendChild(h);
   const note = document.createElement("p");
   note.className = "notice";
-  note.textContent = "Shown from the committed report; click Run to re-measure in this browser.";
+  // The committed report and the in-page run do not always use the same input
+  // size — audio-fir's report measures 131,072 samples where the page adapter
+  // runs 16,384, and audio-stft's 96,000 against 8,192. Same engine, same
+  // algorithm, numbers an order of magnitude apart, previously with nothing on
+  // the page to say why. State the report's own description of what it timed.
+  note.textContent = entry.description
+    ? `Committed report, measured on the project's reference machine. Input: ${entry.description} ` +
+      "Click Run to re-measure in this browser — the in-page run may use a smaller input, so " +
+      "compare the shapes rather than the absolute numbers."
+    : "Committed report, measured on the project's reference machine. Click Run to re-measure " +
+      "in this browser — the in-page run may use a different input size, so compare the shapes " +
+      "rather than the absolute numbers.";
   wrap.appendChild(note);
   const table = document.createElement("table");
   table.className = "mlr-table";
