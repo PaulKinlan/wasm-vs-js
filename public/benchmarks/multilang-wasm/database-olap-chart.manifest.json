@@ -37,6 +37,17 @@
       "source": "benchmarks/multilang-wasm/database-olap-chart/olap.rs"
     },
     {
+      "key": "asc",
+      "label": "AssemblyScript / Wasm",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "olap": "olap_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/database-olap-chart/olap.ts"
+    },
+    {
       "key": "dart",
       "label": "Dart / WasmGC",
       "kind": "dart",

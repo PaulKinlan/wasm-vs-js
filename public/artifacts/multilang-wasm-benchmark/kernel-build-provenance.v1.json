@@ -5,8 +5,8 @@
     "clang": "clang version 22.1.8",
     "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
   },
-  "kernelCount": 145,
-  "reproducesCommittedBytes": 30,
+  "kernelCount": 146,
+  "reproducesCommittedBytes": 31,
   "doesNotReproduceCommittedBytes": 115,
   "kernels": [
     {
@@ -944,6 +944,18 @@
       "artifactBytes": 603931,
       "reproducesCommittedBytes": false,
       "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -o <out>/numeric_kernels_rs.wasm benchmarks/multilang-wasm/ml-numeric-kernels/numeric_kernels.rs"
+    },
+    {
+      "workload": "database-olap-chart",
+      "engine": "asc",
+      "lang": "asc",
+      "source": "benchmarks/multilang-wasm/database-olap-chart/olap.ts",
+      "sourceSha256": "45de4dea2635ca0526f08e688acf36eaf890e11a72a2b97c1b4378623429d258",
+      "artifact": "olap_asc.wasm",
+      "artifactSha256": "abab2ad14e7bcf28f15591b4ed766c25b8eaee6865886db0cb23dbbe8111d3b7",
+      "artifactBytes": 1746,
+      "reproducesCommittedBytes": true,
+      "command": "npx --yes -p assemblyscript asc benchmarks/multilang-wasm/database-olap-chart/olap.ts -O3 --bindings none --noAssert --initialMemory 256 -o <out>/olap_asc.wasm"
     },
     {
       "workload": "database-olap-chart",

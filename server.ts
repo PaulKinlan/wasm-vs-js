@@ -2200,6 +2200,7 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "numeric_kernels_dart.wasm",
       "numeric_kernels_rs.wasm",
       "olap_c.wasm",
+      "olap_asc.wasm",
       "olap_cpp.wasm",
       "olap_dart.mjs",
       "olap_dart.wasm",

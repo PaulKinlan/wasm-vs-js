@@ -2201,7 +2201,8 @@ export const KERNEL_ADAPTERS = {
       const fixture32 = new Uint32Array(fixture.buffer);
 
       const callables = {};
-      for (const key of ["c", "cpp", "rs"]) {
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.olap.instance;
         const mem = inst.exports.memory;
         callables[key] = {
