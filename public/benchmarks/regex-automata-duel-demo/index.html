@@ -42,7 +42,7 @@
       </p>
 
       <section class="demo-panel" aria-labelledby="run-heading">
-        <h2 id="run-heading">Run in a fresh module worker</h2>
+        <h2 id="run-heading">Run Benchmark Loop</h2>
         <form id="demo-form">
           <div class="controls">
             <label for="target">
@@ -80,6 +80,14 @@
       </section>
 
       <div class="detail-cards">
+        <section aria-labelledby="what-heading">
+          <h2 id="what-heading">What it does</h2>
+          <p>Scans 1 MB text log matching complex regex patterns.</p>
+        </section>
+        <section aria-labelledby="why-heading">
+          <h2 id="why-heading">Why compare Wasm vs JS</h2>
+          <p>Compares JS RegExp engine vs compiled WebAssembly DFA state machine.</p>
+        </section>
         <section>
           <h2>Exact checks</h2>
           <p>
@@ -97,7 +105,7 @@
           </p>
         </section>
         <section>
-          <h2>Source and build</h2>
+          <h2>Source &amp; build provenance</h2>
           <ul>
             <li><a href="/benchmarks/regex-automata-duel/workload.js">Executed workload adapter</a></li>
             <li><a href="/benchmarks/regex-automata-duel/input.ts">Exact fixture generator</a></li>
@@ -111,7 +119,7 @@
           <p>The controls, fixed scope, source routes, and limitations are in this raw HTML response.</p>
         </section>
         <section>
-          <h2>Limitations &amp; Scope</h2>
+          <h2>Limitations &amp; scope</h2>
           <ul>
             <li>One deterministic 1 MiB BMP corpus and 20 frozen safe patterns only.</li>
             <li>The full 32 MiB / 40-pattern proposal contract is typed unavailable.</li>

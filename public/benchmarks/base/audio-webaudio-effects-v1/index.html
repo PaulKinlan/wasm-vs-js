@@ -48,10 +48,10 @@
       <p id="status" role="status" aria-live="polite">Ready.</p>
       <progress id="progress" max="4" value="0" aria-label="Validation phase"></progress>
       <pre id="output" class="demo-output" tabindex="0">No result yet.</pre>
-      <h2>What runs</h2>
+      <h2>What it does</h2>
       <p>Both controlled targets execute the same owned scalar DSP and strict-f32 operation order over every sample. Native WebAudio nodes are a separate host-product baseline and do not run here. Inspect the <a href="/artifacts/base-audio-webaudio-effects-v1/build-manifest.json">build manifest</a>, <a href="/artifacts/base-audio-webaudio-effects-v1/fixture-manifest.json">fixture manifest</a>, and <a href="/artifacts/base-audio-webaudio-effects-v1/output-manifest.json">complete-output oracle</a>.</p>
       <section class="demo-panel" aria-labelledby="multilang-run-heading">
-        <h2 id="multilang-run-heading">Multi-language comparison</h2>
+        <h2 id="multilang-run-heading">Multi-Language Comparison</h2>
         <p
           class="lede">The same exact 48,000-frame DSP chain in strict f32 (transposed-DF2 biquad → peak-envelope soft-knee compressor → 16-tap convolution), implemented identically in JavaScript, C, C++, Rust, and AssemblyScript — compiled to WebAssembly and measured side by side.</p>
         <form id="multilang-form">
