@@ -163,7 +163,7 @@ function polyBlock(m: usize, hibit: u32): void {
   let h2: u32 = ps(H2) + (((t1 >> 20) | (t2 << 12)) & 0x3ffffff);
   let h3: u32 = ps(H3) + (((t2 >> 14) | (t3 << 18)) & 0x3ffffff);
   let h4: u32 = ps(H4) + (t3 >> 8) + hibit;
-  let d0: u64 = <u64> h0 * ps(R0) + <u64> h1 * ps(S4) + <u64> h2 * ps(S3) +
+  const d0: u64 = <u64> h0 * ps(R0) + <u64> h1 * ps(S4) + <u64> h2 * ps(S3) +
     <u64> h3 * ps(S2) + <u64> h4 * ps(S1);
   let d1: u64 = <u64> h0 * ps(R1) + <u64> h1 * ps(R0) + <u64> h2 * ps(S4) +
     <u64> h3 * ps(S3) + <u64> h4 * ps(S2);

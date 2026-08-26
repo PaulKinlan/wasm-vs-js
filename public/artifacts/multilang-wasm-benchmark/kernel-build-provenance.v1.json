@@ -6,8 +6,8 @@
     "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
   },
   "kernelCount": 145,
-  "reproducesCommittedBytes": 28,
-  "doesNotReproduceCommittedBytes": 117,
+  "reproducesCommittedBytes": 30,
+  "doesNotReproduceCommittedBytes": 115,
   "kernels": [
     {
       "workload": "game-canvas-arcade",
@@ -146,7 +146,7 @@
       "engine": "asc",
       "lang": "asc",
       "source": "benchmarks/multilang-wasm/crypto-authenticated-stream/crypto.ts",
-      "sourceSha256": "80ab90d4d8b22c89714736654e782438488236247e836bacdd292e84c94c95f3",
+      "sourceSha256": "b811a874afd3697a8a198f3d33b5c78c1fb4a7546189c2506f18bdecf213ef98",
       "artifact": "crypto_asc.wasm",
       "artifactSha256": "f457724f76f6fecc629f6f2d0081309320e7b16dd0d2eeb94338696d6171ba75",
       "artifactBytes": 3167,
@@ -162,7 +162,7 @@
       "artifact": "crypto_c.wasm",
       "artifactSha256": "2600cd2b49cedccae83c952b1c2494b4e7d82134f012293adfea84bdb925dd31",
       "artifactBytes": 4321,
-      "reproducesCommittedBytes": false,
+      "reproducesCommittedBytes": true,
       "command": "clang --target=wasm32 -O3 -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/crypto_c.wasm benchmarks/multilang-wasm/crypto-authenticated-stream/crypto.c"
     },
     {
@@ -174,7 +174,7 @@
       "artifact": "crypto_cpp.wasm",
       "artifactSha256": "c78d98a4ed409bc4af97a0976432ed5d1d93aeda7b7c15160b5b29aee05e4a45",
       "artifactBytes": 4581,
-      "reproducesCommittedBytes": false,
+      "reproducesCommittedBytes": true,
       "command": "clang++ --target=wasm32 -O3 -nostdlib -fno-exceptions -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/crypto_cpp.wasm benchmarks/multilang-wasm/crypto-authenticated-stream/crypto.cpp"
     },
     {
