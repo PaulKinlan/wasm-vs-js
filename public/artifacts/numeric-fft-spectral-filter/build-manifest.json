@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "c1e71b71557e43384b6b2d76f2e080a8b7dc491d",
-  "sourceSha256": "bffa7424ce3e0c15c94c9c965e2c0fe5b4fec3c59ca0bfbd6b7693a9c1a77813",
+  "sourceCommit": "38debb56c56c3344c36e8eeeddc78701907bfb38",
+  "sourceSha256": "a3c99d5671ee6d99bbc96f5e54b90946a4fa53b95b438e3f7129ef9736f5aab6",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -55,8 +55,8 @@
     },
     {
       "path": "deno.json",
-      "bytes": 2573,
-      "sha256": "fcd4ad49afc28378847ae8a2be0703ffcc61095e47af8f6b37f7952fbcd30017"
+      "bytes": 2523,
+      "sha256": "1fb796ab0a517cac5b34d6b0225dc1316f7dae952460c45fec46acbe9d71ec5b"
     },
     {
       "path": "deno.lock",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "ea985224f4e9d8002fcc9049c6965cf4a6e38736f5fbad8f0b335a84210fbe70"
+      "sha256": "766865d9874b5f5c2117274aa1876f9be883453db2ee3e06900943f0cc19be9e"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "9006b9375edb7fde44cc3b717d09dd6eb2533991202427c2806fb64329e995b8"
+      "sha256": "bca67de6904174701b405ee20ebdfda1f8c6c07cedc35fbbe2731c29d132a493"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=c1e71b71557e43384b6b2d76f2e080a8b7dc491d"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=38debb56c56c3344c36e8eeeddc78701907bfb38"
   }
 }
