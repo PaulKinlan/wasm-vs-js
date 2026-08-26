@@ -5,9 +5,9 @@
     "clang": "clang version 22.1.8",
     "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
   },
-  "kernelCount": 147,
+  "kernelCount": 149,
   "reproducesCommittedBytes": 32,
-  "doesNotReproduceCommittedBytes": 115,
+  "doesNotReproduceCommittedBytes": 117,
   "kernels": [
     {
       "workload": "game-canvas-arcade",
@@ -656,6 +656,18 @@
       "artifactBytes": 599242,
       "reproducesCommittedBytes": false,
       "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -o <out>/keyed_list_kernel_rs.wasm benchmarks/multilang-wasm/dom-keyed-list-mutation/keyed_list_kernel.rs"
+    },
+    {
+      "workload": "text-markdown-cms",
+      "engine": "asc",
+      "lang": "asc",
+      "source": "benchmarks/multilang-wasm/text-markdown-cms/markdown_cms_kernel.ts",
+      "sourceSha256": "dea19239d7faf62cb7c0d3a8505a78f1bcd5f235666581a0bc0027660a3097dd",
+      "artifact": "markdown_cms_kernel_asc.wasm",
+      "artifactSha256": "9952d9e9fd2f89fea0b263122e2b5bdf20da00a8aba5893d0653c026366ab507",
+      "artifactBytes": 4808,
+      "reproducesCommittedBytes": false,
+      "command": "npx --yes -p assemblyscript asc benchmarks/multilang-wasm/text-markdown-cms/markdown_cms_kernel.ts -O3 --bindings none --noAssert --initialMemory 256 -o <out>/markdown_cms_kernel_asc.wasm"
     },
     {
       "workload": "text-markdown-cms",
@@ -1352,6 +1364,18 @@
       "artifactBytes": 601365,
       "reproducesCommittedBytes": false,
       "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -o <out>/scan_log_rs.wasm benchmarks/multilang-wasm/text-regex-log-scan/scan_log.rs"
+    },
+    {
+      "workload": "server-ssr-template-v1",
+      "engine": "asc",
+      "lang": "asc",
+      "source": "benchmarks/multilang-wasm/server-ssr-template/server_ssr_kernel.ts",
+      "sourceSha256": "91459622b6595b8dc0b73fa4e77b38a25c0e6a194c880194e75462cb3957294f",
+      "artifact": "server_ssr_kernel_asc.wasm",
+      "artifactSha256": "f5555dedc4e11dd703c60532425fbcabc25e8d9082fd6f56987e06dc410d6c86",
+      "artifactBytes": 7803,
+      "reproducesCommittedBytes": false,
+      "command": "npx --yes -p assemblyscript asc benchmarks/multilang-wasm/server-ssr-template/server_ssr_kernel.ts -O3 --bindings none --noAssert --initialMemory 256 -o <out>/server_ssr_kernel_asc.wasm"
     },
     {
       "workload": "server-ssr-template-v1",

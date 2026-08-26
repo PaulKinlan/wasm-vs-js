@@ -238,11 +238,25 @@ if (import.meta.main) {
   const check = Deno.args.includes("--check");
   const force = Deno.args.includes("--force");
   const onlyIndex = Deno.args.indexOf("--only");
-  const only = onlyIndex >= 0 ? Deno.args[onlyIndex + 1] : null;
+  const only = onlyIndex >= 0
+    ? new Set(Deno.args[onlyIndex + 1].split(",").map((w) => w.trim()).filter(Boolean))
+    : null;
 
   const withDart = Deno.args.includes("--with-dart");
   const { builds: allBuilds, skipped } = await planBuilds(withDart);
-  const builds = only ? allBuilds.filter((b) => b.workload === only) : allBuilds;
+  const builds = only ? allBuilds.filter((b) => only.has(b.workload)) : allBuilds;
+  if (only) {
+    // A filter that matches nothing used to run zero builds and then write a
+    // ledger holding zero kernels, deleting every recipe in it. Refuse instead.
+    const unmatched = [...only].filter((w) => !allBuilds.some((b) => b.workload === w));
+    if (unmatched.length > 0) {
+      console.error(
+        `--only matched no build for: ${unmatched.join(", ")}\n` +
+          `known workloads: ${[...new Set(allBuilds.map((b) => b.workload))].sort().join(", ")}`,
+      );
+      Deno.exit(1);
+    }
+  }
 
   let scratchDir: string | null = null;
   let env0: Record<string, string> | null = null;
@@ -320,7 +334,27 @@ if (import.meta.main) {
     for (const f of failures.slice(0, 20)) console.log(`  FAILED:  ${f}`);
     if (failures.length > 0) Deno.exit(1);
   } else {
-    records.sort((a, b) => String(a.artifact).localeCompare(String(b.artifact)));
+    // A filtered run rebuilds a subset, so it may only update that subset's
+    // entries — writing `records` alone would drop every recipe it did not
+    // rebuild. Carry the untouched entries forward and recount from the merged
+    // set, so the summary describes the ledger rather than this run.
+    let merged = records;
+    if (only) {
+      const rebuilt = new Set(records.map((r) => `${r.workload}/${r.engine}`));
+      let existing: Record<string, unknown>[] = [];
+      try {
+        const prior = JSON.parse(await Deno.readTextFile(PROVENANCE)) as {
+          kernels?: Record<string, unknown>[];
+        };
+        existing = (prior.kernels ?? []).filter((r) => !rebuilt.has(`${r.workload}/${r.engine}`));
+      } catch {
+        existing = [];
+      }
+      merged = [...existing, ...records];
+      reproduced = merged.filter((r) => r.reproducesCommittedBytes === true).length;
+    }
+    const notReproduced = only ? merged.length - reproduced : differs.length;
+    merged.sort((a, b) => String(a.artifact).localeCompare(String(b.artifact)));
     await Deno.writeTextFile(
       PROVENANCE,
       JSON.stringify(
@@ -347,22 +381,22 @@ if (import.meta.main) {
                 .stdout,
             ).trim(),
           },
-          kernelCount: records.length,
+          kernelCount: merged.length,
           // How far the recorded recipes actually go. A kernel that does not
           // reproduce its committed bytes still has a readable recipe and a
           // source hash, but the committed binary was built some other way and
           // that recipe is not recoverable — stated here rather than implied.
           reproducesCommittedBytes: reproduced,
-          doesNotReproduceCommittedBytes: differs.length,
-          kernels: records,
+          doesNotReproduceCommittedBytes: notReproduced,
+          kernels: merged,
         },
         null,
         2,
       ) + "\n",
     );
     console.log(
-      `${records.length} kernels have a recorded recipe; ${reproduced} reproduce their committed ` +
-        `bytes exactly, ${differs.length} do not; wrote ${written.length} artifact(s); ` +
+      `${merged.length} kernels have a recorded recipe; ${reproduced} reproduce their committed ` +
+        `bytes exactly, ${notReproduced} do not; wrote ${written.length} artifact(s); ` +
         `${failures.length} failed, ${skipped.length} skipped`,
     );
     for (const w of written) console.log(`  wrote: ${w}`);
