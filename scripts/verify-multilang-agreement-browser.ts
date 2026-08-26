@@ -25,6 +25,7 @@ const DEFAULT_PAGES = [
   "crypto-authenticated-stream",
   "database-olap-chart",
   "graphics-cpu-path-tracer-v1",
+  "image-editing-demo",
   "ml-dense-mlp",
   "ml-gemm",
   "ml-numeric-kernels-v1",

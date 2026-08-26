@@ -4455,50 +4455,72 @@ export const KERNEL_ADAPTERS = {
       }
 
       const callables = { js: { flood_fill: jsFlood, luma_gaussian_pipeline: jsPipeline } };
+      const floodProbes = {};
+      const pipeProbes = {};
+      floodProbes.js = () => fnv1aBytes(new Uint8Array(jsFlood().buffer.slice(0)));
+      pipeProbes.js = () => fnv1aBytes(new Uint8Array(jsPipeline().buffer.slice(0)));
       for (const key of Object.keys(mods.engines).filter((k) => k !== "js" && k !== "dart")) {
         const floodInst = mods.engines[key].instances.flood_fill.instance;
         const pipeInst = mods.engines[key].instances.luma_gaussian_pipeline.instance;
-        const floodMem = new Uint8Array(floodInst.exports.memory.buffer);
-        const pipeMem = new Uint8Array(pipeInst.exports.memory.buffer);
-        callables[key] = {
-          flood_fill: () => {
-            floodMem.set(flood, SRC);
-            floodMem.set(flood, OUT);
-            floodMem.fill(0, MASK, MASK + FLOOD_W * FLOOD_H);
-            floodInst.exports.flood_fill(FLOOD_W, FLOOD_H, 10, 12);
-          },
-          luma_gaussian_pipeline: () => {
-            pipeMem.set(photo, SRC);
-            pipeInst.exports.luma_gaussian_pipeline(PIPE_W, PIPE_H);
-          },
+        // The buffers are re-read on each call rather than captured once: a
+        // module that grows its memory detaches the view taken at build time.
+        const floodMem = () => new Uint8Array(floodInst.exports.memory.buffer);
+        const pipeMem = () => new Uint8Array(pipeInst.exports.memory.buffer);
+        const runFlood = () => {
+          floodMem().set(flood, SRC);
+          floodMem().set(flood, OUT);
+          floodMem().fill(0, MASK, MASK + FLOOD_W * FLOOD_H);
+          floodInst.exports.flood_fill(FLOOD_W, FLOOD_H, 10, 12);
+        };
+        const runPipe = () => {
+          pipeMem().set(photo, SRC);
+          pipeInst.exports.luma_gaussian_pipeline(PIPE_W, PIPE_H);
+        };
+        callables[key] = { flood_fill: runFlood, luma_gaussian_pipeline: runPipe };
+        floodProbes[key] = () => {
+          runFlood();
+          return fnv1aBytes(floodMem().slice(OUT, OUT + FLOOD_W * FLOOD_H * 4));
+        };
+        pipeProbes[key] = () => {
+          runPipe();
+          return fnv1aBytes(pipeMem().slice(OUT, OUT + PIPE_W * PIPE_H * 4));
         };
       }
       const dk = mods.engines.dart.kernels;
-      callables.dart = {
-        flood_fill: () => {
-          dk.flood_fill(
-            flood,
-            new Uint8Array(flood),
-            new Uint8Array(FLOOD_W * FLOOD_H),
-            new Uint32Array(9),
-            FLOOD_W,
-            FLOOD_H,
-            10,
-            12,
-          );
-        },
-        luma_gaussian_pipeline: () => {
-          dk.luma_gaussian_pipeline(
-            photo,
-            new Uint8Array(photo.byteLength),
-            new Uint8Array(PIPE_W * PIPE_H),
-            new Uint16Array(PIPE_W * PIPE_H),
-            new Uint32Array(9),
-            PIPE_W,
-            PIPE_H,
-          );
-        },
+      const dartFlood = () => {
+        const out = new Uint8Array(flood);
+        dk.flood_fill(
+          flood,
+          out,
+          new Uint8Array(FLOOD_W * FLOOD_H),
+          new Uint32Array(9),
+          FLOOD_W,
+          FLOOD_H,
+          10,
+          12,
+        );
+        return out;
       };
+      const dartPipe = () => {
+        const out = new Uint8Array(photo.byteLength);
+        dk.luma_gaussian_pipeline(
+          photo,
+          out,
+          new Uint8Array(PIPE_W * PIPE_H),
+          new Uint16Array(PIPE_W * PIPE_H),
+          new Uint32Array(9),
+          PIPE_W,
+          PIPE_H,
+        );
+        return out;
+      };
+      callables.dart = { flood_fill: dartFlood, luma_gaussian_pipeline: dartPipe };
+      if (mods.engines.dart) {
+        floodProbes.dart = () => fnv1aBytes(dartFlood());
+        pipeProbes.dart = () => fnv1aBytes(dartPipe());
+      }
+      requireEngineAgreement("image-editing.v1 flood_fill", floodProbes);
+      requireEngineAgreement("image-editing.v1 luma_gaussian_pipeline", pipeProbes);
       return callables;
     },
   },
