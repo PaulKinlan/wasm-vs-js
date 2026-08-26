@@ -98,15 +98,14 @@
       "title": "Short-time Fourier transform demo",
       "engines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
         "asc",
         "dart"
       ],
-      "missingEngines": [
-        "wat"
-      ],
+      "missingEngines": [],
       "manifestPath": "/benchmarks/multilang-wasm/audio-stft.manifest.json",
       "domHost": null,
       "scopes": [
@@ -742,15 +741,14 @@
       "title": "Image Gaussian Blur Pipeline",
       "engines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
         "asc",
         "dart"
       ],
-      "missingEngines": [
-        "wat"
-      ],
+      "missingEngines": [],
       "manifestPath": "/benchmarks/multilang-wasm/image-editing.manifest.json",
       "domHost": null,
       "scopes": [
@@ -769,15 +767,14 @@
       "title": "Span-Stack Image Flood Fill",
       "engines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
         "asc",
         "dart"
       ],
-      "missingEngines": [
-        "wat"
-      ],
+      "missingEngines": [],
       "manifestPath": "/benchmarks/multilang-wasm/image-editing.manifest.json",
       "domHost": null,
       "scopes": [
@@ -822,15 +819,14 @@
       "title": "ML GEMM",
       "engines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
         "asc",
         "dart"
       ],
-      "missingEngines": [
-        "wat"
-      ],
+      "missingEngines": [],
       "manifestPath": "/benchmarks/multilang-wasm/ml-gemm.manifest.json",
       "domHost": null,
       "scopes": [
@@ -973,15 +969,14 @@
       "title": "PolyBench numeric panel | Wasm versus JavaScript",
       "engines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
         "asc",
         "dart"
       ],
-      "missingEngines": [
-        "wat"
-      ],
+      "missingEngines": [],
       "manifestPath": "/benchmarks/multilang-wasm/numeric-polybench-panel.manifest.json",
       "domHost": null,
       "scopes": [
@@ -1327,7 +1322,7 @@
     "pages": 51,
     "withMultilang": 44,
     "withoutMultilang": 7,
-    "fullyCovered": 3,
+    "fullyCovered": 8,
     "withDomStage": 11,
     "duplicates": 0,
     "unmeasuredPages": 1,

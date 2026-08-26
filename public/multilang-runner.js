@@ -2800,6 +2800,46 @@ export const KERNEL_ADAPTERS = {
         callables[key] = { stft: run };
         probes[key] = () => fnv1aBytes(new Uint8Array(mem.buffer, run(), FRAMES * FRAME * 2 * 4));
       }
+      // The hand-written module takes the same eight values in a different
+      // order — pointers first, then frame size, hop and a frame count instead
+      // of the input length — so it is called through a shim rather than left
+      // out of the comparison. It was built and served already and simply
+      // never declared, so "Raw WAT" was missing from a chart it belongs in.
+      if (mods.engines.wat) {
+        const inst = mods.engines.wat.instances.stft.instance;
+        const mem = inst.exports.memory;
+        const run = () => {
+          const sig = signal(), win = window(), tw = twiddle();
+          let off = 0;
+          const inOff = off;
+          off += sig.byteLength;
+          const winOff = off;
+          off += win.byteLength;
+          const twOff = off;
+          off += tw.byteLength;
+          const scratchOff = off;
+          off += FRAME * 2 * 4;
+          const specOff = off;
+          const need = specOff + FRAMES * FRAME * 2 * 4;
+          if (mem.buffer.byteLength < need) {
+            // Its memory is declared with a fixed maximum, so a grow past that
+            // fails rather than throwing; the write below would then trap and
+            // say only "out of bounds". Fail here, naming the ceiling.
+            if (mem.grow(Math.ceil((need - mem.buffer.byteLength) / 65536)) < 0) {
+              throw new Error(
+                `audio.stft.v1 wat: needs ${need} bytes, memory caps at ${mem.buffer.byteLength}`,
+              );
+            }
+          }
+          new Float32Array(mem.buffer, inOff, sig.length).set(sig);
+          new Float32Array(mem.buffer, winOff, win.length).set(win);
+          new Float32Array(mem.buffer, twOff, tw.length).set(tw);
+          inst.exports.stft(inOff, winOff, twOff, scratchOff, specOff, FRAME, HOP, FRAMES);
+          return specOff;
+        };
+        callables.wat = { stft: run };
+        probes.wat = () => fnv1aBytes(new Uint8Array(mem.buffer, run(), FRAMES * FRAME * 2 * 4));
+      }
       callables.js = { stft: () => jsStft(signal(), window(), twiddle()) };
       probes.js = () => {
         const spec = jsStft(signal(), window(), twiddle());
@@ -5738,6 +5778,29 @@ export const KERNEL_ADAPTERS = {
       // Each engine's probe runs the kernel once and digests the product, so
       // agreement is settled before anything is timed.
       const probes = {};
+      // The hand-written module accumulates into C in place — acc starts at
+      // C0[i][j] and the result is stored back there — rather than writing to a
+      // separate output, and takes its dimensions in a different order. A
+      // module that computes the same thing through a different signature is
+      // still the same comparison, so it gets a shim rather than exclusion.
+      // It was already built and served and simply never declared, so the
+      // "Raw WAT" row was missing from a chart it belongs in.
+      if (mods.engines.wat) {
+        const inst = mods.engines.wat.instances.gemm.instance;
+        const mem = inst.exports.memory;
+        const run = () => {
+          const { a, b, c0 } = inputs();
+          new Float32Array(mem.buffer, aOff, M * K).set(a);
+          new Float32Array(mem.buffer, bOff, K * N).set(b);
+          new Float32Array(mem.buffer, c0Off, M * N).set(c0);
+          inst.exports.gemm_f32(aOff, bOff, c0Off, M, N, K);
+        };
+        callables.wat = { gemm: run };
+        probes.wat = () => {
+          run();
+          return fnv1aBytes(new Uint8Array(mem.buffer, c0Off, M * N * 4));
+        };
+      }
       for (const key of ["c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.gemm.instance;
@@ -6167,7 +6230,7 @@ export const KERNEL_ADAPTERS = {
         return panelDigest(out.gemm, out.cholesky, out.jacobi);
       };
 
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      for (const key of ["wat", "c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.polybench.instance;
         const mem = inst.exports.memory;

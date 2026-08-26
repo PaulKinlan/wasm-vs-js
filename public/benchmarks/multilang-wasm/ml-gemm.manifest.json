@@ -13,6 +13,15 @@
       "source": ""
     },
     {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "url": "/artifacts/v2/ml-gemm/ml-gemm.wasm",
+      "source": "benchmarks/v2/ml-gemm/ml-gemm.wat"
+    },
+    {
       "key": "c",
       "label": "C / Wasm",
       "kind": "linear",

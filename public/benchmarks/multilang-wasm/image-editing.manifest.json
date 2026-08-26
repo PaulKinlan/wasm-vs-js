@@ -18,6 +18,15 @@
       "source": ""
     },
     {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "url": "/artifacts/image-editing-demo/image-editing.wasm",
+      "source": "benchmarks/image-editing/image-editing.wat"
+    },
+    {
       "key": "c",
       "label": "C / Wasm",
       "kind": "linear",
