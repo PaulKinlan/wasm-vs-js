@@ -1005,7 +1005,7 @@
           ]
         },
         "route": {
-          "const": "/demos/numeric.polybench-panel.v1/"
+          "const": "/benchmarks/numeric.polybench-panel.v1/"
         },
         "target": {
           "enum": [

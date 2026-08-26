@@ -107,7 +107,7 @@
           "const": "text.regex-log-scan.v1-controlled-registration-v1"
         },
         "route": {
-          "const": "/demos/base/text.regex-log-scan.v1/"
+          "const": "/benchmarks/base/text.regex-log-scan.v1/"
         },
         "implementationSourceCommit": {
           "$ref": "#/$defs/gitIdentity"
@@ -1128,7 +1128,7 @@
                   "type": "object",
                   "properties": {
                     "route": {
-                      "const": "/demos/base/text.regex-log-scan.v1/"
+                      "const": "/benchmarks/base/text.regex-log-scan.v1/"
                     },
                     "sourcePath": {
                       "const": "public/demos/base/text.regex-log-scan.v1/index.html"

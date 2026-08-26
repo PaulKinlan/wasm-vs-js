@@ -655,7 +655,7 @@
                         "type": "object",
                         "properties": {
                           "route": {
-                            "const": "/demos/simulation-nbody-cloth/"
+                            "const": "/benchmarks/simulation-nbody-cloth/"
                           }
                         },
                         "required": [
@@ -944,7 +944,7 @@
                         "type": "object",
                         "properties": {
                           "route": {
-                            "const": "/demos/simulation-nbody-cloth/"
+                            "const": "/benchmarks/simulation-nbody-cloth/"
                           }
                         },
                         "required": [
@@ -1168,7 +1168,7 @@
                         "type": "object",
                         "properties": {
                           "route": {
-                            "const": "/demos/simulation-nbody-cloth/"
+                            "const": "/benchmarks/simulation-nbody-cloth/"
                           }
                         },
                         "required": [
@@ -1298,7 +1298,7 @@
                         "type": "object",
                         "properties": {
                           "route": {
-                            "const": "/demos/simulation-nbody-cloth/"
+                            "const": "/benchmarks/simulation-nbody-cloth/"
                           }
                         },
                         "required": [
@@ -1428,7 +1428,7 @@
                         "type": "object",
                         "properties": {
                           "route": {
-                            "const": "/demos/simulation-nbody-cloth/"
+                            "const": "/benchmarks/simulation-nbody-cloth/"
                           }
                         },
                         "required": [
@@ -1566,7 +1566,7 @@
           ]
         },
         "route": {
-          "const": "/demos/simulation-nbody-cloth/"
+          "const": "/benchmarks/simulation-nbody-cloth/"
         },
         "lifecycleInjection": {
           "type": "object",
@@ -1707,7 +1707,7 @@
                 "type": "object",
                 "properties": {
                   "route": {
-                    "const": "/demos/simulation-nbody-cloth/"
+                    "const": "/benchmarks/simulation-nbody-cloth/"
                   }
                 },
                 "required": [
@@ -2258,7 +2258,7 @@
       "properties": {
         "route": {
           "enum": [
-            "/demos/simulation-nbody-cloth/",
+            "/benchmarks/simulation-nbody-cloth/",
             "/demos/simulation-nbody-cloth/demo.js",
             "/demos/simulation-nbody-cloth/worker.js",
             "/benchmarks/base/simulation-nbody/contract.js",
@@ -2299,7 +2299,7 @@
           "type": "object",
           "properties": {
             "route": {
-              "const": "/demos/simulation-nbody-cloth/"
+              "const": "/benchmarks/simulation-nbody-cloth/"
             },
             "sourcePath": {
               "const": "public/demos/simulation-nbody-cloth/index.html"

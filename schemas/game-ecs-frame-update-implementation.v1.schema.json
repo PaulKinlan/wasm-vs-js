@@ -153,7 +153,7 @@
       "additionalProperties": false,
       "required": ["route", "status", "timeoutMs", "persistence", "upload", "ranking"],
       "properties": {
-        "route": { "const": "/demos/game-ecs-frame-update/" },
+        "route": { "const": "/benchmarks/game-ecs-frame-update/" },
         "status": { "const": "runnable-correctness" },
         "timeoutMs": { "const": 120000 },
         "persistence": { "const": false },
