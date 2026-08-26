@@ -1,8 +1,8 @@
 {
   "workloadId": "text.markdown-cms.v1",
-  "kernelLabel": "500-document Markdown CMS pipeline — parse + transform + sanitize + render every document (text-markdown-cms-multilang/fixture.bin)",
+  "kernelLabel": "500-document Markdown CMS pipeline \u2014 parse + transform + sanitize + render every document (text-markdown-cms-multilang/fixture.bin)",
   "kernelLabels": {
-    "markdown_cms_render": "Markdown CMS — 500-document parse + transform + sanitize + render with TOC, escape, and URL/raw allowlists"
+    "markdown_cms_render": "Markdown CMS \u2014 500-document parse + transform + sanitize + render with TOC, escape, and URL/raw allowlists"
   },
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
@@ -47,6 +47,17 @@
         "markdown_cms_render": "markdown_cms_kernel_rs.wasm"
       },
       "source": "benchmarks/multilang-wasm/text-markdown-cms/markdown_cms_kernel.rs"
+    },
+    {
+      "key": "asc",
+      "label": "AssemblyScript / Wasm",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "markdown_cms_render": "markdown_cms_kernel_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/text-markdown-cms/markdown_cms_kernel.ts"
     }
   ]
 }

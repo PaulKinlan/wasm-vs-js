@@ -1,8 +1,8 @@
 {
   "workloadId": "server.ssr-template.v1",
-  "kernelLabel": "1,000-record catalog SSR — parse + render every response body (server-ssr-template-v1-multilang/fixture.bin)",
+  "kernelLabel": "1,000-record catalog SSR \u2014 parse + render every response body (server-ssr-template-v1-multilang/fixture.bin)",
   "kernelLabels": {
-    "ssr_render": "Server SSR — 1,000-record catalog parse + render with text/attribute/URL escaping"
+    "ssr_render": "Server SSR \u2014 1,000-record catalog parse + render with text/attribute/URL escaping"
   },
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
@@ -47,6 +47,17 @@
         "ssr_render": "server_ssr_kernel_rs.wasm"
       },
       "source": "benchmarks/multilang-wasm/server-ssr-template/server_ssr_kernel.rs"
+    },
+    {
+      "key": "asc",
+      "label": "AssemblyScript / Wasm",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "ssr_render": "server_ssr_kernel_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/server-ssr-template/server_ssr_kernel.ts"
     }
   ]
 }
