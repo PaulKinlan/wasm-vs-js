@@ -5737,7 +5737,8 @@ export const KERNEL_ADAPTERS = {
         sealJavaScript = mod.sealJavaScript;
       }
       const callables = {};
-      for (const key of ["c", "cpp", "rs"]) {
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.crypto.instance;
         const keyOff = 0, nonceOff = 64, aadOff = 96, plainOff = 256, ctOff = 8192, tagOff = 16384;
         callables[key] = {

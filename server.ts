@@ -2166,6 +2166,7 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "bracket_dart.wasm",
       "bracket_rs.wasm",
       "crypto_c.wasm",
+      "crypto_asc.wasm",
       "crypto_cpp.wasm",
       "crypto_dart.mjs",
       "crypto_dart.wasm",

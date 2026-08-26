@@ -5,8 +5,8 @@
     "clang": "clang version 22.1.8",
     "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
   },
-  "kernelCount": 144,
-  "reproducesCommittedBytes": 27,
+  "kernelCount": 145,
+  "reproducesCommittedBytes": 28,
   "doesNotReproduceCommittedBytes": 117,
   "kernels": [
     {
@@ -140,6 +140,18 @@
       "artifactBytes": 624140,
       "reproducesCommittedBytes": false,
       "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -o <out>/bracket_rs.wasm benchmarks/multilang-wasm/cad-parametric-bracket/bracket_rs.rs"
+    },
+    {
+      "workload": "crypto-authenticated-stream",
+      "engine": "asc",
+      "lang": "asc",
+      "source": "benchmarks/multilang-wasm/crypto-authenticated-stream/crypto.ts",
+      "sourceSha256": "80ab90d4d8b22c89714736654e782438488236247e836bacdd292e84c94c95f3",
+      "artifact": "crypto_asc.wasm",
+      "artifactSha256": "f457724f76f6fecc629f6f2d0081309320e7b16dd0d2eeb94338696d6171ba75",
+      "artifactBytes": 3167,
+      "reproducesCommittedBytes": true,
+      "command": "npx --yes -p assemblyscript asc benchmarks/multilang-wasm/crypto-authenticated-stream/crypto.ts -O3 --bindings none --noAssert --initialMemory 256 -o <out>/crypto_asc.wasm"
     },
     {
       "workload": "crypto-authenticated-stream",

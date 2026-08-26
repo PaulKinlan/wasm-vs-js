@@ -37,6 +37,17 @@
       "source": "benchmarks/multilang-wasm/crypto-authenticated-stream/crypto.rs"
     },
     {
+      "key": "asc",
+      "label": "AssemblyScript / Wasm",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "crypto": "crypto_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/crypto-authenticated-stream/crypto.ts"
+    },
+    {
       "key": "dart",
       "label": "Dart / WasmGC",
       "kind": "dart",
