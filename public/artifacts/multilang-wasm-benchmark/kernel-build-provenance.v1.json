@@ -6,8 +6,8 @@
     "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
   },
   "kernelCount": 152,
-  "reproducesCommittedBytes": 33,
-  "doesNotReproduceCommittedBytes": 119,
+  "reproducesCommittedBytes": 24,
+  "doesNotReproduceCommittedBytes": 128,
   "kernels": [
     {
       "workload": "game-canvas-arcade",
@@ -234,7 +234,7 @@
       "artifact": "fft_asc.wasm",
       "artifactSha256": "a279ef92d45a3729ae93c9818b1c5c69b742325600cd13e1b16d06d4fc0bbdad",
       "artifactBytes": 533,
-      "reproducesCommittedBytes": true,
+      "reproducesCommittedBytes": false,
       "command": "npx --yes -p assemblyscript asc benchmarks/multilang-wasm/fft_kernel.ts -O3 --bindings none --noAssert --initialMemory 256 -o <out>/fft_asc.wasm"
     },
     {
@@ -246,7 +246,7 @@
       "artifact": "fft_asc.wasm",
       "artifactSha256": "a279ef92d45a3729ae93c9818b1c5c69b742325600cd13e1b16d06d4fc0bbdad",
       "artifactBytes": 533,
-      "reproducesCommittedBytes": true,
+      "reproducesCommittedBytes": false,
       "command": "npx --yes -p assemblyscript asc benchmarks/multilang-wasm/fft_kernel.ts -O3 --bindings none --noAssert --initialMemory 256 -o <out>/fft_asc.wasm"
     },
     {
@@ -762,7 +762,7 @@
       "artifact": "mlp_forward_c.wasm",
       "artifactSha256": "8ac44946d3ae50b419a679735d37f3d8c910a523343c2a736454f8a86fb67ad3",
       "artifactBytes": 1972,
-      "reproducesCommittedBytes": true,
+      "reproducesCommittedBytes": false,
       "command": "clang --target=wasm32 -O3 -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/mlp_forward_c.wasm benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.c"
     },
     {
@@ -774,7 +774,7 @@
       "artifact": "mlp_forward_cpp.wasm",
       "artifactSha256": "fd6d6483aed574aa4fd6ef8cac667925d35c30b92a232c5be164231dfb5b9c32",
       "artifactBytes": 1974,
-      "reproducesCommittedBytes": true,
+      "reproducesCommittedBytes": false,
       "command": "clang++ --target=wasm32 -O3 -nostdlib -fno-exceptions -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/mlp_forward_cpp.wasm benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.cpp"
     },
     {
@@ -786,7 +786,7 @@
       "artifact": "mlp_forward_rs.wasm",
       "artifactSha256": "0788de57b1ff64718458ff683f5a458ed29613d6975450a44668bec02b481c0a",
       "artifactBytes": 1739,
-      "reproducesCommittedBytes": true,
+      "reproducesCommittedBytes": false,
       "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -o <out>/mlp_forward_rs.wasm benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.rs"
     },
     {
@@ -834,7 +834,7 @@
       "artifact": "myers_diff_rs.wasm",
       "artifactSha256": "6635f20f926ee3905e5782c1337c1204f64ca1c0b8f26054b9ce2ff7cf33b1d2",
       "artifactBytes": 600787,
-      "reproducesCommittedBytes": true,
+      "reproducesCommittedBytes": false,
       "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -o <out>/myers_diff_rs.wasm benchmarks/multilang-wasm/text-diff-patch/myers_diff.rs"
     },
     {
@@ -1170,7 +1170,7 @@
       "artifact": "polybench_c.wasm",
       "artifactSha256": "badd30a2501df0ad1efcd37e400f01827a7a22ee4d646b7a17f94151d3f5044e",
       "artifactBytes": 2880,
-      "reproducesCommittedBytes": true,
+      "reproducesCommittedBytes": false,
       "command": "clang --target=wasm32 -O3 -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/polybench_c.wasm benchmarks/multilang-wasm/numeric-polybench-panel/polybench.c"
     },
     {
@@ -1182,7 +1182,7 @@
       "artifact": "polybench_cpp.wasm",
       "artifactSha256": "300b36bec312d8db133f4c41c8a63c1670a101607926d8887c64634f55ba3a34",
       "artifactBytes": 2882,
-      "reproducesCommittedBytes": true,
+      "reproducesCommittedBytes": false,
       "command": "clang++ --target=wasm32 -O3 -nostdlib -fno-exceptions -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/polybench_cpp.wasm benchmarks/multilang-wasm/numeric-polybench-panel/polybench.cpp"
     },
     {
@@ -1194,7 +1194,7 @@
       "artifact": "polybench_rs.wasm",
       "artifactSha256": "7b8f74c85295d7bda71ca2fbc00f803d8c5cccae976466ff2281a2f8796ee583",
       "artifactBytes": 4024,
-      "reproducesCommittedBytes": true,
+      "reproducesCommittedBytes": false,
       "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -o <out>/polybench_rs.wasm benchmarks/multilang-wasm/numeric-polybench-panel/polybench.rs"
     },
     {

@@ -3,7 +3,7 @@
   "workloadId": "cad.parametric-bracket.v1",
   "source": {
     "repository": "https://github.com/PaulKinlan/wasm-vs-js",
-    "commit": "fd5a73267f23a5e6a3c650a0a14c7d15af8bba08",
+    "commit": "9b476e3954165f899b7788fba03b6f05cb82a44f",
     "sourceBundle": {
       "path": "public/artifacts/base-cad-parametric-bracket/source-bundle.txt",
       "bytes": 70561,
