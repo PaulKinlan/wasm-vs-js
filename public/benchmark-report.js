@@ -422,7 +422,8 @@ export function deliveryTableHtml(rows) {
  *           kernel: { baseline: any, best: any, bestLabel: string } | null,
  *           pipeline: { baseline: any, best: any, bestLabel: string } | null,
  *           delivery: { baselineMs: number|null, candidateMs: number|null,
- *                       candidateBytes: number|null } | null,
+ *                       baselineBytes?: number|null,
+ *                       candidateBytes?: number|null } | null,
  *           contamination?: any }} input
  */
 export function decisionPanelHtml(

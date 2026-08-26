@@ -15,6 +15,7 @@ import {
   resourcesInWindow,
   SCOPE_ORDER,
   SCOPES,
+  splitDeliveryBytes,
   summarize,
 } from "../public/measurement-model.js";
 
@@ -265,4 +266,42 @@ Deno.test("networkCost ignores non-positive durations when unioning intervals", 
   // The bytes still count: the resource was transferred even though the
   // browser did not report a usable duration for it.
   assertEquals(cost.transferBytes, 8944);
+});
+
+// ── Delivery bytes, split by what the byte is ───────────────────────────────
+//
+// A worker fetches its JavaScript module graph and its .wasm in the same
+// window, so one byte total cannot answer "what does choosing Wasm add". The
+// decision panel used to report only the Wasm figure, so JavaScript read as
+// though it arrived for free — when it is also fetched, parsed and compiled
+// before its first call, and on a small kernel is the larger of the two.
+
+Deno.test("splitDeliveryBytes attributes each resource to the engine that needs it", () => {
+  const split = splitDeliveryBytes([
+    { name: "https://x/benchmarks/sum-u32/workload.js", decodedBodySize: 662, transferSize: 962 },
+    { name: "https://x/artifacts/sum-u32/sum-u32.wasm", decodedBodySize: 96, transferSize: 396 },
+    { name: "https://x/artifacts/sum-u32/build-manifest.json", decodedBodySize: 2597 },
+  ]);
+  assertEquals(split.scriptBytes, 662);
+  assertEquals(split.wasmBytes, 96);
+  // A manifest is loaded whichever engine runs, so it belongs to neither.
+  assertEquals(split.sharedBytes, 2597);
+});
+
+Deno.test("splitDeliveryBytes ignores a query string when classifying", () => {
+  const split = splitDeliveryBytes([
+    { name: "/a/engine.mjs?v=2", decodedBodySize: 10 },
+    { name: "/a/kernel.wasm?bust=1", decodedBodySize: 20 },
+  ]);
+  assertEquals(split.scriptBytes, 10);
+  assertEquals(split.wasmBytes, 20);
+});
+
+Deno.test("splitDeliveryBytes reports zeroes rather than throwing on no entries", () => {
+  const split = splitDeliveryBytes([]);
+  assertEquals(split.wasmBytes, 0);
+  assertEquals(split.scriptBytes, 0);
+  // Zero observed is not the same as "free": callers must not print 0 B as a
+  // measured up-front cost, which is what the panel did before.
+  assertEquals(splitDeliveryBytes(undefined).sharedBytes, 0);
 });

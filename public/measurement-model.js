@@ -353,7 +353,8 @@ export function resourcesInWindow(entries, startMs, endMs) {
  * path costs. Fixtures, manifests and anything else both paths load are
  * reported separately rather than being folded into either side.
  *
- * @param {Array<{name?: string, decodedBodySize?: number, transferSize?: number}>} entries
+ * @param {Array<{name?: string, decodedBodySize?: number, transferSize?: number}> |
+ *          null | undefined} entries
  */
 export function splitDeliveryBytes(entries) {
   let wasmBytes = 0, scriptBytes = 0, sharedBytes = 0;
