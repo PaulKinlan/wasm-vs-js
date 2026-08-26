@@ -234,8 +234,13 @@
         <h2 id="ml-heading">Multi-Language Comparison</h2>
         <p>
           The same direct 256-tap FIR convolution kernel written in JavaScript, C, C++, Rust, and Dart (WasmGC),
-          compared side by side. Variants are test-verified bit-identical to the workload oracle.
-          Dart's strict-f32 path uses per-op Math.fround (no f32 primitive) — disclosed. Sources:
+          compared side by side. Every variant is checked bit-identical before any of them is
+          timed: the runner digests each engine's output and refuses to report a comparison
+          unless all of them agree. Neither JavaScript nor Dart has an f32 scalar, so both
+          round explicitly after every operation — JavaScript through Math.fround, Dart through
+          a one-element Float32List — to reach the same f32 results the linear-memory engines
+          produce. That rounding is a real cost, and it is the cost of computing the same
+          thing. Sources:
           <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/tree/main/benchmarks/multilang-wasm/audio-audio-fir">fir.c · fir.cpp · fir.rs · fir.dart</a>.
         </p>
         <form id="ml-form">
