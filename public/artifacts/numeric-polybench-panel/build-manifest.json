@@ -4,8 +4,8 @@
   "contractId": "numeric.polybench-panel.v1-supplemental-contract-v1",
   "track": "controlled",
   "repository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "implementationCommit": "7df73c306497a87ea0c8247018daa739d52b6717",
-  "sourceTreeSha256": "dc54b3ebe7609108c810b10b74543f7e3562220723bf722ad51f27c060e19f63",
+  "implementationCommit": "33c2e73fdcdcd180b08fe26322d46e02b8a4a96c",
+  "sourceTreeSha256": "4d999913639de4d65ea17c62412a5251ccfec12ce935bcf096cc2d947aed762f",
   "sourceGraph": [
     {
       "path": "benchmarks/base/numeric-polybench-panel/contract.json",
@@ -43,9 +43,9 @@
       "sha256": "f3477b948269e4d287407950306093532dfa073b6d780bd263076cadc3faf9a8"
     },
     {
-      "path": "public/demos/numeric.polybench-panel.v1/index.html",
-      "bytes": 5289,
-      "sha256": "135c580468b07d5b6965a57f2c103fe81e851d0314def8c067a93a67cc78139e"
+      "path": "public/benchmarks/numeric.polybench-panel.v1/index.html",
+      "bytes": 5081,
+      "sha256": "d3c3f4772e4cb990f16b9276b233c3da084d4a28e5e52c791e53ccb4d11b2f69"
     },
     {
       "path": "public/polybench-panel-demo.js",
@@ -69,8 +69,8 @@
     },
     {
       "path": "scripts/build-base-polybench.ts",
-      "bytes": 13152,
-      "sha256": "21bd5f0d57487941be61206bb1f51f56bd845cfbfdc2b0977a6f0f3f769082c9"
+      "bytes": 13157,
+      "sha256": "77211ae01d6f2288d67173da8b50aadd3b9dfc542789de3c670fd3293b68401a"
     },
     {
       "path": "server.ts",
@@ -79,11 +79,11 @@
     },
     {
       "path": "tests/base/polybench-panel.test.ts",
-      "bytes": 14336,
-      "sha256": "6243620ba6ca19cd2f99e77fb37193096989f0493fb9e339c5e22f13b9c30eef"
+      "bytes": 14341,
+      "sha256": "1ff4318d25c40a1cd5469e41944ba89a5a6f66d7a69065c7ffe12e64a3fd231f"
     }
   ],
-  "reproducibleCommand": "deno task --config deno.polybench.json build:base-polybench --source-commit 7df73c306497a87ea0c8247018daa739d52b6717",
+  "reproducibleCommand": "deno task --config deno.polybench.json build:base-polybench --source-commit 33c2e73fdcdcd180b08fe26322d46e02b8a4a96c",
   "toolchain": {
     "deno": "2.9.0",
     "wabt": "1.0.37",

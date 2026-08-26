@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "workloadId": "server.ssr-template.v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "7df73c306497a87ea0c8247018daa739d52b6717",
+  "sourceCommit": "33c2e73fdcdcd180b08fe26322d46e02b8a4a96c",
   "sources": [
     {
       "path": "benchmarks/v1/server-ssr-template/workload.js",
@@ -16,8 +16,8 @@
     },
     {
       "path": "scripts/build-base-server-ssr-template.ts",
-      "bytes": 10759,
-      "sha256": "b17822fd829399e33961fbd9917428b7e851930919c57b233ca458a5c1150d18"
+      "bytes": 10764,
+      "sha256": "46c95b071ca68945354e42001d0d1282ff629aaad611cdb1575026863d58b6cc"
     },
     {
       "path": "schemas/v1-implementation-registration.schema.json",
@@ -35,9 +35,9 @@
       "sha256": "7730f67732ef87325c713bdf79193a73562caf89df7ef7cecb3c0d612e67d2b9"
     },
     {
-      "path": "public/demos/server.ssr-template.v1/index.html",
-      "bytes": 2792,
-      "sha256": "64bffa18aafba287eb2dc4cb8cca7c9488d986451cbe33b500e0995f12d92c51"
+      "path": "public/benchmarks/server.ssr-template.v1/index.html",
+      "bytes": 5238,
+      "sha256": "6957c0bd71f8a01758fd5363fe6feeee11698fad165a77e73c4f7e128ccba340"
     },
     {
       "path": "server.ts",
@@ -46,8 +46,8 @@
     },
     {
       "path": "tests/base-server-ssr-template.test.ts",
-      "bytes": 9727,
-      "sha256": "a746e58a4fa1a584920c0a590af9db85d24adb91a18893d6558b056303687de4"
+      "bytes": 9732,
+      "sha256": "72f2624ba876c46ee9a274d7dbe9b951f1ff8d815e4908bd15fe0f01c9bb657e"
     },
     {
       "path": "deno.json",
