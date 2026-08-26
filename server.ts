@@ -2143,6 +2143,7 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "fir_dart.wasm",
       "fir_dart.mjs",
       "stft_c.wasm",
+      "stft_asc.wasm",
       "stft_cpp.wasm",
       "stft_rs.wasm",
       "stft_dart.wasm",

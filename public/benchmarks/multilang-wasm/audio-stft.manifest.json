@@ -37,6 +37,17 @@
       "source": "benchmarks/multilang-wasm/audio-stft/stft.rs"
     },
     {
+      "key": "asc",
+      "label": "AssemblyScript / Wasm",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "stft": "stft_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/audio-stft/stft.ts"
+    },
+    {
       "key": "dart",
       "label": "Dart / WasmGC",
       "kind": "dart",

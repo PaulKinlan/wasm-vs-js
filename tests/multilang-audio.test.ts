@@ -87,7 +87,7 @@ Deno.test(
 );
 
 Deno.test(
-  "multilang-audio: C, C++, Rust, and Dart/WasmGC STFT kernels match JS oracle",
+  "multilang-audio: C, C++, Rust, AssemblyScript, and Dart/WasmGC STFT kernels match JS oracle",
   async () => {
     const input = genStftSignal(4096);
     const frameSize = 256;
@@ -100,12 +100,14 @@ Deno.test(
       ["stft_c.wasm", "C"],
       ["stft_cpp.wasm", "C++"],
       ["stft_rs.wasm", "Rust"],
+      ["stft_asc.wasm", "AssemblyScript"],
     ] as const;
 
     for (const [file, label] of linear) {
       const mod = (await WebAssembly.instantiate(
         await Deno.readFile(`${ARTIFACTS}/${file}`),
-        {},
+        // AssemblyScript emits an env.abort import for bounds checks.
+        { env: { abort: () => {} } },
       )) as unknown as { instance: WebAssembly.Instance };
       const mem = mod.instance.exports.memory as WebAssembly.Memory;
       const exports = mod.instance.exports as Record<string, (...args: unknown[]) => unknown>;

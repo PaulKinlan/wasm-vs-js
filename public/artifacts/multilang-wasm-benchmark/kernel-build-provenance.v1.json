@@ -5,8 +5,8 @@
     "clang": "clang version 22.1.8",
     "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
   },
-  "kernelCount": 141,
-  "reproducesCommittedBytes": 21,
+  "kernelCount": 142,
+  "reproducesCommittedBytes": 22,
   "doesNotReproduceCommittedBytes": 120,
   "kernels": [
     {
@@ -1388,6 +1388,18 @@
       "artifactBytes": 599876,
       "reproducesCommittedBytes": false,
       "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -o <out>/sha256_rs.wasm benchmarks/multilang-wasm/crypto-file-integrity/sha256.rs"
+    },
+    {
+      "workload": "audio-stft",
+      "engine": "asc",
+      "lang": "asc",
+      "source": "benchmarks/multilang-wasm/audio-stft/stft.ts",
+      "sourceSha256": "76b7efa21ab122b802466387c5e7b4db8bee55372ad6120a0282b960b4b85c04",
+      "artifact": "stft_asc.wasm",
+      "artifactSha256": "4ed662d6d0e42d6eb557f7bfb4065b865cab22465dfcd05d9b1a69ade9415bc3",
+      "artifactBytes": 643,
+      "reproducesCommittedBytes": true,
+      "command": "npx --yes -p assemblyscript asc benchmarks/multilang-wasm/audio-stft/stft.ts -O3 --bindings none --noAssert --initialMemory 256 -o <out>/stft_asc.wasm"
     },
     {
       "workload": "audio-stft",

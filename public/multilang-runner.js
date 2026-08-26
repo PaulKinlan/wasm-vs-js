@@ -2421,7 +2421,8 @@ export const KERNEL_ADAPTERS = {
         return spec;
       }
       const callables = {};
-      for (const key of ["c", "cpp", "rs"]) {
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.stft.instance;
         const mem = inst.exports.memory;
         callables[key] = {
