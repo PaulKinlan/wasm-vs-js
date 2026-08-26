@@ -1073,11 +1073,11 @@
         "js",
         "c",
         "cpp",
-        "rs"
+        "rs",
+        "asc"
       ],
       "missingEngines": [
         "wat",
-        "asc",
         "dart"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/server-ssr-template-v1.manifest.json",
@@ -1235,11 +1235,11 @@
         "js",
         "c",
         "cpp",
-        "rs"
+        "rs",
+        "asc"
       ],
       "missingEngines": [
         "wat",
-        "asc",
         "dart"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/text-markdown-cms.manifest.json",
