@@ -158,7 +158,7 @@ Deno.test("N-body public routes are closed, typed, and mutation-safe", async () 
   const handler = createHandler(null, "public");
   for (
     const path of [
-      "/demos/simulation-nbody-cloth/",
+      "/benchmarks/simulation-nbody-cloth/",
       "/demos/simulation-nbody-cloth/worker.js",
       "/benchmarks/base/simulation-nbody/engine.js",
       "/artifacts/base-simulation-nbody/nbody.wasm",

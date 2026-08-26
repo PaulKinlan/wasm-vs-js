@@ -154,7 +154,7 @@ Deno.test("public handler exposes only the declared demo and artifact routes", a
   const handler = createHandler(null, "public");
   for (
     const path of [
-      "/demos/base/network-http2-quic-state/",
+      "/benchmarks/base/network-http2-quic-state/",
       "/network-http2-quic-state-demo.js",
       "/network-http2-quic-state-worker.js",
       "/benchmarks/v1/network-http2-quic-state/engine.js",

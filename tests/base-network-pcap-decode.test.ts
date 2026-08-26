@@ -347,7 +347,7 @@ Deno.test("public server exposes the closed PCAP demo package read-only", async 
   const handler = createHandler(null, "public");
   for (
     const path of [
-      "/demos/network.pcap-decode.v1/",
+      "/benchmarks/network.pcap-decode.v1/",
       "/pcap-decode-demo.js",
       "/pcap-decode-worker.js",
       "/benchmarks/base/network-pcap-decode/engine.js",

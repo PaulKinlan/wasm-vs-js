@@ -176,7 +176,7 @@ function scenarioBase(id: string): Json {
   return {
     id,
     kind: "lifecycle",
-    route: "/demos/numeric.polybench-panel.v1/",
+    route: "/benchmarks/numeric.polybench-panel.v1/",
     target: null,
     finalState: {
       status: finalStatus,

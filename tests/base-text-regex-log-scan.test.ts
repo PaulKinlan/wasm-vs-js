@@ -241,7 +241,7 @@ Deno.test("base regex artifact, evidence records, routes, and lifecycle source a
   const handler = createHandler(null, "public");
   for (
     const path of [
-      "/demos/base/text.regex-log-scan.v1/",
+      "/benchmarks/base/text.regex-log-scan.v1/",
       "/demos/base/text.regex-log-scan.v1/demo.js",
       "/demos/base/text.regex-log-scan.v1/worker.js",
       "/demos/base/text.regex-log-scan.v1/identity.js",

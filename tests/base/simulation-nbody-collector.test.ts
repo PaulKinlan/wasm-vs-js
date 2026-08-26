@@ -47,7 +47,7 @@ function scenario(id: string, target: string, action: string) {
     ? "timeout-shortening"
     : "pagehide-dispatch";
   const shellRoutes = [
-    "/demos/simulation-nbody-cloth/",
+    "/benchmarks/simulation-nbody-cloth/",
     "/styles.css",
     "/demos/simulation-nbody-cloth/demo.js",
   ];
@@ -76,7 +76,7 @@ function scenario(id: string, target: string, action: string) {
     id,
     target,
     action,
-    route: "/demos/simulation-nbody-cloth/",
+    route: "/benchmarks/simulation-nbody-cloth/",
     cdpBoundBeforeNavigation: true,
     lifecycleInjection: { kind, expression: injectionExpression },
     finalState: {
@@ -359,7 +359,7 @@ Deno.test("N-body collector binds every served executable body and contains no r
     "/benchmarks/base/simulation-nbody/contract.js",
     "/benchmarks/base/simulation-nbody/engine.js",
     "/benchmarks/base/simulation-nbody/fixture.js",
-    "/demos/simulation-nbody-cloth/",
+    "/benchmarks/simulation-nbody-cloth/",
     "/demos/simulation-nbody-cloth/demo.js",
     "/demos/simulation-nbody-cloth/worker.js",
     "/styles.css",

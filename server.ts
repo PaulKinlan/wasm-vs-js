@@ -2441,6 +2441,52 @@ function createHandler(
       const run = await store!.get(url.pathname.slice("/api/runs/".length));
       return run ? json(run) : json({ error: "not found" }, 404);
     }
+    // Every /demos/<slug>/ page had a /benchmarks/<slug>/ twin that measures the
+    // same workload with the standard runner; thirteen of the sixteen demo pages
+    // never loaded a runner at all. Two pages per workload meant two places every
+    // fix had to land, and readers arriving at a demo route saw a workload running
+    // without being told the measured page existed. The demo routes now redirect
+    // to the canonical benchmark permanently.
+    //
+    // The demo page files stay on disk: several are pinned by sha256 in artifact
+    // source graphs, which read from disk rather than over HTTP. Their sibling
+    // assets (demo.js, worker.js, styles.css) keep their own routes, because
+    // build manifests and retained evidence reference those URLs directly.
+    const CANONICAL_DEMO_REDIRECTS = new Map<string, string>([
+      ["/demos/base/network-http2-quic-state", "/benchmarks/base/network-http2-quic-state/"],
+      ["/demos/base/network-http2-quic-state/", "/benchmarks/base/network-http2-quic-state/"],
+      ["/demos/base/text.regex-log-scan.v1", "/benchmarks/base/text.regex-log-scan.v1/"],
+      ["/demos/base/text.regex-log-scan.v1/", "/benchmarks/base/text.regex-log-scan.v1/"],
+      ["/demos/cad-parametric-bracket", "/benchmarks/cad-parametric-bracket/"],
+      ["/demos/cad-parametric-bracket/", "/benchmarks/cad-parametric-bracket/"],
+      ["/demos/crypto.file-integrity.v1", "/benchmarks/crypto.file-integrity.v1/"],
+      ["/demos/crypto.file-integrity.v1/", "/benchmarks/crypto.file-integrity.v1/"],
+      ["/demos/game-canvas-arcade", "/benchmarks/game-canvas-arcade/"],
+      ["/demos/game-canvas-arcade/", "/benchmarks/game-canvas-arcade/"],
+      ["/demos/game-canvas-entity-pathfinding", "/benchmarks/game-canvas-entity-pathfinding/"],
+      ["/demos/game-canvas-entity-pathfinding/", "/benchmarks/game-canvas-entity-pathfinding/"],
+      ["/demos/game-dom-tactics-grid", "/benchmarks/game-dom-tactics-grid/"],
+      ["/demos/game-dom-tactics-grid/", "/benchmarks/game-dom-tactics-grid/"],
+      ["/demos/game-ecs-frame-update", "/benchmarks/game-ecs-frame-update/"],
+      ["/demos/game-ecs-frame-update/", "/benchmarks/game-ecs-frame-update/"],
+      ["/demos/network.pcap-decode.v1", "/benchmarks/network.pcap-decode.v1/"],
+      ["/demos/network.pcap-decode.v1/", "/benchmarks/network.pcap-decode.v1/"],
+      ["/demos/numeric.polybench-panel.v1", "/benchmarks/numeric.polybench-panel.v1/"],
+      ["/demos/numeric.polybench-panel.v1/", "/benchmarks/numeric.polybench-panel.v1/"],
+      ["/demos/serialization.json-telemetry.v1", "/benchmarks/serialization.json-telemetry.v1/"],
+      ["/demos/serialization.json-telemetry.v1/", "/benchmarks/serialization.json-telemetry.v1/"],
+      ["/demos/server.ssr-template.v1", "/benchmarks/server.ssr-template.v1/"],
+      ["/demos/server.ssr-template.v1/", "/benchmarks/server.ssr-template.v1/"],
+      ["/demos/simulation-nbody-cloth", "/benchmarks/simulation-nbody-cloth/"],
+      ["/demos/simulation-nbody-cloth/", "/benchmarks/simulation-nbody-cloth/"],
+      ["/demos/text.diff-patch.v1", "/benchmarks/text.diff-patch.v1/"],
+      ["/demos/text.diff-patch.v1/", "/benchmarks/text.diff-patch.v1/"],
+      ["/demos/text.gc-document-edit.v1", "/benchmarks/text.gc-document-edit.v1/"],
+      ["/demos/text.gc-document-edit.v1/", "/benchmarks/text.gc-document-edit.v1/"],
+      ["/demos/text.markdown-cms.v1", "/benchmarks/text.markdown-cms.v1/"],
+      ["/demos/text.markdown-cms.v1/", "/benchmarks/text.markdown-cms.v1/"],
+    ]);
+
     // Retired /run/ runner — the homepage playground's sum-u32 card supersedes it.
     const retiredRun = url.pathname === "/run" || url.pathname === "/run/" ||
       url.pathname === "/run.html";
@@ -2448,6 +2494,13 @@ function createHandler(
       return new Response(null, {
         status: 302,
         headers: { location: "/#workload-sum-u32" },
+      });
+    }
+    const canonical = CANONICAL_DEMO_REDIRECTS.get(url.pathname);
+    if (canonical) {
+      return new Response(null, {
+        status: 301,
+        headers: { location: canonical },
       });
     }
     const route = routes.get(url.pathname);

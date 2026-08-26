@@ -119,7 +119,7 @@ function scenarioNetwork(action: string, variant: string, mode: string) {
   const stale = action === "stale-error-restart";
   const entries: Array<Record<string, unknown>> = [
     network(
-      "/demos/serialization.json-telemetry.v1/",
+      "/benchmarks/serialization.json-telemetry.v1/",
       "public/demos/serialization.json-telemetry.v1/index.html",
       "Document",
     ),

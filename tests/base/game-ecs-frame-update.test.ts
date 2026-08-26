@@ -214,7 +214,7 @@ Deno.test("public routes are closed, readable, and the demo owns worker lifecycl
   const handler = createHandler(null, "public");
   for (
     const path of [
-      "/demos/game-ecs-frame-update/",
+      "/benchmarks/game-ecs-frame-update/",
       "/demos/game-ecs-frame-update/demo.js",
       "/demos/game-ecs-frame-update/worker.js",
       "/benchmarks/v1/game-ecs-frame-update/engine.js",

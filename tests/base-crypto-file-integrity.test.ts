@@ -247,7 +247,7 @@ Deno.test("artifact rebuild is byte-identical under pinned Clang and LLD", async
 
 Deno.test("public server exposes only read-only registered crypto routes", async () => {
   const routes = [
-    "/demos/crypto.file-integrity.v1/",
+    "/benchmarks/crypto.file-integrity.v1/",
     "/crypto-file-integrity-demo.js",
     "/crypto-file-integrity-worker.js",
     "/benchmarks/base/crypto-file-integrity/sha256.js",

@@ -259,7 +259,7 @@ function validEvidence() {
     workload: {
       id: "text.gc-document-edit.v1",
       registrationId: "text.gc-document-edit.v1-supplemental-registration-v1",
-      route: "/demos/text.gc-document-edit.v1/",
+      route: "/benchmarks/text.gc-document-edit.v1/",
       initialNodes: 256,
       operations: 10_000,
       inserts: 3_334,

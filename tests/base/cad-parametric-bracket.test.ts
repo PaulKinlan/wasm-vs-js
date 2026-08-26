@@ -388,7 +388,7 @@ Deno.test("bracket routes are closed, typed and mutation-safe", async () => {
   const handler = createHandler(null, "public");
   for (
     const path of [
-      "/demos/cad-parametric-bracket/",
+      "/benchmarks/cad-parametric-bracket/",
       "/demos/cad-parametric-bracket/worker.js",
       "/benchmarks/base/cad-parametric-bracket/engine.js",
       "/artifacts/base-cad-parametric-bracket/bracket.wasm",
