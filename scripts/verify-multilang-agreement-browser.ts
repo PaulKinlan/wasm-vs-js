@@ -28,6 +28,7 @@ const DEFAULT_PAGES = [
   "ml-gemm",
   "ml-numeric-kernels-v1",
   "numeric.polybench-panel.v1",
+  "text.diff-patch.v1",
 ];
 
 const pagesArg = Deno.args.find((a) => a.startsWith("--pages="));

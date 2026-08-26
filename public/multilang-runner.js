@@ -2890,22 +2890,58 @@ export const KERNEL_ADAPTERS = {
         const cap = base.length + target.length + 1;
         return { max, vstride, cap };
       }
+      // myers_diff returns the number of edit operations it wrote, and
+      // reports the edit distance through an out-parameter. Both were
+      // discarded, so nothing compared the diffs the engines produced — and an
+      // engine that wrote no operations at all would have been timed as the
+      // fastest.
+      //
+      // Only the first `count` entries are digested: the output arrays are
+      // sized to the worst case and whatever sits past the written region is
+      // left over from an earlier call, which differs per engine and is not
+      // part of the result.
+      const diffDigest = (count, op, x, y, editDistance) => {
+        const bytes = new Uint8Array(count * 12 + 8);
+        const view = new DataView(bytes.buffer);
+        for (let i = 0; i < count; i++) {
+          view.setUint32(i * 12, op[i], true);
+          view.setUint32(i * 12 + 4, x[i], true);
+          view.setUint32(i * 12 + 8, y[i], true);
+        }
+        view.setUint32(count * 12, count, true);
+        view.setUint32(count * 12 + 4, editDistance, true);
+        return fnv1aBytes(bytes);
+      };
       const callables = {};
+      const probes = {};
       for (const key of ["c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.myers_diff.instance;
         const mem = inst.exports.memory;
-        callables[key] = {
-          myers_diff: () => {
-            const { base, target } = inputs();
-            const { max, vstride, cap } = layout(base, target);
-            const baseOff = 0, targetOff = 4096, scratchOff = 8192;
-            const scratchBytes = vstride * (max + 2) * 4;
-            const opOff = scratchOff + scratchBytes;
-            const xOff = opOff + cap * 4, yOff = xOff + cap * 4;
-            const edOff = yOff + cap * 4, fsOff = edOff + 4;
-            new Uint32Array(mem.buffer, baseOff, base.length).set(base);
-            new Uint32Array(mem.buffer, targetOff, target.length).set(target);
+        // The scratch band alone is 8.7 MB at these input sizes. The Rust
+        // module ships 17 pages of memory against a layout that needs 133, so
+        // its engine trapped on every run — it has never produced a diff on
+        // this page. The harness chose the layout, so the harness grows the
+        // memory to fit it, once, before anything is timed.
+        {
+          const probe = inputs();
+          const { max, vstride, cap } = layout(probe.base, probe.target);
+          const need = 8192 + vstride * (max + 2) * 4 + cap * 12 + 8;
+          if (mem.buffer.byteLength < need) {
+            mem.grow(Math.ceil((need - mem.buffer.byteLength) / 65536));
+          }
+        }
+        const run = () => {
+          const { base, target } = inputs();
+          const { max, vstride, cap } = layout(base, target);
+          const baseOff = 0, targetOff = 4096, scratchOff = 8192;
+          const scratchBytes = vstride * (max + 2) * 4;
+          const opOff = scratchOff + scratchBytes;
+          const xOff = opOff + cap * 4, yOff = xOff + cap * 4;
+          const edOff = yOff + cap * 4, fsOff = edOff + 4;
+          new Uint32Array(mem.buffer, baseOff, base.length).set(base);
+          new Uint32Array(mem.buffer, targetOff, target.length).set(target);
+          const count = Number(
             inst.exports.myers_diff(
               baseOff,
               base.length,
@@ -2919,110 +2955,146 @@ export const KERNEL_ADAPTERS = {
               vstride * (max + 2),
               edOff,
               fsOff,
-            );
-          },
+            ),
+          );
+          if (count <= 0) {
+            throw new Error(`myers_diff ${key} produced ${count} edit operations`);
+          }
+          return { count, opOff, xOff, yOff, edOff, cap };
+        };
+        callables[key] = { myers_diff: run };
+        probes[key] = () => {
+          const { count, opOff, xOff, yOff, edOff } = run();
+          // Views are sized to what was written, not to the worst-case
+          // capacity: the output arrays are laid out for the theoretical
+          // maximum and the module's memory need not extend that far.
+          return diffDigest(
+            count,
+            new Uint32Array(mem.buffer, opOff, count),
+            new Uint32Array(mem.buffer, xOff, count),
+            new Uint32Array(mem.buffer, yOff, count),
+            new Uint32Array(mem.buffer, edOff, 1)[0],
+          );
         };
       }
-      callables.js = {
-        myers_diff: () => {
-          const { base, target } = inputs();
-          const { max, cap } = layout(base, target);
-          const outOp = new Uint32Array(cap),
-            outX = new Uint32Array(cap),
-            outY = new Uint32Array(cap);
-          const offset = max;
-          const v = new Int32Array(2 * max + 1);
-          let prefix = 0;
-          while (
-            prefix < base.length && prefix < target.length && base[prefix] === target[prefix]
-          ) prefix++;
-          let suffix = 0;
-          while (
-            suffix < base.length - prefix && suffix < target.length - prefix &&
-            base[base.length - 1 - suffix] === target[target.length - 1 - suffix]
-          ) suffix++;
-          const n = base.length - prefix - suffix, m = target.length - prefix - suffix;
-          const rev = [];
-          for (let index = 0; index < suffix; index++) {
-            rev.push([0, base.length - 1 - index, target.length - 1 - index]);
-          }
-          let ed = 0;
-          if (n === 0) {
-            for (let y = m - 1; y >= 0; y--) rev.push([2, prefix, prefix + y]);
-            ed = m;
-          } else if (m === 0) {
-            for (let x = n - 1; x >= 0; x--) rev.push([1, prefix + x, prefix]);
-            ed = n;
-          } else {
-            v[offset + 1] = 0;
-            const trace = [];
-            outer: for (let d = 0; d <= max; d++) {
-              for (let k = -d; k <= d; k += 2) {
-                let x = (k === -d || (k !== d && v[offset + k - 1] < v[offset + k + 1]))
-                  ? v[offset + k + 1]
-                  : v[offset + k - 1] + 1;
-                let y = x - k;
-                while (x < n && y < m && base[prefix + x] === target[prefix + y]) {
-                  x++;
-                  y++;
-                }
-                v[offset + k] = x;
-                if (x >= n && y >= m) {
-                  trace.push(v.slice());
-                  ed = d;
-                  break outer;
-                }
+      const jsRun = () => {
+        const { base, target } = inputs();
+        const { max, cap } = layout(base, target);
+        const outOp = new Uint32Array(cap),
+          outX = new Uint32Array(cap),
+          outY = new Uint32Array(cap);
+        const offset = max;
+        const v = new Int32Array(2 * max + 1);
+        let prefix = 0;
+        while (
+          prefix < base.length && prefix < target.length && base[prefix] === target[prefix]
+        ) prefix++;
+        let suffix = 0;
+        while (
+          suffix < base.length - prefix && suffix < target.length - prefix &&
+          base[base.length - 1 - suffix] === target[target.length - 1 - suffix]
+        ) suffix++;
+        const n = base.length - prefix - suffix, m = target.length - prefix - suffix;
+        const rev = [];
+        for (let index = 0; index < suffix; index++) {
+          rev.push([0, base.length - 1 - index, target.length - 1 - index]);
+        }
+        let ed = 0;
+        if (n === 0) {
+          for (let y = m - 1; y >= 0; y--) rev.push([2, prefix, prefix + y]);
+          ed = m;
+        } else if (m === 0) {
+          for (let x = n - 1; x >= 0; x--) rev.push([1, prefix + x, prefix]);
+          ed = n;
+        } else {
+          v[offset + 1] = 0;
+          const trace = [];
+          outer: for (let d = 0; d <= max; d++) {
+            for (let k = -d; k <= d; k += 2) {
+              let x = (k === -d || (k !== d && v[offset + k - 1] < v[offset + k + 1]))
+                ? v[offset + k + 1]
+                : v[offset + k - 1] + 1;
+              let y = x - k;
+              while (x < n && y < m && base[prefix + x] === target[prefix + y]) {
+                x++;
+                y++;
               }
-              trace.push(v.slice());
-            }
-            let x = n, y = m;
-            for (let d = ed; d > 0; d--) {
-              const prior = trace[d - 1];
-              const k = x - y;
-              const down = k === -d || (k !== d && prior[offset + k - 1] < prior[offset + k + 1]);
-              const previousK = down ? k + 1 : k - 1;
-              const previousX = prior[offset + previousK];
-              const previousY = previousX - previousK;
-              while (x > previousX && y > previousY) {
-                x--;
-                y--;
-                rev.push([0, prefix + x, prefix + y]);
-              }
-              if (down) {
-                y--;
-                rev.push([2, prefix + x, prefix + y]);
-              } else {
-                x--;
-                rev.push([1, prefix + x, prefix + y]);
+              v[offset + k] = x;
+              if (x >= n && y >= m) {
+                trace.push(v.slice());
+                ed = d;
+                break outer;
               }
             }
+            trace.push(v.slice());
           }
-          for (let index = prefix - 1; index >= 0; index--) rev.push([0, index, index]);
-          rev.reverse();
-          for (let i = 0; i < rev.length; i++) {
-            outOp[i] = rev[i][0];
-            outX[i] = rev[i][1];
-            outY[i] = rev[i][2];
+          let x = n, y = m;
+          for (let d = ed; d > 0; d--) {
+            const prior = trace[d - 1];
+            const k = x - y;
+            const down = k === -d || (k !== d && prior[offset + k - 1] < prior[offset + k + 1]);
+            const previousK = down ? k + 1 : k - 1;
+            const previousX = prior[offset + previousK];
+            const previousY = previousX - previousK;
+            while (x > previousX && y > previousY) {
+              x--;
+              y--;
+              rev.push([0, prefix + x, prefix + y]);
+            }
+            if (down) {
+              y--;
+              rev.push([2, prefix + x, prefix + y]);
+            } else {
+              x--;
+              rev.push([1, prefix + x, prefix + y]);
+            }
           }
-        },
+        }
+        for (let index = prefix - 1; index >= 0; index--) rev.push([0, index, index]);
+        rev.reverse();
+        for (let i = 0; i < rev.length; i++) {
+          outOp[i] = rev[i][0];
+          outX[i] = rev[i][1];
+          outY[i] = rev[i][2];
+        }
+        return { count: rev.length, outOp, outX, outY, ed };
       };
-      callables.dart = {
-        myers_diff: () => {
-          const { base, target } = inputs();
-          const { max, vstride, cap } = layout(base, target);
+      callables.js = { myers_diff: jsRun };
+      probes.js = () => {
+        const r = jsRun();
+        return diffDigest(r.count, r.outOp, r.outX, r.outY, r.ed);
+      };
+      const dartRun = () => {
+        const { base, target } = inputs();
+        const { max, vstride, cap } = layout(base, target);
+        const op = new Uint32Array(cap), x = new Uint32Array(cap), y = new Uint32Array(cap);
+        const editDistance = new Uint32Array(1);
+        const count = Number(
           mods.engines.dart.kernels.myers_diff(
             base,
             target,
-            new Uint32Array(cap),
-            new Uint32Array(cap),
-            new Uint32Array(cap),
+            op,
+            x,
+            y,
             new Uint32Array(vstride * (max + 2)),
             cap,
+            editDistance,
             new Uint32Array(1),
-            new Uint32Array(1),
-          );
-        },
+          ),
+        );
+        if (count <= 0) {
+          throw new Error(`myers_diff dart produced ${count} edit operations`);
+        }
+        return { count, op, x, y, editDistance: editDistance[0] };
       };
+      callables.dart = { myers_diff: dartRun };
+      if (mods.engines.dart) {
+        probes.dart = () => {
+          const r = dartRun();
+          return diffDigest(r.count, r.op, r.x, r.y, r.editDistance);
+        };
+      }
+      requireEngineAgreement("text.diff-patch.v1", probes);
       return callables;
     },
   },

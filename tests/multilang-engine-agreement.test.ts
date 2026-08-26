@@ -358,3 +358,54 @@ Deno.test("ml.numeric-kernels.v1: the six kernels agree across engines", async (
     );
   }
 });
+
+// --- text.diff-patch.v1 -----------------------------------------------------
+
+Deno.test("text.diff-patch.v1: the Rust engine's memory is smaller than the layout", async () => {
+  // Not a regression test for a fix in the kernel — a statement of why the
+  // adapter grows memory. The Myers scratch band is ~8.7 MB at these input
+  // sizes; the Rust module ships 17 pages against a layout needing 133, so its
+  // engine trapped on every run and had never produced a diff on this page.
+  // If a future build ships a larger initial memory this test starts failing
+  // and the growth can be reconsidered.
+  const LEN = 512, EDITS = 30;
+  let state = 0xd1ff2026;
+  const rnd = () => {
+    state = (state * 1664525 + 1013904223) >>> 0;
+    return state / 4294967296;
+  };
+  const target: number[] = [];
+  for (let i = 0; i < LEN; i++) target.push(i);
+  for (let e = 0; e < EDITS; e++) {
+    const pos = Math.floor(rnd() * (target.length + 1));
+    if (rnd() < 0.5) target.splice(pos, 0, 0xffff0000 + e);
+    else if (target.length > 0) target.splice(Math.min(pos, target.length - 1), 1);
+  }
+  const max = LEN + target.length;
+  const vstride = 2 * max + 1;
+  const cap = LEN + target.length + 1;
+  const need = 8192 + vstride * (max + 2) * 4 + cap * 12 + 8;
+
+  const exports = await instantiate("myers_diff_rs.wasm");
+  assert(
+    exports.memory.buffer.byteLength < need,
+    `the Rust module now ships ${exports.memory.buffer.byteLength} bytes, ` +
+      `at or above the ${need} the layout needs — revisit the adapter's grow()`,
+  );
+
+  const at = RUNNER.indexOf('"text.diff-patch.v1": {');
+  assert(at !== -1, "diff-patch adapter not found");
+  const block = RUNNER.slice(at, at + 16000);
+  assert(
+    /mem\.grow\(/.test(block),
+    "the adapter must grow each module's memory to fit the layout it chose",
+  );
+  assert(
+    /produced \$\{count\} edit operations/.test(block),
+    "an engine that writes no edit operations must fail rather than be timed",
+  );
+  assert(
+    block.includes('requireEngineAgreement("text.diff-patch.v1"'),
+    "text.diff-patch.v1 must require its engines to agree",
+  );
+});
