@@ -527,7 +527,12 @@ export const KERNEL_ADAPTERS = {
     kernels: ["pdf_parse"],
     build(mods) {
       // Sync JS mirror of the frozen parser (same algorithm as pdf-engine.c).
-      function pdfMirror(input) {
+      // `out`, when supplied, receives the results on success. The mirror
+      // kept everything in a local state object and returned only an error
+      // code, so nothing it computed could be compared against the kernels'
+      // counters — the JavaScript engine could have parsed a different
+      // document and still reported success.
+      function pdfMirror(input, out) {
         const W = 1224, H = 1584;
         const inp = (at) => input[at];
         const ws = (c) => c === 0 || c === 9 || c === 10 || c === 12 || c === 13 || c === 32;
@@ -1139,6 +1144,11 @@ export const KERNEL_ADAPTERS = {
         S.counters[6] = H;
         S.counters[7] = 1;
         S.counters[8] = W * H * 4;
+        if (out) {
+          out.counters = Array.from(S.counters);
+          out.pageCount = cnt.v;
+          out.hitPages = S.hp.slice();
+        }
         return 0;
       }
 
@@ -1811,18 +1821,49 @@ export const KERNEL_ADAPTERS = {
         pdfFixture = bytes;
         return pdfFixture;
       }
+      /** The nine work counters, the page count, and the pages that matched. */
+      const parseDigest = (counters, pageCount, hitPages) => {
+        const bytes = new Uint8Array((counters.length + 2 + hitPages.length) * 4);
+        const view = new DataView(bytes.buffer);
+        let at = 0;
+        for (const value of counters) {
+          view.setUint32(at, value >>> 0, true);
+          at += 4;
+        }
+        view.setUint32(at, pageCount >>> 0, true);
+        at += 4;
+        view.setUint32(at, hitPages.length >>> 0, true);
+        at += 4;
+        for (const page of hitPages) {
+          view.setUint32(at, page >>> 0, true);
+          at += 4;
+        }
+        return fnv1aBytes(bytes);
+      };
       const callables = {};
+      const probes = {};
       for (const key of ["c", "cpp", "rs"]) {
+        if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.pdf_parse.instance;
         const mem = inst.exports.memory;
-        callables[key] = {
-          pdf_parse: () => {
-            const pdf = pdfBytes();
-            const inputAt = inst.exports.input_ptr();
-            new Uint8Array(mem.buffer, inputAt, pdf.length).set(pdf);
-            const ret = inst.exports.parse(pdf.length);
-            if (ret !== 0) throw new Error(`pdf ${key} parse failed (${ret})`);
-          },
+        const run = () => {
+          const pdf = pdfBytes();
+          const inputAt = inst.exports.input_ptr();
+          new Uint8Array(mem.buffer, inputAt, pdf.length).set(pdf);
+          const ret = Number(inst.exports.parse(pdf.length));
+          if (ret !== 0) throw new Error(`pdf ${key} parse failed (${ret})`);
+        };
+        callables[key] = { pdf_parse: run };
+        probes[key] = () => {
+          run();
+          const exports = inst.exports;
+          const counters = Array.from(
+            new Uint32Array(exports.memory.buffer, Number(exports.counters_ptr()), 9),
+          );
+          const hits = Number(exports.hit_count());
+          const hitPages = [];
+          for (let i = 0; i < hits; i++) hitPages.push(Number(exports.hit_page(i)));
+          return parseDigest(counters, Number(exports.page_count()), hitPages);
         };
       }
       callables.js = {
@@ -1832,6 +1873,12 @@ export const KERNEL_ADAPTERS = {
           if (err !== 0) throw new Error(`pdf js parse failed (${err})`);
         },
       };
+      probes.js = () => {
+        const out = {};
+        const err = pdfMirror(pdfBytes(), out);
+        if (err !== 0) throw new Error(`pdf js parse failed (${err})`);
+        return parseDigest(out.counters, out.pageCount, out.hitPages);
+      };
       callables.dart = {
         pdf_parse: () => {
           const pdf = pdfBytes();
@@ -1839,6 +1886,7 @@ export const KERNEL_ADAPTERS = {
           if (ret !== 0) throw new Error(`pdf dart parse failed (${ret})`);
         },
       };
+      requireEngineAgreement("document.pdf-viewer.v1", probes);
       return callables;
     },
   },
@@ -1972,22 +2020,33 @@ export const KERNEL_ADAPTERS = {
         return bytes;
       }
       const callables = {};
+      const probes = {};
       // The manifest declares Rust as well; the adapter only ran C and C++, so
       // Rust appeared in the comparison's engine list and was silently skipped
       // by runWorkload's missing-callable branch.
       for (const key of ["c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.bracket.instance;
-        callables[key] = {
-          bracket: () => {
-            const input = fixture();
-            const mem = inst.exports.memory;
-            new Uint8Array(mem.buffer, inst.exports.input_ptr(), INPUT_BYTES).set(input);
-            // run() returns 0 on any validation or geometry failure. Discarding
-            // it would report a kernel that bailed immediately as very fast.
-            const outputBytes = inst.exports.run();
-            if (!outputBytes) throw new Error(`bracket ${key}: run() produced no output`);
-          },
+        const run = () => {
+          const input = fixture();
+          const mem = inst.exports.memory;
+          new Uint8Array(mem.buffer, inst.exports.input_ptr(), INPUT_BYTES).set(input);
+          // run() returns 0 on any validation or geometry failure. Discarding
+          // it would report a kernel that bailed immediately as very fast.
+          const outputBytes = Number(inst.exports.run());
+          if (!outputBytes) throw new Error(`bracket ${key}: run() produced no output`);
+          return outputBytes;
+        };
+        callables[key] = { bracket: run };
+        probes[key] = () => {
+          const outputBytes = run();
+          return fnv1aBytes(
+            new Uint8Array(
+              inst.exports.memory.buffer,
+              Number(inst.exports.output_ptr()),
+              outputBytes,
+            ).slice(),
+          );
         };
       }
       // runJavaScript() does compute + independentOracle() + decodeResult()
@@ -2004,20 +2063,24 @@ export const KERNEL_ADAPTERS = {
           runControlledCore(fixture());
         },
       };
+      probes.js = () => {
+        const output = runControlledCore(fixture());
+        return fnv1aBytes(new Uint8Array(output.buffer, output.byteOffset, output.byteLength));
+      };
       // The manifest declares Dart and the artifact plus glue exist, but the
       // adapter never built a callable, so Dart was listed and never run.
       if (mods.engines.dart) {
         const OUTPUT_CAPACITY = 1 << 20;
-        callables.dart = {
-          bracket: () => {
-            const outputBytes = mods.engines.dart.kernels.bracket(
-              fixture(),
-              new Uint8Array(OUTPUT_CAPACITY),
-            );
-            if (!outputBytes) throw new Error("bracket dart: run produced no output");
-          },
+        const dartRun = () => {
+          const out = new Uint8Array(OUTPUT_CAPACITY);
+          const outputBytes = Number(mods.engines.dart.kernels.bracket(fixture(), out));
+          if (!outputBytes) throw new Error("bracket dart: run produced no output");
+          return out.subarray(0, outputBytes);
         };
+        callables.dart = { bracket: dartRun };
+        probes.dart = () => fnv1aBytes(dartRun());
       }
+      requireEngineAgreement("cad.parametric-bracket.v1", probes);
       return callables;
     },
   },

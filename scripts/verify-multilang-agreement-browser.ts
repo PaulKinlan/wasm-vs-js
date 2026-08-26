@@ -24,6 +24,8 @@ const DEFAULT_PAGES = [
   "audio-stft",
   "crypto-authenticated-stream",
   "database-olap-chart",
+  "cad-parametric-bracket",
+  "document-pdf-viewer-v1",
   "graphics-cpu-path-tracer-v1",
   "image-editing-demo",
   "ml-dense-mlp",
