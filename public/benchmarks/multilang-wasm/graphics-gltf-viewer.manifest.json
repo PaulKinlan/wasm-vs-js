@@ -24,7 +24,8 @@
       "files": {
         "viewer": "viewer_c.wasm"
       },
-      "source": "benchmarks/base/graphics-gltf-viewer/viewer.c"
+      "source": "benchmarks/base/graphics-gltf-viewer/viewer.c",
+      "initialMemoryBytes": 67108864
     },
     {
       "key": "cpp",
@@ -35,7 +36,8 @@
       "files": {
         "viewer": "viewer_cpp.wasm"
       },
-      "source": "benchmarks/multilang-wasm/graphics-gltf-viewer/viewer.cpp"
+      "source": "benchmarks/multilang-wasm/graphics-gltf-viewer/viewer.cpp",
+      "initialMemoryBytes": 67108864
     }
   ]
 }

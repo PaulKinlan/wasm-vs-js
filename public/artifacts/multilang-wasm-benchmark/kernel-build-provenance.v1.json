@@ -5,9 +5,9 @@
     "clang": "clang version 22.1.8",
     "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
   },
-  "kernelCount": 152,
+  "kernelCount": 154,
   "reproducesCommittedBytes": 35,
-  "doesNotReproduceCommittedBytes": 117,
+  "doesNotReproduceCommittedBytes": 119,
   "kernels": [
     {
       "workload": "game-canvas-arcade",
@@ -1784,6 +1784,30 @@
       "artifactBytes": 602027,
       "reproducesCommittedBytes": false,
       "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -o <out>/vdom_kernel_rs.wasm benchmarks/multilang-wasm/vdom-diff-patch/vdom_kernel.rs"
+    },
+    {
+      "workload": "graphics-gltf-viewer",
+      "engine": "c",
+      "lang": "c",
+      "source": "benchmarks/base/graphics-gltf-viewer/viewer.c",
+      "sourceSha256": "10722f3acf2d391ba0045d73a5c89aadab20a00989faefe46b58de6d247a7fa1",
+      "artifact": "viewer_c.wasm",
+      "artifactSha256": "e554437fe3f54f5e61c48e70bcab7ec02a06b2e587b99327a27e939fbad6bc8c",
+      "artifactBytes": 6030,
+      "reproducesCommittedBytes": false,
+      "command": "clang --target=wasm32 -O3 -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=67108864 -o <out>/viewer_c.wasm benchmarks/base/graphics-gltf-viewer/viewer.c"
+    },
+    {
+      "workload": "graphics-gltf-viewer",
+      "engine": "cpp",
+      "lang": "cpp",
+      "source": "benchmarks/multilang-wasm/graphics-gltf-viewer/viewer.cpp",
+      "sourceSha256": "5d9bf52d962e0426872829ca23672954d5655cf3c5d4aecb31ac6a121bd71e2e",
+      "artifact": "viewer_cpp.wasm",
+      "artifactSha256": "53a442838ecb823461912ed2aec7e4251b9837b795c9bcf12ee539ee07151fba",
+      "artifactBytes": 6060,
+      "reproducesCommittedBytes": false,
+      "command": "clang++ --target=wasm32 -O3 -nostdlib -fno-exceptions -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=67108864 -o <out>/viewer_cpp.wasm benchmarks/multilang-wasm/graphics-gltf-viewer/viewer.cpp"
     },
     {
       "workload": "archive-zip-workspace-v1",
