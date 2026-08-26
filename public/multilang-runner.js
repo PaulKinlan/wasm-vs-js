@@ -21,6 +21,68 @@
 // Per-workload call adapters live in KERNEL_ADAPTERS below (manifests are
 // data-only); each adapter exposes the timed callable for its kernel.
 
+/**
+ * FNV-1a over a byte view. The shared digest for cross-engine agreement.
+ */
+export function fnv1aBytes(bytes) {
+  let hash = 0x811c9dc5 >>> 0;
+  for (let i = 0; i < bytes.length; i++) {
+    hash = Math.imul(hash ^ bytes[i], 0x01000193) >>> 0;
+  }
+  return hash;
+}
+
+/**
+ * Require every engine in a comparison to produce the same result before any
+ * of them is timed.
+ *
+ * A benchmark compares engines only if they compute the same thing, and for a
+ * long time several adapters here never checked: they ran the kernel, read
+ * back a status code at most, and reported whatever duration came out. An
+ * engine that returned early, wrote nothing, or computed something different
+ * would have been published as the fastest one.
+ *
+ * `probes` maps engine key to a function that runs that engine once and
+ * returns a digest of its output. This is called from build(), outside the
+ * timed region, so agreement is established without adding the cost of
+ * digesting to every measured iteration — the timed callable stays exactly the
+ * work under test.
+ *
+ * The digests are compared to each other rather than to a stored constant:
+ * the invariant that matters is that the engines agree, and a frozen constant
+ * would also have to be revised whenever a fixture legitimately changed.
+ * `expected`, when given, additionally pins the agreed value.
+ */
+export function requireEngineAgreement(label, probes, expected) {
+  const digests = new Map();
+  for (const [key, probe] of Object.entries(probes)) {
+    let digest;
+    try {
+      digest = probe();
+    } catch (cause) {
+      throw new Error(`${label}: ${key} failed its agreement probe: ${cause.message}`, { cause });
+    }
+    if (!Number.isFinite(digest)) {
+      throw new Error(`${label}: ${key} produced no digest (${digest})`);
+    }
+    digests.set(key, digest >>> 0);
+  }
+  if (digests.size === 0) throw new Error(`${label}: no engines to compare`);
+  const distinct = new Set(digests.values());
+  if (distinct.size > 1) {
+    const detail = [...digests].map(([k, d]) => `${k}=${d.toString(16)}`).join(" ");
+    throw new Error(`${label}: engines disagree, so their timings are not comparable — ${detail}`);
+  }
+  const agreed = [...distinct][0];
+  if (expected !== undefined && agreed !== (expected >>> 0)) {
+    throw new Error(
+      `${label}: engines agree on ${agreed.toString(16)} but the frozen value is ` +
+        `${(expected >>> 0).toString(16)}`,
+    );
+  }
+  return agreed;
+}
+
 export const KERNEL_ADAPTERS = {
   "ml.keyword-spotting.v1": {
     kernels: ["kws_run"],
@@ -1823,39 +1885,69 @@ export const KERNEL_ADAPTERS = {
         }
         return { real, imag };
       }
+      // The Wasm kernels compute their twiddle factors from a four-term Taylor
+      // series in f32 (see fft_kernel.c's sinf_custom), not from libm. The
+      // JavaScript engine used Math.sin/Math.cos and f64 arithmetic, so it was
+      // computing a different transform from the four engines it was being
+      // compared against — a different answer at a different cost, reported as
+      // a language difference. It now runs the same series in the same
+      // precision, and agreement is checked below.
+      const fr = Math.fround;
+      const PI = fr(3.14159265358979323846);
+      const HALF_PI = fr(1.57079632679489661923);
+      const TWO_PI = fr(2 * PI);
+      function sinf(x) {
+        while (x > PI) x = fr(x - TWO_PI);
+        while (x < -PI) x = fr(x + TWO_PI);
+        const x2 = fr(x * x), x3 = fr(x * x2), x5 = fr(x3 * x2), x7 = fr(x5 * x2);
+        return fr(fr(fr(x - fr(x3 / fr(6))) + fr(x5 / fr(120))) - fr(x7 / fr(5040)));
+      }
+      const cosf = (x) => sinf(fr(x + HALF_PI));
       function jsFft(real, imag) {
         for (let step = 1; step < LEN; step <<= 1) {
-          const angle = -Math.PI / step, wReal = Math.cos(angle), wImag = Math.sin(angle);
+          const angle = fr(-PI / fr(step));
+          const wReal = cosf(angle), wImag = sinf(angle);
           for (let i = 0; i < LEN; i += step << 1) {
-            let cwR = 1.0, cwI = 0.0;
+            let cwR = fr(1), cwI = fr(0);
             for (let j = 0; j < step; j++) {
               const u = i + j, v = i + j + step;
-              const tr = real[v] * cwR - imag[v] * cwI;
-              const ti = real[v] * cwI + imag[v] * cwR;
-              real[v] = real[u] - tr;
-              imag[v] = imag[u] - ti;
-              real[u] += tr;
-              imag[u] += ti;
-              const nwR = cwR * wReal - cwI * wImag, nwI = cwR * wImag + cwI * wReal;
+              const tr = fr(fr(real[v] * cwR) - fr(imag[v] * cwI));
+              const ti = fr(fr(real[v] * cwI) + fr(imag[v] * cwR));
+              real[v] = fr(real[u] - tr);
+              imag[v] = fr(imag[u] - ti);
+              real[u] = fr(real[u] + tr);
+              imag[u] = fr(imag[u] + ti);
+              const nwR = fr(fr(cwR * wReal) - fr(cwI * wImag));
+              const nwI = fr(fr(cwR * wImag) + fr(cwI * wReal));
               cwR = nwR;
               cwI = nwI;
             }
           }
         }
       }
+      const spectrumDigest = (real, imag) => {
+        const bytes = new Uint8Array(LEN * 8);
+        bytes.set(new Uint8Array(real.buffer, real.byteOffset, LEN * 4), 0);
+        bytes.set(new Uint8Array(imag.buffer, imag.byteOffset, LEN * 4), LEN * 4);
+        return fnv1aBytes(bytes);
+      };
       const callables = {};
+      const probes = {};
       for (const key of ["c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const cfg = mods.manifest.engines.find((e) => e.key === key);
         const inst = mods.engines[key].instances.fft.instance;
         const mem = inst.exports.memory;
-        callables[key] = {
-          fft: () => {
-            const { real, imag } = inputs();
-            new Float32Array(mem.buffer, cfg.offset, LEN).set(real);
-            new Float32Array(mem.buffer, cfg.offset + LEN * 4, LEN).set(imag);
-            inst.exports.fft_butterfly(cfg.offset, cfg.offset + LEN * 4, LEN);
-          },
+        const run = () => {
+          const { real, imag } = inputs();
+          new Float32Array(mem.buffer, cfg.offset, LEN).set(real);
+          new Float32Array(mem.buffer, cfg.offset + LEN * 4, LEN).set(imag);
+          inst.exports.fft_butterfly(cfg.offset, cfg.offset + LEN * 4, LEN);
+        };
+        callables[key] = { fft: run };
+        probes[key] = () => {
+          run();
+          return fnv1aBytes(new Uint8Array(mem.buffer, cfg.offset, LEN * 8));
         };
       }
       callables.js = {
@@ -1864,12 +1956,25 @@ export const KERNEL_ADAPTERS = {
           jsFft(real, imag);
         },
       };
+      probes.js = () => {
+        const { real, imag } = inputs();
+        jsFft(real, imag);
+        return spectrumDigest(real, imag);
+      };
       callables.dart = {
         fft: () => {
           const { real, imag } = inputs();
           mods.engines.dart.kernels.fft_butterfly(real, imag, LEN);
         },
       };
+      if (mods.engines.dart) {
+        probes.dart = () => {
+          const { real, imag } = inputs();
+          mods.engines.dart.kernels.fft_butterfly(real, imag, LEN);
+          return spectrumDigest(real, imag);
+        };
+      }
+      requireEngineAgreement("audio.fft.v1", probes);
       return callables;
     },
   }, // --- cad-parametric-bracket: B-rep + scan-band tessellation (oracle: engine.js runJavaScript)
@@ -5136,21 +5241,27 @@ export const KERNEL_ADAPTERS = {
         }
         return { a, b, c0 };
       }
+      const aOff = 0, bOff = M * K * 4, c0Off = (M * K + K * N) * 4;
+      const outOff = (M * K + K * N + M * N) * 4;
       const callables = {};
+      // Each engine's probe runs the kernel once and digests the product, so
+      // agreement is settled before anything is timed.
+      const probes = {};
       for (const key of ["c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.gemm.instance;
         const mem = inst.exports.memory;
-        const aOff = 0, bOff = M * K * 4, c0Off = (M * K + K * N) * 4;
-        const outOff = (M * K + K * N + M * N) * 4;
-        callables[key] = {
-          gemm: () => {
-            const { a, b, c0 } = inputs();
-            new Float32Array(mem.buffer, aOff, M * K).set(a);
-            new Float32Array(mem.buffer, bOff, K * N).set(b);
-            new Float32Array(mem.buffer, c0Off, M * N).set(c0);
-            inst.exports.gemm(aOff, bOff, c0Off, outOff, M, N, K);
-          },
+        const run = () => {
+          const { a, b, c0 } = inputs();
+          new Float32Array(mem.buffer, aOff, M * K).set(a);
+          new Float32Array(mem.buffer, bOff, K * N).set(b);
+          new Float32Array(mem.buffer, c0Off, M * N).set(c0);
+          inst.exports.gemm(aOff, bOff, c0Off, outOff, M, N, K);
+        };
+        callables[key] = { gemm: run };
+        probes[key] = () => {
+          run();
+          return fnv1aBytes(new Uint8Array(mem.buffer, outOff, M * N * 4));
         };
       }
       const jsGemm = (a, b, c0, out) => {
@@ -5170,12 +5281,27 @@ export const KERNEL_ADAPTERS = {
           jsGemm(a, b, c0, new Float32Array(M * N));
         },
       };
+      probes.js = () => {
+        const { a, b, c0 } = inputs();
+        const out = new Float32Array(M * N);
+        jsGemm(a, b, c0, out);
+        return fnv1aBytes(new Uint8Array(out.buffer, out.byteOffset, out.byteLength));
+      };
       callables.dart = {
         gemm: () => {
           const { a, b, c0 } = inputs();
           mods.engines.dart.kernels.gemm(a, b, c0, new Float32Array(M * N), M, N, K);
         },
       };
+      if (mods.engines.dart) {
+        probes.dart = () => {
+          const { a, b, c0 } = inputs();
+          const out = new Float32Array(M * N);
+          mods.engines.dart.kernels.gemm(a, b, c0, out, M, N, K);
+          return fnv1aBytes(new Uint8Array(out.buffer, out.byteOffset, out.byteLength));
+        };
+      }
+      requireEngineAgreement("ml.gemm.v1", probes);
       return callables;
     },
   },
