@@ -3838,90 +3838,104 @@ export const KERNEL_ADAPTERS = {
         return { x, w, bias };
       }
       const callables = {};
+      const probes = {};
       for (const key of ["c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.mlp_forward.instance;
         const mem = inst.exports.memory;
-        callables[key] = {
-          mlp_forward: () => {
-            const { x, w, bias } = inputs();
-            const xOff = 0, wOff = xOff + B * W * 4, biasOff = wOff + LAYERS * W * W * 4;
-            const sAOff = biasOff + LAYERS * W * 4,
-              sBOff = sAOff + B * W * 4,
-              yOff = sBOff + B * W * 4;
-            new Float32Array(mem.buffer, xOff, B * W).set(x);
-            new Float32Array(mem.buffer, wOff, LAYERS * W * W).set(w);
-            new Float32Array(mem.buffer, biasOff, LAYERS * W).set(bias);
-            inst.exports.mlp_forward(xOff, wOff, biasOff, sAOff, sBOff, yOff, B, W, HIDDEN);
-          },
+        const run = () => {
+          const { x, w, bias } = inputs();
+          const xOff = 0, wOff = xOff + B * W * 4, biasOff = wOff + LAYERS * W * W * 4;
+          const sAOff = biasOff + LAYERS * W * 4,
+            sBOff = sAOff + B * W * 4,
+            yOff = sBOff + B * W * 4;
+          new Float32Array(mem.buffer, xOff, B * W).set(x);
+          new Float32Array(mem.buffer, wOff, LAYERS * W * W).set(w);
+          new Float32Array(mem.buffer, biasOff, LAYERS * W).set(bias);
+          inst.exports.mlp_forward(xOff, wOff, biasOff, sAOff, sBOff, yOff, B, W, HIDDEN);
+          return yOff;
         };
+        callables[key] = { mlp_forward: run };
+        probes[key] = () => fnv1aBytes(new Uint8Array(mem.buffer, run(), B * W * 4));
       }
       if (mods.engines.wat) {
         const inst = mods.engines.wat.instances.mlp_forward?.instance;
         if (inst) {
           const exp = inst.exports;
           const mem = exp.memory;
-          callables.wat = {
-            mlp_forward: () => {
-              const { x, w, bias } = inputs();
-              const heap = new Float32Array(mem.buffer);
-              const xOff = 0, wOff = xOff + B * W * 4, biasOff = wOff + LAYERS * W * W * 4;
-              const sAOff = biasOff + LAYERS * W * 4,
-                sBOff = sAOff + B * W * 4,
-                yOff = sBOff + B * W * 4;
-              heap.set(x, xOff / 4);
-              heap.set(w, wOff / 4);
-              heap.set(bias, biasOff / 4);
-              if (exp.mlp_forward) {
-                exp.mlp_forward(xOff, wOff, biasOff, sAOff, sBOff, yOff, B, W, HIDDEN);
-              } else if (exp.linear_f32 && exp.gelu_f32) {
-                let inOff = xOff;
-                for (let layer = 0; layer < LAYERS; layer++) {
-                  const outOff = layer === LAYERS - 1 ? yOff : layer % 2 === 0 ? sAOff : sBOff;
-                  exp.linear_f32(
-                    inOff,
-                    wOff + layer * W * W * 4,
-                    biasOff + layer * W * 4,
-                    outOff,
-                    B,
-                    W,
-                  );
-                  if (layer < LAYERS - 1) exp.gelu_f32(outOff, B * W);
-                  inOff = outOff;
-                }
+          // Neither branch taken used to mean the callable returned having
+          // done nothing, and it would still have been timed.
+          const watRun = () => {
+            const { x, w, bias } = inputs();
+            const heap = new Float32Array(mem.buffer);
+            const xOff = 0, wOff = xOff + B * W * 4, biasOff = wOff + LAYERS * W * W * 4;
+            const sAOff = biasOff + LAYERS * W * 4,
+              sBOff = sAOff + B * W * 4,
+              yOff = sBOff + B * W * 4;
+            heap.set(x, xOff / 4);
+            heap.set(w, wOff / 4);
+            heap.set(bias, biasOff / 4);
+            if (exp.mlp_forward) {
+              exp.mlp_forward(xOff, wOff, biasOff, sAOff, sBOff, yOff, B, W, HIDDEN);
+            } else if (exp.linear_f32 && exp.gelu_f32) {
+              let inOff = xOff;
+              for (let layer = 0; layer < LAYERS; layer++) {
+                const outOff = layer === LAYERS - 1 ? yOff : layer % 2 === 0 ? sAOff : sBOff;
+                exp.linear_f32(
+                  inOff,
+                  wOff + layer * W * W * 4,
+                  biasOff + layer * W * 4,
+                  outOff,
+                  B,
+                  W,
+                );
+                if (layer < LAYERS - 1) exp.gelu_f32(outOff, B * W);
+                inOff = outOff;
               }
-            },
+            } else {
+              throw new Error(
+                "ml.dense-mlp.v1: the WAT module exports neither mlp_forward nor " +
+                  "linear_f32+gelu_f32, so there is nothing to time",
+              );
+            }
+            return yOff;
           };
+          callables.wat = { mlp_forward: watRun };
+          probes.wat = () => fnv1aBytes(new Uint8Array(mem.buffer, watRun(), B * W * 4));
         }
       }
-      callables.js = {
-        mlp_forward: () => {
-          const { x, w, bias } = inputs();
-          const sA = new Float32Array(B * W),
-            sB = new Float32Array(B * W),
-            y = new Float32Array(B * W);
-          let input = x;
-          for (let layer = 0; layer < LAYERS; layer++) {
-            const out = layer === LAYERS - 1 ? y : layer % 2 === 0 ? sA : sB;
-            for (let bi = 0; bi < B; bi++) {
-              for (let o = 0; o < W; o++) {
-                let acc = bias[layer * W + o];
-                for (let i = 0; i < W; i++) {
-                  acc = Math.fround(
-                    acc + Math.fround(input[bi * W + i] * w[layer * W * W + i * W + o]),
-                  );
-                }
-                out[bi * W + o] = acc + 0;
+      const jsRun = () => {
+        const { x, w, bias } = inputs();
+        const sA = new Float32Array(B * W),
+          sB = new Float32Array(B * W),
+          y = new Float32Array(B * W);
+        let input = x;
+        for (let layer = 0; layer < LAYERS; layer++) {
+          const out = layer === LAYERS - 1 ? y : layer % 2 === 0 ? sA : sB;
+          for (let bi = 0; bi < B; bi++) {
+            for (let o = 0; o < W; o++) {
+              let acc = bias[layer * W + o];
+              for (let i = 0; i < W; i++) {
+                acc = Math.fround(
+                  acc + Math.fround(input[bi * W + i] * w[layer * W * W + i * W + o]),
+                );
               }
+              out[bi * W + o] = acc + 0;
             }
-            if (layer < LAYERS - 1) {
-              for (let idx = 0; idx < out.length; idx++) {
-                out[idx] = Math.fround(geluFrozen(out[idx])) + 0;
-              }
-            }
-            input = out;
           }
-        },
+          if (layer < LAYERS - 1) {
+            for (let idx = 0; idx < out.length; idx++) {
+              out[idx] = Math.fround(geluFrozen(out[idx])) + 0;
+            }
+          }
+          input = out;
+        }
+        return y;
+      };
+      callables.js = { mlp_forward: jsRun };
+      probes.js = () => {
+        const y = jsRun();
+        return fnv1aBytes(new Uint8Array(y.buffer, y.byteOffset, y.byteLength));
       };
       callables.dart = {
         mlp_forward: () => {
@@ -3939,6 +3953,25 @@ export const KERNEL_ADAPTERS = {
           );
         },
       };
+      if (mods.engines.dart) {
+        probes.dart = () => {
+          const { x, w, bias } = inputs();
+          const y = new Float32Array(B * W);
+          mods.engines.dart.kernels.mlp_forward(
+            x,
+            w,
+            bias,
+            new Float32Array(B * W),
+            new Float32Array(B * W),
+            y,
+            B,
+            W,
+            HIDDEN,
+          );
+          return fnv1aBytes(new Uint8Array(y.buffer, y.byteOffset, y.byteLength));
+        };
+      }
+      requireEngineAgreement("ml.dense-mlp.v1", probes);
       return callables;
     },
   },
