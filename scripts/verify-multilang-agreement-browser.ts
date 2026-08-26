@@ -160,45 +160,67 @@ try {
         return (result.result as Record<string, unknown>).value;
       };
 
+      // The page's own run control does not always drive the multi-language
+      // stage: on composed-runner pages the unified runner owns it and the
+      // multilang form is deliberately not bound. What has to be exercised is
+      // the adapter's build(), because that is where requireEngineAgreement
+      // runs — so it is called directly, in the page, against the real
+      // manifest and the real modules, with every engine instantiated exactly
+      // as a run would.
       await waitFor(
-        async () => Boolean(await evaluate(`Boolean(document.querySelector("#ml-start"))`)),
+        async () =>
+          Boolean(
+            await evaluate(
+              `Boolean(document.body && document.body.dataset.multilangManifest)`,
+            ),
+          ),
         60_000,
-        `${page}: multi-language start control`,
+        `${page}: multi-language manifest`,
       );
 
-      // One iteration: this is a correctness gate, not a measurement.
-      await evaluate(`
-        (() => {
-          const iterations = document.querySelector("#ml-iterations");
-          if (iterations) iterations.value = "1";
-          document.querySelector("#ml-start").click();
-          return true;
+      const outcome = await evaluate(`
+        (async () => {
+          const runner = await import("/multilang-runner.js");
+          const manifestPath = document.body.dataset.multilangManifest;
+          const manifest = await (await fetch(manifestPath, { cache: "no-store" })).json();
+          const adapter = runner.KERNEL_ADAPTERS[manifest.workloadId];
+          if (!adapter) return { ok: false, reason: "no adapter for " + manifest.workloadId };
+          const mods = await runner.loadEngines(manifest);
+          // build() throws if the engines disagree.
+          const callables = await adapter.build(mods);
+          const engines = Object.keys(callables);
+          const declared = (manifest.engines || []).map((e) => e.key);
+          const missing = declared.filter((k) => !engines.includes(k));
+          return {
+            ok: missing.length === 0,
+            workloadId: manifest.workloadId,
+            engines,
+            declared,
+            missing,
+            guarded: runner.KERNEL_ADAPTERS[manifest.workloadId].build.toString()
+              .includes("requireEngineAgreement"),
+          };
         })()
-      `);
+      `) as {
+        ok: boolean;
+        reason?: string;
+        workloadId?: string;
+        engines?: string[];
+        declared?: string[];
+        missing?: string[];
+        guarded?: boolean;
+      };
 
-      await waitFor(
-        async () => {
-          const status = await evaluate(
-            `(document.querySelector("#ml-status")?.textContent ?? "")`,
-          ) as string;
-          return /complete|done|finished|error|failed/i.test(status);
-        },
-        180_000,
-        `${page}: run to finish`,
-      );
+      const status = outcome.ok
+        ? `agreed; engines=${outcome.engines?.join(",")}`
+        : `FAILED ${outcome.reason ?? `missing=${outcome.missing?.join(",")}`}`;
+      const engines = outcome.engines ?? [];
+      if (!outcome.guarded) {
+        errors.push(`${outcome.workloadId}: build() does not call requireEngineAgreement`);
+      }
 
-      const status = await evaluate(
-        `(document.querySelector("#ml-status")?.textContent ?? "").trim()`,
-      ) as string;
-      const engines = await evaluate(`
-        (() => {
-          const rows = [...document.querySelectorAll("table tbody tr")];
-          return rows.map((r) => (r.cells[0]?.textContent ?? "").trim()).filter(Boolean);
-        })()
-      `) as string[];
-
-      const failed = /error|failed/i.test(status);
-      const detail = `status="${status.slice(0, 120)}" engines=${engines.length}` +
+      const failed = /FAILED/.test(status);
+      const detail = `${status.slice(0, 160)} count=${engines.length}` +
         (errors.length ? ` consoleErrors=${errors.length}: ${errors[0].slice(0, 160)}` : "");
       const ok = !failed && errors.length === 0 && engines.length > 0;
       results.push({ page, ok, detail });

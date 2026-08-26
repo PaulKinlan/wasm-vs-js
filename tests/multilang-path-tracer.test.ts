@@ -87,18 +87,25 @@ Deno.test("every path-tracer engine renders the identical frame", async () => {
 
 Deno.test("the adapter refuses to time a frame it has not checked", async () => {
   const runner = await Deno.readTextFile(`${ROOT}public/multilang-runner.js`);
-  const at = runner.indexOf('"graphics-cpu-path-tracer.v1"');
+  const at = runner.indexOf('"graphics-cpu-path-tracer.v1": {');
   assert(at !== -1, "path tracer adapter not found");
-  const block = runner.slice(at, at + 6000);
+  const block = runner.slice(at, at + 8000);
+  // Agreement is established in build(), before anything is timed, so the
+  // timed callable stays exactly the work under test and pays nothing for
+  // being verified.
   assert(
-    block.includes("frameFnv1a"),
-    "the adapter must digest the rendered frame, not just read render()'s status",
+    block.includes('requireEngineAgreement("graphics-cpu-path-tracer.v1"'),
+    "the adapter must require its engines to agree, not just read render()'s status",
+  );
+  assert(
+    /0x509d4baf/.test(block),
+    "the agreed frame digest must be pinned",
   );
   // Every engine, not only the Wasm ones.
   for (const key of ["js", "dart"]) {
     assert(
-      new RegExp(`path_tracer ${key} rendered a different frame`).test(block),
-      `the ${key} engine's frame must be checked too`,
+      new RegExp(`probes\\.${key} =`).test(block),
+      `the ${key} engine must supply an agreement probe`,
     );
   }
 });

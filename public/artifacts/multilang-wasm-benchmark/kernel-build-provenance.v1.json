@@ -5,8 +5,8 @@
     "clang": "clang version 22.1.8",
     "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
   },
-  "kernelCount": 150,
-  "reproducesCommittedBytes": 33,
+  "kernelCount": 151,
+  "reproducesCommittedBytes": 34,
   "doesNotReproduceCommittedBytes": 117,
   "kernels": [
     {
@@ -226,18 +226,6 @@
       "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -o <out>/ecs_frame_update_rs.wasm benchmarks/multilang-wasm/game-ecs-frame-update/ecs_frame_update.rs"
     },
     {
-      "workload": "audio-fft",
-      "engine": "asc",
-      "lang": "asc",
-      "source": "benchmarks/multilang-wasm/fft_kernel.ts",
-      "sourceSha256": "797f63ebb70936011facd155d6a25450bccb5622fd112872df609118b47a4528",
-      "artifact": "fft_asc.wasm",
-      "artifactSha256": "a279ef92d45a3729ae93c9818b1c5c69b742325600cd13e1b16d06d4fc0bbdad",
-      "artifactBytes": 533,
-      "reproducesCommittedBytes": true,
-      "command": "npx --yes -p assemblyscript asc benchmarks/multilang-wasm/fft_kernel.ts -O3 --bindings none --noAssert --initialMemory 256 -o <out>/fft_asc.wasm"
-    },
-    {
       "workload": "fft-kernel",
       "engine": "asc",
       "lang": "asc",
@@ -251,15 +239,15 @@
     },
     {
       "workload": "audio-fft",
-      "engine": "c",
-      "lang": "c",
-      "source": "benchmarks/multilang-wasm/fft_kernel.c",
-      "sourceSha256": "5c83af95f36895b1932fcbaa92f811828412d73fc59b922b3018db91471b4e44",
-      "artifact": "fft_c.wasm",
-      "artifactSha256": "c9c59a8b4c9c0cdc81797c568066b41e26df3b6d27d894383e613b17159d3450",
-      "artifactBytes": 1148,
-      "reproducesCommittedBytes": false,
-      "command": "clang --target=wasm32 -O3 -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/fft_c.wasm benchmarks/multilang-wasm/fft_kernel.c"
+      "engine": "asc",
+      "lang": "asc",
+      "source": "benchmarks/multilang-wasm/fft_kernel.ts",
+      "sourceSha256": "797f63ebb70936011facd155d6a25450bccb5622fd112872df609118b47a4528",
+      "artifact": "fft_asc.wasm",
+      "artifactSha256": "a279ef92d45a3729ae93c9818b1c5c69b742325600cd13e1b16d06d4fc0bbdad",
+      "artifactBytes": 533,
+      "reproducesCommittedBytes": true,
+      "command": "npx --yes -p assemblyscript asc benchmarks/multilang-wasm/fft_kernel.ts -O3 --bindings none --noAssert --initialMemory 256 -o <out>/fft_asc.wasm"
     },
     {
       "workload": "fft-kernel",
@@ -275,15 +263,15 @@
     },
     {
       "workload": "audio-fft",
-      "engine": "cpp",
-      "lang": "cpp",
-      "source": "benchmarks/multilang-wasm/fft_kernel.cpp",
-      "sourceSha256": "8424df5a6aae33bd79cedf5d70e72d171026028c24843415d2cef4e1f6bf496c",
-      "artifact": "fft_cpp.wasm",
-      "artifactSha256": "907bce869003d248134c16f6bf333d1d9ca4d3879dcf44593af99df7a2515bef",
-      "artifactBytes": 1150,
+      "engine": "c",
+      "lang": "c",
+      "source": "benchmarks/multilang-wasm/fft_kernel.c",
+      "sourceSha256": "5c83af95f36895b1932fcbaa92f811828412d73fc59b922b3018db91471b4e44",
+      "artifact": "fft_c.wasm",
+      "artifactSha256": "c9c59a8b4c9c0cdc81797c568066b41e26df3b6d27d894383e613b17159d3450",
+      "artifactBytes": 1148,
       "reproducesCommittedBytes": false,
-      "command": "clang++ --target=wasm32 -O3 -nostdlib -fno-exceptions -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/fft_cpp.wasm benchmarks/multilang-wasm/fft_kernel.cpp"
+      "command": "clang --target=wasm32 -O3 -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/fft_c.wasm benchmarks/multilang-wasm/fft_kernel.c"
     },
     {
       "workload": "fft-kernel",
@@ -299,6 +287,30 @@
     },
     {
       "workload": "audio-fft",
+      "engine": "cpp",
+      "lang": "cpp",
+      "source": "benchmarks/multilang-wasm/fft_kernel.cpp",
+      "sourceSha256": "8424df5a6aae33bd79cedf5d70e72d171026028c24843415d2cef4e1f6bf496c",
+      "artifact": "fft_cpp.wasm",
+      "artifactSha256": "907bce869003d248134c16f6bf333d1d9ca4d3879dcf44593af99df7a2515bef",
+      "artifactBytes": 1150,
+      "reproducesCommittedBytes": false,
+      "command": "clang++ --target=wasm32 -O3 -nostdlib -fno-exceptions -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/fft_cpp.wasm benchmarks/multilang-wasm/fft_kernel.cpp"
+    },
+    {
+      "workload": "audio-fft",
+      "engine": "dart",
+      "lang": "dart",
+      "source": "benchmarks/multilang-wasm/fft_kernel.dart",
+      "sourceSha256": "4845c0a63b000b158dc2f57419f577641bcd091ce4b1a288b73bf673b6def4ad",
+      "artifact": "fft_dart.wasm",
+      "artifactSha256": "92c5ea90874ae222669cf3db58c6fcf013734fa9f71ab3e2c8ea202d52596040",
+      "artifactBytes": 41222,
+      "reproducesCommittedBytes": true,
+      "command": "dart compile wasm --no-source-maps benchmarks/multilang-wasm/fft_kernel.dart -o <out>/fft_dart.wasm"
+    },
+    {
+      "workload": "fft-kernel",
       "engine": "rs",
       "lang": "rs",
       "source": "benchmarks/multilang-wasm/fft_kernel.rs",
@@ -310,7 +322,7 @@
       "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -o <out>/fft_rs.wasm benchmarks/multilang-wasm/fft_kernel.rs"
     },
     {
-      "workload": "fft-kernel",
+      "workload": "audio-fft",
       "engine": "rs",
       "lang": "rs",
       "source": "benchmarks/multilang-wasm/fft_kernel.rs",

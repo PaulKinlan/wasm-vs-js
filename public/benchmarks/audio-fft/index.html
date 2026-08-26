@@ -234,8 +234,11 @@
         <h2 id="ml-heading">Multi-Language Comparison</h2>
         <p>
           The same radix-2 complex FFT (4,096 samples per transform) kernel written in JavaScript, C, C++, Rust, and Dart (WasmGC),
-          compared side by side. Variants are test-verified bit-identical to the workload oracle.
-          Dart's strict-f32 path uses per-op Math.fround (no f32 primitive) — disclosed. Sources:
+          compared side by side. Every variant is checked bit-identical before any of them is
+          timed: the runner digests each engine's spectrum and refuses to report a comparison
+          unless all six agree. Dart has no f32 scalar, so its kernel rounds through a
+          one-element Float32List after every operation to reach the same f32 result — a real
+          cost, and the cost of computing the same transform. Sources:
           <a class="commit-link" href="https://github.com/PaulKinlan/wasm-vs-js/tree/main/benchmarks/multilang-wasm/audio-audio-fft">fft_kernel.c · .cpp · .rs · .dart</a>.
         </p>
         <form id="ml-form">
