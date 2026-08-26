@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "workloadId": "document.pdf-viewer.v1",
   "status": "supplemental-validation",
-  "sourceCommit": "e713097ec0e3b21c49d288e350a57bf87b150b7d",
+  "sourceCommit": "98813c201f4a761652d982f5039be6804bc5b204",
   "oracle": {
     "pageCount": 100,
     "searchTerm": "NEEDLE",
