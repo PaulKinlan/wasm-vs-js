@@ -10,7 +10,7 @@
       "key": "js",
       "label": "JavaScript",
       "kind": "js",
-      "source": "benchmarks/multilang-wasm/fft_kernel.ts"
+      "source": ""
     },
     {
       "key": "c",
@@ -35,6 +35,17 @@
       "lang": "rs",
       "offset": 1024,
       "source": "benchmarks/multilang-wasm/fft_kernel.rs"
+    },
+    {
+      "key": "asc",
+      "label": "AssemblyScript / Wasm",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "fft": "fft_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/fft_kernel.ts"
     },
     {
       "key": "dart",

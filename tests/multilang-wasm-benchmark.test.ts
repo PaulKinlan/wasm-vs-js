@@ -30,7 +30,9 @@ Deno.test(
       ["sum_wat.wasm", "sum_u32", 0, "Raw WAT"],
     ] as const;
     for (const [file, fnName, offset] of linear) {
-      const mod = (await WebAssembly.instantiate(await loadWasm(file), {})) as unknown as {
+      const mod = (await WebAssembly.instantiate(await loadWasm(file), {
+        env: { abort: () => {} },
+      })) as unknown as {
         instance: WebAssembly.Instance;
       };
       const mem = new Uint32Array(
@@ -81,6 +83,7 @@ Deno.test(
       ["fft_asc.wasm", "fft_butterfly", "AssemblyScript"],
       ["fft_rs.wasm", "fft_butterfly", "Rust"],
     ] as const;
+    let reference: { real: Float32Array; imag: Float32Array } | null = null;
     for (const [file, fnName, label] of linear) {
       const mod = (await WebAssembly.instantiate(await loadWasm(file), {})) as unknown as {
         instance: WebAssembly.Instance;
@@ -101,6 +104,25 @@ Deno.test(
         Math.abs(before - (real[17] + imag[29])) > 1e-3,
         `${label} fft_butterfly did not transform the spectrum`,
       );
+      // "The spectrum changed" was the only assertion here, so an engine
+      // computing different mathematics passed: the AssemblyScript kernel
+      // called Mathf.sin/cos where every other engine used the C kernel's
+      // four-term Taylor series, and the two disagreed by up to 2.25 absolute.
+      // Every engine must now agree with the first one bit for bit.
+      const output = { real: Float32Array.from(real), imag: Float32Array.from(imag) };
+      if (reference === null) {
+        reference = output;
+      } else {
+        for (let i = 0; i < FFT_LEN; i++) {
+          assert(
+            output.real[i] === reference.real[i] && output.imag[i] === reference.imag[i],
+            `${label} disagrees with C at bin ${i}: ` +
+              `(${output.real[i]}, ${output.imag[i]}) vs (${reference.real[i]}, ${
+                reference.imag[i]
+              })`,
+          );
+        }
+      }
     }
 
     // Dart WasmGC variant
