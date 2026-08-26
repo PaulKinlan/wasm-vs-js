@@ -6320,34 +6320,73 @@ export const KERNEL_ADAPTERS = {
         }
         return { commands, flags, versions, filter, counters };
       }
+      const STATE_BYTES = TODO_COUNT * 2 + 1;
+      /** Emitted commands, then flags, versions and the active filter. */
+      const journeyDigest = (commands, state) => {
+        const bytes = new Uint8Array(commands.byteLength + state.byteLength);
+        bytes.set(new Uint8Array(commands.buffer, commands.byteOffset, commands.byteLength), 0);
+        bytes.set(
+          new Uint8Array(state.buffer, state.byteOffset, state.byteLength),
+          commands.byteLength,
+        );
+        return fnv1aBytes(bytes);
+      };
       const callables = {};
+      const probes = {};
       for (const key of ["c", "cpp", "rs"]) {
+        if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.todomvc_engine.instance;
         const mem = inst.exports.memory;
-        callables[key] = {
-          todomvc_engine: () => {
-            const encoded = fixture();
-            const count = encoded.length / 4;
-            const inOff = 0, cmdOff = encoded.byteLength + 1024;
-            const stateOff = cmdOff + encoded.byteLength + 1024;
-            new Int32Array(mem.buffer, inOff, encoded.length).set(encoded);
-            const ret = inst.exports.run(count, inOff, cmdOff, stateOff);
-            if (ret !== count) throw new Error(`todomvc_engine ${key} run failed (${ret})`);
-          },
+        const run = () => {
+          const encoded = fixture();
+          const count = encoded.length / 4;
+          const inOff = 0, cmdOff = encoded.byteLength + 1024;
+          const stateOff = cmdOff + encoded.byteLength + 1024;
+          const need = stateOff + STATE_BYTES;
+          if (mem.buffer.byteLength < need) {
+            mem.grow(Math.ceil((need - mem.buffer.byteLength) / 65536));
+          }
+          new Int32Array(mem.buffer, inOff, encoded.length).set(encoded);
+          const ret = Number(inst.exports.run(count, inOff, cmdOff, stateOff));
+          if (ret !== count) throw new Error(`todomvc_engine ${key} run failed (${ret})`);
+          return { cmdOff, stateOff, length: encoded.length };
+        };
+        callables[key] = { todomvc_engine: run };
+        probes[key] = () => {
+          const { cmdOff, stateOff, length } = run();
+          return journeyDigest(
+            new Int32Array(mem.buffer, cmdOff, length).slice(),
+            new Uint8Array(mem.buffer, stateOff, STATE_BYTES).slice(),
+          );
         };
       }
       callables.js = { todomvc_engine: () => jsEngine(fixture()) };
-      callables.dart = {
-        todomvc_engine: () => {
-          const encoded = fixture();
-          const count = encoded.length / 4;
-          const input = new Uint8Array(encoded.buffer.slice(0));
-          const commands = new Uint8Array(encoded.byteLength);
-          const state = new Uint8Array(TODO_COUNT * 2 + 1);
-          const ret = mods.engines.dart.kernels.run(input, count, commands, state);
-          if (ret !== count) throw new Error(`todomvc_engine dart run failed (${ret})`);
-        },
+      probes.js = () => {
+        const r = jsEngine(fixture());
+        const state = new Uint8Array(STATE_BYTES);
+        state.set(r.flags, 0);
+        state.set(r.versions, TODO_COUNT);
+        state[TODO_COUNT * 2] = r.filter;
+        return journeyDigest(r.commands, state);
       };
+      const dartRun = () => {
+        const encoded = fixture();
+        const count = encoded.length / 4;
+        const input = new Uint8Array(encoded.buffer.slice(0));
+        const commands = new Uint8Array(encoded.byteLength);
+        const state = new Uint8Array(STATE_BYTES);
+        const ret = Number(mods.engines.dart.kernels.run(input, count, commands, state));
+        if (ret !== count) throw new Error(`todomvc_engine dart run failed (${ret})`);
+        return { commands, state };
+      };
+      callables.dart = { todomvc_engine: dartRun };
+      if (mods.engines.dart) {
+        probes.dart = () => {
+          const { commands, state } = dartRun();
+          return journeyDigest(commands, state);
+        };
+      }
+      requireEngineAgreement("dom.todomvc-journey.v1", probes);
       return callables;
     },
   },
