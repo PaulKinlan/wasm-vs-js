@@ -37,7 +37,7 @@
       "source": "benchmarks/multilang-wasm/audio-fir/fir.rs"
     },
     {
-      "key": "as",
+      "key": "asc",
       "label": "AssemblyScript / Wasm",
       "kind": "linear",
       "lang": "asc",

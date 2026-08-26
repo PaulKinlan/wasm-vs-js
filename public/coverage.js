@@ -9,7 +9,7 @@ import { icon } from "./benchmark-report.js";
 const ENGINE_LABELS = {
   js: "JavaScript",
   wat: "WAT",
-  as: "AssemblyScript",
+  asc: "AssemblyScript",
   c: "C",
   cpp: "C++",
   rs: "Rust",

@@ -2286,7 +2286,7 @@ export const KERNEL_ADAPTERS = {
         return out;
       }
       const callables = {};
-      for (const key of ["c", "cpp", "rs", "as"]) {
+      for (const key of ["c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.fir.instance;
         const mem = inst.exports.memory;
@@ -4978,7 +4978,7 @@ export const KERNEL_ADAPTERS = {
         return { a, b, c0 };
       }
       const callables = {};
-      for (const key of ["c", "cpp", "rs", "as"]) {
+      for (const key of ["c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.gemm.instance;
         const mem = inst.exports.memory;

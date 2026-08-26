@@ -3,7 +3,7 @@
   "targetEngines": [
     "js",
     "wat",
-    "as",
+    "asc",
     "c",
     "cpp",
     "rs",
@@ -20,7 +20,7 @@
         "c",
         "cpp",
         "rs",
-        "as"
+        "asc"
       ],
       "missingEngines": [
         "wat",
@@ -51,7 +51,7 @@
       ],
       "missingEngines": [
         "wat",
-        "as"
+        "asc"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/audio-fft.manifest.json",
       "domHost": null,
@@ -74,7 +74,7 @@
         "c",
         "cpp",
         "rs",
-        "as",
+        "asc",
         "dart"
       ],
       "missingEngines": [
@@ -105,7 +105,7 @@
       ],
       "missingEngines": [
         "wat",
-        "as"
+        "asc"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/audio-stft.manifest.json",
       "domHost": null,
@@ -132,7 +132,7 @@
       ],
       "missingEngines": [
         "wat",
-        "as"
+        "asc"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/base-dom-todomvc-journey.manifest.json",
       "domHost": "/dom-hosts/base-dom-todomvc-journey.js",
@@ -173,7 +173,7 @@
         "c",
         "cpp",
         "rs",
-        "as"
+        "asc"
       ],
       "missingEngines": [
         "wat",
@@ -221,7 +221,7 @@
       ],
       "missingEngines": [
         "wat",
-        "as"
+        "asc"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/text-regex-log-scan.manifest.json",
       "domHost": null,
@@ -248,7 +248,7 @@
       ],
       "missingEngines": [
         "wat",
-        "as"
+        "asc"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/cad-mesh-repair.manifest.json",
       "domHost": null,
@@ -275,7 +275,7 @@
       ],
       "missingEngines": [
         "wat",
-        "as"
+        "asc"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/cad-parametric-bracket.manifest.json",
       "domHost": null,
@@ -302,7 +302,7 @@
       ],
       "missingEngines": [
         "wat",
-        "as"
+        "asc"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/crypto-authenticated-stream.manifest.json",
       "domHost": null,
@@ -329,7 +329,7 @@
       ],
       "missingEngines": [
         "wat",
-        "as"
+        "asc"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/crypto-file-integrity.manifest.json",
       "domHost": null,
@@ -356,7 +356,7 @@
       ],
       "missingEngines": [
         "wat",
-        "as"
+        "asc"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/database-olap-chart.manifest.json",
       "domHost": null,
@@ -413,7 +413,7 @@
         "c",
         "cpp",
         "rs",
-        "as"
+        "asc"
       ],
       "missingEngines": [
         "wat",
@@ -441,7 +441,7 @@
         "c",
         "cpp",
         "rs",
-        "as"
+        "asc"
       ],
       "missingEngines": [
         "wat",
@@ -469,7 +469,7 @@
         "c",
         "cpp",
         "rs",
-        "as"
+        "asc"
       ],
       "missingEngines": [
         "wat",
@@ -497,7 +497,7 @@
         "c",
         "cpp",
         "rs",
-        "as"
+        "asc"
       ],
       "missingEngines": [
         "wat",
@@ -525,7 +525,7 @@
         "c",
         "cpp",
         "rs",
-        "as"
+        "asc"
       ],
       "missingEngines": [
         "wat",
@@ -553,7 +553,7 @@
         "c",
         "cpp",
         "rs",
-        "as"
+        "asc"
       ],
       "missingEngines": [
         "wat",
@@ -599,7 +599,7 @@
         "c",
         "cpp",
         "rs",
-        "as"
+        "asc"
       ],
       "missingEngines": [
         "wat",
@@ -626,7 +626,7 @@
         "c",
         "cpp",
         "rs",
-        "as"
+        "asc"
       ],
       "missingEngines": [
         "wat",
@@ -653,7 +653,7 @@
         "c",
         "cpp",
         "rs",
-        "as"
+        "asc"
       ],
       "missingEngines": [
         "wat",
@@ -685,7 +685,7 @@
       ],
       "missingEngines": [
         "wat",
-        "as"
+        "asc"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/game-ecs-frame-update.manifest.json",
       "domHost": null,
@@ -712,7 +712,7 @@
       ],
       "missingEngines": [
         "wat",
-        "as"
+        "asc"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/graphics-cpu-path-tracer.manifest.json",
       "domHost": null,
@@ -735,7 +735,7 @@
         "c",
         "cpp",
         "rs",
-        "as",
+        "asc",
         "dart"
       ],
       "missingEngines": [
@@ -762,7 +762,7 @@
         "c",
         "cpp",
         "rs",
-        "as",
+        "asc",
         "dart"
       ],
       "missingEngines": [
@@ -793,7 +793,7 @@
         "dart"
       ],
       "missingEngines": [
-        "as"
+        "asc"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/ml-dense-mlp.manifest.json",
       "domHost": null,
@@ -816,7 +816,7 @@
         "c",
         "cpp",
         "rs",
-        "as",
+        "asc",
         "dart"
       ],
       "missingEngines": [
@@ -843,7 +843,7 @@
         "c",
         "cpp",
         "rs",
-        "as"
+        "asc"
       ],
       "missingEngines": [
         "wat",
@@ -873,7 +873,7 @@
       ],
       "missingEngines": [
         "wat",
-        "as",
+        "asc",
         "c"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/ml-numeric-kernels.manifest.json",
@@ -895,7 +895,7 @@
       "engines": [
         "js",
         "wat",
-        "as",
+        "asc",
         "c",
         "cpp",
         "rs",
@@ -925,7 +925,7 @@
       ],
       "missingEngines": [
         "wat",
-        "as",
+        "asc",
         "rs",
         "dart"
       ],
@@ -971,7 +971,7 @@
       ],
       "missingEngines": [
         "wat",
-        "as"
+        "asc"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/numeric-polybench-panel.manifest.json",
       "domHost": null,
@@ -994,7 +994,7 @@
         "c",
         "cpp",
         "rs",
-        "as"
+        "asc"
       ],
       "missingEngines": [
         "wat",
@@ -1021,7 +1021,7 @@
         "c",
         "cpp",
         "rs",
-        "as"
+        "asc"
       ],
       "missingEngines": [
         "wat",
@@ -1052,7 +1052,7 @@
       ],
       "missingEngines": [
         "wat",
-        "as"
+        "asc"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/serialization-json-telemetry.manifest.json",
       "domHost": null,
@@ -1078,7 +1078,7 @@
       ],
       "missingEngines": [
         "wat",
-        "as",
+        "asc",
         "dart"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/server-ssr-template-v1.manifest.json",
@@ -1106,7 +1106,7 @@
       ],
       "missingEngines": [
         "wat",
-        "as"
+        "asc"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/simulation-nbody-cloth.manifest.json",
       "domHost": null,
@@ -1133,7 +1133,7 @@
       ],
       "missingEngines": [
         "wat",
-        "as"
+        "asc"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/simulation-rigid-body-2d.manifest.json",
       "domHost": null,
@@ -1154,7 +1154,7 @@
       "engines": [
         "js",
         "wat",
-        "as",
+        "asc",
         "c",
         "cpp",
         "rs",
@@ -1186,7 +1186,7 @@
       ],
       "missingEngines": [
         "wat",
-        "as"
+        "asc"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/text-diff-patch.manifest.json",
       "domHost": null,
@@ -1209,7 +1209,7 @@
         "c",
         "cpp",
         "rs",
-        "as"
+        "asc"
       ],
       "missingEngines": [
         "wat",
@@ -1240,7 +1240,7 @@
       ],
       "missingEngines": [
         "wat",
-        "as",
+        "asc",
         "dart"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/text-markdown-cms.manifest.json",
@@ -1295,7 +1295,7 @@
         "c",
         "cpp",
         "rs",
-        "as"
+        "asc"
       ],
       "missingEngines": [
         "wat",
@@ -1341,7 +1341,7 @@
       ],
       "missingEngines": [
         "wat",
-        "as"
+        "asc"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/text-regex-log-scan.manifest.json",
       "domHost": null,
@@ -1382,7 +1382,7 @@
       ],
       "missingEngines": [
         "wat",
-        "as"
+        "asc"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/crypto-file-integrity.manifest.json",
       "domHost": null,
@@ -1405,7 +1405,7 @@
         "c",
         "cpp",
         "rs",
-        "as"
+        "asc"
       ],
       "missingEngines": [
         "wat",
@@ -1432,7 +1432,7 @@
         "c",
         "cpp",
         "rs",
-        "as"
+        "asc"
       ],
       "missingEngines": [
         "wat",
@@ -1459,7 +1459,7 @@
         "c",
         "cpp",
         "rs",
-        "as"
+        "asc"
       ],
       "missingEngines": [
         "wat",
@@ -1519,7 +1519,7 @@
       ],
       "missingEngines": [
         "wat",
-        "as"
+        "asc"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/numeric-polybench-panel.manifest.json",
       "domHost": null,
@@ -1588,7 +1588,7 @@
       ],
       "missingEngines": [
         "wat",
-        "as"
+        "asc"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/text-diff-patch.manifest.json",
       "domHost": null,

@@ -16,10 +16,12 @@
 const ROOT = new URL("../", import.meta.url).pathname;
 
 /** The engine set a fully covered kernel-capable workload offers. */
-export const TARGET_ENGINES = ["js", "wat", "as", "c", "cpp", "rs", "dart"] as const;
+export const TARGET_ENGINES = ["js", "wat", "asc", "c", "cpp", "rs", "dart"] as const;
 
 /** Manifest keys that mean the same engine. */
-const ENGINE_ALIASES: Record<string, string> = { asc: "as", assemblyscript: "as", kt: "kt" };
+// "asc" is the canonical AssemblyScript key; "as" and the long form are
+// historical spellings that still appear in a few manifests.
+const ENGINE_ALIASES: Record<string, string> = { as: "asc", assemblyscript: "asc" };
 
 export interface PageCoverage {
   slug: string;

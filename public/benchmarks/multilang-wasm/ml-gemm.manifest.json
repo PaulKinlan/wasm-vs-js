@@ -37,7 +37,7 @@
       "source": "benchmarks/multilang-wasm/ml-gemm/gemm.rs"
     },
     {
-      "key": "as",
+      "key": "asc",
       "label": "AssemblyScript / Wasm",
       "kind": "linear",
       "lang": "asc",
