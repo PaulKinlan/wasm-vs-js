@@ -188,7 +188,9 @@ Deno.test("demo lifecycle owns worker cancellation, timeout, stale token and pag
     ]
   ) {
     if (required === "aria-live") {
-      const page = await Deno.readTextFile("public/demos/base/network-http2-quic-state/index.html");
+      const page = await Deno.readTextFile(
+        "public/benchmarks/base/network-http2-quic-state/index.html",
+      );
       assert(page.includes(required));
     } else assert(source.includes(required));
   }

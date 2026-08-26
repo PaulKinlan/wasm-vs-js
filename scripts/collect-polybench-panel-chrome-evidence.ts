@@ -31,13 +31,15 @@ export const SCENARIO_IDS = [
 ] as const;
 
 const root = new URL("../", import.meta.url);
-const route = "/demos/numeric.polybench-panel.v1/";
+// The /demos/ route now redirects; the collector navigates the canonical
+// benchmark page directly so the evidence records the page under test.
+const route = "/benchmarks/numeric.polybench-panel.v1/";
 const outputRoot = new URL(
   "../evidence/base/numeric-polybench-panel/chrome-acceptance/",
   import.meta.url,
 );
 const executionPaths = [
-  "public/demos/numeric.polybench-panel.v1/index.html",
+  "public/benchmarks/numeric.polybench-panel.v1/index.html",
   "public/polybench-panel-demo.js",
   "public/polybench-panel-worker.js",
   "benchmarks/base/numeric-polybench-panel/workload.js",

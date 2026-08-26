@@ -149,7 +149,7 @@ Deno.test("N-body demo lifecycle is fresh-worker, token-bound, cancellable, boun
   assert(demo.includes("worker?.terminate()") && demo.includes("30_000"));
   assert(demo.includes('addEventListener("pagehide"'));
   assert(!/(localStorage|sessionStorage|indexedDB|fetch\s*\()/u.test(demo));
-  const page = await Deno.readTextFile("public/demos/simulation-nbody-cloth/index.html");
+  const page = await Deno.readTextFile("public/benchmarks/simulation-nbody-cloth/index.html");
   assert(page.includes('role="status"') && page.includes('aria-live="polite"'));
   assert(page.includes("No performance claim.") && page.includes("stores and uploads nothing"));
 });

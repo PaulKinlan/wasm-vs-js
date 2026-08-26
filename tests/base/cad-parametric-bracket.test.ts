@@ -379,7 +379,7 @@ Deno.test("bracket demo lifecycle is fresh-worker, cancellable, token-bound and 
   assert(worker.includes('crypto.subtle.digest("SHA-256"'));
   assert(worker.includes("completeOutputSha256 !== manifest.completeOutputSha256"));
   assert(!/(localStorage|sessionStorage|indexedDB)/u.test(demo));
-  const page = await Deno.readTextFile("public/demos/cad-parametric-bracket/index.html");
+  const page = await Deno.readTextFile("public/benchmarks/cad-parametric-bracket/index.html");
   assert(page.includes('role="status"') && page.includes('aria-live="polite"'));
   assert(page.includes("No performance claim.") && page.includes("stores and uploads nothing"));
 });

@@ -207,7 +207,7 @@ Deno.test("visible output, controls, console, and network schemas reject semanti
   ];
   assertVisibleControls(controls);
 
-  const html = await Deno.readTextFile("public/demos/crypto.file-integrity.v1/index.html");
+  const html = await Deno.readTextFile("public/benchmarks/crypto.file-integrity.v1/index.html");
   const wrappedTargetLabel = html.match(/<label\s+for="target">([\s\S]*?)<\/label>/)?.[1] ?? "";
   assert(
     wrappedTargetLabel.includes("Engine<select") &&
@@ -386,7 +386,7 @@ Deno.test("collector binds clean source, exact fetched bytes, Chrome identity, l
   assertEquals(Object.keys(FETCHED_ASSETS).length, 10);
   assertEquals(
     FETCHED_ASSETS["/benchmarks/crypto.file-integrity.v1/"],
-    "public/demos/crypto.file-integrity.v1/index.html",
+    "public/benchmarks/crypto.file-integrity.v1/index.html",
   );
   assertEquals(
     FETCHED_ASSETS["/artifacts/crypto-file-integrity/crypto-file-integrity.wasm"],

@@ -262,7 +262,7 @@ Deno.test("text demo source exposes worker cancellation, timeout, stale-token gu
     assert(html.includes('aria-live="polite"'));
     assert(html.includes("Start") && html.includes("Cancel"));
   }
-  const markdown = await Deno.readTextFile("public/demos/text.markdown-cms.v1/index.html");
+  const markdown = await Deno.readTextFile("public/benchmarks/text.markdown-cms.v1/index.html");
   assert(markdown.includes("Raw HTML permits only"));
   assert(markdown.includes("40,960 UTF-8 bytes"));
   assert(markdown.includes("4,096 non-empty lines"));

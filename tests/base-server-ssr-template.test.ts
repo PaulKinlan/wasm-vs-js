@@ -213,7 +213,7 @@ Deno.test("server SSR demo lifecycle uses a fresh worker and handles stale, time
   assert(runner.includes('addEventListener("pagehide"'));
   assert(worker.includes("complete output oracle mismatch"));
   assert(worker.includes("counter ${name}"));
-  const page = await Deno.readTextFile("public/demos/server.ssr-template.v1/index.html");
+  const page = await Deno.readTextFile("public/benchmarks/server.ssr-template.v1/index.html");
   assert(page.includes('role="status"'));
   assert(page.includes("never uploaded or stored"));
   assert(page.includes("No performance claim."));

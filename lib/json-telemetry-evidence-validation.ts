@@ -2,7 +2,9 @@ import { canonicalize, sha256Hex } from "./canonical.ts";
 
 const WORKLOAD_PATH = "benchmarks/v1/serialization-json-telemetry/workload.js";
 const WORKLOAD_SHA256 = "54e2ee54b225d8454664dc6a24f5fa178ee0652ccf0e7e01eea93b17f29530f8";
-const DEMO_ROUTE = "/demos/serialization.json-telemetry.v1/";
+// The /demos/ route now redirects; the collector navigates the canonical
+// benchmark page directly so the evidence records the page under test.
+const DEMO_ROUTE = "/benchmarks/serialization.json-telemetry.v1/";
 const SOURCE_PATHS = [
   "public/demos/serialization.json-telemetry.v1/index.html",
   "public/styles.css",

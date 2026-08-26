@@ -278,7 +278,7 @@ Deno.test("public server exposes only read-only registered crypto routes", async
 });
 
 Deno.test("demo lifecycle is fresh-worker, cancellable, bounded, stale-safe, and non-persistent", async () => {
-  const page = await Deno.readTextFile("public/demos/crypto.file-integrity.v1/index.html");
+  const page = await Deno.readTextFile("public/benchmarks/crypto.file-integrity.v1/index.html");
   const runner = await Deno.readTextFile("public/crypto-file-integrity-demo.js");
   const worker = await Deno.readTextFile("public/crypto-file-integrity-worker.js");
   for (

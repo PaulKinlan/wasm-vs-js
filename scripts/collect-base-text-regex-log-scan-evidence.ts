@@ -1,7 +1,9 @@
 import { canonicalize, sha256Hex } from "../lib/canonical.ts";
 import { CdpClient } from "../lib/cdp-client.ts";
 
-export const WORKLOAD_ROUTE = "/demos/base/text.regex-log-scan.v1/";
+// The /demos/ route now redirects; the collector navigates the canonical
+// benchmark page directly so the evidence records the page under test.
+export const WORKLOAD_ROUTE = "/benchmarks/base/text.regex-log-scan.v1/";
 export const CFT_PRODUCT = "Chrome/150.0.7871.24";
 export const CFT_EXECUTABLE_SHA256 =
   "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355";
@@ -31,7 +33,7 @@ interface ExpectedAsset {
 export const EXPECTED_ASSETS: readonly ExpectedAsset[] = [
   {
     route: WORKLOAD_ROUTE,
-    sourcePath: "public/demos/base/text.regex-log-scan.v1/index.html",
+    sourcePath: "public/benchmarks/base/text.regex-log-scan.v1/index.html",
     role: "document",
     requestCount: 1,
     executedIn: [],

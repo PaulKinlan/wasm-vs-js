@@ -91,7 +91,7 @@ function scenario(id: string, target: string, action: string) {
     network: assetRoutes.map((route) => ({
       url: `http://127.0.0.1:1234${route}`,
       method: "GET",
-      type: route === "/demos/simulation-nbody-cloth/" ? "Document" : "Script",
+      type: route === "/benchmarks/simulation-nbody-cloth/" ? "Document" : "Script",
       status: 200,
       mimeType: route.endsWith(".wasm") ? "application/wasm" : "text/javascript",
       fromDiskCache: false,

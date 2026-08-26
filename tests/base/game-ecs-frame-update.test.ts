@@ -235,7 +235,7 @@ Deno.test("public routes are closed, readable, and the demo owns worker lifecycl
       .status,
     404,
   );
-  const page = await Deno.readTextFile("public/demos/game-ecs-frame-update/index.html");
+  const page = await Deno.readTextFile("public/benchmarks/game-ecs-frame-update/index.html");
   assert(page.includes("10,000 entities over 1,000 frames"));
   assert(page.includes("No performance claim."));
   assert(page.includes("Nothing is uploaded or stored."));

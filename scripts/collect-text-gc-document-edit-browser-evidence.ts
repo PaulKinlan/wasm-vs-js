@@ -7,7 +7,9 @@ const ACCEPTED_COMMIT = "7fca505568b593e374185a0926ffd890196e5e18";
 const ACCEPTED_TREE = "d585a3590b35d9552acb7b9a0a68fddb5eafad09";
 const EXPECTED_PRODUCT = "Chrome/150.0.7871.24";
 const EXPECTED_CHROME_SHA256 = "dea3ab8fba923b718920ef9d62570824f2dc0ab0c72d66d53f91b41de6570355";
-const ROUTE = "/demos/text.gc-document-edit.v1/";
+// The /demos/ route now redirects; the collector navigates the canonical
+// benchmark page directly so the evidence records the page under test.
+const ROUTE = "/benchmarks/text.gc-document-edit.v1/";
 const EVIDENCE_ID = "text-gc-document-edit-chrome-150-browser-evidence-v1";
 const encoder = new TextEncoder();
 const decoder = new TextDecoder("utf-8", { fatal: true });
@@ -29,7 +31,7 @@ export const SCENARIOS = [
 ] as const;
 
 export const SERVED_ASSETS = [
-  [ROUTE, "public/demos/text.gc-document-edit.v1/index.html", "text/html"],
+  [ROUTE, "public/benchmarks/text.gc-document-edit.v1/index.html", "text/html"],
   ["/styles.css", "public/styles.css", "text/css"],
   [
     "/text-gc-document-edit-runner.js",

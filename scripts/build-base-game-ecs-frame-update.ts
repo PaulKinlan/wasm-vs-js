@@ -185,7 +185,7 @@ const sourcePaths = [
   "benchmarks/v1/game-ecs-frame-update/implementation-contract.v1.json",
   "scripts/build-base-game-ecs-frame-update.ts",
   "schemas/game-ecs-frame-update-implementation.v1.schema.json",
-  "public/demos/game-ecs-frame-update/index.html",
+  "public/benchmarks/game-ecs-frame-update/index.html",
   "public/demos/game-ecs-frame-update/demo.js",
   "public/demos/game-ecs-frame-update/worker.js",
   "server.ts",
@@ -315,7 +315,7 @@ const registration = {
     },
   ],
   demo: {
-    route: "/demos/game-ecs-frame-update/",
+    route: "/benchmarks/game-ecs-frame-update/",
     status: "runnable-correctness",
     timeoutMs: 120_000,
     persistence: false,

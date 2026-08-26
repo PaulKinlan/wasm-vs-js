@@ -268,7 +268,7 @@ Deno.test("base regex artifact, evidence records, routes, and lifecycle source a
   assert(demo.includes('addEventListener("pagehide", cleanup)'));
   assert(demo.includes("ownedWorker") && demo.includes("runToken !== token"));
   assert(demo.includes("worker.terminate()"));
-  const html = await Deno.readTextFile("public/demos/base/text.regex-log-scan.v1/index.html");
+  const html = await Deno.readTextFile("public/benchmarks/base/text.regex-log-scan.v1/index.html");
   assert(html.includes("No performance claim."));
   assert(html.includes("Nothing is uploaded or stored."));
   assert(html.includes("104,857,600 input bytes"));

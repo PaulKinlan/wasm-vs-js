@@ -130,7 +130,7 @@ const sourcePaths = [
   "catalog/base-implementations.v1/simulation.nbody-cloth.v1.json",
   "schemas/base-workload-validation-record.schema.json",
   "scripts/build-base-simulation-nbody.ts",
-  "public/demos/simulation-nbody-cloth/index.html",
+  "public/benchmarks/simulation-nbody-cloth/index.html",
   "public/demos/simulation-nbody-cloth/demo.js",
   "public/demos/simulation-nbody-cloth/worker.js",
   "public/styles.css",

@@ -11,7 +11,10 @@ const addFormats = ((addFormatsModule as unknown as {
 
 const WORKLOAD_ID = "crypto.file-integrity.v1";
 const OUTPUT_ROOT = "artifacts/base/crypto.file-integrity.v1/browser-evidence";
-const DEMO_ROUTE = "/demos/crypto.file-integrity.v1/";
+// The /demos/ route now redirects; the collector navigates the canonical
+// benchmark page directly, so the evidence records the page under test
+// rather than a redirect hop.
+const DEMO_ROUTE = "/benchmarks/crypto.file-integrity.v1/";
 const KINDS = ["seeded-pseudorandom", "all-zero"] as const;
 const SIZES = [1_048_576, 16_777_216, 268_435_456] as const;
 const SCHEDULES = [1024, 65_536, "whole-buffer"] as const;
@@ -26,7 +29,7 @@ const LIFECYCLE_IDS = [
 ] as const;
 
 export const FETCHED_ASSETS = Object.freeze({
-  [DEMO_ROUTE]: "public/demos/crypto.file-integrity.v1/index.html",
+  [DEMO_ROUTE]: "public/benchmarks/crypto.file-integrity.v1/index.html",
   "/styles.css": "public/styles.css",
   "/crypto-file-integrity-demo.js": "public/crypto-file-integrity-demo.js",
   "/crypto-file-integrity-worker.js": "public/crypto-file-integrity-worker.js",
