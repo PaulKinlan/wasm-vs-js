@@ -391,11 +391,21 @@
       "pathKey": "document-pdf-viewer-v1",
       "route": "/benchmarks/document-pdf-viewer-v1/",
       "title": "PDF Document Parsing & Rendering",
-      "engines": [],
-      "missingEngines": [],
-      "manifestPath": null,
+      "engines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "missingEngines": [
+        "wat",
+        "asc"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/document-pdf-viewer.manifest.json",
       "domHost": null,
       "scopes": [
+        "kernel",
         "delivery",
         "pipeline"
       ],
@@ -1315,8 +1325,8 @@
   ],
   "summary": {
     "pages": 51,
-    "withMultilang": 43,
-    "withoutMultilang": 8,
+    "withMultilang": 44,
+    "withoutMultilang": 7,
     "fullyCovered": 3,
     "withDomStage": 11,
     "duplicates": 0,
