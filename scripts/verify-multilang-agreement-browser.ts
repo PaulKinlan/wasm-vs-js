@@ -19,6 +19,7 @@ const REPO = new URL("..", import.meta.url).pathname;
 // Grows as the sweep continues; a page listed here must agree or the run fails.
 const DEFAULT_PAGES = [
   "audio-fft",
+  "base/text.regex-log-scan.v1",
   "audio-fir",
   "audio-stft",
   "crypto-authenticated-stream",

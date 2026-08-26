@@ -409,3 +409,119 @@ Deno.test("text.diff-patch.v1: the Rust engine's memory is smaller than the layo
     "text.diff-patch.v1 must require its engines to agree",
   );
 });
+
+// --- text.regex-log-scan.v1 -------------------------------------------------
+
+Deno.test("text.regex-log-scan.v1: the corpus must sit above every kernel's tables", async () => {
+  // At the original 4096 the corpus landed on the C and C++ pattern tables:
+  // both scanned a destroyed table and returned zero matches, with 10,569
+  // prefix comparisons and no tail comparisons against the 24,424 and 1,330
+  // the work actually takes — and were timed and reported as fast engines.
+  // Rust keeps its tables near 1 MB, so it survived 4096 and is destroyed at
+  // 1 MB instead. This holds the offset that clears all three, and states the
+  // failure it prevents.
+  const CAP = 5000;
+  const corpus = buildRegexCorpus();
+
+  const scan = async (file: string, dataOff: number) => {
+    const exports = await instantiate(file);
+    const scratchOff = 2097152;
+    const idOff = scratchOff + 256 * 5 * 4;
+    const stOff = idOff + CAP * 4, enOff = stOff + CAP * 4;
+    const csOff = enOff + CAP * 4, pcOff = csOff + 4, tcOff = pcOff + 4;
+    grow(exports.memory, Math.max(tcOff + 4, dataOff + corpus.length));
+    new Uint8Array(exports.memory.buffer, dataOff, corpus.length).set(corpus);
+    const count = Number(
+      exports.scan_log(
+        dataOff,
+        corpus.length,
+        idOff,
+        stOff,
+        enOff,
+        CAP,
+        scratchOff,
+        csOff,
+        pcOff,
+        tcOff,
+      ),
+    );
+    return count;
+  };
+
+  for (const engine of ["c", "cpp", "rs"]) {
+    assert(
+      await scan(`scan_log_${engine}.wasm`, 4194304) === 64,
+      `${engine} does not find the 64 matches at the adapter's input base`,
+    );
+  }
+  // The specific engines known to be destroyed by the original placement. If a
+  // future build changes their data layout this starts failing for the right
+  // reason rather than passing for the wrong one.
+  for (const engine of ["c", "cpp"]) {
+    assert(
+      await scan(`scan_log_${engine}.wasm`, 4096) === 0,
+      `${engine} at offset 4096 no longer returns 0 — revisit the adapter's dataOff comment`,
+    );
+  }
+
+  const at = RUNNER.indexOf('"text.regex-log-scan.v1": {');
+  assert(at !== -1, "regex-log-scan adapter not found");
+  const block = RUNNER.slice(at, at + 16000);
+  assert(
+    /const dataOff = 4194304/.test(block),
+    "the corpus must be placed above every kernel's static data",
+  );
+  // The JavaScript engine found matches and discarded them: it never wrote the
+  // id/start/end arrays or counted a comparison, so it did the scan without
+  // the bookkeeping it was compared against and produced nothing checkable.
+  assert(
+    /outId\[count\] = pi;/.test(block),
+    "the JavaScript engine must record its matches, as the kernels do",
+  );
+  assert(
+    /prefixComparisons\+\+/.test(block) && /tailComparisons\+\+/.test(block),
+    "the JavaScript engine must count comparisons, as the kernels do",
+  );
+  assert(
+    block.includes('requireEngineAgreement("text.regex-log-scan.v1"'),
+    "text.regex-log-scan.v1 must require its engines to agree",
+  );
+});
+
+/** The adapter's frozen 640-record corpus, rebuilt from its own source. */
+function buildRegexCorpus(): Uint8Array {
+  const at = RUNNER.indexOf('"text.regex-log-scan.v1": {');
+  const source = RUNNER.slice(at, RUNNER.indexOf("const callables = {};", at));
+  const body = source.slice(source.indexOf("function corpus()"));
+  const PREFIXES = [
+    "http://",
+    "https://",
+    "ws://",
+    "wss://",
+    "ftp://",
+    "asset://",
+    "api://",
+    "cdn://",
+    "ip=",
+    "client-ip:",
+    "source-ip:",
+    "dest-ip:",
+    "peer-ip:",
+    "origin-ip:",
+    "status=",
+    "code=",
+    "http-status:",
+    "response-status:",
+    "result-status:",
+    "status-code:",
+  ];
+  const MATCHERS = [1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3];
+  const make = new Function(
+    "PREFIXES",
+    "MATCHERS",
+    "RECORDS",
+    "EVENT_INTERVAL",
+    `${body}; return corpus;`,
+  ) as (p: string[], m: number[], r: number, e: number) => () => Uint8Array;
+  return make(PREFIXES, MATCHERS, 640, 10)();
+}

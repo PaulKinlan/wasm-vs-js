@@ -3162,18 +3162,46 @@ export const KERNEL_ADAPTERS = {
         return bytes;
       }
       const callables = {};
+      const probes = {};
       const CAP = 5000;
+      /** Matches (id, start, end) plus the three work counters. */
+      const scanDigest = (count, id, start, end, candidateStarts, prefixCmp, tailCmp) => {
+        const bytes = new Uint8Array(count * 12 + 16);
+        const view = new DataView(bytes.buffer);
+        for (let i = 0; i < count; i++) {
+          view.setUint32(i * 12, id[i], true);
+          view.setUint32(i * 12 + 4, start[i], true);
+          view.setUint32(i * 12 + 8, end[i], true);
+        }
+        view.setUint32(count * 12, count, true);
+        view.setUint32(count * 12 + 4, candidateStarts, true);
+        view.setUint32(count * 12 + 8, prefixCmp, true);
+        view.setUint32(count * 12 + 12, tailCmp, true);
+        return fnv1aBytes(bytes);
+      };
       for (const key of ["c", "cpp", "rs"]) {
+        if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.scan_log.instance;
         const mem = inst.exports.memory;
-        callables[key] = {
-          scan_log: () => {
-            const bytes = corpus();
-            const dataOff = 4096, scratchOff = 2097152;
-            const idOff = scratchOff + 256 * 5 * 4;
-            const stOff = idOff + CAP * 4, enOff = stOff + CAP * 4;
-            const csOff = enOff + CAP * 4, pcOff = csOff + 4, tcOff = pcOff + 4;
-            new Uint8Array(mem.buffer, dataOff, bytes.length).set(bytes);
+        const run = () => {
+          const bytes = corpus();
+          // The corpus is placed above every kernel's static data. At the
+          // original 4096 it landed on the C and C++ pattern tables, so both
+          // scanned a destroyed table and returned zero matches — 10,569
+          // prefix comparisons and no tail comparisons against the 24,424 and
+          // 1,330 the work actually takes — while being timed and reported as
+          // fast engines. Rust keeps its tables near 1 MB and was unaffected
+          // there, and is destroyed at 1 MB instead; 4 MB clears all three.
+          const dataOff = 4194304, scratchOff = 2097152;
+          const idOff = scratchOff + 256 * 5 * 4;
+          const stOff = idOff + CAP * 4, enOff = stOff + CAP * 4;
+          const csOff = enOff + CAP * 4, pcOff = csOff + 4, tcOff = pcOff + 4;
+          const need = Math.max(tcOff + 4, dataOff + bytes.length);
+          if (mem.buffer.byteLength < need) {
+            mem.grow(Math.ceil((need - mem.buffer.byteLength) / 65536));
+          }
+          new Uint8Array(mem.buffer, dataOff, bytes.length).set(bytes);
+          const count = Number(
             inst.exports.scan_log(
               dataOff,
               bytes.length,
@@ -3185,112 +3213,199 @@ export const KERNEL_ADAPTERS = {
               csOff,
               pcOff,
               tcOff,
-            );
-          },
+            ),
+          );
+          if (count <= 0) throw new Error(`scan_log ${key} found ${count} matches`);
+          return { count, idOff, stOff, enOff, csOff, pcOff, tcOff };
+        };
+        callables[key] = { scan_log: run };
+        probes[key] = () => {
+          const r = run();
+          const u32 = (offset) => new Uint32Array(mem.buffer, offset, 1)[0];
+          return scanDigest(
+            r.count,
+            new Uint32Array(mem.buffer, r.idOff, r.count),
+            new Uint32Array(mem.buffer, r.stOff, r.count),
+            new Uint32Array(mem.buffer, r.enOff, r.count),
+            u32(r.csOff),
+            u32(r.pcOff),
+            u32(r.tcOff),
+          );
         };
       }
-      callables.js = {
-        scan_log: () => {
-          const bytes = corpus();
-          const buckets = Array.from({ length: 256 }, () => []);
-          for (let i = 0; i < 20; i++) buckets[PREFIXES[i].charCodeAt(0)].push(i);
-          const isUrlTail = (b) =>
-            (b >= 97 && b <= 122) || (b >= 48 && b <= 57) || b === 46 || b === 47 || b === 95 ||
-            b === 45;
-          for (let start = 0; start < bytes.length; start++) {
-            for (const pi of buckets[bytes[start]]) {
-              const prefix = PREFIXES[pi];
-              let matched = true;
-              for (let i = 0; i < prefix.length; i++) {
-                if (start + i >= bytes.length) {
-                  matched = false;
-                  break;
-                }
-                if (bytes[start + i] !== prefix.charCodeAt(i)) {
-                  matched = false;
-                  break;
-                }
+      // The JavaScript engine found matches and then dropped them on the
+      // floor: `if (end >= 0) { /* counted */ }`. It never recorded a match,
+      // never wrote the id/start/end arrays the Wasm engines write, and never
+      // counted the candidate starts or the prefix and tail comparisons. It
+      // was doing the scan without the bookkeeping it was being compared
+      // against, and produced nothing anyone could check. This mirrors
+      // scan_log.c, counter for counter and store for store.
+      const jsRun = () => {
+        const bytes = corpus();
+        const buckets = Array.from({ length: 256 }, () => []);
+        for (let i = 0; i < 20; i++) buckets[PREFIXES[i].charCodeAt(0)].push(i);
+        const isUrlTail = (b) =>
+          (b >= 97 && b <= 122) || (b >= 48 && b <= 57) || b === 46 || b === 47 || b === 95 ||
+          b === 45;
+        const outId = new Uint32Array(CAP);
+        const outStart = new Uint32Array(CAP);
+        const outEnd = new Uint32Array(CAP);
+        let count = 0, candidateStarts = 0, prefixComparisons = 0, tailComparisons = 0;
+        for (let start = 0; start < bytes.length; start++) {
+          for (const pi of buckets[bytes[start]]) {
+            candidateStarts++;
+            const prefix = PREFIXES[pi];
+            let matched = true;
+            for (let i = 0; i < prefix.length; i++) {
+              if (start + i >= bytes.length) {
+                matched = false;
+                break;
               }
-              if (!matched) continue;
-              const cursor = start + prefix.length;
-              let end = -1;
-              if (MATCHERS[pi] === 1) {
-                const s0 = cursor;
-                let c = cursor;
-                while (c < bytes.length && c - s0 < 96) {
-                  if (!isUrlTail(bytes[c])) break;
+              prefixComparisons++;
+              if (bytes[start + i] !== prefix.charCodeAt(i)) {
+                matched = false;
+                break;
+              }
+            }
+            if (!matched) continue;
+            const cursor = start + prefix.length;
+            let end = -1;
+            if (MATCHERS[pi] === 1) {
+              const s0 = cursor;
+              let c = cursor;
+              while (c < bytes.length && c - s0 < 96) {
+                tailComparisons++;
+                if (!isUrlTail(bytes[c])) break;
+                c++;
+              }
+              if (c === s0) end = -1;
+              else if (c - s0 === 96 && c < bytes.length && isUrlTail(bytes[c])) {
+                tailComparisons++;
+                end = -1;
+              } else end = c;
+            } else if (MATCHERS[pi] === 2) {
+              let c = cursor;
+              let failed = false;
+              for (let octet = 0; octet < 4; octet++) {
+                const s1 = c;
+                let value = 0;
+                while (c < bytes.length && c - s1 < 3) {
+                  const b = bytes[c];
+                  tailComparisons++;
+                  if (b < 48 || b > 57) break;
+                  value = value * 10 + b - 48;
                   c++;
                 }
-                if (c === s0) end = -1;
-                else if (c - s0 === 96 && c < bytes.length && isUrlTail(bytes[c])) end = -1;
-                else end = c;
-              } else if (MATCHERS[pi] === 2) {
-                let c = cursor;
-                let failed = false;
-                for (let octet = 0; octet < 4; octet++) {
-                  const s1 = c;
-                  let value = 0;
-                  while (c < bytes.length && c - s1 < 3) {
-                    const b = bytes[c];
-                    if (b < 48 || b > 57) break;
-                    value = value * 10 + b - 48;
-                    c++;
-                  }
-                  const digits = c - s1;
-                  if (digits === 0 || value > 255 || (digits > 1 && bytes[s1] === 48)) {
+                const digits = c - s1;
+                if (digits === 0 || value > 255 || (digits > 1 && bytes[s1] === 48)) {
+                  failed = true;
+                  break;
+                }
+                if (octet < 3) {
+                  if (c >= bytes.length) {
                     failed = true;
                     break;
                   }
-                  if (octet < 3) {
-                    if (c >= bytes.length) {
-                      failed = true;
-                      break;
-                    }
-                    if (bytes[c] !== 46) {
-                      failed = true;
-                      break;
-                    }
-                    c++;
+                  tailComparisons++;
+                  if (bytes[c] !== 46) {
+                    failed = true;
+                    break;
                   }
-                }
-                if (!failed) {
-                  if (c < bytes.length) {
-                    if (bytes[c] >= 48 && bytes[c] <= 57 || bytes[c] === 46) end = -1;
-                    else end = c;
-                  } else end = c;
-                }
-              } else {
-                if (cursor + 3 <= bytes.length) {
-                  const value = (bytes[cursor] - 48) * 100 + (bytes[cursor + 1] - 48) * 10 +
-                    (bytes[cursor + 2] - 48);
-                  if (value >= 100 && value <= 599) {
-                    const ep = cursor + 3;
-                    if (ep >= bytes.length || bytes[ep] < 48 || bytes[ep] > 57) end = ep;
-                  }
+                  c++;
                 }
               }
-              if (end >= 0) { /* counted */ }
+              if (!failed) {
+                if (c < bytes.length) {
+                  tailComparisons++;
+                  if (bytes[c] >= 48 && bytes[c] <= 57 || bytes[c] === 46) end = -1;
+                  else end = c;
+                } else end = c;
+              }
+            } else {
+              if (cursor + 3 <= bytes.length) {
+                let value = 0;
+                let ok = true;
+                for (let index = 0; index < 3; index++) {
+                  const byte = bytes[cursor + index];
+                  tailComparisons++;
+                  if (byte < 48 || byte > 57) {
+                    ok = false;
+                    break;
+                  }
+                  value = value * 10 + byte - 48;
+                }
+                if (ok && (value < 100 || value > 599)) ok = false;
+                if (ok) {
+                  const ep = cursor + 3;
+                  if (ep < bytes.length) {
+                    tailComparisons++;
+                    if (bytes[ep] >= 48 && bytes[ep] <= 57) end = -1;
+                    else end = ep;
+                  } else end = ep;
+                }
+              }
+            }
+            if (end >= 0 && count < CAP) {
+              outId[count] = pi;
+              outStart[count] = start;
+              outEnd[count] = end;
+              count++;
             }
           }
-        },
+        }
+        if (count <= 0) throw new Error(`scan_log js found ${count} matches`);
+        return {
+          count,
+          outId,
+          outStart,
+          outEnd,
+          candidateStarts,
+          prefixComparisons,
+          tailComparisons,
+        };
       };
-      callables.dart = {
-        scan_log: () => {
-          const bytes = corpus();
+      callables.js = { scan_log: jsRun };
+      probes.js = () => {
+        const r = jsRun();
+        return scanDigest(
+          r.count,
+          r.outId,
+          r.outStart,
+          r.outEnd,
+          r.candidateStarts,
+          r.prefixComparisons,
+          r.tailComparisons,
+        );
+      };
+      const dartRun = () => {
+        const bytes = corpus();
+        const id = new Uint32Array(CAP), st = new Uint32Array(CAP), en = new Uint32Array(CAP);
+        const cs = new Uint32Array(1), pc = new Uint32Array(1), tc = new Uint32Array(1);
+        const count = Number(
           mods.engines.dart.kernels.scan_log(
             bytes,
             bytes.length,
-            new Uint32Array(CAP),
-            new Uint32Array(CAP),
-            new Uint32Array(CAP),
+            id,
+            st,
+            en,
             CAP,
             new Uint32Array(256 * 5),
-            new Uint32Array(1),
-            new Uint32Array(1),
-            new Uint32Array(1),
-          );
-        },
+            cs,
+            pc,
+            tc,
+          ),
+        );
+        if (count <= 0) throw new Error(`scan_log dart found ${count} matches`);
+        return { count, id, st, en, cs: cs[0], pc: pc[0], tc: tc[0] };
       };
+      callables.dart = { scan_log: dartRun };
+      if (mods.engines.dart) {
+        probes.dart = () => {
+          const r = dartRun();
+          return scanDigest(r.count, r.id, r.st, r.en, r.cs, r.pc, r.tc);
+        };
+      }
+      requireEngineAgreement("text.regex-log-scan.v1", probes);
       return callables;
     },
   },
