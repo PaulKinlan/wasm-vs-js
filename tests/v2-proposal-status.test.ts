@@ -199,9 +199,11 @@ Deno.test("v2 ledger counts reconcile to ten validation packages, two engine-onl
       assertEquals(entry.interactiveDemo.route, null);
     } else {
       assert(
-        /^\/(?:demos\/[a-z0-9.-]+|benchmarks\/audio-(?:fft|fir|stft))\/$/.test(
+        // Every runnable demo is now served from its canonical benchmark page.
+        /^\/benchmarks\/(?:base\/)?[a-z0-9.-]+\/$/.test(
           entry.interactiveDemo.route ?? "",
         ),
+        `${entry.id}: interactive demo route ${entry.interactiveDemo.route} is not a benchmark page`,
       );
       assertEquals(entry.interactiveDemo.unavailableReason, null);
     }
