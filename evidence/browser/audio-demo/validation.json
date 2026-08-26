@@ -9,7 +9,7 @@
     "launchArguments": [
       "--headless=new",
       "--remote-debugging-port=0",
-      "--user-data-dir=/tmp/audio-demo-browser-fb8dcfaeb6ae2ac5",
+      "--user-data-dir=/tmp/audio-demo-browser-19fedbe206673498",
       "--no-first-run",
       "--no-default-browser-check",
       "--disable-sync",
@@ -21,21 +21,21 @@
   },
   "server": {
     "task": "public",
-    "base": "http://127.0.0.1:44209",
+    "base": "http://127.0.0.1:36781",
     "mode": "public-read-only"
   },
   "pageHashes": {
-    "audio-fft": "ff9e2b03f68bd105d7f768cb25bed0acf3dd9fbd9371e68ba7a693607aa84bd4",
-    "audio-fir": "a832e71489e682bffeca1822d6ba94cd4b8abbef66a4e927dd129a069a160d57",
-    "audio-stft": "7949f56c4d168e501f7ed93d763c0d532a44106faf4b38e70bb5212ecfa849dc"
+    "audio-fft": "aac8882f4dc8b4b7eb1056edd43770604bfd98815e5bd3a7fc405486e83c6653",
+    "audio-fir": "2c90b44de833668c591d35a23d7d3b4ebbeb4ae37843d137b65de4bce8254639",
+    "audio-stft": "6decb8a3ccf3ec7e27e10d9e4095f29970faaaee6ac26dcc1fc9a7f1fbdd563e"
   },
   "runs": [
     {
-      "route": "http://127.0.0.1:44209/benchmarks/audio-fft/",
+      "route": "http://127.0.0.1:36781/benchmarks/audio-fft/",
       "engine": "javascript",
       "mode": "exact-contract",
       "assertions": {
-        "status": "Run complete in 72.74 ms. All reported evidence comes from this page's worker run.",
+        "status": "Run complete in 76.73 ms. All reported evidence comes from this page's worker run.",
         "hashVerdicts": [
           "matches frozen hash",
           "matches frozen hash"
@@ -46,7 +46,7 @@
           "work-counters: passed"
         ],
         "contractItems": [
-          "build manifest bytes match accepted-record pin: verified — 53545f80f6466c2b8bca5bcd087497cea4ee429bf1df9a6a48e30ce53fa54432",
+          "build manifest bytes match accepted-record pin: verified — 0358a4606b33aaf34d6e2015aa1bfec8b9155b214045f8f91e3c6181d4a824c7",
           "subordinate manifest bytes: verified — 4/4 raw manifest byte hashes equal the build-manifest recorded hashes",
           "served engine modules: verified — 7/7 modules hash-verified and anchored to the accepted-commit source graph",
           "reference artifact hash: verified — 0432b81e06b48343… hashed from served bytes; agreement across reference-manifest, build-manifest, registry, and served constants",
@@ -54,17 +54,17 @@
           "output manifest hash: verified — run output f6285cd3244f76ee… across output-manifest, registry, and served constants",
           "output variant record: verified — output-manifest variant js-controlled records the same output and reference hashes",
           "JavaScript engine source hash: verified — served engine module source hash matches the build-manifest recorded engine source",
-          "source commit identity: verified — all five manifests and the registry name bd4dcd5d95c0…",
+          "source commit identity: verified — all five manifests and the registry name f8912628e1f1…",
           "fixed memory relationship: verified — registry 32 pages == served AUDIO_MEMORY_PAGES 32",
           "fixture manifest identity: verified — all manifests name the same entry ID and slug as the registry",
           "runner served bytes: verified — 973730cb7beeb62d… hashed from served bytes against the registry pin",
           "worker served bytes: verified — 4bd92df0c250ede2… hashed from served bytes against the registry pin",
           "assets manifest bytes: verified — 373e98f859c59af6… hashed from served bytes against the registry pin",
-          "registry byte hash anchored in page: verified — registry 8aed332959299305… hashed from served bytes equals the page-embedded pin",
+          "registry byte hash anchored in page: verified — registry 2417e866116eff80… hashed from served bytes equals the page-embedded pin",
           "registry frozen hashes: verified — registry frozen hashes equal the served constants module values for all three demos"
         ],
         "counterRows": 8,
-        "variantSummary": "Radix-2 complex FFT completed on the JavaScript engine in exact contract mode. Execution time: 72.74 ms. Variant js-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
+        "variantSummary": "Radix-2 complex FFT completed on the JavaScript engine in exact contract mode. Execution time: 76.73 ms. Variant js-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
       },
       "checks": {
         "statusComplete": true,
@@ -76,11 +76,11 @@
       }
     },
     {
-      "route": "http://127.0.0.1:44209/benchmarks/audio-fft/",
+      "route": "http://127.0.0.1:36781/benchmarks/audio-fft/",
       "engine": "wasm-linear",
       "mode": "exact-contract",
       "assertions": {
-        "status": "Run complete in 62.05 ms. All reported evidence comes from this page's worker run.",
+        "status": "Run complete in 65.60 ms. All reported evidence comes from this page's worker run.",
         "hashVerdicts": [
           "matches frozen hash",
           "matches frozen hash"
@@ -91,7 +91,7 @@
           "work-counters: passed"
         ],
         "contractItems": [
-          "build manifest bytes match accepted-record pin: verified — 53545f80f6466c2b8bca5bcd087497cea4ee429bf1df9a6a48e30ce53fa54432",
+          "build manifest bytes match accepted-record pin: verified — 0358a4606b33aaf34d6e2015aa1bfec8b9155b214045f8f91e3c6181d4a824c7",
           "subordinate manifest bytes: verified — 4/4 raw manifest byte hashes equal the build-manifest recorded hashes",
           "served engine modules: verified — 7/7 modules hash-verified and anchored to the accepted-commit source graph",
           "reference artifact hash: verified — 0432b81e06b48343… hashed from served bytes; agreement across reference-manifest, build-manifest, registry, and served constants",
@@ -99,17 +99,17 @@
           "output manifest hash: verified — run output f6285cd3244f76ee… across output-manifest, registry, and served constants",
           "output variant record: verified — output-manifest variant wasm-linear-controlled records the same output and reference hashes",
           "Wasm artifact hash: verified — dbbcfd28be441135… hashed from served bytes against the build-manifest artifact",
-          "source commit identity: verified — all five manifests and the registry name bd4dcd5d95c0…",
+          "source commit identity: verified — all five manifests and the registry name f8912628e1f1…",
           "fixed memory relationship: verified — registry 32 pages == served AUDIO_MEMORY_PAGES 32",
           "fixture manifest identity: verified — all manifests name the same entry ID and slug as the registry",
           "runner served bytes: verified — 973730cb7beeb62d… hashed from served bytes against the registry pin",
           "worker served bytes: verified — 4bd92df0c250ede2… hashed from served bytes against the registry pin",
           "assets manifest bytes: verified — 373e98f859c59af6… hashed from served bytes against the registry pin",
-          "registry byte hash anchored in page: verified — registry 8aed332959299305… hashed from served bytes equals the page-embedded pin",
+          "registry byte hash anchored in page: verified — registry 2417e866116eff80… hashed from served bytes equals the page-embedded pin",
           "registry frozen hashes: verified — registry frozen hashes equal the served constants module values for all three demos"
         ],
         "counterRows": 8,
-        "variantSummary": "Radix-2 complex FFT completed on the WebAssembly (linear memory) engine in exact contract mode. Execution time: 62.05 ms. Variant wasm-linear-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
+        "variantSummary": "Radix-2 complex FFT completed on the WebAssembly (linear memory) engine in exact contract mode. Execution time: 65.60 ms. Variant wasm-linear-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
       },
       "checks": {
         "statusComplete": true,
@@ -121,11 +121,11 @@
       }
     },
     {
-      "route": "http://127.0.0.1:44209/benchmarks/audio-fir/",
+      "route": "http://127.0.0.1:36781/benchmarks/audio-fir/",
       "engine": "javascript",
       "mode": "exact-contract",
       "assertions": {
-        "status": "Run complete in 78.16 ms. All reported evidence comes from this page's worker run.",
+        "status": "Run complete in 75.70 ms. All reported evidence comes from this page's worker run.",
         "hashVerdicts": [
           "matches frozen hash",
           "matches frozen hash"
@@ -135,7 +135,7 @@
           "structural-invariants: passed"
         ],
         "contractItems": [
-          "build manifest bytes match accepted-record pin: verified — bc9e5448d480625ab5658a8c678859ddd2de01d5006b86feff109dea09c4a153",
+          "build manifest bytes match accepted-record pin: verified — 4ac30207429d824ccedcfd174fbe5553e624a458758bb1184610bd1dbe318897",
           "subordinate manifest bytes: verified — 4/4 raw manifest byte hashes equal the build-manifest recorded hashes",
           "served engine modules: verified — 7/7 modules hash-verified and anchored to the accepted-commit source graph",
           "reference artifact hash: verified — 3146faf58d2eecd4… hashed from served bytes; agreement across reference-manifest, build-manifest, registry, and served constants",
@@ -143,17 +143,17 @@
           "output manifest hash: verified — run output e4b89ba6d65fa9ac… across output-manifest, registry, and served constants",
           "output variant record: verified — output-manifest variant js-controlled records the same output and reference hashes",
           "JavaScript engine source hash: verified — served engine module source hash matches the build-manifest recorded engine source",
-          "source commit identity: verified — all five manifests and the registry name bd4dcd5d95c0…",
+          "source commit identity: verified — all five manifests and the registry name f8912628e1f1…",
           "fixed memory relationship: verified — registry 32 pages == served AUDIO_MEMORY_PAGES 32",
           "fixture manifest identity: verified — all manifests name the same entry ID and slug as the registry",
           "runner served bytes: verified — 973730cb7beeb62d… hashed from served bytes against the registry pin",
           "worker served bytes: verified — 4bd92df0c250ede2… hashed from served bytes against the registry pin",
           "assets manifest bytes: verified — 373e98f859c59af6… hashed from served bytes against the registry pin",
-          "registry byte hash anchored in page: verified — registry 8aed332959299305… hashed from served bytes equals the page-embedded pin",
+          "registry byte hash anchored in page: verified — registry 2417e866116eff80… hashed from served bytes equals the page-embedded pin",
           "registry frozen hashes: verified — registry frozen hashes equal the served constants module values for all three demos"
         ],
         "counterRows": 8,
-        "variantSummary": "Finite impulse response convolution completed on the JavaScript engine in exact contract mode. Execution time: 78.16 ms. Variant js-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
+        "variantSummary": "Finite impulse response convolution completed on the JavaScript engine in exact contract mode. Execution time: 75.70 ms. Variant js-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
       },
       "checks": {
         "statusComplete": true,
@@ -165,11 +165,11 @@
       }
     },
     {
-      "route": "http://127.0.0.1:44209/benchmarks/audio-fir/",
+      "route": "http://127.0.0.1:36781/benchmarks/audio-fir/",
       "engine": "wasm-linear",
       "mode": "exact-contract",
       "assertions": {
-        "status": "Run complete in 84.97 ms. All reported evidence comes from this page's worker run.",
+        "status": "Run complete in 76.21 ms. All reported evidence comes from this page's worker run.",
         "hashVerdicts": [
           "matches frozen hash",
           "matches frozen hash"
@@ -179,7 +179,7 @@
           "structural-invariants: passed"
         ],
         "contractItems": [
-          "build manifest bytes match accepted-record pin: verified — bc9e5448d480625ab5658a8c678859ddd2de01d5006b86feff109dea09c4a153",
+          "build manifest bytes match accepted-record pin: verified — 4ac30207429d824ccedcfd174fbe5553e624a458758bb1184610bd1dbe318897",
           "subordinate manifest bytes: verified — 4/4 raw manifest byte hashes equal the build-manifest recorded hashes",
           "served engine modules: verified — 7/7 modules hash-verified and anchored to the accepted-commit source graph",
           "reference artifact hash: verified — 3146faf58d2eecd4… hashed from served bytes; agreement across reference-manifest, build-manifest, registry, and served constants",
@@ -187,17 +187,17 @@
           "output manifest hash: verified — run output e4b89ba6d65fa9ac… across output-manifest, registry, and served constants",
           "output variant record: verified — output-manifest variant wasm-linear-controlled records the same output and reference hashes",
           "Wasm artifact hash: verified — c61254df057f3d15… hashed from served bytes against the build-manifest artifact",
-          "source commit identity: verified — all five manifests and the registry name bd4dcd5d95c0…",
+          "source commit identity: verified — all five manifests and the registry name f8912628e1f1…",
           "fixed memory relationship: verified — registry 32 pages == served AUDIO_MEMORY_PAGES 32",
           "fixture manifest identity: verified — all manifests name the same entry ID and slug as the registry",
           "runner served bytes: verified — 973730cb7beeb62d… hashed from served bytes against the registry pin",
           "worker served bytes: verified — 4bd92df0c250ede2… hashed from served bytes against the registry pin",
           "assets manifest bytes: verified — 373e98f859c59af6… hashed from served bytes against the registry pin",
-          "registry byte hash anchored in page: verified — registry 8aed332959299305… hashed from served bytes equals the page-embedded pin",
+          "registry byte hash anchored in page: verified — registry 2417e866116eff80… hashed from served bytes equals the page-embedded pin",
           "registry frozen hashes: verified — registry frozen hashes equal the served constants module values for all three demos"
         ],
         "counterRows": 8,
-        "variantSummary": "Finite impulse response convolution completed on the WebAssembly (linear memory) engine in exact contract mode. Execution time: 84.97 ms. Variant wasm-linear-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
+        "variantSummary": "Finite impulse response convolution completed on the WebAssembly (linear memory) engine in exact contract mode. Execution time: 76.21 ms. Variant wasm-linear-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
       },
       "checks": {
         "statusComplete": true,
@@ -209,11 +209,11 @@
       }
     },
     {
-      "route": "http://127.0.0.1:44209/benchmarks/audio-stft/",
+      "route": "http://127.0.0.1:36781/benchmarks/audio-stft/",
       "engine": "javascript",
       "mode": "exact-contract",
       "assertions": {
-        "status": "Run complete in 95.78 ms. All reported evidence comes from this page's worker run.",
+        "status": "Run complete in 98.88 ms. All reported evidence comes from this page's worker run.",
         "hashVerdicts": [
           "matches frozen hash",
           "matches frozen hash"
@@ -223,7 +223,7 @@
           "structural-invariants: passed"
         ],
         "contractItems": [
-          "build manifest bytes match accepted-record pin: verified — 556e99077ab106311a14a5006d2692de7ab7caa489de649a442f6c1c65fa1aa7",
+          "build manifest bytes match accepted-record pin: verified — 606ee2fef10dba28cd8bb808abe79472b58bbbacc52105716f9ca8d03b429d13",
           "subordinate manifest bytes: verified — 4/4 raw manifest byte hashes equal the build-manifest recorded hashes",
           "served engine modules: verified — 7/7 modules hash-verified and anchored to the accepted-commit source graph",
           "reference artifact hash: verified — 3bae7479e79489d8… hashed from served bytes; agreement across reference-manifest, build-manifest, registry, and served constants",
@@ -231,17 +231,17 @@
           "output manifest hash: verified — run output b06a278c83d9eeff… across output-manifest, registry, and served constants",
           "output variant record: verified — output-manifest variant js-controlled records the same output and reference hashes",
           "JavaScript engine source hash: verified — served engine module source hash matches the build-manifest recorded engine source",
-          "source commit identity: verified — all five manifests and the registry name bd4dcd5d95c0…",
+          "source commit identity: verified — all five manifests and the registry name f8912628e1f1…",
           "fixed memory relationship: verified — registry 64 pages == served AUDIO_MEMORY_PAGES 64",
           "fixture manifest identity: verified — all manifests name the same entry ID and slug as the registry",
           "runner served bytes: verified — 973730cb7beeb62d… hashed from served bytes against the registry pin",
           "worker served bytes: verified — 4bd92df0c250ede2… hashed from served bytes against the registry pin",
           "assets manifest bytes: verified — 373e98f859c59af6… hashed from served bytes against the registry pin",
-          "registry byte hash anchored in page: verified — registry 8aed332959299305… hashed from served bytes equals the page-embedded pin",
+          "registry byte hash anchored in page: verified — registry 2417e866116eff80… hashed from served bytes equals the page-embedded pin",
           "registry frozen hashes: verified — registry frozen hashes equal the served constants module values for all three demos"
         ],
         "counterRows": 8,
-        "variantSummary": "Short-time Fourier transform spectrogram completed on the JavaScript engine in exact contract mode. Execution time: 95.78 ms. Variant js-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
+        "variantSummary": "Short-time Fourier transform spectrogram completed on the JavaScript engine in exact contract mode. Execution time: 98.88 ms. Variant js-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
       },
       "checks": {
         "statusComplete": true,
@@ -253,11 +253,11 @@
       }
     },
     {
-      "route": "http://127.0.0.1:44209/benchmarks/audio-stft/",
+      "route": "http://127.0.0.1:36781/benchmarks/audio-stft/",
       "engine": "wasm-linear",
       "mode": "exact-contract",
       "assertions": {
-        "status": "Run complete in 88.15 ms. All reported evidence comes from this page's worker run.",
+        "status": "Run complete in 90.18 ms. All reported evidence comes from this page's worker run.",
         "hashVerdicts": [
           "matches frozen hash",
           "matches frozen hash"
@@ -267,7 +267,7 @@
           "structural-invariants: passed"
         ],
         "contractItems": [
-          "build manifest bytes match accepted-record pin: verified — 556e99077ab106311a14a5006d2692de7ab7caa489de649a442f6c1c65fa1aa7",
+          "build manifest bytes match accepted-record pin: verified — 606ee2fef10dba28cd8bb808abe79472b58bbbacc52105716f9ca8d03b429d13",
           "subordinate manifest bytes: verified — 4/4 raw manifest byte hashes equal the build-manifest recorded hashes",
           "served engine modules: verified — 7/7 modules hash-verified and anchored to the accepted-commit source graph",
           "reference artifact hash: verified — 3bae7479e79489d8… hashed from served bytes; agreement across reference-manifest, build-manifest, registry, and served constants",
@@ -275,17 +275,17 @@
           "output manifest hash: verified — run output b06a278c83d9eeff… across output-manifest, registry, and served constants",
           "output variant record: verified — output-manifest variant wasm-linear-controlled records the same output and reference hashes",
           "Wasm artifact hash: verified — 00beb1f7b6de580c… hashed from served bytes against the build-manifest artifact",
-          "source commit identity: verified — all five manifests and the registry name bd4dcd5d95c0…",
+          "source commit identity: verified — all five manifests and the registry name f8912628e1f1…",
           "fixed memory relationship: verified — registry 64 pages == served AUDIO_MEMORY_PAGES 64",
           "fixture manifest identity: verified — all manifests name the same entry ID and slug as the registry",
           "runner served bytes: verified — 973730cb7beeb62d… hashed from served bytes against the registry pin",
           "worker served bytes: verified — 4bd92df0c250ede2… hashed from served bytes against the registry pin",
           "assets manifest bytes: verified — 373e98f859c59af6… hashed from served bytes against the registry pin",
-          "registry byte hash anchored in page: verified — registry 8aed332959299305… hashed from served bytes equals the page-embedded pin",
+          "registry byte hash anchored in page: verified — registry 2417e866116eff80… hashed from served bytes equals the page-embedded pin",
           "registry frozen hashes: verified — registry frozen hashes equal the served constants module values for all three demos"
         ],
         "counterRows": 8,
-        "variantSummary": "Short-time Fourier transform spectrogram completed on the WebAssembly (linear memory) engine in exact contract mode. Execution time: 88.15 ms. Variant wasm-linear-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
+        "variantSummary": "Short-time Fourier transform spectrogram completed on the WebAssembly (linear memory) engine in exact contract mode. Execution time: 90.18 ms. Variant wasm-linear-controlled; output matched the pinned f64 reference within the frozen tolerances and passed every structural invariant."
       },
       "checks": {
         "statusComplete": true,
@@ -297,7 +297,7 @@
       }
     },
     {
-      "route": "http://127.0.0.1:44209/benchmarks/audio-stft/",
+      "route": "http://127.0.0.1:36781/benchmarks/audio-stft/",
       "engine": "javascript",
       "mode": "lifecycle",
       "checks": {
@@ -309,7 +309,7 @@
       }
     },
     {
-      "route": "http://127.0.0.1:44209/benchmarks/audio-stft/",
+      "route": "http://127.0.0.1:36781/benchmarks/audio-stft/",
       "engine": "javascript",
       "mode": "lifecycle-injection",
       "checks": {
