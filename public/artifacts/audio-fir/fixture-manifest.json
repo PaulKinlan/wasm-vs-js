@@ -15,5 +15,5 @@
     "mapping": "xorshift32 seeded-noise PCM plus frozen taps"
   },
   "serialization": "canonical little-endian f32 fields in catalog-declared order",
-  "sourceCommit": "0caeb8f4289a1cc1de4ee17d942b111cb1b4aec3"
+  "sourceCommit": "d82224c5680ba5c36fdd9c2bf10d431513f28ef8"
 }
