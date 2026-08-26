@@ -15,6 +15,7 @@ import {
   resourcesInWindow,
   SCOPE_ORDER,
   SCOPES,
+  splitDeliveryBytes,
   summarize,
 } from "./measurement-model.js";
 import {
@@ -454,7 +455,13 @@ function postTask(worker, payload, config, timeoutMs) {
         msg.type === "completed" || msg.type === "done" || msg.type === "complete" ||
         msg.type === "result" || msg.ok === true
       ) {
-        finish(resolve, { ms: performance.now() - startTime, result: msg.result ?? null });
+        finish(resolve, {
+          ms: performance.now() - startTime,
+          result: msg.result ?? null,
+          // A worker's own fetches are invisible to this thread, so a worker
+          // that reports them is the only source of delivery bytes.
+          resourceTimings: Array.isArray(msg.resourceTimings) ? msg.resourceTimings : null,
+        });
       } else if (msg.type === "failed" || msg.type === "error" || msg.ok === false) {
         finish(
           reject,
@@ -590,20 +597,40 @@ async function executeWorkerLoop(
   const payload = { ...formatTargetPayload(slug, target), ...(config.prepared || {}) };
 
   // ── First use: one worker, one task, everything counted ─────────────────
+  //
+  // The worker used to be constructed before the resource window opened, so
+  // the window saw only the task. Everything the delivery scope exists to
+  // measure — fetching the worker script, fetching and parsing its module
+  // graph, fetching and compiling the .wasm — happened outside it. Both
+  // engines reported no bytes and a fraction of a millisecond, and the panel
+  // concluded from that "Wasm costs no more to deliver". It was comparing two
+  // measurements of nothing.
+  //
+  // Construction is inside the window now, and first use is the whole wall
+  // time from "no worker" to "first result": delivery plus the first call, for
+  // whichever engine is being measured. That counts JavaScript's own bytes and
+  // its parse and compile the same way it counts Wasm's.
   onProgress({ phase: "first-use", target, iteration: 0, total: timedRuns });
-  const firstWorker = spawnWorker(config);
   let firstUseMs = null;
   let firstResult = null;
   let firstEntries = [];
-  try {
-    const measured = await withResourceWindow(() =>
-      postTask(firstWorker, payload, config, iterationTimeoutMs)
-    );
-    firstUseMs = measured.value.ms;
+  {
+    const measured = await withResourceWindow(async () => {
+      const worker = spawnWorker(config);
+      try {
+        return await postTask(worker, payload, config, iterationTimeoutMs);
+      } finally {
+        worker.terminate();
+      }
+    });
+    firstUseMs = measured.windowMs;
     firstResult = measured.value.result;
-    firstEntries = measured.entries;
-  } finally {
-    firstWorker.terminate();
+    // Entries the page can see, plus whatever the worker reported from its own
+    // timeline. Both are needed: the page sees nothing the worker fetched, and
+    // the worker sees nothing fetched before it existed.
+    firstEntries = measured.value.resourceTimings
+      ? [...measured.entries, ...measured.value.resourceTimings]
+      : measured.entries;
   }
 
   // ── Steady state: one reused worker, warm-ups discarded ─────────────────
@@ -682,6 +709,9 @@ async function executeWorkerLoop(
     firstUse: {
       totalMs: firstUseMs,
       network: firstNetwork,
+      // Bytes attributed by resource kind, so "what does Wasm add" can be
+      // answered without folding the algorithm's JavaScript into the binary.
+      bytesByKind: splitDeliveryBytes(firstEntries),
       entries: firstEntries,
     },
     workerReuse,
@@ -1482,7 +1512,11 @@ function renderUnifiedExplorer({
     delivery: {
       baselineMs: primaryStats?.jsStats?.firstUse?.totalMs ?? null,
       candidateMs: primaryStats?.wasmStats?.firstUse?.totalMs ?? null,
-      candidateBytes: primaryStats?.wasmStats?.firstUse?.network?.decodedBytes ?? null,
+      // The algorithm's own JavaScript against the binary that replaces it.
+      // Previously only the Wasm total was reported, so JavaScript read as
+      // though it arrived for free.
+      baselineBytes: primaryStats?.jsStats?.firstUse?.bytesByKind?.scriptBytes ?? null,
+      candidateBytes: primaryStats?.wasmStats?.firstUse?.bytesByKind?.wasmBytes ?? null,
     },
     contamination: primaryStats?.wasmStats?.contamination ??
       primaryStats?.jsStats?.contamination,

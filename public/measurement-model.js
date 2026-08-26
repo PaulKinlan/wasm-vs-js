@@ -343,6 +343,38 @@ export function resourcesInWindow(entries, startMs, endMs) {
  * @returns {{ count: number, transferBytes: number, decodedBytes: number,
  *             cacheHits: number, networkFetches: number, wallMs: number }}
  */
+/**
+ * Split delivered bytes by what the byte actually is.
+ *
+ * A worker fetches its JavaScript module graph and its .wasm in the same
+ * window, so a single byte total cannot answer "what does choosing Wasm add".
+ * The engines are separated by resource kind instead: the .wasm is what the
+ * Wasm path adds, and the algorithm's own JavaScript is what the JavaScript
+ * path costs. Fixtures, manifests and anything else both paths load are
+ * reported separately rather than being folded into either side.
+ *
+ * @param {Array<{name?: string, decodedBodySize?: number, transferSize?: number}>} entries
+ */
+export function splitDeliveryBytes(entries) {
+  let wasmBytes = 0, scriptBytes = 0, sharedBytes = 0;
+  let wasmTransfer = 0, scriptTransfer = 0;
+  for (const entry of entries ?? []) {
+    const name = String(entry?.name ?? "").split("?")[0];
+    const decoded = typeof entry?.decodedBodySize === "number" ? entry.decodedBodySize : 0;
+    const transfer = typeof entry?.transferSize === "number" ? entry.transferSize : 0;
+    if (/\.wasm$/i.test(name)) {
+      wasmBytes += decoded;
+      wasmTransfer += transfer;
+    } else if (/\.(m?js)$/i.test(name)) {
+      scriptBytes += decoded;
+      scriptTransfer += transfer;
+    } else {
+      sharedBytes += decoded;
+    }
+  }
+  return { wasmBytes, scriptBytes, sharedBytes, wasmTransfer, scriptTransfer };
+}
+
 export function networkCost(entries) {
   const list = entries ?? [];
   let transferBytes = 0, decodedBytes = 0, cacheHits = 0, networkFetches = 0;

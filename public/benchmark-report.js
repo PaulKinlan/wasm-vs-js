@@ -452,13 +452,50 @@ export function decisionPanelHtml(
     </div>`);
   }
 
-  if (delivery && typeof delivery.candidateBytes === "number") {
+  // Both engines have to be delivered. This card reported only the Wasm
+  // binary, so JavaScript read as though it arrived for free — when it is also
+  // fetched, parsed and compiled before its first call, and on a small kernel
+  // that can be the larger share.
+  //
+  // Bytes are only shown when they were actually observed. A worker's own
+  // fetches — its module graph and its .wasm — are recorded in the worker's
+  // performance timeline, not the page's, so unless the worker reports them
+  // back there is nothing to show. Printing 0 B in that case, as this did,
+  // states that Wasm is free to deliver, which is the opposite of unknown.
+  if (delivery && (delivery.baselineMs !== null || delivery.candidateMs !== null)) {
+    const bytesKnown = typeof delivery.candidateBytes === "number" &&
+      delivery.candidateBytes > 0;
+    const baseKnown = typeof delivery.baselineBytes === "number" &&
+      delivery.baselineBytes > 0;
+    const extraMs = typeof delivery.candidateMs === "number" &&
+        typeof delivery.baselineMs === "number"
+      ? delivery.candidateMs - delivery.baselineMs
+      : null;
+    const headline = extraMs === null
+      ? fmtMs(delivery.candidateMs ?? delivery.baselineMs)
+      : `${extraMs >= 0 ? "+" : "−"}${fmtMs(Math.abs(extraMs))}`;
+    const sides = [
+      delivery.baselineMs !== null
+        ? `JavaScript ${fmtMs(delivery.baselineMs)}${
+          baseKnown ? `, ${fmtBytes(delivery.baselineBytes)} of module` : ""
+        }`
+        : null,
+      delivery.candidateMs !== null
+        ? `Wasm ${fmtMs(delivery.candidateMs)}${
+          bytesKnown ? `, ${fmtBytes(delivery.candidateBytes)} of binary` : ""
+        }`
+        : null,
+    ].filter(Boolean).join(" · ");
     cards.push(`<div class="decision-card">
       <h4>${icon("network")} Up-front cost</h4>
-      <p class="decision-number">${fmtBytes(delivery.candidateBytes)}</p>
-      <p class="decision-detail">Wasm binary to transfer, plus ${
-      fmtMs(delivery.candidateMs)
-    } to fetch, compile and instantiate before the first call.</p>
+      <p class="decision-number">${headline}</p>
+      <p class="decision-detail">What choosing Wasm adds before the first call: fetching the
+      worker, its module graph and its binary, parsing and compiling both, and running once.
+      ${esc(sides)}.${
+      bytesKnown && baseKnown
+        ? ""
+        : " Transfer sizes are recorded in the worker's own timeline; this worker does not report them, so only time is shown."
+    }</p>
     </div>`);
   }
 

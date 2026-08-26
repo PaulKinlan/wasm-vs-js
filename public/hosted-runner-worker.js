@@ -273,6 +273,34 @@ async function executeRun(iterations, order, serviceWorkerControlled) {
 }
 
 /** @param {MessageEvent<{ iterations: number, order: string, serviceWorkerControlled: boolean }>} event */
+/**
+ * Everything this worker fetched, from its own performance timeline.
+ *
+ * A worker's fetches — its module graph, its .wasm — are recorded here and
+ * nowhere else: the page that constructed the worker sees none of them. The
+ * delivery scope was therefore reporting zero bytes for both engines, and the
+ * decision panel read that as "Wasm costs no more to deliver". Reporting them
+ * back is the only way the page can know what arrived.
+ */
+function deliveredResources() {
+  try {
+    if (typeof performance?.getEntriesByType !== "function") return [];
+    return performance.getEntriesByType("resource").map((entry) => ({
+      name: entry.name,
+      startTime: entry.startTime,
+      responseEnd: entry.responseEnd,
+      duration: entry.duration,
+      transferSize: entry.transferSize,
+      encodedBodySize: entry.encodedBodySize,
+      decodedBodySize: entry.decodedBodySize,
+      deliveryType: entry.deliveryType,
+      initiatorType: entry.initiatorType,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 globalThis.onmessage = async (event) => {
   if (started) return;
   started = true;
@@ -282,7 +310,11 @@ globalThis.onmessage = async (event) => {
       event.data.order,
       event.data.serviceWorkerControlled === true,
     );
-    globalThis.postMessage({ type: "complete", result });
+    globalThis.postMessage({
+      type: "complete",
+      result,
+      resourceTimings: deliveredResources(),
+    });
   } catch (error) {
     globalThis.postMessage({
       type: "error",

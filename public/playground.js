@@ -125,18 +125,14 @@ const PLAYGROUND_WORKLOADS = [
     explanation:
       "Integer quantization and adjacency-map operations common in 3D printing and CAD pipelines.",
   },
-  {
-    slug: "database-sqlite-notebook-v1",
-    title: "SQLite Analytical Notebook",
-    category: "Database",
-    route: "/benchmarks/database-sqlite-notebook-v1/",
-    description:
-      "Imports a sales CSV, creates indexes, and runs eight joins, group-bys, and window queries.",
-    explanation:
-      "Heavy SQL parsing, query planning, and B-tree traversal in both JS (AlaSQL) and Wasm (SQLite).",
-    // AlaSQL compiles queries via eval-class primitives; the site CSP allows
-    // 'unsafe-eval' (approved by Paul 2026-08-04), so both targets run here.
-  },
+  // database-sqlite-notebook-v1 is unlisted (Paul, 2026-08-26). Its run
+  // finishes and reports "every returned value matched the independent
+  // reference", and then shows nothing: no decision panel, no result tables,
+  // no timings. It is a correctness demo on a bespoke runner, not a benchmark,
+  // so listing it among the benchmarks promises a comparison it does not make.
+  // The page, its worker, its fixtures and its build scripts are all still
+  // here — restoring the entry below is all it takes to bring it back once it
+  // reports results.
   {
     slug: "document-pdf-viewer-v1",
     title: "PDF Document Parsing & Rendering",

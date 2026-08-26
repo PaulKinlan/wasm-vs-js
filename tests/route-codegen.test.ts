@@ -111,7 +111,10 @@ Deno.test("every generated route serves 200 with an existing file", async () => 
 Deno.test("card registry routes and catalog links resolve over HTTP", async () => {
   const playground = await Deno.readTextFile("public/playground.js");
   const cardRoutes = [...playground.matchAll(/route:\s*"([^"]+)"/g)].map((m) => m[1]);
-  assert(cardRoutes.length >= 49, "card registry parse regressed");
+  // A floor, not a pin: this catches the regex silently matching nothing, not
+  // a deliberate change in how many cards are listed. It was 49 until
+  // database-sqlite-notebook-v1 was unlisted for reporting no results.
+  assert(cardRoutes.length >= 48, `card registry parse regressed: ${cardRoutes.length} routes`);
   const catalogModule = await Deno.readTextFile(
     "public/workload-catalog-routes.generated.js",
   );

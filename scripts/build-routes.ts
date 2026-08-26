@@ -140,7 +140,9 @@ const CATALOG_ID_TO_SLUG: Record<string, string> = {
   "crypto.authenticated-stream.v1": "crypto-authenticated-stream",
   "crypto.file-integrity.v1": "crypto-file-integrity",
   "database.olap-chart.v1": "database-olap-chart",
-  "database.sqlite-notebook.v1": "database-sqlite-notebook-v1",
+  // Unlisted with the playground card: the page runs and reports no results.
+  // Restore this line and the card in public/playground.js together.
+  // "database.sqlite-notebook.v1": "database-sqlite-notebook-v1",
   "document.pdf-viewer.v1": "document-pdf-viewer-v1",
   "dom.todomvc-journey.v1": "base-dom-todomvc-journey",
   "dom.virtualized-grid.v1": "dom-virtualized-grid-v1",

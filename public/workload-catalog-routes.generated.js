@@ -7,7 +7,6 @@ export const WORKLOAD_DEMO_ROUTES = {
   "cad.parametric-bracket.v1": "/benchmarks/cad-parametric-bracket/",
   "crypto.authenticated-stream.v1": "/benchmarks/crypto-authenticated-stream/",
   "database.olap-chart.v1": "/benchmarks/database-olap-chart/",
-  "database.sqlite-notebook.v1": "/benchmarks/database-sqlite-notebook-v1/",
   "document.pdf-viewer.v1": "/benchmarks/document-pdf-viewer-v1/",
   "dom.todomvc-journey.v1": "/benchmarks/base-dom-todomvc-journey/",
   "dom.virtualized-grid.v1": "/benchmarks/dom-virtualized-grid-v1/",
@@ -47,5 +46,5 @@ export const WORKLOAD_DEMO_ROUTES = {
   "text.regex-engine-duel.v1": "/benchmarks/regex-automata-duel-demo/",
 };
 
-// NOTE: catalog ids without a demo route (15):
-//   audio.opus-stream.v1, audio.webaudio-effects.v1 (slug audio-webaudio-effects-v1 has no card route), compression.zstd-gzip-roundtrip.v1, crypto.file-integrity.v1 (slug crypto-file-integrity has no card route), media.image-decode-batch.v1, media.photo-thumbnail.v1, media.video-transcode.v1, ml.numeric-kernels.v1 (slug ml-numeric-kernels has no card route), ml.quantized-image-inference.v1, serialization.json-telemetry.v1 (slug serialization-json-telemetry has no card route), server.ssr-template.v1 (slug server-ssr-template has no card route), server.wasi-request-handler.v1, text.unicode-editor.v1, tooling.minify-format.v1, tooling.typescript-rebuild.v1
+// NOTE: catalog ids without a demo route (16):
+//   audio.opus-stream.v1, audio.webaudio-effects.v1 (slug audio-webaudio-effects-v1 has no card route), compression.zstd-gzip-roundtrip.v1, crypto.file-integrity.v1 (slug crypto-file-integrity has no card route), database.sqlite-notebook.v1, media.image-decode-batch.v1, media.photo-thumbnail.v1, media.video-transcode.v1, ml.numeric-kernels.v1 (slug ml-numeric-kernels has no card route), ml.quantized-image-inference.v1, serialization.json-telemetry.v1 (slug serialization-json-telemetry has no card route), server.ssr-template.v1 (slug server-ssr-template has no card route), server.wasi-request-handler.v1, text.unicode-editor.v1, tooling.minify-format.v1, tooling.typescript-rebuild.v1
