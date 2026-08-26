@@ -41,10 +41,18 @@ const PROVENANCE = `${ARTIFACT_DIR}/kernel-build-provenance.v1.json`;
 
 const CARGO_BIN = "/home/paulkinlan/.cargo/bin";
 const DART_BIN = "/home/paulkinlan/.local/share/dart-sdk/bin";
-const ENV = {
-  ...Deno.env.toObject(),
-  PATH: `${CARGO_BIN}:${DART_BIN}:${Deno.env.get("PATH") ?? ""}`,
-};
+
+/**
+ * Built lazily: reading the environment at module load would make merely
+ * importing planBuilds() require --allow-env, and the gate grants only a
+ * scoped set of variables to its test stages.
+ */
+function buildEnv(): Record<string, string> {
+  return {
+    ...Deno.env.toObject(),
+    PATH: `${CARGO_BIN}:${DART_BIN}:${Deno.env.get("PATH") ?? ""}`,
+  };
+}
 
 /** Default linear-memory size, in bytes, for the C/C++/Rust builds. */
 const DEFAULT_INITIAL_MEMORY = 16_777_216;
@@ -228,6 +236,7 @@ if (import.meta.main) {
   const builds = only ? allBuilds.filter((b) => b.workload === only) : allBuilds;
 
   let scratchDir: string | null = null;
+  let env0: Record<string, string> | null = null;
   const records: Record<string, unknown>[] = [];
   const failures: string[] = [];
   const differs: string[] = [];
@@ -253,7 +262,8 @@ if (import.meta.main) {
       continue;
     }
     const [cmd, args] = command;
-    const result = await new Deno.Command(cmd, { args, env: ENV, stderr: "piped", stdout: "piped" })
+    const env = env0 ??= buildEnv();
+    const result = await new Deno.Command(cmd, { args, env, stderr: "piped", stdout: "piped" })
       .output();
     if (!result.success) {
       failures.push(
@@ -312,11 +322,19 @@ if (import.meta.main) {
             "from a source named by a workload manifest.",
           toolchain: {
             clang: new TextDecoder().decode(
-              (await new Deno.Command("clang", { args: ["--version"], stdout: "piped" }).output())
+              (await new Deno.Command("clang", {
+                args: ["--version"],
+                stdout: "piped",
+                env: buildEnv(),
+              }).output())
                 .stdout,
             ).split("\n")[0],
             rustc: new TextDecoder().decode(
-              (await new Deno.Command("rustc", { args: ["--version"], stdout: "piped" }).output())
+              (await new Deno.Command("rustc", {
+                args: ["--version"],
+                stdout: "piped",
+                env: buildEnv(),
+              }).output())
                 .stdout,
             ).trim(),
           },

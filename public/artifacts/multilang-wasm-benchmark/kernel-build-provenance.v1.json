@@ -3,7 +3,7 @@
   "description": "Build recipe and content hashes for every multi-language kernel artifact compiled from a source named by a workload manifest.",
   "toolchain": {
     "clang": "clang version 22.1.8",
-    "rustc": "rustc 1.97.0 (2d8144b78 2026-07-07) (Arch Linux rust 1:1.97.0-1)"
+    "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
   },
   "kernelCount": 159,
   "reproducesCommittedBytes": 34,
