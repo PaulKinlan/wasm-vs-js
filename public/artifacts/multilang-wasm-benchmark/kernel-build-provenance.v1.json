@@ -1010,7 +1010,7 @@
       "engine": "asc",
       "lang": "asc",
       "source": "benchmarks/multilang-wasm/graphics-cpu-path-tracer/path_tracer.ts",
-      "sourceSha256": "72dc89c871fa19f1878d8405d99c522bffe1326b3d85a232ebdb6c4ce93362cb",
+      "sourceSha256": "0eb2bf0e241344fb516bb01094542c1159a666d02bcd87dbd92070814d1f0388",
       "artifact": "path_tracer_asc.wasm",
       "artifactSha256": "50361c9594f14ed60db2c7d639787ed9699a3f3c317d2e5490a16e68a9a49ffe",
       "artifactBytes": 4133,

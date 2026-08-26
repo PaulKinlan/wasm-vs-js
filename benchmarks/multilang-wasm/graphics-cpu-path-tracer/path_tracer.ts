@@ -40,31 +40,31 @@ export function counters_ptr(): u32 {
 }
 
 // @ts-ignore: decorator
-@inline
+
 function counter(i: u32): u32 {
   return load<u32>(COUNTERS_OFF + (<usize> i) * 4);
 }
 
 // @ts-ignore: decorator
-@inline
+
 function bump(i: u32, by: u32 = 1): void {
   store<u32>(COUNTERS_OFF + (<usize> i) * 4, counter(i) + by);
 }
 
 // @ts-ignore: decorator
-@inline
+
 function sphereAt(index: i32, word: u32): f32 {
   return load<f32>(SPHERES_OFF + (<usize> index) * SPHERE_WORDS * 4 + (<usize> word) * 4);
 }
 
 // @ts-ignore: decorator
-@inline
+
 function nodeF32(index: i32, word: u32): f32 {
   return load<f32>(NODES_OFF + (<usize> index) * NODE_WORDS * 4 + (<usize> word) * 4);
 }
 
 // @ts-ignore: decorator
-@inline
+
 function nodeI32(index: i32, word: u32): i32 {
   return load<i32>(NODES_OFF + (<usize> index) * NODE_WORDS * 4 + (<usize> word) * 4);
 }
@@ -119,7 +119,7 @@ function putNode(
 // AssemblyScript does not parse. They are reproduced here from their exact
 // IEEE-754 single bit patterns so no decimal rounding can move a boundary.
 // @ts-ignore: decorator
-@inline
+
 function bits(pattern: u32): f32 {
   return reinterpret<f32>(pattern);
 }
@@ -161,20 +161,20 @@ function initScene(): void {
 }
 
 // @ts-ignore: decorator
-@inline
+
 function minf(a: f32, b: f32): f32 {
   return a < b ? a : b;
 }
 
 // @ts-ignore: decorator
-@inline
+
 function maxf(a: f32, b: f32): f32 {
   return a > b ? a : b;
 }
 
 /** C's dot(): a.x*b.x + (a.y*b.y + a.z*b.z). The grouping is load-bearing. */
 // @ts-ignore: decorator
-@inline
+
 function dot(ax: f32, ay: f32, az: f32, bx: f32, by: f32, bz: f32): f32 {
   return ax * bx + (ay * by + az * bz);
 }
@@ -197,7 +197,7 @@ function norm(ax: f32, ay: f32, az: f32): void {
 }
 
 // @ts-ignore: decorator
-@inline
+
 function rng(x: u32): u32 {
   let v: u32 = x;
   v ^= v << 13;
@@ -207,13 +207,13 @@ function rng(x: u32): u32 {
 }
 
 // @ts-ignore: decorator
-@inline
+
 function unit(x: u32): f32 {
   return <f32> (x >> 8) * (<f32> 1.0 / <f32> 16777216.0);
 }
 
 // @ts-ignore: decorator
-@inline
+
 function seedFor(pixel: u32, sample: u32): u32 {
   return SEED ^ (pixel * 0x9e3779b9) ^ (sample * 0x85ebca6b);
 }
@@ -253,8 +253,8 @@ function hitBox(
   return true;
 }
 
-// intersect() out-parameters.
-let hitT: f32 = 0;
+// intersect() out-parameters. The C signature also returns the hit distance,
+// which its render loop declares and never reads; it is not carried here.
 let hitPx: f32 = 0, hitPy: f32 = 0, hitPz: f32 = 0;
 let hitNx: f32 = 0, hitNy: f32 = 0, hitNz: f32 = 0;
 
@@ -297,7 +297,6 @@ function intersect(ox: f32, oy: f32, oz: f32, dx: f32, dy: f32, dz: f32): i32 {
     }
   }
   if (bestIndex < 0) return -1;
-  hitT = best;
   hitPx = ox + dx * best;
   hitPy = oy + dy * best;
   hitPz = oz + dz * best;
