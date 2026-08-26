@@ -5,8 +5,8 @@
   "entryId": "numeric.fft-spectral-filter.v1",
   "implementationId": "numeric-fft-spectral-filter-controlled-v1",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "0c3b14f423141f6375aa1bb96460d9ea67670af1",
-  "sourceSha256": "c1b1a63dcb0aeba7aebb3893a0859fcdc4f3c391701c7f26fb3227ca4a327726",
+  "sourceCommit": "e713097ec0e3b21c49d288e350a57bf87b150b7d",
+  "sourceSha256": "e0f48809c178d1aad03bb2625dfbe3cc694bd324a1809a175b2b326fec210bf2",
   "fullSourceGraph": [
     {
       "path": "benchmarks/base/numeric-fft-spectral-filter/workload.js",
@@ -50,8 +50,8 @@
     },
     {
       "path": "server.ts",
-      "bytes": 100018,
-      "sha256": "df1be5d14fd882ee9cb0fc3f64de7954278546396be96b210dc8d51d129a5679"
+      "bytes": 100110,
+      "sha256": "631f7aff886f69794b24fdc5f456fe40b2004716cf6efa5a23c99979c57f9fd4"
     },
     {
       "path": "deno.json",
@@ -71,11 +71,11 @@
   "manifests": {
     "fixture": {
       "path": "public/artifacts/numeric-fft-spectral-filter/fixture-manifest.json",
-      "sha256": "75838851fb7df55c92ec2e8a6681cc11a76d01647086f561d57d7966d4a051a4"
+      "sha256": "6762c523151e8204e268f064d42de4ce95eed54fbb0dfc0125d7814bda69a581"
     },
     "output": {
       "path": "public/artifacts/numeric-fft-spectral-filter/output-manifest.json",
-      "sha256": "b854b080b2bc7c6e432a245b3f29d3bc78938fdc3356307bf90dbca51a2def3f"
+      "sha256": "3188b1b347e0fe3d1b003bc29f94c164cd3f92839c0bcdcebaed571b605f8b4f"
     }
   },
   "variants": {
@@ -101,6 +101,6 @@
   "toolchain": {
     "runtime": "Deno 2.9.0",
     "wabt": "1.0.37",
-    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=0c3b14f423141f6375aa1bb96460d9ea67670af1"
+    "command": "deno run --allow-read=. --allow-write=public/artifacts/numeric-fft-spectral-filter --allow-run=git scripts/build-numeric-fft-spectral-filter.ts --source-commit=e713097ec0e3b21c49d288e350a57bf87b150b7d"
   }
 }
