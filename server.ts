@@ -193,6 +193,10 @@ const routes = new Map<string, [string, string, boolean?]>([
   ["/coverage", ["public/coverage/index.html", "text/html; charset=utf-8"]],
   ["/coverage/", ["public/coverage/index.html", "text/html; charset=utf-8"]],
   ["/data/coverage.v1.json", ["public/data/coverage.v1.json", "application/json; charset=utf-8"]],
+  ["/artifacts/multilang-wasm-benchmark/kernel-build-provenance.v1.json", [
+    "public/artifacts/multilang-wasm-benchmark/kernel-build-provenance.v1.json",
+    "application/json; charset=utf-8",
+  ]],
   ["/benchmark-report.js", ["public/benchmark-report.js", "text/javascript; charset=utf-8"]],
   ["/home-multilang.js", ["public/home-multilang.js", "text/javascript; charset=utf-8"]],
   ["/dom-hosts/base-dom-todomvc-journey.js", [

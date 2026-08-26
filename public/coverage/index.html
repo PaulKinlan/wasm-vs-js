@@ -92,6 +92,32 @@
         </div>
       </section>
 
+      <section aria-labelledby="provenance-heading">
+        <h2 id="provenance-heading">Artifact provenance</h2>
+        <p>
+          Every compiled kernel that a workload manifest declares now has a recorded build
+          recipe — the exact command, the source hash and the artifact hash. Not every recipe
+          reproduces the committed binary yet: those artifacts were built before the recipe was
+          recorded, by means the repository does not capture. The shortfall is counted here
+          rather than left implied.
+        </p>
+        <div id="provenance-summary" class="decision-grid"></div>
+        <div class="table-wrap">
+          <table class="results-table">
+            <caption>Kernels whose recorded recipe does not reproduce the committed bytes</caption>
+            <thead>
+              <tr>
+                <th scope="col">Artifact</th>
+                <th scope="col">Workload</th>
+                <th scope="col">Language</th>
+                <th scope="col">Source</th>
+              </tr>
+            </thead>
+            <tbody id="provenance-body"></tbody>
+          </table>
+        </div>
+      </section>
+
       <section aria-labelledby="bespoke-heading">
         <h2 id="bespoke-heading">Pages on a bespoke runner</h2>
         <p id="bespoke-intro"></p>

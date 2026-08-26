@@ -220,6 +220,13 @@ const staticStages: Stage[] = [
   },
   { name: "catalog", args: ["task", "catalog"] },
   { name: "coverage", args: ["run", "--allow-read=.", "scripts/build-coverage.ts", "--check"] },
+  // Every kernel a manifest declares must still compile from its recorded
+  // recipe. The stage reports how many reproduce the committed bytes; it
+  // fails only when a kernel no longer builds at all.
+  {
+    name: "kernel-recipes",
+    args: ["run", "--allow-all", "scripts/build-multilang-kernels.ts", "--check"],
+  },
 ];
 const manifestReaderStatics: Stage[] = [
   { name: "planning", args: ["run", "--allow-read=.", "scripts/check-planning.mjs"] },

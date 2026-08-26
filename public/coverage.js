@@ -152,6 +152,52 @@ async function main() {
     </tr>`
   ).join("");
 
+  // Kernel build provenance.
+  try {
+    const provResp = await fetch(
+      "/artifacts/multilang-wasm-benchmark/kernel-build-provenance.v1.json",
+      { cache: "no-store" },
+    );
+    if (provResp.ok) {
+      const prov = await provResp.json();
+      const host = document.querySelector("#provenance-summary");
+      if (host) {
+        host.innerHTML = [
+          summaryCard(
+            "Kernels with a recipe",
+            prov.kernelCount,
+            "Compiled kernels whose exact build command, source hash and artifact hash are recorded.",
+          ),
+          summaryCard(
+            "Reproduce exactly",
+            `${prov.reproducesCommittedBytes}/${prov.kernelCount}`,
+            "Recipes that rebuild the committed binary byte for byte.",
+          ),
+          summaryCard(
+            "Recipe not yet recovered",
+            prov.doesNotReproduceCommittedBytes,
+            "Artifacts built before the recipe was recorded; the recorded command produces " +
+              "different bytes, so the original build is not reproducible.",
+          ),
+        ].join("");
+      }
+      const body = document.querySelector("#provenance-body");
+      if (body) {
+        const gaps = (prov.kernels ?? []).filter((k) => !k.reproducesCommittedBytes);
+        body.innerHTML = gaps.map((k) =>
+          `<tr>
+            <td><code>${esc(k.artifact)}</code></td>
+            <td>${esc(k.workload)}</td>
+            <td>${esc(ENGINE_LABELS[k.lang] ?? k.lang)}</td>
+            <td><code>${esc(k.source)}</code></td>
+          </tr>`
+        ).join("");
+      }
+    }
+  } catch {
+    // The provenance record is optional data; the rest of the page stands.
+  }
+
   // Pages that time their workload through a runner of their own.
   const bespokeHost = document.querySelector("#bespoke-body");
   if (bespokeHost) {
