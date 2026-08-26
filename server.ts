@@ -2298,6 +2298,7 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "scan_log_opt_c.wasm",
       "sum_u32_opt_c.wasm",
       "telemetry_c.wasm",
+      "telemetry_asc.wasm",
       "telemetry_cpp.wasm",
       "telemetry_dart.mjs",
       "telemetry_dart.wasm",

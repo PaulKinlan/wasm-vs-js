@@ -3044,15 +3044,33 @@ export const KERNEL_ADAPTERS = {
         return { count, okCount, errCount, valueSum };
       }
       const callables = {};
-      for (const key of ["c", "cpp", "rs"]) {
+      // The payload used to be written at offset 0, on top of each kernel's
+      // own static data. C and C++ keep their UTF-8 option tables there, so
+      // the payload destroyed the very tables the parser compares against and
+      // process() returned -10 at the first record. The return value was
+      // discarded, so both engines were reported as extremely fast while
+      // parsing nothing. Rust survived only because its layout differs.
+      const INPUT_BASE = 262144;
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.telemetry.instance;
-        const mem = inst.exports.memory;
         callables[key] = {
           telemetry: () => {
             const bytes = fixture();
-            const inOff = 0, outOff = bytes.byteLength + 1024, outCap = 4096;
-            new Uint8Array(mem.buffer, inOff, bytes.length).set(bytes);
-            inst.exports.process(inOff, bytes.length, outOff, outCap);
+            const inOff = INPUT_BASE;
+            const outOff = inOff + bytes.byteLength + 1024;
+            const outCap = 4096;
+            const mem = inst.exports.memory;
+            const need = outOff + outCap;
+            if (mem.buffer.byteLength < need) {
+              mem.grow(Math.ceil((need - mem.buffer.byteLength) / 65536));
+            }
+            new Uint8Array(inst.exports.memory.buffer, inOff, bytes.length).set(bytes);
+            const written = inst.exports.process(inOff, bytes.length, outOff, outCap);
+            // A rejection must never be reported as a timing.
+            if (written <= 0) {
+              throw new Error(`telemetry ${key}: process() rejected the payload (${written})`);
+            }
           },
         };
       }

@@ -5,8 +5,8 @@
     "clang": "clang version 22.1.8",
     "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
   },
-  "kernelCount": 146,
-  "reproducesCommittedBytes": 31,
+  "kernelCount": 147,
+  "reproducesCommittedBytes": 32,
   "doesNotReproduceCommittedBytes": 115,
   "kernels": [
     {
@@ -1628,6 +1628,18 @@
       "artifactBytes": 600352,
       "reproducesCommittedBytes": false,
       "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -o <out>/tactics_kernel_rs.wasm benchmarks/multilang-wasm/game-dom-tactics-grid/tactics_kernel.rs"
+    },
+    {
+      "workload": "serialization-json-telemetry",
+      "engine": "asc",
+      "lang": "asc",
+      "source": "benchmarks/multilang-wasm/serialization-json-telemetry/telemetry.ts",
+      "sourceSha256": "d7b1c620ce28d96e12e0816dff6ccd876ecffc53b3e1138468cd623e7014cac7",
+      "artifact": "telemetry_asc.wasm",
+      "artifactSha256": "ce6e470e8206ddab81c3da93c03e9b788b57ca55404e830684eded67c917aebe",
+      "artifactBytes": 6225,
+      "reproducesCommittedBytes": true,
+      "command": "npx --yes -p assemblyscript asc benchmarks/multilang-wasm/serialization-json-telemetry/telemetry.ts -O3 --bindings none --noAssert --initialMemory 256 -o <out>/telemetry_asc.wasm"
     },
     {
       "workload": "serialization-json-telemetry",

@@ -37,6 +37,18 @@
       "source": "benchmarks/multilang-wasm/serialization-json-telemetry/telemetry.rs"
     },
     {
+      "key": "asc",
+      "label": "AssemblyScript / Wasm",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "telemetry": "telemetry_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/serialization-json-telemetry/telemetry.ts",
+      "initialMemoryBytes": 16777216
+    },
+    {
       "key": "dart",
       "label": "Dart / WasmGC",
       "kind": "dart",

@@ -1047,11 +1047,11 @@
         "c",
         "cpp",
         "rs",
+        "asc",
         "dart"
       ],
       "missingEngines": [
-        "wat",
-        "asc"
+        "wat"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/serialization-json-telemetry.manifest.json",
       "domHost": null,
