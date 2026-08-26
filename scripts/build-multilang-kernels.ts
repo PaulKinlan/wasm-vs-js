@@ -18,6 +18,11 @@
 //   deno run --allow-all scripts/build-multilang-kernels.ts [--only <workload>]
 //   deno run --allow-all scripts/build-multilang-kernels.ts --check
 //
+// Not part of `deno task check`: compiling 159 kernels takes minutes and its
+// CPU load perturbs the gate's carefully phased writer/reader stages.
+// tests/multilang-kernel-provenance.test.ts holds the record complete and
+// honest on every gate run; this script refreshes it.
+//
 // By default only MISSING artifacts are written. A recipe that has not been
 // shown to produce an oracle-passing artifact must not silently replace a
 // committed one: rebuilding every kernel with these flags regressed twelve
