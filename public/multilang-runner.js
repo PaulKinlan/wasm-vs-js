@@ -353,7 +353,8 @@ export const KERNEL_ADAPTERS = {
       const oracle = runRigidBodyJavaScript(bytes, { timesteps: STEPS, checkpointEvery: EVERY });
       const oracleDigest = digest(oracle.checkpoints);
       const callables = {};
-      for (const key of ["c", "cpp", "rs"]) {
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.rigid_engine.instance;
         const mem = inst.exports.memory;
         callables[key] = {

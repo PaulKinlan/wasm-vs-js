@@ -2216,6 +2216,7 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "pdf_engine_dart.wasm",
       "pdf_engine_rs.wasm",
       "rigid_c.wasm",
+      "rigid_asc.wasm",
       "rigid_cpp.wasm",
       "rigid_dart.mjs",
       "rigid_dart.wasm",

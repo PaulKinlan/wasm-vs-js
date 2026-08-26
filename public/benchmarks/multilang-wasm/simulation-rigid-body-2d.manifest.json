@@ -1,6 +1,6 @@
 {
   "workloadId": "simulation.rigid-body-2d.v1",
-  "kernelLabel": "500-body 2D physics — SAT collision, joints, torque (6 checkpoints)",
+  "kernelLabel": "500-body 2D physics \u2014 SAT collision, joints, torque (6 checkpoints)",
   "artifactsBase": "/artifacts/multilang-wasm-benchmark",
   "kernels": [
     "rigid_engine"
@@ -44,6 +44,18 @@
       "files": {
         "rigid_engine": "rigid_rs.wasm"
       }
+    },
+    {
+      "key": "asc",
+      "label": "AssemblyScript / Wasm",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "rigid_engine": "rigid_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/simulation-rigid-body-2d/rigid_engine.ts",
+      "initialMemoryBytes": 16777216
     },
     {
       "key": "dart",

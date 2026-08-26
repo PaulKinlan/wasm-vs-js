@@ -1128,11 +1128,11 @@
         "c",
         "cpp",
         "rs",
+        "asc",
         "dart"
       ],
       "missingEngines": [
-        "wat",
-        "asc"
+        "wat"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/simulation-rigid-body-2d.manifest.json",
       "domHost": null,

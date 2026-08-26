@@ -5,8 +5,8 @@
     "clang": "clang version 22.1.8",
     "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
   },
-  "kernelCount": 143,
-  "reproducesCommittedBytes": 26,
+  "kernelCount": 144,
+  "reproducesCommittedBytes": 27,
   "doesNotReproduceCommittedBytes": 117,
   "kernels": [
     {
@@ -1244,6 +1244,18 @@
       "artifactBytes": 1710,
       "reproducesCommittedBytes": false,
       "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -o <out>/regex_scan_kernel_rs.wasm benchmarks/multilang-wasm/regex-automata-duel/regex_scan_kernel.rs"
+    },
+    {
+      "workload": "simulation-rigid-body-2d",
+      "engine": "asc",
+      "lang": "asc",
+      "source": "benchmarks/multilang-wasm/simulation-rigid-body-2d/rigid_engine.ts",
+      "sourceSha256": "508db6d3dff7836f11037ebad5636f064ace800b9baf5341f982e87b9d371fdf",
+      "artifact": "rigid_asc.wasm",
+      "artifactSha256": "3f37e7f5392056b032c9980a1aa60bdd0f05626388ba2f01f5d924d01d9c503e",
+      "artifactBytes": 7529,
+      "reproducesCommittedBytes": true,
+      "command": "npx --yes -p assemblyscript asc benchmarks/multilang-wasm/simulation-rigid-body-2d/rigid_engine.ts -O3 --bindings none --noAssert --initialMemory 256 -o <out>/rigid_asc.wasm"
     },
     {
       "workload": "simulation-rigid-body-2d",
