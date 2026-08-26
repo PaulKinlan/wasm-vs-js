@@ -14,6 +14,7 @@ const DATA: Record<string, {
   wasmBytes: number;
   mlDesc: string;
   mlSources: string;
+  why: string;
 }> = {
   "audio-fft": {
     title: "Radix-2 complex FFT",
@@ -27,6 +28,8 @@ const DATA: Record<string, {
     wasmBytes: 528,
     mlDesc: "radix-2 complex FFT (4,096 samples per transform)",
     mlSources: "fft_kernel.c · .cpp · .rs · .dart",
+    why:
+      "A butterfly is a tight loop of f32 multiplies and adds over a strided array with no allocation and no branching on data. It is the shape where a linear-memory Wasm target has the least to hide behind and the JavaScript engine has the least to optimise around, so the gap here is close to the floor of what the two runtimes differ by.",
   },
   "audio-fir": {
     title: "Direct 256-tap FIR convolution",
@@ -40,6 +43,8 @@ const DATA: Record<string, {
     wasmBytes: 226,
     mlDesc: "direct 256-tap FIR convolution",
     mlSources: "fir.c · fir.cpp · fir.rs · fir.dart",
+    why:
+      "Direct convolution reads two arrays and writes a third with a predictable stride, which is the easiest case in the suite for both a compiler and a JIT. It measures how much of the difference is arithmetic rather than memory behaviour or bounds checking.",
   },
   "audio-stft": {
     title: "Short-time Fourier transform",
@@ -53,6 +58,8 @@ const DATA: Record<string, {
     wasmBytes: 752,
     mlDesc: "short-time Fourier transform (1,024-frame, 256-hop)",
     mlSources: "stft.c · stft.cpp · stft.rs · stft.dart",
+    why:
+      "Windowing, an FFT per frame and a spectrogram write per frame put a per-frame allocation and a large output buffer around the same butterfly. It shows what happens to the FFT result once real buffer traffic is placed around it.",
   },
 };
 
@@ -136,23 +143,29 @@ const TEMPLATE = `<!doctype html>
         <div id="perf-reporting" class="detail-grid" hidden></div>
       </section>
 
-      <section aria-labelledby="identity-title">
-        <h2 id="identity-title">Workload identity</h2>
-        <dl class="metrics">
-          <div><dt>Entry ID</dt><dd><code>{entry_id}</code></dd></div>
-          <div><dt>Slug</dt><dd><code>{slug}</code></dd></div>
-          <div><dt>Tier / class</dt><dd>{tier} · {klass}</dd></div>
-          <div><dt>Variants</dt><dd><code>js-controlled</code> · <code>wasm-linear-controlled</code></dd></div>
-          <div><dt>Floating-point policy</dt><dd>{fp_policy}</dd></div>
-          <div><dt>Status</dt><dd>{status}</dd></div>
-        </dl>
-        <h3>Fixed dimensions</h3>
+      <div class="detail-cards">
+        <section aria-labelledby="what-heading">
+          <h2 id="what-heading">What it does</h2>
+          <p>{lede}</p>
+        </section>
+        <section aria-labelledby="why-heading">
+          <h2 id="why-heading">Why compare Wasm vs JS</h2>
+          <p>{why}</p>
+        </section>
+      </div>
+
+      <section aria-labelledby="dimensions-title">
+        <h2 id="dimensions-title">Fixed dimensions</h2>
+        <p>
+          Every run uses these exact sizes. <code>{entry_id}</code> is the entry
+          this page implements; its floating-point policy is {fp_policy}.
+        </p>
         <dl class="metrics">{dimensions}
         </dl>
       </section>
 
       <section aria-labelledby="run-title">
-        <h2 id="run-title">Correctness evidence — run the contract</h2>
+        <h2 id="run-title">Correctness evidence</h2>
         <p class="no-js-note">JavaScript is off. The identity, dimensions, evidence, and source
           links on this page are complete without it; running the engines requires JavaScript and
           WebAssembly.</p>
@@ -313,6 +326,7 @@ for (const demo of registry.demos) {
   };
   const html = TEMPLATE
     .replaceAll("{entry_id}", bench.entryId)
+    .replaceAll("{why}", d.why)
     .replaceAll("{title}", d.title)
     .replaceAll("{lede}", d.lede)
     .replaceAll("{slug}", slug)

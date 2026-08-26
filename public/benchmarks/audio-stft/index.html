@@ -79,35 +79,23 @@
         <div id="perf-reporting" class="detail-grid" hidden></div>
       </section>
 
-      <section aria-labelledby="identity-title">
-        <h2 id="identity-title">Workload identity</h2>
-        <dl class="metrics">
-          <div>
-            <dt>Entry ID</dt>
-            <dd><code>audio.stft.v1</code></dd>
-          </div>
-          <div>
-            <dt>Slug</dt>
-            <dd><code>audio-stft</code></dd>
-          </div>
-          <div>
-            <dt>Tier / class</dt>
-            <dd>T3 · component</dd>
-          </div>
-          <div>
-            <dt>Variants</dt>
-            <dd><code>js-controlled</code> · <code>wasm-linear-controlled</code></dd>
-          </div>
-          <div>
-            <dt>Floating-point policy</dt>
-            <dd>strict-f32-frozen-order</dd>
-          </div>
-          <div>
-            <dt>Status</dt>
-            <dd>proposal-validation-only</dd>
-          </div>
-        </dl>
-        <h3>Fixed dimensions</h3>
+      <div class="detail-cards">
+        <section aria-labelledby="what-heading">
+          <h2 id="what-heading">What it does</h2>
+          <p>372 overlapping 1,024-sample frames (hop 256) over 96,000 samples at 48 kHz: a 20 Hz–8 kHz chirp plus seeded noise, frozen Hann window, radix-2 FFT per frame, in strict-f32 frozen order.</p>
+        </section>
+        <section aria-labelledby="why-heading">
+          <h2 id="why-heading">Why compare Wasm vs JS</h2>
+          <p>Windowing, an FFT per frame and a spectrogram write per frame put a per-frame allocation and a large output buffer around the same butterfly. It shows what happens to the FFT result once real buffer traffic is placed around it.</p>
+        </section>
+      </div>
+
+      <section aria-labelledby="dimensions-title">
+        <h2 id="dimensions-title">Fixed dimensions</h2>
+        <p>
+          Every run uses these exact sizes. <code>audio.stft.v1</code> is the entry
+          this page implements; its floating-point policy is strict-f32-frozen-order.
+        </p>
         <dl class="metrics">
           <div>
             <dt>samples</dt>
@@ -137,7 +125,7 @@
       </section>
 
       <section aria-labelledby="run-title">
-        <h2 id="run-title">Correctness evidence — run the contract</h2>
+        <h2 id="run-title">Correctness evidence</h2>
         <p class="no-js-note">JavaScript is off. The identity, dimensions, evidence, and source
           links on this page are complete without it; running the engines requires JavaScript and
           WebAssembly.</p>

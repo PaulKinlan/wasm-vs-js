@@ -79,35 +79,23 @@
         <div id="perf-reporting" class="detail-grid" hidden></div>
       </section>
 
-      <section aria-labelledby="identity-title">
-        <h2 id="identity-title">Workload identity</h2>
-        <dl class="metrics">
-          <div>
-            <dt>Entry ID</dt>
-            <dd><code>audio.fft.v1</code></dd>
-          </div>
-          <div>
-            <dt>Slug</dt>
-            <dd><code>audio-fft</code></dd>
-          </div>
-          <div>
-            <dt>Tier / class</dt>
-            <dd>T2 · kernel</dd>
-          </div>
-          <div>
-            <dt>Variants</dt>
-            <dd><code>js-controlled</code> · <code>wasm-linear-controlled</code></dd>
-          </div>
-          <div>
-            <dt>Floating-point policy</dt>
-            <dd>strict-f32-frozen-order</dd>
-          </div>
-          <div>
-            <dt>Status</dt>
-            <dd>proposal-validation-only</dd>
-          </div>
-        </dl>
-        <h3>Fixed dimensions</h3>
+      <div class="detail-cards">
+        <section aria-labelledby="what-heading">
+          <h2 id="what-heading">What it does</h2>
+          <p>Thirty-two radix-2 transforms over 4,096 interleaved complex samples each, in strict-f32 frozen order. Both engines run the same algorithm with the same frozen twiddle table; the fixture is one exactly representable real impulse per transform.</p>
+        </section>
+        <section aria-labelledby="why-heading">
+          <h2 id="why-heading">Why compare Wasm vs JS</h2>
+          <p>A butterfly is a tight loop of f32 multiplies and adds over a strided array with no allocation and no branching on data. It is the shape where a linear-memory Wasm target has the least to hide behind and the JavaScript engine has the least to optimise around, so the gap here is close to the floor of what the two runtimes differ by.</p>
+        </section>
+      </div>
+
+      <section aria-labelledby="dimensions-title">
+        <h2 id="dimensions-title">Fixed dimensions</h2>
+        <p>
+          Every run uses these exact sizes. <code>audio.fft.v1</code> is the entry
+          this page implements; its floating-point policy is strict-f32-frozen-order.
+        </p>
         <dl class="metrics">
           <div>
             <dt>fft-size</dt>
@@ -133,7 +121,7 @@
       </section>
 
       <section aria-labelledby="run-title">
-        <h2 id="run-title">Correctness evidence — run the contract</h2>
+        <h2 id="run-title">Correctness evidence</h2>
         <p class="no-js-note">JavaScript is off. The identity, dimensions, evidence, and source
           links on this page are complete without it; running the engines requires JavaScript and
           WebAssembly.</p>

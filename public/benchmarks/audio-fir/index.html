@@ -79,35 +79,23 @@
         <div id="perf-reporting" class="detail-grid" hidden></div>
       </section>
 
-      <section aria-labelledby="identity-title">
-        <h2 id="identity-title">Workload identity</h2>
-        <dl class="metrics">
-          <div>
-            <dt>Entry ID</dt>
-            <dd><code>audio.fir.v1</code></dd>
-          </div>
-          <div>
-            <dt>Slug</dt>
-            <dd><code>audio-fir</code></dd>
-          </div>
-          <div>
-            <dt>Tier / class</dt>
-            <dd>T2 · kernel</dd>
-          </div>
-          <div>
-            <dt>Variants</dt>
-            <dd><code>js-controlled</code> · <code>wasm-linear-controlled</code></dd>
-          </div>
-          <div>
-            <dt>Floating-point policy</dt>
-            <dd>strict-f32-frozen-order</dd>
-          </div>
-          <div>
-            <dt>Status</dt>
-            <dd>proposal-validation-only</dd>
-          </div>
-        </dl>
-        <h3>Fixed dimensions</h3>
+      <div class="detail-cards">
+        <section aria-labelledby="what-heading">
+          <h2 id="what-heading">What it does</h2>
+          <p>Direct convolution of 131,072 mono samples with a 256-tap windowed-sinc lowpass (cutoff 0.25 sample-rate, Hann window, DC gain normalized to 1), in strict-f32 frozen order.</p>
+        </section>
+        <section aria-labelledby="why-heading">
+          <h2 id="why-heading">Why compare Wasm vs JS</h2>
+          <p>Direct convolution reads two arrays and writes a third with a predictable stride, which is the easiest case in the suite for both a compiler and a JIT. It measures how much of the difference is arithmetic rather than memory behaviour or bounds checking.</p>
+        </section>
+      </div>
+
+      <section aria-labelledby="dimensions-title">
+        <h2 id="dimensions-title">Fixed dimensions</h2>
+        <p>
+          Every run uses these exact sizes. <code>audio.fir.v1</code> is the entry
+          this page implements; its floating-point policy is strict-f32-frozen-order.
+        </p>
         <dl class="metrics">
           <div>
             <dt>samples</dt>
@@ -133,7 +121,7 @@
       </section>
 
       <section aria-labelledby="run-title">
-        <h2 id="run-title">Correctness evidence — run the contract</h2>
+        <h2 id="run-title">Correctness evidence</h2>
         <p class="no-js-note">JavaScript is off. The identity, dimensions, evidence, and source
           links on this page are complete without it; running the engines requires JavaScript and
           WebAssembly.</p>

@@ -47,7 +47,7 @@
       </section>
 
       <section class="demo-panel" aria-labelledby="run-heading">
-        <h2 id="run-heading">Run Benchmark Suite</h2>
+        <h2 id="run-heading">Run Benchmark Loop</h2>
         <form id="demo-form">
           <div class="controls">
             <label for="target">
@@ -77,6 +77,16 @@
         </p>
         <div id="perf-reporting" class="detail-grid" hidden></div>
       </section>
+      <div class="detail-cards">
+        <section aria-labelledby="what-heading">
+          <h2 id="what-heading">What it does</h2>
+          <p>Sums 1,000,000 integers with 32-bit overflow wrapping.</p>
+        </section>
+        <section aria-labelledby="why-heading">
+          <h2 id="why-heading">Why compare Wasm vs JS</h2>
+          <p>Basic 32-bit integer arithmetic loop performance.</p>
+        </section>
+      </div>
 
       <section aria-labelledby="identity-title">
         <h2 id="identity-title">Workload identity</h2>
@@ -128,7 +138,7 @@
       </section>
 
       <section aria-labelledby="evidence-title">
-        <h2 id="evidence-title">Contract and sources</h2>
+        <h2 id="evidence-title">Source &amp; build provenance</h2>
         <ul class="demo-links">
           <li><a href="/benchmarks/sum-u32/benchmark.json">Workload contract</a></li>
           <li><a href="/artifacts/sum-u32/sum-u32.wasm">Wasm artifact</a> ·

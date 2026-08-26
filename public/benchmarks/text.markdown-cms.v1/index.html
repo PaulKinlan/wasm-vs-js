@@ -83,8 +83,10 @@ Paragraph with &amp; and &lt; characters.</textarea></label>
         <h2>Text result</h2>
         <p id="md-correct-status" aria-live="polite">Ready.</p>
         <pre id="output" class="demo-output" tabindex="0">No result yet.</pre>
-        <h2>What runs</h2>
+        <h2>What it does</h2>
         <p>The fixed grammar parses headings, paragraphs, raw HTML, whole-line links, and figures. It then creates table-of-contents anchors, checks the URL and element allowlists, and serializes escaped canonical HTML. The Wasm option performs those stages in authored <a href="/artifacts/text-markdown-cms/text-markdown-cms.wasm">linear-memory code</a>.</p>
+        <h2>Why compare Wasm vs JS</h2>
+        <p>Text parsing, character scanning, and string building.</p>
       </section>
     </main>
   </body>
