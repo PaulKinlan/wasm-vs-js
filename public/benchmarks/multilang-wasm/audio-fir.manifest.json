@@ -13,6 +13,15 @@
       "source": ""
     },
     {
+      "key": "wat",
+      "label": "Raw WAT",
+      "kind": "linear",
+      "lang": "wat",
+      "offset": 0,
+      "url": "/artifacts/audio-fir/audio-fir.wasm",
+      "source": "benchmarks/audio-fir/audio-fir.wat"
+    },
+    {
       "key": "c",
       "label": "C / Wasm",
       "kind": "linear",

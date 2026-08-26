@@ -2628,6 +2628,31 @@ export const KERNEL_ADAPTERS = {
         callables[key] = { fir: run };
         probes[key] = () => fnv1aBytes(new Uint8Array(mem.buffer, run(), OUT_LEN * 4));
       }
+      // The hand-written module takes the same five values in a different
+      // order — input pointer and length, then taps pointer and length, then
+      // the output — so it is called through a shim rather than left out.
+      if (mods.engines.wat) {
+        const inst = mods.engines.wat.instances.fir.instance;
+        const mem = inst.exports.memory;
+        const run = () => {
+          const sig = signal(), tp = taps();
+          const inOff = 0, tapsOff = sig.byteLength, outOff = tapsOff + tp.byteLength;
+          const need = outOff + OUT_LEN * 4;
+          if (mem.buffer.byteLength < need) {
+            if (mem.grow(Math.ceil((need - mem.buffer.byteLength) / 65536)) < 0) {
+              throw new Error(
+                `audio.fir.v1 wat: needs ${need} bytes, memory caps at ${mem.buffer.byteLength}`,
+              );
+            }
+          }
+          new Float32Array(mem.buffer, inOff, sig.length).set(sig);
+          new Float32Array(mem.buffer, tapsOff, tp.length).set(tp);
+          inst.exports.fir_direct(inOff, sig.length, tapsOff, tp.length, outOff);
+          return outOff;
+        };
+        callables.wat = { fir: run };
+        probes.wat = () => fnv1aBytes(new Uint8Array(mem.buffer, run(), OUT_LEN * 4));
+      }
       callables.js = { fir: () => jsFir(signal(), taps()) };
       probes.js = () => {
         const out = jsFir(signal(), taps());

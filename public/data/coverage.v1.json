@@ -71,15 +71,14 @@
       "title": "Direct 256-tap FIR convolution demo",
       "engines": [
         "js",
+        "wat",
         "c",
         "cpp",
         "rs",
         "asc",
         "dart"
       ],
-      "missingEngines": [
-        "wat"
-      ],
+      "missingEngines": [],
       "manifestPath": "/benchmarks/multilang-wasm/audio-fir.manifest.json",
       "domHost": null,
       "scopes": [
@@ -1322,7 +1321,7 @@
     "pages": 51,
     "withMultilang": 44,
     "withoutMultilang": 7,
-    "fullyCovered": 8,
+    "fullyCovered": 9,
     "withDomStage": 11,
     "duplicates": 0,
     "unmeasuredPages": 1,
