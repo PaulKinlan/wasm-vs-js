@@ -15,13 +15,17 @@ import { CdpClient } from "../lib/cdp-client.ts";
 
 const REPO = new URL("..", import.meta.url).pathname;
 
+// Every page whose adapter has been brought under requireEngineAgreement.
+// Grows as the sweep continues; a page listed here must agree or the run fails.
 const DEFAULT_PAGES = [
   "audio-fft",
   "audio-fir",
   "audio-stft",
-  "ml-gemm",
-  "ml-dense-mlp",
+  "database-olap-chart",
   "graphics-cpu-path-tracer-v1",
+  "ml-dense-mlp",
+  "ml-gemm",
+  "numeric.polybench-panel.v1",
 ];
 
 const pagesArg = Deno.args.find((a) => a.startsWith("--pages="));

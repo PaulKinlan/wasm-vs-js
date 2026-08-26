@@ -2411,22 +2411,41 @@ export const KERNEL_ADAPTERS = {
       const fixture32 = new Uint32Array(fixture.buffer);
 
       const callables = {};
+      const probes = {};
       for (const key of ["c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.olap.instance;
         const mem = inst.exports.memory;
-        callables[key] = {
-          olap: () => {
-            const inPtr = inst.exports.input_ptr();
-            new Uint32Array(mem.buffer, inPtr, fixture32.length).set(fixture32);
-            inst.exports.run(fixture.length);
-          },
+        const run = () => {
+          const inPtr = inst.exports.input_ptr();
+          new Uint32Array(mem.buffer, inPtr, fixture32.length).set(fixture32);
+          // run() returns the number of output words, or 0 if it rejected the
+          // header. Discarding that meant an engine that validated the fixture
+          // away and computed nothing was still timed, and timed as the
+          // fastest.
+          const written = Number(inst.exports.run(fixture.length));
+          if (written !== OUTPUT_WORDS) {
+            throw new Error(
+              `olap ${key} wrote ${written} words, expected ${OUTPUT_WORDS}`,
+            );
+          }
+        };
+        callables[key] = { olap: run };
+        probes[key] = () => {
+          run();
+          return fnv1aBytes(
+            new Uint8Array(mem.buffer, Number(inst.exports.result_ptr()), OUTPUT_WORDS * 4),
+          );
         };
       }
       callables.js = {
         olap: () => {
           runOlap(fixture);
         },
+      };
+      probes.js = () => {
+        const { output } = runOlap(fixture);
+        return fnv1aBytes(new Uint8Array(output.buffer, output.byteOffset, output.byteLength));
       };
       callables.dart = {
         olap: () => {
@@ -2436,6 +2455,15 @@ export const KERNEL_ADAPTERS = {
           kernels.run(input, result, fixture.length);
         },
       };
+      if (mods.engines.dart) {
+        probes.dart = () => {
+          const input = new Uint32Array(fixture32.buffer.slice(0));
+          const result = new Uint32Array(OUTPUT_WORDS);
+          mods.engines.dart.kernels.run(input, result, fixture.length);
+          return fnv1aBytes(new Uint8Array(result.buffer, result.byteOffset, result.byteLength));
+        };
+      }
+      requireEngineAgreement("database.olap-chart.v1", probes);
       return callables;
     },
   },
