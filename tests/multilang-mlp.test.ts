@@ -99,7 +99,7 @@ function assertBitIdentical(label: string, got: Float32Array, ref: Float32Array)
 }
 
 Deno.test(
-  "multilang-mlp: C, C++, Rust, and Dart/WasmGC mlp_forward kernels are bit-identical to the frozen-GELU oracle",
+  "multilang-mlp: C, C++, Rust, AssemblyScript, and Dart/WasmGC mlp_forward kernels are bit-identical to the frozen-GELU oracle",
   async () => {
     const { x, w, bias } = makeInputs();
     const ref = oracleMLP(x, w, bias);
@@ -108,11 +108,13 @@ Deno.test(
       ["mlp_forward_c.wasm", "C"],
       ["mlp_forward_cpp.wasm", "C++"],
       ["mlp_forward_rs.wasm", "Rust"],
+      ["mlp_forward_asc.wasm", "AssemblyScript"],
     ] as const;
     for (const [file, label] of linear) {
       const mod = (await WebAssembly.instantiate(
         await Deno.readFile(`${ARTIFACTS}/${file}`),
-        {},
+        // AssemblyScript emits an env.abort import for bounds checks.
+        { env: { abort: () => {} } },
       )) as unknown as { instance: WebAssembly.Instance };
       const mem = mod.instance.exports.memory as WebAssembly.Memory;
       const xOff = 0, wOff = xOff + B * W * 4, biasOff = wOff + LAYERS * W * W * 4;

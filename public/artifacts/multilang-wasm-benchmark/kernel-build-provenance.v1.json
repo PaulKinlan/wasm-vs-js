@@ -5,9 +5,9 @@
     "clang": "clang version 22.1.8",
     "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
   },
-  "kernelCount": 142,
-  "reproducesCommittedBytes": 22,
-  "doesNotReproduceCommittedBytes": 120,
+  "kernelCount": 143,
+  "reproducesCommittedBytes": 26,
+  "doesNotReproduceCommittedBytes": 117,
   "kernels": [
     {
       "workload": "game-canvas-arcade",
@@ -719,6 +719,18 @@
     },
     {
       "workload": "ml-dense-mlp",
+      "engine": "asc",
+      "lang": "asc",
+      "source": "benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.ts",
+      "sourceSha256": "86cd2d6b17c96618877309cf5fc21c1ff8cee38ba485bd476c419a663a2e9bf6",
+      "artifact": "mlp_forward_asc.wasm",
+      "artifactSha256": "db8f79529ed97b11a991d2bef75c9748c2e2d008ec15463b94552242e153747e",
+      "artifactBytes": 809,
+      "reproducesCommittedBytes": true,
+      "command": "npx --yes -p assemblyscript asc benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.ts -O3 --bindings none --noAssert --initialMemory 256 -o <out>/mlp_forward_asc.wasm"
+    },
+    {
+      "workload": "ml-dense-mlp",
       "engine": "c",
       "lang": "c",
       "source": "benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.c",
@@ -726,7 +738,7 @@
       "artifact": "mlp_forward_c.wasm",
       "artifactSha256": "8ac44946d3ae50b419a679735d37f3d8c910a523343c2a736454f8a86fb67ad3",
       "artifactBytes": 1972,
-      "reproducesCommittedBytes": false,
+      "reproducesCommittedBytes": true,
       "command": "clang --target=wasm32 -O3 -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/mlp_forward_c.wasm benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.c"
     },
     {
@@ -738,7 +750,7 @@
       "artifact": "mlp_forward_cpp.wasm",
       "artifactSha256": "fd6d6483aed574aa4fd6ef8cac667925d35c30b92a232c5be164231dfb5b9c32",
       "artifactBytes": 1974,
-      "reproducesCommittedBytes": false,
+      "reproducesCommittedBytes": true,
       "command": "clang++ --target=wasm32 -O3 -nostdlib -fno-exceptions -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/mlp_forward_cpp.wasm benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.cpp"
     },
     {
@@ -750,7 +762,7 @@
       "artifact": "mlp_forward_rs.wasm",
       "artifactSha256": "0788de57b1ff64718458ff683f5a458ed29613d6975450a44668bec02b481c0a",
       "artifactBytes": 1739,
-      "reproducesCommittedBytes": false,
+      "reproducesCommittedBytes": true,
       "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -o <out>/mlp_forward_rs.wasm benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.rs"
     },
     {

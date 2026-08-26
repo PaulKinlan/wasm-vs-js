@@ -3526,7 +3526,8 @@ export const KERNEL_ADAPTERS = {
         return { x, w, bias };
       }
       const callables = {};
-      for (const key of ["c", "cpp", "rs"]) {
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.mlp_forward.instance;
         const mem = inst.exports.memory;
         callables[key] = {

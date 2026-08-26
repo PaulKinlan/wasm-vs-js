@@ -2123,6 +2123,7 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "scan_log_c.wasm",
       "scan_log_cpp.wasm",
       "mlp_forward_c.wasm",
+      "mlp_forward_asc.wasm",
       "mlp_forward_cpp.wasm",
       "mlp_forward_rs.wasm",
       "mlp_forward_dart.wasm",

@@ -46,6 +46,17 @@
       "source": "benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.rs"
     },
     {
+      "key": "asc",
+      "label": "AssemblyScript / Wasm",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "mlp_forward": "mlp_forward_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.ts"
+    },
+    {
       "key": "dart",
       "label": "Dart / WasmGC",
       "kind": "dart",

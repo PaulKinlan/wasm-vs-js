@@ -790,11 +790,10 @@
         "c",
         "cpp",
         "rs",
+        "asc",
         "dart"
       ],
-      "missingEngines": [
-        "asc"
-      ],
+      "missingEngines": [],
       "manifestPath": "/benchmarks/multilang-wasm/ml-dense-mlp.manifest.json",
       "domHost": null,
       "scopes": [
@@ -1637,7 +1636,7 @@
     "pages": 67,
     "withMultilang": 50,
     "withoutMultilang": 17,
-    "fullyCovered": 2,
+    "fullyCovered": 3,
     "withDomStage": 12,
     "duplicates": 16,
     "unmeasuredPages": 9,
