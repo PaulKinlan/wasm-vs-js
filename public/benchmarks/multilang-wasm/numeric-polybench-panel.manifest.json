@@ -37,6 +37,17 @@
       "source": "benchmarks/multilang-wasm/numeric-polybench-panel/polybench.rs"
     },
     {
+      "key": "asc",
+      "label": "AssemblyScript / Wasm",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "polybench": "polybench_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/numeric-polybench-panel/polybench.ts"
+    },
+    {
       "key": "dart",
       "label": "Dart / WasmGC",
       "kind": "dart",

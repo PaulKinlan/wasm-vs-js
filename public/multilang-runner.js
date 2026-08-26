@@ -2598,7 +2598,8 @@ export const KERNEL_ADAPTERS = {
         return { max, vstride, cap };
       }
       const callables = {};
-      for (const key of ["c", "cpp", "rs"]) {
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.myers_diff.instance;
         const mem = inst.exports.memory;
         callables[key] = {
@@ -5369,7 +5370,8 @@ export const KERNEL_ADAPTERS = {
       const callables = {};
       callables.js = { polybench: jsPolybench };
 
-      for (const key of ["c", "cpp", "rs"]) {
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.polybench.instance;
         const mem = inst.exports.memory;
         const exports = inst.exports;

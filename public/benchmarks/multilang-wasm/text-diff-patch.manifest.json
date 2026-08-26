@@ -37,6 +37,17 @@
       "source": "benchmarks/multilang-wasm/text-diff-patch/myers_diff.rs"
     },
     {
+      "key": "asc",
+      "label": "AssemblyScript / Wasm",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "myers_diff": "myers_diff_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/text-diff-patch/myers_diff.ts"
+    },
+    {
       "key": "dart",
       "label": "Dart / WasmGC",
       "kind": "dart",

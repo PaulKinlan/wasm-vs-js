@@ -113,7 +113,7 @@ function refJacobi2d(jf: ReturnType<typeof makeGridFixture>) {
 }
 
 Deno.test(
-  "multilang-polybench: C, C++, Rust, and Dart/WasmGC polybench kernels match JS reference oracles",
+  "multilang-polybench: C, C++, Rust, AssemblyScript, and Dart/WasmGC polybench kernels match JS reference oracles",
   async () => {
     const gf = makeGemmFixture();
     const cf = makeCholeskyFixture();
@@ -127,12 +127,15 @@ Deno.test(
       ["polybench_c.wasm", "C"],
       ["polybench_cpp.wasm", "C++"],
       ["polybench_rs.wasm", "Rust"],
+      ["polybench_asc.wasm", "AssemblyScript"],
     ] as const;
 
     for (const [file, label] of linear) {
       const mod = (await WebAssembly.instantiate(
         await Deno.readFile(`${ARTIFACTS}/${file}`),
-        {},
+        // AssemblyScript emits an env.abort import for bounds checks; a
+        // correct kernel never calls it.
+        { env: { abort: () => {} } },
       )) as unknown as { instance: WebAssembly.Instance };
       const mem = mod.instance.exports.memory as WebAssembly.Memory;
       const exports = mod.instance.exports as Record<string, (...args: unknown[]) => unknown>;

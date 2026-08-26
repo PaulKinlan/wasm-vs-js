@@ -5,8 +5,8 @@
     "clang": "clang version 22.1.8",
     "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
   },
-  "kernelCount": 160,
-  "reproducesCommittedBytes": 35,
+  "kernelCount": 162,
+  "reproducesCommittedBytes": 37,
   "doesNotReproduceCommittedBytes": 125,
   "kernels": [
     {
@@ -863,6 +863,18 @@
     },
     {
       "workload": "text-diff-patch",
+      "engine": "asc",
+      "lang": "asc",
+      "source": "benchmarks/multilang-wasm/text-diff-patch/myers_diff.ts",
+      "sourceSha256": "83fe2576a62a8fbc2c5c1972db1b2ed1324e2197d215381f59c5e6bc4fc4eb19",
+      "artifact": "myers_diff_asc.wasm",
+      "artifactSha256": "f8da8286e3e815b005931d415b7b7f7e230cd160c5b5ce0c94d41185acc465fa",
+      "artifactBytes": 1468,
+      "reproducesCommittedBytes": true,
+      "command": "npx --yes -p assemblyscript asc benchmarks/multilang-wasm/text-diff-patch/myers_diff.ts -O3 --bindings none --noAssert --initialMemory 256 -o <out>/myers_diff_asc.wasm"
+    },
+    {
+      "workload": "text-diff-patch",
       "engine": "c",
       "lang": "c",
       "source": "benchmarks/multilang-wasm/text-diff-patch/myers_diff.c",
@@ -1256,6 +1268,18 @@
       "artifactBytes": 617293,
       "reproducesCommittedBytes": false,
       "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -o <out>/pdf_engine_rs.wasm benchmarks/multilang-wasm/document-pdf-viewer/pdf_engine.rs"
+    },
+    {
+      "workload": "numeric-polybench-panel",
+      "engine": "asc",
+      "lang": "asc",
+      "source": "benchmarks/multilang-wasm/numeric-polybench-panel/polybench.ts",
+      "sourceSha256": "e76dc6e5d72a58e5f4ef4707284e26f552f99daada12848a772ca6d7a9579a2a",
+      "artifact": "polybench_asc.wasm",
+      "artifactSha256": "b45730eafec11037bf36b3b85860d81e1e3df9be5379f63f02439002c646e999",
+      "artifactBytes": 820,
+      "reproducesCommittedBytes": true,
+      "command": "npx --yes -p assemblyscript asc benchmarks/multilang-wasm/numeric-polybench-panel/polybench.ts -O3 --bindings none --noAssert --initialMemory 256 -o <out>/polybench_asc.wasm"
     },
     {
       "workload": "numeric-polybench-panel",

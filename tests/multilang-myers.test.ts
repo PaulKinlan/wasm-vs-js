@@ -134,7 +134,7 @@ function assertBitIdentical(
 }
 
 Deno.test(
-  "multilang-myers: C, C++, Rust, and Dart/WasmGC myers_diff kernels are bit-identical to the JS oracle",
+  "multilang-myers: C, C++, Rust, AssemblyScript, and Dart/WasmGC myers_diff kernels are bit-identical to the JS oracle",
   async () => {
     const { base, target } = genPair(64, 9);
     const cap = base.length + target.length + 1;
@@ -147,11 +147,14 @@ Deno.test(
       ["myers_diff_c.wasm", "C"],
       ["myers_diff_cpp.wasm", "C++"],
       ["myers_diff_rs.wasm", "Rust"],
+      ["myers_diff_asc.wasm", "AssemblyScript"],
     ] as const;
     for (const [file, label] of linear) {
       const mod = (await WebAssembly.instantiate(
         await Deno.readFile(`${ARTIFACTS}/${file}`),
-        {},
+        // AssemblyScript emits an env.abort import for bounds checks; a
+        // correct kernel never calls it.
+        { env: { abort: () => {} } },
       )) as unknown as { instance: WebAssembly.Instance };
       const mem = mod.instance.exports.memory as WebAssembly.Memory;
       const max = base.length + target.length;
