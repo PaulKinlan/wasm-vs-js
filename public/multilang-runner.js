@@ -198,13 +198,86 @@ export const KERNEL_ADAPTERS = {
     kernels: ["render"],
     async build(mods) {
       const W = 16, H = 16, SPP = 4;
+      // Every engine renders the same 16x16x4spp frame, and all of them agree
+      // on it byte for byte. The adapter used to check only that render()
+      // returned 0, so an engine could have drawn a different picture — or a
+      // blank one — at whatever speed and still be reported as a comparison.
+      // The frame is now digested and checked against the value all engines
+      // produce, so a timing is only published for work that matched.
+      const ORACLE = Object.freeze({
+        frameFnv1a: 0x509d4baf,
+        rays: 3378,
+        bounces: 3248,
+        nodeTests: 35866,
+        intersections: 6531,
+        samples: 1024,
+        rngDraws: 10287,
+        outputBytes: 1024,
+      });
+      const frameDigest = (bytes) => {
+        let fnv = 0x811c9dc5 >>> 0;
+        for (let i = 0; i < bytes.length; i++) {
+          fnv = Math.imul(fnv ^ bytes[i], 0x01000193) >>> 0;
+        }
+        return fnv;
+      };
+      // Allocation and boundary-crossing counts are properties of the engine,
+      // not of the image: JavaScript allocates a vector per bounce and Wasm
+      // allocates none. They are excluded rather than fudged.
+      const checkCounters = (key, c) => {
+        const want = [
+          ["rays", ORACLE.rays],
+          ["bounces", ORACLE.bounces],
+          ["nodeTests", ORACLE.nodeTests],
+          ["intersections", ORACLE.intersections],
+          ["samples", ORACLE.samples],
+          ["rngDraws", ORACLE.rngDraws],
+          ["outputBytes", ORACLE.outputBytes],
+        ];
+        for (const [name, value] of want) {
+          if (c[name] !== value) {
+            throw new Error(
+              `path_tracer ${key} ${name} was ${c[name]}, frozen oracle says ${value}`,
+            );
+          }
+        }
+      };
+      const wasmCounters = (raw) => ({
+        rays: raw[0],
+        bounces: raw[1],
+        nodeTests: raw[2],
+        intersections: raw[3],
+        samples: raw[4],
+        rngDraws: raw[5],
+        outputBytes: raw[7],
+      });
       const callables = {};
-      for (const key of ["c", "cpp", "rs"]) {
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.render.instance;
         callables[key] = {
           render: () => {
             const status = Number(inst.exports.render(W, H, SPP));
             if (status !== 0) throw new Error(`path_tracer ${key} render failed (${status})`);
+            const memory = inst.exports.memory.buffer;
+            const frame = new Uint8Array(
+              memory,
+              Number(inst.exports.framebuffer_ptr()),
+              W * H * 4,
+            );
+            const digest = frameDigest(frame);
+            if (digest !== ORACLE.frameFnv1a) {
+              throw new Error(
+                `path_tracer ${key} rendered a different frame ` +
+                  `(FNV-1a ${digest.toString(16)}, want ${ORACLE.frameFnv1a.toString(16)})`,
+              );
+            }
+            checkCounters(
+              key,
+              wasmCounters(
+                new Uint32Array(memory, Number(inst.exports.counters_ptr()), 9),
+              ),
+            );
           },
         };
       }
@@ -213,7 +286,15 @@ export const KERNEL_ADAPTERS = {
       );
       callables.js = {
         render: () => {
-          renderJavaScript(W, H, SPP);
+          const result = renderJavaScript(W, H, SPP);
+          const digest = frameDigest(result.framebuffer);
+          if (digest !== ORACLE.frameFnv1a) {
+            throw new Error(
+              `path_tracer js rendered a different frame ` +
+                `(FNV-1a ${digest.toString(16)}, want ${ORACLE.frameFnv1a.toString(16)})`,
+            );
+          }
+          checkCounters("js", result.counters);
         },
       };
       const pathFb = new Uint8Array(W * H * 4);
@@ -222,6 +303,14 @@ export const KERNEL_ADAPTERS = {
         render: () => {
           const status = Number(mods.engines.dart.kernels.render(W, H, SPP, pathFb, pathCt));
           if (status !== 0) throw new Error(`path_tracer dart render failed (${status})`);
+          const digest = frameDigest(pathFb);
+          if (digest !== ORACLE.frameFnv1a) {
+            throw new Error(
+              `path_tracer dart rendered a different frame ` +
+                `(FNV-1a ${digest.toString(16)}, want ${ORACLE.frameFnv1a.toString(16)})`,
+            );
+          }
+          checkCounters("dart", wasmCounters(pathCt));
         },
       };
       return callables;

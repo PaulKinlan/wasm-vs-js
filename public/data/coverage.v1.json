@@ -708,11 +708,11 @@
         "c",
         "cpp",
         "rs",
+        "asc",
         "dart"
       ],
       "missingEngines": [
-        "wat",
-        "asc"
+        "wat"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/graphics-cpu-path-tracer.manifest.json",
       "domHost": null,

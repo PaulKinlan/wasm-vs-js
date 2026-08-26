@@ -46,6 +46,17 @@
       }
     },
     {
+      "key": "asc",
+      "label": "AssemblyScript / Wasm",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "source": "benchmarks/multilang-wasm/graphics-cpu-path-tracer/path_tracer.ts",
+      "files": {
+        "render": "path_tracer_asc.wasm"
+      }
+    },
+    {
       "key": "dart",
       "label": "Dart / WasmGC",
       "kind": "dart",

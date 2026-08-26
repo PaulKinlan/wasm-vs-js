@@ -2206,6 +2206,7 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "olap_dart.mjs",
       "olap_dart.wasm",
       "olap_rs.wasm",
+      "path_tracer_asc.wasm",
       "path_tracer_c.wasm",
       "path_tracer_cpp.wasm",
       "path_tracer_dart.mjs",

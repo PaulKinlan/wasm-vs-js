@@ -5,8 +5,8 @@
     "clang": "clang version 22.1.8",
     "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
   },
-  "kernelCount": 149,
-  "reproducesCommittedBytes": 32,
+  "kernelCount": 150,
+  "reproducesCommittedBytes": 33,
   "doesNotReproduceCommittedBytes": 117,
   "kernels": [
     {
@@ -1004,6 +1004,18 @@
       "artifactBytes": 601286,
       "reproducesCommittedBytes": false,
       "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -o <out>/olap_rs.wasm benchmarks/multilang-wasm/database-olap-chart/olap.rs"
+    },
+    {
+      "workload": "graphics-cpu-path-tracer",
+      "engine": "asc",
+      "lang": "asc",
+      "source": "benchmarks/multilang-wasm/graphics-cpu-path-tracer/path_tracer.ts",
+      "sourceSha256": "72dc89c871fa19f1878d8405d99c522bffe1326b3d85a232ebdb6c4ce93362cb",
+      "artifact": "path_tracer_asc.wasm",
+      "artifactSha256": "50361c9594f14ed60db2c7d639787ed9699a3f3c317d2e5490a16e68a9a49ffe",
+      "artifactBytes": 4133,
+      "reproducesCommittedBytes": true,
+      "command": "npx --yes -p assemblyscript asc benchmarks/multilang-wasm/graphics-cpu-path-tracer/path_tracer.ts -O3 --bindings none --noAssert --initialMemory 256 -o <out>/path_tracer_asc.wasm"
     },
     {
       "workload": "graphics-cpu-path-tracer",
