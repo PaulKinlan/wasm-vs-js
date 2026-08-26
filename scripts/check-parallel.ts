@@ -225,7 +225,10 @@ const staticStages: Stage[] = [
   // fails only when a kernel no longer builds at all.
   {
     name: "kernel-recipes",
-    args: ["run", "--allow-all", "scripts/build-multilang-kernels.ts", "--check"],
+    // --no-lock for the same reason the test stages use it: a plain `deno run`
+    // re-resolves npm deps and rewrites deno.lock mid-gate, which then fails
+    // every hash-pinned manifest test and the clean-checkout assertion.
+    args: ["run", "--no-lock", "--allow-all", "scripts/build-multilang-kernels.ts", "--check"],
   },
 ];
 const manifestReaderStatics: Stage[] = [
