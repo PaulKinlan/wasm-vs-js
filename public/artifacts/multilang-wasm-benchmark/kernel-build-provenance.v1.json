@@ -5,9 +5,9 @@
     "clang": "clang version 22.1.8",
     "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
   },
-  "kernelCount": 162,
-  "reproducesCommittedBytes": 37,
-  "doesNotReproduceCommittedBytes": 125,
+  "kernelCount": 140,
+  "reproducesCommittedBytes": 19,
+  "doesNotReproduceCommittedBytes": 121,
   "kernels": [
     {
       "workload": "game-canvas-arcade",
@@ -131,18 +131,6 @@
     },
     {
       "workload": "cad-parametric-bracket",
-      "engine": "dart",
-      "lang": "dart",
-      "source": "benchmarks/multilang-wasm/cad-parametric-bracket/bracket.dart",
-      "sourceSha256": "6f19d81f7232ee90e159cd662c9c2ae3172b5eb43e13c3b160074f7e66a56044",
-      "artifact": "bracket_dart.wasm",
-      "artifactSha256": "d4d294fcc1d47662c223a51518c3770f8f9dc2bc2eb20d4bb4b31dffdf1e38ee",
-      "artifactBytes": 55943,
-      "reproducesCommittedBytes": true,
-      "command": "dart compile wasm --no-source-maps benchmarks/multilang-wasm/cad-parametric-bracket/bracket.dart -o <out>/bracket_dart.wasm"
-    },
-    {
-      "workload": "cad-parametric-bracket",
       "engine": "rs",
       "lang": "rs",
       "source": "benchmarks/multilang-wasm/cad-parametric-bracket/bracket_rs.rs",
@@ -179,18 +167,6 @@
     },
     {
       "workload": "crypto-authenticated-stream",
-      "engine": "dart",
-      "lang": "dart",
-      "source": "benchmarks/multilang-wasm/crypto-authenticated-stream/crypto.dart",
-      "sourceSha256": "0cc733b5af95c99bfdef816728d5f0257c340a2b81c14c09645863dfcc217202",
-      "artifact": "crypto_dart.wasm",
-      "artifactSha256": "95cff9595cb40c0bccd7835fa9e4c553877f6eeccc886ce024734c2afe2a2ed8",
-      "artifactBytes": 46671,
-      "reproducesCommittedBytes": true,
-      "command": "dart compile wasm --no-source-maps benchmarks/multilang-wasm/crypto-authenticated-stream/crypto.dart -o <out>/crypto_dart.wasm"
-    },
-    {
-      "workload": "crypto-authenticated-stream",
       "engine": "rs",
       "lang": "rs",
       "source": "benchmarks/multilang-wasm/crypto-authenticated-stream/crypto.rs",
@@ -224,18 +200,6 @@
       "artifactBytes": 4231,
       "reproducesCommittedBytes": false,
       "command": "clang++ --target=wasm32 -O3 -nostdlib -fno-exceptions -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/ecs_frame_update_cpp.wasm benchmarks/multilang-wasm/game-ecs-frame-update/ecs_frame_update.cpp"
-    },
-    {
-      "workload": "game-ecs-frame-update",
-      "engine": "dart",
-      "lang": "dart",
-      "source": "benchmarks/multilang-wasm/game-ecs-frame-update/ecs_frame_update.dart",
-      "sourceSha256": "7475c7f635eeed668b0a0e0cfcc08fc1d80f7330938b6aeeb867bfa6c4b590f2",
-      "artifact": "ecs_frame_update_dart.wasm",
-      "artifactSha256": "dbff64e5ead73a65ea1d5ee56c301dc7c478912d5afc5b139847141213058224",
-      "artifactBytes": 58121,
-      "reproducesCommittedBytes": true,
-      "command": "dart compile wasm --no-source-maps benchmarks/multilang-wasm/game-ecs-frame-update/ecs_frame_update.dart -o <out>/ecs_frame_update_dart.wasm"
     },
     {
       "workload": "game-ecs-frame-update",
@@ -311,42 +275,6 @@
     },
     {
       "workload": "audio-fft",
-      "engine": "dart",
-      "lang": "dart",
-      "source": "benchmarks/multilang-wasm/fft_kernel.dart",
-      "sourceSha256": "2312e794098a6c980d51a1992d873c0ed22260c1dc50a027bc064bb0058773bd",
-      "artifact": "fft_dart.wasm",
-      "artifactSha256": "66aced379f60aac8000eb069572191e050c65240a5767f2cc4c0727ff08bc08f",
-      "artifactBytes": 39613,
-      "reproducesCommittedBytes": true,
-      "command": "dart compile wasm --no-source-maps benchmarks/multilang-wasm/fft_kernel.dart -o <out>/fft_dart.wasm"
-    },
-    {
-      "workload": "fft-kernel",
-      "engine": "dart",
-      "lang": "dart",
-      "source": "benchmarks/multilang-wasm/fft_kernel.dart",
-      "sourceSha256": "2312e794098a6c980d51a1992d873c0ed22260c1dc50a027bc064bb0058773bd",
-      "artifact": "fft_dart.wasm",
-      "artifactSha256": "66aced379f60aac8000eb069572191e050c65240a5767f2cc4c0727ff08bc08f",
-      "artifactBytes": 39613,
-      "reproducesCommittedBytes": true,
-      "command": "dart compile wasm --no-source-maps benchmarks/multilang-wasm/fft_kernel.dart -o <out>/fft_dart.wasm"
-    },
-    {
-      "workload": "sum-u32",
-      "engine": "dart",
-      "lang": "dart",
-      "source": "benchmarks/multilang-wasm/fft_kernel.dart",
-      "sourceSha256": "2312e794098a6c980d51a1992d873c0ed22260c1dc50a027bc064bb0058773bd",
-      "artifact": "fft_dart.wasm",
-      "artifactSha256": "66aced379f60aac8000eb069572191e050c65240a5767f2cc4c0727ff08bc08f",
-      "artifactBytes": 39613,
-      "reproducesCommittedBytes": true,
-      "command": "dart compile wasm --no-source-maps benchmarks/multilang-wasm/fft_kernel.dart -o <out>/fft_dart.wasm"
-    },
-    {
-      "workload": "audio-fft",
       "engine": "rs",
       "lang": "rs",
       "source": "benchmarks/multilang-wasm/fft_kernel.rs",
@@ -404,18 +332,6 @@
       "artifactBytes": 968,
       "reproducesCommittedBytes": false,
       "command": "clang++ --target=wasm32 -O3 -nostdlib -fno-exceptions -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/fir_cpp.wasm benchmarks/multilang-wasm/audio-fir/fir.cpp"
-    },
-    {
-      "workload": "audio-fir",
-      "engine": "dart",
-      "lang": "dart",
-      "source": "benchmarks/multilang-wasm/audio-fir/fir.dart",
-      "sourceSha256": "74185498e21a693478619fa50bf95615458d56582dc54a82eb6bbddb4094e3c2",
-      "artifact": "fir_dart.wasm",
-      "artifactSha256": "c2079b05422b8709116b247510bf25a4d925243c60dea0d6c0e3ab735c5b0c13",
-      "artifactBytes": 38981,
-      "reproducesCommittedBytes": true,
-      "command": "dart compile wasm --no-source-maps benchmarks/multilang-wasm/audio-fir/fir.dart -o <out>/fir_dart.wasm"
     },
     {
       "workload": "audio-fir",
@@ -560,18 +476,6 @@
       "artifactBytes": 1189,
       "reproducesCommittedBytes": false,
       "command": "clang++ --target=wasm32 -O3 -nostdlib -fno-exceptions -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/gemm_cpp.wasm benchmarks/multilang-wasm/ml-gemm/gemm.cpp"
-    },
-    {
-      "workload": "ml-gemm",
-      "engine": "dart",
-      "lang": "dart",
-      "source": "benchmarks/multilang-wasm/ml-gemm/gemm.dart",
-      "sourceSha256": "fa8415725946e14931158a63c73b7a7e01eba970f449942dffa3d55e228d2e22",
-      "artifact": "gemm_dart.wasm",
-      "artifactSha256": "4ba6b363e4a8c7f271e8834b14bcd698f6456b1bba83d0c85cc4d238f9a3168a",
-      "artifactBytes": 39079,
-      "reproducesCommittedBytes": true,
-      "command": "dart compile wasm --no-source-maps benchmarks/multilang-wasm/ml-gemm/gemm.dart -o <out>/gemm_dart.wasm"
     },
     {
       "workload": "ml-gemm",
@@ -791,18 +695,6 @@
     },
     {
       "workload": "cad-mesh-repair",
-      "engine": "dart",
-      "lang": "dart",
-      "source": "benchmarks/multilang-wasm/cad-mesh-repair/mesh_repair.dart",
-      "sourceSha256": "e09dcbbd37d762c5f2e3762162943de922a3e9986d8425e5fa2c1c480381dde0",
-      "artifact": "mesh_repair_dart.wasm",
-      "artifactSha256": "adc1ad7fdbaceb9d7a290734e5be8d1987fa95edb5a038287dab268f4478ea62",
-      "artifactBytes": 46072,
-      "reproducesCommittedBytes": true,
-      "command": "dart compile wasm --no-source-maps benchmarks/multilang-wasm/cad-mesh-repair/mesh_repair.dart -o <out>/mesh_repair_dart.wasm"
-    },
-    {
-      "workload": "cad-mesh-repair",
       "engine": "rs",
       "lang": "rs",
       "source": "benchmarks/multilang-wasm/cad-mesh-repair/mesh_repair.rs",
@@ -839,18 +731,6 @@
     },
     {
       "workload": "ml-dense-mlp",
-      "engine": "dart",
-      "lang": "dart",
-      "source": "benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.dart",
-      "sourceSha256": "b37bbaf2af14be1c3056edbe53266123abcadd6ba3706d5adf16d128a65d503a",
-      "artifact": "mlp_forward_dart.wasm",
-      "artifactSha256": "660bef812f808a8683220e37ce5b4c779b47cfbe698a41d74de308c0faf929d1",
-      "artifactBytes": 40779,
-      "reproducesCommittedBytes": true,
-      "command": "dart compile wasm --no-source-maps benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.dart -o <out>/mlp_forward_dart.wasm"
-    },
-    {
-      "workload": "ml-dense-mlp",
       "engine": "rs",
       "lang": "rs",
       "source": "benchmarks/multilang-wasm/ml-dense-mlp/mlp_forward.rs",
@@ -866,7 +746,7 @@
       "engine": "asc",
       "lang": "asc",
       "source": "benchmarks/multilang-wasm/text-diff-patch/myers_diff.ts",
-      "sourceSha256": "83fe2576a62a8fbc2c5c1972db1b2ed1324e2197d215381f59c5e6bc4fc4eb19",
+      "sourceSha256": "11e760ec91e3f32cb327ef9a8da45f42cd65031bedab386940787b89fd20903c",
       "artifact": "myers_diff_asc.wasm",
       "artifactSha256": "f8da8286e3e815b005931d415b7b7f7e230cd160c5b5ce0c94d41185acc465fa",
       "artifactBytes": 1468,
@@ -899,18 +779,6 @@
     },
     {
       "workload": "text-diff-patch",
-      "engine": "dart",
-      "lang": "dart",
-      "source": "benchmarks/multilang-wasm/text-diff-patch/myers_diff.dart",
-      "sourceSha256": "dabde3a5ff56d26c6356f948a175323bf8324a9ea28282702803d4eb743c23ad",
-      "artifact": "myers_diff_dart.wasm",
-      "artifactSha256": "e7e68090a86398409c4119f6ce1920736b0f8854cce4aca452c2f39eecb04e86",
-      "artifactBytes": 44023,
-      "reproducesCommittedBytes": true,
-      "command": "dart compile wasm --no-source-maps benchmarks/multilang-wasm/text-diff-patch/myers_diff.dart -o <out>/myers_diff_dart.wasm"
-    },
-    {
-      "workload": "text-diff-patch",
       "engine": "rs",
       "lang": "rs",
       "source": "benchmarks/multilang-wasm/text-diff-patch/myers_diff.rs",
@@ -918,7 +786,7 @@
       "artifact": "myers_diff_rs.wasm",
       "artifactSha256": "6635f20f926ee3905e5782c1337c1204f64ca1c0b8f26054b9ce2ff7cf33b1d2",
       "artifactBytes": 600787,
-      "reproducesCommittedBytes": false,
+      "reproducesCommittedBytes": true,
       "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -o <out>/myers_diff_rs.wasm benchmarks/multilang-wasm/text-diff-patch/myers_diff.rs"
     },
     {
@@ -956,18 +824,6 @@
       "artifactBytes": 3057,
       "reproducesCommittedBytes": true,
       "command": "clang++ --target=wasm32 -O3 -nostdlib -fno-exceptions -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/nbody_step_cpp.wasm benchmarks/multilang-wasm/simulation-nbody-cloth/nbody.cpp"
-    },
-    {
-      "workload": "simulation-nbody-cloth",
-      "engine": "dart",
-      "lang": "dart",
-      "source": "benchmarks/multilang-wasm/simulation-nbody-cloth/nbody.dart",
-      "sourceSha256": "6ec68adeae87493da007aed948a372d527718ecbac10fdf7cbea46665bbf720b",
-      "artifact": "nbody_step_dart.wasm",
-      "artifactSha256": "69c2fc8d2a7ce4509a636b8991c85ae7d5fdfc03e7f247cd480a3735fa24cad1",
-      "artifactBytes": 40849,
-      "reproducesCommittedBytes": true,
-      "command": "dart compile wasm --no-source-maps benchmarks/multilang-wasm/simulation-nbody-cloth/nbody.dart -o <out>/nbody_step_dart.wasm"
     },
     {
       "workload": "simulation-nbody-cloth",
@@ -1043,18 +899,6 @@
     },
     {
       "workload": "ml-numeric-kernels",
-      "engine": "dart",
-      "lang": "dart",
-      "source": "benchmarks/multilang-wasm/ml-numeric-kernels/numeric_kernels.dart",
-      "sourceSha256": "b56bf6eea48cc00e1a0e0c1827ed5ea281053d175376cb5222c1548835a561a1",
-      "artifact": "numeric_kernels_dart.wasm",
-      "artifactSha256": "a9b08837a4ed8846500826803c8eed3db5ed40d8f4f04bf020676ac1cf580d98",
-      "artifactBytes": 42343,
-      "reproducesCommittedBytes": true,
-      "command": "dart compile wasm --no-source-maps benchmarks/multilang-wasm/ml-numeric-kernels/numeric_kernels.dart -o <out>/numeric_kernels_dart.wasm"
-    },
-    {
-      "workload": "ml-numeric-kernels",
       "engine": "rs",
       "lang": "rs",
       "source": "benchmarks/multilang-wasm/ml-numeric-kernels/numeric_kernels.rs",
@@ -1091,18 +935,6 @@
     },
     {
       "workload": "database-olap-chart",
-      "engine": "dart",
-      "lang": "dart",
-      "source": "benchmarks/multilang-wasm/database-olap-chart/olap.dart",
-      "sourceSha256": "8429916aabcc1d0034fa5a850e6bce2227e87e3ef47866405d2e62896aa49e9d",
-      "artifact": "olap_dart.wasm",
-      "artifactSha256": "88974cb29ec0b9309957acd6ab6c755dfeed2990aad2fd018cba98c74978de2d",
-      "artifactBytes": 55016,
-      "reproducesCommittedBytes": true,
-      "command": "dart compile wasm --no-source-maps benchmarks/multilang-wasm/database-olap-chart/olap.dart -o <out>/olap_dart.wasm"
-    },
-    {
-      "workload": "database-olap-chart",
       "engine": "rs",
       "lang": "rs",
       "source": "benchmarks/multilang-wasm/database-olap-chart/olap.rs",
@@ -1136,18 +968,6 @@
       "artifactBytes": 3807,
       "reproducesCommittedBytes": false,
       "command": "clang++ --target=wasm32 -O3 -nostdlib -fno-exceptions -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/path_tracer_cpp.wasm benchmarks/multilang-wasm/graphics-cpu-path-tracer/path_tracer.cpp"
-    },
-    {
-      "workload": "graphics-cpu-path-tracer",
-      "engine": "dart",
-      "lang": "dart",
-      "source": "benchmarks/multilang-wasm/graphics-cpu-path-tracer/path_tracer.dart",
-      "sourceSha256": "6535d23ec0cf8afb81fc78c7a175ceaf9aa6e9514b5f289a62d73d8d6e85568b",
-      "artifact": "path_tracer_dart.wasm",
-      "artifactSha256": "7adce42784492ea498f5bc3ac071cf7ee89c58a2faaa3126bc324f02e58038ab",
-      "artifactBytes": 38356,
-      "reproducesCommittedBytes": true,
-      "command": "dart compile wasm --no-source-maps benchmarks/multilang-wasm/graphics-cpu-path-tracer/path_tracer.dart -o <out>/path_tracer_dart.wasm"
     },
     {
       "workload": "graphics-cpu-path-tracer",
@@ -1247,18 +1067,6 @@
     },
     {
       "workload": "document-pdf-viewer",
-      "engine": "dart",
-      "lang": "dart",
-      "source": "benchmarks/multilang-wasm/document-pdf-viewer/pdf_engine.dart",
-      "sourceSha256": "62dd02aa177237326b32a840a6d1dc24c1690a24ade3616bda2bf04698d01c44",
-      "artifact": "pdf_engine_dart.wasm",
-      "artifactSha256": "dc29c8db4ef7c2b89ebf55126dcae24c1712204a3cbcd9ed3c21b767361ba725",
-      "artifactBytes": 61975,
-      "reproducesCommittedBytes": true,
-      "command": "dart compile wasm --no-source-maps benchmarks/multilang-wasm/document-pdf-viewer/pdf_engine.dart -o <out>/pdf_engine_dart.wasm"
-    },
-    {
-      "workload": "document-pdf-viewer",
       "engine": "rs",
       "lang": "rs",
       "source": "benchmarks/multilang-wasm/document-pdf-viewer/pdf_engine.rs",
@@ -1274,7 +1082,7 @@
       "engine": "asc",
       "lang": "asc",
       "source": "benchmarks/multilang-wasm/numeric-polybench-panel/polybench.ts",
-      "sourceSha256": "e76dc6e5d72a58e5f4ef4707284e26f552f99daada12848a772ca6d7a9579a2a",
+      "sourceSha256": "7205c53c1c931fa06862b2b1861b246954f956bacfa9801ff3a913a55b09b262",
       "artifact": "polybench_asc.wasm",
       "artifactSha256": "b45730eafec11037bf36b3b85860d81e1e3df9be5379f63f02439002c646e999",
       "artifactBytes": 820,
@@ -1290,7 +1098,7 @@
       "artifact": "polybench_c.wasm",
       "artifactSha256": "badd30a2501df0ad1efcd37e400f01827a7a22ee4d646b7a17f94151d3f5044e",
       "artifactBytes": 2880,
-      "reproducesCommittedBytes": false,
+      "reproducesCommittedBytes": true,
       "command": "clang --target=wasm32 -O3 -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/polybench_c.wasm benchmarks/multilang-wasm/numeric-polybench-panel/polybench.c"
     },
     {
@@ -1302,20 +1110,8 @@
       "artifact": "polybench_cpp.wasm",
       "artifactSha256": "300b36bec312d8db133f4c41c8a63c1670a101607926d8887c64634f55ba3a34",
       "artifactBytes": 2882,
-      "reproducesCommittedBytes": false,
-      "command": "clang++ --target=wasm32 -O3 -nostdlib -fno-exceptions -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/polybench_cpp.wasm benchmarks/multilang-wasm/numeric-polybench-panel/polybench.cpp"
-    },
-    {
-      "workload": "numeric-polybench-panel",
-      "engine": "dart",
-      "lang": "dart",
-      "source": "benchmarks/multilang-wasm/numeric-polybench-panel/polybench.dart",
-      "sourceSha256": "e9b48f40d7b9756c0795476fdf89b2a7bb210c195bfc8a39d59e8115e7173d90",
-      "artifact": "polybench_dart.wasm",
-      "artifactSha256": "df5a365a13511dd3709a6b38e9fb7515e05dc559cab30ebb827c52f3d3791f4d",
-      "artifactBytes": 42265,
       "reproducesCommittedBytes": true,
-      "command": "dart compile wasm --no-source-maps benchmarks/multilang-wasm/numeric-polybench-panel/polybench.dart -o <out>/polybench_dart.wasm"
+      "command": "clang++ --target=wasm32 -O3 -nostdlib -fno-exceptions -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/polybench_cpp.wasm benchmarks/multilang-wasm/numeric-polybench-panel/polybench.cpp"
     },
     {
       "workload": "numeric-polybench-panel",
@@ -1326,7 +1122,7 @@
       "artifact": "polybench_rs.wasm",
       "artifactSha256": "7b8f74c85295d7bda71ca2fbc00f803d8c5cccae976466ff2281a2f8796ee583",
       "artifactBytes": 4024,
-      "reproducesCommittedBytes": false,
+      "reproducesCommittedBytes": true,
       "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -o <out>/polybench_rs.wasm benchmarks/multilang-wasm/numeric-polybench-panel/polybench.rs"
     },
     {
@@ -1451,18 +1247,6 @@
     },
     {
       "workload": "simulation-rigid-body-2d",
-      "engine": "dart",
-      "lang": "dart",
-      "source": "benchmarks/multilang-wasm/simulation-rigid-body-2d/rigid_engine.dart",
-      "sourceSha256": "25f04187e6bd93fff62ee306bc15055a1308cfef6a0513ef4f87c6595595a3e2",
-      "artifact": "rigid_dart.wasm",
-      "artifactSha256": "8023fad204df28220a7d36eecedd842eb924c75ec35206f09acc551184723eb0",
-      "artifactBytes": 65798,
-      "reproducesCommittedBytes": true,
-      "command": "dart compile wasm --no-source-maps benchmarks/multilang-wasm/simulation-rigid-body-2d/rigid_engine.dart -o <out>/rigid_dart.wasm"
-    },
-    {
-      "workload": "simulation-rigid-body-2d",
       "engine": "rs",
       "lang": "rs",
       "source": "benchmarks/multilang-wasm/simulation-rigid-body-2d/rigid_engine.rs",
@@ -1496,18 +1280,6 @@
       "artifactBytes": 3975,
       "reproducesCommittedBytes": false,
       "command": "clang++ --target=wasm32 -O3 -nostdlib -fno-exceptions -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/scan_log_cpp.wasm benchmarks/multilang-wasm/text-regex-log-scan/scan_log.cpp"
-    },
-    {
-      "workload": "text-regex-log-scan",
-      "engine": "dart",
-      "lang": "dart",
-      "source": "benchmarks/multilang-wasm/text-regex-log-scan/scan_log.dart",
-      "sourceSha256": "3f4d21d0e64c147929dd8f1582e8aa97b9b12aefbf2331e5624b92bc8d2434be",
-      "artifact": "scan_log_dart.wasm",
-      "artifactSha256": "ee37bab8e7f59e7bed4ab17bda1c2ece05470ff1d199baa96089bfea102d0a7e",
-      "artifactBytes": 41385,
-      "reproducesCommittedBytes": true,
-      "command": "dart compile wasm --no-source-maps benchmarks/multilang-wasm/text-regex-log-scan/scan_log.dart -o <out>/scan_log_dart.wasm"
     },
     {
       "workload": "text-regex-log-scan",
@@ -1595,18 +1367,6 @@
     },
     {
       "workload": "crypto-file-integrity",
-      "engine": "dart",
-      "lang": "dart",
-      "source": "benchmarks/multilang-wasm/crypto-file-integrity/sha256.dart",
-      "sourceSha256": "9682fcd96c7aaf51c9627da271a8b7c0644abc26cab3da6b90565242c416c6e1",
-      "artifact": "sha256_dart.wasm",
-      "artifactSha256": "07471ac1f5e420891cdfdd348252d9b2e78e1d56631f02f112a420c8c9ec9d4a",
-      "artifactBytes": 53795,
-      "reproducesCommittedBytes": true,
-      "command": "dart compile wasm --no-source-maps benchmarks/multilang-wasm/crypto-file-integrity/sha256.dart -o <out>/sha256_dart.wasm"
-    },
-    {
-      "workload": "crypto-file-integrity",
       "engine": "rs",
       "lang": "rs",
       "source": "benchmarks/multilang-wasm/crypto-file-integrity/sha256.rs",
@@ -1640,18 +1400,6 @@
       "artifactBytes": 1740,
       "reproducesCommittedBytes": false,
       "command": "clang++ --target=wasm32 -O3 -nostdlib -fno-exceptions -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/stft_cpp.wasm benchmarks/multilang-wasm/audio-stft/stft.cpp"
-    },
-    {
-      "workload": "audio-stft",
-      "engine": "dart",
-      "lang": "dart",
-      "source": "benchmarks/multilang-wasm/audio-stft/stft.dart",
-      "sourceSha256": "107b5def3b76280322c3b44909392d67d4e54c35db796190544b5a21e59f4d8d",
-      "artifact": "stft_dart.wasm",
-      "artifactSha256": "c4e59de31983076115d56bde38f4a6e9d97d5401fa224046f855678b40a19a0f",
-      "artifactBytes": 40254,
-      "reproducesCommittedBytes": true,
-      "command": "dart compile wasm --no-source-maps benchmarks/multilang-wasm/audio-stft/stft.dart -o <out>/stft_dart.wasm"
     },
     {
       "workload": "audio-stft",
@@ -1832,18 +1580,6 @@
       "artifactBytes": 8437,
       "reproducesCommittedBytes": false,
       "command": "clang++ --target=wasm32 -O3 -nostdlib -fno-exceptions -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=16777216 -o <out>/telemetry_cpp.wasm benchmarks/multilang-wasm/serialization-json-telemetry/telemetry.cpp"
-    },
-    {
-      "workload": "serialization-json-telemetry",
-      "engine": "dart",
-      "lang": "dart",
-      "source": "benchmarks/multilang-wasm/serialization-json-telemetry/telemetry.dart",
-      "sourceSha256": "00f6f80b66e6476ec29e2a9542ac1a874dd4352c69ab9117ea805ed4cef3db50",
-      "artifact": "telemetry_dart.wasm",
-      "artifactSha256": "5a2d3f4a752f59bc70f3b006e055c2be8babc481891dafe6d19ebdc68e77617a",
-      "artifactBytes": 48099,
-      "reproducesCommittedBytes": true,
-      "command": "dart compile wasm --no-source-maps benchmarks/multilang-wasm/serialization-json-telemetry/telemetry.dart -o <out>/telemetry_dart.wasm"
     },
     {
       "workload": "serialization-json-telemetry",

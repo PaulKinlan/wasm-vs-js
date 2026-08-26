@@ -17,6 +17,7 @@
 // Usage:
 //   deno run --allow-all scripts/build-multilang-kernels.ts [--only <workload>]
 //   deno run --allow-all scripts/build-multilang-kernels.ts --check
+//   deno run --allow-all scripts/build-multilang-kernels.ts --with-dart
 //
 // Not part of `deno task check`: compiling 159 kernels takes minutes and its
 // CPU load perturbs the gate's carefully phased writer/reader stages.
@@ -96,7 +97,9 @@ function artifactOf(
 }
 
 /** Every engine row across every manifest that names a source we can compile. */
-export async function planBuilds(): Promise<{ builds: EngineBuild[]; skipped: string[] }> {
+export async function planBuilds(
+  withDart = false,
+): Promise<{ builds: EngineBuild[]; skipped: string[] }> {
   const builds: EngineBuild[] = [];
   const skipped: string[] = [];
   for await (const entry of Deno.readDir(MANIFEST_DIR)) {
@@ -112,6 +115,11 @@ export async function planBuilds(): Promise<{ builds: EngineBuild[]; skipped: st
     for (const engine of manifest.engines ?? []) {
       const key = engine.key ?? "";
       if (key === "js" || key === "wat" || key === "kt") continue;
+      // Dart is skipped unless asked for. The committed dart2wasm glue is
+      // lint-clean; a newer SDK emits `var` and unused helpers, so
+      // regenerating it fails the gate's lint stage while changing nothing
+      // about what the kernel computes.
+      if ((engine.kind === "dart" || engine.lang === "dart") && !withDart) continue;
       const source = engine.source;
       const artifact = artifactOf(manifest, engine);
       if (!source || !artifact) {
@@ -232,7 +240,8 @@ if (import.meta.main) {
   const onlyIndex = Deno.args.indexOf("--only");
   const only = onlyIndex >= 0 ? Deno.args[onlyIndex + 1] : null;
 
-  const { builds: allBuilds, skipped } = await planBuilds();
+  const withDart = Deno.args.includes("--with-dart");
+  const { builds: allBuilds, skipped } = await planBuilds(withDart);
   const builds = only ? allBuilds.filter((b) => b.workload === only) : allBuilds;
 
   let scratchDir: string | null = null;
