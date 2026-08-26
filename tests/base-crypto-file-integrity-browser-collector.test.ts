@@ -208,12 +208,16 @@ Deno.test("visible output, controls, console, and network schemas reject semanti
   assertVisibleControls(controls);
 
   const html = await Deno.readTextFile("public/benchmarks/crypto.file-integrity.v1/index.html");
-  const wrappedTargetLabel = html.match(/<label\s+for="target">([\s\S]*?)<\/label>/)?.[1] ?? "";
+  // On the canonical benchmark page `id="target"` belongs to the standard
+  // runner's Target Engine control, so the workload's own engine select moved
+  // to `cfi-target`. The label still wraps its select and both options.
+  const wrappedTargetLabel = html.match(/<label\s+for="cfi-target">([\s\S]*?)<\/label>/)?.[1] ??
+    "";
   assert(
     wrappedTargetLabel.includes("Engine<select") &&
       wrappedTargetLabel.includes("Hand-written JavaScript SHA-256") &&
       wrappedTargetLabel.includes("Authored linear-Wasm SHA-256"),
-    "real demo target label no longer wraps the select and its options",
+    "the contract engine label no longer wraps the select and its options",
   );
   const wrappedOptionText = "Hand-written JavaScript SHA-256Authored linear-Wasm SHA-256";
   const directLabelText = "Engine";

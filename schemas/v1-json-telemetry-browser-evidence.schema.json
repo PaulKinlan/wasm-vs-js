@@ -123,7 +123,7 @@
                 {
                   "properties": {
                     "path": {
-                      "const": "public/demos/serialization.json-telemetry.v1/index.html"
+                      "const": "public/benchmarks/serialization.json-telemetry.v1/index.html"
                     }
                   }
                 }

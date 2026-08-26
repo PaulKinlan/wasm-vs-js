@@ -48,14 +48,14 @@
         "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/5f5f587a825f49be137363f3e427c6d74d8b2c70/public/benchmarks/game-ecs-frame-update/index.html"
       },
       {
-        "path": "public/demos/game-ecs-frame-update/demo.js",
+        "path": "public/benchmarks/game-ecs-frame-update/demo.js",
         "sha256": "4dc9cfc6bd448344222e242de0c3cbf5e524ed0323fc6084347c93c0ec55b1f1",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/5f5f587a825f49be137363f3e427c6d74d8b2c70/public/demos/game-ecs-frame-update/demo.js"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/5f5f587a825f49be137363f3e427c6d74d8b2c70/public/benchmarks/game-ecs-frame-update/demo.js"
       },
       {
-        "path": "public/demos/game-ecs-frame-update/worker.js",
+        "path": "public/benchmarks/game-ecs-frame-update/worker.js",
         "sha256": "4f357fff4bf3b1c2ed4cba3277eaa1bdc2c2e50f6b952508c516230322b421c8",
-        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/5f5f587a825f49be137363f3e427c6d74d8b2c70/public/demos/game-ecs-frame-update/worker.js"
+        "immutableUrl": "https://github.com/PaulKinlan/wasm-vs-js/blob/5f5f587a825f49be137363f3e427c6d74d8b2c70/public/benchmarks/game-ecs-frame-update/worker.js"
       },
       {
         "path": "server.ts",

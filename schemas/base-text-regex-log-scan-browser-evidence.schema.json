@@ -1131,7 +1131,7 @@
                       "const": "/benchmarks/base/text.regex-log-scan.v1/"
                     },
                     "sourcePath": {
-                      "const": "public/demos/base/text.regex-log-scan.v1/index.html"
+                      "const": "public/benchmarks/base/text.regex-log-scan.v1/index.html"
                     },
                     "role": {
                       "const": "document"

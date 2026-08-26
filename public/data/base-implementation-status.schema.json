@@ -61,7 +61,7 @@
           "buildManifestSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
           "validation": { "type": "string" },
           "validationSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-          "demoRoute": { "const": "/demos/crypto.file-integrity.v1/" },
+          "demoRoute": { "const": "/benchmarks/crypto.file-integrity.v1/" },
           "performanceStatus": { "const": "unavailable-not-collected" }
         }
       }
