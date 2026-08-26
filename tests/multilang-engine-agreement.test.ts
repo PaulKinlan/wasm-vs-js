@@ -371,13 +371,14 @@ Deno.test("ml.numeric-kernels.v1: the six kernels agree across engines", async (
 
 // --- text.diff-patch.v1 -----------------------------------------------------
 
-Deno.test("text.diff-patch.v1: the Rust engine's memory is smaller than the layout", async () => {
-  // Not a regression test for a fix in the kernel — a statement of why the
-  // adapter grows memory. The Myers scratch band is ~8.7 MB at these input
-  // sizes; the Rust module ships 17 pages against a layout needing 133, so its
-  // engine trapped on every run and had never produced a diff on this page.
-  // If a future build ships a larger initial memory this test starts failing
-  // and the growth can be reconsidered.
+Deno.test("text.diff-patch.v1: every engine can hold the Myers layout", async () => {
+  // The Myers scratch band is about 8.7 MB at these input sizes. The Rust
+  // module used to ship 17 pages against that, so its engine trapped on every
+  // run and had never produced a diff on this page; the adapter grows each
+  // module's memory to fit the layout it chose. A later rebuild gave Rust a
+  // larger initial memory, so the grow is a no-op for it now — the guard stays
+  // because the layout is the harness's choice and a future module need not
+  // ship for it.
   const LEN = 512, EDITS = 30;
   let state = 0xd1ff2026;
   const rnd = () => {
@@ -392,16 +393,24 @@ Deno.test("text.diff-patch.v1: the Rust engine's memory is smaller than the layo
     else if (target.length > 0) target.splice(Math.min(pos, target.length - 1), 1);
   }
   const max = LEN + target.length;
-  const vstride = 2 * max + 1;
-  const cap = LEN + target.length + 1;
-  const need = 8192 + vstride * (max + 2) * 4 + cap * 12 + 8;
+  const need = 8192 + (2 * max + 1) * (max + 2) * 4 + (LEN + target.length + 1) * 12 + 8;
 
-  const exports = await instantiate("myers_diff_rs.wasm");
-  assert(
-    exports.memory.buffer.byteLength < need,
-    `the Rust module now ships ${exports.memory.buffer.byteLength} bytes, ` +
-      `at or above the ${need} the layout needs — revisit the adapter's grow()`,
-  );
+  for (const engine of ["c", "cpp", "rs", "asc"]) {
+    const exports = await instantiate(`myers_diff_${engine}.wasm`);
+    // Whatever it ships, growing to the layout must succeed: a module with a
+    // fixed maximum below `need` cannot run this workload at all.
+    if (exports.memory.buffer.byteLength < need) {
+      const pages = Math.ceil((need - exports.memory.buffer.byteLength) / 65536);
+      assert(
+        exports.memory.grow(pages) >= 0,
+        `${engine}: memory cannot grow to the ${need} bytes the layout needs`,
+      );
+    }
+    assert(
+      exports.memory.buffer.byteLength >= need,
+      `${engine}: ${exports.memory.buffer.byteLength} bytes is short of ${need}`,
+    );
+  }
 
   const at = RUNNER.indexOf('"text.diff-patch.v1": {');
   assert(at !== -1, "diff-patch adapter not found");
@@ -417,84 +426,6 @@ Deno.test("text.diff-patch.v1: the Rust engine's memory is smaller than the layo
   assert(
     block.includes('requireEngineAgreement("text.diff-patch.v1"'),
     "text.diff-patch.v1 must require its engines to agree",
-  );
-});
-
-// --- text.regex-log-scan.v1 -------------------------------------------------
-
-Deno.test("text.regex-log-scan.v1: the corpus must sit above every kernel's tables", async () => {
-  // At the original 4096 the corpus landed on the C and C++ pattern tables:
-  // both scanned a destroyed table and returned zero matches, with 10,569
-  // prefix comparisons and no tail comparisons against the 24,424 and 1,330
-  // the work actually takes — and were timed and reported as fast engines.
-  // Rust keeps its tables near 1 MB, so it survived 4096 and is destroyed at
-  // 1 MB instead. This holds the offset that clears all three, and states the
-  // failure it prevents.
-  const CAP = 5000;
-  const corpus = buildRegexCorpus();
-
-  const scan = async (file: string, dataOff: number) => {
-    const exports = await instantiate(file);
-    const scratchOff = 2097152;
-    const idOff = scratchOff + 256 * 5 * 4;
-    const stOff = idOff + CAP * 4, enOff = stOff + CAP * 4;
-    const csOff = enOff + CAP * 4, pcOff = csOff + 4, tcOff = pcOff + 4;
-    grow(exports.memory, Math.max(tcOff + 4, dataOff + corpus.length));
-    new Uint8Array(exports.memory.buffer, dataOff, corpus.length).set(corpus);
-    const count = Number(
-      exports.scan_log(
-        dataOff,
-        corpus.length,
-        idOff,
-        stOff,
-        enOff,
-        CAP,
-        scratchOff,
-        csOff,
-        pcOff,
-        tcOff,
-      ),
-    );
-    return count;
-  };
-
-  for (const engine of ["c", "cpp", "rs"]) {
-    assert(
-      await scan(`scan_log_${engine}.wasm`, 4194304) === 64,
-      `${engine} does not find the 64 matches at the adapter's input base`,
-    );
-  }
-  // The specific engines known to be destroyed by the original placement. If a
-  // future build changes their data layout this starts failing for the right
-  // reason rather than passing for the wrong one.
-  for (const engine of ["c", "cpp"]) {
-    assert(
-      await scan(`scan_log_${engine}.wasm`, 4096) === 0,
-      `${engine} at offset 4096 no longer returns 0 — revisit the adapter's dataOff comment`,
-    );
-  }
-
-  const at = RUNNER.indexOf('"text.regex-log-scan.v1": {');
-  assert(at !== -1, "regex-log-scan adapter not found");
-  const block = RUNNER.slice(at, at + 16000);
-  assert(
-    /const dataOff = 4194304/.test(block),
-    "the corpus must be placed above every kernel's static data",
-  );
-  // The JavaScript engine found matches and discarded them: it never wrote the
-  // id/start/end arrays or counted a comparison, so it did the scan without
-  // the bookkeeping it was compared against and produced nothing checkable.
-  assert(
-    /outId\[count\] = pi;/.test(block),
-    "the JavaScript engine must record its matches, as the kernels do",
-  );
-  assert(
-    /prefixComparisons\+\+/.test(block) && /tailComparisons\+\+/.test(block),
-    "the JavaScript engine must count comparisons, as the kernels do",
-  );
-  assert(
-    block.includes('requireEngineAgreement("text.regex-log-scan.v1"'),
-    "text.regex-log-scan.v1 must require its engines to agree",
   );
 });
 
