@@ -476,7 +476,7 @@ async function collect(): Promise<void> {
       cwd: root,
       args: [
         "run",
-        "--allow-env=PORT,HOST,SERVER_MODE",
+        "--allow-env=PORT,HOST,SERVER_MODE,WASM_VS_JS_REPORTER_TOKEN",
         "--allow-net=127.0.0.1",
         "--allow-read=.",
         "deploy.ts",
