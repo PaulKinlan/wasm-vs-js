@@ -707,6 +707,22 @@ await run("rustc", [
   `${artifactsDir}/sha256_rs.wasm`,
   `${rootDir}/benchmarks/multilang-wasm/crypto-file-integrity/sha256.rs`,
 ], "compile SHA-256 Rust");
+await run("npx", [
+  "--yes",
+  "-p",
+  "assemblyscript",
+  "asc",
+  `${rootDir}/benchmarks/multilang-wasm/crypto-file-integrity/sha256.ts`,
+  "-O3",
+  "--bindings",
+  "none",
+  "--noAssert",
+  // 1 MiB fixture placed above the module statics, plus headroom.
+  "--initialMemory",
+  "32",
+  "-o",
+  `${artifactsDir}/sha256_asc.wasm`,
+], "compile SHA-256 AssemblyScript");
 await run("dart", [
   "compile",
   "wasm",
@@ -859,10 +875,12 @@ function jsFftButterflyPoly(real: Float32Array, imag: Float32Array, len: number)
   }
 }
 
-// Instantiate linear-memory modules
+// Instantiate linear-memory modules. AssemblyScript emits an env.abort import
+// for its bounds checks; a correct kernel never calls it, but the module will
+// not instantiate without it. The page runner passes the same benign stub.
 async function instantiateLinear(bytes: Uint8Array): Promise<WebAssembly.Instance> {
   const mod = new WebAssembly.Module(bytes as Uint8Array<ArrayBuffer>);
-  return await WebAssembly.instantiate(mod);
+  return await WebAssembly.instantiate(mod, { env: { abort: () => {} } });
 }
 
 const [sumCMod, sumCppMod, sumAscMod, sumRsMod, sumWatMod] = await Promise.all([
@@ -2182,7 +2200,7 @@ function jsSha256Once(): void {
   }
 }
 
-const shaLinear = ["c", "cpp", "rs"] as const;
+const shaLinear = ["c", "cpp", "rs", "asc"] as const;
 const shaMods: Record<string, WebAssembly.Instance> = {};
 for (const key of shaLinear) {
   shaMods[key] = await instantiateLinear(await Deno.readFile(`${artifactsDir}/sha256_${key}.wasm`));
@@ -2293,6 +2311,7 @@ const shaBytes = {
   c: await Deno.readFile(`${artifactsDir}/sha256_c.wasm`),
   cpp: await Deno.readFile(`${artifactsDir}/sha256_cpp.wasm`),
   rs: await Deno.readFile(`${artifactsDir}/sha256_rs.wasm`),
+  asc: await Deno.readFile(`${artifactsDir}/sha256_asc.wasm`),
   dart: await Deno.readFile(`${artifactsDir}/sha256_dart.wasm`),
 };
 
@@ -2811,6 +2830,17 @@ const report = {
           notes: "no_std cdylib; wrapping u32 arithmetic, explicit u64 bit length.",
         },
         {
+          language: "AssemblyScript / Wasm",
+          toolchain: "asc -O3 --bindings none --noAssert",
+          binarySizeBytes: shaBytes.asc.byteLength,
+          coldInstantiateMs: benchmarkColdInstantiate(shaBytes.asc),
+          warmExecutionMs: shaVariants.asc,
+          memoryPageCount: 32,
+          importsCount: countImports(shaBytes.asc),
+          exportsCount: 4,
+          notes: "u32 wrapping arithmetic over raw linear memory.",
+        },
+        {
           language: "Dart / WasmGC",
           toolchain: "dart compile wasm (dart2wasm, Dart 3.12.2)",
           binarySizeBytes: shaBytes.dart.byteLength,
@@ -3214,6 +3244,9 @@ All variants are bit-identical to the oracle digest (test-verified, incl. paddin
 | **Rust / Wasm** (rustc)        | ${shaBytes.rs.byteLength} B              | ${shaVariants.rs} ms         | ${
   (shaVariants.js / shaVariants.rs).toFixed(2)
 }× |
+| **AssemblyScript / Wasm** (asc) | ${shaBytes.asc.byteLength} B             | ${shaVariants.asc} ms        | ${
+  (shaVariants.js / shaVariants.asc).toFixed(2)
+}× |
 | **Dart / WasmGC** (dart2wasm)  | ${shaBytes.dart.byteLength} B             | ${shaVariants.dart} ms       | ${
   (shaVariants.js / shaVariants.dart).toFixed(2)
 }× |
@@ -3285,6 +3318,7 @@ const manifestSources = [
   "benchmarks/multilang-wasm/crypto-file-integrity/sha256.c",
   "benchmarks/multilang-wasm/crypto-file-integrity/sha256.cpp",
   "benchmarks/multilang-wasm/crypto-file-integrity/sha256.rs",
+  "benchmarks/multilang-wasm/crypto-file-integrity/sha256.ts",
   "benchmarks/multilang-wasm/crypto-file-integrity/sha256.dart",
   "scripts/build-multilang-wasm-benchmark.ts",
   "tests/multilang-wasm-benchmark.test.ts",
@@ -3353,6 +3387,7 @@ const manifestArtifacts = [
   "sha256_c.wasm",
   "sha256_cpp.wasm",
   "sha256_rs.wasm",
+  "sha256_asc.wasm",
   "sha256_dart.wasm",
   "sha256_dart.mjs",
 ];

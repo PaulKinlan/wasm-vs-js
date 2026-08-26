@@ -325,11 +325,11 @@
         "c",
         "cpp",
         "rs",
+        "asc",
         "dart"
       ],
       "missingEngines": [
-        "wat",
-        "asc"
+        "wat"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/crypto-file-integrity.manifest.json",
       "domHost": null,
@@ -1378,11 +1378,11 @@
         "c",
         "cpp",
         "rs",
+        "asc",
         "dart"
       ],
       "missingEngines": [
-        "wat",
-        "asc"
+        "wat"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/crypto-file-integrity.manifest.json",
       "domHost": null,

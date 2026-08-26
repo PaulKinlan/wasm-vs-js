@@ -69,7 +69,7 @@ async function dartDigest(bytes: Uint8Array): Promise<string> {
 }
 
 Deno.test(
-  "multilang-sha256: C, C++, Rust, and Dart/WasmGC SHA-256 kernels are bit-identical to the oracle digest across padding boundaries and the 1 MiB fixture",
+  "multilang-sha256: C, C++, Rust, AssemblyScript, and Dart/WasmGC SHA-256 kernels are bit-identical to the oracle digest across padding boundaries and the 1 MiB fixture",
   async () => {
     const fixture = generateFixture("seeded-pseudorandom", 1 << 20, FIXTURE_SEED);
     const cases: Array<[string, Uint8Array]> = [
@@ -88,12 +88,15 @@ Deno.test(
       ["sha256_c.wasm", "C"],
       ["sha256_cpp.wasm", "C++"],
       ["sha256_rs.wasm", "Rust"],
+      ["sha256_asc.wasm", "AssemblyScript"],
     ] as const;
     const linearInsts = [];
     for (const [file, label] of linearFiles) {
       const { instance } = await WebAssembly.instantiate(
         await Deno.readFile(`${ARTIFACTS}/${file}`),
-        {},
+        // AssemblyScript emits an env.abort import for bounds checks; a
+        // correct kernel never calls it.
+        { env: { abort: () => {} } },
       );
       linearInsts.push([instance, label] as const);
     }
@@ -127,10 +130,12 @@ Deno.test("multilang-sha256: known SHA-256 test vectors", async () => {
     const bytes = new TextEncoder().encode(input);
     const ref = oracleDigest(bytes);
     assert(ref === expected, `oracle mismatch for ${input}: ${ref}`);
-    for (const file of ["sha256_c.wasm", "sha256_cpp.wasm", "sha256_rs.wasm"]) {
+    for (
+      const file of ["sha256_c.wasm", "sha256_cpp.wasm", "sha256_rs.wasm", "sha256_asc.wasm"]
+    ) {
       const { instance } = await WebAssembly.instantiate(
         await Deno.readFile(`${ARTIFACTS}/${file}`),
-        {},
+        { env: { abort: () => {} } },
       );
       assert(
         linearDigest(instance, bytes) === expected,

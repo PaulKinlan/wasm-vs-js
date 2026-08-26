@@ -2144,6 +2144,7 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "sha256_c.wasm",
       "sha256_cpp.wasm",
       "sha256_rs.wasm",
+      "sha256_asc.wasm",
       "sha256_dart.wasm",
       "sha256_dart.mjs",
       "todomvc_engine_c.wasm",

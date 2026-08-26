@@ -5216,7 +5216,8 @@ export const KERNEL_ADAPTERS = {
         return Math.ceil((digestPtr + 64) / 65536) * 65536;
       }
       const callables = {};
-      for (const key of ["c", "cpp", "rs"]) {
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.sha256.instance;
         const mem = inst.exports.memory;
         const base = linearBase(inst);

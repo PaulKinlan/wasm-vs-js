@@ -37,6 +37,17 @@
       "source": "benchmarks/multilang-wasm/crypto-file-integrity/sha256.rs"
     },
     {
+      "key": "asc",
+      "label": "AssemblyScript / Wasm",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "sha256": "sha256_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/crypto-file-integrity/sha256.ts"
+    },
+    {
       "key": "dart",
       "label": "Dart / WasmGC",
       "kind": "dart",
