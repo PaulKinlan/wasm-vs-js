@@ -2498,6 +2498,12 @@ function createHandler(
     }
     const canonical = CANONICAL_DEMO_REDIRECTS.get(url.pathname);
     if (canonical) {
+      // Only safe methods are redirected. Answering a POST with a 301 would
+      // have let a mutation attempt past the method check that every other
+      // route enforces.
+      if (request.method !== "GET" && request.method !== "HEAD") {
+        return json({ error: "method denied" }, 405);
+      }
       return new Response(null, {
         status: 301,
         headers: { location: canonical },

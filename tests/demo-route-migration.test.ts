@@ -74,6 +74,24 @@ Deno.test("every redirect target is a live page", async () => {
   }
 });
 
+Deno.test("a redirecting route still denies mutation methods", async () => {
+  // A 301 answered for POST would let a mutation attempt past the method
+  // check every other route enforces.
+  const handler = createHandler(null, "public", null);
+  for (const page of demoPages) {
+    for (const method of ["POST", "PUT", "DELETE"]) {
+      const response = await handler(
+        new Request(`http://localhost${page.route}`, { method }),
+      );
+      await response.body?.cancel();
+      assert(
+        [403, 405].includes(response.status),
+        `${method} ${page.route} returned ${response.status}`,
+      );
+    }
+  }
+});
+
 Deno.test("demo asset routes keep working — manifests and evidence reference them", async () => {
   // Only the pages moved. Sibling assets stay addressable because build
   // manifests and retained browser evidence pin those exact URLs.
