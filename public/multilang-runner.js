@@ -5733,43 +5733,74 @@ export const KERNEL_ADAPTERS = {
             }
           }
         }
+        return { gemm: gemmOut, cholesky: cholA, jacobi: ja };
       }
 
+      /** GEMM, Cholesky and Jacobi results concatenated, in that order. */
+      const panelDigest = (gemm, cholesky, jacobi) => {
+        const bytes = new Uint8Array(
+          gemm.byteLength + cholesky.byteLength + jacobi.byteLength,
+        );
+        bytes.set(new Uint8Array(gemm.buffer, gemm.byteOffset, gemm.byteLength), 0);
+        bytes.set(
+          new Uint8Array(cholesky.buffer, cholesky.byteOffset, cholesky.byteLength),
+          gemm.byteLength,
+        );
+        bytes.set(
+          new Uint8Array(jacobi.buffer, jacobi.byteOffset, jacobi.byteLength),
+          gemm.byteLength + cholesky.byteLength,
+        );
+        return fnv1aBytes(bytes);
+      };
+
       const callables = {};
+      const probes = {};
       callables.js = { polybench: jsPolybench };
+      probes.js = () => {
+        const out = jsPolybench();
+        return panelDigest(out.gemm, out.cholesky, out.jacobi);
+      };
 
       for (const key of ["c", "cpp", "rs", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.polybench.instance;
         const mem = inst.exports.memory;
         const exports = inst.exports;
-        callables[key] = {
-          polybench: () => {
-            const gf = makeGemmFixture();
-            const cf = makeCholeskyFixture();
-            const jf = makeGridFixture();
+        const run = () => {
+          const gf = makeGemmFixture();
+          const cf = makeCholeskyFixture();
+          const jf = makeGridFixture();
 
-            // GEMM
-            const aOff = 0;
-            const bOff = gf.a.byteLength;
-            const cOff = bOff + gf.b.byteLength;
-            new Float64Array(mem.buffer, aOff, gf.a.length).set(gf.a);
-            new Float64Array(mem.buffer, bOff, gf.b.length).set(gf.b);
-            new Float64Array(mem.buffer, cOff, gf.c.length).set(gf.c);
-            exports.gemm(aOff, bOff, cOff, NI, NJ, NK, gf.alpha, gf.beta);
+          // GEMM
+          const aOff = 0;
+          const bOff = gf.a.byteLength;
+          const cOff = bOff + gf.b.byteLength;
+          new Float64Array(mem.buffer, aOff, gf.a.length).set(gf.a);
+          new Float64Array(mem.buffer, bOff, gf.b.length).set(gf.b);
+          new Float64Array(mem.buffer, cOff, gf.c.length).set(gf.c);
+          exports.gemm(aOff, bOff, cOff, NI, NJ, NK, gf.alpha, gf.beta);
 
-            // Cholesky
-            const cholOff = cOff + gf.c.byteLength;
-            new Float64Array(mem.buffer, cholOff, cf.a.length).set(cf.a);
-            exports.cholesky(cholOff, cf.n);
+          // Cholesky
+          const cholOff = cOff + gf.c.byteLength;
+          new Float64Array(mem.buffer, cholOff, cf.a.length).set(cf.a);
+          exports.cholesky(cholOff, cf.n);
 
-            // Jacobi2D
-            const gridAOff = cholOff + cf.a.byteLength;
-            const gridBOff = gridAOff + jf.a.byteLength;
-            new Float64Array(mem.buffer, gridAOff, jf.a.length).set(jf.a);
-            new Float64Array(mem.buffer, gridBOff, jf.b.length).set(jf.b);
-            exports.jacobi2d(gridAOff, gridBOff, jf.n, STEPS);
-          },
+          // Jacobi2D
+          const gridAOff = cholOff + cf.a.byteLength;
+          const gridBOff = gridAOff + jf.a.byteLength;
+          new Float64Array(mem.buffer, gridAOff, jf.a.length).set(jf.a);
+          new Float64Array(mem.buffer, gridBOff, jf.b.length).set(jf.b);
+          exports.jacobi2d(gridAOff, gridBOff, jf.n, STEPS);
+          return { cOff, cholOff, gridAOff, gf, cf, jf };
+        };
+        callables[key] = { polybench: run };
+        probes[key] = () => {
+          const { cOff, cholOff, gridAOff, gf, cf, jf } = run();
+          return panelDigest(
+            new Float64Array(mem.buffer, cOff, gf.c.length),
+            new Float64Array(mem.buffer, cholOff, cf.a.length),
+            new Float64Array(mem.buffer, gridAOff, jf.a.length),
+          );
         };
       }
 
@@ -5784,6 +5815,19 @@ export const KERNEL_ADAPTERS = {
           k.jacobi2d(jf.a, jf.b, jf.n, STEPS);
         },
       };
+      if (mods.engines.dart) {
+        probes.dart = () => {
+          const gf = makeGemmFixture();
+          const cf = makeCholeskyFixture();
+          const jf = makeGridFixture();
+          const k = mods.engines.dart.kernels;
+          k.gemm(gf.a, gf.b, gf.c, NI, NJ, NK, gf.alpha, gf.beta);
+          k.cholesky(cf.a, cf.n);
+          k.jacobi2d(jf.a, jf.b, jf.n, STEPS);
+          return panelDigest(gf.c, cf.a, jf.a);
+        };
+      }
+      requireEngineAgreement("numeric.polybench-panel.v1", probes);
 
       return callables;
     },
