@@ -262,3 +262,99 @@ Deno.test("every adapter that compares engines states the comparison", () => {
     );
   }
 });
+
+// --- ml.numeric-kernels.v1 --------------------------------------------------
+
+Deno.test("ml.numeric-kernels.v1: every engine runs all six kernels", () => {
+  const at = RUNNER.indexOf('"ml.numeric-kernels.v1": {');
+  assert(at !== -1, "numeric-kernels adapter not found");
+  const block = RUNNER.slice(at, at + 9000);
+
+  // The Wasm engines ran GEMM, Conv and Softmax in both f32 and i8; the
+  // JavaScript and Dart callables ran only the three f32 kernels. C++ and Rust
+  // were doing roughly twice the work and being reported as slower for it.
+  for (const kernel of ["gemmI8", "convI8", "softmaxI8"]) {
+    assert(
+      block.includes(`k.${kernel}(`),
+      `the Dart engine must run ${kernel}, not only the f32 kernels`,
+    );
+  }
+  assert(
+    /runAll\(generateFixtures\(\)\)/.test(block),
+    "the JavaScript engine must run all six kernels through the workload module",
+  );
+  // The f32 kernels return non-zero when they reject an input and write
+  // nothing; discarding that let a rejecting engine time as the fastest.
+  assert(
+    /rejected its input/.test(block),
+    "a non-zero kernel status must fail rather than be timed",
+  );
+  assert(
+    block.includes('requireEngineAgreement("ml.numeric-kernels.v1"'),
+    "ml.numeric-kernels.v1 must require its engines to agree",
+  );
+});
+
+Deno.test("ml.numeric-kernels.v1: the six kernels agree across engines", async () => {
+  const workload = await import(
+    `${ROOT}benchmarks/base/ml-numeric-kernels/workload.js`
+  ) as {
+    generateFixtures: () => Record<string, Float32Array | Int8Array>;
+    runAll: (f: Record<string, Float32Array | Int8Array>) => Record<string, ArrayBufferView>;
+  };
+  const fixtures = workload.generateFixtures();
+  const reference = workload.runAll(fixtures);
+  const order = ["gemmF32", "gemmI8", "convF32", "convI8", "softmaxF32", "softmaxI8"];
+
+  const digest = (views: ArrayBufferView[]) => {
+    let total = 0;
+    for (const v of views) total += v.byteLength;
+    const bytes = new Uint8Array(total);
+    let offset = 0;
+    for (const v of views) {
+      bytes.set(new Uint8Array(v.buffer, v.byteOffset, v.byteLength), offset);
+      offset += v.byteLength;
+    }
+    return fnv1a(bytes);
+  };
+  const expected = digest(order.map((k) => reference[k]));
+
+  for (const key of ["cpp", "rs"]) {
+    const exports = await instantiate(`numeric_kernels_${key}.wasm`);
+    grow(exports.memory, 65536);
+    const inA = 0, inB = 1024, inW = 2048, out = 8192;
+    const views: ArrayBufferView[] = [];
+    const fx = fixtures as Record<string, Float32Array & Int8Array>;
+
+    new Float32Array(exports.memory.buffer, inA, 72).set(fx.gemmF32A);
+    new Float32Array(exports.memory.buffer, inB, 63).set(fx.gemmF32B);
+    assert(Number(exports.gemm_f32(inA, inB, out)) === 0, `${key}: gemm_f32 rejected its input`);
+    views.push(new Float32Array(exports.memory.buffer, out, 56).slice());
+    new Int8Array(exports.memory.buffer, inA, 72).set(fx.gemmI8A);
+    new Int8Array(exports.memory.buffer, inB, 63).set(fx.gemmI8B);
+    exports.gemm_i8(inA, inB, out);
+    views.push(new Int32Array(exports.memory.buffer, out, 56).slice());
+    new Float32Array(exports.memory.buffer, inA, 192).set(fx.convF32Input);
+    new Float32Array(exports.memory.buffer, inW, 108).set(fx.convF32Weights);
+    assert(Number(exports.conv_f32(inA, inW, out)) === 0, `${key}: conv_f32 rejected its input`);
+    views.push(new Float32Array(exports.memory.buffer, out, 256).slice());
+    new Int8Array(exports.memory.buffer, inA, 192).set(fx.convI8Input);
+    new Int8Array(exports.memory.buffer, inW, 108).set(fx.convI8Weights);
+    exports.conv_i8(inA, inW, out);
+    views.push(new Int32Array(exports.memory.buffer, out, 256).slice());
+    new Float32Array(exports.memory.buffer, inA, 128).set(fx.softmaxF32Input);
+    assert(
+      Number(exports.softmax_f32(inA, out)) === 0,
+      `${key}: softmax_f32 rejected its input`,
+    );
+    views.push(new Float32Array(exports.memory.buffer, out, 128).slice());
+    new Int8Array(exports.memory.buffer, inA, 128).set(fx.softmaxI8Input);
+    exports.softmax_i8(inA, out);
+    views.push(new Uint8Array(exports.memory.buffer, out, 128).slice());
+
+    assert(
+      digest(views) === expected,
+      `${key} disagrees with the workload module across the six kernels`,
+    );
+  }
+});

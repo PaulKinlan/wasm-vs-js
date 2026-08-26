@@ -5946,147 +5946,122 @@ export const KERNEL_ADAPTERS = {
   // --- ml-numeric-kernels: GEMM/Conv/Softmax f32+i8 (frozen shapes) ----------
   "ml.numeric-kernels.v1": {
     kernels: ["numeric"],
-    build(mods) {
-      const SEED = 0x6d6c6b31;
-      function xorshift32(state) {
-        state ^= state << 13;
-        state ^= state >>> 17;
-        state ^= state << 5;
-        return state >>> 0;
-      }
-      function stream(length, kind, salt) {
-        const out = kind === "f32" ? new Float32Array(length) : new Int8Array(length);
-        let state = (SEED ^ salt) >>> 0;
-        for (let i = 0; i < length; i++) {
-          state = xorshift32(state);
-          out[i] = kind === "f32"
-            ? Math.fround(((state >>> 8) / 0x1000000) * 2 - 1)
-            : ((state % 15) - 7);
+    async build(mods) {
+      // The Wasm engines ran six kernels — GEMM, Conv and Softmax in both f32
+      // and i8 — while the JavaScript and Dart callables ran only the three
+      // f32 ones. C++ and Rust were doing roughly twice the work and being
+      // reported as slower for it, on a page whose subject is whether Wasm is
+      // faster than JavaScript. Every engine now runs the same six.
+      //
+      // The JavaScript engine had reimplemented three kernels inline. It uses
+      // the workload module the C++ source says it mirrors, so there is one
+      // definition rather than a copy free to drift from it.
+      const workload = await import("/benchmarks/base/ml-numeric-kernels/workload.js");
+      const { generateFixtures, runAll } = workload;
+
+      const GEMM_OUT = 56, CONV_OUT = 256, SM_OUT = 128;
+      /** All six outputs, concatenated in a fixed order. */
+      const KERNEL_ORDER = [
+        "gemmF32",
+        "gemmI8",
+        "convF32",
+        "convI8",
+        "softmaxF32",
+        "softmaxI8",
+      ];
+      const concatDigest = (views) => {
+        let total = 0;
+        for (const view of views) total += view.byteLength;
+        const bytes = new Uint8Array(total);
+        let offset = 0;
+        for (const view of views) {
+          bytes.set(new Uint8Array(view.buffer, view.byteOffset, view.byteLength), offset);
+          offset += view.byteLength;
         }
-        return out;
-      }
-      function inputs() {
-        return {
-          gemmF32A: stream(72, "f32", 1),
-          gemmF32B: stream(63, "f32", 2),
-          gemmI8A: stream(72, "i8", 3),
-          gemmI8B: stream(63, "i8", 4),
-          convF32Input: stream(192, "f32", 5),
-          convF32Weights: stream(108, "f32", 6),
-          convI8Input: stream(192, "i8", 7),
-          convI8Weights: stream(108, "i8", 8),
-          softmaxF32Input: stream(128, "f32", 9),
-          softmaxI8Input: stream(128, "i8", 10),
-        };
-      }
-      function jsNumeric(fx) {
-        const a = fx.gemmF32A, b = fx.gemmF32B, out = new Float32Array(56);
-        for (let i = 0; i < 8; i++) {
-          for (let j = 0; j < 7; j++) {
-            let acc = Math.fround(0);
-            for (let k = 0; k < 9; k++) {
-              acc = Math.fround(acc + Math.fround(a[i * 9 + k] * b[k * 7 + j]));
-            }
-            out[i * 7 + j] = acc + 0;
-          }
-        }
-        return out;
-      }
-      function jsConv(fx) {
-        const inp = fx.convF32Input, w = fx.convF32Weights, out = new Float32Array(256);
-        for (let y = 0; y < 8; y++) {
-          for (let x = 0; x < 8; x++) {
-            for (let o = 0; o < 4; o++) {
-              let acc = Math.fround(0);
-              for (let ky = 0; ky < 3; ky++) {
-                for (let kx = 0; kx < 3; kx++) {
-                  const iy = y + ky - 1, ix = x + kx - 1;
-                  if (iy < 0 || ix < 0 || iy >= 8 || ix >= 8) continue;
-                  for (let c = 0; c < 3; c++) {
-                    acc = Math.fround(
-                      acc +
-                        Math.fround(
-                          inp[(iy * 8 + ix) * 3 + c] * w[((ky * 3 + kx) * 3 + c) * 4 + o],
-                        ),
-                    );
-                  }
-                }
-              }
-              out[(y * 8 + x) * 4 + o] = acc + 0;
-            }
-          }
-        }
-        return out;
-      }
-      function jsSoftmax(fx) {
-        const inp = fx.softmaxF32Input, out = new Float32Array(128);
-        const expApprox = (value) => {
-          const x = Math.fround(Math.max(-8, Math.min(0, value)));
-          let y = Math.fround(1 + Math.fround(x / 256));
-          for (let i = 0; i < 8; i++) y = Math.fround(y * y);
-          return y;
-        };
-        for (let r = 0; r < 8; r++) {
-          const base = r * 16;
-          let max = inp[base];
-          for (let c = 1; c < 16; c++) if (inp[base + c] > max) max = inp[base + c];
-          let sum = Math.fround(0);
-          for (let c = 0; c < 16; c++) {
-            const e = expApprox(Math.fround(inp[base + c] - max));
-            out[base + c] = e;
-            sum = Math.fround(sum + e);
-          }
-          for (let c = 0; c < 16; c++) out[base + c] = Math.fround(out[base + c] / sum) + 0;
-        }
-        return out;
-      }
+        return fnv1aBytes(bytes);
+      };
+
       const callables = {};
-      for (const key of ["cpp", "rs"]) {
+      const probes = {};
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.numeric.instance;
-        const mem = inst.exports.memory;
+        const exports = inst.exports;
+        const mem = exports.memory;
         const inA = 0, inB = 1024, inW = 2048, out = 8192;
-        callables[key] = {
-          numeric: () => {
-            const fx = inputs();
-            new Float32Array(mem.buffer, inA, 72).set(fx.gemmF32A);
-            new Float32Array(mem.buffer, inB, 63).set(fx.gemmF32B);
-            inst.exports.gemm_f32(inA, inB, out);
-            new Int8Array(mem.buffer, inA, 72).set(fx.gemmI8A);
-            new Int8Array(mem.buffer, inB, 63).set(fx.gemmI8B);
-            inst.exports.gemm_i8(inA, inB, out);
-            new Float32Array(mem.buffer, inA, 192).set(fx.convF32Input);
-            new Float32Array(mem.buffer, inW, 108).set(fx.convF32Weights);
-            inst.exports.conv_f32(inA, inW, out);
-            new Int8Array(mem.buffer, inA, 192).set(fx.convI8Input);
-            new Int8Array(mem.buffer, inW, 108).set(fx.convI8Weights);
-            inst.exports.conv_i8(inA, inW, out);
-            new Float32Array(mem.buffer, inA, 128).set(fx.softmaxF32Input);
-            inst.exports.softmax_f32(inA, out);
-            new Int8Array(mem.buffer, inA, 128).set(fx.softmaxI8Input);
-            inst.exports.softmax_i8(inA, out);
-          },
+        // The f32 kernels return 1 when an input is not finite and write
+        // nothing. Discarding that let a rejecting engine be timed as the
+        // fastest one.
+        const check = (name, status) => {
+          if (Number(status) !== 0) {
+            throw new Error(`numeric ${key} ${name} rejected its input (${status})`);
+          }
+        };
+        const run = (collect) => {
+          const fx = generateFixtures();
+          new Float32Array(mem.buffer, inA, 72).set(fx.gemmF32A);
+          new Float32Array(mem.buffer, inB, 63).set(fx.gemmF32B);
+          check("gemm_f32", exports.gemm_f32(inA, inB, out));
+          collect?.(new Float32Array(mem.buffer, out, GEMM_OUT).slice());
+          new Int8Array(mem.buffer, inA, 72).set(fx.gemmI8A);
+          new Int8Array(mem.buffer, inB, 63).set(fx.gemmI8B);
+          exports.gemm_i8(inA, inB, out);
+          collect?.(new Int32Array(mem.buffer, out, GEMM_OUT).slice());
+          new Float32Array(mem.buffer, inA, 192).set(fx.convF32Input);
+          new Float32Array(mem.buffer, inW, 108).set(fx.convF32Weights);
+          check("conv_f32", exports.conv_f32(inA, inW, out));
+          collect?.(new Float32Array(mem.buffer, out, CONV_OUT).slice());
+          new Int8Array(mem.buffer, inA, 192).set(fx.convI8Input);
+          new Int8Array(mem.buffer, inW, 108).set(fx.convI8Weights);
+          exports.conv_i8(inA, inW, out);
+          collect?.(new Int32Array(mem.buffer, out, CONV_OUT).slice());
+          new Float32Array(mem.buffer, inA, 128).set(fx.softmaxF32Input);
+          check("softmax_f32", exports.softmax_f32(inA, out));
+          collect?.(new Float32Array(mem.buffer, out, SM_OUT).slice());
+          new Int8Array(mem.buffer, inA, 128).set(fx.softmaxI8Input);
+          exports.softmax_i8(inA, out);
+          collect?.(new Uint8Array(mem.buffer, out, SM_OUT).slice());
+        };
+        callables[key] = { numeric: () => run(null) };
+        probes[key] = () => {
+          const views = [];
+          run((view) => views.push(view));
+          return concatDigest(views);
         };
       }
+
       callables.js = {
         numeric: () => {
-          const fx = inputs();
-          jsNumeric(fx);
-          jsConv(fx);
-          jsSoftmax(fx);
+          runAll(generateFixtures());
         },
       };
-      callables.dart = {
-        numeric: () => {
-          const fx = inputs();
-          mods.engines.dart.kernels.gemmF32(fx.gemmF32A, fx.gemmF32B, new Float32Array(56));
-          mods.engines.dart.kernels.convF32(
-            fx.convF32Input,
-            fx.convF32Weights,
-            new Float32Array(256),
-          );
-          mods.engines.dart.kernels.softmaxF32(fx.softmaxF32Input, new Float32Array(128));
-        },
+      probes.js = () => {
+        const result = runAll(generateFixtures());
+        return concatDigest(KERNEL_ORDER.map((name) => result[name]));
       };
+
+      const dartRun = () => {
+        const fx = generateFixtures();
+        const k = mods.engines.dart.kernels;
+        const gemmF32 = new Float32Array(GEMM_OUT);
+        const gemmI8 = new Int32Array(GEMM_OUT);
+        const convF32 = new Float32Array(CONV_OUT);
+        const convI8 = new Int32Array(CONV_OUT);
+        const softmaxF32 = new Float32Array(SM_OUT);
+        const softmaxI8 = new Uint8Array(SM_OUT);
+        k.gemmF32(fx.gemmF32A, fx.gemmF32B, gemmF32);
+        k.gemmI8(fx.gemmI8A, fx.gemmI8B, gemmI8);
+        k.convF32(fx.convF32Input, fx.convF32Weights, convF32);
+        k.convI8(fx.convI8Input, fx.convI8Weights, convI8);
+        k.softmaxF32(fx.softmaxF32Input, softmaxF32);
+        k.softmaxI8(fx.softmaxI8Input, softmaxI8);
+        return [gemmF32, gemmI8, convF32, convI8, softmaxF32, softmaxI8];
+      };
+      callables.dart = { numeric: () => dartRun() };
+      if (mods.engines.dart) {
+        probes.dart = () => concatDigest(dartRun());
+      }
+      requireEngineAgreement("ml.numeric-kernels.v1", probes);
       return callables;
     },
   },

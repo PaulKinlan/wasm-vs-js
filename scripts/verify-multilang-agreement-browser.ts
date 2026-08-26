@@ -25,6 +25,7 @@ const DEFAULT_PAGES = [
   "graphics-cpu-path-tracer-v1",
   "ml-dense-mlp",
   "ml-gemm",
+  "ml-numeric-kernels-v1",
   "numeric.polybench-panel.v1",
 ];
 
