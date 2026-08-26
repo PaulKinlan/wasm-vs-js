@@ -1810,10 +1810,18 @@ export const KERNEL_ADAPTERS = {
           },
         };
       }
-      const { runJavaScript } = await import("/benchmarks/base/cad-parametric-bracket/engine.js");
+      // runJavaScript() does compute + independentOracle() + decodeResult()
+      // over the 419 KB output, while every Wasm callable only computes. That
+      // is not the same work: the JavaScript row was carrying a full
+      // verification pass and a decode that Wasm never paid for, which showed
+      // as JavaScript 11.48 ms against C 0.06 ms. runControlledCore is the
+      // compute core alone — the matching scope.
+      const { runControlledCore } = await import(
+        "/benchmarks/base/cad-parametric-bracket/engine.js"
+      );
       callables.js = {
         bracket: () => {
-          runJavaScript(fixture());
+          runControlledCore(fixture());
         },
       };
       // The manifest declares Dart and the artifact plus glue exist, but the
