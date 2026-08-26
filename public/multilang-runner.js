@@ -1739,7 +1739,8 @@ export const KERNEL_ADAPTERS = {
         }
       }
       const callables = {};
-      for (const key of ["c", "cpp", "rs"]) {
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        if (!mods.engines[key]) continue;
         const cfg = mods.manifest.engines.find((e) => e.key === key);
         const inst = mods.engines[key].instances.fft.instance;
         const mem = inst.exports.memory;
@@ -1791,14 +1792,21 @@ export const KERNEL_ADAPTERS = {
         return bytes;
       }
       const callables = {};
-      for (const key of ["c", "cpp"]) {
+      // The manifest declares Rust as well; the adapter only ran C and C++, so
+      // Rust appeared in the comparison's engine list and was silently skipped
+      // by runWorkload's missing-callable branch.
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.bracket.instance;
         callables[key] = {
           bracket: () => {
             const input = fixture();
             const mem = inst.exports.memory;
             new Uint8Array(mem.buffer, inst.exports.input_ptr(), INPUT_BYTES).set(input);
-            inst.exports.run();
+            // run() returns 0 on any validation or geometry failure. Discarding
+            // it would report a kernel that bailed immediately as very fast.
+            const outputBytes = inst.exports.run();
+            if (!outputBytes) throw new Error(`bracket ${key}: run() produced no output`);
           },
         };
       }
@@ -1808,6 +1816,20 @@ export const KERNEL_ADAPTERS = {
           runJavaScript(fixture());
         },
       };
+      // The manifest declares Dart and the artifact plus glue exist, but the
+      // adapter never built a callable, so Dart was listed and never run.
+      if (mods.engines.dart) {
+        const OUTPUT_CAPACITY = 1 << 20;
+        callables.dart = {
+          bracket: () => {
+            const outputBytes = mods.engines.dart.kernels.bracket(
+              fixture(),
+              new Uint8Array(OUTPUT_CAPACITY),
+            );
+            if (!outputBytes) throw new Error("bracket dart: run produced no output");
+          },
+        };
+      }
       return callables;
     },
   },
