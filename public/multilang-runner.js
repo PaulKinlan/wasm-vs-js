@@ -2232,7 +2232,8 @@ export const KERNEL_ADAPTERS = {
   "audio.fir.v1": {
     kernels: ["fir"],
     build(mods) {
-      const SAMPLES = 16384, TAPS = 256;
+      // Canonical dimensions: benchmarks/audio-fir/workload.ts SAMPLES/TAPS.
+      const SAMPLES = 131072, TAPS = 256;
       const xorshift = (state) => {
         state ^= state << 13;
         state >>>= 0;
@@ -2318,7 +2319,9 @@ export const KERNEL_ADAPTERS = {
   "audio.stft.v1": {
     kernels: ["stft"],
     build(mods) {
-      const SAMPLES = 8192, FRAME = 1024, HOP = 256;
+      // Canonical dimensions: benchmarks/audio-stft/workload.ts
+      // SAMPLES/FRAME_SIZE/HOP_SIZE.
+      const SAMPLES = 96000, FRAME = 1024, HOP = 256;
       const FRAMES = 1 + Math.floor((SAMPLES - FRAME) / HOP);
       const xorshift = (state) => {
         state ^= state << 13;
@@ -6325,13 +6328,35 @@ async function runOnce(fn) {
   if (maybe && typeof maybe.then === "function") await maybe;
 }
 
+// Warm-up is bounded by time as well as count. A flat 50 iterations is cheap
+// for a 2 ms kernel and unusable for a 1 s one: at the workload's real input
+// size Dart/WasmGC takes ~1 s per FIR run, so 50 warm-ups alone would be 50
+// seconds before a single sample. The count actually achieved is reported, so
+// an engine that got fewer warm-ups is visible rather than silently different.
+const WARMUP_MAX_RUNS = 50;
+const WARMUP_MIN_RUNS = 3;
+const WARMUP_BUDGET_MS = 400;
+
 async function benchmarkOne(fn, iterations) {
   // 1st run (cold): the first invocation on the freshly-instantiated engine,
   // matching the primary runner's cold-start column.
   let t0 = performance.now();
   await runOnce(fn);
   const coldMs = performance.now() - t0;
-  for (let i = 0; i < 50; i++) await runOnce(fn); // warm-up (JIT + wasm tiering)
+
+  const warmupStart = performance.now();
+  let warmupRuns = 0;
+  while (warmupRuns < WARMUP_MAX_RUNS) {
+    await runOnce(fn);
+    warmupRuns++;
+    if (
+      warmupRuns >= WARMUP_MIN_RUNS &&
+      performance.now() - warmupStart >= WARMUP_BUDGET_MS
+    ) {
+      break;
+    }
+  }
+
   const samples = [];
   for (let i = 0; i < iterations; i++) {
     t0 = performance.now();
@@ -6343,6 +6368,7 @@ async function benchmarkOne(fn, iterations) {
     medianMs: median(samples),
     minMs: Math.min(...samples),
     maxMs: Math.max(...samples),
+    warmupRuns,
     // Retained so the report can compute a confidence interval rather than
     // presenting a bare median as if it were exact.
     samples,
