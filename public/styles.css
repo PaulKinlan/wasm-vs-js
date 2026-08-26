@@ -1290,9 +1290,56 @@ html.js .js-only[hidden] {
 }
 
 .demo-panel,
-.detail-grid > section {
+.detail-grid > section,
+.detail-cards > section {
   border: 1px solid var(--rule);
   background: var(--raised);
+}
+
+/* The "What it does" / "Why compare Wasm vs JS" / provenance / limitations
+   cards. They were on .detail-grid, which is also the class on every
+   #perf-reporting and #ml-reporting container — 65 of those against 6 card
+   grids. Sharing the class meant the cards could not be given a layout or
+   padding without also restyling every measurement report, which is why they
+   had neither: the container had no layout, so they stacked flush with their
+   borders doubling, and the sections had no padding, so every line of text sat
+   against its own border.
+   Splitting the class is the fix. .detail-grid keeps exactly the rules the
+   reports already had; the cards now sit on the same padded, raised footing as
+   .demo-panel, the element directly above them on each of these pages. */
+.detail-cards {
+  display: grid;
+  /* Two columns, as .perf-reporting .detail-grid already uses. Every one of
+     these pages carries exactly four cards, so a fixed pair lays them out 2x2
+     at any width instead of leaving one stranded on a row of its own — which
+     is what auto-fit does as soon as a third column fits. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-block: 1rem 0;
+}
+
+@media (max-width: 45rem) {
+  .detail-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+.detail-cards > section {
+  padding: clamp(1.1rem, 3vw, 1.6rem);
+  box-shadow: 0.35rem 0.35rem 0 var(--rule);
+  /* A grid item's min-width is auto, so a long unbreakable token — a hash, a
+     URL — would otherwise widen its column past its share. */
+  min-width: 0;
+}
+
+/* h2 carries a 2.4rem top margin for page flow; at the top of a card that
+   reads as a gap above the heading rather than spacing between sections. */
+.detail-cards > section > :first-child {
+  margin-top: 0;
+}
+
+.detail-cards > section > :last-child {
+  margin-bottom: 0;
 }
 
 .demo-panel {

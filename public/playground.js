@@ -67,7 +67,11 @@ const PLAYGROUND_WORKLOADS = [
     slug: "sum-u32",
     title: "Modulo-2³² Integer Sum",
     category: "Compute Kernel",
-    route: "/#workload-sum-u32",
+    // Every other card links to its benchmark page; this one pointed at
+    // "/#workload-sum-u32", which is the id of this very card. "Inspect Demo
+    // Details" scrolled the reader to where they already were. The page it
+    // should have linked to has existed all along.
+    route: "/benchmarks/sum-u32/",
     description: "Sums 1,000,000 integers with 32-bit overflow wrapping.",
     explanation: "Basic 32-bit integer arithmetic loop performance.",
   },
