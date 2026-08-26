@@ -4,8 +4,8 @@
   "authoritativePerformanceEvidence": false,
   "entryId": "multilang-wasm-benchmark",
   "sourceRepository": "https://github.com/PaulKinlan/wasm-vs-js",
-  "sourceCommit": "382cbd0c81cdc30f04103b474434af9339d55330",
-  "sourceSha256": "cb338152d66f99c155f22794bfd1487a2b5d53782450c7354ad0327a14def50f",
+  "sourceCommit": "fd5a73267f23a5e6a3c650a0a14c7d15af8bba08",
+  "sourceSha256": "51dbb007d3a8b1262e0aa64b4c63a905b9a56c9693fbc880ad05818498aa4e62",
   "fullSourceGraph": [
     {
       "path": "benchmarks/multilang-wasm/sum_u32.c",
@@ -39,8 +39,8 @@
     },
     {
       "path": "benchmarks/multilang-wasm/fft_kernel.ts",
-      "bytes": 1459,
-      "sha256": "c38fda960d4c218a3a525efefa51b175208c06ae3166f705fa1e40a31090108b"
+      "bytes": 2325,
+      "sha256": "797f63ebb70936011facd155d6a25450bccb5622fd112872df609118b47a4528"
     },
     {
       "path": "benchmarks/multilang-wasm/fft_kernel.rs",
@@ -49,8 +49,8 @@
     },
     {
       "path": "benchmarks/multilang-wasm/fft_kernel.dart",
-      "bytes": 2557,
-      "sha256": "2312e794098a6c980d51a1992d873c0ed22260c1dc50a027bc064bb0058773bd"
+      "bytes": 4110,
+      "sha256": "4845c0a63b000b158dc2f57419f577641bcd091ce4b1a288b73bf673b6def4ad"
     },
     {
       "path": "benchmarks/multilang-wasm/ml-gemm/gemm.c",
@@ -229,8 +229,8 @@
     },
     {
       "path": "tests/multilang-wasm-benchmark.test.ts",
-      "bytes": 8136,
-      "sha256": "c617528faee0ac02c215599efbc3a177a2b1360ee37eedd8ba83e75969301ec4"
+      "bytes": 9164,
+      "sha256": "d4a0ed9968b44db91bb70326ffcfc598563cb4d6eb8542de1dd0ab10277b67b5"
     },
     {
       "path": "tests/multilang-gemm.test.ts",
@@ -239,8 +239,8 @@
     },
     {
       "path": "tests/multilang-myers.test.ts",
-      "bytes": 10302,
-      "sha256": "9f3b80aa76cf92465e1663bc9b75bcc4e724dca58d373c6e8425615476bbd11a"
+      "bytes": 10508,
+      "sha256": "90afb3fcfe2dfcb0553554465115c6d205f6430d72208fa97648c21d72687719"
     },
     {
       "path": "tests/multilang-scanlog.test.ts",
@@ -249,23 +249,23 @@
     },
     {
       "path": "tests/multilang-mlp.test.ts",
-      "bytes": 6510,
-      "sha256": "8dfa9231919590f3ccae17ada1876349fcb813822b12e50c77cc147a306d6506"
+      "bytes": 6673,
+      "sha256": "8f05f208f32d06df6c2c67a98da13549975b66c51b66b7ebae5978a2ac749581"
     },
     {
       "path": "tests/multilang-polybench.test.ts",
-      "bytes": 7677,
-      "sha256": "ffb2e638e26bdd1ee1caaa658e7759c9cfc69133d6d99973b6cee9cba2129670"
+      "bytes": 7882,
+      "sha256": "5bc7886aa9031e2fe41f501928c95745e5749811f6f4b1dc776539c117e680eb"
     },
     {
       "path": "tests/multilang-audio.test.ts",
-      "bytes": 5825,
-      "sha256": "4e08f0654d1124b1522c1e05392d1ecc6f7cec317e297a0ae8861ddffc9f8ef3"
+      "bytes": 5981,
+      "sha256": "c8f159ef7e16c801c3a0cda2b26779a90db77bbc388bb10959d411f24544de1e"
     },
     {
       "path": "tests/multilang-sha256.test.ts",
-      "bytes": 5672,
-      "sha256": "d1ab976ba387ba228510c95f851f9ab85ad71874bebba0da14a54eefa630a603"
+      "bytes": 5931,
+      "sha256": "5b5a99ed3fe9e94fedf3755aea63d2c5ed2f3ca9d534c7ae40800f91952a4bdf"
     },
     {
       "path": "schemas/multilang-wasm-benchmark-report.schema.json",
@@ -311,8 +311,8 @@
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/fft_asc.wasm",
-      "bytes": 2479,
-      "sha256": "47df30ec6f7104f80ee387a6ae0dc9cc3342115ce9550811ae20757b673aaa33"
+      "bytes": 532,
+      "sha256": "1ad39a00258587633673e0c6f20a27dc80cd19410e001bfb2575f9b89bac557c"
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/fft_rs.wasm",
@@ -321,8 +321,8 @@
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/fft_dart.wasm",
-      "bytes": 39613,
-      "sha256": "66aced379f60aac8000eb069572191e050c65240a5767f2cc4c0727ff08bc08f"
+      "bytes": 41222,
+      "sha256": "92c5ea90874ae222669cf3db58c6fcf013734fa9f71ab3e2c8ea202d52596040"
     },
     {
       "path": "public/artifacts/multilang-wasm-benchmark/fft_dart.mjs",
@@ -527,5 +527,5 @@
     "rustc": "rustc --target wasm32-unknown-unknown -O --crate-type cdylib (no_std)",
     "dart2wasm": "dart compile wasm (Dart SDK, WasmGC + js-string builtins)"
   },
-  "generatedAt": "2026-08-26T12:29:17.106Z"
+  "generatedAt": "2026-08-26T21:14:18.493Z"
 }
