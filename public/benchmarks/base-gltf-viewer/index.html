@@ -7,8 +7,16 @@
     <title>Avocado glTF decode, animation and picking · Wasm vs JavaScript</title>
     <link rel="stylesheet" href="/styles.css">
     <script type="module" src="/unified-runner.js"></script>
+    <script type="module" src="/multilang-runner.js"></script>
   </head>
-  <body data-workload="base-gltf-viewer" data-demo="base-gltf-viewer">
+  <body data-workload="base-gltf-viewer" data-demo="base-gltf-viewer"
+    data-multilang-manifest="/benchmarks/multilang-wasm/graphics-gltf-viewer.manifest.json"
+    data-multilang-form="#ml-form"
+    data-multilang-start="#ml-start"
+    data-multilang-cancel="#ml-cancel"
+    data-multilang-status="#ml-status"
+    data-multilang-reporting="#ml-reporting"
+    data-multilang-iterations="#ml-iterations">
     <a class="skip" href="#main">Skip to main content</a>
     <header class="masthead">
       <a class="brand" href="/">Wasm vs JavaScript benchmark</a>
@@ -50,6 +58,29 @@
         <p id="status" role="status"
           aria-live="polite">Ready. Select target and loop iterations, then click Start.</p>
         <div id="perf-reporting" class="detail-grid" hidden></div>
+      </section>
+      <section class="demo-panel" aria-labelledby="ml-heading">
+        <h2 id="ml-heading">Multi-Language Comparison</h2>
+        <p>
+          The same viewer kernel — exact glTF validation, 600 frames of fixed-point animation and
+          96&nbsp;&times;&nbsp;96 rasterization of the pinned Avocado model — compiled from each
+          language and compared side by side. Every variant is checked to produce the identical
+          22&nbsp;MB output block before any of them is timed.
+        </p>
+        <form id="ml-form">
+          <div class="controls">
+            <label for="ml-iterations"><span>Loop Iterations</span>
+              <select id="ml-iterations" name="iterations">
+                <option value="1">1 iteration (Cold start only)</option>
+                <option value="10" selected>10 iterations</option>
+                <option value="30">30 iterations (Warm-up &amp; JIT)</option>
+              </select></label>
+            <button id="ml-start" type="submit">Run Multi-Language Comparison</button>
+            <button id="ml-cancel" type="button" disabled>Cancel</button>
+          </div>
+        </form>
+        <p id="ml-status" role="status" aria-live="polite">Ready. Select loop iterations, then click Start.</p>
+        <div id="ml-reporting" class="detail-grid" hidden></div>
       </section>
       <section aria-labelledby="what-heading">
         <h2 id="what-heading">What it does</h2>

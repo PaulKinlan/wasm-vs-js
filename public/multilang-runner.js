@@ -5651,6 +5651,141 @@ export const KERNEL_ADAPTERS = {
     },
   },
 
+  // --- graphics.gltf-viewer.v1: the pinned Avocado model — exact JSON
+  //     validation, 600 frames of fixed-point animation and 96x96
+  //     rasterization. This page had no multi-language comparison at all: one
+  //     C kernel, one JavaScript engine, no manifest and no adapter. The
+  //     scaffolding lives here so further engines are a manifest entry and a
+  //     source file rather than a new lane.
+  "graphics.gltf-viewer.v1": {
+    kernels: ["viewer"],
+    async build(mods) {
+      const base = "/artifacts/base-gltf-viewer";
+      const fetchBytes = async (name) => {
+        const res = await fetch(`${base}/${name}`, { cache: "no-store" });
+        if (!res.ok) throw new Error(`gltf viewer: ${name} returned ${res.status}`);
+        return new Uint8Array(await res.arrayBuffer());
+      };
+      const [meshBin, texture, animationBytes, gltfBytes] = await Promise.all([
+        fetchBytes("decoded-mesh.bin"),
+        fetchBytes("base-color-64.rgba"),
+        fetchBytes("animation-table.i32"),
+        fetchBytes("Avocado.gltf"),
+      ]);
+      const { OUTPUT_BYTES, runJavaScript, normalizeControlledOutput } = await import(
+        "/benchmarks/base/graphics-gltf-viewer/engine.js"
+      );
+      const DECODER = Object.freeze({
+        allocations: 18,
+        apiCalls: 6002,
+        wasmBoundaryCrossings: 0,
+      });
+      // decoded-mesh.bin: five u32 header words, then positions, normals,
+      // texcoords and indices, exactly as the page's own worker reads them.
+      const view = new DataView(meshBin.buffer, meshBin.byteOffset, meshBin.byteLength);
+      const vertexCount = view.getUint32(0, true);
+      const indexCount = view.getUint32(4, true);
+      let cut = 20;
+      const takeI32 = (count) => {
+        const out = new Int32Array(
+          meshBin.buffer.slice(meshBin.byteOffset + cut, meshBin.byteOffset + cut + count * 4),
+        );
+        cut += count * 4;
+        return out;
+      };
+      const positions = takeI32(vertexCount * 3);
+      const normals = takeI32(vertexCount * 3);
+      const texcoords = takeI32(vertexCount * 2);
+      const indices = new Uint32Array(
+        meshBin.buffer.slice(
+          meshBin.byteOffset + cut,
+          meshBin.byteOffset + cut + indexCount * 4,
+        ),
+      );
+      const animation = new Int32Array(animationBytes.buffer.slice(0));
+
+      const mesh = { positions, normals, texcoords, indices, vertexCount };
+      const callables = {};
+      const probes = {};
+      callables.js = {
+        viewer: () => {
+          runJavaScript(mesh, texture, animation, DECODER);
+        },
+      };
+      // Seven header words are target-specific — boundary crossings,
+      // allocations and a target identity marker — and the engine exports the
+      // normalization that zeroes exactly those. They are properties of the
+      // engine, not of the render: with them left in, JavaScript and C differ
+      // on five bytes out of 22 MB and agree on every pixel.
+      probes.js = () =>
+        fnv1aBytes(normalizeControlledOutput(runJavaScript(mesh, texture, animation, DECODER)));
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        if (!mods.engines[key]) continue;
+        const inst = mods.engines[key].instances.viewer.instance;
+        const run = () => {
+          const exports = inst.exports;
+          const memory = new Uint8Array(exports.memory.buffer);
+          const heap = Number(exports.heap_ptr());
+          let cursor = 0;
+          const copy = (value) => {
+            cursor = (cursor + 7) & ~7;
+            const offset = cursor;
+            memory.set(
+              new Uint8Array(value.buffer, value.byteOffset, value.byteLength),
+              heap + offset,
+            );
+            cursor += value.byteLength;
+            return offset;
+          };
+          const positionOffset = copy(positions);
+          const normalOffset = copy(normals);
+          const uvOffset = copy(texcoords);
+          const indexOffset = copy(indices);
+          const textureOffset = copy(texture);
+          const animationOffset = copy(animation);
+          const json = gltfBytes;
+          const jsonOffset = copy(json);
+          const validated = Number(exports.validate_gltf(jsonOffset, json.length));
+          if (validated !== 0) {
+            throw new Error(`gltf viewer ${key}: validate_gltf rejected the model (${validated})`);
+          }
+          // The Draco decoder's counters are folded into the output header, so
+          // every engine has to be handed the same ones or the blocks differ on
+          // the header alone. These are the pinned values for this model, which
+          // are also runJavaScript's defaults.
+          const status = Number(
+            exports.run(
+              positionOffset,
+              normalOffset,
+              uvOffset,
+              indexOffset,
+              textureOffset,
+              animationOffset,
+              vertexCount,
+              indices.length,
+              DECODER.allocations,
+              DECODER.apiCalls,
+              DECODER.wasmBoundaryCrossings,
+            ),
+          );
+          if (status !== 0) throw new Error(`gltf viewer ${key}: run failed (${status})`);
+          return Number(exports.output_ptr());
+        };
+        callables[key] = { viewer: run };
+        probes[key] = () => {
+          const outputOffset = run();
+          return fnv1aBytes(
+            normalizeControlledOutput(
+              new Uint8Array(inst.exports.memory.buffer, outputOffset, OUTPUT_BYTES).slice(),
+            ),
+          );
+        };
+      }
+      requireEngineAgreement("graphics.gltf-viewer.v1", probes);
+      return callables;
+    },
+  },
+
   // --- game.dom-tactics-grid.v1: 60-turn / 240-action tactics loop on 64×64
   //     grid (mirrors benchmarks/multilang-wasm/game-dom-tactics-grid/
   //     tactics_kernel.*; adapter fetches the frozen 7,064-byte

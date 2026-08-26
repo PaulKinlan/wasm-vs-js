@@ -19,6 +19,7 @@ const REPO = new URL("..", import.meta.url).pathname;
 // Grows as the sweep continues; a page listed here must agree or the run fails.
 const DEFAULT_PAGES = [
   "audio-fft",
+  "base-gltf-viewer",
   "base-dom-todomvc-journey",
   "base/text.regex-log-scan.v1",
   "audio-fir",
@@ -27,6 +28,7 @@ const DEFAULT_PAGES = [
   "database-olap-chart",
   "cad-parametric-bracket",
   "document-pdf-viewer-v1",
+  "game-dom-tactics-grid",
   "graphics-cpu-path-tracer-v1",
   "image-editing-demo",
   "ml-dense-mlp",

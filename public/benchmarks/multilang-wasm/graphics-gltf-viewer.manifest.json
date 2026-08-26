@@ -1,0 +1,41 @@
+{
+  "workloadId": "graphics.gltf-viewer.v1",
+  "kernelLabel": "glTF viewer \u2014 exact JSON validation, 600-frame fixed-point animation and 96x96 rasterization of the pinned Avocado model",
+  "kernelLabels": {
+    "viewer": "glTF viewer \u2014 validate, animate and rasterize 600 frames"
+  },
+  "artifactsBase": "/artifacts/multilang-wasm-benchmark",
+  "kernels": [
+    "viewer"
+  ],
+  "engines": [
+    {
+      "key": "js",
+      "label": "JavaScript",
+      "kind": "js",
+      "source": "benchmarks/base/graphics-gltf-viewer/engine.js"
+    },
+    {
+      "key": "c",
+      "label": "C / Wasm",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 0,
+      "files": {
+        "viewer": "viewer_c.wasm"
+      },
+      "source": "benchmarks/base/graphics-gltf-viewer/viewer.c"
+    },
+    {
+      "key": "cpp",
+      "label": "C++ / Wasm",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 0,
+      "files": {
+        "viewer": "viewer_cpp.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/graphics-gltf-viewer/viewer.cpp"
+    }
+  ]
+}

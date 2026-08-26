@@ -149,11 +149,21 @@
       "pathKey": "base-gltf-viewer",
       "route": "/benchmarks/base-gltf-viewer/",
       "title": "Avocado glTF decode, animation and picking",
-      "engines": [],
-      "missingEngines": [],
-      "manifestPath": null,
+      "engines": [
+        "js",
+        "c",
+        "cpp"
+      ],
+      "missingEngines": [
+        "wat",
+        "asc",
+        "rs",
+        "dart"
+      ],
+      "manifestPath": "/benchmarks/multilang-wasm/graphics-gltf-viewer.manifest.json",
       "domHost": null,
       "scopes": [
+        "kernel",
         "delivery",
         "pipeline"
       ],
@@ -1319,8 +1329,8 @@
   ],
   "summary": {
     "pages": 51,
-    "withMultilang": 44,
-    "withoutMultilang": 7,
+    "withMultilang": 45,
+    "withoutMultilang": 6,
     "fullyCovered": 9,
     "withDomStage": 11,
     "duplicates": 0,
