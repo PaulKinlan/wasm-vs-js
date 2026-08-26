@@ -3142,7 +3142,8 @@ export const KERNEL_ADAPTERS = {
         }
       }
       const callables = {};
-      for (const key of ["c", "cpp", "rs"]) {
+      for (const key of ["c", "cpp", "rs", "asc"]) {
+        if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.nbody_step.instance;
         const mem = inst.exports.memory;
         const bytesPer = N * 8;

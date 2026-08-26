@@ -5,8 +5,8 @@
     "clang": "clang version 22.1.8",
     "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
   },
-  "kernelCount": 159,
-  "reproducesCommittedBytes": 34,
+  "kernelCount": 160,
+  "reproducesCommittedBytes": 35,
   "doesNotReproduceCommittedBytes": 125,
   "kernels": [
     {
@@ -908,6 +908,18 @@
       "artifactBytes": 600787,
       "reproducesCommittedBytes": false,
       "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -o <out>/myers_diff_rs.wasm benchmarks/multilang-wasm/text-diff-patch/myers_diff.rs"
+    },
+    {
+      "workload": "simulation-nbody-cloth",
+      "engine": "asc",
+      "lang": "asc",
+      "source": "benchmarks/multilang-wasm/simulation-nbody-cloth/nbody.ts",
+      "sourceSha256": "7f2f2b8ffb157e8d97660c317c22342844bac87af440cf34e22473f5b7c7ffb8",
+      "artifact": "nbody_step_asc.wasm",
+      "artifactSha256": "25a906178a023fb3d5b1a0619f80b34e2609f68a21532ec520a98127b7fc491c",
+      "artifactBytes": 1088,
+      "reproducesCommittedBytes": true,
+      "command": "npx --yes -p assemblyscript asc benchmarks/multilang-wasm/simulation-nbody-cloth/nbody.ts -O3 --bindings none --noAssert --initialMemory 64 -o <out>/nbody_step_asc.wasm"
     },
     {
       "workload": "simulation-nbody-cloth",

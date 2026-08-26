@@ -37,6 +37,18 @@
       "source": "benchmarks/multilang-wasm/simulation-nbody-cloth/nbody.rs"
     },
     {
+      "key": "asc",
+      "label": "AssemblyScript / Wasm",
+      "kind": "linear",
+      "lang": "asc",
+      "offset": 0,
+      "files": {
+        "nbody_step": "nbody_step_asc.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/simulation-nbody-cloth/nbody.ts",
+      "initialMemoryBytes": 4194304
+    },
+    {
       "key": "dart",
       "label": "Dart / WasmGC",
       "kind": "dart",

@@ -1102,11 +1102,11 @@
         "c",
         "cpp",
         "rs",
+        "asc",
         "dart"
       ],
       "missingEngines": [
-        "wat",
-        "asc"
+        "wat"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/simulation-nbody-cloth.manifest.json",
       "domHost": null,

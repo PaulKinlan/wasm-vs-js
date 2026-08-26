@@ -2185,6 +2185,7 @@ for (const slug of ["audio-fft", "audio-fir", "audio-stft"]) {
       "mesh_repair_dart.wasm",
       "mesh_repair_rs.wasm",
       "nbody_step_c.wasm",
+      "nbody_step_asc.wasm",
       "nbody_step_cpp.wasm",
       "nbody_step_dart.mjs",
       "nbody_step_dart.wasm",
