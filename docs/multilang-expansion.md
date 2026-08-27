@@ -79,24 +79,24 @@ Paul directed removing the last five from the multilang scope for now:
 
 Still excluded as before: media/opus/zstd/quantized-inference (vendored engines).
 
-### Known-broken multilang lanes — status (2026-08-12)
+### Multilang lanes status & verification (updated 2026-08-27)
 
-Four pre-existing multilang lanes failed verification (they predate the 20-page
-verified program). Status:
+Four pre-existing multilang lanes had pending verification items:
 
-- **simulation-rigid-body-2d** — manifest files pinning FIXED (rigid_engine_c.wasm
-  → rigid_c.wasm; the artifacts existed). BUT the kernel's run() is pathologically
-  slow in-browser (minutes per single call) — needs a perf investigation before
-  the lane can re-enable. Removed from pages + playground map until then.
-- **crypto-authenticated-stream** — adapter mem.set on the WebAssembly.Memory
-  object FIXED (buffer view, re-fetched per call); kernel returns sane values
-  (seal → 128-byte ciphertext). Verification pending (entangled with the rigid
-  probe's hang). Removed from pages + playground map until verified.
-- **numeric-fft-spectral-filter / fft-kernel** — tangled manifest (workloadId
-  collides with the aggregate multilang-wasm.manifest; adapter expects a 'wat'
-  engine the manifest lacks). Removed from pages + playground map.
-- **document-pdf-viewer** — js mirror parse fails (-3) while the kernels pass;
-  needs a mirror debug session. Removed from pages + playground map.
+- **simulation-rigid-body-2d** — VERIFIED. Reduced browser shape (120 timesteps,
+  checkpoint every 60) runs in ~236ms for Wasm engines (C, C++, Rust, AssemblyScript)
+  and ~465ms for JS with agreement checks passing. Active in playground map and
+  on the benchmark page.
+- **crypto-authenticated-stream** — VERIFIED. Buffer view fix on WebAssembly.Memory
+  and cross-engine agreement probes verified. Active in playground map and on the
+  benchmark page.
+- **document-pdf-viewer** — JS MIRROR VERIFIED. The JavaScript mirror `pdfMirror`
+  parses the 100-page report fixture with return code 0 and exact matching counters
+  and hit pages. Active in playground map; page runner integration verified.
+- **numeric-fft-spectral-filter / fft-kernel** — RESOLVED. The radix-2 FFT kernel
+  is verified and deployed via `/benchmarks/multilang-wasm/` (`fft-kernel.manifest.json`)
+  and `/benchmarks/audio-fft/` (`audio-fft.manifest.json`). Stale reference to
+  non-existent `numeric-fft-spectral-filter.manifest.json` removed from playground map.
 
 Note: the server-ssr-template and text-markdown-cms AssemblyScript kernels
 were dropped after the 2026-08-11 VLM pass (counters matched but full-output

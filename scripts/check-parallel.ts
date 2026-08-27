@@ -120,9 +120,11 @@ interface Stage {
 // oversubscribe ~3x and every long chain gets slower. Do not re-add.
 
 // Readers that fetch audio/sum-u32/small-writer artifact bytes over HTTP
-// routes. They must run after every writer has finished, so they get their
-// own tail phase instead of joining the reader flock.
+// routes, or assert clean working tree (corpus-operation-dispatch). They must
+// run after every writer has finished, so they get their own tail phase instead
+// of joining the reader flock.
 const TAIL_READERS = [
+  "tests/corpus-operation-dispatch.test.ts",
   "tests/inspectability.test.ts",
   "tests/public-mode.test.ts",
   "tests/server.test.ts",
@@ -140,7 +142,6 @@ const HEAVY_READERS = [
   "tests/audio-harness-fft.test.ts",
   "tests/audio-harness-stft.test.ts",
   "tests/base-gltf-viewer.test.ts",
-  "tests/corpus-operation-dispatch.test.ts",
   "tests/m2-js-variants.test.ts",
   "tests/runner-worker-contracts.test.ts",
   "tests/v2/ml-neural-allocations.test.ts",

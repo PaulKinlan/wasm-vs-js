@@ -55,8 +55,6 @@ const MULTILANG_MANIFESTS = {
     "/benchmarks/multilang-wasm/crypto-authenticated-stream.manifest.json",
   "document-pdf-viewer-v1": "/benchmarks/multilang-wasm/document-pdf-viewer.manifest.json",
   "network-pcap-decode-v1": "/benchmarks/multilang-wasm/network-pcap-decode.manifest.json",
-  "numeric-fft-spectral-filter-v1":
-    "/benchmarks/multilang-wasm/numeric-fft-spectral-filter.manifest.json",
   "numeric-polybench-panel-v1": "/benchmarks/multilang-wasm/numeric-polybench-panel.manifest.json",
   "simulation-rigid-body-2d-v1":
     "/benchmarks/multilang-wasm/simulation-rigid-body-2d.manifest.json",

@@ -134,11 +134,11 @@ function loadCatalogIds(): string[] {
 const CATALOG_ID_TO_SLUG: Record<string, string> = {
   // v1 catalog
   "archive.zip-workspace.v1": "archive-zip-workspace-v1",
-  "audio.webaudio-effects.v1": "audio-webaudio-effects-v1",
+  "audio.webaudio-effects.v1": "base-audio-webaudio-effects-v1",
   "cad.mesh-repair.v1": "cad-mesh-repair-v1",
   "cad.parametric-bracket.v1": "cad-parametric-bracket",
   "crypto.authenticated-stream.v1": "crypto-authenticated-stream",
-  "crypto.file-integrity.v1": "crypto-file-integrity",
+  "crypto.file-integrity.v1": "crypto-file-integrity-v1",
   "database.olap-chart.v1": "database-olap-chart",
   // Unlisted with the playground card: the page runs and reports no results.
   // Restore this line and the card in public/playground.js together.
@@ -150,14 +150,14 @@ const CATALOG_ID_TO_SLUG: Record<string, string> = {
   "graphics.cpu-path-tracer.v1": "graphics-cpu-path-tracer-v1",
   "graphics.gltf-viewer.v1": "base-gltf-viewer",
   "ml.keyword-spotting.v1": "ml-keyword-spotting-v1",
-  "ml.numeric-kernels.v1": "ml-numeric-kernels",
+  "ml.numeric-kernels.v1": "ml-numeric-kernels-v1",
   "network.http2-quic-state.v1": "network-http2-quic-state",
   "network.pcap-decode.v1": "network-pcap-decode-v1",
   "numeric.fft-spectral-filter.v1": "numeric-fft-spectral-filter-v1",
   "numeric.polybench-panel.v1": "numeric-polybench-panel-v1",
-  "serialization.json-telemetry.v1": "serialization-json-telemetry",
+  "serialization.json-telemetry.v1": "serialization-json-telemetry-v1",
   "serialization.protobuf-gateway.v1": "serialization-protobuf-gateway",
-  "server.ssr-template.v1": "server-ssr-template",
+  "server.ssr-template.v1": "server-ssr-template-v1",
   "simulation.nbody-cloth.v1": "simulation-nbody-cloth",
   "simulation.rigid-body-2d.v1": "simulation-rigid-body-2d-v1",
   "text.gc-document-edit.v1": "text-gc-document-edit-v1",
