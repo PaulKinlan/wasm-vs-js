@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "multilang-asc-opt.v1",
+  "generatedBy": "scripts/build-multilang-asc-opt.ts",
+  "workloadId": "ml.gemm.v1",
+  "kernel": "gemm",
+  "shape": "128x128x128 strict f32",
+  "iterations": 200,
+  "equivalence": "bit-identical",
+  "oracleDigest": 2004586348,
+  "oracleSource": "strict-f32 JavaScript reference mirrored from scripts/build-multilang-wasm-benchmark.ts",
+  "toolchain": {
+    "assemblyscript": "npx --yes -p assemblyscript asc",
+    "flags": [
+      "-O3",
+      "--bindings none",
+      "--noAssert",
+      "--initialMemory 16"
+    ]
+  },
+  "environment": {
+    "runtime": "Deno 2.9.0",
+    "v8": "14.9.207.2-rusty",
+    "os": "darwin",
+    "arch": "aarch64",
+    "caveat": "Measured in Deno, not a browser. Comparable within this table only; the ml-gemm page measures the same artifacts in the browser."
+  },
+  "variants": [
+    {
+      "key": "asc",
+      "track": "A",
+      "baseline": null,
+      "optimization": "none — frozen i/j/k order",
+      "artifact": "gemm_asc.wasm",
+      "artifactSha256": "eeb0ab46afed121f490bbc6e6f2d2029973f35deca54211d8bbf881d4cf65d99",
+      "binarySizeBytes": 213,
+      "outputDigest": 2004586348,
+      "matchesOracle": true,
+      "coldCompileMs": 0.0019,
+      "warmTotalMs": 205.7713,
+      "msPerIteration": 1.0289,
+      "speedupVsBaseline": null,
+      "note": "Track A baseline. Committed artifact, measured here, not rebuilt."
+    },
+    {
+      "key": "asc-ikj",
+      "track": "B",
+      "baseline": "asc",
+      "optimization": "loop interchange i/j/k -> i/k/j",
+      "artifact": "gemm_asc_ikj.wasm",
+      "artifactSha256": "5a9193f39f466064de9af82fb289ebf898bec62326911425f2c3d3846263a3d3",
+      "binarySizeBytes": 308,
+      "outputDigest": 2004586348,
+      "matchesOracle": true,
+      "coldCompileMs": 0.0009,
+      "warmTotalMs": 160.7155,
+      "msPerIteration": 0.8036,
+      "speedupVsBaseline": 1.2804,
+      "note": "B is read along rows (sequential addresses, full cache-line use) instead of down columns (one line touched per element). Costs a register accumulator: the running sum lives in OUT, so each inner step is a load/store pair."
+    },
+    {
+      "key": "asc-tiled",
+      "track": "B",
+      "baseline": "asc",
+      "optimization": "i/j cache blocking, 32x32 panels, k loop unblocked",
+      "artifact": "gemm_asc_tiled.wasm",
+      "artifactSha256": "8d185f04b43d779e849786e6c6233286d4f3e0419b0a4bcc88338dd4b892a531",
+      "binarySizeBytes": 302,
+      "outputDigest": 2004586348,
+      "matchesOracle": true,
+      "coldCompileMs": 0.0012,
+      "warmTotalMs": 201.8233,
+      "msPerIteration": 1.0091,
+      "speedupVsBaseline": 1.0196,
+      "note": "Per-panel working set is 16 KiB of A plus 16 KiB of B, against 64 KiB for the whole of B untiled. The k loop is left intact so no accumulation order changes."
+    }
+  ]
+}

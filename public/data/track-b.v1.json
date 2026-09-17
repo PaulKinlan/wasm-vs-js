@@ -413,6 +413,24 @@
       ],
       "variants": [
         {
+          "key": "asc-ikj",
+          "baseline": "asc",
+          "equivalence": "bit-identical",
+          "optimizationLog": "Loop interchange i/j/k -> i/k/j. The baseline reads B down a column in the innermost loop, touching a separate 64-byte line per iteration; interchanging streams B along a row instead, so lines are fully used and the prefetcher can work. Costs the register accumulator — the running sum lives in OUT, so each inner step is a load/store pair. Bit-identical: for any fixed (i,j) the terms are still added in ascending t with f32 rounding after each add, so no accumulation order changes. Measured 1.28x over the asc baseline (Deno, arm64 macOS, 128^3, 200 iterations).",
+          "maxUlpDeviation": null,
+          "maxRelativeDeviation": null,
+          "declaredTolerance": null
+        },
+        {
+          "key": "asc-tiled",
+          "baseline": "asc",
+          "equivalence": "bit-identical",
+          "optimizationLog": "Classic i/j cache blocking into 32x32 panels; the k loop is deliberately left unblocked so no accumulation order changes. Per-panel working set is 16 KiB of A plus 16 KiB of B against 64 KiB for the whole of B untiled. Measured 1.02x — effectively neutral. At 128^3 the entire B matrix is 64 KiB and already fits in this machine's L1d, so there is no capacity miss for blocking to remove. The tile size is tuned to one machine and this result should not be generalised to larger shapes.",
+          "maxUlpDeviation": null,
+          "maxRelativeDeviation": null,
+          "declaredTolerance": null
+        },
+        {
           "key": "dart-o2",
           "baseline": "dart",
           "equivalence": "bit-identical",
@@ -692,10 +710,10 @@
   "summary": {
     "workloads": 45,
     "baselineEngineRows": 248,
-    "variantRows": 3,
+    "variantRows": 5,
     "workloadsWithVariants": 1,
     "workloadsWithoutVariants": 44,
-    "bitIdenticalVariants": 3,
+    "bitIdenticalVariants": 5,
     "reassociatedVariants": 0,
     "workloadsWithoutRoute": 1
   }

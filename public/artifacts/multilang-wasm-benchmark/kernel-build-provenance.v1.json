@@ -5,8 +5,8 @@
     "clang": "clang version 22.1.8",
     "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
   },
-  "kernelCount": 152,
-  "reproducesCommittedBytes": 24,
+  "kernelCount": 154,
+  "reproducesCommittedBytes": 26,
   "doesNotReproduceCommittedBytes": 128,
   "kernels": [
     {
@@ -464,6 +464,30 @@
       "artifactBytes": 668027,
       "reproducesCommittedBytes": false,
       "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -o <out>/gc_document_kernel_rs.wasm benchmarks/multilang-wasm/text-gc-document-edit/gc_document_kernel.rs"
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "asc-ikj",
+      "lang": "asc",
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm_ikj.ts",
+      "sourceSha256": "33527f85a49e3431d7adf6baed703b8bc658e88dd5021f1c4a0bb2105a9ba433",
+      "artifact": "gemm_asc_ikj.wasm",
+      "artifactSha256": "5a9193f39f466064de9af82fb289ebf898bec62326911425f2c3d3846263a3d3",
+      "artifactBytes": 308,
+      "reproducesCommittedBytes": true,
+      "command": "npx --yes -p assemblyscript asc benchmarks/multilang-wasm/ml-gemm/gemm_ikj.ts -O3 --bindings none --noAssert --initialMemory 16 -o <out>/gemm_asc_ikj.wasm"
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "asc-tiled",
+      "lang": "asc",
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm_tiled.ts",
+      "sourceSha256": "a0485069f34587720828b0f650c91b5dd0bf6d80f522b4e035463c364e7f13db",
+      "artifact": "gemm_asc_tiled.wasm",
+      "artifactSha256": "8d185f04b43d779e849786e6c6233286d4f3e0419b0a4bcc88338dd4b892a531",
+      "artifactBytes": 302,
+      "reproducesCommittedBytes": true,
+      "command": "npx --yes -p assemblyscript asc benchmarks/multilang-wasm/ml-gemm/gemm_tiled.ts -O3 --bindings none --noAssert --initialMemory 16 -o <out>/gemm_asc_tiled.wasm"
     },
     {
       "workload": "ml-gemm",

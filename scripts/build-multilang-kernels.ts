@@ -15,7 +15,9 @@
 // rather than a second hand-maintained list that could drift from them.
 //
 // Usage:
-//   deno run --allow-all scripts/build-multilang-kernels.ts [--only <workload>]
+//   deno run --allow-all scripts/build-multilang-kernels.ts [--only <filter>]
+//     where <filter> is a comma-separated list of workloads ("ml-gemm") or
+//     individual engines ("ml-gemm/asc-ikj")
 //   deno run --allow-all scripts/build-multilang-kernels.ts --check
 //   deno run --allow-all scripts/build-multilang-kernels.ts --with-dart
 //
@@ -238,17 +240,27 @@ if (import.meta.main) {
   const check = Deno.args.includes("--check");
   const force = Deno.args.includes("--force");
   const onlyIndex = Deno.args.indexOf("--only");
+  // Entries are either a whole workload ("ml-gemm") or a single engine within
+  // one ("ml-gemm/asc-ikj"). Engine granularity matters: recording a newly
+  // added kernel should not re-record its neighbours' artifact hashes under
+  // whatever clang the current machine has, which silently replaces another
+  // machine's measurements with this one's.
   const only = onlyIndex >= 0
     ? new Set(Deno.args[onlyIndex + 1].split(",").map((w) => w.trim()).filter(Boolean))
     : null;
 
+  const matchesOnly = (b: EngineBuild): boolean =>
+    only!.has(b.workload) || only!.has(`${b.workload}/${b.engineKey}`);
+
   const withDart = Deno.args.includes("--with-dart");
   const { builds: allBuilds, skipped } = await planBuilds(withDart);
-  const builds = only ? allBuilds.filter((b) => only.has(b.workload)) : allBuilds;
+  const builds = only ? allBuilds.filter(matchesOnly) : allBuilds;
   if (only) {
     // A filter that matches nothing used to run zero builds and then write a
     // ledger holding zero kernels, deleting every recipe in it. Refuse instead.
-    const unmatched = [...only].filter((w) => !allBuilds.some((b) => b.workload === w));
+    const unmatched = [...only].filter((w) =>
+      !allBuilds.some((b) => b.workload === w || `${b.workload}/${b.engineKey}` === w)
+    );
     if (unmatched.length > 0) {
       console.error(
         `--only matched no build for: ${unmatched.join(", ")}\n` +
@@ -338,23 +350,49 @@ if (import.meta.main) {
     // entries — writing `records` alone would drop every recipe it did not
     // rebuild. Carry the untouched entries forward and recount from the merged
     // set, so the summary describes the ledger rather than this run.
+    let prior: { kernels?: Record<string, unknown>[]; toolchain?: Record<string, string> } = {};
+    try {
+      prior = JSON.parse(await Deno.readTextFile(PROVENANCE));
+    } catch {
+      prior = {};
+    }
     let merged = records;
     if (only) {
       const rebuilt = new Set(records.map((r) => `${r.workload}/${r.engine}`));
-      let existing: Record<string, unknown>[] = [];
-      try {
-        const prior = JSON.parse(await Deno.readTextFile(PROVENANCE)) as {
-          kernels?: Record<string, unknown>[];
-        };
-        existing = (prior.kernels ?? []).filter((r) => !rebuilt.has(`${r.workload}/${r.engine}`));
-      } catch {
-        existing = [];
-      }
+      const existing = (prior.kernels ?? []).filter((r) =>
+        !rebuilt.has(`${r.workload}/${r.engine}`)
+      );
       merged = [...existing, ...records];
       reproduced = merged.filter((r) => r.reproducesCommittedBytes === true).length;
     }
     const notReproduced = only ? merged.length - reproduced : differs.length;
     merged.sort((a, b) => String(a.artifact).localeCompare(String(b.artifact)));
+
+    // The toolchain block describes the compilers behind every entry in the
+    // ledger. A filtered run re-records a handful of them, so stamping this
+    // machine's compiler over the whole file would relabel entries it never
+    // touched — and the point of this record is that provenance is accurate.
+    // Only a full run may rewrite it; a filtered run keeps what is there.
+    const measuredToolchain = {
+      clang: new TextDecoder().decode(
+        (await new Deno.Command("clang", {
+          args: ["--version"],
+          stdout: "piped",
+          env: buildEnv(),
+        }).output())
+          .stdout,
+      ).split("\n")[0],
+      rustc: new TextDecoder().decode(
+        (await new Deno.Command("rustc", {
+          args: ["--version"],
+          stdout: "piped",
+          env: buildEnv(),
+        }).output())
+          .stdout,
+      ).trim(),
+    };
+    const toolchain = only && prior.toolchain ? prior.toolchain : measuredToolchain;
+
     await Deno.writeTextFile(
       PROVENANCE,
       JSON.stringify(
@@ -363,24 +401,7 @@ if (import.meta.main) {
           description:
             "Build recipe and content hashes for every multi-language kernel artifact compiled " +
             "from a source named by a workload manifest.",
-          toolchain: {
-            clang: new TextDecoder().decode(
-              (await new Deno.Command("clang", {
-                args: ["--version"],
-                stdout: "piped",
-                env: buildEnv(),
-              }).output())
-                .stdout,
-            ).split("\n")[0],
-            rustc: new TextDecoder().decode(
-              (await new Deno.Command("rustc", {
-                args: ["--version"],
-                stdout: "piped",
-                env: buildEnv(),
-              }).output())
-                .stdout,
-            ).trim(),
-          },
+          toolchain,
           kernelCount: merged.length,
           // How far the recorded recipes actually go. A kernel that does not
           // reproduce its committed bytes still has a readable recipe and a

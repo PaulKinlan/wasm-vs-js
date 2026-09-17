@@ -6076,7 +6076,10 @@ export const KERNEL_ADAPTERS = {
           return fnv1aBytes(new Uint8Array(mem.buffer, c0Off, M * N * 4));
         };
       }
-      for (const key of ["c", "cpp", "rs", "asc"]) {
+      // asc-ikj and asc-tiled are Track B optimization variants of asc: same
+      // ABI, same exported name, declared bit-identical, so they run through
+      // exactly this path and are held to the same agreement check.
+      for (const key of ["c", "cpp", "rs", "asc", "asc-ikj", "asc-tiled"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.gemm.instance;
         const mem = inst.exports.memory;

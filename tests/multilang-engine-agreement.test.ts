@@ -184,8 +184,21 @@ Deno.test("ml.gemm.v1: every engine computes the same product", async () => {
   const outOff = (M * K + K * N + M * N) * 4;
   const digests = new Map<string, number>();
 
-  for (const key of ["c", "cpp", "rs", "asc"]) {
-    const exports = await instantiate(`gemm_${key}.wasm`);
+  // Track A engines plus the Track B optimization variants. The variants
+  // declare `equivalence: "bit-identical"` in ml-gemm.manifest.json, which is
+  // a claim about these exact bytes: a loop interchange or a blocked traversal
+  // that reorders accumulations would land on a different digest and fail
+  // here rather than quietly shipping a faster wrong answer.
+  const linearEngines: ReadonlyArray<readonly [string, string]> = [
+    ["c", "gemm_c.wasm"],
+    ["cpp", "gemm_cpp.wasm"],
+    ["rs", "gemm_rs.wasm"],
+    ["asc", "gemm_asc.wasm"],
+    ["asc-ikj", "gemm_asc_ikj.wasm"],
+    ["asc-tiled", "gemm_asc_tiled.wasm"],
+  ];
+  for (const [key, file] of linearEngines) {
+    const exports = await instantiate(file);
     grow(exports.memory, outOff + M * N * 4);
     const { a, b, c0 } = gemmInputs();
     new Float32Array(exports.memory.buffer, aOff, M * K).set(a);

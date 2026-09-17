@@ -159,9 +159,10 @@ manifests.
 
 ## Current status
 
-Three Track B variants exist, all on `ml.gemm.v1`: `dart-o2`, `dart-o3` and `dart-o4`.
-The other 44 multi-language manifests carry Track A baselines only — 247 engine rows in
-total. `/data/track-b.v1.json` reports the split.
+Five Track B variants exist, all on `ml.gemm.v1`: `asc-ikj` and `asc-tiled` (cache and
+access-pattern work) and `dart-o2`, `dart-o3`, `dart-o4` (compiler flags). All five are
+`bit-identical`. The other 44 multi-language manifests carry Track A baselines only — 248
+engine rows in total. `/data/track-b.v1.json` reports the split.
 
 Every non-Dart language is still built at one fixed optimization setting, with no second
 configuration in `scripts/build-multilang-wasm-benchmark.ts`:
@@ -177,6 +178,62 @@ There is no `-msimd128`, no `-C target-feature`, no LTO, and no Binaryen `wasm-o
 pass in the builder.
 
 ## Optimization logs
+
+### `ml.gemm.v1` — `asc-ikj`, `asc-tiled`
+
+The memory-hierarchy variants. Both are AssemblyScript, both `bit-identical`, both built
+by `scripts/build-multilang-asc-opt.ts`, which refuses to report a timing for any variant
+whose output digest is not the pinned oracle's.
+
+AssemblyScript rather than C for one reason: C is currently unbuildable here. The
+committed C/C++/Rust artifacts do not reproduce byte-for-byte under this machine's
+clang/lld, so running the main builder would silently replace 25 committed artifacts.
+AssemblyScript reproduces exactly, so the same optimizations can be shown honestly today
+on a language whose bytes we can still vouch for.
+
+**`asc-ikj` — loop interchange i/j/k → i/k/j.** The baseline reads `B[t][j]` down a
+column in the innermost loop, so every iteration touches a different 64-byte line: 128
+distinct lines walked per output element, restarted for every `j`. The interchange
+streams `B[t][*]` along a row instead — sequential addresses, full line utilisation,
+prefetcher-friendly — and makes `A[i][t]` a loop-invariant scalar. The cost is the
+register accumulator: the running sum now lives in `OUT`, so each inner step is a
+load/store pair rather than a register chain.
+
+Bit-identical because for any fixed `(i, j)` the terms are still added in ascending `t`,
+and `OUT` is an f32 array so every partial sum is rounded to f32 after each add — exactly
+what the baseline's f32 local does. Interchange moves _when_ each add happens, never the
+order of adds into a given element. That is the line between `bit-identical` and
+`reassociated`, and this variant stays on the safe side of it.
+
+**`asc-tiled` — i/j blocking, 32×32 panels.** Per-panel working set is 16 KiB of A plus
+16 KiB of B, against 64 KiB for the whole of B untiled. The `k` loop is deliberately left
+unblocked: blocking `k` would reassociate and would have to carry declared deviations.
+
+Measured (Deno 2.9.0, arm64 macOS, 128³, 200 iterations, four repeat runs):
+
+| Variant     | ms/iter | vs `asc`  | Binary | Oracle |
+| ----------- | ------- | --------- | ------ | ------ |
+| `asc`       | 1.0263  | baseline  | 213 B  | exact  |
+| `asc-ikj`   | 0.8006  | **1.28x** | 308 B  | exact  |
+| `asc-tiled` | 1.0004  | 1.02x     | 302 B  | exact  |
+
+Spread across the four runs was 1.24–1.29x for `asc-ikj` and 1.02–1.04x for `asc-tiled`.
+
+**What this refutes.** Cache blocking is the optimization this suite most wanted to
+show, and at this size it does essentially nothing: 1.02x is within the run-to-run
+spread of the baseline itself. The reason is that the workload is too small for it. At
+128³ the whole of B is 64 KiB and already resident in this machine's L1d, so there is no
+capacity miss for blocking to remove. Tiling pays when the working set exceeds the level
+you are tiling for; here it does not.
+
+The win came from the _access pattern_, not the working-set size. Reading B along rows
+instead of down columns is worth 28% while the data volume is unchanged. Stride, not
+capacity, was the problem at this shape.
+
+Two caveats on generalising any of this. The 32×32 tile is tuned to one machine's cache
+geometry and is not a portable constant. And both results are one matrix size on one
+CPU: a larger shape would very likely reverse the ranking, which is the argument for
+eventually running this lane across several shapes rather than reporting a single number.
 
 ### `ml.gemm.v1` — `dart-o2`, `dart-o3`, `dart-o4`
 
@@ -236,14 +293,19 @@ The reference case: 128³ strict-f32, Track A freezes the i/j/k order.
 
 | Variant        | Technique                           | Class         | State                      |
 | -------------- | ----------------------------------- | ------------- | -------------------------- |
+| `asc-ikj`      | loop interchange i/j/k to i/k/j     | bit-identical | **built and measured**     |
+| `asc-tiled`    | i/j panel tiling, k order preserved | bit-identical | **built and measured**     |
 | `dart-o2/3/4`  | dart2wasm optimization levels       | bit-identical | **built and measured**     |
 | `c-tiled`      | i/j panel tiling, k order preserved | bit-identical | blocked on toolchain bytes |
 | `c-tiled-k`    | adds k-blocking                     | reassociated  | blocked on toolchain bytes |
 | `c-tiled-simd` | adds f32x4 lane accumulation        | reassociated  | blocked on toolchain bytes |
 | `rs-tiled`     | same tiling in Rust                 | bit-identical | blocked on toolchain bytes |
 
-`c-tiled` is the next one worth building: it proves the tiling machinery without
-touching the floating-point question.
+The tiling machinery itself is proven: `asc-tiled` is the same i/j panel decomposition
+`c-tiled` would use, built and verified against the pinned oracle. The C and Rust rows
+would add a second codegen path over the same transformation, and `c-tiled-k` and
+`c-tiled-simd` are the only planned variants that exercise the declared-deviation half
+of the equivalence policy.
 
 **Why the C/C++/Rust rows are blocked.** Adding them means running
 `scripts/build-multilang-wasm-benchmark.ts`, which rebuilds every C, C++, Rust and
