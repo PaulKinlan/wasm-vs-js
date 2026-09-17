@@ -204,3 +204,103 @@ Deno.test("multilang gc-document-edit: AssemblyScript kernel matches the JS orac
   );
   assertOracle("AS", r);
 });
+
+// --- Dart / WasmGC ---------------------------------------------------------
+//
+// The Dart kernel is the only one that holds the document as a real object
+// graph on a managed heap; the other four use non-allocating slot arrays in
+// linear memory. It must still land on the same oracle, so these tests check
+// both halves of that claim: the numbers agree, and the module really is
+// WasmGC with no linear memory to fall back on.
+
+interface DartKernels {
+  gc_document_edit_trace(fixture: Uint8Array, len: number, out: Uint32Array): number;
+}
+
+async function runDartKernel(fixture: Uint8Array) {
+  const glue = await import(`file://${ARTIFACTS}/gc_document_kernel_dart.mjs`);
+  const app = await glue.compile(await Deno.readFile(`${ARTIFACTS}/gc_document_kernel_dart.wasm`));
+  const inst = await app.instantiate({});
+  inst.invokeMain();
+  const kernels = (globalThis as Record<string, unknown>).dartKernels as DartKernels | undefined;
+  assert(kernels !== undefined, "gc_document_kernel_dart main() did not publish dartKernels");
+  const out = new Uint32Array(8);
+  const ret = Number(kernels!.gc_document_edit_trace(fixture, fixture.byteLength, out));
+  return {
+    ret,
+    inserts: out[0],
+    deletes: out[1],
+    reparents: out[2],
+    finalNodes: out[3],
+    childInsertions: out[4],
+    childRemovals: out[5],
+    parentWrites: out[6],
+    canonicalFnv: out[7] >>> 0,
+  };
+}
+
+Deno.test("multilang gc-document-edit: Dart/WasmGC kernel matches the JS oracle exactly", async () => {
+  const { bytes } = await readFixture();
+  assertOracle("Dart/WasmGC", await runDartKernel(bytes));
+});
+
+Deno.test("multilang gc-document-edit: Dart kernel is WasmGC with no linear memory", async () => {
+  const bytes = await Deno.readFile(`${ARTIFACTS}/gc_document_kernel_dart.wasm`);
+  // js-string builtins are required to compile the module, matching the glue.
+  const mod = new (WebAssembly.Module as unknown as new (
+    b: Uint8Array,
+    o?: unknown,
+  ) => WebAssembly.Module)(bytes, { builtins: ["js-string"] });
+
+  const importModules = WebAssembly.Module.imports(mod).map((i) => i.module);
+  assert(
+    importModules.includes("dart2wasm"),
+    "Dart module should import from the dart2wasm runtime namespace",
+  );
+
+  // The workload's point is that this engine has no host-writable linear
+  // memory. If a memory ever appears here the kernel has stopped being the
+  // managed-heap comparison the page claims it is.
+  const exportedMemory = WebAssembly.Module.exports(mod).filter((e) => e.kind === "memory");
+  assert(
+    exportedMemory.length === 0,
+    `Dart module should export no linear memory, found ${exportedMemory.length}`,
+  );
+
+  // WasmGC evidence: the type section must declare struct composite types
+  // (form byte 0x5f) — the _Node objects the kernel allocates.
+  assert(
+    typeSectionContainsStructForm(bytes),
+    "Dart module type section should declare GC struct types",
+  );
+});
+
+/** Reads an unsigned LEB128 at [start]. */
+function readU32Leb(bytes: Uint8Array, start: number): { value: number; offset: number } {
+  let result = 0;
+  let shift = 0;
+  let offset = start;
+  for (;;) {
+    const byte = bytes[offset++];
+    result |= (byte & 0x7f) << shift;
+    if ((byte & 0x80) === 0) break;
+    shift += 7;
+  }
+  return { value: result >>> 0, offset };
+}
+
+/** True when the module's type section (id 1) contains the GC struct form 0x5f. */
+function typeSectionContainsStructForm(bytes: Uint8Array): boolean {
+  if (bytes[0] !== 0x00 || bytes[1] !== 0x61 || bytes[2] !== 0x73 || bytes[3] !== 0x6d) {
+    throw new Error("not a wasm binary");
+  }
+  let offset = 8; // magic + version
+  while (offset < bytes.length) {
+    const id = bytes[offset++];
+    const { value: size, offset: afterSize } = readU32Leb(bytes, offset);
+    offset = afterSize;
+    if (id === 1) return bytes.subarray(offset, offset + size).includes(0x5f);
+    offset += size;
+  }
+  return false;
+}

@@ -5291,6 +5291,47 @@ export const KERNEL_ADAPTERS = {
           },
         };
       }
+      // Dart/WasmGC has no linear memory the host can write into: the fixture
+      // goes in as a zero-copy JSUint8Array and the eight counters come back
+      // through a caller-owned Uint32Array. Same oracle, same check.
+      const dartOut = new Uint32Array(8);
+      for (const [key, loaded] of Object.entries(mods.engines)) {
+        if (loaded?.cfg?.kind !== "dart") continue;
+        callables[key] = {
+          gc_document_edit_trace: () => {
+            const ret = Number(
+              loaded.kernels.gc_document_edit_trace(
+                fixtureBytes,
+                fixtureBytes.byteLength,
+                dartOut,
+              ),
+            );
+            if (
+              dartOut[0] !== ORACLE.inserts ||
+              dartOut[1] !== ORACLE.deletes ||
+              dartOut[2] !== ORACLE.reparents ||
+              dartOut[3] !== ORACLE.finalNodes ||
+              dartOut[4] !== ORACLE.childInsertions ||
+              dartOut[5] !== ORACLE.childRemovals ||
+              dartOut[6] !== ORACLE.parentWrites
+            ) {
+              throw new Error(
+                `gc_document_edit_trace ${key} counters drifted from the frozen oracle`,
+              );
+            }
+            if ((dartOut[7] >>> 0) !== ORACLE.canonicalFnv) {
+              throw new Error(
+                `gc_document_edit_trace ${key} canonical FNV drifted from the frozen oracle`,
+              );
+            }
+            if (ret !== ORACLE.finalNodes) {
+              throw new Error(
+                `gc_document_edit_trace ${key} return value drifted from the frozen oracle`,
+              );
+            }
+          },
+        };
+      }
       return callables;
     },
   },
@@ -6075,17 +6116,22 @@ export const KERNEL_ADAPTERS = {
         jsGemm(a, b, c0, out);
         return fnv1aBytes(new Uint8Array(out.buffer, out.byteOffset, out.byteLength));
       };
-      callables.dart = {
-        gemm: () => {
-          const { a, b, c0 } = inputs();
-          mods.engines.dart.kernels.gemm(a, b, c0, new Float32Array(M * N), M, N, K);
-        },
-      };
-      if (mods.engines.dart) {
-        probes.dart = () => {
+      // Every dart-kind engine, not just the -O1 baseline: the Track B
+      // optimization-level variants (dart-o2/-o3/-o4) share this kernel
+      // signature, so they run and get agreement-checked here too.
+      for (const [key, loaded] of Object.entries(mods.engines)) {
+        if (loaded?.cfg?.kind !== "dart") continue;
+        const kernels = loaded.kernels;
+        callables[key] = {
+          gemm: () => {
+            const { a, b, c0 } = inputs();
+            kernels.gemm(a, b, c0, new Float32Array(M * N), M, N, K);
+          },
+        };
+        probes[key] = () => {
           const { a, b, c0 } = inputs();
           const out = new Float32Array(M * N);
-          mods.engines.dart.kernels.gemm(a, b, c0, out, M, N, K);
+          kernels.gemm(a, b, c0, out, M, N, K);
           return fnv1aBytes(new Uint8Array(out.buffer, out.byteOffset, out.byteLength));
         };
       }

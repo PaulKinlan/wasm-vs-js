@@ -1222,11 +1222,11 @@
         "c",
         "cpp",
         "rs",
-        "asc"
+        "asc",
+        "dart"
       ],
       "missingEngines": [
-        "wat",
-        "dart"
+        "wat"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/text-gc-document-edit.manifest.json",
       "domHost": "/dom-hosts/base-text-gc-document-edit.js",

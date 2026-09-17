@@ -63,6 +63,42 @@
       "file": "gemm_dart.wasm",
       "glue": "gemm_dart.mjs",
       "source": "benchmarks/multilang-wasm/ml-gemm/gemm.dart"
+    },
+    {
+      "key": "dart-o2",
+      "label": "Dart / WasmGC -O2",
+      "kind": "dart",
+      "file": "gemm_dart_o2.wasm",
+      "glue": "gemm_dart_o2.mjs",
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm.dart",
+      "track": "B",
+      "baseline": "dart",
+      "equivalence": "bit-identical",
+      "optimizationLog": "-O2: -O1 plus minification; documented safe for all programs. Bit-identical to the pinned strict-f32 oracle."
+    },
+    {
+      "key": "dart-o3",
+      "label": "Dart / WasmGC -O3",
+      "kind": "dart",
+      "file": "gemm_dart_o3.wasm",
+      "glue": "gemm_dart_o3.mjs",
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm.dart",
+      "track": "B",
+      "baseline": "dart",
+      "equivalence": "bit-identical",
+      "optimizationLog": "-O3: -O2 plus omits implicit type checks. Non-default diagnostic mode. Bit-identical to the pinned strict-f32 oracle."
+    },
+    {
+      "key": "dart-o4",
+      "label": "Dart / WasmGC -O4",
+      "kind": "dart",
+      "file": "gemm_dart_o4.wasm",
+      "glue": "gemm_dart_o4.mjs",
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm.dart",
+      "track": "B",
+      "baseline": "dart",
+      "equivalence": "bit-identical",
+      "optimizationLog": "-O4: more aggressive than -O3 under the same assumptions, input-data sensitive. Non-default diagnostic mode. Bit-identical to the pinned strict-f32 oracle."
     }
   ]
 }

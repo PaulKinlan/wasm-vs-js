@@ -140,6 +140,10 @@ export async function buildCoverage(): Promise<{
         try {
           const parsed = JSON.parse(raw);
           engines = (parsed.engines ?? [])
+            // Track B variants are a second build of a language already counted
+            // (e.g. dart-o3 alongside dart), not additional language coverage.
+            // They are reported separately in public/data/track-b.v1.json.
+            .filter((e: { track?: string }) => (e.track ?? "A") !== "B")
             .map((e: { key?: string }) => normaliseEngine(e.key ?? ""))
             .filter(Boolean);
         } catch {

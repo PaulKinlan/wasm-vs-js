@@ -221,6 +221,13 @@ const staticStages: Stage[] = [
   },
   { name: "catalog", args: ["task", "catalog"] },
   { name: "coverage", args: ["run", "--allow-read=.", "scripts/build-coverage.ts", "--check"] },
+  // Track B registry: fails if a manifest gained or lost an engine without the
+  // registry being regenerated, and if any track "B" engine omits its baseline,
+  // equivalence class or optimization log (docs/track-b-optimizations.md).
+  {
+    name: "track-b",
+    args: ["run", "--allow-read=.", "scripts/build-track-b-registry.ts", "--check"],
+  },
 ];
 const manifestReaderStatics: Stage[] = [
   { name: "planning", args: ["run", "--allow-read=.", "scripts/check-planning.mjs"] },

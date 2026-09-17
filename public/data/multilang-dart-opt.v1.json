@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "spec": "docs/track-b-optimizations.md",
+  "lane": "dart-optimization-levels",
+  "description": "The same Dart kernel source compiled at dart2wasm -O1 (Track A default) through -O4 (Track B), each verified bit-identical to the workload's pinned oracle before timing.",
+  "toolchain": {
+    "dart": "",
+    "command": "dart compile wasm -O<level> --no-source-maps",
+    "defaultLevelWhenFlagOmitted": 1
+  },
+  "environment": {
+    "deno": "2.9.0",
+    "v8": "14.9.207.2-rusty",
+    "os": "darwin",
+    "arch": "aarch64"
+  },
+  "nonDefaultModes": {
+    "dart-o3": "omits implicit type checks",
+    "dart-o4": "omits implicit type checks, more aggressive, input-data sensitive"
+  },
+  "lanes": [
+    {
+      "workloadId": "ml.gemm.v1",
+      "kernel": "gemm",
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm.dart",
+      "sourceSha256": "fa8415725946e14931158a63c73b7a7e01eba970f449942dffa3d55e228d2e22",
+      "iterations": 200,
+      "shape": "128x128x128 strict-f32, frozen i/j/k order",
+      "equivalence": "bit-identical",
+      "oracleDigest": 2004586348,
+      "variants": [
+        {
+          "key": "dart",
+          "level": 1,
+          "track": "A",
+          "artifact": "gemm_dart.wasm",
+          "glue": "gemm_dart.mjs",
+          "artifactSha256": "4ba6b363e4a8c7f271e8834b14bcd698f6456b1bba83d0c85cc4d238f9a3168a",
+          "binarySizeBytes": 39079,
+          "glueSizeBytes": 11798,
+          "outputDigest": 2004586348,
+          "matchesOracle": true,
+          "coldCompileMs": 0.086,
+          "warmTotalMs": 8861.32,
+          "msPerIteration": 44.3066,
+          "speedupVsBaseline": null,
+          "note": "-O1: dart2wasm default, the level every committed Dart artifact ships at."
+        },
+        {
+          "key": "dart-o2",
+          "level": 2,
+          "track": "B",
+          "artifact": "gemm_dart_o2.wasm",
+          "glue": "gemm_dart_o2.mjs",
+          "artifactSha256": "abab41dbbe2bc9fd7c8476f98ad90bc71abd5f957bff6b877d8b124a30a27813",
+          "binarySizeBytes": 31585,
+          "glueSizeBytes": 11798,
+          "outputDigest": 2004586348,
+          "matchesOracle": true,
+          "coldCompileMs": 0.077,
+          "warmTotalMs": 8791.78,
+          "msPerIteration": 43.9589,
+          "speedupVsBaseline": 1.008,
+          "note": "-O2: -O1 plus minification; documented safe for all programs."
+        },
+        {
+          "key": "dart-o3",
+          "level": 3,
+          "track": "B",
+          "artifact": "gemm_dart_o3.wasm",
+          "glue": "gemm_dart_o3.mjs",
+          "artifactSha256": "ac49b88020f830652d4ae61e1d23f04b28d929deaf27174f56f63aacf5653274",
+          "binarySizeBytes": 30750,
+          "glueSizeBytes": 11798,
+          "outputDigest": 2004586348,
+          "matchesOracle": true,
+          "coldCompileMs": 0.075,
+          "warmTotalMs": 8779.88,
+          "msPerIteration": 43.8994,
+          "speedupVsBaseline": 1.009,
+          "note": "-O3: -O2 plus omits implicit type checks. Non-default diagnostic mode."
+        },
+        {
+          "key": "dart-o4",
+          "level": 4,
+          "track": "B",
+          "artifact": "gemm_dart_o4.wasm",
+          "glue": "gemm_dart_o4.mjs",
+          "artifactSha256": "2d61367a4aad3e47275abd3eb6777bad3491008f5e6c0274f93c567d8b4a802e",
+          "binarySizeBytes": 30487,
+          "glueSizeBytes": 11798,
+          "outputDigest": 2004586348,
+          "matchesOracle": true,
+          "coldCompileMs": 0.07,
+          "warmTotalMs": 8751.05,
+          "msPerIteration": 43.7552,
+          "speedupVsBaseline": 1.013,
+          "note": "-O4: more aggressive than -O3 under the same assumptions; sensitive to input data. Non-default diagnostic mode."
+        }
+      ]
+    }
+  ]
+}

@@ -58,6 +58,15 @@
         "gc_document_edit_trace": "gc_document_kernel_asc.wasm"
       },
       "source": "benchmarks/multilang-wasm/text-gc-document-edit/gc_document_kernel.ts"
+    },
+    {
+      "key": "dart",
+      "label": "Dart / WasmGC",
+      "kind": "dart",
+      "file": "gc_document_kernel_dart.wasm",
+      "glue": "gc_document_kernel_dart.mjs",
+      "source": "benchmarks/multilang-wasm/text-gc-document-edit/gc_document_kernel.dart",
+      "representation": "managed object graph on the WasmGC heap (3,590 node allocations, 3,333 dropped) — the linear-memory kernels use non-allocating slot arrays. Same parse, same edits, same traversal, bit-identical counters and digest."
     }
   ]
 }

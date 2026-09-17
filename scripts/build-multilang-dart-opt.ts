@@ -1,0 +1,383 @@
+// scripts/build-multilang-dart-opt.ts
+//
+// Track B lane: the same Dart kernel source compiled at dart2wasm's higher
+// optimization levels, measured against the Track A `-O1` baseline.
+//
+// Why this exists as a separate builder rather than an edit to
+// scripts/build-multilang-wasm-benchmark.ts: that script rebuilds every C,
+// C++, Rust and AssemblyScript artifact in one pass. Rebuilding them requires
+// byte-identical reproduction of the pinned clang/lld, which not every machine
+// has. This builder touches only Dart artifacts, which dart2wasm 3.12.2
+// reproduces byte-identically, so a Dart-only change never rewrites another
+// language's committed bytes.
+//
+// What it measures: `dart compile wasm` takes -O0..-O4 and defaults to -O1.
+// Every Dart artifact in the suite ships at that default while C/C++ are built
+// -O3, Rust -O and AssemblyScript -O3. The published Dart penalties therefore
+// mix the disclosed f32-emulation-in-f64 cost with an undisclosed flag gap.
+// This lane separates the two.
+//
+// Equivalence: every level must reproduce the pinned strict-f32 oracle
+// bit-for-bit (docs/track-b-optimizations.md, `bit-identical` class). -O3 omits
+// implicit type checks and -O4 is more aggressive; both are non-default
+// diagnostic modes in PLAN.md terms and are labelled as such in the output.
+//
+// Toolchain: Dart SDK 3.12.2 (matches the pinned dart2wasm in the main builder).
+//
+// Usage:
+//   deno run --allow-all scripts/build-multilang-dart-opt.ts
+
+const rootDir = new URL("../", import.meta.url).pathname.replace(/\/$/, "");
+const artifactsDir = `${rootDir}/public/artifacts/multilang-wasm-benchmark`;
+const dataDir = `${rootDir}/public/data`;
+
+const JS_STRING_BUILTINS = { builtins: ["js-string"] } as unknown as WebAssembly.ModuleImports;
+const WasmModuleCtor = WebAssembly.Module as unknown as new (
+  b: Uint8Array<ArrayBuffer>,
+  o?: unknown,
+) => WebAssembly.Module;
+
+/** Levels built as Track B variants. -O1 is the Track A baseline and is not rebuilt. */
+const LEVELS = [2, 3, 4] as const;
+
+const LEVEL_NOTES: Record<number, string> = {
+  2: "-O2: -O1 plus minification; documented safe for all programs.",
+  3: "-O3: -O2 plus omits implicit type checks. Non-default diagnostic mode.",
+  4: "-O4: more aggressive than -O3 under the same assumptions; sensitive to input data. Non-default diagnostic mode.",
+};
+
+async function run(cmd: string, args: string[], label: string): Promise<void> {
+  const { code, stderr } = await new Deno.Command(cmd, {
+    args,
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  if (code !== 0) {
+    throw new Error(`${label} failed:\n${new TextDecoder().decode(stderr)}`);
+  }
+}
+
+async function sha256(bytes: Uint8Array): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", bytes as BufferSource);
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function fnv1aBytes(bytes: Uint8Array): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < bytes.length; i++) {
+    h ^= bytes[i];
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h >>> 0;
+}
+
+function median(values: number[]): number {
+  const sorted = [...values].sort((a, b) => a - b);
+  return sorted[Math.floor(sorted.length / 2)];
+}
+
+/** Median wall time of a fresh WebAssembly.Module compile, in ms. */
+function coldCompileMs(bytes: Uint8Array, samples = 10): number {
+  const times: number[] = [];
+  for (let i = 0; i < samples; i++) {
+    const t0 = performance.now();
+    new WasmModuleCtor(bytes as Uint8Array<ArrayBuffer>, JS_STRING_BUILTINS);
+    times.push(performance.now() - t0);
+  }
+  return Number(median(times).toFixed(3));
+}
+
+async function instantiateDartGlue<T extends Record<string, unknown>>(
+  glueFile: string,
+  wasmFile: string,
+): Promise<T> {
+  const glue = await import(`file://${artifactsDir}/${glueFile}`);
+  const app = await glue.compile(await Deno.readFile(`${artifactsDir}/${wasmFile}`));
+  const inst = await app.instantiate({});
+  inst.invokeMain();
+  const kernels = (globalThis as Record<string, unknown>).dartKernels as T;
+  if (!kernels) throw new Error(`dartKernels not published by ${wasmFile} main()`);
+  return kernels;
+}
+
+/** Compiles one Dart source at one level and normalises the emitted artifacts. */
+async function compileDartAtLevel(
+  source: string,
+  outBase: string,
+  level: number,
+): Promise<void> {
+  await run("dart", [
+    "compile",
+    "wasm",
+    `-O${level}`,
+    "--no-source-maps",
+    source,
+    "-o",
+    `${artifactsDir}/${outBase}.wasm`,
+  ], `compile ${outBase} (-O${level})`);
+  for (const extra of [`${outBase}.wasm.map`, `${outBase}.support.js`]) {
+    try {
+      await Deno.remove(`${artifactsDir}/${extra}`);
+    } catch { /* absent */ }
+  }
+  const gluePath = `${artifactsDir}/${outBase}.mjs`;
+  const glueText = await Deno.readTextFile(gluePath);
+  if (!glueText.startsWith("// deno-lint-ignore-file")) {
+    await Deno.writeTextFile(
+      gluePath,
+      `// deno-lint-ignore-file -- generated by dart2wasm (dart compile wasm)\n${glueText}`,
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// ml-gemm — strict-f32 128x128x128, frozen i/j/k order.
+// Inputs and oracle mirror scripts/build-multilang-wasm-benchmark.ts exactly;
+// this lane never defines a new oracle.
+// ---------------------------------------------------------------------------
+const GEMM_M = 128, GEMM_N = 128, GEMM_K = 128;
+const GEMM_ITERATIONS = 200;
+
+function makeGemmInputs() {
+  const a = new Float32Array(GEMM_M * GEMM_K);
+  const b = new Float32Array(GEMM_K * GEMM_N);
+  const c0 = new Float32Array(GEMM_M * GEMM_N);
+  let st = 0x91e10da5;
+  const next = () => {
+    st = (st * 1664525 + 1013904223) >>> 0;
+    return Math.fround((st / 4294967296) * 2 - 1);
+  };
+  for (let i = 0; i < a.length; i++) a[i] = next();
+  for (let i = 0; i < b.length; i++) b[i] = next();
+  for (let i = 0; i < c0.length; i++) c0[i] = next();
+  return { a, b, c0 };
+}
+
+function jsGemmF32(a: Float32Array, b: Float32Array, c0: Float32Array, out: Float32Array): void {
+  for (let i = 0; i < GEMM_M; i++) {
+    for (let j = 0; j < GEMM_N; j++) {
+      let acc = c0[i * GEMM_N + j];
+      for (let t = 0; t < GEMM_K; t++) {
+        acc = Math.fround(acc + Math.fround(a[i * GEMM_K + t] * b[t * GEMM_N + j]));
+      }
+      out[i * GEMM_N + j] = acc + 0;
+    }
+  }
+}
+
+type GemmKernel = {
+  gemm: (
+    a: Float32Array,
+    b: Float32Array,
+    c0: Float32Array,
+    o: Float32Array,
+    m: number,
+    n: number,
+    k: number,
+  ) => void;
+};
+
+interface VariantRecord {
+  key: string;
+  level: number;
+  track: "A" | "B";
+  artifact: string;
+  glue: string;
+  artifactSha256: string;
+  binarySizeBytes: number;
+  glueSizeBytes: number;
+  outputDigest: number;
+  matchesOracle: boolean;
+  coldCompileMs: number;
+  warmTotalMs: number;
+  msPerIteration: number;
+  speedupVsBaseline: number | null;
+  note: string;
+}
+
+async function buildGemmLane(): Promise<{
+  workloadId: string;
+  kernel: string;
+  source: string;
+  sourceSha256: string;
+  iterations: number;
+  shape: string;
+  equivalence: string;
+  oracleDigest: number;
+  variants: VariantRecord[];
+}> {
+  const source = `${rootDir}/benchmarks/multilang-wasm/ml-gemm/gemm.dart`;
+  const sourceBytes = await Deno.readFile(source);
+
+  // Oracle: the pinned strict-f32 JavaScript reference, same inputs.
+  const oracleOut = new Float32Array(GEMM_M * GEMM_N);
+  {
+    const { a, b, c0 } = makeGemmInputs();
+    jsGemmF32(a, b, c0, oracleOut);
+  }
+  const oracleDigest = fnv1aBytes(
+    new Uint8Array(oracleOut.buffer, oracleOut.byteOffset, oracleOut.byteLength),
+  );
+
+  const variants: VariantRecord[] = [];
+
+  // Track A baseline: the committed -O1 artifact, measured but not rebuilt.
+  const baseline = await measureGemmVariant(
+    "dart",
+    1,
+    "gemm_dart",
+    "A",
+    oracleDigest,
+    "-O1: dart2wasm default, the level every committed Dart artifact ships at.",
+  );
+  variants.push(baseline);
+
+  for (const level of LEVELS) {
+    const outBase = `gemm_dart_o${level}`;
+    console.log(`Compiling gemm.dart at -O${level}...`);
+    await compileDartAtLevel(source, outBase, level);
+    variants.push(
+      await measureGemmVariant(
+        `dart-o${level}`,
+        level,
+        outBase,
+        "B",
+        oracleDigest,
+        LEVEL_NOTES[level],
+      ),
+    );
+  }
+
+  const baselineMs = baseline.msPerIteration;
+  for (const v of variants) {
+    v.speedupVsBaseline = v.track === "B"
+      ? Number((baselineMs / v.msPerIteration).toFixed(3))
+      : null;
+  }
+
+  return {
+    workloadId: "ml.gemm.v1",
+    kernel: "gemm",
+    source: "benchmarks/multilang-wasm/ml-gemm/gemm.dart",
+    sourceSha256: await sha256(sourceBytes),
+    iterations: GEMM_ITERATIONS,
+    shape: `${GEMM_M}x${GEMM_N}x${GEMM_K} strict-f32, frozen i/j/k order`,
+    equivalence: "bit-identical",
+    oracleDigest,
+    variants,
+  };
+}
+
+async function measureGemmVariant(
+  key: string,
+  level: number,
+  outBase: string,
+  track: "A" | "B",
+  oracleDigest: number,
+  note: string,
+): Promise<VariantRecord> {
+  const wasmBytes = await Deno.readFile(`${artifactsDir}/${outBase}.wasm`);
+  const glueBytes = await Deno.readFile(`${artifactsDir}/${outBase}.mjs`);
+  const kernels = await instantiateDartGlue<GemmKernel>(`${outBase}.mjs`, `${outBase}.wasm`);
+
+  // Correctness before timing: the run is not measured until it matches.
+  const { a, b, c0 } = makeGemmInputs();
+  const out = new Float32Array(GEMM_M * GEMM_N);
+  kernels.gemm(a, b, c0, out, GEMM_M, GEMM_N, GEMM_K);
+  const outputDigest = fnv1aBytes(new Uint8Array(out.buffer, out.byteOffset, out.byteLength));
+  const matchesOracle = outputDigest === oracleDigest;
+  if (!matchesOracle) {
+    throw new Error(
+      `${key}: output digest ${outputDigest} != pinned oracle ${oracleDigest} — ` +
+        `a bit-identical Track B variant that does not match is a correctness failure ` +
+        `(docs/track-b-optimizations.md)`,
+    );
+  }
+
+  const fn = () => {
+    const inputs = makeGemmInputs();
+    kernels.gemm(
+      inputs.a,
+      inputs.b,
+      inputs.c0,
+      new Float32Array(GEMM_M * GEMM_N),
+      GEMM_M,
+      GEMM_N,
+      GEMM_K,
+    );
+  };
+  for (let i = 0; i < 10; i++) fn();
+  const t0 = performance.now();
+  for (let i = 0; i < GEMM_ITERATIONS; i++) fn();
+  const warmTotalMs = Number((performance.now() - t0).toFixed(2));
+
+  return {
+    key,
+    level,
+    track,
+    artifact: `${outBase}.wasm`,
+    glue: `${outBase}.mjs`,
+    artifactSha256: await sha256(wasmBytes),
+    binarySizeBytes: wasmBytes.byteLength,
+    glueSizeBytes: glueBytes.byteLength,
+    outputDigest,
+    matchesOracle,
+    coldCompileMs: coldCompileMs(wasmBytes),
+    warmTotalMs,
+    msPerIteration: Number((warmTotalMs / GEMM_ITERATIONS).toFixed(4)),
+    speedupVsBaseline: null,
+    note,
+  };
+}
+
+// --- main -------------------------------------------------------------------
+
+const dartVersion = new TextDecoder()
+  .decode(
+    (await new Deno.Command("dart", { args: ["--version"], stderr: "piped" }).output()).stderr,
+  )
+  .trim();
+
+const lanes = [await buildGemmLane()];
+
+const report = {
+  schemaVersion: 1,
+  spec: "docs/track-b-optimizations.md",
+  lane: "dart-optimization-levels",
+  description:
+    "The same Dart kernel source compiled at dart2wasm -O1 (Track A default) through -O4 " +
+    "(Track B), each verified bit-identical to the workload's pinned oracle before timing.",
+  toolchain: {
+    dart: dartVersion,
+    command: "dart compile wasm -O<level> --no-source-maps",
+    defaultLevelWhenFlagOmitted: 1,
+  },
+  environment: {
+    deno: Deno.version.deno,
+    v8: Deno.version.v8,
+    os: Deno.build.os,
+    arch: Deno.build.arch,
+  },
+  nonDefaultModes: {
+    "dart-o3": "omits implicit type checks",
+    "dart-o4": "omits implicit type checks, more aggressive, input-data sensitive",
+  },
+  lanes,
+};
+
+await Deno.writeTextFile(
+  `${dataDir}/multilang-dart-opt.v1.json`,
+  JSON.stringify(report, null, 2) + "\n",
+);
+
+for (const lane of lanes) {
+  console.log(`\n${lane.workloadId} (${lane.shape}), ${lane.iterations} iterations:`);
+  for (const v of lane.variants) {
+    const speed = v.speedupVsBaseline ? ` ${v.speedupVsBaseline}x vs -O1` : " (baseline)";
+    console.log(
+      `  ${v.key.padEnd(8)} -O${v.level}  ${String(v.msPerIteration).padStart(8)} ms/iter  ` +
+        `${String(v.binarySizeBytes).padStart(7)} B  oracle=${v.matchesOracle}${speed}`,
+    );
+  }
+}
+console.log(`\nwrote ${dataDir}/multilang-dart-opt.v1.json`);

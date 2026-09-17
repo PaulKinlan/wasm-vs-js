@@ -32,6 +32,7 @@ const PLAYGROUND_JS = join(ROOT_PATH, "public", "playground.js");
 const CONTENT_TYPES: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
+  ".mjs": "text/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".json": "application/json; charset=utf-8",
   ".wasm": "application/wasm",
@@ -94,6 +95,60 @@ function scanPages(): Array<readonly [string, string, string, boolean?]> {
     }
   }
   return routes;
+}
+
+// ---------------------------------------------------------------------------
+// Assets routed here instead of in server.ts.
+//
+// server.ts carries its own hand-maintained `routes` Map for root-level data
+// files and for the multilang artifact directory. Its bytes are sha256-pinned
+// by 17 provenance manifests under public/artifacts and public/evidence, so
+// adding one filename to that list invalidates all of them and forces the
+// two-commit re-bind described in AGENTS.md — re-running ~14 builders, 10 of
+// which recompile C/C++/Rust and would replace committed artifact bytes.
+// Routing new assets through the generated table keeps server.ts untouched.
+//
+// This is an explicit reviewed list, not a directory scan. A scan of
+// public/data and public/artifacts/multilang-wasm-benchmark would also have
+// published three files nobody chose to serve — benchmark-validation-logs.v1.json,
+// mlp_forward_wat.wasm, and a committed Rust object file
+// (grid_kernel_rs.…-cgu.0.rcgu.o) — which is route widening by accident.
+// Every entry below is checked to exist and to not collide with a name
+// server.ts already claims; server.ts's own duplicate check on
+// GENERATED_ROUTES is the backstop.
+// ---------------------------------------------------------------------------
+const GENERATED_ASSET_ROUTES: ReadonlyArray<string> = [
+  // Track B registry, read by public/benchmarks/track-b/track-b.js.
+  "data/track-b.v1.json",
+  // Dart -O2/-O3/-O4 lane report (scripts/build-multilang-dart-opt.ts).
+  "data/multilang-dart-opt.v1.json",
+  // Track B Dart optimization variants for ml.gemm.v1.
+  "artifacts/multilang-wasm-benchmark/gemm_dart_o2.wasm",
+  "artifacts/multilang-wasm-benchmark/gemm_dart_o2.mjs",
+  "artifacts/multilang-wasm-benchmark/gemm_dart_o3.wasm",
+  "artifacts/multilang-wasm-benchmark/gemm_dart_o3.mjs",
+  "artifacts/multilang-wasm-benchmark/gemm_dart_o4.wasm",
+  "artifacts/multilang-wasm-benchmark/gemm_dart_o4.mjs",
+  // Dart/WasmGC engine for text.gc-document-edit.v1.
+  "artifacts/multilang-wasm-benchmark/gc_document_kernel_dart.wasm",
+  "artifacts/multilang-wasm-benchmark/gc_document_kernel_dart.mjs",
+];
+
+function assetRoutes(): Array<readonly [string, string, string]> {
+  const serverSrc = Deno.readTextFileSync(join(ROOT_PATH, "server.ts"));
+  return GENERATED_ASSET_ROUTES.map((rel) => {
+    const file = `public/${rel}`;
+    if (!fileExists(join(ROOT_PATH, file))) {
+      throw new Error(`GENERATED_ASSET_ROUTES names a missing file: ${file}`);
+    }
+    const name = rel.slice(rel.lastIndexOf("/") + 1);
+    // `"name"` covers the literal filename lists server.ts loops over;
+    // `rel` covers its fully-spelled route entries.
+    if (serverSrc.includes(`"${name}"`) || serverSrc.includes(rel)) {
+      throw new Error(`server.ts already routes ${rel} — remove it from GENERATED_ASSET_ROUTES`);
+    }
+    return [`/${rel}`, file, contentTypeFor(name)] as const;
+  });
 }
 
 /** Parse slug → route from public/playground.js card registry. */
@@ -280,7 +335,7 @@ function isFile(p: string): boolean {
 
 function main(): void {
   const check = Deno.args.includes("--check");
-  const routes = scanPages();
+  const routes = [...scanPages(), ...assetRoutes()];
   const cardRoutes = parseCardRoutes();
 
   routes.sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);

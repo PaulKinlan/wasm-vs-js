@@ -1,0 +1,702 @@
+{
+  "generatedAt": null,
+  "schemaVersion": 1,
+  "spec": "docs/track-b-optimizations.md",
+  "equivalenceClasses": [
+    "bit-identical",
+    "reassociated"
+  ],
+  "workloads": [
+    {
+      "workloadId": "archive.zip-workspace.v1",
+      "manifest": "/benchmarks/multilang-wasm/archive-zip-workspace-v1.manifest.json",
+      "route": "/benchmarks/archive-zip-workspace-v1/",
+      "title": "ZIP workspace",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "asc"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "audio.fft.v1",
+      "manifest": "/benchmarks/multilang-wasm/audio-fft.manifest.json",
+      "route": "/benchmarks/audio-fft/",
+      "title": "Radix-2 complex FFT demo",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "asc",
+        "dart"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "audio.fir.v1",
+      "manifest": "/benchmarks/multilang-wasm/audio-fir.manifest.json",
+      "route": "/benchmarks/audio-fir/",
+      "title": "Direct 256-tap FIR convolution demo",
+      "baselineEngines": [
+        "js",
+        "wat",
+        "c",
+        "cpp",
+        "rs",
+        "asc",
+        "dart"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "audio.stft.v1",
+      "manifest": "/benchmarks/multilang-wasm/audio-stft.manifest.json",
+      "route": "/benchmarks/audio-stft/",
+      "title": "Short-time Fourier transform demo",
+      "baselineEngines": [
+        "js",
+        "wat",
+        "c",
+        "cpp",
+        "rs",
+        "asc",
+        "dart"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "audio.webaudio-effects.v1",
+      "manifest": "/benchmarks/multilang-wasm/audio-webaudio-effects-v1.manifest.json",
+      "route": "/benchmarks/base/audio-webaudio-effects-v1/",
+      "title": "WebAudio effects rack correctness demo | Wasm versus JavaScript",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "asc"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "cad.mesh-repair.v1",
+      "manifest": "/benchmarks/multilang-wasm/cad-mesh-repair.manifest.json",
+      "route": "/benchmarks/cad-mesh-repair-v1/",
+      "title": "3D Mesh Quantization & Repair",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "cad.parametric-bracket.v1",
+      "manifest": "/benchmarks/multilang-wasm/cad-parametric-bracket.manifest.json",
+      "route": "/benchmarks/cad-parametric-bracket/",
+      "title": "Parametric bracket correctness demo | Wasm versus JavaScript",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "crypto.authenticated-stream.v1",
+      "manifest": "/benchmarks/multilang-wasm/crypto-authenticated-stream.manifest.json",
+      "route": "/benchmarks/crypto-authenticated-stream/",
+      "title": "Authenticated message stream",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "asc",
+        "dart"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "crypto.file-integrity.v1",
+      "manifest": "/benchmarks/multilang-wasm/crypto-file-integrity.manifest.json",
+      "route": "/benchmarks/crypto.file-integrity.v1/",
+      "title": "SHA-256 file integrity demo | Wasm versus JavaScript",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "asc",
+        "dart"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "database.olap-chart.v1",
+      "manifest": "/benchmarks/multilang-wasm/database-olap-chart.manifest.json",
+      "route": "/benchmarks/database-olap-chart/",
+      "title": "Five-query OLAP chart trace",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "asc",
+        "dart"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "document.pdf-viewer.v1",
+      "manifest": "/benchmarks/multilang-wasm/document-pdf-viewer.manifest.json",
+      "route": "/benchmarks/document-pdf-viewer-v1/",
+      "title": "PDF Document Parsing & Rendering",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "dom.dependent-form-validation.v1",
+      "manifest": "/benchmarks/multilang-wasm/dom-dependent-form-validation.manifest.json",
+      "route": "/benchmarks/dom-dependent-form-validation/",
+      "title": "Dependent Form Validation",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "asc"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "dom.grid-movement.v1",
+      "manifest": "/benchmarks/multilang-wasm/dom-grid-movement.manifest.json",
+      "route": "/benchmarks/dom-grid-movement/",
+      "title": "DOM Grid Movement Engine",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "asc"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "dom.keyed-list-mutation.v1",
+      "manifest": "/benchmarks/multilang-wasm/dom-keyed-list-mutation.manifest.json",
+      "route": "/benchmarks/dom-keyed-list-mutation/",
+      "title": "Keyed List DOM Mutation",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "asc"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "dom.nested-tree-mutation.v1",
+      "manifest": "/benchmarks/multilang-wasm/dom-nested-tree-mutation.manifest.json",
+      "route": "/benchmarks/dom-nested-tree-mutation/",
+      "title": "Nested DOM Tree Mutation",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "asc"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "dom.table-sort-filter-pagination.v1",
+      "manifest": "/benchmarks/multilang-wasm/dom-table-sort-filter-pagination.manifest.json",
+      "route": "/benchmarks/dom-table-sort-filter-pagination/",
+      "title": "Table Sort, Filter & Pagination",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "asc"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "dom.todomvc-journey.v1",
+      "manifest": "/benchmarks/multilang-wasm/base-dom-todomvc-journey.manifest.json",
+      "route": "/benchmarks/base-dom-todomvc-journey/",
+      "title": "TodoMVC 100-item journey",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "dom.vdom-diff-patch.v1",
+      "manifest": "/benchmarks/multilang-wasm/vdom-diff-patch.manifest.json",
+      "route": "/benchmarks/vdom-diff-patch-demo/",
+      "title": "Reduced virtual-DOM fixture",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "asc"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "dom.virtualized-grid.v1",
+      "manifest": "/benchmarks/multilang-wasm/dom-virtualized-grid-v1.manifest.json",
+      "route": "/benchmarks/dom-virtualized-grid-v1/",
+      "title": "100,000-row virtualized grid",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "asc"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "game.canvas-arcade.v1",
+      "manifest": "/benchmarks/multilang-wasm/game-canvas-arcade.manifest.json",
+      "route": "/benchmarks/game-canvas-arcade/",
+      "title": "Canvas Arcade Engine",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "asc"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "game.canvas-entity-pathfinding.v1",
+      "manifest": "/benchmarks/multilang-wasm/game-canvas-entity-pathfinding.manifest.json",
+      "route": "/benchmarks/game-canvas-entity-pathfinding/",
+      "title": "Canvas Entity Pathfinding Engine",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "asc"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "game.dom-tactics-grid.v1",
+      "manifest": "/benchmarks/multilang-wasm/game-dom-tactics-grid.manifest.json",
+      "route": "/benchmarks/game-dom-tactics-grid/",
+      "title": "DOM Tactics Grid Engine",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "asc",
+        "dart"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "game.ecs-frame-update.v1",
+      "manifest": "/benchmarks/multilang-wasm/game-ecs-frame-update.manifest.json",
+      "route": "/benchmarks/game-ecs-frame-update/",
+      "title": "10,000-entity ECS correctness demo | Wasm versus JavaScript",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "graphics-cpu-path-tracer.v1",
+      "manifest": "/benchmarks/multilang-wasm/graphics-cpu-path-tracer.manifest.json",
+      "route": "/benchmarks/graphics-cpu-path-tracer-v1/",
+      "title": "CPU path tracer | Wasm versus JavaScript",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "asc",
+        "dart"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "graphics.gltf-viewer.v1",
+      "manifest": "/benchmarks/multilang-wasm/graphics-gltf-viewer.manifest.json",
+      "route": "/benchmarks/base-gltf-viewer/",
+      "title": "Avocado glTF decode, animation and picking",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "image-editing.v1",
+      "manifest": "/benchmarks/multilang-wasm/image-editing.manifest.json",
+      "route": "/benchmarks/image-editing-demo/",
+      "title": "Image Gaussian Blur Pipeline",
+      "baselineEngines": [
+        "js",
+        "wat",
+        "c",
+        "cpp",
+        "rs",
+        "asc",
+        "dart"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "ml.dense-mlp.v1",
+      "manifest": "/benchmarks/multilang-wasm/ml-dense-mlp.manifest.json",
+      "route": "/benchmarks/ml-dense-mlp/",
+      "title": "Dense MLP",
+      "baselineEngines": [
+        "js",
+        "wat",
+        "c",
+        "cpp",
+        "rs",
+        "asc",
+        "dart"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "ml.gemm.v1",
+      "manifest": "/benchmarks/multilang-wasm/ml-gemm.manifest.json",
+      "route": "/benchmarks/ml-gemm/",
+      "title": "ML GEMM",
+      "baselineEngines": [
+        "js",
+        "wat",
+        "c",
+        "cpp",
+        "rs",
+        "asc",
+        "dart"
+      ],
+      "variants": [
+        {
+          "key": "dart-o2",
+          "baseline": "dart",
+          "equivalence": "bit-identical",
+          "optimizationLog": "-O2: -O1 plus minification; documented safe for all programs. Bit-identical to the pinned strict-f32 oracle.",
+          "maxUlpDeviation": null,
+          "maxRelativeDeviation": null,
+          "declaredTolerance": null
+        },
+        {
+          "key": "dart-o3",
+          "baseline": "dart",
+          "equivalence": "bit-identical",
+          "optimizationLog": "-O3: -O2 plus omits implicit type checks. Non-default diagnostic mode. Bit-identical to the pinned strict-f32 oracle.",
+          "maxUlpDeviation": null,
+          "maxRelativeDeviation": null,
+          "declaredTolerance": null
+        },
+        {
+          "key": "dart-o4",
+          "baseline": "dart",
+          "equivalence": "bit-identical",
+          "optimizationLog": "-O4: more aggressive than -O3 under the same assumptions, input-data sensitive. Non-default diagnostic mode. Bit-identical to the pinned strict-f32 oracle.",
+          "maxUlpDeviation": null,
+          "maxRelativeDeviation": null,
+          "declaredTolerance": null
+        }
+      ]
+    },
+    {
+      "workloadId": "ml.keyword-spotting.v1",
+      "manifest": "/benchmarks/multilang-wasm/ml-keyword-spotting-v1.manifest.json",
+      "route": "/benchmarks/ml-keyword-spotting-v1/",
+      "title": "Speech Commands keyword spotting",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "asc"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "ml.numeric-kernels.v1",
+      "manifest": "/benchmarks/multilang-wasm/ml-numeric-kernels.manifest.json",
+      "route": "/benchmarks/ml-numeric-kernels-v1/",
+      "title": "ML numeric kernels",
+      "baselineEngines": [
+        "js",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "multilang-wasm",
+      "manifest": "/benchmarks/multilang-wasm/fft-kernel.manifest.json",
+      "route": null,
+      "title": null,
+      "baselineEngines": [
+        "js",
+        "asc",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "multilang-wasm",
+      "manifest": "/benchmarks/multilang-wasm/multilang-wasm.manifest.json",
+      "route": "/benchmarks/multilang-wasm/",
+      "title": "Multi-Language WebAssembly Kernels",
+      "baselineEngines": [
+        "js",
+        "wat",
+        "asc",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "multilang-wasm",
+      "manifest": "/benchmarks/multilang-wasm/sum-u32.manifest.json",
+      "route": "/benchmarks/sum-u32/",
+      "title": "Modulo-2³² Integer Sum",
+      "baselineEngines": [
+        "js",
+        "wat",
+        "asc",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "network.pcap-decode.v1",
+      "manifest": "/benchmarks/multilang-wasm/network-pcap-decode.manifest.json",
+      "route": "/benchmarks/network.pcap-decode.v1/",
+      "title": "PCAP protocol decode demo | Wasm versus JavaScript",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "numeric.polybench-panel.v1",
+      "manifest": "/benchmarks/multilang-wasm/numeric-polybench-panel.manifest.json",
+      "route": "/benchmarks/numeric.polybench-panel.v1/",
+      "title": "PolyBench numeric panel | Wasm versus JavaScript",
+      "baselineEngines": [
+        "js",
+        "wat",
+        "c",
+        "cpp",
+        "rs",
+        "asc",
+        "dart"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "regex-automata-duel-demo",
+      "manifest": "/benchmarks/multilang-wasm/regex-automata-duel-demo.manifest.json",
+      "route": "/benchmarks/regex-automata-duel-demo/",
+      "title": "Reduced regex automata fixture",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "asc"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "serialization.json-telemetry.v1",
+      "manifest": "/benchmarks/multilang-wasm/serialization-json-telemetry.manifest.json",
+      "route": "/benchmarks/serialization.json-telemetry.v1/",
+      "title": "JSON telemetry demo | Wasm versus JavaScript",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "asc",
+        "dart"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "serialization.protobuf-gateway.v1",
+      "manifest": "/benchmarks/multilang-wasm/serialization-protobuf-gateway.manifest.json",
+      "route": "/benchmarks/serialization-protobuf-gateway/",
+      "title": "Protobuf gateway correctness demo | Wasm versus JavaScript",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "asc"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "server.ssr-template.v1",
+      "manifest": "/benchmarks/multilang-wasm/server-ssr-template-v1.manifest.json",
+      "route": "/benchmarks/server.ssr-template.v1/",
+      "title": "Server-side template correctness demo | Wasm versus JavaScript",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "asc"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "simulation.nbody-cloth.v1",
+      "manifest": "/benchmarks/multilang-wasm/simulation-nbody-cloth.manifest.json",
+      "route": "/benchmarks/simulation-nbody-cloth/",
+      "title": "N-Body Simulation",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "asc",
+        "dart"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "simulation.rigid-body-2d.v1",
+      "manifest": "/benchmarks/multilang-wasm/simulation-rigid-body-2d.manifest.json",
+      "route": "/benchmarks/simulation-rigid-body-2d-v1/",
+      "title": "500-box rigid-body settlement",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "asc",
+        "dart"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "text.diff-patch.v1",
+      "manifest": "/benchmarks/multilang-wasm/text-diff-patch.manifest.json",
+      "route": "/benchmarks/text.diff-patch.v1/",
+      "title": "Unicode line diff demo | Wasm versus JavaScript",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "asc",
+        "dart"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "text.gc-document-edit.v1",
+      "manifest": "/benchmarks/multilang-wasm/text-gc-document-edit.manifest.json",
+      "route": "/benchmarks/text.gc-document-edit.v1/",
+      "title": "GC-rich document edit demo | Wasm versus JavaScript",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "asc",
+        "dart"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "text.markdown-cms.v1",
+      "manifest": "/benchmarks/multilang-wasm/text-markdown-cms.manifest.json",
+      "route": "/benchmarks/text.markdown-cms.v1/",
+      "title": "Markdown CMS demo | Wasm versus JavaScript",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "asc"
+      ],
+      "variants": []
+    },
+    {
+      "workloadId": "text.regex-log-scan.v1",
+      "manifest": "/benchmarks/multilang-wasm/text-regex-log-scan.manifest.json",
+      "route": "/benchmarks/base/text.regex-log-scan.v1/",
+      "title": "100 MiB regex log scan | Wasm versus JavaScript",
+      "baselineEngines": [
+        "js",
+        "c",
+        "cpp",
+        "rs",
+        "dart"
+      ],
+      "variants": []
+    }
+  ],
+  "summary": {
+    "workloads": 45,
+    "baselineEngineRows": 248,
+    "variantRows": 3,
+    "workloadsWithVariants": 1,
+    "workloadsWithoutVariants": 44,
+    "bitIdenticalVariants": 3,
+    "reassociatedVariants": 0,
+    "workloadsWithoutRoute": 1
+  }
+}

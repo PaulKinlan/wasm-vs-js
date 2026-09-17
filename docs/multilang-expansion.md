@@ -103,6 +103,84 @@ were dropped after the 2026-08-11 VLM pass (counters matched but full-output
 bytes drifted from the oracle — honest absence, per the project rule). Their
 manifests ship JS/C/C++/Rust.
 
+### Per-language coverage: Dart (2026-09-17)
+
+Exclusions in this document have always been recorded per _workload_. Nothing
+recorded them per _language_, so a manifest could ship five engines, look
+complete, and still be missing one. 18 of the 45 manifests have no Dart row:
+
+| Manifest                         | Engines         |
+| -------------------------------- | --------------- |
+| archive-zip-workspace-v1         | js,c,cpp,rs,asc |
+| audio-webaudio-effects-v1        | js,c,cpp,rs,asc |
+| dom-dependent-form-validation    | js,c,cpp,rs,asc |
+| dom-grid-movement                | js,c,cpp,rs,asc |
+| dom-keyed-list-mutation          | js,c,cpp,rs,asc |
+| dom-nested-tree-mutation         | js,c,cpp,rs,asc |
+| dom-table-sort-filter-pagination | js,c,cpp,rs,asc |
+| dom-virtualized-grid-v1          | js,c,cpp,rs,asc |
+| game-canvas-arcade               | js,c,cpp,rs,asc |
+| game-canvas-entity-pathfinding   | js,c,cpp,rs,asc |
+| graphics-gltf-viewer             | js,c,cpp        |
+| ml-keyword-spotting-v1           | js,c,cpp,rs,asc |
+| network-pcap-decode              | js,c,cpp        |
+| regex-automata-duel-demo         | js,c,cpp,rs,asc |
+| serialization-protobuf-gateway   | js,c,cpp,rs,asc |
+| server-ssr-template-v1           | js,c,cpp,rs,asc |
+| text-markdown-cms                | js,c,cpp,rs,asc |
+| vdom-diff-patch                  | js,c,cpp,rs,asc |
+
+These are absences, not exclusions: no reason has been written for any of them.
+`graphics-gltf-viewer` and `network-pcap-decode` are already out of multilang
+scope (see the 2026-08-12 decision above); the other 16 are open work. Treat
+this table as the backlog, not as a set of documented decisions.
+
+**text.gc-document-edit.v1 — closed.** This one mattered more than the rest.
+It is the suite's GC-pressure workload (256 initial nodes, then 10,000 edits
+that allocate 3,334 nodes and drop 3,333), and it compared JavaScript against
+four kernels — C, C++, Rust, AssemblyScript — that all hold the document in
+non-allocating linear-memory slot arrays. The workload built to stress managed
+heaps had no managed-heap engine in it.
+
+It now ships `benchmarks/multilang-wasm/text-gc-document-edit/gc_document_kernel.dart`,
+built by `scripts/build-multilang-dart-gc-document.ts` and verified against the
+pinned oracle (3,334 / 3,333 / 3,333 edits, 257 final nodes, 6,922 / 6,666 /
+10,255 link counters, canonical FNV-1a `0x6acfb345`) in
+`tests/multilang-gc-document-edit.test.ts`. A second test asserts the module
+exports no linear memory and declares GC struct types, so the kernel cannot
+quietly become another slot-array implementation.
+
+The Dart kernel deliberately uses a different representation from its peers: a
+graph of `_Node` objects linked by object references on the WasmGC heap, where
+a delete drops the last reference and the object becomes garbage. Same parse,
+same edit semantics, same traversal, bit-identical counters and digest — a
+different data structure, because that is the one the language actually offers.
+The engine row carries a `representation` field saying so. Read the delta as
+"managed object graph versus hand-rolled slot table".
+
+Measured in Chrome over the frozen fixture (25 iterations, 50 warmup runs,
+arm64 macOS, medians):
+
+| Engine         | Median ms | vs C  | Artifact bytes |
+| -------------- | --------- | ----- | -------------- |
+| C / Wasm       | 0.135     | 1.00x | 5,634          |
+| C++ / Wasm     | 0.135     | 1.00x | 5,560          |
+| Rust / Wasm    | 0.155     | 1.15x | 668,008        |
+| AssemblyScript | 0.210     | 1.56x | 3,972          |
+| Dart / WasmGC  | 0.635     | 4.70x | 56,751         |
+
+4.7x is the price of the managed object graph on this trace, against kernels
+that never allocate. Do not read the JavaScript row (4.655 ms) as part of this
+comparison: the JS model is the pinned Track A oracle and builds a canonical
+_string_, while the Wasm kernels fold an FNV-1a digest, so it is not doing the
+same work. The five kernel rows are output-identical to each other and are the
+only fair comparison on this page.
+
+Not measured: allocation counts, heap growth, and GC pause behaviour. The Web
+platform exposes no portable GC events, which `workload.js` already reports as
+`gcDiagnostics: { status: "unavailable" }`. The Dart row makes GC cost visible
+in wall time only.
+
 ## Architecture (shared machinery — build once, reuse per workload)
 
 ### Source layout

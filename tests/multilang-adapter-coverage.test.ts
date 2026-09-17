@@ -20,7 +20,7 @@ const ALIAS: Record<string, string> = { as: "asc", assemblyscript: "asc" };
 
 interface Manifest {
   workloadId?: string;
-  engines?: Array<{ key?: string }>;
+  engines?: Array<{ key?: string; kind?: string }>;
 }
 
 /** Slice multilang-runner.js into one segment per adapter, keyed by workloadId. */
@@ -38,7 +38,10 @@ function adapterBlocks(): Map<string, string> {
 }
 
 /** Engine keys the adapter builds a callable for, or null if it enumerates. */
-function builtEngines(segment: string): Set<string> | null {
+function builtEngines(
+  segment: string,
+  engines: Array<{ key?: string; kind?: string }>,
+): Set<string> | null {
   // An adapter that walks mods.engines covers whatever the manifest declares.
   if (segment.includes("Object.keys(mods.engines)")) return null;
   const built = new Set<string>();
@@ -47,6 +50,18 @@ function builtEngines(segment: string): Set<string> | null {
   }
   for (const m of segment.matchAll(/callables\.([a-z]+)\s*=/g)) built.add(ALIAS[m[1]] ?? m[1]);
   for (const m of segment.matchAll(/callables\["([a-z]+)"\]\s*=/g)) built.add(ALIAS[m[1]] ?? m[1]);
+  // An adapter may also walk the loaded engine map filtered by kind, e.g.
+  //   for (const [key, loaded] of Object.entries(mods.engines)) {
+  //     if (loaded?.cfg?.kind !== "dart") continue;
+  // That covers every manifest engine of that kind, including Track B variants
+  // such as dart-o3. Resolve it against the manifest instead of exempting the
+  // whole adapter, so its other literal engine lists stay checked.
+  for (const m of segment.matchAll(/cfg\?\.kind !== "([a-z]+)"/g)) {
+    const kind = m[1];
+    for (const engine of engines) {
+      if (engine.kind === kind && engine.key) built.add(ALIAS[engine.key] ?? engine.key);
+    }
+  }
   return built;
 }
 
@@ -63,7 +78,7 @@ Deno.test("no manifest declares an engine its adapter never runs", async () => {
     );
     const segment = manifest.workloadId ? blocks.get(manifest.workloadId) : undefined;
     if (!segment) continue; // no adapter: the page has no in-browser comparison
-    const built = builtEngines(segment);
+    const built = builtEngines(segment, manifest.engines ?? []);
     if (built === null) continue;
     checked++;
     for (const engine of manifest.engines ?? []) {
