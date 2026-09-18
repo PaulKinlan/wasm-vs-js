@@ -186,8 +186,7 @@ async function main() {
     description:
       "Every multi-language kernel rebuilt from committed source with its recorded recipe, " +
       "then checked against the workload's pinned oracle in place of the committed artifact.",
-    claim:
-      "Oracle equivalence says a rebuild computes what the committed artifact computes. It " +
+    claim: "Oracle equivalence says a rebuild computes what the committed artifact computes. It " +
       "does not say the rebuild is the committed artifact: that is byte equality, recorded " +
       "separately per toolchain in kernel-build-provenance.v1.json. Neither stands in for " +
       "the other.",

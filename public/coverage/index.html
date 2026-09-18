@@ -132,6 +132,15 @@
             <tbody id="provenance-body"></tbody>
           </table>
         </div>
+
+        <h3 id="oracle-heading">Oracle equivalence</h3>
+        <p>
+          Byte-equality measures whether a compiler produces identical binaries. Oracle-equivalence
+          measures whether rebuilt binaries compute identical outputs to the pinned oracles.
+          Every multi-language kernel is rebuilt from source and verified against the existing
+          pinned test suites.
+        </p>
+        <div id="oracle-summary" class="decision-grid"></div>
       </section>
 
       <section aria-labelledby="bespoke-heading">

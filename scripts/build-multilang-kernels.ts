@@ -192,6 +192,8 @@ export interface EngineBuild {
   artifact: string;
   /** Bytes of linear memory the module starts with. */
   initialMemoryBytes: number;
+  /** Stack reservation bytes when specified by the manifest. */
+  stackSizeBytes?: number;
   /** dart2wasm optimization level, when the engine row declares one. */
   optimizationLevel?: string;
 }
@@ -207,6 +209,7 @@ interface Manifest {
     file?: string;
     files?: Record<string, string>;
     initialMemoryBytes?: number;
+    stackSizeBytes?: number;
     optimizationLevel?: string;
   }>;
 }
@@ -270,6 +273,7 @@ export async function planBuilds(
         source,
         artifact,
         initialMemoryBytes: engine.initialMemoryBytes ?? DEFAULT_INITIAL_MEMORY,
+        stackSizeBytes: engine.stackSizeBytes,
         optimizationLevel: engine.optimizationLevel,
       });
     }
@@ -318,24 +322,27 @@ export function commandFor(build: EngineBuild, outDir: string): [string, string[
         out,
         src,
       ]];
-    case "rs":
+    case "rs": {
       // Without this the module starts at rustc's default linear memory, which
       // is smaller than the fixtures these kernels are driven with: rebuilt
       // scan_log_rs trapped on an out-of-bounds access and zip_build_rs
       // returned a failure status before computing anything. The C, C++ and
       // AssemblyScript recipes had always carried the equivalent flag; this one
       // did not, so it was a recipe that could not produce a working artifact.
-      return ["rustc", [
+      const rsArgs = [
         "--target=wasm32-unknown-unknown",
         "-O",
         "--crate-type",
         "cdylib",
         "-C",
         `link-arg=--initial-memory=${build.initialMemoryBytes}`,
-        "-o",
-        out,
-        src,
-      ]];
+      ];
+      if (build.stackSizeBytes !== undefined) {
+        rsArgs.push("-C", `link-arg=-zstack-size=${build.stackSizeBytes}`);
+      }
+      rsArgs.push("-o", out, src);
+      return ["rustc", rsArgs];
+    }
     case "asc":
     case "as":
       return ["npx", [

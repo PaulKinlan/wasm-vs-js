@@ -42,6 +42,7 @@
     {
       "key": "rs",
       "initialMemoryBytes": 327680,
+      "stackSizeBytes": 262144,
       "kind": "linear",
       "lang": "rs",
       "label": "Rust / Wasm",

@@ -14,13 +14,13 @@ The provenance ledger pinned two strings:
 An arm64 macOS machine with Homebrew's LLVM 22 satisfies both. Its clang reports
 `Homebrew clang version 22.1.8` and its rustc matches the pin character for character. Its
 fingerprint is `tc-9890abef9b5a`, and across the 181 kernels the ledger now covers it
-rebuilds 47 of them byte for byte:
+rebuilds 72 of them byte for byte:
 
 | Language       | Kernels | Rebuilt identically |
 | -------------- | ------: | ------------------: |
 | Dart           |      27 |                  27 |
-| AssemblyScript |      35 |                  13 |
-| Rust           |      39 |                   7 |
+| AssemblyScript |      35 |                  34 |
+| Rust           |      39 |                  11 |
 | C              |      39 |                   0 |
 | C++            |      41 |                   0 |
 
@@ -29,25 +29,16 @@ recipe is a generic per-language command, and where the committed artifact was b
 flags nobody wrote down, the recipe cannot reproduce it on any machine. The C and C++ rows
 at zero are consistent with either cause, and the ledger does not currently separate them.
 The Dart row was at 24 of 27 until the three dart2wasm optimization-level variants got their
-`-O` flag into the recipe — that was a recipe error being reported as a reproduction
-failure, and fixing the recipe fixed the row.
+`-O` flag into the recipe; the AssemblyScript row went from 13 to 34 and Rust from 7 to 11
+once `--initial-memory` and custom `-zstack-size` flags matching the committed modules'
+declarations were recorded in the recipes.
 
-The direct evidence that the machine matters is in the disagreement between the two
-toolchains the ledger now holds. Comparing `tc-unrecorded` with `tc-9890abef9b5a` over the
-154 kernels both have observed:
-
-| Both machines                                 | Kernels |
-| --------------------------------------------- | ------: |
-| rebuilt the committed bytes                   |      20 |
-| failed to                                     |     128 |
-| **disagreed** — one rebuilt them, one did not |   **6** |
-
-The six are `crypto`, `myers_diff` and `nbody_step` in both C and C++: same source, same
-recorded command, different machine, different bytes. There is no case of the reverse, so
-the Homebrew toolchain is strictly worse here rather than merely different.
-
-Underneath the 128 both machines failed on, 98 did not even agree with _each other_ — three
-distinct binaries for one source and one recipe. A boolean field had no way to say that.
+The direct evidence that the machine matters is in the disagreement between toolchains on
+identical recipes. The six kernels that disagree across machines on identical source and
+commands are `crypto`, `myers_diff` and `nbody_step` in both C and C++: same source, same
+recorded command, different machine, different bytes. Underneath the kernels both machines
+failed on, most did not even agree with _each other_ — distinct binaries for one source and
+one recipe. A boolean field had no way to say that.
 
 A release number identifies a source tree. Two vendors can build the same tree with
 different defaults, different LLVM points, different config files, and ship binaries that
@@ -127,8 +118,8 @@ deno run -A scripts/toolchain-fingerprint.ts
 
 The AssemblyScript entry is new information rather than a restatement. The builder invokes
 `npx --yes -p assemblyscript asc`, which resolves to whatever version is current; nothing in
-the repository had ever pinned it. Every AssemblyScript artifact reproduces under 0.28.20,
-so that is what the pin records.
+the repository had ever pinned it. 34 of 35 AssemblyScript artifacts reproduce under 0.28.20
+(only `markdown_cms_kernel_asc.wasm` differs), so that is what the pin records.
 
 Deno, Node and the host macOS SDK are listed as deliberately unpinned, each with a reason.
 Nothing is left out silently.

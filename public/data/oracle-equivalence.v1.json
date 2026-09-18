@@ -58,8 +58,8 @@
     }
   },
   "observedAt": "2026-09-18",
-  "kernelsRebuilt": 179,
-  "kernelsNotAttested": 2,
+  "kernelsRebuilt": 181,
+  "kernelsNotAttested": 0,
   "dartIncluded": true,
   "testsRun": 35,
   "testsEquivalent": 35,
@@ -303,8 +303,7 @@
       "engine": "rs",
       "lang": "rs",
       "artifact": "zip_kernel_rs.wasm",
-      "status": "notAttested",
-      "reason": "rebuild failed: error: linking with `rust-lld` failed: exit status: 1"
+      "status": "rebuilt"
     },
     {
       "workload": "audio-fft",
@@ -1459,8 +1458,7 @@
       "engine": "rs",
       "lang": "rs",
       "artifact": "gc_document_kernel_rs.wasm",
-      "status": "notAttested",
-      "reason": "rebuild failed: error: linking with `rust-lld` failed: exit status: 1"
+      "status": "rebuilt"
     },
     {
       "workload": "text-markdown-cms",

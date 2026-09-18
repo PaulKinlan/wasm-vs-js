@@ -91,9 +91,9 @@
     },
     "tc-9890abef9b5a": {
       "identical": 72,
-      "differs": 107,
+      "differs": 109,
       "notCommitted": 0,
-      "buildFailed": 2,
+      "buildFailed": 0,
       "notObserved": 0
     }
   },
@@ -1394,7 +1394,7 @@
       "artifactSha256": "469ee99e0239823087b5e35a0b57e9e57b9a48da1b7022aa3e52bdc39bbab7b4",
       "artifactBytes": 668008,
       "reproducesCommittedBytes": false,
-      "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -C link-arg=--initial-memory=655360 -o <out>/gc_document_kernel_rs.wasm benchmarks/multilang-wasm/text-gc-document-edit/gc_document_kernel.rs",
+      "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -C link-arg=--initial-memory=655360 -C link-arg=-zstack-size=65536 -o <out>/gc_document_kernel_rs.wasm benchmarks/multilang-wasm/text-gc-document-edit/gc_document_kernel.rs",
       "reproductions": [
         {
           "toolchain": "tc-unrecorded",
@@ -1406,9 +1406,9 @@
         },
         {
           "toolchain": "tc-9890abef9b5a",
-          "result": "buildFailed",
-          "reason": "rust-lld: error: initial memory too small, 1155708 bytes needed",
-          "recipeSha256": "7d2d6d198ca5bc0f235f9b49a5ddcdf1aeb6ad84505c4c0a08aee40845796ead",
+          "result": "differs",
+          "artifactSha256": "2d4f90f44f2a0a9f1d260f6c0892c02fb5da4d10212e20add35ed3e21514c264",
+          "recipeSha256": "ecc61a869af33c1e0b60e227fdaf680b559b59d03139176aa5251bc98e943c5e",
           "firstObserved": "2026-09-18",
           "lastObserved": "2026-09-18"
         }
@@ -5292,7 +5292,7 @@
       "artifactSha256": "0ad851006c2d0dc30ca05e2b4a1d79d04918e630a49675ef56f522546fd5029c",
       "artifactBytes": 605024,
       "reproducesCommittedBytes": false,
-      "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -C link-arg=--initial-memory=327680 -o <out>/zip_kernel_rs.wasm benchmarks/multilang-wasm/archive-zip-workspace/zip_kernel.rs",
+      "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -C link-arg=--initial-memory=327680 -C link-arg=-zstack-size=262144 -o <out>/zip_kernel_rs.wasm benchmarks/multilang-wasm/archive-zip-workspace/zip_kernel.rs",
       "reproductions": [
         {
           "toolchain": "tc-unrecorded",
@@ -5304,9 +5304,9 @@
         },
         {
           "toolchain": "tc-9890abef9b5a",
-          "result": "buildFailed",
-          "reason": "rust-lld: error: initial memory too small, 1050089 bytes needed",
-          "recipeSha256": "bb60f8268f76207e8715ad50e59023410dabb06d43edfaa33049b72a835e06fe",
+          "result": "differs",
+          "artifactSha256": "793de12219a008db612c7d1adbee15441065a3e2c5ac50f5a2dfd81c6665056e",
+          "recipeSha256": "2cca0cc6bd21476e27ae5cae287d97d9be02e0ad278405de8e0b71947311882d",
           "firstObserved": "2026-09-18",
           "lastObserved": "2026-09-18"
         }
