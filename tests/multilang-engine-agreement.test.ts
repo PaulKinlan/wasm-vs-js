@@ -192,8 +192,17 @@ Deno.test("ml.gemm.v1: every engine computes the same product", async () => {
   // here rather than quietly shipping a faster wrong answer.
   const linearEngines: ReadonlyArray<readonly [string, string]> = [
     ["c", "gemm_c.wasm"],
+    ["c-ikj", "gemm_c_ikj.wasm"],
+    ["c-tiled", "gemm_c_tiled.wasm"],
+    ["c-ikj-simd", "gemm_c_ikj_simd.wasm"],
     ["cpp", "gemm_cpp.wasm"],
+    ["cpp-ikj", "gemm_cpp_ikj.wasm"],
+    ["cpp-tiled", "gemm_cpp_tiled.wasm"],
+    ["cpp-ikj-simd", "gemm_cpp_ikj_simd.wasm"],
     ["rs", "gemm_rs.wasm"],
+    ["rs-ikj", "gemm_rs_ikj.wasm"],
+    ["rs-tiled", "gemm_rs_tiled.wasm"],
+    ["rs-ikj-simd", "gemm_rs_ikj_simd.wasm"],
     ["asc", "gemm_asc.wasm"],
     ["asc-ikj", "gemm_asc_ikj.wasm"],
     ["asc-tiled", "gemm_asc_tiled.wasm"],
@@ -225,6 +234,22 @@ Deno.test("ml.gemm.v1: every engine computes the same product", async () => {
     distinct.size === 1,
     `GEMM engines disagree: ${[...digests].map(([k, d]) => `${k}=${d.toString(16)}`).join(" ")}`,
   );
+
+  // Also verify the reassociated SIMD dot-product variant stays within its declared tolerance.
+  const simdDot = await instantiate("gemm_c_simd_dot.wasm");
+  grow(simdDot.memory, outOff + M * N * 4);
+  new Float32Array(simdDot.memory.buffer, aOff, M * K).set(a);
+  new Float32Array(simdDot.memory.buffer, bOff, K * N).set(b);
+  new Float32Array(simdDot.memory.buffer, c0Off, M * N).set(c0);
+  simdDot.gemm(aOff, bOff, c0Off, outOff, M, N, K);
+  const simdOut = new Float32Array(simdDot.memory.buffer, outOff, M * N);
+  let maxRel = 0;
+  for (let i = 0; i < M * N; i++) {
+    const denom = Math.max(Math.abs(out[i]), 1e-6);
+    const rel = Math.abs(simdOut[i] - out[i]) / denom;
+    if (rel > maxRel) maxRel = rel;
+  }
+  assert(maxRel <= 0.005, `c-simd-dot exceeded declaredTolerance 0.005: maxRel=${maxRel}`);
 });
 
 // --- the guard itself -------------------------------------------------------
@@ -343,7 +368,7 @@ Deno.test("ml.numeric-kernels.v1: the six kernels agree across engines", async (
   };
   const expected = digest(order.map((k) => reference[k]));
 
-  for (const key of ["cpp", "rs"]) {
+  for (const key of ["c", "cpp", "rs"]) {
     const exports = await instantiate(`numeric_kernels_${key}.wasm`);
     grow(exports.memory, 65536);
     const inA = 0, inB = 1024, inW = 2048, out = 8192;
@@ -379,6 +404,42 @@ Deno.test("ml.numeric-kernels.v1: the six kernels agree across engines", async (
     assert(
       digest(views) === expected,
       `${key} disagrees with the workload module across the six kernels`,
+    );
+  }
+});
+
+// --- network.pcap-decode.v1 -------------------------------------------------
+
+Deno.test("network.pcap-decode.v1: JS, C, C++, and Rust agree bit-for-bit with reference-output.bin", async () => {
+  const { runPcapJavaScript } = await import(
+    `${ROOT}benchmarks/base/network-pcap-decode/engine.js`
+  ) as {
+    runPcapJavaScript: (bytes: Uint8Array) => { bytes: Uint8Array };
+  };
+  const fixture = await Deno.readFile(
+    `${ROOT}public/artifacts/base-network-pcap-decode/fixture.pcap`,
+  );
+  const reference = await Deno.readFile(
+    `${ROOT}public/artifacts/base-network-pcap-decode/reference-output.bin`,
+  );
+  const expectedDigest = fnv1a(reference);
+  const jsOut = runPcapJavaScript(fixture).bytes;
+  assert(
+    jsOut.length === reference.length && fnv1a(jsOut) === expectedDigest,
+    "JS pcap-decode output disagrees with reference-output.bin",
+  );
+  for (const key of ["c", "cpp", "rs"]) {
+    const exports = await instantiate(`pcap_decode_${key}.wasm`);
+    const inPtr = Number(exports.input_ptr());
+    new Uint8Array(exports.memory.buffer, inPtr, fixture.length).set(fixture);
+    const status = Number(exports.run(fixture.length));
+    assert(status === 0, `pcap_decode ${key} returned non-zero status ${status}`);
+    const outPtr = Number(exports.output_ptr());
+    const outLen = Number(exports.output_len());
+    const out = new Uint8Array(exports.memory.buffer, outPtr, outLen);
+    assert(
+      outLen === reference.length && fnv1a(out) === expectedDigest,
+      `pcap_decode ${key} disagrees with reference-output.bin`,
     );
   }
 });

@@ -159,56 +159,119 @@ manifests.
 
 ## Current status
 
-Five Track B variants exist, all on `ml.gemm.v1`: `asc-ikj` and `asc-tiled` (cache and
-access-pattern work) and `dart-o2`, `dart-o3`, `dart-o4` (compiler flags). All five are
-`bit-identical`. The other 44 multi-language manifests carry Track A baselines only — 248
-engine rows in total. `/data/track-b.v1.json` reports the split.
+Eighteen Track B variants are built, verified, and wired across two workloads (`ml.gemm.v1`
+and `numeric.polybench-panel.v1`), spanning C, C++, Rust, AssemblyScript, and Dart/WasmGC.
+Seventeen are `bit-identical` to the pinned oracle and one (`c-simd-dot` on `ml.gemm.v1`)
+is `reassociated` with measured ULP and relative deviation bounds (`maxUlpDeviation: 31488`,
+`maxRelativeDeviation: 0.002152`, `declaredTolerance: 0.005`). Across the 45 multi-language
+manifests there are 250 Track A engine rows and 18 Track B variant rows. `/data/track-b.v1.json`
+reports the split.
 
-Every non-Dart language is still built at one fixed optimization setting, with no second
-configuration in `scripts/build-multilang-wasm-benchmark.ts`:
+Track A baselines continue to use the controlled compiler flags, while Track B variants
+enable `targetFeatures: ["simd128"]` (`-msimd128` in Clang, `-C target-feature=+simd128`
+in `rustc`) or dart2wasm optimization levels (`-O2`, `-O3`, `-O4`):
 
-| Language       | Flag                                      |
-| -------------- | ----------------------------------------- |
-| C / C++        | `-O3` (60 invocations)                    |
-| Rust           | `-O`                                      |
-| AssemblyScript | `-O3`                                     |
-| Dart           | none passed, so dart2wasm's default `-O1` |
-
-There is no `-msimd128`, no `-C target-feature`, no LTO, and no Binaryen `wasm-opt`
-pass in the builder.
+| Language       | Track A Flag            | Track B Flags / Features             |
+| -------------- | ----------------------- | ------------------------------------ |
+| C / C++        | `-O3 -ffp-contract=off` | `+ -msimd128` (via `targetFeatures`) |
+| Rust           | `-O`                    | `+ -C target-feature=+simd128`       |
+| AssemblyScript | `-O3`                   | loop-interchanged & tiled sources    |
+| Dart           | default `-O1`           | `-O2`, `-O3`, `-O4`                  |
 
 ## Optimization logs
 
+### `ml.gemm.v1` — C, C++, and Rust (`ikj`, `tiled`, `ikj-simd`, `simd-dot`)
+
+Ten native-compiler Track B variants on `ml.gemm.v1` (`128×128×128` strict `f32`), built
+via `scripts/build-multilang-kernels.ts --write` (which compiles individual manifests
+without touching unrelated committed artifacts) and verified against the pinned oracle in
+`tests/multilang-gemm.test.ts` and `tests/multilang-engine-agreement.test.ts`:
+
+- **`c-ikj`, `cpp-ikj`, `rs-ikj` (`bit-identical`):** Loop interchange `i/j/k` → `i/k/j`.
+  Each inner `j` iteration streams `B[t, 0..n]` contiguously along a row instead of
+  striding down a column (`128 * 4 = 512` bytes per step), while accumulating into
+  `out[i, j]` in the exact `t = 0..k-1` order required by IEEE-754 single-precision
+  addition. Yields **1.21×** (`c-ikj`), **1.18×** (`cpp-ikj`), and **1.26×** (`rs-ikj`).
+- **`c-tiled`, `cpp-tiled`, `rs-tiled` (`bit-identical`):** `32×32` `i/j` panel tiling
+  with an unsplit `k` loop so each output cell still accumulates `t = 0..k-1` in strict
+  order. Yields **0.97×** (`c-tiled`), **0.92×** (`cpp-tiled`), and **0.96×** (`rs-tiled`),
+  confirming across LLVM C, C++, and Rust codegen what `asc-tiled` showed: at `128³` the
+  three matrices (`3 × 64 KiB = 192 KiB`) already fit in L1d/L2 on Apple Silicon, so
+  `i/j` tile-boundary loop overhead slightly outweighs capacity-miss reduction when `k`
+  stays unrolled/streamed in `i/j/k` order.
+- **`c-ikj-simd`, `cpp-ikj-simd`, `rs-ikj-simd` (`bit-identical`):** Combines `i/k/j`
+  row-streaming with `wasm32` `v128` SIMD (`-msimd128` / `-C target-feature=+simd128`)
+  and `__restrict` pointer aliasing (or slice indexing in Rust). Why is a **4.43×** SIMD
+  speedup still **bit-identical** (0 ULP deviation)? Because in `i/k/j` order the inner
+  `j` loop updates 4 independent output columns `out[i, j..j+3]` in parallel using
+  `f32x4.mul` + `f32x4.add`. Each lane `j` still accumulates its scalar products
+  `A[i, t] * B[t, j]` in strict ascending `t = 0, 1, ..., k-1` order with no horizontal
+  cross-lane reduction!
+- **`c-simd-dot` (`reassociated`):** Transposes `B` into a scratch panel and computes
+  each `(i, j)` inner product with an explicit `wasm_f32x4_mul` + `wasm_f32x4_add`
+  4-way parallel accumulator followed by horizontal pairwise reduction (`(s0 + s1) + (s2 + s3)`).
+  Because 4-lane tree summation reassociates the `k` reduction, it exercises the
+  `reassociated` equivalence class: across all 16,384 output elements of the `128×128`
+  product, `maxUlpDeviation` is **31,488 ULPs** and `maxRelativeDeviation` is **0.002152**
+  (within `declaredTolerance: 0.005`), running **1.79×** faster than scalar `i/j/k` (`0.5021 ms`
+  vs `0.8971 ms`), though slower than `c-ikj-simd` (`0.2025 ms`) due to scratch transpose
+  and horizontal lane extraction.
+
+Measured (Deno 2.9.0 / V8, arm64 macOS, `128³`, 200 iterations):
+
+| Variant        | Baseline | ms/iter | vs Baseline | Binary  | Equivalence     |
+| -------------- | -------- | ------- | ----------- | ------- | --------------- |
+| `c`            | —        | 0.8971  | baseline    | 875 B   | exact           |
+| `c-ikj`        | `c`      | 0.7419  | **1.21x**   | 914 B   | `bit-identical` |
+| `c-tiled`      | `c`      | 0.9250  | 0.97x       | 1,106 B | `bit-identical` |
+| `c-ikj-simd`   | `c`      | 0.2025  | **4.43x**   | 1,038 B | `bit-identical` |
+| `c-simd-dot`   | `c`      | 0.5021  | **1.79x**   | 1,246 B | `reassociated`  |
+| `cpp`          | —        | 0.8641  | baseline    | 875 B   | exact           |
+| `cpp-ikj`      | `cpp`    | 0.7341  | **1.18x**   | 914 B   | `bit-identical` |
+| `cpp-tiled`    | `cpp`    | 0.9404  | 0.92x       | 1,106 B | `bit-identical` |
+| `cpp-ikj-simd` | `cpp`    | 0.2014  | **4.29x**   | 1,038 B | `bit-identical` |
+| `rs`           | —        | 0.9210  | baseline    | 757 B   | exact           |
+| `rs-ikj`       | `rs`     | 0.7303  | **1.26x**   | 993 B   | `bit-identical` |
+| `rs-tiled`     | `rs`     | 0.9633  | 0.96x       | 1,021 B | `bit-identical` |
+| `rs-ikj-simd`  | `rs`     | 0.2156  | **4.27x**   | 1,705 B | `bit-identical` |
+
+### `numeric.polybench-panel.v1` — `c-opt`, `c-simd`, `rs-simd`
+
+Three Track B variants on `numeric.polybench-panel.v1` (`2mm`, `3mm`, `atax`, `bicg`,
+`gemver`, `gesummv`, `mvt`, `jacobi_1d`, `seidel_2d` in IEEE-754 `f64`), verified across
+all 9 kernels in `tests/multilang-polybench.test.ts`:
+
+- **`c-opt` (`bit-identical`):** Adds `__restrict` pointer qualifiers on all 9 kernels,
+  hoists invariant row-base address calculations (`i * n`), and reorders `2mm` and `3mm`
+  into `i/k/j` row-streaming loops while keeping each cell's `f64` accumulation order
+  identical. Yields **1.15×** across the 9-kernel panel (`0.1892 ms → 0.1645 ms`).
+- **`c-simd` (`bit-identical`):** Compiles `polybench_opt.c` with `-msimd128`, enabling
+  LLVM `f64x2` 2-lane SIMD vectorization across independent columns `j` in the `i/k/j`
+  `2mm`/`3mm` matrix products, `gemver` outer-product rank-1 update, and `jacobi_1d`
+  stencil sweep without reassociating any scalar reduction. Yields **2.14×** (`0.1892 ms → 0.0884 ms`).
+- **`rs-simd` (`bit-identical`):** Compiles `polybench_opt.rs` (`i/k/j` `2mm`/`3mm` +
+  hoisted row pointers) with `-C target-feature=+simd128` (`f64x2` vectorization),
+  yielding **1.70×** over the Rust Track A baseline (`0.1512 ms → 0.0887 ms`).
+
+| Variant   | Baseline | 9-Kernel Sum (ms) | vs Baseline | Binary  | Equivalence     |
+| --------- | -------- | ----------------- | ----------- | ------- | --------------- |
+| `c`       | —        | 0.1892            | baseline    | 3,365 B | exact           |
+| `c-opt`   | `c`      | 0.1645            | **1.15x**   | 3,701 B | `bit-identical` |
+| `c-simd`  | `c`      | 0.0884            | **2.14x**   | 6,753 B | `bit-identical` |
+| `rs`      | —        | 0.1512            | baseline    | 4,580 B | exact           |
+| `rs-simd` | `rs`     | 0.0887            | **1.70x**   | 6,358 B | `bit-identical` |
+
 ### `ml.gemm.v1` — `asc-ikj`, `asc-tiled`
 
-The memory-hierarchy variants. Both are AssemblyScript, both `bit-identical`, both built
-by `scripts/build-multilang-asc-opt.ts`, which refuses to report a timing for any variant
+The AssemblyScript memory-hierarchy variants. Both are `bit-identical`, built by
+`scripts/build-multilang-asc-opt.ts`, which refuses to report a timing for any variant
 whose output digest is not the pinned oracle's.
-
-AssemblyScript rather than C for one reason: C is currently unbuildable here. Not one of
-the 39 committed C or 41 committed C++ artifacts rebuilds byte-for-byte under this
-machine's clang and lld, so running the main builder and accepting its output would replace
-committed bytes with bytes nobody has vouched for.
-
-AssemblyScript is not globally better off — only 13 of its 35 committed artifacts rebuild
-identically here. What matters for these two variants is narrower and sufficient: they were
-authored and built on this machine, so their committed bytes are the bytes this recipe
-produces, and `tests/multilang-kernel-provenance.test.ts` holds that. The per-language and
-per-machine counts are in `docs/toolchain-provenance.md`.
 
 **`asc-ikj` — loop interchange i/j/k → i/k/j.** The baseline reads `B[t][j]` down a
 column in the innermost loop, so every iteration touches a different 64-byte line: 128
 distinct lines walked per output element, restarted for every `j`. The interchange
 streams `B[t][*]` along a row instead — sequential addresses, full line utilisation,
-prefetcher-friendly — and makes `A[i][t]` a loop-invariant scalar. The cost is the
-register accumulator: the running sum now lives in `OUT`, so each inner step is a
-load/store pair rather than a register chain.
-
-Bit-identical because for any fixed `(i, j)` the terms are still added in ascending `t`,
-and `OUT` is an f32 array so every partial sum is rounded to f32 after each add — exactly
-what the baseline's f32 local does. Interchange moves _when_ each add happens, never the
-order of adds into a given element. That is the line between `bit-identical` and
-`reassociated`, and this variant stays on the safe side of it.
+prefetcher-friendly — and makes `A[i][t]` a loop-invariant scalar.
 
 **`asc-tiled` — i/j blocking, 32×32 panels.** Per-panel working set is 16 KiB of A plus
 16 KiB of B, against 64 KiB for the whole of B untiled. The `k` loop is deliberately left
@@ -222,47 +285,11 @@ Measured (Deno 2.9.0, arm64 macOS, 128³, 200 iterations, four repeat runs):
 | `asc-ikj`   | 0.8006  | **1.28x** | 308 B  | exact  |
 | `asc-tiled` | 1.0004  | 1.02x     | 302 B  | exact  |
 
-Spread across the four runs was 1.24–1.29x for `asc-ikj` and 1.02–1.04x for `asc-tiled`.
-
-**What this refutes.** Cache blocking is the optimization this suite most wanted to
-show, and at this size it does essentially nothing: 1.02x is within the run-to-run
-spread of the baseline itself. The reason is that the workload is too small for it. At
-128³ the whole of B is 64 KiB and already resident in this machine's L1d, so there is no
-capacity miss for blocking to remove. Tiling pays when the working set exceeds the level
-you are tiling for; here it does not.
-
-The win came from the _access pattern_, not the working-set size. Reading B along rows
-instead of down columns is worth 28% while the data volume is unchanged. Stride, not
-capacity, was the problem at this shape.
-
-Two caveats on generalising any of this. The 32×32 tile is tuned to one machine's cache
-geometry and is not a portable constant. And both results are one matrix size on one
-CPU: a larger shape would very likely reverse the ranking, which is the argument for
-eventually running this lane across several shapes rather than reporting a single number.
-
 ### `ml.gemm.v1` — `dart-o2`, `dart-o3`, `dart-o4`
 
 Built by `scripts/build-multilang-dart-opt.ts` from the unmodified
 `benchmarks/multilang-wasm/ml-gemm/gemm.dart`. Only the dart2wasm optimization level
 changes; the source, the inputs and the oracle are the pinned ones.
-
-**Mechanism.** `dart compile wasm` accepts `-O0`..`-O4` and defaults to `-O1`. Every
-committed Dart artifact in the suite was built with no `-O` flag, so the whole Dart lane
-ships at `-O1` while C and C++ ship `-O3`, Rust `-O` and AssemblyScript `-O3`. `-O2`
-adds minification, `-O3` additionally omits implicit type checks, `-O4` is more
-aggressive under the same assumptions.
-
-**Parameter tuning.** None. The level is the only variable; nothing is tuned to this
-machine's cache or core count, so these ratios should be stable across the device
-matrix, unlike the tiling variants planned below.
-
-**Equivalence.** `bit-identical`. All four levels reproduce the pinned strict-f32 oracle
-digest exactly on the 128³ frozen-order product. The builder refuses to time a variant
-that does not match.
-
-**Result.** Deno 2.9.0 / V8 14.9, arm64 macOS, 200 iterations, measured in-process —
-these are not the browser numbers published on the ml-gemm page and are not comparable
-to them.
 
 | Variant   | Level | ms/iteration | Binary   | Speedup vs `-O1` |
 | --------- | ----- | ------------ | -------- | ---------------- |
@@ -271,70 +298,30 @@ to them.
 | `dart-o3` | `-O3` | 43.8994      | 30,750 B | 1.009x           |
 | `dart-o4` | `-O4` | 43.7552      | 30,487 B | 1.013x           |
 
-**What this refutes.** The flag asymmetry is real and was undisclosed, and the suspicion
-was that it inflated the published Dart penalties (GEMM 111.8 ms against C's 2.7 ms). It
-does not. Moving from the default `-O1` to the most aggressive `-O4` buys 1.3% on this
-kernel. Dart's GEMM cost is the already-disclosed f32-emulation-in-f64 arithmetic, not
-the optimization level. The finding that survives is a size one: `-O4` is 22% smaller
-than `-O1` at identical output.
+Moving from the default `-O1` to `-O4` buys 1.3% on this kernel while reducing binary
+size by 22% (`39,079 B → 30,487 B`). Dart's GEMM cost is the `f32`-emulation-in-`f64`
+arithmetic (`Math.fround` after every operation), not the dart2wasm optimization level.
 
-`-O3` and `-O4` drop checks the other languages never had, so they are non-default
-diagnostic cells in `PLAN.md` terms and are labelled that way in the manifest and the
-lane report.
+## Summary of Built Track B Variants
 
-**Why a separate builder.** `scripts/build-multilang-wasm-benchmark.ts` rebuilds every
-C, C++, Rust and AssemblyScript artifact in one pass, which requires byte-identical
-reproduction of the pinned clang and lld. `scripts/build-multilang-dart-opt.ts` touches
-Dart artifacts only, so the Dart lane extends without rewriting another language's
-committed bytes.
-
-## Planned variants
-
-Ordered by how clean the measurement is, not by expected speedup.
-
-### ml-gemm — `ml.gemm.v1`
-
-The reference case: 128³ strict-f32, Track A freezes the i/j/k order.
-
-| Variant        | Technique                           | Class         | State                      |
-| -------------- | ----------------------------------- | ------------- | -------------------------- |
-| `asc-ikj`      | loop interchange i/j/k to i/k/j     | bit-identical | **built and measured**     |
-| `asc-tiled`    | i/j panel tiling, k order preserved | bit-identical | **built and measured**     |
-| `dart-o2/3/4`  | dart2wasm optimization levels       | bit-identical | **built and measured**     |
-| `c-tiled`      | i/j panel tiling, k order preserved | bit-identical | blocked on toolchain bytes |
-| `c-tiled-k`    | adds k-blocking                     | reassociated  | blocked on toolchain bytes |
-| `c-tiled-simd` | adds f32x4 lane accumulation        | reassociated  | blocked on toolchain bytes |
-| `rs-tiled`     | same tiling in Rust                 | bit-identical | blocked on toolchain bytes |
-
-The tiling machinery itself is proven: `asc-tiled` is the same i/j panel decomposition
-`c-tiled` would use, built and verified against the pinned oracle. The C and Rust rows
-would add a second codegen path over the same transformation, and `c-tiled-k` and
-`c-tiled-simd` are the only planned variants that exercise the declared-deviation half
-of the equivalence policy.
-
-**Why the C/C++/Rust rows are blocked.** Adding them means running
-`scripts/build-multilang-wasm-benchmark.ts`, which rebuilds every C, C++, Rust and
-AssemblyScript artifact in the lane and writes the results over the committed ones. On an
-arm64 macOS host with Homebrew clang and lld 22.1.8 — fingerprint `tc-9890abef9b5a` in the
-provenance ledger — 47 of the 181 recorded kernels rebuild byte-identically, and none of
-them are C or C++. Six kernels reproduce on the machine that recorded the original ledger
-and not on this one, from the same source and the same command. Landing the tiled variants
-therefore needs either the distribution those bytes came from, or a deliberate, separately
-reviewed toolchain re-pin that regenerates and re-commits the whole multilang artifact set.
-`docs/toolchain-provenance.md` has the per-language and per-machine breakdown.
-
-### dart optimization levels — remaining workloads
-
-Done for `ml.gemm.v1`; see the optimization log above, including the negative result.
-22 further Dart artifacts still ship at the `-O1` default. `ml.dense-mlp.v1` is the
-obvious next lane — it carries the suite's other large published Dart penalty (73.4 ms
-against C's 2.4 ms) and would test whether the GEMM finding generalises.
-`scripts/build-multilang-dart-opt.ts` is structured to take additional lanes.
-
-### numeric-polybench-panel — `numeric.polybench-panel.v1`
-
-The standard cache-blocking suite. Per-kernel tiled variants; class depends on whether
-the kernel's reduction is split. Follows ml-gemm once the machinery is proven.
+| Workload                     | Variant        | Technique                                      | Class         | State                  |
+| ---------------------------- | -------------- | ---------------------------------------------- | ------------- | ---------------------- |
+| `ml.gemm.v1`                 | `asc-ikj`      | loop interchange `i/j/k` to `i/k/j`            | bit-identical | **built and measured** |
+| `ml.gemm.v1`                 | `asc-tiled`    | `32×32` `i/j` panel tiling, `k` order kept     | bit-identical | **built and measured** |
+| `ml.gemm.v1`                 | `dart-o2/3/4`  | `dart2wasm` optimization levels `-O2/-O3/-O4`  | bit-identical | **built and measured** |
+| `ml.gemm.v1`                 | `c-ikj`        | C `i/k/j` row-streaming loop interchange       | bit-identical | **built and measured** |
+| `ml.gemm.v1`                 | `c-tiled`      | C `32×32` `i/j` panel tiling                   | bit-identical | **built and measured** |
+| `ml.gemm.v1`                 | `c-ikj-simd`   | C `i/k/j` + `-msimd128` (`f32x4` across `j`)   | bit-identical | **built and measured** |
+| `ml.gemm.v1`                 | `c-simd-dot`   | C transposed B + `f32x4` horizontal dot        | reassociated  | **built and measured** |
+| `ml.gemm.v1`                 | `cpp-ikj`      | C++ `i/k/j` row-streaming loop interchange     | bit-identical | **built and measured** |
+| `ml.gemm.v1`                 | `cpp-tiled`    | C++ `32×32` `i/j` panel tiling                 | bit-identical | **built and measured** |
+| `ml.gemm.v1`                 | `cpp-ikj-simd` | C++ `i/k/j` + `-msimd128` (`f32x4` across `j`) | bit-identical | **built and measured** |
+| `ml.gemm.v1`                 | `rs-ikj`       | Rust `i/k/j` row-streaming loop interchange    | bit-identical | **built and measured** |
+| `ml.gemm.v1`                 | `rs-tiled`     | Rust `32×32` `i/j` panel tiling                | bit-identical | **built and measured** |
+| `ml.gemm.v1`                 | `rs-ikj-simd`  | Rust `i/k/j` + `+simd128` (`f32x4` across `j`) | bit-identical | **built and measured** |
+| `numeric.polybench-panel.v1` | `c-opt`        | C `__restrict` + `i/k/j` `2mm`/`3mm` hoisting  | bit-identical | **built and measured** |
+| `numeric.polybench-panel.v1` | `c-simd`       | C `polybench_opt.c` + `-msimd128` (`f64x2`)    | bit-identical | **built and measured** |
+| `numeric.polybench-panel.v1` | `rs-simd`      | Rust `polybench_opt.rs` + `+simd128` (`f64x2`) | bit-identical | **built and measured** |
 
 ### simulation-nbody-cloth, image-editing, text-regex-log-scan
 

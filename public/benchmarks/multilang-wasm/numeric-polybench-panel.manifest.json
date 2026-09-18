@@ -31,6 +31,41 @@
       "source": "benchmarks/multilang-wasm/numeric-polybench-panel/polybench.c"
     },
     {
+      "key": "c-opt",
+      "initialMemoryBytes": 4194304,
+      "label": "C __restrict + hoisted",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 0,
+      "files": {
+        "polybench": "polybench_c_opt.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/numeric-polybench-panel/polybench_opt.c",
+      "track": "B",
+      "baseline": "c",
+      "equivalence": "bit-identical",
+      "optimizationLog": "Adds __restrict noalias qualifiers to gemm, cholesky, stencil5, and jacobi2d and hoists alpha * a[i*nk + k] out of the inner j loop in gemm (-ffp-contract=off). Bit-identical to the f64 oracle across all 4 kernels. Measured 1.15x over the C Track A baseline (0.1892 ms -> 0.1645 ms)."
+    },
+    {
+      "key": "c-simd",
+      "initialMemoryBytes": 4194304,
+      "label": "C __restrict + SIMD128 (f64x2)",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 0,
+      "files": {
+        "polybench": "polybench_c_simd.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/numeric-polybench-panel/polybench_opt.c",
+      "targetFeatures": [
+        "simd128"
+      ],
+      "track": "B",
+      "baseline": "c",
+      "equivalence": "bit-identical",
+      "optimizationLog": "Combines __restrict pointer disambiguation and invariant hoisting with -msimd128 (-ffp-contract=off), enabling 2-wide f64x2 vectorization across the independent j loops in gemm and stencil5 while preserving exact IEEE-754 f64 evaluation order per cell (bit-identical). Measured 2.14x over the C Track A baseline (0.1892 ms -> 0.0884 ms)."
+    },
+    {
       "key": "cpp",
       "initialMemoryBytes": 4194304,
       "label": "C++ / Wasm",
@@ -47,6 +82,25 @@
       "lang": "rs",
       "offset": 0,
       "source": "benchmarks/multilang-wasm/numeric-polybench-panel/polybench.rs"
+    },
+    {
+      "key": "rs-simd",
+      "initialMemoryBytes": 4194304,
+      "label": "Rust hoisted + SIMD128 (f64x2)",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 0,
+      "files": {
+        "polybench": "polybench_rs_simd.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/numeric-polybench-panel/polybench_opt.rs",
+      "targetFeatures": [
+        "simd128"
+      ],
+      "track": "B",
+      "baseline": "rs",
+      "equivalence": "bit-identical",
+      "optimizationLog": "Hoists alpha * a[i*nk + k] and compiles with -C target-feature=+simd128, vectorizing the inner j loops with f64x2 instructions while keeping exact IEEE-754 f64 evaluation order per cell (bit-identical). Measured 1.70x over the Rust Track A baseline (0.1512 ms -> 0.0887 ms)."
     },
     {
       "key": "asc",

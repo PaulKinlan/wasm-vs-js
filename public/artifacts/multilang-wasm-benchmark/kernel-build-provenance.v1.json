@@ -78,20 +78,20 @@
       }
     }
   },
-  "kernelCount": 181,
-  "reproducesCommittedBytes": 78,
-  "doesNotReproduceCommittedBytes": 103,
+  "kernelCount": 196,
+  "reproducesCommittedBytes": 92,
+  "doesNotReproduceCommittedBytes": 104,
   "reproductionsByToolchain": {
     "tc-unrecorded": {
       "identical": 26,
       "differs": 128,
       "notCommitted": 0,
       "buildFailed": 0,
-      "notObserved": 27
+      "notObserved": 42
     },
     "tc-9890abef9b5a": {
-      "identical": 72,
-      "differs": 109,
+      "identical": 86,
+      "differs": 110,
       "notCommitted": 0,
       "buildFailed": 0,
       "notObserved": 0
@@ -1506,6 +1506,94 @@
     },
     {
       "workload": "ml-gemm",
+      "engine": "c-ikj-simd",
+      "lang": "c",
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm_ikj.c",
+      "sourceSha256": "95d909f687f9c7b6c227734573c14796596f991a059662f667bb90244c5203c6",
+      "artifact": "gemm_c_ikj_simd.wasm",
+      "artifactSha256": "0e8872a807efb96f6cc5135fd29c40d2335b9fbf14a7fdb01b235e971949107b",
+      "artifactBytes": 1492,
+      "reproducesCommittedBytes": true,
+      "command": "clang --target=wasm32 -O3 -msimd128 -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=1048576 -o <out>/gemm_c_ikj_simd.wasm benchmarks/multilang-wasm/ml-gemm/gemm_ikj.c",
+      "reproductions": [
+        {
+          "toolchain": "tc-9890abef9b5a",
+          "result": "identical",
+          "artifactSha256": "0e8872a807efb96f6cc5135fd29c40d2335b9fbf14a7fdb01b235e971949107b",
+          "recipeSha256": "2007c2414fb0decadd789521583d15f739014487eb5e89678f18a10879b596f2",
+          "firstObserved": "2026-09-18",
+          "lastObserved": "2026-09-18"
+        }
+      ]
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "c-ikj",
+      "lang": "c",
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm_ikj.c",
+      "sourceSha256": "95d909f687f9c7b6c227734573c14796596f991a059662f667bb90244c5203c6",
+      "artifact": "gemm_c_ikj.wasm",
+      "artifactSha256": "99180e83bdf12d36f1d8fe30f5cf7e1d358296b294dfd2784a1eca818d161a1a",
+      "artifactBytes": 1676,
+      "reproducesCommittedBytes": true,
+      "command": "clang --target=wasm32 -O3 -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=1048576 -o <out>/gemm_c_ikj.wasm benchmarks/multilang-wasm/ml-gemm/gemm_ikj.c",
+      "reproductions": [
+        {
+          "toolchain": "tc-9890abef9b5a",
+          "result": "identical",
+          "artifactSha256": "99180e83bdf12d36f1d8fe30f5cf7e1d358296b294dfd2784a1eca818d161a1a",
+          "recipeSha256": "5102c8a0684b15936ee8818025e8ddbda213690f37f764fbef7918150812a213",
+          "firstObserved": "2026-09-18",
+          "lastObserved": "2026-09-18"
+        }
+      ]
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "c-simd-dot",
+      "lang": "c",
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm_simd_dot.c",
+      "sourceSha256": "e95251239cc8ab2d795b7d156129a16b7f2aff5470ee2e0a4c5acac3dc885873",
+      "artifact": "gemm_c_simd_dot.wasm",
+      "artifactSha256": "cabad3ec01ab700ddde75784cea153630e2a7ea7f086e9b5a48f5fc39b4db27e",
+      "artifactBytes": 1521,
+      "reproducesCommittedBytes": true,
+      "command": "clang --target=wasm32 -O3 -msimd128 -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=1048576 -o <out>/gemm_c_simd_dot.wasm benchmarks/multilang-wasm/ml-gemm/gemm_simd_dot.c",
+      "reproductions": [
+        {
+          "toolchain": "tc-9890abef9b5a",
+          "result": "identical",
+          "artifactSha256": "cabad3ec01ab700ddde75784cea153630e2a7ea7f086e9b5a48f5fc39b4db27e",
+          "recipeSha256": "ff4ad7753b37e49fbf6070a1d7f6dbb837186655a5b19a53f5d0fddcafffdc95",
+          "firstObserved": "2026-09-18",
+          "lastObserved": "2026-09-18"
+        }
+      ]
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "c-tiled",
+      "lang": "c",
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm_tiled.c",
+      "sourceSha256": "4943f884caa86b09e0ed9455706782d83f920efb338cfc89943cdb0f04f3868b",
+      "artifact": "gemm_c_tiled.wasm",
+      "artifactSha256": "11f88fb4ffd2e5d3cb71e5c49204b1b11c146b2b16066c9ccdce4068e3fe7264",
+      "artifactBytes": 1568,
+      "reproducesCommittedBytes": true,
+      "command": "clang --target=wasm32 -O3 -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=1048576 -o <out>/gemm_c_tiled.wasm benchmarks/multilang-wasm/ml-gemm/gemm_tiled.c",
+      "reproductions": [
+        {
+          "toolchain": "tc-9890abef9b5a",
+          "result": "identical",
+          "artifactSha256": "11f88fb4ffd2e5d3cb71e5c49204b1b11c146b2b16066c9ccdce4068e3fe7264",
+          "recipeSha256": "28141015083b81e664f9191b5fbab97b5feea00142fa5eba7a176f6a6d1c8c9e",
+          "firstObserved": "2026-09-18",
+          "lastObserved": "2026-09-18"
+        }
+      ]
+    },
+    {
+      "workload": "ml-gemm",
       "engine": "c",
       "lang": "c",
       "source": "benchmarks/multilang-wasm/ml-gemm/gemm.c",
@@ -1529,6 +1617,72 @@
           "result": "differs",
           "artifactSha256": "6a3d5952474412e07d21184fc24aba11aa923c790bc3eddb3504b2d8d707e1a8",
           "recipeSha256": "15f625bf89c274bfdf58fe8f5f9c728cf84bedc0667a7a8d7403d15522e9efa4",
+          "firstObserved": "2026-09-18",
+          "lastObserved": "2026-09-18"
+        }
+      ]
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "cpp-ikj-simd",
+      "lang": "cpp",
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm_ikj.cpp",
+      "sourceSha256": "c30cdda1fa1ee041574f08fb8d5e64f3252efbf1eedfbc1f4268d82e84c8fb44",
+      "artifact": "gemm_cpp_ikj_simd.wasm",
+      "artifactSha256": "9988ef20e7d00a93611d67f4396dde16f441d1146194f30faf047fc54188c0be",
+      "artifactBytes": 1494,
+      "reproducesCommittedBytes": true,
+      "command": "clang++ --target=wasm32 -O3 -msimd128 -nostdlib -fno-exceptions -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=1048576 -o <out>/gemm_cpp_ikj_simd.wasm benchmarks/multilang-wasm/ml-gemm/gemm_ikj.cpp",
+      "reproductions": [
+        {
+          "toolchain": "tc-9890abef9b5a",
+          "result": "identical",
+          "artifactSha256": "9988ef20e7d00a93611d67f4396dde16f441d1146194f30faf047fc54188c0be",
+          "recipeSha256": "6781956e90e5d011f1304d17f3a6e767dd069cbf61be2d566fe6f43f9305e93c",
+          "firstObserved": "2026-09-18",
+          "lastObserved": "2026-09-18"
+        }
+      ]
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "cpp-ikj",
+      "lang": "cpp",
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm_ikj.cpp",
+      "sourceSha256": "c30cdda1fa1ee041574f08fb8d5e64f3252efbf1eedfbc1f4268d82e84c8fb44",
+      "artifact": "gemm_cpp_ikj.wasm",
+      "artifactSha256": "cf2e2193da8608cd7927b9fcaf9d5f34c8c129a8096092561acda2f404c7a3e4",
+      "artifactBytes": 1678,
+      "reproducesCommittedBytes": true,
+      "command": "clang++ --target=wasm32 -O3 -nostdlib -fno-exceptions -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=1048576 -o <out>/gemm_cpp_ikj.wasm benchmarks/multilang-wasm/ml-gemm/gemm_ikj.cpp",
+      "reproductions": [
+        {
+          "toolchain": "tc-9890abef9b5a",
+          "result": "identical",
+          "artifactSha256": "cf2e2193da8608cd7927b9fcaf9d5f34c8c129a8096092561acda2f404c7a3e4",
+          "recipeSha256": "9fac7cd925122549646212f553a68b807c54176e6e7b1990ace07d3d83540ddb",
+          "firstObserved": "2026-09-18",
+          "lastObserved": "2026-09-18"
+        }
+      ]
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "cpp-tiled",
+      "lang": "cpp",
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm_tiled.cpp",
+      "sourceSha256": "e5798973bac2e3e860be22afa8ccedf47716dd8119c7db18fa9c6571ab4b5042",
+      "artifact": "gemm_cpp_tiled.wasm",
+      "artifactSha256": "40b5bf131249d91d5f2a81554dccd214ca01bd68cc75522c9f0abde4a6db73a3",
+      "artifactBytes": 1570,
+      "reproducesCommittedBytes": true,
+      "command": "clang++ --target=wasm32 -O3 -nostdlib -fno-exceptions -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=1048576 -o <out>/gemm_cpp_tiled.wasm benchmarks/multilang-wasm/ml-gemm/gemm_tiled.cpp",
+      "reproductions": [
+        {
+          "toolchain": "tc-9890abef9b5a",
+          "result": "identical",
+          "artifactSha256": "40b5bf131249d91d5f2a81554dccd214ca01bd68cc75522c9f0abde4a6db73a3",
+          "recipeSha256": "0312814fdef9e0b72bdffc305e2490539dcbf50d19584ce58c540b0341222119",
           "firstObserved": "2026-09-18",
           "lastObserved": "2026-09-18"
         }
@@ -1647,6 +1801,72 @@
           "result": "identical",
           "artifactSha256": "4ba6b363e4a8c7f271e8834b14bcd698f6456b1bba83d0c85cc4d238f9a3168a",
           "recipeSha256": "f0c3d4f2b7c8abecfaf9d58dec367f1f53737037205f0f69c659c893fca362a5",
+          "firstObserved": "2026-09-18",
+          "lastObserved": "2026-09-18"
+        }
+      ]
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "rs-ikj-simd",
+      "lang": "rs",
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm_ikj.rs",
+      "sourceSha256": "7f2f1f1a3335c11c4fc1cb1b99e607b435eb17bf59ad7ae3bb8691da0a093d04",
+      "artifact": "gemm_rs_ikj_simd.wasm",
+      "artifactSha256": "7f512fd85b59d85244d74f533575f4f859c928d8e22bdfea0de268e508c6bfb4",
+      "artifactBytes": 1696,
+      "reproducesCommittedBytes": true,
+      "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -C target-feature=+simd128 -C link-arg=--initial-memory=1048576 -o <out>/gemm_rs_ikj_simd.wasm benchmarks/multilang-wasm/ml-gemm/gemm_ikj.rs",
+      "reproductions": [
+        {
+          "toolchain": "tc-9890abef9b5a",
+          "result": "identical",
+          "artifactSha256": "7f512fd85b59d85244d74f533575f4f859c928d8e22bdfea0de268e508c6bfb4",
+          "recipeSha256": "1d1af97bc2e6374bfc1c383a6ad53b91a7b448dba9b965159e302383efd15189",
+          "firstObserved": "2026-09-18",
+          "lastObserved": "2026-09-18"
+        }
+      ]
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "rs-ikj",
+      "lang": "rs",
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm_ikj.rs",
+      "sourceSha256": "7f2f1f1a3335c11c4fc1cb1b99e607b435eb17bf59ad7ae3bb8691da0a093d04",
+      "artifact": "gemm_rs_ikj.wasm",
+      "artifactSha256": "ccbd0afc94d96b9fb54b139cfb02f3074c8f6df4076c46782874f692a5b3c4ce",
+      "artifactBytes": 1471,
+      "reproducesCommittedBytes": true,
+      "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -C link-arg=--initial-memory=1048576 -o <out>/gemm_rs_ikj.wasm benchmarks/multilang-wasm/ml-gemm/gemm_ikj.rs",
+      "reproductions": [
+        {
+          "toolchain": "tc-9890abef9b5a",
+          "result": "identical",
+          "artifactSha256": "ccbd0afc94d96b9fb54b139cfb02f3074c8f6df4076c46782874f692a5b3c4ce",
+          "recipeSha256": "d8ede3cee727bca397c459f54f98c00d49a3a3e991b34168f83090669c0ff897",
+          "firstObserved": "2026-09-18",
+          "lastObserved": "2026-09-18"
+        }
+      ]
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "rs-tiled",
+      "lang": "rs",
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm_tiled.rs",
+      "sourceSha256": "17875a488e0566da01b4d6aaf1c2eae767eab9a5607d554f49682bd4a01dd444",
+      "artifact": "gemm_rs_tiled.wasm",
+      "artifactSha256": "2a4e3bb1d87af84d36fc57081818df0a5633a632b49664a0bc096dea62a7be04",
+      "artifactBytes": 1414,
+      "reproducesCommittedBytes": true,
+      "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -C link-arg=--initial-memory=1048576 -o <out>/gemm_rs_tiled.wasm benchmarks/multilang-wasm/ml-gemm/gemm_tiled.rs",
+      "reproductions": [
+        {
+          "toolchain": "tc-9890abef9b5a",
+          "result": "identical",
+          "artifactSha256": "2a4e3bb1d87af84d36fc57081818df0a5633a632b49664a0bc096dea62a7be04",
+          "recipeSha256": "3d3ed58cf26e3a2fb12004fc0945d293cb156485e8629a090d7910f6fc886fba",
           "firstObserved": "2026-09-18",
           "lastObserved": "2026-09-18"
         }
@@ -2822,6 +3042,28 @@
     },
     {
       "workload": "ml-numeric-kernels",
+      "engine": "c",
+      "lang": "c",
+      "source": "benchmarks/multilang-wasm/ml-numeric-kernels/numeric_kernels.c",
+      "sourceSha256": "58ed4191c4eabb537b8c08a98f66e4b16bf0f7537db31bf0ae6eb3423fc39e28",
+      "artifact": "numeric_kernels_c.wasm",
+      "artifactSha256": "ec90d1c249d3cbbd37524a3dbf161bbc22a1c08211b7a3c4d56ed086a816527f",
+      "artifactBytes": 31287,
+      "reproducesCommittedBytes": true,
+      "command": "clang --target=wasm32 -O3 -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=1048576 -o <out>/numeric_kernels_c.wasm benchmarks/multilang-wasm/ml-numeric-kernels/numeric_kernels.c",
+      "reproductions": [
+        {
+          "toolchain": "tc-9890abef9b5a",
+          "result": "identical",
+          "artifactSha256": "ec90d1c249d3cbbd37524a3dbf161bbc22a1c08211b7a3c4d56ed086a816527f",
+          "recipeSha256": "6916f765a32951ee28ffa09fdab7502cf41d0745168bad43d6f79be1761ea872",
+          "firstObserved": "2026-09-18",
+          "lastObserved": "2026-09-18"
+        }
+      ]
+    },
+    {
+      "workload": "ml-numeric-kernels",
       "engine": "cpp",
       "lang": "cpp",
       "source": "benchmarks/multilang-wasm/ml-numeric-kernels/numeric_kernels.cpp",
@@ -3367,6 +3609,28 @@
       ]
     },
     {
+      "workload": "network-pcap-decode",
+      "engine": "rs",
+      "lang": "rs",
+      "source": "benchmarks/multilang-wasm/network-pcap-decode/pcap_decode.rs",
+      "sourceSha256": "a5c4af3f4bcb7d782b8b27d6506d1d687c790639dc371739b287c1f739d8c8eb",
+      "artifact": "pcap_decode_rs.wasm",
+      "artifactSha256": "d76c6cd78c7e2d9cde47a408d546a33165a0de87dd237f832baa7a2fd6170855",
+      "artifactBytes": 603168,
+      "reproducesCommittedBytes": false,
+      "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -C link-arg=--initial-memory=589824 -C link-arg=-zstack-size=262144 -o <out>/pcap_decode_rs.wasm benchmarks/multilang-wasm/network-pcap-decode/pcap_decode.rs",
+      "reproductions": [
+        {
+          "toolchain": "tc-9890abef9b5a",
+          "result": "differs",
+          "artifactSha256": "186b2337966265e08d73938d09ccd983295c4e18ebd0bb4afeeea449f987ea3f",
+          "recipeSha256": "6c2008c6668502ac48e727f61d71d4cb8e0890b2eb9b97e6715b2bca90577125",
+          "firstObserved": "2026-09-18",
+          "lastObserved": "2026-09-18"
+        }
+      ]
+    },
+    {
       "workload": "document-pdf-viewer",
       "engine": "cpp",
       "lang": "cpp",
@@ -3480,6 +3744,50 @@
     },
     {
       "workload": "numeric-polybench-panel",
+      "engine": "c-opt",
+      "lang": "c",
+      "source": "benchmarks/multilang-wasm/numeric-polybench-panel/polybench_opt.c",
+      "sourceSha256": "606035f04d35d17c71fe7e3e7c40d19dc7d88ab0febe68f48552bdacd86a71f2",
+      "artifact": "polybench_c_opt.wasm",
+      "artifactSha256": "f3c05431ebb7308c4228af180f603649c8a4828fafd1e22d83ddfe6c4cf9e7aa",
+      "artifactBytes": 2972,
+      "reproducesCommittedBytes": true,
+      "command": "clang --target=wasm32 -O3 -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=4194304 -o <out>/polybench_c_opt.wasm benchmarks/multilang-wasm/numeric-polybench-panel/polybench_opt.c",
+      "reproductions": [
+        {
+          "toolchain": "tc-9890abef9b5a",
+          "result": "identical",
+          "artifactSha256": "f3c05431ebb7308c4228af180f603649c8a4828fafd1e22d83ddfe6c4cf9e7aa",
+          "recipeSha256": "b5d89eb2ce6abf926278091efe62d2a774749b05aebcc8585bd38d29d0fff523",
+          "firstObserved": "2026-09-18",
+          "lastObserved": "2026-09-18"
+        }
+      ]
+    },
+    {
+      "workload": "numeric-polybench-panel",
+      "engine": "c-simd",
+      "lang": "c",
+      "source": "benchmarks/multilang-wasm/numeric-polybench-panel/polybench_opt.c",
+      "sourceSha256": "606035f04d35d17c71fe7e3e7c40d19dc7d88ab0febe68f48552bdacd86a71f2",
+      "artifact": "polybench_c_simd.wasm",
+      "artifactSha256": "eb20b7a70bd09c4a16f060c3f2eecc0b612c4ba061cb734eb6b61e398e37acdd",
+      "artifactBytes": 3630,
+      "reproducesCommittedBytes": true,
+      "command": "clang --target=wasm32 -O3 -msimd128 -nostdlib -ffreestanding -ffp-contract=off -Wl,--no-entry -Wl,--export-all -Wl,--initial-memory=4194304 -o <out>/polybench_c_simd.wasm benchmarks/multilang-wasm/numeric-polybench-panel/polybench_opt.c",
+      "reproductions": [
+        {
+          "toolchain": "tc-9890abef9b5a",
+          "result": "identical",
+          "artifactSha256": "eb20b7a70bd09c4a16f060c3f2eecc0b612c4ba061cb734eb6b61e398e37acdd",
+          "recipeSha256": "70526a15daf6b050172bad52573231891c5ded981f5fde4cec9c933f8f9b1937",
+          "firstObserved": "2026-09-18",
+          "lastObserved": "2026-09-18"
+        }
+      ]
+    },
+    {
+      "workload": "numeric-polybench-panel",
       "engine": "c",
       "lang": "c",
       "source": "benchmarks/multilang-wasm/numeric-polybench-panel/polybench.c",
@@ -3555,6 +3863,28 @@
           "result": "identical",
           "artifactSha256": "df5a365a13511dd3709a6b38e9fb7515e05dc559cab30ebb827c52f3d3791f4d",
           "recipeSha256": "7706dd44898cb3817f3086ad3fdfca7981511d0b3d6069174372b5d5379f2b21",
+          "firstObserved": "2026-09-18",
+          "lastObserved": "2026-09-18"
+        }
+      ]
+    },
+    {
+      "workload": "numeric-polybench-panel",
+      "engine": "rs-simd",
+      "lang": "rs",
+      "source": "benchmarks/multilang-wasm/numeric-polybench-panel/polybench_opt.rs",
+      "sourceSha256": "1cdde3f37d329f4a0bfc4aec69d993d3453f489bf02f19081d76f117bc005722",
+      "artifact": "polybench_rs_simd.wasm",
+      "artifactSha256": "1ab4abad3859304d7730a0da8881a87384a0685c09c70fdd0c44a2f7dc59dc5d",
+      "artifactBytes": 5131,
+      "reproducesCommittedBytes": true,
+      "command": "rustc --target=wasm32-unknown-unknown -O --crate-type cdylib -C target-feature=+simd128 -C link-arg=--initial-memory=4194304 -o <out>/polybench_rs_simd.wasm benchmarks/multilang-wasm/numeric-polybench-panel/polybench_opt.rs",
+      "reproductions": [
+        {
+          "toolchain": "tc-9890abef9b5a",
+          "result": "identical",
+          "artifactSha256": "1ab4abad3859304d7730a0da8881a87384a0685c09c70fdd0c44a2f7dc59dc5d",
+          "recipeSha256": "01a3322e195ef4eca2438f834073f75b120e3006fe784a0f093123d408550546",
           "firstObserved": "2026-09-18",
           "lastObserved": "2026-09-18"
         }

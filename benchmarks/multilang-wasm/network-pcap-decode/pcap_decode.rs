@@ -1,4 +1,10 @@
 #![no_std]
+#![allow(static_mut_refs)]
+
+#[panic_handler]
+fn panic(_info: &core::panic::PanicInfo) -> ! {
+    core::arch::wasm32::unreachable()
+}
 
 // network-pcap-decode multilang kernel (Rust no_std cdylib).
 // Mirrors benchmarks/base/network-pcap-decode/pcap-decode.c exactly:

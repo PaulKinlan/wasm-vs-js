@@ -29,6 +29,16 @@
       "lang": "cpp",
       "offset": 0,
       "source": "benchmarks/multilang-wasm/network-pcap-decode/pcap_decode.cpp"
+    },
+    {
+      "key": "rs",
+      "initialMemoryBytes": 589824,
+      "stackSizeBytes": 262144,
+      "label": "Rust / Wasm",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 0,
+      "source": "benchmarks/multilang-wasm/network-pcap-decode/pcap_decode.rs"
     }
   ]
 }

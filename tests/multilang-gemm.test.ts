@@ -56,9 +56,20 @@ Deno.test(
 
     const linear = [
       ["gemm_c.wasm", "C"],
+      ["gemm_c_ikj.wasm", "C i/k/j"],
+      ["gemm_c_tiled.wasm", "C tiled"],
+      ["gemm_c_ikj_simd.wasm", "C i/k/j + SIMD128"],
       ["gemm_cpp.wasm", "C++"],
+      ["gemm_cpp_ikj.wasm", "C++ i/k/j"],
+      ["gemm_cpp_tiled.wasm", "C++ tiled"],
+      ["gemm_cpp_ikj_simd.wasm", "C++ i/k/j + SIMD128"],
       ["gemm_rs.wasm", "Rust"],
+      ["gemm_rs_ikj.wasm", "Rust i/k/j"],
+      ["gemm_rs_tiled.wasm", "Rust tiled"],
+      ["gemm_rs_ikj_simd.wasm", "Rust i/k/j + SIMD128"],
       ["gemm_asc.wasm", "AssemblyScript"],
+      ["gemm_asc_ikj.wasm", "AssemblyScript i/k/j"],
+      ["gemm_asc_tiled.wasm", "AssemblyScript tiled"],
     ] as const;
     for (const [file, label] of linear) {
       const mod = (await WebAssembly.instantiate(

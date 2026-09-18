@@ -881,14 +881,14 @@
       "title": "ML numeric kernels",
       "engines": [
         "js",
+        "c",
         "cpp",
         "rs",
         "dart"
       ],
       "missingEngines": [
         "wat",
-        "asc",
-        "c"
+        "asc"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/ml-numeric-kernels.manifest.json",
       "domHost": null,
@@ -935,12 +935,12 @@
       "engines": [
         "js",
         "c",
-        "cpp"
+        "cpp",
+        "rs"
       ],
       "missingEngines": [
         "wat",
         "asc",
-        "rs",
         "dart"
       ],
       "manifestPath": "/benchmarks/multilang-wasm/network-pcap-decode.manifest.json",

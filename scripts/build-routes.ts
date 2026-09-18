@@ -139,6 +139,24 @@ const GENERATED_ASSET_ROUTES: ReadonlyArray<string> = [
   // Dart/WasmGC engine for text.gc-document-edit.v1.
   "artifacts/multilang-wasm-benchmark/gc_document_kernel_dart.wasm",
   "artifacts/multilang-wasm-benchmark/gc_document_kernel_dart.mjs",
+  // Track B C/C++/Rust optimization variants for ml.gemm.v1.
+  "artifacts/multilang-wasm-benchmark/gemm_c_ikj.wasm",
+  "artifacts/multilang-wasm-benchmark/gemm_c_tiled.wasm",
+  "artifacts/multilang-wasm-benchmark/gemm_c_ikj_simd.wasm",
+  "artifacts/multilang-wasm-benchmark/gemm_c_simd_dot.wasm",
+  "artifacts/multilang-wasm-benchmark/gemm_cpp_ikj.wasm",
+  "artifacts/multilang-wasm-benchmark/gemm_cpp_tiled.wasm",
+  "artifacts/multilang-wasm-benchmark/gemm_cpp_ikj_simd.wasm",
+  "artifacts/multilang-wasm-benchmark/gemm_rs_ikj.wasm",
+  "artifacts/multilang-wasm-benchmark/gemm_rs_tiled.wasm",
+  "artifacts/multilang-wasm-benchmark/gemm_rs_ikj_simd.wasm",
+  // Track B C/Rust optimization variants for numeric.polybench-panel.v1.
+  "artifacts/multilang-wasm-benchmark/polybench_c_opt.wasm",
+  "artifacts/multilang-wasm-benchmark/polybench_c_simd.wasm",
+  "artifacts/multilang-wasm-benchmark/polybench_rs_simd.wasm",
+  // Linear Wasm coverage completions (C on ml.numeric-kernels.v1, Rust on network.pcap-decode.v1).
+  "artifacts/multilang-wasm-benchmark/numeric_kernels_c.wasm",
+  "artifacts/multilang-wasm-benchmark/pcap_decode_rs.wasm",
 ];
 
 function assetRoutes(): Array<readonly [string, string, string]> {

@@ -13,6 +13,18 @@
       "source": ""
     },
     {
+      "key": "c",
+      "initialMemoryBytes": 1048576,
+      "label": "C / Wasm",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 1024,
+      "source": "benchmarks/multilang-wasm/ml-numeric-kernels/numeric_kernels.c",
+      "files": {
+        "numeric": "numeric_kernels_c.wasm"
+      }
+    },
+    {
       "key": "cpp",
       "initialMemoryBytes": 1048576,
       "label": "C++ / Wasm",

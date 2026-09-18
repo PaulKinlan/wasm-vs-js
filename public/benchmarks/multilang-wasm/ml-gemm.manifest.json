@@ -31,6 +31,79 @@
       "source": "benchmarks/multilang-wasm/ml-gemm/gemm.c"
     },
     {
+      "key": "c-ikj",
+      "initialMemoryBytes": 1048576,
+      "label": "C i/k/j",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 0,
+      "files": {
+        "gemm": "gemm_c_ikj.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm_ikj.c",
+      "track": "B",
+      "baseline": "c",
+      "equivalence": "bit-identical",
+      "optimizationLog": "Loop interchange i/j/k -> i/k/j with __restrict pointers. Streams B[t][0..n] sequentially across each row instead of striding 512 B down columns, while accumulating each cell in ascending t = 0..k-1 order (-ffp-contract=off). Bit-identical to the strict-f32 oracle. Measured 1.21x over the C Track A baseline (0.8971 ms -> 0.7419 ms, 128^3, arm64 macOS)."
+    },
+    {
+      "key": "c-tiled",
+      "initialMemoryBytes": 1048576,
+      "label": "C tiled 32x32",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 0,
+      "files": {
+        "gemm": "gemm_c_tiled.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm_tiled.c",
+      "track": "B",
+      "baseline": "c",
+      "equivalence": "bit-identical",
+      "optimizationLog": "32x32 i/j panel cache blocking with the inner k reduction left intact so each cell accumulates in ascending t = 0..k-1 order. Bit-identical to the strict-f32 oracle. Measured 0.97x (0.8971 ms -> 0.9250 ms) at 128^3 because the 64 KiB B matrix already fits in 128 KiB L1d while the inner loop still strides B down columns."
+    },
+    {
+      "key": "c-ikj-simd",
+      "initialMemoryBytes": 1048576,
+      "label": "C i/k/j + SIMD128",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 0,
+      "files": {
+        "gemm": "gemm_c_ikj_simd.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm_ikj.c",
+      "targetFeatures": [
+        "simd128"
+      ],
+      "track": "B",
+      "baseline": "c",
+      "equivalence": "bit-identical",
+      "optimizationLog": "Loop interchange i/k/j combined with -msimd128 (-ffp-contract=off). On the baseline i/j/k loop, -msimd128 yields 0.96x because LLVM cannot vectorize the inner t reduction without reassociating floating-point additions. Interchanging to i/k/j makes the inner j loop independent across columns, unlocking 4-wide f32x4 vectorization while every lane still accumulates in strict ascending t = 0..k-1 order (0 ULP deviation, bit-identical). Measured 4.43x over the C Track A baseline (0.8971 ms -> 0.2025 ms)."
+    },
+    {
+      "key": "c-simd-dot",
+      "initialMemoryBytes": 1048576,
+      "label": "C SIMD128 dot-product (reassociated)",
+      "kind": "linear",
+      "lang": "c",
+      "offset": 0,
+      "files": {
+        "gemm": "gemm_c_simd_dot.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm_simd_dot.c",
+      "targetFeatures": [
+        "simd128"
+      ],
+      "track": "B",
+      "baseline": "c",
+      "equivalence": "reassociated",
+      "maxUlpDeviation": 31488,
+      "maxRelativeDeviation": 0.002152,
+      "declaredTolerance": 0.005,
+      "optimizationLog": "Explicit wasm_v128 (f32x4) 4-lane accumulation along the inner k reduction in i/j/k order, horizontally reduced via (lane0 + lane1) + (lane2 + lane3). Because each output cell sums 4 partial chains instead of a single left-to-right scalar chain, floating-point rounding differs from the strict-order oracle (max 31488 ULP / 0.002152 relative deviation on full-mantissa LCG inputs, within declared 0.005 tolerance). Measured 1.79x over the C Track A baseline (0.8971 ms -> 0.5021 ms) — slower than c-ikj-simd (4.43x) because gathering strided B elements into a vector register costs 4 scalar loads per step."
+    },
+    {
       "key": "cpp",
       "initialMemoryBytes": 1048576,
       "label": "C++ / Wasm",
@@ -40,6 +113,57 @@
       "source": "benchmarks/multilang-wasm/ml-gemm/gemm.cpp"
     },
     {
+      "key": "cpp-ikj",
+      "initialMemoryBytes": 1048576,
+      "label": "C++ i/k/j",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 0,
+      "files": {
+        "gemm": "gemm_cpp_ikj.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm_ikj.cpp",
+      "track": "B",
+      "baseline": "cpp",
+      "equivalence": "bit-identical",
+      "optimizationLog": "Loop interchange i/j/k -> i/k/j with __restrict pointers. Streams B[t][0..n] contiguously along rows while preserving ascending t = 0..k-1 f32 accumulation per output element (-ffp-contract=off). Bit-identical to the strict-f32 oracle. Measured 1.18x over the C++ Track A baseline (0.8641 ms -> 0.7341 ms)."
+    },
+    {
+      "key": "cpp-tiled",
+      "initialMemoryBytes": 1048576,
+      "label": "C++ tiled 32x32",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 0,
+      "files": {
+        "gemm": "gemm_cpp_tiled.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm_tiled.cpp",
+      "track": "B",
+      "baseline": "cpp",
+      "equivalence": "bit-identical",
+      "optimizationLog": "32x32 i/j panel cache blocking with unblocked inner k reduction. Bit-identical to the strict-f32 oracle. Measured 0.92x (0.8641 ms -> 0.9404 ms) at 128^3 where the 64 KiB B matrix already resides in L1d."
+    },
+    {
+      "key": "cpp-ikj-simd",
+      "initialMemoryBytes": 1048576,
+      "label": "C++ i/k/j + SIMD128",
+      "kind": "linear",
+      "lang": "cpp",
+      "offset": 0,
+      "files": {
+        "gemm": "gemm_cpp_ikj_simd.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm_ikj.cpp",
+      "targetFeatures": [
+        "simd128"
+      ],
+      "track": "B",
+      "baseline": "cpp",
+      "equivalence": "bit-identical",
+      "optimizationLog": "Loop interchange i/k/j combined with -msimd128 (-ffp-contract=off), enabling 4-wide f32x4 vectorization across independent j columns while preserving strict ascending t = 0..k-1 accumulation per element (0 ULP deviation, bit-identical). Measured 4.29x over the C++ Track A baseline (0.8641 ms -> 0.2014 ms)."
+    },
+    {
       "key": "rs",
       "initialMemoryBytes": 1048576,
       "label": "Rust / Wasm",
@@ -47,6 +171,57 @@
       "lang": "rs",
       "offset": 0,
       "source": "benchmarks/multilang-wasm/ml-gemm/gemm.rs"
+    },
+    {
+      "key": "rs-ikj",
+      "initialMemoryBytes": 1048576,
+      "label": "Rust i/k/j",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 0,
+      "files": {
+        "gemm": "gemm_rs_ikj.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm_ikj.rs",
+      "track": "B",
+      "baseline": "rs",
+      "equivalence": "bit-identical",
+      "optimizationLog": "Loop interchange i/j/k -> i/k/j using bounds-check-free raw pointer traversal. Streams B[t][0..n] contiguously along rows while accumulating each output element in ascending t = 0..k-1 order. Bit-identical to the strict-f32 oracle. Measured 1.26x over the Rust Track A baseline (0.9210 ms -> 0.7303 ms)."
+    },
+    {
+      "key": "rs-tiled",
+      "initialMemoryBytes": 1048576,
+      "label": "Rust tiled 32x32",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 0,
+      "files": {
+        "gemm": "gemm_rs_tiled.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm_tiled.rs",
+      "track": "B",
+      "baseline": "rs",
+      "equivalence": "bit-identical",
+      "optimizationLog": "32x32 i/j panel cache blocking with unblocked inner k reduction. Bit-identical to the strict-f32 oracle. Measured 0.96x (0.9210 ms -> 0.9633 ms) at 128^3 where the 64 KiB B matrix already fits in L1d."
+    },
+    {
+      "key": "rs-ikj-simd",
+      "initialMemoryBytes": 1048576,
+      "label": "Rust i/k/j + SIMD128",
+      "kind": "linear",
+      "lang": "rs",
+      "offset": 0,
+      "files": {
+        "gemm": "gemm_rs_ikj_simd.wasm"
+      },
+      "source": "benchmarks/multilang-wasm/ml-gemm/gemm_ikj.rs",
+      "targetFeatures": [
+        "simd128"
+      ],
+      "track": "B",
+      "baseline": "rs",
+      "equivalence": "bit-identical",
+      "optimizationLog": "Loop interchange i/k/j compiled with -C target-feature=+simd128, vectorizing across 4 adjacent j columns per f32x4 instruction while preserving strict ascending t = 0..k-1 accumulation per output cell (0 ULP deviation, bit-identical). Measured 4.27x over the Rust Track A baseline (0.9210 ms -> 0.2156 ms)."
     },
     {
       "key": "asc",

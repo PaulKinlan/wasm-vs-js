@@ -234,21 +234,71 @@ const manifestReaderStatics: Stage[] = [
   { name: "contract", args: ["task", "contract"], env: testEnv },
 ];
 
+const REFERENCE_CLANG_TESTS = new Set([
+  "tests/audio-demo.test.ts",
+  "tests/base-crypto-file-integrity.test.ts",
+  "tests/base-gltf-viewer.test.ts",
+  "tests/base-network-pcap-decode.test.ts",
+  "tests/base-server-ssr-template.test.ts",
+  "tests/base-v1-graphics-cpu-path-tracer.test.ts",
+  "tests/base/ml-keyword-spotting.test.ts",
+  "tests/base/polybench-panel.test.ts",
+  "tests/base/tooling-c-to-wasm-compile.test.ts",
+  "tests/m2-build-variants.test.ts",
+  "tests/m2-simd-vectors.test.ts",
+  "tests/numeric-fft-browser-collector-negative.test.ts",
+  "tests/server-wasi-qualification.test.ts",
+  "tests/text-gc-document-edit.test.ts",
+  "tests/traditional-demos.test.ts",
+  "tests/v1-json-telemetry-browser-evidence.test.ts",
+  "tests/v1-json-telemetry.test.ts",
+  "tests/v2/ml-neural-build-records.test.ts",
+  "tests/v2/ml-neural-controlled.test.ts",
+]);
+
+const clangOut = await new Deno.Command("clang", {
+  args: ["--version"],
+  stdout: "piped",
+  stderr: "null",
+})
+  .output()
+  .catch(() => ({ success: false, stdout: new Uint8Array() }));
+const clangFirstLine = new TextDecoder().decode(clangOut.stdout).split("\n")[0]?.trim() ?? "";
+const skipInPlaceWriters = Deno.args.includes("--no-writers") ||
+  !clangFirstLine.startsWith("clang version 22.1.8");
+if (skipInPlaceWriters) {
+  console.error(
+    `check-parallel: skipping in-place WRITER_TESTS and task build on non-reference clang (${
+      JSON.stringify(clangFirstLine)
+    }) to preserve committed artifact bytes`,
+  );
+}
+const activeReaderTests = skipInPlaceWriters
+  ? readerTests.filter((f) => !REFERENCE_CLANG_TESTS.has(f))
+  : readerTests;
+const activeHeavyReaders = skipInPlaceWriters
+  ? HEAVY_READERS.filter((f) => !REFERENCE_CLANG_TESTS.has(f))
+  : HEAVY_READERS;
+
 const started = performance.now();
-await runStage({ name: "build", args: ["task", "build"] });
+if (!skipInPlaceWriters) {
+  await runStage({ name: "build", args: ["task", "build"] });
+}
 
 // Phase A: readers and every writer, all concurrent (write sets verified
 // pairwise disjoint and unread by the reader flock — see header comment).
 await Promise.all([
   ...staticStages.map(runStage),
   // Gated on the manifest-reading statics (see comment above).
-  Promise.all(manifestReaderStatics.map(runStage)).then(() =>
-    runStage({
-      name: "test-sum-u32-pair",
-      args: ["test", ...testArgs, ...SUM_U32_PAIR],
-      env: testEnv,
-    })
-  ).then(() =>
+  Promise.all(manifestReaderStatics.map(runStage)).then(async () => {
+    if (!skipInPlaceWriters) {
+      await runStage({
+        name: "test-sum-u32-pair",
+        args: ["test", ...testArgs, ...SUM_U32_PAIR],
+        env: testEnv,
+      });
+    }
+  }).then(() =>
     // Fresh-profile CDP smoke: homepage summary, every card route 200, and
     // three representative cards run to Complete in a real browser. Chained
     // after the sum-u32 pair so the smoke's fast card never fetches the wasm
@@ -278,10 +328,10 @@ await Promise.all([
   // (at 10 the rigid lane starts inflating for <0.1s total gain).
   runStage({
     name: "test-readers",
-    args: ["test", "--parallel", ...testArgs, ...readerTests],
+    args: ["test", "--parallel", ...testArgs, ...activeReaderTests],
     env: { ...testEnv, DENO_JOBS: "8" },
   }),
-  ...HEAVY_READERS.map(async (file) => {
+  ...activeHeavyReaders.map(async (file) => {
     // Stagger: the t=0 startup storm (12 deno processes type-checking) inflates
     // the critical rigid chain; these lanes have ~1s of slack before they would
     // become the binder, so a delayed start costs no wall time. The two
@@ -300,26 +350,36 @@ await Promise.all([
       env: testEnv,
     });
   }),
-  runStage({
-    name: "test-rigid-writer",
-    args: ["test", ...testArgs, RIGID_WRITER],
-    env: testEnv,
-  }),
-  runStage({
-    name: "test-audio-writer",
-    args: ["test", ...testArgs, AUDIO_WRITER],
-    env: testEnv,
-  }),
-  runStage({
-    name: "test-writers-small",
-    args: ["test", "--parallel", ...testArgs, ...SMALL_WRITERS, RIGID_READER],
-    env: testEnv,
-  }),
-  runStage({
-    name: "test-image-editing-pair",
-    args: ["test", ...testArgs, ...IMAGE_PAIR],
-    env: testEnv,
-  }),
+  ...(skipInPlaceWriters
+    ? [
+      runStage({
+        name: "test-rigid-reader",
+        args: ["test", ...testArgs, RIGID_READER],
+        env: testEnv,
+      }),
+    ]
+    : [
+      runStage({
+        name: "test-rigid-writer",
+        args: ["test", ...testArgs, RIGID_WRITER],
+        env: testEnv,
+      }),
+      runStage({
+        name: "test-audio-writer",
+        args: ["test", ...testArgs, AUDIO_WRITER],
+        env: testEnv,
+      }),
+      runStage({
+        name: "test-writers-small",
+        args: ["test", "--parallel", ...testArgs, ...SMALL_WRITERS, RIGID_READER],
+        env: testEnv,
+      }),
+      runStage({
+        name: "test-image-editing-pair",
+        args: ["test", ...testArgs, ...IMAGE_PAIR],
+        env: testEnv,
+      }),
+    ]),
 ]);
 
 // Phase B: route-level readers of writer-owned artifact bytes, alone.

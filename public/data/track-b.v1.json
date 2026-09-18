@@ -413,6 +413,96 @@
       ],
       "variants": [
         {
+          "key": "c-ikj",
+          "baseline": "c",
+          "equivalence": "bit-identical",
+          "optimizationLog": "Loop interchange i/j/k -> i/k/j with __restrict pointers. Streams B[t][0..n] sequentially across each row instead of striding 512 B down columns, while accumulating each cell in ascending t = 0..k-1 order (-ffp-contract=off). Bit-identical to the strict-f32 oracle. Measured 1.21x over the C Track A baseline (0.8971 ms -> 0.7419 ms, 128^3, arm64 macOS).",
+          "maxUlpDeviation": null,
+          "maxRelativeDeviation": null,
+          "declaredTolerance": null
+        },
+        {
+          "key": "c-tiled",
+          "baseline": "c",
+          "equivalence": "bit-identical",
+          "optimizationLog": "32x32 i/j panel cache blocking with the inner k reduction left intact so each cell accumulates in ascending t = 0..k-1 order. Bit-identical to the strict-f32 oracle. Measured 0.97x (0.8971 ms -> 0.9250 ms) at 128^3 because the 64 KiB B matrix already fits in 128 KiB L1d while the inner loop still strides B down columns.",
+          "maxUlpDeviation": null,
+          "maxRelativeDeviation": null,
+          "declaredTolerance": null
+        },
+        {
+          "key": "c-ikj-simd",
+          "baseline": "c",
+          "equivalence": "bit-identical",
+          "optimizationLog": "Loop interchange i/k/j combined with -msimd128 (-ffp-contract=off). On the baseline i/j/k loop, -msimd128 yields 0.96x because LLVM cannot vectorize the inner t reduction without reassociating floating-point additions. Interchanging to i/k/j makes the inner j loop independent across columns, unlocking 4-wide f32x4 vectorization while every lane still accumulates in strict ascending t = 0..k-1 order (0 ULP deviation, bit-identical). Measured 4.43x over the C Track A baseline (0.8971 ms -> 0.2025 ms).",
+          "maxUlpDeviation": null,
+          "maxRelativeDeviation": null,
+          "declaredTolerance": null
+        },
+        {
+          "key": "c-simd-dot",
+          "baseline": "c",
+          "equivalence": "reassociated",
+          "optimizationLog": "Explicit wasm_v128 (f32x4) 4-lane accumulation along the inner k reduction in i/j/k order, horizontally reduced via (lane0 + lane1) + (lane2 + lane3). Because each output cell sums 4 partial chains instead of a single left-to-right scalar chain, floating-point rounding differs from the strict-order oracle (max 31488 ULP / 0.002152 relative deviation on full-mantissa LCG inputs, within declared 0.005 tolerance). Measured 1.79x over the C Track A baseline (0.8971 ms -> 0.5021 ms) — slower than c-ikj-simd (4.43x) because gathering strided B elements into a vector register costs 4 scalar loads per step.",
+          "maxUlpDeviation": 31488,
+          "maxRelativeDeviation": 0.002152,
+          "declaredTolerance": 0.005
+        },
+        {
+          "key": "cpp-ikj",
+          "baseline": "cpp",
+          "equivalence": "bit-identical",
+          "optimizationLog": "Loop interchange i/j/k -> i/k/j with __restrict pointers. Streams B[t][0..n] contiguously along rows while preserving ascending t = 0..k-1 f32 accumulation per output element (-ffp-contract=off). Bit-identical to the strict-f32 oracle. Measured 1.18x over the C++ Track A baseline (0.8641 ms -> 0.7341 ms).",
+          "maxUlpDeviation": null,
+          "maxRelativeDeviation": null,
+          "declaredTolerance": null
+        },
+        {
+          "key": "cpp-tiled",
+          "baseline": "cpp",
+          "equivalence": "bit-identical",
+          "optimizationLog": "32x32 i/j panel cache blocking with unblocked inner k reduction. Bit-identical to the strict-f32 oracle. Measured 0.92x (0.8641 ms -> 0.9404 ms) at 128^3 where the 64 KiB B matrix already resides in L1d.",
+          "maxUlpDeviation": null,
+          "maxRelativeDeviation": null,
+          "declaredTolerance": null
+        },
+        {
+          "key": "cpp-ikj-simd",
+          "baseline": "cpp",
+          "equivalence": "bit-identical",
+          "optimizationLog": "Loop interchange i/k/j combined with -msimd128 (-ffp-contract=off), enabling 4-wide f32x4 vectorization across independent j columns while preserving strict ascending t = 0..k-1 accumulation per element (0 ULP deviation, bit-identical). Measured 4.29x over the C++ Track A baseline (0.8641 ms -> 0.2014 ms).",
+          "maxUlpDeviation": null,
+          "maxRelativeDeviation": null,
+          "declaredTolerance": null
+        },
+        {
+          "key": "rs-ikj",
+          "baseline": "rs",
+          "equivalence": "bit-identical",
+          "optimizationLog": "Loop interchange i/j/k -> i/k/j using bounds-check-free raw pointer traversal. Streams B[t][0..n] contiguously along rows while accumulating each output element in ascending t = 0..k-1 order. Bit-identical to the strict-f32 oracle. Measured 1.26x over the Rust Track A baseline (0.9210 ms -> 0.7303 ms).",
+          "maxUlpDeviation": null,
+          "maxRelativeDeviation": null,
+          "declaredTolerance": null
+        },
+        {
+          "key": "rs-tiled",
+          "baseline": "rs",
+          "equivalence": "bit-identical",
+          "optimizationLog": "32x32 i/j panel cache blocking with unblocked inner k reduction. Bit-identical to the strict-f32 oracle. Measured 0.96x (0.9210 ms -> 0.9633 ms) at 128^3 where the 64 KiB B matrix already fits in L1d.",
+          "maxUlpDeviation": null,
+          "maxRelativeDeviation": null,
+          "declaredTolerance": null
+        },
+        {
+          "key": "rs-ikj-simd",
+          "baseline": "rs",
+          "equivalence": "bit-identical",
+          "optimizationLog": "Loop interchange i/k/j compiled with -C target-feature=+simd128, vectorizing across 4 adjacent j columns per f32x4 instruction while preserving strict ascending t = 0..k-1 accumulation per output cell (0 ULP deviation, bit-identical). Measured 4.27x over the Rust Track A baseline (0.9210 ms -> 0.2156 ms).",
+          "maxUlpDeviation": null,
+          "maxRelativeDeviation": null,
+          "declaredTolerance": null
+        },
+        {
           "key": "asc-ikj",
           "baseline": "asc",
           "equivalence": "bit-identical",
@@ -480,6 +570,7 @@
       "title": "ML numeric kernels",
       "baselineEngines": [
         "js",
+        "c",
         "cpp",
         "rs",
         "dart"
@@ -541,7 +632,8 @@
       "baselineEngines": [
         "js",
         "c",
-        "cpp"
+        "cpp",
+        "rs"
       ],
       "variants": []
     },
@@ -559,7 +651,35 @@
         "asc",
         "dart"
       ],
-      "variants": []
+      "variants": [
+        {
+          "key": "c-opt",
+          "baseline": "c",
+          "equivalence": "bit-identical",
+          "optimizationLog": "Adds __restrict noalias qualifiers to gemm, cholesky, stencil5, and jacobi2d and hoists alpha * a[i*nk + k] out of the inner j loop in gemm (-ffp-contract=off). Bit-identical to the f64 oracle across all 4 kernels. Measured 1.15x over the C Track A baseline (0.1892 ms -> 0.1645 ms).",
+          "maxUlpDeviation": null,
+          "maxRelativeDeviation": null,
+          "declaredTolerance": null
+        },
+        {
+          "key": "c-simd",
+          "baseline": "c",
+          "equivalence": "bit-identical",
+          "optimizationLog": "Combines __restrict pointer disambiguation and invariant hoisting with -msimd128 (-ffp-contract=off), enabling 2-wide f64x2 vectorization across the independent j loops in gemm and stencil5 while preserving exact IEEE-754 f64 evaluation order per cell (bit-identical). Measured 2.14x over the C Track A baseline (0.1892 ms -> 0.0884 ms).",
+          "maxUlpDeviation": null,
+          "maxRelativeDeviation": null,
+          "declaredTolerance": null
+        },
+        {
+          "key": "rs-simd",
+          "baseline": "rs",
+          "equivalence": "bit-identical",
+          "optimizationLog": "Hoists alpha * a[i*nk + k] and compiles with -C target-feature=+simd128, vectorizing the inner j loops with f64x2 instructions while keeping exact IEEE-754 f64 evaluation order per cell (bit-identical). Measured 1.70x over the Rust Track A baseline (0.1512 ms -> 0.0887 ms).",
+          "maxUlpDeviation": null,
+          "maxRelativeDeviation": null,
+          "declaredTolerance": null
+        }
+      ]
     },
     {
       "workloadId": "regex-automata-duel-demo",
@@ -709,12 +829,12 @@
   ],
   "summary": {
     "workloads": 45,
-    "baselineEngineRows": 248,
-    "variantRows": 5,
-    "workloadsWithVariants": 1,
-    "workloadsWithoutVariants": 44,
-    "bitIdenticalVariants": 5,
-    "reassociatedVariants": 0,
+    "baselineEngineRows": 250,
+    "variantRows": 18,
+    "workloadsWithVariants": 2,
+    "workloadsWithoutVariants": 43,
+    "bitIdenticalVariants": 17,
+    "reassociatedVariants": 1,
     "workloadsWithoutRoute": 1
   }
 }

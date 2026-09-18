@@ -58,7 +58,7 @@
     }
   },
   "observedAt": "2026-09-18",
-  "kernelsRebuilt": 181,
+  "kernelsRebuilt": 196,
   "kernelsNotAttested": 0,
   "dartIncluded": true,
   "testsRun": 35,
@@ -116,7 +116,7 @@
     {
       "test": "multilang-engine-agreement.test.ts",
       "result": "equivalent",
-      "passed": 10,
+      "passed": 11,
       "failed": 0
     },
     {
@@ -1056,9 +1056,58 @@
     },
     {
       "workload": "ml-gemm",
+      "engine": "c-ikj",
+      "lang": "c",
+      "artifact": "gemm_c_ikj.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "c-ikj-simd",
+      "lang": "c",
+      "artifact": "gemm_c_ikj_simd.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "c-simd-dot",
+      "lang": "c",
+      "artifact": "gemm_c_simd_dot.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "c-tiled",
+      "lang": "c",
+      "artifact": "gemm_c_tiled.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-gemm",
       "engine": "cpp",
       "lang": "cpp",
       "artifact": "gemm_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "cpp-ikj",
+      "lang": "cpp",
+      "artifact": "gemm_cpp_ikj.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "cpp-ikj-simd",
+      "lang": "cpp",
+      "artifact": "gemm_cpp_ikj_simd.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "cpp-tiled",
+      "lang": "cpp",
+      "artifact": "gemm_cpp_tiled.wasm",
       "status": "rebuilt"
     },
     {
@@ -1097,6 +1146,34 @@
       "status": "rebuilt"
     },
     {
+      "workload": "ml-gemm",
+      "engine": "rs-ikj",
+      "lang": "rs",
+      "artifact": "gemm_rs_ikj.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "rs-ikj-simd",
+      "lang": "rs",
+      "artifact": "gemm_rs_ikj_simd.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "rs-tiled",
+      "lang": "rs",
+      "artifact": "gemm_rs_tiled.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-numeric-kernels",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "numeric_kernels_c.wasm",
+      "status": "rebuilt"
+    },
+    {
       "workload": "ml-numeric-kernels",
       "engine": "cpp",
       "lang": "cpp",
@@ -1132,6 +1209,13 @@
       "status": "rebuilt"
     },
     {
+      "workload": "network-pcap-decode",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "pcap_decode_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
       "workload": "numeric-polybench-panel",
       "engine": "asc",
       "lang": "asc",
@@ -1143,6 +1227,20 @@
       "engine": "c",
       "lang": "c",
       "artifact": "polybench_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "numeric-polybench-panel",
+      "engine": "c-opt",
+      "lang": "c",
+      "artifact": "polybench_c_opt.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "numeric-polybench-panel",
+      "engine": "c-simd",
+      "lang": "c",
+      "artifact": "polybench_c_simd.wasm",
       "status": "rebuilt"
     },
     {
@@ -1164,6 +1262,13 @@
       "engine": "rs",
       "lang": "rs",
       "artifact": "polybench_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "numeric-polybench-panel",
+      "engine": "rs-simd",
+      "lang": "rs",
+      "artifact": "polybench_rs_simd.wasm",
       "status": "rebuilt"
     },
     {

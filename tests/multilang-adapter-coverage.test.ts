@@ -45,7 +45,7 @@ function builtEngines(
   // An adapter that walks mods.engines covers whatever the manifest declares.
   if (segment.includes("Object.keys(mods.engines)")) return null;
   const built = new Set<string>();
-  for (const m of segment.matchAll(/for \(const key of \[([^\]]+)\]\)/g)) {
+  for (const m of segment.matchAll(/for\s*\(\s*const key of \[([^\]]+)\]\s*\)/g)) {
     for (const k of m[1].matchAll(/"([a-z0-9-]+)"/g)) built.add(ALIAS[k[1]] ?? k[1]);
   }
   for (const m of segment.matchAll(/callables\.([a-z]+)\s*=/g)) built.add(ALIAS[m[1]] ?? m[1]);

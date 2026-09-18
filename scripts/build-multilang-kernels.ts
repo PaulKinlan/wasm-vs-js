@@ -196,6 +196,8 @@ export interface EngineBuild {
   stackSizeBytes?: number;
   /** dart2wasm optimization level, when the engine row declares one. */
   optimizationLevel?: string;
+  /** Target features (e.g. ["simd128"]) when the engine row declares them. */
+  targetFeatures?: string[];
 }
 
 interface Manifest {
@@ -211,6 +213,7 @@ interface Manifest {
     initialMemoryBytes?: number;
     stackSizeBytes?: number;
     optimizationLevel?: string;
+    targetFeatures?: string[];
   }>;
 }
 
@@ -275,6 +278,7 @@ export async function planBuilds(
         initialMemoryBytes: engine.initialMemoryBytes ?? DEFAULT_INITIAL_MEMORY,
         stackSizeBytes: engine.stackSizeBytes,
         optimizationLevel: engine.optimizationLevel,
+        targetFeatures: engine.targetFeatures,
       });
     }
   }
@@ -289,11 +293,15 @@ export function commandFor(build: EngineBuild, outDir: string): [string, string[
   const src = `${ROOT}${build.source}`;
   const out = `${outDir}/${build.artifact}`;
   const pages = Math.max(1, Math.ceil(build.initialMemoryBytes / 65536));
+  const hasSimd = build.targetFeatures?.includes("simd128") ?? false;
   switch (build.lang) {
-    case "c":
-      return ["clang", [
+    case "c": {
+      const cArgs = [
         "--target=wasm32",
         "-O3",
+      ];
+      if (hasSimd) cArgs.push("-msimd128");
+      cArgs.push(
         "-nostdlib",
         // Several kernels hand-write strlen/strcmp so no libc is needed; at
         // -O3 clang otherwise recognises the pattern and emits a call to the
@@ -306,11 +314,16 @@ export function commandFor(build: EngineBuild, outDir: string): [string, string[
         "-o",
         out,
         src,
-      ]];
-    case "cpp":
-      return ["clang++", [
+      );
+      return ["clang", cArgs];
+    }
+    case "cpp": {
+      const cppArgs = [
         "--target=wasm32",
         "-O3",
+      ];
+      if (hasSimd) cppArgs.push("-msimd128");
+      cppArgs.push(
         "-nostdlib",
         "-fno-exceptions",
         "-ffreestanding",
@@ -321,7 +334,9 @@ export function commandFor(build: EngineBuild, outDir: string): [string, string[
         "-o",
         out,
         src,
-      ]];
+      );
+      return ["clang++", cppArgs];
+    }
     case "rs": {
       // Without this the module starts at rustc's default linear memory, which
       // is smaller than the fixtures these kernels are driven with: rebuilt
@@ -334,9 +349,14 @@ export function commandFor(build: EngineBuild, outDir: string): [string, string[
         "-O",
         "--crate-type",
         "cdylib",
+      ];
+      if (hasSimd) {
+        rsArgs.push("-C", "target-feature=+simd128");
+      }
+      rsArgs.push(
         "-C",
         `link-arg=--initial-memory=${build.initialMemoryBytes}`,
-      ];
+      );
       if (build.stackSizeBytes !== undefined) {
         rsArgs.push("-C", `link-arg=-zstack-size=${build.stackSizeBytes}`);
       }

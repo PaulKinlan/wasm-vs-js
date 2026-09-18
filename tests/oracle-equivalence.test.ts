@@ -49,10 +49,10 @@ Deno.test("oracle equivalence: record conforms to schema v1", () => {
   assert(/^\d{4}-\d{2}-\d{2}$/.test(data.observedAt), `invalid date ${data.observedAt}`);
 });
 
-Deno.test("oracle equivalence: all 181 kernels are accounted for", () => {
-  assertEquals(data.kernelsRebuilt + data.kernelsNotAttested, 181);
-  assertEquals(data.kernels.length, 181);
-  assertEquals(data.kernelsRebuilt, 181);
+Deno.test("oracle equivalence: all 196 kernels are accounted for", () => {
+  assertEquals(data.kernelsRebuilt + data.kernelsNotAttested, 196);
+  assertEquals(data.kernels.length, 196);
+  assertEquals(data.kernelsRebuilt, 196);
   assertEquals(data.kernelsNotAttested, 0);
   for (const k of data.kernels) {
     assertEquals(k.status, "rebuilt");

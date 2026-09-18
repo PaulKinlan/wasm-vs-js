@@ -6076,10 +6076,27 @@ export const KERNEL_ADAPTERS = {
           return fnv1aBytes(new Uint8Array(mem.buffer, c0Off, M * N * 4));
         };
       }
-      // asc-ikj and asc-tiled are Track B optimization variants of asc: same
-      // ABI, same exported name, declared bit-identical, so they run through
-      // exactly this path and are held to the same agreement check.
-      for (const key of ["c", "cpp", "rs", "asc", "asc-ikj", "asc-tiled"]) {
+      // Track A engines plus Track B optimization variants of c, cpp, rs, and asc.
+      for (
+        const key of [
+          "c",
+          "c-ikj",
+          "c-tiled",
+          "c-ikj-simd",
+          "c-simd-dot",
+          "cpp",
+          "cpp-ikj",
+          "cpp-tiled",
+          "cpp-ikj-simd",
+          "rs",
+          "rs-ikj",
+          "rs-tiled",
+          "rs-ikj-simd",
+          "asc",
+          "asc-ikj",
+          "asc-tiled",
+        ]
+      ) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.gemm.instance;
         const mem = inst.exports.memory;
@@ -6093,6 +6110,24 @@ export const KERNEL_ADAPTERS = {
         callables[key] = { gemm: run };
         probes[key] = () => {
           run();
+          const cfg = mods.engines[key].cfg;
+          if (cfg && cfg.equivalence === "reassociated") {
+            const { a, b, c0 } = inputs();
+            const ref = new Float32Array(M * N);
+            jsGemm(a, b, c0, ref);
+            const act = new Float32Array(mem.buffer, outOff, M * N);
+            const tol = typeof cfg.declaredTolerance === "number" ? cfg.declaredTolerance : 0;
+            for (let i = 0; i < M * N; i++) {
+              const denom = Math.max(Math.abs(ref[i]), 1e-6);
+              const rel = Math.abs(act[i] - ref[i]) / denom;
+              if (!(rel <= tol)) {
+                throw new Error(
+                  `ml.gemm.v1 ${key} exceeded declaredTolerance ${tol} at cell ${i}: rel=${rel}`,
+                );
+              }
+            }
+            return fnv1aBytes(new Uint8Array(ref.buffer, ref.byteOffset, ref.byteLength));
+          }
           return fnv1aBytes(new Uint8Array(mem.buffer, outOff, M * N * 4));
         };
       }
@@ -6513,7 +6548,7 @@ export const KERNEL_ADAPTERS = {
         return panelDigest(out.gemm, out.cholesky, out.jacobi);
       };
 
-      for (const key of ["wat", "c", "cpp", "rs", "asc"]) {
+      for (const key of ["wat", "c", "c-opt", "c-simd", "cpp", "rs", "rs-simd", "asc"]) {
         if (!mods.engines[key]) continue;
         const inst = mods.engines[key].instances.polybench.instance;
         const mem = inst.exports.memory;
@@ -7504,6 +7539,63 @@ export const KERNEL_ADAPTERS = {
           },
         };
       }
+      return callables;
+    },
+  },
+  "network.pcap-decode.v1": {
+    kernels: ["pcap_decode"],
+    async build(mods) {
+      const res = await fetch("/artifacts/base-network-pcap-decode/fixture.pcap", {
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        throw new Error(`pcap_decode: fixture.pcap returned ${res.status}`);
+      }
+      const fixture = new Uint8Array(await res.arrayBuffer());
+      const { runPcapJavaScript } = await import(
+        "/benchmarks/base/network-pcap-decode/engine.js"
+      );
+      const EXPECTED_FNV = 0x578064ea;
+      const EXPECTED_LEN = 208;
+      const callables = {};
+      const probes = {};
+      callables.js = {
+        pcap_decode: () => {
+          const out = runPcapJavaScript(fixture).bytes;
+          if (out.length !== EXPECTED_LEN || fnv1aBytes(out) !== EXPECTED_FNV) {
+            throw new Error("pcap_decode js output drifted from reference-output.bin");
+          }
+        },
+      };
+      probes.js = () => fnv1aBytes(runPcapJavaScript(fixture).bytes);
+
+      for (const key of ["c", "cpp", "rs"]) {
+        if (!mods.engines[key]) continue;
+        const inst = mods.engines[key].instances.pcap_decode.instance;
+        const exports = inst.exports;
+        const run = () => {
+          const inPtr = Number(exports.input_ptr());
+          new Uint8Array(exports.memory.buffer, inPtr, fixture.length).set(fixture);
+          const status = Number(exports.run(fixture.length));
+          if (status !== 0) {
+            throw new Error(`pcap_decode ${key} failed with status ${status}`);
+          }
+          const outPtr = Number(exports.output_ptr());
+          const outLen = Number(exports.output_len());
+          const out = new Uint8Array(exports.memory.buffer, outPtr, outLen);
+          if (outLen !== EXPECTED_LEN || fnv1aBytes(out) !== EXPECTED_FNV) {
+            throw new Error(`pcap_decode ${key} output drifted from reference-output.bin`);
+          }
+          return fnv1aBytes(out);
+        };
+        callables[key] = {
+          pcap_decode: () => {
+            run();
+          },
+        };
+        probes[key] = () => run();
+      }
+      requireEngineAgreement("network.pcap-decode.v1", probes);
       return callables;
     },
   },

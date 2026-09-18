@@ -125,8 +125,11 @@ Deno.test(
 
     const linear = [
       ["polybench_c.wasm", "C"],
+      ["polybench_c_opt.wasm", "C __restrict + hoisted"],
+      ["polybench_c_simd.wasm", "C __restrict + SIMD128"],
       ["polybench_cpp.wasm", "C++"],
       ["polybench_rs.wasm", "Rust"],
+      ["polybench_rs_simd.wasm", "Rust hoisted + SIMD128"],
       ["polybench_asc.wasm", "AssemblyScript"],
     ] as const;
 
