@@ -95,16 +95,31 @@
       <section aria-labelledby="provenance-heading">
         <h2 id="provenance-heading">Artifact provenance</h2>
         <p>
-          Every compiled kernel that a workload manifest declares now has a recorded build
-          recipe — the exact command, the source hash and the artifact hash. Not every recipe
-          reproduces the committed binary yet: those artifacts were built before the recipe was
-          recorded, by means the repository does not capture. The shortfall is counted here
-          rather than left implied.
+          Every compiled kernel that a workload manifest declares has a recorded build recipe —
+          the exact command, the source hash and the artifact hash. Whether that recipe rebuilds
+          the committed binary is a measurement, not a property of the artifact: it depends on
+          the machine. The record holds one observation per toolchain, so two machines that
+          disagree are both visible instead of one overwriting the other.
         </p>
         <div id="provenance-summary" class="decision-grid"></div>
         <div class="table-wrap">
           <table class="results-table">
-            <caption>Kernels whose recorded recipe does not reproduce the committed bytes</caption>
+            <caption>What each machine that has run the recipes observed</caption>
+            <thead>
+              <tr>
+                <th scope="col">Toolchain</th>
+                <th scope="col">Compilers</th>
+                <th scope="col">Rebuilt identically</th>
+                <th scope="col">Different bytes</th>
+                <th scope="col">Not run</th>
+              </tr>
+            </thead>
+            <tbody id="provenance-toolchains"></tbody>
+          </table>
+        </div>
+        <div class="table-wrap">
+          <table class="results-table">
+            <caption>Kernels no recorded machine has rebuilt byte for byte</caption>
             <thead>
               <tr>
                 <th scope="col">Artifact</th>

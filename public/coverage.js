@@ -162,6 +162,7 @@ async function main() {
       const prov = await provResp.json();
       const host = document.querySelector("#provenance-summary");
       if (host) {
+        const machines = Object.keys(prov.reproductionsByToolchain ?? {}).length;
         host.innerHTML = [
           summaryCard(
             "Kernels with a recipe",
@@ -169,17 +170,43 @@ async function main() {
             "Compiled kernels whose exact build command, source hash and artifact hash are recorded.",
           ),
           summaryCard(
-            "Reproduce exactly",
+            "Rebuilt by some machine",
             `${prov.reproducesCommittedBytes}/${prov.kernelCount}`,
-            "Recipes that rebuild the committed binary byte for byte.",
+            "Recipes that rebuild the committed binary byte for byte on at least one of the " +
+              "machines that has tried.",
           ),
           summaryCard(
-            "Recipe not yet recovered",
+            "Rebuilt by none",
             prov.doesNotReproduceCommittedBytes,
-            "Artifacts built before the recipe was recorded; the recorded command produces " +
-              "different bytes, so the original build is not reproducible.",
+            "No recorded machine has reproduced these bytes. Either the original build used " +
+              "flags nobody wrote down, or it used a compiler distribution none of these " +
+              "machines has.",
+          ),
+          summaryCard(
+            "Machines recorded",
+            machines,
+            "Distinct toolchains that have run the recipes. Their results are kept apart.",
           ),
         ].join("");
+      }
+      const machineBody = document.querySelector("#provenance-toolchains");
+      if (machineBody) {
+        machineBody.innerHTML = Object.entries(prov.reproductionsByToolchain ?? {}).map(
+          ([id, tally]) => {
+            const tools = prov.toolchains?.[id]?.tools ?? {};
+            const named = ["clang", "rustc", "dart"]
+              .map((t) => tools[t]?.version)
+              .filter((v) => v && v !== "unavailable")
+              .join("; ");
+            return `<tr>
+              <td><code>${esc(id)}</code></td>
+              <td>${esc(named || "not recorded")}</td>
+              <td>${tally.identical}</td>
+              <td>${tally.differs}</td>
+              <td>${tally.notObserved}</td>
+            </tr>`;
+          },
+        ).join("");
       }
       const body = document.querySelector("#provenance-body");
       if (body) {

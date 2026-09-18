@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "description": "The compiler distributions this repository targets, pinned by download URL and sha256 rather than by version string.",
+  "why": "The provenance ledger pinned 'clang version 22.1.8'. Homebrew's clang reports 'Homebrew clang version 22.1.8', satisfies that pin textually, and reproduces none of the 10 C or 10 C++ artifacts, nor the 4 Rust artifacts whose link step runs through wasm-ld. A release number identifies a source tree, not a binary. These hashes identify binaries.",
+  "claimBoundary": "This pin states what the project builds against from now on. It is not evidence that the committed artifacts were produced by these exact distributions: the ledger recorded only version strings when they were built, so the original distributions are unrecorded and unrecoverable. Which kernels reproduce under which toolchain is recorded per observation in public/artifacts/multilang-wasm-benchmark/kernel-build-provenance.v1.json.",
+  "hashesReadAt": "2026-09-18",
+  "distributions": {
+    "llvm": {
+      "version": "22.1.8",
+      "provides": ["clang", "clang++", "wasm-ld"],
+      "hashSource": "GitHub release asset digest for tag llvmorg-22.1.8, api.github.com/repos/llvm/llvm-project",
+      "platforms": {
+        "darwin-aarch64": {
+          "url": "https://github.com/llvm/llvm-project/releases/download/llvmorg-22.1.8/LLVM-22.1.8-macOS-ARM64.tar.xz",
+          "sha256": "f260f4f7c0d430828a81ae8a3826a1d63fc0963ec2459489308cc23b1f7eab4f",
+          "bytes": 1479903744
+        },
+        "linux-x86_64": {
+          "url": "https://github.com/llvm/llvm-project/releases/download/llvmorg-22.1.8/LLVM-22.1.8-Linux-X64.tar.xz",
+          "sha256": "df0e1ecf16caf3489a272a5eea4eec9b0d82878f6477fa309504f918a0006384",
+          "bytes": 1938859476
+        }
+      },
+      "expectedVersionString": "clang version 22.1.8"
+    },
+    "rust": {
+      "version": "1.97.1",
+      "provides": ["rustc", "cargo"],
+      "targets": ["wasm32-unknown-unknown"],
+      "hashSource": "static.rust-lang.org/dist/channel-rust-1.97.1.toml.sha256",
+      "channelManifest": {
+        "url": "https://static.rust-lang.org/dist/channel-rust-1.97.1.toml",
+        "sha256": "03569b1886ceb5c05276b50c8431ab111de944cd6140fe1fa7d821dd8e0f29cf"
+      },
+      "note": "One hash is enough: the channel manifest carries the URL and hash of every component and target for this release, so pinning the manifest pins the toolchain transitively. Install with `rustup toolchain install 1.97.1` and `rustup target add wasm32-unknown-unknown --toolchain 1.97.1`.",
+      "expectedVersionString": "rustc 1.97.1 (8bab26f4f 2026-07-14)"
+    },
+    "dart": {
+      "version": "3.12.2",
+      "provides": ["dart"],
+      "hashSource": "the .sha256sum published beside each SDK archive on storage.googleapis.com/dart-archive",
+      "platforms": {
+        "darwin-aarch64": {
+          "url": "https://storage.googleapis.com/dart-archive/channels/stable/release/3.12.2/sdk/dartsdk-macos-arm64-release.zip",
+          "sha256": "cd8753928e77b6b665bd70dce0e64b4ec6d2e2fde141d6409bb716c8ac1f1c0a"
+        },
+        "linux-x86_64": {
+          "url": "https://storage.googleapis.com/dart-archive/channels/stable/release/3.12.2/sdk/dartsdk-linux-x64-release.zip",
+          "sha256": "28e47b44cf075f36771046c068bb0d174201cf9c7608744aed1cc23204299c2d"
+        }
+      },
+      "expectedVersionString": "Dart SDK version: 3.12.2"
+    },
+    "assemblyscript": {
+      "version": "0.28.20",
+      "provides": ["asc"],
+      "hashSource": "registry.npmjs.org/assemblyscript/latest dist.integrity",
+      "registry": "https://registry.npmjs.org/assemblyscript/-/assemblyscript-0.28.20.tgz",
+      "integrity": "sha512-5PM7GZpvcLypHcLmi30aP8mqm5HjU+LL3BdV1xDyA3USGtL2w+iMiUnhtH+vW8+2kOuHlAyPu7M+QgyEw5he1g==",
+      "firstPinnedHere": true,
+      "note": "scripts/build-multilang-kernels.ts invokes `npx --yes -p assemblyscript asc`, which resolves to whatever version is current. Every AssemblyScript artifact in the repository reproduces byte-for-byte under 0.28.20, so that is the version recorded; it is not proof that 0.28.20 built the committed bytes, only that it rebuilds them."
+    }
+  },
+  "deliberatelyUnpinned": {
+    "deno": "The runtime that drives builders and the gate. It reads and writes artifacts but never compiles one, so it cannot change an artifact's bytes. deno.json and deno.lock pin what it executes.",
+    "node": "Hosts the asc compiler and nothing else. The AssemblyScript pin above fixes the compiler; the Node build that runs it is not known to affect asc output, and no measurement here has shown it to.",
+    "hostSdk": "Homebrew's clang loads a configuration file adding `-isysroot <macOS SDK>`. Every kernel here builds with --target=wasm32 -nostdlib -ffreestanding, so no host SDK header is reachable and the flag has no observed effect. Recorded because it is a real difference between distributions, not because it explains one."
+  }
+}

@@ -106,7 +106,8 @@
       "track": "B",
       "baseline": "dart",
       "equivalence": "bit-identical",
-      "optimizationLog": "-O2: -O1 plus minification; documented safe for all programs. Bit-identical to the pinned strict-f32 oracle."
+      "optimizationLog": "-O2: -O1 plus minification; documented safe for all programs. Bit-identical to the pinned strict-f32 oracle.",
+      "optimizationLevel": "2"
     },
     {
       "key": "dart-o3",
@@ -118,7 +119,8 @@
       "track": "B",
       "baseline": "dart",
       "equivalence": "bit-identical",
-      "optimizationLog": "-O3: -O2 plus omits implicit type checks. Non-default diagnostic mode. Bit-identical to the pinned strict-f32 oracle."
+      "optimizationLog": "-O3: -O2 plus omits implicit type checks. Non-default diagnostic mode. Bit-identical to the pinned strict-f32 oracle.",
+      "optimizationLevel": "3"
     },
     {
       "key": "dart-o4",
@@ -130,7 +132,8 @@
       "track": "B",
       "baseline": "dart",
       "equivalence": "bit-identical",
-      "optimizationLog": "-O4: more aggressive than -O3 under the same assumptions, input-data sensitive. Non-default diagnostic mode. Bit-identical to the pinned strict-f32 oracle."
+      "optimizationLog": "-O4: more aggressive than -O3 under the same assumptions, input-data sensitive. Non-default diagnostic mode. Bit-identical to the pinned strict-f32 oracle.",
+      "optimizationLevel": "4"
     }
   ]
 }

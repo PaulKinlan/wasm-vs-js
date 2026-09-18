@@ -28,24 +28,28 @@ Deno.test("a --only filter that matches nothing refuses to write the ledger", ()
 });
 
 Deno.test("a filtered run merges into the ledger instead of replacing it", () => {
+  // Under schema v2 the merge is a map keyed by workload/engine, seeded from
+  // the ledger on disk before this run's records are applied. It is no longer
+  // conditional on --only: a full run also has to preserve entries it skipped,
+  // such as the Dart kernels a run without --with-dart never plans.
   assert(
-    /let merged = records;/.test(SOURCE),
-    "the ledger write must start from a merged record set, not this run's records",
+    /for \(const entry of prior\.kernels \?\? \[\]\) \{\s*\n\s*merged\.set\(/.test(SOURCE),
+    "the ledger write must be seeded from the ledger on disk, not from this run's records",
   );
   assert(
-    /kernels: merged,/.test(SOURCE),
+    /kernels,\n/.test(SOURCE) && /const kernels = \[\.\.\.merged\.values\(\)\]/.test(SOURCE),
     "the ledger must serialize the merged records",
   );
   assert(
-    /kernelCount: merged\.length,/.test(SOURCE),
+    /kernelCount: kernels\.length,/.test(SOURCE),
     "kernelCount must count the merged ledger, not this run",
   );
-  // The merge is only correct if it drops the stale copies of what was rebuilt.
-  const at = SOURCE.indexOf("let merged = records;");
-  const block = SOURCE.slice(at, at + 900);
+  // Keying by workload/engine is what makes a rebuild replace its own entry
+  // rather than appending a duplicate beside it.
   assert(
-    block.includes("rebuilt.has(") && block.includes("!"),
-    "the merge must exclude prior entries for the kernels this run rebuilt",
+    /merged\.set\(`\$\{record\.workload\}\/\$\{record\.engine\}`|const key = `\$\{record\.workload\}\/\$\{record\.engine\}`/
+      .test(SOURCE),
+    "this run's records must be merged under the same workload/engine key",
   );
 });
 

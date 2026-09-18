@@ -185,11 +185,16 @@ The memory-hierarchy variants. Both are AssemblyScript, both `bit-identical`, bo
 by `scripts/build-multilang-asc-opt.ts`, which refuses to report a timing for any variant
 whose output digest is not the pinned oracle's.
 
-AssemblyScript rather than C for one reason: C is currently unbuildable here. The
-committed C/C++/Rust artifacts do not reproduce byte-for-byte under this machine's
-clang/lld, so running the main builder would silently replace 25 committed artifacts.
-AssemblyScript reproduces exactly, so the same optimizations can be shown honestly today
-on a language whose bytes we can still vouch for.
+AssemblyScript rather than C for one reason: C is currently unbuildable here. Not one of
+the 39 committed C or 41 committed C++ artifacts rebuilds byte-for-byte under this
+machine's clang and lld, so running the main builder and accepting its output would replace
+committed bytes with bytes nobody has vouched for.
+
+AssemblyScript is not globally better off — only 13 of its 35 committed artifacts rebuild
+identically here. What matters for these two variants is narrower and sufficient: they were
+authored and built on this machine, so their committed bytes are the bytes this recipe
+produces, and `tests/multilang-kernel-provenance.test.ts` holds that. The per-language and
+per-machine counts are in `docs/toolchain-provenance.md`.
 
 **`asc-ikj` — loop interchange i/j/k → i/k/j.** The baseline reads `B[t][j]` down a
 column in the innermost loop, so every iteration touches a different 64-byte line: 128
@@ -309,14 +314,14 @@ of the equivalence policy.
 
 **Why the C/C++/Rust rows are blocked.** Adding them means running
 `scripts/build-multilang-wasm-benchmark.ts`, which rebuilds every C, C++, Rust and
-AssemblyScript artifact in the lane. On a machine whose clang and lld are not the exact
-builds that produced the committed bytes, that rewrites 25 committed artifacts. Measured
-on an arm64 macOS host with Homebrew clang 22.1.8 and lld 22.1.8 against the pinned
-`clang version 22.1.8` and `rustc 1.97.1`: all 23 Dart artifacts and every
-AssemblyScript artifact reproduced byte-identically, while all 10 C, all 10 C++ and 4 of
-the Rust artifacts did not. Landing the tiled variants therefore needs either the exact
-original clang/lld distribution, or a deliberate, separately reviewed toolchain re-pin
-that regenerates and re-commits the whole multilang artifact set.
+AssemblyScript artifact in the lane and writes the results over the committed ones. On an
+arm64 macOS host with Homebrew clang and lld 22.1.8 — fingerprint `tc-9890abef9b5a` in the
+provenance ledger — 47 of the 181 recorded kernels rebuild byte-identically, and none of
+them are C or C++. Six kernels reproduce on the machine that recorded the original ledger
+and not on this one, from the same source and the same command. Landing the tiled variants
+therefore needs either the distribution those bytes came from, or a deliberate, separately
+reviewed toolchain re-pin that regenerates and re-commits the whole multilang artifact set.
+`docs/toolchain-provenance.md` has the per-language and per-machine breakdown.
 
 ### dart optimization levels — remaining workloads
 

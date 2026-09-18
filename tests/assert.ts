@@ -2,9 +2,12 @@ export function assert(condition: unknown, message = "assertion failed"): assert
   if (!condition) throw new Error(message);
 }
 
-export function assertEquals(actual: unknown, expected: unknown): void {
+export function assertEquals(actual: unknown, expected: unknown, message?: string): void {
   if (JSON.stringify(actual) !== JSON.stringify(expected)) {
-    throw new Error(`not equal: ${JSON.stringify(actual)} != ${JSON.stringify(expected)}`);
+    const detail = `not equal: ${JSON.stringify(actual)} != ${JSON.stringify(expected)}`;
+    // Over a ledger of 181 records, the values alone do not say which record
+    // failed.
+    throw new Error(message ? `${message} (${detail})` : detail);
   }
 }
 

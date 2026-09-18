@@ -37,13 +37,87 @@
 // artifacts the recorded recipe does not reproduce. That count IS the
 // provenance gap, stated rather than hidden.
 
+import { fingerprintToolchain } from "./toolchain-fingerprint.ts";
+
 const ROOT = new URL("../", import.meta.url).pathname;
 const MANIFEST_DIR = `${ROOT}public/benchmarks/multilang-wasm`;
 const ARTIFACT_DIR = `${ROOT}public/artifacts/multilang-wasm-benchmark`;
 const PROVENANCE = `${ARTIFACT_DIR}/kernel-build-provenance.v1.json`;
+const TOOLCHAIN_PIN = `${ROOT}toolchain-pin.json`;
 
-const CARGO_BIN = "/home/paulkinlan/.cargo/bin";
-const DART_BIN = "/home/paulkinlan/.local/share/dart-sdk/bin";
+/**
+ * Toolchains that recorded observations before observations carried an
+ * identity. Their version strings survive; nothing else about them does.
+ */
+const UNRECORDED_TOOLCHAIN = "tc-unrecorded";
+
+/** One machine's answer to "does this recipe rebuild the committed bytes?". */
+export interface Reproduction {
+  toolchain: string;
+  result: "identical" | "differs" | "notCommitted";
+  /** What that machine's compiler actually emitted. */
+  artifactSha256: string;
+  firstObserved: string;
+  lastObserved: string;
+}
+
+export interface LedgerRecord {
+  workload: string;
+  engine: string;
+  lang: string;
+  source: string;
+  sourceSha256: string;
+  artifact: string;
+  /** The committed artifact's hash, not any particular rebuild's. */
+  artifactSha256: string;
+  artifactBytes: number;
+  command: string;
+  reproducesCommittedBytes: boolean;
+  reproductions: Reproduction[];
+}
+
+interface PriorLedger {
+  kernels?: (LedgerRecord & { reproductions?: Reproduction[] })[];
+  toolchain?: Record<string, string>;
+  toolchains?: Record<string, unknown>;
+}
+
+/**
+ * A schema v1 entry states a verdict with no owner. Turning it into an
+ * observation attributed to an unidentified machine keeps the information and
+ * stops it being re-attributed to whoever runs the builder next.
+ */
+function migrate(entry: LedgerRecord & { reproductions?: Reproduction[] }): LedgerRecord {
+  if (entry.reproductions) return entry as LedgerRecord;
+  return {
+    ...entry,
+    reproductions: [{
+      toolchain: UNRECORDED_TOOLCHAIN,
+      result: entry.reproducesCommittedBytes ? "identical" : "differs",
+      artifactSha256: entry.artifactSha256,
+      firstObserved: "unrecorded",
+      lastObserved: "unrecorded",
+    }],
+  };
+}
+
+/**
+ * Extra directories searched for compilers, colon-separated. rustup and the
+ * Dart SDK install outside the default PATH of a non-login shell; this used to
+ * be two absolute paths under one contributor's Linux home directory, which
+ * found nothing on any other machine and silently fell through to whatever the
+ * ambient PATH happened to hold.
+ */
+function extraToolPaths(): string {
+  const declared = Deno.env.get("WASM_VS_JS_TOOL_PATH");
+  if (declared) return declared;
+  const home = Deno.env.get("HOME") ?? "";
+  return [
+    `${home}/.cargo/bin`,
+    `${home}/.local/share/dart-sdk/bin`,
+    `${home}/.local/toolchains/dart-sdk/bin`,
+  ].join(":");
+}
 
 /**
  * Built lazily: reading the environment at module load would make merely
@@ -53,7 +127,7 @@ const DART_BIN = "/home/paulkinlan/.local/share/dart-sdk/bin";
 function buildEnv(): Record<string, string> {
   return {
     ...Deno.env.toObject(),
-    PATH: `${CARGO_BIN}:${DART_BIN}:${Deno.env.get("PATH") ?? ""}`,
+    PATH: `${extraToolPaths()}:${Deno.env.get("PATH") ?? ""}`,
   };
 }
 
@@ -68,6 +142,8 @@ export interface EngineBuild {
   artifact: string;
   /** Bytes of linear memory the module starts with. */
   initialMemoryBytes: number;
+  /** dart2wasm optimization level, when the engine row declares one. */
+  optimizationLevel?: string;
 }
 
 interface Manifest {
@@ -81,6 +157,7 @@ interface Manifest {
     file?: string;
     files?: Record<string, string>;
     initialMemoryBytes?: number;
+    optimizationLevel?: string;
   }>;
 }
 
@@ -143,6 +220,7 @@ export async function planBuilds(
         source,
         artifact,
         initialMemoryBytes: engine.initialMemoryBytes ?? DEFAULT_INITIAL_MEMORY,
+        optimizationLevel: engine.optimizationLevel,
       });
     }
   }
@@ -218,9 +296,14 @@ export function commandFor(build: EngineBuild, outDir: string): [string, string[
         out,
       ]];
     case "dart":
+      // dart2wasm defaults to -O1. The optimization-level variants are the same
+      // source at a different level, so a recipe without the flag rebuilds the
+      // baseline and is recorded as failing to reproduce a variant it was never
+      // the recipe for.
       return ["dart", [
         "compile",
         "wasm",
+        ...(build.optimizationLevel ? [`-O${build.optimizationLevel}`] : []),
         "--no-source-maps",
         src,
         "-o",
@@ -272,7 +355,13 @@ if (import.meta.main) {
 
   let scratchDir: string | null = null;
   let env0: Record<string, string> | null = null;
-  const records: Record<string, unknown>[] = [];
+  const records: {
+    workload: string;
+    engine: string;
+    result: Reproduction["result"];
+    builtSha256: string;
+    record: Omit<LedgerRecord, "reproductions">;
+  }[] = [];
   const failures: string[] = [];
   const differs: string[] = [];
 
@@ -311,26 +400,39 @@ if (import.meta.main) {
     const builtHash = await sha256Hex(built);
     const committedHash = committed === null ? null : await sha256Hex(committed);
     if (writeDirect) written.push(build.artifact);
+    let outcome: Reproduction["result"];
     if (committed === null) {
+      // Nothing to compare against yet. Not a failure to reproduce — there was
+      // no committed artifact to reproduce.
+      outcome = "notCommitted";
       differs.push(`${build.workload}/${build.engineKey} (${build.artifact}: was not committed)`);
     } else if (committedHash === builtHash) {
+      outcome = "identical";
       reproduced++;
     } else {
+      outcome = "differs";
       differs.push(`${build.workload}/${build.engineKey} (${build.artifact})`);
     }
     records.push({
       workload: build.workload,
       engine: build.engineKey,
-      lang: build.lang,
-      source: build.source,
-      sourceSha256: await sha256Hex(sourceBytes),
-      artifact: build.artifact,
-      artifactSha256: builtHash,
-      artifactBytes: built.byteLength,
-      reproducesCommittedBytes: committedHash !== null && committedHash === builtHash,
-      // Recorded relative to the repository root so the recipe is readable and
-      // re-runnable without the absolute paths of whoever built it.
-      command: [cmd, ...args.map((a) => a.replace(ROOT, "").replace(buildDir, "<out>"))].join(" "),
+      result: outcome,
+      builtSha256: builtHash,
+      record: {
+        workload: build.workload,
+        engine: build.engineKey,
+        lang: build.lang,
+        source: build.source,
+        sourceSha256: await sha256Hex(sourceBytes),
+        artifact: build.artifact,
+        artifactSha256: committedHash ?? builtHash,
+        artifactBytes: committed?.byteLength ?? built.byteLength,
+        reproducesCommittedBytes: outcome === "identical",
+        // Recorded relative to the repository root so the recipe is readable
+        // and re-runnable without the absolute paths of whoever built it.
+        command: [cmd, ...args.map((a) => a.replace(ROOT, "").replace(buildDir, "<out>"))]
+          .join(" "),
+      },
     });
   }
 
@@ -350,74 +452,134 @@ if (import.meta.main) {
     // entries — writing `records` alone would drop every recipe it did not
     // rebuild. Carry the untouched entries forward and recount from the merged
     // set, so the summary describes the ledger rather than this run.
-    let prior: { kernels?: Record<string, unknown>[]; toolchain?: Record<string, string> } = {};
+    let prior: PriorLedger = {};
     try {
       prior = JSON.parse(await Deno.readTextFile(PROVENANCE));
     } catch {
       prior = {};
     }
-    let merged = records;
-    if (only) {
-      const rebuilt = new Set(records.map((r) => `${r.workload}/${r.engine}`));
-      const existing = (prior.kernels ?? []).filter((r) =>
-        !rebuilt.has(`${r.workload}/${r.engine}`)
-      );
-      merged = [...existing, ...records];
-      reproduced = merged.filter((r) => r.reproducesCommittedBytes === true).length;
-    }
-    const notReproduced = only ? merged.length - reproduced : differs.length;
-    merged.sort((a, b) => String(a.artifact).localeCompare(String(b.artifact)));
 
-    // The toolchain block describes the compilers behind every entry in the
-    // ledger. A filtered run re-records a handful of them, so stamping this
-    // machine's compiler over the whole file would relabel entries it never
-    // touched — and the point of this record is that provenance is accurate.
-    // Only a full run may rewrite it; a filtered run keeps what is there.
-    const measuredToolchain = {
-      clang: new TextDecoder().decode(
-        (await new Deno.Command("clang", {
-          args: ["--version"],
-          stdout: "piped",
-          env: buildEnv(),
-        }).output())
-          .stdout,
-      ).split("\n")[0],
-      rustc: new TextDecoder().decode(
-        (await new Deno.Command("rustc", {
-          args: ["--version"],
-          stdout: "piped",
-          env: buildEnv(),
-        }).output())
-          .stdout,
-      ).trim(),
+    const fingerprint = await fingerprintToolchain(env0 ?? buildEnv(), { probeAsc: false });
+    const today = new Date().toISOString().slice(0, 10);
+
+    // The singular block names the toolchain the project targets, read from the
+    // committed pin. It used to be whatever compiler the last run happened to
+    // have, which relabelled 154 entries every time someone new built two of
+    // them. What each machine actually observed lives in `toolchains`.
+    const pin = JSON.parse(await Deno.readTextFile(TOOLCHAIN_PIN)) as {
+      distributions: Record<string, { expectedVersionString?: string }>;
     };
-    const toolchain = only && prior.toolchain ? prior.toolchain : measuredToolchain;
+    const referenceToolchain = {
+      clang: pin.distributions.llvm?.expectedVersionString ?? "unrecorded",
+      rustc: pin.distributions.rust?.expectedVersionString ?? "unrecorded",
+      dart: pin.distributions.dart?.expectedVersionString ?? "unrecorded",
+      source: "toolchain-pin.json",
+    };
+
+    const toolchains: Record<string, unknown> = { ...(prior.toolchains ?? {}) };
+    // Schema v1 named one toolchain for the whole ledger and attached no
+    // identity to any individual observation. Those version strings are all
+    // that is known about the machines behind the pre-existing entries, so they
+    // are carried forward under an id that says so rather than being silently
+    // re-attributed to whoever runs this next.
+    if (!toolchains[UNRECORDED_TOOLCHAIN] && (prior.kernels ?? []).length > 0) {
+      toolchains[UNRECORDED_TOOLCHAIN] = {
+        id: UNRECORDED_TOOLCHAIN,
+        os: "unrecorded",
+        arch: "unrecorded",
+        tools: Object.fromEntries(
+          Object.entries(prior.toolchain ?? {}).map(([k, v]) => [k, { version: v }]),
+        ),
+        note:
+          "Schema v1 recorded one global toolchain block for the whole ledger and no identity " +
+          "per observation. These are those version strings. Everything else about the machines " +
+          "that produced these observations is unrecorded and not recoverable.",
+      };
+    }
+    toolchains[fingerprint.id] = fingerprint;
+
+    const merged = new Map<string, LedgerRecord>();
+    for (const entry of prior.kernels ?? []) {
+      merged.set(`${entry.workload}/${entry.engine}`, migrate(entry));
+    }
+    for (const record of records) {
+      const key = `${record.workload}/${record.engine}`;
+      const existing = merged.get(key);
+      const reproductions = [...(existing?.reproductions ?? [])];
+      const at = reproductions.findIndex((r) => r.toolchain === fingerprint.id);
+      const observation: Reproduction = {
+        toolchain: fingerprint.id,
+        result: record.result,
+        artifactSha256: record.builtSha256,
+        firstObserved: at >= 0 ? reproductions[at].firstObserved : today,
+        lastObserved: today,
+      };
+      if (at >= 0) reproductions[at] = observation;
+      else reproductions.push(observation);
+      merged.set(key, { ...record.record, reproductions });
+    }
+
+    // Under v1 `artifactSha256` held whatever the last run compiled, so for the
+    // entries that do not reproduce it did not describe the committed file it
+    // sat next to. It is the published artifact's hash; what a given machine
+    // compiled belongs in that machine's observation.
+    for (const [, entry] of merged) {
+      try {
+        entry.artifactSha256 = await sha256Hex(
+          await Deno.readFile(`${ARTIFACT_DIR}/${entry.artifact}`),
+        );
+      } catch {
+        // No committed artifact: the recorded hash is the only one there is.
+      }
+      entry.reproducesCommittedBytes = entry.reproductions.some((r) => r.result === "identical");
+    }
+
+    const kernels = [...merged.values()].sort((a, b) => a.artifact.localeCompare(b.artifact));
+    const reproducedCount = kernels.filter((k) => k.reproducesCommittedBytes).length;
+
+    const byToolchain: Record<string, Record<string, number>> = {};
+    for (const id of Object.keys(toolchains)) {
+      const tally = { identical: 0, differs: 0, notCommitted: 0, notObserved: 0 };
+      for (const k of kernels) {
+        const seen = k.reproductions.find((r) => r.toolchain === id);
+        if (!seen) tally.notObserved++;
+        else tally[seen.result]++;
+      }
+      byToolchain[id] = tally;
+    }
 
     await Deno.writeTextFile(
       PROVENANCE,
       JSON.stringify(
         {
-          schemaVersion: 1,
+          schemaVersion: 2,
           description:
             "Build recipe and content hashes for every multi-language kernel artifact compiled " +
-            "from a source named by a workload manifest.",
-          toolchain,
-          kernelCount: merged.length,
-          // How far the recorded recipes actually go. A kernel that does not
-          // reproduce its committed bytes still has a readable recipe and a
-          // source hash, but the committed binary was built some other way and
-          // that recipe is not recoverable — stated here rather than implied.
-          reproducesCommittedBytes: reproduced,
-          doesNotReproduceCommittedBytes: notReproduced,
-          kernels: merged,
+            "from a source named by a workload manifest, with one reproduction observation per " +
+            "toolchain that has run the recipe.",
+          reproducibilityIsAMeasurement:
+            "Whether a recipe rebuilds the committed bytes is a property of the machine that " +
+            "ran it, not of the artifact. Observations are appended under the fingerprint of " +
+            "the toolchain that made them and are never overwritten by another machine. " +
+            "reproducesCommittedBytes means at least one recorded toolchain reproduced the " +
+            "bytes; reproductionsByToolchain gives the per-machine breakdown.",
+          toolchain: referenceToolchain,
+          toolchains,
+          kernelCount: kernels.length,
+          reproducesCommittedBytes: reproducedCount,
+          doesNotReproduceCommittedBytes: kernels.length - reproducedCount,
+          reproductionsByToolchain: byToolchain,
+          kernels,
         },
         null,
         2,
       ) + "\n",
     );
     console.log(
-      `${merged.length} kernels have a recorded recipe; ${reproduced} reproduce their committed ` +
-        `bytes exactly, ${notReproduced} do not; wrote ${written.length} artifact(s); ` +
+      `${kernels.length} kernels have a recorded recipe; ${reproducedCount} reproduce their ` +
+        `committed bytes under at least one recorded toolchain, ` +
+        `${kernels.length - reproducedCount} under none; this run was ${fingerprint.id} ` +
+        `(${JSON.stringify(byToolchain[fingerprint.id])}); wrote ${written.length} artifact(s); ` +
         `${failures.length} failed, ${skipped.length} skipped`,
     );
     for (const w of written) console.log(`  wrote: ${w}`);
