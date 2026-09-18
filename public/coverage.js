@@ -203,6 +203,7 @@ async function main() {
               <td>${esc(named || "not recorded")}</td>
               <td>${tally.identical}</td>
               <td>${tally.differs}</td>
+              <td>${tally.buildFailed ?? 0}</td>
               <td>${tally.notObserved}</td>
             </tr>`;
           },

@@ -54,9 +54,26 @@ const UNRECORDED_TOOLCHAIN = "tc-unrecorded";
 /** One machine's answer to "does this recipe rebuild the committed bytes?". */
 export interface Reproduction {
   toolchain: string;
-  result: "identical" | "differs" | "notCommitted";
-  /** What that machine's compiler actually emitted. */
-  artifactSha256: string;
+  /**
+   * `buildFailed` is not a verdict on the bytes: the recipe produced no
+   * artifact on this machine, so there was nothing to compare. It is recorded
+   * rather than dropped, because dropping it leaves another machine's
+   * observation standing in a column where this machine never got an answer.
+   */
+  result: "identical" | "differs" | "notCommitted" | "buildFailed";
+  /** What that machine's compiler actually emitted. Absent when it emitted nothing. */
+  artifactSha256?: string;
+  /** Why the build failed. Present only on `buildFailed`. */
+  reason?: string;
+  /**
+   * sha256 of the command this observation ran. An observation is a claim about
+   * a toolchain *and* a recipe: when the recipe changes, an older machine's
+   * verdict stops being comparable with a newer one. Without this field two
+   * columns built from different commands sit side by side looking like a
+   * controlled comparison. `"unrecorded"` for observations migrated from
+   * schema v1, whose recipe was overwritten before it was captured.
+   */
+  recipeSha256: string;
   firstObserved: string;
   lastObserved: string;
 }
@@ -86,19 +103,52 @@ interface PriorLedger {
  * A schema v1 entry states a verdict with no owner. Turning it into an
  * observation attributed to an unidentified machine keeps the information and
  * stops it being re-attributed to whoever runs the builder next.
+ *
+ * Observations written before `recipeSha256` existed get it as `"unrecorded"`
+ * for the same reason: the recipe they ran was not captured, and the current
+ * one is not a substitute for it.
  */
 function migrate(entry: LedgerRecord & { reproductions?: Reproduction[] }): LedgerRecord {
-  if (entry.reproductions) return entry as LedgerRecord;
+  if (entry.reproductions) {
+    return {
+      ...entry,
+      reproductions: entry.reproductions.map((r) => ({
+        ...r,
+        recipeSha256: r.recipeSha256 ?? "unrecorded",
+      })),
+    };
+  }
   return {
     ...entry,
     reproductions: [{
       toolchain: UNRECORDED_TOOLCHAIN,
       result: entry.reproducesCommittedBytes ? "identical" : "differs",
       artifactSha256: entry.artifactSha256,
+      // The v1 ledger held one `command` per kernel and rewrote it in place, so
+      // the recipe these observations actually ran is gone. Stamping today's
+      // recipe on them would manufacture a comparison that was never made.
+      recipeSha256: "unrecorded",
       firstObserved: "unrecorded",
       lastObserved: "unrecorded",
     }],
   };
+}
+
+/**
+ * The one line of a compiler's stderr worth keeping. Two layers get in the way:
+ * rustc ends with "aborting due to N previous errors", which says nothing, and
+ * it wraps a linker failure in its own "error: linking with ... failed" line
+ * while printing the linker's actual complaint underneath as a `= note:`. The
+ * inner diagnostic is the one that identifies the problem.
+ */
+function firstDiagnostic(stderr: string): string {
+  const lines = stderr.split("\n")
+    .map((l) => l.replace(/^\s*(=\s*note:)?\s*/, "").trim())
+    .filter(Boolean);
+  const errors = lines.filter((l) => /error/i.test(l) && !/^error: aborting due to/.test(l));
+  const inner = errors.filter((l) => !/^error: linking with/.test(l));
+  return (inner.at(-1) ?? errors[0] ?? lines[0] ?? "the build failed and printed nothing")
+    .slice(0, 400);
 }
 
 /**
@@ -269,11 +319,19 @@ export function commandFor(build: EngineBuild, outDir: string): [string, string[
         src,
       ]];
     case "rs":
+      // Without this the module starts at rustc's default linear memory, which
+      // is smaller than the fixtures these kernels are driven with: rebuilt
+      // scan_log_rs trapped on an out-of-bounds access and zip_build_rs
+      // returned a failure status before computing anything. The C, C++ and
+      // AssemblyScript recipes had always carried the equivalent flag; this one
+      // did not, so it was a recipe that could not produce a working artifact.
       return ["rustc", [
         "--target=wasm32-unknown-unknown",
         "-O",
         "--crate-type",
         "cdylib",
+        "-C",
+        `link-arg=--initial-memory=${build.initialMemoryBytes}`,
         "-o",
         out,
         src,
@@ -359,7 +417,8 @@ if (import.meta.main) {
     workload: string;
     engine: string;
     result: Reproduction["result"];
-    builtSha256: string;
+    builtSha256: string | null;
+    reason?: string;
     record: Omit<LedgerRecord, "reproductions">;
   }[] = [];
   const failures: string[] = [];
@@ -390,9 +449,37 @@ if (import.meta.main) {
     const result = await new Deno.Command(cmd, { args, env, stderr: "piped", stdout: "piped" })
       .output();
     if (!result.success) {
-      failures.push(
-        `${build.workload}/${build.engineKey}: ${new TextDecoder().decode(result.stderr).trim()}`,
-      );
+      const stderr = new TextDecoder().decode(result.stderr).trim();
+      failures.push(`${build.workload}/${build.engineKey}: ${stderr}`);
+      // A dropped failure is a silent exclusion: the merge below would carry
+      // whatever another machine last observed into this machine's column, as
+      // if the recipe had been tried here and agreed. Record the failure
+      // instead. With no committed artifact there is nothing for the entry to
+      // describe, so only the console reports those.
+      if (committed !== null) {
+        records.push({
+          workload: build.workload,
+          engine: build.engineKey,
+          result: "buildFailed",
+          builtSha256: null,
+          // rustc's last line is "aborting due to N previous errors", which
+          // says nothing. The first line that names an error does.
+          reason: firstDiagnostic(stderr),
+          record: {
+            workload: build.workload,
+            engine: build.engineKey,
+            lang: build.lang,
+            source: build.source,
+            sourceSha256: await sha256Hex(await Deno.readFile(`${ROOT}${build.source}`)),
+            artifact: build.artifact,
+            artifactSha256: await sha256Hex(committed),
+            artifactBytes: committed.byteLength,
+            reproducesCommittedBytes: false,
+            command: [cmd, ...args.map((a) => a.replace(ROOT, "").replace(buildDir, "<out>"))]
+              .join(" "),
+          },
+        });
+      }
       continue;
     }
     const built = await Deno.readFile(`${buildDir}/${build.artifact}`);
@@ -507,11 +594,19 @@ if (import.meta.main) {
       const existing = merged.get(key);
       const reproductions = [...(existing?.reproductions ?? [])];
       const at = reproductions.findIndex((r) => r.toolchain === fingerprint.id);
+      const recipeSha256 = await sha256Hex(new TextEncoder().encode(record.record.command));
+      // firstObserved carries over only while the recipe is the same one. A
+      // changed command is a different experiment, and dating it from the old
+      // one would claim a longer run of agreement than there has been.
+      const sameRecipe = at >= 0 && reproductions[at].recipeSha256 === recipeSha256;
       const observation: Reproduction = {
         toolchain: fingerprint.id,
         result: record.result,
-        artifactSha256: record.builtSha256,
-        firstObserved: at >= 0 ? reproductions[at].firstObserved : today,
+        // No artifact, no hash. An empty string here would read as a value.
+        ...(record.builtSha256 === null ? {} : { artifactSha256: record.builtSha256 }),
+        ...(record.reason === undefined ? {} : { reason: record.reason }),
+        recipeSha256,
+        firstObserved: sameRecipe ? reproductions[at].firstObserved : today,
         lastObserved: today,
       };
       if (at >= 0) reproductions[at] = observation;
@@ -539,7 +634,7 @@ if (import.meta.main) {
 
     const byToolchain: Record<string, Record<string, number>> = {};
     for (const id of Object.keys(toolchains)) {
-      const tally = { identical: 0, differs: 0, notCommitted: 0, notObserved: 0 };
+      const tally = { identical: 0, differs: 0, notCommitted: 0, buildFailed: 0, notObserved: 0 };
       for (const k of kernels) {
         const seen = k.reproductions.find((r) => r.toolchain === id);
         if (!seen) tally.notObserved++;
@@ -562,7 +657,10 @@ if (import.meta.main) {
             "ran it, not of the artifact. Observations are appended under the fingerprint of " +
             "the toolchain that made them and are never overwritten by another machine. " +
             "reproducesCommittedBytes means at least one recorded toolchain reproduced the " +
-            "bytes; reproductionsByToolchain gives the per-machine breakdown.",
+            "bytes; reproductionsByToolchain gives the per-machine breakdown. A buildFailed " +
+            "observation means the recipe did not compile on that machine, so it produced no " +
+            "bytes to compare: it is neither agreement nor disagreement, and the reason field " +
+            "carries the compiler's own diagnostic.",
           toolchain: referenceToolchain,
           toolchains,
           kernelCount: kernels.length,

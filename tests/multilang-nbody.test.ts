@@ -5,9 +5,9 @@
 // adapter uses.
 
 import { assert, assertEquals } from "./assert.ts";
+import { ARTIFACT_DIR } from "./artifact-dir.ts";
 
-const ARTIFACTS =
-  new URL("../public/artifacts/multilang-wasm-benchmark/", import.meta.url).pathname;
+const ARTIFACTS = ARTIFACT_DIR;
 
 // Reduced fixed shape the page adapter runs (the full contract is 1024x120).
 const N = 128, STEPS = 30, DT = 0.01, GRAVITY = 0.0001, SOFT2 = 0.0001;

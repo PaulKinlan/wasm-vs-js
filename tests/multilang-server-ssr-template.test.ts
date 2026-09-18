@@ -9,9 +9,10 @@
 // integer-formats=4,000, date-formats=2,000, input-bytes=91,442,
 // output-bytes=426,192).
 import { assert } from "./assert.ts";
+import { ARTIFACT_ROOT } from "./artifact-dir.ts";
 
 const rootDir = new URL("../", import.meta.url).pathname.replace(/\/$/, "");
-const ARTIFACTS = `${rootDir}/public/artifacts/multilang-wasm-benchmark`;
+const ARTIFACTS = ARTIFACT_ROOT;
 const FIXTURE_PATH = `${rootDir}/public/artifacts/server-ssr-template-v1-multilang/fixture.bin`;
 const FIXTURE_OFFSET = 3145728;
 const RES_OFFSET = 3932160;

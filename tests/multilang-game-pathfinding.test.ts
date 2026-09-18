@@ -10,9 +10,10 @@
 // 2,213,135 frontierOperations / 7,372,800 drawCommands / 1 audioEvent;
 // semantic fe0377bf).
 import { assert } from "./assert.ts";
+import { ARTIFACT_ROOT } from "./artifact-dir.ts";
 
 const rootDir = new URL("../", import.meta.url).pathname.replace(/\/$/, "");
-const ARTIFACTS = `${rootDir}/public/artifacts/multilang-wasm-benchmark`;
+const ARTIFACTS = ARTIFACT_ROOT;
 const FIXTURE_PATH =
   `${rootDir}/public/artifacts/game-v2-controlled-family/game-canvas-entity-pathfinding-v1.bin`;
 const FIXTURE_OFFSET = 3145728;

@@ -1,6 +1,7 @@
 import { assertEquals } from "./assert.ts";
 import { runJavaScript } from "../benchmarks/base/ml-keyword-spotting/engine.js";
 import { KERNEL_ADAPTERS } from "../public/multilang-runner.js";
+import { ARTIFACT_DIR } from "./artifact-dir.ts";
 
 const manifest = JSON.parse(
   Deno.readTextFileSync("./public/benchmarks/multilang-wasm/ml-keyword-spotting-v1.manifest.json"),
@@ -17,7 +18,7 @@ for (const engine of manifest.engines) {
   if (engine.key === "js") continue;
 
   Deno.test(`ml.keyword-spotting multilang - ${engine.key} kernel`, async () => {
-    const wasmFile = `./public/artifacts/multilang-wasm-benchmark/${engine.files.kws_run}`;
+    const wasmFile = `${ARTIFACT_DIR}${engine.files.kws_run}`;
     const bytes = Deno.readFileSync(wasmFile);
     const mod = new WebAssembly.Module(bytes);
     const inst = new WebAssembly.Instance(mod, { env: { abort: () => {} } });

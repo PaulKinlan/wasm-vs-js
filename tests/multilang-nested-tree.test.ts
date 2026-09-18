@@ -5,9 +5,9 @@
 //   644 totalMutations / 199 attrUpdates / 495 finalNodeCount /
 //   finalNodeIdSum 272047.
 import { assert } from "./assert.ts";
+import { ARTIFACT_ROOT } from "./artifact-dir.ts";
 
-const rootDir = new URL("../", import.meta.url).pathname.replace(/\/$/, "");
-const ARTIFACTS = `${rootDir}/public/artifacts/multilang-wasm-benchmark`;
+const ARTIFACTS = ARTIFACT_ROOT;
 
 const ORACLE = Object.freeze({
   totalMutations: 644,

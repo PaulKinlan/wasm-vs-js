@@ -4,9 +4,9 @@
 // insert/remove/swap/update/move ops):
 //   1853 patches / 375 textMutations / 1059 finalItemCount / finalKeySum 520890.
 import { assert } from "./assert.ts";
+import { ARTIFACT_ROOT } from "./artifact-dir.ts";
 
-const rootDir = new URL("../", import.meta.url).pathname.replace(/\/$/, "");
-const ARTIFACTS = `${rootDir}/public/artifacts/multilang-wasm-benchmark`;
+const ARTIFACTS = ARTIFACT_ROOT;
 
 const ORACLE = Object.freeze({
   patches: 1853,

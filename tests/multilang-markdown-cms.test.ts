@@ -8,9 +8,10 @@
 // transforms=1001, sanitizer-checks=1000, output-bytes=11,057,325,
 // rejected=499).
 import { assert } from "./assert.ts";
+import { ARTIFACT_ROOT } from "./artifact-dir.ts";
 
 const rootDir = new URL("../", import.meta.url).pathname.replace(/\/$/, "");
-const ARTIFACTS = `${rootDir}/public/artifacts/multilang-wasm-benchmark`;
+const ARTIFACTS = ARTIFACT_ROOT;
 const FIXTURE_PATH = `${rootDir}/public/artifacts/text-markdown-cms-multilang/fixture.bin`;
 const FIXTURE_OFFSET = 3145728;
 const RES_OFFSET = 28311552;

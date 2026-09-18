@@ -17,6 +17,7 @@
     },
     {
       "key": "c",
+      "initialMemoryBytes": 7340032,
       "kind": "linear",
       "lang": "c",
       "label": "C / Wasm",
@@ -28,6 +29,7 @@
     },
     {
       "key": "cpp",
+      "initialMemoryBytes": 8388608,
       "kind": "linear",
       "lang": "cpp",
       "label": "C++ / Wasm",
@@ -39,6 +41,7 @@
     },
     {
       "key": "rs",
+      "initialMemoryBytes": 327680,
       "kind": "linear",
       "lang": "rs",
       "label": "Rust / Wasm",
@@ -50,6 +53,7 @@
     },
     {
       "key": "asc",
+      "initialMemoryBytes": 8388608,
       "kind": "linear",
       "lang": "asc",
       "label": "AssemblyScript / Wasm",

@@ -4,6 +4,7 @@ import {
   runJavaScript,
 } from "../benchmarks/v1/archive-zip-workspace/engine.js";
 import { KERNEL_ADAPTERS } from "../public/multilang-runner.js";
+import { ARTIFACT_DIR } from "./artifact-dir.ts";
 
 const manifest = JSON.parse(
   Deno.readTextFileSync(
@@ -20,7 +21,7 @@ for (const engine of manifest.engines) {
   if (engine.key === "js") continue;
 
   Deno.test(`archive.zip-workspace multilang - ${engine.key} kernel`, async () => {
-    const wasmFile = `./public/artifacts/multilang-wasm-benchmark/${engine.files.zip_build}`;
+    const wasmFile = `${ARTIFACT_DIR}${engine.files.zip_build}`;
     const bytes = Deno.readFileSync(wasmFile);
     const mod = new WebAssembly.Module(bytes);
     const inst = new WebAssembly.Instance(mod, { env: { abort: () => {} } });

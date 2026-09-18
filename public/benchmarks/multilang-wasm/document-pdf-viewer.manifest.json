@@ -25,6 +25,7 @@
     },
     {
       "key": "cpp",
+      "initialMemoryBytes": 16777216,
       "label": "C++ / Wasm",
       "kind": "linear",
       "lang": "cpp",
@@ -36,6 +37,7 @@
     },
     {
       "key": "rs",
+      "initialMemoryBytes": 9895936,
       "label": "Rust / Wasm",
       "kind": "linear",
       "lang": "rs",

@@ -1,7 +1,8 @@
 import { assert } from "./assert.ts";
+import { ARTIFACT_ROOT } from "./artifact-dir.ts";
 
 const rootDir = new URL("../", import.meta.url).pathname.replace(/\/$/, "");
-const ARTIFACTS = `${rootDir}/public/artifacts/multilang-wasm-benchmark`;
+const ARTIFACTS = ARTIFACT_ROOT;
 
 // V8's js-string builtins option is not in the TS WebAssembly types.
 // Reduced fixed shape for the comparison (full contract shape is 32x512x8).

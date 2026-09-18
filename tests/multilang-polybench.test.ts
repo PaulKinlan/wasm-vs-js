@@ -1,7 +1,7 @@
 import { assert } from "./assert.ts";
+import { ARTIFACT_ROOT } from "./artifact-dir.ts";
 
-const rootDir = new URL("../", import.meta.url).pathname.replace(/\/$/, "");
-const ARTIFACTS = `${rootDir}/public/artifacts/multilang-wasm-benchmark`;
+const ARTIFACTS = ARTIFACT_ROOT;
 
 const JS_STRING_BUILTINS = { builtins: ["js-string"] } as unknown as WebAssembly.ModuleImports;
 

@@ -4,9 +4,9 @@ import {
   FIXTURE_SEED,
   generateFixture,
 } from "../benchmarks/base/crypto-file-integrity/workload.js";
+import { ARTIFACT_ROOT } from "./artifact-dir.ts";
 
-const rootDir = new URL("../", import.meta.url).pathname.replace(/\/$/, "");
-const ARTIFACTS = `${rootDir}/public/artifacts/multilang-wasm-benchmark`;
+const ARTIFACTS = ARTIFACT_ROOT;
 
 const CHUNK = 65536;
 

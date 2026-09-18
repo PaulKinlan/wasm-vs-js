@@ -124,6 +124,8 @@ const GENERATED_ASSET_ROUTES: ReadonlyArray<string> = [
   "data/multilang-dart-opt.v1.json",
   // AssemblyScript cache-blocking lane report (scripts/build-multilang-asc-opt.ts).
   "data/multilang-asc-opt.v1.json",
+  // Oracle-equivalence attestation (scripts/attest-oracle-equivalence.ts).
+  "data/oracle-equivalence.v1.json",
   // Track B AssemblyScript optimization variants for ml.gemm.v1.
   "artifacts/multilang-wasm-benchmark/gemm_asc_ikj.wasm",
   "artifacts/multilang-wasm-benchmark/gemm_asc_tiled.wasm",

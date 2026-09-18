@@ -7,9 +7,10 @@
 // offset; this test computes the same digests in JS from
 // generateVDOMFixture + serializeVDOMToCanonicalHTML and asserts bit-identity.
 import { assert } from "./assert.ts";
+import { ARTIFACT_ROOT } from "./artifact-dir.ts";
 
 const rootDir = new URL("../", import.meta.url).pathname.replace(/\/$/, "");
-const ARTIFACTS = `${rootDir}/public/artifacts/multilang-wasm-benchmark`;
+const ARTIFACTS = ARTIFACT_ROOT;
 const RES_OFFSET = 16384;
 
 interface Fnv {

@@ -10,9 +10,10 @@
 // C exactly to land on the same pixels.
 
 import { assert } from "./assert.ts";
+import { ARTIFACT_DIR } from "./artifact-dir.ts";
 
 const ROOT = new URL("../", import.meta.url).pathname;
-const ARTIFACTS = `${ROOT}public/artifacts/multilang-wasm-benchmark/`;
+const ARTIFACTS = ARTIFACT_DIR;
 
 const WIDTH = 16, HEIGHT = 16, SPP = 4;
 const ENGINES = [

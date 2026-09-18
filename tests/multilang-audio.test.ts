@@ -10,9 +10,9 @@ import {
   stft as stftOracle,
 } from "../benchmarks/audio-stft/workload.ts";
 import { generateTwiddleTable } from "../benchmarks/audio-fft/workload.ts";
+import { ARTIFACT_ROOT } from "./artifact-dir.ts";
 
-const rootDir = new URL("../", import.meta.url).pathname.replace(/\/$/, "");
-const ARTIFACTS = `${rootDir}/public/artifacts/multilang-wasm-benchmark`;
+const ARTIFACTS = ARTIFACT_ROOT;
 
 function assertBitIdentical(label: string, got: Float32Array, ref: Float32Array): void {
   for (let i = 0; i < ref.length; i++) {

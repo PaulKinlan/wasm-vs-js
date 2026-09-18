@@ -6,9 +6,10 @@
 // child-removals / 10,255 parent-writes, plus a deterministic FNV-1a canonical
 // digest 0x6acfb345 over DFS(id + label-bytes + child-count)).
 import { assert } from "./assert.ts";
+import { ARTIFACT_ROOT } from "./artifact-dir.ts";
 
 const rootDir = new URL("../", import.meta.url).pathname.replace(/\/$/, "");
-const ARTIFACTS = `${rootDir}/public/artifacts/multilang-wasm-benchmark`;
+const ARTIFACTS = ARTIFACT_ROOT;
 const FIXTURE_PATH = `${rootDir}/public/artifacts/text-gc-document-edit/fixture.v1.txt`;
 const REFERENCE_PATH = `${rootDir}/public/artifacts/text-gc-document-edit/reference.json`;
 const FIXTURE_OFFSET = 196608;

@@ -9,9 +9,10 @@
 // FNV-1a digest. Oracle: 141,605 matches, 1,623 captures extracted,
 // 20,971,520 code points scanned, tuple FNV-1a 0xa5be957f.
 import { assert } from "./assert.ts";
+import { ARTIFACT_ROOT } from "./artifact-dir.ts";
 
 const rootDir = new URL("../", import.meta.url).pathname.replace(/\/$/, "");
-const ARTIFACTS = `${rootDir}/public/artifacts/multilang-wasm-benchmark`;
+const ARTIFACTS = ARTIFACT_ROOT;
 const FIXTURE_PATH = `${rootDir}/public/artifacts/regex-automata-duel-multilang/fixture.bin`;
 const FIXTURE_OFFSET = 3145728;
 const RES_OFFSET = 5242880;

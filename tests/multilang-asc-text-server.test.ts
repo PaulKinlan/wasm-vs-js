@@ -9,9 +9,10 @@
 // at run time, so the claim is verified here rather than only in a browser.
 
 import { assert } from "./assert.ts";
+import { ARTIFACT_DIR } from "./artifact-dir.ts";
 
 const ROOT = new URL("../", import.meta.url).pathname;
-const ARTIFACTS = `${ROOT}public/artifacts/multilang-wasm-benchmark/`;
+const ARTIFACTS = ARTIFACT_DIR;
 
 interface Case {
   slug: string;

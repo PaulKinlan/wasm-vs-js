@@ -10,9 +10,9 @@
 // byte-identical output, and the adapter must refuse to time a rejection.
 
 import { assert, assertEquals } from "./assert.ts";
+import { ARTIFACT_DIR } from "./artifact-dir.ts";
 
-const ARTIFACTS =
-  new URL("../public/artifacts/multilang-wasm-benchmark/", import.meta.url).pathname;
+const ARTIFACTS = ARTIFACT_DIR;
 const RUNNER = await Deno.readTextFile(
   new URL("../public/multilang-runner.js", import.meta.url),
 );

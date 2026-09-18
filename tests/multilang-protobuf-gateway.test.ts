@@ -13,9 +13,10 @@
 // (messages/fields/varintBytes/unknownFields/filteredMessages) match the JS
 // engine's runJavaScript() on the same corpus.
 import { assert } from "./assert.ts";
+import { ARTIFACT_ROOT } from "./artifact-dir.ts";
 
 const rootDir = new URL("../", import.meta.url).pathname.replace(/\/$/, "");
-const ARTIFACTS = `${rootDir}/public/artifacts/multilang-wasm-benchmark`;
+const ARTIFACTS = ARTIFACT_ROOT;
 const FIXTURE_PATH =
   `${rootDir}/public/artifacts/serialization-protobuf-gateway-multilang/fixture.bin`;
 const FIXTURE_OFFSET = 3145728;

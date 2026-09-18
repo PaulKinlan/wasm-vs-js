@@ -1,0 +1,1550 @@
+{
+  "schemaVersion": 1,
+  "description": "Every multi-language kernel rebuilt from committed source with its recorded recipe, then checked against the workload's pinned oracle in place of the committed artifact.",
+  "claim": "Oracle equivalence says a rebuild computes what the committed artifact computes. It does not say the rebuild is the committed artifact: that is byte equality, recorded separately per toolchain in kernel-build-provenance.v1.json. Neither stands in for the other.",
+  "granularity": "Per oracle test, not per kernel. Each test asserts over a workload's engines together, so a failure names the workload and the engines inside it have to be read from the test output.",
+  "toolchain": {
+    "id": "tc-9890abef9b5a",
+    "os": "darwin",
+    "arch": "aarch64",
+    "tools": {
+      "clang": {
+        "version": "Homebrew clang version 22.1.8",
+        "detail": {
+          "Target": "arm64-apple-darwin24.6.0",
+          "Thread model": "posix"
+        }
+      },
+      "clang++": {
+        "version": "Homebrew clang version 22.1.8",
+        "detail": {
+          "Target": "arm64-apple-darwin24.6.0",
+          "Thread model": "posix"
+        }
+      },
+      "wasm-ld": {
+        "version": "Homebrew LLD 22.1.8"
+      },
+      "rustc": {
+        "version": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+        "detail": {
+          "commit-hash": "8bab26f4f68e0e26f0bb7960be334d5b520ea452",
+          "host": "aarch64-apple-darwin",
+          "LLVM version": "22.1.6"
+        }
+      },
+      "dart": {
+        "version": "Dart SDK version: 3.12.2 (stable) (Tue Jun 9 01:11:39 2026 -0700) on \"macos_arm64\""
+      },
+      "node": {
+        "version": "v26.8.2"
+      },
+      "asc": {
+        "version": "unavailable",
+        "unavailableReason": "not probed: asc is resolved per build through npx"
+      }
+    },
+    "host": {
+      "clang.InstalledDir": "/opt/homebrew/Cellar/llvm@22/22.1.8/bin",
+      "clang.Configuration file": "/opt/homebrew/Cellar/llvm@22/22.1.8/etc/clang/arm64-apple-darwin24.cfg",
+      "clang++.InstalledDir": "/opt/homebrew/Cellar/llvm@22/22.1.8/bin",
+      "clang++.Configuration file": "/opt/homebrew/Cellar/llvm@22/22.1.8/etc/clang/arm64-apple-darwin24.cfg",
+      "denoVersion": "2.9.0",
+      "osRelease": "24.6.0",
+      "clang.path": "/opt/homebrew/opt/llvm@22/bin/clang",
+      "rustc.path": "/Users/paulkinlan/.cargo/bin/rustc",
+      "dart.path": "/Users/paulkinlan/.local/toolchains/dart-sdk/bin/dart",
+      "wasm-ld.path": "/opt/homebrew/bin/wasm-ld"
+    }
+  },
+  "observedAt": "2026-09-18",
+  "kernelsRebuilt": 179,
+  "kernelsNotAttested": 2,
+  "dartIncluded": true,
+  "testsRun": 35,
+  "testsEquivalent": 35,
+  "testsNotEquivalent": 0,
+  "tests": [
+    {
+      "test": "multilang-adapter-coverage.test.ts",
+      "result": "equivalent",
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "test": "multilang-adapter-verifies-output.test.ts",
+      "result": "equivalent",
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "test": "multilang-archive-zip.test.ts",
+      "result": "equivalent",
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "test": "multilang-asc-text-server.test.ts",
+      "result": "equivalent",
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "test": "multilang-audio-webaudio-effects.test.ts",
+      "result": "equivalent",
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "test": "multilang-audio.test.ts",
+      "result": "equivalent",
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "test": "multilang-callable-work.test.ts",
+      "result": "equivalent",
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "test": "multilang-dom-virtualized-grid.test.ts",
+      "result": "equivalent",
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "test": "multilang-engine-agreement.test.ts",
+      "result": "equivalent",
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "test": "multilang-form-validation.test.ts",
+      "result": "equivalent",
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "test": "multilang-game-canvas-arcade.test.ts",
+      "result": "equivalent",
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "test": "multilang-game-pathfinding.test.ts",
+      "result": "equivalent",
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "test": "multilang-game-tactics-grid.test.ts",
+      "result": "equivalent",
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "test": "multilang-gc-document-edit.test.ts",
+      "result": "equivalent",
+      "passed": 8,
+      "failed": 0
+    },
+    {
+      "test": "multilang-gemm.test.ts",
+      "result": "equivalent",
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "test": "multilang-grid-movement.test.ts",
+      "result": "equivalent",
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "test": "multilang-input-sizes.test.ts",
+      "result": "equivalent",
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "test": "multilang-keyed-list.test.ts",
+      "result": "equivalent",
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "test": "multilang-keyword-spotting.test.ts",
+      "result": "equivalent",
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "test": "multilang-markdown-cms.test.ts",
+      "result": "equivalent",
+      "passed": 4,
+      "failed": 0
+    },
+    {
+      "test": "multilang-mlp.test.ts",
+      "result": "equivalent",
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "test": "multilang-myers.test.ts",
+      "result": "equivalent",
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "test": "multilang-nbody.test.ts",
+      "result": "equivalent",
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "test": "multilang-nested-tree.test.ts",
+      "result": "equivalent",
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "test": "multilang-path-tracer.test.ts",
+      "result": "equivalent",
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "test": "multilang-polybench.test.ts",
+      "result": "equivalent",
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "test": "multilang-protobuf-gateway.test.ts",
+      "result": "equivalent",
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "test": "multilang-regex-automata-duel.test.ts",
+      "result": "equivalent",
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "test": "multilang-scanlog.test.ts",
+      "result": "equivalent",
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "test": "multilang-server-ssr-template.test.ts",
+      "result": "equivalent",
+      "passed": 4,
+      "failed": 0
+    },
+    {
+      "test": "multilang-sha256.test.ts",
+      "result": "equivalent",
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "test": "multilang-table-sort.test.ts",
+      "result": "equivalent",
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "test": "multilang-telemetry.test.ts",
+      "result": "equivalent",
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "test": "multilang-vdom-diff-patch.test.ts",
+      "result": "equivalent",
+      "passed": 6,
+      "failed": 0
+    },
+    {
+      "test": "multilang-wasm-benchmark.test.ts",
+      "result": "equivalent",
+      "passed": 4,
+      "failed": 0
+    }
+  ],
+  "kernels": [
+    {
+      "workload": "archive-zip-workspace-v1",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "zip_kernel_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "archive-zip-workspace-v1",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "zip_kernel_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "archive-zip-workspace-v1",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "zip_kernel_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "archive-zip-workspace-v1",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "zip_kernel_rs.wasm",
+      "status": "notAttested",
+      "reason": "rebuild failed: error: linking with `rust-lld` failed: exit status: 1"
+    },
+    {
+      "workload": "audio-fft",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "fft_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "audio-fft",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "fft_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "audio-fft",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "fft_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "audio-fft",
+      "engine": "dart",
+      "lang": "dart",
+      "artifact": "fft_dart.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "audio-fft",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "fft_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "audio-fir",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "fir_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "audio-fir",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "fir_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "audio-fir",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "fir_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "audio-fir",
+      "engine": "dart",
+      "lang": "dart",
+      "artifact": "fir_dart.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "audio-fir",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "fir_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "audio-stft",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "stft_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "audio-stft",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "stft_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "audio-stft",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "stft_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "audio-stft",
+      "engine": "dart",
+      "lang": "dart",
+      "artifact": "stft_dart.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "audio-stft",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "stft_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "audio-webaudio-effects-v1",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "audio_dsp_kernel_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "audio-webaudio-effects-v1",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "audio_dsp_kernel_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "audio-webaudio-effects-v1",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "audio_dsp_kernel_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "audio-webaudio-effects-v1",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "audio_dsp_kernel_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "cad-mesh-repair",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "mesh_repair_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "cad-mesh-repair",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "mesh_repair_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "cad-mesh-repair",
+      "engine": "dart",
+      "lang": "dart",
+      "artifact": "mesh_repair_dart.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "cad-mesh-repair",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "mesh_repair_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "cad-parametric-bracket",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "bracket_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "cad-parametric-bracket",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "bracket_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "cad-parametric-bracket",
+      "engine": "dart",
+      "lang": "dart",
+      "artifact": "bracket_dart.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "cad-parametric-bracket",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "bracket_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "crypto-authenticated-stream",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "crypto_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "crypto-authenticated-stream",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "crypto_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "crypto-authenticated-stream",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "crypto_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "crypto-authenticated-stream",
+      "engine": "dart",
+      "lang": "dart",
+      "artifact": "crypto_dart.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "crypto-authenticated-stream",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "crypto_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "crypto-file-integrity",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "sha256_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "crypto-file-integrity",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "sha256_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "crypto-file-integrity",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "sha256_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "crypto-file-integrity",
+      "engine": "dart",
+      "lang": "dart",
+      "artifact": "sha256_dart.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "crypto-file-integrity",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "sha256_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "database-olap-chart",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "olap_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "database-olap-chart",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "olap_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "database-olap-chart",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "olap_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "database-olap-chart",
+      "engine": "dart",
+      "lang": "dart",
+      "artifact": "olap_dart.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "database-olap-chart",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "olap_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "document-pdf-viewer",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "pdf_engine_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "document-pdf-viewer",
+      "engine": "dart",
+      "lang": "dart",
+      "artifact": "pdf_engine_dart.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "document-pdf-viewer",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "pdf_engine_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "dom-dependent-form-validation",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "form_validate_kernel_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "dom-dependent-form-validation",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "form_validate_kernel_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "dom-dependent-form-validation",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "form_validate_kernel_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "dom-dependent-form-validation",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "form_validate_kernel_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "dom-grid-movement",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "grid_kernel_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "dom-grid-movement",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "grid_kernel_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "dom-grid-movement",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "grid_kernel_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "dom-grid-movement",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "grid_kernel_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "dom-keyed-list-mutation",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "keyed_list_kernel_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "dom-keyed-list-mutation",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "keyed_list_kernel_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "dom-keyed-list-mutation",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "keyed_list_kernel_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "dom-keyed-list-mutation",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "keyed_list_kernel_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "dom-nested-tree-mutation",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "nested_tree_kernel_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "dom-nested-tree-mutation",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "nested_tree_kernel_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "dom-nested-tree-mutation",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "nested_tree_kernel_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "dom-nested-tree-mutation",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "nested_tree_kernel_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "dom-table-sort-filter-pagination",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "table_sort_kernel_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "dom-table-sort-filter-pagination",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "table_sort_kernel_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "dom-table-sort-filter-pagination",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "table_sort_kernel_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "dom-table-sort-filter-pagination",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "table_sort_kernel_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "dom-virtualized-grid-v1",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "grid_trace_kernel_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "dom-virtualized-grid-v1",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "grid_trace_kernel_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "dom-virtualized-grid-v1",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "grid_trace_kernel_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "dom-virtualized-grid-v1",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "grid_trace_kernel_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "fft-kernel",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "fft_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "fft-kernel",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "fft_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "fft-kernel",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "fft_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "fft-kernel",
+      "engine": "dart",
+      "lang": "dart",
+      "artifact": "fft_dart.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "fft-kernel",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "fft_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "game-canvas-arcade",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "arcade_kernel_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "game-canvas-arcade",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "arcade_kernel_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "game-canvas-arcade",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "arcade_kernel_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "game-canvas-arcade",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "arcade_kernel_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "game-canvas-entity-pathfinding",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "pathfinding_kernel_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "game-canvas-entity-pathfinding",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "pathfinding_kernel_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "game-canvas-entity-pathfinding",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "pathfinding_kernel_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "game-canvas-entity-pathfinding",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "pathfinding_kernel_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "game-dom-tactics-grid",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "tactics_kernel_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "game-dom-tactics-grid",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "tactics_kernel_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "game-dom-tactics-grid",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "tactics_kernel_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "game-dom-tactics-grid",
+      "engine": "dart",
+      "lang": "dart",
+      "artifact": "tactics_kernel_dart.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "game-dom-tactics-grid",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "tactics_kernel_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "game-ecs-frame-update",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "ecs_frame_update_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "game-ecs-frame-update",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "ecs_frame_update_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "game-ecs-frame-update",
+      "engine": "dart",
+      "lang": "dart",
+      "artifact": "ecs_frame_update_dart.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "game-ecs-frame-update",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "ecs_frame_update_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "graphics-cpu-path-tracer",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "path_tracer_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "graphics-cpu-path-tracer",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "path_tracer_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "graphics-cpu-path-tracer",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "path_tracer_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "graphics-cpu-path-tracer",
+      "engine": "dart",
+      "lang": "dart",
+      "artifact": "path_tracer_dart.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "graphics-cpu-path-tracer",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "path_tracer_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "graphics-gltf-viewer",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "viewer_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "graphics-gltf-viewer",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "viewer_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-dense-mlp",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "mlp_forward_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-dense-mlp",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "mlp_forward_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-dense-mlp",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "mlp_forward_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-dense-mlp",
+      "engine": "dart",
+      "lang": "dart",
+      "artifact": "mlp_forward_dart.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-dense-mlp",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "mlp_forward_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "gemm_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "asc-ikj",
+      "lang": "asc",
+      "artifact": "gemm_asc_ikj.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "asc-tiled",
+      "lang": "asc",
+      "artifact": "gemm_asc_tiled.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "gemm_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "gemm_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "dart",
+      "lang": "dart",
+      "artifact": "gemm_dart.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "dart-o2",
+      "lang": "dart",
+      "artifact": "gemm_dart_o2.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "dart-o3",
+      "lang": "dart",
+      "artifact": "gemm_dart_o3.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "dart-o4",
+      "lang": "dart",
+      "artifact": "gemm_dart_o4.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-gemm",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "gemm_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-numeric-kernels",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "numeric_kernels_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-numeric-kernels",
+      "engine": "dart",
+      "lang": "dart",
+      "artifact": "numeric_kernels_dart.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "ml-numeric-kernels",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "numeric_kernels_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "network-pcap-decode",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "pcap_decode_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "network-pcap-decode",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "pcap_decode_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "numeric-polybench-panel",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "polybench_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "numeric-polybench-panel",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "polybench_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "numeric-polybench-panel",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "polybench_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "numeric-polybench-panel",
+      "engine": "dart",
+      "lang": "dart",
+      "artifact": "polybench_dart.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "numeric-polybench-panel",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "polybench_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "regex-automata-duel-demo",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "regex_scan_kernel_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "regex-automata-duel-demo",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "regex_scan_kernel_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "regex-automata-duel-demo",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "regex_scan_kernel_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "regex-automata-duel-demo",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "regex_scan_kernel_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "serialization-json-telemetry",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "telemetry_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "serialization-json-telemetry",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "telemetry_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "serialization-json-telemetry",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "telemetry_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "serialization-json-telemetry",
+      "engine": "dart",
+      "lang": "dart",
+      "artifact": "telemetry_dart.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "serialization-json-telemetry",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "telemetry_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "serialization-protobuf-gateway",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "protobuf_gateway_kernel_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "serialization-protobuf-gateway",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "protobuf_gateway_kernel_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "serialization-protobuf-gateway",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "protobuf_gateway_kernel_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "serialization-protobuf-gateway",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "protobuf_gateway_kernel_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "server-ssr-template-v1",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "server_ssr_kernel_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "server-ssr-template-v1",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "server_ssr_kernel_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "server-ssr-template-v1",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "server_ssr_kernel_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "server-ssr-template-v1",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "server_ssr_kernel_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "simulation-nbody-cloth",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "nbody_step_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "simulation-nbody-cloth",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "nbody_step_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "simulation-nbody-cloth",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "nbody_step_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "simulation-nbody-cloth",
+      "engine": "dart",
+      "lang": "dart",
+      "artifact": "nbody_step_dart.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "simulation-nbody-cloth",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "nbody_step_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "simulation-rigid-body-2d",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "rigid_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "simulation-rigid-body-2d",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "rigid_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "simulation-rigid-body-2d",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "rigid_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "simulation-rigid-body-2d",
+      "engine": "dart",
+      "lang": "dart",
+      "artifact": "rigid_dart.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "simulation-rigid-body-2d",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "rigid_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "sum-u32",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "sum_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "sum-u32",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "sum_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "sum-u32",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "sum_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "sum-u32",
+      "engine": "dart",
+      "lang": "dart",
+      "artifact": "fft_dart.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "sum-u32",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "sum_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "text-diff-patch",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "myers_diff_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "text-diff-patch",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "myers_diff_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "text-diff-patch",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "myers_diff_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "text-diff-patch",
+      "engine": "dart",
+      "lang": "dart",
+      "artifact": "myers_diff_dart.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "text-diff-patch",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "myers_diff_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "text-gc-document-edit",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "gc_document_kernel_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "text-gc-document-edit",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "gc_document_kernel_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "text-gc-document-edit",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "gc_document_kernel_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "text-gc-document-edit",
+      "engine": "dart",
+      "lang": "dart",
+      "artifact": "gc_document_kernel_dart.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "text-gc-document-edit",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "gc_document_kernel_rs.wasm",
+      "status": "notAttested",
+      "reason": "rebuild failed: error: linking with `rust-lld` failed: exit status: 1"
+    },
+    {
+      "workload": "text-markdown-cms",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "markdown_cms_kernel_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "text-markdown-cms",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "markdown_cms_kernel_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "text-markdown-cms",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "markdown_cms_kernel_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "text-markdown-cms",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "markdown_cms_kernel_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "text-regex-log-scan",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "scan_log_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "text-regex-log-scan",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "scan_log_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "text-regex-log-scan",
+      "engine": "dart",
+      "lang": "dart",
+      "artifact": "scan_log_dart.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "text-regex-log-scan",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "scan_log_rs.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "vdom-diff-patch",
+      "engine": "asc",
+      "lang": "asc",
+      "artifact": "vdom_kernel_asc.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "vdom-diff-patch",
+      "engine": "c",
+      "lang": "c",
+      "artifact": "vdom_kernel_c.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "vdom-diff-patch",
+      "engine": "cpp",
+      "lang": "cpp",
+      "artifact": "vdom_kernel_cpp.wasm",
+      "status": "rebuilt"
+    },
+    {
+      "workload": "vdom-diff-patch",
+      "engine": "rs",
+      "lang": "rs",
+      "artifact": "vdom_kernel_rs.wasm",
+      "status": "rebuilt"
+    }
+  ]
+}

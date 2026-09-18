@@ -7,9 +7,10 @@
 // drawCommandStreamDigest f3a03070, audioEventStreamDigest 8b4cb497, and
 // semanticDigest 585a29e5).
 import { assert } from "./assert.ts";
+import { ARTIFACT_ROOT } from "./artifact-dir.ts";
 
 const rootDir = new URL("../", import.meta.url).pathname.replace(/\/$/, "");
-const ARTIFACTS = `${rootDir}/public/artifacts/multilang-wasm-benchmark`;
+const ARTIFACTS = ARTIFACT_ROOT;
 const FIXTURE_PATH =
   `${rootDir}/public/artifacts/game-v2-controlled-family/game-canvas-arcade-v1.bin`;
 const FIXTURE_OFFSET = 65536;

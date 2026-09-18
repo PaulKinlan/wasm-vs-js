@@ -9,9 +9,10 @@
 // counters: 60 turns / 95,614 pathNodesExpanded / 450 lineOfSightTests /
 // 81 stateUpdates / 423 domMutations; semantic 5081f3e4).
 import { assert } from "./assert.ts";
+import { ARTIFACT_ROOT } from "./artifact-dir.ts";
 
 const rootDir = new URL("../", import.meta.url).pathname.replace(/\/$/, "");
-const ARTIFACTS = `${rootDir}/public/artifacts/multilang-wasm-benchmark`;
+const ARTIFACTS = ARTIFACT_ROOT;
 const FIXTURE_PATH =
   `${rootDir}/public/artifacts/game-v2-controlled-family/game-dom-tactics-grid-v1.bin`;
 const FIXTURE_OFFSET = 3145728;

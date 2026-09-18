@@ -23,8 +23,9 @@ import { planBuilds } from "../scripts/build-multilang-kernels.ts";
 
 interface Reproduction {
   toolchain: string;
-  result: "identical" | "differs" | "notCommitted";
-  artifactSha256: string;
+  result: "identical" | "differs" | "notCommitted" | "buildFailed";
+  artifactSha256?: string;
+  reason?: string;
   firstObserved: string;
   lastObserved: string;
 }
@@ -128,10 +129,21 @@ Deno.test("every reproduction names a toolchain the record describes", () => {
     for (const r of k.reproductions) {
       assert(known.has(r.toolchain), `${k.artifact}: observation from unknown ${r.toolchain}`);
       assert(
-        ["identical", "differs", "notCommitted"].includes(r.result),
+        ["identical", "differs", "notCommitted", "buildFailed"].includes(r.result),
         `${k.artifact}: unknown result ${r.result}`,
       );
-      assert(/^[0-9a-f]{64}$/.test(r.artifactSha256), `${k.artifact}: bad observed hash`);
+      if (r.result === "buildFailed") {
+        // The recipe produced nothing on that machine. A hash here would be a
+        // hash of something that does not exist; a missing reason would make
+        // the failure unexaminable.
+        assertEquals(r.artifactSha256, undefined, `${k.artifact}: a failed build has no bytes`);
+        assert(
+          typeof r.reason === "string" && r.reason.length > 0,
+          `${k.artifact}: ${r.toolchain} failed to build with no recorded reason`,
+        );
+      } else {
+        assert(/^[0-9a-f]{64}$/.test(r.artifactSha256 ?? ""), `${k.artifact}: bad observed hash`);
+      }
       // An observation is a claim about one machine at one time. "unrecorded"
       // is allowed for the v1 entries whose date was never captured; a blank is
       // not.
@@ -200,6 +212,12 @@ Deno.test("the per-toolchain breakdown covers every kernel once", () => {
     // A machine that never ran a given recipe has no result for it. That is
     // "notObserved", not a failure to reproduce.
     assert(tally.notObserved >= 0, `${id}: missing notObserved count`);
+    // A machine whose compiler rejected the recipe has no result either, and
+    // must not be folded into "differs" — nothing was compared.
+    const failed = provenance.kernels.filter((k) =>
+      k.reproductions.some((r) => r.toolchain === id && r.result === "buildFailed")
+    ).length;
+    assertEquals(tally.buildFailed ?? 0, failed, `${id}: buildFailed count disagrees`);
   }
   assertEquals(
     Object.keys(provenance.reproductionsByToolchain).sort(),

@@ -3,9 +3,9 @@
 // 3,600-action trace from seed 0xc001d00d, 128 entities on a 64x64 grid):
 //   2869 moves / 731 collisions / finalPosSum 33583.
 import { assert } from "./assert.ts";
+import { ARTIFACT_ROOT } from "./artifact-dir.ts";
 
-const rootDir = new URL("../", import.meta.url).pathname.replace(/\/$/, "");
-const ARTIFACTS = `${rootDir}/public/artifacts/multilang-wasm-benchmark`;
+const ARTIFACTS = ARTIFACT_ROOT;
 
 const ORACLE = Object.freeze({ moves: 2869, collisions: 731, finalPosSum: 33583 });
 
