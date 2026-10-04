@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "wasm_vs_js",
+  "project_id": "5bea2c95-a46b-4ad4-a9ab-6c41e11d684d"
+}

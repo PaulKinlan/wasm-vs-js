@@ -19,3 +19,10 @@ raw/corpora/
 benchmarks/v1/text-gc-document-edit/kotlin/.gradle/
 benchmarks/v1/text-gc-document-edit/kotlin/.kotlin/
 benchmarks/v1/text-gc-document-edit/kotlin/build/
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
+.beads/proxieddb/
+*.gate.lock*
