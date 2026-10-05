@@ -250,8 +250,13 @@ async function terminateJobGroup(reason: string): Promise<boolean> {
     );
     return false;
   }
+  // Same platform scoping as reportShutdown: off Linux nothing was
+  // group-verified (groupGone is a no-op) and only direct children were
+  // killed, so the verified/no-survivors claim is Linux-only here too.
   console.error(
-    `check-parallel: all ${victims.length} stage group(s) reaped and verified gone — no surviving children`,
+    GROUP_KILL
+      ? `check-parallel: all ${victims.length} stage group(s) reaped and verified gone — no surviving children`
+      : `check-parallel: ${victims.length} stage(s) terminated best-effort — direct children killed, no group verification off Linux`,
   );
   return true;
 }
