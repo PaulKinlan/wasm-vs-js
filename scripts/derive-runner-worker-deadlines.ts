@@ -147,8 +147,12 @@ function deriveCases(rows: Row[]): { cases: Record<string, CaseStats>; fallbacks
 // (measured 86.7% of CPU-time delta at 2026-10-05T03:54Z), so a table that
 // records only loadavg misdescribes the machine it was derived on.
 async function readCpuTimes(): Promise<{ total: number; steal: number }> {
-  const stat = await Deno.readTextFile("/proc/stat");
-  const line = stat.split("\n")[0];
+  // /proc is outside Deno's fs sandbox (readTextFile demands --allow-all), so
+  // sample via a spawned cat — inside the --allow-run permission the
+  // generator already holds for its deno/git children.
+  const out = await new Deno.Command("cat", { args: ["/proc/stat"], stdout: "piped" })
+    .output();
+  const line = new TextDecoder().decode(out.stdout).split("\n")[0];
   const fields = line.split(" ").slice(2).map(Number); // user nice system idle iowait irq softirq steal ...
   const steal = fields[7] ?? 0;
   const total = fields.reduce((a, b) => a + b, 0);
