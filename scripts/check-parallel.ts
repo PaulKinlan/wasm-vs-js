@@ -257,10 +257,20 @@ async function terminateJobGroup(reason: string): Promise<boolean> {
 }
 
 function reportShutdown(context: string, clean: boolean): void {
+  if (!clean) {
+    console.error(
+      `check-parallel: DIRTY shutdown (${context}) — survivor groups remain (or verification was inconclusive); exit is non-zero — sweep for orphans before trusting the box`,
+    );
+    return;
+  }
+  // Platform-aware: the no-survivors claim exists only where group-kill
+  // verification exists. Off Linux the sweep is best-effort (direct
+  // children only, groupGone is a no-op) and the message must say so
+  // rather than print "verified gone" for a sweep that verified nothing.
   console.error(
-    clean
+    GROUP_KILL
       ? `check-parallel: clean shutdown (${context}) — all stage groups reaped and verified gone; no-survivors is claimed on this line only`
-      : `check-parallel: DIRTY shutdown (${context}) — survivor groups remain (or verification was inconclusive); exit is non-zero — sweep for orphans before trusting the box`,
+      : `check-parallel: shutdown (${context}) — best-effort only off Linux: direct children killed, no group verification; no-survivors is NOT claimed`,
   );
 }
 
