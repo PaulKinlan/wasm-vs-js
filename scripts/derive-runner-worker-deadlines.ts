@@ -142,6 +142,27 @@ function deriveCases(rows: Row[]): { cases: Record<string, CaseStats>; fallbacks
   return { cases, fallbacks };
 }
 
+// /proc/stat aggregate CPU sampling: steal (time taken by the hypervisor)
+// is recorded per run — on this fleet's VMs steal dominates the environment
+// (measured 86.7% of CPU-time delta at 2026-10-05T03:54Z), so a table that
+// records only loadavg misdescribes the machine it was derived on.
+async function readCpuTimes(): Promise<{ total: number; steal: number }> {
+  const stat = await Deno.readTextFile("/proc/stat");
+  const line = stat.split("\n")[0];
+  const fields = line.split(" ").slice(2).map(Number); // user nice system idle iowait irq softirq steal ...
+  const steal = fields[7] ?? 0;
+  const total = fields.reduce((a, b) => a + b, 0);
+  return { total, steal };
+}
+
+function stealPctBetween(
+  a: { total: number; steal: number },
+  b: { total: number; steal: number },
+): number {
+  const dt = b.total - a.total;
+  return dt > 0 ? Math.round(((b.steal - a.steal) / dt) * 1000) / 10 : 0;
+}
+
 function parseRows(log: string, run: number): Row[] {
   const rows: Row[] = [];
   for (const line of log.split("\n")) {
@@ -188,13 +209,22 @@ if (Deno.args.includes("--check")) {
   }
   const { cases, fallbacks } = deriveCases(committed.runs.flatMap((r: { rows: Row[] }) => r.rows));
   const mismatches: string[] = [];
+  // Full deep compare, not just deadlineMs: a table that mislabels a case
+  // (missing fallbackReason, altered p95/counts, extra or missing keys) must
+  // fail --check even when every deadlineMs happens to match.
+  const committedCases = committed.cases as Record<string, CaseStats>;
   for (const [key, stats] of Object.entries(cases)) {
-    const committedStats = committed.cases[key] as CaseStats | undefined;
-    if (!committedStats || committedStats.deadlineMs !== stats.deadlineMs) {
+    const committedStats = committedCases[key];
+    if (!committedStats || JSON.stringify(committedStats) !== JSON.stringify(stats)) {
       mismatches.push(
-        `${key}: committed ${committedStats?.deadlineMs} != recomputed ${stats.deadlineMs}`,
+        `${key}: committed ${JSON.stringify(committedStats)} != recomputed ${
+          JSON.stringify(stats)
+        }`,
       );
     }
+  }
+  for (const key of Object.keys(committedCases)) {
+    if (!(key in cases)) mismatches.push(`${key}: committed entry has no recomputed counterpart`);
   }
   if (JSON.stringify(committed.fallbacks) !== JSON.stringify(fallbacks)) {
     mismatches.push(
@@ -265,7 +295,13 @@ const probe = committedTest
   .replace(ANCHOR_ASSERT_OK, LOG_APPEND + ANCHOR_ASSERT_OK);
 
 await Deno.mkdir(PROBE_DIR, { recursive: true });
-const runs: { index: number; exitCode: number; loadavg: string; rows: Row[] }[] = [];
+const runs: {
+  index: number;
+  exitCode: number;
+  loadavg: string;
+  stealPct: number | null;
+  rows: Row[];
+}[] = [];
 let fatal = 0;
 try {
   await Deno.writeTextFile(PROBE_PATH, probe);
@@ -294,10 +330,19 @@ try {
       stdout: "inherit",
       stderr: "inherit",
     }).spawn();
+    const cpuBefore = await readCpuTimes();
     const status = await child.status;
+    const cpuAfter = await readCpuTimes();
+    const stealPct = stealPctBetween(cpuBefore, cpuAfter);
     try {
       const rows = parseRows(await Deno.readTextFile(ROWS_PATH), i);
-      runs.push({ index: i, exitCode: status.code, loadavg: Deno.loadavg().join(" "), rows });
+      runs.push({
+        index: i,
+        exitCode: status.code,
+        loadavg: Deno.loadavg().join(" "),
+        stealPct,
+        rows,
+      });
     } catch (e) {
       console.error(
         `derive-runner-worker-deadlines: run ${i} produced no parseable rows: ${
@@ -351,6 +396,9 @@ const out = {
     ),
     loadavgStart: runs[0]?.loadavg ?? "",
     loadavgEnd: runs[runs.length - 1]?.loadavg ?? "",
+    stealPctPerRun: runs.map((r) => r.stealPct),
+    stealNote:
+      "stealPct = share of CPU-time delta taken by the hypervisor during each run (/proc/stat, two samples per run). Deadlines are environment-relative: derived under the recorded loadavg AND steal; re-derive on a different environment rather than reusing this table.",
   },
   runs,
   cases,
