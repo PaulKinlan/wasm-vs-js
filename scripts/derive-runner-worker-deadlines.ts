@@ -24,12 +24,15 @@
 // - Per (slug, target): deadlineMs = max(500, 2 x nearestRankP95(uncensored
 //   ok rows pooled across all N runs)). Every raw row is retained in the
 //   output file.
-// - A case with NO uncensored ok row in any run is a DEFECT, gets no
-//   deadline, and the derived table fails the contract test for it until it
-//   is fixed or re-derived — the derivation must not become a machine for
-//   legitimising whatever the box happens to do.
-// - This makes the fast majority STRICTER (blanket 5000ms -> measured), not
-//   looser: it is a gate-sensitivity change, by design.
+// - FALLBACK (hub ruling on wasm-vs-js-rkw, option d): a case with NO
+//   uncensored ok row in any run keeps the existing 5000ms, and the table
+//   records per case, verbatim: "no baseline measured; current constant
+//   retained pending defect fix". STANDING INSTRUCTION: when a later
+//   derivation produces a baseline for a fallback case, the fallback entry is
+//   replaced by the derived deadline in the same change.
+// - Derived deadlines TIGHTEN the fast majority (blanket 5000ms -> measured),
+//   not loosen it: a gate-sensitivity change, by design. The fallback changes
+//   nothing for the cases it cannot measure, and says so.
 //
 // Usage:
 //   deno run --allow-read --allow-write --allow-run --allow-env --allow-sys=loadavg \
@@ -49,6 +52,8 @@ const FORMULA_VERSION = 1;
 const FLOOR_MS = 500;
 const MULTIPLIER = 2;
 const MIN_RUNS = 5;
+const FALLBACK_MS = 5000;
+const FALLBACK_REASON = "no baseline measured; current constant retained pending defect fix";
 
 interface Row {
   slug: string;
@@ -65,7 +70,9 @@ interface CaseStats {
   censored: number;
   errors: number;
   p95Ms: number | null;
-  deadlineMs: number | null;
+  deadlineMs: number;
+  fallback: boolean;
+  fallbackReason: string | null;
 }
 
 function nearestRankP95(values: number[]): number {
@@ -74,7 +81,7 @@ function nearestRankP95(values: number[]): number {
   return sorted[rank - 1];
 }
 
-function deriveCases(rows: Row[]): { cases: Record<string, CaseStats>; defects: string[] } {
+function deriveCases(rows: Row[]): { cases: Record<string, CaseStats>; fallbacks: string[] } {
   const byKey = new Map<string, Row[]>();
   for (const r of rows) {
     const key = `${r.slug}|${r.target}`;
@@ -83,7 +90,7 @@ function deriveCases(rows: Row[]): { cases: Record<string, CaseStats>; defects: 
     byKey.set(key, list);
   }
   const cases: Record<string, CaseStats> = {};
-  const defects: string[] = [];
+  const fallbacks: string[] = [];
   for (const [key, list] of [...byKey.entries()].sort(([a], [b]) => a.localeCompare(b))) {
     const okRows = list.filter((r) => r.ok);
     const censored = list.filter((r) =>
@@ -91,16 +98,28 @@ function deriveCases(rows: Row[]): { cases: Record<string, CaseStats>; defects: 
     ).length;
     const errors = list.length - okRows.length - censored;
     let p95Ms: number | null = null;
-    let deadlineMs: number | null = null;
+    let fallback = false;
+    let deadlineMs: number;
     if (okRows.length > 0) {
       p95Ms = nearestRankP95(okRows.map((r) => r.ms));
       deadlineMs = Math.max(FLOOR_MS, Math.ceil(MULTIPLIER * p95Ms));
     } else {
-      defects.push(key);
+      fallback = true;
+      deadlineMs = FALLBACK_MS;
+      fallbacks.push(key);
     }
-    cases[key] = { n: list.length, okRows: okRows.length, censored, errors, p95Ms, deadlineMs };
+    cases[key] = {
+      n: list.length,
+      okRows: okRows.length,
+      censored,
+      errors,
+      p95Ms,
+      deadlineMs,
+      fallback,
+      fallbackReason: fallback ? FALLBACK_REASON : null,
+    };
   }
-  return { cases, defects };
+  return { cases, fallbacks };
 }
 
 function parseRows(log: string, run: number): Row[] {
@@ -125,7 +144,7 @@ if (Deno.args.includes("--check")) {
     );
     Deno.exit(1);
   }
-  const { cases, defects } = deriveCases(committed.runs.flatMap((r: { rows: Row[] }) => r.rows));
+  const { cases, fallbacks } = deriveCases(committed.runs.flatMap((r: { rows: Row[] }) => r.rows));
   const mismatches: string[] = [];
   for (const [key, stats] of Object.entries(cases)) {
     const committedStats = committed.cases[key] as CaseStats | undefined;
@@ -135,10 +154,10 @@ if (Deno.args.includes("--check")) {
       );
     }
   }
-  if (JSON.stringify(committed.defects) !== JSON.stringify(defects)) {
+  if (JSON.stringify(committed.fallbacks) !== JSON.stringify(fallbacks)) {
     mismatches.push(
-      `defects: committed ${JSON.stringify(committed.defects)} != recomputed ${
-        JSON.stringify(defects)
+      `fallbacks: committed ${JSON.stringify(committed.fallbacks)} != recomputed ${
+        JSON.stringify(fallbacks)
       }`,
     );
   }
@@ -153,7 +172,7 @@ if (Deno.args.includes("--check")) {
   console.log(
     `derive-runner-worker-deadlines: check ok (${
       Object.keys(cases).length
-    } cases, ${defects.length} defects)`,
+    } cases, ${fallbacks.length} fallbacks)`,
   );
   Deno.exit(0);
 }
@@ -170,6 +189,13 @@ if (!Number.isInteger(runCount) || runCount < MIN_RUNS) {
 }
 
 const committedTest = await Deno.readTextFile(TEST_PATH);
+
+// The committed test's import of server.ts validates WASM_VS_JS_COMMIT at
+// module load ("must identify the local Git checkout") — the gate sets it to
+// the checked-out commit; the probe must run under the same contract.
+const commitOut = await new Deno.Command("git", { args: ["rev-parse", "HEAD"], stdout: "piped" })
+  .output();
+const commit = new TextDecoder().decode(commitOut.stdout).trim();
 
 // Fail-closed instrumented-copy transform (mirrors the tim-probe diff: timing
 // before the round-trip promise, one raw-row append after it; the 5000ms
@@ -193,17 +219,15 @@ const LOG_APPEND = "        const __ms = performance.now() - __t0;\n" +
   ', `${slug}\\t${target}\\t${__ms.toFixed(1)}\\t${res.ok ? "ok" : "fail"}\\t${(res.error ?? "").replace(/\\s+/g, " ").slice(0, 100)}\\n`, { append: true });\n';
 const probe = committedTest
   .replace(ANCHOR_ASSERT, 'import { assert } from "../tests/assert.ts";')
-  .replace(
-    ANCHOR_PROMISE,
-    "        const __t0 = performance.now();\n" + ANCHOR_PROMISE,
-  )
+  .replace(ANCHOR_PROMISE, "        const __t0 = performance.now();\n" + ANCHOR_PROMISE)
   .replace(ANCHOR_ASSERT_OK, LOG_APPEND + ANCHOR_ASSERT_OK);
 
 await Deno.mkdir(PROBE_DIR, { recursive: true });
 const runs: { index: number; exitCode: number; loadavg: string; rows: Row[] }[] = [];
+let fatal = 0;
 try {
   await Deno.writeTextFile(PROBE_PATH, probe);
-  for (let i = 1; i <= runCount; i++) {
+  for (let i = 1; i <= runCount && fatal === 0; i++) {
     await Deno.remove(ROWS_PATH).catch(() => {});
     console.error(
       `derive-runner-worker-deadlines: probe run ${i}/${runCount}... (loadavg ${
@@ -223,39 +247,37 @@ try {
         "--allow-run",
         PROBE_PATH,
       ],
+      cwd: Deno.cwd(),
+      env: { ...Deno.env.toObject(), WASM_VS_JS_COMMIT: commit },
       stdout: "inherit",
       stderr: "inherit",
     }).spawn();
     const status = await child.status;
-    let rows: Row[] = [];
     try {
-      rows = parseRows(await Deno.readTextFile(ROWS_PATH), i);
+      const rows = parseRows(await Deno.readTextFile(ROWS_PATH), i);
+      runs.push({ index: i, exitCode: status.code, loadavg: Deno.loadavg().join(" "), rows });
     } catch (e) {
       console.error(
         `derive-runner-worker-deadlines: run ${i} produced no parseable rows: ${
           (e as Error).message
         }`,
       );
-      Deno.exit(4);
+      fatal = 4;
     }
-    runs.push({ index: i, exitCode: status.code, loadavg: Deno.loadavg().join(" "), rows });
   }
 } finally {
   await Deno.remove(PROBE_DIR, { recursive: true }).catch(() => {});
 }
+if (fatal !== 0) Deno.exit(fatal);
 
 const allRows = runs.flatMap((r) => r.rows);
-const { cases, defects } = deriveCases(allRows);
-if (defects.length > 0) {
+const { cases, fallbacks } = deriveCases(allRows);
+if (fallbacks.length > 0) {
   console.error(
-    `derive-runner-worker-deadlines: DEFECTS (no uncensored ok row in any run, no deadline derived): ${
-      defects.join(", ")
-    }`,
+    `derive-runner-worker-deadlines: FALLBACKS (${FALLBACK_REASON}): ${fallbacks.join(", ")}`,
   );
 }
 
-const commitBytes = await new Deno.Command("git", { args: ["rev-parse", "HEAD"], stdout: "piped" })
-  .output();
 const testDigest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(committedTest));
 const out = {
   schemaVersion: FORMULA_VERSION,
@@ -268,13 +290,16 @@ const out = {
     floorMs: FLOOR_MS,
     multiplier: MULTIPLIER,
     minRuns: MIN_RUNS,
-    defectClause:
-      "a case with no uncensored ok row in any run is a defect, gets no deadline, and fails the contract test until fixed or re-derived",
+    fallbackMs: FALLBACK_MS,
+    fallbackClause:
+      `a case with no uncensored ok row in any run keeps the existing ${FALLBACK_MS}ms with the ledger sentence "${FALLBACK_REASON}" (hub ruling, option d)`,
+    standingInstruction:
+      "when a later derivation produces a baseline for a fallback case, the fallback entry is replaced by the derived deadline in the same change",
     gateSensitivity:
       "derived deadlines TIGHTEN the fast majority relative to the former blanket 5000ms; this is a deliberate gate-sensitivity change, not a loosening",
   },
   generatedFrom: {
-    commit: new TextDecoder().decode(commitBytes.stdout).trim(),
+    commit,
     deno: Deno.version.deno,
     os: Deno.build.os,
     arch: Deno.build.arch,
@@ -287,13 +312,12 @@ const out = {
   },
   runs,
   cases,
-  defects,
+  fallbacks,
 };
 
 await Deno.writeTextFile(OUT_PATH, JSON.stringify(out, null, 2) + "\n");
 console.error(
   `derive-runner-worker-deadlines: wrote ${OUT_PATH} (${
     Object.keys(cases).length
-  } cases, ${defects.length} defects, ${allRows.length} raw rows)`,
+  } cases, ${fallbacks.length} fallbacks, ${allRows.length} raw rows)`,
 );
-if (defects.length > 0) Deno.exit(5);
