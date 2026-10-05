@@ -332,8 +332,12 @@ async function runStage(stage: Stage): Promise<void> {
   const elapsed = ((performance.now() - stageStart) / 1000).toFixed(1);
   if (!status.success) {
     if (shuttingDown) {
-      // Killed by a sibling's failure sweep; the sweep owns the report.
-      return;
+      // Killed by a sibling's failure sweep or by a signal to the wrapper.
+      // Never resolve: if this promise returned, the main-line Promise.all
+      // could march on to later phases and SPAWN NEW STAGES while the sweep
+      // owner is still verifying the kill — re-creating the orphan defect
+      // through the signal path. The sweep owner always ends in Deno.exit.
+      await new Promise(() => {});
     }
     shuttingDown = true;
     console.error(`check-parallel: ${stage.name} FAILED in ${elapsed}s (exit ${status.code})`);
