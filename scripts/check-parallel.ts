@@ -256,21 +256,33 @@ const REFERENCE_CLANG_TESTS = new Set([
   "tests/v2/ml-neural-controlled.test.ts",
 ]);
 
-const clangOut = await new Deno.Command("clang", {
-  args: ["--version"],
-  stdout: "piped",
-  stderr: "null",
-})
-  .output()
-  .catch(() => ({ success: false, stdout: new Uint8Array() }));
-const clangFirstLine = new TextDecoder().decode(clangOut.stdout).split("\n")[0]?.trim() ?? "";
+// The probe must be try/catch, never a chained .catch: when the binary is
+// absent, Deno 2.9's Command.output() throws out of the call itself, so the
+// rejection escapes as Uncaught and the handler is never entered
+// (wasm-vs-js-ccs — a clang-less machine crashed the gate instead of
+// degrading to the reduced path).
+let clangOut: Deno.CommandOutput | { success: false; stdout: Uint8Array };
+try {
+  clangOut = await new Deno.Command("clang", {
+    args: ["--version"],
+    stdout: "piped",
+    stderr: "null",
+  }).output();
+} catch {
+  clangOut = { success: false, stdout: new Uint8Array() };
+}
+const clangFirstLine = clangOut.success
+  ? new TextDecoder().decode(clangOut.stdout).split("\n")[0]?.trim() ?? ""
+  : "";
 const skipInPlaceWriters = Deno.args.includes("--no-writers") ||
   !clangFirstLine.startsWith("clang version 22.1.8");
 if (skipInPlaceWriters) {
   console.error(
-    `check-parallel: skipping in-place WRITER_TESTS and task build on non-reference clang (${
-      JSON.stringify(clangFirstLine)
-    }) to preserve committed artifact bytes`,
+    `check-parallel: skipping in-place WRITER_TESTS and task build on ${
+      clangOut.success
+        ? `non-reference clang (${JSON.stringify(clangFirstLine)})`
+        : "no clang on PATH"
+    } to preserve committed artifact bytes`,
   );
 }
 const activeReaderTests = skipInPlaceWriters
