@@ -237,27 +237,92 @@ Deno.test({
 });
 
 Deno.test({
-  name: "kv-store: rate limiter allows up to max then blocks",
+  name:
+    "kv-store: rate limiter is durable, per-identity, and survives a store restart (wasm-vs-js-fap)",
   sanitizeOps: false,
   sanitizeResources: false,
-  fn() {
-    const kv = {
-      get: () => Promise.resolve({ value: null }),
-      list: () => [],
-      atomic: () => ({
-        check: () => {},
-        set: () => {},
-        commit: () => Promise.resolve({ ok: true }),
-      }),
-      close: () => {},
-    } as unknown as Deno.Kv;
+  async fn() {
+    const kv = await makeKv();
     const store = new KvRunStore(kv);
 
     for (let i = 0; i < 30; i++) {
-      assert(store.checkRateLimit("client-1") === true);
+      assert((await store.checkRateLimit("tok:a")) === true, `request ${i + 1} should pass`);
     }
-    assert(store.checkRateLimit("client-1") === false); // 31st blocked
-    assert(store.checkRateLimit("client-2") === true); // Different client allowed
+    assert((await store.checkRateLimit("tok:a")) === false, "31st request must be blocked");
+    // A second identity gets an independent budget.
+    assert((await store.checkRateLimit("tok:b")) === true);
+
+    // Isolate-restart simulation: a FRESH store over the SAME KV keeps the
+    // window count — the old per-isolate Map reset here, which was the
+    // non-durability half of the defect.
+    const restarted = new KvRunStore(kv);
+    assert(
+      (await restarted.checkRateLimit("tok:a")) === false,
+      "count must survive a store restart (durable counter)",
+    );
+
+    kv.close();
+  },
+});
+
+Deno.test({
+  name:
+    "reporting-api: rate limit binds on reporter identity, not x-forwarded-for (wasm-vs-js-fap)",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const kv = await makeKv();
+    const config = makeConfig(kv, "reporter-secret");
+
+    // One token, ROTATING x-forwarded-for on every request: the limiter
+    // must still bind, because the key is the identity, not the header.
+    // Requests 1-30 get past the limiter (400 schema denied downstream);
+    // request 31 must be 429.
+    for (let i = 1; i <= 31; i++) {
+      const request = new Request("https://example.test/v1/runs", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: "Bearer reporter-secret",
+          "x-forwarded-for": `10.9.${Math.floor(i / 256)}.${i % 256}`,
+        },
+        body: JSON.stringify({}),
+      });
+      const response = await handleReportingRoute(
+        request,
+        new URL(request.url),
+        config,
+        "public",
+      );
+      assert(response !== null);
+      if (i <= 30) {
+        assertEquals(response!.status, 400, `request ${i} should pass the limiter`);
+      } else {
+        assertEquals(response!.status, 429, "request 31 must be rate limited");
+      }
+    }
+
+    // A second token gets an independent budget.
+    const config2 = makeConfig(kv, "second-secret");
+    const request2 = new Request("https://example.test/v1/runs", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: "Bearer second-secret",
+        "x-forwarded-for": "10.9.0.1",
+      },
+      body: JSON.stringify({}),
+    });
+    const response2 = await handleReportingRoute(
+      request2,
+      new URL(request2.url),
+      config2,
+      "public",
+    );
+    assert(response2 !== null);
+    assertEquals(response2!.status, 400, "second token has its own budget");
+
+    kv.close();
   },
 });
 

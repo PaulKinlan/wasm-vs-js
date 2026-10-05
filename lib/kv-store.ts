@@ -22,8 +22,6 @@ export type KvRunRecord = Record<string, unknown> & {
   capabilities?: Record<string, unknown>;
 };
 
-type RateLimitEntry = { count: number; windowStart: number };
-
 /**
  * Deno KV-backed run store with atomic commit semantics.
  * Each run insertion writes run, dedupe, benchmark-index, and summary records
@@ -31,7 +29,6 @@ type RateLimitEntry = { count: number; windowStart: number };
  */
 export class KvRunStore {
   readonly kv: Deno.Kv;
-  private rateLimitMap = new Map<string, RateLimitEntry>();
 
   constructor(kv: Deno.Kv) {
     this.kv = kv;
@@ -187,16 +184,40 @@ export class KvRunStore {
     return { runs: runs.slice(-limit), total };
   }
 
-  /** Check rate limit for a reporter. Returns true if allowed. */
-  checkRateLimit(reporterId: string): boolean {
-    const now = Date.now();
-    const entry = this.rateLimitMap.get(reporterId);
-    if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
-      this.rateLimitMap.set(reporterId, { count: 1, windowStart: now });
-      return true;
+  /**
+   * Check rate limit for a reporter. Returns true if allowed.
+   *
+   * Durable fixed-window counter in KV (wasm-vs-js-fap): ONE key per
+   * reporter identity at ["ratelimit", reporterId] holding {window, count},
+   * updated with an optimistic-concurrency read-modify-write, so the key
+   * overwrites itself every window and never accumulates (atomic sum was
+   * considered and rejected: the runtime silently IGNORES expireIn on sum,
+   * which would have leaked one key per identity per minute forever).
+   * The previous implementation kept the counter in a per-isolate Map, so
+   * every Deploy isolate (and every restart) got its own independent
+   * budget — the limit was 30/min times isolate count. One read plus one
+   * atomic per request on a path that already runs an atomic transaction
+   * makes the honest mechanism affordable, so the limiter is durable
+   * rather than labelled best-effort. A versionstamp conflict means a
+   * concurrent request moved the count — retry; on persistent contention
+   * the limiter errs toward LIMITING, never toward admitting.
+   */
+  async checkRateLimit(reporterId: string): Promise<boolean> {
+    const windowIndex = Math.floor(Date.now() / RATE_LIMIT_WINDOW_MS);
+    const key = ["ratelimit", reporterId];
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const entry = await this.kv.get<{ window: number; count: number }>(key);
+      const current = entry.value;
+      const next = !current || current.window !== windowIndex
+        ? { window: windowIndex, count: 1 }
+        : { window: windowIndex, count: current.count + 1 };
+      const res = await this.kv.atomic()
+        .check({ key, versionstamp: entry.versionstamp })
+        .set(key, next)
+        .commit();
+      if (res.ok) return next.count <= RATE_LIMIT_MAX_REQUESTS;
     }
-    entry.count++;
-    return entry.count <= RATE_LIMIT_MAX_REQUESTS;
+    return false;
   }
 
   /** Get summary statistics. */

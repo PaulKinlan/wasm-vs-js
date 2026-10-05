@@ -142,6 +142,11 @@ function bearerEqual(provided: string | null, token: string): boolean {
   return diff === 0;
 }
 
+async function sha256Hex(text: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 async function handlePostRuns(
   request: Request,
   config: ReportingConfig,
@@ -174,10 +179,22 @@ async function handlePostRuns(
     return json({ error: "KV store unavailable — reporting requires Deno KV" }, 503);
   }
 
-  // Rate limiting by client IP
-  const clientIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    "127.0.0.1";
-  if (!config.kvStore.checkRateLimit(clientIp)) {
+  // Rate limiting by reporter IDENTITY, never by a client-supplied header
+  // (wasm-vs-js-fap). The limiter used to key on the leftmost
+  // x-forwarded-for value, which the caller controls: rotating it per
+  // request bypassed the limit entirely (demonstrated on the base sha —
+  // 31 rotating-header requests passed where 31 fixed-header requests
+  // earned a 429). Post-a37 the public path requires a valid bearer, so
+  // the token is the identity the limiter exists to bound — keyed as a
+  // HASH, never the raw value, so the rate-limit table can never become a
+  // credential store. The limit therefore binds on the server's own
+  // signal, not on anything the caller can set. Local mode has no token
+  // and falls back to the declared IP, which remains best-effort by
+  // construction on a loopback developer path.
+  const reporterId = config.reporterToken
+    ? `tok:${await sha256Hex(config.reporterToken)}`
+    : `ip:${request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "127.0.0.1"}`;
+  if (!(await config.kvStore.checkRateLimit(reporterId))) {
     return json({ error: "rate limit exceeded" }, 429);
   }
 
