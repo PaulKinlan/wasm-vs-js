@@ -213,6 +213,18 @@ if (Deno.args.includes("--check")) {
   }
   const { cases, fallbacks } = deriveCases(committed.runs.flatMap((r: { rows: Row[] }) => r.rows));
   const mismatches: string[] = [];
+  // Censoring invariant: the probe's ceiling is a hard 5000ms (the transform
+  // forces it on every shape), so an ok row above that ceiling proves the
+  // derivation ran without it and the whole table is invalid.
+  for (const run of committed.runs as { index: number; rows: Row[] }[]) {
+    for (const r of run.rows) {
+      if (r.ok && r.ms > 5001) {
+        mismatches.push(
+          `run ${run.index}: ok row above the 5000ms probe ceiling (${r.ms}ms, ${r.slug}|${r.target}) — invalid derivation`,
+        );
+      }
+    }
+  }
   // Full deep compare, not just deadlineMs: a table that mislabels a case
   // (missing fallbackReason, altered p95/counts, extra or missing keys) must
   // fail --check even when every deadlineMs happens to match.
@@ -274,12 +286,20 @@ const commitOut = await new Deno.Command("git", { args: ["rev-parse", "HEAD"], s
 const commit = new TextDecoder().decode(commitOut.stdout).trim();
 
 // Fail-closed instrumented-copy transform (mirrors the tim-probe diff: timing
-// before the round-trip promise, one raw-row append after it; the 5000ms
-// deadline and every assertion stay byte-identical in the copy).
+// before the round-trip promise, one raw-row append after it; every assertion
+// stays byte-identical in the copy). The probe's round-trip ceiling is
+// FORCED to 5000ms regardless of the committed test's shape: on the pristine
+// test the literal is already 5000; on the table-driven test the probe
+// replaces the lookup timer value with the hard ceiling so censoring
+// semantics ("censored = did not finish under 5000ms") hold for every
+// re-derivation. Exactly one ceiling shape is accepted; anything else is
+// refused.
 const ANCHOR_ASSERT = 'import { assert } from "./assert.ts";';
 const ANCHOR_PROMISE =
   "        const res = await new Promise<{ ok: boolean; data?: unknown; error?: string }>(";
 const ANCHOR_ASSERT_OK = "        assert(res.ok, `${slug}[${target}]: ${res.error}`);";
+const ANCHOR_FIXED_CEILING = "            }, 5000);";
+const ANCHOR_TABLE_CEILING = "            }, deadlineMs);";
 for (const a of [ANCHOR_ASSERT, ANCHOR_PROMISE, ANCHOR_ASSERT_OK]) {
   if (!committedTest.includes(a)) {
     console.error(
@@ -290,13 +310,22 @@ for (const a of [ANCHOR_ASSERT, ANCHOR_PROMISE, ANCHOR_ASSERT_OK]) {
     Deno.exit(3);
   }
 }
+const hasFixedCeiling = committedTest.includes(ANCHOR_FIXED_CEILING);
+const hasTableCeiling = committedTest.includes(ANCHOR_TABLE_CEILING);
+if (hasFixedCeiling === hasTableCeiling) {
+  console.error(
+    `derive-runner-worker-deadlines: expected exactly one round-trip ceiling shape in the committed test (fixed: ${hasFixedCeiling}, table: ${hasTableCeiling}) — transform refused`,
+  );
+  Deno.exit(3);
+}
 const LOG_APPEND = "        const __ms = performance.now() - __t0;\n" +
   "        await Deno.writeTextFile(" + JSON.stringify(ROWS_PATH) +
   ', `${slug}\\t${target}\\t${__ms.toFixed(1)}\\t${res.ok ? "ok" : "fail"}\\t${(res.error ?? "").replace(/\\s+/g, " ").slice(0, 100)}\\n`, { append: true });\n';
 const probe = committedTest
   .replace(ANCHOR_ASSERT, 'import { assert } from "../tests/assert.ts";')
   .replace(ANCHOR_PROMISE, "        const __t0 = performance.now();\n" + ANCHOR_PROMISE)
-  .replace(ANCHOR_ASSERT_OK, LOG_APPEND + ANCHOR_ASSERT_OK);
+  .replace(ANCHOR_ASSERT_OK, LOG_APPEND + ANCHOR_ASSERT_OK)
+  .replace(ANCHOR_TABLE_CEILING, ANCHOR_FIXED_CEILING); // no-op on the pristine shape
 
 await Deno.mkdir(PROBE_DIR, { recursive: true });
 const runs: {
