@@ -277,12 +277,13 @@ const clangFirstLine = clangOut.success
 const skipInPlaceWriters = Deno.args.includes("--no-writers") ||
   !clangFirstLine.startsWith("clang version 22.1.8");
 if (skipInPlaceWriters) {
+  const skipReason = Deno.args.includes("--no-writers")
+    ? "--no-writers"
+    : clangOut.success
+    ? `non-reference clang (${JSON.stringify(clangFirstLine)})`
+    : "no clang on PATH";
   console.error(
-    `check-parallel: skipping in-place WRITER_TESTS and task build on ${
-      clangOut.success
-        ? `non-reference clang (${JSON.stringify(clangFirstLine)})`
-        : "no clang on PATH"
-    } to preserve committed artifact bytes`,
+    `check-parallel: skipping in-place WRITER_TESTS and task build on ${skipReason} to preserve committed artifact bytes`,
   );
 }
 const activeReaderTests = skipInPlaceWriters
