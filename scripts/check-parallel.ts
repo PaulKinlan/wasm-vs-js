@@ -201,13 +201,23 @@ async function terminateJobGroup(reason: string): Promise<boolean> {
   await Promise.allSettled(victims.map((v) => v.statusPromise));
   const survivors: string[] = [];
   for (const v of victims) {
-    if (!(await groupGone(v.pgid))) {
+    let gone = await groupGone(v.pgid);
+    // Grandchildren are reaped by init, not by us: a just-killed grandchild
+    // can linger as a zombie for a few hundred ms and still answer kill -0.
+    // Give init a bounded moment before calling the group a survivor.
+    for (let attempt = 0; !gone && attempt < 12; attempt++) {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      gone = await groupGone(v.pgid);
+    }
+    if (!gone) {
       survivors.push(`${v.name}(pgid ${v.pgid})`);
     }
   }
   if (survivors.length > 0) {
     console.error(
-      `check-parallel: WARNING stage group(s) still present after SIGKILL: ${survivors.join(", ")}`,
+      `check-parallel: WARNING stage group(s) still present 3s after the termination sweep: ${
+        survivors.join(", ")
+      }`,
     );
     return false;
   }
