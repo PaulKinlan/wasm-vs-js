@@ -115,6 +115,128 @@ interface Stage {
   env?: Record<string, string>;
 }
 
+// --- Job-group discipline (wasm-vs-js-pz5) ----------------------------------
+// Defect: on stage failure the wrapper used to Deno.exit() while sibling
+// stages kept running, reparented to init, still holding the fleet-heavy
+// slot — a present .exit file then meant "the wrapper returned", not "the
+// tree is gone". Now every stage runs in its OWN process group (setsid on
+// Linux; grandchildren inherit the group), and on any stage failure — or on
+// SIGTERM/SIGINT to the wrapper itself — the wrapper SIGTERMs then SIGKILLs
+// every outstanding stage group, reaps the children, and verifies each group
+// is gone (kill -0) before it exits. The fleet's outer kill
+// (`kill -TERM -- -<wrapper pgid>`) reaches the wrapper but not the stage
+// groups, which is exactly why the signal handlers below run the same sweep.
+// Consequence: a present .exit file implies no surviving stage children.
+const GROUP_KILL = Deno.build.os === "linux";
+
+interface LiveStage {
+  name: string;
+  child: Deno.ChildProcess;
+  pgid: number;
+  statusPromise: Promise<Deno.CommandStatus>;
+}
+
+const liveStages = new Map<string, LiveStage>();
+let shuttingDown = false;
+
+async function signalStageGroup(
+  ls: LiveStage,
+  signal: "TERM" | "KILL",
+): Promise<void> {
+  if (!GROUP_KILL) {
+    // Best effort off Linux (no setsid): only the direct child dies.
+    try {
+      ls.child.kill(`SIG${signal}`);
+    } catch { /* already exited */ }
+    return;
+  }
+  // Negative pid targets the whole process group; the stage child is its
+  // leader (spawned via setsid), so this reaches grandchildren too.
+  await new Deno.Command("kill", {
+    args: [`-${signal}`, `-${ls.pgid}`],
+    stdout: "null",
+    stderr: "null",
+  }).output().catch(() => {});
+}
+
+async function groupGone(pgid: number): Promise<boolean> {
+  if (!GROUP_KILL) return true;
+  // kill -0 to a negative pid fails with ESRCH only when no process in the
+  // group remains.
+  const out = await new Deno.Command("kill", {
+    args: ["-0", `-${pgid}`],
+    stdout: "null",
+    stderr: "null",
+  }).output().catch(() => ({ success: false }));
+  return !out.success;
+}
+
+// Terminate every outstanding stage group, reap the children, and verify no
+// group survives. Returns true only when every group is confirmed gone.
+async function terminateJobGroup(reason: string): Promise<boolean> {
+  const victims = [...liveStages.values()];
+  liveStages.clear();
+  if (victims.length === 0) return true;
+  console.error(
+    `check-parallel: ${reason}; terminating ${victims.length} outstanding stage group(s): ${
+      victims.map((v) => `${v.name}(pgid ${v.pgid})`).join(", ")
+    }`,
+  );
+  for (const v of victims) await signalStageGroup(v, "TERM");
+  // Grace period: stages that trap SIGTERM get a moment to exit before KILL.
+  const settled = new Set<string>();
+  await Promise.all(victims.map(async (v) => {
+    const grace = new Promise<void>((resolve) => setTimeout(resolve, 2000));
+    await Promise.race([
+      v.statusPromise.then(() => settled.add(v.name)),
+      grace,
+    ]);
+  }));
+  for (const v of victims) {
+    if (!settled.has(v.name)) await signalStageGroup(v, "KILL");
+  }
+  // Reap every child so neither zombie nor orphan outlives the wrapper.
+  await Promise.allSettled(victims.map((v) => v.statusPromise));
+  const survivors: string[] = [];
+  for (const v of victims) {
+    if (!(await groupGone(v.pgid))) {
+      survivors.push(`${v.name}(pgid ${v.pgid})`);
+    }
+  }
+  if (survivors.length > 0) {
+    console.error(
+      `check-parallel: WARNING stage group(s) still present after SIGKILL: ${survivors.join(", ")}`,
+    );
+    return false;
+  }
+  console.error(
+    `check-parallel: all ${victims.length} stage group(s) reaped and verified gone — no surviving children`,
+  );
+  return true;
+}
+
+function reportShutdown(context: string, clean: boolean): void {
+  console.error(
+    clean
+      ? `check-parallel: clean shutdown (${context}) — a present .exit file implies no surviving stage children`
+      : `check-parallel: DIRTY shutdown (${context}) — survivor groups remain; sweep for orphans before trusting the box`,
+  );
+}
+
+// The fleet kills runaway wrappers by signalling the wrapper's own process
+// group; the stage groups (own pgids, via setsid) are NOT in it, so the
+// wrapper itself must sweep them on the way down.
+for (const [sig, code] of [["SIGTERM", 143], ["SIGINT", 130]] as const) {
+  Deno.addSignalListener(sig, () => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    terminateJobGroup(`wrapper received ${sig}`).then((clean) => {
+      reportShutdown(sig, clean);
+      Deno.exit(code);
+    });
+  });
+}
+
 // Note: taskset CPU pinning was tried and REJECTED (2026-08-04) — each deno
 // process brings several V8 background threads, so pinned core sets
 // oversubscribe ~3x and every long chain gets slower. Do not re-add.
@@ -171,19 +293,81 @@ if (missing.length > 0) {
 
 async function runStage(stage: Stage): Promise<void> {
   const stageStart = performance.now();
-  const child = new Deno.Command(Deno.execPath(), {
-    args: stage.args,
-    env: stage.env,
-    stdout: "inherit",
-    stderr: "inherit",
-  }).spawn();
-  const status = await child.status;
+  // Each stage is its own process-group leader (setsid) so the failure sweep
+  // can take down the whole group — workers, servers and other grandchildren
+  // included — with one signal to the negative pgid.
+  const child = GROUP_KILL
+    ? new Deno.Command("setsid", {
+      args: [Deno.execPath(), ...stage.args],
+      env: stage.env,
+      stdout: "inherit",
+      stderr: "inherit",
+    }).spawn()
+    : new Deno.Command(Deno.execPath(), {
+      args: stage.args,
+      env: stage.env,
+      stdout: "inherit",
+      stderr: "inherit",
+    }).spawn();
+  const live: LiveStage = {
+    name: stage.name,
+    child,
+    pgid: child.pid,
+    statusPromise: child.status,
+  };
+  liveStages.set(stage.name, live);
+  const status = await live.statusPromise;
   const elapsed = ((performance.now() - stageStart) / 1000).toFixed(1);
   if (!status.success) {
+    if (shuttingDown) {
+      // Killed by a sibling's failure sweep; the sweep owns the report.
+      return;
+    }
+    shuttingDown = true;
     console.error(`check-parallel: ${stage.name} FAILED in ${elapsed}s (exit ${status.code})`);
+    // The failed stage stays registered: its own group may still hold
+    // grandchildren (e.g. a server the dying test left behind).
+    const clean = await terminateJobGroup(
+      `${stage.name} failed (exit ${status.code})`,
+    );
+    reportShutdown(`${stage.name} failed`, clean);
     Deno.exit(status.code);
   }
+  liveStages.delete(stage.name);
   console.error(`check-parallel: ${stage.name} ok (${elapsed}s)`);
+}
+
+// Acceptance driver for the group-kill discipline (wasm-vs-js-pz5): a
+// deliberately failing stage alongside a long-running stage that spawns a
+// grandchild. Expected: the wrapper logs the sweep, exits with the failing
+// stage's code (3), and no selftest process survives — verifiable from
+// outside: `ps -eo pid,ppid,pgid,cmd | grep selftest-group-kill` must return
+// nothing once the wrapper's .exit file exists. Exercises the same runStage
+// code path as the real fan-out without running the gate.
+if (Deno.args.includes("--self-test-group-kill")) {
+  const marker = "selftest-group-kill";
+  await Promise.all([
+    runStage({
+      name: "selftest-long",
+      args: [
+        "eval",
+        `/*${marker}*/ new Deno.Command(Deno.execPath(), { args: ["eval", "/*${marker}-grandchild*/ setTimeout(()=>{},120000)"] }).spawn(); setTimeout(()=>{},120000);`,
+      ],
+    }),
+    runStage({
+      name: "selftest-fail",
+      args: [
+        "eval",
+        `/*${marker}*/ await new Promise((r) => setTimeout(r, 750)); Deno.exit(3);`,
+      ],
+    }),
+  ]);
+  // The failing stage must win the race; reaching here means the sweep never
+  // ran and the defect is present.
+  console.error(
+    "check-parallel: SELF-TEST FAILED — failing stage did not terminate the run",
+  );
+  Deno.exit(1);
 }
 
 // `task build` writes public/artifacts and must finish first. Every static
