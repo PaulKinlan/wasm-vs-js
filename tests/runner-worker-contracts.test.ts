@@ -85,6 +85,17 @@ for (const [slug, config] of Object.entries(configsMap)) {
         const res = await new Promise<{ ok: boolean; data?: unknown; error?: string }>(
           (resolve) => {
             let worker: Worker | null = null;
+            // ENVIRONMENT-SENSITIVE THRESHOLD: the 5000 ms worker-message
+            // deadline below measures the host as much as the code. On a
+            // contended machine the passing tail has been measured within
+            // ~100 ms of this deadline, and the failing set varies from run
+            // to run, co-varying with load (wasm-vs-js-tim, 2026-10-05:
+            // 7/8/12/4 failures across runs with a stable core of 4 that
+            // pass at 4.7-4.9 s on other targets and runs). A red from this
+            // deadline is therefore NOT by itself a product verdict —
+            // reproduce on a quieter host before attributing it. This note
+            // changes nothing; it tells the next person staring at a red
+            // suite how to read it.
             const timer = setTimeout(() => {
               if (worker) worker.terminate();
               resolve({
