@@ -1,15 +1,24 @@
 // Tests for scripts/landing-preflight.sh: the single tracked implementation of
-// the four-branch assert-then-act landing gate. The real `git` binary is never
-// touched — a fake `git` on PATH stubs every command, and the real `push` is
-// recorded to a log file so no probe ref is ever created on a real remote.
+// the assert-then-act landing gate. The real `git` binary is never touched —
+// a fake `git` on PATH stubs every command, and the real `push` is recorded
+// to a log file so no probe ref is ever created on a real remote.
 //
-// Branch matrix exercised here:
-//   0  OK: genuine update row / brand-new target ref — push runs.
-//   2  Nothing to land: "Everything up-to-date" — no push.
+// WORKING INVOCATION: a bare `deno test tests/landing-preflight.test.ts` fails
+// every case with a `NotCapable` permission error — the test writes its temp
+// scenario dir (needs --allow-write) and spawns `bash` and `grep` (needs
+// --allow-run). Run with the repo task's flags (or via its test task) instead:
+//
+//   deno test --allow-read --allow-write --allow-run tests/landing-preflight.test.ts
+//
+// Branch matrix exercised here (exit codes):
+//   0  OK: genuine update row / brand-new target ref (--new-branch) — push runs.
+//   1  Precondition/assertion failure — no push: dirty tree, HEAD == remote tip,
+//      typo'd/non-existent target without --new-branch, dry-run non-zero rc,
+//      update-row sha mismatch.
+//   2  Nothing to land: "Everything up-to-date" (stale tracking ref) — no push.
 //   3  Refused: "[rejected]" — no push.
 //   4  Unrecognised dry-run output (synthetic fixture) — no push.
-//   1  Precondition/assertion failures (dirty tree, HEAD == remote tip,
-//      update-row sha mismatch) — no push.
+//   5  Real push attempted and failed — push attempted, non-zero.
 import { assert, assertEquals } from "./assert.ts";
 
 const root = new URL("../", import.meta.url);
@@ -22,7 +31,7 @@ const REMOTE = "b70e45601c2d3e4f5a6b7c8d9e0f1a2b3c4d";
 const HEAD_SHORT = "60ecc75";
 const REMOTE_SHORT = "b70e456";
 
-const ANCHORED_UPDATE_ROW = "^ *[0-9a-f]{4,}..[0-9a-f]{4,} +HEAD -> ";
+const ANCHORED_UPDATE_ROW = String.raw`^ *[0-9a-f]{4,}\.\.[0-9a-f]{4,} +HEAD -> `;
 
 // A fake `git` that reads its scenario from sibling files (no environment
 // variables needed, so it works under Deno's restricted --allow-env).
@@ -65,6 +74,7 @@ const FAKE_GIT_LINES = [
   "      fi",
   "    done",
   '    printf "push %s\\n" "$*" >> "$d/push-log"',
+  '    if [ -f "$d/push-fail-rc" ]; then exit "$(cat "$d/push-fail-rc")"; fi',
   "    exit 0",
   "    ;;",
   "  *)",
@@ -98,9 +108,16 @@ interface RunResult {
   pushLog: string;
 }
 
-async function runPreflight(bin: string, target = "main"): Promise<RunResult> {
+async function runPreflight(bin: string, args: string[] = ["main"]): Promise<RunResult> {
   const cmd = new Deno.Command("bash", {
-    args: ["-c", 'PATH="$1:$PATH"; exec bash "$2" "$3"', "preflight", bin, preflightPath, target],
+    args: [
+      "-c",
+      'PATH="$1:$PATH"; shift; exec bash "$@"',
+      "preflight",
+      bin,
+      preflightPath,
+      ...args,
+    ],
     cwd: root.pathname,
     stdout: "piped",
     stderr: "piped",
@@ -158,15 +175,108 @@ Deno.test("landing-preflight OK: genuine update row asserts shas and pushes", as
   }
 });
 
-Deno.test("landing-preflight OK: brand-new target ref pushes without a sha pair", async () => {
+Deno.test("landing-preflight OK: brand-new target ref with --new-branch pushes without a sha pair", async () => {
   const { dir, bin } = await makeScenario({
     head: HEAD,
     "dry-run-out": "To ../origin.git\n * [new branch]      HEAD -> main\n",
     "dry-run-rc": "0",
   });
   try {
-    const r = await runPreflight(bin);
+    const r = await runPreflight(bin, ["--new-branch", "main"]);
     assertEquals(r.code, 0, r.stderr);
+    realPushOnly(r.pushLog);
+  } finally {
+    await Deno.remove(dir, { recursive: true });
+  }
+});
+
+Deno.test("landing-preflight typo target: non-existent origin/<target> exits 1 without --new-branch, no push", async () => {
+  // No remote-tip file: origin/mian does not exist. The existence check must
+  // fail closed BEFORE the dry-run, naming the typo, and never push — even
+  // though the dry-run would have emitted a "* [new branch]" row for it.
+  const { dir, bin } = await makeScenario({
+    head: HEAD,
+    "dry-run-out": "To ../origin.git\n * [new branch]      HEAD -> mian\n",
+    "dry-run-rc": "0",
+  });
+  try {
+    const r = await runPreflight(bin, ["mian"]);
+    assertEquals(r.code, 1, r.stderr);
+    assertEquals(r.pushLog, "");
+    assert(r.stderr.includes("mian"), r.stderr);
+  } finally {
+    await Deno.remove(dir, { recursive: true });
+  }
+});
+
+Deno.test("landing-preflight OK branch: non-zero dry-run rc on an update row exits non-zero, no push (synthetic fixture)", async () => {
+  // SYNTHETIC fixture: real git pairs rc=1 with a [rejected] row, never with a
+  // genuine update row. This stubs exactly that impossible combination to
+  // prove rc gates the push even when the output looks green.
+  const { dir, bin } = await makeScenario({
+    head: HEAD,
+    "remote-tip": REMOTE,
+    "dry-run-out": `To ../origin.git\n   ${REMOTE_SHORT}..${HEAD_SHORT}  HEAD -> main\n`,
+    "dry-run-rc": "1",
+  });
+  try {
+    const r = await runPreflight(bin);
+    assertEquals(r.code, 1, r.stderr);
+    assertEquals(r.pushLog, "");
+    assert(r.stderr.includes("non-zero"), r.stderr);
+  } finally {
+    await Deno.remove(dir, { recursive: true });
+  }
+});
+
+Deno.test("landing-preflight new-branch: non-zero dry-run rc exits non-zero, no push (synthetic fixture)", async () => {
+  // SYNTHETIC fixture: real git would not exit non-zero while printing a
+  // new-branch row; this stubs that combination so rc must still gate the push.
+  const { dir, bin } = await makeScenario({
+    head: HEAD,
+    "dry-run-out": "To ../origin.git\n * [new branch]      HEAD -> main\n",
+    "dry-run-rc": "1",
+  });
+  try {
+    const r = await runPreflight(bin, ["--new-branch", "main"]);
+    assertEquals(r.code, 1, r.stderr);
+    assertEquals(r.pushLog, "");
+    assert(r.stderr.includes("non-zero"), r.stderr);
+  } finally {
+    await Deno.remove(dir, { recursive: true });
+  }
+});
+
+Deno.test("landing-preflight real push fails after passing dry-run: exit 5, push attempted", async () => {
+  // A rejecting pre-receive hook bypasses --dry-run (dryrc=0) but declines the
+  // real push. Distinct from "never attempted": exit 5, with the push recorded.
+  const { dir, bin } = await makeScenario({
+    head: HEAD,
+    "remote-tip": REMOTE,
+    "dry-run-out": `To ../origin.git\n   ${REMOTE_SHORT}..${HEAD_SHORT}  HEAD -> main\n`,
+    "dry-run-rc": "0",
+    "push-fail-rc": "1",
+  });
+  try {
+    const r = await runPreflight(bin);
+    assertEquals(r.code, 5, r.stderr);
+    realPushOnly(r.pushLog);
+    assert(r.stderr.includes("attempted"), r.stderr);
+  } finally {
+    await Deno.remove(dir, { recursive: true });
+  }
+});
+
+Deno.test("landing-preflight new branch: real push fails after passing dry-run exits 5", async () => {
+  const { dir, bin } = await makeScenario({
+    head: HEAD,
+    "dry-run-out": "To ../origin.git\n * [new branch]      HEAD -> main\n",
+    "dry-run-rc": "0",
+    "push-fail-rc": "1",
+  });
+  try {
+    const r = await runPreflight(bin, ["--new-branch", "main"]);
+    assertEquals(r.code, 5, r.stderr);
     realPushOnly(r.pushLog);
   } finally {
     await Deno.remove(dir, { recursive: true });
@@ -300,6 +410,9 @@ Deno.test("landing-preflight anchored regex: loose substring hits refusal, ancho
   // matches a REFUSAL row, while the anchored update-row regex does not.
   const refusal = " ! [rejected]        HEAD -> main (fetch first)\n";
   const update = `   ${REMOTE_SHORT}..${HEAD_SHORT}  HEAD -> main\n`;
+  // An unescaped `..` would match ANY two separator characters, e.g. `XY`;
+  // the escaped `\.\.` must not.
+  const badSeparator = "   71213e5XYa495762  HEAD -> main\n";
 
   assert(await grepMatches("HEAD -> main", refusal, true), "loose substring must hit refusal");
   assert(
@@ -307,4 +420,8 @@ Deno.test("landing-preflight anchored regex: loose substring hits refusal, ancho
     "anchored regex must miss refusal",
   );
   assert(await grepMatches(ANCHORED_UPDATE_ROW, update, false), "anchored regex must hit update");
+  assert(
+    !(await grepMatches(ANCHORED_UPDATE_ROW, badSeparator, false)),
+    "escaped dots must not match arbitrary separator characters",
+  );
 });
