@@ -16,6 +16,45 @@ interface WorkloadConfig {
 
 const configsMap = WORKLOAD_CONFIGS as Record<string, WorkloadConfig>;
 
+// Per-case worker-message deadlines are DERIVED from measured round-trip
+// behaviour (bead wasm-vs-js-rkw; the fixed 5000ms sat inside this
+// environment's round-trip distribution body — evidence on wasm-vs-js-tim).
+// The table is generated: scripts/derive-runner-worker-deadlines.ts retains
+// every raw probe row and the method (censoring stated, p95 x2, floor 500ms,
+// labelled fallbacks per the hub ruling) in
+// tests/fixtures/runner-worker-deadlines.v1.json. A case with no measured
+// baseline keeps the previous 5000ms in the table, labelled "no baseline
+// measured; current constant retained pending defect fix". An entry missing
+// from the table entirely is a generation bug and fails here — there is
+// deliberately no fallback constant in this file.
+interface DeadlineEntry {
+  deadlineMs: number;
+  fallback: boolean;
+  fallbackReason: string | null;
+}
+interface DeadlineTable {
+  schemaVersion: number;
+  cases: Record<string, DeadlineEntry>;
+  fallbacks: string[];
+}
+const deadlineTable = JSON.parse(
+  await Deno.readTextFile("tests/fixtures/runner-worker-deadlines.v1.json"),
+) as DeadlineTable;
+if (deadlineTable.schemaVersion !== 1) {
+  throw new Error(
+    `runner-worker contract deadlines: schema drift (${deadlineTable.schemaVersion} != 1) — re-run scripts/derive-runner-worker-deadlines.ts`,
+  );
+}
+function workerDeadlineMs(slug: string, target: string): number {
+  const entry = deadlineTable.cases[`${slug}|${target}`];
+  if (!entry || typeof entry.deadlineMs !== "number") {
+    throw new Error(
+      `${slug}[${target}]: no deadline entry (table generation bug) — re-run scripts/derive-runner-worker-deadlines.ts (bead wasm-vs-js-rkw)`,
+    );
+  }
+  return entry.deadlineMs;
+}
+
 async function withLocalServer<T>(fn: (origin: string) => Promise<T>): Promise<T> {
   const tempDir = await Deno.makeTempDir();
   try {
@@ -81,6 +120,7 @@ for (const [slug, config] of Object.entries(configsMap)) {
           : Math.floor(Math.random() * 1000000);
         const msg = { token, ...payload, ...(config.prepared || {}) };
         const workerUrl = `${serverOrigin}${config.workerScript}`;
+        const deadlineMs = workerDeadlineMs(slug, target);
 
         const res = await new Promise<{ ok: boolean; data?: unknown; error?: string }>(
           (resolve) => {
@@ -91,7 +131,7 @@ for (const [slug, config] of Object.entries(configsMap)) {
                 ok: false,
                 error: `${slug}[${target}] timed out waiting for worker message`,
               });
-            }, 5000);
+            }, deadlineMs);
 
             try {
               worker = new Worker(workerUrl, { type: "module" });

@@ -41,7 +41,10 @@
 //
 // --check recomputes deadlines from the committed raw rows with the same
 // formula and fails if the committed table disagrees (deterministic; it never
-// re-measures). No external imports: deno.lock stays byte-identical.
+// re-measures). Imports only repo-local modules; deno.lock stays byte-identical.
+// WORKLOAD_CONFIGS comes from public/unified-runner.js — the same module the
+// committed test imports — to enumerate every expected (slug, target) key.
+import { WORKLOAD_CONFIGS } from "../public/unified-runner.js";
 
 const OUT_PATH = "tests/fixtures/runner-worker-deadlines.v1.json";
 const TEST_PATH = "tests/runner-worker-contracts.test.ts";
@@ -81,6 +84,19 @@ function nearestRankP95(values: number[]): number {
   return sorted[rank - 1];
 }
 
+function expectedKeys(): string[] {
+  const keys: string[] = [];
+  for (
+    const [slug, config] of Object.entries(
+      WORKLOAD_CONFIGS as Record<string, { workerType?: string }>,
+    )
+  ) {
+    if (config.workerType === "classic") continue; // skips the dynamic block; unmeasured by design
+    keys.push(`${slug}|js`, `${slug}|wasm`);
+  }
+  return keys.sort();
+}
+
 function deriveCases(rows: Row[]): { cases: Record<string, CaseStats>; fallbacks: string[] } {
   const byKey = new Map<string, Row[]>();
   for (const r of rows) {
@@ -91,7 +107,8 @@ function deriveCases(rows: Row[]): { cases: Record<string, CaseStats>; fallbacks
   }
   const cases: Record<string, CaseStats> = {};
   const fallbacks: string[] = [];
-  for (const [key, list] of [...byKey.entries()].sort(([a], [b]) => a.localeCompare(b))) {
+  for (const key of expectedKeys()) {
+    const list = byKey.get(key) ?? [];
     const okRows = list.filter((r) => r.ok);
     const censored = list.filter((r) =>
       !r.ok && r.error.includes("timed out waiting for worker")
@@ -99,12 +116,14 @@ function deriveCases(rows: Row[]): { cases: Record<string, CaseStats>; fallbacks
     const errors = list.length - okRows.length - censored;
     let p95Ms: number | null = null;
     let fallback = false;
+    let unmeasured = false;
     let deadlineMs: number;
     if (okRows.length > 0) {
       p95Ms = nearestRankP95(okRows.map((r) => r.ms));
       deadlineMs = Math.max(FLOOR_MS, Math.ceil(MULTIPLIER * p95Ms));
     } else {
       fallback = true;
+      unmeasured = list.length === 0; // the case aborted at an earlier target before this round trip ran
       deadlineMs = FALLBACK_MS;
       fallbacks.push(key);
     }
@@ -117,6 +136,7 @@ function deriveCases(rows: Row[]): { cases: Record<string, CaseStats>; fallbacks
       deadlineMs,
       fallback,
       fallbackReason: fallback ? FALLBACK_REASON : null,
+      ...(unmeasured ? { unmeasured: true } : {}),
     };
   }
   return { cases, fallbacks };
@@ -134,6 +154,28 @@ function parseRows(log: string, run: number): Row[] {
     rows.push({ slug, target, ms: Number(ms), ok: ok === "ok", error, run });
   }
   return rows;
+}
+
+if (Deno.args.includes("--rebuild")) {
+  // Recompute cases from the committed raw runs with the CURRENT method
+  // (e.g. after the expected-key enumeration changed) without re-measuring.
+  const committed = JSON.parse(await Deno.readTextFile(OUT_PATH));
+  if (committed.schemaVersion !== FORMULA_VERSION) {
+    console.error(
+      `derive-runner-worker-deadlines: schema drift (${committed.schemaVersion} != ${FORMULA_VERSION})`,
+    );
+    Deno.exit(1);
+  }
+  const { cases, fallbacks } = deriveCases(committed.runs.flatMap((r: { rows: Row[] }) => r.rows));
+  committed.cases = cases;
+  committed.fallbacks = fallbacks;
+  await Deno.writeTextFile(OUT_PATH, JSON.stringify(committed, null, 2) + "\n");
+  console.error(
+    `derive-runner-worker-deadlines: rebuilt ${OUT_PATH} (${
+      Object.keys(cases).length
+    } cases, ${fallbacks.length} fallbacks) from ${committed.runs.length} committed runs`,
+  );
+  Deno.exit(0);
 }
 
 if (Deno.args.includes("--check")) {
