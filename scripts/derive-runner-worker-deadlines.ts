@@ -32,7 +32,7 @@
 //   looser: it is a gate-sensitivity change, by design.
 //
 // Usage:
-//   deno run --allow-read --allow-write --allow-run --allow-env \
+//   deno run --allow-read --allow-write --allow-run --allow-env --allow-sys=loadavg \
 //     scripts/derive-runner-worker-deadlines.ts [--runs 5]
 //   deno run --allow-read scripts/derive-runner-worker-deadlines.ts --check
 //
