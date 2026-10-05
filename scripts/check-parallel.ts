@@ -139,10 +139,10 @@ interface LiveStage {
 const liveStages = new Map<string, LiveStage>();
 let shuttingDown = false;
 
-async function signalStageGroup(
+function signalStageGroup(
   ls: LiveStage,
   signal: "TERM" | "KILL",
-): Promise<void> {
+): void {
   if (!GROUP_KILL) {
     // Best effort off Linux (no setsid): only the direct child dies.
     try {
@@ -184,7 +184,7 @@ async function terminateJobGroup(reason: string): Promise<boolean> {
       victims.map((v) => `${v.name}(pgid ${v.pgid})`).join(", ")
     }`,
   );
-  for (const v of victims) await signalStageGroup(v, "TERM");
+  for (const v of victims) signalStageGroup(v, "TERM");
   // Grace period: stages that trap SIGTERM get a moment to exit before KILL.
   const settled = new Set<string>();
   await Promise.all(victims.map(async (v) => {
@@ -195,7 +195,7 @@ async function terminateJobGroup(reason: string): Promise<boolean> {
     ]);
   }));
   for (const v of victims) {
-    if (!settled.has(v.name)) await signalStageGroup(v, "KILL");
+    if (!settled.has(v.name)) signalStageGroup(v, "KILL");
   }
   // Reap every child so neither zombie nor orphan outlives the wrapper.
   await Promise.allSettled(victims.map((v) => v.statusPromise));
