@@ -118,15 +118,25 @@ interface Stage {
 // --- Job-group discipline (wasm-vs-js-pz5) ----------------------------------
 // Defect: on stage failure the wrapper used to Deno.exit() while sibling
 // stages kept running, reparented to init, still holding the fleet-heavy
-// slot — a present .exit file then meant "the wrapper returned", not "the
-// tree is gone". Now every stage runs in its OWN process group (setsid on
-// Linux; grandchildren inherit the group), and on any stage failure — or on
-// SIGTERM/SIGINT to the wrapper itself — the wrapper SIGTERMs then SIGKILLs
-// every outstanding stage group, reaps the children, and verifies each group
-// is gone (kill -0) before it exits. The fleet's outer kill
+// slot — the run looked finished while the tree was still alive. Now every
+// stage runs in its OWN process group (setsid on Linux; grandchildren
+// inherit the group), and on any stage failure — or on SIGTERM/SIGINT to
+// the wrapper itself — the wrapper SIGTERMs then SIGKILLs every outstanding
+// stage group, reaps the children, and verifies each group is gone
+// (kill -0) before it exits. The fleet's outer kill
 // (`kill -TERM -- -<wrapper pgid>`) reaches the wrapper but not the stage
 // groups, which is exactly why the signal handlers below run the same sweep.
-// Consequence: a present .exit file implies no surviving stage children.
+//
+// CONTRACT (scoped, hub ruling 2026-10-05): the no-survivors claim is the
+// "clean shutdown" stderr line below plus the exit code — nothing else.
+// The .exit file is written by the external orchestrator, not by this
+// script, so its existence alone is not the contract. The claim is made
+// ONLY on Linux (GROUP_KILL): there, "clean shutdown" means every stage
+// group was reaped and verified gone. Off Linux the code takes the
+// documented best-effort path (direct-child kill only) and the claim is
+// NOT made. When verification fails the wrapper prints DIRTY shutdown and
+// exits non-zero — it never claims no-survivors when it has not verified
+// it.
 const GROUP_KILL = Deno.build.os === "linux";
 
 interface LiveStage {
@@ -249,8 +259,8 @@ async function terminateJobGroup(reason: string): Promise<boolean> {
 function reportShutdown(context: string, clean: boolean): void {
   console.error(
     clean
-      ? `check-parallel: clean shutdown (${context}) — a present .exit file implies no surviving stage children`
-      : `check-parallel: DIRTY shutdown (${context}) — survivor groups remain; sweep for orphans before trusting the box`,
+      ? `check-parallel: clean shutdown (${context}) — all stage groups reaped and verified gone; no-survivors is claimed on this line only`
+      : `check-parallel: DIRTY shutdown (${context}) — survivor groups remain (or verification was inconclusive); exit is non-zero — sweep for orphans before trusting the box`,
   );
 }
 
@@ -398,11 +408,12 @@ async function runStage(stage: Stage): Promise<void> {
 
 // Acceptance driver for the group-kill discipline (wasm-vs-js-pz5): a
 // deliberately failing stage alongside a long-running stage that spawns a
-// grandchild. Expected: the wrapper logs the sweep, exits with the failing
-// stage's code (3), and no selftest process survives — verifiable from
-// outside: `ps -eo pid,ppid,pgid,cmd | grep selftest-group-kill` must return
-// nothing once the wrapper's .exit file exists. Exercises the same runStage
-// code path as the real fan-out without running the gate.
+// grandchild. Expected: the wrapper logs the sweep, prints the clean
+// shutdown line, exits with the failing stage's code (3), and no selftest
+// process survives — verifiable from outside: `ps -eo pid,ppid,pgid,cmd |
+// grep selftest-group-kill` must return nothing once the wrapper has
+// exited. Exercises the same runStage code path as the real fan-out
+// without running the gate.
 if (Deno.args.includes("--self-test-group-kill")) {
   const marker = "selftest-group-kill";
   await Promise.all([
